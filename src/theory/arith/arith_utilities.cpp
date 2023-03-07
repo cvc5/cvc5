@@ -17,6 +17,9 @@
 
 #include <cmath>
 
+#include "theory/bv/theory_bv_utils.h"
+#include "util/bitvector.h"
+
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
@@ -305,6 +308,58 @@ std::pair<Node,Node> mkSameType(const Node& a, const Node& b)
   }
   Assert(at.isReal() && bt.isInteger());
   return {a, nm->mkNode(kind::TO_REAL, b)};
+}
+
+/* ------------------------------------------------------------------------- */
+
+Node eliminateBv2Nat(TNode node)
+{
+  const unsigned size = bv::utils::getSize(node[0]);
+  NodeManager* const nm = NodeManager::currentNM();
+  const Node z = nm->mkConstInt(Rational(0));
+  const Node bvone = bv::utils::mkOne(1);
+
+  Integer i = 1;
+  std::vector<Node> children;
+  for (unsigned bit = 0; bit < size; ++bit, i *= 2)
+  {
+    Node cond =
+        nm->mkNode(kind::EQUAL,
+                   nm->mkNode(nm->mkConst(BitVectorExtract(bit, bit)), node[0]),
+                   bvone);
+    children.push_back(
+        nm->mkNode(kind::ITE, cond, nm->mkConstInt(Rational(i)), z));
+  }
+  // avoid plus with one child
+  return children.size() == 1 ? children[0] : nm->mkNode(kind::ADD, children);
+}
+
+Node eliminateInt2Bv(TNode node)
+{
+  const uint32_t size = node.getOperator().getConst<IntToBitVector>().d_size;
+  NodeManager* const nm = NodeManager::currentNM();
+  const Node bvzero = bv::utils::mkZero(1);
+  const Node bvone = bv::utils::mkOne(1);
+
+  std::vector<Node> v;
+  Integer i = 2;
+  while (v.size() < size)
+  {
+    Node cond = nm->mkNode(
+        kind::GEQ,
+        nm->mkNode(
+            kind::INTS_MODULUS_TOTAL, node[0], nm->mkConstInt(Rational(i))),
+        nm->mkConstInt(Rational(i, 2)));
+    v.push_back(nm->mkNode(kind::ITE, cond, bvone, bvzero));
+    i *= 2;
+  }
+  if (v.size() == 1)
+  {
+    return v[0];
+  }
+  NodeBuilder result(kind::BITVECTOR_CONCAT);
+  result.append(v.rbegin(), v.rend());
+  return Node(result);
 }
 
 }  // namespace arith

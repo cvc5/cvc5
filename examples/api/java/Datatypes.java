@@ -96,8 +96,8 @@ public class Datatypes
     // This example builds a simple parameterized list of sort T, with one
     // constructor "cons".
     Sort sort = slv.mkParamSort("T");
-    DatatypeDecl paramConsListSpec = slv.mkDatatypeDecl(
-        "paramlist", new Sort[] {sort}); // give the datatype a name
+    DatatypeDecl paramConsListSpec =
+        slv.mkDatatypeDecl("paramlist", new Sort[] {sort}); // give the datatype a name
     DatatypeConstructorDecl paramCons = slv.mkDatatypeConstructorDecl("cons");
     DatatypeConstructorDecl paramNil = slv.mkDatatypeConstructorDecl("nil");
     paramCons.addSelector("head", sort);
@@ -136,7 +136,7 @@ public class Datatypes
 
   public static void main(String[] args) throws CVC5ApiException
   {
-    try (Solver slv = new Solver())
+    Solver slv = new Solver();
     {
       // This example builds a simple "cons list" of integers, with
       // two constructors, "cons" and "nil."

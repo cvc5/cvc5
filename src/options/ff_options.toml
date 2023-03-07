@@ -1,0 +1,18 @@
+id     = "FF"
+name   = "Finite Field Theory"
+
+[[option]]
+  name       = "ffTraceGb"
+  category   = "expert"
+  long       = "ff-trace-gb"
+  type       = "bool"
+  default    = "true"
+  help       = "use a traced groebner basis engine"
+
+[[option]]
+  name       = "ffFieldPolys"
+  category   = "expert"
+  long       = "ff-field-polys"
+  type       = "bool"
+  default    = "false"
+  help       = "include field polynomials in Groebner basis computation; don't do this"

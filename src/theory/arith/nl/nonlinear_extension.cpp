@@ -45,13 +45,14 @@ NonlinearExtension::NonlinearExtension(Env& env,
       d_containing(containing),
       d_astate(state),
       d_im(containing.getInferenceManager()),
+      d_stats(statisticsRegistry()),
       d_hasNlTerms(false),
       d_checkCounter(0),
       d_extTheoryCb(state.getEqualityEngine()),
       d_extTheory(env, d_extTheoryCb, d_im),
       d_model(env),
       d_trSlv(d_env, d_astate, d_im, d_model),
-      d_extState(d_im, d_model, d_env),
+      d_extState(d_env, d_im, d_model),
       d_factoringSlv(d_env, &d_extState),
       d_monomialBoundsSlv(d_env, &d_extState),
       d_monomialSlv(d_env, &d_extState),
@@ -401,7 +402,7 @@ Result::Status NonlinearExtension::modelBasedRefinement(
         Trace("nl-ext") << "...failed to send lemma in "
                            "NonLinearExtension, set incomplete"
                         << std::endl;
-        d_containing.getOutputChannel().setIncomplete(IncompleteId::ARITH_NL);
+        d_containing.getOutputChannel().setModelUnsound(IncompleteId::ARITH_NL);
         return Result::UNKNOWN;
       }
     }

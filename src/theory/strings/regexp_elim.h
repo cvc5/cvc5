@@ -20,6 +20,7 @@
 #include "expr/node.h"
 #include "proof/eager_proof_generator.h"
 #include "proof/trust_node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -32,7 +33,7 @@ namespace strings {
  *
  * It is used by TheoryStrings during ppRewrite.
  */
-class RegExpElimination
+class RegExpElimination : protected EnvObj
 {
  public:
   /**
@@ -40,8 +41,8 @@ class RegExpElimination
    * @param pnm The proof node manager to use (for proofs)
    * @param c The context to use (for proofs)
    */
-  RegExpElimination(bool isAgg = false,
-                    ProofNodeManager* pnm = nullptr,
+  RegExpElimination(Env& env,
+                    bool isAgg = false,
                     context::Context* c = nullptr);
   /** eliminate membership
    *
@@ -77,8 +78,6 @@ class RegExpElimination
   bool isProofEnabled() const;
   /** Are aggressive eliminations enabled? */
   bool d_isAggressive;
-  /** Pointer to the proof node manager */
-  ProofNodeManager* d_pnm;
   /** An eager proof generator for storing proofs in eliminate trusted above */
   std::unique_ptr<EagerProofGenerator> d_epg;
 }; /* class RegExpElimination */

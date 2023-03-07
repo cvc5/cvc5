@@ -16,7 +16,7 @@
 
 #include "theory/shared_terms_database.h"
 
-#include "smt/smt_statistics_registry.h"
+#include "options/theory_options.h"
 #include "theory/theory_engine.h"
 
 using namespace std;
@@ -25,10 +25,10 @@ using namespace cvc5::internal::theory;
 namespace cvc5::internal {
 
 SharedTermsDatabase::SharedTermsDatabase(Env& env, TheoryEngine* theoryEngine)
-    : ContextNotifyObj(env.getContext()),
-      d_env(env),
+    : EnvObj(env),
+      ContextNotifyObj(env.getContext()),
       d_statSharedTerms(
-          smtStatisticsRegistry().registerInt("theory::shared_terms")),
+          statisticsRegistry().registerInt("theory::shared_terms")),
       d_addedSharedTermsSize(env.getContext(), 0),
       d_termsToTheories(env.getContext()),
       d_alreadyNotifiedMap(env.getContext()),
@@ -38,7 +38,8 @@ SharedTermsDatabase::SharedTermsDatabase(Env& env, TheoryEngine* theoryEngine)
       d_inConflict(env.getContext(), false),
       d_conflictPolarity(),
       d_equalityEngine(nullptr),
-      d_pfee(nullptr)
+      d_pfee(nullptr),
+      d_out(theoryEngine->theoryOf(THEORY_BUILTIN)->getOutputChannel())
 {
 }
 
@@ -69,6 +70,11 @@ bool SharedTermsDatabase::needsEqualityEngine(EeSetupInfo& esi)
 void SharedTermsDatabase::addEqualityToPropagate(TNode equality) {
   Assert(d_equalityEngine != nullptr);
   d_registeredEqualities.insert(equality);
+  if (d_theoryEngine->hasSatValue(equality))
+  {
+    // don't need to propagate what is already asserted
+    return;
+  }
   d_equalityEngine->addTriggerPredicate(equality);
   checkForConflict();
 }
@@ -264,11 +270,9 @@ void SharedTermsDatabase::assertShared(TNode n, bool polarity, TNode reason)
 
 bool SharedTermsDatabase::propagateEquality(TNode equality, bool polarity) {
   if (polarity) {
-    d_theoryEngine->propagate(equality, THEORY_BUILTIN);
-  } else {
-    d_theoryEngine->propagate(equality.notNode(), THEORY_BUILTIN);
+    return d_out.propagate(equality);
   }
-  return true;
+  return d_out.propagate(equality.notNode());
 }
 
 void SharedTermsDatabase::checkForConflict()

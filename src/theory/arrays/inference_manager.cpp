@@ -29,11 +29,9 @@ namespace arrays {
 
 InferenceManager::InferenceManager(Env& env, Theory& t, TheoryState& state)
     : TheoryInferenceManager(env, t, state, "theory::arrays::", false),
-      d_lemmaPg(isProofEnabled()
-                    ? new EagerProofGenerator(env.getProofNodeManager(),
-                                              userContext(),
-                                              "ArrayLemmaProofGenerator")
-                    : nullptr)
+      d_lemmaPg(isProofEnabled() ? new EagerProofGenerator(
+                    env, userContext(), "ArrayLemmaProofGenerator")
+                                 : nullptr)
 {
 }
 

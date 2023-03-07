@@ -65,6 +65,9 @@
 /* Define to 1 if the <unistd.h> header file is available. */
 #cmakedefine01 HAVE_UNISTD_H
 
+/* Define to 1 if the <sys/wait.h> header file is available. */
+#cmakedefine01 HAVE_SYS_WAIT_H
+
 /* Define to 1 if `strerror_r' returns (char *). */
 #cmakedefine01 STRERROR_R_CHAR_P
 

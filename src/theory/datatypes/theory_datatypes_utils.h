@@ -22,7 +22,6 @@
 
 #include "expr/dtype.h"
 #include "expr/node.h"
-#include "expr/node_manager_attributes.h"
 
 namespace cvc5::internal {
 namespace theory {

@@ -29,7 +29,7 @@ if(cryptominisat5_FOUND)
   # TODO(gereon): remove this when
   # https://github.com/msoos/cryptominisat/pull/645 is merged
   set_target_properties(
-    CryptoMiniSat PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
+    CryptoMiniSat PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
                              "${CRYPTOMINISAT5_INCLUDE_DIRS}"
   )
 endif()
@@ -90,7 +90,7 @@ if(NOT CryptoMiniSat_FOUND_SYSTEM)
     CryptoMiniSat PROPERTIES IMPORTED_LOCATION "${CryptoMiniSat_LIBRARIES}"
   )
   set_target_properties(
-    CryptoMiniSat PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
+    CryptoMiniSat PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
                              "${CryptoMiniSat_INCLUDE_DIR}"
   )
 endif()

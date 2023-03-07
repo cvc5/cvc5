@@ -21,6 +21,7 @@
 #include "options/quantifiers_options.h"
 #include "smt/env.h"
 #include "smt/logic_exception.h"
+#include "smt/set_defaults.h"
 #include "util/random.h"
 
 using namespace cvc5::internal::kind;
@@ -32,6 +33,8 @@ namespace quantifiers {
 SolutionFilterStrength::SolutionFilterStrength(Env& env)
     : ExprMiner(env), d_isStrong(true)
 {
+  d_subOptions.copyValues(options());
+  smt::SetDefaults::disableChecking(d_subOptions);
 }
 void SolutionFilterStrength::initialize(const std::vector<Node>& vars,
                                         SygusSampler* ss)
@@ -70,7 +73,8 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
         << "  implies: check subsumed (strong=" << d_isStrong << ") " << imp
         << "..." << std::endl;
     // check the satisfiability query
-    Result r = doCheck(imp);
+    SubsolverSetupInfo ssi(d_env, d_subOptions);
+    Result r = doCheck(imp, ssi);
     Trace("sygus-sol-implied") << "  implies: ...got : " << r << std::endl;
     if (r.getStatus() == Result::UNSAT)
     {
@@ -89,7 +93,8 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
       Trace("sygus-sol-implied")
           << "  implies: check subsuming " << imp << "..." << std::endl;
       // check the satisfiability query
-      Result r = doCheck(imp);
+      SubsolverSetupInfo ssi(d_env, d_subOptions);
+      Result r = doCheck(imp, ssi);
       Trace("sygus-sol-implied") << "  implies: ...got : " << r << std::endl;
       if (r.getStatus() != Result::UNSAT)
       {

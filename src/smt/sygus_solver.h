@@ -101,6 +101,12 @@ class SygusSolver : protected EnvObj
   /** Add a regular sygus constraint or assumption.*/
   void assertSygusConstraint(Node n, bool isAssume);
 
+  /** @return sygus constraints .*/
+  std::vector<Node> getSygusConstraints() const;
+
+  /** @return sygus assumptions .*/
+  std::vector<Node> getSygusAssumptions() const;
+
   /**
    * Add an invariant constraint.
    *
@@ -131,7 +137,7 @@ class SygusSolver : protected EnvObj
    * in which f1...fn are the functions-to-synthesize, v1...vm are the declared
    * universal variables and F is the set of declared constraints.
    */
-  SynthResult checkSynth(Assertions& as, bool isNext);
+  SynthResult checkSynth(bool isNext);
   /**
    * Get synth solution.
    *

@@ -60,14 +60,14 @@ SimpSolver::SimpSolver(Env& env,
       simp_garbage_frac(opt_simp_garbage_frac),
       use_asymm(opt_use_asymm),
       // make sure this is not enabled if unsat cores or proofs are on
-      use_rcheck(opt_use_rcheck && !options().smt.unsatCores && !pnm),
+      use_rcheck(opt_use_rcheck && !options().smt.produceUnsatCores && !pnm),
       merges(0),
       asymm_lits(0),
       eliminated_vars(0),
       elimorder(1),
       use_simplification(
           options().prop.minisatSimpMode != options::MinisatSimpMode::NONE
-          && !enableIncremental && !options().smt.unsatCores && !pnm),
+          && !enableIncremental && !options().smt.produceUnsatCores && !pnm),
       occurs(ClauseDeleted(ca)),
       elim_heap(ElimLt(n_occ)),
       bwdsub_assigns(0),
@@ -97,22 +97,22 @@ SimpSolver::~SimpSolver()
 {
 }
 
+Var SimpSolver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool canErase)
+{
+  Var v = Solver::newVar(sign, dvar, isTheoryAtom, canErase);
 
-Var SimpSolver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool preRegister, bool canErase) {
-    Var v = Solver::newVar(sign, dvar, isTheoryAtom, preRegister, canErase);
-
-    if (use_simplification){
-        frozen    .push((char)(!canErase));
-        eliminated.push((char)false);
-        n_occ     .push(0);
-        n_occ     .push(0);
-        occurs    .init(v);
-        touched   .push(0);
-        elim_heap .insert(v);
-    }
-    return v; }
-
-
+  if (use_simplification)
+  {
+    frozen.push((char)(!canErase));
+    eliminated.push((char)false);
+    n_occ.push(0);
+    n_occ.push(0);
+    occurs.init(v);
+    touched.push(0);
+    elim_heap.insert(v);
+  }
+  return v;
+}
 
 lbool SimpSolver::solve_(bool do_simp, bool turn_off_simp)
 {

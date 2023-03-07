@@ -19,8 +19,6 @@
 #include "preprocessing/preprocessing_pass_context.h"
 #include "printer/printer.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
-#include "smt/solver_engine_scope.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5::internal {
@@ -45,7 +43,7 @@ PreprocessingPass::PreprocessingPass(PreprocessingPassContext* preprocContext,
 {
 }
 
-PreprocessingPass::~PreprocessingPass() { Assert(smt::solverEngineInScope()); }
+PreprocessingPass::~PreprocessingPass() {}
 
 }  // namespace preprocessing
 }  // namespace cvc5::internal

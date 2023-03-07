@@ -105,6 +105,12 @@ class BagReduction
    *   ((_ table.group n1 ... nk) A))
    */
   static Node reduceAggregateOperator(Node node);
+  /**
+   * @param n has the form ((table.project n1 ... nk) A) where A has type
+   *          (Bag T)
+   * @return (bag.map (lambda ((t T)) ((_ tuple.project n1 ... nk) t)) A)
+   */
+  static Node reduceProjectOperator(Node n);
 };
 
 }  // namespace bags

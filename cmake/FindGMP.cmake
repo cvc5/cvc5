@@ -17,13 +17,16 @@
 
 include(deps-helper)
 
-find_path(GMP_INCLUDE_DIR NAMES gmp.h gmpxx.h)
+find_path(GMP_INCLUDE_DIR NAMES gmp.h)
+find_path(GMPXX_INCLUDE_DIR NAMES gmpxx.h)
 find_library(GMP_LIBRARIES NAMES gmp)
+find_library(GMPXX_LIBRARIES NAMES gmpxx)
 
 set(GMP_FOUND_SYSTEM FALSE)
-if(GMP_INCLUDE_DIR AND GMP_LIBRARIES)
+if(GMP_INCLUDE_DIR AND GMPXX_INCLUDE_DIR AND GMP_LIBRARIES AND GMPXX_LIBRARIES)
   set(GMP_FOUND_SYSTEM TRUE)
 
+  # Attempt to retrieve the version from gmp.h
   function(getversionpart OUTPUT FILENAME DESC)
     file(STRINGS ${FILENAME} RES REGEX "^#define __GNU_MP_${DESC}[ \\t]+.*")
     string(REGEX MATCH "[0-9]+" RES "${RES}")
@@ -35,19 +38,26 @@ if(GMP_INCLUDE_DIR AND GMP_LIBRARIES)
   getversionpart(MAJOR "${GMP_INCLUDE_DIR}/gmp.h" "VERSION")
   getversionpart(MINOR "${GMP_INCLUDE_DIR}/gmp.h" "VERSION_MINOR")
   getversionpart(PATCH "${GMP_INCLUDE_DIR}/gmp.h" "VERSION_PATCHLEVEL")
-  set(GMP_VERSION
-      "${MAJOR}.${MINOR}.${PATCH}"
-  )
 
-  check_system_version("GMP")
+  if(MAJOR AND MINOR AND PATCH)
+    set(GMP_VERSION
+        "${MAJOR}.${MINOR}.${PATCH}"
+    )
+  else()
+    set(GMP_VERSION "(unknown version)")
+  endif()
 
-  TRY_COMPILE(DOES_WORK "${DEPS_BASE}/try_compile/GMP-EP"
+  # This test checks whether GMP is usable and whether the version is new
+  # enough
+  try_compile(GMP_USABLE "${DEPS_BASE}/try_compile/GMP-EP"
     "${CMAKE_CURRENT_LIST_DIR}/deps-utils/gmp-test.cpp"
-    CMAKE_FLAGS -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
-    LINK_LIBRARIES gmpxx gmp
+    CMAKE_FLAGS
+      "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}"
+      "-DINCLUDE_DIRECTORIES=${GMP_INCLUDE_DIR}"
+    LINK_LIBRARIES ${GMP_LIBRARIES} ${GMPXX_LIBRARIES}
   )
-  if(NOT ${DOES_WORK})
-    message(VERBOSE "System version for ${name} does not work in the selected configuration. Maybe we are cross-compiling?")
+  if(NOT GMP_USABLE)
+    message(VERBOSE "System version for GMP does not work in the selected configuration. Maybe we are cross-compiling?")
     set(GMP_FOUND_SYSTEM FALSE)
   endif()
 endif()
@@ -75,17 +85,34 @@ if(NOT GMP_FOUND_SYSTEM)
     set(GMP_LIBRARIES "${DEPS_BASE}/lib/libgmp.a")
   endif()
 
-  set(CONFIGURE_OPTS "")
-  set(CONFIGURE_ENV "")
+  set(CONFIGURE_OPTS "")  
+  # GMP yields the following message at the end of the build process.
+  #     WARNING: `makeinfo' is missing on your system.
+
+  # This is a specific issue to Github CI on linux environments:
+  #     https://github.com/ps2dev/ps2toolchain/issues/64
+  #     https://github.com/spack/spack/issues/34906
+  #     https://github.com/periscop/candl/issues/16
+  #     https://github.com/microsoft/vcpkg/issues/22671
+  # Many solution attempts have been tried, but none worked.
+
+  # Since makeinfo just builds the documentation for GMP, 
+  # it is possible to get around this issue by just disabling it:
+  set(CONFIGURE_ENV env "MAKEINFO=true")
+
   if(CMAKE_CROSSCOMPILING OR CMAKE_CROSSCOMPILING_MACOS)
     set(CONFIGURE_OPTS
       --host=${TOOLCHAIN_PREFIX}
       --build=${CMAKE_HOST_SYSTEM_PROCESSOR})
-  endif()
-  if (CMAKE_CROSSCOMPILING_MACOS)
+
     set(CONFIGURE_ENV ${CMAKE_COMMAND} -E
-      env "CFLAGS=--target=${TOOLCHAIN_PREFIX}"
-      env "LDFLAGS=-arch ${CMAKE_OSX_ARCHITECTURES}")
+      env "CC_FOR_BUILD=cc")
+    if (CMAKE_CROSSCOMPILING_MACOS)
+      set(CONFIGURE_ENV
+        ${CONFIGURE_ENV}
+        env "CFLAGS=--target=${TOOLCHAIN_PREFIX}"
+        env "LDFLAGS=-arch ${CMAKE_OSX_ARCHITECTURES}")
+    endif()
   endif()
 
   # `CC_FOR_BUILD`, `--host`, and `--build` are passed to `configure` to ensure
@@ -95,11 +122,11 @@ if(NOT GMP_FOUND_SYSTEM)
   ExternalProject_Add(
     GMP-EP
     ${COMMON_EP_CONFIG}
-    URL https://gmplib.org/download/gmp/gmp-${GMP_VERSION}.tar.bz2
+    URL https://github.com/cvc5/cvc5-deps/blob/main/gmp-${GMP_VERSION}.tar.bz2?raw=true
     URL_HASH SHA1=2dcf34d4a432dbe6cce1475a835d20fe44f75822
     CONFIGURE_COMMAND
       ${CONFIGURE_ENV}
-        <SOURCE_DIR>/configure
+          ${CONFIGURE_CMD_WRAPPER} <SOURCE_DIR>/configure
           ${LINK_OPTS}
           --prefix=<INSTALL_DIR>
           --with-pic
@@ -122,7 +149,7 @@ else()
 endif()
 set_target_properties(GMP PROPERTIES
   IMPORTED_LOCATION "${GMP_LIBRARIES}"
-  INTERFACE_INCLUDE_DIRECTORIES "${GMP_INCLUDE_DIR}"
+  INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${GMP_INCLUDE_DIR}"
 )
 
 mark_as_advanced(GMP_FOUND)

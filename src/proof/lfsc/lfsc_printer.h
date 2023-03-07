@@ -27,6 +27,7 @@
 #include "proof/lfsc/lfsc_util.h"
 #include "proof/print_expr.h"
 #include "proof/proof_node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace proof {
@@ -41,18 +42,16 @@ class LfscPrintChannel;
  * It expects to print proof nodes that have been processed by the LFSC
  * proof post processor.
  */
-class LfscPrinter
+class LfscPrinter : protected EnvObj
 {
  public:
-  LfscPrinter(LfscNodeConverter& ltp);
+  LfscPrinter(Env& env, LfscNodeConverter& ltp);
   ~LfscPrinter() {}
 
   /**
-   * Print the full proof of assertions => false by pn on output stream out.
+   * Print the full proof of false by pn on output stream out.
    */
-  void print(std::ostream& out,
-             const std::vector<Node>& assertions,
-             const ProofNode* pn);
+  void print(std::ostream& out, const ProofNode* pn);
 
   /**
    * Print node to stream in the expected format of LFSC.
@@ -118,9 +117,13 @@ class LfscPrinter
                      bool letTop = true);
   /**
    * print let list, prints definitions of lbind on out in order, and closing
-   * parentheses on cparen.
+   * parentheses on cparen. If asDefs is true, then the definition is printed
+   * as a standalone define statement on out.
    */
-  void printLetList(std::ostream& out, std::ostream& cparen, LetBinding& lbind);
+  void printLetList(std::ostream& out,
+                    std::ostream& cparen,
+                    LetBinding& lbind,
+                    bool asDefs = false);
 
   //------------------------------ printing proofs
   /**
@@ -141,6 +144,18 @@ class LfscPrinter
                           const LetBinding& lbind,
                           const std::map<const ProofNode*, size_t>& pletMap,
                           std::map<Node, size_t>& passumeMap);
+  /**
+   * Print a plet proof on output channel out, where p is the letified
+   * proof and pid is its identifier for the given name prefix.
+   * The remaining arguments are used for printing p.
+   */
+  void printPLet(LfscPrintChannel* out,
+                 const ProofNode* p,
+                 size_t pid,
+                 const std::string& prefix,
+                 const LetBinding& lbind,
+                 const std::map<const ProofNode*, size_t>& pletMap,
+                 std::map<Node, size_t>& passumeMap);
   /**
    * Get the arguments for the proof node application. This adds the arguments
    * of the given proof to the vector pargs.
@@ -166,6 +181,16 @@ class LfscPrinter
   TypeNode d_boolType;
   /** assumption counter */
   size_t d_assumpCounter;
+  /** Counter for plet definitions for children of trust steps */
+  size_t d_trustChildPletCounter;
+  /** term prefix */
+  std::string d_termLetPrefix;
+  /** assumption prefix */
+  std::string d_assumpPrefix;
+  /** proof letified prefix */
+  std::string d_pletPrefix;
+  /** proof letified trust child prefix */
+  std::string d_pletTrustChildPrefix;
   /** for debugging the open rules, the set of PfRule we have warned about */
   std::unordered_set<PfRule, PfRuleHashFunction> d_trustWarned;
 };

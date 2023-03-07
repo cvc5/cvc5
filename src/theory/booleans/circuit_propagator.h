@@ -249,8 +249,6 @@ class CircuitPropagator : protected EnvObj
   /** Adds a new proof for f, or drops it if we already have a proof */
   void addProof(TNode f, std::shared_ptr<ProofNode> pf);
 
-  /** A pointer to the proof manager */
-  ProofNodeManager* d_pnm;
   /** Eager proof generator that actually stores the proofs */
   std::unique_ptr<EagerProofGenerator> d_epg;
   /** Connects the proofs to subproofs internally */

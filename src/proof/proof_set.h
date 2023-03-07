@@ -22,9 +22,10 @@
 
 #include "context/cdlist.h"
 #include "context/context.h"
-#include "proof/proof_node_manager.h"
 
 namespace cvc5::internal {
+
+class Env;
 
 /**
  * A (context-dependent) set of proofs, which is used for memory
@@ -34,10 +35,8 @@ template <typename T>
 class CDProofSet
 {
  public:
-  CDProofSet(ProofNodeManager* pnm,
-             context::Context* c,
-             std::string namePrefix = "Proof")
-      : d_pnm(pnm), d_proofs(c), d_namePrefix(namePrefix)
+  CDProofSet(Env& env, context::Context* c, std::string namePrefix = "Proof")
+      : d_env(env), d_proofs(c), d_namePrefix(namePrefix)
   {
   }
   /**
@@ -56,15 +55,15 @@ class CDProofSet
   T* allocateProof(Args&&... args)
   {
     d_proofs.push_back(std::make_shared<T>(
-        d_pnm,
+        d_env,
         std::forward<Args>(args)...,
         d_namePrefix + "_" + std::to_string(d_proofs.size())));
     return d_proofs.back().get();
   }
 
  protected:
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
+  /** Reference to env */
+  Env& d_env;
   /** A context-dependent list of lazy proofs. */
   context::CDList<std::shared_ptr<T>> d_proofs;
   /** The name prefix of the lazy proofs */

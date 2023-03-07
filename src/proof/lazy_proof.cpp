@@ -23,13 +23,13 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 
-LazyCDProof::LazyCDProof(ProofNodeManager* pnm,
+LazyCDProof::LazyCDProof(Env& env,
                          ProofGenerator* dpg,
                          context::Context* c,
                          const std::string& name,
                          bool autoSym,
                          bool doCache)
-    : CDProof(pnm, c, name, autoSym),
+    : CDProof(env, c, name, autoSym),
       d_gens(c ? c : &d_context),
       d_defaultGen(dpg),
       d_doCache(doCache),
@@ -122,16 +122,16 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
             {
               if (pgc->getRule() == PfRule::SYMM)
               {
-                d_manager->updateNode(cur, pgc->getChildren()[0].get());
+                getManager()->updateNode(cur, pgc->getChildren()[0].get());
               }
               else
               {
-                d_manager->updateNode(cur, PfRule::SYMM, {pgc}, {});
+                getManager()->updateNode(cur, PfRule::SYMM, {pgc}, {});
               }
             }
             else
             {
-              d_manager->updateNode(cur, pgc.get());
+              getManager()->updateNode(cur, pgc.get());
             }
             Trace("lazy-cdproof") << "LazyCDProof: Successfully added fact for "
                                   << cfactGen << std::endl;
@@ -201,7 +201,7 @@ void LazyCDProof::addLazyStep(Node expected,
   if (isClosed)
   {
     Trace("lazy-cdproof-debug") << "Checking closed..." << std::endl;
-    pfgEnsureClosed(expected, pg, "lazy-cdproof-debug", ctx);
+    pfgEnsureClosed(options(), expected, pg, "lazy-cdproof-debug", ctx);
   }
 }
 
@@ -213,18 +213,21 @@ ProofGenerator* LazyCDProof::getGeneratorFor(Node fact, bool& isSym)
   {
     return (*it).second;
   }
-  Node factSym = CDProof::getSymmFact(fact);
-  // could be symmetry
-  if (factSym.isNull())
+  if (d_autoSymm)
   {
-    // can't be symmetry, return the default generator
-    return d_defaultGen;
-  }
-  it = d_gens.find(factSym);
-  if (it != d_gens.end())
-  {
-    isSym = true;
-    return (*it).second;
+    Node factSym = CDProof::getSymmFact(fact);
+    // could be symmetry
+    if (factSym.isNull())
+    {
+      // can't be symmetry, return the default generator
+      return d_defaultGen;
+    }
+    it = d_gens.find(factSym);
+    if (it != d_gens.end())
+    {
+      isSym = true;
+      return (*it).second;
+    }
   }
   // return the default generator
   return d_defaultGen;

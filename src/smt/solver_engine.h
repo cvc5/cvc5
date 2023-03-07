@@ -21,6 +21,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "context/cdhashmap_forward.h"
@@ -30,11 +31,6 @@
 #include "theory/logic_info.h"
 #include "util/result.h"
 #include "util/synth_result.h"
-
-namespace cvc5::context {
-class Context;
-class UserContext;
-}  // namespace cvc5::context
 
 namespace cvc5 {
 
@@ -49,8 +45,6 @@ typedef NodeTemplate<false> TNode;
 class TypeNode;
 
 class Env;
-class NodeManager;
-class TheoryEngine;
 class UnsatCore;
 class StatisticsRegistry;
 class Printer;
@@ -59,35 +53,22 @@ struct InstantiationList;
 
 /* -------------------------------------------------------------------------- */
 
-namespace preprocessing {
-class PreprocessingPassContext;
-}
-
-/* -------------------------------------------------------------------------- */
-
-namespace prop {
-class PropEngine;
-}  // namespace prop
-
-/* -------------------------------------------------------------------------- */
-
 namespace smt {
 /** Utilities */
+class ContextManager;
 class SolverEngineState;
 class AbstractValues;
-class Assertions;
 class ResourceOutListener;
-class SmtNodeManagerListener;
 class CheckModels;
 /** Subsolvers */
 class SmtSolver;
+class SmtDriver;
 class SygusSolver;
 class AbductionSolver;
 class InterpolationSolver;
 class QuantElimSolver;
 
 struct SolverEngineStatistics;
-class SolverEngineScope;
 class PfManager;
 class UnsatCoreManager;
 
@@ -97,7 +78,6 @@ class UnsatCoreManager;
 
 namespace theory {
 class TheoryModel;
-class Rewriter;
 class QuantifiersEngine;
 }  // namespace theory
 
@@ -106,8 +86,6 @@ class QuantifiersEngine;
 class CVC5_EXPORT SolverEngine
 {
   friend class cvc5::Solver;
-  friend class smt::SolverEngineState;
-  friend class smt::SolverEngineScope;
 
   /* .......................................................................  */
  public:
@@ -118,7 +96,7 @@ class CVC5_EXPORT SolverEngine
    * If provided, optr is a pointer to a set of options that should initialize
    * the values of the options object owned by this class.
    */
-  SolverEngine(NodeManager* nm, const Options* optr = nullptr);
+  SolverEngine(const Options* optr = nullptr);
   /** Destruct the SMT engine.  */
   ~SolverEngine();
 
@@ -230,10 +208,10 @@ class CVC5_EXPORT SolverEngine
   void blockModel(modes::BlockModelsMode mode);
 
   /**
-   * Block the current model values of (at least) the values in exprs.
-   * Can be called only if immediately preceded by a SAT or NOT_ENTAILED query.
-   * Only permitted if produce-models is on, and the block-models option is set
-   * to a mode other than "none".
+   * Block the current model values of (at least) the values in exprs. Can be
+   * called only if immediately preceded by a SAT query. Only permitted if
+   * produce-models is on, and the block-models option is set to a mode other
+   * than "none".
    *
    * This adds an assertion to the assertion stack of the form:
    *  (or (not (= exprs[0] M0)) ... (not (= exprs[n] Mn)))
@@ -267,10 +245,8 @@ class CVC5_EXPORT SolverEngine
   /**
    * Get the list of top-level learned literals that are entailed by the current
    * set of assertions.
-   *
-   * TODO (wishue #104): implement for different modes
    */
-  std::vector<Node> getLearnedLiterals();
+  std::vector<Node> getLearnedLiterals(modes::LearnedLitType t);
 
   /**
    * Get an aspect of the current SMT execution environment.
@@ -295,6 +271,8 @@ class CVC5_EXPORT SolverEngine
                       const std::vector<Node>& formals,
                       Node formula,
                       bool global = false);
+  /** Same as above, with lambda */
+  void defineFunction(Node func, Node lambda, bool global = false);
 
   /**
    * Define functions recursive
@@ -411,6 +389,12 @@ class CVC5_EXPORT SolverEngine
    */
   void assertSygusConstraint(Node n, bool isAssume = false);
 
+  /** @return sygus constraints .*/
+  std::vector<Node> getSygusConstraints();
+
+  /** @return sygus assumptions .*/
+  std::vector<Node> getSygusAssumptions();
+
   /**
    * Add an invariant constraint.
    *
@@ -485,18 +469,9 @@ class CVC5_EXPORT SolverEngine
   Node simplify(const Node& e);
 
   /**
-   * Expand the definitions in a term or formula.
-   *
-   * @param n The node to expand
-   *
-   * @throw TypeCheckingException, LogicException
-   */
-  Node expandDefinitions(const Node& n);
-
-  /**
    * Get the assigned value of an expr (only if immediately preceded by a SAT
-   * or NOT_ENTAILED query).  Only permitted if the SolverEngine is set to
-   * operate interactively and produce-models is on.
+   * query). Only permitted if the SolverEngine is set to operate interactively
+   * and produce-models is on.
    *
    * @throw ModalException, TypeCheckingException, LogicException
    */
@@ -681,32 +656,38 @@ class CVC5_EXPORT SolverEngine
   void getInstantiationTermVectors(Node q,
                                    std::vector<std::vector<Node>>& tvecs);
   /**
-   * As above but only the instantiations that were relevant for the
-   * refutation.
+   * Adds the skolemizations and instantiations that were relevant
+   * for the refutation.
+   * @param insts The relevant instantiations
+   * @param sks The relevant skolemizations
+   * @param getDebugInfo If true, we add identifiers on instantiations that
+   * indicate their source (the strategy that invoked them)
    */
-  void getRelevantInstantiationTermVectors(
-      std::map<Node, InstantiationList>& insts, bool getDebugInfo = false);
+  void getRelevantQuantTermVectors(std::map<Node, InstantiationList>& insts,
+                                   std::map<Node, std::vector<Node>>& sks,
+                                   bool getDebugInfo = false);
   /**
    * Get instantiation term vectors, which maps each instantiated quantified
    * formula to the list of instantiations for that quantified formula. This
    * list is minimized if proofs are enabled, and this call is immediately
-   * preceded by an UNSAT or ENTAILED query
+   * preceded by an UNSAT query.
    */
   void getInstantiationTermVectors(
       std::map<Node, std::vector<std::vector<Node>>>& insts);
 
   /**
-   * Get an unsatisfiable core (only if immediately preceded by an UNSAT or
-   * ENTAILED query).  Only permitted if cvc5 was built with unsat-core support
-   * and produce-unsat-cores is on.
+   * Get an unsatisfiable core (only if immediately preceded by an UNSAT
+   * query). Only permitted if cvc5 was built with unsat-core support and
+   * produce-unsat-cores is on.
    */
   UnsatCore getUnsatCore();
 
   /**
-   * Get a refutation proof (only if immediately preceded by an UNSAT or
-   * ENTAILED query). Only permitted if cvc5 was built with proof support and
-   * the proof option is on. */
-  std::string getProof();
+   * Get a refutation proof (only if immediately preceded by an UNSAT query).
+   * Only permitted if cvc5 was built with proof support and the proof option
+   * is on.
+   */
+  std::string getProof(modes::ProofComponent c = modes::PROOF_COMPONENT_FULL);
 
   /**
    * Get the current set of assertions.  Only permitted if the
@@ -822,9 +803,6 @@ class CVC5_EXPORT SolverEngine
    */
   unsigned long getResourceRemaining() const;
 
-  /** Permit access to the underlying NodeManager. */
-  NodeManager* getNodeManager() const;
-
   /**
    * Print statistics from the statistics registry in the env object owned by
    * this SolverEngine. Safe to use in a signal handler.
@@ -843,32 +821,15 @@ class CVC5_EXPORT SolverEngine
   Options& getOptions();
   const Options& getOptions() const;
 
-  /** Get a pointer to the UserContext owned by this SolverEngine. */
-  context::UserContext* getUserContext();
-
-  /** Get a pointer to the Context owned by this SolverEngine. */
-  context::Context* getContext();
-
-  /** Get a pointer to the TheoryEngine owned by this SolverEngine. */
-  TheoryEngine* getTheoryEngine();
-
-  /** Get a pointer to the PropEngine owned by this SolverEngine. */
-  prop::PropEngine* getPropEngine();
-
   /** Get the resource manager of this SMT engine */
   ResourceManager* getResourceManager() const;
 
-  /** Get the printer used by this SMT engine */
-  const Printer& getPrinter() const;
-
-  /** Get a pointer to the Rewriter owned by this SolverEngine. */
-  theory::Rewriter* getRewriter();
   /**
-   * Get expanded assertions.
+   * Get substituted assertions.
    *
-   * Return the set of assertions, after expanding definitions.
+   * Return the set of assertions, after applying top-level substitutions.
    */
-  std::vector<Node> getExpandedAssertions();
+  std::vector<Node> getSubstitutedAssertions();
 
   /**
    * Get the enviornment from this solver engine.
@@ -893,9 +854,8 @@ class CVC5_EXPORT SolverEngine
 
   /**
    * Internal method to get an unsatisfiable core (only if immediately preceded
-   * by an UNSAT or ENTAILED query). Only permitted if cvc5 was built with
-   * unsat-core support and produce-unsat-cores is on. Does not dump the
-   * command.
+   * by an UNSAT query). Only permitted if cvc5 was built with unsat-core
+   * support and produce-unsat-cores is on. Does not dump the command.
    */
   UnsatCore getUnsatCoreInternal();
 
@@ -961,44 +921,6 @@ class CVC5_EXPORT SolverEngine
    * this method was called.
    */
   theory::QuantifiersEngine* getAvailableQuantifiersEngine(const char* c) const;
-
-  /**
-   * Deep restart, assumes that we just ran a satisfiability check.
-   * Returns true if we wish to reconstruct the SMT solver and try again. If
-   * so, the SMT solver is deep restarted, and we are prepared to make another
-   * satisfiability check.
-   */
-  bool deepRestart();
-
-  // --------------------------------------- callbacks from the state
-  /**
-   * Notify push pre, which is called just before the user context of the state
-   * pushes. This processes all pending assertions.
-   */
-  void notifyPushPre();
-  /**
-   * Notify push post, which is called just after the user context of the state
-   * pushes. This performs a push on the underlying prop engine.
-   */
-  void notifyPushPost();
-  /**
-   * Notify pop pre, which is called just before the user context of the state
-   * pops. This performs a pop on the underlying prop engine.
-   */
-  void notifyPopPre();
-  /**
-   * Notify post solve pre, which is called once per check-sat query. It
-   * is triggered when the first d_state.doPendingPops() is issued after the
-   * check-sat. This method is called before the contexts pop in the method
-   * doPendingPops.
-   */
-  void notifyPostSolvePre();
-  /**
-   * Same as above, but after contexts are popped. This calls the postsolve
-   * method of the underlying TheoryEngine.
-   */
-  void notifyPostSolvePost();
-  // --------------------------------------- end callbacks from the state
 
   /**
    * Internally handle the setting of a logic.  This function should always
@@ -1069,19 +991,24 @@ class CVC5_EXPORT SolverEngine
   std::unique_ptr<Env> d_env;
   /**
    * The state of this SolverEngine, which is responsible for maintaining which
-   * SMT mode we are in, the contexts, the last result, etc.
+   * SMT mode we are in, the last result, etc.
    */
   std::unique_ptr<smt::SolverEngineState> d_state;
+  /**
+   * The context manager of this SolverEngine, which is responsible for
+   * maintaining which the contexts.
+   */
+  std::unique_ptr<smt::ContextManager> d_ctxManager;
 
   /** Abstract values */
   std::unique_ptr<smt::AbstractValues> d_absValues;
-  /** Assertions manager */
-  std::unique_ptr<smt::Assertions> d_asserts;
   /** Resource out listener */
   std::unique_ptr<smt::ResourceOutListener> d_routListener;
 
   /** The SMT solver */
   std::unique_ptr<smt::SmtSolver> d_smtSolver;
+  /** The SMT solver driver */
+  std::unique_ptr<smt::SmtDriver> d_smtDriver;
 
   /**
    * The utility used for checking models
@@ -1120,13 +1047,6 @@ class CVC5_EXPORT SolverEngine
 
   /** The statistics class */
   std::unique_ptr<smt::SolverEngineStatistics> d_stats;
-
-  /**
-   * The global scope object. Upon creation of this SolverEngine, it becomes the
-   * SolverEngine in scope. It says the SolverEngine in scope until it is
-   * destructed, or another SolverEngine is created.
-   */
-  std::unique_ptr<smt::SolverEngineScope> d_scope;
 }; /* class SolverEngine */
 
 /* -------------------------------------------------------------------------- */

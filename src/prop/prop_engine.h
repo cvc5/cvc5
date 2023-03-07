@@ -45,7 +45,7 @@ class DecisionEngine;
 namespace prop {
 
 class CnfStream;
-class CDCLTSatSolverInterface;
+class CDCLTSatSolver;
 class ProofCnfStream;
 class PropPfManager;
 class TheoryProxy;
@@ -264,7 +264,7 @@ class PropEngine : protected EnvObj
   /**
    * Get the assertion level of the SAT solver.
    */
-  unsigned getAssertionLevel() const;
+  uint32_t getAssertionLevel() const;
 
   /**
    * Return true if we are currently searching (either in this or
@@ -297,6 +297,8 @@ class PropEngine : protected EnvObj
    */
   bool properExplanation(TNode node, TNode expl) const;
 
+  /** Get the associated CNF stream. */
+  CnfStream* getCnfStream();
   /** Retrieve this modules proof CNF stream. */
   ProofCnfStream* getProofCnfStream();
 
@@ -308,17 +310,33 @@ class PropEngine : protected EnvObj
    * Return the prop engine proof. This should be called only when proofs are
    * enabled. Returns a proof of false whose free assumptions are the
    * preprocessed assertions.
+   *
+   * @param connectCnf If this flag is false, then all clausified preprocessed
+   * assertion and theory lemmas are free assumptions in the returned proof
+   * instead of being connected to their proofs.
    */
-  std::shared_ptr<ProofNode> getProof();
+  std::shared_ptr<ProofNode> getProof(bool connectCnf = true);
+
+  /** Return the vector of proofs for the respective proof component requested.
+   *
+   * The components may be of theory lemma proofs (closed proofs of valid theory
+   * clauses) or of preprocessed assertion proofs (them the preprocessed
+   * assertion assumptions to the added clauses to the SAT solver).
+   */
+  std::vector<std::shared_ptr<ProofNode>> getProofLeaves(
+      modes::ProofComponent pc);
 
   /** Is proof enabled? */
   bool isProofEnabled() const;
 
-  /** Retrieve unsat core from SAT solver for assumption-based unsat cores. */
+  /**
+   * Retrieve unsat core of preprocessing assertions.
+   *
+   * For assumption-based unsat cores, this is retrived from the SAT solver.
+   * For proof-based unsat cores, this is computed via the free assumptions of
+   * the proof.
+   */
   void getUnsatCore(std::vector<Node>& core);
-
-  /** Return the prop engine proof for assumption-based unsat cores. */
-  std::shared_ptr<ProofNode> getRefutation();
 
   /** Get the zero-level assertions of the given type */
   std::vector<Node> getLearnedZeroLevelLiterals(
@@ -333,6 +351,10 @@ class PropEngine : protected EnvObj
  private:
   /** Dump out the satisfying assignment (after SAT result) */
   void printSatisfyingAssignment();
+  /** Print reason for answering unknown on output when applicable */
+  void outputIncompleteReason(
+      UnknownExplanation uexp,
+      theory::IncompleteId iid = theory::IncompleteId::UNKNOWN);
 
   /**
    * Converts the given formula to CNF and asserts the CNF to the SAT solver.
@@ -377,9 +399,6 @@ class PropEngine : protected EnvObj
   /** The theory engine we will be using */
   TheoryEngine* d_theoryEngine;
 
-  /** The decision engine we will be using */
-  std::unique_ptr<decision::DecisionEngine> d_decisionEngine;
-
   /** The skolem definition manager */
   std::unique_ptr<SkolemDefManager> d_skdm;
 
@@ -387,7 +406,7 @@ class PropEngine : protected EnvObj
   TheoryProxy* d_theoryProxy;
 
   /** The SAT solver proxy */
-  CDCLTSatSolverInterface* d_satSolver;
+  CDCLTSatSolver* d_satSolver;
 
   /** List of all of the assertions that need to be made */
   std::vector<Node> d_assertionList;

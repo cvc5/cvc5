@@ -235,7 +235,7 @@ Solver::~Solver()
 // Creates a new SAT variable in the solver. If 'decision_var' is cleared, variable will not be
 // used as a decision variable (NOTE! This has effects on the meaning of a SATISFIABLE result).
 //
-Var Solver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool preRegister, bool canErase)
+Var Solver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool canErase)
 {
     int v = nVars();
 
@@ -255,15 +255,6 @@ Var Solver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool preRegister, bo
 
     Trace("minisat") << "new var " << v << " with assertion level "
                      << assertionLevel << std::endl;
-
-    // If the variable is introduced at non-zero level, we need to reintroduce it on backtracks
-    if (preRegister)
-    {
-      Trace("minisat") << "  To register at level " << decisionLevel()
-                       << std::endl;
-      variables_to_register.push(VarIntroInfo(v, decisionLevel()));
-    }
-
     return v;
 }
 
@@ -394,7 +385,8 @@ CRef Solver::reason(Var x) {
   if (needProof() && explLevel < assertionLevel)
   {
     Trace("pf::sat") << "..user level is " << userContext()->getLevel() << "\n";
-    Assert(userContext()->getLevel() == (assertionLevel + 1));
+    Assert(userContext()->getLevel()
+           == static_cast<uint32_t>(assertionLevel + 1));
     d_proxy->notifyCurrPropagationInsertedAtLevel(explLevel);
   }
   // Construct the reason
@@ -443,8 +435,8 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
       // If a literal is false at 0 level (both sat and user level) we also
       // ignore it, unless we are tracking the SAT solver's reasoning
       if (value(ps[i]) == l_False) {
-        if (!options().smt.unsatCores && !needProof() && level(var(ps[i])) == 0
-            && user_level(var(ps[i])) == 0)
+        if (!options().smt.produceUnsatCores && !needProof()
+            && level(var(ps[i])) == 0 && user_level(var(ps[i])) == 0)
         {
           continue;
         }
@@ -481,7 +473,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
 
       // If all false, we're in conflict
       if (ps.size() == falseLiteralsCount) {
-        if (options().smt.unsatCores || needProof())
+        if (options().smt.produceUnsatCores || needProof())
         {
           // Take care of false units here; otherwise, we need to
           // construct the clause below to give to the proof manager
@@ -527,7 +519,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
           MinisatSatSolver::toSatClause(ca[cr], satClause);
           d_proxy->notifyClauseInsertedAtLevel(satClause, clauseLevel);
         }
-        if (options().smt.unsatCores || needProof())
+        if (options().smt.produceUnsatCores || needProof())
         {
           if (ps.size() == falseLiteralsCount)
           {
@@ -689,10 +681,12 @@ void Solver::cancelUntil(int level) {
     Trace("minisat") << "minisat::cancelUntil(" << level << ")" << std::endl;
 
     if (decisionLevel() > level){
-        // Pop the SMT context
-        for (int l = trail_lim.size() - level; l > 0; --l) {
-          d_context->pop();
-        }
+      uint32_t nlevels = trail_lim.size() - level;
+      // Pop the SMT context
+      for (int l = trail_lim.size() - level; l > 0; --l)
+      {
+        d_context->pop();
+      }
         for (int c = trail.size()-1; c >= trail_lim[level]; c--){
             Var      x  = var(trail[c]);
             assigns [x] = l_Undef;
@@ -708,17 +702,7 @@ void Solver::cancelUntil(int level) {
         trail.shrink(trail.size() - trail_lim[level]);
         trail_lim.shrink(trail_lim.size() - level);
         flipped.shrink(flipped.size() - level);
-
-        // Register variables that have not been registered yet
-        int currentLevel = decisionLevel();
-        for (int i = variables_to_register.size() - 1;
-             i >= 0 && variables_to_register[i].d_level > currentLevel;
-             --i)
-        {
-          variables_to_register[i].d_level = currentLevel;
-          d_proxy->variableNotify(
-              MinisatSatSolver::toSatVariable(variables_to_register[i].d_var));
-        }
+        d_proxy->notifyBacktrack(nlevels);
     }
 }
 
@@ -1235,11 +1219,7 @@ CRef Solver::propagate(TheoryCheckType type)
         // If no conflict, do the theory check
         if (confl == CRef_Undef && type != CHECK_WITHOUT_THEORY) {
             // Do the theory check
-            if (type == CHECK_FINAL_FAKE) {
-              theoryCheck(cvc5::internal::theory::Theory::EFFORT_FULL);
-            } else {
-              theoryCheck(cvc5::internal::theory::Theory::EFFORT_STANDARD);
-            }
+            theoryCheck(cvc5::internal::theory::Theory::EFFORT_STANDARD);
             // Pick up the theory propagated literals
             propagateTheory();
             // If there are lemmas (or conflicts) update them
@@ -1655,10 +1635,6 @@ lbool Solver::search(int nof_conflicts)
           return l_True;
         }
       }
-      else if (check_type == CHECK_FINAL_FAKE)
-      {
-        check_type = CHECK_WITH_THEORY;
-      }
 
       if ((nof_conflicts >= 0 && conflictC >= nof_conflicts)
           || !withinBudget(Resource::SatConflictStep))
@@ -2033,7 +2009,6 @@ void Solver::pop()
   // Pop the created variables
   resizeVars(assigns_lim.last());
   assigns_lim.pop();
-  variables_to_register.clear();
 
   // Pop the OK
   ok = trail_ok.last();
@@ -2072,7 +2047,7 @@ CRef Solver::updateLemmas() {
 
       // If it's an empty lemma, we have a conflict at zero level
       if (lemma.size() == 0) {
-        Assert(!options().smt.unsatCores && !needProof());
+        Assert(!options().smt.produceUnsatCores && !needProof());
         conflict = CRef_Lazy;
         backtrackLevel = 0;
         Trace("minisat::lemmas") << "Solver::updateLemmas(): found empty clause" << std::endl;
@@ -2240,7 +2215,7 @@ bool Solver::needProof() const
 
 bool Solver::assertionLevelOnly() const
 {
-  return options().smt.unsatCores && !needProof()
+  return options().smt.produceUnsatCores && !needProof()
          && options().base.incrementalSolving;
 }
 

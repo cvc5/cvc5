@@ -30,8 +30,14 @@ SatProofManager::SatProofManager(Env& env,
     : EnvObj(env),
       d_solver(solver),
       d_cnfStream(cnfStream),
-      d_resChains(d_env.getProofNodeManager(), true, userContext()),
-      d_resChainPg(userContext(), d_env.getProofNodeManager()),
+      d_resChains(d_env, true, userContext()),
+      // enforce unique assumptions and no symmetry. This avoids creating
+      // duplicate assumption proof nodes for the premises of resolution steps,
+      // which when expanded in the lazy proof chain would duplicate their
+      // justifications (which can lead to performance impacts when proof
+      // post-processing). Symmetry we can disable because there is no equality
+      // reasoning performed here
+      d_resChainPg(d_env, userContext(), true, false),
       d_assumptions(userContext()),
       d_conflictLit(undefSatVariable),
       d_optResLevels(userContext()),
@@ -149,7 +155,7 @@ void SatProofManager::endResChain(const Minisat::Clause& clause)
     clauseLits.insert(MinisatSatSolver::toSatLiteral(clause[i]));
   }
   Node conclusion = getClauseNode(clause);
-  int clauseLevel = clause.level() + 1;
+  uint32_t clauseLevel = clause.level() + 1;
   if (clauseLevel < userContext()->getLevel()
       && !d_resChains.hasGenerator(conclusion))
   {

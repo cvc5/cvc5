@@ -97,7 +97,7 @@ if(NOT ANTLR3_FOUND_SYSTEM)
         BUILD_BYPRODUCTS <INSTALL_DIR>/share/config.sub
     )
 
-    if(CMAKE_SYSTEM_PROCESSOR MATCHES ".*64$")
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
         set(64bit "--enable-64bit")
     else()
         unset(64bit)
@@ -135,7 +135,7 @@ if(NOT ANTLR3_FOUND_SYSTEM)
           <INSTALL_DIR>/share/config.sub
           <SOURCE_DIR>/config.sub
         CONFIGURE_COMMAND
-          ${SHELL} <SOURCE_DIR>/configure
+          ${CONFIGURE_CMD_WRAPPER} ${SHELL} <SOURCE_DIR>/configure
             ${compilers}
             --with-pic
             --disable-antlrdebug
@@ -168,7 +168,7 @@ set(ANTLR3_COMMAND ${Java_JAVA_EXECUTABLE} -cp "${ANTLR3_JAR}" org.antlr.Tool
 add_library(ANTLR3 STATIC IMPORTED GLOBAL)
 set_target_properties(ANTLR3 PROPERTIES
     IMPORTED_LOCATION "${ANTLR3_LIBRARIES}"
-    INTERFACE_INCLUDE_DIRECTORIES "${ANTLR3_INCLUDE_DIR}"
+    INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${ANTLR3_INCLUDE_DIR}"
 )
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   set_target_properties(ANTLR3 PROPERTIES IMPORTED_IMPLIB "${ANTLR3_LIBRARIES}")

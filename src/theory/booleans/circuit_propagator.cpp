@@ -49,7 +49,6 @@ CircuitPropagator::CircuitPropagator(Env& env, bool enableForward, bool enableBa
       d_forwardPropagation(enableForward),
       d_backwardPropagation(enableBackward),
       d_needsFinish(false),
-      d_pnm(nullptr),
       d_epg(nullptr),
       d_proofInternal(nullptr),
       d_proofExternal(nullptr)
@@ -75,7 +74,8 @@ void CircuitPropagator::assertTrue(TNode assertion)
   }
   else if (assertion.getKind() == kind::AND)
   {
-    ProofCircuitPropagatorBackward prover{d_pnm, assertion, true};
+    ProofCircuitPropagatorBackward prover{
+        d_env.getProofNodeManager(), assertion, true};
     if (isProofEnabled())
     {
       addProof(assertion, prover.assume(assertion));
@@ -93,7 +93,9 @@ void CircuitPropagator::assertTrue(TNode assertion)
     // Assign the given assertion to true
     assignAndEnqueue(assertion,
                      true,
-                     isProofEnabled() ? d_pnm->mkAssume(assertion) : nullptr);
+                     isProofEnabled()
+                         ? d_env.getProofNodeManager()->mkAssume(assertion)
+                         : nullptr);
   }
 }
 
@@ -165,7 +167,7 @@ void CircuitPropagator::makeConflict(Node n)
     {
       return;
     }
-    ProofCircuitPropagator pcp(d_pnm);
+    ProofCircuitPropagator pcp(d_env.getProofNodeManager());
     if (n == bfalse)
     {
       d_epg->setProofFor(bfalse, pcp.assume(bfalse));
@@ -237,7 +239,8 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment)
 {
   Trace("circuit-prop") << "CircuitPropagator::propagateBackward(" << parent
                         << ", " << parentAssignment << ")" << endl;
-  ProofCircuitPropagatorBackward prover{d_pnm, parent, parentAssignment};
+  ProofCircuitPropagatorBackward prover{
+      d_env.getProofNodeManager(), parent, parentAssignment};
 
   // backward rules
   switch (parent.getKind())
@@ -449,7 +452,8 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
     Trace("circuit-prop") << "Parent: " << parent << endl;
     Assert(expr::hasSubterm(parent, child));
 
-    ProofCircuitPropagatorForward prover{d_pnm, child, childAssignment, parent};
+    ProofCircuitPropagatorForward prover{
+        d_env.getProofNodeManager(), child, childAssignment, parent};
 
     // Forward rules
     switch (parent.getKind())
@@ -774,18 +778,16 @@ TrustNode CircuitPropagator::propagate()
 void CircuitPropagator::enableProofs(context::Context* ctx,
                                      ProofGenerator* defParent)
 {
-  d_pnm = d_env.getProofNodeManager();
-  Assert(d_pnm != nullptr);
-  d_epg.reset(new EagerProofGenerator(d_pnm, ctx));
+  d_epg.reset(new EagerProofGenerator(d_env, ctx));
   d_proofInternal.reset(new LazyCDProofChain(
-      d_pnm, true, ctx, d_epg.get(), true, "CircuitPropInternalLazyChain"));
+      d_env, true, ctx, d_epg.get(), true, "CircuitPropInternalLazyChain"));
   if (defParent != nullptr)
   {
     // If we provide a parent proof generator (defParent), we want the ASSUME
     // leafs of proofs provided by this class to call the getProofFor method on
     // the parent. To do this, we use a LazyCDProofChain.
     d_proofExternal.reset(new LazyCDProofChain(
-        d_pnm, true, ctx, defParent, false, "CircuitPropExternalLazyChain"));
+        d_env, true, ctx, defParent, false, "CircuitPropExternalLazyChain"));
   }
 }
 

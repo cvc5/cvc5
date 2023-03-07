@@ -18,13 +18,13 @@
 #include "options/base_options.h"
 #include "options/expr_options.h"
 #include "options/smt_options.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "printer/printer.h"
 #include "smt/abstract_values.h"
 #include "smt/assertions.h"
 #include "smt/env.h"
 #include "smt/preprocess_proof_generator.h"
-#include "smt/solver_engine.h"
 #include "theory/rewriter.h"
 
 using namespace std;
@@ -35,13 +35,11 @@ namespace cvc5::internal {
 namespace smt {
 
 Preprocessor::Preprocessor(Env& env,
-                           AbstractValues& abs,
                            SolverEngineStatistics& stats)
     : EnvObj(env),
-      d_absValues(abs),
+      d_pppg(nullptr),
       d_propagator(env, true, true),
       d_assertionsProcessed(env.getUserContext(), false),
-      d_exDefs(env),
       d_processor(env, stats)
 {
 
@@ -51,6 +49,14 @@ Preprocessor::~Preprocessor() {}
 
 void Preprocessor::finishInit(TheoryEngine* te, prop::PropEngine* pe)
 {
+  // set up the preprocess proof generator, if necessary
+  if (options().smt.produceProofs && d_pppg == nullptr)
+  {
+    d_pppg = std::make_unique<PreprocessProofGenerator>(
+        d_env, userContext(), "smt::PreprocessProofGenerator");
+    d_propagator.enableProofs(userContext(), d_pppg.get());
+  }
+
   d_ppContext.reset(new preprocessing::PreprocessingPassContext(
       d_env, te, pe, &d_propagator));
 
@@ -58,14 +64,13 @@ void Preprocessor::finishInit(TheoryEngine* te, prop::PropEngine* pe)
   d_processor.finishInit(d_ppContext.get());
 }
 
-bool Preprocessor::process(Assertions& as)
+bool Preprocessor::process(preprocessing::AssertionPipeline& ap)
 {
-  preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();
-
-  // should not be called if empty
-  Assert(ap.size() != 0)
-      << "Can only preprocess a non-empty list of assertions";
-
+  if (ap.size() == 0)
+  {
+    // nothing to do
+    return true;
+  }
   if (d_assertionsProcessed && options().base.incrementalSolving)
   {
     // TODO(b/1255): Substitutions in incremental mode should be managed with a
@@ -78,7 +83,7 @@ bool Preprocessor::process(Assertions& as)
   }
 
   // process the assertions, return true if no conflict is discovered
-  bool noConflict = d_processor.apply(as);
+  bool noConflict = d_processor.apply(ap);
 
   // now, post-process the assertions
 
@@ -110,52 +115,22 @@ std::vector<Node> Preprocessor::getLearnedLiterals() const
 
 void Preprocessor::cleanup() { d_processor.cleanup(); }
 
-Node Preprocessor::expandDefinitions(const Node& n)
+Node Preprocessor::applySubstitutions(const Node& node)
 {
-  std::unordered_map<Node, Node> cache;
-  return expandDefinitions(n, cache);
+  return d_env.getTopLevelSubstitutions().apply(node);
 }
 
-Node Preprocessor::expandDefinitions(const Node& node,
-                                     std::unordered_map<Node, Node>& cache)
+void Preprocessor::applySubstitutions(std::vector<Node>& ns)
 {
-  Trace("smt") << "SMT expandDefinitions(" << node << ")" << endl;
-  // Substitute out any abstract values in node.
-  Node n = d_absValues.substituteAbstractValues(node);
-  if (options().expr.typeChecking)
-  {
-    // Ensure node is type-checked at this point.
-    n.getType(true);
-  }
-  // apply substitutions here (without rewriting), before expanding definitions
-  n = d_env.getTopLevelSubstitutions().apply(n);
-  // now call expand definitions
-  n = d_exDefs.expandDefinitions(n, cache);
-  return n;
-}
-
-void Preprocessor::expandDefinitions(std::vector<Node>& ns)
-{
-  std::unordered_map<Node, Node> cache;
   for (size_t i = 0, nasserts = ns.size(); i < nasserts; i++)
   {
-    ns[i] = expandDefinitions(ns[i], cache);
+    ns[i] = applySubstitutions(ns[i]);
   }
 }
 
-Node Preprocessor::simplify(const Node& node)
+PreprocessProofGenerator* Preprocessor::getPreprocessProofGenerator()
 {
-  Trace("smt") << "SMT simplify(" << node << ")" << endl;
-  Node ret = expandDefinitions(node);
-  ret = rewrite(ret);
-  return ret;
-}
-
-void Preprocessor::enableProofs(PreprocessProofGenerator* pppg)
-{
-  Assert(pppg != nullptr);
-  d_exDefs.enableProofs();
-  d_propagator.enableProofs(userContext(), pppg);
+  return d_pppg.get();
 }
 
 }  // namespace smt

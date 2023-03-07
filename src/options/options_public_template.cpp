@@ -15,6 +15,7 @@
 
 #include "base/check.h"
 #include "base/output.h"
+#include "options/io_utils.h"
 #include "options/options.h"
 #include "options/options_handler.h"
 #include "options/options_listener.h"
@@ -29,6 +30,12 @@ ${options_includes}$
 #include <cstring>
 #include <iostream>
 #include <limits>
+
+namespace {
+  // clang-format off
+  ${option_enum_and_table}$
+  // clang-format on
+}
 
 namespace cvc5::internal::options
 {
@@ -195,7 +202,7 @@ namespace cvc5::internal::options
   {
     Trace("options") << "Options::getOption(" << name << ")" << std::endl;
     // clang-format off
-  ${get_impl}$
+    ${get_impl}$
     // clang-format on
     throw OptionException("Unrecognized option key or setting: " + name);
   }
@@ -209,11 +216,6 @@ namespace cvc5::internal::options
     ${set_impl}$
     // clang-format on
   }
-  else
-  {
-    throw OptionException("Unrecognized option key or setting: " + name);
-  }
-}
 
 #if defined(CVC5_MUZZLED) || defined(CVC5_COMPETITION_MODE)
 #define DO_SEMANTIC_CHECKS_BY_DEFAULT false

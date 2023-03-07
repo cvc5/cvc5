@@ -439,7 +439,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
             std::vector< TNode > args;
             Trace("sg-pat-debug") << "******* Get ground term for " << r << std::endl;
             Node n;
-            if (Skolemize::isInductionTerm(r))
+            if (Skolemize::isInductionTerm(options(), r))
             {
               n = d_op_arg_index[r].getGroundTerm( this, args );
             }else{

@@ -15,7 +15,7 @@
  * simply shortened.
  */
 
-#include "cvc5_private.h"
+#include "cvc5parser_public.h"
 
 #ifndef CVC5__CONTEXT__CDLIST_H
 #define CVC5__CONTEXT__CDLIST_H
@@ -24,149 +24,226 @@
 #include <iterator>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "base/check.h"
 #include "context/cdlist_forward.h"
 #include "context/context.h"
 #include "context/context_mm.h"
+#include "context/default_clean_up.h"
 
 namespace cvc5::context {
 
 /**
- * Generic context-dependent dynamic array.  Note that for efficiency,
- * this implementation makes the following assumptions:
- *
- * 1. Over time, objects are only added to the list.  Objects are only
- *    removed when a pop restores the list to a previous state.
- *
- * 2. T objects can safely be copied using their copy constructor,
- *    operator=, and memcpy.
+ * Generic context-dependent dynamic array.  Note that for efficiency, this
+ * implementation makes the following assumption: Over time, objects are only
+ * added to the list.  Objects are only removed when a pop restores the list to
+ * a previous state.
  */
-template <class T, class CleanUpT, class AllocatorT>
-class CDList : public ContextObj {
-public:
-
+template <class T, class CleanUpT, class Allocator>
+class CDList : public ContextObj
+{
+ public:
   /** The value type with which this CDList<> was instantiated. */
-  typedef T value_type;
+  using value_type = T;
 
   /** The cleanup type with which this CDList<> was instantiated. */
-  typedef CleanUpT CleanUp;
-
-  /** The allocator type with which this CDList<> was instantiated. */
-  typedef AllocatorT Allocator;
-
-protected:
+  using CleanUp = CleanUpT;
 
   /**
-   * d_list is a dynamic array of objects of type T.
+   * `std::vector<T>::operator[] const` returns an
+   * std::vector<T>::const_reference, which does not necessarily have to be a
+   * `const T&`. Specifically, in the case of `std::vector<bool>`, the type is
+   * specialized to be just a simple `bool`. For our `operator[] const`, we use
+   * the same type.
    */
-  T* d_list;
+  using ConstReference = typename std::vector<T>::const_reference;
+
+  /**
+   * Instead of implementing our own iterators, we just use the iterators of
+   * the underlying `std::vector<T>`.
+   */
+  using const_iterator = typename std::vector<T>::const_iterator;
+  using iterator = typename std::vector<T>::const_iterator;
+
+  /**
+   * Main constructor: d_list starts with size 0
+   *
+   * Optionally, a cleanup callback can be specified, which is called on every
+   * element that gets removed during a pop. The callback is only used when
+   * callCleanup is true. Note: the destructor of the elements in the list is
+   * called regardless of whether callCleanup is true or false.
+   */
+  CDList(Context* context,
+         bool callCleanup = true,
+         const CleanUp& cleanup = CleanUp())
+      : ContextObj(context),
+        d_list(),
+        d_size(0),
+        d_callCleanup(callCleanup),
+        d_cleanUp(cleanup)
+  {
+  }
+
+  /**
+   * Destructor: delete the list
+   */
+  ~CDList() {
+    this->destroy();
+
+    if (this->d_callCleanup)
+    {
+      truncateList(0);
+    }
+  }
+
+  /**
+   * Return the current size of (i.e. valid number of objects in) the
+   * list.
+   */
+  size_t size() const { return d_list.size(); }
+
+  /**
+   * Return true iff there are no valid objects in the list.
+   */
+  bool empty() const { return d_list.empty(); }
+
+  /**
+   * Add an item to the end of the list. This method uses the copy constructor
+   * of T, so the type has to support it. As a result, this method cannot be
+   * used with types that do not have a copy constructor such as
+   * std::unique_ptr. Use CDList::emplace_back() instead of CDList::push_back()
+   * to avoid this issue.
+   */
+  void push_back(const T& data) {
+    Trace("cdlist") << "push_back " << this << " " << getContext()->getLevel()
+                    << ": make-current" << std::endl;
+    makeCurrent();
+    d_list.push_back(data);
+    ++d_size;
+  }
+
+  /**
+   * Construct an item to the end of the list. This method constructs the item
+   * in-place (similar to std::vector::emplace_back()), so it can be used for
+   * types that do not have a copy constructor such as std::unique_ptr.
+   */
+  template <typename... Args>
+  void emplace_back(Args&&... args)
+  {
+    Trace("cdlist") << "emplace_back " << this << " "
+                    << getContext()->getLevel() << ": make-current" << std::endl;
+    makeCurrent();
+    d_list.emplace_back(std::forward<Args>(args)...);
+    ++d_size;
+  }
+
+  /**
+   * Access to the ith item in the list.
+   */
+  ConstReference operator[](size_t i) const
+  {
+    Assert(i < d_size) << "index out of bounds in CDList::operator[]";
+    return d_list[i];
+  }
+
+  /**
+   * Returns the most recent item added to the list.
+   */
+  ConstReference back() const
+  {
+    Assert(d_size > 0) << "CDList::back() called on empty list";
+    return d_list[d_size - 1];
+  }
+
+  /**
+   * Returns an iterator pointing to the first item in the list.
+   */
+  const_iterator begin() const { return d_list.begin(); }
+
+  /**
+   * Returns an iterator pointing one past the last item in the list.
+   */
+  const_iterator end() const { return d_list.end(); }
+
+ protected:
+  /**
+   * Private copy constructor used only by save(). d_list is not copied: only
+   * the base class information and d_size are needed in restore.
+   */
+  CDList(const CDList& l)
+      : ContextObj(l),
+        d_size(l.d_size),
+        d_callCleanup(false),
+        d_cleanUp(l.d_cleanUp)
+  {
+    Trace("cdlist") << "copy ctor: " << this << " from " << &l << " size "
+                    << d_size << std::endl;
+  }
+  CDList& operator=(const CDList& l) = delete;
+  /**
+   * Implementation of mandatory ContextObj method restore: simply
+   * restores the previous size.  Note that the list pointer and the
+   * allocated size are not changed.
+   */
+
+  void restore(ContextObj* data) override
+  {
+    truncateList(((CDList<T, CleanUp, Allocator>*)data)->d_size);
+  }
+
+  /**
+   * Given a size parameter smaller than d_size, truncateList()
+   * removes the elements from the end of the list until d_size equals size.
+   *
+   * WARNING! You should only use this function when you know what you are
+   * doing. This is a primitive operation with strange context dependent
+   * behavior! It is up to the user of the function to ensure that the saved
+   * d_size values at lower context levels are less than or equal to size.
+   */
+  void truncateList(const size_t size)
+  {
+    Assert(size <= d_size);
+    if (d_callCleanup)
+    {
+      while (d_size != size)
+      {
+        --d_size;
+        typename std::vector<T>::reference elem = d_list[d_size];
+        d_cleanUp(elem);
+      }
+    }
+    else
+    {
+      d_size = size;
+    }
+    // Note that std::vector::resize() would require a default constructor for
+    // the elements in std::vector
+    d_list.erase(d_list.begin() + d_size, d_list.end());
+  }
+
+  /**
+   * d_list is a vector of objects of type T.
+   */
+  std::vector<T> d_list;
 
   /**
    * Number of objects in d_list
    */
   size_t d_size;
 
-private:
-
-  static const size_t INITIAL_SIZE = 10;
-  static const size_t GROWTH_FACTOR = 2;
-
+ private:
   /**
    * Whether to call the destructor when items are popped from the
    * list.  True by default, but can be set to false by setting the
    * second argument in the constructor to false.
    */
-  bool d_callDestructor;
-
-  /**
-   * Allocated size of d_list.
-   */
-  size_t d_sizeAlloc;
+  bool d_callCleanup;
 
   /**
    * The CleanUp functor.
    */
   CleanUp d_cleanUp;
-
-  /**
-   * Our allocator.
-   */
-  Allocator d_allocator;
-
- protected:
-  /**
-   * Private copy constructor used only by save().  d_list and
-   * d_sizeAlloc are not copied: only the base class information and
-   * d_size are needed in restore.
-   */
-  CDList(const CDList& l)
-      : ContextObj(l),
-        d_list(nullptr),
-        d_size(l.d_size),
-        d_callDestructor(false),
-        d_sizeAlloc(0),
-        d_cleanUp(l.d_cleanUp),
-        d_allocator(l.d_allocator)
-  {
-    Trace("cdlist") << "copy ctor: " << this << " from " << &l << " size "
-                    << d_size << std::endl;
-  }
-  CDList& operator=(const CDList& l) = delete;
-
- private:
-  /**
-   * Reallocate the array with more space. Throws bad_alloc if memory
-   * allocation fails. Does not perform any action if there is still unused
-   * allocated space.
-   */
-  void grow() {
-    if (d_size != d_sizeAlloc)
-    {
-      // If there is still unused allocated space
-      return;
-    }
-
-    const size_t maxSize =
-        std::allocator_traits<AllocatorT>::max_size(d_allocator);
-    if (d_list == nullptr)
-    {
-      // Allocate an initial list if one does not yet exist
-      d_sizeAlloc = INITIAL_SIZE;
-      if (d_sizeAlloc > maxSize)
-      {
-        d_sizeAlloc = maxSize;
-      }
-      d_list =
-          std::allocator_traits<AllocatorT>::allocate(d_allocator, d_sizeAlloc);
-      if (d_list == nullptr)
-      {
-        throw std::bad_alloc();
-      }
-    }
-    else
-    {
-      // Allocate a new array with double the size
-      size_t newSize = GROWTH_FACTOR * d_sizeAlloc;
-      if (newSize > maxSize)
-      {
-        newSize = maxSize;
-        Assert(newSize > d_sizeAlloc)
-            << "cannot request larger list due to allocator limits";
-      }
-      T* newList =
-          std::allocator_traits<AllocatorT>::allocate(d_allocator, newSize);
-      if (newList == nullptr)
-      {
-        throw std::bad_alloc();
-      }
-      std::memcpy(newList, d_list, sizeof(T) * d_sizeAlloc);
-      std::allocator_traits<AllocatorT>::deallocate(
-          d_allocator, d_list, d_sizeAlloc);
-      d_list = newList;
-      d_sizeAlloc = newSize;
-    }
-  }
 
   /**
    * Implementation of mandatory ContextObj method save: simply copies
@@ -181,260 +258,7 @@ private:
     return data;
   }
 
-protected:
-  /**
-   * Implementation of mandatory ContextObj method restore: simply
-   * restores the previous size.  Note that the list pointer and the
-   * allocated size are not changed.
-   */
- void restore(ContextObj* data) override
- {
-   truncateList(((CDList<T, CleanUp, Allocator>*)data)->d_size);
-  }
-
-  /**
-   * Given a size parameter smaller than d_size, truncateList()
-   * removes the elements from the end of the list until d_size equals size.
-   *
-   * WARNING! You should only use this function when you know what you are doing.
-   * This is a primitive operation with strange context dependent behavior!
-   * It is up to the user of the function to ensure that the saved d_size values
-   * at lower context levels are less than or equal to size.
-   */
-  void truncateList(const size_t size){
-    Assert(size <= d_size);
-    if(d_callDestructor) {
-      while(d_size != size) {
-        --d_size;
-        d_cleanUp(&d_list[d_size]);
-        std::allocator_traits<AllocatorT>::destroy(d_allocator,
-                                                   &d_list[d_size]);
-      }
-    } else {
-      d_size = size;
-    }
-  }
-
- public:
-  /**
-   * Main constructor: d_list starts as nullptr, size is 0
-   */
-  CDList(Context* context,
-         bool callDestructor = true,
-         const CleanUp& cleanup = CleanUp(),
-         const Allocator& alloc = Allocator())
-      : ContextObj(context),
-        d_list(nullptr),
-        d_size(0),
-        d_callDestructor(callDestructor),
-        d_sizeAlloc(0),
-        d_cleanUp(cleanup),
-        d_allocator(alloc)
-  {
-  }
-
-  /**
-   * Destructor: delete the list
-   */
-  ~CDList() {
-    this->destroy();
-
-    if(this->d_callDestructor) {
-      truncateList(0);
-    }
-
-    std::allocator_traits<AllocatorT>::deallocate(
-        d_allocator, this->d_list, this->d_sizeAlloc);
-  }
-
-  /**
-   * Return the current size of (i.e. valid number of objects in) the
-   * list.
-   */
-  size_t size() const {
-    return d_size;
-  }
-
-  /**
-   * Return true iff there are no valid objects in the list.
-   */
-  bool empty() const {
-    return d_size == 0;
-  }
-
-  /**
-   * Add an item to the end of the list. This method uses the copy constructor
-   * of T, so the type has to support it. As a result, this method cannot be
-   * used with types that do not have a copy constructor such as
-   * std::unique_ptr. Use CDList::emplace_back() instead of CDList::push_back()
-   * to avoid this issue.
-   */
-  void push_back(const T& data) {
-    Trace("cdlist") << "push_back " << this
-                    << " " << getContext()->getLevel()
-                    << ": make-current, "
-                    << "d_list == " << d_list << std::endl;
-    makeCurrent();
-    grow();
-    Assert(d_size < d_sizeAlloc);
-
-    std::allocator_traits<AllocatorT>::construct(
-        d_allocator, &d_list[d_size], data);
-    ++d_size;
-  }
-
-  /**
-   * Construct an item to the end of the list. This method constructs the item
-   * in-place (similar to std::vector::emplace_back()), so it can be used for
-   * types that do not have a copy constructor such as std::unique_ptr.
-   */
-  template <typename... Args>
-  void emplace_back(Args&&... args)
-  {
-    Trace("cdlist") << "emplace_back " << this << " "
-                    << getContext()->getLevel() << ": make-current, "
-                    << "d_list == " << d_list << std::endl;
-    makeCurrent();
-    grow();
-    Assert(d_size < d_sizeAlloc);
-
-    std::allocator_traits<AllocatorT>::construct(
-        d_allocator, &d_list[d_size], std::forward<Args>(args)...);
-    ++d_size;
-  }
-
-  /**
-   * Access to the ith item in the list.
-   */
-  const T& operator[](size_t i) const {
-    Assert(i < d_size) << "index out of bounds in CDList::operator[]";
-    return d_list[i];
-  }
-
-  /**
-   * Returns the most recent item added to the list.
-   */
-  const T& back() const {
-    Assert(d_size > 0) << "CDList::back() called on empty list";
-    return d_list[d_size - 1];
-  }
-
-  /**
-   * Iterator for CDList class.  It has to be const because we don't
-   * allow items in the list to be changed.  It's a straightforward
-   * wrapper around a pointer.  Note that for efficiency, we implement
-   * only prefix increment and decrement.  Also note that it's OK to
-   * create an iterator from an empty, uninitialized list, as begin()
-   * and end() will have the same value (nullptr).
-   */
-  class const_iterator {
-    T const* d_it;
-
-    const_iterator(T const* it) : d_it(it) {}
-
-    friend class CDList<T, CleanUp, Allocator>;
-
-  public:
-
-    // FIXME we support operator--, but do we satisfy all the
-    // requirements of a bidirectional iterator ?
-    typedef std::bidirectional_iterator_tag iterator_category;
-    typedef T value_type;
-    typedef std::ptrdiff_t difference_type;
-    typedef const T* pointer;
-    typedef const T& reference;
-
-    const_iterator() : d_it(nullptr) {}
-
-    inline bool operator==(const const_iterator& i) const {
-      return d_it == i.d_it;
-    }
-
-    inline bool operator!=(const const_iterator& i) const {
-      return d_it != i.d_it;
-    }
-
-    inline const T& operator*() const {
-      return *d_it;
-    }
-
-    inline const T* operator->() const { return d_it; }
-
-    /** Prefix increment */
-    const_iterator& operator++() {
-      ++d_it;
-      return *this;
-    }
-
-    /** Prefix decrement */
-    const_iterator& operator--() { --d_it; return *this; }
-
-    /** operator+ */
-    const_iterator operator+(long signed int off) const {
-      return const_iterator(d_it + off);
-    }
-
-    // Postfix operations on iterators: requires a Proxy object to
-    // hold the intermediate value for dereferencing
-    class Proxy {
-      const T* d_t;
-
-    public:
-
-      Proxy(const T& p): d_t(&p) {}
-
-      T& operator*() {
-        return *d_t;
-      }
-    };/* class CDList<>::const_iterator::Proxy */
-
-    /** Postfix increment: returns Proxy with the old value. */
-    Proxy operator++(int) {
-      Proxy e(*(*this));
-      ++(*this);
-      return e;
-    }
-
-    /** Postfix decrement: returns Proxy with the old value. */
-    Proxy operator--(int) {
-      Proxy e(*(*this));
-      --(*this);
-      return e;
-    }
-
-  };/* class CDList<>::const_iterator */
-  typedef const_iterator iterator;
-
-  /**
-   * Returns an iterator pointing to the first item in the list.
-   */
-  const_iterator begin() const {
-    return const_iterator(static_cast<T const*>(d_list));
-  }
-
-  /**
-   * Returns an iterator pointing one past the last item in the list.
-   */
-  const_iterator end() const {
-    return const_iterator(static_cast<T const*>(d_list) + d_size);
-  }
-};/* class CDList<> */
-
-template <class T, class CleanUp>
-class CDList<T, CleanUp, ContextMemoryAllocator<T> > : public ContextObj {
-  /* CDList is incompatible for use with a ContextMemoryAllocator.
-   *
-   * Explanation:
-   * If ContextMemoryAllocator is used and d_list grows at a deeper context
-   * level the reallocated will be reallocated in a context memory region that
-   * can be destroyed on pop. To support this, a full copy of d_list would have
-   * to be made. As this is unacceptable for performance in other situations, we
-   * do not do this.
-   */
-
-  static_assert(sizeof(T) == 0,
-                "Cannot create a CDList with a ContextMemoryAllocator.");
-};
+}; /* class CDList<> */
 
 }  // namespace cvc5::context
 

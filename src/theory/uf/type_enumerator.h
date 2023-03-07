@@ -45,11 +45,6 @@ class FunctionEnumerator : public TypeEnumeratorBase<FunctionEnumerator>
  private:
   /** Enumerates arrays, which we convert to functions. */
   TypeEnumerator d_arrayEnum;
-  /** The bound variable list for the function type we are enumerating.
-   * All terms output by this enumerator are of the form (LAMBDA d_bvl t) for
-   * some term t.
-   */
-  Node d_bvl;
 }; /* class FunctionEnumerator */
 
 }  // namespace uf

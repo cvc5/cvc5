@@ -21,18 +21,14 @@
 #include "options/option_exception.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
-#include "smt/solver_engine.h"
 
 namespace cvc5::internal {
 namespace smt {
 
-SolverEngineState::SolverEngineState(Env& env, SolverEngine& slv)
+SolverEngineState::SolverEngineState(Env& env)
     : EnvObj(env),
-      d_slv(slv),
-      d_pendingPops(0),
       d_fullyInited(false),
       d_queryMade(false),
-      d_needPostsolve(false),
       d_status(),
       d_expectedStatus(),
       d_smtMode(SmtMode::START)
@@ -47,24 +43,9 @@ void SolverEngineState::notifyExpectedStatus(const std::string& status)
   d_expectedStatus = Result(status, options().driver.filename);
   Assert(d_expectedStatus.getStatus() != Result::NONE);
 }
-
-void SolverEngineState::notifyResetAssertions()
-{
-  doPendingPops();
-  while (!d_userLevels.empty())
-  {
-    userPop();
-  }
-  // Remember the global push/pop around everything when beyond Start mode
-  // (see solver execution modes in the SMT-LIB standard)
-  Assert(d_userLevels.size() == 0 && userContext()->getLevel() == 1);
-  popto(0);
-}
-
-void SolverEngineState::notifyCheckSat(bool hasAssumptions)
+void SolverEngineState::notifyCheckSat()
 {
   // process the pending pops
-  doPendingPops();
   if (d_queryMade && !options().base.incrementalSolving)
   {
     throw ModalException(
@@ -76,25 +57,10 @@ void SolverEngineState::notifyCheckSat(bool hasAssumptions)
   // Note that a query has been made and we are in assert mode
   d_queryMade = true;
   d_smtMode = SmtMode::ASSERT;
-
-  // push if there are assumptions
-  if (hasAssumptions)
-  {
-    internalPush();
-  }
 }
 
-void SolverEngineState::notifyCheckSatResult(bool hasAssumptions,
-                                             const Result& r)
+void SolverEngineState::notifyCheckSatResult(const Result& r)
 {
-  d_needPostsolve = true;
-
-  // Pop the context
-  if (hasAssumptions)
-  {
-    internalPop();
-  }
-
   // Remember the status
   d_status = r;
   // Check against expected status, if it is set
@@ -161,35 +127,13 @@ void SolverEngineState::notifyGetInterpol(bool success)
   }
 }
 
-void SolverEngineState::setup()
-{
-  // push a context
-  push();
-}
-
-void SolverEngineState::finishInit()
+void SolverEngineState::markFinishInit()
 {
   // set the flag to remember that we are fully initialized
   d_fullyInited = true;
 }
 
-void SolverEngineState::shutdown()
-{
-  doPendingPops();
-
-  while (options().base.incrementalSolving && userContext()->getLevel() > 1)
-  {
-    internalPop(true);
-  }
-}
-
-void SolverEngineState::cleanup()
-{
-  // pop to level zero
-  popto(0);
-}
-
-void SolverEngineState::userPush()
+void SolverEngineState::notifyUserPush()
 {
   if (!options().base.incrementalSolving)
   {
@@ -200,23 +144,14 @@ void SolverEngineState::userPush()
   // get-model after a push, simplifying our lives somewhat and
   // staying symmetric with pop.
   d_smtMode = SmtMode::ASSERT;
-
-  d_userLevels.push_back(userContext()->getLevel());
-  internalPush();
-  Trace("userpushpop") << "SolverEngineState: pushed to level "
-                       << userContext()->getLevel() << std::endl;
 }
 
-void SolverEngineState::userPop()
+void SolverEngineState::notifyUserPop()
 {
   if (!options().base.incrementalSolving)
   {
     throw ModalException(
         "Cannot pop when not solving incrementally (use --incremental)");
-  }
-  if (d_userLevels.size() == 0)
-  {
-    throw ModalException("Cannot pop beyond the first user frame");
   }
   // The problem isn't really "extended" yet, but this disallows
   // get-model after a pop, simplifying our lives somewhat.  It might
@@ -225,101 +160,15 @@ void SolverEngineState::userPop()
   // that only returns a subset of the assignment (because the rest
   // is no longer in scope!).
   d_smtMode = SmtMode::ASSERT;
-
-  AlwaysAssert(userContext()->getLevel() > 0);
-  AlwaysAssert(d_userLevels.back() < userContext()->getLevel());
-  while (d_userLevels.back() < userContext()->getLevel())
-  {
-    internalPop(true);
-  }
-  d_userLevels.pop_back();
-}
-void SolverEngineState::push()
-{
-  userContext()->push();
-  context()->push();
-}
-
-void SolverEngineState::pop()
-{
-  userContext()->pop();
-  context()->pop();
-}
-
-void SolverEngineState::popto(int toLevel)
-{
-  context()->popto(toLevel);
-  userContext()->popto(toLevel);
 }
 
 Result SolverEngineState::getStatus() const { return d_status; }
 
 bool SolverEngineState::isFullyInited() const { return d_fullyInited; }
-bool SolverEngineState::isFullyReady() const
-{
-  return d_fullyInited && d_pendingPops == 0;
-}
+
 bool SolverEngineState::isQueryMade() const { return d_queryMade; }
-size_t SolverEngineState::getNumUserLevels() const
-{
-  return d_userLevels.size();
-}
 
 SmtMode SolverEngineState::getMode() const { return d_smtMode; }
-
-void SolverEngineState::internalPush()
-{
-  Assert(d_fullyInited);
-  Trace("smt") << "SolverEngineState::internalPush()" << std::endl;
-  doPendingPops();
-  if (options().base.incrementalSolving)
-  {
-    // notifies the SolverEngine to process the assertions immediately
-    d_slv.notifyPushPre();
-    userContext()->push();
-    // the context push is done inside of the SAT solver
-    d_slv.notifyPushPost();
-  }
-}
-
-void SolverEngineState::internalPop(bool immediate)
-{
-  Assert(d_fullyInited);
-  Trace("smt") << "SolverEngineState::internalPop()" << std::endl;
-  if (options().base.incrementalSolving)
-  {
-    ++d_pendingPops;
-  }
-  if (immediate)
-  {
-    doPendingPops();
-  }
-}
-
-void SolverEngineState::doPendingPops()
-{
-  Trace("smt") << "SolverEngineState::doPendingPops()" << std::endl;
-  Assert(d_pendingPops == 0 || options().base.incrementalSolving);
-  // check to see if a postsolve() is pending
-  if (d_needPostsolve)
-  {
-    d_slv.notifyPostSolvePre();
-  }
-  while (d_pendingPops > 0)
-  {
-    // the context pop is done inside of the SAT solver
-    d_slv.notifyPopPre();
-    // pop the context
-    userContext()->pop();
-    --d_pendingPops;
-    // no need for pop post (for now)
-  }
-  if (d_needPostsolve)
-  {
-    d_slv.notifyPostSolvePost();
-    d_needPostsolve = false;
-  }
-}
 
 }  // namespace smt
 }  // namespace cvc5::internal

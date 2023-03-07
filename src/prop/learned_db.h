@@ -42,10 +42,10 @@ class LearnedDb
   void addLearnedLiteral(const Node& lit, modes::LearnedLitType ltype);
   /** Get the learned literals for the given type */
   std::vector<Node> getLearnedLiterals(
-      modes::LearnedLitType ltype = modes::LearnedLitType::INPUT) const;
+      modes::LearnedLitType ltype = modes::LEARNED_LIT_INPUT) const;
   /** Get number of learned literals for the given type */
   size_t getNumLearnedLiterals(
-      modes::LearnedLitType ltype = modes::LearnedLitType::INPUT) const;
+      modes::LearnedLitType ltype = modes::LEARNED_LIT_INPUT) const;
   /** To string debug */
   std::string toStringDebug() const;
 

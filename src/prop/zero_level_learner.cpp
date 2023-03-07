@@ -20,7 +20,6 @@
 #include "options/base_options.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/theory_engine.h"
 #include "theory/trust_substitutions.h"
 
@@ -42,21 +41,21 @@ ZeroLevelLearner::ZeroLevelLearner(Env& env, TheoryEngine* theoryEngine)
   options::DeepRestartMode lmode = options().smt.deepRestartMode;
   if (lmode != options::DeepRestartMode::NONE)
   {
-    d_learnedTypes.insert(modes::LearnedLitType::INPUT);
+    d_learnedTypes.insert(modes::LEARNED_LIT_INPUT);
     if (lmode == options::DeepRestartMode::ALL)
     {
-      d_learnedTypes.insert(modes::LearnedLitType::INTERNAL);
-      d_learnedTypes.insert(modes::LearnedLitType::SOLVABLE);
-      d_learnedTypes.insert(modes::LearnedLitType::CONSTANT_PROP);
+      d_learnedTypes.insert(modes::LEARNED_LIT_INTERNAL);
+      d_learnedTypes.insert(modes::LEARNED_LIT_SOLVABLE);
+      d_learnedTypes.insert(modes::LEARNED_LIT_CONSTANT_PROP);
     }
     else if (lmode == options::DeepRestartMode::INPUT_AND_SOLVABLE)
     {
-      d_learnedTypes.insert(modes::LearnedLitType::SOLVABLE);
+      d_learnedTypes.insert(modes::LEARNED_LIT_SOLVABLE);
     }
     else if (lmode == options::DeepRestartMode::INPUT_AND_PROP)
     {
-      d_learnedTypes.insert(modes::LearnedLitType::SOLVABLE);
-      d_learnedTypes.insert(modes::LearnedLitType::CONSTANT_PROP);
+      d_learnedTypes.insert(modes::LEARNED_LIT_SOLVABLE);
+      d_learnedTypes.insert(modes::LEARNED_LIT_CONSTANT_PROP);
     }
   }
 }
@@ -92,7 +91,7 @@ void ZeroLevelLearner::notifyTopLevelSubstitution(const Node& lhs,
 {
   // process as a preprocess solved learned literal.
   Node eq = lhs.eqNode(rhs);
-  processLearnedLiteral(eq, modes::LearnedLitType::PREPROCESS_SOLVED);
+  processLearnedLiteral(eq, modes::LEARNED_LIT_PREPROCESS_SOLVED);
 }
 
 void ZeroLevelLearner::notifyInputFormulas(const std::vector<Node>& assertions)
@@ -125,10 +124,14 @@ void ZeroLevelLearner::notifyInputFormulas(const std::vector<Node>& assertions)
     }
     // we mark that we visited this
     visited.insert(atom);
-    // output learned literals from preprocessing
-    processLearnedLiteral(lit, modes::LearnedLitType::PREPROCESS);
-    // also get its symbols
-    expr::getSymbols(atom, inputSymbols, visitedWithinAtom);
+    // ignore the true node
+    if (!lit.isConst() || !lit.getConst<bool>())
+    {
+      // output learned literals from preprocessing
+      processLearnedLiteral(lit, modes::LEARNED_LIT_PREPROCESS);
+      // also get its symbols
+      expr::getSymbols(atom, inputSymbols, visitedWithinAtom);
+    }
     // remember we've seen it
     d_levelZeroAsserts.insert(lit);
   }
@@ -232,7 +235,7 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
   TNode aatom = lit.getKind() == kind::NOT ? lit[0] : lit;
   bool internal = d_ppnAtoms.find(aatom) == d_ppnAtoms.end();
   modes::LearnedLitType ltype =
-      internal ? modes::LearnedLitType::INTERNAL : modes::LearnedLitType::INPUT;
+      internal ? modes::LEARNED_LIT_INTERNAL : modes::LEARNED_LIT_INPUT;
   // compute if solvable
   if (internal)
   {
@@ -245,12 +248,12 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
         if (d_ppnSyms.find(v) != d_ppnSyms.end())
         {
           Trace("level-zero-assert") << "...solvable due to " << v << std::endl;
-          ltype = modes::LearnedLitType::SOLVABLE;
+          ltype = modes::LEARNED_LIT_SOLVABLE;
           break;
         }
       }
     }
-    if (ltype != modes::LearnedLitType::SOLVABLE)
+    if (ltype != modes::LEARNED_LIT_SOLVABLE)
     {
       // maybe a constant prop?
       if (lit.getKind() == kind::EQUAL)
@@ -260,7 +263,7 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
           if (lit[i].isConst()
               && d_ppnTerms.find(lit[1 - i]) != d_ppnTerms.end())
           {
-            ltype = modes::LearnedLitType::CONSTANT_PROP;
+            ltype = modes::LEARNED_LIT_CONSTANT_PROP;
             break;
           }
         }
@@ -289,7 +292,7 @@ void ZeroLevelLearner::processLearnedLiteral(const Node& lit,
     // are mapped back to their original form
     output(OutputTag::LEARNED_LITS)
         << "(learned-lit " << SkolemManager::getOriginalForm(lit);
-    if (ltype != modes::LearnedLitType::INPUT)
+    if (ltype != modes::LEARNED_LIT_INPUT)
     {
       std::stringstream tss;
       tss << ltype;
@@ -351,7 +354,7 @@ bool ZeroLevelLearner::isLearnable(modes::LearnedLitType ltype) const
 bool ZeroLevelLearner::getSolved(const Node& lit, Subs& subs)
 {
   context::Context dummyContext;
-  theory::TrustSubstitutionMap subsOut(&dummyContext);
+  theory::TrustSubstitutionMap subsOut(d_env, &dummyContext);
   TrustNode tlit = TrustNode::mkTrustLemma(lit);
   theory::Theory::PPAssertStatus status = d_theoryEngine->solve(tlit, subsOut);
   if (status == theory::Theory::PP_ASSERT_STATUS_SOLVED)

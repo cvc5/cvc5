@@ -18,8 +18,6 @@
 #include "options/proof_options.h"
 #include "proof/annotation_proof_generator.h"
 #include "proof/eager_proof_generator.h"
-#include "smt/smt_statistics_registry.h"
-#include "smt/solver_engine_scope.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/inference_id_proof_annotator.h"
 #include "theory/output_channel.h"
@@ -68,7 +66,7 @@ TheoryInferenceManager::TheoryInferenceManager(Env& env,
     context::UserContext* u = userContext();
     ProofNodeManager* pnm = env.getProofNodeManager();
     d_defaultPg.reset(
-        new EagerProofGenerator(pnm, u, statsName + "EagerProofGenerator"));
+        new EagerProofGenerator(env, u, statsName + "EagerProofGenerator"));
     if (options().proof.proofAnnotate)
     {
       d_iipa.reset(new InferenceIdProofAnnotator(pnm, u));
@@ -152,7 +150,7 @@ void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
   // annotate if the annotation proof generator is active
   if (d_apg != nullptr)
   {
-    tconf = annotateId(tconf, id);
+    tconf = annotateId(tconf, id, true);
   }
   d_out.trustedConflict(tconf);
   ++d_numConflicts;
@@ -585,7 +583,8 @@ bool TheoryInferenceManager::cacheLemma(TNode lem, LemmaProperty p)
 }
 
 TrustNode TheoryInferenceManager::annotateId(const TrustNode& trn,
-                                             InferenceId id)
+                                             InferenceId id,
+                                             bool isConflict)
 {
   Assert(d_iipa != nullptr && d_apg != nullptr);
   Node lemma = trn.getProven();
@@ -596,7 +595,7 @@ TrustNode TheoryInferenceManager::annotateId(const TrustNode& trn,
     Node tidn =
         builtin::BuiltinProofRuleChecker::mkTheoryIdNode(d_theory.getId());
     trna = d_defaultPg->mkTrustNode(
-        lemma, PfRule::THEORY_LEMMA, {}, {lemma, tidn});
+        trn.getNode(), PfRule::THEORY_LEMMA, {}, {lemma, tidn}, isConflict);
   }
   d_iipa->setAnnotation(lemma, id);
   return d_apg->transform(trna, d_iipa.get());
@@ -623,9 +622,14 @@ void TheoryInferenceManager::safePoint(Resource r)
   d_out.safePoint(r);
 }
 
-void TheoryInferenceManager::setIncomplete(IncompleteId id)
+void TheoryInferenceManager::setModelUnsound(IncompleteId id)
 {
-  d_out.setIncomplete(id);
+  d_out.setModelUnsound(id);
+}
+
+void TheoryInferenceManager::setRefutationUnsound(IncompleteId id)
+{
+  d_out.setRefutationUnsound(id);
 }
 
 void TheoryInferenceManager::notifyInConflict()

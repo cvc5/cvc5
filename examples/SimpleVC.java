@@ -28,7 +28,7 @@ public class SimpleVC
 {
   public static void main(String[] args)
   {
-    try (Solver slv = new Solver())
+    Solver slv = new Solver();
     {
       // Prove that for integers x and y:
       //   x > 0 AND y > 0  =>  2x + y >= 3

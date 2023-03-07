@@ -30,7 +30,10 @@
 #include "expr/skolem_manager.h"
 #include "expr/type_checker.h"
 #include "expr/type_properties.h"
+#include "theory/builtin/abstract_type.h"
 #include "util/bitvector.h"
+#include "util/finite_field_value.h"
+#include "util/integer.h"
 #include "util/poly_util.h"
 #include "util/rational.h"
 #include "util/resource_manager.h"
@@ -83,7 +86,7 @@ struct NVReclaim {
 
   ~NVReclaim() {
     Trace("gc") << "<< clearing NVRECLAIM field\n";
-    d_deletionField = NULL;
+    d_deletionField = nullptr;
   }
 };
 
@@ -106,12 +109,22 @@ typedef expr::Attribute<attr::LambdaBoundVarListTag, Node>
 NodeManager::NodeManager()
     : d_skManager(new SkolemManager),
       d_bvManager(new BoundVarManager),
-      d_initialized(false),
       d_nextId(0),
       d_attrManager(new expr::attr::AttributeManager()),
       d_nodeUnderDeletion(nullptr),
       d_inReclaimZombies(false)
 {
+  poolInsert(&expr::NodeValue::null());
+
+  for (uint32_t i = 0; i < uint32_t (kind::LAST_KIND); ++i)
+  {
+    Kind k = Kind(i);
+
+    if (hasOperator(k))
+    {
+      d_operators[i] = mkConst(Kind(k));
+    }
+  }
 }
 
 NodeManager* NodeManager::currentNM()
@@ -180,6 +193,11 @@ TypeNode NodeManager::mkBitVectorType(unsigned size)
   return mkTypeConst<BitVectorSize>(BitVectorSize(size));
 }
 
+TypeNode NodeManager::mkFiniteFieldType(const Integer& modulus)
+{
+  return mkTypeConst<FfSize>(FfSize(modulus));
+}
+
 TypeNode NodeManager::sExprType()
 {
   return mkTypeConst<TypeConstant>(SEXPR_TYPE);
@@ -193,30 +211,6 @@ TypeNode NodeManager::mkFloatingPointType(unsigned exp, unsigned sig)
 TypeNode NodeManager::mkFloatingPointType(FloatingPointSize fs)
 {
   return mkTypeConst<FloatingPointSize>(fs);
-}
-
-void NodeManager::init()
-{
-  if (d_initialized)
-  {
-    return;
-  }
-  d_initialized = true;
-
-  // Note: This code cannot be part of the constructor because it indirectly
-  // calls `NodeManager::currentNM()`, which is where the `NodeManager` is
-  // being constructed.
-  poolInsert(&expr::NodeValue::null());
-
-  for (unsigned i = 0; i < unsigned(kind::LAST_KIND); ++i)
-  {
-    Kind k = Kind(i);
-
-    if (hasOperator(k))
-    {
-      d_operators[i] = mkConst(Kind(k));
-    }
-  }
 }
 
 NodeManager::~NodeManager()
@@ -276,10 +270,7 @@ NodeManager::~NodeManager()
     }
   }
 
-  if (d_initialized)
-  {
-    poolRemove(&expr::NodeValue::null());
-  }
+  poolRemove(&expr::NodeValue::null());
 
   if (TraceIsOn("gc:leaks"))
   {
@@ -492,89 +483,136 @@ std::vector<NodeValue*> NodeManager::TopologicalSort(
   return order;
 } /* NodeManager::TopologicalSort() */
 
-TypeNode NodeManager::getType(TNode n, bool check)
+TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
 {
+  // !!!! temporary
+  std::stringstream errOutTmp;
   TypeNode typeNode;
-  bool hasType = getAttribute(n, TypeAttr(), typeNode);
-  bool needsCheck = check && !getAttribute(n, TypeCheckedAttr());
-
-  Trace("getType") << this << " getting type for " << &n << " " << n
-                   << ", check=" << check << ", needsCheck = " << needsCheck
-                   << ", hasType = " << hasType << endl;
-
-#ifdef CVC5_DEBUG
-  // already did type check eagerly upon creation in node builder
-  bool doTypeCheck = false;
-#else
-  bool doTypeCheck = true;
-#endif
-  if (needsCheck && doTypeCheck)
+  TypeAttr ta;
+  TypeCheckedAttr tca;
+  bool hasType = getAttribute(n, ta, typeNode);
+  bool needsCheck = check && !getAttribute(n, tca);
+  if (hasType && !needsCheck)
   {
-    /* Iterate and compute the children bottom up. This avoids stack
-       overflows in computeType() when the Node graph is really deep,
-       which should only affect us when we're type checking lazily. */
-    stack<TNode> worklist;
-    worklist.push(n);
-
-    while (!worklist.empty())
+    return typeNode;
+  }
+  std::unordered_map<TNode, bool> visited;
+  std::unordered_map<TNode, bool>::const_iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    // already computed (and checked, if necessary) this type
+    if (!getAttribute(cur, ta).isNull() && (!check || getAttribute(cur, tca)))
     {
-      TNode m = worklist.top();
-
-      bool readyToCompute = true;
-
-      for (TNode::iterator it = m.begin(), end = m.end(); it != end; ++it)
+      continue;
+    }
+    it = visited.find(cur);
+    // we have yet to visit children
+    if (it == visited.end())
+    {
+      // See if it has a type inferrable at pre traversal. We only do this
+      // if we are not checking, since preComputeType by design does not
+      // check the children types.
+      if (!check)
       {
-        if (!hasAttribute(*it, TypeAttr())
-            || (check && !getAttribute(*it, TypeCheckedAttr())))
+        typeNode = TypeChecker::preComputeType(this, cur);
+        if (!typeNode.isNull())
         {
-          readyToCompute = false;
-          worklist.push(*it);
+          visited[cur] = true;
+          setAttribute(cur, ta, typeNode);
+          // note that the result of preComputeType is not cached
+          continue;
         }
       }
-
-      if (readyToCompute)
+      // we are checking, or pre-compute type is not available
+      visited[cur] = false;
+      visit.push_back(cur);
+      visit.insert(visit.end(), cur.begin(), cur.end());
+    }
+    else if (!it->second)
+    {
+      visited[cur] = true;
+      // children now have types assigned
+      typeNode = TypeChecker::computeType(this, cur, check, &errOutTmp);
+      // if null, immediately return without further caching
+      if (typeNode.isNull())
       {
-        Assert(check || m.getMetaKind() != kind::metakind::NULLARY_OPERATOR);
-        /* All the children have types, time to compute */
-        typeNode = TypeChecker::computeType(this, m, check);
-        worklist.pop();
+        // !!! temporary
+        throw TypeCheckingExceptionPrivate(cur, errOutTmp.str());
+        return typeNode;
       }
-    }  // end while
-
-    /* Last type computed in loop should be the type of n */
-    Assert(typeNode == getAttribute(n, TypeAttr()));
-  }
-  else if (!hasType || needsCheck)
-  {
-    /* We can compute the type top-down, without worrying about
-       deep recursion. */
-    Assert(check || n.getMetaKind() != kind::metakind::NULLARY_OPERATOR);
-    typeNode = TypeChecker::computeType(this, n, check);
-  }
+      setAttribute(cur, ta, typeNode);
+      setAttribute(cur, tca, check || getAttribute(cur, tca));
+    }
+  } while (!visit.empty());
 
   /* The type should be have been computed and stored. */
-  Assert(hasAttribute(n, TypeAttr()));
+  Assert(hasAttribute(n, ta));
   /* The check should have happened, if we asked for it. */
-  Assert(!check || getAttribute(n, TypeCheckedAttr()));
-
-  Trace("getType") << "type of " << &n << " " << n << " is " << typeNode
-                   << endl;
+  Assert(!check || getAttribute(n, tca));
+  // should be the last type computed in the above loop
   return typeNode;
 }
 
 TypeNode NodeManager::mkBagType(TypeNode elementType)
 {
-  CheckArgument(
-      !elementType.isNull(), elementType, "unexpected NULL element type");
+  Assert(!elementType.isNull()) << "unexpected NULL element type";
   Trace("bags") << "making bags type " << elementType << std::endl;
   return mkTypeNode(kind::BAG_TYPE, elementType);
 }
 
 TypeNode NodeManager::mkSequenceType(TypeNode elementType)
 {
-  CheckArgument(
-      !elementType.isNull(), elementType, "unexpected NULL element type");
+  Assert(!elementType.isNull()) << "unexpected NULL element type";
   return mkTypeNode(kind::SEQUENCE_TYPE, elementType);
+}
+
+bool NodeManager::isSortKindAbstractable(Kind k)
+{
+  return k == kind::ABSTRACT_TYPE || k == kind::ARRAY_TYPE
+         || k == kind::BAG_TYPE || k == kind::BITVECTOR_TYPE
+         || k == kind::TUPLE_TYPE || k == kind::FINITE_FIELD_TYPE
+         || k == kind::FLOATINGPOINT_TYPE || k == kind::FUNCTION_TYPE
+         || k == kind::SEQUENCE_TYPE || k == kind::SET_TYPE;
+}
+
+TypeNode NodeManager::mkAbstractType(Kind k)
+{
+  if (!isSortKindAbstractable(k))
+  {
+    std::stringstream ss;
+    ss << "Cannot construct abstract type for kind " << k;
+    throw Exception(ss.str());
+  }
+  if (k == kind::ARRAY_TYPE)
+  {
+    // ?Array -> (Array ? ?)
+    TypeNode a = mkAbstractType(kind::ABSTRACT_TYPE);
+    return mkArrayType(a, a);
+  }
+  if (k == kind::SET_TYPE)
+  {
+    // ?Set -> (Set ?)
+    TypeNode a = mkAbstractType(kind::ABSTRACT_TYPE);
+    return mkSetType(a);
+  }
+  if (k == kind::BAG_TYPE)
+  {
+    // ?Bag -> (Bag ?)
+    TypeNode a = mkAbstractType(kind::ABSTRACT_TYPE);
+    return mkBagType(a);
+  }
+  if (k == kind::SEQUENCE_TYPE)
+  {
+    // ?Seq -> (Seq ?)
+    TypeNode a = mkAbstractType(kind::ABSTRACT_TYPE);
+    return mkSequenceType(a);
+  }
+  return mkTypeConst<AbstractType>(AbstractType(k));
 }
 
 TypeNode NodeManager::mkDatatypeType(DType& datatype)
@@ -615,6 +653,7 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypesInternal(
   DatatypeIndexAttr dia;
   for (const DType& dt : datatypes)
   {
+    Assert(!dt.isResolved()) << "datatype is already resolved";
     uint32_t index = d_dtypes.size();
     d_dtypes.push_back(std::unique_ptr<DType>(new DType(dt)));
     DType* dtp = d_dtypes.back().get();
@@ -676,7 +715,7 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypesInternal(
   std::vector<TypeNode> replacements;  // to hold our final, resolved types
   for (const TypeNode& ut : unresolvedTypes)
   {
-    std::string name = ut.getAttribute(expr::VarNameAttr());
+    std::string name = ut.getName();
     std::map<std::string, TypeNode>::const_iterator resolver =
         nameResolutions.find(name);
     if (resolver == nameResolutions.end())
@@ -718,9 +757,11 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypesInternal(
     {
       const DTypeConstructor& c = dt[i];
       TypeNode testerType CVC5_UNUSED = c.getTester().getType();
-      Assert(c.isResolved() && testerType.isDatatypeTester()
-             && testerType[0] == ut)
+      Assert(c.isResolved()) << "constructor not resolved";
+      Assert(testerType.isDatatypeTester())
           << "malformed tester in datatype post-resolution";
+      Assert(testerType[0] == ut)
+          << "mismatched tester in datatype post-resolution";
       TypeNode ctorType CVC5_UNUSED = c.getConstructor().getType();
       Assert(ctorType.isDatatypeConstructor()
              && ctorType.getNumChildren() == c.getNumArgs() + 1
@@ -759,22 +800,19 @@ TypeNode NodeManager::mkConstructorType(const std::vector<TypeNode>& args,
 
 TypeNode NodeManager::mkSelectorType(TypeNode domain, TypeNode range)
 {
-  CheckArgument(
-      domain.isDatatype(), domain, "cannot create non-datatype selector type");
+  Assert(domain.isDatatype()) << "cannot create non-datatype selector type";
   return mkTypeNode(kind::SELECTOR_TYPE, domain, range);
 }
 
 TypeNode NodeManager::mkTesterType(TypeNode domain)
 {
-  CheckArgument(
-      domain.isDatatype(), domain, "cannot create non-datatype tester");
+  Assert(domain.isDatatype()) << "cannot create non-datatype tester";
   return mkTypeNode(kind::TESTER_TYPE, domain);
 }
 
 TypeNode NodeManager::mkDatatypeUpdateType(TypeNode domain, TypeNode range)
 {
-  CheckArgument(
-      domain.isDatatype(), domain, "cannot create non-datatype upater type");
+  Assert(domain.isDatatype()) << "cannot create non-datatype updater type";
   // It is a function type domain x range -> domain, we store only the
   // arguments
   return mkTypeNode(kind::UPDATER_TYPE, domain, range);

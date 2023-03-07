@@ -10,9 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * This is the interface to TheoryUF implementations
- *
- * All implementations of TheoryUF should inherit from this class.
+ * The theory of uninterpreted functions (UF)
  */
 
 #include "cvc5_private.h"
@@ -35,6 +33,7 @@ namespace uf {
 
 class CardinalityExtension;
 class HoExtension;
+class ConversionsSolver;
 class LambdaLift;
 
 class TheoryUF : public Theory {
@@ -79,6 +78,8 @@ private:
   std::unique_ptr<LambdaLift> d_lambdaLift;
   /** the higher-order solver extension (or nullptr if it does not exist) */
   std::unique_ptr<HoExtension> d_ho;
+  /** the conversions solver */
+  std::unique_ptr<ConversionsSolver> d_csolver;
 
   /** node for true */
   Node d_true;

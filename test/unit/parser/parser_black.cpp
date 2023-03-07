@@ -17,20 +17,19 @@
 
 #include "api/cpp/cvc5.h"
 #include "base/output.h"
-#include "expr/symbol_manager.h"
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/options.h"
-#include "parser/parser.h"
+#include "parser/api/cpp/command.h"
+#include "parser/api/cpp/symbol_manager.h"
 #include "parser/parser_builder.h"
-#include "parser/smt2/smt2.h"
-#include "smt/command.h"
+#include "parser/smt2/smt2_antlr.h"
 #include "test.h"
 
+using namespace cvc5::parser;
+using namespace cvc5::internal::parser;
+
 namespace cvc5::internal {
-
-using namespace parser;
-
 namespace test {
 
 class TestParserBlackParser : public TestInternal
@@ -57,26 +56,28 @@ class TestParserBlackParser : public TestInternal
   /* Set up declaration context for expr inputs */
   void setupContext(Parser& parser)
   {
+    ParserState* ps = parser.getState();
     /* a, b, c: BOOLEAN */
-    parser.bindVar("a", d_solver.get()->getBooleanSort());
-    parser.bindVar("b", d_solver.get()->getBooleanSort());
-    parser.bindVar("c", d_solver.get()->getBooleanSort());
+    ps->bindVar("a", d_solver.get()->getBooleanSort());
+    ps->bindVar("b", d_solver.get()->getBooleanSort());
+    ps->bindVar("c", d_solver.get()->getBooleanSort());
     /* t, u, v: TYPE */
-    cvc5::Sort t = parser.mkSort("t");
-    cvc5::Sort u = parser.mkSort("u");
-    cvc5::Sort v = parser.mkSort("v");
+    cvc5::Sort t = ps->mkSort("t");
+    cvc5::Sort u = ps->mkSort("u");
+    cvc5::Sort v = ps->mkSort("v");
     /* f : t->u; g: u->v; h: v->t; */
-    parser.bindVar("f", d_solver.get()->mkFunctionSort({t}, u));
-    parser.bindVar("g", d_solver.get()->mkFunctionSort({u}, v));
-    parser.bindVar("h", d_solver.get()->mkFunctionSort({v}, t));
+    ps->bindVar("f", d_solver.get()->mkFunctionSort({t}, u));
+    ps->bindVar("g", d_solver.get()->mkFunctionSort({u}, v));
+    ps->bindVar("h", d_solver.get()->mkFunctionSort({v}, t));
     /* x:t; y:u; z:v; */
-    parser.bindVar("x", t);
-    parser.bindVar("y", u);
-    parser.bindVar("z", v);
+    ps->bindVar("x", t);
+    ps->bindVar("y", u);
+    ps->bindVar("z", v);
   }
 
   void tryGoodInput(const std::string goodInput)
   {
+    d_solver.reset(new cvc5::Solver());
     d_symman.reset(new SymbolManager(d_solver.get()));
     std::unique_ptr<Parser> parser(
         ParserBuilder(d_solver.get(), d_symman.get(), true)
@@ -84,11 +85,11 @@ class TestParserBlackParser : public TestInternal
             .build());
     parser->setInput(Input::newStringInput(d_lang, goodInput, "test"));
     ASSERT_FALSE(parser->done());
-    Command* cmd;
-    while ((cmd = parser->nextCommand()) != NULL)
+    std::unique_ptr<Command> cmd;
+    while ((cmd = parser->nextCommand()) != nullptr)
     {
       Trace("parser") << "Parsed command: " << (*cmd) << std::endl;
-      delete cmd;
+      cmd->invoke(d_solver.get(), d_symman.get());
     }
 
     ASSERT_TRUE(parser->done());
@@ -96,6 +97,7 @@ class TestParserBlackParser : public TestInternal
 
   void tryBadInput(const std::string badInput, bool strictMode = false)
   {
+    d_solver.reset(new cvc5::Solver());
     d_symman.reset(new SymbolManager(d_solver.get()));
     std::unique_ptr<Parser> parser(
         ParserBuilder(d_solver.get(), d_symman.get(), true)
@@ -105,11 +107,11 @@ class TestParserBlackParser : public TestInternal
     parser->setInput(Input::newStringInput(d_lang, badInput, "test"));
     ASSERT_THROW(
         {
-          Command* cmd;
+          std::unique_ptr<Command> cmd;
           while ((cmd = parser->nextCommand()) != NULL)
           {
             Trace("parser") << "Parsed command: " << (*cmd) << std::endl;
-            delete cmd;
+            cmd->invoke(d_solver.get(), d_symman.get());
           }
           std::cout << "\nBad input succeeded:\n" << badInput << std::endl;
         },
@@ -128,7 +130,7 @@ class TestParserBlackParser : public TestInternal
     {
       /* Use QF_LIA to make multiplication ("*") available */
       std::unique_ptr<Command> cmd(
-          static_cast<Smt2*>(parser.get())->setLogic("QF_LIA"));
+          static_cast<Smt2*>(parser.get())->getSmt2State()->setLogic("QF_LIA"));
     }
 
     ASSERT_FALSE(parser->done());

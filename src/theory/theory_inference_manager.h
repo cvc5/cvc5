@@ -373,10 +373,25 @@ class TheoryInferenceManager : protected EnvObj
    */
   void safePoint(Resource r);
   /**
-   * Notification from a theory that it realizes it is incomplete at
-   * this context level.
+   * Notification from a theory that it realizes it is model unsound at
+   * this SAT context level. In other words, we cannot answer "sat" in this
+   * SAT context.
+   *
+   * Note that we use SAT context for model unsoundness, since the typical use
+   * case is that an asserted literal cannot be verified for the model under
+   * construction, where asserted literals are SAT-context dependent.
    */
-  void setIncomplete(IncompleteId id);
+  void setModelUnsound(IncompleteId id);
+  /**
+   * Notification from a theory that it realizes it is refutation unsound at
+   * this user context level. In other words, we cannot answer "unsat" in this
+   * user context.
+   *
+   * Note that we use user context for refutation unsoundness, since typically
+   * the source of refutation unsoundness is a lemma, which are user context
+   * dependent.
+   */
+  void setRefutationUnsound(IncompleteId id);
   /**
    * Notify this inference manager that a conflict was sent in this SAT context.
    * This method is called via TheoryEngine when a conflict is sent.
@@ -431,9 +446,12 @@ class TheoryInferenceManager : protected EnvObj
   virtual bool cacheLemma(TNode lem, LemmaProperty p);
   /**
    * Return the trust node that is equivalent to trn, but its proof (if asked
-   * for) will be wrapped in (ANNOTATE ... :args id).
+   * for) will be wrapped in (ANNOTATE ... :args id). We return a trust
+   * node of trust node kind CONFLICT if isConflict is true.
    */
-  TrustNode annotateId(const TrustNode& trn, InferenceId id);
+  TrustNode annotateId(const TrustNode& trn,
+                       InferenceId id,
+                       bool isConflict = false);
   /** The theory object */
   Theory& d_theory;
   /** Reference to the state of theory */

@@ -15,25 +15,20 @@
 
 #include "theory/quantifiers/sygus/sygus_stats.h"
 
-#include "smt/smt_statistics_registry.h"
-
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-SygusStatistics::SygusStatistics()
-    : d_solutions(
-          smtStatisticsRegistry().registerInt("SynthConjecture::solutions")),
-      d_filtered_solutions(smtStatisticsRegistry().registerInt(
-          "SynthConjecture::filtered_solutions")),
-      d_candidate_rewrites_print(smtStatisticsRegistry().registerInt(
-          "SynthConjecture::candidate_rewrites_print")),
-      d_enumTermsRewrite(smtStatisticsRegistry().registerInt(
-          "SygusEnumerator::enumTermsRewrite")),
-      d_enumTermsExampleEval(smtStatisticsRegistry().registerInt(
-          "SygusEnumerator::enumTermsEvalExamples")),
-      d_enumTerms(
-          smtStatisticsRegistry().registerInt("SygusEnumerator::enumTerms"))
+SygusStatistics::SygusStatistics(StatisticsRegistry& sr)
+    : d_solutions(sr.registerInt("SynthConjecture::solutions")),
+      d_filtered_solutions(
+          sr.registerInt("SynthConjecture::filtered_solutions")),
+      d_candidate_rewrites_print(
+          sr.registerInt("SynthConjecture::candidate_rewrites_print")),
+      d_enumTermsRewrite(sr.registerInt("SygusEnumerator::enumTermsRewrite")),
+      d_enumTermsExampleEval(
+          sr.registerInt("SygusEnumerator::enumTermsEvalExamples")),
+      d_enumTerms(sr.registerInt("SygusEnumerator::enumTerms"))
 
 {
 }

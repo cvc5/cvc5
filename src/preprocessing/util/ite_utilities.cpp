@@ -25,7 +25,6 @@
 #include "expr/skolem_manager.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/passes/rewrite.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/theory.h"
 #include "util/rational.h"
 

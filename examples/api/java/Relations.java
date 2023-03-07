@@ -21,7 +21,7 @@ public class Relations
 {
   public static void main(String[] args) throws CVC5ApiException
   {
-    try (Solver solver = new Solver())
+    Solver solver = new Solver();
     {
       // Set the logic
       solver.setLogic("ALL");

@@ -20,7 +20,7 @@
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
-#include "smt/smt_statistics_registry.h"
+#include "smt/set_defaults.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/rewriter.h"
@@ -58,6 +58,8 @@ SynthVerify::SynthVerify(Env& env, TermDbSygus* tds)
   d_subOptions.writeDatatypes().dtSharedSelectors =
       options().datatypes.dtSharedSelectors;
   d_subOptions.writeDatatypes().dtSharedSelectorsWasSetByUser = true;
+  // disable checking
+  smt::SetDefaults::disableChecking(d_subOptions);
 }
 
 SynthVerify::~SynthVerify() {}
@@ -78,13 +80,20 @@ Result SynthVerify::verify(Node query,
       {
         return Result(Result::UNSAT);
       }
+      else if (vars.empty())
+      {
+        return Result(Result::SAT);
+      }
       // sat, but we need to get arbtirary model values below
     }
+    SubsolverSetupInfo ssi(d_subOptions,
+                           d_subLogicInfo,
+                           d_env.getSepLocType(),
+                           d_env.getSepDataType());
     r = checkWithSubsolver(queryp,
                            vars,
                            mvs,
-                           d_subOptions,
-                           d_subLogicInfo,
+                           ssi,
                            options().quantifiers.sygusVerifyTimeout != 0,
                            options().quantifiers.sygusVerifyTimeout);
     finished = true;
@@ -144,6 +153,13 @@ Result SynthVerify::verify(Node query,
     }
   } while (!finished);
   return r;
+}
+
+Result SynthVerify::verify(Node query)
+{
+  std::vector<Node> vars;
+  std::vector<Node> mvs;
+  return verify(query, vars, mvs);
 }
 
 Node SynthVerify::preprocessQueryInternal(Node query)

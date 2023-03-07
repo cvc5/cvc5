@@ -89,11 +89,17 @@ operator BITVECTOR_SLTBV 2 "bit-vector signed less than but returns bv of size 1
 operator BITVECTOR_REDAND 1 "bit-vector redand"
 operator BITVECTOR_REDOR 1 "bit-vector redor"
 
+## overflow kinds
+operator BITVECTOR_UADDO 2 "bit-vector unsigned addition overflow predicate"
+operator BITVECTOR_SADDO 2 "bit-vector signed addition overflow predicate"
+operator BITVECTOR_UMULO 2 "bit-vector unsigned multiplication overflow predicate"
+operator BITVECTOR_SMULO 2 "bit-vector signed multiplication overflow predicate"
+operator BITVECTOR_USUBO 2 "bit-vector unsigned subtraction overflow predicate"
+operator BITVECTOR_SSUBO 2 "bit-vector signed subtraction overflow predicate"
+operator BITVECTOR_SDIVO 2 "bit-vector signed division overflow predicate"
+
 ## if-then-else kind
 operator BITVECTOR_ITE 3 "same semantics as regular ITE, but condition is bv of size 1 instead of Boolean"
-
-## conversion kinds
-operator BITVECTOR_TO_NAT 1 "bit-vector conversion to (nonnegative) integer; parameter is a bit-vector"
 
 ## internal kinds
 operator BITVECTOR_ACKERMANNIZE_UDIV 1 "term to be treated as a variable; used for eager bit-blasting Ackermann expansion of bvudiv (internal-only symbol)"
@@ -158,14 +164,6 @@ constant BITVECTOR_ZERO_EXTEND_OP \
   "operator for the bit-vector zero-extend; payload is an instance of the cvc5::internal::BitVectorZeroExtend class"
 parameterized BITVECTOR_ZERO_EXTEND BITVECTOR_ZERO_EXTEND_OP 1 "bit-vector zero-extend; first parameter is a BITVECTOR_ZERO_EXTEND_OP, second is a bit-vector term"
 
-constant INT_TO_BITVECTOR_OP \
-  struct \
-  IntToBitVector \
-  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::IntToBitVector >" \
-  "util/bitvector.h" \
-  "operator for the integer conversion to bit-vector; payload is an instance of the cvc5::internal::IntToBitVector class"
-parameterized INT_TO_BITVECTOR INT_TO_BITVECTOR_OP 1 "integer conversion to bit-vector; first parameter is an INT_TO_BITVECTOR_OP, second is an integer term"
-
 ### type rules for non-parameterized operator kinds ---------------------------
 
 typerule CONST_BITVECTOR ::cvc5::internal::theory::bv::BitVectorConstantTypeRule
@@ -219,11 +217,17 @@ typerule BITVECTOR_SLTBV ::cvc5::internal::theory::bv::BitVectorBVPredTypeRule
 typerule BITVECTOR_ITE ::cvc5::internal::theory::bv::BitVectorITETypeRule
 
 ## reduction kinds
-typerule BITVECTOR_REDAND ::cvc5::internal::theory::bv::BitVectorUnaryPredicateTypeRule
-typerule BITVECTOR_REDOR ::cvc5::internal::theory::bv::BitVectorUnaryPredicateTypeRule
+typerule BITVECTOR_REDAND ::cvc5::internal::theory::bv::BitVectorRedTypeRule
+typerule BITVECTOR_REDOR ::cvc5::internal::theory::bv::BitVectorRedTypeRule
 
-## conversion kinds
-typerule BITVECTOR_TO_NAT ::cvc5::internal::theory::bv::BitVectorConversionTypeRule
+## overflow kinds
+typerule BITVECTOR_UADDO ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
+typerule BITVECTOR_SADDO ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
+typerule BITVECTOR_UMULO ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
+typerule BITVECTOR_SMULO ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
+typerule BITVECTOR_USUBO ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
+typerule BITVECTOR_SSUBO ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
+typerule BITVECTOR_SDIVO ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
 
 ## internal kinds
 typerule BITVECTOR_ACKERMANNIZE_UDIV ::cvc5::internal::theory::bv::BitVectorAckermanizationUdivTypeRule
@@ -246,7 +250,5 @@ typerule BITVECTOR_SIGN_EXTEND_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule BITVECTOR_SIGN_EXTEND ::cvc5::internal::theory::bv::BitVectorExtendTypeRule
 typerule BITVECTOR_ZERO_EXTEND_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule BITVECTOR_ZERO_EXTEND ::cvc5::internal::theory::bv::BitVectorExtendTypeRule
-typerule INT_TO_BITVECTOR_OP ::cvc5::internal::theory::bv::IntToBitVectorOpTypeRule
-typerule INT_TO_BITVECTOR ::cvc5::internal::theory::bv::BitVectorConversionTypeRule
 
 endtheory

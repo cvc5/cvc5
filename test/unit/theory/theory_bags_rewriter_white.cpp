@@ -687,6 +687,7 @@ TEST_F(TestTheoryWhiteBagsRewriter, to_set)
 
 TEST_F(TestTheoryWhiteBagsRewriter, map)
 {
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   TypeNode bagStringType =
       d_nodeManager->mkBagType(d_nodeManager->stringType());
   Node emptybagString = d_nodeManager->mkConst(EmptyBag(bagStringType));
@@ -719,7 +720,7 @@ TEST_F(TestTheoryWhiteBagsRewriter, map)
   //   (bag.union_disjoint (bag "a" 3) (bag "b" 4))) =
   // (bag "" 7))
   Node n2 = d_nodeManager->mkNode(BAG_MAP, lambda, unionDisjointAB);
-  Node rewritten = Rewriter::rewrite(n2);
+  Node rewritten = rr->rewrite(n2);
   Node bag = d_nodeManager->mkNode(
       BAG_MAKE, empty, d_nodeManager->mkConstInt(Rational(7)));
   //  - (bag.map f (bag.union_disjoint K1 K2)) =
@@ -729,7 +730,7 @@ TEST_F(TestTheoryWhiteBagsRewriter, map)
   Node f = d_skolemManager->mkDummySkolem("f", lambda.getType());
   Node unionDisjointK1K2 = d_nodeManager->mkNode(BAG_UNION_DISJOINT, k1, k2);
   Node n3 = d_nodeManager->mkNode(BAG_MAP, f, unionDisjointK1K2);
-  Node rewritten3 = Rewriter::rewrite(n3);
+  Node rewritten3 = rr->rewrite(n3);
   Node mapK1 = d_nodeManager->mkNode(BAG_MAP, f, k1);
   Node mapK2 = d_nodeManager->mkNode(BAG_MAP, f, k2);
   Node unionDisjointMapK1K2 =
@@ -739,6 +740,7 @@ TEST_F(TestTheoryWhiteBagsRewriter, map)
 
 TEST_F(TestTheoryWhiteBagsRewriter, fold)
 {
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   TypeNode bagIntegerType =
       d_nodeManager->mkBagType(d_nodeManager->integerType());
   Node emptybag = d_nodeManager->mkConst(EmptyBag(bagIntegerType));
@@ -775,7 +777,7 @@ TEST_F(TestTheoryWhiteBagsRewriter, fold)
   bag = d_nodeManager->mkNode(BAG_MAKE, ten, n);
   Node node3 = d_nodeManager->mkNode(BAG_FOLD, f, one, bag);
   Node result3 = d_nodeManager->mkConstInt(Rational(21));
-  Node response3 = Rewriter::rewrite(node3);
+  Node response3 = rr->rewrite(node3);
   ASSERT_TRUE(response3 == result3);
 
   // (bag.fold f t (bag.union_disjoint A B)) =

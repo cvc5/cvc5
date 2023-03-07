@@ -247,7 +247,7 @@ TEST_F(TestNodeBlackNodeBuilder, operator_stream_insertion_kind)
 
 #ifdef CVC5_ASSERTIONS
   Node n;
-  ASSERT_DEATH(n = nb, "Nodes with kind ADD must have at least 2 children");
+  ASSERT_DEATH(n = nb, "Nodes with kind `\\+` must have at least 2 children");
   nb.clear(ADD);
 #endif
 
@@ -318,7 +318,7 @@ TEST_F(TestNodeBlackNodeBuilder, append)
 
 #ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(d_nodeManager->mkNode(XOR, y, x, x),
-               "Nodes with kind XOR must have at most 2 children");
+               "Nodes with kind `xor` must have at most 2 children");
 #endif
 
   NodeBuilder b(d_specKind);

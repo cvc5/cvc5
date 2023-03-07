@@ -20,6 +20,7 @@
 #include <sstream>
 
 #include "options/quantifiers_options.h"
+#include "printer/printer.h"
 #include "smt/env.h"
 #include "smt/logic_exception.h"
 #include "smt/print_benchmark.h"
@@ -62,7 +63,7 @@ void QueryGenerator::dumpQuery(Node qy, const Result& r)
   std::stringstream fname;
   fname << "query" << d_queryCount << ".smt2";
   std::ofstream fs(fname.str(), std::ofstream::out);
-  smt::PrintBenchmark pb(&d_env.getPrinter());
+  smt::PrintBenchmark pb(Printer::getPrinter(fs));
   pb.printBenchmark(fs, d_env.getLogicInfo().getLogicString(), {}, {kqy});
   fs.close();
 }
@@ -84,8 +85,9 @@ bool QueryGeneratorBasic::addTerm(Node n, std::ostream& out)
 {
   ensureBoolean(n);
   out << "(query " << n << ")" << std::endl;
+  SubsolverSetupInfo ssi(d_env);
   std::unique_ptr<SolverEngine> queryChecker;
-  initializeChecker(queryChecker, n);
+  initializeChecker(queryChecker, n, ssi);
   Result r = queryChecker->checkSat();
   dumpQuery(n, r);
   return true;

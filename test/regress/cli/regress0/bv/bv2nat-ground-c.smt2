@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-(set-logic QF_BVLIA)
+(set-logic QF_UFBVLIA)
 (set-info :status unsat)
 (declare-const a (_ BitVec 32))
 (declare-const b (_ BitVec 32))

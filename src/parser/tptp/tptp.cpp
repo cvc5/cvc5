@@ -21,29 +21,27 @@
 
 #include "api/cpp/cvc5.h"
 #include "base/check.h"
-#include "options/options.h"
-#include "options/options_public.h"
+#include "parser/api/cpp/command.h"
 #include "parser/parser.h"
-#include "smt/command.h"
 #include "theory/logic_info.h"
-
-// ANTLR defines these, which is really bad!
-#undef true
-#undef false
 
 namespace cvc5 {
 namespace parser {
 
-Tptp::Tptp(cvc5::Solver* solver,
-           SymbolManager* sm,
-           bool strictMode,
-           bool parseOnly)
-    : Parser(solver, sm, strictMode, parseOnly),
+TptpState::TptpState(ParserStateCallback* psc,
+                     Solver* solver,
+                     SymbolManager* sm,
+                     bool strictMode)
+    : ParserState(psc, solver, sm, strictMode),
       d_cnf(false),
       d_fof(false),
       d_hol(false)
 {
-  addTheory(Tptp::THEORY_CORE);
+  // To ensure there are no conflicts with smt2 builtin symbols, we use a
+  // print namespace. This ensures that benchmarks coverted TPTP to smt2
+  // can be reparsed with -o raw-benchmark.
+  d_printNamespace = "tptp.";
+  addTheory(TptpState::THEORY_CORE);
 
   /* Try to find TPTP dir */
   // From tptp4x FileUtilities
@@ -68,22 +66,26 @@ Tptp::Tptp(cvc5::Solver* solver,
     }
   }
   d_hasConjecture = false;
-}
-
-Tptp::~Tptp() {
-  for( unsigned i=0; i<d_in_created.size(); i++ ){
-    d_in_created[i]->free(d_in_created[i]);
+  // Handle forced logic immediately.
+  if (sm->isLogicForced())
+  {
+    preemptCommand(
+        std::make_unique<SetBenchmarkLogicCommand>(sm->getForcedLogic()));
   }
 }
 
-void Tptp::addTheory(Theory theory) {
+TptpState::~TptpState() {}
+
+void TptpState::addTheory(Theory theory)
+{
   switch(theory) {
   case THEORY_CORE:
     //TPTP (CNF and FOF) is unsorted so we define this common type
     {
       std::string d_unsorted_name = "$$unsorted";
       d_unsorted = d_solver->mkUninterpretedSort(d_unsorted_name);
-      preemptCommand(new DeclareSortCommand(d_unsorted_name, 0, d_unsorted));
+      preemptCommand(
+          std::make_unique<DeclareSortCommand>(d_unsorted_name, 0, d_unsorted));
     }
     // propositionnal
     defineType("Bool", d_solver->getBooleanSort());
@@ -102,99 +104,15 @@ void Tptp::addTheory(Theory theory) {
 
   default:
     std::stringstream ss;
-    ss << "internal error: Tptp::addTheory(): unhandled theory " << theory;
+    ss << "internal error: TptpState::addTheory(): unhandled theory " << theory;
     throw ParserException(ss.str());
   }
 }
 
-
-/* The include are managed in the lexer but called in the parser */
-// Inspired by http://www.antlr3.org/api/C/interop.html
-
-bool newInputStream(std::string fileName, pANTLR3_LEXER lexer, std::vector< pANTLR3_INPUT_STREAM >& inc ) {
-  Trace("parser") << "Including " << fileName << std::endl;
-  // Create a new input stream and take advantage of built in stream stacking
-  // in C target runtime.
-  //
-  pANTLR3_INPUT_STREAM    in;
-#ifdef CVC5_ANTLR3_OLD_INPUT_STREAM
-  in = antlr3AsciiFileStreamNew((pANTLR3_UINT8) fileName.c_str());
-#else  /* CVC5_ANTLR3_OLD_INPUT_STREAM */
-  in = antlr3FileStreamNew((pANTLR3_UINT8) fileName.c_str(), ANTLR3_ENC_8BIT);
-#endif /* CVC5_ANTLR3_OLD_INPUT_STREAM */
-  if(in == NULL) {
-    Trace("parser") << "Can't open " << fileName << std::endl;
-    return false;
-  }
-  // Same thing as the predefined PUSHSTREAM(in);
-  lexer->pushCharStream(lexer,in);
-  // restart it
-  //lexer->rec->state->tokenStartCharIndex  = -10;
-  //lexer->emit(lexer);
-
-  // Note that the input stream is not closed when it EOFs, I don't bother
-  // to do it here, but it is up to you to track streams created like this
-  // and destroy them when the whole parse session is complete. Remember that you
-  // don't want to do this until all tokens have been manipulated all the way through
-  // your tree parsers etc as the token does not store the text it just refers
-  // back to the input stream and trying to get the text for it will abort if you
-  // close the input stream too early.
-  //
-  inc.push_back( in );
-
-  //TODO what said before
-  return true;
-}
-
-void Tptp::includeFile(std::string fileName) {
-  // security for online version
-  if(!canIncludeFile()) {
-    parseError("include-file feature was disabled for this run.");
-  }
-
-  // Get the lexer
-  AntlrInput * ai = static_cast<AntlrInput *>(getInput());
-  pANTLR3_LEXER lexer = ai->getAntlr3Lexer();
-
-  // push the inclusion scope; will be popped by our special popCharStream
-  // would be necessary for handling symbol filtering in inclusions
-  //pushScope();
-
-  // get the name of the current stream "Does it work inside an include?"
-  const std::string inputName = ai->getInputStreamName();
-
-  // Test in the directory of the actual parsed file
-  std::string currentDirFileName;
-  if(inputName != "<stdin>") {
-    // TODO: Use dirname or Boost::filesystem?
-    size_t pos = inputName.rfind('/');
-    if(pos != std::string::npos) {
-      currentDirFileName = std::string(inputName, 0, pos + 1);
-    }
-    currentDirFileName.append(fileName);
-    if(newInputStream(currentDirFileName,lexer, d_in_created)) {
-      return;
-    }
-  } else {
-    currentDirFileName = "<unknown current directory for stdin>";
-  }
-
-  if(d_tptpDir.empty()) {
-    parseError("Couldn't open included file: " + fileName
-               + " at " + currentDirFileName + " and the TPTP directory is not specified (environment variable TPTP)");
-  };
-
-  std::string tptpDirFileName = d_tptpDir + fileName;
-  if(! newInputStream(tptpDirFileName,lexer, d_in_created)) {
-    parseError("Couldn't open included file: " + fileName
-               + " at " + currentDirFileName + " or " + tptpDirFileName);
-  }
-}
-
-void Tptp::checkLetBinding(const std::vector<cvc5::Term>& bvlist,
-                           cvc5::Term lhs,
-                           cvc5::Term rhs,
-                           bool formula)
+void TptpState::checkLetBinding(const std::vector<cvc5::Term>& bvlist,
+                                cvc5::Term lhs,
+                                cvc5::Term rhs,
+                                bool formula)
 {
   if (lhs.getKind() != cvc5::APPLY_UF)
   {
@@ -230,7 +148,7 @@ void Tptp::checkLetBinding(const std::vector<cvc5::Term>& bvlist,
   }
 }
 
-cvc5::Term Tptp::parseOpToExpr(ParseOp& p)
+cvc5::Term TptpState::parseOpToExpr(ParseOp& p)
 {
   cvc5::Term expr;
   if (!p.d_expr.isNull())
@@ -247,12 +165,12 @@ cvc5::Term Tptp::parseOpToExpr(ParseOp& p)
         p.d_type == d_solver->getBooleanSort() ? p.d_type : d_unsorted;
     expr = bindVar(p.d_name, t);  // must define at level zero
     d_auxSymbolTable[p.d_name] = expr;
-    preemptCommand(new DeclareFunctionCommand(p.d_name, expr, t));
+    preemptCommand(std::make_unique<DeclareFunctionCommand>(p.d_name, expr, t));
   }
   return expr;
 }
 
-cvc5::Term Tptp::isTptpDeclared(const std::string& name)
+cvc5::Term TptpState::isTptpDeclared(const std::string& name)
 {
   if (isDeclared(name))
   {  // already appeared
@@ -268,7 +186,7 @@ cvc5::Term Tptp::isTptpDeclared(const std::string& name)
   return cvc5::Term();
 }
 
-Term Tptp::makeApplyUf(std::vector<Term>& args)
+Term TptpState::makeApplyUf(std::vector<Term>& args)
 {
   std::vector<Sort> argSorts = args[0].getSort().getFunctionDomainSorts();
   if (argSorts.size() + 1 != args.size())
@@ -283,10 +201,19 @@ Term Tptp::makeApplyUf(std::vector<Term>& args)
       args[i + 1] = d_solver->mkTerm(TO_REAL, {args[i + 1]});
     }
   }
+  // If a lambda, apply it immediately. This is furthermore important to
+  // avoid lambdas with `-o raw-benchmark` when higher-order is not enabled.
+  if (args[0].getKind() == LAMBDA)
+  {
+    std::vector<Term> vars(args[0][0].begin(), args[0][0].end());
+    std::vector<Term> subs(args.begin() + 1, args.end());
+    return args[0][1].substitute(vars, subs);
+  }
+
   return d_solver->mkTerm(APPLY_UF, args);
 }
 
-cvc5::Term Tptp::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
+cvc5::Term TptpState::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
 {
   if (TraceIsOn("parser"))
   {
@@ -322,7 +249,7 @@ cvc5::Term Tptp::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
       t = d_solver->mkFunctionSort(sorts, t);
       v = bindVar(p.d_name, t);  // must define at level zero
       d_auxSymbolTable[p.d_name] = v;
-      preemptCommand(new DeclareFunctionCommand(p.d_name, v, t));
+      preemptCommand(std::make_unique<DeclareFunctionCommand>(p.d_name, v, t));
     }
     // args might be rationals, in which case we need to create
     // distinct constants of the "unsorted" sort to represent them
@@ -436,7 +363,7 @@ cvc5::Term Tptp::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
   return d_solver->mkTerm(kind, args);
 }
 
-cvc5::Term Tptp::mkDecimal(
+cvc5::Term TptpState::mkDecimal(
     std::string& snum, std::string& sden, bool pos, size_t exp, bool posE)
 {
   // the numerator and the denominator
@@ -495,30 +422,27 @@ cvc5::Term Tptp::mkDecimal(
   return d_solver->mkReal(ss.str());
 }
 
-bool Tptp::hol() const { return d_hol; }
-void Tptp::setHol()
+const std::string& TptpState::getTptpDir() const { return d_tptpDir; }
+
+bool TptpState::hol() const { return d_hol; }
+void TptpState::setHol()
 {
   if (d_hol)
   {
     return;
   }
   d_hol = true;
-  d_solver->setLogic("HO_UF");
+  // since we can include arithmetic, just set the logic to include all
+  d_solver->setLogic("HO_ALL");
 }
 
-void Tptp::forceLogic(const std::string& logic)
-{
-  Parser::forceLogic(logic);
-  preemptCommand(new SetBenchmarkLogicCommand(logic));
-}
-
-void Tptp::addFreeVar(cvc5::Term var)
+void TptpState::addFreeVar(cvc5::Term var)
 {
   Assert(cnf());
   d_freeVar.push_back(var);
 }
 
-std::vector<cvc5::Term> Tptp::getFreeVar()
+std::vector<cvc5::Term> TptpState::getFreeVar()
 {
   Assert(cnf());
   std::vector<cvc5::Term> r;
@@ -526,7 +450,7 @@ std::vector<cvc5::Term> Tptp::getFreeVar()
   return r;
 }
 
-cvc5::Term Tptp::convertRatToUnsorted(cvc5::Term expr)
+cvc5::Term TptpState::convertRatToUnsorted(cvc5::Term expr)
 {
   // Create the conversion function If they doesn't exists
   if (d_rtu_op.isNull()) {
@@ -534,11 +458,13 @@ cvc5::Term Tptp::convertRatToUnsorted(cvc5::Term expr)
     // Conversion from rational to unsorted
     t = d_solver->mkFunctionSort({d_solver->getRealSort()}, d_unsorted);
     d_rtu_op = d_solver->mkConst(t, "$$rtu");
-    preemptCommand(new DeclareFunctionCommand("$$rtu", d_rtu_op, t));
+    preemptCommand(
+        std::make_unique<DeclareFunctionCommand>("$$rtu", d_rtu_op, t));
     // Conversion from unsorted to rational
     t = d_solver->mkFunctionSort({d_unsorted}, d_solver->getRealSort());
     d_utr_op = d_solver->mkConst(t, "$$utr");
-    preemptCommand(new DeclareFunctionCommand("$$utr", d_utr_op, t));
+    preemptCommand(
+        std::make_unique<DeclareFunctionCommand>("$$utr", d_utr_op, t));
   }
   // Add the inverse in order to show that over the elements that
   // appear in the problem there is a bijection between unsorted and
@@ -554,22 +480,23 @@ cvc5::Term Tptp::convertRatToUnsorted(cvc5::Term expr)
     }
     cvc5::Term eq = d_solver->mkTerm(
         cvc5::EQUAL, {expr, d_solver->mkTerm(cvc5::APPLY_UF, {d_utr_op, ret})});
-    preemptCommand(new AssertCommand(eq));
+    preemptCommand(std::make_unique<AssertCommand>(eq));
   }
   return cvc5::Term(ret);
 }
 
-cvc5::Term Tptp::convertStrToUnsorted(std::string str)
+cvc5::Term TptpState::convertStrToUnsorted(std::string str)
 {
   cvc5::Term& e = d_distinct_objects[str];
   if (e.isNull())
   {
     e = d_solver->mkConst(d_unsorted, str);
+    preemptCommand(std::make_unique<DeclareFunctionCommand>(str, e, d_unsorted));
   }
   return e;
 }
 
-cvc5::Term Tptp::mkLambdaWrapper(cvc5::Kind k, cvc5::Sort argType)
+cvc5::Term TptpState::mkLambdaWrapper(cvc5::Kind k, cvc5::Sort argType)
 {
   Trace("parser") << "mkLambdaWrapper: kind " << k << " and type " << argType
                   << "\n";
@@ -592,7 +519,7 @@ cvc5::Term Tptp::mkLambdaWrapper(cvc5::Kind k, cvc5::Sort argType)
   return wrapper;
 }
 
-cvc5::Term Tptp::getAssertionExpr(FormulaRole fr, cvc5::Term expr)
+cvc5::Term TptpState::getAssertionExpr(FormulaRole fr, cvc5::Term expr)
 {
   switch (fr) {
     case FR_AXIOM:
@@ -621,7 +548,7 @@ cvc5::Term Tptp::getAssertionExpr(FormulaRole fr, cvc5::Term expr)
   return d_nullExpr;
 }
 
-cvc5::Term Tptp::getAssertionDistinctConstants()
+cvc5::Term TptpState::getAssertionDistinctConstants()
 {
   std::vector<cvc5::Term> constants;
   for (std::pair<const std::string, cvc5::Term>& cs : d_distinct_objects)
@@ -635,7 +562,9 @@ cvc5::Term Tptp::getAssertionDistinctConstants()
   return d_nullExpr;
 }
 
-Command* Tptp::makeAssertCommand(FormulaRole fr, cvc5::Term expr, bool cnf)
+std::unique_ptr<Command> TptpState::makeAssertCommand(FormulaRole fr,
+                                                      cvc5::Term expr,
+                                                      bool cnf)
 {
   // For SZS ontology compliance.
   // if we're in cnf() though, conjectures don't result in "Theorem" or
@@ -645,10 +574,9 @@ Command* Tptp::makeAssertCommand(FormulaRole fr, cvc5::Term expr, bool cnf)
     Assert(!expr.isNull());
   }
   if( expr.isNull() ){
-    return new EmptyCommand("Untreated role for expression");
-  }else{
-    return new AssertCommand(expr);
+    return std::make_unique<EmptyCommand>("Untreated role for expression");
   }
+  return std::make_unique<AssertCommand>(expr);
 }
 
 }  // namespace parser

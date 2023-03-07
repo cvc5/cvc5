@@ -36,7 +36,7 @@
  * (Bruno says that Leonardo invented this first.)
  * After this, Bland's pivot rule is invoked.
  *
- * During this proccess, we periodically inspect the queue of variables to
+ * During this process, we periodically inspect the queue of variables to
  * 1) remove now extraneous extries,
  * 2) detect conflicts that are "waiting" on the queue but may not be detected
  *    by the current queue heuristics, and
@@ -111,7 +111,7 @@ private:
 
     ReferenceStat<uint32_t> d_finalCheckPivotCounter;
 
-    Statistics(uint32_t& pivots);
+    Statistics(StatisticsRegistry& sr, uint32_t& pivots);
   } d_statistics;
 };/* class DualSimplexDecisionProcedure */
 

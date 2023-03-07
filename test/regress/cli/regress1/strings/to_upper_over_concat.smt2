@@ -1,0 +1,15 @@
+; COMMAND-LINE: --strings-exp --seq-array=lazy --strings-code-elim
+; EXPECT: sat
+(set-logic QF_SLIA)
+(declare-const x String)
+(declare-const y String)
+(declare-const z String)
+(declare-const w String)
+(assert (not (= (str.to_upper x) (str.to_lower x))))
+(assert (or (= x (str.++ y z)) (= x (str.++ y w))))
+(assert (not (= y "")))
+(assert (not (= z "")))
+(assert (= (str.to_upper y) (str.to_lower y)))
+(assert (= (str.to_upper z) (str.to_lower z)))
+(assert (> (str.len x) 2))
+(check-sat)

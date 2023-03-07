@@ -25,6 +25,7 @@
 #include "smt/env_obj.h"
 #include "theory/quantifiers/cegqi/vts_term_cache.h"
 #include "theory/quantifiers/entailment_check.h"
+#include "theory/quantifiers/ieval/inst_evaluator_manager.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
@@ -72,14 +73,28 @@ class TermRegistry : protected EnvObj
    * one exists, or otherwise a fresh variable.
    */
   Node getTermForType(TypeNode tn);
+  /** Get terms for pool p, adds them to the vector terms. */
+  void getTermsForPool(Node p, std::vector<Node>& terms);
   /**
    * Declare pool p with initial value initValue.
    */
   void declarePool(Node p, const std::vector<Node>& initValue);
   /**
-   * Process instantiation
+   * Process instantiation, called when q is instantiated.
+   *
+   * @param q The quantified formula
+   * @param terms The terms it was instantiated with
+   * @param success Whether the instantiation was successfully added
    */
-  void processInstantiation(Node q, const std::vector<Node>& terms);
+  void processInstantiation(Node q,
+                            const std::vector<Node>& terms,
+                            bool success);
+  /**
+   * Process skolemization, called when q is skolemized.
+   *
+   * @param q The quantified formula
+   * @param skolems The skolem variables used for skolemizing q
+   */
   void processSkolemization(Node q, const std::vector<Node>& skolems);
 
   /** get term database */
@@ -96,6 +111,20 @@ class TermRegistry : protected EnvObj
   TermPools* getTermPools() const;
   /** get the virtual term substitution term cache utility */
   VtsTermCache* getVtsTermCache() const;
+  /** get the instantiation evaluator manager */
+  ieval::InstEvaluatorManager* getInstEvaluatorManager() const;
+  /**
+   * Get evaluator for quantified formula q and evaluator mode tev. We require
+   * that an evaluator is only used by one user at a time. The user of an
+   * evaluator has the responsibility to ensure it is cleaned (via a soft
+   * resetAll or push) when it is finished using it.
+   *
+   * Note the returned inst evaluator can be assumed to be watching quantified
+   * formula q only. It may or may not be initialized (i.e. such that the
+   * evaluation of ground terms is already computed), although the InstEvaluator
+   * interface automatically manages this initialization internally.
+   */
+  ieval::InstEvaluator* getEvaluator(Node q, ieval::TermEvaluatorMode tev);
   /** get the model utility */
   FirstOrderModel* getModel() const;
 
@@ -120,6 +149,8 @@ class TermRegistry : protected EnvObj
   std::unique_ptr<OracleChecker> d_ochecker;
   /** virtual term substitution term cache for arithmetic instantiation */
   std::unique_ptr<VtsTermCache> d_vtsCache;
+  /** the instantiation evaluator manager */
+  std::unique_ptr<ieval::InstEvaluatorManager> d_ievalMan;
   /** extended model object */
   FirstOrderModel* d_qmodel;
 };

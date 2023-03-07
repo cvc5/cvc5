@@ -122,6 +122,7 @@ void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
   Assert(pat.getKind() == INST_PATTERN);
   // add to generators
   std::vector<Node> nodes;
+  const Options& opts = d_env.getOptions();
   for (const Node& p : pat)
   {
     if (std::find(nodes.begin(), nodes.end(), p) != nodes.end())
@@ -129,7 +130,7 @@ void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
       // skip duplicate pattern term
       continue;
     }
-    Node pat_use = PatternTermSelector::getIsUsableTrigger(p, q);
+    Node pat_use = PatternTermSelector::getIsUsableTrigger(opts, p, q);
     if (pat_use.isNull())
     {
       Trace("trigger-warn") << "User-provided trigger is not usable : " << pat

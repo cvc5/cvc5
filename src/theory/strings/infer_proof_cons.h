@@ -24,6 +24,7 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_rule.h"
 #include "proof/theory_proof_step_buffer.h"
+#include "smt/env_obj.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/sequences_stats.h"
@@ -47,13 +48,13 @@ namespace strings {
  * returns applications of the rule STRING_INFERENCE, which store the arguments
  * to the proof conversion routine "convert" below.
  */
-class InferProofCons : public ProofGenerator
+class InferProofCons : protected EnvObj, public ProofGenerator
 {
   typedef context::CDHashMap<Node, std::shared_ptr<InferInfo>> NodeInferInfoMap;
 
  public:
-  InferProofCons(context::Context* c,
-                 ProofNodeManager* pnm,
+  InferProofCons(Env& env,
+                 context::Context* c,
                  SequencesStatistics& statistics);
   ~InferProofCons() {}
   /**
@@ -269,8 +270,6 @@ class InferProofCons : public ProofGenerator
    * in termsToPurify.
    */
   static Node maybePurifyTerm(Node n, std::unordered_set<Node>& termsToPurify);
-  /** the proof node manager */
-  ProofNodeManager* d_pnm;
   /** The lazy fact map */
   NodeInferInfoMap d_lazyFactMap;
   /** Reference to the statistics for the theory of strings/sequences. */

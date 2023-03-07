@@ -246,7 +246,7 @@ class EqProof
   bool buildTransitivityChain(Node conclusion,
                               std::vector<Node>& premises) const;
 
-  /** Reduce the a congruence EqProof into a transitivity matrix
+  /** Reduce a congruence EqProof into a transitivity matrix
    *
    * Given a congruence EqProof of (= (f a0 ... an-1) (f b0 ... bn-1)), reduce
    * its justification into a matrix
@@ -298,25 +298,26 @@ class EqProof
    *
    * where when the first child of CONG is a transitivity step
    * - the premises that are CONG steps are recursively reduced with *the same*
-       argument i
+   *   argument i
    * - the other premises are processed with addToProof and added to the i row
    *   in the matrix
    *
-   * In the above example the to which the transitivity matrix is
+   * In the above example the corresponding transitivity matrix is
    *   [0] -> (= a0 c), (= b0 c)
    *   [1] -> (= a1 b1)
    *
-   * The remaining complication is that when conclusion is an equality of n-ary
-   * applications of *different* arities, there is, necessarily, a transitivity
-   * step as a first child a CONG step whose conclusion is an equality of n-ary
-   * applications of different arities. For example
+   * The remaining complication is when the conclusion is an equality of n-ary
+   * applications of *different* arities. Then there necessarily is a
+   * transitivity step as a first child a CONG step whose conclusion is an
+   * equality of n-ary applications of different arities. For example
+   *
    *             P0                              P1
    * -------------------------- EQP::TRANS  -----------
    *     (= (f a0 a1) (f b0))                (= a2 b1)
    * -------------------------------------------------- EQP::CONG
    *              (= (f a0 a1 a2) (f b0 b1))
    *
-   * will be first reduced with i = 2 (maximal arity amorg the original
+   * will be first reduced with i = 2 (maximal arity among the original
    * conclusion's applications), adding (= a2 b1) to row 2 after processing
    * P1. The first child is reduced with i = 1. Since it is a TRANS step whose
    * conclusion is an equality of n-ary applications with mismatching arity, P0

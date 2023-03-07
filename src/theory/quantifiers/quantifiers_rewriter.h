@@ -101,31 +101,29 @@ class QuantifiersRewriter : public TheoryRewriter
   /**
    * Get variable eliminate for an equality based on theory-specific reasoning.
    */
-  static Node getVarElimEq(Node lit, const std::vector<Node>& args, Node& var);
+  Node getVarElimEq(Node lit, const std::vector<Node>& args, Node& var) const;
   /** variable eliminate for real equalities
    *
    * If this returns a non-null value ret, then var is updated to a member of
    * args, lit is equivalent to ( var = ret ).
    */
-  static Node getVarElimEqReal(Node lit,
-                               const std::vector<Node>& args,
-                               Node& var);
+  Node getVarElimEqReal(Node lit,
+                        const std::vector<Node>& args,
+                        Node& var) const;
   /** variable eliminate for bit-vector equalities
    *
    * If this returns a non-null value ret, then var is updated to a member of
    * args, lit is equivalent to ( var = ret ).
    */
-  static Node getVarElimEqBv(Node lit,
-                             const std::vector<Node>& args,
-                             Node& var);
+  Node getVarElimEqBv(Node lit, const std::vector<Node>& args, Node& var) const;
   /** variable eliminate for string equalities
    *
    * If this returns a non-null value ret, then var is updated to a member of
    * args, lit is equivalent to ( var = ret ).
    */
-  static Node getVarElimEqString(Node lit,
-                                 const std::vector<Node>& args,
-                                 Node& var);
+  Node getVarElimEqString(Node lit,
+                          const std::vector<Node>& args,
+                          Node& var) const;
   /** get variable elimination
    *
    * If there exists an n with some polarity in body, and entails a literal that

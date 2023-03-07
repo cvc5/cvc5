@@ -1,5 +1,5 @@
 ; COMMAND-LINE:
-; EXPECT: fail
+; EXPECT: infeasible
 (set-logic ALL)
 (declare-datatypes ((wrapped_integer 0)) (((constructor (value Int)))))
 (synth-fun f ((input wrapped_integer)) Bool ((bool Bool)) ((bool Bool ( (= (value input) 0)))))

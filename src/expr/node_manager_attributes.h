@@ -24,7 +24,6 @@ namespace cvc5::internal {
 namespace expr {
 
 // Definition of an attribute for the variable name.
-// TODO: hide this attribute behind a NodeManager interface.
 namespace attr {
   struct VarNameTag { };
   struct SortArityTag { };

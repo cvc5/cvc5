@@ -56,7 +56,7 @@ TheoryQuantifiers::TheoryQuantifiers(Env& env,
 
   if (options().quantifiers.macrosQuant)
   {
-    d_qmacros.reset(new QuantifiersMacros(d_qreg));
+    d_qmacros.reset(new QuantifiersMacros(env, d_qreg));
   }
 }
 
@@ -119,7 +119,9 @@ Theory::PPAssertStatus TheoryQuantifiers::ppAssert(
       // must be legal
       if (isLegalElimination(eq[0], eq[1]))
       {
-        outSubstitutions.addSubstitution(eq[0], eq[1]);
+        // add substitution solved, which ensures we track that eq depends on
+        // tin, which can impact unsat cores.
+        outSubstitutions.addSubstitutionSolved(eq[0], eq[1], tin);
         return Theory::PP_ASSERT_STATUS_SOLVED;
       }
     }

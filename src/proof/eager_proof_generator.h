@@ -23,6 +23,7 @@
 #include "proof/proof_generator.h"
 #include "proof/proof_rule.h"
 #include "proof/trust_node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 
@@ -83,12 +84,12 @@ class ProofNodeManager;
  * storing the proof internally, and the proof output channel is responsible for
  * maintaining the map that epg is who to ask for the proof of the conflict.
  */
-class EagerProofGenerator : public ProofGenerator
+class EagerProofGenerator : protected EnvObj, public ProofGenerator
 {
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>> NodeProofNodeMap;
 
  public:
-  EagerProofGenerator(ProofNodeManager* pnm,
+  EagerProofGenerator(Env& env,
                       context::Context* c = nullptr,
                       std::string name = "EagerProofGenerator");
   ~EagerProofGenerator() {}
@@ -121,7 +122,8 @@ class EagerProofGenerator : public ProofGenerator
    * Make trust node from a single step proof. This is a convenience function
    * that avoids the need to explictly construct ProofNode by the caller.
    *
-   * @param conc The conclusion of the rule,
+   * @param conc The conclusion of the rule, or its negation if isConflict is
+   * true.
    * @param id The rule of the proof concluding conc
    * @param exp The explanation (premises) to the proof concluding conc,
    * @param args The arguments to the proof concluding conc,
@@ -191,8 +193,6 @@ class EagerProofGenerator : public ProofGenerator
   void setProofForLemma(Node lem, std::shared_ptr<ProofNode> pf);
   /** Set that pf is the proof for explained propagation */
   void setProofForPropExp(TNode lit, Node exp, std::shared_ptr<ProofNode> pf);
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
   /** Name identifier */
   std::string d_name;
   /** A dummy context used by this class if none is provided */

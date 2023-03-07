@@ -24,9 +24,9 @@ import java.util.NoSuchElementException;
 public class Datatype extends AbstractPointer implements Iterable<DatatypeConstructor>
 {
   // region construction and destruction
-  Datatype(Solver solver, long pointer)
+  Datatype(long pointer)
   {
-    super(solver, pointer);
+    super(pointer);
   }
 
   protected native void deletePointer(long pointer);
@@ -46,7 +46,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
   public DatatypeConstructor getConstructor(int idx)
   {
     long constructorPointer = getConstructor(pointer, idx);
-    return new DatatypeConstructor(solver, constructorPointer);
+    return new DatatypeConstructor(constructorPointer);
   }
 
   private native long getConstructor(long pointer, int index);
@@ -61,7 +61,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
   public DatatypeConstructor getConstructor(String name)
   {
     long constructorPointer = getConstructor(pointer, name);
-    return new DatatypeConstructor(solver, constructorPointer);
+    return new DatatypeConstructor(constructorPointer);
   }
 
   private native long getConstructor(long pointer, String name);
@@ -76,7 +76,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
   public DatatypeSelector getSelector(String name)
   {
     long selectorPointer = getSelector(pointer, name);
-    return new DatatypeSelector(solver, selectorPointer);
+    return new DatatypeSelector(selectorPointer);
   }
 
   private native long getSelector(long pointer, String name);
@@ -106,7 +106,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
   public Sort[] getParameters()
   {
     long[] sortPointers = getParameters(pointer);
-    Sort[] sorts = Utils.getSorts(solver, sortPointers);
+    Sort[] sorts = Utils.getSorts(sortPointers);
     return sorts;
   }
 

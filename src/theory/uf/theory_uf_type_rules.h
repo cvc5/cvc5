@@ -33,7 +33,10 @@ namespace uf {
 class UfTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /**
@@ -42,7 +45,10 @@ class UfTypeRule
 class CardinalityConstraintTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /**
@@ -53,7 +59,10 @@ class CardinalityConstraintTypeRule
 class CardinalityConstraintOpTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /**
@@ -63,7 +72,10 @@ class CardinalityConstraintOpTypeRule
 class CombinedCardinalityConstraintTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /**
@@ -74,7 +86,10 @@ class CombinedCardinalityConstraintTypeRule
 class CombinedCardinalityConstraintOpTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /**
@@ -86,7 +101,10 @@ class HoApplyTypeRule
 {
  public:
   // the typing rule for HO_APPLY terms
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /**
@@ -97,10 +115,10 @@ class HoApplyTypeRule
 class LambdaTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
-  // computes whether a lambda is a constant value, via conversion to array
-  // representation
-  static bool computeIsConst(NodeManager* nodeManager, TNode n);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 }; /* class LambdaTypeRule */
 
 /**
@@ -110,8 +128,11 @@ class LambdaTypeRule
 class FunctionArrayConstTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
-}; /* class LambdaTypeRule */
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+};
 
 class FunctionProperties
 {
@@ -127,6 +148,31 @@ class FunctionProperties
    */
   static Node mkGroundTerm(TypeNode type);
 }; /* class FuctionProperties */
+
+/** Returns builtin type */
+class IntToBitVectorOpTypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+};
+
+/**
+ * If n's kind is BITVECTOR_TO_NAT, expects bit-vector argument, returns
+ * integer type.
+ * If n's kind is INT_TO_BITVECTOR, expects integer argument, returns
+ * bit-vector of specified width.
+ */
+class BitVectorConversionTypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+};
 
 }  // namespace uf
 }  // namespace theory

@@ -19,8 +19,6 @@
 #include "expr/dtype_cons.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
-#include "smt/solver_engine.h"
-#include "smt/solver_engine_scope.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/first_order_model.h"

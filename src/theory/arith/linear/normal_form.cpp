@@ -42,17 +42,6 @@ bool Variable::isLeafMember(Node n){
 
 VarList::VarList(Node n) : NodeWrapper(n) { Assert(isSorted(begin(), end())); }
 
-bool Variable::isIAndMember(Node n)
-{
-  return n.getKind() == kind::IAND && Polynomial::isMember(n[0])
-         && Polynomial::isMember(n[1]);
-}
-
-bool Variable::isPow2Member(Node n)
-{
-  return n.getKind() == kind::POW2 && Polynomial::isMember(n[0]);
-}
-
 bool Variable::isDivMember(Node n){
   switch(n.getKind()){
   case kind::DIVISION:
@@ -67,29 +56,17 @@ bool Variable::isDivMember(Node n){
   }
 }
 
-bool Variable::isTranscendentalMember(Node n) {
-  switch(n.getKind()){
-  case kind::EXPONENTIAL:
-  case kind::SINE:
-  case kind::COSINE:
-  case kind::TANGENT:
-  case kind::COSECANT:
-  case kind::SECANT:
-  case kind::COTANGENT:
-  case kind::ARCSINE:
-  case kind::ARCCOSINE:
-  case kind::ARCTANGENT:
-  case kind::ARCCOSECANT:
-  case kind::ARCSECANT:
-  case kind::ARCCOTANGENT:
-  case kind::SQRT: return Polynomial::isMember(n[0]);
-  case kind::PI:
-    return true;
-  default:
-    return false;
+bool Variable::areChildrenPolynomialMembers(Node n)
+{
+  for (const Node& nc : n)
+  {
+    if (!Polynomial::isMember(nc))
+    {
+      return false;
+    }
   }
+  return true;
 }
-
 
 bool VarList::isSorted(iterator start, iterator end) {
   return std::is_sorted(start, end);

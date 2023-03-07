@@ -21,6 +21,7 @@
 #include "expr/cardinality_constraint.h"
 #include "expr/function_array_const.h"
 #include "theory/uf/function_const.h"
+#include "util/bitvector.h"
 #include "util/cardinality.h"
 #include "util/rational.h"
 
@@ -28,7 +29,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
-TypeNode UfTypeRule::computeType(NodeManager* nodeManager, TNode n, bool check)
+TypeNode UfTypeRule::computeType(NodeManager* nodeManager,
+                                 TNode n,
+                                 bool check,
+                                 std::ostream* errOut)
 {
   TNode f = n.getOperator();
   TypeNode fType = f.getType(check);
@@ -69,7 +73,8 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager, TNode n, bool check)
 
 TypeNode CardinalityConstraintOpTypeRule::computeType(NodeManager* nodeManager,
                                                       TNode n,
-                                                      bool check)
+                                                      bool check,
+                                                      std::ostream* errOut)
 {
   if (check)
   {
@@ -90,13 +95,14 @@ TypeNode CardinalityConstraintOpTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode CardinalityConstraintTypeRule::computeType(NodeManager* nodeManager,
                                                     TNode n,
-                                                    bool check)
+                                                    bool check,
+                                                    std::ostream* errOut)
 {
   return nodeManager->booleanType();
 }
 
 TypeNode CombinedCardinalityConstraintOpTypeRule::computeType(
-    NodeManager* nodeManager, TNode n, bool check)
+    NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
   if (check)
   {
@@ -112,14 +118,15 @@ TypeNode CombinedCardinalityConstraintOpTypeRule::computeType(
 }
 
 TypeNode CombinedCardinalityConstraintTypeRule::computeType(
-    NodeManager* nodeManager, TNode n, bool check)
+    NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
   return nodeManager->booleanType();
 }
 
 TypeNode HoApplyTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
-                                      bool check)
+                                      bool check,
+                                      std::ostream* errOut)
 {
   Assert(n.getKind() == kind::HO_APPLY);
   TypeNode fType = n[0].getType(check);
@@ -158,7 +165,8 @@ TypeNode HoApplyTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode LambdaTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
-                                     bool check)
+                                     bool check,
+                                     std::ostream* errOut)
 {
   if (n[0].getType(check) != nodeManager->boundVarListType())
   {
@@ -176,56 +184,10 @@ TypeNode LambdaTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkFunctionType(argTypes, rangeType);
 }
 
-bool LambdaTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
-{
-  Assert(n.getKind() == kind::LAMBDA);
-  // get array representation of this function, if possible
-  Node na = FunctionConst::getArrayRepresentationForLambda(n);
-  if (!na.isNull())
-  {
-    Assert(na.getType().isArray());
-    Trace("lambda-const") << "Array representation for " << n << " is " << na
-                          << " " << na.getType() << std::endl;
-    // must have the standard bound variable list
-    Node bvl =
-        NodeManager::currentNM()->getBoundVarListForFunctionType(n.getType());
-    if (bvl == n[0])
-    {
-      // array must be constant
-      if (na.isConst())
-      {
-        Trace("lambda-const") << "*** Constant lambda : " << n;
-        Trace("lambda-const") << " since its array representation : " << na
-                              << " is constant." << std::endl;
-        return true;
-      }
-      else
-      {
-        Trace("lambda-const") << "Non-constant lambda : " << n
-                              << " since array is not constant." << std::endl;
-      }
-    }
-    else
-    {
-      Trace("lambda-const")
-          << "Non-constant lambda : " << n
-          << " since its varlist is not standard." << std::endl;
-      Trace("lambda-const") << "  standard : " << bvl << std::endl;
-      Trace("lambda-const") << "   current : " << n[0] << std::endl;
-    }
-  }
-  else
-  {
-    Trace("lambda-const") << "Non-constant lambda : " << n
-                          << " since it has no array representation."
-                          << std::endl;
-  }
-  return false;
-}
-
 TypeNode FunctionArrayConstTypeRule::computeType(NodeManager* nodeManager,
                                                  TNode n,
-                                                 bool check)
+                                                 bool check,
+                                                 std::ostream* errOut)
 {
   Assert(n.getKind() == kind::FUNCTION_ARRAY_CONST);
   const FunctionArrayConst& fc = n.getConst<FunctionArrayConst>();
@@ -269,6 +231,44 @@ Node FunctionProperties::mkGroundTerm(TypeNode type)
   Node bvl = nm->getBoundVarListForFunctionType(type);
   Node ret = nm->mkGroundTerm(type.getRangeType());
   return nm->mkNode(kind::LAMBDA, bvl, ret);
+}
+
+TypeNode IntToBitVectorOpTypeRule::computeType(NodeManager* nodeManager,
+                                               TNode n,
+                                               bool check,
+                                               std::ostream* errOut)
+{
+  Assert(n.getKind() == kind::INT_TO_BITVECTOR_OP);
+  size_t bvSize = n.getConst<IntToBitVector>();
+  if (bvSize == 0)
+  {
+    throw TypeCheckingExceptionPrivate(n, "expecting bit-width > 0");
+  }
+  return nodeManager->mkFunctionType(nodeManager->integerType(),
+                                     nodeManager->mkBitVectorType(bvSize));
+}
+
+TypeNode BitVectorConversionTypeRule::computeType(NodeManager* nodeManager,
+                                                  TNode n,
+                                                  bool check,
+                                                  std::ostream* errOut)
+{
+  if (n.getKind() == kind::BITVECTOR_TO_NAT)
+  {
+    if (check && !n[0].getType(check).isBitVector())
+    {
+      throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");
+    }
+    return nodeManager->integerType();
+  }
+
+  Assert(n.getKind() == kind::INT_TO_BITVECTOR);
+  size_t bvSize = n.getOperator().getConst<IntToBitVector>();
+  if (check && !n[0].getType(check).isInteger())
+  {
+    throw TypeCheckingExceptionPrivate(n, "expecting integer term");
+  }
+  return nodeManager->mkBitVectorType(bvSize);
 }
 
 }  // namespace uf

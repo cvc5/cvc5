@@ -868,6 +868,13 @@ Node FpWordBlaster::wordBlast(TNode node)
       continue;
     }
 
+    if (cur.isClosure())
+    {
+      // We ignore closures. For closures (e.g., set comprehension), we rely on
+      // the reduction of the closures to handle the body.
+      continue;
+    }
+
     auto it = visited.find(cur);
     if (it == visited.end())
     {

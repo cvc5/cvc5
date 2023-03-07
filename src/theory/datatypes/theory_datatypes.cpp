@@ -327,7 +327,7 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
   case kind::APPLY_TESTER:
     // add predicate trigger for testers and equalities
     // Get triggered for both equal and dis-equal
-    d_equalityEngine->addTriggerPredicate(n);
+    d_state.addEqualityEngineTriggerPredicate(n);
     break;
   default:
     // do initial lemmas (e.g. for dt.size)
@@ -421,27 +421,17 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
   }
   Trace("datatypes-merge") << "Merge " << t1 << " " << t2 << std::endl;
   Assert(d_equalityEngine->areEqual(t1, t2));
-  TNode trep1 = t1;
-  TNode trep2 = t2;
   EqcInfo* eqc2 = getOrMakeEqcInfo(t2);
   if (eqc2 == nullptr)
   {
     return;
   }
   bool checkInst = false;
-  if (!eqc2->d_constructor.get().isNull())
-  {
-    trep2 = eqc2->d_constructor.get();
-  }
   EqcInfo* eqc1 = getOrMakeEqcInfo(t1);
   if (eqc1)
   {
     Trace("datatypes-debug")
         << "  merge eqc info " << eqc2 << " into " << eqc1 << std::endl;
-    if (!eqc1->d_constructor.get().isNull())
-    {
-      trep1 = eqc1->d_constructor.get();
-    }
     // check for clash
     TNode cons1 = eqc1->d_constructor.get();
     TNode cons2 = eqc2->d_constructor.get();
@@ -794,8 +784,6 @@ void TheoryDatatypes::addSelector( Node s, EqcInfo* eqc, Node n, bool assertFact
         return;
       }
     }
-    //add it to the vector
-    //sel->push_back( s );
     d_selector_apps[n] = n_sel + 1;
     if (n_sel < d_selector_apps_data[n].size())
     {
@@ -975,20 +963,14 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
 
   //get all constructors
   eq::EqClassesIterator eqccs_i = eq::EqClassesIterator(d_equalityEngine);
-  std::vector< Node > cons;
   std::vector< Node > nodes;
   std::map< Node, Node > eqc_cons;
   while( !eqccs_i.isFinished() ){
     Node eqc = (*eqccs_i);
-    //for all equivalence classes that are datatypes
-    //if( termSet.find( eqc )==termSet.end() ){
-    //  Trace("dt-cmi-debug") << "Irrelevant eqc : " << eqc << std::endl;
-    //}
     if( eqc.getType().isDatatype() ){
       EqcInfo* ei = getOrMakeEqcInfo( eqc );
       if( ei && !ei->d_constructor.get().isNull() ){
         Node c = ei->d_constructor.get();
-        cons.push_back( c );
         eqc_cons[ eqc ] = c;
       }else{
         //if eqc contains a symbol known to datatypes (a selector), then we must assign
@@ -1003,7 +985,6 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
     ++eqccs_i;
   }
 
-  //unsigned orig_size = nodes.size();
   std::map< TypeNode, int > typ_enum_map;
   std::vector< TypeEnumerator > typ_enum;
   size_t index = 0;
@@ -1012,7 +993,6 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
   {
     Node eqc = nodes[index];
     Node neqc;
-    bool addCons = false;
     TypeNode tt = eqc.getType();
     const DType& dt = tt.getDType();
     if (!d_equalityEngine->hasTerm(eqc))
@@ -1044,7 +1024,6 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
           }
         }
       }
-      addCons = true;
     }
     if( !neqc.isNull() ){
       Trace("dt-cmi") << "Assign : " << neqc << std::endl;
@@ -1054,17 +1033,12 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
       }
       eqc_cons[ eqc ] = neqc;
     }
-    if( addCons ){
-      cons.push_back( neqc );
-    }
     ++index;
   }
 
   for( std::map< Node, Node >::iterator it = eqc_cons.begin(); it != eqc_cons.end(); ++it ){
     Node eqc = it->first;
     if( eqc.getType().isCodatatype() ){
-      //until models are implemented for codatatypes
-      //throw Exception("Models for codatatypes are not supported in this version.");
       //must proactive expand to avoid looping behavior in model builder
       if( !it->second.isNull() ){
         std::map< Node, int > vmap;
@@ -1731,7 +1705,6 @@ void TheoryDatatypes::printModelDebug( const char* c ){
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
   while( !eqcs_i.isFinished() ){
     Node eqc = (*eqcs_i);
-    //if( !eqc.getType().isBoolean() ){
       if( eqc.getType().isDatatype() ){
         Trace( c ) << "DATATYPE : ";
       }
@@ -1788,20 +1761,60 @@ void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
   Trace("dt-cmi") << "Have " << termSet.size() << " relevant terms..."
                   << std::endl;
 
-  //also include non-singleton dt equivalence classes  TODO : revisit this
+  // Also must include certain constructor terms recorded for each equivalence
+  // class (via EqcInfo). These constructor terms may be introduced local to
+  // datatypes, are included in the model (collectModelValues), and thus must
+  // be included in addition to what termSet would otherwise contain.
+  // We furthermore try to change the recorded constructor to be a relevant one
+  // from termSet. This avoids model construction errors where the subfields
+  // of equated relevant and irrelevant constructor terms may not agree in the
+  // model (see issue #9042). In other words, this method ensures that all
+  // datatype equivalence classes either:
+  // (1) have no (recorded) constructor,
+  // (2) have a single recorded constructor term that is not relevant, which we
+  // add to termSet below,
+  // (3) have (possibly multiple) relevant constructor terms. We ensure the
+  // recorded constructor is one of these.
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
   while( !eqcs_i.isFinished() ){
     TNode r = (*eqcs_i);
-    if (r.getType().isDatatype())
+    ++eqcs_i;
+    if (!r.getType().isDatatype())
     {
-      eq::EqClassIterator eqc_i = eq::EqClassIterator(r, d_equalityEngine);
-      while (!eqc_i.isFinished())
+      continue;
+    }
+    EqcInfo* ei = getOrMakeEqcInfo(r);
+    if (!ei || ei->d_constructor.get().isNull())
+    {
+      // no constructor
+      continue;
+    }
+    if (termSet.find(ei->d_constructor.get()) != termSet.end())
+    {
+      // the constructor is already relevant
+      continue;
+    }
+    // scan the equivalence class
+    bool foundCons = false;
+    eq::EqClassIterator eqc_i = eq::EqClassIterator(r, d_equalityEngine);
+    while (!eqc_i.isFinished())
+    {
+      TNode n = *eqc_i;
+      ++eqc_i;
+      if (n.getKind() == APPLY_CONSTRUCTOR && termSet.find(n) != termSet.end())
       {
-        termSet.insert(*eqc_i);
-        ++eqc_i;
+        // change the recorded constructor to be a relevant one
+        ei->d_constructor = n;
+        foundCons = true;
+        break;
       }
     }
-    ++eqcs_i;
+    // If there are no constructors that are relevant, we consider the
+    // recorded constructor to be relevant.
+    if (!foundCons)
+    {
+      termSet.insert(ei->d_constructor.get());
+    }
   }
 }
 

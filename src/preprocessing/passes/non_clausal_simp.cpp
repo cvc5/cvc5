@@ -24,7 +24,6 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/preprocess_proof_generator.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/booleans/circuit_propagator.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
@@ -52,13 +51,12 @@ NonClausalSimp::Statistics::Statistics(StatisticsRegistry& reg)
 NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "non-clausal-simp"),
       d_statistics(statisticsRegistry()),
-      d_pnm(d_env.getProofNodeManager()),
-      d_llpg(d_pnm ? new smt::PreprocessProofGenerator(
+      d_llpg(options().smt.produceProofs ? new smt::PreprocessProofGenerator(
                  d_env, userContext(), "NonClausalSimp::llpg")
-                   : nullptr),
-      d_llra(d_pnm ? new LazyCDProof(
-                 d_pnm, nullptr, userContext(), "NonClausalSimp::llra")
-                   : nullptr),
+                                         : nullptr),
+      d_llra(options().smt.produceProofs ? new LazyCDProof(
+                 d_env, nullptr, userContext(), "NonClausalSimp::llra")
+                                         : nullptr),
       d_tsubsList(userContext())
 {
 }
@@ -124,12 +122,12 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   // constant propagations
   std::shared_ptr<TrustSubstitutionMap> constantPropagations =
       std::make_shared<TrustSubstitutionMap>(
-          u, d_pnm, "NonClausalSimp::cprop", PfRule::PREPROCESS_LEMMA);
+          d_env, u, "NonClausalSimp::cprop", PfRule::PREPROCESS_LEMMA);
   SubstitutionMap& cps = constantPropagations->get();
   // new substitutions
   std::shared_ptr<TrustSubstitutionMap> newSubstitutions =
       std::make_shared<TrustSubstitutionMap>(
-          u, d_pnm, "NonClausalSimp::newSubs", PfRule::PREPROCESS_LEMMA);
+          d_env, u, "NonClausalSimp::newSubs", PfRule::PREPROCESS_LEMMA);
   SubstitutionMap& nss = newSubstitutions->get();
 
   size_t j = 0;
@@ -175,7 +173,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
             << "conflict with " << learned_literals[i].getNode() << std::endl;
         assertionsToPreprocess->clear();
         Node n = nm->mkConst<bool>(false);
-        assertionsToPreprocess->push_back(n, false, false, d_llpg.get());
+        assertionsToPreprocess->push_back(n, false, d_llpg.get());
         return PreprocessingPassResult::CONFLICT;
       }
     }
@@ -364,8 +362,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     }
   }
 
-  Assert(assertionsToPreprocess->getRealAssertionsEnd()
-         <= assertionsToPreprocess->size());
   // Learned literals to conjoin. If proofs are enabled, all these are
   // justified by d_llpg.
   std::vector<Node> learnedLitsToConjoin;
@@ -412,7 +408,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 
   if (!learnedLitsToConjoin.empty())
   {
-    size_t replIndex = assertionsToPreprocess->getRealAssertionsEnd() - 1;
+    size_t replIndex = assertionsToPreprocess->size() - 1;
     Node newConj = nm->mkAnd(learnedLitsToConjoin);
     Trace("non-clausal-simplify")
         << "non-clausal simplification, reassert: " << newConj << std::endl;
@@ -451,7 +447,10 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-bool NonClausalSimp::isProofEnabled() const { return d_pnm != nullptr; }
+bool NonClausalSimp::isProofEnabled() const
+{
+  return options().smt.produceProofs;
+}
 
 Node NonClausalSimp::processLearnedLit(Node lit,
                                        theory::TrustSubstitutionMap* subs,

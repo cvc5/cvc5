@@ -39,7 +39,7 @@ public class Combination
 
   public static void main(String[] args) throws CVC5ApiException
   {
-    try (Solver slv = new Solver())
+    Solver slv = new Solver();
     {
       slv.setOption("produce-models", "true"); // Produce Models
       slv.setOption("dag-thresh", "0"); // Disable dagifying the output

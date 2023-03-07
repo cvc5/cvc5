@@ -22,12 +22,13 @@
 #include "proof/proof_generator.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
+#include "smt/env.h"
 
 namespace cvc5::internal {
 
-LazyTreeProofGenerator::LazyTreeProofGenerator(ProofNodeManager* pnm,
+LazyTreeProofGenerator::LazyTreeProofGenerator(Env& env,
                                                const std::string& name)
-    : d_pnm(pnm), d_name(name)
+    : EnvObj(env), d_name(name)
 {
   d_stack.emplace_back(&d_proof);
 }
@@ -90,6 +91,7 @@ std::shared_ptr<ProofNode> LazyTreeProofGenerator::getProof(
     std::vector<std::shared_ptr<ProofNode>>& scope,
     const detail::TreeProofNode& pn) const
 {
+  ProofNodeManager* pnm = d_env.getProofNodeManager();
   // Store scope size to reset scope afterwards
   std::size_t before = scope.size();
   std::vector<std::shared_ptr<ProofNode>> children;
@@ -100,7 +102,7 @@ std::shared_ptr<ProofNode> LazyTreeProofGenerator::getProof(
     {
       for (const auto& a : pn.d_args)
       {
-        scope.emplace_back(d_pnm->mkAssume(a));
+        scope.emplace_back(pnm->mkAssume(a));
       }
     }
   }
@@ -117,11 +119,11 @@ std::shared_ptr<ProofNode> LazyTreeProofGenerator::getProof(
   for (const auto& p : pn.d_premise)
   {
     // Add premises as assumptions
-    children.emplace_back(d_pnm->mkAssume(p));
+    children.emplace_back(pnm->mkAssume(p));
   }
   // Reset scope
   scope.resize(before);
-  return d_pnm->mkNode(pn.d_rule, children, pn.d_args);
+  return pnm->mkNode(pn.d_rule, children, pn.d_args);
 }
 
 void LazyTreeProofGenerator::print(std::ostream& os,

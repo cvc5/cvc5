@@ -15,16 +15,14 @@
 
 #include "theory/arith/nl/stats.h"
 
-#include "smt/smt_statistics_registry.h"
-
 namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
 
-NlStats::NlStats()
-    : d_mbrRuns(smtStatisticsRegistry().registerInt("nl::mbrRuns")),
-      d_checkRuns(smtStatisticsRegistry().registerInt("nl::checkRuns"))
+NlStats::NlStats(StatisticsRegistry& sr)
+    : d_mbrRuns(sr.registerInt("nl::mbrRuns")),
+      d_checkRuns(sr.registerInt("nl::checkRuns"))
 {
 }
 

@@ -24,7 +24,9 @@
 #include "expr/node.h"
 #include "proof/proof_node_manager.h"
 #include "proof/trust_node.h"
+#include "smt/env_obj.h"
 #include "theory/ee_setup_info.h"
+#include "theory/output_channel.h"
 #include "theory/theory_id.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
@@ -32,10 +34,9 @@
 
 namespace cvc5::internal {
 
-class Env;
 class TheoryEngine;
 
-class SharedTermsDatabase : public context::ContextNotifyObj
+class SharedTermsDatabase : protected EnvObj, public context::ContextNotifyObj
 {
  public:
   /** A container for a list of shared terms */
@@ -45,8 +46,6 @@ class SharedTermsDatabase : public context::ContextNotifyObj
   typedef shared_terms_list::const_iterator shared_terms_iterator;
 
  private:
-  /** Reference to the env */
-  Env& d_env;
 
   /** Some statistics */
   IntStat d_statSharedTerms;
@@ -275,6 +274,8 @@ class SharedTermsDatabase : public context::ContextNotifyObj
   theory::eq::ProofEqEngine* d_pfee;
   /** The proof node manager */
   ProofNodeManager* d_pnm;
+  /** The output channel for propagations */
+  theory::OutputChannel& d_out;
 };
 
 }  // namespace cvc5::internal

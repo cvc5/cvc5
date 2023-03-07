@@ -16,8 +16,8 @@
 
 #include "cvc5_public.h"
 
-#ifndef CVC5__ARRAY_STORE_ALL_H
-#define CVC5__ARRAY_STORE_ALL_H
+#ifndef CVC5__EXPR__ARRAY_STORE_ALL_H
+#define CVC5__EXPR__ARRAY_STORE_ALL_H
 
 #include <iosfwd>
 #include <memory>

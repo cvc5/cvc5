@@ -19,16 +19,16 @@
 #include "expr/codatatype_bound_variable.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "expr/elim_shadow_converter.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "expr/sygus_datatype.h"
 #include "options/datatypes_options.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
-#include "theory/datatypes/tuple_project_op.h"
 #include "tuple_utils.h"
 #include "util/rational.h"
-#include "util/uninterpreted_sort_value.h"
 
 using namespace cvc5::internal;
 using namespace cvc5::internal::kind;
@@ -159,6 +159,15 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
         << "Rewrite match: " << in << " ... " << ret << std::endl;
     return RewriteResponse(REWRITE_AGAIN_FULL, ret);
   }
+  else if (kind == MATCH_BIND_CASE)
+  {
+    // eliminate shadowing
+    Node retElimShadow = ElimShadowNodeConverter::eliminateShadow(in);
+    if (retElimShadow != in)
+    {
+      return RewriteResponse(REWRITE_AGAIN_FULL, retElimShadow);
+    }
+  }
   else if (kind == TUPLE_PROJECT)
   {
     // returns a tuple that represents
@@ -167,7 +176,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
 
     Trace("dt-rewrite-project") << "Rewrite project: " << in << std::endl;
 
-    TupleProjectOp op = in.getOperator().getConst<TupleProjectOp>();
+    ProjectOp op = in.getOperator().getConst<ProjectOp>();
     std::vector<uint32_t> indices = op.getIndices();
     Node tuple = in[0];
     Node ret = TupleUtils::getTupleProjection(indices, tuple);

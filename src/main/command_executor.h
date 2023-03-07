@@ -20,11 +20,13 @@
 #include <string>
 
 #include "api/cpp/cvc5.h"
-#include "expr/symbol_manager.h"
+#include "parser/api/cpp/symbol_manager.h"
 
 namespace cvc5 {
 
+namespace parser {
 class Command;
+}
 
 namespace main {
 
@@ -46,9 +48,12 @@ class CommandExecutor
    * Certain commands (e.g. reset-assertions) have a specific impact on the
    * symbol manager.
    */
-  std::unique_ptr<SymbolManager> d_symman;
+  std::unique_ptr<parser::SymbolManager> d_symman;
 
   cvc5::Result d_result;
+
+  /** Cache option value of parse-only option. */
+  bool d_parseOnly;
 
  public:
   CommandExecutor(std::unique_ptr<cvc5::Solver>& solver);
@@ -60,9 +65,9 @@ class CommandExecutor
    * sequence.  Eventually uses doCommandSingleton (which can be
    * overridden by a derived class).
    */
-  bool doCommand(cvc5::Command* cmd);
+  bool doCommand(cvc5::parser::Command* cmd);
 
-  bool doCommand(std::unique_ptr<cvc5::Command>& cmd)
+  bool doCommand(std::unique_ptr<cvc5::parser::Command>& cmd)
   {
     return doCommand(cmd.get());
   }
@@ -71,7 +76,7 @@ class CommandExecutor
   cvc5::Solver* getSolver() { return d_solver.get(); }
 
   /** Get a pointer to the symbol manager owned by this CommandExecutor */
-  SymbolManager* getSymbolManager() { return d_symman.get(); }
+  parser::SymbolManager* getSymbolManager() { return d_symman.get(); }
 
   cvc5::Result getResult() const { return d_result; }
   void reset();
@@ -98,17 +103,17 @@ class CommandExecutor
 
 protected:
   /** Executes treating cmd as a singleton */
- virtual bool doCommandSingleton(cvc5::Command* cmd);
+ virtual bool doCommandSingleton(cvc5::parser::Command* cmd);
 
 private:
   CommandExecutor();
 
+  bool solverInvoke(cvc5::Solver* solver,
+                    parser::SymbolManager* sm,
+                    parser::Command* cmd,
+                    std::ostream& out);
 }; /* class CommandExecutor */
 
-bool solverInvoke(cvc5::Solver* solver,
-                  SymbolManager* sm,
-                  Command* cmd,
-                  std::ostream& out);
 
 }  // namespace main
 }  // namespace cvc5

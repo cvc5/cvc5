@@ -23,26 +23,41 @@ namespace cvc5::internal {
 /**
  * SMT-LIB 2 quoting for symbols
  */
-std::string quoteSymbol(const std::string& s){
+std::string quoteSymbol(const std::string& s)
+{
+  if (s.empty())
+  {
+    return "||";
+  }
+
   // this is the set of SMT-LIBv2 permitted characters in "simple" (non-quoted)
   // symbols
   if (s.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
                           "0123456789~!@$%^&*_-+=<>.?/")
-          != std::string::npos
-      || s.empty() || (s[0] >= '0' && s[0] <= '9'))
+          == std::string::npos
+      && (s[0] < '0' || s[0] > '9'))
   {
-    std::string tmp(s);
-    // must quote the symbol, but it cannot contain | or \, we turn those into _
-    size_t p;
-    while((p = tmp.find_first_of("\\|")) != std::string::npos) {
-      tmp = tmp.replace(p, 1, "_");
-    }
-    return "|" + tmp + "|";
+    return s;
   }
-  return s;
+  std::string tmp = s;
+  if (s.front() == '|' && s.back() == '|' && s.length() > 1)
+  {
+    // if s is already surrounded with vertical bars, we need to check the
+    // characters between them
+    tmp = s.substr(1, s.length() - 2);
+  }
+
+  // must quote the symbol, but it cannot contain | or \, we turn those into _
+  size_t p;
+  while ((p = tmp.find_first_of("\\|")) != std::string::npos)
+  {
+    tmp = tmp.replace(p, 1, "_");
+  }
+  return "|" + tmp + "|";
 }
 
-std::string quoteString(const std::string& s) {
+std::string quoteString(const std::string& s)
+{
   // escape all double-quotes
   std::string output = s;
   size_t pos = 0;

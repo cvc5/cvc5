@@ -128,11 +128,12 @@ Node TrustNode::getPropExpProven(TNode lit, Node exp)
 
 Node TrustNode::getRewriteProven(TNode n, Node nr) { return n.eqNode(nr); }
 
-void TrustNode::debugCheckClosed(const char* c,
+void TrustNode::debugCheckClosed(const Options& opts,
+                                 const char* c,
                                  const char* ctx,
                                  bool reqNullGen)
 {
-  pfgEnsureClosed(d_proven, d_gen, c, ctx, reqNullGen);
+  pfgEnsureClosed(opts, d_proven, d_gen, c, ctx, reqNullGen);
 }
 
 std::string TrustNode::identifyGenerator() const

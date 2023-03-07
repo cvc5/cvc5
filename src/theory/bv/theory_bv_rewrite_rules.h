@@ -15,14 +15,13 @@
 
 #include "cvc5_private.h"
 
-#pragma once
+#ifndef CVC5__THEORY__BV__THEORY_BV_REWRITE_RULES_H
+#define CVC5__THEORY__BV__THEORY_BV_REWRITE_RULES_H
 
 #include <sstream>
 
 #include "context/context.h"
 #include "printer/printer.h"
-#include "smt/solver_engine.h"
-#include "smt/solver_engine_scope.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory.h"
 #include "util/statistics_stats.h"
@@ -74,6 +73,13 @@ enum RewriteRuleId
   SremEliminateFewerBitwiseOps,
   ZeroExtendEliminate,
   SignExtendEliminate,
+  UaddoEliminate,
+  SaddoEliminate,
+  UmuloEliminate,
+  SmuloEliminate,
+  UsuboEliminate,
+  SsuboEliminate,
+  SdivoEliminate,
   BVToNatEliminate,
   IntToBVEliminate,
 
@@ -160,6 +166,7 @@ enum RewriteRuleId
   UgtUrem,
 
   UltOne,
+  UltOnes,
   SltZero,
   ZeroUlt,
   MergeSignExtend,
@@ -167,6 +174,7 @@ enum RewriteRuleId
   ZeroExtendEqConst,
   SignExtendUltConst,
   ZeroExtendUltConst,
+  IneqElimConversion,
 
   /// normalization rules
   ExtractBitwise,
@@ -351,6 +359,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case NegAdd: out << "NegAdd"; return out;
   case BBAddNeg: out << "BBAddNeg"; return out;
   case UltOne : out << "UltOne"; return out;
+  case UltOnes: out << "UltOnes"; return out;
   case SltZero : out << "SltZero"; return out;
   case ZeroUlt : out << "ZeroUlt"; return out;
   case MergeSignExtend : out << "MergeSignExtend"; return out;
@@ -358,7 +367,8 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case ZeroExtendEqConst: out << "ZeroExtendEqConst"; return out;
   case SignExtendUltConst: out << "SignExtendUltConst"; return out;
   case ZeroExtendUltConst: out << "ZeroExtendUltConst"; return out;
-    
+  case IneqElimConversion: out << "IneqElimConversion"; return out;
+
   case UleEliminate : out << "UleEliminate"; return out;
   case BitwiseSlicing : out << "BitwiseSlicing"; return out;
   case ExtractSignExtend : out << "ExtractSignExtend"; return out;
@@ -608,6 +618,7 @@ struct AllRewriteRules {
   RewriteRule<SremEliminate> rule144;
   RewriteRule<SmodEliminate> rule145;
   RewriteRule<UgtUrem> rule146;
+  RewriteRule<UltOnes> rule147;
 };
 
 template<> inline
@@ -749,12 +760,12 @@ struct FixpointRewriteStrategy {
       if (R19::applies(current)) current = R19::template run<false>(current);
       if (R20::applies(current)) current = R20::template run<false>(current);
     } while (previous != current);
-    
+
     return current;
   }
 };
 
-
-} // End namespace bv
-} // End namespace theory
-}  // End namespace cvc5::internal
+}  // namespace bv
+}  // namespace theory
+}  // namespace cvc5::internal
+#endif

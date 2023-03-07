@@ -91,6 +91,7 @@ const char* toString(Rewrite r)
     case Rewrite::RE_IN_DIST_CHAR_STAR: return "RE_IN_DIST_CHAR_STAR";
     case Rewrite::RE_IN_SIGMA_STAR: return "RE_IN_SIGMA_STAR";
     case Rewrite::RE_IN_CHAR_MODULUS_STAR: return "RE_IN_CHAR_MODULUS_STAR";
+    case Rewrite::RE_IN_INCLUSION: return "RE_IN_INCLUSION";
     case Rewrite::RE_LOOP: return "RE_LOOP";
     case Rewrite::RE_LOOP_NONE: return "RE_LOOP_NONE";
     case Rewrite::RE_LOOP_STAR: return "RE_LOOP_STAR";
@@ -186,6 +187,7 @@ const char* toString(Rewrite r)
     case Rewrite::STR_LEQ_ID: return "STR_LEQ_ID";
     case Rewrite::STR_REV_CONST: return "STR_REV_CONST";
     case Rewrite::STR_REV_IDEM: return "STR_REV_IDEM";
+    case Rewrite::STR_REV_UNIT: return "STR_REV_UNIT";
     case Rewrite::STR_REV_MINSCOPE_CONCAT: return "STR_REV_MINSCOPE_CONCAT";
     case Rewrite::SUBSTR_REPL_SWAP: return "SUBSTR_REPL_SWAP";
     case Rewrite::SUF_PREFIX_CONST: return "SUF_PREFIX_CONST";
@@ -228,6 +230,7 @@ const char* toString(Rewrite r)
     case Rewrite::CHARAT_ELIM: return "CHARAT_ELIM";
     case Rewrite::SEQ_UNIT_EVAL: return "SEQ_UNIT_EVAL";
     case Rewrite::SEQ_NTH_EVAL: return "SEQ_NTH_EVAL";
+    case Rewrite::SEQ_NTH_EVAL_OOB: return "SEQ_NTH_EVAL_OOB";
     case Rewrite::SEQ_NTH_EVAL_SYM: return "SEQ_NTH_EVAL_SYM";
     default: return "?";
   }

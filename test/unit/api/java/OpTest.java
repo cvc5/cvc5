@@ -39,7 +39,7 @@ class OpTest
   @AfterEach
   void tearDown()
   {
-    d_solver.close();
+    Context.deletePointers();
   }
 
   @Test
@@ -53,7 +53,7 @@ class OpTest
   @Test
   void isNull() throws CVC5ApiException
   {
-    Op x = d_solver.getNullOp();
+    Op x = new Op();
     assertTrue(x.isNull());
     Op y = d_solver.mkOp(BITVECTOR_EXTRACT, 31, 1);
     assertFalse(y.isNull());
@@ -119,6 +119,9 @@ class OpTest
     int[] indices = {0, 3, 2, 0, 1, 2};
     Op tupleProject = d_solver.mkOp(TUPLE_PROJECT, indices);
     assertEquals(6, tupleProject.getNumIndices());
+
+    Op relationProject = d_solver.mkOp(RELATION_PROJECT, indices);
+    assertEquals(6, relationProject.getNumIndices());
 
     Op tableProject = d_solver.mkOp(TABLE_PROJECT, indices);
     assertEquals(6, tableProject.getNumIndices());

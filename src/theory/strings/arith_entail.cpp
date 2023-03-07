@@ -629,8 +629,9 @@ bool ArithEntail::checkWithEqAssumption(Node assumption, Node a, bool strict)
   Trace("strings-entail") << "checkWithEqAssumption: subs " << v << " -> "
                           << solution << std::endl;
 
-  // use capture avoiding substitution
-  a = expr::substituteCaptureAvoiding(a, v, solution);
+  TNode tv = v;
+  TNode tsolution = solution;
+  a = a.substitute(tv, tsolution);
   return check(a, strict);
 }
 
@@ -865,7 +866,7 @@ Node ArithEntail::getConstantBoundLength(TNode s, bool isLower) const
     size_t len = Word::getLength(s);
     ret = nm->mkConstInt(Rational(len));
   }
-  else if (sk == SEQ_UNIT)
+  else if (sk == SEQ_UNIT || sk == STRING_UNIT)
   {
     ret = nm->mkConstInt(1);
   }

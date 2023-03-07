@@ -47,9 +47,6 @@ class TheorySep : public Theory {
   /////////////////////////////////////////////////////////////////////////////
 
  private:
-  /** all lemmas sent */
-  NodeSet d_lemmas_produced_c;
-
   /** True node for predicates = true */
   Node d_true;
 
@@ -248,6 +245,11 @@ class TheorySep : public Theory {
    * if sep.wand constraints are present.
    */
   std::map<Node, std::vector<Node> > d_parentMap;
+  /**
+   * Maps label sets to their direct children. This map is only stored for
+   * labels with children that do not share a root label with the base label.
+   */
+  std::map<Node, std::vector<Node> > d_childrenMap;
 
   /**
    * This sends the lemmas:

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --lang=sygus2 --sygus-rr-synth --sygus-rr-verify --sygus-samples=1000 --sygus-abort-size=3 --no-sygus-sym-break
+; COMMAND-LINE: --lang=sygus2 --sygus-rr-synth --sygus-rr-verify --sygus-samples=1000 --sygus-abort-size=3
 ; EXPECT: (error "Maximum term size (3) for enumerative SyGuS exceeded.")
 ; SCRUBBER: grep -v -E '(\(define-fun|\(candidate-rewrite)'
 ; EXIT: 1

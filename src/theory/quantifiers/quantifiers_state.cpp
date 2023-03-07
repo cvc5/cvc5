@@ -28,7 +28,8 @@ QuantifiersState::QuantifiersState(Env& env,
                                    const LogicInfo& logicInfo)
     : TheoryState(env, val),
       d_ierCounterc(env.getContext()),
-      d_logicInfo(logicInfo)
+      d_logicInfo(logicInfo),
+      d_statistics(statisticsRegistry())
 {
   // allow theory combination to go first, once initially
   d_ierCounter = 0;

@@ -19,7 +19,6 @@
 #include "expr/node_manager.h"
 #include "expr/skolem_manager.h"
 #include "smt/solver_engine.h"
-#include "smt/solver_engine_scope.h"
 #include "test.h"
 
 namespace cvc5::internal {
@@ -31,7 +30,6 @@ class TestNode : public TestInternal
   void SetUp() override
   {
     d_nodeManager = NodeManager::currentNM();
-    d_nodeManager->init();
     d_skolemManager = d_nodeManager->getSkolemManager();
     d_boolTypeNode.reset(new TypeNode(d_nodeManager->booleanType()));
     d_bvTypeNode.reset(new TypeNode(d_nodeManager->mkBitVectorType(2)));

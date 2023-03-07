@@ -247,8 +247,7 @@ private:
    */
   size_t allocateProofVariable();
 
-
-  /** Empties the unproccessed input constraints into the queue. */
+  /** Empties the unprocessed input constraints into the queue. */
   void enqueueInputConstraints();
 
   /**
@@ -411,7 +410,7 @@ public:
     TimerStat d_conflictTimer;
     TimerStat d_cutTimer;
 
-    Statistics();
+    Statistics(StatisticsRegistry& sr);
   };
 
   Statistics d_statistics;

@@ -24,6 +24,7 @@
 #include "options/quantifiers_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "theory/rewriter.h"
+#include "theory/uf/function_const.h"
 #include "theory/uf/theory_uf_rewriter.h"
 
 using namespace cvc5::internal::kind;
@@ -51,17 +52,18 @@ Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
 
     if (it == d_visited.end())
     {
-      if (cur.getKind() == LAMBDA)
+      Node lam = theory::uf::FunctionConst::toLambda(cur);
+      if (!lam.isNull())
       {
-        Trace("ho-elim-ll") << "Lambda lift: " << cur << std::endl;
+        Trace("ho-elim-ll") << "Lambda lift: " << lam << std::endl;
         // must also get free variables in lambda
         std::vector<Node> lvars;
         std::vector<TypeNode> ftypes;
         std::unordered_set<Node> fvs;
-        expr::getFreeVariables(cur, fvs);
+        expr::getFreeVariables(lam, fvs);
         std::vector<Node> nvars;
         std::vector<Node> vars;
-        Node sbd = cur[1];
+        Node sbd = lam[1];
         if (!fvs.empty())
         {
           Trace("ho-elim-ll")
@@ -78,20 +80,20 @@ Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
           sbd = sbd.substitute(
               vars.begin(), vars.end(), nvars.begin(), nvars.end());
         }
-        for (const Node& bv : cur[0])
+        for (const Node& bv : lam[0])
         {
           TypeNode bvt = bv.getType();
           ftypes.push_back(bvt);
           lvars.push_back(bv);
         }
-        Node nlambda = cur;
+        Node nlambda = lam;
         if (!fvs.empty())
         {
           nlambda = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, lvars), sbd);
           Trace("ho-elim-ll")
               << "...new lambda definition: " << nlambda << std::endl;
         }
-        TypeNode rangeType = cur.getType().getRangeType();
+        TypeNode rangeType = lam.getType().getRangeType();
         TypeNode nft = nm->mkFunctionType(ftypes, rangeType);
         Node nf = sm->mkDummySkolem("ll", nft);
         Trace("ho-elim-ll")

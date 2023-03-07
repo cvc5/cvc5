@@ -73,6 +73,10 @@ RewriteResponse StringsRewriter::postRewrite(TNode node)
   {
     retNode = rewriteStringFromCode(node);
   }
+  else if (nk == STRING_UNIT)
+  {
+    retNode = rewriteStringUnit(node);
+  }
   else
   {
     return SequencesRewriter::postRewrite(node);
@@ -324,6 +328,24 @@ Node StringsRewriter::rewriteStringIsDigit(Node n)
                             nm->mkNode(LEQ, nm->mkConstInt(Rational(48)), t),
                             nm->mkNode(LEQ, t, nm->mkConstInt(Rational(57))));
   return returnRewrite(n, retNode, Rewrite::IS_DIGIT_ELIM);
+}
+
+Node StringsRewriter::rewriteStringUnit(Node n)
+{
+  Assert(n.getKind() == STRING_UNIT);
+  NodeManager* nm = NodeManager::currentNM();
+  if (n[0].isConst())
+  {
+    Integer i = n[0].getConst<Rational>().getNumerator();
+    Node ret;
+    if (i >= 0 && i < d_alphaCard)
+    {
+      std::vector<unsigned> svec = {i.toUnsignedInt()};
+      ret = nm->mkConst(String(svec));
+      return returnRewrite(n, ret, Rewrite::SEQ_UNIT_EVAL);
+    }
+  }
+  return n;
 }
 
 }  // namespace strings

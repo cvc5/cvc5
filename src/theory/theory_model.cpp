@@ -22,8 +22,8 @@
 #include "options/theory_options.h"
 #include "options/uf_options.h"
 #include "smt/env.h"
-#include "smt/solver_engine.h"
 #include "theory/trust_substitutions.h"
+#include "theory/uf/function_const.h"
 #include "util/rational.h"
 
 using namespace std;
@@ -138,7 +138,12 @@ Node TheoryModel::getValue(TNode n) const
   {
     return nn;
   }
-  else if (nn.getKind() == kind::LAMBDA)
+  if (nn.getKind() == kind::FUNCTION_ARRAY_CONST)
+  {
+    // return the lambda instead
+    nn = uf::FunctionConst::toLambda(nn);
+  }
+  if (nn.getKind() == kind::LAMBDA)
   {
     if (options().theory.condenseFunctionValues)
     {

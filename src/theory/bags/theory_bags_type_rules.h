@@ -35,7 +35,10 @@ namespace bags {
  */
 struct BinaryOperatorTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
   static bool computeIsConst(NodeManager* nodeManager, TNode n);
 }; /* struct BinaryOperatorTypeRule */
 
@@ -45,7 +48,10 @@ struct BinaryOperatorTypeRule
  */
 struct SubBagTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 }; /* struct SubBagTypeRule */
 
 /**
@@ -54,7 +60,10 @@ struct SubBagTypeRule
  */
 struct CountTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 }; /* struct CountTypeRule */
 
 /**
@@ -63,7 +72,10 @@ struct CountTypeRule
  */
 struct MemberTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /**
@@ -71,7 +83,10 @@ struct MemberTypeRule
  */
 struct DuplicateRemovalTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 }; /* struct DuplicateRemovalTypeRule */
 
 /**
@@ -80,7 +95,10 @@ struct DuplicateRemovalTypeRule
  */
 struct BagMakeTypeRule
 {
-  static TypeNode computeType(NodeManager* nm, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nm,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
   static bool computeIsConst(NodeManager* nodeManager, TNode n);
 }; /* struct BagMakeTypeRule */
 
@@ -89,7 +107,10 @@ struct BagMakeTypeRule
  */
 struct IsSingletonTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 }; /* struct IsSingletonTypeRule */
 
 /**
@@ -97,7 +118,10 @@ struct IsSingletonTypeRule
  */
 struct EmptyBagTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 }; /* struct EmptyBagTypeRule */
 
 /**
@@ -105,7 +129,10 @@ struct EmptyBagTypeRule
  */
 struct CardTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 }; /* struct CardTypeRule */
 
 /**
@@ -113,7 +140,10 @@ struct CardTypeRule
  */
 struct ChooseTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 }; /* struct ChooseTypeRule */
 
 /**
@@ -121,7 +151,10 @@ struct ChooseTypeRule
  */
 struct FromSetTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 }; /* struct FromSetTypeRule */
 
 /**
@@ -129,7 +162,10 @@ struct FromSetTypeRule
  */
 struct ToSetTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 }; /* struct ToSetTypeRule */
 
 /**
@@ -138,7 +174,10 @@ struct ToSetTypeRule
  */
 struct BagMapTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 }; /* struct BagMapTypeRule */
 
 /**
@@ -147,7 +186,10 @@ struct BagMapTypeRule
  */
 struct BagFilterTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 }; /* struct BagFilterTypeRule */
 
 /**
@@ -156,7 +198,10 @@ struct BagFilterTypeRule
  */
 struct BagFoldTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 }; /* struct BagFoldTypeRule */
 
 /**
@@ -166,7 +211,10 @@ struct BagFoldTypeRule
  */
 struct BagPartitionTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 }; /* struct BagFoldTypeRule */
 
 /**
@@ -175,19 +223,25 @@ struct BagPartitionTypeRule
  */
 struct TableProductTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 }; /* struct BagFoldTypeRule */
 
 /**
  * Table project is indexed by a list of indices (n_1, ..., n_m). It ensures
  * that the argument is a bag of tuples whose arity k is greater than each n_i
- * for i = 1, ..., m. If the argument is of type (Bag (Tuple T_1 ... T_k)), then
- * the returned type is (Bag (Tuple T_{n_1} ... T_{n_m})).
+ * for i = 1, ..., m. If the argument is of type (Table T_1 ... T_k), then
+ * the returned type is (Table T_{n_1} ... T_{n_m}).
  */
 struct TableProjectTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
-}; /* struct BagFoldTypeRule */
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+}; /* struct TableProjectTypeRule */
 
 /**
  * Table aggregate operator is indexed by a list of indices (n_1, ..., n_k).
@@ -199,7 +253,10 @@ struct TableProjectTypeRule
  */
 struct TableAggregateTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 }; /* struct TableAggregateTypeRule */
 
 /**
@@ -213,7 +270,10 @@ struct TableAggregateTypeRule
  */
 struct TableJoinTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 }; /* struct TableJoinTypeRule */
 
 /**
@@ -224,7 +284,10 @@ struct TableJoinTypeRule
  */
 struct TableGroupTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 }; /* struct TableGroupTypeRule */
 
 struct BagsProperties

@@ -15,6 +15,8 @@
 
 #include "theory/quantifiers/term_util.h"
 
+#include "expr/array_store_all.h"
+#include "expr/function_array_const.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "theory/arith/arith_msum.h"
@@ -215,26 +217,40 @@ int TermUtil::getTermDepth( Node n ) {
 }
 
 bool TermUtil::containsUninterpretedConstant( Node n ) {
-  if (!n.hasAttribute(ContainsUConstAttribute()) ){
-    bool ret = false;
-    if (n.getKind() == UNINTERPRETED_SORT_VALUE
-        && n.getType().isUninterpretedSort())
+  if (n.hasAttribute(ContainsUConstAttribute()))
+  {
+    return n.getAttribute(ContainsUConstAttribute()) != 0;
+  }
+  bool ret = false;
+  Kind k = n.getKind();
+  if (k == UNINTERPRETED_SORT_VALUE)
+  {
+    Assert(n.getType().isUninterpretedSort());
+    ret = true;
+  }
+  else if (k == STORE_ALL)
+  {
+    ret = containsUninterpretedConstant(n.getConst<ArrayStoreAll>().getValue());
+  }
+  else if (k == FUNCTION_ARRAY_CONST)
+  {
+    ret = containsUninterpretedConstant(
+        n.getConst<FunctionArrayConst>().getArrayValue());
+  }
+  else
+  {
+    for (const Node& nc : n)
     {
-      ret = true;
-    }
-    else
-    {
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        if( containsUninterpretedConstant( n[i] ) ){
-          ret = true;
-          break;
-        }
+      if (containsUninterpretedConstant(nc))
+      {
+        ret = true;
+        break;
       }
     }
-    ContainsUConstAttribute cuca;
-    n.setAttribute(cuca, ret ? 1 : 0);
   }
-  return n.getAttribute(ContainsUConstAttribute())!=0;
+  ContainsUConstAttribute cuca;
+  n.setAttribute(cuca, ret ? 1 : 0);
+  return ret;
 }
 
 Node TermUtil::simpleNegate(Node n)

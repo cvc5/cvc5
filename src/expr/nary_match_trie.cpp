@@ -135,7 +135,14 @@ bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm) const
           {
             Assert(!syms.empty());
             Node s = syms.back();
-            if (s.isNull())
+            // we currently reject the term if it does not have the same
+            // type as the list variable. This rejects certain corner cases of
+            // arithmetic operators which are permissive for subtyping.
+            // For example, if x is a list variable of type Real, y is a list
+            // variable of type Real, then (+ x y) does *not* match
+            // (+ 1.0 2 1.5), despite { x -> (+ 1.0 2), y -> 1.5 } being
+            // a well-typed match.
+            if (s.isNull() || s.getType() != var.getType())
             {
               foundChildren = false;
               break;
@@ -165,9 +172,13 @@ bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm) const
           {
             currChildren.push_back(next);
             syms.pop_back();
+            Trace("match-debug")
+                << "Compare types " << var << " " << next << " "
+                << var.getType() << " " << next.getType() << std::endl;
             // check types in the (non-list) case
             if (var.getType() != next.getType())
             {
+              Trace("match-debug") << "...fail" << std::endl;
               next = Node::null();
             }
           }
@@ -188,6 +199,8 @@ bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm) const
           else
           {
             // add to binding
+            Trace("match-debug")
+                << "Set " << var << " -> " << next << std::endl;
             vars.push_back(var);
             subs.push_back(next);
             smap[var] = next;

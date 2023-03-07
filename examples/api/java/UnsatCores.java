@@ -20,7 +20,7 @@ public class UnsatCores
 {
   public static void main(String[] args) throws CVC5ApiException
   {
-    try (Solver solver = new Solver())
+    Solver solver = new Solver();
     {
       // Enable the production of unsat cores
       solver.setOption("produce-unsat-cores", "true");

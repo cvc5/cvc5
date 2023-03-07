@@ -25,7 +25,18 @@
 
 #include <memory>
 
+#include "util/statistics_stats.h"
+
 namespace cvc5::internal::theory::arith::nl::coverings {
+
+struct LazardEvaluationStats
+{
+  IntStat d_directAssignments;
+  IntStat d_ranAssignments;
+  IntStat d_evaluations;
+  IntStat d_reductions;
+  LazardEvaluationStats(StatisticsRegistry& reg);
+};
 
 struct LazardEvaluationState;
 /**
@@ -73,7 +84,7 @@ struct LazardEvaluationState;
 class LazardEvaluation
 {
  public:
-  LazardEvaluation();
+  LazardEvaluation(StatisticsRegistry& reg);
   ~LazardEvaluation();
 
   /**

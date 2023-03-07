@@ -857,6 +857,10 @@ TEST_F(TestApiBlackTerm, getConstArrayBase)
 
   ASSERT_TRUE(constarr.isConstArray());
   ASSERT_EQ(one, constarr.getConstArrayBase());
+
+  Term a = d_solver.mkConst(arrsort, "a");
+  ASSERT_THROW(a.getConstArrayBase(), CVC5ApiException);
+  ASSERT_THROW(one.getConstArrayBase(), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTerm, getBoolean)
@@ -909,6 +913,25 @@ TEST_F(TestApiBlackTerm, getBitVector)
   ASSERT_EQ("000001111", b7.getBitVectorValue(2));
   ASSERT_EQ("15", b7.getBitVectorValue(10));
   ASSERT_EQ("f", b7.getBitVectorValue(16));
+}
+
+TEST_F(TestApiBlackTerm, isFiniteFieldValue)
+{
+  Sort fS = d_solver.mkFiniteFieldSort("7");
+  Term fV = d_solver.mkFiniteFieldElem("1", fS);
+  ASSERT_TRUE(fV.isFiniteFieldValue());
+  Term b1 = d_solver.mkBitVector(8, 15);
+  ASSERT_FALSE(b1.isFiniteFieldValue());
+}
+
+TEST_F(TestApiBlackTerm, getFiniteFieldValue)
+{
+  Sort fS = d_solver.mkFiniteFieldSort("7");
+  Term fV = d_solver.mkFiniteFieldElem("1", fS);
+  ASSERT_EQ("1", fV.getFiniteFieldValue());
+  ASSERT_THROW(Term().getFiniteFieldValue(), CVC5ApiException);
+  Term b1 = d_solver.mkBitVector(8, 15);
+  ASSERT_THROW(b1.getFiniteFieldValue(), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTerm, getUninterpretedSortValue)
@@ -1109,7 +1132,12 @@ TEST_F(TestApiBlackTerm, constArray)
   Sort arrsort = d_solver.mkArraySort(intsort, intsort);
   Term a = d_solver.mkConst(arrsort, "a");
   Term one = d_solver.mkInteger(1);
+  Term two = d_solver.mkBitVector(2, 2);
+  Term iconst = d_solver.mkConst(intsort);
   Term constarr = d_solver.mkConstArray(arrsort, one);
+
+  ASSERT_THROW(d_solver.mkConstArray(arrsort, two), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkConstArray(arrsort, iconst), CVC5ApiException);
 
   ASSERT_EQ(constarr.getKind(), CONST_ARRAY);
   ASSERT_EQ(constarr.getConstArrayBase(), one);

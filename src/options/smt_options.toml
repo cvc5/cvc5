@@ -34,7 +34,7 @@ name   = "SMT Layer"
   help       = "apply Boolean constant propagation as a substituion during simplification"
 
 [[option]]
-  name       = "doStaticLearning"
+  name       = "staticLearning"
   category   = "regular"
   long       = "static-learning"
   type       = "bool"
@@ -142,7 +142,7 @@ name   = "SMT Layer"
   help       = "after UNSAT/VALID, check the generated proof (with proof)"
 
 [[option]]
-  name       = "unsatCores"
+  name       = "produceUnsatCores"
   category   = "regular"
   long       = "produce-unsat-cores"
   type       = "bool"
@@ -176,6 +176,14 @@ name   = "SMT Layer"
   help       = "if an unsat core is produced, it is reduced to a minimal unsat core"
 
 [[option]]
+  name       = "printUnsatCoresFull"
+  category   = "regular"
+  long       = "print-unsat-cores-full"
+  type       = "bool"
+  default    = "false"
+  help       = "when printing unsat cores, include unlabeled assertions"
+
+[[option]]
   name       = "checkUnsatCores"
   category   = "regular"
   long       = "check-unsat-cores"
@@ -204,7 +212,7 @@ name   = "SMT Layer"
   category   = "expert"
   long       = "difficulty-mode=MODE"
   type       = "DifficultyMode"
-  default    = "LEMMA_LITERAL"
+  default    = "LEMMA_LITERAL_ALL"
   help       = "choose output mode for get-difficulty, see --difficulty-mode=help"
   help_mode  = "difficulty output modes."
 [[option.mode.LEMMA_LITERAL]]
@@ -378,6 +386,7 @@ name   = "SMT Layer"
   long       = "bvand-integer-granularity=N"
   type       = "uint64_t"
   default    = "1"
+  maximum    = "8"
   help       = "granularity to use in --solve-bv-as-int mode and for iand operator (experimental)"
 
 [[option]]
@@ -404,6 +413,7 @@ name   = "SMT Layer"
   long       = "solve-int-as-bv=N"
   type       = "uint64_t"
   default    = "0"
+  maximum    = "4294967295"
   help       = "attempt to solve a pure integer satisfiable problem by bitblasting in sufficient bitwidth (experimental)"
 
 [[option]]
@@ -415,7 +425,7 @@ name   = "SMT Layer"
   help       = "attempt to solve a pure real satisfiable problem as an integer problem (for non-linear)"
 
 [[option]]
-  name       = "interpolants"
+  name       = "produceInterpolants"
   category   = "regular"
   long       = "produce-interpolants"
   type       = "bool"

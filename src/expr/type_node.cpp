@@ -14,6 +14,7 @@
  */
 #include "expr/type_node.h"
 
+#include <cmath>
 #include <vector>
 
 #include "expr/dtype_cons.h"
@@ -21,9 +22,13 @@
 #include "expr/type_properties.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
+#include "theory/builtin/abstract_type.h"
+#include "theory/fp/theory_fp_utils.h"
 #include "theory/type_enumerator.h"
 #include "util/bitvector.h"
 #include "util/cardinality.h"
+#include "util/finite_field_value.h"
+#include "util/integer.h"
 
 using namespace std;
 
@@ -99,8 +104,8 @@ CardinalityClass TypeNode::getCardinalityClass()
   {
     ret = CardinalityClass::INTERPRETED_ONE;
   }
-  else if (isBoolean() || isBitVector() || isFloatingPoint()
-           || isRoundingMode())
+  else if (isBoolean() || isBitVector() || isFloatingPoint() || isRoundingMode()
+           || isFiniteField())
   {
     ret = CardinalityClass::FINITE;
   }
@@ -199,6 +204,31 @@ CardinalityClass TypeNode::getCardinalityClass()
   return ret;
 }
 
+bool TypeNode::isCardinalityLessThan(size_t n)
+{
+  if (isBoolean())
+  {
+    return n > 2;
+  }
+  if (isBitVector())
+  {
+    return std::log2(n) > getBitVectorSize();
+  }
+  if (isFloatingPoint())
+  {
+    return Integer(n) > theory::fp::utils::getCardinality(*this);
+  }
+  if (isRoundingMode())
+  {
+    return n > 5;
+  }
+  if (isFiniteField())
+  {
+    return Integer(n) > getFfSize();
+  }
+  return false;
+}
+
 /** Attribute true for types that are closed enumerable */
 struct IsClosedEnumerableTag
 {
@@ -262,9 +292,11 @@ bool TypeNode::isClosedEnumerable()
 
 bool TypeNode::isFirstClass() const
 {
-  return getKind() != kind::CONSTRUCTOR_TYPE && getKind() != kind::SELECTOR_TYPE
-         && getKind() != kind::TESTER_TYPE && getKind() != kind::UPDATER_TYPE
-         && (getKind() != kind::TYPE_CONSTANT
+  Kind k = getKind();
+  return k != kind::CONSTRUCTOR_TYPE && k != kind::SELECTOR_TYPE
+         && k != kind::TESTER_TYPE && k != kind::UPDATER_TYPE
+         && k != kind::ABSTRACT_TYPE
+         && (k != kind::TYPE_CONSTANT
              || (getConst<TypeConstant>() != REGEXP_TYPE
                  && getConst<TypeConstant>() != SEXPR_TYPE));
 }
@@ -286,6 +318,89 @@ bool TypeNode::isReal() const
 }
 
 bool TypeNode::isStringLike() const { return isString() || isSequence(); }
+
+bool TypeNode::isInstanceOf(const TypeNode& t) const
+{
+  return leastUpperBound(t) == (*this);
+}
+
+TypeNode TypeNode::leastUpperBound(const TypeNode& t) const
+{
+  return unifyInternal(t, true);
+}
+
+TypeNode TypeNode::greatestLowerBound(const TypeNode& t) const
+{
+  return unifyInternal(t, false);
+}
+
+TypeNode TypeNode::unifyInternal(const TypeNode& t, bool isLub) const
+{
+  Assert(!isNull() && !t.isNull());
+  if (*this == t)
+  {
+    return t;
+  }
+  if (t.isAbstract())
+  {
+    Kind tak = t.getAbstractedKind();
+    if (tak == kind::ABSTRACT_TYPE)
+    {
+      // everything is unifiable with the fully abstract type
+      return isLub ? *this : t;
+    }
+    // ABSTRACT_TYPE{k} is unifiable with types with kind k
+    if (getKind() == tak)
+    {
+      return isLub ? *this : t;
+    }
+  }
+  // same as above, swapping this and t
+  if (isAbstract())
+  {
+    Kind ak = getAbstractedKind();
+    if (ak == kind::ABSTRACT_TYPE)
+    {
+      return isLub ? t : *this;
+    }
+    if (t.getKind() == ak)
+    {
+      return isLub ? t : *this;
+    }
+  }
+  Kind k = getKind();
+  if (k == kind::TYPE_CONSTANT || k != t.getKind())
+  {
+    // different kinds, or distinct constants
+    return TypeNode::null();
+  }
+  size_t nchild = getNumChildren();
+  if (nchild == 0 || nchild != t.getNumChildren())
+  {
+    // different arities
+    return TypeNode::null();
+  }
+  NodeBuilder nb(k);
+  for (size_t i = 0; i < nchild; i++)
+  {
+    TypeNode c = (*this)[i];
+    TypeNode tc = t[i];
+    TypeNode jc = c.unifyInternal(tc, isLub);
+    if (jc.isNull())
+    {
+      // incompatible component type
+      return jc;
+    }
+    nb << jc;
+  }
+  return nb.constructTypeNode();
+}
+
+bool TypeNode::isComparableTo(const TypeNode& t) const
+{
+  // could do join or meet here
+  return !unifyInternal(t, true).isNull();
+}
 
 bool TypeNode::isRealOrInt() const { return isReal() || isInteger(); }
 
@@ -427,9 +542,13 @@ bool TypeNode::isUnresolvedDatatype() const
   return getAttribute(expr::UnresolvedDatatypeAttr());
 }
 
+bool TypeNode::hasName() const
+{
+  return hasAttribute(expr::VarNameAttr());
+}
+
 std::string TypeNode::getName() const
 {
-  Assert(isUninterpretedSort() || isUninterpretedSortConstructor());
   return getAttribute(expr::VarNameAttr());
 }
 
@@ -464,6 +583,13 @@ bool TypeNode::isUninterpretedSortConstructor() const
 bool TypeNode::isFloatingPoint() const
 {
   return getKind() == kind::FLOATINGPOINT_TYPE;
+}
+
+bool TypeNode::isFloatingPoint(unsigned exp, unsigned sig) const
+{
+  return (getKind() == kind::FLOATINGPOINT_TYPE
+          && getConst<FloatingPointSize>().exponentWidth() == exp
+          && getConst<FloatingPointSize>().significandWidth() == sig);
 }
 
 bool TypeNode::isBitVector() const { return getKind() == kind::BITVECTOR_TYPE; }
@@ -518,9 +644,39 @@ bool TypeNode::isSygusDatatype() const
   return false;
 }
 
+bool TypeNode::isAbstract() const { return getKind() == kind::ABSTRACT_TYPE; }
+
+bool TypeNode::isFullyAbstract() const
+{
+  return getKind() == kind::ABSTRACT_TYPE
+         && getAbstractedKind() == kind::ABSTRACT_TYPE;
+}
+
+Kind TypeNode::getAbstractedKind() const
+{
+  Assert(isAbstract());
+  const AbstractType& ak = getConst<AbstractType>();
+  return ak.getKind();
+}
+
+bool TypeNode::isMaybeKind(Kind k) const
+{
+  Kind tk = getKind();
+  if (tk == k)
+  {
+    return true;
+  }
+  if (tk == kind::ABSTRACT_TYPE)
+  {
+    Kind tak = getAbstractedKind();
+    return tak == kind::ABSTRACT_TYPE || tak == k;
+  }
+  return false;
+}
+
 std::string TypeNode::toString() const {
   std::stringstream ss;
-  d_nv->toStream(ss, -1, 0);
+  toStream(ss);
   return ss.str();
 }
 
@@ -546,10 +702,28 @@ bool TypeNode::isBitVector(unsigned size) const
           && getConst<BitVectorSize>() == size);
 }
 
+unsigned TypeNode::getFloatingPointExponentSize() const
+{
+  Assert(isFloatingPoint());
+  return getConst<FloatingPointSize>().exponentWidth();
+}
+
+unsigned TypeNode::getFloatingPointSignificandSize() const
+{
+  Assert(isFloatingPoint());
+  return getConst<FloatingPointSize>().significandWidth();
+}
+
 uint32_t TypeNode::getBitVectorSize() const
 {
   Assert(isBitVector());
   return getConst<BitVectorSize>();
+}
+
+const Integer& TypeNode::getFfSize() const
+{
+  Assert(getKind() == kind::FINITE_FIELD_TYPE);
+  return getConst<FfSize>();
 }
 
 TypeNode TypeNode::getRangeType() const

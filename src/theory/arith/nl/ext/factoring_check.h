@@ -29,7 +29,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-struct ExtState;
+class ExtState;
 
 class FactoringCheck : protected EnvObj
 {

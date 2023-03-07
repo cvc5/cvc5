@@ -18,8 +18,8 @@
 
 #include "theory/arith/linear/error_set.h"
 
-#include "smt/smt_statistics_registry.h"
 #include "theory/arith/linear/constraint.h"
+#include "util/statistics_registry.h"
 
 using namespace std;
 
@@ -146,23 +146,23 @@ void ErrorInformation::setAmount(const DeltaRational& am){
   (*d_amount) = am;
 }
 
-ErrorSet::Statistics::Statistics()
-    : d_enqueues(
-        smtStatisticsRegistry().registerInt("theory::arith::pqueue::enqueues")),
-      d_enqueuesCollection(smtStatisticsRegistry().registerInt(
-          "theory::arith::pqueue::enqueuesCollection")),
-      d_enqueuesDiffMode(smtStatisticsRegistry().registerInt(
-          "theory::arith::pqueue::enqueuesDiffMode")),
-      d_enqueuesVarOrderMode(smtStatisticsRegistry().registerInt(
-          "theory::arith::pqueue::enqueuesVarOrderMode")),
-      d_enqueuesCollectionDuplicates(smtStatisticsRegistry().registerInt(
+ErrorSet::Statistics::Statistics(StatisticsRegistry& sr)
+    : d_enqueues(sr.registerInt("theory::arith::pqueue::enqueues")),
+      d_enqueuesCollection(
+          sr.registerInt("theory::arith::pqueue::enqueuesCollection")),
+      d_enqueuesDiffMode(
+          sr.registerInt("theory::arith::pqueue::enqueuesDiffMode")),
+      d_enqueuesVarOrderMode(
+          sr.registerInt("theory::arith::pqueue::enqueuesVarOrderMode")),
+      d_enqueuesCollectionDuplicates(sr.registerInt(
           "theory::arith::pqueue::enqueuesCollectionDuplicates")),
-      d_enqueuesVarOrderModeDuplicates(smtStatisticsRegistry().registerInt(
+      d_enqueuesVarOrderModeDuplicates(sr.registerInt(
           "theory::arith::pqueue::enqueuesVarOrderModeDuplicates"))
 {
 }
 
-ErrorSet::ErrorSet(ArithVariables& vars,
+ErrorSet::ErrorSet(StatisticsRegistry& sr,
+                   ArithVariables& vars,
                    TableauSizes tabSizes,
                    BoundCountingLookup lookups)
     : d_variables(vars),
@@ -172,7 +172,8 @@ ErrorSet::ErrorSet(ArithVariables& vars,
       d_outOfFocus(),
       d_signals(),
       d_tableauSizes(tabSizes),
-      d_boundLookup(lookups)
+      d_boundLookup(lookups),
+      d_statistics(sr)
 {}
 
 options::ErrorSelectionRule ErrorSet::getSelectionRule() const

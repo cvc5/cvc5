@@ -56,5 +56,5 @@ def test_has_is_unknown(solver):
     res = solver.checkSynth()
     assert not res.isNull()
     assert not res.hasSolution()
-    assert not res.hasNoSolution()
-    assert res.isUnknown()
+    assert res.hasNoSolution()
+    assert not res.isUnknown()

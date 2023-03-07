@@ -23,6 +23,7 @@
 
 #include "printer/let_binding.h"
 #include "proof/proof_node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace proof {
@@ -68,10 +69,10 @@ enum class ProofNodeClusterType : uint8_t
   NOT_DEFINED
 };
 
-class DotPrinter
+class DotPrinter : protected EnvObj
 {
  public:
-  DotPrinter();
+  DotPrinter(Env& env);
   ~DotPrinter();
 
   /**

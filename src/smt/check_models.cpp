@@ -19,12 +19,12 @@
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
+#include "smt/expand_definitions.h"
 #include "smt/preprocessor.h"
 #include "smt/smt_solver.h"
 #include "theory/rewriter.h"
-#include "theory/substitutions.h"
-#include "theory/theory_engine.h"
 #include "theory/theory_model.h"
+#include "theory/trust_substitutions.h"
 
 using namespace cvc5::internal::theory;
 
@@ -54,6 +54,9 @@ void CheckModels::checkModel(TheoryModel* m,
                  "is enabled."
               << std::endl;
   }
+  // expand definitions module and substitutions
+  std::unordered_map<Node, Node> ecache;
+  ExpandDefs expDef(d_env);
 
   theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
   Trace("check-model") << "checkModel: Check assertions..." << std::endl;
@@ -73,6 +76,13 @@ void CheckModels::checkModel(TheoryModel* m,
     // not be properly constrained.
     Node n = sm.apply(assertion);
     verbose(1) << "SolverEngine::checkModel(): -- substitutes to " << n
+               << std::endl;
+
+    // Expand definitions, which is required for being accurate for operators
+    // that expand involving skolems during preprocessing. Not doing this will
+    // increase the spurious warnings raised by this class.
+    n = expDef.expandDefinitions(n, cache);
+    verbose(1) << "SolverEngine::checkModel(): -- expands to " << n
                << std::endl;
 
     n = rewrite(n);

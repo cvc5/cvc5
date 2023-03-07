@@ -37,6 +37,9 @@ namespace parser {
 
 class Tptp;
 
+/*
+ * This class is deprecated and used only for the ANTLR parser.
+ */
 class TptpInput : public AntlrInput {
   typedef AntlrInput super;
 
@@ -70,7 +73,7 @@ class TptpInput : public AntlrInput {
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Command* parseCommand() override;
+  std::unique_ptr<Command> parseCommand() override;
 
   /**
    * Parse an expression from the input. Returns a null

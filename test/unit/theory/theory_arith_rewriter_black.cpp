@@ -42,7 +42,7 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
     RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 3);
     Node n = d_nodeManager->mkRealAlgebraicNumber(sqrt2);
     n = d_nodeManager->mkNode(Kind::ADD, n, n);
-    n = d_slvEngine->getRewriter()->rewrite(n);
+    n = d_slvEngine->getEnv().getRewriter()->rewrite(n);
     EXPECT_EQ(n.getKind(), Kind::REAL_ALGEBRAIC_NUMBER);
     EXPECT_EQ(n.getOperator().getConst<RealAlgebraicNumber>(), twosqrt2);
   }
@@ -50,7 +50,7 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
     RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 3);
     Node n = d_nodeManager->mkRealAlgebraicNumber(sqrt2);
     n = d_nodeManager->mkNode(Kind::MULT, n, n);
-    n = d_slvEngine->getRewriter()->rewrite(n);
+    n = d_slvEngine->getEnv().getRewriter()->rewrite(n);
     EXPECT_EQ(n.isConst(), true);
     EXPECT_EQ(n.getConst<Rational>(), Rational(2));
   }
@@ -58,7 +58,7 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
     RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 3);
     Node n = d_nodeManager->mkRealAlgebraicNumber(sqrt2);
     n = d_nodeManager->mkNode(Kind::SUB, n, n);
-    n = d_slvEngine->getRewriter()->rewrite(n);
+    n = d_slvEngine->getEnv().getRewriter()->rewrite(n);
     EXPECT_EQ(n.isConst(), true);
     EXPECT_EQ(n.getConst<Rational>(), Rational(0));
   }
@@ -69,8 +69,8 @@ TEST_F(TestTheoryArithRewriterBlack, RealAlgebraicNumber)
     Node n = d_nodeManager->mkRealAlgebraicNumber(sqrt2);
     Node mm = d_nodeManager->mkNode(Kind::NEG, m);
     Node mn = d_nodeManager->mkNode(Kind::NEG, n);
-    mm = d_slvEngine->getRewriter()->rewrite(mm);
-    mn = d_slvEngine->getRewriter()->rewrite(mn);
+    mm = d_slvEngine->getEnv().getRewriter()->rewrite(mm);
+    mn = d_slvEngine->getEnv().getRewriter()->rewrite(mn);
     EXPECT_EQ(-msqrt2, sqrt2);
     EXPECT_EQ(-sqrt2, msqrt2);
     EXPECT_EQ(mm, n);
@@ -85,8 +85,8 @@ TEST_F(TestTheoryArithRewriterBlack, Abs)
     Node b = d_nodeManager->mkConstReal(-10);
     Node m = d_nodeManager->mkNode(Kind::ABS, a);
     Node n = d_nodeManager->mkNode(Kind::ABS, b);
-    m = d_slvEngine->getRewriter()->rewrite(m);
-    n = d_slvEngine->getRewriter()->rewrite(n);
+    m = d_slvEngine->getEnv().getRewriter()->rewrite(m);
+    n = d_slvEngine->getEnv().getRewriter()->rewrite(n);
     EXPECT_EQ(m, a);
     EXPECT_EQ(n, a);
   }
@@ -95,8 +95,8 @@ TEST_F(TestTheoryArithRewriterBlack, Abs)
     Node b = d_nodeManager->mkConstReal(Rational(-3,2));
     Node m = d_nodeManager->mkNode(Kind::ABS, a);
     Node n = d_nodeManager->mkNode(Kind::ABS, b);
-    m = d_slvEngine->getRewriter()->rewrite(m);
-    n = d_slvEngine->getRewriter()->rewrite(n);
+    m = d_slvEngine->getEnv().getRewriter()->rewrite(m);
+    n = d_slvEngine->getEnv().getRewriter()->rewrite(n);
     EXPECT_EQ(m, a);
     EXPECT_EQ(n, a);
   }
@@ -107,8 +107,8 @@ TEST_F(TestTheoryArithRewriterBlack, Abs)
     Node b = d_nodeManager->mkRealAlgebraicNumber(sqrt2);
     Node m = d_nodeManager->mkNode(Kind::ABS, a);
     Node n = d_nodeManager->mkNode(Kind::ABS, b);
-    m = d_slvEngine->getRewriter()->rewrite(m);
-    n = d_slvEngine->getRewriter()->rewrite(n);
+    m = d_slvEngine->getEnv().getRewriter()->rewrite(m);
+    n = d_slvEngine->getEnv().getRewriter()->rewrite(n);
     EXPECT_EQ(m, b);
     EXPECT_EQ(n, b);
   }

@@ -252,9 +252,11 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
     }
     Trace("q-ext-rewrite-debug") << "theoryOf( " << ret << " )= " << tid
                                  << std::endl;
-    if (tid == THEORY_STRINGS)
+    switch (tid)
     {
-      new_ret = extendedRewriteStrings(ret);
+      case THEORY_STRINGS: new_ret = extendedRewriteStrings(ret); break;
+      case THEORY_SETS: new_ret = extendedRewriteSets(ret); break;
+      default: break;
     }
   }
   //----------------------end theory-specific post-rewriting
@@ -618,9 +620,10 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n) const
   std::map<unsigned, std::map<unsigned, Node> > ite_c;
   for (unsigned i = 0; i < nchildren; i++)
   {
-    // only pull ITEs apart if we are aggressive
-    if (n[i].getKind() == itek
-        && (d_aggr || (n[i][1].getKind() != ITE && n[i][2].getKind() != ITE)))
+    // these rewrites in this loop are currently classified as not aggressive,
+    // although in previous versions they were classified as aggressive. These
+    // are shown to help in some Kind2 problems.
+    if (n[i].getKind() == itek)
     {
       unsigned ii = hasOp ? i + 1 : i;
       for (unsigned j = 0; j < 2; j++)
@@ -639,45 +642,42 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n) const
         debugExtendedRewrite(n, ite_c[i][0], "ITE dual invariant");
         return ite_c[i][0];
       }
-      if (d_aggr)
+      if (nchildren == 2 && (n[1 - i].isVar() || n[1 - i].isConst())
+          && !n[1 - i].getType().isBoolean() && tn.isBoolean())
       {
-        if (nchildren == 2 && (n[1 - i].isVar() || n[1 - i].isConst())
-            && !n[1 - i].getType().isBoolean() && tn.isBoolean())
+        // always pull variable or constant with binary (theory) predicate
+        // e.g. P( x, ite( A, t1, t2 ) ) ---> ite( A, P( x, t1 ), P( x, t2 ) )
+        Node new_ret = nm->mkNode(ITE, n[i][0], ite_c[i][0], ite_c[i][1]);
+        debugExtendedRewrite(n, new_ret, "ITE pull var predicate");
+        return new_ret;
+      }
+      for (unsigned j = 0; j < 2; j++)
+      {
+        Node pullr = ite_c[i][j];
+        if (pullr.isConst() || pullr == n[i][j + 1])
         {
-          // always pull variable or constant with binary (theory) predicate
-          // e.g. P( x, ite( A, t1, t2 ) ) ---> ite( A, P( x, t1 ), P( x, t2 ) )
-          Node new_ret = nm->mkNode(ITE, n[i][0], ite_c[i][0], ite_c[i][1]);
-          debugExtendedRewrite(n, new_ret, "ITE pull var predicate");
-          return new_ret;
-        }
-        for (unsigned j = 0; j < 2; j++)
-        {
-          Node pullr = ite_c[i][j];
-          if (pullr.isConst() || pullr == n[i][j + 1])
+          // ITE single child elimination
+          // f( t1..s1..tn ) ---> t  where t is a constant or s1 itself
+          // implies
+          // f( t1..ite( A, s1, s2 )..tn ) ---> ite( A, t, f( t1..s2..tn ) )
+          Node new_ret;
+          if (tn.isBoolean() && pullr.isConst())
           {
-            // ITE single child elimination
-            // f( t1..s1..tn ) ---> t  where t is a constant or s1 itself
-            // implies
-            // f( t1..ite( A, s1, s2 )..tn ) ---> ite( A, t, f( t1..s2..tn ) )
-            Node new_ret;
-            if (tn.isBoolean() && pullr.isConst())
-            {
-              // remove false/true child immediately
-              bool pol = pullr.getConst<bool>();
-              std::vector<Node> new_children;
-              new_children.push_back((j == 0) == pol ? n[i][0]
-                                                     : n[i][0].negate());
-              new_children.push_back(ite_c[i][1 - j]);
-              new_ret = nm->mkNode(pol ? OR : AND, new_children);
-              debugExtendedRewrite(n, new_ret, "ITE Bool single elim");
-            }
-            else
-            {
-              new_ret = nm->mkNode(itek, n[i][0], ite_c[i][0], ite_c[i][1]);
-              debugExtendedRewrite(n, new_ret, "ITE single elim");
-            }
-            return new_ret;
+            // remove false/true child immediately
+            bool pol = pullr.getConst<bool>();
+            std::vector<Node> new_children;
+            new_children.push_back((j == 0) == pol ? n[i][0]
+                                                    : n[i][0].negate());
+            new_children.push_back(ite_c[i][1 - j]);
+            new_ret = nm->mkNode(pol ? OR : AND, new_children);
+            debugExtendedRewrite(n, new_ret, "ITE Bool single elim");
           }
+          else
+          {
+            new_ret = nm->mkNode(itek, n[i][0], ite_c[i][0], ite_c[i][1]);
+            debugExtendedRewrite(n, new_ret, "ITE single elim");
+          }
+          return new_ret;
         }
       }
     }
@@ -1693,7 +1693,7 @@ bool ExtendedRewriter::inferSubstitution(Node n, Subs& subs, bool usePred) const
   return false;
 }
 
-Node ExtendedRewriter::extendedRewriteStrings(Node node) const
+Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
 {
   Trace("q-ext-rewrite-debug")
       << "Extended rewrite strings : " << node << std::endl;
@@ -1736,6 +1736,24 @@ Node ExtendedRewriter::extendedRewriteStrings(Node node) const
     }
   }
 
+  return Node::null();
+}
+
+Node ExtendedRewriter::extendedRewriteSets(const Node& node) const
+{
+  if (node.getKind() == SET_MINUS && node[1].getKind() == SET_MINUS
+      && node[1][0] == node[0])
+  {
+    // Note this cannot be a rewrite rule or a ppRewrite, since it impacts the
+    // cardinality graph. In particular, if we internally inspect (set.minus A
+    // (setminus A B)), for instance if we are splitting the Venn regions of A
+    // and (set.minus A B), then we should not transform this to an intersection
+    // term. (set.minus A (set.minus A B)) = (set.inter A B)
+    NodeManager* nm = NodeManager::currentNM();
+    Node ret = nm->mkNode(SET_INTER, node[0], node[1][1]);
+    debugExtendedRewrite(node, ret, "SET_MINUS_MINUS");
+    return ret;
+  }
   return Node::null();
 }
 

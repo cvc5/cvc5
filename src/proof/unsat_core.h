@@ -29,7 +29,7 @@ namespace cvc5::internal {
  * An unsat core, which can optionally be initialized as a list of names
  * or as a list of formulas.
  */
-class UnsatCore
+class CVC5_EXPORT UnsatCore
 {
  public:
   UnsatCore() {}

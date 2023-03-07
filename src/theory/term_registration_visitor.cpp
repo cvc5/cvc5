@@ -194,16 +194,9 @@ void PreRegisterVisitor::preRegisterWithTheory(TheoryEngine* te,
     // guaranteed to be initialized.
     if (!te->isTheoryEnabled(id))
     {
-      const LogicInfo& l = te->getLogicInfo();
-      LogicInfo newLogicInfo = l.getUnlockedCopy();
-      newLogicInfo.enableTheory(id);
-      newLogicInfo.lock();
       std::stringstream ss;
-      ss << "The logic was specified as " << l.getLogicString()
-         << ", which doesn't include " << id
-         << ", but found a term in that theory." << std::endl
-         << "You might want to extend your logic to "
-         << newLogicInfo.getLogicString() << std::endl;
+      ss << "The logic doesn't include theory " << id
+         << ", but found a term in that theory." << std::endl;
       throw LogicException(ss.str());
     }
   }

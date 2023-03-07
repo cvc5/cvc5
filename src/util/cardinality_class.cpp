@@ -39,13 +39,19 @@ std::ostream& operator<<(std::ostream& out, CardinalityClass c)
   return out;
 }
 
-CardinalityClass minCardinalityClass(CardinalityClass c1, CardinalityClass c2)
-{
-  return c1 < c2 ? c1 : c2;
-}
-
 CardinalityClass maxCardinalityClass(CardinalityClass c1, CardinalityClass c2)
 {
+  // If one of the classes is interpreted one and the other finite, then the
+  // result should be interpreted finite: the type is finite under the
+  // assumption that uninterpreted sorts have cardinality one, but infinite
+  // otherwise.
+  if ((c1 == CardinalityClass::INTERPRETED_ONE
+       && c2 == CardinalityClass::FINITE)
+      || (c1 == CardinalityClass::FINITE
+          && c2 == CardinalityClass::INTERPRETED_ONE))
+  {
+    return CardinalityClass::INTERPRETED_FINITE;
+  }
   return c1 > c2 ? c1 : c2;
 }
 

@@ -21,7 +21,6 @@
 #include "options/options.h"
 #include "smt/env.h"
 #include "smt/solver_engine.h"
-#include "smt/solver_engine_scope.h"
 #include "test.h"
 
 namespace cvc5::internal {
@@ -34,7 +33,7 @@ class TestEnv : public TestInternal
   {
     d_options.reset(new Options());
     d_nodeManager = NodeManager::currentNM();
-    d_env.reset(new Env(d_nodeManager, d_options.get()));
+    d_env.reset(new Env(d_options.get()));
   }
 
   std::unique_ptr<Options> d_options;

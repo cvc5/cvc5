@@ -44,14 +44,25 @@ class BranchAndBound : protected EnvObj
   BranchAndBound(Env& env,
                  ArithState& s,
                  InferenceManager& im,
-                 PreprocessRewriteEq& ppre,
-                 ProofNodeManager* pnm);
+                 PreprocessRewriteEq& ppre);
   ~BranchAndBound() {}
   /**
    * Branch variable, called when integer var has given value
    * in the current model, returns a split to eliminate this model.
+   *
+   * @param var The variable to branch on
+   * @param value Its current model value
+   * @param doPurify If true, we send the lemma (= k var) and branch on k
+   * instead, where k is the purification skolem for var.
+   *
+   * Note if doPurify is true, this method additionally includes a purification
+   * lemma as described above. If doPurify is false, this method may choose
+   * to set doPurify if necessary, in the case that the inequality is eliminated
+   * by rewriting. This can be the case when var is (bv2nat x).
    */
-  TrustNode branchIntegerVariable(TNode var, Rational value);
+  std::vector<TrustNode> branchIntegerVariable(TNode var,
+                                               Rational value,
+                                               bool doPurify = false);
 
  private:
   /** Are proofs enabled? */
@@ -64,8 +75,6 @@ class BranchAndBound : protected EnvObj
   PreprocessRewriteEq& d_ppre;
   /** Proof generator. */
   std::unique_ptr<EagerProofGenerator> d_pfGen;
-  /** Proof node manager */
-  ProofNodeManager* d_pnm;
 };
 
 }  // namespace arith

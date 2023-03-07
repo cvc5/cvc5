@@ -18,17 +18,20 @@
 #ifndef CVC5__PROP_PROOF_MANAGER_H
 #define CVC5__PROP_PROOF_MANAGER_H
 
+#include "api/cpp/cvc5_types.h"
 #include "context/cdlist.h"
+#include "context/cdo.h"
 #include "proof/proof.h"
 #include "proof/proof_node_manager.h"
 #include "prop/proof_post_processor.h"
 #include "prop/sat_proof_manager.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 
 namespace prop {
 
-class CDCLTSatSolverInterface;
+class CDCLTSatSolver;
 
 /**
  * This class is responsible for managing the proof output of PropEngine, both
@@ -37,12 +40,12 @@ class CDCLTSatSolverInterface;
  * The expected proof to be built is a refutation proof with preprocessed
  * assertions as free assumptions.
  */
-class PropPfManager
+class PropPfManager : protected EnvObj
 {
  public:
-  PropPfManager(context::UserContext* userContext,
-                ProofNodeManager* pnm,
-                CDCLTSatSolverInterface* satSolver,
+  PropPfManager(Env& env,
+                context::UserContext* userContext,
+                CDCLTSatSolver* satSolver,
                 ProofCnfStream* cnfProof);
 
   /** Saves assertion for later checking whether refutation proof is closed.
@@ -59,8 +62,21 @@ class PropPfManager
    * The connection is done by running the proof post processor d_pfpp over the
    * proof of false provided by d_satPM. See ProofPostProcessor for more
    * details.
+   *
+   * @param connectCnf If this flag is false, then all clausified preprocessed
+   * assertion and theory lemmas are free assumptions in the returned proof
+   * instead of being connected to their proofs.
    */
-  std::shared_ptr<ProofNode> getProof();
+  std::shared_ptr<ProofNode> getProof(bool connectCnf);
+
+  /** Return the vector of proofs for the respective proof component requested.
+   *
+   * The components may be of theory lemma proofs (closed proofs of valid theory
+   * clauses) or of preprocessed assertion proofs (them the preprocessed
+   * assertion assumptions to the added clauses to the SAT solver).
+   */
+  std::vector<std::shared_ptr<ProofNode>> getProofLeaves(
+      modes::ProofComponent pc);
 
   /**
    * Checks that the prop engine proof is closed w.r.t. the given assertions and
@@ -76,20 +92,27 @@ class PropPfManager
   void checkProof(const context::CDList<Node>& assertions);
 
  private:
-  /** A node manager */
-  ProofNodeManager* d_pnm;
+  /** The proofs of this proof manager, which are saved once requested (note the
+   * cache is for both the request of the full proof (true) or not (false)).
+   *
+   * The proofs are kept in a (user)context-dependent manner because between
+   * satisfiability checks we should discard them.
+   */
+  context::CDHashMap<bool, std::shared_ptr<ProofNode>> d_propProofs;
   /** The proof post-processor */
-  std::unique_ptr<prop::ProofPostproccess> d_pfpp;
+  std::unique_ptr<prop::ProofPostprocess> d_pfpp;
   /**
    * The SAT solver of this prop engine, which should provide a refutation
    * proof when requested */
-  CDCLTSatSolverInterface* d_satSolver;
+  CDCLTSatSolver* d_satSolver;
   /** Assertions corresponding to the leaves of the prop engine's proof.
    *
    * These are kept in a context-dependent manner since the prop engine's proof
    * is also kept in a context-dependent manner.
    */
   context::CDList<Node> d_assertions;
+  /** The cnf stream proof generator */
+  ProofCnfStream* d_proofCnfStream;
 }; /* class PropPfManager */
 
 }  // namespace prop

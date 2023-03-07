@@ -128,8 +128,9 @@ class Theory : protected EnvObj
    */
   virtual void processCarePairArgs(TNode a, TNode b);
   /**
-   * Are care disequal? Return true if x and y are shared terms that are
-   * disequal according to the valuation.
+   * Are care disequal? Return true if x and y are distinct constants, shared
+   * terms that are disequal according to the valuation, or otherwise
+   * disequal according to the equality engine of this theory.
    */
   virtual bool areCareDisequal(TNode x, TNode y);
 
@@ -443,12 +444,14 @@ class Theory : protected EnvObj
   virtual EqualityStatus getEqualityStatus(TNode a, TNode b);
 
   /**
-   * Return the model value of the give shared term (or null if not
-   * available).
-   *
-   * TODO (project #39): this method is likely to become deprecated.
+   * Return the candidate model value of the give shared term (or null if not
+   * available). A candidate model value is one computed at full effort,
+   * prior to running theory combination and final model construction.
+   * Typically only non-parametric theories are able to implement this method,
+   * since model construction for parametric theories involves running final
+   * model construction.
    */
-  virtual Node getModelValue(TNode var) { return Node::null(); }
+  virtual Node getCandidateModelValue(TNode var) { return Node::null(); }
 
   /** T-propagate new literal assignments in the current context. */
   virtual void propagate(Effort level = EFFORT_FULL) {}
@@ -560,14 +563,21 @@ class Theory : protected EnvObj
    *
    * @param termSet The set to add terms to
    * @param includeShared Whether to include the shared terms of the theory
+   * @param irrKind The kinds
    */
   void collectAssertedTerms(std::set<Node>& termSet,
-                            bool includeShared = true) const;
+                            bool includeShared,
+                            const std::set<Kind>& irrKinds) const;
+  /** Same as above, using the irrelevant model kinds for irrKinds.*/
+  void collectAssertedTermsForModel(std::set<Node>& termSet,
+                                    bool includeShared = true) const;
   /**
    * Helper function for collectAssertedTerms, adds all subterms
    * belonging to this theory to termSet.
    */
-  void collectTerms(TNode n, std::set<Node>& termSet) const;
+  void collectTerms(TNode n,
+                    std::set<Node>& termSet,
+                    const std::set<Kind>& irrKinds) const;
   /**
    * Collect model values, after equality information is added to the model.
    * The argument termSet is the set of relevant terms returned by
@@ -662,18 +672,6 @@ class Theory : protected EnvObj
    * the theory.
    */
   virtual void presolve() {}
-
-  /**
-   * A Theory is called with postsolve exactly one time per user
-   * check-sat.  postsolve() is called after the query has completed
-   * (regardless of whether sat, unsat, or unknown), and after any
-   * model-querying related to the query has been performed.
-   * After this call, the theory will not get another check() or
-   * propagate() call until presolve() is called again.  A Theory
-   * cannot raise conflicts, add lemmas, or propagate literals during
-   * postsolve().
-   */
-  virtual void postsolve() {}
 
   /**
    * Notification sent to the theory wheneven the search restarts.
@@ -787,11 +785,10 @@ class Theory : protected EnvObj
    */
   virtual std::pair<bool, Node> entailmentCheck(TNode lit);
 
-  /** Return true if this theory uses central equality engine */
-  bool usesCentralEqualityEngine() const;
-  /** uses central equality engine (static) */
-  static bool usesCentralEqualityEngine(TheoryId id);
-  /** Explains/propagates via central equality engine only */
+  /**
+   * Return true if this theory explains and propagates via central equality
+   * engine only when the theory uses the central equality engine.
+   */
   static bool expUsingCentralEqualityEngine(TheoryId id);
 
  private:

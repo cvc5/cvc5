@@ -76,7 +76,9 @@ class ProofStepBuffer
    * is added to the buffer maintained by this class.
    *
    * If expected is non-null, then this method returns null if the result of
-   * checking is not equal to expected.
+   * checking is not equal to expected. Furthermore note that if proof
+   * checking is set to none, this method will always successfully return
+   * expected.
    */
   Node tryStep(PfRule id,
                const std::vector<Node>& children,

@@ -27,6 +27,7 @@ const char* toString(LfscRule id)
 {
   switch (id)
   {
+    case LfscRule::DEFINITION: return "refl";
     case LfscRule::SCOPE: return "scope";
     case LfscRule::NEG_SYMM: return "neg_symm";
     case LfscRule::CONG: return "cong";
@@ -38,6 +39,7 @@ const char* toString(LfscRule id)
     case LfscRule::CONCAT_CONFLICT_DEQ: return "concat_conflict_deq";
     case LfscRule::INSTANTIATE: return "instantiate";
     case LfscRule::SKOLEMIZE: return "skolemize";
+    case LfscRule::BETA_REDUCE: return "beta_reduce";
     case LfscRule::LAMBDA: return "\\";
     case LfscRule::PLET: return "plet";
     default: return "?";

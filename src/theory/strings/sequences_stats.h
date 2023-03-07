@@ -21,6 +21,7 @@
 #include "expr/kind.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/rewrites.h"
+#include "util/statistics_registry.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5::internal {
@@ -51,7 +52,7 @@ namespace strings {
 class SequencesStatistics
 {
  public:
-  SequencesStatistics();
+  SequencesStatistics(StatisticsRegistry& sr);
   /** Number of calls to run a check where strategy is present */
   IntStat d_checkRuns;
   /** Number of calls to run the strategy */

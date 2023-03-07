@@ -22,17 +22,16 @@
 #include <iostream>
 
 #include "api/cpp/cvc5.h"
-#include "expr/symbol_manager.h"
 #include "options/language.h"
-#include "parser/parser.h"
+#include "parser/api/cpp/command.h"
+#include "parser/api/cpp/symbol_manager.h"
+#include "parser/parser_antlr.h"
 #include "parser/parser_builder.h"
-#include "smt/command.h"
 #include "test_api.h"
 
+using namespace cvc5::parser;
+
 namespace cvc5::internal {
-
-using namespace parser;
-
 namespace test {
 
 class TestParseBlackParserBuilder : public TestApi
@@ -48,10 +47,9 @@ class TestParseBlackParserBuilder : public TestApi
 
   void checkInput(Parser* parser, const std::string& expected)
   {
-    Command* cmd = parser->nextCommand();
+    std::unique_ptr<Command> cmd = parser->nextCommand();
     ASSERT_NE(cmd, nullptr);
     ASSERT_EQ(cmd->toString(), expected);
-    delete cmd;
 
     cmd = parser->nextCommand();
     ASSERT_EQ(cmd, nullptr);

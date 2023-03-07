@@ -36,6 +36,7 @@ namespace cvc5::internal {
 class NodeManager;
 class Cardinality;
 class DType;
+class Integer;
 
 namespace expr {
   class NodeValue;
@@ -45,9 +46,9 @@ namespace expr {
  * Encapsulation of an NodeValue pointer for Types. The reference count is
  * maintained in the NodeValue.
  */
-class TypeNode {
-
-private:
+class CVC5_EXPORT TypeNode
+{
+ private:
 
   /**
    * The NodeValue has access to the private constructors, so that the
@@ -364,9 +365,10 @@ private:
    * @param out the stream to serialize this node to
    * @param language the language in which to output
    */
-  inline void toStream(std::ostream& out) const
-  {
-    d_nv->toStream(out, -1, 0);
+  inline void toStream(std::ostream& out) const {
+    options::ioutils::Scope scope(out);
+    options::ioutils::applyDagThresh(out, 0);
+    d_nv->toStream(out);
   }
 
   /**
@@ -400,6 +402,13 @@ private:
    * @return the cardinality class
    */
   CardinalityClass getCardinalityClass();
+  /**
+   * Determine if the cardinality of this type is strictly less than `n`.
+   * We do not want to compute the precise cardinality for this for performance
+   * reasons, and will answer false if it is not less than or if we don't know.
+   * @return if the cardinality of this type is strictly less than `n`.
+   */
+  bool isCardinalityLessThan(size_t n);
 
   /** is closed enumerable type
    *
@@ -456,6 +465,9 @@ private:
   /** Is this an array type? */
   bool isArray() const;
 
+  /** Is this a finite-field type? */
+  bool isFiniteField() const;
+
   /** Is this a Set type? */
   bool isSet() const;
 
@@ -464,6 +476,12 @@ private:
 
   /** Is this a Sequence type? */
   bool isSequence() const;
+
+  /** Is this an abstract type? */
+  bool isAbstract() const;
+
+  /** Is this the fully abstract type? */
+  bool isFullyAbstract() const;
 
   /** Get the index type (for array types) */
   TypeNode getArrayIndexType() const;
@@ -491,6 +509,25 @@ private:
 
   /** Get the element type (for sequence types) */
   TypeNode getSequenceElementType() const;
+
+  /** Get the abstract kind (for abstract types) */
+  Kind getAbstractedKind() const;
+
+  /**
+   * Is maybe kind. Return true if an instance of this type may have kind k.
+   * This is true if the kind of this sort is k, or if it is a abstract type
+   * whose abstracted kind is k or ABSTRACT_TYPE (the fully abstract type).
+   *
+   * For example:
+   * isMaybeKind ? BITVECTOR_TYPE = true
+   * isMaybeKind ? SET_TYPE = true
+   * isMaybeKind ?Set SET_TYPE = true
+   * isMaybeKind (Set Int) SET_TYPE = true
+   * isMaybeKind (_ BitVec 4) SET_TYPE = false
+   * isMaybeKind ?BitVec SET_TYPE = false
+   */
+  bool isMaybeKind(Kind k) const;
+
   /**
    * Is this a function type?  Function-like things (e.g. datatype
    * selectors) that aren't actually functions are NOT considered
@@ -511,6 +548,38 @@ private:
    */
   bool isFunctionLike() const;
 
+  /**
+   * Is instance of, returns true if this type is equivalent to the
+   * leastUpperBound (see TypeNode::leastUpperBound) of itself and t.
+   */
+  bool isInstanceOf(const TypeNode& t) const;
+  /**
+   * Is comparable to type t, returns true if this type and t have a non-null
+   * leastUpperBound (see TypeNode::leastUpperBound).
+   */
+  bool isComparableTo(const TypeNode& t) const;
+  /**
+   * Least upper bound with type.
+   *
+   * We consider a partial order on types such that T1 <= T2 if T2 is an
+   * instance of T1.
+   *
+   * This returns the most specific type that is an instance
+   * of both this and t, or null if this type and t are incompatible.
+   *
+   * For example:
+   * ?BitVec <lub> ? = ?BitVec
+   * (Array ?BitVec Int) <lub> (Array (_ BitVec 4) ?) = (Array (_ BitVec 4) Int)
+   * (Array ? Int) <lub> (Array ? Real) = null.
+   */
+  TypeNode leastUpperBound(const TypeNode& t) const;
+  /**
+   * Greatest lower bound with type. The dual of leastUpperBound, for example:
+   * ?BitVec <glb> ? = ?
+   * (Array ?BitVec Int) <glb> (Array (_ BitVec 4) ?) = (Array ?BitVec ?)
+   * (Array ? Int) <glb> (Array ? Real) = null.
+   */
+  TypeNode greatestLowerBound(const TypeNode& t) const;
   /**
    * Get the argument types of a function, datatype constructor,
    * datatype selector, or datatype tester.
@@ -652,6 +721,9 @@ private:
   /** Get the size of this bit-vector type. */
   uint32_t getBitVectorSize() const;
 
+  /** Get the field cardinality (order) of this finite-field type. */
+  const Integer& getFfSize() const;
+
   /** Is this a sort kind? */
   bool isUninterpretedSort() const;
 
@@ -663,9 +735,16 @@ private:
 
   /** Is this an unresolved datatype? */
   bool isUnresolvedDatatype() const;
-
   /**
-   * Get name, for uninterpreted sorts and uninterpreted sort constructors.
+   * Has name? Return true if this node has an associated variable
+   * name (via the attribute expr::VarNameAttr). This is true for
+   * uninterpreted sorts and uninterpreted sort constructors.
+   */
+  bool hasName() const;
+  /**
+   * Get the name. Should only be called on nodes such that
+   * hasName() returns true. Returns the string value of the
+   * expr::VarNameAttr attribute for this node.
    */
   std::string getName() const;
 
@@ -677,20 +756,9 @@ private:
    */
   TypeNode getUninterpretedSortConstructor() const;
 
-private:
-
-  /**
-   * Indents the given stream a given amount of spaces.
-   *
-   * @param out the stream to indent
-   * @param indent the number of spaces
-   */
-  static void indent(std::ostream& out, int indent) {
-    for(int i = 0; i < indent; i++) {
-      out << ' ';
-    }
-  }
-
+ private:
+  /** Unify internal, for computing leastUpperBound and greatestLowerBound */
+  TypeNode unifyInternal(const TypeNode& t, bool isLub) const;
 };/* class TypeNode */
 
 /**
@@ -876,6 +944,11 @@ inline bool TypeNode::isArray() const {
   return getKind() == kind::ARRAY_TYPE;
 }
 
+inline bool TypeNode::isFiniteField() const
+{
+  return getKind() == kind::FINITE_FIELD_TYPE;
+}
+
 inline TypeNode TypeNode::getArrayIndexType() const {
   Assert(isArray());
   return (*this)[0];
@@ -936,26 +1009,6 @@ inline bool TypeNode::isPredicate() const {
 
 inline bool TypeNode::isPredicateLike() const {
   return isFunctionLike() && getRangeType().isBoolean();
-}
-
-/** Is this a floating-point type of with <code>exp</code> exponent bits
-    and <code>sig</code> significand bits */
-inline bool TypeNode::isFloatingPoint(unsigned exp, unsigned sig) const {
-  return (getKind() == kind::FLOATINGPOINT_TYPE
-          && getConst<FloatingPointSize>().exponentWidth() == exp
-          && getConst<FloatingPointSize>().significandWidth() == sig);
-}
-
-/** Get the exponent size of this floating-point type */
-inline unsigned TypeNode::getFloatingPointExponentSize() const {
-  Assert(isFloatingPoint());
-  return getConst<FloatingPointSize>().exponentWidth();
-}
-
-/** Get the significand size of this floating-point type */
-inline unsigned TypeNode::getFloatingPointSignificandSize() const {
-  Assert(isFloatingPoint());
-  return getConst<FloatingPointSize>().significandWidth();
 }
 
 }  // namespace cvc5::internal

@@ -226,19 +226,27 @@ public:
    * Initializes a LinearEqualityModule with a partial model, a tableau,
    * and a callback function for when basic variables update their values.
    */
-  LinearEqualityModule(ArithVariables& vars, Tableau& t, BoundInfoMap& boundTracking, BasicVarModelUpdateCallBack f);
+ LinearEqualityModule(StatisticsRegistry& sr,
+                      ArithVariables& vars,
+                      Tableau& t,
+                      BoundInfoMap& boundTracking,
+                      BasicVarModelUpdateCallBack f);
 
-  /**
-   * Updates the assignment of a nonbasic variable x_i to v.
-   * Also updates the assignment of basic variables accordingly.
-   */
-  void update(ArithVar x_i, const DeltaRational& v){
-    if(d_areTracking){
-      updateTracked(x_i,v);
-    }else{
-      updateUntracked(x_i,v);
-    }
-  }
+ /**
+  * Updates the assignment of a nonbasic variable x_i to v.
+  * Also updates the assignment of basic variables accordingly.
+  */
+ void update(ArithVar x_i, const DeltaRational& v)
+ {
+   if (d_areTracking)
+   {
+     updateTracked(x_i, v);
+   }
+   else
+   {
+     updateUntracked(x_i, v);
+   }
+ }
 
   /** Specialization of update if the module is not tracking yet (for Assert*). */
   void updateUntracked(ArithVar x_i, const DeltaRational& v);
@@ -706,7 +714,7 @@ private:
     TimerStat d_weakenTime;
     TimerStat d_forceTime;
 
-    Statistics();
+    Statistics(StatisticsRegistry& sr);
   };
   mutable Statistics d_statistics;
 

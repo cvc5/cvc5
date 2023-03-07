@@ -31,7 +31,7 @@ class TConvProofGenerator;
 namespace theory {
 namespace arith {
 
-class OperatorElim : protected EnvObj, public EagerProofGenerator
+class OperatorElim : public EagerProofGenerator
 {
  public:
   OperatorElim(Env& env);

@@ -34,7 +34,7 @@ namespace uf {
 class TheoryUfRewriter : public TheoryRewriter
 {
  public:
-  TheoryUfRewriter(bool isHigherOrder = false);
+  TheoryUfRewriter();
   /** post-rewrite */
   RewriteResponse postRewrite(TNode node) override;
   /** pre-rewrite */
@@ -66,8 +66,10 @@ class TheoryUfRewriter : public TheoryRewriter
  private:
   /** Entry point for rewriting lambdas */
   static Node rewriteLambda(Node node);
-  /** Is the logic higher-order? */
-  bool d_isHigherOrder;
+  /** rewrite bv2nat */
+  static RewriteResponse rewriteBVToNat(TNode node);
+  /** rewrite int2bv */
+  static RewriteResponse rewriteIntToBV(TNode node);
 }; /* class TheoryUfRewriter */
 
 }  // namespace uf

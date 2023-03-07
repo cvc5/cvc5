@@ -426,19 +426,16 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound, std::map<
     Trace("sort-inference-debug") << "...Process " << n << std::endl;
 
     int retType;
-    if( n.getKind()==kind::EQUAL && !n[0].getType().isBoolean() ){
+    // we only do this for non-finite types, as finite types have cardinality
+    // restrictions.
+    if (n.getKind() == kind::EQUAL
+        && !isCardinalityClassFinite(n[0].getType().getCardinalityClass(),
+                                     false))
+    {
       Trace("sort-inference-debug") << "For equality " << n << ", set equal types from : " << n[0].getType() << " " << n[1].getType() << std::endl;
-      //if original types are mixed (e.g. Int/Real), don't commit type equality in either direction
-      if( n[0].getType()!=n[1].getType() ){
-        //for now, assume the original types
-        for( unsigned i=0; i<2; i++ ){
-          int ct = getIdForType( n[i].getType() );
-          setEqual( child_types[i], ct );
-        }
-      }else{
-        //we only require that the left and right hand side must be equal
-        setEqual( child_types[0], child_types[1] );
-      }
+      Assert(n[0].getType() == n[1].getType());
+      // we only require that the left and right hand side must be equal
+      setEqual(child_types[0], child_types[1]);
       d_equality_types[n] = child_types[0];
       retType = getIdForType( n.getType() );
     }
@@ -689,7 +686,9 @@ Node SortInference::simplifyNode(
           tnnc = getOrCreateTypeForId( d_op_arg_types[op][i], n[i].getType() );
           Assert(!tnnc.isNull());
         }
-        else if (n.getKind() == kind::EQUAL && !n[0].getType().isBoolean()
+        else if (n.getKind() == kind::EQUAL
+                 && !isCardinalityClassFinite(
+                     n[0].getType().getCardinalityClass(), false)
                  && i == 0)
         {
           Assert(d_equality_types.find(n) != d_equality_types.end());
@@ -880,7 +879,8 @@ bool SortInference::isWellSorted( Node n ) {
   }
 }
 
-bool SortInference::isMonotonic( TypeNode tn ) {
+bool SortInference::isMonotonic(TypeNode tn) const
+{
   Assert(tn.isUninterpretedSort());
   return d_non_monotonic_sorts_orig.find( tn )==d_non_monotonic_sorts_orig.end();
 }

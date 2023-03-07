@@ -1,0 +1,6 @@
+(set-logic QF_ABV)
+(set-info :status unsat)
+(declare-fun v () (_ BitVec 3))
+(declare-fun a () (Array (_ BitVec 8) (_ BitVec 1)))
+(assert (= (bvsge (select (store a (_ bv1 8) (_ bv0 1)) ((_ sign_extend 7) (ite (bvult (_ bv13 16) ((_ zero_extend 13) v)) (_ bv1 1) (_ bv0 1)))) (_ bv0 1)) (not (bvsge ((_ extract 0 0) (select a ((_ zero_extend 7) (ite (bvult (_ bv13 16) ((_ zero_extend 13) v)) (_ bv1 1) (_ bv0 1))))) (_ bv0 1)))))
+(check-sat)

@@ -15,23 +15,26 @@
 
 #include "theory/uf/theory_uf_rewriter.h"
 
+#include "expr/elim_shadow_converter.h"
+#include "expr/function_array_const.h"
 #include "expr/node_algorithm.h"
+#include "theory/arith/arith_utilities.h"
+#include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/uf/function_const.h"
+#include "util/bitvector.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
-TheoryUfRewriter::TheoryUfRewriter(bool isHigherOrder)
-    : d_isHigherOrder(isHigherOrder)
-{
-}
+TheoryUfRewriter::TheoryUfRewriter() {}
 
 RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
 {
-  if (node.getKind() == kind::EQUAL)
+  Kind k = node.getKind();
+  if (k == kind::EQUAL)
   {
     if (node[0] == node[1])
     {
@@ -46,53 +49,22 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
     }
     if (node[0] > node[1])
     {
-      Node newNode =
-          NodeManager::currentNM()->mkNode(node.getKind(), node[1], node[0]);
+      Node newNode = NodeManager::currentNM()->mkNode(k, node[1], node[0]);
       return RewriteResponse(REWRITE_DONE, newNode);
     }
   }
-  if (node.getKind() == kind::APPLY_UF)
+  if (k == kind::APPLY_UF)
   {
-    if (node.getOperator().getKind() == kind::LAMBDA)
+    Node lambda = FunctionConst::toLambda(node.getOperator());
+    if (!lambda.isNull())
     {
-      Trace("uf-ho-beta") << "uf-ho-beta : beta-reducing all args of : " << node
-                          << "\n";
-      TNode lambda = node.getOperator();
-      Node ret;
-      // build capture-avoiding substitution since in HOL shadowing may have
-      // been introduced
-      if (d_isHigherOrder)
-      {
-        std::vector<Node> vars;
-        std::vector<Node> subs;
-        for (const Node& v : lambda[0])
-        {
-          vars.push_back(v);
-        }
-        for (const Node& s : node)
-        {
-          subs.push_back(s);
-        }
-        if (TraceIsOn("uf-ho-beta"))
-        {
-          Trace("uf-ho-beta") << "uf-ho-beta: ..sub of " << subs.size()
-                              << " vars into " << subs.size() << " terms :\n";
-          for (unsigned i = 0, size = subs.size(); i < size; ++i)
-          {
-            Trace("uf-ho-beta")
-                << "uf-ho-beta: .... " << vars[i] << " |-> " << subs[i] << "\n";
-          }
-        }
-        ret = expr::substituteCaptureAvoiding(lambda[1], vars, subs);
-        Trace("uf-ho-beta") << "uf-ho-beta : ..result : " << ret << "\n";
-      }
-      else
-      {
-        std::vector<TNode> vars(lambda[0].begin(), lambda[0].end());
-        std::vector<TNode> subs(node.begin(), node.end());
-        ret = lambda[1].substitute(
-            vars.begin(), vars.end(), subs.begin(), subs.end());
-      }
+      Trace("uf-ho-beta") << "uf-ho-beta : beta-reducing all args of : "
+                          << lambda << " for " << node << "\n";
+      std::vector<TNode> vars(lambda[0].begin(), lambda[0].end());
+      std::vector<TNode> subs(node.begin(), node.end());
+      Node ret = lambda[1].substitute(
+          vars.begin(), vars.end(), subs.begin(), subs.end());
+
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
     else if (!canUseAsApplyUfOperator(node.getOperator()))
@@ -100,19 +72,20 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       return RewriteResponse(REWRITE_AGAIN_FULL, getHoApplyForApplyUf(node));
     }
   }
-  else if (node.getKind() == kind::HO_APPLY)
+  else if (k == kind::HO_APPLY)
   {
-    if (node[0].getKind() == kind::LAMBDA)
+    Node lambda = FunctionConst::toLambda(node[0]);
+    if (!lambda.isNull())
     {
       // resolve one argument of the lambda
       Trace("uf-ho-beta") << "uf-ho-beta : beta-reducing one argument of : "
-                          << node[0] << " with " << node[1] << "\n";
+                          << lambda << " with " << node[1] << "\n";
 
       // reconstruct the lambda first to avoid variable shadowing
-      Node new_body = node[0][1];
-      if (node[0][0].getNumChildren() > 1)
+      Node new_body = lambda[1];
+      if (lambda[0].getNumChildren() > 1)
       {
-        std::vector<Node> new_vars(node[0][0].begin() + 1, node[0][0].end());
+        std::vector<Node> new_vars(lambda[0].begin() + 1, lambda[0].end());
         std::vector<Node> largs;
         largs.push_back(
             NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, new_vars));
@@ -122,28 +95,29 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
             << "uf-ho-beta : ....new lambda : " << new_body << "\n";
       }
 
-      // build capture-avoiding substitution since in HOL shadowing may have
-      // been introduced
-      if (d_isHigherOrder)
-      {
-        Node arg = node[1];
-        Node var = node[0][0][0];
-        new_body = expr::substituteCaptureAvoiding(new_body, var, arg);
-      }
-      else
-      {
-        TNode arg = node[1];
-        TNode var = node[0][0][0];
-        new_body = new_body.substitute(var, arg);
-      }
+      TNode arg = node[1];
+      TNode var = lambda[0][0];
+      new_body = new_body.substitute(var, arg);
+
       Trace("uf-ho-beta") << "uf-ho-beta : ..new body : " << new_body << "\n";
       return RewriteResponse(REWRITE_AGAIN_FULL, new_body);
     }
   }
-  else if (node.getKind() == kind::LAMBDA)
+  else if (k == kind::LAMBDA)
   {
     Node ret = rewriteLambda(node);
-    return RewriteResponse(REWRITE_DONE, ret);
+    if (ret != node)
+    {
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+  }
+  else if (k == kind::BITVECTOR_TO_NAT)
+  {
+    return rewriteBVToNat(node);
+  }
+  else if (k == kind::INT_TO_BITVECTOR)
+  {
+    return rewriteIntToBV(node);
   }
   return RewriteResponse(REWRITE_DONE, node);
 }
@@ -221,7 +195,7 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
   // normalization on array constants, and then converting the array constant
   // back to a lambda.
   Trace("builtin-rewrite") << "Rewriting lambda " << node << "..." << std::endl;
-  Node anode = FunctionConst::getArrayRepresentationForLambda(node);
+  Node anode = FunctionConst::toArrayConst(node);
   // Only rewrite constant array nodes, since these are the only cases
   // where we require canonicalization of lambdas. Moreover, applying the
   // below code is not correct if the arguments to the lambda occur
@@ -231,35 +205,81 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
   if (!anode.isNull() && anode.isConst())
   {
     Assert(anode.getType().isArray());
-    // must get the standard bound variable list
-    Node varList = NodeManager::currentNM()->getBoundVarListForFunctionType(
-        node.getType());
-    Node retNode =
-        FunctionConst::getLambdaForArrayRepresentation(anode, varList);
-    if (!retNode.isNull() && retNode != node)
-    {
-      Trace("builtin-rewrite") << "Rewrote lambda : " << std::endl;
-      Trace("builtin-rewrite") << "     input  : " << node << std::endl;
-      Trace("builtin-rewrite")
-          << "     output : " << retNode << ", constant = " << retNode.isConst()
-          << std::endl;
-      Trace("builtin-rewrite")
-          << "  array rep : " << anode << ", constant = " << anode.isConst()
-          << std::endl;
-      Assert(anode.isConst() == retNode.isConst());
-      Assert(retNode.getType() == node.getType());
-      Assert(expr::hasFreeVar(node) == expr::hasFreeVar(retNode));
-      return retNode;
-    }
+    Node retNode = NodeManager::currentNM()->mkConst(
+        FunctionArrayConst(node.getType(), anode));
+    Assert(anode.isConst() == retNode.isConst());
+    Assert(retNode.getType() == node.getType());
+    Assert(expr::hasFreeVar(node) == expr::hasFreeVar(retNode));
+    return retNode;
   }
-  else
+  Trace("builtin-rewrite-debug")
+      << "...failed to get array representation." << std::endl;
+  // eliminate shadowing
+  Node retElimShadow = ElimShadowNodeConverter::eliminateShadow(node);
+  if (retElimShadow != node)
   {
-    Trace("builtin-rewrite-debug")
-        << "...failed to get array representation." << std::endl;
+    return retElimShadow;
   }
   return node;
 }
 
+RewriteResponse TheoryUfRewriter::rewriteBVToNat(TNode node)
+{
+  Assert(node.getKind() == kind::BITVECTOR_TO_NAT);
+  if (node[0].isConst())
+  {
+    Node resultNode = arith::eliminateBv2Nat(node);
+    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
+  }
+  else if (node[0].getKind() == kind::INT_TO_BITVECTOR)
+  {
+    // (bv2nat ((_ int2bv w) x)) ----> (mod x 2^w)
+    NodeManager* nm = NodeManager::currentNM();
+    const uint32_t size =
+        node[0].getOperator().getConst<IntToBitVector>().d_size;
+    Node sn = nm->mkConstInt(Rational(Integer(2).pow(size)));
+    Node resultNode = nm->mkNode(kind::INTS_MODULUS_TOTAL, node[0][0], sn);
+    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
+  }
+  return RewriteResponse(REWRITE_DONE, node);
+}
+
+RewriteResponse TheoryUfRewriter::rewriteIntToBV(TNode node)
+{
+  Assert(node.getKind() == kind::INT_TO_BITVECTOR);
+  if (node[0].isConst())
+  {
+    Node resultNode = arith::eliminateInt2Bv(node);
+    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
+  }
+  else if (node[0].getKind() == kind::BITVECTOR_TO_NAT)
+  {
+    TypeNode otype = node.getType();
+    TypeNode itype = node[0][0].getType();
+    if (otype == itype)
+    {
+      return RewriteResponse(REWRITE_AGAIN_FULL, node[0][0]);
+    }
+    size_t osize = otype.getBitVectorSize();
+    size_t isize = itype.getBitVectorSize();
+    if (osize > isize)
+    {
+      // ((_ int2bv w) (bv2nat x)) ---> (concat (_ bv0 v) x)
+      Node zero = bv::utils::mkZero(osize - isize);
+      Node concat = NodeManager::currentNM()->mkNode(
+          kind::BITVECTOR_CONCAT, zero, node[0][0]);
+      return RewriteResponse(REWRITE_AGAIN_FULL, concat);
+    }
+    else
+    {
+      // ((_ int2bv w) (bv2nat x)) ---> ((_ extract w 0) x)
+      Assert(osize < isize);
+      Node extract = bv::utils::mkExtract(node[0][0], osize, 0);
+      return RewriteResponse(REWRITE_AGAIN_FULL, extract);
+    }
+  }
+  return RewriteResponse(REWRITE_DONE, node);
+}
 }  // namespace uf
 }  // namespace theory
 }  // namespace cvc5::internal

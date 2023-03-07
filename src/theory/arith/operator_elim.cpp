@@ -33,10 +33,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-OperatorElim::OperatorElim(Env& env)
-    : EnvObj(env), EagerProofGenerator(d_env.getProofNodeManager())
-{
-}
+OperatorElim::OperatorElim(Env& env) : EagerProofGenerator(env) {}
 
 void OperatorElim::checkNonLinearLogic(Node term)
 {
@@ -371,18 +368,19 @@ Node OperatorElim::eliminateOperators(Node node,
           }
         }
 
-        Kind rk =
-            k == ARCSINE
-                ? SINE
-                : (k == ARCCOSINE
-                       ? COSINE
-                       : (k == ARCTANGENT
-                              ? TANGENT
-                              : (k == ARCCOSECANT
-                                     ? COSECANT
-                                     : (k == ARCSECANT ? SECANT : COTANGENT))));
+        Kind rk;
+        switch (k)
+        {
+          case ARCSINE: rk = SINE; break;
+          case ARCCOSINE: rk = COSINE; break;
+          case ARCTANGENT: rk = TANGENT; break;
+          case ARCCOSECANT: rk = COSECANT; break;
+          case ARCSECANT: rk = SECANT; break;
+          case ARCCOTANGENT: rk = COTANGENT; break;
+          default: Unreachable() << "Unexpected kind " << k;
+        }
         Node invTerm = nm->mkNode(rk, var);
-        lem = nm->mkNode(AND, rlem, invTerm.eqNode(node[0]));
+        lem = nm->mkNode(AND, rlem, mkEquality(invTerm, node[0]));
         if (!cond.isNull())
         {
           lem = nm->mkNode(IMPLIES, cond, lem);
@@ -462,7 +460,7 @@ bool OperatorElim::usePartialFunction(SkolemFunId id) const
 SkolemLemma OperatorElim::mkSkolemLemma(Node lem, Node k)
 {
   TrustNode tlem;
-  if (d_pnm != nullptr)
+  if (d_env.isTheoryProofProducing())
   {
     tlem = mkTrustNode(lem, PfRule::THEORY_PREPROCESS_LEMMA, {}, {lem});
   }

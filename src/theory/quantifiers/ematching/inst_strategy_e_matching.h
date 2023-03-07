@@ -52,10 +52,8 @@ class InstStrategyAutoGenTriggers : public InstStrategy
   /** single, multi triggers for each quantifier */
   std::map<Node, std::vector<Node> > d_patTerms[2];
   std::map<Node, std::map<Node, bool> > d_patReqPol;
-  /** information about triggers */
-  std::map<Node, bool> d_is_single_trigger;
-  std::map<Node, bool> d_single_trigger_gen;
-  std::map<Node, bool> d_made_multi_trigger;
+  /** The set of quantified formulas we have already made triggers for */
+  std::unordered_set<Node> d_madeTriggers;
   // processed trigger this round
   std::map<Node, std::map<inst::Trigger*, bool> > d_processed_trigger;
   // instantiation no patterns
@@ -111,6 +109,11 @@ class InstStrategyAutoGenTriggers : public InstStrategy
    * owned by the instantiation engine that owns this class.
    */
   QuantRelevance* d_quant_rel;
+  /**
+   * If relevant triggers is enabled, sort terms in patTerms based on how often
+   * they occur.
+   */
+  void sortPatTermsByRelevance(std::vector<Node>& patTerms);
 }; /* class InstStrategyAutoGenTriggers */
 }
 }  // namespace theory

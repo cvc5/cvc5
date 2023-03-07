@@ -17,6 +17,7 @@
 
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
+#include "theory/logic_info.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
@@ -134,18 +135,18 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
         }
         else if (catom.getKind() == ITE)
         {
-          Node vcond = m->getValue(cur[0]);
+          Node vcond = m->getValue(catom[0]);
           Assert(vcond.isConst());
-          Node cond = cur[0];
+          Node cond = catom[0];
           Node branch;
           if (vcond.getConst<bool>())
           {
-            branch = cur[1];
+            branch = catom[1];
           }
           else
           {
             cond = cond.negate();
-            branch = cur[2];
+            branch = catom[2];
           }
           impl = nm->mkNode(AND, cond, cpol ? branch : branch.negate());
         }
@@ -244,55 +245,58 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
       }
       for (Node s : symbols)
       {
-        if (s.getType().getKind() != kind::FUNCTION_TYPE)
+        if (!s.getType().isFirstClass())
         {
-          Node v = m->getValue(s);
-          Node a = nm->mkNode(DISTINCT, s, v);
-          blockers.push_back(a);
+          // ignore e.g. constructors
+          continue;
         }
+        if (!logicInfo().isHigherOrder()
+            && s.getType().getKind() == kind::FUNCTION_TYPE)
+        {
+          // ignore functions if not higher-order
+          continue;
+        }
+        nodesToBlock.push_back(s);
       }
     }
     // otherwise, block all terms that were specified in get-value
-    else
+    std::map<TypeNode, std::vector<Node> > nonClosedEnum;
+    std::map<Node, Node> nonClosedValue;
+    std::unordered_set<Node> terms;
+    for (const Node& n : nodesToBlock)
     {
-      std::map<TypeNode, std::vector<Node> > nonClosedEnum;
-      std::map<Node, Node> nonClosedValue;
-      std::unordered_set<Node> terms;
-      for (const Node& n : nodesToBlock)
+      TypeNode tn = n.getType();
+      Node v = m->getValue(n);
+      if (tn.isClosedEnumerable())
       {
-        TypeNode tn = n.getType();
-        Node v = m->getValue(n);
-        if (tn.isClosedEnumerable())
-        {
-          // if its type is closed enumerable, then we can block its value
-          Node a = n.eqNode(v).notNode();
-          blockers.push_back(a);
-        }
-        else
-        {
-          nonClosedValue[n] = v;
-          // otherwise we will block (dis)equality with other variables of its
-          // type below
-          nonClosedEnum[tn].push_back(n);
-        }
+        // if its type is closed enumerable, then we can block its value
+        Node a = n.eqNode(v).notNode();
+        blockers.push_back(a);
       }
-      for (const std::pair<const TypeNode, std::vector<Node> >& es :
-           nonClosedEnum)
+      else
       {
-        size_t nenum = es.second.size();
-        for (size_t i = 0; i < nenum; i++)
+        nonClosedValue[n] = v;
+        // otherwise we will block (dis)equality with other variables of its
+        // type below
+        nonClosedEnum[tn].push_back(n);
+      }
+    }
+    for (const std::pair<const TypeNode, std::vector<Node> >& es :
+         nonClosedEnum)
+    {
+      size_t nenum = es.second.size();
+      for (size_t i = 0; i < nenum; i++)
+      {
+        const Node& vi = nonClosedValue[es.second[i]];
+        for (size_t j = (i + 1); j < nenum; j++)
         {
-          const Node& vi = nonClosedValue[es.second[i]];
-          for (size_t j = (i + 1); j < nenum; j++)
+          const Node& vj = nonClosedValue[es.second[j]];
+          Node eq = es.second[i].eqNode(es.second[j]);
+          if (vi == vj)
           {
-            const Node& vj = nonClosedValue[es.second[j]];
-            Node eq = es.second[i].eqNode(es.second[j]);
-            if (vi == vj)
-            {
-              eq = eq.notNode();
-            }
-            blockers.push_back(eq);
+            eq = eq.notNode();
           }
+          blockers.push_back(eq);
         }
       }
     }

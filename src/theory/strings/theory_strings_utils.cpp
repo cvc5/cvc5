@@ -449,6 +449,14 @@ Node mkAbstractStringValueForLength(Node n, Node len, size_t id)
   return quantifiers::mkNamedQuant(WITNESS, bvl, pred, ss.str());
 }
 
+Node mkCodeRange(Node t, uint32_t alphaCard)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkNode(AND,
+                    nm->mkNode(GEQ, t, nm->mkConstInt(Rational(0))),
+                    nm->mkNode(LT, t, nm->mkConstInt(Rational(alphaCard))));
+}
+
 }  // namespace utils
 }  // namespace strings
 }  // namespace theory

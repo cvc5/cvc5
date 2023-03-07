@@ -13,7 +13,7 @@
 # The build system configuration.
 ##
 
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.12)
 
 #-----------------------------------------------------------------------------#
 # Project configuration
@@ -43,6 +43,14 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Required for FindGLPK since it sets CMAKE_REQUIRED_LIBRARIES
 if(POLICY CMP0075)
   cmake_policy(SET CMP0075 NEW)
+endif()
+
+if(POLICY CMP0135)
+  # For `ExternalProject_Add()`, set the timestamp of the files extracted from
+  # the downloaded archive to the time of the extraction. This behavior was
+  # introduced in CMake 3.23 and is the recommended to make sure that
+  # dependencies get rebuilt when the URL changes.
+  cmake_policy(SET CMP0135 NEW)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -87,25 +95,21 @@ cvc5_option(ENABLE_AUTO_DOWNLOAD  "Enable automatic download of dependencies")
 cvc5_option(ENABLE_IPO            "Enable interprocedural optimization")
 # >> 2-valued: ON OFF
 #    > for options where we don't need to detect if set by user (default: OFF)
-option(ENABLE_BEST             "Enable dependencies known to give best performance")
 option(ENABLE_COVERAGE         "Enable support for gcov coverage testing")
 option(ENABLE_DEBUG_CONTEXT_MM "Enable the debug context memory manager")
 option(ENABLE_PROFILING        "Enable support for gprof profiling")
 
 # Optional dependencies
 #
-# >> 3-valued: IGNORE ON OFF
-#    > allows to detect if set by user (default: IGNORE)
-#    > only necessary for options set for ENABLE_BEST
-cvc5_option(USE_CLN           "Use CLN instead of GMP")
-cvc5_option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver")
-cvc5_option(USE_GLPK          "Use GLPK simplex solver")
-cvc5_option(USE_KISSAT        "Use Kissat SAT solver")
-cvc5_option(USE_EDITLINE      "Use Editline for better interactive support")
 # >> 2-valued: ON OFF
 #    > for options where we don't need to detect if set by user (default: OFF)
-option(USE_POLY               "Use LibPoly for polynomial arithmetic")
-option(USE_COCOA              "Use CoCoALib for further polynomial operations")
+option(USE_CLN           "Use CLN instead of GMP")
+option(USE_COCOA         "Use CoCoALib for further polynomial operations")
+option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver")
+option(USE_EDITLINE      "Use Editline for better interactive support")
+option(USE_GLPK          "Use GLPK simplex solver")
+option(USE_KISSAT        "Use Kissat SAT solver")
+option(USE_POLY          "Use LibPoly for polynomial arithmetic")
 
 # Custom install directories for dependencies
 # If no directory is provided by the user, we first check if the dependency was
@@ -127,6 +131,29 @@ option(BUILD_DOCS "Build Api documentation")
 # Link against static system libraries
 cvc5_option(STATIC_BINARY "Link against static system libraries \
 (enabled by default for static builds)")
+
+# Custom flags for WebAssembly compilation
+set(WASM_FLAGS "" CACHE STRING "Link flags for the WebAssembly binary generation")
+set(WASM "OFF" CACHE STRING "Use a specific extension for WebAssembly compilation")
+
+# Make sure no other available value will be assigned to this variable
+if(NOT(WASM STREQUAL "WASM" OR WASM STREQUAL "JS" OR WASM STREQUAL "HTML" OR WASM STREQUAL "OFF"))
+  message(FATAL_ERROR "${WASM} is not a valid wasm flag value.")
+endif()
+
+if(WASM STREQUAL "OFF")
+  set(WASM_FLAGS "")
+  set(CONFIGURE_CMD_WRAPPER "")
+# If it's a wasm compilation, but isn't using the right flags
+elseif(BUILD_SHARED_LIBS OR NOT(STATIC_BINARY) OR NOT(ENABLE_AUTO_DOWNLOAD))
+  message(FATAL_ERROR "Use --static, --static-binary and --auto-download flags for WebAssembly compilation. GMP will not compile with shared libraries.")
+else()
+  set(CONFIGURE_CMD_WRAPPER emconfigure)
+  set(TOOLCHAIN_PREFIX wasm64-unknown-emscripten)
+  string(TOLOWER ".${WASM}" WASM_EXTENSION)
+  set(CMAKE_EXECUTABLE_SUFFIX ${WASM_EXTENSION})
+  string(APPEND CMAKE_EXE_LINKER_FLAGS " ${WASM_FLAGS}")
+endif()
 
 #-----------------------------------------------------------------------------#
 # Internal cmake variables
@@ -191,8 +218,8 @@ add_check_c_cxx_flag("-Wshadow")
 # around crashing issues with our Windows build.
 add_check_cxx_flag("-fno-extern-tls-init")
 
-# Temporarily disable -Wclass-memaccess to suppress 'no trivial copy-assignment'
-# cdlist.h warnings. Remove when fixed.
+# Disable -Wclass-memaccess to suppress 'no trivial copy-assignment' in MiniSat
+# code.
 add_check_cxx_supression_flag("-Wno-class-memaccess")
 
 if (WIN32)
@@ -294,7 +321,25 @@ else()
   endif()
 endif()
 
-find_package(PythonInterp 3 REQUIRED)
+if(DEFINED BUILD_BINDINGS_PYTHON_VERSION) 
+  find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Interpreter REQUIRED)
+else()
+  find_supported_python_version()
+endif()
+
+# Some cmake packages are not compatible with the newest version
+# of FindPython, introduced in cmake 3.12.
+# We define the symbols below to be backward compatible.
+if(NOT DEFINED PYTHON_EXECUTABLE) 
+  set(PYTHON_EXECUTABLE "${Python_EXECUTABLE}")
+endif()
+if (NOT DEFINED PYTHON_INCLUDE_DIRS) 
+  set(PYTHON_INCLUDE_DIRS "${Python_INCLUDE_DIRS}")
+endif()
+if (NOT DEFINED PYTHON_LIBRARIES) 
+  set(PYTHON_LIBRARIES "${Python_LIBRARIES}")
+endif()
+
 find_package(GMP 6.1 REQUIRED)
 
 if(ENABLE_ASAN)
@@ -467,7 +512,7 @@ if(BUILD_BINDINGS_PYTHON AND NOT BUILD_SHARED_LIBS)
   set(BUILD_BINDINGS_PYTHON OFF)
 endif()
 if(BUILD_BINDINGS_PYTHON)
-  set(BUILD_BINDINGS_PYTHON_VERSION ${PYTHON_VERSION_MAJOR})
+  set(BUILD_BINDINGS_PYTHON_VERSION ${Python_VERSION})
   add_subdirectory(src/api/python)
 endif()
 
@@ -588,9 +633,6 @@ else()
   print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING}")
 endif()
 message("")
-print_config("GPL                       " ${ENABLE_GPL})
-print_config("Best configuration        " ${ENABLE_BEST})
-message("")
 print_config("Assertions                " ${ENABLE_ASSERTIONS})
 print_config("Debug symbols             " ${ENABLE_DEBUG_SYMBOLS})
 print_config("Debug context mem mgr     " ${ENABLE_DEBUG_CONTEXT_MM})
@@ -655,7 +697,7 @@ if(GPL_LIBS)
   "\n"
   "If you prefer to license cvc5 under those terms, please configure cvc5 to"
   "\n"
-  "disable all optional GPLed library dependencies (-DENABLE_BSD_ONLY=ON)."
+  "disable all optional GPLed library dependencies."
   )
 else()
   message(
@@ -666,9 +708,9 @@ else()
   "\n"
   "it is covered by the (modified) BSD license.  To build against GPL'ed"
   "\n"
-  "libraries which can improve cvc5's performance on arithmetic and bitvector"
+  "libraries which can improve cvc5's performance on arithmetic and bit-vector"
   "\n"
-  "logics, re-configure with '-DENABLE_GPL -DENABLE_BEST'."
+  "logics, use the 'configure.sh' script to re-configure with '--best --gpl'."
   )
 endif()
 

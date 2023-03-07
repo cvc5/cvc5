@@ -68,9 +68,8 @@ class TestNodeBlackNode : public TestNode
     TestNode::SetUp();
     // setup an SMT engine so that options are in scope
     Options opts;
-    opts.writeBase().outputLanguage = Language::LANG_AST;
-    opts.writeBase().outputLanguageWasSetByUser = true;
-    d_slvEngine.reset(new SolverEngine(d_nodeManager, &opts));
+    d_slvEngine.reset(new SolverEngine(&opts));
+    d_slvEngine->setOption("output-language", "ast");
   }
 
   std::unique_ptr<SolverEngine> d_slvEngine;
@@ -568,7 +567,7 @@ TEST_F(TestNodeBlackNode, toStream)
   ASSERT_EQ(sstr.str(), "(AND w (OR x y) z)");
 
   sstr.str(std::string());
-  o.toStream(sstr, -1, 0);
+  o.toStream(sstr);
   ASSERT_EQ(sstr.str(), "(XOR (AND w (OR x y) z) (AND w (OR x y) z))");
 
   sstr.str(std::string());
@@ -648,7 +647,8 @@ TEST_F(TestNodeBlackNode, dagifier)
       OR, {fffx_eq_x, fffx_eq_y, fx_eq_gx, x_eq_y, fgx_eq_gy});
 
   std::stringstream sstr;
-  options::ioutils::apply(sstr, 0, -1, Language::LANG_SMTLIB_V2_6);
+  options::ioutils::applyDagThresh(sstr, 0);
+  options::ioutils::applyOutputLanguage(sstr, Language::LANG_SMTLIB_V2_6);
   sstr << n;  // never dagify
   ASSERT_EQ(sstr.str(),
             "(or (= (f (f (f x))) x) (= (f (f (f x))) y) (= (f x) (g x)) (= x "

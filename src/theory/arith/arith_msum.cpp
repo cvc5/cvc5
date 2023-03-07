@@ -236,13 +236,18 @@ int ArithMSum::isolate(
     // ensure type is correct for equality
     if (k == EQUAL)
     {
-      if (!vc.getType().isInteger() && val.getType().isInteger())
+      bool vci = vc.getType().isInteger();
+      bool vi = val.getType().isInteger();
+      if (!vci && vi)
       {
         val = nm->mkNode(TO_REAL, val);
       }
-      // note that conversely this utility will never use a real value as
-      // the solution for an integer, thus the types should match now
-      Assert(val.getType() == vc.getType());
+      else if (vci && !vi)
+      {
+        val = nm->mkNode(TO_INTEGER, val);
+      }
+      Assert(val.getType() == vc.getType())
+          << val << " " << vc << " " << val.getType() << " " << vc.getType();
     }
     veq = nm->mkNode(k, inOrder ? vc : val, inOrder ? val : vc);
   }

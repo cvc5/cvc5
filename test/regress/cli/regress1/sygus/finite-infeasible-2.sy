@@ -1,0 +1,20 @@
+; COMMAND-LINE: --sygus-out=status
+; EXPECT: infeasible
+(set-logic LIA)
+(synth-fun g ((x Int)) Int
+  ((Start Int))
+  (
+  (Start Int (x 0 (+ Start Start)))
+  )
+)
+(synth-fun f ((x Int)) Int
+  ((Start Int))
+  (
+  (Start Int (x 0))
+  )
+)
+(declare-var x Int)
+(constraint (>= (g x) 0))
+(constraint (= (f 4) 1))
+(constraint (> (f x) 0))
+(check-synth)

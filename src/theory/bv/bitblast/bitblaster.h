@@ -27,7 +27,6 @@
 #include "prop/registrar.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_types.h"
-#include "smt/solver_engine_scope.h"
 #include "theory/bv/bitblast/bitblast_strategies_template.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"

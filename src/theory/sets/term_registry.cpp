@@ -28,16 +28,15 @@ namespace sets {
 TermRegistry::TermRegistry(Env& env,
                            SolverState& state,
                            InferenceManager& im,
-                           SkolemCache& skc,
-                           ProofNodeManager* pnm)
+                           SkolemCache& skc)
     : EnvObj(env),
       d_im(im),
       d_skCache(skc),
       d_proxy(userContext()),
       d_proxy_to_term(userContext()),
-      d_epg(
-          pnm ? new EagerProofGenerator(pnm, nullptr, "sets::TermRegistry::epg")
-              : nullptr)
+      d_epg(env.isTheoryProofProducing() ? new EagerProofGenerator(
+                env, nullptr, "sets::TermRegistry::epg")
+                                         : nullptr)
 {
 }
 
@@ -45,7 +44,8 @@ Node TermRegistry::getProxy(Node n)
 {
   Kind nk = n.getKind();
   if (nk != SET_EMPTY && nk != SET_SINGLETON && nk != SET_INTER
-      && nk != SET_MINUS && nk != SET_UNION && nk != SET_UNIVERSE)
+      && nk != SET_MINUS && nk != SET_UNION && nk != SET_UNIVERSE
+      && nk != SET_MAP)
   {
     return n;
   }

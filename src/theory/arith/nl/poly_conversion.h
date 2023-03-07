@@ -55,7 +55,10 @@ struct VariableMapper
 cvc5::internal::Node as_cvc_upolynomial(const poly::UPolynomial& p,
                               const cvc5::internal::Node& var);
 
-/** Convert a cvc5::internal::Node to a poly univariate polynomial. */
+/**
+ * Convert a cvc5::internal::Node to a poly univariate polynomial. Is robust to
+ * n being a `Kind::TO_REAL` wrapper node.
+ */
 poly::UPolynomial as_poly_upolynomial(const cvc5::internal::Node& n,
                                       const cvc5::internal::Node& var);
 
@@ -71,6 +74,7 @@ poly::UPolynomial as_poly_upolynomial(const cvc5::internal::Node& n,
  * (like in the context of coverings). If we need the actual polynomial (for example
  * in the context of ICP) the second overload provides the denominator in the
  * third argument.
+ * The method is robust to n being a `Kind::TO_REAL` wrapper node.
  */
 poly::Polynomial as_poly_polynomial(const cvc5::internal::Node& n, VariableMapper& vm);
 poly::Polynomial as_poly_polynomial(const cvc5::internal::Node& n,

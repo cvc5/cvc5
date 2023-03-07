@@ -24,10 +24,19 @@ package io.github.cvc5;
  */
 public class Op extends AbstractPointer
 {
-  // region construction and destruction
-  Op(Solver solver, long pointer)
+  /**
+   * Null op
+   */
+  public Op()
   {
-    super(solver, pointer);
+    super(getNullOp());
+  }
+
+  private static native long getNullOp();
+
+  Op(long pointer)
+  {
+    super(pointer);
   }
 
   protected native void deletePointer(long pointer);
@@ -36,8 +45,6 @@ public class Op extends AbstractPointer
   {
     return pointer;
   }
-
-  // endregion
 
   /**
    * Syntactic equality operator.
@@ -115,7 +122,7 @@ public class Op extends AbstractPointer
   {
     Utils.validateUnsigned(i, "index");
     long termPointer = get(pointer, i);
-    return new Term(solver, termPointer);
+    return new Term(termPointer);
   }
 
   private native long get(long pointer, int i);

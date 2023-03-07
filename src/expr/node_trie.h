@@ -49,8 +49,8 @@ namespace cvc5::internal {
  *   t.d_data[b] :
  *     t.d_data[b].d_data[b] :
  *       t.d_data[b].d_data[b].d_data[f(b,b)] : (leaf)
- *     t.d_data[b].d_data[d] :
- *       t.d_data[b].d_data[d].d_data[f(b,d)] : (leaf)
+ *     t.d_data[b].d_data[a] :
+ *       t.d_data[b].d_data[a].d_data[f(b,d)] : (leaf)
  *
  * Leaf nodes store the terms that are indexed by the arguments, for example
  * term f(d,c) is indexed by the representative arguments (a,c), and is stored

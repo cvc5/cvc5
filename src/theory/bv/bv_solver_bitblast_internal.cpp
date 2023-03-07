@@ -70,14 +70,10 @@ void collectBVAtoms(TNode n, std::unordered_set<Node>& atoms)
 }  // namespace
 
 BVSolverBitblastInternal::BVSolverBitblastInternal(
-    Env& env,
-    TheoryState* s,
-    TheoryInferenceManager& inferMgr,
-    ProofNodeManager* pnm)
+    Env& env, TheoryState* s, TheoryInferenceManager& inferMgr)
     : BVSolver(env, *s, inferMgr),
-      d_pnm(pnm),
-      d_bitblaster(new BBProof(env, s, pnm, false)),
-      d_epg(pnm ? new EagerProofGenerator(pnm) : nullptr)
+      d_bitblaster(new BBProof(env, s, false)),
+      d_epg(new EagerProofGenerator(d_env))
 {
 }
 
@@ -92,7 +88,7 @@ void BVSolverBitblastInternal::addBBLemma(TNode fact)
   Node atom_bb = d_bitblaster->getStoredBBAtom(fact);
   Node lemma = nm->mkNode(kind::EQUAL, fact, atom_bb);
 
-  if (d_pnm == nullptr)
+  if (!d_env.isTheoryProofProducing())
   {
     d_im.lemma(lemma, InferenceId::BV_BITBLAST_INTERNAL_BITBLAST_LEMMA);
   }
@@ -129,7 +125,7 @@ bool BVSolverBitblastInternal::preNotifyFact(
     NodeManager* nm = NodeManager::currentNM();
     Node lemma = nm->mkNode(kind::EQUAL, fact, n);
 
-    if (d_pnm == nullptr)
+    if (!d_env.isTheoryProofProducing())
     {
       d_im.lemma(lemma, InferenceId::BV_BITBLAST_INTERNAL_EAGER_LEMMA);
     }

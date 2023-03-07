@@ -22,7 +22,6 @@
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
-#include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
@@ -169,7 +168,8 @@ Node CegGrammarConstructor::process(Node q,
       }
 
       // make the default grammar
-      tn = mkSygusDefaultType(preGrammarType,
+      tn = mkSygusDefaultType(options(),
+                              preGrammarType,
                               sfvl,
                               ss.str(),
                               extra_cons,
@@ -392,13 +392,9 @@ Node CegGrammarConstructor::convertToEmbedding(Node n)
   return visited[n];
 }
 
-TypeNode CegGrammarConstructor::mkUnresolvedType(const std::string& name,
-                                                 std::set<TypeNode>& unres)
+TypeNode CegGrammarConstructor::mkUnresolvedType(const std::string& name)
 {
-  TypeNode unresolved =
-      NodeManager::currentNM()->mkUnresolvedDatatypeSort(name);
-  unres.insert(unresolved);
-  return unresolved;
+  return NodeManager::currentNM()->mkUnresolvedDatatypeSort(name);
 }
 
 void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
@@ -576,7 +572,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     const std::map<TypeNode, std::unordered_set<Node>>& include_cons,
     std::unordered_set<Node>& term_irrelevant,
     std::vector<SygusDatatypeGenerator>& sdts,
-    std::set<TypeNode>& unres)
+    options::SygusGrammarConsMode sgcm)
 {
   NodeManager* nm = NodeManager::currentNM();
   Trace("sygus-grammar-def") << "Construct default grammar for " << fun << " "
@@ -615,14 +611,19 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
 
   // create placeholder for boolean type (kept apart since not collected)
 
+  // make Boolean type
+  TypeNode bool_type = nm->booleanType();
+  // the index of Bool in types
+  size_t boolIndex = types.size();
+  types.push_back(bool_type);
+
   // create placeholders for collected types
   std::vector<TypeNode> unres_types;
   std::map<TypeNode, TypeNode> type_to_unres;
   std::map<TypeNode, std::unordered_set<Node>>::const_iterator itc;
   // maps types to the index of its "any term" grammar construction
   std::map<TypeNode, std::pair<unsigned, bool>> typeToGAnyTerm;
-  options::SygusGrammarConsMode sgcm = options::sygusGrammarConsMode();
-  for (unsigned i = 0, size = types.size(); i < size; ++i)
+  for (size_t i = 0, size = types.size(); i < size; ++i)
   {
     std::stringstream ss;
     ss << fun << "_" << types[i];
@@ -639,23 +640,12 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       sdts.back().d_include_cons = itc->second;
     }
     //make unresolved type
-    TypeNode unres_t = mkUnresolvedType(dname, unres);
+    TypeNode unres_t = mkUnresolvedType(dname);
     unres_types.push_back(unres_t);
     type_to_unres[types[i]] = unres_t;
     sygus_to_builtin[unres_t] = types[i];
   }
-  // make Boolean type
-  std::stringstream ssb;
-  ssb << fun << "_Bool";
-  std::string dbname = ssb.str();
-  sdts.push_back(SygusDatatypeGenerator(dbname));
-  unsigned boolIndex = types.size();
-  TypeNode bool_type = nm->booleanType();
-  TypeNode unres_bt = mkUnresolvedType(ssb.str(), unres);
-  types.push_back(bool_type);
-  unres_types.push_back(unres_bt);
-  type_to_unres[bool_type] = unres_bt;
-  sygus_to_builtin[unres_bt] = bool_type;
+  TypeNode unres_bt = type_to_unres[bool_type];
 
   // We ensure an ordering on types such that parametric types are processed
   // before their consitituents. Since parametric types were added before their
@@ -687,7 +677,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         std::stringstream ssat;
         ssat << sdts[i].d_sdt.getName() << "_any_term";
         sdts.push_back(SygusDatatypeGenerator(ssat.str()));
-        TypeNode unresAnyTerm = mkUnresolvedType(ssat.str(), unres);
+        TypeNode unresAnyTerm = mkUnresolvedType(ssat.str());
         unres_types.push_back(unresAnyTerm);
         // set tracking information for later addition at boolean type.
         std::pair<unsigned, bool> p(sdts.size() - 1, false);
@@ -789,7 +779,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         ss << fun << "_PosIReal";
         std::string posIRealName = ss.str();
         // make unresolved type
-        TypeNode unresPosIReal = mkUnresolvedType(posIRealName, unres);
+        TypeNode unresPosIReal = mkUnresolvedType(posIRealName);
         unres_types.push_back(unresPosIReal);
         // make data type for positive constant integral reals
         sdts.push_back(SygusDatatypeGenerator(posIRealName));
@@ -1117,7 +1107,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     std::stringstream ss;
     ss << fun << "_AnyConst";
     // Make sygus datatype for any constant.
-    TypeNode unresAnyConst = mkUnresolvedType(ss.str(), unres);
+    TypeNode unresAnyConst = mkUnresolvedType(ss.str());
     unres_types.push_back(unresAnyConst);
     sdts.push_back(SygusDatatypeGenerator(ss.str()));
     sdts.back().d_sdt.addAnyConstantConstructor(types[i]);
@@ -1460,13 +1450,6 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     for (unsigned i = 0; i < 4; i++)
     {
       Kind k = i == 0 ? NOT : (i == 1 ? AND : (i == 2 ? OR : ITE));
-      // TODO #1935 ITEs are added to Boolean grammars so that we can infer
-      // unification strategies. We can do away with this if we can infer
-      // unification strategies from and/or/not
-      if (k == ITE && options::sygusUnifPi() == options::SygusUnifPiMode::NONE)
-      {
-        continue;
-      }
       Trace("sygus-grammar-def") << "...add for " << k << std::endl;
       std::vector<TypeNode> cargs;
       cargs.push_back(unres_bt);
@@ -1498,6 +1481,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
 }
 
 TypeNode CegGrammarConstructor::mkSygusDefaultType(
+    const Options& opts,
     TypeNode range,
     Node bvl,
     const std::string& fun,
@@ -1506,6 +1490,7 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
     std::map<TypeNode, std::unordered_set<Node>>& include_cons,
     std::unordered_set<Node>& term_irrelevant)
 {
+  NodeManager* nm = NodeManager::currentNM();
   Trace("sygus-grammar-def") << "*** Make sygus default type " << range << ", make datatypes..." << std::endl;
   for (std::map<TypeNode, std::unordered_set<Node>>::iterator it =
            extra_cons.begin();
@@ -1514,7 +1499,15 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
   {
     Trace("sygus-grammar-def") << "    ...using " << it->second.size() << " extra constants for " << it->first << std::endl;
   }
-  std::set<TypeNode> unres;
+  // TODO #1935 ITEs are added to Boolean grammars so that we can infer
+  // unification strategies. We can do away with this if we can infer
+  // unification strategies from and/or/not
+  if (opts.quantifiers.sygusUnifPi == options::SygusUnifPiMode::NONE)
+  {
+    TypeNode btype = nm->booleanType();
+    exclude_cons[btype].insert(nm->operatorOf(ITE));
+    Trace("sygus-grammar-def") << "...exclude Boolean ITE" << std::endl;
+  }
   std::vector<SygusDatatypeGenerator> sdts;
   mkSygusDefaultGrammar(range,
                         bvl,
@@ -1524,7 +1517,7 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
                         include_cons,
                         term_irrelevant,
                         sdts,
-                        unres);
+                        opts.quantifiers.sygusGrammarConsMode);
   // extract the datatypes from the sygus datatype generator objects
   std::vector<DType> datatypes;
   for (unsigned i = 0, ndts = sdts.size(); i < ndts; i++)
@@ -1533,8 +1526,7 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
   }
   Trace("sygus-grammar-def")  << "...made " << datatypes.size() << " datatypes, now make mutual datatype types..." << std::endl;
   Assert(!datatypes.empty());
-  std::vector<TypeNode> types =
-      NodeManager::currentNM()->mkMutualDatatypeTypes(datatypes);
+  std::vector<TypeNode> types = nm->mkMutualDatatypeTypes(datatypes);
   Trace("sygus-grammar-def") << "...finished" << std::endl;
   Assert(types.size() == datatypes.size());
   return types[0];
@@ -1547,7 +1539,6 @@ TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_a
     return templ_arg_sygus_type;
   }else{
     tcount++;
-    std::set<TypeNode> unres;
     std::vector<SygusDatatype> sdts;
     std::stringstream ssd;
     ssd << fun << "_templ_" << tcount;

@@ -207,7 +207,7 @@ class CVC5_EXPORT Integer
    *
    * @param exp the exponent
    */
-  Integer pow(unsigned long int exp) const;
+  Integer pow(uint32_t exp) const;
 
   /** Return the greatest common divisor of this integer with another.  */
   Integer gcd(const Integer& y) const;
@@ -311,6 +311,14 @@ class CVC5_EXPORT Integer
    * If x == 0, returns 1.
    */
   size_t length() const;
+
+  /**
+   * Returns whether `x` is probably a prime.
+   *
+   * A false result is always accurate, but a true result may be inaccurate
+   * with small (approximately 2^{-60}) probability.
+   */
+  bool isProbablePrime() const;
 
   /*   cl_I xgcd (const cl_I& a, const cl_I& b, cl_I* u, cl_I* v) */
   /* This function ("extended gcd") returns the greatest common divisor g of a

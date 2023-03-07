@@ -24,19 +24,14 @@
 #include "parser/smt2/Smt2Lexer.h"
 #include "parser/smt2/Smt2Parser.h"
 
-// extern void Smt2ParserSetAntlrParser(cvc5::parser::AntlrParser*
-// newAntlrParser);
-
-namespace cvc5 {
+namespace cvc5::parser {
 
 class Command;
-class Expr;
-class ExprManager;
-
-namespace parser {
-
 class Smt2;
 
+/*
+ * This class is deprecated and used only for the ANTLR parser.
+ */
 class Smt2Input : public AntlrInput {
   typedef AntlrInput super;
 
@@ -70,7 +65,7 @@ class Smt2Input : public AntlrInput {
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Command* parseCommand() override;
+  std::unique_ptr<Command> parseCommand() override;
 
   /**
    * Parse an expression from the input. Returns a null
@@ -82,7 +77,6 @@ class Smt2Input : public AntlrInput {
 
 };/* class Smt2Input */
 
-}  // namespace parser
-}  // namespace cvc5
+}  // namespace cvc5::parser
 
 #endif /* CVC5__PARSER__SMT2_INPUT_H */

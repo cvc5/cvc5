@@ -27,10 +27,19 @@ package io.github.cvc5;
  */
 public class SynthResult extends AbstractPointer
 {
-  // region construction and destruction
-  SynthResult(Solver solver, long pointer)
+  /**
+   * Null synthResult
+   */
+  public SynthResult()
   {
-    super(solver, pointer);
+    super(getNullSynthResult());
+  }
+
+  private static native long getNullSynthResult();
+
+  SynthResult(long pointer)
+  {
+    super(pointer);
   }
 
   protected native void deletePointer(long pointer);
@@ -39,8 +48,6 @@ public class SynthResult extends AbstractPointer
   {
     return pointer;
   }
-
-  // endregion
 
   /**
    * @return True if SynthResult is empty, i.e., a nullary SynthResult, and not

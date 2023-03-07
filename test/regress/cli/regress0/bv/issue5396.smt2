@@ -1,4 +1,4 @@
-(set-logic QF_BVLIA)
+(set-logic QF_UFBVLIA)
 (set-info :status unsat)
 (declare-fun a () Int)
 (assert (= (bv2nat (bvor ((_ int2bv 3) a) ((_ int2bv 3) a))) 0))

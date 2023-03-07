@@ -20,7 +20,9 @@
 
 #include <map>
 #include <vector>
+
 #include "expr/node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -33,10 +35,10 @@ class QuantifiersRegistry;
  * a method for putting quantified formulas in solved form, e.g.
  *   forall x. P(x) ---> P = (lambda x. true)
  */
-class QuantifiersMacros
+class QuantifiersMacros : protected EnvObj
 {
  public:
-  QuantifiersMacros(QuantifiersRegistry& qr);
+  QuantifiersMacros(Env& env, QuantifiersRegistry& qr);
   ~QuantifiersMacros() {}
   /**
    * Called on quantified formulas lit of the form

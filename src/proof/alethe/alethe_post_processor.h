@@ -13,8 +13,8 @@
  * The module for processing proof nodes into Alethe proof nodes
  */
 
-#ifndef CVC4__PROOF__ALETHE_PROOF_PROCESSOR_H
-#define CVC4__PROOF__ALETHE_PROOF_PROCESSOR_H
+#ifndef CVC5__PROOF__ALETHE__ALETHE_PROOF_PROCESSOR_H
+#define CVC5__PROOF__ALETHE__ALETHE_PROOF_PROCESSOR_H
 
 #include "proof/alethe/alethe_node_converter.h"
 #include "proof/alethe/alethe_proof_rule.h"
@@ -28,10 +28,11 @@ namespace proof {
  * A callback class used by the Alethe converter for post-processing proof nodes
  * by replacing internal rules by the rules in the Alethe calculus.
  */
-class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
+class AletheProofPostprocessCallback : protected EnvObj,
+                                       public ProofNodeUpdaterCallback
 {
  public:
-  AletheProofPostprocessCallback(ProofNodeManager* pnm,
+  AletheProofPostprocessCallback(Env& env,
                                  AletheNodeConverter& anc,
                                  bool resPivots);
   ~AletheProofPostprocessCallback() {}
@@ -53,7 +54,7 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
               bool& continueUpdate) override;
   /** Should proof pn be updated at post-visit?
    *
-   * Only if its top-level Alethe proof rule is RESOLUTION, REORDERING, or
+   * Only if its top-level Alethe proof rule is RESOLUTION_OR, REORDERING, or
    * CONTRACTION.
    */
   bool shouldUpdatePost(std::shared_ptr<ProofNode> pn,
@@ -83,13 +84,11 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
    */
   bool finalStep(Node res,
                  PfRule id,
-                 const std::vector<Node>& children,
+                 std::vector<Node>& children,
                  const std::vector<Node>& args,
                  CDProof* cdp);
 
  private:
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
   /** The Alethe node converter */
   AletheNodeConverter& d_anc;
   /** Whether to keep the pivots in the alguments of the resolution rule */
@@ -139,25 +138,25 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
                            const std::vector<Node>& children,
                            const std::vector<Node>& args,
                            CDProof& cdp);
+
+  /** Nodes corresponding to the Boolean values. */
+  Node d_true;
+  Node d_false;
 };
 
 /**
  * The proof postprocessor module. This postprocesses a proof node into one
  * using the rules from the Alethe calculus.
  */
-class AletheProofPostprocess
+class AletheProofPostprocess : protected EnvObj
 {
  public:
-  AletheProofPostprocess(ProofNodeManager* pnm,
-                         AletheNodeConverter& anc,
-                         bool resPivots);
+  AletheProofPostprocess(Env& env, AletheNodeConverter& anc, bool resPivots);
   ~AletheProofPostprocess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
 
  private:
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
   /** The post process callback */
   AletheProofPostprocessCallback d_cb;
 };

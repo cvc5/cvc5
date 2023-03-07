@@ -17,9 +17,9 @@
 
 #include "base/output.h"
 #include "options/arith_options.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/error_set.h"
+#include "util/statistics_registry.h"
 #include "util/statistics_stats.h"
 
 using namespace std;
@@ -42,28 +42,24 @@ FCSimplexDecisionProcedure::FCSimplexDecisionProcedure(
       d_prevWitnessImprovement(AntiProductive),
       d_witnessImprovementInARow(0),
       d_sgnDisagreements(),
-      d_statistics("theory::arith::FC::", d_pivots)
+      d_statistics(statisticsRegistry(), "theory::arith::FC::", d_pivots)
 { }
 
-FCSimplexDecisionProcedure::Statistics::Statistics(const std::string& name,
+FCSimplexDecisionProcedure::Statistics::Statistics(StatisticsRegistry& sr,
+                                                   const std::string& name,
                                                    uint32_t& pivots)
-    : d_initialSignalsTime(
-        smtStatisticsRegistry().registerTimer(name + "initialProcessTime")),
-      d_initialConflicts(
-          smtStatisticsRegistry().registerInt(name + "UpdateConflicts")),
-      d_fcFoundUnsat(smtStatisticsRegistry().registerInt(name + "FoundUnsat")),
-      d_fcFoundSat(smtStatisticsRegistry().registerInt(name + "FoundSat")),
-      d_fcMissed(smtStatisticsRegistry().registerInt(name + "Missed")),
-      d_fcTimer(smtStatisticsRegistry().registerTimer(name + "Timer")),
-      d_fcFocusConstructionTimer(
-          smtStatisticsRegistry().registerTimer(name + "Construction")),
-      d_selectUpdateForDualLike(smtStatisticsRegistry().registerTimer(
-          name + "selectUpdateForDualLike")),
-      d_selectUpdateForPrimal(smtStatisticsRegistry().registerTimer(
-          name + "selectUpdateForPrimal")),
+    : d_initialSignalsTime(sr.registerTimer(name + "initialProcessTime")),
+      d_initialConflicts(sr.registerInt(name + "UpdateConflicts")),
+      d_fcFoundUnsat(sr.registerInt(name + "FoundUnsat")),
+      d_fcFoundSat(sr.registerInt(name + "FoundSat")),
+      d_fcMissed(sr.registerInt(name + "Missed")),
+      d_fcTimer(sr.registerTimer(name + "Timer")),
+      d_fcFocusConstructionTimer(sr.registerTimer(name + "Construction")),
+      d_selectUpdateForDualLike(
+          sr.registerTimer(name + "selectUpdateForDualLike")),
+      d_selectUpdateForPrimal(sr.registerTimer(name + "selectUpdateForPrimal")),
       d_finalCheckPivotCounter(
-          smtStatisticsRegistry().registerReference<uint32_t>(
-              name + "lastPivots", pivots))
+          sr.registerReference<uint32_t>(name + "lastPivots", pivots))
 {
 }
 

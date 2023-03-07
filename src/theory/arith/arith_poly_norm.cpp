@@ -202,7 +202,7 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
         }
       }
       else if (k == ADD || k == SUB || k == NEG || k == MULT
-               || k == NONLINEAR_MULT)
+               || k == NONLINEAR_MULT || k == TO_REAL)
       {
         visited[cur] = PolyNorm();
         for (const Node& cn : cur)
@@ -229,6 +229,7 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
         case NEG:
         case MULT:
         case NONLINEAR_MULT:
+        case TO_REAL:
           for (size_t i = 0, nchild = cur.getNumChildren(); i < nchild; i++)
           {
             it = visited.find(cur[i]);

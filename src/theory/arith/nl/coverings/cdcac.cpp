@@ -49,8 +49,7 @@ CDCAC::CDCAC(Env& env, const std::vector<poly::Variable>& ordering)
 {
   if (d_env.isTheoryProofProducing())
   {
-    d_proof.reset(
-        new CoveringsProofGenerator(userContext(), d_env.getProofNodeManager()));
+    d_proof.reset(new CoveringsProofGenerator(env, userContext()));
   }
 }
 
@@ -105,7 +104,7 @@ const std::vector<poly::Variable>& CDCAC::getVariableOrdering() const
 std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
 {
   std::vector<CACInterval> res;
-  LazardEvaluation le;
+  LazardEvaluation le(statisticsRegistry());
   prepareRootIsolation(le, cur_variable);
   for (const auto& c : d_constraints.getConstraints())
   {
@@ -430,7 +429,7 @@ CACInterval CDCAC::intervalFromCharacterization(
 
   // Collect -oo, all roots, oo
 
-  LazardEvaluation le;
+  LazardEvaluation le(statisticsRegistry());
   prepareRootIsolation(le, cur_variable);
   std::vector<poly::Value> roots;
   roots.emplace_back(poly::Value::minus_infty());

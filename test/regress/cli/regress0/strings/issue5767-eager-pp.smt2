@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-strings-lazy-pp -q
+; COMMAND-LINE: --no-strings-lazy-pp
 ; EXPECT: sat
 (set-logic ALL)
 (declare-fun s () String)

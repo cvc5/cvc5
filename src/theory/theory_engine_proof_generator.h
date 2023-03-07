@@ -26,6 +26,7 @@
 #include "proof/proof_generator.h"
 #include "proof/proof_node_manager.h"
 #include "proof/trust_node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 
@@ -36,13 +37,13 @@ namespace cvc5::internal {
  * Notice that this class could be made general purpose. Its main feature is
  * storing lazy proofs for facts in a context-dependent manner.
  */
-class TheoryEngineProofGenerator : public ProofGenerator
+class TheoryEngineProofGenerator : protected EnvObj, public ProofGenerator
 {
   typedef context::CDHashMap<Node, std::shared_ptr<LazyCDProof>>
       NodeLazyCDProofMap;
 
  public:
-  TheoryEngineProofGenerator(ProofNodeManager* pnm, context::Context* c);
+  TheoryEngineProofGenerator(Env& env, context::Context* c);
   ~TheoryEngineProofGenerator() {}
   /**
    * Make trust explanation. Called when lpf has a proof of lit from free
@@ -67,8 +68,6 @@ class TheoryEngineProofGenerator : public ProofGenerator
   std::string identify() const override;
 
  private:
-  /** The proof manager, used for allocating new ProofNode objects */
-  ProofNodeManager* d_pnm;
   /** Map from formulas to lazy CD proofs */
   NodeLazyCDProofMap d_proofs;
   /** The false node */

@@ -25,8 +25,7 @@ namespace theory {
 namespace arith {
 
 PreprocessRewriteEq::PreprocessRewriteEq(Env& env)
-    : EnvObj(env),
-      d_ppPfGen(d_env.getProofNodeManager(), context(), "Arith::ppRewrite")
+    : EnvObj(env), d_ppPfGen(env, context(), "Arith::ppRewrite")
 {
 }
 

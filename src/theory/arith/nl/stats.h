@@ -18,6 +18,7 @@
 #ifndef CVC5__THEORY__ARITH__NL__STATS_H
 #define CVC5__THEORY__ARITH__NL__STATS_H
 
+#include "util/statistics_registry.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5::internal {
@@ -31,7 +32,7 @@ namespace nl {
 class NlStats
 {
  public:
-  NlStats();
+  NlStats(StatisticsRegistry& sr);
   /**
    * Number of calls to NonlinearExtension::modelBasedRefinement. Notice this
    * may make multiple calls to NonlinearExtension::checkLastCall.

@@ -26,7 +26,7 @@ public class FloatingPointArith
 {
   public static void main(String[] args) throws CVC5ApiException
   {
-    try (Solver solver = new Solver())
+    Solver solver = new Solver();
     {
       solver.setOption("produce-models", "true");
 

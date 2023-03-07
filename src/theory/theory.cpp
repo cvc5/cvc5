@@ -25,7 +25,6 @@
 #include "options/arith_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/ee_setup_info.h"
 #include "theory/ext_theory.h"
 #include "theory/output_channel.h"
@@ -379,14 +378,15 @@ void Theory::computeRelevantTerms(std::set<Node>& termSet)
 }
 
 void Theory::collectAssertedTerms(std::set<Node>& termSet,
-                                  bool includeShared) const
+                                  bool includeShared,
+                                  const std::set<Kind>& irrKinds) const
 {
   // Collect all terms appearing in assertions
   context::CDList<Assertion>::const_iterator assert_it = facts_begin(),
                                              assert_it_end = facts_end();
   for (; assert_it != assert_it_end; ++assert_it)
   {
-    collectTerms(*assert_it, termSet);
+    collectTerms(*assert_it, termSet, irrKinds);
   }
 
   if (includeShared)
@@ -396,15 +396,23 @@ void Theory::collectAssertedTerms(std::set<Node>& termSet,
                                            shared_it_end = shared_terms_end();
     for (; shared_it != shared_it_end; ++shared_it)
     {
-      collectTerms(*shared_it, termSet);
+      collectTerms(*shared_it, termSet, irrKinds);
     }
   }
 }
-
-void Theory::collectTerms(TNode n, std::set<Node>& termSet) const
+void Theory::collectAssertedTermsForModel(std::set<Node>& termSet,
+                                          bool includeShared) const
 {
+  // use the irrelevant model kinds from the theory state
   const std::set<Kind>& irrKinds =
       d_theoryState->getModel()->getIrrelevantKinds();
+  collectAssertedTerms(termSet, includeShared, irrKinds);
+}
+
+void Theory::collectTerms(TNode n,
+                          std::set<Node>& termSet,
+                          const std::set<Kind>& irrKinds) const
+{
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -516,16 +524,37 @@ bool Theory::areCareDisequal(TNode x, TNode y)
   Assert(d_equalityEngine != nullptr);
   Assert(d_equalityEngine->hasTerm(x));
   Assert(d_equalityEngine->hasTerm(y));
+  if (x == y)
+  {
+    return false;
+  }
+  if (x.isConst() && y.isConst())
+  {
+    return true;
+  }
+  // first just check if they are disequal, which is sufficient for
+  // non-shared terms.
+  if (d_equalityEngine->areDisequal(x, y, false))
+  {
+    return true;
+  }
+  // if we aren't shared, we are not disequal
   if (!d_equalityEngine->isTriggerTerm(x, d_id)
       || !d_equalityEngine->isTriggerTerm(y, d_id))
   {
     return false;
   }
+  // otherwise use getEqualityStatus to ask the appropriate theory whether
+  // x and y are disequal.
   TNode x_shared = d_equalityEngine->getTriggerTermRepresentative(x, d_id);
   TNode y_shared = d_equalityEngine->getTriggerTermRepresentative(y, d_id);
   EqualityStatus eqStatus = d_valuation.getEqualityStatus(x_shared, y_shared);
-  return eqStatus == EQUALITY_FALSE_AND_PROPAGATED || eqStatus == EQUALITY_FALSE
-         || eqStatus == EQUALITY_FALSE_IN_MODEL;
+  if (eqStatus == EQUALITY_FALSE_AND_PROPAGATED || eqStatus == EQUALITY_FALSE
+      || eqStatus == EQUALITY_FALSE_IN_MODEL)
+  {
+    return true;
+  }
+  return false;
 }
 
 void Theory::getCareGraph(CareGraph* careGraph) {
@@ -672,34 +701,9 @@ eq::EqualityEngine* Theory::getEqualityEngine()
   return d_equalityEngine;
 }
 
-bool Theory::usesCentralEqualityEngine() const
-{
-  return usesCentralEqualityEngine(d_id);
-}
-
-bool Theory::usesCentralEqualityEngine(TheoryId id)
-{
-  if (id == THEORY_BUILTIN)
-  {
-    return true;
-  }
-  if (options::eeMode() == options::EqEngineMode::DISTRIBUTED)
-  {
-    return false;
-  }
-  if (id == THEORY_ARITH)
-  {
-    // conditional on whether we are using the equality solver
-    return options::arithEqSolver();
-  }
-  return id == THEORY_UF || id == THEORY_DATATYPES || id == THEORY_BAGS
-         || id == THEORY_FP || id == THEORY_SETS || id == THEORY_STRINGS
-         || id == THEORY_SEP || id == THEORY_ARRAYS || id == THEORY_BV;
-}
-
 bool Theory::expUsingCentralEqualityEngine(TheoryId id)
 {
-  return id != THEORY_ARITH && usesCentralEqualityEngine(id);
+  return id != THEORY_ARITH;
 }
 
 theory::Assertion Theory::get()

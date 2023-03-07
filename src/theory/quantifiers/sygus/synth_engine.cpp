@@ -31,7 +31,9 @@ SynthEngine::SynthEngine(Env& env,
                          QuantifiersInferenceManager& qim,
                          QuantifiersRegistry& qr,
                          TermRegistry& tr)
-    : QuantifiersModule(env, qs, qim, qr, tr), d_conj(nullptr), d_sqp(env)
+    : QuantifiersModule(env, qs, qim, qr, tr),
+      d_conj(nullptr),
+      d_statistics(statisticsRegistry())
 {
   d_conjs.push_back(std::unique_ptr<SynthConjecture>(
       new SynthConjecture(env, qs, qim, qr, tr, d_statistics)));
@@ -69,25 +71,6 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
   {
     return;
   }
-
-  // if we are waiting to assign the conjecture, do it now
-  bool assigned = !d_waiting_conj.empty();
-  while (!d_waiting_conj.empty())
-  {
-    Node q = d_waiting_conj.back();
-    d_waiting_conj.pop_back();
-    Trace("sygus-engine") << "--- Conjecture waiting to assign: " << q
-                          << std::endl;
-    assignConjecture(q);
-  }
-  if (assigned)
-  {
-    // assign conjecture always uses the output channel, either by reducing a
-    // quantified formula to another, or adding initial lemmas during
-    // SynthConjecture::assign. Thus, we return here and re-check.
-    return;
-  }
-
   Trace("sygus-engine") << "---Counterexample Guided Instantiation Engine---"
                         << std::endl;
   Trace("sygus-engine-debug") << std::endl;
@@ -115,8 +98,10 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
     }
   }
   std::vector<SynthConjecture*> acnext;
+  ResourceManager* rm = d_env.getResourceManager();
   do
   {
+    rm->spendResource(Resource::SygusCheckStep);
     Trace("sygus-engine-debug") << "Checking " << activeCheckConj.size()
                                 << " active conjectures..." << std::endl;
     for (unsigned i = 0, size = activeCheckConj.size(); i < size; i++)
@@ -130,7 +115,8 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
     activeCheckConj.clear();
     activeCheckConj = acnext;
     acnext.clear();
-  } while (!activeCheckConj.empty() && !d_qstate.getValuation().needCheck());
+  } while (!activeCheckConj.empty() && !d_qstate.getValuation().needCheck()
+           && !rm->out());
   Trace("sygus-engine")
       << "Finished Counterexample Guided Instantiation engine." << std::endl;
 }
@@ -138,18 +124,6 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
 void SynthEngine::assignConjecture(Node q)
 {
   Trace("sygus-engine") << "SynthEngine::assignConjecture " << q << std::endl;
-  if (options().quantifiers.sygusQePreproc)
-  {
-    Node lem = d_sqp.preprocess(q);
-    if (!lem.isNull())
-    {
-      Trace("cegqi-lemma") << "Cegqi::Lemma : qe-preprocess : " << lem
-                           << std::endl;
-      d_qim.lemma(lem, InferenceId::QUANTIFIERS_SYGUS_QE_PREPROC);
-      // we've reduced the original to a preprocessed version, return
-      return;
-    }
-  }
   // allocate a new synthesis conjecture if not assigned
   if (d_conjs.back()->isAssigned())
   {
@@ -189,15 +163,8 @@ void SynthEngine::registerQuantifier(Node q)
     return;
   }
   Trace("cegqi") << "Register conjecture : " << q << std::endl;
-  if (options().quantifiers.sygusQePreproc)
-  {
-    d_waiting_conj.push_back(q);
-  }
-  else
-  {
-    // assign it now
-    assignConjecture(q);
-  }
+  // assign it now
+  assignConjecture(q);
 }
 
 bool SynthEngine::checkConjecture(SynthConjecture* conj)
@@ -240,14 +207,14 @@ bool SynthEngine::getSynthSolutions(
   return ret;
 }
 
-void SynthEngine::preregisterAssertion(Node n)
+void SynthEngine::ppNotifyAssertion(Node n)
 {
   // check if it sygus conjecture
   if (QuantAttributes::checkSygusConjecture(n))
   {
     // this is a sygus conjecture
     Trace("cegqi") << "Preregister sygus conjecture : " << n << std::endl;
-    d_conj->preregisterConjecture(n);
+    d_conj->ppNotifyConjecture(n);
   }
 }
 

@@ -26,7 +26,6 @@
 #include "proof/eager_proof_generator.h"
 #include "proof/proof_node_manager.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/linear/congruence_manager.h"
 #include "theory/arith/linear/normal_form.h"
@@ -921,7 +920,8 @@ ConstraintDatabase::ConstraintDatabase(Env& env,
                                            : nullptr),
       d_raiseConflict(raiseConflict),
       d_one(1),
-      d_negOne(-1)
+      d_negOne(-1),
+      d_statistics(statisticsRegistry())
 {
 }
 
@@ -1037,11 +1037,11 @@ ConstraintDatabase::~ConstraintDatabase(){
   Assert(d_nodetoConstraintMap.empty());
 }
 
-ConstraintDatabase::Statistics::Statistics()
-    : d_unatePropagateCalls(smtStatisticsRegistry().registerInt(
-        "theory::arith::cd::unatePropagateCalls")),
-      d_unatePropagateImplications(smtStatisticsRegistry().registerInt(
-          "theory::arith::cd::unatePropagateImplications"))
+ConstraintDatabase::Statistics::Statistics(StatisticsRegistry& sr)
+    : d_unatePropagateCalls(
+        sr.registerInt("theory::arith::cd::unatePropagateCalls")),
+      d_unatePropagateImplications(
+          sr.registerInt("theory::arith::cd::unatePropagateImplications"))
 {
 }
 

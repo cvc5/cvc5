@@ -15,19 +15,25 @@
 
 #include "theory/sets/theory_sets_type_rules.h"
 
-#include <climits>
 #include <sstream>
 
+#include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "theory/sets/normal_form.h"
 #include "util/cardinality.h"
+#include "theory/datatypes/project_op.h"
+#include "theory/datatypes/tuple_utils.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
+using namespace cvc5::internal::theory::datatypes;
+
 TypeNode SetsBinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
                                                  TNode n,
-                                                 bool check)
+                                                 bool check,
+                                                 std::ostream* errOut)
 {
   Assert(n.getKind() == kind::SET_UNION || n.getKind() == kind::SET_INTER
          || n.getKind() == kind::SET_MINUS);
@@ -64,7 +70,8 @@ bool SetsBinaryOperatorTypeRule::computeIsConst(NodeManager* nodeManager,
 
 TypeNode SubsetTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
-                                     bool check)
+                                     bool check,
+                                     std::ostream* errOut)
 {
   Assert(n.getKind() == kind::SET_SUBSET);
   TypeNode setType = n[0].getType(check);
@@ -86,7 +93,8 @@ TypeNode SubsetTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode MemberTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
-                                     bool check)
+                                     bool check,
+                                     std::ostream* errOut)
 {
   Assert(n.getKind() == kind::SET_MEMBER);
   TypeNode setType = n[1].getType(check);
@@ -115,7 +123,8 @@ TypeNode MemberTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode SingletonTypeRule::computeType(NodeManager* nodeManager,
                                         TNode n,
-                                        bool check)
+                                        bool check,
+                                        std::ostream* errOut)
 {
   Assert(n.getKind() == kind::SET_SINGLETON);
   TypeNode type1 = n[0].getType(check);
@@ -130,7 +139,8 @@ bool SingletonTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
 
 TypeNode EmptySetTypeRule::computeType(NodeManager* nodeManager,
                                        TNode n,
-                                       bool check)
+                                       bool check,
+                                       std::ostream* errOut)
 {
   Assert(n.getKind() == kind::SET_EMPTY);
   EmptySet emptySet = n.getConst<EmptySet>();
@@ -139,7 +149,8 @@ TypeNode EmptySetTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode CardTypeRule::computeType(NodeManager* nodeManager,
                                    TNode n,
-                                   bool check)
+                                   bool check,
+                                   std::ostream* errOut)
 {
   Assert(n.getKind() == kind::SET_CARD);
   TypeNode setType = n[0].getType(check);
@@ -156,7 +167,8 @@ TypeNode CardTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode ComplementTypeRule::computeType(NodeManager* nodeManager,
                                          TNode n,
-                                         bool check)
+                                         bool check,
+                                         std::ostream* errOut)
 {
   Assert(n.getKind() == kind::SET_COMPLEMENT);
   TypeNode setType = n[0].getType(check);
@@ -173,7 +185,8 @@ TypeNode ComplementTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode UniverseSetTypeRule::computeType(NodeManager* nodeManager,
                                           TNode n,
-                                          bool check)
+                                          bool check,
+                                          std::ostream* errOut)
 {
   Assert(n.getKind() == kind::SET_UNIVERSE);
   // for nullary operators, we only computeType for check=true, since they are
@@ -190,7 +203,8 @@ TypeNode UniverseSetTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode ComprehensionTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
-                                            bool check)
+                                            bool check,
+                                            std::ostream* errOut)
 {
   Assert(n.getKind() == kind::SET_COMPREHENSION);
   if (check)
@@ -211,7 +225,8 @@ TypeNode ComprehensionTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode ChooseTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
-                                     bool check)
+                                     bool check,
+                                     std::ostream* errOut)
 {
   Assert(n.getKind() == kind::SET_CHOOSE);
   TypeNode setType = n[0].getType(check);
@@ -228,7 +243,8 @@ TypeNode ChooseTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode IsSingletonTypeRule::computeType(NodeManager* nodeManager,
                                           TNode n,
-                                          bool check)
+                                          bool check,
+                                          std::ostream* errOut)
 {
   Assert(n.getKind() == kind::SET_IS_SINGLETON);
   TypeNode setType = n[0].getType(check);
@@ -245,7 +261,8 @@ TypeNode IsSingletonTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode InsertTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
-                                     bool check)
+                                     bool check,
+                                     std::ostream* errOut)
 {
   Assert(n.getKind() == kind::SET_INSERT);
   size_t numChildren = n.getNumChildren();
@@ -274,7 +291,8 @@ TypeNode InsertTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode SetMapTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
-                                     bool check)
+                                     bool check,
+                                     std::ostream* errOut)
 {
   Assert(n.getKind() == kind::SET_MAP);
   TypeNode functionType = n[0].getType(check);
@@ -314,9 +332,105 @@ TypeNode SetMapTypeRule::computeType(NodeManager* nodeManager,
   return retType;
 }
 
+TypeNode SetFilterTypeRule::computeType(NodeManager* nodeManager,
+                                        TNode n,
+                                        bool check,
+                                        std::ostream* errOut)
+{
+  Assert(n.getKind() == kind::SET_FILTER);
+  TypeNode functionType = n[0].getType(check);
+  TypeNode setType = n[1].getType(check);
+  if (check)
+  {
+    if (!setType.isSet())
+    {
+      throw TypeCheckingExceptionPrivate(
+          n,
+          "set.filter operator expects a set in the second argument, "
+          "a non-set is found");
+    }
+
+    TypeNode elementType = setType.getSetElementType();
+
+    if (!(functionType.isFunction()))
+    {
+      std::stringstream ss;
+      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
+         << elementType << " Bool) as a first argument. "
+         << "Found a term of type '" << functionType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    std::vector<TypeNode> argTypes = functionType.getArgTypes();
+    NodeManager* nm = NodeManager::currentNM();
+    if (!(argTypes.size() == 1 && argTypes[0] == elementType
+          && functionType.getRangeType() == nm->booleanType()))
+    {
+      std::stringstream ss;
+      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
+         << elementType << " Bool). "
+         << "Found a function of type '" << functionType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+  }
+  return setType;
+}
+
+TypeNode SetFoldTypeRule::computeType(NodeManager* nodeManager,
+                                      TNode n,
+                                      bool check,
+                                      std::ostream* errOut)
+{
+  Assert(n.getKind() == kind::SET_FOLD);
+  TypeNode functionType = n[0].getType(check);
+  TypeNode initialValueType = n[1].getType(check);
+  TypeNode setType = n[2].getType(check);
+  if (check)
+  {
+    if (!setType.isSet())
+    {
+      throw TypeCheckingExceptionPrivate(
+          n,
+          "set.fold operator expects a set in the third argument, "
+          "a non-set is found");
+    }
+
+    TypeNode elementType = setType.getSetElementType();
+
+    if (!(functionType.isFunction()))
+    {
+      std::stringstream ss;
+      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
+         << elementType << " T2 T2) as a first argument. "
+         << "Found a term of type '" << functionType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    std::vector<TypeNode> argTypes = functionType.getArgTypes();
+    TypeNode rangeType = functionType.getRangeType();
+    if (!(argTypes.size() == 2 && argTypes[0] == elementType
+          && argTypes[1] == rangeType))
+    {
+      std::stringstream ss;
+      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
+         << elementType << " T2 T2). "
+         << "Found a function of type '" << functionType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    if (rangeType != initialValueType)
+    {
+      std::stringstream ss;
+      ss << "Operator " << n.getKind() << " expects an initial value of type "
+         << rangeType << ". Found a term of type '" << initialValueType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+  }
+  TypeNode retType = n[0].getType().getRangeType();
+  return retType;
+}
+
 TypeNode RelBinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
                                                 TNode n,
-                                                bool check)
+                                                bool check,
+                                                std::ostream* errOut)
 {
   Assert(n.getKind() == kind::RELATION_PRODUCT
          || n.getKind() == kind::RELATION_JOIN);
@@ -374,7 +488,8 @@ TypeNode RelBinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode RelTransposeTypeRule::computeType(NodeManager* nodeManager,
                                            TNode n,
-                                           bool check)
+                                           bool check,
+                                           std::ostream* errOut)
 {
   Assert(n.getKind() == kind::RELATION_TRANSPOSE);
   TypeNode setType = n[0].getType(check);
@@ -390,7 +505,8 @@ TypeNode RelTransposeTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode RelTransClosureTypeRule::computeType(NodeManager* nodeManager,
                                               TNode n,
-                                              bool check)
+                                              bool check,
+                                              std::ostream* errOut)
 {
   Assert(n.getKind() == kind::RELATION_TCLOSURE);
   TypeNode setType = n[0].getType(check);
@@ -419,7 +535,8 @@ TypeNode RelTransClosureTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode JoinImageTypeRule::computeType(NodeManager* nodeManager,
                                         TNode n,
-                                        bool check)
+                                        bool check,
+                                        std::ostream* errOut)
 {
   Assert(n.getKind() == kind::RELATION_JOIN_IMAGE);
 
@@ -462,7 +579,8 @@ TypeNode JoinImageTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode RelIdenTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
-                                      bool check)
+                                      bool check,
+                                      std::ostream* errOut)
 {
   Assert(n.getKind() == kind::RELATION_IDEN);
   TypeNode setType = n[0].getType(check);
@@ -482,6 +600,167 @@ TypeNode RelIdenTypeRule::computeType(NodeManager* nodeManager,
   std::vector<TypeNode> tupleTypes = setType[0].getTupleTypes();
   tupleTypes.push_back(tupleTypes[0]);
   return nodeManager->mkSetType(nodeManager->mkTupleType(tupleTypes));
+}
+
+TypeNode RelationGroupTypeRule::computeType(NodeManager* nm,
+                                            TNode n,
+                                            bool check,
+                                            std::ostream* errOut)
+{
+  Assert(n.getKind() == kind::RELATION_GROUP && n.hasOperator()
+         && n.getOperator().getKind() == kind::RELATION_GROUP_OP);
+  ProjectOp op = n.getOperator().getConst<ProjectOp>();
+  const std::vector<uint32_t>& indices = op.getIndices();
+
+  TypeNode setType = n[0].getType(check);
+
+  if (check)
+  {
+    if (!setType.isSet())
+    {
+      std::stringstream ss;
+      ss << "RELATION_GROUP operator expects a relation. Found '" << n[0]
+         << "' of type '" << setType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    TypeNode tupleType = setType.getSetElementType();
+    if (!tupleType.isTuple())
+    {
+      std::stringstream ss;
+      ss << "RELATION_GROUP operator expects a relation. Found '" << n[0]
+         << "' of type '" << setType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    datatypes::TupleUtils::checkTypeIndices(n, tupleType, indices);
+  }
+  return nm->mkSetType(setType);
+}
+
+TypeNode RelationAggregateTypeRule::computeType(NodeManager* nm,
+                                                TNode n,
+                                                bool check,
+                                                std::ostream* errOut)
+{
+  Assert(n.getKind() == kind::RELATION_AGGREGATE && n.hasOperator()
+         && n.getOperator().getKind() == kind::RELATION_AGGREGATE_OP);
+  ProjectOp op = n.getOperator().getConst<ProjectOp>();
+  const std::vector<uint32_t>& indices = op.getIndices();
+
+  TypeNode functionType = n[0].getType(check);
+  TypeNode initialValueType = n[1].getType(check);
+  TypeNode setType = n[2].getType(check);
+
+  if (check)
+  {
+    if (!setType.isSet())
+    {
+      std::stringstream ss;
+      ss << "RELATION_AGGREGATE operator expects a set. Found '" << n[2]
+         << "' of type '" << setType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    TypeNode tupleType = setType.getSetElementType();
+    if (!tupleType.isTuple())
+    {
+      std::stringstream ss;
+      ss << "RELATION_AGGREGATE operator expects a relation. Found '" << n[2]
+         << "' of type '" << setType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    TupleUtils::checkTypeIndices(n, tupleType, indices);
+
+    TypeNode elementType = setType.getSetElementType();
+
+    if (!(functionType.isFunction()))
+    {
+      std::stringstream ss;
+      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
+         << elementType << " T T) as a first argument. "
+         << "Found a term of type '" << functionType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    std::vector<TypeNode> argTypes = functionType.getArgTypes();
+    TypeNode rangeType = functionType.getRangeType();
+    if (!(argTypes.size() == 2 && argTypes[0] == elementType
+          && argTypes[1] == rangeType))
+    {
+      std::stringstream ss;
+      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
+         << elementType << " T T). "
+         << "Found a function of type '" << functionType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    if (rangeType != initialValueType)
+    {
+      std::stringstream ss;
+      ss << "Operator " << n.getKind() << " expects an initial value of type "
+         << rangeType << ". Found a term of type '" << initialValueType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+  }
+  return nm->mkSetType(functionType.getRangeType());
+}
+
+TypeNode RelationProjectTypeRule::computeType(NodeManager* nm,
+                                              TNode n,
+                                              bool check,
+                                              std::ostream* errOut)
+{
+  Assert(n.getKind() == kind::RELATION_PROJECT && n.hasOperator()
+         && n.getOperator().getKind() == kind::RELATION_PROJECT_OP);
+  ProjectOp op = n.getOperator().getConst<ProjectOp>();
+  const std::vector<uint32_t>& indices = op.getIndices();
+  TypeNode setType = n[0].getType(check);
+  if (check)
+  {
+    if (n.getNumChildren() != 1)
+    {
+      std::stringstream ss;
+      ss << "operands in term " << n << " are " << n.getNumChildren()
+         << ", but RELATION_PROJECT expects 1 operand.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    if (!setType.isSet())
+    {
+      std::stringstream ss;
+      ss << "RELATION_PROJECT operator expects a set. Found '" << n[0]
+         << "' of type '" << setType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    TypeNode tupleType = setType.getSetElementType();
+    if (!tupleType.isTuple())
+    {
+      std::stringstream ss;
+      ss << "RELATION_PROJECT operator expects a relation. Found '" << n[0]
+         << "' of type '" << setType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    // make sure all indices are less than the length of the tuple type
+    DType dType = tupleType.getDType();
+    DTypeConstructor constructor = dType[0];
+    size_t numArgs = constructor.getNumArgs();
+    for (uint32_t index : indices)
+    {
+      std::stringstream ss;
+      if (index >= numArgs)
+      {
+        ss << "Index " << index << " in term " << n << " is >= " << numArgs
+           << " which is the number of columns in " << n[0] << ".";
+        throw TypeCheckingExceptionPrivate(n, ss.str());
+      }
+    }
+  }
+  TypeNode tupleType = setType.getSetElementType();
+  TypeNode retTupleType =
+      TupleUtils::getTupleProjectionType(indices, tupleType);
+  return nm->mkSetType(retTupleType);
 }
 
 Cardinality SetsProperties::computeCardinality(TypeNode type)

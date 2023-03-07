@@ -217,6 +217,11 @@ Node mkForallInternal(Node bvl, Node body);
  */
 Node mkAbstractStringValueForLength(Node n, Node len, size_t id);
 
+/**
+ * Make the formula (and (>= t 0) (< t alphaCard)).
+ */
+Node mkCodeRange(Node t, uint32_t alphaCard);
+
 }  // namespace utils
 }  // namespace strings
 }  // namespace theory

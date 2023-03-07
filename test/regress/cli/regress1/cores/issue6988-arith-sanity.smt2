@@ -1,4 +1,4 @@
-; COMMAND-LINE: -i -q
+; COMMAND-LINE: -i
 ; EXPECT: sat
 ; EXPECT: sat
 (set-logic ANIA)

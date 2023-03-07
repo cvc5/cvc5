@@ -49,7 +49,7 @@ OptimizationResult OMTOptimizerBitVector::minimize(SolverEngine* optChecker,
 {
   // the smt engine to which we send intermediate queries
   // for the binary search.
-  NodeManager* nm = optChecker->getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   Result intermediateSatResult = optChecker->checkSat();
   // Model-value of objective (used in optimization loop)
   Node value;
@@ -138,7 +138,7 @@ OptimizationResult OMTOptimizerBitVector::maximize(SolverEngine* optChecker,
 {
   // the smt engine to which we send intermediate queries
   // for the binary search.
-  NodeManager* nm = optChecker->getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   Result intermediateSatResult = optChecker->checkSat();
   // Model-value of objective (used in optimization loop)
   Node value;

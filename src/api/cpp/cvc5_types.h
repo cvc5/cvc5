@@ -47,6 +47,8 @@ enum UnknownExplanation
   UNSUPPORTED,
   /** Other reason. */
   OTHER,
+  /** Requires another satisfiability check */
+  REQUIRES_CHECK_AGAIN,
   /** No specific reason given. */
   UNKNOWN_REASON
 };
@@ -131,6 +133,8 @@ enum BlockModelsMode
   /** Block models based on the concrete model values for the free variables. */
   VALUES
 };
+/** Writes a block models mode to a stream. */
+std::ostream& operator<<(std::ostream& out, BlockModelsMode bmode);
 
 /**
  * Types of learned literals.
@@ -149,19 +153,19 @@ enum LearnedLitType
    * In particular, literals in this category are of the form (= x t) where
    * x does not occur in t.
    */
-  PREPROCESS_SOLVED,
+  LEARNED_LIT_PREPROCESS_SOLVED,
   /**
    * A top-level literal (unit clause) from the preprocessed set of input
    * formulas.
    */
-  PREPROCESS,
+  LEARNED_LIT_PREPROCESS,
   /**
    * A literal from the preprocessed set of input formulas that does not
    * occur at top-level after preprocessing.
    *
    * Typically, this is the most interesting category of literals to learn.
    */
-  INPUT,
+  LEARNED_LIT_INPUT,
   /**
    * An internal literal that is solvable for an input variable.
    *
@@ -172,7 +176,7 @@ enum LearnedLitType
    * Note that solvable literals can be turned into substitutions during
    * preprocessing.
    */
-  SOLVABLE,
+  LEARNED_LIT_SOLVABLE,
   /**
    * An internal literal that can be made into a constant propagation for an
    * input term.
@@ -181,14 +185,73 @@ enum LearnedLitType
    * c is a constant, the preprocessed set of input formulas contains the
    * term t, but not the literal (= t c).
    */
-  CONSTANT_PROP,
+  LEARNED_LIT_CONSTANT_PROP,
   /** Any internal literal that does not fall into the above categories. */
-  INTERNAL,
+  LEARNED_LIT_INTERNAL,
   /** Special case for when produce-learned-literals is not set.  */
-  UNKNOWN
+  LEARNED_LIT_UNKNOWN
 };
 /** Writes a learned literal type to a stream. */
 std::ostream& operator<<(std::ostream& out, LearnedLitType ltype);
+
+/**
+ * Components to include in a proof.
+ */
+enum ProofComponent
+{
+  /**
+   * Proofs of G1 ... Gn whose free assumptions are a subset of
+   * F1, ... Fm, where:
+   * - G1, ... Gn are the preprocessed input formulas,
+   * - F1, ... Fm are the input formulas.
+   *
+   * Note that G1 ... Gn may be arbitrary formulas, not necessarily clauses.
+   */
+  PROOF_COMPONENT_RAW_PREPROCESS,
+  /**
+   * Proofs of Gu1 ... Gun whose free assumptions are Fu1, ... Fum,
+   * where:
+   * - Gu1, ... Gun are clauses corresponding to input formulas used in the SAT
+   * proof,
+   * - Fu1, ... Fum is the subset of the input formulas that are used in the SAT
+   * proof (i.e. the unsat core).
+   *
+   * Note that Gu1 ... Gun are clauses that are added to the SAT solver before
+   * its main search.
+   *
+   * Only valid immediately after an unsat response.
+   */
+  PROOF_COMPONENT_PREPROCESS,
+  /**
+   * A proof of false whose free assumptions are Gu1, ... Gun, L1 ... Lk,
+   * where:
+   * - Gu1, ... Gun, is a set of clauses corresponding to input formulas,
+   * - L1, ..., Lk is a set of clauses corresponding to theory lemmas.
+   *
+   * Only valid immediately after an unsat response.
+   */
+  PROOF_COMPONENT_SAT,
+  /**
+   * Proofs of L1 ... Lk where:
+   *- L1, ..., Lk are clauses corresponding to theory lemmas used in the SAT
+   * proof.
+   *
+   * In contrast to proofs given for preprocess, L1 ... Lk are clauses that are
+   * added to the SAT solver after its main search.
+   *
+   * Only valid immediately after an unsat response.
+   */
+  PROOF_COMPONENT_THEORY_LEMMAS,
+  /**
+   * A proof of false whose free assumptions are a subset of the input formulas
+   * F1, ... Fm.
+   *
+   * Only valid immediately after an unsat response.
+   */
+  PROOF_COMPONENT_FULL,
+};
+/** Writes a proof component identifier to a stream. */
+std::ostream& operator<<(std::ostream& out, ProofComponent pc);
 }
 
 #endif

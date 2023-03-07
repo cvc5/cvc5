@@ -105,8 +105,12 @@ class ProofNode
    * Returns true if this is a closed proof (i.e. it has no free assumptions).
    */
   bool isClosed();
-  /** Print debug on output strem os */
-  void printDebug(std::ostream& os) const;
+  /** Print debug on output strem os
+   *
+   * @param os the stream to print to
+   * @param printConclusion Whether to print conclusions
+   */
+  void printDebug(std::ostream& os, bool printConclusion = false) const;
 
  private:
   /**

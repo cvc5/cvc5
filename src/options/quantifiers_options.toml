@@ -449,6 +449,29 @@ name   = "Quantifiers"
   help       = "instantiation rounds quantifiers takes (>=1) before allowing theory combination to happen"
 
 [[option]]
+  name       = "printInstMode"
+  category   = "common"
+  long       = "print-inst=MODE"
+  type       = "PrintInstMode"
+  default    = "LIST"
+  help       = "print format for printing instantiations"
+  help_mode  = "Print format for printing instantiations."
+[[option.mode.LIST]]
+  name = "list"
+  help = "Print the list of instantiations per quantified formula, when non-empty."
+[[option.mode.NUM]]
+  name = "num"
+  help = "Print the total number of instantiations per quantified formula, when non-zero."
+
+[[option]]
+  name       = "printInstFull"
+  category   = "regular"
+  long       = "print-inst-full"
+  type       = "bool"
+  default    = "true"
+  help       = "print instantiations for formulas that do not have given identifiers"
+
+[[option]]
   name       = "instMaxLevel"
   category   = "expert"
   long       = "inst-max-level=N"
@@ -566,6 +589,24 @@ name   = "Quantifiers"
   type       = "bool"
   default    = "true"
   help       = "pool-based instantiation: instantiate with ground terms occurring in user-specified pools"
+
+[[option]]
+  name       = "userPoolQuant"
+  category   = "expert"
+  long       = "user-pool=MODE"
+  type       = "UserPoolMode"
+  default    = "TRUST"
+  help       = "policy for handling user-provided pools for quantifier instantiation"
+  help_mode  = "These modes determine how user provided pools are used in combination with other instantiation techniques."
+[[option.mode.USE]]
+  name = "use"
+  help = "Use both user-provided pool and other instantiation strategies when pools are provided for a quantified formula."
+[[option.mode.TRUST]]
+  name = "trust"
+  help = "When provided, use only user-provided pool for a quantified formula."
+[[option.mode.IGNORE]]
+  name = "ignore"
+  help = "Ignore user-provided pool."
 
 [[option]]
   name       = "oracles"
@@ -756,6 +797,24 @@ name   = "Quantifiers"
   default    = "true"
   help       = "do not consider instances of quantified formulas that are currently entailed"
 
+[[option]]
+  name       = "ievalMode"
+  category   = "regular"
+  long       = "ieval=MODE"
+  type       = "IevalMode"
+  default    = "OFF"
+  help       = "mode for using instantiation evaluation"
+  help_mode  = "Mode for using instantiation evaluation."
+[[option.mode.OFF]]
+  name = "off"
+  help = "Do not use instantiation evaluation."
+[[option.mode.USE]]
+  name = "use"
+  help = "Use instantiation evaluation."
+[[option.mode.USE_LEARN]]
+  name = "use-learn"
+  help = "Use instantiation evaluation, and generalize learning."
+
 ### Induction options
 
 [[option]]
@@ -832,6 +891,24 @@ name   = "Quantifiers"
   type       = "bool"
   default    = "false"
   help       = "support SyGuS commands"
+
+[[option]]
+  name       = "sygusOut"
+  category   = "regular"
+  long       = "sygus-out=MODE"
+  type       = "SygusSolutionOutMode"
+  default    = "STANDARD"
+  help       = "output mode for sygus"
+  help_mode  = "Modes for sygus solution output."
+[[option.mode.STATUS]]
+  name = "status"
+  help = "Print only status for check-synth calls."
+[[option.mode.STATUS_AND_DEF]]
+  name = "status-and-def"
+  help = "Print status followed by definition corresponding to solution."
+[[option.mode.STANDARD]]
+  name = "sygus-standard"
+  help = "Print based on SyGuS standard."
 
 [[option]]
   name       = "cegqiSingleInvMode"
@@ -1203,8 +1280,8 @@ name   = "Quantifiers"
   category   = "expert"
   long       = "sygus-verify-inst-max-rounds=N"
   type       = "int64_t"
-  default    = "3"
-  help       = "maximum number of instantiation rounds for sygus verification calls (-1 == no limit, default is 3)"
+  default    = "10"
+  help       = "maximum number of instantiation rounds for sygus verification calls (-1 == no limit, default is 10)"
 
 [[option]]
   name       = "sygusVerifyTimeout"

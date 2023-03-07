@@ -166,8 +166,8 @@ AlphaEquivalence::AlphaEquivalence(Env& env)
     : EnvObj(env),
       d_termCanon(),
       d_aedb(userContext(), &d_termCanon, true),
-      d_pnm(env.getProofNodeManager()),
-      d_pfAlpha(d_pnm ? new EagerProofGenerator(d_pnm) : nullptr)
+      d_pfAlpha(env.isTheoryProofProducing() ? new EagerProofGenerator(env)
+                                             : nullptr)
 {
 }
 
@@ -215,7 +215,7 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
       Trace("alpha-eq") << "subs: " << vars[i] << " -> " << subs[i]
                         << std::endl;
     }
-    CDProof cdp(d_pnm);
+    CDProof cdp(d_env);
     Node sret =
         ret.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
     std::vector<Node> transEq;

@@ -44,7 +44,6 @@ namespace sep {
 
 TheorySep::TheorySep(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_SEP, env, out, valuation),
-      d_lemmas_produced_c(userContext()),
       d_bounds_init(false),
       d_state(env, valuation),
       d_im(env, *this, d_state, "theory::sep::"),
@@ -73,17 +72,16 @@ TheorySep::~TheorySep() {
 
 void TheorySep::initializeHeapTypes()
 {
-  TypeNode locT;
-  TypeNode dataT;
-  if (d_env.getSepHeapTypes(locT, dataT))
+  if (d_env.hasSepHeap())
   {
-    // otherwise set it
-    Trace("sep-type") << "Sep: assume location type " << locT
-                      << " is associated with data type " << dataT << std::endl;
     // for now, we only allow heap constraints of one type
-    d_type_ref = locT;
-    d_type_data = dataT;
-    d_nil_ref = NodeManager::currentNM()->mkNullaryOperator(locT, SEP_NIL);
+    d_type_ref = d_env.getSepLocType();
+    d_type_data = d_env.getSepDataType();
+    Trace("sep-type") << "Sep: assume location type " << d_type_ref
+                      << " is associated with data type " << d_type_data
+                      << std::endl;
+    d_nil_ref =
+        NodeManager::currentNM()->mkNullaryOperator(d_type_ref, SEP_NIL);
     d_bound_kind = bound_default;
   }
 }
@@ -293,19 +291,6 @@ bool TheorySep::preNotifyFact(
   }
   if (!slbl.isNull() && satom.getKind() == SEP_PTO)
   {
-    if (polarity)
-    {
-      NodeManager* nm = NodeManager::currentNM();
-      // (SEP_LABEL (sep.pto x y) L) => L = (set.singleton x)
-      Node s = nm->mkNode(SET_SINGLETON, satom[0]);
-      Node eq = slbl.eqNode(s);
-      TrustNode trn =
-          d_im.mkLemmaExp(eq, PfRule::THEORY_INFERENCE, {fact}, {fact}, {eq});
-      d_im.addPendingLemma(trn.getNode(),
-                           InferenceId::SEP_POS_PTO_SINGLETON,
-                           LemmaProperty::NONE,
-                           trn.getGenerator());
-    }
     return false;
   }
   // assert to equality if non-spatial or a labelled pto
@@ -422,6 +407,25 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
       if (slbl != ss)
       {
         conc = slbl.eqNode(ss);
+      }
+      // if we are not a part of the root label, we require applying downwards
+      // closure, e.g. (SEP_LABEL (pto x y) A) =>
+      // (or (SEP_LABEL (pto x y) B) (SEP_LABEL (pto x y) C)) where
+      // A is the disjoint union of B and C.
+      if (!sharesRootLabel(slbl, d_base_label))
+      {
+        std::map<Node, std::vector<Node> >::iterator itc =
+            d_childrenMap.find(slbl);
+        if (itc != d_childrenMap.end())
+        {
+          std::vector<Node> disjs;
+          for (const Node& c : itc->second)
+          {
+            disjs.push_back(nm->mkNode(SEP_LABEL, satom, c));
+          }
+          Node conc2 = nm->mkNode(OR, disjs);
+          conc = conc.isNull() ? conc2 : nm->mkNode(AND, conc, conc2);
+        }
       }
       // note semantics of sep.nil is enforced globally
     }
@@ -868,7 +872,7 @@ void TheorySep::postCheck(Effort level)
 
   if (needAddLemma)
   {
-    d_im.setIncomplete(IncompleteId::SEP);
+    d_im.setModelUnsound(IncompleteId::SEP);
   }
   Trace("sep-check") << "Sep::check(): " << level
                      << " done, conflict=" << d_state.isInConflict()
@@ -1176,7 +1180,7 @@ Node TheorySep::getBaseLabel()
   }
   else
   {
-    tn_is_monotonic = d_type_ref.getCardinality().isInfinite();
+    tn_is_monotonic = !d_env.isFiniteType(d_type_ref);
   }
   // add a reference type for maximum occurrences of empty in a constraint
   if (tn_is_monotonic)
@@ -1290,7 +1294,14 @@ Node TheorySep::getLabel( Node atom, int child, Node lbl ) {
 
 void TheorySep::makeDisjointHeap(Node parent, const std::vector<Node>& children)
 {
+  Trace("sep-debug") << "disjoint heap: " << parent << " for " << children
+                     << std::endl;
   Assert(children.size() >= 2);
+  if (!sharesRootLabel(parent, d_base_label))
+  {
+    Assert(d_childrenMap.find(parent) == d_childrenMap.end());
+    d_childrenMap[parent] = children;
+  }
   // remember parent relationships
   for (const Node& c : children)
   {
@@ -1825,7 +1836,23 @@ bool TheorySep::checkPto(HeapAssertInfo* e, Node p, bool polarity)
       else if (polarity != pol)
       {
         // a positive and negative pto
-        if (!areDisequal(pval, qval))
+        bool isSat = false;
+        std::vector<Node> conc;
+        // based on the lemma below, either the domain or range has to be
+        // disequal. We iterate on each child of the pto
+        for (size_t j = 0; j < 2; j++)
+        {
+          if (areDisequal(p[0][j], q[0][j]))
+          {
+            isSat = true;
+            break;
+          }
+          if (p[0][j] != q[0][j])
+          {
+            conc.push_back(p[0][j].eqNode(q[0][j]).notNode());
+          }
+        }
+        if (!isSat)
         {
           std::vector<Node> exp;
           if (plbl != qlbl)
@@ -1839,16 +1866,11 @@ bool TheorySep::checkPto(HeapAssertInfo* e, Node p, bool polarity)
           Node neg = polarity ? q : p;
           exp.push_back(pos);
           exp.push_back(neg.notNode());
-          std::vector<Node> conc;
-          if (pval != qval)
-          {
-            conc.push_back(pval.eqNode(qval).notNode());
-          }
           Node concn = nm->mkOr(conc);
           Trace("sep-pto") << "prop neg/pos: " << concn << " by " << exp
                            << std::endl;
-          // (label (pto x y) A) ^ ~(label (pto z w) B) ^ A = B => y != w
-          // or (label (pto x y) A) ^ ~(label (pto z y) B) ^ A = B => false
+          // (label (pto x y) A) ^ ~(label (pto z w) B) ^ A = B =>
+          // (x != z or y != w)
           sendLemma(exp, concn, InferenceId::SEP_PTO_NEG_PROP);
         }
       }

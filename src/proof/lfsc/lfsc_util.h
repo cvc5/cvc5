@@ -39,6 +39,8 @@ enum class LfscRule : uint32_t
   // We defined LFSC versions for rules that either don't exist in the internal
   // calculus, or have a different set of arugments/children.
 
+  // an ASSUME corresponding to a function definition in the input SMT query
+  DEFINITION,
   // scope has a different structure, e.g. uses lambdas
   SCOPE,
   // must distinguish equalities and disequalities
@@ -60,6 +62,7 @@ enum class LfscRule : uint32_t
   // form of quantifier rules varies from internal calculus
   INSTANTIATE,
   SKOLEMIZE,
+  BETA_REDUCE,
 
   // a lambda with argument
   LAMBDA,

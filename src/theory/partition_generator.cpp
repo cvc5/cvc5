@@ -35,7 +35,7 @@ namespace theory {
 PartitionGenerator::PartitionGenerator(Env& env,
                                        TheoryEngine* theoryEngine,
                                        prop::PropEngine* propEngine)
-    : EnvObj(env),
+    : TheoryEngineModule(env, theoryEngine, "PartitionGenerator"),
       d_numPartitions(options().parallel.computePartitions),
       d_numChecks(0),
       d_betweenChecks(0),
@@ -75,8 +75,8 @@ std::vector<Node> PartitionGenerator::collectLiterals(LiteralListType litType)
     }
     case ZLL:
     {
-      unfilteredLiterals = d_propEngine->getLearnedZeroLevelLiterals(
-          modes::LearnedLitType::INPUT);
+      unfilteredLiterals =
+          d_propEngine->getLearnedZeroLevelLiterals(modes::LEARNED_LIT_INPUT);
       break;
     }
     default: return filteredLiterals;
@@ -95,9 +95,8 @@ std::vector<Node> PartitionGenerator::collectLiterals(LiteralListType litType)
 
       if (expr::hasSubtermKinds(kinds, original)
           || !d_valuation->isSatLiteral(original)
-          || Theory::theoryOf(original) == THEORY_BOOL
-          || n.isConst()
-          || nType != modes::LearnedLitType::INPUT
+          || Theory::theoryOf(original) == THEORY_BOOL || n.isConst()
+          || nType != modes::LEARNED_LIT_INPUT
           || !d_valuation->isDecision(original))
       {
         continue;
@@ -136,19 +135,18 @@ void PartitionGenerator::emitCube(Node toEmit)
   ++d_numPartitionsSoFar;
 }
 
-TrustNode PartitionGenerator::blockPath(TNode toBlock)
+Node PartitionGenerator::blockPath(TNode toBlock)
 {
   // Now block the path in the search.
   Node lemma = toBlock.notNode();
   d_assertedLemmas.push_back(lemma);
-  TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma);
-  return trustedLemma;
+  return lemma;
 }
 
 // Send lemma that is the negation of all previously asserted lemmas.
-TrustNode PartitionGenerator::stopPartitioning() const
+Node PartitionGenerator::stopPartitioning() const
 {
-  return TrustNode::mkTrustLemma(NodeManager::currentNM()->mkConst(false));
+  return NodeManager::currentNM()->mkConst(false);
 }
 
 // This is the revised version of the old splitting strategy.
@@ -157,7 +155,7 @@ TrustNode PartitionGenerator::stopPartitioning() const
 // C2 = l2_{1} & .... & l2_{d_conflictSize}
 // C3 = l3_{1} & .... & l3_{d_conflictSize}
 // C4 = !C1 & !C2 & !C3
-TrustNode PartitionGenerator::makeRevisedPartitions(bool strict, bool emitZLL)
+Node PartitionGenerator::makeRevisedPartitions(bool strict, bool emitZLL)
 {
   // If we're not at the last cube
   if (d_numPartitionsSoFar < d_numPartitions - 1)
@@ -169,7 +167,7 @@ TrustNode PartitionGenerator::makeRevisedPartitions(bool strict, bool emitZLL)
     // of the requested number of partitions.
     if (literals.size() < d_conflictSize)
     {
-      return TrustNode::null();
+      return Node::null();
     }
 
     literals.resize(d_conflictSize);
@@ -222,8 +220,8 @@ TrustNode PartitionGenerator::makeRevisedPartitions(bool strict, bool emitZLL)
   {
     if (emitZLL) 
     {
-      std::vector<Node> zllLiterals = d_propEngine->getLearnedZeroLevelLiterals(
-          modes::LearnedLitType::INPUT);
+      std::vector<Node> zllLiterals =
+          d_propEngine->getLearnedZeroLevelLiterals(modes::LEARNED_LIT_INPUT);
       std::vector<Node>* cubes = strict ? &d_strict_cubes : &d_cubes;
       
       for (const auto& c : *cubes)
@@ -244,8 +242,8 @@ TrustNode PartitionGenerator::makeRevisedPartitions(bool strict, bool emitZLL)
     // Emit not(cube_one) and not(cube_two) and ... and not(cube_n-1)
     if (emitZLL) 
     {
-      std::vector<Node> zllLiterals = d_propEngine->getLearnedZeroLevelLiterals(
-          modes::LearnedLitType::INPUT);
+      std::vector<Node> zllLiterals =
+          d_propEngine->getLearnedZeroLevelLiterals(modes::LEARNED_LIT_INPUT);
       zllLiterals.push_back(lemma);
       Node zllLemma = NodeManager::currentNM()->mkAnd(zllLiterals);
       emitCube(zllLemma);
@@ -257,7 +255,8 @@ TrustNode PartitionGenerator::makeRevisedPartitions(bool strict, bool emitZLL)
   }
 }
 
-TrustNode PartitionGenerator::makeFullTrailPartitions(LiteralListType litType, bool emitZLL)
+Node PartitionGenerator::makeFullTrailPartitions(LiteralListType litType,
+                                                 bool emitZLL)
 {
   std::vector<Node> literals = collectLiterals(litType);
   uint64_t numVar = static_cast<uint64_t>(log2(d_numPartitions));
@@ -332,10 +331,10 @@ TrustNode PartitionGenerator::makeFullTrailPartitions(LiteralListType litType, b
     }
     return stopPartitioning();
   }
-  return TrustNode::null();
+  return Node::null();
 }
 
-TrustNode PartitionGenerator::check(Theory::Effort e)
+void PartitionGenerator::check(Theory::Effort e)
 {
   if ((options().parallel.partitionCheck == options::CheckMode::FULL
        && !Theory::fullEffort(e))
@@ -343,7 +342,7 @@ TrustNode PartitionGenerator::check(Theory::Effort e)
           && Theory::fullEffort(e))
       || (options().parallel.computePartitions < 2))
   {
-    return TrustNode::null();
+    return;
   }
 
   d_numChecks = d_numChecks + 1;
@@ -352,24 +351,34 @@ TrustNode PartitionGenerator::check(Theory::Effort e)
   if (d_numChecks < options().parallel.checksBeforePartitioning || 
       d_betweenChecks < options().parallel.checksBetweenPartitions)
   {
-    return TrustNode::null();
+    return;
   }
 
   // Reset betweenChecks
   d_betweenChecks = 0;
 
+  Node lem;
   bool emitZLL = options().parallel.appendLearnedLiteralsToCubes;
   switch (options().parallel.partitionStrategy)
   {
     case options::PartitionMode::HEAP_TRAIL:
-      return makeFullTrailPartitions(/*litType=*/HEAP, emitZLL);
+      lem = makeFullTrailPartitions(/*litType=*/HEAP, emitZLL);
+      break;
     case options::PartitionMode::DECISION_TRAIL:
-      return makeFullTrailPartitions(/*litType=*/DECISION, emitZLL);
+      lem = makeFullTrailPartitions(/*litType=*/DECISION, emitZLL);
+      break;
     case options::PartitionMode::STRICT_CUBE:
-      return makeRevisedPartitions(/*strict=*/true, emitZLL);
+      lem = makeRevisedPartitions(/*strict=*/true, emitZLL);
+      break;
     case options::PartitionMode::REVISED:
-      return makeRevisedPartitions(/*strict=*/false, emitZLL);
-    default: return TrustNode::null();
+      lem = makeRevisedPartitions(/*strict=*/false, emitZLL);
+      break;
+    default: return;
+  }
+  // send the lemma if it exists
+  if (!lem.isNull())
+  {
+    d_out.lemma(lem);
   }
 }
 

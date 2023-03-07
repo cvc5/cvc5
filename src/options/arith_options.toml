@@ -590,3 +590,11 @@ name   = "Arithmetic Theory"
   type       = "bool"
   default    = "false"
   help       = "whether to use the equality solver in the theory of arithmetic"
+
+[[option]]
+  name       = "arithStaticLearning"
+  category   = "regular"
+  long       = "arith-static-learning"
+  type       = "bool"
+  default    = "true"
+  help       = "do arithmetic static learning for ite terms based on bounds when static learning is enabled"

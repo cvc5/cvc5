@@ -50,14 +50,15 @@ std::ostream& operator<<(std::ostream& out, TConvCachePolicy tcpol)
   return out;
 }
 
-TConvProofGenerator::TConvProofGenerator(ProofNodeManager* pnm,
+TConvProofGenerator::TConvProofGenerator(Env& env,
                                          context::Context* c,
                                          TConvPolicy pol,
                                          TConvCachePolicy cpol,
                                          std::string name,
                                          TermContext* tccb,
                                          bool rewriteOps)
-    : d_proof(pnm, nullptr, c, name + "::LazyCDProof"),
+    : EnvObj(env),
+      d_proof(env, nullptr, c, name + "::LazyCDProof"),
       d_preRewriteMap(c ? c : &d_context),
       d_postRewriteMap(c ? c : &d_context),
       d_policy(pol),
@@ -183,8 +184,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
     return nullptr;
   }
   // we use the existing proofs
-  LazyCDProof lpf(
-      d_proof.getManager(), &d_proof, nullptr, d_name + "::LazyCDProof");
+  LazyCDProof lpf(d_env, &d_proof, nullptr, d_name + "::LazyCDProof");
   if (f[0] == f[1])
   {
     // assertion failure in debug
@@ -239,8 +239,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
 
 std::shared_ptr<ProofNode> TConvProofGenerator::getProofForRewriting(Node n)
 {
-  LazyCDProof lpf(
-      d_proof.getManager(), &d_proof, nullptr, d_name + "::LazyCDProofRew");
+  LazyCDProof lpf(d_env, &d_proof, nullptr, d_name + "::LazyCDProofRew");
   Node conc = getProofForRewriting(n, lpf, d_tcontext);
   if (conc[1] == n)
   {

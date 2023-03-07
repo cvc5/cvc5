@@ -177,8 +177,8 @@ bool FirstOrderModel::initializeRepresentativesForType(TypeNode tn)
     // can we complete it?
     if (d_qreg.getQuantifiersBoundInference().mayComplete(tn))
     {
-      Trace("fm-debug") << "  do complete, since cardinality is small ("
-                        << tn.getCardinality() << ")..." << std::endl;
+      Trace("fm-debug") << "  do complete, since cardinality is small"
+                        << std::endl;
       rs->complete(tn);
       // must have succeeded
       Assert(rs->hasType(tn));

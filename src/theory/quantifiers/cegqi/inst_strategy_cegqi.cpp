@@ -66,7 +66,7 @@ InstStrategyCegqi::InstStrategyCegqi(Env& env,
   if (options().quantifiers.cegqiBv)
   {
     // if doing instantiation for BV, need the inverter class
-    d_bv_invert.reset(new BvInverter(env.getRewriter()));
+    d_bv_invert.reset(new BvInverter(env.getOptions(), env.getRewriter()));
   }
   if (options().quantifiers.cegqiNestedQE)
   {

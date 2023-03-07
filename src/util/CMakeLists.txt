@@ -21,16 +21,22 @@ libcvc5_add_sources(
   bin_heap.h
   bitvector.cpp
   bitvector.h
+  cocoa_globals.cpp
+  cocoa_globals.h
   bool.h
   cardinality.cpp
   cardinality.h
   cardinality_class.cpp
   cardinality_class.h
+  cocoa_globals.cpp
+  cocoa_globals.h
   dense_map.h
   didyoumean.cpp
   didyoumean.h
   divisible.cpp
   divisible.h
+  finite_field_value.cpp
+  finite_field_value.h
   floatingpoint.cpp
   floatingpoint.h
   floatingpoint_size.cpp

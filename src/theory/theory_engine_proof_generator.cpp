@@ -18,14 +18,15 @@
 #include <sstream>
 
 #include "proof/proof_node.h"
+#include "smt/env.h"
 
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 
-TheoryEngineProofGenerator::TheoryEngineProofGenerator(ProofNodeManager* pnm,
+TheoryEngineProofGenerator::TheoryEngineProofGenerator(Env& env,
                                                        context::Context* c)
-    : d_pnm(pnm), d_proofs(c)
+    : EnvObj(env), d_proofs(c)
 {
   d_false = NodeManager::currentNM()->mkConst(false);
 }
@@ -107,7 +108,8 @@ std::shared_ptr<ProofNode> TheoryEngineProofGenerator::getProofFor(Node f)
   std::shared_ptr<ProofNode> pfb = lcp->getProofFor(conclusion);
   Trace("tepg-debug") << "...mkScope" << std::endl;
   // call the scope method of proof node manager
-  std::shared_ptr<ProofNode> pf = d_pnm->mkScope(pfb, scopeAssumps);
+  ProofNodeManager* pnm = d_env.getProofNodeManager();
+  std::shared_ptr<ProofNode> pf = pnm->mkScope(pfb, scopeAssumps);
 
   if (pf->getResult() != f)
   {

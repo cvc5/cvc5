@@ -1,0 +1,55 @@
+# kinds                                                               -*- sh -*-
+#
+# For documentation on this file format, please refer to
+# src/theory/builtin/kinds.
+#
+
+theory THEORY_FF \
+    ::cvc5::internal::theory::ff::TheoryFiniteFields \
+    "theory/ff/theory_ff.h"
+typechecker "theory/ff/theory_ff_type_rules.h"
+rewriter ::cvc5::internal::theory::ff::TheoryFiniteFieldsRewriter \
+    "theory/ff/theory_ff_rewriter.h"
+
+properties parametric
+properties check
+
+# Finite Fields
+constant FINITE_FIELD_TYPE \
+  struct \
+  FfSize \
+  "::cvc5::internal::FfSizeHashFunction" \
+  "util/finite_field_value.h" \
+  "finite field type"
+
+cardinality FINITE_FIELD_TYPE \
+    "::cvc5::internal::theory::ff::FiniteFieldProperties::computeCardinality(%TYPE%)" \
+    "theory/ff/theory_ff_type_rules.h"
+
+enumerator FINITE_FIELD_TYPE \
+    "::cvc5::internal::theory::ff::FiniteFieldEnumerator" \
+    "theory/ff/type_enumerator.h"
+
+well-founded FINITE_FIELD_TYPE \
+    true \
+    "(*cvc5::internal::theory::TypeEnumerator(%TYPE%))" \
+    "theory/type_enumerator.h"
+
+constant CONST_FINITE_FIELD \
+  class \
+  FiniteFieldValue \
+  ::cvc5::internal::FiniteFieldValueHashFunction \
+  "util/finite_field_value.h" \
+  "a finite-field constant; payload is an instance of the cvc5::internal::FiniteFieldValue class"
+
+## ffmetic kinds
+operator FINITE_FIELD_MULT 2: "multiplication of two or more field elements"
+operator FINITE_FIELD_NEG 1 "unary negation of a field element"
+operator FINITE_FIELD_ADD 2: "addition of two or more field elements"
+
+typerule CONST_FINITE_FIELD ::cvc5::internal::theory::ff::FiniteFieldConstantTypeRule
+typerule FINITE_FIELD_MULT ::cvc5::internal::theory::ff::FiniteFieldFixedFieldTypeRule
+typerule FINITE_FIELD_NEG ::cvc5::internal::theory::ff::FiniteFieldFixedFieldTypeRule
+typerule FINITE_FIELD_ADD ::cvc5::internal::theory::ff::FiniteFieldFixedFieldTypeRule
+
+endtheory

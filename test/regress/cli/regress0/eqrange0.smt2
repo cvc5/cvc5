@@ -1,4 +1,4 @@
-; EXPECT: (error "Term of kind EQ_RANGE not supported in default mode, try --arrays-exp")
+; EXPECT: (error "Term of kind `eqrange` not supported in default mode, try `--arrays-exp`.")
 ; EXIT: 1
 (set-logic QF_AUFLIA)
 (declare-const a (Array Int Int))

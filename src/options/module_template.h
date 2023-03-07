@@ -48,9 +48,6 @@ struct Holder${id_cap}$
 
 #undef DO_SEMANTIC_CHECKS_BY_DEFAULT
 
-// clang-format off
-${wrapper_functions}$
-// clang-format on
 
 }  // namespace cvc5::internal::options
 

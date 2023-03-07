@@ -149,7 +149,7 @@ private:
    */
   void computeMonotonicity(const std::vector<Node>& assertions);
   /** return true if tn was inferred to be monotonic */
-  bool isMonotonic(TypeNode tn);
+  bool isMonotonic(TypeNode tn) const;
   //get sort id for term n
   int getSortId( Node n );
   //get sort id for variable of quantified formula f

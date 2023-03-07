@@ -21,7 +21,6 @@
 #include "base/output.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/uf/eq_proof.h"
 
@@ -29,13 +28,12 @@ namespace cvc5::internal {
 namespace theory {
 namespace eq {
 
-EqualityEngine::Statistics::Statistics(const std::string& name)
-    : d_mergesCount(smtStatisticsRegistry().registerInt(name + "mergesCount")),
-      d_termsCount(smtStatisticsRegistry().registerInt(name + "termsCount")),
-      d_functionTermsCount(
-          smtStatisticsRegistry().registerInt(name + "functionTermsCount")),
-      d_constantTermsCount(
-          smtStatisticsRegistry().registerInt(name + "constantTermsCount"))
+EqualityEngine::Statistics::Statistics(StatisticsRegistry& sr,
+                                       const std::string& name)
+    : d_mergesCount(sr.registerInt(name + "mergesCount")),
+      d_termsCount(sr.registerInt(name + "termsCount")),
+      d_functionTermsCount(sr.registerInt(name + "functionTermsCount")),
+      d_constantTermsCount(sr.registerInt(name + "constantTermsCount"))
 {
 }
 
@@ -78,10 +76,9 @@ void EqualityEngine::init() {
   Trace("equality") << "EqualityEdge::EqualityEngine(): edge_null = " << +null_edge << std::endl;
   Trace("equality") << "EqualityEdge::EqualityEngine(): trigger_null = " << +null_trigger << std::endl;
 
-  // If we are not at level zero when we initialize this equality engine, we
-  // may remove true/false from the equality engine when we pop to level zero,
-  // which leads to issues.
-  Assert(d_context->getLevel() == 0);
+  // Note that we previously checked whether the context level was zero here,
+  // to ensure that true/false could never be removed. However, this assertion
+  // restricts our ability to construct equality engines in nested contexts.
 
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
@@ -116,7 +113,7 @@ EqualityEngine::EqualityEngine(Env& env,
       d_assertedEqualitiesCount(c, 0),
       d_equalityTriggersCount(c, 0),
       d_subtermEvaluatesSize(c, 0),
-      d_stats(name + "::"),
+      d_stats(statisticsRegistry(), name + "::"),
       d_inPropagate(false),
       d_constantsAreTriggers(constantsAreTriggers),
       d_anyTermsAreTriggers(anyTermTriggers),
@@ -148,7 +145,7 @@ EqualityEngine::EqualityEngine(Env& env,
       d_assertedEqualitiesCount(c, 0),
       d_equalityTriggersCount(c, 0),
       d_subtermEvaluatesSize(c, 0),
-      d_stats(name + "::"),
+      d_stats(statisticsRegistry(), name + "::"),
       d_inPropagate(false),
       d_constantsAreTriggers(constantsAreTriggers),
       d_anyTermsAreTriggers(anyTermTriggers),
@@ -1090,7 +1087,10 @@ void EqualityEngine::buildEqConclusion(EqualityNodeId id1,
   if (!eq[0].isNull() && !eq[1].isNull())
   {
     eqp->d_node = eq[0].eqNode(eq[1]);
+    Trace("equality") << "buildEqConclusion: Built equality " << eqp->d_node << "\n";
+    return;
   }
+  Trace("equality") << "buildEqConclusion: Did not build equality\n";
 }
 
 void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
@@ -1277,6 +1277,7 @@ void EqualityEngine::explainPredicate(TNode p, bool polarity,
 
 void EqualityEngine::explainLit(TNode lit, std::vector<TNode>& assumptions)
 {
+  Trace("eq-exp") << "explainLit: " << lit << std::endl;
   Assert(lit.getKind() != kind::AND);
   bool polarity = lit.getKind() != kind::NOT;
   TNode atom = polarity ? lit : lit[0];

@@ -231,14 +231,14 @@ void PrintBenchmark::getConnectedDefinitions(
   {
     // a recursively defined symbol
     recDefs.push_back(n);
-    // get the symbols in the body
-    std::unordered_set<Node> symsBody;
-    expr::getSymbols(it->second.second, symsBody, visited);
-    for (const Node& s : symsBody)
-    {
-      getConnectedDefinitions(
-          s, recDefs, ordinaryDefs, syms, defMap, processedDefs, visited);
-    }
+  }
+  // get the symbols in the body
+  std::unordered_set<Node> symsBody;
+  expr::getSymbols(it->second.second, symsBody, visited);
+  for (const Node& s : symsBody)
+  {
+    getConnectedDefinitions(
+        s, recDefs, ordinaryDefs, syms, defMap, processedDefs, visited);
   }
 }
 

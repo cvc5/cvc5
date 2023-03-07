@@ -15,17 +15,19 @@
 
 #include "theory/trust_substitutions.h"
 
+#include "smt/env.h"
 #include "theory/rewriter.h"
 
 namespace cvc5::internal {
 namespace theory {
 
-TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
-                                           ProofNodeManager* pnm,
+TrustSubstitutionMap::TrustSubstitutionMap(Env& env,
+                                           context::Context* c,
                                            std::string name,
                                            PfRule trustId,
                                            MethodId ids)
-    : d_ctx(c),
+    : EnvObj(env),
+      d_ctx(c),
       d_subs(c),
       d_tsubs(c),
       d_tspb(nullptr),
@@ -37,21 +39,15 @@ TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
       d_ids(ids),
       d_eqtIndex(c)
 {
-  setProofNodeManager(pnm);
-}
-
-void TrustSubstitutionMap::setProofNodeManager(ProofNodeManager* pnm)
-{
+  ProofNodeManager* pnm = d_env.getProofNodeManager();
   if (pnm != nullptr)
   {
-    // should not set the proof node manager more than once
-    Assert(d_tspb == nullptr);
-    d_tspb.reset(new TheoryProofStepBuffer(pnm->getChecker())),
-        d_subsPg.reset(new LazyCDProof(
-            pnm, nullptr, d_ctx, "TrustSubstitutionMap::subsPg"));
+    d_tspb.reset(new TheoryProofStepBuffer(pnm->getChecker()));
+    d_subsPg.reset(
+        new LazyCDProof(env, nullptr, d_ctx, "TrustSubstitutionMap::subsPg"));
     d_applyPg.reset(
-        new LazyCDProof(pnm, nullptr, d_ctx, "TrustSubstitutionMap::applyPg"));
-    d_helperPf.reset(new CDProofSet<LazyCDProof>(pnm, d_ctx));
+        new LazyCDProof(env, nullptr, d_ctx, "TrustSubstitutionMap::applyPg"));
+    d_helperPf.reset(new CDProofSet<LazyCDProof>(env, d_ctx));
   }
 }
 
@@ -225,8 +221,15 @@ std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
   // substitution can either be implemented as n traversals of the term to
   // apply the substitution to, or a single traversal of the term, but n^2/2
   // traversals of the range of the substitution to prepare a simultaneous
-  // substitution. Both of these options are inefficient.
-  if (!d_tspb->applyEqIntro(n, ns, pfChildren, d_ids, MethodId::SBA_FIXPOINT))
+  // substitution. Both of these options are inefficient. Note that we
+  // expect this rule to succeed, so useExpected is set to true.
+  if (!d_tspb->applyEqIntro(n,
+                            ns,
+                            pfChildren,
+                            d_ids,
+                            MethodId::SBA_FIXPOINT,
+                            MethodId::RW_REWRITE,
+                            true))
   {
     // if we fail for any reason, we must use a trusted step instead
     d_tspb->addStep(PfRule::TRUST_SUBS_MAP, pfChildren, {eq}, eq);

@@ -43,36 +43,51 @@ class TheoryProofStepBuffer : public ProofStepBuffer
    * step(s) to the buffer that conclude (= src tgt) from premises exp. In
    * particular, it may attempt to apply the rule MACRO_SR_EQ_INTRO. This
    * method should be applied when tgt is equivalent to src assuming exp.
+   *
+   * @param useExpected If true, we pass (= src tgt) as expected to tryStep.
+   * When true, this method will always succeed if proof checking is
+   * disabled.
    */
   bool applyEqIntro(Node src,
                     Node tgt,
                     const std::vector<Node>& exp,
                     MethodId ids = MethodId::SB_DEFAULT,
                     MethodId ida = MethodId::SBA_SEQUENTIAL,
-                    MethodId idr = MethodId::RW_REWRITE);
+                    MethodId idr = MethodId::RW_REWRITE,
+                    bool useExpected = false);
   /**
    * Apply predicate transform. If this method returns true, it adds (at most
    * one) proof step to the buffer that conclude tgt from premises src, exp. In
    * particular, it may attempt to apply MACRO_SR_PRED_TRANSFORM. This method
    * should be applied when src and tgt are equivalent formulas assuming exp.
+   *
+   * @param useExpected If true, we pass tgt as expected to tryStep.
+   * When true, this method will always succeed if proof checking is
+   * disabled.
    */
   bool applyPredTransform(Node src,
                           Node tgt,
                           const std::vector<Node>& exp,
                           MethodId ids = MethodId::SB_DEFAULT,
                           MethodId ida = MethodId::SBA_SEQUENTIAL,
-                          MethodId idr = MethodId::RW_REWRITE);
+                          MethodId idr = MethodId::RW_REWRITE,
+                          bool useExpected = false);
   /**
    * Apply predicate introduction. If this method returns true, it adds proof
    * step(s) to the buffer that conclude tgt from premises exp. In particular,
    * it may attempt to apply the rule MACRO_SR_PRED_INTRO. This method should be
    * applied when tgt is equivalent to true assuming exp.
+   *
+   * @param useExpected If true, we pass tgt as expected to tryStep.
+   * When true, this method will always succeed if proof checking is
+   * disabled.
    */
   bool applyPredIntro(Node tgt,
                       const std::vector<Node>& exp,
                       MethodId ids = MethodId::SB_DEFAULT,
                       MethodId ida = MethodId::SBA_SEQUENTIAL,
-                      MethodId idr = MethodId::RW_REWRITE);
+                      MethodId idr = MethodId::RW_REWRITE,
+                      bool useExpected = false);
   /**
    * Apply predicate elimination. This method returns the result of applying
    * the rule MACRO_SR_PRED_ELIM on src, exp. The returned formula is equivalent

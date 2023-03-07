@@ -36,18 +36,16 @@ namespace theory {
 /**
  * A layer on top of SubstitutionMap that tracks proofs.
  */
-class TrustSubstitutionMap : public ProofGenerator
+class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
 {
   using NodeUIntMap = context::CDHashMap<Node, size_t>;
 
  public:
-  TrustSubstitutionMap(context::Context* c,
-                       ProofNodeManager* pnm = nullptr,
+  TrustSubstitutionMap(Env& env,
+                       context::Context* c,
                        std::string name = "TrustSubstitutionMap",
                        PfRule trustId = PfRule::PREPROCESS_LEMMA,
                        MethodId ids = MethodId::SB_DEFAULT);
-  /** Set proof node manager */
-  void setProofNodeManager(ProofNodeManager* pnm);
   /** Gets a reference to the underlying substitution map */
   SubstitutionMap& get();
   /**

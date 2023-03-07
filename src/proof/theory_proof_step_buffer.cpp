@@ -33,20 +33,25 @@ bool TheoryProofStepBuffer::applyEqIntro(Node src,
                                          const std::vector<Node>& exp,
                                          MethodId ids,
                                          MethodId ida,
-                                         MethodId idr)
+                                         MethodId idr,
+                                         bool useExpected)
 {
   std::vector<Node> args;
   args.push_back(src);
   addMethodIds(args, ids, ida, idr);
   bool added;
-  Node res = tryStep(added, PfRule::MACRO_SR_EQ_INTRO, exp, args);
+  Node expected = src.eqNode(tgt);
+  Node res = tryStep(added,
+                     PfRule::MACRO_SR_EQ_INTRO,
+                     exp,
+                     args,
+                     useExpected ? expected : Node::null());
   if (res.isNull())
   {
     // failed to apply
     return false;
   }
   // should have concluded the expected equality
-  Node expected = src.eqNode(tgt);
   if (res != expected)
   {
     // did not provide the correct target
@@ -65,7 +70,8 @@ bool TheoryProofStepBuffer::applyPredTransform(Node src,
                                                const std::vector<Node>& exp,
                                                MethodId ids,
                                                MethodId ida,
-                                               MethodId idr)
+                                               MethodId idr,
+                                               bool useExpected)
 {
   // symmetric equalities
   if (d_autoSym && CDProof::isSame(src, tgt))
@@ -79,7 +85,10 @@ bool TheoryProofStepBuffer::applyPredTransform(Node src,
   children.insert(children.end(), exp.begin(), exp.end());
   args.push_back(tgt);
   addMethodIds(args, ids, ida, idr);
-  Node res = tryStep(PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
+  Node res = tryStep(PfRule::MACRO_SR_PRED_TRANSFORM,
+                     children,
+                     args,
+                     useExpected ? tgt : Node::null());
   if (res.isNull())
   {
     // failed to apply
@@ -94,12 +103,14 @@ bool TheoryProofStepBuffer::applyPredIntro(Node tgt,
                                            const std::vector<Node>& exp,
                                            MethodId ids,
                                            MethodId ida,
-                                           MethodId idr)
+                                           MethodId idr,
+                                           bool useExpected)
 {
   std::vector<Node> args;
   args.push_back(tgt);
   addMethodIds(args, ids, ida, idr);
-  Node res = tryStep(PfRule::MACRO_SR_PRED_INTRO, exp, args);
+  Node res = tryStep(
+      PfRule::MACRO_SR_PRED_INTRO, exp, args, useExpected ? tgt : Node::null());
   if (res.isNull())
   {
     return false;

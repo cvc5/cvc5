@@ -109,7 +109,7 @@ Node OracleChecker::postConvert(Node n)
     }
   }
   // otherwise, always rewrite
-  return Rewriter::rewrite(n);
+  return rewrite(n);
 }
 bool OracleChecker::hasOracles() const { return !d_callers.empty(); }
 bool OracleChecker::hasOracleCalls(Node f) const

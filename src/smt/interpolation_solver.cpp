@@ -20,7 +20,7 @@
 #include "base/modal_exception.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
-#include "smt/solver_engine.h"
+#include "smt/set_defaults.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_interpol.h"
@@ -41,7 +41,7 @@ bool InterpolationSolver::getInterpolant(const std::vector<Node>& axioms,
                                          const TypeNode& grammarType,
                                          Node& interpol)
 {
-  if (!options().smt.interpolants)
+  if (!options().smt.produceInterpolants)
   {
     const char* msg =
         "Cannot get interpolation when produce-interpolants options is off.";
@@ -83,6 +83,11 @@ void InterpolationSolver::checkInterpol(Node interpol,
   Trace("check-interpol")
       << "SolverEngine::checkInterpol: get expanded assertions" << std::endl;
 
+  Options subOptions;
+  subOptions.copyValues(d_env.getOptions());
+  subOptions.writeSmt().produceInterpolants = false;
+  SetDefaults::disableChecking(subOptions);
+  SubsolverSetupInfo ssi(d_env, subOptions);
   // two checks: first, axioms imply interpol, second, interpol implies conj.
   for (unsigned j = 0; j < 2; j++)
   {
@@ -95,7 +100,7 @@ void InterpolationSolver::checkInterpol(Node interpol,
                             << ": make new SMT engine" << std::endl;
     // Start new SMT engine to check solution
     std::unique_ptr<SolverEngine> itpChecker;
-    initializeSubsolver(itpChecker, d_env);
+    initializeSubsolver(itpChecker, ssi);
     Trace("check-interpol") << "SolverEngine::checkInterpol: phase " << j
                             << ": asserting formulas" << std::endl;
     if (j == 0)

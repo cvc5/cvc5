@@ -481,6 +481,18 @@ public:
   TypeNode getType(bool check = false) const;
 
   /**
+   * Has name? Return true if this node has an associated variable
+   * name (via the attribute expr::VarNameAttr). This is true typically for
+   * user-created variables.
+   */
+  bool hasName() const;
+  /**
+   * Get the name. Returns the string value of the expr::VarNameAttr attribute
+   * for this node.
+   */
+  std::string getName() const;
+
+  /**
    * Substitution of Nodes.
    */
   Node substitute(TNode node, TNode replacement) const;
@@ -811,16 +823,11 @@ public:
    * given stream
    *
    * @param out the stream to serialize this node to
-   * @param toDepth the depth to which to print this expression, or -1 to
-   * print it fully
-   * @param language the language in which to output
    */
-  inline void toStream(std::ostream& out,
-                       int toDepth = -1,
-                       size_t dagThreshold = 1) const
+  inline void toStream(std::ostream& out) const
   {
     assertTNodeNotExpired();
-    d_nv->toStream(out, toDepth, dagThreshold);
+    d_nv->toStream(out);
   }
 
   void constToStream(std::ostream& out) const
@@ -862,9 +869,7 @@ public:
  * @return the stream
  */
 inline std::ostream& operator<<(std::ostream& out, TNode n) {
-  n.toStream(out,
-             options::ioutils::getNodeDepth(out),
-             options::ioutils::getDagThresh(out));
+  n.toStream(out);
   return out;
 }
 

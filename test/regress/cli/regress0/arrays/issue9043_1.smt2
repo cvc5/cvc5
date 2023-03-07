@@ -1,0 +1,8 @@
+(set-logic QF_ABV)
+(set-info :status sat)
+(declare-fun a () (Array (_ BitVec 32) (_ BitVec 32)))
+(declare-fun b () (_ BitVec 32))
+(declare-fun c () (_ BitVec 1))
+(assert (= (_ bv1 32) (select a (bvsmod b (_ bv0 32)))))
+(assert (= (_ bv0 32) (select a ((_ zero_extend 31) c))))
+(check-sat)

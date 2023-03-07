@@ -31,6 +31,8 @@ libcvc5_add_sources(
   cardinality_constraint.h
   codatatype_bound_variable.cpp
   codatatype_bound_variable.h
+  elim_shadow_converter.cpp
+  elim_shadow_converter.h
   emptyset.cpp
   emptyset.h
   emptybag.cpp
@@ -72,10 +74,6 @@ libcvc5_add_sources(
   skolem_manager.h
   subtype_elim_node_converter.cpp
   subtype_elim_node_converter.h
-  symbol_manager.cpp
-  symbol_manager.h
-  symbol_table.cpp
-  symbol_table.h
   term_canonize.cpp
   term_canonize.h
   term_context.cpp

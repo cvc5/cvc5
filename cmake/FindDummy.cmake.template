@@ -84,7 +84,7 @@ set(Dummy_FOUND TRUE)
 # now create a target for the library
 add_library(Dummy STATIC IMPORTED GLOBAL)
 set_target_properties(Dummy PROPERTIES IMPORTED_LOCATION "${Dummy_LIBRARIES}")
-set_target_properties(Dummy PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${Dummy_INCLUDE_DIR}")
+set_target_properties(Dummy PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${Dummy_INCLUDE_DIR}")
 
 # mark all variables as advanced
 mark_as_advanced(Dummy_FOUND)

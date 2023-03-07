@@ -155,16 +155,14 @@ class Cardinality
   bool isCountable() const { return isFinite() || d_card == s_intCard; }
 
   /**
-   * In the case that this cardinality is finite, return its
-   * cardinality.  (If this cardinality is infinite, this function
-   * throws an IllegalArgumentException.)
+   * Return a finite cardinality as an integer. This method can only be called
+   * on finite cardinalities.
    */
   Integer getFiniteCardinality() const;
 
   /**
-   * In the case that this cardinality is infinite, return its Beth
-   * number.  (If this cardinality is finite, this function throws an
-   * IllegalArgumentException.)
+   * Return the Beth number of an infinite cardinality. This method can only be
+   * called on infinite cardinalities.
    */
   Integer getBethNumber() const;
 

@@ -35,7 +35,7 @@ ProofNodeToSExpr::ProofNodeToSExpr()
   d_argsMarker = nm->mkRawSymbol(":args", nm->sExprType());
 }
 
-Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
+Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn, bool printConclusion)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::map<const ProofNode*, Node>::iterator it;
@@ -76,7 +76,7 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
       // add proof rule
       PfRule r = cur->getRule();
       children.push_back(getOrMkPfRuleVariable(r));
-      if (options::proofPrintConclusion())
+      if (printConclusion)
       {
         children.push_back(d_conclusionMarker);
         children.push_back(cur->getResult());

@@ -19,7 +19,7 @@ public class HelloWorld
 {
   public static void main(String[] args)
   {
-    try (Solver slv = new Solver())
+    Solver slv = new Solver();
     {
       Term helloworld = slv.mkConst(slv.getBooleanSort(), "Hello World!");
 

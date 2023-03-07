@@ -211,7 +211,7 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
         if (cur.getType().isRealOrInt() && !cur.isConst())
         {
           Kind k = cur.getKind();
-          if (k != MULT && k != ADD && k != NONLINEAR_MULT
+          if (k != MULT && k != ADD && k != NONLINEAR_MULT && k != TO_REAL
               && !isTranscendentalKind(k) && k != IAND && k != POW2)
           {
             // if we have not set an approximate bound for it
@@ -270,10 +270,13 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
 
 bool NlModel::addSubstitution(TNode v, TNode s)
 {
+  Assert(v.getKind() != TO_REAL);
   Trace("nl-ext-model") << "* check model substitution : " << v << " -> " << s
                         << std::endl;
   Assert(getSubstitutedForm(s) == s)
       << "Added a substitution whose range is not in substituted form " << s;
+  // cannot substitute real for integer
+  Assert(v.getType().isReal() || s.getType().isInteger());
   // should not substitute the same variable twice
   // should not set exact bound more than once
   if (d_substitutions.contains(v))

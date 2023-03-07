@@ -77,9 +77,9 @@ def wrap_line(s, indent, **kwargs):
         textwrap.wrap(s, width=80 - indent, **kwargs))
 
 
-def concat_format(s, objs):
+def concat_format(s, objs, glue='\n'):
     """Helper method to render a string for a list of object"""
-    return '\n'.join([s.format(**o.__dict__) for o in objs])
+    return glue.join([s.format(**o.__dict__) for o in objs])
 
 
 def format_include(include):
@@ -176,11 +176,16 @@ class Option(object):
             self.alternate = True
         self.long_name = None
         self.long_opt = None
+        if self.name:
+            self.name_capitalized = self.name[0].capitalize() + self.name[1:]
         if self.long:
             r = self.long.split('=', 1)
             self.long_name = r[0]
             if len(r) > 1:
                 self.long_opt = r[1]
+        self.fqdefault = self.default
+        if self.mode and self.type not in self.default:
+            self.fqdefault = '{}::{}'.format(self.type, self.default)
         self.names = set()
         if self.long_name:
             self.names.add(self.long_name)
@@ -198,6 +203,9 @@ class Option(object):
 
     def __str__(self):
         return self.long_name if self.long_name else self.name
+
+    def enum_name(self):
+        return str(self).replace("-","_").upper()
 
 
 ################################################################################
@@ -267,9 +275,40 @@ def generate_holder_mem_copy(modules):
 def generate_public_includes(modules):
     """Generates the list of includes for options_public.cpp."""
     headers = set()
+    headers.add(format_include("<unordered_map>"))
     for _, option in all_options(modules):
         headers.update([format_include(x) for x in option.includes])
     return '\n'.join(headers)
+
+
+def generate_option_enum_and_table(modules):
+    """
+    Generate an enum class OptionEnum with one variant for each option.
+    Also, generate a map NAME_TO_ENUM from string names to enum variants.
+
+    This enum is used to branch (in C++) on an option string name.
+    First, you lookup the enum in the map.
+    Then, you switch-case on the enum, which generates a jump table.
+
+    When we measured, this was about 5x faster than a huge if-else chain.
+    It would probably be even faster with a better hash function.
+    """
+    res = []
+    res.append('enum class OptionEnum {')
+    for module, option in all_options(modules, True):
+        if not option.long:
+            continue
+        res.append('  {n},'.format(n=option.enum_name()))
+    res.append('};')
+    res.append('const std::unordered_map<std::string, OptionEnum> NAME_TO_ENUM = {')
+    for module, option in all_options(modules, True):
+        if not option.long:
+            continue
+        for name in option.names:
+            res.append('  {{ \"{}\", OptionEnum::{} }},'
+                       .format(name, option.enum_name()))
+    res.append('};')
+    return '\n    '.join(res)
 
 
 def generate_getnames_impl(modules):
@@ -284,10 +323,14 @@ def generate_getnames_impl(modules):
 def generate_get_impl(modules):
     """Generates the implementation for options::get()."""
     res = []
+    res.append('auto it = NAME_TO_ENUM.find(name);')
+    res.append('if (it == NAME_TO_ENUM.end()) {')
+    res.append('  throw OptionException(\"Unrecognized option key or setting: \" + name);')
+    res.append('}')
+    res.append('switch (it->second) {')
     for module, option in all_options(modules, True):
         if not option.name or not option.long:
             continue
-        cond = ' || '.join(['name == "{}"'.format(x) for x in option.names])
         ret = None
         if option.type == 'bool':
             ret = 'return options.{}.{} ? "true" : "false";'.format(
@@ -300,7 +343,12 @@ def generate_get_impl(modules):
         else:
             ret = '{{ std::stringstream s; s << options.{}.{}; return s.str(); }}'.format(
                 module.id, option.name)
-        res.append('if ({}) {}'.format(cond, ret))
+        res.append('  case OptionEnum::{}: {}'.format(option.enum_name(), ret))
+    res.append('  default:'.format(option.enum_name()))
+    res.append('  {')
+    res.append('    throw OptionException(\"Ungettable option key or setting: \" + name);')
+    res.append('  }')
+    res.append('}')
     return '\n    '.join(res)
 
 
@@ -313,7 +361,7 @@ def _set_handlers(option):
     return 'handlers::handleOption<{}>(name, optionarg)'.format(option.type)
 
 
-def _set_predicates(option):
+def _set_predicates(module, option):
     """Render predicate calls for options::set()."""
     res = []
     if option.minimum:
@@ -327,40 +375,52 @@ def _set_predicates(option):
     res += [
         'opts.handler().{}(name, value);'.format(x) for x in option.predicates
     ]
+    if module.id == 'printer':
+        res.append('ioutils::setDefault{}(value);'.format(option.name_capitalized))
+
     return res
 
 
 def generate_set_impl(modules):
     """Generates the implementation for options::set()."""
     res = []
+    res.append('auto it = NAME_TO_ENUM.find(name);')
+    res.append('if (it == NAME_TO_ENUM.end()) {')
+    res.append('  throw OptionException(\"Unrecognized option key or setting: \" + name);')
+    res.append('}')
+    res.append('switch (it->second) {')
     for module, option in all_options(modules, True):
         if not option.long:
             continue
-        cond = ' || '.join(['name == "{}"'.format(x) for x in option.names])
-        if res:
-            res.append('}} else if ({}) {{'.format(cond))
-        else:
-            res.append('if ({}) {{'.format(cond))
-        res.append('  auto value = {};'.format(_set_handlers(option)))
-        for pred in _set_predicates(option):
-            res.append('  {}'.format(pred))
+        res.append('  case OptionEnum::{}:'.format(option.enum_name()))
+        res.append('  {')
+        res.append('    auto value = {};'.format(_set_handlers(option)))
+        for pred in _set_predicates(module, option):
+            res.append('    {}'.format(pred))
         if option.name:
-            res.append('  opts.write{module}().{name} = value;'.format(
+            res.append('    opts.write{module}().{name} = value;'.format(
                 module=module.id_capitalized, name=option.name))
-            res.append('  opts.write{module}().{name}WasSetByUser = true;'.format(
+            res.append('    opts.write{module}().{name}WasSetByUser = true;'.format(
                 module=module.id_capitalized, name=option.name))
+        res.append('    break;')
+        res.append('  }')
+    res.append('}')
     return '\n    '.join(res)
 
 
 def generate_getinfo_impl(modules):
     """Generates the implementation for options::getInfo()."""
     res = []
+    res.append('auto it = NAME_TO_ENUM.find(name);')
+    res.append('if (it == NAME_TO_ENUM.end()) {')
+    res.append('  throw OptionException(\"Unrecognized option key or setting: \" + name);')
+    res.append('}')
+    res.append('switch (it->second) {')
     for module, option in all_options(modules, True):
         if not option.long:
             continue
         constr = None
         fmt = {
-            'condition': ' || '.join(['name == "{}"'.format(x) for x in option.names]),
             'name': option.long_name,
             'alias': '',
             'type': option.type,
@@ -386,8 +446,10 @@ def generate_getinfo_impl(modules):
             constr = 'OptionInfo::ModeInfo{{"{default}", {value}, {{ {modes} }}}}'
         else:
             constr = 'OptionInfo::VoidInfo{{}}'
-        line = 'if ({condition}) return OptionInfo{{"{name}", {{{alias}}}, {setbyuser}, ' + constr + '}};'
+        res.append("  case OptionEnum::{}:".format(option.enum_name()))
+        line = '    return OptionInfo{{"{name}", {{{alias}}}, {setbyuser}, ' + constr + '}};'
         res.append(line.format(**fmt))
+    res.append("}")
     return '\n  '.join(res)
 
 
@@ -433,27 +495,12 @@ def generate_module_holder_decl(module):
     for option in module.options:
         if option.name is None:
             continue
-        if option.default:
-            default = option.default
-            if option.mode and option.type not in default:
-                default = '{}::{}'.format(option.type, default)
-            res.append('{} {} = {};'.format(option.type, option.name, default))
+        if option.fqdefault:
+            res.append('{} {} = {};'.format(option.type, option.name, option.fqdefault))
         else:
             res.append('{} {};'.format(option.type, option.name))
         res.append('bool {}WasSetByUser = false;'.format(option.name))
     return '\n  '.join(res)
-
-
-def generate_module_wrapper_functions(module):
-    res = []
-    for option in module.options:
-        if option.name is None:
-            continue
-        res.append(
-            'inline {type} {name}() {{ return Options::current().{module}.{name}; }}'
-            .format(module=module.id, name=option.name, type=option.type))
-    return '\n'.join(res)
-
 
 ################################################################################
 # for options/<module>.cpp
@@ -838,6 +885,51 @@ def generate_sphinx_output_tags(modules, src_dir, build_dir):
 
 
 ################################################################################
+# for io_utils.h and io_utils.cpp
+
+
+def __get_printer_options(modules):
+    for mod, opt in all_options(modules):
+        if mod.id == 'printer':
+            yield opt
+
+
+def generate_iodecls(modules):
+    return concat_format(
+        '''
+void setDefault{name_capitalized}({type} value);
+void apply{name_capitalized}(std::ios_base& ios, {type} value) CVC5_EXPORT;
+{type} get{name_capitalized}(std::ios_base& ios);''',
+        __get_printer_options(modules))
+
+
+def generate_ioimpls(modules):
+    return concat_format(
+        '''
+const static int s_ios{name_capitalized} = std::ios_base::xalloc();
+static thread_local {type} s_{name}Default = {fqdefault};
+void setDefault{name_capitalized}({type} value) {{ s_{name}Default = value; }}
+void apply{name_capitalized}(std::ios_base& ios, {type} value) {{ setData(ios, s_ios{name_capitalized}, value); }}
+{type} get{name_capitalized}(std::ios_base& ios) {{ return getData(ios, s_ios{name_capitalized}, s_{name}Default); }}
+''', __get_printer_options(modules))
+
+
+def generate_ioscope_members(modules):
+    return concat_format('  {type} d_{name};', __get_printer_options(modules))
+
+
+def generate_ioscope_memberinit(modules):
+    return concat_format('      d_{name}(get{name_capitalized}(d_ios))',
+                         __get_printer_options(modules),
+                         glue=',\n')
+
+
+def generate_ioscope_restore(modules):
+    return concat_format('  apply{name_capitalized}(d_ios, d_{name});',
+                         __get_printer_options(modules))
+
+
+################################################################################
 # main code generation for individual modules
 
 
@@ -850,7 +942,6 @@ def codegen_module(module, dst_dir, tpls):
         'includes': generate_module_includes(module),
         'modes_decl': generate_module_mode_decl(module),
         'holder_decl': generate_module_holder_decl(module),
-        'wrapper_functions': generate_module_wrapper_functions(module),
         # module source
         'header': module.header,
         'modes_impl': generate_module_mode_impl(module),
@@ -876,6 +967,13 @@ def codegen_all_modules(modules, src_dir, build_dir, dst_dir, tpls):
                    generate_sphinx_output_tags(modules, src_dir, build_dir))
 
     data = {
+        # options/io_utils.h
+        'ioscope_members': generate_ioscope_members(modules),
+        'iodecls': generate_iodecls(modules),
+        # options/io_utils.cpp
+        'ioimpls': generate_ioimpls(modules),
+        'ioscope_memberinit': generate_ioscope_memberinit(modules),
+        'ioscope_restore': generate_ioscope_restore(modules),
         # options/options.h
         'holder_fwd_decls': generate_holder_fwd_decls(modules),
         'holder_mem_decls': generate_holder_mem_decls(modules),
@@ -889,6 +987,7 @@ def codegen_all_modules(modules, src_dir, build_dir, dst_dir, tpls):
         # options/options_public.cpp
         'options_includes': generate_public_includes(modules),
         'getnames_impl': generate_getnames_impl(modules),
+        'option_enum_and_table': generate_option_enum_and_table(modules),
         'get_impl': generate_get_impl(modules),
         'set_impl': generate_set_impl(modules),
         'getinfo_impl': generate_getinfo_impl(modules),
@@ -1046,6 +1145,8 @@ def mkoptions_main():
         {'input': 'options/module_template.cpp'},
     ]
     global_tpls = [
+        {'input': 'options/io_utils_template.h'},
+        {'input': 'options/io_utils_template.cpp'},
         {'input': 'options/options_template.h'},
         {'input': 'options/options_template.cpp'},
         {'input': 'options/options_public_template.cpp'},

@@ -45,6 +45,7 @@ TermRegistry::TermRegistry(Env& env,
       d_sygusTdb(nullptr),
       d_ochecker(nullptr),
       d_vtsCache(new VtsTermCache(env)),
+      d_ievalMan(new ieval::InstEvaluatorManager(env, qs, *d_termDb.get())),
       d_qmodel(nullptr)
 {
   if (options().quantifiers.oracles)
@@ -120,14 +121,34 @@ Node TermRegistry::getTermForType(TypeNode tn)
   return d_termDb->getOrMakeTypeGroundTerm(tn);
 }
 
+void TermRegistry::getTermsForPool(Node p, std::vector<Node>& terms)
+{
+  if (p.getKind() == kind::SET_UNIVERSE)
+  {
+    // get all ground terms of the given type
+    TypeNode ptn = p.getType().getSetElementType();
+    size_t nterms = d_termDb->getNumTypeGroundTerms(ptn);
+    for (size_t i = 0; i < nterms; i++)
+    {
+      terms.push_back(d_termDb->getTypeGroundTerm(ptn, i));
+    }
+  }
+  else
+  {
+    d_termPools->getTermsForPool(p, terms);
+  }
+}
+
 void TermRegistry::declarePool(Node p, const std::vector<Node>& initValue)
 {
   d_termPools->registerPool(p, initValue);
 }
 
-void TermRegistry::processInstantiation(Node q, const std::vector<Node>& terms)
+void TermRegistry::processInstantiation(Node q,
+                                        const std::vector<Node>& terms,
+                                        bool success)
 {
-  d_termPools->processInstantiation(q, terms);
+  d_termPools->processInstantiation(q, terms, success);
 }
 void TermRegistry::processSkolemization(Node q,
                                         const std::vector<Node>& skolems)
@@ -160,6 +181,17 @@ TermEnumeration* TermRegistry::getTermEnumeration() const
 TermPools* TermRegistry::getTermPools() const { return d_termPools.get(); }
 
 VtsTermCache* TermRegistry::getVtsTermCache() const { return d_vtsCache.get(); }
+
+ieval::InstEvaluatorManager* TermRegistry::getInstEvaluatorManager() const
+{
+  return d_ievalMan.get();
+}
+
+ieval::InstEvaluator* TermRegistry::getEvaluator(Node q,
+                                                 ieval::TermEvaluatorMode tev)
+{
+  return d_ievalMan->getEvaluator(q, tev);
+}
 
 FirstOrderModel* TermRegistry::getModel() const { return d_qmodel; }
 

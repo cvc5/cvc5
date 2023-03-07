@@ -30,10 +30,9 @@
 namespace cvc5::internal {
 
 class EagerProofGenerator;
+class Env;
 
 namespace theory {
-
-class Rewriter;
 
 namespace arrays {
 
@@ -49,7 +48,7 @@ static inline Node mkEqNode(Node a, Node b) {
 class TheoryArraysRewriter : public TheoryRewriter
 {
  public:
-  TheoryArraysRewriter(Rewriter* rewriter, ProofNodeManager* pnm);
+  TheoryArraysRewriter(Env& env);
 
   /** Normalize a constant whose index type has cardinality indexCard */
   static Node normalizeConstant(TNode node, Cardinality indexCard);

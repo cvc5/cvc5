@@ -22,7 +22,6 @@
 #include <sstream>
 #include <string>
 
-#include "base/Debug_tags.h"
 #include "base/Trace_tags.h"
 #include "base/configuration_private.h"
 #include "base/cvc5config.h"
@@ -222,17 +221,6 @@ bool Configuration::isBuiltWithPoly()
   return IS_POLY_BUILD;
 }
 bool Configuration::isBuiltWithCoCoA() { return IS_COCOA_BUILD; }
-
-const std::vector<std::string>& Configuration::getDebugTags()
-{
-  return Debug_tags;
-}
-
-bool Configuration::isDebugTag(const std::string& tag)
-{
-  return std::find(Debug_tags.begin(), Debug_tags.end(), tag)
-         != Debug_tags.end();
-}
 
 const std::vector<std::string>& Configuration::getTraceTags()
 {

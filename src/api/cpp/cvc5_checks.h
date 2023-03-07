@@ -163,19 +163,36 @@ namespace cvc5 {
                 << "Invalid " << (what) << " in '" << #args << "' at index " \
                 << (idx) << ", expected "
 
+/**
+ * Check condition 'cond' for given operator index `index` in list of indices
+ * `args`. Creates a stream to provide a message that identifies what was
+ * expected to hold if condition is false and throws a non-recoverable
+ * exception.
+ */
+#define CVC5_API_CHECK_OP_INDEX(cond, args, index)                            \
+  CVC5_PREDICT_TRUE(cond)                                                     \
+  ? (void)0                                                                   \
+  : cvc5::internal::OstreamVoider()                                           \
+          & CVC5ApiExceptionStream().ostream()                                \
+                << "Invalid value '" << args[index] << "' at index " << index \
+                << " for operator, expected "
+
 /* -------------------------------------------------------------------------- */
-/* Solver checks.                                                             */
+/* Node manager check.                                                        */
 /* -------------------------------------------------------------------------- */
 
 /**
- * Solver check for member functions of classes other than class Solver.
- * Check if given solver matches the solver object this object is associated
- * with.
+ * Node manager check for member functions of classes other than class Solver.
+ * Check if given node manager matches the node manager this solver object is
+ * associated with.
+ *
+ * @note This is an assertion rather than an API guard since all Solver
+ *       instances in a thread share the same NodeManager instance.
  */
-#define CVC5_API_ARG_CHECK_SOLVER(what, arg)                              \
-  CVC5_API_CHECK(this->d_solver == arg.d_solver)                          \
-      << "Given " << (what) << " is not associated with the solver this " \
-      << "object is associated with";
+#define CVC5_API_ARG_ASSERT_NM(what, arg)                                      \
+  Assert(d_nm == arg.d_nm) << "Given " << (what)                               \
+                           << " is not associated with the node manager this " \
+                           << "object is associated with";
 
 /* -------------------------------------------------------------------------- */
 /* Sort checks.                                                               */
@@ -183,57 +200,56 @@ namespace cvc5 {
 
 /**
  * Sort check for member functions of classes other than class Solver.
- * Check if given sort is not null and associated with the solver object this
+ * Check if given sort is not null and associated with the node manager this
  * object is associated with.
  */
-#define CVC5_API_CHECK_SORT(sort)            \
-  do                                         \
-  {                                          \
-    CVC5_API_ARG_CHECK_NOT_NULL(sort);       \
-    CVC5_API_ARG_CHECK_SOLVER("sort", sort); \
+#define CVC5_API_CHECK_SORT(sort)         \
+  do                                      \
+  {                                       \
+    CVC5_API_ARG_CHECK_NOT_NULL(sort);    \
+    CVC5_API_ARG_ASSERT_NM("sort", sort); \
   } while (0)
 
 /**
  * Sort check for member functions of classes other than class Solver.
  * Check if each sort in the given container of sorts is not null and
- * associated with the solver object this object is associated with.
+ * associated with the node manager this object is associated with.
  */
-#define CVC5_API_CHECK_SORTS(sorts)                                         \
-  do                                                                        \
-  {                                                                         \
-    size_t i = 0;                                                           \
-    for (const auto& s : sorts)                                             \
-    {                                                                       \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("sort", s, sorts, i);            \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                 \
-          this->d_solver == s.d_solver, "sort", sorts, i)                   \
-          << "a sort associated with the solver this object is associated " \
-             "with";                                                        \
-      i += 1;                                                               \
-    }                                                                       \
+#define CVC5_API_CHECK_SORTS(sorts)                                           \
+  do                                                                          \
+  {                                                                           \
+    size_t i = 0;                                                             \
+    for (const auto& s : sorts)                                               \
+    {                                                                         \
+      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("sort", s, sorts, i);              \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(d_nm == s.d_nm, "sort", sorts, i)  \
+          << "a sort associated with node manager this object is associated " \
+             "with";                                                          \
+      i += 1;                                                                 \
+    }                                                                         \
   } while (0)
 
 /**
  * Sort check for member functions of classes other than class Solver.
  * Check if each sort in the given container of sorts is not null, is
- * associated with the solver object this object is associated with, and is a
+ * associated with the node manager this object is associated with, and is a
  * first-class sort.
  */
-#define CVC5_API_CHECK_DOMAIN_SORTS(sorts)                                  \
-  do                                                                        \
-  {                                                                         \
-    size_t i = 0;                                                           \
-    for (const auto& s : sorts)                                             \
-    {                                                                       \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("sort", s, sorts, i);            \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                 \
-          this->d_solver == s.d_solver, "sort", sorts, i)                   \
-          << "a sort associated with the solver this object is associated " \
-             "with";                                                        \
-      CVC5_API_ARG_CHECK_EXPECTED(s.getTypeNode().isFirstClass(), s)        \
-          << "first-class sort as domain sort";                             \
-      i += 1;                                                               \
-    }                                                                       \
+#define CVC5_API_CHECK_DOMAIN_SORTS(sorts)                                   \
+  do                                                                         \
+  {                                                                          \
+    size_t i = 0;                                                            \
+    for (const auto& s : sorts)                                              \
+    {                                                                        \
+      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("sort", s, sorts, i);             \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(d_nm == s.d_nm, "sort", sorts, i) \
+          << "a sort associated with the node manager this object is "       \
+             "associated "                                                   \
+             "with";                                                         \
+      CVC5_API_ARG_CHECK_EXPECTED(s.getTypeNode().isFirstClass(), s)         \
+          << "first-class sort as domain sort";                              \
+      i += 1;                                                                \
+    }                                                                        \
   } while (0)
 
 /* -------------------------------------------------------------------------- */
@@ -242,66 +258,68 @@ namespace cvc5 {
 
 /**
  * Term check for member functions of classes other than class Solver.
- * Check if given term is not null and associated with the solver object this
+ * Check if given term is not null and associated with the node manager this
  * object is associated with.
  */
-#define CVC5_API_CHECK_TERM(term)            \
-  do                                         \
-  {                                          \
-    CVC5_API_ARG_CHECK_NOT_NULL(term);       \
-    CVC5_API_ARG_CHECK_SOLVER("term", term); \
+#define CVC5_API_CHECK_TERM(term)         \
+  do                                      \
+  {                                       \
+    CVC5_API_ARG_CHECK_NOT_NULL(term);    \
+    CVC5_API_ARG_ASSERT_NM("term", term); \
   } while (0)
 
 /**
  * Term check for member functions of classes other than class Solver.
  * Check if each term in the given container of terms is not null and
- * associated with the solver object this object is associated with.
+ * associated with the node manager this object is associated with.
  */
-#define CVC5_API_CHECK_TERMS(terms)                                         \
-  do                                                                        \
-  {                                                                         \
-    size_t i = 0;                                                           \
-    for (const auto& s : terms)                                             \
-    {                                                                       \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", s, terms, i);            \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                 \
-          this->d_solver == s.d_solver, "term", terms, i)                   \
-          << "a term associated with the solver this object is associated " \
-             "with";                                                        \
-      i += 1;                                                               \
-    }                                                                       \
+#define CVC5_API_CHECK_TERMS(terms)                                          \
+  do                                                                         \
+  {                                                                          \
+    size_t i = 0;                                                            \
+    for (const auto& s : terms)                                              \
+    {                                                                        \
+      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", s, terms, i);             \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(d_nm == s.d_nm, "term", terms, i) \
+          << "a term associated with the node manager this object is "       \
+             "associated "                                                   \
+             "with";                                                         \
+      i += 1;                                                                \
+    }                                                                        \
   } while (0)
 
 /**
  * Term check for member functions of classes other than class Solver.
  * Check if each term and sort in the given map (which maps terms to sorts) is
- * not null and associated with the solver object this object is associated
+ * not null and associated with the node manager this object is associated
  * with.
  */
-#define CVC5_API_CHECK_TERMS_MAP(map)                                       \
-  do                                                                        \
-  {                                                                         \
-    size_t i = 0;                                                           \
-    for (const auto& p : map)                                               \
-    {                                                                       \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", p.first, map, i);        \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                 \
-          this->d_solver == p.first.d_solver, "term", map, i)               \
-          << "a term associated with the solver this object is associated " \
-             "with";                                                        \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("sort", p.second, map, i);       \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                 \
-          this->d_solver == p.second.d_solver, "sort", map, i)              \
-          << "a sort associated with the solver this object is associated " \
-             "with";                                                        \
-      i += 1;                                                               \
-    }                                                                       \
+#define CVC5_API_CHECK_TERMS_MAP(map)                                  \
+  do                                                                   \
+  {                                                                    \
+    size_t i = 0;                                                      \
+    for (const auto& p : map)                                          \
+    {                                                                  \
+      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", p.first, map, i);   \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                            \
+          d_nm == p.first.d_nm, "term", map, i)                        \
+          << "a term associated with the node manager this object is " \
+             "associated "                                             \
+             "with";                                                   \
+      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("sort", p.second, map, i);  \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                            \
+          d_nm == p.second.d_nm, "sort", map, i)                       \
+          << "a sort associated with the node manager this object is " \
+             "associated "                                             \
+             "with";                                                   \
+      i += 1;                                                          \
+    }                                                                  \
   } while (0)
 
 /**
  * Term check for member functions of classes other than class Solver.
  * Check if each term in the given container is not null, associated with the
- * solver object this object is associated with, and of the given sort.
+ * node manager object this object is associated with, and of the given sort.
  */
 #define CVC5_API_CHECK_TERMS_WITH_SORT(terms, sort)                            \
   do                                                                           \
@@ -310,9 +328,9 @@ namespace cvc5 {
     for (const auto& t : terms)                                                \
     {                                                                          \
       CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", t, terms, i);               \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                    \
-          this->d_solver == t.d_solver, "term", terms, i)                      \
-          << "a term associated with the solver this object is associated "    \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(d_nm == t.d_nm, "term", terms, i)   \
+          << "a term associated with the node manager this object is "         \
+             "associated "                                                     \
              "with";                                                           \
       CVC5_API_CHECK(t.getSort() == sort)                                      \
           << "Expected term with sort " << sort << " at index " << i << " in " \
@@ -324,30 +342,30 @@ namespace cvc5 {
 /**
  * Term check for member functions of classes other than class Solver.
  * Check if each term in both the given container is not null, associated with
- * the solver object this object is associated with, and their sorts are
+ * the node manager this object is associated with, and their sorts are
  * pairwise equal.
  */
-#define CVC5_API_TERM_CHECK_TERMS_WITH_TERMS_SORT_EQUAL_TO(terms1, terms2)  \
-  do                                                                        \
-  {                                                                         \
-    size_t i = 0;                                                           \
-    for (const auto& t1 : terms1)                                           \
-    {                                                                       \
-      const auto& t2 = terms2[i];                                           \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", t1, terms1, i);          \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                 \
-          this->d_solver == t1.d_solver, "term", terms1, i)                 \
-          << "a term associated with the solver this object is associated " \
-             "with";                                                        \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", t2, terms2, i);          \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                 \
-          this->d_solver == t2.d_solver, "term", terms2, i)                 \
-          << "a term associated with the solver this object is associated " \
-             "with";                                                        \
-      CVC5_API_CHECK(t1.getSort() == t2.getSort())                          \
-          << "Expecting terms of the same sort at index " << i;             \
-      i += 1;                                                               \
-    }                                                                       \
+#define CVC5_API_TERM_CHECK_TERMS_WITH_TERMS_SORT_EQUAL_TO(terms1, terms2)     \
+  do                                                                           \
+  {                                                                            \
+    size_t i = 0;                                                              \
+    for (const auto& t1 : terms1)                                              \
+    {                                                                          \
+      const auto& t2 = terms2[i];                                              \
+      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", t1, terms1, i);             \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(d_nm == t1.d_nm, "term", terms1, i) \
+          << "a term associated with the node manager this object is "         \
+             "associated "                                                     \
+             "with";                                                           \
+      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", t2, terms2, i);             \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(d_nm == t2.d_nm, "term", terms2, i) \
+          << "a term associated with the node manager this object is "         \
+             "associated "                                                     \
+             "with";                                                           \
+      CVC5_API_CHECK(t1.getSort() == t2.getSort())                             \
+          << "Expecting terms of the same sort at index " << i;                \
+      i += 1;                                                                  \
+    }                                                                          \
   } while (0)
 
 /* -------------------------------------------------------------------------- */
@@ -357,13 +375,16 @@ namespace cvc5 {
 /**
  * DatatypeDecl check for member functions of classes other than class Solver.
  * Check if given datatype declaration is not null and associated with the
- * solver object this DatatypeDecl object is associated with.
+ * node manager this DatatypeDecl object is associated with.
  */
-#define CVC5_API_CHECK_DTDECL(decl)                          \
-  do                                                         \
-  {                                                          \
-    CVC5_API_ARG_CHECK_NOT_NULL(decl);                       \
-    CVC5_API_ARG_CHECK_SOLVER("datatype declaration", decl); \
+#define CVC5_API_CHECK_DTDECL(decl)                                      \
+  do                                                                     \
+  {                                                                      \
+    CVC5_API_ARG_CHECK_NOT_NULL(decl);                                   \
+    CVC5_API_CHECK(d_nm == decl.d_nm)                                    \
+        << "Given datatype declaration is not associated with the node " \
+           "manager this "                                               \
+        << "object is associated with";                                  \
   } while (0)
 
 /* -------------------------------------------------------------------------- */
@@ -374,124 +395,124 @@ namespace cvc5 {
 
 /**
  * Sort checks for member functions of class Solver.
- * Check if given sort is not null and associated with this solver.
+ * Check if given sort is not null and associated with the node manager of this
+ * solver.
  */
-#define CVC5_API_SOLVER_CHECK_SORT(sort)                    \
-  do                                                        \
-  {                                                         \
-    CVC5_API_ARG_CHECK_NOT_NULL(sort);                      \
-    CVC5_API_CHECK(this == sort.d_solver)                   \
-        << "Given sort is not associated with this solver"; \
+#define CVC5_API_SOLVER_CHECK_SORT(sort)                                      \
+  do                                                                          \
+  {                                                                           \
+    CVC5_API_ARG_CHECK_NOT_NULL(sort);                                        \
+    CVC5_API_CHECK(d_nm == sort.d_nm) << "Given sort is not associated with " \
+                                         "the node manager of this solver";   \
   } while (0)
 
 /**
  * Sort checks for member functions of class Solver.
  * Check if each sort in the given container of sorts is not null and
- * associated with this solver.
+ * associated with the node manager of this solver.
  */
-#define CVC5_API_SOLVER_CHECK_SORTS(sorts)                        \
-  do                                                              \
-  {                                                               \
-    size_t i = 0;                                                 \
-    for (const auto& s : sorts)                                   \
-    {                                                             \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("sorts", s, sorts, i); \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                       \
-          this == s.d_solver, "sort", sorts, i)                   \
-          << "a sort associated with this solver";                \
-      i += 1;                                                     \
-    }                                                             \
+#define CVC5_API_SOLVER_CHECK_SORTS(sorts)                                   \
+  do                                                                         \
+  {                                                                          \
+    size_t i = 0;                                                            \
+    for (const auto& s : sorts)                                              \
+    {                                                                        \
+      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("sorts", s, sorts, i);            \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(d_nm == s.d_nm, "sort", sorts, i) \
+          << "a sort associated with the node manager of this solver";       \
+      i += 1;                                                                \
+    }                                                                        \
   } while (0)
 
 /**
  * Domain sort check for member functions of class Solver.
- * Check if domain sort is not null, associated with this solver, and a
- * first-class sort.
+ * Check if domain sort is not null, associated with the node manager of this
+ * solver, and a first-class sort.
  */
-#define CVC5_API_SOLVER_CHECK_DOMAIN_SORT(sort)                          \
-  do                                                                     \
-  {                                                                      \
-    CVC5_API_ARG_CHECK_NOT_NULL(sort);                                   \
-    CVC5_API_CHECK(this == sort.d_solver)                                \
-        << "Given sort is not associated with this solver";              \
-    CVC5_API_ARG_CHECK_EXPECTED(sort.getTypeNode().isFirstClass(), sort) \
-        << "first-class sort as domain sort";                            \
+#define CVC5_API_SOLVER_CHECK_DOMAIN_SORT(sort)                               \
+  do                                                                          \
+  {                                                                           \
+    CVC5_API_ARG_CHECK_NOT_NULL(sort);                                        \
+    CVC5_API_CHECK(d_nm == sort.d_nm) << "Given sort is not associated with " \
+                                         "the node manager of this solver";   \
+    CVC5_API_ARG_CHECK_EXPECTED(sort.getTypeNode().isFirstClass(), sort)      \
+        << "first-class sort as domain sort";                                 \
   } while (0)
 
 /**
  * Domain sort checks for member functions of class Solver.
  * Check if each domain sort in the given container of sorts is not null,
- * associated with this solver, and a first-class sort.
+ * associated with the node manager of this solver, and a first-class sort.
  */
-#define CVC5_API_SOLVER_CHECK_DOMAIN_SORTS(sorts)                       \
-  do                                                                    \
-  {                                                                     \
-    size_t i = 0;                                                       \
-    for (const auto& s : sorts)                                         \
-    {                                                                   \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("domain sort", s, sorts, i); \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                             \
-          this == s.d_solver, "domain sort", sorts, i)                  \
-          << "a sort associated with this solver object";               \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                             \
-          s.getTypeNode().isFirstClass(), "domain sort", sorts, i)      \
-          << "first-class sort as domain sort";                         \
-      i += 1;                                                           \
-    }                                                                   \
+#define CVC5_API_SOLVER_CHECK_DOMAIN_SORTS(sorts)                             \
+  do                                                                          \
+  {                                                                           \
+    size_t i = 0;                                                             \
+    for (const auto& s : sorts)                                               \
+    {                                                                         \
+      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("domain sort", s, sorts, i);       \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                   \
+          d_nm == s.d_nm, "domain sort", sorts, i)                            \
+          << "a sort associated with the node manager of this solver object"; \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                   \
+          s.getTypeNode().isFirstClass(), "domain sort", sorts, i)            \
+          << "first-class sort as domain sort";                               \
+      i += 1;                                                                 \
+    }                                                                         \
   } while (0)
 
 /**
  * Codomain sort check for member functions of class Solver.
- * Check if codomain sort is not null, associated with this solver, and a
- * first-class, non-function sort.
+ * Check if codomain sort is not null, associated with the node manager of this
+ * solver, and a first-class, non-function sort.
  */
-#define CVC5_API_SOLVER_CHECK_CODOMAIN_SORT(sort)           \
-  do                                                        \
-  {                                                         \
-    CVC5_API_ARG_CHECK_NOT_NULL(sort);                      \
-    CVC5_API_CHECK(this == sort.d_solver)                   \
-        << "Given sort is not associated with this solver"; \
-    CVC5_API_ARG_CHECK_EXPECTED(!sort.isFunction(), sort)   \
-        << "function sort as codomain sort";                \
+#define CVC5_API_SOLVER_CHECK_CODOMAIN_SORT(sort)                             \
+  do                                                                          \
+  {                                                                           \
+    CVC5_API_ARG_CHECK_NOT_NULL(sort);                                        \
+    CVC5_API_CHECK(d_nm == sort.d_nm) << "Given sort is not associated with " \
+                                         "the node manager of this solver";   \
+    CVC5_API_ARG_CHECK_EXPECTED(!sort.isFunction(), sort)                     \
+        << "non-function sort as codomain sort";                                  \
   } while (0)
 
 /* Term checks. ------------------------------------------------------------- */
 
 /**
  * Term checks for member functions of class Solver.
- * Check if given term is not null and associated with this solver.
+ * Check if given term is not null and associated with the node manager of this
+ * solver.
  */
-#define CVC5_API_SOLVER_CHECK_TERM(term)                    \
-  do                                                        \
-  {                                                         \
-    CVC5_API_ARG_CHECK_NOT_NULL(term);                      \
-    CVC5_API_CHECK(this == term.d_solver)                   \
-        << "Given term is not associated with this solver"; \
+#define CVC5_API_SOLVER_CHECK_TERM(term)                                      \
+  do                                                                          \
+  {                                                                           \
+    CVC5_API_ARG_CHECK_NOT_NULL(term);                                        \
+    CVC5_API_CHECK(d_nm == term.d_nm) << "Given term is not associated with " \
+                                         "the node manager of this solver";   \
   } while (0)
 
 /**
  * Term checks for member functions of class Solver.
  * Check if each term in the given container of terms is not null and
- * associated with this solver.
+ * associated with the node manager of this solver.
  */
-#define CVC5_API_SOLVER_CHECK_TERMS(terms)                        \
-  do                                                              \
-  {                                                               \
-    size_t i = 0;                                                 \
-    for (const auto& t : terms)                                   \
-    {                                                             \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("terms", t, terms, i); \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                       \
-          this == t.d_solver, "term", terms, i)                   \
-          << "a term associated with this solver";                \
-      i += 1;                                                     \
-    }                                                             \
+#define CVC5_API_SOLVER_CHECK_TERMS(terms)                                   \
+  do                                                                         \
+  {                                                                          \
+    size_t i = 0;                                                            \
+    for (const auto& t : terms)                                              \
+    {                                                                        \
+      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("terms", t, terms, i);            \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(d_nm == t.d_nm, "term", terms, i) \
+          << "a term associated with the node manager of this solver";       \
+      i += 1;                                                                \
+    }                                                                        \
   } while (0)
 
 /**
  * Term checks for member functions of class Solver.
- * Check if given term is not null, associated with this solver, and of given
- * sort.
+ * Check if given term is not null, associated with the node manager of this
+ * solver, and of given sort.
  */
 #define CVC5_API_SOLVER_CHECK_TERM_WITH_SORT(term, sort) \
   do                                                     \
@@ -503,8 +524,8 @@ namespace cvc5 {
 
 /**
  * Term checks for member functions of class Solver.
- * Check if each term in the given container is not null, associated with this
- * solver, and of the given sort.
+ * Check if each term in the given container is not null, associated with the
+ * node manager of this solver, and of the given sort.
  */
 #define CVC5_API_SOLVER_CHECK_TERMS_WITH_SORT(terms, sort)                     \
   do                                                                           \
@@ -513,9 +534,8 @@ namespace cvc5 {
     for (const auto& t : terms)                                                \
     {                                                                          \
       CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", t, terms, i);               \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                    \
-          this == t.d_solver, "term", terms, i)                                \
-          << "a term associated with this solver";                             \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(d_nm == t.d_nm, "term", terms, i)   \
+          << "a term associated with the node manager of this solver";         \
       CVC5_API_CHECK(t.getSort() == sort)                                      \
           << "Expected term with sort " << sort << " at index " << i << " in " \
           << #terms;                                                           \
@@ -525,36 +545,36 @@ namespace cvc5 {
 
 /**
  * Bound variable checks for member functions of class Solver.
- * Check if each term in the given container is not null, associated with this
- * solver, and a bound variable.
+ * Check if each term in the given container is not null, associated with the
+ * node manager of this solver, and a bound variable.
  */
-#define CVC5_API_SOLVER_CHECK_BOUND_VARS(bound_vars)            \
-  do                                                            \
-  {                                                             \
-    size_t i = 0;                                               \
-    for (const auto& bv : bound_vars)                           \
-    {                                                           \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL(                     \
-          "bound variable", bv, bound_vars, i);                 \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                     \
-          this == bv.d_solver, "bound variable", bound_vars, i) \
-          << "a term associated with this solver object";       \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                     \
-          bv.d_node->getKind() == cvc5::internal::Kind::BOUND_VARIABLE,   \
-          "bound variable",                                     \
-          bound_vars,                                           \
-          i)                                                    \
-          << "a bound variable";                                \
-      i += 1;                                                   \
-    }                                                           \
+#define CVC5_API_SOLVER_CHECK_BOUND_VARS(bound_vars)                          \
+  do                                                                          \
+  {                                                                           \
+    size_t i = 0;                                                             \
+    for (const auto& bv : bound_vars)                                         \
+    {                                                                         \
+      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL(                                   \
+          "bound variable", bv, bound_vars, i);                               \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                   \
+          d_nm == bv.d_nm, "bound variable", bound_vars, i)                   \
+          << "a term associated with the node manager of this solver object"; \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                   \
+          bv.d_node->getKind() == cvc5::internal::Kind::BOUND_VARIABLE,       \
+          "bound variable",                                                   \
+          bound_vars,                                                         \
+          i)                                                                  \
+          << "a bound variable";                                              \
+      i += 1;                                                                 \
+    }                                                                         \
   } while (0)
 
 /**
  * Bound variable checks for member functions of class Solver that define
  * functions.
- * Check if each term in the given container is not null, associated with this
- * solver, a bound variable, matches theh corresponding sort in 'domain_sorts',
- * and is a first-class term.
+ * Check if each term in the given container is not null, associated with the
+ * node manager of this solver, a bound variable, matches theh corresponding
+ * sort in 'domain_sorts', and is a first-class term.
  */
 #define CVC5_API_SOLVER_CHECK_BOUND_VARS_DEF_FUN(                             \
     fun, bound_vars, domain_sorts)                                            \
@@ -569,10 +589,10 @@ namespace cvc5 {
       CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL(                                   \
           "bound variable", bv, bound_vars, i);                               \
       CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                   \
-          this == bv.d_solver, "bound variable", bound_vars, i)               \
-          << "a term associated with this solver object";                     \
+          d_nm == bv.d_nm, "bound variable", bound_vars, i)                   \
+          << "a term associated with the node manager of this solver object"; \
       CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                   \
-          bv.d_node->getKind() == cvc5::internal::Kind::BOUND_VARIABLE,                 \
+          bv.d_node->getKind() == cvc5::internal::Kind::BOUND_VARIABLE,       \
           "bound variable",                                                   \
           bound_vars,                                                         \
           i)                                                                  \
@@ -596,79 +616,89 @@ namespace cvc5 {
 
 /**
  * Op checks for member functions of class Solver.
- * Check if given operator is not null and associated with this solver.
+ * Check if given operator is not null and associated with the node manager of
+ * this solver.
  */
-#define CVC5_API_SOLVER_CHECK_OP(op)                            \
-  do                                                            \
-  {                                                             \
-    CVC5_API_ARG_CHECK_NOT_NULL(op);                            \
-    CVC5_API_CHECK(this == op.d_solver)                         \
-        << "Given operator is not associated with this solver"; \
+#define CVC5_API_SOLVER_CHECK_OP(op)                                           \
+  do                                                                           \
+  {                                                                            \
+    CVC5_API_ARG_CHECK_NOT_NULL(op);                                           \
+    CVC5_API_CHECK(d_nm == op.d_nm) << "Given operator is not associated "     \
+                                       "with the node manager of this solver"; \
   } while (0)
 
 /* Datatype checks. --------------------------------------------------------- */
 
 /**
  * DatatypeDecl checks for member functions of class Solver.
- * Check if given datatype declaration is not null and associated with this
- * solver.
+ * Check if given datatype declaration is not null and associated with the node
+ * manager of this solver.
  */
-#define CVC5_API_SOLVER_CHECK_DTDECL(decl)                                  \
-  do                                                                        \
-  {                                                                         \
-    CVC5_API_ARG_CHECK_NOT_NULL(decl);                                      \
-    CVC5_API_CHECK(this == decl.d_solver)                                   \
-        << "Given datatype declaration is not associated with this solver"; \
-    CVC5_API_ARG_CHECK_EXPECTED(                                            \
-        dtypedecl.getDatatype().getNumConstructors() > 0, dtypedecl)        \
-        << "a datatype declaration with at least one constructor";          \
+#define CVC5_API_SOLVER_CHECK_DTDECL(decl)                                \
+  do                                                                      \
+  {                                                                       \
+    CVC5_API_ARG_CHECK_NOT_NULL(decl);                                    \
+    CVC5_API_CHECK(d_nm == decl.d_nm)                                     \
+        << "Given datatype declaration is not associated with the node "  \
+           "manager of this solver";                                      \
+    CVC5_API_CHECK(!decl.isResolved())                                    \
+        << "Given datatype declaration is already resolved (has already " \
+        << "been used to create a datatype sort)";                        \
+    CVC5_API_ARG_CHECK_EXPECTED(                                          \
+        dtypedecl.getDatatype().getNumConstructors() > 0, dtypedecl)      \
+        << "a datatype declaration with at least one constructor";        \
   } while (0)
 
 /**
  * DatatypeDecl checks for member functions of class Solver.
  * Check if each datatype declaration in the given container of declarations is
- * not null and associated with this solver.
+ * not null and associated with the node manager of this solver.
  */
-#define CVC5_API_SOLVER_CHECK_DTDECLS(decls)                         \
-  do                                                                 \
-  {                                                                  \
-    size_t i = 0;                                                    \
-    for (const auto& d : decls)                                      \
-    {                                                                \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL(                          \
-          "datatype declaration", d, decls, i);                      \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                          \
-          this == d.d_solver, "datatype declaration", decls, i)      \
-          << "a datatype declaration associated with this solver";   \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                          \
-          d.getDatatype().getNumConstructors() > 0,                  \
-          "datatype declaration",                                    \
-          decls,                                                     \
-          i)                                                         \
-          << "a datatype declaration with at least one constructor"; \
-      i += 1;                                                        \
-    }                                                                \
+#define CVC5_API_SOLVER_CHECK_DTDECLS(decls)                               \
+  do                                                                       \
+  {                                                                        \
+    size_t i = 0;                                                          \
+    for (const auto& d : decls)                                            \
+    {                                                                      \
+      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL(                                \
+          "datatype declaration", d, decls, i);                            \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                \
+          d_nm == d.d_nm, "datatype declaration", decls, i)                \
+          << "a datatype declaration associated with the node manager of " \
+             "this solver";                                                \
+      CVC5_API_CHECK(!d.isResolved())                                      \
+          << "Given datatype declaration is already resolved (has "        \
+          << "already been used to create a datatype sort)";               \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                \
+          d.getDatatype().getNumConstructors() > 0,                        \
+          "datatype declaration",                                          \
+          decls,                                                           \
+          i)                                                               \
+          << "a datatype declaration with at least one constructor";       \
+      i += 1;                                                              \
+    }                                                                      \
   } while (0)
 
 /**
  * DatatypeConstructorDecl checks for member functions of class Solver.
  * Check if each datatype constructor declaration in the given container of
- * declarations is not null and associated with this solver.
+ * declarations is not null and associated with the node manager of this solver.
  */
-#define CVC5_API_SOLVER_CHECK_DTCTORDECLS(decls)                               \
-  do                                                                           \
-  {                                                                            \
-    size_t i = 0;                                                              \
-    for (const auto& d : decls)                                                \
-    {                                                                          \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL(                                    \
-          "datatype constructor declaration", d, decls, i);                    \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                    \
-          this == d.d_solver, "datatype constructor declaration", decls, i)    \
-          << "a datatype constructor declaration associated with this solver " \
-             "object";                                                         \
-      i += 1;                                                                  \
-    }                                                                          \
+#define CVC5_API_SOLVER_CHECK_DTCTORDECLS(decls)                            \
+  do                                                                        \
+  {                                                                         \
+    size_t i = 0;                                                           \
+    for (const auto& d : decls)                                             \
+    {                                                                       \
+      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL(                                 \
+          "datatype constructor declaration", d, decls, i);                 \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                 \
+          d_nm == d.d_nm, "datatype constructor declaration", decls, i)     \
+          << "a datatype constructor declaration associated with the node " \
+             "manager of this solver "                                      \
+             "object";                                                      \
+      i += 1;                                                               \
+    }                                                                       \
   } while (0)
 
 /**

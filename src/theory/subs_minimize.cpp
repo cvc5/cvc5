@@ -298,12 +298,16 @@ bool SubstitutionMinimize::findInternal(Node n,
       {
         // only recurse on relevant branch
         Node bval = value[cur[0]];
-        Assert(!bval.isNull() && bval.isConst());
-        unsigned cindex = bval.getConst<bool>() ? 1 : 2;
-        visit.push_back(cur[0]);
-        visit.push_back(cur[cindex]);
+        if (!bval.isNull() && bval.isConst())
+        {
+          unsigned cindex = bval.getConst<bool>() ? 1 : 2;
+          visit.push_back(cur[0]);
+          visit.push_back(cur[cindex]);
+          continue;
+        }
+        // otherwise, we handle it normally below
       }
-      else if (cur.getNumChildren() > 0)
+      if (cur.getNumChildren() > 0)
       {
         Kind ck = cur.getKind();
         bool alreadyJustified = false;

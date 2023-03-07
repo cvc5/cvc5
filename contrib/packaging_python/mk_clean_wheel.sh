@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 ###############################################################################
 # Top contributors (to current version):
 #   Makai Mann, Alex Ozdemir, Gereon Kremer
@@ -35,7 +35,7 @@ source ./$ENVDIR/bin/activate
 
 # install packages
 pip install -q --upgrade pip setuptools auditwheel
-pip install -q Cython pytest toml scikit-build
+pip install -q Cython pytest toml scikit-build flex pyparsing 
 if [ "$(uname)" == "Darwin" ]; then
     # Mac version of auditwheel
     pip install -q delocate

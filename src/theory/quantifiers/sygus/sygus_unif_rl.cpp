@@ -361,7 +361,11 @@ Node SygusUnifRl::constructSol(
     return d_parent->getModelValue(e);
   }
   EnumTypeInfoStrat* etis = snode.d_strats[itd->second.getStrategyIndex()];
-  Node sol = itd->second.buildSol(etis->d_cons, lemmas);
+  Node sol =
+      itd->second.buildSol(etis->d_cons,
+                           lemmas,
+                           options().quantifiers.sygusUnifShuffleCond,
+                           options().quantifiers.sygusUnifCondIndNoRepeatSol);
   Assert(d_useCondPool || !sol.isNull() || !lemmas.empty());
   return sol;
 }
@@ -558,7 +562,9 @@ unsigned SygusUnifRl::DecisionTreeInfo::getStrategyIndex() const
 }
 
 Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
-                                             std::vector<Node>& lemmas)
+                                             std::vector<Node>& lemmas,
+                                             bool shuffleCond,
+                                             bool condIndNoRepeatSol)
 {
   if (!d_template.first.isNull())
   {
@@ -570,12 +576,15 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
                           << " conditions..." << std::endl;
   // reset the trie
   d_pt_sep.d_trie.clear();
-  return d_unif->usingConditionPool() ? buildSolAllCond(cons, lemmas)
-                                      : buildSolMinCond(cons, lemmas);
+  return d_unif->usingConditionPool()
+             ? buildSolAllCond(cons, lemmas, shuffleCond, condIndNoRepeatSol)
+             : buildSolMinCond(cons, lemmas);
 }
 
 Node SygusUnifRl::DecisionTreeInfo::buildSolAllCond(Node cons,
-                                                    std::vector<Node>& lemmas)
+                                                    std::vector<Node>& lemmas,
+                                                    bool shuffleCond,
+                                                    bool condIndNoRepeatSol)
 {
   // model values for evaluation heads
   std::map<Node, Node> hd_mv;
@@ -589,7 +598,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolAllCond(Node cons,
   // bigger, or have no impact) and which conditions will be present in the DT,
   // which influences the "quality" of the solution for cases not covered in the
   // current data points
-  if (options::sygusUnifShuffleCond())
+  if (shuffleCond)
   {
     std::shuffle(d_conds.begin(), d_conds.end(), Random::getRandom());
   }
@@ -624,8 +633,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolAllCond(Node cons,
   Trace("sygus-unif-sol") << "...ready to build solution from DT\n";
   Node sol = extractSol(cons, hd_mv);
   // repeated solution
-  if (options::sygusUnifCondIndNoRepeatSol()
-      && d_sols.find(sol) != d_sols.end())
+  if (condIndNoRepeatSol && d_sols.find(sol) != d_sols.end())
   {
     return Node::null();
   }

@@ -45,6 +45,7 @@ class ArraySolver : protected EnvObj
               SolverState& s,
               InferenceManager& im,
               TermRegistry& tr,
+              BaseSolver& bs,
               CoreSolver& cs,
               ExtfSolver& es,
               ExtTheory& extt);
@@ -84,7 +85,7 @@ class ArraySolver : protected EnvObj
 
  private:
   /** check terms of nth or update kind that occur in termSet */
-  void checkTerms(const std::set<Node>& termSet);
+  void checkTerms(const std::vector<Node>& terms);
   /** check inferences for the given term
    *
    * @param t the term to check
@@ -97,6 +98,8 @@ class ArraySolver : protected EnvObj
   InferenceManager& d_im;
   /** Reference to the term registry of theory of strings */
   TermRegistry& d_termReg;
+  /** reference to the base solver, used for certain queries */
+  BaseSolver& d_bsolver;
   /** reference to the core solver, used for certain queries */
   CoreSolver& d_csolver;
   /** reference to the extended solver, used for certain queries */

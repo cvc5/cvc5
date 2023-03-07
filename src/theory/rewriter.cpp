@@ -17,9 +17,6 @@
 
 #include "options/theory_options.h"
 #include "proof/conv_proof_generator.h"
-#include "smt/smt_statistics_registry.h"
-#include "smt/solver_engine.h"
-#include "smt/solver_engine_scope.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/evaluator.h"
 #include "theory/quantifiers/extended_rewrite.h"
@@ -93,7 +90,7 @@ Node Rewriter::rewrite(TNode node) {
     // eagerly for the sake of efficiency here.
     return node;
   }
-  return getInstance()->rewriteTo(theoryOf(node), node);
+  return rewriteTo(theoryOf(node), node);
 }
 
 Node Rewriter::extendedRewrite(TNode node, bool aggr)
@@ -110,23 +107,23 @@ TrustNode Rewriter::rewriteWithProof(TNode node,
   if (isExtEq)
   {
     // theory rewriter is responsible for rewriting the equality
-    TheoryRewriter* tr = getInstance()->d_theoryRewriters[theoryOf(node)];
+    TheoryRewriter* tr = d_theoryRewriters[theoryOf(node)];
     Assert(tr != nullptr);
     return tr->rewriteEqualityExtWithProof(node);
   }
-  Node ret = getInstance()->rewriteTo(theoryOf(node), node, d_tpg.get());
+  Node ret = rewriteTo(theoryOf(node), node, d_tpg.get());
   return TrustNode::mkTrustRewrite(node, ret, d_tpg.get());
 }
 
-void Rewriter::setProofNodeManager(ProofNodeManager* pnm)
+void Rewriter::finishInit(Env& env)
 {
   // if not already initialized with proof support
   if (d_tpg == nullptr)
   {
-    Trace("rewriter") << "Rewriter::setProofNodeManager" << std::endl;
+    Trace("rewriter") << "Rewriter::finishInit" << std::endl;
     // the rewriter is staticly determinstic, thus use static cache policy
     // for the term conversion proof generator
-    d_tpg.reset(new TConvProofGenerator(pnm,
+    d_tpg.reset(new TConvProofGenerator(env,
                                         nullptr,
                                         TConvPolicy::FIXPOINT,
                                         TConvCachePolicy::STATIC,
@@ -150,11 +147,6 @@ void Rewriter::registerTheoryRewriter(theory::TheoryId tid,
 TheoryRewriter* Rewriter::getTheoryRewriter(theory::TheoryId theoryId)
 {
   return d_theoryRewriters[theoryId];
-}
-
-Rewriter* Rewriter::getInstance()
-{
-  return smt::currentSolverEngine()->getRewriter();
 }
 
 Node Rewriter::rewriteTo(theory::TheoryId theoryId,

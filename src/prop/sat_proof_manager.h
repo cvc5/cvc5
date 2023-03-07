@@ -311,7 +311,7 @@ class SatProofManager : protected EnvObj
    * d_resLinks. It is rather saved to d_redundandLits, whose components we will
    * be handled in a special manner when the resolution chain is finished. This
    * is because the steps corresponding to the removal of redundant literals
-   * have to be done in a specific order. See proccessRedundantLits below.
+   * have to be done in a specific order. See processRedundantLits below.
    *
    * @param lit the literal being resolved against
    * @param redundant whether lit is redundant

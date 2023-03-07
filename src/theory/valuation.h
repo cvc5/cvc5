@@ -98,6 +98,10 @@ public:
    * argument is unmodified.
    */
   bool hasSatValue(TNode n, bool& value) const;
+  /**
+   * Same as above, without setting the value.
+   */
+  bool hasSatValue(TNode n) const;
 
   /**
    * Returns the equality status of the two terms, from the theory that owns the domain type.
@@ -106,9 +110,11 @@ public:
   EqualityStatus getEqualityStatus(TNode a, TNode b);
 
   /**
-   * Returns the model value of the shared term (or null if not available).
+   * Returns the candidate model value of the shared term (or null if not
+   * available). A candidate model value is one computed at full effort,
+   * prior to running theory combination and final model construction.
    */
-  Node getModelValue(TNode var);
+  Node getCandidateModelValue(TNode var);
 
   /**
    * Returns pointer to model. This model is only valid during last call effort
