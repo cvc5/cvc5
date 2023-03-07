@@ -143,8 +143,9 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       Trace("final-pf-hole") << "hole " << r << " : " << eq << std::endl;
     }
   }
-  
-  if (options().proof.checkProofSteps || isOutputOn(OutputTag::TRUSTED_PROOF_STEPS))
+
+  if (options().proof.checkProofSteps
+      || isOutputOn(OutputTag::TRUSTED_PROOF_STEPS))
   {
     Node conc = pn->getResult();
     ProofChecker* pc = pnm->getChecker();
@@ -164,7 +165,8 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       Node query = nm->mkNode(IMPLIES, nm->mkAnd(premises), conc);
       if (isOutputOn(OutputTag::TRUSTED_PROOF_STEPS))
       {
-        output(OutputTag::TRUSTED_PROOF_STEPS) << "(trusted-proof-step " << query << ")" << std::endl;
+        output(OutputTag::TRUSTED_PROOF_STEPS)
+            << "(trusted-proof-step " << query << ")" << std::endl;
       }
       if (options().proof.checkProofSteps)
       {
@@ -184,7 +186,8 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
         Trace("check-proof-steps") << "...got " << res << std::endl;
         if (res != Result::UNSAT)
         {
-          Warning() << "A proof step may not hold: " << r << " proving " << query;
+          Warning() << "A proof step may not hold: " << r << " proving "
+                    << query;
           Warning() << ", result from check-sat was: " << res << std::endl;
           Trace("check-proof-steps")
               << "Original conclusion: " << conc << std::endl;
