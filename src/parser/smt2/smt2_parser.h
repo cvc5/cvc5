@@ -46,7 +46,7 @@ class Smt2Parser : public FlexParser
   /**
    * Parse and return the next command.
    */
-  Command* parseNextCommand() override;
+  std::unique_ptr<Command> parseNextCommand() override;
 
   /** Parse and return the next expression. */
   Term parseNextExpression() override;

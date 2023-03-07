@@ -58,12 +58,11 @@ void testGetInfo(cvc5::Solver* solver, const char* s)
   p->setInput(Input::newStringInput(
       "LANG_SMTLIB_V2_6", string("(get-info ") + s + ")", "<internal>"));
   assert(p != NULL);
-  Command* c = p->nextCommand();
+  std::unique_ptr<Command> c = p->nextCommand();
   assert(c != NULL);
-  cout << c << endl;
+  cout << c.get() << endl;
   stringstream ss;
   c->invoke(solver, symman.get(), ss);
   assert(p->nextCommand() == NULL);
-  delete c;
   cout << ss.str() << endl << endl;
 }

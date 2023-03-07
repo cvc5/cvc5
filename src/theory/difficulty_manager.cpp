@@ -77,7 +77,7 @@ void DifficultyManager::notifyLemma(Node n, bool inFullEffortCheck)
   Kind nk = n.getKind();
   // for lemma (or a_1 ... a_n), if a_i is a literal that is not true in the
   // valuation, then we increment the difficulty of that assertion
-  std::vector<TNode> litsToCheck;
+  std::vector<Node> litsToCheck;
   if (nk == kind::OR)
   {
     litsToCheck.insert(litsToCheck.end(), n.begin(), n.end());
@@ -91,7 +91,7 @@ void DifficultyManager::notifyLemma(Node n, bool inFullEffortCheck)
   {
     litsToCheck.push_back(n);
   }
-  for (TNode nc : litsToCheck)
+  for (const Node& nc : litsToCheck)
   {
     bool pol = nc.getKind() != kind::NOT;
     TNode atom = pol ? nc : nc[0];
