@@ -33,7 +33,8 @@ namespace datatypes {
 
 TypeNode DatatypeConstructorTypeRule::computeType(NodeManager* nodeManager,
                                                   TNode n,
-                                                  bool check)
+                                                  bool check,
+                                                  std::ostream* errOut)
 {
   Assert(n.getKind() == kind::APPLY_CONSTRUCTOR);
   TypeNode consType = n.getOperator().getType(check);
@@ -118,7 +119,8 @@ bool DatatypeConstructorTypeRule::computeIsConst(NodeManager* nodeManager,
 
 TypeNode DatatypeSelectorTypeRule::computeType(NodeManager* nodeManager,
                                                TNode n,
-                                               bool check)
+                                               bool check,
+                                               std::ostream* errOut)
 {
   Assert(n.getKind() == kind::APPLY_SELECTOR);
   TypeNode selType = n.getOperator().getType(check);
@@ -174,7 +176,8 @@ TypeNode DatatypeSelectorTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode DatatypeTesterTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
-                                             bool check)
+                                             bool check,
+                                             std::ostream* errOut)
 {
   Assert(n.getKind() == kind::APPLY_TESTER);
   if (check)
@@ -214,7 +217,8 @@ TypeNode DatatypeTesterTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode DatatypeUpdateTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
-                                             bool check)
+                                             bool check,
+                                             std::ostream* errOut)
 {
   Assert(n.getKind() == kind::APPLY_UPDATER);
   TypeNode updType = n.getOperator().getType(check);
@@ -250,7 +254,8 @@ TypeNode DatatypeUpdateTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode DatatypeAscriptionTypeRule::computeType(NodeManager* nodeManager,
                                                  TNode n,
-                                                 bool check)
+                                                 bool check,
+                                                 std::ostream* errOut)
 {
   Trace("typecheck-idt") << "typechecking ascription: " << n << std::endl;
   Assert(n.getKind() == kind::APPLY_TYPE_ASCRIPTION);
@@ -295,7 +300,8 @@ Cardinality ConstructorProperties::computeCardinality(TypeNode type)
 
 TypeNode DtSizeTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
-                                     bool check)
+                                     bool check,
+                                     std::ostream* errOut)
 {
   if (check)
   {
@@ -311,7 +317,8 @@ TypeNode DtSizeTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode DtBoundTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
-                                      bool check)
+                                      bool check,
+                                      std::ostream* errOut)
 {
   if (check)
   {
@@ -337,7 +344,8 @@ TypeNode DtBoundTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode DtSygusEvalTypeRule::computeType(NodeManager* nodeManager,
                                           TNode n,
-                                          bool check)
+                                          bool check,
+                                          std::ostream* errOut)
 {
   TypeNode headType = n[0].getType(check);
   if (!headType.isDatatype())
@@ -378,7 +386,8 @@ TypeNode DtSygusEvalTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode MatchTypeRule::computeType(NodeManager* nodeManager,
                                     TNode n,
-                                    bool check)
+                                    bool check,
+                                    std::ostream* errOut)
 {
   Assert(n.getKind() == kind::MATCH);
 
@@ -478,7 +487,8 @@ TypeNode MatchTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode MatchCaseTypeRule::computeType(NodeManager* nodeManager,
                                         TNode n,
-                                        bool check)
+                                        bool check,
+                                        std::ostream* errOut)
 {
   Assert(n.getKind() == kind::MATCH_CASE);
   if (check)
@@ -495,7 +505,8 @@ TypeNode MatchCaseTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode MatchBindCaseTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
-                                            bool check)
+                                            bool check,
+                                            std::ostream* errOut)
 {
   Assert(n.getKind() == kind::MATCH_BIND_CASE);
   if (check)
@@ -515,7 +526,10 @@ TypeNode MatchBindCaseTypeRule::computeType(NodeManager* nodeManager,
   return n[2].getType(check);
 }
 
-TypeNode TupleProjectTypeRule::computeType(NodeManager* nm, TNode n, bool check)
+TypeNode TupleProjectTypeRule::computeType(NodeManager* nm,
+                                           TNode n,
+                                           bool check,
+                                           std::ostream* errOut)
 {
   Assert(n.getKind() == kind::TUPLE_PROJECT && n.hasOperator()
          && n.getOperator().getKind() == kind::TUPLE_PROJECT_OP);
@@ -561,7 +575,8 @@ TypeNode TupleProjectTypeRule::computeType(NodeManager* nm, TNode n, bool check)
 
 TypeNode CodatatypeBoundVariableTypeRule::computeType(NodeManager* nodeManager,
                                                       TNode n,
-                                                      bool check)
+                                                      bool check,
+                                                      std::ostream* errOut)
 {
   return n.getConst<CodatatypeBoundVariable>().getType();
 }

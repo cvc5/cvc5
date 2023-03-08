@@ -17,13 +17,14 @@
 #ifndef CVC5__MAIN__PORTFOLIO_DRIVER_H
 #define CVC5__MAIN__PORTFOLIO_DRIVER_H
 
+#include <cvc5/cvc5.h>
+
 #include <optional>
 
-#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "main/command_executor.h"
 #include "parser/api/cpp/command.h"
-#include "parser/input_parser.h"
+#include "parser/api/cpp/input_parser.h"
 
 namespace cvc5::main {
 

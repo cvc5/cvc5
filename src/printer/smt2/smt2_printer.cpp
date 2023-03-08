@@ -15,13 +15,14 @@
 
 #include "printer/smt2/smt2_printer.h"
 
+#include <cvc5/cvc5.h>
+
 #include <iostream>
 #include <list>
 #include <string>
 #include <typeinfo>
 #include <vector>
 
-#include "api/cpp/cvc5.h"
 #include "expr/array_store_all.h"
 #include "expr/ascription_type.h"
 #include "expr/cardinality_constraint.h"
@@ -38,11 +39,13 @@
 #include "printer/let_binding.h"
 #include "proof/unsat_core.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
+#include "theory/builtin/abstract_type.h"
 #include "theory/datatypes/project_op.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/theory_model.h"
 #include "theory/uf/function_const.h"
+#include "theory/uf/theory_uf_rewriter.h"
 #include "util/bitvector.h"
 #include "util/divisible.h"
 #include "util/finite_field_value.h"
@@ -197,6 +200,19 @@ void Smt2Printer::toStream(std::ostream& out,
         n.constToStream(out);
       }
       break;
+    case kind::ABSTRACT_TYPE:
+    {
+      const AbstractType& at = n.getConst<AbstractType>();
+      Kind atk = at.getKind();
+      out << "?";
+      // note that the fully abstract type (where atk is ABSTRACT_TYPE) is
+      // printed simply as "?", not, e.g., "?Abstract"
+      if (atk != kind::ABSTRACT_TYPE)
+      {
+        out << smtKindString(atk);
+      }
+      break;
+    }
     case kind::BITVECTOR_TYPE:
       out << "(_ BitVec " << n.getConst<BitVectorSize>().d_size << ")";
       break;
@@ -526,7 +542,7 @@ void Smt2Printer::toStream(std::ostream& out,
     return;
   }
 
-  if (n.getKind() == kind::SKOLEM && nm->getSkolemManager()->isAbstractValue(n))
+  if (k == kind::SKOLEM && nm->getSkolemManager()->isAbstractValue(n))
   {
     // abstract value
     std::string s = n.getName();
@@ -539,7 +555,7 @@ void Smt2Printer::toStream(std::ostream& out,
     if (n.hasName())
     {
       std::string s = n.getName();
-      if (n.getKind() == kind::RAW_SYMBOL)
+      if (k == kind::RAW_SYMBOL)
       {
         // raw symbols are never quoted
         out << s;
@@ -551,16 +567,24 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     else
     {
-      if (n.getKind() == kind::VARIABLE)
+      if (k == kind::VARIABLE)
       {
         out << "var_";
       }
       else
       {
-        out << n.getKind() << '_';
+        out << k << '_';
       }
       out << n.getId();
     }
+    return;
+  }
+  if (k == kind::APPLY_UF && !n.getOperator().isVar())
+  {
+    // Must print as HO apply instead. This ensures un-beta-reduced function
+    // applications can be reparsed.
+    Node hoa = theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n);
+    toStream(out, hoa, toDepth);
     return;
   }
 
@@ -1173,8 +1197,6 @@ std::string Smt2Printer::smtKindString(Kind k)
     case kind::SELECT: return "select";
     case kind::STORE: return "store";
     case kind::ARRAY_TYPE: return "Array";
-    case kind::PARTIAL_SELECT_0: return "partial_select_0";
-    case kind::PARTIAL_SELECT_1: return "partial_select_1";
     case kind::EQ_RANGE: return "eqrange";
 
     // ff theory
@@ -1936,7 +1958,18 @@ void Smt2Printer::toStreamCmdSetOption(std::ostream& out,
                                        const std::string& flag,
                                        const std::string& value) const
 {
-  out << "(set-option :" << flag << ' ' << value << ')' << std::endl;
+  out << "(set-option :" << flag << ' ';
+  // special cases: output channels require surrounding quotes in smt2 format
+  if (flag == "diagnostic-output-channel" || flag == "regular-output-channel"
+      || flag == "in")
+  {
+    out << "\"" << value << "\"";
+  }
+  else
+  {
+    out << value;
+  }
+  out << ')' << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetOption(std::ostream& out,

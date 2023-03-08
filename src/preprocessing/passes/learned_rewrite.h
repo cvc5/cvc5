@@ -87,6 +87,7 @@ class LearnedRewrite : public PreprocessingPass
    */
   Node rewriteLearnedRec(Node n,
                          theory::arith::BoundInference& binfer,
+                         const std::vector<Node>& learnedLits,
                          std::unordered_set<Node>& lems,
                          std::unordered_map<TNode, Node>& visited);
   /**
@@ -94,6 +95,7 @@ class LearnedRewrite : public PreprocessingPass
    */
   Node rewriteLearned(Node n,
                       theory::arith::BoundInference& binfer,
+                      const std::vector<Node>& learnedLits,
                       std::unordered_set<Node>& lems);
   /** Return learned rewrite */
   Node returnRewriteLearned(Node n, Node nr, LearnedRewriteId id);

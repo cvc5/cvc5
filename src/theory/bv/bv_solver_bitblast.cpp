@@ -79,7 +79,7 @@ class BBRegistrar : public prop::Registrar
  public:
   BBRegistrar(NodeBitblaster* bb) : d_bitblaster(bb) {}
 
-  void preRegister(Node n) override
+  void notifySatLiteral(Node n) override
   {
     if (d_registeredAtoms.find(n) != d_registeredAtoms.end())
     {
@@ -248,8 +248,7 @@ bool BVSolverBitblast::preNotifyFact(
    * If this is the case we can assert `fact` to the SAT solver instead of
    * using assumptions.
    */
-  if (options().bv.bvAssertInput && val.isSatLiteral(fact)
-      && val.getDecisionLevel(fact) == 0 && val.getIntroLevel(fact) == 0)
+  if (options().bv.bvAssertInput && val.isFixed(fact))
   {
     Assert(!val.isDecision(fact));
     d_bbInputFacts.push_back(fact);

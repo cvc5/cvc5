@@ -22,6 +22,7 @@
 #include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "options/theory_options.h"
+#include "printer/smt2/smt2_printer.h"
 #include "smt/logic_exception.h"
 #include "theory/decision_manager.h"
 #include "theory/ext_theory.h"
@@ -1113,6 +1114,12 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   Kind ak = atom.getKind();
   if (ak == EQUAL)
   {
+    if (atom[0].getType().isRegExp())
+    {
+      std::stringstream ss;
+      ss << "Equality between regular expressions is not supported";
+      throw LogicException(ss.str());
+    }
     // always apply aggressive equality rewrites here
     Node ret = d_rewriter.rewriteEqualityExt(atom);
     if (ret != atom)
@@ -1163,6 +1170,22 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
             STRING_SUBSTR, atom[0], atom[1], nm->mkConstInt(Rational(1))));
     return TrustNode::mkTrustRewrite(atom, ret, nullptr);
   }
+  else if (ak == REGEXP_RANGE)
+  {
+    for (const Node& nc : atom)
+    {
+      if (!nc.isConst())
+      {
+        throw LogicException(
+            "expecting a constant string term in regexp range");
+      }
+      if (nc.getConst<String>().size() != 1)
+      {
+        throw LogicException(
+            "expecting a single constant string term in regexp range");
+      }
+    }
+  }
 
   TrustNode ret;
   Node atomRet = atom;
@@ -1177,6 +1200,51 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
                            << " via regular expression elimination."
                            << std::endl;
       atomRet = ret.getNode();
+    }
+  }
+  if (options().strings.stringFMF)
+  {
+    // Our decision strategy will minimize the length of this term if it is a
+    // variable but not an internally generated Skolem, or a term that does
+    // not belong to this theory.
+    if (atom.isVar() ? !d_termReg.getSkolemCache()->isSkolem(atom)
+                     : kindToTheoryId(ak) != THEORY_STRINGS
+                           && atom.getType().isStringLike())
+    {
+      d_termReg.preRegisterInputVar(atom);
+      Trace("strings-preregister") << "input variable: " << atom << std::endl;
+    }
+  }
+
+  // all characters of constants should fall in the alphabet
+  if (atom.isConst() && atom.getType().isString())
+  {
+    uint32_t alphaCard = d_termReg.getAlphabetCardinality();
+    std::vector<unsigned> vec = atom.getConst<String>().getVec();
+    for (unsigned u : vec)
+    {
+      if (u >= alphaCard)
+      {
+        std::stringstream ss;
+        ss << "Characters in string \"" << atom
+           << "\" are outside of the given alphabet.";
+        throw LogicException(ss.str());
+      }
+    }
+  }
+  if (!options().strings.stringExp)
+  {
+    if (ak == STRING_INDEXOF || ak == STRING_INDEXOF_RE || ak == STRING_ITOS
+        || ak == STRING_STOI || ak == STRING_REPLACE || ak == STRING_SUBSTR
+        || ak == STRING_REPLACE_ALL || ak == SEQ_NTH || ak == STRING_REPLACE_RE
+        || ak == STRING_REPLACE_RE_ALL || ak == STRING_CONTAINS
+        || ak == STRING_LEQ || ak == STRING_TO_LOWER || ak == STRING_TO_UPPER
+        || ak == STRING_REV || ak == STRING_UPDATE)
+    {
+      std::stringstream ss;
+      ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindStringOf(atom)
+         << " not supported in default mode, try --strings-exp";
+      throw LogicException(ss.str());
     }
   }
   return ret;
@@ -1213,6 +1281,7 @@ void TheoryStrings::runInferStep(InferStep s, Theory::Effort e, int effort)
       d_esolver.checkExtfReductionsEager();
       break;
     case CHECK_EXTF_REDUCTION: d_esolver.checkExtfReductions(e); break;
+    case CHECK_MEMBERSHIP_EAGER: d_rsolver.checkMembershipsEager(); break;
     case CHECK_MEMBERSHIP: d_rsolver.checkMemberships(e); break;
     case CHECK_CARDINALITY: d_bsolver.checkCardinality(); break;
     default: Unreachable(); break;

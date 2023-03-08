@@ -15,6 +15,8 @@
 
 #include "parser/parser_antlr.h"
 
+#include <cvc5/cvc5.h>
+
 #include <clocale>
 #include <fstream>
 #include <iostream>
@@ -22,7 +24,6 @@
 #include <sstream>
 #include <unordered_set>
 
-#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/kind.h"
@@ -54,24 +55,19 @@ Parser::Parser() : d_done(true), d_canIncludeFile(true) {}
 
 Parser::~Parser()
 {
-  for (std::list<Command*>::iterator iter = d_commandQueue.begin();
-       iter != d_commandQueue.end();
-       ++iter)
-  {
-    Command* command = *iter;
-    delete command;
-  }
-  d_commandQueue.clear();
 }
 
-void Parser::preemptCommand(Command* cmd) { d_commandQueue.push_back(cmd); }
-Command* Parser::nextCommand()
+void Parser::preemptCommand(std::unique_ptr<Command> cmd)
+{
+  d_commandQueue.push_back(std::move(cmd));
+}
+std::unique_ptr<Command> Parser::nextCommand()
 {
   Trace("parser") << "nextCommand()" << std::endl;
-  Command* cmd = NULL;
+  std::unique_ptr<Command> cmd;
   if (!d_commandQueue.empty())
   {
-    cmd = d_commandQueue.front();
+    cmd = std::move(d_commandQueue.front());
     d_commandQueue.pop_front();
     setDone(cmd == NULL);
   }
@@ -80,8 +76,8 @@ Command* Parser::nextCommand()
     try
     {
       cmd = d_input->parseCommand();
-      d_commandQueue.push_back(cmd);
-      cmd = d_commandQueue.front();
+      d_commandQueue.push_back(std::move(cmd));
+      cmd = std::move(d_commandQueue.front());
       d_commandQueue.pop_front();
       setDone(cmd == NULL);
     }
@@ -96,7 +92,7 @@ Command* Parser::nextCommand()
       parseError(e.what());
     }
   }
-  Trace("parser") << "nextCommand() => " << cmd << std::endl;
+  Trace("parser") << "nextCommand() => " << cmd.get() << std::endl;
   return cmd;
 }
 

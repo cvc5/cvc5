@@ -172,8 +172,9 @@ ClauseId MinisatSatSolver::addClause(SatClause& clause, bool removable) {
   return clause_id;
 }
 
-SatVariable MinisatSatSolver::newVar(bool isTheoryAtom, bool preRegister, bool canErase) {
-  return d_minisat->newVar(true, true, isTheoryAtom, preRegister, canErase);
+SatVariable MinisatSatSolver::newVar(bool isTheoryAtom, bool canErase)
+{
+  return d_minisat->newVar(true, true, isTheoryAtom, canErase);
 }
 
 SatValue MinisatSatSolver::solve(unsigned long& resource) {
@@ -251,10 +252,6 @@ SatValue MinisatSatSolver::modelValue(SatLiteral l){
   return toSatLiteralValue(d_minisat->modelValue(toMinisatLit(l)));
 }
 
-bool MinisatSatSolver::properExplanation(SatLiteral lit, SatLiteral expl) const {
-  return true;
-}
-
 void MinisatSatSolver::requirePhase(SatLiteral lit) {
   Assert(!d_minisat->rnd_pol);
   Trace("minisat") << "requirePhase(" << lit << ")" << " " <<  lit.getSatVariable() << " " << lit.isNegated() << std::endl;
@@ -264,6 +261,12 @@ void MinisatSatSolver::requirePhase(SatLiteral lit) {
 
 bool MinisatSatSolver::isDecision(SatVariable decn) const {
   return d_minisat->isDecision( decn );
+}
+
+bool MinisatSatSolver::isFixed(SatVariable var) const
+{
+  return d_minisat->intro_level(var) == 0 && d_minisat->user_level(var) == 0
+         && d_minisat->level(var) == 0;
 }
 
 std::vector<SatLiteral> MinisatSatSolver::getDecisions() const
@@ -283,16 +286,6 @@ std::vector<Node> MinisatSatSolver::getOrderHeap() const
   return d_minisat->getMiniSatOrderHeap();
 }
 
-int32_t MinisatSatSolver::getDecisionLevel(SatVariable v) const
-{
-  return d_minisat->level(v) + d_minisat->user_level(v);
-}
-
-int32_t MinisatSatSolver::getIntroLevel(SatVariable v) const
-{
-  return d_minisat->intro_level(v);
-}
-
 SatProofManager* MinisatSatSolver::getProofManager()
 {
   return d_minisat->getProofManager();
@@ -305,7 +298,8 @@ std::shared_ptr<ProofNode> MinisatSatSolver::getProof()
 
 /** Incremental interface */
 
-unsigned MinisatSatSolver::getAssertionLevel() const {
+uint32_t MinisatSatSolver::getAssertionLevel() const
+{
   return d_minisat->getAssertionLevel();
 }
 

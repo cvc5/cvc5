@@ -53,12 +53,12 @@ public:
 
   /**
    * Create a new boolean variable in the solver.
-   * @param isTheoryAtom is this a theory atom that needs to be asserted to theory
-   * @param preRegister whether to preregister the atom with the theory
+   * @param isTheoryAtom is this a theory atom that needs to be asserted to
+   * theory
    * @param canErase whether the sat solver can safely eliminate this variable
    *
    */
-  virtual SatVariable newVar(bool isTheoryAtom, bool preRegister, bool canErase) = 0;
+  virtual SatVariable newVar(bool isTheoryAtom, bool canErase) = 0;
 
   /** Create a new (or return an existing) boolean variable representing the constant true */
   virtual SatVariable trueVar() = 0;
@@ -96,7 +96,7 @@ public:
   virtual SatValue modelValue(SatLiteral l) = 0;
 
   /** Get the current assertion level */
-  virtual unsigned getAssertionLevel() const = 0;
+  virtual uint32_t getAssertionLevel() const = 0;
 
   /** Check if the solver is in an inconsistent state */
   virtual bool ok() const = 0;
@@ -116,11 +116,10 @@ public:
 
 };/* class SatSolver */
 
-
-class CDCLTSatSolverInterface : public SatSolver
+class CDCLTSatSolver : public SatSolver
 {
  public:
-  virtual ~CDCLTSatSolverInterface(){};
+  virtual ~CDCLTSatSolver(){};
 
   virtual void initialize(context::Context* context,
                           prop::TheoryProxy* theoryProxy,
@@ -137,11 +136,14 @@ class CDCLTSatSolverInterface : public SatSolver
    */
   virtual void resetTrail() = 0;
 
-  virtual bool properExplanation(SatLiteral lit, SatLiteral expl) const = 0;
-
   virtual void requirePhase(SatLiteral lit) = 0;
 
   virtual bool isDecision(SatVariable decn) const = 0;
+
+  /**
+   * Return whether variable has a fixed assignment.
+   */
+  virtual bool isFixed(SatVariable var) const = 0;
 
   /**
    * Return the current list of decisions made by the SAT solver.
@@ -154,19 +156,9 @@ class CDCLTSatSolverInterface : public SatSolver
    */
   virtual std::vector<Node> getOrderHeap() const = 0;
 
-  /**
-   * Return the current decision level of `lit`.
-   */
-  virtual int32_t getDecisionLevel(SatVariable v) const { return -1; }
-
-  /**
-   * Return the user-context level when `lit` was introduced..
-   */
-  virtual int32_t getIntroLevel(SatVariable v) const { return -1; }
-
   virtual std::shared_ptr<ProofNode> getProof() = 0;
 
-}; /* class CDCLTSatSolverInterface */
+}; /* class CDCLTSatSolver */
 
 inline std::ostream& operator <<(std::ostream& out, prop::SatLiteral lit) {
   out << lit.toString();

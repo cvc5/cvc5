@@ -15,13 +15,16 @@
 
 #include "theory/quantifiers/theory_quantifiers_type_rules.h"
 
+#include "theory/quantifiers/inst_strategy_pool.h"
+
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
 TypeNode QuantifierTypeRule::computeType(NodeManager* nodeManager,
                                          TNode n,
-                                         bool check)
+                                         bool check,
+                                         std::ostream* errOut)
 {
   Trace("typecheck-q") << "type check for fa " << n << std::endl;
   Assert((n.getKind() == kind::FORALL || n.getKind() == kind::EXISTS)
@@ -49,13 +52,17 @@ TypeNode QuantifierTypeRule::computeType(NodeManager* nodeManager,
       }
       for (const Node& p : n[2])
       {
-        if (p.getKind() == kind::INST_POOL
-            && p.getNumChildren() != n[0].getNumChildren())
+        if (p.getKind() != kind::INST_POOL)
+        {
+          continue;
+        }
+        if (!InstStrategyPool::hasProductSemantics(n, p)
+            && !InstStrategyPool::hasTupleSemantics(n, p))
         {
           throw TypeCheckingExceptionPrivate(
               n,
-              "expected number of arguments to pool to be the same as the "
-              "number of bound variables of the quantified formula");
+              "Pool annotation does not match the types of the variables of "
+              "the quantified formula.");
         }
       }
     }
@@ -65,7 +72,8 @@ TypeNode QuantifierTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode QuantifierBoundVarListTypeRule::computeType(NodeManager* nodeManager,
                                                      TNode n,
-                                                     bool check)
+                                                     bool check,
+                                                     std::ostream* errOut)
 {
   Assert(n.getKind() == kind::BOUND_VAR_LIST);
   if (check)
@@ -84,7 +92,8 @@ TypeNode QuantifierBoundVarListTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode QuantifierInstPatternTypeRule::computeType(NodeManager* nodeManager,
                                                     TNode n,
-                                                    bool check)
+                                                    bool check,
+                                                    std::ostream* errOut)
 {
   Assert(n.getKind() == kind::INST_PATTERN);
   if (check)
@@ -104,17 +113,47 @@ TypeNode QuantifierInstPatternTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode QuantifierAnnotationTypeRule::computeType(NodeManager* nodeManager,
                                                    TNode n,
-                                                   bool check)
+                                                   bool check,
+                                                   std::ostream* errOut)
 {
-  if (n.getKind() == kind::INST_ATTRIBUTE)
+  if (check)
   {
-    if (n.getNumChildren() > 1)
+    Kind k = n.getKind();
+    if (k == kind::INST_ATTRIBUTE)
     {
-      // first must be a keyword
-      if (n[0].getKind() != kind::CONST_STRING)
+      if (n.getNumChildren() > 1)
+      {
+        // first must be a keyword
+        if (n[0].getKind() != kind::CONST_STRING)
+        {
+          throw TypeCheckingExceptionPrivate(
+              n[0], "Expecting a keyword at the head of INST_ATTRIBUTE.");
+        }
+      }
+    }
+    else if (k == kind::INST_POOL)
+    {
+      // arguments must have set types
+      for (const Node& nn : n)
+      {
+        if (!nn.getType().isSet())
+        {
+          throw TypeCheckingExceptionPrivate(n, "Expecting a set as argument.");
+        }
+      }
+    }
+    else if (k == kind::INST_ADD_TO_POOL || k == kind::SKOLEM_ADD_TO_POOL)
+    {
+      TypeNode tn = n[0].getType();
+      TypeNode tn1 = n[1].getType();
+      if (!tn1.isSet())
+      {
+        throw TypeCheckingExceptionPrivate(n, "Expecting a set as argument.");
+      }
+      if (tn1.getSetElementType() != tn)
       {
         throw TypeCheckingExceptionPrivate(
-            n[0], "Expecting a keyword at the head of INST_ATTRIBUTE.");
+            n, "Type of term must match the element type of the pool.");
       }
     }
   }
@@ -122,7 +161,7 @@ TypeNode QuantifierAnnotationTypeRule::computeType(NodeManager* nodeManager,
 }
 
 TypeNode QuantifierInstPatternListTypeRule::computeType(
-    NodeManager* nodeManager, TNode n, bool check)
+    NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
   Assert(n.getKind() == kind::INST_PATTERN_LIST);
   if (check)
@@ -144,7 +183,7 @@ TypeNode QuantifierInstPatternListTypeRule::computeType(
   return nodeManager->instPatternListType();
 }
 TypeNode QuantifierOracleFormulaGenTypeRule::computeType(
-    NodeManager* nodeManager, TNode n, bool check)
+    NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
   Assert(n.getKind() == kind::ORACLE_FORMULA_GEN);
   if (check)

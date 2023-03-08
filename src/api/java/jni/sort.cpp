@@ -13,7 +13,8 @@
  * The cvc5 Java API.
  */
 
-#include "api/cpp/cvc5.h"
+#include <cvc5/cvc5.h>
+
 #include "api_utilities.h"
 #include "io_github_cvc5_Sort.h"
 
@@ -84,6 +85,21 @@ JNIEXPORT jint JNICALL Java_io_github_cvc5_Sort_compareTo(JNIEnv* env,
     return 0;
   }
   return static_cast<jint>(1);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Sort
+ * Method:    getKind
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_io_github_cvc5_Sort_getKind(JNIEnv* env,
+                                                        jobject,
+                                                        jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jint>(current->getKind());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -453,6 +469,21 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Sort_isSequence(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
   return static_cast<jboolean>(current->isSequence());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
+
+/*
+ * Class:     io_github_cvc5_Sort
+ * Method:    isAbstract
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Sort_isAbstract(JNIEnv* env,
+                                                               jobject,
+                                                               jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isAbstract());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
@@ -911,6 +942,21 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Sort_getSequenceElementSort(
   Sort* current = reinterpret_cast<Sort*>(pointer);
   Sort* retPointer = new Sort(current->getSequenceElementSort());
   return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Sort
+ * Method:    getAbstractedKind
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_io_github_cvc5_Sort_getAbstractedKind(JNIEnv* env,
+                                                                  jobject,
+                                                                  jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jint>(current->getAbstractedKind());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 

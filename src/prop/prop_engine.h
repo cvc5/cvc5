@@ -20,7 +20,8 @@
 #ifndef CVC5__PROP_ENGINE_H
 #define CVC5__PROP_ENGINE_H
 
-#include "api/cpp/cvc5_types.h"
+#include <cvc5/cvc5_types.h>
+
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "proof/proof.h"
@@ -45,7 +46,7 @@ class DecisionEngine;
 namespace prop {
 
 class CnfStream;
-class CDCLTSatSolverInterface;
+class CDCLTSatSolver;
 class ProofCnfStream;
 class PropPfManager;
 class TheoryProxy;
@@ -169,20 +170,10 @@ class PropEngine : protected EnvObj
   std::vector<Node> getPropOrderHeap() const;
 
   /**
-   * Return SAT context level at which `lit` was decided on.
-   *
-   * @param lit: The node in question, must have an associated SAT literal.
-   * @return Decision level of the SAT variable of `lit` (phase is disregarded),
-   *         or -1 if `lit` has not been assigned yet.
+   * Return whether lit has a fixed SAT assignment (i.e., implied by input
+   * assertions).
    */
-  int32_t getDecisionLevel(Node lit) const;
-
-  /**
-   * Return the user-context level when `lit` was introduced..
-   *
-   * @return User-context level or -1 if not yet introduced.
-   */
-  int32_t getIntroLevel(Node lit) const;
+  bool isFixed(TNode lit) const;
 
   /**
    * Checks the current context for satisfiability.
@@ -264,7 +255,7 @@ class PropEngine : protected EnvObj
   /**
    * Get the assertion level of the SAT solver.
    */
-  unsigned getAssertionLevel() const;
+  uint32_t getAssertionLevel() const;
 
   /**
    * Return true if we are currently searching (either in this or
@@ -297,6 +288,8 @@ class PropEngine : protected EnvObj
    */
   bool properExplanation(TNode node, TNode expl) const;
 
+  /** Get the associated CNF stream. */
+  CnfStream* getCnfStream();
   /** Retrieve this modules proof CNF stream. */
   ProofCnfStream* getProofCnfStream();
 
@@ -404,7 +397,7 @@ class PropEngine : protected EnvObj
   TheoryProxy* d_theoryProxy;
 
   /** The SAT solver proxy */
-  CDCLTSatSolverInterface* d_satSolver;
+  CDCLTSatSolver* d_satSolver;
 
   /** List of all of the assertions that need to be made */
   std::vector<Node> d_assertionList;

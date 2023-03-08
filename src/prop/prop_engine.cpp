@@ -358,18 +358,13 @@ std::vector<Node> PropEngine::getPropOrderHeap() const
   return d_satSolver->getOrderHeap();
 }
 
-int32_t PropEngine::getDecisionLevel(Node lit) const
+bool PropEngine::isFixed(TNode lit) const
 {
-  Assert(isSatLiteral(lit));
-  return d_satSolver->getDecisionLevel(
-      d_cnfStream->getLiteral(lit).getSatVariable());
-}
-
-int32_t PropEngine::getIntroLevel(Node lit) const
-{
-  Assert(isSatLiteral(lit));
-  return d_satSolver->getIntroLevel(
-      d_cnfStream->getLiteral(lit).getSatVariable());
+  if (isSatLiteral(lit))
+  {
+    return d_satSolver->isFixed(d_cnfStream->getLiteral(lit).getSatVariable());
+  }
+  return false;
 }
 
 void PropEngine::printSatisfyingAssignment(){
@@ -619,7 +614,7 @@ void PropEngine::resetTrail()
   Trace("prop") << "resetTrail()" << std::endl;
 }
 
-unsigned PropEngine::getAssertionLevel() const
+uint32_t PropEngine::getAssertionLevel() const
 {
   return d_satSolver->getAssertionLevel();
 }
@@ -681,23 +676,6 @@ bool PropEngine::properExplanation(TNode node, TNode expl) const
           << std::endl;
       return false;
     }
-
-    if (!d_satSolver->properExplanation(nodeLit, iLit))
-    {
-      Trace("properExplanation")
-          << "properExplanation(): SAT solver told us that node" << std::endl
-          << "properExplanation(): " << *i << std::endl
-          << "properExplanation(): is not part of a proper explanation node for"
-          << std::endl
-          << "properExplanation(): " << node << std::endl
-          << "properExplanation(): Perhaps it one of the two isn't assigned or "
-             "the explanation"
-          << std::endl
-          << "properExplanation(): node wasn't propagated before the node "
-             "being explained"
-          << std::endl;
-      return false;
-    }
   }
 
   return true;
@@ -711,6 +689,8 @@ void PropEngine::checkProof(const context::CDList<Node>& assertions)
   }
   return d_ppm->checkProof(assertions);
 }
+
+CnfStream* PropEngine::getCnfStream() { return d_theoryProxy->getCnfStream(); }
 
 ProofCnfStream* PropEngine::getProofCnfStream() { return d_pfCnfStream.get(); }
 

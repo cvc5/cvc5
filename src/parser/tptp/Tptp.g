@@ -99,7 +99,7 @@ using namespace cvc5::parser;
 #include <iterator>
 #include <vector>
 
-#include "api/cpp/cvc5.h"
+#include <cvc5/cvc5.h>
 #include "base/output.h"
 #include "parser/antlr_input.h"
 #include "parser/parser_antlr.h"
@@ -138,7 +138,7 @@ parseExpr returns [cvc5::parser::tptp::myExpr expr]
  * Parses a command
  * @return the parsed command, or NULL if we've reached the end of the input
  */
-parseCommand returns [cvc5::parser::Command* cmd = NULL]
+parseCommand returns [std::unique_ptr<cvc5::parser::Command> cmd = nullptr]
 @declarations {
   cvc5::Term expr;
   TptpState::FormulaRole fr;
@@ -239,7 +239,7 @@ parseCommand returns [cvc5::parser::Command* cmd = NULL]
       const std::string& tptpDir = PARSER_STATE->getTptpDir();
       PARSER_BASE->includeTptpFile(name, tptpDir);
       // The command of the included file will be produced at the next parseCommand() call
-      cmd = new EmptyCommand("include::" + name);
+      cmd = std::make_unique<EmptyCommand>("include::" + name);
     }
   | EOF
     {
@@ -247,7 +247,7 @@ parseCommand returns [cvc5::parser::Command* cmd = NULL]
       cvc5::Term aexpr = PARSER_STATE->getAssertionDistinctConstants();
       if( !aexpr.isNull() )
       {
-        PARSER_STATE->preemptCommand(new AssertCommand(aexpr));
+        PARSER_STATE->preemptCommand(std::make_unique<AssertCommand>(aexpr));
       }
 
       std::string filename = PARSER_BASE->getInput()->getInputStreamName();
@@ -258,12 +258,12 @@ parseCommand returns [cvc5::parser::Command* cmd = NULL]
       if(filename.substr(filename.length() - 2) == ".p") {
         filename = filename.substr(0, filename.length() - 2);
       }
-      PARSER_STATE->preemptCommand(new SetInfoCommand("filename", filename));
+      PARSER_STATE->preemptCommand(std::make_unique<SetInfoCommand>("filename", filename));
       if(PARSER_STATE->hasConjecture()) {
         // note this does not impact how the TPTP status is reported currently
-        PARSER_STATE->preemptCommand(new CheckSatAssumingCommand(SOLVER->mkTrue()));
+        PARSER_STATE->preemptCommand(std::make_unique<CheckSatAssumingCommand>(SOLVER->mkTrue()));
       } else {
-        PARSER_STATE->preemptCommand(new CheckSatCommand());
+        PARSER_STATE->preemptCommand(std::make_unique<CheckSatCommand>());
       }
       cmd = nullptr;
     }
@@ -936,7 +936,7 @@ thfQuantifier[cvc5::Kind& kind]
     }
   ;
 
-thfAtomTyping[cvc5::parser::Command*& cmd]
+thfAtomTyping[std::unique_ptr<cvc5::parser::Command>& cmd]
 // for now only supports mapping types (i.e. no applied types)
 @declarations {
   cvc5::Term expr;
@@ -950,7 +950,7 @@ thfAtomTyping[cvc5::parser::Command*& cmd]
         if (PARSER_STATE->isDeclared(name, SYM_SORT))
         {
           // duplicate declaration is fine, they're compatible
-          cmd = new EmptyCommand("compatible redeclaration of sort " + name);
+          cmd = std::make_unique<EmptyCommand>("compatible redeclaration of sort " + name);
         }
         else if (PARSER_STATE->isDeclared(name, SYM_VARIABLE))
         {
@@ -963,7 +963,7 @@ thfAtomTyping[cvc5::parser::Command*& cmd]
         {
           // as yet, it's undeclared
           cvc5::Sort atype = PARSER_STATE->mkSort(name);
-          cmd = new DeclareSortCommand(name, 0, atype);
+          cmd = std::make_unique<DeclareSortCommand>(name, 0, atype);
         }
       }
     | parseThfType[type]
@@ -973,14 +973,14 @@ thfAtomTyping[cvc5::parser::Command*& cmd]
           // error: cannot be both sort and constant
           PARSER_STATE->parseError("Symbol `" + name
                                    + "' previously declared as a sort");
-          cmd = new EmptyCommand("compatible redeclaration of sort " + name);
+          cmd = std::make_unique<EmptyCommand>("compatible redeclaration of sort " + name);
         }
         else if (PARSER_STATE->isDeclared(name, SYM_VARIABLE))
         {
           if (type == PARSER_STATE->getVariable(name).getSort())
           {
             // duplicate declaration is fine, they're compatible
-            cmd = new EmptyCommand("compatible redeclaration of constant "
+            cmd = std::make_unique<EmptyCommand>("compatible redeclaration of constant "
                                    + name);
           }
           else
@@ -1003,7 +1003,7 @@ thfAtomTyping[cvc5::parser::Command*& cmd]
           {
             freshExpr = PARSER_STATE->bindVar(name, type);
           }
-          cmd = new DeclareFunctionCommand(name, freshExpr, type);
+          cmd = std::make_unique<DeclareFunctionCommand>(name, freshExpr, type);
         }
       }
     )
@@ -1297,7 +1297,7 @@ thfUnitaryFormula[cvc5::ParseOp& p]
 /* TFF */
 tffFormula[cvc5::Term& expr] : tffLogicFormula[expr];
 
-tffTypedAtom[cvc5::parser::Command*& cmd]
+tffTypedAtom[std::unique_ptr<cvc5::parser::Command>& cmd]
 @declarations {
   cvc5::Term expr;
   cvc5::Sort type;
@@ -1308,25 +1308,25 @@ tffTypedAtom[cvc5::parser::Command*& cmd]
     ( '$tType'
       { if(PARSER_STATE->isDeclared(name, SYM_SORT)) {
           // duplicate declaration is fine, they're compatible
-          cmd = new EmptyCommand("compatible redeclaration of sort " + name);
+          cmd = std::make_unique<EmptyCommand>("compatible redeclaration of sort " + name);
         } else if(PARSER_STATE->isDeclared(name, SYM_VARIABLE)) {
           // error: cannot be both sort and constant
           PARSER_STATE->parseError("Symbol `" + name + "' previously declared as a constant; cannot also be a sort");
         } else {
           // as yet, it's undeclared
           cvc5::Sort atype = PARSER_STATE->mkSort(name);
-          cmd = new DeclareSortCommand(name, 0, atype);
+          cmd = std::make_unique<DeclareSortCommand>(name, 0, atype);
         }
       }
     | parseType[type]
       { if(PARSER_STATE->isDeclared(name, SYM_SORT)) {
           // error: cannot be both sort and constant
           PARSER_STATE->parseError("Symbol `" + name + "' previously declared as a sort");
-          cmd = new EmptyCommand("compatible redeclaration of sort " + name);
+          cmd = std::make_unique<EmptyCommand>("compatible redeclaration of sort " + name);
         } else if(PARSER_STATE->isDeclared(name, SYM_VARIABLE)) {
           if(type == PARSER_STATE->getVariable(name).getSort()) {
             // duplicate declaration is fine, they're compatible
-            cmd = new EmptyCommand("compatible redeclaration of constant " + name);
+            cmd = std::make_unique<EmptyCommand>("compatible redeclaration of constant " + name);
           } else {
             // error: sorts incompatible
             PARSER_STATE->parseError("Symbol `" + name + "' declared previously with a different sort");
@@ -1334,7 +1334,7 @@ tffTypedAtom[cvc5::parser::Command*& cmd]
         } else {
           // as yet, it's undeclared
           cvc5::Term aexpr = PARSER_STATE->bindVar(name, type);
-          cmd = new DeclareFunctionCommand(name, aexpr, type);
+          cmd = std::make_unique<DeclareFunctionCommand>(name, aexpr, type);
         }
       }
     )

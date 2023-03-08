@@ -17,8 +17,10 @@
 
 #include "base/check.h"
 #include "base/output.h"
-#include "parser/parser_exception.h"
+#include "parser/api/cpp/command.h"
 #include "parser/flex_lexer.h"
+#include "parser/parser_exception.h"
+#include "parser/smt2/smt2_parser.h"
 
 namespace cvc5 {
 namespace parser {
@@ -64,15 +66,18 @@ void FlexParser::unexpectedEOF(const std::string& msg)
   d_lex->parseError(msg, true);
 }
 
-void FlexParser::preemptCommand(Command* cmd) { d_commandQueue.push_back(cmd); }
+void FlexParser::preemptCommand(std::unique_ptr<Command> cmd)
+{
+  d_commandQueue.push_back(std::move(cmd));
+}
 
-Command* FlexParser::nextCommand()
+std::unique_ptr<Command> FlexParser::nextCommand()
 {
   Trace("parser") << "nextCommand()" << std::endl;
-  Command* cmd = nullptr;
+  std::unique_ptr<Command> cmd;
   if (!d_commandQueue.empty())
   {
-    cmd = d_commandQueue.front();
+    cmd = std::move(d_commandQueue.front());
     d_commandQueue.pop_front();
     setDone(cmd == nullptr);
   }
@@ -81,8 +86,8 @@ Command* FlexParser::nextCommand()
     try
     {
       cmd = parseNextCommand();
-      d_commandQueue.push_back(cmd);
-      cmd = d_commandQueue.front();
+      d_commandQueue.push_back(std::move(cmd));
+      cmd = std::move(d_commandQueue.front());
       d_commandQueue.pop_front();
       setDone(cmd == nullptr);
     }
@@ -97,7 +102,7 @@ Command* FlexParser::nextCommand()
       parseError(e.what());
     }
   }
-  Trace("parser") << "nextCommand() => " << cmd << std::endl;
+  Trace("parser") << "nextCommand() => " << cmd.get() << std::endl;
   return cmd;
 }
 
@@ -125,6 +130,29 @@ Term FlexParser::nextExpression()
   }
   Trace("parser") << "nextExpression() => " << result << std::endl;
   return result;
+}
+
+std::unique_ptr<FlexParser> FlexParser::mkFlexParser(const std::string& lang,
+                                                     Solver* solver,
+                                                     SymbolManager* sm)
+{
+  std::unique_ptr<FlexParser> parser;
+  if (lang == "LANG_SYGUS_V2" || lang == "LANG_SMTLIB_V2_6")
+  {
+    bool isSygus = (lang == "LANG_SYGUS_V2");
+    bool strictMode = solver->getOptionInfo("strict-parsing").boolValue();
+    parser.reset(new Smt2Parser(solver, sm, strictMode, isSygus));
+  }
+  else if (lang == "LANG_TPTP")
+  {
+    // TPTP is not supported
+    Unhandled() << "the TPTP input language is not supported with flex.";
+  }
+  else
+  {
+    Unhandled() << "unable to detect input file format, try --lang";
+  }
+  return parser;
 }
 
 }  // namespace parser

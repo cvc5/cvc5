@@ -22,6 +22,7 @@
 #include "context/cdo.h"
 #include "decision/assertion_list.h"
 #include "decision/decision_engine.h"
+#include "decision/justify_cache.h"
 #include "decision/justify_info.h"
 #include "decision/justify_stack.h"
 #include "decision/justify_stats.h"
@@ -118,7 +119,7 @@ class JustificationStrategy : public DecisionEngine
  public:
   /** Constructor */
   JustificationStrategy(Env& env,
-                        prop::CDCLTSatSolverInterface* ss,
+                        prop::CDCLTSatSolver* ss,
                         prop::CnfStream* cs);
 
   /** Presolve, called at the beginning of each check-sat call */
@@ -207,27 +208,15 @@ class JustificationStrategy : public DecisionEngine
    * (2) a null justify node and updates lastChildVal to the value of n.
    */
   JustifyNode getNextJustifyNode(JustifyInfo* ji, prop::SatValue& lastChildVal);
-  /**
-   * Returns the value TRUE/FALSE for n, or UNKNOWN otherwise.
-   *
-   * We return a value for n only if we have justified its values based on its
-   * children. For example, we return UNKNOWN for n of the form (and A B) if
-   * A and B have UNKNOWN value, even if the SAT solver has assigned a value for
-   * (internal) node n. If n itself is a theory literal, we lookup its value
-   * in the SAT solver if it is not already cached.
-   */
-  prop::SatValue lookupValue(TNode n);
   /** Is n a theory literal? */
   static bool isTheoryLiteral(TNode n);
-  /** Is n a theory atom? */
-  static bool isTheoryAtom(TNode n);
   /** The assertions, which are user-context dependent. */
   AssertionList d_assertions;
   /** The skolem assertions */
   AssertionList d_skolemAssertions;
 
-  /** Mapping from non-negated nodes to their SAT value */
-  context::CDInsertHashMap<Node, prop::SatValue> d_justified;
+  /** A justification cache */
+  JustifyCache d_jcache;
   /** A justify stack */
   JustifyStack d_stack;
   /** The last decision literal */

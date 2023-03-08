@@ -13,7 +13,7 @@
 # The build system configuration.
 ##
 
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.12)
 
 #-----------------------------------------------------------------------------#
 # Project configuration
@@ -321,7 +321,25 @@ else()
   endif()
 endif()
 
-find_package(PythonInterp 3 REQUIRED)
+if(DEFINED BUILD_BINDINGS_PYTHON_VERSION) 
+  find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Interpreter REQUIRED)
+else()
+  find_supported_python_version()
+endif()
+
+# Some cmake packages are not compatible with the newest version
+# of FindPython, introduced in cmake 3.12.
+# We define the symbols below to be backward compatible.
+if(NOT DEFINED PYTHON_EXECUTABLE) 
+  set(PYTHON_EXECUTABLE "${Python_EXECUTABLE}")
+endif()
+if (NOT DEFINED PYTHON_INCLUDE_DIRS) 
+  set(PYTHON_INCLUDE_DIRS "${Python_INCLUDE_DIRS}")
+endif()
+if (NOT DEFINED PYTHON_LIBRARIES) 
+  set(PYTHON_LIBRARIES "${Python_LIBRARIES}")
+endif()
+
 find_package(GMP 6.1 REQUIRED)
 
 if(ENABLE_ASAN)
@@ -487,6 +505,13 @@ endif()
 #-----------------------------------------------------------------------------#
 # Add subdirectories
 
+# Include public headers
+include_directories(include)
+include_directories(${CMAKE_BINARY_DIR}/include)
+
+# Install public headers
+install(DIRECTORY include/cvc5 DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
 add_subdirectory(src)
 
 if(BUILD_BINDINGS_PYTHON AND NOT BUILD_SHARED_LIBS)
@@ -494,7 +519,7 @@ if(BUILD_BINDINGS_PYTHON AND NOT BUILD_SHARED_LIBS)
   set(BUILD_BINDINGS_PYTHON OFF)
 endif()
 if(BUILD_BINDINGS_PYTHON)
-  set(BUILD_BINDINGS_PYTHON_VERSION ${PYTHON_VERSION_MAJOR})
+  set(BUILD_BINDINGS_PYTHON_VERSION ${Python_VERSION})
   add_subdirectory(src/api/python)
 endif()
 

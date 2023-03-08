@@ -15,15 +15,15 @@
 
 #include "cvc5_public.h"
 
-#ifndef CVC5__EXPR__SYMBOL_MANAGER_H
-#define CVC5__EXPR__SYMBOL_MANAGER_H
+#ifndef CVC5__PARSER__API__CPP__SYMBOL_MANAGER_H
+#define CVC5__PARSER__API__CPP__SYMBOL_MANAGER_H
+
+#include <cvc5/cvc5.h>
+#include <cvc5/cvc5_export.h>
 
 #include <map>
 #include <memory>
 #include <string>
-
-#include "api/cpp/cvc5.h"
-#include "cvc5_export.h"
 
 namespace cvc5 {
 

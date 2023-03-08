@@ -16,6 +16,7 @@
 #include "theory/strings/regexp_entail.h"
 
 #include "theory/rewriter.h"
+#include "theory/strings/regexp_eval.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 #include "util/rational.h"
@@ -133,7 +134,7 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
             std::vector<unsigned> ssVec;
             ssVec.push_back(t == 0 ? s.back() : s.front());
             cvc5::internal::String ss(ssVec);
-            if (testConstStringInRegExp(ss, 0, rc))
+            if (testConstStringInRegExp(ss, rc))
             {
               // strip off one character
               mchildren.pop_back();
@@ -395,9 +396,26 @@ bool RegExpEntail::isConstRegExp(TNode t)
   return true;
 }
 
-bool RegExpEntail::testConstStringInRegExp(cvc5::internal::String& s,
-                                           unsigned index_start,
-                                           TNode r)
+bool RegExpEntail::testConstStringInRegExp(String& s, TNode r)
+{
+  Kind k = r.getKind();
+  if (k==REGEXP_CONCAT || k==REGEXP_STAR || k==REGEXP_UNION)
+  {
+    // If we can evaluate it via NFA construction, do so. We only do this
+    // for compound regular expressions (re.++, re.*, re.union) which may
+    // have non-trivial NFA constructions, otherwise the check below will
+    // be simpler.
+    if (RegExpEval::canEvaluate(r))
+    {
+      return RegExpEval::evaluate(s, r);
+    }
+  }
+  return testConstStringInRegExpInternal(s, 0, r);
+}
+
+bool RegExpEntail::testConstStringInRegExpInternal(String& s,
+                                                   unsigned index_start,
+                                                   TNode r)
 {
   Assert(index_start <= s.size());
   Trace("regexp-debug") << "Checking " << s << " in " << r << ", starting at "
@@ -408,7 +426,7 @@ bool RegExpEntail::testConstStringInRegExp(cvc5::internal::String& s,
   {
     case STRING_TO_REGEXP:
     {
-      cvc5::internal::String s2 = s.substr(index_start, s.size() - index_start);
+      String s2 = s.substr(index_start, s.size() - index_start);
       if (r[0].isConst())
       {
         return (s2 == r[0].getConst<String>());
@@ -429,7 +447,7 @@ bool RegExpEntail::testConstStringInRegExp(cvc5::internal::String& s,
           bool flag = true;
           if (i == (int)r.getNumChildren() - 1)
           {
-            if (testConstStringInRegExp(s, index_start + start, r[i]))
+            if (testConstStringInRegExpInternal(s, index_start + start, r[i]))
             {
               return true;
             }
@@ -443,7 +461,7 @@ bool RegExpEntail::testConstStringInRegExp(cvc5::internal::String& s,
             for (vec_k[i] = vec_k[i] + 1; vec_k[i] <= left; ++vec_k[i])
             {
               cvc5::internal::String t = s.substr(index_start + start, vec_k[i]);
-              if (testConstStringInRegExp(t, 0, r[i]))
+              if (testConstStringInRegExpInternal(t, 0, r[i]))
               {
                 start += vec_k[i];
                 left -= vec_k[i];
@@ -471,7 +489,7 @@ bool RegExpEntail::testConstStringInRegExp(cvc5::internal::String& s,
       {
         for (unsigned i = 0; i < r.getNumChildren(); ++i)
         {
-          if (!testConstStringInRegExp(s, index_start, r[i]))
+          if (!testConstStringInRegExpInternal(s, index_start, r[i]))
           {
             return false;
           }
@@ -483,7 +501,7 @@ bool RegExpEntail::testConstStringInRegExp(cvc5::internal::String& s,
     {
       for (unsigned i = 0; i < r.getNumChildren(); ++i)
       {
-        if (testConstStringInRegExp(s, index_start, r[i]))
+        if (testConstStringInRegExpInternal(s, index_start, r[i]))
         {
           return true;
         }
@@ -494,7 +512,7 @@ bool RegExpEntail::testConstStringInRegExp(cvc5::internal::String& s,
     {
       for (unsigned i = 0; i < r.getNumChildren(); ++i)
       {
-        if (!testConstStringInRegExp(s, index_start, r[i]))
+        if (!testConstStringInRegExpInternal(s, index_start, r[i]))
         {
           return false;
         }
@@ -508,10 +526,10 @@ bool RegExpEntail::testConstStringInRegExp(cvc5::internal::String& s,
         for (unsigned i = s.size() - index_start; i > 0; --i)
         {
           cvc5::internal::String t = s.substr(index_start, i);
-          if (testConstStringInRegExp(t, 0, r[0]))
+          if (testConstStringInRegExpInternal(t, 0, r[0]))
           {
             if (index_start + i == s.size()
-                || testConstStringInRegExp(s, index_start + i, r))
+                || testConstStringInRegExpInternal(s, index_start + i, r))
             {
               return true;
             }
@@ -559,7 +577,7 @@ bool RegExpEntail::testConstStringInRegExp(cvc5::internal::String& s,
       uint32_t l = r[1].getConst<Rational>().getNumerator().toUnsignedInt();
       if (s.size() == index_start)
       {
-        return l == 0 ? true : testConstStringInRegExp(s, index_start, r[0]);
+        return l == 0 || testConstStringInRegExpInternal(s, index_start, r[0]);
       }
       else if (l == 0 && r[1] == r[2])
       {
@@ -576,7 +594,7 @@ bool RegExpEntail::testConstStringInRegExp(cvc5::internal::String& s,
           for (unsigned len = s.size() - index_start; len >= 1; len--)
           {
             cvc5::internal::String t = s.substr(index_start, len);
-            if (testConstStringInRegExp(t, 0, r[0]))
+            if (testConstStringInRegExpInternal(t, 0, r[0]))
             {
               if (len + index_start == s.size())
               {
@@ -586,7 +604,7 @@ bool RegExpEntail::testConstStringInRegExp(cvc5::internal::String& s,
               {
                 Node num2 = nm->mkConstInt(cvc5::internal::Rational(u - 1));
                 Node r2 = nm->mkNode(REGEXP_LOOP, r[0], r[1], num2);
-                if (testConstStringInRegExp(s, index_start + len, r2))
+                if (testConstStringInRegExpInternal(s, index_start + len, r2))
                 {
                   return true;
                 }
@@ -602,7 +620,7 @@ bool RegExpEntail::testConstStringInRegExp(cvc5::internal::String& s,
               << "String rewriter error: LOOP nums are not equal";
           if (l > s.size() - index_start)
           {
-            if (testConstStringInRegExp(s, s.size(), r[0]))
+            if (testConstStringInRegExpInternal(s, s.size(), r[0]))
             {
               l = s.size() - index_start;
             }
@@ -614,11 +632,11 @@ bool RegExpEntail::testConstStringInRegExp(cvc5::internal::String& s,
           for (unsigned len = 1; len <= s.size() - index_start; len++)
           {
             cvc5::internal::String t = s.substr(index_start, len);
-            if (testConstStringInRegExp(t, 0, r[0]))
+            if (testConstStringInRegExpInternal(t, 0, r[0]))
             {
               Node num2 = nm->mkConstInt(cvc5::internal::Rational(l - 1));
               Node r2 = nm->mkNode(REGEXP_LOOP, r[0], num2, num2);
-              if (testConstStringInRegExp(s, index_start + len, r2))
+              if (testConstStringInRegExpInternal(s, index_start + len, r2))
               {
                 return true;
               }
@@ -630,7 +648,7 @@ bool RegExpEntail::testConstStringInRegExp(cvc5::internal::String& s,
     }
     case REGEXP_COMPLEMENT:
     {
-      return !testConstStringInRegExp(s, index_start, r[0]);
+      return !testConstStringInRegExpInternal(s, index_start, r[0]);
       break;
     }
     default:
@@ -807,7 +825,7 @@ bool RegExpEntail::regExpIncludes(Node r1,
     if (r2[0].isConst() && isConstRegExp(r1))
     {
       String s = r2[0].getConst<String>();
-      ret = testConstStringInRegExp(s, 0, r1);
+      ret = testConstStringInRegExp(s, r1);
     }
     cache[key] = ret;
     return ret;
@@ -867,8 +885,8 @@ bool RegExpEntail::regExpIncludes(Node r1,
     {
       unsigned l1 = r1[0].getConst<String>().front();
       unsigned u1 = r1[1].getConst<String>().front();
-      unsigned l2 = r1[0].getConst<String>().front();
-      unsigned u2 = r1[1].getConst<String>().front();
+      unsigned l2 = r2[0].getConst<String>().front();
+      unsigned u2 = r2[1].getConst<String>().front();
       ret = l1 <= l2 && l2 <= u1 && l1 <= u2 && u2 <= u1;
     }
   }

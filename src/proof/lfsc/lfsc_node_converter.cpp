@@ -33,6 +33,7 @@
 #include "theory/uf/function_const.h"
 #include "theory/uf/theory_uf_rewriter.h"
 #include "util/bitvector.h"
+#include "util/finite_field_value.h"
 #include "util/floatingpoint.h"
 #include "util/iand.h"
 #include "util/rational.h"
@@ -112,7 +113,7 @@ Node LfscNodeConverter::postConvert(Node n)
     Node tc = typeAsNode(convertType(tn));
     TypeNode ftype = nm->mkFunctionType({intType, d_sortType}, tn);
     Node bvarOp = getSymbolInternal(k, ftype, "bvar");
-    return nm->mkNode(APPLY_UF, bvarOp, x, tc);
+    return mkApplyUf(bvarOp, {x, tc});
   }
   else if (k == RAW_SYMBOL)
   {
@@ -146,7 +147,7 @@ Node LfscNodeConverter::postConvert(Node n)
           << "...converted witness for " << wi << std::endl;
       TypeNode ftype = nm->mkFunctionType(tn, tn);
       Node skolemOp = getSymbolInternal(k, ftype, "skolem");
-      return nm->mkNode(APPLY_UF, skolemOp, wi);
+      return mkApplyUf(skolemOp, {wi});
     }
     // might be a skolem function
     Node ns = maybeMkSkolemFun(n);
@@ -163,7 +164,7 @@ Node LfscNodeConverter::postConvert(Node n)
     Node var = mkInternalSymbol("var", varType);
     Node index = nm->mkConstInt(Rational(getOrAssignIndexForFVar(n)));
     Node tc = typeAsNode(convertType(tn));
-    return nm->mkNode(APPLY_UF, var, index, tc);
+    return mkApplyUf(var, {index, tc});
   }
   else if (n.isVar())
   {
@@ -181,7 +182,7 @@ Node LfscNodeConverter::postConvert(Node n)
     TypeNode tnc =
         nm->mkFunctionType({tnn.getType(), ub.getType()}, nm->booleanType());
     Node fcard = getSymbolInternal(k, tnc, "fmf.card");
-    return nm->mkNode(APPLY_UF, fcard, tnn, ub);
+    return mkApplyUf(fcard, {tnn, ub});
   }
   else if (k == APPLY_UF)
   {
@@ -200,10 +201,7 @@ Node LfscNodeConverter::postConvert(Node n)
     {
       return opc;
     }
-    std::vector<Node> children;
-    children.push_back(opc);
-    children.insert(children.end(), n.begin(), n.end());
-    return postConvert(nm->mkNode(APPLY_UF, children));
+    return postConvert(mkApplyUf(opc, std::vector<Node>(n.begin(), n.end())));
   }
   else if (k == HO_APPLY)
   {
@@ -212,7 +210,7 @@ Node LfscNodeConverter::postConvert(Node n)
     argTypes.push_back(n[1].getType());
     TypeNode tnh = nm->mkFunctionType(argTypes, tn);
     Node hconstf = getSymbolInternal(k, tnh, "apply");
-    return nm->mkNode(APPLY_UF, hconstf, n[0], n[1]);
+    return mkApplyUf(hconstf, {n[0], n[1]});
   }
   else if (k == CONST_RATIONAL || k == CONST_INTEGER)
   {
@@ -227,7 +225,7 @@ Node LfscNodeConverter::postConvert(Node n)
       {
         // use LFSC syntax for mpz negation
         Node mpzn = getSymbolInternal(k, nm->mkFunctionType(tn, tn), "~");
-        arg = nm->mkNode(APPLY_UF, mpzn, nm->mkConstInt(r.abs()));
+        arg = mkApplyUf(mpzn, {nm->mkConstInt(r.abs())});
       }
       else
       {
@@ -247,10 +245,10 @@ Node LfscNodeConverter::postConvert(Node n)
       if (r.sgn() == -1)
       {
         Node mpzn = getSymbolInternal(k, nm->mkFunctionType(tn, tn), "~");
-        arg = nm->mkNode(APPLY_UF, mpzn, arg);
+        arg = mkApplyUf(mpzn, {arg});
       }
     }
-    return nm->mkNode(APPLY_UF, rconstf, arg);
+    return mkApplyUf(rconstf, {arg});
   }
   else if (k == CONST_BITVECTOR)
   {
@@ -259,7 +257,7 @@ Node LfscNodeConverter::postConvert(Node n)
     BitVector bv = n.getConst<BitVector>();
     Node ret = convertBitVector(bv);
     Node bconstf = getSymbolInternal(k, tnv, "bv");
-    return nm->mkNode(APPLY_UF, bconstf, ret);
+    return mkApplyUf(bconstf, {ret});
   }
   else if (k == CONST_FLOATINGPOINT)
   {
@@ -271,7 +269,16 @@ Node LfscNodeConverter::postConvert(Node n)
     TypeNode tnv =
         nm->mkFunctionType({sn.getType(), en.getType(), in.getType()}, tn);
     Node bconstf = getSymbolInternal(k, tnv, "fp");
-    return nm->mkNode(APPLY_UF, {bconstf, sn, en, in});
+    return mkApplyUf(bconstf, {sn, en, in});
+  }
+  else if (k == CONST_FINITE_FIELD)
+  {
+    const FiniteFieldValue& ffv = n.getConst<FiniteFieldValue>();
+    Node v = convert(nm->mkConstInt(ffv.getValue()));
+    Node fs = convert(nm->mkConstInt(ffv.getFieldSize()));
+    TypeNode tnv = nm->mkFunctionType({v.getType(), fs.getType()}, tn);
+    Node ffconstf = getSymbolInternal(k, tnv, "ff.value");
+    return mkApplyUf(ffconstf, {v, fs});
   }
   else if (k == CONST_STRING)
   {
@@ -299,7 +306,7 @@ Node LfscNodeConverter::postConvert(Node n)
     const std::vector<Node>& charVec = n.getConst<Sequence>().getVec();
     TypeNode etype = nm->mkFunctionType(d_sortType, tn);
     Node ret = getSymbolInternal(k, etype, "seq.empty");
-    ret = nm->mkNode(APPLY_UF, ret, typeAsNode(convertType(tn)));
+    ret = mkApplyUf(ret, {typeAsNode(convertType(tn))});
     std::vector<Node> vecu;
     for (size_t i = 0, size = charVec.size(); i < size; i++)
     {
@@ -319,9 +326,9 @@ Node LfscNodeConverter::postConvert(Node n)
     TypeNode caRetType = nm->mkFunctionType(tn.getArrayConstituentType(), tn);
     TypeNode catype = nm->mkFunctionType(d_sortType, caRetType);
     Node bconstf = getSymbolInternal(k, catype, "array_const");
-    Node f = nm->mkNode(APPLY_UF, bconstf, t);
+    Node f = mkApplyUf(bconstf, {t});
     ArrayStoreAll storeAll = n.getConst<ArrayStoreAll>();
-    return nm->mkNode(APPLY_UF, f, convert(storeAll.getValue()));
+    return mkApplyUf(f, {convert(storeAll.getValue())});
   }
   else if (k == GEQ || k == GT || k == LEQ || k == LT || k == SUB
            || k == DIVISION || k == DIVISION_TOTAL || k == INTS_DIVISION
@@ -333,10 +340,7 @@ Node LfscNodeConverter::postConvert(Node n)
     // note that SUB is not n-ary
     // get the macro-apply version of the operator
     Node opc = getOperatorOfTerm(n, true);
-    std::vector<Node> children;
-    children.push_back(opc);
-    children.insert(children.end(), n.begin(), n.end());
-    return nm->mkNode(APPLY_UF, children);
+    return mkApplyUf(opc, std::vector<Node>(n.begin(), n.end()));
   }
   else if (k == SET_EMPTY || k == SET_UNIVERSE || k == BAG_EMPTY)
   {
@@ -347,7 +351,7 @@ Node LfscNodeConverter::postConvert(Node n)
         etype,
         k == SET_EMPTY ? "set.empty"
                        : (k == SET_UNIVERSE ? "set.universe" : "bag.empty"));
-    return nm->mkNode(APPLY_UF, ef, t);
+    return mkApplyUf(ef, {t});
   }
   else if (n.isClosure())
   {
@@ -364,7 +368,7 @@ Node LfscNodeConverter::postConvert(Node n)
       // use the partial operator for variables except the last one.  This
       // avoids type errors in internal representation of LFSC terms.
       Node vop = getOperatorOfBoundVar(ii == 0 ? cop : pcop, v);
-      ret = nm->mkNode(APPLY_UF, vop, ret);
+      ret = mkApplyUf(vop, {ret});
     }
     // notice that intentionally we drop annotations here
     return ret;
@@ -387,7 +391,7 @@ Node LfscNodeConverter::postConvert(Node n)
     RegExpLoop op = n.getOperator().getConst<RegExpLoop>();
     Node n1 = nm->mkConstInt(Rational(op.d_loopMinOcc));
     Node n2 = nm->mkConstInt(Rational(op.d_loopMaxOcc));
-    return nm->mkNode(APPLY_UF, nm->mkNode(APPLY_UF, rop, n1, n2), n[0]);
+    return mkApplyUf(mkApplyUf(rop, {n1, n2}), {n[0]});
   }
   else if (k == BITVECTOR_BB_TERM)
   {
@@ -400,7 +404,7 @@ Node LfscNodeConverter::postConvert(Node n)
       TypeNode bvt = nm->mkBitVectorType(i + 1);
       TypeNode ftype = nm->mkFunctionType({btn, curr.getType()}, bvt);
       Node bbt = getSymbolInternal(k, ftype, "bbT");
-      curr = nm->mkNode(APPLY_UF, bbt, n[nchild - (i + 1)], curr);
+      curr = mkApplyUf(bbt, {n[nchild - (i + 1)], curr});
     }
     return curr;
   }
@@ -409,7 +413,7 @@ Node LfscNodeConverter::postConvert(Node n)
     Node tnn = typeAsNode(convertType(tn));
     TypeNode ftype = nm->mkFunctionType(d_sortType, tn);
     Node s = getSymbolInternal(k, ftype, "sep.nil");
-    return nm->mkNode(APPLY_UF, s, tnn);
+    return mkApplyUf(s, {tnn});
   }
   else if (NodeManager::isNAryKind(k) && n.getNumChildren() >= 2)
   {
@@ -479,7 +483,7 @@ Node LfscNodeConverter::postConvert(Node n)
         TypeNode tn2 = ret.getType();
         TypeNode ftype = nm->mkFunctionType({tn1, tn2}, tn);
         Node opc = getSymbolInternal(k, ftype, arithOpName.str());
-        ret = nm->mkNode(APPLY_UF, opc, children[i], ret);
+        ret = mkApplyUf(opc, {children[i], ret});
       }
       else
       {
@@ -491,6 +495,25 @@ Node LfscNodeConverter::postConvert(Node n)
     return ret;
   }
   return n;
+}
+
+Node LfscNodeConverter::mkApplyUf(Node op, const std::vector<Node>& args) const
+{
+  NodeManager * nm = NodeManager::currentNM();
+  std::vector<Node> aargs;
+  if (op.isVar())
+  {
+    aargs.push_back(op);
+  }
+  else
+  {
+    std::stringstream ss;
+    ss << op;
+    Node opv = nm->mkRawSymbol(ss.str(), op.getType());
+    aargs.push_back(opv);
+  }
+  aargs.insert(aargs.end(), args.begin(), args.end());
+  return nm->mkNode(APPLY_UF, aargs);
 }
 
 TypeNode LfscNodeConverter::preConvertType(TypeNode tn)
@@ -531,21 +554,21 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       aargs.push_back(*it);
       aargs.push_back(cur);
       cur = nm->mkSort(d_arrow, aargs);
-      tnn = nm->mkNode(APPLY_UF, arrown, typeAsNode(*it), tnn);
+      tnn = mkApplyUf(arrown, {typeAsNode(*it), tnn});
     }
   }
   else if (k == BITVECTOR_TYPE)
   {
     tnn = d_typeKindToNodeCons[k];
     Node w = nm->mkConstInt(Rational(tn.getBitVectorSize()));
-    tnn = nm->mkNode(APPLY_UF, tnn, w);
+    tnn = mkApplyUf(tnn, {w});
   }
   else if (k == FLOATINGPOINT_TYPE)
   {
     tnn = d_typeKindToNodeCons[k];
     Node e = nm->mkConstInt(Rational(tn.getFloatingPointExponentSize()));
     Node s = nm->mkConstInt(Rational(tn.getFloatingPointSignificandSize()));
-    tnn = nm->mkNode(APPLY_UF, tnn, e, s);
+    tnn = mkApplyUf(tnn, {e, s});
   }
   else if (k == TUPLE_TYPE)
   {
@@ -567,8 +590,7 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       // must distinguish by arity
       std::stringstream ss;
       ss << "Tuple_" << nargs;
-      targs.insert(targs.begin(), getSymbolInternal(k, ftype, ss.str()));
-      tnn = nm->mkNode(APPLY_UF, targs);
+      tnn = mkApplyUf(getSymbolInternal(k, ftype, ss.str()), targs);
       // we are changing its name, we must make a sort constructor
       cur = nm->mkSortConstructor(ss.str(), nargs);
       cur = nm->mkSort(cur, convTypes);
@@ -653,8 +675,7 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
     }
     if (!op.isNull())
     {
-      targs.insert(targs.begin(), op);
-      tnn = nm->mkNode(APPLY_UF, targs);
+      tnn = mkApplyUf(op, targs);
     }
     else
     {
@@ -779,7 +800,7 @@ Node LfscNodeConverter::maybeMkSkolemFun(Node k, bool macroApply)
       Node sel = getSymbolInternal(k.getKind(), selt, "sel");
       Node kn = typeAsNode(convertType(tn.getDatatypeSelectorRangeType()));
       Assert(!cacheVal.isNull() && cacheVal.getKind() == CONST_RATIONAL);
-      return nm->mkNode(APPLY_UF, sel, kn, cacheVal);
+      return mkApplyUf(sel, {kn, cacheVal});
     }
     else if (sfi == SkolemFunId::RE_UNFOLD_POS_COMPONENT)
     {
@@ -794,9 +815,8 @@ Node LfscNodeConverter::maybeMkSkolemFun(Node k, bool macroApply)
       Assert(!cacheVal.isNull() && cacheVal.getKind() == SEXPR
              && cacheVal.getNumChildren() == 3);
       // third value is mpz, which is not converted
-      return nm->mkNode(
-          APPLY_UF,
-          {sk, convert(cacheVal[0]), convert(cacheVal[1]), cacheVal[2]});
+      return mkApplyUf(sk,
+          {convert(cacheVal[0]), convert(cacheVal[1]), cacheVal[2]});
     }
   }
   return Node::null();
@@ -862,7 +882,7 @@ void LfscNodeConverter::getCharVectorInternal(Node c, std::vector<Node>& chars)
   Node aconstf = getSymbolInternal(CONST_STRING, tnc, "char");
   for (unsigned i = 0, size = vec.size(); i < size; i++)
   {
-    Node cc = nm->mkNode(APPLY_UF, aconstf, nm->mkConstInt(Rational(vec[i])));
+    Node cc = mkApplyUf(aconstf, {nm->mkConstInt(Rational(vec[i]))});
     chars.push_back(cc);
   }
 }
@@ -880,7 +900,7 @@ Node LfscNodeConverter::convertBitVector(const BitVector& bv)
   for (size_t i = 0; i < w; i++)
   {
     Node arg = bv.isBitSet((w - 1) - i) ? b1 : b0;
-    ret = nm->mkNode(APPLY_UF, bvc, arg, ret);
+    ret = mkApplyUf(bvc, {arg, ret});
   }
   return ret;
 }
@@ -1188,10 +1208,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
     // if indexed, apply to index
     if (!indices.empty())
     {
-      std::vector<Node> ichildren;
-      ichildren.push_back(ret);
-      ichildren.insert(ichildren.end(), indices.begin(), indices.end());
-      ret = nm->mkNode(APPLY_UF, ichildren);
+      ret = mkApplyUf(ret, indices);
     }
     Trace("lfsc-term-process-debug2") << "...return " << ret << std::endl;
     return ret;
@@ -1262,7 +1279,7 @@ Node LfscNodeConverter::getOperatorOfBoundVar(Node cop, Node v)
   NodeManager* nm = NodeManager::currentNM();
   Node x = nm->mkConstInt(Rational(getOrAssignIndexForBVar(v)));
   Node tc = typeAsNode(convertType(v.getType()));
-  return nm->mkNode(APPLY_UF, cop, x, tc);
+  return mkApplyUf(cop, {x, tc});
 }
 
 size_t LfscNodeConverter::getOrAssignIndexForFVar(Node fv)

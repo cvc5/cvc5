@@ -23,7 +23,7 @@
 namespace cvc5::internal {
 namespace prop {
 
-MinisatSatSolver* SatSolverFactory::createCDCLTMinisat(
+CDCLTSatSolver* SatSolverFactory::createCDCLTMinisat(
     Env& env, StatisticsRegistry& registry)
 {
   return new MinisatSatSolver(env, registry);
@@ -43,6 +43,7 @@ SatSolver* SatSolverFactory::createCryptoMinisat(StatisticsRegistry& registry,
   return res;
 #else
   Unreachable() << "cvc5 was not compiled with Cryptominisat support.";
+  return nullptr;
 #endif
 }
 
@@ -65,6 +66,7 @@ SatSolver* SatSolverFactory::createKissat(StatisticsRegistry& registry,
   return res;
 #else
   Unreachable() << "cvc5 was not compiled with Kissat support.";
+  return nullptr;
 #endif
 }
 

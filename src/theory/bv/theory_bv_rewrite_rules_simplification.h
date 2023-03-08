@@ -19,6 +19,7 @@
 #define CVC5__THEORY__BV__THEORY_BV_REWRITE_RULES_SIMPLIFICATION_H
 
 #include "options/bv_options.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "util/bitvector.h"
@@ -1000,31 +1001,43 @@ inline Node RewriteRule<ZeroUlt>::apply(TNode node)
 /**
  * UltZero
  *
- * a < 0 ==> false
+ * match:  (bvult (_ bv0 N) a)
+ * result: (distinct (_ bv0 N) a)
+ *
+ * match:  (bvult a (_ bv0 N))
+ * result: false
  */
 
 template<> inline
 bool RewriteRule<UltZero>::applies(TNode node) {
-  return (node.getKind() == kind::BITVECTOR_ULT &&
-          node[1] == utils::mkZero(utils::getSize(node[0])));
+  return (node.getKind() == kind::BITVECTOR_ULT
+          && (utils::isZero(node[0]) || utils::isZero(node[1])));
 }
 
 template<> inline
 Node RewriteRule<UltZero>::apply(TNode node) {
   Trace("bv-rewrite") << "RewriteRule<UltZero>(" << node << ")" << std::endl;
-  return utils::mkFalse(); 
+  if (utils::isZero(node[1]))
+  {
+    return utils::mkFalse();
+  }
+  return NodeManager::currentNM()->mkNode(
+      kind::DISTINCT, utils::mkZero(utils::getSize(node[0])), node[1]);
 }
 
 
 /* -------------------------------------------------------------------------- */
 
 /**
- * 
+ * UltOne
+ *
+ * match:  (bvult a (_ bv1 N))
+ * result: (= a (_ bv0 N))
  */
-template<> inline
-bool RewriteRule<UltOne>::applies(TNode node) {
-  return (node.getKind() == kind::BITVECTOR_ULT &&
-          node[1] == utils::mkOne(utils::getSize(node[0])));
+template <>
+inline bool RewriteRule<UltOne>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_ULT && utils::isOne(node[1]));
 }
 
 template <>
@@ -1033,6 +1046,36 @@ inline Node RewriteRule<UltOne>::apply(TNode node)
   Trace("bv-rewrite") << "RewriteRule<UltOne>(" << node << ")" << std::endl;
   return NodeManager::currentNM()->mkNode(
       kind::EQUAL, node[0], utils::mkZero(utils::getSize(node[0])));
+}
+
+/* -------------------------------------------------------------------------- */
+
+/**
+ * UltOnes
+ *
+ * match:  (bvult (bvnot (_ bv0 N)) a)
+ * result: false
+ *
+ * match:  (bvult a (bvnot (_ bv0 N)))
+ * result: (distinct a (bvnot (_ bv0 N)))
+ */
+template <>
+inline bool RewriteRule<UltOnes>::applies(TNode node)
+{
+  return node.getKind() == kind::BITVECTOR_ULT
+         && (utils::isOnes(node[0]) || utils::isOnes(node[1]));
+}
+
+template <>
+inline Node RewriteRule<UltOnes>::apply(TNode node)
+{
+  Trace("bv-rewrite") << "RewriteRule<UltOnes>(" << node << ")" << std::endl;
+  if (utils::isOnes(node[1]))
+  {
+    return NodeManager::currentNM()->mkNode(
+        kind::DISTINCT, node[0], utils::mkOnes(utils::getSize(node[1])));
+  }
+  return NodeManager::currentNM()->mkConst(false);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1049,7 +1092,7 @@ bool RewriteRule<SltZero>::applies(TNode node) {
 template <>
 inline Node RewriteRule<SltZero>::apply(TNode node)
 {
-  Trace("bv-rewrite") << "RewriteRule<UltZero>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<SltZero>(" << node << ")" << std::endl;
   unsigned size = utils::getSize(node[0]);
   Node most_significant_bit = utils::mkExtract(node[0], size - 1, size - 1);
   return NodeManager::currentNM()->mkNode(
@@ -1968,6 +2011,67 @@ inline Node RewriteRule<SignExtendUltConst>::apply(TNode node)
 
 /* -------------------------------------------------------------------------- */
 
+/**
+ */
+template <>
+inline bool RewriteRule<IneqElimConversion>::applies(TNode node)
+{
+  Kind k = node.getKind();
+  if (k == kind::BITVECTOR_ULT || k == kind::BITVECTOR_ULE
+      || k == kind::BITVECTOR_UGT || k == kind::BITVECTOR_UGE)
+  {
+    for (const Node& nc : node)
+    {
+      Kind nck = nc.getKind();
+      if (nck != kind::INT_TO_BITVECTOR && nck != kind::CONST_BITVECTOR)
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+  return false;
+}
+
+template <>
+inline Node RewriteRule<IneqElimConversion>::apply(TNode node)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  std::vector<Node> children;
+  for (const Node& nc : node)
+  {
+    Kind nck = nc.getKind();
+    if (nck == kind::INT_TO_BITVECTOR)
+    {
+      size_t bvSize = nc.getOperator().getConst<IntToBitVector>();
+      Node w = nm->mkConstInt(Rational(Integer(2).pow(bvSize)));
+      children.push_back(nm->mkNode(kind::INTS_MODULUS, nc[0], w));
+    }
+    else
+    {
+      Assert(nck == kind::CONST_BITVECTOR);
+      children.push_back(nm->mkNode(kind::BITVECTOR_TO_NAT, nc));
+    }
+  }
+  // E.g. (bvuge ((_ int2bv w) x) N) ---> (>= (mod x 2^w) (bv2nat N)).
+  // Note that (bv2nat N) is subsequently rewritten to the appropriate integer
+  // constant.
+  Kind arithKind;
+  switch (node.getKind())
+  {
+    case kind::BITVECTOR_ULT: arithKind = kind::LT; break;
+    case kind::BITVECTOR_ULE: arithKind = kind::LEQ; break;
+    case kind::BITVECTOR_UGT: arithKind = kind::GT; break;
+    case kind::BITVECTOR_UGE: arithKind = kind::GEQ; break;
+    default:
+      Unhandled() << "Unknown kind for IneqElimConversion " << node;
+      break;
+  }
+  return nm->mkNode(arithKind, children);
+}
+
+/* -------------------------------------------------------------------------- */
+
 template<> inline
 bool RewriteRule<MultSlice>::applies(TNode node) {
   if (node.getKind() != kind::BITVECTOR_MULT || node.getNumChildren() != 2) {
@@ -2063,6 +2167,8 @@ inline Node RewriteRule<UltAddOne>::apply(TNode node)
 /* -------------------------------------------------------------------------- */
 
 /**
+ * MultSltMult
+ *
  * Rewrite
  *   sign_extend(x+t,n) * sign_extend(a,m) < sign_extend(x,n) * sign_extend(a,m)
  * to
@@ -2087,8 +2193,9 @@ inline Node RewriteRule<UltAddOne>::apply(TNode node)
  * where the BV engine struggles due to the high bit widths of the
  * multiplication's operands.
  */
-static std::tuple<Node, Node, bool>
-extract_ext_tuple(TNode node)
+
+namespace {
+std::tuple<Node, Node, bool> extract_ext_tuple(TNode node)
 {
   TNode a = node[0];
   TNode b = node[1];
@@ -2114,8 +2221,7 @@ extract_ext_tuple(TNode node)
   }
   return std::make_tuple(Node::null(), Node::null(), false);
 }
-
-/* -------------------------------------------------------------------------- */
+}  // namespace
 
 template<> inline
 bool RewriteRule<MultSltMult>::applies(TNode node)
@@ -2211,6 +2317,7 @@ Node RewriteRule<MultSltMult>::apply(TNode node)
   return nb.constructNode();
 }
 
+/* -------------------------------------------------------------------------- */
 }  // namespace bv
 }  // namespace theory
 }  // namespace cvc5::internal

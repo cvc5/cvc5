@@ -15,6 +15,8 @@
 
 #include "parser/parser.h"
 
+#include <cvc5/cvc5.h>
+
 #include <clocale>
 #include <fstream>
 #include <iostream>
@@ -22,7 +24,6 @@
 #include <sstream>
 #include <unordered_set>
 
-#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/kind.h"
@@ -62,6 +63,17 @@ Term ParserState::getSymbol(const std::string& name, SymbolType type)
   // Functions share var namespace
   return d_symtab->lookup(name);
 }
+std::string ParserState::getNameForUserName(const std::string& name) const
+{
+  if (!d_printNamespace.empty())
+  {
+    std::stringstream ss;
+    ss << d_printNamespace << name;
+    return ss.str();
+  }
+  return name;
+}
+
 const std::string& ParserState::getForcedLogic() const
 {
   return d_symman->getForcedLogic();
@@ -179,7 +191,7 @@ Term ParserState::bindVar(const std::string& name,
                           bool doOverload)
 {
   Trace("parser") << "bindVar(" << name << ", " << type << ")" << std::endl;
-  Term expr = d_solver->mkConst(type, name);
+  Term expr = d_solver->mkConst(type, getNameForUserName(name));
   defineVar(name, expr, doOverload);
   return expr;
 }
@@ -274,7 +286,7 @@ void ParserState::defineParameterizedType(const std::string& name,
 Sort ParserState::mkSort(const std::string& name)
 {
   Trace("parser") << "newSort(" << name << ")" << std::endl;
-  Sort type = d_solver->mkUninterpretedSort(name);
+  Sort type = d_solver->mkUninterpretedSort(getNameForUserName(name));
   defineType(name, type);
   return type;
 }
@@ -283,7 +295,8 @@ Sort ParserState::mkSortConstructor(const std::string& name, size_t arity)
 {
   Trace("parser") << "newSortConstructor(" << name << ", " << arity << ")"
                   << std::endl;
-  Sort type = d_solver->mkUninterpretedSortConstructorSort(arity, name);
+  Sort type = d_solver->mkUninterpretedSortConstructorSort(
+      arity, getNameForUserName(name));
   defineType(name, vector<Sort>(arity), type);
   return type;
 }
@@ -637,7 +650,10 @@ void ParserState::unexpectedEOF(const std::string& msg)
   d_psc->unexpectedEOF(msg);
 }
 
-void ParserState::preemptCommand(Command* cmd) { d_psc->preemptCommand(cmd); }
+void ParserState::preemptCommand(std::unique_ptr<Command> cmd)
+{
+  d_psc->preemptCommand(std::move(cmd));
+}
 
 void ParserState::attributeNotSupported(const std::string& attr)
 {
@@ -858,6 +874,16 @@ std::wstring ParserState::processAdHocStringEsc(const std::string& s)
     }
   }
   return res;
+}
+
+std::string ParserState::stripQuotes(const std::string& s)
+{
+  if (s.size() < 2 || s[0] != '\"' || s[s.size() - 1] != '\"')
+  {
+    parseError("Expected a string delimited by quotes, got invalid string `" + s
+               + "`.");
+  }
+  return s.substr(1, s.size() - 2);
 }
 
 Term ParserState::mkCharConstant(const std::string& s)
