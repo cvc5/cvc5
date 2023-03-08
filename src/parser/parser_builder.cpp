@@ -16,9 +16,10 @@
 // This must be included first.
 #include "parser/parser_builder.h"
 
+#include <cvc5/cvc5.h>
+
 #include <string>
 
-#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "parser/antlr_input.h"
 #include "parser/input.h"

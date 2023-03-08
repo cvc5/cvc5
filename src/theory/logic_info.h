@@ -19,10 +19,11 @@
 #ifndef CVC5__LOGIC_INFO_H
 #define CVC5__LOGIC_INFO_H
 
+#include <cvc5/cvc5_export.h>
+
 #include <string>
 #include <vector>
 
-#include "cvc5_export.h"
 #include "theory/theory_id.h"
 
 namespace cvc5::internal {

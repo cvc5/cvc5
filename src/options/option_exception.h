@@ -18,7 +18,8 @@
 #ifndef CVC5__OPTION_EXCEPTION_H
 #define CVC5__OPTION_EXCEPTION_H
 
-#include "cvc5_export.h"
+#include <cvc5/cvc5_export.h>
+
 #include "base/exception.h"
 
 namespace cvc5::internal {
