@@ -40,7 +40,7 @@ class GenericOp
 
   bool operator==(const GenericOp& op) const;
 
-  /** Is k a kind that an indexed operator? */
+  /** Is k a kind that is an indexed operator? */
   static bool isIndexedOperatorKind(Kind k);
   /**
    * Return the list of nodes corresponding to the indices of n, which is
@@ -48,7 +48,7 @@ class GenericOp
    */
   static std::vector<Node> getIndicesForOperator(Kind k, Node n);
   /**
-   * Return the operator of kind k whose operators are the constants in the
+   * Return the operator of kind k whose indices are the constants in the
    * given vector.
    */
   static Node getOperatorForIndices(Kind k, const std::vector<Node>& indices);
@@ -57,7 +57,7 @@ class GenericOp
   GenericOp();
   /** The kind of indexed operator this operator represents */
   Kind d_kind;
-  /** Is k a kind that an indexed operator? */
+  /** Is k a kind that is an indexed operator? */
   static bool isNumeralIndexedOperatorKind(Kind k);
 };
 
