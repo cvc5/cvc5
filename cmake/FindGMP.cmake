@@ -115,6 +115,14 @@ if(NOT GMP_FOUND_SYSTEM)
     endif()
   endif()
 
+  # On Windows, we need to have a shell interpreter to call 'configure'
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+      find_program (SHELL "sh" REQUIRED)
+      message(STATUS "Found shell interpreter: ${SHELL}")
+  else()
+      set(SHELL "")
+  endif()
+
   # `CC_FOR_BUILD`, `--host`, and `--build` are passed to `configure` to ensure
   # that cross-compilation works (as suggested in the GMP documentation).
   # Without the `--build` flag, `configure` may fail for cross-compilation
@@ -126,7 +134,7 @@ if(NOT GMP_FOUND_SYSTEM)
     URL_HASH SHA1=2dcf34d4a432dbe6cce1475a835d20fe44f75822
     CONFIGURE_COMMAND
       ${CONFIGURE_ENV}
-          ${CONFIGURE_CMD_WRAPPER} <SOURCE_DIR>/configure
+          ${CONFIGURE_CMD_WRAPPER} ${SHELL} <SOURCE_DIR>/configure
           ${LINK_OPTS}
           --prefix=<INSTALL_DIR>
           --with-pic
