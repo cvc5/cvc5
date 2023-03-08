@@ -15,6 +15,8 @@
 
 #include "parser/api/cpp/command.h"
 
+#include <cvc5/cvc5.h>
+
 #include <exception>
 #include <iostream>
 #include <iterator>
@@ -22,7 +24,6 @@
 #include <utility>
 #include <vector>
 
-#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "base/modal_exception.h"
 #include "base/output.h"

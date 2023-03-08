@@ -99,7 +99,7 @@ using namespace cvc5::parser;
 #include <iterator>
 #include <vector>
 
-#include "api/cpp/cvc5.h"
+#include <cvc5/cvc5.h>
 #include "base/output.h"
 #include "parser/antlr_input.h"
 #include "parser/parser_antlr.h"

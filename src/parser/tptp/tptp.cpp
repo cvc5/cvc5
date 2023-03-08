@@ -16,10 +16,11 @@
 // Do not #include "parser/antlr_input.h" directly. Rely on the header.
 #include "parser/tptp/tptp.h"
 
+#include <cvc5/cvc5.h>
+
 #include <algorithm>
 #include <set>
 
-#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "parser/api/cpp/command.h"
 #include "parser/parser.h"

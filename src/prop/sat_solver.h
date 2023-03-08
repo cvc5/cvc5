@@ -141,6 +141,11 @@ class CDCLTSatSolver : public SatSolver
   virtual bool isDecision(SatVariable decn) const = 0;
 
   /**
+   * Return whether variable has a fixed assignment.
+   */
+  virtual bool isFixed(SatVariable var) const = 0;
+
+  /**
    * Return the current list of decisions made by the SAT solver.
    */
   virtual std::vector<SatLiteral> getDecisions() const = 0;
@@ -150,11 +155,6 @@ class CDCLTSatSolver : public SatSolver
    * of literals ordered with respect to variable activity.
    */
   virtual std::vector<Node> getOrderHeap() const = 0;
-
-  /**
-   * Return the user-context level when `lit` was introduced..
-   */
-  virtual int32_t getIntroLevel(SatVariable v) const { return -1; }
 
   virtual std::shared_ptr<ProofNode> getProof() = 0;
 
