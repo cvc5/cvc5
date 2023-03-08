@@ -18,10 +18,10 @@
 #ifndef CVC5__PARSER__PARSE_OP_H
 #define CVC5__PARSER__PARSE_OP_H
 
+#include <cvc5/cvc5.h>
+
 #include <string>
 #include <vector>
-
-#include "api/cpp/cvc5.h"
 
 namespace cvc5 {
 

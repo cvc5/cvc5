@@ -72,7 +72,7 @@ TheoryProxy::~TheoryProxy() {
   /* nothing to do for now */
 }
 
-void TheoryProxy::finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs)
+void TheoryProxy::finishInit(CDCLTSatSolver* ss, CnfStream* cs)
 {
   // make the decision engine, which requires pointers to the SAT solver and CNF
   // stream
@@ -174,8 +174,11 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
   d_activatedSkDefs = false;
   // check with the preregistrar
   d_prr->check();
-  while (!d_queue.empty()) {
-    TNode assertion = d_queue.front();
+  TNode assertion;
+  int32_t alevel;
+  while (!d_queue.empty())
+  {
+    std::tie(assertion, alevel) = d_queue.front();
     d_queue.pop();
     if (d_zll != nullptr)
     {
@@ -183,7 +186,6 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
       {
         break;
       }
-      int32_t alevel = d_propEngine->getDecisionLevel(assertion);
       if (!d_zll->notifyAsserted(assertion, alevel))
       {
         d_stopSearch = true;
@@ -299,7 +301,8 @@ void TheoryProxy::enqueueTheoryLiteral(const SatLiteral& l) {
   Node literalNode = d_cnfStream->getNode(l);
   Trace("prop") << "enqueueing theory literal " << l << " " << literalNode << std::endl;
   Assert(!literalNode.isNull());
-  d_queue.push(literalNode);
+  // Decision level = SAT context level - 1 due to global push().
+  d_queue.push(std::make_pair(literalNode, context()->getLevel() - 1));
 }
 
 SatLiteral TheoryProxy::getNextTheoryDecisionRequest() {
@@ -435,6 +438,12 @@ void TheoryProxy::notifySatLiteral(Node n)
 {
   // notify the preregister utility, which may trigger new preregistrations
   d_prr->notifySatLiteral(n);
+}
+
+void TheoryProxy::notifyBacktrack(uint32_t nlevels)
+{
+  // notify the preregistrar, which may trigger reregistrations
+  d_prr->notifyBacktrack(nlevels);
 }
 
 std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals(

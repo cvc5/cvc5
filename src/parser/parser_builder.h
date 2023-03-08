@@ -18,9 +18,10 @@
 #ifndef CVC5__PARSER__PARSER_BUILDER_H
 #define CVC5__PARSER__PARSER_BUILDER_H
 
+#include <cvc5/cvc5_export.h>
+
 #include <string>
 
-#include "cvc5_export.h"
 #include "options/language.h"
 #include "parser/input.h"
 

@@ -20,7 +20,7 @@ namespace cvc5::internal {
 namespace decision {
 
 DecisionEngine::DecisionEngine(Env& env,
-                               prop::CDCLTSatSolverInterface* ss,
+                               prop::CDCLTSatSolver* ss,
                                prop::CnfStream* cs)
     : EnvObj(env), d_satSolver(ss), d_cnfStream(cs)
 {

@@ -67,7 +67,7 @@ class TheoryProxy : protected EnvObj, public Registrar
   ~TheoryProxy();
 
   /** Finish initialize */
-  void finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs);
+  void finishInit(CDCLTSatSolver* ss, CnfStream* cs);
 
   /** Presolve, which calls presolve for the modules managed by this class */
   void presolve();
@@ -191,6 +191,12 @@ class TheoryProxy : protected EnvObj, public Registrar
    */
   void notifySatLiteral(Node n) override;
 
+  /**
+   * Callback to notify that the SAT solver backtracked by the given number
+   * of levels.
+   */
+  void notifyBacktrack(uint32_t nlevels);
+
   /** Get the zero-level assertions */
   std::vector<Node> getLearnedZeroLevelLiterals(
       modes::LearnedLitType ltype) const;
@@ -218,8 +224,8 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** The theory engine we are using. */
   TheoryEngine* d_theoryEngine;
 
-  /** Queue of asserted facts */
-  context::CDQueue<TNode> d_queue;
+  /** Queue of asserted facts and their decision level. */
+  context::CDQueue<std::pair<TNode, int32_t>> d_queue;
 
   /** The theory preprocessor */
   theory::TheoryPreprocessor d_tpp;

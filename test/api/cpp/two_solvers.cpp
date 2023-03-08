@@ -13,10 +13,10 @@
  * A simple test of multiple SmtEngines.
  */
 
+#include <cvc5/cvc5.h>
+
 #include <iostream>
 #include <sstream>
-
-#include "api/cpp/cvc5.h"
 
 using namespace cvc5;
 using namespace std;

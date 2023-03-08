@@ -18,10 +18,10 @@
 #ifndef CVC5__LANGUAGE_H
 #define CVC5__LANGUAGE_H
 
+#include <cvc5/cvc5_export.h>
+
 #include <ostream>
 #include <string>
-
-#include "cvc5_export.h"
 
 namespace cvc5::internal {
 
