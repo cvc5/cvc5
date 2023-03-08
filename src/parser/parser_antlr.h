@@ -18,13 +18,14 @@
 #ifndef CVC5__PARSER__PARSER_ANTLR_H
 #define CVC5__PARSER__PARSER_ANTLR_H
 
+#include <cvc5/cvc5.h>
+#include <cvc5/cvc5_export.h>
+
 #include <list>
 #include <memory>
 #include <set>
 #include <string>
 
-#include "api/cpp/cvc5.h"
-#include "cvc5_export.h"
 #include "parser/api/cpp/symbol_manager.h"
 #include "parser/input.h"
 #include "parser/parse_op.h"

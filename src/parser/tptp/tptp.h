@@ -19,11 +19,12 @@
 #ifndef CVC5__PARSER__TPTP_H
 #define CVC5__PARSER__TPTP_H
 
+#include <cvc5/cvc5.h>
+
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
 
-#include "api/cpp/cvc5.h"
 #include "parser/parse_op.h"
 #include "parser/parser.h"
 #include "util/hash.h"
