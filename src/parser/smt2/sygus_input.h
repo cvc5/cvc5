@@ -65,7 +65,7 @@ class SygusInput : public AntlrInput {
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Command* parseCommand() override;
+  std::unique_ptr<Command> parseCommand() override;
 
   /**
    * Parse an expression from the input. Returns a null

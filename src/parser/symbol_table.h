@@ -18,12 +18,13 @@
 #ifndef CVC5__SYMBOL_TABLE_H
 #define CVC5__SYMBOL_TABLE_H
 
+#include <cvc5/cvc5_export.h>
+
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "base/exception.h"
-#include "cvc5_export.h"
 
 namespace cvc5 {
 class Solver;

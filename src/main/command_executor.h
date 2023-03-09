@@ -16,10 +16,11 @@
 #ifndef CVC5__MAIN__COMMAND_EXECUTOR_H
 #define CVC5__MAIN__COMMAND_EXECUTOR_H
 
+#include <cvc5/cvc5.h>
+
 #include <iosfwd>
 #include <string>
 
-#include "api/cpp/cvc5.h"
 #include "parser/api/cpp/symbol_manager.h"
 
 namespace cvc5 {
