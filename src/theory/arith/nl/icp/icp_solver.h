@@ -16,6 +16,8 @@
 #ifndef CVC5__THEORY__ARITH__ICP__ICP_SOLVER_H
 #define CVC5__THEORY__ARITH__ICP__ICP_SOLVER_H
 
+#include <cstdint>
+
 #include "cvc5_private.h"
 
 #ifdef CVC5_POLY_IMP
