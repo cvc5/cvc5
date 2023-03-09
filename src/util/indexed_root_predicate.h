@@ -13,6 +13,8 @@
  * Utils for indexed root predicates.
  */
 
+#include <cstdint>
+
 #include "cvc5_public.h"
 
 #ifndef CVC5__UTIL__INDEXED_ROOT_PREDICATE_H

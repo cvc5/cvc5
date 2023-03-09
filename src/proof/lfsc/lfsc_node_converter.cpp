@@ -27,6 +27,7 @@
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
 #include "printer/smt2/smt2_printer.h"
+#include "theory/builtin/generic_op.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/strings/word.h"
@@ -334,7 +335,7 @@ Node LfscNodeConverter::postConvert(Node n)
            || k == DIVISION || k == DIVISION_TOTAL || k == INTS_DIVISION
            || k == INTS_DIVISION_TOTAL || k == INTS_MODULUS
            || k == INTS_MODULUS_TOTAL || k == NEG || k == POW
-           || isIndexedOperatorKind(k))
+           || GenericOp::isIndexedOperatorKind(k))
   {
     // must give special names to SMT-LIB operators with arithmetic subtyping
     // note that SUB is not n-ary
@@ -905,145 +906,6 @@ Node LfscNodeConverter::convertBitVector(const BitVector& bv)
   return ret;
 }
 
-bool LfscNodeConverter::isIndexedOperatorKind(Kind k)
-{
-  return k == REGEXP_LOOP || k == BITVECTOR_EXTRACT || k == BITVECTOR_REPEAT
-         || k == BITVECTOR_ZERO_EXTEND || k == BITVECTOR_SIGN_EXTEND
-         || k == BITVECTOR_ROTATE_LEFT || k == BITVECTOR_ROTATE_RIGHT
-         || k == INT_TO_BITVECTOR || k == IAND
-         || k == FLOATINGPOINT_TO_FP_FROM_FP
-         || k == FLOATINGPOINT_TO_FP_FROM_IEEE_BV
-         || k == FLOATINGPOINT_TO_FP_FROM_SBV
-         || k == FLOATINGPOINT_TO_FP_FROM_REAL || k == FLOATINGPOINT_TO_SBV
-         || k == FLOATINGPOINT_TO_UBV || k == FLOATINGPOINT_TO_SBV_TOTAL
-         || k == FLOATINGPOINT_TO_UBV_TOTAL || k == APPLY_UPDATER
-         || k == APPLY_TESTER;
-}
-
-std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  std::vector<Node> indices;
-  switch (k)
-  {
-    case REGEXP_LOOP:
-    {
-      RegExpLoop op = n.getConst<RegExpLoop>();
-      indices.push_back(nm->mkConstInt(Rational(op.d_loopMinOcc)));
-      indices.push_back(nm->mkConstInt(Rational(op.d_loopMaxOcc)));
-      break;
-    }
-    case BITVECTOR_EXTRACT:
-    {
-      BitVectorExtract p = n.getConst<BitVectorExtract>();
-      indices.push_back(nm->mkConstInt(Rational(p.d_high)));
-      indices.push_back(nm->mkConstInt(Rational(p.d_low)));
-      break;
-    }
-    case BITVECTOR_REPEAT:
-      indices.push_back(nm->mkConstInt(
-          Rational(n.getConst<BitVectorRepeat>().d_repeatAmount)));
-      break;
-    case BITVECTOR_ZERO_EXTEND:
-      indices.push_back(nm->mkConstInt(
-          Rational(n.getConst<BitVectorZeroExtend>().d_zeroExtendAmount)));
-      break;
-    case BITVECTOR_SIGN_EXTEND:
-      indices.push_back(nm->mkConstInt(
-          Rational(n.getConst<BitVectorSignExtend>().d_signExtendAmount)));
-      break;
-    case BITVECTOR_ROTATE_LEFT:
-      indices.push_back(nm->mkConstInt(
-          Rational(n.getConst<BitVectorRotateLeft>().d_rotateLeftAmount)));
-      break;
-    case BITVECTOR_ROTATE_RIGHT:
-      indices.push_back(nm->mkConstInt(
-          Rational(n.getConst<BitVectorRotateRight>().d_rotateRightAmount)));
-      break;
-    case INT_TO_BITVECTOR:
-      indices.push_back(
-          nm->mkConstInt(Rational(n.getConst<IntToBitVector>().d_size)));
-      break;
-    case IAND:
-      indices.push_back(nm->mkConstInt(Rational(n.getConst<IntAnd>().d_size)));
-      break;
-    case FLOATINGPOINT_TO_FP_FROM_FP:
-    {
-      const FloatingPointToFPFloatingPoint& ffp =
-          n.getConst<FloatingPointToFPFloatingPoint>();
-      indices.push_back(nm->mkConstInt(ffp.getSize().exponentWidth()));
-      indices.push_back(nm->mkConstInt(ffp.getSize().significandWidth()));
-    }
-    break;
-    case FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
-    {
-      const FloatingPointToFPIEEEBitVector& fbv =
-          n.getConst<FloatingPointToFPIEEEBitVector>();
-      indices.push_back(nm->mkConstInt(fbv.getSize().exponentWidth()));
-      indices.push_back(nm->mkConstInt(fbv.getSize().significandWidth()));
-    }
-    break;
-    case FLOATINGPOINT_TO_FP_FROM_SBV:
-    {
-      const FloatingPointToFPSignedBitVector& fsbv =
-          n.getConst<FloatingPointToFPSignedBitVector>();
-      indices.push_back(nm->mkConstInt(fsbv.getSize().exponentWidth()));
-      indices.push_back(nm->mkConstInt(fsbv.getSize().significandWidth()));
-    }
-    break;
-    case FLOATINGPOINT_TO_FP_FROM_REAL:
-    {
-      const FloatingPointToFPReal& fr = n.getConst<FloatingPointToFPReal>();
-      indices.push_back(nm->mkConstInt(fr.getSize().exponentWidth()));
-      indices.push_back(nm->mkConstInt(fr.getSize().significandWidth()));
-    }
-    break;
-    case FLOATINGPOINT_TO_SBV:
-    {
-      const FloatingPointToSBV& fsbv = n.getConst<FloatingPointToSBV>();
-      indices.push_back(nm->mkConstInt(Rational(fsbv)));
-    }
-    break;
-    case FLOATINGPOINT_TO_UBV:
-    {
-      const FloatingPointToUBV& fubv = n.getConst<FloatingPointToUBV>();
-      indices.push_back(nm->mkConstInt(Rational(fubv)));
-    }
-    break;
-    case FLOATINGPOINT_TO_SBV_TOTAL:
-    {
-      const FloatingPointToSBVTotal& fsbv =
-          n.getConst<FloatingPointToSBVTotal>();
-      indices.push_back(nm->mkConstInt(Rational(fsbv)));
-    }
-    break;
-    case FLOATINGPOINT_TO_UBV_TOTAL:
-    {
-      const FloatingPointToUBVTotal& fubv =
-          n.getConst<FloatingPointToUBVTotal>();
-      indices.push_back(nm->mkConstInt(Rational(fubv)));
-    }
-    break;
-    case APPLY_TESTER:
-    {
-      unsigned index = DType::indexOf(n);
-      const DType& dt = DType::datatypeOf(n);
-      indices.push_back(dt[index].getConstructor());
-    }
-    break;
-    case APPLY_UPDATER:
-    {
-      unsigned index = DType::indexOf(n);
-      const DType& dt = DType::datatypeOf(n);
-      unsigned cindex = DType::cindexOf(n);
-      indices.push_back(dt[cindex][index].getSelector());
-    }
-    break;
-    default: Assert(false); break;
-  }
-  return indices;
-}
-
 Node LfscNodeConverter::getNullTerminator(Kind k, TypeNode tn)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -1096,14 +958,14 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
   Trace("lfsc-term-process-debug2")
       << "getOperatorOfTerm " << n << " " << k << " "
       << (n.getMetaKind() == metakind::PARAMETERIZED) << " "
-      << isIndexedOperatorKind(k) << std::endl;
+      << GenericOp::isIndexedOperatorKind(k) << std::endl;
   if (n.getMetaKind() == metakind::PARAMETERIZED)
   {
     Node op = n.getOperator();
     std::vector<Node> indices;
-    if (isIndexedOperatorKind(k))
+    if (GenericOp::isIndexedOperatorKind(k))
     {
-      indices = getOperatorIndices(k, n.getOperator());
+      indices = GenericOp::getIndicesForOperator(k, n.getOperator());
       // we must convert the name of indices on updaters and testers
       if (k == APPLY_UPDATER || k == APPLY_TESTER)
       {
@@ -1130,7 +992,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       ftype = nm->mkFunctionType(argTypes, ftype);
     }
     Node ret;
-    if (isIndexedOperatorKind(k))
+    if (GenericOp::isIndexedOperatorKind(k))
     {
       std::vector<TypeNode> itypes;
       for (const Node& i : indices)
