@@ -307,14 +307,6 @@ enable_testing()
 #-----------------------------------------------------------------------------#
 # Check options, find packages and configure build.
 
-# On Windows, we need to have a shell interpreter to call 'configure'
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    find_program (SHELL "sh" REQUIRED)
-    message(STATUS "Found shell interpreter: ${SHELL}")
-else()
-    set(SHELL "")
-endif()
-
 if(BUILD_SHARED_LIBS)
   if (WIN32)
     set(CMAKE_FIND_LIBRARY_SUFFIXES .dll .lib .a)
