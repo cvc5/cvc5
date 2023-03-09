@@ -18,9 +18,10 @@
 #ifndef __CVC5__THEORY__MODEL_BLOCKER_H
 #define __CVC5__THEORY__MODEL_BLOCKER_H
 
+#include <cvc5/cvc5_types.h>
+
 #include <vector>
 
-#include "api/cpp/cvc5_types.h"
 #include "expr/node.h"
 #include "smt/env_obj.h"
 

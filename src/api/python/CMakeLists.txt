@@ -76,12 +76,12 @@ add_custom_command(
   COMMAND
     "${Python_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    --enums-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
+    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_kind.h"
     --enums-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/cvc5kinds"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
     "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
-    "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
+    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_kind.h"
 )
 add_custom_target(cvc5kinds DEPENDS ${GENERATED_KINDS_FILES})
 
@@ -96,12 +96,12 @@ add_custom_command(
   COMMAND
     "${Python_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    --enums-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_sort_kind.h"
+    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_sort_kind.h"
     --enums-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/cvc5sortkinds"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
     "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
-    "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_sort_kind.h"
+    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_sort_kind.h"
 )
 add_custom_target(cvc5sortkinds DEPENDS ${GENERATED_SORT_KINDS_FILES})
 
@@ -115,12 +115,12 @@ add_custom_command(
   COMMAND
     "${Python_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    --enums-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_types.h"
+    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_types.h"
     --enums-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/cvc5types"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
     "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
-    "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_types.h"
+    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_types.h"
 )
 add_custom_target(cvc5types DEPENDS ${GENERATED_TYPES_FILES})
 
@@ -135,8 +135,8 @@ add_dependencies(cvc5_python_base cvc5kinds cvc5sortkinds cvc5types)
 target_include_directories(cvc5_python_base
   PRIVATE
   ${PYTHON_INCLUDE_DIRS}
-  ${PROJECT_SOURCE_DIR}/src       # for API headers in src/api/cpp
-  ${CMAKE_BINARY_DIR}/src         # for cvc5_export.h
+  ${PROJECT_SOURCE_DIR}/include   # for public API headers
+  ${CMAKE_BINARY_DIR}/include     # for cvc5_export.h
 )
 
 target_link_libraries(cvc5_python_base cvc5)

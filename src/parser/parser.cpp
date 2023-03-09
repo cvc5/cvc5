@@ -15,6 +15,8 @@
 
 #include "parser/parser.h"
 
+#include <cvc5/cvc5.h>
+
 #include <clocale>
 #include <fstream>
 #include <iostream>
@@ -22,7 +24,6 @@
 #include <sstream>
 #include <unordered_set>
 
-#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/kind.h"
@@ -649,7 +650,10 @@ void ParserState::unexpectedEOF(const std::string& msg)
   d_psc->unexpectedEOF(msg);
 }
 
-void ParserState::preemptCommand(Command* cmd) { d_psc->preemptCommand(cmd); }
+void ParserState::preemptCommand(std::unique_ptr<Command> cmd)
+{
+  d_psc->preemptCommand(std::move(cmd));
+}
 
 void ParserState::attributeNotSupported(const std::string& attr)
 {
