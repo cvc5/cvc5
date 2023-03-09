@@ -102,14 +102,6 @@ if(NOT ANTLR3_FOUND_SYSTEM)
     else()
         unset(64bit)
     endif()
-
-    # On Windows, we need to have a shell interpreter to call 'configure'
-    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-        find_program (SHELL "sh" REQUIRED)
-        message(STATUS "Found shell interpreter: ${SHELL}")
-    else()
-        set(SHELL "")
-    endif()
  
     set(compilers "")
     if (CMAKE_CROSSCOMPILING_MACOS)
