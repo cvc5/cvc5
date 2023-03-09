@@ -595,6 +595,8 @@ libcvc5_add_sources(
   theory/booleans/type_enumerator.h
   theory/builtin/abstract_type.cpp
   theory/builtin/abstract_type.h
+  theory/builtin/generic_op.cpp
+  theory/builtin/generic_op.h
   theory/builtin/proof_checker.cpp
   theory/builtin/proof_checker.h
   theory/builtin/theory_builtin.cpp

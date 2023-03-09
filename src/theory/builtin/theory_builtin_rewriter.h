@@ -44,6 +44,10 @@ class TheoryBuiltinRewriter : public TheoryRewriter
    * Returns the rewritten form of node.
    */
   static Node rewriteWitness(TNode node);
+  /**
+   * Main entry point for rewriting APPLY_INDEXED_SYMBOLIC terms.
+   */
+  static Node rewriteApplyIndexedSymbolic(TNode node);
 }; /* class TheoryBuiltinRewriter */
 
 }  // namespace builtin
