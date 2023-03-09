@@ -13,7 +13,7 @@
  * Test for issue #4889
  */
 
-#include "api/cpp/cvc5.h"
+#include <cvc5/cvc5.h>
 
 using namespace cvc5;
 

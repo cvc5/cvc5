@@ -34,12 +34,9 @@ Smt2Parser::Smt2Parser(Solver* solver,
   d_lex = &d_slex;
 }
 
-Command* Smt2Parser::parseNextCommand()
+std::unique_ptr<Command> Smt2Parser::parseNextCommand()
 {
-  // !!! note that the memory management of commands will change after we
-  // remove the ANTLR parser.
-  std::unique_ptr<Command> cmd = d_cmdParser.parseNextCommand();
-  return cmd.release();
+  return d_cmdParser.parseNextCommand();
 }
 
 Term Smt2Parser::parseNextExpression()

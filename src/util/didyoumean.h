@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "cvc5_export.h"
+#include <cvc5/cvc5_export.h>
 
 #include <string>
 #include <vector>

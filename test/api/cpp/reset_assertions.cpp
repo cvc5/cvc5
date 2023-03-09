@@ -18,10 +18,10 @@
  * which the datastructure needs to handle properly problematic.
  */
 
+#include <cvc5/cvc5.h>
+
 #include <iostream>
 #include <sstream>
-
-#include "api/cpp/cvc5.h"
 
 using namespace cvc5;
 

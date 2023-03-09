@@ -14,7 +14,7 @@
  * the language bindings are generated automatically.
  */
 
-#include "cvc5_export.h"
+#include <cvc5/cvc5_export.h>
 
 #ifndef CVC5__API__CVC5_TYPES_H
 #define CVC5__API__CVC5_TYPES_H
@@ -134,7 +134,7 @@ enum BlockModelsMode
   VALUES
 };
 /** Writes a block models mode to a stream. */
-std::ostream& operator<<(std::ostream& out, BlockModelsMode bmode);
+std::ostream& operator<<(std::ostream& out, BlockModelsMode bmode) CVC5_EXPORT;
 
 /**
  * Types of learned literals.
@@ -192,7 +192,7 @@ enum LearnedLitType
   LEARNED_LIT_UNKNOWN
 };
 /** Writes a learned literal type to a stream. */
-std::ostream& operator<<(std::ostream& out, LearnedLitType ltype);
+std::ostream& operator<<(std::ostream& out, LearnedLitType ltype) CVC5_EXPORT;
 
 /**
  * Components to include in a proof.
@@ -251,7 +251,7 @@ enum ProofComponent
   PROOF_COMPONENT_FULL,
 };
 /** Writes a proof component identifier to a stream. */
-std::ostream& operator<<(std::ostream& out, ProofComponent pc);
-}
+std::ostream& operator<<(std::ostream& out, ProofComponent pc) CVC5_EXPORT;
+}  // namespace cvc5::modes
 
 #endif

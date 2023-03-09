@@ -168,15 +168,16 @@ TypeNode ApplyIndexedSymbolicTypeRule::preComputeType(NodeManager* nm, TNode n)
   // TODO: could be more precise
   return nm->mkAbstractType(kind::ABSTRACT_TYPE);
 }
+
 TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
                                                    TNode n,
                                                    bool check,
                                                    std::ostream* errOut)
 {
-  // TODO: could be more precise
+  // Note that this could be more precise by case splitting on the kind
+  // of indexed operator, but we don't do this for simplicity.
   return nodeManager->mkAbstractType(kind::ABSTRACT_TYPE);
 }
-
 /**
  * Attribute for caching the ground term for each type. Maps TypeNode to the
  * skolem to return for mkGroundTerm.

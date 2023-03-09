@@ -290,28 +290,29 @@ Node GenericOp::getOperatorForIndices(Kind k, const std::vector<Node>& indices)
   }
   else
   {
-    /*
     switch (k)
     {
       case APPLY_TESTER:
       {
-        unsigned index = DType::indexOf(n);
-        const DType& dt = DType::datatypeOf(n);
-        indices.push_back(dt[index].getConstructor());
+        Assert(indices.size() == 1);
+        unsigned index = DType::indexOf(indices[0]);
+        const DType& dt = DType::datatypeOf(indices[0]);
+        return dt[index].getTester();
       }
       break;
       case APPLY_UPDATER:
       {
-        unsigned index = DType::indexOf(n);
-        const DType& dt = DType::datatypeOf(n);
-        unsigned cindex = DType::cindexOf(n);
-        indices.push_back(dt[cindex][index].getSelector());
+        Assert(indices.size() == 1);
+        unsigned index = DType::indexOf(indices[0]);
+        const DType& dt = DType::datatypeOf(indices[0]);
+        unsigned cindex = DType::cindexOf(indices[0]);
+        return dt[cindex][index].getUpdater();
       }
       break;
-      default: Unhandled() << "GenericOp::getOperatorForIndices: unhandled kind
-    " << k; break;
+      default:
+        Unhandled() << "GenericOp::getOperatorForIndices: unhandled kind" << k;
+        break;
     }
-    */
   }
   return Node::null();
 }

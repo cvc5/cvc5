@@ -18,7 +18,8 @@
 #ifndef CVC5__PARSER__SMT2__SMT2_PARSER_H
 #define CVC5__PARSER__SMT2__SMT2_PARSER_H
 
-#include "api/cpp/cvc5.h"
+#include <cvc5/cvc5.h>
+
 #include "parser/flex_parser.h"
 #include "parser/smt2/smt2.h"
 #include "parser/smt2/smt2_cmd_parser.h"
@@ -46,7 +47,7 @@ class Smt2Parser : public FlexParser
   /**
    * Parse and return the next command.
    */
-  Command* parseNextCommand() override;
+  std::unique_ptr<Command> parseNextCommand() override;
 
   /** Parse and return the next expression. */
   Term parseNextExpression() override;
