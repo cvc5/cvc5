@@ -485,8 +485,6 @@ std::vector<NodeValue*> NodeManager::TopologicalSort(
 
 TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
 {
-  // !!!! temporary
-  std::stringstream errOutTmp;
   TypeNode typeNode;
   TypeAttr ta;
   TypeCheckedAttr tca;
@@ -496,6 +494,8 @@ TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
   {
     return typeNode;
   }
+  // !!!! temporary
+  std::stringstream errOutTmp;
   std::unordered_map<TNode, bool> visited;
   std::unordered_map<TNode, bool>::const_iterator it;
   std::vector<TNode> visit;
