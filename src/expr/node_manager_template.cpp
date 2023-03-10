@@ -485,76 +485,71 @@ std::vector<NodeValue*> NodeManager::TopologicalSort(
 
 TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
 {
-  // !!!! temporary
-  std::stringstream errOutTmp;
   TypeNode typeNode;
-  TypeAttr ta;
-  TypeCheckedAttr tca;
-  bool hasType = getAttribute(n, ta, typeNode);
-  bool needsCheck = check && !getAttribute(n, tca);
-  if (hasType && !needsCheck)
+  bool hasType = getAttribute(n, TypeAttr(), typeNode);
+  bool needsCheck = check && !getAttribute(n, TypeCheckedAttr());
+
+  Trace("getType") << this << " getting type for " << &n << " " << n
+                   << ", check=" << check << ", needsCheck = " << needsCheck
+                   << ", hasType = " << hasType << endl;
+
+#ifdef CVC5_DEBUG
+  // already did type check eagerly upon creation in node builder
+  bool doTypeCheck = false;
+#else
+  bool doTypeCheck = true;
+#endif
+  if (needsCheck && doTypeCheck)
   {
-    return typeNode;
-  }
-  std::unordered_map<TNode, bool> visited;
-  std::unordered_map<TNode, bool>::const_iterator it;
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(n);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    // already computed (and checked, if necessary) this type
-    if (!getAttribute(cur, ta).isNull() && (!check || getAttribute(cur, tca)))
+    /* Iterate and compute the children bottom up. This avoids stack
+       overflows in computeType() when the Node graph is really deep,
+       which should only affect us when we're type checking lazily. */
+    stack<TNode> worklist;
+    worklist.push(n);
+
+    while (!worklist.empty())
     {
-      continue;
-    }
-    it = visited.find(cur);
-    // we have yet to visit children
-    if (it == visited.end())
-    {
-      // See if it has a type inferrable at pre traversal. We only do this
-      // if we are not checking, since preComputeType by design does not
-      // check the children types.
-      if (!check)
+      TNode m = worklist.top();
+
+      bool readyToCompute = true;
+
+      for (TNode::iterator it = m.begin(), end = m.end(); it != end; ++it)
       {
-        typeNode = TypeChecker::preComputeType(this, cur);
-        if (!typeNode.isNull())
+        if (!hasAttribute(*it, TypeAttr())
+            || (check && !getAttribute(*it, TypeCheckedAttr())))
         {
-          visited[cur] = true;
-          setAttribute(cur, ta, typeNode);
-          // note that the result of preComputeType is not cached
-          continue;
+          readyToCompute = false;
+          worklist.push(*it);
         }
       }
-      // we are checking, or pre-compute type is not available
-      visited[cur] = false;
-      visit.push_back(cur);
-      visit.insert(visit.end(), cur.begin(), cur.end());
-    }
-    else if (!it->second)
-    {
-      visited[cur] = true;
-      // children now have types assigned
-      typeNode = TypeChecker::computeType(this, cur, check, &errOutTmp);
-      // if null, immediately return without further caching
-      if (typeNode.isNull())
+
+      if (readyToCompute)
       {
-        // !!! temporary
-        throw TypeCheckingExceptionPrivate(cur, errOutTmp.str());
-        return typeNode;
+        Assert(check || m.getMetaKind() != kind::metakind::NULLARY_OPERATOR);
+        /* All the children have types, time to compute */
+        typeNode = TypeChecker::computeType(this, m, check, errOut);
+        worklist.pop();
       }
-      setAttribute(cur, ta, typeNode);
-      setAttribute(cur, tca, check || getAttribute(cur, tca));
-    }
-  } while (!visit.empty());
+    }  // end while
+
+    /* Last type computed in loop should be the type of n */
+    Assert(typeNode == getAttribute(n, TypeAttr()));
+  }
+  else if (!hasType || needsCheck)
+  {
+    /* We can compute the type top-down, without worrying about
+       deep recursion. */
+    Assert(check || n.getMetaKind() != kind::metakind::NULLARY_OPERATOR);
+    typeNode = TypeChecker::computeType(this, n, check);
+  }
 
   /* The type should be have been computed and stored. */
-  Assert(hasAttribute(n, ta));
+  Assert(hasAttribute(n, TypeAttr()));
   /* The check should have happened, if we asked for it. */
-  Assert(!check || getAttribute(n, tca));
-  // should be the last type computed in the above loop
+  Assert(!check || getAttribute(n, TypeCheckedAttr()));
+
+  Trace("getType") << "type of " << &n << " " << n << " is " << typeNode
+                   << endl;
   return typeNode;
 }
 
