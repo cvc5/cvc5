@@ -56,10 +56,17 @@ if(NOT Poly_FOUND_SYSTEM)
     unset(POLY_PATCH_CMD)
   endif()
 
+  # On Windows, CMake's default install action places DLLs into the runtime
+  # path (/bin) after doing the build with 'ExternalProject_Add'
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(BINARY_LIBRARY_DEST "bin")
+  else()
+    set(BINARY_LIBRARY_DEST "lib")
+  endif()
+
   get_target_property(GMP_INCLUDE_DIR GMP INTERFACE_SYSTEM_INCLUDE_DIRECTORIES)
   get_target_property(GMP_LIBRARY GMP IMPORTED_LOCATION)
   get_filename_component(GMP_LIB_PATH "${GMP_LIBRARY}" DIRECTORY)
-
 
   set(Poly_INCLUDE_DIR "${DEPS_BASE}/include/")
 

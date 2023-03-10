@@ -18,10 +18,11 @@
 #ifndef CVC5__UTIL__RESULT_H
 #define CVC5__UTIL__RESULT_H
 
+#include <cvc5/cvc5_types.h>
+
 #include <iosfwd>
 #include <string>
 
-#include "api/cpp/cvc5_types.h"
 #include "options/language.h"
 
 namespace cvc5::internal {

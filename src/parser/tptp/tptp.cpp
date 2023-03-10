@@ -16,10 +16,11 @@
 // Do not #include "parser/antlr_input.h" directly. Rely on the header.
 #include "parser/tptp/tptp.h"
 
+#include <cvc5/cvc5.h>
+
 #include <algorithm>
 #include <set>
 
-#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "parser/api/cpp/command.h"
 #include "parser/parser.h"
@@ -37,6 +38,10 @@ TptpState::TptpState(ParserStateCallback* psc,
       d_fof(false),
       d_hol(false)
 {
+  // To ensure there are no conflicts with smt2 builtin symbols, we use a
+  // print namespace. This ensures that benchmarks coverted TPTP to smt2
+  // can be reparsed with -o raw-benchmark.
+  d_printNamespace = "tptp.";
   addTheory(TptpState::THEORY_CORE);
 
   /* Try to find TPTP dir */
@@ -65,7 +70,8 @@ TptpState::TptpState(ParserStateCallback* psc,
   // Handle forced logic immediately.
   if (sm->isLogicForced())
   {
-    preemptCommand(new SetBenchmarkLogicCommand(sm->getForcedLogic()));
+    preemptCommand(
+        std::make_unique<SetBenchmarkLogicCommand>(sm->getForcedLogic()));
   }
 }
 
@@ -79,7 +85,8 @@ void TptpState::addTheory(Theory theory)
     {
       std::string d_unsorted_name = "$$unsorted";
       d_unsorted = d_solver->mkUninterpretedSort(d_unsorted_name);
-      preemptCommand(new DeclareSortCommand(d_unsorted_name, 0, d_unsorted));
+      preemptCommand(
+          std::make_unique<DeclareSortCommand>(d_unsorted_name, 0, d_unsorted));
     }
     // propositionnal
     defineType("Bool", d_solver->getBooleanSort());
@@ -159,7 +166,7 @@ cvc5::Term TptpState::parseOpToExpr(ParseOp& p)
         p.d_type == d_solver->getBooleanSort() ? p.d_type : d_unsorted;
     expr = bindVar(p.d_name, t);  // must define at level zero
     d_auxSymbolTable[p.d_name] = expr;
-    preemptCommand(new DeclareFunctionCommand(p.d_name, expr, t));
+    preemptCommand(std::make_unique<DeclareFunctionCommand>(p.d_name, expr, t));
   }
   return expr;
 }
@@ -195,6 +202,15 @@ Term TptpState::makeApplyUf(std::vector<Term>& args)
       args[i + 1] = d_solver->mkTerm(TO_REAL, {args[i + 1]});
     }
   }
+  // If a lambda, apply it immediately. This is furthermore important to
+  // avoid lambdas with `-o raw-benchmark` when higher-order is not enabled.
+  if (args[0].getKind() == LAMBDA)
+  {
+    std::vector<Term> vars(args[0][0].begin(), args[0][0].end());
+    std::vector<Term> subs(args.begin() + 1, args.end());
+    return args[0][1].substitute(vars, subs);
+  }
+
   return d_solver->mkTerm(APPLY_UF, args);
 }
 
@@ -234,7 +250,7 @@ cvc5::Term TptpState::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
       t = d_solver->mkFunctionSort(sorts, t);
       v = bindVar(p.d_name, t);  // must define at level zero
       d_auxSymbolTable[p.d_name] = v;
-      preemptCommand(new DeclareFunctionCommand(p.d_name, v, t));
+      preemptCommand(std::make_unique<DeclareFunctionCommand>(p.d_name, v, t));
     }
     // args might be rationals, in which case we need to create
     // distinct constants of the "unsorted" sort to represent them
@@ -443,11 +459,13 @@ cvc5::Term TptpState::convertRatToUnsorted(cvc5::Term expr)
     // Conversion from rational to unsorted
     t = d_solver->mkFunctionSort({d_solver->getRealSort()}, d_unsorted);
     d_rtu_op = d_solver->mkConst(t, "$$rtu");
-    preemptCommand(new DeclareFunctionCommand("$$rtu", d_rtu_op, t));
+    preemptCommand(
+        std::make_unique<DeclareFunctionCommand>("$$rtu", d_rtu_op, t));
     // Conversion from unsorted to rational
     t = d_solver->mkFunctionSort({d_unsorted}, d_solver->getRealSort());
     d_utr_op = d_solver->mkConst(t, "$$utr");
-    preemptCommand(new DeclareFunctionCommand("$$utr", d_utr_op, t));
+    preemptCommand(
+        std::make_unique<DeclareFunctionCommand>("$$utr", d_utr_op, t));
   }
   // Add the inverse in order to show that over the elements that
   // appear in the problem there is a bijection between unsorted and
@@ -463,7 +481,7 @@ cvc5::Term TptpState::convertRatToUnsorted(cvc5::Term expr)
     }
     cvc5::Term eq = d_solver->mkTerm(
         cvc5::EQUAL, {expr, d_solver->mkTerm(cvc5::APPLY_UF, {d_utr_op, ret})});
-    preemptCommand(new AssertCommand(eq));
+    preemptCommand(std::make_unique<AssertCommand>(eq));
   }
   return cvc5::Term(ret);
 }
@@ -474,6 +492,7 @@ cvc5::Term TptpState::convertStrToUnsorted(std::string str)
   if (e.isNull())
   {
     e = d_solver->mkConst(d_unsorted, str);
+    preemptCommand(std::make_unique<DeclareFunctionCommand>(str, e, d_unsorted));
   }
   return e;
 }
@@ -544,7 +563,9 @@ cvc5::Term TptpState::getAssertionDistinctConstants()
   return d_nullExpr;
 }
 
-Command* TptpState::makeAssertCommand(FormulaRole fr, cvc5::Term expr, bool cnf)
+std::unique_ptr<Command> TptpState::makeAssertCommand(FormulaRole fr,
+                                                      cvc5::Term expr,
+                                                      bool cnf)
 {
   // For SZS ontology compliance.
   // if we're in cnf() though, conjectures don't result in "Theorem" or
@@ -554,10 +575,9 @@ Command* TptpState::makeAssertCommand(FormulaRole fr, cvc5::Term expr, bool cnf)
     Assert(!expr.isNull());
   }
   if( expr.isNull() ){
-    return new EmptyCommand("Untreated role for expression");
-  }else{
-    return new AssertCommand(expr);
+    return std::make_unique<EmptyCommand>("Untreated role for expression");
   }
+  return std::make_unique<AssertCommand>(expr);
 }
 
 }  // namespace parser

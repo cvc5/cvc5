@@ -19,6 +19,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/strings/word.h"
 #include "util/bitvector.h"
+#include "util/finite_field_value.h"
 #include "util/rational.h"
 #include "util/regexp.h"
 #include "util/string.h"
@@ -156,6 +157,12 @@ Node getNullTerminator(Kind k, TypeNode tn)
       break;
     case BITVECTOR_MULT:
       nullTerm = theory::bv::utils::mkOne(tn.getBitVectorSize());
+      break;
+    case FINITE_FIELD_ADD:
+      nullTerm = nm->mkConst(FiniteFieldValue(Integer(0), tn.getFfSize()));
+      break;
+    case FINITE_FIELD_MULT:
+      nullTerm = nm->mkConst(FiniteFieldValue(Integer(1), tn.getFfSize()));
       break;
     default:
       // not handled as null-terminated

@@ -30,12 +30,12 @@ add_custom_command(
   COMMAND
     "${Python_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    --enums-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
+    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_kind.h"
     --java-api-path "${CMAKE_CURRENT_BINARY_DIR}/io/github/"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
     "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
-    "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
+    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_kind.h"
 )
 add_custom_target(generate-java-kinds DEPENDS ${JAVA_KIND_FILE})
 
@@ -49,12 +49,12 @@ add_custom_command(
   COMMAND
     "${Python_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    --enums-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_sort_kind.h"
+    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_sort_kind.h"
     --java-api-path "${CMAKE_CURRENT_BINARY_DIR}/io/github/"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
     "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
-    "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_sort_kind.h"
+    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_sort_kind.h"
 )
 add_custom_target(generate-java-sort-kinds DEPENDS ${JAVA_SORT_KIND_FILE})
 
@@ -70,12 +70,12 @@ add_custom_command(
   COMMAND
     "${Python_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    --enums-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_types.h"
+    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_types.h"
     --java-api-path "${CMAKE_CURRENT_BINARY_DIR}/io/github/"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
     "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
-    "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_types.h"
+    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_types.h"
 )
 add_custom_target(generate-java-types DEPENDS ${JAVA_TYPES_FILES})
 

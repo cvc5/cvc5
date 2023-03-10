@@ -1864,8 +1864,8 @@ class SolverTest
     // difficulty should map assertions to integer values
     for (Map.Entry<Term, Term> t : dmap.entrySet())
     {
-      assertTrue(t.getKey() == f0 || t.getKey() == f1);
-      assertTrue(t.getValue().getKind() == Kind.CONST_RATIONAL);
+      assertTrue(t.getKey().equals(f0) || t.getKey().equals(f1));
+      assertTrue(t.getValue().getKind() == Kind.CONST_INTEGER);
     }
   }
 

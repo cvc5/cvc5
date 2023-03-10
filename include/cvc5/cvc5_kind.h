@@ -13,7 +13,7 @@
  * The term kinds of the cvc5 C++ API.
  */
 
-#include "cvc5_export.h"
+#include <cvc5/cvc5_export.h>
 
 #ifndef CVC5__API__CVC5_KIND_H
 #define CVC5__API__CVC5_KIND_H
@@ -5419,9 +5419,12 @@ enum Kind : int32_t
    *  - Solver::declarePool(const std::string&, const Sort&, const std::vector<Term>&) const
    *
    * A pool symbol represents a set of terms of a given sort. An instantiation
-   * pool annotation should match the types of the quantified formula.
+   * pool annotation should either:
+   * (1) have child sets matching the types of the quantified formula,
+   * (2) have a child set of tuple type whose component types match the types
+   * of the quantified formula.
    *
-   * For example, for a quantified formula:
+   * For an example of (1), for a quantified formula:
    *
    * \rst
    * .. code:: lisp
@@ -5434,6 +5437,17 @@ enum Kind : int32_t
    * quantified formula above should be instantiated with the product of all
    * terms that occur in the sets :math:`p` and :math:`q`.
    * \endrst
+   *
+   * Alternatively, as an example of (2), for a quantified formula:
+   *
+   * \rst
+   * .. code:: lisp
+   *
+   *     (FORALL (VARIABLE_LIST x y) F (INST_PATTERN_LIST (INST_POOL s)))
+   *
+   * :math:`s` should have Sort (Set (Tuple :math:`S_1` :math:`S_2`)). This
+   * annotation specifies that the quantified formula above should be
+   * instantiated with the pairs of values in :math:`s`.
    *
    * - Arity: ``n > 0``
    *
@@ -5626,6 +5640,6 @@ struct CVC5_EXPORT hash<cvc5::Kind>
   size_t operator()(cvc5::Kind k) const;
 };
 
-}
+}  // namespace std
 
 #endif
