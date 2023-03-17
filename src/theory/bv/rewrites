@@ -108,7 +108,7 @@
 (define-rule CompEliminate
   ((x ?BitVec) (y ?BitVec))
   (bvcomp x y)
-  (bvite (= x y) 1 0))
+  (ite (= x y) 1 0))
 
 ; Bugged rule
 ;(define-cond-rule RepeatEliminate1
