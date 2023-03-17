@@ -94,7 +94,7 @@
   (not (bvcomp x (bv 0 (bvsize x)))))
 (define-rule RedandEliminate
   ((x ?BitVec))
-  (bvredor x)
+  (bvredand x)
   (not (bvcomp x (bv 1 (bvsize x)))))
 
 (define-rule SubEliminate
