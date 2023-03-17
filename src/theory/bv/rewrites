@@ -564,6 +564,7 @@
   (not (bvsle x y))
   (bvslt y x))
 
+
 ;(define-rule bv-mult-slice
 ;	((x ?BitVec) (y ?BitVec))
 ;	(def
@@ -585,21 +586,22 @@
 ; are zero and not compute them. Only apply for large bitwidths
 ; as this can interfere with other mult normalization rewrites such
 ; as flattening.
-;(define-rule bv-extract-mult-leading-bit
-;	(
-;		(high Int) (low Int)
-;		(x ?BitVec) (x1i Int) (x2 ?BitVec)
-;		(y ?BitVec) (y1i Int) (y2 ?BitVec)
-;		(x1in Int) (y1in Int)
-;	)
-;	(def
-;		(n (bvsize x))
-;	)
-;	(and (>= n 64)
-;	(extract high low (bvmul (concat (bv x1i x1in) x2) (concat (bv y1i y1in) y2)))
-;	(bv 0 (+ (- high low) 1))
-;	)
-
+(define-cond-rule bv-extract-mult-leading-bit
+	(
+		(high Int) (low Int)
+		(x1i Int) (x1in Int) (x2 ?BitVec)
+		(y1i Int) (y1in Int) (y2 ?BitVec)
+	)
+	(def
+		(n (+ x1in (bvsize x2)))
+		(x0n (ite (= x1i 0) x1in (- x1in (int.log2 x1i))))
+		(y0n (ite (= y1i 0) y1in (- y1in (int.log2 y1i))))
+	)
+	(and (> n 64) (> (- (* 2 n) (+ x0n y0n)) low))
+	(extract high low (bvmul
+		(concat (bv x1i x1in) x2)
+		(concat (bv y1i y1in) y2)))
+	(bv 0 (+ 1 (- high low))))
 
 (define-rule bv-neg-idemp (
     (x ?BitVec)
@@ -607,6 +609,31 @@
   (bvneg (bvneg x))
   x)
 
+; (a udiv 2^k) ==> 0_k a[n-1: k]
+(define-cond-rule bv-udiv-pow2-1p
+	((x ?BitVec) (v Int) (n Int))
+	(def (power (int.log2 v)))
+	(and (int.ispow2 v) (> v 1))
+	(bvudiv x (bv v n))
+	(concat (bv 0 power) (extract (- n 1) power x))
+	)
+(define-cond-rule bv-udiv-pow2-1n
+	((x ?BitVec) (v Int) (n Int))
+	(def (power (int.log2 (- v))))
+	(and (int.ispow2 (- v)) (< v (- 1)))
+	(bvudiv x (bv v n))
+	(bvneg (concat (bv 0 power) (extract (- n 1) power x)))
+	)
+(define-cond-rule bv-udiv-pow2-2p
+	((x ?BitVec) (v Int) (n Int))
+	(= v 1)
+	(bvudiv x (bv v n))
+	x)
+(define-cond-rule bv-udiv-pow2-2n
+	((x ?BitVec) (v Int) (n Int))
+	(= v (- 1))
+	(bvudiv x (bv v n))
+	(bvneg x))
 ; (x udiv 0) = 111...1
 (define-rule bv-udiv-zero
 	((x ?BitVec))
@@ -618,6 +645,22 @@
 	((x ?BitVec))
 	(bvudiv x (bv 1 (bvsize x)))
 	x
+	)
+; (x urem 2^k) = 0_(n-k) x[k-1:0]
+; The original version had power - 1, but I thought about it and it doesn't make sense to me, so I didn't put the -1 here.
+(define-cond-rule bv-urem-pow2-1
+	((x ?BitVec) (v Int) (n Int))
+	(def (power (int.log2 v)))
+	(and (int.ispow2 v) (> v 1))
+	(bvurem x (bv v n))
+	(concat (bv 0 (- n 1)) (extract (- power 1) 0 x))
+	)
+(define-cond-rule bv-urem-pow2-2
+	((x ?BitVec) (v Int) (n Int))
+	(def (power (int.log2 (- v))))
+	(and (int.ispow2 (- v)) (< v (- 1)))
+	(bvurem x (bv v n))
+	(concat (bv 0 (- n 1)) (extract (- power 1) 0 x))
 	)
 ; (x urem 1) = 0
 (define-rule bv-urem-one
@@ -680,22 +723,22 @@
 	(not (= x (bv 0 (bvsize x))))
 	)
 
-(define-rule bv-merge-sign-extend-1
-	((x ?BitVec) (i Int) (j Int))
-	(sign_extend (sign_extend x j) i)
-	(sign_extend x (+ j i))
-	)
-(define-cond-rule bv-merge-sign-extend-2
-	((x ?BitVec) (i Int) (j Int))
-	(> j 1)
-	(sign_extend (zero_extend x j) i)
-	(zero_extend x (+ j i))
-	)
-(define-rule bv-merge-sign-extend-3
-	((x ?BitVec) (i Int))
-	(sign_extend (zero_extend x 0) i)
-	(sign_extend x i)
-	)
+;(define-rule bv-merge-sign-extend-1
+;	((x ?BitVec) (i Int) (j Int))
+;	(sign_extend (sign_extend x j) i)
+;	(sign_extend x (+ j i))
+;	)
+;(define-cond-rule bv-merge-sign-extend-2
+;	((x ?BitVec) (i Int) (j Int))
+;	(> j 1)
+;	(sign_extend (zero_extend x j) i)
+;	(zero_extend x (+ j i))
+;	)
+;(define-rule bv-merge-sign-extend-3
+;	((x ?BitVec) (i Int))
+;	(sign_extend (zero_extend x 0) i)
+;	(sign_extend x i)
+;	)
 (define-rule bv-sign-extend-eq-const-1
 	((x ?BitVec) (m Int) (c Int) (nm Int))
 	(def

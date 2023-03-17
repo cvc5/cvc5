@@ -119,6 +119,9 @@ class Op(Enum):
     LEQ = ('<=', 'LEQ')
     GEQ = ('>=', 'GEQ')
 
+    INT_ISPOW2 = ('int.ispow2', 'INTS_ISPOW2')  # Backdoor for some bv rewrites
+    INT_LENGTH = ('int.log2', 'INTS_LOG2')  # Backdoor for some bv rewrites
+
     ###########################################################################
     # Theory-independent
     ###########################################################################
@@ -133,7 +136,7 @@ class Op(Enum):
     # Strings
     ###########################################################################
 
-    CONST_STRING = (None, None)  # FIXME: This is completely unused. Delete?
+    #CONST_STRING = (None, None)  # FIXME: This is completely unused. Delete?
     STRING_CONCAT = ('str.++', 'STRING_CONCAT')
     STRING_IN_REGEXP = ('str.in_re', 'STRING_IN_REGEXP')
     STRING_LENGTH = ('str.len', 'STRING_LENGTH')

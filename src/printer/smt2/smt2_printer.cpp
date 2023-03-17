@@ -1194,6 +1194,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case kind::INTS_DIVISION: return "div";
     case kind::INTS_MODULUS_TOTAL:
     case kind::INTS_MODULUS: return "mod";
+    case kind::INTS_LOG2: return "log2i";
     case kind::ABS: return "abs";
     case kind::IS_INTEGER: return "is_int";
     case kind::TO_INTEGER: return "to_int";

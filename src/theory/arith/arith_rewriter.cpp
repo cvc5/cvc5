@@ -238,6 +238,8 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       case kind::NONLINEAR_MULT: return preRewriteMult(t);
       case kind::IAND: return RewriteResponse(REWRITE_DONE, t);
       case kind::POW2: return RewriteResponse(REWRITE_DONE, t);
+      case kind::INTS_ISPOW2: return RewriteResponse(REWRITE_DONE, t);
+      case kind::INTS_LOG2: return RewriteResponse(REWRITE_DONE, t);
       case kind::EXPONENTIAL:
       case kind::SINE:
       case kind::COSINE:
@@ -287,6 +289,8 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       case kind::NONLINEAR_MULT: return postRewriteMult(t);
       case kind::IAND: return postRewriteIAnd(t);
       case kind::POW2: return postRewritePow2(t);
+      case kind::INTS_ISPOW2: return postRewriteIntsIsPow2(t);
+      case kind::INTS_LOG2: return postRewriteIntsLog2(t);
       case kind::EXPONENTIAL:
       case kind::SINE:
       case kind::COSINE:
@@ -882,6 +886,35 @@ RewriteResponse ArithRewriter::postRewritePow2(TNode t)
     Node two = rewriter::mkConst(Integer(2));
     Node ret = nm->mkNode(kind::POW, two, t[0]);
     return RewriteResponse(REWRITE_AGAIN, ret);
+  }
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::postRewriteIntsIsPow2(TNode t)
+{
+  Assert(t.getKind() == kind::INTS_ISPOW2);
+  // if constant, we eliminate
+  if (t[0].isConst())
+  {
+    // pow2 is only supported for integers
+    Assert(t[0].getType().isInteger());
+    Integer i = t[0].getConst<Rational>().getNumerator();
+
+    return RewriteResponse(REWRITE_DONE, rewriter::mkConst(i.isPow2()));
+  }
+  return RewriteResponse(REWRITE_DONE, t);
+}
+RewriteResponse ArithRewriter::postRewriteIntsLog2(TNode t)
+{
+  Assert(t.getKind() == kind::INTS_LOG2);
+  // if constant, we eliminate
+  if (t[0].isConst())
+  {
+    // pow2 is only supported for integers
+    Assert(t[0].getType().isInteger());
+    Integer i = t[0].getConst<Rational>().getNumerator();
+    size_t const length = i.length();
+     return RewriteResponse(REWRITE_DONE, rewriter::mkConst(Integer(length)));
   }
   return RewriteResponse(REWRITE_DONE, t);
 }
