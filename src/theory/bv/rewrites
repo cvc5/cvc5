@@ -150,7 +150,7 @@
 (define-rule NorEliminate
   ((x ?BitVec) (y ?BitVec))
   (bvnor x y)
-  (bvnot (bvnor x y)))
+  (bvnot (bvor x y)))
 (define-rule XnorEliminate
   ((x ?BitVec) (y ?BitVec))
   (bvxnor x y)
