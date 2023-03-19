@@ -154,7 +154,7 @@
 (define-rule XnorEliminate
   ((x ?BitVec) (y ?BitVec))
   (bvxnor x y)
-  (bvnot (bvnor x y)))
+  (bvnot (bvxor x y)))
 
 
 (define-cond-rule ShlByConst1
