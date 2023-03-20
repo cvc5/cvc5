@@ -212,11 +212,6 @@ void TheorySep::postProcessModel( TheoryModel* m ){
   }
   else
   {
-    Trace("sep-model") << "Nptos:" << std::endl;
-    for (std::pair<const Node, std::vector<Node> >& p : heapLocsNptos)
-    {
-      Trace("sep-model") << " " << p.first << " -> " << p.second << std::endl;
-    }
     for (const Node& hv : hm.d_heap_locs_model)
     {
       Assert(hv.getKind() == SET_SINGLETON);
