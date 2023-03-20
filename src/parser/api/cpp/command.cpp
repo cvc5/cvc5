@@ -2372,7 +2372,9 @@ void DatatypeDeclarationCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
     // this should generally never happen since we look ahead to check whether
     // binding will succeed in Parser::mkMutualDatatypeTypes.
     std::stringstream ss;
-    ss << "Failed to implement bindings for symbols in definition of datatype in block containing " << d_datatypes[0];
+    ss << "Failed to implement bindings for symbols in definition of datatype "
+          "in block containing "
+       << d_datatypes[0];
     d_commandStatus = new CommandFailure(ss.str());
   }
   else
