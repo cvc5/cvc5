@@ -280,7 +280,7 @@
     (x ?BitVec)
   )
   (bvult x x) false)
-(define-rule LtSelf (
+(define-rule SltSelf (
     (x ?BitVec)
   )
   (bvslt x x) false)
@@ -288,7 +288,7 @@
     (x ?BitVec)
   )
   (bvule x x) true)
-(define-rule LeSelf (
+(define-rule SleSelf (
     (x ?BitVec)
   )
   (bvsle x x) true)
