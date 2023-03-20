@@ -246,7 +246,7 @@ TypeNode BitVectorSizeTypeRule::computeType(NodeManager* nodeManager,
                                             bool check,
                                             std::ostream* errOut)
 {
-  TypeNode t = n.getType(check);
+  TypeNode t = n[0].getType(check);
   if (!checkMaybeBitVector(t, errOut))
   {
     return TypeNode::null();
