@@ -109,6 +109,16 @@ class CVC5_EXPORT SymbolManager
   void bindType(const std::string& name,
                 const std::vector<cvc5::Sort>& params,
                 cvc5::Sort t);
+  /**
+   * Binds sorts of a list of mutually-recursive datatype declarations.
+   *
+   * For each symbol defined by the datatype, if a symbol with name already
+   * exists, then if doOverload is true, we create overloaded operators. Else,
+   * if doOverload is false, the existing expression is shadowed by the new
+   * expression.
+   */
+  bool bindMutualDatatypeTypes(
+      const std::vector<cvc5::Sort>& datatypes, bool doOverload = false, bool bindTesters = true);
 
   //---------------------------- named expressions
   /** Set name of term t to name

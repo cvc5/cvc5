@@ -136,7 +136,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       std::vector<DatatypeDecl> dts =
           d_tparser.parseDatatypesDef(isCo, dnames, arities);
       cmd.reset(new DatatypeDeclarationCommand(
-          d_state.bindMutualDatatypeTypes(dts, true)));
+          d_state.mkMutualDatatypeTypes(dts)));
     }
     break;
     // multiple datatype
@@ -170,7 +170,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
           d_tparser.parseDatatypesDef(isCo, dnames, arities);
       d_lex.eatToken(Token::RPAREN_TOK);
       cmd.reset(new DatatypeDeclarationCommand(
-          d_state.bindMutualDatatypeTypes(dts, true)));
+          d_state.mkMutualDatatypeTypes(dts)));
     }
     break;
     // (declare-fun <symbol> (<sort>∗) <sort>)
