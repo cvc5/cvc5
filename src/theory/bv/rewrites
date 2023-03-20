@@ -530,7 +530,7 @@
 	(bvule (bv 0 (bvsize x)) x)
 	true
 	)
-(define-rule bv-le-self (
+(define-rule bv-sle-self (
     (x ?BitVec)
   )
   (bvsle x x) true)
@@ -551,12 +551,6 @@
     )
   (not (bvule x y))
   (bvult y x))
-(define-rule bv-not-slt (
-    (x ?BitVec)
-    (y ?BitVec)
-  )
-  (not (bvslt x y))
-  (bvsle y x))
 (define-rule bv-not-sle (
     (x ?BitVec)
     (y ?BitVec)

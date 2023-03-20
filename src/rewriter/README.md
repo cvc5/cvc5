@@ -1,7 +1,5 @@
 # The Grammar of RARE
 
-## Overview
-
 This document describe the syntax of the RARE language, which stands for
 **r**ewrites, **a**utomatically **re**constructed.
 
@@ -19,6 +17,11 @@ This document describe the syntax of the RARE language, which stands for
 <binding> ::= (<symbol> <expr>)
    <defs> ::= (def <binding>+)
 ```
+
+## Rules
+
+### Matching
+
 The basic form of a RARE rewrite rule uses `define-rule`. The two
 expressions in the body of `define-rule` indicate the *match* and *target*
 of the rewrites.
@@ -32,6 +35,11 @@ of the rewrites.
 In this case, the match is `(str.substr "" m n)` and the target is `""`. For example, when the rule is applied to
 `(str.substr "" 3 5)`, `m,n` are instantiated to `3,5`, respectively, and the expression is rewritten as `""`.
 
+Match is purely syntactic. It matches *syntactically identical* terms. For
+example `(= (str.++ x1 x2) x2)`matches `a ++ b = b` but not `a ++ b = c`.
+
+### Fixed-Point Rules
+
 The `*` in `define-rule*` indicates that the rule shall be executed until it can
 no longer apply. In this case the user can supply a rewrite context to support
 the continuation.
@@ -42,6 +50,9 @@ the continuation.
 	(str.len (str.++ s2 s3))
 	(+ (str.len s1) _))
 ```
+This rule specifies that the rewrite of `(str.len (str.++ s1 s2 ...))` is the sum of `(str.len s1)` and the result of applying the rule to the term `(str.len (str.++ s2 ...))`
+
+### Conditional Rules
 
 In `define-cond-rule`, an additional expression immediately after the parameter
 and definition list restricts the rule to certain cases. The condition has to be
@@ -54,10 +65,17 @@ evaluable at the time of rule application.
 	(repeat n x)
 	(concat x (repeat (- n 1) x)))
 ```
+This rule is applied on `(repeat 3 ...)` but not `(repeat 1 ...)`.
+
+### def construction and variable bindings
 
 The definition list, indicated by `def`, allow the rewrite rule to be more
 succinctly expressed and readable. Each variable in the definition list is
-replaced by its expression.
+replaced by its expression. `def` can be viewed as a special case of `let` which
+only exists in the outermost layer.
+
+All used variables in match and target must show up in the parameters list and
+`def` list, Variables in the parameter list must be covered by the variables in match. Any unmatched variable will lead to an error.
 
 ``` lisp
 (define-rule bv-sign-extend-eliminate
@@ -76,14 +94,19 @@ processing are controlled by `rewriter.py` and `parser.py`.
 The symbols usable in `(<id> <expr>+)` can be found in `node.py`. The sorts
 available can be found in `mkrewrites.py`.
 
+
 ## Changes from Previous Works
 
-In comparison to [fmcad22], we have removed the `let` and `cond` expressions in
-favour of more atomic rewrite rules. `let` is replaced by `<defs>` which allow
-symbols to be shared across the condition, source, and target terms.
+In comparison to
+[fmcad22](https://ieeexplore.ieee.org/abstract/document/10026573), we have
+removed the `let` and `cond` expressions in favour of more atomic rewrite rules.
+`let` is replaced by `def` which allow symbols to be shared across the
+condition, source, and target terms.
 
 We also deleted the `const` modifier since the evaluation of constant
 expressions should be handled elsewhere.
+
+More information can be found in other works but beware of changes.
 
 ### Gradual Types
 
@@ -91,4 +114,12 @@ See `mkrewrites.py` for the supported gradual types. Gradual types mean that the
 exact type does not have to be specified in the RARE rule. For example,
 `?BitVec` could indicate the bitvector type of an unknown width that will only
 be instantiated during rule application.
+
+Gradual types lose information in operations.
+
+Example gradual type in `eq`
+``` lisp
+(define-rule eq-refl ((t ?)) (= t t) true)
+```
+This matches two semantically equal terms `t` and rewrite the result to `true` regardless of typing.
 
