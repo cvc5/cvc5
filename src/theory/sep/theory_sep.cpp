@@ -173,9 +173,10 @@ void TheorySep::postProcessModel( TheoryModel* m ){
   {
     return;
   }
-  
-  // loc -> { data_1, ..., data_n } where (not (pto loc data_1))...(not (pto loc data_n))).
-  std::map< Node, std::vector< Node > > heapLocsNptos;
+
+  // loc -> { data_1, ..., data_n } where (not (pto loc data_1))...(not (pto loc
+  // data_n))).
+  std::map<Node, std::vector<Node> > heapLocsNptos;
   // set up model
   Trace("sep-model") << "...preparing sep model..." << std::endl;
   // collect data points that are not pointed to
@@ -184,18 +185,17 @@ void TheorySep::postProcessModel( TheoryModel* m ){
        ++it)
   {
     Node lit = (*it).d_assertion;
-    Node atom = lit.getKind()==NOT ? lit[0] : lit;
-    atom = atom.getKind()==SEP_LABEL ? atom[0] : atom;
+    Node atom = lit.getKind() == NOT ? lit[0] : lit;
+    atom = atom.getKind() == SEP_LABEL ? atom[0] : atom;
     if (lit.getKind() == NOT && atom.getKind() == SEP_PTO)
     {
       Node v1 = m->getValue(atom[0]);
       Node v2 = m->getValue(atom[1]);
-      Trace("sep-model")
-          << v1 << " does not point-to " << v2 << std::endl;
+      Trace("sep-model") << v1 << " does not point-to " << v2 << std::endl;
       heapLocsNptos[v1].push_back(v2);
     }
   }
-  
+
   NodeManager* nm = NodeManager::currentNM();
   std::vector< Node > sep_children;
   Node m_neq;
@@ -213,7 +213,7 @@ void TheorySep::postProcessModel( TheoryModel* m ){
   else
   {
     Trace("sep-model") << "Nptos:" << std::endl;
-    for (std::pair< const Node, std::vector< Node > >& p : heapLocsNptos)
+    for (std::pair<const Node, std::vector<Node> >& p : heapLocsNptos)
     {
       Trace("sep-model") << " " << p.first << " -> " << p.second << std::endl;
     }
@@ -239,9 +239,7 @@ void TheorySep::postProcessModel( TheoryModel* m ){
           do
           {
             cv = *te_range;
-            if (std::find(heapLocsNptos[l].begin(),
-                          heapLocsNptos[l].end(),
-                          cv)
+            if (std::find(heapLocsNptos[l].begin(), heapLocsNptos[l].end(), cv)
                 == heapLocsNptos[l].end())
             {
               success = true;
