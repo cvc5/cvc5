@@ -68,13 +68,6 @@ TypeNode TypeChecker::computeType(NodeManager* nodeManager,
   // Infer the type
   switch (n.getKind())
   {
-    case kind::VARIABLE:
-    case kind::SKOLEM:
-      typeNode = nodeManager->getAttribute(n, TypeAttr());
-      break;
-    case kind::BUILTIN:
-      typeNode = nodeManager->builtinOperatorType();
-      break;
 
       // clang-format off
 ${typerules}
@@ -84,10 +77,6 @@ ${typerules}
       Trace("getType") << "FAILURE" << std::endl;
       Unhandled() << " " << n.getKind();
   }
-
-  nodeManager->setAttribute(n, TypeAttr(), typeNode);
-  nodeManager->setAttribute(n, TypeCheckedAttr(),
-                            check || nodeManager->getAttribute(n, TypeCheckedAttr()));
 
   return typeNode;
 
