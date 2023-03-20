@@ -152,7 +152,7 @@ void RewriteDb::addRule(DslPfRule id,
   // must canonize
   Trace("rewrite-db") << "Add rule " << id << ": " << cond << " => " << a
                       << " == " << b << std::endl;
-  Assert(a.getType() == b.getType());
+  Assert(a.getType().isComparableTo(b.getType()));
   Node cr = d_canon.getCanonicalTerm(tmpi, false, false);
   context = d_canon.getCanonicalTerm(context, false, false);
 
