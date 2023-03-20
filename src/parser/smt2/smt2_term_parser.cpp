@@ -1218,8 +1218,8 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
         symbols.push_back(d_lex.tokenStr());
         break;
       default:
-          d_lex.unexpectedTokenError(tok,
-                                     "Expected index while parsing indexed identifier");
+        d_lex.unexpectedTokenError(
+            tok, "Expected index while parsing indexed identifier");
         break;
     }
     tok = d_lex.nextToken();
