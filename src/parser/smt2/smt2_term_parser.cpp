@@ -1117,7 +1117,7 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypesDef(
   d_lex.reinsertToken(tok);
   if (dts.size() != dnames.size())
   {
-    d_lex.parseError("Wrong number of datatypes provided.");
+    d_lex.unexpectedTokenError(tok, "Wrong number of datatypes provided.");
   }
   d_state.popScope();
   return dts;
