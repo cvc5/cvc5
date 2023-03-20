@@ -173,6 +173,29 @@ void TheorySep::postProcessModel( TheoryModel* m ){
   {
     return;
   }
+  
+  // loc -> { data_1, ..., data_n } where (not (pto loc data_1))...(not (pto loc data_n))).
+  std::map< Node, std::vector< Node > > heapLocsNptos;
+  // set up model
+  Trace("sep-model") << "...preparing sep model..." << std::endl;
+  // collect data points that are not pointed to
+  for (context::CDList<Assertion>::const_iterator it = facts_begin();
+       it != facts_end();
+       ++it)
+  {
+    Node lit = (*it).d_assertion;
+    Node atom = lit.getKind()==NOT ? lit[0] : lit;
+    atom = atom.getKind()==SEP_LABEL ? atom[0] : atom;
+    if (lit.getKind() == NOT && atom.getKind() == SEP_PTO)
+    {
+      Node v1 = m->getValue(atom[0]);
+      Node v2 = m->getValue(atom[1]);
+      Trace("sep-model")
+          << v1 << " does not point-to " << v2 << std::endl;
+      heapLocsNptos[v1].push_back(v2);
+    }
+  }
+  
   NodeManager* nm = NodeManager::currentNM();
   std::vector< Node > sep_children;
   Node m_neq;
@@ -189,6 +212,11 @@ void TheorySep::postProcessModel( TheoryModel* m ){
   }
   else
   {
+    Trace("sep-model") << "Nptos:" << std::endl;
+    for (std::pair< const Node, std::vector< Node > >& p : heapLocsNptos)
+    {
+      Trace("sep-model") << " " << p.first << " -> " << p.second << std::endl;
+    }
     for (const Node& hv : hm.d_heap_locs_model)
     {
       Assert(hv.getKind() == SET_SINGLETON);
@@ -211,10 +239,10 @@ void TheorySep::postProcessModel( TheoryModel* m ){
           do
           {
             cv = *te_range;
-            if (std::find(d_heap_locs_nptos[l].begin(),
-                          d_heap_locs_nptos[l].end(),
+            if (std::find(heapLocsNptos[l].begin(),
+                          heapLocsNptos[l].end(),
                           cv)
-                == d_heap_locs_nptos[l].end())
+                == heapLocsNptos[l].end())
             {
               success = true;
             }
@@ -229,7 +257,7 @@ void TheorySep::postProcessModel( TheoryModel* m ){
       else
       {
         Trace("sep-model") << d_pto_model[l];
-        Node vpto = d_valuation.getModel()->getRepresentative(d_pto_model[l]);
+        Node vpto = m->getValue(d_pto_model[l]);
         Assert(vpto.isConst());
         pto_children.push_back(vpto);
       }
@@ -849,25 +877,6 @@ void TheorySep::postCheck(Effort level)
   if (addedLemma)
   {
     return;
-  }
-  // set up model
-  Trace("sep-process-debug") << "...preparing sep model..." << std::endl;
-  d_heap_locs_nptos.clear();
-  // collect data points that are not pointed to
-  for (context::CDList<Assertion>::const_iterator it = facts_begin();
-       it != facts_end();
-       ++it)
-  {
-    Node lit = (*it).d_assertion;
-    if (lit.getKind() == NOT && lit[0].getKind() == SEP_PTO)
-    {
-      Node satom = lit[0];
-      Node v1 = d_valuation.getModel()->getRepresentative(satom[0]);
-      Node v2 = d_valuation.getModel()->getRepresentative(satom[1]);
-      Trace("sep-process-debug")
-          << v1 << " does not point-to " << v2 << std::endl;
-      d_heap_locs_nptos[v1].push_back(v2);
-    }
   }
 
   if (needAddLemma)
