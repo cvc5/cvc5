@@ -2366,7 +2366,7 @@ void DatatypeDeclarationCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
   // Implement the bindings. We bind tester names is-C if strict parsing is
   // disabled.
-  bool bindTesters = solver->getOption("strict-parsing") == "true";
+  bool bindTesters = solver->getOption("strict-parsing") != "true";
   if (!sm->bindMutualDatatypeTypes(d_datatypes, true, bindTesters))
   {
     // this should generally never happen since we look ahead to check whether
