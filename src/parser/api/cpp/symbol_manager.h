@@ -117,8 +117,9 @@ class CVC5_EXPORT SymbolManager
    * if doOverload is false, the existing expression is shadowed by the new
    * expression.
    */
-  bool bindMutualDatatypeTypes(
-      const std::vector<cvc5::Sort>& datatypes, bool doOverload = false, bool bindTesters = true);
+  bool bindMutualDatatypeTypes(const std::vector<cvc5::Sort>& datatypes,
+                               bool doOverload = false,
+                               bool bindTesters = true);
 
   //---------------------------- named expressions
   /** Set name of term t to name

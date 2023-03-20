@@ -342,8 +342,7 @@ class CVC5_EXPORT ParserState
    * will succeed. However, it does not actually implement the binding yet,
    * as this is only done when the command is executed.
    */
-  std::vector<Sort> mkMutualDatatypeTypes(
-      std::vector<DatatypeDecl>& datatypes);
+  std::vector<Sort> mkMutualDatatypeTypes(std::vector<DatatypeDecl>& datatypes);
 
   /** make flat function type
    *
