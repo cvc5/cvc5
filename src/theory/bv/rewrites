@@ -477,7 +477,9 @@
 	true)
 (define-rule bv-sle-self ((x ?BitVec)) (bvsle x x) true)
 
-(define-rule bv-ule-max ((x ?BitVec)) (bvule x (bv 1 (bvsize x))) true)
+(define-cond-rule bv-ule-max ((x ?BitVec) (y ?BitVec))
+	(= y (not (bv 0 (bvsize x))))
+	(bvule x y) true)
 (define-rule bv-not-ult ((x ?BitVec) (y ?BitVec))
 	(not (bvult x y))
 	(bvule y x))
