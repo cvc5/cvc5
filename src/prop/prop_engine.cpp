@@ -735,6 +735,12 @@ void PropEngine::getUnsatCore(std::vector<Node>& core)
   }
 }
 
+std::vector<Node> PropEngine::getUnsatCoreLemmas()
+{
+  Assert(d_env.isSatProofProducing());
+  return d_ppm->getUnsatCoreLemmas();
+}
+
 std::vector<Node> PropEngine::getLearnedZeroLevelLiterals(
     modes::LearnedLitType ltype) const
 {

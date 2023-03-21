@@ -97,6 +97,26 @@ void SetDefaults::setDefaultsPre(Options& opts)
     }
     opts.writeSmt().unsatCoresMode = options::UnsatCoresMode::ASSUMPTIONS;
   }
+  if (opts.smt.produceUnsatCoreLemmas)
+  {
+    if (!opts.smt.produceUnsatCores)
+    {
+      if (opts.smt.unsatCoresModeWasSetByUser)
+      {
+        notifyModifyOption("unsatCores", "true", "enabling unsat core lemmas");
+      }
+      opts.writeSmt().produceUnsatCores = true;
+    }
+    if (opts.smt.unsatCoresMode == options::UnsatCoresMode::OFF)
+    {
+      if (opts.smt.unsatCoresModeWasSetByUser)
+      {
+        notifyModifyOption(
+            "unsatCoresMode", "sat-proof", "enabling unsat core lemmas");
+      }
+      opts.writeSmt().unsatCoresMode = options::UnsatCoresMode::SAT_PROOF;
+    }
+  }
   if (opts.proof.checkProofSteps)
   {
     notifyModifyOption("checkProofs", "true", "check-proof-steps");

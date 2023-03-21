@@ -80,7 +80,6 @@ std::vector<Node> ProofCnfStream::getLemmaClauses()
   {
     cls.push_back(c);
   }
-
   return cls;
 }
 

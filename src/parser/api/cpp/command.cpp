@@ -1985,6 +1985,48 @@ void GetUnsatCoreCommand::toStream(std::ostream& out) const
 }
 
 /* -------------------------------------------------------------------------- */
+/* class GetUnsatCoreLemmasCommand                                                  */
+/* -------------------------------------------------------------------------- */
+
+GetUnsatCoreLemmasCommand::GetUnsatCoreLemmasCommand() : d_solver(nullptr) {}
+void GetUnsatCoreLemmasCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
+{
+  try
+  {
+    d_solver = solver;
+    d_result = solver->getUnsatCoreLemmas();
+
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (cvc5::CVC5ApiRecoverableException& e)
+  {
+    d_commandStatus = new CommandRecoverableFailure(e.what());
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+void GetUnsatCoreLemmasCommand::printResult(cvc5::Solver* solver,
+                                            std::ostream& out) const
+{
+  // use the assertions
+  UnsatCore ucr(termVectorToNodes(d_result));
+  ucr.toStream(out);
+}
+
+std::string GetUnsatCoreLemmasCommand::getCommandName() const
+{
+  return "get-unsat-core-lemmas";
+}
+
+void GetUnsatCoreLemmasCommand::toStream(std::ostream& out) const
+{
+  Printer::getPrinter(out)->toStreamCmdGetUnsatCore(out);
+}
+
+/* -------------------------------------------------------------------------- */
 /* class GetDifficultyCommand */
 /* -------------------------------------------------------------------------- */
 

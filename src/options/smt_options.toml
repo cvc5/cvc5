@@ -168,6 +168,14 @@ name   = "SMT Layer"
   help = "Produce unsat cores using solving under assumptions and preprocessing proofs."
 
 [[option]]
+  name       = "produceUnsatCoreLemmas"
+  category   = "regular"
+  long       = "produce-unsat-core-lemmas"
+  type       = "bool"
+  default    = "false"
+  help       = "Enables tracking the lemmas used by the solver to derive unsat. This requires SAT proofs."
+
+[[option]]
   name       = "minimalUnsatCores"
   category   = "expert"
   long       = "minimal-unsat-cores"
