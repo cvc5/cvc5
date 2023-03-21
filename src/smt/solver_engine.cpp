@@ -1366,7 +1366,7 @@ void SolverEngine::checkUnsatCore()
 
   d_env->verbose(1) << "SolverEngine::checkUnsatCore(): generating unsat core"
                     << std::endl;
-  UnsatCore core = getUnsatCore();
+  UnsatCore core = getUnsatCoreInternal();
 
   // initialize the core checker
   std::unique_ptr<SolverEngine> coreChecker;
