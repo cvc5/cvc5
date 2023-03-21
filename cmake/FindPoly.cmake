@@ -45,7 +45,7 @@ if(NOT Poly_FOUND_SYSTEM)
 
   include(ExternalProject)
 
-  set(Poly_VERSION "1383809f2aa5005ef20110fec84b66959518f697")
+  set(Poly_VERSION "126147f1ceae9f771a68bad9cbc199cf96daec46")
 
   check_if_cross_compiling(CCWIN "Windows" "")
   if(CCWIN)
