@@ -79,6 +79,9 @@ class PropPfManager : protected EnvObj
   std::vector<std::shared_ptr<ProofNode>> getProofLeaves(
       modes::ProofComponent pc);
 
+  /** Return lemmas used in the SAT proof. */
+  std::vector<Node> getUnsatCoreLemmas();
+
   /**
    * Checks that the prop engine proof is closed w.r.t. the given assertions and
    * previously registered assertions in d_assertions.

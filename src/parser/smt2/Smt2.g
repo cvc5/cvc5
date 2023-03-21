@@ -410,6 +410,9 @@ command [std::unique_ptr<cvc5::parser::Command>* cmd]
   | /* get-unsat-core */
     GET_UNSAT_CORE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetUnsatCoreCommand); }
+  | /* get-unsat-core-lemmas */
+    GET_UNSAT_CORE_LEMMAS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { cmd->reset(new GetUnsatCoreLemmasCommand); }
   | /* get-difficulty */
     GET_DIFFICULTY_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetDifficultyCommand); }
@@ -713,7 +716,7 @@ setOptionInternal[std::unique_ptr<cvc5::parser::Command>* cmd]
   cvc5::Term sexpr;
 }
   : keyword[name] symbolicExpr[sexpr]
-    { 
+    {
       std::string key = name.c_str() + 1;
       std::string ss = sexprToString(sexpr);
       // special case: for channel settings, we are expected to parse e.g.
@@ -1130,16 +1133,18 @@ simpleSymbolicExprNoKeyword[std::string& s]
     { s = AntlrInput::tokenText($FIELD_LITERAL); }
   | symbol[s, CHECK_NONE, SYM_VERBATIM]
   | str[s, false]
-  | tok=(ASSERT_TOK | CHECK_SAT_TOK | CHECK_SAT_ASSUMING_TOK | DECLARE_FUN_TOK
-        | DECLARE_SORT_TOK
-        | DEFINE_FUN_TOK | DEFINE_FUN_REC_TOK | DEFINE_FUNS_REC_TOK
-        | DEFINE_SORT_TOK | GET_VALUE_TOK | GET_ASSIGNMENT_TOK
-        | GET_ASSERTIONS_TOK | GET_PROOF_TOK | GET_UNSAT_ASSUMPTIONS_TOK
-        | GET_UNSAT_CORE_TOK | GET_DIFFICULTY_TOK | EXIT_TOK
-        | RESET_TOK | RESET_ASSERTIONS_TOK | SET_LOGIC_TOK | SET_INFO_TOK
-        | GET_INFO_TOK | SET_OPTION_TOK | GET_OPTION_TOK | PUSH_TOK | POP_TOK
-        | DECLARE_DATATYPES_TOK | GET_MODEL_TOK | ECHO_TOK | SIMPLIFY_TOK)
-    { s = AntlrInput::tokenText($tok); }
+  | tok =
+      (ASSERT_TOK | CHECK_SAT_TOK | CHECK_SAT_ASSUMING_TOK | DECLARE_FUN_TOK
+       | DECLARE_SORT_TOK | DEFINE_FUN_TOK | DEFINE_FUN_REC_TOK
+       | DEFINE_FUNS_REC_TOK | DEFINE_SORT_TOK | GET_VALUE_TOK
+       | GET_ASSIGNMENT_TOK | GET_ASSERTIONS_TOK | GET_PROOF_TOK
+       | GET_UNSAT_ASSUMPTIONS_TOK | GET_UNSAT_CORE_TOK
+       | GET_UNSAT_CORE_LEMMAS_TOK | GET_DIFFICULTY_TOK | EXIT_TOK | RESET_TOK
+       | RESET_ASSERTIONS_TOK | SET_LOGIC_TOK | SET_INFO_TOK | GET_INFO_TOK
+       | SET_OPTION_TOK | GET_OPTION_TOK | PUSH_TOK | POP_TOK
+       | DECLARE_DATATYPES_TOK | GET_MODEL_TOK | ECHO_TOK | SIMPLIFY_TOK)
+  {
+    s = AntlrInput::tokenText($tok); }
   ;
 
 keyword[std::string& s]
@@ -1962,6 +1967,7 @@ GET_ASSERTIONS_TOK : 'get-assertions';
 GET_PROOF_TOK : 'get-proof';
 GET_UNSAT_ASSUMPTIONS_TOK : 'get-unsat-assumptions';
 GET_UNSAT_CORE_TOK : 'get-unsat-core';
+GET_UNSAT_CORE_LEMMAS_TOK : 'get-unsat-core-lemmas';
 GET_DIFFICULTY_TOK : 'get-difficulty';
 GET_LEARNED_LITERALS_TOK : 'get-learned-literals';
 EXIT_TOK : 'exit';

@@ -4280,6 +4280,29 @@ class CVC5_EXPORT Solver
   std::vector<Term> getUnsatCore() const;
 
   /**
+   * Get the lemmas used to derive unsatisfiability.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-unsat-core-lemmas)
+   *
+   * Requires to enable option
+   * :ref:`produce-unsat-core-lemmas <lbl-option-produce-unsat-core-lemmas>`.
+   *
+   * .. note::
+   *   This method requires computing unsat cores via the SAT proof, so other
+   *   modes of unsat core are overriden by it.
+   * \endverbatim
+   *
+   * @return A set of terms representing the lemmas used to derive
+   * unsatisfiability.
+   */
+  std::vector<Term> getUnsatCoreLemmas() const;
+
+  /**
    * Get a difficulty estimate for an asserted formula. This method is
    * intended to be called immediately after any response to a checkSat.
    *

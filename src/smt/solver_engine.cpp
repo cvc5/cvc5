@@ -1495,6 +1495,27 @@ UnsatCore SolverEngine::getUnsatCore()
   return getUnsatCoreInternal();
 }
 
+std::vector<Node> SolverEngine::getUnsatCoreLemmas()
+{
+  Trace("smt") << "SMT getUnsatCoreLemmas()" << std::endl;
+  finishInit();
+  if (!d_env->getOptions().smt.produceUnsatCoreLemmas)
+  {
+    throw ModalException(
+        "Cannot get lemmas used to derive unsat when produce-unsat-core-lemmas "
+        "is off.");
+  }
+  if (d_state->getMode() != SmtMode::UNSAT)
+  {
+    throw RecoverableModalException(
+        "Cannot get lemmas used to derive unsat unless immediately preceded by "
+        "UNSAT response.");
+  }
+  PropEngine* pe = d_smtSolver->getPropEngine();
+  Assert(pe != nullptr);
+  return pe->getUnsatCoreLemmas();
+}
+
 void SolverEngine::getRelevantQuantTermVectors(
     std::map<Node, InstantiationList>& insts,
     std::map<Node, std::vector<Node>>& sks,

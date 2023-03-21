@@ -576,6 +576,13 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new GetUnsatCoreCommand);
     }
     break;
+    // (get-unsat-core-lemmas)
+    case Token::GET_UNSAT_CORE_LEMMAS_TOK:
+    {
+      d_state.checkThatLogicIsSet();
+      cmd.reset(new GetUnsatCoreLemmasCommand);
+    }
+    break;
     // (get-value (<term>*))
     case Token::GET_VALUE_TOK:
     {
