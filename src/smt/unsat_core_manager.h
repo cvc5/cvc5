@@ -48,7 +48,7 @@ class UnsatCoreManager : protected EnvObj
    * containing all assertions.
    *
    * The unsat core is stored in the core argument.
-   * 
+   *
    * @param isInternal Whether this call was made internally (not by the user).
    * This impacts whether the unsat core is post-processed.
    */
