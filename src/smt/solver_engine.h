@@ -317,11 +317,6 @@ class CVC5_EXPORT SolverEngine
   void assertFormula(const Node& formula);
 
   /**
-   * Reduce an unsatisfiable core to make it minimal.
-   */
-  std::vector<Node> reduceUnsatCore(const std::vector<Node>& core);
-
-  /**
    * Assert a formula (if provided) to the current context and call
    * check().  Returns SAT, UNSAT, or UNKNOWN result.
    *

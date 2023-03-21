@@ -18,6 +18,8 @@
 #ifndef CVC5__SMT__UNSAT_CORE_MANAGER_H
 #define CVC5__SMT__UNSAT_CORE_MANAGER_H
 
+#include "smt/env_obj.h"
+
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "proof/proof_node.h"
@@ -33,10 +35,10 @@ class Assertions;
  * This class is responsible for managing the proof output of SolverEngine, as
  * well as setting up the global proof checker and proof node manager.
  */
-class UnsatCoreManager
+class UnsatCoreManager : protected EnvObj
 {
  public:
-  UnsatCoreManager() {}
+  UnsatCoreManager(Env& env);
   ~UnsatCoreManager(){};
 
   /** Gets the unsat core.
@@ -49,7 +51,7 @@ class UnsatCoreManager
    * The unsat core is stored in the core argument.
    */
   void getUnsatCore(std::shared_ptr<ProofNode> pfn,
-                    Assertions& as,
+                    const Assertions& as,
                     std::vector<Node>& core);
 
   /** Gets the relevant instaniations and skolemizations for the refutation.
@@ -69,7 +71,11 @@ class UnsatCoreManager
                                    std::map<Node, InstantiationList>& insts,
                                    std::map<Node, std::vector<Node>>& sks,
                                    bool getDebugInfo = false);
-
+private:
+  /**
+   * Reduce an unsatisfiable core to make it minimal.
+   */
+  std::vector<Node> reduceUnsatCore(const Assertions& as, const std::vector<Node>& core);
 }; /* class UnsatCoreManager */
 
 }  // namespace smt

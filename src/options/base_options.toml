@@ -226,6 +226,11 @@ name   = "Base"
   help = "print the corresponding benchmark when successfully computing a timeout core."
   description = "With ``-o timeout-core-benchmark``, cvc5 prints the corresponding benchmark when it successfully computes a timeout core."
   example-file = "regress0/printer/print_timeout_core.smt2"
+[[option.mode.UNSAT_CORE_BENCHMARK]]
+  name = "unsat-core-benchmark"
+  help = "print the corresponding benchmark when successfully computing an unsat core."
+  description = "With ``-o unsat-core-benchmark``, cvc5 prints the corresponding benchmark when it successfully computes an unsat core."
+  example-file = "regress0/printer/print_unsat_core.smt2"
 
 # Stores then enabled output tags.
 [[option]]

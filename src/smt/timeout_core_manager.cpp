@@ -17,7 +17,7 @@
 
 #include <fstream>
 
-#include "api/cpp/cvc5_types.h"
+#include <cvc5/cvc5_types.h>
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/smt_options.h"
@@ -201,7 +201,6 @@ Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions)
     if (isOutputOn(OutputTag::TIMEOUT_CORE_BENCHMARK))
     {
       std::vector<Node> bench(nextAssertions.begin(), nextAssertions.end());
-      // Print the query to to queryN.smt2
       std::stringstream ss;
       smt::PrintBenchmark pb(Printer::getPrinter(ss));
       pb.printBenchmark(ss, d_env.getLogicInfo().getLogicString(), {}, bench);
