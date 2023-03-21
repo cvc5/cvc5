@@ -65,15 +65,15 @@ void UnsatCoreManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
       Trace("unsat-core") << "- " << n << "\n";
     }
   }
-  // don't postprocess if this was an internal call
-  if (isInternal)
-  {
-    return;
-  }
   // reduce it if specified
   if (options().smt.minimalUnsatCores)
   {
     core = reduceUnsatCore(as, core);
+  }
+  // don't postprocess if this was an internal call
+  if (isInternal)
+  {
+    return;
   }
   // output benchmark if specified
   if (isOutputOn(OutputTag::UNSAT_CORE_BENCHMARK))
