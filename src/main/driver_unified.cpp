@@ -13,6 +13,7 @@
  * Driver for cvc5 executable (cvc5).
  */
 
+#include <cvc5/cvc5.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -24,7 +25,6 @@
 #include <new>
 #include <optional>
 
-#include "api/cpp/cvc5.h"
 #include "base/configuration.h"
 #include "base/cvc5config.h"
 #include "base/output.h"

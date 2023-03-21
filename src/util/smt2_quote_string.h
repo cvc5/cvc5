@@ -18,9 +18,9 @@
 #ifndef CVC5__UTIL__SMT2_QUOTE_STRING_H
 #define CVC5__UTIL__SMT2_QUOTE_STRING_H
 
-#include <string>
+#include <cvc5/cvc5_export.h>
 
-#include "cvc5_export.h"
+#include <string>
 
 namespace cvc5::internal {
 

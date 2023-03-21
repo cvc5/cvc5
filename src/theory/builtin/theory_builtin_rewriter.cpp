@@ -23,7 +23,7 @@
 #include "expr/attribute.h"
 #include "expr/elim_shadow_converter.h"
 #include "expr/node_algorithm.h"
-#include "theory/rewriter.h"
+#include "theory/builtin/generic_op.h"
 
 using namespace std;
 
@@ -84,8 +84,18 @@ RewriteResponse TheoryBuiltinRewriter::doRewrite(TNode node)
     }
     case kind::DISTINCT:
       return RewriteResponse(REWRITE_DONE, blastDistinct(node));
-    default: return RewriteResponse(REWRITE_DONE, node);
+    case kind::APPLY_INDEXED_SYMBOLIC:
+    {
+      Node rnode = rewriteApplyIndexedSymbolic(node);
+      if (rnode != node)
+      {
+        return RewriteResponse(REWRITE_AGAIN_FULL, rnode);
+      }
+    }
+    break;
+    default: break;
   }
+  return RewriteResponse(REWRITE_DONE, node);
 }
 
 Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
@@ -123,6 +133,30 @@ Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
   }
   // eliminate shadowing
   return ElimShadowNodeConverter::eliminateShadow(node);
+}
+
+Node TheoryBuiltinRewriter::rewriteApplyIndexedSymbolic(TNode node)
+{
+  Assert(node.getNumChildren() > 1);
+  // if all arguments are constant, we return the non-symbolic version
+  // of the operator, e.g. (extract 2 1 #b0000) ---> ((_ extract 2 1) #b0000)
+  for (const Node& nc : node)
+  {
+    if (!nc.isConst())
+    {
+      return node;
+    }
+  }
+  Kind okind = node.getOperator().getConst<GenericOp>().getKind();
+  // determine how many arguments should be passed to the end function,
+  // for now, assume one
+  size_t nargs = 1;
+  std::vector<Node> indices(node.begin(), node.end() - nargs);
+  Node op = GenericOp::getOperatorForIndices(okind, indices);
+  std::vector<Node> args;
+  args.push_back(op);
+  args.insert(args.end(), node.end() - nargs, node.end());
+  return NodeManager::currentNM()->mkNode(okind, args);
 }
 
 }  // namespace builtin

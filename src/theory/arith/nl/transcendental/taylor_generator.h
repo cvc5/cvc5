@@ -16,6 +16,8 @@
 #ifndef CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TAYLOR_GENERATOR_H
 #define CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TAYLOR_GENERATOR_H
 
+#include <cstdint>
+
 #include "expr/node.h"
 
 namespace cvc5::internal {

@@ -13,11 +13,12 @@
  * A test of SMT-LIBv2 commands, checks for compliant output.
  */
 
+#include <cvc5/cvc5.h>
+
 #include <cassert>
 #include <iostream>
 #include <sstream>
 
-#include "api/cpp/cvc5.h"
 #include "parser/api/cpp/command.h"
 #include "parser/parser_antlr.h"
 #include "parser/parser_builder.h"
@@ -58,12 +59,11 @@ void testGetInfo(cvc5::Solver* solver, const char* s)
   p->setInput(Input::newStringInput(
       "LANG_SMTLIB_V2_6", string("(get-info ") + s + ")", "<internal>"));
   assert(p != NULL);
-  Command* c = p->nextCommand();
+  std::unique_ptr<Command> c = p->nextCommand();
   assert(c != NULL);
-  cout << c << endl;
+  cout << c.get() << endl;
   stringstream ss;
   c->invoke(solver, symman.get(), ss);
   assert(p->nextCommand() == NULL);
-  delete c;
   cout << ss.str() << endl << endl;
 }

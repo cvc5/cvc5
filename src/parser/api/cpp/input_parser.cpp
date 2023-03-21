@@ -69,7 +69,7 @@ Solver* InputParser::getSolver() { return d_solver; }
 
 SymbolManager* InputParser::getSymbolManager() { return d_sm; }
 
-Command* InputParser::nextCommand()
+std::unique_ptr<Command> InputParser::nextCommand()
 {
   Trace("parser") << "nextCommand()" << std::endl;
   if (d_useFlex)

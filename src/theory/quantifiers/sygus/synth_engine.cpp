@@ -98,8 +98,10 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
     }
   }
   std::vector<SynthConjecture*> acnext;
+  ResourceManager* rm = d_env.getResourceManager();
   do
   {
+    rm->spendResource(Resource::SygusCheckStep);
     Trace("sygus-engine-debug") << "Checking " << activeCheckConj.size()
                                 << " active conjectures..." << std::endl;
     for (unsigned i = 0, size = activeCheckConj.size(); i < size; i++)
@@ -113,7 +115,8 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
     activeCheckConj.clear();
     activeCheckConj = acnext;
     acnext.clear();
-  } while (!activeCheckConj.empty() && !d_qstate.getValuation().needCheck());
+  } while (!activeCheckConj.empty() && !d_qstate.getValuation().needCheck()
+           && !rm->out());
   Trace("sygus-engine")
       << "Finished Counterexample Guided Instantiation engine." << std::endl;
 }

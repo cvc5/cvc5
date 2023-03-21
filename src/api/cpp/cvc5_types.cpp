@@ -14,7 +14,7 @@
  * the language bindings are generated automatically.
  */
 
-#include "api/cpp/cvc5_types.h"
+#include <cvc5/cvc5_types.h>
 
 #include <iostream>
 

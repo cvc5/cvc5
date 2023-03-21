@@ -19,12 +19,13 @@
 #include <unistd.h>
 #endif
 
+#include <cvc5/cvc5.h>
+
 #include <chrono>
 #include <cstdlib>
 #include <optional>
 #include <thread>
 
-#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "base/exception.h"
 #include "base/output.h"
@@ -54,7 +55,7 @@ bool ExecutionContext::solveContinuous(parser::InputParser* parser,
       d_executor->reset();
       break;
     }
-    cmd.reset(parser->nextCommand());
+    cmd = parser->nextCommand();
     if (cmd == nullptr) break;
 
     status = d_executor->doCommand(cmd);

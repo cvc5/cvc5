@@ -49,6 +49,8 @@ ffstr     #f[0-9]+m[0-9]+
 simple_symbol [a-zA-Z~!@\$%\^&\*+=<>\.\?/_-][a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]*
 quoted_symbol \|[^\|\\]*\|
 unterminated_quoted_symbol \|[^\|\\]*
+comment ;[^\n]*\n
+unterminated_comment ;[^\n]*
 
 %%
 
@@ -158,20 +160,12 @@ unterminated_quoted_symbol \|[^\|\\]*
                 }
 {unterminated_quoted_symbol} return cvc5::parser::UNTERMINATED_QUOTED_SYMBOL;
 {simple_symbol} return cvc5::parser::SYMBOL;
-
-";"    {
-          int c;
-          // parse characters until a new line is reached
-          while ((c = yyinput()) != 0)
-          {
-            if (c == '\n')
-            {
-              addLines(1);
-              bumpSpan();
-              break;
-            }
+{unterminated_comment} return cvc5::parser::EOF_TOK;
+{comment} {
+            addLines(1);
+            bumpSpan();
+            break;
           }
-        }
 . parseError("Error finding token"); break;
 %%
 
