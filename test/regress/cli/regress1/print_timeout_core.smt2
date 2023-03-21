@@ -22,5 +22,4 @@
 (assert (! (> u 0) :named u0))
 (assert (! (< w 0) :named w0))
 (assert (! (or (triple x y w 33) (triple x y u 33)) :named hard))
-;(check-sat)
 (get-timeout-core)
