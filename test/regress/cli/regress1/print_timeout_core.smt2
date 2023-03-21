@@ -1,4 +1,4 @@
-; COMMAND-LINE: -o timeout-core-benchmark --timeout-core-timeout=1000
+; COMMAND-LINE: -o timeout-core-benchmark --timeout-core-timeout=500
 ; EXPECT: ;; timeout core
 ; EXPECT: (set-logic ALL)
 ; EXPECT: (declare-fun w () Int)
