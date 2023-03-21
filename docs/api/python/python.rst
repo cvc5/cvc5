@@ -41,7 +41,16 @@ The base and pythonic Python API can be installed via `pip` as follows:
 Installation (ARM64 variants of Linux and macOS)
 ------------
 
-For ARM64-based machines (including Apple computers with M1 and M2 chips), the base and the pythonic Python API can be installed from source as follows:
+For ARM64-based machines (including Apple computers with M1 and M2 chips), the base and the pythonic Python API can be installed from source.
+Before building and installing, the following dependencies should be installed, using `brew` and `pip`:
+
+.. code:: bash
+
+  brew install cmake python cython gmp java
+  pip3 install toml scikit-build
+
+
+Then `cvc5` can be installed from source as follows:
 
 .. code:: bash
 

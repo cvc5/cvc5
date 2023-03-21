@@ -15,12 +15,11 @@
 
 #ifndef CVC5__API_UTILITIES_H
 #define CVC5__API_UTILITIES_H
+#include <cvc5/cvc5.h>
 #include <jni.h>
 
 #include <string>
 #include <vector>
-
-#include "api/cpp/cvc5.h"
 
 #define CVC5_JAVA_API_TRY_CATCH_BEGIN \
   try                                 \

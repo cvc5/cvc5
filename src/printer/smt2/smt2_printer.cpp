@@ -15,13 +15,14 @@
 
 #include "printer/smt2/smt2_printer.h"
 
+#include <cvc5/cvc5.h>
+
 #include <iostream>
 #include <list>
 #include <string>
 #include <typeinfo>
 #include <vector>
 
-#include "api/cpp/cvc5.h"
 #include "expr/array_store_all.h"
 #include "expr/ascription_type.h"
 #include "expr/cardinality_constraint.h"

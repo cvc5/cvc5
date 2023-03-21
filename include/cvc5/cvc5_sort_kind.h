@@ -13,7 +13,7 @@
  * The sort kinds of the cvc5 C++ API.
  */
 
-#include "cvc5_export.h"
+#include <cvc5/cvc5_export.h>
 
 #ifndef CVC5__API__CVC5_SORT_KIND_H
 #define CVC5__API__CVC5_SORT_KIND_H
