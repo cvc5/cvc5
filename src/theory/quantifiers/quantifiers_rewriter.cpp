@@ -221,7 +221,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
   }
   else if (in.getKind() == FORALL)
   {
-    std::vector<Node> args;
+    std::vector<Node> boundVars;
     Node body = in;
     bool combineQuantifiers = false;
     bool continueCombine = false;
@@ -229,12 +229,12 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
     {
       for (const Node& v : body[0])
       {
-        if (std::find(args.begin(), args.end(), v)==args.end())
+        if (std::find(boundVars.begin(), boundVars.end(), v)==boundVars.end())
         {
-          args.push_back(v);
+          boundVars.push_back(v);
         }
       }
-      if (body.getNumChildren() == 2 && body.getKind() == body[1].getKind())
+      if (body.getNumChildren() == 2 && body[1].getKind() == FORALL)
       {
         body = body[1];
         continueCombine = true;
@@ -250,7 +250,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
     {
       NodeManager* nm = NodeManager::currentNM();
       std::vector<Node> children;
-      children.push_back(nm->mkNode(BOUND_VAR_LIST, args));
+      children.push_back(nm->mkNode(BOUND_VAR_LIST, boundVars));
       children.push_back(body[1]);
       if (body.getNumChildren() == 3)
       {
