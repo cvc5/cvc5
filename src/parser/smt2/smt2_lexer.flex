@@ -102,6 +102,7 @@ unterminated_comment ;[^\n]*
 "get-qe"   return d_strict ? cvc5::parser::SYMBOL : cvc5::parser::GET_QE_TOK;
 "get-unsat-assumptions"   return cvc5::parser::GET_UNSAT_ASSUMPTIONS_TOK;
 "get-unsat-core"   return cvc5::parser::GET_UNSAT_CORE_TOK;
+"get-unsat-core-lemmas"   return cvc5::parser::GET_UNSAT_CORE_LEMMAS_TOK;
 "get-value"   return cvc5::parser::GET_VALUE_TOK;
 "include"   return d_strict ? cvc5::parser::SYMBOL : cvc5::parser::INCLUDE_TOK;
 "_"   return cvc5::parser::INDEX_TOK;
@@ -182,6 +183,6 @@ Smt2Lexer::Smt2Lexer(bool isSygus, bool isStrict)
 bool Smt2Lexer::isSygus() const { return d_sygus; }
 
 bool Smt2Lexer::isStrict() const { return d_strict; }
-  
+
 }
 }
