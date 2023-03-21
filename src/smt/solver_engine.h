@@ -854,7 +854,7 @@ class CVC5_EXPORT SolverEngine
    * by an UNSAT query). Only permitted if cvc5 was built with unsat-core
    * support and produce-unsat-cores is on. Does not dump the command.
    */
-  UnsatCore getUnsatCoreInternal();
+  UnsatCore getUnsatCoreInternal(bool isInternal = true);
 
   /** Internal version of assertFormula */
   void assertFormulaInternal(const Node& formula);

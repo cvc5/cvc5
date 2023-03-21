@@ -1324,7 +1324,7 @@ StatisticsRegistry& SolverEngine::getStatisticsRegistry()
   return d_env->getStatisticsRegistry();
 }
 
-UnsatCore SolverEngine::getUnsatCoreInternal()
+UnsatCore SolverEngine::getUnsatCoreInternal(bool isInternal)
 {
   if (!d_env->getOptions().smt.produceUnsatCores)
   {
@@ -1355,7 +1355,7 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
   std::shared_ptr<ProofNode> pfn =
       d_pfManager->connectProofToAssertions(pepf, *d_smtSolver.get());
   std::vector<Node> core;
-  d_ucManager->getUnsatCore(pfn, d_smtSolver->getAssertions(), core);
+  d_ucManager->getUnsatCore(pfn, d_smtSolver->getAssertions(), core, isInternal);
   return UnsatCore(core);
 }
 
@@ -1434,7 +1434,7 @@ UnsatCore SolverEngine::getUnsatCore()
 {
   Trace("smt") << "SMT getUnsatCore()" << std::endl;
   finishInit();
-  return getUnsatCoreInternal();
+  return getUnsatCoreInternal(false);
 }
 
 void SolverEngine::getRelevantQuantTermVectors(

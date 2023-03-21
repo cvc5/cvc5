@@ -48,10 +48,14 @@ class UnsatCoreManager : protected EnvObj
    * containing all assertions.
    *
    * The unsat core is stored in the core argument.
+   *
+   * @param isInternal Whether this call was made internally (not by the user).
+   * This impacts whether the unsat core is post-processed.
    */
   void getUnsatCore(std::shared_ptr<ProofNode> pfn,
                     const Assertions& as,
-                    std::vector<Node>& core);
+                    std::vector<Node>& core,
+                    bool isInternal);
 
   /** Gets the relevant instaniations and skolemizations for the refutation.
    *

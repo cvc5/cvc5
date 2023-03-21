@@ -2261,6 +2261,7 @@ set(regress_1_tests
   regress1/nl/transcedental_model_simple.smt2
   regress1/nl/zero-subset.smt2
   regress1/non-fatal-errors.smt2
+  regress1/print_timeout_core.smt2
   regress1/proj-issue175.smt2
   regress1/proj-issue406-diff-unsat-core.smt2
   regress1/proj-issue476-theoryOf-no-uf.smt2
