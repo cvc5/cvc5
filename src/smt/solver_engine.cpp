@@ -172,7 +172,7 @@ void SolverEngine::finishInit()
     // make the proof manager
     d_pfManager.reset(new PfManager(*d_env.get()));
     // start the unsat core manager
-    d_ucManager.reset(new UnsatCoreManager());
+    d_ucManager.reset(new UnsatCoreManager(*d_env.get()));
     pnm = d_pfManager->getProofNodeManager();
   }
   // enable proof support in the environment/rewriter
@@ -1347,74 +1347,7 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
       d_pfManager->connectProofToAssertions(pepf, *d_smtSolver.get());
   std::vector<Node> core;
   d_ucManager->getUnsatCore(pfn, d_smtSolver->getAssertions(), core);
-  if (options().smt.minimalUnsatCores)
-  {
-    core = reduceUnsatCore(core);
-  }
   return UnsatCore(core);
-}
-
-std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
-{
-  Assert(options().smt.produceUnsatCores)
-      << "cannot reduce unsat core if unsat cores are turned off";
-
-  d_env->verbose(1) << "SolverEngine::reduceUnsatCore(): reducing unsat core"
-                    << std::endl;
-  std::unordered_set<Node> removed;
-  std::unordered_set<Node> adefs =
-      d_smtSolver->getAssertions().getCurrentAssertionListDefitions();
-  for (const Node& skip : core)
-  {
-    std::unique_ptr<SolverEngine> coreChecker;
-    initializeSubsolver(coreChecker, *d_env.get());
-    coreChecker->setLogic(getLogicInfo());
-    // disable all proof options
-    SetDefaults::disableChecking(coreChecker->getOptions());
-    // add to removed set?
-    removed.insert(skip);
-    // assert everything to the subsolver
-    assertToSubsolver(*coreChecker.get(), core, adefs, removed);
-    Result r;
-    try
-    {
-      r = coreChecker->checkSat();
-    }
-    catch (...)
-    {
-      throw;
-    }
-
-    if (r.getStatus() != Result::UNSAT)
-    {
-      removed.erase(skip);
-      if (r.isUnknown())
-      {
-        d_env->warning()
-            << "SolverEngine::reduceUnsatCore(): could not reduce unsat core "
-               "due to "
-               "unknown result.";
-      }
-    }
-  }
-
-  if (removed.empty())
-  {
-    return core;
-  }
-  else
-  {
-    std::vector<Node> newUcAssertions;
-    for (const Node& n : core)
-    {
-      if (removed.find(n) == removed.end())
-      {
-        newUcAssertions.push_back(n);
-      }
-    }
-
-    return newUcAssertions;
-  }
 }
 
 void SolverEngine::checkUnsatCore()
