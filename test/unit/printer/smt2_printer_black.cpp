@@ -13,9 +13,10 @@
  * Black box testing of the SMT2 printer.
  */
 
+#include <cvc5/cvc5.h>
+
 #include <iostream>
 
-#include "api/cpp/cvc5.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "options/language.h"

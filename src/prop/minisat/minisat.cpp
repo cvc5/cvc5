@@ -263,6 +263,12 @@ bool MinisatSatSolver::isDecision(SatVariable decn) const {
   return d_minisat->isDecision( decn );
 }
 
+bool MinisatSatSolver::isFixed(SatVariable var) const
+{
+  return d_minisat->intro_level(var) == 0 && d_minisat->user_level(var) == 0
+         && d_minisat->level(var) == 0;
+}
+
 std::vector<SatLiteral> MinisatSatSolver::getDecisions() const
 {
   std::vector<SatLiteral> decisions;
@@ -278,11 +284,6 @@ std::vector<SatLiteral> MinisatSatSolver::getDecisions() const
 std::vector<Node> MinisatSatSolver::getOrderHeap() const
 {
   return d_minisat->getMiniSatOrderHeap();
-}
-
-int32_t MinisatSatSolver::getIntroLevel(SatVariable v) const
-{
-  return d_minisat->intro_level(v);
 }
 
 SatProofManager* MinisatSatSolver::getProofManager()

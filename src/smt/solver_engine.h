@@ -18,6 +18,8 @@
 #ifndef CVC5__SMT__SOLVER_ENGINE_H
 #define CVC5__SMT__SOLVER_ENGINE_H
 
+#include <cvc5/cvc5_export.h>
+
 #include <map>
 #include <memory>
 #include <string>
@@ -25,7 +27,6 @@
 #include <vector>
 
 #include "context/cdhashmap_forward.h"
-#include "cvc5_export.h"
 #include "options/options.h"
 #include "smt/smt_mode.h"
 #include "theory/logic_info.h"

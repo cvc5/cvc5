@@ -591,6 +591,24 @@ name   = "Quantifiers"
   help       = "pool-based instantiation: instantiate with ground terms occurring in user-specified pools"
 
 [[option]]
+  name       = "userPoolQuant"
+  category   = "expert"
+  long       = "user-pool=MODE"
+  type       = "UserPoolMode"
+  default    = "TRUST"
+  help       = "policy for handling user-provided pools for quantifier instantiation"
+  help_mode  = "These modes determine how user provided pools are used in combination with other instantiation techniques."
+[[option.mode.USE]]
+  name = "use"
+  help = "Use both user-provided pool and other instantiation strategies when pools are provided for a quantified formula."
+[[option.mode.TRUST]]
+  name = "trust"
+  help = "When provided, use only user-provided pool for a quantified formula."
+[[option.mode.IGNORE]]
+  name = "ignore"
+  help = "Ignore user-provided pool."
+
+[[option]]
   name       = "oracles"
   category   = "expert"
   long       = "oracles"
