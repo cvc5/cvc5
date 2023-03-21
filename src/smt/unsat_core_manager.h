@@ -18,11 +18,10 @@
 #ifndef CVC5__SMT__UNSAT_CORE_MANAGER_H
 #define CVC5__SMT__UNSAT_CORE_MANAGER_H
 
-#include "smt/env_obj.h"
-
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "proof/proof_node.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/instantiation_list.h"
 
 namespace cvc5::internal {
@@ -71,11 +70,13 @@ class UnsatCoreManager : protected EnvObj
                                    std::map<Node, InstantiationList>& insts,
                                    std::map<Node, std::vector<Node>>& sks,
                                    bool getDebugInfo = false);
-private:
+
+ private:
   /**
    * Reduce an unsatisfiable core to make it minimal.
    */
-  std::vector<Node> reduceUnsatCore(const Assertions& as, const std::vector<Node>& core);
+  std::vector<Node> reduceUnsatCore(const Assertions& as,
+                                    const std::vector<Node>& core);
 }; /* class UnsatCoreManager */
 
 }  // namespace smt

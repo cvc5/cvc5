@@ -16,21 +16,22 @@
 #include "unsat_core_manager.h"
 
 #include <sstream>
+
 #include "expr/skolem_manager.h"
+#include "options/base_options.h"
+#include "options/smt_options.h"
+#include "printer/printer.h"
 #include "proof/proof_node_algorithm.h"
 #include "smt/assertions.h"
-#include "options/smt_options.h"
-#include "options/base_options.h"
-#include "smt/print_benchmark.h"
-#include "printer/printer.h"
 #include "smt/env.h"
+#include "smt/print_benchmark.h"
 #include "smt/set_defaults.h"
 #include "theory/smt_engine_subsolver.h"
 
 namespace cvc5::internal {
 namespace smt {
 
-UnsatCoreManager::UnsatCoreManager(Env& env) : EnvObj(env){}
+UnsatCoreManager::UnsatCoreManager(Env& env) : EnvObj(env) {}
 
 void UnsatCoreManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
                                     const Assertions& as,
@@ -74,11 +75,9 @@ void UnsatCoreManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
     std::stringstream ss;
     smt::PrintBenchmark pb(Printer::getPrinter(ss));
     pb.printBenchmark(ss, logicInfo().getLogicString(), {}, core);
-    output(OutputTag::UNSAT_CORE_BENCHMARK)
-        << ";; unsat core" << std::endl;
+    output(OutputTag::UNSAT_CORE_BENCHMARK) << ";; unsat core" << std::endl;
     output(OutputTag::UNSAT_CORE_BENCHMARK) << ss.str();
-    output(OutputTag::UNSAT_CORE_BENCHMARK)
-        << ";; end unsat core" << std::endl;
+    output(OutputTag::UNSAT_CORE_BENCHMARK) << ";; end unsat core" << std::endl;
   }
 }
 
@@ -165,17 +164,16 @@ void UnsatCoreManager::getRelevantQuantTermVectors(
   } while (!visit.empty());
 }
 
-
-std::vector<Node> UnsatCoreManager::reduceUnsatCore(const Assertions& as, const std::vector<Node>& core)
+std::vector<Node> UnsatCoreManager::reduceUnsatCore(
+    const Assertions& as, const std::vector<Node>& core)
 {
   Assert(options().smt.produceUnsatCores)
       << "cannot reduce unsat core if unsat cores are turned off";
 
   d_env.verbose(1) << "SolverEngine::reduceUnsatCore(): reducing unsat core"
-                    << std::endl;
+                   << std::endl;
   std::unordered_set<Node> removed;
-  std::unordered_set<Node> adefs =
-      as.getCurrentAssertionListDefitions();
+  std::unordered_set<Node> adefs = as.getCurrentAssertionListDefitions();
   for (const Node& skip : core)
   {
     std::unique_ptr<SolverEngine> coreChecker;
@@ -224,7 +222,6 @@ std::vector<Node> UnsatCoreManager::reduceUnsatCore(const Assertions& as, const 
   }
   return newUcAssertions;
 }
-
 
 }  // namespace smt
 }  // namespace cvc5::internal

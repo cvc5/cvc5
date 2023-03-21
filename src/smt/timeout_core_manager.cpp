@@ -15,9 +15,10 @@
 
 #include "smt/timeout_core_manager.h"
 
+#include <cvc5/cvc5_types.h>
+
 #include <fstream>
 
-#include <cvc5/cvc5_types.h>
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/smt_options.h"
@@ -294,7 +295,7 @@ void TimeoutCoreManager::initializePreprocessedAssertions(
 }
 
 bool TimeoutCoreManager::recordCurrentModel(bool& allAssertsSat,
-                                         SolverEngine* subSolver)
+                                            SolverEngine* subSolver)
 {
   // allocate the model value vector
   d_modelValues.emplace_back();
