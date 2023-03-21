@@ -306,7 +306,7 @@ def preprocess_rule(rule, decls):
         return
 
     # Resolve placeholders
-    bvar = Var(fresh_name('t'), rule.rhs.sort)
+    bvar = Var(fresh_name('t'), Sort(BaseSort.AbsAbs, []))
     decls.append(bvar)
     result = dict()
     to_visit = [rule.rhs_context]
