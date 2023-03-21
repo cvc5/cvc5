@@ -219,7 +219,7 @@ name   = "Base"
 [[option.mode.TRUSTED_PROOF_STEPS]]
   name = "trusted-proof-steps"
   help = "print formulas corresponding to trusted proof steps in final proofs"
-  description = "With ``-o lemmas``, cvc5 prints formulas corresponding to trusted proof steps in final proofs."
+  description = "With ``-o trusted-proof-steps``, cvc5 prints formulas corresponding to trusted proof steps in final proofs."
   example-file = "regress0/printer/print_trusted_proof_steps.smt2"
 
 # Stores then enabled output tags.
