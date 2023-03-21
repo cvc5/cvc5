@@ -35,7 +35,8 @@ UnsatCoreManager::UnsatCoreManager(Env& env) : EnvObj(env) {}
 
 void UnsatCoreManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
                                     const Assertions& as,
-                                    std::vector<Node>& core)
+                                    std::vector<Node>& core,
+                                    bool isInternal)
 {
   Trace("unsat-core") << "UCManager::getUnsatCore: final proof: " << *pfn.get()
                       << "\n";
@@ -63,6 +64,11 @@ void UnsatCoreManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
     {
       Trace("unsat-core") << "- " << n << "\n";
     }
+  }
+  // don't postprocess if this was an internal call
+  if (isInternal)
+  {
+    return;
   }
   // reduce it if specified
   if (options().smt.minimalUnsatCores)
