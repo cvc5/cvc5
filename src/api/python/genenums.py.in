@@ -27,8 +27,9 @@ import re
 import sys
 
 # get access to cvc5/src/api/parseenums.py
-SOURCE_DIR = '${CMAKE_SOURCE_DIR}/src'
-sys.path.insert(0, os.path.abspath(f'{SOURCE_DIR}/api'))
+SOURCE_DIR = '${CMAKE_SOURCE_DIR}'
+INCLUDE_DIR = f'{SOURCE_DIR}/include'
+sys.path.insert(0, os.path.abspath(f'{SOURCE_DIR}/src/api'))
 
 from parseenums import *
 
@@ -39,7 +40,7 @@ DEFAULT_PREFIX = 'kinds'
 PYCOMMENT = '#'
 
 ENUMS_PXD_TOP_TEMPLATE = \
-r"""cdef extern from "{header}" namespace "{namespace}":
+r"""cdef extern from "<{header}>" namespace "{namespace}":
     cdef enum {enum}:
 """
 
@@ -95,8 +96,7 @@ def gen_pxd(parser: EnumParser, file_prefix, header):
         for namespace in parser.namespaces:
             for enum in namespace.enums:
                 f.write(
-                    ENUMS_PXD_TOP_TEMPLATE.format(header=header[len(SOURCE_DIR)
-                                                                + 1:],
+                    ENUMS_PXD_TOP_TEMPLATE.format(header=header[len(INCLUDE_DIR) + 1:],
                                                   enum=enum.name,
                                                   namespace=namespace.name))
                 for enumerator in enum.enumerators:

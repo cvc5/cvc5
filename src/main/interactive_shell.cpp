@@ -39,7 +39,8 @@
 #  endif /* HAVE_EXT_STDIO_FILEBUF_H */
 #endif   /* HAVE_LIBEDITLINE */
 
-#include "api/cpp/cvc5.h"
+#include <cvc5/cvc5.h>
+
 #include "base/check.h"
 #include "base/output.h"
 #include "main/command_executor.h"
@@ -326,15 +327,16 @@ restart:
   /* There may be more than one command in the input. Build up a
      sequence. */
   std::vector<std::unique_ptr<Command>> cmdSeq;
-  Command *cmd;
+  std::unique_ptr<Command> cmdp;
   // remember the scope level of the symbol manager, in case we hit an end of
   // line (when catching ParserEndOfFileException).
   size_t lastScopeLevel = d_symman->scopeLevel();
 
   try
   {
-    while ((cmd = d_parser->nextCommand()))
+    while ((cmdp = d_parser->nextCommand()))
     {
+      Command* cmd = cmdp.get();
       // execute the command immediately
       d_cexec->doCommand(cmd);
       if (cmd->interrupted())
@@ -342,7 +344,7 @@ restart:
         d_quit = true;
         return false;
       }
-      cmdSeq.emplace_back(cmd);
+      cmdSeq.emplace_back(std::move(cmdp));
       if (dynamic_cast<QuitCommand*>(cmd) != NULL)
       {
         d_quit = true;

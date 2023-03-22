@@ -18,14 +18,14 @@
 #ifndef CVC5__PARSER__INPUT_H
 #define CVC5__PARSER__INPUT_H
 
+#include <cvc5/cvc5.h>
+#include <cvc5/cvc5_export.h>
 #include <stdio.h>
 
 #include <iostream>
 #include <string>
 #include <vector>
 
-#include "api/cpp/cvc5.h"
-#include "cvc5_export.h"
 #include "options/language.h"
 #include "parser/parser_exception.h"
 
@@ -140,7 +140,7 @@ class CVC5_EXPORT Input
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  virtual Command* parseCommand() = 0;
+  virtual std::unique_ptr<Command> parseCommand() = 0;
 
   /**
    * Issue a warning to the user, with source file, line, and column info.

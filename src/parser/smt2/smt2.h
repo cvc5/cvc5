@@ -18,6 +18,8 @@
 #ifndef CVC5__PARSER__SMT2__SMT2_H
 #define CVC5__PARSER__SMT2__SMT2_H
 
+#include <cvc5/cvc5.h>
+
 #include <optional>
 #include <sstream>
 #include <stack>
@@ -25,7 +27,6 @@
 #include <unordered_map>
 #include <utility>
 
-#include "api/cpp/cvc5.h"
 #include "parser/parse_op.h"
 #include "parser/parser.h"
 #include "theory/logic_info.h"

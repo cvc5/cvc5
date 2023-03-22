@@ -19,10 +19,15 @@
 // NOTE: alternatively we could lex simple_symbol as:
 //  [a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]+
 // ??
-// Note that `%option full` could make lexing faster but it is incompatible
-// with interactive inputs.
+// Note that removing `%option full` allows us to support piping from stdin
+// natively without relying on interactive mode (--stdin-input-per-line).
+// Disabling --stdin-input-per-line may cause some use cases of cvc5 involving
+// piping to hang (see issue #9257).
+// Option `%option ecs` ensures we parse quoted symbols with special characters.
 %}
 
+%option full
+%option ecs
 %option noyywrap
 %option nounput
 %option c++
@@ -44,6 +49,8 @@ ffstr     #f[0-9]+m[0-9]+
 simple_symbol [a-zA-Z~!@\$%\^&\*+=<>\.\?/_-][a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]*
 quoted_symbol \|[^\|\\]*\|
 unterminated_quoted_symbol \|[^\|\\]*
+comment ;[^\n]*\n
+unterminated_comment ;[^\n]*
 
 %%
 
@@ -153,20 +160,12 @@ unterminated_quoted_symbol \|[^\|\\]*
                 }
 {unterminated_quoted_symbol} return cvc5::parser::UNTERMINATED_QUOTED_SYMBOL;
 {simple_symbol} return cvc5::parser::SYMBOL;
-
-";"    {
-          int c;
-          // parse characters until a new line is reached
-          while ((c = yyinput()) != 0)
-          {
-            if (c == '\n')
-            {
-              addLines(1);
-              bumpSpan();
-              break;
-            }
+{unterminated_comment} return cvc5::parser::EOF_TOK;
+{comment} {
+            addLines(1);
+            bumpSpan();
+            break;
           }
-        }
 . parseError("Error finding token"); break;
 %%
 
