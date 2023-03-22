@@ -13,6 +13,8 @@
  * The cvc5 Java API.
  */
 
+#include <cstdint>
+
 #include <cvc5/cvc5.h>
 
 #include "api_utilities.h"

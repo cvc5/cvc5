@@ -1077,6 +1077,7 @@ set(regress_0_tests
   regress0/printer/pre-asserts-output.smt2
   regress0/printer/print_sat_lemmas.smt2
   regress0/printer/print_subs.smt2
+  regress0/printer/print_trusted_proof_steps.smt2
   regress0/printer/symbol_starting_w_digit.smt2
   regress0/printer/tuples_and_records.cvc.smt2
   regress0/proj-issue307-get-value-re.smt2
@@ -2143,6 +2144,7 @@ set(regress_1_tests
   regress1/issue9057-block-m-lit.smt2
   regress1/issue9112-bv2nat-cg.smt2
   regress1/issue9544-difficulty-refcount.smt2
+  regress1/issue9573-lr-rewrite.smt2
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smtv1.smt2
   regress1/lemmas/pursuit-safety-8.smtv1.smt2
   regress1/minimal_unsat_core.smt2
@@ -2448,6 +2450,7 @@ set(regress_1_tests
   regress1/quantifiers/issue8520-cegqi-nl-cov.smt2
   regress1/quantifiers/issue8572-sygus-inst-ic-purify.smt2
   regress1/quantifiers/issue8881-rd-types.smt2
+  regress1/quantifiers/issue9545-mini-agg.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lia-witness-div-pp.smt2
