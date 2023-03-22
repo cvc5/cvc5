@@ -34,11 +34,6 @@ Node AletheNodeConverter::postConvert(Node n)
                            << "\n";
       Node wi = SkolemManager::getOriginalForm(n);
       Trace("alethe-conv") << "AletheNodeConverter: ..original: " << wi << "\n";
-      if (wi == n)
-      {
-        // if it is not a purification skolem, maybe it has a witness skolem
-        wi = SkolemManager::getWitnessForm(n);
-      }
       // skolem with witness form, just convert that
       if (!wi.isNull())
       {
