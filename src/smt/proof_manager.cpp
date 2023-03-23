@@ -305,10 +305,15 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   Trace("difficulty-proc") << "Get final proof" << std::endl;
   std::shared_ptr<ProofNode> fpf = connectProofToAssertions(pf, smt);
   Trace("difficulty-debug") << "Final proof is " << *fpf.get() << std::endl;
-  if (fpf->getRule() == PfRule::SCOPE)
+  // We are typically a SCOPE here, although if we are not, then the proofs
+  // have no free assumptions. If this is the case, then the only difficulty
+  // was incremented on auxiliary lemmas added during preprocessing. Since
+  // there are no dependencies, then the difficulty map is empty.
+  if (fpf->getRule() != PfRule::SCOPE)
   {
-    fpf = fpf->getChildren()[0];
+    return;
   }
+  fpf = fpf->getChildren()[0];
   // analyze proof
   Assert(fpf->getRule() == PfRule::SAT_REFUTATION);
   const std::vector<std::shared_ptr<ProofNode>>& children = fpf->getChildren();
