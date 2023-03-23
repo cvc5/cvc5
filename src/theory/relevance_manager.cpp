@@ -566,11 +566,11 @@ void RelevanceManager::notifyCandidateModel(TheoryModel* m)
   }
 }
 
-void RelevanceManager::getDifficultyMap(std::map<Node, Node>& dmap)
+void RelevanceManager::getDifficultyMap(std::map<Node, Node>& dmap, bool includeLemmas)
 {
   if (d_dman != nullptr)
   {
-    d_dman->getDifficultyMap(dmap);
+    d_dman->getDifficultyMap(dmap, includeLemmas);
   }
 }
 

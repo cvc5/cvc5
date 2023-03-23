@@ -286,25 +286,14 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   dmap.clear();
   Trace("difficulty-proc") << "Get ppAsserts" << std::endl;
   std::vector<Node> ppAsserts;
-  // get the (preprocessed) assertions from the SMT solver
-  Assertions& as = smt.getAssertions();
-  std::vector<Node> assertions;
-  getAssertions(as, assertions);
   for (const std::pair<const Node, Node>& ppa : dmapp)
   {
     Trace("difficulty") << "  preprocess difficulty: " << ppa.second << " for "
                         << ppa.first << std::endl;
-    // The difficulty manager will report difficulty for preprocessed
-    // assertions and lemmas. We filter to only include the preprocessed
-    // assertions or else we will get an open proof below.
-    if (std::find(assertions.begin(), assertions.end(), ppa.first)!=assertions.end())
-    {
-      ppAsserts.push_back(ppa.first);
-    }
-  }
-  if (ppAsserts.empty())
-  {
-    return;
+    // The difficulty manager should only report difficulty for preprocessed
+    // assertions, or we will get an open proof below. This is ensured
+    // internally by the difficuly manager.
+    ppAsserts.push_back(ppa.first);
   }
   Trace("difficulty-proc") << "Make SAT refutation" << std::endl;
   // assume a SAT refutation from all input assertions that were marked

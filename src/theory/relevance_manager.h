@@ -150,7 +150,7 @@ class RelevanceManager : public TheoryEngineModule
   /**
    * Get difficulty map
    */
-  void getDifficultyMap(std::map<Node, Node>& dmap);
+  void getDifficultyMap(std::map<Node, Node>& dmap, bool includeLemmas);
 
  private:
   /**
