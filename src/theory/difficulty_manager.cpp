@@ -48,14 +48,15 @@ void DifficultyManager::notifyInputAssertions(
   }
 }
 
-void DifficultyManager::getDifficultyMap(std::map<Node, Node>& dmap, bool includeLemmas)
+void DifficultyManager::getDifficultyMap(std::map<Node, Node>& dmap,
+                                         bool includeLemmas)
 {
   NodeManager* nm = NodeManager::currentNM();
   for (const std::pair<const Node, uint64_t> p : d_dfmap)
   {
     if (!includeLemmas)
     {
-      if (d_input.find(p.first)==d_input.end())
+      if (d_input.find(p.first) == d_input.end())
       {
         continue;
       }
@@ -140,10 +141,11 @@ void DifficultyManager::notifyCandidateModel(TheoryModel* m)
     return;
   }
   Trace("diff-man") << "DifficultyManager::notifyCandidateModel, #input="
-                    << d_input.size() << " #lemma=" << d_lemma.size() << std::endl;
-  for (size_t i=0; i<2; i++)
+                    << d_input.size() << " #lemma=" << d_lemma.size()
+                    << std::endl;
+  for (size_t i = 0; i < 2; i++)
   {
-    NodeSet& ns = i==0 ? d_input : d_lemma;
+    NodeSet& ns = i == 0 ? d_input : d_lemma;
     for (const Node& a : ns)
     {
       // should have miniscoped the assertions upstream

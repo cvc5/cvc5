@@ -1146,7 +1146,8 @@ theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b)
   return d_sharedSolver->getEqualityStatus(a, b);
 }
 
-void TheoryEngine::getDifficultyMap(std::map<Node, Node>& dmap, bool includeLemmas)
+void TheoryEngine::getDifficultyMap(std::map<Node, Node>& dmap,
+                                    bool includeLemmas)
 {
   Assert(d_relManager != nullptr);
   d_relManager->getDifficultyMap(dmap, includeLemmas);
