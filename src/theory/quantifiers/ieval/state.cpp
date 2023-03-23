@@ -175,10 +175,10 @@ bool State::assignVar(TNode v,
                       std::vector<Node>& assignedQuants,
                       bool trackAssignedQuant)
 {
-  Assert(d_initialized.get());
-  Assert(getValue(r) == r);
   // notify that the variable is equal to the ground term
   Trace("ieval") << "ASSIGN: " << v << " := " << r << std::endl;
+  Assert(d_initialized.get());
+  Assert(getValue(r) == r) << "Unexpected value " << getValue(r) << " for " << r;
   notifyPatternEqGround(v, r);
   // might the inactive now
   if (isFinished())
@@ -315,6 +315,8 @@ const PatTermInfo& State::getPatTermInfo(TNode p) const
 
 void State::notifyPatternEqGround(TNode p, TNode g)
 {
+  Trace("ieval-state-debug")
+      << "Notify pattern eq ground: " << p << " == " << g << std::endl;
   Assert(!g.isNull());
   Assert(!expr::hasBoundVar(g));
   Assert(d_tec->evaluateBase(*this, g) == g);
@@ -325,8 +327,6 @@ void State::notifyPatternEqGround(TNode p, TNode g)
     // already assigned
     return;
   }
-  Trace("ieval-state-debug")
-      << "Notify pattern eq ground: " << p << " == " << g << std::endl;
   it->second.d_eq = g;
   // run notifications until fixed point
   size_t tnIndex = 0;
