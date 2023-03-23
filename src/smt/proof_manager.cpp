@@ -305,8 +305,10 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   Trace("difficulty-proc") << "Get final proof" << std::endl;
   std::shared_ptr<ProofNode> fpf = connectProofToAssertions(pf, smt);
   Trace("difficulty-debug") << "Final proof is " << *fpf.get() << std::endl;
-  Assert(fpf->getRule() == PfRule::SCOPE);
-  fpf = fpf->getChildren()[0];
+  if (fpf->getRule() == PfRule::SCOPE)
+  {
+    fpf = fpf->getChildren()[0];
+  }
   // analyze proof
   Assert(fpf->getRule() == PfRule::SAT_REFUTATION);
   const std::vector<std::shared_ptr<ProofNode>>& children = fpf->getChildren();
