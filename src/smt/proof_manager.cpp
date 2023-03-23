@@ -302,6 +302,10 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
       ppAsserts.push_back(ppa.first);
     }
   }
+  if (ppAsserts.empty())
+  {
+    return;
+  }
   Trace("difficulty-proc") << "Make SAT refutation" << std::endl;
   // assume a SAT refutation from all input assertions that were marked
   // as having a difficulty
