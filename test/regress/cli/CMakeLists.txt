@@ -1353,6 +1353,7 @@ set(regress_0_tests
   regress0/seq/proj-issue384-subtypes.smt2
   regress0/seq/proj-issue384-2-subtypes.smt2
   regress0/seq/proj-issue427-subtypes-value.smt2
+  regress0/seq/proj-issue586-nth-update-no-fact.smt2
   regress0/seq/quant_len_trigger.smt2
   regress0/seq/query0-subtype-skel.smt2
   regress0/seq/query1-subtype.smt2
