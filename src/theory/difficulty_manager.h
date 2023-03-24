@@ -46,6 +46,10 @@ class DifficultyManager : protected EnvObj
   /**
    * Get difficulty map, which populates dmap mapping preprocessed assertions
    * to a difficulty measure (a constant integer).
+   *
+   * @param dmap The difficulty map to populate.
+   * @param includeLemmas Whether to include difficulty of lemmas in the domain
+   * of dmap.
    */
   void getDifficultyMap(std::map<Node, Node>& dmap, bool includeLemmas = false);
   /**
