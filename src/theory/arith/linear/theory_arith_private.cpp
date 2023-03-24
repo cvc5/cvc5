@@ -4891,7 +4891,10 @@ bool TheoryArithPrivate::decomposeLiteral(Node lit, Kind& k, int& dir, Rational&
   Rational dc;
   success = decomposeTerm(diff, dm, dp, dc);
   // can occur in entailment tests involving ITE terms
-  if(!success){ return false; }
+  if (!success)
+  {
+    return false;
+  }
 
   // reduce the kind of the to not include literals
   // GT, NOT LEQ
