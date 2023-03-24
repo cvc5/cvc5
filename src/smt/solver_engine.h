@@ -853,6 +853,9 @@ class CVC5_EXPORT SolverEngine
    * Internal method to get an unsatisfiable core (only if immediately preceded
    * by an UNSAT query). Only permitted if cvc5 was built with unsat-core
    * support and produce-unsat-cores is on. Does not dump the command.
+   *
+   * @param isInternal Whether this call was made internally (not by the user).
+   * This impacts whether the unsat core is post-processed.
    */
   UnsatCore getUnsatCoreInternal(bool isInternal = true);
 
