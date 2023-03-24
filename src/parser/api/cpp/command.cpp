@@ -1985,7 +1985,7 @@ void GetUnsatCoreCommand::toStream(std::ostream& out) const
 }
 
 /* -------------------------------------------------------------------------- */
-/* class GetUnsatCoreLemmasCommand                                                  */
+/* class GetUnsatCoreLemmasCommand                                            */
 /* -------------------------------------------------------------------------- */
 
 GetUnsatCoreLemmasCommand::GetUnsatCoreLemmasCommand() : d_solver(nullptr) {}
