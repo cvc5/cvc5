@@ -324,7 +324,7 @@ endif()
 if(DEFINED BUILD_BINDINGS_PYTHON_VERSION) 
   find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Interpreter REQUIRED)
 else()
-  find_package(Python 3.6...<3.10.999 COMPONENTS Interpreter REQUIRED)
+  find_supported_python_version()
 endif()
 
 # Some cmake packages are not compatible with the newest version
@@ -504,6 +504,13 @@ endif()
 
 #-----------------------------------------------------------------------------#
 # Add subdirectories
+
+# Include public headers
+include_directories(include)
+include_directories(${CMAKE_BINARY_DIR}/include)
+
+# Install public headers
+install(DIRECTORY include/cvc5 DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 add_subdirectory(src)
 

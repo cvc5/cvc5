@@ -13,9 +13,10 @@
  * Black box testing of the cvc5_types file of the C++ API.
  */
 
+#include <cvc5/cvc5.h>
+
 #include <algorithm>
 
-#include "api/cpp/cvc5.h"
 #include "base/output.h"
 #include "gtest/gtest.h"
 
