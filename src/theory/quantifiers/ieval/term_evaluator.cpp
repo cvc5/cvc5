@@ -15,10 +15,10 @@
 
 #include "theory/quantifiers/ieval/term_evaluator.h"
 
+#include "expr/node_algorithm.h"
 #include "theory/quantifiers/ieval/state.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
-#include "expr/node_algorithm.h"
 
 using namespace cvc5::internal::kind;
 

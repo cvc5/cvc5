@@ -187,7 +187,8 @@ bool State::assignVar(TNode v,
   // e.g. for conflict-based instantiation where a variable is entailed
   // equal to a term in the body of the quantified formula that is not
   // registered to the term database.
-  Assert(isNone(getValue(r)) || getValue(r) == r) << "Unexpected value " << getValue(r) << " for " << r;
+  Assert(isNone(getValue(r)) || getValue(r) == r)
+      << "Unexpected value " << getValue(r) << " for " << r;
   notifyPatternEqGround(v, r);
   // might the inactive now
   if (isFinished())
@@ -332,7 +333,9 @@ void State::notifyPatternEqGround(TNode p, TNode g)
   // e.g. for conflict-based instantiation where a variable is entailed
   // equal to a term in the body of the quantified formula that is not
   // registered to the term database.
-  Assert(isNone(d_tec->evaluateBase(*this, g)) || d_tec->evaluateBase(*this, g) == g) << "Bad eval: " << d_tec->evaluateBase(*this, g) << " " << g;
+  Assert(isNone(d_tec->evaluateBase(*this, g))
+         || d_tec->evaluateBase(*this, g) == g)
+      << "Bad eval: " << d_tec->evaluateBase(*this, g) << " " << g;
   std::map<Node, PatTermInfo>::iterator it = d_pInfo.find(p);
   if (it == d_pInfo.end())
   {
