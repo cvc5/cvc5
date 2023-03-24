@@ -75,8 +75,6 @@ class RewriteProofRule
   bool hasConditions() const;
   /** Get (declared) conditions */
   const std::vector<Node>& getConditions() const;
-  /** Does this rule have side conditions? */
-  bool hasSideConditions() const;
   /**
    * Get the conditions of the rule under the substitution { vs -> ss }.
    */
@@ -124,22 +122,8 @@ class RewriteProofRule
   bool isFlatForm() const;
 
  private:
-  /**
-   * Purify side conditions from term n, store introduced side condition
-   * applications into scs.
-   */
-  Node purifySideConditions(Node n, std::vector<Node>& scs);
-  /**
-   * Run side conditions in context { vs -> ss }, add the resulting conditions
-   * to check into the vector vcs.
-   */
-  bool runSideConditions(const std::vector<Node>& vs,
-                         const std::vector<Node>& ss,
-                         std::vector<Node>& vcs) const;
   /** The id of the rule */
   DslPfRule d_id;
-  /** The side conditions of the rule */
-  std::vector<Node> d_scs;
   /** The conditions of the rule */
   std::vector<Node> d_cond;
   /** The obligation generator formulas of the rule */
