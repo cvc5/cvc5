@@ -51,7 +51,7 @@ ArrayCoreSolver::~ArrayCoreSolver() {}
 void ArrayCoreSolver::sendInference(const std::vector<Node>& exp,
                                     const Node& lem,
                                     const InferenceId iid,
-                     bool asLemma)
+                                    bool asLemma)
 {
   if (d_lem.find(lem) == d_lem.end())
   {
@@ -148,10 +148,8 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
       // term registration is enabled, this equality may not (yet) hold in
       // the equality engine, since termProxy may have been introduced in this
       // call.
-      sendInference(exp,
-                         lem,
-                         InferenceId::STRINGS_ARRAY_NTH_TERM_FROM_UPDATE,
-                         true);
+      sendInference(
+          exp, lem, InferenceId::STRINGS_ARRAY_NTH_TERM_FROM_UPDATE, true);
 
       // x = update(s, n, t)
       // ------------------------
@@ -164,8 +162,7 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
                      n.eqNode(n[0]).negate(),
                      cond),
           n.eqNode(n[0]));
-      sendInference(
-          exp, lem, InferenceId::STRINGS_ARRAY_UPDATE_BOUND, true);
+      sendInference(exp, lem, InferenceId::STRINGS_ARRAY_UPDATE_BOUND, true);
     }
 
     Node rn = d_state.getRepresentative(n);
