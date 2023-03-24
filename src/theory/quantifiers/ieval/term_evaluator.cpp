@@ -55,7 +55,8 @@ TNode TermEvaluatorEntailed::partialEvaluateChild(
   // if a Boolean connective, handle short circuiting
   Kind k = n.getKind();
   // Implies and xor are eliminated from the propositional skeleton of
-  // quantifier bodies, so we don't check for them here.
+  // quantifier bodies, so we don't check for them here. They still may
+  // occur e.g. as arguments to parameteric operators involving Bool.
   if (k == AND || k == OR)
   {
     if (val.isConst() && val.getConst<bool>() == (k == OR))

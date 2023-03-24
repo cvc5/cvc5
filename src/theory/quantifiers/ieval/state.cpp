@@ -334,7 +334,13 @@ void State::notifyPatternEqGround(TNode p, TNode g)
   // registered to the term database.
   Assert(isNone(d_tec->evaluateBase(*this, g)) || d_tec->evaluateBase(*this, g) == g) << "Bad eval: " << d_tec->evaluateBase(*this, g) << " " << g;
   std::map<Node, PatTermInfo>::iterator it = d_pInfo.find(p);
-  Assert(it != d_pInfo.end());
+  if (it == d_pInfo.end())
+  {
+    // in rare cases, we may be considering a quantified formula not containing
+    // one of its bound variables, e.g. if the variable is in an annotation
+    // (pattern) only, or if only in nested quantification.
+    return;
+  }
   if (!it->second.isActive())
   {
     // already assigned
