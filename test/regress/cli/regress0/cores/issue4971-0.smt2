@@ -16,4 +16,3 @@
 (assert (! (or (< (abs 404) i4) v14 v1) :named IP_51))
 (check-sat)
 (check-sat-assuming (IP_33 IP_51))
-(get-unsat-core-lemmas)
