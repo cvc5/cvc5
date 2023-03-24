@@ -1065,7 +1065,7 @@ class CVC5_EXPORT GetUnsatCoreLemmasCommand : public Command
   cvc5::Solver* d_solver;
   /** the result of the unsat core call */
   std::vector<cvc5::Term> d_result;
-}; /* class GetUnsatCoreCommand */
+}; /* class GetUnsatCoreLemmasCommand */
 
 class CVC5_EXPORT GetDifficultyCommand : public Command
 {
