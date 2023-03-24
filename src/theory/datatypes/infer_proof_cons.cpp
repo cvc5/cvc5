@@ -219,14 +219,15 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
     {
       Assert(2 <= expv.size() && expv.size() <= 3);
       Node tester1 = expv[0];
-      bool pol = expv[1].getKind()!=NOT;
+      bool pol = expv[1].getKind() != NOT;
       Node tester2 = pol ? expv[1] : expv[1][0];
-      if (tester1.getKind()==APPLY_TESTER && tester2.getKind()==APPLY_TESTER)
+      if (tester1.getKind() == APPLY_TESTER
+          && tester2.getKind() == APPLY_TESTER)
       {
         Node tester1c =
             nm->mkNode(APPLY_TESTER, tester2.getOperator(), expv[0][0]);
         tester1c = pol ? tester1c : tester1c.notNode();
-        if (tester1c!=expv[1])
+        if (tester1c != expv[1])
         {
           std::vector<Node> targs{expv[1]};
           if (expv.size() == 3)
@@ -239,7 +240,10 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
         Node fn = nm->mkConst(false);
         // if pol is true, it is a conflict is-C1(x) ^ is-C2(x)
         // if pol is false, it is a conflict is-C1(x) ^ ~is-C1(x)
-        cdp->addStep(fn, pol ? PfRule::DT_CLASH : PfRule::CONTRA, {tester1, tester1c}, {});
+        cdp->addStep(fn,
+                     pol ? PfRule::DT_CLASH : PfRule::CONTRA,
+                     {tester1, tester1c},
+                     {});
         success = true;
       }
     }
