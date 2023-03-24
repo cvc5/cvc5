@@ -591,6 +591,7 @@ set(regress_0_tests
   regress0/datatypes/parametric-alt-list.cvc.smt2
   regress0/datatypes/proj-issue172.smt2
   regress0/datatypes/proj-issue474-app-cons-value.smt2
+  regress0/datatypes/proj-issue578-clash-pf.smt2
   regress0/datatypes/rec1.cvc.smt2
   regress0/datatypes/rec2.cvc.smt2
   regress0/datatypes/rec4.cvc.smt2
