@@ -317,11 +317,6 @@ class CVC5_EXPORT SolverEngine
   void assertFormula(const Node& formula);
 
   /**
-   * Reduce an unsatisfiable core to make it minimal.
-   */
-  std::vector<Node> reduceUnsatCore(const std::vector<Node>& core);
-
-  /**
    * Assert a formula (if provided) to the current context and call
    * check().  Returns SAT, UNSAT, or UNKNOWN result.
    *
@@ -857,8 +852,11 @@ class CVC5_EXPORT SolverEngine
    * Internal method to get an unsatisfiable core (only if immediately preceded
    * by an UNSAT query). Only permitted if cvc5 was built with unsat-core
    * support and produce-unsat-cores is on. Does not dump the command.
+   *
+   * @param isInternal Whether this call was made internally (not by the user).
+   * This impacts whether the unsat core is post-processed.
    */
-  UnsatCore getUnsatCoreInternal();
+  UnsatCore getUnsatCoreInternal(bool isInternal = true);
 
   /** Internal version of assertFormula */
   void assertFormulaInternal(const Node& formula);

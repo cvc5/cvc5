@@ -221,6 +221,11 @@ name   = "Base"
   help = "print formulas corresponding to trusted proof steps in final proofs"
   description = "With ``-o trusted-proof-steps``, cvc5 prints formulas corresponding to trusted proof steps in final proofs."
   example-file = "regress0/printer/print_trusted_proof_steps.smt2"
+[[option.mode.UNSAT_CORE_BENCHMARK]]
+  name = "unsat-core-benchmark"
+  help = "print the corresponding benchmark when successfully computing an unsat core."
+  description = "With ``-o unsat-core-benchmark``, cvc5 prints the corresponding benchmark when it successfully computes an unsat core."
+  example-file = "regress0/printer/print_unsat_core.smt2"
 
 # Stores then enabled output tags.
 [[option]]
