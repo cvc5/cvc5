@@ -1563,6 +1563,7 @@ set(regress_0_tests
   regress0/strings/proj-issue316-regexp-ite.smt2
   regress0/strings/proj-issue390-update-rev-rewrite.smt2
   regress0/strings/proj-issue409-re-loop-none.smt2
+  regress0/strings/proj-issue595-max-model-option.smt2
   regress0/strings/quad-028-2-2-unsat.smt2
   regress0/strings/quad-138-4-2-unsat.smt2
   regress0/strings/re-include-union.smt2
