@@ -148,8 +148,6 @@ void DifficultyManager::notifyCandidateModel(TheoryModel* m)
     NodeSet& ns = i == 0 ? d_input : d_lemma;
     for (const Node& a : ns)
     {
-      // should have miniscoped the assertions upstream
-      Assert(a.getKind() != kind::AND);
       // check if each input is satisfied
       Node av = m->getValue(a);
       if (av.isConst() && av.getConst<bool>())
