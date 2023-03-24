@@ -47,9 +47,7 @@ TypeNode TypeChecker::preComputeType(NodeManager* nodeManager, TNode n)
       typeNode = nodeManager->builtinOperatorType();
       break;
 
-      // clang-format off
-${pretyperules}
-      // clang-format on
+      // !!! will auto-generate preComputeType rules when they are available
 
     default:
       // not handled
