@@ -60,7 +60,8 @@ TptpInput::~TptpInput() {
   d_pTptpParser->free(d_pTptpParser);
 }
 
-Command* TptpInput::parseCommand() {
+std::unique_ptr<Command> TptpInput::parseCommand()
+{
   return d_pTptpParser->parseCommand(d_pTptpParser);
 }
 

@@ -350,7 +350,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                                     : std::vector<Node>(),
                         *cdp);
 
-      if (children[0] != nm->mkConst(false))
+      if (children[0] != d_false)
       {
         success &=
             addAletheStep(AletheRule::CONTRACTION, res, vp8, {vp7}, {}, *cdp);
@@ -2127,23 +2127,18 @@ bool AletheProofPostprocessCallback::addAletheStep(
     const std::vector<Node>& args,
     CDProof& cdp)
 {
-  // delete attributes
-  Node sanitized_conclusion = conclusion;
-  if (expr::hasClosure(conclusion))
+  std::vector<Node> newArgs{NodeManager::currentNM()->mkConstInt(
+      Rational(static_cast<uint32_t>(rule)))};
+  newArgs.push_back(res);
+  newArgs.push_back(d_anc.convert(conclusion));
+  for (const Node& arg : args)
   {
-    sanitized_conclusion = d_anc.convert(conclusion);
+    newArgs.push_back(d_anc.convert(arg));
   }
-
-  std::vector<Node> new_args = std::vector<Node>();
-  new_args.push_back(NodeManager::currentNM()->mkConstInt(
-      Rational(static_cast<uint32_t>(rule))));
-  new_args.push_back(res);
-  new_args.push_back(sanitized_conclusion);
-  new_args.insert(new_args.end(), args.begin(), args.end());
-  Trace("alethe-proof") << "... add Alethe step " << res << " / " << conclusion
-                        << " " << rule << " " << children << " / " << new_args
+  Trace("alethe-proof") << "... add alethe step " << res << " / " << conclusion
+                        << " " << rule << " " << children << " / " << newArgs
                         << std::endl;
-  return cdp.addStep(res, PfRule::ALETHE_RULE, children, new_args);
+  return cdp.addStep(res, PfRule::ALETHE_RULE, children, newArgs);
 }
 
 bool AletheProofPostprocessCallback::addAletheStepFromOr(

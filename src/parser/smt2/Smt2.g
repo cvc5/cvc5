@@ -100,7 +100,7 @@ class Sort;
 #include <unordered_set>
 #include <vector>
 
-#include "api/cpp/cvc5.h"
+#include <cvc5/cvc5.h>
 #include "base/output.h"
 #include "parser/antlr_input.h"
 #include "parser/parser_antlr.h"
@@ -145,13 +145,13 @@ parseExpr returns [cvc5::Term expr = cvc5::Term()]
  * Parses a command
  * @return the parsed command, or NULL if we've reached the end of the input
  */
-parseCommand returns [cvc5::parser::Command* cmd_return = NULL]
+parseCommand returns [std::unique_ptr<cvc5::parser::Command> cmd_return = NULL]
 @declarations {
   std::unique_ptr<cvc5::parser::Command> cmd;
   std::string name;
 }
 @after {
-  cmd_return = cmd.release();
+  cmd_return = std::move(cmd);
 }
   : LPAREN_TOK command[&cmd] RPAREN_TOK
 
@@ -181,12 +181,12 @@ parseCommand returns [cvc5::parser::Command* cmd_return = NULL]
  * @return the parsed SyGuS command, or NULL if we've reached the end of the
  * input
  */
-parseSygus returns [cvc5::parser::Command* cmd_return = NULL]
+parseSygus returns [std::unique_ptr<cvc5::parser::Command> cmd_return = NULL]
 @declarations {
   std::string name;
 }
 @after {
-  cmd_return = cmd.release();
+  cmd_return = std::move(cmd);
 }
   : LPAREN_TOK cmd=sygusCommand RPAREN_TOK
   | EOF

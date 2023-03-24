@@ -18,12 +18,12 @@
 #ifndef CVC5__OPTIONS__OPTIONS_H
 #define CVC5__OPTIONS__OPTIONS_H
 
+#include <cvc5/cvc5_export.h>
+
 #include <iosfwd>
 #include <memory>
 #include <string>
 #include <vector>
-
-#include "cvc5_export.h"
 
 namespace cvc5::internal {
 namespace options {

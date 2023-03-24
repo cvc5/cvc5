@@ -14,9 +14,10 @@
  */
 #include "main/main.h"
 
+#include <cvc5/cvc5.h>
+
 #include <iostream>
 
-#include "api/cpp/cvc5.h"
 #include "base/configuration.h"
 #include "main/command_executor.h"
 #include "options/option_exception.h"

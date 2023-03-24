@@ -38,12 +38,11 @@
 #ifndef CVC5__SAFE_PRINT_H
 #define CVC5__SAFE_PRINT_H
 
+#include <cvc5/cvc5_export.h>
 #include <unistd.h>
 
 #include <cstring>
 #include <string>
-
-#include "cvc5_export.h"
 
 namespace cvc5::internal {
 
