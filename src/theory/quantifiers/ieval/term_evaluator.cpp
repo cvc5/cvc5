@@ -18,6 +18,7 @@
 #include "theory/quantifiers/ieval/state.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
+#include "expr/node_algorithm.h"
 
 using namespace cvc5::internal::kind;
 
@@ -147,7 +148,11 @@ TNode TermEvaluatorEntailed::evaluate(const State& s,
 {
   // set to unknown, handle cases
   TNode ret = s.getNone();
-
+  // if an existing ground term, just return representative
+  if (!expr::hasBoundVar(n) && d_qs.hasTerm(n))
+  {
+    return d_qs.getRepresentative(n);
+  }
   TNode mop = d_tdb.getMatchOperator(n);
   if (!mop.isNull())
   {

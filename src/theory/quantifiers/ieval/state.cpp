@@ -183,7 +183,11 @@ bool State::assignVar(TNode v,
   // notify that the variable is equal to the ground term
   Trace("ieval") << "ASSIGN: " << v << " := " << r << std::endl;
   Assert(d_initialized.get());
-  Assert(getValue(r) == r) << "Unexpected value " << getValue(r) << " for " << r;
+  // note that we allow setting patterns to terms that evaluate to "none",
+  // e.g. for conflict-based instantiation where a variable is entailed
+  // equal to a term in the body of the quantified formula that is not
+  // registered to the term database.
+  Assert(isNone(getValue(r)) || getValue(r) == r) << "Unexpected value " << getValue(r) << " for " << r;
   notifyPatternEqGround(v, r);
   // might the inactive now
   if (isFinished())
@@ -324,7 +328,11 @@ void State::notifyPatternEqGround(TNode p, TNode g)
       << "Notify pattern eq ground: " << p << " == " << g << std::endl;
   Assert(!g.isNull());
   Assert(!expr::hasFreeVar(g));
-  Assert(d_tec->evaluateBase(*this, g) == g) << "Bad eval: " << d_tec->evaluateBase(*this, g) << " " << g;
+  // note that we allow setting patterns to terms that evaluate to "none",
+  // e.g. for conflict-based instantiation where a variable is entailed
+  // equal to a term in the body of the quantified formula that is not
+  // registered to the term database.
+  Assert(isNone(d_tec->evaluateBase(*this, g)) || d_tec->evaluateBase(*this, g) == g) << "Bad eval: " << d_tec->evaluateBase(*this, g) << " " << g;
   std::map<Node, PatTermInfo>::iterator it = d_pInfo.find(p);
   Assert(it != d_pInfo.end());
   if (!it->second.isActive())
