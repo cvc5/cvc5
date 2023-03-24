@@ -36,81 +36,13 @@ RewriteDb::RewriteDb() : d_canonCb(), d_canon(&d_canonCb)
   d_false = nm->mkConst(false);
   rewriter::addRules(*this);
 
-  Trace("rewrite-db") << "Rewrite database:" << std::endl;
-  Trace("rewrite-db") << "START" << std::endl;
-  Trace("rewrite-db") << d_mt.debugPrint();
-  Trace("rewrite-db") << "END" << std::endl;
-}
-
-/**
- * Flatten a rule with head a, add new conditions to cond.
- */
-Node flattenHead(Node a, std::vector<Node>& cond, std::vector<Node>& fvs)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  // flatten if necessary, and if possible
-  std::unordered_set<Node> fvNonFlat;
-  std::unordered_set<Node> fvFlat;
-  Assert(a.getNumChildren() > 0);
-  bool isFlat = true;
-  for (const Node& ac : a)
+  if (TraceIsOn("rewrite-db"))
   {
-    if (ac.getKind() == BOUND_VARIABLE)
-    {
-      fvFlat.insert(ac);
-    }
-    else
-    {
-      expr::getFreeVariables(ac, fvNonFlat);
-      isFlat = false;
-    }
+    Trace("rewrite-db") << "Rewrite database:" << std::endl;
+    Trace("rewrite-db") << "START" << std::endl;
+    Trace("rewrite-db") << d_mt.debugPrint();
+    Trace("rewrite-db") << "END" << std::endl;
   }
-  if (isFlat)
-  {
-    // not necessary to flatten
-    return Node::null();
-  }
-  // we can flatten if all free variables occur at top-level
-  // For example, the rule with head (+ x y (- y) z) can be flattened but
-  // a rule with head (+ x (* 0 y)) cannot be flattened.
-  bool canFlatten = true;
-  for (const Node& nfv : fvNonFlat)
-  {
-    if (fvFlat.find(nfv) == fvFlat.end())
-    {
-      canFlatten = false;
-      break;
-    }
-  }
-  if (!canFlatten)
-  {
-    // not possible to flatten
-    return Node::null();
-  }
-  std::vector<Node> acn;
-  if (a.getMetaKind() == metakind::PARAMETERIZED)
-  {
-    acn.push_back(a.getOperator());
-  }
-  for (const Node& ac : a)
-  {
-    if (ac.getKind() == BOUND_VARIABLE)
-    {
-      acn.push_back(ac);
-    }
-    else
-    {
-      Node v = nm->mkBoundVar(ac.getType());
-      // could be either way; prefer having a goal whose lhs is a user term
-      Node ceq = v.eqNode(ac);
-      cond.push_back(ceq);
-      acn.push_back(v);
-      fvs.push_back(v);
-    }
-  }
-  // remake the head and condition
-  Assert(!cond.empty());
-  return nm->mkNode(a.getKind(), acn);
 }
 
 void RewriteDb::addRule(DslPfRule id,
@@ -118,42 +50,21 @@ void RewriteDb::addRule(DslPfRule id,
                         Node a,
                         Node b,
                         Node cond,
-                        Node context,
-                        bool isFlatForm)
+                        Node context)
 {
   NodeManager* nm = NodeManager::currentNM();
-  // flatten if necessary, and if possible
   std::vector<Node> fvsf = fvs;
   std::vector<Node> condsn;
-  Node af;  // = flattenHead(a, condsn, fvsf);
-  if (!af.isNull())
-  {
-    Trace("ajr-temp") << "Flatten " << id << " " << a << " to " << af
-                      << std::endl;
-    if (cond.getKind() == AND)
-    {
-      condsn.insert(condsn.begin(), cond.begin(), cond.end());
-    }
-    else if (!cond.isConst())
-    {
-      condsn.insert(condsn.begin(), cond);
-    }
-    // remake the condition, replace the head
-    cond = nm->mkAnd(condsn);
-    a = af;
-  }
   Node eq = a.eqNode(b);
   // we canonize left-to-right, hence we should traverse in the opposite
   // order, since we index based on conclusion, we make a dummy node here
   Node tmp = nm->mkNode(IMPLIES, eq, cond);
-  // convert to internal
-  Node tmpi = tmp;  // RewriteDbTermProcess::toInternal(tmp);
 
   // must canonize
   Trace("rewrite-db") << "Add rule " << id << ": " << cond << " => " << a
                       << " == " << b << std::endl;
   Assert(a.getType().isComparableTo(b.getType()));
-  Node cr = d_canon.getCanonicalTerm(tmpi, false, false);
+  Node cr = d_canon.getCanonicalTerm(tmp, false, false);
   context = d_canon.getCanonicalTerm(context, false, false);
 
   Node condC = cr[1];
@@ -230,7 +141,7 @@ void RewriteDb::addRule(DslPfRule id,
   }
 
   // initialize rule
-  d_rewDbRule[id].init(id, ofvs, cfvs, conds, eqC, context, isFlatForm);
+  d_rewDbRule[id].init(id, ofvs, cfvs, conds, eqC, context);
   d_concToRules[eqC].push_back(id);
   d_headToRules[eqC[0]].push_back(id);
 }

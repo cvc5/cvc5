@@ -64,15 +64,13 @@ class RewriteDb
    * @param b The right hand side of the rule
    * @param cond The condition, or null if this is not a conditional rule
    * @param context The term context, if one exists
-   * @param isFlatForm Whether the rule is in flat form
    */
   void addRule(DslPfRule id,
                const std::vector<Node> fvs,
                Node a,
                Node b,
                Node cond,
-               Node context,
-               bool isFlatForm = false);
+               Node context);
   /**
    * Get matches, which incrementally makes callbacks on the notify class
    * ntm for all rules that match eq.
