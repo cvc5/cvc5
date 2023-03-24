@@ -137,6 +137,11 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
       {
         // get the unique children
         std::set<TNode> children;
+        // must consider operators (for higher-order)
+        if (cur.hasOperator())
+        {
+          children.insert(cur.getOperator());
+        }
         children.insert(cur.begin(), cur.end());
         for (TNode cc : children)
         {
@@ -318,8 +323,8 @@ void State::notifyPatternEqGround(TNode p, TNode g)
   Trace("ieval-state-debug")
       << "Notify pattern eq ground: " << p << " == " << g << std::endl;
   Assert(!g.isNull());
-  Assert(!expr::hasBoundVar(g));
-  Assert(d_tec->evaluateBase(*this, g) == g);
+  Assert(!expr::hasFreeVar(g));
+  Assert(d_tec->evaluateBase(*this, g) == g) << "Bad eval: " << d_tec->evaluateBase(*this, g) << " " << g;
   std::map<Node, PatTermInfo>::iterator it = d_pInfo.find(p);
   Assert(it != d_pInfo.end());
   if (!it->second.isActive())
@@ -502,7 +507,7 @@ TNode State::evaluate(TNode n) const
     return n;
   }
   // all pattern terms should have been assigned pattern term info
-  Assert(!expr::hasBoundVar(n));
+  Assert(!expr::hasFreeVar(n));
   return d_tec->evaluateBase(*this, n);
 }
 
@@ -518,7 +523,7 @@ TNode State::getValue(TNode p) const
     return it->second.d_eq;
   }
   // all pattern terms should have been assigned pattern term info
-  Assert(!expr::hasBoundVar(p));
+  Assert(!expr::hasFreeVar(p));
   return d_tec->evaluateBase(*this, p);
 }
 

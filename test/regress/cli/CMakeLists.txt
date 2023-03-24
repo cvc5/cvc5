@@ -1172,6 +1172,7 @@ set(regress_0_tests
   regress0/quantifiers/clock-3.smt2
   regress0/quantifiers/cond-var-elim-binary.smt2
   regress0/quantifiers/dd.german169-ieval.smt2
+  regress0/quantifiers/dd.ho-matching-enum.smt2
   regress0/quantifiers/dd.ricart-ieval.smt2
   regress0/quantifiers/dd.javafe-ieval.smt2
   regress0/quantifiers/delta-simp.smt2
@@ -2469,6 +2470,7 @@ set(regress_1_tests
   regress1/quantifiers/proj-issue155.smt2
   regress1/quantifiers/proj-issue295.smt2
   regress1/quantifiers/proj-issue532-set-comp-fv-trigger.smt2
+  regress1/quantifiers/proj-issue564.smt2
   regress1/quantifiers/psyco-001-bv.smt2
   regress1/quantifiers/psyco-107-bv.smt2
   regress1/quantifiers/psyco-196.smt2
