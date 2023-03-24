@@ -2471,6 +2471,7 @@ set(regress_1_tests
   regress1/quantifiers/proj-issue295.smt2
   regress1/quantifiers/proj-issue532-set-comp-fv-trigger.smt2
   regress1/quantifiers/proj-issue564.smt2
+  regress1/quantifiers/proj-issue597.smt2
   regress1/quantifiers/proj-issue599.smt2
   regress1/quantifiers/proj-issue602.smt2
   regress1/quantifiers/psyco-001-bv.smt2
