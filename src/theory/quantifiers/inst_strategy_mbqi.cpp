@@ -22,6 +22,7 @@
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/skolemize.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/smt_engine_subsolver.h"
 
 using namespace std;
@@ -229,6 +230,7 @@ void InstStrategyMbqi::process(Node q)
     Node mv = mbqiChecker->getValue(v);
     Assert(mvToFreshVar.find(mv) == mvToFreshVar.end());
     mvToFreshVar[mv] = v;
+    Trace("mbqi-debug") << "mvToFreshVar " << mv << " is " << v << std::endl;
   }
 
   // get the model values for skolems
@@ -272,7 +274,9 @@ void InstStrategyMbqi::process(Node q)
     // get a term that witnesses this variable
     Node ov = sm->getOriginalForm(v);
     Node mvt = rs->getTermForRepresentative(ov);
-    if (mvt.isNull())
+    // ensure that this term does not contain cex variables, in case CEQGI
+    // is combined with MBQI
+    if (mvt.isNull() || !TermUtil::getInstConstAttr(mvt).isNull())
     {
       Trace("mbqi") << "warning: failed to get term from value " << ov
                     << ", use arbitrary term in query" << std::endl;
