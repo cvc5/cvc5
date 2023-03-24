@@ -50,11 +50,9 @@ void RewriteDb::addRule(DslPfRule id,
                         Node a,
                         Node b,
                         Node cond,
-                        Node context,
-                        bool isFlatForm)
+                        Node context)
 {
   NodeManager* nm = NodeManager::currentNM();
-  // flatten if necessary, and if possible
   std::vector<Node> fvsf = fvs;
   std::vector<Node> condsn;
   Node eq = a.eqNode(b);
@@ -143,7 +141,7 @@ void RewriteDb::addRule(DslPfRule id,
   }
 
   // initialize rule
-  d_rewDbRule[id].init(id, ofvs, cfvs, conds, eqC, context, isFlatForm);
+  d_rewDbRule[id].init(id, ofvs, cfvs, conds, eqC, context);
   d_concToRules[eqC].push_back(id);
   d_headToRules[eqC[0]].push_back(id);
 }
