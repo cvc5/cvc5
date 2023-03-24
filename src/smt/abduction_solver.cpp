@@ -21,12 +21,12 @@
 #include "options/smt_options.h"
 #include "smt/env.h"
 #include "smt/set_defaults.h"
+#include "smt/sygus_solver.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_abduct.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/smt_engine_subsolver.h"
 #include "theory/trust_substitutions.h"
-#include "smt/sygus_solver.h"
 
 using namespace cvc5::internal::theory;
 
@@ -164,7 +164,8 @@ void AbductionSolver::checkAbduct(Node a)
   bool canTrustResult = SygusSolver::canTrustSynthesisResult(options());
   if (!canTrustResult)
   {
-    warning() << "Running check-abducts is not guaranteed to pass with the current options."
+    warning() << "Running check-abducts is not guaranteed to pass with the "
+                 "current options."
               << std::endl;
   }
   std::vector<Node> asserts(d_axioms.begin(), d_axioms.end());

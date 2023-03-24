@@ -378,7 +378,8 @@ void SygusSolver::checkSynthSolution(Assertions& as,
   bool canTrustResult = canTrustSynthesisResult(options());
   if (!canTrustResult)
   {
-    warning() << "Running check-synth-sol is not guaranteed to pass with the current options."
+    warning() << "Running check-synth-sol is not guaranteed to pass with the "
+                 "current options."
               << std::endl;
   }
   if (sol_map.empty())
@@ -445,15 +446,14 @@ void SygusSolver::checkSynthSolution(Assertions& as,
     bool hardFailure = canTrustResult;
     if (r.getStatus() == Result::SAT)
     {
-      ss
-          << "SygusSolver::checkSynthSolution(): produced solution leads to "
-             "satisfiable negated conjecture.";
+      ss << "SygusSolver::checkSynthSolution(): produced solution leads to "
+            "satisfiable negated conjecture.";
     }
     else
     {
       hardFailure = false;
       ss << "SygusSolver::checkSynthSolution(): could not check "
-                         "solution, result unknown.";
+            "solution, result unknown.";
     }
     if (hardFailure)
     {

@@ -83,13 +83,14 @@ void InterpolationSolver::checkInterpol(Node interpol,
   Assert(interpol.getType().isBoolean());
   Trace("check-interpol")
       << "SolverEngine::checkInterpol: get expanded assertions" << std::endl;
-  bool canTrustResult = SygusSolver::canTrustSynthesisResult(options()); 
+  bool canTrustResult = SygusSolver::canTrustSynthesisResult(options());
   if (!canTrustResult)
   {
-    warning() << "Running check-interpolants is not guaranteed to pass with the current options."
+    warning() << "Running check-interpolants is not guaranteed to pass with "
+                 "the current options."
               << std::endl;
   }
-  
+
   Options subOptions;
   subOptions.copyValues(d_env.getOptions());
   subOptions.writeSmt().produceInterpolants = false;

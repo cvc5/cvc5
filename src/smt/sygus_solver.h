@@ -173,6 +173,7 @@ class SygusSolver : protected EnvObj
    * approximate checking algorithm for solution correctness.
    */
   static bool canTrustSynthesisResult(const Options& opts);
+
  private:
   /**
    * Check that a solution to a synthesis conjecture is indeed a solution.
