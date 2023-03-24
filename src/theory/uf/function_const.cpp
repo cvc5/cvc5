@@ -378,14 +378,13 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
         << "  ...condition is index " << curr_val << std::endl;
 
     // [5] Add the entry
-    Assert (!curr_index.isNull());
-    Assert (!curr_val.isNull());
+    Assert(!curr_index.isNull());
+    Assert(!curr_val.isNull());
     if (!curr_index.isConst() || !curr_val.isConst())
     {
-          // non-constant value
-    Trace("builtin-rewrite-debug2")
-        << "  ...non-constant value for entry\n.";
-    return Node::null();
+      // non-constant value
+      Trace("builtin-rewrite-debug2") << "  ...non-constant value for entry\n.";
+      return Node::null();
     }
     conds.push_back(curr_index);
     vals.push_back(curr_val);
