@@ -2751,6 +2751,7 @@ def test_get_data_type_arity(solver):
 
 def test_get_unsat_core_lemmas1(solver):
   solver.setOption("produce-unsat-cores", "true")
+  solver.setOption("unsat-cores-mode", "sat-proof")
   # cannot ask before a check sat
   with pytest.raises(RuntimeError):
       solver.getUnsatCoreLemmas()
@@ -2761,6 +2762,7 @@ def test_get_unsat_core_lemmas1(solver):
 
 def test_get_unsat_core_lemmas2(solver):
   solver.setOption("produce-unsat-cores", "true")
+  solver.setOption("unsat-cores-mode", "sat-proof")
   uSort = solver.mkUninterpretedSort("u")
   intSort = solver.getIntegerSort()
   boolSort = solver.getBooleanSort()
