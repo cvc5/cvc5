@@ -170,19 +170,21 @@ void SynthConjecture::assign(Node q)
   {
     // immediately check if unsat
     SubsolverSetupInfo ssi(d_env);
-    Result r = checkWithSubsolver(sc, ssi, options().quantifiers.sygusVerifyTimeout != 0,
-                           options().quantifiers.sygusVerifyTimeout);
+    Result r = checkWithSubsolver(sc,
+                                  ssi,
+                                  options().quantifiers.sygusVerifyTimeout != 0,
+                                  options().quantifiers.sygusVerifyTimeout);
     // if infeasible, we are done
-    if (r.getStatus()==Result::UNSAT)
+    if (r.getStatus() == Result::UNSAT)
     {
-      d_qim.lemma(d_quant.negate(), InferenceId::QUANTIFIERS_SYGUS_SC_INFEASIBLE);
+      d_qim.lemma(d_quant.negate(),
+                  InferenceId::QUANTIFIERS_SYGUS_SC_INFEASIBLE);
       return;
     }
     // convert to deep embedding
     d_embedSideCondition = d_ceg_gc->convertToEmbedding(sc);
     Trace("cegqi") << "SynthConjecture : side condition : "
-                  << d_embedSideCondition << std::endl;
-    
+                   << d_embedSideCondition << std::endl;
   }
 
   // we now finalize the single invocation module, based on the syntax

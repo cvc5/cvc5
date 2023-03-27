@@ -756,8 +756,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
         // should never happen, since we check that side condition is
         // satisfiable when initializing the sygus conjecture
         Assert(false);
-        Trace("sygus-ccore")
-            << "--- Empty core, skip" << std::endl;
+        Trace("sygus-ccore") << "--- Empty core, skip" << std::endl;
         return Node::null();
       }
       else
