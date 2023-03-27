@@ -46,8 +46,12 @@ class DifficultyManager : protected EnvObj
   /**
    * Get difficulty map, which populates dmap mapping preprocessed assertions
    * to a difficulty measure (a constant integer).
+   *
+   * @param dmap The difficulty map to populate.
+   * @param includeLemmas Whether to include difficulty of lemmas in the domain
+   * of dmap.
    */
-  void getDifficultyMap(std::map<Node, Node>& dmap);
+  void getDifficultyMap(std::map<Node, Node>& dmap, bool includeLemmas = false);
   /**
    * Get the current difficulty for input formula or lemma n.
    */
@@ -79,11 +83,10 @@ class DifficultyManager : protected EnvObj
   void incrementDifficulty(TNode a, uint64_t amount = 1);
   /** Pointer to the parent relevance manager */
   RelevanceManager* d_rlv;
-  /**
-   * The input assertions, tracked to ensure we do not increment difficulty
-   * on lemmas.
-   */
+  /** The input assertions */
   NodeSet d_input;
+  /** The lemmas */
+  NodeSet d_lemma;
   /** The valuation object, used to query current value of theory literals */
   Valuation d_val;
   /**
