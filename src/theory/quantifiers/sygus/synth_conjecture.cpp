@@ -178,7 +178,8 @@ void SynthConjecture::assign(Node q)
       vars.push_back(v);
       skolems.push_back(sm->mkDummySkolem("k", v.getType()));
     }
-    Node ksc = sc.substitute(vars.begin(), vars.end(), skolems.begin(), skolems.end());
+    Node ksc =
+        sc.substitute(vars.begin(), vars.end(), skolems.begin(), skolems.end());
     Result r = d_verify.verify(ksc);
     // if infeasible, we are done
     if (r.getStatus() == Result::UNSAT)
