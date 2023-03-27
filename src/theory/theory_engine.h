@@ -391,7 +391,7 @@ class TheoryEngine : protected EnvObj
    *
    * For details, see theory/difficuly_manager.h.
    */
-  void getDifficultyMap(std::map<Node, Node>& dmap);
+  void getDifficultyMap(std::map<Node, Node>& dmap, bool includeLemmas = false);
 
   /** Get incomplete id, valid when isModelUnsound is true. */
   theory::IncompleteId getModelUnsoundId() const;

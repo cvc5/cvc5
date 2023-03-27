@@ -172,7 +172,7 @@ void SolverEngine::finishInit()
     // make the proof manager
     d_pfManager.reset(new PfManager(*d_env.get()));
     // start the unsat core manager
-    d_ucManager.reset(new UnsatCoreManager());
+    d_ucManager.reset(new UnsatCoreManager(*d_env.get()));
     pnm = d_pfManager->getProofNodeManager();
   }
   // enable proof support in the environment/rewriter
@@ -1315,7 +1315,7 @@ StatisticsRegistry& SolverEngine::getStatisticsRegistry()
   return d_env->getStatisticsRegistry();
 }
 
-UnsatCore SolverEngine::getUnsatCoreInternal()
+UnsatCore SolverEngine::getUnsatCoreInternal(bool isInternal)
 {
   if (!d_env->getOptions().smt.produceUnsatCores)
   {
@@ -1346,75 +1346,9 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
   std::shared_ptr<ProofNode> pfn =
       d_pfManager->connectProofToAssertions(pepf, *d_smtSolver.get());
   std::vector<Node> core;
-  d_ucManager->getUnsatCore(pfn, d_smtSolver->getAssertions(), core);
-  if (options().smt.minimalUnsatCores)
-  {
-    core = reduceUnsatCore(core);
-  }
+  d_ucManager->getUnsatCore(
+      pfn, d_smtSolver->getAssertions(), core, isInternal);
   return UnsatCore(core);
-}
-
-std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
-{
-  Assert(options().smt.produceUnsatCores)
-      << "cannot reduce unsat core if unsat cores are turned off";
-
-  d_env->verbose(1) << "SolverEngine::reduceUnsatCore(): reducing unsat core"
-                    << std::endl;
-  std::unordered_set<Node> removed;
-  std::unordered_set<Node> adefs =
-      d_smtSolver->getAssertions().getCurrentAssertionListDefitions();
-  for (const Node& skip : core)
-  {
-    std::unique_ptr<SolverEngine> coreChecker;
-    initializeSubsolver(coreChecker, *d_env.get());
-    coreChecker->setLogic(getLogicInfo());
-    // disable all proof options
-    SetDefaults::disableChecking(coreChecker->getOptions());
-    // add to removed set?
-    removed.insert(skip);
-    // assert everything to the subsolver
-    assertToSubsolver(*coreChecker.get(), core, adefs, removed);
-    Result r;
-    try
-    {
-      r = coreChecker->checkSat();
-    }
-    catch (...)
-    {
-      throw;
-    }
-
-    if (r.getStatus() != Result::UNSAT)
-    {
-      removed.erase(skip);
-      if (r.isUnknown())
-      {
-        d_env->warning()
-            << "SolverEngine::reduceUnsatCore(): could not reduce unsat core "
-               "due to "
-               "unknown result.";
-      }
-    }
-  }
-
-  if (removed.empty())
-  {
-    return core;
-  }
-  else
-  {
-    std::vector<Node> newUcAssertions;
-    for (const Node& n : core)
-    {
-      if (removed.find(n) == removed.end())
-      {
-        newUcAssertions.push_back(n);
-      }
-    }
-
-    return newUcAssertions;
-  }
 }
 
 void SolverEngine::checkUnsatCore()
@@ -1424,7 +1358,7 @@ void SolverEngine::checkUnsatCore()
 
   d_env->verbose(1) << "SolverEngine::checkUnsatCore(): generating unsat core"
                     << std::endl;
-  UnsatCore core = getUnsatCore();
+  UnsatCore core = getUnsatCoreInternal();
 
   // initialize the core checker
   std::unique_ptr<SolverEngine> coreChecker;
@@ -1492,7 +1426,7 @@ UnsatCore SolverEngine::getUnsatCore()
 {
   Trace("smt") << "SMT getUnsatCore()" << std::endl;
   finishInit();
-  return getUnsatCoreInternal();
+  return getUnsatCoreInternal(false);
 }
 
 void SolverEngine::getRelevantQuantTermVectors(
@@ -1852,7 +1786,8 @@ void SolverEngine::getDifficultyMap(std::map<Node, Node>& dmap)
   Assert(d_pfManager);
   // get difficulty map from theory engine first
   TheoryEngine* te = d_smtSolver->getTheoryEngine();
-  te->getDifficultyMap(dmap);
+  // do not include lemmas
+  te->getDifficultyMap(dmap, false);
   // then ask proof manager to translate dmap in terms of the input
   d_pfManager->translateDifficultyMap(dmap, *d_smtSolver.get());
 }
