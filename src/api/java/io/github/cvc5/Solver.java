@@ -1944,6 +1944,31 @@ public class Solver implements IPointer
   private native long[] getUnsatCore(long pointer);
 
   /**
+   * Get the lemmas used to derive unsatisfiability.
+   * SMT-LIB:
+   * {@code
+   * (get-unsat-core-lemmas)
+   * }
+   * Requires to enable option {@code produce-unsat-core-lemmas}.
+   *
+   * @api.note In contrast to SMT-LIB, cvc5's API does not distinguish between
+   *           named and unnamed assertions when producing an unsatisfiable
+   *           core. Additionally, the API allows this option to be called after
+   *           a check with assumptions. A subset of those assumptions may be
+   *           included in the unsatisfiable core returned by this method.
+   *
+   * @return A set of terms representing the lemmas used to derive
+   * unsatisfiability.
+   */
+  public Term[] getUnsatCoreLemmas()
+  {
+    long[] retPointers = getUnsatCoreLemmas(pointer);
+    return Utils.getTerms(retPointers);
+  }
+
+  private native long[] getUnsatCoreLemmas(long pointer);
+
+  /**
    * Get a difficulty estimate for an asserted formula. This method is
    * intended to be called immediately after any response to a checkSat.
    *
