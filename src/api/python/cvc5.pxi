@@ -2427,6 +2427,33 @@ cdef class Solver:
             core.append(term)
         return core
 
+    def getUnsatCoreLemmas(self):
+        """
+            Get the lemmas used to derive unsatisfiability.
+
+            SMT-LIB:
+
+            .. code-block:: smtlib
+
+                (get-unsat-core-lemmas)
+
+            Requires to enable option
+            :ref:`produce-unsat-core-lemmas <lbl-option-produce-unsat-core-lemmas>`.
+
+            .. note::
+              This method requires computing unsat cores via the SAT proof, so other
+              modes of unsat core are overriden by it.
+
+            :return: A set of terms representing the lemmas used to derive
+            unsatisfiability.
+        """
+        coreLemmas = []
+        for a in self.csolver.getUnsatCoreLemmas():
+            term = Term(self)
+            term.cterm = a
+            coreLemmas.append(term)
+        return coreLemmas
+
     def getDifficulty(self):
         """
             Get a difficulty estimate for an asserted formula. This method is
