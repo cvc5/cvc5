@@ -168,8 +168,18 @@ void SynthConjecture::assign(Node q)
   Node sc = qa.d_sygusSideCondition;
   if (!sc.isNull())
   {
-    // immediately check if unsat
-    Result r = d_verify.verify(sc);
+    Trace("cegqi-debug") << "Side condition is: " << sc << std::endl;
+    // Immediately check if unsat, use fresh skolem for free variables to
+    // avoid assertion failures related to free variables.
+    std::vector<Node> vars;
+    std::vector<Node> skolems;
+    for (const Node& v : q[0])
+    {
+      vars.push_back(v);
+      skolems.push_back(sm->mkDummySkolem("k", v.getType()));
+    }
+    Node ksc = sc.substitute(vars.begin(), vars.end(), skolems.begin(), skolems.end());
+    Result r = d_verify.verify(ksc);
     // if infeasible, we are done
     if (r.getStatus() == Result::UNSAT)
     {
