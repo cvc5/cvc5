@@ -1226,6 +1226,7 @@ set(regress_0_tests
   regress0/quantifiers/partial-trigger.smt2
   regress0/quantifiers/proj-issue152-2-non-std-nterm-ext-rew.smt2
   regress0/quantifiers/proj-issue512-has-skolem.smt2
+  regress0/quantifiers/proj-issue608-mbqi-cegqi.smt2
   regress0/quantifiers/pure_dt_cbqi.smt2
   regress0/quantifiers/qarray-sel-over-store.smt2
   regress0/quantifiers/qbv-inequality2.smt2
