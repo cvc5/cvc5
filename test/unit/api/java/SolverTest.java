@@ -1841,6 +1841,7 @@ class SolverTest
   void getUnsatCoreLemmas2()
   {
     d_solver.setOption("produce-unsat-cores", "true");
+    d_solver.setOption("unsat-cores-mode", "sat-proof");
 
     Sort uSort = d_solver.mkUninterpretedSort("u");
     Sort intSort = d_solver.getIntegerSort();
