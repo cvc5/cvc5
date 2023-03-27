@@ -39,7 +39,7 @@ function processresult {
     cat;
     echo "% SZS output end Proof for $tptpfilename";
     exit 0;;
-  sat) echo "% SZS status $satResult for $filename";cat;exit 0;;
+  sat) echo "% SZS status $satResult for $tptpfilename";cat;exit 0;;
   esac; exit 1)
 }
   

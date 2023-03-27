@@ -14,7 +14,6 @@ file=${bench##*/}
 filename=${file%.*}
 unsatResult="Unsatisfiable"
 satResult="Satisfiable"
-tptpfilename=""
 
 echo "------- convert to smt2 : $bench..."
 
@@ -34,6 +33,7 @@ echo "------- cvc5-fnt : $here/$filename.smt2..."
 function processresult {
   (read result;
   case "$result" in
+  unsat) echo "% SZS status $unsatResult for $tptpfilename";cat;exit 0;;
   sat) 
     echo "% SZS status $satResult for $tptpfilename";
     echo "% SZS output start FiniteModel for $tptpfilename";

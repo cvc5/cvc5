@@ -28,7 +28,7 @@ function processFileName {
 tptpfilename=$(grep "% File " $bench 2>/dev/null | processFileName)
 echo "TPTP file name is $tptpfilename"
 
-echo "------- cvc5-tfa : $here/$filename.smt2..."
+echo "------- cvc5-thf : $here/$filename.smt2..."
 
 function processresult {
   (read result;
@@ -39,6 +39,7 @@ function processresult {
     cat;
     echo "% SZS output end Proof for $tptpfilename";
     exit 0;;
+  sat) echo "% SZS status $satResult for $tptpfilename";cat;exit 0;;
   esac; exit 1)
 }
   
@@ -49,12 +50,12 @@ function processresult {
 function trywith {
   limit=$1; shift;
   echo "--- Run $@ at $limit...";
-  (ulimit -S -t "$limit";$cvc5 --lang=smt2 --no-type-checking --no-interactive --dump-proofs --force-no-limit-cpu-while-dump -q "$@" $here/$filename.smt2) 2>/dev/null | processresult
+  (ulimit -S -t "$limit";$cvc5 --lang=smt2 --no-type-checking --no-interactive --dump-proofs --force-no-limit-cpu-while-dump --force-logic="HO_ALL" -q "$@" $here/$filename.smt2) 2>/dev/null | processresult
   if [ ${PIPESTATUS[1]} -eq 0 ]; then exit 0; fi
 }
 function finishwith {
   echo "--- Run $@...";
-  $cvc5 --lang=smt2 --no-type-checking --no-interactive --dump-proofs --force-no-limit-cpu-while-dump -q "$@" $here/$filename.smt2 | processresult
+  $cvc5 --lang=smt2 --no-type-checking --no-interactive --dump-proofs --force-no-limit-cpu-while-dump --force-logic="HO_ALL" -q "$@" $here/$filename.smt2 | processresult
 }
 
 # designed for 300 seconds
