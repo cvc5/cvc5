@@ -2750,7 +2750,7 @@ def test_get_data_type_arity(solver):
   assert s3.getDatatypeArity() == 0
 
 def test_get_unsat_core_lemmas1(solver):
-  solver.setOption("produce-unsat-core-lemmas", "true")
+  solver.setOption("produce-unsat-cores", "true")
   # cannot ask before a check sat
   with pytest.raises(RuntimeError):
       solver.getUnsatCoreLemmas()
@@ -2760,7 +2760,7 @@ def test_get_unsat_core_lemmas1(solver):
   solver.getUnsatCoreLemmas()
 
 def test_get_unsat_core_lemmas2(solver):
-  solver.setOption("produce-unsat-core-lemmas", "true")
+  solver.setOption("produce-unsat-cores", "true")
   uSort = solver.mkUninterpretedSort("u")
   intSort = solver.getIntegerSort()
   boolSort = solver.getBooleanSort()

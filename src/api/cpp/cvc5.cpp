@@ -7154,9 +7154,9 @@ std::vector<Term> Solver::getUnsatCore(void) const
 std::vector<Term> Solver::getUnsatCoreLemmas(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(d_slv->getOptions().smt.produceUnsatCoreLemmas)
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceUnsatCores)
       << "Cannot get unsat core lemmas unless explicitly enabled "
-         "(try --produce-unsat-core-lemmas)";
+         "(try --produce-unsat-cores)";
   CVC5_API_RECOVERABLE_CHECK(d_slv->getSmtMode() == internal::SmtMode::UNSAT)
       << "Cannot get unsat core unless in unsat mode.";
   //////// all checks before this line

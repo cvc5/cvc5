@@ -1840,7 +1840,7 @@ class SolverTest
   @Test
   void getUnsatCoreLemmas2()
   {
-    d_solver.setOption("produce-unsat-core-lemmas", "true");
+    d_solver.setOption("produce-unsat-cores", "true");
 
     Sort uSort = d_solver.mkUninterpretedSort("u");
     Sort intSort = d_solver.getIntegerSort();
