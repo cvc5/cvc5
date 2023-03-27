@@ -114,8 +114,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
               // quantified formulas can be queried
               n = rewrite(n);
               Node vn = m->getValue(n);
-              Assert(vn.isConst());
-              if (vn.getConst<bool>() == cpol)
+              if (vn.isConst() && vn.getConst<bool>() == cpol)
               {
                 impl = cpol ? n : n.negate();
                 break;
