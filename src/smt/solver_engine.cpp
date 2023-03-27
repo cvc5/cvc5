@@ -1433,11 +1433,11 @@ std::vector<Node> SolverEngine::getUnsatCoreLemmas()
 {
   Trace("smt") << "SMT getUnsatCoreLemmas()" << std::endl;
   finishInit();
-  if (!d_env->getOptions().smt.produceUnsatCoreLemmas)
+  if (!d_env->getOptions().smt.produceUnsatCores)
   {
     throw ModalException(
-        "Cannot get lemmas used to derive unsat when produce-unsat-core-lemmas "
-        "is off.");
+        "Cannot get lemmas used to derive unsat when produce-unsat-cores is "
+        "off.");
   }
   if (d_state->getMode() != SmtMode::UNSAT)
   {
