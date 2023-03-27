@@ -1800,7 +1800,8 @@ void SolverEngine::getDifficultyMap(std::map<Node, Node>& dmap)
   Assert(d_pfManager);
   // get difficulty map from theory engine first
   TheoryEngine* te = d_smtSolver->getTheoryEngine();
-  te->getDifficultyMap(dmap);
+  // do not include lemmas
+  te->getDifficultyMap(dmap, false);
   // then ask proof manager to translate dmap in terms of the input
   d_pfManager->translateDifficultyMap(dmap, *d_smtSolver.get());
 }
