@@ -850,11 +850,13 @@ Node IntBlaster::castToType(Node n, TypeNode tn)
   {
     return n;
   }
+  std::cout << "panda n: " << n << std::endl;
+  std::cout << "panda tn: " << tn << std::endl;
+  Trace("int-blaster") << "castToType from " << n.getType() << " to " << tn
+                       << std::endl;
   // We only case int to bv or vice verse.
   Assert((n.getType().isBitVector() && tn.isInteger())
          || (n.getType().isInteger() && tn.isBitVector()));
-  Trace("int-blaster") << "castToType from " << n.getType() << " to " << tn
-                       << std::endl;
 
   // casting integers to bit-vectors
   if (n.getType().isInteger())
