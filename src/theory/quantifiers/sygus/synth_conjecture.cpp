@@ -169,11 +169,7 @@ void SynthConjecture::assign(Node q)
   if (!sc.isNull())
   {
     // immediately check if unsat
-    SubsolverSetupInfo ssi(d_env);
-    Result r = checkWithSubsolver(sc,
-                                  ssi,
-                                  options().quantifiers.sygusVerifyTimeout != 0,
-                                  options().quantifiers.sygusVerifyTimeout);
+    Result r = d_verify.verify(sc);
     // if infeasible, we are done
     if (r.getStatus() == Result::UNSAT)
     {
