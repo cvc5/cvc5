@@ -149,8 +149,12 @@ class RelevanceManager : public TheoryEngineModule
   void notifyCandidateModel(TheoryModel* m) override;
   /**
    * Get difficulty map
+   *
+   * @param dmap The difficulty map to populate.
+   * @param includeLemmas Whether to include difficulty of lemmas in the domain
+   * of dmap.
    */
-  void getDifficultyMap(std::map<Node, Node>& dmap);
+  void getDifficultyMap(std::map<Node, Node>& dmap, bool includeLemmas);
 
  private:
   /**
