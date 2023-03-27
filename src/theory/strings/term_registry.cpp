@@ -249,7 +249,11 @@ void TermRegistry::registerSubterms(Node n)
     if (d_registeredTerms.find(cur) == d_registeredTerms.end())
     {
       registerTermInternal(cur);
-      visit.insert(visit.end(), cur.begin(), cur.end());
+      // do not traverse beneath closures
+      if (!cur.isClosure())
+      {
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
     }
   } while (!visit.empty());
 }
