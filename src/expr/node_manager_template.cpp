@@ -494,8 +494,6 @@ TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
   {
     return typeNode;
   }
-  // !!!! temporary
-  std::stringstream errOutTmp;
   std::unordered_map<TNode, bool> visited;
   std::unordered_map<TNode, bool>::const_iterator it;
   std::vector<TNode> visit;
@@ -537,11 +535,13 @@ TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
     {
       visited[cur] = true;
       // children now have types assigned
-      typeNode = TypeChecker::computeType(this, cur, check, &errOutTmp);
+      typeNode = TypeChecker::computeType(this, cur, check, nullptr);
       // if null, immediately return without further caching
       if (typeNode.isNull())
       {
-        // !!! temporary
+        // !!!! temporary: recompute with an error stream
+        std::stringstream errOutTmp;
+        TypeChecker::computeType(this, cur, check, &errOutTmp);
         throw TypeCheckingExceptionPrivate(cur, errOutTmp.str());
         return typeNode;
       }
