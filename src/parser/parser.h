@@ -336,7 +336,7 @@ class CVC5_EXPORT ParserState
   Sort mkUnresolvedType(const std::string& name, size_t arity);
 
   /**
-   * Creates  sorts of a list of mutually-recursive datatype declarations.
+   * Creates sorts of a list of mutually-recursive datatype declarations.
    *
    * For each symbol defined by the datatype, it checks whether the binding
    * will succeed. However, it does not actually implement the binding yet,
