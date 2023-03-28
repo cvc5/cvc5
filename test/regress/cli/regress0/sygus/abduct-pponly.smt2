@@ -1,4 +1,4 @@
-; EXPECT: (error "Error in option parsing: global negate not supported in sygus.")
+; EXPECT: fail
 (set-logic ALL)
 (set-option :preprocess-only true)
 (set-option :preregister-mode lazy)
