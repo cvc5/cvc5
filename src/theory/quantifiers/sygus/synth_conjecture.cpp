@@ -180,6 +180,7 @@ void SynthConjecture::assign(Node q)
     }
     Node ksc =
         sc.substitute(vars.begin(), vars.end(), skolems.begin(), skolems.end());
+    std::cout << "Side condition to check: " << ksc << std::endl;
     Result r = d_verify.verify(ksc);
     // if infeasible, we are done
     if (r.getStatus() == Result::UNSAT)
