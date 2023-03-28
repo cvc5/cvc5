@@ -1,11 +1,6 @@
 
 ; -- Core Normalization Rules --
 
-
-; Note that the extract semantics (extract j i x)
-; extracts the range [i..j]. Vide https://smtlib.cs.uiowa.edu/theories-FixedSizeBitVectors.shtml
-; Also concat is big-endian.
-
 (define-rule* bv-concat-flatten
   ((xs ?BitVec :list)
    (s ?BitVec)
@@ -89,15 +84,11 @@
 (define-rule bv-redor-eliminate
   ((x ?BitVec))
   (bvredor x)
-  (ite (= x (bv 0 (bvsize x)))
-  (bv 0 1) (bv 1 1)
-  ))
+  (bvnot (bvcomp x (bv 0 (bvsize x)))))
 (define-rule bv-redand-eliminate
   ((x ?BitVec))
   (bvredand x)
-  (ite (= x (bvnot (bv 0 (bvsize x))))
-  (bv 1 1) (bv 0 1)
-  ))
+  (bvnot (bvcomp x (bvnot (bv 0 (bvsize x))))))
 
 (define-rule bv-sub-eliminate
   ((x ?BitVec) (y ?BitVec))
