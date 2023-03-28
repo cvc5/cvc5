@@ -1663,13 +1663,19 @@ void SolverEngine::getInstantiationTermVectors(
 bool SolverEngine::getSynthSolutions(std::map<Node, Node>& solMap)
 {
   finishInit();
-  return d_sygusSolver->getSynthSolutions(solMap);
+  bool ret = d_sygusSolver->getSynthSolutions(solMap);
+  // we return false if solMap is empty, that is, when we ask for a solution
+  // when none is available.
+  return ret && !solMap.empty();
 }
 
 bool SolverEngine::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
 {
   finishInit();
-  return d_sygusSolver->getSubsolverSynthSolutions(solMap);
+  bool ret = d_sygusSolver->getSubsolverSynthSolutions(solMap);
+  // we return false if solMap is empty, that is, when we ask for a solution
+  // when none is available.
+  return ret && !solMap.empty();
 }
 
 Node SolverEngine::getQuantifierElimination(Node q, bool doFull)
@@ -1786,7 +1792,8 @@ void SolverEngine::getDifficultyMap(std::map<Node, Node>& dmap)
   Assert(d_pfManager);
   // get difficulty map from theory engine first
   TheoryEngine* te = d_smtSolver->getTheoryEngine();
-  te->getDifficultyMap(dmap);
+  // do not include lemmas
+  te->getDifficultyMap(dmap, false);
   // then ask proof manager to translate dmap in terms of the input
   d_pfManager->translateDifficultyMap(dmap, *d_smtSolver.get());
 }
