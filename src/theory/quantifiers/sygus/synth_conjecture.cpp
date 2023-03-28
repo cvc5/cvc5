@@ -177,7 +177,8 @@ void SynthConjecture::assign(Node q)
     {
       vars.push_back(v);
       TypeNode vtype = v.getType();
-      Assert(vtype.isBoolean() || (vtype.isFunction() && vtype.getRangeType().isBoolean()));
+      Assert(vtype.isBoolean()
+             || (vtype.isFunction() && vtype.getRangeType().isBoolean()));
       Node s = nm->mkConst(true);
       if (vtype.isFunction())
       {
@@ -187,8 +188,7 @@ void SynthConjecture::assign(Node q)
         {
           lvars.push_back(nm->mkBoundVar(tn));
         }
-        s = nm->mkNode(
-            LAMBDA, nm->mkNode(BOUND_VAR_LIST, lvars), s);
+        s = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, lvars), s);
       }
       subs.push_back(s);
     }
