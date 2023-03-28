@@ -509,6 +509,7 @@ set(regress_0_tests
   regress0/bv/test-bv_intro_pow2.smt2
   regress0/bv/unsound1-reduced.smt2
   regress0/chained-equality.smt2
+  regress0/check-abduct-sample.smt2
   regress0/constant-rewrite.smtv1.smt2
   regress0/cores/dd.uc-min-wrong.smt2
   regress0/cores/issue3455.smt2
@@ -808,6 +809,7 @@ set(regress_0_tests
   regress0/int-to-bv/neg-consts.smt2
   regress0/int-to-bv/not-enough-bits.smt2
   regress0/int-to-bv/overflow.smt2
+  regress0/int-to-bv/proj-issue601.smt2
   regress0/issue1063-overloading-dt-cons.smt2
   regress0/issue1063-overloading-dt-fun.smt2
   regress0/issue1063-overloading-dt-sel.smt2
@@ -952,6 +954,7 @@ set(regress_0_tests
   regress0/nl/proj-issue-451-ran-combination-1.smt2
   regress0/nl/proj-issue-451-ran-combination-2.smt2
   regress0/nl/proj-issue-465-asan-proofs.smt2
+  regress0/nl/proj-issue552-narith-cee.smt2
   regress0/nl/real-as-int.smt2
   regress0/nl/real-div-ufnra.smt2
   regress0/nl/sin-cos-346-b-chunk-0169.smt2
@@ -1359,6 +1362,8 @@ set(regress_0_tests
   regress0/seq/proj-issue384-subtypes.smt2
   regress0/seq/proj-issue384-2-subtypes.smt2
   regress0/seq/proj-issue427-subtypes-value.smt2
+  regress0/seq/proj-issue586-nth-update-no-fact.smt2
+  regress0/seq/proj-issue586-nth-update-no-fact-2.smt2
   regress0/seq/proj-issue604-reg-closure.smt2
   regress0/seq/quant_len_trigger.smt2
   regress0/seq/query0-subtype-skel.smt2
