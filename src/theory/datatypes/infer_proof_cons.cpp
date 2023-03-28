@@ -240,6 +240,12 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
         Node fn = nm->mkConst(false);
         // if pol is true, it is a conflict is-C1(x) ^ is-C2(x)
         // if pol is false, it is a conflict is-C1(x) ^ ~is-C1(x)
+        // In the former case, the proof may be of the form:
+        //            is-C2(y)  y = x
+        //            ----------------- MACRO_SR_PRED_TRANSFORM
+        // is-C1(x)   is-C2(x)
+        // ------------------- DT_CLASH
+        // false
         cdp->addStep(fn,
                      pol ? PfRule::DT_CLASH : PfRule::CONTRA,
                      {tester1, tester1c},
