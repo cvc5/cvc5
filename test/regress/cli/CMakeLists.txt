@@ -1612,6 +1612,7 @@ set(regress_0_tests
   regress0/strings/unicode-esc.smt2
   regress0/strings/unsound-0908.smt2
   regress0/strings/unsound-repl-rewrite.smt2
+  regress0/sygus/abduct-pponly.smt2
   regress0/sygus/assume-simple.sy
   regress0/sygus/array-grammar-select.sy
   regress0/sygus/ccp16.lus.sy
@@ -1626,6 +1627,7 @@ set(regress_0_tests
   regress0/sygus/ho-occ-synth-fun.sy
   regress0/sygus/incremental-modify-ex.sy
   regress0/sygus/infeasible-constraint.sy
+  regress0/sygus/interpolant-gn.smt2
   regress0/sygus/inv-different-var-order.sy
   regress0/sygus/issue3356-syg-inf-usort.smt2
   regress0/sygus/issue3624.sy
