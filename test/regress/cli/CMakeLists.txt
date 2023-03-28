@@ -1364,6 +1364,7 @@ set(regress_0_tests
   regress0/seq/proj-issue427-subtypes-value.smt2
   regress0/seq/proj-issue586-nth-update-no-fact.smt2
   regress0/seq/proj-issue586-nth-update-no-fact-2.smt2
+  regress0/seq/proj-issue604-reg-closure.smt2
   regress0/seq/quant_len_trigger.smt2
   regress0/seq/query0-subtype-skel.smt2
   regress0/seq/query1-subtype.smt2
@@ -1611,6 +1612,7 @@ set(regress_0_tests
   regress0/strings/unicode-esc.smt2
   regress0/strings/unsound-0908.smt2
   regress0/strings/unsound-repl-rewrite.smt2
+  regress0/sygus/abduct-pponly.smt2
   regress0/sygus/assume-simple.sy
   regress0/sygus/array-grammar-select.sy
   regress0/sygus/ccp16.lus.sy
@@ -1625,6 +1627,7 @@ set(regress_0_tests
   regress0/sygus/ho-occ-synth-fun.sy
   regress0/sygus/incremental-modify-ex.sy
   regress0/sygus/infeasible-constraint.sy
+  regress0/sygus/interpolant-gn.smt2
   regress0/sygus/inv-different-var-order.sy
   regress0/sygus/issue3356-syg-inf-usort.smt2
   regress0/sygus/issue3624.sy
@@ -2218,6 +2221,7 @@ set(regress_1_tests
   regress1/nl/issue9183-5.smt2
   regress1/nl/issue9420-ll.smt2
   regress1/nl/issue9480-pow-pow2.smt2
+  regress1/nl/issue9611-lrew.smt2
   regress1/nl/learned-rewrite-int-mod-range.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
@@ -2870,6 +2874,7 @@ set(regress_1_tests
   regress1/strings/proj-issue281.smt2
   regress1/strings/proj-issue331.smt2
   regress1/strings/proj-issue502-merge-type.smt2
+  regress1/strings/proj-issue585-cbqi-t-cons.smt2
   regress1/strings/prop-engine-order.smt2
   regress1/strings/query4674.smt2
   regress1/strings/query8485.smt2

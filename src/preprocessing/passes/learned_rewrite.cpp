@@ -295,7 +295,7 @@ Node LearnedRewrite::rewriteLearned(Node n,
         default: Assert(false); break;
       }
       std::vector<Node> children;
-      children.insert(children.end(), n.begin(), n.end());
+      children.insert(children.end(), nr.begin(), nr.end());
       Node ret = nm->mkNode(nk, children);
       nr = returnRewriteLearned(nr, ret, LearnedRewriteId::NON_ZERO_DEN);
       nr = rewrite(nr);
