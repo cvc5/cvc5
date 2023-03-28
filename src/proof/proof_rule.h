@@ -262,7 +262,8 @@ enum class PfRule : uint32_t
    * Notice that the application of the substitution takes into account the
    * possible list semantics of variables :math:`x_1 \ldots x_n`. If
    * :math:`x_i` is a variable with list semantics, then :math:`t_i` denotes a
-   * list of terms.
+   * list of terms. The substitution (see expr::narySubstitute) replaces each
+   * :math:`x_i` with the list :math:`t_i` in its place.
    * \endverbatim
    */
   DSL_REWRITE,
