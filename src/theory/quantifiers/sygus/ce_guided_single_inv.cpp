@@ -264,7 +264,7 @@ Result CegSingleInv::solve()
   // marked above.
   for (const Node& qss : qs)
   {
-    if (qss.getNumChildren()==3 && qss[2]==n_attr)
+    if (qss.getNumChildren() == 3 && qss[2] == n_attr)
     {
       q = qss;
       break;
