@@ -71,7 +71,8 @@ class ArrayCoreSolver : protected EnvObj
  private:
   void sendInference(const std::vector<Node>& exp,
                      const Node& lem,
-                     const InferenceId iid);
+                     const InferenceId iid,
+                     bool asLemma = false);
 
   /**
    * Perform reasoning about seq.nth operation.
