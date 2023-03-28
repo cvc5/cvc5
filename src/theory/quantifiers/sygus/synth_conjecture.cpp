@@ -177,15 +177,19 @@ void SynthConjecture::assign(Node q)
     {
       vars.push_back(v);
       TypeNode vtype = v.getType();
-      Assert(vtype.isFunction() && vtype.getRangeType().isBoolean());
-      std::vector<TypeNode> atypes = vtype.getArgTypes();
-      std::vector<Node> lvars;
-      for (const TypeNode& tn : atypes)
+      Assert(vtype.isBoolean() || (vtype.isFunction() && vtype.getRangeType().isBoolean()));
+      Node s = nm->mkConst(true);
+      if (vtype.isFunction())
       {
-        lvars.push_back(nm->mkBoundVar(tn));
+        std::vector<TypeNode> atypes = vtype.getArgTypes();
+        std::vector<Node> lvars;
+        for (const TypeNode& tn : atypes)
+        {
+          lvars.push_back(nm->mkBoundVar(tn));
+        }
+        s = nm->mkNode(
+            LAMBDA, nm->mkNode(BOUND_VAR_LIST, lvars), s);
       }
-      Node s = nm->mkNode(
-          LAMBDA, nm->mkNode(BOUND_VAR_LIST, lvars), nm->mkConst(true));
       subs.push_back(s);
     }
     Node ksc =
