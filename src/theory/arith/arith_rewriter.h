@@ -42,7 +42,9 @@ class ArithRewriter : public TheoryRewriter
    */
   TrustNode expandDefinition(Node node) override;
   /**
-   * Rewrite inequality to bv.
+   * Rewrite inequality to bv. If ineq contains a single bv2nat term, then
+   * if possible, return an equivalent formula involving a bitvector inequality.
+   * Otherwise, return ineq itself.
    */
   static Node rewriteIneqToBv(const Node& ineq);
 
