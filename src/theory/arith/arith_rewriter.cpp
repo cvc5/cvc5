@@ -348,8 +348,13 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
                         == 2
                  && t[1].getType().isInteger())
         {
-          return RewriteResponse(
-              REWRITE_DONE, NodeManager::currentNM()->mkNode(kind::POW2, t[1]));
+          Node ret = NodeManager::currentNM()->mkNode(kind::POW2, t[1]);
+          // ensure type is preserved
+          if (t.getType().isReal())
+          {
+            ret = rewriter::ensureReal(ret);
+          }
+          return RewriteResponse(REWRITE_AGAIN, ret);
         }
 
         // Todo improve the exception thrown
