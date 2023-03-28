@@ -1215,6 +1215,7 @@ set(regress_0_tests
   regress0/quantifiers/issue8609-subtype-assert.smt2
   regress0/quantifiers/issue8821-enum-interleave-types.smt2
   regress0/quantifiers/issue8923-qe-push-pop.smt2
+  regress0/quantifiers/issue9602-rewrite-pow-type.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
