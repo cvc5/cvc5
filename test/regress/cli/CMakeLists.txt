@@ -1849,6 +1849,7 @@ set(regress_1_tests
   regress1/abduction/abduction_1255.corecstrs.readable.smt2
   regress1/abduction/abduction_streq.readable.smt2
   regress1/abduction/abduction-no-pbe-sym-break.smt2
+  regress1/abduction/abduct-apply-uf.smt2
   regress1/abduction/abduct-dt.smt2
   regress1/abduction/abduct-false-sc.smt2
   regress1/abduction/abd-real-const.smt2
