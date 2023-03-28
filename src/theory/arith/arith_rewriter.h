@@ -41,6 +41,10 @@ class ArithRewriter : public TheoryRewriter
    * the given node.
    */
   TrustNode expandDefinition(Node node) override;
+  /**
+   * Rewrite inequality to bv.
+   */
+  static Node rewriteIneqToBv(const Node& ineq);
  private:
   /** preRewrite for atoms */
   static RewriteResponse preRewriteAtom(TNode t);
@@ -97,11 +101,11 @@ class ArithRewriter : public TheoryRewriter
   static RewriteResponse returnRewrite(TNode t, Node ret, Rewrite r);
 
   /**
-   * Rewrite inequality to bv. If applicable, return the rewrite response for
+   * Rewrite inequality to bv. If applicable, return
    * the bitvector inequality that is the rewritten form of the arithmetic
    * inequality ineq that is equivalent to (<k> sum 0).
    */
-  static RewriteResponse rewriteIneqToBv(Kind k,
+  static Node rewriteIneqToBv(Kind k,
                                          const rewriter::Sum& sum,
                                          const Node& ineq);
   /** The operator elimination utility */

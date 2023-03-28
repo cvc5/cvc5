@@ -191,10 +191,10 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   if (kind != Kind::EQUAL)
   {
     // see if we should convert the inequality to a bitvector inequality
-    RewriteResponse rineqBv = rewriteIneqToBv(kind, sum, atom);
-    if (rineqBv.d_node != atom)
+    Node rineqBv = rewriteIneqToBv(kind, sum, atom);
+    if (rineqBv != atom)
     {
-      return rineqBv;
+      return returnRewrite(atom, rineqBv, Rewrite::INEQ_BV_TO_NAT_ELIM);
     }
   }
 
@@ -1134,7 +1134,22 @@ RewriteResponse ArithRewriter::returnRewrite(TNode t, Node ret, Rewrite r)
   return RewriteResponse(REWRITE_AGAIN_FULL, ret);
 }
 
-RewriteResponse ArithRewriter::rewriteIneqToBv(Kind kind,
+
+Node ArithRewriter::rewriteIneqToBv(const Node& ineq)
+{
+  Assert (ineq.getKind()==kind::GEQ);
+  
+  Node left = rewriter::removeToReal(ineq[0]);
+  Node right = rewriter::removeToReal(ineq[1]);
+  
+  rewriter::Sum sum;
+  rewriter::addToSum(sum, left, false);
+  rewriter::addToSum(sum, right, true);
+  
+  return rewriteIneqToBv(kind::GEQ, sum, ineq);
+}
+
+Node ArithRewriter::rewriteIneqToBv(Kind kind,
                                                const rewriter::Sum& sum,
                                                const Node& ineq)
 {
@@ -1216,9 +1231,9 @@ RewriteResponse ArithRewriter::rewriteIneqToBv(Kind kind,
     //      (ite (>= N 2^w) false (ite (< N 0) true (bvuge x ((_ int2bv w) N))
     // where N is a constant. Note that ((_ int2bv w) N) will subsequently
     // be rewritten to the appropriate bitvector constant.
-    return returnRewrite(ineq, ret, Rewrite::INEQ_BV_TO_NAT_ELIM);
+    return ret;
   }
-  return RewriteResponse(REWRITE_DONE, ineq);
+  return ineq;
 }
 
 }  // namespace arith
