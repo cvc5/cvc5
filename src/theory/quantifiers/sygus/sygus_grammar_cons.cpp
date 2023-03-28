@@ -1238,7 +1238,9 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         sdts[iat].d_sdt.addConstructor(op, ssop.str(), opCArgs, 0);
       }
     }
-    if (polynomialGrammar)
+    // in the rare case that we have no arithmetic terms and are using
+    // polynomial grammar, we use the any constant constructor below instead.
+    if (polynomialGrammar && !sumChildren.empty())
     {
       // add the constant
       Node coeff = nm->mkBoundVar(types[i]);
