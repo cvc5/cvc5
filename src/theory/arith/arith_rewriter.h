@@ -45,6 +45,7 @@ class ArithRewriter : public TheoryRewriter
    * Rewrite inequality to bv.
    */
   static Node rewriteIneqToBv(const Node& ineq);
+
  private:
   /** preRewrite for atoms */
   static RewriteResponse preRewriteAtom(TNode t);
@@ -106,8 +107,8 @@ class ArithRewriter : public TheoryRewriter
    * inequality ineq that is equivalent to (<k> sum 0).
    */
   static Node rewriteIneqToBv(Kind k,
-                                         const rewriter::Sum& sum,
-                                         const Node& ineq);
+                              const rewriter::Sum& sum,
+                              const Node& ineq);
   /** The operator elimination utility */
   OperatorElim& d_opElim;
 }; /* class ArithRewriter */

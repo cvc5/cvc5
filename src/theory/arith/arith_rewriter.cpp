@@ -1134,24 +1134,23 @@ RewriteResponse ArithRewriter::returnRewrite(TNode t, Node ret, Rewrite r)
   return RewriteResponse(REWRITE_AGAIN_FULL, ret);
 }
 
-
 Node ArithRewriter::rewriteIneqToBv(const Node& ineq)
 {
-  Assert (ineq.getKind()==kind::GEQ);
-  
+  Assert(ineq.getKind() == kind::GEQ);
+
   Node left = rewriter::removeToReal(ineq[0]);
   Node right = rewriter::removeToReal(ineq[1]);
-  
+
   rewriter::Sum sum;
   rewriter::addToSum(sum, left, false);
   rewriter::addToSum(sum, right, true);
-  
+
   return rewriteIneqToBv(kind::GEQ, sum, ineq);
 }
 
 Node ArithRewriter::rewriteIneqToBv(Kind kind,
-                                               const rewriter::Sum& sum,
-                                               const Node& ineq)
+                                    const rewriter::Sum& sum,
+                                    const Node& ineq)
 {
   bool convertible = true;
   // the (single) bv2nat term in the sum
