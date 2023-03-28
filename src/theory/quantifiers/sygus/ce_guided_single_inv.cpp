@@ -253,7 +253,6 @@ Result CegSingleInv::solve()
   // now, get the instantiations
   std::vector<Node> qs;
   siSmt->getInstantiatedQuantifiedFormulas(qs);
-  Assert(qs.size() <= 1);
   // track the instantiations, as solution construction is based on this
   Trace("sygus-si") << "#instantiated quantified formulas=" << qs.size()
                     << std::endl;
