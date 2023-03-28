@@ -188,16 +188,6 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   rewriter::addToSum(sum, left, negate);
   rewriter::addToSum(sum, right, !negate);
 
-  if (kind != Kind::EQUAL)
-  {
-    // see if we should convert the inequality to a bitvector inequality
-    Node rineqBv = rewriteIneqToBv(kind, sum, atom);
-    if (rineqBv != atom)
-    {
-      return returnRewrite(atom, rineqBv, Rewrite::INEQ_BV_TO_NAT_ELIM);
-    }
-  }
-
   // Now we have (sum <kind> 0)
   if (rewriter::isIntegral(sum))
   {
