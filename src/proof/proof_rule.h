@@ -232,26 +232,6 @@ enum class PfRule : uint32_t
    * <cvc5::internal::PfRule::MACRO_SR_PRED_INTRO>` above. \endverbatim
    */
   MACRO_SR_PRED_TRANSFORM,
-  // ======== Encode predicate transformation
-  // Children: (P1:F)
-  // Arguments: (G)
-  // ----------------------------------------
-  // Conclusion: G
-  // where F and G are equivalent up to their encoding in an external proof
-  // format. This is currently verified by:
-  //   RewriteDbNodeConverter::convert(F) == RewriteDbNodeConverter::convert(G)
-  // This rule can be treated as a no-op when appropriate in external proof
-  // formats.
-  ENCODE_PRED_TRANSFORM,
-  // ======== DSL Rewrite
-  // Children: (P1:F1 ... Pn:Fn)
-  // Arguments: (id, F)
-  // ----------------------------------------
-  // Conclusion: F
-  // Where (G1, ..., Gn) => G is DSL rewrite rule # id, and
-  //  G1*sigma = F1, ..., Gn*sigma = Fn, G*sigma = F
-  // for some substitution sigma.
-  DSL_REWRITE,
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Builtin theory -- Encode predicate transformation**
