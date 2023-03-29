@@ -340,7 +340,7 @@ void SymbolManager::bindType(const std::string& name, cvc5::Sort t)
 }
 
 bool SymbolManager::bindMutualDatatypeTypes(
-    const std::vector<cvc5::Sort>& datatypes, bool doOverload, bool bindTesters)
+    const std::vector<cvc5::Sort>& datatypes, bool bindTesters)
 {
   for (size_t i = 0, ntypes = datatypes.size(); i < ntypes; ++i)
   {
@@ -363,7 +363,8 @@ bool SymbolManager::bindMutualDatatypeTypes(
       Term constructor = ctor.getTerm();
       Trace("parser-idt") << "+ define " << constructor << std::endl;
       std::string constructorName = ctor.getName();
-      if (!bind(constructorName, constructor, doOverload))
+      // always do overloading
+      if (!bind(constructorName, constructor, true))
       {
         return false;
       }
@@ -373,7 +374,8 @@ bool SymbolManager::bindMutualDatatypeTypes(
         testerName << "is-" << constructorName;
         Term tester = ctor.getTesterTerm();
         Trace("parser-idt") << "+ define " << testerName.str() << std::endl;
-        if (!bind(testerName.str(), tester, doOverload))
+        // always do overloading
+        if (!bind(testerName.str(), tester, true))
         {
           return false;
         }
@@ -384,7 +386,8 @@ bool SymbolManager::bindMutualDatatypeTypes(
         Term selector = sel.getTerm();
         Trace("parser-idt") << "+++ define " << selector << std::endl;
         std::string selectorName = sel.getName();
-        if (!bind(selectorName, selector, doOverload))
+        // always do overloading
+        if (!bind(selectorName, selector, true))
         {
           return false;
         }

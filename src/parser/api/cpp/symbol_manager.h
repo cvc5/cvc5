@@ -111,14 +111,11 @@ class CVC5_EXPORT SymbolManager
                 cvc5::Sort t);
   /**
    * Binds sorts of a list of mutually-recursive datatype declarations.
-   *
-   * For each symbol defined by the datatype, if a symbol with name already
-   * exists, then if doOverload is true, we create overloaded operators. Else,
-   * if doOverload is false, the existing expression is shadowed by the new
-   * expression.
+   * 
+   * If bindTesters is true, we bind the testers of this datatype to
+   * `is-C` where `C` is the name of the constructor for that tester.
    */
   bool bindMutualDatatypeTypes(const std::vector<cvc5::Sort>& datatypes,
-                               bool doOverload = false,
                                bool bindTesters = true);
 
   //---------------------------- named expressions
