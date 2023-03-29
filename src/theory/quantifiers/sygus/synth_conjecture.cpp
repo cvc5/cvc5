@@ -131,11 +131,16 @@ void SynthConjecture::assign(Node q)
   // compute its attributes
   QAttributes qa;
   QuantAttributes::computeQuantAttributes(q, qa);
+  
+  Node sc = qa.d_sygusSideCondition;
+  // we check whether the conjecture is single invocation if we are marked
+  // with the sygus attribute and don't have a side condition
+  bool checkSingleInvocation = qa.d_sygus && sc.isNull();
 
   std::map<Node, Node> templates;
   std::map<Node, Node> templates_arg;
   // register with single invocation if applicable
-  if (qa.d_sygus)
+  if (checkSingleInvocation)
   {
     d_ceg_si->initialize(d_simp_quant);
     d_simp_quant = d_ceg_si->getSimplifiedConjecture();
@@ -165,7 +170,6 @@ void SynthConjecture::assign(Node q)
   Trace("cegqi") << "SynthConjecture : converted to embedding : "
                  << d_embed_quant << std::endl;
 
-  Node sc = qa.d_sygusSideCondition;
   if (!sc.isNull())
   {
     Trace("cegqi-debug") << "Side condition is: " << sc << std::endl;
@@ -210,7 +214,7 @@ void SynthConjecture::assign(Node q)
 
   // we now finalize the single invocation module, based on the syntax
   // restrictions
-  if (qa.d_sygus)
+  if (checkSingleInvocation)
   {
     d_ceg_si->finishInit(d_ceg_gc->isSyntaxRestricted());
   }
