@@ -1239,7 +1239,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       }
     }
     // in the rare case that we have no arithmetic terms and are using
-    // polynomial grammar, we use the any constant constructor below instead.
+    // polynomial grammar, we use the "any constant" constructor below instead.
     if (polynomialGrammar && !sumChildren.empty())
     {
       // add the constant
