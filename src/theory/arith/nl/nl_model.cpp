@@ -217,7 +217,8 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
             // if we have not set an approximate bound for it
             if (!hasAssignment(cur))
             {
-              // set its exact model value in the substitution
+              // set its exact model value in the substitution, if we compute
+              // a constant value
               Node curv = computeConcreteModelValue(cur);
               if (curv.isConst())
               {
@@ -497,6 +498,7 @@ bool NlModel::solveEqualitySimple(Node eq,
       if (uvf.isVar() && !hasAssignment(uvf))
       {
         Node uvfv = computeConcreteModelValue(uvf);
+        // fail if model value is non-constant
         if (!uvfv.isConst())
         {
           return false;
