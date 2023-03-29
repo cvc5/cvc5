@@ -83,20 +83,21 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     {
       cur = visit.back();
       visit.pop_back();
+      // we recurse on this node if it is not a quantified formula
+      if (cur.isClosure())
+      {
+        visited[cur] = false;
+        continue;
+      }
       it = visited.find(cur);
       if (it == visited.end())
       {
         Trace("srs-input-debug") << "...preprocess " << cur << std::endl;
         visited[cur] = false;
-        bool isQuant = cur.isClosure();
-        // we recurse on this node if it is not a quantified formula
-        if (!isQuant)
+        visit.push_back(cur);
+        for (const Node& cc : cur)
         {
-          visit.push_back(cur);
-          for (const Node& cc : cur)
-          {
-            visit.push_back(cc);
-          }
+          visit.push_back(cc);
         }
       }
       else if (!it->second)
