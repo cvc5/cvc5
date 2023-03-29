@@ -168,6 +168,40 @@ void SynthConjecture::assign(Node q)
   Node sc = qa.d_sygusSideCondition;
   if (!sc.isNull())
   {
+    Trace("cegqi-debug") << "Side condition is: " << sc << std::endl;
+    // Immediately check if unsat, use lambda returning true for functions
+    // to synthesize.
+    std::vector<Node> vars;
+    std::vector<Node> subs;
+    for (const Node& v : q[0])
+    {
+      vars.push_back(v);
+      TypeNode vtype = v.getType();
+      Assert(vtype.isBoolean()
+             || (vtype.isFunction() && vtype.getRangeType().isBoolean()));
+      Node s = nm->mkConst(true);
+      if (vtype.isFunction())
+      {
+        std::vector<TypeNode> atypes = vtype.getArgTypes();
+        std::vector<Node> lvars;
+        for (const TypeNode& tn : atypes)
+        {
+          lvars.push_back(nm->mkBoundVar(tn));
+        }
+        s = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, lvars), s);
+      }
+      subs.push_back(s);
+    }
+    Node ksc =
+        sc.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+    Result r = d_verify.verify(ksc);
+    // if infeasible, we are done
+    if (r.getStatus() == Result::UNSAT)
+    {
+      d_qim.lemma(d_quant.negate(),
+                  InferenceId::QUANTIFIERS_SYGUS_SC_INFEASIBLE);
+      return;
+    }
     // convert to deep embedding
     d_embedSideCondition = d_ceg_gc->convertToEmbedding(sc);
     Trace("cegqi") << "SynthConjecture : side condition : "
