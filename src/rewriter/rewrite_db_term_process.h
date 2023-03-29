@@ -4,11 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
-<<<<<<< HEAD
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
-=======
  * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
->>>>>>> a1828e479a149b98be4364aa8d17ce84ba10d4aa
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
