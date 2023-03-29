@@ -274,7 +274,9 @@ void SygusExtension::assertTesterInternal(int tindex, TNode n, Node exp)
           }
         }
       }
-      Assert(conflict.size() == (unsigned)d_currTermSize[a].get());
+      // Notice that conflict.size() is typically equal to 
+      // d_currTermSize[a].get(), except in cases where the size annotation is
+      // not equal to (0,1) for (nullary, non-nullary) constructors. 
       Assert(itsz->second->d_search_size_exp.find(ssz)
              != itsz->second->d_search_size_exp.end());
       conflict.push_back( itsz->second->d_search_size_exp[ssz] );

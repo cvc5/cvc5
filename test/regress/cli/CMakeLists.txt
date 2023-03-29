@@ -3073,6 +3073,7 @@ set(regress_1_tests
   regress1/sygus/proj-issue222-any-const.sy
   regress1/sygus/proj-issue264.smt2
   regress1/sygus/proj-issue541.smt2
+  regress1/sygus/proj-issue548-srr.smt2
   regress1/sygus/proj-issue549-srr.smt2
   regress1/sygus/proj-issue553-srr.smt2
   regress1/sygus/pLTL_5_trace.sy
