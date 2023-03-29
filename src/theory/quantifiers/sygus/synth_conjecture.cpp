@@ -131,7 +131,7 @@ void SynthConjecture::assign(Node q)
   // compute its attributes
   QAttributes qa;
   QuantAttributes::computeQuantAttributes(q, qa);
-  
+
   Node sc = qa.d_sygusSideCondition;
   // we check whether the conjecture is single invocation if we are marked
   // with the sygus attribute and don't have a side condition
