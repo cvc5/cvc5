@@ -150,6 +150,7 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
     Node e = rewriteLearnedRec(prev, binfer, learnedLits, llrw, visited);
     if (e != prev)
     {
+      e = rewrite(e);
       Trace("learned-rewrite-assert")
           << ".......................: " << e << std::endl;
       assertionsToPreprocess->replace(i, e);
@@ -164,6 +165,7 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
     Node llc = nm->mkAnd(llrvec);
     Trace("learned-rewrite-assert")
         << "Re-add rewritten learned conjunction: " << llc << std::endl;
+    llc = rewrite(llc);
     assertionsToPreprocess->push_back(llc);
   }
 
@@ -293,7 +295,7 @@ Node LearnedRewrite::rewriteLearned(Node n,
         default: Assert(false); break;
       }
       std::vector<Node> children;
-      children.insert(children.end(), n.begin(), n.end());
+      children.insert(children.end(), nr.begin(), nr.end());
       Node ret = nm->mkNode(nk, children);
       nr = returnRewriteLearned(nr, ret, LearnedRewriteId::NON_ZERO_DEN);
       nr = rewrite(nr);

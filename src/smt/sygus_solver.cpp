@@ -358,6 +358,15 @@ bool SygusSolver::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
   return true;
 }
 
+bool SygusSolver::canTrustSynthesisResult(const Options& opts)
+{
+  if (opts.quantifiers.cegisSample == options::CegisSampleMode::TRUST)
+  {
+    return false;
+  }
+  return true;
+}
+
 void SygusSolver::checkSynthSolution(Assertions& as,
                                      const std::map<Node, Node>& sol_map)
 {
@@ -365,6 +374,13 @@ void SygusSolver::checkSynthSolution(Assertions& as,
   {
     verbose(1) << "SyGuS::checkSynthSolution: checking synthesis solution"
                << std::endl;
+  }
+  bool canTrustResult = canTrustSynthesisResult(options());
+  if (!canTrustResult)
+  {
+    warning() << "Running check-synth-sol is not guaranteed to pass with the "
+                 "current options."
+              << std::endl;
   }
   if (sol_map.empty())
   {
@@ -422,17 +438,30 @@ void SygusSolver::checkSynthSolution(Assertions& as,
       verbose(1) << "SyGuS::checkSynthSolution: result is " << r << std::endl;
     }
     Trace("check-synth-sol") << "Satsifiability check: " << r << "\n";
-    if (r.isUnknown())
+    if (r.getStatus() == Result::UNSAT)
     {
-      InternalError() << "SygusSolver::checkSynthSolution(): could not check "
-                         "solution, result "
-                         "unknown.";
+      continue;
     }
-    else if (r.getStatus() == Result::SAT)
+    std::stringstream ss;
+    bool hardFailure = canTrustResult;
+    if (r.getStatus() == Result::SAT)
     {
-      InternalError()
-          << "SygusSolver::checkSynthSolution(): produced solution leads to "
-             "satisfiable negated conjecture.";
+      ss << "SygusSolver::checkSynthSolution(): produced solution leads to "
+            "satisfiable negated conjecture.";
+    }
+    else
+    {
+      hardFailure = false;
+      ss << "SygusSolver::checkSynthSolution(): could not check "
+            "solution, result unknown.";
+    }
+    if (hardFailure)
+    {
+      InternalError() << ss.str();
+    }
+    else
+    {
+      warning() << ss.str() << std::endl;
     }
   }
 }
