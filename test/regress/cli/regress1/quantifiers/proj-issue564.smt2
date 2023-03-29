@@ -1,4 +1,5 @@
 ; EXPECT: unsat
+; DISABLE-TESTER: lfsc
 (set-logic ALL)
 (set-option :sets-ext true)
 (set-option :ieval use-learn)
