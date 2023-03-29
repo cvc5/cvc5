@@ -146,6 +146,8 @@ set(regress_0_tests
   regress0/arrays/issue9043_3.smt2
   regress0/arrays/issue9043_4.smt2
   regress0/arrays/proj-issue506-ms-var-elim.smt2
+  regress0/arrays/proj-issue545-array-nconst.smt2
+  regress0/arrays/proj-issue563.smt2
   regress0/arrays/swap_t1_np_nf_ai_00005_007.cvc.smtv1.smt2
   regress0/arrays/x2.smtv1.smt2
   regress0/arrays/x3.smtv1.smt2
@@ -592,6 +594,7 @@ set(regress_0_tests
   regress0/datatypes/parametric-alt-list.cvc.smt2
   regress0/datatypes/proj-issue172.smt2
   regress0/datatypes/proj-issue474-app-cons-value.smt2
+  regress0/datatypes/proj-issue578-clash-pf.smt2
   regress0/datatypes/rec1.cvc.smt2
   regress0/datatypes/rec2.cvc.smt2
   regress0/datatypes/rec4.cvc.smt2
@@ -1111,6 +1114,7 @@ set(regress_0_tests
   regress0/proofs/proj-issue492-skolem-lemma-pf.smt2
   regress0/proofs/proj-issue528-ufpfchecker.smt2
   regress0/proofs/proj-issue529-open-pf.smt2
+  regress0/proofs/proj-issue554.smt2
   regress0/proofs/proj-issue589.smt2
   regress0/proofs/proof-components.smt2
   regress0/proofs/qgu-fuzz-1-bool-sat.smt2
@@ -1612,6 +1616,7 @@ set(regress_0_tests
   regress0/strings/unicode-esc.smt2
   regress0/strings/unsound-0908.smt2
   regress0/strings/unsound-repl-rewrite.smt2
+  regress0/sygus/abduct-pponly.smt2
   regress0/sygus/assume-simple.sy
   regress0/sygus/array-grammar-select.sy
   regress0/sygus/ccp16.lus.sy
@@ -1626,6 +1631,7 @@ set(regress_0_tests
   regress0/sygus/ho-occ-synth-fun.sy
   regress0/sygus/incremental-modify-ex.sy
   regress0/sygus/infeasible-constraint.sy
+  regress0/sygus/interpolant-gn.smt2
   regress0/sygus/inv-different-var-order.sy
   regress0/sygus/issue3356-syg-inf-usort.smt2
   regress0/sygus/issue3624.sy
@@ -1851,7 +1857,9 @@ set(regress_1_tests
   regress1/abduction/abduction_1255.corecstrs.readable.smt2
   regress1/abduction/abduction_streq.readable.smt2
   regress1/abduction/abduction-no-pbe-sym-break.smt2
+  regress1/abduction/abduct-apply-uf.smt2
   regress1/abduction/abduct-dt.smt2
+  regress1/abduction/abduct-false-sc.smt2
   regress1/abduction/abd-real-const.smt2
   regress1/abduction/abd-simple-conj-4.smt2
   regress1/abduction/arjun-global-dec.smt2
@@ -2219,6 +2227,7 @@ set(regress_1_tests
   regress1/nl/issue9183-5.smt2
   regress1/nl/issue9420-ll.smt2
   regress1/nl/issue9480-pow-pow2.smt2
+  regress1/nl/issue9611-lrew.smt2
   regress1/nl/learned-rewrite-int-mod-range.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
@@ -2871,6 +2880,7 @@ set(regress_1_tests
   regress1/strings/proj-issue281.smt2
   regress1/strings/proj-issue331.smt2
   regress1/strings/proj-issue502-merge-type.smt2
+  regress1/strings/proj-issue585-cbqi-t-cons.smt2
   regress1/strings/prop-engine-order.smt2
   regress1/strings/query4674.smt2
   regress1/strings/query8485.smt2
