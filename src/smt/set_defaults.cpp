@@ -1190,6 +1190,11 @@ bool SetDefaults::incompatibleWithSygus(const Options& opts,
     reason << "deep restarts";
     return true;
   }
+  if (opts.quantifiers.globalNegate)
+  {
+    reason << "global negate";
+    return true;
+  }
   return false;
 }
 

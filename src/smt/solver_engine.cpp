@@ -1677,13 +1677,19 @@ void SolverEngine::getInstantiationTermVectors(
 bool SolverEngine::getSynthSolutions(std::map<Node, Node>& solMap)
 {
   finishInit();
-  return d_sygusSolver->getSynthSolutions(solMap);
+  bool ret = d_sygusSolver->getSynthSolutions(solMap);
+  // we return false if solMap is empty, that is, when we ask for a solution
+  // when none is available.
+  return ret && !solMap.empty();
 }
 
 bool SolverEngine::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
 {
   finishInit();
-  return d_sygusSolver->getSubsolverSynthSolutions(solMap);
+  bool ret = d_sygusSolver->getSubsolverSynthSolutions(solMap);
+  // we return false if solMap is empty, that is, when we ask for a solution
+  // when none is available.
+  return ret && !solMap.empty();
 }
 
 Node SolverEngine::getQuantifierElimination(Node q, bool doFull)
