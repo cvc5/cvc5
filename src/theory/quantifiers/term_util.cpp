@@ -241,7 +241,7 @@ bool TermUtil::containsUninterpretedConstant( Node n ) {
   else if (k == CONST_SEQUENCE)
   {
     const std::vector<Node>& charVec = n.getConst<Sequence>().getVec();
-    for (const Node& nc : n)
+    for (const Node& nc : charVec)
     {
       if (containsUninterpretedConstant(nc))
       {
