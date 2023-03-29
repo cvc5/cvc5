@@ -19,6 +19,7 @@
 
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
+#include "expr/sequence.h"
 #include "expr/skolem_manager.h"
 #include "options/strings_options.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
@@ -30,7 +31,6 @@
 #include "util/rational.h"
 #include "util/regexp.h"
 #include "util/string.h"
-#include "expr/sequence.h"
 
 using namespace cvc5::internal::kind;
 
@@ -219,7 +219,7 @@ Node mkSubstrChain(Node base,
 
 Node mkConcatForConstSequence(const Node& c)
 {
-  Assert (c.getKind()==CONST_SEQUENCE);
+  Assert(c.getKind() == CONST_SEQUENCE);
   const std::vector<Node>& charVec = c.getConst<Sequence>().getVec();
   std::vector<Node> vec;
   NodeManager* nm = NodeManager::currentNM();

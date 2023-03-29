@@ -23,8 +23,8 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/strings/theory_strings_utils.h"
 #include "theory/smt_engine_subsolver.h"
+#include "theory/strings/theory_strings_utils.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -358,7 +358,7 @@ Node InstStrategyMbqi::convertToQuery(
           if (itm == modelValue.end())
           {
             Node mval;
-            if (ck==CONST_SEQUENCE)
+            if (ck == CONST_SEQUENCE)
             {
               mval = strings::utils::mkConcatForConstSequence(cur);
             }
@@ -478,7 +478,7 @@ Node InstStrategyMbqi::convertFromModel(
           return Node::null();
         }
       }
-      else if (ck==CONST_SEQUENCE)
+      else if (ck == CONST_SEQUENCE)
       {
         // must convert to concat of sequence units
         Node cconv = strings::utils::mkConcatForConstSequence(cur);
