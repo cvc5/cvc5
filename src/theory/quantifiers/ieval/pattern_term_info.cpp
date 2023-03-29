@@ -45,7 +45,7 @@ bool PatTermInfo::notifyChild(State& s,
                               TermEvaluator* tec)
 {
   Assert(!val.isNull());
-  Assert(!expr::hasBoundVar(val));
+  Assert(!expr::hasFreeVar(val));
   if (!d_eq.get().isNull())
   {
     // already set
