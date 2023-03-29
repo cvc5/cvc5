@@ -278,7 +278,8 @@ Node LearnedRewrite::rewriteLearned(Node nr,
         if (std::find(learnedLits.begin(), learnedLits.end(), deq)
             != learnedLits.end())
         {
-          Trace("learned-rewrite-rr-debug") << "...deq " << deq << " is in learned lit set" << std::endl;
+          Trace("learned-rewrite-rr-debug")
+              << "...deq " << deq << " is in learned lit set" << std::endl;
           isNonZeroDen = true;
         }
       }
