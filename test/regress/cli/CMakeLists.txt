@@ -2229,6 +2229,7 @@ set(regress_1_tests
   regress1/nl/issue9420-ll.smt2
   regress1/nl/issue9480-pow-pow2.smt2
   regress1/nl/issue9611-lrew.smt2
+  regress1/nl/issue9621-lrew.smt2
   regress1/nl/learned-rewrite-int-mod-range.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
