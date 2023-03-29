@@ -132,10 +132,15 @@ void SynthConjecture::assign(Node q)
   QAttributes qa;
   QuantAttributes::computeQuantAttributes(q, qa);
 
+  Node sc = qa.d_sygusSideCondition;
+  // we check whether the conjecture is single invocation if we are marked
+  // with the sygus attribute and don't have a side condition
+  bool checkSingleInvocation = qa.d_sygus && sc.isNull();
+
   std::map<Node, Node> templates;
   std::map<Node, Node> templates_arg;
   // register with single invocation if applicable
-  if (qa.d_sygus)
+  if (checkSingleInvocation)
   {
     d_ceg_si->initialize(d_simp_quant);
     d_simp_quant = d_ceg_si->getSimplifiedConjecture();
@@ -165,9 +170,42 @@ void SynthConjecture::assign(Node q)
   Trace("cegqi") << "SynthConjecture : converted to embedding : "
                  << d_embed_quant << std::endl;
 
-  Node sc = qa.d_sygusSideCondition;
   if (!sc.isNull())
   {
+    Trace("cegqi-debug") << "Side condition is: " << sc << std::endl;
+    // Immediately check if unsat, use lambda returning true for functions
+    // to synthesize.
+    std::vector<Node> vars;
+    std::vector<Node> subs;
+    for (const Node& v : q[0])
+    {
+      vars.push_back(v);
+      TypeNode vtype = v.getType();
+      Assert(vtype.isBoolean()
+             || (vtype.isFunction() && vtype.getRangeType().isBoolean()));
+      Node s = nm->mkConst(true);
+      if (vtype.isFunction())
+      {
+        std::vector<TypeNode> atypes = vtype.getArgTypes();
+        std::vector<Node> lvars;
+        for (const TypeNode& tn : atypes)
+        {
+          lvars.push_back(nm->mkBoundVar(tn));
+        }
+        s = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, lvars), s);
+      }
+      subs.push_back(s);
+    }
+    Node ksc =
+        sc.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+    Result r = d_verify.verify(ksc);
+    // if infeasible, we are done
+    if (r.getStatus() == Result::UNSAT)
+    {
+      d_qim.lemma(d_quant.negate(),
+                  InferenceId::QUANTIFIERS_SYGUS_SC_INFEASIBLE);
+      return;
+    }
     // convert to deep embedding
     d_embedSideCondition = d_ceg_gc->convertToEmbedding(sc);
     Trace("cegqi") << "SynthConjecture : side condition : "
@@ -176,7 +214,7 @@ void SynthConjecture::assign(Node q)
 
   // we now finalize the single invocation module, based on the syntax
   // restrictions
-  if (qa.d_sygus)
+  if (checkSingleInvocation)
   {
     d_ceg_si->finishInit(d_ceg_gc->isSyntaxRestricted());
   }
