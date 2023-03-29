@@ -111,7 +111,7 @@ class CVC5_EXPORT SymbolManager
                 cvc5::Sort t);
   /**
    * Binds sorts of a list of mutually-recursive datatype declarations.
-   * 
+   *
    * If bindTesters is true, we bind the testers of this datatype to
    * `is-C` where `C` is the name of the constructor for that tester.
    */
