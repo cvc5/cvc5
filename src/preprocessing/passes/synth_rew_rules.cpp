@@ -309,9 +309,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       }
     }
     // add the constructor for the operator if it is not a variable
-    if (ct.getKind() != BOUND_VARIABLE)
+    if (!ct.isVar())
     {
-      Assert(!ct.isVar());
       // note that some terms like re.allchar have operators despite having
       // no children, we should take ct itself in these cases
       Node op =
