@@ -21,6 +21,7 @@
 #include "options/smt_options.h"
 #include "smt/env.h"
 #include "smt/set_defaults.h"
+#include "smt/sygus_solver.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_interpol.h"
@@ -82,6 +83,13 @@ void InterpolationSolver::checkInterpol(Node interpol,
   Assert(interpol.getType().isBoolean());
   Trace("check-interpol")
       << "SolverEngine::checkInterpol: get expanded assertions" << std::endl;
+  bool canTrustResult = SygusSolver::canTrustSynthesisResult(options());
+  if (!canTrustResult)
+  {
+    warning() << "Running check-interpolants is not guaranteed to pass with "
+                 "the current options."
+              << std::endl;
+  }
 
   Options subOptions;
   subOptions.copyValues(d_env.getOptions());
@@ -129,19 +137,25 @@ void InterpolationSolver::checkInterpol(Node interpol,
       if (j == 0)
       {
         serr << "SolverEngine::checkInterpol(): negated produced solution "
-                "cannot "
-                "be shown "
+                "cannot be shown "
                 "satisfiable with assertions, result was "
              << r;
       }
       else
       {
         serr << "SolverEngine::checkInterpol(): negated conjecture cannot be "
-                "shown "
-                "satisfiable with produced solution, result was "
+                "shown satisfiable with produced solution, result was "
              << r;
       }
-      InternalError() << serr.str();
+      bool hardFailure = canTrustResult && !r.isUnknown();
+      if (hardFailure)
+      {
+        InternalError() << serr.str();
+      }
+      else
+      {
+        warning() << serr.str() << std::endl;
+      }
     }
   }
 }

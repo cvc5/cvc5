@@ -174,8 +174,11 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
   d_activatedSkDefs = false;
   // check with the preregistrar
   d_prr->check();
-  while (!d_queue.empty()) {
-    TNode assertion = d_queue.front();
+  TNode assertion;
+  int32_t alevel;
+  while (!d_queue.empty())
+  {
+    std::tie(assertion, alevel) = d_queue.front();
     d_queue.pop();
     if (d_zll != nullptr)
     {
@@ -183,7 +186,6 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
       {
         break;
       }
-      int32_t alevel = getDecisionLevel(assertion);
       if (!d_zll->notifyAsserted(assertion, alevel))
       {
         d_stopSearch = true;
@@ -299,9 +301,8 @@ void TheoryProxy::enqueueTheoryLiteral(const SatLiteral& l) {
   Node literalNode = d_cnfStream->getNode(l);
   Trace("prop") << "enqueueing theory literal " << l << " " << literalNode << std::endl;
   Assert(!literalNode.isNull());
-  d_queue.push(literalNode);
   // Decision level = SAT context level - 1 due to global push().
-  d_var_decision_levels[literalNode] = context()->getLevel() - 1;
+  d_queue.push(std::make_pair(literalNode, context()->getLevel() - 1));
 }
 
 SatLiteral TheoryProxy::getNextTheoryDecisionRequest() {
@@ -397,12 +398,6 @@ bool TheoryProxy::isDecisionEngineDone() {
 
 SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
   return SAT_VALUE_UNKNOWN;
-}
-
-int32_t TheoryProxy::getDecisionLevel(TNode node) const
-{
-  Assert(d_var_decision_levels.find(node) != d_var_decision_levels.end());
-  return d_var_decision_levels.at(node);
 }
 
 CnfStream* TheoryProxy::getCnfStream() { return d_cnfStream; }

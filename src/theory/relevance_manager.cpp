@@ -252,6 +252,8 @@ bool RelevanceManager::updateJustifyLastChild(const RlvPair& cur,
         return false;
       }
     }
+    // add current child to list first before (possibly) computing result
+    childrenJustify.push_back(lastChildJustify);
     if (index + 1 == nchildren)
     {
       // finished all children, compute the overall value
@@ -269,7 +271,6 @@ bool RelevanceManager::updateJustifyLastChild(const RlvPair& cur,
     else
     {
       // continue
-      childrenJustify.push_back(lastChildJustify);
       return true;
     }
   }
@@ -565,11 +566,12 @@ void RelevanceManager::notifyCandidateModel(TheoryModel* m)
   }
 }
 
-void RelevanceManager::getDifficultyMap(std::map<Node, Node>& dmap)
+void RelevanceManager::getDifficultyMap(std::map<Node, Node>& dmap,
+                                        bool includeLemmas)
 {
   if (d_dman != nullptr)
   {
-    d_dman->getDifficultyMap(dmap);
+    d_dman->getDifficultyMap(dmap, includeLemmas);
   }
 }
 

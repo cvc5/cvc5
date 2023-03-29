@@ -61,7 +61,7 @@ if(NOT CoCoA_FOUND_SYSTEM)
     PATCH_COMMAND patch -p1 -d <SOURCE_DIR>
         -i ${CMAKE_CURRENT_LIST_DIR}/deps-utils/CoCoALib-0.99800-trace.patch
     BUILD_IN_SOURCE YES
-    CONFIGURE_COMMAND ./configure --prefix=<INSTALL_DIR>
+    CONFIGURE_COMMAND ${SHELL} ./configure --prefix=<INSTALL_DIR>
     BUILD_COMMAND ${make_cmd} library
   )
   # Remove install directory before make install. CoCoA will complain otherwise

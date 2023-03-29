@@ -13,10 +13,14 @@
  * The cvc5 C++ API.
  */
 
-#include "cvc5_export.h"
+#include <cvc5/cvc5_export.h>
 
 #ifndef CVC5__API__CVC5_H
 #define CVC5__API__CVC5_H
+
+#include <cvc5/cvc5_kind.h>
+#include <cvc5/cvc5_sort_kind.h>
+#include <cvc5/cvc5_types.h>
 
 #include <functional>
 #include <map>
@@ -29,10 +33,6 @@
 #include <unordered_set>
 #include <variant>
 #include <vector>
-
-#include "api/cpp/cvc5_kind.h"
-#include "api/cpp/cvc5_sort_kind.h"
-#include "api/cpp/cvc5_types.h"
 
 namespace cvc5 {
 
@@ -134,7 +134,8 @@ class CVC5_EXPORT CVC5ApiRecoverableException : public CVC5ApiException
  * Exception for unsupported command arguments.
  * If thrown, API objects can still be used.
  */
-class CVC5_EXPORT CVC5ApiUnsupportedException : public CVC5ApiRecoverableException
+class CVC5_EXPORT CVC5ApiUnsupportedException
+    : public CVC5ApiRecoverableException
 {
  public:
   /**
@@ -2983,7 +2984,9 @@ class CVC5_EXPORT DriverOptions
 struct CVC5_EXPORT OptionInfo
 {
   /** Has no value information. */
-  struct VoidInfo {};
+  struct VoidInfo
+  {
+  };
   /** Basic information for option values. ``T`` can be ``bool`` or
    * ``std::string``. */
   template <typename T>

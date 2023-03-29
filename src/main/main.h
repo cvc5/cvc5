@@ -13,10 +13,11 @@
  * Header for main cvc5 driver.
  */
 
+#include <cvc5/cvc5.h>
+
 #include <memory>
 #include <string>
 
-#include "api/cpp/cvc5.h"
 #include "base/cvc5config.h"
 
 #ifndef CVC5__MAIN__MAIN_H

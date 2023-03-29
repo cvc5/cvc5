@@ -23,10 +23,10 @@
 #ifndef CVC5__CONFIGURATION_H
 #define CVC5__CONFIGURATION_H
 
+#include <cvc5/cvc5_export.h>
+
 #include <string>
 #include <vector>
-
-#include "cvc5_export.h"
 
 namespace cvc5::internal {
 

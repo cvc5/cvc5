@@ -167,6 +167,13 @@ class SygusSolver : protected EnvObj
    */
   bool getSubsolverSynthSolutions(std::map<Node, Node>& solMap);
 
+  /**
+   * Returns true if we can trust the results of synthesis solutions for
+   * solvers that use the given options. This is false e.g. if we are using an
+   * approximate checking algorithm for solution correctness.
+   */
+  static bool canTrustSynthesisResult(const Options& opts);
+
  private:
   /**
    * Check that a solution to a synthesis conjecture is indeed a solution.

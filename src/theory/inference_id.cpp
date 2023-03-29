@@ -240,6 +240,8 @@ const char* toString(InferenceId i)
     case InferenceId::QUANTIFIERS_INST_MBQI: return "QUANTIFIERS_INST_MBQI";
     case InferenceId::QUANTIFIERS_INST_ENUM: return "QUANTIFIERS_INST_ENUM";
     case InferenceId::QUANTIFIERS_INST_POOL: return "QUANTIFIERS_INST_POOL";
+    case InferenceId::QUANTIFIERS_INST_POOL_TUPLE:
+      return "QUANTIFIERS_INST_POOL_TUPLE";
     case InferenceId::QUANTIFIERS_BINT_PROXY: return "QUANTIFIERS_BINT_PROXY";
     case InferenceId::QUANTIFIERS_BINT_MIN_NG: return "QUANTIFIERS_BINT_MIN_NG";
     case InferenceId::QUANTIFIERS_CEGQI_CEX: return "QUANTIFIERS_CEGQI_CEX";
@@ -306,6 +308,8 @@ const char* toString(InferenceId i)
       return "QUANTIFIERS_SYGUS_PBE_CONSTRUCT_SOL";
     case InferenceId::QUANTIFIERS_SYGUS_COMPLETE_ENUM:
       return "QUANTIFIERS_SYGUS_COMPLETE_ENUM";
+    case InferenceId::QUANTIFIERS_SYGUS_SC_INFEASIBLE:
+      return "QUANTIFIERS_SYGUS_SC_INFEASIBLE";
     case InferenceId::QUANTIFIERS_DSPLIT: return "QUANTIFIERS_DSPLIT";
     case InferenceId::QUANTIFIERS_CONJ_GEN_SPLIT:
       return "QUANTIFIERS_CONJ_GEN_SPLIT";

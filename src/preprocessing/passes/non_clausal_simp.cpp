@@ -85,7 +85,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     Assert(rewrite((*assertionsToPreprocess)[i])
-           == (*assertionsToPreprocess)[i]);
+           == (*assertionsToPreprocess)[i]) << (*assertionsToPreprocess)[i];
     // Don't reprocess substitutions
     if (assertionsToPreprocess->isSubstsIndex(i))
     {

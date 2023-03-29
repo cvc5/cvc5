@@ -505,6 +505,13 @@ endif()
 #-----------------------------------------------------------------------------#
 # Add subdirectories
 
+# Include public headers
+include_directories(include)
+include_directories(${CMAKE_BINARY_DIR}/include)
+
+# Install public headers
+install(DIRECTORY include/cvc5 DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
 add_subdirectory(src)
 
 if(BUILD_BINDINGS_PYTHON AND NOT BUILD_SHARED_LIBS)
