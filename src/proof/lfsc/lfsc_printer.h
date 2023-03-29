@@ -198,9 +198,6 @@ class LfscPrinter : protected EnvObj
   std::string d_pletTrustChildPrefix;
   /** for debugging the open rules, the set of PfRule we have warned about */
   std::unordered_set<PfRule, PfRuleHashFunction> d_trustWarned;
-  /** for debugging the open rules, the set of PfRule we have warned about */
-  std::unordered_set<PfRule, PfRuleHashFunction> d_useWarned;
-  std::unordered_set<LfscRule> d_useLfscWarned;
   /** Pointer to the rewrite database */
   rewriter::RewriteDb* d_rdb;
   /**

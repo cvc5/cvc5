@@ -72,8 +72,6 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
 
   // clear the rules we have warned about
   d_trustWarned.clear();
-  d_useWarned.clear();
-  d_useLfscWarned.clear();
 
   // [1] convert assertions to internal and set up assumption map
   Trace("lfsc-print-debug") << "; print declarations" << std::endl;
@@ -216,14 +214,6 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   for (PfRule r : d_trustWarned)
   {
     out << "; WARNING: adding trust step for " << r << std::endl;
-  }
-  for (PfRule r : d_useWarned)
-  {
-    out << "; USE: rule " << r << std::endl;
-  }
-  for (LfscRule r : d_useLfscWarned)
-  {
-    out << "; USE: LFSC rule " << r << std::endl;
   }
 
   // [6] print the DSL rewrite rule declarations
@@ -378,19 +368,6 @@ void LfscPrinter::printTypeDefinition(
     }
     os << " sort" << tcparen.str() << ")" << std::endl;
   }
-  else if (tn.isUninterpretedSortConstructor())
-  {
-    os << "(declare ";
-    printType(os, tn);
-    std::stringstream tcparen;
-    uint64_t arity = tn.getUninterpretedSortConstructorArity();
-    for (uint64_t i = 0; i < arity; i++)
-    {
-      os << " (! s" << i << " sort";
-      tcparen << ")";
-    }
-    os << " sort)" << tcparen.str() << std::endl;
-  }
   else if (tn.isDatatype())
   {
     if (tn.getKind() == PARAMETRIC_DATATYPE)
@@ -473,13 +450,6 @@ void LfscPrinter::printProofLetify(
       pletMap[p] = pid;
       // printPLet opens two parentheses
       cparen = cparen + 2;
-      // debugging
-      /*
-      if (Trace.isOn("lfsc-print-debug"))
-      {
-        out << "; proves " << p->getResult();
-      }
-      */
     }
     out->printEndLine();
   }
@@ -628,7 +598,6 @@ void LfscPrinter::printProofInternal(
             visit.insert(visit.end(), args.begin(), args.end());
             // print the rule name
             out->printOpenRule(cur);
-            d_useWarned.insert(r);
           }
           else
           {
@@ -876,7 +845,6 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::LFSC_RULE:
     {
       LfscRule lr = getLfscRule(args[0]);
-      d_useLfscWarned.insert(lr);
       // lambda should be processed elsewhere
       Assert(lr != LfscRule::LAMBDA);
       // Note that `args` has 2 builtin arguments, thus the first real argument
@@ -1159,7 +1127,6 @@ void LfscPrinter::printDslRule(std::ostream& out,
   size_t termCount = 0;
   size_t scCount = 0;
   // print conditions, then conclusion
-  // TODO: incorporate other side conditions
   for (size_t i = 0, nconds = conds.size(); i <= nconds; i++)
   {
     bool isConclusion = i == nconds;
