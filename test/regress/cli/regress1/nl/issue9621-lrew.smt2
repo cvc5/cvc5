@@ -1,3 +1,4 @@
+; COMMAND-LINE: --learned-rewrite
 ; EXPECT: sat
 (set-logic QF_UFNIA)
 (declare-fun pow2 (Int) Int)
