@@ -237,6 +237,9 @@ bool TermUtil::containsUninterpretedConstant( Node n ) {
     ret = containsUninterpretedConstant(
         n.getConst<FunctionArrayConst>().getArrayValue());
   }
+  else if (k == CONST_SEQUENCE)
+  {
+  }
   else
   {
     for (const Node& nc : n)
