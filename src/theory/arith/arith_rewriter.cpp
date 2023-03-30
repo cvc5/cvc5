@@ -313,17 +313,23 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
             if (exp <= r)
             {
               unsigned num = exp.getNumerator().toUnsignedInt();
+              Node ret;
               if( num==1 ){
-                return RewriteResponse(REWRITE_AGAIN, base);
+                ret = base;
               }else{
                 NodeBuilder nb(kind::MULT);
                 for(unsigned i=0; i < num; ++i){
                   nb << base;
                 }
                 Assert(nb.getNumChildren() > 0);
-                Node mult = nb;
-                return RewriteResponse(REWRITE_AGAIN, mult);
+                ret = nb;
               }
+              // ensure type is preserved
+              if (t.getType().isReal())
+              {
+                ret = rewriter::ensureReal(ret);
+              }
+              return RewriteResponse(REWRITE_AGAIN, ret);
             }
           }
         }
@@ -332,8 +338,13 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
                         == 2
                  && t[1].getType().isInteger())
         {
-          return RewriteResponse(
-              REWRITE_DONE, NodeManager::currentNM()->mkNode(kind::POW2, t[1]));
+          Node ret = NodeManager::currentNM()->mkNode(kind::POW2, t[1]);
+          // ensure type is preserved
+          if (t.getType().isReal())
+          {
+            ret = rewriter::ensureReal(ret);
+          }
+          return RewriteResponse(REWRITE_AGAIN, ret);
         }
 
         // Todo improve the exception thrown
