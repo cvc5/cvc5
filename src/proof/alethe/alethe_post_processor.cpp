@@ -1831,7 +1831,6 @@ bool AletheProofPostprocessCallback::maybeReplacePremiseProof(Node premise,
 {
   std::shared_ptr<ProofNode> premisePf = cdp->getProofFor(premise);
   Node premisePfConclusion = premisePf->getArguments()[2];
-  AletheRule premisePfRule = getAletheRule(premisePf->getArguments()[0]);
   if (premisePfConclusion.getNumChildren() <= 2
       || premisePfConclusion[0] != d_cl)
   {
@@ -1839,10 +1838,13 @@ bool AletheProofPostprocessCallback::maybeReplacePremiseProof(Node premise,
   }
   NodeManager* nm = NodeManager::currentNM();
   Trace("alethe-proof") << "\n";
+  CVC5_UNUSED AletheRule premisePfRule =
+      getAletheRule(premisePf->getArguments()[0]);
+  CVC5_UNUSED AletheRule premiseChildPfRule =
+      getAletheRule(premisePf->getChildren()[0]->getArguments()[0]);
   Assert((premisePfRule == AletheRule::CONTRACTION
           || premisePfRule == AletheRule::REORDERING)
-         && getAletheRule(premisePf->getChildren()[0]->getArguments()[0])
-                == AletheRule::OR);
+         && premiseChildPfRule == AletheRule::OR);
   // get great grand child
   std::shared_ptr<ProofNode> premiseChildPf =
       premisePf->getChildren()[0]->getChildren()[0];
