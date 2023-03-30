@@ -515,14 +515,14 @@ void TheorySetsPrivate::checkUpwardsClosure()
                   << std::endl;
     for (const std::pair<const Node, std::map<Node, Node> >& it : itb.second)
     {
-      Node r1 = it.first;
+      Node r1 = d_state.getRepresentative(it.first);
       // see if there are members in first argument r1
       const std::map<Node, Node>& r1mem = d_state.getMembers(r1);
       if (!r1mem.empty() || k == kind::SET_UNION)
       {
         for (const std::pair<const Node, Node>& it2 : it.second)
         {
-          Node r2 = it2.first;
+          Node r2 = d_state.getRepresentative(it2.first);
           Node term = it2.second;
           // see if there are members in second argument
           const std::map<Node, Node>& r2mem = d_state.getMembers(r2);
