@@ -339,6 +339,64 @@ void SymbolManager::bindType(const std::string& name, cvc5::Sort t)
   return d_implementation->getSymbolTable().bindType(name, t);
 }
 
+bool SymbolManager::bindMutualDatatypeTypes(
+    const std::vector<cvc5::Sort>& datatypes, bool bindTesters)
+{
+  for (size_t i = 0, ntypes = datatypes.size(); i < ntypes; ++i)
+  {
+    Sort t = datatypes[i];
+    const Datatype& dt = t.getDatatype();
+    const std::string& name = dt.getName();
+    Trace("parser-idt") << "define " << name << " as " << t << std::endl;
+    if (dt.isParametric())
+    {
+      std::vector<Sort> paramTypes = dt.getParameters();
+      bindType(name, paramTypes, t);
+    }
+    else
+    {
+      bindType(name, t);
+    }
+    for (size_t j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
+    {
+      const DatatypeConstructor& ctor = dt[j];
+      Term constructor = ctor.getTerm();
+      Trace("parser-idt") << "+ define " << constructor << std::endl;
+      std::string constructorName = ctor.getName();
+      // always do overloading
+      if (!bind(constructorName, constructor, true))
+      {
+        return false;
+      }
+      if (bindTesters)
+      {
+        std::stringstream testerName;
+        testerName << "is-" << constructorName;
+        Term tester = ctor.getTesterTerm();
+        Trace("parser-idt") << "+ define " << testerName.str() << std::endl;
+        // always do overloading
+        if (!bind(testerName.str(), tester, true))
+        {
+          return false;
+        }
+      }
+      for (size_t k = 0, nargs = ctor.getNumSelectors(); k < nargs; k++)
+      {
+        const DatatypeSelector& sel = ctor[k];
+        Term selector = sel.getTerm();
+        Trace("parser-idt") << "+++ define " << selector << std::endl;
+        std::string selectorName = sel.getName();
+        // always do overloading
+        if (!bind(selectorName, selector, true))
+        {
+          return false;
+        }
+      }
+    }
+  }
+  return true;
+}
+
 void SymbolManager::bindType(const std::string& name,
                              const std::vector<cvc5::Sort>& params,
                              cvc5::Sort t)
