@@ -1114,11 +1114,11 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypesDef(
     }
     tok = d_lex.nextToken();
   }
-  d_lex.reinsertToken(tok);
   if (dts.size() != dnames.size())
   {
-    d_lex.parseError("Wrong number of datatypes provided.");
+    d_lex.unexpectedTokenError(tok, "Wrong number of datatypes provided.");
   }
+  d_lex.reinsertToken(tok);
   d_state.popScope();
   return dts;
 }
@@ -1217,7 +1217,10 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
         // (_ char <hex_literal>) expects a hex literal
         symbols.push_back(d_lex.tokenStr());
         break;
-      default: break;
+      default:
+        d_lex.unexpectedTokenError(
+            tok, "Expected index while parsing indexed identifier");
+        break;
     }
     tok = d_lex.nextToken();
   }
