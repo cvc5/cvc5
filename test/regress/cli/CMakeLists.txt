@@ -999,6 +999,7 @@ set(regress_0_tests
   regress0/parser/issue8767-exception.smt2
   regress0/parser/issue9140-check-to-fp-args.smt2
   regress0/parser/issue9350-ishell-scope-reset.smt2
+  regress0/parser/issue9568-dt-multi-line.smt2
   regress0/parser/issue9623-indexed-err.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
@@ -1220,6 +1221,7 @@ set(regress_0_tests
   regress0/quantifiers/issue8609-subtype-assert.smt2
   regress0/quantifiers/issue8821-enum-interleave-types.smt2
   regress0/quantifiers/issue8923-qe-push-pop.smt2
+  regress0/quantifiers/issue9602-rewrite-pow-type.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
@@ -2149,6 +2151,7 @@ set(regress_1_tests
   regress1/ho/soundness_fmf_SYO362^5-delta.p
   regress1/ho/store-ax-min.p
   regress1/hole6.cvc.smt2
+  regress1/interpolant-unk-570.smt2
   regress1/ite5.smt2
   regress1/issue3970-nl-ext-purify.smt2
   regress1/issue3990-sort-inference.smt2
@@ -2229,6 +2232,7 @@ set(regress_1_tests
   regress1/nl/issue9420-ll.smt2
   regress1/nl/issue9480-pow-pow2.smt2
   regress1/nl/issue9611-lrew.smt2
+  regress1/nl/issue9621-lrew.smt2
   regress1/nl/learned-rewrite-int-mod-range.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
@@ -2287,7 +2291,9 @@ set(regress_1_tests
   regress1/proj-issue175.smt2
   regress1/proj-issue406-diff-unsat-core.smt2
   regress1/proj-issue476-theoryOf-no-uf.smt2
+  regress1/proj-issue539-rew-bv2nat.smt2
   regress1/proj-issue542.smt2
+  regress1/proj-issue557-rew-bv2nat.smt2
   regress1/proof00.smt2
   regress1/proofs/add_two_base.smt2
   regress1/proofs/base-lfsc-treesize.smt2
@@ -2495,6 +2501,7 @@ set(regress_1_tests
   regress1/quantifiers/proj-issue155.smt2
   regress1/quantifiers/proj-issue295.smt2
   regress1/quantifiers/proj-issue532-set-comp-fv-trigger.smt2
+  regress1/quantifiers/proj-issue546-ee-rep.smt2
   regress1/quantifiers/proj-issue564.smt2
   regress1/quantifiers/proj-issue597.smt2
   regress1/quantifiers/proj-issue599.smt2
@@ -3080,6 +3087,10 @@ set(regress_1_tests
   regress1/sygus/proj-issue185.smt2
   regress1/sygus/proj-issue222-any-const.sy
   regress1/sygus/proj-issue264.smt2
+  regress1/sygus/proj-issue541.smt2
+  regress1/sygus/proj-issue548-srr.smt2
+  regress1/sygus/proj-issue549-srr.smt2
+  regress1/sygus/proj-issue553-srr.smt2
   regress1/sygus/pLTL_5_trace.sy
   regress1/sygus/qe.sy
   regress1/sygus/qf_abv.smt2
