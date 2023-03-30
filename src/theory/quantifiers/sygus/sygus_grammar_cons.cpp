@@ -1238,9 +1238,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         sdts[iat].d_sdt.addConstructor(op, ssop.str(), opCArgs, 0);
       }
     }
-    // in the rare case that we have no arithmetic terms and are using
-    // polynomial grammar, we use the "any constant" constructor below instead.
-    if (polynomialGrammar && !sumChildren.empty())
+    if (polynomialGrammar)
     {
       // add the constant
       Node coeff = nm->mkBoundVar(types[i]);
@@ -1248,8 +1246,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       sumChildren.push_back(coeff);
       cargsAnyTerm.push_back(unresAnyConst);
       // make the sygus operator lambda X. c1*t1 + ... + cn*tn + c
-      Assert(sumChildren.size() > 1);
-      Node ops = nm->mkNode(ADD, sumChildren);
+      Node ops = sumChildren.size()==1 ? sumChildren[0] : nm->mkNode(ADD, sumChildren);
       Node op = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, lambdaVars), ops);
       Trace("sygus-grammar-def") << "any term operator is " << op << std::endl;
       // make the any term datatype, add to back
