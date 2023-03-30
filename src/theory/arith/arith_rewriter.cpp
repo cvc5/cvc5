@@ -188,16 +188,6 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   rewriter::addToSum(sum, left, negate);
   rewriter::addToSum(sum, right, !negate);
 
-  if (kind != Kind::EQUAL)
-  {
-    // see if we should convert the inequality to a bitvector inequality
-    RewriteResponse rineqBv = rewriteIneqToBv(kind, sum, atom);
-    if (rineqBv.d_node != atom)
-    {
-      return rineqBv;
-    }
-  }
-
   // Now we have (sum <kind> 0)
   if (rewriter::isIntegral(sum))
   {
@@ -323,17 +313,23 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
             if (exp <= r)
             {
               unsigned num = exp.getNumerator().toUnsignedInt();
+              Node ret;
               if( num==1 ){
-                return RewriteResponse(REWRITE_AGAIN, base);
+                ret = base;
               }else{
                 NodeBuilder nb(kind::MULT);
                 for(unsigned i=0; i < num; ++i){
                   nb << base;
                 }
                 Assert(nb.getNumChildren() > 0);
-                Node mult = nb;
-                return RewriteResponse(REWRITE_AGAIN, mult);
+                ret = nb;
               }
+              // ensure type is preserved
+              if (t.getType().isReal())
+              {
+                ret = rewriter::ensureReal(ret);
+              }
+              return RewriteResponse(REWRITE_AGAIN, ret);
             }
           }
         }
@@ -342,8 +338,13 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
                         == 2
                  && t[1].getType().isInteger())
         {
-          return RewriteResponse(
-              REWRITE_DONE, NodeManager::currentNM()->mkNode(kind::POW2, t[1]));
+          Node ret = NodeManager::currentNM()->mkNode(kind::POW2, t[1]);
+          // ensure type is preserved
+          if (t.getType().isReal())
+          {
+            ret = rewriter::ensureReal(ret);
+          }
+          return RewriteResponse(REWRITE_AGAIN, ret);
         }
 
         // Todo improve the exception thrown
@@ -1134,9 +1135,23 @@ RewriteResponse ArithRewriter::returnRewrite(TNode t, Node ret, Rewrite r)
   return RewriteResponse(REWRITE_AGAIN_FULL, ret);
 }
 
-RewriteResponse ArithRewriter::rewriteIneqToBv(Kind kind,
-                                               const rewriter::Sum& sum,
-                                               const Node& ineq)
+Node ArithRewriter::rewriteIneqToBv(const Node& ineq)
+{
+  Assert(ineq.getKind() == kind::GEQ);
+
+  Node left = rewriter::removeToReal(ineq[0]);
+  Node right = rewriter::removeToReal(ineq[1]);
+
+  rewriter::Sum sum;
+  rewriter::addToSum(sum, left, false);
+  rewriter::addToSum(sum, right, true);
+
+  return rewriteIneqToBv(kind::GEQ, sum, ineq);
+}
+
+Node ArithRewriter::rewriteIneqToBv(Kind kind,
+                                    const rewriter::Sum& sum,
+                                    const Node& ineq)
 {
   bool convertible = true;
   // the (single) bv2nat term in the sum
@@ -1216,9 +1231,9 @@ RewriteResponse ArithRewriter::rewriteIneqToBv(Kind kind,
     //      (ite (>= N 2^w) false (ite (< N 0) true (bvuge x ((_ int2bv w) N))
     // where N is a constant. Note that ((_ int2bv w) N) will subsequently
     // be rewritten to the appropriate bitvector constant.
-    return returnRewrite(ineq, ret, Rewrite::INEQ_BV_TO_NAT_ELIM);
+    return ret;
   }
-  return RewriteResponse(REWRITE_DONE, ineq);
+  return ineq;
 }
 
 }  // namespace arith
