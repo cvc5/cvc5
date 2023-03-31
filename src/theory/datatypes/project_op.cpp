@@ -23,9 +23,20 @@ namespace cvc5::internal {
 
 std::ostream& operator<<(std::ostream& out, const ProjectOp& op)
 {
-  for (const uint32_t& index : op.getIndices())
+  // should only be used for debugging, not in the smt2 printer.
+  const std::vector<uint32_t>& indices = op.getIndices();
+  if (indices.empty())
   {
-    out << " " << index;
+    out << "ProjectOp";
+  }
+  else
+  {
+    out << "(ProjectOp ";
+    for (const uint32_t& index : op.getIndices())
+    {
+      out << " " << index;
+    }
+    out << ")";
   }
   return out;
 }

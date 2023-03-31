@@ -336,16 +336,13 @@ class CVC5_EXPORT ParserState
   Sort mkUnresolvedType(const std::string& name, size_t arity);
 
   /**
-   * Creates and binds sorts of a list of mutually-recursive datatype
-   * declarations.
+   * Creates sorts of a list of mutually-recursive datatype declarations.
    *
-   * For each symbol defined by the datatype, if a symbol with name already
-   * exists, then if doOverload is true, we create overloaded operators. Else,
-   * if doOverload is false, the existing expression is shadowed by the new
-   * expression.
+   * For each symbol defined by the datatype, it checks whether the binding
+   * will succeed. However, it does not actually implement the binding yet,
+   * as this is only done when the command is executed.
    */
-  std::vector<Sort> bindMutualDatatypeTypes(
-      std::vector<DatatypeDecl>& datatypes, bool doOverload = false);
+  std::vector<Sort> mkMutualDatatypeTypes(std::vector<DatatypeDecl>& datatypes);
 
   /** make flat function type
    *
