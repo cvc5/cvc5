@@ -83,20 +83,21 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     {
       cur = visit.back();
       visit.pop_back();
+      // we recurse on this node if it is not a quantified formula
+      if (cur.isClosure())
+      {
+        visited[cur] = false;
+        continue;
+      }
       it = visited.find(cur);
       if (it == visited.end())
       {
         Trace("srs-input-debug") << "...preprocess " << cur << std::endl;
         visited[cur] = false;
-        bool isQuant = cur.isClosure();
-        // we recurse on this node if it is not a quantified formula
-        if (!isQuant)
+        visit.push_back(cur);
+        for (const Node& cc : cur)
         {
-          visit.push_back(cur);
-          for (const Node& cc : cur)
-          {
-            visit.push_back(cc);
-          }
+          visit.push_back(cc);
         }
       }
       else if (!it->second)
@@ -308,9 +309,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       }
     }
     // add the constructor for the operator if it is not a variable
-    if (ct.getKind() != BOUND_VARIABLE)
+    if (!ct.isVar())
     {
-      Assert(!ct.isVar());
       // note that some terms like re.allchar have operators despite having
       // no children, we should take ct itself in these cases
       Node op =
@@ -485,6 +485,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   subOptions.writeQuantifiers().sygus = true;
   subOptions.writeQuantifiers().sygusRewSynthInput = false;
   subOptions.writeQuantifiers().sygusRewSynth = true;
+  subOptions.writeQuantifiers().sygusInst = false;
   // we should not use the extended rewriter, since we are interested
   // in rewrites that are not in the main rewriter
   if (!subOptions.datatypes.sygusRewriterWasSetByUser)
