@@ -1513,25 +1513,32 @@ void CegInstantiator::markSolved(Node n, bool solved)
   }
 }
 
-void CegInstantiator::collectCeAtoms( Node n ) {
+void CegInstantiator::collectCeAtoms(Node n)
+{
   std::unordered_set<TNode> visited;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
-    if (visited.find(cur) == visited.end()) {
+    if (visited.find(cur) == visited.end())
+    {
       visited.insert(cur);
-      if (cur.getKind()==FORALL)
+      if (cur.getKind() == FORALL)
       {
         d_is_nested_quant = true;
       }
-      if( TermUtil::isBoolConnectiveTerm( cur ) ){
+      if (TermUtil::isBoolConnectiveTerm(cur))
+      {
         visit.insert(visit.end(), cur.begin(), cur.end());
-      }else if( std::find( d_ce_atoms.begin(), d_ce_atoms.end(), cur )==d_ce_atoms.end() ){
+      }
+      else if (std::find(d_ce_atoms.begin(), d_ce_atoms.end(), cur)
+               == d_ce_atoms.end())
+      {
         Trace("cegqi-ce-atoms") << "CE atoms : " << cur << std::endl;
-        d_ce_atoms.push_back( cur );
+        d_ce_atoms.push_back(cur);
       }
     }
   } while (!visit.empty());
