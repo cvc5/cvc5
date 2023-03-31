@@ -84,7 +84,7 @@ def gen_mk_node(defns, expr):
         return expr.name
     elif isinstance(expr, App):
         args = ",".join(gen_mk_node(defns, child) for child in expr.children)
-        if (expr.op == Op.EXTRACT or expr.op == Op.REPEAT):
+        if (expr.op == Op.EXTRACT or expr.op == Op.REPEAT or expr.op == Op.ZERO_EXTEND or expr.op == Op.SIGN_EXTEND or expr.op == Op.ROTATE_LEFT or expr.op == Op.ROTATE_RIGHT):
           args = f'nm->mkConst(GenericOp({gen_kind(expr.op)})),' + args
           return f'nm->mkNode(APPLY_INDEXED_SYMBOLIC, {{ {args} }})'
         else:

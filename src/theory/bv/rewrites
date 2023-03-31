@@ -855,31 +855,31 @@
   (bvmul x (bvshl (bv m (bvsize x)) (bv 1 (bvsize x)))))
 
 ; Currently bugged due to not being able to match n.
-;(define-rule bv-mult-slt-mult-1
-;  ((x ?BitVec) (t ?BitVec) (a ?BitVec) (n Int) (m Int))
-;  (def
-;    (tn (bvsize t))
-;    (an (bvsize a))
-;  )
-;  (bvslt
-;    (bvmul (sign_extend n (bvadd x t)) (sign_extend m a))
-;    (bvmul (sign_extend n x) (sign_extend m a))
-;  )
-;  (and
-;    (not (= t (bv 0 tn)))
-;    (not (= a (bv 0 an)))
-;    (= (bvslt (bvadd x t) x) (bvsgt a (bv 0 an)))))
-;(define-rule bv-mult-slt-mult-2
-;  ((x ?BitVec) (t ?BitVec) (a ?BitVec) (n Int) (m Int))
-;  (def
-;    (tn (bvsize t))
-;    (an (bvsize a))
-;  )
-;  (bvslt
-;    (bvmul (zero_extend n (bvadd x t)) (sign_extend m a))
-;    (bvmul (zero_extend n x) (sign_extend m a))
-;  )
-;  (and
-;    (not (= t (bv 0 tn)))
-;    (not (= a (bv 0 an)))
-;    (= (bvult (bvadd x t) x) (bvsgt a (bv 0 an)))))
+(define-rule bv-mult-slt-mult-1
+  ((x ?BitVec) (t ?BitVec) (a ?BitVec) (n Int) (m Int))
+  (def
+    (tn (bvsize t))
+    (an (bvsize a))
+  )
+  (bvslt
+    (bvmul (sign_extend n (bvadd x t)) (sign_extend m a))
+    (bvmul (sign_extend n x) (sign_extend m a))
+  )
+  (and
+    (not (= t (bv 0 tn)))
+    (not (= a (bv 0 an)))
+    (= (bvslt (bvadd x t) x) (bvsgt a (bv 0 an)))))
+(define-rule bv-mult-slt-mult-2
+  ((x ?BitVec) (t ?BitVec) (a ?BitVec) (n Int) (m Int))
+  (def
+    (tn (bvsize t))
+    (an (bvsize a))
+  )
+  (bvslt
+    (bvmul (zero_extend n (bvadd x t)) (sign_extend m a))
+    (bvmul (zero_extend n x) (sign_extend m a))
+  )
+  (and
+    (not (= t (bv 0 tn)))
+    (not (= a (bv 0 an)))
+    (= (bvult (bvadd x t) x) (bvsgt a (bv 0 an)))))
