@@ -1246,8 +1246,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       sumChildren.push_back(coeff);
       cargsAnyTerm.push_back(unresAnyConst);
       // make the sygus operator lambda X. c1*t1 + ... + cn*tn + c
-      Node ops = sumChildren.size() == 1 ? sumChildren[0]
-                                         : nm->mkNode(ADD, sumChildren);
+      Assert(sumChildren.size() > 1);
+      Node ops = nm->mkNode(ADD, sumChildren);
       Node op = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, lambdaVars), ops);
       Trace("sygus-grammar-def") << "any term operator is " << op << std::endl;
       // make the any term datatype, add to back
