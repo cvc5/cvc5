@@ -1113,7 +1113,7 @@ datatypesDef[bool isCo,
     }
     PARSER_STATE->popScope();
     cmd->reset(new DatatypeDeclarationCommand(
-        PARSER_STATE->bindMutualDatatypeTypes(dts, true)));
+        PARSER_STATE->mkMutualDatatypeTypes(dts)));
   }
   ;
 
