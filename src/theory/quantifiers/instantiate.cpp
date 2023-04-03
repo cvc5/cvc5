@@ -128,6 +128,7 @@ bool Instantiate::addInstantiationInternal(
       Trace("inst-add-debug") << std::endl;
     }
     Trace("inst-add-debug") << "id is " << id << std::endl;
+    Trace("inst-add-debug") << "doVts is " << doVts << std::endl;
   }
   // ensure the terms are non-null and well-typed
   for (size_t i = 0, size = terms.size(); i < size; i++)

@@ -170,10 +170,21 @@ TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   CodeTimer timer(d_ppRewriteTimer, /* allow_reentrant = */ true);
   Trace("arith::preprocess") << "arith::preprocess() : " << atom << endl;
 
-  if (atom.getKind() == kind::EQUAL)
+  Kind k = atom.getKind();
+  if (k == kind::EQUAL)
   {
     return d_ppre.ppRewriteEq(atom);
   }
+  else if (k == kind::GEQ)
+  {
+    // try to eliminate bv2nat from inequalities
+    Node atomr = ArithRewriter::rewriteIneqToBv(atom);
+    if (atomr != atom)
+    {
+      return TrustNode::mkTrustRewrite(atom, atomr);
+    }
+  }
+
   Assert(d_env.theoryOf(atom) == THEORY_ARITH);
   // Eliminate operators. Notice we must do this here since other
   // theories may generate lemmas that involve non-standard operators. For

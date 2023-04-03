@@ -249,7 +249,13 @@ void TermRegistry::registerSubterms(Node n)
     if (d_registeredTerms.find(cur) == d_registeredTerms.end())
     {
       registerTermInternal(cur);
-      visit.insert(visit.end(), cur.begin(), cur.end());
+      // only traverse beneath operators belonging to strings
+      if (theory::kindToTheoryId(cur.getKind())==THEORY_STRINGS)
+      {
+        // strings does not have any closure kinds
+        Assert (!cur.isClosure());
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
     }
   } while (!visit.empty());
 }
