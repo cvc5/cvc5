@@ -613,6 +613,11 @@ RewriteResponse ArithRewriter::rewriteToReal(TNode t)
     const Rational& rat = t[0].getConst<Rational>();
     return RewriteResponse(REWRITE_DONE, nm->mkConstReal(rat));
   }
+  if (t[0].getKind()==kind::TO_REAL)
+  {
+    // (to_real (to_real t)) ---> (to_real t)
+    return RewriteResponse(REWRITE_DONE, t[0]);
+  }
   return RewriteResponse(REWRITE_DONE, t);
 }
 
