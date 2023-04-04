@@ -454,8 +454,8 @@ class CegInstantiator : protected EnvObj
   bool d_is_nested_quant;
   /** the atoms of the CE lemma */
   std::vector<Node> d_ce_atoms;
-  /** collect atoms */
-  void collectCeAtoms(Node n, std::map<Node, bool>& visited);
+  /** collect atoms in n, store in d_ce_atoms */
+  void collectCeAtoms(Node n);
   //-------------------------------end quantified formula info
 
   //-------------------------------current state

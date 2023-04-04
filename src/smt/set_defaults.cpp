@@ -203,7 +203,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
 {
   if (opts.quantifiers.sygusInstWasSetByUser)
   {
-    if (isSygus(opts))
+    if (opts.quantifiers.sygusInst && isSygus(opts))
     {
       throw OptionException(std::string(
           "SyGuS instantiation quantifiers module cannot be enabled "
@@ -1179,6 +1179,11 @@ bool SetDefaults::incompatibleWithSygus(const Options& opts,
   if (opts.smt.deepRestartMode != options::DeepRestartMode::NONE)
   {
     reason << "deep restarts";
+    return true;
+  }
+  if (opts.quantifiers.globalNegate)
+  {
+    reason << "global negate";
     return true;
   }
   return false;
