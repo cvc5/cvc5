@@ -714,13 +714,14 @@ Node RewriteRule<XorDuplicate>::apply(TNode node) {
 /* -------------------------------------------------------------------------- */
 
 /**
- * XorOne
+ * XorOnes
  *
- * (a bvxor 1) ==> ~a
+ * (a bvxor ~0) ==> ~a
  */
 
-template<> inline
-bool RewriteRule<XorOne>::applies(TNode node) {
+template <>
+inline bool RewriteRule<XorOnes>::applies(TNode node)
+{
   if (node.getKind() != kind::BITVECTOR_XOR) {
     return false; 
   }
@@ -730,13 +731,13 @@ bool RewriteRule<XorOne>::applies(TNode node) {
       return true; 
     }
   }
-  return false; 
+  return false;
 }
 
 template <>
-inline Node RewriteRule<XorOne>::apply(TNode node)
+inline Node RewriteRule<XorOnes>::apply(TNode node)
 {
-  Trace("bv-rewrite") << "RewriteRule<XorOne>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<XorOnes>(" << node << ")" << std::endl;
   NodeManager *nm = NodeManager::currentNM();
   Node ones = utils::mkOnes(utils::getSize(node));
   std::vector<Node> children;
