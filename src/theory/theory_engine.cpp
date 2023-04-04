@@ -495,10 +495,6 @@ void TheoryEngine::check(Theory::Effort effort) {
       }
       // reset the model in the combination engine
       d_tc->resetModel();
-      // Disable resource manager limit while building the model. This ensures
-      // that building the model is not interrupted (and shouldn't take too
-      // long).
-      rm->setEnabled(false);
       //checks for theories requiring the model go at last call
       for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId)
       {
@@ -531,8 +527,6 @@ void TheoryEngine::check(Theory::Effort effort) {
       {
         tem->notifyCandidateModel(getModel());
       }
-      // Enable resource management again.
-      rm->setEnabled(true);
     }
 
     Trace("theory") << "TheoryEngine::check(" << effort << "): done, we are " << (d_inConflict ? "unsat" : "sat") << (d_lemmasAdded ? " with new lemmas" : " with no new lemmas");
@@ -1152,10 +1146,11 @@ theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b)
   return d_sharedSolver->getEqualityStatus(a, b);
 }
 
-void TheoryEngine::getDifficultyMap(std::map<Node, Node>& dmap)
+void TheoryEngine::getDifficultyMap(std::map<Node, Node>& dmap,
+                                    bool includeLemmas)
 {
   Assert(d_relManager != nullptr);
-  d_relManager->getDifficultyMap(dmap);
+  d_relManager->getDifficultyMap(dmap, includeLemmas);
 }
 
 theory::IncompleteId TheoryEngine::getModelUnsoundId() const

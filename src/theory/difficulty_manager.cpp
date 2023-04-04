@@ -15,6 +15,7 @@
 
 #include "theory/difficulty_manager.h"
 
+#include "expr/node_algorithm.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
 #include "theory/relevance_manager.h"
@@ -32,6 +33,7 @@ DifficultyManager::DifficultyManager(Env& env,
     : EnvObj(env),
       d_rlv(rlv),
       d_input(userContext()),
+      d_lemma(userContext()),
       d_val(val),
       d_dfmap(userContext())
 {
@@ -46,17 +48,36 @@ void DifficultyManager::notifyInputAssertions(
   }
 }
 
-void DifficultyManager::getDifficultyMap(std::map<Node, Node>& dmap)
+void DifficultyManager::getDifficultyMap(std::map<Node, Node>& dmap,
+                                         bool includeLemmas)
 {
   NodeManager* nm = NodeManager::currentNM();
   for (const std::pair<const Node, uint64_t> p : d_dfmap)
   {
+    if (!includeLemmas)
+    {
+      if (d_input.find(p.first) == d_input.end())
+      {
+        continue;
+      }
+    }
     dmap[p.first] = nm->mkConstInt(Rational(p.second));
   }
 }
 
+uint64_t DifficultyManager::getCurrentDifficulty(const Node& n) const
+{
+  NodeUIntMap::const_iterator it = d_dfmap.find(n);
+  if (it != d_dfmap.end())
+  {
+    return it->second;
+  }
+  return 0;
+}
+
 void DifficultyManager::notifyLemma(Node n, bool inFullEffortCheck)
 {
+  d_lemma.insert(n);
   // compute if we should consider the lemma
   bool considerLemma = false;
   if (options().smt.difficultyMode
@@ -77,7 +98,7 @@ void DifficultyManager::notifyLemma(Node n, bool inFullEffortCheck)
   Kind nk = n.getKind();
   // for lemma (or a_1 ... a_n), if a_i is a literal that is not true in the
   // valuation, then we increment the difficulty of that assertion
-  std::vector<TNode> litsToCheck;
+  std::vector<Node> litsToCheck;
   if (nk == kind::OR)
   {
     litsToCheck.insert(litsToCheck.end(), n.begin(), n.end());
@@ -91,16 +112,22 @@ void DifficultyManager::notifyLemma(Node n, bool inFullEffortCheck)
   {
     litsToCheck.push_back(n);
   }
-  for (TNode nc : litsToCheck)
+  size_t index = 0;
+  while (index < litsToCheck.size())
   {
-    bool pol = nc.getKind() != kind::NOT;
-    TNode atom = pol ? nc : nc[0];
-    TNode exp = d_rlv->getExplanationForRelevant(atom);
+    Node nc = litsToCheck[index];
+    index++;
+    if (expr::isBooleanConnective(nc))
+    {
+      litsToCheck.insert(litsToCheck.end(), nc.begin(), nc.end());
+      continue;
+    }
+    TNode exp = d_rlv->getExplanationForRelevant(nc);
     Trace("diff-man-debug")
-        << "Check literal: " << atom << ", has reason = " << (!exp.isNull())
+        << "Check literal: " << nc << ", has reason = " << (!exp.isNull())
         << std::endl;
-    // must be an input assertion
-    if (!exp.isNull() && d_input.find(exp) != d_input.end())
+    // could be input assertion or lemma
+    if (!exp.isNull())
     {
       incrementDifficulty(exp);
     }
@@ -114,26 +141,31 @@ void DifficultyManager::notifyCandidateModel(TheoryModel* m)
     return;
   }
   Trace("diff-man") << "DifficultyManager::notifyCandidateModel, #input="
-                    << d_input.size() << std::endl;
-  for (const Node& a : d_input)
+                    << d_input.size() << " #lemma=" << d_lemma.size()
+                    << std::endl;
+  for (size_t i = 0; i < 2; i++)
   {
-    // should have miniscoped the assertions upstream
-    Assert(a.getKind() != kind::AND);
-    // check if each input is satisfied
-    Node av = m->getValue(a);
-    if (av.isConst() && av.getConst<bool>())
+    NodeSet& ns = i == 0 ? d_input : d_lemma;
+    for (const Node& a : ns)
     {
-      continue;
+      // check if each input is satisfied
+      Node av = m->getValue(a);
+      if (av.isConst() && av.getConst<bool>())
+      {
+        continue;
+      }
+      Trace("diff-man") << "  not true: " << a << std::endl;
+      // not satisfied, increment counter
+      incrementDifficulty(a);
     }
-    Trace("diff-man") << "  not true: " << a << std::endl;
-    // not satisfied, increment counter
-    incrementDifficulty(a);
   }
   Trace("diff-man") << std::endl;
 }
 void DifficultyManager::incrementDifficulty(TNode a, uint64_t amount)
 {
   Assert(a.getType().isBoolean());
+  Trace("diff-man") << "incrementDifficulty: " << a << " +" << amount
+                    << std::endl;
   d_dfmap[a] = d_dfmap[a] + amount;
 }
 

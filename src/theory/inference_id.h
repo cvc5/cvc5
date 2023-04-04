@@ -353,6 +353,8 @@ enum class InferenceId
   QUANTIFIERS_INST_ENUM,
   // instantiations from pool instantiation
   QUANTIFIERS_INST_POOL,
+  // instantiations from pool instantiation (tuple semantics)
+  QUANTIFIERS_INST_POOL_TUPLE,
   //-------------------- bounded integers
   // a proxy lemma from bounded integers, used to control bounds on ground terms
   QUANTIFIERS_BINT_PROXY,
@@ -431,6 +433,8 @@ enum class InferenceId
   QUANTIFIERS_SYGUS_PBE_CONSTRUCT_SOL,
   // complete enumeration lemma
   QUANTIFIERS_SYGUS_COMPLETE_ENUM,
+  // infeasible due to side condition (e.g. for abduction)
+  QUANTIFIERS_SYGUS_SC_INFEASIBLE,
   //-------------------- dynamic splitting
   // a dynamic split from quantifiers
   QUANTIFIERS_DSPLIT,

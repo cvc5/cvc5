@@ -30,7 +30,7 @@
  * consistent behavior (see Solver::mkRealOrIntegerFromStrHelper for example).
  */
 
-#include "api/cpp/cvc5.h"
+#include <cvc5/cvc5.h>
 
 #include <cstring>
 #include <sstream>

@@ -15,7 +15,8 @@
 
 #include "smt/smt_driver_deep_restarts.h"
 
-#include "api/cpp/cvc5_types.h"
+#include <cvc5/cvc5_types.h>
+
 #include "options/base_options.h"
 #include "prop/prop_engine.h"
 #include "smt/env.h"
