@@ -18,6 +18,8 @@
 #ifndef CVC5__SMT__SOLVER_ENGINE_H
 #define CVC5__SMT__SOLVER_ENGINE_H
 
+#include <cvc5/cvc5_export.h>
+
 #include <map>
 #include <memory>
 #include <string>
@@ -25,7 +27,6 @@
 #include <vector>
 
 #include "context/cdhashmap_forward.h"
-#include "cvc5_export.h"
 #include "options/options.h"
 #include "smt/smt_mode.h"
 #include "theory/logic_info.h"
@@ -314,11 +315,6 @@ class CVC5_EXPORT SolverEngine
    * @throw TypeCheckingException, LogicException
    */
   void assertFormula(const Node& formula);
-
-  /**
-   * Reduce an unsatisfiable core to make it minimal.
-   */
-  std::vector<Node> reduceUnsatCore(const std::vector<Node>& core);
 
   /**
    * Assert a formula (if provided) to the current context and call
@@ -856,8 +852,11 @@ class CVC5_EXPORT SolverEngine
    * Internal method to get an unsatisfiable core (only if immediately preceded
    * by an UNSAT query). Only permitted if cvc5 was built with unsat-core
    * support and produce-unsat-cores is on. Does not dump the command.
+   *
+   * @param isInternal Whether this call was made internally (not by the user).
+   * This impacts whether the unsat core is post-processed.
    */
-  UnsatCore getUnsatCoreInternal();
+  UnsatCore getUnsatCoreInternal(bool isInternal = true);
 
   /** Internal version of assertFormula */
   void assertFormulaInternal(const Node& formula);

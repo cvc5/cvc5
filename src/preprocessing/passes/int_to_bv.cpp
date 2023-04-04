@@ -107,7 +107,8 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
 
 Node IntToBV::intToBV(TNode n, NodeMap& cache)
 {
-  int size = options().smt.solveIntAsBV;
+  Assert(options().smt.solveIntAsBV <= 4294967295);
+  uint32_t size = options().smt.solveIntAsBV;
   AlwaysAssert(size > 0);
   AlwaysAssert(!options().base.incrementalSolving);
 

@@ -18,12 +18,13 @@
 #ifndef CVC5__PARSER__PARSER_H
 #define CVC5__PARSER__PARSER_H
 
+#include <cvc5/cvc5.h>
+#include <cvc5/cvc5_export.h>
+
 #include <list>
 #include <memory>
 #include <string>
 
-#include "api/cpp/cvc5.h"
-#include "cvc5_export.h"
 #include "parser/api/cpp/symbol_manager.h"
 #include "parser/parse_op.h"
 #include "parser/parser_exception.h"
@@ -56,7 +57,7 @@ class ParserStateCallback
    * inserts a new command before the current one. Also used in TPTP
    * because function and predicate symbols are implicitly declared.
    */
-  virtual void preemptCommand(Command* cmd) = 0;
+  virtual void preemptCommand(std::unique_ptr<Command> cmd) = 0;
 };
 
 /**
@@ -335,16 +336,13 @@ class CVC5_EXPORT ParserState
   Sort mkUnresolvedType(const std::string& name, size_t arity);
 
   /**
-   * Creates and binds sorts of a list of mutually-recursive datatype
-   * declarations.
+   * Creates sorts of a list of mutually-recursive datatype declarations.
    *
-   * For each symbol defined by the datatype, if a symbol with name already
-   * exists, then if doOverload is true, we create overloaded operators. Else,
-   * if doOverload is false, the existing expression is shadowed by the new
-   * expression.
+   * For each symbol defined by the datatype, it checks whether the binding
+   * will succeed. However, it does not actually implement the binding yet,
+   * as this is only done when the command is executed.
    */
-  std::vector<Sort> bindMutualDatatypeTypes(
-      std::vector<DatatypeDecl>& datatypes, bool doOverload = false);
+  std::vector<Sort> mkMutualDatatypeTypes(std::vector<DatatypeDecl>& datatypes);
 
   /** make flat function type
    *
@@ -457,7 +455,7 @@ class CVC5_EXPORT ParserState
   /** Unexpectedly encountered an EOF */
   void unexpectedEOF(const std::string& msg);
   /** Preempt command */
-  void preemptCommand(Command* cmd);
+  void preemptCommand(std::unique_ptr<Command> cmd);
   //-------------------- end callbacks to parser
   /** Issue a warning to the user, but only once per attribute. */
   void attributeNotSupported(const std::string& attr);
@@ -561,9 +559,27 @@ class CVC5_EXPORT ParserState
    */
   std::wstring processAdHocStringEsc(const std::string& s);
 
+  /**
+   * Strip quotes off a string, or return a parse error otherwise.
+   */
+  std::string stripQuotes(const std::string& s);
+
  protected:
   /** The API Solver object. */
   Solver* d_solver;
+  /**
+   * A string to prepend to the name of all declared symbols, which helps
+   * when converting benchmarks from one format to another.
+   *
+   * The print namespace does not impact the symbol bindings. For example,
+   * if a variable "x" is declared and the print namespace is "tptp.", then
+   * we bind the symbol "x" to a variable whose name is "tptp.x". This means
+   * that "x" can be parsed, but the variable will be printed as "tptp.x".
+   *
+   * !!!!!!!!! This is only necessary for the TPTP to smt2 conversion, and
+   * can be deleted if the TPTP parser is deleted.
+   */
+  std::string d_printNamespace;
 
  private:
   /** The callback */
@@ -607,6 +623,8 @@ class CVC5_EXPORT ParserState
    * Only returns a symbol if it is not overloaded, returns null otherwise.
    */
   Term getSymbol(const std::string& var_name, SymbolType type);
+  /** Get name for user name */
+  std::string getNameForUserName(const std::string& name) const;
 }; /* class Parser */
 
 /** Compute the unsigned integer for a token. */

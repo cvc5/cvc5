@@ -16,12 +16,13 @@
 
 #include "parser/symbol_table.h"
 
+#include <cvc5/cvc5.h>
+
 #include <ostream>
 #include <string>
 #include <unordered_map>
 #include <utility>
 
-#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"

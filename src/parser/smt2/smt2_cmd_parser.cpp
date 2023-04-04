@@ -135,8 +135,8 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       // parse <datatype_dec>
       std::vector<DatatypeDecl> dts =
           d_tparser.parseDatatypesDef(isCo, dnames, arities);
-      cmd.reset(new DatatypeDeclarationCommand(
-          d_state.bindMutualDatatypeTypes(dts, true)));
+      cmd.reset(
+          new DatatypeDeclarationCommand(d_state.mkMutualDatatypeTypes(dts)));
     }
     break;
     // multiple datatype
@@ -169,8 +169,8 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       std::vector<DatatypeDecl> dts =
           d_tparser.parseDatatypesDef(isCo, dnames, arities);
       d_lex.eatToken(Token::RPAREN_TOK);
-      cmd.reset(new DatatypeDeclarationCommand(
-          d_state.bindMutualDatatypeTypes(dts, true)));
+      cmd.reset(
+          new DatatypeDeclarationCommand(d_state.mkMutualDatatypeTypes(dts)));
     }
     break;
     // (declare-fun <symbol> (<sort>∗) <sort>)
@@ -686,6 +686,15 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       std::string key = d_tparser.parseKeyword();
       Term sexpr = d_tparser.parseSymbolicExpr();
       std::string ss = sexprToString(sexpr);
+      // special case: for channel settings, we are expected to parse e.g.
+      // `"stdin"` which should be treated as `stdin`
+      // Note we could consider a more general solution where knowing whether
+      // this special case holds can be queried via OptionInfo.
+      if (key == "diagnostic-output-channel" || key == "regular-output-channel"
+          || key == "in" || key == "out")
+      {
+        ss = d_state.stripQuotes(ss);
+      }
       cmd.reset(new SetOptionCommand(key, ss));
       // Ugly that this changes the state of the parser; but
       // global-declarations affects parsing, so we can't hold off

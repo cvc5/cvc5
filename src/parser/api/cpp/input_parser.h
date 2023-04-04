@@ -18,10 +18,11 @@
 #ifndef CVC5__PARSER__API__CPP__INPUT_PARSER_H
 #define CVC5__PARSER__API__CPP__INPUT_PARSER_H
 
+#include <cvc5/cvc5.h>
+#include <cvc5/cvc5_export.h>
+
 #include <memory>
 
-#include "api/cpp/cvc5.h"
-#include "cvc5_export.h"
 #include "parser/flex_parser.h"
 #include "parser/parser_antlr.h"
 
@@ -98,9 +99,8 @@ class CVC5_EXPORT InputParser
 
   /**
    * Parse and return the next command.
-   * NOTE: currently memory management of commands is handled internally.
    */
-  Command* nextCommand();
+  std::unique_ptr<Command> nextCommand();
 
   /** Parse and return the next expression. */
   Term nextExpression();

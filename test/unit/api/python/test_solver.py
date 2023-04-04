@@ -2777,7 +2777,7 @@ def test_get_difficulty3(solver):
   # difficulty should map assertions to integer values
   for key, value in dmap.items():
     assert key == f0 or key == f1
-    assert value.getKind() == Kind.CONST_RATIONAL
+    assert value.getKind() == Kind.CONST_INTEGER
 
 def test_get_model(solver):
     solver.setOption("produce-models", "true")

@@ -158,9 +158,6 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   SatValue getDecisionPolarity(SatVariable var);
 
-  /** Return decision level at which `var` was decided on. */
-  int32_t getDecisionLevel(TNode node) const;
-
   CnfStream* getCnfStream();
 
   /**
@@ -227,8 +224,8 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** The theory engine we are using. */
   TheoryEngine* d_theoryEngine;
 
-  /** Queue of asserted facts */
-  context::CDQueue<TNode> d_queue;
+  /** Queue of asserted facts and their decision level. */
+  context::CDQueue<std::pair<TNode, int32_t>> d_queue;
 
   /** The theory preprocessor */
   theory::TheoryPreprocessor d_tpp;
@@ -252,9 +249,6 @@ class TheoryProxy : protected EnvObj, public Registrar
    * are dynamically activated only when decision=justification.
    */
   bool d_activatedSkDefs;
-
-  /** Map to store current decision level for theory literals. */
-  std::unordered_map<Node, int32_t> d_var_decision_levels;
 }; /* class TheoryProxy */
 
 }  // namespace prop

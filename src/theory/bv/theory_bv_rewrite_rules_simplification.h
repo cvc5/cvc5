@@ -2168,6 +2168,8 @@ inline Node RewriteRule<UltAddOne>::apply(TNode node)
 /* -------------------------------------------------------------------------- */
 
 /**
+ * MultSltMult
+ *
  * Rewrite
  *   sign_extend(x+t,n) * sign_extend(a,m) < sign_extend(x,n) * sign_extend(a,m)
  * to
@@ -2192,8 +2194,9 @@ inline Node RewriteRule<UltAddOne>::apply(TNode node)
  * where the BV engine struggles due to the high bit widths of the
  * multiplication's operands.
  */
-static std::tuple<Node, Node, bool>
-extract_ext_tuple(TNode node)
+
+namespace {
+std::tuple<Node, Node, bool> extract_ext_tuple(TNode node)
 {
   TNode a = node[0];
   TNode b = node[1];
@@ -2219,8 +2222,7 @@ extract_ext_tuple(TNode node)
   }
   return std::make_tuple(Node::null(), Node::null(), false);
 }
-
-/* -------------------------------------------------------------------------- */
+}  // namespace
 
 template<> inline
 bool RewriteRule<MultSltMult>::applies(TNode node)
@@ -2316,6 +2318,7 @@ Node RewriteRule<MultSltMult>::apply(TNode node)
   return nb.constructNode();
 }
 
+/* -------------------------------------------------------------------------- */
 }  // namespace bv
 }  // namespace theory
 }  // namespace cvc5::internal

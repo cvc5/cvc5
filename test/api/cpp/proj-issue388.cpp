@@ -14,9 +14,11 @@
  *
  */
 
-#include "api/cpp/cvc5.h"
-#include "base/configuration.h"
+#include <cvc5/cvc5.h>
+
 #include <cassert>
+
+#include "base/configuration.h"
 
 using namespace cvc5;
 

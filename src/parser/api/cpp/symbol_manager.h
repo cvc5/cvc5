@@ -18,12 +18,12 @@
 #ifndef CVC5__PARSER__API__CPP__SYMBOL_MANAGER_H
 #define CVC5__PARSER__API__CPP__SYMBOL_MANAGER_H
 
+#include <cvc5/cvc5.h>
+#include <cvc5/cvc5_export.h>
+
 #include <map>
 #include <memory>
 #include <string>
-
-#include "api/cpp/cvc5.h"
-#include "cvc5_export.h"
 
 namespace cvc5 {
 
@@ -109,6 +109,14 @@ class CVC5_EXPORT SymbolManager
   void bindType(const std::string& name,
                 const std::vector<cvc5::Sort>& params,
                 cvc5::Sort t);
+  /**
+   * Binds sorts of a list of mutually-recursive datatype declarations.
+   *
+   * If bindTesters is true, we bind the testers of this datatype to
+   * `is-C` where `C` is the name of the constructor for that tester.
+   */
+  bool bindMutualDatatypeTypes(const std::vector<cvc5::Sort>& datatypes,
+                               bool bindTesters = true);
 
   //---------------------------- named expressions
   /** Set name of term t to name

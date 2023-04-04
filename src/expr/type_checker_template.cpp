@@ -66,7 +66,8 @@ TypeNode TypeChecker::computeType(NodeManager* nodeManager,
   // Infer the type
   switch (n.getKind())
   {
-    // clang-format off
+
+      // clang-format off
 ${typerules}
       // clang-format on
 
@@ -74,6 +75,7 @@ ${typerules}
       Trace("getType") << "FAILURE" << std::endl;
       Unhandled() << " " << n.getKind();
   }
+
   return typeNode;
 
 } /* TypeChecker::computeType */

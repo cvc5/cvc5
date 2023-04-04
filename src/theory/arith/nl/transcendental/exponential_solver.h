@@ -16,6 +16,7 @@
 #ifndef CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__EXPONENTIAL_SOLVER_H
 #define CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__EXPONENTIAL_SOLVER_H
 
+#include <cstdint>
 #include <map>
 
 #include "expr/node.h"

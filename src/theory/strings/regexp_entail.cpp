@@ -885,8 +885,8 @@ bool RegExpEntail::regExpIncludes(Node r1,
     {
       unsigned l1 = r1[0].getConst<String>().front();
       unsigned u1 = r1[1].getConst<String>().front();
-      unsigned l2 = r1[0].getConst<String>().front();
-      unsigned u2 = r1[1].getConst<String>().front();
+      unsigned l2 = r2[0].getConst<String>().front();
+      unsigned u2 = r2[1].getConst<String>().front();
       ret = l1 <= l2 && l2 <= u1 && l1 <= u2 && u2 <= u1;
     }
   }

@@ -13,11 +13,12 @@
  * Unit tests for symbolic regular expression operations.
  */
 
+#include <cvc5/cvc5.h>
+
 #include <iostream>
 #include <memory>
 #include <vector>
 
-#include "api/cpp/cvc5.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "test_smt.h"

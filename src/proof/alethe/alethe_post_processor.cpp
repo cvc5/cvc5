@@ -83,8 +83,8 @@ bool AletheProofPostprocessCallback::update(Node res,
                                             CDProof* cdp,
                                             bool& continueUpdate)
 {
-  Trace("alethe-proof") << "- Alethe post process callback " << res << " " << id
-                        << " " << children << " / " << args << std::endl;
+  Trace("alethe-proof") << "...Alethe pre-update " << res << " " << id << " "
+                        << children << " / " << args << std::endl;
 
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> new_args = std::vector<Node>();
@@ -350,7 +350,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                                     : std::vector<Node>(),
                         *cdp);
 
-      if (children[0] != nm->mkConst(false))
+      if (children[0] != d_false)
       {
         success &=
             addAletheStep(AletheRule::CONTRACTION, res, vp8, {vp7}, {}, *cdp);
@@ -1135,7 +1135,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                               nm->mkNode(kind::SEXPR, d_cl, res),
                               {vp2, children[0]},
                               d_resPivots
-                                  ? std::vector<Node>{children[0], d_true}
+                                  ? std::vector<Node>{children[0], d_false}
                                   : std::vector<Node>(),
                               *cdp);
     }
@@ -1456,34 +1456,60 @@ bool AletheProofPostprocessCallback::update(Node res,
                               *cdp);
     }
     //================================================= Arithmetic rules
-    // ======== Adding Inequalities
+    // ======== Adding Scaled Inequalities
     //
-    // ----- LIA_GENERIC
-    //  VP1                P1 ... Pn
-    // ------------------------------- RESOLUTION
+    // -------------------------------------- LA_GENERIC
+    // (cl (not P1) ... (not Pn) (>< t1 t2))              P1 ... Pn
+    // ------------------------------------------------------------- RESOLUTION
     //  (cl (>< t1 t2))*
     //
-    // VP1: (cl (not l1) ... (not ln) (>< t1 t2))
-    //
     // * the corresponding proof node is (>< t1 t2)
-    case PfRule::MACRO_ARITH_SCALE_SUM_UB:
+    case PfRule::ARITH_SUM_UB:
     {
-      std::vector<Node> vp1s{d_cl};
+      // if the conclusion were an equality we'd need to phrase LA_GENERIC in
+      // terms of disequalities, but ARITH_SUM_UB does not have equalities as
+      // conclusions
+      Assert(res.getKind() != kind::EQUAL);
+      Node one = nm->mkConstInt(Rational(1));
+      Node minusOne = nm->mkConstInt(Rational(-1));
+      std::vector<Node> resArgs;
+      std::vector<Node> resChildren;
+      std::vector<Node> lits{d_cl};
       for (const Node& child : children)
       {
-        vp1s.push_back(child.notNode());
+        lits.push_back(child.notNode());
+        // equalities are multiplied by minus 1 rather than 1
+        new_args.push_back(child.getKind() == kind::EQUAL ? minusOne : one);
+        resArgs.push_back(child);
+        resArgs.push_back(d_false);
       }
-      vp1s.push_back(res);
-      Node vp1 = nm->mkNode(kind::SEXPR, vp1s);
-      std::vector<Node> new_children = {vp1};
-      new_children.insert(new_children.end(), children.begin(), children.end());
-      return addAletheStep(AletheRule::LIA_GENERIC, vp1, vp1, {}, args, *cdp)
-             && addAletheStep(AletheRule::RESOLUTION,
-                              res,
-                              nm->mkNode(kind::SEXPR, d_cl, res),
-                              new_children,
-                              {},
-                              *cdp);
+      lits.push_back(res);
+      new_args.push_back(one);
+      Node laGen = nm->mkNode(kind::SEXPR, lits);
+      addAletheStep(AletheRule::LA_GENERIC, laGen, laGen, {}, new_args, *cdp);
+      resChildren.push_back(laGen);
+      resChildren.insert(resChildren.end(), children.begin(), children.end());
+      return addAletheStep(AletheRule::RESOLUTION,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           resChildren,
+                           d_resPivots ? resArgs : std::vector<Node>(),
+                           *cdp);
+    }
+    // Direct translation
+    case PfRule::ARITH_MULT_POS:
+    case PfRule::ARITH_MULT_NEG:
+    {
+      // We require the multiplicative factor to be a value
+      Assert(args[0].isConst());
+      return addAletheStep(id == PfRule::ARITH_MULT_POS
+                               ? AletheRule::LA_MULT_POS
+                               : AletheRule::LA_MULT_NEG,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
     }
     // ======== Tightening Strict Integer Upper Bounds
     //
@@ -1500,12 +1526,15 @@ bool AletheProofPostprocessCallback::update(Node res,
       Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
       std::vector<Node> new_children = {vp1, children[0]};
       new_args.push_back(nm->mkConstInt(Rational(1)));
+      new_args.push_back(nm->mkConstInt(Rational(1)));
       return addAletheStep(AletheRule::LA_GENERIC, vp1, vp1, {}, new_args, *cdp)
              && addAletheStep(AletheRule::RESOLUTION,
                               res,
                               nm->mkNode(kind::SEXPR, d_cl, res),
                               new_children,
-                              {},
+                              d_resPivots
+                                  ? std::vector<Node>{children[0], d_false}
+                                  : std::vector<Node>(),
                               *cdp);
     }
     // ======== Tightening Strict Integer Lower Bounds
@@ -1523,12 +1552,15 @@ bool AletheProofPostprocessCallback::update(Node res,
       Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
       std::vector<Node> new_children = {vp1, children[0]};
       new_args.push_back(nm->mkConstInt(Rational(1)));
+      new_args.push_back(nm->mkConstInt(Rational(1)));
       return addAletheStep(AletheRule::LA_GENERIC, vp1, vp1, {}, new_args, *cdp)
              && addAletheStep(AletheRule::RESOLUTION,
                               res,
                               nm->mkNode(kind::SEXPR, d_cl, res),
                               new_children,
-                              {},
+                              d_resPivots
+                                  ? std::vector<Node>{children[0], d_false}
+                                  : std::vector<Node>(),
                               *cdp);
     }
     // ======== Trichotomy of the reals
@@ -1637,12 +1669,15 @@ bool AletheProofPostprocessCallback::update(Node res,
             addAletheStep(AletheRule::EQUIV_POS2, vpc1, vpc1, {}, {}, *cdp)
             && addAletheStep(
                 AletheRule::COMP_SIMPLIFY, vpc2, vpc2, {}, {}, *cdp)
-            && addAletheStep(AletheRule::RESOLUTION,
-                             vp_child1,
-                             vp_child1,
-                             {vpc1, vpc2, lesser},
-                             {},
-                             *cdp);
+            && addAletheStep(
+                AletheRule::RESOLUTION,
+                vp_child1,
+                vp_child1,
+                {vpc1, vpc2, lesser},
+                d_resPivots
+                    ? std::vector<Node>{vpc2[1], d_false, lesser, d_false}
+                    : std::vector<Node>(),
+                *cdp);
         // greater = (<= x c) or greater = (not (= x c)) -> no preprocessing
         // necessary
         vp_child2 = res == equal ? greater : equal;
@@ -1670,12 +1705,20 @@ bool AletheProofPostprocessCallback::update(Node res,
       if (res == equal)
       {  // no postprocessing necessary
         return success
-               && addAletheStep(AletheRule::RESOLUTION,
-                                res,
-                                nm->mkNode(kind::SEXPR, d_cl, res),
-                                {vp2, vp_child1, vp_child2},
-                                {},
-                                *cdp);
+               && addAletheStep(
+                   AletheRule::RESOLUTION,
+                   res,
+                   nm->mkNode(kind::SEXPR, d_cl, res),
+                   {vp2, vp_child1, vp_child2},
+                   d_resPivots
+                       ? std::vector<Node>{vp_child1[1],
+                                           d_false,
+                                           // note that vp_child2 is not a
+                                           // clause, so it is itself the pivot
+                                           vp_child2,
+                                           d_false}
+                       : std::vector<Node>(),
+                   *cdp);
       }
       if (res == greater)
       {  // have (not (<= x c)) but result should be (> x c)
@@ -1707,17 +1750,24 @@ bool AletheProofPostprocessCallback::update(Node res,
                                 vp3,
                                 vp3,
                                 {vp2, vp_child1, vp_child2},
-                                {},
+                                d_resPivots ? std::vector<Node>{vp_child1[1],
+                                                                d_false,
+                                                                vp_child2[0],
+                                                                d_true}
+                                            : std::vector<Node>(),
                                 *cdp)
                && addAletheStep(AletheRule::EQUIV_POS1, vp4, vp4, {}, {}, *cdp)
                && addAletheStep(
                    AletheRule::COMP_SIMPLIFY, vp5, vp5, {}, {}, *cdp)
-               && addAletheStep(AletheRule::RESOLUTION,
-                                res,
-                                nm->mkNode(kind::SEXPR, d_cl, res),
-                                {vp3, vp4, vp5},
-                                {},
-                                *cdp);
+               && addAletheStep(
+                   AletheRule::RESOLUTION,
+                   res,
+                   nm->mkNode(kind::SEXPR, d_cl, res),
+                   {vp3, vp4, vp5},
+                   d_resPivots
+                       ? std::vector<Node>{vp3[1], d_true, vp5[1], d_false}
+                       : std::vector<Node>(),
+                   *cdp);
       }
       // have (not (<= c x)) but result should be (< x c)
       Node vp3 = nm->mkNode(
@@ -1746,16 +1796,23 @@ bool AletheProofPostprocessCallback::update(Node res,
                               vp3,
                               vp3,
                               {vp2, vp_child1, vp_child2},
-                              {},
+                              d_resPivots ? std::vector<Node>{vp_child1,
+                                                              d_false,
+                                                              vp_child2[0],
+                                                              d_true}
+                                          : std::vector<Node>(),
                               *cdp)
              && addAletheStep(AletheRule::EQUIV_POS1, vp4, vp4, {}, {}, *cdp)
              && addAletheStep(AletheRule::COMP_SIMPLIFY, vp5, vp5, {}, {}, *cdp)
-             && addAletheStep(AletheRule::RESOLUTION,
-                              res,
-                              nm->mkNode(kind::SEXPR, d_cl, res),
-                              {vp3, vp4, vp5},
-                              {},
-                              *cdp);
+             && addAletheStep(
+                 AletheRule::RESOLUTION,
+                 res,
+                 nm->mkNode(kind::SEXPR, d_cl, res),
+                 {vp3, vp4, vp5},
+                 d_resPivots
+                     ? std::vector<Node>{vp3[1], d_true, vp5[1], d_false}
+                     : std::vector<Node>(),
+                 *cdp);
     }
     default:
     {
@@ -1767,6 +1824,94 @@ bool AletheProofPostprocessCallback::update(Node res,
                            *cdp);
     }
   }
+}
+
+bool AletheProofPostprocessCallback::maybeReplacePremiseProof(Node premise,
+                                                              CDProof* cdp)
+{
+  // This method is called only when the premise is used as a singleton
+  // clause. If its proof however concludes a non-singleton clause it'll fail
+  // the test below and we must change its proof.
+  std::shared_ptr<ProofNode> premisePf = cdp->getProofFor(premise);
+  Node premisePfConclusion = premisePf->getArguments()[2];
+  if (premisePfConclusion.getNumChildren() <= 2
+      || premisePfConclusion[0] != d_cl)
+  {
+    return false;
+  }
+  // If this resolution child is used as a singleton OR but the rule
+  // justifying it concludes a clause, then we are necessarily in this
+  // scenario:
+  //
+  // (or t1 ... tn)
+  // -------------- OR
+  // (cl t1 ... tn)
+  // ---------------- FACTORING/REORDERING
+  // (cl t1' ... tn')
+  //
+  // where what is used in the resolution is actually (or t1' ... tn').
+  //
+  // This happens when (or t1' ... tn') has been added to the SAT solver as
+  // a literal as well, and its node clashed with the conclusion of the
+  // FACTORING/REORDERING step.
+  //
+  // The solution is to *not* use FACTORING/REORDERING (which in Alethe
+  // operate on clauses) but generate a proof to obtain (via rewriting) the
+  // expected node (or t1' ... tn') from the original node (or t1 ... tn).
+  NodeManager* nm = NodeManager::currentNM();
+  Trace("alethe-proof") << "\n";
+  CVC5_UNUSED AletheRule premisePfRule =
+      getAletheRule(premisePf->getArguments()[0]);
+  CVC5_UNUSED AletheRule premiseChildPfRule =
+      getAletheRule(premisePf->getChildren()[0]->getArguments()[0]);
+  Assert((premisePfRule == AletheRule::CONTRACTION
+          || premisePfRule == AletheRule::REORDERING)
+         && premiseChildPfRule == AletheRule::OR);
+  // get great grand child
+  std::shared_ptr<ProofNode> premiseChildPf =
+      premisePf->getChildren()[0]->getChildren()[0];
+  Node premiseChildConclusion = premiseChildPf->getResult();
+  // Note that we need to add this proof node explicitly (i.e., as an ASSUME
+  // step) to cdp because cdp does not have a step for
+  // premiseChildConclusion. Rather it is only present in cdp as a descendant of
+  // premisePf (which is in cdp), so if premisePf is to be lost, then so will
+  // premiseChildPf. By adding the ASSUME step for premiseChildConclusion, a
+  // step will be present in cdp connecting premiseChildConclusion to
+  // premiseChildPf (since by default adding an ASSUME step will not rewrite an
+  // existing proof for a node).
+  addAletheStep(AletheRule::ASSUME,
+                premiseChildConclusion,
+                premiseChildConclusion,
+                {},
+                {},
+                *cdp);
+  // equate it to what we expect, use equiv elim and resolution to
+  // obtain a proof the expected
+  Node equiv = premiseChildConclusion.eqNode(premise);
+  addAletheStep(AletheRule::ALL_SIMPLIFY,
+                equiv,
+                nm->mkNode(kind::SEXPR, d_cl, equiv),
+                {},
+                {},
+                *cdp);
+  Node equivElim = nm->mkNode(
+      kind::SEXPR,
+      {d_cl, equiv.notNode(), premiseChildConclusion.notNode(), premise});
+  addAletheStep(AletheRule::EQUIV_POS2, equivElim, equivElim, {}, {}, *cdp);
+  Node newPremise = nm->mkNode(kind::SEXPR, d_cl, premise);
+  addAletheStep(
+      AletheRule::RESOLUTION,
+      newPremise,
+      newPremise,
+      {equivElim, equiv, premiseChildConclusion},
+      d_resPivots
+          ? std::vector<Node>{equiv, d_false, premiseChildConclusion, d_false}
+          : std::vector<Node>(),
+      *cdp);
+  Trace("alethe-proof") << "Reverted handling as a clause for converting "
+                        << premiseChildConclusion << " into " << premise
+                        << std::endl;
+  return true;
 }
 
 // Adds an OR rule to the premises of a step if the premise is not a clause and
@@ -1784,7 +1929,7 @@ bool AletheProofPostprocessCallback::updatePost(
 {
   NodeManager* nm = NodeManager::currentNM();
   AletheRule rule = getAletheRule(args[0]);
-  Trace("alethe-proof") << "... finalizer for rule " << rule << " / " << res
+  Trace("alethe-proof") << "...Alethe post-update " << rule << " / " << res
                         << " / args: " << args << std::endl;
   switch (rule)
   {
@@ -1814,7 +1959,7 @@ bool AletheProofPostprocessCallback::updatePost(
       // to its pivot L_1. Since it's the first clause in the resolution it can
       // only be equal to the pivot in the case the polarity is true.
       if (children[0].getKind() == kind::OR
-          && (args[polIdx] != d_true || children[0] != args[pivIdx]))
+          && (args[polIdx] != d_true || args[pivIdx] != children[0]))
       {
         std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
         Node childConclusion = childPf->getArguments()[2];
@@ -1848,9 +1993,19 @@ bool AletheProofPostprocessCallback::updatePost(
                         {},
                         *cdp);
           newChildren[0] = newConclusion;
-          Trace("alethe-proof")
-              << "Added OR step in finalizer " << childConclusion << " / "
-              << newConclusion << std::endl;
+          Trace("alethe-proof") << "Added OR step for " << childConclusion
+                                << " / " << newConclusion << std::endl;
+        }
+      }
+      // The premise is used a singleton clause. We must guarantee that its
+      // proof indeed concludes a singleton clause.
+      else if (children[0].getKind() == kind::OR)
+      {
+        Assert(args[polIdx] == d_true && args[pivIdx] == children[0]);
+        if (maybeReplacePremiseProof(children[0], cdp))
+        {
+          hasUpdated = true;
+          newChildren[0] = nm->mkNode(kind::SEXPR, d_cl, children[0]);
         }
       }
       // For all other children C_i the procedure is similar. There is however a
@@ -1906,9 +2061,19 @@ bool AletheProofPostprocessCallback::updatePost(
                           {},
                           *cdp);
             newChildren[i] = conclusion;
-            Trace("alethe-proof")
-                << "Added OR step in finalizer " << childConclusion << " / "
-                << conclusion << std::endl;
+            Trace("alethe-proof") << "Added OR step for " << childConclusion
+                                  << " / " << conclusion << std::endl;
+          }
+        }
+        // As for the first premise, we need to handle the case in which the
+        // premise is a singleton but the rule concluding it yields a clause.
+        else if (children[i].getKind() == kind::OR)
+        {
+          Assert(args[polIdx] == d_false && args[pivIdx] == children[i]);
+          if (maybeReplacePremiseProof(children[i], cdp))
+          {
+            hasUpdated = true;
+            newChildren[i] = nm->mkNode(kind::SEXPR, d_cl, children[i]);
           }
         }
       }
@@ -2070,23 +2235,18 @@ bool AletheProofPostprocessCallback::addAletheStep(
     const std::vector<Node>& args,
     CDProof& cdp)
 {
-  // delete attributes
-  Node sanitized_conclusion = conclusion;
-  if (expr::hasClosure(conclusion))
+  std::vector<Node> newArgs{NodeManager::currentNM()->mkConstInt(
+      Rational(static_cast<uint32_t>(rule)))};
+  newArgs.push_back(res);
+  newArgs.push_back(d_anc.convert(conclusion));
+  for (const Node& arg : args)
   {
-    sanitized_conclusion = d_anc.convert(conclusion);
+    newArgs.push_back(d_anc.convert(arg));
   }
-
-  std::vector<Node> new_args = std::vector<Node>();
-  new_args.push_back(NodeManager::currentNM()->mkConstInt(
-      Rational(static_cast<uint32_t>(rule))));
-  new_args.push_back(res);
-  new_args.push_back(sanitized_conclusion);
-  new_args.insert(new_args.end(), args.begin(), args.end());
-  Trace("alethe-proof") << "... add Alethe step " << res << " / " << conclusion
-                        << " " << rule << " " << children << " / " << new_args
+  Trace("alethe-proof") << "... add alethe step " << res << " / " << conclusion
+                        << " " << rule << " " << children << " / " << newArgs
                         << std::endl;
-  return cdp.addStep(res, PfRule::ALETHE_RULE, children, new_args);
+  return cdp.addStep(res, PfRule::ALETHE_RULE, children, newArgs);
 }
 
 bool AletheProofPostprocessCallback::addAletheStepFromOr(

@@ -18,11 +18,11 @@
 #ifndef CVC5__EXCEPTION_H
 #define CVC5__EXCEPTION_H
 
+#include <cvc5/cvc5_export.h>
+
 #include <exception>
 #include <iosfwd>
 #include <string>
-
-#include "cvc5_export.h"
 
 namespace cvc5::internal {
 
