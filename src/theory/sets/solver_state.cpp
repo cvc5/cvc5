@@ -137,6 +137,8 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
       else
       {
         d_congruent[n] = itb->second;
+        // consider it regardless of whether congruent
+        d_bop_index[nk][n[0]][n[1]] = n;
       }
     }
     d_nvar_sets[r].push_back(n);
