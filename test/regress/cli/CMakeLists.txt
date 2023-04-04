@@ -1101,6 +1101,7 @@ set(regress_0_tests
   regress0/proofs/issue9393-optResReconstruction-alethebug.smt2
   regress0/proofs/issue9515-alethe-skolems-crash.smt2
   regress0/proofs/issue9516-alethe-skolems-undef-in-proof.smt2
+  regress0/proofs/issue9531-alethe-resolution.smt2
   regress0/proofs/lfsc-test-1.smt2
   regress0/proofs/nomerge-alethe-pf.smt2
   regress0/proofs/open-pf-datatypes.smt2
@@ -2263,7 +2264,7 @@ set(regress_1_tests
   regress1/nl/proj-issue294.smt2
   regress1/nl/proj-issue297.smt2
   regress1/nl/proj-issue302.smt2
-  regress1/nl/proj-issue530.smt2 
+  regress1/nl/proj-issue530.smt2
   regress1/nl/quant-nl.smt2
   regress1/nl/red-exp.smt2
   regress1/nl/rewriting-sums.smt2
