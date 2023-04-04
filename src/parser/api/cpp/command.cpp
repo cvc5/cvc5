@@ -2430,7 +2430,23 @@ const std::vector<cvc5::Sort>& DatatypeDeclarationCommand::getDatatypes() const
 
 void DatatypeDeclarationCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
-  d_commandStatus = CommandSuccess::instance();
+  // Implement the bindings. We bind tester names is-C if strict parsing is
+  // disabled.
+  bool bindTesters = solver->getOption("strict-parsing") != "true";
+  if (!sm->bindMutualDatatypeTypes(d_datatypes, bindTesters))
+  {
+    // this should generally never happen since we look ahead to check whether
+    // binding will succeed in Parser::mkMutualDatatypeTypes.
+    std::stringstream ss;
+    ss << "Failed to implement bindings for symbols in definition of datatype "
+          "in block containing "
+       << d_datatypes[0];
+    d_commandStatus = new CommandFailure(ss.str());
+  }
+  else
+  {
+    d_commandStatus = CommandSuccess::instance();
+  }
 }
 
 std::string DatatypeDeclarationCommand::getCommandName() const

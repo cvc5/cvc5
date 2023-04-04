@@ -433,6 +433,8 @@ enum class InferenceId
   QUANTIFIERS_SYGUS_PBE_CONSTRUCT_SOL,
   // complete enumeration lemma
   QUANTIFIERS_SYGUS_COMPLETE_ENUM,
+  // infeasible due to side condition (e.g. for abduction)
+  QUANTIFIERS_SYGUS_SC_INFEASIBLE,
   //-------------------- dynamic splitting
   // a dynamic split from quantifiers
   QUANTIFIERS_DSPLIT,
