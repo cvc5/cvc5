@@ -1829,6 +1829,9 @@ bool AletheProofPostprocessCallback::update(Node res,
 bool AletheProofPostprocessCallback::maybeReplacePremiseProof(Node premise,
                                                               CDProof* cdp)
 {
+  // This method is called only when the premise is used as a singleton
+  // clause. If its proof however concludes a non-singleton clause it'll fail
+  // the test below and we must change its proof.
   std::shared_ptr<ProofNode> premisePf = cdp->getProofFor(premise);
   Node premisePfConclusion = premisePf->getArguments()[2];
   if (premisePfConclusion.getNumChildren() <= 2
@@ -1836,6 +1839,25 @@ bool AletheProofPostprocessCallback::maybeReplacePremiseProof(Node premise,
   {
     return false;
   }
+  // If this resolution child is used as a singleton OR but the rule
+  // justifying it concludes a clause, then we are necessarily in this
+  // scenario:
+  //
+  // (or t1 ... tn)
+  // -------------- OR
+  // (cl t1 ... tn)
+  // ---------------- FACTORING/REORDERING
+  // (cl t1' ... tn')
+  //
+  // where what is used in the resolution is actually (or t1' ... tn').
+  //
+  // This happens when (or t1' ... tn') has been added to the SAT solver as
+  // a literal as well, and its node clashed with the conclusion of the
+  // FACTORING/REORDERING step.
+  //
+  // The solution is to *not* use FACTORING/REORDERING (which in Alethe
+  // operate on clauses) but generate a proof to obtain (via rewriting) the
+  // expected node (or t1' ... tn') from the original node (or t1 ... tn).
   NodeManager* nm = NodeManager::currentNM();
   Trace("alethe-proof") << "\n";
   CVC5_UNUSED AletheRule premisePfRule =
@@ -1849,10 +1871,14 @@ bool AletheProofPostprocessCallback::maybeReplacePremiseProof(Node premise,
   std::shared_ptr<ProofNode> premiseChildPf =
       premisePf->getChildren()[0]->getChildren()[0];
   Node premiseChildConclusion = premiseChildPf->getResult();
-  // Note that we need to add this proof node explicitly to cdp
-  // because cdp does not have a step for it. Rather it is only
-  // present in cdp as a descendant of premisePf (which is in cdp), so
-  // if premisePf is to be lost, then so will premiseChildPf.
+  // Note that we need to add this proof node explicitly (i.e., as an ASSUME
+  // step) to cdp because cdp does not have a step for
+  // premiseChildConclusion. Rather it is only present in cdp as a descendant of
+  // premisePf (which is in cdp), so if premisePf is to be lost, then so will
+  // premiseChildPf. By adding the ASSUME step for premiseChildConclusion, a
+  // step will be present in cdp connecting premiseChildConclusion to
+  // premiseChildPf (since by default adding an ASSUME step will not rewrite an
+  // existing proof for a node).
   addAletheStep(AletheRule::ASSUME,
                 premiseChildConclusion,
                 premiseChildConclusion,
@@ -1971,25 +1997,8 @@ bool AletheProofPostprocessCallback::updatePost(
                                 << " / " << newConclusion << std::endl;
         }
       }
-      // If this resolution child is used as a singleton OR but the rule
-      // justifying it concludes a clause, the we are necessarily in this
-      // scenario:
-      //
-      // (or t1 ... tn)
-      // -------------- OR
-      // (cl t1 ... tn)
-      // ---------------- FACTORING/REORDERING
-      // (cl t1' ... tn')
-      //
-      // where what is used in the resolution is actually (or t1' ... tn').
-      //
-      // This happens when (or t1' ... tn') has been added to the SAT solver as
-      // a literal as well, and its node clashed with the conclusion of the
-      // FACTORING/REORDERING step.
-      //
-      // The solution is to *not* use FACTORING/REORDERING (which in Alethe
-      // operate on clauses) but generate a proof to obtain (via rewriting) the
-      // expected node (or t1' ... tn') from the original node (or t1 ... tn).
+      // The premise is used a singleton clause. We must guarantee that its
+      // proof indeed concludes a singleton clause.
       else if (children[0].getKind() == kind::OR)
       {
         Assert(args[polIdx] == d_true && args[pivIdx] == children[0]);

@@ -140,11 +140,11 @@ class AletheProofPostprocessCallback : protected EnvObj,
                            CDProof& cdp);
 
   /** Test whether resolution premise is wrongly derived as a non-singleton
-   *  clause. Fix if needed.
+   * clause. Fix if needed.
    *
-   *  If the premise is used as a singleton but its proof concludes a
-   *  non-singleton clause, a new proof of its derivation as a singleton is
-   *  added to cdp.
+   * If the premise is used as a singleton but its proof concludes a
+   * non-singleton clause, a new proof of its derivation as a singleton is added
+   * to cdp.
    */
   bool maybeReplacePremiseProof(Node premise, CDProof* cdp);
 
