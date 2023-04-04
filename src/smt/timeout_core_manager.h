@@ -52,7 +52,11 @@ class ContextManager;
  *
  * In the worst case, this algorithm runs N check-sat calls, where N is the
  * number of assertions, since assertions are added one at a time and if
- * an assertion is ever removed from C, it is never readded. 
+ * an assertion is ever removed from C, it is never readded.
+ *
+ * On average, it is expected that timeout cores are similar in size to unsat
+ * cores, so the average number of check-sat calls is roughly 25% of N
+ * typically, as a very rough estimate.
  *
  * However, it is important to note that all check-sat which do not lead to
  * termination are *not* timeouts. When we encounter the first timeout, our
