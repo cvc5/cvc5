@@ -187,7 +187,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
   Trace("rpc-debug2") << "notifyMatch: " << s << " from " << n << " via "
                       << vars << " -> " << subs << std::endl;
   Assert(d_target.getKind() == EQUAL);
-  Assert(s.getType() == n.getType());
+  Assert(s.getType().isComparableTo(n.getType()));
   Assert(vars.size() == subs.size());
   if (d_currFixedPointId != DslPfRule::FAIL)
   {
