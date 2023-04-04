@@ -83,8 +83,8 @@ bool AletheProofPostprocessCallback::update(Node res,
                                             CDProof* cdp,
                                             bool& continueUpdate)
 {
-  Trace("alethe-proof") << "...Alethe pre-update " << res << " " << id
-                        << " " << children << " / " << args << std::endl;
+  Trace("alethe-proof") << "...Alethe pre-update " << res << " " << id << " "
+                        << children << " / " << args << std::endl;
 
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> new_args = std::vector<Node>();
