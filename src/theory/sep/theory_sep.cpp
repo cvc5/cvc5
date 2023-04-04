@@ -234,7 +234,9 @@ void TheorySep::postProcessModel( TheoryModel* m ){
           do
           {
             cv = *te_range;
-            if (std::find(heapLocsNegativePtos[l].begin(), heapLocsNegativePtos[l].end(), cv)
+            if (std::find(heapLocsNegativePtos[l].begin(),
+                          heapLocsNegativePtos[l].end(),
+                          cv)
                 == heapLocsNegativePtos[l].end())
             {
               success = true;
