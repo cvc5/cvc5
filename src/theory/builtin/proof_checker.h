@@ -116,6 +116,8 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
  private:
   /** Reference to the environment. */
   Env& d_env;
+  /** Pointer to the rewrite database */
+  rewriter::RewriteDb* d_rdb;
 };
 
 }  // namespace builtin

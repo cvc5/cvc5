@@ -120,6 +120,7 @@ versions; more recent versions should be compatible.
 - `CMake >= 3.9 <https://cmake.org>`_
 - `Python >= 3.6 <https://www.python.org>`_
   + module `toml <https://pypi.org/project/toml/>`_
+  + module `pyparsing <https://pypi.org/project/pyparsing/>`_
 - `GMP v6.1 (GNU Multi-Precision arithmetic library) <https://gmplib.org>`_
 - `ANTLR 3.4 <http://www.antlr3.org/>`_
 - `CaDiCaL (SAT solver) <https://github.com/arminbiere/cadical>`_

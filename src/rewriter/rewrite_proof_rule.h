@@ -54,18 +54,13 @@ class RewriteProofRule
    * @param context The term context for the conclusion of the rule. This is
    * non-null for all rules that should be applied to fixed-point. The context
    * is a lambda term that specifies the next position of the term to rewrite.
-   * @param isFlatForm Whether the rule is the flat form of the actual rule
-   * with the given id (the flat form of a rule is where all nested applications
-   * have been replaced by fresh variables that are equated to the term they
-   * replace in the conditions of the rule).
    */
   void init(DslPfRule id,
             const std::vector<Node>& userFvs,
             const std::vector<Node>& fvs,
             const std::vector<Node>& cond,
             Node conc,
-            Node context,
-            bool isFlatForm);
+            Node context);
   /** get id */
   DslPfRule getId() const;
   /** get name */
