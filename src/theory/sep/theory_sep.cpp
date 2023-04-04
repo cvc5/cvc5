@@ -176,7 +176,7 @@ void TheorySep::postProcessModel( TheoryModel* m ){
 
   // loc -> { data_1, ..., data_n } where (not (pto loc data_1))...(not (pto loc
   // data_n))).
-  std::map<Node, std::vector<Node> > heapLocsNptos;
+  std::map<Node, std::vector<Node> > heapLocsNegativePtos;
   // set up model
   Trace("sep-model") << "...preparing sep model..." << std::endl;
   // collect data points that are not pointed to
@@ -192,7 +192,7 @@ void TheorySep::postProcessModel( TheoryModel* m ){
       Node v1 = m->getValue(atom[0]);
       Node v2 = m->getValue(atom[1]);
       Trace("sep-model") << v1 << " does not point-to " << v2 << std::endl;
-      heapLocsNptos[v1].push_back(v2);
+      heapLocsNegativePtos[v1].push_back(v2);
     }
   }
 
@@ -234,8 +234,8 @@ void TheorySep::postProcessModel( TheoryModel* m ){
           do
           {
             cv = *te_range;
-            if (std::find(heapLocsNptos[l].begin(), heapLocsNptos[l].end(), cv)
-                == heapLocsNptos[l].end())
+            if (std::find(heapLocsNegativePtos[l].begin(), heapLocsNegativePtos[l].end(), cv)
+                == heapLocsNegativePtos[l].end())
             {
               success = true;
             }
