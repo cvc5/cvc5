@@ -439,7 +439,36 @@
 (define-rule bv-bitwise-idemp-1 ((x ?BitVec)) (bvand x x) x)
 (define-rule bv-bitwise-idemp-2 ((x ?BitVec)) (bvor x x) x)
 
+(define-rule bv-and-zero-1 ((x ?BitVec))
+  (bvand x (bv 0 (bvsize x))) (bv 0 (bvsize x)))
+(define-rule bv-and-zero-2 ((x ?BitVec))
+  (bvand (bv 0 (bvsize x)) x) (bv 0 (bvsize x)))
+(define-cond-rule bv-and-one-1 ((x ?BitVec) (y ?BitVec))
+  (= y (bvnot (bv 0 (bvsize x))))
+  (bvand x y) x)
+(define-cond-rule bv-and-one-2 ((x ?BitVec) (y ?BitVec))
+  (= y (bvnot (bv 0 (bvsize x))))
+  (bvand y x) x)
+
+(define-cond-rule bv-or-one-1 ((x ?BitVec) (y ?BitVec))
+  (= y (bvnot (bv 0 (bvsize x))))
+  (bvor x y) (bvnot (bv 0 (bvsize x))))
+(define-cond-rule bv-or-one-2 ((x ?BitVec) (y ?BitVec))
+  (= y (bvnot (bv 0 (bvsize x))))
+  (bvor y x) (bvnot (bv 0 (bvsize x))))
+
 (define-rule bv-xor-duplicate ((x ?BitVec)) (bvxor x x) (bv 0 (bvsize x)))
+
+(define-cond-rule bv-xor-one-1 ((x ?BitVec) (y ?BitVec))
+  (= y (bvnot (bv 0 (bvsize x))))
+  (bvxor x y) (bvnot x))
+(define-cond-rule bv-xor-one-2 ((x ?BitVec) (y ?BitVec))
+  (= y (bvnot (bv 0 (bvsize x))))
+  (bvxor y x) (bvnot x))
+(define-rule bv-xor-zero-1 ((x ?BitVec))
+  (bvxor x (bv 0 (bvsize x))) x)
+(define-rule bv-xor-zero-2 ((x ?BitVec))
+  (bvxor (bv 0 (bvsize x)) x) x)
 
 (define-rule bv-bitwise-not-and ((x ?BitVec))
   (bvand x (bvnot x))
@@ -486,6 +515,15 @@
   (not (bvsle x y))
   (bvslt y x))
 
+(define-cond-rule* bv-mult-pow2
+  ((xs ?BitVec :list) (ys ?BitVec :list) (z ?BitVec) (size Int) (n Int))
+  (def
+    (exponent (int.log2 n))
+  )
+  (int.ispow2 n)
+  (bvmul xs z (bv n size) ys)
+  (bvmul xs z ys)
+  (concat (extract (- (- size exponent) 1) 0 _) (bv 0 exponent)))
 
 ;(define-rule bv-mult-slice
 ;  ((x ?BitVec) (y ?BitVec))
@@ -801,7 +839,7 @@
   ((x ?BitVec) (y ?BitVec))
   (bvneg (bvsub x y))
   (bvsub y x))
-(define-rule* bv-neg-add-rec
+(define-rule* bv-neg-add
   ((x ?BitVec) (y ?BitVec) (zs ?BitVec :list))
   (bvneg (bvadd x y zs))
   (bvneg (bvadd y zs))
@@ -811,6 +849,25 @@
 ;  ((xs ?BitVec :list) (x ?BitVec) (ys ?BitVec :list) (zs ?BitVec :list) (i Int))
 ;  (extract i 0 (bvadd xs ))
 ;  )
+
+(define-rule bv-mult-distrib-const-neg
+  ((x ?BitVec) (n Int) (m Int))
+  (bvmul (bvneg x) (bv n m))
+  (bvmul x (bv (- n) m)))
+(define-rule bv-mult-distrib-const-add
+  ((x ?BitVec) (y ?BitVec) (n Int) (m Int))
+  (bvmul (bvadd x y) (bv n m))
+  (bvadd
+    (bvmul x (bv n m))
+    (bvmul y (bv n m))
+  ))
+(define-rule bv-mult-distrib-const-sub
+  ((x ?BitVec) (y ?BitVec) (n Int) (m Int))
+  (bvmul (bvsub x y) (bv n m))
+  (bvsub
+    (bvmul x (bv n m))
+    (bvmul y (bv n m))
+  ))
 
 (define-rule bv-mult-distrib-1
   ((x1 ?BitVec) (x2 ?BitVec) (y ?BitVec))
