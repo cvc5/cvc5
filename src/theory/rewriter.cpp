@@ -213,7 +213,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
           TheoryId newTheory = theoryOf(newNode);
           rewriteStackTop.d_node = newNode;
           rewriteStackTop.d_theoryId = newTheory;
-          Assert(newNode.getType() == rewriteStackTop.d_node.getType())
+          Assert(newNode.getType().isComparableTo(
+              rewriteStackTop.d_node.getType()))
               << "Pre-rewriting " << rewriteStackTop.d_node << " to " << newNode
               << " does not preserve type";
           // In the pre-rewrite, if changing theories, we just call the other
@@ -397,7 +398,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
     if (rewriteStack.size() == 1) {
       Assert(!isEquality || rewriteStackTop.d_node.getKind() == kind::EQUAL
              || rewriteStackTop.d_node.isConst());
-      Assert(rewriteStackTop.d_node.getType() == node.getType())
+      Assert(rewriteStackTop.d_node.getType().isComparableTo(node.getType()))
           << "Rewriting " << node << " to " << rewriteStackTop.d_node
           << " does not preserve type";
       return rewriteStackTop.d_node;
