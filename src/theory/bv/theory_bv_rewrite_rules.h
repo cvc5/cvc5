@@ -47,7 +47,6 @@ enum RewriteRuleId
   ReflexivityEq,
 
   /// operator elimination rules
-  SizeEliminate,
   UgtEliminate,
   UgeEliminate,
   SgeEliminate,
@@ -81,8 +80,7 @@ enum RewriteRuleId
   UsuboEliminate,
   SsuboEliminate,
   SdivoEliminate,
-  BVToNatEliminate,
-  IntToBVEliminate,
+  SizeEliminate,
 
   /// ground term evaluation
   EvalEquals,
@@ -239,8 +237,6 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case RepeatEliminate:     out << "RepeatEliminate";     return out;
   case RotateLeftEliminate: out << "RotateLeftEliminate"; return out;
   case RotateRightEliminate:out << "RotateRightEliminate";return out;
-  case BVToNatEliminate:    out << "BVToNatEliminate";    return out;
-  case IntToBVEliminate:    out << "IntToBVEliminate";    return out;
   case NandEliminate:       out << "NandEliminate";       return out;
   case NorEliminate :       out << "NorEliminate";        return out;
   case SdivEliminate :      out << "SdivEliminate";       return out;
