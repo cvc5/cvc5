@@ -1450,9 +1450,6 @@ void SygusExtension::notifySearchSize(TNode m, uint64_t s, Node exp)
   Assert(its != d_szinfo.end());
   if( its->second->d_search_size.find( s )==its->second->d_search_size.end() ){
     its->second->d_search_size[s] = true;
-    Assert(s == 0
-           || its->second->d_search_size.find(s - 1)
-                  != its->second->d_search_size.end());
     Trace("sygus-fair") << "SygusExtension:: now considering term measure : " << s << " for " << m << std::endl;
     Assert(s >= its->second->d_curr_search_size);
     while( s>its->second->d_curr_search_size ){
