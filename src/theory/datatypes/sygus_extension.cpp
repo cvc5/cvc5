@@ -274,7 +274,7 @@ void SygusExtension::assertTesterInternal(int tindex, TNode n, Node exp)
           }
         }
       }
-      // Notice that conflict.size() is typically equal to 
+      // Notice that conflict.size() is typically equal to
       // d_currTermSize[a].get(), except in cases where the size annotation is
       // not equal to (0,1) for (nullary, non-nullary) constructors.
       NodeManager* nm = NodeManager::currentNM();
