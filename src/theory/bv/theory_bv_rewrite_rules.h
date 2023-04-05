@@ -587,8 +587,6 @@ struct AllRewriteRules {
   RewriteRule<BitwiseEq>                      rule113;
   RewriteRule<UltOne>                         rule114;
   RewriteRule<SltZero>                        rule115;
-  RewriteRule<BVToNatEliminate>               rule116;
-  RewriteRule<IntToBVEliminate>               rule117;
   RewriteRule<MultDistrib>                    rule118;
   RewriteRule<UltAddOne> rule119;
   RewriteRule<ConcatToMult>                   rule120;
