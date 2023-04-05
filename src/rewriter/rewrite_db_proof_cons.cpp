@@ -20,6 +20,7 @@
 #include "smt/env.h"
 #include "theory/arith/arith_poly_norm.h"
 #include "theory/builtin/proof_checker.h"
+#include "options/proof_options.h"
 #include "theory/rewriter.h"
 
 using namespace cvc5::internal::kind;
@@ -34,6 +35,7 @@ RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
       d_db(db),
       d_eval(nullptr),
       d_currRecLimit(0),
+      d_currStepLimit(0),
       d_currFixedPointId(DslPfRule::FAIL),
       d_statTotalInputs(
           statisticsRegistry().registerInt("RewriteDbProofCons::totalInputs")),
@@ -59,7 +61,8 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
                                Node b,
                                theory::TheoryId tid,
                                MethodId mid,
-                               int64_t recLimit)
+                               int64_t recLimit,
+                               int64_t stepLimit)
 {
   // clear the proof caches? use attributes instead?
   d_pcache.clear();
@@ -85,6 +88,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
     // add one to recursion limit, since it is decremented whenever we initiate
     // the getMatches routine.
     d_currRecLimit = recLimit + 1;
+    d_currStepLimit = stepLimit;
     // Otherwise, we call the main prove internal method, which recurisvely
     // tries to find a matched conclusion whose conditions can be proven
     id = proveInternal(eqi);
@@ -128,7 +132,7 @@ DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
 }
 
 DslPfRule RewriteDbProofCons::proveInternalViaStrategy(Node eqi)
-{
+{  
   Assert(eqi.getKind() == EQUAL);
   if (proveWithRule(DslPfRule::CONG, eqi, {}, {}, false, false, true))
   {
@@ -184,6 +188,13 @@ bool RewriteDbProofCons::notifyMatch(Node s,
                                      std::vector<Node>& vars,
                                      std::vector<Node>& subs)
 {
+  // if we reach our step limit, do not continue trying
+  if (d_currStepLimit==0)
+  {
+    return false;
+  }
+  d_currStepLimit--;
+  Trace("rpc-debug2") << "[steps remaining: " << d_currStepLimit << "]" << std::endl;
   Trace("rpc-debug2") << "notifyMatch: " << s << " from " << n << " via "
                       << vars << " -> " << subs << std::endl;
   Assert(d_target.getKind() == EQUAL);

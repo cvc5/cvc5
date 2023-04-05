@@ -54,7 +54,8 @@ class RewriteDbProofCons : protected EnvObj
              Node b,
              theory::TheoryId tid,
              MethodId mid,
-             int64_t recLimit);
+             int64_t recLimit,
+             int64_t stepLimit);
 
  private:
   /** Notify class for the match trie */
@@ -161,6 +162,8 @@ class RewriteDbProofCons : protected EnvObj
   Node d_target;
   /** current recursion limit */
   uint32_t d_currRecLimit;
+  /** current step recursion limit */
+  uint32_t d_currStepLimit;
   /** current rule we are applying to fixed point */
   DslPfRule d_currFixedPointId;
   /** current substitution from fixed point */

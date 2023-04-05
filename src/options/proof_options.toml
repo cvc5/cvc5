@@ -122,10 +122,18 @@ name   = "Proof"
 [[option]]
   name       = "proofRewriteRconsRecLimit"
   category   = "regular"
-  long       = "proof-rewrite-rcons-limit=N"
+  long       = "proof-rewrite-rcons-rec-limit=N"
   type       = "int64_t"
   default    = "5"
   help       = "the matching recursion limit for reconstructing proofs of theory rewrites"
+
+[[option]]
+  name       = "proofRewriteRconsStepLimit"
+  category   = "regular"
+  long       = "proof-rewrite-rcons-step-limit=N"
+  type       = "int64_t"
+  default    = "1000"
+  help       = "the limit of steps considered for reconstructing proofs of theory rewrites"
 
 [[option]]
   name       = "proofAnnotate"
