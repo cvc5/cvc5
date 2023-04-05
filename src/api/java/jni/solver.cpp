@@ -1972,8 +1972,8 @@ Java_io_github_cvc5_Solver_getUnsatCore(JNIEnv* env, jobject, jlong pointer)
  * Method:    getUnsatCoreLemmas
  * Signature: (J)[J
  */
-JNIEXPORT jlongArray JNICALL
-Java_io_github_cvc5_Solver_getUnsatCoreLemmas(JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getUnsatCoreLemmas(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
