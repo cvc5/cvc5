@@ -72,6 +72,7 @@ set(regress_0_tests
   regress0/arith/issue8872-msum-types.smt2
   regress0/arith/issue8872-2-msum-types.smt2
   regress0/arith/issue9131-inverse-of-int.smt2
+  regress0/arith/issue9643.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
   regress0/arith/miplib.cvc.smt2
@@ -1104,6 +1105,7 @@ set(regress_0_tests
   regress0/proofs/issue9393-optResReconstruction-alethebug.smt2
   regress0/proofs/issue9515-alethe-skolems-crash.smt2
   regress0/proofs/issue9516-alethe-skolems-undef-in-proof.smt2
+  regress0/proofs/issue9531-alethe-resolution.smt2
   regress0/proofs/lfsc-test-1.smt2
   regress0/proofs/nomerge-alethe-pf.smt2
   regress0/proofs/open-pf-datatypes.smt2
@@ -1226,6 +1228,7 @@ set(regress_0_tests
   regress0/quantifiers/issue8821-enum-interleave-types.smt2
   regress0/quantifiers/issue8923-qe-push-pop.smt2
   regress0/quantifiers/issue9602-rewrite-pow-type.smt2
+  regress0/quantifiers/issue9640-vts-iff.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
@@ -1455,6 +1458,7 @@ set(regress_0_tests
   regress0/sets/proj-issue486-sets-split-eq.smt2
   regress0/sets/proj-issue493-choose-det.smt2
   regress0/sets/proj-issue501-choose-bool-term-var.smt2
+  regress0/sets/proj-issue583.smt2
   regress0/sets/rec_copy_loop_check_heap_access_43_4.smt2
   regress0/sets/setel-eq.smt2
   regress0/sets/sets-deq-dd.smt2
@@ -2264,7 +2268,7 @@ set(regress_1_tests
   regress1/nl/proj-issue294.smt2
   regress1/nl/proj-issue297.smt2
   regress1/nl/proj-issue302.smt2
-  regress1/nl/proj-issue530.smt2 
+  regress1/nl/proj-issue530.smt2
   regress1/nl/quant-nl.smt2
   regress1/nl/red-exp.smt2
   regress1/nl/rewriting-sums.smt2
@@ -2710,6 +2714,7 @@ set(regress_1_tests
   regress1/sets/proj-issue164.smt2
   regress1/sets/proj-issue178.smt2
   regress1/sets/proj-issue494-finite-leafof.smt2
+  regress1/sets/proj-issue610.smt2
   regress1/sets/relation_aggregate1.smt2
   regress1/sets/relation_group1.smt2
   regress1/sets/relation_group2.smt2

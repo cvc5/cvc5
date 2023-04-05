@@ -598,8 +598,13 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
     // requires again full since ensureReal may have added a to_real
     return RewriteResponse(REWRITE_AGAIN_FULL, mult);
   }
-  Node ret = nm->mkNode(t.getKind(), left, right);
-  return RewriteResponse(REWRITE_DONE, ret);
+  // may have changed due to removing to_real
+  if (left!=t[0] || right!=t[1])
+  {
+    Node ret = nm->mkNode(t.getKind(), left, right);
+    return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+  }
+  return RewriteResponse(REWRITE_DONE, t);
 }
 
 RewriteResponse ArithRewriter::rewriteToReal(TNode t)
@@ -616,6 +621,11 @@ RewriteResponse ArithRewriter::rewriteToReal(TNode t)
     // If the argument is constant, return a real constant.
     const Rational& rat = t[0].getConst<Rational>();
     return RewriteResponse(REWRITE_DONE, nm->mkConstReal(rat));
+  }
+  if (t[0].getKind()==kind::TO_REAL)
+  {
+    // (to_real (to_real t)) ---> (to_real t)
+    return RewriteResponse(REWRITE_DONE, t[0]);
   }
   return RewriteResponse(REWRITE_DONE, t);
 }

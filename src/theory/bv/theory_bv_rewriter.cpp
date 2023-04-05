@@ -318,7 +318,7 @@ RewriteResponse TheoryBVRewriter::RewriteXor(TNode node, bool prerewrite)
   if (!prerewrite)
   {
     resultNode =
-        LinearRewriteStrategy<RewriteRule<XorOne>,
+        LinearRewriteStrategy<RewriteRule<XorOnes>,
                               RewriteRule<BitwiseSlicing>>::apply(resultNode);
 
     if (resultNode.getKind() != node.getKind())

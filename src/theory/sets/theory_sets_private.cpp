@@ -215,6 +215,11 @@ void TheorySetsPrivate::fullEffortReset()
 void TheorySetsPrivate::fullEffortCheck()
 {
   Trace("sets") << "----- Full effort check ------" << std::endl;
+  // get the asserted terms
+  std::set<Kind> irrKinds;
+  std::set<Node> rlvTerms;
+  d_external.collectAssertedTerms(rlvTerms, true, irrKinds);
+  d_external.computeRelevantTerms(rlvTerms);
   do
   {
     Assert(!d_im.hasPendingLemma() || d_im.hasSent());
@@ -239,6 +244,12 @@ void TheorySetsPrivate::fullEffortCheck()
       while (!eqc_i.isFinished())
       {
         Node n = (*eqc_i);
+        ++eqc_i;
+        // if it is not relevant, don't register it
+        if (rlvTerms.find(n)==rlvTerms.end())
+        {
+          continue;
+        }
         TypeNode tnn = n.getType();
         // register it with the state
         d_state.registerTerm(eqc, tnn, n);
@@ -285,7 +296,6 @@ void TheorySetsPrivate::fullEffortCheck()
         {
           d_higher_order_kinds_enabled = true;
         }
-        ++eqc_i;
       }
       ++eqcs_i;
     }
@@ -439,55 +449,53 @@ void TheorySetsPrivate::checkDownwardsClosure()
       const std::map<Node, Node>& smem = d_state.getMembers(s);
       for (const Node& nv : nvsets)
       {
-        if (!d_state.isCongruent(nv))
+        for (const std::pair<const Node, Node>& it2 : smem)
         {
-          for (const std::pair<const Node, Node>& it2 : smem)
+          Node mem = it2.second;
+          Node eq_set = nv;
+          Assert(d_equalityEngine->areEqual(mem[1], eq_set));
+          if (mem[1] != eq_set)
           {
-            Node mem = it2.second;
-            Node eq_set = nv;
-            Assert(d_equalityEngine->areEqual(mem[1], eq_set));
-            if (mem[1] != eq_set)
+            Trace("sets-debug") << "Downwards closure based on " << mem
+                                << ", eq_set = " << eq_set << std::endl;
+            if (!options().sets.setsProxyLemmas)
             {
-              Trace("sets-debug") << "Downwards closure based on " << mem
-                                  << ", eq_set = " << eq_set << std::endl;
-              if (!options().sets.setsProxyLemmas)
+              Node nmem = NodeManager::currentNM()->mkNode(
+                  kind::SET_MEMBER, mem[0], eq_set);
+              nmem = rewrite(nmem);
+              std::vector<Node> exp;
+              exp.push_back(mem);
+              exp.push_back(mem[1].eqNode(eq_set));
+              d_im.assertInference(nmem, InferenceId::SETS_DOWN_CLOSURE, exp);
+              if (d_state.isInConflict())
               {
-                Node nmem = NodeManager::currentNM()->mkNode(
-                    kind::SET_MEMBER, mem[0], eq_set);
-                nmem = rewrite(nmem);
-                std::vector<Node> exp;
-                exp.push_back(mem);
-                exp.push_back(mem[1].eqNode(eq_set));
-                d_im.assertInference(nmem, InferenceId::SETS_DOWN_CLOSURE, exp);
-                if (d_state.isInConflict())
-                {
-                  return;
-                }
+                return;
+              }
+            }
+            else
+            {
+              // use proxy set
+              Node k = d_treg.getProxy(eq_set);
+              Node pmem = NodeManager::currentNM()->mkNode(
+                  kind::SET_MEMBER, mem[0], k);
+              Node nmem = NodeManager::currentNM()->mkNode(
+                  kind::SET_MEMBER, mem[0], eq_set);
+              nmem = rewrite(nmem);
+              std::vector<Node> exp;
+              if (d_state.areEqual(mem, pmem))
+              {
+                exp.push_back(pmem);
               }
               else
               {
-                // use proxy set
-                Node k = d_treg.getProxy(eq_set);
-                Node pmem = NodeManager::currentNM()->mkNode(
-                    kind::SET_MEMBER, mem[0], k);
-                Node nmem = NodeManager::currentNM()->mkNode(
-                    kind::SET_MEMBER, mem[0], eq_set);
-                nmem = rewrite(nmem);
-                std::vector<Node> exp;
-                if (d_state.areEqual(mem, pmem))
-                {
-                  exp.push_back(pmem);
-                }
-                else
-                {
-                  nmem = NodeManager::currentNM()->mkNode(
-                      kind::OR, pmem.negate(), nmem);
-                }
-                d_im.assertInference(nmem, InferenceId::SETS_DOWN_CLOSURE, exp);
+                nmem = NodeManager::currentNM()->mkNode(
+                    kind::OR, pmem.negate(), nmem);
               }
+              d_im.assertInference(nmem, InferenceId::SETS_DOWN_CLOSURE, exp);
             }
           }
         }
+        
       }
     }
   }
@@ -507,14 +515,14 @@ void TheorySetsPrivate::checkUpwardsClosure()
                   << std::endl;
     for (const std::pair<const Node, std::map<Node, Node> >& it : itb.second)
     {
-      Node r1 = it.first;
+      Node r1 = d_state.getRepresentative(it.first);
       // see if there are members in first argument r1
       const std::map<Node, Node>& r1mem = d_state.getMembers(r1);
       if (!r1mem.empty() || k == kind::SET_UNION)
       {
         for (const std::pair<const Node, Node>& it2 : it.second)
         {
-          Node r2 = it2.first;
+          Node r2 = d_state.getRepresentative(it2.first);
           Node term = it2.second;
           // see if there are members in second argument
           const std::map<Node, Node>& r2mem = d_state.getMembers(r2);

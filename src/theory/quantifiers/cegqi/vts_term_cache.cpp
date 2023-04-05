@@ -127,7 +127,8 @@ Node VtsTermCache::substituteVtsFreeTerms(Node n)
 Node VtsTermCache::rewriteVtsSymbols(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
-  if ((n.getKind() == EQUAL || n.getKind() == GEQ))
+  if (((n.getKind() == EQUAL && n[0].getType().isRealOrInt())
+       || n.getKind() == GEQ))
   {
     Trace("quant-vts-debug") << "VTS : process " << n << std::endl;
     Node rew_vts_inf;
