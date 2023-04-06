@@ -459,10 +459,10 @@
 
 (define-rule bv-xor-duplicate ((x ?BitVec)) (bvxor x x) (bv 0 (bvsize x)))
 
-(define-cond-rule bv-xor-one-1 ((x ?BitVec) (y ?BitVec))
+(define-cond-rule bv-xor-ones-1 ((x ?BitVec) (y ?BitVec))
   (= y (bvnot (bv 0 (bvsize x))))
   (bvxor x y) (bvnot x))
-(define-cond-rule bv-xor-one-2 ((x ?BitVec) (y ?BitVec))
+(define-cond-rule bv-xor-ones-2 ((x ?BitVec) (y ?BitVec))
   (= y (bvnot (bv 0 (bvsize x))))
   (bvxor y x) (bvnot x))
 (define-rule bv-xor-zero-1 ((x ?BitVec))
