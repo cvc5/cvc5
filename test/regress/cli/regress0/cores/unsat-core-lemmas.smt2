@@ -1,15 +1,17 @@
 ; COMMAND-LINE: --simplification=none --unsat-cores-mode=sat-proof
-; EXPECT: unsat
-; EXPECT: (
-; EXPECT: a4
-; EXPECT: a3
-; EXPECT: a2
-; EXPECT: a1
 ; EXPECT: a0
+; EXPECT: a1
+; EXPECT: a2
+; EXPECT: a3
+; EXPECT: a4
 ; EXPECT: )
 ; EXPECT: (
 ; EXPECT: (or (= (f a c) (f b d)) (not (= a b)) (not (= c d)))
 ; EXPECT: )
+;
+;; This will remove the initial "unsat" and "(" lines of the output, then order the unsat core (next 5 lines) and print the rest as is (the unsat core lemmas).
+; SCRUBBER: tail -n +3 | awk -v n=5 '{if(NR<=n){print $0 | "sort"}else{print $0}}' | cat
+
 
 (set-logic QF_UF)
 (set-option :produce-unsat-cores true)
