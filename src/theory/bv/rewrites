@@ -551,6 +551,7 @@
 ;    (concat (bvmul yTop xBot) z)
 ;    (concat (bvmul xTop yBot) z)
 ;  ))
+
 ; If the bit-vectors multiplied have enough leading zeros,
 ; we can determine that the top bits of the multiplication
 ; are zero and not compute them. Only apply for large bitwidths
@@ -854,11 +855,6 @@
   (bvneg (bvadd x y zs))
   (bvneg (bvadd y zs))
   (bvadd (bvneg x) _))
-
-;(define-rule* bv-extract-arith-add
-;  ((xs ?BitVec :list) (x ?BitVec) (ys ?BitVec :list) (zs ?BitVec :list) (i Int))
-;  (extract i 0 (bvadd xs ))
-;  )
 
 (define-rule bv-mult-distrib-const-neg
   ((x ?BitVec) (n Int) (m Int))
