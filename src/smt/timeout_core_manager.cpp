@@ -77,7 +77,7 @@ std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
   for (std::pair<const size_t, AssertInfo>& a : d_ainfo)
   {
     Assert(a.first < d_ppAsserts.size());
-    toCore.push_back(d_asserts[a.first]);
+    toCore.push_back(d_ppAsserts[a.first]);
   }
   return std::pair<Result, std::vector<Node>>(result, toCore);
 }
