@@ -15,8 +15,8 @@
 
 #include "theory/strings/regexp_eval.h"
 
-#include "util/string.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "util/string.h"
 
 using namespace cvc5::internal::kind;
 

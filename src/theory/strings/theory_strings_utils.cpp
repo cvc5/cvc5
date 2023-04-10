@@ -277,7 +277,7 @@ bool isConstantLike(Node n)
 
 bool isCharacterRange(TNode t)
 {
-  Assert (t.getKind()==REGEXP_RANGE);
+  Assert(t.getKind() == REGEXP_RANGE);
   for (size_t i = 0; i < 2; i++)
   {
     if (!t[i].isConst() || t[i].getConst<String>().size() != 1)
