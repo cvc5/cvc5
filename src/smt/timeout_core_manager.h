@@ -45,10 +45,24 @@ class ContextManager;
  *     Update C to C' such that C'^m' = false for all models m' in M and repeat.
  *
  * The selection of C' is done by adding to C a single new assertion from our
- * input that is falsified by m, and then removing from C' any assertions that
+ * input that is falsified by m, and then removing from C any assertions that
  * are not falsified by another assertion already in C'. In detail, each model
  * in M is "owned" by an assertion in C. When a new assertion is added to C,
  * it takes ownership of all models that it is falsified by.
+ *
+ * In the worst case, this algorithm runs N check-sat calls, where N is the
+ * number of assertions, since assertions are added one at a time and if
+ * an assertion is ever removed from C, it is never readded.
+ *
+ * On average, it is expected that timeout cores are similar in size to unsat
+ * cores, so the average number of check-sat calls is roughly 25% of N
+ * typically, as a very rough estimate.
+ *
+ * However, it is important to note that all check-sat which do not lead to
+ * termination are *not* timeouts. When we encounter the first timeout, our
+ * set is already minimal covering of the models we have accumulated so far.
+ * This is important for performance since there is at most one *timeout* call
+ * to check-sat.
  */
 class TimeoutCoreManager : protected EnvObj
 {

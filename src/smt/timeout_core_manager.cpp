@@ -15,10 +15,9 @@
 
 #include "smt/timeout_core_manager.h"
 
-#include <cvc5/cvc5_types.h>
-
 #include <fstream>
 
+#include <cvc5/cvc5_types.h>
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/smt_options.h"
@@ -78,9 +77,9 @@ std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
   std::vector<Node> toCore;
   for (std::pair<const size_t, AssertInfo>& a : d_ainfo)
   {
-    Assert(a.first < d_ppAsserts.size());
+    Assert(a.first < ppAsserts.size());
     Trace("smt-to-core-asserts") << "...return #" << a.first << std::endl;
-    toCore.push_back(d_ppAsserts[a.first]);
+    toCore.push_back(ppAsserts[a.first]);
   }
   return std::pair<Result, std::vector<Node>>(result, toCore);
 }
