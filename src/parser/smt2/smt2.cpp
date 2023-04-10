@@ -1129,7 +1129,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
         kind = FLOATINGPOINT_TO_FP_FROM_IEEE_BV;
         op = d_solver->mkOp(kind, p.d_indices);
       }
-      else if (nchildren > 2)
+      else if (nchildren > 2 || nchildren==0)
       {
         std::stringstream ss;
         ss << "Wrong number of arguments for indexed operator to_fp, expected "
