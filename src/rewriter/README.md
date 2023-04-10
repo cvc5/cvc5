@@ -22,9 +22,8 @@ This document describe the syntax of the RARE language, which stands for
 
 ### Matching
 
-The basic form of a RARE rewrite rule uses `define-rule`. The two
-expressions in the body of `define-rule` indicate the *match* and *target*
-of the rewrites.
+The basic form of a RARE rewrite rule uses `define-rule`. The two expressions in
+the body of `define-rule` indicate the *match* and *target* of the rewrites.
 
 ``` lisp
 (define-rule substr-empty
@@ -32,25 +31,11 @@ of the rewrites.
 	(str.substr "" m n)
 	"")
 ```
-In this case, the match is `(str.substr "" m n)` and the target is `""`. For example, when the rule is applied to
-`(str.substr "" 3 5)`, `m,n` are instantiated to `3,5`, respectively, and the expression is rewritten as `""`.
+In this case, the match is `(str.substr "" m n)` and the target is `""`. For example, when the rule is applied to `(str.substr "" 3 5)`, `m,n` are instantiated to `3,5`, respectively, and the expression is rewritten as `""`.
 
 Match is purely syntactic. It matches *syntactically identical* terms. For
 example `(= (str.++ x1 x2) x2)`matches `a ++ b = b` but not `a ++ b = c`.
 
-### Fixed-Point Rules
-
-The `*` in `define-rule*` indicates that the rule shall be executed until it can
-no longer apply. In this case the user can supply a rewrite context to support
-the continuation.
-
-``` lisp
-(define-rule* str-len-concat-rec ((s1 String) (s2 String) (s3 String :list))
-	(str.len (str.++ s1 s2 s3))
-	(str.len (str.++ s2 s3))
-	(+ (str.len s1) _))
-```
-This rule specifies that the rewrite of `(str.len (str.++ s1 s2 ...))` is the sum of `(str.len s1)` and the result of applying the rule to the term `(str.len (str.++ s2 ...))`
 
 ### Conditional Rules
 
@@ -66,6 +51,44 @@ evaluable at the time of rule application.
 	(concat x (repeat (- n 1) x)))
 ```
 This rule is applied on `(repeat 3 ...)` but not `(repeat 1 ...)`.
+
+Implicit assumptions are not required. For example, it is unnecessary in the example below to enforce `0 <= i <= j < (bvsize x)`. The type checker will automatically ensure the expressions entering the reconstruction algorithms have sound types.
+``` lisp
+(define-rule bv-extract-extract
+  ((x ?BitVec) (i Int) (j Int) (k Int) (l Int))
+  (extract l k (extract j i x))
+  (extract (+ i l) (+ i k) x))
+```
+
+### Fixed-Point Rules
+
+The `*` in `define-rule*` indicates that the rule shall be executed by the
+reconstruction algorithm until the expression reaches a fixed point. This is an
+optimisation and useful for writing rules that iterate over the arguments of
+n-ary operators.
+
+Below is an example which recursively flattens a concat using fixed-point rules.
+``` lisp
+(define-rule* bv-concat-flatten
+  ((xs ?BitVec :list)
+   (s ?BitVec)
+   (ys ?BitVec :list)
+   (zs ?BitVec :list))
+  (concat xs (concat s ys) zs)
+  (concat xs s ys zs))
+```
+The user can optionally supply a rewrite context to support the continuation. The context indicates how to use the recursion step, which rewrites *match* to *target*, to construct the final result. Below is an example
+``` lisp
+(define-rule* str-len-concat-rec ((s1 String) (s2 String) (s3 String :list))
+	(str.len (str.++ s1 s2 s3))
+	(str.len (str.++ s2 s3))
+	(+ (str.len s1) _))
+```
+This rule specifies that the rewrite of `(str.len (str.++ s1 s2 ...))` is the sum of `(str.len s1)` and the result of applying the rule to the term `(str.len (str.++ s2 ...))`
+
+### Conditional Fixed Point Rules
+
+
 
 ### def construction and variable bindings
 
