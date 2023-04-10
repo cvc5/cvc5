@@ -139,6 +139,15 @@ class AletheProofPostprocessCallback : protected EnvObj,
                            const std::vector<Node>& args,
                            CDProof& cdp);
 
+  /** Test whether resolution premise is wrongly derived as a non-singleton
+   * clause. Fix if needed.
+   *
+   * If the premise is used as a singleton but its proof concludes a
+   * non-singleton clause, a new proof of its derivation as a singleton is added
+   * to cdp.
+   */
+  bool maybeReplacePremiseProof(Node premise, CDProof* cdp);
+
   /** Nodes corresponding to the Boolean values. */
   Node d_true;
   Node d_false;
