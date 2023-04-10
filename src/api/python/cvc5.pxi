@@ -2455,6 +2455,23 @@ cdef class Solver:
             diffi[termk] = termv
         return diffi
 
+    def getTimeoutCore(self):
+        """
+
+            .. warning:: This method is experimental and may change in future
+                         versions.
+        """
+        cdef pair[Result, []] res
+        res = self.csolver.getTimeoutCore()
+        core = []
+        for a in res.second:
+            term = Term(self)
+            term.cterm = a
+            core.append(term)
+        cdef Result r = Result()
+        r.cr = res.first
+        return (r, core)
+
     def getValue(self, term_or_list):
         """
             Get the value of the given term or list of terms in the current

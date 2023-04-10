@@ -1671,6 +1671,7 @@ set(regress_0_tests
   regress0/symmetric.smtv1.smt2
   regress0/test11.cvc.smt2
   regress0/test9.cvc.smt2
+  regress0/timeout_core_simple.smt2
   regress0/tptp/ARI086=1.p
   regress0/tptp/DAT001=1.p
   regress0/tptp/is_rat_simple.p
