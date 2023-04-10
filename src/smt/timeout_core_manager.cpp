@@ -77,9 +77,9 @@ std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
   std::vector<Node> toCore;
   for (std::pair<const size_t, AssertInfo>& a : d_ainfo)
   {
-    Assert(a.first < ppAsserts.size());
+    Assert(a.first < d_asserts.size());
     Trace("smt-to-core-asserts") << "...return #" << a.first << std::endl;
-    toCore.push_back(ppAsserts[a.first]);
+    toCore.push_back(d_asserts[a.first]);
   }
   return std::pair<Result, std::vector<Node>>(result, toCore);
 }
@@ -270,7 +270,9 @@ void TimeoutCoreManager::initializePreprocessedAssertions(
       else
       {
         // false assertion, we are done
+        d_asserts.clear();
         d_ppAsserts.clear();
+        d_asserts.push_back(pa);
         d_ppAsserts.push_back(pa);
         return;
       }
