@@ -2461,7 +2461,7 @@ cdef class Solver:
             .. warning:: This method is experimental and may change in future
                          versions.
         """
-        cdef pair[Result, []] res
+        cdef pair[c_Result, vector[c_Term]] res
         res = self.csolver.getTimeoutCore()
         core = []
         for a in res.second:
