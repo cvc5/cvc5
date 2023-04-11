@@ -2469,7 +2469,7 @@ cdef class Solver:
             term.cterm = a
             core.append(term)
         cdef Result r = Result()
-        r.cr = res.first
+        r.cr = res.first.cr
         return (r, core)
 
     def getValue(self, term_or_list):
