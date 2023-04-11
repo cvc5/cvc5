@@ -1977,7 +1977,7 @@ TEST_F(TestApiBlackSolver, getLearnedLiterals2)
 
 TEST_F(TestApiBlackSolver, getTimeoutCoreUnsat)
 {
-  d_solver.setOption("timeout-core-timeout", "200");
+  d_solver.setOption("timeout-core-timeout", "100");
   Sort intSort = d_solver.getIntegerSort();
   Term x = d_solver.mkConst(intSort, "x");
   Term tt = d_solver.mkBoolean(true);
