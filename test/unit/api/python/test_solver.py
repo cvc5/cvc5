@@ -1482,6 +1482,32 @@ def test_learned_literals2(solver):
     solver.checkSat()
     solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_INPUT)
 
+def test_get_timeout_core_unsat(solver):
+  solver.setOption("timeout-core-timeout", "100")
+  intSort = solver.getIntegerSort()
+  x = solver.mkConst(intSort, "x")
+  tt = solver.mkBoolean(true)
+  hard =
+      solver.mkTerm(Kind.EQUAL,
+                      solver.mkTerm(Kind.MULT, {x, x}),
+                      solver.mkInteger("501240912901901249014210220059591"))
+  solver.assertFormula(tt)
+  solver.assertFormula(hard)
+  res = solver.getTimeoutCore()
+  assert res.first.isUnknown()
+  assert len(res.second) == 1
+  assert res.second[0] == hard
+
+def test_get_timeout_core(solver):
+  ff = solver.mkBoolean(false)
+  tt = solver.mkBoolean(true)
+  solver.assertFormula(tt)
+  solver.assertFormula(ff)
+  solver.assertFormula(tt)
+  res = solver.getTimeoutCore()
+  assert res.first.isUnsat()
+  assert len(res.second) == 1
+  assert res.second[0] == ff
 
 def test_get_value1(solver):
     solver.setOption("produce-models", "false")
