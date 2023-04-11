@@ -88,8 +88,6 @@ if(NOT BUILD_SHARED_LIBS)
 endif()
 target_link_libraries(cvc5-bin PUBLIC cvc5 cvc5parser)
 
-target_link_libraries(cvc5-bin PUBLIC ${GMP_LIBRARIES})
-
 if(USE_EDITLINE)
   target_link_libraries(cvc5-bin PUBLIC ${Editline_LIBRARIES})
   target_link_libraries(main-test PUBLIC ${Editline_LIBRARIES})
