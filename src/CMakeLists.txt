@@ -1438,7 +1438,7 @@ endif()
 
 add_dependencies(cvc5-obj CaDiCaL)
 target_include_directories(cvc5-obj SYSTEM PRIVATE ${CaDiCaL_INCLUDE_DIR})
-target_link_libraries(cvc5 PRIVATE CaDiCaL)
+target_link_libraries(cvc5 PRIVATE ${CaDiCaL_LIBRARIES})
 
 if(USE_CLN)
   add_dependencies(cvc5-obj CLN)
@@ -1463,9 +1463,9 @@ if(USE_POLY)
   add_dependencies(cvc5-obj Polyxx)
   target_include_directories(cvc5-obj SYSTEM PRIVATE ${Poly_INCLUDE_DIR})
   if(BUILD_SHARED_LIBS)
-    target_link_libraries(cvc5 PRIVATE Polyxx)
+    target_link_libraries(cvc5 PRIVATE ${Polyxx_LIBRARIES})
   else()
-    target_link_libraries(cvc5 PUBLIC Polyxx)
+    target_link_libraries(cvc5 PUBLIC ${Polyxx_LIBRARIES})
   endif()
 endif()
 if(USE_COCOA)
@@ -1476,7 +1476,7 @@ endif()
 
 add_dependencies(cvc5-obj SymFPU)
 target_include_directories(cvc5-obj SYSTEM PRIVATE ${SymFPU_INCLUDE_DIR})
-target_link_libraries(cvc5 PRIVATE SymFPU)
+target_link_libraries(cvc5 PRIVATE ${SymFPU_LIBRARIES})
 
 #-----------------------------------------------------------------------------#
 # Visit main subdirectory after creating target cvc5. For target main, we have
