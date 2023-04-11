@@ -1981,10 +1981,10 @@ TEST_F(TestApiBlackSolver, getTimeoutCoreUnsat)
   Sort intSort = d_solver.getIntegerSort();
   Term x = d_solver.mkConst(intSort, "x");
   Term tt = d_solver.mkBoolean(true);
-  Term hard =
-      d_solver.mkTerm(EQUAL,
-                      {d_solver.mkTerm(MULT, {x, x}),
-                      d_solver.mkInteger("501240912901901249014210220059591")});
+  Term hard = d_solver.mkTerm(
+      EQUAL,
+      {d_solver.mkTerm(MULT, {x, x}),
+       d_solver.mkInteger("501240912901901249014210220059591")});
   d_solver.assertFormula(tt);
   d_solver.assertFormula(hard);
   std::pair<cvc5::Result, std::vector<Term>> res = d_solver.getTimeoutCore();
