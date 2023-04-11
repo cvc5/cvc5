@@ -53,6 +53,10 @@ if(POLICY CMP0135)
   cmake_policy(SET CMP0135 NEW)
 endif()
 
+if(POLICY CMP0079)
+  cmake_policy(SET CMP0079 NEW)
+endif()
+
 #-----------------------------------------------------------------------------#
 # Tell CMake where to find our dependencies
 

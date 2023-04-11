@@ -1422,9 +1422,9 @@ install(FILES
 add_dependencies(cvc5-obj GMP)
 target_include_directories(cvc5-obj PRIVATE ${GMP_INCLUDE_DIR})
 if(BUILD_SHARED_LIBS)
-  target_link_libraries(cvc5 PRIVATE GMP)
+  target_link_libraries(cvc5 PRIVATE ${GMP_LIBRARIES})
 else()
-  target_link_libraries(cvc5 PUBLIC GMP)
+  target_link_libraries(cvc5 PUBLIC ${GMP_LIBRARIES})
 endif()
 
 # Add rt library
