@@ -1987,7 +1987,7 @@ TEST_F(TestApiBlackSolver, getTimeoutCoreUnsat)
                       d_solver.mkInteger("501240912901901249014210220059591"));
   d_solver.assertFormula(tt);
   d_solver.assertFormula(hard);
-  std::pair<Result, std::vector<Term>> res = d_solver.getTimeoutCore();
+  std::pair<cvc5::Result, std::vector<Term>> res = d_solver.getTimeoutCore();
   ASSERT_TRUE(res.first.isUnknown());
   ASSERT_TRUE(res.second.size() == 1);
   ASSERT_EQ(res.second[0], hard);
@@ -2001,7 +2001,7 @@ TEST_F(TestApiBlackSolver, getTimeoutCoreUnsat2)
   d_solver.assertFormula(tt);
   d_solver.assertFormula(ff);
   d_solver.assertFormula(tt);
-  std::pair<Result, std::vector<Term>> res = d_solver.getTimeoutCore();
+  std::pair<cvc5::Result, std::vector<Term>> res = d_solver.getTimeoutCore();
   ASSERT_TRUE(res.first.isUnsat());
   ASSERT_TRUE(res.second.size() == 1);
   ASSERT_EQ(res.second[0], ff);
