@@ -201,7 +201,7 @@ TypeNode HoApplyTypeRule::computeType(NodeManager* nodeManager,
   if (check)
   {
     TypeNode aType = n[1].getType(check);
-    if (aType != fType[0])
+    if (!aType.isComparableTo(fType[0]))
     {
       if (errOut)
       {

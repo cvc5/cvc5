@@ -147,12 +147,18 @@ Node TheoryBuiltinRewriter::rewriteApplyIndexedSymbolic(TNode node)
       return node;
     }
   }
+  Trace("builtin-rewrite") << "rewriteApplyIndexedSymbolic: " << node << std::endl;
   Kind okind = node.getOperator().getConst<GenericOp>().getKind();
   // determine how many arguments should be passed to the end function,
   // for now, assume one
   size_t nargs = 1;
   std::vector<Node> indices(node.begin(), node.end() - nargs);
   Node op = GenericOp::getOperatorForIndices(okind, indices);
+  // could have a bad index, in which case we don't rewrite
+  if (op.isNull())
+  {
+    return node;
+  }
   std::vector<Node> args;
   args.push_back(op);
   args.insert(args.end(), node.end() - nargs, node.end());

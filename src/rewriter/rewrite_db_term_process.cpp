@@ -74,5 +74,15 @@ Node RewriteDbNodeConverter::postConvert(Node n)
   return n;
 }
 
+bool RewriteDbNodeConverter::shouldTraverse(Node n)
+{
+  Kind k = n.getKind();
+  if (k==INST_PATTERN_LIST)
+  {
+    return false;
+  }
+  return true;
+}
+
 }  // namespace rewriter
 }  // namespace cvc5::internal
