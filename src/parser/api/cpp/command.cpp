@@ -2078,7 +2078,8 @@ void GetTimeoutCoreCommand::printResult(cvc5::Solver* solver,
 {
   cvc5::Result res = d_result.first;
   out << res << std::endl;
-  if (res.isUnsat() || (res.isUnknown() && res.getUnknownExplanation() == TIMEOUT))
+  if (res.isUnsat()
+      || (res.isUnknown() && res.getUnknownExplanation() == TIMEOUT))
   {
     if (d_solver->getOption("print-unsat-cores-full") == "true")
     {
