@@ -1993,7 +1993,7 @@ TEST_F(TestApiBlackSolver, getTimeoutCoreUnsat)
   ASSERT_EQ(res.second[0], hard);
 }
 
-TEST_F(TestApiBlackSolver, getTimeoutCoreUnsat)
+TEST_F(TestApiBlackSolver, getTimeoutCoreUnsat2)
 {
   Sort intSort = d_solver.getIntegerSort();
   Term ff = d_solver.mkBoolean(false);
