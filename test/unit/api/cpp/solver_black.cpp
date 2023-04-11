@@ -1983,8 +1983,8 @@ TEST_F(TestApiBlackSolver, getTimeoutCoreUnsat)
   Term tt = d_solver.mkBoolean(true);
   Term hard =
       d_solver.mkTerm(EQUAL,
-                      d_solver.mkTerm(MULT, {x, x}),
-                      d_solver.mkInteger("501240912901901249014210220059591"));
+                      {d_solver.mkTerm(MULT, {x, x}),
+                      d_solver.mkInteger("501240912901901249014210220059591")});
   d_solver.assertFormula(tt);
   d_solver.assertFormula(hard);
   std::pair<cvc5::Result, std::vector<Term>> res = d_solver.getTimeoutCore();
