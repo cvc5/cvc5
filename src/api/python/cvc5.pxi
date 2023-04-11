@@ -1579,17 +1579,28 @@ cdef class Solver:
         term.cterm = self.csolver.mkRoundingMode(<c_RoundingMode> rm.value)
         return term
 
-    def mkFloatingPoint(self, int exp, int sig, Term val):
+    def mkFloatingPoint(self, arg0, arg1, Term arg2):
         """
-            Create a floating-point constant.
+            Create a floating-point value from a bit-vector given in IEEE-754
+            format, or from its three IEEE-754 bit-vector value components
+            (sign bit, exponent, significand). Arguments must be either given
+            as (int, int, Term) or (Term, Term, Term).
 
-            :param exp: Size of the exponent.
-            :param sig: Size of the significand.
-            :param val: Value of the floating-point constant as a bit-vector
-                        term.
+            :param arg0  The size of the exponent or the sign bit.
+            :param arg1  The size of the signifcand or the bit-vector
+                         representing the exponent.
+            :param arg2: The value of the floating-point constant as a
+                         bit-vector term or the bit-vector representing the
+                         significand.
+            :return The floating-point value.
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.mkFloatingPoint(exp, sig, val.cterm)
+        if isinstance(arg0, int):
+            term.cterm = self.csolver.mkFloatingPoint(
+                <int> arg0, <int> arg1, arg2.cterm)
+        else:
+            term.cterm = self.csolver.mkFloatingPoint(
+                (<Term> arg0).cterm, (<Term> arg1).cterm, arg2.cterm)
         return term
 
     def mkCardinalityConstraint(self, Sort sort, int index):

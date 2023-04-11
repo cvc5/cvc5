@@ -1417,6 +1417,16 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
                       << std::endl;
       return ret;
     }
+    else if (kind == FLOATINGPOINT_FP && isConstBv(args[0])
+             && isConstBv(args[1]) && isConstBv(args[2]))
+    {
+      // (fp #bX #bY #bZ) denotes a floating-point value
+
+      Term ret = d_solver->mkFloatingPoint(args[0], args[1], args[2]);
+      Trace("parser") << "applyParseOp: return floating-point value " << ret
+                      << std::endl;
+      return ret;
+    }
     Term ret = d_solver->mkTerm(kind, args);
     Trace("parser") << "applyParseOp: return default builtin " << ret
                     << std::endl;
@@ -1688,6 +1698,11 @@ Term Smt2State::mkAnd(const std::vector<Term>& es) const
 bool Smt2State::isConstInt(const Term& t)
 {
   return t.getKind() == CONST_INTEGER;
+}
+
+bool Smt2State::isConstBv(const Term& t)
+{
+  return t.getKind() == CONST_BITVECTOR;
 }
 
 }  // namespace parser
