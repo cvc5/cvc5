@@ -508,9 +508,7 @@
 
 (define-cond-rule* bv-mult-pow2
   ((xs ?BitVec :list) (ys ?BitVec :list) (z ?BitVec) (size Int) (n Int))
-  (def
-    (exponent (int.log2 n))
-  )
+  (def (exponent (int.log2 n)))
   (int.ispow2 n)
   (bvmul xs z (bv n size) ys)
   (bvmul xs z ys)
