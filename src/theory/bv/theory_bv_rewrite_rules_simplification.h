@@ -1609,11 +1609,11 @@ Node RewriteRule<UremSelf>::apply(TNode node) {
 
 template<> inline
 bool RewriteRule<ShiftZero>::applies(TNode node) {
-  return ((node.getKind() == kind::BITVECTOR_SHL ||
-           node.getKind() == kind::BITVECTOR_LSHR ||
-           node.getKind() == kind::BITVECTOR_ASHR) &&
-           node.getType().isBitVector() &&
-          node[0] == utils::mkConst(utils::getSize(node), 0));
+  return ((node.getKind() == kind::BITVECTOR_SHL
+           || node.getKind() == kind::BITVECTOR_LSHR
+           || node.getKind() == kind::BITVECTOR_ASHR)
+          && node.getType().isBitVector()
+          && node[0] == utils::mkConst(utils::getSize(node), 0));
 }
 
 template<> inline

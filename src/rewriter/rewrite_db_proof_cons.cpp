@@ -16,11 +16,11 @@
 #include "rewriter/rewrite_db_proof_cons.h"
 
 #include "expr/node_algorithm.h"
+#include "options/proof_options.h"
 #include "rewriter/rewrite_db_term_process.h"
 #include "smt/env.h"
 #include "theory/arith/arith_poly_norm.h"
 #include "theory/builtin/proof_checker.h"
-#include "options/proof_options.h"
 #include "theory/rewriter.h"
 
 using namespace cvc5::internal::kind;
@@ -132,7 +132,7 @@ DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
 }
 
 DslPfRule RewriteDbProofCons::proveInternalViaStrategy(Node eqi)
-{  
+{
   Assert(eqi.getKind() == EQUAL);
   if (proveWithRule(DslPfRule::CONG, eqi, {}, {}, false, false, true))
   {
@@ -189,12 +189,13 @@ bool RewriteDbProofCons::notifyMatch(Node s,
                                      std::vector<Node>& subs)
 {
   // if we reach our step limit, do not continue trying
-  if (d_currStepLimit==0)
+  if (d_currStepLimit == 0)
   {
     return false;
   }
   d_currStepLimit--;
-  Trace("rpc-debug2") << "[steps remaining: " << d_currStepLimit << "]" << std::endl;
+  Trace("rpc-debug2") << "[steps remaining: " << d_currStepLimit << "]"
+                      << std::endl;
   Trace("rpc-debug2") << "notifyMatch: " << s << " from " << n << " via "
                       << vars << " -> " << subs << std::endl;
   Assert(d_target.getKind() == EQUAL);

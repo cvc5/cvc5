@@ -35,7 +35,8 @@ RewriteResponse TheoryBVRewriter::preRewrite(TNode node) {
 }
 
 RewriteResponse TheoryBVRewriter::postRewrite(TNode node) {
-    Trace("bitvector-rewrite") << "TheoryBV::postRewrite    " << node << std::endl;
+  Trace("bitvector-rewrite")
+      << "TheoryBV::postRewrite    " << node << std::endl;
   // do not rewrite if has a (strict) abstract subterm
   for (TNode nn : node)
   {

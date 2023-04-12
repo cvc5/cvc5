@@ -769,8 +769,9 @@ struct HasAbstractSubtermComputedTag
 {
 };
 /** Attribute true for expressions with bound variables in them */
-using AbstractSubtermVarAttr = expr::Attribute<HasAbstractSubtermTag, bool> ;
-using HasAbstractSubtermComputedAttr = expr::Attribute<HasAbstractSubtermComputedTag, bool>;
+using AbstractSubtermVarAttr = expr::Attribute<HasAbstractSubtermTag, bool>;
+using HasAbstractSubtermComputedAttr =
+    expr::Attribute<HasAbstractSubtermComputedTag, bool>;
 
 bool hasAbstractSubterm(TNode n)
 {

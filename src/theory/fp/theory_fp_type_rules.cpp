@@ -30,7 +30,6 @@ namespace fp {
   Trace("fp-type") << FUNCTION "::computeType(" << check << "): " << n \
                    << std::endl
 
-
 bool isMaybeRoundingMode(const TypeNode& tn)
 {
   return tn.isRoundingMode() || tn.isFullyAbstract();
@@ -55,8 +54,7 @@ TypeNode FloatingPointConstantTypeRule::computeType(NodeManager* nodeManager,
     {
       if (errOut)
       {
-        (*errOut) <<
-                                         "constant with invalid exponent size";
+        (*errOut) << "constant with invalid exponent size";
       }
       return TypeNode::null();
     }
@@ -102,13 +100,14 @@ TypeNode FloatingPointFPTypeRule::computeType(NodeManager* nodeManager,
   TypeNode exponentType = n[1].getType(check);
   TypeNode significandType = n[2].getType(check);
 
-  if (!signType.isMaybeKind(kind::BITVECTOR_TYPE) || !exponentType.isMaybeKind(kind::BITVECTOR_TYPE)
+  if (!signType.isMaybeKind(kind::BITVECTOR_TYPE)
+      || !exponentType.isMaybeKind(kind::BITVECTOR_TYPE)
       || !significandType.isMaybeKind(kind::BITVECTOR_TYPE))
   {
-      if (errOut)
-      {
-        (*errOut) << "arguments to fp must be bit vectors";
-      }
+    if (errOut)
+    {
+      (*errOut) << "arguments to fp must be bit vectors";
+    }
     return TypeNode::null();
   }
   // if not concrete, we are abstract floating point
@@ -181,10 +180,10 @@ TypeNode FloatingPointTestTypeRule::computeType(NodeManager* nodeManager,
     {
       if (!(n[i].getType(check) == firstOperand))
       {
-      if (errOut)
-      {
-        (*errOut) << "floating-point test applied to mixed sorts";
-      }
+        if (errOut)
+        {
+          (*errOut) << "floating-point test applied to mixed sorts";
+        }
         return TypeNode::null();
       }
     }
@@ -213,7 +212,8 @@ TypeNode FloatingPointOperationTypeRule::computeType(NodeManager* nodeManager,
     {
       if (errOut)
       {
-        (*errOut) << "floating-point operation applied to a non floating-point sort";
+        (*errOut)
+            << "floating-point operation applied to a non floating-point sort";
       }
       return TypeNode::null();
     }
@@ -223,10 +223,10 @@ TypeNode FloatingPointOperationTypeRule::computeType(NodeManager* nodeManager,
     {
       if (!(n[i].getType(check) == firstOperand))
       {
-      if (errOut)
-      {
-        (*errOut) << "floating-point test applied to mixed sorts";
-      }
+        if (errOut)
+        {
+          (*errOut) << "floating-point test applied to mixed sorts";
+        }
         return TypeNode::null();
       }
     }
@@ -267,7 +267,8 @@ TypeNode FloatingPointRoundingOperationTypeRule::computeType(
     {
       if (errOut)
       {
-        (*errOut) << "floating-point operation applied to a non floating-point sort";
+        (*errOut)
+            << "floating-point operation applied to a non floating-point sort";
       }
       return TypeNode::null();
     }
@@ -277,10 +278,10 @@ TypeNode FloatingPointRoundingOperationTypeRule::computeType(
     {
       if (!(n[i].getType(check) == firstOperand))
       {
-      if (errOut)
-      {
-        (*errOut) << "floating-point operation applied to mixed sorts";
-      }
+        if (errOut)
+        {
+          (*errOut) << "floating-point operation applied to mixed sorts";
+        }
         return TypeNode::null();
       }
     }
@@ -308,7 +309,8 @@ TypeNode FloatingPointPartialOperationTypeRule::computeType(
     {
       if (errOut)
       {
-        (*errOut) << "floating-point operation applied to a non floating-point sort";
+        (*errOut)
+            << "floating-point operation applied to a non floating-point sort";
       }
       return TypeNode::null();
     }
@@ -318,23 +320,25 @@ TypeNode FloatingPointPartialOperationTypeRule::computeType(
     {
       if (n[i].getType(check) != firstOperand)
       {
-      if (errOut)
-      {
-        (*errOut) << "floating-point partial operation applied to mixed sorts";
-      }
+        if (errOut)
+        {
+          (*errOut)
+              << "floating-point partial operation applied to mixed sorts";
+        }
         return TypeNode::null();
       }
     }
 
     TypeNode UFValueType = n[children - 1].getType(check);
 
-    if (!(UFValueType.isMaybeKind(kind::BITVECTOR_TYPE)) || !(UFValueType.getBitVectorSize() == 1))
+    if (!(UFValueType.isMaybeKind(kind::BITVECTOR_TYPE))
+        || !(UFValueType.getBitVectorSize() == 1))
     {
       if (errOut)
       {
-        (*errOut) << 
-          "floating-point partial operation final argument must be a "
-          "bit-vector of length 1";
+        (*errOut)
+            << "floating-point partial operation final argument must be a "
+               "bit-vector of length 1";
       }
       return TypeNode::null();
     }
@@ -378,10 +382,9 @@ TypeNode FloatingPointToFPIEEEBitVectorTypeRule::computeType(
     {
       if (errOut)
       {
-        (*errOut) <<
-                                         "conversion to floating-point from "
-                                         "bit vector used with sort other "
-                                         "than bit vector";
+        (*errOut) << "conversion to floating-point from "
+                     "bit vector used with sort other "
+                     "than bit vector";
       }
       return TypeNode::null();
     }
@@ -391,9 +394,9 @@ TypeNode FloatingPointToFPIEEEBitVectorTypeRule::computeType(
     {
       if (errOut)
       {
-        (*errOut) <<
-          "conversion to floating-point from bit vector used with bit vector "
-          "length that does not match floating point parameters";
+        (*errOut) << "conversion to floating-point from bit vector used with "
+                     "bit vector "
+                     "length that does not match floating point parameters";
       }
       return TypeNode::null();
     }
@@ -435,10 +438,9 @@ TypeNode FloatingPointToFPFloatingPointTypeRule::computeType(
     {
       if (errOut)
       {
-        (*errOut) <<
-                                         "conversion to floating-point from "
-                                         "floating-point used with sort "
-                                         "other than floating-point";
+        (*errOut) << "conversion to floating-point from "
+                     "floating-point used with sort "
+                     "other than floating-point";
       }
       return TypeNode::null();
     }
@@ -481,10 +483,9 @@ TypeNode FloatingPointToFPRealTypeRule::computeType(NodeManager* nodeManager,
     {
       if (errOut)
       {
-        (*errOut) <<
-                                         "conversion to floating-point from "
-                                         "real used with sort other than "
-                                         "real"; 
+        (*errOut) << "conversion to floating-point from "
+                     "real used with sort other than "
+                     "real";
       }
       return TypeNode::null();
     }
@@ -526,10 +527,9 @@ TypeNode FloatingPointToFPSignedBitVectorTypeRule::computeType(
     {
       if (errOut)
       {
-        (*errOut) <<
-                                         "conversion to floating-point from "
-                                         "signed bit vector used with sort "
-                                         "other than bit vector";
+        (*errOut) << "conversion to floating-point from "
+                     "signed bit vector used with sort "
+                     "other than bit vector";
       }
       return TypeNode::null();
     }
@@ -571,10 +571,9 @@ TypeNode FloatingPointToFPUnsignedBitVectorTypeRule::computeType(
     {
       if (errOut)
       {
-        (*errOut) <<
-                                         "conversion to floating-point from "
-                                         "unsigned bit vector used with sort "
-                                         "other than bit vector";
+        (*errOut) << "conversion to floating-point from "
+                     "unsigned bit vector used with sort "
+                     "other than bit vector";
       }
       return TypeNode::null();
     }
@@ -605,7 +604,7 @@ TypeNode FloatingPointToUBVTypeRule::computeType(NodeManager* nodeManager,
     {
       if (errOut)
       {
-        (*errOut) <<"first argument must be a rounding mode";
+        (*errOut) << "first argument must be a rounding mode";
       }
       return TypeNode::null();
     }
@@ -616,10 +615,9 @@ TypeNode FloatingPointToUBVTypeRule::computeType(NodeManager* nodeManager,
     {
       if (errOut)
       {
-        (*errOut) <<
-                                         "conversion to unsigned bit vector "
-                                         "used with a sort other than "
-                                         "floating-point";
+        (*errOut) << "conversion to unsigned bit vector "
+                     "used with a sort other than "
+                     "floating-point";
       }
       return TypeNode::null();
     }
@@ -650,7 +648,7 @@ TypeNode FloatingPointToSBVTypeRule::computeType(NodeManager* nodeManager,
     {
       if (errOut)
       {
-        (*errOut) <<"first argument must be a rounding mode";
+        (*errOut) << "first argument must be a rounding mode";
       }
       return TypeNode::null();
     }
@@ -661,10 +659,9 @@ TypeNode FloatingPointToSBVTypeRule::computeType(NodeManager* nodeManager,
     {
       if (errOut)
       {
-        (*errOut) <<
-                                         "conversion to signed bit vector "
-                                         "used with a sort other than "
-                                         "floating-point";
+        (*errOut) << "conversion to signed bit vector "
+                     "used with a sort other than "
+                     "floating-point";
       }
       return TypeNode::null();
     }
@@ -697,7 +694,7 @@ TypeNode FloatingPointToUBVTotalTypeRule::computeType(NodeManager* nodeManager,
     {
       if (errOut)
       {
-        (*errOut) <<"first argument must be a rounding mode";
+        (*errOut) << "first argument must be a rounding mode";
       }
       return TypeNode::null();
     }
@@ -708,10 +705,9 @@ TypeNode FloatingPointToUBVTotalTypeRule::computeType(NodeManager* nodeManager,
     {
       if (errOut)
       {
-        (*errOut) <<
-          "conversion to unsigned bit vector total"
-          "used with a sort other than "
-          "floating-point";
+        (*errOut) << "conversion to unsigned bit vector total"
+                     "used with a sort other than "
+                     "floating-point";
       }
       return TypeNode::null();
     }
@@ -723,10 +719,9 @@ TypeNode FloatingPointToUBVTotalTypeRule::computeType(NodeManager* nodeManager,
     {
       if (errOut)
       {
-        (*errOut) <<
-          "conversion to unsigned bit vector total"
-          "needs a bit vector of the same length"
-          "as last argument";
+        (*errOut) << "conversion to unsigned bit vector total"
+                     "needs a bit vector of the same length"
+                     "as last argument";
       }
       return TypeNode::null();
     }
@@ -771,8 +766,8 @@ TypeNode FloatingPointToSBVTotalTypeRule::computeType(NodeManager* nodeManager,
       if (errOut)
       {
         (*errOut) << "conversion to signed bit vector "
-                                         "used with a sort other than "
-                                         "floating-point";
+                     "used with a sort other than "
+                     "floating-point";
       }
       return TypeNode::null();
     }
@@ -785,8 +780,8 @@ TypeNode FloatingPointToSBVTotalTypeRule::computeType(NodeManager* nodeManager,
       if (errOut)
       {
         (*errOut) << "conversion to signed bit vector total"
-                                         "needs a bit vector of the same length"
-                                         "as last argument";
+                     "needs a bit vector of the same length"
+                     "as last argument";
       }
       return TypeNode::null();
     }
@@ -815,7 +810,8 @@ TypeNode FloatingPointToRealTypeRule::computeType(NodeManager* nodeManager,
     {
       if (errOut)
       {
-        (*errOut) << "floating-point to real applied to a non floating-point sort";
+        (*errOut)
+            << "floating-point to real applied to a non floating-point sort";
       }
       return TypeNode::null();
     }
@@ -845,7 +841,8 @@ TypeNode FloatingPointToRealTotalTypeRule::computeType(NodeManager* nodeManager,
     {
       if (errOut)
       {
-        (*errOut) << "floating-point to real total applied to a non floating-point sort";
+        (*errOut) << "floating-point to real total applied to a non "
+                     "floating-point sort";
       }
       return TypeNode::null();
     }
@@ -856,7 +853,8 @@ TypeNode FloatingPointToRealTotalTypeRule::computeType(NodeManager* nodeManager,
     {
       if (errOut)
       {
-        (*errOut) << "floating-point to real total needs a real second argument";
+        (*errOut)
+            << "floating-point to real total needs a real second argument";
       }
       return TypeNode::null();
     }
@@ -885,8 +883,8 @@ TypeNode FloatingPointComponentBit::computeType(NodeManager* nodeManager,
       if (errOut)
       {
         (*errOut) << "floating-point bit component "
-                                         "applied to a non floating-point "
-                                         "sort";
+                     "applied to a non floating-point "
+                     "sort";
       }
       return TypeNode::null();
     }
@@ -895,9 +893,9 @@ TypeNode FloatingPointComponentBit::computeType(NodeManager* nodeManager,
     {
       if (errOut)
       {
-        (*errOut) <<"floating-point bit component "
-                                         "applied to a non leaf / to_fp leaf "
-                                         "node";
+        (*errOut) << "floating-point bit component "
+                     "applied to a non leaf / to_fp leaf "
+                     "node";
       }
       return TypeNode::null();
     }
@@ -927,8 +925,8 @@ TypeNode FloatingPointComponentExponent::computeType(NodeManager* nodeManager,
       if (errOut)
       {
         (*errOut) << "floating-point exponent component "
-                                         "applied to a non floating-point "
-                                         "sort";
+                     "applied to a non floating-point "
+                     "sort";
       }
       return TypeNode::null();
     }
@@ -938,8 +936,8 @@ TypeNode FloatingPointComponentExponent::computeType(NodeManager* nodeManager,
       if (errOut)
       {
         (*errOut) << "floating-point exponent component "
-                                         "applied to a non leaf / to_fp "
-                                         "node";
+                     "applied to a non leaf / to_fp "
+                     "node";
       }
       return TypeNode::null();
     }
@@ -974,8 +972,8 @@ TypeNode FloatingPointComponentSignificand::computeType(
       if (errOut)
       {
         (*errOut) << "floating-point significand "
-                                         "component applied to a non "
-                                         "floating-point sort";
+                     "component applied to a non "
+                     "floating-point sort";
       }
       return TypeNode::null();
     }
@@ -985,8 +983,8 @@ TypeNode FloatingPointComponentSignificand::computeType(
       if (errOut)
       {
         (*errOut) << "floating-point significand "
-                                         "component applied to a non leaf / "
-                                         "to_fp node";
+                     "component applied to a non leaf / "
+                     "to_fp node";
       }
       return TypeNode::null();
     }
@@ -1017,7 +1015,8 @@ TypeNode RoundingModeBitBlast::computeType(NodeManager* nodeManager,
     {
       if (errOut)
       {
-        (*errOut) << "rounding mode bit-blast applied to a non rounding-mode sort";
+        (*errOut)
+            << "rounding mode bit-blast applied to a non rounding-mode sort";
       }
       return TypeNode::null();
     }

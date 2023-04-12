@@ -305,7 +305,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
         Trace("rewriter-debug") << "Post-Rewrite: " << rewriteStackTop.d_node
                                 << " to " << newNode << std::endl;
         TheoryId newTheoryId = theoryOf(newNode);
-        Assert(newNode.getType().isComparableTo(rewriteStackTop.d_node.getType()))
+        Assert(
+            newNode.getType().isComparableTo(rewriteStackTop.d_node.getType()))
             << "Post-rewriting " << rewriteStackTop.d_node << " to " << newNode
             << " does not preserve type";
         if (newTheoryId != rewriteStackTop.getTheoryId()
