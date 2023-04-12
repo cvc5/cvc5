@@ -490,6 +490,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
 
 bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
 {
+  Trace("rpc-debug2") << "Prove internal base: " << eqi << std::endl;
   Assert(eqi.getKind() == kind::EQUAL);
   // if we are currently trying to prove this, fail
   if (d_currProving.find(eqi) != d_currProving.end())
@@ -587,6 +588,7 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
     pi.d_id = idb;
     return true;
   }
+  /*
   // see if a != b is satisfiable
   Node query = eqi.notNode();
   if (d_qcache.addTerm(query))
@@ -599,6 +601,7 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
     pi.d_id = idb;
     return true;
   }
+  */
   // otherwise, we fail to either prove or disprove the equality
   return false;
 }

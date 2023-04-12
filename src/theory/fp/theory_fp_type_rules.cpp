@@ -120,14 +120,17 @@ TypeNode FloatingPointFPTypeRule::computeType(NodeManager* nodeManager,
 
   if (check)
   {
-    uint32_t signBits = signType.getBitVectorSize();
-    if (signBits != 1)
+    if (signType.isBitVector())
     {
-      if (errOut)
+      uint32_t signBits = signType.getBitVectorSize();
+      if (signBits != 1)
       {
-        (*errOut) << "sign bit vector in fp must be 1 bit long";
+        if (errOut)
+        {
+          (*errOut) << "sign bit vector in fp must be 1 bit long";
+        }
+        return TypeNode::null();
       }
-      return TypeNode::null();
     }
     else if (!(validExponentSize(exponentBits)))
     {
@@ -166,7 +169,7 @@ TypeNode FloatingPointTestTypeRule::computeType(NodeManager* nodeManager,
   {
     TypeNode firstOperand = n[0].getType(check);
 
-    if (!firstOperand.isFloatingPoint())
+    if (!firstOperand.isMaybeKind(kind::FLOATINGPOINT_TYPE))
     {
       if (errOut)
       {
@@ -178,7 +181,7 @@ TypeNode FloatingPointTestTypeRule::computeType(NodeManager* nodeManager,
     size_t children = n.getNumChildren();
     for (size_t i = 1; i < children; ++i)
     {
-      if (!(n[i].getType(check) == firstOperand))
+      if (!n[i].getType(check).isComparableTo(firstOperand))
       {
         if (errOut)
         {
@@ -208,7 +211,7 @@ TypeNode FloatingPointOperationTypeRule::computeType(NodeManager* nodeManager,
 
   if (check)
   {
-    if (!firstOperand.isFloatingPoint())
+    if (!firstOperand.isMaybeKind(kind::FLOATINGPOINT_TYPE))
     {
       if (errOut)
       {
@@ -221,7 +224,7 @@ TypeNode FloatingPointOperationTypeRule::computeType(NodeManager* nodeManager,
     size_t children = n.getNumChildren();
     for (size_t i = 1; i < children; ++i)
     {
-      if (!(n[i].getType(check) == firstOperand))
+      if (!n[i].getType(check).isComparableTo(firstOperand))
       {
         if (errOut)
         {
@@ -263,7 +266,7 @@ TypeNode FloatingPointRoundingOperationTypeRule::computeType(
 
   if (check)
   {
-    if (!firstOperand.isFloatingPoint())
+    if (!firstOperand.isMaybeKind(kind::FLOATINGPOINT_TYPE))
     {
       if (errOut)
       {
@@ -276,7 +279,7 @@ TypeNode FloatingPointRoundingOperationTypeRule::computeType(
     size_t children = n.getNumChildren();
     for (size_t i = 2; i < children; ++i)
     {
-      if (!(n[i].getType(check) == firstOperand))
+      if (!n[i].getType(check).isComparableTo(firstOperand))
       {
         if (errOut)
         {
@@ -305,7 +308,7 @@ TypeNode FloatingPointPartialOperationTypeRule::computeType(
 
   if (check)
   {
-    if (!firstOperand.isFloatingPoint())
+    if (!firstOperand.isMaybeKind(kind::FLOATINGPOINT_TYPE))
     {
       if (errOut)
       {
@@ -318,7 +321,7 @@ TypeNode FloatingPointPartialOperationTypeRule::computeType(
     const size_t children = n.getNumChildren();
     for (size_t i = 1; i < children - 1; ++i)
     {
-      if (n[i].getType(check) != firstOperand)
+      if (!n[i].getType(check).isComparableTo(firstOperand))
       {
         if (errOut)
         {
@@ -331,8 +334,8 @@ TypeNode FloatingPointPartialOperationTypeRule::computeType(
 
     TypeNode UFValueType = n[children - 1].getType(check);
 
-    if (!(UFValueType.isMaybeKind(kind::BITVECTOR_TYPE))
-        || !(UFValueType.getBitVectorSize() == 1))
+    if (!UFValueType.isMaybeKind(kind::BITVECTOR_TYPE)
+        || (UFValueType.isBitVector() && UFValueType.getBitVectorSize() != 1))
     {
       if (errOut)
       {
@@ -378,7 +381,7 @@ TypeNode FloatingPointToFPIEEEBitVectorTypeRule::computeType(
   {
     TypeNode operandType = n[0].getType(check);
 
-    if (!(operandType.isMaybeKind(kind::BITVECTOR_TYPE)))
+    if (!operandType.isMaybeKind(kind::BITVECTOR_TYPE))
     {
       if (errOut)
       {
@@ -388,9 +391,9 @@ TypeNode FloatingPointToFPIEEEBitVectorTypeRule::computeType(
       }
       return TypeNode::null();
     }
-    else if (!(operandType.getBitVectorSize()
-               == info.getSize().exponentWidth()
-                      + info.getSize().significandWidth()))
+    else if (operandType.isBitVector() && operandType.getBitVectorSize()
+               != info.getSize().exponentWidth()
+                      + info.getSize().significandWidth())
     {
       if (errOut)
       {
@@ -434,7 +437,7 @@ TypeNode FloatingPointToFPFloatingPointTypeRule::computeType(
 
     TypeNode operandType = n[1].getType(check);
 
-    if (!(operandType.isFloatingPoint()))
+    if (!operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE))
     {
       if (errOut)
       {
@@ -611,7 +614,7 @@ TypeNode FloatingPointToUBVTypeRule::computeType(NodeManager* nodeManager,
 
     TypeNode operandType = n[1].getType(check);
 
-    if (!(operandType.isFloatingPoint()))
+    if (!(operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE)))
     {
       if (errOut)
       {
@@ -655,7 +658,7 @@ TypeNode FloatingPointToSBVTypeRule::computeType(NodeManager* nodeManager,
 
     TypeNode operandType = n[1].getType(check);
 
-    if (!(operandType.isFloatingPoint()))
+    if (!(operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE)))
     {
       if (errOut)
       {
@@ -701,7 +704,7 @@ TypeNode FloatingPointToUBVTotalTypeRule::computeType(NodeManager* nodeManager,
 
     TypeNode operandType = n[1].getType(check);
 
-    if (!(operandType.isFloatingPoint()))
+    if (!(operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE)))
     {
       if (errOut)
       {
@@ -761,7 +764,7 @@ TypeNode FloatingPointToSBVTotalTypeRule::computeType(NodeManager* nodeManager,
 
     TypeNode operandType = n[1].getType(check);
 
-    if (!(operandType.isFloatingPoint()))
+    if (!(operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE)))
     {
       if (errOut)
       {
@@ -806,7 +809,7 @@ TypeNode FloatingPointToRealTypeRule::computeType(NodeManager* nodeManager,
   {
     TypeNode operandType = n[0].getType(check);
 
-    if (!operandType.isFloatingPoint())
+    if (!operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE))
     {
       if (errOut)
       {
@@ -837,7 +840,7 @@ TypeNode FloatingPointToRealTotalTypeRule::computeType(NodeManager* nodeManager,
   {
     TypeNode operandType = n[0].getType(check);
 
-    if (!operandType.isFloatingPoint())
+    if (!operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE))
     {
       if (errOut)
       {
@@ -878,7 +881,7 @@ TypeNode FloatingPointComponentBit::computeType(NodeManager* nodeManager,
   {
     TypeNode operandType = n[0].getType(check);
 
-    if (!operandType.isFloatingPoint())
+    if (!operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE))
     {
       if (errOut)
       {
@@ -920,7 +923,7 @@ TypeNode FloatingPointComponentExponent::computeType(NodeManager* nodeManager,
 
   if (check)
   {
-    if (!operandType.isFloatingPoint())
+    if (!operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE))
     {
       if (errOut)
       {
@@ -967,7 +970,7 @@ TypeNode FloatingPointComponentSignificand::computeType(
 
   if (check)
   {
-    if (!operandType.isFloatingPoint())
+    if (!operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE))
     {
       if (errOut)
       {

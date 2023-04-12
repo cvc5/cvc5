@@ -21,6 +21,7 @@
 #include "util/bitvector.h"
 #include "util/cardinality.h"
 #include "util/integer.h"
+#include "util/rational.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -116,6 +117,15 @@ TypeNode BitVectorConstantSymbolicTypeRule::computeType(
             << "expecting integer argument to symbolic bitvector constant";
         return TypeNode::null();
       }
+    }
+  }
+  if (n[1].isConst())
+  {
+    const Rational& r = n[1].getConst<Rational>();
+    if (r.sgn() == 1
+          && r.getNumerator().fitsUnsignedInt())
+    {
+      return nodeManager->mkBitVectorType(r.getNumerator().toUnsignedInt());
     }
   }
   return nodeManager->mkAbstractType(kind::BITVECTOR_TYPE);

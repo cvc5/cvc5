@@ -542,8 +542,7 @@ TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
         // !!!! temporary: recompute with an error stream
         std::stringstream errOutTmp;
         TypeChecker::computeType(this, cur, check, &errOutTmp);
-        // AlwaysAssert(false) << "Node failed to type check: " << cur << " with
-        // message " << errOutTmp.str();
+        //AlwaysAssert(false) << "Node failed to type check: " << cur << " with message " << errOutTmp.str();
         throw TypeCheckingExceptionPrivate(cur, errOutTmp.str());
         return typeNode;
       }

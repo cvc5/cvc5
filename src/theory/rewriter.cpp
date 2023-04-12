@@ -154,7 +154,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
                          TConvProofGenerator* tcpg)
 {
 #ifdef CVC5_ASSERTIONS
-  bool isEquality = node.getKind() == kind::EQUAL && (!node[0].getType().isBoolean());
+  bool isEquality = node.getKind() == kind::EQUAL && !node[0].getType().isBoolean() && !node[1].getType().isBoolean();
 
   if (d_rewriteStack == nullptr)
   {
