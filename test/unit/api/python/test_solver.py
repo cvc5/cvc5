@@ -1493,9 +1493,9 @@ def test_get_timeout_core_unsat(solver):
   solver.assertFormula(tt)
   solver.assertFormula(hard)
   res = solver.getTimeoutCore()
-  assert res.first.isUnknown()
-  assert len(res.second) == 1
-  assert res.second[0] == hard
+  assert res[0].isUnknown()
+  assert len(res[1]) == 1
+  assert res[1][0] == hard
 
 def test_get_timeout_core(solver):
   ff = solver.mkBoolean(False)
@@ -1504,9 +1504,9 @@ def test_get_timeout_core(solver):
   solver.assertFormula(ff)
   solver.assertFormula(tt)
   res = solver.getTimeoutCore()
-  assert res.first.isUnsat()
-  assert len(res.second) == 1
-  assert res.second[0] == ff
+  assert res[0].isUnsat()
+  assert len(res[1]) == 1
+  assert res[1][0] == ff
 
 def test_get_value1(solver):
     solver.setOption("produce-models", "false")
