@@ -2457,9 +2457,31 @@ cdef class Solver:
 
     def getTimeoutCore(self):
         """
+            Get a timeout core, which computes a subset of the current
+            assertions that cause a timeout. Note it does not require being
+            proceeded by a call to checkSat.
+
+            .. code-block:: smtlib
+
+                (get-timeout-core)
 
             .. warning:: This method is experimental and may change in future
                          versions.
+
+            :return: The result of the timeout core computation. This is a pair
+            containing a result and a list of formulas. If the result is unknown
+            and the reason is timeout, then the list of formulas correspond to a
+            subset of the current assertions that cause a timeout in the
+            specified time
+            :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+            If the result is unsat, then the list of formulas correspond to an
+            unsat core for the current assertions. Otherwise, the result is sat,
+            indicating that the current assertions are satisfiable, and
+            the list of formulas is empty.
+
+            This method may make multiple checks for satisfiability internally,
+            each limited by the timeout value given by
+            :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
         """
         cdef pair[c_Result, vector[c_Term]] res
         res = self.csolver.getTimeoutCore()

@@ -4293,7 +4293,8 @@ class CVC5_EXPORT Solver
 
   /**
    * Get a timeout core, which computes a subset of the current assertions that
-   * cause a timeout. It does not require being proceeded by a call to checkSat.
+   * cause a timeout. Note it does not require being proceeded by a call to
+   * checkSat.
    *
    * SMT-LIB:
    *
@@ -4310,8 +4311,14 @@ class CVC5_EXPORT Solver
    * and the reason is timeout, then the list of formulas correspond to a
    * subset of the current assertions that cause a timeout in the specified
    * time :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
-   * Otherwise, the list of formulas is empty and the result has the same
-   * guarantees as a response to checkSat.
+   * If the result is unsat, then the list of formulas correspond to an
+   * unsat core for the current assertions. Otherwise, the result is sat,
+   * indicating that the current assertions are satisfiable, and
+   * the list of formulas is empty.
+   *
+   * This method may make multiple checks for satisfiability internally, each
+   * limited by the timeout value given by
+   * :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
    */
   std::pair<Result, std::vector<Term>> getTimeoutCore() const;
 
