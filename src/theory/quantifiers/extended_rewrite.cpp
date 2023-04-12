@@ -1233,7 +1233,7 @@ Node ExtendedRewriter::extendedRewriteEqChain(
 
   if (cstatus.empty())
   {
-    return TermUtil::mkTypeConst(tn, gpol);
+    return TermUtil::mkTypeConst(ret.getType(), gpol);
   }
 
   children.clear();

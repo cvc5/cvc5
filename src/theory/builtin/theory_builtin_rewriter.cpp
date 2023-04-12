@@ -149,9 +149,13 @@ Node TheoryBuiltinRewriter::rewriteApplyIndexedSymbolic(TNode node)
   }
   Trace("builtin-rewrite") << "rewriteApplyIndexedSymbolic: " << node << std::endl;
   Kind okind = node.getOperator().getConst<GenericOp>().getKind();
-  // determine how many arguments should be passed to the end function,
-  // for now, assume one
+  // determine how many arguments should be passed to the end function. This is
+  // usually one, but we handle cases where it is >1.
   size_t nargs = 1;
+  if (okind==kind::FLOATINGPOINT_TO_FP_FROM_FP || okind==kind::FLOATINGPOINT_TO_FP_FROM_REAL || okind==kind::FLOATINGPOINT_TO_FP_FROM_SBV)
+  {
+    nargs = 2;
+  }
   std::vector<Node> indices(node.begin(), node.end() - nargs);
   Node op = GenericOp::getOperatorForIndices(okind, indices);
   // could have a bad index, in which case we don't rewrite

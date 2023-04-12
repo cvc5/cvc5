@@ -40,6 +40,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/fp/fp_word_blaster.h"
 #include "util/floatingpoint.h"
+#include "expr/node_algorithm.h"
 
 using namespace cvc5::internal::kind;
 
@@ -1362,7 +1363,11 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
    * implementation here can do nothing.
    */
 
-  RewriteResponse TheoryFpRewriter::preRewrite(TNode node) {
+  RewriteResponse TheoryFpRewriter::preRewrite(TNode node) {    
+    if (expr::hasAbstractSubterm(node))
+    {
+      return RewriteResponse(REWRITE_DONE, node);
+    }
     Trace("fp-rewrite") << "TheoryFpRewriter::preRewrite(): " << node << std::endl;
     RewriteResponse res = d_preRewriteTable[node.getKind()](node, true);
     if (res.d_node != node)
@@ -1398,6 +1403,10 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
    */
 
   RewriteResponse TheoryFpRewriter::postRewrite(TNode node) {
+    if (expr::hasAbstractSubterm(node))
+    {
+      return RewriteResponse(REWRITE_DONE, node);
+    }
     Trace("fp-rewrite") << "TheoryFpRewriter::postRewrite(): " << node << std::endl;
     RewriteResponse res = d_postRewriteTable[node.getKind()](node, false);
     if (res.d_node != node)
