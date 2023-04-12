@@ -1487,10 +1487,9 @@ def test_get_timeout_core_unsat(solver):
   intSort = solver.getIntegerSort()
   x = solver.mkConst(intSort, "x")
   tt = solver.mkBoolean(true)
-  hard =
-      solver.mkTerm(Kind.EQUAL,
-                      solver.mkTerm(Kind.MULT, {x, x}),
-                      solver.mkInteger("501240912901901249014210220059591"))
+  hard = solver.mkTerm(Kind.EQUAL,
+                       solver.mkTerm(Kind.MULT, x, x),
+                       solver.mkInteger("501240912901901249014210220059591"))
   solver.assertFormula(tt)
   solver.assertFormula(hard)
   res = solver.getTimeoutCore()
