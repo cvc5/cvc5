@@ -196,7 +196,7 @@ TypeNode DatatypeSelectorTypeRule::computeType(NodeManager* nodeManager,
       Trace("typecheck-idt") << "typecheck sel: " << n << std::endl;
       Trace("typecheck-idt") << "sel type: " << selType << std::endl;
       TypeNode childType = n[0].getType();
-      if (selType[0] != childType)
+      if (!selType[0].isComparableTo(childType))
       {
         Trace("typecheck-idt") << "ERROR: " << selType[0].getKind() << " "
                                << childType.getKind() << std::endl;
