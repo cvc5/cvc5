@@ -1004,6 +1004,9 @@ set(regress_0_tests
   regress0/parser/issue9623-indexed-err.smt2
   regress0/parser/issue9645.smt2
   regress0/parser/issue9651.smt2
+  regress0/parser/issue9663.smt2
+  regress0/parser/issue9663-2.smt2
+  regress0/parser/issue9665.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
