@@ -244,6 +244,13 @@ bool isBooleanConnective(TNode cur);
 /** Is n a theory atom? */
 bool isTheoryAtom(TNode cur);
 
+/**
+ * Returns true iff the node n contains a subterm with abstract type.
+ * @param n The node under investigation
+ * @return true iff this node contains a subterm with abstract type
+ */
+bool hasAbstractSubterm(TNode n);
+
 }  // namespace expr
 }  // namespace cvc5::internal
 
