@@ -275,6 +275,19 @@ bool isConstantLike(Node n)
   return n.isConst() || n.getKind() == SEQ_UNIT || n.getKind() == STRING_UNIT;
 }
 
+bool isCharacterRange(TNode t)
+{
+  Assert(t.getKind() == REGEXP_RANGE);
+  for (size_t i = 0; i < 2; i++)
+  {
+    if (!t[i].isConst() || t[i].getConst<String>().size() != 1)
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
 bool isUnboundedWildcard(const std::vector<Node>& rs, size_t start)
 {
   size_t i = start;
