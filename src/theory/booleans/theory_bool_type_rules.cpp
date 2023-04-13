@@ -41,7 +41,7 @@ TypeNode BooleanTypeRule::computeType(NodeManager* nodeManager,
   {
     for (const auto& child : n)
     {
-      TypeNode tc = child.getType();
+      TypeNode tc = child.getTypeOrNull();
       if (!isMaybeBoolean(tc))
       {
         if (errOut)
@@ -65,8 +65,8 @@ TypeNode IteTypeRule::computeType(NodeManager* nodeManager,
                                   bool check,
                                   std::ostream* errOut)
 {
-  TypeNode thenType = n[1].getType();
-  TypeNode elseType = n[2].getType();
+  TypeNode thenType = n[1].getTypeOrNull();
+  TypeNode elseType = n[2].getTypeOrNull();
   TypeNode resType = thenType.leastUpperBound(elseType);
   if (resType.isNull())
   {
@@ -82,7 +82,7 @@ TypeNode IteTypeRule::computeType(NodeManager* nodeManager,
   }
   if (check)
   {
-    TypeNode condType = n[0].getType();
+    TypeNode condType = n[0].getTypeOrNull();
     TypeNode booleanType = nodeManager->booleanType();
     if (!isMaybeBoolean(condType))
     {

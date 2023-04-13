@@ -360,12 +360,9 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
     {
       return false;
     }
-    Trace("ajr-temp") << "Show " << target[0] << " == " << target[1] << "?"
-                      << std::endl;
     // only works with arithmetic terms
     if (!theory::arith::PolyNorm::isArithPolyNorm(target[0], target[1]))
     {
-      Trace("ajr-temp") << "...fail" << std::endl;
       return false;
     }
     pic.d_id = id;
@@ -390,6 +387,12 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
       if (!doInflectMatch)
       {
         Trace("rpc-debug2") << "...fail (no inflection)" << std::endl;
+        return false;
+      }
+      // the conclusion term may actually change type
+      if (stgt.getType()!=target[1].getType())
+      {
+        Trace("rpc-debug2") << "...fail (types)" << std::endl;
         return false;
       }
       // the missing transitivity link is a subgoal to prove
@@ -527,8 +530,9 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
     pi.d_id = idb;
     return true;
   }
-  // variables and constants cannot be rewritten
-  if (eqi[0].isVar() || eqi[0].isConst())
+  // non-well-typed equalities cannot be proven
+  // also, variables and constants cannot be rewritten
+  if (eqi.getTypeOrNull().isNull() || eqi[0].isVar() || eqi[0].isConst())
   {
     ProvenInfo& pi = d_pcache[eqi];
     idb = DslPfRule::FAIL;
@@ -549,7 +553,16 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
       // rewriting is more expensive than evaluation, so we do it as a second
       // resort.
       Node lhs = i == 1 ? ev[0] : eqi[0];
-      Node eqr = rewrite(lhs.eqNode(eqi[1]));
+      Node eq = lhs.eqNode(eqi[1]);
+      if (eq.getTypeOrNull().isNull())
+      {
+        ProvenInfo& pi = d_pcache[eqi];
+        idb = DslPfRule::FAIL;
+        pi.d_failMaxDepth = 0;
+        pi.d_id = idb;
+        return true;
+      }
+      Node eqr = rewrite(eq);
       if (eqr.isConst())
       {
         // definitely not true

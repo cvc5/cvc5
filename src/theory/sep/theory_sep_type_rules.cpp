@@ -65,7 +65,7 @@ TypeNode SepStarTypeRule::computeType(NodeManager* nodeManager,
   {
     for (const Node& nc : n)
     {
-      TypeNode ctype = nc.getType(check);
+      TypeNode ctype = nc.getTypeOrNull();
       if (!isMaybeBoolean(ctype))
       {
         if (errOut)
@@ -94,7 +94,7 @@ TypeNode SepWandTypeRule::computeType(NodeManager* nodeManager,
   {
     for (const Node& nc : n)
     {
-      TypeNode ctype = nc.getType(check);
+      TypeNode ctype = nc.getTypeOrNull();
       if (!isMaybeBoolean(ctype))
       {
         if (errOut)
@@ -121,7 +121,7 @@ TypeNode SepLabelTypeRule::computeType(NodeManager* nodeManager,
   Assert(n.getKind() == kind::SEP_LABEL);
   if (check)
   {
-    TypeNode ctype = n[0].getType(check);
+    TypeNode ctype = n[0].getTypeOrNull();
     if (!isMaybeBoolean(ctype))
     {
       if (errOut)
@@ -130,7 +130,7 @@ TypeNode SepLabelTypeRule::computeType(NodeManager* nodeManager,
       }
       return TypeNode::null();
     }
-    TypeNode stype = n[1].getType(check);
+    TypeNode stype = n[1].getTypeOrNull();
     if (!stype.isMaybeKind(kind::SET_TYPE))
     {
       if (errOut)
@@ -154,7 +154,7 @@ TypeNode SepNilTypeRule::computeType(NodeManager* nodeManager,
 {
   Assert(n.getKind() == kind::SEP_NIL);
   Assert(check);
-  TypeNode type = n.getType();
+  TypeNode type = n.getTypeOrNull();
   return type;
 }
 

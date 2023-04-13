@@ -36,7 +36,7 @@ TypeNode QuantifierTypeRule::computeType(NodeManager* nodeManager,
   if (check)
   {
     // bound variable lists, etc. cannot be abstracted
-    if (n[0].getType(check) != nodeManager->boundVarListType())
+    if (n[0].getTypeOrNull() != nodeManager->boundVarListType())
     {
       if (errOut)
       {
@@ -44,7 +44,7 @@ TypeNode QuantifierTypeRule::computeType(NodeManager* nodeManager,
       }
       return TypeNode::null();
     }
-    TypeNode bodyType = n[1].getType(check);
+    TypeNode bodyType = n[1].getTypeOrNull();
     if (!bodyType.isBoolean() && !bodyType.isFullyAbstract())
     {
       if (errOut)
@@ -55,7 +55,7 @@ TypeNode QuantifierTypeRule::computeType(NodeManager* nodeManager,
     }
     if (n.getNumChildren() == 3)
     {
-      if (n[2].getType(check) != nodeManager->instPatternListType())
+      if (n[2].getTypeOrNull() != nodeManager->instPatternListType())
       {
         if (errOut)
         {
@@ -127,7 +127,7 @@ TypeNode QuantifierInstPatternTypeRule::computeType(NodeManager* nodeManager,
   Assert(n.getKind() == kind::INST_PATTERN);
   if (check)
   {
-    TypeNode tn = n[0].getType(check);
+    TypeNode tn = n[0].getTypeOrNull();
     // this check catches the common mistake writing :pattern (f x) instead of
     // :pattern ((f x))
     if (n[0].isVar() && n[0].getKind() != kind::BOUND_VARIABLE
@@ -172,7 +172,7 @@ TypeNode QuantifierAnnotationTypeRule::computeType(NodeManager* nodeManager,
       // arguments must have set types
       for (const Node& nn : n)
       {
-        if (!nn.getType().isSet())
+        if (!nn.getTypeOrNull().isSet())
         {
           throw TypeCheckingExceptionPrivate(n, "Expecting a set as argument.");
         }
@@ -180,8 +180,8 @@ TypeNode QuantifierAnnotationTypeRule::computeType(NodeManager* nodeManager,
     }
     else if (k == kind::INST_ADD_TO_POOL || k == kind::SKOLEM_ADD_TO_POOL)
     {
-      TypeNode tn = n[0].getType();
-      TypeNode tn1 = n[1].getType();
+      TypeNode tn = n[0].getTypeOrNull();
+      TypeNode tn1 = n[1].getTypeOrNull();
       if (!tn1.isSet())
       {
         throw TypeCheckingExceptionPrivate(n, "Expecting a set as argument.");
@@ -240,7 +240,7 @@ TypeNode QuantifierOracleFormulaGenTypeRule::computeType(
   Assert(n.getKind() == kind::ORACLE_FORMULA_GEN);
   if (check)
   {
-    if (!n[0].getType().isBoolean())
+    if (!n[0].getTypeOrNull().isBoolean())
     {
       if (errOut)
       {
@@ -248,7 +248,7 @@ TypeNode QuantifierOracleFormulaGenTypeRule::computeType(
       }
       return TypeNode::null();
     }
-    if (!n[1].getType().isBoolean())
+    if (!n[1].getTypeOrNull().isBoolean())
     {
       if (errOut)
       {

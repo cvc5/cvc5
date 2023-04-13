@@ -102,7 +102,7 @@ TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
   Kind k = n.getKind();
   for (; child_it != child_it_end; ++child_it)
   {
-    TypeNode childType = (*child_it).getType();
+    TypeNode childType = (*child_it).getTypeOrNull();
     if (childType.isAbstract())
     {
       isAbstract = true;
@@ -166,7 +166,7 @@ TypeNode ArithRelationTypeRule::computeType(NodeManager* nodeManager,
   if (check)
   {
     Assert(n.getNumChildren() == 2);
-    if (!isMaybeRealOrInt(n[0].getType()) || !isMaybeRealOrInt(n[1].getType()))
+    if (!isMaybeRealOrInt(n[0].getTypeOrNull()) || !isMaybeRealOrInt(n[1].getTypeOrNull()))
     {
       if (errOut)
       {
@@ -190,7 +190,7 @@ TypeNode RealNullaryOperatorTypeRule::computeType(NodeManager* nodeManager,
   // for nullary operators, we only computeType for check=true, since they are
   // given TypeAttr() on creation
   Assert(check);
-  if (!n.getType().isReal())
+  if (!n.getTypeOrNull().isReal())
   {
     if (errOut)
     {
@@ -233,8 +233,8 @@ TypeNode IAndTypeRule::computeType(NodeManager* nodeManager,
       << "IAND typerule invoked for " << n << " instead of IAND kind";
   if (check)
   {
-    TypeNode arg1 = n[0].getType();
-    TypeNode arg2 = n[1].getType();
+    TypeNode arg1 = n[0].getTypeOrNull();
+    TypeNode arg2 = n[1].getTypeOrNull();
     if (!isMaybeInteger(arg1) || !isMaybeInteger(arg2))
     {
       if (errOut)
@@ -263,7 +263,7 @@ TypeNode Pow2TypeRule::computeType(NodeManager* nodeManager,
   }
   if (check)
   {
-    TypeNode arg1 = n[0].getType();
+    TypeNode arg1 = n[0].getTypeOrNull();
     if (!isMaybeInteger(arg1))
     {
       if (errOut)
@@ -288,7 +288,7 @@ TypeNode IndexedRootPredicateTypeRule::computeType(NodeManager* nodeManager,
   // used internally, does not accept arguments of abstract type
   if (check)
   {
-    TypeNode t1 = n[0].getType();
+    TypeNode t1 = n[0].getTypeOrNull();
     if (!t1.isBoolean())
     {
       if (errOut)
@@ -297,7 +297,7 @@ TypeNode IndexedRootPredicateTypeRule::computeType(NodeManager* nodeManager,
       }
       return TypeNode::null();
     }
-    TypeNode t2 = n[1].getType();
+    TypeNode t2 = n[1].getTypeOrNull();
     if (!t2.isRealOrInt())
     {
       if (errOut)

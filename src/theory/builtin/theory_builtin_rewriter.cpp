@@ -169,7 +169,13 @@ Node TheoryBuiltinRewriter::rewriteApplyIndexedSymbolic(TNode node)
   std::vector<Node> args;
   args.push_back(op);
   args.insert(args.end(), node.end() - nargs, node.end());
-  return NodeManager::currentNM()->mkNode(okind, args);
+  Node ret = NodeManager::currentNM()->mkNode(okind, args);
+  // could have a bad type, in which case we don't rewrite
+  if (ret.getTypeOrNull(true).isNull())
+  {
+    return node;
+  }
+  return ret;
 }
 
 }  // namespace builtin

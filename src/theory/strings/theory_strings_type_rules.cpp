@@ -52,7 +52,7 @@ TypeNode StringConcatTypeRule::computeType(NodeManager* nodeManager,
   TypeNode tret;
   for (const Node& nc : n)
   {
-    TypeNode t = nc.getType();
+    TypeNode t = nc.getTypeOrNull();
     if (check)
     {
       if (!isMaybeStringLike(t))
@@ -98,7 +98,7 @@ TypeNode StringSubstrTypeRule::computeType(NodeManager* nodeManager,
                                            bool check,
                                            std::ostream* errOut)
 {
-  TypeNode t = n[0].getType();
+  TypeNode t = n[0].getTypeOrNull();
   if (check)
   {
     if (!isMaybeStringLike(t))
@@ -109,7 +109,7 @@ TypeNode StringSubstrTypeRule::computeType(NodeManager* nodeManager,
       }
       return TypeNode::null();
     }
-    TypeNode t2 = n[1].getType();
+    TypeNode t2 = n[1].getTypeOrNull();
     if (!isMaybeInteger(t2))
     {
       if (errOut)
@@ -118,7 +118,7 @@ TypeNode StringSubstrTypeRule::computeType(NodeManager* nodeManager,
       }
       return TypeNode::null();
     }
-    t2 = n[2].getType();
+    t2 = n[2].getTypeOrNull();
     if (!isMaybeInteger(t2))
     {
       if (errOut)
@@ -142,8 +142,8 @@ TypeNode StringUpdateTypeRule::computeType(NodeManager* nodeManager,
                                            bool check,
                                            std::ostream* errOut)
 {
-  TypeNode t = n[0].getType();
-  TypeNode t3 = n[2].getType();
+  TypeNode t = n[0].getTypeOrNull();
+  TypeNode t3 = n[2].getTypeOrNull();
   TypeNode tret = t.leastUpperBound(t3);
   if (tret.isNull())
   {
@@ -164,7 +164,7 @@ TypeNode StringUpdateTypeRule::computeType(NodeManager* nodeManager,
       }
       return TypeNode::null();
     }
-    TypeNode t2 = n[1].getType();
+    TypeNode t2 = n[1].getTypeOrNull();
     if (!isMaybeInteger(t2))
     {
       if (errOut)
@@ -186,7 +186,7 @@ TypeNode StringAtTypeRule::computeType(NodeManager* nodeManager,
                                        bool check,
                                        std::ostream* errOut)
 {
-  TypeNode t = n[0].getType();
+  TypeNode t = n[0].getTypeOrNull();
   if (check)
   {
     if (!isMaybeStringLike(t))
@@ -197,7 +197,7 @@ TypeNode StringAtTypeRule::computeType(NodeManager* nodeManager,
       }
       return TypeNode::null();
     }
-    TypeNode t2 = n[1].getType();
+    TypeNode t2 = n[1].getTypeOrNull();
     if (!isMaybeInteger(t2))
     {
       if (errOut)
@@ -221,7 +221,7 @@ TypeNode StringIndexOfTypeRule::computeType(NodeManager* nodeManager,
 {
   if (check)
   {
-    TypeNode t = n[0].getType();
+    TypeNode t = n[0].getTypeOrNull();
     if (!isMaybeStringLike(t))
     {
       if (errOut)
@@ -230,7 +230,7 @@ TypeNode StringIndexOfTypeRule::computeType(NodeManager* nodeManager,
       }
       return TypeNode::null();
     }
-    TypeNode t2 = n[1].getType();
+    TypeNode t2 = n[1].getTypeOrNull();
     if (!t.isComparableTo(t2))
     {
       if (errOut)
@@ -240,7 +240,7 @@ TypeNode StringIndexOfTypeRule::computeType(NodeManager* nodeManager,
       }
       return TypeNode::null();
     }
-    t = n[2].getType();
+    t = n[2].getTypeOrNull();
     if (!isMaybeInteger(t))
     {
       if (errOut)
@@ -265,7 +265,7 @@ TypeNode StringReplaceTypeRule::computeType(NodeManager* nodeManager,
   TypeNode t;
   for (const Node& nc : n)
   {
-    TypeNode tc = nc.getType();
+    TypeNode tc = nc.getTypeOrNull();
     if (check)
     {
       if (!isMaybeStringLike(tc))
@@ -307,7 +307,7 @@ TypeNode StringStrToBoolTypeRule::computeType(NodeManager* nodeManager,
 {
   if (check)
   {
-    TypeNode t = n[0].getType();
+    TypeNode t = n[0].getTypeOrNull();
     if (!isMaybeStringLike(t))
     {
       if (errOut)
@@ -332,7 +332,7 @@ TypeNode StringStrToIntTypeRule::computeType(NodeManager* nodeManager,
 {
   if (check)
   {
-    TypeNode t = n[0].getType();
+    TypeNode t = n[0].getTypeOrNull();
     if (!isMaybeStringLike(t))
     {
       if (errOut)
@@ -355,7 +355,7 @@ TypeNode StringStrToStrTypeRule::computeType(NodeManager* nodeManager,
                                              bool check,
                                              std::ostream* errOut)
 {
-  TypeNode t = n[0].getType();
+  TypeNode t = n[0].getTypeOrNull();
   if (check)
   {
     if (!isMaybeStringLike(t))
@@ -381,7 +381,7 @@ TypeNode StringRelationTypeRule::computeType(NodeManager* nodeManager,
 {
   if (check)
   {
-    TypeNode t = n[0].getType();
+    TypeNode t = n[0].getTypeOrNull();
     if (!isMaybeStringLike(t))
     {
       if (errOut)
@@ -390,7 +390,7 @@ TypeNode StringRelationTypeRule::computeType(NodeManager* nodeManager,
       }
       return TypeNode::null();
     }
-    TypeNode t2 = n[1].getType();
+    TypeNode t2 = n[1].getTypeOrNull();
     if (!t.isComparableTo(t2))
     {
       if (errOut)
@@ -418,7 +418,7 @@ TypeNode RegExpRangeTypeRule::computeType(NodeManager* nodeManager,
     TNode::iterator it = n.begin();
     for (int i = 0; i < 2; ++i)
     {
-      TypeNode t = (*it).getType();
+      TypeNode t = (*it).getTypeOrNull();
       if (!t.isString() && !t.isFullyAbstract())  // string-only
       {
         if (errOut)
@@ -444,7 +444,7 @@ TypeNode StringToRegExpTypeRule::computeType(NodeManager* nodeManager,
 {
   if (check)
   {
-    TypeNode tn = n[0].getType();
+    TypeNode tn = n[0].getTypeOrNull();
     if (!tn.isString() && !tn.isFullyAbstract())
     {
       if (errOut)
@@ -486,7 +486,7 @@ TypeNode SeqUnitTypeRule::computeType(NodeManager* nodeManager,
                                       std::ostream* errOut)
 {
   Assert(n.getKind() == kind::SEQ_UNIT);
-  TypeNode argType = n[0].getType();
+  TypeNode argType = n[0].getTypeOrNull();
   return nodeManager->mkSequenceType(argType);
 }
 
@@ -500,7 +500,7 @@ TypeNode SeqNthTypeRule::computeType(NodeManager* nodeManager,
                                      std::ostream* errOut)
 {
   Assert(n.getKind() == kind::SEQ_NTH);
-  TypeNode t = n[0].getType();
+  TypeNode t = n[0].getTypeOrNull();
   if (check && !isMaybeStringLike(t))
   {
     if (errOut)
@@ -511,7 +511,7 @@ TypeNode SeqNthTypeRule::computeType(NodeManager* nodeManager,
   }
   if (check)
   {
-    TypeNode t2 = n[1].getType();
+    TypeNode t2 = n[1].getTypeOrNull();
     if (!isMaybeInteger(t2))
     {
       if (errOut)

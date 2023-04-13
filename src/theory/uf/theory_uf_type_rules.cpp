@@ -40,7 +40,7 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager,
                                  std::ostream* errOut)
 {
   TNode f = n.getOperator();
-  TypeNode fType = f.getType(check);
+  TypeNode fType = f.getTypeOrNull();
   if (!fType.isFunction())
   {
     // if it is not even maybe a function type
@@ -70,7 +70,7 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager,
     TypeNode::iterator argument_type_it = fType.begin();
     for (; argument_it != argument_it_end; ++argument_it, ++argument_type_it)
     {
-      TypeNode currentArgument = (*argument_it).getType();
+      TypeNode currentArgument = (*argument_it).getTypeOrNull();
       TypeNode currentArgumentType = *argument_type_it;
       if (!currentArgument.isComparableTo(currentArgumentType))
       {
@@ -80,7 +80,7 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager,
               << "argument type is not the type of the function's argument "
               << "type:\n"
               << "argument:  " << *argument_it << "\n"
-              << "has type:  " << (*argument_it).getType() << "\n"
+              << "has type:  " << (*argument_it).getTypeOrNull() << "\n"
               << "not type: " << *argument_type_it << "\n"
               << "in term : " << n;
         }
@@ -182,7 +182,7 @@ TypeNode HoApplyTypeRule::computeType(NodeManager* nodeManager,
                                       std::ostream* errOut)
 {
   Assert(n.getKind() == kind::HO_APPLY);
-  TypeNode fType = n[0].getType(check);
+  TypeNode fType = n[0].getTypeOrNull();
   if (!fType.isFunction())
   {
     // if it is not even maybe a function type
@@ -200,7 +200,7 @@ TypeNode HoApplyTypeRule::computeType(NodeManager* nodeManager,
   Assert(fType.getNumChildren() >= 2);
   if (check)
   {
-    TypeNode aType = n[1].getType(check);
+    TypeNode aType = n[1].getTypeOrNull();
     if (!aType.isComparableTo(fType[0]))
     {
       if (errOut)
@@ -237,21 +237,21 @@ TypeNode LambdaTypeRule::computeType(NodeManager* nodeManager,
                                      bool check,
                                      std::ostream* errOut)
 {
-  if (n[0].getType(check) != nodeManager->boundVarListType())
+  if (n[0].getTypeOrNull() != nodeManager->boundVarListType())
   {
     if (errOut)
     {
       (*errOut) << "expected a bound var list for LAMBDA expression, got `"
-                << n[0].getType().toString() << "'";
+                << n[0].getTypeOrNull().toString() << "'";
     }
     return TypeNode::null();
   }
   std::vector<TypeNode> argTypes;
   for (TNode::iterator i = n[0].begin(); i != n[0].end(); ++i)
   {
-    argTypes.push_back((*i).getType());
+    argTypes.push_back((*i).getTypeOrNull());
   }
-  TypeNode rangeType = n[1].getType(check);
+  TypeNode rangeType = n[1].getTypeOrNull();
   return nodeManager->mkFunctionType(argTypes, rangeType);
 }
 
@@ -349,7 +349,7 @@ TypeNode BitVectorConversionTypeRule::computeType(NodeManager* nodeManager,
 {
   if (n.getKind() == kind::BITVECTOR_TO_NAT)
   {
-    if (check && !n[0].getType(check).isMaybeKind(kind::BITVECTOR_TYPE))
+    if (check && !n[0].getTypeOrNull().isMaybeKind(kind::BITVECTOR_TYPE))
     {
       if (errOut)
       {
@@ -361,7 +361,7 @@ TypeNode BitVectorConversionTypeRule::computeType(NodeManager* nodeManager,
   }
   Assert(n.getKind() == kind::INT_TO_BITVECTOR);
   size_t bvSize = n.getOperator().getConst<IntToBitVector>();
-  TypeNode tn = n[0].getType(check);
+  TypeNode tn = n[0].getTypeOrNull();
   if (check && !tn.isInteger() && !tn.isFullyAbstract())
   {
     if (errOut)

@@ -34,8 +34,8 @@ TypeNode EqualityTypeRule::computeType(NodeManager* nodeManager,
 {
   if (check)
   {
-    TypeNode lhsType = n[0].getType(check);
-    TypeNode rhsType = n[1].getType(check);
+    TypeNode lhsType = n[0].getTypeOrNull();
+    TypeNode rhsType = n[1].getTypeOrNull();
     if (!lhsType.isComparableTo(rhsType))
     {
       if (errOut)
@@ -64,7 +64,7 @@ TypeNode DistinctTypeRule::computeType(NodeManager* nodeManager,
   {
     TNode::iterator child_it = n.begin();
     TNode::iterator child_it_end = n.end();
-    TypeNode joinType = (*child_it).getType(check);
+    TypeNode joinType = (*child_it).getTypeOrNull();
     for (++child_it; child_it != child_it_end; ++child_it)
     {
       TypeNode currentType = (*child_it).getType();
@@ -116,7 +116,7 @@ TypeNode WitnessTypeRule::computeType(NodeManager* nodeManager,
                                       bool check,
                                       std::ostream* errOut)
 {
-  if (n[0].getType(check) != nodeManager->boundVarListType())
+  if (n[0].getTypeOrNull() != nodeManager->boundVarListType())
   {
     if (errOut)
     {
@@ -136,7 +136,7 @@ TypeNode WitnessTypeRule::computeType(NodeManager* nodeManager,
   }
   if (check)
   {
-    TypeNode rangeType = n[1].getType(check);
+    TypeNode rangeType = n[1].getTypeOrNull();
     if (!rangeType.isBoolean())
     {
       if (errOut)
@@ -148,7 +148,7 @@ TypeNode WitnessTypeRule::computeType(NodeManager* nodeManager,
     }
     if (n.getNumChildren() == 3)
     {
-      if (n[2].getType(check) != nodeManager->instPatternListType())
+      if (n[2].getTypeOrNull() != nodeManager->instPatternListType())
       {
         if (errOut)
         {

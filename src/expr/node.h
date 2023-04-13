@@ -25,6 +25,7 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
+#include <sstream>
 
 #include "base/check.h"
 #include "base/exception.h"
@@ -479,6 +480,11 @@ public:
    * (default: false)
    */
   TypeNode getType(bool check = false) const;
+  /**
+   * Same as getType, but does not throw a type execption if this term is
+   * not well-typed. Instead, this method will return the null type.
+   */
+  TypeNode getTypeOrNull(bool check = false) const;
 
   /**
    * Has name? Return true if this node has an associated variable
@@ -1228,7 +1234,22 @@ template <bool ref_count>
 TypeNode NodeTemplate<ref_count>::getType(bool check) const
 {
   assertTNodeNotExpired();
+  TypeNode tn = NodeManager::currentNM()->getType(*this, check);
+  if (tn.isNull())
+  {
+      // recompute with an error stream and throw a type exception
+    std::stringstream errOutTmp;
+    tn = NodeManager::currentNM()->getType(*this, check, &errOutTmp);
+    //AlwaysAssert(false) << "Node failed to type check: " << *this << " with message " << errOutTmp.str();
+    throw TypeCheckingExceptionPrivate(*this, errOutTmp.str());
+  }
+  return tn;
+}
 
+template <bool ref_count>
+TypeNode NodeTemplate<ref_count>::getTypeOrNull(bool check) const
+{
+  assertTNodeNotExpired();
   return NodeManager::currentNM()->getType(*this, check);
 }
 
