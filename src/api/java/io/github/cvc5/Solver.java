@@ -1978,7 +1978,7 @@ public class Solver implements IPointer
    * (get-timeout-core)
    * }
    *
-   * @warning This method is experimental and may change in future versions.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @return The result of the timeout core computation. This is a pair
    * containing a result and a list of formulas. If the result is unknown
