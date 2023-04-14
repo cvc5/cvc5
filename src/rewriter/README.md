@@ -7,7 +7,6 @@ This document describe the syntax of the RARE language, which stands for
    <rule> ::= (define-rule       <symbol> (<par>*) [<defs>]        <expr> <expr>)
             | (define-rule*      <symbol> (<par>*) [<defs>]        <expr> <expr> [<expr>])
             | (define-cond-rule  <symbol> (<par>*) [<defs>] <expr> <expr> <expr>)
-            | (define-cond-rule* <symbol> (<par>*) [<defs>] <expr> <expr> <expr> [<expr>])
     <par> ::= (<symbol> <sort> [<attr>])
    <sort> ::= ? | <symbol> | ?<symbol> | (<symbol> <sort>+) | (<symbol> <idx>+)
     <idx> ::= ? | <numeral>
@@ -86,10 +85,6 @@ The user can optionally supply a rewrite context to support the continuation. Th
 ```
 This rule specifies that the rewrite of `(str.len (str.++ s1 s2 ...))` is the sum of `(str.len s1)` and the result of applying the rule to the term `(str.len (str.++ s2 ...))`
 
-### Conditional Fixed Point Rules
-
-
-
 ### def construction and variable bindings
 
 The definition list, indicated by `def`, allow the rewrite rule to be more
@@ -108,7 +103,7 @@ All used variables in match and target must show up in the parameters list and
 	(concat (repeat n (extract (- s 1) (- s 1) x)) x))
 ```
 
-## CVC5 Implementation Details
+## Adding new operators
 
 The RARE parser is located at `src/rewriter`. To add a new operator,
 write a new enumeration entry in `src/rewriter/node.py`. The syntax and
@@ -117,17 +112,26 @@ processing are controlled by `rewriter.py` and `parser.py`.
 The symbols usable in `(<id> <expr>+)` can be found in `node.py`. The sorts
 available can be found in `mkrewrites.py`.
 
-
 ## Changes from Previous Works
 
 In comparison to
 [fmcad22](https://ieeexplore.ieee.org/abstract/document/10026573), we have
-removed the `let` and `cond` expressions in favour of more atomic rewrite rules.
-`let` is replaced by `def` which allow symbols to be shared across the
-condition, source, and target terms.
+removed the `let` expression.  `let` is replaced by `def` which allow symbols to
+be shared across the condition, source, and target terms.
 
-We also deleted the `const` modifier since the evaluation of constant
-expressions should be handled elsewhere.
+We also deleted the `const` modifier the rationale is that there are 3 reasons to use `:const`:
+1. There should not be a rule that is only sound when its arguments are constant, so `:const` should not exist in this case.
+2. The evaluation of operator applications of all constant arguments is handled by the rewriter, and therefore rules evaluating constant expressions should not exist in RARE
+3. There are some conditional rules in `theory/bv` which only apply when the
+   arguments satisfy a condition. In this case, we could match the required argument using a `(bv v n)` term with variable bit width `n` instead of an abstract bitvector term `(y ?BitVec)`. For example,
+``` lisp
+(define-cond-rule bv-udiv-pow2-1p
+  ((x ?BitVec) (v Int) (n Int))
+  (def (power (int.log2 v)))
+  (and (int.ispow2 v) (> v 1))
+  (bvudiv x (bv v n))
+  (concat (bv 0 power) (extract (- n 1) power x)))
+```
 
 More information can be found in other works but beware of changes.
 
@@ -138,11 +142,20 @@ exact type does not have to be specified in the RARE rule. For example,
 `?BitVec` could indicate the bitvector type of an unknown width that will only
 be instantiated during rule application.
 
-Gradual types lose information in operations.
-
 Example gradual type in `eq`
 ``` lisp
 (define-rule eq-refl ((t ?)) (= t t) true)
 ```
 This matches two semantically equal terms `t` and rewrite the result to `true` regardless of typing.
 
+Gradual types lose information. For example, the information about the width of a bitvector is implicit albeit it can be recovered using `bvsize`. For example:
+``` lisp
+(define-rule* bv-concat-flatten
+  ((xs ?BitVec :list)
+   (s ?BitVec)
+   (ys ?BitVec :list)
+   (zs ?BitVec :list))
+  (concat xs (concat s ys) zs)
+  (concat xs s ys zs))
+```
+In this case, the bitvectors in the list `xs`, `ys`, `zs` do not have to have the same bitwidth.
