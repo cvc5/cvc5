@@ -1003,6 +1003,8 @@ set(regress_0_tests
   regress0/parser/issue9350-ishell-scope-reset.smt2
   regress0/parser/issue9568-dt-multi-line.smt2
   regress0/parser/issue9623-indexed-err.smt2
+  regress0/parser/issue9645.smt2
+  regress0/parser/issue9651.smt2
   regress0/parser/issue9663.smt2
   regress0/parser/issue9663-2.smt2
   regress0/parser/issue9665.smt2
