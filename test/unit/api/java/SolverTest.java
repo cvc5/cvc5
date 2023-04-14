@@ -482,6 +482,10 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.mkFloatingPoint(3, 5, t2));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkFloatingPoint(3, 5, t2));
 
+    assertEquals(d_solver.mkFloatingPoint(
+                     d_solver.mkBitVector(1), d_solver.mkBitVector(5), d_solver.mkBitVector(10)),
+        d_solver.mkFloatingPoint(5, 11, d_solver.mkBitVector(16)));
+
     Solver slv = new Solver();
     assertDoesNotThrow(() -> slv.mkFloatingPoint(3, 5, t1));
   }

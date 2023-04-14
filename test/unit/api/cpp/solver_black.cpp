@@ -551,6 +551,39 @@ TEST_F(TestApiBlackSolver, mkFloatingPoint)
   ASSERT_THROW(d_solver.mkFloatingPoint(3, 5, t2), CVC5ApiException);
   ASSERT_THROW(d_solver.mkFloatingPoint(3, 5, t2), CVC5ApiException);
 
+  ASSERT_EQ(d_solver.mkFloatingPoint(d_solver.mkBitVector(1),
+                                     d_solver.mkBitVector(5),
+                                     d_solver.mkBitVector(10)),
+            d_solver.mkFloatingPoint(5, 11, d_solver.mkBitVector(16)));
+  ASSERT_THROW(d_solver.mkFloatingPoint(
+                   Term(), d_solver.mkBitVector(5), d_solver.mkBitVector(10)),
+               CVC5ApiException);
+  ASSERT_THROW(d_solver.mkFloatingPoint(
+                   d_solver.mkBitVector(1), Term(), d_solver.mkBitVector(10)),
+               CVC5ApiException);
+  ASSERT_THROW(d_solver.mkFloatingPoint(
+                   d_solver.mkBitVector(1), d_solver.mkBitVector(5), Term()),
+               CVC5ApiException);
+  ASSERT_THROW(
+      d_solver.mkFloatingPoint(d_solver.mkConst(d_solver.mkBitVectorSort(1)),
+                               d_solver.mkBitVector(5),
+                               d_solver.mkBitVector(10)),
+      CVC5ApiException);
+  ASSERT_THROW(
+      d_solver.mkFloatingPoint(d_solver.mkBitVector(1),
+                               d_solver.mkConst(d_solver.mkBitVectorSort(5)),
+                               d_solver.mkBitVector(10)),
+      CVC5ApiException);
+  ASSERT_THROW(
+      d_solver.mkFloatingPoint(d_solver.mkBitVector(1),
+                               d_solver.mkBitVector(5),
+                               d_solver.mkConst(d_solver.mkBitVectorSort(5))),
+      CVC5ApiException);
+  ASSERT_THROW(d_solver.mkFloatingPoint(d_solver.mkBitVector(2),
+                                        d_solver.mkBitVector(5),
+                                        d_solver.mkBitVector(10)),
+               CVC5ApiException);
+
   Solver slv;
   ASSERT_NO_THROW(slv.mkFloatingPoint(3, 5, t1));
 }
