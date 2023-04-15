@@ -1237,10 +1237,12 @@ public class Solver implements IPointer
   private native long mkRoundingMode(long pointer, int rm);
 
   /**
-   * Create a floating-point constant.
+   * Create a floating-point value from a bit-vector given in IEEE-754
+   * format.
    * @param exp Size of the exponent.
    * @param sig Size of the significand.
    * @param val Value of the floating-point constant as a bit-vector term.
+   * @return The floating-point value.
    * @throws CVC5ApiException
    */
   public Term mkFloatingPoint(int exp, int sig, Term val) throws CVC5ApiException
@@ -1252,6 +1254,25 @@ public class Solver implements IPointer
   }
 
   private native long mkFloatingPoint(long pointer, int exp, int sig, long valPointer);
+
+  /**
+   * Create a floating-point value from its three IEEE-754 bit-vector value
+   * components (sign bit, exponent, significand).
+   * @param sign The sign bit.
+   * @param exp  The bit-vector representing the exponent.
+   * @param sig The bit-vector representing the significand.
+   * @return The floating-point value.
+   * @throws CVC5ApiException
+   */
+  public Term mkFloatingPoint(Term sign, Term exp, Term sig) throws CVC5ApiException
+  {
+    long termPointer =
+        mkFloatingPointX(pointer, sign.getPointer(), exp.getPointer(), sig.getPointer());
+    return new Term(termPointer);
+  }
+
+  private native long mkFloatingPointX(
+      long pointer, long signPointer, long expPointer, long sigPointer);
 
   /**
    * Create a cardinality constraint for an uninterpreted sort.

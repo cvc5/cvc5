@@ -169,10 +169,10 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
             string defaultValue
             string currentValue
             vector[string] modes
-        
+
         cppclass OptionInfoVariant:
             pass
-        
+
         OptionInfoVariant valueInfo
         string toString() except +
 
@@ -288,7 +288,8 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Term mkFloatingPointPosZero(uint32_t exp, uint32_t sig) except +
         Term mkFloatingPointNegZero(uint32_t exp, uint32_t sig) except +
         Term mkRoundingMode(RoundingMode rm) except +
-        Term mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) except +
+        Term mkFloatingPoint(uint32_t exp, uint32_t sig, const Term& val) except +
+        Term mkFloatingPoint(const Term& arg0, const Term& arg1, const Term& arg2) except +
         Term mkCardinalityConstraint(Sort sort, int32_t index) except +
         Term mkConst(Sort sort, const string& symbol) except +
         # default value for symbol defined in cpp/cvc5.h

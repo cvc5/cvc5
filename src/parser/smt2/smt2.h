@@ -449,9 +449,13 @@ class Smt2State : public ParserState
    */
   Term mkAnd(const std::vector<Term>& es) const;
   /**
-   * Is term t a constant integer?
+   * @return True if term t an integer value.
    */
   static bool isConstInt(const Term& t);
+  /**
+   * @return True if term t is a bit-vector value.
+   */
+  static bool isConstBv(const Term& t);
 
   /** Are we parsing a sygus file? */
   bool d_isSygus;

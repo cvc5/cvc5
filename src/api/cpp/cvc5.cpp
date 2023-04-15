@@ -6226,7 +6226,7 @@ Term Solver::mkRoundingMode(RoundingMode rm) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const
+Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, const Term& val) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(val);
@@ -6235,15 +6235,50 @@ Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const
   uint32_t bw = exp + sig;
   CVC5_API_ARG_CHECK_EXPECTED(bw == val.d_node->getType().getBitVectorSize(),
                               val)
-      << "a bit-vector constant with bit-width '" << bw << "'";
+      << "a bit-vector value with bit-width '" << bw << "'";
   CVC5_API_ARG_CHECK_EXPECTED(
       val.d_node->getType().isBitVector() && val.d_node->isConst(), val)
-      << "bit-vector constant";
+      << "bit-vector value";
   //////// all checks before this line
   return Solver::mkValHelper(
       d_nm,
       internal::FloatingPoint(
           exp, sig, val.d_node->getConst<internal::BitVector>()));
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Solver::mkFloatingPoint(const Term& sign,
+                             const Term& exp,
+                             const Term& sig) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_SOLVER_CHECK_TERM(sign);
+  CVC5_API_SOLVER_CHECK_TERM(exp);
+  CVC5_API_SOLVER_CHECK_TERM(sig);
+  CVC5_API_ARG_CHECK_EXPECTED(
+      sign.d_node->getType().isBitVector() && sign.d_node->isConst(), sign)
+      << "bit-vector value";
+  CVC5_API_ARG_CHECK_EXPECTED(
+      exp.d_node->getType().isBitVector() && exp.d_node->isConst(), exp)
+      << "bit-vector value";
+  CVC5_API_ARG_CHECK_EXPECTED(
+      sig.d_node->getType().isBitVector() && sig.d_node->isConst(), sig)
+      << "bit-vector value";
+  CVC5_API_ARG_CHECK_EXPECTED(sign.d_node->getType().getBitVectorSize() == 1,
+                              sign)
+      << "a bit-vector value with bit-width '1'";
+  //////// all checks before this line
+  uint32_t esize = exp.d_node->getType().getBitVectorSize();
+  uint32_t ssize = sig.d_node->getType().getBitVectorSize() + 1;
+  return Solver::mkValHelper(
+      d_nm,
+      internal::FloatingPoint(
+          esize,
+          ssize,
+          sign.d_node->getConst<internal::BitVector>().concat(
+              exp.d_node->getConst<internal::BitVector>().concat(
+                  sig.d_node->getConst<internal::BitVector>()))));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
