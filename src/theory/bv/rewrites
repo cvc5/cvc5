@@ -810,7 +810,6 @@
   (def (n (bvsize x)))
   (and (< low n) (>= high n))
   (extract high low (sign_extend k x))
-  (extract high low x)
   (sign_extend
     (+ 1 (- high n))
     (extract (- n 1) low x)))
