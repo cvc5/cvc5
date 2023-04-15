@@ -103,24 +103,20 @@ TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
       {
         ret = nm->mkNode(cur.getKind(), children);
       }
-      bool wasRewritten = false;
-      if (ret.getKind() == kind::EQUAL && !ret[0].getType().isBoolean())
+      // For example, (= x y) ---> (and (>= x y) (<= x y))
+      std::vector<SkolemLemma> lems;
+      TrustNode trn = te->ppRewrite(ret, lems, true);
+      Assert(lems.empty());
+      // can make proof producing by using proof generator from trn
+      if (!trn.isNull() && trn.getNode() != ret)
       {
-        // For example, (= x y) ---> (and (>= x y) (<= x y))
-        std::vector<SkolemLemma> lems;
-        TrustNode trn = te->ppRewrite(ret, lems);
-        Assert(lems.empty());
-        // can make proof producing by using proof generator from trn
-        if (!trn.isNull() && trn.getNode() != ret)
-        {
-          Trace("pp-rewrite-eq") << "Rewrite equality " << ret << " to "
-                                 << trn.getNode() << std::endl;
-          wasRewritten = true;
-          Node retr = trn.getNode();
-          rewrittenTo[cur] = retr;
-          rewrittenTo[ret] = retr;
-          visit.push_back(retr);
-        }
+        Trace("pp-rewrite-eq") << "Rewrite equality " << ret << " to "
+                                << trn.getNode() << std::endl;
+        wasRewritten = true;
+        Node retr = trn.getNode();
+        rewrittenTo[cur] = retr;
+        rewrittenTo[ret] = retr;
+        visit.push_back(retr);
       }
       if (!wasRewritten)
       {

@@ -214,7 +214,7 @@ private:
   void notifyFact(TNode atom, bool pol, TNode fact, bool isInternal) override;
   //--------------------------------- end standard check
   void preRegisterTerm(TNode n) override;
-  TrustNode ppRewrite(TNode n, std::vector<SkolemLemma>& lems) override;
+  TrustNode ppRewrite(TNode n, std::vector<SkolemLemma>& lems, bool isStatic) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   std::string identify() const override
   {

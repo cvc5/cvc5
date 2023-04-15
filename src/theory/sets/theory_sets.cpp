@@ -133,7 +133,7 @@ void TheorySets::preRegisterTerm(TNode node)
   d_internal->preRegisterTerm(node);
 }
 
-TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
+TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems, bool isStatic)
 {
   Kind nk = n.getKind();
   if (nk == SET_UNIVERSE || nk == SET_COMPLEMENT || nk == RELATION_JOIN_IMAGE

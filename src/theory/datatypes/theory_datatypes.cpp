@@ -343,7 +343,7 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
   d_im.process();
 }
 
-TrustNode TheoryDatatypes::ppRewrite(TNode in, std::vector<SkolemLemma>& lems)
+TrustNode TheoryDatatypes::ppRewrite(TNode in, std::vector<SkolemLemma>& lems, bool isStatic)
 {
   Trace("tuprec") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
   // first, see if we need to expand definitions

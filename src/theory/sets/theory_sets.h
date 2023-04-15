@@ -79,7 +79,7 @@ class TheorySets : public Theory
    * we throw an exception. Additionally, we expand operators like choose
    * and is_singleton.
    */
-  TrustNode ppRewrite(TNode n, std::vector<SkolemLemma>& lems) override;
+  TrustNode ppRewrite(TNode n, std::vector<SkolemLemma>& lems, bool isStatic) override;
   PPAssertStatus ppAssert(TrustNode tin,
                           TrustSubstitutionMap& outSubstitutions) override;
   void presolve() override;

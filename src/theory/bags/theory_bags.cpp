@@ -88,7 +88,7 @@ void TheoryBags::finishInit()
   d_equalityEngine->addFunctionKind(TABLE_GROUP);
 }
 
-TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
+TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems, bool isStatic)
 {
   Trace("bags-ppr") << "TheoryBags::ppRewrite " << atom << std::endl;
 

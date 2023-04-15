@@ -165,23 +165,26 @@ void TheoryArith::notifySharedTerm(TNode n)
   d_internal->notifySharedTerm(n);
 }
 
-TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
+TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems, bool isStatic)
 {
   CodeTimer timer(d_ppRewriteTimer, /* allow_reentrant = */ true);
   Trace("arith::preprocess") << "arith::preprocess() : " << atom << endl;
 
-  Kind k = atom.getKind();
-  if (k == kind::EQUAL)
+  if (isStatic)
   {
-    return d_ppre.ppRewriteEq(atom);
-  }
-  else if (k == kind::GEQ)
-  {
-    // try to eliminate bv2nat from inequalities
-    Node atomr = ArithRewriter::rewriteIneqToBv(atom);
-    if (atomr != atom)
+    Kind k = atom.getKind();
+    if (k == kind::EQUAL)
     {
-      return TrustNode::mkTrustRewrite(atom, atomr);
+      return d_ppre.ppRewriteEq(atom);
+    }
+    else if (k == kind::GEQ)
+    {
+      // try to eliminate bv2nat from inequalities
+      Node atomr = ArithRewriter::rewriteIneqToBv(atom);
+      if (atomr != atom)
+      {
+        return TrustNode::mkTrustRewrite(atom, atomr);
+      }
     }
   }
 

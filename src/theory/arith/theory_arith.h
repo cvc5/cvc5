@@ -107,7 +107,7 @@ class TheoryArith : public Theory {
    * This calls the operator elimination utility to eliminate extended
    * symbols.
    */
-  TrustNode ppRewrite(TNode atom, std::vector<SkolemLemma>& lems) override;
+  TrustNode ppRewrite(TNode atom, std::vector<SkolemLemma>& lems, bool isStatic) override;
   void ppStaticLearn(TNode in, NodeBuilder& learned) override;
 
   std::string identify() const override { return std::string("TheoryArith"); }

@@ -647,7 +647,7 @@ class Theory : protected EnvObj
    * Note that ppRewrite should not return WITNESS terms, since the internal
    * calculus works in "original forms" and not "witness forms".
    */
-  virtual TrustNode ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
+  virtual TrustNode ppRewrite(TNode n, std::vector<SkolemLemma>& lems, bool isStatic=false)
   {
     return TrustNode::null();
   }
