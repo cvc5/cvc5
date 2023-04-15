@@ -2023,7 +2023,7 @@ Java_io_github_cvc5_Solver_getTimeoutCore(JNIEnv* env, jobject, jlong pointer)
   jmethodID longConstructor = env->GetMethodID(longClass, "<init>", "(J)V");
   jobject r = env->NewObject(longClass, longConstructor, resultPointer);
 
-  // Pair pair = new Pair<Long, Long[]>(r, a);
+  // Pair pair = new Pair<Long, long[]>(r, a);
   jclass pairClass = env->FindClass("Lio/github/cvc5/Pair;");
   jmethodID pairConstructor = env->GetMethodID(
       pairClass, "<init>", "(Ljava/lang/Object;Ljava/lang/Object;)V");
