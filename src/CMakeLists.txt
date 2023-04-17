@@ -1422,9 +1422,9 @@ install(FILES
 add_dependencies(cvc5-obj GMP)
 target_include_directories(cvc5-obj PRIVATE ${GMP_INCLUDE_DIR})
 if(BUILD_SHARED_LIBS)
-  target_link_libraries(cvc5 PRIVATE GMP)
+  target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:GMP> $<INSTALL_INTERFACE:gmp>)
 else()
-  target_link_libraries(cvc5 PUBLIC GMP)
+  target_link_libraries(cvc5 PUBLIC $<BUILD_INTERFACE:GMP> $<INSTALL_INTERFACE:gmp>)
 endif()
 
 # Add rt library
@@ -1438,7 +1438,7 @@ endif()
 
 add_dependencies(cvc5-obj CaDiCaL)
 target_include_directories(cvc5-obj SYSTEM PRIVATE ${CaDiCaL_INCLUDE_DIR})
-target_link_libraries(cvc5 PRIVATE CaDiCaL)
+target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:CaDiCal> $<INSTALL_INTERFACE:cadical>)
 
 if(USE_CLN)
   add_dependencies(cvc5-obj CLN)
@@ -1463,9 +1463,9 @@ if(USE_POLY)
   add_dependencies(cvc5-obj Polyxx)
   target_include_directories(cvc5-obj SYSTEM PRIVATE ${Poly_INCLUDE_DIR})
   if(BUILD_SHARED_LIBS)
-    target_link_libraries(cvc5 PRIVATE Poly Polyxx)
+    target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:Poly Polyxx> $<INSTALL_INTERFACE:picpoly picpolyxx>)
   else()
-    target_link_libraries(cvc5 PUBLIC Poly Polyxx)
+    target_link_libraries(cvc5 PUBLIC $<BUILD_INTERFACE:Poly Polyxx> $<INSTALL_INTERFACE:picpoly picpolyxx>)
   endif()
 endif()
 if(USE_COCOA)
@@ -1476,7 +1476,7 @@ endif()
 
 add_dependencies(cvc5-obj SymFPU)
 target_include_directories(cvc5-obj SYSTEM PRIVATE ${SymFPU_INCLUDE_DIR})
-target_link_libraries(cvc5 PRIVATE SymFPU)
+target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:SymFPU> $<INSTALL_INTERFACE:symfpu>)
 
 #-----------------------------------------------------------------------------#
 # Visit main subdirectory after creating target cvc5. For target main, we have
