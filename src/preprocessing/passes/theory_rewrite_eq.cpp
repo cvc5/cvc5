@@ -105,9 +105,7 @@ TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
       }
       bool wasRewritten = false;
       // For example, (= x y) ---> (and (>= x y) (<= x y))
-      std::vector<SkolemLemma> lems;
-      TrustNode trn = te->ppRewrite(ret, lems, true);
-      Assert(lems.empty());
+      TrustNode trn = te->ppStaticRewrite(ret);
       // can make proof producing by using proof generator from trn
       if (!trn.isNull() && trn.getNode() != ret)
       {

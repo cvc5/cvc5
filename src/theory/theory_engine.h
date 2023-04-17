@@ -183,7 +183,11 @@ class TheoryEngine : protected EnvObj
    * Calls the ppRewrite of the theory of term and adds the associated skolem
    * lemmas to lems, for details see Theory::ppRewrite.
    */
-  TrustNode ppRewrite(TNode term, std::vector<theory::SkolemLemma>& lems, bool isStatic);
+  TrustNode ppRewrite(TNode term, std::vector<theory::SkolemLemma>& lems);
+  /**
+   * Same as above, but applied only at preprocess time.
+   */
+  TrustNode ppStaticRewrite(TNode term);
   /** Notify (preprocessed) assertions. */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
 

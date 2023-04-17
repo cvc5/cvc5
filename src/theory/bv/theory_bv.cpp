@@ -256,12 +256,8 @@ Theory::PPAssertStatus TheoryBV::ppAssert(
   return Theory::PP_ASSERT_STATUS_UNSOLVED;
 }
 
-TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems, bool isStatic)
+TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
 {
-  if (isStatic)
-  {
-    return TrustNode::null();
-  }
   Trace("theory-bv-pp-rewrite") << "ppRewrite " << t << "\n";
   Node res = t;
   if (options().bv.bitwiseEq && RewriteRule<BitwiseEq>::applies(t))

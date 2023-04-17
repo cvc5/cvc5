@@ -165,30 +165,10 @@ void TheoryArith::notifySharedTerm(TNode n)
   d_internal->notifySharedTerm(n);
 }
 
-TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems, bool isStatic)
+TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
   CodeTimer timer(d_ppRewriteTimer, /* allow_reentrant = */ true);
-  Trace("arith::preprocess") << "arith::preprocess() : " << atom << endl;
-
-  if (isStatic)
-  {
-    Kind k = atom.getKind();
-    if (k == kind::EQUAL)
-    {
-      return d_ppre.ppRewriteEq(atom);
-    }
-    else if (k == kind::GEQ)
-    {
-      // try to eliminate bv2nat from inequalities
-      Node atomr = ArithRewriter::rewriteIneqToBv(atom);
-      if (atomr != atom)
-      {
-        return TrustNode::mkTrustRewrite(atom, atomr);
-      }
-    }
-    return TrustNode::null();
-  }
-
+  Trace("arith::preprocess") << "arith::ppRewrite() : " << atom << endl;
   Assert(d_env.theoryOf(atom) == THEORY_ARITH);
   // Eliminate operators. Notice we must do this here since other
   // theories may generate lemmas that involve non-standard operators. For
@@ -197,6 +177,26 @@ TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems, boo
   // call eliminate operators. In contrast to expandDefinitions, we eliminate
   // *all* extended arithmetic operators here, including total ones.
   return d_arithPreproc.eliminate(atom, lems, false);
+}
+
+TrustNode TheoryArith::ppStaticRewrite(TNode atom)
+{
+  Trace("arith::preprocess") << "arith::ppStaticRewrite() : " << atom << endl;
+  Kind k = atom.getKind();
+  if (k == kind::EQUAL)
+  {
+    return d_ppre.ppRewriteEq(atom);
+  }
+  else if (k == kind::GEQ)
+  {
+    // try to eliminate bv2nat from inequalities
+    Node atomr = ArithRewriter::rewriteIneqToBv(atom);
+    if (atomr != atom)
+    {
+      return TrustNode::mkTrustRewrite(atom, atomr);
+    }
+  }
+  return TrustNode::null();
 }
 
 Theory::PPAssertStatus TheoryArith::ppAssert(

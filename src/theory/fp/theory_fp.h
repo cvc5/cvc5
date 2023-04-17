@@ -58,7 +58,7 @@ class TheoryFp : public Theory
   //--------------------------------- end initialization
 
   void preRegisterTerm(TNode node) override;
-  TrustNode ppRewrite(TNode node, std::vector<SkolemLemma>& lems, bool isStatic) override;
+  TrustNode ppRewrite(TNode node, std::vector<SkolemLemma>& lems) override;
 
   //--------------------------------- standard check
   /** Do we need a check call at last call effort? */

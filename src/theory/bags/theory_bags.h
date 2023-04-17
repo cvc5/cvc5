@@ -57,7 +57,7 @@ class TheoryBags : public Theory
   /** finish initialization */
   void finishInit() override;
   /** preprocess rewrite */
-  TrustNode ppRewrite(TNode atom, std::vector<SkolemLemma>& lems, bool isStatic) override;
+  TrustNode ppRewrite(TNode atom, std::vector<SkolemLemma>& lems) override;
   //--------------------------------- end initialization
 
   /**

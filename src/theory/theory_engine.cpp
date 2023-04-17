@@ -809,7 +809,7 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
 }
 
 TrustNode TheoryEngine::ppRewrite(TNode term,
-                                  std::vector<theory::SkolemLemma>& lems, bool isStatic)
+                                  std::vector<theory::SkolemLemma>& lems)
 {
   Assert(lems.empty());
   TheoryId tid = d_env.theoryOf(term);
@@ -827,7 +827,7 @@ TrustNode TheoryEngine::ppRewrite(TNode term,
        << term;
     throw LogicException(ss.str());
   }
-  TrustNode trn = d_theoryTable[tid]->ppRewrite(term, lems, isStatic);
+  TrustNode trn = d_theoryTable[tid]->ppRewrite(term, lems);
   // should never introduce a skolem to eliminate an equality
   Assert(lems.empty() || term.getKind() != kind::EQUAL);
   if (!isProofEnabled())
@@ -853,6 +853,22 @@ TrustNode TheoryEngine::ppRewrite(TNode term,
   // trust node, this is the responsibility of the caller, i.e. theory
   // preprocessor.
   return trn;
+}
+
+TrustNode TheoryEngine::ppStaticRewrite(TNode term)
+{
+  TheoryId tid = d_env.theoryOf(term);
+  if (!isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
+  {
+    stringstream ss;
+    ss << "The logic was specified as " << logicInfo().getLogicString()
+       << ", which doesn't include " << tid
+       << ", but got a static preprocessing-time term for that theory." << std::endl
+       << "The term:" << std::endl
+       << term;
+    throw LogicException(ss.str());
+  }
+  return d_theoryTable[tid]->ppStaticRewrite(term);
 }
 
 void TheoryEngine::notifyPreprocessedAssertions(

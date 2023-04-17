@@ -87,7 +87,7 @@ class TheoryBV : public Theory
   PPAssertStatus ppAssert(TrustNode in,
                           TrustSubstitutionMap& outSubstitutions) override;
 
-  TrustNode ppRewrite(TNode t, std::vector<SkolemLemma>& lems, bool isStatic) override;
+  TrustNode ppRewrite(TNode t, std::vector<SkolemLemma>& lems) override;
 
   void ppStaticLearn(TNode in, NodeBuilder& learned) override;
 
