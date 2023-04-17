@@ -8,13 +8,12 @@
    (zs ?BitVec :list))
   (concat xs (concat s ys) zs)
   (concat xs s ys zs))
-(define-cond-rule bv-concat-extract-merge
+(define-rule bv-concat-extract-merge
   ((xs ?BitVec :list)
    (s ?BitVec)
    (ys ?BitVec :list)
    (i Int) (j Int) (k Int)
   )
-  (and (>= i 0) (>= j 0) (>= k 0))
   (concat xs (extract k (+ j 1) s) (extract j i s) ys)
   (concat xs (extract k i s) ys))
 ; x[i..j][k..l] = x[i+k..i+l]
