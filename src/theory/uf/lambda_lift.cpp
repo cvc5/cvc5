@@ -67,8 +67,6 @@ TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
     return TrustNode::null();
   }
   d_lambdaMap[skolem] = lam;
-  // if we are lifting lazily, the definition is kept implicit
-  // note we don't add to definitions
   if (!options().uf.ufHoLazyLambdaLift)
   {
     TrustNode trn = lift(lam);
