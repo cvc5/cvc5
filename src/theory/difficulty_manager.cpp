@@ -141,7 +141,7 @@ bool DifficultyManager::needsCandidateModel() const
 
 void DifficultyManager::notifyCandidateModel(TheoryModel* m)
 {
-  Assert (needsCandidateModel());
+  Assert(needsCandidateModel());
   Trace("diff-man") << "DifficultyManager::notifyCandidateModel, #input="
                     << d_input.size() << " #lemma=" << d_lemma.size()
                     << std::endl;
