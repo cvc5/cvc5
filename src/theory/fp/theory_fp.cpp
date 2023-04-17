@@ -137,6 +137,10 @@ void TheoryFp::finishInit()
 
 TrustNode TheoryFp::ppRewrite(TNode node, std::vector<SkolemLemma>& lems, bool isStatic)
 {
+  if (isStatic)
+  {
+    return TrustNode::null();
+  }
   Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): " << node << std::endl;
 
   // first, see if we need to expand definitions

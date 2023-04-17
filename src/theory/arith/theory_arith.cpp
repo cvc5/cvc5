@@ -186,6 +186,7 @@ TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems, boo
         return TrustNode::mkTrustRewrite(atom, atomr);
       }
     }
+    return TrustNode::null();
   }
 
   Assert(d_env.theoryOf(atom) == THEORY_ARITH);

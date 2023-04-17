@@ -1110,6 +1110,10 @@ void TheoryStrings::notifySharedTerm(TNode n)
 
 TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems, bool isStatic)
 {
+  if (isStatic)
+  {
+    return TrustNode::null();
+  }
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
   Kind ak = atom.getKind();
   if (ak == EQUAL)

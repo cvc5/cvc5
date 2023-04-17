@@ -90,6 +90,10 @@ void TheoryBags::finishInit()
 
 TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems, bool isStatic)
 {
+  if (isStatic)
+  {
+    return TrustNode::null();
+  }
   Trace("bags-ppr") << "TheoryBags::ppRewrite " << atom << std::endl;
 
   switch (atom.getKind())

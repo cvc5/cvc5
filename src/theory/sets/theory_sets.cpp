@@ -135,6 +135,10 @@ void TheorySets::preRegisterTerm(TNode node)
 
 TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems, bool isStatic)
 {
+  if (isStatic)
+  {
+    return TrustNode::null();
+  }
   Kind nk = n.getKind();
   if (nk == SET_UNIVERSE || nk == SET_COMPLEMENT || nk == RELATION_JOIN_IMAGE
       || nk == SET_COMPREHENSION)

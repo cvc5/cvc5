@@ -293,6 +293,10 @@ Node TheoryArrays::solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck
 
 TrustNode TheoryArrays::ppRewrite(TNode term, std::vector<SkolemLemma>& lems, bool isStatic)
 {
+  if (isStatic)
+  {
+    return TrustNode::null();
+  }
   // first, check for logic exceptions
   Kind k = term.getKind();
   if (!options().arrays.arraysExp)

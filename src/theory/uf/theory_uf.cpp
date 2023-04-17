@@ -200,6 +200,10 @@ void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
 
 TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems, bool isStatic)
 {
+  if (isStatic)
+  {
+    return TrustNode::null();
+  }
   Trace("uf-exp-def") << "TheoryUF::ppRewrite: expanding definition : " << node
                       << std::endl;
   Kind k = node.getKind();
