@@ -822,7 +822,7 @@ TrustNode TheoryEngine::ppRewrite(TNode term,
     stringstream ss;
     ss << "The logic was specified as " << logicInfo().getLogicString()
        << ", which doesn't include " << tid
-       << ", but got a preprocessing-time term for that theory." << std::endl
+       << ", but got a term for that theory during solving." << std::endl
        << "The term:" << std::endl
        << term;
     throw LogicException(ss.str());
@@ -863,7 +863,7 @@ TrustNode TheoryEngine::ppStaticRewrite(TNode term)
     stringstream ss;
     ss << "The logic was specified as " << logicInfo().getLogicString()
        << ", which doesn't include " << tid
-       << ", but got a static preprocessing-time term for that theory."
+       << ", but got a preprocessing-time term for that theory."
        << std::endl
        << "The term:" << std::endl
        << term;
