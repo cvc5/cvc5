@@ -1108,6 +1108,7 @@ set(regress_0_tests
   regress0/proofs/issue9515-alethe-skolems-crash.smt2
   regress0/proofs/issue9516-alethe-skolems-undef-in-proof.smt2
   regress0/proofs/issue9531-alethe-resolution.smt2
+  regress0/proofs/issue9669-clause-level-opt-incremental.smt2
   regress0/proofs/lfsc-test-1.smt2
   regress0/proofs/nomerge-alethe-pf.smt2
   regress0/proofs/open-pf-datatypes.smt2

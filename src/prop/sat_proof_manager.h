@@ -414,8 +414,11 @@ class SatProofManager : protected EnvObj
    *
    * @param conclusion the node-level conclusion of the resolution chain
    * @param conclusionLits the set of literals in the conclusion
+   * @param clauseLevel the level of the clause in the SAT solver (if any)
    */
-  void endResChain(Node conclusion, const std::set<SatLiteral>& conclusionLits);
+  void endResChain(Node conclusion,
+                   const std::set<SatLiteral>& conclusionLits,
+                   uint32_t clauseLevel = -1);
 
   /** Explain redundant literal and generate corresponding resolution steps
    *
