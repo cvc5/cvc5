@@ -358,7 +358,8 @@ TrustNode TheoryDatatypes::ppRewrite(TNode in, std::vector<SkolemLemma>& lems)
 
 TrustNode TheoryDatatypes::ppStaticRewrite(TNode in)
 {
-  Trace("datatypes") << "TheoryDatatypes::ppStaticRewrite(" << in << ")" << endl;
+  Trace("datatypes") << "TheoryDatatypes::ppStaticRewrite(" << in << ")"
+                     << endl;
   if( in.getKind()==EQUAL ){
     Node nn;
     std::vector< Node > rew;

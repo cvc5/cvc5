@@ -110,7 +110,7 @@ TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
       if (!trn.isNull() && trn.getNode() != ret)
       {
         Trace("pp-rewrite-eq") << "Rewrite equality " << ret << " to "
-                                << trn.getNode() << std::endl;
+                               << trn.getNode() << std::endl;
         wasRewritten = true;
         Node retr = trn.getNode();
         rewrittenTo[cur] = retr;
