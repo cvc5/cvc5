@@ -8,17 +8,18 @@
    (zs ?BitVec :list))
   (concat xs (concat s ys) zs)
   (concat xs s ys zs))
-(define-rule bv-concat-extract-merge
+(define-cond-rule bv-concat-extract-merge
   ((xs ?BitVec :list)
    (s ?BitVec)
    (ys ?BitVec :list)
-   (i Int) (j Int) (k Int)
+   (i Int) (j Int) (j1 Int) (k Int)
   )
-  (concat xs (extract k (+ j 1) s) (extract j i s) ys)
+  (= j1 (+ j 1))
+  (concat xs (extract k j1 s) (extract j i s) ys)
   (concat xs (extract k i s) ys))
 ; x[i..j][k..l] = x[i+k..i+l]
 (define-rule* bv-extract-extract
-  ((x ?BitVec) (i Int) (j Int) (k Int) (l Int))
+  ((x ?Bitvec) (i int) (j int) (k int) (l int))
   (extract l k (extract j i x))
   (extract (+ i l) (+ i k) x))
 (define-cond-rule bv-extract-whole
@@ -908,7 +909,7 @@
   (bvult x (bvadd y (bv 1 n)))
   (and
     (not (bvult y x))
-    (not (= y (bvneg (bv 0 n))))))
+    (not (= y (bvnot (bv 0 n))))))
 (define-cond-rule bv-concat-to-mult
   ((x ?BitVec) (i Int) (m Int))
   (= (+ 1 i m) (bvsize x))
