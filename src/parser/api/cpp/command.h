@@ -1067,6 +1067,28 @@ class CVC5_EXPORT GetDifficultyCommand : public Command
   std::map<cvc5::Term, cvc5::Term> d_result;
 };
 
+class CVC5_EXPORT GetTimeoutCoreCommand : public Command
+{
+ public:
+  GetTimeoutCoreCommand();
+  cvc5::Result getResult() const;
+  const std::vector<cvc5::Term>& getTimeoutCore() const;
+
+  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void printResult(cvc5::Solver* solver, std::ostream& out) const override;
+
+  std::string getCommandName() const override;
+  void toStream(std::ostream& out) const override;
+
+ protected:
+  /** The solver we were invoked with */
+  cvc5::Solver* d_solver;
+  /** The symbol manager we were invoked with */
+  parser::SymbolManager* d_sm;
+  /** the result of the timeout core call */
+  std::pair<cvc5::Result, std::vector<cvc5::Term>> d_result;
+};
+
 class CVC5_EXPORT GetLearnedLiteralsCommand : public Command
 {
  public:

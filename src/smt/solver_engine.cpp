@@ -61,6 +61,7 @@
 #include "smt/solver_engine_state.h"
 #include "smt/solver_engine_stats.h"
 #include "smt/sygus_solver.h"
+#include "smt/timeout_core_manager.h"
 #include "smt/unsat_core_manager.h"
 #include "theory/quantifiers/instantiation_list.h"
 #include "theory/quantifiers/oracle_engine.h"
@@ -776,6 +777,14 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   // set the filename on the result
   const std::string& filename = d_env->getOptions().driver.filename;
   return Result(r, filename);
+}
+
+std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore()
+{
+  finishInit();
+  Trace("smt") << "SolverEngine::getTimeoutCore()" << std::endl;
+  TimeoutCoreManager tcm(*d_env.get());
+  return tcm.getTimeoutCore(d_smtSolver->getAssertions());
 }
 
 std::vector<Node> SolverEngine::getUnsatAssumptions(void)

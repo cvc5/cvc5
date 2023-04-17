@@ -100,6 +100,7 @@ unterminated_comment ;[^\n]*
 "get-proof"   return cvc5::parser::GET_PROOF_TOK;
 "get-qe-disjunct"   return d_strict ? cvc5::parser::SYMBOL : cvc5::parser::GET_QE_DISJUNCT_TOK;
 "get-qe"   return d_strict ? cvc5::parser::SYMBOL : cvc5::parser::GET_QE_TOK;
+"get-timeout-core"   return cvc5::parser::GET_TIMEOUT_CORE_TOK;
 "get-unsat-assumptions"   return cvc5::parser::GET_UNSAT_ASSUMPTIONS_TOK;
 "get-unsat-core"   return cvc5::parser::GET_UNSAT_CORE_TOK;
 "get-value"   return cvc5::parser::GET_VALUE_TOK;

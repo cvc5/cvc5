@@ -473,6 +473,11 @@ void Printer::toStreamCmdGetDifficulty(std::ostream& out) const
   printUnknownCommand(out, "get-difficulty");
 }
 
+void Printer::toStreamCmdGetTimeoutCore(std::ostream& out) const
+{
+  printUnknownCommand(out, "get-timeout-core");
+}
+
 void Printer::toStreamCmdGetLearnedLiterals(std::ostream& out,
                                             modes::LearnedLitType t) const
 {

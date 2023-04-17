@@ -562,6 +562,13 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new GetQuantifierEliminationCommand(t, isFull));
     }
     break;
+    // (get-timeout-core)
+    case Token::GET_TIMEOUT_CORE_TOK:
+    {
+      d_state.checkThatLogicIsSet();
+      cmd.reset(new GetTimeoutCoreCommand);
+    }
+    break;
     // (get-unsat-assumptions)
     case Token::GET_UNSAT_ASSUMPTIONS_TOK:
     {
