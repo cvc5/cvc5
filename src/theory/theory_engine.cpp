@@ -809,7 +809,7 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
 }
 
 TrustNode TheoryEngine::ppRewrite(TNode term,
-                                  std::vector<theory::SkolemLemma>& lems)
+                                  std::vector<theory::SkolemLemma>& lems, bool isStatic)
 {
   Assert(lems.empty());
   TheoryId tid = d_env.theoryOf(term);
@@ -827,7 +827,7 @@ TrustNode TheoryEngine::ppRewrite(TNode term,
        << term;
     throw LogicException(ss.str());
   }
-  TrustNode trn = d_theoryTable[tid]->ppRewrite(term, lems);
+  TrustNode trn = d_theoryTable[tid]->ppRewrite(term, lems, isStatic);
   // should never introduce a skolem to eliminate an equality
   Assert(lems.empty() || term.getKind() != kind::EQUAL);
   if (!isProofEnabled())

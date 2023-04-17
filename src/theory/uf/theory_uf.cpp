@@ -198,7 +198,7 @@ void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
 }
 //--------------------------------- end standard check
 
-TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
+TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems, bool isStatic)
 {
   Trace("uf-exp-def") << "TheoryUF::ppRewrite: expanding definition : " << node
                       << std::endl;

@@ -113,7 +113,7 @@ class TheoryStrings : public Theory {
   /** Called just after the merge of two equivalence classes */
   void eqNotifyMerge(TNode t1, TNode t2);
   /** preprocess rewrite */
-  TrustNode ppRewrite(TNode atom, std::vector<SkolemLemma>& lems) override;
+  TrustNode ppRewrite(TNode atom, std::vector<SkolemLemma>& lems, bool isStatic) override;
   /** Collect model values in m based on the relevant terms given by termSet */
   bool collectModelValues(TheoryModel* m,
                           const std::set<Node>& termSet) override;

@@ -103,6 +103,7 @@ TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
       {
         ret = nm->mkNode(cur.getKind(), children);
       }
+      bool wasRewritten = false;
       // For example, (= x y) ---> (and (>= x y) (<= x y))
       std::vector<SkolemLemma> lems;
       TrustNode trn = te->ppRewrite(ret, lems, true);

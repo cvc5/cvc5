@@ -135,7 +135,7 @@ void TheoryFp::finishInit()
   d_equalityEngine->addFunctionKind(kind::ROUNDINGMODE_BITBLAST);
 }
 
-TrustNode TheoryFp::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
+TrustNode TheoryFp::ppRewrite(TNode node, std::vector<SkolemLemma>& lems, bool isStatic)
 {
   Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): " << node << std::endl;
 

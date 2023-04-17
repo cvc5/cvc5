@@ -442,7 +442,7 @@ Node TheoryPreprocessor::preprocessWithProof(Node term,
   }
   // call ppRewrite for the given theory
   std::vector<SkolemLemma> newLems;
-  TrustNode trn = d_engine.ppRewrite(term, newLems);
+  TrustNode trn = d_engine.ppRewrite(term, newLems, false);
   Trace("tpp-debug2") << "preprocessWithProof returned " << trn
                       << ", #lems = " << newLems.size() << std::endl;
   lems.insert(lems.end(), newLems.begin(), newLems.end());
