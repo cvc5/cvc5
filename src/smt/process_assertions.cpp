@@ -322,6 +322,9 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
                << endl;
   Trace("smt") << " assertions     : " << ap.size() << endl;
 
+  // ensure rewritten
+  applyPass("rewrite", ap);
+
   // Note the two passes below are very similar. Ideally, they could be
   // done in a single traversal, e.g. do both static (ppStaticRewrite) and
   // normal (ppRewrite) in one pass. However, we do theory-preprocess
@@ -329,8 +332,7 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
   // used for theory preprocessing lemmas as well, whereas a combined
   // pass could not be used for this purpose.
 
-  // rewrite terms based on static theory-specific rewriting, which also
-  // ensures terms are processed by the rewriter.
+  // rewrite terms based on static theory-specific rewriting
   applyPass("theory-pp-static-rewrite", ap);
   // apply theory preprocess, which includes ITE removal
   applyPass("theory-preprocess", ap);

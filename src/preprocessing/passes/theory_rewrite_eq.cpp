@@ -63,7 +63,6 @@ TrustNode TheoryPpStaticRewrite::rewriteAssertion(TNode n)
 
     if (it == visited.end())
     {
-      // Terms with zero children are not expected to change in ppStaticRewrite.
       if (cur.getNumChildren()==0)
       {
         visit.pop_back();
@@ -71,7 +70,6 @@ TrustNode TheoryPpStaticRewrite::rewriteAssertion(TNode n)
       }
       else
       {
-        // Note that in contrast to ppRewrite, we traverse beneath closures.
         visited[cur] = Node::null();
         visit.insert(visit.end(), cur.begin(), cur.end());
       }
@@ -106,8 +104,6 @@ TrustNode TheoryPpStaticRewrite::rewriteAssertion(TNode n)
       {
         ret = nm->mkNode(cur.getKind(), children);
       }
-      // rewrite here
-      ret = rewrite(ret);
       bool wasRewritten = false;
       // For example, (= x y) ---> (and (>= x y) (<= x y))
       TrustNode trn = te->ppStaticRewrite(ret);
