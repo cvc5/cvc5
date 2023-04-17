@@ -558,6 +558,14 @@ void RelevanceManager::notifyLemma(TNode n,
   }
 }
 
+bool RelevanceManager::needsCandidateModel()
+{
+  if (d_dman != nullptr)
+  {
+    return d_dman->needsCandidateModel();
+  }
+  return false;
+}
 void RelevanceManager::notifyCandidateModel(TheoryModel* m)
 {
   if (d_dman != nullptr)
