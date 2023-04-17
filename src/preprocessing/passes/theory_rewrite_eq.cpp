@@ -25,7 +25,8 @@ namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
-TheoryPpStaticRewrite::TheoryPpStaticRewrite(PreprocessingPassContext* preprocContext)
+TheoryPpStaticRewrite::TheoryPpStaticRewrite(
+    PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "theory-pp-static-rewrite"){};
 
 PreprocessingPassResult TheoryPpStaticRewrite::applyInternal(
@@ -109,8 +110,8 @@ TrustNode TheoryPpStaticRewrite::rewriteAssertion(TNode n)
       // can make proof producing by using proof generator from trn
       if (!trn.isNull() && trn.getNode() != ret)
       {
-        Trace("pp-rewrite-eq") << "Rewrite " << ret << " to "
-                               << trn.getNode() << std::endl;
+        Trace("pp-rewrite-eq")
+            << "Rewrite " << ret << " to " << trn.getNode() << std::endl;
         wasRewritten = true;
         Node retr = trn.getNode();
         rewrittenTo[cur] = retr;

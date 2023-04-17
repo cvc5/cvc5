@@ -648,11 +648,10 @@ class Theory : protected EnvObj
    * Note that ppRewrite should not return WITNESS terms, since the internal
    * calculus works in "original forms" and not "witness forms".
    */
-  virtual TrustNode ppRewrite(TNode n,
-                              std::vector<SkolemLemma>& lems)
+  virtual TrustNode ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
   {
     return TrustNode::null();
-  }  
+  }
   /**
    * Similar to the above method, given a term of the theory coming from the
    * input formula, this method can be overridden in a theory implementation to
@@ -668,10 +667,7 @@ class Theory : protected EnvObj
    * Note that ppRewrite should not return WITNESS terms, since the internal
    * calculus works in "original forms" and not "witness forms".
    */
-  virtual TrustNode ppStaticRewrite(TNode n)
-  {
-    return TrustNode::null();
-  }
+  virtual TrustNode ppStaticRewrite(TNode n) { return TrustNode::null(); }
 
   /**
    * Notify preprocessed assertions. Called on new assertions after
