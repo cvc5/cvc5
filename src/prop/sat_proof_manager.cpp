@@ -812,13 +812,11 @@ void SatProofManager::notifyAssumptionInsertedAtLevel(int level,
 
 void SatProofManager::notifyPop()
 {
-  Trace("test") << "oops\n";
   for (context::CDHashMap<Node, int>::const_iterator it =
            d_optResLevels.begin();
        it != d_optResLevels.end();
        ++it)
   {
-    Trace("test") << "Node, lvl: " << it->first << ", " << it->second << "\n";
     // Save into map the proof of the resolution chain. We copy to prevent the
     // proof node saved to be restored of suffering unintended updates. This is
     // *necessary*.
