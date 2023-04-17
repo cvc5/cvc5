@@ -106,6 +106,8 @@ TrustNode TheoryPpStaticRewrite::rewriteAssertion(TNode n)
       {
         ret = nm->mkNode(cur.getKind(), children);
       }
+      // rewrite here
+      ret = rewrite(ret);
       bool wasRewritten = false;
       // For example, (= x y) ---> (and (>= x y) (<= x y))
       TrustNode trn = te->ppStaticRewrite(ret);
