@@ -2307,6 +2307,7 @@ set(regress_1_tests
   regress1/proj-issue539-rew-bv2nat.smt2
   regress1/proj-issue542.smt2
   regress1/proj-issue557-rew-bv2nat.smt2
+  regress1/proj-issue623-bv2nat-static.smt2
   regress1/proof00.smt2
   regress1/proofs/add_two_base.smt2
   regress1/proofs/base-lfsc-treesize.smt2
