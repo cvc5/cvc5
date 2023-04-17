@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The TheoryRewriteEq preprocessing pass.
+ * The TheoryPpStaticRewrite preprocessing pass.
  */
 
 #include "preprocessing/passes/theory_rewrite_eq.h"
@@ -25,10 +25,10 @@ namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
-TheoryRewriteEq::TheoryRewriteEq(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "theory-rewrite-eq"){};
+TheoryPpStaticRewrite::TheoryPpStaticRewrite(PreprocessingPassContext* preprocContext)
+    : PreprocessingPass(preprocContext, "theory-pp-static-rewrite"){};
 
-PreprocessingPassResult TheoryRewriteEq::applyInternal(
+PreprocessingPassResult TheoryPpStaticRewrite::applyInternal(
     AssertionPipeline* assertions)
 {
   // apply ppRewrite to all equalities in assertions
@@ -45,7 +45,7 @@ PreprocessingPassResult TheoryRewriteEq::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
+TrustNode TheoryPpStaticRewrite::rewriteAssertion(TNode n)
 {
   NodeManager* nm = NodeManager::currentNM();
   TheoryEngine* te = d_preprocContext->getTheoryEngine();
@@ -109,7 +109,7 @@ TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
       // can make proof producing by using proof generator from trn
       if (!trn.isNull() && trn.getNode() != ret)
       {
-        Trace("pp-rewrite-eq") << "Rewrite equality " << ret << " to "
+        Trace("pp-rewrite-eq") << "Rewrite " << ret << " to "
                                << trn.getNode() << std::endl;
         wasRewritten = true;
         Node retr = trn.getNode();

@@ -631,10 +631,11 @@ class Theory : protected EnvObj
    * carries information about the proof generator for the rewrite, which can
    * be the null TrustNode if n is unchanged.
    *
-   * Notice this method is used both in the "theory rewrite equalities"
-   * preprocessing pass, where n is an equality from the input formula,
-   * and in theory preprocessing, where n is a (non-equality) term occurring
-   * in the input or generated in a lemma.
+   * Notice this method is only in theory preprocessing. It is called on all
+   * (non-equality) terms n that occur in the input formula or in lemmas. We
+   * do not pass equality terms to this method, since they should never be
+   * preprocessed in lemmas. Instead, equalities may be prepreocessed in
+   * the ppStaticRewrite method below.
    *
    * @param n the node to preprocess-rewrite.
    * @param lems a set of lemmas that should be added as a consequence of
@@ -648,8 +649,26 @@ class Theory : protected EnvObj
    * calculus works in "original forms" and not "witness forms".
    */
   virtual TrustNode ppRewrite(TNode n,
-                              std::vector<SkolemLemma>& lems,
-                              bool isStatic)
+                              std::vector<SkolemLemma>& lems)
+  {
+    return TrustNode::null();
+  }  
+  /**
+   * Similar to the above method, given a term of the theory coming from the
+   * input formula, this method can be overridden in a theory implementation to
+   * rewrite the term into an equivalent form. This method returns a TrustNode
+   * of kind TrustNodeKind::REWRITE, as in ppRewrite.
+   *
+   * Notice this method is used in the "static preprocess rewrite"
+   * preprocessing pass, where n is a term from the input formula.
+   * It is not called on lemmas generated during solving.
+   *
+   * @param n the node to preprocess-rewrite.
+   *
+   * Note that ppRewrite should not return WITNESS terms, since the internal
+   * calculus works in "original forms" and not "witness forms".
+   */
+  virtual TrustNode ppStaticRewrite(TNode n)
   {
     return TrustNode::null();
   }

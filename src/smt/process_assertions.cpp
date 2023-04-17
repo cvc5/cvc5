@@ -324,8 +324,8 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
 
   // ensure rewritten
   applyPass("rewrite", ap);
-  // rewrite equalities based on theory-specific rewriting
-  applyPass("theory-rewrite-eq", ap);
+  // rewrite terms based on theory-specific rewriting
+  applyPass("theory-pp-static-rewrite", ap);
   // apply theory preprocess, which includes ITE removal
   applyPass("theory-preprocess", ap);
   // notice that we do not apply substitutions as a last step here, since
