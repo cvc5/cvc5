@@ -1419,6 +1419,13 @@ install(FILES
 )
 
 # Add library/include dependencies
+add_dependencies(cvc5-obj GMP)
+target_include_directories(cvc5-obj PRIVATE ${GMP_INCLUDE_DIR})
+if(BUILD_SHARED_LIBS)
+  target_link_libraries(cvc5 PRIVATE GMP)
+else()
+  target_link_libraries(cvc5 PUBLIC GMP)
+endif()
 
 # Add rt library
 # Note: For glibc < 2.17 we have to additionally link against rt (man clock_gettime).
@@ -1431,7 +1438,7 @@ endif()
 
 add_dependencies(cvc5-obj CaDiCaL)
 target_include_directories(cvc5-obj SYSTEM PRIVATE ${CaDiCaL_INCLUDE_DIR})
-target_link_libraries(cvc5 PRIVATE ${CaDiCaL_LIBRARIES})
+target_link_libraries(cvc5 PRIVATE CaDiCaL)
 
 if(USE_CLN)
   add_dependencies(cvc5-obj CLN)
@@ -1456,9 +1463,9 @@ if(USE_POLY)
   add_dependencies(cvc5-obj Polyxx)
   target_include_directories(cvc5-obj SYSTEM PRIVATE ${Poly_INCLUDE_DIR})
   if(BUILD_SHARED_LIBS)
-    target_link_libraries(cvc5 PRIVATE ${Poly_LIBRARIES} ${PolyXX_LIBRARIES})
+    target_link_libraries(cvc5 PRIVATE Poly Polyxx)
   else()
-    target_link_libraries(cvc5 PUBLIC ${Poly_LIBRARIES} ${PolyXX_LIBRARIES})
+    target_link_libraries(cvc5 PUBLIC Poly Polyxx)
   endif()
 endif()
 if(USE_COCOA)
@@ -1469,17 +1476,7 @@ endif()
 
 add_dependencies(cvc5-obj SymFPU)
 target_include_directories(cvc5-obj SYSTEM PRIVATE ${SymFPU_INCLUDE_DIR})
-target_link_libraries(cvc5 PRIVATE ${SymFPU_LIBRARIES})
-
-# Linkers require that libraries are provided in a specific order.
-# LibPoly depends on GMP, so the latter has to be passed in first.
-add_dependencies(cvc5-obj GMP)
-target_include_directories(cvc5-obj PRIVATE ${GMP_INCLUDE_DIR})
-if(BUILD_SHARED_LIBS)
-  target_link_libraries(cvc5 PRIVATE ${GMP_LIBRARIES})
-else()
-  target_link_libraries(cvc5 PUBLIC ${GMP_LIBRARIES})
-endif()
+target_link_libraries(cvc5 PRIVATE SymFPU)
 
 #-----------------------------------------------------------------------------#
 # Visit main subdirectory after creating target cvc5. For target main, we have
