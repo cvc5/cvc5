@@ -19,7 +19,7 @@
   (concat xs (extract k i s) ys))
 ; x[i..j][k..l] = x[i+k..i+l]
 (define-rule* bv-extract-extract
-  ((x ?Bitvec) (i int) (j int) (k int) (l int))
+  ((x ?BitVec) (i Int) (j Int) (k Int) (l Int))
   (extract l k (extract j i x))
   (extract (+ i l) (+ i k) x))
 (define-cond-rule bv-extract-whole
@@ -785,20 +785,20 @@
 ; -- Normalization Rules --
 (define-rule bv-extract-bitwise-and
   ((x ?BitVec) (y ?BitVec) (i Int) (j Int))
-  (extract i j (bvand x y))
-  (bvand (extract i j x) (extract i j y)))
+  (extract j i (bvand x y))
+  (bvand (extract j i x) (extract j i y)))
 (define-rule bv-extract-bitwise-or
   ((x ?BitVec) (y ?BitVec) (i Int) (j Int))
-  (extract i j (bvor x y))
-  (bvor (extract i j x) (extract i j y)))
+  (extract j i (bvor x y))
+  (bvor (extract j i x) (extract j i y)))
 (define-rule bv-extract-bitwise-xor
   ((x ?BitVec) (y ?BitVec) (i Int) (j Int))
-  (extract i j (bvxor x y))
-  (bvxor (extract i j x) (extract i j y)))
+  (extract j i (bvxor x y))
+  (bvxor (extract j i x) (extract j i y)))
 (define-rule bv-extract-not
   ((x ?BitVec) (i Int) (j Int))
-  (extract i j (bvnot x))
-  (bvnot (extract i j x)))
+  (extract j i (bvnot x))
+  (bvnot (extract j i x)))
 (define-cond-rule bv-extract-sign-extend-1
   ((x ?BitVec) (low Int) (high Int) (k Int))
   (< high (bvsize x))
