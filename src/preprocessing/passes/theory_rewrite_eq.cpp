@@ -63,15 +63,15 @@ TrustNode TheoryPpStaticRewrite::rewriteAssertion(TNode n)
 
     if (it == visited.end())
     {
-      // do not traverse beneath closures, also terms with zero children
-      // never change in ppStaticRewrite.
-      if (cur.getNumChildren()==0 || cur.isClosure())
+      // Terms with zero children are not expected to change in ppStaticRewrite.
+      if (cur.getNumChildren()==0)
       {
         visit.pop_back();
         visited[cur] = cur;
       }
       else
       {
+        // Note that in contrast to ppRewrite, we traverse beneath closures.
         visited[cur] = Node::null();
         visit.insert(visit.end(), cur.begin(), cur.end());
       }
