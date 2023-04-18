@@ -234,7 +234,6 @@ bool RewriteDbProofCons::notifyMatch(Node s,
   // check each rule instance, succeed if one proves
   for (DslPfRule id : ids)
   {
-    Trace("rpc-debug2") << "Check rule " << id << std::endl;
     // try to prove target with the current rule, using inflection matching
     // and fixed point semantics
     if (proveWithRule(id, d_target, vars, subs, true, true, recurse))
@@ -700,9 +699,9 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
             {
               pfArgs[cur].push_back(
                   ProofRuleChecker::mkKindNode(cur[0].getKind()));
-              if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+              if (cur[0].getMetaKind() == kind::metakind::PARAMETERIZED)
               {
-                pfArgs[cur].push_back(cur.getOperator());
+                pfArgs[cur].push_back(cur[0].getOperator());
               }
             }
           }
