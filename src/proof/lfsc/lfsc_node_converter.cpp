@@ -137,7 +137,8 @@ Node LfscNodeConverter::postConvert(Node n)
     Node wi = SkolemManager::getUnpurifiedForm(n);
     if (!wi.isNull() && wi != n)
     {
-      Trace("lfsc-term-process-debug") << "...original form " << wi << std::endl;
+      Trace("lfsc-term-process-debug")
+          << "...original form " << wi << std::endl;
       wi = convert(wi);
       Trace("lfsc-term-process-debug")
           << "...converted original for " << wi << std::endl;

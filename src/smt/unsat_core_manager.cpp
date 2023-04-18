@@ -23,10 +23,10 @@
 #include "printer/printer.h"
 #include "proof/proof_node_algorithm.h"
 #include "smt/assertions.h"
-#include "theory/quantifiers/skolemize.h"
 #include "smt/env.h"
 #include "smt/print_benchmark.h"
 #include "smt/set_defaults.h"
+#include "theory/quantifiers/skolemize.h"
 #include "theory/smt_engine_subsolver.h"
 
 namespace cvc5::internal {
