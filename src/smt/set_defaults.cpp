@@ -696,6 +696,12 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     }
   }
 
+  // if Alethe proofs, print lambda applications in non-curried manner
+  if (opts.proof.proofFormatMode == options::ProofFormatMode::ALETHE)
+  {
+    options::ioutils::setDefaultFlattenHOChains(true);
+  }
+
   // set all defaults in the quantifiers theory, which includes sygus
   setDefaultsQuantifiers(logic, opts);
 
