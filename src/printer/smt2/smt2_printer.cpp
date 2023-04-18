@@ -619,7 +619,6 @@ void Smt2Printer::toStream(std::ostream& out,
   }
 
   bool stillNeedToPrintParams = true;
-  bool forceBinary = false; // force N-ary to binary when outputing children
   // operator
   if (n.getNumChildren() != 0 && k != kind::CONSTRUCTOR_TYPE)
   {
@@ -767,7 +766,6 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::BITVECTOR_ADD:
   {
     out << smtKindString(k) << " ";
-    forceBinary = true;
   }
   break;
 
@@ -1037,15 +1035,7 @@ void Smt2Printer::toStream(std::ostream& out,
       out << "(...)";
     }
     if(++i < n.getNumChildren()) {
-      if(forceBinary && i < n.getNumChildren() - 1) {
-        // not going to work properly for parameterized kinds!
-        Assert(n.getMetaKind() != kind::metakind::PARAMETERIZED);
-        out << " (" << smtKindStringOf(n) << ' ';
-        parens << ')';
-        ++c;
-      } else {
-        out << ' ';
-      }
+      out << ' ';
     }
   }
   if (n.getNumChildren() != 0)
