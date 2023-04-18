@@ -441,22 +441,42 @@ Term Smt2State::mkIndexedConstant(const std::string& name,
   {
     if (name == "+oo")
     {
+      if (numerals.size() != 2)
+      {
+        parseError("Unexpected number of numerals for +oo.");
+      }
       return d_solver->mkFloatingPointPosInf(numerals[0], numerals[1]);
     }
     else if (name == "-oo")
     {
+      if (numerals.size() != 2)
+      {
+        parseError("Unexpected number of numerals for -oo.");
+      }
       return d_solver->mkFloatingPointNegInf(numerals[0], numerals[1]);
     }
     else if (name == "NaN")
     {
+      if (numerals.size() != 2)
+      {
+        parseError("Unexpected number of numerals for NaN.");
+      }
       return d_solver->mkFloatingPointNaN(numerals[0], numerals[1]);
     }
     else if (name == "+zero")
     {
+      if (numerals.size() != 2)
+      {
+        parseError("Unexpected number of numerals for +zero.");
+      }
       return d_solver->mkFloatingPointPosZero(numerals[0], numerals[1]);
     }
     else if (name == "-zero")
     {
+      if (numerals.size() != 2)
+      {
+        parseError("Unexpected number of numerals for -zero.");
+      }
       return d_solver->mkFloatingPointNegZero(numerals[0], numerals[1]);
     }
   }
@@ -464,6 +484,10 @@ Term Smt2State::mkIndexedConstant(const std::string& name,
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_BV)
       && name.find("bv") == 0)
   {
+    if (numerals.size() != 1)
+    {
+      parseError("Unexpected number of numerals for bit-vector constant.");
+    }
     std::string bvStr = name.substr(2);
     return d_solver->mkBitVector(numerals[0], bvStr, 10);
   }
@@ -1147,7 +1171,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
         kind = FLOATINGPOINT_TO_FP_FROM_IEEE_BV;
         op = d_solver->mkOp(kind, p.d_indices);
       }
-      else if (nchildren > 2)
+      else if (nchildren > 2 || nchildren == 0)
       {
         std::stringstream ss;
         ss << "Wrong number of arguments for indexed operator to_fp, expected "
@@ -1435,6 +1459,16 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
                       << std::endl;
       return ret;
     }
+    else if (kind == FLOATINGPOINT_FP && isConstBv(args[0])
+             && isConstBv(args[1]) && isConstBv(args[2]))
+    {
+      // (fp #bX #bY #bZ) denotes a floating-point value
+
+      Term ret = d_solver->mkFloatingPoint(args[0], args[1], args[2]);
+      Trace("parser") << "applyParseOp: return floating-point value " << ret
+                      << std::endl;
+      return ret;
+    }
     Term ret = d_solver->mkTerm(kind, args);
     Trace("parser") << "applyParseOp: return default builtin " << ret
                     << std::endl;
@@ -1706,6 +1740,11 @@ Term Smt2State::mkAnd(const std::vector<Term>& es) const
 bool Smt2State::isConstInt(const Term& t)
 {
   return t.getKind() == CONST_INTEGER;
+}
+
+bool Smt2State::isConstBv(const Term& t)
+{
+  return t.getKind() == CONST_BITVECTOR;
 }
 
 }  // namespace parser
