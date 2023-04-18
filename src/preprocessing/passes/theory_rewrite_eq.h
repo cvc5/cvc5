@@ -27,7 +27,7 @@ namespace preprocessing {
 namespace passes {
 
 /**
- * Implements the preprocessing pass for called ppStaticRewrite on all terms
+ * Implements the preprocessing pass for calling ppStaticRewrite on all terms
  * in the input. This is required to be a preprocessing pass since it is not
  * recommended that ppRewrite is called on equalities generated in lemmas (e.g.
  * it may interfere with equality splitting in theory combination).
