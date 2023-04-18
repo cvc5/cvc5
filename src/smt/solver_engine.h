@@ -317,11 +317,6 @@ class CVC5_EXPORT SolverEngine
   void assertFormula(const Node& formula);
 
   /**
-   * Reduce an unsatisfiable core to make it minimal.
-   */
-  std::vector<Node> reduceUnsatCore(const std::vector<Node>& core);
-
-  /**
    * Assert a formula (if provided) to the current context and call
    * check().  Returns SAT, UNSAT, or UNKNOWN result.
    *
@@ -331,6 +326,21 @@ class CVC5_EXPORT SolverEngine
   Result checkSat(const Node& assumption);
   Result checkSat(const std::vector<Node>& assumptions);
 
+  /**
+   * Get a timeout core, which computes a subset of the current assertions that
+   * cause a timeout. Note it does not require being proceeded by a call to
+   * checkSat.
+   *
+   * @return The result of the timeout core computation. This is a pair
+   * containing a result and a list of formulas. If the result is unknown
+   * and the reason is timeout, then the list of formulas correspond to a
+   * subset of the current assertions that cause a timeout in the specified
+   * time. If the result is unsat, then the list of formulas correspond to an
+   * unsat core for the current assertions. Otherwise, the result is sat,
+   * indicating that the current assertions are satisfiable, and
+   * the list of formulas is empty.
+   */
+  std::pair<Result, std::vector<Node>> getTimeoutCore();
   /**
    * Returns a set of so-called "failed" assumptions.
    *
@@ -857,8 +867,11 @@ class CVC5_EXPORT SolverEngine
    * Internal method to get an unsatisfiable core (only if immediately preceded
    * by an UNSAT query). Only permitted if cvc5 was built with unsat-core
    * support and produce-unsat-cores is on. Does not dump the command.
+   *
+   * @param isInternal Whether this call was made internally (not by the user).
+   * This impacts whether the unsat core is post-processed.
    */
-  UnsatCore getUnsatCoreInternal();
+  UnsatCore getUnsatCoreInternal(bool isInternal = true);
 
   /** Internal version of assertFormula */
   void assertFormulaInternal(const Node& formula);

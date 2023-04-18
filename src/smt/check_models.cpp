@@ -53,6 +53,8 @@ void CheckModels::checkModel(TheoryModel* m,
     warning() << "Running check-model is not guaranteed to pass when fmf-fun "
                  "is enabled."
               << std::endl;
+    // only throw warning
+    hardFailure = false;
   }
   // expand definitions module and substitutions
   std::unordered_map<Node, Node> ecache;

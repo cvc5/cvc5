@@ -1237,10 +1237,12 @@ public class Solver implements IPointer
   private native long mkRoundingMode(long pointer, int rm);
 
   /**
-   * Create a floating-point constant.
+   * Create a floating-point value from a bit-vector given in IEEE-754
+   * format.
    * @param exp Size of the exponent.
    * @param sig Size of the significand.
    * @param val Value of the floating-point constant as a bit-vector term.
+   * @return The floating-point value.
    * @throws CVC5ApiException
    */
   public Term mkFloatingPoint(int exp, int sig, Term val) throws CVC5ApiException
@@ -1252,6 +1254,25 @@ public class Solver implements IPointer
   }
 
   private native long mkFloatingPoint(long pointer, int exp, int sig, long valPointer);
+
+  /**
+   * Create a floating-point value from its three IEEE-754 bit-vector value
+   * components (sign bit, exponent, significand).
+   * @param sign The sign bit.
+   * @param exp  The bit-vector representing the exponent.
+   * @param sig The bit-vector representing the significand.
+   * @return The floating-point value.
+   * @throws CVC5ApiException
+   */
+  public Term mkFloatingPoint(Term sign, Term exp, Term sig) throws CVC5ApiException
+  {
+    long termPointer =
+        mkFloatingPointX(pointer, sign.getPointer(), exp.getPointer(), sig.getPointer());
+    return new Term(termPointer);
+  }
+
+  private native long mkFloatingPointX(
+      long pointer, long signPointer, long expPointer, long sigPointer);
 
   /**
    * Create a cardinality constraint for an uninterpreted sort.
@@ -1967,6 +1988,42 @@ public class Solver implements IPointer
   }
 
   private native Map<Long, Long> getDifficulty(long pointer);
+
+  /**
+   * Get a timeout core, which computes a subset of the current assertions that
+   * cause a timeout. Note it does not require being proceeded by a call to
+   * checkSat.
+   *
+   * SMT-LIB:
+   * {@code
+   * (get-timeout-core)
+   * }
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @return The result of the timeout core computation. This is a pair
+   * containing a result and a list of formulas. If the result is unknown
+   * and the reason is timeout, then the list of formulas correspond to a
+   * subset of the current assertions that cause a timeout in the specified
+   * time {@code timeout-core-timeout}.
+   * If the result is unsat, then the list of formulas correspond to an
+   * unsat core for the current assertions. Otherwise, the result is sat,
+   * indicating that the current assertions are satisfiable, and
+   * the list of formulas is empty.
+   *
+   * This method may make multiple checks for satisfiability internally, each
+   * limited by the timeout value given by {@code timeout-core-timeout}.
+   */
+  public Pair<Result, Term[]> getTimeoutCore()
+  {
+    Pair<Long, long[]> pair = getTimeoutCore(pointer);
+    Result result = new Result(pair.first);
+    Term[] terms = Utils.getTerms(pair.second);
+    Pair<Result, Term[]> ret = new Pair<>(result, terms);
+    return ret;
+  }
+
+  private native Pair<Long, long[]> getTimeoutCore(long pointer);
 
   /**
    * Get refutation proof for the most recent call to checkSat.

@@ -225,6 +225,7 @@ name   = "Strings Theory"
   long       = "strings-model-max-len=N"
   type       = "uint64_t"
   default    = "65536"
+  maximum    = "2147483647"
   help       = "The maximum size of string values in models"
 
 [[option]]
