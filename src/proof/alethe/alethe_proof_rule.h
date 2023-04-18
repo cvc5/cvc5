@@ -245,6 +245,15 @@ enum class AletheRule : uint32_t
   // G > j. (= (f F1 ... Fn) (f G1 ... Gn))
   // where f is an n-ary function symbol.
   CONG,
+  // ======== ho_cong
+  // G > i0. (= f g)
+  // G > i1. (= F1 G1)
+  // ...
+  // G > in. (= Fn Gn)
+  // ...
+  // G > j. (= (f F1 ... Fn) (g G1 ... Gn))
+  // where f and g are n-ary function symbols.
+  HO_CONG,
   // ======== and
   // > i. (and F1 ... Fn)
   // ...

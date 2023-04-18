@@ -1216,6 +1216,15 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
+    case PfRule::HO_CONG:
+    {
+      return addAletheStep(AletheRule::HO_CONG,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
     // ======== True intro
     //
     // ------------------------------- EQUIV_SIMPLIFY

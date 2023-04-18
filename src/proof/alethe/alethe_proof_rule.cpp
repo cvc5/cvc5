@@ -76,6 +76,7 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::REFL: return "refl";
     case AletheRule::TRANS: return "trans";
     case AletheRule::CONG: return "cong";
+    case AletheRule::HO_CONG: return "ho_cong";
     case AletheRule::AND: return "and";
     case AletheRule::TAUTOLOGIC_CLAUSE: return "tautologic_clause";
     case AletheRule::NOT_OR: return "not_or";
