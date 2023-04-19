@@ -3550,6 +3550,7 @@ set(testers
   synth
   abduct
   dump
+  dsl-proof
 )
 
 foreach(tester ${testers})
