@@ -22,6 +22,7 @@
 #include <unordered_set>
 
 #include "expr/node_value.h"
+#include "expr/algorithm/flatten.h"
 #include "util/cardinality.h"
 
 namespace cvc5::internal {
@@ -47,68 +48,44 @@ RewriteResponse TheoryBoolRewriter::postRewrite(TNode node) {
  */
 RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
 {
+  // first flatten
+  Node nf = expr::algorithm::flatten(n);
+  if (nf!=n)
+  {
+    return RewriteResponse(REWRITE_AGAIN, nf); 
+  }
+  // then do duplicate elimination and trivial node finding
+  std::vector<TNode> childList;
   std::unordered_set<TNode> visited;
   visited.insert(skipNode);
-
-  std::vector<TNode> toProcess;
-  toProcess.push_back(n);
-
-  Kind k = n.getKind();
-  // TNode should be fine, since 'n' is still there
-  std::vector<TNode> childList;
-
-  size_t i = 0;
-  while (i < toProcess.size())
+  bool hadDups = false;
+  for (TNode nn : n)
   {
-    TNode current = toProcess[i];
-    i++;
-    for (TNode child : current)
-    {
-      if(visited.find(child) != visited.end()) {
-        continue;
-      } else if(child == trivialNode) {
-        return RewriteResponse(REWRITE_DONE, trivialNode);
-      } else {
-        visited.insert(child);
-        if(child.getKind() == k)
-          toProcess.push_back(child);
-        else
-          childList.push_back(child);
-      }
+    if(nn == trivialNode) {
+      return RewriteResponse(REWRITE_DONE, trivialNode);
     }
-  }
-  if (childList.size() == 0)
-  {
-    return RewriteResponse(REWRITE_DONE, skipNode);
-  }
-  if (childList.size() == 1)
-  {
-    return RewriteResponse(REWRITE_AGAIN, childList[0]);
-  }
-
-  /* Trickery to stay under number of children possible in a node */
-  NodeManager* nodeManager = NodeManager::currentNM();
-  if (childList.size() < expr::NodeValue::MAX_CHILDREN)
-  {
-    Node retNode = nodeManager->mkNode(k, childList);
-    return RewriteResponse(REWRITE_DONE, retNode);
-  }
-  else
-  {
-    Assert(childList.size()
-           < static_cast<size_t>(expr::NodeValue::MAX_CHILDREN)
-                 * static_cast<size_t>(expr::NodeValue::MAX_CHILDREN));
-    NodeBuilder nb(k);
-    std::vector<TNode>::iterator cur = childList.begin(), next,
-                                 en = childList.end();
-    while (cur != en)
+    if (visited.find(nn)!=visited.end())
     {
-      next = min(cur + expr::NodeValue::MAX_CHILDREN, en);
-      nb << (nodeManager->mkNode(k, std::vector<TNode>(cur, next)));
-      cur = next;
+      hadDups = true;
+      continue;
     }
-    return RewriteResponse(REWRITE_DONE, nb.constructNode());
+    visited.insert(nn);
+    childList.push_back(nn);
   }
+  if (hadDups)
+  {
+    if (childList.empty())
+    {
+      return RewriteResponse(REWRITE_DONE, skipNode);
+    }
+    if (childList.size()==1)
+    {
+      return RewriteResponse(REWRITE_AGAIN, childList[0]); 
+    }
+    Node nn = NodeManager::currentNM()->mkNode(n.getKind(), childList);
+    return RewriteResponse(REWRITE_AGAIN, nn); 
+  }
+  return RewriteResponse(REWRITE_DONE, n);
 }
 
 // Equality parity returns

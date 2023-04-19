@@ -260,7 +260,6 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
 
 bool PolyNorm::isArithPolyNorm(TNode a, TNode b)
 {
-  Assert (a.getType().isComparableTo(b.getType()));
   TypeNode at = a.getType();
   if (at.isRealOrInt())
   {
