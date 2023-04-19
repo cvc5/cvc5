@@ -521,11 +521,21 @@ void TheoryEngine::check(Theory::Effort effort) {
           // quantifiers engine must check at last call effort
           d_quantEngine->check(Theory::EFFORT_LAST_CALL);
         }
-      }
-      // notify the theory modules of the model
-      for (TheoryEngineModule* tem : d_modules)
-      {
-        tem->notifyCandidateModel(getModel());
+        // notify the theory modules of the model
+        for (TheoryEngineModule* tem : d_modules)
+        {
+          if (!tem->needsCandidateModel())
+          {
+            // module does not need candidate model
+            continue;
+          }
+          if (!d_tc->buildModel())
+          {
+            // model failed to build, we are done
+            break;
+          }
+          tem->notifyCandidateModel(getModel());
+        }
       }
     }
 
