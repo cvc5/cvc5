@@ -1,8 +1,9 @@
-(define-rule read-over-write ((t ?Array) (i ?) (e ?))
+(define-rule array-read-over-write ((t ?Array) (i ?) (e ?))
   (select (store t i e) i) e)
-(define-cond-rule read-over-write2 ((t ?Array) (i ?) (j ?) (e ?))
+
+(define-cond-rule array-read-over-write2 ((t ?Array) (i ?) (j ?) (e ?))
   (not (= i j)) (select (store t i e) j) (select t j))
 
-(define-rule store-overwrite ((t ?Array) (i ?) (e ?) (f ?))
+(define-rule array-store-overwrite ((t ?Array) (i ?) (e ?) (f ?))
   (store (store t i e) i f)
   (store t i f))

@@ -306,7 +306,7 @@ bool PolyNorm::isArithPolyNormAtom(TNode a, TNode b)
   }
   if (k==EQUAL)
   {
-    // if equal, can be negative
+    // if equal, can be negative. Notice this shortcuts symmetry of equality.
     Rational negOne(-1);
     pb.multiplyMonomial(TNode::null(), negOne);
     return pa.isEqual(pb);
