@@ -345,13 +345,21 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
 
 TrustNode TheoryDatatypes::ppRewrite(TNode in, std::vector<SkolemLemma>& lems)
 {
-  Trace("tuprec") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
+  Trace("datatypes") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
   // first, see if we need to expand definitions
   TrustNode texp = d_rewriter.expandDefinition(in);
   if (!texp.isNull())
   {
     return texp;
   }
+  // nothing to do
+  return TrustNode::null();
+}
+
+TrustNode TheoryDatatypes::ppStaticRewrite(TNode in)
+{
+  Trace("datatypes") << "TheoryDatatypes::ppStaticRewrite(" << in << ")"
+                     << endl;
   if( in.getKind()==EQUAL ){
     Node nn;
     std::vector< Node > rew;
@@ -368,8 +376,6 @@ TrustNode TheoryDatatypes::ppRewrite(TNode in, std::vector<SkolemLemma>& lems)
       return TrustNode::mkTrustRewrite(in, nn, nullptr);
     }
   }
-
-  // nothing to do
   return TrustNode::null();
 }
 

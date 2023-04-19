@@ -832,7 +832,7 @@ TrustNode TheoryEngine::ppRewrite(TNode term,
     stringstream ss;
     ss << "The logic was specified as " << logicInfo().getLogicString()
        << ", which doesn't include " << tid
-       << ", but got a preprocessing-time term for that theory." << std::endl
+       << ", but got a term for that theory during solving." << std::endl
        << "The term:" << std::endl
        << term;
     throw LogicException(ss.str());
@@ -863,6 +863,23 @@ TrustNode TheoryEngine::ppRewrite(TNode term,
   // trust node, this is the responsibility of the caller, i.e. theory
   // preprocessor.
   return trn;
+}
+
+TrustNode TheoryEngine::ppStaticRewrite(TNode term)
+{
+  TheoryId tid = d_env.theoryOf(term);
+  if (!isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
+  {
+    stringstream ss;
+    ss << "The logic was specified as " << logicInfo().getLogicString()
+       << ", which doesn't include " << tid
+       << ", but got a preprocessing-time term for that theory."
+       << std::endl
+       << "The term:" << std::endl
+       << term;
+    throw LogicException(ss.str());
+  }
+  return d_theoryTable[tid]->ppStaticRewrite(term);
 }
 
 void TheoryEngine::notifyPreprocessedAssertions(
