@@ -425,6 +425,16 @@ EvalResult Evaluator::evalInternal(
           results[currNode] = EvalResult(res);
           break;
         }
+        case kind::XOR:
+        {
+          bool res = results[currNode[0]].d_bool;
+          for (size_t i = 1, end = currNode.getNumChildren(); i < end; i++)
+          {
+            res = res != results[currNode[i]].d_bool;
+          }
+          results[currNode] = EvalResult(res);
+          break;
+        }
 
         case kind::CONST_RATIONAL:
         case kind::CONST_INTEGER:
@@ -478,20 +488,45 @@ EvalResult Evaluator::evalInternal(
         }
         case kind::DIVISION:
         case kind::DIVISION_TOTAL:
+        case kind::INTS_DIVISION:
+        case kind::INTS_DIVISION_TOTAL:
+        case kind::INTS_MODULUS:
+        case kind::INTS_MODULUS_TOTAL:
         {
           Rational res = results[currNode[0]].d_rat;
           bool divbyzero = false;
+          Kind k = currNodeVal.getKind();
+          bool isReal = (k == kind::DIVISION || k == kind::DIVISION_TOTAL);
+          bool isMod = (k == kind::INTS_MODULUS || k == kind::INTS_MODULUS_TOTAL);
           for (size_t i = 1, end = currNode.getNumChildren(); i < end; i++)
           {
             if (results[currNode[i]].d_rat.isZero())
             {
-              Trace("evaluator")
-                  << "Division by zero not supported" << std::endl;
-              divbyzero = true;
-              results[currNode] = EvalResult();
-              break;
+              if (k==kind::DIVISION_TOTAL || k==kind::INTS_DIVISION_TOTAL || k==kind::INTS_MODULUS_TOTAL)
+              {
+                res = Rational(0);
+                continue;
+              }
+              else
+              {
+                Trace("evaluator")
+                    << "Division/modulus by zero not supported" << std::endl;
+                divbyzero = true;
+                results[currNode] = EvalResult();
+                break;
+              }
             }
-            res = res / results[currNode[i]].d_rat;
+            if (isReal)
+            {
+              res = res / results[currNode[i]].d_rat;
+            }
+            else
+            {
+              Integer a = res.getNumerator();
+              Integer b = results[currNode[i]].d_rat.getNumerator();
+              res = Rational(isMod ? a.euclidianDivideRemainder(b)
+                           : a.euclidianDivideQuotient(b));
+            }
           }
           if (divbyzero)
           {
@@ -504,7 +539,6 @@ EvalResult Evaluator::evalInternal(
           }
           break;
         }
-
         case kind::GEQ:
         {
           const Rational& x = results[currNode[0]].d_rat;
@@ -882,6 +916,62 @@ EvalResult Evaluator::evalInternal(
           BitVector res = results[currNode[0]].d_bv;
           res = res.unsignedRemTotal(results[currNode[1]].d_bv);
           results[currNode] = EvalResult(res);
+          break;
+        }
+        case kind::BITVECTOR_ULT:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          bool b = res.unsignedLessThan(results[currNode[1]].d_bv);
+          results[currNode] = EvalResult(b);
+          break;
+        }
+        case kind::BITVECTOR_SLT:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          bool b = res.signedLessThan(results[currNode[1]].d_bv);
+          results[currNode] = EvalResult(b);
+          break;
+        }
+        case kind::BITVECTOR_SLE:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          bool b = res.signedLessThanEq(results[currNode[1]].d_bv);
+          results[currNode] = EvalResult(b);
+          break;
+        }
+        case kind::BITVECTOR_ULE:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          bool b = res.unsignedLessThanEq(results[currNode[1]].d_bv);
+          results[currNode] = EvalResult(b);
+          break;
+        }
+        case kind::BITVECTOR_UGT:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          bool b = res.unsignedLessThan(results[currNode[1]].d_bv);
+          results[currNode] = EvalResult(!b);
+          break;
+        }
+        case kind::BITVECTOR_SGT:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          bool b = res.signedLessThan(results[currNode[1]].d_bv);
+          results[currNode] = EvalResult(!b);
+          break;
+        }
+        case kind::BITVECTOR_SGE:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          bool b = res.signedLessThanEq(results[currNode[1]].d_bv);
+          results[currNode] = EvalResult(!b);
+          break;
+        }
+        case kind::BITVECTOR_UGE:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          bool b = res.unsignedLessThanEq(results[currNode[1]].d_bv);
+          results[currNode] = EvalResult(!b);
           break;
         }
 

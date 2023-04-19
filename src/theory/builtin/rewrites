@@ -3,6 +3,7 @@
 (define-rule eq-refl ((t ?)) (= t t) true)
 (define-rule eq-symm ((t ?) (s ?)) (= t s) (= s t))
 
+(define-rule distinct-binary-elim ((t ?) (s ?)) (distinct t s) (not (= t s)))
 
 ; ITE
 
