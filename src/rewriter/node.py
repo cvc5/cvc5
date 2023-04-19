@@ -164,6 +164,9 @@ class Op(Enum):
     STRING_TOUPPER = ('str.toupper', 'STRING_TOUPPER')
     STRING_REV = ('str.rev', 'STRING_REV')
 
+    SEQ_UNIT = ('seq.unit', 'SEQ_UNIT')
+    SEQ_NTH = ('seq.nth', 'SEQ_NTH')
+
     STRING_TO_REGEXP = ('str.to_re', 'STRING_TO_REGEXP')
     REGEXP_CONCAT = ('re.++', 'REGEXP_CONCAT')
     REGEXP_UNION = ('re.union', 'REGEXP_UNION')

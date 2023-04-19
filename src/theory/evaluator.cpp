@@ -974,6 +974,14 @@ EvalResult Evaluator::evalInternal(
           results[currNode] = EvalResult(!b);
           break;
         }
+        case kind::BITVECTOR_SIGN_EXTEND:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          unsigned amount =
+              currNode.getOperator().getConst<BitVectorSignExtend>().d_signExtendAmount;
+          results[currNode] = EvalResult(res.signExtend(amount));
+          break;
+        }
 
         case kind::EQUAL:
         {

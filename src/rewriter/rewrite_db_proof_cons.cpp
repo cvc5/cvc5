@@ -379,6 +379,14 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
     Trace("rpc-debug2") << "            RHS: " << conc[1] << std::endl;
     Trace("rpc-debug2") << "Substituted RHS: " << stgt << std::endl;
     Trace("rpc-debug2") << "     Target RHS: " << target[1] << std::endl;
+    // check if conclusion is null
+    if (stgt.isNull())
+    {
+      // this is likely due to not finding a null terminator for a gradual
+      // type term
+      Trace("rpc-debug2") << "...fail (no construct conclusion)" << std::endl;
+      return false;
+    }
     // inflection substitution, used if conclusion does not exactly match
     std::unordered_map<Node, std::pair<Node, Node>> isubs;
     if (stgt != target[1])
@@ -497,6 +505,7 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
   // if we are currently trying to prove this, fail
   if (d_currProving.find(eqi) != d_currProving.end())
   {
+    Trace("rpc-debug2") << "...fail (already proving)" << std::endl;
     idb = DslPfRule::FAIL;
     return true;
   }
@@ -515,6 +524,7 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
       idb = it->second.d_id;
       return true;
     }
+    Trace("rpc-debug2") << "...fail (already fail)" << std::endl;
     // Will not succeed below, since we know we've already tried. Hence, we
     // are in a situation where we have yet to succeed to prove eqi for some
     // depth, but we are currently trying at a higher maximum depth.
@@ -530,9 +540,10 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
     return true;
   }
   // non-well-typed equalities cannot be proven
-  // also, variables and constants cannot be rewritten
-  if (eqi.getTypeOrNull().isNull() || eqi[0].isVar() || eqi[0].isConst())
+  // also, variables cannot be rewritten
+  if (eqi.getTypeOrNull().isNull() || eqi[0].isVar())
   {
+    Trace("rpc-debug2") << "...fail (" << (eqi[0].isVar() ? "variable" : "ill-typed") << ")" << std::endl;
     ProvenInfo& pi = d_pcache[eqi];
     idb = DslPfRule::FAIL;
     pi.d_failMaxDepth = 0;
@@ -597,6 +608,15 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
       pi.d_failMaxDepth = 0;
     }
     // cache it
+    pi.d_id = idb;
+    return true;
+  }
+  if (eqi[0].isConst())
+  {
+    Trace("rpc-debug2") << "...fail (constant head)" << std::endl;
+    ProvenInfo& pi = d_pcache[eqi];
+    idb = DslPfRule::FAIL;
+    pi.d_failMaxDepth = 0;
     pi.d_id = idb;
     return true;
   }

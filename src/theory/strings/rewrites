@@ -105,6 +105,8 @@
 
 (define-rule str-concat-emp ((xs String :list) (ys String :list)) (str.++ xs "" ys) (str.++ xs ys))
 
+(define-rule str-at-elim ((x String) (n Int)) (str.at x n) (str.substr x n 1))
+
 ; Regular expression rules
 (define-rule re-concat-emp ((xs RegLan :list) (ys RegLan :list)) (re.++ xs (str.to_re "") ys) (re.++ xs ys))
 
@@ -116,3 +118,9 @@
   (str.len (str.++ s1 s2 s3))
   (str.len (str.++ s2 s3))
   (+ (str.len s1) _))
+
+
+; Sequences-specific rules
+
+(define-rule seq-len-unit ((x ?)) (str.len (seq.unit x)) 1)
+(define-rule seq-nth-unit ((x ?)) (seq.nth (seq.unit x) 0) x)
