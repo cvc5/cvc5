@@ -260,9 +260,58 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
 
 bool PolyNorm::isArithPolyNorm(TNode a, TNode b)
 {
-  PolyNorm pa = PolyNorm::mkPolyNorm(a);
-  PolyNorm pb = PolyNorm::mkPolyNorm(b);
-  return pa.isEqual(pb);
+  Assert (a.getType().isComparableTo(b.getType()));
+  TypeNode at = a.getType();
+  if (at.isRealOrInt())
+  {
+    PolyNorm pa = PolyNorm::mkPolyNorm(a);
+    PolyNorm pb = PolyNorm::mkPolyNorm(b);
+    return pa.isEqual(pb);
+  }
+  if (at.isBoolean())
+  {
+    // otherwise may be atoms
+    return isArithPolyNormAtom(a,b);
+  }
+  return false;
+}
+
+bool PolyNorm::isArithPolyNormAtom(TNode a, TNode b)
+{
+  Assert (a.getType().isBoolean());
+  Kind k = a.getKind();
+  if (b.getKind()!=k)
+  {
+    return false;
+  }
+  if (k==EQUAL)
+  {
+    if (!a[0].getType().isRealOrInt() || !b[0].getType().isRealOrInt())
+    {
+      return false;
+    }
+  }
+  else if (k!=GEQ && k!=LEQ && k!=GT && k!=LT)
+  {
+    return false;
+  }
+  NodeManager * nm =NodeManager::currentNM();
+  Node adiff = nm->mkNode(SUB, a[0], a[1]);
+  Node bdiff = nm->mkNode(SUB, b[0], b[1]);
+  PolyNorm pa = PolyNorm::mkPolyNorm(adiff);
+  PolyNorm pb = PolyNorm::mkPolyNorm(bdiff);
+  if (pa.isEqual(pb))
+  {
+    return true;
+  }
+  if (k==EQUAL)
+  {
+    // if equal, can be negative
+    Rational negOne(-1);
+    pb.multiplyMonomial(TNode::null(), negOne);
+    return pa.isEqual(pb);
+  }
+  return false;
 }
 
 }  // namespace arith
