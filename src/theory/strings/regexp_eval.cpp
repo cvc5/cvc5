@@ -15,6 +15,7 @@
 
 #include "theory/strings/regexp_eval.h"
 
+#include "theory/strings/theory_strings_utils.h"
 #include "util/string.h"
 
 using namespace cvc5::internal::kind;
@@ -262,12 +263,9 @@ bool RegExpEval::canEvaluate(const Node& r)
           }
           break;
         case REGEXP_RANGE:
-          for (size_t i = 0; i < 2; i++)
+          if (!utils::isCharacterRange(cur))
           {
-            if (!cur[i].isConst() || cur[i].getConst<String>().size() != 1)
-            {
-              return false;
-            }
+            return false;
           }
           break;
         case REGEXP_ALLCHAR: break;

@@ -141,6 +141,11 @@ std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x);
 bool isConstantLike(Node n);
 
 /**
+ * Return true if the arguments of REGEXP_RANGE term t are characters.
+ */
+bool isCharacterRange(TNode t);
+
+/**
  * Given a vector of regular expression nodes and a start index that points to
  * a wildcard, returns true if the wildcard is unbounded (i.e. it is followed
  * by an arbitrary number of `re.allchar`s and then an `re.*(re.allchar)`. If

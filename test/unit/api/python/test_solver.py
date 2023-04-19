@@ -439,6 +439,14 @@ def test_mk_floating_point(solver):
     with pytest.raises(RuntimeError):
         solver.mkFloatingPoint(3, 5, t2)
 
+    sign = solver.mkBitVector(1)
+    exp = solver.mkBitVector(5)
+    sig = solver.mkBitVector(10)
+    bv = solver.mkBitVector(16)
+    a = solver.mkFloatingPoint(
+            sign, exp, sig)
+    assert solver.mkFloatingPoint(
+            sign, exp, sig) == solver.mkFloatingPoint(5, 11, bv)
     slv = cvc5.Solver()
     slv.mkFloatingPoint(3, 5, t1)
 
@@ -1482,6 +1490,31 @@ def test_learned_literals2(solver):
     solver.checkSat()
     solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_INPUT)
 
+def test_get_timeout_core_unsat(solver):
+  solver.setOption("timeout-core-timeout", "100")
+  intSort = solver.getIntegerSort()
+  x = solver.mkConst(intSort, "x")
+  tt = solver.mkBoolean(True)
+  hard = solver.mkTerm(Kind.EQUAL,
+                       solver.mkTerm(Kind.MULT, x, x),
+                       solver.mkInteger("501240912901901249014210220059591"))
+  solver.assertFormula(tt)
+  solver.assertFormula(hard)
+  res = solver.getTimeoutCore()
+  assert res[0].isUnknown()
+  assert len(res[1]) == 1
+  assert res[1][0] == hard
+
+def test_get_timeout_core(solver):
+  ff = solver.mkBoolean(False)
+  tt = solver.mkBoolean(True)
+  solver.assertFormula(tt)
+  solver.assertFormula(ff)
+  solver.assertFormula(tt)
+  res = solver.getTimeoutCore()
+  assert res[0].isUnsat()
+  assert len(res[1]) == 1
+  assert res[1][0] == ff
 
 def test_get_value1(solver):
     solver.setOption("produce-models", "false")

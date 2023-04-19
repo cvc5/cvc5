@@ -145,6 +145,8 @@ class RelevanceManager : public TheoryEngineModule
                    theory::LemmaProperty p,
                    const std::vector<Node>& skAsserts,
                    const std::vector<Node>& sks) override;
+  /** Needs candidate model, return true if the method below requires calling */
+  bool needsCandidateModel() override;
   /** Notify that m is a (candidate) model, for difficulty measurements */
   void notifyCandidateModel(TheoryModel* m) override;
   /**

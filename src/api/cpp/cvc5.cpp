@@ -6165,6 +6165,8 @@ Term Solver::mkConstArray(const Sort& sort, const Term& val) const
 Term Solver::mkFloatingPointPosInf(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_ARG_CHECK_EXPECTED(exp > 1, exp) << "exponent size > 1";
+  CVC5_API_ARG_CHECK_EXPECTED(sig > 1, sig) << "significand size > 1";
   //////// all checks before this line
   return Solver::mkValHelper(d_nm,
                              internal::FloatingPoint::makeInf(
@@ -6176,6 +6178,8 @@ Term Solver::mkFloatingPointPosInf(uint32_t exp, uint32_t sig) const
 Term Solver::mkFloatingPointNegInf(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_ARG_CHECK_EXPECTED(exp > 1, exp) << "exponent size > 1";
+  CVC5_API_ARG_CHECK_EXPECTED(sig > 1, sig) << "significand size > 1";
   //////// all checks before this line
   return Solver::mkValHelper(d_nm,
                              internal::FloatingPoint::makeInf(
@@ -6187,6 +6191,8 @@ Term Solver::mkFloatingPointNegInf(uint32_t exp, uint32_t sig) const
 Term Solver::mkFloatingPointNaN(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_ARG_CHECK_EXPECTED(exp > 1, exp) << "exponent size > 1";
+  CVC5_API_ARG_CHECK_EXPECTED(sig > 1, sig) << "significand size > 1";
   //////// all checks before this line
   return Solver::mkValHelper(
       d_nm,
@@ -6198,6 +6204,8 @@ Term Solver::mkFloatingPointNaN(uint32_t exp, uint32_t sig) const
 Term Solver::mkFloatingPointPosZero(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_ARG_CHECK_EXPECTED(exp > 1, exp) << "exponent size > 1";
+  CVC5_API_ARG_CHECK_EXPECTED(sig > 1, sig) << "significand size > 1";
   //////// all checks before this line
   return Solver::mkValHelper(d_nm,
                              internal::FloatingPoint::makeZero(
@@ -6209,6 +6217,8 @@ Term Solver::mkFloatingPointPosZero(uint32_t exp, uint32_t sig) const
 Term Solver::mkFloatingPointNegZero(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_ARG_CHECK_EXPECTED(exp > 1, exp) << "exponent size > 1";
+  CVC5_API_ARG_CHECK_EXPECTED(sig > 1, sig) << "significand size > 1";
   //////// all checks before this line
   return Solver::mkValHelper(d_nm,
                              internal::FloatingPoint::makeZero(
@@ -6226,24 +6236,61 @@ Term Solver::mkRoundingMode(RoundingMode rm) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const
+Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, const Term& val) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(val);
-  CVC5_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "a value > 0";
-  CVC5_API_ARG_CHECK_EXPECTED(sig > 0, sig) << "a value > 0";
+  CVC5_API_ARG_CHECK_EXPECTED(exp > 1, exp) << "exponent size > 1";
+  CVC5_API_ARG_CHECK_EXPECTED(sig > 1, sig) << "significand size > 1";
   uint32_t bw = exp + sig;
   CVC5_API_ARG_CHECK_EXPECTED(bw == val.d_node->getType().getBitVectorSize(),
                               val)
-      << "a bit-vector constant with bit-width '" << bw << "'";
+      << "a bit-vector value with bit-width '" << bw << "'";
   CVC5_API_ARG_CHECK_EXPECTED(
       val.d_node->getType().isBitVector() && val.d_node->isConst(), val)
-      << "bit-vector constant";
+      << "bit-vector value";
   //////// all checks before this line
   return Solver::mkValHelper(
       d_nm,
       internal::FloatingPoint(
           exp, sig, val.d_node->getConst<internal::BitVector>()));
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Solver::mkFloatingPoint(const Term& sign,
+                             const Term& exp,
+                             const Term& sig) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_SOLVER_CHECK_TERM(sign);
+  CVC5_API_SOLVER_CHECK_TERM(exp);
+  CVC5_API_SOLVER_CHECK_TERM(sig);
+  CVC5_API_ARG_CHECK_EXPECTED(
+      sign.d_node->getType().isBitVector() && sign.d_node->isConst(), sign)
+      << "bit-vector value";
+  CVC5_API_ARG_CHECK_EXPECTED(
+      exp.d_node->getType().isBitVector() && exp.d_node->isConst(), exp)
+      << "bit-vector value";
+  CVC5_API_ARG_CHECK_EXPECTED(
+      sig.d_node->getType().isBitVector() && sig.d_node->isConst(), sig)
+      << "bit-vector value";
+  CVC5_API_ARG_CHECK_EXPECTED(sign.d_node->getType().getBitVectorSize() == 1,
+                              sign)
+      << "a bit-vector value of size 1";
+  CVC5_API_ARG_CHECK_EXPECTED(exp.d_node->getType().getBitVectorSize() > 1, exp)
+      << "a bit-vector value of size > 1";
+  //////// all checks before this line
+  uint32_t esize = exp.d_node->getType().getBitVectorSize();
+  uint32_t ssize = sig.d_node->getType().getBitVectorSize() + 1;
+  return Solver::mkValHelper(
+      d_nm,
+      internal::FloatingPoint(
+          esize,
+          ssize,
+          sign.d_node->getConst<internal::BitVector>().concat(
+              exp.d_node->getConst<internal::BitVector>().concat(
+                  sig.d_node->getConst<internal::BitVector>()))));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -7168,6 +7215,22 @@ std::map<Term, Term> Solver::getDifficulty() const
     res[Term(d_nm, d.first)] = Term(d_nm, d.second);
   }
   return res;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::pair<Result, std::vector<Term>> Solver::getTimeoutCore() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  std::vector<Term> res;
+  std::pair<internal::Result, std::vector<internal::Node>> resi =
+      d_slv->getTimeoutCore();
+  for (internal::Node& c : resi.second)
+  {
+    res.push_back(Term(d_nm, c));
+  }
+  return std::pair<Result, std::vector<Term>>(Result(resi.first), res);
   ////////
   CVC5_API_TRY_CATCH_END;
 }

@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The TheoryRewriteEq preprocessing pass.
+ * The TheoryPpStaticRewrite preprocessing pass.
  */
 
 #include "cvc5_private.h"
@@ -27,15 +27,15 @@ namespace preprocessing {
 namespace passes {
 
 /**
- * Implements the preprocessing pass for called ppRewrite on all equalities
+ * Implements the preprocessing pass for calling ppStaticRewrite on all terms
  * in the input. This is required to be a preprocessing pass since it is not
  * recommended that ppRewrite is called on equalities generated in lemmas (e.g.
  * it may interfere with equality splitting in theory combination).
  */
-class TheoryRewriteEq : public PreprocessingPass
+class TheoryPpStaticRewrite : public PreprocessingPass
 {
  public:
-  TheoryRewriteEq(PreprocessingPassContext* preprocContext);
+  TheoryPpStaticRewrite(PreprocessingPassContext* preprocContext);
 
  protected:
   PreprocessingPassResult applyInternal(
