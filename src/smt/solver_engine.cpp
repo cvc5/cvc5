@@ -1529,7 +1529,8 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   if (connectToPreprocess)
   {
     ProofScopeMode scopeMode =
-        connectMkOuterScope ? mode == options::ProofFormatMode::LFSC
+        connectMkOuterScope ? (mode == options::ProofFormatMode::LFSC
+                               || mode == options::ProofFormatMode::ALETHE)
                                   ? ProofScopeMode::DEFINITIONS_AND_ASSERTIONS
                                   : ProofScopeMode::UNIFIED
                             : ProofScopeMode::NONE;
