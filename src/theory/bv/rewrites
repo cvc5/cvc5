@@ -594,13 +594,13 @@
   (def (power (int.log2 v)))
   (and (int.ispow2 v) (> v 1))
   (bvurem x (bv v n))
-  (concat (bv 0 (- n 1)) (extract (- power 1) 0 x)))
+  (concat (bv 0 (- n power)) (extract (- power 1) 0 x)))
 (define-cond-rule bv-urem-pow2-2
   ((x ?BitVec) (v Int) (n Int))
   (def (power (int.log2 (- v))))
   (and (int.ispow2 (- v)) (< v (- 1)))
   (bvurem x (bv v n))
-  (concat (bv 0 (- n 1)) (extract (- power 1) 0 x)))
+  (concat (bv 0 (- n power)) (extract (- power 1) 0 x)))
 ; (x urem 1) = 0
 (define-rule bv-urem-one
   ((x ?BitVec))
