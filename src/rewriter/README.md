@@ -101,14 +101,19 @@ reconstruction algorithms have sound types.
   (extract (+ i l) (+ i k) x))
 ```
 
-### Fixed-Point Rules
+### Fixed-Point Rules and the list modifier
 
 The `*` in `define-rule*` indicates that the rule shall be executed by the
 reconstruction algorithm until the expression reaches a fixed point. This is an
 optimisation and useful for writing rules that iterate over the arguments of
 n-ary operators.
 
-Below is an example which recursively flattens a concat using fixed-point rules.
+The `:list` modifier represents an arbitrary number of arguments of the same
+type (gradual types are supported).
+
+Below is an example which uses gradual type and recursively flattens a concat
+using fixed-point rules.
+
 ``` lisp
 (define-rule* bv-concat-flatten
   ((xs ?BitVec :list)
