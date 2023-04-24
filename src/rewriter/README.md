@@ -151,6 +151,14 @@ processing are controlled by `rewriter.py` and `parser.py`.
 The symbols usable in `(<id> <expr>+)` can be found in `node.py`. The sorts
 available can be found in `mkrewrites.py`.
 
+It is possible in the rewriter to enable parsing of rules of the form
+`define-cond-rule*`. However the condition may interact unexpectedly with the
+fixed-point rule.
+
+```
+<rule> ::= (define-cond-rule* <symbol> (<par>*) [<defs>] <expr> <expr> <expr> [<expr>])
+```
+
 ## Changes from Previous Works
 
 In comparison to
