@@ -850,8 +850,10 @@ Node IntBlaster::castToType(Node n, TypeNode tn)
   {
     return n;
   }
-  std::cout << "panda n: " << n << std::endl;
-  std::cout << "panda tn: " << tn << std::endl;
+  if (tn.isFunction())
+  {
+    throw OptionException("bv-to-int does not support higher order logic ");
+  }
   Trace("int-blaster") << "castToType from " << n.getType() << " to " << tn
                        << std::endl;
   // We only case int to bv or vice verse.
