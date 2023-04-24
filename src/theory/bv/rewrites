@@ -112,23 +112,31 @@
   (repeat 1 x)
   x)
 
-(define-rule bv-rotate-left-eliminate-1
+(define-cond-rule bv-rotate-left-eliminate-1
   ((x ?BitVec) (amount Int))
+  (def (n (bvsize x)) (a (mod amount n)))
+  (not (= a 0))
   (rotate_left amount x)
-  (concat (extract (- (bvsize x) (+ 1 amount)) 0 x) (extract 0 amount x))
-  )
-(define-rule bv-rotate-left-eliminate-2
-  ((x ?BitVec))
-  (rotate_left 0 x)
-  x)
-(define-rule bv-rotate-right-eliminate-1
+  (concat
+    (extract (- n (+ 1 a)) 0 x)
+    (extract (- n 1) (- n a) x)))
+(define-cond-rule bv-rotate-left-eliminate-2
   ((x ?BitVec) (amount Int))
+  (= (mod amount (bvsize x)) 0)
+  (rotate_left amount x)
+  x)
+(define-cond-rule bv-rotate-right-eliminate-1
+  ((x ?BitVec) (amount Int))
+  (def (n (bvsize x)) (a (mod amount n)))
+  (not (= a 0))
   (rotate_right amount x)
-  (concat (extract (- amount 1) 0 x) (extract (- (bvsize x) 1) amount x))
-  )
-(define-rule bv-rotate-right-eliminate-2
-  ((x ?BitVec))
-  (rotate_right 0 x)
+  (concat
+    (extract (- a 1) 0 x)
+    (extract (- n 1) a x)))
+(define-cond-rule bv-rotate-right-eliminate-2
+  ((x ?BitVec) (amount Int))
+  (= (mod amount (bvsize x)) 0)
+  (rotate_right amount x)
   x)
 
 (define-rule bv-nand-eliminate
