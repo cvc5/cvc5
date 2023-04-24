@@ -152,7 +152,7 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("bool-to-bv", callCtor<BoolToBV>);
   registerPassInfo("ho-elim", callCtor<HoElim>);
   registerPassInfo("fun-def-fmf", callCtor<FunDefFmf>);
-  registerPassInfo("theory-rewrite-eq", callCtor<TheoryRewriteEq>);
+  registerPassInfo("theory-pp-static-rewrite", callCtor<TheoryPpStaticRewrite>);
   registerPassInfo("strings-eager-pp", callCtor<StringsEagerPp>);
 }
 

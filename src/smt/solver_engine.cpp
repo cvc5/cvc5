@@ -61,6 +61,7 @@
 #include "smt/solver_engine_state.h"
 #include "smt/solver_engine_stats.h"
 #include "smt/sygus_solver.h"
+#include "smt/timeout_core_manager.h"
 #include "smt/unsat_core_manager.h"
 #include "theory/quantifiers/instantiation_list.h"
 #include "theory/quantifiers/oracle_engine.h"
@@ -776,6 +777,14 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   // set the filename on the result
   const std::string& filename = d_env->getOptions().driver.filename;
   return Result(r, filename);
+}
+
+std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore()
+{
+  finishInit();
+  Trace("smt") << "SolverEngine::getTimeoutCore()" << std::endl;
+  TimeoutCoreManager tcm(*d_env.get());
+  return tcm.getTimeoutCore(d_smtSolver->getAssertions());
 }
 
 std::vector<Node> SolverEngine::getUnsatAssumptions(void)
@@ -1519,11 +1528,9 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   // connect proofs to preprocessing, if specified
   if (connectToPreprocess)
   {
-    ProofScopeMode scopeMode =
-        connectMkOuterScope ? mode == options::ProofFormatMode::LFSC
-                                  ? ProofScopeMode::DEFINITIONS_AND_ASSERTIONS
-                                  : ProofScopeMode::UNIFIED
-                            : ProofScopeMode::NONE;
+    ProofScopeMode scopeMode = connectMkOuterScope
+                                   ? ProofScopeMode::DEFINITIONS_AND_ASSERTIONS
+                                   : ProofScopeMode::NONE;
     for (std::shared_ptr<ProofNode>& p : ps)
     {
       Assert(p != nullptr);
@@ -1663,13 +1670,19 @@ void SolverEngine::getInstantiationTermVectors(
 bool SolverEngine::getSynthSolutions(std::map<Node, Node>& solMap)
 {
   finishInit();
-  return d_sygusSolver->getSynthSolutions(solMap);
+  bool ret = d_sygusSolver->getSynthSolutions(solMap);
+  // we return false if solMap is empty, that is, when we ask for a solution
+  // when none is available.
+  return ret && !solMap.empty();
 }
 
 bool SolverEngine::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
 {
   finishInit();
-  return d_sygusSolver->getSubsolverSynthSolutions(solMap);
+  bool ret = d_sygusSolver->getSubsolverSynthSolutions(solMap);
+  // we return false if solMap is empty, that is, when we ask for a solution
+  // when none is available.
+  return ret && !solMap.empty();
 }
 
 Node SolverEngine::getQuantifierElimination(Node q, bool doFull)
@@ -1786,7 +1799,8 @@ void SolverEngine::getDifficultyMap(std::map<Node, Node>& dmap)
   Assert(d_pfManager);
   // get difficulty map from theory engine first
   TheoryEngine* te = d_smtSolver->getTheoryEngine();
-  te->getDifficultyMap(dmap);
+  // do not include lemmas
+  te->getDifficultyMap(dmap, false);
   // then ask proof manager to translate dmap in terms of the input
   d_pfManager->translateDifficultyMap(dmap, *d_smtSolver.get());
 }

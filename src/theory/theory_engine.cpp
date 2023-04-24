@@ -521,11 +521,21 @@ void TheoryEngine::check(Theory::Effort effort) {
           // quantifiers engine must check at last call effort
           d_quantEngine->check(Theory::EFFORT_LAST_CALL);
         }
-      }
-      // notify the theory modules of the model
-      for (TheoryEngineModule* tem : d_modules)
-      {
-        tem->notifyCandidateModel(getModel());
+        // notify the theory modules of the model
+        for (TheoryEngineModule* tem : d_modules)
+        {
+          if (!tem->needsCandidateModel())
+          {
+            // module does not need candidate model
+            continue;
+          }
+          if (!d_tc->buildModel())
+          {
+            // model failed to build, we are done
+            break;
+          }
+          tem->notifyCandidateModel(getModel());
+        }
       }
     }
 
@@ -822,7 +832,7 @@ TrustNode TheoryEngine::ppRewrite(TNode term,
     stringstream ss;
     ss << "The logic was specified as " << logicInfo().getLogicString()
        << ", which doesn't include " << tid
-       << ", but got a preprocessing-time term for that theory." << std::endl
+       << ", but got a term for that theory during solving." << std::endl
        << "The term:" << std::endl
        << term;
     throw LogicException(ss.str());
@@ -853,6 +863,23 @@ TrustNode TheoryEngine::ppRewrite(TNode term,
   // trust node, this is the responsibility of the caller, i.e. theory
   // preprocessor.
   return trn;
+}
+
+TrustNode TheoryEngine::ppStaticRewrite(TNode term)
+{
+  TheoryId tid = d_env.theoryOf(term);
+  if (!isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
+  {
+    stringstream ss;
+    ss << "The logic was specified as " << logicInfo().getLogicString()
+       << ", which doesn't include " << tid
+       << ", but got a preprocessing-time term for that theory."
+       << std::endl
+       << "The term:" << std::endl
+       << term;
+    throw LogicException(ss.str());
+  }
+  return d_theoryTable[tid]->ppStaticRewrite(term);
 }
 
 void TheoryEngine::notifyPreprocessedAssertions(
@@ -1146,10 +1173,11 @@ theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b)
   return d_sharedSolver->getEqualityStatus(a, b);
 }
 
-void TheoryEngine::getDifficultyMap(std::map<Node, Node>& dmap)
+void TheoryEngine::getDifficultyMap(std::map<Node, Node>& dmap,
+                                    bool includeLemmas)
 {
   Assert(d_relManager != nullptr);
-  d_relManager->getDifficultyMap(dmap);
+  d_relManager->getDifficultyMap(dmap, includeLemmas);
 }
 
 theory::IncompleteId TheoryEngine::getModelUnsoundId() const

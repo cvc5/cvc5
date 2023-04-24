@@ -225,6 +225,7 @@ void SineSolver::checkInitialRefine()
       // initial refinements
       if (d_tf_initial_refine.find(t) == d_tf_initial_refine.end())
       {
+        Trace("nl-ext-debug") << "Process initial refine " << t << std::endl;
         d_tf_initial_refine[t] = true;
         Assert(d_data->isPurified(t));
         {

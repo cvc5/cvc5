@@ -145,12 +145,18 @@ class RelevanceManager : public TheoryEngineModule
                    theory::LemmaProperty p,
                    const std::vector<Node>& skAsserts,
                    const std::vector<Node>& sks) override;
+  /** Needs candidate model, return true if the method below requires calling */
+  bool needsCandidateModel() override;
   /** Notify that m is a (candidate) model, for difficulty measurements */
   void notifyCandidateModel(TheoryModel* m) override;
   /**
    * Get difficulty map
+   *
+   * @param dmap The difficulty map to populate.
+   * @param includeLemmas Whether to include difficulty of lemmas in the domain
+   * of dmap.
    */
-  void getDifficultyMap(std::map<Node, Node>& dmap);
+  void getDifficultyMap(std::map<Node, Node>& dmap, bool includeLemmas);
 
  private:
   /**

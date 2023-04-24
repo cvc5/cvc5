@@ -135,8 +135,8 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       // parse <datatype_dec>
       std::vector<DatatypeDecl> dts =
           d_tparser.parseDatatypesDef(isCo, dnames, arities);
-      cmd.reset(new DatatypeDeclarationCommand(
-          d_state.bindMutualDatatypeTypes(dts, true)));
+      cmd.reset(
+          new DatatypeDeclarationCommand(d_state.mkMutualDatatypeTypes(dts)));
     }
     break;
     // multiple datatype
@@ -169,8 +169,8 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       std::vector<DatatypeDecl> dts =
           d_tparser.parseDatatypesDef(isCo, dnames, arities);
       d_lex.eatToken(Token::RPAREN_TOK);
-      cmd.reset(new DatatypeDeclarationCommand(
-          d_state.bindMutualDatatypeTypes(dts, true)));
+      cmd.reset(
+          new DatatypeDeclarationCommand(d_state.mkMutualDatatypeTypes(dts)));
     }
     break;
     // (declare-fun <symbol> (<sort>∗) <sort>)
@@ -560,6 +560,13 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       Term t = d_tparser.parseTerm();
       bool isFull = (tok == Token::GET_QE_TOK);
       cmd.reset(new GetQuantifierEliminationCommand(t, isFull));
+    }
+    break;
+    // (get-timeout-core)
+    case Token::GET_TIMEOUT_CORE_TOK:
+    {
+      d_state.checkThatLogicIsSet();
+      cmd.reset(new GetTimeoutCoreCommand);
     }
     break;
     // (get-unsat-assumptions)

@@ -219,18 +219,39 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
     {
       Assert(2 <= expv.size() && expv.size() <= 3);
       Node tester1 = expv[0];
-      Node tester1c =
-          nm->mkNode(APPLY_TESTER, expv[1].getOperator(), expv[0][0]);
-      std::vector<Node> targs{expv[1]};
-      if (expv.size() == 3)
+      bool pol = expv[1].getKind() != NOT;
+      Node tester2 = pol ? expv[1] : expv[1][0];
+      if (tester1.getKind() == APPLY_TESTER
+          && tester2.getKind() == APPLY_TESTER)
       {
-        targs.push_back(expv[2]);
+        Node tester1c =
+            nm->mkNode(APPLY_TESTER, tester2.getOperator(), expv[0][0]);
+        tester1c = pol ? tester1c : tester1c.notNode();
+        if (tester1c != expv[1])
+        {
+          std::vector<Node> targs{expv[1]};
+          if (expv.size() == 3)
+          {
+            targs.push_back(expv[2]);
+          }
+          cdp->addStep(
+              tester1c, PfRule::MACRO_SR_PRED_TRANSFORM, targs, {tester1c});
+        }
+        Node fn = nm->mkConst(false);
+        // if pol is true, it is a conflict is-C1(x) ^ is-C2(x)
+        // if pol is false, it is a conflict is-C1(x) ^ ~is-C1(x)
+        // In the former case, the proof may be of the form:
+        //            is-C2(y)  y = x
+        //            ----------------- MACRO_SR_PRED_TRANSFORM
+        // is-C1(x)   is-C2(x)
+        // ------------------- DT_CLASH
+        // false
+        cdp->addStep(fn,
+                     pol ? PfRule::DT_CLASH : PfRule::CONTRA,
+                     {tester1, tester1c},
+                     {});
+        success = true;
       }
-      cdp->addStep(
-          tester1c, PfRule::MACRO_SR_PRED_TRANSFORM, targs, {tester1c});
-      Node fn = nm->mkConst(false);
-      cdp->addStep(fn, PfRule::DT_CLASH, {tester1, tester1c}, {});
-      success = true;
     }
     break;
     case InferenceId::DATATYPES_PURIFY:

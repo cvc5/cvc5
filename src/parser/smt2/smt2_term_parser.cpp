@@ -130,7 +130,10 @@ Term Smt2TermParser::parseTerm()
             // a standalone qualified identifier
             ParseOp op = continueParseQualifiedIdentifier(false);
             ret = op.d_expr;
-            Assert(!ret.isNull());
+            if (ret.isNull())
+            {
+              d_lex.parseError("Unexpected qualified identifier");
+            }
           }
           break;
           case Token::INDEX_TOK:
@@ -138,7 +141,10 @@ Term Smt2TermParser::parseTerm()
             // a standalone indexed symbol
             ParseOp op = continueParseIndexedIdentifier(false);
             ret = op.d_expr;
-            Assert(!ret.isNull());
+            if (ret.isNull())
+            {
+              d_lex.parseError("Unexpected indexed symbol");
+            }
           }
           break;
           case Token::LPAREN_TOK:
@@ -230,14 +236,13 @@ Term Smt2TermParser::parseTerm()
       // ------------------- close paren
       case Token::RPAREN_TOK:
       {
-        if (tstack.empty())
+        // should only be here if we are expecting arguments
+        if (tstack.empty() || (xstack.back() != ParseCtx::NEXT_ARG
+               && xstack.back() != ParseCtx::CLOSURE_NEXT_ARG))
         {
           d_lex.unexpectedTokenError(
               tok, "Mismatched parentheses in SMT-LIBv2 term");
         }
-        // should only be here if we are expecting arguments
-        Assert(xstack.back() == ParseCtx::NEXT_ARG
-               || xstack.back() == ParseCtx::CLOSURE_NEXT_ARG);
         // Construct the application term specified by tstack.back()
         ParseOp& op = tstack.back().first;
         ret = d_state.applyParseOp(op, tstack.back().second);
@@ -1114,11 +1119,11 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypesDef(
     }
     tok = d_lex.nextToken();
   }
-  d_lex.reinsertToken(tok);
   if (dts.size() != dnames.size())
   {
-    d_lex.parseError("Wrong number of datatypes provided.");
+    d_lex.unexpectedTokenError(tok, "Wrong number of datatypes provided.");
   }
+  d_lex.reinsertToken(tok);
   d_state.popScope();
   return dts;
 }
@@ -1217,7 +1222,10 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
         // (_ char <hex_literal>) expects a hex literal
         symbols.push_back(d_lex.tokenStr());
         break;
-      default: break;
+      default:
+        d_lex.unexpectedTokenError(
+            tok, "Expected index while parsing indexed identifier");
+        break;
     }
     tok = d_lex.nextToken();
   }
@@ -1266,7 +1274,10 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
     // handles:
     // - testers and updaters indexed by constructor names
     Kind k = d_state.getIndexedOpKind(name);
-    Assert(k == APPLY_UPDATER || k == APPLY_TESTER);
+    if (k != APPLY_UPDATER && k != APPLY_TESTER)
+    {
+      d_lex.parseError(std::string("Unexpected indexed symbol " + name));
+    }
     if (symbols.size() != 1)
     {
       d_lex.parseError(std::string("Unexpected number of indices for " + name));
