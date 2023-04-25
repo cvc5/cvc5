@@ -1371,7 +1371,8 @@ set(REWRITES_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/booleans/rewrites
   ${PROJECT_SOURCE_DIR}/src/theory/builtin/rewrites
   ${PROJECT_SOURCE_DIR}/src/theory/bv/rewrites
-  ${PROJECT_SOURCE_DIR}/src/theory/strings/rewrites)
+  ${PROJECT_SOURCE_DIR}/src/theory/strings/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/uf/rewrites)
 
 #-----------------------------------------------------------------------------#
 # Add subdirectories

@@ -132,6 +132,9 @@ class Op(Enum):
     BOUND_VARS = (None, 'BOUND_VAR_LIST')
     DISTINCT = ('distinct', 'DISTINCT')
 
+    BV_TO_NAT = ('bv2nat', 'BITVECTOR_TO_NAT')
+    INT_TO_BV = ('int2bv', 'INT_TO_BITVECTOR')
+
     ###########################################################################
     # Strings
     ###########################################################################

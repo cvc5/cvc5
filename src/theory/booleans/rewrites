@@ -35,8 +35,5 @@
 (define-rule ite-then-false ((c Bool) (x Bool)) (ite c false x) (and (not c) x))
 (define-rule ite-else-true ((c Bool) (x Bool)) (ite c x true) (or (not c) x))
 
-(define-rule ite-then-lookahead ((c Bool) (x ?) (y ?) (z ?)) (ite c (ite c x y) z) (ite c x z))
-(define-rule ite-else-lookahead ((c Bool) (x ?) (y ?) (z ?)) (ite c x (ite c y z)) (ite c x z))
-
-(define-rule ite-then-lookahead-self ((c Bool) (x ?)) (ite c c x) (ite c true x))
-(define-rule ite-else-lookahead-self ((c Bool) (x ?)) (ite c x c) (ite c x false))
+(define-rule ite-then-lookahead-self ((c Bool) (x Bool)) (ite c c x) (ite c true x))
+(define-rule ite-else-lookahead-self ((c Bool) (x Bool)) (ite c x c) (ite c x false))

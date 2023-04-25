@@ -96,7 +96,7 @@
   (str.substr (str.substr s n1 m1) n2 m2)
   (str.substr s (+ n1 n2) m2))
 
-(define-cond-rule substr-concat1 ((s1 String) (s2 String :list) (n Int) (m Int))
+(define-cond-rule str-substr-concat1 ((s1 String) (s2 String :list) (n Int) (m Int))
   (and (>= n 0) (>= (str.len s1) (+ n m)))
   (str.substr (str.++ s1 s2) n m)
   (str.substr s1 n m))
@@ -124,6 +124,10 @@
   (str.len (str.++ s2 s3))
   (+ (str.len s1) _))
 
+(define-cond-rule str-in-re-range-elim ((s String) (c1 String) (c2 String))
+  (and (= (str.len c1) 1) (= (str.len c2) 1))
+  (str.in_re s (re.range c1 c2))
+  (and (<= (str.to_code c1) (str.to_code s)) (<= (str.to_code s) (str.to_code c2))))
 
 ; Sequences-specific rules
 
