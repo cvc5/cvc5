@@ -806,8 +806,8 @@ poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi)
 }  // namespace arith
 }  // namespace theory
 
-
-Node PolyConverter::ran_to_node(const RealAlgebraicNumber& ran, const Node& ran_variable)
+Node PolyConverter::ran_to_node(const RealAlgebraicNumber& ran,
+                                const Node& ran_variable)
 {
   return theory::arith::nl::ran_to_node(ran.getValue(), ran_variable);
 }

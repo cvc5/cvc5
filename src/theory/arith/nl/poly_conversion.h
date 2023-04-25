@@ -162,14 +162,15 @@ poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi)
 
 class PolyConverter
 {
-public:
+ public:
   /**
-  * Transforms a real algebraic number to a node suitable for putting it into a
-  * model. The resulting node can be either a constant (suitable for
-  * addSubstitution) or a witness term (suitable for
-  * addWitness).
-  */
-  static Node ran_to_node(const RealAlgebraicNumber& ran, const Node& ran_variable);
+   * Transforms a real algebraic number to a node suitable for putting it into a
+   * model. The resulting node can be either a constant (suitable for
+   * addSubstitution) or a witness term (suitable for
+   * addWitness).
+   */
+  static Node ran_to_node(const RealAlgebraicNumber& ran,
+                          const Node& ran_variable);
 };
 
 }  // namespace cvc5::internal

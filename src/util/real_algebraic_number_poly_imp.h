@@ -28,7 +28,7 @@
 #include "util/rational.h"
 
 namespace cvc5::internal {
-  
+
 class PolyConverter;
 
 /**
@@ -49,6 +49,7 @@ class PolyConverter;
 class RealAlgebraicNumber
 {
   friend class PolyConverter;
+
  public:
   /** Construct as zero. */
   RealAlgebraicNumber() = default;
@@ -112,47 +113,39 @@ class RealAlgebraicNumber
    * rational approximation (of unknown precision).
    */
   Rational toRational() const;
-  
+
   std::string toString() const;
 
-
   /** Compare two real algebraic numbers. */
-  bool operator==( const RealAlgebraicNumber& rhs) const;
+  bool operator==(const RealAlgebraicNumber& rhs) const;
   /** Compare two real algebraic numbers. */
-  bool operator!=( const RealAlgebraicNumber& rhs) const;
+  bool operator!=(const RealAlgebraicNumber& rhs) const;
   /** Compare two real algebraic numbers. */
-  bool operator<( const RealAlgebraicNumber& rhs) const;
+  bool operator<(const RealAlgebraicNumber& rhs) const;
   /** Compare two real algebraic numbers. */
-  bool operator<=( const RealAlgebraicNumber& rhs) const;
+  bool operator<=(const RealAlgebraicNumber& rhs) const;
   /** Compare two real algebraic numbers. */
-  bool operator>( const RealAlgebraicNumber& rhs) const;
+  bool operator>(const RealAlgebraicNumber& rhs) const;
   /** Compare two real algebraic numbers. */
-  bool operator>=( const RealAlgebraicNumber& rhs) const;
+  bool operator>=(const RealAlgebraicNumber& rhs) const;
 
   /** Add two real algebraic numbers. */
-  RealAlgebraicNumber operator+(
-                                const RealAlgebraicNumber& rhs) const;
+  RealAlgebraicNumber operator+(const RealAlgebraicNumber& rhs) const;
   /** Subtract two real algebraic numbers. */
-  RealAlgebraicNumber operator-(
-                                const RealAlgebraicNumber& rhs) const;
+  RealAlgebraicNumber operator-(const RealAlgebraicNumber& rhs) const;
   /** Negate a real algebraic number. */
   RealAlgebraicNumber operator-() const;
   /** Multiply two real algebraic numbers. */
-  RealAlgebraicNumber operator*(
-                                const RealAlgebraicNumber& rhs) const;
+  RealAlgebraicNumber operator*(const RealAlgebraicNumber& rhs) const;
   /** Divide two real algebraic numbers. */
-  RealAlgebraicNumber operator/(
-                                const RealAlgebraicNumber& rhs) const;
+  RealAlgebraicNumber operator/(const RealAlgebraicNumber& rhs) const;
 
   /** Add and assign two real algebraic numbers. */
-  RealAlgebraicNumber& operator+=(
-                                  const RealAlgebraicNumber& rhs);
+  RealAlgebraicNumber& operator+=(const RealAlgebraicNumber& rhs);
   /** Subtract and assign two real algebraic numbers. */
-  RealAlgebraicNumber& operator-=(
-                                  const RealAlgebraicNumber& rhs);
+  RealAlgebraicNumber& operator-=(const RealAlgebraicNumber& rhs);
   /** Multiply and assign two real algebraic numbers. */
-  RealAlgebraicNumber& operator*=(
-                                  const RealAlgebraicNumber& rhs);
+  RealAlgebraicNumber& operator*=(const RealAlgebraicNumber& rhs);
 
   /** Compute the sign of a real algebraic number. */
   int sgn() const;
@@ -165,8 +158,8 @@ class RealAlgebraicNumber
   RealAlgebraicNumber inverse() const;
   /** Hash function */
   size_t hash() const;
- private:
 
+ private:
 #ifdef CVC5_POLY_IMP
   /** Get the internal value as a const reference. */
   const poly::AlgebraicNumber& getValue() const { return d_value; }
@@ -188,10 +181,9 @@ class RealAlgebraicNumber
 #endif
 }; /* class RealAlgebraicNumber */
 
-
 /** Stream a real algebraic number to an output stream. */
 std::ostream& operator<<(std::ostream& os, const RealAlgebraicNumber& ran);
-  
+
 using RealAlgebraicNumberHashFunction = std::hash<RealAlgebraicNumber>;
 
 }  // namespace cvc5::internal

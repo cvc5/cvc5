@@ -21,10 +21,10 @@
 #endif
 
 #include <limits>
+#include <sstream>
 
 #include "base/check.h"
 #include "util/poly_util.h"
-#include <sstream>
 
 #define RAN_UNREACHABLE \
   Unreachable() << "RealAlgebraicNumber is not available without libpoly."
@@ -149,38 +149,38 @@ std::string RealAlgebraicNumber::toString() const
   return ss.str();
 }
 
-bool RealAlgebraicNumber::operator==( const RealAlgebraicNumber& rhs) const
+bool RealAlgebraicNumber::operator==(const RealAlgebraicNumber& rhs) const
 {
   return getValue() == rhs.getValue();
 }
-bool RealAlgebraicNumber::operator!=( const RealAlgebraicNumber& rhs) const
+bool RealAlgebraicNumber::operator!=(const RealAlgebraicNumber& rhs) const
 {
   return getValue() != rhs.getValue();
 }
-bool RealAlgebraicNumber::operator<( const RealAlgebraicNumber& rhs) const
+bool RealAlgebraicNumber::operator<(const RealAlgebraicNumber& rhs) const
 {
   return getValue() < rhs.getValue();
 }
-bool RealAlgebraicNumber::operator<=( const RealAlgebraicNumber& rhs) const
+bool RealAlgebraicNumber::operator<=(const RealAlgebraicNumber& rhs) const
 {
   return getValue() <= rhs.getValue();
 }
-bool RealAlgebraicNumber::operator>( const RealAlgebraicNumber& rhs) const
+bool RealAlgebraicNumber::operator>(const RealAlgebraicNumber& rhs) const
 {
   return getValue() > rhs.getValue();
 }
-bool RealAlgebraicNumber::operator>=( const RealAlgebraicNumber& rhs) const
+bool RealAlgebraicNumber::operator>=(const RealAlgebraicNumber& rhs) const
 {
   return getValue() >= rhs.getValue();
 }
 
 RealAlgebraicNumber RealAlgebraicNumber::operator+(
-                              const RealAlgebraicNumber& rhs) const
+    const RealAlgebraicNumber& rhs) const
 {
   return getValue() + rhs.getValue();
 }
 RealAlgebraicNumber RealAlgebraicNumber::operator-(
-                              const RealAlgebraicNumber& rhs) const
+    const RealAlgebraicNumber& rhs) const
 {
   return getValue() - rhs.getValue();
 }
@@ -189,51 +189,54 @@ RealAlgebraicNumber RealAlgebraicNumber::operator-() const
   return -getValue();
 }
 RealAlgebraicNumber RealAlgebraicNumber::operator*(
-                              const RealAlgebraicNumber& rhs) const
+    const RealAlgebraicNumber& rhs) const
 {
   return getValue() * rhs.getValue();
 }
 RealAlgebraicNumber RealAlgebraicNumber::operator/(
-                              const RealAlgebraicNumber& rhs) const
+    const RealAlgebraicNumber& rhs) const
 {
   Assert(!isZero(rhs)) << "Can not divide by zero";
   return getValue() / rhs.getValue();
 }
 
 RealAlgebraicNumber& RealAlgebraicNumber::operator+=(
-                                const RealAlgebraicNumber& rhs)
+    const RealAlgebraicNumber& rhs)
 {
   getValue() = getValue() + rhs.getValue();
   return *this;
 }
 RealAlgebraicNumber& RealAlgebraicNumber::operator-=(
-                                const RealAlgebraicNumber& rhs)
+    const RealAlgebraicNumber& rhs)
 {
   getValue() = getValue() - rhs.getValue();
   return *this;
 }
 RealAlgebraicNumber& RealAlgebraicNumber::operator*=(
-                                const RealAlgebraicNumber& rhs)
+    const RealAlgebraicNumber& rhs)
 {
   getValue() = getValue() * rhs.getValue();
   return *this;
 }
 
-int RealAlgebraicNumber::sgn() const {
+int RealAlgebraicNumber::sgn() const
+{
 #ifdef CVC5_POLY_IMP
   return poly::sgn(getValue());
 #else
   return getValue().sgn();
 #endif
 }
-bool RealAlgebraicNumber::isZero() const{
+bool RealAlgebraicNumber::isZero() const
+{
 #ifdef CVC5_POLY_IMP
   return poly::is_zero(getValue());
 #else
   return getValue().isZero();
 #endif
 }
-bool RealAlgebraicNumber::isOne() const {
+bool RealAlgebraicNumber::isOne() const
+{
 #ifdef CVC5_POLY_IMP
   return poly::is_one(getValue());
 #else
@@ -263,7 +266,6 @@ std::ostream& operator<<(std::ostream& os, const RealAlgebraicNumber& ran)
 {
   return os << ran.toString();
 }
-
 
 }  // namespace cvc5::internal
 

@@ -573,9 +573,10 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
     // mkConst is applied to RAN in this block, which are always Real
     if (left.isConst())
     {
-      return RewriteResponse(REWRITE_DONE,
-                             rewriter::ensureReal(rewriter::mkConst(
-                                 RealAlgebraicNumber(left.getConst<Rational>()) / den)));
+      return RewriteResponse(
+          REWRITE_DONE,
+          rewriter::ensureReal(rewriter::mkConst(
+              RealAlgebraicNumber(left.getConst<Rational>()) / den)));
     }
     if (rewriter::isRAN(left))
     {
