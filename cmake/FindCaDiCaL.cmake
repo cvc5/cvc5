@@ -134,4 +134,8 @@ if(CaDiCaL_FOUND_SYSTEM)
 else()
   message(STATUS "Building CaDiCaL ${CaDiCaL_VERSION}: ${CaDiCaL_LIBRARIES}")
   add_dependencies(CaDiCaL CaDiCaL-EP)
+  install(FILES
+    ${CaDiCaL_LIBRARIES}
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
 endif()
