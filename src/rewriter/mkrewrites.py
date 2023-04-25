@@ -45,6 +45,10 @@ def gen_mk_skolem(name, sort):
         sort_code = 'nm->mkAbstractType(kind::ARRAY_TYPE)'
     elif sort.base == BaseSort.AbsBitVec:
         sort_code = 'nm->mkAbstractType(kind::BITVECTOR_TYPE)'
+    elif sort.base == BaseSort.AbsSeq:
+        sort_code = 'nm->mkAbstractType(kind::SEQUENCE_TYPE)'
+    elif sort.base == BaseSort.AbsSet:
+        sort_code = 'nm->mkAbstractType(kind::SET_TYPE)'
     elif sort.base == BaseSort.AbsAbs:
         sort_code = 'nm->mkAbstractType(kind::ABSTRACT_TYPE)'
     elif sort.base == BaseSort.BitVec:

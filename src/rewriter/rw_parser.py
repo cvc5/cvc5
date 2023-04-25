@@ -176,9 +176,13 @@ class Parser:
             lambda s, l, t: Sort(BaseSort.AbsArray, []))
         abs_bv_sort = pp.Keyword('?BitVec').setParseAction(
             lambda s, l, t: Sort(BaseSort.AbsBitVec, []))
+        abs_seq_sort = pp.Keyword('?Seq').setParseAction(
+            lambda s, l, t: Sort(BaseSort.AbsSeq, []))
+        abs_set_sort = pp.Keyword('?Set').setParseAction(
+            lambda s, l, t: Sort(BaseSort.AbsSet, []))
         abs_abs_sort = pp.Keyword('?').setParseAction(
             lambda s, l, t: Sort(BaseSort.AbsAbs, []))
-        return bv_sort | int_sort | real_sort | bool_sort | string_sort | reglan_sort | abs_array_sort | abs_bv_sort | abs_abs_sort
+        return bv_sort | int_sort | real_sort | bool_sort | string_sort | reglan_sort | abs_array_sort | abs_bv_sort | abs_seq_sort | abs_set_sort |abs_abs_sort
 
     def var_decl_action(self, name, sort, attrs):
         if attrs:

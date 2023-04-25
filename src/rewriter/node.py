@@ -184,6 +184,16 @@ class Op(Enum):
     REGEXP_NONE = (None, 'REGEXP_NONE')  # Handled as constants
     REGEXP_ALLCHAR = (None, 'REGEXP_ALLCHAR')
 
+    ###########################################################################
+    # Sets
+    ###########################################################################
+
+    SET_INTER = ('set.inter', 'SET_INTER')
+    SET_UNION = ('set.union', 'SET_UNION')
+    SET_MINUS = ('set.minus', 'SET_MINUS')
+    SET_SUBSET = ('set.subset', 'SET_SUBSET')
+    SET_MEMBER = ('set.member', 'SET_MEMBER')
+    SET_SINGLETON = ('set.singleton', 'SET_SINGLETON')
 
 class BaseSort(Enum):
     Bool = auto()
@@ -194,6 +204,8 @@ class BaseSort(Enum):
     RegLan = auto()
     AbsArray = auto()
     AbsBitVec = auto()
+    AbsSeq = auto()
+    AbsSet = auto()
     AbsAbs = auto()
 
 

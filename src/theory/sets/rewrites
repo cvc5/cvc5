@@ -1,0 +1,19 @@
+; Equality
+
+(define-rule sets-member-singleton ((x ?) (y ?))
+  (set.member x (set.singleton y))
+  (= x y))
+  
+(define-rule sets-subset-elim ((x ?Set) (y ?Set))
+  (set.subset x y)
+  (= (set.union x y) y))
+
+(define-rule sets-union-comm ((x ?Set) (y ?Set))
+  (set.union x y)
+  (set.union y x))
+(define-rule sets-inter-comm ((x ?Set) (y ?Set))
+  (set.inter x y)
+  (set.inter y x))
+
+; (set.card (set.union s t)) ---> (- (+ (set.card s) (set.card t)) (set.card (set.inter s t)))
+; (set.complement S) ---> (set.minus (as set.universe (Set Int)) S)
