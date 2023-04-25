@@ -703,10 +703,6 @@ poly::AlgebraicNumber node_to_poly_ran(const Node& n, const Node& ran_variable)
   return poly_utils::toPolyRanWithRefinement(
       std::move(pol), std::get<1>(encoding), std::get<2>(encoding));
 }
-RealAlgebraicNumber node_to_ran(const Node& n, const Node& ran_variable)
-{
-  return RealAlgebraicNumber(node_to_poly_ran(n, ran_variable));
-}
 
 poly::Value node_to_value(const Node& n, const Node& ran_variable)
 {
@@ -810,6 +806,11 @@ Node PolyConverter::ran_to_node(const RealAlgebraicNumber& ran,
                                 const Node& ran_variable)
 {
   return theory::arith::nl::ran_to_node(ran.getValue(), ran_variable);
+}
+
+RealAlgebraicNumber PolyConverter::node_to_ran(const Node& n, const Node& ran_variable)
+{
+  return RealAlgebraicNumber(theory::arith::nl::node_to_poly_ran(n, ran_variable));
 }
 
 }  // namespace cvc5::internal
