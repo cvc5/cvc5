@@ -2455,29 +2455,36 @@ AletheProofPostprocess::~AletheProofPostprocess() {}
 
 void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {
+  // first two nodes are scopes for definitions and other assumptions. We
+  // process only the internal proof node. And we merge these two scopes
+  Assert(pf->getRule() == PfRule::SCOPE
+         && pf->getChildren()[0]->getRule() == PfRule::SCOPE);
+  std::shared_ptr<ProofNode> definitionsScope = pf;
+  std::shared_ptr<ProofNode> assumptionsScope = pf->getChildren()[0];
+  std::shared_ptr<ProofNode> internalProof = assumptionsScope->getChildren()[0];
   // Translate proof node
   ProofNodeUpdater updater(d_env, d_cb, false, false);
-  updater.process(pf->getChildren()[0]);
+  updater.process(internalProof);
 
   // In the Alethe proof format the final step has to be (cl). However, after
   // the translation it might be (cl false). In that case additional steps are
   // required.
   // The function has the additional purpose of sanitizing the attributes of the
-  // first SCOPE
-  CDProof cpf(d_env, nullptr, "ProofNodeUpdater::CDProof", true);
-  const std::vector<std::shared_ptr<ProofNode>>& cc = pf->getChildren();
-  std::vector<Node> ccn;
-  for (const std::shared_ptr<ProofNode>& cp : cc)
-  {
-    Node cpres = cp->getResult();
-    ccn.push_back(cpres);
-    // store in the proof
-    cpf.addProof(cp);
-  }
+  // outer SCOPEs
+  CDProof cpf(
+      d_env, nullptr, "AletheProofPostProcess::finalStep::CDProof", true);
+  std::vector<Node> ccn{internalProof->getResult()};
+  cpf.addProof(internalProof);
+  std::vector<Node> args{definitionsScope->getArguments().begin(),
+                         definitionsScope->getArguments().end()};
+  args.insert(args.end(),
+              assumptionsScope->getArguments().begin(),
+              assumptionsScope->getArguments().end());
   if (d_cb.finalStep(
-          pf->getResult(), pf->getRule(), ccn, pf->getArguments(), &cpf))
+          definitionsScope->getResult(), PfRule::SCOPE, ccn, args, &cpf))
   {
-    std::shared_ptr<ProofNode> npn = cpf.getProofFor(pf->getResult());
+    std::shared_ptr<ProofNode> npn =
+        cpf.getProofFor(definitionsScope->getResult());
 
     // then, update the original proof node based on this one
     Trace("pf-process-debug") << "Update node..." << std::endl;

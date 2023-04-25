@@ -1459,15 +1459,21 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
                       << std::endl;
       return ret;
     }
-    else if (kind == FLOATINGPOINT_FP && isConstBv(args[0])
-             && isConstBv(args[1]) && isConstBv(args[2]))
+    else if (kind == FLOATINGPOINT_FP)
     {
       // (fp #bX #bY #bZ) denotes a floating-point value
-
-      Term ret = d_solver->mkFloatingPoint(args[0], args[1], args[2]);
-      Trace("parser") << "applyParseOp: return floating-point value " << ret
-                      << std::endl;
-      return ret;
+      if (args.size() != 3)
+      {
+        parseError("expected 3 arguments to 'fp', got "
+                   + std::to_string(args.size()));
+      }
+      if (isConstBv(args[0]) && isConstBv(args[1]) && isConstBv(args[2]))
+      {
+        Term ret = d_solver->mkFloatingPoint(args[0], args[1], args[2]);
+        Trace("parser") << "applyParseOp: return floating-point value " << ret
+                        << std::endl;
+        return ret;
+      }
     }
     Term ret = d_solver->mkTerm(kind, args);
     Trace("parser") << "applyParseOp: return default builtin " << ret

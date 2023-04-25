@@ -70,6 +70,8 @@ class TheoryEngineModule : protected EnvObj
                            theory::LemmaProperty p,
                            const std::vector<Node>& skAsserts,
                            const std::vector<Node>& sks);
+  /** Needs candidate model, return true if the method below requires calling */
+  virtual bool needsCandidateModel();
   /** Notify that m is a (candidate) model */
   virtual void notifyCandidateModel(TheoryModel* m);
   /** Get name, for debugging and statistics. */
