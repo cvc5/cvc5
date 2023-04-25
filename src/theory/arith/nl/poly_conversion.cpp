@@ -366,11 +366,6 @@ std::pair<poly::Polynomial, poly::SignCondition> as_poly_constraint(
   return {lhs, sc};
 }
 
-Node ran_to_node(const RealAlgebraicNumber& ran, const Node& ran_variable)
-{
-  return ran_to_node(ran.getValue(), ran_variable);
-}
-
 Node ran_to_node(const poly::AlgebraicNumber& an, const Node& ran_variable)
 {
   auto* nm = NodeManager::currentNM();
@@ -810,6 +805,13 @@ poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
+
+
+Node PolyConverter::ran_to_node(const RealAlgebraicNumber& ran, const Node& ran_variable)
+{
+  return theory::arith::nl::ran_to_node(ran.getValue(), ran_variable);
+}
+
 }  // namespace cvc5::internal
 
 #endif

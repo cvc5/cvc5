@@ -575,7 +575,7 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
     {
       return RewriteResponse(REWRITE_DONE,
                              rewriter::ensureReal(rewriter::mkConst(
-                                 left.getConst<Rational>() / den)));
+                                 RealAlgebraicNumber(left.getConst<Rational>()) / den)));
     }
     if (rewriter::isRAN(left))
     {
@@ -584,7 +584,7 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
                                  rewriter::getRAN(left) / den)));
     }
 
-    Node result = rewriter::mkConst(inverse(den));
+    Node result = rewriter::mkConst(den.inverse());
     Node mult = rewriter::ensureReal(
         NodeManager::currentNM()->mkNode(kind::MULT, left, result));
     if (pre)
