@@ -479,8 +479,8 @@ Sort SymbolTable::Implementation::lookupType(const string& name) const
   if (p.first.size() != 0)
   {
     std::stringstream ss;
-    ss  << "type constructor arity is wrong: `" << name << "' requires "
-      << p.first.size() << " parameters but was provided 0";
+    ss << "type constructor arity is wrong: `" << name << "' requires "
+       << p.first.size() << " parameters but was provided 0";
     throw Exception(ss.str());
   }
   return p.second;
@@ -493,9 +493,8 @@ Sort SymbolTable::Implementation::lookupType(const string& name,
   if (p.first.size() != params.size())
   {
     std::stringstream ss;
-    ss  
-      << "type constructor arity is wrong: `" << name.c_str() << "' requires "
-      << p.first.size() << " parameters but was provided " << params.size();
+    ss << "type constructor arity is wrong: `" << name.c_str() << "' requires "
+       << p.first.size() << " parameters but was provided " << params.size();
     throw Exception(ss.str());
   }
   if (p.first.size() == 0)
