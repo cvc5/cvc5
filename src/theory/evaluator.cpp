@@ -918,6 +918,20 @@ EvalResult Evaluator::evalInternal(
           results[currNode] = EvalResult(res);
           break;
         }
+        case kind::BITVECTOR_SHL:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          res = res.leftShift(results[currNode[1]].d_bv);
+          results[currNode] = EvalResult(res);
+          break;
+        }
+        case kind::BITVECTOR_ASHR:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          res = res.arithRightShift(results[currNode[1]].d_bv);
+          results[currNode] = EvalResult(res);
+          break;
+        }
         case kind::BITVECTOR_ULT:
         {
           BitVector res = results[currNode[0]].d_bv;
@@ -948,30 +962,30 @@ EvalResult Evaluator::evalInternal(
         }
         case kind::BITVECTOR_UGT:
         {
-          BitVector res = results[currNode[0]].d_bv;
-          bool b = res.unsignedLessThan(results[currNode[1]].d_bv);
-          results[currNode] = EvalResult(!b);
+          BitVector res = results[currNode[1]].d_bv;
+          bool b = res.unsignedLessThan(results[currNode[0]].d_bv);
+          results[currNode] = EvalResult(b);
           break;
         }
         case kind::BITVECTOR_SGT:
         {
-          BitVector res = results[currNode[0]].d_bv;
-          bool b = res.signedLessThan(results[currNode[1]].d_bv);
-          results[currNode] = EvalResult(!b);
+          BitVector res = results[currNode[1]].d_bv;
+          bool b = res.signedLessThan(results[currNode[0]].d_bv);
+          results[currNode] = EvalResult(b);
           break;
         }
         case kind::BITVECTOR_SGE:
         {
-          BitVector res = results[currNode[0]].d_bv;
-          bool b = res.signedLessThanEq(results[currNode[1]].d_bv);
-          results[currNode] = EvalResult(!b);
+          BitVector res = results[currNode[1]].d_bv;
+          bool b = res.signedLessThanEq(results[currNode[0]].d_bv);
+          results[currNode] = EvalResult(b);
           break;
         }
         case kind::BITVECTOR_UGE:
         {
-          BitVector res = results[currNode[0]].d_bv;
-          bool b = res.unsignedLessThanEq(results[currNode[1]].d_bv);
-          results[currNode] = EvalResult(!b);
+          BitVector res = results[currNode[1]].d_bv;
+          bool b = res.unsignedLessThanEq(results[currNode[0]].d_bv);
+          results[currNode] = EvalResult(b);
           break;
         }
         case kind::BITVECTOR_SIGN_EXTEND:
@@ -980,6 +994,14 @@ EvalResult Evaluator::evalInternal(
           unsigned amount =
               currNode.getOperator().getConst<BitVectorSignExtend>().d_signExtendAmount;
           results[currNode] = EvalResult(res.signExtend(amount));
+          break;
+        }
+        case kind::BITVECTOR_ZERO_EXTEND:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          unsigned amount =
+              currNode.getOperator().getConst<BitVectorZeroExtend>().d_zeroExtendAmount;
+          results[currNode] = EvalResult(res.zeroExtend(amount));
           break;
         }
 

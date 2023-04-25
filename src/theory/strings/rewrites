@@ -1,5 +1,10 @@
 ; ---
 
+(define-cond-rule str-eq-ctn-false ((x1 String :list) (x String) (x2 String :list) (y String))
+  (= (str.contains y x) false)
+  (= (str.++ x1 x x2) y)
+  false)
+
 (define-rule str-concat-flatten ((xs String :list) (s String) (ys String :list) (zs String :list))
   (str.++ xs (str.++ s ys) zs)
   (str.++ xs s ys zs))
