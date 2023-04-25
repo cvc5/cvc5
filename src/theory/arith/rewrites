@@ -9,6 +9,8 @@
 (define-rule arith-mul-one ((t ? :list) (s ? :list)) (* t 1 s) (* t s))
 (define-rule arith-mul-zero ((t ? :list) (s ? :list)) (* t 0 s) 0)
 
+;(define-rule arith-div-one ((t ?)) (/ t 1) t)
+
 (define-rule arith-neg-neg-one ((t ?)) (* (- 1) (* (- 1) t)) t)
 
 ; Eliminations

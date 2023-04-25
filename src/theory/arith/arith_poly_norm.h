@@ -57,6 +57,11 @@ class PolyNorm
   /** Is this polynomial equal to polynomial p? */
   bool isEqual(const PolyNorm& p) const;
   /**
+   * Is this polynomial equal to polynomial p*c for some c? If so, return
+   * true and store in c.
+   */
+  bool isEqualMod(const PolyNorm& p, Rational& c) const;
+  /**
    * Make polynomial from real term n. This method normalizes applications
    * of operators ADD, SUB, NEG, MULT, and NONLINEAR_MULT only.
    */

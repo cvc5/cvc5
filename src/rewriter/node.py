@@ -111,7 +111,7 @@ class Op(Enum):
     SUB = ('-', 'SUB')
     MULT = ('*', 'MULT')
     INT_DIV = ('div', 'INTS_DIVISION')
-    DIV = ('/', 'DIV')
+    DIV = ('/', 'DIVISION')
     MOD = ('mod', 'INTS_MODULUS')
     ABS = ('abs', 'ABS')
     LT = ('<', 'LT')
