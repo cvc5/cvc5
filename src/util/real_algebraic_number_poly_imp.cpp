@@ -196,7 +196,7 @@ RealAlgebraicNumber RealAlgebraicNumber::operator*(
 RealAlgebraicNumber RealAlgebraicNumber::operator/(
     const RealAlgebraicNumber& rhs) const
 {
-  Assert(!isZero(rhs)) << "Can not divide by zero";
+  Assert(!rhs.isZero()) << "Can not divide by zero";
   return getValue() / rhs.getValue();
 }
 
@@ -245,7 +245,7 @@ bool RealAlgebraicNumber::isOne() const
 }
 RealAlgebraicNumber RealAlgebraicNumber::inverse() const
 {
-  Assert(!isZero(ran)) << "Can not invert zero";
+  Assert(!isZero()) << "Can not invert zero";
 #ifdef CVC5_POLY_IMP
   return poly::inverse(getValue());
 #else
