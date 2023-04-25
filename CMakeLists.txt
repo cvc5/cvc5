@@ -54,6 +54,9 @@ if(POLICY CMP0135)
 endif()
 
 if(POLICY CMP0079)
+  # Allows target_link_libraries() to use targets from other directories.
+  # This will prevent issues with INTERFACE_LINK_LIBRARIES, which allows
+  # cvc5 to be properly linked as a static library on other CMake projects.
   cmake_policy(SET CMP0079 NEW)
 endif()
 
