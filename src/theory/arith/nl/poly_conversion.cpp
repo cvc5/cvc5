@@ -808,9 +808,11 @@ Node PolyConverter::ran_to_node(const RealAlgebraicNumber& ran,
   return theory::arith::nl::ran_to_node(ran.getValue(), ran_variable);
 }
 
-RealAlgebraicNumber PolyConverter::node_to_ran(const Node& n, const Node& ran_variable)
+RealAlgebraicNumber PolyConverter::node_to_ran(const Node& n,
+                                               const Node& ran_variable)
 {
-  return RealAlgebraicNumber(theory::arith::nl::node_to_poly_ran(n, ran_variable));
+  return RealAlgebraicNumber(
+      theory::arith::nl::node_to_poly_ran(n, ran_variable));
 }
 
 }  // namespace cvc5::internal
