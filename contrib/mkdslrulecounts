@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# Should be run in same directory as make regress is run. Outputs final rule
+# counts, final DSL rule counts, and unproven theory rewrites. Unproven theory
+# rewrites are additionally stored in unproven.txt.
+# Furthermore requires that tracing is enabled.
+
+echo "Make regress-dsl-proof with stats, regression arguments=\"--tlimit=60000 $@\" ..."
+make regress-dsl-proof -j8 CVC5_REGRESSION_ARGS="--stats-internal --tlimit=60000 -t final-pf-hole $@" | tee temp.txt
+echo "=== Final rule counts:"
+getaggrhistogram temp.txt finalProof::ruleCount
+echo "=== DSL rule counts:"
+getaggrhistogram temp.txt finalProof::dslRuleCount
+
+# Also look at unproven rules
+
+cat temp.txt | grep "hole THEORY_REWRITE" | sed "s/\[92m//g; s/\[93m//g; s/\[0m//g; s/  +//g; s/hole THEORY_REWRITE //g" >& unproven.txt
+
+echo -n "=== Number of unproven rules: "
+cat unproven.txt | wc -l
+
+function count_for_arg()
+{
+  echo -n "  Unproven $1:"
+  cat unproven.txt | grep THEORY_$1 | wc -l
+}
+
+count_for_arg ARITH
+count_for_arg ARRAYS
+count_for_arg BAGS
+count_for_arg BOOL
+count_for_arg BV
+count_for_arg BUILTIN
+count_for_arg DATATYPES
+count_for_arg FF
+count_for_arg FP
+count_for_arg QUANTIFIERS
+count_for_arg SEP
+count_for_arg SETS
+count_for_arg STRINGS
+count_for_arg UF
+
+rm temp.txt
+#rm unproven.txt
