@@ -170,7 +170,7 @@ class PolyConverter
                           const Node& ran_variable);
   
   /** Transforms a node to a RealAlgebraicNumber by calling node_to_poly_ran. */
-  RealAlgebraicNumber node_to_ran(const Node& n, const Node& ran_variable);
+  static RealAlgebraicNumber node_to_ran(const Node& n, const Node& ran_variable);
 };
 
 }  // namespace cvc5::internal
