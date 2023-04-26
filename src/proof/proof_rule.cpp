@@ -140,6 +140,7 @@ const char* toString(PfRule id)
     case PfRule::SKOLEMIZE: return "SKOLEMIZE";
     case PfRule::INSTANTIATE: return "INSTANTIATE";
     case PfRule::ALPHA_EQUIV: return "ALPHA_EQUIV";
+    case PfRule::EXISTS_ELIM: return "EXISTS_ELIM";
     case PfRule::QUANTIFIERS_PREPROCESS: return "QUANTIFIERS_PREPROCESS";
     //================================================= String rules
     case PfRule::CONCAT_EQ: return "CONCAT_EQ";

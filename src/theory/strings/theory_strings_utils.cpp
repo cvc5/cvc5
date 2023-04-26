@@ -19,6 +19,7 @@
 
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
+#include "expr/sequence.h"
 #include "expr/skolem_manager.h"
 #include "options/strings_options.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
@@ -214,6 +215,19 @@ Node mkSubstrChain(Node base,
     base = nm->mkNode(STRING_SUBSTR, base, ss[i], ls[i]);
   }
   return base;
+}
+
+Node mkConcatForConstSequence(const Node& c)
+{
+  Assert(c.getKind() == CONST_SEQUENCE);
+  const std::vector<Node>& charVec = c.getConst<Sequence>().getVec();
+  std::vector<Node> vec;
+  NodeManager* nm = NodeManager::currentNM();
+  for (size_t i = 0, size = charVec.size(); i < size; i++)
+  {
+    vec.push_back(nm->mkNode(SEQ_UNIT, charVec[size - (i + 1)]));
+  }
+  return mkConcat(vec, c.getType());
 }
 
 std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x)

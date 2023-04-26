@@ -4,6 +4,11 @@
   (= (str.contains y x) false)
   (= (str.++ x1 x x2) y)
   false)
+  
+;(define-cond-rule str-eq-len-false ((x String) (y String))
+;  (not (= (str.len x) (str.len y)))
+;  (= x y)
+;  false)
 
 (define-rule str-concat-flatten ((xs String :list) (s String) (ys String :list) (zs String :list))
   (str.++ xs (str.++ s ys) zs)
@@ -31,10 +36,24 @@
   (str.len (str.replace t s r))
   (str.len t))
 
+(define-rule str-len-update-inv ((t String) (n Int) (r String)) 
+  (str.len (str.update t n r))
+  (str.len t))
+
 (define-cond-rule str-len-substr-in-range ((s String) (n Int) (m Int))
   (and (>= n 0) (>= m 0) (>= (str.len s) (+ n m)))
   (str.len (str.substr s n m))
   m)
+
+(define-cond-rule str-len-substr-ub1 ((s String) (n Int) (m Int) (k Int))
+  (>= k m)
+  (>= k (str.len (str.substr s n m)))
+  true)
+
+(define-cond-rule str-len-substr-ub2 ((s String) (n Int) (m Int) (k Int))
+  (>= k (- (str.len s) n))
+  (>= k (str.len (str.substr s n m)))
+  true)
 
 (define-rule re-in-empty ((t String)) (str.in_re t re.none) false)
 (define-rule re-in-sigma ((t String)) (str.in_re t re.allchar) (= (str.len t) 1))
@@ -107,6 +126,11 @@
   (= (str.len w) 1)
   (str.contains (str.++ x y z) w)
   (or (str.contains x w) (str.contains (str.++ y z) w)))
+  
+(define-cond-rule str-contains-leq-len-eq ((x String) (y String))
+  (<= (str.len x) (str.len y))
+  (str.contains x y)
+  (= x y))
 
 (define-rule str-concat-emp ((xs String :list) (ys String :list)) (str.++ xs "" ys) (str.++ xs ys))
 
@@ -133,3 +157,4 @@
 
 (define-rule seq-len-unit ((x ?)) (str.len (seq.unit x)) 1)
 (define-rule seq-nth-unit ((x ?)) (seq.nth (seq.unit x) 0) x)
+(define-rule seq-rev-unit ((x ?)) (str.rev (seq.unit x)) (seq.unit x))

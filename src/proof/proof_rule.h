@@ -1440,6 +1440,18 @@ enum class PfRule : uint32_t
   ALPHA_EQUIV,
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Exists elimination**
+   *
+   * .. math::
+   *
+   *   \inferruleSC{-\mid \exists x_1\dots x_n.\> F}
+   *   {\exists x_1\dots x_n.\> F = \neg \forall x_1\dots x_n.\> \neg F}
+   *
+   * \endverbatim
+   */
+  EXISTS_ELIM,
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- (Trusted) quantifiers preprocessing**
    *
    * .. math::

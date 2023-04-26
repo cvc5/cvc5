@@ -333,11 +333,11 @@ bool PolyNorm::isArithPolyNormAtom(TNode a, TNode b)
   // in other words, x ~ y is equivalent to z ~ w if 
   // x-y = c*(z-w) for some c > 0.
   Rational c;
-  Assert (c.sgn()!=0);
   if (!pa.isEqualMod(pb, c))
   {
     return false;
   }
+  Assert (c.sgn()!=0);
   // if equal, can be negative. Notice this shortcuts symmetry of equality.
   return k==EQUAL || c.sgn()==1;
 }

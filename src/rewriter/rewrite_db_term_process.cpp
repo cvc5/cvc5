@@ -17,6 +17,7 @@
 
 #include "expr/attribute.h"
 #include "expr/nary_term_util.h"
+#include "theory/strings/theory_strings_utils.h"
 #include "theory/builtin/generic_op.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "util/bitvector.h"
@@ -49,6 +50,10 @@ Node RewriteDbNodeConverter::postConvert(Node n)
       children.push_back(nm->mkConst(String(tmp)));
     }
     return nm->mkNode(STRING_CONCAT, children);
+  }
+  else if (k == CONST_SEQUENCE)
+  {
+    return theory::strings::utils::mkConcatForConstSequence(n);
   }
   else if (k == CONST_BITVECTOR)
   {
