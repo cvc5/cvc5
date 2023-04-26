@@ -2,17 +2,24 @@ This file contains a summary of important user-visible changes.
 
 **New Features**
 
-- API: New API function `Solver::getVersion()`, returns a string representation
-    of the solver version.
-- Support for bit-vector overflow detection operators:
-  * `BITVECTOR_UADDO` unsigned addition overflow detection
-  * `BITVECTOR_SADDO` signed addition overflow detection
-  * `BITVECTOR_UMULO` unsigned multiplication overflow detection
-  * `BITVECTOR_SMULO` signed multiplication overflow detection
-  * `BITVECTOR_USUBO` unsigned subtraction overflow detection
-  * `BITVECTOR_SSUBO` signed subtraction overflow detection
-  * `BITVECTOR_SDIVO` signed division overflow detection
-- Support for Web Assembly compilation using Emscripten.
+- API: New API function
+       `Solver::mkFloatingPoint(const Term& sign, const Term& exp, const Term& sig)`,
+       returns a floating-point value from the three IEEE-754 bit-vector value
+       components.
+- Support for timeout cores
+  - API: New API function `Solver::getTimeoutCore()` when applicable
+    returns a subset of the current assertions that cause the solver to timeout
+    without a provided timeout (option `--timeout-core-timeout`).
+  - SMT-LIB: New command `(get-timeout-core)` which invokes the above method.
+
+cvc5 1.0.5
+==========
+
+cvc5 1.0.4
+==========
+
+**New Features**
+
 - Support for the theory of (prime-order) finite fields:
   * Sorts are created with
     * C++: `Solver::makeFiniteFieldSort`
@@ -24,6 +31,23 @@ This file contains a summary of important user-visible changes.
     * C++: kinds `FF_MUL`, `FF_ADD`, and `FF_NEG`
     * SMT-LIB: operators `ff.mul`, `ff.add`, and `ff.neg`
   * The only predicate is equality
+
+cvc5 1.0.3
+==========
+
+**New Features**
+
+- API: New API function `Solver::getVersion()`, returns a string representation
+    of the solver version.
+- Support for bit-vector overflow detection operators:
+  * `BITVECTOR_UADDO` unsigned addition overflow detection
+  * `BITVECTOR_SADDO` signed addition overflow detection
+  * `BITVECTOR_UMULO` unsigned multiplication overflow detection
+  * `BITVECTOR_SMULO` signed multiplication overflow detection
+  * `BITVECTOR_USUBO` unsigned subtraction overflow detection
+  * `BITVECTOR_SSUBO` signed subtraction overflow detection
+  * `BITVECTOR_SDIVO` signed division overflow detection
+- Support for Web Assembly compilation using Emscripten.
 
 **Changes**
 

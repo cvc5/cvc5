@@ -508,7 +508,10 @@ Node LfscNodeConverter::mkApplyUf(Node op, const std::vector<Node>& args) const
   }
   else
   {
+    // Note that dag threshold is disabled for printing operators.
     std::stringstream ss;
+    options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
+    options::ioutils::applyDagThresh(ss, 0);
     ss << op;
     Node opv = nm->mkRawSymbol(ss.str(), op.getType());
     aargs.push_back(opv);

@@ -248,7 +248,7 @@ Result CegSingleInv::solve()
           << std::endl;
     }
     // conjecture is infeasible or unknown
-    return res;
+    return r;
   }
   // now, get the instantiations
   std::vector<Node> qs;

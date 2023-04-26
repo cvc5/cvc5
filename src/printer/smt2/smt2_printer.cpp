@@ -360,6 +360,9 @@ void Smt2Printer::toStream(std::ostream& out,
       out << ss.str();
       break;
     }
+    case kind::DIVISIBLE_OP:
+      out << "(_ divisible " << n.getConst<Divisible>().k << ")";
+      break;
     case kind::SET_EMPTY:
       out << "(as set.empty ";
       toStreamType(out, n.getConst<EmptySet>().getType());
@@ -473,6 +476,33 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::REGEXP_LOOP_OP:
       out << "(_ re.loop " << n.getConst<RegExpLoop>().d_loopMinOcc << " "
           << n.getConst<RegExpLoop>().d_loopMaxOcc << ")";
+      break;
+    case kind::TUPLE_PROJECT_OP:
+    case kind::TABLE_PROJECT_OP:
+    case kind::TABLE_AGGREGATE_OP:
+    case kind::TABLE_JOIN_OP:
+    case kind::TABLE_GROUP_OP:
+    case kind::RELATION_GROUP_OP:
+    case kind::RELATION_AGGREGATE_OP:
+    case kind::RELATION_PROJECT_OP:
+    {
+      ProjectOp op = n.getConst<ProjectOp>();
+      const std::vector<uint32_t>& indices = op.getIndices();
+      Kind k = NodeManager::operatorToKind(n);
+      if (indices.empty())
+      {
+        out << smtKindString(k);
+      }
+      else
+      {
+        out << "(_ " << smtKindString(k);
+        for (uint32_t i : indices)
+        {
+          out << " " << i;
+        }
+        out << ")";
+      }
+    }
       break;
     default:
       // fall back on whatever operator<< does on underlying type; we
@@ -701,7 +731,8 @@ void Smt2Printer::toStream(std::ostream& out,
       break;
 
     case kind::DIVISIBLE:
-      out << "(_ divisible " << n.getOperator().getConst<Divisible>().k << ")";
+      toStream(out, n.getOperator(), toDepth, nullptr);
+      out << ' ';
       stillNeedToPrintParams = false;
       break;
     case kind::REAL_ALGEBRAIC_NUMBER:
@@ -811,126 +842,18 @@ void Smt2Printer::toStream(std::ostream& out,
     break;
   }
   case kind::TUPLE_PROJECT:
-  {
-    ProjectOp op = n.getOperator().getConst<ProjectOp>();
-    if (op.getIndices().empty())
-    {
-      // e.g. (tuple.project tuple)
-      out << "tuple.project " << n[0] << ")";
-    }
-    else
-    {
-      // e.g. ((_ tuple.project 2 4 4) tuple)
-      out << "(_ tuple.project" << op << ") " << n[0] << ")";
-    }
-    return;
-  }
   case kind::TABLE_PROJECT:
-  {
-    ProjectOp op = n.getOperator().getConst<ProjectOp>();
-    if (op.getIndices().empty())
-    {
-      // e.g. (table.project A)
-      out << "table.project " << n[0] << ")";
-    }
-    else
-    {
-      // e.g. ((_ table.project 2 4 4) A)
-      out << "(_ table.project" << op << ") " << n[0] << ")";
-    }
-    return;
-  }
   case kind::TABLE_AGGREGATE:
-  {
-    ProjectOp op = n.getOperator().getConst<ProjectOp>();
-    if (op.getIndices().empty())
-    {
-      // e.g. (table.aggr function initial_value bag)
-      out << "table.aggr " << n[0] << " " << n[1] << " " << n[2] << ")";
-    }
-    else
-    {
-      // e.g.  ((_ table.aggr 0) function initial_value bag)
-      out << "(_ table.aggr" << op << ") " << n[0] << " " << n[1] << " " << n[2]
-          << ")";
-    }
-    return;
-  }
   case kind::TABLE_JOIN:
-  {
-    ProjectOp op = n.getOperator().getConst<ProjectOp>();
-    if (op.getIndices().empty())
-    {
-      // e.g. (table.join A B)
-      out << "table.join " << n[0] << " " << n[1] << ")";
-    }
-    else
-    {
-      // e.g. ((_ table.project 0 1 2 3) A B)
-      out << "(_ table.join" << op << ") " << n[0] << " " << n[1] << ")";
-    }
-    return;
-  }
   case kind::TABLE_GROUP:
-  {
-    ProjectOp op = n.getOperator().getConst<ProjectOp>();
-    if (op.getIndices().empty())
-    {
-      // e.g. (table.group A)
-      out << "table.group " << n[0] << ")";
-    }
-    else
-    {
-      // e.g. ((_ table.group 0 1 2 3) A)
-      out << "(_ table.group" << op << ") " << n[0] << ")";
-    }
-    return;
-  }
   case kind::RELATION_GROUP:
-  {
-    ProjectOp op = n.getOperator().getConst<ProjectOp>();
-    if (op.getIndices().empty())
-    {
-      // e.g. (rel.group A)
-      out << "rel.group " << n[0] << ")";
-    }
-    else
-    {
-      // e.g. ((_ rel.group 0 1 2 3) A)
-      out << "(_ rel.group" << op << ") " << n[0] << ")";
-    }
-    return;
-  }
   case kind::RELATION_AGGREGATE:
-  {
-    ProjectOp op = n.getOperator().getConst<ProjectOp>();
-    if (op.getIndices().empty())
-    {
-      // e.g. (rel.aggr function initial_value bag)
-      out << "rel.aggr " << n[0] << " " << n[1] << " " << n[2] << ")";
-    }
-    else
-    {
-      // e.g.  ((_ rel.aggr 0) function initial_value bag)
-      out << "(_ rel.aggr" << op << ") " << n[0] << " " << n[1] << " " << n[2]
-          << ")";
-    }
-    return;
-  }
   case kind::RELATION_PROJECT:
   {
-    ProjectOp op = n.getOperator().getConst<ProjectOp>();
-    if (op.getIndices().empty())
-    {
-      // e.g. (rel.project A)
-      out << "rel.project " << n[0] << ")";
-    }
-    else
-    {
-      // e.g. ((_ rel.project 2 4 4) A)
-      out << "(_ rel.project" << op << ") " << n[0] << ")";
-    }
-    return;
+    toStream(out, n.getOperator(), toDepth, nullptr);
+    out << ' ';
+    stillNeedToPrintParams = false;
+    break;
   }
   case kind::CONSTRUCTOR_TYPE:
   {
@@ -1258,6 +1181,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case kind::APPLY_TESTER: return "is";
     case kind::APPLY_UPDATER: return "update";
     case kind::TUPLE_TYPE: return "Tuple";
+    case kind::TUPLE_PROJECT: return "tuple.project";
 
     // set theory
     case kind::SET_UNION: return "set.union";
@@ -1922,6 +1846,11 @@ void Smt2Printer::toStreamCmdGetUnsatCore(std::ostream& out) const
 void Smt2Printer::toStreamCmdGetDifficulty(std::ostream& out) const
 {
   out << "(get-difficulty)" << std::endl;
+}
+
+void Smt2Printer::toStreamCmdGetTimeoutCore(std::ostream& out) const
+{
+  out << "(get-timeout-core)" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetLearnedLiterals(std::ostream& out,

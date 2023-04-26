@@ -410,6 +410,9 @@ command [std::unique_ptr<cvc5::parser::Command>* cmd]
   | /* get-unsat-core */
     GET_UNSAT_CORE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetUnsatCoreCommand); }
+  | /* get-timeout-core */
+    GET_TIMEOUT_CORE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { cmd->reset(new GetTimeoutCoreCommand); }
   | /* get-difficulty */
     GET_DIFFICULTY_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetDifficultyCommand); }
@@ -1113,7 +1116,7 @@ datatypesDef[bool isCo,
     }
     PARSER_STATE->popScope();
     cmd->reset(new DatatypeDeclarationCommand(
-        PARSER_STATE->bindMutualDatatypeTypes(dts, true)));
+        PARSER_STATE->mkMutualDatatypeTypes(dts)));
   }
   ;
 
@@ -1962,6 +1965,7 @@ GET_ASSERTIONS_TOK : 'get-assertions';
 GET_PROOF_TOK : 'get-proof';
 GET_UNSAT_ASSUMPTIONS_TOK : 'get-unsat-assumptions';
 GET_UNSAT_CORE_TOK : 'get-unsat-core';
+GET_TIMEOUT_CORE_TOK : 'get-timeout-core';
 GET_DIFFICULTY_TOK : 'get-difficulty';
 GET_LEARNED_LITERALS_TOK : 'get-learned-literals';
 EXIT_TOK : 'exit';

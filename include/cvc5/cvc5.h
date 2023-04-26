@@ -3828,18 +3828,32 @@ class CVC5_EXPORT Solver
   Term mkFloatingPointNegZero(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a rounding mode constant.
+   * Create a rounding mode value.
    * @param rm The floating point rounding mode this constant represents.
+   * @return The rounding mode value.
    */
   Term mkRoundingMode(RoundingMode rm) const;
 
   /**
-   * Create a floating-point constant.
+   * Create a floating-point value from a bit-vector given in IEEE-754
+   * format.
    * @param exp Size of the exponent.
    * @param sig Size of the significand.
    * @param val Value of the floating-point constant as a bit-vector term.
+   * @return The floating-point value.
    */
-  Term mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const;
+  Term mkFloatingPoint(uint32_t exp, uint32_t sig, const Term& val) const;
+  /**
+   * Create a floating-point value from its three IEEE-754 bit-vector
+   * value components (sign bit, exponent, significand).
+   * @param sign The sign bit.
+   * @param exp  The bit-vector representing the exponent.
+   * @param sig The bit-vector representing the significand.
+   * @return The floating-point value.
+   */
+  Term mkFloatingPoint(const Term& sign,
+                       const Term& exp,
+                       const Term& sig) const;
 
   /**
    * Create a cardinality constraint for an uninterpreted sort.
@@ -4290,6 +4304,37 @@ class CVC5_EXPORT Solver
    *         Unmentioned assertions can be assumed to have zero difficulty.
    */
   std::map<Term, Term> getDifficulty() const;
+
+  /**
+   * Get a timeout core, which computes a subset of the current assertions that
+   * cause a timeout. Note it does not require being proceeded by a call to
+   * checkSat.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-timeout-core)
+   * \endverbatim
+   *
+   * @warning This method is experimental and may change in future versions.
+   *
+   * @return The result of the timeout core computation. This is a pair
+   * containing a result and a list of formulas. If the result is unknown
+   * and the reason is timeout, then the list of formulas correspond to a
+   * subset of the current assertions that cause a timeout in the specified
+   * time :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+   * If the result is unsat, then the list of formulas correspond to an
+   * unsat core for the current assertions. Otherwise, the result is sat,
+   * indicating that the current assertions are satisfiable, and
+   * the list of formulas is empty.
+   *
+   * This method may make multiple checks for satisfiability internally, each
+   * limited by the timeout value given by
+   * :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+   */
+  std::pair<Result, std::vector<Term>> getTimeoutCore() const;
 
   /**
    * Get a proof associated with the most recent call to checkSat.
