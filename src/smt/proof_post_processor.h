@@ -60,6 +60,8 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
    * has no effect.
    */
   void setEliminateRule(PfRule rule);
+  /** set eliminate all trusted rules via DSL */
+  void setEliminateAllTrustedRules();
   /** Should proof pn be updated? */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                     const std::vector<Node>& fa,
@@ -75,6 +77,8 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
  private:
   /** Common constants */
   Node d_true;
+  /** The proof checker we are using */
+  ProofChecker* d_pc;
   /** The preprocessing proof generator */
   ProofGenerator* d_pppg;
   /** The rewrite database proof generator */
@@ -85,6 +89,8 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
   std::vector<Node> d_wfAssumptions;
   /** Kinds of proof rules we are eliminating */
   std::unordered_set<PfRule, PfRuleHashFunction> d_elimRules;
+  /** Whether we are trying to eliminate any trusted rule via the DSL */
+  bool d_elimAllTrusted;
   /** Whether we post-process assumptions in scope. */
   bool d_updateScopedAssumptions;
   //---------------------------------reset at the begining of each update
@@ -106,7 +112,8 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
   Node expandMacros(PfRule id,
                     const std::vector<Node>& children,
                     const std::vector<Node>& args,
-                    CDProof* cdp);
+                    CDProof* cdp,
+                    Node res = Node::null());
   /**
    * Update the proof rule application, called during expand macros when
    * we wish to apply the update method. This method has the same behavior
@@ -188,6 +195,8 @@ class ProofPostprocess : protected EnvObj
   void process(std::shared_ptr<ProofNode> pf, ProofGenerator* pppg);
   /** set eliminate rule */
   void setEliminateRule(PfRule rule);
+  /** set eliminate all trusted rules via DSL */
+  void setEliminateAllTrustedRules();
   /** Set assertions (for debugging whether the final proof is closed) */
   void setAssertions(const std::vector<Node>& assertions);
 

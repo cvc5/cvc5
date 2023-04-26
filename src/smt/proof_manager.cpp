@@ -94,7 +94,7 @@ PfManager::PfManager(Env& env)
           != options::ProofGranularityMode::THEORY_REWRITE)
       {
         // this eliminates theory rewriting steps with finer-grained DSL rules
-        d_pfpp->setEliminateRule(PfRule::THEORY_REWRITE);
+        d_pfpp->setEliminateAllTrustedRules();
       }
     }
     // theory-specific lazy proof reconstruction

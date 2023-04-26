@@ -36,55 +36,16 @@ using namespace cvc5::internal::theory;
 namespace cvc5::internal {
 namespace smt {
 
-/** The information relevant for converting MACRO_RESOLUTION steps into
- * CHAIN_RESOLUTION+FACTORING steps when "crowding literals" are present. See
- * `ProofPostprocessCallback::eliminateCrowdingLits` for more information. */
-struct CrowdingLitInfo
-{
-  CrowdingLitInfo(size_t lastInclusion = static_cast<size_t>(-1),
-                  size_t eliminator = static_cast<size_t>(-1),
-                  bool onlyCrowdAndConcLitsInElim = false,
-                  size_t maxSafeMovePosition = static_cast<size_t>(-1))
-      : d_lastInclusion(lastInclusion),
-        d_eliminator(eliminator),
-        d_onlyCrowdAndConcLitsInElim(onlyCrowdAndConcLitsInElim),
-        d_maxSafeMovePosition(maxSafeMovePosition)
-  {
-  }
-  /* Index of last (left-to-right) premise to introduce this crowding literal */
-  size_t d_lastInclusion;
-  /* Index of last premise to eliminate this crowding literal */
-  size_t d_eliminator;
-  /* Whether there are only crowding/conclusion literals in the eliminator. */
-  bool d_onlyCrowdAndConcLitsInElim;
-  /* Maximum position to which the eliminator premise can be moved without
-   * changing the behavior of the resolution chain. Note this only applies when
-   * d_onlyCrowdAndConcLitsInElim is true. */
-  size_t d_maxSafeMovePosition;
-};
-
-std::ostream& operator<<(std::ostream& out, CrowdingLitInfo info)
-{
-  out << "{" << info.d_lastInclusion << ", " << info.d_eliminator << ", ";
-  if (info.d_onlyCrowdAndConcLitsInElim)
-  {
-    out << "true, " << info.d_maxSafeMovePosition;
-  }
-  else
-  {
-    out << "false";
-  }
-  out << "}";
-  return out;
-}
 
 ProofPostprocessCallback::ProofPostprocessCallback(Env& env,
                                                    rewriter::RewriteDb* rdb,
                                                    bool updateScopedAssumptions)
     : EnvObj(env),
+      d_pc(nullptr),
       d_pppg(nullptr),
       d_rdbPc(env, rdb),
       d_wfpm(env),
+      d_elimAllTrusted(false),
       d_updateScopedAssumptions(updateScopedAssumptions)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -95,11 +56,17 @@ void ProofPostprocessCallback::initializeUpdate(ProofGenerator* pppg)
   d_pppg = pppg;
   d_assumpToProof.clear();
   d_wfAssumptions.clear();
+  d_pc = d_env.getProofNodeManager()->getChecker();
 }
 
 void ProofPostprocessCallback::setEliminateRule(PfRule rule)
 {
   d_elimRules.insert(rule);
+}
+
+void ProofPostprocessCallback::setEliminateAllTrustedRules()
+{
+  d_elimAllTrusted = true;
 }
 
 bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
@@ -108,6 +75,10 @@ bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
 {
   PfRule id = pn->getRule();
   if (d_elimRules.find(id) != d_elimRules.end())
+  {
+    return true;
+  }
+  if (d_elimAllTrusted && d_pc->getPedanticLevel(id)>0)
   {
     return true;
   }
@@ -187,7 +158,7 @@ bool ProofPostprocessCallback::update(Node res,
     cdp->addProof(pfn);
     return true;
   }
-  Node ret = expandMacros(id, children, args, cdp);
+  Node ret = expandMacros(id, children, args, cdp, res);
   Trace("smt-proof-pp-debug") << "...expanded = " << !ret.isNull() << std::endl;
   return !ret.isNull();
 }
@@ -205,9 +176,10 @@ bool ProofPostprocessCallback::updateInternal(Node res,
 Node ProofPostprocessCallback::expandMacros(PfRule id,
                                             const std::vector<Node>& children,
                                             const std::vector<Node>& args,
-                                            CDProof* cdp)
+                                            CDProof* cdp,
+                    Node res)
 {
-  if (d_elimRules.find(id) == d_elimRules.end())
+  if (!d_elimAllTrusted && d_elimRules.find(id) == d_elimRules.end())
   {
     // not eliminated
     return Node::null();
@@ -459,7 +431,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     ProofNodeManager* pnm = d_env.getProofNodeManager();
     // first generate the naive chain_resolution
     std::vector<Node> chainResArgs{args.begin() + 1, args.end()};
-    Node chainConclusion = pnm->getChecker()->checkDebug(
+    Node chainConclusion = d_pc->checkDebug(
         PfRule::CHAIN_RESOLUTION, children, chainResArgs, Node::null(), "");
     Trace("smt-proof-pp-debug") << "Original conclusion: " << args[0] << "\n";
     Trace("smt-proof-pp-debug")
@@ -923,27 +895,6 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     }
     return eq;
   }
-  else if (id == PfRule::THEORY_REWRITE)
-  {
-    Assert(!args.empty());
-    Node eq = args[0];
-    Assert(eq.getKind() == EQUAL);
-    TheoryId tid = THEORY_BUILTIN;
-    builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
-    MethodId mid = MethodId::RW_REWRITE;
-    getMethodId(args[2], mid);
-    int64_t recLimit = options().proof.proofRewriteRconsRecLimit;
-    int64_t stepLimit = options().proof.proofRewriteRconsStepLimit;
-    // attempt to reconstruct the proof of the equality into cdp using the
-    // rewrite database proof reconstructor
-    if (d_rdbPc.prove(
-            cdp, args[0][0], args[0][1], tid, mid, recLimit, stepLimit))
-    {
-      // if successful, we update the proof
-      return eq;
-    }
-    // otherwise no update
-  }
   else if (id == PfRule::MACRO_ARITH_SCALE_SUM_UB)
   {
     Trace("macro::arith") << "Expand MACRO_ARITH_SCALE_SUM_UB" << std::endl;
@@ -956,9 +907,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       Trace("macro::arith") << "   args: " << args << std::endl;
     }
     Assert(args.size() == children.size());
-    ProofNodeManager* pnm = d_env.getProofNodeManager();
     NodeManager* nm = NodeManager::currentNM();
-    ProofStepBuffer steps{pnm->getChecker()};
+    ProofStepBuffer steps{d_pc};
 
     // Scale all children, accumulating
     std::vector<Node> scaledRels;
@@ -1023,6 +973,44 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     Node bbAtom = bb.getStoredBBAtom(eq[0]);
     bb.getProofGenerator()->addProofTo(eq[0].eqNode(bbAtom), cdp);
     return eq;
+  }
+  else if (d_elimAllTrusted && d_pc->getPedanticLevel(id)>0)
+  {
+    if (res.isNull())
+    {
+      res = d_pc->checkDebug(id, children, args);
+      Assert (!res.isNull());
+    }
+    bool reqTrueElim = false;
+    if (res.getKind()!=EQUAL)
+    {
+      res = res.eqNode(d_true);
+      reqTrueElim = true;
+    }
+    TheoryId tid = THEORY_LAST;
+    MethodId mid = MethodId::RW_REWRITE;
+    // if theory rewrite, get diagnostic information
+    if (id==PfRule::THEORY_REWRITE)
+    {
+      builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
+      getMethodId(args[2], mid);
+    }
+    int64_t recLimit = options().proof.proofRewriteRconsRecLimit;
+    int64_t stepLimit = options().proof.proofRewriteRconsStepLimit;
+    // attempt to reconstruct the proof of the equality into cdp using the
+    // rewrite database proof reconstructor
+    if (d_rdbPc.prove(
+            cdp, res[0], res[1], tid, mid, recLimit, stepLimit))
+    {
+      if (reqTrueElim)
+      {
+        cdp->addStep(res[0], PfRule::TRUE_ELIM, {res}, {});
+        res = res[0];
+      }
+      // if successful, we update the proof
+      return res;
+    }
+    // otherwise no update
   }
 
   // TRUST, PREPROCESS, THEORY_LEMMA, THEORY_PREPROCESS?
@@ -1151,6 +1139,11 @@ void ProofPostprocess::process(std::shared_ptr<ProofNode> pf,
 void ProofPostprocess::setEliminateRule(PfRule rule)
 {
   d_cb.setEliminateRule(rule);
+}
+
+void ProofPostprocess::setEliminateAllTrustedRules()
+{
+  d_cb.setEliminateAllTrustedRules();
 }
 
 void ProofPostprocess::setAssertions(const std::vector<Node>& assertions)

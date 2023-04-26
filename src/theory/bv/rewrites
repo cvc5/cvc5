@@ -24,8 +24,8 @@
   (extract (+ i l) (+ i k) x))
 (define-cond-rule bv-extract-whole
   ((x ?BitVec) (n Int))
-  (= n (bvsize x))
-  (extract (- n 1) 0 x)
+  (>= n (- (bvsize x) 1))
+  (extract n 0 x)
   x)
 ; Case 1: (< j n) so the extract is self contained
 (define-cond-rule bv-extract-concat-1
