@@ -336,8 +336,8 @@ Sort ParserState::mkUnresolvedType(const std::string& name, size_t arity)
   return mkUnresolvedTypeConstructor(name, arity);
 }
 
-std::vector<Sort> ParserState::bindMutualDatatypeTypes(
-    std::vector<DatatypeDecl>& datatypes, bool doOverload)
+std::vector<Sort> ParserState::mkMutualDatatypeTypes(
+    std::vector<DatatypeDecl>& datatypes)
 {
   try
   {
@@ -355,15 +355,6 @@ std::vector<Sort> ParserState::bindMutualDatatypeTypes(
       {
         throw ParserException(name + " already declared");
       }
-      if (dt.isParametric())
-      {
-        std::vector<Sort> paramTypes = dt.getParameters();
-        defineType(name, paramTypes, t);
-      }
-      else
-      {
-        defineType(name, t);
-      }
       std::unordered_set<std::string> consNames;
       std::unordered_set<std::string> selNames;
       for (size_t j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
@@ -371,14 +362,9 @@ std::vector<Sort> ParserState::bindMutualDatatypeTypes(
         const DatatypeConstructor& ctor = dt[j];
         Term constructor = ctor.getTerm();
         Trace("parser-idt") << "+ define " << constructor << std::endl;
-        string constructorName = ctor.getName();
+        std::string constructorName = ctor.getName();
         if (consNames.find(constructorName) == consNames.end())
         {
-          if (!doOverload)
-          {
-            checkDeclaration(constructorName, CHECK_UNDECLARED);
-          }
-          defineVar(constructorName, constructor, doOverload);
           consNames.insert(constructorName);
         }
         else
@@ -386,30 +372,14 @@ std::vector<Sort> ParserState::bindMutualDatatypeTypes(
           throw ParserException(constructorName
                                 + " already declared in this datatype");
         }
-        std::string testerName;
-        if (getTesterName(constructor, testerName))
-        {
-          Term tester = ctor.getTesterTerm();
-          Trace("parser-idt") << "+ define " << testerName << std::endl;
-          if (!doOverload)
-          {
-            checkDeclaration(testerName, CHECK_UNDECLARED);
-          }
-          defineVar(testerName, tester, doOverload);
-        }
         for (size_t k = 0, nargs = ctor.getNumSelectors(); k < nargs; k++)
         {
           const DatatypeSelector& sel = ctor[k];
           Term selector = sel.getTerm();
           Trace("parser-idt") << "+++ define " << selector << std::endl;
-          string selectorName = sel.getName();
+          std::string selectorName = sel.getName();
           if (selNames.find(selectorName) == selNames.end())
           {
-            if (!doOverload)
-            {
-              checkDeclaration(selectorName, CHECK_UNDECLARED);
-            }
-            defineVar(selectorName, selector, doOverload);
             selNames.insert(selectorName);
           }
           else

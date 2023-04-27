@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/ieval/term_evaluator.h"
 
+#include "expr/node_algorithm.h"
 #include "theory/quantifiers/ieval/state.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
@@ -53,8 +54,9 @@ TNode TermEvaluatorEntailed::partialEvaluateChild(
 {
   // if a Boolean connective, handle short circuiting
   Kind k = n.getKind();
-  // implies and xor are eliminated from quantifier bodies
-  Assert(k != IMPLIES && k != XOR);
+  // Implies and xor are eliminated from the propositional skeleton of
+  // quantifier bodies, so we don't check for them here. They still may
+  // occur e.g. as arguments to parameteric operators involving Bool.
   if (k == AND || k == OR)
   {
     if (val.isConst() && val.getConst<bool>() == (k == OR))
@@ -147,7 +149,11 @@ TNode TermEvaluatorEntailed::evaluate(const State& s,
 {
   // set to unknown, handle cases
   TNode ret = s.getNone();
-
+  // if an existing ground term, just return representative
+  if (!expr::hasBoundVar(n) && d_qs.hasTerm(n))
+  {
+    return d_qs.getRepresentative(n);
+  }
   TNode mop = d_tdb.getMatchOperator(n);
   if (!mop.isNull())
   {

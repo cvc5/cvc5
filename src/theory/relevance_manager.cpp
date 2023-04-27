@@ -558,6 +558,14 @@ void RelevanceManager::notifyLemma(TNode n,
   }
 }
 
+bool RelevanceManager::needsCandidateModel()
+{
+  if (d_dman != nullptr)
+  {
+    return d_dman->needsCandidateModel();
+  }
+  return false;
+}
 void RelevanceManager::notifyCandidateModel(TheoryModel* m)
 {
   if (d_dman != nullptr)
@@ -566,11 +574,12 @@ void RelevanceManager::notifyCandidateModel(TheoryModel* m)
   }
 }
 
-void RelevanceManager::getDifficultyMap(std::map<Node, Node>& dmap)
+void RelevanceManager::getDifficultyMap(std::map<Node, Node>& dmap,
+                                        bool includeLemmas)
 {
   if (d_dman != nullptr)
   {
-    d_dman->getDifficultyMap(dmap);
+    d_dman->getDifficultyMap(dmap, includeLemmas);
   }
 }
 

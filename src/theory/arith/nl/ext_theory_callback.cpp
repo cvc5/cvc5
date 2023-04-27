@@ -103,7 +103,7 @@ bool NlExtTheoryCallback::isExtfReduced(
       Trace("nl-ext-zero-exp")
           << "  exp[" << i << "] = " << exp[i] << std::endl;
       std::vector<Node> eqs;
-      if (exp[i].getKind() == EQUAL)
+      if (exp[i].getKind() == EQUAL && exp[i][0].getType().isRealOrInt())
       {
         eqs.push_back(exp[i]);
       }
@@ -111,7 +111,7 @@ bool NlExtTheoryCallback::isExtfReduced(
       {
         for (const Node& ec : exp[i])
         {
-          if (ec.getKind() == EQUAL)
+          if (ec.getKind() == EQUAL && ec[0].getType().isRealOrInt())
           {
             eqs.push_back(ec);
           }

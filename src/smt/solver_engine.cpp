@@ -61,6 +61,7 @@
 #include "smt/solver_engine_state.h"
 #include "smt/solver_engine_stats.h"
 #include "smt/sygus_solver.h"
+#include "smt/timeout_core_manager.h"
 #include "smt/unsat_core_manager.h"
 #include "theory/quantifiers/instantiation_list.h"
 #include "theory/quantifiers/oracle_engine.h"
@@ -172,7 +173,7 @@ void SolverEngine::finishInit()
     // make the proof manager
     d_pfManager.reset(new PfManager(*d_env.get()));
     // start the unsat core manager
-    d_ucManager.reset(new UnsatCoreManager());
+    d_ucManager.reset(new UnsatCoreManager(*d_env.get()));
     pnm = d_pfManager->getProofNodeManager();
   }
   // enable proof support in the environment/rewriter
@@ -778,6 +779,14 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   return Result(r, filename);
 }
 
+std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore()
+{
+  finishInit();
+  Trace("smt") << "SolverEngine::getTimeoutCore()" << std::endl;
+  TimeoutCoreManager tcm(*d_env.get());
+  return tcm.getTimeoutCore(d_smtSolver->getAssertions());
+}
+
 std::vector<Node> SolverEngine::getUnsatAssumptions(void)
 {
   Trace("smt") << "SMT getUnsatAssumptions()" << endl;
@@ -1315,7 +1324,7 @@ StatisticsRegistry& SolverEngine::getStatisticsRegistry()
   return d_env->getStatisticsRegistry();
 }
 
-UnsatCore SolverEngine::getUnsatCoreInternal()
+UnsatCore SolverEngine::getUnsatCoreInternal(bool isInternal)
 {
   if (!d_env->getOptions().smt.produceUnsatCores)
   {
@@ -1346,75 +1355,9 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
   std::shared_ptr<ProofNode> pfn =
       d_pfManager->connectProofToAssertions(pepf, *d_smtSolver.get());
   std::vector<Node> core;
-  d_ucManager->getUnsatCore(pfn, d_smtSolver->getAssertions(), core);
-  if (options().smt.minimalUnsatCores)
-  {
-    core = reduceUnsatCore(core);
-  }
+  d_ucManager->getUnsatCore(
+      pfn, d_smtSolver->getAssertions(), core, isInternal);
   return UnsatCore(core);
-}
-
-std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
-{
-  Assert(options().smt.produceUnsatCores)
-      << "cannot reduce unsat core if unsat cores are turned off";
-
-  d_env->verbose(1) << "SolverEngine::reduceUnsatCore(): reducing unsat core"
-                    << std::endl;
-  std::unordered_set<Node> removed;
-  std::unordered_set<Node> adefs =
-      d_smtSolver->getAssertions().getCurrentAssertionListDefitions();
-  for (const Node& skip : core)
-  {
-    std::unique_ptr<SolverEngine> coreChecker;
-    initializeSubsolver(coreChecker, *d_env.get());
-    coreChecker->setLogic(getLogicInfo());
-    // disable all proof options
-    SetDefaults::disableChecking(coreChecker->getOptions());
-    // add to removed set?
-    removed.insert(skip);
-    // assert everything to the subsolver
-    assertToSubsolver(*coreChecker.get(), core, adefs, removed);
-    Result r;
-    try
-    {
-      r = coreChecker->checkSat();
-    }
-    catch (...)
-    {
-      throw;
-    }
-
-    if (r.getStatus() != Result::UNSAT)
-    {
-      removed.erase(skip);
-      if (r.isUnknown())
-      {
-        d_env->warning()
-            << "SolverEngine::reduceUnsatCore(): could not reduce unsat core "
-               "due to "
-               "unknown result.";
-      }
-    }
-  }
-
-  if (removed.empty())
-  {
-    return core;
-  }
-  else
-  {
-    std::vector<Node> newUcAssertions;
-    for (const Node& n : core)
-    {
-      if (removed.find(n) == removed.end())
-      {
-        newUcAssertions.push_back(n);
-      }
-    }
-
-    return newUcAssertions;
-  }
 }
 
 void SolverEngine::checkUnsatCore()
@@ -1424,7 +1367,7 @@ void SolverEngine::checkUnsatCore()
 
   d_env->verbose(1) << "SolverEngine::checkUnsatCore(): generating unsat core"
                     << std::endl;
-  UnsatCore core = getUnsatCore();
+  UnsatCore core = getUnsatCoreInternal();
 
   // initialize the core checker
   std::unique_ptr<SolverEngine> coreChecker;
@@ -1492,7 +1435,7 @@ UnsatCore SolverEngine::getUnsatCore()
 {
   Trace("smt") << "SMT getUnsatCore()" << std::endl;
   finishInit();
-  return getUnsatCoreInternal();
+  return getUnsatCoreInternal(false);
 }
 
 void SolverEngine::getRelevantQuantTermVectors(
@@ -1585,11 +1528,9 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   // connect proofs to preprocessing, if specified
   if (connectToPreprocess)
   {
-    ProofScopeMode scopeMode =
-        connectMkOuterScope ? mode == options::ProofFormatMode::LFSC
-                                  ? ProofScopeMode::DEFINITIONS_AND_ASSERTIONS
-                                  : ProofScopeMode::UNIFIED
-                            : ProofScopeMode::NONE;
+    ProofScopeMode scopeMode = connectMkOuterScope
+                                   ? ProofScopeMode::DEFINITIONS_AND_ASSERTIONS
+                                   : ProofScopeMode::NONE;
     for (std::shared_ptr<ProofNode>& p : ps)
     {
       Assert(p != nullptr);
@@ -1729,13 +1670,19 @@ void SolverEngine::getInstantiationTermVectors(
 bool SolverEngine::getSynthSolutions(std::map<Node, Node>& solMap)
 {
   finishInit();
-  return d_sygusSolver->getSynthSolutions(solMap);
+  bool ret = d_sygusSolver->getSynthSolutions(solMap);
+  // we return false if solMap is empty, that is, when we ask for a solution
+  // when none is available.
+  return ret && !solMap.empty();
 }
 
 bool SolverEngine::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
 {
   finishInit();
-  return d_sygusSolver->getSubsolverSynthSolutions(solMap);
+  bool ret = d_sygusSolver->getSubsolverSynthSolutions(solMap);
+  // we return false if solMap is empty, that is, when we ask for a solution
+  // when none is available.
+  return ret && !solMap.empty();
 }
 
 Node SolverEngine::getQuantifierElimination(Node q, bool doFull)
@@ -1852,7 +1799,8 @@ void SolverEngine::getDifficultyMap(std::map<Node, Node>& dmap)
   Assert(d_pfManager);
   // get difficulty map from theory engine first
   TheoryEngine* te = d_smtSolver->getTheoryEngine();
-  te->getDifficultyMap(dmap);
+  // do not include lemmas
+  te->getDifficultyMap(dmap, false);
   // then ask proof manager to translate dmap in terms of the input
   d_pfManager->translateDifficultyMap(dmap, *d_smtSolver.get());
 }

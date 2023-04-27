@@ -228,7 +228,7 @@ void PfManager::printProof(std::ostream& out,
   if (options().base.incrementalSolving
       && mode != options::ProofFormatMode::NONE)
   {
-    fp = d_pnm->clone(fp);
+    fp = fp->clone();
   }
 
   // according to the proof format, post process and print the proof node
@@ -305,7 +305,14 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   Trace("difficulty-proc") << "Get final proof" << std::endl;
   std::shared_ptr<ProofNode> fpf = connectProofToAssertions(pf, smt);
   Trace("difficulty-debug") << "Final proof is " << *fpf.get() << std::endl;
-  Assert(fpf->getRule() == PfRule::SCOPE);
+  // We are typically a SCOPE here, although if we are not, then the proofs
+  // have no free assumptions. If this is the case, then the only difficulty
+  // was incremented on auxiliary lemmas added during preprocessing. Since
+  // there are no dependencies, then the difficulty map is empty.
+  if (fpf->getRule() != PfRule::SCOPE)
+  {
+    return;
+  }
   fpf = fpf->getChildren()[0];
   // analyze proof
   Assert(fpf->getRule() == PfRule::SAT_REFUTATION);
