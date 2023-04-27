@@ -392,8 +392,10 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
         Trace("rpc-debug2") << "...fail (no inflection)" << std::endl;
         return false;
       }
-      // the conclusion term may actually change type
-      if (stgt.getType()!=target[1].getType())
+      // The conclusion term may actually change type. Note that we must rewrite
+      // the terms, since they may involve operators with abstract type that
+      // evaluate to terms with concrete types.
+      if (rewrite(stgt).getType()!=rewrite(target[1]).getType())
       {
         Trace("rpc-debug2") << "...fail (types)" << std::endl;
         return false;

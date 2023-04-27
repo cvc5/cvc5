@@ -98,10 +98,6 @@ Node QuantifiersProofRuleChecker::checkInternal(
   else if (id == PfRule::ALPHA_EQUIV)
   {
     Assert(children.empty());
-    if (args[0].getKind() != kind::FORALL)
-    {
-      return Node::null();
-    }
     // arguments must be equalities that are bound variables that are
     // pairwise unique
     std::unordered_set<Node> allVars[2];
