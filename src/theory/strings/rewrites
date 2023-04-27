@@ -1,3 +1,7 @@
+; Note that ? is used for rules that can be used where Seq/String are
+; interchangable. This is because Seq and String are not comparable in our
+; type system.
+
 ; ---
 
 (define-cond-rule str-eq-ctn-false ((x1 String :list) (x String) (x2 String :list) (y String))
@@ -36,7 +40,7 @@
   (str.len (str.replace t s r))
   (str.len t))
 
-(define-rule str-len-update-inv ((t String) (n Int) (r String)) 
+(define-rule str-len-update-inv ((t ?) (n Int) (r ?)) 
   (str.len (str.update t n r))
   (str.len t))
 
@@ -94,10 +98,10 @@
   (= (str.++ s3 (str.++ s2 s1)) (str.++ t3 (str.++ t2 t1)))
   false)
 
-(define-rule str-prefixof-elim ((s String) (t String))
+(define-rule str-prefixof-elim ((s ?) (t ?))
   (str.prefixof s t)
   (= s (str.substr t 0 (str.len s))))
-(define-rule str-suffixof-elim ((s String) (t String))
+(define-rule str-suffixof-elim ((s ?) (t ?))
   (str.suffixof s t)
   (= s (str.substr t (- (str.len t) (str.len s)) (str.len s))))
 
