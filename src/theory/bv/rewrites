@@ -447,9 +447,9 @@
 (define-rule bv-bitwise-idemp-1 ((x ?BitVec)) (bvand x x) x)
 (define-rule bv-bitwise-idemp-2 ((x ?BitVec)) (bvor x x) x)
 
-(define-rule bv-and-zero ((x ?BitVec))
-  (bvand x (bv 0 (bvsize x)))
-  (bv 0 (bvsize x)))
+(define-rule bv-and-zero ((x ?BitVec) (n Int))
+  (bvand x (bv 0 n))
+  (bv 0 n))
 (define-cond-rule bv-and-one ((x ?BitVec) (y ?BitVec))
   (= y (bvnot (bv 0 (bvsize x))))
   (bvand x y)
@@ -465,8 +465,8 @@
   (= y (bvnot (bv 0 (bvsize x))))
   (bvxor x y)
   (bvnot x))
-(define-rule bv-xor-zero ((x ?BitVec))
-  (bvxor x (bv 0 (bvsize x)))
+(define-rule bv-xor-zero ((x ?BitVec) (n Int))
+  (bvxor x (bv 0 n))
   x)
 
 (define-rule bv-bitwise-not-and ((x ?BitVec))
@@ -481,23 +481,23 @@
   (bvnot (bvnot x)) x)
 
 (define-rule bv-ult-zero-1
-  ((x ?BitVec))
-  (bvult (bv 0 (bvsize x)) x)
+  ((x ?BitVec) (n Int))
+  (bvult (bv 0 n) x)
   (distinct (bv 0 (bvsize x)) x))
 (define-rule bv-ult-zero-2
-  ((x ?BitVec))
-  (bvult x (bv 0 (bvsize x)))
+  ((x ?BitVec) (n Int))
+  (bvult x (bv 0 n))
   false)
 (define-rule bv-ult-self ((x ?BitVec)) (bvult x x) false)
 (define-rule bv-lt-self ((x ?BitVec)) (bvslt x x) false)
 (define-rule bv-ule-self ((x ?BitVec)) (bvule x x) true)
 (define-rule bv-ule-zero
-  ((x ?BitVec))
-  (bvule x (bv 0 (bvsize x)))
-  (= x (bv 0 (bvsize x))))
+  ((x ?BitVec) (n Int))
+  (bvule x (bv 0 n))
+  (= x (bv 0 n)))
 (define-rule bv-zero-ule
-  ((x ?BitVec))
-  (bvule (bv 0 (bvsize x)) x)
+  ((x ?BitVec) (n Int))
+  (bvule (bv 0 n) x)
   true)
 (define-rule bv-sle-self ((x ?BitVec)) (bvsle x x) true)
 
@@ -611,14 +611,14 @@
   (concat (bv 0 (- n power)) (extract (- power 1) 0 x)))
 ; (x urem 1) = 0
 (define-rule bv-urem-one-1
-  ((x ?BitVec))
-  (bvurem x (bv 1 (bvsize x)))
-  (bv 0 (bvsize x)))
+  ((x ?BitVec) (n Int))
+  (bvurem x (bv 1 n))
+  (bv 0 n))
 (define-cond-rule bv-urem-one-2
-  ((x ?BitVec) (v Int))
+  ((x ?BitVec) (v Int) (n Int))
   (= v (- 1))
-  (bvurem x (bv v (bvsize x)))
-  (bv 0 (bvsize x)))
+  (bvurem x (bv v n))
+  (bv 0 n))
 ; (x urem x) = 0
 (define-rule bv-urem-self
   ((x ?BitVec))
@@ -627,15 +627,15 @@
 ; ShiftZero rule
 ; (0_k >> a) = 0_k
 (define-rule bv-shl-zero
-  ((n Int) (a ?BitVec))
+  ((a ?BitVec) (n Int))
   (bvshl a (bv 0 n))
   (bv 0 n))
 (define-rule bv-lshr-zero
-  ((n Int) (a ?BitVec))
+  ((a ?BitVec) (n Int))
   (bvlshr a (bv 0 n))
   (bv 0 n))
 (define-rule bv-ashr-zero
-  ((n Int) (a ?BitVec))
+  ((a ?BitVec) (n Int))
   (bvashr a (bv 0 n))
   (bv 0 n))
 
@@ -654,18 +654,17 @@
   ))
 
 (define-rule bv-ult-one
-  ((x ?BitVec))
-  (bvult x (bv 1 (bvsize x)))
-  (= x (bv 0 (bvsize x))))
+  ((x ?BitVec) (n Int))
+  (bvult x (bv 1 n))
+  (= x (bv 0 n)))
 (define-rule bv-slt-zero
-  ((x ?BitVec))
-  (def (n (bvsize x)))
+  ((x ?BitVec) (n Int))
   (bvslt x (bv 0 n))
   (= (extract (- n 1) (- n 1) x) (bv 1 1)))
 (define-rule bv-zero-ult
-  ((x ?BitVec))
-  (bvult (bv 0 (bvsize x)) x)
-  (not (= x (bv 0 (bvsize x)))))
+  ((x ?BitVec) (n Int))
+  (bvult (bv 0 n) x)
+  (not (= x (bv 0 n))))
 
 (define-rule bv-merge-sign-extend-1
   ((x ?BitVec) (i Int) (j Int))
