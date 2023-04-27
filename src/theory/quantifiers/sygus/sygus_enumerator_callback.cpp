@@ -26,22 +26,23 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-
-SygusEnumeratorCallback::SygusEnumeratorCallback(
-    Env& env,
-    TermDbSygus* tds,
-    SygusStatistics* s,
-    ExampleEvalCache* eec,
-    SygusSampler* ssrv,
-    std::ostream* out)
-    : EnvObj(env), d_tds(tds), d_stats(s),
+SygusEnumeratorCallback::SygusEnumeratorCallback(Env& env,
+                                                 TermDbSygus* tds,
+                                                 SygusStatistics* s,
+                                                 ExampleEvalCache* eec,
+                                                 SygusSampler* ssrv,
+                                                 std::ostream* out)
+    : EnvObj(env),
+      d_tds(tds),
+      d_stats(s),
       d_eec(eec),
       d_samplerRrV(ssrv),
       d_out(out)
 {
 }
 
-bool SygusEnumeratorCallback::addTerm(const Node& n, std::unordered_set<Node>& bterms)
+bool SygusEnumeratorCallback::addTerm(const Node& n,
+                                      std::unordered_set<Node>& bterms)
 {
   Node bn = datatypes::utils::sygusToBuiltin(n);
   Node bnr = d_tds == nullptr ? extendedRewrite(bn) : d_tds->rewriteNode(bn);
@@ -78,14 +79,18 @@ bool SygusEnumeratorCallback::addTerm(const Node& n, std::unordered_set<Node>& b
   return true;
 }
 
-Node SygusEnumeratorCallback::getCacheValue(const Node& n, const Node& bn, const Node& bnr)
+Node SygusEnumeratorCallback::getCacheValue(const Node& n,
+                                            const Node& bn,
+                                            const Node& bnr)
 {
   // By default, we cache based on the rewritten form.
   // Further criteria for uniqueness (e.g. weights) may go here.
   return bnr;
 }
 
-bool SygusEnumeratorCallback::addTermInternal(const Node& n, const Node& bn, const Node& bnr)
+bool SygusEnumeratorCallback::addTermInternal(const Node& n,
+                                              const Node& bn,
+                                              const Node& bnr)
 {
   // if we are doing PBE symmetry breaking
   if (d_eec != nullptr)

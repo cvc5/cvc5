@@ -37,11 +37,11 @@ class SygusEnumeratorCallback : protected EnvObj
 {
  public:
   SygusEnumeratorCallback(Env& env,
-                                 TermDbSygus* tds = nullptr,
-                                 SygusStatistics* s = nullptr,
-                                 ExampleEvalCache* eec = nullptr,
-                                 SygusSampler* ssrv = nullptr,
-                                 std::ostream* out = nullptr);
+                          TermDbSygus* tds = nullptr,
+                          SygusStatistics* s = nullptr,
+                          ExampleEvalCache* eec = nullptr,
+                          SygusSampler* ssrv = nullptr,
+                          std::ostream* out = nullptr);
   virtual ~SygusEnumeratorCallback() {}
 
   /**
@@ -54,6 +54,7 @@ class SygusEnumeratorCallback : protected EnvObj
    * @return true if n should be considered in the enumeration.
    */
   bool addTerm(const Node& n, std::unordered_set<Node>& bterms);
+
  protected:
   /** Get the cache value for the given candidate */
   Node getCacheValue(const Node& n, const Node& bn, const Node& bnr);
