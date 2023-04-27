@@ -588,12 +588,12 @@
   (bvneg x))
 ; (x udiv 0) = 111...1
 (define-rule bv-udiv-zero
-  ((x ?BitVec))
-  (bvudiv x (bv 0 (bvsize x)))
-  (bvnot (bv 0 (bvsize x))))
+  ((x ?BitVec) (n Int))
+  (bvudiv x (bv 0 n))
+  (bvnot (bv 0 n)))
 ; (x udiv 1) = x
-(define-rule bv-udiv-one ((x ?BitVec))
-  (bvudiv x (bv 1 (bvsize x)))
+(define-rule bv-udiv-one ((x ?BitVec) (n Int))
+  (bvudiv x (bv 1 n))
   x)
 ; (x urem 2^k) = 0_(n-k) x[k-1:0]
 ; The original version had power - 1, but I thought about it and it doesn't make sense to me, so I didn't put the -1 here.
