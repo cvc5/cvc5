@@ -60,8 +60,8 @@ void SygusEnumerator::initialize(Node e)
   if (d_sec == nullptr
       && options().datatypes.sygusRewriter != options::SygusRewriterMode::NONE)
   {
-    d_secd = std::make_unique<SygusEnumeratorCallbackDefault>(
-        d_env, e, d_tds, d_stats);
+    d_secd = std::make_unique<SygusEnumeratorCallback>(
+        d_env, d_tds, d_stats);
     d_sec = d_secd.get();
   }
   d_etype = d_enum.getType();
@@ -356,6 +356,7 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
           << " due to callback" << std::endl;
       return false;
     }
+    Trace("sygus-enum-terms") << "tc(" << d_tn << "): term: " << n << std::endl;
   }
   if (d_stats != nullptr)
   {
