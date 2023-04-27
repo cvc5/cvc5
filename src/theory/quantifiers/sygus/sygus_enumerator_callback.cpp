@@ -60,14 +60,15 @@ bool SygusEnumeratorCallback::addTerm(const Node& n, std::unordered_set<Node>& b
   // check whether we should keep the term, which is based on the callback,
   // and the builtin terms
   // First, must be unique up to rewriting
-  if (bterms.find(bnr) != bterms.end())
+  Node cval = getCacheValue(n, bn, bnr);
+  if (bterms.find(cval) != bterms.end())
   {
     Trace("sygus-enum-exc") << "Exclude (by rewriting): " << bn << std::endl;
     return false;
   }
   // insert to builtin term cache, regardless of whether it is redundant
   // based on the callback
-  bterms.insert(bnr);
+  bterms.insert(cval);
 
   // callback-specific add term
   if (!addTermInternal(n, bn, bnr))
@@ -75,6 +76,13 @@ bool SygusEnumeratorCallback::addTerm(const Node& n, std::unordered_set<Node>& b
     return false;
   }
   return true;
+}
+
+Node SygusEnumeratorCallback::getCacheValue(const Node& n, const Node& bn, const Node& bnr)
+{
+  // By default, we cache based on the rewritten form.
+  // Further criteria for uniqueness (e.g. weights) may go here.
+  return bnr;
 }
 
 bool SygusEnumeratorCallback::addTermInternal(const Node& n, const Node& bn, const Node& bnr)

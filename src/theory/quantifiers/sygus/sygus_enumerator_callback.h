@@ -55,6 +55,8 @@ class SygusEnumeratorCallback : protected EnvObj
    */
   bool addTerm(const Node& n, std::unordered_set<Node>& bterms);
  protected:
+  /** Get the cache value for the given candidate */
+  Node getCacheValue(const Node& n, const Node& bn, const Node& bnr);
   /**
    * Callback-specific add term
    *
