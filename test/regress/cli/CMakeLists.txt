@@ -1008,6 +1008,8 @@ set(regress_0_tests
   regress0/parser/issue9663.smt2
   regress0/parser/issue9663-2.smt2
   regress0/parser/issue9665.smt2
+  regress0/parser/issue9675.smt2
+  regress0/parser/issue9676.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
@@ -2178,6 +2180,7 @@ set(regress_1_tests
   regress1/issue9112-bv2nat-cg.smt2
   regress1/issue9544-difficulty-refcount.smt2
   regress1/issue9573-lr-rewrite.smt2
+  regress1/issue9660-bv2nat-static.smt2
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smtv1.smt2
   regress1/lemmas/pursuit-safety-8.smtv1.smt2
   regress1/minimal_unsat_core.smt2
@@ -2306,6 +2309,8 @@ set(regress_1_tests
   regress1/proj-issue539-rew-bv2nat.smt2
   regress1/proj-issue542.smt2
   regress1/proj-issue557-rew-bv2nat.smt2
+  regress1/proj-issue623-bv2nat-static.smt2
+  regress1/proj-issue634-diff-mc.smt2
   regress1/proof00.smt2
   regress1/proofs/add_two_base.smt2
   regress1/proofs/base-lfsc-treesize.smt2
@@ -3104,6 +3109,7 @@ set(regress_1_tests
   regress1/sygus/proj-issue548-srr.smt2
   regress1/sygus/proj-issue549-srr.smt2
   regress1/sygus/proj-issue553-srr.smt2
+  regress1/sygus/proj-issue627-srr.smt2
   regress1/sygus/pLTL_5_trace.sy
   regress1/sygus/qe.sy
   regress1/sygus/qf_abv.smt2
