@@ -25,7 +25,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-TypeNode StringConcatTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
+TypeNode StringConcatTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode StringConcatTypeRule::computeType(NodeManager* nodeManager,
                                            TNode n,
                                            bool check,
@@ -60,7 +63,10 @@ TypeNode StringConcatTypeRule::computeType(NodeManager* nodeManager,
   return tret;
 }
 
-TypeNode StringSubstrTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
+TypeNode StringSubstrTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode StringSubstrTypeRule::computeType(NodeManager* nodeManager,
                                            TNode n,
                                            bool check,
@@ -90,7 +96,10 @@ TypeNode StringSubstrTypeRule::computeType(NodeManager* nodeManager,
   return t;
 }
 
-TypeNode StringUpdateTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
+TypeNode StringUpdateTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode StringUpdateTypeRule::computeType(NodeManager* nodeManager,
                                            TNode n,
                                            bool check,
@@ -120,7 +129,10 @@ TypeNode StringUpdateTypeRule::computeType(NodeManager* nodeManager,
   return t;
 }
 
-TypeNode StringAtTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
+TypeNode StringAtTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode StringAtTypeRule::computeType(NodeManager* nodeManager,
                                        TNode n,
                                        bool check,
@@ -144,7 +156,10 @@ TypeNode StringAtTypeRule::computeType(NodeManager* nodeManager,
   return t;
 }
 
-TypeNode StringIndexOfTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
+TypeNode StringIndexOfTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode StringIndexOfTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check,
@@ -176,7 +191,10 @@ TypeNode StringIndexOfTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
-TypeNode StringReplaceTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
+TypeNode StringReplaceTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode StringReplaceTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check,
@@ -210,7 +228,10 @@ TypeNode StringReplaceTypeRule::computeType(NodeManager* nodeManager,
   return t;
 }
 
-TypeNode StringStrToBoolTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
+TypeNode StringStrToBoolTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode StringStrToBoolTypeRule::computeType(NodeManager* nodeManager,
                                               TNode n,
                                               bool check,
@@ -229,7 +250,10 @@ TypeNode StringStrToBoolTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode StringStrToIntTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
+TypeNode StringStrToIntTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode StringStrToIntTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
                                              bool check,
@@ -248,7 +272,10 @@ TypeNode StringStrToIntTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
-TypeNode StringStrToStrTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
+TypeNode StringStrToStrTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode StringStrToStrTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
                                              bool check,
@@ -267,7 +294,10 @@ TypeNode StringStrToStrTypeRule::computeType(NodeManager* nodeManager,
   return t;
 }
 
-TypeNode StringRelationTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
+TypeNode StringRelationTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode StringRelationTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
                                              bool check,
@@ -291,7 +321,10 @@ TypeNode StringRelationTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode RegExpRangeTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
+TypeNode RegExpRangeTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode RegExpRangeTypeRule::computeType(NodeManager* nodeManager,
                                           TNode n,
                                           bool check,
@@ -314,7 +347,10 @@ TypeNode RegExpRangeTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->regExpType();
 }
 
-TypeNode StringToRegExpTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
+TypeNode StringToRegExpTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode StringToRegExpTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
                                              bool check,
@@ -337,7 +373,10 @@ bool StringToRegExpTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
   return n[0].isConst();
 }
 
-TypeNode ConstSequenceTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
+TypeNode ConstSequenceTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode ConstSequenceTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check,
@@ -347,7 +386,10 @@ TypeNode ConstSequenceTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkSequenceType(n.getConst<Sequence>().getType());
 }
 
-TypeNode SeqUnitTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
+TypeNode SeqUnitTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode SeqUnitTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
                                       bool check,
@@ -358,7 +400,10 @@ TypeNode SeqUnitTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkSequenceType(argType);
 }
 
-TypeNode SeqNthTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
+TypeNode SeqNthTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode SeqNthTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
                                      bool check,

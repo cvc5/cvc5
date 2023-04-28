@@ -21,7 +21,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace boolean {
 
-TypeNode BooleanTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
+TypeNode BooleanTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode BooleanTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
                                       bool check,
@@ -46,7 +49,10 @@ TypeNode BooleanTypeRule::computeType(NodeManager* nodeManager,
   return booleanType;
 }
 
-TypeNode IteTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
+TypeNode IteTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode IteTypeRule::computeType(NodeManager* nodeManager,
                                   TNode n,
                                   bool check,
