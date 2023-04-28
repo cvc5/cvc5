@@ -414,7 +414,7 @@ Result PropEngine::checkSat() {
     outputIncompleteReason(UnknownExplanation::REQUIRES_FULL_CHECK);
     return Result(Result::UNKNOWN, UnknownExplanation::REQUIRES_FULL_CHECK);
   }
-  
+
   // Note this currently ignores conflicts (a dangerous practice).
   d_theoryProxy->presolve();
 
@@ -436,7 +436,7 @@ Result PropEngine::checkSat() {
     }
     result = d_satSolver->solve(assumptions);
   }
-  
+
   d_theoryProxy->postsolve();
 
   if( result == SAT_VALUE_UNKNOWN ) {
