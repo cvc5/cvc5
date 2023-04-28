@@ -150,7 +150,7 @@ DslPfRule RewriteDbProofCons::proveInternalViaStrategy(Node eqi)
   {
     return DslPfRule::ARITH_POLY_NORM;
   }
-  Trace("rpc-debug2") << "...not proved via congruence" << std::endl;
+  Trace("rpc-debug2") << "...not proved via builtin tactic" << std::endl;
   d_currRecLimit--;
   Node prevTarget = d_target;
   d_target = eqi;

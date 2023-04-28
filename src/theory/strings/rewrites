@@ -4,7 +4,7 @@
 
 ; ---
 
-(define-cond-rule str-eq-ctn-false ((x1 String :list) (x String) (x2 String :list) (y String))
+(define-cond-rule str-eq-ctn-false ((x1 ? :list) (x ?) (x2 ? :list) (y ?))
   (= (str.contains y x) false)
   (= (str.++ x1 x x2) y)
   false)
@@ -14,15 +14,15 @@
 ;  (= x y)
 ;  false)
 
-(define-rule str-concat-flatten ((xs String :list) (s String) (ys String :list) (zs String :list))
+(define-rule str-concat-flatten ((xs ? :list) (s ?) (ys ? :list) (zs ? :list))
   (str.++ xs (str.++ s ys) zs)
   (str.++ xs s ys zs))
 
 ; flips so that it can be applied to both sides easier
-(define-rule str-concat-flatten-eq ((x String) (x1 String :list) (x2 String :list) (y String))
+(define-rule str-concat-flatten-eq ((x ?) (x1 ? :list) (x2 ? :list) (y ?))
   (= (str.++ (str.++ x x1) x2) y)
   (= y (str.++ x x1 x2)))
-(define-rule str-concat-flatten-eq-rev ((x String) (x1 String :list) (x2 String :list) (y String))
+(define-rule str-concat-flatten-eq-rev ((x ?) (x1 ? :list) (x2 ? :list) (y ?))
   (= (str.++ x2 (str.++ x1 x)) y)
   (= y (str.++ x2 x1 x)))
 
@@ -35,7 +35,7 @@
   (= (str.substr s n m) "")
   (= s ""))
 
-(define-cond-rule str-len-replace-inv ((t String) (s String) (r String)) 
+(define-cond-rule str-len-replace-inv ((t ?) (s ?) (r ?)) 
   (= (str.len s) (str.len r))
   (str.len (str.replace t s r))
   (str.len t))
@@ -44,17 +44,17 @@
   (str.len (str.update t n r))
   (str.len t))
 
-(define-cond-rule str-len-substr-in-range ((s String) (n Int) (m Int))
+(define-cond-rule str-len-substr-in-range ((s ?) (n Int) (m Int))
   (and (>= n 0) (>= m 0) (>= (str.len s) (+ n m)))
   (str.len (str.substr s n m))
   m)
 
-(define-cond-rule str-len-substr-ub1 ((s String) (n Int) (m Int) (k Int))
+(define-cond-rule str-len-substr-ub1 ((s ?) (n Int) (m Int) (k Int))
   (>= k m)
   (>= k (str.len (str.substr s n m)))
   true)
 
-(define-cond-rule str-len-substr-ub2 ((s String) (n Int) (m Int) (k Int))
+(define-cond-rule str-len-substr-ub2 ((s ?) (n Int) (m Int) (k Int))
   (>= k (- (str.len s) n))
   (>= k (str.len (str.substr s n m)))
   true)
@@ -105,28 +105,28 @@
   (str.suffixof s t)
   (= s (str.substr t (- (str.len t) (str.len s)) (str.len s))))
 
-(define-cond-rule str-prefixof-one ((s String) (t String))
+(define-cond-rule str-prefixof-one ((s ?) (t ?))
   (= (str.len t) 1)
   (str.prefixof s t)
   (str.contains t s))
-(define-cond-rule str-suffixof-one ((s String) (t String))
+(define-cond-rule str-suffixof-one ((s ?) (t ?))
   (= (str.len t) 1)
   (str.suffixof s t)
   (str.contains t s))
 
-(define-cond-rule str-substr-combine ((s String) (n1 Int) (m1 Int) (n2 Int) (m2 Int))
+(define-cond-rule str-substr-combine ((s ?) (n1 Int) (m1 Int) (n2 Int) (m2 Int))
   (and (>= n2 0) (>= (- (+ n2 m2) m1) 0))
   (str.substr (str.substr s n1 m1) n2 m2)
   (str.substr s (+ n1 n2) m2))
 
-(define-cond-rule str-substr-concat1 ((s1 String) (s2 String :list) (n Int) (m Int))
+(define-cond-rule str-substr-concat1 ((s1 ?) (s2 ? :list) (n Int) (m Int))
   (and (>= n 0) (>= (str.len s1) (+ n m)))
   (str.substr (str.++ s1 s2) n m)
   (str.substr s1 n m))
 
-(define-rule str-contains-refl ((x String)) (str.contains x x) true)
+(define-rule str-contains-refl ((x ?)) (str.contains x x) true)
 
-(define-cond-rule str-contains-split-char ((x String) (y String) (z String :list) (w String))
+(define-cond-rule str-contains-split-char ((x ?) (y ?) (z ? :list) (w ?))
   (= (str.len w) 1)
   (str.contains (str.++ x y z) w)
   (or (str.contains x w) (str.contains (str.++ y z) w)))
@@ -136,7 +136,9 @@
   (str.contains x y)
   (= x y))
 
-(define-rule str-concat-emp ((xs String :list) (ys String :list)) (str.++ xs "" ys) (str.++ xs ys))
+(define-rule str-concat-emp ((xs String :list) (ys String :list)) 
+  (str.++ xs "" ys) 
+  (str.++ xs ys))
 
 (define-rule str-at-elim ((x String) (n Int)) (str.at x n) (str.substr x n 1))
 
