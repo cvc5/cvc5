@@ -18,6 +18,7 @@
 #include "expr/attribute.h"
 #include "expr/skolem_manager.h"
 #include "util/uninterpreted_sort_value.h"
+#include "theory/builtin/generic_op.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -165,8 +166,7 @@ TypeNode WitnessTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode ApplyIndexedSymbolicTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  // TODO: could be more precise
-  return nm->mkAbstractType(kind::ABSTRACT_TYPE);
+  return TypeNode::null();
 }
 
 TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
@@ -174,9 +174,16 @@ TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
                                                    bool check,
                                                    std::ostream* errOut)
 {
-  // Note that this could be more precise by case splitting on the kind
-  // of indexed operator, but we don't do this for simplicity.
   return nodeManager->mkAbstractType(kind::ABSTRACT_TYPE);
+  // get the concrete application version of this, if possible
+  Node cn = GenericOp::getConcreteApp(n);
+  if (cn==n)
+  {
+    // if it cannot be made concrete, it has abstract type
+    return nodeManager->mkAbstractType(kind::ABSTRACT_TYPE);
+  }
+  // if we can make concrete, return its type
+  return cn.getType();
 }
 /**
  * Attribute for caching the ground term for each type. Maps TypeNode to the

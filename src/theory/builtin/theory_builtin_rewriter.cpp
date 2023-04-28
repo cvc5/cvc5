@@ -137,6 +137,7 @@ Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
 
 Node TheoryBuiltinRewriter::rewriteApplyIndexedSymbolic(TNode node)
 {
+  Assert (node.getKind()==kind::APPLY_INDEXED_SYMBOLIC);
   Assert(node.getNumChildren() > 1);
   // if all arguments are constant, we return the non-symbolic version
   // of the operator, e.g. (extract 2 1 #b0000) ---> ((_ extract 2 1) #b0000)
@@ -149,33 +150,8 @@ Node TheoryBuiltinRewriter::rewriteApplyIndexedSymbolic(TNode node)
   }
   Trace("builtin-rewrite") << "rewriteApplyIndexedSymbolic: " << node
                            << std::endl;
-  Kind okind = node.getOperator().getConst<GenericOp>().getKind();
-  // determine how many arguments should be passed to the end function. This is
-  // usually one, but we handle cases where it is >1.
-  size_t nargs = 1;
-  if (okind == kind::FLOATINGPOINT_TO_FP_FROM_FP
-      || okind == kind::FLOATINGPOINT_TO_FP_FROM_REAL
-      || okind == kind::FLOATINGPOINT_TO_FP_FROM_SBV)
-  {
-    nargs = 2;
-  }
-  std::vector<Node> indices(node.begin(), node.end() - nargs);
-  Node op = GenericOp::getOperatorForIndices(okind, indices);
-  // could have a bad index, in which case we don't rewrite
-  if (op.isNull())
-  {
-    return node;
-  }
-  std::vector<Node> args;
-  args.push_back(op);
-  args.insert(args.end(), node.end() - nargs, node.end());
-  Node ret = NodeManager::currentNM()->mkNode(okind, args);
-  // could have a bad type, in which case we don't rewrite
-  if (ret.getTypeOrNull(true).isNull())
-  {
-    return node;
-  }
-  return ret;
+  // use the utility
+  return GenericOp::getConcreteApp(node);
 }
 
 }  // namespace builtin
