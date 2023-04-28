@@ -264,9 +264,6 @@ void SmtSolver::postsolve()
 {
   Assert(d_propEngine != nullptr);
   d_propEngine->resetTrail();
-
-  Assert(d_theoryEngine != nullptr);
-  d_theoryEngine->postsolve();
 }
 
 }  // namespace smt

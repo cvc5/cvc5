@@ -101,6 +101,11 @@ void TheoryProxy::presolve()
   d_stopSearch = false;
 }
 
+void TheoryProxy::postsolve()
+{
+  d_theoryEngine->postsolve();
+}
+
 void TheoryProxy::notifyTopLevelSubstitution(const Node& lhs,
                                              const Node& rhs) const
 {
