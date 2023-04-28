@@ -152,7 +152,9 @@ void SmtDriver::notifyPopPre() { d_smt.popPropContext(); }
 
 void SmtDriver::notifyPostSolve() { d_smt.postsolve(); }
 
-SmtDriverSingleCall::SmtDriverSingleCall(Env& env, SmtSolver& smt, ContextManager* ctx)
+SmtDriverSingleCall::SmtDriverSingleCall(Env& env,
+                                         SmtSolver& smt,
+                                         ContextManager* ctx)
     : SmtDriver(env, smt, ctx), d_assertionListIndex(userContext(), 0)
 {
 }

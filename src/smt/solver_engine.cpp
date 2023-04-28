@@ -118,7 +118,8 @@ SolverEngine::SolverEngine(const Options* optr)
   // make the SyGuS solver
   d_sygusSolver.reset(new SygusSolver(*d_env.get(), *d_smtSolver));
   // make the quantifier elimination solver
-  d_quantElimSolver.reset(new QuantElimSolver(*d_env.get(), *d_smtSolver, d_ctxManager.get()));
+  d_quantElimSolver.reset(
+      new QuantElimSolver(*d_env.get(), *d_smtSolver, d_ctxManager.get()));
 }
 
 bool SolverEngine::isFullyInited() const { return d_state->isFullyInited(); }
