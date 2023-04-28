@@ -23,6 +23,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace builtin {
 
+TypeNode EqualityTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode EqualityTypeRule::computeType(NodeManager* nodeManager,
                                        TNode n,
                                        bool check,
@@ -49,6 +50,7 @@ TypeNode EqualityTypeRule::computeType(NodeManager* nodeManager,
   return booleanType;
 }
 
+TypeNode DistinctTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode DistinctTypeRule::computeType(NodeManager* nodeManager,
                                        TNode n,
                                        bool check,
@@ -72,6 +74,7 @@ TypeNode DistinctTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
+TypeNode SExprTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode SExprTypeRule::computeType(NodeManager* nodeManager,
                                     TNode n,
                                     bool check,
@@ -87,6 +90,7 @@ TypeNode SExprTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->sExprType();
 }
 
+TypeNode UninterpretedSortValueTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode UninterpretedSortValueTypeRule::computeType(NodeManager* nodeManager,
                                                      TNode n,
                                                      bool check,
@@ -95,6 +99,7 @@ TypeNode UninterpretedSortValueTypeRule::computeType(NodeManager* nodeManager,
   return n.getConst<UninterpretedSortValue>().getType();
 }
 
+TypeNode WitnessTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode WitnessTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
                                       bool check,
@@ -137,6 +142,7 @@ TypeNode WitnessTypeRule::computeType(NodeManager* nodeManager,
   return n[0][0].getType();
 }
 
+TypeNode ApplyIndexedSymbolicTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
                                                    TNode n,
                                                    bool check,

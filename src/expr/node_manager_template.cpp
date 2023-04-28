@@ -535,13 +535,15 @@ TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
     {
       visited[cur] = true;
       // children now have types assigned
-      typeNode = TypeChecker::computeType(this, cur, check, nullptr);
+      typeNode = TypeChecker::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
+TypeNode ::computeType(this, cur, check, nullptr);
       // if null, immediately return without further caching
       if (typeNode.isNull())
       {
         // !!!! temporary: recompute with an error stream
         std::stringstream errOutTmp;
-        TypeChecker::computeType(this, cur, check, &errOutTmp);
+        TypeChecker::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
+TypeNode ::computeType(this, cur, check, &errOutTmp);
         throw TypeCheckingExceptionPrivate(cur, errOutTmp.str());
         return typeNode;
       }

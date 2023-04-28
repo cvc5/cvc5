@@ -31,6 +31,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
+TypeNode DatatypeConstructorTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode DatatypeConstructorTypeRule::computeType(NodeManager* nodeManager,
                                                   TNode n,
                                                   bool check,
@@ -117,6 +118,7 @@ bool DatatypeConstructorTypeRule::computeIsConst(NodeManager* nodeManager,
   return true;
 }
 
+TypeNode DatatypeSelectorTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode DatatypeSelectorTypeRule::computeType(NodeManager* nodeManager,
                                                TNode n,
                                                bool check,
@@ -174,6 +176,7 @@ TypeNode DatatypeSelectorTypeRule::computeType(NodeManager* nodeManager,
   }
 }
 
+TypeNode DatatypeTesterTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode DatatypeTesterTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
                                              bool check,
@@ -215,6 +218,7 @@ TypeNode DatatypeTesterTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
+TypeNode DatatypeUpdateTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode DatatypeUpdateTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
                                              bool check,
@@ -252,6 +256,7 @@ TypeNode DatatypeUpdateTypeRule::computeType(NodeManager* nodeManager,
   return n[0].getType();
 }
 
+TypeNode DatatypeAscriptionTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode DatatypeAscriptionTypeRule::computeType(NodeManager* nodeManager,
                                                  TNode n,
                                                  bool check,
@@ -298,6 +303,7 @@ Cardinality ConstructorProperties::computeCardinality(TypeNode type)
   return c;
 }
 
+TypeNode DtSizeTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode DtSizeTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
                                      bool check,
@@ -315,6 +321,7 @@ TypeNode DtSizeTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
+TypeNode DtBoundTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode DtBoundTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
                                       bool check,
@@ -342,6 +349,7 @@ TypeNode DtBoundTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
+TypeNode DtSygusEvalTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode DtSygusEvalTypeRule::computeType(NodeManager* nodeManager,
                                           TNode n,
                                           bool check,
@@ -384,6 +392,7 @@ TypeNode DtSygusEvalTypeRule::computeType(NodeManager* nodeManager,
   return dt.getSygusType();
 }
 
+TypeNode MatchTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode MatchTypeRule::computeType(NodeManager* nodeManager,
                                     TNode n,
                                     bool check,
@@ -485,6 +494,7 @@ TypeNode MatchTypeRule::computeType(NodeManager* nodeManager,
   return retType;
 }
 
+TypeNode MatchCaseTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode MatchCaseTypeRule::computeType(NodeManager* nodeManager,
                                         TNode n,
                                         bool check,
@@ -503,6 +513,7 @@ TypeNode MatchCaseTypeRule::computeType(NodeManager* nodeManager,
   return n[1].getType(check);
 }
 
+TypeNode MatchBindCaseTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode MatchBindCaseTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check,
@@ -526,6 +537,7 @@ TypeNode MatchBindCaseTypeRule::computeType(NodeManager* nodeManager,
   return n[2].getType(check);
 }
 
+TypeNode TupleProjectTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode TupleProjectTypeRule::computeType(NodeManager* nm,
                                            TNode n,
                                            bool check,
@@ -573,6 +585,7 @@ TypeNode TupleProjectTypeRule::computeType(NodeManager* nm,
   return TupleUtils::getTupleProjectionType(indices, tupleType);
 }
 
+TypeNode CodatatypeBoundVariableTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode CodatatypeBoundVariableTypeRule::computeType(NodeManager* nodeManager,
                                                       TNode n,
                                                       bool check,

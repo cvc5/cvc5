@@ -21,6 +21,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
+TypeNode ArithConstantTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode ArithConstantTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check,
@@ -45,11 +46,13 @@ TypeNode ArithConstantTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
+TypeNode ArithRealAlgebraicNumberOpTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode ArithRealAlgebraicNumberOpTypeRule::computeType(
     NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
   return nodeManager->realType();
 }
+TypeNode ArithRealAlgebraicNumberTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode ArithRealAlgebraicNumberTypeRule::computeType(NodeManager* nodeManager,
                                                        TNode n,
                                                        bool check,
@@ -58,6 +61,7 @@ TypeNode ArithRealAlgebraicNumberTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->realType();
 }
 
+TypeNode ArithOperatorTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check,
@@ -105,6 +109,7 @@ TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
   }
 }
 
+TypeNode ArithRelationTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode ArithRelationTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check,
@@ -123,6 +128,7 @@ TypeNode ArithRelationTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
+TypeNode RealNullaryOperatorTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode RealNullaryOperatorTypeRule::computeType(NodeManager* nodeManager,
                                                   TNode n,
                                                   bool check,
@@ -139,6 +145,7 @@ TypeNode RealNullaryOperatorTypeRule::computeType(NodeManager* nodeManager,
   return realType;
 }
 
+TypeNode IAndOpTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode IAndOpTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
                                      bool check,
@@ -155,6 +162,7 @@ TypeNode IAndOpTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkFunctionType(argTypes, iType);
 }
 
+TypeNode IAndTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode IAndTypeRule::computeType(NodeManager* nodeManager,
                                    TNode n,
                                    bool check,
@@ -176,6 +184,7 @@ TypeNode IAndTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
+TypeNode Pow2TypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode Pow2TypeRule::computeType(NodeManager* nodeManager,
                                    TNode n,
                                    bool check,
@@ -196,6 +205,7 @@ TypeNode Pow2TypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
+TypeNode IndexedRootPredicateTypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode IndexedRootPredicateTypeRule::computeType(NodeManager* nodeManager,
                                                    TNode n,
                                                    bool check,
