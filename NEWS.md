@@ -15,6 +15,11 @@ This file contains a summary of important user-visible changes.
 cvc5 1.0.5
 ==========
 
+- A new (hand-written) parser is available and enabled by default.
+  - Note the previous parser can be enabled using command line options
+    `--no-flex-parser --no-stdin-input-per-line`. These options will be
+    available until version 1.1 is released.
+
 cvc5 1.0.4
 ==========
 
