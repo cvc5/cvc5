@@ -33,7 +33,7 @@
   (i Int) (j Int))
   (<= j (bvsize x))
   (extract j i (concat xs y x)) ; (concat ...) needs at least 2 children
-  (concat xs y (extract j i x)))
+  (extract j i x))
 ; Case 2: (< i n) but (>= j n), the extract crosses the boundary into the next one.
 ; Note that we do not know the size of the element after x, so we leave it in (extract (concat ...)) form
 (define-cond-rule bv-extract-concat-2
@@ -50,6 +50,12 @@
   (>= i (bvsize x))
   (extract j i (concat xs y x))
   (extract (- j (bvsize x)) (- i (bvsize x)) (concat xs y)))
+; Case 4: Elision from the higher portion
+(define-cond-rule bv-extract-concat-4
+  ((x ?BitVec) (y ?BitVec) (xs ?BitVec :list) (i Int) (j Int))
+  (< j (- (bvsize (concat x xs y)) (bvsize x)))
+  (extract j i (concat x xs y))
+  (extract j i (concat xs y)))
 
 ; -- Operator Elimination Rules --
 
@@ -966,3 +972,71 @@
   (bvor x y) (bvor y x))
 (define-rule bv-commutative-xor ((x ?BitVec) (y ?BitVec))
   (bvxor x y) (bvxor y x))
+
+
+; -- Fill some holes --
+(define-rule bv-or-zero ((x ?BitVec) (n Int))
+  (bvor x (bv 0 n))
+  x)
+(define-rule bv-mul-one ((x ?BitVec) (n Int))
+  (bvmul x (bv 1 n))
+  x)
+(define-rule bv-mul-zero ((x ?BitVec) (n Int))
+  (bvmul x (bv 0 n))
+  (bv 0 n))
+(define-rule bv-add-zero ((x ?BitVec) (n Int))
+  (bvadd x (bv 0 n))
+  x)
+
+(define-rule bv-commutative-add ((x ?BitVec) (y ?BitVec))
+  (bvadd x y) (bvadd y x))
+(define-rule bv-commutative-mul ((x ?BitVec) (y ?BitVec))
+  (bvmul x y) (bvmul y x))
+
+(define-rule bv-zero-extend-eliminate-0
+  ((x ?BitVec))
+  (zero_extend 0 x)
+  x)
+(define-rule bv-sign-extend-eliminate-0
+  ((x ?BitVec))
+  (sign_extend 0 x)
+  x)
+(define-rule bv-not-neq ((x ?BitVec))
+  (= x (bvnot x))
+  false)
+
+(define-cond-rule bv-ult-ones ((x ?BitVec) (y ?BitVec))
+  (= y (bvnot (bv 0 (bvsize y))))
+  (bvult x y)
+  (distinct x y))
+
+; Collapse rules
+
+(define-rule* bv-or-flatten
+  ((xs ?BitVec :list)
+   (s ?BitVec)
+   (ys ?BitVec :list)
+   (zs ?BitVec :list))
+  (bvor xs (bvor s ys) zs)
+  (bvor xs s ys zs))
+(define-rule* bv-xor-flatten
+  ((xs ?BitVec :list)
+   (s ?BitVec)
+   (ys ?BitVec :list)
+   (zs ?BitVec :list))
+  (bvxor xs (bvxor s ys) zs)
+  (bvxor xs s ys zs))
+(define-rule* bv-and-flatten
+  ((xs ?BitVec :list)
+   (s ?BitVec)
+   (ys ?BitVec :list)
+   (zs ?BitVec :list))
+  (bvand xs (bvand s ys) zs)
+  (bvand xs s ys zs))
+(define-rule* bv-mul-flatten
+  ((xs ?BitVec :list)
+   (s ?BitVec)
+   (ys ?BitVec :list)
+   (zs ?BitVec :list))
+  (bvmul xs (bvmul s ys) zs)
+  (bvmul xs s ys zs))
