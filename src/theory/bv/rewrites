@@ -378,29 +378,29 @@
   ((x ?BitVec) (amount Int) (sz Int))
   (def (n (bvsize x)))
   (< amount n)
-  (bvshl (bv amount sz) x)
+  (bvshl x (bv amount sz))
   (concat (extract n (- n (+ 1 amount)) x) (bv 0 n)))
 (define-cond-rule bv-shl-by-const-2
   ((x ?BitVec) (amount Int) (sz Int))
   (>= amount (bvsize x))
-  (bvshl (bv amount sz) x)
+  (bvshl x (bv amount sz))
   (bv 0 (bvsize x)))
 (define-cond-rule bv-lshr-by-const-1
   ((x ?BitVec) (amount Int) (sz Int))
   (def (n (bvsize x)))
   (< amount n)
-  (bvlshr (bv amount sz) x)
+  (bvlshr x (bv amount sz))
   (concat (bv 0 amount) (extract (- n 1) amount x)))
 (define-cond-rule bv-lshr-by-const-2
   ((x ?BitVec) (amount Int) (sz Int))
   (>= amount (bvsize x))
-  (bvlshr (bv amount sz) x)
+  (bvlshr x (bv amount sz))
   (bv 0 sz))
 (define-cond-rule bv-ashr-by-const-1
   ((x ?BitVec) (amount Int) (sz Int))
   (def (n (bvsize x)))
   (< amount n)
-  (bvlshr (bv amount sz) x)
+  (bvlshr x (bv amount sz))
   (concat
     (repeat amount (extract (- n 1) (- n 1) x))
     (extract (- n 1) amount x)
@@ -409,7 +409,7 @@
   ((x ?BitVec) (amount Int) (sz Int))
   (def (n (bvsize x)))
   (>= amount (bvsize x))
-  (bvlshr (bv amount sz) x)
+  (bvlshr x (bv amount sz))
   (repeat n (extract (- n 1) (- n 1) x)))
 
 ; AndOrXorConcatPullUp
@@ -520,13 +520,22 @@
   (not (bvsle x y))
   (bvslt y x))
 
-(define-cond-rule* bv-mult-pow2
+(define-cond-rule bv-mult-pow2-1
   ((xs ?BitVec :list) (ys ?BitVec :list) (z ?BitVec) (size Int) (n Int))
   (def (exponent (int.log2 n)))
   (int.ispow2 n)
   (bvmul xs z (bv n size) ys)
-  (bvmul xs z ys)
-  (concat (extract (- (- size exponent) 1) 0 _) (bv 0 exponent)))
+  (concat
+    (extract (- (- size exponent) 1) 0 (bvmul xs z ys))
+    (bv 0 exponent)))
+(define-cond-rule bv-mult-pow2-2
+  ((xs ?BitVec :list) (ys ?BitVec :list) (z ?BitVec) (size Int) (n Int))
+  (def (exponent (int.log2 (- n))))
+  (int.ispow2 (- n))
+  (bvmul xs z (bv n size) ys)
+  (bvneg (concat
+    (extract (- (- size exponent) 1) 0 (bvmul xs z ys))
+    (bv 0 exponent))))
 
 ;(define-rule bv-mult-slice
 ;  ((x ?BitVec) (y ?BitVec))
@@ -972,9 +981,13 @@
   (bvor x y) (bvor y x))
 (define-rule bv-commutative-xor ((x ?BitVec) (y ?BitVec))
   (bvxor x y) (bvxor y x))
+(define-rule bv-commutative-add ((x ?BitVec) (y ?BitVec))
+  (bvadd x y) (bvadd y x))
+(define-rule bv-commutative-mul ((x ?BitVec) (y ?BitVec))
+  (bvmul x y) (bvmul y x))
 
 
-; -- Fill some holes --
+; -- Hole filling rules --
 (define-rule bv-or-zero ((x ?BitVec) (n Int))
   (bvor x (bv 0 n))
   x)
@@ -987,11 +1000,10 @@
 (define-rule bv-add-zero ((x ?BitVec) (n Int))
   (bvadd x (bv 0 n))
   x)
+(define-rule bv-add-two ((x ?BitVec))
+  (bvadd x x)
+  (bvmul x (bv 2 (bvsize x))))
 
-(define-rule bv-commutative-add ((x ?BitVec) (y ?BitVec))
-  (bvadd x y) (bvadd y x))
-(define-rule bv-commutative-mul ((x ?BitVec) (y ?BitVec))
-  (bvmul x y) (bvmul y x))
 
 (define-rule bv-zero-extend-eliminate-0
   ((x ?BitVec))
@@ -1001,7 +1013,8 @@
   ((x ?BitVec))
   (sign_extend 0 x)
   x)
-(define-rule bv-not-neq ((x ?BitVec))
+(define-cond-rule bv-not-neq ((x ?BitVec))
+  (> (bvsize x) 0)
   (= x (bvnot x))
   false)
 
