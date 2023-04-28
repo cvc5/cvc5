@@ -27,15 +27,12 @@ class TupleUtils
  public:
   /**
    *
-   * @param n a node to print in the message if TypeCheckingExceptionPrivate
-   * exception is thrown
    * @param tupleType the type of the tuple
    * @param indices a list of indices for projection
-   * @throw an exception if one of the indices in node n is greater than the
+   * @return false if one of the indices in node n is greater than the
    * expected tuple's length
    */
-  static void checkTypeIndices(Node n,
-                               TypeNode tupleType,
+  static bool checkTypeIndices(const TypeNode& tupleType,
                                const std::vector<uint32_t> indices);
   /**
    * @param tupleType1 tuple type

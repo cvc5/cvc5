@@ -33,6 +33,8 @@ namespace uf {
 class UfTypeRule
 {
  public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -45,6 +47,8 @@ class UfTypeRule
 class CardinalityConstraintTypeRule
 {
  public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -59,6 +63,8 @@ class CardinalityConstraintTypeRule
 class CardinalityConstraintOpTypeRule
 {
  public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -72,6 +78,8 @@ class CardinalityConstraintOpTypeRule
 class CombinedCardinalityConstraintTypeRule
 {
  public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -86,6 +94,8 @@ class CombinedCardinalityConstraintTypeRule
 class CombinedCardinalityConstraintOpTypeRule
 {
  public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -101,6 +111,9 @@ class HoApplyTypeRule
 {
  public:
   // the typing rule for HO_APPLY terms
+
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -115,6 +128,8 @@ class HoApplyTypeRule
 class LambdaTypeRule
 {
  public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -128,6 +143,8 @@ class LambdaTypeRule
 class FunctionArrayConstTypeRule
 {
  public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -153,6 +170,8 @@ class FunctionProperties
 class IntToBitVectorOpTypeRule
 {
  public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -168,6 +187,8 @@ class IntToBitVectorOpTypeRule
 class BitVectorConversionTypeRule
 {
  public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
