@@ -2008,6 +2008,37 @@ TEST_F(TestApiBlackSolver, getLearnedLiterals2)
   ASSERT_NO_THROW(d_solver.getLearnedLiterals());
 }
 
+TEST_F(TestApiBlackSolver, getTimeoutCoreUnsat)
+{
+  d_solver.setOption("timeout-core-timeout", "100");
+  Sort intSort = d_solver.getIntegerSort();
+  Term x = d_solver.mkConst(intSort, "x");
+  Term tt = d_solver.mkBoolean(true);
+  Term hard = d_solver.mkTerm(
+      EQUAL,
+      {d_solver.mkTerm(MULT, {x, x}),
+       d_solver.mkInteger("501240912901901249014210220059591")});
+  d_solver.assertFormula(tt);
+  d_solver.assertFormula(hard);
+  std::pair<cvc5::Result, std::vector<Term>> res = d_solver.getTimeoutCore();
+  ASSERT_TRUE(res.first.isUnknown());
+  ASSERT_TRUE(res.second.size() == 1);
+  ASSERT_EQ(res.second[0], hard);
+}
+
+TEST_F(TestApiBlackSolver, getTimeoutCore)
+{
+  Term ff = d_solver.mkBoolean(false);
+  Term tt = d_solver.mkBoolean(true);
+  d_solver.assertFormula(tt);
+  d_solver.assertFormula(ff);
+  d_solver.assertFormula(tt);
+  std::pair<cvc5::Result, std::vector<Term>> res = d_solver.getTimeoutCore();
+  ASSERT_TRUE(res.first.isUnsat());
+  ASSERT_TRUE(res.second.size() == 1);
+  ASSERT_EQ(res.second[0], ff);
+}
+
 TEST_F(TestApiBlackSolver, getValue1)
 {
   d_solver.setOption("produce-models", "false");

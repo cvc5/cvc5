@@ -214,6 +214,9 @@ class Smt2Printer : public cvc5::internal::Printer
   /** Print get-difficulty command */
   void toStreamCmdGetDifficulty(std::ostream& out) const override;
 
+  /** Print get-timeout-core command */
+  void toStreamCmdGetTimeoutCore(std::ostream& out) const override;
+
   /** Print get-learned-literals command */
   void toStreamCmdGetLearnedLiterals(std::ostream& out,
                                      modes::LearnedLitType t) const override;

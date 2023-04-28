@@ -1848,6 +1848,11 @@ void Smt2Printer::toStreamCmdGetDifficulty(std::ostream& out) const
   out << "(get-difficulty)" << std::endl;
 }
 
+void Smt2Printer::toStreamCmdGetTimeoutCore(std::ostream& out) const
+{
+  out << "(get-timeout-core)" << std::endl;
+}
+
 void Smt2Printer::toStreamCmdGetLearnedLiterals(std::ostream& out,
                                                 modes::LearnedLitType t) const
 {

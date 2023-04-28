@@ -248,6 +248,9 @@ class CVC5_EXPORT Printer
   /** Print get-difficulty command */
   virtual void toStreamCmdGetDifficulty(std::ostream& out) const;
 
+  /** Print get-timeout-core command */
+  virtual void toStreamCmdGetTimeoutCore(std::ostream& out) const;
+
   /** Print get-learned-literals command */
   virtual void toStreamCmdGetLearnedLiterals(std::ostream& out,
                                              modes::LearnedLitType t) const;
