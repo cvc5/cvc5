@@ -38,6 +38,8 @@ void TheoryEngineModule::notifyLemma(TNode n,
 {
 }
 
+bool TheoryEngineModule::needsCandidateModel() { return false; }
+
 void TheoryEngineModule::notifyCandidateModel(TheoryModel* m) {}
 
 }  // namespace theory

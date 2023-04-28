@@ -70,6 +70,8 @@ class DifficultyManager : protected EnvObj
    * lemma was sent.
    */
   void notifyLemma(Node lem, bool inFullEffortCheck);
+  /** Needs candidate model, return true if the method below requires calling */
+  bool needsCandidateModel() const;
   /**
    * Notify that `m` is a (candidate) model. This increments the difficulty
    * of assertions that are not satisfied by that model.

@@ -82,11 +82,6 @@ Theory::PPAssertStatus TheoryBool::ppAssert(
   return Theory::ppAssert(tin, outSubstitutions);
 }
 
-TrustNode TheoryBool::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
-{
-  return TrustNode::null();
-}
-
 TheoryRewriter* TheoryBool::getTheoryRewriter() { return &d_rewriter; }
 
 ProofRuleChecker* TheoryBool::getProofChecker() { return &d_checker; }
