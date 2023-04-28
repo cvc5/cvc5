@@ -162,6 +162,27 @@ TypeNode BitVectorConcatTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkBitVectorType(size);
 }
 
+TypeNode BitVectorToBVTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->mkBitVectorType(n.getNumChildren());
+}
+
+TypeNode BitVectorToBVTypeRule::computeType(NodeManager* nodeManager,
+                                            TNode n,
+                                            bool check,
+                                            std::ostream* errOut)
+{
+  for (const auto& child : n)
+  {
+    TypeNode t = child.getType(check);
+    if (!t.isBoolean())
+    {
+      throw TypeCheckingExceptionPrivate(n, "expecting Boolean terms");
+    }
+  }
+  return nodeManager->mkBitVectorType(n.getNumChildren());
+}
+
 TypeNode BitVectorITETypeRule::preComputeType(NodeManager* nm, TNode n){return TypeNode::null(); }
 TypeNode BitVectorITETypeRule::computeType(NodeManager* nodeManager,
                                            TNode n,
