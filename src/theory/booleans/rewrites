@@ -40,3 +40,8 @@
 
 (define-rule ite-then-lookahead-self ((c Bool) (x Bool)) (ite c c x) (ite c true x))
 (define-rule ite-else-lookahead-self ((c Bool) (x Bool)) (ite c x c) (ite c x false))
+
+
+(define-rule bool-commutative-and ((x Bool) (y Bool)) (and x y) (and y x))
+(define-rule bool-commutative-or ((x Bool) (y Bool)) (or x y) (or y x))
+(define-rule bool-commutative-xor ((x Bool) (y Bool)) (xor x y) (xor y x))
