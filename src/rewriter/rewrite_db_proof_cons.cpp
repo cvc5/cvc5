@@ -355,7 +355,6 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
   }
   else if (id == DslPfRule::ARITH_POLY_NORM)
   {
-    // only works with arithmetic terms
     if (!theory::arith::PolyNorm::isArithPolyNorm(target[0], target[1]))
     {
       return false;

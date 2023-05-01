@@ -15,6 +15,8 @@
 
 #include "theory/arith/arith_poly_norm.h"
 
+#include "util/bitvector.h"
+
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
@@ -23,7 +25,11 @@ namespace arith {
 
 void PolyNorm::addMonomial(TNode x, const Rational& c, bool isNeg)
 {
-  Assert(c.sgn() != 0);
+  // if zero, ignore
+  if (c.sgn() == 0)
+  {
+    return;
+  }
   std::unordered_map<Node, Rational>::iterator it = d_polyNorm.find(x);
   if (it == d_polyNorm.end())
   {
@@ -203,7 +209,6 @@ std::vector<TNode> PolyNorm::getMonoVars(TNode m)
 
 PolyNorm PolyNorm::mkPolyNorm(TNode n)
 {
-  Assert(n.getType().isRealOrInt() || n.getType().isFullyAbstract());
   Rational one(1);
   Node null;
   std::unordered_map<TNode, PolyNorm> visited;
@@ -221,31 +226,45 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
       if (k == CONST_RATIONAL || k == CONST_INTEGER)
       {
         Rational r = cur.getConst<Rational>();
-        if (r.sgn() == 0)
+        visited[cur].addMonomial(null, r);
+        visit.pop_back();
+        continue;
+      }
+      else if (k == CONST_BITVECTOR)
+      {
+        BitVector bv = cur.getConst<BitVector>();
+        visited[cur].addMonomial(null, Rational(bv.getValue()));
+        visit.pop_back();
+        continue;
+      }
+      else if (k == CONST_BITVECTOR_SYMBOLIC)
+      {
+        // handle symbolic bv constants here as well
+        if (cur[0].isConst()
+          && cur[1].isConst() && cur[1].getConst<Rational>().sgn() == 1
+          && cur[1].getConst<Rational>().getNumerator().fitsUnsignedInt())
         {
-          // zero is not an entry
-          visited[cur] = PolyNorm();
-        }
-        else
-        {
-          visited[cur].addMonomial(null, r);
+          Integer value = cur[0].getConst<Rational>().getNumerator();
+          Integer size = cur[1].getConst<Rational>().getNumerator();
+          BitVector bv(size.toUnsignedInt(), value);
+          visited[cur].addMonomial(null, Rational(bv.getValue()));
+          visit.pop_back();
+          continue;
         }
       }
       else if (k == ADD || k == SUB || k == NEG || k == MULT
-               || k == NONLINEAR_MULT || k == TO_REAL)
+               || k == NONLINEAR_MULT || k == TO_REAL || k == BITVECTOR_ADD || k == BITVECTOR_SUB || k == BITVECTOR_NEG || k == BITVECTOR_MULT)
       {
         visited[cur] = PolyNorm();
         for (const Node& cn : cur)
         {
           visit.push_back(cn);
         }
+        continue;
       }
-      else
-      {
-        // it is a leaf
-        visited[cur].addMonomial(cur, one);
-        visit.pop_back();
-      }
+      // it is a leaf
+      visited[cur].addMonomial(cur, one);
+      visit.pop_back();
       continue;
     }
     visit.pop_back();
@@ -260,15 +279,19 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
         case MULT:
         case NONLINEAR_MULT:
         case TO_REAL:
+        case BITVECTOR_ADD:
+        case BITVECTOR_SUB:
+        case BITVECTOR_NEG:
+        case BITVECTOR_MULT:
           for (size_t i = 0, nchild = cur.getNumChildren(); i < nchild; i++)
           {
             it = visited.find(cur[i]);
             Assert(it != visited.end());
-            if ((k == SUB && i == 1) || k == NEG)
+            if (((k == SUB || k == BITVECTOR_SUB) && i == 1) || k == NEG || k == BITVECTOR_NEG)
             {
               ret.subtract(it->second);
             }
-            else if (i > 0 && (k == MULT || k == NONLINEAR_MULT))
+            else if (i > 0 && (k == MULT || k == NONLINEAR_MULT || k == BITVECTOR_MULT))
             {
               ret.multiply(it->second);
             }
@@ -279,7 +302,12 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
           }
           break;
         case CONST_RATIONAL:
-        case CONST_INTEGER: break;
+        case CONST_INTEGER: 
+        case CONST_BITVECTOR:
+        case CONST_BITVECTOR_SYMBOLIC:
+          // ignore, this is the case of a repeated zero, since we check for
+          // empty of the polynomial above.
+          break;
         default: Unhandled() << "Unhandled polynomial operation " << cur; break;
       }
     }
@@ -291,18 +319,16 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
 bool PolyNorm::isArithPolyNorm(TNode a, TNode b)
 {
   TypeNode at = a.getType();
-  if (at.isRealOrInt())
-  {
-    PolyNorm pa = PolyNorm::mkPolyNorm(a);
-    PolyNorm pb = PolyNorm::mkPolyNorm(b);
-    return pa.isEqual(pb);
-  }
   if (at.isBoolean())
   {
     // otherwise may be atoms
     return isArithPolyNormAtom(a,b);
   }
-  return false;
+  // Otherwise normalize, which notice abstracts any non-arithmetic term.
+  // We impose no type requirements here.
+  PolyNorm pa = PolyNorm::mkPolyNorm(a);
+  PolyNorm pb = PolyNorm::mkPolyNorm(b);
+  return pa.isEqual(pb);
 }
 
 bool PolyNorm::isArithPolyNormAtom(TNode a, TNode b)
@@ -313,22 +339,53 @@ bool PolyNorm::isArithPolyNormAtom(TNode a, TNode b)
   {
     return false;
   }
+  bool isBv = false;
   if (k==EQUAL)
   {
-    if (!a[0].getType().isRealOrInt() || !b[0].getType().isRealOrInt())
+    for (size_t i=0; i<2; i++)
     {
-      return false;
+      Node eq = i==0 ? a : b;
+      for (size_t j=0; j<2; j++)
+      {
+        TypeNode tn = eq[j].getType();
+        if (tn.isRealOrInt())
+        {
+          continue;
+        }
+        // handle possibility of gradual BV type
+        if (tn.isBitVector() || (tn.isAbstract() && tn.getAbstractedKind()==BITVECTOR_TYPE))
+        {
+          isBv = true;
+          continue;
+        }
+        return false;
+      }
     }
   }
-  else if (k!=GEQ && k!=LEQ && k!=GT && k!=LT)
+  else if (k==GEQ || k==LEQ || k==GT || k==LT)
+  {
+    // k is a handled binary relation, i.e. one that permits normalization
+    // via subtracting the right side from the left.
+  }
+  else if (k == BITVECTOR_ULT || k == BITVECTOR_ULE
+  || k == BITVECTOR_UGT || k == BITVECTOR_UGE
+  || k == BITVECTOR_SLT || k == BITVECTOR_SLE
+  || k == BITVECTOR_SGT || k == BITVECTOR_SGE)
+  {
+    isBv = true;
+  }
+  else
   {
     return false;
   }
-  NodeManager * nm =NodeManager::currentNM();
-  Node adiff = nm->mkNode(SUB, a[0], a[1]);
-  Node bdiff = nm->mkNode(SUB, b[0], b[1]);
-  PolyNorm pa = PolyNorm::mkPolyNorm(adiff);
-  PolyNorm pb = PolyNorm::mkPolyNorm(bdiff);
+  PolyNorm pa = PolyNorm::mkDiff(a[0], a[1]);
+  PolyNorm pb = PolyNorm::mkDiff(b[0], b[1]);
+  if (isBv)
+  {
+    // for bitvectors, must be equal
+    // TODO: could take into account integer modulo
+    return pa.isEqual(pb);
+  }
   // check if the two polynomials are equal modulo a constant coefficient
   // in other words, x ~ y is equivalent to z ~ w if 
   // x-y = c*(z-w) for some c > 0.
@@ -340,6 +397,14 @@ bool PolyNorm::isArithPolyNormAtom(TNode a, TNode b)
   Assert (c.sgn()!=0);
   // if equal, can be negative. Notice this shortcuts symmetry of equality.
   return k==EQUAL || c.sgn()==1;
+}
+
+PolyNorm PolyNorm::mkDiff(TNode a, TNode b)
+{
+  PolyNorm pa = PolyNorm::mkPolyNorm(a);
+  PolyNorm pb = PolyNorm::mkPolyNorm(b);
+  pa.subtract(pb);
+  return pa;
 }
 
 }  // namespace arith

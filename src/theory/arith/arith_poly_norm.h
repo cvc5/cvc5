@@ -77,6 +77,10 @@ class PolyNorm
 
  private:
   /**
+   * Make the difference of two nodes a and b, independent of their type.
+   */
+  static PolyNorm mkDiff(TNode a, TNode b);
+  /**
    * Given two terms that are variables in monomials, return the
    * variable for the monomial when they are multiplied.
    */
