@@ -74,7 +74,7 @@ bool SetsBinaryOperatorTypeRule::computeIsConst(NodeManager* nodeManager,
 
 TypeNode SubsetTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode SubsetTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
@@ -101,7 +101,7 @@ TypeNode SubsetTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode MemberTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode MemberTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
@@ -169,7 +169,7 @@ TypeNode EmptySetTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode CardTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->integerType();
 }
 TypeNode CardTypeRule::computeType(NodeManager* nodeManager,
                                    TNode n,
@@ -283,7 +283,7 @@ TypeNode ChooseTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode IsSingletonTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode IsSingletonTypeRule::computeType(NodeManager* nodeManager,
                                           TNode n,

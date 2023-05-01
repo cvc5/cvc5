@@ -89,7 +89,7 @@ TypeNode BitVectorFixedWidthTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode BitVectorPredicateTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode BitVectorPredicateTypeRule::computeType(NodeManager* nodeManager,
                                                  TNode n,
@@ -115,7 +115,7 @@ TypeNode BitVectorPredicateTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode BitVectorRedTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->mkBitVectorType(1);
 }
 TypeNode BitVectorRedTypeRule::computeType(NodeManager* nodeManager,
                                            TNode n,
@@ -135,7 +135,7 @@ TypeNode BitVectorRedTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode BitVectorBVPredTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->mkBitVectorType(1);
 }
 TypeNode BitVectorBVPredTypeRule::computeType(NodeManager* nodeManager,
                                               TNode n,
@@ -232,7 +232,7 @@ TypeNode BitVectorITETypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode BitVectorBitOfTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode BitVectorBitOfTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
@@ -259,7 +259,8 @@ TypeNode BitVectorBitOfTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode BitVectorExtractTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  BitVectorExtract extractInfo = n.getOperator().getConst<BitVectorExtract>();
+  return nm->mkBitVectorType(extractInfo.d_high - extractInfo.d_low + 1);
 }
 TypeNode BitVectorExtractTypeRule::computeType(NodeManager* nodeManager,
                                                TNode n,
@@ -344,7 +345,7 @@ TypeNode BitVectorExtendTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode BitVectorEagerAtomTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode BitVectorEagerAtomTypeRule::computeType(NodeManager* nodeManager,
                                                  TNode n,

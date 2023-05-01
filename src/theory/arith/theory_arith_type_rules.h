@@ -107,20 +107,6 @@ class RealNullaryOperatorTypeRule
 };
 
 /**
- * Type rule for the IAND operator kind.
- * Always returns (integerType, integerType) -> integerType.
- */
-class IAndOpTypeRule
-{
- public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
-  static TypeNode computeType(NodeManager* nodeManager,
-                              TNode n,
-                              bool check,
-                              std::ostream* errOut);
-};
-
-/**
  * Type rule for the IAND kind.
  * Always returns integerType.
  */

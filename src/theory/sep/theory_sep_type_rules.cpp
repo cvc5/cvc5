@@ -21,7 +21,7 @@ namespace sep {
 
 TypeNode SepEmpTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode SepEmpTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
@@ -34,7 +34,7 @@ TypeNode SepEmpTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode SepPtoTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode SepPtoTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
@@ -52,7 +52,7 @@ TypeNode SepPtoTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode SepStarTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode SepStarTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
@@ -78,7 +78,7 @@ TypeNode SepStarTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode SepWandTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode SepWandTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
@@ -104,7 +104,7 @@ TypeNode SepWandTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode SepLabelTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode SepLabelTypeRule::computeType(NodeManager* nodeManager,
                                        TNode n,

@@ -23,7 +23,7 @@ namespace boolean {
 
 TypeNode BooleanTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode BooleanTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,

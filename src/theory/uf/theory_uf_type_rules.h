@@ -42,40 +42,11 @@ class UfTypeRule
 };
 
 /**
- * A cardinality constraint specified by its operator, returns the Boolean type.
- */
-class CardinalityConstraintTypeRule
-{
- public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
-
-  static TypeNode computeType(NodeManager* nodeManager,
-                              TNode n,
-                              bool check,
-                              std::ostream* errOut);
-};
-
-/**
  * The type rule for cardinality constraint operators, which is indexed by a
  * type and an integer. Ensures that type is an uninterpreted sort and the
  * integer is positive, and returns the builtin type.
  */
 class CardinalityConstraintOpTypeRule
-{
- public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
-
-  static TypeNode computeType(NodeManager* nodeManager,
-                              TNode n,
-                              bool check,
-                              std::ostream* errOut);
-};
-
-/**
- * A combined cardinality constraint specified by its operator, returns the
- * Boolean type.
- */
-class CombinedCardinalityConstraintTypeRule
 {
  public:
   static TypeNode preComputeType(NodeManager* nm, TNode n);

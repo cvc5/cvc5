@@ -23,7 +23,7 @@ namespace quantifiers {
 
 TypeNode QuantifierTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode QuantifierTypeRule::computeType(NodeManager* nodeManager,
                                          TNode n,
@@ -77,7 +77,7 @@ TypeNode QuantifierTypeRule::computeType(NodeManager* nodeManager,
 TypeNode QuantifierBoundVarListTypeRule::preComputeType(NodeManager* nm,
                                                         TNode n)
 {
-  return TypeNode::null();
+  return nm->boundVarListType();
 }
 TypeNode QuantifierBoundVarListTypeRule::computeType(NodeManager* nodeManager,
                                                      TNode n,
@@ -101,7 +101,7 @@ TypeNode QuantifierBoundVarListTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode QuantifierInstPatternTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->instPatternType();
 }
 TypeNode QuantifierInstPatternTypeRule::computeType(NodeManager* nodeManager,
                                                     TNode n,
@@ -126,7 +126,7 @@ TypeNode QuantifierInstPatternTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode QuantifierAnnotationTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->instPatternType();
 }
 TypeNode QuantifierAnnotationTypeRule::computeType(NodeManager* nodeManager,
                                                    TNode n,
@@ -180,7 +180,7 @@ TypeNode QuantifierAnnotationTypeRule::computeType(NodeManager* nodeManager,
 TypeNode QuantifierInstPatternListTypeRule::preComputeType(NodeManager* nm,
                                                            TNode n)
 {
-  return TypeNode::null();
+  return nm->instPatternListType();
 }
 TypeNode QuantifierInstPatternListTypeRule::computeType(
     NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
@@ -207,7 +207,7 @@ TypeNode QuantifierInstPatternListTypeRule::computeType(
 TypeNode QuantifierOracleFormulaGenTypeRule::preComputeType(NodeManager* nm,
                                                             TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode QuantifierOracleFormulaGenTypeRule::computeType(
     NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)

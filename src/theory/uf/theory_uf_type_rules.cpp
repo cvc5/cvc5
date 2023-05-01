@@ -102,18 +102,6 @@ TypeNode CardinalityConstraintOpTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->builtinOperatorType();
 }
 
-TypeNode CardinalityConstraintTypeRule::preComputeType(NodeManager* nm, TNode n)
-{
-  return TypeNode::null();
-}
-TypeNode CardinalityConstraintTypeRule::computeType(NodeManager* nodeManager,
-                                                    TNode n,
-                                                    bool check,
-                                                    std::ostream* errOut)
-{
-  return nodeManager->booleanType();
-}
-
 TypeNode CombinedCardinalityConstraintOpTypeRule::preComputeType(
     NodeManager* nm, TNode n)
 {
@@ -133,17 +121,6 @@ TypeNode CombinedCardinalityConstraintOpTypeRule::computeType(
     }
   }
   return nodeManager->builtinOperatorType();
-}
-
-TypeNode CombinedCardinalityConstraintTypeRule::preComputeType(NodeManager* nm,
-                                                               TNode n)
-{
-  return TypeNode::null();
-}
-TypeNode CombinedCardinalityConstraintTypeRule::computeType(
-    NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
-{
-  return nodeManager->booleanType();
 }
 
 TypeNode HoApplyTypeRule::preComputeType(NodeManager* nm, TNode n)
@@ -283,13 +260,17 @@ TypeNode IntToBitVectorOpTypeRule::computeType(NodeManager* nodeManager,
   {
     throw TypeCheckingExceptionPrivate(n, "expecting bit-width > 0");
   }
-  return nodeManager->mkFunctionType(nodeManager->integerType(),
-                                     nodeManager->mkBitVectorType(bvSize));
+  return nodeManager->builtinOperatorType();
 }
 
 TypeNode BitVectorConversionTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  if (n.getKind() == kind::BITVECTOR_TO_NAT)
+  {
+    return nm->integerType();
+  }
+  size_t bvSize = n.getOperator().getConst<IntToBitVector>();
+  return nm->mkBitVectorType(bvSize);
 }
 TypeNode BitVectorConversionTypeRule::computeType(NodeManager* nodeManager,
                                                   TNode n,

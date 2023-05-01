@@ -25,7 +25,7 @@ namespace builtin {
 
 TypeNode EqualityTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode EqualityTypeRule::computeType(NodeManager* nodeManager,
                                        TNode n,
@@ -55,7 +55,7 @@ TypeNode EqualityTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode DistinctTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode DistinctTypeRule::computeType(NodeManager* nodeManager,
                                        TNode n,
@@ -82,7 +82,7 @@ TypeNode DistinctTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode SExprTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->sExprType();
 }
 TypeNode SExprTypeRule::computeType(NodeManager* nodeManager,
                                     TNode n,
@@ -160,7 +160,7 @@ TypeNode WitnessTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode ApplyIndexedSymbolicTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->mkAbstractType(kind::ABSTRACT_TYPE);
 }
 TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
                                                    TNode n,

@@ -253,7 +253,7 @@ Node ArraysProperties::mkGroundTerm(TypeNode type)
 
 TypeNode ArrayEqRangeTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode ArrayEqRangeTypeRule::computeType(NodeManager* nodeManager,
                                            TNode n,

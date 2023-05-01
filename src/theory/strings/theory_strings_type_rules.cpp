@@ -158,7 +158,7 @@ TypeNode StringAtTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode StringIndexOfTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->integerType();
 }
 TypeNode StringIndexOfTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
@@ -230,7 +230,7 @@ TypeNode StringReplaceTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode StringStrToBoolTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode StringStrToBoolTypeRule::computeType(NodeManager* nodeManager,
                                               TNode n,
@@ -252,7 +252,7 @@ TypeNode StringStrToBoolTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode StringStrToIntTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->integerType();
 }
 TypeNode StringStrToIntTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
@@ -296,7 +296,7 @@ TypeNode StringStrToStrTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode StringRelationTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode StringRelationTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
@@ -323,7 +323,7 @@ TypeNode StringRelationTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode RegExpRangeTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->regExpType();
 }
 TypeNode RegExpRangeTypeRule::computeType(NodeManager* nodeManager,
                                           TNode n,
@@ -349,7 +349,7 @@ TypeNode RegExpRangeTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode StringToRegExpTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->regExpType();
 }
 TypeNode StringToRegExpTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,

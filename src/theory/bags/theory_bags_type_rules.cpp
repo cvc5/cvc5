@@ -78,7 +78,7 @@ bool BinaryOperatorTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
 
 TypeNode SubBagTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode SubBagTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
@@ -105,7 +105,7 @@ TypeNode SubBagTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode CountTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->integerType();
 }
 TypeNode CountTypeRule::computeType(NodeManager* nodeManager,
                                     TNode n,
@@ -139,7 +139,7 @@ TypeNode CountTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode MemberTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode MemberTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
@@ -238,7 +238,7 @@ bool BagMakeTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
 
 TypeNode IsSingletonTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode IsSingletonTypeRule::computeType(NodeManager* nodeManager,
                                           TNode n,
@@ -274,7 +274,7 @@ TypeNode EmptyBagTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode CardTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->integerType();
 }
 TypeNode CardTypeRule::computeType(NodeManager* nodeManager,
                                    TNode n,
