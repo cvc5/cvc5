@@ -9,7 +9,7 @@ This document describe the syntax of the RARE language, which stands for
             | (define-cond-rule  <symbol> (<par>*) [<defs>] <expr> <expr> <expr>)
     <par> ::= (<symbol> <sort> [<attr>])
    <sort> ::= ? | <symbol> | ?<symbol> | (<symbol> <sort>+) | (<symbol> <idx>+)
-    <idx> ::= ? | <numeral>
+    <idx> ::= <numeral>
    <attr> ::= :list
    <expr> ::= <const> | <id> | (<id> <expr>+)
      <id> ::= <symbol> | (_ <id> <expr>+)
