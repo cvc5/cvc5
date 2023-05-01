@@ -1339,15 +1339,14 @@ Term Smt2TermParser::parseMatchCasePattern(Sort headSort,
     {
       Term pat = d_state.getVariable(name);
       Sort type = pat.getSort();
-      if (!type.isDatatypeConstructor()
-          || !type.getDatatypeConstructorDomainSorts().empty())
+      if (!type.isDatatype())
       {
         d_lex.parseError(
             "Must apply constructors of arity greater than 0 to arguments in "
             "pattern.");
       }
       // make nullary constructor application
-      return d_state.getSolver()->mkTerm(APPLY_CONSTRUCTOR, {pat});
+      return pat;
     }
     // it has the type of the head expr
     Term pat = d_state.bindBoundVar(name, headSort);

@@ -119,14 +119,7 @@ Term ParserState::getExpressionForNameAndType(const std::string& name, Sort t)
       parseError("Overloaded constants must be type cast.");
     }
   }
-  // now, post-process the expression
   Assert(!expr.isNull());
-  Sort te = expr.getSort();
-  if (te.isDatatypeConstructor() && te.getDatatypeConstructorArity() == 0)
-  {
-    // nullary constructors have APPLY_CONSTRUCTOR kind with no children
-    expr = d_solver->mkTerm(APPLY_CONSTRUCTOR, {expr});
-  }
   return expr;
 }
 
