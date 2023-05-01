@@ -50,12 +50,12 @@
   m)
 
 (define-cond-rule str-len-substr-ub1 ((s ?) (n Int) (m Int) (k Int))
-  (>= k m)
+  (and (>= k 0) (>= k m))
   (>= k (str.len (str.substr s n m)))
   true)
 
 (define-cond-rule str-len-substr-ub2 ((s ?) (n Int) (m Int) (k Int))
-  (>= k (- (str.len s) n))
+  (and (>= k 0) (>= k (- (str.len s) n)))
   (>= k (str.len (str.substr s n m)))
   true)
 
