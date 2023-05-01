@@ -15,7 +15,6 @@
 
 #include "base/cvc5config.h"
 #include "util/real_algebraic_number.h"
-#include "base/output.h"
 
 #ifdef CVC5_POLY_IMP
 #include <poly/polyxx.h>
