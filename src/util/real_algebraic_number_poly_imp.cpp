@@ -116,20 +116,23 @@ RealAlgebraicNumber::RealAlgebraicNumber(
 bool RealAlgebraicNumber::isRational() const
 {
 #ifdef CVC5_POLY_IMP
-  return !d_isPoly || poly::is_rational(getValue());
-#else
-  return true;
+  if (d_isPoly)
+  {
+    return poly::is_rational(getValue());
+  }
 #endif
+  return true;
 }
 Rational RealAlgebraicNumber::toRational() const
 {
 #ifdef CVC5_POLY_IMP
-  return d_isPoly ? poly_utils::toRational(
-             poly::to_rational_approximation(getValue()))
-                  : getRationalValue();
-#else
-  return getRationalValue();
+  if (d_isPoly)
+  {
+    return poly_utils::toRational(
+              poly::to_rational_approximation(getValue()));
+  }
 #endif
+  return getRationalValue();
 }
 
 std::string RealAlgebraicNumber::toString() const
@@ -146,73 +149,119 @@ std::string RealAlgebraicNumber::toString() const
   return ss.str();
 }
 
+/*
+std::optional<std::pair<poly::AlgebraicNumber, poly::AlgebraicNumber>> RealAlgebraicNumber::convertOpToPoly(const RealAlgebraicNumber& lhs, 
+                                                                                                const RealAlgebraicNumber& rhs)
+{
+#ifdef CVC5_POLY_IMP
+  if (lhs.d_isPoly)
+  {
+    return std::optional<std::pair<poly::AlgebraicNumber, poly::AlgebraicNumber>>(lhs.d_value, convertToPoly(rhs));
+  }
+  else if (rhs.d_isPoly)
+  {
+    return std::optional<std::pair<poly::AlgebraicNumber, poly::AlgebraicNumber>>(convertToPoly(lhs.d_value), rhs.d_value);
+  }
+#endif
+  return std::nullopt;
+}
+*/
+poly::AlgebraicNumber RealAlgebraicNumber::convertToPoly(const RealAlgebraicNumber& r)
+{
+#ifdef CVC5_POLY_IMP
+  if (r.d_isPoly)
+  {
+    return r.d_value;
+  }
+  const Rational& rr = r.getRationalValue();
+  poly::Rational pr = poly_utils::toRational(rr);
+  auto dr = poly_utils::toDyadicRational(rr);
+  if (dr)
+  {
+    return poly::AlgebraicNumber(dr.value());
+  }
+  return poly::AlgebraicNumber(
+        poly::UPolynomial({-numerator(pr), denominator(pr)}),
+        poly::DyadicInterval(floor(pr), ceil(pr)));
+#endif
+}
+
 bool RealAlgebraicNumber::operator==(const RealAlgebraicNumber& rhs) const
 {
-  return getValue() == rhs.getValue();
+#ifdef CVC5_POLY_IMP
+  /*
+  auto p = convertOpToPoly(*this, rhs);
+  if (p)
+  {
+    return p.first == p.second;
+  }
+  */
+#endif
+  return getRationalValue() == rhs.getRationalValue();
 }
 bool RealAlgebraicNumber::operator!=(const RealAlgebraicNumber& rhs) const
 {
-  return getValue() != rhs.getValue();
+  return getRationalValue() != rhs.getRationalValue();
 }
 bool RealAlgebraicNumber::operator<(const RealAlgebraicNumber& rhs) const
 {
-  return getValue() < rhs.getValue();
+  return getRationalValue() < rhs.getRationalValue();
 }
 bool RealAlgebraicNumber::operator<=(const RealAlgebraicNumber& rhs) const
 {
-  return getValue() <= rhs.getValue();
+  return getRationalValue() <= rhs.getRationalValue();
 }
 bool RealAlgebraicNumber::operator>(const RealAlgebraicNumber& rhs) const
 {
-  return getValue() > rhs.getValue();
+  return getRationalValue() > rhs.getRationalValue();
 }
 bool RealAlgebraicNumber::operator>=(const RealAlgebraicNumber& rhs) const
 {
-  return getValue() >= rhs.getValue();
+  return getRationalValue() >= rhs.getRationalValue();
 }
 
 RealAlgebraicNumber RealAlgebraicNumber::operator+(
     const RealAlgebraicNumber& rhs) const
 {
-  return getValue() + rhs.getValue();
+  return getRationalValue() + rhs.getRationalValue();
 }
 RealAlgebraicNumber RealAlgebraicNumber::operator-(
     const RealAlgebraicNumber& rhs) const
 {
-  return getValue() - rhs.getValue();
+  return getRationalValue() - rhs.getRationalValue();
 }
 RealAlgebraicNumber RealAlgebraicNumber::operator-() const
 {
-  return -getValue();
+  return -getRationalValue();
 }
 RealAlgebraicNumber RealAlgebraicNumber::operator*(
     const RealAlgebraicNumber& rhs) const
 {
-  return getValue() * rhs.getValue();
+  return getRationalValue() * rhs.getRationalValue();
 }
 RealAlgebraicNumber RealAlgebraicNumber::operator/(
     const RealAlgebraicNumber& rhs) const
 {
   Assert(!rhs.isZero()) << "Can not divide by zero";
-  return getValue() / rhs.getValue();
+  return getRationalValue() / rhs.getRationalValue();
 }
 
 RealAlgebraicNumber& RealAlgebraicNumber::operator+=(
     const RealAlgebraicNumber& rhs)
 {
-  getValue() = getValue() + rhs.getValue();
+  getRationalValue() = getRationalValue() + rhs.getRationalValue();
   return *this;
 }
 RealAlgebraicNumber& RealAlgebraicNumber::operator-=(
     const RealAlgebraicNumber& rhs)
 {
-  getValue() = getValue() - rhs.getValue();
+  getRationalValue() = getRationalValue() - rhs.getRationalValue();
   return *this;
 }
 RealAlgebraicNumber& RealAlgebraicNumber::operator*=(
     const RealAlgebraicNumber& rhs)
 {
-  getValue() = getValue() * rhs.getValue();
+  getRationalValue() = getRationalValue() * rhs.getRationalValue();
   return *this;
 }
 
