@@ -47,13 +47,9 @@ find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Developmen
 # Some cmake packages are not compatible with the newest version
 # of FindPython, introduced in cmake 3.12.
 # We define the symbols below to be backward compatible.
-if(NOT DEFINED PYTHON_EXECUTABLE) 
   set(PYTHON_EXECUTABLE "${Python_EXECUTABLE}")
-endif()
   set(PYTHON_INCLUDE_DIRS "${Python_INCLUDE_DIRS}")
-if (NOT DEFINED PYTHON_LIBRARIES) 
   set(PYTHON_LIBRARIES "${Python_LIBRARIES}")
-endif()
 
 find_package(PythonExtensions REQUIRED)
 find_package(Cython 0.29 REQUIRED)
