@@ -365,7 +365,7 @@ bool SymbolManager::bindMutualDatatypeTypes(
       std::string constructorName = ctor.getName();
       // A zeo argument constructor is actually APPLY_CONSTRUCTOR for the
       // constructor.
-      if (ctor.getNumSelectors()==0)
+      if (ctor.getNumSelectors() == 0)
       {
         constructor = d_solver->mkTerm(APPLY_CONSTRUCTOR, {constructor});
       }
