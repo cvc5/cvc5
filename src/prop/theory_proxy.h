@@ -71,7 +71,7 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** Presolve, which calls presolve for the modules managed by this class */
   void presolve();
-  /** Postsolve, which calls presolve for the modules managed by this class */
+  /** Postsolve, which calls postsolve for the modules managed by this class */
   void postsolve();
 
   /**

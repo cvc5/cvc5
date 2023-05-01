@@ -150,7 +150,7 @@ void SmtDriver::notifyPushPost() { d_smt.pushPropContext(); }
 
 void SmtDriver::notifyPopPre() { d_smt.popPropContext(); }
 
-void SmtDriver::notifyPostSolve() { d_smt.postsolve(); }
+void SmtDriver::notifyPostSolve() { d_smt.resetTrail(); }
 
 SmtDriverSingleCall::SmtDriverSingleCall(Env& env,
                                          SmtSolver& smt,
