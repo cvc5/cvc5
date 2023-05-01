@@ -165,20 +165,19 @@ class RealAlgebraicNumber
   const poly::AlgebraicNumber& getValue() const { return d_value; }
   /** Get the internal value as a non-const reference. */
   poly::AlgebraicNumber& getValue() { return d_value; }
-#else
+#endif
   /** Get the internal value as a const reference. */
-  const Rational& getValue() const { return d_value; }
+  const Rational& getRationalValue() const { return d_rat; }
   /** Get the internal value as a non-const reference. */
-  Rational& getValue() { return d_value; }
-#endif
-  /**
-   * Stores the actual real algebraic number.
-   */
+  Rational& getRationalValue() { return d_rat; }
 #ifdef CVC5_POLY_IMP
+  /** Is poly */
+  bool d_isPoly;
+  /** Stores the actual real algebraic number, if applicable. */
   poly::AlgebraicNumber d_value;
-#else
-  Rational d_value;
 #endif
+  /** Stores the rational, if applicable. */
+  Rational d_rat;
 }; /* class RealAlgebraicNumber */
 
 /** Stream a real algebraic number to an output stream. */

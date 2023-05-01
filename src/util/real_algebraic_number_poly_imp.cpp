@@ -33,39 +33,26 @@ namespace cvc5::internal {
 
 #ifdef CVC5_POLY_IMP
 RealAlgebraicNumber::RealAlgebraicNumber(poly::AlgebraicNumber&& an)
-    : d_value(std::move(an))
+    : d_isPoly(true),
+      d_value(std::move(an))
 {
 }
 #endif
 
 RealAlgebraicNumber::RealAlgebraicNumber(const Integer& i)
 #ifdef CVC5_POLY_IMP
-    : d_value(poly::DyadicRational(poly_utils::toInteger(i)))
-#else
-    : d_value(i)
+    : d_isPoly(false),
 #endif
+      d_rat(i)
 {
 }
 
-RealAlgebraicNumber::RealAlgebraicNumber(const Rational& r)
+RealAlgebraicNumber::RealAlgebraicNumber(const Rational& r) :
 #ifndef CVC5_POLY_IMP
-    : d_value(r)
+    d_isPoly(false),
 #endif
+      d_rat(r)
 {
-#ifdef CVC5_POLY_IMP
-  poly::Rational pr = poly_utils::toRational(r);
-  auto dr = poly_utils::toDyadicRational(r);
-  if (dr)
-  {
-    d_value = poly::AlgebraicNumber(dr.value());
-  }
-  else
-  {
-    d_value = poly::AlgebraicNumber(
-        poly::UPolynomial({-numerator(pr), denominator(pr)}),
-        poly::DyadicInterval(floor(pr), ceil(pr)));
-  }
-#endif
 }
 
 RealAlgebraicNumber::RealAlgebraicNumber(const std::vector<long>& coefficients,
@@ -82,6 +69,7 @@ RealAlgebraicNumber::RealAlgebraicNumber(const std::vector<long>& coefficients,
   }
 #endif
 #ifdef CVC5_POLY_IMP
+  d_isPoly = true;
   d_value = poly::AlgebraicNumber(poly::UPolynomial(coefficients),
                                   poly::DyadicInterval(lower, upper));
 #else
@@ -128,7 +116,7 @@ RealAlgebraicNumber::RealAlgebraicNumber(
 bool RealAlgebraicNumber::isRational() const
 {
 #ifdef CVC5_POLY_IMP
-  return poly::is_rational(getValue());
+  return !d_isPoly || poly::is_rational(getValue());
 #else
   return true;
 #endif
@@ -136,16 +124,23 @@ bool RealAlgebraicNumber::isRational() const
 Rational RealAlgebraicNumber::toRational() const
 {
 #ifdef CVC5_POLY_IMP
-  return poly_utils::toRational(poly::to_rational_approximation(getValue()));
+  return d_isPoly ? poly_utils::toRational(poly::to_rational_approximation(getValue())) : getRationalValue();
 #else
-  return d_value;
+  return getRationalValue();
 #endif
 }
 
 std::string RealAlgebraicNumber::toString() const
 {
   std::stringstream ss;
-  ss << getValue();
+#ifdef CVC5_POLY_IMP
+  if (d_isPoly)
+  {
+    ss << getValue();
+    return ss.str();
+  }
+#endif
+  ss << getRationalValue();
   return ss.str();
 }
 
@@ -222,44 +217,54 @@ RealAlgebraicNumber& RealAlgebraicNumber::operator*=(
 int RealAlgebraicNumber::sgn() const
 {
 #ifdef CVC5_POLY_IMP
-  return poly::sgn(getValue());
-#else
-  return getValue().sgn();
+  if (d_isPoly)
+  {
+    return poly::sgn(getValue());
+  }
 #endif
+  return getRationalValue().sgn();
 }
 bool RealAlgebraicNumber::isZero() const
 {
 #ifdef CVC5_POLY_IMP
-  return poly::is_zero(getValue());
-#else
-  return getValue().isZero();
+  if (d_isPoly)
+  {
+    return poly::is_zero(getValue());
+  }
 #endif
+  return getRationalValue().isZero();
 }
 bool RealAlgebraicNumber::isOne() const
 {
 #ifdef CVC5_POLY_IMP
-  return poly::is_one(getValue());
-#else
-  return getValue().isOne();
+  if (d_isPoly)
+  {
+    return poly::is_one(getValue());
+  }
 #endif
+  return getRationalValue().isOne();
 }
 RealAlgebraicNumber RealAlgebraicNumber::inverse() const
 {
   Assert(!isZero()) << "Can not invert zero";
 #ifdef CVC5_POLY_IMP
-  return poly::inverse(getValue());
-#else
-  return getValue().inverse();
+  if (d_isPoly)
+  {
+    return poly::inverse(getValue());
+  }
 #endif
+  return getRationalValue().inverse();
 }
 
 size_t RealAlgebraicNumber::hash() const
 {
 #ifdef CVC5_POLY_IMP
-  return lp_algebraic_number_hash_approx(getValue().get_internal(), 2);
-#else
-  return getValue().hash();
+  if (d_isPoly)
+  {
+    return lp_algebraic_number_hash_approx(getValue().get_internal(), 2);
+  }
 #endif
+  return getRationalValue().hash();
 }
 
 std::ostream& operator<<(std::ostream& os, const RealAlgebraicNumber& ran)
