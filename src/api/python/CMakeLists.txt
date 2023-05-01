@@ -43,8 +43,6 @@ endif()
 # Required for Cython target below
 list(APPEND CMAKE_MODULE_PATH ${SKBUILD_CMAKE_MODULE_PATH})
 
-find_package(PythonExtensions REQUIRED)
-
 find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Development)
 # Some cmake packages are not compatible with the newest version
 # of FindPython, introduced in cmake 3.12.
@@ -59,6 +57,7 @@ if (NOT DEFINED PYTHON_LIBRARIES)
   set(PYTHON_LIBRARIES "${Python_LIBRARIES}")
 endif()
 
+find_package(PythonExtensions REQUIRED)
 find_package(Cython 0.29 REQUIRED)
 
 set(CYTHON_FLAGS "-X embedsignature=True")
