@@ -128,8 +128,7 @@ Rational RealAlgebraicNumber::toRational() const
 #ifdef CVC5_POLY_IMP
   if (d_isPoly)
   {
-    return poly_utils::toRational(
-              poly::to_rational_approximation(getValue()));
+    return poly_utils::toRational(poly::to_rational_approximation(getValue()));
   }
 #endif
   return getRationalValue();
@@ -150,23 +149,27 @@ std::string RealAlgebraicNumber::toString() const
 }
 
 /*
-std::optional<std::pair<poly::AlgebraicNumber, poly::AlgebraicNumber>> RealAlgebraicNumber::convertOpToPoly(const RealAlgebraicNumber& lhs, 
-                                                                                                const RealAlgebraicNumber& rhs)
+std::optional<std::pair<poly::AlgebraicNumber, poly::AlgebraicNumber>>
+RealAlgebraicNumber::convertOpToPoly(const RealAlgebraicNumber& lhs, const
+RealAlgebraicNumber& rhs)
 {
 #ifdef CVC5_POLY_IMP
   if (lhs.d_isPoly)
   {
-    return std::optional<std::pair<poly::AlgebraicNumber, poly::AlgebraicNumber>>(lhs.d_value, convertToPoly(rhs));
+    return std::optional<std::pair<poly::AlgebraicNumber,
+poly::AlgebraicNumber>>(lhs.d_value, convertToPoly(rhs));
   }
   else if (rhs.d_isPoly)
   {
-    return std::optional<std::pair<poly::AlgebraicNumber, poly::AlgebraicNumber>>(convertToPoly(lhs.d_value), rhs.d_value);
+    return std::optional<std::pair<poly::AlgebraicNumber,
+poly::AlgebraicNumber>>(convertToPoly(lhs.d_value), rhs.d_value);
   }
 #endif
   return std::nullopt;
 }
 */
-poly::AlgebraicNumber RealAlgebraicNumber::convertToPoly(const RealAlgebraicNumber& r)
+poly::AlgebraicNumber RealAlgebraicNumber::convertToPoly(
+    const RealAlgebraicNumber& r)
 {
 #ifdef CVC5_POLY_IMP
   if (r.d_isPoly)
@@ -181,8 +184,8 @@ poly::AlgebraicNumber RealAlgebraicNumber::convertToPoly(const RealAlgebraicNumb
     return poly::AlgebraicNumber(dr.value());
   }
   return poly::AlgebraicNumber(
-        poly::UPolynomial({-numerator(pr), denominator(pr)}),
-        poly::DyadicInterval(floor(pr), ceil(pr)));
+      poly::UPolynomial({-numerator(pr), denominator(pr)}),
+      poly::DyadicInterval(floor(pr), ceil(pr)));
 #endif
 }
 

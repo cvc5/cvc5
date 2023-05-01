@@ -165,10 +165,12 @@ class RealAlgebraicNumber
   const poly::AlgebraicNumber& getValue() const { return d_value; }
   /** Get the internal value as a non-const reference. */
   poly::AlgebraicNumber& getValue() { return d_value; }
-  /** 
+  /**
    * Return true if one of lhs or rhs is represented by poly.
    */
-  static std::optional<std::pair<poly::AlgebraicNumber, poly::AlgebraicNumber>> convertOpToPoly(const RealAlgebraicNumber& lhs, const RealAlgebraicNumber& rhs);
+  static std::optional<std::pair<poly::AlgebraicNumber, poly::AlgebraicNumber>>
+  convertOpToPoly(const RealAlgebraicNumber& lhs,
+                  const RealAlgebraicNumber& rhs);
   /**
    * Convert rational to poly */
   static poly::AlgebraicNumber convertToPoly(const RealAlgebraicNumber& r);
