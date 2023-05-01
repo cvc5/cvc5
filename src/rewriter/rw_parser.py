@@ -214,19 +214,36 @@ class Parser:
         return Rule(name, bvars, cond, lhs, rhs, is_fixed_point, rhs_context)
 
     def parse_rules(self, s):
+        def rule_action(s, l, t):
+            # t = [key, args, match, target]
+            assert len(t) == 4
+            return self.rule_action(t[1], CBool(True), t[2], t[3], False, None)
         rule = (
             pp.Suppress('(') +
-            (pp.Keyword('define-rule*') | pp.Keyword('define-rule')) +
-            self.symbol() + self.var_list() + self.def_list() + self.expr() + self.expr() + pp.Optional(self.expr()) +
-            pp.Suppress(')')).setParseAction(lambda s, l, t: self.rule_action(
-                t[1], CBool(True), t[2], t[3], t[0] == 'define-rule*', t[4] if len(t) == 5 else None))
+            pp.Keyword('define-rule') +
+            self.symbol() + self.var_list() + self.def_list() +
+            self.expr() + self.expr() +
+            pp.Suppress(')')).setParseAction(rule_action)
+        def fixed_rule_action(s, l, t):
+            # t = [key, args, match, target, (cond)]
+            assert len(t) == 4 or len(t) == 5
+            return self.rule_action(t[1], CBool(True), t[2], t[3], True, t[4] if len(t) == 5 else None)
+        fixed_rule = (
+            pp.Suppress('(') +
+            pp.Keyword('define-rule*') +
+            self.symbol() + self.var_list() + self.def_list() +
+            self.expr() + self.expr() + pp.Optional(self.expr()) +
+            pp.Suppress(')')).setParseAction(fixed_rule_action)
+        def cond_rule_action(s, l, t):
+            # t = [key, args, cond, match, target]
+            assert len(t) == 5
+            return self.rule_action(t[1], t[2], t[3], t[4], False, None)
         cond_rule = (
             pp.Suppress('(') +
-            (pp.Keyword('define-cond-rule*') | pp.Keyword('define-cond-rule'))
-            + self.symbol() + self.var_list() + self.def_list() + self.expr() + self.expr() +
-            self.expr() + pp.Optional(self.expr()) +
-            pp.Suppress(')')).setParseAction(lambda s, l, t: self.rule_action(
-                t[1], t[2], t[3], t[4], t[0] == 'define-cond-rule*', t[5] if len(t) == 6 else None))
-        rules = pp.OneOrMore(rule | cond_rule) + pp.StringEnd()
+            pp.Keyword('define-cond-rule') +
+            self.symbol() + self.var_list() + self.def_list() +
+            self.expr() + self.expr() + self.expr() +
+            pp.Suppress(')')).setParseAction(cond_rule_action)
+        rules = pp.OneOrMore(rule | fixed_rule | cond_rule) + pp.StringEnd()
         rules.ignore(';' + pp.restOfLine)
         return rules.parseString(s)
