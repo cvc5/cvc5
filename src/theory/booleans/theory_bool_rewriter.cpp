@@ -21,8 +21,8 @@
 #include <algorithm>
 #include <unordered_set>
 
-#include "expr/node_value.h"
 #include "expr/algorithm/flatten.h"
+#include "expr/node_value.h"
 #include "util/cardinality.h"
 
 namespace cvc5::internal {
@@ -50,9 +50,9 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
 {
   // first flatten
   Node nf = expr::algorithm::flatten(n);
-  if (nf!=n)
+  if (nf != n)
   {
-    return RewriteResponse(REWRITE_AGAIN, nf); 
+    return RewriteResponse(REWRITE_AGAIN, nf);
   }
   // then do duplicate elimination and trivial node finding
   std::vector<TNode> childList;
@@ -61,10 +61,11 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
   bool hadDups = false;
   for (TNode nn : n)
   {
-    if(nn == trivialNode) {
+    if (nn == trivialNode)
+    {
       return RewriteResponse(REWRITE_DONE, trivialNode);
     }
-    if (visited.find(nn)!=visited.end())
+    if (visited.find(nn) != visited.end())
     {
       hadDups = true;
       continue;
@@ -78,12 +79,12 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
     {
       return RewriteResponse(REWRITE_DONE, skipNode);
     }
-    if (childList.size()==1)
+    if (childList.size() == 1)
     {
-      return RewriteResponse(REWRITE_AGAIN, childList[0]); 
+      return RewriteResponse(REWRITE_AGAIN, childList[0]);
     }
     Node nn = NodeManager::currentNM()->mkNode(n.getKind(), childList);
-    return RewriteResponse(REWRITE_AGAIN, nn); 
+    return RewriteResponse(REWRITE_AGAIN, nn);
   }
   return RewriteResponse(REWRITE_DONE, n);
 }

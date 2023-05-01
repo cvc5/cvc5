@@ -66,7 +66,7 @@ class PolyNorm
    * of operators ADD, SUB, NEG, MULT, and NONLINEAR_MULT only.
    */
   static PolyNorm mkPolyNorm(TNode n);
-  /** 
+  /**
    * If a and b are real/int terms, do a and b normalize to the same polynomial?
    * If a and b are real/int atoms, do they normalize to atoms over the same
    * polynomial?

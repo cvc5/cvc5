@@ -323,7 +323,7 @@ Node GenericOp::getOperatorForIndices(Kind k, const std::vector<Node>& indices)
 Node GenericOp::getConcreteApp(const Node& app)
 {
   Trace("ajr-temp") << "getConcreteApp " << app << std::endl;
-  Assert (app.getKind()==kind::APPLY_INDEXED_SYMBOLIC);
+  Assert(app.getKind() == kind::APPLY_INDEXED_SYMBOLIC);
   Kind okind = app.getOperator().getConst<GenericOp>().getKind();
   // determine how many arguments should be passed to the end function. This is
   // usually one, but we handle cases where it is >1.

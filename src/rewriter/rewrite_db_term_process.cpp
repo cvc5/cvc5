@@ -17,9 +17,9 @@
 
 #include "expr/attribute.h"
 #include "expr/nary_term_util.h"
-#include "theory/strings/theory_strings_utils.h"
 #include "theory/builtin/generic_op.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/strings/theory_strings_utils.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
 #include "util/string.h"

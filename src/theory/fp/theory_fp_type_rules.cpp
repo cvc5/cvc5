@@ -391,9 +391,10 @@ TypeNode FloatingPointToFPIEEEBitVectorTypeRule::computeType(
       }
       return TypeNode::null();
     }
-    else if (operandType.isBitVector() && operandType.getBitVectorSize()
-               != info.getSize().exponentWidth()
-                      + info.getSize().significandWidth())
+    else if (operandType.isBitVector()
+             && operandType.getBitVectorSize()
+                    != info.getSize().exponentWidth()
+                           + info.getSize().significandWidth())
     {
       if (errOut)
       {

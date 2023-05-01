@@ -166,7 +166,8 @@ TypeNode ArithRelationTypeRule::computeType(NodeManager* nodeManager,
   if (check)
   {
     Assert(n.getNumChildren() == 2);
-    if (!isMaybeRealOrInt(n[0].getTypeOrNull()) || !isMaybeRealOrInt(n[1].getTypeOrNull()))
+    if (!isMaybeRealOrInt(n[0].getTypeOrNull())
+        || !isMaybeRealOrInt(n[1].getTypeOrNull()))
     {
       if (errOut)
       {

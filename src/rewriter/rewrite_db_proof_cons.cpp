@@ -540,7 +540,9 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
   // also, variables cannot be rewritten
   if (eqi.getTypeOrNull().isNull() || eqi[0].isVar())
   {
-    Trace("rpc-debug2") << "...fail (" << (eqi[0].isVar() ? "variable" : "ill-typed") << ")" << std::endl;
+    Trace("rpc-debug2") << "...fail ("
+                        << (eqi[0].isVar() ? "variable" : "ill-typed") << ")"
+                        << std::endl;
     ProvenInfo& pi = d_pcache[eqi];
     idb = DslPfRule::FAIL;
     pi.d_failMaxDepth = 0;

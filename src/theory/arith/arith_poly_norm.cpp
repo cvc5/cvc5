@@ -157,10 +157,10 @@ bool PolyNorm::isEqualMod(const PolyNorm& p, Rational& c) const
     }
     if (firstTime)
     {
-      c = m.second/it->second;
+      c = m.second / it->second;
       firstTime = false;
     }
-    else if (m.second/it->second!=c)
+    else if (m.second / it->second != c)
     {
       return false;
     }
@@ -240,9 +240,9 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
       else if (k == CONST_BITVECTOR_SYMBOLIC)
       {
         // handle symbolic bv constants here as well
-        if (cur[0].isConst()
-          && cur[1].isConst() && cur[1].getConst<Rational>().sgn() == 1
-          && cur[1].getConst<Rational>().getNumerator().fitsUnsignedInt())
+        if (cur[0].isConst() && cur[1].isConst()
+            && cur[1].getConst<Rational>().sgn() == 1
+            && cur[1].getConst<Rational>().getNumerator().fitsUnsignedInt())
         {
           Integer value = cur[0].getConst<Rational>().getNumerator();
           Integer size = cur[1].getConst<Rational>().getNumerator();
@@ -253,7 +253,9 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
         }
       }
       else if (k == ADD || k == SUB || k == NEG || k == MULT
-               || k == NONLINEAR_MULT || k == TO_REAL || k == BITVECTOR_ADD || k == BITVECTOR_SUB || k == BITVECTOR_NEG || k == BITVECTOR_MULT)
+               || k == NONLINEAR_MULT || k == TO_REAL || k == BITVECTOR_ADD
+               || k == BITVECTOR_SUB || k == BITVECTOR_NEG
+               || k == BITVECTOR_MULT)
       {
         visited[cur] = PolyNorm();
         for (const Node& cn : cur)
@@ -287,11 +289,14 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
           {
             it = visited.find(cur[i]);
             Assert(it != visited.end());
-            if (((k == SUB || k == BITVECTOR_SUB) && i == 1) || k == NEG || k == BITVECTOR_NEG)
+            if (((k == SUB || k == BITVECTOR_SUB) && i == 1) || k == NEG
+                || k == BITVECTOR_NEG)
             {
               ret.subtract(it->second);
             }
-            else if (i > 0 && (k == MULT || k == NONLINEAR_MULT || k == BITVECTOR_MULT))
+            else if (i > 0
+                     && (k == MULT || k == NONLINEAR_MULT
+                         || k == BITVECTOR_MULT))
             {
               ret.multiply(it->second);
             }
@@ -302,7 +307,7 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
           }
           break;
         case CONST_RATIONAL:
-        case CONST_INTEGER: 
+        case CONST_INTEGER:
         case CONST_BITVECTOR:
         case CONST_BITVECTOR_SYMBOLIC:
           // ignore, this is the case of a repeated zero, since we check for
@@ -322,7 +327,7 @@ bool PolyNorm::isArithPolyNorm(TNode a, TNode b)
   if (at.isBoolean())
   {
     // otherwise may be atoms
-    return isArithPolyNormAtom(a,b);
+    return isArithPolyNormAtom(a, b);
   }
   // Otherwise normalize, which notice abstracts any non-arithmetic term.
   // We impose no type requirements here.
@@ -333,19 +338,19 @@ bool PolyNorm::isArithPolyNorm(TNode a, TNode b)
 
 bool PolyNorm::isArithPolyNormAtom(TNode a, TNode b)
 {
-  Assert (a.getType().isBoolean());
+  Assert(a.getType().isBoolean());
   Kind k = a.getKind();
-  if (b.getKind()!=k)
+  if (b.getKind() != k)
   {
     return false;
   }
   bool isBv = false;
-  if (k==EQUAL)
+  if (k == EQUAL)
   {
-    for (size_t i=0; i<2; i++)
+    for (size_t i = 0; i < 2; i++)
     {
-      Node eq = i==0 ? a : b;
-      for (size_t j=0; j<2; j++)
+      Node eq = i == 0 ? a : b;
+      for (size_t j = 0; j < 2; j++)
       {
         TypeNode tn = eq[j].getType();
         if (tn.isRealOrInt())
@@ -353,7 +358,8 @@ bool PolyNorm::isArithPolyNormAtom(TNode a, TNode b)
           continue;
         }
         // handle possibility of gradual BV type
-        if (tn.isBitVector() || (tn.isAbstract() && tn.getAbstractedKind()==BITVECTOR_TYPE))
+        if (tn.isBitVector()
+            || (tn.isAbstract() && tn.getAbstractedKind() == BITVECTOR_TYPE))
         {
           isBv = true;
           continue;
@@ -362,15 +368,14 @@ bool PolyNorm::isArithPolyNormAtom(TNode a, TNode b)
       }
     }
   }
-  else if (k==GEQ || k==LEQ || k==GT || k==LT)
+  else if (k == GEQ || k == LEQ || k == GT || k == LT)
   {
     // k is a handled binary relation, i.e. one that permits normalization
     // via subtracting the right side from the left.
   }
-  else if (k == BITVECTOR_ULT || k == BITVECTOR_ULE
-  || k == BITVECTOR_UGT || k == BITVECTOR_UGE
-  || k == BITVECTOR_SLT || k == BITVECTOR_SLE
-  || k == BITVECTOR_SGT || k == BITVECTOR_SGE)
+  else if (k == BITVECTOR_ULT || k == BITVECTOR_ULE || k == BITVECTOR_UGT
+           || k == BITVECTOR_UGE || k == BITVECTOR_SLT || k == BITVECTOR_SLE
+           || k == BITVECTOR_SGT || k == BITVECTOR_SGE)
   {
     isBv = true;
   }
@@ -387,16 +392,16 @@ bool PolyNorm::isArithPolyNormAtom(TNode a, TNode b)
     return pa.isEqual(pb);
   }
   // check if the two polynomials are equal modulo a constant coefficient
-  // in other words, x ~ y is equivalent to z ~ w if 
+  // in other words, x ~ y is equivalent to z ~ w if
   // x-y = c*(z-w) for some c > 0.
   Rational c;
   if (!pa.isEqualMod(pb, c))
   {
     return false;
   }
-  Assert (c.sgn()!=0);
+  Assert(c.sgn() != 0);
   // if equal, can be negative. Notice this shortcuts symmetry of equality.
-  return k==EQUAL || c.sgn()==1;
+  return k == EQUAL || c.sgn() == 1;
 }
 
 PolyNorm PolyNorm::mkDiff(TNode a, TNode b)

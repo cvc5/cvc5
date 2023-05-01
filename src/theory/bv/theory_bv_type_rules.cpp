@@ -122,8 +122,7 @@ TypeNode BitVectorConstantSymbolicTypeRule::computeType(
   if (n[1].isConst())
   {
     const Rational& r = n[1].getConst<Rational>();
-    if (r.sgn() == 1
-          && r.getNumerator().fitsUnsignedInt())
+    if (r.sgn() == 1 && r.getNumerator().fitsUnsignedInt())
     {
       return nodeManager->mkBitVectorType(r.getNumerator().toUnsignedInt());
     }

@@ -272,9 +272,8 @@ Node narySubstitute(Node src,
           }
           else
           {
-            ret = (children.size() == 1
-                            ? children[0]
-                            : nm->mkNode(cur.getKind(), children));
+            ret = (children.size() == 1 ? children[0]
+                                        : nm->mkNode(cur.getKind(), children));
           }
         }
         else

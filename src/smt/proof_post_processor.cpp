@@ -36,7 +36,6 @@ using namespace cvc5::internal::theory;
 namespace cvc5::internal {
 namespace smt {
 
-
 ProofPostprocessCallback::ProofPostprocessCallback(Env& env,
                                                    rewriter::RewriteDb* rdb,
                                                    bool updateScopedAssumptions)
@@ -78,7 +77,7 @@ bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   {
     return true;
   }
-  if (d_elimAllTrusted && d_pc->getPedanticLevel(id)>0)
+  if (d_elimAllTrusted && d_pc->getPedanticLevel(id) > 0)
   {
     return true;
   }
@@ -177,7 +176,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
                                             const std::vector<Node>& children,
                                             const std::vector<Node>& args,
                                             CDProof* cdp,
-                    Node res)
+                                            Node res)
 {
   if (!d_elimAllTrusted && d_elimRules.find(id) == d_elimRules.end())
   {
@@ -974,15 +973,15 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     bb.getProofGenerator()->addProofTo(eq[0].eqNode(bbAtom), cdp);
     return eq;
   }
-  else if (d_elimAllTrusted && d_pc->getPedanticLevel(id)>0)
+  else if (d_elimAllTrusted && d_pc->getPedanticLevel(id) > 0)
   {
     if (res.isNull())
     {
       res = d_pc->checkDebug(id, children, args);
-      Assert (!res.isNull());
+      Assert(!res.isNull());
     }
     bool reqTrueElim = false;
-    if (res.getKind()!=EQUAL)
+    if (res.getKind() != EQUAL)
     {
       res = res.eqNode(d_true);
       reqTrueElim = true;
@@ -990,7 +989,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     TheoryId tid = THEORY_LAST;
     MethodId mid = MethodId::RW_REWRITE;
     // if theory rewrite, get diagnostic information
-    if (id==PfRule::THEORY_REWRITE)
+    if (id == PfRule::THEORY_REWRITE)
     {
       builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
       getMethodId(args[2], mid);
@@ -999,8 +998,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     int64_t stepLimit = options().proof.proofRewriteRconsStepLimit;
     // attempt to reconstruct the proof of the equality into cdp using the
     // rewrite database proof reconstructor
-    if (d_rdbPc.prove(
-            cdp, res[0], res[1], tid, mid, recLimit, stepLimit))
+    if (d_rdbPc.prove(cdp, res[0], res[1], tid, mid, recLimit, stepLimit))
     {
       if (reqTrueElim)
       {

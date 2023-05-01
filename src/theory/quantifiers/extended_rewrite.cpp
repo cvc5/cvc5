@@ -1761,7 +1761,8 @@ void ExtendedRewriter::debugExtendedRewrite(Node n,
                                             Node ret,
                                             const char* c) const
 {
-  Assert(ret.isNull() || n.getType().isComparableTo(ret.getType())) << "Extended rewrite does not preserve type: " << n << " --> " << ret;
+  Assert(ret.isNull() || n.getType().isComparableTo(ret.getType()))
+      << "Extended rewrite does not preserve type: " << n << " --> " << ret;
   if (TraceIsOn("q-ext-rewrite"))
   {
     if (!ret.isNull())

@@ -250,9 +250,9 @@ RewriteResponse TheoryUfRewriter::rewriteIntToBV(TNode node)
   if (node[0].isConst())
   {
     NodeManager* nm = NodeManager::currentNM();
-    const uint32_t size =
-        node.getOperator().getConst<IntToBitVector>().d_size;
-    Node resultNode = nm->mkConst(BitVector(size, node[0].getConst<Rational>().getNumerator()));
+    const uint32_t size = node.getOperator().getConst<IntToBitVector>().d_size;
+    Node resultNode = nm->mkConst(
+        BitVector(size, node[0].getConst<Rational>().getNumerator()));
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
   }
   else if (node[0].getKind() == kind::BITVECTOR_TO_NAT)

@@ -17,8 +17,8 @@
 
 #include "expr/attribute.h"
 #include "expr/skolem_manager.h"
-#include "util/uninterpreted_sort_value.h"
 #include "theory/builtin/generic_op.h"
+#include "util/uninterpreted_sort_value.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -177,7 +177,7 @@ TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkAbstractType(kind::ABSTRACT_TYPE);
   // get the concrete application version of this, if possible
   Node cn = GenericOp::getConcreteApp(n);
-  if (cn==n)
+  if (cn == n)
   {
     // if it cannot be made concrete, it has abstract type
     return nodeManager->mkAbstractType(kind::ABSTRACT_TYPE);

@@ -497,12 +497,14 @@ EvalResult Evaluator::evalInternal(
           bool divbyzero = false;
           Kind k = currNodeVal.getKind();
           bool isReal = (k == kind::DIVISION || k == kind::DIVISION_TOTAL);
-          bool isMod = (k == kind::INTS_MODULUS || k == kind::INTS_MODULUS_TOTAL);
+          bool isMod =
+              (k == kind::INTS_MODULUS || k == kind::INTS_MODULUS_TOTAL);
           for (size_t i = 1, end = currNode.getNumChildren(); i < end; i++)
           {
             if (results[currNode[i]].d_rat.isZero())
             {
-              if (k==kind::DIVISION_TOTAL || k==kind::INTS_DIVISION_TOTAL || k==kind::INTS_MODULUS_TOTAL)
+              if (k == kind::DIVISION_TOTAL || k == kind::INTS_DIVISION_TOTAL
+                  || k == kind::INTS_MODULUS_TOTAL)
               {
                 res = Rational(0);
                 continue;
@@ -525,7 +527,7 @@ EvalResult Evaluator::evalInternal(
               Integer a = res.getNumerator();
               Integer b = results[currNode[i]].d_rat.getNumerator();
               res = Rational(isMod ? a.euclidianDivideRemainder(b)
-                           : a.euclidianDivideQuotient(b));
+                                   : a.euclidianDivideQuotient(b));
             }
           }
           if (divbyzero)
@@ -991,16 +993,18 @@ EvalResult Evaluator::evalInternal(
         case kind::BITVECTOR_SIGN_EXTEND:
         {
           BitVector res = results[currNode[0]].d_bv;
-          unsigned amount =
-              currNode.getOperator().getConst<BitVectorSignExtend>().d_signExtendAmount;
+          unsigned amount = currNode.getOperator()
+                                .getConst<BitVectorSignExtend>()
+                                .d_signExtendAmount;
           results[currNode] = EvalResult(res.signExtend(amount));
           break;
         }
         case kind::BITVECTOR_ZERO_EXTEND:
         {
           BitVector res = results[currNode[0]].d_bv;
-          unsigned amount =
-              currNode.getOperator().getConst<BitVectorZeroExtend>().d_zeroExtendAmount;
+          unsigned amount = currNode.getOperator()
+                                .getConst<BitVectorZeroExtend>()
+                                .d_zeroExtendAmount;
           results[currNode] = EvalResult(res.zeroExtend(amount));
           break;
         }

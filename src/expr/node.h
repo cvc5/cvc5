@@ -20,12 +20,12 @@
 
 #include <iostream>
 #include <map>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
-#include <sstream>
 
 #include "base/check.h"
 #include "base/exception.h"
@@ -1237,10 +1237,11 @@ TypeNode NodeTemplate<ref_count>::getType(bool check) const
   TypeNode tn = NodeManager::currentNM()->getType(*this, check);
   if (tn.isNull())
   {
-      // recompute with an error stream and throw a type exception
+    // recompute with an error stream and throw a type exception
     std::stringstream errOutTmp;
     tn = NodeManager::currentNM()->getType(*this, check, &errOutTmp);
-    //AlwaysAssert(false) << "Node failed to type check: " << *this << " with message " << errOutTmp.str();
+    // AlwaysAssert(false) << "Node failed to type check: " << *this << " with
+    // message " << errOutTmp.str();
     throw TypeCheckingExceptionPrivate(*this, errOutTmp.str());
   }
   return tn;

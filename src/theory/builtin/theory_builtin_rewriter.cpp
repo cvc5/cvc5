@@ -137,7 +137,7 @@ Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
 
 Node TheoryBuiltinRewriter::rewriteApplyIndexedSymbolic(TNode node)
 {
-  Assert (node.getKind()==kind::APPLY_INDEXED_SYMBOLIC);
+  Assert(node.getKind() == kind::APPLY_INDEXED_SYMBOLIC);
   Assert(node.getNumChildren() > 1);
   // if all arguments are constant, we return the non-symbolic version
   // of the operator, e.g. (extract 2 1 #b0000) ---> ((_ extract 2 1) #b0000)

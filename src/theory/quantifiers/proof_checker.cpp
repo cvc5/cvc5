@@ -136,9 +136,9 @@ Node QuantifiersProofRuleChecker::checkInternal(
     std::vector<Node> forallChildren;
     forallChildren.push_back(args[0][0]);
     forallChildren.push_back(args[0][1].negate());
-    if (args[0].getNumChildren()==3)
+    if (args[0].getNumChildren() == 3)
     {
-    forallChildren.push_back(args[0][2]);
+      forallChildren.push_back(args[0][2]);
     }
     return args[0].eqNode(nm->mkNode(NOT, nm->mkNode(FORALL, forallChildren)));
   }
