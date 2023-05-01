@@ -15,6 +15,8 @@
 
 #include "theory/evaluator.h"
 
+#include <math.h>
+
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
@@ -593,6 +595,38 @@ EvalResult Evaluator::evalInternal(
         {
           const Rational& x = results[currNode[0]].d_rat;
           results[currNode] = EvalResult(x.isIntegral());
+          break;
+        }
+        case kind::POW2:
+        {
+          const Rational& x = results[currNode[0]].d_rat;
+          bool valid = false;
+          if (x.getNumerator().fitsUnsignedInt())
+          {
+            uint32_t value = x.getNumerator().toUnsignedInt();
+            if (value<=256)
+            {
+              valid = true;
+              results[currNode] = EvalResult(Rational(Integer(2).pow(value)));
+            }
+          }
+          if (!valid)
+          {
+            processUnhandled(
+                currNode, currNodeVal, evalAsNode, results, needsReconstruct);
+          }
+          break;
+        }
+        case kind::INTS_ISPOW2:
+        {
+          const Rational& x = results[currNode[0]].d_rat;
+          results[currNode] = EvalResult(x.getNumerator().isPow2());
+          break;
+        }
+        case kind::INTS_LOG2:
+        {
+          const Rational& x = results[currNode[0]].d_rat;
+          results[currNode] = EvalResult(Rational(x.getNumerator().length()));
           break;
         }
         case kind::CONST_STRING:

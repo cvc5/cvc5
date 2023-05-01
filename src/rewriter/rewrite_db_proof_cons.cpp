@@ -274,7 +274,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
     pic.d_id = id;
     for (size_t i = 0; i < nchild; i++)
     {
-      if (target[0][i].getType() != target[1][i].getType())
+      if (!target[0][i].getType().isComparableTo(target[1][i].getType()))
       {
         // type error on children (required for certain polymorphic operators)
         return false;
