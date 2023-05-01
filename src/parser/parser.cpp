@@ -90,12 +90,6 @@ Term ParserState::getFunction(const std::string& name)
   return getSymbol(name, SYM_VARIABLE);
 }
 
-Term ParserState::getExpressionForName(const std::string& name)
-{
-  Sort t;
-  return getExpressionForNameAndType(name, t);
-}
-
 Term ParserState::getExpressionForNameAndType(const std::string& name, Sort t)
 {
   Assert(isDeclared(name));

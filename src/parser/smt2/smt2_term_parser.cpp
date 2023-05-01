@@ -263,7 +263,7 @@ Term Smt2TermParser::parseTerm()
       {
         std::string name = tokenStrToSymbol(tok);
         d_state.checkDeclaration(name, CHECK_DECLARED, SYM_VARIABLE);
-        ret = d_state.getExpressionForName(name);
+        ret = d_state.getVariable(name);
       }
       break;
       case Token::UNTERMINATED_QUOTED_SYMBOL:
