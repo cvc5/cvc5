@@ -33,6 +33,10 @@ class SygusStatistics;
 class SygusSampler;
 class TermDbSygus;
 
+/**
+ * Class for callbacks in the fast enumerator. This class provides custom
+ * criteria for whether or not enumerated values should be considered.
+ */
 class SygusEnumeratorCallback : protected EnvObj
 {
  public:
