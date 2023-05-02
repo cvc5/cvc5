@@ -176,7 +176,7 @@ class RealAlgebraicNumber
   /** Get the internal rational value as a non-const reference. */
   Rational& getRationalValue() { return d_rat; }
 #ifdef CVC5_POLY_IMP
-  /** 
+  /**
    * Whether the value of this real algebraic number is stored in d_value.
    * Otherwise, it is stored in d_rat.
    */
