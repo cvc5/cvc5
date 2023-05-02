@@ -73,6 +73,20 @@ void PolyNorm::multiplyMonomial(TNode x, const Rational& c)
   }
 }
 
+void PolyNorm::mod(const Rational& c)
+{
+  Assert(c.sgn() != 0);
+  Assert (c.isIntegral());
+  const Integer& ci = c.getNumerator();
+  // multiply by constant
+  for (std::pair<const Node, Rational>& m : d_polyNorm)
+  {
+    // c1*x*c2 = (c1*c2)*x
+    Assert (m.second.isIntegral());
+    m.second = Rational(m.second.getNumerator().euclidianDivideRemainder(ci));
+  }
+}
+
 void PolyNorm::add(const PolyNorm& p)
 {
   for (const std::pair<const Node, Rational>& m : p.d_polyNorm)
@@ -323,6 +337,10 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
 
 bool PolyNorm::isArithPolyNorm(TNode a, TNode b)
 {
+  if (a==b)
+  {
+    return true;
+  }
   TypeNode at = a.getType();
   if (at.isBoolean())
   {
@@ -344,7 +362,8 @@ bool PolyNorm::isArithPolyNormAtom(TNode a, TNode b)
   {
     return false;
   }
-  bool isBv = false;
+  // the type of nodes are considering
+  TypeNode eqtn;
   if (k == EQUAL)
   {
     for (size_t i = 0; i < 2; i++)
@@ -353,18 +372,12 @@ bool PolyNorm::isArithPolyNormAtom(TNode a, TNode b)
       for (size_t j = 0; j < 2; j++)
       {
         TypeNode tn = eq[j].getType();
-        if (tn.isRealOrInt())
+        eqtn = eqtn.isNull() ? tn : eqtn.leastUpperBound(tn);
+        // could happen if we are comparing equalities of different types
+        if (eqtn.isNull())
         {
-          continue;
+          return false;
         }
-        // handle possibility of gradual BV type
-        if (tn.isBitVector()
-            || (tn.isAbstract() && tn.getAbstractedKind() == BITVECTOR_TYPE))
-        {
-          isBv = true;
-          continue;
-        }
-        return false;
       }
     }
   }
@@ -373,22 +386,25 @@ bool PolyNorm::isArithPolyNormAtom(TNode a, TNode b)
     // k is a handled binary relation, i.e. one that permits normalization
     // via subtracting the right side from the left.
   }
-  else if (k == BITVECTOR_ULT || k == BITVECTOR_ULE || k == BITVECTOR_UGT
-           || k == BITVECTOR_UGE || k == BITVECTOR_SLT || k == BITVECTOR_SLE
-           || k == BITVECTOR_SGT || k == BITVECTOR_SGE)
-  {
-    isBv = true;
-  }
   else
   {
+    // note that we cannot use this method to show equivalence for
+    // bitvector inequalities.
     return false;
   }
   PolyNorm pa = PolyNorm::mkDiff(a[0], a[1]);
   PolyNorm pb = PolyNorm::mkDiff(b[0], b[1]);
-  if (isBv)
+  // if a non-arithmetic equality
+  if (k == EQUAL && !eqtn.isRealOrInt())
   {
-    // for bitvectors, must be equal
-    // TODO: could take into account integer modulo
+    if (eqtn.isBitVector())
+    {
+      // for bitvectors, take modulo 2^w on coefficients
+      Rational w = Rational(Integer(2).pow(eqtn.getBitVectorSize()));
+      pa.mod(w);
+      pb.mod(w);
+    }
+    // Check for equality. notice that we don't insist on any type here.
     return pa.isEqual(pb);
   }
   // check if the two polynomials are equal modulo a constant coefficient

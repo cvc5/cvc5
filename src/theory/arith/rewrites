@@ -11,6 +11,8 @@
 
 ;(define-rule arith-div-one ((t ?)) (/ t 1) t)
 
+(define-rule arith-int-div-one ((t Int)) (div t 1) t)
+
 (define-rule arith-neg-neg-one ((t ?)) (* (- 1) (* (- 1) t)) t)
 
 ; Eliminations

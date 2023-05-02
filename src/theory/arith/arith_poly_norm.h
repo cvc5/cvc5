@@ -50,6 +50,8 @@ class PolyNorm
   void subtract(const PolyNorm& p);
   /** Multiply this polynomial by p */
   void multiply(const PolyNorm& p);
+  /** Modulus by constant c */
+  void mod(const Rational& c);
   /** Clear this polynomial */
   void clear();
   /** Return true if this polynomial is empty */
