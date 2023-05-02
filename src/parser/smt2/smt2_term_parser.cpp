@@ -1243,22 +1243,14 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
     }
     else
     {
-      Kind k = d_state.getIndexedOpKind(name);
-      if (k == UNDEFINED_KIND)
-      {
-        // We don't know which kind to use until we know the type of the
-        // arguments, which is the case for:
-        // - to_fp
-        // - (_ tuple.select n) and (_ tuple.update n)
-        p.d_name = name;
-        p.d_indices = numerals;
-        p.d_kind = UNDEFINED_KIND;
-      }
-      else
-      {
-        // otherwise, we are ready to make the operator
-        p.d_op = d_state.getSolver()->mkOp(k, numerals);
-      }
+      // In some cases, we don't know which kind to use until we know the type
+      // of the arguments, which is the case for:
+      // - to_fp
+      // - (_ tuple.select n) and (_ tuple.update n)
+      // For consistency, we always construct the op lazily.
+      p.d_name = name;
+      p.d_indices = numerals;
+      p.d_kind = UNDEFINED_KIND;
     }
   }
   // otherwise, indexed by symbols

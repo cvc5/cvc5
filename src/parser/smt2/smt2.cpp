@@ -1139,99 +1139,109 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       Trace("parser") << "++ " << *i << std::endl;
     }
   }
-  Op op;
-  if (p.d_kind == UNDEFINED_KIND && isIndexedOperatorEnabled(p.d_name))
+  if (!p.d_indices.empty())
   {
-    // Resolve indexed symbols that cannot be resolved without knowing the type
-    // of the arguments. This is currently limited to `to_fp`, `tuple.select`,
-    // and `tuple.update`.
-    size_t nchildren = args.size();
-    if (p.d_name == "to_fp")
+    Op op;
+    Kind k = getIndexedOpKind(p.d_name);
+    if (k==UNDEFINED_KIND)
     {
-      if (nchildren == 1)
+      // Resolve indexed symbols that cannot be resolved without knowing the type
+      // of the arguments. This is currently limited to `to_fp`, `tuple.select`,
+      // and `tuple.update`.
+      size_t nchildren = args.size();
+      if (p.d_name == "to_fp")
       {
-        kind = FLOATINGPOINT_TO_FP_FROM_IEEE_BV;
-        op = d_solver->mkOp(kind, p.d_indices);
-      }
-      else if (nchildren > 2 || nchildren == 0)
-      {
-        std::stringstream ss;
-        ss << "Wrong number of arguments for indexed operator to_fp, expected "
-              "1 or 2, got "
-           << nchildren;
-        parseError(ss.str());
-      }
-      else if (!args[0].getSort().isRoundingMode())
-      {
-        std::stringstream ss;
-        ss << "Expected a rounding mode as the first argument, got "
-           << args[0].getSort();
-        parseError(ss.str());
-      }
-      else
-      {
-        Sort t = args[1].getSort();
-
-        if (t.isFloatingPoint())
+        if (nchildren == 1)
         {
-          kind = FLOATINGPOINT_TO_FP_FROM_FP;
+          kind = FLOATINGPOINT_TO_FP_FROM_IEEE_BV;
           op = d_solver->mkOp(kind, p.d_indices);
         }
-        else if (t.isInteger() || t.isReal())
+        else if (nchildren > 2 || nchildren == 0)
         {
-          kind = FLOATINGPOINT_TO_FP_FROM_REAL;
-          op = d_solver->mkOp(kind, p.d_indices);
+          std::stringstream ss;
+          ss << "Wrong number of arguments for indexed operator to_fp, expected "
+                "1 or 2, got "
+            << nchildren;
+          parseError(ss.str());
+        }
+        else if (!args[0].getSort().isRoundingMode())
+        {
+          std::stringstream ss;
+          ss << "Expected a rounding mode as the first argument, got "
+            << args[0].getSort();
+          parseError(ss.str());
         }
         else
         {
-          kind = FLOATINGPOINT_TO_FP_FROM_SBV;
-          op = d_solver->mkOp(kind, p.d_indices);
+          Sort t = args[1].getSort();
+
+          if (t.isFloatingPoint())
+          {
+            kind = FLOATINGPOINT_TO_FP_FROM_FP;
+            op = d_solver->mkOp(kind, p.d_indices);
+          }
+          else if (t.isInteger() || t.isReal())
+          {
+            kind = FLOATINGPOINT_TO_FP_FROM_REAL;
+            op = d_solver->mkOp(kind, p.d_indices);
+          }
+          else
+          {
+            kind = FLOATINGPOINT_TO_FP_FROM_SBV;
+            op = d_solver->mkOp(kind, p.d_indices);
+          }
         }
       }
-    }
-    else if (p.d_name == "tuple.select" || p.d_name == "tuple.update")
-    {
-      bool isSelect = (p.d_name == "tuple.select");
-      if (p.d_indices.size() != 1)
+      else if (p.d_name == "tuple.select" || p.d_name == "tuple.update")
       {
-        parseError("wrong number of indices for tuple select or update");
-      }
-      uint64_t n = p.d_indices[0];
-      if (args.size() != (isSelect ? 1 : 2))
-      {
-        parseError("wrong number of arguments for tuple select or update");
-      }
-      Sort t = args[0].getSort();
-      if (!t.isTuple())
-      {
-        parseError("tuple select or update applied to non-tuple");
-      }
-      size_t length = t.getTupleLength();
-      if (n >= length)
-      {
-        std::stringstream ss;
-        ss << "tuple is of length " << length << "; cannot access index " << n;
-        parseError(ss.str());
-      }
-      const Datatype& dt = t.getDatatype();
-      Term ret;
-      if (isSelect)
-      {
-        ret = d_solver->mkTerm(APPLY_SELECTOR, {dt[0][n].getTerm(), args[0]});
+        bool isSelect = (p.d_name == "tuple.select");
+        if (p.d_indices.size() != 1)
+        {
+          parseError("wrong number of indices for tuple select or update");
+        }
+        uint64_t n = p.d_indices[0];
+        if (args.size() != (isSelect ? 1 : 2))
+        {
+          parseError("wrong number of arguments for tuple select or update");
+        }
+        Sort t = args[0].getSort();
+        if (!t.isTuple())
+        {
+          parseError("tuple select or update applied to non-tuple");
+        }
+        size_t length = t.getTupleLength();
+        if (n >= length)
+        {
+          std::stringstream ss;
+          ss << "tuple is of length " << length << "; cannot access index " << n;
+          parseError(ss.str());
+        }
+        const Datatype& dt = t.getDatatype();
+        Term ret;
+        if (isSelect)
+        {
+          ret = d_solver->mkTerm(APPLY_SELECTOR, {dt[0][n].getTerm(), args[0]});
+        }
+        else
+        {
+          ret = d_solver->mkTerm(APPLY_UPDATER,
+                                {dt[0][n].getUpdaterTerm(), args[0], args[1]});
+        }
+        Trace("parser") << "applyParseOp: return selector/updater " << ret
+                        << std::endl;
+        return ret;
       }
       else
       {
-        ret = d_solver->mkTerm(APPLY_UPDATER,
-                               {dt[0][n].getUpdaterTerm(), args[0], args[1]});
+        Assert(false) << "Failed to resolve indexed operator " << p.d_name;
       }
-      Trace("parser") << "applyParseOp: return selector/updater " << ret
-                      << std::endl;
-      return ret;
     }
     else
     {
-      Assert(false) << "Failed to resolve indexed operator " << p.d_name;
+      // otherwise, an ordinary operator
+      op = d_solver->mkOp(k, p.d_indices);
     }
+    return d_solver->mkTerm(op, args);
   }
   else if (p.d_kind != NULL_TERM)
   {
@@ -1253,11 +1263,6 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
     }
     args.insert(args.begin(), p.d_expr);
   }
-  else if (!p.d_op.isNull())
-  {
-    // it was given an operator
-    op = p.d_op;
-  }
   else
   {
     isBuiltinOperator = isOperatorEnabled(p.d_name);
@@ -1272,9 +1277,8 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
           || kind == RELATION_AGGREGATE || kind == RELATION_PROJECT)
       {
         std::vector<uint32_t> indices;
-        op = d_solver->mkOp(kind, indices);
-        kind = NULL_TERM;
-        isBuiltinOperator = false;
+        Op op = d_solver->mkOp(kind, indices);
+        return d_solver->mkTerm(op, args);
       }
       else if (kind == APPLY_CONSTRUCTOR)
       {
@@ -1488,12 +1492,6 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
         return ret;
       }
     }
-  }
-  if (!op.isNull())
-  {
-    Term ret = d_solver->mkTerm(op, args);
-    Trace("parser") << "applyParseOp: return op : " << ret << std::endl;
-    return ret;
   }
   if (kind == NULL_TERM)
   {
