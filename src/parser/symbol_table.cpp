@@ -434,7 +434,7 @@ bool SymbolTable::Implementation::isBound(const string& name) const
 Term SymbolTable::Implementation::lookup(const string& name) const
 {
   CDHashMap<string, Term>::const_iterator it = d_exprMap.find(name);
-  if (it==d_exprMap.end())
+  if (it == d_exprMap.end())
   {
     return d_nullTerm;
   }
@@ -479,7 +479,7 @@ bool SymbolTable::Implementation::isBoundType(const string& name) const
 Sort SymbolTable::Implementation::lookupType(const string& name) const
 {
   TypeMap::const_iterator it = d_typeMap.find(name);
-  if (it==d_typeMap.end())
+  if (it == d_typeMap.end())
   {
     return d_nullSort;
   }
@@ -494,7 +494,7 @@ Sort SymbolTable::Implementation::lookupType(const string& name,
                                              const vector<Sort>& params) const
 {
   TypeMap::const_iterator it = d_typeMap.find(name);
-  if (it==d_typeMap.end())
+  if (it == d_typeMap.end())
   {
     return d_nullSort;
   }

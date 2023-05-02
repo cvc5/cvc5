@@ -179,7 +179,7 @@ class TptpState : public ParserState
 
   /** Get TPTP directory */
   const std::string& getTptpDir() const;
-  
+
   /** For marking whether a parsed operator is a predicate */
   void markPredicate(ParseOp& p) const;
   bool isPredicate(ParseOp& p) const;

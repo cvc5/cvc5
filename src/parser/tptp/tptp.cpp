@@ -162,8 +162,7 @@ cvc5::Term TptpState::parseOpToExpr(ParseOp& p)
   expr = isTptpDeclared(p.d_name);
   if (expr.isNull())
   {
-    cvc5::Sort t = isPredicate(p) ? d_solver->getBooleanSort()
-                                                   : d_unsorted;
+    cvc5::Sort t = isPredicate(p) ? d_solver->getBooleanSort() : d_unsorted;
     expr = bindVar(p.d_name, t);  // must define at level zero
     d_auxSymbolTable[p.d_name] = expr;
     preemptCommand(std::make_unique<DeclareFunctionCommand>(p.d_name, expr, t));
@@ -245,9 +244,7 @@ cvc5::Term TptpState::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
     if (v.isNull())
     {
       std::vector<cvc5::Sort> sorts(args.size(), d_unsorted);
-      cvc5::Sort t = isPredicate(p)
-                         ? d_solver->getBooleanSort()
-                         : d_unsorted;
+      cvc5::Sort t = isPredicate(p) ? d_solver->getBooleanSort() : d_unsorted;
       t = d_solver->mkFunctionSort(sorts, t);
       v = bindVar(p.d_name, t);  // must define at level zero
       d_auxSymbolTable[p.d_name] = v;
@@ -433,10 +430,7 @@ void TptpState::markPredicate(ParseOp& p) const
   p.d_indices.push_back(1);
 }
 
-bool TptpState::isPredicate(ParseOp& p) const
-{
-  return !p.d_indices.empty();
-}
+bool TptpState::isPredicate(ParseOp& p) const { return !p.d_indices.empty(); }
 
 bool TptpState::hol() const { return d_hol; }
 void TptpState::setHol()
