@@ -154,10 +154,12 @@ poly::AlgebraicNumber RealAlgebraicNumber::convertToPoly(
     const RealAlgebraicNumber& r)
 {
 #ifdef CVC5_POLY_IMP
+  // if we are already poly, just return the value
   if (r.d_isPoly)
   {
     return r.d_value;
   }
+  // otherwise, this converts the rational value of r to poly
   const Rational& rr = r.getRationalValue();
   poly::Rational pr = poly_utils::toRational(rr);
   auto dr = poly_utils::toDyadicRational(rr);
@@ -218,6 +220,7 @@ RealAlgebraicNumber RealAlgebraicNumber::operator+(
     const RealAlgebraicNumber& rhs) const
 {
 #ifdef CVC5_POLY_IMP
+  // if either is poly, we convert both and return the result
   if (d_isPoly || rhs.d_isPoly)
   {
     return convertToPoly(*this) + convertToPoly(rhs);
@@ -261,24 +264,57 @@ RealAlgebraicNumber RealAlgebraicNumber::operator/(
     const RealAlgebraicNumber& rhs) const
 {
   Assert(!rhs.isZero()) << "Can not divide by zero";
+#ifdef CVC5_POLY_IMP
+  if (d_isPoly || rhs.d_isPoly)
+  {
+    return convertToPoly(*this) / convertToPoly(rhs);
+  }
+#endif
   return getRationalValue() / rhs.getRationalValue();
 }
 
 RealAlgebraicNumber& RealAlgebraicNumber::operator+=(
     const RealAlgebraicNumber& rhs)
 {
+#ifdef CVC5_POLY_IMP
+  if (d_isPoly || rhs.d_isPoly)
+  {
+    getValue() = convertToPoly(*this) + convertToPoly(rhs);
+    // it is now represented by poly, if not done so already
+    d_isPoly = true;
+    return *this;
+  }
+#endif
   getRationalValue() = getRationalValue() + rhs.getRationalValue();
   return *this;
 }
 RealAlgebraicNumber& RealAlgebraicNumber::operator-=(
     const RealAlgebraicNumber& rhs)
 {
+#ifdef CVC5_POLY_IMP
+  if (d_isPoly || rhs.d_isPoly)
+  {
+    getValue() = convertToPoly(*this) - convertToPoly(rhs);
+    // it is now represented by poly, if not done so already
+    d_isPoly = true;
+    return *this;
+  }
+#endif
   getRationalValue() = getRationalValue() - rhs.getRationalValue();
   return *this;
 }
 RealAlgebraicNumber& RealAlgebraicNumber::operator*=(
     const RealAlgebraicNumber& rhs)
 {
+#ifdef CVC5_POLY_IMP
+  if (d_isPoly || rhs.d_isPoly)
+  {
+    getValue() = convertToPoly(*this) * convertToPoly(rhs);
+    // it is now represented by poly, if not done so already
+    d_isPoly = true;
+    return *this;
+  }
+#endif
   getRationalValue() = getRationalValue() * rhs.getRationalValue();
   return *this;
 }
