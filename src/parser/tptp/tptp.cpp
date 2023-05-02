@@ -428,7 +428,8 @@ const std::string& TptpState::getTptpDir() const { return d_tptpDir; }
 
 void TptpState::markPredicate(ParseOp& p) const
 {
-  // hack to distinguish certain ParseOp as predicates
+  // temporary hack to distinguish certain ParseOp as predicates
+  // this will be deleted along with the TPTP parser.
   p.d_indices.push_back(1);
 }
 
