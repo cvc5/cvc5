@@ -157,19 +157,10 @@ bool FlexLexer::eatTokenChoice(Token t, Token f)
 
 // -----------------
 #if 1
-void FlexLexer::initializeInternal(std::istream& input)
-{
-  yyrestart(&input);
-}
+void FlexLexer::initializeInternal(std::istream& input) { yyrestart(&input); }
 
-const char* FlexLexer::tokenStrInternal()
-{
-  return YYText();
-}
-Token FlexLexer::nextTokenInternal()
-{
-  return Token(yylex());
-}
+const char* FlexLexer::tokenStrInternal() { return YYText(); }
+Token FlexLexer::nextTokenInternal() { return Token(yylex()); }
 #else
 #endif
 // -----------------
