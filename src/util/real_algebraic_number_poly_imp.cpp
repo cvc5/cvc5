@@ -152,10 +152,10 @@ std::string RealAlgebraicNumber::toString() const
   return ss.str();
 }
 
+#ifdef CVC5_POLY_IMP
 poly::AlgebraicNumber RealAlgebraicNumber::convertToPoly(
     const RealAlgebraicNumber& r)
 {
-#ifdef CVC5_POLY_IMP
   // if we are already poly, just return the value
   if (r.d_isPoly)
   {
@@ -172,8 +172,8 @@ poly::AlgebraicNumber RealAlgebraicNumber::convertToPoly(
   return poly::AlgebraicNumber(
       poly::UPolynomial({-numerator(pr), denominator(pr)}),
       poly::DyadicInterval(floor(pr), ceil(pr)));
-#endif
 }
+#endif
 
 bool RealAlgebraicNumber::operator==(const RealAlgebraicNumber& rhs) const
 {
