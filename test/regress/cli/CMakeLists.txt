@@ -988,6 +988,7 @@ set(regress_0_tests
   regress0/parser/declarefun-emptyset-uf.smt2
   regress0/parser/define_sort.smt2
   regress0/parser/double-bind.smt2
+  regress0/parser/fp_value.smt2
   regress0/parser/force_logic_set_logic.smt2
   regress0/parser/force_logic_success.smt2
   regress0/parser/get-model-sort-constructor.smt2
@@ -1002,9 +1003,14 @@ set(regress_0_tests
   regress0/parser/issue9350-ishell-scope-reset.smt2
   regress0/parser/issue9568-dt-multi-line.smt2
   regress0/parser/issue9623-indexed-err.smt2
+  regress0/parser/issue9645.smt2
+  regress0/parser/issue9651.smt2
+  regress0/parser/issue9656-err.smt2
   regress0/parser/issue9663.smt2
   regress0/parser/issue9663-2.smt2
   regress0/parser/issue9665.smt2
+  regress0/parser/issue9675.smt2
+  regress0/parser/issue9676.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
@@ -1674,6 +1680,7 @@ set(regress_0_tests
   regress0/symmetric.smtv1.smt2
   regress0/test11.cvc.smt2
   regress0/test9.cvc.smt2
+  regress0/timeout_core_simple.smt2
   regress0/tptp/ARI086=1.p
   regress0/tptp/DAT001=1.p
   regress0/tptp/is_rat_simple.p
@@ -2174,6 +2181,7 @@ set(regress_1_tests
   regress1/issue9112-bv2nat-cg.smt2
   regress1/issue9544-difficulty-refcount.smt2
   regress1/issue9573-lr-rewrite.smt2
+  regress1/issue9660-bv2nat-static.smt2
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smtv1.smt2
   regress1/lemmas/pursuit-safety-8.smtv1.smt2
   regress1/minimal_unsat_core.smt2
@@ -2295,12 +2303,15 @@ set(regress_1_tests
   regress1/nl/transcedental_model_simple.smt2
   regress1/nl/zero-subset.smt2
   regress1/non-fatal-errors.smt2
+  regress1/print_timeout_core.smt2
   regress1/proj-issue175.smt2
   regress1/proj-issue406-diff-unsat-core.smt2
   regress1/proj-issue476-theoryOf-no-uf.smt2
   regress1/proj-issue539-rew-bv2nat.smt2
   regress1/proj-issue542.smt2
   regress1/proj-issue557-rew-bv2nat.smt2
+  regress1/proj-issue623-bv2nat-static.smt2
+  regress1/proj-issue634-diff-mc.smt2
   regress1/proof00.smt2
   regress1/proofs/add_two_base.smt2
   regress1/proofs/base-lfsc-treesize.smt2
@@ -3099,6 +3110,7 @@ set(regress_1_tests
   regress1/sygus/proj-issue548-srr.smt2
   regress1/sygus/proj-issue549-srr.smt2
   regress1/sygus/proj-issue553-srr.smt2
+  regress1/sygus/proj-issue627-srr.smt2
   regress1/sygus/pLTL_5_trace.sy
   regress1/sygus/qe.sy
   regress1/sygus/qf_abv.smt2

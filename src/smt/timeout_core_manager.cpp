@@ -51,6 +51,8 @@ std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
   const context::CDList<Node>& al = as.getAssertionList();
   for (const Node& a : al)
   {
+    Trace("smt-to-core-asserts")
+        << "#" << ppAsserts.size() << ": " << a << std::endl;
     ppAsserts.push_back(a);
   }
   initializePreprocessedAssertions(ppAsserts);
@@ -76,8 +78,9 @@ std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
   std::vector<Node> toCore;
   for (std::pair<const size_t, AssertInfo>& a : d_ainfo)
   {
-    Assert(a.first < d_ppAsserts.size());
-    toCore.push_back(d_ppAsserts[a.first]);
+    Assert(a.first < d_asserts.size());
+    Trace("smt-to-core-asserts") << "...return #" << a.first << std::endl;
+    toCore.push_back(d_asserts[a.first]);
   }
   return std::pair<Result, std::vector<Node>>(result, toCore);
 }
@@ -198,6 +201,18 @@ Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions)
   if (result.getStatus() == Result::UNKNOWN
       && result.getUnknownExplanation() == TIMEOUT)
   {
+    if (isOutputOn(OutputTag::TIMEOUT_CORE_BENCHMARK))
+    {
+      std::vector<Node> bench(nextAssertions.begin(), nextAssertions.end());
+      std::stringstream ss;
+      smt::PrintBenchmark pb(Printer::getPrinter(ss));
+      pb.printBenchmark(ss, d_env.getLogicInfo().getLogicString(), {}, bench);
+      output(OutputTag::TIMEOUT_CORE_BENCHMARK)
+          << ";; timeout core" << std::endl;
+      output(OutputTag::TIMEOUT_CORE_BENCHMARK) << ss.str();
+      output(OutputTag::TIMEOUT_CORE_BENCHMARK)
+          << ";; end timeout core" << std::endl;
+    }
     // will terminate with unknown (timeout)
     return result;
   }
@@ -256,7 +271,9 @@ void TimeoutCoreManager::initializePreprocessedAssertions(
       else
       {
         // false assertion, we are done
+        d_asserts.clear();
         d_ppAsserts.clear();
+        d_asserts.push_back(pa);
         d_ppAsserts.push_back(pa);
         return;
       }
