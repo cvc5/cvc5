@@ -1328,7 +1328,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
   }
   // handle special cases
   // If we marked the operator as "INTERNAL_KIND", then the name/expr
-  // determine what is stored.
+  // determine the operator. This handles constant arrays.
   if (p.d_kind == INTERNAL_KIND)
   {
     // (as const (Array T1 T2))
@@ -1367,7 +1367,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
     else
     {
       // should never happen
-      parseError("Could not process parsed operator");
+      parseError("Could not process internal parsed operator");
     }
   }
   else if (p.d_kind == APPLY_TESTER || p.d_kind == APPLY_UPDATER)
