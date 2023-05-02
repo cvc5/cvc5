@@ -694,9 +694,10 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypesInternal(
     if (nameResolutions.find(dtp->getName()) != nameResolutions.end())
     {
       std::stringstream ss;
-      ss << "cannot construct two datatypes at the same time with the same name (" << dtp->getName() << ")";
-      throw Exception(
-          ss.str());
+      ss << "cannot construct two datatypes at the same time with the same "
+            "name ("
+         << dtp->getName() << ")";
+      throw Exception(ss.str());
     }
     nameResolutions.insert(std::make_pair(dtp->getName(), typeNode));
     dtts.push_back(typeNode);
