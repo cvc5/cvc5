@@ -403,7 +403,7 @@ Term Smt2TermParser::parseTerm()
           {
             d_lex.parseError("Cannot match on non-datatype term.");
           }
-          tstack.back().first.d_expr = slv->mkConst(retSort,"_placeholder_");
+          tstack.back().first.d_expr = slv->mkConst(retSort, "_placeholder_");
           ret = Term();
           xstack[xstack.size() - 1] = ParseCtx::MATCH_NEXT_CASE;
           needsUpdateCtx = true;
@@ -432,8 +432,8 @@ Term Smt2TermParser::parseTerm()
             // parse the pattern, which also does the binding
             Assert(!tstack.back().first.d_expr.isNull());
             std::vector<Term> boundVars;
-            Term pattern =
-                parseMatchCasePattern(tstack.back().first.d_expr.getSort(), boundVars);
+            Term pattern = parseMatchCasePattern(
+                tstack.back().first.d_expr.getSort(), boundVars);
             // If we bound variables when parsing the pattern, we will construct
             // a match bind case
             ParseOp op;

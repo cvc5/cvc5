@@ -1344,15 +1344,14 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
     }
     Term constVal = args[0];
 
-    Assert (!p.d_expr.isNull());
+    Assert(!p.d_expr.isNull());
     Sort sort = p.d_expr.getSort();
     if (sort.getArrayElementSort() != constVal.getSort())
     {
       std::stringstream ss;
       ss << "type mismatch inside array constant term:" << std::endl
          << "array type:          " << sort << std::endl
-         << "expected const type: " << sort.getArrayElementSort()
-         << std::endl
+         << "expected const type: " << sort.getArrayElementSort() << std::endl
          << "computed const type: " << constVal.getSort();
       parseError(ss.str());
     }
