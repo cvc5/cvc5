@@ -482,6 +482,10 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.mkFloatingPoint(3, 5, t2));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkFloatingPoint(3, 5, t2));
 
+    assertEquals(d_solver.mkFloatingPoint(
+                     d_solver.mkBitVector(1), d_solver.mkBitVector(5), d_solver.mkBitVector(10)),
+        d_solver.mkFloatingPoint(5, 11, d_solver.mkBitVector(16)));
+
     Solver slv = new Solver();
     assertDoesNotThrow(() -> slv.mkFloatingPoint(3, 5, t1));
   }
@@ -1895,6 +1899,38 @@ class SolverTest
     d_solver.assertFormula(f1);
     d_solver.checkSat();
     assertDoesNotThrow(() -> d_solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_INPUT));
+  }
+
+  @Test
+  void getTimeoutCoreUnsat() throws CVC5ApiException
+  {
+    d_solver.setOption("timeout-core-timeout", "100");
+    Sort intSort = d_solver.getIntegerSort();
+    Term x = d_solver.mkConst(intSort, "x");
+    Term tt = d_solver.mkBoolean(true);
+    Term hard = d_solver.mkTerm(EQUAL,
+        new Term[] {d_solver.mkTerm(MULT, new Term[] {x, x}),
+            d_solver.mkInteger("501240912901901249014210220059591")});
+    d_solver.assertFormula(tt);
+    d_solver.assertFormula(hard);
+    Pair<Result, Term[]> res = d_solver.getTimeoutCore();
+    assertTrue(res.first.isUnknown());
+    assertTrue(res.second.length == 1);
+    assertEquals(res.second[0], hard);
+  }
+
+  @Test
+  void getTimeoutCore() throws CVC5ApiException
+  {
+    Term ff = d_solver.mkBoolean(false);
+    Term tt = d_solver.mkBoolean(true);
+    d_solver.assertFormula(tt);
+    d_solver.assertFormula(ff);
+    d_solver.assertFormula(tt);
+    Pair<Result, Term[]> res = d_solver.getTimeoutCore();
+    assertTrue(res.first.isUnsat());
+    assertTrue(res.second.length == 1);
+    assertEquals(res.second[0], ff);
   }
 
   @Test

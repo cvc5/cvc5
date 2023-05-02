@@ -168,8 +168,20 @@ void TheoryArith::notifySharedTerm(TNode n)
 TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
   CodeTimer timer(d_ppRewriteTimer, /* allow_reentrant = */ true);
-  Trace("arith::preprocess") << "arith::preprocess() : " << atom << endl;
+  Trace("arith::preprocess") << "arith::ppRewrite() : " << atom << endl;
+  Assert(d_env.theoryOf(atom) == THEORY_ARITH);
+  // Eliminate operators. Notice we must do this here since other
+  // theories may generate lemmas that involve non-standard operators. For
+  // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may
+  // introduce non-standard arithmetic terms appearing in grammars.
+  // call eliminate operators. In contrast to expandDefinitions, we eliminate
+  // *all* extended arithmetic operators here, including total ones.
+  return d_arithPreproc.eliminate(atom, lems, false);
+}
 
+TrustNode TheoryArith::ppStaticRewrite(TNode atom)
+{
+  Trace("arith::preprocess") << "arith::ppStaticRewrite() : " << atom << endl;
   Kind k = atom.getKind();
   if (k == kind::EQUAL)
   {
@@ -184,15 +196,7 @@ TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
       return TrustNode::mkTrustRewrite(atom, atomr);
     }
   }
-
-  Assert(d_env.theoryOf(atom) == THEORY_ARITH);
-  // Eliminate operators. Notice we must do this here since other
-  // theories may generate lemmas that involve non-standard operators. For
-  // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may
-  // introduce non-standard arithmetic terms appearing in grammars.
-  // call eliminate operators. In contrast to expandDefinitions, we eliminate
-  // *all* extended arithmetic operators here, including total ones.
-  return d_arithPreproc.eliminate(atom, lems, false);
+  return TrustNode::null();
 }
 
 Theory::PPAssertStatus TheoryArith::ppAssert(
