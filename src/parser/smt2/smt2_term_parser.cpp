@@ -130,7 +130,7 @@ Term Smt2TermParser::parseTerm()
             // a standalone qualified identifier
             ParseOp op = continueParseQualifiedIdentifier(false);
             ret = op.d_expr;
-            if (ret.isNull())
+            if (ret.isNull() || op.d_kind==INTERNAL_KIND)
             {
               d_lex.parseError("Unexpected qualified identifier");
             }

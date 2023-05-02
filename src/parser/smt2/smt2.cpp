@@ -1049,22 +1049,6 @@ void Smt2State::parseOpApplyTypeAscription(ParseOp& p, Sort type)
 {
   Trace("parser") << "parseOpApplyTypeAscription : " << p << " " << type
                   << std::endl;
-  // (as const (Array T1 T2))
-  if (!strictModeEnabled() && p.d_name == "const"
-      && isTheoryEnabled(internal::theory::THEORY_ARRAYS))
-  {
-    if (!type.isArray())
-    {
-      std::stringstream ss;
-      ss << "expected array constant term, but cast is not of array type"
-         << std::endl
-         << "cast type: " << type;
-      parseError(ss.str());
-    }
-    p.d_kind = CONST_ARRAY;
-    p.d_expr = d_solver->mkConst(type, "_placeholder_");
-    return;
-  }
   if (p.d_expr.isNull())
   {
     Trace("parser-overloading")
@@ -1076,7 +1060,13 @@ void Smt2State::parseOpApplyTypeAscription(ParseOp& p, Sort type)
       p.d_expr = getExpressionForNameAndType(p.d_name, type);
       p.d_name = std::string("");
     }
-    if (p.d_name.find("ff") == 0)
+    if (p.d_name=="const")
+    {
+      p.d_kind = INTERNAL_KIND;
+      p.d_expr = d_solver->mkConst(type, "_placeholder_");
+      return;
+    }
+    else if (p.d_name.find("ff") == 0)
     {
       std::string rest = p.d_name.substr(2);
       if (!type.isFiniteField())
@@ -1087,6 +1077,7 @@ void Smt2State::parseOpApplyTypeAscription(ParseOp& p, Sort type)
         parseError(ss.str());
       }
       p.d_expr = d_solver->mkFiniteFieldElem(rest, type);
+      return;
     }
     if (p.d_expr.isNull())
     {
@@ -1336,28 +1327,48 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
     }
   }
   // handle special cases
-  if (p.d_kind == CONST_ARRAY)
+  // If we marked the operator as "INTERNAL_KIND", then the name/expr
+  // determine what is stored.
+  if (p.d_kind == INTERNAL_KIND)
   {
-    if (args.size() != 1)
+    // (as const (Array T1 T2))
+    if (!strictModeEnabled() && p.d_name == "const"
+        && isTheoryEnabled(internal::theory::THEORY_ARRAYS))
     {
-      parseError("Too many arguments to array constant.");
-    }
-    Term constVal = args[0];
+      if (args.size() != 1)
+      {
+        parseError("Too many arguments to array constant.");
+      }
+      Term constVal = args[0];
 
-    Assert(!p.d_expr.isNull());
-    Sort sort = p.d_expr.getSort();
-    if (sort.getArrayElementSort() != constVal.getSort())
-    {
-      std::stringstream ss;
-      ss << "type mismatch inside array constant term:" << std::endl
-         << "array type:          " << sort << std::endl
-         << "expected const type: " << sort.getArrayElementSort() << std::endl
-         << "computed const type: " << constVal.getSort();
-      parseError(ss.str());
+      Assert(!p.d_expr.isNull());
+      Sort sort = p.d_expr.getSort();
+      if (!sort.isArray())
+      {
+        std::stringstream ss;
+        ss << "expected array constant term, but cast is not of array type"
+          << std::endl
+          << "cast type: " << sort;
+        parseError(ss.str());
+      }
+      if (sort.getArrayElementSort() != constVal.getSort())
+      {
+        std::stringstream ss;
+        ss << "type mismatch inside array constant term:" << std::endl
+          << "array type:          " << sort << std::endl
+          << "expected const type: " << sort.getArrayElementSort() << std::endl
+          << "computed const type: " << constVal.getSort();
+        parseError(ss.str());
+      }
+      Term ret = d_solver->mkConstArray(sort, constVal);
+      Trace("parser") << "applyParseOp: return store all " << ret << std::endl;
+      return ret;
     }
-    Term ret = d_solver->mkConstArray(sort, constVal);
-    Trace("parser") << "applyParseOp: return store all " << ret << std::endl;
-    return ret;
+    else
+    {
+      // should never happen
+      parseError("Could not process parsed operator");
+    }
   }
   else if (p.d_kind == APPLY_TESTER || p.d_kind == APPLY_UPDATER)
   {
