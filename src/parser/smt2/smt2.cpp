@@ -1062,7 +1062,7 @@ void Smt2State::parseOpApplyTypeAscription(ParseOp& p, Sort type)
       parseError(ss.str());
     }
     p.d_kind = CONST_ARRAY;
-    p.d_type = type;
+    p.d_expr = d_solver->mkConst(type, "_placeholder_");
     return;
   }
   if (p.d_expr.isNull())
@@ -1107,7 +1107,7 @@ Term Smt2State::parseOpToExpr(ParseOp& p)
 {
   Trace("parser") << "parseOpToExpr: " << p << std::endl;
   Term expr;
-  if (p.d_kind != NULL_TERM || !p.d_type.isNull())
+  if (p.d_kind != NULL_TERM)
   {
     parseError(
         "Bad syntax for qualified identifier operator in term position.");
@@ -1336,7 +1336,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
     }
   }
   // handle special cases
-  if (p.d_kind == CONST_ARRAY && !p.d_type.isNull())
+  if (p.d_kind == CONST_ARRAY)
   {
     if (args.size() != 1)
     {
@@ -1344,17 +1344,19 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
     }
     Term constVal = args[0];
 
-    if (p.d_type.getArrayElementSort() != constVal.getSort())
+    Assert (!p.d_expr.isNull());
+    Sort sort = p.d_expr.getSort();
+    if (sort.getArrayElementSort() != constVal.getSort())
     {
       std::stringstream ss;
       ss << "type mismatch inside array constant term:" << std::endl
-         << "array type:          " << p.d_type << std::endl
-         << "expected const type: " << p.d_type.getArrayElementSort()
+         << "array type:          " << sort << std::endl
+         << "expected const type: " << sort.getArrayElementSort()
          << std::endl
          << "computed const type: " << constVal.getSort();
       parseError(ss.str());
     }
-    Term ret = d_solver->mkConstArray(p.d_type, constVal);
+    Term ret = d_solver->mkConstArray(sort, constVal);
     Trace("parser") << "applyParseOp: return store all " << ret << std::endl;
     return ret;
   }
@@ -1367,7 +1369,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
   else if (p.d_kind != NULL_TERM)
   {
     // it should not have an expression or type specified at this point
-    if (!p.d_expr.isNull() || !p.d_type.isNull())
+    if (!p.d_expr.isNull())
     {
       std::stringstream ss;
       ss << "Could not process parsed qualified identifier kind " << p.d_kind;

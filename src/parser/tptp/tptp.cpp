@@ -158,12 +158,12 @@ cvc5::Term TptpState::parseOpToExpr(ParseOp& p)
   }
   // if it has a kind, it's a builtin one and this function should not have been
   // called
-  Assert(p.d_kind == cvc5::NULL_TERM);
+  Assert(p.d_kind == cvc5::NULL_TERM || p.d_kind == cvc5::CONST_BOOLEAN);
   expr = isTptpDeclared(p.d_name);
   if (expr.isNull())
   {
     cvc5::Sort t =
-        p.d_type == d_solver->getBooleanSort() ? p.d_type : d_unsorted;
+        p.d_kind == cvc5::CONST_BOOLEAN ? d_solver->getBooleanSort() : d_unsorted;
     expr = bindVar(p.d_name, t);  // must define at level zero
     d_auxSymbolTable[p.d_name] = expr;
     preemptCommand(std::make_unique<DeclareFunctionCommand>(p.d_name, expr, t));
@@ -238,7 +238,7 @@ cvc5::Term TptpState::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
   // the builtin kind of the overall return expression
   cvc5::Kind kind = cvc5::NULL_TERM;
   // First phase: piece operator together
-  if (p.d_kind == cvc5::NULL_TERM)
+  if (p.d_kind == cvc5::NULL_TERM || p.d_kind == cvc5::CONST_BOOLEAN)
   {
     // A non-built-in function application, get the expression
     cvc5::Term v = isTptpDeclared(p.d_name);
@@ -246,7 +246,7 @@ cvc5::Term TptpState::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
     {
       std::vector<cvc5::Sort> sorts(args.size(), d_unsorted);
       cvc5::Sort t =
-          p.d_type == d_solver->getBooleanSort() ? p.d_type : d_unsorted;
+          p.d_kind == cvc5::CONST_BOOLEAN ? d_solver->getBooleanSort() : d_unsorted;
       t = d_solver->mkFunctionSort(sorts, t);
       v = bindVar(p.d_name, t);  // must define at level zero
       d_auxSymbolTable[p.d_name] = v;

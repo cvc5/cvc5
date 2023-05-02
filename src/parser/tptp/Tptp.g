@@ -344,7 +344,7 @@ atomicFormula[cvc5::Term& expr]
         }
       }
     | { // predicate
-        p.d_type = SOLVER->getBooleanSort();
+        p.d_kind = CONST_BOOLEAN;
         expr = args.empty() ? PARSER_STATE->parseOpToExpr(p)
                             : PARSER_STATE->applyParseOp(p, args);
       }
@@ -382,7 +382,7 @@ atomicFormula[cvc5::Term& expr]
     )?
   | definedPred[p] (LPAREN_TOK arguments[args] RPAREN_TOK)
     {
-      p.d_type = SOLVER->getBooleanSort();
+      p.d_kind = CONST_BOOLEAN;
       expr = PARSER_STATE->applyParseOp(p, args);
     }
   | definedProp[expr]
@@ -422,7 +422,7 @@ thfAtomicFormula[cvc5::ParseOp& p]
   | conditionalTerm[p.d_expr]
   | thfDefinedPred[p] (LPAREN_TOK arguments[args] RPAREN_TOK)?
     {
-      p.d_type = SOLVER->getBooleanSort();
+      p.d_kind = CONST_BOOLEAN;
       if (!args.empty())
       {
         p.d_expr = PARSER_STATE->applyParseOp(p, args);

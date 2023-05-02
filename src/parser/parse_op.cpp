@@ -29,10 +29,6 @@ std::ostream& operator<<(std::ostream& os, const ParseOp& p)
   {
     out << " :kind " << p.d_kind;
   }
-  if (!p.d_type.isNull())
-  {
-    out << " :type " << p.d_type;
-  }
   if (!p.d_name.empty())
   {
     out << " :name " << p.d_name;

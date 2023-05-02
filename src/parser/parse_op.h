@@ -35,7 +35,6 @@ namespace cvc5 {
  * (1) A kind.
  * (2) A string name.
  * (3) An expression expr.
- * (4) A type t.
  *
  * Examples:
  *
@@ -65,8 +64,6 @@ struct ParseOp
   std::string d_name;
   /** The expression associated with the parsed operator, if it exists */
   cvc5::Term d_expr;
-  /** The type associated with the parsed operator, if it exists */
-  cvc5::Sort d_type;
   /**
    * The indices if the operator is indexed, but cvc5::Op is the null operator.
    * This is the case for operator symbols that cannot be resolved to a kind
@@ -79,7 +76,7 @@ struct ParseOp
   bool operator==(const ParseOp& p) const
   {
     return d_kind == p.d_kind && d_name == p.d_name && d_expr == p.d_expr
-           && d_type == p.d_type && d_indices == p.d_indices;
+           && d_indices == p.d_indices;
   }
 };
 
