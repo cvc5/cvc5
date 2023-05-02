@@ -36,7 +36,6 @@ namespace cvc5 {
  * (2) A string name.
  * (3) An expression expr.
  * (4) A type t.
- * (5) An operator object.
  *
  * Examples:
  *
