@@ -1143,11 +1143,11 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
   {
     Op op;
     Kind k = getIndexedOpKind(p.d_name);
-    if (k==UNDEFINED_KIND)
+    if (k == UNDEFINED_KIND)
     {
-      // Resolve indexed symbols that cannot be resolved without knowing the type
-      // of the arguments. This is currently limited to `to_fp`, `tuple.select`,
-      // and `tuple.update`.
+      // Resolve indexed symbols that cannot be resolved without knowing the
+      // type of the arguments. This is currently limited to `to_fp`,
+      // `tuple.select`, and `tuple.update`.
       size_t nchildren = args.size();
       if (p.d_name == "to_fp")
       {
@@ -1159,16 +1159,17 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
         else if (nchildren > 2 || nchildren == 0)
         {
           std::stringstream ss;
-          ss << "Wrong number of arguments for indexed operator to_fp, expected "
+          ss << "Wrong number of arguments for indexed operator to_fp, "
+                "expected "
                 "1 or 2, got "
-            << nchildren;
+             << nchildren;
           parseError(ss.str());
         }
         else if (!args[0].getSort().isRoundingMode())
         {
           std::stringstream ss;
           ss << "Expected a rounding mode as the first argument, got "
-            << args[0].getSort();
+             << args[0].getSort();
           parseError(ss.str());
         }
         else
@@ -1213,7 +1214,8 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
         if (n >= length)
         {
           std::stringstream ss;
-          ss << "tuple is of length " << length << "; cannot access index " << n;
+          ss << "tuple is of length " << length << "; cannot access index "
+             << n;
           parseError(ss.str());
         }
         const Datatype& dt = t.getDatatype();
@@ -1225,7 +1227,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
         else
         {
           ret = d_solver->mkTerm(APPLY_UPDATER,
-                                {dt[0][n].getUpdaterTerm(), args[0], args[1]});
+                                 {dt[0][n].getUpdaterTerm(), args[0], args[1]});
         }
         Trace("parser") << "applyParseOp: return selector/updater " << ret
                         << std::endl;
