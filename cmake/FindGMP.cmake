@@ -163,5 +163,3 @@ else()
   message(STATUS "Building GMP ${GMP_VERSION}: ${GMP_LIBRARIES}")
   add_dependencies(GMP GMP-EP)
 endif()
-
-set(GMP_LIBRARIES $<BUILD_INTERFACE:${GMP_LIBRARIES}> $<INSTALL_INTERFACE:gmp>)
