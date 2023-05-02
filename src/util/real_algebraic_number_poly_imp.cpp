@@ -39,9 +39,10 @@ RealAlgebraicNumber::RealAlgebraicNumber(poly::AlgebraicNumber&& an)
 }
 #endif
 
-RealAlgebraicNumber::RealAlgebraicNumber(const Integer& i) :
+RealAlgebraicNumber::RealAlgebraicNumber(const Integer& i)
+    :
 #ifdef CVC5_POLY_IMP
-    d_isPoly(false),
+      d_isPoly(false),
 #endif
       d_rat(i)
 {
