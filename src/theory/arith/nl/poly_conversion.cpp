@@ -811,7 +811,7 @@ Node PolyConverter::ran_to_node(const RealAlgebraicNumber& ran,
     return theory::arith::nl::ran_to_node(ran.getValue(), ran_variable);
   }
   // otherwise, just make the real from the rational value
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   return nm->mkConstReal(ran.getRationalValue());
 }
 
