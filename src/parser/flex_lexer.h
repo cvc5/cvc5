@@ -95,6 +95,11 @@ class FlexLexer : public yyFlexLexer
   void unexpectedTokenError(Token t, const std::string& info);
 
  protected:
+  // -----------------
+  void initializeInternal(std::istream& input);
+  const char* tokenStrInternal();
+  Token nextTokenInternal();
+  // -----------------
   /** Used to initialize d_span. */
   void initSpan();
   /** Sets the spans start to its current end. */

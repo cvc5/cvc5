@@ -83,7 +83,7 @@ void FlexLexer::initialize(std::istream& input, const std::string& inputName)
 {
   d_inputName = inputName;
   // use the std::istream* version which is supported in earlier Flex versions
-  yyrestart(&input);
+  initializeInternal(input);
   initSpan();
   d_peeked.clear();
 }
@@ -91,7 +91,7 @@ void FlexLexer::initialize(std::istream& input, const std::string& inputName)
 const char* FlexLexer::tokenStr()
 {
   Assert(d_peeked.empty());
-  return YYText();
+  return tokenStrInternal();
 }
 
 Token FlexLexer::nextToken()
@@ -99,7 +99,7 @@ Token FlexLexer::nextToken()
   if (d_peeked.empty())
   {
     // Call the derived yylex() and convert it to a token
-    return Token(yylex());
+    return nextTokenInternal();
   }
   Token t = d_peeked.back();
   d_peeked.pop_back();
@@ -109,7 +109,7 @@ Token FlexLexer::nextToken()
 Token FlexLexer::peekToken()
 {
   // parse next token
-  Token t = Token(yylex());
+  Token t = nextTokenInternal();
   // reinsert it immediately
   reinsertToken(t);
   // return it
@@ -154,6 +154,25 @@ bool FlexLexer::eatTokenChoice(Token t, Token f)
   }
   return false;
 }
+
+// -----------------
+#if 1
+void FlexLexer::initializeInternal(std::istream& input)
+{
+  yyrestart(&input);
+}
+
+const char* FlexLexer::tokenStrInternal()
+{
+  return YYText();
+}
+Token FlexLexer::nextTokenInternal()
+{
+  return Token(yylex());
+}
+#else
+#endif
+// -----------------
 
 }  // namespace parser
 }  // namespace cvc5
