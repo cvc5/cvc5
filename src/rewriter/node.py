@@ -183,6 +183,7 @@ class Op(Enum):
     REGEXP_COMPLEMENT = ('re.comp', 'REGEXP_COMPLEMENT')
 
     REGEXP_NONE = (None, 'REGEXP_NONE')  # Handled as constants
+    REGEXP_ALL = (None, 'REGEXP_ALL')
     REGEXP_ALLCHAR = (None, 'REGEXP_ALLCHAR')
 
     ###########################################################################

@@ -25,6 +25,7 @@ class SymbolTable:
     def __init__(self):
         self.consts = {
             're.none': App(Op.REGEXP_NONE, []),
+            're.all': App(Op.REGEXP_ALL, []),
             're.allchar': App(Op.REGEXP_ALLCHAR, []),
             '_': Placeholder(),
         }

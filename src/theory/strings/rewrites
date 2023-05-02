@@ -1,3 +1,5 @@
+; =============== String rules
+
 ; Note that ? is used for rules that can be used where Seq/String are
 ; interchangable. This is because Seq and String are not comparable in our
 ; type system.
@@ -124,7 +126,21 @@
   (str.substr (str.++ s1 s2) n m)
   (str.substr s1 n m))
 
+(define-cond-rule str-substr-full ((s ?) (n Int))
+  (>= n (str.len s))
+  (str.substr s 0 n)
+  s)
+  
+;(define-cond-rule str-substr-self-len ((s ?) (n Int) (m Int))
+;  (>= m (str.len s))
+;  (str.substr s n m)
+;  (str.substr s n (str.len s)))
+
 (define-rule str-contains-refl ((x ?)) (str.contains x x) true)
+
+(define-rule str-contains-concat-find ((xs ? :list) (y ?) (zs ? :list)) 
+  (str.contains (str.++ xs y zs) y) 
+  true)
 
 (define-cond-rule str-contains-split-char ((x ?) (y ?) (z ? :list) (w ?))
   (= (str.len w) 1)
@@ -140,7 +156,7 @@
   (str.++ xs "" ys) 
   (str.++ xs ys))
 
-(define-rule str-at-elim ((x String) (n Int)) (str.at x n) (str.substr x n 1))
+(define-rule str-at-elim ((x ?) (n Int)) (str.at x n) (str.substr x n 1))
 
 ; not effective since due to not proving inequalities on length
 ;(define-cond-rule str-replace-self ((t ?) (s ?)) 
@@ -148,12 +164,28 @@
 ;  (str.replace t s t)
 ;  t)
 
-; Regular expression rules
+; =============== Regular expression rules
+
+(define-rule re-all-elim () re.all (re.* re.allchar))
+
+(define-rule re-opt-elim ((x RegLan)) (re.opt x) (re.union (str.to_re "") x))
+
 (define-rule re-concat-emp ((xs RegLan :list) (ys RegLan :list)) (re.++ xs (str.to_re "") ys) (re.++ xs ys))
+(define-rule re-concat-none ((xs RegLan :list) (ys RegLan :list)) (re.++ xs re.none ys) re.none)
 
 (define-rule re-concat-flatten ((xs RegLan :list) (s RegLan) (ys RegLan :list) (zs RegLan :list)) (re.++ xs (re.++ s ys) zs) (re.++ xs s ys zs))
 
 (define-rule re-concat-star-swap ((xs RegLan :list) (r RegLan) (ys RegLan :list)) (re.++ xs (re.* r) r ys) (re.++ xs r (re.* r) ys))
+
+(define-rule re-union-all ((xs RegLan :list) (ys RegLan :list)) (re.union xs (re.* re.allchar) ys) (re.* re.allchar))
+(define-rule* re-union-none ((xs RegLan :list) (ys RegLan :list)) (re.union xs re.none ys) (re.union xs ys))
+(define-rule* re-union-flatten ((xs RegLan :list) (b RegLan) (ys RegLan :list) (zs RegLan :list)) (re.union xs (re.union b ys) zs) (re.union xs b ys zs))
+(define-rule* re-union-dup ((xs RegLan :list) (b RegLan) (ys RegLan :list) (zs RegLan :list)) (re.union xs b ys b zs) (re.union xs b ys zs))
+
+(define-rule* re-inter-all ((xs RegLan :list) (ys RegLan :list)) (re.inter xs (re.* re.allchar) ys) (re.inter xs ys))
+(define-rule re-inter-none ((xs RegLan :list) (ys RegLan :list)) (re.inter xs re.none ys) re.none)
+(define-rule* re-inter-flatten ((xs RegLan :list) (b RegLan) (ys RegLan :list) (zs RegLan :list)) (re.inter xs (re.inter b ys) zs) (re.inter xs b ys zs))
+(define-rule* re-inter-dup ((xs RegLan :list) (b RegLan) (ys RegLan :list) (zs RegLan :list)) (re.inter xs b ys b zs) (re.inter xs b ys zs))
 
 (define-rule* str-len-concat-rec ((s1 String) (s2 String) (s3 String :list))
   (str.len (str.++ s1 s2 s3))
@@ -165,7 +197,7 @@
   (str.in_re s (re.range c1 c2))
   (and (<= (str.to_code c1) (str.to_code s)) (<= (str.to_code s) (str.to_code c2))))
 
-; Sequences-specific rules
+; =============== Sequences-specific rules
 
 (define-rule seq-len-unit ((x ?)) (str.len (seq.unit x)) 1)
 (define-rule seq-nth-unit ((x ?)) (seq.nth (seq.unit x) 0) x)
