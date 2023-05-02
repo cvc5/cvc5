@@ -34,20 +34,18 @@ class SygusSampler;
 class TermDbSygus;
 
 /**
- * Class for callbacks in the fast enumerator. This class provides custom
- * criteria for whether or not enumerated values should be considered.
+ * Base class for callbacks in the fast enumerator. This allows a user to
+ * provide custom criteria for whether or not enumerated values should be
+ * considered.
  */
 class SygusEnumeratorCallback : protected EnvObj
 {
  public:
   SygusEnumeratorCallback(Env& env,
+                          Node e,
                           TermDbSygus* tds = nullptr,
-                          SygusStatistics* s = nullptr,
-                          ExampleEvalCache* eec = nullptr,
-                          SygusSampler* ssrv = nullptr,
-                          std::ostream* out = nullptr);
+                          SygusStatistics* s = nullptr);
   virtual ~SygusEnumeratorCallback() {}
-
   /**
    * Add term, return true if the term should be considered in the enumeration.
    * Notice that returning false indicates that n should not be considered as a
@@ -57,11 +55,17 @@ class SygusEnumeratorCallback : protected EnvObj
    * @param bterms The (rewritten, builtin) terms we have already enumerated
    * @return true if n should be considered in the enumeration.
    */
-  bool addTerm(const Node& n, std::unordered_set<Node>& bterms);
+  virtual bool addTerm(Node n, std::unordered_set<Node>& bterms);
 
  protected:
-  /** Get the cache value for the given candidate */
-  Node getCacheValue(const Node& n, const Node& bn, const Node& bnr);
+  /**
+   * Callback-specific notification of the above
+   *
+   * @param n The SyGuS term
+   * @param bn The builtin version of the enumerated term
+   * @param bnr The (extended) rewritten form of bn
+   */
+  virtual void notifyTermInternal(Node n, Node bn, Node bnr) {}
   /**
    * Callback-specific add term
    *
@@ -70,11 +74,34 @@ class SygusEnumeratorCallback : protected EnvObj
    * @param bnr The (extended) rewritten form of bn
    * @return true if the term should be considered in the enumeration.
    */
-  bool addTermInternal(const Node& n, const Node& bn, const Node& bnr);
+  virtual bool addTermInternal(Node n, Node bn, Node bnr) { return true; }
+  /** The enumerator */
+  Node d_enum;
+  /** The type of enum */
+  TypeNode d_tn;
   /** Term database sygus */
   TermDbSygus* d_tds;
   /** pointer to the statistics */
   SygusStatistics* d_stats;
+};
+
+class SygusEnumeratorCallbackDefault : public SygusEnumeratorCallback
+{
+ public:
+  SygusEnumeratorCallbackDefault(Env& env,
+                                 Node e,
+                                 TermDbSygus* tds = nullptr,
+                                 SygusStatistics* s = nullptr,
+                                 ExampleEvalCache* eec = nullptr,
+                                 SygusSampler* ssrv = nullptr,
+                                 std::ostream* out = nullptr);
+  virtual ~SygusEnumeratorCallbackDefault() {}
+
+ protected:
+  /** Notify that bn / bnr is an enumerated builtin, rewritten form of a term */
+  void notifyTermInternal(Node n, Node bn, Node bnr) override;
+  /** Add term, return true if n should be considered in the enumeration */
+  bool addTermInternal(Node n, Node bn, Node bnr) override;
   /**
    * Pointer to the example evaluation cache utility (used for symmetry
    * breaking).

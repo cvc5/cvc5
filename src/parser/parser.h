@@ -137,19 +137,6 @@ class CVC5_EXPORT ParserState
    * Returns the expression that name should be interpreted as, based on the
    * current binding.
    *
-   * The symbol name should be declared.
-   * This creates the expression that the string "name" should be interpreted
-   * as. Typically this corresponds to a variable, but it may also correspond to
-   * a nullary constructor or a defined function.
-   * Only returns an expression if its name is not overloaded, returns null
-   * otherwise.
-   */
-  virtual Term getExpressionForName(const std::string& name);
-
-  /**
-   * Returns the expression that name should be interpreted as, based on the
-   * current binding.
-   *
    * This is the same as above but where the name has been type cast to t.
    */
   virtual Term getExpressionForNameAndType(const std::string& name, Sort t);

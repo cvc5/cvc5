@@ -98,7 +98,7 @@ class SygusEnumerator : public EnumValGenerator
   /** pointer to the enumerator callback we are using (if any) */
   SygusEnumeratorCallback* d_sec;
   /** if we allocated a default sygus enumerator callback */
-  std::unique_ptr<SygusEnumeratorCallback> d_secd;
+  std::unique_ptr<SygusEnumeratorCallbackDefault> d_secd;
   /** pointer to the statistics */
   SygusStatistics* d_stats;
   /** Whether we are enumerating shapes */

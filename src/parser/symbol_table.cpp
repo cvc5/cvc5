@@ -476,13 +476,9 @@ bool SymbolTable::Implementation::isBoundType(const string& name) const
 Sort SymbolTable::Implementation::lookupType(const string& name) const
 {
   std::pair<std::vector<Sort>, Sort> p = (*d_typeMap.find(name)).second;
-  if (p.first.size() != 0)
-  {
-    std::stringstream ss;
-    ss << "type constructor arity is wrong: `" << name << "' requires "
-       << p.first.size() << " parameters but was provided 0";
-    throw Exception(ss.str());
-  }
+  Assert(p.first.size() == 0)
+      << "type constructor arity is wrong: `" << name << "' requires "
+      << p.first.size() << " parameters but was provided 0";
   return p.second;
 }
 
@@ -490,13 +486,9 @@ Sort SymbolTable::Implementation::lookupType(const string& name,
                                              const vector<Sort>& params) const
 {
   std::pair<std::vector<Sort>, Sort> p = (*d_typeMap.find(name)).second;
-  if (p.first.size() != params.size())
-  {
-    std::stringstream ss;
-    ss << "type constructor arity is wrong: `" << name.c_str() << "' requires "
-       << p.first.size() << " parameters but was provided " << params.size();
-    throw Exception(ss.str());
-  }
+  Assert(p.first.size() == params.size())
+      << "type constructor arity is wrong: `" << name.c_str() << "' requires "
+      << p.first.size() << " parameters but was provided " << params.size();
   if (p.first.size() == 0)
   {
     Assert(p.second.isUninterpretedSort());
