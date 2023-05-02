@@ -806,7 +806,7 @@ Node PolyConverter::ran_to_node(const RealAlgebraicNumber& ran,
                                 const Node& ran_variable)
 {
   // if the ran is represented by a poly, run the conversion routine
-  if (ran.d_isPoly)
+  if (!ran.d_isRational)
   {
     return theory::arith::nl::ran_to_node(ran.getValue(), ran_variable);
   }

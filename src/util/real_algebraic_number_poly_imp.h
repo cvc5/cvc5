@@ -177,10 +177,10 @@ class RealAlgebraicNumber
   Rational& getRationalValue() { return d_rat; }
 #ifdef CVC5_POLY_IMP
   /**
-   * Whether the value of this real algebraic number is stored in d_value.
-   * Otherwise, it is stored in d_rat.
+   * Whether the value of this real algebraic number is stored in d_rat.
+   * Otherwise, it is stored in d_value.
    */
-  bool d_isPoly;
+  bool d_isRational;
   /** Stores the actual real algebraic number, if applicable. */
   poly::AlgebraicNumber d_value;
 #endif
