@@ -372,6 +372,126 @@ size_t RealAlgebraicNumber::hash() const
   return getRationalValue().hash();
 }
 
+std::string RealAlgebraicNumber::toString() const
+{
+  std::stringstream ss;
+  ss << getValue();
+  return ss.str();
+}
+
+bool RealAlgebraicNumber::operator==(const RealAlgebraicNumber& rhs) const
+{
+  return getValue() == rhs.getValue();
+}
+bool RealAlgebraicNumber::operator!=(const RealAlgebraicNumber& rhs) const
+{
+  return getValue() != rhs.getValue();
+}
+bool RealAlgebraicNumber::operator<(const RealAlgebraicNumber& rhs) const
+{
+  return getValue() < rhs.getValue();
+}
+bool RealAlgebraicNumber::operator<=(const RealAlgebraicNumber& rhs) const
+{
+  return getValue() <= rhs.getValue();
+}
+bool RealAlgebraicNumber::operator>(const RealAlgebraicNumber& rhs) const
+{
+  return getValue() > rhs.getValue();
+}
+bool RealAlgebraicNumber::operator>=(const RealAlgebraicNumber& rhs) const
+{
+  return getValue() >= rhs.getValue();
+}
+
+RealAlgebraicNumber RealAlgebraicNumber::operator+(
+    const RealAlgebraicNumber& rhs) const
+{
+  return getValue() + rhs.getValue();
+}
+RealAlgebraicNumber RealAlgebraicNumber::operator-(
+    const RealAlgebraicNumber& rhs) const
+{
+  return getValue() - rhs.getValue();
+}
+RealAlgebraicNumber RealAlgebraicNumber::operator-() const
+{
+  return -getValue();
+}
+RealAlgebraicNumber RealAlgebraicNumber::operator*(
+    const RealAlgebraicNumber& rhs) const
+{
+  return getValue() * rhs.getValue();
+}
+RealAlgebraicNumber RealAlgebraicNumber::operator/(
+    const RealAlgebraicNumber& rhs) const
+{
+  Assert(!rhs.isZero()) << "Can not divide by zero";
+  return getValue() / rhs.getValue();
+}
+
+RealAlgebraicNumber& RealAlgebraicNumber::operator+=(
+    const RealAlgebraicNumber& rhs)
+{
+  getValue() = getValue() + rhs.getValue();
+  return *this;
+}
+RealAlgebraicNumber& RealAlgebraicNumber::operator-=(
+    const RealAlgebraicNumber& rhs)
+{
+  getValue() = getValue() - rhs.getValue();
+  return *this;
+}
+RealAlgebraicNumber& RealAlgebraicNumber::operator*=(
+    const RealAlgebraicNumber& rhs)
+{
+  getValue() = getValue() * rhs.getValue();
+  return *this;
+}
+
+int RealAlgebraicNumber::sgn() const
+{
+#ifdef CVC5_POLY_IMP
+  return poly::sgn(getValue());
+#else
+  return getValue().sgn();
+#endif
+}
+bool RealAlgebraicNumber::isZero() const
+{
+#ifdef CVC5_POLY_IMP
+  return poly::is_zero(getValue());
+#else
+  return getValue().isZero();
+#endif
+}
+bool RealAlgebraicNumber::isOne() const
+{
+#ifdef CVC5_POLY_IMP
+  return poly::is_one(getValue());
+#else
+  return getValue().isOne();
+#endif
+}
+RealAlgebraicNumber RealAlgebraicNumber::inverse() const
+{
+  Assert(!isZero()) << "Can not invert zero";
+#ifdef CVC5_POLY_IMP
+  return poly::inverse(getValue());
+#else
+  return getValue().inverse();
+#endif
+}
+
+size_t RealAlgebraicNumber::hash() const
+{
+#ifdef CVC5_POLY_IMP
+  return lp_algebraic_number_hash_approx(getValue().get_internal(), 2);
+#else
+  return getValue().hash();
+#endif
+}
+
 std::ostream& operator<<(std::ostream& os, const RealAlgebraicNumber& ran)
 {
   return os << ran.toString();
