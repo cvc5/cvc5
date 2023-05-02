@@ -1060,7 +1060,7 @@ void Smt2State::parseOpApplyTypeAscription(ParseOp& p, Sort type)
       p.d_expr = getExpressionForNameAndType(p.d_name, type);
       p.d_name = std::string("");
     }
-    if (p.d_name=="const")
+    if (p.d_name == "const")
     {
       p.d_kind = INTERNAL_KIND;
       p.d_expr = d_solver->mkConst(type, "_placeholder_");
@@ -1347,17 +1347,17 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       {
         std::stringstream ss;
         ss << "expected array constant term, but cast is not of array type"
-          << std::endl
-          << "cast type: " << sort;
+           << std::endl
+           << "cast type: " << sort;
         parseError(ss.str());
       }
       if (sort.getArrayElementSort() != constVal.getSort())
       {
         std::stringstream ss;
         ss << "type mismatch inside array constant term:" << std::endl
-          << "array type:          " << sort << std::endl
-          << "expected const type: " << sort.getArrayElementSort() << std::endl
-          << "computed const type: " << constVal.getSort();
+           << "array type:          " << sort << std::endl
+           << "expected const type: " << sort.getArrayElementSort() << std::endl
+           << "computed const type: " << constVal.getSort();
         parseError(ss.str());
       }
       Term ret = d_solver->mkConstArray(sort, constVal);
