@@ -90,6 +90,10 @@ Token TempLexer::nextToken()
   }
   switch (ch)
   {
+    case '!': return ATTRIBUTE_TOK;
+    case '(': return LPAREN_TOK;
+    case ')': return RPAREN_TOK;
+    case '_': return INDEX_TOK;
     case '|':
       pushToToken(ch);
       do
@@ -104,7 +108,6 @@ Token TempLexer::nextToken()
       } while (ch != '|');
       d_token.push_back(0);
       return QUOTED_SYMBOL;
-    case '!': return ATTRIBUTE_TOK;
     case '#':
       pushToToken(ch);
       ch = nextChar();
@@ -169,15 +172,14 @@ Token TempLexer::nextToken()
         pushToToken(ch);
       }
       break;
-    case '(': return LPAREN_TOK;
-    case ')': return RPAREN_TOK;
-    case '_': return INDEX_TOK;
     case ':':
+      // parse a simple symbol
       if (!parseChar(CharacterClass::SYMBOL_START))
       {
         return Token::NONE;
       }
       parseNonEmptyCharList(CharacterClass::SYMBOL);
+      d_token.push_back(0);
       return KEYWORD;
     default:
       pushToToken(ch);
@@ -210,8 +212,10 @@ Token TempLexer::nextToken()
         // otherwise, we are a simple symbol or standard alphanumeric token
         // note that we group the case when `:` is here.
         parseNonEmptyCharList(CharacterClass::SYMBOL);
+        d_token.push_back(0);
         return SYMBOL;
       }
+      // otherwise error
       break;
   }
 
