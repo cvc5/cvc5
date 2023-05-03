@@ -20,11 +20,14 @@
 
 #include <cstdlib>
 #include <istream>
-#include <vector>
+
+#include "parser/tokens.h"
 
 namespace cvc5 {
 namespace parser {
 
+class FlexLexer;
+  
 class TempLexer {
  public:
   TempLexer(FlexLexer& p);

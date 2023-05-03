@@ -24,10 +24,11 @@ void TempLexer::initialize(std::istream& input)
 }
 const char* TempLexer::tokenStr()
 {
+  return "";
 }
 Token TempLexer::nextToken()
 {
-  return TOKEN_NONE;
+  return Token::NONE;
 }
 
 }  // namespace parser
