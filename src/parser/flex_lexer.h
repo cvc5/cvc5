@@ -28,8 +28,6 @@
 #endif
 
 #include <vector>
-
-#include "parser/temp_lexer.h"
 #include "parser/tokens.h"
 
 namespace cvc5 {
@@ -52,6 +50,7 @@ struct Span
 };
 std::ostream& operator<<(std::ostream& o, const Span& l);
 
+class TempLexer;
 /**
  * A Flex lexer. This class inherits from yyFlexLexer, which is generated
  * by Flex's C++ code generation.
@@ -99,9 +98,9 @@ class FlexLexer : public yyFlexLexer
 
  protected:
   // -----------------
-  void initializeInternal(std::istream& input);
-  const char* tokenStrInternal();
-  Token nextTokenInternal();
+  virtual void initializeInternal(std::istream& input) = 0;
+  virtual const char* tokenStrInternal() = 0;
+  virtual Token nextTokenInternal() = 0;
   // -----------------
   /** Used to initialize d_span. */
   void initSpan();
@@ -120,8 +119,6 @@ class FlexLexer : public yyFlexLexer
    * back of it and pop.
    */
   std::vector<Token> d_peeked;
-  /** External lexer (new) */
-  TempLexer d_tlex;
 };
 
 }  // namespace parser

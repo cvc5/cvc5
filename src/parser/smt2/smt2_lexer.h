@@ -23,6 +23,7 @@
 #include <string>
 
 #include "parser/flex_lexer.h"
+#include "parser/temp_lexer.h"
 
 namespace cvc5 {
 namespace parser {
@@ -44,6 +45,11 @@ class Smt2Lexer : public FlexLexer
   /** Are we in strict mode? */
   bool isStrict() const;
  private:
+  // -----------------
+  void initializeInternal(std::istream& input) override;
+  const char* tokenStrInternal() override;
+  Token nextTokenInternal() override;
+  // -----------------
   /** Are we lexing sygus? */
   bool d_sygus;
   /**
@@ -51,6 +57,8 @@ class Smt2Lexer : public FlexLexer
    * (e.g. get-learned-literals) that we support.
    */
   bool d_strict;
+  /** External lexer (new) */
+  TempLexer d_tlex;
 };
 
 }  // namespace parser

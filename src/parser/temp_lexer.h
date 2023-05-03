@@ -21,6 +21,7 @@
 #include <cstdlib>
 #include <istream>
 #include <vector>
+#include <map>
 
 #include "parser/tokens.h"
 
@@ -32,9 +33,9 @@ class FlexLexer;
 class TempLexer
 {
  public:
-  TempLexer(FlexLexer& p);
+  TempLexer(FlexLexer& p, bool isSygus, bool isStrict);
   void initialize(std::istream* input);
-  const char* tokenStr();
+  const char* tokenStr() const;
   Token nextToken();
 
  private:
@@ -46,12 +47,14 @@ class TempLexer
     SYMBOL_START,
     SYMBOL,
   };
+  Token nextTokenInternal();
   /** Get the next character */
   int32_t nextChar();
   /** Save character */
   void saveChar(int32_t ch);
+  /** Push a character to the stored token */
   void pushToToken(int32_t ch);
-  //-----------
+  //----------- Utilities for parsing the current character stream
   /** parse <c> */
   bool parseLiteralChar(int32_t ch);
   /** parse <c> */
@@ -62,14 +65,28 @@ class TempLexer
   void parseCharList(CharacterClass cc);
   /** is character class */
   static bool isCharacterClass(int32_t ch, CharacterClass cc);
-  //-----------
+  //----------- Utilizes for tokenizing d_token
+  /** Tokenize */
+  Token tokenizeCurrent() const;
+  
+  /** The parent */
   FlexLexer& d_parent;
+  /** The input */
   std::istream* d_input;
+  /** The token */
   std::vector<char> d_token;
+  /** The token string */
+  std::string d_tokenStr;
   /** True if we have a saved character that has not been consumed yet. */
   bool d_peeked;
   /** The saved character. */
   int32_t d_peekedChar;
+  /** is sygus */ 
+  bool d_isSygus;
+  /** is strict */ 
+  bool d_isStrict;
+  /** Map strings to tokens */
+  std::map<std::string, Token> d_table;
 };
 
 }  // namespace parser

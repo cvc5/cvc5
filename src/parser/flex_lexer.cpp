@@ -35,7 +35,7 @@ std::ostream& operator<<(std::ostream& o, const Span& l)
   return o << l.d_start << "-" << l.d_end;
 }
 
-FlexLexer::FlexLexer() : yyFlexLexer(), d_tlex(*this) {}
+FlexLexer::FlexLexer() : yyFlexLexer() {}
 
 void FlexLexer::warning(const std::string& msg)
 {
@@ -154,22 +154,6 @@ bool FlexLexer::eatTokenChoice(Token t, Token f)
   }
   return false;
 }
-
-// -----------------
-#if 1
-void FlexLexer::initializeInternal(std::istream& input) { yyrestart(&input); }
-
-const char* FlexLexer::tokenStrInternal() { return YYText(); }
-Token FlexLexer::nextTokenInternal() { return Token(yylex()); }
-#else
-void FlexLexer::initializeInternal(std::istream& input)
-{
-  d_tlex.initialize(input);
-}
-const char* FlexLexer::tokenStrInternal() { return d_tlex.tokenStr(); }
-Token FlexLexer::nextTokenInternal() { return d_tlex.nextToken(); }
-#endif
-// -----------------
 
 }  // namespace parser
 }  // namespace cvc5

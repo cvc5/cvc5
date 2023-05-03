@@ -176,13 +176,30 @@ namespace parser {
 Smt2Lexer::Smt2Lexer(bool isSygus, bool isStrict)
   : FlexLexer(),
     d_sygus(isSygus),
-    d_strict(isStrict)
+    d_strict(isStrict), d_tlex(*this, isSygus, isStrict)
 {
 }
 
 bool Smt2Lexer::isSygus() const { return d_sygus; }
 
 bool Smt2Lexer::isStrict() const { return d_strict; }
-  
+
+// -----------------
+#if 1
+void Smt2Lexer::initializeInternal(std::istream& input) { yyrestart(&input); }
+
+const char* Smt2Lexer::tokenStrInternal() { return YYText(); }
+Token Smt2Lexer::nextTokenInternal() { return Token(yylex()); }
+#else
+void Smt2Lexer::initializeInternal(std::istream& input)
+{
+  d_tlex.initialize(input);
+}
+const char* Smt2Lexer::tokenStrInternal() { return d_tlex.tokenStr(); }
+Token Smt2Lexer::nextTokenInternal() { return d_tlex.nextToken(); }
+#endif
+// -----------------
+
+
 }
 }
