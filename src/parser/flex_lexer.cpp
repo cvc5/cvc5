@@ -162,7 +162,10 @@ void FlexLexer::initializeInternal(std::istream& input) { yyrestart(&input); }
 const char* FlexLexer::tokenStrInternal() { return YYText(); }
 Token FlexLexer::nextTokenInternal() { return Token(yylex()); }
 #else
-void FlexLexer::initializeInternal(std::istream& input) { d_tlex.initialize(input); }
+void FlexLexer::initializeInternal(std::istream& input)
+{
+  d_tlex.initialize(input);
+}
 const char* FlexLexer::tokenStrInternal() { return d_tlex.tokenStr(); }
 Token FlexLexer::nextTokenInternal() { return d_tlex.nextToken(); }
 #endif

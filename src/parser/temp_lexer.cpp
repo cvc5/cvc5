@@ -19,18 +19,9 @@ namespace cvc5 {
 namespace parser {
 
 TempLexer::TempLexer(FlexLexer& p) : d_parent(p) {}
-void TempLexer::initialize(std::istream& input)
-{
-}
-const char* TempLexer::tokenStr()
-{
-  return "";
-}
-Token TempLexer::nextToken()
-{
-  return Token::NONE;
-}
+void TempLexer::initialize(std::istream& input) {}
+const char* TempLexer::tokenStr() { return ""; }
+Token TempLexer::nextToken() { return Token::NONE; }
 
 }  // namespace parser
 }  // namespace cvc5
-

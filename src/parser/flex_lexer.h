@@ -29,8 +29,8 @@
 
 #include <vector>
 
-#include "parser/tokens.h"
 #include "parser/temp_lexer.h"
+#include "parser/tokens.h"
 
 namespace cvc5 {
 namespace parser {
@@ -62,6 +62,7 @@ std::ostream& operator<<(std::ostream& o, const Span& l);
 class FlexLexer : public yyFlexLexer
 {
   friend class TempLexer;
+
  public:
   FlexLexer();
   virtual ~FlexLexer() {}

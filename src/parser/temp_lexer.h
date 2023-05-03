@@ -27,13 +27,15 @@ namespace cvc5 {
 namespace parser {
 
 class FlexLexer;
-  
-class TempLexer {
+
+class TempLexer
+{
  public:
   TempLexer(FlexLexer& p);
   void initialize(std::istream& input);
   const char* tokenStr();
   Token nextToken();
+
  private:
   FlexLexer& d_parent;
 };
