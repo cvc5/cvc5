@@ -29,6 +29,7 @@
 
 #include <vector>
 #include "parser/tokens.h"
+#include "parser/flex_input.h"
 
 namespace cvc5 {
 namespace parser {
@@ -70,7 +71,7 @@ class FlexLexer : public yyFlexLexer
    * @param input The input stream
    * @param inputName The name for debugging
    */
-  void initialize(std::istream& input, const std::string& inputName);
+  void initialize(FlexInput& input, const std::string& inputName);
   /** Advance to the next token (pop from stack) */
   Token nextToken();
   /** Add a token back into the stream (push to stack) */
@@ -98,7 +99,7 @@ class FlexLexer : public yyFlexLexer
 
  protected:
   // -----------------
-  virtual void initializeInternal(std::istream& input) = 0;
+  virtual void initializeInternal(FlexInput& input) = 0;
   virtual const char* tokenStrInternal() = 0;
   virtual Token nextTokenInternal() = 0;
   // -----------------

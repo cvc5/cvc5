@@ -79,7 +79,7 @@ void FlexLexer::addLines(uint32_t lines)
   d_span.d_end.d_column = 1;
 }
 
-void FlexLexer::initialize(std::istream& input, const std::string& inputName)
+void FlexLexer::initialize(FlexInput& input, const std::string& inputName)
 {
   d_inputName = inputName;
   // use the std::istream* version which is supported in earlier Flex versions

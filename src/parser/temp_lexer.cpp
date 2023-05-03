@@ -106,7 +106,7 @@ TempLexer::TempLexer(FlexLexer& p, bool isSygus, bool isStrict)
   }
 }
 
-void TempLexer::initialize(std::istream* input)
+void TempLexer::initialize(FlexInput* input)
 {
   d_input = input;
   /*

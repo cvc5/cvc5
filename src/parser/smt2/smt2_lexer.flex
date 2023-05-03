@@ -186,12 +186,12 @@ bool Smt2Lexer::isStrict() const { return d_strict; }
 
 // -----------------
 #if 0
-void Smt2Lexer::initializeInternal(std::istream& input) { yyrestart(&input); }
+void Smt2Lexer::initializeInternal(FlexInput& input) { yyrestart(&input.getStream()); }
 
 const char* Smt2Lexer::tokenStrInternal() { return YYText(); }
 Token Smt2Lexer::nextTokenInternal() { return Token(yylex()); }
 #else
-void Smt2Lexer::initializeInternal(std::istream& input)
+void Smt2Lexer::initializeInternal(FlexInput& input)
 {
   d_tlex.initialize(&input);
 }

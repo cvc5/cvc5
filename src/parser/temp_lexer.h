@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "parser/tokens.h"
+#include "parser/flex_input.h"
 
 namespace cvc5 {
 namespace parser {
@@ -34,7 +35,7 @@ class TempLexer
 {
  public:
   TempLexer(FlexLexer& p, bool isSygus, bool isStrict);
-  void initialize(std::istream* input);
+  void initialize(FlexInput& input);
   const char* tokenStr() const;
   Token nextToken();
 
@@ -73,7 +74,7 @@ class TempLexer
   /** The parent */
   FlexLexer& d_parent;
   /** The input */
-  std::istream* d_input;
+  FlexInput* d_input;
   /** The token */
   std::vector<char> d_token;
   /** The token string */

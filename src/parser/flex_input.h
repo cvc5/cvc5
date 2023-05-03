@@ -56,6 +56,8 @@ class FlexInput
   static std::unique_ptr<FlexInput> mkStringInput(const std::string& input);
   /** Get the stream to pass to the flex lexer. */
   virtual std::istream& getStream() = 0;
+  /** Get the next character */
+  virtual uint32_t getNextChar() = 0;
 };
 
 }  // namespace parser
