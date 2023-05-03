@@ -15,15 +15,18 @@
 
 #include "parser/temp_lexer.h"
 
-#include "parser/flex_lexer.h"
 #include "base/check.h"
+#include "parser/flex_lexer.h"
 
 namespace cvc5 {
 namespace parser {
 
-TempLexer::TempLexer(FlexLexer& p) : d_parent(p), d_input(nullptr), d_peeked(false), d_peekedChar(0) {}
+TempLexer::TempLexer(FlexLexer& p)
+    : d_parent(p), d_input(nullptr), d_peeked(false), d_peekedChar(0)
+{
+}
 
-void TempLexer::initialize(std::istream* input) { d_input = input;}
+void TempLexer::initialize(std::istream* input) { d_input = input; }
 
 const char* TempLexer::tokenStr() { return d_token.data(); }
 
@@ -31,32 +34,31 @@ bool TempLexer::isCharacterClass(int32_t ch, CharacterClass cc)
 {
   switch (cc)
   {
-    case CharacterClass::DECIMAL_DIGIT:
-      return (ch >= '0' && ch <= '9');
+    case CharacterClass::DECIMAL_DIGIT: return (ch >= '0' && ch <= '9');
     case CharacterClass::HEXADECIMAL_DIGIT:
-      return (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F');
-    case CharacterClass::BIT:
-      return ch=='0' || ch=='1';
+      return (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f')
+             || (ch >= 'A' && ch <= 'F');
+    case CharacterClass::BIT: return ch == '0' || ch == '1';
     case CharacterClass::SYMBOL_START:
     {
-      //static const std::string sstart = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ~!@$%^&*+=<>.?/_-";
-      //return std::find(sstart.begin(), sstart.end(), static_cast<char>(ch)) != sstart.end();
+      // static const std::string sstart =
+      // "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ~!@$%^&*+=<>.?/_-";
+      // return std::find(sstart.begin(), sstart.end(), static_cast<char>(ch))
+      // != sstart.end();
     }
-    case CharacterClass::SYMBOL:
-      break;
-    default:
-      break;
+    case CharacterClass::SYMBOL: break;
+    default: break;
   }
   return false;
 }
 
-Token TempLexer::nextToken() 
-{ 
+Token TempLexer::nextToken()
+{
   int32_t ch;
   d_token.clear();
-  
+
   // NOTE: when to store d_token?
-  
+
   // skip whitespace and comments
   for (;;)
   {
@@ -84,7 +86,7 @@ Token TempLexer::nextToken()
   }
   switch (ch)
   {
-    case '|': 
+    case '|':
       pushToToken(ch);
       do
       {
@@ -95,12 +97,10 @@ Token TempLexer::nextToken()
           return UNTERMINATED_QUOTED_SYMBOL;
         }
         pushToToken(ch);
-      }
-      while (ch != '|');
+      } while (ch != '|');
       d_token.push_back(0);
       return QUOTED_SYMBOL;
-    case '!': 
-      return ATTRIBUTE_TOK;
+    case '!': return ATTRIBUTE_TOK;
     case '#':
       pushToToken(ch);
       ch = nextChar();
@@ -165,12 +165,9 @@ Token TempLexer::nextToken()
         pushToToken(ch);
       }
       break;
-    case '(':
-      return LPAREN_TOK;
-    case ')':
-      return RPAREN_TOK;
-    case '_':
-      return INDEX_TOK;
+    case '(': return LPAREN_TOK;
+    case ')': return RPAREN_TOK;
+    case '_': return INDEX_TOK;
     case ':':
       if (!parseChar(CharacterClass::SYMBOL_START))
       {
@@ -213,8 +210,8 @@ Token TempLexer::nextToken()
       }
       break;
   }
-  
-  return Token::NONE; 
+
+  return Token::NONE;
 }
 
 int32_t TempLexer::nextChar()
@@ -222,7 +219,7 @@ int32_t TempLexer::nextChar()
   int32_t res;
   if (d_peeked)
   {
-    res     = d_peekedChar;
+    res = d_peekedChar;
     d_peeked = false;
   }
   else
@@ -243,7 +240,7 @@ int32_t TempLexer::nextChar()
 void TempLexer::saveChar(int32_t ch)
 {
   Assert(!d_peeked);
-  d_peeked      = true;
+  d_peeked = true;
   d_peekedChar = ch;
 }
 
@@ -257,7 +254,7 @@ void TempLexer::pushToToken(int32_t ch)
 bool TempLexer::parseLiteralChar(int32_t chc)
 {
   int32_t ch = nextChar();
-  if (ch!=chc)
+  if (ch != chc)
   {
     // will be an error
     return false;
@@ -307,6 +304,6 @@ void TempLexer::parseCharList(CharacterClass cc)
     pushToToken(ch);
   }
 }
-  
+
 }  // namespace parser
 }  // namespace cvc5

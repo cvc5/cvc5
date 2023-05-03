@@ -48,7 +48,7 @@ class TempLexer
   };
   /** Get the next character */
   int32_t nextChar();
-  /** Save character */  
+  /** Save character */
   void saveChar(int32_t ch);
   void pushToToken(int32_t ch);
   //-----------
