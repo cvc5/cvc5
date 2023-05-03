@@ -35,7 +35,7 @@ std::ostream& operator<<(std::ostream& o, const Span& l)
   return o << l.d_start << "-" << l.d_end;
 }
 
-FlexLexer::FlexLexer() : yyFlexLexer() {}
+FlexLexer::FlexLexer() : yyFlexLexer(), d_tlex(*this) {}
 
 void FlexLexer::warning(const std::string& msg)
 {
@@ -162,6 +162,9 @@ void FlexLexer::initializeInternal(std::istream& input) { yyrestart(&input); }
 const char* FlexLexer::tokenStrInternal() { return YYText(); }
 Token FlexLexer::nextTokenInternal() { return Token(yylex()); }
 #else
+void FlexLexer::initializeInternal(std::istream& input) { d_tlex.initialize(input); }
+const char* FlexLexer::tokenStrInternal() { return d_tlex.tokenStr(); }
+Token FlexLexer::nextTokenInternal() { return d_tlex.nextToken(); }
 #endif
 // -----------------
 

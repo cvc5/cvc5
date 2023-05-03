@@ -88,6 +88,8 @@ set(libcvc5parser_src_files
   smt2/sygus_input.h
   symbol_table.cpp
   symbol_table.h
+  temp_lexer.cpp
+  temp_lexer.h
   tokens.cpp
   tokens.h
   tptp/tptp.cpp
