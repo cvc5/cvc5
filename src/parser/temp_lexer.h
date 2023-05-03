@@ -38,10 +38,38 @@ class TempLexer
   Token nextToken();
 
  private:
+  enum class CharacterClass
+  {
+    DECIMAL_DIGIT,
+    HEXADECIMAL_DIGIT,
+    BIT,
+    SYMBOL_START,
+    SYMBOL,
+  };
+  /** Get the next character */
+  int32_t nextChar();
+  /** Save character */  
+  void saveChar(int32_t ch);
+  void pushToToken(int32_t ch);
+  //-----------
+  /** parse <c> */
+  bool parseLiteralChar(int32_t ch);
+  /** parse <c> */
+  bool parseChar(CharacterClass cc);
+  /** parse <c>+ */
+  bool parseNonEmptyCharList(CharacterClass cc);
+  /** parse <c>* */
+  void parseCharList(CharacterClass cc);
+  /** is character class */
+  static bool isCharacterClass(int32_t ch, CharacterClass cc);
+  //-----------
   FlexLexer& d_parent;
   std::istream* d_input;
   std::vector<char> d_token;
-  int32_t nextChar();
+  /** True if we have a saved character that has not been consumed yet. */
+  bool d_peeked;
+  /** The saved character. */
+  int32_t d_peekedChar;
 };
 
 }  // namespace parser
