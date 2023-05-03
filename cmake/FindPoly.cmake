@@ -215,7 +215,7 @@ target_link_libraries(Poly INTERFACE GMP)
 set_target_properties(Polyxx PROPERTIES
   IMPORTED_LOCATION "${PolyXX_LIBRARIES}"
   INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${Poly_INCLUDE_DIR}"
-  INTERFACE_LINK_LIBRARIES Poly
+  INTERFACE_LINK_LIBRARIES picpoly picpolyxx
 )
 
 mark_as_advanced(Poly_FOUND)
