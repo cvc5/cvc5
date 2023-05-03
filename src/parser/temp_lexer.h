@@ -20,6 +20,7 @@
 
 #include <cstdlib>
 #include <istream>
+#include <vector>
 
 #include "parser/tokens.h"
 
@@ -32,12 +33,15 @@ class TempLexer
 {
  public:
   TempLexer(FlexLexer& p);
-  void initialize(std::istream& input);
+  void initialize(std::istream* input);
   const char* tokenStr();
   Token nextToken();
 
  private:
   FlexLexer& d_parent;
+  std::istream* d_input;
+  std::vector<char> d_token;
+  int32_t nextChar();
 };
 
 }  // namespace parser
