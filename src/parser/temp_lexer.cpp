@@ -42,13 +42,15 @@ bool TempLexer::isCharacterClass(int32_t ch, CharacterClass cc)
     case CharacterClass::SYMBOL_START:
     {
       static const std::string symstartchars =
-       "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ~!@$%^&*+=<>.?/_-";
-      return symstartchars.find(ch)!=std::string::npos;
+          "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ~!@$%^&*+=<>.?/"
+          "_-";
+      return symstartchars.find(ch) != std::string::npos;
     }
-    case CharacterClass::SYMBOL:  
-      static const std::string symchars = 
-        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~!@$%^&*+=<>.?/_-";
-      return symchars.find(ch)!=std::string::npos;
+    case CharacterClass::SYMBOL:
+      static const std::string symchars =
+          "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~!@$%^"
+          "&*+=<>.?/_-";
+      return symchars.find(ch) != std::string::npos;
     default: break;
   }
   return false;
