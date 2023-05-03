@@ -28,8 +28,9 @@
 #endif
 
 #include <vector>
-#include "parser/tokens.h"
+
 #include "parser/flex_input.h"
+#include "parser/tokens.h"
 
 namespace cvc5 {
 namespace parser {

@@ -25,8 +25,8 @@ namespace parser {
 Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex,
                              Smt2State& state,
                              Smt2TermParser& tparser,
-             bool isStrict,
-             bool isSygus)
+                             bool isStrict,
+                             bool isSygus)
     : d_lex(lex), d_state(state), d_tparser(tparser)
 {
   // initialize the command tokens
@@ -99,11 +99,11 @@ Token Smt2CmdParser::nextCommandToken()
 {
   Token tok = d_lex.nextToken();
   // symbols as commands
-  if (tok==Token::SYMBOL)
+  if (tok == Token::SYMBOL)
   {
     std::string str(d_lex.tokenStr());
     std::map<std::string, Token>::iterator it = d_table.find(str);
-    if (it!=d_table.end())
+    if (it != d_table.end())
     {
       return it->second;
     }
