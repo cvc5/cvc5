@@ -382,12 +382,13 @@
   (bvite (bvand (bvnot c0) c1) t1 t0))
 
 
+; The shift by zero case is handled below.
 (define-cond-rule bv-shl-by-const-1
   ((x ?BitVec) (amount Int) (sz Int))
   (def (n (bvsize x)))
   (< amount n)
   (bvshl x (bv amount sz))
-  (concat (extract n (- n (+ 1 amount)) x) (bv 0 n)))
+  (concat (extract (- n (+ 1 amount)) 0 x) (bv 0 amount)))
 (define-cond-rule bv-shl-by-const-2
   ((x ?BitVec) (amount Int) (sz Int))
   (>= amount (bvsize x))
@@ -838,8 +839,7 @@
   ((x ?BitVec) (low Int) (high Int) (k Int))
   (< high (bvsize x))
   (extract high low (sign_extend k x))
-  (extract high low x)
-  )
+  (extract high low x))
 (define-cond-rule bv-extract-sign-extend-2
   ((x ?BitVec) (low Int) (high Int) (k Int))
   (def (n (bvsize x)))
