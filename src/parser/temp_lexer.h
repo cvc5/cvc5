@@ -67,7 +67,7 @@ class TempLexer
   static bool isCharacterClass(int32_t ch, CharacterClass cc);
   //----------- Utilizes for tokenizing d_token
   /** Tokenize */
-  Token tokenizeCurrent() const;
+  Token tokenize(const std::string& curr) const;
 
   /** The parent */
   FlexLexer& d_parent;

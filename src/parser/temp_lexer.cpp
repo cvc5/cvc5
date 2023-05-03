@@ -19,6 +19,7 @@
 
 #include "base/check.h"
 #include "parser/flex_lexer.h"
+#include "base/output.h"
 
 namespace cvc5 {
 namespace parser {
@@ -69,6 +70,7 @@ TempLexer::TempLexer(FlexLexer& p, bool isSygus, bool isStrict)
   d_table["set-info"] = Token::SET_INFO_TOK;
   d_table["set-logic"] = Token::SET_LOGIC_TOK;
   d_table["set-option"] = Token::SET_OPTION_TOK;
+  d_table["_"] = Token::INDEX_TOK;
 
   // initialize the tokens
   if (!d_isStrict)
@@ -104,7 +106,20 @@ TempLexer::TempLexer(FlexLexer& p, bool isSygus, bool isStrict)
   }
 }
 
-void TempLexer::initialize(std::istream* input) { d_input = input; }
+void TempLexer::initialize(std::istream* input) { 
+  d_input = input; 
+  /*
+  Token t;
+  Trace("ajr-temp") << "=== start" << std::endl;
+  do
+  {
+    t = nextToken();
+    Trace("ajr-temp") << t << " / \"" << tokenStr() << "\"" << std::endl;
+  }
+  while (t!=Token::EOF_TOK);
+  Trace("ajr-temp") << "=== end" << std::endl;
+  */
+}
 
 const char* TempLexer::tokenStr() const
 {
@@ -140,15 +155,18 @@ bool TempLexer::isCharacterClass(int32_t ch, CharacterClass cc)
 
 Token TempLexer::nextToken()
 {
+  Trace("lexer-debug") << "Call nextToken" << std::endl;
   d_token.clear();
   Token ret = nextTokenInternal();
   // null terminate?
   d_token.push_back(0);
+  Trace("lexer-debug") << "Return nextToken " << ret << " / " << tokenStr() << std::endl;
   return ret;
 }
 
 Token TempLexer::nextTokenInternal()
 {
+  d_parent.bumpSpan();
   int32_t ch;
   // NOTE: we store d_token only if there are multiple choices for what it
   // could contain for the returned token.
@@ -176,14 +194,13 @@ Token TempLexer::nextTokenInternal()
       }
     }
   }
+  pushToToken(ch);
   switch (ch)
   {
     case '!': return Token::ATTRIBUTE_TOK;
     case '(': return Token::LPAREN_TOK;
     case ')': return Token::RPAREN_TOK;
-    case '_': return Token::INDEX_TOK;
     case '|':
-      pushToToken(ch);
       do
       {
         ch = nextChar();
@@ -195,11 +212,11 @@ Token TempLexer::nextTokenInternal()
       } while (ch != '|');
       return Token::QUOTED_SYMBOL;
     case '#':
-      pushToToken(ch);
       ch = nextChar();
       switch (ch)
       {
         case 'b':
+          pushToToken(ch);
           // parse [01]+
           if (!parseNonEmptyCharList(CharacterClass::BIT))
           {
@@ -207,6 +224,7 @@ Token TempLexer::nextTokenInternal()
           }
           return Token::BINARY_LITERAL;
         case 'x':
+          pushToToken(ch);
           // parse [0-9a-fA-F]+
           if (!parseNonEmptyCharList(CharacterClass::HEXADECIMAL_DIGIT))
           {
@@ -214,6 +232,7 @@ Token TempLexer::nextTokenInternal()
           }
           return Token::HEX_LITERAL;
         case 'f':
+          pushToToken(ch);
           // parse [0-9]+m[0-9]+
           if (!parseNonEmptyCharList(CharacterClass::DECIMAL_DIGIT))
           {
@@ -234,7 +253,6 @@ Token TempLexer::nextTokenInternal()
       }
       break;
     case '"':
-      pushToToken(ch);
       for (;;)
       {
         ch = nextChar();
@@ -265,7 +283,6 @@ Token TempLexer::nextTokenInternal()
       parseNonEmptyCharList(CharacterClass::SYMBOL);
       return Token::KEYWORD;
     default:
-      pushToToken(ch);
       if (isCharacterClass(ch, CharacterClass::DECIMAL_DIGIT))
       {
         Token res = Token::INTEGER_LITERAL;
@@ -275,6 +292,7 @@ Token TempLexer::nextTokenInternal()
         ch = nextChar();
         if (ch == '.')
         {
+          pushToToken(ch);
           res = Token::DECIMAL_LITERAL;
           // parse [0-9]+
           if (!parseNonEmptyCharList(CharacterClass::DECIMAL_DIGIT))
@@ -293,14 +311,16 @@ Token TempLexer::nextTokenInternal()
       {
         // otherwise, we are a simple symbol or standard alphanumeric token
         // note that we group the case when `:` is here.
-        parseNonEmptyCharList(CharacterClass::SYMBOL);
+        parseCharList(CharacterClass::SYMBOL);
         // tokenize what is stored in d_token
-        return tokenizeCurrent();
+        d_token.push_back(0);
+        std::string curr(tokenStr());
+        d_token.pop_back();
+        return tokenize(curr);
       }
       // otherwise error
       break;
   }
-
   return Token::NONE;
 }
 
@@ -395,14 +415,8 @@ void TempLexer::parseCharList(CharacterClass cc)
   }
 }
 
-constexpr std::size_t constlength(const char* s)
+Token TempLexer::tokenize(const std::string& curr) const
 {
-  return std::string::traits_type::length(s);
-}
-
-Token TempLexer::tokenizeCurrent() const
-{
-  std::string curr(tokenStr());
   std::map<std::string, Token>::const_iterator it = d_table.find(curr);
   if (it != d_table.end())
   {
