@@ -68,6 +68,7 @@ class TempLexer
   //----------- Utilizes for tokenizing d_token
   /** Tokenize */
   Token tokenize(const std::string& curr) const;
+  Token tokenizeCurrentSymbol() const;
 
   /** The parent */
   FlexLexer& d_parent;

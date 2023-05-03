@@ -39,7 +39,7 @@ class Smt2Parser : public FlexParser
  public:
   Smt2Parser(Solver* solver,
              SymbolManager* sm,
-             bool strictMode = false,
+             bool isStrict = false,
              bool isSygus = false);
   virtual ~Smt2Parser() {}
 

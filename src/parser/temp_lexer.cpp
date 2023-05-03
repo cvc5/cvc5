@@ -338,6 +338,7 @@ int32_t TempLexer::nextChar()
   {
     res = d_input->get();
   }
+  /*
   if (res == '\n')
   {
     d_parent.addLines(1);
@@ -346,6 +347,7 @@ int32_t TempLexer::nextChar()
   {
     d_parent.addColumns(1);
   }
+  */
   return res;
 }
 
@@ -425,6 +427,59 @@ Token TempLexer::tokenize(const std::string& curr) const
     return it->second;
   }
   return SYMBOL;
+}
+
+Token TempLexer::tokenizeCurrentSymbol() const
+{
+  Assert (!d_token.empty() && d_token.back()==0);
+  switch (d_token[0])
+  {
+    case 'a':
+      if (d_token[1]=='s' && d_token.size()==3)
+      {
+        return Token::AS_TOK;
+      }
+      break;
+    case 'p':
+      if (d_token[1]=='a' && d_token[2]=='r' && d_token.size()==4)
+      {
+        return Token::PAR_TOK;
+      }
+      break;
+    case 'l':
+      if (d_token[1]=='e' && d_token[2]=='t' && d_token.size()==4)
+      {
+        return Token::LET_TOK;
+      }
+      break;
+    case 'm':
+      if (d_token[1]=='a' && d_token[2]=='t' && d_token[3]=='c' && d_token[4]=='h' &&  d_token.size()==6)
+      {
+        return Token::LET_TOK;
+      }
+      break;
+    case 'C':
+      if ((d_isSygus || !d_isStrict) && d_token[1]=='o' && d_token[2]=='n' && d_token[3]=='s' && d_token[4]=='t' && d_token[5]=='a' && d_token[6]=='n' && d_token[7]=='t' &&  d_token.size()==9)
+      {
+        return Token::SYGUS_CONSTANT_TOK;
+      }
+      break;
+    case 'V':
+      if ((d_isSygus || !d_isStrict) && d_token[1]=='a' && d_token[2]=='r' && d_token[3]=='i' && d_token[4]=='a' && d_token[5]=='b' && d_token[6]=='l' && d_token[7]=='e' &&  d_token.size()==9)
+      {
+        return Token::SYGUS_VARIABLE_TOK;
+      }
+      break;
+    case '_':
+      if (d_token.size()==2)
+      {
+        return Token::INDEX_TOK;
+      }
+      break;
+    default:
+      break;
+  }
+  return Token::SYMBOL;
 }
 
 }  // namespace parser

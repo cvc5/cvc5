@@ -34,7 +34,9 @@ class Command;
 class Smt2CmdParser
 {
  public:
-  Smt2CmdParser(Smt2Lexer& lex, Smt2State& state, Smt2TermParser& tparser);
+  Smt2CmdParser(Smt2Lexer& lex, Smt2State& state, Smt2TermParser& tparser,
+             bool isStrict = false,
+             bool isSygus = false);
   virtual ~Smt2CmdParser() {}
   /**
    * Parse and return the next command, or nullptr if we are at the end of file.
@@ -42,12 +44,16 @@ class Smt2CmdParser
   std::unique_ptr<Command> parseNextCommand();
 
  protected:
+  /** Next command token */
+  Token nextCommandToken();
   /** The lexer */
   Smt2Lexer& d_lex;
   /** The state */
   Smt2State& d_state;
   /** The term parser */
   Smt2TermParser& d_tparser;
+  /** Map strings to tokens */
+  std::map<std::string, Token> d_table;
 };
 
 }  // namespace parser
