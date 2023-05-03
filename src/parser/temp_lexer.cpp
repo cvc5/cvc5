@@ -15,75 +15,80 @@
 
 #include "parser/temp_lexer.h"
 
+#include <cstdio>
+
 #include "base/check.h"
 #include "parser/flex_lexer.h"
-
-#include <cstdio>
 
 namespace cvc5 {
 namespace parser {
 
 TempLexer::TempLexer(FlexLexer& p, bool isSygus, bool isStrict)
-    : d_parent(p), d_input(nullptr), d_peeked(false), d_peekedChar(0), d_isSygus(isSygus), d_isStrict(isStrict)
+    : d_parent(p),
+      d_input(nullptr),
+      d_peeked(false),
+      d_peekedChar(0),
+      d_isSygus(isSygus),
+      d_isStrict(isStrict)
 {
-d_table["assert"] = Token::ASSERT_TOK;
-d_table["as"] = Token::AS_TOK;
-d_table["check-sat-assuming"] = Token::CHECK_SAT_ASSUMING_TOK;
-d_table["check-sat"] = Token::CHECK_SAT_TOK;
-d_table["declare-codatatypes"] = Token::DECLARE_CODATATYPES_TOK;
-d_table["declare-codatatype"] = Token::DECLARE_CODATATYPE_TOK;
-d_table["declare-const"] = Token::DECLARE_CONST_TOK;
-d_table["declare-datatypes"] = Token::DECLARE_DATATYPES_TOK;
-d_table["declare-datatype"] = Token::DECLARE_DATATYPE_TOK;
-d_table["declare-fun"] = Token::DECLARE_FUN_TOK;
-d_table["declare-sort"] = Token::DECLARE_SORT_TOK;
-d_table["define-const"] = Token::DEFINE_CONST_TOK;
-d_table["define-funs-rec"] = Token::DEFINE_FUNS_REC_TOK;
-d_table["define-fun-rec"] = Token::DEFINE_FUN_REC_TOK;
-d_table["define-fun"] = Token::DEFINE_FUN_TOK;
-d_table["define-sort"] = Token::DEFINE_SORT_TOK;
-d_table["echo"] = Token::ECHO_TOK;
-d_table["exit"] = Token::EXIT_TOK;
-d_table["get-assertions"] = Token::GET_ASSERTIONS_TOK;
-d_table["get-assignment"] = Token::GET_ASSIGNMENT_TOK;
-d_table["get-info"] = Token::GET_INFO_TOK;
-d_table["get-model"] = Token::GET_MODEL_TOK;
-d_table["get-option"] = Token::GET_OPTION_TOK;
-d_table["get-proof"] = Token::GET_PROOF_TOK;
-d_table["get-timeout-core"] = Token::GET_TIMEOUT_CORE_TOK;
-d_table["get-unsat-assumptions"] = Token::GET_UNSAT_ASSUMPTIONS_TOK;
-d_table["get-unsat-core"] = Token::GET_UNSAT_CORE_TOK;
-d_table["get-value"] = Token::GET_VALUE_TOK;
-d_table["let"] = Token::LET_TOK;
-d_table["match"] = Token::MATCH_TOK;
-d_table["par"] = Token::PAR_TOK;
-d_table["pop"] = Token::POP_TOK;
-d_table["push"] = Token::PUSH_TOK;
-d_table["reset-assertions"] = Token::RESET_ASSERTIONS_TOK;
-d_table["reset"] = Token::RESET_TOK;
-d_table["set-info"] = Token::SET_INFO_TOK;
-d_table["set-logic"] = Token::SET_LOGIC_TOK;
-d_table["set-option"] = Token::SET_OPTION_TOK;
-  
-  
+  d_table["assert"] = Token::ASSERT_TOK;
+  d_table["as"] = Token::AS_TOK;
+  d_table["check-sat-assuming"] = Token::CHECK_SAT_ASSUMING_TOK;
+  d_table["check-sat"] = Token::CHECK_SAT_TOK;
+  d_table["declare-codatatypes"] = Token::DECLARE_CODATATYPES_TOK;
+  d_table["declare-codatatype"] = Token::DECLARE_CODATATYPE_TOK;
+  d_table["declare-const"] = Token::DECLARE_CONST_TOK;
+  d_table["declare-datatypes"] = Token::DECLARE_DATATYPES_TOK;
+  d_table["declare-datatype"] = Token::DECLARE_DATATYPE_TOK;
+  d_table["declare-fun"] = Token::DECLARE_FUN_TOK;
+  d_table["declare-sort"] = Token::DECLARE_SORT_TOK;
+  d_table["define-const"] = Token::DEFINE_CONST_TOK;
+  d_table["define-funs-rec"] = Token::DEFINE_FUNS_REC_TOK;
+  d_table["define-fun-rec"] = Token::DEFINE_FUN_REC_TOK;
+  d_table["define-fun"] = Token::DEFINE_FUN_TOK;
+  d_table["define-sort"] = Token::DEFINE_SORT_TOK;
+  d_table["echo"] = Token::ECHO_TOK;
+  d_table["exit"] = Token::EXIT_TOK;
+  d_table["get-assertions"] = Token::GET_ASSERTIONS_TOK;
+  d_table["get-assignment"] = Token::GET_ASSIGNMENT_TOK;
+  d_table["get-info"] = Token::GET_INFO_TOK;
+  d_table["get-model"] = Token::GET_MODEL_TOK;
+  d_table["get-option"] = Token::GET_OPTION_TOK;
+  d_table["get-proof"] = Token::GET_PROOF_TOK;
+  d_table["get-timeout-core"] = Token::GET_TIMEOUT_CORE_TOK;
+  d_table["get-unsat-assumptions"] = Token::GET_UNSAT_ASSUMPTIONS_TOK;
+  d_table["get-unsat-core"] = Token::GET_UNSAT_CORE_TOK;
+  d_table["get-value"] = Token::GET_VALUE_TOK;
+  d_table["let"] = Token::LET_TOK;
+  d_table["match"] = Token::MATCH_TOK;
+  d_table["par"] = Token::PAR_TOK;
+  d_table["pop"] = Token::POP_TOK;
+  d_table["push"] = Token::PUSH_TOK;
+  d_table["reset-assertions"] = Token::RESET_ASSERTIONS_TOK;
+  d_table["reset"] = Token::RESET_TOK;
+  d_table["set-info"] = Token::SET_INFO_TOK;
+  d_table["set-logic"] = Token::SET_LOGIC_TOK;
+  d_table["set-option"] = Token::SET_OPTION_TOK;
+
   // initialize the tokens
   if (!d_isStrict)
-  {d_table["block-model"] = Token::BLOCK_MODEL_TOK;
-d_table["block-model-values"] = Token::BLOCK_MODEL_VALUES_TOK;
-d_table["declare-heap"] = Token::DECLARE_HEAP;
-d_table["declare-pool"] = Token::DECLARE_POOL;
-d_table["get-abduct-next"] = Token::GET_ABDUCT_NEXT_TOK;
-d_table["get-abduct"] = Token::GET_ABDUCT_TOK;
-d_table["get-difficulty"] = Token::GET_DIFFICULTY_TOK;
-d_table["get-interpolant-next"] = Token::GET_INTERPOL_NEXT_TOK;
-d_table["get-interpolant"] = Token::GET_INTERPOL_TOK;
-d_table["get-learned-literals"] = Token::GET_LEARNED_LITERALS_TOK;
-d_table["get-qe-disjunct"] = Token::GET_QE_DISJUNCT_TOK;
-d_table["get-qe"] = Token::GET_QE_TOK;
-d_table["include"] = Token::INCLUDE_TOK;
-d_table["simplify"] = Token::SIMPLIFY_TOK;
-d_table["Constant"] = Token::SYGUS_CONSTANT_TOK;
-d_table["Variable"] = Token::SYGUS_VARIABLE_TOK;
+  {
+    d_table["block-model"] = Token::BLOCK_MODEL_TOK;
+    d_table["block-model-values"] = Token::BLOCK_MODEL_VALUES_TOK;
+    d_table["declare-heap"] = Token::DECLARE_HEAP;
+    d_table["declare-pool"] = Token::DECLARE_POOL;
+    d_table["get-abduct-next"] = Token::GET_ABDUCT_NEXT_TOK;
+    d_table["get-abduct"] = Token::GET_ABDUCT_TOK;
+    d_table["get-difficulty"] = Token::GET_DIFFICULTY_TOK;
+    d_table["get-interpolant-next"] = Token::GET_INTERPOL_NEXT_TOK;
+    d_table["get-interpolant"] = Token::GET_INTERPOL_TOK;
+    d_table["get-learned-literals"] = Token::GET_LEARNED_LITERALS_TOK;
+    d_table["get-qe-disjunct"] = Token::GET_QE_DISJUNCT_TOK;
+    d_table["get-qe"] = Token::GET_QE_TOK;
+    d_table["include"] = Token::INCLUDE_TOK;
+    d_table["simplify"] = Token::SIMPLIFY_TOK;
+    d_table["Constant"] = Token::SYGUS_CONSTANT_TOK;
+    d_table["Variable"] = Token::SYGUS_VARIABLE_TOK;
   }
   if (d_isSygus)
   {
@@ -101,9 +106,10 @@ d_table["Variable"] = Token::SYGUS_VARIABLE_TOK;
 
 void TempLexer::initialize(std::istream* input) { d_input = input; }
 
-const char* TempLexer::tokenStr() const {
-  Assert (!d_token.empty() && d_token.back()==0);
-  return d_token.data(); 
+const char* TempLexer::tokenStr() const
+{
+  Assert(!d_token.empty() && d_token.back() == 0);
+  return d_token.data();
 }
 
 bool TempLexer::isCharacterClass(int32_t ch, CharacterClass cc)
@@ -404,7 +410,6 @@ Token TempLexer::tokenizeCurrent() const
   }
   return SYMBOL;
 }
-
 
 }  // namespace parser
 }  // namespace cvc5

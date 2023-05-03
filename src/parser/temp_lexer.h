@@ -20,8 +20,8 @@
 
 #include <cstdlib>
 #include <istream>
-#include <vector>
 #include <map>
+#include <vector>
 
 #include "parser/tokens.h"
 
@@ -68,7 +68,7 @@ class TempLexer
   //----------- Utilizes for tokenizing d_token
   /** Tokenize */
   Token tokenizeCurrent() const;
-  
+
   /** The parent */
   FlexLexer& d_parent;
   /** The input */
@@ -81,9 +81,9 @@ class TempLexer
   bool d_peeked;
   /** The saved character. */
   int32_t d_peekedChar;
-  /** is sygus */ 
+  /** is sygus */
   bool d_isSygus;
-  /** is strict */ 
+  /** is strict */
   bool d_isStrict;
   /** Map strings to tokens */
   std::map<std::string, Token> d_table;
