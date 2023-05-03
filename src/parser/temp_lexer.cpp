@@ -18,8 +18,8 @@
 #include <cstdio>
 
 #include "base/check.h"
-#include "parser/flex_lexer.h"
 #include "base/output.h"
+#include "parser/flex_lexer.h"
 
 namespace cvc5 {
 namespace parser {
@@ -106,8 +106,9 @@ TempLexer::TempLexer(FlexLexer& p, bool isSygus, bool isStrict)
   }
 }
 
-void TempLexer::initialize(std::istream* input) { 
-  d_input = input; 
+void TempLexer::initialize(std::istream* input)
+{
+  d_input = input;
   /*
   Token t;
   Trace("ajr-temp") << "=== start" << std::endl;
@@ -160,7 +161,8 @@ Token TempLexer::nextToken()
   Token ret = nextTokenInternal();
   // null terminate?
   d_token.push_back(0);
-  Trace("lexer-debug") << "Return nextToken " << ret << " / " << tokenStr() << std::endl;
+  Trace("lexer-debug") << "Return nextToken " << ret << " / " << tokenStr()
+                       << std::endl;
   return ret;
 }
 
