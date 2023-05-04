@@ -326,11 +326,10 @@ Token Smt2LexerNew::computeNextToken()
         // otherwise, we are a simple symbol or standard alphanumeric token
         // note that we group the case when `:` is here.
         parseCharList(CharacterClass::SYMBOL);
-        // tokenize what is stored in d_token
-        d_token.push_back(0);
-        std::string curr(tokenStr());
-        d_token.pop_back();
-        return tokenize(curr);
+        //std::string curr(tokenStr());
+        Token ret = tokenizeCurrentSymbol();
+        return ret;
+       // return tokenize(curr);
       }
       // otherwise error
       break;
@@ -442,52 +441,52 @@ Token Smt2LexerNew::tokenize(const std::string& curr) const
 
 Token Smt2LexerNew::tokenizeCurrentSymbol() const
 {
-  Assert(!d_token.empty() && d_token.back() == 0);
+  Assert(!d_token.empty());
   switch (d_token[0])
   {
     case 'a':
-      if (d_token[1] == 's' && d_token.size() == 3)
+      if (d_token.size() == 2 && d_token[1] == 's')
       {
         return Token::AS_TOK;
       }
       break;
     case 'p':
-      if (d_token[1] == 'a' && d_token[2] == 'r' && d_token.size() == 4)
+      if (d_token.size() == 3 && d_token[1] == 'a' && d_token[2] == 'r')
       {
         return Token::PAR_TOK;
       }
       break;
     case 'l':
-      if (d_token[1] == 'e' && d_token[2] == 't' && d_token.size() == 4)
+      if (d_token.size() == 3 && d_token[1] == 'e' && d_token[2] == 't')
       {
         return Token::LET_TOK;
       }
       break;
     case 'm':
-      if (d_token[1] == 'a' && d_token[2] == 't' && d_token[3] == 'c'
-          && d_token[4] == 'h' && d_token.size() == 6)
+      if (d_token.size() == 5 && d_token[1] == 'a' && d_token[2] == 't' && d_token[3] == 'c'
+          && d_token[4] == 'h')
       {
-        return Token::LET_TOK;
+        return Token::MATCH_TOK;
       }
       break;
     case 'C':
-      if ((d_isSygus || !d_isStrict) && d_token[1] == 'o' && d_token[2] == 'n'
+      if ((d_isSygus || !d_isStrict) && d_token.size() == 8 && d_token[1] == 'o' && d_token[2] == 'n'
           && d_token[3] == 's' && d_token[4] == 't' && d_token[5] == 'a'
-          && d_token[6] == 'n' && d_token[7] == 't' && d_token.size() == 9)
+          && d_token[6] == 'n' && d_token[7] == 't')
       {
         return Token::SYGUS_CONSTANT_TOK;
       }
       break;
     case 'V':
-      if ((d_isSygus || !d_isStrict) && d_token[1] == 'a' && d_token[2] == 'r'
+      if ((d_isSygus || !d_isStrict) && d_token.size() == 8 && d_token[1] == 'a' && d_token[2] == 'r'
           && d_token[3] == 'i' && d_token[4] == 'a' && d_token[5] == 'b'
-          && d_token[6] == 'l' && d_token[7] == 'e' && d_token.size() == 9)
+          && d_token[6] == 'l' && d_token[7] == 'e')
       {
         return Token::SYGUS_VARIABLE_TOK;
       }
       break;
     case '_':
-      if (d_token.size() == 2)
+      if (d_token.size() == 1)
       {
         return Token::INDEX_TOK;
       }

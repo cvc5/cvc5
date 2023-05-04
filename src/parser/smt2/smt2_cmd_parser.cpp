@@ -27,7 +27,7 @@ Smt2CmdParser::Smt2CmdParser(Smt2LexerNew& lex,
                              Smt2TermParser& tparser,
                              bool isStrict,
                              bool isSygus)
-    : d_lex(lex), d_state(state), d_tparser(tparser)
+    : d_lex(lex), d_state(state), d_tparser(tparser), d_isStrict(isStrict), d_isSygus(isSygus)
 {
   // initialize the command tokens
   d_table["assert"] = Token::ASSERT_TOK;
@@ -119,7 +119,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
     return nullptr;
   }
   std::unique_ptr<Command> cmd;
-  Token tok = d_lex.nextToken();
+  Token tok = nextCommandToken();
   switch (tok)
   {
     // (assert <term>)

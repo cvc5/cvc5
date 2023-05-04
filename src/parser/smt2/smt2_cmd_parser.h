@@ -37,8 +37,8 @@ class Smt2CmdParser
   Smt2CmdParser(Smt2LexerNew& lex,
                 Smt2State& state,
                 Smt2TermParser& tparser,
-                bool isStrict = false,
-                bool isSygus = false);
+                bool isStrict,
+                bool isSygus);
   virtual ~Smt2CmdParser() {}
   /**
    * Parse and return the next command, or nullptr if we are at the end of file.
@@ -56,6 +56,10 @@ class Smt2CmdParser
   Smt2TermParser& d_tparser;
   /** Map strings to tokens */
   std::map<std::string, Token> d_table;
+  /** is strict */
+  bool d_isStrict;
+  /** is sygus */
+  bool d_isSygus;
 };
 
 }  // namespace parser
