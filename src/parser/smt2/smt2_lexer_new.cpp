@@ -170,6 +170,7 @@ Token Smt2LexerNew::computeNextToken()
         return Token::EOF_TOK;
       }
     } while (std::isspace(ch));  // NOTE: bitwuzla checks printable?
+
     if (ch != ';')
     {
       break;
@@ -326,11 +327,12 @@ int32_t Smt2LexerNew::nextChar()
     res = readNextChar();
     if (res == '\n')
     {
-      addLines(1);
+      d_span.d_end.d_line++;
+      d_span.d_end.d_column = 0;
     }
     else
     {
-      addColumns(1);
+      d_span.d_end.d_column++;
     }
   }
   return res;
