@@ -35,7 +35,7 @@ std::ostream& operator<<(std::ostream& o, const Span& l)
   return o << l.d_start << "-" << l.d_end;
 }
 
-FlexLexer::FlexLexer() {}
+FlexLexer::FlexLexer() : d_bufferPos(0), d_bufferEnd(0) {}
 
 void FlexLexer::warning(const std::string& msg)
 {
@@ -60,9 +60,9 @@ void FlexLexer::parseError(const std::string& msg, bool eofException)
 void FlexLexer::initSpan()
 {
   d_span.d_start.d_line = 1;
-  d_span.d_start.d_column = 1;
+  d_span.d_start.d_column = 0;
   d_span.d_end.d_line = 1;
-  d_span.d_end.d_column = 1;
+  d_span.d_end.d_column = 0;
 }
 void FlexLexer::bumpSpan()
 {
@@ -76,7 +76,7 @@ void FlexLexer::addColumns(uint32_t columns)
 void FlexLexer::addLines(uint32_t lines)
 {
   d_span.d_end.d_line += lines;
-  d_span.d_end.d_column = 1;
+  d_span.d_end.d_column = 0;
 }
 
 void FlexLexer::initialize(FlexInput* input, const std::string& inputName)
@@ -146,6 +146,33 @@ bool FlexLexer::eatTokenChoice(Token t, Token f)
     unexpectedTokenError(tt, o.str());
   }
   return false;
+}
+
+int32_t FlexLexer::readNextChar()
+{
+  uint32_t ch;
+  if (d_bufferPos < d_bufferEnd)
+  {
+    ch = d_buffer[d_bufferPos];
+    d_bufferPos++;
+  }
+  else
+  {
+    std::istream& istream = d_input->getStream();
+    istream.read(d_buffer, INPUT_BUFFER_SIZE);
+    d_bufferEnd = static_cast<size_t>(istream.gcount());
+    if (d_bufferEnd == 0)
+    {
+      ch = EOF;
+      d_bufferPos = 0;
+    }
+    else
+    {
+      ch = d_buffer[0];
+      d_bufferPos = 1;
+    }
+  }
+  return ch;
 }
 
 }  // namespace parser

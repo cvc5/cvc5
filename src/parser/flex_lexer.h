@@ -52,6 +52,8 @@ struct Span
 };
 std::ostream& operator<<(std::ostream& o, const Span& l);
 
+#define INPUT_BUFFER_SIZE 32768
+
 /**
  * A Flex lexer. This class inherits from yyFlexLexer, which is generated
  * by Flex's C++ code generation.
@@ -98,6 +100,8 @@ class FlexLexer
  protected:
   // -----------------
   virtual Token nextTokenInternal() = 0;
+  /** Get the next character */
+  int32_t readNextChar();
   // -----------------
   /** Used to initialize d_span. */
   void initSpan();
@@ -116,8 +120,13 @@ class FlexLexer
    * back of it and pop.
    */
   std::vector<Token> d_peeked;
+private:
   /** The input */
   FlexInput* d_input;
+  /** Buffer */
+  char d_buffer[INPUT_BUFFER_SIZE];
+  size_t d_bufferPos;
+  size_t d_bufferEnd;
 };
 
 }  // namespace parser
