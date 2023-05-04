@@ -23,7 +23,7 @@
 #include "parser/flex_parser.h"
 #include "parser/smt2/smt2.h"
 #include "parser/smt2/smt2_cmd_parser.h"
-#include "parser/smt2/smt2_lexer.h"
+#include "parser/smt2/smt2_lexer_new.h"
 #include "parser/smt2/smt2_term_parser.h"
 
 namespace cvc5 {
@@ -52,7 +52,7 @@ class Smt2Parser : public FlexParser
   /** Parse and return the next expression. */
   Term parseNextExpression() override;
   /** The lexer */
-  Smt2Lexer d_slex;
+  Smt2LexerNew d_slex;
   /** The state */
   Smt2State d_state;
   /** Term parser */

@@ -15,15 +15,15 @@
 
 #include "cvc5parser_private.h"
 
-#ifndef CVC5__PARSER__TEMP_LEXER_H
-#define CVC5__PARSER__TEMP_LEXER_H
+#ifndef CVC5__PARSER__SMT2__SMT2_LEXER_NEW_H
+#define CVC5__PARSER__SMT2__SMT2_LEXER_NEW_H
 
 #include <cstdlib>
 #include <istream>
 #include <map>
 #include <vector>
 
-#include "parser/flex_input.h"
+#include "parser/flex_lexer.h"
 #include "parser/tokens.h"
 
 namespace cvc5 {
@@ -31,15 +31,18 @@ namespace parser {
 
 class FlexLexer;
 
-class TempLexer
+class Smt2LexerNew : public FlexLexer
 {
  public:
-  TempLexer(FlexLexer& p, bool isSygus, bool isStrict);
-  void initialize(FlexInput* input);
-  const char* tokenStr() const;
-  Token nextToken();
+  Smt2LexerNew(bool isStrict, bool isSygus);
+  const char* tokenStr() const override;
 
+  /** Are we in strict mode? */
+  bool isStrict() const;
+  /** Are we parsing sygus? */
+  bool isSygus() const;
  private:
+  Token nextTokenInternal() override;
   enum class CharacterClass
   {
     DECIMAL_DIGIT,
@@ -48,7 +51,7 @@ class TempLexer
     SYMBOL_START,
     SYMBOL,
   };
-  Token nextTokenInternal();
+  Token computeNextToken();
   /** Get the next character */
   int32_t nextChar();
   /** Save character */
@@ -71,22 +74,18 @@ class TempLexer
   Token tokenize(const std::string& curr) const;
   Token tokenizeCurrentSymbol() const;
 
-  /** The parent */
-  FlexLexer& d_parent;
-  /** The input */
-  FlexInput* d_input;
   /** The token */
   std::vector<char> d_token;
   /** The token string */
   std::string d_tokenStr;
   /** True if we have a saved character that has not been consumed yet. */
-  bool d_peeked;
+  bool d_peekedChar;
   /** The saved character. */
-  int32_t d_peekedChar;
-  /** is sygus */
-  bool d_isSygus;
+  int32_t d_chPeeked;
   /** is strict */
   bool d_isStrict;
+  /** is sygus */
+  bool d_isSygus;
   /** Map strings to tokens */
   std::map<std::string, Token> d_table;
 };
@@ -94,4 +93,4 @@ class TempLexer
 }  // namespace parser
 }  // namespace cvc5
 
-#endif /* CVC5__PARSER__TEMP_LEXER_H */
+#endif /* CVC5__PARSER__SMT2__SMT2_LEXER_NEW_H */

@@ -35,7 +35,7 @@ std::ostream& operator<<(std::ostream& o, const Span& l)
   return o << l.d_start << "-" << l.d_end;
 }
 
-FlexLexer::FlexLexer() : yyFlexLexer() {}
+FlexLexer::FlexLexer() {}
 
 void FlexLexer::warning(const std::string& msg)
 {
@@ -81,17 +81,10 @@ void FlexLexer::addLines(uint32_t lines)
 
 void FlexLexer::initialize(FlexInput* input, const std::string& inputName)
 {
+  d_input = input;
   d_inputName = inputName;
-  // use the std::istream* version which is supported in earlier Flex versions
-  initializeInternal(input);
   initSpan();
   d_peeked.clear();
-}
-
-const char* FlexLexer::tokenStr()
-{
-  Assert(d_peeked.empty());
-  return tokenStrInternal();
 }
 
 Token FlexLexer::nextToken()

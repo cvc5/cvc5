@@ -23,7 +23,6 @@
 #include <string>
 
 #include "parser/flex_lexer.h"
-#include "parser/temp_lexer.h"
 
 namespace cvc5 {
 namespace parser {

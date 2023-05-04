@@ -13,7 +13,7 @@
  * Temp
  */
 
-#include "parser/temp_lexer.h"
+#include "parser/smt2/smt2_lexer_new.h"
 
 #include <cstdio>
 
@@ -24,13 +24,12 @@
 namespace cvc5 {
 namespace parser {
 
-TempLexer::TempLexer(FlexLexer& p, bool isSygus, bool isStrict)
-    : d_parent(p),
-      d_input(nullptr),
-      d_peeked(false),
-      d_peekedChar(0),
-      d_isSygus(isSygus),
-      d_isStrict(isStrict)
+Smt2LexerNew::Smt2LexerNew(bool isStrict, bool isSygus)
+    : FlexLexer(),
+      d_peekedChar(false),
+      d_chPeeked(0),
+      d_isStrict(isStrict),
+      d_isSygus(isSygus)
 {
   d_table["assert"] = Token::ASSERT_TOK;
   d_table["as"] = Token::AS_TOK;
@@ -106,29 +105,17 @@ TempLexer::TempLexer(FlexLexer& p, bool isSygus, bool isStrict)
   }
 }
 
-void TempLexer::initialize(FlexInput* input)
-{
-  d_input = input;
-  /*
-  Token t;
-  Trace("ajr-temp") << "=== start" << std::endl;
-  do
-  {
-    t = nextToken();
-    Trace("ajr-temp") << t << " / \"" << tokenStr() << "\"" << std::endl;
-  }
-  while (t!=Token::EOF_TOK);
-  Trace("ajr-temp") << "=== end" << std::endl;
-  */
-}
-
-const char* TempLexer::tokenStr() const
+const char* Smt2LexerNew::tokenStr() const
 {
   Assert(!d_token.empty() && d_token.back() == 0);
   return d_token.data();
 }
 
-bool TempLexer::isCharacterClass(int32_t ch, CharacterClass cc)
+bool Smt2LexerNew::isStrict() const { return d_isStrict; }
+
+bool Smt2LexerNew::isSygus() const { return d_isSygus; }
+
+bool Smt2LexerNew::isCharacterClass(int32_t ch, CharacterClass cc)
 {
   switch (cc)
   {
@@ -154,11 +141,11 @@ bool TempLexer::isCharacterClass(int32_t ch, CharacterClass cc)
   return false;
 }
 
-Token TempLexer::nextToken()
+Token Smt2LexerNew::nextTokenInternal()
 {
   Trace("lexer-debug") << "Call nextToken" << std::endl;
   d_token.clear();
-  Token ret = nextTokenInternal();
+  Token ret = computeNextToken();
   // null terminate?
   d_token.push_back(0);
   Trace("lexer-debug") << "Return nextToken " << ret << " / " << tokenStr()
@@ -166,9 +153,9 @@ Token TempLexer::nextToken()
   return ret;
 }
 
-Token TempLexer::nextTokenInternal()
+Token Smt2LexerNew::computeNextToken()
 {
-  d_parent.bumpSpan();
+  bumpSpan();
   int32_t ch;
   // NOTE: we store d_token only if there are multiple choices for what it
   // could contain for the returned token.
@@ -326,13 +313,13 @@ Token TempLexer::nextTokenInternal()
   return Token::NONE;
 }
 
-int32_t TempLexer::nextChar()
+int32_t Smt2LexerNew::nextChar()
 {
   int32_t res;
-  if (d_peeked)
+  if (d_peekedChar)
   {
-    res = d_peekedChar;
-    d_peeked = false;
+    res = d_chPeeked;
+    d_peekedChar = false;
   }
   else
   {
@@ -341,31 +328,31 @@ int32_t TempLexer::nextChar()
   /*
   if (res == '\n')
   {
-    d_parent.addLines(1);
+    addLines(1);
   }
   else
   {
-    d_parent.addColumns(1);
+    addColumns(1);
   }
   */
   return res;
 }
 
-void TempLexer::saveChar(int32_t ch)
+void Smt2LexerNew::saveChar(int32_t ch)
 {
-  Assert(!d_peeked);
-  d_peeked = true;
-  d_peekedChar = ch;
+  Assert(!d_peekedChar);
+  d_peekedChar = true;
+  d_chPeeked = ch;
 }
 
-void TempLexer::pushToToken(int32_t ch)
+void Smt2LexerNew::pushToToken(int32_t ch)
 {
   Assert(ch != EOF);
   Assert(ch >= 0 && ch < 256);
   d_token.push_back(static_cast<char>(ch));
 }
 
-bool TempLexer::parseLiteralChar(int32_t chc)
+bool Smt2LexerNew::parseLiteralChar(int32_t chc)
 {
   int32_t ch = nextChar();
   if (ch != chc)
@@ -377,7 +364,7 @@ bool TempLexer::parseLiteralChar(int32_t chc)
   return true;
 }
 
-bool TempLexer::parseChar(CharacterClass cc)
+bool Smt2LexerNew::parseChar(CharacterClass cc)
 {
   int32_t ch = nextChar();
   if (!isCharacterClass(ch, cc))
@@ -389,7 +376,7 @@ bool TempLexer::parseChar(CharacterClass cc)
   return true;
 }
 
-bool TempLexer::parseNonEmptyCharList(CharacterClass cc)
+bool Smt2LexerNew::parseNonEmptyCharList(CharacterClass cc)
 {
   // must contain at least one character
   int32_t ch = nextChar();
@@ -403,7 +390,7 @@ bool TempLexer::parseNonEmptyCharList(CharacterClass cc)
   return true;
 }
 
-void TempLexer::parseCharList(CharacterClass cc)
+void Smt2LexerNew::parseCharList(CharacterClass cc)
 {
   int32_t ch;
   for (;;)
@@ -419,7 +406,7 @@ void TempLexer::parseCharList(CharacterClass cc)
   }
 }
 
-Token TempLexer::tokenize(const std::string& curr) const
+Token Smt2LexerNew::tokenize(const std::string& curr) const
 {
   std::map<std::string, Token>::const_iterator it = d_table.find(curr);
   if (it != d_table.end())
@@ -429,7 +416,7 @@ Token TempLexer::tokenize(const std::string& curr) const
   return SYMBOL;
 }
 
-Token TempLexer::tokenizeCurrentSymbol() const
+Token Smt2LexerNew::tokenizeCurrentSymbol() const
 {
   Assert(!d_token.empty() && d_token.back() == 0);
   switch (d_token[0])

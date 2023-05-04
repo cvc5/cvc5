@@ -52,7 +52,6 @@ struct Span
 };
 std::ostream& operator<<(std::ostream& o, const Span& l);
 
-class TempLexer;
 /**
  * A Flex lexer. This class inherits from yyFlexLexer, which is generated
  * by Flex's C++ code generation.
@@ -60,10 +59,8 @@ class TempLexer;
  * Custom lexers (e.g. for smt2) override the yylex method of the base
  * class.
  */
-class FlexLexer : public yyFlexLexer
+class FlexLexer
 {
-  friend class TempLexer;
-
  public:
   FlexLexer();
   virtual ~FlexLexer() {}
@@ -72,7 +69,12 @@ class FlexLexer : public yyFlexLexer
    * @param input The input stream
    * @param inputName The name for debugging
    */
-  void initialize(FlexInput* input, const std::string& inputName);
+  virtual void initialize(FlexInput* input, const std::string& inputName);
+  /**
+   * String corresponding to the last token (old top of stack). This is only
+   * valid if no tokens are currently peeked.
+   */
+  virtual const char* tokenStr() const = 0;
   /** Advance to the next token (pop from stack) */
   Token nextToken();
   /** Add a token back into the stream (push to stack) */
@@ -86,11 +88,6 @@ class FlexLexer : public yyFlexLexer
   bool eatTokenChoice(Token t, Token f);
   /** reinsert token, read back first in, last out */
   void reinsertToken(Token t);
-  /**
-   * String corresponding to the last token (old top of stack). This is only
-   * valid if no tokens are currently peeked.
-   */
-  const char* tokenStr();
   /** Used to report warnings, with the current source location attached. */
   void warning(const std::string&);
   /** Used to report errors, with the current source location attached. */
@@ -100,8 +97,6 @@ class FlexLexer : public yyFlexLexer
 
  protected:
   // -----------------
-  virtual void initializeInternal(FlexInput* input) = 0;
-  virtual const char* tokenStrInternal() = 0;
   virtual Token nextTokenInternal() = 0;
   // -----------------
   /** Used to initialize d_span. */
@@ -121,6 +116,8 @@ class FlexLexer : public yyFlexLexer
    * back of it and pop.
    */
   std::vector<Token> d_peeked;
+  /** The input */
+  FlexInput* d_input;
 };
 
 }  // namespace parser
