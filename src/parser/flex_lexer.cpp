@@ -81,7 +81,9 @@ void FlexLexer::addLines(uint32_t lines)
 
 void FlexLexer::initialize(FlexInput* input, const std::string& inputName)
 {
-  d_input = input;
+  Assert (input!=nullptr);
+  d_istream = input->getStream();
+  d_isInteractive = input->isInteractive();
   d_inputName = inputName;
   initSpan();
   d_peeked.clear();
@@ -150,29 +152,34 @@ bool FlexLexer::eatTokenChoice(Token t, Token f)
 
 int32_t FlexLexer::readNextChar()
 {
-  uint32_t ch;
   if (d_bufferPos < d_bufferEnd)
   {
-    ch = d_buffer[d_bufferPos];
+    d_ch = d_buffer[d_bufferPos];
     d_bufferPos++;
   }
   else
   {
-    std::istream& istream = d_input->getStream();
-    istream.read(d_buffer, INPUT_BUFFER_SIZE);
-    d_bufferEnd = static_cast<size_t>(istream.gcount());
-    if (d_bufferEnd == 0)
+    if (d_isInteractive)
     {
-      ch = EOF;
-      d_bufferPos = 0;
+      d_ch = d_istream->get();
     }
     else
     {
-      ch = d_buffer[0];
-      d_bufferPos = 1;
+      d_istream->read(d_buffer, INPUT_BUFFER_SIZE);
+      d_bufferEnd = static_cast<size_t>(d_istream->gcount());
+      if (d_bufferEnd == 0)
+      {
+        d_ch = EOF;
+        d_bufferPos = 0;
+      }
+      else
+      {
+        d_ch = d_buffer[0];
+        d_bufferPos = 1;
+      }
     }
   }
-  return ch;
+  return d_ch;
 }
 
 }  // namespace parser

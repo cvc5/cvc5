@@ -122,11 +122,14 @@ class FlexLexer
   std::vector<Token> d_peeked;
 private:
   /** The input */
-  FlexInput* d_input;
+  std::istream* d_istream;
+  /** Interactive */
+  bool d_isInteractive;
   /** Buffer */
   char d_buffer[INPUT_BUFFER_SIZE];
   size_t d_bufferPos;
   size_t d_bufferEnd;
+  uint32_t d_ch;
 };
 
 }  // namespace parser
