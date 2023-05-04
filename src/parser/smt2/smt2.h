@@ -237,7 +237,7 @@ class Smt2State : public ParserState
   Grammar* mkGrammar(const std::vector<Term>& boundVars,
                      const std::vector<Term>& ntSymbols);
 
-  /** Are we using a sygus language? */
+  /** Are we using a sygus language?  */
   bool sygus() const;
 
   /**
