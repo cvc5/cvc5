@@ -157,26 +157,23 @@ int32_t FlexLexer::readNextChar()
     d_ch = d_buffer[d_bufferPos];
     d_bufferPos++;
   }
+  else if (d_isInteractive)
+  {
+    d_ch = d_istream->get();
+  }
   else
   {
-    if (d_isInteractive)
+    d_istream->read(d_buffer, INPUT_BUFFER_SIZE);
+    d_bufferEnd = static_cast<size_t>(d_istream->gcount());
+    if (d_bufferEnd == 0)
     {
-      d_ch = d_istream->get();
+      d_ch = EOF;
+      d_bufferPos = 0;
     }
     else
     {
-      d_istream->read(d_buffer, INPUT_BUFFER_SIZE);
-      d_bufferEnd = static_cast<size_t>(d_istream->gcount());
-      if (d_bufferEnd == 0)
-      {
-        d_ch = EOF;
-        d_bufferPos = 0;
-      }
-      else
-      {
-        d_ch = d_buffer[0];
-        d_bufferPos = 1;
-      }
+      d_ch = d_buffer[0];
+      d_bufferPos = 1;
     }
   }
   return d_ch;

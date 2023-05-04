@@ -69,7 +69,7 @@ class Smt2LexerNew : public FlexLexer
   /** parse <c>* */
   void parseCharList(CharacterClass cc);
   /** is character class */
-  static bool isCharacterClass(int32_t ch, CharacterClass cc);
+  bool isCharacterClass(int32_t ch, CharacterClass cc);
   //----------- Utilizes for tokenizing d_token
   /** Tokenize */
   Token tokenize(const std::string& curr) const;
@@ -89,6 +89,11 @@ class Smt2LexerNew : public FlexLexer
   bool d_isSygus;
   /** Map strings to tokens */
   std::map<std::string, Token> d_table;
+  /**
+   * Static table denoting which characters 0...255 are characters that are
+   * legal to start a symbol with.
+   */
+  bool d_symcTable[256];
 };
 
 }  // namespace parser
