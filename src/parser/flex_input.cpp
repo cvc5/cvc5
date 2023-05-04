@@ -37,7 +37,7 @@ class FlexFileInput : public FlexInput
     }
   }
   std::istream& getStream() override { return d_fs; }
-
+  uint32_t getNextChar() override { return d_fs.get(); }
  private:
   /** File stream */
   std::ifstream d_fs;
@@ -49,6 +49,7 @@ class FlexStreamInput : public FlexInput
  public:
   FlexStreamInput(std::istream& input) : FlexInput(), d_input(input) {}
   std::istream& getStream() override { return d_input; }
+  uint32_t getNextChar() override { return d_input.get(); }
 
  private:
   /** Reference to stream */
@@ -61,6 +62,7 @@ class FlexStringInput : public FlexInput
  public:
   FlexStringInput(const std::string& input) : FlexInput() { d_input << input; }
   std::istream& getStream() override { return d_input; }
+  uint32_t getNextChar() override { return d_input.get(); }
 
  private:
   /** Reference to stream */

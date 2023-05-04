@@ -35,7 +35,7 @@ class TempLexer
 {
  public:
   TempLexer(FlexLexer& p, bool isSygus, bool isStrict);
-  void initialize(FlexInput& input);
+  void initialize(FlexInput* input);
   const char* tokenStr() const;
   Token nextToken();
 

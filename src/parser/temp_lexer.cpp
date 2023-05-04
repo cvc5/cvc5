@@ -336,7 +336,7 @@ int32_t TempLexer::nextChar()
   }
   else
   {
-    res = d_input->get();
+    res = d_input->getNextChar();
   }
   /*
   if (res == '\n')

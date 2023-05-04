@@ -46,7 +46,7 @@ class Smt2Lexer : public FlexLexer
   bool isStrict() const;
  private:
   // -----------------
-  void initializeInternal(FlexInput& input) override;
+  void initializeInternal(FlexInput* input) override;
   const char* tokenStrInternal() override;
   Token nextTokenInternal() override;
   // -----------------

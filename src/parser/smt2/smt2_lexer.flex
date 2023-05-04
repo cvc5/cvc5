@@ -191,9 +191,9 @@ void Smt2Lexer::initializeInternal(FlexInput& input) { yyrestart(&input.getStrea
 const char* Smt2Lexer::tokenStrInternal() { return YYText(); }
 Token Smt2Lexer::nextTokenInternal() { return Token(yylex()); }
 #else
-void Smt2Lexer::initializeInternal(FlexInput& input)
+void Smt2Lexer::initializeInternal(FlexInput* input)
 {
-  d_tlex.initialize(&input);
+  d_tlex.initialize(input);
 }
 const char* Smt2Lexer::tokenStrInternal() { return d_tlex.tokenStr(); }
 Token Smt2Lexer::nextTokenInternal() { return d_tlex.nextToken(); }
