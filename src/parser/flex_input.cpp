@@ -22,11 +22,13 @@
 namespace cvc5 {
 namespace parser {
 
+#define INPUT_BUFFER_SIZE 1024
+  
 /** File input class */
 class FlexFileInput : public FlexInput
 {
  public:
-  FlexFileInput(const std::string& filename) : FlexInput()
+  FlexFileInput(const std::string& filename) : FlexInput(), d_fsf(nullptr), d_bufferPos(0), d_bufferEnd(0)
   {
     d_fs.open(filename, std::fstream::in);
     if (!d_fs.is_open())
@@ -37,11 +39,37 @@ class FlexFileInput : public FlexInput
     }
   }
   std::istream& getStream() override { return d_fs; }
-  uint32_t getNextChar() override { return d_fs.get(); }
+  uint32_t getNextChar() override { 
+    uint32_t ch;
+    if (d_bufferPos<d_bufferEnd)
+    {
+      ch = d_buffer[d_bufferPos];
+      d_bufferPos++;
+    }
+    else
+    {
+      d_fs.read(d_buffer, INPUT_BUFFER_SIZE);
+      d_bufferEnd = static_cast<unsigned>(d_fs.gcount());
+      if (d_bufferEnd==0) {
+          ch = EOF;
+      d_bufferPos = 0;
+      }
+      else {
+      ch = d_buffer[0];
+      d_bufferPos = 1;
+      }
+    }
+    return ch; 
+  }
 
  private:
   /** File stream */
   std::ifstream d_fs;
+  /** The input file. */
+  FILE* d_fsf = nullptr;
+  char              d_buffer[INPUT_BUFFER_SIZE];
+  size_t           d_bufferPos;
+  size_t           d_bufferEnd;
 };
 
 /** Stream reference input class */
