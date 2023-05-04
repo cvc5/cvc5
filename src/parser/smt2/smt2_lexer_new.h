@@ -71,8 +71,17 @@ class Smt2LexerNew : public FlexLexer
   /** is character class */
   bool isCharacterClass(int32_t ch, CharacterClass cc);
   //----------- Utilizes for tokenizing d_token
-  /** Tokenize */
-  Token tokenize(const std::string& curr) const;
+  /**
+   * Tokenize current symbol stored in d_token.
+   *
+   * This method changes the string in d_token into the appropriate token.
+   * Otherwise, we return Token::SYMBOL.
+   *
+   * The list of all simple symbols that are converted by this method.
+   *   as, par, let, match, Constant, Variable, _
+   *
+   * We don't handle command tokens here.
+   */
   Token tokenizeCurrentSymbol() const;
 
   /** The token */
@@ -87,8 +96,6 @@ class Smt2LexerNew : public FlexLexer
   bool d_isStrict;
   /** is sygus */
   bool d_isSygus;
-  /** Map strings to tokens */
-  std::map<std::string, Token> d_table;
   /**
    * Static table denoting which characters 0...255 are characters that are
    * legal to start a symbol with.
