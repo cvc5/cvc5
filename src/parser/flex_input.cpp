@@ -22,7 +22,7 @@
 namespace cvc5 {
 namespace parser {
 
-#define INPUT_BUFFER_SIZE 16384
+#define INPUT_BUFFER_SIZE 32768
 
 /** File input class */
 class FlexFileInput : public FlexInput
