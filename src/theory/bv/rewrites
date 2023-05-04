@@ -85,10 +85,13 @@
   (bvsle y x))
 (define-rule bv-slt-eliminate
   ((x ?BitVec) (y ?BitVec))
+  (def
+    (one (bv 1 (bvsize x)))
+    (nm1 (bv (- (bvsize x) 1) (bvsize x))))
   (bvslt x y)
   (bvult
-    (bvadd x (bvshl (bv (- (bvsize x) 1) (bvsize x)) (bv 1 (bvsize x)) ) )
-    (bvadd y (bvshl (bv (- (bvsize x) 1) (bvsize x)) (bv 1 (bvsize x)) ) )
+    (bvadd x (bvshl one nm1))
+    (bvadd y (bvshl one nm1))
   ))
 (define-rule bv-sle-eliminate
   ((x ?BitVec) (y ?BitVec))
@@ -382,7 +385,10 @@
   (bvite (bvand (bvnot c0) c1) t1 t0))
 
 
-; The shift by zero case is handled below.
+(define-rule bv-shl-by-const-0
+  ((x ?BitVec) (sz Int))
+  (bvshl x (bv 0 sz))
+  x)
 (define-cond-rule bv-shl-by-const-1
   ((x ?BitVec) (amount Int) (sz Int))
   (def (n (bvsize x)))
@@ -394,6 +400,10 @@
   (>= amount (bvsize x))
   (bvshl x (bv amount sz))
   (bv 0 (bvsize x)))
+(define-rule bv-lshr-by-const-0
+  ((x ?BitVec) (sz Int))
+  (bvlshr x (bv 0 sz))
+  x)
 (define-cond-rule bv-lshr-by-const-1
   ((x ?BitVec) (amount Int) (sz Int))
   (def (n (bvsize x)))
@@ -405,6 +415,10 @@
   (>= amount (bvsize x))
   (bvlshr x (bv amount sz))
   (bv 0 sz))
+(define-rule bv-ashr-by-const-0
+  ((x ?BitVec) (sz Int))
+  (bvashr x (bv 0 sz))
+  x)
 (define-cond-rule bv-ashr-by-const-1
   ((x ?BitVec) (amount Int) (sz Int))
   (def (n (bvsize x)))
@@ -652,15 +666,15 @@
 ; (0_k >> a) = 0_k
 (define-rule bv-shl-zero
   ((a ?BitVec) (n Int))
-  (bvshl a (bv 0 n))
+  (bvshl (bv 0 n) a)
   (bv 0 n))
 (define-rule bv-lshr-zero
   ((a ?BitVec) (n Int))
-  (bvlshr a (bv 0 n))
+  (bvlshr (bv 0 n) a)
   (bv 0 n))
 (define-rule bv-ashr-zero
   ((a ?BitVec) (n Int))
-  (bvashr a (bv 0 n))
+  (bvashr (bv 0 n) a)
   (bv 0 n))
 
 ; (bvugt (bvurem T x) x)
@@ -949,7 +963,7 @@
   ((x ?BitVec) (i Int) (m Int))
   (= (+ 1 i m) (bvsize x))
   (concat (extract i 0 x) (bv 0 m))
-  (bvmul x (bvshl (bv m (bvsize x)) (bv 1 (bvsize x)))))
+  (bvmul x (bvshl (bv 1 (bvsize x)) (bv m (bvsize x)))))
 
 ; Currently bugged due to not being able to match n.
 (define-rule bv-mult-slt-mult-1
