@@ -326,10 +326,10 @@ Token Smt2LexerNew::computeNextToken()
         // otherwise, we are a simple symbol or standard alphanumeric token
         // note that we group the case when `:` is here.
         parseCharList(CharacterClass::SYMBOL);
-        //std::string curr(tokenStr());
+        // std::string curr(tokenStr());
         Token ret = tokenizeCurrentSymbol();
         return ret;
-       // return tokenize(curr);
+        // return tokenize(curr);
       }
       // otherwise error
       break;
@@ -463,24 +463,24 @@ Token Smt2LexerNew::tokenizeCurrentSymbol() const
       }
       break;
     case 'm':
-      if (d_token.size() == 5 && d_token[1] == 'a' && d_token[2] == 't' && d_token[3] == 'c'
-          && d_token[4] == 'h')
+      if (d_token.size() == 5 && d_token[1] == 'a' && d_token[2] == 't'
+          && d_token[3] == 'c' && d_token[4] == 'h')
       {
         return Token::MATCH_TOK;
       }
       break;
     case 'C':
-      if ((d_isSygus || !d_isStrict) && d_token.size() == 8 && d_token[1] == 'o' && d_token[2] == 'n'
-          && d_token[3] == 's' && d_token[4] == 't' && d_token[5] == 'a'
-          && d_token[6] == 'n' && d_token[7] == 't')
+      if ((d_isSygus || !d_isStrict) && d_token.size() == 8 && d_token[1] == 'o'
+          && d_token[2] == 'n' && d_token[3] == 's' && d_token[4] == 't'
+          && d_token[5] == 'a' && d_token[6] == 'n' && d_token[7] == 't')
       {
         return Token::SYGUS_CONSTANT_TOK;
       }
       break;
     case 'V':
-      if ((d_isSygus || !d_isStrict) && d_token.size() == 8 && d_token[1] == 'a' && d_token[2] == 'r'
-          && d_token[3] == 'i' && d_token[4] == 'a' && d_token[5] == 'b'
-          && d_token[6] == 'l' && d_token[7] == 'e')
+      if ((d_isSygus || !d_isStrict) && d_token.size() == 8 && d_token[1] == 'a'
+          && d_token[2] == 'r' && d_token[3] == 'i' && d_token[4] == 'a'
+          && d_token[5] == 'b' && d_token[6] == 'l' && d_token[7] == 'e')
       {
         return Token::SYGUS_VARIABLE_TOK;
       }
