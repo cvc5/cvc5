@@ -41,6 +41,7 @@ class Smt2LexerNew : public FlexLexer
   bool isStrict() const;
   /** Are we parsing sygus? */
   bool isSygus() const;
+
  private:
   Token nextTokenInternal() override;
   enum class CharacterClass
