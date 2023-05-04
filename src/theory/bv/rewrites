@@ -687,8 +687,8 @@
   ((y ?BitVec) (x ?BitVec))
   (bvugt (bvurem y x) x)
   (and
-    (bvugt y (bv 0 (bvsize y)))
     (= x (bv 0 (bvsize x)))
+    (bvugt y (bv 0 (bvsize y)))
   ))
 
 (define-rule bv-ult-one
