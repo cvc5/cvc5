@@ -22,7 +22,7 @@
 namespace cvc5 {
 namespace parser {
 
-#define INPUT_BUFFER_SIZE 1024
+#define INPUT_BUFFER_SIZE 16384
 
 /** File input class */
 class FlexFileInput : public FlexInput
@@ -51,7 +51,7 @@ class FlexFileInput : public FlexInput
     else
     {
       d_fs.read(d_buffer, INPUT_BUFFER_SIZE);
-      d_bufferEnd = static_cast<unsigned>(d_fs.gcount());
+      d_bufferEnd = static_cast<size_t>(d_fs.gcount());
       if (d_bufferEnd == 0)
       {
         ch = EOF;
