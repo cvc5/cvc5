@@ -31,15 +31,17 @@ Smt2LexerNew::Smt2LexerNew(bool isStrict, bool isSygus)
       d_isStrict(isStrict),
       d_isSygus(isSygus)
 {
-  for (size_t i=0; i<256; i++)
+  for (size_t i = 0; i < 256; i++)
   {
     d_symcTable[i] = false;
   }
-  for (char ch = 'a'; ch <= 'z'; ++ch) {
-      d_symcTable[static_cast<size_t>(ch)] = true;
+  for (char ch = 'a'; ch <= 'z'; ++ch)
+  {
+    d_symcTable[static_cast<size_t>(ch)] = true;
   }
-  for (char ch = 'A'; ch <= 'Z'; ++ch) {
-      d_symcTable[static_cast<size_t>(ch)] = true;
+  for (char ch = 'A'; ch <= 'Z'; ++ch)
+  {
+    d_symcTable[static_cast<size_t>(ch)] = true;
   }
   // SMT2 "Symbols": ~ ! @ $ % ^ & * _ - + = < > . ? /
   d_symcTable[static_cast<size_t>('~')] = true;
@@ -60,8 +62,7 @@ Smt2LexerNew::Smt2LexerNew(bool isStrict, bool isSygus)
   d_symcTable[static_cast<size_t>('?')] = true;
   d_symcTable[static_cast<size_t>('/')] = true;
   d_symcTable[static_cast<size_t>(',')] = true;
-  
-  
+
   d_table["assert"] = Token::ASSERT_TOK;
   d_table["as"] = Token::AS_TOK;
   d_table["check-sat-assuming"] = Token::CHECK_SAT_ASSUMING_TOK;
@@ -156,9 +157,11 @@ bool Smt2LexerNew::isCharacterClass(int32_t ch, CharacterClass cc)
              || (ch >= 'A' && ch <= 'F');
     case CharacterClass::BIT: return ch == '0' || ch == '1';
     case CharacterClass::SYMBOL_START:
-      return ch>=0 && ch<256 && d_symcTable[static_cast<size_t>(ch)];
+      return ch >= 0 && ch < 256 && d_symcTable[static_cast<size_t>(ch)];
     case CharacterClass::SYMBOL:
-      return ch>=0 && ch<256 && (d_symcTable[static_cast<size_t>(ch)] || (ch >= '0' && ch <= '9'));
+      return ch >= 0 && ch < 256
+             && (d_symcTable[static_cast<size_t>(ch)]
+                 || (ch >= '0' && ch <= '9'));
     default: break;
   }
   return false;

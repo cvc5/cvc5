@@ -81,7 +81,7 @@ void FlexLexer::addLines(uint32_t lines)
 
 void FlexLexer::initialize(FlexInput* input, const std::string& inputName)
 {
-  Assert (input!=nullptr);
+  Assert(input != nullptr);
   d_istream = input->getStream();
   d_isInteractive = input->isInteractive();
   d_inputName = inputName;
