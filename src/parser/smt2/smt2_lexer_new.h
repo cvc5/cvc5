@@ -54,14 +54,14 @@ class Smt2LexerNew : public FlexLexer
   };
   Token computeNextToken();
   /** Get the next character */
-  int32_t nextChar();
+  char nextChar();
   /** Save character */
-  void saveChar(int32_t ch);
+  void saveChar(char ch);
   /** Push a character to the stored token */
-  void pushToToken(int32_t ch);
+  void pushToToken(char ch);
   //----------- Utilities for parsing the current character stream
   /** parse <c> */
-  bool parseLiteralChar(int32_t ch);
+  bool parseLiteralChar(char ch);
   /** parse <c> */
   bool parseChar(CharacterClass cc);
   /** parse <c>+ */
@@ -69,7 +69,7 @@ class Smt2LexerNew : public FlexLexer
   /** parse <c>* */
   void parseCharList(CharacterClass cc);
   /** is character class */
-  bool isCharacterClass(int32_t ch, CharacterClass cc);
+  bool isCharacterClass(char ch, CharacterClass cc);
   //----------- Utilizes for tokenizing d_token
   /**
    * Tokenize current symbol stored in d_token.
@@ -91,7 +91,7 @@ class Smt2LexerNew : public FlexLexer
   /** True if we have a saved character that has not been consumed yet. */
   bool d_peekedChar;
   /** The saved character. */
-  int32_t d_chPeeked;
+  char d_chPeeked;
   /** is strict */
   bool d_isStrict;
   /** is sygus */

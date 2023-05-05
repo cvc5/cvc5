@@ -74,7 +74,7 @@ bool Smt2LexerNew::isStrict() const { return d_isStrict; }
 
 bool Smt2LexerNew::isSygus() const { return d_isSygus; }
 
-bool Smt2LexerNew::isCharacterClass(int32_t ch, CharacterClass cc)
+bool Smt2LexerNew::isCharacterClass(char ch, CharacterClass cc)
 {
   switch (cc)
   {
@@ -109,7 +109,7 @@ Token Smt2LexerNew::nextTokenInternal()
 Token Smt2LexerNew::computeNextToken()
 {
   bumpSpan();
-  int32_t ch;
+  char ch;
 
   // skip whitespace and comments
   for (;;)
@@ -264,9 +264,9 @@ Token Smt2LexerNew::computeNextToken()
   return Token::NONE;
 }
 
-int32_t Smt2LexerNew::nextChar()
+char Smt2LexerNew::nextChar()
 {
-  int32_t res;
+  char res;
   if (d_peekedChar)
   {
     res = d_chPeeked;
@@ -288,23 +288,23 @@ int32_t Smt2LexerNew::nextChar()
   return res;
 }
 
-void Smt2LexerNew::saveChar(int32_t ch)
+void Smt2LexerNew::saveChar(char ch)
 {
   Assert(!d_peekedChar);
   d_peekedChar = true;
   d_chPeeked = ch;
 }
 
-void Smt2LexerNew::pushToToken(int32_t ch)
+void Smt2LexerNew::pushToToken(char ch)
 {
   Assert(ch != EOF);
   Assert(ch >= 0 && ch < 256);
-  d_token.push_back(static_cast<char>(ch));
+  d_token.push_back(ch);
 }
 
-bool Smt2LexerNew::parseLiteralChar(int32_t chc)
+bool Smt2LexerNew::parseLiteralChar(char chc)
 {
-  int32_t ch = nextChar();
+  char ch = nextChar();
   if (ch != chc)
   {
     // will be an error
@@ -316,7 +316,7 @@ bool Smt2LexerNew::parseLiteralChar(int32_t chc)
 
 bool Smt2LexerNew::parseChar(CharacterClass cc)
 {
-  int32_t ch = nextChar();
+  char ch = nextChar();
   if (!isCharacterClass(ch, cc))
   {
     // will be an error
@@ -329,7 +329,7 @@ bool Smt2LexerNew::parseChar(CharacterClass cc)
 bool Smt2LexerNew::parseNonEmptyCharList(CharacterClass cc)
 {
   // must contain at least one character
-  int32_t ch = nextChar();
+  char ch = nextChar();
   if (!isCharacterClass(ch, cc))
   {
     // will be an error
@@ -342,7 +342,7 @@ bool Smt2LexerNew::parseNonEmptyCharList(CharacterClass cc)
 
 void Smt2LexerNew::parseCharList(CharacterClass cc)
 {
-  int32_t ch;
+  char ch;
   for (;;)
   {
     ch = nextChar();

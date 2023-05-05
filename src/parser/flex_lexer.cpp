@@ -150,7 +150,7 @@ bool FlexLexer::eatTokenChoice(Token t, Token f)
   return false;
 }
 
-int32_t FlexLexer::readNextChar()
+char FlexLexer::readNextChar()
 {
   if (d_bufferPos < d_bufferEnd)
   {

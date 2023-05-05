@@ -101,7 +101,7 @@ class FlexLexer
   // -----------------
   virtual Token nextTokenInternal() = 0;
   /** Get the next character */
-  int32_t readNextChar();
+  char readNextChar();
   // -----------------
   /** Used to initialize d_span. */
   void initSpan();
@@ -130,7 +130,7 @@ class FlexLexer
   char d_buffer[INPUT_BUFFER_SIZE];
   size_t d_bufferPos;
   size_t d_bufferEnd;
-  uint32_t d_ch;
+  char d_ch;
 };
 
 }  // namespace parser
