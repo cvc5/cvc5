@@ -755,12 +755,6 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
   TNode getRepresentative(TNode t) const;
 
   /**
-   * Add all the terms where the given term appears as a first child
-   * (directly or implicitly).
-   */
-  void getUseListTerms(TNode t, std::set<TNode>& output);
-
-  /**
    * Get an explanation of the equality t1 = t2 being true or false.
    * Returns the reasons (added when asserting) that imply it
    * in the assertions vector.
@@ -785,12 +779,12 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
    * moreover ensures this class is ready to explain it via areDisequal with
    * ensureProof = true.
    */
-  void explainLit(TNode lit, std::vector<TNode>& assumptions);
+  void explainLit(TNode lit, std::vector<TNode>& assumptions) const;
   /**
    * Explain literal, return the explanation as a conjunction. This method
    * relies on the above method.
    */
-  Node mkExplainLit(TNode lit);
+  Node mkExplainLit(TNode lit) const;
   //--------------------------- end standard safe explanation methods
 
   /**
