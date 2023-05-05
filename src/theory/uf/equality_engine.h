@@ -111,11 +111,12 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
   /** Set the proof equality engine for this one. */
   void setProofEqualityEngine(ProofEqEngine* pfee);
   /**
-   * Add term to the set of trigger terms with a corresponding tag. The notify class will get
-   * notified when two trigger terms with the same tag become equal or dis-equal. The notification
-   * will not happen on all the terms, but only on the ones that are represent the class. Note that
-   * a term can be added more than once with different tags, and each tag appearance will merit
-   * it's own notification.
+   * Add term to the set of trigger terms with a corresponding tag. The notify
+   * class will get notified when two trigger terms with the same tag become
+   * equal or dis-equal. The notification will not happen on all the terms, but
+   * only on the ones that are represent the class. Note that a term can be
+   * added more than once with different tags, and each tag appearance will
+   * merit it's own notification.
    *
    * @param t the trigger term
    * @param theoryTag tag for this trigger (do NOT use THEORY_LAST)
@@ -133,26 +134,30 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
   void addTriggerPredicate(TNode predicate);
   /**
    * Add a kind to treat as function applications.
-   * When extOperator is true, this equality engine will treat the operators of this kind
-   * as "external" e.g. not internal nodes (see d_isInternal). This means that we will
-   * consider equivalence classes containing the operators of such terms, and "hasTerm" will
-   * return true.
+   * When extOperator is true, this equality engine will treat the operators of
+   * this kind as "external" e.g. not internal nodes (see d_isInternal). This
+   * means that we will consider equivalence classes containing the operators of
+   * such terms, and "hasTerm" will return true.
    */
-  void addFunctionKind(Kind fun, bool interpreted = false, bool extOperator = false);
+  void addFunctionKind(Kind fun,
+                       bool interpreted = false,
+                       bool extOperator = false);
   //--------------------end initialization
   /** Get the proof equality engine */
   ProofEqEngine* getProofEqualityEngine();
   /** Returns true if this kind is used for congruence closure. */
   bool isFunctionKind(Kind fun) const { return d_congruenceKinds.test(fun); }
   /**
-   * Returns true if this kind is used for congruence closure + evaluation of constants.
+   * Returns true if this kind is used for congruence closure + evaluation of
+   * constants.
    */
   bool isInterpretedFunctionKind(Kind fun) const
   {
     return d_congruenceKindsInterpreted.test(fun);
   }
   /**
-   * Returns true if this kind has an operator that is considered external (e.g. not internal).
+   * Returns true if this kind has an operator that is considered external (e.g.
+   * not internal).
    */
   bool isExternalOperatorKind(Kind fun) const
   {
@@ -165,9 +170,7 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
   bool isTriggerTerm(TNode t, TheoryId theoryTag) const;
   //--------------------updates
   /** Adds a term to the term database. */
-  void addTerm(TNode t) {
-    addTermInternal(t, false);
-  }
+  void addTerm(TNode t) { addTermInternal(t, false); }
   /**
    * Adds a predicate p with given polarity. The predicate asserted
    * should be in the congruence closure kinds (otherwise it's
@@ -204,7 +207,9 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
    * Returns the reasons (added when asserting) that imply it
    * in the assertions vector.
    */
-  void explainEquality(TNode t1, TNode t2, bool polarity,
+  void explainEquality(TNode t1,
+                       TNode t2,
+                       bool polarity,
                        std::vector<TNode>& assertions,
                        EqProof* eqp = nullptr) const;
 
@@ -213,7 +218,9 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
    * Returns the reasons (added when asserting) that imply imply it
    * in the assertions vector.
    */
-  void explainPredicate(TNode p, bool polarity, std::vector<TNode>& assertions,
+  void explainPredicate(TNode p,
+                        bool polarity,
+                        std::vector<TNode>& assertions,
                         EqProof* eqp = nullptr) const;
 
   /**
@@ -279,7 +286,7 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
 
     Statistics(StatisticsRegistry& sr, const std::string& name);
   };
-  
+
   /** The context we are using */
   context::Context* d_context;
 

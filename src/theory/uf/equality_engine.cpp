@@ -1275,7 +1275,8 @@ void EqualityEngine::explainPredicate(TNode p, bool polarity,
       getNodeId(p), polarity ? d_trueId : d_falseId, assertions, cache, eqp);
 }
 
-void EqualityEngine::explainLit(TNode lit, std::vector<TNode>& assumptions) const
+void EqualityEngine::explainLit(TNode lit,
+                                std::vector<TNode>& assumptions) const
 {
   Trace("eq-exp") << "explainLit: " << lit << std::endl;
   Assert(lit.getKind() != kind::AND);
