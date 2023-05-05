@@ -43,7 +43,7 @@ Smt2LexerNew::Smt2LexerNew(bool isStrict, bool isSygus)
   {
     d_symcTable[static_cast<size_t>(ch)] = true;
   }
-  // SMT2 "Symbols": ~ ! @ $ % ^ & * _ - + = < > . ? /
+  // ~!@$%^&*_-+=<>.?/
   d_symcTable[static_cast<size_t>('~')] = true;
   d_symcTable[static_cast<size_t>('!')] = true;
   d_symcTable[static_cast<size_t>('@')] = true;
@@ -108,7 +108,6 @@ Token Smt2LexerNew::computeNextToken()
 {
   bumpSpan();
   char ch;
-
   // skip whitespace and comments
   for (;;)
   {
@@ -118,7 +117,7 @@ Token Smt2LexerNew::computeNextToken()
       {
         return Token::EOF_TOK;
       }
-    } while (std::isspace(ch));  // NOTE: bitwuzla checks printable?
+    } while (std::isspace(ch));
 
     if (ch != ';')
     {
@@ -251,10 +250,8 @@ Token Smt2LexerNew::computeNextToken()
         // otherwise, we are a simple symbol or standard alphanumeric token
         // note that we group the case when `:` is here.
         parseCharList(CharacterClass::SYMBOL);
-        // std::string curr(tokenStr());
-        Token ret = tokenizeCurrentSymbol();
-        return ret;
-        // return tokenize(curr);
+        // tokenize the current symbol, which may be a special case
+        return tokenizeCurrentSymbol();
       }
       // otherwise error
       break;
@@ -392,6 +389,7 @@ Token Smt2LexerNew::tokenizeCurrentSymbol() const
       break;
     default: break;
   }
+  // otherwise not a special symbol
   return Token::SYMBOL;
 }
 
