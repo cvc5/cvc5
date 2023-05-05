@@ -293,7 +293,6 @@ void Smt2LexerNew::saveChar(char ch)
 void Smt2LexerNew::pushToToken(char ch)
 {
   Assert(ch != EOF);
-  Assert(ch >= 0 && ch < 256);
   d_token.push_back(ch);
 }
 
