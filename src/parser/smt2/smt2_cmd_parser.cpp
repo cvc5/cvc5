@@ -25,9 +25,7 @@ namespace parser {
 Smt2CmdParser::Smt2CmdParser(Smt2LexerNew& lex,
                              Smt2State& state,
                              Smt2TermParser& tparser)
-    : d_lex(lex),
-      d_state(state),
-      d_tparser(tparser)
+    : d_lex(lex), d_state(state), d_tparser(tparser)
 {
   // initialize the command tokens
   d_table["assert"] = Token::ASSERT_TOK;

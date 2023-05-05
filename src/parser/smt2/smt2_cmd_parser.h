@@ -34,9 +34,7 @@ class Command;
 class Smt2CmdParser
 {
  public:
-  Smt2CmdParser(Smt2LexerNew& lex,
-                Smt2State& state,
-                Smt2TermParser& tparser);
+  Smt2CmdParser(Smt2LexerNew& lex, Smt2State& state, Smt2TermParser& tparser);
   virtual ~Smt2CmdParser() {}
   /**
    * Parse and return the next command, or nullptr if we are at the end of file.

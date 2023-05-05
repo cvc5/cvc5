@@ -918,17 +918,17 @@ Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
       if (tok == Token::LPAREN_TOK)
       {
         Token tok2 = d_lex.nextToken();
-        if (tok2==Token::SYMBOL)
+        if (tok2 == Token::SYMBOL)
         {
           std::string tokenStr(d_lex.tokenStr());
-          if (tokenStr=="Constant")
+          if (tokenStr == "Constant")
           {
             t = parseSort();
             ret->addAnyConstant(ntSyms[i]);
             d_lex.eatToken(Token::RPAREN_TOK);
             parsedGTerm = true;
           }
-          else if (tokenStr=="Variable")
+          else if (tokenStr == "Variable")
           {
             t = parseSort();
             ret->addAnyVariable(ntSyms[i]);
