@@ -116,8 +116,13 @@
   (str.suffixof s t)
   (str.contains t s))
 
-(define-cond-rule str-substr-combine ((s ?) (n1 Int) (m1 Int) (n2 Int) (m2 Int))
-  (and (>= n2 0) (>= (- (+ n2 m2) m1) 0))
+(define-cond-rule str-substr-combine1 ((s String) (n1 Int) (m1 Int) (n2 Int) (m2 Int))
+ (and (>= n1 0) (>= n2 0) (>= (- m2 (- m1 n2)) 0))
+  (str.substr (str.substr s n1 m1) n2 m2)
+  (str.substr s (+ n1 n2) (- m1 n2)))
+
+(define-cond-rule str-substr-combine2 ((s String) (n1 Int) (m1 Int) (n2 Int) (m2 Int))
+ (and (>= n1 0) (>= n2 0) (>= (- (- m1 n2) m2) 0))
   (str.substr (str.substr s n1 m1) n2 m2)
   (str.substr s (+ n1 n2) m2))
 
