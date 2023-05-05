@@ -31,27 +31,26 @@ namespace parser {
 
 class FlexLexer;
 
+/**
+ * The lexer for Smt2.
+ */
 class Smt2LexerNew : public FlexLexer
 {
  public:
   Smt2LexerNew(bool isStrict, bool isSygus);
   const char* tokenStr() const override;
-
   /** Are we in strict mode? */
   bool isStrict() const;
   /** Are we parsing sygus? */
   bool isSygus() const;
 
  private:
+  /** */
   Token nextTokenInternal() override;
-  enum class CharacterClass
-  {
-    DECIMAL_DIGIT,
-    HEXADECIMAL_DIGIT,
-    BIT,
-    SYMBOL_START,
-    SYMBOL,
-  };
+  /**
+   * Computes the next token and adds its characters to d_token. Does not
+   * null terminate.
+   */
   Token computeNextToken();
   /** Get the next character */
   char nextChar();
@@ -60,15 +59,23 @@ class Smt2LexerNew : public FlexLexer
   /** Push a character to the stored token */
   void pushToToken(char ch);
   //----------- Utilities for parsing the current character stream
-  /** parse <c> */
+  enum class CharacterClass
+  {
+    DECIMAL_DIGIT,
+    HEXADECIMAL_DIGIT,
+    BIT,
+    SYMBOL_START,
+    SYMBOL,
+  };
+  /** parse <c>, return false if <c> is not ch. */
   bool parseLiteralChar(char ch);
-  /** parse <c> */
+  /** parse <c>, return false if <c> is not from cc */
   bool parseChar(CharacterClass cc);
-  /** parse <c>+ */
+  /** parse <c>+ from cc, return false if the next char is not from cc. */
   bool parseNonEmptyCharList(CharacterClass cc);
-  /** parse <c>* */
+  /** parse <c>* from cc. */
   void parseCharList(CharacterClass cc);
-  /** is character class */
+  /** Return true if ch is in character class cc */
   bool isCharacterClass(char ch, CharacterClass cc);
   //----------- Utilizes for tokenizing d_token
   /**
@@ -84,17 +91,15 @@ class Smt2LexerNew : public FlexLexer
    */
   Token tokenizeCurrentSymbol() const;
 
-  /** The token */
+  /** The characters in the current token */
   std::vector<char> d_token;
-  /** The token string */
-  std::string d_tokenStr;
   /** True if we have a saved character that has not been consumed yet. */
   bool d_peekedChar;
   /** The saved character. */
   char d_chPeeked;
-  /** is strict */
+  /** Is strict parsing enabled */
   bool d_isStrict;
-  /** is sygus */
+  /** Is sygus enabled */
   bool d_isSygus;
   /**
    * Static table denoting which characters 0...255 are characters that are

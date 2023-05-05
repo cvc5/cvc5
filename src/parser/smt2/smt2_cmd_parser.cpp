@@ -24,14 +24,10 @@ namespace parser {
 
 Smt2CmdParser::Smt2CmdParser(Smt2LexerNew& lex,
                              Smt2State& state,
-                             Smt2TermParser& tparser,
-                             bool isStrict,
-                             bool isSygus)
+                             Smt2TermParser& tparser)
     : d_lex(lex),
       d_state(state),
-      d_tparser(tparser),
-      d_isStrict(isStrict),
-      d_isSygus(isSygus)
+      d_tparser(tparser)
 {
   // initialize the command tokens
   d_table["assert"] = Token::ASSERT_TOK;
@@ -68,7 +64,7 @@ Smt2CmdParser::Smt2CmdParser(Smt2LexerNew& lex,
   d_table["set-info"] = Token::SET_INFO_TOK;
   d_table["set-logic"] = Token::SET_LOGIC_TOK;
   d_table["set-option"] = Token::SET_OPTION_TOK;
-  if (!isStrict)
+  if (!d_lex.isStrict())
   {
     d_table["block-model"] = Token::BLOCK_MODEL_TOK;
     d_table["block-model-values"] = Token::BLOCK_MODEL_VALUES_TOK;
@@ -85,7 +81,7 @@ Smt2CmdParser::Smt2CmdParser(Smt2LexerNew& lex,
     d_table["include"] = Token::INCLUDE_TOK;
     d_table["simplify"] = Token::SIMPLIFY_TOK;
   }
-  if (isSygus)
+  if (d_lex.isSygus())
   {
     d_table["assume"] = Token::ASSUME_TOK;
     d_table["check-synth-next"] = Token::CHECK_SYNTH_NEXT_TOK;

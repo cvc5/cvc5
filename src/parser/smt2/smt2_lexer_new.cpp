@@ -69,9 +69,7 @@ const char* Smt2LexerNew::tokenStr() const
   Assert(!d_token.empty() && d_token.back() == 0);
   return d_token.data();
 }
-
 bool Smt2LexerNew::isStrict() const { return d_isStrict; }
-
 bool Smt2LexerNew::isSygus() const { return d_isSygus; }
 
 bool Smt2LexerNew::isCharacterClass(char ch, CharacterClass cc)
@@ -384,22 +382,6 @@ Token Smt2LexerNew::tokenizeCurrentSymbol() const
           && d_token[3] == 'c' && d_token[4] == 'h')
       {
         return Token::MATCH_TOK;
-      }
-      break;
-    case 'C':
-      if ((d_isSygus || !d_isStrict) && d_token.size() == 8 && d_token[1] == 'o'
-          && d_token[2] == 'n' && d_token[3] == 's' && d_token[4] == 't'
-          && d_token[5] == 'a' && d_token[6] == 'n' && d_token[7] == 't')
-      {
-        return Token::SYGUS_CONSTANT_TOK;
-      }
-      break;
-    case 'V':
-      if ((d_isSygus || !d_isStrict) && d_token.size() == 8 && d_token[1] == 'a'
-          && d_token[2] == 'r' && d_token[3] == 'i' && d_token[4] == 'a'
-          && d_token[5] == 'b' && d_token[6] == 'l' && d_token[7] == 'e')
-      {
-        return Token::SYGUS_VARIABLE_TOK;
       }
       break;
     case '_':
