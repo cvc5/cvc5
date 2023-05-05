@@ -805,7 +805,14 @@ poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi)
 Node PolyConverter::ran_to_node(const RealAlgebraicNumber& ran,
                                 const Node& ran_variable)
 {
-  return theory::arith::nl::ran_to_node(ran.getValue(), ran_variable);
+  // if the ran is represented by a poly, run the conversion routine
+  if (!ran.d_isRational)
+  {
+    return theory::arith::nl::ran_to_node(ran.getValue(), ran_variable);
+  }
+  // otherwise, just make the real from the rational value
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkConstReal(ran.getRationalValue());
 }
 
 RealAlgebraicNumber PolyConverter::node_to_ran(const Node& n,
