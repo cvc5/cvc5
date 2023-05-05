@@ -1105,7 +1105,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     Trace("sygus-grammar-def")
         << "Build any-constant datatype for " << types[i] << std::endl;
     std::stringstream ss;
-    ss << fun << "_AnyConst";
+    ss << fun << "_AnyConst_" << i;
     // Make sygus datatype for any constant.
     TypeNode unresAnyConst = mkUnresolvedType(ss.str());
     unres_types.push_back(unresAnyConst);
