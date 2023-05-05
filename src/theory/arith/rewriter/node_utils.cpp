@@ -29,7 +29,7 @@ Node mkMultTerm(const Rational& multiplicity, TNode monomial)
   {
     return mkConst(multiplicity * monomial.getConst<Rational>());
   }
-  if (isOne(multiplicity))
+  if (multiplicity.isOne())
   {
     return monomial;
   }
