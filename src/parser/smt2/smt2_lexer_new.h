@@ -43,9 +43,11 @@ class Smt2LexerNew : public FlexLexer
   bool isStrict() const;
   /** Are we parsing sygus? */
   bool isSygus() const;
-
  private:
-  /** */
+  /**
+   * Read and tokenize the next token from the provided input stream. Stores
+   * its characters to d_token.
+   */
   Token nextTokenInternal() override;
   /**
    * Computes the next token and adds its characters to d_token. Does not
@@ -90,7 +92,6 @@ class Smt2LexerNew : public FlexLexer
    * We don't handle command tokens here.
    */
   Token tokenizeCurrentSymbol() const;
-
   /** The characters in the current token */
   std::vector<char> d_token;
   /** True if we have a saved character that has not been consumed yet. */

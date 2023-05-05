@@ -120,16 +120,18 @@ class FlexLexer
    * back of it and pop.
    */
   std::vector<Token> d_peeked;
-
  private:
   /** The input */
   std::istream* d_istream;
-  /** Interactive */
+  /** True if the input stream is interactive */
   bool d_isInteractive;
-  /** Buffer */
+  /** The current buffer */
   char d_buffer[INPUT_BUFFER_SIZE];
+  /** The position in the current buffer we are reading from */
   size_t d_bufferPos;
+  /** The size of characters in the current buffer */
   size_t d_bufferEnd;
+  /** The current character we read. */
   char d_ch;
 };
 
