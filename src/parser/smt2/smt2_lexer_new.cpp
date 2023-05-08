@@ -248,7 +248,6 @@ Token Smt2LexerNew::computeNextToken()
       else if (isCharacterClass(ch, CharacterClass::SYMBOL_START))
       {
         // otherwise, we are a simple symbol or standard alphanumeric token
-        // note that we group the case when `:` is here.
         parseCharList(CharacterClass::SYMBOL);
         // tokenize the current symbol, which may be a special case
         return tokenizeCurrentSymbol();
