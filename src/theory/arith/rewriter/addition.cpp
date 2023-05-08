@@ -96,7 +96,7 @@ void addToProduct(std::vector<Node>& product,
  */
 void addToSum(Sum& sum, TNode product, const RealAlgebraicNumber& multiplicity)
 {
-  if (isZero(multiplicity)) return;
+  if (multiplicity.isZero()) return;
   auto it = sum.find(product);
   if (it == sum.end())
   {
@@ -105,7 +105,7 @@ void addToSum(Sum& sum, TNode product, const RealAlgebraicNumber& multiplicity)
   else
   {
     it->second += multiplicity;
-    if (isZero(it->second))
+    if (it->second.isZero())
     {
       sum.erase(it);
     }
@@ -125,7 +125,7 @@ Node collectSumWithBase(const Sum& sum,
   NodeBuilder nb(Kind::ADD);
   for (const auto& summand : sum)
   {
-    Assert(!isZero(summand.second));
+    Assert(!summand.second.isZero());
     RealAlgebraicNumber mult = summand.second * basemultiplicity;
     std::vector<Node> product = baseproduct;
     rewriter::addToProduct(product, mult, summand.first);
