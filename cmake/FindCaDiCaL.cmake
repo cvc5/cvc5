@@ -112,7 +112,6 @@ set_target_properties(
 )
 set_target_properties(
   CaDiCaL PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${CaDiCaL_INCLUDE_DIR}"
-  INTERFACE_LINK_LIBRARIES cadical
 )
 
 if (WIN32)
