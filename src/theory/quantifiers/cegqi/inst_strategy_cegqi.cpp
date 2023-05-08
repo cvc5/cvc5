@@ -60,7 +60,7 @@ InstStrategyCegqi::InstStrategyCegqi(Env& env,
       d_small_const_multiplier(NodeManager::currentNM()->mkConstReal(
           Rational(1) / Rational(1000000))),
       d_small_const(d_small_const_multiplier),
-      d_freeDeltaLb(false, userContext())
+      d_freeDeltaLb(userContext(), false)
 {
   d_check_vts_lemma_lc = false;
   if (options().quantifiers.cegqiBv)

@@ -253,23 +253,6 @@ ContextObj::ContextObj(Context* pContext) :
   d_pScope->addToChain(this);
 }
 
-
-ContextObj::ContextObj(bool allocatedInCMM, Context* pContext) :
-  d_pScope(NULL),
-  d_pContextObjRestore(NULL),
-  d_pContextObjNext(NULL),
-  d_ppContextObjPrev(NULL) {
-  Assert(pContext != NULL) << "NULL context pointer";
-
-  Trace("context") << "create new ContextObj(" << this << " inCMM=" << allocatedInCMM << ")" << std::endl;
-  if(allocatedInCMM) {
-    d_pScope = pContext->getTopScope();
-  } else {
-    d_pScope = pContext->getBottomScope();
-  }
-  d_pScope->addToChain(this);
-}
-
 void ContextObj::enqueueToGarbageCollect() {
   Assert(d_pScope != NULL);
   d_pScope->enqueueToGarbageCollect(this);

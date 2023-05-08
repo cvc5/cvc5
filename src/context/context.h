@@ -597,17 +597,6 @@ class CVC5_EXPORT ContextObj
   ContextObj(Context* context);
 
   /**
-   * Create a new ContextObj.  This constructor takes an argument that
-   * specifies whether this ContextObj is itself allocated in context
-   * memory.  If it is, it's invalid below the current scope level, so
-   * we don't put it in scope 0.
-   *
-   * WARNING: Read the notes above on "Gotchas when allocating
-   * contextual objects with non-standard allocators."
-   */
-  ContextObj(bool allocatedInCMM, Context* context);
-
-  /**
    * Destructor does nothing: subclass must explicitly call destroy() instead.
    */
   virtual ~ContextObj() {}

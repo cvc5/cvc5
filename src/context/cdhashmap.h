@@ -195,7 +195,7 @@ class CDOhash_map : public ContextObj
               CDHashMap<Key, Data, HashFcn>* map,
               const Key& key,
               const Data& data)
-      : ContextObj(false, context), d_value(key, data), d_map(NULL)
+      : ContextObj(context), d_value(key, data), d_map(NULL)
   {
     // Normal map insertion: first makeCurrent(), then set the data
     // and then, later, the map.  Order is important; we can't

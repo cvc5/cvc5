@@ -26,8 +26,8 @@ namespace theory {
 DecisionStrategyFmf::DecisionStrategyFmf(Env& env, Valuation valuation)
     : DecisionStrategy(env),
       d_valuation(valuation),
-      d_has_curr_literal(false, context()),
-      d_curr_literal(0, context())
+      d_has_curr_literal(context(), false),
+      d_curr_literal(context(), 0)
 {
 }
 
