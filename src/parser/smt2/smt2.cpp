@@ -1062,6 +1062,10 @@ void Smt2State::parseOpApplyTypeAscription(ParseOp& p, Sort type)
     }
     if (p.d_name == "const")
     {
+      // We use a placeholder as a way to store the type of the constant array.
+      // Since ParseOp only contains a Term field, it is stored as a constant
+      // of the given type. The kind INTERNAL_KIND is used to mark that we
+      // are a placeholder.
       p.d_kind = INTERNAL_KIND;
       p.d_expr = d_solver->mkConst(type, "_placeholder_");
       return;
