@@ -49,11 +49,6 @@ class MyContextObj : public ContextObj
   {
   }
 
-  MyContextObj(bool topScope, Context* context, MyContextNotifyObj& n)
-      : ContextObj(topScope, context), d_ncalls(0), d_nsaves(0), d_notify(n)
-  {
-  }
-
   ~MyContextObj() override { destroy(); }
 
   ContextObj* save(ContextMemoryManager* pcmm) override
@@ -200,18 +195,14 @@ TEST_F(TestContextBlack, pre_post_notify)
 
 TEST_F(TestContextBlack, top_scope_context_obj)
 {
-  // this test's implementation is based on the fact that a
-  // ContextObj allocated primordially "in the top scope" (first arg
-  // to ctor is "true"), doesn't get updated if you immediately call
-  // makeCurrent().
 
   MyContextNotifyObj n(d_context.get(), true);
 
   d_context->push();
 
-  MyContextObj x(false, d_context.get(), n);
+  MyContextObj x(d_context.get(), n);
   {
-    MyContextObj y(true, d_context.get(), n);
+    MyContextObj y(d_context.get(), n);
 
     ASSERT_EQ(x.d_nsaves, 0);
     ASSERT_EQ(y.d_nsaves, 0);
@@ -232,8 +223,7 @@ TEST_F(TestContextBlack, top_scope_context_obj)
 
     d_context->pop();
 
-    // `y` is invalid below the first level because it was allocated in the top
-    // scope. We have to make sure to destroy it before the next pop.
+    // `y` is invalid below the first level.
   }
 
   d_context->pop();
@@ -249,19 +239,9 @@ TEST_F(TestContextBlack, detect_invalid_obj)
     // Objects allocated at the bottom scope are allowed to outlive the scope
     // that they have been allocated in.
     d_context->push();
-    MyContextObj x(false, d_context.get(), n);
+    MyContextObj x(d_context.get(), n);
     d_context->pop();
   }
-
-  ASSERT_DEATH(
-      {
-        // Objects allocated at the top scope are not allowed to outlive the
-        // scope that they have been allocated in.
-        d_context->push();
-        MyContextObj y(true, d_context.get(), n);
-        d_context->pop();
-      },
-      "d_pScope != nullptr");
 }
 
 }  // namespace test
