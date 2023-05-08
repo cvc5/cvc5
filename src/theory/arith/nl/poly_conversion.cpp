@@ -366,11 +366,6 @@ std::pair<poly::Polynomial, poly::SignCondition> as_poly_constraint(
   return {lhs, sc};
 }
 
-Node ran_to_node(const RealAlgebraicNumber& ran, const Node& ran_variable)
-{
-  return ran_to_node(ran.getValue(), ran_variable);
-}
-
 Node ran_to_node(const poly::AlgebraicNumber& an, const Node& ran_variable)
 {
   auto* nm = NodeManager::currentNM();
@@ -708,10 +703,6 @@ poly::AlgebraicNumber node_to_poly_ran(const Node& n, const Node& ran_variable)
   return poly_utils::toPolyRanWithRefinement(
       std::move(pol), std::get<1>(encoding), std::get<2>(encoding));
 }
-RealAlgebraicNumber node_to_ran(const Node& n, const Node& ran_variable)
-{
-  return RealAlgebraicNumber(node_to_poly_ran(n, ran_variable));
-}
 
 poly::Value node_to_value(const Node& n, const Node& ran_variable)
 {
@@ -810,6 +801,27 @@ poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
+
+Node PolyConverter::ran_to_node(const RealAlgebraicNumber& ran,
+                                const Node& ran_variable)
+{
+  // if the ran is represented by a poly, run the conversion routine
+  if (!ran.d_isRational)
+  {
+    return theory::arith::nl::ran_to_node(ran.getValue(), ran_variable);
+  }
+  // otherwise, just make the real from the rational value
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkConstReal(ran.getRationalValue());
+}
+
+RealAlgebraicNumber PolyConverter::node_to_ran(const Node& n,
+                                               const Node& ran_variable)
+{
+  return RealAlgebraicNumber(
+      theory::arith::nl::node_to_poly_ran(n, ran_variable));
+}
+
 }  // namespace cvc5::internal
 
 #endif

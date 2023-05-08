@@ -1119,7 +1119,7 @@ Term Smt2State::parseOpToExpr(ParseOp& p)
   else
   {
     checkDeclaration(p.d_name, CHECK_DECLARED, SYM_VARIABLE);
-    expr = getExpressionForName(p.d_name);
+    expr = getVariable(p.d_name);
   }
   Assert(!expr.isNull());
   return expr;

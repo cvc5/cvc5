@@ -363,6 +363,12 @@ bool SymbolManager::bindMutualDatatypeTypes(
       Term constructor = ctor.getTerm();
       Trace("parser-idt") << "+ define " << constructor << std::endl;
       std::string constructorName = ctor.getName();
+      // A zero argument constructor is actually APPLY_CONSTRUCTOR for the
+      // constructor.
+      if (ctor.getNumSelectors() == 0)
+      {
+        constructor = d_solver->mkTerm(APPLY_CONSTRUCTOR, {constructor});
+      }
       // always do overloading
       if (!bind(constructorName, constructor, true))
       {

@@ -1007,6 +1007,7 @@ set(regress_0_tests
   regress0/parser/issue9623-indexed-err.smt2
   regress0/parser/issue9645.smt2
   regress0/parser/issue9651.smt2
+  regress0/parser/issue9656-err.smt2
   regress0/parser/issue9663.smt2
   regress0/parser/issue9663-2.smt2
   regress0/parser/issue9665.smt2

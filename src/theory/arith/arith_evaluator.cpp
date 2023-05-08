@@ -41,7 +41,7 @@ std::optional<bool> isExpressionZero(Env& env, Node expr, const ArithSubs& subs)
   }
   if (expr.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
   {
-    return isZero(expr.getOperator().getConst<RealAlgebraicNumber>());
+    return expr.getOperator().getConst<RealAlgebraicNumber>().isZero();
   }
   return std::nullopt;
 }
