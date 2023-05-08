@@ -82,11 +82,10 @@ bool Smt2LexerNew::isCharacterClass(char ch, CharacterClass cc)
              || (ch >= 'A' && ch <= 'F');
     case CharacterClass::BIT: return ch == '0' || ch == '1';
     case CharacterClass::SYMBOL_START:
-      return ch >= 0 && ch < 256 && d_symcTable[static_cast<size_t>(ch)];
+      return d_symcTable[static_cast<size_t>(ch)];
     case CharacterClass::SYMBOL:
-      return ch >= 0 && ch < 256
-             && (d_symcTable[static_cast<size_t>(ch)]
-                 || (ch >= '0' && ch <= '9'));
+      return d_symcTable[static_cast<size_t>(ch)]
+                 || (ch >= '0' && ch <= '9');
     default: break;
   }
   return false;
