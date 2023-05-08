@@ -102,7 +102,7 @@ EqualityEngine::EqualityEngine(Env& env,
                                std::string name,
                                bool constantsAreTriggers,
                                bool anyTermTriggers)
-    : ContextNotifyObj(c),
+    : ContextDynamicNotifyObj(c),
       EnvObj(env),
       d_masterEqualityEngine(0),
       d_context(c),
@@ -133,7 +133,7 @@ EqualityEngine::EqualityEngine(Env& env,
                                std::string name,
                                bool constantsAreTriggers,
                                bool anyTermTriggers)
-    : ContextNotifyObj(c),
+    : ContextDynamicNotifyObj(c),
       EnvObj(env),
       d_masterEqualityEngine(nullptr),
       d_proofEqualityEngine(nullptr),
@@ -481,6 +481,7 @@ bool EqualityEngine::assertPredicate(TNode t,
                                      TNode reason,
                                      unsigned pid)
 {
+  markNeedsRestore();
   Trace("equality") << d_name << "::eq::addPredicate(" << t << "," << (polarity ? "true" : "false") << ")" << std::endl;
   Assert(t.getKind() != kind::EQUAL) << "Use assertEquality instead";
   TNode b = polarity ? d_true : d_false;
@@ -498,6 +499,7 @@ bool EqualityEngine::assertEquality(TNode eq,
                                     TNode reason,
                                     unsigned pid)
 {
+  markNeedsRestore();
   Trace("equality") << d_name << "::eq::addEquality(" << eq << "," << (polarity ? "true" : "false") << ")" << std::endl;
   if (polarity) {
     // If two terms are already equal, don't assert anything

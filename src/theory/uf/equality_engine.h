@@ -28,6 +28,7 @@
 
 #include "context/cdhashmap.h"
 #include "context/cdo.h"
+#include "context/context_dynamic_notify_obj.h"
 #include "expr/kind_map.h"
 #include "expr/node.h"
 #include "smt/env_obj.h"
@@ -53,7 +54,7 @@ class ProofEqEngine;
  * Class for keeping an incremental congruence closure over a set of terms. It provides
  * notifications via an EqualityEngineNotify object.
  */
-class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
+class EqualityEngine : public context::ContextDynamicNotifyObj, protected EnvObj
 {
   friend class EqClassesIterator;
   friend class EqClassIterator;
@@ -481,7 +482,7 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
   /**
    * This method gets called on backtracks from the context manager.
    */
-  void contextNotifyPop() override { backtrack(); }
+  void notifyRestore() override { backtrack(); }
 
   /**
    * Constructor initialization stuff.
@@ -681,6 +682,7 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
    * Adds a term to the term database.
    */
   void addTerm(TNode t) {
+    markNeedsRestore();
     addTermInternal(t, false);
   }
 
