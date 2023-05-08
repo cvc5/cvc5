@@ -363,7 +363,7 @@ bool SymbolManager::bindMutualDatatypeTypes(
       Term constructor = ctor.getTerm();
       Trace("parser-idt") << "+ define " << constructor << std::endl;
       std::string constructorName = ctor.getName();
-      // A zeo argument constructor is actually APPLY_CONSTRUCTOR for the
+      // A zero argument constructor is actually APPLY_CONSTRUCTOR for the
       // constructor.
       if (ctor.getNumSelectors() == 0)
       {
