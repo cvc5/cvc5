@@ -29,6 +29,7 @@
 
 #include <vector>
 
+#include "parser/flex_input.h"
 #include "parser/tokens.h"
 
 namespace cvc5 {
@@ -51,6 +52,8 @@ struct Span
 };
 std::ostream& operator<<(std::ostream& o, const Span& l);
 
+#define INPUT_BUFFER_SIZE 32768
+
 /**
  * A Flex lexer. This class inherits from yyFlexLexer, which is generated
  * by Flex's C++ code generation.
@@ -68,7 +71,12 @@ class FlexLexer : public yyFlexLexer
    * @param input The input stream
    * @param inputName The name for debugging
    */
-  void initialize(std::istream& input, const std::string& inputName);
+  virtual void initialize(FlexInput* input, const std::string& inputName);
+  /**
+   * String corresponding to the last token (old top of stack). This is only
+   * valid if no tokens are currently peeked.
+   */
+  virtual const char* tokenStr() const;
   /** Advance to the next token (pop from stack) */
   Token nextToken();
   /** Add a token back into the stream (push to stack) */
@@ -82,11 +90,6 @@ class FlexLexer : public yyFlexLexer
   bool eatTokenChoice(Token t, Token f);
   /** reinsert token, read back first in, last out */
   void reinsertToken(Token t);
-  /**
-   * String corresponding to the last token (old top of stack). This is only
-   * valid if no tokens are currently peeked.
-   */
-  const char* tokenStr();
   /** Used to report warnings, with the current source location attached. */
   void warning(const std::string&);
   /** Used to report errors, with the current source location attached. */
@@ -95,6 +98,12 @@ class FlexLexer : public yyFlexLexer
   void unexpectedTokenError(Token t, const std::string& info);
 
  protected:
+  // -----------------
+  /** Compute the next token by reading from the stream */
+  virtual Token nextTokenInternal();
+  /** Get the next character */
+  char readNextChar();
+  // -----------------
   /** Used to initialize d_span. */
   void initSpan();
   /** Sets the spans start to its current end. */
@@ -112,6 +121,19 @@ class FlexLexer : public yyFlexLexer
    * back of it and pop.
    */
   std::vector<Token> d_peeked;
+ private:
+  /** The input */
+  std::istream* d_istream;
+  /** True if the input stream is interactive */
+  bool d_isInteractive;
+  /** The current buffer */
+  char d_buffer[INPUT_BUFFER_SIZE];
+  /** The position in the current buffer we are reading from */
+  size_t d_bufferPos;
+  /** The size of characters in the current buffer */
+  size_t d_bufferEnd;
+  /** The current character we read. */
+  char d_ch;
 };
 
 }  // namespace parser

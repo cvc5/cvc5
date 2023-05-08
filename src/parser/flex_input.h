@@ -55,7 +55,12 @@ class FlexInput
    */
   static std::unique_ptr<FlexInput> mkStringInput(const std::string& input);
   /** Get the stream to pass to the flex lexer. */
-  virtual std::istream& getStream() = 0;
+  virtual std::istream* getStream() = 0;
+  /**
+   * Is the stream of this input an interactive input? If so, we will read
+   * it character-by-character.
+   */
+  virtual bool isInteractive() const;
 };
 
 }  // namespace parser

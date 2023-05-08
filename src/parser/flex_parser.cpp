@@ -40,8 +40,6 @@ void FlexParser::setStreamInput(std::istream& input, const std::string& name)
 {
   d_flexInput = FlexInput::mkStreamInput(input);
   initializeInput(name);
-  d_done = false;
-  d_lex->initialize(d_flexInput->getStream(), name);
 }
 
 void FlexParser::setStringInput(const std::string& input,
@@ -54,7 +52,7 @@ void FlexParser::setStringInput(const std::string& input,
 void FlexParser::initializeInput(const std::string& name)
 {
   d_done = false;
-  d_lex->initialize(d_flexInput->getStream(), name);
+  d_lex->initialize(d_flexInput.get(), name);
 }
 
 void FlexParser::warning(const std::string& msg) { d_lex->warning(msg); }

@@ -35,7 +35,7 @@ std::ostream& operator<<(std::ostream& o, const Span& l)
   return o << l.d_start << "-" << l.d_end;
 }
 
-FlexLexer::FlexLexer() : yyFlexLexer() {}
+FlexLexer::FlexLexer() : yyFlexLexer(), d_bufferPos(0), d_bufferEnd(0) {}
 
 void FlexLexer::warning(const std::string& msg)
 {
@@ -79,16 +79,20 @@ void FlexLexer::addLines(uint32_t lines)
   d_span.d_end.d_column = 1;
 }
 
-void FlexLexer::initialize(std::istream& input, const std::string& inputName)
+void FlexLexer::initialize(FlexInput* input, const std::string& inputName)
 {
+  Assert(input != nullptr);
+  d_istream = input->getStream();
+  d_isInteractive = input->isInteractive();
   d_inputName = inputName;
-  // use the std::istream* version which is supported in earlier Flex versions
-  yyrestart(&input);
   initSpan();
   d_peeked.clear();
+  // use the std::istream* version which is supported in earlier Flex versions
+  // !!! temporary until we remove Flex
+  yyrestart(d_istream);
 }
 
-const char* FlexLexer::tokenStr()
+const char* FlexLexer::tokenStr() const
 {
   Assert(d_peeked.empty());
   return YYText();
@@ -99,7 +103,7 @@ Token FlexLexer::nextToken()
   if (d_peeked.empty())
   {
     // Call the derived yylex() and convert it to a token
-    return Token(yylex());
+    return nextTokenInternal();
   }
   Token t = d_peeked.back();
   d_peeked.pop_back();
@@ -109,7 +113,7 @@ Token FlexLexer::nextToken()
 Token FlexLexer::peekToken()
 {
   // parse next token
-  Token t = Token(yylex());
+  Token t = nextTokenInternal();
   // reinsert it immediately
   reinsertToken(t);
   // return it
@@ -153,6 +157,41 @@ bool FlexLexer::eatTokenChoice(Token t, Token f)
     unexpectedTokenError(tt, o.str());
   }
   return false;
+}
+
+Token FlexLexer::nextTokenInternal()
+{
+  // !!! temporary until we remove Flex
+  return Token(yylex());
+}
+
+char FlexLexer::readNextChar()
+{
+  if (d_bufferPos < d_bufferEnd)
+  {
+    d_ch = d_buffer[d_bufferPos];
+    d_bufferPos++;
+  }
+  else if (d_isInteractive)
+  {
+    d_ch = d_istream->get();
+  }
+  else
+  {
+    d_istream->read(d_buffer, INPUT_BUFFER_SIZE);
+    d_bufferEnd = static_cast<size_t>(d_istream->gcount());
+    if (d_bufferEnd == 0)
+    {
+      d_ch = EOF;
+      d_bufferPos = 0;
+    }
+    else
+    {
+      d_ch = d_buffer[0];
+      d_bufferPos = 1;
+    }
+  }
+  return d_ch;
 }
 
 }  // namespace parser
