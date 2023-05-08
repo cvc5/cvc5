@@ -2143,14 +2143,20 @@ bool EqualityEngine::areDisequal(TNode t1, TNode t2, bool ensureProof) const
     Trace("equality") << "\t(YES)" << std::endl;
     return true;
   }
+  
 
   // Get equivalence classes
   EqualityNodeId t1ClassId = getEqualityNode(t1Id).getFind();
   EqualityNodeId t2ClassId = getEqualityNode(t2Id).getFind();
 
   // We are semantically const, for remembering stuff
-  EqualityEngine* nonConst = const_cast<EqualityEngine*>(this);
-
+  EqualityEngine* nonConst = nullptr;
+  if (ensureProof)
+  {
+    nonConst = const_cast<EqualityEngine*>(this);
+    nonConst->markNeedsRestore();
+  }
+  
   // Check for constants
   if (d_isConstant[t1ClassId] && d_isConstant[t2ClassId] && t1ClassId != t2ClassId) {
     if (ensureProof) {
