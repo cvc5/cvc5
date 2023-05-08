@@ -34,7 +34,7 @@ class FlexLexer;
 /**
  * The lexer for Smt2. This handles lexing tokens that may appear in smt2
  * terms. It does not lex command tokens.
- * 
+ *
  * Partially based on
  * https://github.com/bitwuzla/bitwuzla/blob/dev/src/parser/smt2/lexer.h
  */
@@ -47,6 +47,7 @@ class Smt2LexerNew : public FlexLexer
   bool isStrict() const;
   /** Are we parsing sygus? */
   bool isSygus() const;
+
  private:
   /**
    * Read and tokenize the next token from the provided input stream. Stores

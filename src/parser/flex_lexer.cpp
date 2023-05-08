@@ -156,15 +156,9 @@ bool FlexLexer::eatTokenChoice(Token t, Token f)
 }
 
 // !!!!!! temporary until the new lexer is connected to this
-Token FlexLexer::nextTokenInternal()
-{
-  return Token::NONE;
-}
+Token FlexLexer::nextTokenInternal() { return Token::NONE; }
 // !!!!!! temporary until the new lexer is connected to this
-char FlexLexer::readNextChar()
-{
-  return EOF;
-}
+char FlexLexer::readNextChar() { return EOF; }
 
 }  // namespace parser
 }  // namespace cvc5
