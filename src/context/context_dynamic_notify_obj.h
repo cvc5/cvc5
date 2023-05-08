@@ -50,6 +50,7 @@ class ContextDynamicNotifyObj
     void markNeedsRestore();
     /** The parent dynamic notify object */
     ContextDynamicNotifyObj* d_cdno;
+
    protected:
     /** Save does nothing */
     ContextObj* save(ContextMemoryManager* pCMM) override;

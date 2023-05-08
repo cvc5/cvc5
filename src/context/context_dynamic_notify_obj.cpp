@@ -17,7 +17,8 @@
 namespace cvc5::context {
 
 ContextDynamicNotifyObj::ContextDynamicNotifyObj(Context* c) : d_cn(c, this) {}
-ContextDynamicNotifyObj::~ContextDynamicNotifyObj() {
+ContextDynamicNotifyObj::~ContextDynamicNotifyObj()
+{
   // we no longer wish to be notified
   d_cn.d_cdno = nullptr;
 }
