@@ -32,7 +32,8 @@ namespace parser {
 class FlexLexer;
 
 /**
- * The lexer for Smt2.
+ * The lexer for Smt2. This handles lexing tokens that may appear in smt2
+ * terms. It does not lex command tokens.
  */
 class Smt2LexerNew : public FlexLexer
 {
