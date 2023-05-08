@@ -54,7 +54,10 @@ class ContextDynamicNotifyObj
 
    protected:
     /** Save does nothing */
-    ContextObj* save(ContextMemoryManager* pCMM) override { return new (pCMM) CallbackContextObj(*this); }
+    ContextObj* save(ContextMemoryManager* pCMM) override
+    {
+      return new (pCMM) CallbackContextObj(*this);
+    }
     /** Restore notifies the parent */
     void restore(ContextObj* pContextObjRestore) override
     {
@@ -62,12 +65,16 @@ class ContextDynamicNotifyObj
     }
     /** To notify */
     ContextDynamicNotifyObj* d_cdno;
-  private:
-      /**
-   * Copy constructor - it's private to ensure it is only used by save().
-   * Basic CDO objects, cannot be copied-they have to be unique.
-   */
-  CallbackContextObj(CallbackContextObj& cco) : ContextObj(cco), d_cdno(cco.d_cdno) {}
+
+   private:
+    /**
+     * Copy constructor - it's private to ensure it is only used by save().
+     * Basic CDO objects, cannot be copied-they have to be unique.
+     */
+    CallbackContextObj(CallbackContextObj& cco)
+        : ContextObj(cco), d_cdno(cco.d_cdno)
+    {
+    }
   };
   /** Instance of the above class */
   CallbackContextObj d_cn;
