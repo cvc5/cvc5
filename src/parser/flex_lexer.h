@@ -120,6 +120,7 @@ class FlexLexer
    * back of it and pop.
    */
   std::vector<Token> d_peeked;
+
  private:
   /** The input */
   std::istream* d_istream;

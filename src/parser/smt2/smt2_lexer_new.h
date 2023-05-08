@@ -44,6 +44,7 @@ class Smt2LexerNew : public FlexLexer
   bool isStrict() const;
   /** Are we parsing sygus? */
   bool isSygus() const;
+
  private:
   /**
    * Read and tokenize the next token from the provided input stream. Stores

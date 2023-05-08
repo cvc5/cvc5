@@ -84,8 +84,7 @@ bool Smt2LexerNew::isCharacterClass(char ch, CharacterClass cc)
     case CharacterClass::SYMBOL_START:
       return d_symcTable[static_cast<size_t>(ch)];
     case CharacterClass::SYMBOL:
-      return d_symcTable[static_cast<size_t>(ch)]
-                 || (ch >= '0' && ch <= '9');
+      return d_symcTable[static_cast<size_t>(ch)] || (ch >= '0' && ch <= '9');
     default: break;
   }
   return false;
