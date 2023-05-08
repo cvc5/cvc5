@@ -33,9 +33,9 @@ class ContextDynamicNotifyObj
  public:
   /**
    */
-  ContextDynamicNotifyObj(Context* c) : d_cn(c, this) {}
+  ContextDynamicNotifyObj(Context* c);
   /** Destructor */
-  virtual ~ContextDynamicNotifyObj() {}
+  virtual ~ContextDynamicNotifyObj();
 
  protected:
   /**
@@ -45,24 +45,14 @@ class ContextDynamicNotifyObj
   class CallbackContextObj : public ContextObj
   {
    public:
-    CallbackContextObj(Context* c, ContextDynamicNotifyObj* cdno)
-        : ContextObj(c), d_cdno(cdno)
-    {
-    }
-    virtual ~CallbackContextObj() { destroy(); }
-    void markNeedsRestore() { makeCurrent(); }
-
+    CallbackContextObj(Context* c, ContextDynamicNotifyObj* cdno);
+    virtual ~CallbackContextObj();
+    void markNeedsRestore() ;
    protected:
     /** Save does nothing */
-    ContextObj* save(ContextMemoryManager* pCMM) override
-    {
-      return new (pCMM) CallbackContextObj(*this);
-    }
+    ContextObj* save(ContextMemoryManager* pCMM) override;
     /** Restore notifies the parent */
-    void restore(ContextObj* pContextObjRestore) override
-    {
-      d_cdno->notifyRestore();
-    }
+    void restore(ContextObj* pContextObjRestore) override;
     /** To notify */
     ContextDynamicNotifyObj* d_cdno;
 
@@ -71,10 +61,7 @@ class ContextDynamicNotifyObj
      * Copy constructor - it's private to ensure it is only used by save().
      * Basic CDO objects, cannot be copied-they have to be unique.
      */
-    CallbackContextObj(CallbackContextObj& cco)
-        : ContextObj(cco), d_cdno(cco.d_cdno)
-    {
-    }
+    CallbackContextObj(CallbackContextObj& cco);
   };
   /** Instance of the above class */
   CallbackContextObj d_cn;
@@ -85,7 +72,7 @@ class ContextDynamicNotifyObj
    */
   virtual void notifyRestore() = 0;
   /** Mark needs notify */
-  void markNeedsRestore() { d_cn.markNeedsRestore(); }
+  void markNeedsRestore();
 };
 
 }  // namespace cvc5::context

@@ -294,7 +294,7 @@ class EqualityEngine : public context::ContextDynamicNotifyObj, protected EnvObj
   void undoMerge(EqualityNode& class1, EqualityNode& class2, EqualityNodeId class2Id);
 
   /** Backtrack the information if necessary */
-  void backtrack();
+  void notifyRestore() override;
 
   /**
    * Trigger that will be updated
@@ -478,11 +478,6 @@ class EqualityEngine : public context::ContextDynamicNotifyObj, protected EnvObj
    * Adds a trigger equality to the database with the trigger node and polarity for notification.
    */
   void addTriggerEqualityInternal(TNode t1, TNode t2, TNode trigger, bool polarity);
-
-  /**
-   * This method gets called on backtracks from the context manager.
-   */
-  void notifyRestore() override { backtrack(); }
 
   /**
    * Constructor initialization stuff.

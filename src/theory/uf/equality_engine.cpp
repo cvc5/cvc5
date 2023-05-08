@@ -866,7 +866,7 @@ void EqualityEngine::undoMerge(EqualityNode& class1, EqualityNode& class2, Equal
 
 }
 
-void EqualityEngine::backtrack() {
+void EqualityEngine::notifyRestore() {
 
   Trace("equality::backtrack") << "backtracking" << std::endl;
 
