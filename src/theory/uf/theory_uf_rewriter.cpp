@@ -226,15 +226,15 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
 RewriteResponse TheoryUfRewriter::rewriteBVToNat(TNode node)
 {
   Assert(node.getKind() == kind::BITVECTOR_TO_NAT);
+  NodeManager* nm = NodeManager::currentNM();
   if (node[0].isConst())
   {
-    Node resultNode = arith::eliminateBv2Nat(node);
+    Node resultNode = nm->mkConstInt(node[0].getConst<BitVector>().toInteger());
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
   }
   else if (node[0].getKind() == kind::INT_TO_BITVECTOR)
   {
     // (bv2nat ((_ int2bv w) x)) ----> (mod x 2^w)
-    NodeManager* nm = NodeManager::currentNM();
     const uint32_t size =
         node[0].getOperator().getConst<IntToBitVector>().d_size;
     Node sn = nm->mkConstInt(Rational(Integer(2).pow(size)));
@@ -249,7 +249,10 @@ RewriteResponse TheoryUfRewriter::rewriteIntToBV(TNode node)
   Assert(node.getKind() == kind::INT_TO_BITVECTOR);
   if (node[0].isConst())
   {
-    Node resultNode = arith::eliminateInt2Bv(node);
+    NodeManager* nm = NodeManager::currentNM();
+    const uint32_t size = node.getOperator().getConst<IntToBitVector>().d_size;
+    Node resultNode = nm->mkConst(
+        BitVector(size, node[0].getConst<Rational>().getNumerator()));
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
   }
   else if (node[0].getKind() == kind::BITVECTOR_TO_NAT)
