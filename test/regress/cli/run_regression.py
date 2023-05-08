@@ -174,6 +174,25 @@ class ProofTester(Tester):
             )
         )
 
+class DslProofTester(Tester):
+
+    def __init__(self):
+        super().__init__("dsl-proof")
+
+    def applies(self, benchmark_info):
+        expected_output_lines = benchmark_info.expected_output.split()
+        return (
+            benchmark_info.benchmark_ext != ".sy"
+            and "unsat" in benchmark_info.expected_output.split()
+        )
+
+    def run_internal(self, benchmark_info):
+        return super().run_internal(
+            benchmark_info._replace(
+                command_line_args=benchmark_info.command_line_args +
+                ["--check-proofs", "--proof-granularity=dsl-rewrite", "--proof-check=lazy"]
+            )
+        )
 
 class LfscTester(Tester):
 
@@ -364,6 +383,7 @@ g_testers = {
     "synth": SynthTester(),
     "abduct": AbductTester(),
     "dump": DumpTester(),
+    "dsl-proof": DslProofTester()
 }
 
 g_default_testers = [
@@ -647,8 +667,11 @@ def run_regression(
                 return EXIT_FAILURE
             if disable_tester in testers:
                 testers.remove(disable_tester)
-            if disable_tester == "proof" and "lfsc" in testers:
-                testers.remove("lfsc")
+            if disable_tester == "proof":
+                if "lfsc" in testers:
+                    testers.remove("lfsc")
+                if "dsl-proof" in testers:
+                    testers.remove("dsl-proof")
 
     expected_output = expected_output.strip()
     expected_error = expected_error.strip()
