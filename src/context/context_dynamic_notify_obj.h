@@ -26,8 +26,7 @@ namespace cvc5::context {
  */
 class ContextDynamicNotifyObj
 {
-public:
-
+ public:
   /**
    */
   ContextDynamicNotifyObj(Context* c) : d_cn(c, this) {}
@@ -37,25 +36,32 @@ public:
   virtual ~ContextDynamicNotifyObj();
 
  protected:
-   /**
-    * The notification class, which is a context object which notifies the
-    * parent of when to restore.
-    */
-   class CallbackContextObj : public ContextObj
-   {
+  /**
+   * The notification class, which is a context object which notifies the
+   * parent of when to restore.
+   */
+  class CallbackContextObj : public ContextObj
+  {
    public:
-     CallbackContextObj(Context* c, ContextDynamicNotifyObj* cdno) : ContextObj(c), d_cdno(cdno) {}
-     virtual ~CallbackContextObj(){}
-     void markNeedsRestore() { makeCurrent(); }
+    CallbackContextObj(Context* c, ContextDynamicNotifyObj* cdno)
+        : ContextObj(c), d_cdno(cdno)
+    {
+    }
+    virtual ~CallbackContextObj() {}
+    void markNeedsRestore() { makeCurrent(); }
+
    protected:
-     /** Save does nothing */
-     ContextObj* save(ContextMemoryManager* pCMM) override { return this; }
-     /** Restore notifies the parent */
-     void restore(ContextObj* pContextObjRestore) override { d_cdno->notifyRestore(); }
-     /** To notify */
-     ContextDynamicNotifyObj* d_cdno;
-   };
-   CallbackContextObj d_cn;
+    /** Save does nothing */
+    ContextObj* save(ContextMemoryManager* pCMM) override { return this; }
+    /** Restore notifies the parent */
+    void restore(ContextObj* pContextObjRestore) override
+    {
+      d_cdno->notifyRestore();
+    }
+    /** To notify */
+    ContextDynamicNotifyObj* d_cdno;
+  };
+  CallbackContextObj d_cn;
   /**
    * This is the method called to notify the object of a pop.  It must be
    * implemented by the subclass. It is protected since context is out
@@ -63,12 +69,8 @@ public:
    */
   virtual void notifyRestore() = 0;
   /** Mark needs notify */
-  void markNeedsRestore()
-  {
-    d_cn.markNeedsRestore();
-  }
+  void markNeedsRestore() { d_cn.markNeedsRestore(); }
 };
-
 
 }  // namespace cvc5::context
 
