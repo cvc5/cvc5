@@ -866,8 +866,8 @@ void EqualityEngine::undoMerge(EqualityNode& class1, EqualityNode& class2, Equal
 
 }
 
-void EqualityEngine::notifyRestore() {
-
+void EqualityEngine::notifyRestore()
+{
   Trace("equality::backtrack") << "backtracking" << std::endl;
 
   // If we need to backtrack then do it
@@ -981,7 +981,6 @@ void EqualityEngine::notifyRestore() {
     d_deducedDisequalityReasons.resize(d_deducedDisequalityReasonsSize);
     d_deducedDisequalities.resize(d_deducedDisequalitiesSize);
   }
-
 }
 
 void EqualityEngine::addGraphEdge(EqualityNodeId t1, EqualityNodeId t2, unsigned type, TNode reason) {
@@ -2143,7 +2142,6 @@ bool EqualityEngine::areDisequal(TNode t1, TNode t2, bool ensureProof) const
     Trace("equality") << "\t(YES)" << std::endl;
     return true;
   }
-  
 
   // Get equivalence classes
   EqualityNodeId t1ClassId = getEqualityNode(t1Id).getFind();
@@ -2156,7 +2154,7 @@ bool EqualityEngine::areDisequal(TNode t1, TNode t2, bool ensureProof) const
     nonConst = const_cast<EqualityEngine*>(this);
     nonConst->markNeedsRestore();
   }
-  
+
   // Check for constants
   if (d_isConstant[t1ClassId] && d_isConstant[t2ClassId] && t1ClassId != t2ClassId) {
     if (ensureProof) {

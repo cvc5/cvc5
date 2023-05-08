@@ -16,30 +16,38 @@
 
 namespace cvc5::context {
 
-
 ContextDynamicNotifyObj::ContextDynamicNotifyObj(Context* c) : d_cn(c, this) {}
 ContextDynamicNotifyObj::~ContextDynamicNotifyObj() {}
 
-ContextDynamicNotifyObj::CallbackContextObj::CallbackContextObj(Context* c, ContextDynamicNotifyObj* cdno)
-  : ContextObj(c), d_cdno(cdno)
+ContextDynamicNotifyObj::CallbackContextObj::CallbackContextObj(
+    Context* c, ContextDynamicNotifyObj* cdno)
+    : ContextObj(c), d_cdno(cdno)
 {
 }
-ContextDynamicNotifyObj::CallbackContextObj::~CallbackContextObj() { destroy(); }
-void ContextDynamicNotifyObj::CallbackContextObj::markNeedsRestore() { makeCurrent(); }
-ContextObj* ContextDynamicNotifyObj::CallbackContextObj::save(ContextMemoryManager* pCMM)
+ContextDynamicNotifyObj::CallbackContextObj::~CallbackContextObj()
 {
-return new (pCMM) CallbackContextObj(*this);
+  destroy();
 }
-void ContextDynamicNotifyObj::CallbackContextObj::restore(ContextObj* pContextObjRestore)
+void ContextDynamicNotifyObj::CallbackContextObj::markNeedsRestore()
 {
-d_cdno->notifyRestore();
+  makeCurrent();
 }
-ContextDynamicNotifyObj::CallbackContextObj::CallbackContextObj(CallbackContextObj& cco)
-  : ContextObj(cco), d_cdno(cco.d_cdno)
+ContextObj* ContextDynamicNotifyObj::CallbackContextObj::save(
+    ContextMemoryManager* pCMM)
+{
+  return new (pCMM) CallbackContextObj(*this);
+}
+void ContextDynamicNotifyObj::CallbackContextObj::restore(
+    ContextObj* pContextObjRestore)
+{
+  d_cdno->notifyRestore();
+}
+ContextDynamicNotifyObj::CallbackContextObj::CallbackContextObj(
+    CallbackContextObj& cco)
+    : ContextObj(cco), d_cdno(cco.d_cdno)
 {
 }
 
 void ContextDynamicNotifyObj::markNeedsRestore() { d_cn.markNeedsRestore(); }
 
 }  // namespace cvc5::context
-
