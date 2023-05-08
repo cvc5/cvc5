@@ -88,7 +88,7 @@ void FlexLexer::initialize(std::istream& input, const std::string& inputName)
   d_peeked.clear();
 }
 
-const char* FlexLexer::tokenStr()
+const char* FlexLexer::tokenStr() const
 {
   Assert(d_peeked.empty());
   return YYText();
@@ -153,6 +153,17 @@ bool FlexLexer::eatTokenChoice(Token t, Token f)
     unexpectedTokenError(tt, o.str());
   }
   return false;
+}
+
+// !!!!!! temporary until the new lexer is connected to this
+Token FlexLexer::nextTokenInternal()
+{
+  return Token::NONE;
+}
+// !!!!!! temporary until the new lexer is connected to this
+char FlexLexer::readNextChar()
+{
+  return EOF;
 }
 
 }  // namespace parser
