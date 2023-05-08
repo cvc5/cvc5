@@ -87,7 +87,7 @@ class EnumValueManager : protected EnvObj
   /** Sygus sampler (for --sygus-rr-verify) */
   std::unique_ptr<SygusSampler> d_samplerRrV;
   /** if we allocated a default sygus enumerator callback */
-  std::unique_ptr<SygusEnumeratorCallbackDefault> d_secd;
+  std::unique_ptr<SygusEnumeratorCallback> d_secd;
   /** enumerator generators for each actively-generated enumerator */
   std::unique_ptr<EnumValGenerator> d_evg;
   /** example evaluation cache utility for each enumerator */

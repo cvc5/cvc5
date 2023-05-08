@@ -46,11 +46,10 @@ SineSolver::SineSolver(Env& env, TranscendentalState* tstate)
   Node one = nm->mkConstReal(Rational(1));
   Node negOne = nm->mkConstReal(Rational(-1));
   d_pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
-  Node pi_2 = rewrite(
-      nm->mkNode(Kind::MULT, d_pi, nm->mkConstReal(Rational(1) / Rational(2))));
-  Node pi_neg_2 = rewrite(nm->mkNode(
-      Kind::MULT, d_pi, nm->mkConstReal(Rational(-1) / Rational(2))));
-  d_neg_pi = rewrite(nm->mkNode(Kind::MULT, d_pi, negOne));
+  Node pi_2 = nm->mkNode(Kind::MULT, nm->mkConstReal(Rational(1, 2)), d_pi);
+  Node pi_neg_2 =
+      nm->mkNode(Kind::MULT, nm->mkConstReal(Rational(-1, 2)), d_pi);
+  d_neg_pi = nm->mkNode(Kind::MULT, nm->mkConstInt(Rational(-1)), d_pi);
   d_mpoints.push_back(d_pi);
   d_mpointsSine[d_pi] = zero;
   d_mpoints.push_back(pi_2);
