@@ -418,6 +418,7 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
 
   // If this is not an internal node, add it to the master
   if (d_masterEqualityEngine && !d_isInternal[result]) {
+    d_masterEqualityEngine->markNeedsRestore();
     d_masterEqualityEngine->addTermInternal(t);
   }
 
@@ -2008,6 +2009,7 @@ void EqualityEngine::propagate() {
 
     // If not merging internal nodes, notify the master
     if (d_masterEqualityEngine && !d_isInternal[t1classId] && !d_isInternal[t2classId]) {
+      d_masterEqualityEngine->markNeedsRestore();
       d_masterEqualityEngine->assertEqualityInternal(d_nodes[t1classId], d_nodes[t2classId], TNode::null());
       d_masterEqualityEngine->propagate();
     }
