@@ -31,8 +31,7 @@ namespace cvc5::context {
 class ContextDynamicNotifyObj
 {
  public:
-  /**
-   */
+  /** Constructor */
   ContextDynamicNotifyObj(Context* c);
   /** Destructor */
   virtual ~ContextDynamicNotifyObj();
@@ -50,17 +49,14 @@ class ContextDynamicNotifyObj
     void markNeedsRestore();
     /** The parent dynamic notify object */
     ContextDynamicNotifyObj* d_cdno;
-
    protected:
     /** Save does nothing */
     ContextObj* save(ContextMemoryManager* pCMM) override;
     /** Restore notifies the parent */
     void restore(ContextObj* pContextObjRestore) override;
-
    private:
     /**
      * Copy constructor - it's private to ensure it is only used by save().
-     * Basic CDO objects, cannot be copied-they have to be unique.
      */
     CallbackContextObj(CallbackContextObj& cco);
   };
