@@ -17,7 +17,10 @@
 namespace cvc5::context {
 
 ContextDynamicNotifyObj::ContextDynamicNotifyObj(Context* c) : d_cn(c, this) {}
-ContextDynamicNotifyObj::~ContextDynamicNotifyObj() {}
+ContextDynamicNotifyObj::~ContextDynamicNotifyObj() {
+  // we no longer wish to be notified
+  d_cn.d_cdno = nullptr;
+}
 
 ContextDynamicNotifyObj::CallbackContextObj::CallbackContextObj(
     Context* c, ContextDynamicNotifyObj* cdno)
@@ -40,7 +43,10 @@ ContextObj* ContextDynamicNotifyObj::CallbackContextObj::save(
 void ContextDynamicNotifyObj::CallbackContextObj::restore(
     ContextObj* pContextObjRestore)
 {
-  d_cdno->notifyRestore();
+  if (d_cdno)
+  {
+    d_cdno->notifyRestore();
+  }
 }
 ContextDynamicNotifyObj::CallbackContextObj::CallbackContextObj(
     CallbackContextObj& cco)

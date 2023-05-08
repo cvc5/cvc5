@@ -48,14 +48,13 @@ class ContextDynamicNotifyObj
     CallbackContextObj(Context* c, ContextDynamicNotifyObj* cdno);
     virtual ~CallbackContextObj();
     void markNeedsRestore();
-
+    /** The parent dynamic notify object */
+    ContextDynamicNotifyObj* d_cdno;
    protected:
     /** Save does nothing */
     ContextObj* save(ContextMemoryManager* pCMM) override;
     /** Restore notifies the parent */
     void restore(ContextObj* pContextObjRestore) override;
-    /** To notify */
-    ContextDynamicNotifyObj* d_cdno;
 
    private:
     /**
