@@ -1727,6 +1727,8 @@ void EqualityEngine::addTriggerEquality(TNode eq) {
     return;
   }
 
+  markNeedsRestore();
+
   // Add the terms
   addTermInternal(eq[0]);
   addTermInternal(eq[1]);
@@ -1770,6 +1772,8 @@ void EqualityEngine::addTriggerPredicate(TNode predicate) {
   if (d_done) {
     return;
   }
+  
+  markNeedsRestore();
 
   // Add the term
   addTermInternal(predicate);
@@ -2218,6 +2222,8 @@ void EqualityEngine::addTriggerTerm(TNode t, TheoryId tag)
   if (d_done) {
     return;
   }
+  
+    markNeedsRestore();
 
   // Add the term if it's not already there
   addTermInternal(t);

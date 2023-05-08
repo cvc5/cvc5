@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Clark Barrett, Morgan Deters, Tim King
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Context class and context manager.
+ * Dynamic notify object.
  */
 
 #include "cvc5parser_public.h"
@@ -23,6 +23,10 @@
 namespace cvc5::context {
 
 /**
+ * An object that is called to restore its state when dynamically marked to do
+ * so. In particular its main methods are markNeedsRestore and notifyRestore.
+ * When markNeedsRestore is called in the current context, the latter
+ * method is called when backtracking to that context level.
  */
 class ContextDynamicNotifyObj
 {
@@ -30,10 +34,8 @@ class ContextDynamicNotifyObj
   /**
    */
   ContextDynamicNotifyObj(Context* c) : d_cn(c, this) {}
-
-  /**
-   */
-  virtual ~ContextDynamicNotifyObj();
+  /** Destructor */
+  virtual ~ContextDynamicNotifyObj() {}
 
  protected:
   /**
@@ -47,12 +49,12 @@ class ContextDynamicNotifyObj
         : ContextObj(c), d_cdno(cdno)
     {
     }
-    virtual ~CallbackContextObj() {}
+    virtual ~CallbackContextObj() { destroy(); }
     void markNeedsRestore() { makeCurrent(); }
 
    protected:
     /** Save does nothing */
-    ContextObj* save(ContextMemoryManager* pCMM) override { return this; }
+    ContextObj* save(ContextMemoryManager* pCMM) override { return new (pCMM) CallbackContextObj(*this); }
     /** Restore notifies the parent */
     void restore(ContextObj* pContextObjRestore) override
     {
@@ -60,7 +62,14 @@ class ContextDynamicNotifyObj
     }
     /** To notify */
     ContextDynamicNotifyObj* d_cdno;
+  private:
+      /**
+   * Copy constructor - it's private to ensure it is only used by save().
+   * Basic CDO objects, cannot be copied-they have to be unique.
+   */
+  CallbackContextObj(CallbackContextObj& cco) : ContextObj(cco), d_cdno(cco.d_cdno) {}
   };
+  /** Instance of the above class */
   CallbackContextObj d_cn;
   /**
    * This is the method called to notify the object of a pop.  It must be
