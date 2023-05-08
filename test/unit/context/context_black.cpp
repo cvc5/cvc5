@@ -193,44 +193,6 @@ TEST_F(TestContextBlack, pre_post_notify)
   d_context.reset(nullptr);
 }
 
-TEST_F(TestContextBlack, top_scope_context_obj)
-{
-
-  MyContextNotifyObj n(d_context.get(), true);
-
-  d_context->push();
-
-  MyContextObj x(d_context.get(), n);
-  {
-    MyContextObj y(d_context.get(), n);
-
-    ASSERT_EQ(x.d_nsaves, 0);
-    ASSERT_EQ(y.d_nsaves, 0);
-
-    x.makeCurrent();
-    y.makeCurrent();
-
-    ASSERT_EQ(x.d_nsaves, 1);
-    ASSERT_EQ(y.d_nsaves, 0);
-
-    d_context->push();
-
-    x.makeCurrent();
-    y.makeCurrent();
-
-    ASSERT_EQ(x.d_nsaves, 2);
-    ASSERT_EQ(y.d_nsaves, 1);
-
-    d_context->pop();
-
-    // `y` is invalid below the first level.
-  }
-
-  d_context->pop();
-
-  ASSERT_EQ(x.d_nsaves, 2);
-}
-
 TEST_F(TestContextBlack, detect_invalid_obj)
 {
   MyContextNotifyObj n(d_context.get(), true);
