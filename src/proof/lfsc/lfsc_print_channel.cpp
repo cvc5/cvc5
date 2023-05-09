@@ -113,8 +113,7 @@ void LfscPrintChannelOut::printRule(std::ostream& out, const ProofNode* pn)
     }
     else
     {
-      out << "?";
-      Assert(false);
+      Unreachable();
     }
     return;
   }
