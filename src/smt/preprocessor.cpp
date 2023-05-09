@@ -21,7 +21,6 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "printer/printer.h"
-#include "smt/abstract_values.h"
 #include "smt/assertions.h"
 #include "smt/env.h"
 #include "smt/preprocess_proof_generator.h"
