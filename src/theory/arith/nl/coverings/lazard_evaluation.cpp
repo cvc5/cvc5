@@ -636,7 +636,7 @@ void LazardEvaluation::add(const poly::Variable& var, const poly::Value& val)
                          << CoCoA::owner(mipo) << std::endl;
     auto factorization = CoCoA::factor(mipo);
     Trace("nl-cov::lazard") << "-> " << factorization << std::endl;
-    bool used_factor = false;
+    CVC5_UNUSED bool used_factor = false;
     for (const auto& f : factorization.myFactors())
     {
       if (d_state->evaluatesToZero(f))
