@@ -995,10 +995,9 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       getMethodId(args[2], mid);
     }
     int64_t recLimit = options().proof.proofRewriteRconsRecLimit;
-    int64_t stepLimit = options().proof.proofRewriteRconsStepLimit;
     // attempt to reconstruct the proof of the equality into cdp using the
     // rewrite database proof reconstructor
-    if (d_rdbPc.prove(cdp, res[0], res[1], tid, mid, recLimit, stepLimit))
+    if (d_rdbPc.prove(cdp, res[0], res[1], tid, mid, recLimit))
     {
       if (reqTrueElim)
       {
