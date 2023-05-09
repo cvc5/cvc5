@@ -148,21 +148,38 @@ Node getNullTerminator(Kind k, TypeNode tn)
       nullTerm = nm->mkNode(REGEXP_ALL);
       break;
     case BITVECTOR_AND:
-      nullTerm = theory::bv::utils::mkOnes(tn.getBitVectorSize());
+      // it may be the case that we are an abstract type, which we guard here
+      // and return the null node.
+      if (tn.isBitVector())
+      {
+        nullTerm = theory::bv::utils::mkOnes(tn.getBitVectorSize());
+      }
       break;
     case BITVECTOR_OR:
     case BITVECTOR_ADD:
     case BITVECTOR_XOR:
-      nullTerm = theory::bv::utils::mkZero(tn.getBitVectorSize());
+      if (tn.isBitVector())
+      {
+        nullTerm = theory::bv::utils::mkZero(tn.getBitVectorSize());
+      }
       break;
     case BITVECTOR_MULT:
-      nullTerm = theory::bv::utils::mkOne(tn.getBitVectorSize());
+      if (tn.isBitVector())
+      {
+        nullTerm = theory::bv::utils::mkOne(tn.getBitVectorSize());
+      }
       break;
     case FINITE_FIELD_ADD:
-      nullTerm = nm->mkConst(FiniteFieldValue(Integer(0), tn.getFfSize()));
+      if (tn.isFiniteField())
+      {
+        nullTerm = nm->mkConst(FiniteFieldValue(Integer(0), tn.getFfSize()));
+      }
       break;
     case FINITE_FIELD_MULT:
-      nullTerm = nm->mkConst(FiniteFieldValue(Integer(1), tn.getFfSize()));
+      if (tn.isFiniteField())
+      {
+        nullTerm = nm->mkConst(FiniteFieldValue(Integer(1), tn.getFfSize()));
+      }
       break;
     default:
       // not handled as null-terminated
@@ -244,11 +261,20 @@ Node narySubstitute(Node src,
         {
           // n-ary operators cannot be parameterized
           Assert(cur.getMetaKind() != metakind::PARAMETERIZED);
-          ret = children.empty()
-                    ? getNullTerminator(cur.getKind(), cur.getType())
-                    : (children.size() == 1
-                           ? children[0]
-                           : nm->mkNode(cur.getKind(), children));
+          if (children.empty())
+          {
+            ret = getNullTerminator(cur.getKind(), cur.getType());
+            // if we don't know the null terminator, just return null now
+            if (ret.isNull())
+            {
+              return ret;
+            }
+          }
+          else
+          {
+            ret = (children.size() == 1 ? children[0]
+                                        : nm->mkNode(cur.getKind(), children));
+          }
         }
         else
         {
