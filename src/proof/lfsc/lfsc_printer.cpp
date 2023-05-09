@@ -1146,7 +1146,6 @@ void LfscPrinter::printDslRule(std::ostream& out,
   size_t termCount = 0;
   size_t scCount = 0;
   // print conditions, then conclusion
-  // TODO: incorporate other side conditions
   for (size_t i = 0, nconds = conds.size(); i <= nconds; i++)
   {
     bool isConclusion = i == nconds;
