@@ -22,6 +22,8 @@
 #include "proof/alethe/alethe_post_processor.h"
 #include "proof/alethe/alethe_printer.h"
 #include "proof/dot/dot_printer.h"
+#include "proof/lean/lean_post_processor.h"
+#include "proof/lean/lean_printer.h"
 #include "proof/lfsc/lfsc_post_processor.h"
 #include "proof/lfsc/lfsc_printer.h"
 #include "proof/proof_checker.h"
@@ -92,7 +94,7 @@ PfManager::PfManager(Env& env)
           != options::ProofGranularityMode::THEORY_REWRITE)
       {
         // this eliminates theory rewriting steps with finer-grained DSL rules
-        d_pfpp->setEliminateRule(PfRule::THEORY_REWRITE);
+        d_pfpp->setEliminateAllTrustedRules();
       }
     }
     // theory-specific lazy proof reconstruction
@@ -134,14 +136,14 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
     Trace("smt-proof-debug") << *pfn.get() << std::endl;
     Trace("smt-proof-debug") << "=====" << std::endl;
   }
+  std::vector<Node> assertions;
+  getAssertions(as, assertions);
 
   if (TraceIsOn("smt-proof"))
   {
     Trace("smt-proof")
         << "SolverEngine::connectProofToAssertions(): get free assumptions..."
         << std::endl;
-    std::vector<Node> assertions;
-    getAssertions(as, assertions);
     std::vector<Node> fassumps;
     expr::getFreeAssumptions(pfn.get(), fassumps);
     Trace("smt-proof") << "SolverEngine::connectProofToAssertions(): initial "
@@ -178,8 +180,6 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
     {
       Trace("smt-proof") << "SolverEngine::connectProofToAssertions(): make "
                             "unified scope...\n";
-      std::vector<Node> assertions;
-      getAssertions(as, assertions);
       return d_pnm->mkScope(
           pfn, assertions, true, options().proof.proofPruneInput);
     }
