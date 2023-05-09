@@ -462,6 +462,25 @@ set(regress_0_tests
   regress0/bv/fuzz40.delta01.smtv1.smt2
   regress0/bv/fuzz40.smtv1.smt2
   regress0/bv/fuzz41.smtv1.smt2
+  regress0/bv/holes/and-flatten.smt2
+  regress0/bv/holes/and-zero.smt2
+  regress0/bv/holes/commutatives.smt2
+  regress0/bv/holes/comp-eliminate.smt2
+  regress0/bv/holes/concat-extract-merge.smt2
+  regress0/bv/holes/concat-flatten.smt2
+  regress0/bv/holes/extract-concat.smt2
+  regress0/bv/holes/extract-extract.smt2
+  regress0/bv/holes/extract-whole.smt2
+  regress0/bv/holes/mult-distrib-const-neg.smt2
+  regress0/bv/holes/not-neq.smt2
+  regress0/bv/holes/repeat-eliminate-2.smt2
+  regress0/bv/holes/rotate-left-eliminate-1.smt2
+  regress0/bv/holes/sgt-eliminate.smt2
+  regress0/bv/holes/shl-by-const-1.smt2
+  regress0/bv/holes/udiv-zero.smt2
+  regress0/bv/holes/ugt-eliminate.smt2
+  regress0/bv/holes/ult-one.smt2
+  regress0/bv/holes/zero-extend-eliminate.smt2
   regress0/bv/incorrect1.delta01.smtv1.smt2
   regress0/bv/inequality00.smt2
   regress0/bv/inequality01.smt2
