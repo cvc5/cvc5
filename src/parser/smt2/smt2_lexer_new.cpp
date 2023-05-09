@@ -4,13 +4,13 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * Temp
+ * The lexer for smt2
  */
 
 #include "parser/smt2/smt2_lexer_new.h"
@@ -81,30 +81,6 @@ const char* Smt2LexerNew::tokenStr() const
 }
 bool Smt2LexerNew::isStrict() const { return d_isStrict; }
 bool Smt2LexerNew::isSygus() const { return d_isSygus; }
-
-bool Smt2LexerNew::isCharacterClass(char ch, CharacterClass cc)
-{
-  switch (cc)
-  {
-    case CharacterClass::WHITESPACE:
-      return d_symcTable[static_cast<size_t>(ch)]==CharacterClass::WHITESPACE;
-    case CharacterClass::DECIMAL_DIGIT:
-      return d_symcTable[static_cast<size_t>(ch)]==CharacterClass::DECIMAL_DIGIT;
-    case CharacterClass::HEXADECIMAL_DIGIT:
-      return (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f')
-             || (ch >= 'A' && ch <= 'F');
-    case CharacterClass::BIT: return ch == '0' || ch == '1';
-    case CharacterClass::SYMBOL_START:
-      return d_symcTable[static_cast<size_t>(ch)]==CharacterClass::SYMBOL;
-    case CharacterClass::SYMBOL:
-    {
-      CharacterClass chcc = d_symcTable[static_cast<size_t>(ch)];
-      return chcc==CharacterClass::SYMBOL || chcc == CharacterClass::DECIMAL_DIGIT;
-    }
-    default: break;
-  }
-  return false;
-}
 
 Token Smt2LexerNew::nextTokenInternal()
 {
