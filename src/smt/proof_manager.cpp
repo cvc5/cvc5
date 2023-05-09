@@ -228,7 +228,7 @@ void PfManager::printProof(std::ostream& out,
   if (options().base.incrementalSolving
       && mode != options::ProofFormatMode::NONE)
   {
-    fp = d_pnm->clone(fp);
+    fp = fp->clone();
   }
 
   // according to the proof format, post process and print the proof node
@@ -252,7 +252,7 @@ void PfManager::printProof(std::ostream& out,
     proof::LfscNodeConverter ltp;
     proof::LfscProofPostprocess lpp(d_env, ltp);
     lpp.process(fp);
-    proof::LfscPrinter lp(d_env, ltp);
+    proof::LfscPrinter lp(d_env, ltp, d_rewriteDb.get());
     lp.print(out, fp.get());
   }
   else if (mode == options::ProofFormatMode::TPTP)

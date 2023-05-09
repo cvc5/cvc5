@@ -184,6 +184,10 @@ class TheoryEngine : protected EnvObj
    * lemmas to lems, for details see Theory::ppRewrite.
    */
   TrustNode ppRewrite(TNode term, std::vector<theory::SkolemLemma>& lems);
+  /**
+   * Same as above, but applied only at preprocess time.
+   */
+  TrustNode ppStaticRewrite(TNode term);
   /** Notify (preprocessed) assertions. */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
 

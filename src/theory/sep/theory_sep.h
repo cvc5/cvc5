@@ -329,8 +329,6 @@ class TheorySep : public Theory {
   };
   //heap info ( label -> HeapInfo )
   std::map< Node, HeapInfo > d_label_model;
-  // loc -> { data_1, ..., data_n } where (not (pto loc data_1))...(not (pto loc data_n))).
-  std::map< Node, std::vector< Node > > d_heap_locs_nptos;
   /**
    * This checks the impact of adding the pto assertion p to heap assert info e,
    * where p has been asserted with the given polarity.
