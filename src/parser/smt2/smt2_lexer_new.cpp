@@ -76,6 +76,7 @@ bool Smt2LexerNew::isCharacterClass(char ch, CharacterClass cc)
 {
   switch (cc)
   {
+    case CharacterClass::WHITESPACE: return ch==' ' || ch=='\t' || ch=='\r' || ch=='\f' || ch=='\n';
     case CharacterClass::DECIMAL_DIGIT: return (ch >= '0' && ch <= '9');
     case CharacterClass::HEXADECIMAL_DIGIT:
       return (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f')
@@ -115,7 +116,7 @@ Token Smt2LexerNew::computeNextToken()
       {
         return Token::EOF_TOK;
       }
-    } while (std::isspace(ch));
+    } while (isCharacterClass(ch, CharacterClass::WHITESPACE));
 
     if (ch != ';')
     {

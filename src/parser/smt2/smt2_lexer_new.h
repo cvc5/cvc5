@@ -65,6 +65,7 @@ class Smt2LexerNew : public FlexLexer
   //----------- Utilities for parsing the current character stream
   enum class CharacterClass
   {
+    WHITESPACE,
     DECIMAL_DIGIT,
     HEXADECIMAL_DIGIT,
     BIT,
