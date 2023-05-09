@@ -154,7 +154,9 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
                          TConvProofGenerator* tcpg)
 {
 #ifdef CVC5_ASSERTIONS
-  bool isEquality = node.getKind() == kind::EQUAL && (!node[0].getType().isBoolean());
+  bool isEquality = node.getKind() == kind::EQUAL
+                    && !node[0].getType().isBoolean()
+                    && !node[1].getType().isBoolean();
 
   if (d_rewriteStack == nullptr)
   {
@@ -305,7 +307,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
         Trace("rewriter-debug") << "Post-Rewrite: " << rewriteStackTop.d_node
                                 << " to " << newNode << std::endl;
         TheoryId newTheoryId = theoryOf(newNode);
-        Assert(newNode.getType() == rewriteStackTop.d_node.getType())
+        Assert(
+            newNode.getType().isComparableTo(rewriteStackTop.d_node.getType()))
             << "Post-rewriting " << rewriteStackTop.d_node << " to " << newNode
             << " does not preserve type";
         if (newTheoryId != rewriteStackTop.getTheoryId()
