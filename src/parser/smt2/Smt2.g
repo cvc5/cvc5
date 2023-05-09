@@ -1339,13 +1339,10 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
           {
             f = PARSER_STATE->getVariable(name);
             type = f.getSort();
-            if (!type.isDatatypeConstructor() ||
-                !type.getDatatypeConstructorDomainSorts().empty())
+            if (!type.isDatatype())
             {
               PARSER_STATE->parseError("Must apply constructors of arity greater than 0 to arguments in pattern.");
             }
-            // make nullary constructor application
-            f = MK_TERM(cvc5::APPLY_CONSTRUCTOR, f);
           }
           else
           {
