@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,8 +28,6 @@
 
 namespace cvc5 {
 namespace parser {
-
-class FlexLexer;
 
 /**
  * The lexer for Smt2. This handles lexing tokens that may appear in smt2
@@ -68,6 +66,8 @@ class Smt2LexerNew : public FlexLexer
   //----------- Utilities for parsing the current character stream
   enum class CharacterClass
   {
+    NONE,
+    WHITESPACE,
     DECIMAL_DIGIT,
     HEXADECIMAL_DIGIT,
     BIT,
@@ -83,7 +83,32 @@ class Smt2LexerNew : public FlexLexer
   /** parse <c>* from cc. */
   void parseCharList(CharacterClass cc);
   /** Return true if ch is in character class cc */
-  bool isCharacterClass(char ch, CharacterClass cc) const;
+  bool isCharacterClass(char ch, CharacterClass cc) const
+  {
+    switch (cc)
+    {
+      case CharacterClass::WHITESPACE:
+        return d_symcTable[static_cast<size_t>(ch)]
+               == CharacterClass::WHITESPACE;
+      case CharacterClass::DECIMAL_DIGIT:
+        return d_symcTable[static_cast<size_t>(ch)]
+               == CharacterClass::DECIMAL_DIGIT;
+      case CharacterClass::HEXADECIMAL_DIGIT:
+        return (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f')
+               || (ch >= 'A' && ch <= 'F');
+      case CharacterClass::BIT: return ch == '0' || ch == '1';
+      case CharacterClass::SYMBOL_START:
+        return d_symcTable[static_cast<size_t>(ch)] == CharacterClass::SYMBOL;
+      case CharacterClass::SYMBOL:
+      {
+        CharacterClass chcc = d_symcTable[static_cast<size_t>(ch)];
+        return chcc == CharacterClass::SYMBOL
+               || chcc == CharacterClass::DECIMAL_DIGIT;
+      }
+      default: break;
+    }
+    return false;
+  }
   //----------- Utilizes for tokenizing d_token
   /**
    * Tokenize current symbol stored in d_token.
@@ -108,10 +133,10 @@ class Smt2LexerNew : public FlexLexer
   /** Is sygus enabled */
   bool d_isSygus;
   /**
-   * Static table denoting which characters 0...255 are characters that are
-   * legal to start a symbol with.
+   * Static table denoting a representative character class for characters
+   * 0...255, used for computing isCharacterClass.
    */
-  bool d_symcTable[256];
+  CharacterClass d_symcTable[256];
 };
 
 }  // namespace parser
