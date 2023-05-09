@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -363,6 +363,12 @@ bool SymbolManager::bindMutualDatatypeTypes(
       Term constructor = ctor.getTerm();
       Trace("parser-idt") << "+ define " << constructor << std::endl;
       std::string constructorName = ctor.getName();
+      // A zero argument constructor is actually APPLY_CONSTRUCTOR for the
+      // constructor.
+      if (ctor.getNumSelectors() == 0)
+      {
+        constructor = d_solver->mkTerm(APPLY_CONSTRUCTOR, {constructor});
+      }
       // always do overloading
       if (!bind(constructorName, constructor, true))
       {

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1119,7 +1119,7 @@ Term Smt2State::parseOpToExpr(ParseOp& p)
   else
   {
     checkDeclaration(p.d_name, CHECK_DECLARED, SYM_VARIABLE);
-    expr = getExpressionForName(p.d_name);
+    expr = getVariable(p.d_name);
   }
   Assert(!expr.isNull());
   return expr;

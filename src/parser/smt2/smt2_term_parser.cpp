@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Alex Ozdemir
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -263,7 +263,7 @@ Term Smt2TermParser::parseTerm()
       {
         std::string name = tokenStrToSymbol(tok);
         d_state.checkDeclaration(name, CHECK_DECLARED, SYM_VARIABLE);
-        ret = d_state.getExpressionForName(name);
+        ret = d_state.getVariable(name);
       }
       break;
       case Token::UNTERMINATED_QUOTED_SYMBOL:
@@ -1344,15 +1344,14 @@ Term Smt2TermParser::parseMatchCasePattern(Sort headSort,
     {
       Term pat = d_state.getVariable(name);
       Sort type = pat.getSort();
-      if (!type.isDatatypeConstructor()
-          || !type.getDatatypeConstructorDomainSorts().empty())
+      if (!type.isDatatype())
       {
         d_lex.parseError(
             "Must apply constructors of arity greater than 0 to arguments in "
             "pattern.");
       }
       // make nullary constructor application
-      return d_state.getSolver()->mkTerm(APPLY_CONSTRUCTOR, {pat});
+      return pat;
     }
     // it has the type of the head expr
     Term pat = d_state.bindBoundVar(name, headSort);
