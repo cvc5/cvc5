@@ -563,12 +563,6 @@ private:
     /** the measure term */
     Node d_this;
     /**
-     * For each size n, an explanation for why this measure term has size at
-     * most n. This is typically the literal (DT_SYGUS_BOUND m n), which
-     * we call the (n^th) "fairness literal" for m.
-     */
-    std::map< unsigned, Node > d_search_size_exp;
-    /**
      * For each size, whether we have called SygusExtension::notifySearchSize.
      */
     std::map< unsigned, bool > d_search_size;

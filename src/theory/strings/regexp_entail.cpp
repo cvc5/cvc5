@@ -368,12 +368,9 @@ bool RegExpEntail::isConstRegExp(TNode t)
       }
       else if (ck == REGEXP_RANGE)
       {
-        for (const Node& cn : cur)
+        if (!utils::isCharacterRange(cur))
         {
-          if (!cn.isConst() || cn.getConst<String>().size() != 1)
-          {
-            return false;
-          }
+          return false;
         }
       }
       else if (ck == ITE)
@@ -877,11 +874,11 @@ bool RegExpEntail::regExpIncludes(Node r1,
     // only way to include is if equal, which was already checked
     retSet = true;
   }
-  else if (k1 == REGEXP_RANGE)
+  else if (k1 == REGEXP_RANGE && utils::isCharacterRange(r1))
   {
     retSet = true;
     // if comparing subranges, we check inclusion of interval
-    if (k2 == REGEXP_RANGE)
+    if (k2 == REGEXP_RANGE && utils::isCharacterRange(r2))
     {
       unsigned l1 = r1[0].getConst<String>().front();
       unsigned u1 = r1[1].getConst<String>().front();

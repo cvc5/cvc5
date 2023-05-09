@@ -134,12 +134,14 @@ void DifficultyManager::notifyLemma(Node n, bool inFullEffortCheck)
   }
 }
 
+bool DifficultyManager::needsCandidateModel() const
+{
+  return options().smt.difficultyMode == options::DifficultyMode::MODEL_CHECK;
+}
+
 void DifficultyManager::notifyCandidateModel(TheoryModel* m)
 {
-  if (options().smt.difficultyMode != options::DifficultyMode::MODEL_CHECK)
-  {
-    return;
-  }
+  Assert(needsCandidateModel());
   Trace("diff-man") << "DifficultyManager::notifyCandidateModel, #input="
                     << d_input.size() << " #lemma=" << d_lemma.size()
                     << std::endl;

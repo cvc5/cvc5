@@ -142,7 +142,7 @@ bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm) const
             // variable of type Real, then (+ x y) does *not* match
             // (+ 1.0 2 1.5), despite { x -> (+ 1.0 2), y -> 1.5 } being
             // a well-typed match.
-            if (s.isNull() || s.getType() != var.getType())
+            if (s.isNull() || !s.getType().isComparableTo(var.getType()))
             {
               foundChildren = false;
               break;
@@ -176,7 +176,7 @@ bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm) const
                 << "Compare types " << var << " " << next << " "
                 << var.getType() << " " << next.getType() << std::endl;
             // check types in the (non-list) case
-            if (var.getType() != next.getType())
+            if (!var.getType().isComparableTo(next.getType()))
             {
               Trace("match-debug") << "...fail" << std::endl;
               next = Node::null();

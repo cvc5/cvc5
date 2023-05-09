@@ -99,14 +99,6 @@ cvc5::internal::Node as_cvc_polynomial(const poly::Polynomial& p, VariableMapper
 std::pair<poly::Polynomial, poly::SignCondition> as_poly_constraint(
     Node n, VariableMapper& vm);
 
-/**
- * Transforms a real algebraic number to a node suitable for putting it into a
- * model. The resulting node can be either a constant (suitable for
- * addSubstitution) or a witness term (suitable for
- * addWitness).
- */
-Node ran_to_node(const RealAlgebraicNumber& ran, const Node& ran_variable);
-
 Node ran_to_node(const poly::AlgebraicNumber& an, const Node& ran_variable);
 
 /**
@@ -147,9 +139,6 @@ Node excluding_interval_to_lemma(const Node& variable,
  */
 poly::AlgebraicNumber node_to_poly_ran(const Node& n, const Node& ran_variable);
 
-/** Transforms a node to a RealAlgebraicNumber by calling node_to_poly_ran. */
-RealAlgebraicNumber node_to_ran(const Node& n, const Node& ran_variable);
-
 /**
  * Transforms a node to a poly::Value.
  */
@@ -167,6 +156,24 @@ poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
+
+class PolyConverter
+{
+ public:
+  /**
+   * Transforms a real algebraic number to a node suitable for putting it into a
+   * model. The resulting node can be either a constant (suitable for
+   * addSubstitution) or a witness term (suitable for
+   * addWitness).
+   */
+  static Node ran_to_node(const RealAlgebraicNumber& ran,
+                          const Node& ran_variable);
+
+  /** Transforms a node to a RealAlgebraicNumber by calling node_to_poly_ran. */
+  static RealAlgebraicNumber node_to_ran(const Node& n,
+                                         const Node& ran_variable);
+};
+
 }  // namespace cvc5::internal
 
 #endif

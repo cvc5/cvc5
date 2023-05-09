@@ -1,4 +1,4 @@
-; COMMAND-LINE: -q
+; COMMAND-LINE: -q --sygus-inst
 ; EXPECT: sat
 (set-logic ALL)
 (set-option :strings-exp true)

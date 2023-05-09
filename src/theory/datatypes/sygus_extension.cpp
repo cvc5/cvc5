@@ -274,11 +274,15 @@ void SygusExtension::assertTesterInternal(int tindex, TNode n, Node exp)
           }
         }
       }
-      Assert(conflict.size() == (unsigned)d_currTermSize[a].get());
-      Assert(itsz->second->d_search_size_exp.find(ssz)
-             != itsz->second->d_search_size_exp.end());
-      conflict.push_back( itsz->second->d_search_size_exp[ssz] );
-      Node conf = NodeManager::currentNM()->mkNode( kind::AND, conflict );
+      // Notice that conflict.size() is typically equal to
+      // d_currTermSize[a].get(), except in cases where the size annotation is
+      // not equal to (0,1) for (nullary, non-nullary) constructors.
+      NodeManager* nm = NodeManager::currentNM();
+      // include the fairness literal for the current size, which is
+      // typically asserted in the current context.
+      Node fairLit = nm->mkNode(DT_SYGUS_BOUND, m, nm->mkConstInt(ssz));
+      conflict.push_back(fairLit);
+      Node conf = nm->mkNode(kind::AND, conflict);
       Trace("sygus-sb-fair") << "Conflict is : " << conf << std::endl;
       Node confn = conf.negate();
       d_im.lemma(confn, InferenceId::DATATYPES_SYGUS_FAIR_SIZE_CONFLICT);
@@ -1446,10 +1450,6 @@ void SygusExtension::notifySearchSize(TNode m, uint64_t s, Node exp)
   Assert(its != d_szinfo.end());
   if( its->second->d_search_size.find( s )==its->second->d_search_size.end() ){
     its->second->d_search_size[s] = true;
-    its->second->d_search_size_exp[s] = exp;
-    Assert(s == 0
-           || its->second->d_search_size.find(s - 1)
-                  != its->second->d_search_size.end());
     Trace("sygus-fair") << "SygusExtension:: now considering term measure : " << s << " for " << m << std::endl;
     Assert(s >= its->second->d_curr_search_size);
     while( s>its->second->d_curr_search_size ){

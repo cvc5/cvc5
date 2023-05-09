@@ -100,6 +100,7 @@ unterminated_comment ;[^\n]*
 "get-proof"   return cvc5::parser::GET_PROOF_TOK;
 "get-qe-disjunct"   return d_strict ? cvc5::parser::SYMBOL : cvc5::parser::GET_QE_DISJUNCT_TOK;
 "get-qe"   return d_strict ? cvc5::parser::SYMBOL : cvc5::parser::GET_QE_TOK;
+"get-timeout-core"   return cvc5::parser::GET_TIMEOUT_CORE_TOK;
 "get-unsat-assumptions"   return cvc5::parser::GET_UNSAT_ASSUMPTIONS_TOK;
 "get-unsat-core"   return cvc5::parser::GET_UNSAT_CORE_TOK;
 "get-value"   return cvc5::parser::GET_VALUE_TOK;
@@ -120,8 +121,6 @@ unterminated_comment ;[^\n]*
 "set-logic"   return cvc5::parser::SET_LOGIC_TOK;
 "set-option"   return cvc5::parser::SET_OPTION_TOK;
 "simplify"   return d_strict ? cvc5::parser::SYMBOL : cvc5::parser::SIMPLIFY_TOK;
-"Constant"   return cvc5::parser::SYGUS_CONSTANT_TOK;
-"Variable"   return cvc5::parser::SYGUS_VARIABLE_TOK;
 "synth-fun"   return d_sygus ? cvc5::parser::SYNTH_FUN_TOK : cvc5::parser::SYMBOL;
 "synth-inv"   return d_sygus ? cvc5::parser::SYNTH_INV_TOK : cvc5::parser::SYMBOL;
 
