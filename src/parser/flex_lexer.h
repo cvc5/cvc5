@@ -134,20 +134,17 @@ class FlexLexer
   void initSpan();
   /** Sets the spans start to its current end. */
   void bumpSpan()
-{
-  d_span.d_start.d_line = d_span.d_end.d_line;
-  d_span.d_start.d_column = d_span.d_end.d_column;
-}
+  {
+    d_span.d_start.d_line = d_span.d_end.d_line;
+    d_span.d_start.d_column = d_span.d_end.d_column;
+  }
   /** Add columns or lines to the end location of the span. */
-  void addColumns(uint32_t columns)
-{
-  d_span.d_end.d_column += columns;
-}
+  void addColumns(uint32_t columns) { d_span.d_end.d_column += columns; }
   void addLines(uint32_t lines)
-{
-  d_span.d_end.d_line += lines;
-  d_span.d_end.d_column = 0;
-}
+  {
+    d_span.d_end.d_line += lines;
+    d_span.d_end.d_column = 0;
+  }
   /** Span of last token pulled from underlying lexer (old top of stack) */
   Span d_span;
   /** Name of current input, for debugging */
