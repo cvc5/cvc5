@@ -699,10 +699,7 @@ QuantifiersEngine* SolverEngine::getAvailableQuantifiersEngine(
   return qe;
 }
 
-Result SolverEngine::checkSat()
-{
-  return checkSatInternal({});
-}
+Result SolverEngine::checkSat() { return checkSatInternal({}); }
 
 Result SolverEngine::checkSat(const Node& assumption)
 {
