@@ -701,8 +701,7 @@ QuantifiersEngine* SolverEngine::getAvailableQuantifiersEngine(
 
 Result SolverEngine::checkSat()
 {
-  Node nullNode;
-  return checkSat(nullNode);
+  return checkSatInternal({});
 }
 
 Result SolverEngine::checkSat(const Node& assumption)

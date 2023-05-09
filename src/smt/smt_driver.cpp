@@ -54,6 +54,7 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
     Trace("smt") << "SmtSolver::check()" << std::endl;
 
     ResourceManager* rm = d_env.getResourceManager();
+    rm->beginCall();
     if (rm->out())
     {
       UnknownExplanation why = rm->outOfResources()
@@ -63,8 +64,6 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
     }
     else
     {
-      rm->beginCall();
-
       bool checkAgain = true;
       do
       {
@@ -85,7 +84,8 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
         }
       } while (checkAgain);
 
-      rm->endCall();
+      // refresh the resource manager (for stats)
+      rm->refresh();
       Trace("limit") << "SmtSolver::check(): cumulative millis "
                      << rm->getTimeUsage() << ", resources "
                      << rm->getResourceUsage() << std::endl;

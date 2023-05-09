@@ -242,6 +242,9 @@ void ResourceManager::spendResource(theory::InferenceId iid)
 
 void ResourceManager::beginCall()
 {
+  // refresh here if not already done so
+  refresh();
+  // begin call
   d_perCallTimer.set(d_options.base.perCallMillisecondLimit);
   d_thisCallResourceUsed = 0;
 
@@ -261,7 +264,7 @@ void ResourceManager::beginCall()
   }
 }
 
-void ResourceManager::endCall()
+void ResourceManager::refresh()
 {
   d_cumulativeTimeUsed += d_perCallTimer.elapsed();
   d_perCallTimer.set(0);
