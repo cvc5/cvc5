@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Alex Ozdemir
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -918,28 +918,33 @@ Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
       if (tok == Token::LPAREN_TOK)
       {
         Token tok2 = d_lex.nextToken();
-        switch (tok2)
+        if (tok2 == Token::SYMBOL)
         {
-          case Token::SYGUS_CONSTANT_TOK:
+          std::string tokenStr(d_lex.tokenStr());
+          if (tokenStr == "Constant")
           {
             t = parseSort();
             ret->addAnyConstant(ntSyms[i]);
             d_lex.eatToken(Token::RPAREN_TOK);
             parsedGTerm = true;
           }
-          break;
-          case Token::SYGUS_VARIABLE_TOK:
+          else if (tokenStr == "Variable")
           {
             t = parseSort();
             ret->addAnyVariable(ntSyms[i]);
             d_lex.eatToken(Token::RPAREN_TOK);
             parsedGTerm = true;
           }
-          break;
-          default:
+          else
+          {
             // Did not process tok2.
             d_lex.reinsertToken(tok2);
-            break;
+          }
+        }
+        else
+        {
+          // Did not process tok2.
+          d_lex.reinsertToken(tok2);
         }
       }
       if (!parsedGTerm)

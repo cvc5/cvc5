@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
+ *   Andrew Reynolds, Abdalrhman Mohamed, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -250,7 +250,7 @@ void PfManager::printProof(std::ostream& out,
     proof::LfscNodeConverter ltp;
     proof::LfscProofPostprocess lpp(d_env, ltp);
     lpp.process(fp);
-    proof::LfscPrinter lp(d_env, ltp);
+    proof::LfscPrinter lp(d_env, ltp, d_rewriteDb.get());
     lp.print(out, fp.get());
   }
   else if (mode == options::ProofFormatMode::TPTP)
