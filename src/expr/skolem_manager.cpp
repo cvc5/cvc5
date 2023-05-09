@@ -322,7 +322,7 @@ bool SkolemManager::isAbstractValue(TNode n) const
   Node cacheVal;
   if (isSkolemFunction(n, id, cacheVal))
   {
-    return id==SkolemFunId::ABSTRACT_VALUE;
+    return id == SkolemFunId::ABSTRACT_VALUE;
   }
   return false;
 }

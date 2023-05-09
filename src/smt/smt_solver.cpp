@@ -34,8 +34,7 @@ using namespace std;
 namespace cvc5::internal {
 namespace smt {
 
-SmtSolver::SmtSolver(Env& env,
-                     SolverEngineStatistics& stats)
+SmtSolver::SmtSolver(Env& env, SolverEngineStatistics& stats)
     : EnvObj(env),
       d_pp(env, stats),
       d_asserts(env),

@@ -1036,8 +1036,9 @@ Node SolverEngine::getValue(const Node& t) const
     if (rtn.isArray())
     {
       // construct the skolem function
-      SkolemManager * skm = NodeManager::currentNM()->getSkolemManager();
-      Node a = skm->mkSkolemFunction(SkolemFunId::ABSTRACT_VALUE, rtn, resultNode);
+      SkolemManager* skm = NodeManager::currentNM()->getSkolemManager();
+      Node a =
+          skm->mkSkolemFunction(SkolemFunId::ABSTRACT_VALUE, rtn, resultNode);
       // add to top-level substitutions
       d_env->getTopLevelSubstitutions().addSubstitution(resultNode, a);
       resultNode = a;
