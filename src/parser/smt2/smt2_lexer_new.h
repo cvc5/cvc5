@@ -83,28 +83,32 @@ class Smt2LexerNew : public FlexLexer
   /** parse <c>* from cc. */
   void parseCharList(CharacterClass cc);
   /** Return true if ch is in character class cc */
-  bool isCharacterClass(char ch, CharacterClass cc) const{
-  switch (cc)
+  bool isCharacterClass(char ch, CharacterClass cc) const
   {
-    case CharacterClass::WHITESPACE:
-      return d_symcTable[static_cast<size_t>(ch)]==CharacterClass::WHITESPACE;
-    case CharacterClass::DECIMAL_DIGIT:
-      return d_symcTable[static_cast<size_t>(ch)]==CharacterClass::DECIMAL_DIGIT;
-    case CharacterClass::HEXADECIMAL_DIGIT:
-      return (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f')
-             || (ch >= 'A' && ch <= 'F');
-    case CharacterClass::BIT: return ch == '0' || ch == '1';
-    case CharacterClass::SYMBOL_START:
-      return d_symcTable[static_cast<size_t>(ch)]==CharacterClass::SYMBOL;
-    case CharacterClass::SYMBOL:
+    switch (cc)
     {
-      CharacterClass chcc = d_symcTable[static_cast<size_t>(ch)];
-      return chcc==CharacterClass::SYMBOL || chcc == CharacterClass::DECIMAL_DIGIT;
+      case CharacterClass::WHITESPACE:
+        return d_symcTable[static_cast<size_t>(ch)]
+               == CharacterClass::WHITESPACE;
+      case CharacterClass::DECIMAL_DIGIT:
+        return d_symcTable[static_cast<size_t>(ch)]
+               == CharacterClass::DECIMAL_DIGIT;
+      case CharacterClass::HEXADECIMAL_DIGIT:
+        return (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f')
+               || (ch >= 'A' && ch <= 'F');
+      case CharacterClass::BIT: return ch == '0' || ch == '1';
+      case CharacterClass::SYMBOL_START:
+        return d_symcTable[static_cast<size_t>(ch)] == CharacterClass::SYMBOL;
+      case CharacterClass::SYMBOL:
+      {
+        CharacterClass chcc = d_symcTable[static_cast<size_t>(ch)];
+        return chcc == CharacterClass::SYMBOL
+               || chcc == CharacterClass::DECIMAL_DIGIT;
+      }
+      default: break;
     }
-    default: break;
+    return false;
   }
-  return false;
-}
   //----------- Utilizes for tokenizing d_token
   /**
    * Tokenize current symbol stored in d_token.
