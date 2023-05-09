@@ -64,20 +64,6 @@ void FlexLexer::initSpan()
   d_span.d_end.d_line = 1;
   d_span.d_end.d_column = 0;
 }
-void FlexLexer::bumpSpan()
-{
-  d_span.d_start.d_line = d_span.d_end.d_line;
-  d_span.d_start.d_column = d_span.d_end.d_column;
-}
-void FlexLexer::addColumns(uint32_t columns)
-{
-  d_span.d_end.d_column += columns;
-}
-void FlexLexer::addLines(uint32_t lines)
-{
-  d_span.d_end.d_line += lines;
-  d_span.d_end.d_column = 0;
-}
 
 void FlexLexer::initialize(FlexInput* input, const std::string& inputName)
 {
@@ -87,6 +73,16 @@ void FlexLexer::initialize(FlexInput* input, const std::string& inputName)
   d_inputName = inputName;
   initSpan();
   d_peeked.clear();
+  /*
+  Trace("ajr-temp") << "Lex only" << std::endl;
+  Token t;
+  do
+  {
+    t = nextToken();
+  }
+  while (t!=Token::EOF_TOK);
+  exit(1);
+  */
 }
 
 Token FlexLexer::nextToken()
@@ -148,35 +144,6 @@ bool FlexLexer::eatTokenChoice(Token t, Token f)
     unexpectedTokenError(tt, o.str());
   }
   return false;
-}
-
-char FlexLexer::readNextChar()
-{
-  if (d_bufferPos < d_bufferEnd)
-  {
-    d_ch = d_buffer[d_bufferPos];
-    d_bufferPos++;
-  }
-  else if (d_isInteractive)
-  {
-    d_ch = d_istream->get();
-  }
-  else
-  {
-    d_istream->read(d_buffer, INPUT_BUFFER_SIZE);
-    d_bufferEnd = static_cast<size_t>(d_istream->gcount());
-    if (d_bufferEnd == 0)
-    {
-      d_ch = EOF;
-      d_bufferPos = 0;
-    }
-    else
-    {
-      d_ch = d_buffer[0];
-      d_bufferPos = 1;
-    }
-  }
-  return d_ch;
 }
 
 }  // namespace parser
