@@ -58,7 +58,6 @@ namespace smt {
 /** Utilities */
 class ContextManager;
 class SolverEngineState;
-class AbstractValues;
 class ResourceOutListener;
 class CheckModels;
 /** Subsolvers */
@@ -1014,8 +1013,6 @@ class CVC5_EXPORT SolverEngine
    */
   std::unique_ptr<smt::ContextManager> d_ctxManager;
 
-  /** Abstract values */
-  std::unique_ptr<smt::AbstractValues> d_absValues;
   /** Resource out listener */
   std::unique_ptr<smt::ResourceOutListener> d_routListener;
 

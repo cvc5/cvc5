@@ -44,7 +44,7 @@ class Assertions : protected EnvObj
   typedef context::CDList<Node> AssertionList;
 
  public:
-  Assertions(Env& env, AbstractValues& absv);
+  Assertions(Env& env);
   ~Assertions();
   /** refresh
    *
@@ -124,8 +124,6 @@ class Assertions : protected EnvObj
   void addFormula(TNode n,
                   bool isFunDef,
                   bool maybeHasFv);
-  /** Reference to the abstract values utility */
-  AbstractValues& d_absValues;
   /**
    * The assertion list (before any conversion) for supporting getAssertions().
    */

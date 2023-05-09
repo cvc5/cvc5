@@ -34,9 +34,8 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace smt {
 
-Assertions::Assertions(Env& env, AbstractValues& absv)
+Assertions::Assertions(Env& env)
     : EnvObj(env),
-      d_absValues(absv),
       d_assertionList(userContext()),
       d_assertionListDefs(userContext()),
       d_globalDefineFunLemmasIndex(userContext(), 0)
@@ -65,10 +64,8 @@ void Assertions::setAssumptions(const std::vector<Node>& assumptions)
   d_assumptions.clear();
   d_assumptions = assumptions;
 
-  for (const Node& e : d_assumptions)
+  for (const Node& n : d_assumptions)
   {
-    // Substitute out any abstract values in ex.
-    Node n = d_absValues.substituteAbstractValues(e);
     // Ensure expr is type-checked at this point.
     ensureBoolean(n);
     addFormula(n, false, false);
@@ -164,7 +161,6 @@ void Assertions::addFormula(TNode n,
 
 void Assertions::addDefineFunDefinition(Node n, bool global)
 {
-  n = d_absValues.substituteAbstractValues(n);
   if (global)
   {
     // Global definitions are asserted at check-sat-time because we have to
