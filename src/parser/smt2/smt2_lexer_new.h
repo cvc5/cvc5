@@ -65,6 +65,7 @@ class Smt2LexerNew : public FlexLexer
   //----------- Utilities for parsing the current character stream
   enum class CharacterClass
   {
+    NONE,
     WHITESPACE,
     DECIMAL_DIGIT,
     HEXADECIMAL_DIGIT,
@@ -106,10 +107,10 @@ class Smt2LexerNew : public FlexLexer
   /** Is sygus enabled */
   bool d_isSygus;
   /**
-   * Static table denoting which characters 0...255 are characters that are
-   * legal to start a symbol with.
+   * Static table denoting a representative character class for characters
+   * 0...255, used for computing isCharacterClass.
    */
-  bool d_symcTable[256];
+  CharacterClass d_symcTable[256];
 };
 
 }  // namespace parser

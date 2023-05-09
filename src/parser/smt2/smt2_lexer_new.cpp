@@ -33,35 +33,45 @@ Smt2LexerNew::Smt2LexerNew(bool isStrict, bool isSygus)
 {
   for (size_t i = 0; i < 256; i++)
   {
-    d_symcTable[i] = false;
+    d_symcTable[i] = CharacterClass::NONE;
   }
   for (char ch = 'a'; ch <= 'z'; ++ch)
   {
-    d_symcTable[static_cast<size_t>(ch)] = true;
+    d_symcTable[static_cast<size_t>(ch)] = CharacterClass::SYMBOL;
   }
   for (char ch = 'A'; ch <= 'Z'; ++ch)
   {
-    d_symcTable[static_cast<size_t>(ch)] = true;
+    d_symcTable[static_cast<size_t>(ch)] = CharacterClass::SYMBOL;
+  }
+  for (char ch = '0'; ch <= '9'; ++ch)
+  {
+    d_symcTable[static_cast<size_t>(ch)] = CharacterClass::DECIMAL_DIGIT;
   }
   // ~!@$%^&*_-+=<>.?/
-  d_symcTable[static_cast<size_t>('~')] = true;
-  d_symcTable[static_cast<size_t>('!')] = true;
-  d_symcTable[static_cast<size_t>('@')] = true;
-  d_symcTable[static_cast<size_t>('$')] = true;
-  d_symcTable[static_cast<size_t>('%')] = true;
-  d_symcTable[static_cast<size_t>('^')] = true;
-  d_symcTable[static_cast<size_t>('&')] = true;
-  d_symcTable[static_cast<size_t>('*')] = true;
-  d_symcTable[static_cast<size_t>('_')] = true;
-  d_symcTable[static_cast<size_t>('-')] = true;
-  d_symcTable[static_cast<size_t>('+')] = true;
-  d_symcTable[static_cast<size_t>('=')] = true;
-  d_symcTable[static_cast<size_t>('<')] = true;
-  d_symcTable[static_cast<size_t>('>')] = true;
-  d_symcTable[static_cast<size_t>('.')] = true;
-  d_symcTable[static_cast<size_t>('?')] = true;
-  d_symcTable[static_cast<size_t>('/')] = true;
-  d_symcTable[static_cast<size_t>(',')] = true;
+  d_symcTable[static_cast<size_t>('~')] = CharacterClass::SYMBOL;
+  d_symcTable[static_cast<size_t>('!')] = CharacterClass::SYMBOL;
+  d_symcTable[static_cast<size_t>('@')] = CharacterClass::SYMBOL;
+  d_symcTable[static_cast<size_t>('$')] = CharacterClass::SYMBOL;
+  d_symcTable[static_cast<size_t>('%')] = CharacterClass::SYMBOL;
+  d_symcTable[static_cast<size_t>('^')] = CharacterClass::SYMBOL;
+  d_symcTable[static_cast<size_t>('&')] = CharacterClass::SYMBOL;
+  d_symcTable[static_cast<size_t>('*')] = CharacterClass::SYMBOL;
+  d_symcTable[static_cast<size_t>('_')] = CharacterClass::SYMBOL;
+  d_symcTable[static_cast<size_t>('-')] = CharacterClass::SYMBOL;
+  d_symcTable[static_cast<size_t>('+')] = CharacterClass::SYMBOL;
+  d_symcTable[static_cast<size_t>('=')] = CharacterClass::SYMBOL;
+  d_symcTable[static_cast<size_t>('<')] = CharacterClass::SYMBOL;
+  d_symcTable[static_cast<size_t>('>')] = CharacterClass::SYMBOL;
+  d_symcTable[static_cast<size_t>('.')] = CharacterClass::SYMBOL;
+  d_symcTable[static_cast<size_t>('?')] = CharacterClass::SYMBOL;
+  d_symcTable[static_cast<size_t>('/')] = CharacterClass::SYMBOL;
+  d_symcTable[static_cast<size_t>(',')] = CharacterClass::SYMBOL;
+  // whitespace
+  d_symcTable[static_cast<size_t>(' ')] = CharacterClass::WHITESPACE;
+  d_symcTable[static_cast<size_t>('\t')] = CharacterClass::WHITESPACE;
+  d_symcTable[static_cast<size_t>('\r')] = CharacterClass::WHITESPACE;
+  d_symcTable[static_cast<size_t>('\f')] = CharacterClass::WHITESPACE;
+  d_symcTable[static_cast<size_t>('\n')] = CharacterClass::WHITESPACE;
 }
 
 const char* Smt2LexerNew::tokenStr() const
@@ -77,16 +87,20 @@ bool Smt2LexerNew::isCharacterClass(char ch, CharacterClass cc)
   switch (cc)
   {
     case CharacterClass::WHITESPACE:
-      return ch == ' ' || ch == '\t' || ch == '\r' || ch == '\f' || ch == '\n';
-    case CharacterClass::DECIMAL_DIGIT: return (ch >= '0' && ch <= '9');
+      return d_symcTable[static_cast<size_t>(ch)]==CharacterClass::WHITESPACE;
+    case CharacterClass::DECIMAL_DIGIT:
+      return d_symcTable[static_cast<size_t>(ch)]==CharacterClass::DECIMAL_DIGIT;
     case CharacterClass::HEXADECIMAL_DIGIT:
       return (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f')
              || (ch >= 'A' && ch <= 'F');
     case CharacterClass::BIT: return ch == '0' || ch == '1';
     case CharacterClass::SYMBOL_START:
-      return d_symcTable[static_cast<size_t>(ch)];
+      return d_symcTable[static_cast<size_t>(ch)]==CharacterClass::SYMBOL;
     case CharacterClass::SYMBOL:
-      return d_symcTable[static_cast<size_t>(ch)] || (ch >= '0' && ch <= '9');
+    {
+      CharacterClass chcc = d_symcTable[static_cast<size_t>(ch)];
+      return chcc==CharacterClass::SYMBOL || chcc == CharacterClass::DECIMAL_DIGIT;
+    }
     default: break;
   }
   return false;
