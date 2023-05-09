@@ -276,7 +276,10 @@ bool SygusInterpol::findInterpol(SolverEngine* subSolver,
 {
   // get the synthesis solution
   std::map<Node, Node> sols;
-  subSolver->getSynthSolutions(sols);
+  if (!subSolver->getSynthSolutions(sols))
+  {
+    return false;
+  }
   Assert(sols.size() == 1);
   std::map<Node, Node>::iterator its = sols.find(itp);
   if (its == sols.end())
