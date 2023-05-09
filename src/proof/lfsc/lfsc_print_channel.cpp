@@ -177,7 +177,7 @@ void LfscPrintChannelPre::printOpenRule(const ProofNode* pn)
     }
     else
     {
-      Assert(false);
+      Unhandled();
     }
   }
 }
