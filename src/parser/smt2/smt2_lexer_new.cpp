@@ -72,7 +72,7 @@ const char* Smt2LexerNew::tokenStr() const
 bool Smt2LexerNew::isStrict() const { return d_isStrict; }
 bool Smt2LexerNew::isSygus() const { return d_isSygus; }
 
-bool Smt2LexerNew::isCharacterClass(char ch, CharacterClass cc)
+bool Smt2LexerNew::isCharacterClass(char ch, CharacterClass cc) const
 {
   switch (cc)
   {

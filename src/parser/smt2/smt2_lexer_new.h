@@ -83,7 +83,7 @@ class Smt2LexerNew : public FlexLexer
   /** parse <c>* from cc. */
   void parseCharList(CharacterClass cc);
   /** Return true if ch is in character class cc */
-  bool isCharacterClass(char ch, CharacterClass cc);
+  bool isCharacterClass(char ch, CharacterClass cc) const;
   //----------- Utilizes for tokenizing d_token
   /**
    * Tokenize current symbol stored in d_token.
