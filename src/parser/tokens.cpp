@@ -102,8 +102,6 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::SET_OPTION_TOK: o << "SET_OPTION_TOK"; break;
     case Token::SIMPLIFY_TOK: o << "SIMPLIFY_TOK"; break;
     case Token::STRING_LITERAL: o << "STRING_LITERAL"; break;
-    case Token::SYGUS_CONSTANT_TOK: o << "SYGUS_CONSTANT_TOK"; break;
-    case Token::SYGUS_VARIABLE_TOK: o << "SYGUS_VARIABLE_TOK"; break;
     case Token::SYMBOL: o << "SYMBOL"; break;
     case Token::SYNTH_FUN_TOK: o << "SYNTH_FUN_TOK"; break;
     case Token::SYNTH_INV_TOK: o << "SYNTH_INV_TOK"; break;

@@ -121,8 +121,6 @@ unterminated_comment ;[^\n]*
 "set-logic"   return cvc5::parser::SET_LOGIC_TOK;
 "set-option"   return cvc5::parser::SET_OPTION_TOK;
 "simplify"   return d_strict ? cvc5::parser::SYMBOL : cvc5::parser::SIMPLIFY_TOK;
-"Constant"   return cvc5::parser::SYGUS_CONSTANT_TOK;
-"Variable"   return cvc5::parser::SYGUS_VARIABLE_TOK;
 "synth-fun"   return d_sygus ? cvc5::parser::SYNTH_FUN_TOK : cvc5::parser::SYMBOL;
 "synth-inv"   return d_sygus ? cvc5::parser::SYNTH_INV_TOK : cvc5::parser::SYMBOL;
 
