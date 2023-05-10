@@ -23,7 +23,7 @@ CarePairArgumentCallback::CarePairArgumentCallback(Theory& t) : d_theory(t) {}
 bool CarePairArgumentCallback::considerPath(TNode a, TNode b)
 {
   // builtin cases for when a is clearly equal/disequal to b
-  if (a==b)
+  if (a == b)
   {
     return true;
   }
