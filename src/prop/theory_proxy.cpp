@@ -54,7 +54,7 @@ TheoryProxy::TheoryProxy(Env& env,
       d_skdm(skdm),
       d_zll(nullptr),
       d_prr(nullptr),
-      d_stopSearch(false, userContext()),
+      d_stopSearch(userContext(), false),
       d_activatedSkDefs(false)
 {
   bool trackZeroLevel =

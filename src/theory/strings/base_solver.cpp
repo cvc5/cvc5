@@ -680,9 +680,15 @@ bool BaseSolver::isCardinalityOk(size_t typeCardSize,
                                  size_t eqcCount,
                                  size_t& lenNeed) const
 {
+  Trace("strings-card") << "isCardinalityOk? " << typeCardSize << " "
+                        << eqcCount << std::endl;
   if (eqcCount <= 1)
   {
     return true;
+  }
+  else if (typeCardSize == 1)
+  {
+    return false;
   }
   lenNeed = 1;
   double curr = static_cast<double>(eqcCount);
