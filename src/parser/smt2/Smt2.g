@@ -1,10 +1,10 @@
 /* ****************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ *   Andrew Reynolds, Morgan Deters, Christopher L. Conway
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1339,13 +1339,10 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
           {
             f = PARSER_STATE->getVariable(name);
             type = f.getSort();
-            if (!type.isDatatypeConstructor() ||
-                !type.getDatatypeConstructorDomainSorts().empty())
+            if (!type.isDatatype())
             {
               PARSER_STATE->parseError("Must apply constructors of arity greater than 0 to arguments in pattern.");
             }
-            // make nullary constructor application
-            f = MK_TERM(cvc5::APPLY_CONSTRUCTOR, f);
           }
           else
           {

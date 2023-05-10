@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
+ *   Andrew Reynolds, Gereon Kremer, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -90,12 +90,6 @@ Term ParserState::getFunction(const std::string& name)
   return getSymbol(name, SYM_VARIABLE);
 }
 
-Term ParserState::getExpressionForName(const std::string& name)
-{
-  Sort t;
-  return getExpressionForNameAndType(name, t);
-}
-
 Term ParserState::getExpressionForNameAndType(const std::string& name, Sort t)
 {
   Assert(isDeclared(name));
@@ -119,14 +113,7 @@ Term ParserState::getExpressionForNameAndType(const std::string& name, Sort t)
       parseError("Overloaded constants must be type cast.");
     }
   }
-  // now, post-process the expression
   Assert(!expr.isNull());
-  Sort te = expr.getSort();
-  if (te.isDatatypeConstructor() && te.getDatatypeConstructorArity() == 0)
-  {
-    // nullary constructors have APPLY_CONSTRUCTOR kind with no children
-    expr = d_solver->mkTerm(APPLY_CONSTRUCTOR, {expr});
-  }
   return expr;
 }
 
