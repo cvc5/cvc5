@@ -174,7 +174,6 @@ TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
                                                    bool check,
                                                    std::ostream* errOut)
 {
-  return nodeManager->mkAbstractType(kind::ABSTRACT_TYPE);
   // get the concrete application version of this, if possible
   Node cn = GenericOp::getConcreteApp(n);
   if (cn == n)
