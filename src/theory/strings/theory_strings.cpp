@@ -328,7 +328,12 @@ bool TheoryStrings::collectModelInfoType(
   std::map< Node, Node > processed;
   //step 1 : get all values for known lengths
   std::vector< Node > lts_values;
+  // mapping from lengths used to the index in col that used that length
   std::map<size_t, size_t> values_used;
+  // A list of pairs of indices in col that used the same length term. We use
+  // this as candidates to add length splitting on below (STRINGS_CMI_SPLIT),
+  // which is used as a safeguard when model construction fails unexpectedly
+  // by running out of values.
   std::vector<std::pair<size_t, size_t>> len_splits;
   for (size_t i = 0, csize = col.size(); i < csize; i++)
   {
