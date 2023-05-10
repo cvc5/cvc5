@@ -2245,6 +2245,7 @@ set(regress_1_tests
   regress1/nl/issue9183-4.smt2
   regress1/nl/issue9183-5.smt2
   regress1/nl/issue9420-ll.smt2
+  regress1/nl/issue9472-2-cmv.smt2
   regress1/nl/issue9480-pow-pow2.smt2
   regress1/nl/issue9611-lrew.smt2
   regress1/nl/issue9621-lrew.smt2
