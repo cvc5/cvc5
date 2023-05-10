@@ -97,6 +97,8 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
   /** Mapping assumptions to their proof from preprocessing */
   std::map<Node, std::shared_ptr<ProofNode> > d_assumpToProof;
   //---------------------------------end reset at the begining of each update
+  /** Return true if id is a proof rule that we should expand */
+  bool shouldExpand(PfRule id) const;
   /**
    * Expand rules in the given application, add the expanded proof to cdp.
    * The set of rules we expand is configured by calls to setEliminateRule

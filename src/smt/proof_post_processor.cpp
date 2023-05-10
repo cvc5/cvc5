@@ -73,7 +73,7 @@ bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                             bool& continueUpdate)
 {
   PfRule id = pn->getRule();
-  if (d_elimRules.find(id) != d_elimRules.end())
+  if (shouldExpand(id))
   {
     return true;
   }
@@ -172,13 +172,26 @@ bool ProofPostprocessCallback::updateInternal(Node res,
   return update(res, id, children, args, cdp, continueUpdate);
 }
 
+bool ProofPostprocessCallback::shouldExpand(PfRule id) const
+{
+  if (d_elimRules.find(id) != d_elimRules.end())
+  {
+    return true;
+  }
+  if (d_elimAllTrusted && d_pc->getPedanticLevel(id) > 0)
+  {
+    return true;
+  }
+  return false;
+}
+
 Node ProofPostprocessCallback::expandMacros(PfRule id,
                                             const std::vector<Node>& children,
                                             const std::vector<Node>& args,
                                             CDProof* cdp,
                                             Node res)
 {
-  if (!d_elimAllTrusted && d_elimRules.find(id) == d_elimRules.end())
+  if (!shouldExpand(id))
   {
     // not eliminated
     return Node::null();
@@ -981,6 +994,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       Assert(!res.isNull());
     }
     bool reqTrueElim = false;
+    // if not an equality, make (= res true).
     if (res.getKind() != EQUAL)
     {
       res = res.eqNode(d_true);
