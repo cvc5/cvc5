@@ -320,6 +320,7 @@ bool TheoryStrings::collectModelInfoType(
   std::vector<Node> lts;
   const std::vector<Node> repVec(repSet.at(tn).begin(), repSet.at(tn).end());
   mc->separateByLength(repVec, col, lts);
+  Assert (col.size()==lts.size());
   // indices in col that have lengths that are too big to represent
   std::unordered_set<size_t> oobIndices;
 
@@ -327,8 +328,8 @@ bool TheoryStrings::collectModelInfoType(
   std::map< Node, Node > processed;
   //step 1 : get all values for known lengths
   std::vector< Node > lts_values;
-  std::map<std::size_t, Node> values_used;
-  std::vector<Node> len_splits;
+  std::map<size_t, size_t> values_used;
+  std::vector<std::pair<size_t, size_t>> len_splits;
   for (size_t i = 0, csize = col.size(); i < csize; i++)
   {
     Trace("strings-model") << "Checking length for { " << col[i];
@@ -356,11 +357,11 @@ bool TheoryStrings::collectModelInfoType(
       auto itvu = values_used.find(lvalue);
       if (itvu == values_used.end())
       {
-        values_used[lvalue] = lts[i];
+        values_used[lvalue] = i;
       }
       else
       {
-        len_splits.push_back(lts[i].eqNode(itvu->second));
+        len_splits.emplace_back(i, itvu->second);
       }
       lts_values.push_back(len_value);
     }
@@ -462,7 +463,7 @@ bool TheoryStrings::collectModelInfoType(
         Trace("strings-model")
             << "*** Decide to make length of " << lvalue << std::endl;
         lenValue = nm->mkConstInt(Rational(lvalue));
-        values_used[lvalue] = Node::null();
+        values_used[lvalue] = i;
       }
       // is it an equivalence class with a seq.unit term?
       Node assignedValue;
@@ -674,9 +675,12 @@ bool TheoryStrings::collectModelInfoType(
               // integer equivalence classes that are assigned to the same value
               // in the model.
               AlwaysAssert(!len_splits.empty());
-              for (const Node& sl : len_splits)
+              for (const std::pair<size_t, size_t>& sl : len_splits)
               {
-                Node spl = nm->mkNode(OR, sl, sl.negate());
+                Node s1 = nm->mkNode(STRING_LENGTH, col[sl.first][0]);
+                Node s2 = nm->mkNode(STRING_LENGTH, col[sl.second][0]);
+                Node eq = s1.eqNode(s2);
+                Node spl = nm->mkNode(OR, eq, eq.negate());
                 d_im.lemma(spl, InferenceId::STRINGS_CMI_SPLIT);
                 Trace("strings-lemma")
                     << "Strings::CollectModelInfoSplit: " << spl << std::endl;
