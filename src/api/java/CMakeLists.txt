@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mudathir Mohamed, Andres Noetzli, Gereon Kremer
+#   Mudathir Mohamed, Andres Noetzli, Andrew Reynolds
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -28,14 +28,14 @@ add_custom_command(
   OUTPUT
     ${JAVA_KIND_FILE}
   COMMAND
-    "${PYTHON_EXECUTABLE}"
+    "${Python_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    --enums-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
+    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_kind.h"
     --java-api-path "${CMAKE_CURRENT_BINARY_DIR}/io/github/"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
     "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
-    "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
+    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_kind.h"
 )
 add_custom_target(generate-java-kinds DEPENDS ${JAVA_KIND_FILE})
 
@@ -47,14 +47,14 @@ add_custom_command(
   OUTPUT
     ${JAVA_SORT_KIND_FILE}
   COMMAND
-    "${PYTHON_EXECUTABLE}"
+    "${Python_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    --enums-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_sort_kind.h"
+    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_sort_kind.h"
     --java-api-path "${CMAKE_CURRENT_BINARY_DIR}/io/github/"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
     "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
-    "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_sort_kind.h"
+    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_sort_kind.h"
 )
 add_custom_target(generate-java-sort-kinds DEPENDS ${JAVA_SORT_KIND_FILE})
 
@@ -68,14 +68,14 @@ add_custom_command(
   OUTPUT
   ${JAVA_TYPES_FILES}
   COMMAND
-    "${PYTHON_EXECUTABLE}"
+    "${Python_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    --enums-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_types.h"
+    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_types.h"
     --java-api-path "${CMAKE_CURRENT_BINARY_DIR}/io/github/"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
     "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
-    "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_types.h"
+    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_types.h"
 )
 add_custom_target(generate-java-types DEPENDS ${JAVA_TYPES_FILES})
 

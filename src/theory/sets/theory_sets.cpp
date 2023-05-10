@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Kshitij Bansal
+ *   Andrew Reynolds, Mudathir Mohamed, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -146,19 +146,6 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
             "--sets-ext.";
       throw LogicException(ss.str());
     }
-  }
-  if (n.getKind() == SET_MINUS && n[1].getKind() == SET_MINUS
-      && n[1][0] == n[0])
-  {
-    // Note this cannot be a rewrite rule, since it impacts the cardinality
-    // graph. In particular, if we internally inspect
-    // (setminus A (setminus A B)), for instance if we are splitting the Venn
-    // regions of A and (setminus A B), then we should not transform this
-    // to an intersection term.
-    // (setminus A (setminus A B)) = (intersection A B)
-    NodeManager* nm = NodeManager::currentNM();
-    Node intersection = nm->mkNode(SET_INTER, n[0], n[1][1]);
-    return TrustNode::mkTrustRewrite(n, intersection, nullptr);
   }
   if (nk == SET_COMPREHENSION)
   {

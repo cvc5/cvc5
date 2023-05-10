@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Alex Ozdemir
+ *   Andrew Reynolds, Haniel Barbosa, Hans-Jörg
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -111,6 +111,14 @@ class ProofNode
    * @param printConclusion Whether to print conclusions
    */
   void printDebug(std::ostream& os, bool printConclusion = false) const;
+  /**
+   * Clone this proof node, which creates a deep copy of this proof node and
+   * returns it. The dag structure of pn is the same as that in the returned
+   * proof node.
+   *
+   * @return the cloned proof node.
+   */
+  std::shared_ptr<ProofNode> clone() const;
 
  private:
   /**

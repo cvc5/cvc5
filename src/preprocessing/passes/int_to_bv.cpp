@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli, Yoni Zohar, Aina Niemetz
+ *   Andres Noetzli, Yoni Zohar, Clark Barrett
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -107,7 +107,8 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
 
 Node IntToBV::intToBV(TNode n, NodeMap& cache)
 {
-  int size = options().smt.solveIntAsBV;
+  Assert(options().smt.solveIntAsBV <= 4294967295);
+  uint32_t size = options().smt.solveIntAsBV;
   AlwaysAssert(size > 0);
   AlwaysAssert(!options().base.incrementalSolving);
 

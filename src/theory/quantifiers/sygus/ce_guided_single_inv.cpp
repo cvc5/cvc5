@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -215,9 +215,10 @@ Result CegSingleInv::solve()
   // Mark the quantified formula with the quantifier elimination attribute to
   // ensure its structure is preserved in the query below.
   Node siq = d_single_inv;
+  Node n_attr;
   if (siq.getKind() == FORALL)
   {
-    Node n_attr = sm->mkDummySkolem(
+    n_attr = sm->mkDummySkolem(
         "qe_si",
         nm->booleanType(),
         "Auxiliary variable for qe attr for single invocation.");
@@ -247,20 +248,30 @@ Result CegSingleInv::solve()
           << std::endl;
     }
     // conjecture is infeasible or unknown
-    return res;
+    return r;
   }
   // now, get the instantiations
   std::vector<Node> qs;
   siSmt->getInstantiatedQuantifiedFormulas(qs);
-  Assert(qs.size() <= 1);
   // track the instantiations, as solution construction is based on this
   Trace("sygus-si") << "#instantiated quantified formulas=" << qs.size()
                     << std::endl;
   d_inst.clear();
   d_instConds.clear();
-  if (!qs.empty())
+  Node q;
+  // look for the quantified formula with the appropriate attribute that we
+  // marked above.
+  for (const Node& qss : qs)
   {
-    Node q = qs[0];
+    if (qss.getNumChildren() == 3 && qss[2] == n_attr)
+    {
+      q = qss;
+      break;
+    }
+  }
+  // if the quantified formula was instantiated in the query
+  if (!q.isNull())
+  {
     Assert(q.getKind() == FORALL);
     siSmt->getInstantiationTermVectors(q, d_inst);
     Trace("sygus-si") << "#instantiations of " << q << "=" << d_inst.size()

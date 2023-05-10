@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1112,21 +1112,6 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
   Kind ak = atom.getKind();
-  if (ak == EQUAL)
-  {
-    if (atom[0].getType().isRegExp())
-    {
-      std::stringstream ss;
-      ss << "Equality between regular expressions is not supported";
-      throw LogicException(ss.str());
-    }
-    // always apply aggressive equality rewrites here
-    Node ret = d_rewriter.rewriteEqualityExt(atom);
-    if (ret != atom)
-    {
-      return TrustNode::mkTrustRewrite(atom, ret, nullptr);
-    }
-  }
   if (ak == STRING_FROM_CODE)
   {
     // str.from_code(t) ---> ite(0 <= t < |A|, t = str.to_code(k), k = "")
@@ -1250,6 +1235,27 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   return ret;
 }
 
+TrustNode TheoryStrings::ppStaticRewrite(TNode atom)
+{
+  Kind ak = atom.getKind();
+  if (ak == EQUAL)
+  {
+    if (atom[0].getType().isRegExp())
+    {
+      std::stringstream ss;
+      ss << "Equality between regular expressions is not supported";
+      throw LogicException(ss.str());
+    }
+    // always apply aggressive equality rewrites here
+    Node ret = d_rewriter.rewriteEqualityExt(atom);
+    if (ret != atom)
+    {
+      return TrustNode::mkTrustRewrite(atom, ret, nullptr);
+    }
+  }
+  return TrustNode::null();
+}
+
 /** run the given inference step */
 void TheoryStrings::runInferStep(InferStep s, Theory::Effort e, int effort)
 {
@@ -1281,6 +1287,7 @@ void TheoryStrings::runInferStep(InferStep s, Theory::Effort e, int effort)
       d_esolver.checkExtfReductionsEager();
       break;
     case CHECK_EXTF_REDUCTION: d_esolver.checkExtfReductions(e); break;
+    case CHECK_MEMBERSHIP_EAGER: d_rsolver.checkMembershipsEager(); break;
     case CHECK_MEMBERSHIP: d_rsolver.checkMemberships(e); break;
     case CHECK_CARDINALITY: d_bsolver.checkCardinality(); break;
     default: Unreachable(); break;

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Hanna Lachnitt
+ *   Hanna Lachnitt, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -185,7 +185,7 @@ std::string AletheProofPrinter::printInternal(
       steps_before_subproof = steps;
 
   // In case the rule is an anchor it is printed before its children.
-  if (arule == AletheRule::ANCHOR_SUBPROOF || arule == AletheRule::ANCHOR_BIND)
+  if (arule >= AletheRule::ANCHOR_SUBPROOF && arule <= AletheRule::ANCHOR_SKO_EX)
   {
     // Print anchor
     std::string current_t =
@@ -206,13 +206,19 @@ std::string AletheProofPrinter::printInternal(
     // assignments, i.e. args=[(= v0 v1)] is printed as (:= (v0 Int) v1).
     //
     // Note that since these are variables there is no need to letify.
-    if (arule == AletheRule::ANCHOR_BIND)
+    if (arule >= AletheRule::ANCHOR_BIND)
     {
       out << " :args (";
       for (size_t j = 3, size = args.size(); j < size; j++)
       {
-        out << "(:= (" << args[j][0] << " " << args[j][0].getType() << ") "
-            << args[j][1] << ")" << (j != args.size() - 1 ? " " : "");
+        Assert(args[j].getKind() == kind::EQUAL);
+        // if the rhs is a variable, it must be declared first
+        if (args[j][1].getKind() == kind::BOUND_VARIABLE)
+        {
+          out << "(" << args[j][1] << " " << args[j][1].getType() << ") ";
+        }
+        out << "(:= " << args[j][0] << " " << args[j][1] << ")"
+            << (j != args.size() - 1 ? " " : "");
       }
       out << ")";
     }
@@ -250,7 +256,7 @@ std::string AletheProofPrinter::printInternal(
   }
 
   // If the rule is a subproof a final subproof step needs to be printed
-  if (arule == AletheRule::ANCHOR_SUBPROOF || arule == AletheRule::ANCHOR_BIND)
+  if (arule >= AletheRule::ANCHOR_SUBPROOF && arule <= AletheRule::ANCHOR_SKO_EX)
   {
     Trace("alethe-printer") << "... print anchor node " << pfn->getResult()
                             << " " << arule << " / " << args << std::endl;
@@ -306,6 +312,15 @@ std::string AletheProofPrinter::printInternal(
   out << "(step " << current_t << " ";
   printTerm(out, args[2]);
   out << " :rule " << arule;
+  if (pfn->getChildren().size() >= 1)
+  {
+    out << " :premises (";
+    for (size_t i = 0, size = child_prefixes.size(); i < size; i++)
+    {
+      out << child_prefixes[i] << (i != size - 1? " " : "");
+    }
+    out << ")";
+  }
   if (args.size() > 3)
   {
     out << " :args (";
@@ -328,19 +343,7 @@ std::string AletheProofPrinter::printInternal(
     }
     out << ")";
   }
-  if (pfn->getChildren().size() >= 1)
-  {
-    out << " :premises (";
-    for (size_t i = 0, size = child_prefixes.size(); i < size; i++)
-    {
-      out << child_prefixes[i] << (i != size - 1? " " : "");
-    }
-    out << "))\n";
-  }
-  else
-  {
-    out << ")\n";
-  }
+  out << ")\n";
   return current_t;
 }
 

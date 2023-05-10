@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Francois Bobot, Andrew Reynolds, Mathias Preiner
+ *   Andrew Reynolds, Francois Bobot, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,10 +19,12 @@
 #ifndef CVC5__PARSER__TPTP_H
 #define CVC5__PARSER__TPTP_H
 
+#include <cvc5/cvc5.h>
+
+#include <memory>
 #include <unordered_map>
 #include <unordered_set>
 
-#include "api/cpp/cvc5.h"
 #include "parser/parse_op.h"
 #include "parser/parser.h"
 #include "util/hash.h"
@@ -130,7 +132,9 @@ class TptpState : public ParserState
    * getAssertionExpr above). This may set a flag in the parser to mark
    * that we have asserted a conjecture.
    */
-  Command* makeAssertCommand(FormulaRole fr, cvc5::Term expr, bool cnf);
+  std::unique_ptr<Command> makeAssertCommand(FormulaRole fr,
+                                             cvc5::Term expr,
+                                             bool cnf);
 
   /** Ugly hack because I don't know how to return an expression from a
       token */

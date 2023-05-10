@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -237,12 +237,12 @@ class ExtendedRewriter
   //--------------------------------------end generic utilities
 
   //--------------------------------------theory-specific top-level calls
-  /** extended rewrite strings
-   *
-   * If this method returns a non-null node ret', then ret is equivalent to
+  /**
+   * If these methods return a non-null node ret', then ret is equivalent to
    * ret'.
    */
-  Node extendedRewriteStrings(Node ret) const;
+  Node extendedRewriteStrings(const Node& ret) const;
+  Node extendedRewriteSets(const Node& ret) const;
   //--------------------------------------end theory-specific top-level calls
 
   /**

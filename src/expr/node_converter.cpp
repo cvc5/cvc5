@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -54,7 +54,8 @@ Node NodeConverter::convert(Node n, bool preserveTypes)
       {
         Trace("nconv-debug2")
             << "..pre-rewrite changed " << cur << " into " << curp << std::endl;
-        AlwaysAssert(!preserveTypes || cur.getType() == curp.getType())
+        AlwaysAssert(!preserveTypes
+                     || cur.getType().isComparableTo(curp.getType()))
             << "Pre-converting " << cur << " to " << curp << " changes type";
         visit.push_back(cur);
         visit.push_back(curp);
@@ -123,7 +124,7 @@ Node NodeConverter::convert(Node n, bool preserveTypes)
           Node cret = postConvert(ret);
           if (!cret.isNull() && ret != cret)
           {
-            AlwaysAssert(cret.getType() == ret.getType())
+            AlwaysAssert(cret.getType().isComparableTo(ret.getType()))
                 << "Converting " << ret << " to " << cret << " changes type";
             Trace("nconv-debug2") << "..post-rewrite changed " << ret
                                   << " into " << cret << std::endl;

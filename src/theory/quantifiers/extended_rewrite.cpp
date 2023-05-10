@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -252,9 +252,11 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
     }
     Trace("q-ext-rewrite-debug") << "theoryOf( " << ret << " )= " << tid
                                  << std::endl;
-    if (tid == THEORY_STRINGS)
+    switch (tid)
     {
-      new_ret = extendedRewriteStrings(ret);
+      case THEORY_STRINGS: new_ret = extendedRewriteStrings(ret); break;
+      case THEORY_SETS: new_ret = extendedRewriteSets(ret); break;
+      default: break;
     }
   }
   //----------------------end theory-specific post-rewriting
@@ -1231,7 +1233,7 @@ Node ExtendedRewriter::extendedRewriteEqChain(
 
   if (cstatus.empty())
   {
-    return TermUtil::mkTypeConst(tn, gpol);
+    return TermUtil::mkTypeConst(ret.getType(), gpol);
   }
 
   children.clear();
@@ -1691,7 +1693,7 @@ bool ExtendedRewriter::inferSubstitution(Node n, Subs& subs, bool usePred) const
   return false;
 }
 
-Node ExtendedRewriter::extendedRewriteStrings(Node node) const
+Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
 {
   Trace("q-ext-rewrite-debug")
       << "Extended rewrite strings : " << node << std::endl;
@@ -1737,10 +1739,30 @@ Node ExtendedRewriter::extendedRewriteStrings(Node node) const
   return Node::null();
 }
 
+Node ExtendedRewriter::extendedRewriteSets(const Node& node) const
+{
+  if (node.getKind() == SET_MINUS && node[1].getKind() == SET_MINUS
+      && node[1][0] == node[0])
+  {
+    // Note this cannot be a rewrite rule or a ppRewrite, since it impacts the
+    // cardinality graph. In particular, if we internally inspect (set.minus A
+    // (setminus A B)), for instance if we are splitting the Venn regions of A
+    // and (set.minus A B), then we should not transform this to an intersection
+    // term. (set.minus A (set.minus A B)) = (set.inter A B)
+    NodeManager* nm = NodeManager::currentNM();
+    Node ret = nm->mkNode(SET_INTER, node[0], node[1][1]);
+    debugExtendedRewrite(node, ret, "SET_MINUS_MINUS");
+    return ret;
+  }
+  return Node::null();
+}
+
 void ExtendedRewriter::debugExtendedRewrite(Node n,
                                             Node ret,
                                             const char* c) const
 {
+  Assert(ret.isNull() || n.getType().isComparableTo(ret.getType()))
+      << "Extended rewrite does not preserve type: " << n << " --> " << ret;
   if (TraceIsOn("q-ext-rewrite"))
   {
     if (!ret.isNull())

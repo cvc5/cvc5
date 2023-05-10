@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,9 +28,9 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 
-RelevanceManager::RelevanceManager(Env& env, Valuation val)
-    : EnvObj(env),
-      d_val(val),
+RelevanceManager::RelevanceManager(Env& env, TheoryEngine* engine)
+    : TheoryEngineModule(env, engine, "RelevanceManager"),
+      d_val(engine),
       d_input(userContext()),
       d_atomMap(userContext()),
       d_rset(context()),
@@ -44,7 +44,7 @@ RelevanceManager::RelevanceManager(Env& env, Valuation val)
 {
   if (options().smt.produceDifficulty)
   {
-    d_dman = std::make_unique<DifficultyManager>(env, this, val);
+    d_dman = std::make_unique<DifficultyManager>(env, this, d_val);
     d_trackRSetExp = true;
     // we cannot miniscope AND at the top level, since we need to
     // preserve the exact form of preprocessed assertions so the dependencies
@@ -142,13 +142,19 @@ void RelevanceManager::addInputToAtomsMap(TNode input)
   } while (!visit.empty());
 }
 
-void RelevanceManager::beginRound()
+void RelevanceManager::check(Theory::Effort effort)
 {
-  d_inFullEffortCheck = true;
-  d_fullEffortCheckFail = false;
+  if (Theory::fullEffort(effort))
+  {
+    d_inFullEffortCheck = true;
+    d_fullEffortCheckFail = false;
+  }
 }
 
-void RelevanceManager::endRound() { d_inFullEffortCheck = false; }
+void RelevanceManager::postCheck(Theory::Effort effort)
+{
+  d_inFullEffortCheck = false;
+}
 
 void RelevanceManager::computeRelevance()
 {
@@ -246,6 +252,8 @@ bool RelevanceManager::updateJustifyLastChild(const RlvPair& cur,
         return false;
       }
     }
+    // add current child to list first before (possibly) computing result
+    childrenJustify.push_back(lastChildJustify);
     if (index + 1 == nchildren)
     {
       // finished all children, compute the overall value
@@ -263,7 +271,6 @@ bool RelevanceManager::updateJustifyLastChild(const RlvPair& cur,
     else
     {
       // continue
-      childrenJustify.push_back(lastChildJustify);
       return true;
     }
   }
@@ -512,6 +519,9 @@ RelevanceManager::NodeList* RelevanceManager::getInputListFor(TNode atom,
 
 std::unordered_set<TNode> RelevanceManager::getRelevantAssertions(bool& success)
 {
+  // set in full effort check temporarily
+  d_inFullEffortCheck = true;
+  d_fullEffortCheckFail = false;
   computeRelevance();
   // update success flag
   success = d_success;
@@ -523,11 +533,22 @@ std::unordered_set<TNode> RelevanceManager::getRelevantAssertions(bool& success)
       rset.insert(a);
     }
   }
+  // reset in full effort check
+  d_inFullEffortCheck = false;
   return rset;
 }
 
-void RelevanceManager::notifyLemma(TNode n)
+void RelevanceManager::notifyLemma(TNode n,
+                                   theory::LemmaProperty p,
+                                   const std::vector<Node>& skAsserts,
+                                   const std::vector<Node>& sks)
 {
+  // add to assertions
+  if (options().theory.relevanceFilter && isLemmaPropertyNeedsJustify(p))
+  {
+    notifyPreprocessedAssertion(n, false);
+    notifyPreprocessedAssertions(skAsserts, false);
+  }
   // notice that we may be in FULL or STANDARD effort here.
   if (d_dman != nullptr)
   {
@@ -537,6 +558,14 @@ void RelevanceManager::notifyLemma(TNode n)
   }
 }
 
+bool RelevanceManager::needsCandidateModel()
+{
+  if (d_dman != nullptr)
+  {
+    return d_dman->needsCandidateModel();
+  }
+  return false;
+}
 void RelevanceManager::notifyCandidateModel(TheoryModel* m)
 {
   if (d_dman != nullptr)
@@ -545,11 +574,12 @@ void RelevanceManager::notifyCandidateModel(TheoryModel* m)
   }
 }
 
-void RelevanceManager::getDifficultyMap(std::map<Node, Node>& dmap)
+void RelevanceManager::getDifficultyMap(std::map<Node, Node>& dmap,
+                                        bool includeLemmas)
 {
   if (d_dman != nullptr)
   {
-    d_dman->getDifficultyMap(dmap);
+    d_dman->getDifficultyMap(dmap, includeLemmas);
   }
 }
 

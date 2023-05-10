@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
+ *   Andrew Reynolds, Haniel Barbosa, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -152,6 +152,8 @@ class PfManager : protected EnvObj
                                    std::vector<Node>& assertions);
   /** The false node */
   Node d_false;
+  /** The rewrite proof database. */
+  std::unique_ptr<rewriter::RewriteDb> d_rewriteDb;
   /** For the new proofs module */
   std::unique_ptr<ProofChecker> d_pchecker;
   /** A proof node manager based on the above checker */

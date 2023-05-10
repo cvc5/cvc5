@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
+ *   Andrew Reynolds, Abdalrhman Mohamed, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,6 +27,7 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
+#include "rewriter/rewrite_db.h"
 #include "smt/assertions.h"
 #include "smt/difficulty_post_processor.h"
 #include "smt/env.h"
@@ -39,10 +40,12 @@ namespace smt {
 
 PfManager::PfManager(Env& env)
     : EnvObj(env),
-      d_pchecker(new ProofChecker(
-          statisticsRegistry(),
-          options().proof.proofCheck,
-          static_cast<uint32_t>(options().proof.proofPedantic))),
+      d_rewriteDb(new rewriter::RewriteDb),
+      d_pchecker(
+          new ProofChecker(statisticsRegistry(),
+                           options().proof.proofCheck,
+                           static_cast<uint32_t>(options().proof.proofPedantic),
+                           d_rewriteDb.get())),
       d_pnm(new ProofNodeManager(
           env.getOptions(), env.getRewriter(), d_pchecker.get())),
       d_pfpp(nullptr)
@@ -66,7 +69,7 @@ PfManager::PfManager(Env& env)
   // assumptions (which would disable the update of B1 in this case).
   d_pfpp = std::make_unique<ProofPostprocess>(
       env,
-      nullptr,
+      d_rewriteDb.get(),
       options().proof.proofFormatMode != options::ProofFormatMode::ALETHE);
 
   // add rules to eliminate here
@@ -89,7 +92,7 @@ PfManager::PfManager(Env& env)
           != options::ProofGranularityMode::THEORY_REWRITE)
       {
         // this eliminates theory rewriting steps with finer-grained DSL rules
-        d_pfpp->setEliminateRule(PfRule::THEORY_REWRITE);
+        d_pfpp->setEliminateAllTrustedRules();
       }
     }
     // theory-specific lazy proof reconstruction
@@ -131,6 +134,8 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
     Trace("smt-proof-debug") << *pfn.get() << std::endl;
     Trace("smt-proof-debug") << "=====" << std::endl;
   }
+  std::vector<Node> assertions;
+  getAssertions(as, assertions);
 
   if (TraceIsOn("smt-proof"))
   {
@@ -148,8 +153,6 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
 
     Trace("smt-proof")
         << "SolverEngine::connectProofToAssertions(): assertions are:\n";
-    std::vector<Node> assertions;
-    getAssertions(as, assertions);
     for (const Node& n : assertions)
     {
       Trace("smt-proof") << "- " << n << std::endl;
@@ -175,8 +178,6 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
     {
       Trace("smt-proof") << "SolverEngine::connectProofToAssertions(): make "
                             "unified scope...\n";
-      std::vector<Node> assertions;
-      getAssertions(as, assertions);
       return d_pnm->mkScope(
           pfn, assertions, true, options().proof.proofPruneInput);
     }
@@ -225,7 +226,7 @@ void PfManager::printProof(std::ostream& out,
   if (options().base.incrementalSolving
       && mode != options::ProofFormatMode::NONE)
   {
-    fp = d_pnm->clone(fp);
+    fp = fp->clone();
   }
 
   // according to the proof format, post process and print the proof node
@@ -249,7 +250,7 @@ void PfManager::printProof(std::ostream& out,
     proof::LfscNodeConverter ltp;
     proof::LfscProofPostprocess lpp(d_env, ltp);
     lpp.process(fp);
-    proof::LfscPrinter lp(d_env, ltp);
+    proof::LfscPrinter lp(d_env, ltp, d_rewriteDb.get());
     lp.print(out, fp.get());
   }
   else if (mode == options::ProofFormatMode::TPTP)
@@ -302,7 +303,14 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   Trace("difficulty-proc") << "Get final proof" << std::endl;
   std::shared_ptr<ProofNode> fpf = connectProofToAssertions(pf, smt);
   Trace("difficulty-debug") << "Final proof is " << *fpf.get() << std::endl;
-  Assert(fpf->getRule() == PfRule::SCOPE);
+  // We are typically a SCOPE here, although if we are not, then the proofs
+  // have no free assumptions. If this is the case, then the only difficulty
+  // was incremented on auxiliary lemmas added during preprocessing. Since
+  // there are no dependencies, then the difficulty map is empty.
+  if (fpf->getRule() != PfRule::SCOPE)
+  {
+    return;
+  }
   fpf = fpf->getChildren()[0];
   // analyze proof
   Assert(fpf->getRule() == PfRule::SAT_REFUTATION);
@@ -335,7 +343,10 @@ ProofChecker* PfManager::getProofChecker() const { return d_pchecker.get(); }
 
 ProofNodeManager* PfManager::getProofNodeManager() const { return d_pnm.get(); }
 
-rewriter::RewriteDb* PfManager::getRewriteDatabase() const { return nullptr; }
+rewriter::RewriteDb* PfManager::getRewriteDatabase() const
+{
+  return d_rewriteDb.get();
+}
 
 void PfManager::getAssertions(Assertions& as, std::vector<Node>& assertions)
 {

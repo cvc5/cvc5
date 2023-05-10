@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -440,22 +440,42 @@ Term Smt2State::mkIndexedConstant(const std::string& name,
   {
     if (name == "+oo")
     {
+      if (numerals.size() != 2)
+      {
+        parseError("Unexpected number of numerals for +oo.");
+      }
       return d_solver->mkFloatingPointPosInf(numerals[0], numerals[1]);
     }
     else if (name == "-oo")
     {
+      if (numerals.size() != 2)
+      {
+        parseError("Unexpected number of numerals for -oo.");
+      }
       return d_solver->mkFloatingPointNegInf(numerals[0], numerals[1]);
     }
     else if (name == "NaN")
     {
+      if (numerals.size() != 2)
+      {
+        parseError("Unexpected number of numerals for NaN.");
+      }
       return d_solver->mkFloatingPointNaN(numerals[0], numerals[1]);
     }
     else if (name == "+zero")
     {
+      if (numerals.size() != 2)
+      {
+        parseError("Unexpected number of numerals for +zero.");
+      }
       return d_solver->mkFloatingPointPosZero(numerals[0], numerals[1]);
     }
     else if (name == "-zero")
     {
+      if (numerals.size() != 2)
+      {
+        parseError("Unexpected number of numerals for -zero.");
+      }
       return d_solver->mkFloatingPointNegZero(numerals[0], numerals[1]);
     }
   }
@@ -463,6 +483,10 @@ Term Smt2State::mkIndexedConstant(const std::string& name,
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_BV)
       && name.find("bv") == 0)
   {
+    if (numerals.size() != 1)
+    {
+      parseError("Unexpected number of numerals for bit-vector constant.");
+    }
     std::string bvStr = name.substr(2);
     return d_solver->mkBitVector(numerals[0], bvStr, 10);
   }
@@ -785,11 +809,11 @@ Command* Smt2State::setLogic(std::string name, bool fromCommand)
 
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_SETS))
   {
-    defineVar("set.empty", d_solver->mkEmptySet(Sort()));
     // the Boolean sort is a placeholder here since we don't have type info
     // without type annotation
-    defineVar("set.universe",
-              d_solver->mkUniverseSet(d_solver->getBooleanSort()));
+    Sort btype = d_solver->getBooleanSort();
+    defineVar("set.empty", d_solver->mkEmptySet(d_solver->mkSetSort(btype)));
+    defineVar("set.universe", d_solver->mkUniverseSet(btype));
 
     addOperator(SET_UNION, "set.union");
     addOperator(SET_INTER, "set.inter");
@@ -824,7 +848,10 @@ Command* Smt2State::setLogic(std::string name, bool fromCommand)
 
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_BAGS))
   {
-    defineVar("bag.empty", d_solver->mkEmptyBag(Sort()));
+    // the Boolean sort is a placeholder here since we don't have type info
+    // without type annotation
+    Sort btype = d_solver->getBooleanSort();
+    defineVar("bag.empty", d_solver->mkEmptyBag(d_solver->mkBagSort(btype)));
     addOperator(BAG_UNION_MAX, "bag.union_max");
     addOperator(BAG_UNION_DISJOINT, "bag.union_disjoint");
     addOperator(BAG_INTER_MIN, "bag.inter_min");
@@ -1092,7 +1119,7 @@ Term Smt2State::parseOpToExpr(ParseOp& p)
   else
   {
     checkDeclaration(p.d_name, CHECK_DECLARED, SYM_VARIABLE);
-    expr = getExpressionForName(p.d_name);
+    expr = getVariable(p.d_name);
   }
   Assert(!expr.isNull());
   return expr;
@@ -1126,7 +1153,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
         kind = FLOATINGPOINT_TO_FP_FROM_IEEE_BV;
         op = d_solver->mkOp(kind, p.d_indices);
       }
-      else if (nchildren > 2)
+      else if (nchildren > 2 || nchildren == 0)
       {
         std::stringstream ss;
         ss << "Wrong number of arguments for indexed operator to_fp, expected "
@@ -1414,6 +1441,22 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
                       << std::endl;
       return ret;
     }
+    else if (kind == FLOATINGPOINT_FP)
+    {
+      // (fp #bX #bY #bZ) denotes a floating-point value
+      if (args.size() != 3)
+      {
+        parseError("expected 3 arguments to 'fp', got "
+                   + std::to_string(args.size()));
+      }
+      if (isConstBv(args[0]) && isConstBv(args[1]) && isConstBv(args[2]))
+      {
+        Term ret = d_solver->mkFloatingPoint(args[0], args[1], args[2]);
+        Trace("parser") << "applyParseOp: return floating-point value " << ret
+                        << std::endl;
+        return ret;
+      }
+    }
     Term ret = d_solver->mkTerm(kind, args);
     Trace("parser") << "applyParseOp: return default builtin " << ret
                     << std::endl;
@@ -1685,6 +1728,11 @@ Term Smt2State::mkAnd(const std::vector<Term>& es) const
 bool Smt2State::isConstInt(const Term& t)
 {
   return t.getKind() == CONST_INTEGER;
+}
+
+bool Smt2State::isConstBv(const Term& t)
+{
+  return t.getKind() == CONST_BITVECTOR;
 }
 
 }  // namespace parser

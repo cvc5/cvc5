@@ -48,12 +48,12 @@ cdef extern from "<tuple>" namespace "std":
     uint32_t get1 "std::get<1>"(tuple[uint32_t,uint32_t,Term]) except +
     Term get2 "std::get<2>"(tuple[uint32_t,uint32_t,Term]) except +
 
-cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
+cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
     cdef cppclass Options:
         pass
 
 
-cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
+cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
     cdef cppclass Datatype:
         Datatype() except +
         DatatypeConstructor operator[](size_t idx) except +
@@ -169,10 +169,10 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
             string defaultValue
             string currentValue
             vector[string] modes
-        
+
         cppclass OptionInfoVariant:
             pass
-        
+
         OptionInfoVariant valueInfo
         string toString() except +
 
@@ -183,7 +183,7 @@ cdef extern from "<variant>" namespace "std":
     bint holds "std::holds_alternative"[T](OptionInfo.OptionInfoVariant v) except +
     T getVariant "std::get"[T](OptionInfo.OptionInfoVariant v) except +
 
-cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
+cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
     cdef cppclass Result:
         Result() except+
         bint isNull() except +
@@ -242,7 +242,9 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Grammar mkGrammar(const vector[Term]& boundVars, const vector[Term]& ntSymbols) except +
         Term declareSygusVar(const string& symbol, Sort sort) except +
         void addSygusConstraint(Term term) except +
+        vector[Term] getSygusConstraints() except +
         void addSygusAssume(Term term) except +
+        vector[Term] getSygusAssumptions() except +
         void addSygusInvConstraint(Term inv_f, Term pre_f, Term trans_f, Term post_f) except +
         Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort) except +
         Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort, Grammar grammar) except +
@@ -286,7 +288,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Term mkFloatingPointPosZero(uint32_t exp, uint32_t sig) except +
         Term mkFloatingPointNegZero(uint32_t exp, uint32_t sig) except +
         Term mkRoundingMode(RoundingMode rm) except +
-        Term mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) except +
+        Term mkFloatingPoint(uint32_t exp, uint32_t sig, const Term& val) except +
+        Term mkFloatingPoint(const Term& arg0, const Term& arg1, const Term& arg2) except +
         Term mkCardinalityConstraint(Sort sort, int32_t index) except +
         Term mkConst(Sort sort, const string& symbol) except +
         # default value for symbol defined in cpp/cvc5.h
@@ -325,6 +328,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         vector[Term] getUnsatAssumptions() except +
         vector[Term] getUnsatCore() except +
         map[Term,Term] getDifficulty() except +
+        pair[Result, vector[Term]] getTimeoutCore() except +
         Term getValue(Term term) except +
         vector[Term] getValue(const vector[Term]& terms) except +
         Term getQuantifierElimination(const Term& q) except +

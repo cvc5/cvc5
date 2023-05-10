@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Christopher L. Conway, Mathias Preiner, Morgan Deters
+ *   Christopher L. Conway, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,11 +21,11 @@
 
 #include "base/check.h"
 #include "parser/input.h"
-#include "parser/parser.h"
+#include "parser/parser_antlr.h"
 #include "parser/parser_exception.h"
 #include "parser/smt2/Smt2Lexer.h"
 #include "parser/smt2/Smt2Parser.h"
-#include "parser/smt2/smt2.h"
+#include "parser/smt2/smt2_antlr.h"
 
 namespace cvc5 {
 namespace parser {
@@ -59,7 +59,8 @@ Smt2Input::~Smt2Input() {
   d_pSmt2Parser->free(d_pSmt2Parser);
 }
 
-Command* Smt2Input::parseCommand() {
+std::unique_ptr<Command> Smt2Input::parseCommand()
+{
   return d_pSmt2Parser->parseCommand(d_pSmt2Parser);
 }
 

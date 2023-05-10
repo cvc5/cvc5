@@ -19,10 +19,15 @@
 // NOTE: alternatively we could lex simple_symbol as:
 //  [a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]+
 // ??
-// Note that `%option full` could make lexing faster but it is incompatible
-// with interactive inputs.
+// Note that removing `%option full` allows us to support piping from stdin
+// natively without relying on interactive mode (--stdin-input-per-line).
+// Disabling --stdin-input-per-line may cause some use cases of cvc5 involving
+// piping to hang (see issue #9257).
+// Option `%option ecs` ensures we parse quoted symbols with special characters.
 %}
 
+%option full
+%option ecs
 %option noyywrap
 %option nounput
 %option c++
@@ -44,6 +49,8 @@ ffstr     #f[0-9]+m[0-9]+
 simple_symbol [a-zA-Z~!@\$%\^&\*+=<>\.\?/_-][a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]*
 quoted_symbol \|[^\|\\]*\|
 unterminated_quoted_symbol \|[^\|\\]*
+comment ;[^\n]*\n
+unterminated_comment ;[^\n]*
 
 %%
 
@@ -93,6 +100,7 @@ unterminated_quoted_symbol \|[^\|\\]*
 "get-proof"   return cvc5::parser::GET_PROOF_TOK;
 "get-qe-disjunct"   return d_strict ? cvc5::parser::SYMBOL : cvc5::parser::GET_QE_DISJUNCT_TOK;
 "get-qe"   return d_strict ? cvc5::parser::SYMBOL : cvc5::parser::GET_QE_TOK;
+"get-timeout-core"   return cvc5::parser::GET_TIMEOUT_CORE_TOK;
 "get-unsat-assumptions"   return cvc5::parser::GET_UNSAT_ASSUMPTIONS_TOK;
 "get-unsat-core"   return cvc5::parser::GET_UNSAT_CORE_TOK;
 "get-value"   return cvc5::parser::GET_VALUE_TOK;
@@ -113,8 +121,6 @@ unterminated_quoted_symbol \|[^\|\\]*
 "set-logic"   return cvc5::parser::SET_LOGIC_TOK;
 "set-option"   return cvc5::parser::SET_OPTION_TOK;
 "simplify"   return d_strict ? cvc5::parser::SYMBOL : cvc5::parser::SIMPLIFY_TOK;
-"Constant"   return cvc5::parser::SYGUS_CONSTANT_TOK;
-"Variable"   return cvc5::parser::SYGUS_VARIABLE_TOK;
 "synth-fun"   return d_sygus ? cvc5::parser::SYNTH_FUN_TOK : cvc5::parser::SYMBOL;
 "synth-inv"   return d_sygus ? cvc5::parser::SYNTH_INV_TOK : cvc5::parser::SYMBOL;
 
@@ -153,20 +159,12 @@ unterminated_quoted_symbol \|[^\|\\]*
                 }
 {unterminated_quoted_symbol} return cvc5::parser::UNTERMINATED_QUOTED_SYMBOL;
 {simple_symbol} return cvc5::parser::SYMBOL;
-
-";"    {
-          int c;
-          // parse characters until a new line is reached
-          while ((c = yyinput()) != 0)
-          {
-            if (c == '\n')
-            {
-              addLines(1);
-              bumpSpan();
-              break;
-            }
+{unterminated_comment} return cvc5::parser::EOF_TOK;
+{comment} {
+            addLines(1);
+            bumpSpan();
+            break;
           }
-        }
 . parseError("Error finding token"); break;
 %%
 

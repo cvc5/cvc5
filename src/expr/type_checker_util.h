@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli
+ *   Andres Noetzli, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -154,7 +154,10 @@ template <class R, class A0 = ANone, class A1 = ANone, class A2 = ANone>
 class SimpleTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nm, TNode n, bool check)
+  static TypeNode computeType(NodeManager* nm,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut)
   {
     if (check)
     {
@@ -193,7 +196,10 @@ template <class R, class A>
 class SimpleTypeRuleVar
 {
  public:
-  static TypeNode computeType(NodeManager* nm, TNode n, bool check)
+  static TypeNode computeType(NodeManager* nm,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut)
   {
     if (check)
     {

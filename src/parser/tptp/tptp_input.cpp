@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Francois Bobot, Morgan Deters, Mathias Preiner
+ *   Francois Bobot, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -60,7 +60,8 @@ TptpInput::~TptpInput() {
   d_pTptpParser->free(d_pTptpParser);
 }
 
-Command* TptpInput::parseCommand() {
+std::unique_ptr<Command> TptpInput::parseCommand()
+{
   return d_pTptpParser->parseCommand(d_pTptpParser);
 }
 

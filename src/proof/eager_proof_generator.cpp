@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -109,7 +109,9 @@ TrustNode EagerProofGenerator::mkTrustNode(Node conc,
   // if no children, its easy
   if (exp.empty())
   {
-    std::shared_ptr<ProofNode> pf = pnm->mkNode(id, {}, args, conc);
+    // do not use "conc" as expected here, instead this will be checked
+    // later in setProofFor, where conc may be negated if isConflict is true
+    std::shared_ptr<ProofNode> pf = pnm->mkNode(id, {}, args);
     return mkTrustNode(conc, pf, isConflict);
   }
   // otherwise, we use CDProof + SCOPE

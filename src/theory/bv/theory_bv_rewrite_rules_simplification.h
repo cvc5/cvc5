@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -714,13 +714,14 @@ Node RewriteRule<XorDuplicate>::apply(TNode node) {
 /* -------------------------------------------------------------------------- */
 
 /**
- * XorOne
+ * XorOnes
  *
- * (a bvxor 1) ==> ~a
+ * (a bvxor ~0) ==> ~a
  */
 
-template<> inline
-bool RewriteRule<XorOne>::applies(TNode node) {
+template <>
+inline bool RewriteRule<XorOnes>::applies(TNode node)
+{
   if (node.getKind() != kind::BITVECTOR_XOR) {
     return false; 
   }
@@ -730,13 +731,13 @@ bool RewriteRule<XorOne>::applies(TNode node) {
       return true; 
     }
   }
-  return false; 
+  return false;
 }
 
 template <>
-inline Node RewriteRule<XorOne>::apply(TNode node)
+inline Node RewriteRule<XorOnes>::apply(TNode node)
 {
-  Trace("bv-rewrite") << "RewriteRule<XorOne>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<XorOnes>(" << node << ")" << std::endl;
   NodeManager *nm = NodeManager::currentNM();
   Node ones = utils::mkOnes(utils::getSize(node));
   std::vector<Node> children;
@@ -2167,6 +2168,8 @@ inline Node RewriteRule<UltAddOne>::apply(TNode node)
 /* -------------------------------------------------------------------------- */
 
 /**
+ * MultSltMult
+ *
  * Rewrite
  *   sign_extend(x+t,n) * sign_extend(a,m) < sign_extend(x,n) * sign_extend(a,m)
  * to
@@ -2191,8 +2194,9 @@ inline Node RewriteRule<UltAddOne>::apply(TNode node)
  * where the BV engine struggles due to the high bit widths of the
  * multiplication's operands.
  */
-static std::tuple<Node, Node, bool>
-extract_ext_tuple(TNode node)
+
+namespace {
+std::tuple<Node, Node, bool> extract_ext_tuple(TNode node)
 {
   TNode a = node[0];
   TNode b = node[1];
@@ -2218,8 +2222,7 @@ extract_ext_tuple(TNode node)
   }
   return std::make_tuple(Node::null(), Node::null(), false);
 }
-
-/* -------------------------------------------------------------------------- */
+}  // namespace
 
 template<> inline
 bool RewriteRule<MultSltMult>::applies(TNode node)
@@ -2315,6 +2318,7 @@ Node RewriteRule<MultSltMult>::apply(TNode node)
   return nb.constructNode();
 }
 
+/* -------------------------------------------------------------------------- */
 }  // namespace bv
 }  // namespace theory
 }  // namespace cvc5::internal

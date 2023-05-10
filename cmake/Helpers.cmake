@@ -236,7 +236,7 @@ endmacro()
 function(check_python_module module)
   execute_process(
     COMMAND
-    ${PYTHON_EXECUTABLE} -c "import ${module}"
+    ${Python_EXECUTABLE} -c "import ${module}"
     RESULT_VARIABLE
       RET_MODULE_TEST
     ERROR_QUIET
@@ -249,9 +249,31 @@ function(check_python_module module)
   if(RET_MODULE_TEST)
     message(FATAL_ERROR
         "Could not find module ${module_name} for Python "
-        "version ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}. "
+        "version ${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}. "
         "Make sure to install ${module_name} for this Python version "
-        "via \n`${PYTHON_EXECUTABLE} -m pip install ${module_name}'.\n"
+        "via \n`${Python_EXECUTABLE} -m pip install ${module_name}'.\n"
         "Note: You need to have pip installed for this Python version.")
   endif()
 endfunction()
+
+macro(find_supported_python_version)
+  if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.19")
+    find_package(Python 3.6...<3.10.999 COMPONENTS Interpreter REQUIRED)
+  else()
+    # The version range syntax is only supported from CMake 3.19 on.
+    # So, for previous versions, we manually search for an allowed python version
+    foreach (python_version 3.10 3.9 3.8 3.7 3.6)
+      find_package(Python ${python_version} EXACT COMPONENTS Interpreter)
+      if(${Python_FOUND})
+        break()
+      endif()
+    endforeach()
+
+    if (NOT ${Python_FOUND})
+      message(FATAL_ERROR 
+         "Could not find a suitable Python version. Only Python versions <=3.10 are currently supported."
+      )
+    endif()
+
+  endif()
+endmacro()

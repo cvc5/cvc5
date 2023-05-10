@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,6 +22,7 @@
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/skolemize.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/smt_engine_subsolver.h"
 
 using namespace std;
@@ -229,6 +230,7 @@ void InstStrategyMbqi::process(Node q)
     Node mv = mbqiChecker->getValue(v);
     Assert(mvToFreshVar.find(mv) == mvToFreshVar.end());
     mvToFreshVar[mv] = v;
+    Trace("mbqi-debug") << "mvToFreshVar " << mv << " is " << v << std::endl;
   }
 
   // get the model values for skolems
@@ -249,7 +251,11 @@ void InstStrategyMbqi::process(Node q)
   for (Node& v : terms)
   {
     Node vc = convertFromModel(v, tmpConvertMap, mvToFreshVar);
-    Assert(!vc.isNull());
+    if (vc.isNull())
+    {
+      Trace("mbqi") << "...failed to convert " << v << " from model" << std::endl;
+      return;
+    }
     if (expr::hasSubtermKinds(d_nonClosedKinds, vc))
     {
       Trace("mbqi") << "warning: failed to process model value " << vc
@@ -268,7 +274,9 @@ void InstStrategyMbqi::process(Node q)
     // get a term that witnesses this variable
     Node ov = sm->getOriginalForm(v);
     Node mvt = rs->getTermForRepresentative(ov);
-    if (mvt.isNull())
+    // ensure that this term does not contain cex variables, in case CEQGI
+    // is combined with MBQI
+    if (mvt.isNull() || !TermUtil::getInstConstAttr(mvt).isNull())
     {
       Trace("mbqi") << "warning: failed to get term from value " << ov
                     << ", use arbitrary term in query" << std::endl;
@@ -327,9 +335,8 @@ Node InstStrategyMbqi::convertToQuery(
       {
         cmap[cur] = cur;
       }
-      else if (ck == UNINTERPRETED_SORT_VALUE)
+      else if (ck == UNINTERPRETED_SORT_VALUE || ck == REAL_ALGEBRAIC_NUMBER)
       {
-        Assert(cur.getType().isUninterpretedSort());
         // return the fresh variable for this term
         Node k = sm->mkPurifySkolem(cur, "mbk");
         freshVarType[cur.getType()].insert(k);
@@ -446,9 +453,8 @@ Node InstStrategyMbqi::convertFromModel(
     if (processingChildren.find(cur) == processingChildren.end())
     {
       Kind ck = cur.getKind();
-      if (ck == UNINTERPRETED_SORT_VALUE)
+      if (ck == UNINTERPRETED_SORT_VALUE || ck == REAL_ALGEBRAIC_NUMBER)
       {
-        Assert(cur.getType().isUninterpretedSort());
         // converting from query, find the variable that it is equal to
         std::map<Node, Node>::const_iterator itmv = mvToFreshVar.find(cur);
         if (itmv != mvToFreshVar.end())
@@ -457,8 +463,9 @@ Node InstStrategyMbqi::convertFromModel(
         }
         else
         {
-          // failed to find equal, keep the value
-          cmap[cur] = cur;
+          // TODO (wishue #143): could convert RAN to witness term here
+          // failed to find equal, we fail
+          return Node::null();
         }
       }
       else if (cur.getNumChildren() == 0)

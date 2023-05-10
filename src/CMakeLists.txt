@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mathias Preiner, Andrew Reynolds, Gereon Kremer
+#   Andrew Reynolds, Mathias Preiner, Gereon Kremer
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -16,12 +16,8 @@
 # Collect libcvc5 source files
 libcvc5_add_sources(
   api/cpp/cvc5.cpp
-  api/cpp/cvc5.h
   api/cpp/cvc5_checks.h
-  api/cpp/cvc5_kind.h
-  api/cpp/cvc5_sort_kind.h
   api/cpp/cvc5_types.cpp
-  api/cpp/cvc5_types.h
   decision/assertion_list.cpp
   decision/assertion_list.h
   decision/decision_engine.cpp
@@ -279,6 +275,8 @@ libcvc5_add_sources(
   prop/sat_solver_types.h
   prop/skolem_def_manager.cpp
   prop/skolem_def_manager.h
+  prop/theory_preregistrar.cpp
+  prop/theory_preregistrar.h
   prop/theory_proxy.cpp
   prop/theory_proxy.h
   prop/zero_level_learner.cpp
@@ -350,6 +348,8 @@ libcvc5_add_sources(
   smt/sygus_solver.h
   smt/term_formula_removal.cpp
   smt/term_formula_removal.h
+  smt/timeout_core_manager.cpp
+  smt/timeout_core_manager.h
   smt/unsat_core_manager.cpp
   smt/unsat_core_manager.h
   smt/witness_form.cpp
@@ -597,6 +597,8 @@ libcvc5_add_sources(
   theory/booleans/type_enumerator.h
   theory/builtin/abstract_type.cpp
   theory/builtin/abstract_type.h
+  theory/builtin/generic_op.cpp
+  theory/builtin/generic_op.h
   theory/builtin/proof_checker.cpp
   theory/builtin/proof_checker.h
   theory/builtin/theory_builtin.cpp
@@ -694,14 +696,10 @@ libcvc5_add_sources(
   theory/evaluator.h
   theory/ext_theory.cpp
   theory/ext_theory.h
-  theory/ff/groebner.cpp
-  theory/ff/groebner.h
   theory/ff/core.cpp
   theory/ff/core.h
-  theory/ff/model.cpp
-  theory/ff/model.h
-  theory/ff/roots.cpp
-  theory/ff/roots.h
+  theory/ff/multi_roots.cpp
+  theory/ff/multi_roots.h
   theory/ff/stats.cpp
   theory/ff/stats.h
   theory/ff/sub_theory.cpp
@@ -712,6 +710,8 @@ libcvc5_add_sources(
   theory/ff/theory_ff_rewriter.h
   theory/ff/theory_ff_type_rules.cpp
   theory/ff/theory_ff_type_rules.h
+  theory/ff/uni_roots.cpp
+  theory/ff/uni_roots.h
   theory/fp/fp_word_blaster.cpp
   theory/fp/fp_word_blaster.h
   theory/fp/fp_expand_defs.cpp
@@ -1128,6 +1128,8 @@ libcvc5_add_sources(
   theory/strings/regexp_elim.h
   theory/strings/regexp_entail.cpp
   theory/strings/regexp_entail.h
+  theory/strings/regexp_eval.cpp
+  theory/strings/regexp_eval.h
   theory/strings/regexp_operation.cpp
   theory/strings/regexp_operation.h
   theory/strings/regexp_solver.cpp
@@ -1174,6 +1176,8 @@ libcvc5_add_sources(
   theory/theory.h
   theory/theory_engine.cpp
   theory/theory_engine.h
+  theory/theory_engine_module.cpp
+  theory/theory_engine_module.h
   theory/theory_engine_proof_generator.cpp
   theory/theory_engine_proof_generator.h
   theory/theory_id.cpp
@@ -1311,7 +1315,7 @@ add_custom_command(
   COMMAND
     ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/options
   COMMAND
-    ${PYTHON_EXECUTABLE}
+    ${Python_EXECUTABLE}
     ${CMAKE_CURRENT_LIST_DIR}/options/mkoptions.py
     ${CMAKE_CURRENT_LIST_DIR}
     ${CMAKE_BINARY_DIR}
@@ -1391,7 +1395,7 @@ set_target_properties(cvc5 PROPERTIES OUTPUT_NAME cvc5)
 # Link the shared library
 target_include_directories(cvc5
   PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include:${CMAKE_BINARY_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
 install(TARGETS cvc5
@@ -1399,8 +1403,20 @@ install(TARGETS cvc5
   DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
+if(BUILD_SHARED_LIBS)
+  set_target_properties(cvc5 PROPERTIES SOVERSION ${CVC5_SOVERSION})
+endif()
+
 include(GenerateExportHeader)
-generate_export_header(cvc5-obj BASE_NAME cvc5)
+generate_export_header(cvc5-obj
+  BASE_NAME cvc5
+  EXPORT_FILE_NAME ${CMAKE_BINARY_DIR}/include/cvc5/cvc5_export.h
+)
+install(FILES
+  ${CMAKE_BINARY_DIR}/include/cvc5/cvc5_export.h
+  DESTINATION
+    ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/
+)
 
 # Add library/include dependencies
 add_dependencies(cvc5-obj GMP)
@@ -1469,24 +1485,3 @@ target_link_libraries(cvc5 PRIVATE SymFPU)
 # Thus, we can only visit main as soon as all dependencies for cvc5 are set up.
 
 add_subdirectory(main)
-
-#-----------------------------------------------------------------------------#
-# Install public API headers
-
-install(FILES
-          api/cpp/cvc5.h
-          api/cpp/cvc5_kind.h
-          api/cpp/cvc5_sort_kind.h
-          api/cpp/cvc5_types.h
-        DESTINATION
-          ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/)
-install(FILES
-          ${CMAKE_CURRENT_BINARY_DIR}/cvc5_export.h
-        DESTINATION
-          ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/)
-
-# Fix include paths for all public headers.
-# Note: This is a temporary fix until the new C++ API is in place.
-install(CODE "execute_process(COMMAND
-                ${CMAKE_CURRENT_LIST_DIR}/fix-install-headers.sh
-                ${CMAKE_INSTALL_PREFIX})")

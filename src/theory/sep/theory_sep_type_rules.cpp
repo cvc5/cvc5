@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,8 @@ namespace sep {
 
 TypeNode SepEmpTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
-                                     bool check)
+                                     bool check,
+                                     std::ostream* errOut)
 {
   Assert(n.getKind() == kind::SEP_EMP);
   return nodeManager->booleanType();
@@ -29,7 +30,8 @@ TypeNode SepEmpTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode SepPtoTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
-                                     bool check)
+                                     bool check,
+                                     std::ostream* errOut)
 {
   Assert(n.getKind() == kind::SEP_PTO);
   if (check)
@@ -42,7 +44,8 @@ TypeNode SepPtoTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode SepStarTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
-                                      bool check)
+                                      bool check,
+                                      std::ostream* errOut)
 {
   TypeNode btype = nodeManager->booleanType();
   Assert(n.getKind() == kind::SEP_STAR);
@@ -63,7 +66,8 @@ TypeNode SepStarTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode SepWandTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
-                                      bool check)
+                                      bool check,
+                                      std::ostream* errOut)
 {
   TypeNode btype = nodeManager->booleanType();
   Assert(n.getKind() == kind::SEP_WAND);
@@ -84,7 +88,8 @@ TypeNode SepWandTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode SepLabelTypeRule::computeType(NodeManager* nodeManager,
                                        TNode n,
-                                       bool check)
+                                       bool check,
+                                       std::ostream* errOut)
 {
   TypeNode btype = nodeManager->booleanType();
   Assert(n.getKind() == kind::SEP_LABEL);
@@ -107,7 +112,8 @@ TypeNode SepLabelTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode SepNilTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
-                                     bool check)
+                                     bool check,
+                                     std::ostream* errOut)
 {
   Assert(n.getKind() == kind::SEP_NIL);
   Assert(check);

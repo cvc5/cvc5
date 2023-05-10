@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,6 +28,7 @@
 #include "prop/learned_db.h"
 #include "prop/registrar.h"
 #include "prop/sat_solver_types.h"
+#include "prop/theory_preregistrar.h"
 #include "smt/env_obj.h"
 #include "theory/incomplete_id.h"
 #include "theory/theory.h"
@@ -66,7 +67,7 @@ class TheoryProxy : protected EnvObj, public Registrar
   ~TheoryProxy();
 
   /** Finish initialize */
-  void finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs);
+  void finishInit(CDCLTSatSolver* ss, CnfStream* cs);
 
   /** Presolve, which calls presolve for the modules managed by this class */
   void presolve();
@@ -185,8 +186,16 @@ class TheoryProxy : protected EnvObj, public Registrar
   void getSkolems(TNode node,
                   std::vector<Node>& skAsserts,
                   std::vector<Node>& sks);
-  /** Preregister term */
-  void preRegister(Node n) override;
+  /**
+   * Called when a SAT literal for atom n has been allocated in the SAT solver.
+   */
+  void notifySatLiteral(Node n) override;
+
+  /**
+   * Callback to notify that the SAT solver backtracked by the given number
+   * of levels.
+   */
+  void notifyBacktrack(uint32_t nlevels);
 
   /** Get the zero-level assertions */
   std::vector<Node> getLearnedZeroLevelLiterals(
@@ -215,8 +224,8 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** The theory engine we are using. */
   TheoryEngine* d_theoryEngine;
 
-  /** Queue of asserted facts */
-  context::CDQueue<TNode> d_queue;
+  /** Queue of asserted facts and their decision level. */
+  context::CDQueue<std::pair<TNode, int32_t>> d_queue;
 
   /** The theory preprocessor */
   theory::TheoryPreprocessor d_tpp;
@@ -227,8 +236,19 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** The zero level learner */
   std::unique_ptr<ZeroLevelLearner> d_zll;
 
+  /** Preregister policy */
+  std::unique_ptr<TheoryPreregistrar> d_prr;
+
   /** Whether we have been requested to stop the search */
   context::CDO<bool> d_stopSearch;
+
+  /**
+   * Whether we activated new skolem definitions on the last call to
+   * theoryCheck. If this is true, then theoryNeedCheck must return true,
+   * since there are new formulas to satisfy. Note that skolem definitions
+   * are dynamically activated only when decision=justification.
+   */
+  bool d_activatedSkDefs;
 }; /* class TheoryProxy */
 
 }  // namespace prop

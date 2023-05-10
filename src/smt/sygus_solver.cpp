@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -110,6 +110,16 @@ void SygusSolver::assertSygusConstraint(Node n, bool isAssume)
 
   // sygus conjecture is now stale
   d_sygusConjectureStale = true;
+}
+
+std::vector<Node> SygusSolver::getSygusConstraints() const
+{
+  return listToVector(d_sygusConstraints);
+}
+
+std::vector<Node> SygusSolver::getSygusAssumptions() const
+{
+  return listToVector(d_sygusAssumps);
 }
 
 void SygusSolver::assertSygusInvConstraint(Node inv,
@@ -348,6 +358,15 @@ bool SygusSolver::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
   return true;
 }
 
+bool SygusSolver::canTrustSynthesisResult(const Options& opts)
+{
+  if (opts.quantifiers.cegisSample == options::CegisSampleMode::TRUST)
+  {
+    return false;
+  }
+  return true;
+}
+
 void SygusSolver::checkSynthSolution(Assertions& as,
                                      const std::map<Node, Node>& sol_map)
 {
@@ -355,6 +374,13 @@ void SygusSolver::checkSynthSolution(Assertions& as,
   {
     verbose(1) << "SyGuS::checkSynthSolution: checking synthesis solution"
                << std::endl;
+  }
+  bool canTrustResult = canTrustSynthesisResult(options());
+  if (!canTrustResult)
+  {
+    warning() << "Running check-synth-sol is not guaranteed to pass with the "
+                 "current options."
+              << std::endl;
   }
   if (sol_map.empty())
   {
@@ -412,17 +438,30 @@ void SygusSolver::checkSynthSolution(Assertions& as,
       verbose(1) << "SyGuS::checkSynthSolution: result is " << r << std::endl;
     }
     Trace("check-synth-sol") << "Satsifiability check: " << r << "\n";
-    if (r.isUnknown())
+    if (r.getStatus() == Result::UNSAT)
     {
-      InternalError() << "SygusSolver::checkSynthSolution(): could not check "
-                         "solution, result "
-                         "unknown.";
+      continue;
     }
-    else if (r.getStatus() == Result::SAT)
+    std::stringstream ss;
+    bool hardFailure = canTrustResult;
+    if (r.getStatus() == Result::SAT)
     {
-      InternalError()
-          << "SygusSolver::checkSynthSolution(): produced solution leads to "
-             "satisfiable negated conjecture.";
+      ss << "SygusSolver::checkSynthSolution(): produced solution leads to "
+            "satisfiable negated conjecture.";
+    }
+    else
+    {
+      hardFailure = false;
+      ss << "SygusSolver::checkSynthSolution(): could not check "
+            "solution, result unknown.";
+    }
+    if (hardFailure)
+    {
+      InternalError() << ss.str();
+    }
+    else
+    {
+      warning() << ss.str() << std::endl;
     }
   }
 }

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,7 +33,7 @@ void toSatClause(const typename Solver::TClause& minisat_cl,
 
 namespace prop {
 
-class MinisatSatSolver : public CDCLTSatSolverInterface, protected EnvObj
+class MinisatSatSolver : public CDCLTSatSolver, protected EnvObj
 {
  public:
   MinisatSatSolver(Env& env, StatisticsRegistry& registry);
@@ -59,9 +59,7 @@ class MinisatSatSolver : public CDCLTSatSolverInterface, protected EnvObj
     Unreachable() << "Minisat does not support native XOR reasoning";
   }
 
-  SatVariable newVar(bool isTheoryAtom,
-                     bool preRegister,
-                     bool canErase) override;
+  SatVariable newVar(bool isTheoryAtom, bool canErase) override;
   SatVariable trueVar() override { return d_minisat->trueVar(); }
   SatVariable falseVar() override { return d_minisat->falseVar(); }
 
@@ -78,11 +76,9 @@ class MinisatSatSolver : public CDCLTSatSolverInterface, protected EnvObj
 
   SatValue modelValue(SatLiteral l) override;
 
-  bool properExplanation(SatLiteral lit, SatLiteral expl) const override;
-
   /** Incremental interface */
 
-  unsigned getAssertionLevel() const override;
+  uint32_t getAssertionLevel() const override;
 
   void push() override;
 
@@ -94,6 +90,8 @@ class MinisatSatSolver : public CDCLTSatSolverInterface, protected EnvObj
 
   bool isDecision(SatVariable decn) const override;
 
+  bool isFixed(SatVariable var) const override;
+
   /** Return the list of current list of decisions that have been made by the
    * solver at the point when this function is called.
    */
@@ -102,19 +100,6 @@ class MinisatSatSolver : public CDCLTSatSolverInterface, protected EnvObj
   /** Return the order heap.
    */
   std::vector<Node> getOrderHeap() const override;
-
-  /** Return decision level at which `lit` was decided on. */
-  int32_t getDecisionLevel(SatVariable v) const override;
-
-  /**
-   * Return user level at which `lit` was introduced.
-   *
-   * Note: The user level is tracked independently in the SAT solver and does
-   * not query the user-context for the user level. The user level in the SAT
-   * solver starts at level 0 and does not include the global push/pop in
-   * the SMT engine.
-   */
-  int32_t getIntroLevel(SatVariable v) const override;
 
   /** Retrieve a pointer to the underlying solver. */
   Minisat::SimpSolver* getSolver() { return d_minisat; }

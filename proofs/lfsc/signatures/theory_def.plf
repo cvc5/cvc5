@@ -29,6 +29,8 @@
 (declare Set (! e sort sort))
 ; Bags (i.e. multi-sets), parametrized by an element sort
 (declare Bag (! e sort sort))
+; Finite fields
+(declare FiniteField (! s mpz sort))
 
 ;; ---- Arithmetic
 
@@ -568,3 +570,15 @@
 ;; ---- UF with cardinality
 ; internally generated for finite model finding. Note this is an indexed constant.
 (declare fmf.card (! s sort (! i mpz term)))
+
+;; ---- Finite fields
+
+; A finite field constant is a term having 2 integer children.
+(declare f_ff.value term)
+(define ff.value (# x term (# y term (apply (apply f_ff.value x) y))))
+(declare f_ff.add term)
+(define ff.add (# x term (# y term (apply (apply f_ff.add x) y))))
+(declare f_ff.neg term)
+(define ff.neg (# x term (apply f_ff.neg x)))
+(declare f_ff.mul term)
+(define ff.mul (# x term (# y term (apply (apply f_ff.mul x) y))))

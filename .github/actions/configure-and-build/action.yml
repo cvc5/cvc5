@@ -40,7 +40,7 @@ runs:
         
         make -j${{ env.num_proc }}
 
-        echo "::set-output name=build-dir::$pwd"
+        echo "build-dir=$pwd" >> $GITHUB_OUTPUT 
         echo "::endgroup::"
 
     - name: Static build
@@ -63,7 +63,7 @@ runs:
           ${{ inputs.strip-bin }} bin/cvc5*
         fi
 
-        echo "::set-output name=build-dir::$pwd"
+        echo "build-dir=$pwd" >> $GITHUB_OUTPUT
         echo "::endgroup::"
         
     - name: Reset ccache base_dir

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -335,8 +335,9 @@ class NodeManager
    * @param n the Node for which we want a type
    * @param check whether we should check the type as we compute it
    * (default: false)
+   * @param errOut An (optional) output stream to print type checking errors
    */
-  TypeNode getType(TNode n, bool check = false);
+  TypeNode getType(TNode n, bool check = false, std::ostream* errOut = nullptr);
 
   /** Get the (singleton) type for Booleans. */
   TypeNode booleanType();

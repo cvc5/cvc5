@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,11 +25,12 @@
  * below, in SMT-LIBv2 form (but they're good for all languages).
  */
 
+#include <cvc5/cvc5.h>
+
 #include <cassert>
 #include <iostream>
 #include <string>
 
-#include "api/cpp/cvc5.h"
 #include "parser/api/cpp/command.h"
 #include "parser/parser_antlr.h"
 #include "parser/parser_builder.h"
@@ -95,11 +96,10 @@ std::string parse(std::string instr,
         Input::newStringInput(ilang, declarations, "internal-buffer"));
     // we don't need to execute the commands, but we DO need to parse them to
     // get the declarations
-    while (Command* c = parser->nextCommand())
+    while (std::unique_ptr<Command> c = parser->nextCommand())
     {
       // invoke the command, which may bind symbols
       c->invoke(&solver, &symman);
-      delete c;
     }
   assert(parser->done());  // parser should be done
   parser->setInput(Input::newStringInput(ilang, instr, "internal-buffer"));

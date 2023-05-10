@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -66,6 +66,12 @@ class RegExpSolver : protected EnvObj
    * FroCoS 2015.
    */
   void checkMemberships(Theory::Effort e);
+  /**
+   * Check regular expression memberships eagerly, before running the CAV 14
+   * procedure for word equations. Adds lemmas based on our strategy involving
+   * reductions or simplifications.
+   */
+  void checkMembershipsEager();
 
  private:
   /** compute asserted memberships, store in d_assertedMems */

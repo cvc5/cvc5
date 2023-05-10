@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -119,7 +119,7 @@ class JustificationStrategy : public DecisionEngine
  public:
   /** Constructor */
   JustificationStrategy(Env& env,
-                        prop::CDCLTSatSolverInterface* ss,
+                        prop::CDCLTSatSolver* ss,
                         prop::CnfStream* cs);
 
   /** Presolve, called at the beginning of each check-sat call */

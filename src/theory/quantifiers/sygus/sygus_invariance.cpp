@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -53,9 +53,13 @@ bool EvalSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
 {
   TNode tnvn = nvn;
   std::unordered_map<TNode, TNode> cache;
+  std::vector<Node> keep;
   for (const Node& c : d_terms)
   {
     Node conj_subs = c.substitute(d_var, tnvn, cache);
+    // Ensure ref counted for now since we are reusing the cache for substitute
+    // in this loop
+    keep.push_back(conj_subs);
     Node conj_subs_unfold = tds->rewriteNode(conj_subs);
     Trace("sygus-cref-eval2-debug")
         << "  ...check unfolding : " << conj_subs_unfold << std::endl;

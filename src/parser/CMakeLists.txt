@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mathias Preiner, Gereon Kremer, Andrew V. Jones
+#   Mathias Preiner, Andrew Reynolds, Andres Noetzli
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -20,7 +20,8 @@ find_package(Java COMPONENTS Runtime REQUIRED)
 
 # Search for flex installed via homebrew.
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-  list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/flex")
+  list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/flex") # macOS Intel
+  list(APPEND CMAKE_PREFIX_PATH "/opt/homebrew/opt/flex") # macOS Apple Silicon
 endif()
 find_package(FLEX REQUIRED)
 
@@ -32,6 +33,8 @@ set(libcvc5parserapi_src_files
   api/cpp/command.h
   api/cpp/symbol_manager.cpp
   api/cpp/symbol_manager.h
+  api/cpp/input_parser.cpp
+  api/cpp/input_parser.h
 )
 
 set(libcvc5parser_src_files
@@ -52,8 +55,6 @@ set(libcvc5parser_src_files
   flex_parser.h
   input.cpp
   input.h
-  input_parser.cpp
-  input_parser.h
   line_buffer.cpp
   line_buffer.h
   parse_op.cpp
@@ -71,10 +72,16 @@ set(libcvc5parser_src_files
   smt2/smt2.h
   smt2/smt2_antlr.cpp
   smt2/smt2_antlr.h
+  smt2/smt2_cmd_parser.cpp
+  smt2/smt2_cmd_parser.h
   smt2/smt2_lexer.cpp
   smt2/smt2_lexer.h
+  smt2/smt2_cmd_parser.cpp
+  smt2/smt2_cmd_parser.h
   smt2/smt2_input.cpp
   smt2/smt2_input.h
+  smt2/smt2_parser.cpp
+  smt2/smt2_parser.h
   smt2/smt2_term_parser.cpp
   smt2/smt2_term_parser.h
   smt2/sygus_input.cpp
@@ -95,13 +102,15 @@ set(libcvc5parser_src_files
 # Generate parsers for all supported languages
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/smt2)
-flex_target(Lexer smt2/smt2_lexer.flex ${CMAKE_CURRENT_BINARY_DIR}/smt2/smt2_lexer.cpp)
+flex_target(Lexer
+            ${CMAKE_CURRENT_SOURCE_DIR}/smt2/smt2_lexer.flex
+            ${CMAKE_CURRENT_BINARY_DIR}/smt2/smt2_lexer.cpp)
 set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/smt2/smt2_lexer.cpp PROPERTIES GENERATED TRUE)
 
 # The FlexLexer.h header is installed to /usr/include/, but is not found by the
 # cross-compilation environment. As a workaround we'll copy the header to the
 # current build directory and set the FLEX_INCLUDE_DIRS variable accordingly.
-if(WIN32)
+if(WIN32 AND NOT ("${CMAKE_GENERATOR}" STREQUAL "MSYS Makefiles"))
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/flex)
   file(COPY /usr/include/FlexLexer.h DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/flex)
   set(FLEX_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR}/flex)

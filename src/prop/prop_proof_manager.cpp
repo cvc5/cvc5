@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Gereon Kremer, Andrew Reynolds
+ *   Haniel Barbosa, Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,7 +26,7 @@ namespace prop {
 
 PropPfManager::PropPfManager(Env& env,
                              context::UserContext* userContext,
-                             CDCLTSatSolverInterface* satSolver,
+                             CDCLTSatSolver* satSolver,
                              ProofCnfStream* cnfProof)
     : EnvObj(env),
       d_propProofs(userContext),
