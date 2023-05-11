@@ -140,10 +140,7 @@ class FlexLexer : public yyFlexLexer
     d_span.d_start.d_column = d_span.d_end.d_column;
   }
   /** Add columns or lines to the end location of the span. */
-  void addColumns(uint32_t columns)
-  {
-    d_span.d_end.d_column += columns;
-  }
+  void addColumns(uint32_t columns) { d_span.d_end.d_column += columns; }
   void addLines(uint32_t lines)
   {
     d_span.d_end.d_line += lines;
@@ -159,6 +156,7 @@ class FlexLexer : public yyFlexLexer
    * back of it and pop.
    */
   std::vector<Token> d_peeked;
+
  private:
   /** The input */
   std::istream* d_istream;

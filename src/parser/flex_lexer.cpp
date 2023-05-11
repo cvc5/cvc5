@@ -150,6 +150,5 @@ Token FlexLexer::nextTokenInternal()
   return Token(yylex());
 }
 
-
 }  // namespace parser
 }  // namespace cvc5
