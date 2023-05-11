@@ -22,6 +22,15 @@ CarePairArgumentCallback::CarePairArgumentCallback(Theory& t) : d_theory(t) {}
 
 bool CarePairArgumentCallback::considerPath(TNode a, TNode b)
 {
+  // builtin cases for when a is clearly equal/disequal to b
+  if (a == b)
+  {
+    return true;
+  }
+  if (a.isConst() && b.isConst())
+  {
+    return false;
+  }
   // interested in finding pairs that are not disequal
   return !d_theory.areCareDisequal(a, b);
 }
