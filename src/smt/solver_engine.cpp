@@ -118,7 +118,8 @@ SolverEngine::SolverEngine(const Options* optr)
   // make the SyGuS solver
   d_sygusSolver.reset(new SygusSolver(*d_env.get(), *d_smtSolver));
   // make the quantifier elimination solver
-  d_quantElimSolver.reset(new QuantElimSolver(*d_env.get(), *d_smtSolver));
+  d_quantElimSolver.reset(
+      new QuantElimSolver(*d_env.get(), *d_smtSolver, d_ctxManager.get()));
 }
 
 bool SolverEngine::isFullyInited() const { return d_state->isFullyInited(); }
@@ -190,9 +191,10 @@ void SolverEngine::finishInit()
   }
   else
   {
+    ContextManager* ctx = d_ctxManager.get();
     // deep restarts not enabled
     d_smtDriver.reset(
-        new SmtDriverSingleCall(*d_env.get(), *d_smtSolver.get()));
+        new SmtDriverSingleCall(*d_env.get(), *d_smtSolver.get(), ctx));
   }
 
   // global push/pop around everything, to ensure proper destruction
@@ -727,10 +729,8 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
 
   Trace("smt") << "SolverEngine::checkSat(" << assumptions << ")" << endl;
   // update the state to indicate we are about to run a check-sat
-  bool hasAssumptions = !assumptions.empty();
   d_state->notifyCheckSat();
   d_ctxManager->doPendingPops();
-  d_ctxManager->notifyCheckSat(hasAssumptions);
 
   // Call the SMT solver driver to check for satisfiability. Note that in the
   // case of options like e.g. deep restarts, this may invokve multiple calls
@@ -741,7 +741,6 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
                << endl;
   // notify our state of the check-sat result
   d_state->notifyCheckSatResult(r);
-  d_ctxManager->notifyCheckSatResult(hasAssumptions);
 
   // Check that SAT results generate a model correctly.
   if (d_env->getOptions().smt.checkModels)
@@ -1689,10 +1688,8 @@ Node SolverEngine::getQuantifierElimination(Node q, bool doFull)
 {
   finishInit();
   d_ctxManager->doPendingPops();
-  d_ctxManager->notifyCheckSat(true);
   Node result = d_quantElimSolver->getQuantifierElimination(
       q, doFull, d_isInternalSubsolver);
-  d_ctxManager->notifyCheckSatResult(true);
   return result;
 }
 
