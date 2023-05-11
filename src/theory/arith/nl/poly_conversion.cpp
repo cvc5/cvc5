@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andres Noetzli, Mathias Preiner
+ *   Gereon Kremer, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -805,7 +805,14 @@ poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi)
 Node PolyConverter::ran_to_node(const RealAlgebraicNumber& ran,
                                 const Node& ran_variable)
 {
-  return theory::arith::nl::ran_to_node(ran.getValue(), ran_variable);
+  // if the ran is represented by a poly, run the conversion routine
+  if (!ran.d_isRational)
+  {
+    return theory::arith::nl::ran_to_node(ran.getValue(), ran_variable);
+  }
+  // otherwise, just make the real from the rational value
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkConstReal(ran.getRationalValue());
 }
 
 RealAlgebraicNumber PolyConverter::node_to_ran(const Node& n,

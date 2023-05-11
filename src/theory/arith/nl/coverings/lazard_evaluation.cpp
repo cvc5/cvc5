@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andres Noetzli
+ *   Gereon Kremer, Alex Ozdemir, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -636,7 +636,7 @@ void LazardEvaluation::add(const poly::Variable& var, const poly::Value& val)
                          << CoCoA::owner(mipo) << std::endl;
     auto factorization = CoCoA::factor(mipo);
     Trace("nl-cov::lazard") << "-> " << factorization << std::endl;
-    bool used_factor = false;
+    CVC5_UNUSED bool used_factor = false;
     for (const auto& f : factorization.myFactors())
     {
       if (d_state->evaluatesToZero(f))

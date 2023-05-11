@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,8 +23,8 @@
 #include <unordered_set>
 
 #include "proof/proof_node_updater.h"
-#include "rewriter/rewrite_db.h"
 #include "rewriter/rewrite_db_proof_cons.h"
+#include "rewriter/rewrites.h"
 #include "smt/env_obj.h"
 #include "smt/proof_final_callback.h"
 #include "smt/witness_form.h"
@@ -60,6 +60,8 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
    * has no effect.
    */
   void setEliminateRule(PfRule rule);
+  /** set eliminate all trusted rules via DSL */
+  void setEliminateAllTrustedRules();
   /** Should proof pn be updated? */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                     const std::vector<Node>& fa,
@@ -75,6 +77,8 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
  private:
   /** Common constants */
   Node d_true;
+  /** The proof checker we are using */
+  ProofChecker* d_pc;
   /** The preprocessing proof generator */
   ProofGenerator* d_pppg;
   /** The rewrite database proof generator */
@@ -85,12 +89,16 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
   std::vector<Node> d_wfAssumptions;
   /** Kinds of proof rules we are eliminating */
   std::unordered_set<PfRule, PfRuleHashFunction> d_elimRules;
+  /** Whether we are trying to eliminate any trusted rule via the DSL */
+  bool d_elimAllTrusted;
   /** Whether we post-process assumptions in scope. */
   bool d_updateScopedAssumptions;
   //---------------------------------reset at the begining of each update
   /** Mapping assumptions to their proof from preprocessing */
   std::map<Node, std::shared_ptr<ProofNode> > d_assumpToProof;
   //---------------------------------end reset at the begining of each update
+  /** Return true if id is a proof rule that we should expand */
+  bool shouldExpand(PfRule id) const;
   /**
    * Expand rules in the given application, add the expanded proof to cdp.
    * The set of rules we expand is configured by calls to setEliminateRule
@@ -106,7 +114,8 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
   Node expandMacros(PfRule id,
                     const std::vector<Node>& children,
                     const std::vector<Node>& args,
-                    CDProof* cdp);
+                    CDProof* cdp,
+                    Node res = Node::null());
   /**
    * Update the proof rule application, called during expand macros when
    * we wish to apply the update method. This method has the same behavior
@@ -188,6 +197,8 @@ class ProofPostprocess : protected EnvObj
   void process(std::shared_ptr<ProofNode> pf, ProofGenerator* pppg);
   /** set eliminate rule */
   void setEliminateRule(PfRule rule);
+  /** set eliminate all trusted rules via DSL */
+  void setEliminateAllTrustedRules();
 
  private:
   /** The post process callback */
