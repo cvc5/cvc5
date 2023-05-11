@@ -99,6 +99,7 @@ class FlexLexer
 
  protected:
   // -----------------
+  /** Compute the next token by reading from the stream */
   virtual Token nextTokenInternal() = 0;
   /** Get the next character */
   char readNextChar()
