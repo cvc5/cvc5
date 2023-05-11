@@ -35,11 +35,7 @@ std::ostream& operator<<(std::ostream& o, const Span& l)
   return o << l.d_start << "-" << l.d_end;
 }
 
-<<<<<<< HEAD
 FlexLexer::FlexLexer() : d_bufferPos(0), d_bufferEnd(0) {}
-=======
-FlexLexer::FlexLexer() : yyFlexLexer(), d_bufferPos(0), d_bufferEnd(0) {}
->>>>>>> c7a7c8635d8d08b7083bd49968215ed045d6f677
 
 void FlexLexer::warning(const std::string& msg)
 {
@@ -77,9 +73,6 @@ void FlexLexer::initialize(FlexInput* input, const std::string& inputName)
   d_inputName = inputName;
   initSpan();
   d_peeked.clear();
-  // use the std::istream* version which is supported in earlier Flex versions
-  // !!! temporary until we remove Flex
-  yyrestart(d_istream);
 }
 
 Token FlexLexer::nextToken()
@@ -141,12 +134,6 @@ bool FlexLexer::eatTokenChoice(Token t, Token f)
     unexpectedTokenError(tt, o.str());
   }
   return false;
-}
-
-Token FlexLexer::nextTokenInternal()
-{
-  // !!! temporary until we remove Flex
-  return Token(yylex());
 }
 
 }  // namespace parser
