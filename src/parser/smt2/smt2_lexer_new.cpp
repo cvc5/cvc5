@@ -70,7 +70,6 @@ Smt2LexerNew::Smt2LexerNew(bool isStrict, bool isSygus)
   d_symcTable[static_cast<size_t>(' ')] = CharacterClass::WHITESPACE;
   d_symcTable[static_cast<size_t>('\t')] = CharacterClass::WHITESPACE;
   d_symcTable[static_cast<size_t>('\r')] = CharacterClass::WHITESPACE;
-  d_symcTable[static_cast<size_t>('\f')] = CharacterClass::WHITESPACE;
   d_symcTable[static_cast<size_t>('\n')] = CharacterClass::WHITESPACE;
 }
 
