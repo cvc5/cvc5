@@ -66,8 +66,6 @@ unterminated_comment ;[^\n]*
 "match"   return cvc5::parser::MATCH_TOK;
 "par"   return cvc5::parser::PAR_TOK;
 ")"   return cvc5::parser::RPAREN_TOK;
-"Constant"   return cvc5::parser::SYGUS_CONSTANT_TOK;
-"Variable"   return cvc5::parser::SYGUS_VARIABLE_TOK;
 
 {ws}   bumpSpan();
 {nl}   addLines(yyleng); bumpSpan();
