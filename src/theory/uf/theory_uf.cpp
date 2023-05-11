@@ -626,6 +626,8 @@ void TheoryUF::computeCareGraph() {
     }
     if (has_trigger_arg)
     {
+      Trace("uf::sharing-terms")
+          << "...add: " << app << " / " << reps << std::endl;
       Kind k = app.getKind();
       if (k == kind::APPLY_UF)
       {
