@@ -61,7 +61,7 @@ class NlModel : protected EnvObj
    * where m is the model of the theory of arithmetic. This method resets the
    * cache of computed model values.
    */
-  void reset(TheoryModel* m, const std::map<Node, Node>& arithModel);
+  void reset(const std::map<Node, Node>& arithModel);
   /**
    * This method is called when the non-linear arithmetic solver restarts
    * its computation of lemmas and models during a last call effort check.
@@ -184,9 +184,6 @@ class NlModel : protected EnvObj
   std::map<Node, Node> d_concreteModelCache;
   /** Cache for abstract model values */
   std::map<Node, Node> d_abstractModelCache;
-
-  /** The current model */
-  TheoryModel* d_model;
 
   /**
    * The values that the arithmetic theory solver assigned in the model. This

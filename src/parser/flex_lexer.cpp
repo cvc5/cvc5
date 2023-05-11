@@ -35,7 +35,7 @@ std::ostream& operator<<(std::ostream& o, const Span& l)
   return o << l.d_start << "-" << l.d_end;
 }
 
-FlexLexer::FlexLexer() : yyFlexLexer() {}
+FlexLexer::FlexLexer() : yyFlexLexer(), d_bufferPos(0), d_bufferEnd(0) {}
 
 void FlexLexer::warning(const std::string& msg)
 {
@@ -64,28 +64,17 @@ void FlexLexer::initSpan()
   d_span.d_end.d_line = 1;
   d_span.d_end.d_column = 1;
 }
-void FlexLexer::bumpSpan()
+void FlexLexer::initialize(FlexInput* input, const std::string& inputName)
 {
-  d_span.d_start.d_line = d_span.d_end.d_line;
-  d_span.d_start.d_column = d_span.d_end.d_column;
-}
-void FlexLexer::addColumns(uint32_t columns)
-{
-  d_span.d_end.d_column += columns;
-}
-void FlexLexer::addLines(uint32_t lines)
-{
-  d_span.d_end.d_line += lines;
-  d_span.d_end.d_column = 1;
-}
-
-void FlexLexer::initialize(std::istream& input, const std::string& inputName)
-{
+  Assert(input != nullptr);
+  d_istream = input->getStream();
+  d_isInteractive = input->isInteractive();
   d_inputName = inputName;
-  // use the std::istream* version which is supported in earlier Flex versions
-  yyrestart(&input);
   initSpan();
   d_peeked.clear();
+  // use the std::istream* version which is supported in earlier Flex versions
+  // !!! temporary until we remove Flex
+  yyrestart(d_istream);
 }
 
 const char* FlexLexer::tokenStr() const
@@ -99,7 +88,7 @@ Token FlexLexer::nextToken()
   if (d_peeked.empty())
   {
     // Call the derived yylex() and convert it to a token
-    return Token(yylex());
+    return nextTokenInternal();
   }
   Token t = d_peeked.back();
   d_peeked.pop_back();
@@ -109,7 +98,7 @@ Token FlexLexer::nextToken()
 Token FlexLexer::peekToken()
 {
   // parse next token
-  Token t = Token(yylex());
+  Token t = nextTokenInternal();
   // reinsert it immediately
   reinsertToken(t);
   // return it
@@ -156,9 +145,8 @@ bool FlexLexer::eatTokenChoice(Token t, Token f)
 }
 
 // !!!!!! temporary until the new lexer is connected to this
-Token FlexLexer::nextTokenInternal() { return Token::NONE; }
-// !!!!!! temporary until the new lexer is connected to this
-char FlexLexer::readNextChar() { return EOF; }
+Token FlexLexer::nextTokenInternal() { return Token(yylex()); }
+
 
 }  // namespace parser
 }  // namespace cvc5
