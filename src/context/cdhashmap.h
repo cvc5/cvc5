@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -195,7 +195,7 @@ class CDOhash_map : public ContextObj
               CDHashMap<Key, Data, HashFcn>* map,
               const Key& key,
               const Data& data)
-      : ContextObj(false, context), d_value(key, data), d_map(NULL)
+      : ContextObj(context), d_value(key, data), d_map(NULL)
   {
     // Normal map insertion: first makeCurrent(), then set the data
     // and then, later, the map.  Order is important; we can't

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1233,7 +1233,7 @@ Node ExtendedRewriter::extendedRewriteEqChain(
 
   if (cstatus.empty())
   {
-    return TermUtil::mkTypeConst(tn, gpol);
+    return TermUtil::mkTypeConst(ret.getType(), gpol);
   }
 
   children.clear();
@@ -1761,6 +1761,8 @@ void ExtendedRewriter::debugExtendedRewrite(Node n,
                                             Node ret,
                                             const char* c) const
 {
+  Assert(ret.isNull() || n.getType().isComparableTo(ret.getType()))
+      << "Extended rewrite does not preserve type: " << n << " --> " << ret;
   if (TraceIsOn("q-ext-rewrite"))
   {
     if (!ret.isNull())
