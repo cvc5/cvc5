@@ -524,14 +524,8 @@ bool Theory::areCareDisequal(TNode x, TNode y)
   Assert(d_equalityEngine != nullptr);
   Assert(d_equalityEngine->hasTerm(x));
   Assert(d_equalityEngine->hasTerm(y));
-  if (x == y)
-  {
-    return false;
-  }
-  if (x.isConst() && y.isConst())
-  {
-    return true;
-  }
+  Assert(x != y);
+  Assert(!x.isConst() || !y.isConst());
   // first just check if they are disequal, which is sufficient for
   // non-shared terms.
   if (d_equalityEngine->areDisequal(x, y, false))

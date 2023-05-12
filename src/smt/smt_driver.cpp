@@ -42,6 +42,11 @@ SmtDriver::SmtDriver(Env& env, SmtSolver& smt, ContextManager* ctx)
 
 Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
 {
+  bool hasAssumptions = !assumptions.empty();
+  if (d_ctx)
+  {
+    d_ctx->notifyCheckSat(hasAssumptions);
+  }
   Assertions& as = d_smt.getAssertions();
   Result result;
   try
@@ -108,7 +113,10 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
     d_smt.getPropEngine()->resetTrail();
     throw;
   }
-
+  if (d_ctx)
+  {
+    d_ctx->notifyCheckSatResult(hasAssumptions);
+  }
   return result;
 }
 
@@ -142,10 +150,12 @@ void SmtDriver::notifyPushPost() { d_smt.pushPropContext(); }
 
 void SmtDriver::notifyPopPre() { d_smt.popPropContext(); }
 
-void SmtDriver::notifyPostSolve() { d_smt.postsolve(); }
+void SmtDriver::notifyPostSolve() { d_smt.resetTrail(); }
 
-SmtDriverSingleCall::SmtDriverSingleCall(Env& env, SmtSolver& smt)
-    : SmtDriver(env, smt, nullptr), d_assertionListIndex(userContext(), 0)
+SmtDriverSingleCall::SmtDriverSingleCall(Env& env,
+                                         SmtSolver& smt,
+                                         ContextManager* ctx)
+    : SmtDriver(env, smt, ctx), d_assertionListIndex(userContext(), 0)
 {
 }
 
