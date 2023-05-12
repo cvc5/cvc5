@@ -409,14 +409,14 @@ Result PropEngine::checkSat() {
   ScopedBool scopedBool(d_inCheckSat);
   d_inCheckSat = true;
 
-  // Note this currently ignores conflicts (a dangerous practice).
-  d_theoryProxy->presolve();
-
   if (options().base.preprocessOnly)
   {
     outputIncompleteReason(UnknownExplanation::REQUIRES_FULL_CHECK);
     return Result(Result::UNKNOWN, UnknownExplanation::REQUIRES_FULL_CHECK);
   }
+
+  // Note this currently ignores conflicts (a dangerous practice).
+  d_theoryProxy->presolve();
 
   // Reset the interrupted flag
   d_interrupted = false;
@@ -436,6 +436,8 @@ Result PropEngine::checkSat() {
     }
     result = d_satSolver->solve(assumptions);
   }
+
+  d_theoryProxy->postsolve();
 
   if( result == SAT_VALUE_UNKNOWN ) {
     ResourceManager* rm = resourceManager();
