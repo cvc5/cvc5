@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -524,14 +524,8 @@ bool Theory::areCareDisequal(TNode x, TNode y)
   Assert(d_equalityEngine != nullptr);
   Assert(d_equalityEngine->hasTerm(x));
   Assert(d_equalityEngine->hasTerm(y));
-  if (x == y)
-  {
-    return false;
-  }
-  if (x.isConst() && y.isConst())
-  {
-    return true;
-  }
+  Assert(x != y);
+  Assert(!x.isConst() || !y.isConst());
   // first just check if they are disequal, which is sufficient for
   // non-shared terms.
   if (d_equalityEngine->areDisequal(x, y, false))
