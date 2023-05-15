@@ -45,7 +45,7 @@ TermEvaluatorEntailed::TermEvaluatorEntailed(Env& env,
 
 TNode TermEvaluatorEntailed::evaluateBase(const State& s, TNode n)
 {
-  if (n.getKind()==FORALL)
+  if (n.getKind() == FORALL)
   {
     return s.getSome();
   }
