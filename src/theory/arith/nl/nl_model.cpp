@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,9 +43,8 @@ NlModel::NlModel(Env& env) : EnvObj(env), d_used_approx(false)
 
 NlModel::~NlModel() {}
 
-void NlModel::reset(TheoryModel* m, const std::map<Node, Node>& arithModel)
+void NlModel::reset(const std::map<Node, Node>& arithModel)
 {
-  d_model = m;
   d_concreteModelCache.clear();
   d_abstractModelCache.clear();
   d_arithVal = arithModel;
