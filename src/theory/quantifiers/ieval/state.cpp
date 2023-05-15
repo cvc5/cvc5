@@ -137,11 +137,7 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
       {
         // get the unique children
         std::set<TNode> children;
-        // must consider operators (for higher-order)
-        if (cur.hasOperator())
-        {
-          children.insert(cur.getOperator());
-        }
+        // we don't traverse into operators here
         children.insert(cur.begin(), cur.end());
         for (TNode cc : children)
         {
