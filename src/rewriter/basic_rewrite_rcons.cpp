@@ -19,6 +19,8 @@
 #include "proof/proof_checker.h"
 #include "smt/env.h"
 
+#include "theory/bv/theory_bv_rewrite_rules.h"
+
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
@@ -63,6 +65,22 @@ bool BasicRewriteRCons::prove(
     Trace("trewrite-rcons") << "...EXISTS_ELIM" << std::endl;
     return true;
   }
+
+  if (tid == theory::THEORY_BV)
+  {
+    if (tryRule(cdp, eq, PfRule::BV_BITWISE_SLICING, {eq[0]}))
+    {
+      Trace("trewrite-rcons") << "...BV_BITWISE_SLICING" << std::endl;
+      return true;
+    }
+    /*
+    using namespace theory::bv;
+    if (RewriteRule<BitwiseSlicing>::applies(a))
+    {
+      Trace("proof-new") << "Proof rule applies!" << std::endl;
+    }*/
+  }
+
   Trace("trewrite-rcons") << "...(fail)" << std::endl;
   return false;
 }

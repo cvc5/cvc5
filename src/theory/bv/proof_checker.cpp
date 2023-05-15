@@ -14,6 +14,8 @@
  */
 
 #include "theory/bv/proof_checker.h"
+#include "theory/bv/theory_bv_rewrite_rules.h"
+#include "theory/bv/theory_bv_rewrite_rules_normalization.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -24,6 +26,7 @@ void BVProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::BV_BITBLAST, this);
   pc->registerChecker(PfRule::BV_BITBLAST_STEP, this);
   pc->registerChecker(PfRule::BV_EAGER_ATOM, this);
+  pc->registerChecker(PfRule::BV_BITWISE_SLICING, this);
 }
 
 Node BVProofRuleChecker::checkInternal(PfRule id,
@@ -51,7 +54,16 @@ Node BVProofRuleChecker::checkInternal(PfRule id,
     Assert(args[0].getKind() == kind::BITVECTOR_EAGER_ATOM);
     return args[0].eqNode(args[0][0]);
   }
-  // no rule
+  else if (id == PfRule::BV_BITWISE_SLICING)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    auto const& node = args[0];
+    Assert(node.getKind() == kind::BITVECTOR_AND ||
+           node.getKind() == kind::BITVECTOR_OR ||
+           node.getKind() == kind::BITVECTOR_XOR);
+    return RewriteRule<BitwiseSlicing>::run<false>(node);
+  }
   return Node::null();
 }
 

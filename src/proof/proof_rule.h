@@ -1303,6 +1303,7 @@ enum class PfRule : uint32_t
    */
   BV_EAGER_ATOM,
 
+  BV_BITWISE_SLICING,
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- Unification**
