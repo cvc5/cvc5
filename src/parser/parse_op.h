@@ -35,8 +35,6 @@ namespace cvc5 {
  * (1) A kind.
  * (2) A string name.
  * (3) An expression expr.
- * (4) A type t.
- * (5) An operator object.
  *
  * Examples:
  *
@@ -49,10 +47,9 @@ namespace cvc5 {
  * AST expression representing generic tuple select, and we do not have enough
  * type information at this point to know the type of the tuple we will be
  * selecting from.
- * - For array constant specifications prior to type ascription e.g. when we
- * have parsed "const", we store (1), setting the kind to STORE_ALL.
  * - For array constant specifications (as const (Array T1 T2)), we store (1)
- * and (4), where kind is set to STORE_ALL and type is set to (Array T1 T2).
+ * and (3), where kind is set to INTERNAL_KIND and expr is set to a placeholder
+ * variable of type (Array T1 T2).
  * When parsing this as an operator e.g. ((as const (Array T1 T2)) t), we
  * interpret this operator by converting the next parsed constant of type T2 to
  * an Array of type (Array T1 T2) over that constant.
@@ -66,10 +63,6 @@ struct ParseOp
   std::string d_name;
   /** The expression associated with the parsed operator, if it exists */
   cvc5::Term d_expr;
-  /** The type associated with the parsed operator, if it exists */
-  cvc5::Sort d_type;
-  /** The operator associated with the parsed operator, if it exists */
-  cvc5::Op d_op;
   /**
    * The indices if the operator is indexed, but cvc5::Op is the null operator.
    * This is the case for operator symbols that cannot be resolved to a kind
@@ -82,7 +75,7 @@ struct ParseOp
   bool operator==(const ParseOp& p) const
   {
     return d_kind == p.d_kind && d_name == p.d_name && d_expr == p.d_expr
-           && d_type == p.d_type && d_op == p.d_op && d_indices == p.d_indices;
+           && d_indices == p.d_indices;
   }
 };
 
