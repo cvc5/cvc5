@@ -515,7 +515,6 @@ void SolverEngine::defineFunction(Node func,
   // type check body
   debugCheckFunctionBody(formula, formals, func);
 
-  // Substitute out any abstract values in formula
   Node def = formula;
   if (!formals.empty())
   {
