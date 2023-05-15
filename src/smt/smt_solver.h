@@ -98,7 +98,7 @@ class SmtSolver : protected EnvObj
    * Reset the prop engine trail and call the postsolve method of the
    * underlying TheoryEngine.
    */
-  void postsolve();
+  void resetTrail();
   //------------------------------------------ access methods
   /** Get a pointer to the TheoryEngine owned by this solver. */
   TheoryEngine* getTheoryEngine();

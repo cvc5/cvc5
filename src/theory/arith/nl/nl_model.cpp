@@ -43,9 +43,8 @@ NlModel::NlModel(Env& env) : EnvObj(env), d_used_approx(false)
 
 NlModel::~NlModel() {}
 
-void NlModel::reset(TheoryModel* m, const std::map<Node, Node>& arithModel)
+void NlModel::reset(const std::map<Node, Node>& arithModel)
 {
-  d_model = m;
   d_concreteModelCache.clear();
   d_abstractModelCache.clear();
   d_arithVal = arithModel;

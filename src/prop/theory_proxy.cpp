@@ -54,7 +54,7 @@ TheoryProxy::TheoryProxy(Env& env,
       d_skdm(skdm),
       d_zll(nullptr),
       d_prr(nullptr),
-      d_stopSearch(false, userContext()),
+      d_stopSearch(userContext(), false),
       d_activatedSkDefs(false)
 {
   bool trackZeroLevel =
@@ -100,6 +100,8 @@ void TheoryProxy::presolve()
   d_theoryEngine->presolve();
   d_stopSearch = false;
 }
+
+void TheoryProxy::postsolve() { d_theoryEngine->postsolve(); }
 
 void TheoryProxy::notifyTopLevelSubstitution(const Node& lhs,
                                              const Node& rhs) const
