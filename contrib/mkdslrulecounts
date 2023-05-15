@@ -40,5 +40,8 @@ count_for_arg SETS
 count_for_arg STRINGS
 count_for_arg UF
 
+echo -n "=== Timeouts: "
+cat temp.txt | grep "cvc5 interrupted by timeout" | wc -l
+
 rm temp.txt
 #rm unproven.txt
