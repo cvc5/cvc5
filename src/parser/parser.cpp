@@ -55,13 +55,15 @@ ParserState::~ParserState() {}
 
 Solver* ParserState::getSolver() const { return d_solver; }
 
-Term ParserState::getSymbol(const std::string& name, SymbolType type)
+Term ParserState::getVariable(const std::string& name)
 {
-  checkDeclaration(name, CHECK_DECLARED, type);
-  Assert(isDeclared(name, type));
-  Assert(type == SYM_VARIABLE);
-  // Functions share var namespace
-  return d_symtab->lookup(name);
+  Term ret = d_symtab->lookup(name);
+  // if the lookup failed, throw an error
+  if (ret.isNull())
+  {
+    checkDeclaration(name, CHECK_DECLARED, SYM_VARIABLE);
+  }
+  return ret;
 }
 std::string ParserState::getNameForUserName(const std::string& name) const
 {
@@ -79,16 +81,6 @@ const std::string& ParserState::getForcedLogic() const
   return d_symman->getForcedLogic();
 }
 bool ParserState::logicIsForced() const { return d_symman->isLogicForced(); }
-
-Term ParserState::getVariable(const std::string& name)
-{
-  return getSymbol(name, SYM_VARIABLE);
-}
-
-Term ParserState::getFunction(const std::string& name)
-{
-  return getSymbol(name, SYM_VARIABLE);
-}
 
 Term ParserState::getExpressionForNameAndType(const std::string& name, Sort t)
 {
@@ -147,18 +139,24 @@ Kind ParserState::getKindForFunction(Term fun)
 
 Sort ParserState::getSort(const std::string& name)
 {
-  checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
-  Assert(isDeclared(name, SYM_SORT));
   Sort t = d_symtab->lookupType(name);
+  // if we fail, throw an error
+  if (t.isNull())
+  {
+    checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
+  }
   return t;
 }
 
 Sort ParserState::getParametricSort(const std::string& name,
                                     const std::vector<Sort>& params)
 {
-  checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
-  Assert(isDeclared(name, SYM_SORT));
   Sort t = d_symtab->lookupType(name, params);
+  // if we fail, throw an error
+  if (t.isNull())
+  {
+    checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
+  }
   return t;
 }
 
