@@ -283,8 +283,6 @@ libcvc5_add_sources(
   prop/zero_level_learner.h
   smt/abduction_solver.cpp
   smt/abduction_solver.h
-  smt/abstract_values.cpp
-  smt/abstract_values.h
   smt/assertions.cpp
   smt/assertions.h
   smt/check_models.cpp
