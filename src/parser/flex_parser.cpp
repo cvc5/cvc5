@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,8 +40,6 @@ void FlexParser::setStreamInput(std::istream& input, const std::string& name)
 {
   d_flexInput = FlexInput::mkStreamInput(input);
   initializeInput(name);
-  d_done = false;
-  d_lex->initialize(d_flexInput->getStream(), name);
 }
 
 void FlexParser::setStringInput(const std::string& input,
@@ -54,7 +52,7 @@ void FlexParser::setStringInput(const std::string& input,
 void FlexParser::initializeInput(const std::string& name)
 {
   d_done = false;
-  d_lex->initialize(d_flexInput->getStream(), name);
+  d_lex->initialize(d_flexInput.get(), name);
 }
 
 void FlexParser::warning(const std::string& msg) { d_lex->warning(msg); }
