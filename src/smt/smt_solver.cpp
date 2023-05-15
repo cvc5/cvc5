@@ -258,13 +258,10 @@ void SmtSolver::popPropContext()
   d_propEngine->pop();
 }
 
-void SmtSolver::postsolve()
+void SmtSolver::resetTrail()
 {
   Assert(d_propEngine != nullptr);
   d_propEngine->resetTrail();
-
-  Assert(d_theoryEngine != nullptr);
-  d_theoryEngine->postsolve();
 }
 
 }  // namespace smt

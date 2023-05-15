@@ -1233,7 +1233,7 @@ Node ExtendedRewriter::extendedRewriteEqChain(
 
   if (cstatus.empty())
   {
-    return TermUtil::mkTypeConst(tn, gpol);
+    return TermUtil::mkTypeConst(ret.getType(), gpol);
   }
 
   children.clear();
@@ -1761,6 +1761,8 @@ void ExtendedRewriter::debugExtendedRewrite(Node n,
                                             Node ret,
                                             const char* c) const
 {
+  Assert(ret.isNull() || n.getType().isComparableTo(ret.getType()))
+      << "Extended rewrite does not preserve type: " << n << " --> " << ret;
   if (TraceIsOn("q-ext-rewrite"))
   {
     if (!ret.isNull())
