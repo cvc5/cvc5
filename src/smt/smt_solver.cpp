@@ -34,12 +34,10 @@ using namespace std;
 namespace cvc5::internal {
 namespace smt {
 
-SmtSolver::SmtSolver(Env& env,
-                     AbstractValues& abs,
-                     SolverEngineStatistics& stats)
+SmtSolver::SmtSolver(Env& env, SolverEngineStatistics& stats)
     : EnvObj(env),
       d_pp(env, stats),
-      d_asserts(env, abs),
+      d_asserts(env),
       d_stats(stats),
       d_theoryEngine(nullptr),
       d_propEngine(nullptr)
@@ -260,13 +258,10 @@ void SmtSolver::popPropContext()
   d_propEngine->pop();
 }
 
-void SmtSolver::postsolve()
+void SmtSolver::resetTrail()
 {
   Assert(d_propEngine != nullptr);
   d_propEngine->resetTrail();
-
-  Assert(d_theoryEngine != nullptr);
-  d_theoryEngine->postsolve();
 }
 
 }  // namespace smt

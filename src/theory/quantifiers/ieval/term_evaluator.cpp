@@ -45,6 +45,10 @@ TermEvaluatorEntailed::TermEvaluatorEntailed(Env& env,
 
 TNode TermEvaluatorEntailed::evaluateBase(const State& s, TNode n)
 {
+  if (n.getKind() == FORALL)
+  {
+    return s.getSome();
+  }
   // if unknown, it is none
   return d_qs.hasTerm(n) ? d_qs.getRepresentative(n) : s.getNone();
 }

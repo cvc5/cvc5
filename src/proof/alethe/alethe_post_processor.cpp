@@ -1989,7 +1989,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       Node newVar = nm->mkBoundVar(ss.str(), nm->sExprType());
       std::vector<Node> newArgs{newVar};
       newArgs.insert(newArgs.end(), args.begin(), args.end());
-      return addAletheStep(AletheRule::UNDEFINED,
+      return addAletheStep(AletheRule::HOLE,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
                            children,
