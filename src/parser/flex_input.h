@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -55,7 +55,12 @@ class FlexInput
    */
   static std::unique_ptr<FlexInput> mkStringInput(const std::string& input);
   /** Get the stream to pass to the flex lexer. */
-  virtual std::istream& getStream() = 0;
+  virtual std::istream* getStream() = 0;
+  /**
+   * Is the stream of this input an interactive input? If so, we will read
+   * it character-by-character.
+   */
+  virtual bool isInteractive() const;
 };
 
 }  // namespace parser
