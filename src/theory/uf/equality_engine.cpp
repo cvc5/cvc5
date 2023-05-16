@@ -1275,7 +1275,8 @@ void EqualityEngine::explainPredicate(TNode p, bool polarity,
       getNodeId(p), polarity ? d_trueId : d_falseId, assertions, cache, eqp);
 }
 
-void EqualityEngine::explainLit(TNode lit, std::vector<TNode>& assumptions)
+void EqualityEngine::explainLit(TNode lit,
+                                std::vector<TNode>& assumptions) const
 {
   Trace("eq-exp") << "explainLit: " << lit << std::endl;
   Assert(lit.getKind() != kind::AND);
@@ -1314,7 +1315,7 @@ void EqualityEngine::explainLit(TNode lit, std::vector<TNode>& assumptions)
   }
 }
 
-Node EqualityEngine::mkExplainLit(TNode lit)
+Node EqualityEngine::mkExplainLit(TNode lit) const
 {
   Assert(lit.getKind() != kind::AND);
   std::vector<TNode> assumptions;
@@ -2338,32 +2339,6 @@ void EqualityEngine::storeApplicationLookup(FunctionApplication& funNormalized, 
     {
       enqueue(MergeCandidate(funId, d_falseId, MERGED_THROUGH_CONSTANTS, TNode::null()));
     }
-  }
-}
-
-void EqualityEngine::getUseListTerms(TNode t, std::set<TNode>& output) {
-  if (hasTerm(t)) {
-    // Get the equivalence class
-    EqualityNodeId classId = getEqualityNode(t).getFind();
-    // Go through the equivalence class and get where t is used in
-    EqualityNodeId currentId = classId;
-    do {
-      // Get the current node
-      EqualityNode& currentNode = getEqualityNode(currentId);
-      // Go through the use-list
-      UseListNodeId currentUseId = currentNode.getUseList();
-      while (currentUseId != null_uselist_id) {
-        // Get the node of the use list
-        UseListNode& useNode = d_useListNodes[currentUseId];
-        // Get the function application
-        EqualityNodeId funId = useNode.getApplicationId();
-        output.insert(d_nodes[funId]);
-        // Go to the next one in the use list
-        currentUseId = useNode.getNext();
-      }
-      // Move to the next node
-      currentId = currentNode.getNext();
-    } while (currentId != classId);
   }
 }
 
