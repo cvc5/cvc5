@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,11 +46,6 @@ class MyContextObj : public ContextObj
  public:
   MyContextObj(Context* context, MyContextNotifyObj& n)
       : ContextObj(context), d_ncalls(0), d_nsaves(0), d_notify(n)
-  {
-  }
-
-  MyContextObj(bool topScope, Context* context, MyContextNotifyObj& n)
-      : ContextObj(topScope, context), d_ncalls(0), d_nsaves(0), d_notify(n)
   {
   }
 
@@ -198,49 +193,6 @@ TEST_F(TestContextBlack, pre_post_notify)
   d_context.reset(nullptr);
 }
 
-TEST_F(TestContextBlack, top_scope_context_obj)
-{
-  // this test's implementation is based on the fact that a
-  // ContextObj allocated primordially "in the top scope" (first arg
-  // to ctor is "true"), doesn't get updated if you immediately call
-  // makeCurrent().
-
-  MyContextNotifyObj n(d_context.get(), true);
-
-  d_context->push();
-
-  MyContextObj x(false, d_context.get(), n);
-  {
-    MyContextObj y(true, d_context.get(), n);
-
-    ASSERT_EQ(x.d_nsaves, 0);
-    ASSERT_EQ(y.d_nsaves, 0);
-
-    x.makeCurrent();
-    y.makeCurrent();
-
-    ASSERT_EQ(x.d_nsaves, 1);
-    ASSERT_EQ(y.d_nsaves, 0);
-
-    d_context->push();
-
-    x.makeCurrent();
-    y.makeCurrent();
-
-    ASSERT_EQ(x.d_nsaves, 2);
-    ASSERT_EQ(y.d_nsaves, 1);
-
-    d_context->pop();
-
-    // `y` is invalid below the first level because it was allocated in the top
-    // scope. We have to make sure to destroy it before the next pop.
-  }
-
-  d_context->pop();
-
-  ASSERT_EQ(x.d_nsaves, 2);
-}
-
 TEST_F(TestContextBlack, detect_invalid_obj)
 {
   MyContextNotifyObj n(d_context.get(), true);
@@ -249,19 +201,9 @@ TEST_F(TestContextBlack, detect_invalid_obj)
     // Objects allocated at the bottom scope are allowed to outlive the scope
     // that they have been allocated in.
     d_context->push();
-    MyContextObj x(false, d_context.get(), n);
+    MyContextObj x(d_context.get(), n);
     d_context->pop();
   }
-
-  ASSERT_DEATH(
-      {
-        // Objects allocated at the top scope are not allowed to outlive the
-        // scope that they have been allocated in.
-        d_context->push();
-        MyContextObj y(true, d_context.get(), n);
-        d_context->pop();
-      },
-      "d_pScope != nullptr");
 }
 
 }  // namespace test

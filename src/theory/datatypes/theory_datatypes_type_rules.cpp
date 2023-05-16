@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -472,8 +472,11 @@ TypeNode MatchTypeRule::computeType(NodeManager* nodeManager,
     }
     else if (retType != currType)
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "incomparable types in match case list");
+      std::stringstream ss;
+      ss << "incomparable types in match case list" << std::endl;
+      ss << nc[1] << ": " << currType << std::endl;
+      ss << "expected: " << retType << std::endl;
+      throw TypeCheckingExceptionPrivate(n, ss.str());
     }
   }
   // it is mandatory to check this here to ensure the match is exhaustive
