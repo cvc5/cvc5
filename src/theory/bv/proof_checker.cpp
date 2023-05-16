@@ -54,7 +54,7 @@ Node BVProofRuleChecker::checkInternal(PfRule id,
     Assert(args[0].getKind() == kind::BITVECTOR_EAGER_ATOM);
     return args[0].eqNode(args[0][0]);
   }
-  else if (id == PfRule::BV_BITWISE_SLICING)
+  else if (id == PfRule::BV_BITWISE_SLICING && RewriteRule<BitwiseSlicing>::applies(args[0]))
   {
     Assert(children.empty());
     Assert(args.size() == 1);
@@ -62,7 +62,7 @@ Node BVProofRuleChecker::checkInternal(PfRule id,
     Assert(node.getKind() == kind::BITVECTOR_AND ||
            node.getKind() == kind::BITVECTOR_OR ||
            node.getKind() == kind::BITVECTOR_XOR);
-    return RewriteRule<BitwiseSlicing>::run<false>(node);
+    return node.eqNode(RewriteRule<BitwiseSlicing>::run<false>(node));
   }
   return Node::null();
 }
