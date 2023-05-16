@@ -3566,6 +3566,23 @@ foreach(tester ${testers})
     DEPENDS build-regress)
 endforeach()
 
+# We must ensure that the cvc5 binary is built before running any tests.
+# In principle, this would just be a matter of adding a dependency on the 
+# 'test' target (defined by CTest). However, that built-in targets are not 
+# accessible via user code. 
+#
+# This seems to be a legacy cmake bug from +10 years ago:
+#   https://stackoverflow.com/questions/48019306/how-to-add-a-dependency-to-the-test-target-in-cmake
+#   https://gitlab.kitware.com/cmake/cmake/-/issues/8774
+#   https://gitlab.kitware.com/cmake/cmake/-/issues/8438
+#
+# In order to have 'make test' work properly when cvc5 binaries are not built, 
+# we use a Cmake feature called FIXTURES to add 'test_setup' as the first test
+# which builds the 'build-tests' target.
+
+add_test(test_setup "${CMAKE_COMMAND" --build "${CMAKE_BINARY_DIR" --config "$<CONFIG>" --target build-tests -j${CTEST_NTHREADS}}
+set_tests_properties(test_setup PROPERTIES FIXTURES_SETUP test_setup_fixture)
+
 macro(cvc5_add_regression_test level file)
   set(wrapper )
   if(CMAKE_CROSSCOMPILING AND CMAKE_SYSTEM_NAME STREQUAL "Windows")
@@ -3585,6 +3602,7 @@ macro(cvc5_add_regression_test level file)
     ${CMAKE_CURRENT_LIST_DIR}/${file})
   set_tests_properties(${file} PROPERTIES LABELS "regress${level}")
   set_tests_properties(${file} PROPERTIES SKIP_RETURN_CODE 77)
+  set_tests_properties(${file} PROPERTIES FIXTURES_REQUIRED test_setup_fixture)
 endmacro()
 
 set(RUN_REGRESSION_ARGS ${RUN_REGRESSION_ARGS} --use-skip-return-code)
