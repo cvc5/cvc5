@@ -23,6 +23,7 @@
 #include <map>
 #include <vector>
 
+#include "base/check.h"
 #include "parser/flex_lexer.h"
 #include "parser/tokens.h"
 
@@ -58,11 +59,37 @@ class Smt2LexerNew : public FlexLexer
    */
   Token computeNextToken();
   /** Get the next character */
-  char nextChar();
+  char nextChar()
+  {
+    char res;
+    if (d_peekedChar)
+    {
+      res = d_chPeeked;
+      d_peekedChar = false;
+    }
+    else
+    {
+      res = readNextChar();
+      if (res == '\n')
+      {
+        d_span.d_end.d_line++;
+        d_span.d_end.d_column = 0;
+      }
+      else
+      {
+        d_span.d_end.d_column++;
+      }
+    }
+    return res;
+  }
   /** Save character */
   void saveChar(char ch);
   /** Push a character to the stored token */
-  void pushToToken(char ch);
+  void pushToToken(char ch)
+  {
+    Assert(ch != EOF);
+    d_token.push_back(ch);
+  }
   //----------- Utilities for parsing the current character stream
   enum class CharacterClass
   {

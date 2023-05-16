@@ -17,7 +17,6 @@
 
 #include <cstdio>
 
-#include "base/check.h"
 #include "base/output.h"
 #include "parser/flex_lexer.h"
 
@@ -248,41 +247,11 @@ Token Smt2LexerNew::computeNextToken()
   return Token::NONE;
 }
 
-char Smt2LexerNew::nextChar()
-{
-  char res;
-  if (d_peekedChar)
-  {
-    res = d_chPeeked;
-    d_peekedChar = false;
-  }
-  else
-  {
-    res = readNextChar();
-    if (res == '\n')
-    {
-      d_span.d_end.d_line++;
-      d_span.d_end.d_column = 0;
-    }
-    else
-    {
-      d_span.d_end.d_column++;
-    }
-  }
-  return res;
-}
-
 void Smt2LexerNew::saveChar(char ch)
 {
   Assert(!d_peekedChar);
   d_peekedChar = true;
   d_chPeeked = ch;
-}
-
-void Smt2LexerNew::pushToToken(char ch)
-{
-  Assert(ch != EOF);
-  d_token.push_back(ch);
 }
 
 bool Smt2LexerNew::parseLiteralChar(char chc)

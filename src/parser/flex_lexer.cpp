@@ -73,6 +73,13 @@ void FlexLexer::initialize(FlexInput* input, const std::string& inputName)
   d_inputName = inputName;
   initSpan();
   d_peeked.clear();
+  Token t;
+  do
+  {
+    t = nextToken();
+  }
+  while (t !=Token::EOF_TOK);
+  exit(1);
 }
 
 Token FlexLexer::nextToken()
