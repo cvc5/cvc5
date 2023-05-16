@@ -162,8 +162,7 @@ cvc5::Term TptpState::parseOpToExpr(ParseOp& p)
   expr = isTptpDeclared(p.d_name);
   if (expr.isNull())
   {
-    cvc5::Sort t =
-        p.d_type == d_solver->getBooleanSort() ? p.d_type : d_unsorted;
+    cvc5::Sort t = isPredicate(p) ? d_solver->getBooleanSort() : d_unsorted;
     expr = bindVar(p.d_name, t);  // must define at level zero
     d_auxSymbolTable[p.d_name] = expr;
     preemptCommand(std::make_unique<DeclareFunctionCommand>(p.d_name, expr, t));
@@ -238,15 +237,14 @@ cvc5::Term TptpState::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
   // the builtin kind of the overall return expression
   cvc5::Kind kind = cvc5::NULL_TERM;
   // First phase: piece operator together
-  if (p.d_kind == cvc5::NULL_TERM)
+  if (p.d_kind == cvc5::NULL_TERM || p.d_kind == cvc5::CONST_BOOLEAN)
   {
     // A non-built-in function application, get the expression
     cvc5::Term v = isTptpDeclared(p.d_name);
     if (v.isNull())
     {
       std::vector<cvc5::Sort> sorts(args.size(), d_unsorted);
-      cvc5::Sort t =
-          p.d_type == d_solver->getBooleanSort() ? p.d_type : d_unsorted;
+      cvc5::Sort t = isPredicate(p) ? d_solver->getBooleanSort() : d_unsorted;
       t = d_solver->mkFunctionSort(sorts, t);
       v = bindVar(p.d_name, t);  // must define at level zero
       d_auxSymbolTable[p.d_name] = v;
@@ -424,6 +422,15 @@ cvc5::Term TptpState::mkDecimal(
 }
 
 const std::string& TptpState::getTptpDir() const { return d_tptpDir; }
+
+void TptpState::markPredicate(ParseOp& p) const
+{
+  // temporary hack to distinguish certain ParseOp as predicates
+  // this will be deleted along with the TPTP parser.
+  p.d_indices.push_back(1);
+}
+
+bool TptpState::isPredicate(ParseOp& p) const { return !p.d_indices.empty(); }
 
 bool TptpState::hol() const { return d_hol; }
 void TptpState::setHol()
