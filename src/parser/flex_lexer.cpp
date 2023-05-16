@@ -77,8 +77,7 @@ void FlexLexer::initialize(FlexInput* input, const std::string& inputName)
   do
   {
     t = nextToken();
-  }
-  while (t !=Token::EOF_TOK);
+  } while (t != Token::EOF_TOK);
   exit(1);
 }
 
