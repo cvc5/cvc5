@@ -3580,7 +3580,7 @@ endforeach()
 # we use a Cmake feature called FIXTURES to add 'test_setup' as the first test
 # which builds the 'build-tests' target.
 
-add_test(test_setup "${CMAKE_COMMAND" --build "${CMAKE_BINARY_DIR" --config "$<CONFIG>" --target build-tests -j${CTEST_NTHREADS})
+add_test(test_setup "${CMAKE_COMMAND" --build "${CMAKE_BINARY_DIR}" --config "$<CONFIG>" --target build-tests -j${CTEST_NTHREADS})
 set_tests_properties(test_setup PROPERTIES FIXTURES_SETUP test_setup_fixture)
 
 macro(cvc5_add_regression_test level file)
