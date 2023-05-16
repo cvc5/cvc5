@@ -124,6 +124,14 @@ name   = "Bitvector Theory"
   help       = "enable additional rewrites over zero/sign extend over equalities with constants (useful on BV/2017-Preiner-scholl-smt08)"
 
 [[option]]
+  name       = "bvEqEngine"
+  category   = "expert"
+  long       = "bv-eq-engine"
+  type       = "bool"
+  default    = "true"
+  help       = "enable equality engine when possible in bitvector theory"
+
+[[option]]
   name       = "bvEagerEval"
   category   = "regular"
   long       = "bv-eager-eval"

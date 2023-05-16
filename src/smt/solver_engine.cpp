@@ -23,6 +23,7 @@
 #include "expr/bound_var_manager.h"
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "expr/subtype_elim_node_converter.h"
 #include "options/base_options.h"
 #include "options/expr_options.h"
@@ -40,7 +41,6 @@
 #include "proof/unsat_core.h"
 #include "prop/prop_engine.h"
 #include "smt/abduction_solver.h"
-#include "smt/abstract_values.h"
 #include "smt/assertions.h"
 #include "smt/check_models.h"
 #include "smt/context_manager.h"
@@ -93,7 +93,6 @@ SolverEngine::SolverEngine(const Options* optr)
     : d_env(new Env(optr)),
       d_state(new SolverEngineState(*d_env.get())),
       d_ctxManager(nullptr),
-      d_absValues(new AbstractValues),
       d_routListener(new ResourceOutListener(*this)),
       d_smtSolver(nullptr),
       d_smtDriver(nullptr),
@@ -112,13 +111,14 @@ SolverEngine::SolverEngine(const Options* optr)
   // make statistics
   d_stats.reset(new SolverEngineStatistics(d_env->getStatisticsRegistry()));
   // make the SMT solver
-  d_smtSolver.reset(new SmtSolver(*d_env, *d_absValues, *d_stats));
+  d_smtSolver.reset(new SmtSolver(*d_env, *d_stats));
   // make the context manager
   d_ctxManager.reset(new ContextManager(*d_env.get(), *d_state));
   // make the SyGuS solver
   d_sygusSolver.reset(new SygusSolver(*d_env.get(), *d_smtSolver));
   // make the quantifier elimination solver
-  d_quantElimSolver.reset(new QuantElimSolver(*d_env.get(), *d_smtSolver));
+  d_quantElimSolver.reset(
+      new QuantElimSolver(*d_env.get(), *d_smtSolver, d_ctxManager.get()));
 }
 
 bool SolverEngine::isFullyInited() const { return d_state->isFullyInited(); }
@@ -190,9 +190,10 @@ void SolverEngine::finishInit()
   }
   else
   {
+    ContextManager* ctx = d_ctxManager.get();
     // deep restarts not enabled
     d_smtDriver.reset(
-        new SmtDriverSingleCall(*d_env.get(), *d_smtSolver.get()));
+        new SmtDriverSingleCall(*d_env.get(), *d_smtSolver.get(), ctx));
   }
 
   // global push/pop around everything, to ensure proper destruction
@@ -247,8 +248,6 @@ SolverEngine::~SolverEngine()
 
     d_pfManager.reset(nullptr);
     d_ucManager.reset(nullptr);
-
-    d_absValues.reset(nullptr);
 
     d_abductSolver.reset(nullptr);
     d_interpolSolver.reset(nullptr);
@@ -516,8 +515,7 @@ void SolverEngine::defineFunction(Node func,
   // type check body
   debugCheckFunctionBody(formula, formals, func);
 
-  // Substitute out any abstract values in formula
-  Node def = d_absValues->substituteAbstractValues(formula);
+  Node def = formula;
   if (!formals.empty())
   {
     NodeManager* nm = NodeManager::currentNM();
@@ -727,10 +725,8 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
 
   Trace("smt") << "SolverEngine::checkSat(" << assumptions << ")" << endl;
   // update the state to indicate we are about to run a check-sat
-  bool hasAssumptions = !assumptions.empty();
   d_state->notifyCheckSat();
   d_ctxManager->doPendingPops();
-  d_ctxManager->notifyCheckSat(hasAssumptions);
 
   // Call the SMT solver driver to check for satisfiability. Note that in the
   // case of options like e.g. deep restarts, this may invokve multiple calls
@@ -741,7 +737,6 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
                << endl;
   // notify our state of the check-sat result
   d_state->notifyCheckSatResult(r);
-  d_ctxManager->notifyCheckSatResult(hasAssumptions);
 
   // Check that SAT results generate a model correctly.
   if (d_env->getOptions().smt.checkModels)
@@ -829,11 +824,7 @@ void SolverEngine::assertFormulaInternal(const Node& formula)
   // as an optimization we do not check whether formula is well-formed here, and
   // defer this check for certain cases within the assertions module.
   Trace("smt") << "SolverEngine::assertFormula(" << formula << ")" << endl;
-
-  // Substitute out any abstract values in ex
-  Node n = d_absValues->substituteAbstractValues(formula);
-
-  d_smtSolver->getAssertions().assertFormula(n);
+  d_smtSolver->getAssertions().assertFormula(formula);
 }
 
 /*
@@ -974,10 +965,8 @@ Node SolverEngine::simplify(const Node& t)
   d_ctxManager->doPendingPops();
   // ensure we've processed assertions
   d_smtDriver->refreshAssertions();
-  // Substitute out any abstract values in node.
-  Node tt = d_absValues->substituteAbstractValues(t);
   // apply substitutions
-  tt = d_smtSolver->getPreprocessor()->applySubstitutions(tt);
+  Node tt = d_smtSolver->getPreprocessor()->applySubstitutions(t);
   // now rewrite
   Node ret = d_env->getRewriter()->rewrite(tt);
   // make so that the returned term does not involve arithmetic subtyping
@@ -992,9 +981,6 @@ Node SolverEngine::getValue(const Node& t) const
   Trace("smt") << "SMT getValue(" << t << ")" << endl;
   TypeNode expectedType = t.getType();
 
-  // Substitute out any abstract values in node.
-  Node tt = d_absValues->substituteAbstractValues(t);
-
   // We must expand definitions here, which replaces certain subterms of t
   // by the form that is used internally. This is necessary for some corner
   // cases of get-value to be accurate, e.g., when getting the value of
@@ -1005,7 +991,7 @@ Node SolverEngine::getValue(const Node& t) const
   ExpandDefs expDef(*d_env.get());
   // Must apply substitutions first to ensure we expand definitions in the
   // solved form of t as well.
-  Node n = d_smtSolver->getPreprocessor()->applySubstitutions(tt);
+  Node n = d_smtSolver->getPreprocessor()->applySubstitutions(t);
   n = expDef.expandDefinitions(n, cache);
 
   Trace("smt") << "--- getting value of " << n << endl;
@@ -1042,10 +1028,20 @@ Node SolverEngine::getValue(const Node& t) const
                      << " in getValue." << std::endl;
   }
 
-  if (d_env->getOptions().smt.abstractValues && resultNode.getType().isArray())
+  if (d_env->getOptions().smt.abstractValues)
   {
-    resultNode = d_absValues->mkAbstractValue(resultNode);
-    Trace("smt") << "--- abstract value >> " << resultNode << endl;
+    TypeNode rtn = resultNode.getType();
+    if (rtn.isArray())
+    {
+      // construct the skolem function
+      SkolemManager* skm = NodeManager::currentNM()->getSkolemManager();
+      Node a =
+          skm->mkSkolemFunction(SkolemFunId::ABSTRACT_VALUE, rtn, resultNode);
+      // add to top-level substitutions
+      d_env->getTopLevelSubstitutions().addSubstitution(resultNode, a);
+      resultNode = a;
+      Trace("smt") << "--- abstract value >> " << resultNode << endl;
+    }
   }
 
   return resultNode;
@@ -1689,10 +1685,8 @@ Node SolverEngine::getQuantifierElimination(Node q, bool doFull)
 {
   finishInit();
   d_ctxManager->doPendingPops();
-  d_ctxManager->notifyCheckSat(true);
   Node result = d_quantElimSolver->getQuantifierElimination(
       q, doFull, d_isInternalSubsolver);
-  d_ctxManager->notifyCheckSatResult(true);
   return result;
 }
 

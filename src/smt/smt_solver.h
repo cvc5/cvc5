@@ -65,7 +65,6 @@ class SmtSolver : protected EnvObj
 {
  public:
   SmtSolver(Env& env,
-            AbstractValues& abs,
             SolverEngineStatistics& stats);
   ~SmtSolver();
   /**
@@ -98,7 +97,7 @@ class SmtSolver : protected EnvObj
    * Reset the prop engine trail and call the postsolve method of the
    * underlying TheoryEngine.
    */
-  void postsolve();
+  void resetTrail();
   //------------------------------------------ access methods
   /** Get a pointer to the TheoryEngine owned by this solver. */
   TheoryEngine* getTheoryEngine();
