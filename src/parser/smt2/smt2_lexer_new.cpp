@@ -85,7 +85,7 @@ Token Smt2LexerNew::nextTokenInternal()
   Trace("lexer-debug") << "Call nextToken" << std::endl;
   d_token.clear();
   Token ret = computeNextToken();
-  // null terminate?
+  // null-terminate token string
   d_token.push_back(0);
   Trace("lexer-debug") << "Return nextToken " << ret << " / " << tokenStr()
                        << std::endl;
