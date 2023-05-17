@@ -44,7 +44,7 @@ class FlexParser : public ParserStateCallback
   FlexParser(Solver* solver, SymbolManager* sm);
   virtual ~FlexParser() {}
   /**
-   * Set the logic 
+   * Set the logic
    *
    * @param name The name of the logic.
    */
