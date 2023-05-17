@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *   Andrew Reynolds, Abdalrhman Mohamed, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,11 +27,14 @@
 #include "proof/lfsc/lfsc_print_channel.h"
 
 using namespace cvc5::internal::kind;
+using namespace cvc5::internal::rewriter;
 
 namespace cvc5::internal {
 namespace proof {
 
-LfscPrinter::LfscPrinter(Env& env, LfscNodeConverter& ltp)
+LfscPrinter::LfscPrinter(Env& env,
+                         LfscNodeConverter& ltp,
+                         rewriter::RewriteDb* rdb)
     : EnvObj(env),
       d_tproc(ltp),
       d_assumpCounter(0),
@@ -39,7 +42,8 @@ LfscPrinter::LfscPrinter(Env& env, LfscNodeConverter& ltp)
       d_termLetPrefix("t"),
       d_assumpPrefix("a"),
       d_pletPrefix("p"),
-      d_pletTrustChildPrefix("q")
+      d_pletTrustChildPrefix("q"),
+      d_rdb(rdb)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_boolType = nm->booleanType();
@@ -213,7 +217,12 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   }
 
   // [6] print the DSL rewrite rule declarations
-  // TODO cvc5-projects #285.
+  const std::unordered_set<DslPfRule>& dslrs = lpcp.getDslRewrites();
+  for (DslPfRule dslr : dslrs)
+  {
+    // also computes the format for the rule
+    printDslRule(out, dslr, d_dslFormat[dslr]);
+  }
 
   // [7] print the check command and term lets
   out << preamble.str();
@@ -526,6 +535,11 @@ void LfscPrinter::printProofInternal(
           passumeIt = passumeMap.find(cur->getResult());
           Assert(passumeIt != passumeMap.end());
           out->printId(passumeIt->second, d_assumpPrefix);
+        }
+        else if (r == PfRule::ENCODE_PRED_TRANSFORM)
+        {
+          // just add child
+          visit.push_back(PExpr(cur->getChildren()[0].get()));
         }
         else if (isLambda)
         {
@@ -859,6 +873,117 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       }
     }
     break;
+    case PfRule::DSL_REWRITE:
+    {
+      DslPfRule di = DslPfRule::FAIL;
+      if (!rewriter::getDslPfRule(args[0], di))
+      {
+        Assert(false);
+      }
+      Trace("lfsc-print-debug2") << "Printing dsl rule " << di << std::endl;
+      const rewriter::RewriteProofRule& rpr = d_rdb->getRule(di);
+      const std::vector<Node>& varList = rpr.getVarList();
+      Assert(as.size() == varList.size() + 1);
+      // print holes/terms based on whether variables are explicit
+      for (size_t i = 1, nargs = as.size(); i < nargs; i++)
+      {
+        Node v = varList[i - 1];
+        if (rpr.isExplicitVar(v))
+        {
+          // If the variable is a list variable, we must convert its value to
+          // the proper term. This is based on its context.
+          if (as[i].getKind() == SEXPR)
+          {
+            Assert(args[i].getKind() == SEXPR);
+            NodeManager* nm = NodeManager::currentNM();
+            Kind k = rpr.getListContext(v);
+            // notice we use d_tproc.getNullTerminator and not
+            // expr::getNullTerminator here, which has subtle differences
+            // e.g. re.empty vs (str.to_re "").
+            Node null = d_tproc.getNullTerminator(k, v.getType());
+            Node t;
+            if (as[i].getNumChildren() == 1)
+            {
+              // Singleton list uses null terminator. We first construct an
+              // original term and convert it.
+              Node tt = nm->mkNode(k, args[i][0], null);
+              tt = d_tproc.convert(tt);
+              // Since conversion adds a null terminator, we have that
+              // tt is of the form (f t (f null null)). We reconstruct
+              // the proper term (f t null) below.
+              Assert(tt.getNumChildren() == 2);
+              Assert(tt[1].getNumChildren() == 2);
+              std::vector<Node> tchildren;
+              if (tt.getMetaKind() == metakind::PARAMETERIZED)
+              {
+                tchildren.push_back(tt.getOperator());
+              }
+              tchildren.push_back(tt[0]);
+              tchildren.push_back(tt[1][0]);
+              t = nm->mkNode(tt.getKind(), tchildren);
+            }
+            else
+            {
+              if (k == UNDEFINED_KIND)
+              {
+                Unhandled() << "Unknown context for list variable " << v
+                            << " in rule " << di;
+              }
+              if (as[i].getNumChildren() == 0)
+              {
+                t = null;
+              }
+              else
+              {
+                // re-convert it
+                std::vector<Node> vec(args[i].begin(), args[i].end());
+                t = nm->mkNode(k, vec);
+              }
+              t = d_tproc.convert(t);
+            }
+            pf << t;
+          }
+          else
+          {
+            pf << as[i];
+          }
+        }
+        else
+        {
+          pf << h;
+        }
+      }
+      // print child proofs, which is based on the format computed for the rule
+      size_t ccounter = 0;
+      std::map<rewriter::DslPfRule, std::vector<Node>>::iterator itf =
+          d_dslFormat.find(di);
+      if (itf == d_dslFormat.end())
+      {
+        // We may not have computed the format yet, e.g. if we are printing
+        // via the pre print channel. In this case, just print all the children.
+        for (const ProofNode* c : cs)
+        {
+          pf << c;
+        }
+      }
+      else
+      {
+        for (const Node& f : itf->second)
+        {
+          if (f.isNull())
+          {
+            // this position is a hole
+            pf << h;
+            continue;
+          }
+          Assert(ccounter < cs.size());
+          pf << cs[ccounter];
+          ccounter++;
+        }
+        Assert(ccounter == cs.size());
+      }
+    }
+    break;
     default:
     {
       return false;
@@ -953,6 +1078,132 @@ void LfscPrinter::printType(std::ostream& out, TypeNode tn)
 {
   TypeNode tni = d_tproc.convertType(tn);
   LfscPrintChannelOut::printTypeNodeInternal(out, tni);
+}
+
+void LfscPrinter::printDslRule(std::ostream& out,
+                               DslPfRule id,
+                               std::vector<Node>& format)
+{
+  const rewriter::RewriteProofRule& rpr = d_rdb->getRule(id);
+  const std::vector<Node>& varList = rpr.getVarList();
+  const std::vector<Node>& uvarList = rpr.getUserVarList();
+  const std::vector<Node>& conds = rpr.getConditions();
+  Node conc = rpr.getConclusion();
+
+  std::stringstream oscs;
+  std::stringstream odecl;
+
+  std::stringstream rparen;
+  odecl << "(declare ";
+  LfscPrintChannelOut::printDslProofRuleId(odecl, id);
+  std::vector<Node> vlsubs;
+  // streams for printing the computation of term in side conditions or
+  // list semantics substitutions
+  std::stringstream argList;
+  std::stringstream argListTerms;
+  // the list variables
+  std::unordered_set<Node> listVars;
+  argList << "(";
+  // use the names from the user variable list (uvarList)
+  for (const Node& v : uvarList)
+  {
+    std::stringstream sss;
+    sss << v;
+    Node s = d_tproc.mkInternalSymbol(sss.str(), v.getType());
+    odecl << " (! " << sss.str() << " term";
+    argList << "(" << sss.str() << " term)";
+    argListTerms << " " << sss.str();
+    rparen << ")";
+    vlsubs.push_back(s);
+    // remember if v was a list variable, we must convert these in side
+    // condition printing below
+    if (expr::isListVar(v))
+    {
+      listVars.insert(s);
+    }
+  }
+  argList << ")";
+  // print conditions
+  size_t termCount = 0;
+  size_t scCount = 0;
+  // print conditions, then conclusion
+  for (size_t i = 0, nconds = conds.size(); i <= nconds; i++)
+  {
+    bool isConclusion = i == nconds;
+    Node term = isConclusion ? conc : conds[i];
+    Node sterm = term.substitute(
+        varList.begin(), varList.end(), vlsubs.begin(), vlsubs.end());
+    if (expr::hasListVar(term))
+    {
+      Assert(!listVars.empty());
+      scCount++;
+      std::stringstream scName;
+      scName << "dsl.sc." << scCount << "." << id;
+      // generate the side condition
+      oscs << "(function " << scName.str() << " " << argList.str() << " term"
+           << std::endl;
+      // body must be converted to incorporate list semantics for substitutions
+      // first traversal applies nary_elim to required n-ary applications
+      LfscListScNodeConverter llsncp(d_tproc, listVars, true);
+      Node tscp;
+      if (isConclusion)
+      {
+        Assert(sterm.getKind() == EQUAL);
+        // optimization: don't need nary_elim for heads
+        tscp = llsncp.convert(sterm[1]);
+        tscp = sterm[0].eqNode(tscp);
+      }
+      else
+      {
+        tscp = llsncp.convert(sterm);
+      }
+      // second traversal converts to LFSC form
+      Node t = d_tproc.convert(tscp);
+      // third traversal applies nary_concat where list variables are used
+      LfscListScNodeConverter llsnc(d_tproc, listVars, false);
+      Node tsc = llsnc.convert(t);
+      oscs << "  ";
+      print(oscs, tsc);
+      oscs << ")" << std::endl;
+      termCount++;
+      // introduce a term computed by side condition
+      odecl << " (! _t" << termCount << " term";
+      rparen << ")";
+      format.push_back(Node::null());
+      // side condition, which is an implicit argument
+      odecl << " (! _s" << scCount << " (^ (" << scName.str();
+      rparen << ")";
+      // arguments to side condition
+      odecl << argListTerms.str() << ") ";
+      // matches condition
+      odecl << "_t" << termCount << ")";
+      if (!isConclusion)
+      {
+        // the child proof
+        odecl << " (! _u" << i;
+        rparen << ")";
+        format.push_back(term);
+      }
+      odecl << " (holds _t" << termCount << ")";
+      continue;
+    }
+    // ordinary condition/conclusion, print the term directly
+    if (!isConclusion)
+    {
+      odecl << " (! _u" << i;
+      rparen << ")";
+      format.push_back(term);
+    }
+    odecl << " (holds ";
+    Node t = d_tproc.convert(sterm);
+    print(odecl, t);
+    odecl << ")";
+  }
+  odecl << rparen.str() << ")" << std::endl;
+  // print the side conditions
+  out << oscs.str();
+  // print the rule declaration
+  out << odecl.str();
 }
 
 }  // namespace proof
