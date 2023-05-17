@@ -1307,16 +1307,14 @@ void SolverEngine::checkProof()
   }
 }
 
-void SolverEngine::beginCall(bool rlimit)
+void SolverEngine::beginCall(bool needsRLlimit)
 {
   finishInit();
   d_ctxManager->doPendingPops();
-  /*
-  if (rlimit)
+  if (needsRLlimit)
   {
     getResourceManager()->beginCall();
   }
-  */
 }
 
 StatisticsRegistry& SolverEngine::getStatisticsRegistry()

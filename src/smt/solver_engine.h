@@ -857,10 +857,10 @@ class CVC5_EXPORT SolverEngine
    * Begin call, which is called before any method that requires initializing
    * this solver engine.
    * 
-   * @param rlimit If true, then beginCall() is called on the resource manager
-   * maintained by this class.
+   * @param needsRLlimit If true, then beginCall() is called on the resource
+   * manager maintained by this class.
    */
-  void beginCall(bool rlimit = false);
+  void beginCall(bool needsRLlimit = false);
 
   /** Set solver instance that owns this SolverEngine. */
   void setSolver(cvc5::Solver* solver) { d_solver = solver; }
