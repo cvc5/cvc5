@@ -413,11 +413,17 @@ class SkolemManager
    */
   static Node getUnpurifiedForm(Node k);
 
+  /** Retrieve skolem for bound variable v */
+  Node getSkolemForBVar(Node v);
+
  private:
   /** Cache of skolem functions for mkSkolemFunction above. */
   std::map<std::tuple<SkolemFunId, TypeNode, Node>, Node> d_skolemFuns;
   /** Backwards mapping of above */
   std::map<Node, std::tuple<SkolemFunId, TypeNode, Node>> d_skolemFunMap;
+  /** Maps bound variables to their skolems (which will be instances of
+   * QUANTIFIERS_SKOLEMIZE) */
+  std::map<Node, Node> d_bvarSkolemMap;
   /**
    * Mapping from witness terms to proof generators.
    */

@@ -17,6 +17,7 @@
 
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "proof/proof_rule_checker.h"
 
 namespace cvc5::internal {
 namespace proof {
@@ -32,14 +33,71 @@ Node AletheNodeConverter::postConvert(Node n)
     {
       Trace("alethe-conv") << "AletheNodeConverter: handling skolem " << n
                            << "\n";
-      Node wi = SkolemManager::getOriginalForm(n);
-      Trace("alethe-conv") << "AletheNodeConverter: ..original: " << wi << "\n";
-      // skolem with witness form, just convert that
-      if (!wi.isNull())
+      // skolems v print as their original forms
+      // v is (skolem W) where W is the original or original form of v
+      Node wi = SkolemManager::getUnpurifiedForm(n);
+      if (!wi.isNull() && wi != n)
       {
-        Trace("alethe-conv") << "AletheNodeConverter: ..skolem " << n
-                             << " has witness form " << wi << "\n";
+        Trace("alethe-conv") << "...to convert original form " << wi << std::endl;
         return convert(wi);
+      }
+      // might be a skolem function. For now we only handle the function for
+      // skolemization of strong quantifiers.
+      SkolemManager* sm = nm->getSkolemManager();
+      SkolemFunId sfi = SkolemFunId::NONE;
+      Node cacheVal;
+      // create the witness term (witness ((x_i T_i)) (exists ((x_i+1 T_i+1)
+      // ... (x_n T_n)) body), where the bound variables and the body come from
+      // the quantifier term which must be the first element of cacheVal (which
+      // should be a list), and i the second.
+      if (sm->isSkolemFunction(n, sfi, cacheVal)
+          && sfi == SkolemFunId::QUANTIFIERS_SKOLEMIZE)
+      {
+        Trace("alethe-conv")
+            << ".. to build witness with index/quant: " << cacheVal[1] << " / "
+            << cacheVal[0] << "\n";
+        Assert(cacheVal.getKind() == kind::SEXPR
+               && cacheVal.getNumChildren() == 2);
+        Node quant = cacheVal[0];
+        Assert(quant.getKind() == kind::EXISTS);
+         uint32_t index;
+        if (ProofRuleChecker::getUInt32(cacheVal[1], index))
+        {
+          Assert(index < quant[0].getNumChildren());
+          Node body =
+              index == quant[0].getNumChildren() - 1
+                  ? quant[1]
+                  : nm->mkNode(
+                      kind::EXISTS,
+                      nm->mkNode(kind::BOUND_VAR_LIST,
+                                 std::vector<Node>{quant[0].begin() + index + 1,
+                                   quant[0].end()}), quant[1]);
+          // we need to replace in the body all the free variables (i.e., from 0
+          // to index) by their respective choice terms. To do this, we get
+          // the skolems for each of these variables, retrieve their
+          // conversions, and replace the variables by the conversions in body
+          if (index > 0)
+          {
+            std::vector<Node> subs;
+            for (size_t i = 0; i < index; ++i)
+            {
+              Node sk = sm->getSkolemForBVar(quant[0][i]);
+              Assert(!sk.isNull());
+              subs.push_back(convert(sk));
+            }
+            body = body.substitute(quant[0].begin(),
+                                   quant[0].begin() + index,
+                                   subs.begin(),
+                                   subs.end());
+          }
+          Node witness =
+              nm->mkNode(kind::WITNESS,
+                         nm->mkNode(kind::BOUND_VAR_LIST, quant[0][index]),
+                         body);
+          d_skVarToWitnessesMap[quant[index]] = witness;
+          Trace("alethe-conv") << ".. witness " << witness << "\n";
+          return convert(witness);
+        }
       }
       Unreachable() << "Fresh Skolems are not allowed\n";
     }
