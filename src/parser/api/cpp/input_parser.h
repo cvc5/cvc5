@@ -23,6 +23,7 @@
 
 #include <memory>
 
+#include "parser/api/cpp/command.h"
 #include "parser/flex_parser.h"
 #include "parser/parser_antlr.h"
 
@@ -62,6 +63,10 @@ class CVC5_EXPORT InputParser
   Solver* getSolver();
   /** Get the underlying symbol manager of this input parser */
   SymbolManager* getSymbolManager();
+  /**
+   * Set the logic to use. This determines which builtin symbols are included.
+   */
+  void setLogic(const std::string& str);
   /** Set the input for the given file.
    *
    * @param lang the input language
@@ -98,11 +103,15 @@ class CVC5_EXPORT InputParser
   void appendIncrementalStringInput(const std::string& input);
 
   /**
-   * Parse and return the next command.
+   * Parse and return the next command. Will initialize the logic to "ALL"
+   * or the forced logic if no logic is set prior to this point.
    */
   std::unique_ptr<Command> nextCommand();
 
-  /** Parse and return the next expression. */
+  /**
+   * Parse and return the next expression. Requires setting the logic prior
+   * to this point.
+   */
   Term nextExpression();
 
  private:

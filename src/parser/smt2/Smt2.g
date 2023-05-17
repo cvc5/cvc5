@@ -211,7 +211,12 @@ command [std::unique_ptr<cvc5::parser::Command>* cmd]
   : /* set the logic */
     SET_LOGIC_TOK symbol[name,CHECK_NONE,SYM_SORT]
     {
-      cmd->reset(PARSER_STATE->setLogic(name));
+      // replace the logic with the forced logic, if applicable.
+      std::string lname = PARSER_STATE->logicIsForced() 
+                            ? PARSER_STATE->getForcedLogic()
+                            : name;
+      PARSER_STATE->setLogic(lname);
+      cmd->reset(new SetBenchmarkLogicCommand(lname));
     }
   | /* set-info */
     SET_INFO_TOK setInfoInternal[cmd]
@@ -1509,12 +1514,19 @@ identifier[cvc5::ParseOp& p]
       }
     | functionName[opName, CHECK_NONE] nonemptyNumeralList[numerals]
       {
-        // In some cases, we don't know which kind to use until we know the
-        // type of the arguments. This case handles to_fp, tuple.select and
-        // tuple.update. For consistency, we always construct the op lazily.
-        p.d_name = opName;
-        p.d_indices = numerals;
-        p.d_kind = cvc5::UNDEFINED_KIND;
+        cvc5::Kind k = PARSER_STATE->getIndexedOpKind(opName);
+        if (k == cvc5::UNDEFINED_KIND)
+        {
+          // We don't know which kind to use until we know the type of the
+          // arguments. This case handles to_fp, tuple.select and tuple.update
+          p.d_name = opName;
+          p.d_indices = numerals;
+          p.d_kind = cvc5::UNDEFINED_KIND;
+        }
+        else
+        {
+          p.d_op = SOLVER->mkOp(k, numerals);
+        }
       }
     )
     RPAREN_TOK
