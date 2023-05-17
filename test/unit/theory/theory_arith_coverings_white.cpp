@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andres Noetzli, Andrew Reynolds
+ *   Gereon Kremer, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -476,8 +476,8 @@ TEST_F(TestTheoryWhiteArithCoverings, test_ran_conversion)
       std::vector<Rational>({-2, 0, 1}), Rational(1, 3), Rational(7, 3));
   {
     Node x = make_real_variable("x");
-    Node n = nl::ran_to_node(ran, x);
-    RealAlgebraicNumber back = nl::node_to_ran(n, x);
+    Node n = PolyConverter::ran_to_node(ran, x);
+    RealAlgebraicNumber back = PolyConverter::node_to_ran(n, x);
     EXPECT_TRUE(ran == back);
   }
 }

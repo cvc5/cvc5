@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -43,22 +43,19 @@ endif()
 # Required for Cython target below
 list(APPEND CMAKE_MODULE_PATH ${SKBUILD_CMAKE_MODULE_PATH})
 
-find_package(PythonExtensions REQUIRED)
-
 find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Development)
 # Some cmake packages are not compatible with the newest version
 # of FindPython, introduced in cmake 3.12.
 # We define the symbols below to be backward compatible.
-if(NOT DEFINED PYTHON_EXECUTABLE) 
-  set(PYTHON_EXECUTABLE "${Python_EXECUTABLE}")
-endif()
-if (NOT DEFINED PYTHON_INCLUDE_DIRS) 
+# FindPython Development sets Python_INCLUDE_DIRS and Python_LIBRARIES
+if (NOT DEFINED PYTHON_INCLUDE_DIRS)
   set(PYTHON_INCLUDE_DIRS "${Python_INCLUDE_DIRS}")
 endif()
-if (NOT DEFINED PYTHON_LIBRARIES) 
+if (NOT DEFINED PYTHON_LIBRARIES)
   set(PYTHON_LIBRARIES "${Python_LIBRARIES}")
 endif()
 
+find_package(PythonExtensions REQUIRED)
 find_package(Cython 0.29 REQUIRED)
 
 set(CYTHON_FLAGS "-X embedsignature=True")

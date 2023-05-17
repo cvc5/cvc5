@@ -802,7 +802,7 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "ieval=MODE"
   type       = "IevalMode"
-  default    = "OFF"
+  default    = "USE"
   help       = "mode for using instantiation evaluation"
   help_mode  = "Mode for using instantiation evaluation."
 [[option.mode.OFF]]

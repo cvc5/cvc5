@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,11 +41,6 @@ struct UnpurifiedFormAttributeId
 {
 };
 typedef expr::Attribute<UnpurifiedFormAttributeId, Node> UnpurifiedFormAttribute;
-
-struct AbstractValueId
-{
-};
-using AbstractValueAttribute = expr::Attribute<AbstractValueId, bool>;
 
 const char* toString(SkolemFunId id)
 {
@@ -105,6 +100,7 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::HO_TYPE_MATCH_PRED: return "HO_TYPE_MATCH_PRED";
     case SkolemFunId::IEVAL_NONE: return "IEVAL_NONE";
     case SkolemFunId::IEVAL_SOME: return "IEVAL_SOME";
+    case SkolemFunId::ABSTRACT_VALUE: return "ABSTRACT_VALUE";
     default: return "?";
   }
 }
@@ -195,7 +191,7 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id,
   return mkSkolemFunction(id, tn, cacheVal, flags);
 }
 
-bool SkolemManager::isSkolemFunction(Node k,
+bool SkolemManager::isSkolemFunction(TNode k,
                                      SkolemFunId& id,
                                      Node& cacheVal) const
 {
@@ -230,8 +226,13 @@ ProofGenerator* SkolemManager::getProofGenerator(Node t) const
 
 bool SkolemManager::isAbstractValue(TNode n) const
 {
-  AbstractValueAttribute ava;
-  return n.getAttribute(ava);
+  SkolemFunId id;
+  Node cacheVal;
+  if (isSkolemFunction(n, id, cacheVal))
+  {
+    return id == SkolemFunId::ABSTRACT_VALUE;
+  }
+  return false;
 }
 
 Node SkolemManager::getOriginalForm(Node n)
@@ -390,12 +391,6 @@ Node SkolemManager::mkSkolemNode(const std::string& prefix,
   }
   n.setAttribute(expr::TypeAttr(), type);
   n.setAttribute(expr::TypeCheckedAttr(), true);
-
-  if ((flags & SKOLEM_ABSTRACT_VALUE) != 0)
-  {
-    AbstractValueAttribute ava;
-    n.setAttribute(ava, true);
-  }
 
   return n;
 }

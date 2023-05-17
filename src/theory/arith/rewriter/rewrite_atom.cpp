@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer
+ *   Gereon Kremer, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,8 +29,8 @@ namespace {
  * Evaluate the given relation based on values l and r. Expects that the
  * relational operators `operator<(L,R)`, `operator==(L,R)`, etc are defined.
  */
-template <typename L, typename R>
-bool evaluateRelation(Kind rel, const L& l, const R& r)
+template <typename L>
+bool evaluateRelation(Kind rel, const L& l, const L& r)
 {
   switch (rel)
   {
@@ -70,17 +70,17 @@ void normalizeLCoeffAbsOne(Sum& sum)
   {
     auto& front = *sum.begin();
     // Trivial if there is only one summand
-    front.second = Integer(sgn(front.second) > 0 ? 1 : -1);
+    front.second = Integer(front.second.sgn() > 0 ? 1 : -1);
     return;
   }
   // LCoeff is first coefficient of non-constant monomial
   RealAlgebraicNumber lcoeff = getLTerm(sum).second;
   ;
-  if (sgn(lcoeff) < 0)
+  if (lcoeff.sgn() < 0)
   {
     lcoeff = -lcoeff;
   }
-  if (isOne(lcoeff)) return;
+  if (lcoeff.isOne()) return;
   for (auto& s : sum)
   {
     s.second = s.second / lcoeff;
@@ -124,7 +124,7 @@ bool normalizeGCDLCM(Sum& sum, bool followLCoeffSign = false)
   bool negate = false;
   if (followLCoeffSign)
   {
-    if (sgn(getLTerm(sum).second) < 0)
+    if (getLTerm(sum).second.sgn() < 0)
     {
       negate = true;
       mult = -mult;
@@ -204,7 +204,7 @@ std::optional<bool> tryEvaluateRelation(Kind rel, TNode left, TNode right)
     {
       const RealAlgebraicNumber& r =
           right.getOperator().getConst<RealAlgebraicNumber>();
-      return evaluateRelation(rel, l, r);
+      return evaluateRelation(rel, RealAlgebraicNumber(l), r);
     }
   }
   else if (left.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
@@ -214,7 +214,7 @@ std::optional<bool> tryEvaluateRelation(Kind rel, TNode left, TNode right)
     if (right.isConst())
     {
       const Rational& r = right.getConst<Rational>();
-      return evaluateRelation(rel, l, r);
+      return evaluateRelation(rel, l, RealAlgebraicNumber(r));
     }
     else if (right.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
     {
@@ -282,7 +282,7 @@ Node buildIntegerEquality(Sum&& sum)
   auto minabscoeff = removeMinAbsCoeff(sum);
   Trace("arith-rewriter::debug") << "\tremoved min abs coeff " << minabscoeff
                                  << ", left with " << sum << std::endl;
-  if (sgn(minabscoeff.second) < 0)
+  if (minabscoeff.second.sgn() < 0)
   {
     // move minabscoeff goes to the right and switch lhs and rhs
     minabscoeff.second = -minabscoeff.second;
@@ -307,7 +307,7 @@ Node buildRealEquality(Sum&& sum)
 {
   Trace("arith-rewriter") << "building real equality from " << sum << std::endl;
   auto lterm = removeLTerm(sum);
-  if (isZero(lterm.second))
+  if (lterm.second.isZero())
   {
     return buildRelation(Kind::EQUAL, mkConst(Integer(0)), collectSum(sum));
   }
