@@ -21,8 +21,8 @@
 #include "expr/bound_var_manager.h"
 #include "expr/node_algorithm.h"
 #include "expr/node_manager_attributes.h"
-#include "util/rational.h"
 #include "proof/proof_rule_checker.h"
+#include "util/rational.h"
 
 using namespace cvc5::internal::kind;
 
@@ -367,7 +367,6 @@ Node SkolemManager::getSkolemForBVar(Node v)
   }
   return it->second;
 }
-
 
 Node SkolemManager::mkSkolemInternal(Node w,
                                      const std::string& prefix,

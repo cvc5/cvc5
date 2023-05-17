@@ -38,7 +38,8 @@ Node AletheNodeConverter::postConvert(Node n)
       Node wi = SkolemManager::getUnpurifiedForm(n);
       if (!wi.isNull() && wi != n)
       {
-        Trace("alethe-conv") << "...to convert original form " << wi << std::endl;
+        Trace("alethe-conv")
+            << "...to convert original form " << wi << std::endl;
         return convert(wi);
       }
       // might be a skolem function. For now we only handle the function for
@@ -60,7 +61,7 @@ Node AletheNodeConverter::postConvert(Node n)
                && cacheVal.getNumChildren() == 2);
         Node quant = cacheVal[0];
         Assert(quant.getKind() == kind::EXISTS);
-         uint32_t index;
+        uint32_t index;
         if (ProofRuleChecker::getUInt32(cacheVal[1], index))
         {
           Assert(index < quant[0].getNumChildren());
@@ -71,7 +72,8 @@ Node AletheNodeConverter::postConvert(Node n)
                       kind::EXISTS,
                       nm->mkNode(kind::BOUND_VAR_LIST,
                                  std::vector<Node>{quant[0].begin() + index + 1,
-                                   quant[0].end()}), quant[1]);
+                                                   quant[0].end()}),
+                      quant[1]);
           // we need to replace in the body all the free variables (i.e., from 0
           // to index) by their respective choice terms. To do this, we get
           // the skolems for each of these variables, retrieve their
