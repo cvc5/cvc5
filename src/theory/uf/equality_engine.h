@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -102,6 +102,7 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
    */
   virtual ~EqualityEngine();
 
+  //--------------------initialization
   /**
    * Set the master equality engine for this one. Master engine will get copies
    * of all the terms and equalities from this engine.
@@ -109,12 +110,168 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
   void setMasterEqualityEngine(EqualityEngine* master);
   /** Set the proof equality engine for this one. */
   void setProofEqualityEngine(ProofEqEngine* pfee);
+  /**
+   * Add term to the set of trigger terms with a corresponding tag. The notify
+   * class will get notified when two trigger terms with the same tag become
+   * equal or dis-equal. The notification will not happen on all the terms, but
+   * only on the ones that are represent the class. Note that a term can be
+   * added more than once with different tags, and each tag appearance will
+   * merit it's own notification.
+   *
+   * @param t the trigger term
+   * @param theoryTag tag for this trigger (do NOT use THEORY_LAST)
+   */
+  void addTriggerTerm(TNode t, TheoryId theoryTag);
+  /**
+   * Adds a notify trigger for the predicate p, where notice that p can be
+   * an equality. When the predicate becomes true, eqNotifyTriggerPredicate will
+   * be called with value = true, and when predicate becomes false
+   * eqNotifyTriggerPredicate will be called with value = false.
+   *
+   * Notice that if p is an equality, then we use a separate method for
+   * determining when to call eqNotifyTriggerPredicate.
+   */
+  void addTriggerPredicate(TNode predicate);
+  /**
+   * Add a kind to treat as function applications.
+   * When extOperator is true, this equality engine will treat the operators of
+   * this kind as "external" e.g. not internal nodes (see d_isInternal). This
+   * means that we will consider equivalence classes containing the operators of
+   * such terms, and "hasTerm" will return true.
+   */
+  void addFunctionKind(Kind fun,
+                       bool interpreted = false,
+                       bool extOperator = false);
+  //--------------------end initialization
   /** Get the proof equality engine */
   ProofEqEngine* getProofEqualityEngine();
+  /** Returns true if this kind is used for congruence closure. */
+  bool isFunctionKind(Kind fun) const { return d_congruenceKinds.test(fun); }
+  /**
+   * Returns true if this kind is used for congruence closure + evaluation of
+   * constants.
+   */
+  bool isInterpretedFunctionKind(Kind fun) const
+  {
+    return d_congruenceKindsInterpreted.test(fun);
+  }
+  /**
+   * Returns true if this kind has an operator that is considered external (e.g.
+   * not internal).
+   */
+  bool isExternalOperatorKind(Kind fun) const
+  {
+    return d_congruenceKindsExtOperators.test(fun);
+  }
+  /**
+   * Returns true if t is a trigger term or in the same equivalence
+   * class as some other trigger term.
+   */
+  bool isTriggerTerm(TNode t, TheoryId theoryTag) const;
+  //--------------------updates
+  /** Adds a term to the term database. */
+  void addTerm(TNode t) { addTermInternal(t, false); }
+  /**
+   * Adds a predicate p with given polarity. The predicate asserted
+   * should be in the congruence closure kinds (otherwise it's
+   * useless).
+   *
+   * @param p the (non-negated) predicate
+   * @param polarity true if asserting the predicate, false if
+   *                 asserting the negated predicate
+   * @param reason the reason to keep for building explanations
+   * @return true if a new fact was asserted, false if this call was a no-op.
+   */
+  bool assertPredicate(TNode p,
+                       bool polarity,
+                       TNode reason,
+                       unsigned pid = MERGED_THROUGH_EQUALITY);
+  /**
+   * Adds an equality eq with the given polarity to the database.
+   *
+   * @param eq the (non-negated) equality
+   * @param polarity true if asserting the equality, false if
+   *                 asserting the negated equality
+   * @param reason the reason to keep for building explanations
+   * @return true if a new fact was asserted, false if this call was a no-op.
+   */
+  bool assertEquality(TNode eq,
+                      bool polarity,
+                      TNode reason,
+                      unsigned pid = MERGED_THROUGH_EQUALITY);
 
+  //--------------------end updates
+  //--------------------------- explanation methods
+  /**
+   * Get an explanation of the equality t1 = t2 being true or false.
+   * Returns the reasons (added when asserting) that imply it
+   * in the assertions vector.
+   */
+  void explainEquality(TNode t1,
+                       TNode t2,
+                       bool polarity,
+                       std::vector<TNode>& assertions,
+                       EqProof* eqp = nullptr) const;
+
+  /**
+   * Get an explanation of the predicate being true or false.
+   * Returns the reasons (added when asserting) that imply imply it
+   * in the assertions vector.
+   */
+  void explainPredicate(TNode p,
+                        bool polarity,
+                        std::vector<TNode>& assertions,
+                        EqProof* eqp = nullptr) const;
+
+  /**
+   * Explain literal, add its explanation to assumptions. This method does not
+   * add duplicates to assumptions. It requires that the literal
+   * holds in this class. If lit is a disequality, it
+   * moreover ensures this class is ready to explain it via areDisequal with
+   * ensureProof = true.
+   */
+  void explainLit(TNode lit, std::vector<TNode>& assumptions) const;
+  /**
+   * Explain literal, return the explanation as a conjunction. This method
+   * relies on the above method.
+   */
+  Node mkExplainLit(TNode lit) const;
+  //--------------------------- end explanation methods
+
+  /**
+   * Check whether the node is already in the database.
+   */
+  bool hasTerm(TNode t) const;
+  /**
+   * Returns the current representative of the term t.
+   */
+  TNode getRepresentative(TNode t) const;
+  /**
+   * Returns the representative trigger term of the given term.
+   *
+   * @param t the term to check where isTriggerTerm(t) should be true
+   */
+  TNode getTriggerTermRepresentative(TNode t, TheoryId theoryTag) const;
+  /**
+   * Returns true if the two terms are equal. Requires both terms to
+   * be in the database.
+   */
+  bool areEqual(TNode t1, TNode t2) const;
+  /**
+   * Check whether the two term are dis-equal. Requires both terms to
+   * be in the database.
+   */
+  bool areDisequal(TNode t1, TNode t2, bool ensureProof) const;
+  /**
+   * Returns true if the engine is in a consistent state.
+   */
+  bool consistent() const { return !d_done; }
+  /** Identify this equality engine (for debugging, etc..) */
+  std::string identify() const;
   /** Print the equivalence classes for debugging */
   std::string debugPrintEqc() const;
 
+ private:
   /** Statistics about the equality engine instance */
   struct Statistics
   {
@@ -128,9 +285,8 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
     IntStat d_constantTermsCount;
 
     Statistics(StatisticsRegistry& sr, const std::string& name);
-  };/* struct EqualityEngine::statistics */
+  };
 
- private:
   /** The context we are using */
   context::Context* d_context;
 
@@ -167,6 +323,11 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
   /** Number of application lookups, for backtracking.  */
   context::CDO<DefaultSizeType> d_applicationLookupsCount;
 
+  /**
+   * Return the number of nodes in the equivalence class containing t
+   * Adds t if not already there.
+   */
+  size_t getSize(TNode t);
   /**
    * Store the application lookup, with enough information to backtrack
    */
@@ -675,185 +836,6 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
    * false.
    */
   void addTriggerEquality(TNode equality);
-
- public:
-  /**
-   * Adds a term to the term database.
-   */
-  void addTerm(TNode t) {
-    addTermInternal(t, false);
-  }
-
-  /**
-   * Add a kind to treat as function applications.
-   * When extOperator is true, this equality engine will treat the operators of this kind
-   * as "external" e.g. not internal nodes (see d_isInternal). This means that we will
-   * consider equivalence classes containing the operators of such terms, and "hasTerm" will
-   * return true.
-   */
-  void addFunctionKind(Kind fun, bool interpreted = false, bool extOperator = false);
-
-  /**
-   * Returns true if this kind is used for congruence closure.
-   */
-  bool isFunctionKind(Kind fun) const { return d_congruenceKinds.test(fun); }
-
-  /**
-   * Returns true if this kind is used for congruence closure + evaluation of constants.
-   */
-  bool isInterpretedFunctionKind(Kind fun) const
-  {
-    return d_congruenceKindsInterpreted.test(fun);
-  }
-
-  /**
-   * Returns true if this kind has an operator that is considered external (e.g. not internal).
-   */
-  bool isExternalOperatorKind(Kind fun) const
-  {
-    return d_congruenceKindsExtOperators.test(fun);
-  }
-
-  /**
-   * Check whether the node is already in the database.
-   */
-  bool hasTerm(TNode t) const;
-
-  /**
-   * Adds a predicate p with given polarity. The predicate asserted
-   * should be in the congruence closure kinds (otherwise it's
-   * useless).
-   *
-   * @param p the (non-negated) predicate
-   * @param polarity true if asserting the predicate, false if
-   *                 asserting the negated predicate
-   * @param reason the reason to keep for building explanations
-   * @return true if a new fact was asserted, false if this call was a no-op.
-   */
-  bool assertPredicate(TNode p,
-                       bool polarity,
-                       TNode reason,
-                       unsigned pid = MERGED_THROUGH_EQUALITY);
-
-  /**
-   * Adds an equality eq with the given polarity to the database.
-   *
-   * @param eq the (non-negated) equality
-   * @param polarity true if asserting the equality, false if
-   *                 asserting the negated equality
-   * @param reason the reason to keep for building explanations
-   * @return true if a new fact was asserted, false if this call was a no-op.
-   */
-  bool assertEquality(TNode eq,
-                      bool polarity,
-                      TNode reason,
-                      unsigned pid = MERGED_THROUGH_EQUALITY);
-
-  /**
-   * Returns the current representative of the term t.
-   */
-  TNode getRepresentative(TNode t) const;
-
-  /**
-   * Add all the terms where the given term appears as a first child
-   * (directly or implicitly).
-   */
-  void getUseListTerms(TNode t, std::set<TNode>& output);
-
-  /**
-   * Get an explanation of the equality t1 = t2 being true or false.
-   * Returns the reasons (added when asserting) that imply it
-   * in the assertions vector.
-   */
-  void explainEquality(TNode t1, TNode t2, bool polarity,
-                       std::vector<TNode>& assertions,
-                       EqProof* eqp = nullptr) const;
-
-  /**
-   * Get an explanation of the predicate being true or false.
-   * Returns the reasons (added when asserting) that imply imply it
-   * in the assertions vector.
-   */
-  void explainPredicate(TNode p, bool polarity, std::vector<TNode>& assertions,
-                        EqProof* eqp = nullptr) const;
-
-  //--------------------------- standard safe explanation methods
-  /**
-   * Explain literal, add its explanation to assumptions. This method does not
-   * add duplicates to assumptions. It requires that the literal
-   * holds in this class. If lit is a disequality, it
-   * moreover ensures this class is ready to explain it via areDisequal with
-   * ensureProof = true.
-   */
-  void explainLit(TNode lit, std::vector<TNode>& assumptions);
-  /**
-   * Explain literal, return the explanation as a conjunction. This method
-   * relies on the above method.
-   */
-  Node mkExplainLit(TNode lit);
-  //--------------------------- end standard safe explanation methods
-
-  /**
-   * Add term to the set of trigger terms with a corresponding tag. The notify class will get
-   * notified when two trigger terms with the same tag become equal or dis-equal. The notification
-   * will not happen on all the terms, but only on the ones that are represent the class. Note that
-   * a term can be added more than once with different tags, and each tag appearance will merit
-   * it's own notification.
-   *
-   * @param t the trigger term
-   * @param theoryTag tag for this trigger (do NOT use THEORY_LAST)
-   */
-  void addTriggerTerm(TNode t, TheoryId theoryTag);
-
-  /**
-   * Returns true if t is a trigger term or in the same equivalence
-   * class as some other trigger term.
-   */
-  bool isTriggerTerm(TNode t, TheoryId theoryTag) const;
-
-  /**
-   * Returns the representative trigger term of the given term.
-   *
-   * @param t the term to check where isTriggerTerm(t) should be true
-   */
-  TNode getTriggerTermRepresentative(TNode t, TheoryId theoryTag) const;
-
-  /**
-   * Adds a notify trigger for the predicate p, where notice that p can be
-   * an equality. When the predicate becomes true, eqNotifyTriggerPredicate will
-   * be called with value = true, and when predicate becomes false
-   * eqNotifyTriggerPredicate will be called with value = false.
-   *
-   * Notice that if p is an equality, then we use a separate method for
-   * determining when to call eqNotifyTriggerPredicate.
-   */
-  void addTriggerPredicate(TNode predicate);
-
-  /**
-   * Returns true if the two terms are equal. Requires both terms to
-   * be in the database.
-   */
-  bool areEqual(TNode t1, TNode t2) const;
-
-  /**
-   * Check whether the two term are dis-equal. Requires both terms to
-   * be in the database.
-   */
-  bool areDisequal(TNode t1, TNode t2, bool ensureProof) const;
-
-  /**
-   * Return the number of nodes in the equivalence class containing t
-   * Adds t if not already there.
-   */
-  size_t getSize(TNode t);
-
-  /**
-   * Returns true if the engine is in a consistent state.
-   */
-  bool consistent() const { return !d_done; }
-
-  /** Identify this equality engine (for debugging, etc..) */
-  std::string identify() const;
 };
 
 } // Namespace eq

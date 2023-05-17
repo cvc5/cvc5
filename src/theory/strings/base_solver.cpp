@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -680,9 +680,15 @@ bool BaseSolver::isCardinalityOk(size_t typeCardSize,
                                  size_t eqcCount,
                                  size_t& lenNeed) const
 {
+  Trace("strings-card") << "isCardinalityOk? " << typeCardSize << " "
+                        << eqcCount << std::endl;
   if (eqcCount <= 1)
   {
     return true;
+  }
+  else if (typeCardSize == 1)
+  {
+    return false;
   }
   lenNeed = 1;
   double curr = static_cast<double>(eqcCount);

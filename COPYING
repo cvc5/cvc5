@@ -1,4 +1,4 @@
-cvc5 is copyright (C) 2009-2021 by its authors and contributors (see the file
+cvc5 is copyright (C) 2009-2023 by its authors and contributors (see the file
 AUTHORS) and their institutional affiliations.  All rights reserved.
 
 The source code of cvc5 is open and available to students, researchers,
@@ -69,7 +69,7 @@ GMP) may (and do) remain under the more permissive modified BSD license.
 
 The implementation of the floating point solver in cvc5 depends on symfpu
 (https://github.com/martin-cs/symfpu) written by Martin Brain.
-See https://raw.githubusercontent.com/martin-cs/symfpu/cvc5/LICENSE for
+See https://raw.githubusercontent.com/martin-cs/symfpu/CVC4/LICENSE for
 copyright and licensing information.
 
 cvc5 optionally links against the following libraries:

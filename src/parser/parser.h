@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -122,29 +122,6 @@ class CVC5_EXPORT ParserState
    * otherwise.
    */
   Term getVariable(const std::string& name);
-
-  /**
-   * Gets the function currently bound to name.
-   *
-   * @param name the name of the variable
-   * @return the variable expression
-   * Only returns a function if its name is not overloaded, returns null
-   * otherwise.
-   */
-  Term getFunction(const std::string& name);
-
-  /**
-   * Returns the expression that name should be interpreted as, based on the
-   * current binding.
-   *
-   * The symbol name should be declared.
-   * This creates the expression that the string "name" should be interpreted
-   * as. Typically this corresponds to a variable, but it may also correspond to
-   * a nullary constructor or a defined function.
-   * Only returns an expression if its name is not overloaded, returns null
-   * otherwise.
-   */
-  virtual Term getExpressionForName(const std::string& name);
 
   /**
    * Returns the expression that name should be interpreted as, based on the
@@ -618,11 +595,6 @@ class CVC5_EXPORT ParserState
    * Owns the memory of the Commands in the queue.
    */
   std::list<Command*> d_commandQueue;
-
-  /** Lookup a symbol in the given namespace (as specified by the type).
-   * Only returns a symbol if it is not overloaded, returns null otherwise.
-   */
-  Term getSymbol(const std::string& var_name, SymbolType type);
   /** Get name for user name */
   std::string getNameForUserName(const std::string& name) const;
 }; /* class Parser */
