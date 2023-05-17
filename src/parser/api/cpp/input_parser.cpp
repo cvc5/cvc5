@@ -15,6 +15,7 @@
 
 #include "parser/api/cpp/input_parser.h"
 
+#include "base/check.h"
 #include "base/output.h"
 #include "parser/api/cpp/command.h"
 #include "parser/input.h"
