@@ -48,7 +48,8 @@ class Smt2Parser : public FlexParser
  protected:
   /**
    * Parse and return the next command. Will initialize the logic to "ALL"
-   * if not already done so.
+   * or the forced logic if no logic is set prior to this point and a command
+   * is read that requires initializing the logic.
    */
   std::unique_ptr<Command> parseNextCommand() override;
 

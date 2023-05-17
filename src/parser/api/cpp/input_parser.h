@@ -106,7 +106,8 @@ class CVC5_EXPORT InputParser
 
   /**
    * Parse and return the next command. Will initialize the logic to "ALL"
-   * or the forced logic if no logic is set prior to this point.
+   * or the forced logic if no logic is set prior to this point and a command
+   * is read that requires initializing the logic.
    */
   std::unique_ptr<Command> nextCommand();
 

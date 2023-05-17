@@ -976,7 +976,7 @@ void Smt2State::checkThatLogicIsSet()
 
         setLogic("ALL");
       }
-      // If not from a command, just set the logic directly. Notice this is
+      // Set the logic directly in the solver, without a command. Notice this is
       // important since we do not want to enqueue a set-logic command and
       // fully initialize the underlying SolverEngine in the meantime before the
       // command has a chance to execute, which would lead to an error.
