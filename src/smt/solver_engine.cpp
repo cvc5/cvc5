@@ -773,8 +773,8 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
 
 std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore()
 {
-  beginCall(true);
   Trace("smt") << "SolverEngine::getTimeoutCore()" << std::endl;
+  beginCall(true);
   TimeoutCoreManager tcm(*d_env.get());
   return tcm.getTimeoutCore(d_smtSolver->getAssertions());
 }
@@ -782,7 +782,7 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore()
 std::vector<Node> SolverEngine::getUnsatAssumptions(void)
 {
   Trace("smt") << "SMT getUnsatAssumptions()" << endl;
-  beginCall();
+  finishInit();
   if (!d_env->getOptions().smt.unsatAssumptions)
   {
     throw ModalException(
@@ -1133,7 +1133,6 @@ void SolverEngine::blockModel(modes::BlockModelsMode mode)
 void SolverEngine::blockModelValues(const std::vector<Node>& exprs)
 {
   Trace("smt") << "SMT blockModelValues()" << endl;
-
   beginCall();
 
   for (const Node& e : exprs)
@@ -1435,7 +1434,6 @@ void SolverEngine::checkModel(bool hardFailure)
 UnsatCore SolverEngine::getUnsatCore()
 {
   Trace("smt") << "SMT getUnsatCore()" << std::endl;
-  beginCall();
   return getUnsatCoreInternal(false);
 }
 
@@ -1458,7 +1456,6 @@ void SolverEngine::getRelevantQuantTermVectors(
 std::string SolverEngine::getProof(modes::ProofComponent c)
 {
   Trace("smt") << "SMT getProof()\n";
-  beginCall();
   if (!d_env->getOptions().smt.produceProofs)
   {
     throw ModalException("Cannot get a proof when proof option is off.");
@@ -1567,7 +1564,6 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
 
 void SolverEngine::printInstantiations(std::ostream& out)
 {
-  beginCall();
   QuantifiersEngine* qe = getAvailableQuantifiersEngine("printInstantiations");
 
   // First, extract and print the skolemizations
@@ -1661,7 +1657,6 @@ void SolverEngine::printInstantiations(std::ostream& out)
 void SolverEngine::getInstantiationTermVectors(
     std::map<Node, std::vector<std::vector<Node>>>& insts)
 {
-  beginCall();
   QuantifiersEngine* qe =
       getAvailableQuantifiersEngine("getInstantiationTermVectors");
   // get the list of all instantiations
@@ -1670,7 +1665,6 @@ void SolverEngine::getInstantiationTermVectors(
 
 bool SolverEngine::getSynthSolutions(std::map<Node, Node>& solMap)
 {
-  beginCall();
   bool ret = d_sygusSolver->getSynthSolutions(solMap);
   // we return false if solMap is empty, that is, when we ask for a solution
   // when none is available.
@@ -1679,7 +1673,6 @@ bool SolverEngine::getSynthSolutions(std::map<Node, Node>& solMap)
 
 bool SolverEngine::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
 {
-  beginCall();
   bool ret = d_sygusSolver->getSubsolverSynthSolutions(solMap);
   // we return false if solMap is empty, that is, when we ask for a solution
   // when none is available.
