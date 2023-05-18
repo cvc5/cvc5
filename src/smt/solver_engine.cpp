@@ -1118,8 +1118,6 @@ std::string SolverEngine::getModel(const std::vector<TypeNode>& declaredSorts,
 void SolverEngine::blockModel(modes::BlockModelsMode mode)
 {
   Trace("smt") << "SMT blockModel()" << endl;
-  beginCall();
-
   TheoryModel* m = getAvailableModel("block model");
 
   // get expanded assertions
@@ -1133,8 +1131,6 @@ void SolverEngine::blockModel(modes::BlockModelsMode mode)
 void SolverEngine::blockModelValues(const std::vector<Node>& exprs)
 {
   Trace("smt") << "SMT blockModelValues()" << endl;
-  beginCall();
-
   for (const Node& e : exprs)
   {
     ensureWellFormedTerm(e, "block model values");
