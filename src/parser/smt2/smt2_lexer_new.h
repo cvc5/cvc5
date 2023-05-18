@@ -18,11 +18,11 @@
 #ifndef CVC5__PARSER__SMT2__SMT2_LEXER_NEW_H
 #define CVC5__PARSER__SMT2__SMT2_LEXER_NEW_H
 
+#include <array>
 #include <cstdlib>
 #include <istream>
 #include <map>
 #include <vector>
-#include <array>
 
 #include "base/check.h"
 #include "parser/flex_lexer.h"
@@ -96,12 +96,12 @@ class Smt2LexerNew : public FlexLexer
   {
     NONE = 0,
     WHITESPACE = (1 << 0),
-    DECIMAL_DIGIT  = (1 << 1),
+    DECIMAL_DIGIT = (1 << 1),
     HEXADECIMAL_DIGIT = (1 << 2),
     BIT = (1 << 3),
     SYMBOL_START = (1 << 4),
     SYMBOL = (1 << 5),
-  };  
+  };
   /** The set of non-letter/non-digit characters that may occur in keywords. */
   inline static const std::string s_extraSymbolChars = "+-/*=%?!.$_~&^<>@";
   /** parse <c>, return false if <c> is not ch. */
@@ -115,8 +115,7 @@ class Smt2LexerNew : public FlexLexer
   /** Return true if ch is in character class cc */
   bool isCharacterClass(char ch, CharacterClass cc) const
   {
-    return d_charClass[static_cast<uint8_t>(ch)]
-           & static_cast<uint8_t>(cc);
+    return d_charClass[static_cast<uint8_t>(ch)] & static_cast<uint8_t>(cc);
   }
   //----------- Utilizes for tokenizing d_token
   /**
