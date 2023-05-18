@@ -2682,7 +2682,7 @@ def test_mk_sygus_var(solver):
     with pytest.raises(RuntimeError):
         solver.declareSygusVar("", cvc5.Sort(solver))
     slv = cvc5.Solver()
-    solver.setOption("sygus", "true")
+    slv.setOption("sygus", "true")
     with pytest.raises(RuntimeError):
         slv.declareSygusVar("", boolSort)
 
