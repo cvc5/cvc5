@@ -561,29 +561,6 @@ void TermDbSygus::registerEnumerator(Node e,
   }
   d_enum_active_gen[e] = isActiveGen;
   d_enum_basic[e] = isActiveGen && !isVarAgnostic;
-
-  if (d_env.isOutputOn(OutputTag::SYGUS_ENUMERATOR))
-  {
-    Node ff;
-    SkolemFunId id;
-    SkolemManager* sm = nm->getSkolemManager();
-    sm->isSkolemFunction(f, id, ff);
-    Assert (id==SkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED);
-    d_env.output(OutputTag::SYGUS_ENUMERATOR) << "(sygus-enumerator ";
-    d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :synth-fun " << ff;
-    d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :role " << erole;
-    std::stringstream ss;
-    if (isActiveGen)
-    {
-      ss << (d_enum_var_agnostic[e] ? "VAR_AGNOSTIC" : "FAST");
-    }
-    else
-    {
-      ss << "SMART";
-    }
-    d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :type " << ss.str();
-    d_env.output(OutputTag::SYGUS_ENUMERATOR) << ")" << std::endl;
-  }
   // We make an active guard if we will be explicitly blocking solutions for
   // the enumerator. This is the case if the role of the enumerator is to
   // populate a pool of terms, or (some cases) of when it is actively generated.
@@ -599,6 +576,29 @@ void TermDbSygus::registerEnumerator(Node e,
     d_qim->requirePhase(ag, true);
     d_qim->lemma(lem, InferenceId::QUANTIFIERS_SYGUS_ENUM_ACTIVE_GUARD_SPLIT);
     d_enum_to_active_guard[e] = ag;
+  }
+  // for debugging
+  if (d_env.isOutputOn(OutputTag::SYGUS_ENUMERATOR))
+  {
+    Node ff;
+    SkolemFunId id;
+    SkolemManager* sm = nm->getSkolemManager();
+    sm->isSkolemFunction(f, id, ff);
+    Assert (id==SkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED);
+    d_env.output(OutputTag::SYGUS_ENUMERATOR) << "(sygus-enumerator";
+    d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :synth-fun " << ff;
+    d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :role " << erole;
+    std::stringstream ss;
+    if (isActiveGen)
+    {
+      ss << (d_enum_var_agnostic[e] ? "VAR_AGNOSTIC" : "FAST");
+    }
+    else
+    {
+      ss << "SMART";
+    }
+    d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :type " << ss.str();
+    d_env.output(OutputTag::SYGUS_ENUMERATOR) << ")" << std::endl;
   }
 }
 
