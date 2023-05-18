@@ -93,7 +93,7 @@ class InferProofCons : protected EnvObj, public ProofGenerator
    * Add proof of running convert on the given arguments to CDProof pf. This is
    * called lazily during proof post-processing.
    */
-  static bool addProofTo(CDProof* pf,
+  static bool convertAndAddProofTo(CDProof* pf,
                          Node conc,
                          InferenceId infer,
                          bool isRev,
