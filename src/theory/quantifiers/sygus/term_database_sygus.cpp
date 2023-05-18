@@ -561,7 +561,7 @@ void TermDbSygus::registerEnumerator(Node e,
   }
   d_enum_active_gen[e] = isActiveGen;
   d_enum_basic[e] = isActiveGen && !isVarAgnostic;
-  
+
   if (d_env.isOutputOn(OutputTag::SYGUS_ENUMERATOR))
   {
     d_env.output(OutputTag::SYGUS_ENUMERATOR) << "(sygus-enumerator " << e;
