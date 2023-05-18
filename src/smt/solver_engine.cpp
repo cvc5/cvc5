@@ -1329,7 +1329,7 @@ void SolverEngine::beginCall(bool needsRLlimit)
   // optionally, ensure the resource manager's state is current
   if (needsRLlimit)
   {
-    ResourceManager * rm = getResourceManager();
+    ResourceManager* rm = getResourceManager();
     rm->beginCall();
     Trace("limit") << "SolverEngine::beginCall(): cumulative millis "
                    << rm->getTimeUsage() << ", resources "
@@ -1340,7 +1340,7 @@ void SolverEngine::beginCall(bool needsRLlimit)
 void SolverEngine::endCall()
 {
   // refresh the resource manager (for stats)
-  ResourceManager * rm = getResourceManager();
+  ResourceManager* rm = getResourceManager();
   rm->refresh();
   Trace("limit") << "SolverEngine::endCall(): cumulative millis "
                  << rm->getTimeUsage() << ", resources "
