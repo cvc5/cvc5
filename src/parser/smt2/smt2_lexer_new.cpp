@@ -30,46 +30,43 @@ Smt2LexerNew::Smt2LexerNew(bool isStrict, bool isSygus)
       d_isStrict(isStrict),
       d_isSygus(isSygus)
 {
-  for (size_t i = 0; i < 256; i++)
-  {
-    d_symcTable[i] = CharacterClass::NONE;
-  }
   for (char ch = 'a'; ch <= 'z'; ++ch)
   {
-    d_symcTable[static_cast<size_t>(ch)] = CharacterClass::SYMBOL;
+    d_charClass[ch] |= static_cast<uint32_t>(CharacterClass::SYMBOL_START);
+    d_charClass[ch] |= static_cast<uint32_t>(CharacterClass::SYMBOL);
+  }
+  for (char ch = 'a'; ch <= 'f'; ++ch)
+  {
+    d_charClass[ch] |= static_cast<uint32_t>(CharacterClass::HEXADECIMAL_DIGIT);
   }
   for (char ch = 'A'; ch <= 'Z'; ++ch)
   {
-    d_symcTable[static_cast<size_t>(ch)] = CharacterClass::SYMBOL;
+    d_charClass[ch] |= static_cast<uint32_t>(CharacterClass::SYMBOL_START);
+    d_charClass[ch] |= static_cast<uint32_t>(CharacterClass::SYMBOL);
+  }
+  for (char ch = 'A'; ch <= 'F'; ++ch)
+  {
+    d_charClass[ch] |= static_cast<uint32_t>(CharacterClass::HEXADECIMAL_DIGIT);
   }
   for (char ch = '0'; ch <= '9'; ++ch)
   {
-    d_symcTable[static_cast<size_t>(ch)] = CharacterClass::DECIMAL_DIGIT;
+    d_charClass[ch] |= static_cast<uint32_t>(CharacterClass::HEXADECIMAL_DIGIT);
+    d_charClass[ch] |= static_cast<uint32_t>(CharacterClass::DECIMAL_DIGIT);
+    d_charClass[ch] |= static_cast<uint32_t>(CharacterClass::SYMBOL);
   }
-  // ~!@$%^&*_-+=<>.?/
-  d_symcTable[static_cast<size_t>('~')] = CharacterClass::SYMBOL;
-  d_symcTable[static_cast<size_t>('!')] = CharacterClass::SYMBOL;
-  d_symcTable[static_cast<size_t>('@')] = CharacterClass::SYMBOL;
-  d_symcTable[static_cast<size_t>('$')] = CharacterClass::SYMBOL;
-  d_symcTable[static_cast<size_t>('%')] = CharacterClass::SYMBOL;
-  d_symcTable[static_cast<size_t>('^')] = CharacterClass::SYMBOL;
-  d_symcTable[static_cast<size_t>('&')] = CharacterClass::SYMBOL;
-  d_symcTable[static_cast<size_t>('*')] = CharacterClass::SYMBOL;
-  d_symcTable[static_cast<size_t>('_')] = CharacterClass::SYMBOL;
-  d_symcTable[static_cast<size_t>('-')] = CharacterClass::SYMBOL;
-  d_symcTable[static_cast<size_t>('+')] = CharacterClass::SYMBOL;
-  d_symcTable[static_cast<size_t>('=')] = CharacterClass::SYMBOL;
-  d_symcTable[static_cast<size_t>('<')] = CharacterClass::SYMBOL;
-  d_symcTable[static_cast<size_t>('>')] = CharacterClass::SYMBOL;
-  d_symcTable[static_cast<size_t>('.')] = CharacterClass::SYMBOL;
-  d_symcTable[static_cast<size_t>('?')] = CharacterClass::SYMBOL;
-  d_symcTable[static_cast<size_t>('/')] = CharacterClass::SYMBOL;
-  d_symcTable[static_cast<size_t>(',')] = CharacterClass::SYMBOL;
+  d_charClass['0'] |= static_cast<uint32_t>(CharacterClass::BIT);
+  d_charClass['1'] |= static_cast<uint32_t>(CharacterClass::BIT);
+  // ~!@$%^&*_-+|=<>.?/
+  for (char ch : s_extraSymbolChars)
+  {
+    d_charClass[ch] |= static_cast<uint32_t>(CharacterClass::SYMBOL_START);
+    d_charClass[ch] |= static_cast<uint32_t>(CharacterClass::SYMBOL);
+  }
   // whitespace
-  d_symcTable[static_cast<size_t>(' ')] = CharacterClass::WHITESPACE;
-  d_symcTable[static_cast<size_t>('\t')] = CharacterClass::WHITESPACE;
-  d_symcTable[static_cast<size_t>('\r')] = CharacterClass::WHITESPACE;
-  d_symcTable[static_cast<size_t>('\n')] = CharacterClass::WHITESPACE;
+  d_charClass[' '] |= static_cast<uint32_t>(CharacterClass::WHITESPACE);
+  d_charClass['\t'] |= static_cast<uint32_t>(CharacterClass::WHITESPACE);
+  d_charClass['\r'] |= static_cast<uint32_t>(CharacterClass::WHITESPACE);
+  d_charClass['\n'] |= static_cast<uint32_t>(CharacterClass::WHITESPACE);
 }
 
 const char* Smt2LexerNew::tokenStr() const
@@ -85,7 +82,7 @@ Token Smt2LexerNew::nextTokenInternal()
   Trace("lexer-debug") << "Call nextToken" << std::endl;
   d_token.clear();
   Token ret = computeNextToken();
-  // null-terminate token string
+  // null terminate?
   d_token.push_back(0);
   Trace("lexer-debug") << "Return nextToken " << ret << " / " << tokenStr()
                        << std::endl;
@@ -245,30 +242,6 @@ Token Smt2LexerNew::computeNextToken()
       break;
   }
   return Token::NONE;
-}
-
-char Smt2LexerNew::nextChar()
-{
-  char res;
-  if (d_peekedChar)
-  {
-    res = d_chPeeked;
-    d_peekedChar = false;
-  }
-  else
-  {
-    res = readNextChar();
-    if (res == '\n')
-    {
-      d_span.d_end.d_line++;
-      d_span.d_end.d_column = 0;
-    }
-    else
-    {
-      d_span.d_end.d_column++;
-    }
-  }
-  return res;
 }
 
 void Smt2LexerNew::saveChar(char ch)
