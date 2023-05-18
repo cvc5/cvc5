@@ -1322,11 +1322,15 @@ void SolverEngine::checkProof()
 
 void SolverEngine::beginCall(bool needsRLlimit)
 {
+  // ensure this solver engine has been initialized
   finishInit();
+  // ensure the context is current
   d_ctxManager->doPendingPops();
+  // optionally, ensure the resource manager's state is current
   if (needsRLlimit)
   {
-    getResourceManager()->beginCall();
+    ResourceManager * rm = getResourceManager();
+    rm->beginCall();
     Trace("limit") << "SolverEngine::beginCall(): cumulative millis "
                    << rm->getTimeUsage() << ", resources "
                    << rm->getResourceUsage() << std::endl;
@@ -1336,7 +1340,8 @@ void SolverEngine::beginCall(bool needsRLlimit)
 void SolverEngine::endCall()
 {
   // refresh the resource manager (for stats)
-  getResourceManager()->refresh();
+  ResourceManager * rm = getResourceManager();
+  rm->refresh();
   Trace("limit") << "SolverEngine::endCall(): cumulative millis "
                  << rm->getTimeUsage() << ", resources "
                  << rm->getResourceUsage() << std::endl;
