@@ -74,11 +74,23 @@ bool BasicRewriteRCons::postProve(
   Node eq = a.eqNode(b);
   if (tid == theory::THEORY_BV)
   {
-    if (tryRule(cdp, eq, PfRule::BV_BITWISE_SLICING, {eq[0]}))
-    {
-      Trace("trewrite-rcons") << "...BV_BITWISE_SLICING" << std::endl;
-      return true;
-    }
+#define POST_PROVE_CASE(name) \
+    if (tryRule(cdp, eq, PfRule::name, {eq[0]})) \
+    { \
+      Trace("trewrite-rcons") << "..." #name << std::endl; \
+      return true; \
+    } \
+    /* end of macro */
+
+    POST_PROVE_CASE(BV_UMULO_ELIMINATE)
+    POST_PROVE_CASE(BV_SMULO_ELIMINATE)
+    POST_PROVE_CASE(BV_FLATTEN_ASSOC_COMMUTE)
+    POST_PROVE_CASE(BV_FLATTEN_ASSOC_COMMUTE_NO_DUPLICATES)
+    POST_PROVE_CASE(BV_ADD_COMBINE_LIKE_TERMS)
+    POST_PROVE_CASE(BV_MULT_SIMPLIFY)
+    POST_PROVE_CASE(BV_SOLVE_EQ)
+    POST_PROVE_CASE(BV_BITWISE_EQ)
+    POST_PROVE_CASE(BV_BITWISE_SLICING)
   }
 
   Trace("trewrite-rcons") << "...(fail)" << std::endl;
