@@ -564,8 +564,13 @@ void TermDbSygus::registerEnumerator(Node e,
 
   if (d_env.isOutputOn(OutputTag::SYGUS_ENUMERATOR))
   {
-    d_env.output(OutputTag::SYGUS_ENUMERATOR) << "(sygus-enumerator " << e;
-    d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :synth-fun " << f;
+    Node ff;
+    SkolemFunId id;
+    SkolemManager* sm = nm->getSkolemManager();
+    sm->isSkolemFunction(f, id, ff);
+    Assert (id==SkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED);
+    d_env.output(OutputTag::SYGUS_ENUMERATOR) << "(sygus-enumerator ";
+    d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :synth-fun " << ff;
     d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :role " << erole;
     std::stringstream ss;
     if (isActiveGen)
