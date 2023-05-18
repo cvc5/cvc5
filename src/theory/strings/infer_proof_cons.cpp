@@ -64,10 +64,10 @@ void InferProofCons::notifyLemma(const InferInfo& ii)
 }
 
 bool InferProofCons::convertAndAddProofTo(CDProof* pf,
-                                Node conc,
-                                InferenceId infer,
-                                bool isRev,
-                                const std::vector<Node>& exp)
+                                          Node conc,
+                                          InferenceId infer,
+                                          bool isRev,
+                                          const std::vector<Node>& exp)
 {
   // now go back and convert it to proof steps and add to proof
   bool useBuffer = false;
