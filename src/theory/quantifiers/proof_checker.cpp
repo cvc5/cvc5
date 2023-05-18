@@ -18,6 +18,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "theory/builtin/proof_checker.h"
+#include "theory/quantifiers/skolemize.h"
 
 using namespace cvc5::internal::kind;
 
@@ -40,7 +41,6 @@ Node QuantifiersProofRuleChecker::checkInternal(
     PfRule id, const std::vector<Node>& children, const std::vector<Node>& args)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
   if (id == PfRule::SKOLEM_INTRO)
   {
     Assert(children.empty());
@@ -69,8 +69,10 @@ Node QuantifiersProofRuleChecker::checkInternal(
       echildren[1] = echildren[1].notNode();
       exists = nm->mkNode(EXISTS, echildren);
     }
-    std::vector<Node> skolems;
-    Node res = sm->mkSkolemize(exists, skolems, "k");
+    std::vector<Node> vars(exists[0].begin(), exists[0].end());
+    std::vector<Node> skolems = Skolemize::getSkolemConstants(exists);
+    Node res = exists[1].substitute(
+        vars.begin(), vars.end(), skolems.begin(), skolems.end());
     return res;
   }
   else if (id == PfRule::INSTANTIATE)

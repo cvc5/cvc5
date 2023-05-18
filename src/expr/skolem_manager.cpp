@@ -21,17 +21,11 @@
 #include "expr/bound_var_manager.h"
 #include "expr/node_algorithm.h"
 #include "expr/node_manager_attributes.h"
+#include "util/rational.h"
 
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
-
-// Attributes are global maps from Nodes to data. Thus, note that these could
-// be implemented as internal maps in SkolemManager.
-struct WitnessFormAttributeId
-{
-};
-typedef expr::Attribute<WitnessFormAttributeId, Node> WitnessFormAttribute;
 
 struct SkolemFormAttributeId
 {
@@ -59,8 +53,8 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::SQRT: return "SQRT";
     case SkolemFunId::TRANSCENDENTAL_PURIFY_ARG:
       return "TRANSCENDENTAL_PURIFY_ARG";
-    case SkolemFunId::SELECTOR_WRONG: return "SELECTOR_WRONG";
     case SkolemFunId::SHARED_SELECTOR: return "SHARED_SELECTOR";
+    case SkolemFunId::QUANTIFIERS_SKOLEMIZE: return "QUANTIFIERS_SKOLEMIZE";
     case SkolemFunId::STRINGS_NUM_OCCUR: return "STRINGS_NUM_OCCUR";
     case SkolemFunId::STRINGS_OCCUR_INDEX: return "STRINGS_OCCUR_INDEX";
     case SkolemFunId::STRINGS_OCCUR_LEN: return "STRINGS_OCCUR_LEN";
@@ -119,123 +113,35 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id)
 
 SkolemManager::SkolemManager() : d_skolemCounter(0) {}
 
-Node SkolemManager::mkWitnessSkolem(Node v,
-                                    Node pred,
-                                    const std::string& prefix,
-                                    const std::string& comment,
-                                    int flags,
-                                    ProofGenerator* pg)
-{
-  // We do not currently insist that pred does not contain witness terms
-  Assert(v.getKind() == BOUND_VARIABLE);
-  // make the witness term
-  NodeManager* nm = NodeManager::currentNM();
-  Node bvl = nm->mkNode(BOUND_VAR_LIST, v);
-  // Make the witness term, where notice that pred may contain skolems. We do
-  // not recursively convert pred to witness form, since witness terms should
-  // be treated as opaque. Moreover, the use of witness forms leads to
-  // variable shadowing issues in e.g. skolemization.
-  Node w = nm->mkNode(WITNESS, bvl, pred);
-  // store the mapping to proof generator if it exists
-  if (pg != nullptr)
-  {
-    // We cache based on the existential of the original predicate
-    Node q = nm->mkNode(EXISTS, bvl, pred);
-    // Notice this may overwrite an existing proof generator. This does not
-    // matter since either should be able to prove q.
-    d_gens[q] = pg;
-  }
-  Node k = mkSkolemInternal(w, prefix, comment, flags);
-  // set witness form attribute for k
-  WitnessFormAttribute wfa;
-  k.setAttribute(wfa, w);
-  Trace("sk-manager-skolem")
-      << "skolem: " << k << " witness " << w << std::endl;
-  return k;
-}
-
-Node SkolemManager::mkSkolemize(Node q,
-                                std::vector<Node>& skolems,
-                                const std::string& prefix,
-                                const std::string& comment,
-                                int flags,
-                                ProofGenerator* pg)
-{
-  Trace("sk-manager-debug") << "mkSkolemize " << q << std::endl;
-  Assert(q.getKind() == EXISTS);
-  Node currQ = q;
-  for (const Node& av : q[0])
-  {
-    Assert(currQ.getKind() == EXISTS && av == currQ[0][0]);
-    // currQ is updated to the result of skolemizing its first variable in
-    // the method below.
-    Node sk = skolemize(currQ, currQ, prefix, comment, flags);
-    Trace("sk-manager-debug")
-        << "made skolem " << sk << " for " << av << std::endl;
-    skolems.push_back(sk);
-  }
-  if (pg != nullptr)
-  {
-    // Same as above, this may overwrite an existing proof generator
-    d_gens[q] = pg;
-  }
-  Trace("sk-manager-debug") << "...mkSkolemize returns " << currQ << std::endl;
-  return currQ;
-}
-
-Node SkolemManager::skolemize(Node q,
-                              Node& qskolem,
-                              const std::string& prefix,
-                              const std::string& comment,
-                              int flags)
-{
-  Assert(q.getKind() == EXISTS);
-  Node v;
-  std::vector<Node> ovars;
-  Trace("sk-manager-debug") << "mkSkolemize..." << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
-  for (const Node& av : q[0])
-  {
-    if (v.isNull())
-    {
-      v = av;
-      continue;
-    }
-    ovars.push_back(av);
-  }
-  Assert(!v.isNull());
-  // make the predicate with one variable stripped off
-  Node pred = q[1];
-  Trace("sk-manager-debug") << "make exists predicate" << std::endl;
-  if (!ovars.empty())
-  {
-    // keeps the same variables
-    Node bvl = nm->mkNode(BOUND_VAR_LIST, ovars);
-    // update the predicate
-    pred = nm->mkNode(EXISTS, bvl, pred);
-  }
-  Trace("sk-manager-debug") << "call sub mkSkolem" << std::endl;
-  // don't use a proof generator, since this may be an intermediate, partially
-  // skolemized formula.
-  Node k = mkWitnessSkolem(v, pred, prefix, comment, flags, nullptr);
-  Assert(k.getType() == v.getType());
-  TNode tv = v;
-  TNode tk = k;
-  Trace("sk-manager-debug")
-      << "qskolem apply " << tv << " -> " << tk << " to " << pred << std::endl;
-  // the quantified formula with one step of skolemization
-  qskolem = pred.substitute(tv, tk);
-  Trace("sk-manager-debug") << "qskolem done substitution" << std::endl;
-  return k;
-}
-
 Node SkolemManager::mkPurifySkolem(Node t,
                                    const std::string& prefix,
                                    const std::string& comment,
-                                   int flags)
+                                   int flags,
+                                   ProofGenerator* pg)
 {
   // We do not recursively compute the original form of t here
-  Node k = mkSkolemInternal(t, prefix, comment, flags);
+  Node k;
+  if (t.getKind() == WITNESS)
+  {
+    // The purification skolem for (witness ((x T)) P) is the same as
+    // the skolem function (QUANTIFIERS_SKOLEMIZE (exists ((x T)) P) 0).
+    NodeManager* nm = NodeManager::currentNM();
+    Node exists = nm->mkNode(EXISTS, std::vector<Node>(t.begin(), t.end()));
+    k = mkSkolemFunction(SkolemFunId::QUANTIFIERS_SKOLEMIZE,
+                         t.getType(),
+                         {exists, nm->mkConstInt(Rational(0))});
+    // store the proof generator if it exists
+    if (pg != nullptr)
+    {
+      d_gens[exists] = pg;
+    }
+  }
+  else
+  {
+    k = mkSkolemInternal(t, prefix, comment, flags);
+    // shouldn't provide proof generators for other terms
+    Assert(pg == nullptr);
+  }
   // set unpurified form attribute for k
   UnpurifiedFormAttribute ufa;
   k.setAttribute(ufa, t);
@@ -262,6 +168,8 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id,
     Node k = mkSkolemNode(ss.str(), tn, "an internal skolem function", flags);
     d_skolemFuns[key] = k;
     d_skolemFunMap[k] = key;
+    Trace("sk-manager-skolem") << "mkSkolemFunction(" << id << ", " << cacheVal
+                               << ") returns " << k << std::endl;
     return k;
   }
   return it->second;
@@ -325,14 +233,6 @@ bool SkolemManager::isAbstractValue(TNode n) const
     return id == SkolemFunId::ABSTRACT_VALUE;
   }
   return false;
-}
-
-Node SkolemManager::getWitnessForm(Node k)
-{
-  Assert(k.getKind() == SKOLEM);
-  // simply look up the witness form for k via an attribute
-  WitnessFormAttribute wfa;
-  return k.getAttribute(wfa);
 }
 
 Node SkolemManager::getOriginalForm(Node n)
