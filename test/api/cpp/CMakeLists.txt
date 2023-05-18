@@ -47,7 +47,7 @@ macro(cvc5_add_api_test name)
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${test_bin_dir})
   add_test(api/cpp/${name} ${test_bin_dir}/${name})
   set_tests_properties(api/cpp/${name} PROPERTIES LABELS "api")
-  add_tests_properties(api/cpp/${name} PROPERTIES FIXTURES_REQUIRED build_apitests_fixture)
+  set_tests_properties(api/cpp/${name} PROPERTIES FIXTURES_REQUIRED build_apitests_fixture)
   add_dependencies(build-apitests ${name})
 endmacro()
 
