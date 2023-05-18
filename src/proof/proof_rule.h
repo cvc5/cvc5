@@ -1303,6 +1303,9 @@ enum class PfRule : uint32_t
    */
   BV_EAGER_ATOM,
 
+  BV_UMULO_ELIMINATE,
+  BV_SMULO_ELIMINATE,
+  BV_MULT_POW2,
   BV_BITWISE_SLICING,
   /**
    * \verbatim embed:rst:leading-asterisk

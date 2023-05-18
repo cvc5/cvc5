@@ -65,12 +65,16 @@ bool BasicRewriteRCons::prove(
     Trace("trewrite-rcons") << "...EXISTS_ELIM" << std::endl;
     return true;
   }
-
+  Trace("trewrite-rcons") << "...(fail)" << std::endl;
+  return false;
+}
+bool BasicRewriteRCons::postProve(
+    CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid)
+{
+  Node eq = a.eqNode(b);
   if (tid == theory::THEORY_BV)
   {
-    auto kind = eq[0].getKind();
-    if ((kind == kind::BITVECTOR_AND || kind == kind::BITVECTOR_OR || kind == kind::BITVECTOR_XOR)
-        && tryRule(cdp, eq, PfRule::BV_BITWISE_SLICING, {eq[0]}))
+    if (tryRule(cdp, eq, PfRule::BV_BITWISE_SLICING, {eq[0]}))
     {
       Trace("trewrite-rcons") << "...BV_BITWISE_SLICING" << std::endl;
       return true;
@@ -80,6 +84,7 @@ bool BasicRewriteRCons::prove(
   Trace("trewrite-rcons") << "...(fail)" << std::endl;
   return false;
 }
+
 
 bool BasicRewriteRCons::tryRule(CDProof* cdp,
                                 Node eq,

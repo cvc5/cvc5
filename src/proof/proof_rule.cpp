@@ -129,6 +129,9 @@ const char* toString(PfRule id)
     case PfRule::BV_BITBLAST: return "BV_BITBLAST";
     case PfRule::BV_BITBLAST_STEP: return "BV_BITBLAST_STEP";
     case PfRule::BV_EAGER_ATOM: return "BV_EAGER_ATOM";
+    case PfRule::BV_UMULO_ELIMINATE: return "BV_UMULO_ELIMINATE";
+    case PfRule::BV_SMULO_ELIMINATE: return "BV_SMULO_ELIMINATE";
+    case PfRule::BV_MULT_POW2: return "BV_MULT_POW2";
     case PfRule::BV_BITWISE_SLICING: return "BV_BITWISE_SLICING";
     //================================================= Datatype rules
     case PfRule::DT_UNIF: return "DT_UNIF";
