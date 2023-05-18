@@ -1531,15 +1531,6 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
-    case PfRule::BV_BITWISE_SLICING:
-    {
-      return addAletheStep(AletheRule::BV_BITWISE_SLICING,
-                           res,
-                           nm->mkNode(kind::SEXPR, d_cl, res),
-                           children,
-                           {},
-                           *cdp);
-    }
     //================================================= Quantifiers rules
     // ======== Instantiate
     // See proof_rule.h for documentation on the INSTANTIATE rule. This
