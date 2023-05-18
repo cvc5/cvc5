@@ -855,7 +855,11 @@ class CVC5_EXPORT SolverEngine
 
   /**
    * Begin call, which is called before any method that requires initializing
-   * this solver engine.
+   * this solver engine and make the state of the internal solver current.
+   *
+   * In particular, this ensures the solver is initialized, the pending pops
+   * on the context are processed, and optionally calls the resource manager
+   * to reset its limits (ResourceManager::beginCall).
    *
    * @param needsRLlimit If true, then beginCall() is called on the resource
    * manager maintained by this class.
