@@ -22,6 +22,7 @@
 #include <istream>
 #include <map>
 #include <vector>
+#include <array>
 
 #include "base/check.h"
 #include "parser/flex_lexer.h"
@@ -93,14 +94,16 @@ class Smt2LexerNew : public FlexLexer
   //----------- Utilities for parsing the current character stream
   enum class CharacterClass
   {
-    NONE,
-    WHITESPACE,
-    DECIMAL_DIGIT,
-    HEXADECIMAL_DIGIT,
-    BIT,
-    SYMBOL_START,
-    SYMBOL,
-  };
+    NONE = 0,
+    WHITESPACE = (1 << 0),
+    DECIMAL_DIGIT  = (1 << 1),
+    HEXADECIMAL_DIGIT = (1 << 2),
+    BIT = (1 << 3),
+    SYMBOL_START = (1 << 4),
+    SYMBOL = (1 << 5),
+  };  
+  /** The set of non-letter/non-digit characters that may occur in keywords. */
+  inline static const std::string s_extraSymbolChars = "+-/*=%?!.$_~&^<>@";
   /** parse <c>, return false if <c> is not ch. */
   bool parseLiteralChar(char ch);
   /** parse <c>, return false if <c> is not from cc */
@@ -112,29 +115,8 @@ class Smt2LexerNew : public FlexLexer
   /** Return true if ch is in character class cc */
   bool isCharacterClass(char ch, CharacterClass cc) const
   {
-    switch (cc)
-    {
-      case CharacterClass::WHITESPACE:
-        return d_symcTable[static_cast<size_t>(ch)]
-               == CharacterClass::WHITESPACE;
-      case CharacterClass::DECIMAL_DIGIT:
-        return d_symcTable[static_cast<size_t>(ch)]
-               == CharacterClass::DECIMAL_DIGIT;
-      case CharacterClass::HEXADECIMAL_DIGIT:
-        return (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f')
-               || (ch >= 'A' && ch <= 'F');
-      case CharacterClass::BIT: return ch == '0' || ch == '1';
-      case CharacterClass::SYMBOL_START:
-        return d_symcTable[static_cast<size_t>(ch)] == CharacterClass::SYMBOL;
-      case CharacterClass::SYMBOL:
-      {
-        CharacterClass chcc = d_symcTable[static_cast<size_t>(ch)];
-        return chcc == CharacterClass::SYMBOL
-               || chcc == CharacterClass::DECIMAL_DIGIT;
-      }
-      default: break;
-    }
-    return false;
+    return d_charClass[static_cast<uint8_t>(ch)]
+           & static_cast<uint8_t>(cc);
   }
   //----------- Utilizes for tokenizing d_token
   /**
@@ -159,11 +141,8 @@ class Smt2LexerNew : public FlexLexer
   bool d_isStrict;
   /** Is sygus enabled */
   bool d_isSygus;
-  /**
-   * Static table denoting a representative character class for characters
-   * 0...255, used for computing isCharacterClass.
-   */
-  CharacterClass d_symcTable[256];
+  /** The character classes. */
+  std::array<uint8_t, 256> d_charClass{};  // value-initialized to 0
 };
 
 }  // namespace parser
