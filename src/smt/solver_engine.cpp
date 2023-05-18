@@ -1693,6 +1693,11 @@ void SolverEngine::getInstantiationTermVectors(
 
 bool SolverEngine::getSynthSolutions(std::map<Node, Node>& solMap)
 {
+  if (d_sygusSolver==nullptr)
+  {
+    throw RecoverableModalException(
+        "Cannot get synth solutions in this context.");
+  }
   bool ret = d_sygusSolver->getSynthSolutions(solMap);
   // we return false if solMap is empty, that is, when we ask for a solution
   // when none is available.
@@ -1701,6 +1706,11 @@ bool SolverEngine::getSynthSolutions(std::map<Node, Node>& solMap)
 
 bool SolverEngine::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
 {
+  if (d_sygusSolver==nullptr)
+  {
+    throw RecoverableModalException(
+        "Cannot get subsolver synth solutions in this context.");
+  }
   bool ret = d_sygusSolver->getSubsolverSynthSolutions(solMap);
   // we return false if solMap is empty, that is, when we ask for a solution
   // when none is available.
