@@ -852,11 +852,11 @@ class CVC5_EXPORT SolverEngine
   // disallow copy/assignment
   SolverEngine(const SolverEngine&) = delete;
   SolverEngine& operator=(const SolverEngine&) = delete;
-  
+
   /**
    * Begin call, which is called before any method that requires initializing
    * this solver engine.
-   * 
+   *
    * @param needsRLlimit If true, then beginCall() is called on the resource
    * manager maintained by this class.
    */

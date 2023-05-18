@@ -694,14 +694,14 @@ QuantifiersEngine* SolverEngine::getAvailableQuantifiersEngine(
   return qe;
 }
 
-Result SolverEngine::checkSat() 
-{   
+Result SolverEngine::checkSat()
+{
   beginCall(true);
-  return checkSatInternal({}); 
+  return checkSatInternal({});
 }
 
 Result SolverEngine::checkSat(const Node& assumption)
-{  
+{
   beginCall(true);
   std::vector<Node> assump;
   if (!assumption.isNull())
@@ -712,7 +712,7 @@ Result SolverEngine::checkSat(const Node& assumption)
 }
 
 Result SolverEngine::checkSat(const std::vector<Node>& assumptions)
-{ 
+{
   beginCall(true);
   return checkSatInternal(assumptions);
 }
@@ -1125,7 +1125,7 @@ void SolverEngine::blockModel(modes::BlockModelsMode mode)
   ModelBlocker mb(*d_env.get());
   Node eblocker = mb.getModelBlocker(eassertsProc, m, mode);
   Trace("smt") << "Block formula: " << eblocker << std::endl;
-  
+
   // Must begin call now to ensure pops are processed. We cannot call this
   // above since we are accessing the model.
   beginCall();
@@ -1147,7 +1147,7 @@ void SolverEngine::blockModelValues(const std::vector<Node>& exprs)
   // we always do block model values mode here
   ModelBlocker mb(*d_env.get());
   Node eblocker = mb.getModelBlocker(
-      eassertsProc, m, modes::BlockModelsMode::VALUES, exprs);  
+      eassertsProc, m, modes::BlockModelsMode::VALUES, exprs);
 
   // Call begin call here, for same reasons as above.
   beginCall();
