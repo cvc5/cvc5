@@ -3577,11 +3577,13 @@ endforeach()
 #   https://gitlab.kitware.com/cmake/cmake/-/issues/8438
 #
 # In order to have 'make test' work properly when cvc5 binaries are not built, 
-# we use a Cmake feature called FIXTURES to add 'test_setup' as the first test
-# which builds the 'build-tests' target.
-
-add_test(test_setup "${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}" --config "$<CONFIG>" --target build-tests -j${CTEST_NTHREADS})
-set_tests_properties(test_setup PROPERTIES FIXTURES_SETUP test_setup_fixture)
+# we use a Cmake feature called FIXTURES to add 'build_regress' as the first test
+# which builds the 'build_regress' target.
+add_test(build_regress_test 
+    "${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}" 
+    --config "$<CONFIG>" --target build-regress -j${CTEST_NTHREADS}
+)
+set_tests_properties(build_regress_test PROPERTIES FIXTURES_SETUP build_regress_fixture)
 
 macro(cvc5_add_regression_test level file)
   set(wrapper )
@@ -3602,7 +3604,7 @@ macro(cvc5_add_regression_test level file)
     ${CMAKE_CURRENT_LIST_DIR}/${file})
   set_tests_properties(${file} PROPERTIES LABELS "regress${level}")
   set_tests_properties(${file} PROPERTIES SKIP_RETURN_CODE 77)
-  set_tests_properties(${file} PROPERTIES FIXTURES_REQUIRED test_setup_fixture)
+  set_tests_properties(${file} PROPERTIES FIXTURES_REQUIRED build_regress_fixture)
 endmacro()
 
 set(RUN_REGRESSION_ARGS ${RUN_REGRESSION_ARGS} --use-skip-return-code)

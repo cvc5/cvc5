@@ -324,7 +324,7 @@ endif()
 if(DEFINED BUILD_BINDINGS_PYTHON_VERSION) 
   find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Interpreter REQUIRED)
 else()
-  find_supported_python_version()
+  find_package(Python COMPONENTS Interpreter REQUIRED)
 endif()
 
 # Some cmake packages are not compatible with the newest version
