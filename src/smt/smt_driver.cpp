@@ -88,12 +88,6 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
           checkAgain = false;
         }
       } while (checkAgain);
-
-      // refresh the resource manager (for stats)
-      rm->refresh();
-      Trace("limit") << "SmtSolver::check(): cumulative millis "
-                     << rm->getTimeUsage() << ", resources "
-                     << rm->getResourceUsage() << std::endl;
     }
   }
   catch (const LogicException& e)

@@ -697,7 +697,9 @@ QuantifiersEngine* SolverEngine::getAvailableQuantifiersEngine(
 Result SolverEngine::checkSat()
 {
   beginCall(true);
-  return checkSatInternal({});
+  Result res = checkSatInternal({});
+  endCall();
+  return res;
 }
 
 Result SolverEngine::checkSat(const Node& assumption)
@@ -708,13 +710,17 @@ Result SolverEngine::checkSat(const Node& assumption)
   {
     assump.push_back(assumption);
   }
-  return checkSatInternal(assump);
+  Result res = checkSatInternal(assump);
+  endCall();
+  return res;
 }
 
 Result SolverEngine::checkSat(const std::vector<Node>& assumptions)
 {
   beginCall(true);
-  return checkSatInternal(assumptions);
+  Result res = checkSatInternal(assumptions);
+  endCall();
+  return res;
 }
 
 Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
@@ -776,7 +782,9 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore()
   Trace("smt") << "SolverEngine::getTimeoutCore()" << std::endl;
   beginCall(true);
   TimeoutCoreManager tcm(*d_env.get());
-  return tcm.getTimeoutCore(d_smtSolver->getAssertions());
+  std::pair<Result, std::vector<Node>> ret = tcm.getTimeoutCore(d_smtSolver->getAssertions());
+  endCall();
+  return ret;
 }
 
 std::vector<Node> SolverEngine::getUnsatAssumptions(void)
@@ -966,6 +974,7 @@ Node SolverEngine::simplify(const Node& t)
   // make so that the returned term does not involve arithmetic subtyping
   SubtypeElimNodeConverter senc;
   ret = senc.convert(ret);
+  endCall();
   return ret;
 }
 
@@ -1317,7 +1326,19 @@ void SolverEngine::beginCall(bool needsRLlimit)
   if (needsRLlimit)
   {
     getResourceManager()->beginCall();
+    Trace("limit") << "SolverEngine::beginCall(): cumulative millis "
+                    << rm->getTimeUsage() << ", resources "
+                    << rm->getResourceUsage() << std::endl;
   }
+}
+
+void SolverEngine::endCall()
+{
+  // refresh the resource manager (for stats)
+  getResourceManager()->refresh();
+  Trace("limit") << "SolverEngine::endCall(): cumulative millis "
+                  << rm->getTimeUsage() << ", resources "
+                  << rm->getResourceUsage() << std::endl;
 }
 
 StatisticsRegistry& SolverEngine::getStatisticsRegistry()
@@ -1685,6 +1706,7 @@ Node SolverEngine::getQuantifierElimination(Node q, bool doFull)
   beginCall(true);
   Node result = d_quantElimSolver->getQuantifierElimination(
       q, doFull, d_isInternalSubsolver);
+  endCall();
   return result;
 }
 
@@ -1700,6 +1722,7 @@ Node SolverEngine::getInterpolant(const Node& conj, const TypeNode& grammarType)
   // notify the state of whether the get-interpolant call was successfuly, which
   // impacts the SMT mode.
   d_state->notifyGetInterpol(success);
+  endCall();
   Assert(success == !interpol.isNull());
   return interpol;
 }
@@ -1718,6 +1741,7 @@ Node SolverEngine::getInterpolantNext()
   bool success = d_interpolSolver->getInterpolantNext(interpol);
   // notify the state of whether the get-interpolantant-next call was successful
   d_state->notifyGetInterpol(success);
+  endCall();
   Assert(success == !interpol.isNull());
   return interpol;
 }
@@ -1733,6 +1757,7 @@ Node SolverEngine::getAbduct(const Node& conj, const TypeNode& grammarType)
   // notify the state of whether the get-abduct call was successful, which
   // impacts the SMT mode.
   d_state->notifyGetAbduct(success);
+  endCall();
   Assert(success == !abd.isNull());
   return abd;
 }

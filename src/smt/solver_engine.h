@@ -865,6 +865,11 @@ class CVC5_EXPORT SolverEngine
    * manager maintained by this class.
    */
   void beginCall(bool needsRLlimit = false);
+  /**
+   * End call. Should follow after a call to beginCall where needsRLlimit
+   * was true.
+   */
+  void endCall();
 
   /** Set solver instance that owns this SolverEngine. */
   void setSolver(cvc5::Solver* solver) { d_solver = solver; }
