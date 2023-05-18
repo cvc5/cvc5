@@ -782,7 +782,8 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore()
   Trace("smt") << "SolverEngine::getTimeoutCore()" << std::endl;
   beginCall(true);
   TimeoutCoreManager tcm(*d_env.get());
-  std::pair<Result, std::vector<Node>> ret = tcm.getTimeoutCore(d_smtSolver->getAssertions());
+  std::pair<Result, std::vector<Node>> ret =
+      tcm.getTimeoutCore(d_smtSolver->getAssertions());
   endCall();
   return ret;
 }
@@ -1327,8 +1328,8 @@ void SolverEngine::beginCall(bool needsRLlimit)
   {
     getResourceManager()->beginCall();
     Trace("limit") << "SolverEngine::beginCall(): cumulative millis "
-                    << rm->getTimeUsage() << ", resources "
-                    << rm->getResourceUsage() << std::endl;
+                   << rm->getTimeUsage() << ", resources "
+                   << rm->getResourceUsage() << std::endl;
   }
 }
 
@@ -1337,8 +1338,8 @@ void SolverEngine::endCall()
   // refresh the resource manager (for stats)
   getResourceManager()->refresh();
   Trace("limit") << "SolverEngine::endCall(): cumulative millis "
-                  << rm->getTimeUsage() << ", resources "
-                  << rm->getResourceUsage() << std::endl;
+                 << rm->getTimeUsage() << ", resources "
+                 << rm->getResourceUsage() << std::endl;
 }
 
 StatisticsRegistry& SolverEngine::getStatisticsRegistry()
