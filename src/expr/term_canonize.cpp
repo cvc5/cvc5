@@ -76,10 +76,12 @@ bool TermCanonize::getTermOrder(Node a, Node b)
       {
         for (unsigned i = 0, size = a.getNumChildren(); i < size; i++)
         {
-          if (a[i] != b[i])
+          const bool a_b = getTermOrder(a[i], b[i]);
+          const bool b_a = getTermOrder(b[i], a[i]);
+          if (a_b || b_a)
           {
             // first distinct child determines the ordering
-            return getTermOrder(a[i], b[i]);
+            return a_b;
           }
         }
       }
