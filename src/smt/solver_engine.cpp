@@ -782,7 +782,6 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore()
 std::vector<Node> SolverEngine::getUnsatAssumptions(void)
 {
   Trace("smt") << "SMT getUnsatAssumptions()" << endl;
-  finishInit();
   if (!d_env->getOptions().smt.unsatAssumptions)
   {
     throw ModalException(
@@ -831,6 +830,7 @@ void SolverEngine::assertFormulaInternal(const Node& formula)
 
 void SolverEngine::declareSygusVar(Node var)
 {
+  beginCall();
   d_sygusSolver->declareSygusVar(var);
 }
 
@@ -1125,6 +1125,10 @@ void SolverEngine::blockModel(modes::BlockModelsMode mode)
   ModelBlocker mb(*d_env.get());
   Node eblocker = mb.getModelBlocker(eassertsProc, m, mode);
   Trace("smt") << "Block formula: " << eblocker << std::endl;
+  
+  // Must begin call now to ensure pops are processed. We cannot call this
+  // above since we are accessing the model.
+  beginCall();
   assertFormulaInternal(eblocker);
 }
 
@@ -1143,7 +1147,10 @@ void SolverEngine::blockModelValues(const std::vector<Node>& exprs)
   // we always do block model values mode here
   ModelBlocker mb(*d_env.get());
   Node eblocker = mb.getModelBlocker(
-      eassertsProc, m, modes::BlockModelsMode::VALUES, exprs);
+      eassertsProc, m, modes::BlockModelsMode::VALUES, exprs);  
+
+  // Call begin call here, for same reasons as above.
+  beginCall();
   assertFormulaInternal(eblocker);
 }
 
