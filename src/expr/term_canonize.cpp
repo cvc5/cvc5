@@ -87,7 +87,7 @@ bool TermCanonize::getTermOrder(Node a, Node b)
       }
       else
       {
-        return aop.getNumChildren() < bop.getNumChildren();
+        return a.getNumChildren() < b.getNumChildren();
       }
     }
     else
