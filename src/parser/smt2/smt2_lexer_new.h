@@ -24,7 +24,6 @@
 #include <map>
 #include <vector>
 
-
 #include "base/check.h"
 #include "parser/flex_lexer.h"
 #include "parser/tokens.h"
