@@ -32,20 +32,6 @@ Node AletheNodeConverter::postConvert(Node n)
     {
       Trace("alethe-conv") << "AletheNodeConverter: handling skolem " << n
                            << "\n";
-      Node wi = SkolemManager::getOriginalForm(n);
-      Trace("alethe-conv") << "AletheNodeConverter: ..original: " << wi << "\n";
-      if (wi == n)
-      {
-        // if it is not a purification skolem, maybe it has a witness skolem
-        wi = SkolemManager::getWitnessForm(n);
-      }
-      // skolem with witness form, just convert that
-      if (!wi.isNull())
-      {
-        Trace("alethe-conv") << "AletheNodeConverter: ..skolem " << n
-                             << " has witness form " << wi << "\n";
-        return convert(wi);
-      }
       Unreachable() << "Fresh Skolems are not allowed\n";
     }
     case kind::FORALL:

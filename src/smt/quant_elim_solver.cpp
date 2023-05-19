@@ -32,8 +32,8 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace smt {
 
-QuantElimSolver::QuantElimSolver(Env& env, SmtSolver& sms)
-    : EnvObj(env), d_smtSolver(sms)
+QuantElimSolver::QuantElimSolver(Env& env, SmtSolver& sms, ContextManager* ctx)
+    : EnvObj(env), d_smtSolver(sms), d_ctx(ctx)
 {
 }
 
@@ -73,7 +73,7 @@ Node QuantElimSolver::getQuantifierElimination(Node q,
                         << std::endl;
   Assert(ne.getNumChildren() == 3);
   // use a single call driver
-  SmtDriverSingleCall sdsc(d_env, d_smtSolver);
+  SmtDriverSingleCall sdsc(d_env, d_smtSolver, d_ctx);
   Result r = sdsc.checkSat(std::vector<Node>{ne.notNode()});
   Trace("smt-qe") << "Query returned " << r << std::endl;
   if (r.getStatus() != Result::UNSAT)

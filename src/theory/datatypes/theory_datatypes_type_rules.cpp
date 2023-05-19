@@ -472,8 +472,11 @@ TypeNode MatchTypeRule::computeType(NodeManager* nodeManager,
     }
     else if (retType != currType)
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "incomparable types in match case list");
+      std::stringstream ss;
+      ss << "incomparable types in match case list" << std::endl;
+      ss << nc[1] << ": " << currType << std::endl;
+      ss << "expected: " << retType << std::endl;
+      throw TypeCheckingExceptionPrivate(n, ss.str());
     }
   }
   // it is mandatory to check this here to ensure the match is exhaustive

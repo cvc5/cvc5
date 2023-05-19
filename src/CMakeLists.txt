@@ -283,8 +283,6 @@ libcvc5_add_sources(
   prop/zero_level_learner.h
   smt/abduction_solver.cpp
   smt/abduction_solver.h
-  smt/abstract_values.cpp
-  smt/abstract_values.h
   smt/assertions.cpp
   smt/assertions.h
   smt/check_models.cpp
@@ -1419,13 +1417,6 @@ install(FILES
 )
 
 # Add library/include dependencies
-add_dependencies(cvc5-obj GMP)
-target_include_directories(cvc5-obj PRIVATE ${GMP_INCLUDE_DIR})
-if(BUILD_SHARED_LIBS)
-  target_link_libraries(cvc5 PRIVATE GMP)
-else()
-  target_link_libraries(cvc5 PUBLIC GMP)
-endif()
 
 # Add rt library
 # Note: For glibc < 2.17 we have to additionally link against rt (man clock_gettime).
@@ -1438,7 +1429,7 @@ endif()
 
 add_dependencies(cvc5-obj CaDiCaL)
 target_include_directories(cvc5-obj SYSTEM PRIVATE ${CaDiCaL_INCLUDE_DIR})
-target_link_libraries(cvc5 PRIVATE CaDiCaL)
+target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:CaDiCaL> $<INSTALL_INTERFACE:cadical>)
 
 if(USE_CLN)
   add_dependencies(cvc5-obj CLN)
@@ -1463,9 +1454,11 @@ if(USE_POLY)
   add_dependencies(cvc5-obj Polyxx)
   target_include_directories(cvc5-obj SYSTEM PRIVATE ${Poly_INCLUDE_DIR})
   if(BUILD_SHARED_LIBS)
-    target_link_libraries(cvc5 PRIVATE Polyxx)
+    target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:Poly> $<INSTALL_INTERFACE:picpoly>)
+    target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:Polyxx> $<INSTALL_INTERFACE:picpolyxx>)
   else()
-    target_link_libraries(cvc5 PUBLIC Polyxx)
+    target_link_libraries(cvc5 PUBLIC $<BUILD_INTERFACE:Poly> $<INSTALL_INTERFACE:picpoly>)
+    target_link_libraries(cvc5 PUBLIC $<BUILD_INTERFACE:Polyxx> $<INSTALL_INTERFACE:picpolyxx>)
   endif()
 endif()
 if(USE_COCOA)
@@ -1476,7 +1469,16 @@ endif()
 
 add_dependencies(cvc5-obj SymFPU)
 target_include_directories(cvc5-obj SYSTEM PRIVATE ${SymFPU_INCLUDE_DIR})
-target_link_libraries(cvc5 PRIVATE SymFPU)
+
+# GMP has to be included at the end because of linker ordering issues when 
+# generating a static library. 
+add_dependencies(cvc5-obj GMP)
+target_include_directories(cvc5-obj PRIVATE ${GMP_INCLUDE_DIR})
+if(BUILD_SHARED_LIBS)
+  target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:GMP> $<INSTALL_INTERFACE:gmp>)
+else()
+  target_link_libraries(cvc5 PUBLIC $<BUILD_INTERFACE:GMP> $<INSTALL_INTERFACE:gmp>)
+endif()
 
 #-----------------------------------------------------------------------------#
 # Visit main subdirectory after creating target cvc5. For target main, we have

@@ -126,12 +126,13 @@ class SmtDriver : protected EnvObj
  * The default SMT driver, which makes a single call to the underlying
  * SMT solver.
  *
- * Notice this class does not require ContextManager.
+ * Notice this class does not require ContextManager if we are not doing
+ * incremental solving with this driver.
  */
 class SmtDriverSingleCall : public SmtDriver
 {
  public:
-  SmtDriverSingleCall(Env& env, SmtSolver& smt);
+  SmtDriverSingleCall(Env& env, SmtSolver& smt, ContextManager* ctx = nullptr);
   virtual ~SmtDriverSingleCall(){}
 
  protected:

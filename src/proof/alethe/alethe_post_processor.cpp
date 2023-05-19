@@ -1816,7 +1816,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     default:
     {
-      return addAletheStep(AletheRule::UNDEFINED,
+      return addAletheStep(AletheRule::HOLE,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
                            children,
