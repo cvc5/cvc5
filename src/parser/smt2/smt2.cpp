@@ -651,7 +651,6 @@ void Smt2State::pushDefineFunRecScope(
 void Smt2State::reset()
 {
   d_logicSet = false;
-  d_seenSetLogic = false;
   d_logic = internal::LogicInfo();
   d_operatorKindMap.clear();
   d_lastNamedTerm = std::pair<Term, std::string>();
@@ -687,23 +686,13 @@ std::unique_ptr<Command> Smt2State::invConstraint(
   return std::unique_ptr<Command>(new SygusInvConstraintCommand(terms));
 }
 
-Command* Smt2State::setLogic(std::string name, bool fromCommand)
+void Smt2State::setLogic(std::string name)
 {
-  if (fromCommand)
+  // if logic is already set, this is an error
+  if (d_logicSet)
   {
-    if (d_seenSetLogic)
-    {
-      parseError("Only one set-logic is allowed.");
-    }
-    d_seenSetLogic = true;
-
-    if (logicIsForced())
-    {
-      // If the logic is forced, we ignore all set-logic requests from commands.
-      return new EmptyCommand();
-    }
+    parseError("Only one set-logic is allowed.");
   }
-
   d_logicSet = true;
   d_logic = name;
 
@@ -943,20 +932,7 @@ Command* Smt2State::setLogic(std::string name, bool fromCommand)
   // builtin symbols of the logic are declared at context level zero, hence
   // we push the outermost scope here
   pushScope(true);
-
-  std::string logic = sygus() ? d_logic.getLogicString() : name;
-  if (!fromCommand)
-  {
-    // If not from a command, just set the logic directly. Notice this is
-    // important since we do not want to enqueue a set-logic command and
-    // fully initialize the underlying SolverEngine in the meantime before the
-    // command has a chance to execute, which would lead to an error.
-    d_solver->setLogic(logic);
-    return nullptr;
-  }
-  Command* cmd = new SetBenchmarkLogicCommand(logic);
-  return cmd;
-} /* Smt2State::setLogic() */
+}
 
 Grammar* Smt2State::mkGrammar(const std::vector<Term>& boundVars,
                               const std::vector<Term>& ntSymbols)
@@ -987,7 +963,7 @@ void Smt2State::checkThatLogicIsSet()
       // the calls to setLogic below set the logic on the solver directly
       if (logicIsForced())
       {
-        setLogic(getForcedLogic(), false);
+        setLogic(getForcedLogic());
       }
       else
       {
@@ -998,8 +974,13 @@ void Smt2State::checkThatLogicIsSet()
             "performance.");
         warning("To suppress this warning in the future use (set-logic ALL).");
 
-        setLogic("ALL", false);
+        setLogic("ALL");
       }
+      // Set the logic directly in the solver, without a command. Notice this is
+      // important since we do not want to enqueue a set-logic command and
+      // fully initialize the underlying SolverEngine in the meantime before the
+      // command has a chance to execute, which would lead to an error.
+      d_solver->setLogic(d_logic.getLogicString());
     }
   }
 }
