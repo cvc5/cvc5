@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -344,20 +344,11 @@ bool TheoryArith::collectModelInfo(TheoryModel* m,
   // If we have a buffered lemma (from the non-linear extension), then we
   // do not assert model values, since those values are likely incorrect.
   // Moreover, the model does not need to satisfy the assertions, so
-  // arbitrary values can be used for arithmetic terms. We do, however,
-  // require for the sake of theory combination that the information in the
-  // equality engine is respected. Hence, we run the (default) implementation
-  // of collectModelInfo here. The buffered lemmas will be sent immediately
+  // arbitrary values can be used for arithmetic terms. Hence, we do
+  // nothing here. The buffered lemmas will be sent immediately
   // at LAST_CALL effort (see postCheck).
   if (d_im.hasPendingLemma())
   {
-    if (!termSet.empty())
-    {
-      if (!m->assertEqualityEngine(d_equalityEngine, &termSet))
-      {
-        return false;
-      }
-    }
     return true;
   }
   // this overrides behavior to not assert equality engine

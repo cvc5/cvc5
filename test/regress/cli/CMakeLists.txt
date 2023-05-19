@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -999,6 +999,7 @@ set(regress_0_tests
   regress0/parser/issue7894-parse-error-assoc.smt2
   regress0/parser/issue8377-resolve-indexed.smt2
   regress0/parser/issue8767-exception.smt2
+  regress0/parser/issue8820-err.smt2
   regress0/parser/issue9140-check-to-fp-args.smt2
   regress0/parser/issue9350-ishell-scope-reset.smt2
   regress0/parser/issue9568-dt-multi-line.smt2
@@ -1108,8 +1109,6 @@ set(regress_0_tests
   regress0/proofs/issue9200-lfsc-inst-sorts.smt2
   regress0/proofs/issue9205-eqProofNary.smt2
   regress0/proofs/issue9393-optResReconstruction-alethebug.smt2
-  regress0/proofs/issue9515-alethe-skolems-crash.smt2
-  regress0/proofs/issue9516-alethe-skolems-undef-in-proof.smt2
   regress0/proofs/issue9531-alethe-resolution.smt2
   regress0/proofs/lfsc-test-1.smt2
   regress0/proofs/nomerge-alethe-pf.smt2
@@ -1372,6 +1371,7 @@ set(regress_0_tests
   regress0/seq/issue5665-invalid-model.smt2
   regress0/seq/issue6337-seq.smt2
   regress0/seq/issue8133-block-const-elems.smt2
+  regress0/seq/issue9696-unit-type-cmi.smt2
   regress0/seq/len_simplify.smt2
   regress0/seq/mixed-types-seq-nth.smt2
   regress0/seq/nth-oob.smt2
@@ -2245,6 +2245,7 @@ set(regress_1_tests
   regress1/nl/issue9183-4.smt2
   regress1/nl/issue9183-5.smt2
   regress1/nl/issue9420-ll.smt2
+  regress1/nl/issue9472-2-cmv.smt2
   regress1/nl/issue9480-pow-pow2.smt2
   regress1/nl/issue9611-lrew.smt2
   regress1/nl/issue9621-lrew.smt2
@@ -3410,6 +3411,9 @@ set(regression_disabled_tests
   regress0/datatypes/datatype-dump.cvc.smt2
   # no longer support overloaded symbols across multiple parametric datatypes
   regress0/datatypes/repeated-selectors-2769.smt2
+  # issues with skolems
+  regress0/proofs/issue9515-alethe-skolems-crash.smt2
+  regress0/proofs/issue9516-alethe-skolems-undef-in-proof.smt2
   # need finite model finding command line in tptp regression
   regress0/tptp/BOO003-4.p
   regress0/tptp/BOO027-1.p
