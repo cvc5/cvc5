@@ -1109,8 +1109,6 @@ set(regress_0_tests
   regress0/proofs/issue9200-lfsc-inst-sorts.smt2
   regress0/proofs/issue9205-eqProofNary.smt2
   regress0/proofs/issue9393-optResReconstruction-alethebug.smt2
-  regress0/proofs/issue9515-alethe-skolems-crash.smt2
-  regress0/proofs/issue9516-alethe-skolems-undef-in-proof.smt2
   regress0/proofs/issue9531-alethe-resolution.smt2
   regress0/proofs/lfsc-test-1.smt2
   regress0/proofs/nomerge-alethe-pf.smt2
@@ -3413,6 +3411,9 @@ set(regression_disabled_tests
   regress0/datatypes/datatype-dump.cvc.smt2
   # no longer support overloaded symbols across multiple parametric datatypes
   regress0/datatypes/repeated-selectors-2769.smt2
+  # issues with skolems
+  regress0/proofs/issue9515-alethe-skolems-crash.smt2
+  regress0/proofs/issue9516-alethe-skolems-undef-in-proof.smt2
   # need finite model finding command line in tptp regression
   regress0/tptp/BOO003-4.p
   regress0/tptp/BOO027-1.p
