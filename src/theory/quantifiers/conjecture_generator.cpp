@@ -604,7 +604,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
           //check each skolem variable
           bool disproven = true;
           std::vector<Node> skolems;
-          d_qim.getSkolemize()->getSkolemConstants(q, skolems);
+          d_qim.getSkolemize()->getSkolemConstantsInduction(q, skolems);
           Trace("sg-conjecture") << "    CONJECTURE : ";
           std::vector< Node > ce;
           for (unsigned j = 0; j < skolems.size(); j++)

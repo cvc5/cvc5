@@ -604,7 +604,7 @@ EvalResult Evaluator::evalInternal(
           if (x.getNumerator().fitsUnsignedInt())
           {
             uint32_t value = x.getNumerator().toUnsignedInt();
-            if (value<=256)
+            if (value <= 256)
             {
               valid = true;
               results[currNode] = EvalResult(Rational(Integer(2).pow(value)));
