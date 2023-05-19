@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,7 +36,7 @@ class FlexFileInput : public FlexInput
       throw InputStreamException(ss.str());
     }
   }
-  std::istream& getStream() override { return d_fs; }
+  std::istream* getStream() override { return &d_fs; }
 
  private:
   /** File stream */
@@ -48,7 +48,8 @@ class FlexStreamInput : public FlexInput
 {
  public:
   FlexStreamInput(std::istream& input) : FlexInput(), d_input(input) {}
-  std::istream& getStream() override { return d_input; }
+  std::istream* getStream() override { return &d_input; }
+  bool isInteractive() const override { return true; }
 
  private:
   /** Reference to stream */
@@ -60,7 +61,7 @@ class FlexStringInput : public FlexInput
 {
  public:
   FlexStringInput(const std::string& input) : FlexInput() { d_input << input; }
-  std::istream& getStream() override { return d_input; }
+  std::istream* getStream() override { return &d_input; }
 
  private:
   /** Reference to stream */
@@ -83,6 +84,7 @@ std::unique_ptr<FlexInput> FlexInput::mkStringInput(const std::string& input)
 {
   return std::unique_ptr<FlexInput>(new FlexStringInput(input));
 }
+bool FlexInput::isInteractive() const { return false; }
 
 }  // namespace parser
 }  // namespace cvc5

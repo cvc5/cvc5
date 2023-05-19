@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Tim King
+ *   Andrew Reynolds, Tim King, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -392,8 +392,10 @@ class SymbolTable::Implementation
   TypeMap d_typeMap;
 
   //------------------------ operator overloading
-  // the null expression
+  /** the null term */
   Term d_nullTerm;
+  /** The null sort */
+  Sort d_nullSort;
   // overloaded type trie, stores all information regarding overloading
   OverloadedTypeTrie d_overload_trie;
   /** bind with overloading
@@ -431,16 +433,17 @@ bool SymbolTable::Implementation::isBound(const string& name) const
 
 Term SymbolTable::Implementation::lookup(const string& name) const
 {
-  Assert(isBound(name));
-  Term expr = (*d_exprMap.find(name)).second;
+  CDHashMap<string, Term>::const_iterator it = d_exprMap.find(name);
+  if (it == d_exprMap.end())
+  {
+    return d_nullTerm;
+  }
+  Term expr = it->second;
   if (isOverloadedFunction(expr))
   {
     return d_nullTerm;
   }
-  else
-  {
-    return expr;
-  }
+  return expr;
 }
 
 void SymbolTable::Implementation::bindType(const string& name, Sort t)
@@ -475,7 +478,12 @@ bool SymbolTable::Implementation::isBoundType(const string& name) const
 
 Sort SymbolTable::Implementation::lookupType(const string& name) const
 {
-  std::pair<std::vector<Sort>, Sort> p = (*d_typeMap.find(name)).second;
+  TypeMap::const_iterator it = d_typeMap.find(name);
+  if (it == d_typeMap.end())
+  {
+    return d_nullSort;
+  }
+  std::pair<std::vector<Sort>, Sort> p = it->second;
   if (p.first.size() != 0)
   {
     std::stringstream ss;
@@ -489,7 +497,12 @@ Sort SymbolTable::Implementation::lookupType(const string& name) const
 Sort SymbolTable::Implementation::lookupType(const string& name,
                                              const vector<Sort>& params) const
 {
-  std::pair<std::vector<Sort>, Sort> p = (*d_typeMap.find(name)).second;
+  TypeMap::const_iterator it = d_typeMap.find(name);
+  if (it == d_typeMap.end())
+  {
+    return d_nullSort;
+  }
+  std::pair<std::vector<Sort>, Sort> p = it->second;
   if (p.first.size() != params.size())
   {
     std::stringstream ss;

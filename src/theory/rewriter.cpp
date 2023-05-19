@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -154,7 +154,9 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
                          TConvProofGenerator* tcpg)
 {
 #ifdef CVC5_ASSERTIONS
-  bool isEquality = node.getKind() == kind::EQUAL && (!node[0].getType().isBoolean());
+  bool isEquality = node.getKind() == kind::EQUAL
+                    && !node[0].getType().isBoolean()
+                    && !node[1].getType().isBoolean();
 
   if (d_rewriteStack == nullptr)
   {
@@ -305,7 +307,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
         Trace("rewriter-debug") << "Post-Rewrite: " << rewriteStackTop.d_node
                                 << " to " << newNode << std::endl;
         TheoryId newTheoryId = theoryOf(newNode);
-        Assert(newNode.getType() == rewriteStackTop.d_node.getType())
+        Assert(
+            newNode.getType().isComparableTo(rewriteStackTop.d_node.getType()))
             << "Post-rewriting " << rewriteStackTop.d_node << " to " << newNode
             << " does not preserve type";
         if (newTheoryId != rewriteStackTop.getTheoryId()
