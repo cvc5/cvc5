@@ -216,12 +216,8 @@ class Smt2State : public ParserState
    * theory symbols.
    *
    * @param name the name of the logic (e.g., QF_UF, AUFLIA)
-   * @param fromCommand should be set to true if the request originates from a
-   *                    set-logic command and false otherwise
-   * @return the command corresponding to setting the logic (if fromCommand
-   * is true), and nullptr otherwise.
    */
-  Command* setLogic(std::string name, bool fromCommand = true);
+  void setLogic(std::string name);
 
   /**
    * Get the logic.
