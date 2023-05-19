@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -276,7 +276,10 @@ bool SygusInterpol::findInterpol(SolverEngine* subSolver,
 {
   // get the synthesis solution
   std::map<Node, Node> sols;
-  subSolver->getSynthSolutions(sols);
+  if (!subSolver->getSynthSolutions(sols))
+  {
+    return false;
+  }
   Assert(sols.size() == 1);
   std::map<Node, Node>::iterator its = sols.find(itp);
   if (its == sols.end())
