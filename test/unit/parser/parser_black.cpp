@@ -130,8 +130,7 @@ class TestParserBlackParser : public TestInternal
     if (d_lang == "LANG_SMTLIB_V2_6")
     {
       /* Use QF_LIA to make multiplication ("*") available */
-      std::unique_ptr<Command> cmd(
-          static_cast<Smt2*>(parser.get())->getSmt2State()->setLogic("QF_LIA"));
+      static_cast<Smt2*>(parser.get())->getSmt2State()->setLogic("QF_LIA");
     }
 
     ASSERT_FALSE(parser->done());
