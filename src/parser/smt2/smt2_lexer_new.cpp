@@ -244,13 +244,6 @@ Token Smt2LexerNew::computeNextToken()
   return Token::NONE;
 }
 
-void Smt2LexerNew::saveChar(char ch)
-{
-  Assert(!d_peekedChar);
-  d_peekedChar = true;
-  d_chPeeked = ch;
-}
-
 bool Smt2LexerNew::parseLiteralChar(char chc)
 {
   char ch = nextChar();

@@ -84,7 +84,12 @@ class Smt2LexerNew : public FlexLexer
     return res;
   }
   /** Save character */
-  void saveChar(char ch);
+  void saveChar(char ch)
+  {
+    Assert(!d_peekedChar);
+    d_peekedChar = true;
+    d_chPeeked = ch;
+  }
   /** Push a character to the stored token */
   void pushToToken(char ch)
   {
