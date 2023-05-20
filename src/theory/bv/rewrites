@@ -822,7 +822,7 @@
   )
   (and (bvule (bvnot b) (bv c nm)) (bvule (bv c nm) (bvnot a)))
   (bvult (bv c nm) (sign_extend m x))
-  (= (extract (- n 1) (- n 1) x) (bv 0 1)))
+  (= (extract (- n 1) (- n 1) x) (bv 1 1)))
 
 
 ; -- Normalization Rules --
