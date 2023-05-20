@@ -21,12 +21,6 @@
 #include <fstream>
 #include <iosfwd>
 #include <string>
-
-// https://stackoverflow.com/a/40665154/4917890
-#if !defined(yyFlexLexerOnce)
-#include <FlexLexer.h>
-#endif
-
 #include <vector>
 
 #include "parser/flex_input.h"
