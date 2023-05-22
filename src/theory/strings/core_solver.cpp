@@ -464,8 +464,9 @@ Node CoreSolver::checkCycles( Node eqc, std::vector< Node >& curr, std::vector< 
       {
         d_eqc[eqc].push_back(n);
       }
-      for (const Node& nc : n)
+      for (size_t i=0, nchild = n.getNumChildren(); i<nchild; i++)
       {
+        Node nc = n[i];
         Node nr = d_state.getRepresentative(nc);
         if (eqc == emp)
         {
