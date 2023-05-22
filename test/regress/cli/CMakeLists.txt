@@ -2312,6 +2312,7 @@ set(regress_1_tests
   regress1/proj-issue539-rew-bv2nat.smt2
   regress1/proj-issue542.smt2
   regress1/proj-issue557-rew-bv2nat.smt2
+  regress1/proj-issue619-nconst-nl-mv.smt2
   regress1/proj-issue623-bv2nat-static.smt2
   regress1/proj-issue634-diff-mc.smt2
   regress1/proof00.smt2
