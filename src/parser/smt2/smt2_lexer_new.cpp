@@ -67,7 +67,6 @@ Smt2LexerNew::Smt2LexerNew(bool isStrict, bool isSygus)
   d_charClass['\t'] |= static_cast<uint32_t>(CharacterClass::WHITESPACE);
   d_charClass['\r'] |= static_cast<uint32_t>(CharacterClass::WHITESPACE);
   d_charClass['\n'] |= static_cast<uint32_t>(CharacterClass::WHITESPACE);
-  d_charClass['\f'] |= static_cast<uint32_t>(CharacterClass::WHITESPACE);
 }
 
 const char* Smt2LexerNew::tokenStr() const
