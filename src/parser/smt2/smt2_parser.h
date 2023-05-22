@@ -42,14 +42,21 @@ class Smt2Parser : public FlexParser
              bool strictMode = false,
              bool isSygus = false);
   virtual ~Smt2Parser() {}
+  /** Set the logic */
+  void setLogic(const std::string& logic) override;
 
  protected:
   /**
-   * Parse and return the next command.
+   * Parse and return the next command. Will initialize the logic to "ALL"
+   * or the forced logic if no logic is set prior to this point and a command
+   * is read that requires initializing the logic.
    */
   std::unique_ptr<Command> parseNextCommand() override;
 
-  /** Parse and return the next expression. */
+  /**
+   * Parse and return the next expression. Requires setting the logic
+   * beforehand.
+   */
   Term parseNextExpression() override;
   /** The lexer */
   Smt2Lexer d_slex;
