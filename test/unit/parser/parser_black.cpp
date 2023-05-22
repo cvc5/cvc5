@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Christopher L. Conway, Gereon Kremer
+ *   Aina Niemetz, Christopher L. Conway, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -130,8 +130,7 @@ class TestParserBlackParser : public TestInternal
     if (d_lang == "LANG_SMTLIB_V2_6")
     {
       /* Use QF_LIA to make multiplication ("*") available */
-      std::unique_ptr<Command> cmd(
-          static_cast<Smt2*>(parser.get())->getSmt2State()->setLogic("QF_LIA"));
+      static_cast<Smt2*>(parser.get())->getSmt2State()->setLogic("QF_LIA");
     }
 
     ASSERT_FALSE(parser->done());

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,14 +42,21 @@ class Smt2Parser : public FlexParser
              bool strictMode = false,
              bool isSygus = false);
   virtual ~Smt2Parser() {}
+  /** Set the logic */
+  void setLogic(const std::string& logic) override;
 
  protected:
   /**
-   * Parse and return the next command.
+   * Parse and return the next command. Will initialize the logic to "ALL"
+   * or the forced logic if no logic is set prior to this point and a command
+   * is read that requires initializing the logic.
    */
   std::unique_ptr<Command> parseNextCommand() override;
 
-  /** Parse and return the next expression. */
+  /**
+   * Parse and return the next expression. Requires setting the logic
+   * beforehand.
+   */
   Term parseNextExpression() override;
   /** The lexer */
   Smt2Lexer d_slex;

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -573,9 +573,10 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
     // mkConst is applied to RAN in this block, which are always Real
     if (left.isConst())
     {
-      return RewriteResponse(REWRITE_DONE,
-                             rewriter::ensureReal(rewriter::mkConst(
-                                 left.getConst<Rational>() / den)));
+      return RewriteResponse(
+          REWRITE_DONE,
+          rewriter::ensureReal(rewriter::mkConst(
+              RealAlgebraicNumber(left.getConst<Rational>()) / den)));
     }
     if (rewriter::isRAN(left))
     {
@@ -584,7 +585,7 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
                                  rewriter::getRAN(left) / den)));
     }
 
-    Node result = rewriter::mkConst(inverse(den));
+    Node result = rewriter::mkConst(den.inverse());
     Node mult = rewriter::ensureReal(
         NodeManager::currentNM()->mkNode(kind::MULT, left, result));
     if (pre)

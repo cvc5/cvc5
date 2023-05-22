@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mathias Preiner, Gereon Kremer, Andrew V. Jones
+#   Mathias Preiner, Andrew Reynolds, Andres Noetzli
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -76,6 +76,8 @@ set(libcvc5parser_src_files
   smt2/smt2_cmd_parser.h
   smt2/smt2_lexer.cpp
   smt2/smt2_lexer.h
+  smt2/smt2_lexer_new.cpp
+  smt2/smt2_lexer_new.h
   smt2/smt2_cmd_parser.cpp
   smt2/smt2_cmd_parser.h
   smt2/smt2_input.cpp
