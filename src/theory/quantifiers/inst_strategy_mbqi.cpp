@@ -24,6 +24,7 @@
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/smt_engine_subsolver.h"
+#include "theory/strings/theory_strings_utils.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -343,8 +344,9 @@ Node InstStrategyMbqi::convertToQuery(
         cmap[cur] = k;
         continue;
       }
-      else if (cur.isVar())
+      else if (ck == CONST_SEQUENCE || cur.isVar())
       {
+        // constant sequences and variables require two passes
         if (!cur.getType().isFirstClass())
         {
           // can be e.g. tester/constructor/selector
@@ -355,7 +357,15 @@ Node InstStrategyMbqi::convertToQuery(
           std::map<Node, Node>::iterator itm = modelValue.find(cur);
           if (itm == modelValue.end())
           {
-            Node mval = fm->getValue(cur);
+            Node mval;
+            if (ck == CONST_SEQUENCE)
+            {
+              mval = strings::utils::mkConcatForConstSequence(cur);
+            }
+            else
+            {
+              mval = fm->getValue(cur);
+            }
             Trace("mbqi-model") << "  M[" << cur << "] = " << mval << "\n";
             modelValue[cur] = mval;
             if (cur == mval)
@@ -467,6 +477,12 @@ Node InstStrategyMbqi::convertFromModel(
           // failed to find equal, we fail
           return Node::null();
         }
+      }
+      else if (ck == CONST_SEQUENCE)
+      {
+        // must convert to concat of sequence units
+        Node cconv = strings::utils::mkConcatForConstSequence(cur);
+        cmap[cur] = convertFromModel(cconv, cmap, mvToFreshVar);
       }
       else if (cur.getNumChildren() == 0)
       {
