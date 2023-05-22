@@ -216,17 +216,21 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
             // if we have not set an approximate bound for it
             if (!hasAssignment(cur))
             {
-              // set its exact model value in the substitution
+              // set its exact model value in the substitution, if we compute
+              // a constant value
               Node curv = computeConcreteModelValue(cur);
-              if (TraceIsOn("nl-ext-cm"))
+              if (curv.isConst())
               {
-                Trace("nl-ext-cm")
-                    << "check-model-bound : exact : " << cur << " = ";
-                printRationalApprox("nl-ext-cm", curv);
-                Trace("nl-ext-cm") << std::endl;
+                if (TraceIsOn("nl-ext-cm"))
+                {
+                  Trace("nl-ext-cm")
+                      << "check-model-bound : exact : " << cur << " = ";
+                  printRationalApprox("nl-ext-cm", curv);
+                  Trace("nl-ext-cm") << std::endl;
+                }
+                bool ret = addSubstitution(cur, curv);
+                AlwaysAssert(ret);
               }
-              bool ret = addSubstitution(cur, curv);
-              AlwaysAssert(ret);
             }
           }
         }
@@ -493,6 +497,11 @@ bool NlModel::solveEqualitySimple(Node eq,
       if (uvf.isVar() && !hasAssignment(uvf))
       {
         Node uvfv = computeConcreteModelValue(uvf);
+        // fail if model value is non-constant
+        if (!uvfv.isConst())
+        {
+          return false;
+        }
         if (TraceIsOn("nl-ext-cm"))
         {
           Trace("nl-ext-cm") << "check-model-bound : exact : " << uvf << " = ";
