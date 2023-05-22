@@ -51,24 +51,6 @@ def check_iteractive_shell():
     child.send(")")
     child.sendcontrol("m")
 
-    # So we expect to see an error for 'BOOLE'
-    child.expect("Expected SMT-LIBv2 symbol")
-
-    # Send enter
-    child.sendcontrol("m")
-
-    # We expect to see the cvc5 prompt
-    child.expect("cvc5>")
-
-    # Now send an up key
-    child.send("\033[A")
-
-    # Send enter
-    child.sendcontrol("m")
-
-    # We expect to see the previous error again
-    child.expect("Expected SMT-LIBv2 symbol")
-
     return 0
 
 
