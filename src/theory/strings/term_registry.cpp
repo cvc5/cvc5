@@ -284,8 +284,6 @@ void TermRegistry::registerTermInternal(Node n)
     //  for variables, split on empty vs positive length
     //  for concat/const/replace, introduce proxy var and state length relation
     regTermLem = getRegisterTermLemma(n);
-    Trace("strings-register")
-        << "Register term lemma " << regTermLem << std::endl;
   }
   else if (n.getKind() != STRING_CONTAINS)
   {
