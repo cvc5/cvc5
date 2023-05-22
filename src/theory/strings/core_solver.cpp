@@ -464,7 +464,8 @@ Node CoreSolver::checkCycles( Node eqc, std::vector< Node >& curr, std::vector< 
       {
         d_eqc[eqc].push_back(n);
       }
-      for (size_t i=0, nchild = n.getNumChildren(); i<nchild; i++)
+      size_t nchild = n.getNumChildren();
+      for (size_t i=0; i<nchild; i++)
       {
         Node nc = n[i];
         Node nr = d_state.getRepresentative(nc);
@@ -498,7 +499,7 @@ Node CoreSolver::checkCycles( Node eqc, std::vector< Node >& curr, std::vector< 
             if (ncy == eqc)
             {
               // can infer all other components must be empty
-              for (unsigned j = 0; j < n.getNumChildren(); j++)
+              for (size_t j = 0; j < nchild; j++)
               {
                 // take first non-empty
                 if (j != i && !d_state.areEqual(n[j], emp))
