@@ -1100,6 +1100,7 @@ set(regress_0_tests
   regress0/printer/symbol_starting_w_digit.smt2
   regress0/printer/tuples_and_records.cvc.smt2
   regress0/proj-issue307-get-value-re.smt2
+  regress0/proj-issue645-abs-value-subs.smt2
   regress0/proofs/alethe-res-need-or-step.smt2
   regress0/proofs/cyclic-ucp.smt2
   regress0/proofs/issue277-circuit-propagator.smt2
