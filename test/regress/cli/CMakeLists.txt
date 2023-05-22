@@ -1381,6 +1381,7 @@ set(regress_0_tests
   regress0/seq/proj-issue384-subtypes.smt2
   regress0/seq/proj-issue384-2-subtypes.smt2
   regress0/seq/proj-issue427-subtypes-value.smt2
+  regress0/seq/proj-issue559-unit-inj.smt2
   regress0/seq/proj-issue586-nth-update-no-fact.smt2
   regress0/seq/proj-issue586-nth-update-no-fact-2.smt2
   regress0/seq/proj-issue604-reg-closure.smt2
