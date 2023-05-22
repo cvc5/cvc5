@@ -554,7 +554,7 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
     {
       return RewriteResponse(
           REWRITE_DONE,
-          nm->mkRealAlgebraicNumber(rewriter::getRAN(left) / den));
+          rewriter::ensureReal(nm->mkRealAlgebraicNumber(rewriter::getRAN(left) / den)));
     }
 
     Node result = nm->mkConstReal(den.inverse());
