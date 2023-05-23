@@ -45,9 +45,9 @@ using namespace cvc5::internal::theory;
 
 namespace cvc5::internal {
 namespace smt {
-  
-  //notifyModifyOption("proofMode", "FULL", "enabling proofs");
-  //opts.writeSmt().proofMode = options::ProofMode::FULL;
+
+// notifyModifyOption("proofMode", "FULL", "enabling proofs");
+// opts.writeSmt().proofMode = options::ProofMode::FULL;
 /**
  */
 #define SET_AND_NOTIFY(domain, optName, value, reason) \
@@ -56,15 +56,15 @@ namespace smt {
     notifyModifyOption("optName", "value", reason);    \
     opts.write##domain().optName = value;              \
   }
-#define SET_AND_NOTIFY_BOOL_VAL(domain, optName, value, reason)         \
-  if (opts.write##domain().optName != value)                            \
-  {                                                                     \
-    notifyModifyOption("optName", value ? "true" : "false", reason);    \
-    opts.write##domain().optName = value;                               \
+#define SET_AND_NOTIFY_BOOL_VAL(domain, optName, value, reason)      \
+  if (opts.write##domain().optName != value)                         \
+  {                                                                  \
+    notifyModifyOption("optName", value ? "true" : "false", reason); \
+    opts.write##domain().optName = value;                            \
   }
 #define SET_AND_NOTIFY_IF_NOT_USER(domain, optName, value, reason) \
-  if (!opts.write##domain().optName##WasSetByUser &&             \
-      opts.write##domain().optName != value)                       \
+  if (!opts.write##domain().optName##WasSetByUser                  \
+      && opts.write##domain().optName != value)                    \
   {                                                                \
     notifyModifyOption("optName", "value", reason);                \
     opts.write##domain().optName = value;                          \
@@ -109,18 +109,25 @@ void SetDefaults::setDefaultsPre(Options& opts)
       || opts.smt.unsatAssumptions || opts.smt.minimalUnsatCores
       || opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF)
   {
-    SET_AND_NOTIFY(Smt, produceUnsatCores, true, "option requiring unsat cores");
+    SET_AND_NOTIFY(
+        Smt, produceUnsatCores, true, "option requiring unsat cores");
   }
   if (opts.smt.produceUnsatCores
       && opts.smt.unsatCoresMode == options::UnsatCoresMode::OFF)
   {
-    SET_AND_NOTIFY(Smt, unsatCoresMode, options::UnsatCoresMode::ASSUMPTIONS, "enabling unsat cores");
+    SET_AND_NOTIFY(Smt,
+                   unsatCoresMode,
+                   options::UnsatCoresMode::ASSUMPTIONS,
+                   "enabling unsat cores");
   }
   if (opts.proof.checkProofSteps)
   {
     SET_AND_NOTIFY(Smt, checkProofs, true, "check-proof-steps");
     // maximize the granularity
-    SET_AND_NOTIFY_IF_NOT_USER(Proof, proofGranularityMode, options::ProofGranularityMode::DSL_REWRITE, "check-proof-steps");
+    SET_AND_NOTIFY_IF_NOT_USER(Proof,
+                               proofGranularityMode,
+                               options::ProofGranularityMode::DSL_REWRITE,
+                               "check-proof-steps");
   }
   // if check-proofs, dump-proofs, or proof-mode=full, then proofs being fully
   // enabled is implied
@@ -134,12 +141,15 @@ void SetDefaults::setDefaultsPre(Options& opts)
   if (opts.smt.produceProofs)
   {
     // if the user requested proofs, proof mode is full
-    SET_AND_NOTIFY(Smt,proofMode,options::ProofMode::FULL, "enabling proofs");
+    SET_AND_NOTIFY(Smt, proofMode, options::ProofMode::FULL, "enabling proofs");
     // unsat cores are available due to proofs being enabled
     if (opts.smt.unsatCoresMode != options::UnsatCoresMode::SAT_PROOF)
     {
-      SET_AND_NOTIFY(Smt,produceUnsatCores,true, "enabling proofs");
-      SET_AND_NOTIFY(Smt,unsatCoresMode,options::UnsatCoresMode::SAT_PROOF, "enabling proofs");
+      SET_AND_NOTIFY(Smt, produceUnsatCores, true, "enabling proofs");
+      SET_AND_NOTIFY(Smt,
+                     unsatCoresMode,
+                     options::UnsatCoresMode::SAT_PROOF,
+                     "enabling proofs");
     }
   }
   if (!opts.smt.produceProofs)
@@ -148,32 +158,35 @@ void SetDefaults::setDefaultsPre(Options& opts)
     {
       // if (expert) user set proof mode to something other than off, enable
       // proofs
-      SET_AND_NOTIFY(Smt,produceProofs,true, "proof mode");
+      SET_AND_NOTIFY(Smt, produceProofs, true, "proof mode");
     }
     // if proofs weren't enabled by user, and we are producing difficulty
     if (opts.smt.produceDifficulty)
     {
-      SET_AND_NOTIFY(Smt,produceProofs,true, "produce difficulty");
+      SET_AND_NOTIFY(Smt, produceProofs, true, "produce difficulty");
       // ensure at least preprocessing proofs are enabled
       if (opts.smt.proofMode == options::ProofMode::OFF)
       {
-        SET_AND_NOTIFY(Smt,proofMode,options::ProofMode::PP_ONLY, "produce difficulty");
+        SET_AND_NOTIFY(
+            Smt, proofMode, options::ProofMode::PP_ONLY, "produce difficulty");
       }
     }
     // if proofs weren't enabled by user, and we are producing unsat cores
     if (opts.smt.produceUnsatCores)
     {
-      SET_AND_NOTIFY(Smt,produceProofs,true, "unsat cores");
+      SET_AND_NOTIFY(Smt, produceProofs, true, "unsat cores");
       if (opts.smt.unsatCoresMode == options::UnsatCoresMode::SAT_PROOF)
       {
         // if requested to be based on proofs, we produce (preprocessing +) SAT
         // proofs
-        SET_AND_NOTIFY(Smt,proofMode,options::ProofMode::SAT, "unsat cores SAT proof");
+        SET_AND_NOTIFY(
+            Smt, proofMode, options::ProofMode::SAT, "unsat cores SAT proof");
       }
       else if (opts.smt.proofMode == options::ProofMode::OFF)
       {
         // otherwise, we always produce preprocessing proofs
-        SET_AND_NOTIFY(Smt,proofMode,options::ProofMode::PP_ONLY, "unsat cores");
+        SET_AND_NOTIFY(
+            Smt, proofMode, options::ProofMode::PP_ONLY, "unsat cores");
       }
     }
   }
@@ -224,7 +237,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
                    && logic.areIntegersUsed()))
            && !opts.base.incrementalSolving)
   {
-    SET_AND_NOTIFY(Quantifiers,sygusInst,true, "logic");
+    SET_AND_NOTIFY(Quantifiers, sygusInst, true, "logic");
   }
 
   if (opts.bv.bitblastMode == options::BitblastMode::EAGER)
@@ -241,12 +254,13 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
             "for the combination of bit-vectors with arrays or uinterpreted "
             "functions. Try --bitblast=lazy"));
       }
-      SET_AND_NOTIFY(Bv,bitblastMode,options::BitblastMode::LAZY, "model generation");
+      SET_AND_NOTIFY(
+          Bv, bitblastMode, options::BitblastMode::LAZY, "model generation");
     }
     else if (!opts.base.incrementalSolving)
     {
       // if not incremental, we rely on ackermann to eliminate other theories.
-      SET_AND_NOTIFY(Smt,ackermann,true, "bit-blast eager");
+      SET_AND_NOTIFY(Smt, ackermann, true, "bit-blast eager");
     }
     else if (logic.isQuantified() || !logic.isPure(THEORY_BV))
     {
@@ -294,7 +308,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
       throw OptionException(std::string(
           "Ackermannization currently does not support model generation."));
     }
-    SET_AND_NOTIFY(Smt,ackermann,false, "model generation");
+    SET_AND_NOTIFY(Smt, ackermann, false, "model generation");
     // we are not relying on ackermann to eliminate theories in this case
     Assert(opts.bv.bitblastMode != options::BitblastMode::EAGER);
   }
@@ -317,7 +331,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   if (logic.isTheoryEnabled(THEORY_STRINGS)
       && !options().strings.stringExpWasSetByUser)
   {
-    SET_AND_NOTIFY(Strings,stringExp,true, "logic including strings");
+    SET_AND_NOTIFY(Strings, stringExp, true, "logic including strings");
   }
   // If strings-exp is enabled, we require quantifiers. We also enable them
   // if we are using eager string preprocessing or aggressive regular expression
@@ -390,7 +404,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
 
 void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 {
-  SET_AND_NOTIFY(Smt,produceAssertions,true, "always enabled");
+  SET_AND_NOTIFY(Smt, produceAssertions, true, "always enabled");
 
   if (opts.smt.solveBVAsInt != options::SolveBVAsIntMode::OFF)
   {
@@ -400,7 +414,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
      * Therefore, we enable bv-to-bool, which runs before
      * the translation to integers.
      */
-    SET_AND_NOTIFY(Bv,bitvectorToBool,true, "solve-bv-as-int");
+    SET_AND_NOTIFY(Bv, bitvectorToBool, true, "solve-bv-as-int");
   }
 
   // Disable options incompatible with incremental solving, or output an error
@@ -445,7 +459,8 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
                      && logic.isTheoryEnabled(THEORY_ARRAYS)
                      && logic.isTheoryEnabled(THEORY_BV)
                      && !logic.isTheoryEnabled(THEORY_ARITH);
-      SET_AND_NOTIFY_BOOL_VAL(Smt, unconstrainedSimp, uncSimp, "logic and options");
+      SET_AND_NOTIFY_BOOL_VAL(
+          Smt, unconstrainedSimp, uncSimp, "logic and options");
     }
 
     // by default, nonclausal simplification is off for QF_SAT
@@ -456,11 +471,17 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       // quantifiers, not others
       if (qf_sat)
       {
-        SET_AND_NOTIFY(Smt, simplificationMode, options::SimplificationMode::NONE, "logic");
+        SET_AND_NOTIFY(Smt,
+                       simplificationMode,
+                       options::SimplificationMode::NONE,
+                       "logic");
       }
       else
       {
-        SET_AND_NOTIFY(Smt, simplificationMode, options::SimplificationMode::BATCH, "logic");
+        SET_AND_NOTIFY(Smt,
+                       simplificationMode,
+                       options::SimplificationMode::BATCH,
+                       "logic");
       }
     }
   }
@@ -475,7 +496,8 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
             "bool-to-bv != off not supported with CEGQI BV for quantified "
             "logics");
       }
-      SET_AND_NOTIFY(Bv, boolToBitvector, options::BoolToBVMode::OFF, "cegqiBv");
+      SET_AND_NOTIFY(
+          Bv, boolToBitvector, options::BoolToBVMode::OFF, "cegqiBv");
     }
   }
 
@@ -506,7 +528,10 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         && !(logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()
              && !logic.isQuantified()))
     {
-      SET_AND_NOTIFY(Theory, theoryOfMode, options::TheoryOfMode::THEORY_OF_TERM_BASED, "logic");
+      SET_AND_NOTIFY(Theory,
+                     theoryOfMode,
+                     options::TheoryOfMode::THEORY_OF_TERM_BASED,
+                     "logic");
     }
   }
 
@@ -516,7 +541,8 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     bool qf_uf_noinc = logic.isPure(THEORY_UF) && !logic.isQuantified()
                        && !opts.base.incrementalSolving
                        && !safeUnsatCores(opts);
-    SET_AND_NOTIFY_BOOL_VAL(Uf, ufSymmetryBreaker, qf_uf_noinc, "logic and options");
+    SET_AND_NOTIFY_BOOL_VAL(
+        Uf, ufSymmetryBreaker, qf_uf_noinc, "logic and options");
   }
 
   // If in arrays, set the UF handler to arrays
@@ -574,7 +600,8 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       throw OptionException(
           "bool-to-bv=all not supported for non-bitvector logics.");
     }
-    SET_AND_NOTIFY(Bv, boolToBitvector, options::BoolToBVMode::OFF, "non-BV logic");
+    SET_AND_NOTIFY(
+        Bv, boolToBitvector, options::BoolToBVMode::OFF, "non-BV logic");
   }
 
   // Turn on arith rewrite equalities only for pure arithmetic
@@ -644,14 +671,16 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   }
   if (logic.isPure(THEORY_ARITH) && !logic.areRealsUsed())
   {
-    SET_AND_NOTIFY(Arith, nlExtTangentPlanesInterleave, true, "pure integer logic");
+    SET_AND_NOTIFY(
+        Arith, nlExtTangentPlanesInterleave, true, "pure integer logic");
   }
   if (!opts.arith.nlRlvAssertBoundsWasSetByUser)
   {
     bool val = !logic.isQuantified();
-      // use bound inference to determine when bounds are irrelevant only when
-      // the logic is quantifier-free
-    SET_AND_NOTIFY_BOOL_VAL(Arith, nlRlvAssertBounds, val, "non-quantified logic");
+    // use bound inference to determine when bounds are irrelevant only when
+    // the logic is quantifier-free
+    SET_AND_NOTIFY_BOOL_VAL(
+        Arith, nlRlvAssertBounds, val, "non-quantified logic");
   }
 
   // set the default decision mode
@@ -661,7 +690,8 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   if (opts.theory.eeMode == options::EqEngineMode::CENTRAL)
   {
     // use the arithmetic equality solver by default
-    SET_AND_NOTIFY_IF_NOT_USER(Arith, arithEqSolver, true, "central equality engine");
+    SET_AND_NOTIFY_IF_NOT_USER(
+        Arith, arithEqSolver, true, "central equality engine");
   }
 
   if (logic.isHigherOrder())
@@ -846,8 +876,8 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
       if (!opts.arith.nlExtWasSetByUser)
       {
-        notifyModifyOption("nlExt", "FULL", "logic with transcendentals");
-        opts.writeArith().nlExt = options::NlExtMode::FULL;
+      notifyModifyOption("nlExt", "FULL", "logic with transcendentals");
+      opts.writeArith().nlExt = options::NlExtMode::FULL;
       }
   }
 }
