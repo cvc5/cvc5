@@ -57,7 +57,10 @@ namespace smt {
   }
 /**
  * Set domain.optName to value due to reason. Notify if value changes.
- * We print the value using a stringstream conversion.
+ * Print the value using a stringstream conversion. 
+ *
+ * Note this macro should be used if the value passed to the macro is not
+ * concrete (e.g. is stored in a variable).
  */
 #define SET_AND_NOTIFY_VAL_SYM(domain, optName, value, reason) \
   if (opts.write##domain().optName != value)                   \
@@ -78,6 +81,11 @@ namespace smt {
     notifyModifyOption(#optName, #value, reason);                  \
     opts.write##domain().optName = value;                          \
   }
+/**
+ * Set domain.optName to value due to reason if the option was not already set
+ * by the user. Notify if value changes. Print the value using a stringstream
+ * conversion.
+ */
 #define SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(domain, optName, value, reason) \
   if (!opts.write##domain().optName##WasSetByUser                          \
       && opts.write##domain().optName != value)                            \
