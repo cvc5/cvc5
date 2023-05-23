@@ -57,7 +57,7 @@ namespace smt {
   }
 /**
  * Set domain.optName to value due to reason. Notify if value changes.
- * Print the value using a stringstream conversion. 
+ * Print the value using a stringstream conversion.
  *
  * Note this macro should be used if the value passed to the macro is not
  * concrete (e.g. is stored in a variable).
@@ -1426,8 +1426,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     else
     {
       // only supported in pure arithmetic or pure BV
-      SET_AND_NOTIFY(
-          Quantifiers, cegqiNestedQE, false, "cegqi non-pure logic");
+      SET_AND_NOTIFY(Quantifiers, cegqiNestedQE, false, "cegqi non-pure logic");
     }
     if (opts.quantifiers.globalNegate)
     {
