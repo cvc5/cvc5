@@ -1032,7 +1032,7 @@ TEST_F(TestApiBlackSolver, mkTuple)
 {
   ASSERT_NO_THROW(d_solver.mkTuple({d_solver.mkBitVector(3, "101", 2)}));
   ASSERT_NO_THROW(d_solver.mkTuple({d_solver.mkInteger("5")}));
-  ASSERT_NO_THROW({d_solver.mkReal("5.3")}));
+  ASSERT_NO_THROW(d_solver.mkTuple({d_solver.mkReal("5.3")}));
   Solver slv;
   ASSERT_NO_THROW(slv.mkTuple({slv.mkBitVector(3, "101", 2)}));
   ASSERT_NO_THROW(slv.mkTuple({d_solver.mkBitVector(3, "101", 2)}));
