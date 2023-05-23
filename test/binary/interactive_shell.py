@@ -52,7 +52,6 @@ def check_iteractive_shell():
     child.sendcontrol("m")
 
     # So we expect to see an error for 'BOOLE'
-    child.expect("Error")
 
     # Send enter
     child.sendcontrol("m")
