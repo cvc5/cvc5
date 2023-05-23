@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Andres Noetzli
+ *   Andrew Reynolds, Gereon Kremer, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -353,6 +353,8 @@ enum class InferenceId
   QUANTIFIERS_INST_ENUM,
   // instantiations from pool instantiation
   QUANTIFIERS_INST_POOL,
+  // instantiations from pool instantiation (tuple semantics)
+  QUANTIFIERS_INST_POOL_TUPLE,
   //-------------------- bounded integers
   // a proxy lemma from bounded integers, used to control bounds on ground terms
   QUANTIFIERS_BINT_PROXY,
@@ -431,6 +433,8 @@ enum class InferenceId
   QUANTIFIERS_SYGUS_PBE_CONSTRUCT_SOL,
   // complete enumeration lemma
   QUANTIFIERS_SYGUS_COMPLETE_ENUM,
+  // infeasible due to side condition (e.g. for abduction)
+  QUANTIFIERS_SYGUS_SC_INFEASIBLE,
   //-------------------- dynamic splitting
   // a dynamic split from quantifiers
   QUANTIFIERS_DSPLIT,

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -99,11 +99,13 @@ Node Valuation::getSatValue(TNode n) const {
 
 bool Valuation::hasSatValue(TNode n, bool& value) const {
   Assert(d_engine != nullptr);
-  if (d_engine->getPropEngine()->isSatLiteral(n)) {
-    return d_engine->getPropEngine()->hasValue(n, value);
-  } else {
-    return false;
-  }
+  return d_engine->hasSatValue(n, value);
+}
+
+bool Valuation::hasSatValue(TNode n) const
+{
+  Assert(d_engine != nullptr);
+  return d_engine->hasSatValue(n);
 }
 
 EqualityStatus Valuation::getEqualityStatus(TNode a, TNode b) {
@@ -189,16 +191,10 @@ bool Valuation::isDecision(Node lit) const {
   return d_engine->getPropEngine()->isDecision(lit);
 }
 
-int32_t Valuation::getDecisionLevel(Node lit) const
+bool Valuation::isFixed(TNode lit) const
 {
   Assert(d_engine != nullptr);
-  return d_engine->getPropEngine()->getDecisionLevel(lit);
-}
-
-int32_t Valuation::getIntroLevel(Node lit) const
-{
-  Assert(d_engine != nullptr);
-  return d_engine->getPropEngine()->getIntroLevel(lit);
+  return d_engine->getPropEngine()->isFixed(lit);
 }
 
 unsigned Valuation::getAssertionLevel() const{

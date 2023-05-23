@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,10 +18,11 @@
 #ifndef CVC5__PARSER__FLEX_PARSER_H
 #define CVC5__PARSER__FLEX_PARSER_H
 
+#include <cvc5/cvc5.h>
+
 #include <list>
 #include <memory>
 
-#include "api/cpp/cvc5.h"
 #include "parser/flex_input.h"
 #include "parser/parser.h"
 
@@ -42,6 +43,12 @@ class FlexParser : public ParserStateCallback
  public:
   FlexParser(Solver* solver, SymbolManager* sm);
   virtual ~FlexParser() {}
+  /**
+   * Set the logic
+   *
+   * @param name The name of the logic.
+   */
+  virtual void setLogic(const std::string& name);
   /** Set the input for the given file.
    *
    * @param filename the input filename
@@ -64,9 +71,8 @@ class FlexParser : public ParserStateCallback
 
   /**
    * Parse and return the next command.
-   * NOTE: currently memory management of commands is handled internally.
    */
-  Command* nextCommand();
+  std::unique_ptr<Command> nextCommand();
 
   /** Parse and return the next expression. */
   Term nextExpression();
@@ -83,7 +89,12 @@ class FlexParser : public ParserStateCallback
    * inserts a new command before the current one. Also used in TPTP
    * because function and predicate symbols are implicitly declared.
    */
-  void preemptCommand(Command* cmd) override;
+  void preemptCommand(std::unique_ptr<Command> cmd) override;
+
+  /** make flex parser from language string */
+  static std::unique_ptr<FlexParser> mkFlexParser(const std::string& lang,
+                                                  Solver* solver,
+                                                  SymbolManager* sm);
 
  protected:
   /** Initialize input */
@@ -95,7 +106,7 @@ class FlexParser : public ParserStateCallback
    * Parse and return the next command.
    * NOTE: currently memory management of commands is handled internally.
    */
-  virtual Command* parseNextCommand() = 0;
+  virtual std::unique_ptr<Command> parseNextCommand() = 0;
 
   /** Parse and return the next expression. */
   virtual Term parseNextExpression() = 0;
@@ -114,7 +125,7 @@ class FlexParser : public ParserStateCallback
    *
    * Owns the memory of the Commands in the queue.
    */
-  std::list<Command*> d_commandQueue;
+  std::list<std::unique_ptr<Command>> d_commandQueue;
   /** Are we done */
   bool d_done;
 };

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -13,6 +13,7 @@
  * Black box testing of cvc5::parser::ParserBuilder.
  */
 
+#include <cvc5/cvc5.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -21,7 +22,6 @@
 #include <fstream>
 #include <iostream>
 
-#include "api/cpp/cvc5.h"
 #include "options/language.h"
 #include "parser/api/cpp/command.h"
 #include "parser/api/cpp/symbol_manager.h"
@@ -47,10 +47,9 @@ class TestParseBlackParserBuilder : public TestApi
 
   void checkInput(Parser* parser, const std::string& expected)
   {
-    Command* cmd = parser->nextCommand();
+    std::unique_ptr<Command> cmd = parser->nextCommand();
     ASSERT_NE(cmd, nullptr);
     ASSERT_EQ(cmd->toString(), expected);
-    delete cmd;
 
     cmd = parser->nextCommand();
     ASSERT_EQ(cmd, nullptr);

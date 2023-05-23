@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,19 +17,15 @@
 
 #ifdef CVC5_USE_COCOA
 
-#ifndef CVC5__THEORY__FF__INC_TRACE_H
-#define CVC5__THEORY__FF__INC_TRACE_H
+#ifndef CVC5__THEORY__FF__CORE_H
+#define CVC5__THEORY__FF__CORE_H
 
 #include <CoCoA/TmpGPoly.H>
 #include <CoCoA/ring.H>
 
 #include <functional>
 #include <unordered_map>
-#include <unordered_set>
 
-#include "context/cdhashmap.h"
-#include "context/cdlist.h"
-#include "context/context.h"
 #include "expr/node.h"
 
 namespace cvc5::internal {
@@ -37,59 +33,77 @@ namespace theory {
 namespace ff {
 
 /**
- * An incremental dependency graph for CoCoA polynomials in Groebner basis
+ * A non-incremental dependency graph for CoCoA polynomials in Groebner basis
  * computation.
+ *
+ * We represent polynomials as their strings.
  */
-class IncrementalTracer
+class Tracer
 {
  public:
   /**
-   * Empty graph
+   * Set up tracing for these inputs.
+   * Creating it connects to the CoCoA callbacks.
    */
-  IncrementalTracer();
-  /**
-   * Hook up to CoCoA handlers.
-   */
-  void setFunctionPointers();
-  /**
-   * Unhook from CoCoA handlers.
-   */
-  void unsetFunctionPointers();
-  /**
-   * Add an input to the graph
-   */
-  void addInput(const CoCoA::RingElem& i);
+  Tracer(const std::vector<CoCoA::RingElem>& inputs);
+
   /**
    * Get the index of inputs responsible for this element.
    */
   std::vector<size_t> trace(const CoCoA::RingElem& i) const;
+
+  /** CoCoA callback management */
+
   /**
-   * Enter a new context
+   * Hook up to CoCoA callbacks. Don't move the object after calling this. Must be called before CoCoA is used.
    */
-  void push();
+  void setFunctionPointers();
+
   /**
-   * Remove last context. Resets graph to its state before that context.
+   * Unhook from CoCoA callbacks. Should be called after you're done tracing.
    */
-  void pop();
+  void unsetFunctionPointers();
 
  private:
+
+
+  /**
+   * Call this when s = spoly(p, q);
+   */
   void sPoly(CoCoA::ConstRefRingElem p,
              CoCoA::ConstRefRingElem q,
              CoCoA::ConstRefRingElem s);
+  /**
+   * Call this when we start reducing p.
+   */
   void reductionStart(CoCoA::ConstRefRingElem p);
+  /**
+   * Call this when there is a reduction on q.
+   */
   void reductionStep(CoCoA::ConstRefRingElem q);
+  /**
+   * Call this when we finish reducing with r.
+   */
   void reductionEnd(CoCoA::ConstRefRingElem r);
 
   void addItem(const std::string&& item);
   void addDep(const std::string& parent, const std::string& child);
 
+  /**
+   * (key, vals) where key is in the ideal if vals are.
+   */
   std::unordered_map<std::string, std::vector<std::string>> d_parents{};
-  std::unordered_map<std::string, std::unordered_set<std::string>> d_children{};
-  std::unordered_map<std::string, size_t> d_inputNumbers{};
-  std::vector<std::vector<std::string>> d_inputs{};
-  size_t d_nInputs{};
+  /**
+   * For each poly string, its index in the input sequence.
+   */
+  std::unordered_map<std::string, size_t> d_inputNumbers;
+
   std::vector<std::string> d_reductionSeq{};
 
+  /**
+   * Handles to sPoly reductionStart, reductionStep, and reductionEnd that we
+   * give to CoCoA.
+   */
   std::function<void(CoCoA::ConstRefRingElem,
                      CoCoA::ConstRefRingElem,
                      CoCoA::ConstRefRingElem)>
@@ -103,6 +117,6 @@ class IncrementalTracer
 }  // namespace theory
 }  // namespace cvc5::internal
 
-#endif /* CVC5__THEORY__FF__INC_TRACE_H */
+#endif /* CVC5__THEORY__FF__CORE_H */
 
 #endif /* CVC5_USE_COCOA */

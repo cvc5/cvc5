@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -175,6 +175,10 @@ enum class AletheRule : uint32_t
   // Tautology of linear disequalities.
   // > i. (cl F1 ... Fn)
   LA_GENERIC,
+  // Tautology for multiplying both sides of inequality by positive factor
+  LA_MULT_POS,
+  // Tautology for multiplying both sides of inequality by negative factor
+  LA_MULT_NEG,
   // Tautology of linear integer arithmetic
   // > i. (cl F1 ... Fn)
   LIA_GENERIC,

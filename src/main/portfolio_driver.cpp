@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Christopher L. Conway, Gereon Kremer
+ *   Gereon Kremer, Andres Noetzli, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,12 +19,13 @@
 #include <unistd.h>
 #endif
 
+#include <cvc5/cvc5.h>
+
 #include <chrono>
 #include <cstdlib>
 #include <optional>
 #include <thread>
 
-#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "base/exception.h"
 #include "base/output.h"
@@ -54,7 +55,7 @@ bool ExecutionContext::solveContinuous(parser::InputParser* parser,
       d_executor->reset();
       break;
     }
-    cmd.reset(parser->nextCommand());
+    cmd = parser->nextCommand();
     if (cmd == nullptr) break;
 
     status = d_executor->doCommand(cmd);

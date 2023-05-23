@@ -16,7 +16,7 @@ runs:
       working-directory: ${{ inputs.build-dir }}
     
     - name: Store Documentation
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: documentation
         path: ${{ inputs.build-dir }}/docs/sphinx-gh/

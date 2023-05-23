@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +29,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
-TypeNode UfTypeRule::computeType(NodeManager* nodeManager, TNode n, bool check)
+TypeNode UfTypeRule::computeType(NodeManager* nodeManager,
+                                 TNode n,
+                                 bool check,
+                                 std::ostream* errOut)
 {
   TNode f = n.getOperator();
   TypeNode fType = f.getType(check);
@@ -70,7 +73,8 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager, TNode n, bool check)
 
 TypeNode CardinalityConstraintOpTypeRule::computeType(NodeManager* nodeManager,
                                                       TNode n,
-                                                      bool check)
+                                                      bool check,
+                                                      std::ostream* errOut)
 {
   if (check)
   {
@@ -91,13 +95,14 @@ TypeNode CardinalityConstraintOpTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode CardinalityConstraintTypeRule::computeType(NodeManager* nodeManager,
                                                     TNode n,
-                                                    bool check)
+                                                    bool check,
+                                                    std::ostream* errOut)
 {
   return nodeManager->booleanType();
 }
 
 TypeNode CombinedCardinalityConstraintOpTypeRule::computeType(
-    NodeManager* nodeManager, TNode n, bool check)
+    NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
   if (check)
   {
@@ -113,14 +118,15 @@ TypeNode CombinedCardinalityConstraintOpTypeRule::computeType(
 }
 
 TypeNode CombinedCardinalityConstraintTypeRule::computeType(
-    NodeManager* nodeManager, TNode n, bool check)
+    NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
   return nodeManager->booleanType();
 }
 
 TypeNode HoApplyTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
-                                      bool check)
+                                      bool check,
+                                      std::ostream* errOut)
 {
   Assert(n.getKind() == kind::HO_APPLY);
   TypeNode fType = n[0].getType(check);
@@ -159,7 +165,8 @@ TypeNode HoApplyTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode LambdaTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
-                                     bool check)
+                                     bool check,
+                                     std::ostream* errOut)
 {
   if (n[0].getType(check) != nodeManager->boundVarListType())
   {
@@ -179,7 +186,8 @@ TypeNode LambdaTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode FunctionArrayConstTypeRule::computeType(NodeManager* nodeManager,
                                                  TNode n,
-                                                 bool check)
+                                                 bool check,
+                                                 std::ostream* errOut)
 {
   Assert(n.getKind() == kind::FUNCTION_ARRAY_CONST);
   const FunctionArrayConst& fc = n.getConst<FunctionArrayConst>();
@@ -227,7 +235,8 @@ Node FunctionProperties::mkGroundTerm(TypeNode type)
 
 TypeNode IntToBitVectorOpTypeRule::computeType(NodeManager* nodeManager,
                                                TNode n,
-                                               bool check)
+                                               bool check,
+                                               std::ostream* errOut)
 {
   Assert(n.getKind() == kind::INT_TO_BITVECTOR_OP);
   size_t bvSize = n.getConst<IntToBitVector>();
@@ -241,7 +250,8 @@ TypeNode IntToBitVectorOpTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode BitVectorConversionTypeRule::computeType(NodeManager* nodeManager,
                                                   TNode n,
-                                                  bool check)
+                                                  bool check,
+                                                  std::ostream* errOut)
 {
   if (n.getKind() == kind::BITVECTOR_TO_NAT)
   {

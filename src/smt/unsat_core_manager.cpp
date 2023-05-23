@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Gereon Kremer
+ *   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,16 +15,29 @@
 
 #include "unsat_core_manager.h"
 
+#include <sstream>
+
 #include "expr/skolem_manager.h"
+#include "options/base_options.h"
+#include "options/smt_options.h"
+#include "printer/printer.h"
 #include "proof/proof_node_algorithm.h"
 #include "smt/assertions.h"
+#include "smt/env.h"
+#include "smt/print_benchmark.h"
+#include "smt/set_defaults.h"
+#include "theory/quantifiers/skolemize.h"
+#include "theory/smt_engine_subsolver.h"
 
 namespace cvc5::internal {
 namespace smt {
 
+UnsatCoreManager::UnsatCoreManager(Env& env) : EnvObj(env) {}
+
 void UnsatCoreManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
-                                    Assertions& as,
-                                    std::vector<Node>& core)
+                                    const Assertions& as,
+                                    std::vector<Node>& core,
+                                    bool isInternal)
 {
   Trace("unsat-core") << "UCManager::getUnsatCore: final proof: " << *pfn.get()
                       << "\n";
@@ -52,6 +65,26 @@ void UnsatCoreManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
     {
       Trace("unsat-core") << "- " << n << "\n";
     }
+  }
+  // reduce it if specified
+  if (options().smt.minimalUnsatCores)
+  {
+    core = reduceUnsatCore(as, core);
+  }
+  // don't postprocess if this was an internal call
+  if (isInternal)
+  {
+    return;
+  }
+  // output benchmark if specified
+  if (isOutputOn(OutputTag::UNSAT_CORE_BENCHMARK))
+  {
+    std::stringstream ss;
+    smt::PrintBenchmark pb(Printer::getPrinter(ss));
+    pb.printBenchmark(ss, logicInfo().getLogicString(), {}, core);
+    output(OutputTag::UNSAT_CORE_BENCHMARK) << ";; unsat core" << std::endl;
+    output(OutputTag::UNSAT_CORE_BENCHMARK) << ss.str();
+    output(OutputTag::UNSAT_CORE_BENCHMARK) << ";; end unsat core" << std::endl;
   }
 }
 
@@ -125,10 +158,7 @@ void UnsatCoreManager::getRelevantQuantTermVectors(
       }
       if (!exists.isNull())
       {
-        std::vector<Node> skolems;
-        SkolemManager* sm = nm->getSkolemManager();
-        Node res = sm->mkSkolemize(q, skolems, "k");
-        sks[q] = skolems;
+        sks[q] = theory::quantifiers::Skolemize::getSkolemConstants(exists);
       }
     }
     for (const std::shared_ptr<ProofNode>& cp : cs)
@@ -136,6 +166,65 @@ void UnsatCoreManager::getRelevantQuantTermVectors(
       visit.push_back(cp);
     }
   } while (!visit.empty());
+}
+
+std::vector<Node> UnsatCoreManager::reduceUnsatCore(
+    const Assertions& as, const std::vector<Node>& core)
+{
+  Assert(options().smt.produceUnsatCores)
+      << "cannot reduce unsat core if unsat cores are turned off";
+
+  d_env.verbose(1) << "SolverEngine::reduceUnsatCore(): reducing unsat core"
+                   << std::endl;
+  std::unordered_set<Node> removed;
+  std::unordered_set<Node> adefs = as.getCurrentAssertionListDefitions();
+  for (const Node& skip : core)
+  {
+    std::unique_ptr<SolverEngine> coreChecker;
+    theory::initializeSubsolver(coreChecker, d_env);
+    coreChecker->setLogic(logicInfo());
+    // disable all proof options
+    SetDefaults::disableChecking(coreChecker->getOptions());
+    // add to removed set?
+    removed.insert(skip);
+    // assert everything to the subsolver
+    theory::assertToSubsolver(*coreChecker.get(), core, adefs, removed);
+    Result r;
+    try
+    {
+      r = coreChecker->checkSat();
+    }
+    catch (...)
+    {
+      throw;
+    }
+
+    if (r.getStatus() != Result::UNSAT)
+    {
+      removed.erase(skip);
+      if (r.isUnknown())
+      {
+        d_env.warning()
+            << "SolverEngine::reduceUnsatCore(): could not reduce unsat core "
+               "due to "
+               "unknown result.";
+      }
+    }
+  }
+
+  if (removed.empty())
+  {
+    return core;
+  }
+  std::vector<Node> newUcAssertions;
+  for (const Node& n : core)
+  {
+    if (removed.find(n) == removed.end())
+    {
+      newUcAssertions.push_back(n);
+    }
+  }
+  return newUcAssertions;
 }
 
 }  // namespace smt

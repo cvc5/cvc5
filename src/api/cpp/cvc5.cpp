@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Mathias Preiner, Gereon Kremer
+ *   Aina Niemetz, Mathias Preiner, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,7 +30,7 @@
  * consistent behavior (see Solver::mkRealOrIntegerFromStrHelper for example).
  */
 
-#include "api/cpp/cvc5.h"
+#include <cvc5/cvc5.h>
 
 #include <cstring>
 #include <sstream>
@@ -6020,9 +6020,8 @@ Term Solver::mkRegexpAllchar() const
 Term Solver::mkEmptySet(const Sort& sort) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_ARG_CHECK_EXPECTED(sort.isNull() || sort.isSet(), sort)
-      << "null sort or set sort";
-  CVC5_API_ARG_CHECK_EXPECTED(sort.isNull() || d_nm == sort.d_nm, sort)
+  CVC5_API_ARG_CHECK_EXPECTED(sort.isSet(), sort) << "null sort or set sort";
+  CVC5_API_ARG_CHECK_EXPECTED(d_nm == sort.d_nm, sort)
       << "set sort associated with the node manager of this solver object";
   //////// all checks before this line
   return Solver::mkValHelper(d_nm, internal::EmptySet(*sort.d_type));
@@ -6033,9 +6032,8 @@ Term Solver::mkEmptySet(const Sort& sort) const
 Term Solver::mkEmptyBag(const Sort& sort) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_ARG_CHECK_EXPECTED(sort.isNull() || sort.isBag(), sort)
-      << "null sort or bag sort";
-  CVC5_API_ARG_CHECK_EXPECTED(sort.isNull() || d_nm == sort.d_nm, sort)
+  CVC5_API_ARG_CHECK_EXPECTED(sort.isBag(), sort) << "null sort or bag sort";
+  CVC5_API_ARG_CHECK_EXPECTED(d_nm == sort.d_nm, sort)
       << "bag sort associated with the node manager of this solver object";
   //////// all checks before this line
   return Solver::mkValHelper(d_nm, internal::EmptyBag(*sort.d_type));
@@ -6167,6 +6165,8 @@ Term Solver::mkConstArray(const Sort& sort, const Term& val) const
 Term Solver::mkFloatingPointPosInf(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_ARG_CHECK_EXPECTED(exp > 1, exp) << "exponent size > 1";
+  CVC5_API_ARG_CHECK_EXPECTED(sig > 1, sig) << "significand size > 1";
   //////// all checks before this line
   return Solver::mkValHelper(d_nm,
                              internal::FloatingPoint::makeInf(
@@ -6178,6 +6178,8 @@ Term Solver::mkFloatingPointPosInf(uint32_t exp, uint32_t sig) const
 Term Solver::mkFloatingPointNegInf(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_ARG_CHECK_EXPECTED(exp > 1, exp) << "exponent size > 1";
+  CVC5_API_ARG_CHECK_EXPECTED(sig > 1, sig) << "significand size > 1";
   //////// all checks before this line
   return Solver::mkValHelper(d_nm,
                              internal::FloatingPoint::makeInf(
@@ -6189,6 +6191,8 @@ Term Solver::mkFloatingPointNegInf(uint32_t exp, uint32_t sig) const
 Term Solver::mkFloatingPointNaN(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_ARG_CHECK_EXPECTED(exp > 1, exp) << "exponent size > 1";
+  CVC5_API_ARG_CHECK_EXPECTED(sig > 1, sig) << "significand size > 1";
   //////// all checks before this line
   return Solver::mkValHelper(
       d_nm,
@@ -6200,6 +6204,8 @@ Term Solver::mkFloatingPointNaN(uint32_t exp, uint32_t sig) const
 Term Solver::mkFloatingPointPosZero(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_ARG_CHECK_EXPECTED(exp > 1, exp) << "exponent size > 1";
+  CVC5_API_ARG_CHECK_EXPECTED(sig > 1, sig) << "significand size > 1";
   //////// all checks before this line
   return Solver::mkValHelper(d_nm,
                              internal::FloatingPoint::makeZero(
@@ -6211,6 +6217,8 @@ Term Solver::mkFloatingPointPosZero(uint32_t exp, uint32_t sig) const
 Term Solver::mkFloatingPointNegZero(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_ARG_CHECK_EXPECTED(exp > 1, exp) << "exponent size > 1";
+  CVC5_API_ARG_CHECK_EXPECTED(sig > 1, sig) << "significand size > 1";
   //////// all checks before this line
   return Solver::mkValHelper(d_nm,
                              internal::FloatingPoint::makeZero(
@@ -6228,24 +6236,61 @@ Term Solver::mkRoundingMode(RoundingMode rm) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const
+Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, const Term& val) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(val);
-  CVC5_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "a value > 0";
-  CVC5_API_ARG_CHECK_EXPECTED(sig > 0, sig) << "a value > 0";
+  CVC5_API_ARG_CHECK_EXPECTED(exp > 1, exp) << "exponent size > 1";
+  CVC5_API_ARG_CHECK_EXPECTED(sig > 1, sig) << "significand size > 1";
   uint32_t bw = exp + sig;
   CVC5_API_ARG_CHECK_EXPECTED(bw == val.d_node->getType().getBitVectorSize(),
                               val)
-      << "a bit-vector constant with bit-width '" << bw << "'";
+      << "a bit-vector value with bit-width '" << bw << "'";
   CVC5_API_ARG_CHECK_EXPECTED(
       val.d_node->getType().isBitVector() && val.d_node->isConst(), val)
-      << "bit-vector constant";
+      << "bit-vector value";
   //////// all checks before this line
   return Solver::mkValHelper(
       d_nm,
       internal::FloatingPoint(
           exp, sig, val.d_node->getConst<internal::BitVector>()));
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Solver::mkFloatingPoint(const Term& sign,
+                             const Term& exp,
+                             const Term& sig) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_SOLVER_CHECK_TERM(sign);
+  CVC5_API_SOLVER_CHECK_TERM(exp);
+  CVC5_API_SOLVER_CHECK_TERM(sig);
+  CVC5_API_ARG_CHECK_EXPECTED(
+      sign.d_node->getType().isBitVector() && sign.d_node->isConst(), sign)
+      << "bit-vector value";
+  CVC5_API_ARG_CHECK_EXPECTED(
+      exp.d_node->getType().isBitVector() && exp.d_node->isConst(), exp)
+      << "bit-vector value";
+  CVC5_API_ARG_CHECK_EXPECTED(
+      sig.d_node->getType().isBitVector() && sig.d_node->isConst(), sig)
+      << "bit-vector value";
+  CVC5_API_ARG_CHECK_EXPECTED(sign.d_node->getType().getBitVectorSize() == 1,
+                              sign)
+      << "a bit-vector value of size 1";
+  CVC5_API_ARG_CHECK_EXPECTED(exp.d_node->getType().getBitVectorSize() > 1, exp)
+      << "a bit-vector value of size > 1";
+  //////// all checks before this line
+  uint32_t esize = exp.d_node->getType().getBitVectorSize();
+  uint32_t ssize = sig.d_node->getType().getBitVectorSize() + 1;
+  return Solver::mkValHelper(
+      d_nm,
+      internal::FloatingPoint(
+          esize,
+          ssize,
+          sign.d_node->getConst<internal::BitVector>().concat(
+              exp.d_node->getConst<internal::BitVector>().concat(
+                  sig.d_node->getConst<internal::BitVector>()))));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -7174,6 +7219,22 @@ std::map<Term, Term> Solver::getDifficulty() const
   CVC5_API_TRY_CATCH_END;
 }
 
+std::pair<Result, std::vector<Term>> Solver::getTimeoutCore() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  std::vector<Term> res;
+  std::pair<internal::Result, std::vector<internal::Node>> resi =
+      d_slv->getTimeoutCore();
+  for (internal::Node& c : resi.second)
+  {
+    res.push_back(Term(d_nm, c));
+  }
+  return std::pair<Result, std::vector<Term>>(Result(resi.first), res);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 std::string Solver::getProof(modes::ProofComponent c) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -7809,6 +7870,16 @@ void Solver::addSygusConstraint(const Term& term) const
   CVC5_API_TRY_CATCH_END;
 }
 
+std::vector<Term> Solver::getSygusConstraints() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  std::vector<internal::Node> constraints = d_slv->getSygusConstraints();
+  return Term::nodeVectorToTerms(d_nm, constraints);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 void Solver::addSygusAssume(const Term& term) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -7820,6 +7891,16 @@ void Solver::addSygusAssume(const Term& term) const
       << "Cannot addSygusAssume unless sygus is enabled (use --sygus)";
   //////// all checks before this line
   d_slv->assertSygusConstraint(*term.d_node, true);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::vector<Term> Solver::getSygusAssumptions() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  std::vector<internal::Node> assumptions = d_slv->getSygusAssumptions();
+  return Term::nodeVectorToTerms(d_nm, assumptions);
   ////////
   CVC5_API_TRY_CATCH_END;
 }

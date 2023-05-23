@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer
+ *   Gereon Kremer, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,7 +41,7 @@ std::optional<bool> isExpressionZero(Env& env, Node expr, const ArithSubs& subs)
   }
   if (expr.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
   {
-    return isZero(expr.getOperator().getConst<RealAlgebraicNumber>());
+    return expr.getOperator().getConst<RealAlgebraicNumber>().isZero();
   }
   return std::nullopt;
 }

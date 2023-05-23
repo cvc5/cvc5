@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -439,6 +439,14 @@ def test_mk_floating_point(solver):
     with pytest.raises(RuntimeError):
         solver.mkFloatingPoint(3, 5, t2)
 
+    sign = solver.mkBitVector(1)
+    exp = solver.mkBitVector(5)
+    sig = solver.mkBitVector(10)
+    bv = solver.mkBitVector(16)
+    a = solver.mkFloatingPoint(
+            sign, exp, sig)
+    assert solver.mkFloatingPoint(
+            sign, exp, sig) == solver.mkFloatingPoint(5, 11, bv)
     slv = cvc5.Solver()
     slv.mkFloatingPoint(3, 5, t1)
 
@@ -458,7 +466,8 @@ def test_mk_cardinality_constraint(solver):
 def test_mk_empty_set(solver):
     slv = cvc5.Solver()
     s = solver.mkSetSort(solver.getBooleanSort())
-    solver.mkEmptySet(cvc5.Sort(solver))
+    with pytest.raises(RuntimeError):
+        solver.mkEmptySet(cvc5.Sort(solver))
     solver.mkEmptySet(s)
     with pytest.raises(RuntimeError):
         solver.mkEmptySet(solver.getBooleanSort())
@@ -468,7 +477,8 @@ def test_mk_empty_set(solver):
 def test_mk_empty_bag(solver):
     slv = cvc5.Solver()
     s = solver.mkBagSort(solver.getBooleanSort())
-    solver.mkEmptyBag(cvc5.Sort(solver))
+    with pytest.raises(RuntimeError):
+        solver.mkEmptyBag(cvc5.Sort(solver))
     solver.mkEmptyBag(s)
     with pytest.raises(RuntimeError):
         solver.mkEmptyBag(solver.getBooleanSort())
@@ -1480,6 +1490,31 @@ def test_learned_literals2(solver):
     solver.checkSat()
     solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_INPUT)
 
+def test_get_timeout_core_unsat(solver):
+  solver.setOption("timeout-core-timeout", "100")
+  intSort = solver.getIntegerSort()
+  x = solver.mkConst(intSort, "x")
+  tt = solver.mkBoolean(True)
+  hard = solver.mkTerm(Kind.EQUAL,
+                       solver.mkTerm(Kind.MULT, x, x),
+                       solver.mkInteger("501240912901901249014210220059591"))
+  solver.assertFormula(tt)
+  solver.assertFormula(hard)
+  res = solver.getTimeoutCore()
+  assert res[0].isUnknown()
+  assert len(res[1]) == 1
+  assert res[1][0] == hard
+
+def test_get_timeout_core(solver):
+  ff = solver.mkBoolean(False)
+  tt = solver.mkBoolean(True)
+  solver.assertFormula(tt)
+  solver.assertFormula(ff)
+  solver.assertFormula(tt)
+  res = solver.getTimeoutCore()
+  assert res[0].isUnsat()
+  assert len(res[1]) == 1
+  assert res[1][0] == ff
 
 def test_get_value1(solver):
     solver.setOption("produce-models", "false")
@@ -2089,6 +2124,17 @@ def test_add_sygus_constraint(solver):
     with pytest.raises(RuntimeError):
         slv.addSygusConstraint(boolTerm)
 
+
+def test_get_sygus_constraints(solver):
+    solver.setOption("sygus", "true")
+    true_term = solver.mkBoolean(True)
+    false_term = solver.mkBoolean(False)
+    solver.addSygusConstraint(true_term)
+    solver.addSygusConstraint(false_term)
+    constraints = [true_term, false_term]
+    assert solver.getSygusConstraints() == constraints
+
+
 def test_add_sygus_assume(solver):
     solver.setOption("sygus", "true")
     nullTerm = cvc5.Term(solver)
@@ -2102,6 +2148,16 @@ def test_add_sygus_assume(solver):
     slv = cvc5.Solver()
     with pytest.raises(RuntimeError):
         slv.addSygusAssume(boolTerm)
+
+
+def test_get_sygus_assumptions(solver):
+    solver.setOption("sygus", "true")
+    true_term = solver.mkBoolean(True)
+    false_term = solver.mkBoolean(False)
+    solver.addSygusAssume(true_term)
+    solver.addSygusAssume(false_term)
+    assumptions = [true_term, false_term]
+    assert solver.getSygusAssumptions() == assumptions
 
 
 def test_add_sygus_inv_constraint(solver):
@@ -2626,7 +2682,6 @@ def test_mk_sygus_var(solver):
     with pytest.raises(RuntimeError):
         solver.declareSygusVar("", cvc5.Sort(solver))
     slv = cvc5.Solver()
-    solver.setOption("sygus", "true")
     with pytest.raises(RuntimeError):
         slv.declareSygusVar("", boolSort)
 
@@ -2754,7 +2809,7 @@ def test_get_difficulty3(solver):
   # difficulty should map assertions to integer values
   for key, value in dmap.items():
     assert key == f0 or key == f1
-    assert value.getKind() == Kind.CONST_RATIONAL
+    assert value.getKind() == Kind.CONST_INTEGER
 
 def test_get_model(solver):
     solver.setOption("produce-models", "true")

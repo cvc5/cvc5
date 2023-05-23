@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -562,12 +562,6 @@ private:
                               TheoryState& s);
     /** the measure term */
     Node d_this;
-    /**
-     * For each size n, an explanation for why this measure term has size at
-     * most n. This is typically the literal (DT_SYGUS_BOUND m n), which
-     * we call the (n^th) "fairness literal" for m.
-     */
-    std::map< unsigned, Node > d_search_size_exp;
     /**
      * For each size, whether we have called SygusExtension::notifySearchSize.
      */

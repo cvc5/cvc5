@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,7 +18,8 @@
 #ifndef CVC5__PARSER__SMT2__SMT2_TERM_PARSER_H
 #define CVC5__PARSER__SMT2__SMT2_TERM_PARSER_H
 
-#include "api/cpp/cvc5.h"
+#include <cvc5/cvc5.h>
+
 #include "parser/smt2/smt2.h"
 #include "parser/smt2/smt2_lexer.h"
 
@@ -136,6 +137,20 @@ class Smt2TermParser
    * syntax is '(<constructor_dec>+)'.
    */
   void parseConstructorDefinitionList(DatatypeDecl& type);
+  /**
+   * Continue parse indexed identifier, we've parsed '(_ ', now parse
+   * remainder '<symbol> <index>+)' and return the result.
+   */
+  ParseOp continueParseIndexedIdentifier(bool isOperator);
+  /**
+   * Continue parse qualified identifier, we've parsed '(as ', now parse
+   * remainder '<identifier> <type>)' and return the result.
+   */
+  ParseOp continueParseQualifiedIdentifier(bool isOperator);
+  /**
+   * Parse match case pattern
+   */
+  Term parseMatchCasePattern(Sort headSort, std::vector<Term>& boundVars);
   /** The lexer */
   Smt2Lexer& d_lex;
   /** The state */

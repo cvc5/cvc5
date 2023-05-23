@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -87,6 +87,7 @@ class LearnedRewrite : public PreprocessingPass
    */
   Node rewriteLearnedRec(Node n,
                          theory::arith::BoundInference& binfer,
+                         const std::vector<Node>& learnedLits,
                          std::unordered_set<Node>& lems,
                          std::unordered_map<TNode, Node>& visited);
   /**
@@ -94,6 +95,7 @@ class LearnedRewrite : public PreprocessingPass
    */
   Node rewriteLearned(Node n,
                       theory::arith::BoundInference& binfer,
+                      const std::vector<Node>& learnedLits,
                       std::unordered_set<Node>& lems);
   /** Return learned rewrite */
   Node returnRewriteLearned(Node n, Node nr, LearnedRewriteId id);

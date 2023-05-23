@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Kshitij Bansal, Mudathir Mohamed, Andrew Reynolds
+ *   Mudathir Mohamed, Kshitij Bansal, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -75,6 +75,10 @@ class TheorySetsRewriter : public TheoryRewriter
    * Returns true if elementTerm is in setTerm, where both terms are constants.
    */
   bool checkConstantMembership(TNode elementTerm, TNode setTerm);
+  /**
+   * Rewrite set comprehension
+   */
+  RewriteResponse postRewriteComprehension(TNode n);
   /**
    *  rewrites for n include:
    *  - (set.map f (as set.empty (Set T1)) = (as set.empty (Set T2))

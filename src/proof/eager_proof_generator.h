@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -122,7 +122,8 @@ class EagerProofGenerator : protected EnvObj, public ProofGenerator
    * Make trust node from a single step proof. This is a convenience function
    * that avoids the need to explictly construct ProofNode by the caller.
    *
-   * @param conc The conclusion of the rule,
+   * @param conc The conclusion of the rule, or its negation if isConflict is
+   * true.
    * @param id The rule of the proof concluding conc
    * @param exp The explanation (premises) to the proof concluding conc,
    * @param args The arguments to the proof concluding conc,

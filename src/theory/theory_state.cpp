@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -134,6 +134,23 @@ void TheoryState::getEquivalenceClass(Node a, std::vector<Node>& eqc) const
   }
   // a should be in its equivalence class
   Assert(std::find(eqc.begin(), eqc.end(), a) != eqc.end());
+}
+
+void TheoryState::addEqualityEngineTriggerPredicate(TNode pred)
+{
+  Assert(d_ee != nullptr);
+  Assert(pred.getType().isBoolean());
+  // if we don't already have a sat value
+  if (!d_valuation.hasSatValue(pred))
+  {
+    // Get triggered for both equal and dis-equal
+    d_ee->addTriggerPredicate(pred);
+  }
+  else
+  {
+    // otherwise we just add the term
+    d_ee->addTerm(pred);
+  }
 }
 
 eq::EqualityEngine* TheoryState::getEqualityEngine() const { return d_ee; }

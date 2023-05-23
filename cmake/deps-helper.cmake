@@ -39,6 +39,14 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.14")
     )
 endif()
 
+# On Windows, we need to have a shell interpreter to call 'configure'
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    find_program (SHELL "sh" REQUIRED)
+    message(STATUS "Found shell interpreter: ${SHELL}")
+else()
+    set(SHELL "")
+endif()
+
 macro(force_static_library)
     if (WIN32)
         set(CMAKE_FIND_LIBRARY_SUFFIXES .lib .a)

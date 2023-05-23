@@ -1,0 +1,18 @@
+; EXPECT: feasible
+; COMMAND-LINE: --sygus-out=status
+(set-logic ALL)
+(synth-fun f ((x Int)) (_ BitVec 4)
+  ((Start (_ BitVec 4)) (StartInt Int))
+  (
+  (Start (_ BitVec 4) (#b0000 #b0001 ((_ int2bv 4) StartInt)))
+  (StartInt Int (0 1 x (+ StartInt StartInt)))
+  )
+)
+
+
+(constraint (= (f 3) #b0011))
+(constraint (= (f 2) #b0010))
+(constraint (= (f 1) #b0001))
+(constraint (= (f 11) #b1011))
+
+(check-synth)

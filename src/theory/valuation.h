@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -98,6 +98,10 @@ public:
    * argument is unmodified.
    */
   bool hasSatValue(TNode n, bool& value) const;
+  /**
+   * Same as above, without setting the value.
+   */
+  bool hasSatValue(TNode n) const;
 
   /**
    * Returns the equality status of the two terms, from the theory that owns the domain type.
@@ -187,20 +191,10 @@ public:
   bool isDecision(Node lit) const;
 
   /**
-   * Return SAT context level at which `lit` was decided on.
-   *
-   * @param lit: The node in question, must have an associated SAT literal.
-   * @return Decision level of the SAT variable of `lit` (phase is disregarded),
-   *         or -1 if `lit` has not been assigned yet.
+   * Return whether lit has a fixed SAT assignment (i.e., implied by input
+   * assertions).
    */
-  int32_t getDecisionLevel(Node lit) const;
-
-  /**
-   * Return the user-context level when `lit` was introduced..
-   *
-   * @return User-context level or -1 if not yet introduced.
-   */
-  int32_t getIntroLevel(Node lit) const;
+  bool isFixed(TNode lit) const;
 
   /**
    * Get the assertion level of the SAT solver.

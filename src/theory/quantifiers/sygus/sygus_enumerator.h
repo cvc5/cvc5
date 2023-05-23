@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -98,7 +98,7 @@ class SygusEnumerator : public EnumValGenerator
   /** pointer to the enumerator callback we are using (if any) */
   SygusEnumeratorCallback* d_sec;
   /** if we allocated a default sygus enumerator callback */
-  std::unique_ptr<SygusEnumeratorCallbackDefault> d_secd;
+  std::unique_ptr<SygusEnumeratorCallback> d_secd;
   /** pointer to the statistics */
   SygusStatistics* d_stats;
   /** Whether we are enumerating shapes */

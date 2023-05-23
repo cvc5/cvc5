@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -353,8 +353,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     return TrustNode::null();
   }
   // clone it so that we have a fresh copy
-  ProofNodeManager* pnm = d_env.getProofNodeManager();
-  pfBody = pnm->clone(pfBody);
+  pfBody = pfBody->clone();
   Trace("pfee-proof") << "pfee::ensureProofForFact: add scope" << std::endl;
   // The free assumptions must be closed by assumps, which should be passed
   // as arguments of SCOPE. However, some of the free assumptions may not
@@ -378,6 +377,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   }
   // Scope the proof constructed above, and connect the formula with the proof
   // minimize the assumptions.
+  ProofNodeManager* pnm = d_env.getProofNodeManager();
   pf = pnm->mkScope(pfBody, scopeAssumps, true, true);
   // If we have no assumptions, and are proving an explanation for propagation
   if (scopeAssumps.empty() && tnk == TrustNodeKind::PROP_EXP)

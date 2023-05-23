@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -137,6 +137,7 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
       {
         // get the unique children
         std::set<TNode> children;
+        // we don't traverse into operators here
         children.insert(cur.begin(), cur.end());
         for (TNode cc : children)
         {
@@ -175,10 +176,15 @@ bool State::assignVar(TNode v,
                       std::vector<Node>& assignedQuants,
                       bool trackAssignedQuant)
 {
-  Assert(d_initialized.get());
-  Assert(getValue(r) == r);
   // notify that the variable is equal to the ground term
   Trace("ieval") << "ASSIGN: " << v << " := " << r << std::endl;
+  Assert(d_initialized.get());
+  // note that we allow setting patterns to terms that evaluate to "none",
+  // e.g. for conflict-based instantiation where a variable is entailed
+  // equal to a term in the body of the quantified formula that is not
+  // registered to the term database.
+  Assert(isNone(getValue(r)) || getValue(r) == r)
+      << "Unexpected value " << getValue(r) << " for " << r;
   notifyPatternEqGround(v, r);
   // might the inactive now
   if (isFinished())
@@ -315,18 +321,30 @@ const PatTermInfo& State::getPatTermInfo(TNode p) const
 
 void State::notifyPatternEqGround(TNode p, TNode g)
 {
+  Trace("ieval-state-debug")
+      << "Notify pattern eq ground: " << p << " == " << g << std::endl;
   Assert(!g.isNull());
-  Assert(!expr::hasBoundVar(g));
-  Assert(d_tec->evaluateBase(*this, g) == g);
+  Assert(!expr::hasFreeVar(g));
+  // note that we allow setting patterns to terms that evaluate to "none",
+  // e.g. for conflict-based instantiation where a variable is entailed
+  // equal to a term in the body of the quantified formula that is not
+  // registered to the term database.
+  Assert(isNone(d_tec->evaluateBase(*this, g))
+         || d_tec->evaluateBase(*this, g) == g)
+      << "Bad eval: " << d_tec->evaluateBase(*this, g) << " " << g;
   std::map<Node, PatTermInfo>::iterator it = d_pInfo.find(p);
-  Assert(it != d_pInfo.end());
+  if (it == d_pInfo.end())
+  {
+    // in rare cases, we may be considering a quantified formula not containing
+    // one of its bound variables, e.g. if the variable is in an annotation
+    // (pattern) only, or if only in nested quantification.
+    return;
+  }
   if (!it->second.isActive())
   {
     // already assigned
     return;
   }
-  Trace("ieval-state-debug")
-      << "Notify pattern eq ground: " << p << " == " << g << std::endl;
   it->second.d_eq = g;
   // run notifications until fixed point
   size_t tnIndex = 0;
@@ -502,7 +520,7 @@ TNode State::evaluate(TNode n) const
     return n;
   }
   // all pattern terms should have been assigned pattern term info
-  Assert(!expr::hasBoundVar(n));
+  Assert(!expr::hasFreeVar(n));
   return d_tec->evaluateBase(*this, n);
 }
 
@@ -518,7 +536,7 @@ TNode State::getValue(TNode p) const
     return it->second.d_eq;
   }
   // all pattern terms should have been assigned pattern term info
-  Assert(!expr::hasBoundVar(p));
+  Assert(!expr::hasFreeVar(p));
   return d_tec->evaluateBase(*this, p);
 }
 

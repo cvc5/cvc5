@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,9 +31,7 @@ class DecisionEngine : protected EnvObj
 {
  public:
   /** Constructor */
-  DecisionEngine(Env& env,
-                 prop::CDCLTSatSolverInterface* ss,
-                 prop::CnfStream* cs);
+  DecisionEngine(Env& env, prop::CDCLTSatSolver* ss, prop::CnfStream* cs);
   virtual ~DecisionEngine() {}
 
   /** Presolve, called at the beginning of each check-sat call */
@@ -71,7 +69,7 @@ class DecisionEngine : protected EnvObj
   /** Get next internal, the engine-specific implementation of getNext */
   virtual prop::SatLiteral getNextInternal(bool& stopSearch) = 0;
   /** Pointer to the SAT solver */
-  prop::CDCLTSatSolverInterface* d_satSolver;
+  prop::CDCLTSatSolver* d_satSolver;
   /** Pointer to the CNF stream */
   prop::CnfStream* d_cnfStream;
 };

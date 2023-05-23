@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,9 +43,8 @@ NlModel::NlModel(Env& env) : EnvObj(env), d_used_approx(false)
 
 NlModel::~NlModel() {}
 
-void NlModel::reset(TheoryModel* m, const std::map<Node, Node>& arithModel)
+void NlModel::reset(const std::map<Node, Node>& arithModel)
 {
-  d_model = m;
   d_concreteModelCache.clear();
   d_abstractModelCache.clear();
   d_arithVal = arithModel;
@@ -217,17 +216,21 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
             // if we have not set an approximate bound for it
             if (!hasAssignment(cur))
             {
-              // set its exact model value in the substitution
+              // set its exact model value in the substitution, if we compute
+              // a constant value
               Node curv = computeConcreteModelValue(cur);
-              if (TraceIsOn("nl-ext-cm"))
+              if (curv.isConst())
               {
-                Trace("nl-ext-cm")
-                    << "check-model-bound : exact : " << cur << " = ";
-                printRationalApprox("nl-ext-cm", curv);
-                Trace("nl-ext-cm") << std::endl;
+                if (TraceIsOn("nl-ext-cm"))
+                {
+                  Trace("nl-ext-cm")
+                      << "check-model-bound : exact : " << cur << " = ";
+                  printRationalApprox("nl-ext-cm", curv);
+                  Trace("nl-ext-cm") << std::endl;
+                }
+                bool ret = addSubstitution(cur, curv);
+                AlwaysAssert(ret);
               }
-              bool ret = addSubstitution(cur, curv);
-              AlwaysAssert(ret);
             }
           }
         }
@@ -494,6 +497,11 @@ bool NlModel::solveEqualitySimple(Node eq,
       if (uvf.isVar() && !hasAssignment(uvf))
       {
         Node uvfv = computeConcreteModelValue(uvf);
+        // fail if model value is non-constant
+        if (!uvfv.isConst())
+        {
+          return false;
+        }
         if (TraceIsOn("nl-ext-cm"))
         {
           Trace("nl-ext-cm") << "check-model-bound : exact : " << uvf << " = ";

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -339,20 +339,10 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
       Node val = index_eq[1 - r];
       if (arg == first_arg)
       {
-        if (!val.isConst())
-        {
-          // non-constant value
-          Trace("builtin-rewrite-debug2")
-              << "  ...non-constant value for argument\n.";
-          return Node::null();
-        }
-        else
-        {
-          curr_index = val;
-          Trace("builtin-rewrite-debug2")
-              << "  arg " << arg << " -> " << val << std::endl;
-          break;
-        }
+        curr_index = val;
+        Trace("builtin-rewrite-debug2")
+            << "  arg " << arg << " -> " << val << std::endl;
+        break;
       }
     }
     if (curr_index.isNull())
@@ -388,6 +378,14 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
         << "  ...condition is index " << curr_val << std::endl;
 
     // [5] Add the entry
+    Assert(!curr_index.isNull());
+    Assert(!curr_val.isNull());
+    if (!curr_index.isConst() || !curr_val.isConst())
+    {
+      // non-constant value
+      Trace("builtin-rewrite-debug2") << "  ...non-constant value for entry\n.";
+      return Node::null();
+    }
     conds.push_back(curr_index);
     vals.push_back(curr_val);
 
@@ -417,7 +415,7 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
     }
     Trace("builtin-rewrite-debug2")
         << "  make array store all " << curr.getType()
-        << " annotated : " << array_type << std::endl;
+        << " annotated : " << array_type << " from " << curr << std::endl;
     Assert(curr.getType() == array_type.getArrayConstituentType());
     curr = nm->mkConst(ArrayStoreAll(array_type, curr));
     Trace("builtin-rewrite-debug2") << "  build array..." << std::endl;

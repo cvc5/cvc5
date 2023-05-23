@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -63,6 +63,8 @@ enum InferStep
   CHECK_EXTF_REDUCTION_EAGER,
   // check extended function reductions
   CHECK_EXTF_REDUCTION,
+  // check regular expression memberships eagerly (prior to CAV 14 procedure)
+  CHECK_MEMBERSHIP_EAGER,
   // check regular expression memberships
   CHECK_MEMBERSHIP,
   // check cardinality

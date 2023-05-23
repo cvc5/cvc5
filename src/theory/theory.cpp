@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -524,25 +524,22 @@ bool Theory::areCareDisequal(TNode x, TNode y)
   Assert(d_equalityEngine != nullptr);
   Assert(d_equalityEngine->hasTerm(x));
   Assert(d_equalityEngine->hasTerm(y));
-  if (x == y)
-  {
-    return false;
-  }
-  if (x.isConst() && y.isConst())
+  Assert(x != y);
+  Assert(!x.isConst() || !y.isConst());
+  // first just check if they are disequal, which is sufficient for
+  // non-shared terms.
+  if (d_equalityEngine->areDisequal(x, y, false))
   {
     return true;
   }
+  // if we aren't shared, we are not disequal
   if (!d_equalityEngine->isTriggerTerm(x, d_id)
       || !d_equalityEngine->isTriggerTerm(y, d_id))
   {
-    // just check if they are disequal, which is the used in the case for
-    // non-shared terms.
-    if (d_equalityEngine->areDisequal(x, y, false))
-    {
-      return true;
-    }
     return false;
   }
+  // otherwise use getEqualityStatus to ask the appropriate theory whether
+  // x and y are disequal.
   TNode x_shared = d_equalityEngine->getTriggerTermRepresentative(x, d_id);
   TNode y_shared = d_equalityEngine->getTriggerTermRepresentative(y, d_id);
   EqualityStatus eqStatus = d_valuation.getEqualityStatus(x_shared, y_shared);
@@ -551,7 +548,6 @@ bool Theory::areCareDisequal(TNode x, TNode y)
   {
     return true;
   }
-  Assert(!d_equalityEngine->areDisequal(x, y, false));
   return false;
 }
 

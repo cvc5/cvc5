@@ -45,7 +45,7 @@ if(NOT Poly_FOUND_SYSTEM)
 
   include(ExternalProject)
 
-  set(Poly_VERSION "1383809f2aa5005ef20110fec84b66959518f697")
+  set(Poly_VERSION "126147f1ceae9f771a68bad9cbc199cf96daec46")
 
   check_if_cross_compiling(CCWIN "Windows" "")
   if(CCWIN)
@@ -56,10 +56,17 @@ if(NOT Poly_FOUND_SYSTEM)
     unset(POLY_PATCH_CMD)
   endif()
 
+  # On Windows, CMake's default install action places DLLs into the runtime
+  # path (/bin) after doing the build with 'ExternalProject_Add'
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(BINARY_LIBRARY_DEST "bin")
+  else()
+    set(BINARY_LIBRARY_DEST "lib")
+  endif()
+
   get_target_property(GMP_INCLUDE_DIR GMP INTERFACE_SYSTEM_INCLUDE_DIRECTORIES)
   get_target_property(GMP_LIBRARY GMP IMPORTED_LOCATION)
   get_filename_component(GMP_LIB_PATH "${GMP_LIBRARY}" DIRECTORY)
-
 
   set(Poly_INCLUDE_DIR "${DEPS_BASE}/include/")
 
@@ -151,7 +158,7 @@ if(NOT Poly_FOUND_SYSTEM)
     Poly-EP
     ${COMMON_EP_CONFIG}
     URL https://github.com/SRI-CSL/libpoly/archive/${Poly_VERSION}.tar.gz
-    URL_HASH SHA1=e3da80491b378a4d874073d201406eb011f47c19
+    URL_HASH SHA1=5ebbd00c8dc8b731b5382701a23c60607bcb2804
     PATCH_COMMAND
       sed -i.orig
       "s,add_subdirectory(test/polyxx),add_subdirectory(test/polyxx EXCLUDE_FROM_ALL),g"
@@ -208,7 +215,6 @@ target_link_libraries(Poly INTERFACE GMP)
 set_target_properties(Polyxx PROPERTIES
   IMPORTED_LOCATION "${PolyXX_LIBRARIES}"
   INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${Poly_INCLUDE_DIR}"
-  INTERFACE_LINK_LIBRARIES Poly
 )
 
 mark_as_advanced(Poly_FOUND)

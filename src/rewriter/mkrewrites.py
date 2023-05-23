@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Andres Noetzli
+#   Haniel Barbosa, Andrew Reynolds, Vinícius Camillo
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -18,7 +18,7 @@ import logging
 import os
 import sys
 from collections import defaultdict
-from parser import Parser
+from rw_parser import Parser
 from node import *
 from util import *
 

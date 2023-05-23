@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -132,6 +132,39 @@ void RegExpSolver::checkInclusions()
   }
   Trace("regexp-debug") << "... No Intersect Conflict in Memberships"
                         << std::endl;
+}
+
+void RegExpSolver::checkMembershipsEager()
+{
+  if (!options().strings.stringRegexpPosConcatEager)
+  {
+    // option not enabled
+    return;
+  }
+  // eagerly reduce positive membership into re.++
+  std::vector<Node> mems = d_esolver.getActive(STRING_IN_REGEXP);
+  for (const Node& n : mems)
+  {
+    Assert(n.getKind() == STRING_IN_REGEXP);
+    if (n[1].getKind() != REGEXP_CONCAT)
+    {
+      // not a membership into concatenation
+      continue;
+    }
+    if (d_esolver.isReduced(n))
+    {
+      // already reduced
+      continue;
+    }
+    Node r = d_state.getRepresentative(n);
+    if (!r.isConst() || !r.getConst<bool>())
+    {
+      // not asserted true
+      continue;
+    }
+    // unfold it
+    doUnfold(n);
+  }
 }
 
 bool RegExpSolver::shouldUnfold(Theory::Effort e, bool pol) const

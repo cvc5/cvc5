@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,6 +19,7 @@
 
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
+#include "expr/sequence.h"
 #include "expr/skolem_manager.h"
 #include "options/strings_options.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
@@ -216,6 +217,19 @@ Node mkSubstrChain(Node base,
   return base;
 }
 
+Node mkConcatForConstSequence(const Node& c)
+{
+  Assert(c.getKind() == CONST_SEQUENCE);
+  const std::vector<Node>& charVec = c.getConst<Sequence>().getVec();
+  std::vector<Node> vec;
+  NodeManager* nm = NodeManager::currentNM();
+  for (size_t i = 0, size = charVec.size(); i < size; i++)
+  {
+    vec.push_back(nm->mkNode(SEQ_UNIT, charVec[size - (i + 1)]));
+  }
+  return mkConcat(vec, c.getType());
+}
+
 std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x)
 {
   // Collect the equalities of the form (= x "") (sorted)
@@ -273,6 +287,19 @@ std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x)
 bool isConstantLike(Node n)
 {
   return n.isConst() || n.getKind() == SEQ_UNIT || n.getKind() == STRING_UNIT;
+}
+
+bool isCharacterRange(TNode t)
+{
+  Assert(t.getKind() == REGEXP_RANGE);
+  for (size_t i = 0; i < 2; i++)
+  {
+    if (!t[i].isConst() || t[i].getConst<String>().size() != 1)
+    {
+      return false;
+    }
+  }
+  return true;
 }
 
 bool isUnboundedWildcard(const std::vector<Node>& rs, size_t start)

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -54,6 +54,11 @@ Context::~Context() {
   }
 }
 
+uint32_t Context::getLevel() const
+{
+  Assert(d_scopeList.size() > 0);
+  return d_scopeList.size() - 1;
+}
 
 void Context::push() {
   Trace("pushpop") << std::string(2 * getLevel(), ' ') << "Push [to "
@@ -104,13 +109,11 @@ void Context::pop() {
                    << getLevel() << "] " << this << std::endl;
 }
 
-
-void Context::popto(int toLevel) {
+void Context::popto(uint32_t toLevel)
+{
   // Pop scopes until there are none left or toLevel is reached
-  if(toLevel < 0) toLevel = 0;
-  while(toLevel < getLevel()) pop();
+  while (toLevel < getLevel()) pop();
 }
-
 
 void Context::addNotifyObjPre(ContextNotifyObj* pCNO) {
   // Insert pCNO at *front* of list
@@ -250,23 +253,6 @@ ContextObj::ContextObj(Context* pContext) :
   d_pScope->addToChain(this);
 }
 
-
-ContextObj::ContextObj(bool allocatedInCMM, Context* pContext) :
-  d_pScope(NULL),
-  d_pContextObjRestore(NULL),
-  d_pContextObjNext(NULL),
-  d_ppContextObjPrev(NULL) {
-  Assert(pContext != NULL) << "NULL context pointer";
-
-  Trace("context") << "create new ContextObj(" << this << " inCMM=" << allocatedInCMM << ")" << std::endl;
-  if(allocatedInCMM) {
-    d_pScope = pContext->getTopScope();
-  } else {
-    d_pScope = pContext->getBottomScope();
-  }
-  d_pScope->addToChain(this);
-}
-
 void ContextObj::enqueueToGarbageCollect() {
   Assert(d_pScope != NULL);
   d_pScope->enqueueToGarbageCollect(this);
@@ -294,7 +280,7 @@ std::ostream& operator<<(std::ostream& out, const Context& context)
 {
   static const std::string separator(79, '-');
 
-  int level = context.d_scopeList.size() - 1;
+  uint32_t level = context.d_scopeList.size() - 1;
   typedef std::vector<Scope*>::const_reverse_iterator const_reverse_iterator;
   for(const_reverse_iterator i = context.d_scopeList.rbegin();
       i != context.d_scopeList.rend();

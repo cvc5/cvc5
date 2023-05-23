@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Aina Niemetz, Mathias Preiner
+ *   Morgan Deters, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -65,7 +65,7 @@ class SygusInput : public AntlrInput {
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Command* parseCommand() override;
+  std::unique_ptr<Command> parseCommand() override;
 
   /**
    * Parse an expression from the input. Returns a null

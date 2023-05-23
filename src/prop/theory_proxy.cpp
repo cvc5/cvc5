@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -54,7 +54,7 @@ TheoryProxy::TheoryProxy(Env& env,
       d_skdm(skdm),
       d_zll(nullptr),
       d_prr(nullptr),
-      d_stopSearch(false, userContext()),
+      d_stopSearch(userContext(), false),
       d_activatedSkDefs(false)
 {
   bool trackZeroLevel =
@@ -72,7 +72,7 @@ TheoryProxy::~TheoryProxy() {
   /* nothing to do for now */
 }
 
-void TheoryProxy::finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs)
+void TheoryProxy::finishInit(CDCLTSatSolver* ss, CnfStream* cs)
 {
   // make the decision engine, which requires pointers to the SAT solver and CNF
   // stream
@@ -89,7 +89,8 @@ void TheoryProxy::finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs)
   // make the theory preregistrar
   d_prr.reset(new TheoryPreregistrar(d_env, d_theoryEngine, ss, cs));
   // compute if we need to track skolem definitions
-  d_trackActiveSkDefs = d_decisionEngine->needsActiveSkolemDefs();
+  d_trackActiveSkDefs = d_decisionEngine->needsActiveSkolemDefs()
+                        || d_prr->needsActiveSkolemDefs();
   d_cnfStream = cs;
 }
 
@@ -99,6 +100,8 @@ void TheoryProxy::presolve()
   d_theoryEngine->presolve();
   d_stopSearch = false;
 }
+
+void TheoryProxy::postsolve() { d_theoryEngine->postsolve(); }
 
 void TheoryProxy::notifyTopLevelSubstitution(const Node& lhs,
                                              const Node& rhs) const
@@ -153,6 +156,11 @@ void TheoryProxy::notifySkolemDefinition(Node a, TNode skolem)
 
 void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
 {
+  // ignore constants
+  if (a.isConst())
+  {
+    return;
+  }
   // notify the decision engine
   d_decisionEngine->addAssertion(a, skolem, isLemma);
   // notify the preregistrar
@@ -168,8 +176,11 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
   d_activatedSkDefs = false;
   // check with the preregistrar
   d_prr->check();
-  while (!d_queue.empty()) {
-    TNode assertion = d_queue.front();
+  TNode assertion;
+  int32_t alevel;
+  while (!d_queue.empty())
+  {
+    std::tie(assertion, alevel) = d_queue.front();
     d_queue.pop();
     if (d_zll != nullptr)
     {
@@ -177,7 +188,6 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
       {
         break;
       }
-      int32_t alevel = d_propEngine->getDecisionLevel(assertion);
       if (!d_zll->notifyAsserted(assertion, alevel))
       {
         d_stopSearch = true;
@@ -185,7 +195,14 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
       }
     }
     // notify the preregister utility, which may trigger new preregistrations
-    d_prr->notifyAsserted(assertion);
+    if (!d_prr->notifyAsserted(assertion))
+    {
+      // the preregistrar determined we should not assert this assertion, which
+      // can be the case for Boolean variables that we are notified about for
+      // the purposes of updating justification when using preregistration
+      // mode relevant.
+      continue;
+    }
     // now, assert to theory engine
     Trace("prereg") << "assert: " << assertion << std::endl;
     d_theoryEngine->assertFact(assertion);
@@ -286,7 +303,8 @@ void TheoryProxy::enqueueTheoryLiteral(const SatLiteral& l) {
   Node literalNode = d_cnfStream->getNode(l);
   Trace("prop") << "enqueueing theory literal " << l << " " << literalNode << std::endl;
   Assert(!literalNode.isNull());
-  d_queue.push(literalNode);
+  // Decision level = SAT context level - 1 due to global push().
+  d_queue.push(std::make_pair(literalNode, context()->getLevel() - 1));
 }
 
 SatLiteral TheoryProxy::getNextTheoryDecisionRequest() {
@@ -422,6 +440,12 @@ void TheoryProxy::notifySatLiteral(Node n)
 {
   // notify the preregister utility, which may trigger new preregistrations
   d_prr->notifySatLiteral(n);
+}
+
+void TheoryProxy::notifyBacktrack(uint32_t nlevels)
+{
+  // notify the preregistrar, which may trigger reregistrations
+  d_prr->notifyBacktrack(nlevels);
 }
 
 std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals(
