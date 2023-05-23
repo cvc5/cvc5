@@ -45,6 +45,30 @@ using namespace cvc5::internal::theory;
 
 namespace cvc5::internal {
 namespace smt {
+  
+  //notifyModifyOption("proofMode", "FULL", "enabling proofs");
+  //opts.writeSmt().proofMode = options::ProofMode::FULL;
+/**
+ */
+#define SET_AND_NOTIFY(domain, optName, value, reason) \
+  if (opts.write##domain().optName != value)           \
+  {                                                    \
+    notifyModifyOption("optName", "value", reason);    \
+    opts.write##domain().optName = value;              \
+  }
+#define SET_AND_NOTIFY_BOOL_VAL(domain, optName, value, reason)         \
+  if (opts.write##domain().optName != value)                            \
+  {                                                                     \
+    notifyModifyOption("optName", value ? "true" : "false", reason);    \
+    opts.write##domain().optName = value;                               \
+  }
+#define SET_AND_NOTIFY_IF_NOT_USER(domain, optName, value, reason) \
+  if (!opts.write##domain().optName##WasSetByUser &&             \
+      opts.write##domain().optName != value)                       \
+  {                                                                \
+    notifyModifyOption("optName", "value", reason);                \
+    opts.write##domain().optName = value;                          \
+  }
 
 SetDefaults::SetDefaults(Env& env, bool isInternalSubsolver)
     : EnvObj(env), d_isInternalSubsolver(isInternalSubsolver)
@@ -66,138 +90,90 @@ void SetDefaults::setDefaultsPre(Options& opts)
   // implied options
   if (opts.smt.debugCheckModels)
   {
-    if (!opts.writeSmt().checkModels)
-    {
-      notifyModifyOption("checkModels", "true", "debugCheckModels");
-      opts.writeSmt().checkModels = true;
-    }
+    SET_AND_NOTIFY(Smt, checkModels, true, "debugCheckModels");
   }
   if (opts.smt.checkModels || opts.driver.dumpModels)
   {
-    if (!opts.writeSmt().produceModels)
-    {
-      notifyModifyOption("produceModels", "true", "check or dump models");
-      opts.writeSmt().produceModels = true;
-    }
+    SET_AND_NOTIFY(Smt, produceModels, true, "check or dump models");
   }
   if (opts.smt.checkModels)
   {
-    if (!opts.writeSmt().produceAssignments)
-    {
-      notifyModifyOption("produceAssignments", "true", "checkModels");
-      opts.writeSmt().produceAssignments = true;
-    }
+    SET_AND_NOTIFY(Smt, produceAssignments, true, "checkModels");
   }
   // unsat cores and proofs shenanigans
   if (opts.driver.dumpDifficulty)
   {
-    if (!opts.writeSmt().produceDifficulty)
-    {
-      notifyModifyOption("produceDifficulty", "true", "dumpDifficulty");
-      opts.writeSmt().produceDifficulty = true;
-    }
+    SET_AND_NOTIFY(Smt, produceDifficulty, true, "dumpDifficulty");
   }
   if (opts.smt.checkUnsatCores || opts.driver.dumpUnsatCores
       || opts.smt.unsatAssumptions || opts.smt.minimalUnsatCores
       || opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF)
   {
-    if (!opts.writeSmt().produceUnsatCores)
-    {
-      notifyModifyOption(
-          "produceUnsatCores", "true", "option requiring unsat cores");
-      opts.writeSmt().produceUnsatCores = true;
-    }
+    SET_AND_NOTIFY(Smt, produceUnsatCores, true, "option requiring unsat cores");
   }
   if (opts.smt.produceUnsatCores
       && opts.smt.unsatCoresMode == options::UnsatCoresMode::OFF)
   {
-    notifyModifyOption("unsatCoresMode", "assumptions", "enabling unsat cores");
-    opts.writeSmt().unsatCoresMode = options::UnsatCoresMode::ASSUMPTIONS;
+    SET_AND_NOTIFY(Smt, unsatCoresMode, options::UnsatCoresMode::ASSUMPTIONS, "enabling unsat cores");
   }
   if (opts.proof.checkProofSteps)
   {
-    notifyModifyOption("checkProofs", "true", "check-proof-steps");
-    opts.writeSmt().checkProofs = true;
-    if (!opts.proof.proofGranularityModeWasSetByUser)
-    {
-      // maximize the granularity
-      notifyModifyOption(
-          "proofGranularityMode", "dsl-rewrite", "check-proof-steps");
-      opts.writeProof().proofGranularityMode =
-          options::ProofGranularityMode::DSL_REWRITE;
-    }
+    SET_AND_NOTIFY(Smt, checkProofs, true, "check-proof-steps");
+    // maximize the granularity
+    SET_AND_NOTIFY_IF_NOT_USER(Proof, proofGranularityMode, options::ProofGranularityMode::DSL_REWRITE, "check-proof-steps");
   }
   // if check-proofs, dump-proofs, or proof-mode=full, then proofs being fully
   // enabled is implied
   if (opts.smt.checkProofs || opts.driver.dumpProofs
       || opts.smt.proofMode == options::ProofMode::FULL)
   {
-    if (!opts.smt.produceProofs)
-    {
-      notifyModifyOption("produceProofs", "true", "option requiring proofs");
-      opts.writeSmt().produceProofs = true;
-    }
+    SET_AND_NOTIFY(Smt, produceProofs, true, "option requiring proofs");
   }
 
   // this check assumes the user has requested *full* proofs
   if (opts.smt.produceProofs)
   {
-    if (opts.smt.proofMode != options::ProofMode::FULL)
-    {
-      notifyModifyOption("proofMode", "FULL", "enabling proofs");
-      // if the user requested proofs, proof mode is full
-      opts.writeSmt().proofMode = options::ProofMode::FULL;
-    }
+    // if the user requested proofs, proof mode is full
+    SET_AND_NOTIFY(Smt,proofMode,options::ProofMode::FULL, "enabling proofs");
     // unsat cores are available due to proofs being enabled
     if (opts.smt.unsatCoresMode != options::UnsatCoresMode::SAT_PROOF)
     {
-      if (!opts.smt.produceUnsatCores)
-      {
-        notifyModifyOption("produceUnsatCores", "true", "enabling proofs");
-        opts.writeSmt().produceUnsatCores = true;
-      }
-      notifyModifyOption("unsatCoresMode", "sat-proof", "enabling proofs");
-      opts.writeSmt().unsatCoresMode = options::UnsatCoresMode::SAT_PROOF;
+      SET_AND_NOTIFY(Smt,produceUnsatCores,true, "enabling proofs");
+      SET_AND_NOTIFY(Smt,unsatCoresMode,options::UnsatCoresMode::SAT_PROOF, "enabling proofs");
     }
   }
   if (!opts.smt.produceProofs)
   {
     if (opts.smt.proofMode != options::ProofMode::OFF)
     {
-      notifyModifyOption("produceProofs", "true", "proof mode");
       // if (expert) user set proof mode to something other than off, enable
       // proofs
-      opts.writeSmt().produceProofs = true;
+      SET_AND_NOTIFY(Smt,produceProofs,true, "proof mode");
     }
     // if proofs weren't enabled by user, and we are producing difficulty
     if (opts.smt.produceDifficulty)
     {
-      notifyModifyOption("produceProofs", "true", "produce difficulty");
-      opts.writeSmt().produceProofs = true;
+      SET_AND_NOTIFY(Smt,produceProofs,true, "produce difficulty");
       // ensure at least preprocessing proofs are enabled
       if (opts.smt.proofMode == options::ProofMode::OFF)
       {
-        notifyModifyOption("proofMode", "PP_ONLY", "produce difficulty");
-        opts.writeSmt().proofMode = options::ProofMode::PP_ONLY;
+        SET_AND_NOTIFY(Smt,proofMode,options::ProofMode::PP_ONLY, "produce difficulty");
       }
     }
     // if proofs weren't enabled by user, and we are producing unsat cores
     if (opts.smt.produceUnsatCores)
     {
-      notifyModifyOption("produceProofs", "true", "unsat cores");
-      opts.writeSmt().produceProofs = true;
+      SET_AND_NOTIFY(Smt,produceProofs,true, "unsat cores");
       if (opts.smt.unsatCoresMode == options::UnsatCoresMode::SAT_PROOF)
       {
         // if requested to be based on proofs, we produce (preprocessing +) SAT
         // proofs
-        notifyModifyOption("proofMode", "SAT", "unsat cores SAT proof");
-        opts.writeSmt().proofMode = options::ProofMode::SAT;
+        SET_AND_NOTIFY(Smt,proofMode,options::ProofMode::SAT, "unsat cores SAT proof");
       }
       else if (opts.smt.proofMode == options::ProofMode::OFF)
       {
         // otherwise, we always produce preprocessing proofs
-        notifyModifyOption("proofMode", "PP_ONLY", "unsat cores");
-        opts.writeSmt().proofMode = options::ProofMode::PP_ONLY;
+        SET_AND_NOTIFY(Smt,proofMode,options::ProofMode::PP_ONLY, "unsat cores");
       }
     }
   }
@@ -248,11 +224,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
                    && logic.areIntegersUsed()))
            && !opts.base.incrementalSolving)
   {
-    if (!opts.quantifiers.sygusInst)
-    {
-      notifyModifyOption("sygusInst", "true", "logic");
-      opts.writeQuantifiers().sygusInst = true;
-    }
+    SET_AND_NOTIFY(Quantifiers,sygusInst,true, "logic");
   }
 
   if (opts.bv.bitblastMode == options::BitblastMode::EAGER)
@@ -269,17 +241,12 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
             "for the combination of bit-vectors with arrays or uinterpreted "
             "functions. Try --bitblast=lazy"));
       }
-      notifyModifyOption("bitblastMode", "lazy", "model generation");
-      opts.writeBv().bitblastMode = options::BitblastMode::LAZY;
+      SET_AND_NOTIFY(Bv,bitblastMode,options::BitblastMode::LAZY, "model generation");
     }
     else if (!opts.base.incrementalSolving)
     {
       // if not incremental, we rely on ackermann to eliminate other theories.
-      if (!opts.smt.ackermann)
-      {
-        notifyModifyOption("ackermann", "true", "bit-blast eager");
-        opts.writeSmt().ackermann = true;
-      }
+      SET_AND_NOTIFY(Smt,ackermann,true, "bit-blast eager");
     }
     else if (logic.isQuantified() || !logic.isPure(THEORY_BV))
     {
@@ -327,8 +294,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
       throw OptionException(std::string(
           "Ackermannization currently does not support model generation."));
     }
-    notifyModifyOption("ackermann", "false", "model generation");
-    opts.writeSmt().ackermann = false;
+    SET_AND_NOTIFY(Smt,ackermann,false, "model generation");
     // we are not relying on ackermann to eliminate theories in this case
     Assert(opts.bv.bitblastMode != options::BitblastMode::EAGER);
   }
@@ -351,8 +317,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   if (logic.isTheoryEnabled(THEORY_STRINGS)
       && !options().strings.stringExpWasSetByUser)
   {
-    notifyModifyOption("stringExp", "true", "logic including strings");
-    opts.writeStrings().stringExp = true;
+    SET_AND_NOTIFY(Strings,stringExp,true, "logic including strings");
   }
   // If strings-exp is enabled, we require quantifiers. We also enable them
   // if we are using eager string preprocessing or aggressive regular expression
@@ -425,11 +390,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
 
 void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 {
-  if (!opts.smt.produceAssertions)
-  {
-    notifyModifyOption("produceAssertions", "true", "");
-    opts.writeSmt().produceAssertions = true;
-  }
+  SET_AND_NOTIFY(Smt,produceAssertions,true, "always enabled");
 
   if (opts.smt.solveBVAsInt != options::SolveBVAsIntMode::OFF)
   {
@@ -439,11 +400,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
      * Therefore, we enable bv-to-bool, which runs before
      * the translation to integers.
      */
-    if (!opts.writeBv().bitvectorToBool)
-    {
-      notifyModifyOption("bitvectorToBool", "true", "solve-bv-as-int");
-      opts.writeBv().bitvectorToBool = true;
-    }
+    SET_AND_NOTIFY(Bv,bitvectorToBool,true, "solve-bv-as-int");
   }
 
   // Disable options incompatible with incremental solving, or output an error
@@ -488,30 +445,22 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
                      && logic.isTheoryEnabled(THEORY_ARRAYS)
                      && logic.isTheoryEnabled(THEORY_BV)
                      && !logic.isTheoryEnabled(THEORY_ARITH);
-      if (opts.smt.unconstrainedSimp != uncSimp)
-      {
-        notifyModifyOption("unconstrainedSimp", uncSimp ? "true" : "false", "");
-        opts.writeSmt().unconstrainedSimp = uncSimp;
-      }
+      SET_AND_NOTIFY_BOOL_VAL(Smt, unconstrainedSimp, uncSimp, "logic and options");
     }
 
     // by default, nonclausal simplification is off for QF_SAT
     if (!opts.smt.simplificationModeWasSetByUser)
     {
       bool qf_sat = logic.isPure(THEORY_BOOL) && !logic.isQuantified();
-      options::SimplificationMode sm = qf_sat
-                                           ? options::SimplificationMode::NONE
-                                           : options::SimplificationMode::BATCH;
-      if (opts.smt.simplificationMode != sm)
+      // simplification=none works better for SMT LIB benchmarks with
+      // quantifiers, not others
+      if (qf_sat)
       {
-        std::stringstream sms;
-        sms << sm;
-        notifyModifyOption("unconstrainedSimp", sms.str(), "logic");
-        // simplification=none works better for SMT LIB benchmarks with
-        // quantifiers, not others opts.set(options::simplificationMode, qf_sat
-        // || quantifiers ? options::SimplificationMode::NONE :
-        // options::SimplificationMode::BATCH);
-        opts.writeSmt().simplificationMode = sm;
+        SET_AND_NOTIFY(Smt, simplificationMode, options::SimplificationMode::NONE, "logic");
+      }
+      else
+      {
+        SET_AND_NOTIFY(Smt, simplificationMode, options::SimplificationMode::BATCH, "logic");
       }
     }
   }
@@ -526,8 +475,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
             "bool-to-bv != off not supported with CEGQI BV for quantified "
             "logics");
       }
-      notifyModifyOption("boolToBitvector", "off", "CEGQI BV");
-      opts.writeBv().boolToBitvector = options::BoolToBVMode::OFF;
+      SET_AND_NOTIFY(Bv, boolToBitvector, options::BoolToBVMode::OFF, "cegqiBv");
     }
   }
 
@@ -545,11 +493,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   // this by default.
   if (opts.smt.doITESimp)
   {
-    if (!opts.smt.earlyIteRemovalWasSetByUser)
-    {
-      notifyModifyOption("earlyIteRemoval", "true", "doITESimp");
-      opts.writeSmt().earlyIteRemoval = true;
-    }
+    SET_AND_NOTIFY_IF_NOT_USER(Smt, earlyIteRemoval, true, "doITESimp");
   }
 
   // Set the options for the theoryOf
@@ -562,9 +506,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         && !(logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()
              && !logic.isQuantified()))
     {
-      notifyModifyOption("theoryOfMode", "THEORY_OF_TERM_BASED", "logic");
-      opts.writeTheory().theoryOfMode =
-          options::TheoryOfMode::THEORY_OF_TERM_BASED;
+      SET_AND_NOTIFY(Theory, theoryOfMode, options::TheoryOfMode::THEORY_OF_TERM_BASED, "logic");
     }
   }
 
@@ -574,12 +516,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     bool qf_uf_noinc = logic.isPure(THEORY_UF) && !logic.isQuantified()
                        && !opts.base.incrementalSolving
                        && !safeUnsatCores(opts);
-    if (opts.uf.ufSymmetryBreaker != qf_uf_noinc)
-    {
-      notifyModifyOption(
-          "ufSymmetryBreaker", qf_uf_noinc ? "true" : "false", "");
-      opts.writeUf().ufSymmetryBreaker = qf_uf_noinc;
-    }
+    SET_AND_NOTIFY_BOOL_VAL(Uf, ufSymmetryBreaker, qf_uf_noinc, "logic and options");
   }
 
   // If in arrays, set the UF handler to arrays
@@ -600,14 +537,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     bool qf_aufbv =
         !logic.isQuantified() && logic.isTheoryEnabled(THEORY_ARRAYS)
         && logic.isTheoryEnabled(THEORY_UF) && logic.isTheoryEnabled(THEORY_BV);
-
-    bool withCare = qf_aufbv;
-    if (opts.smt.simplifyWithCareEnabled != withCare)
-    {
-      notifyModifyOption(
-          "simplifyWithCareEnabled", withCare ? "true" : "false", "logic");
-      opts.writeSmt().simplifyWithCareEnabled = withCare;
-    }
+    SET_AND_NOTIFY_BOOL_VAL(Smt, simplifyWithCareEnabled, qf_aufbv, "logic");
   }
   // Turn off array eager index splitting for QF_AUFLIA
   if (!opts.arrays.arraysEagerIndexSplittingWasSetByUser)
@@ -616,8 +546,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         && logic.isTheoryEnabled(THEORY_UF)
         && logic.isTheoryEnabled(THEORY_ARITH))
     {
-      notifyModifyOption("arraysEagerIndexSplitting", "false", "logic");
-      opts.writeArrays().arraysEagerIndexSplitting = false;
+      SET_AND_NOTIFY(Arrays, arraysEagerIndexSplitting, false, "logic");
     }
   }
   // Turn on multiple-pass non-clausal simplification for QF_AUFBV
@@ -628,21 +557,13 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
                           && logic.isTheoryEnabled(THEORY_UF)
                           && logic.isTheoryEnabled(THEORY_BV))
                       && !safeUnsatCores(opts);
-    if (opts.smt.repeatSimp != repeatSimp)
-    {
-      notifyModifyOption("repeatSimp", repeatSimp ? "true" : "false", "logic");
-      opts.writeSmt().repeatSimp = repeatSimp;
-    }
+    SET_AND_NOTIFY_BOOL_VAL(Smt, repeatSimp, repeatSimp, "logic");
   }
 
   /* Disable bit-level propagation by default for the BITBLAST solver. */
   if (opts.bv.bvSolver == options::BVSolver::BITBLAST)
   {
-    if (opts.bv.bitvectorPropagate)
-    {
-      notifyModifyOption("bitvectorPropagate", "false", "bitblast solver");
-      opts.writeBv().bitvectorPropagate = false;
-    }
+    SET_AND_NOTIFY(Bv, bitvectorPropagate, false, "bitblast solver");
   }
 
   if (opts.bv.boolToBitvector == options::BoolToBVMode::ALL
@@ -653,8 +574,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       throw OptionException(
           "bool-to-bv=all not supported for non-bitvector logics.");
     }
-    notifyModifyOption("boolToBitvector", "off", "non-BV logic");
-    opts.writeBv().boolToBitvector = options::BoolToBVMode::OFF;
+    SET_AND_NOTIFY(Bv, boolToBitvector, options::BoolToBVMode::OFF, "non-BV logic");
   }
 
   // Turn on arith rewrite equalities only for pure arithmetic
@@ -662,12 +582,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
     bool arithRewriteEq =
         logic.isPure(THEORY_ARITH) && logic.isLinear() && !logic.isQuantified();
-    if (opts.arith.arithRewriteEq != arithRewriteEq)
-    {
-      notifyModifyOption(
-          "arithRewriteEq", arithRewriteEq ? "true" : "false", "logic");
-      opts.writeArith().arithRewriteEq = arithRewriteEq;
-    }
+    SET_AND_NOTIFY_BOOL_VAL(Arith, arithRewriteEq, arithRewriteEq, "logic");
   }
   if (!opts.arith.arithHeuristicPivotsWasSetByUser)
   {
@@ -683,6 +598,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         heuristicPivots = 0;
       }
     }
+    // FIXME
     if (opts.arith.arithHeuristicPivots != heuristicPivots)
     {
       std::stringstream ss;
@@ -701,6 +617,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         pivotThreshold = 16;
       }
     }
+    // FIXME
     if (opts.arith.arithPivotThreshold != pivotThreshold)
     {
       std::stringstream ss;
@@ -716,6 +633,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     {
       varOrderPivots = 200;
     }
+    // FIXME
     if (opts.arith.arithStandardCheckVarOrderPivots != varOrderPivots)
     {
       std::stringstream ss;
@@ -726,23 +644,14 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   }
   if (logic.isPure(THEORY_ARITH) && !logic.areRealsUsed())
   {
-    if (!opts.arith.nlExtTangentPlanesInterleaveWasSetByUser)
-    {
-      notifyModifyOption(
-          "nlExtTangentPlanesInterleave", "true", "pure integer logic");
-      opts.writeArith().nlExtTangentPlanesInterleave = true;
-    }
+    SET_AND_NOTIFY(Arith, nlExtTangentPlanesInterleave, true, "pure integer logic");
   }
   if (!opts.arith.nlRlvAssertBoundsWasSetByUser)
   {
     bool val = !logic.isQuantified();
-    if (opts.arith.nlRlvAssertBounds != val)
-    {
-      notifyModifyOption("nlRlvAssertBounds", val ? "true" : "false", "logic");
       // use bound inference to determine when bounds are irrelevant only when
       // the logic is quantifier-free
-      opts.writeArith().nlRlvAssertBounds = val;
-    }
+    SET_AND_NOTIFY_BOOL_VAL(Arith, nlRlvAssertBounds, val, "non-quantified logic");
   }
 
   // set the default decision mode
@@ -751,22 +660,13 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   // set up of central equality engine
   if (opts.theory.eeMode == options::EqEngineMode::CENTRAL)
   {
-    if (!opts.arith.arithEqSolverWasSetByUser && !opts.arith.arithEqSolver)
-    {
-      notifyModifyOption("arithEqSolver", "true", "central equality engine");
-      // use the arithmetic equality solver by default
-      opts.writeArith().arithEqSolver = true;
-    }
+    // use the arithmetic equality solver by default
+    SET_AND_NOTIFY_IF_NOT_USER(Arith, arithEqSolver, true, "central equality engine");
   }
 
   if (logic.isHigherOrder())
   {
-    if (!opts.theory.assignFunctionValues)
-    {
-      notifyModifyOption("assignFunctionValues", "true", "higher-order logic");
-      // must assign function values
-      opts.writeTheory().assignFunctionValues = true;
-    }
+    SET_AND_NOTIFY(Theory, assignFunctionValues, true, "higher-order logic");
   }
 
   // set all defaults in the quantifiers theory, which includes sygus
