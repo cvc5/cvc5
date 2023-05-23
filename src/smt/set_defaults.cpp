@@ -79,13 +79,13 @@ namespace smt {
     opts.write##domain().optName = value;                          \
   }
 #define SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(domain, optName, value, reason) \
-  if (!opts.write##domain().optName##WasSetByUser                           \
-      && opts.write##domain().optName != value)                             \
-  {                                                                         \
-    std::stringstream sstmp;                                                \
-    sstmp << value;                                                         \
-    notifyModifyOption(#optName, sstmp.str(), reason);                      \
-    opts.write##domain().optName = value;                                   \
+  if (!opts.write##domain().optName##WasSetByUser                          \
+      && opts.write##domain().optName != value)                            \
+  {                                                                        \
+    std::stringstream sstmp;                                               \
+    sstmp << value;                                                        \
+    notifyModifyOption(#optName, sstmp.str(), reason);                     \
+    opts.write##domain().optName = value;                                  \
   }
 
 SetDefaults::SetDefaults(Env& env, bool isInternalSubsolver)
@@ -1329,9 +1329,9 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
                    "higher-order logic");
     // by default, use store axioms only if --ho-elim is set
     SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(Quantifiers,
-                                        hoElimStoreAx,
-                                        opts.quantifiers.hoElim,
-                                        "higher-order logic");
+                                       hoElimStoreAx,
+                                       opts.quantifiers.hoElim,
+                                       "higher-order logic");
     // Cannot use macros, since lambda lifting and macro elimination are inverse
     // operations.
     SET_AND_NOTIFY(Quantifiers, macrosQuant, false, "higher-order logic");
