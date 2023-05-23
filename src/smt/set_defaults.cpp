@@ -1418,7 +1418,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     else
     {
       // only supported in pure arithmetic or pure BV
-      SET_AND_NOTIFY_IF_NOT_USER(
+      SET_AND_NOTIFY(
           Quantifiers, cegqiNestedQE, false, "cegqi non-pure logic");
     }
     if (opts.quantifiers.globalNegate)
@@ -1483,7 +1483,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     SET_AND_NOTIFY(Quantifiers,
                    quantDynamicSplit,
                    options::QuantDSplitMode::NONE,
-                   "datatypes logic");
+                   "non-datatypes logic");
   }
   if (opts.quantifiers.globalNegate)
   {
