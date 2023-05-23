@@ -900,27 +900,15 @@ class SolverTest
   @Test
   void mkTuple()
   {
-    assertDoesNotThrow(()
-                           -> d_solver.mkTuple(
-                               new Term[] {d_solver.mkBitVector(3, "101", 2)}));
-    assertDoesNotThrow(
-        ()
-            -> d_solver.mkTuple(
-                new Term[] {d_solver.mkInteger("5")}));
+    assertDoesNotThrow(() -> d_solver.mkTuple(new Term[] {d_solver.mkBitVector(3, "101", 2)}));
+    assertDoesNotThrow(() -> d_solver.mkTuple(new Term[] {d_solver.mkInteger("5")}));
 
-    assertDoesNotThrow(
-        ()
-            -> d_solver.mkTuple(
-                new Term[] {d_solver.mkReal("5.3")}));
+    assertDoesNotThrow(() -> d_solver.mkTuple(new Term[] {d_solver.mkReal("5.3")}));
 
     Solver slv = new Solver();
-    assertDoesNotThrow(()
-                           -> slv.mkTuple(
-                               new Term[] {slv.mkBitVector(3, "101", 2)}));
+    assertDoesNotThrow(() -> slv.mkTuple(new Term[] {slv.mkBitVector(3, "101", 2)}));
 
-    assertDoesNotThrow(()
-                           -> slv.mkTuple(
-                               new Term[] {d_solver.mkBitVector(3, "101", 2)}));
+    assertDoesNotThrow(() -> slv.mkTuple(new Term[] {d_solver.mkBitVector(3, "101", 2)}));
   }
 
   @Test
