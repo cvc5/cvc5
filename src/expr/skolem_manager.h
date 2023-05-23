@@ -46,10 +46,12 @@ enum class SkolemFunId
    * is between -pi and pi
    */
   TRANSCENDENTAL_PURIFY_ARG,
-  /** a wrongly applied selector */
-  SELECTOR_WRONG,
   /** a shared selector */
   SHARED_SELECTOR,
+  /**
+   * The n^th skolem for quantified formula Q. Its arguments are (Q,n).
+   */
+  QUANTIFIERS_SKOLEMIZE,
   //----- string skolems are cached based on two strings (a, b)
   /** exists k. ( b occurs k times in a ) */
   STRINGS_NUM_OCCUR,
@@ -235,9 +237,8 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id);
  * must provide information that characterizes the skolem. This information
  * may either be:
  * (1) the term that the skolem purifies (`mkPurifySkolem`)
- * (2) a predicate the skolem satisfies (this is currently solely used by
- * `mkSkolemize` for witnessing existential quantifiers),
- * (3) an identifier (`mkSkolemFunction`), which are typically used for
+ * (2) an identifier (`mkSkolemFunction`) and a set of "cache values", which
+ * can be seen as arguments to the skolem function. These are typically used for
  * implementing theory-specific inferences that introduce symbols that
  * are not interpreted by the theory (see SkolemFunId enum).
  *
@@ -246,30 +247,29 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id);
  * skolem variable.
  *
  * It is implemented by mapping terms to an attribute corresponding to their
- * "original form" and "witness form" as described below. Hence, this class does
- * not impact the reference counting of skolem variables which may be deleted if
- * they are not used.
+ * "original form" as described below. Hence, this class does not impact the
+ * reference counting of skolem variables which may be deleted if they are not
+ * used.
  *
- * We distinguish two kinds of mappings between terms and skolems:
+ * To handle purification of witness terms, notice that the purification
+ * skolem for (witness ((x T)) P) is equivalent to the skolem function:
+ *    (QUANTIFIERS_SKOLEMIZE (exists ((x T)) P) 0)
+ * In other words, the purification for witness terms are equivalent to
+ * the skolemization of their corresponding existential. This is currently only
+ * used for eliminating witness terms coming from algorithms that introduce
+ * them, e.g. BV/set instantiation. Unifying these two skolems is required
+ * for ensuring proof checking succeeds for term formula removal on witness
+ * terms.
  *
- * (1) "Original form", which associates skolems with the terms they purify.
- * This is used in `mkPurifySkolem` below.
- *
- * (2) "Witness form", which associates skolems with a witness term whose
- * body is a predicate they satisfy. This is used in `mkSkolemize` below.
- *
- * It is possible to unify these so that purification skolems for t are skolems
- * whose witness form is (witness ((x T)) (= x t)). However, there are
- * motivations not to do so. In particular, witness terms in most contexts
- * should be seen as black boxes, converting something to witness form may have
- * unintended consequences e.g. variable shadowing. In contrast, converting to
- * original form does not have these complications. Furthermore, having original
- * form greatly simplifies reasoning in the proof, in particular, it avoids the
- * need to reason about identifiers for introduced variables x.
- *
- * Furthermore, note that original form and witness form may share skolems
- * in the rare case that a witness term is purified. This is currently only the
- * case for algorithms that introduce witnesses, e.g. BV/set instantiation.
+ * The use of purification skolems and skolem functions avoid having to reason
+ * about witness terms. This avoids several complications. In particular,
+ * witness terms in most contexts should be seen as black boxes, converting
+ * something to a witness term may have unintended consequences e.g. variable
+ * shadowing. In contrast, converting to original form does not have these
+ * complications. Furthermore, having original form greatly simplifies
+ * reasoning in the proof in certain external proof formats, in particular, it
+ * avoids the need to reason about identifiers for introduced variables for
+ * the binders of witness terms.
  */
 class SkolemManager
 {
@@ -306,48 +306,22 @@ class SkolemManager
    * (ite A B C). Then, asking for the purify skolem for:
    *  (ite (ite A B C) D E) and (ite k D E)
    * will return two different Skolems.
+   *
+   * @param t The term to purify
+   * @param prefix The prefix of the name of  the skolem
+   * @param comment Debug information about the skolem
+   * @param flags The flags for the skolem (see SkolemFlags)
+   * @param pg The proof generator for the skolemization of t. This should
+   * only be provided if t is a witness term (witness ((x T)) P). If non-null,
+   * this proof generator must respond to a call to getProofFor on
+   * (exists ((x T)) P) during the lifetime of the current node manager.
+   * @return The purification skolem for t
    */
   Node mkPurifySkolem(Node t,
                       const std::string& prefix,
                       const std::string& comment = "",
-                      int flags = SKOLEM_DEFAULT);
-  /**
-   * Make skolemized form of existentially quantified formula q, and store its
-   * Skolems into the argument skolems.
-   *
-   * For example, calling this method on:
-   *   (exists ((x Int) (y Int)) (P x y))
-   * returns:
-   *   (P w1 w2)
-   * where w1 and w2 are skolems with witness forms:
-   *   (witness ((x Int)) (exists ((y Int)) (P x y)))
-   *   (witness ((y Int)) (P w1 y))
-   * respectively. Additionally, this method will add { w1, w2 } to skolems.
-   * Notice that y is *not* renamed in the witness form of w1. This is not
-   * necessary since w1 is skolem. Although its witness form contains
-   * quantification on y, we never construct a term where the witness form
-   * of w1 is expanded in the witness form of w2. This avoids variable
-   * shadowing.
-   *
-   * Notice that the proof generator is for the *entire* existentially
-   * quantified formula q, which may have multiple variables in its prefix.
-   *
-   * @param q The existentially quantified formula to skolemize,
-   * @param skolems Vector to add Skolems of q to,
-   * @param prefix The prefix of the name of each of the Skolems
-   * @param comment Debug information about each of the Skolems
-   * @param flags The flags for the Skolem (see SkolemFlags)
-   * @param pg The proof generator for this skolem. If non-null, this proof
-   * generator must respond to a call to getProofFor(q) during
-   * the lifetime of the current node manager.
-   * @return The skolemized form of q.
-   */
-  Node mkSkolemize(Node q,
-                   std::vector<Node>& skolems,
-                   const std::string& prefix,
-                   const std::string& comment = "",
-                   int flags = SKOLEM_DEFAULT,
-                   ProofGenerator* pg = nullptr);
+                      int flags = SKOLEM_DEFAULT,
+                      ProofGenerator* pg = nullptr);
   /**
    * Make skolem function. This method should be used for creating fixed
    * skolem functions of the forms described in SkolemFunId. The user of this
@@ -418,19 +392,8 @@ class SkolemManager
    * the proof generator that was provided in a call to `mkSkolemize` above.
    */
   ProofGenerator* getProofGenerator(Node q) const;
-
   /** Returns true if n is a skolem that stands for an abstract value */
   bool isAbstractValue(TNode n) const;
-
-  /**
-   * Convert to witness form, which gets the witness form of a skolem k.
-   * Notice this method is *not* recursive, instead, it is a simple attribute
-   * lookup.
-   *
-   * @param k The variable to convert to witness form described above
-   * @return k in witness form.
-   */
-  static Node getWitnessForm(Node k);
   /**
    * Convert to original form, which recursively replaces all skolems terms in
    * n by the term they purify.
@@ -475,25 +438,6 @@ class SkolemManager
                         const std::string& prefix,
                         const std::string& comment,
                         int flags);
-  /**
-   * Skolemize the first variable of existentially quantified formula q.
-   * For example, calling this method on:
-   *   (exists ((x Int) (y Int)) (P x y))
-   * will return:
-   *   (witness ((x Int)) (exists ((y Int)) (P x y)))
-   * If q is not an existentially quantified formula, then null is
-   * returned and an assertion failure is thrown.
-   *
-   * This method additionally updates qskolem to be the skolemized form of q.
-   * In the above example, this is set to:
-   *   (exists
-   *       ((y Int)) (P (witness ((x Int)) (exists ((y' Int)) (P x y'))) y))
-   */
-  Node skolemize(Node q,
-                 Node& qskolem,
-                 const std::string& prefix,
-                 const std::string& comment = "",
-                 int flags = SKOLEM_DEFAULT);
   /**
    * Create a skolem constant with the given name, type, and comment.
    *

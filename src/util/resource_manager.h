@@ -167,7 +167,7 @@ class ResourceManager
    * Marks the end of a SolverEngine check call, stops the per
    * call timer.
    */
-  void endCall();
+  void refresh();
 
   /**
    * Registers a listener that is notified on a resource out or (per-call)
