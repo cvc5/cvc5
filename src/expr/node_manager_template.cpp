@@ -1227,6 +1227,7 @@ NodeClass NodeManager::mkConstInternal(Kind k, const T& val)
     && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Warray-bounds"
+#pragma GCC diagnostic ignored "-Wzero-length-bounds"
 #endif
 
   nvStack.d_children[0] = const_cast<expr::NodeValue*>(
