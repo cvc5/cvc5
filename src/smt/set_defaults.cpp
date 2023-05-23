@@ -57,15 +57,6 @@ namespace smt {
   }
 /**
  * Set domain.optName to value due to reason. Notify if value changes.
- */
-#define SET_AND_NOTIFY_BOOL_VAL(domain, optName, value, reason)     \
-  if (opts.write##domain().optName != value)                        \
-  {                                                                 \
-    notifyModifyOption(#optName, value ? "true" : "false", reason); \
-    opts.write##domain().optName = value;                           \
-  }
-/**
- * Set domain.optName to value due to reason. Notify if value changes.
  * We print the value using a stringstream conversion.
  */
 #define SET_AND_NOTIFY_VAL_SYM(domain, optName, value, reason) \
@@ -87,11 +78,13 @@ namespace smt {
     notifyModifyOption(#optName, #value, reason);                  \
     opts.write##domain().optName = value;                          \
   }
-#define SET_AND_NOTIFY_IF_NOT_USER_BOOL_VAR(domain, optName, value, reason) \
+#define SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(domain, optName, value, reason) \
   if (!opts.write##domain().optName##WasSetByUser                           \
       && opts.write##domain().optName != value)                             \
   {                                                                         \
-    notifyModifyOption(#optName, value ? "true" : "false", reason);         \
+    std::stringstream sstmp;                                                \
+    sstmp << value;                                                         \
+    notifyModifyOption(#optName, sstmp.str(), reason);                      \
     opts.write##domain().optName = value;                                   \
   }
 
@@ -488,7 +481,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
                      && logic.isTheoryEnabled(THEORY_ARRAYS)
                      && logic.isTheoryEnabled(THEORY_BV)
                      && !logic.isTheoryEnabled(THEORY_ARITH);
-      SET_AND_NOTIFY_BOOL_VAL(
+      SET_AND_NOTIFY_VAL_SYM(
           Smt, unconstrainedSimp, uncSimp, "logic and options");
     }
 
@@ -568,7 +561,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     bool qf_uf_noinc = logic.isPure(THEORY_UF) && !logic.isQuantified()
                        && !opts.base.incrementalSolving
                        && !safeUnsatCores(opts);
-    SET_AND_NOTIFY_BOOL_VAL(
+    SET_AND_NOTIFY_VAL_SYM(
         Uf, ufSymmetryBreaker, qf_uf_noinc, "logic and options");
   }
 
@@ -590,7 +583,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     bool qf_aufbv =
         !logic.isQuantified() && logic.isTheoryEnabled(THEORY_ARRAYS)
         && logic.isTheoryEnabled(THEORY_UF) && logic.isTheoryEnabled(THEORY_BV);
-    SET_AND_NOTIFY_BOOL_VAL(Smt, simplifyWithCareEnabled, qf_aufbv, "logic");
+    SET_AND_NOTIFY_VAL_SYM(Smt, simplifyWithCareEnabled, qf_aufbv, "logic");
   }
   // Turn off array eager index splitting for QF_AUFLIA
   if (!opts.arrays.arraysEagerIndexSplittingWasSetByUser)
@@ -610,7 +603,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
                           && logic.isTheoryEnabled(THEORY_UF)
                           && logic.isTheoryEnabled(THEORY_BV))
                       && !safeUnsatCores(opts);
-    SET_AND_NOTIFY_BOOL_VAL(Smt, repeatSimp, repeatSimp, "logic");
+    SET_AND_NOTIFY_VAL_SYM(Smt, repeatSimp, repeatSimp, "logic");
   }
 
   /* Disable bit-level propagation by default for the BITBLAST solver. */
@@ -636,7 +629,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
     bool arithRewriteEq =
         logic.isPure(THEORY_ARITH) && logic.isLinear() && !logic.isQuantified();
-    SET_AND_NOTIFY_BOOL_VAL(Arith, arithRewriteEq, arithRewriteEq, "logic");
+    SET_AND_NOTIFY_VAL_SYM(Arith, arithRewriteEq, arithRewriteEq, "logic");
   }
   if (!opts.arith.arithHeuristicPivotsWasSetByUser)
   {
@@ -687,7 +680,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     bool val = !logic.isQuantified();
     // use bound inference to determine when bounds are irrelevant only when
     // the logic is quantifier-free
-    SET_AND_NOTIFY_BOOL_VAL(
+    SET_AND_NOTIFY_VAL_SYM(
         Arith, nlRlvAssertBounds, val, "non-quantified logic");
   }
 
@@ -1314,7 +1307,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
 
   if (opts.quantifiers.fmfBoundLazy)
   {
-    SET_AND_NOTIFY_IF_NOT_USER(Quantifiers, fmfBound, true, "fmf-bound-lazy");
+    SET_AND_NOTIFY_IF_NOT_USER(Quantifiers, fmfBound, true, "fmfBoundLazy");
   }
   // now have determined whether fmfBound is on/off
   // apply fmfBound options
@@ -1322,9 +1315,9 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   {
     // if bounded integers are set, use no MBQI by default
     SET_AND_NOTIFY_IF_NOT_USER(
-        Quantifiers, fmfMbqiMode, options::FmfMbqiMode::NONE, "fmf-bound");
+        Quantifiers, fmfMbqiMode, options::FmfMbqiMode::NONE, "fmfBound");
     SET_AND_NOTIFY_IF_NOT_USER(
-        Quantifiers, prenexQuant, options::PrenexQuantMode::NONE, "fmf-bound");
+        Quantifiers, prenexQuant, options::PrenexQuantMode::NONE, "fmfBound");
   }
   if (logic.isHigherOrder())
   {
@@ -1335,7 +1328,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
                    options::FmfMbqiMode::NONE,
                    "higher-order logic");
     // by default, use store axioms only if --ho-elim is set
-    SET_AND_NOTIFY_IF_NOT_USER_BOOL_VAR(Quantifiers,
+    SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(Quantifiers,
                                         hoElimStoreAx,
                                         opts.quantifiers.hoElim,
                                         "higher-order logic");
@@ -1475,7 +1468,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   if (opts.quantifiers.conjectureGenPerRoundWasSetByUser)
   {
     bool conjNZero = (opts.quantifiers.conjectureGenPerRound > 0);
-    SET_AND_NOTIFY_BOOL_VAL(
+    SET_AND_NOTIFY_VAL_SYM(
         Quantifiers, conjectureGen, conjNZero, "conjectureGenPerRound");
   }
   // can't pre-skolemize nested quantifiers without UF theory
