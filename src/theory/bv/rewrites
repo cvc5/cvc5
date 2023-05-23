@@ -538,7 +538,7 @@
 
 (define-cond-rule bv-mult-pow2-1
   ((xs ?BitVec :list) (ys ?BitVec :list) (z ?BitVec) (size Int) (n Int))
-  (def (exponent (int.log2 n)))
+  (def (exponent (- (int.log2 n) 1)))
   (int.ispow2 n)
   (bvmul xs z (bv n size) ys)
   (concat
@@ -546,7 +546,7 @@
     (bv 0 exponent)))
 (define-cond-rule bv-mult-pow2-2
   ((xs ?BitVec :list) (ys ?BitVec :list) (z ?BitVec) (size Int) (n Int))
-  (def (exponent (int.log2 (- n))))
+  (def (exponent (- (int.log2 (- n)) 1)))
   (int.ispow2 (- n))
   (bvmul xs z (bv n size) ys)
   (bvneg (concat
@@ -583,8 +583,8 @@
   )
   (def
     (n (+ x1in (bvsize x2)))
-    (x0n (ite (= x1i 0) x1in (- x1in (int.log2 x1i))))
-    (y0n (ite (= y1i 0) y1in (- y1in (int.log2 y1i))))
+    (x0n (ite (= x1i 0) x1in (- x1in (- (int.log2 x1i) 1))))
+    (y0n (ite (= y1i 0) y1in (- y1in (- (int.log2 y1i) 1))))
   )
   (and (> n 64) (> (- (* 2 n) (+ x0n y0n)) low))
   (extract high low (bvmul
@@ -597,13 +597,13 @@
 ; (a udiv 2^k) ==> 0_k a[n-1: k]
 (define-cond-rule bv-udiv-pow2-1p
   ((x ?BitVec) (v Int) (n Int))
-  (def (power (int.log2 v)))
+  (def (power (- (int.log2 v) 1)))
   (and (int.ispow2 v) (> v 1))
   (bvudiv x (bv v n))
   (concat (bv 0 power) (extract (- n 1) power x)))
 (define-cond-rule bv-udiv-pow2-1n
   ((x ?BitVec) (v Int) (n Int))
-  (def (power (int.log2 (- v))))
+  (def (power (- (int.log2 (- v)) 1)))
   (and (int.ispow2 (- v)) (< v (- 1)))
   (bvudiv x (bv v n))
   (bvneg (concat (bv 0 power) (extract (- n 1) power x))))
@@ -630,13 +630,13 @@
 ; The original version had power - 1, but I thought about it and it doesn't make sense to me, so I didn't put the -1 here.
 (define-cond-rule bv-urem-pow2-1
   ((x ?BitVec) (v Int) (n Int))
-  (def (power (int.log2 v)))
+  (def (power (- (int.log2 v) 1)))
   (and (int.ispow2 v) (> v 1))
   (bvurem x (bv v n))
   (concat (bv 0 (- n power)) (extract (- power 1) 0 x)))
 (define-cond-rule bv-urem-pow2-2
   ((x ?BitVec) (v Int) (n Int))
-  (def (power (int.log2 (- v))))
+  (def (power (- (int.log2 (- v)) 1)))
   (and (int.ispow2 (- v)) (< v (- 1)))
   (bvurem x (bv v n))
   (concat (bv 0 (- n power)) (extract (- power 1) 0 x)))
