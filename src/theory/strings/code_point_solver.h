@@ -42,7 +42,7 @@ class CodePointSolver : protected EnvObj
                   InferenceManager& im,
                   TermRegistry& tr,
                   BaseSolver& bs,
-                                 CoreSolver& cs);
+                  CoreSolver& cs);
   ~CodePointSolver() {}
   /** check codes
    *

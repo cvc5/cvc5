@@ -35,7 +35,12 @@ CodePointSolver::CodePointSolver(Env& env,
                                  TermRegistry& tr,
                                  BaseSolver& bs,
                                  CoreSolver& cs)
-    : EnvObj(env), d_state(s), d_im(im), d_termReg(tr), d_bsolver(bs), d_csolver(cs)
+    : EnvObj(env),
+      d_state(s),
+      d_im(im),
+      d_termReg(tr),
+      d_bsolver(bs),
+      d_csolver(cs)
 {
   d_negOne = NodeManager::currentNM()->mkConstInt(Rational(-1));
 }
@@ -73,7 +78,7 @@ void CodePointSolver::checkCodes()
     else
     {
       EqcInfo* ei = d_state.getOrMakeEqcInfo(eqc, false);
-      if (ei==nullptr || ei->d_codeTerm.get().isNull())
+      if (ei == nullptr || ei->d_codeTerm.get().isNull())
       {
         continue;
       }
@@ -87,7 +92,7 @@ void CodePointSolver::checkCodes()
     }
     codes[eqc] = vc;
   }
-  if (d_im.hasProcessed() || codes.size()<=1)
+  if (d_im.hasProcessed() || codes.size() <= 1)
   {
     return;
   }
@@ -100,11 +105,11 @@ void CodePointSolver::checkCodes()
     bool foundCodePair = true;
     Node r[2];
     Node c[2];
-    for( size_t i=0; i<2; i++ )
+    for (size_t i = 0; i < 2; i++)
     {
-      r[i] = ee->getRepresentative( eq[i] );
+      r[i] = ee->getRepresentative(eq[i]);
       itc = codes.find(r[i]);
-      if (itc==codes.end())
+      if (itc == codes.end())
       {
         foundCodePair = false;
         break;

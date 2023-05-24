@@ -661,10 +661,7 @@ void CoreSolver::normalizeEquivalenceClass(Node eqc,
   }
 }
 
-const std::vector<Node>& CoreSolver::getRelevantDeq() const
-{
-  return d_rlvDeq;
-}
+const std::vector<Node>& CoreSolver::getRelevantDeq() const { return d_rlvDeq; }
 
 NormalForm& CoreSolver::getNormalForm(Node n)
 {
