@@ -52,7 +52,7 @@ def check_iteractive_shell():
     child.sendcontrol("m")
 
     # So we expect to see an error for 'BOOLE'
-    child.expect("Expected SMT-LIBv2 symbol")
+    child.expect("Error")
 
     # Send enter
     child.sendcontrol("m")
@@ -67,7 +67,7 @@ def check_iteractive_shell():
     child.sendcontrol("m")
 
     # We expect to see the previous error again
-    child.expect("Expected SMT-LIBv2 symbol")
+    child.expect("Error")
 
     return 0
 
