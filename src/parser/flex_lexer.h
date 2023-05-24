@@ -23,6 +23,7 @@
 #include <string>
 #include <vector>
 
+#include "base/check.h"
 #include "parser/flex_input.h"
 #include "parser/tokens.h"
 
@@ -124,6 +125,44 @@ class FlexLexer
     }
     return d_ch;
   }
+  /** Get the next character */
+  char nextChar()
+  {
+    char res;
+    if (d_peekedChar)
+    {
+      res = d_chPeeked;
+      d_peekedChar = false;
+    }
+    else
+    {
+      res = readNextChar();
+      if (res == '\n')
+      {
+        d_span.d_end.d_line++;
+        d_span.d_end.d_column = 0;
+      }
+      else
+      {
+        d_span.d_end.d_column++;
+      }
+    }
+    return res;
+  }
+  /** Save character */
+  void saveChar(char ch)
+  {
+    Assert(!d_peekedChar);
+    if (d_isInteractive)
+    {
+      d_istream->unget();
+    }
+    else
+    {
+      d_peekedChar = true;
+      d_chPeeked = ch;
+    }
+  }
   // -----------------
   /** Used to initialize d_span. */
   void initSpan();
@@ -164,6 +203,10 @@ class FlexLexer
   size_t d_bufferEnd;
   /** The current character we read. */
   char d_ch;
+  /** True if we have a saved character that has not been consumed yet. */
+  bool d_peekedChar;
+  /** The saved character. */
+  char d_chPeeked;
 };
 
 }  // namespace parser

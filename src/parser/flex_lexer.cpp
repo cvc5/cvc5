@@ -19,7 +19,6 @@
 #include <iostream>
 #include <sstream>
 
-#include "base/check.h"
 #include "base/output.h"
 #include "parser/parser_exception.h"
 
@@ -35,7 +34,9 @@ std::ostream& operator<<(std::ostream& o, const Span& l)
   return o << l.d_start << "-" << l.d_end;
 }
 
-FlexLexer::FlexLexer() : d_bufferPos(0), d_bufferEnd(0) {}
+FlexLexer::FlexLexer() : d_bufferPos(0), d_bufferEnd(0),
+      d_peekedChar(false),
+      d_chPeeked(0) {}
 
 void FlexLexer::warning(const std::string& msg)
 {

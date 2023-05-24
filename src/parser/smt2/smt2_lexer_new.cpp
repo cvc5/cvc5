@@ -25,8 +25,6 @@ namespace parser {
 
 Smt2LexerNew::Smt2LexerNew(bool isStrict, bool isSygus)
     : FlexLexer(),
-      d_peekedChar(false),
-      d_chPeeked(0),
       d_isStrict(isStrict),
       d_isSygus(isSygus)
 {
