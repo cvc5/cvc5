@@ -54,8 +54,13 @@ void CodePointSolver::checkCodes()
     return;
   }
   NodeManager* nm = NodeManager::currentNM();
-  // str.code applied to the proxy variables for each equivalence classes that
-  // are constants of size one
+  // We construct a mapping from string equivalent classes to code point
+  // applications. This mapping contains entries:
+  // (1) r -> (str.to_code t) where r is the representative of t and
+  // term and this str.to_code term occurs in the equality engine.
+  // (2) c -> (str.to_code k) where c is a string constant of length one and
+  // c occurs in the equality engine (as a representative).
+  // This mapping omits str.to_code terms that are already equal to -1.
   std::map<Node, Node> codes;
   const std::vector<Node>& seqc = d_bsolver.getStringLikeEqc();
   for (const Node& eqc : seqc)
@@ -96,7 +101,9 @@ void CodePointSolver::checkCodes()
   {
     return;
   }
-  // now, ensure that str.code is injective
+  // Now, ensure that str.code is injective. We only apply injectivity for
+  // pairs of terms that are disequal. We check pairs of disequal terms by
+  // iterating over the disequalities in getRelevantDeq.
   eq::EqualityEngine* ee = d_state.getEqualityEngine();
   std::map<Node, Node>::iterator itc;
   const std::vector<Node>& rlvDeq = d_csolver.getRelevantDeq();
