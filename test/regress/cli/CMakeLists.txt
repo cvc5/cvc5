@@ -3587,8 +3587,9 @@ endforeach()
 # which builds the 'build_regress' target.
 add_test(build_regress_test 
     "${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}" 
-    --config "$<CONFIG>" --target build-regress -j${CTEST_NTHREADS}
+    --config "$<CONFIG>" --target build-regress
 )
+set_property(TEST build_regress_test PROPERTY ENVIRONMENT "CMAKE_BUILD_PARALLEL_LEVEL=${CTEST_NTHREADS}")
 set_tests_properties(build_regress_test PROPERTIES FIXTURES_SETUP build_regress_fixture)
 
 macro(cvc5_add_regression_test level file)

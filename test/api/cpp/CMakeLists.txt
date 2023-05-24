@@ -28,8 +28,9 @@ add_dependencies(build-tests build-apitests)
 # See the comment about 'make test' in test/regress/cli/CMakeLists.txt
 add_test(build_apitests_test 
     "${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}" 
-    --config "$<CONFIG>" --target build-apitests -j${CTEST_NTHREADS}
+    --config "$<CONFIG>" --target build-apitests
 )
+set_property(TEST build_apitests_test PROPERTY ENVIRONMENT "CMAKE_BUILD_PARALLEL_LEVEL=${CTEST_NTHREADS}")
 set_tests_properties(build_apitests_test PROPERTIES FIXTURES_SETUP build_apitests_fixture)
 
 add_custom_target(apitests
