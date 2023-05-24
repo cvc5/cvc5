@@ -220,6 +220,8 @@ class CoreSolver : protected EnvObj
   //-----------------------end inference steps
 
   //--------------------------- query functions
+  /** Get relevant disequalities */
+  const std::vector<Node>& getRelevantDeq() const;
   /**
    * Get normal form for string term n. For details on this data structure,
    * see theory/strings/normal_form.h.
@@ -522,6 +524,8 @@ class CoreSolver : protected EnvObj
    * on the ordering described in checkCycles.
    */
   std::vector<Node> d_strings_eqc;
+  /** The relevant disequalities */
+  std::vector<Node> d_rlvDeq;
   /** map from terms to their normal forms */
   std::map<Node, NormalForm> d_normal_form;
   /**

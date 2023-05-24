@@ -16,6 +16,7 @@
 #include "theory/strings/code_point_solver.h"
 
 #include "theory/strings/base_solver.h"
+#include "theory/strings/core_solver.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/term_registry.h"
@@ -32,8 +33,9 @@ CodePointSolver::CodePointSolver(Env& env,
                                  SolverState& s,
                                  InferenceManager& im,
                                  TermRegistry& tr,
-                                 BaseSolver& bs)
-    : EnvObj(env), d_state(s), d_im(im), d_termReg(tr), d_bsolver(bs)
+                                 BaseSolver& bs,
+                                 CoreSolver& cs)
+    : EnvObj(env), d_state(s), d_im(im), d_termReg(tr), d_bsolver(bs), d_csolver(cs)
 {
   d_negOne = NodeManager::currentNM()->mkConstInt(Rational(-1));
 }
@@ -47,12 +49,9 @@ void CodePointSolver::checkCodes()
     return;
   }
   NodeManager* nm = NodeManager::currentNM();
-  // str.code applied to the code term for each equivalence class that has a
-  // code term but is not a constant
-  std::vector<Node> nconst_codes;
   // str.code applied to the proxy variables for each equivalence classes that
   // are constants of size one
-  std::vector<Node> const_codes;
+  std::map<Node, Node> codes;
   const std::vector<Node>& seqc = d_bsolver.getStringLikeEqc();
   for (const Node& eqc : seqc)
   {
@@ -60,72 +59,78 @@ void CodePointSolver::checkCodes()
     {
       continue;
     }
+    Node codeArg;
     if (eqc.isConst())
     {
-      Node c = eqc;
-      Trace("strings-code-debug")
-          << "Get proxy variable for " << c << std::endl;
-      Node cc = nm->mkNode(kind::STRING_TO_CODE, c);
-      cc = rewrite(cc);
-      Assert(cc.isConst());
-      Node cp = d_termReg.ensureProxyVariableFor(c);
-      Node vc = nm->mkNode(STRING_TO_CODE, cp);
-      if (!d_state.areEqual(cc, vc))
-      {
-        std::vector<Node> emptyVec;
-        d_im.sendInference(
-            emptyVec, cc.eqNode(vc), InferenceId::STRINGS_CODE_PROXY);
-      }
       // only relevant for injectivity if length is 1 (e.g. it has a valid
       // code point)
-      if (Word::getLength(c) == 1)
+      if (Word::getLength(eqc) != 1)
       {
-        const_codes.push_back(vc);
+        continue;
       }
+      codeArg = d_termReg.ensureProxyVariableFor(eqc);
     }
     else
     {
       EqcInfo* ei = d_state.getOrMakeEqcInfo(eqc, false);
-      if (ei && !ei->d_codeTerm.get().isNull())
+      if (ei==nullptr || ei->d_codeTerm.get().isNull())
       {
-        Node vc = nm->mkNode(kind::STRING_TO_CODE, ei->d_codeTerm.get());
-        // only relevant for injectivity if not already equal to negative one
-        if (!d_state.areEqual(vc, d_negOne))
-        {
-          nconst_codes.push_back(vc);
-        }
+        continue;
       }
+      codeArg = ei->d_codeTerm.get();
     }
+    Node vc = nm->mkNode(kind::STRING_TO_CODE, codeArg);
+    // only relevant for injectivity if not already equal to negative one
+    if (d_state.areEqual(vc, d_negOne))
+    {
+      continue;
+    }
+    codes[eqc] = vc;
   }
-  if (d_im.hasProcessed())
+  if (d_im.hasProcessed() || codes.size()<=1)
   {
     return;
   }
   // now, ensure that str.code is injective
-  std::vector<Node> cmps;
-  cmps.insert(cmps.end(), const_codes.rbegin(), const_codes.rend());
-  cmps.insert(cmps.end(), nconst_codes.rbegin(), nconst_codes.rend());
-  for (unsigned i = 0, num_ncc = nconst_codes.size(); i < num_ncc; i++)
+  eq::EqualityEngine* ee = d_state.getEqualityEngine();
+  std::map<Node, Node>::iterator itc;
+  const std::vector<Node>& rlvDeq = d_csolver.getRelevantDeq();
+  for (const Node& eq : rlvDeq)
   {
-    Node c1 = nconst_codes[i];
-    cmps.pop_back();
-    for (const Node& c2 : cmps)
+    bool foundCodePair = true;
+    Node r[2];
+    Node c[2];
+    for( size_t i=0; i<2; i++ )
     {
-      Trace("strings-code-debug")
-          << "Compare codes : " << c1 << " " << c2 << std::endl;
-      if (!d_state.areDisequal(c1, c2))
+      r[i] = ee->getRepresentative( eq[i] );
+      itc = codes.find(r[i]);
+      if (itc==codes.end())
       {
-        Node eq_no = c1.eqNode(d_negOne);
-        Node deq = c1.eqNode(c2).negate();
-        Node eqn = c1[0].eqNode(c2[0]);
-        // str.code(x)==-1 V str.code(x)!=str.code(y) V x==y
-        Node inj_lem = nm->mkNode(kind::OR, eq_no, deq, eqn);
-        deq = rewrite(deq);
-        d_im.addPendingPhaseRequirement(deq, false);
-        std::vector<Node> emptyVec;
-        d_im.sendInference(emptyVec, inj_lem, InferenceId::STRINGS_CODE_INJ);
+        foundCodePair = false;
+        break;
       }
+      c[i] = itc->second;
     }
+    if (!foundCodePair)
+    {
+      continue;
+    }
+    Trace("strings-code-debug")
+        << "Compare codes : " << c[0] << " " << c[1] << std::endl;
+    if (d_state.areDisequal(c[0], c[1]))
+    {
+      // code already disequal
+      continue;
+    }
+    Node eq_no = c[0].eqNode(d_negOne);
+    Node deq = c[0].eqNode(c[1]).negate();
+    Node eqn = c[0][0].eqNode(c[1][0]);
+    // str.code(x)==-1 V str.code(x)!=str.code(y) V x==y
+    Node inj_lem = nm->mkNode(kind::OR, eq_no, deq, eqn);
+    deq = rewrite(deq);
+    d_im.addPendingPhaseRequirement(deq, false);
+    std::vector<Node> emptyVec;
+    d_im.sendInference(emptyVec, inj_lem, InferenceId::STRINGS_CODE_INJ);
   }
 }
 

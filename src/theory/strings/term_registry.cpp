@@ -162,7 +162,8 @@ Node TermRegistry::lengthPositive(Node t)
   Node tlen = nm->mkNode(STRING_LENGTH, t);
   Node tlenEqZero = tlen.eqNode(zero);
   Node tEqEmp = t.eqNode(emp);
-  Node caseEmpty = tEqEmp;
+  Node caseEmpty = nm->mkNode(AND, tlenEqZero, tEqEmp);
+  //Node caseEmpty = tEqEmp;
   Node caseNEmpty = nm->mkNode(GT, tlen, zero);
   // (or (and (= (str.len t) 0) (= t "")) (> (str.len t) 0))
   return nm->mkNode(OR, caseEmpty, caseNEmpty);
@@ -286,7 +287,7 @@ void TermRegistry::registerTermInternal(Node n)
     //  for concat/const/replace, introduce proxy var and state length relation
     regTermLem = getRegisterTermLemma(n);
   }
-  else if (n.getKind() != STRING_CONTAINS)
+  else
   {
     // we don't send out eager reduction lemma for str.contains currently
     bool doEagerReduce = true;
@@ -297,8 +298,9 @@ void TermRegistry::registerTermInternal(Node n)
     }
     else if (k==STRING_TO_CODE)
     {
-      //Node c = SkolemManager::getOriginalForm(n[0]);
-      //doEagerReduce = !c.isConst();
+      // code for proxy are implied
+      Node c = SkolemManager::getOriginalForm(n[0]);
+      doEagerReduce = !c.isConst();
     }
     if (doEagerReduce)
     {
