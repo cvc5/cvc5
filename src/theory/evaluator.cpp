@@ -641,7 +641,7 @@ EvalResult Evaluator::evalInternal(
         case kind::INTS_LOG2:
         {
           const Rational& x = results[currNode[0]].d_rat;
-          results[currNode] = EvalResult(Rational(x.getNumerator().length()));
+          results[currNode] = EvalResult(Rational(x.getNumerator().length() - 1));
           break;
         }
         case kind::CONST_STRING:
