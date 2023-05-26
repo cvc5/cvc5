@@ -220,7 +220,15 @@ class CoreSolver : protected EnvObj
   //-----------------------end inference steps
 
   //--------------------------- query functions
-  /** Get relevant disequalities */
+  /**
+   * Get relevant disequalities, which is a list of disequalities that are
+   * asserted in the current context between strings whose lengths are not
+   * already disequal. This list is filtered to not contain pairs of
+   * disequalities that are congruent.
+   *
+   * This list is used, e.g., when implementing the injectivity lemma schema
+   * for str.to_code.
+   */
   const std::vector<Node>& getRelevantDeq() const;
   /**
    * Get normal form for string term n. For details on this data structure,

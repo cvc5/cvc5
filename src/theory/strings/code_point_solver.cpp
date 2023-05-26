@@ -56,8 +56,8 @@ void CodePointSolver::checkCodes()
   NodeManager* nm = NodeManager::currentNM();
   // We construct a mapping from string equivalent classes to code point
   // applications. This mapping contains entries:
-  // (1) r -> (str.to_code t) where r is the representative of t and
-  // term and this str.to_code term occurs in the equality engine.
+  // (1) r -> (str.to_code t) where r is the representative of t and the
+  // term (str.to_code t) occurs in the equality engine.
   // (2) c -> (str.to_code k) where c is a string constant of length one and
   // c occurs in the equality engine (as a representative).
   // This mapping omits str.to_code terms that are already equal to -1.
