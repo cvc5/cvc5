@@ -152,18 +152,9 @@ class FlexLexer
   /** Save character */
   void saveChar(char ch)
   {
-    if (d_isInteractive)
-    {
-      // If interactive, use unget. This is important e.g. for auto-completion
-      // for editline.
-      d_istream->unget();
-    }
-    else
-    {
-      Assert(!d_peekedChar);
-      d_peekedChar = true;
-      d_chPeeked = ch;
-    }
+    Assert(!d_peekedChar);
+    d_peekedChar = true;
+    d_chPeeked = ch;
   }
   // -----------------
   /** Used to initialize d_span. */
