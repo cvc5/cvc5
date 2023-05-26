@@ -397,7 +397,8 @@ class PortfolioProcessPool
           if (d_ctx.solver().isOutputOn("portfolio"))
           {
             std::ostream& out = d_ctx.solver().getOutput("portfolio");
-            out << "(portfolio-success \"" << job.d_config.toOptionString() << "\")" << std::endl;
+            out << "(portfolio-success \"" << job.d_config.toOptionString()
+                << "\")" << std::endl;
           }
           job.d_errPipe.flushTo(std::cerr);
           job.d_outPipe.flushTo(std::cout);
@@ -464,7 +465,6 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
 #endif
 }
 
-
 std::string PortfolioConfig::toOptionString() const
 {
   std::stringstream ss;
@@ -480,11 +480,11 @@ std::string PortfolioConfig::toOptionString() const
       ss << " ";
     }
     ss << "--";
-    if (o.second=="true")
+    if (o.second == "true")
     {
       ss << o.first;
     }
-    else if (o.second=="false")
+    else if (o.second == "false")
     {
       ss << "no-" << o.first;
     }
