@@ -249,8 +249,9 @@ void TermRegistry::registerSubterms(Node n)
     if (d_registeredTerms.find(cur) == d_registeredTerms.end())
     {
       registerTermInternal(cur);
+      Kind k = cur.getKind();
       // only traverse beneath operators belonging to strings
-      if (theory::kindToTheoryId(cur.getKind())==THEORY_STRINGS)
+      if (k==EQUAL || theory::kindToTheoryId(k)==THEORY_STRINGS)
       {
         // strings does not have any closure kinds
         Assert (!cur.isClosure());

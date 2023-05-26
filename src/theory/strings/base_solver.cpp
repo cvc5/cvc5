@@ -392,7 +392,9 @@ bool BaseSolver::processConstantLike(Node a, Node b)
     {
       // (seq.unit x) = (seq.unit y) => x=y, or
       // (seq.unit x) = (seq.unit c) => x=c
-      d_im.sendInference(exp, eq, InferenceId::STRINGS_UNIT_INJ);
+      // Must send this as lemma since it may impact other theories, or
+      // imply length constraints if the conclusion involves strings/sequences.
+      d_im.sendInference(exp, eq, InferenceId::STRINGS_UNIT_INJ, false, true);
       Trace("strings-base") << "...inj seq" << std::endl;
     }
   }

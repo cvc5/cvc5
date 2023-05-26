@@ -1041,8 +1041,12 @@ Node SolverEngine::getValue(const Node& t) const
       SkolemManager* skm = NodeManager::currentNM()->getSkolemManager();
       Node a =
           skm->mkSkolemFunction(SkolemFunId::ABSTRACT_VALUE, rtn, resultNode);
-      // add to top-level substitutions
-      d_env->getTopLevelSubstitutions().addSubstitution(resultNode, a);
+      // add to top-level substitutions if applicable
+      theory::TrustSubstitutionMap& tsm = d_env->getTopLevelSubstitutions();
+      if (!tsm.get().hasSubstitution(resultNode))
+      {
+        tsm.addSubstitution(resultNode, a);
+      }
       resultNode = a;
       Trace("smt") << "--- abstract value >> " << resultNode << endl;
     }
