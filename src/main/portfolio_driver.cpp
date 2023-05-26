@@ -290,10 +290,12 @@ class PortfolioProcessPool
     Assert(d_nextJob < d_jobs.size());
     Job& job = d_jobs[d_nextJob];
     Trace("portfolio") << "Starting " << job.d_config << std::endl;
-    if (d_ctx.solver().isOutputOn("portfolio-config"))
+    if (d_ctx.solver().isOutputOn("portfolio"))
     {
-      std::ostream& out = d_ctx.solver().getOutput("portfolio-config");
-      out << "(portfolio \"" << job.d_config.toOptionString() << "\")" << std::endl;
+      std::ostream& out = d_ctx.solver().getOutput("portfolio");
+      out << "(portfolio \"" << job.d_config.toOptionString() << "\"";
+      out << " :timeout " << job.d_config.d_timeout;
+      out << ")" << std::endl;
     }
 
     // Set up pipes to capture output of worker
@@ -392,9 +394,9 @@ class PortfolioProcessPool
         if (WEXITSTATUS(wstatus) == SolveStatus::STATUS_SOLVED)
         {
           Trace("portfolio") << "Successful!" << std::endl;
-          if (d_ctx.solver().isOutputOn("portfolio-config"))
+          if (d_ctx.solver().isOutputOn("portfolio"))
           {
-            std::ostream& out = d_ctx.solver().getOutput("portfolio-config");
+            std::ostream& out = d_ctx.solver().getOutput("portfolio");
             out << "(portfolio-success \"" << job.d_config.toOptionString() << "\")" << std::endl;
           }
           job.d_errPipe.flushTo(std::cerr);
