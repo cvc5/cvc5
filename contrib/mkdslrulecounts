@@ -6,7 +6,7 @@
 # Furthermore requires that tracing is enabled.
 
 echo "Make regress-dsl-proof with stats, regression arguments=\"--tlimit=60000 $@\" ..."
-make regress-dsl-proof -j8 CVC5_REGRESSION_ARGS="--stats-internal --tlimit=60000 -t final-pf-hole --proof-rewrite-rcons-rec-limit=63$@" | tee temp.txt
+make regress-dsl-proof -j8 CVC5_REGRESSION_ARGS="--stats-internal --tlimit=60000 -t final-pf-hole --proof-rewrite-rcons-rec-limit=63 $@" | tee temp.txt
 echo "=== Final rule counts:"
 getaggrhistogram temp.txt finalProof::ruleCount
 echo "=== DSL rule counts:"
