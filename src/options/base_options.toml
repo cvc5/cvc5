@@ -235,7 +235,7 @@ name   = "Base"
   name = "portfolio"
   help = "prints the option strings tried in portfolio mode."
   description = "With ``-o portfolio``, cvc5 prints the option strings tried in portfolio mode."
-  example-file = "regress1/print_timeout_core.smt2"
+  example-file = "regress0/portfolio-out.smt2"
 
 # Stores then enabled output tags.
 [[option]]
