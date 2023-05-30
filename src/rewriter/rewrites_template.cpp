@@ -18,6 +18,7 @@
 #include "proof/proof_checker.h"
 #include "rewriter/rewrite_db.h"
 #include "rewriter/rewrites.h"
+#include "theory/builtin/generic_op.h"
 #include "util/string.h"
 
 using namespace cvc5::internal::kind;
@@ -40,6 +41,16 @@ ${defns}$
 ${rules}$
   // clang-format on
 }
+
+bool isInternalDslPfRule(DslPfRule drule)
+{
+  return drule == DslPfRule::FAIL || drule == DslPfRule::REFL
+         || drule == DslPfRule::EVAL || drule == DslPfRule::TRANS
+         || drule == DslPfRule::CONG || drule == DslPfRule::CONG_EVAL
+         || drule == DslPfRule::TRUE_ELIM || drule == DslPfRule::TRUE_INTRO
+         || drule == DslPfRule::ARITH_POLY_NORM;
+}
+
 const char* toString(DslPfRule drule)
 {
   switch (drule)
@@ -47,6 +58,13 @@ const char* toString(DslPfRule drule)
     case DslPfRule::FAIL: return "FAIL";
     case DslPfRule::REFL: return "REFL";
     case DslPfRule::EVAL: return "EVAL";
+    case DslPfRule::TRANS: return "TRANS";
+    case DslPfRule::CONG: return "CONG";
+    case DslPfRule::CONG_EVAL: return "CONG_EVAL";
+    case DslPfRule::TRUE_ELIM: return "TRUE_ELIM";
+    case DslPfRule::TRUE_INTRO: return "TRUE_INTRO";
+    case DslPfRule::ARITH_POLY_NORM:
+      return "ARITH_POLY_NORM";
       // clang-format off
 ${printer}$
     default : Unreachable();
