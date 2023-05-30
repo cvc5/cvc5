@@ -139,7 +139,9 @@ using NodePairMap = std::unordered_map<Node, Node>;
  *           push(Stack, k'')
  * }
  */
-class SygusReconstruct : public expr::NotifyMatch, protected EnvObj
+class SygusReconstruct : protected expr::NotifyMatch,
+                         protected NodeConverter,
+                         protected EnvObj
 {
  public:
   /**
@@ -174,6 +176,15 @@ class SygusReconstruct : public expr::NotifyMatch, protected EnvObj
                            TypeNode stn,
                            int8_t& reconstructed,
                            uint64_t enumLimit);
+
+ protected:
+  /**
+   * Replaces n-ary operators with their binary versions.
+   *
+   * @param n the term to convert term
+   * @return the converted term
+   */
+  Node postConvert(Node n) override;
 
  private:
   /**
