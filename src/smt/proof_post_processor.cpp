@@ -1010,6 +1010,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     // rewrite database proof reconstructor
     if (d_rdbPc.prove(cdp, res[0], res[1], tid, mid, recLimit, stepLimit))
     {
+      // If we made (= res true) above, conclude the original res.
       if (reqTrueElim)
       {
         cdp->addStep(res[0], PfRule::TRUE_ELIM, {res}, {});

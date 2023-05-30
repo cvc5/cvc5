@@ -134,7 +134,8 @@ class RewriteDbProofCons : protected EnvObj
    * The purpose of this method is to prove or disprove eqi without using
    * recursion. If so, we store the rule used for eqi in its proven info
    * (d_pcache[eqi]). Notice that this method returns true if eqi is
-   * disproven, i.e. its proven info has d_id DslPfRule::FAIL.
+   * proven or *disproven*, where in the latter case proven info has d_id
+   * DslPfRule::FAIL.
    */
   bool proveInternalBase(Node eqi, DslPfRule& id);
   /**
