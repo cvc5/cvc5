@@ -44,11 +44,11 @@ ${rules}$
 
 bool isInternalDslPfRule(DslPfRule drule)
 {
-  return drule == DslPfRule::FAIL || drule == DslPfRule::REFL
-         || drule == DslPfRule::EVAL || drule == DslPfRule::TRANS
-         || drule == DslPfRule::CONG || drule == DslPfRule::CONG_EVAL
-         || drule == DslPfRule::TRUE_ELIM || drule == DslPfRule::TRUE_INTRO
-         || drule == DslPfRule::ARITH_POLY_NORM;
+return drule == DslPfRule::FAIL || drule == DslPfRule::REFL
+       || drule == DslPfRule::EVAL || drule == DslPfRule::TRANS
+       || drule == DslPfRule::CONG || drule == DslPfRule::CONG_EVAL
+       || drule == DslPfRule::TRUE_ELIM || drule == DslPfRule::TRUE_INTRO
+       || drule == DslPfRule::ARITH_POLY_NORM;
 }
 
 const char* toString(DslPfRule drule)

@@ -45,16 +45,16 @@ class RewriteDbProofCons : protected EnvObj
  public:
   RewriteDbProofCons(Env& env, RewriteDb* db);
   /**
-   * Prove (= a b) with recursion limit recLimit and step limit stepLimit. 
+   * Prove (= a b) with recursion limit recLimit and step limit stepLimit.
    * If cdp is provided, we add a proof for this fact on it.
-   * 
+   *
    * @param cdp The object to add the proof of (= a b) to
    * @param a The left hand side of the equality
    * @param b The right hand side of the equality
    * @param tid The theory identifier responsible for the rewrite, if one
    * exists.
    * @param mid The method id (the kind of rewrite)
-   * @param recLimit The recursion limit for this call 
+   * @param recLimit The recursion limit for this call
    * @param stepLimit The step limit for this call.
    */
   bool prove(CDProof* cdp,
@@ -86,7 +86,7 @@ class RewriteDbProofCons : protected EnvObj
       return d_parent.notifyMatch(s, n, vars, subs);
     }
   };
-  /** 
+  /**
    * Proven info, which stores information for each equality we attempt to
    * prove, including whether we were successful and what is the maximum
    * depth we have tried if we have failed.
@@ -100,7 +100,7 @@ class RewriteDbProofCons : protected EnvObj
     /** The substitution used, if successful */
     std::vector<Node> d_vars;
     std::vector<Node> d_subs;
-    /** 
+    /**
      * The maximum depth tried for rules that have failed, where 0 indicates
      * that the formula is unprovable at any depth.
      */
@@ -110,27 +110,27 @@ class RewriteDbProofCons : protected EnvObj
      */
     bool isInternalRule() const { return isInternalDslPfRule(d_id); }
   };
-  /** 
+  /**
    * Prove internal, which is the main entry point for proven an equality eqi.
    * Returns the proof rule that was used to prove eqi, or DslPfRule::FAIL
    * if we failed to prove.
-   * 
+   *
    * In detail, this runs a strategy of builtin tactics and otherwise consults
    * the rewrite rule database for the set of rewrite rules that match the
    * left hand side of eqi.
-   * 
+   *
    * If this call is successul (i.e. the returned rule is not DslPfRule::FAIL),
    * the proven info for eqi is stored in d_pcache[eqi].
-   * 
+   *
    * Note this method depends on the current step and recursion limits
    * d_currRecLimit/d_currStepLimit.
    */
   DslPfRule proveInternal(Node eqi);
   /** Prove internal via strategy, a helper method for above. */
   DslPfRule proveInternalViaStrategy(Node eqi);
-  /** 
+  /**
    * Prove internal base eqi via DSL rule id.
-   * 
+   *
    * The purpose of this method is to prove or disprove eqi without using
    * recursion. If so, we store the rule used for eqi in its proven info
    * (d_pcache[eqi]). Notice that this method returns true if eqi is
@@ -156,7 +156,7 @@ class RewriteDbProofCons : protected EnvObj
    * the head of a rewrite rule.
    *
    * This method attempts to prove the current equality
-   * 
+   *
    * This function should return false if we do not wish to be notified of
    * further matches, e.g. if we successfully show a rewrite rule suffices to
    * prove the current equality d_target.
@@ -168,7 +168,7 @@ class RewriteDbProofCons : protected EnvObj
   /**
    * Prove with rule, which attempts to prove the equality target using the
    * DSL proof rule id, which may be a builtin rule or a user-provided rule.
-   * 
+   *
    * @param id The rule to consider
    * @param target The equality to prove
    * @param vars The variables (arguments) of the proof rule
