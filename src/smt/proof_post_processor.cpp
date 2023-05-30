@@ -77,10 +77,6 @@ bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   {
     return true;
   }
-  if (d_elimAllTrusted && d_pc->getPedanticLevel(id) > 0)
-  {
-    return true;
-  }
   // other than elimination rules, we always update assumptions as long as
   // d_updateScopedAssumptions is true or they are *not* in scope, i.e., not in
   // fa

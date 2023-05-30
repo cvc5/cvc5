@@ -42,18 +42,17 @@ RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
       d_statTotalAttempts(statisticsRegistry().registerInt(
           "RewriteDbProofCons::totalAttempts")),
       d_statTotalInputSuccess(statisticsRegistry().registerInt(
-          "RewriteDbProofCons::totalInputSuccess")),
-      d_qcache(env,
-               false,
-               &env.getOptions())  // check for satisfiability
+          "RewriteDbProofCons::totalInputSuccess"))
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
+  /*
   // initialize the query cache
   const std::unordered_set<Node>& fvs = db->getAllFreeVariables();
   std::vector<Node> qcvars(fvs.begin(), fvs.end());
   d_qcache.initialize(qcvars);
+  */
 }
 
 bool RewriteDbProofCons::prove(CDProof* cdp,
