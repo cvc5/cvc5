@@ -1199,7 +1199,7 @@ Node SequencesRewriter::rewriteLoopRegExp(TNode node)
   Node retNode = node;
 
   NodeManager* nm = NodeManager::currentNM();
-  if (u < l || u==0)
+  if (u < l || u == 0)
   {
     // ((_ re.loop l u) r) --> re.none if u < l
     std::vector<Node> nvec;
