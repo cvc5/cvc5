@@ -449,68 +449,84 @@ Node CoreSolver::checkCycles( Node eqc, std::vector< Node >& curr, std::vector< 
     //look at all terms in this equivalence class
     eq::EqualityEngine* ee = d_state.getEqualityEngine();
     eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, ee );
+    const std::set<Node>& rlvSet = d_termReg.getRelevantTermSet();
     while( !eqc_i.isFinished() ) {
       Node n = (*eqc_i);
-      if( !d_bsolver.isCongruent(n) ){
-        if( n.getKind() == kind::STRING_CONCAT ){
-          Trace("strings-cycle") << eqc << " check term : " << n << " in " << eqc << std::endl;
-          if (eqc != emp)
+      ++eqc_i;
+      if (n.getKind() != kind::STRING_CONCAT || rlvSet.find(n) == rlvSet.end()
+          || d_bsolver.isCongruent(n))
+      {
+        continue;
+      }
+      Trace("strings-cycle")
+          << eqc << " check term : " << n << " in " << eqc << std::endl;
+      if (eqc != emp)
+      {
+        d_eqc[eqc].push_back(n);
+      }
+      size_t nchild = n.getNumChildren();
+      for (size_t i=0; i<nchild; i++)
+      {
+        Node nc = n[i];
+        Node nr = d_state.getRepresentative(nc);
+        if (eqc == emp)
+        {
+          // for empty eqc, ensure all components are empty
+          if (nr != emp)
           {
-            d_eqc[eqc].push_back( n );
+            std::vector<Node> exps;
+            exps.push_back(n.eqNode(emp));
+            d_im.sendInference(
+                exps, nc.eqNode(emp), InferenceId::STRINGS_I_CYCLE_E);
+            return Node::null();
           }
-          for( unsigned i=0; i<n.getNumChildren(); i++ ){
-            Node nr = d_state.getRepresentative(n[i]);
-            if (eqc == emp)
+        }
+        else
+        {
+          if (nr != emp)
+          {
+            d_flat_form[n].push_back(nr);
+            d_flat_form_index[n].push_back(i);
+          }
+          // for non-empty eqc, recurse and see if we find a loop
+          Node ncy = checkCycles(nr, curr, exp);
+          if (!ncy.isNull())
+          {
+            Trace("strings-cycle") << eqc << " cycle: " << ncy << " at " << n
+                                   << "[" << i << "] : " << nc << std::endl;
+            d_im.addToExplanation(n, eqc, exp);
+            d_im.addToExplanation(nr, nc, exp);
+            if (ncy == eqc)
             {
-              //for empty eqc, ensure all components are empty
-              if (nr != emp)
+              // can infer all other components must be empty
+              for (size_t j = 0; j < nchild; j++)
               {
-                std::vector<Node> exps;
-                exps.push_back(n.eqNode(emp));
-                d_im.sendInference(
-                    exps, n[i].eqNode(emp), InferenceId::STRINGS_I_CYCLE_E);
-                return Node::null();
-              }
-            }else{
-              if (nr != emp)
-              {
-                d_flat_form[n].push_back( nr );
-                d_flat_form_index[n].push_back( i );
-              }
-              //for non-empty eqc, recurse and see if we find a loop
-              Node ncy = checkCycles( nr, curr, exp );
-              if( !ncy.isNull() ){
-                Trace("strings-cycle") << eqc << " cycle: " << ncy << " at " << n << "[" << i << "] : " << n[i] << std::endl;
-                d_im.addToExplanation(n, eqc, exp);
-                d_im.addToExplanation(nr, n[i], exp);
-                if( ncy==eqc ){
-                  //can infer all other components must be empty
-                  for( unsigned j=0; j<n.getNumChildren(); j++ ){
-                    //take first non-empty
-                    if (j != i && !d_state.areEqual(n[j], emp))
-                    {
-                      d_im.sendInference(
-                          exp, n[j].eqNode(emp), InferenceId::STRINGS_I_CYCLE);
-                      return Node::null();
-                    }
-                  }
-                  Trace("strings-error") << "Looping term should be congruent : " << n << " " << eqc << " " << ncy << std::endl;
-                  //should find a non-empty component, otherwise would have been singular congruent (I_Norm_S)
-                  Assert(false);
-                }else{
-                  return ncy;
-                }
-              }else{
-                if (d_im.hasProcessed())
+                // take first non-empty
+                if (j != i && !d_state.areEqual(n[j], emp))
                 {
+                  d_im.sendInference(
+                      exp, n[j].eqNode(emp), InferenceId::STRINGS_I_CYCLE);
                   return Node::null();
                 }
               }
+              Trace("strings-error")
+                  << "Looping term should be congruent : " << n << " " << eqc
+                  << " " << ncy << std::endl;
+              // should find a non-empty component, otherwise would have been
+              // singular congruent (I_Norm_S)
+              Assert(false);
             }
+            else
+            {
+              return ncy;
+            }
+          }
+          else if (d_im.hasProcessed())
+          {
+            return Node::null();
           }
         }
       }
-      ++eqc_i;
     }
     curr.pop_back();
     Trace("strings-eqc") << "* add string eqc: " << eqc << std::endl;
