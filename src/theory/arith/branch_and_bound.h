@@ -53,8 +53,7 @@ class BranchAndBound : protected EnvObj
    * @param var The variable to branch on
    * @param value Its current model value
    */
-  std::vector<TrustNode> branchIntegerVariable(TNode var,
-                                               Rational value);
+  std::vector<TrustNode> branchIntegerVariable(TNode var, Rational value);
 
  private:
   /** Are proofs enabled? */

@@ -61,7 +61,8 @@ std::vector<TrustNode> BranchAndBound::branchIntegerVariable(TNode var,
     Node ub = rewrite(nm->mkNode(LEQ, var, nm->mkConstInt(nearest - 1)));
     // The rewritten form should be a GEQ literal, otherwise the split returned
     // by this method will not have its intended effect
-    Assert (ub.getKind()==GEQ ||( ub.getKind()==NOT && ub[0].getKind()==GEQ));
+    Assert(ub.getKind() == GEQ
+           || (ub.getKind() == NOT && ub[0].getKind() == GEQ));
     Node ubatom = ub.getKind() == NOT ? ub[0] : ub;
     Node lb = rewrite(nm->mkNode(GEQ, var, nm->mkConstInt(nearest + 1)));
     Node right = nm->mkNode(OR, ub, lb);
@@ -126,7 +127,8 @@ std::vector<TrustNode> BranchAndBound::branchIntegerVariable(TNode var,
     Node ub = rewrite(nm->mkNode(LEQ, var, nm->mkConstInt(floor)));
     // Similar to above, the rewritten form should be a GEQ literal, otherwise
     // the split returned by this method will not have its intended effect
-    Assert (ub.getKind()==GEQ ||( ub.getKind()==NOT && ub[0].getKind()==GEQ));
+    Assert(ub.getKind() == GEQ
+           || (ub.getKind() == NOT && ub[0].getKind() == GEQ));
     Node lb = ub.notNode();
     if (proofsEnabled())
     {
