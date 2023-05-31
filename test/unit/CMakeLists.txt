@@ -30,7 +30,7 @@ add_dependencies(build-tests build-units)
 # See the comment about 'make test' in test/regress/cli/CMakeLists.txt
 add_test(build_units_test 
     "${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}" 
-    --config "$<CONFIG>" --target build-units -j${CTEST_NTHREADS}
+    --config "$<CONFIG>" --target build-units
 )
 set_tests_properties(build_units_test PROPERTIES FIXTURES_SETUP build_units_fixture)
 
