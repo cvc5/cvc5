@@ -578,7 +578,7 @@ Node SygusSolver::findSynth(SynthFindTarget sft, const TypeNode& gtn)
     {
       return Node::null();
     }
-    if (d_sygusFunSymbols.size()>1)
+    if (d_sygusFunSymbols.size() > 1)
     {
       // WARNING
     }

@@ -35,12 +35,13 @@ class SynthFinder : protected EnvObj
 {
  public:
   SynthFinder(Env& env);
-  ~SynthFinder(){}
+  ~SynthFinder() {}
   /**
    * Find synth for the given target and provided grammar.
    */
   Node findSynth(SynthFindTarget sft, const TypeNode& gtn);
-private:
+
+ private:
   /** candidate rewrite database */
   CandidateRewriteDatabase d_crd;
   /** The query generator we are using */

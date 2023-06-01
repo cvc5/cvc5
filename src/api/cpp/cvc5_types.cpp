@@ -104,11 +104,13 @@ std::ostream& operator<<(std::ostream& out, FindSynthTarget fst)
     case FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_RULE:
       out << "rewrite";
       break;
-    case FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_RULE_UNSOUND: out << "rewrite_unsound"; break;
-    case FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_RULE_FROM_INPUT: out << "rewrite_input"; break;
-    case FindSynthTarget::FIND_SYNTH_TARGET_QUERY:
-      out << "query";
+    case FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_RULE_UNSOUND:
+      out << "rewrite_unsound";
       break;
+    case FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_RULE_FROM_INPUT:
+      out << "rewrite_input";
+      break;
+    case FindSynthTarget::FIND_SYNTH_TARGET_QUERY: out << "query"; break;
     default: out << "?";
   }
   return out;

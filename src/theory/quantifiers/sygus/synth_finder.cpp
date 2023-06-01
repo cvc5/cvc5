@@ -21,7 +21,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-  SynthFinder::SynthFinder(Env& env) 
+SynthFinder::SynthFinder(Env& env)
     : EnvObj(env),
       d_doRewSynth(false),
       d_doFilterLogicalStrength(false),
@@ -44,16 +44,13 @@ Node SynthFinder::findSynth(SynthFindTarget sft, const TypeNode& gtn)
   {
     return Node::null();
   }
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   // initialize the expression miner
-  
+
   // initialize the enumerator
   Node e = nm->mkBoundVar(gtn);
-  
-  
 }
 
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5::internal
-
