@@ -22,15 +22,15 @@
 
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/query_generator.h"
-#include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
+#include "theory/quantifiers/sygus_sampler.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
 class SygusEnumeratorCallback;
-  
+
 /**
  * Algorithms for finding terms from sygus enumeration.
  */
@@ -48,7 +48,9 @@ class SynthFinder : protected EnvObj
   /** Initialize find synthesis target */
   void initialize(modes::FindSynthTarget fst, const Node& e);
   /** Run find synthesis target */
-  std::vector<Node> runNext(const Node& n, modes::FindSynthTarget fst, const Node& e);
+  std::vector<Node> runNext(const Node& n,
+                            modes::FindSynthTarget fst,
+                            const Node& e);
   /** The enumerator callback */
   std::unique_ptr<SygusEnumeratorCallback> d_ecb;
   /** candidate rewrite database */

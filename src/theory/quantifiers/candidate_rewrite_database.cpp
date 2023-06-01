@@ -32,8 +32,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-CandidateRewriteDatabase::CandidateRewriteDatabase(
-    Env& env, bool doCheck, bool rewAccel, bool filterPairs)
+CandidateRewriteDatabase::CandidateRewriteDatabase(Env& env,
+                                                   bool doCheck,
+                                                   bool rewAccel,
+                                                   bool filterPairs)
     : ExprMiner(env),
       d_tds(nullptr),
       d_useExtRewriter(false),
@@ -81,8 +83,8 @@ void CandidateRewriteDatabase::initializeSygus(const std::vector<Node>& vars,
   ExprMiner::initialize(vars, ss);
 }
 
-Node CandidateRewriteDatabase::addTerm(Node sol,
-                                       bool rec, std::vector<std::pair<bool, Node>>& rewrites)
+Node CandidateRewriteDatabase::addTerm(
+    Node sol, bool rec, std::vector<std::pair<bool, Node>>& rewrites)
 {
   // have we added this term before?
   std::unordered_map<Node, Node>::iterator itac = d_add_term_cache.find(sol);

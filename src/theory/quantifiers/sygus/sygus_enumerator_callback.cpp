@@ -30,10 +30,7 @@ SygusEnumeratorCallback::SygusEnumeratorCallback(Env& env,
                                                  TermDbSygus* tds,
                                                  SygusStatistics* s,
                                                  ExampleEvalCache* eec)
-    : EnvObj(env),
-      d_tds(tds),
-      d_stats(s),
-      d_eec(eec)
+    : EnvObj(env), d_tds(tds), d_stats(s), d_eec(eec)
 {
 }
 
@@ -67,8 +64,7 @@ bool SygusEnumeratorCallback::addTerm(const Node& n,
   return true;
 }
 
-Node SygusEnumeratorCallback::getCacheValue(const Node& n,
-                                            const Node& bn)
+Node SygusEnumeratorCallback::getCacheValue(const Node& n, const Node& bn)
 {
   // By default, we cache based on the rewritten form.
   // Further criteria for uniqueness (e.g. weights) may go here.
@@ -88,7 +84,7 @@ bool SygusEnumeratorCallback::addTermInternal(const Node& n,
     }
     // Is it equivalent under examples?
     // NOTE: currently assumes the cache value is the rewritten form of bn
-    Assert (cval.getType()==bn.getType());
+    Assert(cval.getType() == bn.getType());
     Node bne = d_eec->addSearchVal(n.getType(), cval);
     if (!bne.isNull())
     {

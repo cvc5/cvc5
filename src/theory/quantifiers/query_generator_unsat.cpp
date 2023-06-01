@@ -57,7 +57,7 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::vector<Node>& queries)
   activeTerms.push_back(n);
   bool addSuccess = true;
   size_t checkCount = 0;
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   while (checkCount < 10)
   {
     // if we just successfully added a term, do a satisfiability check

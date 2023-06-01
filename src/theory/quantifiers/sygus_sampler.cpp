@@ -829,7 +829,8 @@ bool SygusSampler::checkEquivalent(Node bv, Node bvr, std::ostream* out)
       (*out) << "Terms are not equivalent for : " << std::endl;
       (*out) << ptOut.str();
       Assert(bve != bvre);
-      (*out) << "where they evaluate to " << bve << " and " << bvre << std::endl;
+      (*out) << "where they evaluate to " << bve << " and " << bvre
+             << std::endl;
     }
     return false;
   }

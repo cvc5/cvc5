@@ -151,7 +151,8 @@ bool QueryGeneratorSampleSat::addTerm(Node n, std::vector<Node>& foundQueries)
 }
 
 void QueryGeneratorSampleSat::checkQuery(Node qy,
-                                         unsigned spIndex, std::vector<Node>& foundQueries)
+                                         unsigned spIndex,
+                                         std::vector<Node>& foundQueries)
 {
   if (d_allQueries.find(qy) != d_allQueries.end())
   {

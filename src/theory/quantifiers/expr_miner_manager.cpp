@@ -26,9 +26,7 @@ namespace theory {
 namespace quantifiers {
 
 ExpressionMinerManager::ExpressionMinerManager(Env& env)
-    : EnvObj(env),
-      d_doFilterLogicalStrength(false),
-      d_sols(env)
+    : EnvObj(env), d_doFilterLogicalStrength(false), d_sols(env)
 {
 }
 
@@ -39,9 +37,9 @@ void ExpressionMinerManager::initialize(const std::vector<Node>& vars)
 
 void ExpressionMinerManager::initializeSygus(const TypeNode& tn)
 {
-  Assert (tn.isDatatype());
+  Assert(tn.isDatatype());
   const DType& dt = tn.getDType();
-  Assert (dt.isSygus());
+  Assert(dt.isSygus());
   Node vlist = dt.getSygusVarList();
   std::vector<Node> vars;
   if (!vlist.isNull())
@@ -61,7 +59,7 @@ void ExpressionMinerManager::initializeMinersForOptions()
     enableFilterStrongSolutions();
   }
   else if (options().quantifiers.sygusFilterSolMode
-            == options::SygusFilterSolMode::WEAK)
+           == options::SygusFilterSolMode::WEAK)
   {
     enableFilterWeakSolutions();
   }
@@ -85,7 +83,7 @@ bool ExpressionMinerManager::addTerm(Node sol)
 {
   // set the builtin version
   Node solb = datatypes::utils::sygusToBuiltin(sol, true);
-  
+
   bool ret = true;
   // filter based on logical strength
   if (d_doFilterLogicalStrength)

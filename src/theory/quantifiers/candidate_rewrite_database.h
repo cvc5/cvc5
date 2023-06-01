@@ -87,7 +87,9 @@ class CandidateRewriteDatabase : public ExprMiner
    * equivalent to eq_sol based on the criteria used by this class. We return
    * only terms that are verified to be equivalent to sol.
    */
-  Node addTerm(Node sol, bool rec, std::vector<std::pair<bool, Node>>& rewrites);
+  Node addTerm(Node sol,
+               bool rec,
+               std::vector<std::pair<bool, Node>>& rewrites);
   /**
    * Same as above, returns true if the return value of addTerm was equal to
    * sol, in other words, sol was a new unique term. This assumes false for
