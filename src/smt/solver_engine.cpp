@@ -47,6 +47,7 @@
 #include "smt/context_manager.h"
 #include "smt/env.h"
 #include "smt/expand_definitions.h"
+#include "smt/find_synth_solver.h"
 #include "smt/interpolation_solver.h"
 #include "smt/listeners.h"
 #include "smt/logic_exception.h"
@@ -54,7 +55,6 @@
 #include "smt/model_core_builder.h"
 #include "smt/preprocessor.h"
 #include "smt/proof_manager.h"
-#include "smt/find_synth_solver.h"
 #include "smt/quant_elim_solver.h"
 #include "smt/set_defaults.h"
 #include "smt/smt_driver.h"
@@ -944,7 +944,7 @@ Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
         "ensure synth-fun has been called.");
   }
   // initialize find synthesis solver if not done so already
-  if (d_findSynthSolver==nullptr)
+  if (d_findSynthSolver == nullptr)
   {
     d_findSynthSolver.reset(new FindSynthSolver(*d_env.get()));
   }
