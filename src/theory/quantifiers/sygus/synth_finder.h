@@ -29,10 +29,9 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-class SygusEnumeratorCallback;
-
 /**
- * Algorithms for finding terms from sygus enumeration.
+ * Algorithms for finding terms from sygus enumeration. This can be
+ * seen as a wrapper around a (fast) sygus enumerator
  */
 class SynthFinder : protected EnvObj
 {
@@ -40,10 +39,18 @@ class SynthFinder : protected EnvObj
   SynthFinder(Env& env);
   ~SynthFinder() {}
   /**
-   * Find synth for the given target and provided grammar.
+   * Initialize find synth for the given target and provided grammar.
    */
   void initializeFindSynth(modes::FindSynthTarget fst, const TypeNode& gtn);
+  /**
+   * Increment the enumerator of this class, returns false if the enumerator
+   * is finished generating values.
+   */
   bool increment();
+  /**
+   * Get the current found term based on the enumeration, or null if none
+   * is available.
+   */
   Node getCurrent();
 
  private:
@@ -61,8 +68,9 @@ class SynthFinder : protected EnvObj
   std::unique_ptr<SygusSampler> d_sampler;
   /** The enumerator */
   std::unique_ptr<SygusEnumerator> d_enum;
-  /** */
+  /** The current target we are given as input */
   modes::FindSynthTarget d_fst;
+  /** The current target we are using */
   modes::FindSynthTarget d_fstu;
 };
 

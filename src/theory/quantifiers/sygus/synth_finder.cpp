@@ -168,6 +168,7 @@ Node SynthFinder::runNext(const Node& n, modes::FindSynthTarget fst)
 {
   std::vector<Node> ret;
   Node bn = datatypes::utils::sygusToBuiltin(n, true);
+  Trace("synth-finder") << "runNext " << d_fstu << " " << bn << std::endl;
   if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE)
   {
     std::vector<std::pair<bool, Node>> rewrites;
