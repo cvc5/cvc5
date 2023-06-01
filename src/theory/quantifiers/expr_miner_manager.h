@@ -77,11 +77,6 @@ class ExpressionMinerManager : protected EnvObj
    * which is computed based on the miners that this manager enables.
    */
   bool addTerm(Node sol, std::ostream& out);
-  /**
-   * Same as above, but the argument rew_print is set to true if a rewrite rule
-   * was printed on the output stream out.
-   */
-  bool addTerm(Node sol, std::ostream& out, bool& rew_print);
 
  private:
   /** enable rewrite rule synthesis (--sygus-rr-synth) */
@@ -102,14 +97,8 @@ class ExpressionMinerManager : protected EnvObj
   bool d_use_sygus_type;
   /** the sygus term database of the quantifiers engine */
   TermDbSygus* d_tds;
-  /** candidate rewrite database */
-  CandidateRewriteDatabase d_crd;
-  /** The query generator we are using */
-  std::unique_ptr<QueryGenerator> d_qg;
   /** solution filter based on logical strength */
   SolutionFilterStrength d_sols;
-  /** sygus sampler object */
-  SygusSampler d_sampler;
 };
 
 }  // namespace quantifiers

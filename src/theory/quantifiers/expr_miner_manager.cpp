@@ -29,15 +29,8 @@ ExpressionMinerManager::ExpressionMinerManager(Env& env)
     : EnvObj(env),
       d_doRewSynth(false),
       d_doFilterLogicalStrength(false),
-      d_use_sygus_type(false),
       d_tds(nullptr),
-      d_crd(env,
-            options().quantifiers.sygusRewSynthCheck,
-            options().quantifiers.sygusRewSynthAccel,
-            false),
-      d_qg(nullptr),
-      d_sols(env),
-      d_sampler(env)
+      d_sols(env)
 {
 }
 
@@ -176,8 +169,7 @@ void ExpressionMinerManager::enableFilterStrongSolutions()
 }
 
 bool ExpressionMinerManager::addTerm(Node sol,
-                                     std::ostream& out,
-                                     bool& rew_print)
+                                     std::ostream& out)
 {
   // set the builtin version
   Node solb = sol;
@@ -185,34 +177,12 @@ bool ExpressionMinerManager::addTerm(Node sol,
   {
     solb = datatypes::utils::sygusToBuiltin(sol, true);
   }
-
-  // add to the candidate rewrite rule database
-  bool ret = true;
-  if (d_doRewSynth)
-  {
-    Node rsol = d_crd.addTerm(
-        sol, options().quantifiers.sygusRewSynthRec, out, rew_print);
-    ret = (sol == rsol);
-  }
-
-  // a unique term, let's try the query generator
-  if (ret && d_qg != nullptr)
-  {
-    d_qg->addTerm(solb, out);
-  }
-
   // filter based on logical strength
-  if (ret && d_doFilterLogicalStrength)
+  if (d_doFilterLogicalStrength)
   {
     ret = d_sols.addTerm(solb, out);
   }
   return ret;
-}
-
-bool ExpressionMinerManager::addTerm(Node sol, std::ostream& out)
-{
-  bool rew_print = false;
-  return addTerm(sol, out, rew_print);
 }
 
 }  // namespace quantifiers

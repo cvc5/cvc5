@@ -176,7 +176,7 @@ class SygusSolver : protected EnvObj
   /**
    * Find synth for the given target and grammar.
    */
-  Node findSynth(SynthFindTarget sft, const TypeNode& gtn);
+  Node findSynth(modes::FindSynthTarget fst, const TypeNode& gtn);
 
  private:
   /**

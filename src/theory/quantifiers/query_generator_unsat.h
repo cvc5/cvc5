@@ -49,7 +49,7 @@ class QueryGeneratorUnsat : public QueryGenerator
    * Add term to this module. This may trigger the printing and/or checking of
    * new queries.
    */
-  bool addTerm(Node n, std::ostream& out) override;
+  bool addTerm(Node n) override;
 
  private:
   /**
@@ -59,7 +59,6 @@ class QueryGeneratorUnsat : public QueryGenerator
    * its free variables (which are ExprMiner::d_skolems).
    */
   Result checkCurrent(const std::vector<Node>& activeTerms,
-                      std::ostream& out,
                       std::vector<Node>& currModel);
   /**
    * Get next random index, which returns a random index [0, d_terms.size()-1]

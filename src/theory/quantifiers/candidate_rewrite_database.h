@@ -58,7 +58,6 @@ class CandidateRewriteDatabase : public ExprMiner
   CandidateRewriteDatabase(Env& env,
                            bool doCheck,
                            bool rewAccel = false,
-                           bool silent = false,
                            bool filterPairs = true);
   ~CandidateRewriteDatabase() {}
   /**  Initialize this class */
@@ -86,22 +85,17 @@ class CandidateRewriteDatabase : public ExprMiner
    * @param sol The term to add to this class.
    * @param rec If true, then we also recursively add all subterms of sol
    * to this class as well.
-   * @param out The stream to output rewrite rules on.
-   * @param rew_print Set to true if this class printed a rewrite involving sol.
    * @return A previous term eq_sol added to this class, such that sol is
    * equivalent to eq_sol based on the criteria used by this class. We return
    * only terms that are verified to be equivalent to sol.
    */
-  Node addTerm(Node sol, bool rec, std::ostream& out, bool& rew_print);
-  Node addTerm(Node sol, bool rec, std::ostream& out);
+  Node addTerm(Node sol, bool rec, std::vector<std::pair<bool, Node>>& rewrites);
   /**
    * Same as above, returns true if the return value of addTerm was equal to
    * sol, in other words, sol was a new unique term. This assumes false for
    * the argument rec.
    */
-  bool addTerm(Node sol, std::ostream& out) override;
-  /** sets whether this class should output candidate rewrites it finds */
-  void setSilent(bool flag);
+  bool addTerm(Node sol) override;
   /** Enable the (extended) rewriter for this class */
   void enableExtendedRewriter();
 

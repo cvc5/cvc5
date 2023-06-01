@@ -35,6 +35,7 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
+#include "theory/quantifiers/sygus/synth_finder.h"
 
 using namespace cvc5::internal::theory;
 using namespace cvc5::internal::kind;
@@ -567,8 +568,9 @@ std::vector<Node> SygusSolver::listToVector(const NodeList& list)
   return vec;
 }
 
-Node SygusSolver::findSynth(SynthFindTarget sft, const TypeNode& gtn)
+Node SygusSolver::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
 {
+  TypeNode gtnu = gtn;
   // determine the grammar
   if (gtn.isNull())
   {
@@ -588,10 +590,10 @@ Node SygusSolver::findSynth(SynthFindTarget sft, const TypeNode& gtn)
     {
       return Node::null();
     }
-    gtn = sym.getType();
+    gtnu = sym.getType();
   }
-  theory::quantifiers::SygusFinder sf(d_env);
-  return sf.find(sft, gtn);
+  theory::quantifiers::SynthFinder sf(d_env);
+  return sf.findSynth(fst, gtnu);
 }
 
 }  // namespace smt

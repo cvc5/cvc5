@@ -33,13 +33,12 @@ namespace theory {
 namespace quantifiers {
 
 CandidateRewriteDatabase::CandidateRewriteDatabase(
-    Env& env, bool doCheck, bool rewAccel, bool silent, bool filterPairs)
+    Env& env, bool doCheck, bool rewAccel, bool filterPairs)
     : ExprMiner(env),
       d_tds(nullptr),
       d_useExtRewriter(false),
       d_doCheck(doCheck),
       d_rewAccel(rewAccel),
-      d_silent(silent),
       d_filterPairs(filterPairs),
       d_using_sygus(false),
       d_crewrite_filter(env)
@@ -83,9 +82,7 @@ void CandidateRewriteDatabase::initializeSygus(const std::vector<Node>& vars,
 }
 
 Node CandidateRewriteDatabase::addTerm(Node sol,
-                                       bool rec,
-                                       std::ostream& out,
-                                       bool& rew_print)
+                                       bool rec, std::vector<std::pair<bool, Node>>& rewrites)
 {
   // have we added this term before?
   std::unordered_map<Node, Node>::iterator itac = d_add_term_cache.find(sol);
@@ -100,8 +97,7 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
     for (const Node& solc : sol)
     {
       // whether a candidate rewrite is printed for any subterm is irrelevant
-      bool rew_printc = false;
-      addTerm(solc, rec, out, rew_printc);
+      addTerm(solc, rec, rewrites);
     }
   }
   // register the term
@@ -219,21 +215,7 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
         // The analog of terms sol and eq_sol are equivalent under
         // sample points but do not rewrite to the same term. Hence,
         // this indicates a candidate rewrite.
-        if (!d_silent)
-        {
-          out << "(" << (verified ? "" : "candidate-") << "rewrite ";
-          if (d_using_sygus)
-          {
-            TermDbSygus::toStreamSygus(out, sol);
-            out << " ";
-            TermDbSygus::toStreamSygus(out, eq_sol);
-          }
-          else
-          {
-            out << sol << " " << eq_sol;
-          }
-          out << ")" << std::endl;
-        }
+        rewrites.emplace_back(verified, solb.eqNode(eq_sol));
         // we count this as printed, despite not literally printing it
         rew_print = true;
         // debugging information
@@ -295,18 +277,12 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
   return eq_sol;
 }
 
-Node CandidateRewriteDatabase::addTerm(Node sol, bool rec, std::ostream& out)
+bool CandidateRewriteDatabase::addTerm(Node sol)
 {
-  bool rew_print = false;
-  return addTerm(sol, rec, out, rew_print);
-}
-bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
-{
-  Node rsol = addTerm(sol, false, out);
+  std::vector<std::pair<bool, Node>> rewrites;
+  Node rsol = addTerm(sol, false, rewrites);
   return sol == rsol;
 }
-
-void CandidateRewriteDatabase::setSilent(bool flag) { d_silent = flag; }
 
 void CandidateRewriteDatabase::enableExtendedRewriter()
 {

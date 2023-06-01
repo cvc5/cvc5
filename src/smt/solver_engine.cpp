@@ -902,7 +902,7 @@ SynthResult SolverEngine::checkSynth(bool isNext)
   return r;
 }
 
-Node SolverEngine::findSynth(SynthFindTarget sft, const TypeNode& gtn)
+Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
 {
   beginCall();
   if (d_sygusSolver == nullptr)
@@ -910,7 +910,7 @@ Node SolverEngine::findSynth(SynthFindTarget sft, const TypeNode& gtn)
     throw RecoverableModalException(
         "Cannot call find-synth without sygus enabled.");
   }
-  return d_sygusSolver->findSynth(sft, gtn);
+  return d_sygusSolver->findSynth(fst, gtn);
 }
 
 /*

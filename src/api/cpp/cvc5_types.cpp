@@ -99,15 +99,15 @@ std::ostream& operator<<(std::ostream& out, ProofComponent pc)
 
 std::ostream& operator<<(std::ostream& out, FindSynthTarget fst)
 {
-  switch (pc)
+  switch (fst)
   {
-    case FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_RULE:
+    case FindSynthTarget::FIND_SYNTH_TARGET_REWRITE:
       out << "rewrite";
       break;
-    case FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_RULE_UNSOUND:
+    case FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_UNSOUND:
       out << "rewrite_unsound";
       break;
-    case FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_RULE_FROM_INPUT:
+    case FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_INPUT:
       out << "rewrite_input";
       break;
     case FindSynthTarget::FIND_SYNTH_TARGET_QUERY: out << "query"; break;

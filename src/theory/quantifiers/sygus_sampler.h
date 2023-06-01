@@ -180,7 +180,7 @@ class SygusSampler : protected EnvObj, public LazyTrieEvaluator
    * @param bvr The rewritten form of bvr
    * @param out The output stream to write if the rewrite was unsound.
    */
-  void checkEquivalent(Node bv, Node bvr, std::ostream& out);
+  bool checkEquivalent(Node bv, Node bvr, std::ostream* out);
 
  protected:
   /** sygus term database of d_qe */

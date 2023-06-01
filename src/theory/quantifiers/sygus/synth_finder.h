@@ -28,6 +28,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
+class SygusEnumeratorCallback;
+  
 /**
  * Algorithms for finding terms from sygus enumeration.
  */
@@ -39,15 +41,21 @@ class SynthFinder : protected EnvObj
   /**
    * Find synth for the given target and provided grammar.
    */
-  Node findSynth(SynthFindTarget sft, const TypeNode& gtn);
+  Node findSynth(modes::FindSynthTarget fst, const TypeNode& gtn);
 
  private:
+  /** Initialize find synthesis target */
+  void initialize(modes::FindSynthTarget fst, const Node& e);
+  /** Run find synthesis target */
+  std::vector<Node> runNext(const Node& n, modes::FindSynthTarget fst, const Node& e);
+  /** The enumerator callback */
+  std::unique_ptr<SygusEnumeratorCallback> d_ecb;
   /** candidate rewrite database */
-  CandidateRewriteDatabase d_crd;
+  std::unique_ptr<CandidateRewriteDatabase> d_crd;
   /** The query generator we are using */
   std::unique_ptr<QueryGenerator> d_qg;
   /** sygus sampler object */
-  SygusSampler d_sampler;
+  std::unique_ptr<SygusSampler> d_sampler;
 };
 
 }  // namespace quantifiers

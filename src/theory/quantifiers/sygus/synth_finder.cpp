@@ -15,40 +15,191 @@
 
 #include "theory/quantifiers/sygus/synth_finder.h"
 
-#include "theory/quantifiers/sygus/
+#include "options/quantifiers_options.h"
+#include "smt/env.h"
+#include "theory/quantifiers/query_generator_sample_sat.h"
+#include "theory/quantifiers/query_generator_unsat.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
 SynthFinder::SynthFinder(Env& env)
-    : EnvObj(env),
-      d_doRewSynth(false),
-      d_doFilterLogicalStrength(false),
-      d_use_sygus_type(false),
-      d_tds(nullptr),
-      d_crd(env,
-            options().quantifiers.sygusRewSynthCheck,
-            options().quantifiers.sygusRewSynthAccel,
-            false),
-      d_qg(nullptr),
-      d_sols(env),
-      d_sampler(env)
+    : EnvObj(env)
 {
 }
 
-Node SynthFinder::findSynth(SynthFindTarget sft, const TypeNode& gtn)
+Node SynthFinder::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
 {
   // should be a sygus datatype
   if (gtn.isNull() || !gtn.isDatatype() || !gtn.getDType().isSygus())
   {
     return Node::null();
   }
+  modes::FindSynthTarget fstu = fst;
+  if (fstu==modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_FROM_INPUT)
+  {
+    fstu = modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE;
+  }
   NodeManager* nm = NodeManager::currentNM();
-  // initialize the expression miner
-
-  // initialize the enumerator
+  
+  // make the enumerator variable
   Node e = nm->mkBoundVar(gtn);
+  
+  // initialize the expression miner
+  initialize(fstu, e);
+  
+  // initialize the enumerator
+  SygusEnumerator sygusEnum(d_env);
+  sygusEnum.initialize(e);
+  // run the enumerator until we are finished
+  Node curr;
+  std::vector<Node> ret;
+  while (sygusEnum.increment())
+  {
+    curr = sygusEnum.getCurrent();
+    if (curr.isNull())
+    {
+      continue;
+    }
+    // run the next expression mining for the current term
+    ret = runNext(curr, fstu);
+    if (!ret.empty())
+    {
+      // output the returned term
+      std::ostream& out = options().base.out;
+      for (const Node& r : ret)
+      {
+        out << "(" << fst << " " << r << ")" << std::endl;
+      }
+      // if sygus stream, we continue, otherwise we terminate and return
+      if (!options().quantifiers.sygusStream)
+      {
+        break;
+      }
+    }
+  }
+  Node retn = nm->mkNode(SEXPR, ret);
+  return retn;
+}
+
+class SygusEnumeratorCallbackNoSym : public SygusEnumeratorCallback
+{
+public:
+  SygusEnumeratorCallbackNoSym(Env& env) : SygusEnumeratorCallback(env){}
+protected:
+  /** Get the cache value for the given candidate */
+  Node getCacheValue(const Node& n, const Node& bn) override {
+    return bn;
+  }
+};
+
+void SynthFinder::initialize(modes::FindSynthTarget fst, const Node& e)
+{
+  options::SygusQueryGenMode qmode = options().quantifiers.sygusQueryGen;
+  
+  // initialize the sampler if necessary
+  bool needsSampler = false;
+  if (fst==modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_UNSOUND)
+  {
+    needsSampler = true;
+  }
+  else if (fst==modes::FindSynthTarget::FIND_SYNTH_TARGET_QUERY)
+  {
+    needsSampler = (qmode == options::SygusQueryGenMode::SAMPLE_SAT);
+  }
+  d_sampler = nullptr;
+  if (needsSampler)
+  {
+    size_t nsamples = options().quantifiers.sygusSamples;
+  }
+  
+  // initialize the candidate rewrite database
+  bool needsCandidateRewriteDb = false;
+  if (fst==modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE ||
+    fst==modes::FindSynthTarget::FIND_SYNTH_TARGET_QUERY)
+  {
+    needsCandidateRewriteDb = true;
+  }
+  
+  // initialize the sygus enumerator callback if necessary
+  d_ecb = nullptr;
+  if (fst==modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_UNSOUND)
+  {
+    d_ecb.reset(new SygusEnumeratorCallbackNoSym(d_env));
+  } 
+  
+  // now, setup the handlers
+  if (fst==modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE)
+  {
+    d_crd.reset(new CandidateRewriteDatabase(d_env,
+            options().quantifiers.sygusRewSynthCheck));
+    d_crd->initialize(vars, &d_sampler);
+  }
+  else if (fst==modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_UNSOUND)
+  {
+    // only the sampler is required
+  }
+  else if (fst==modes::FindSynthTarget::FIND_SYNTH_TARGET_QUERY)
+  {
+    std::vector<Node> vars;
+    d_sampler->getVariables(vars);
+    if (mode == options::SygusQueryGenMode::SAMPLE_SAT)
+    {
+      size_t deqThresh = options().quantifiers.sygusQueryGenThresh;
+      d_qg = std::make_unique<QueryGeneratorSampleSat>(d_env, deqThresh);
+    }
+    else if (mode == options::SygusQueryGenMode::UNSAT)
+    {
+      d_qg = std::make_unique<QueryGeneratorUnsat>(d_env);
+    }
+    else if (mode == options::SygusQueryGenMode::BASIC)
+    {
+      d_qg = std::make_unique<QueryGeneratorBasic>(d_env);
+    }
+    else
+    {
+      Unhandled() << "Unknown query generation mode " << mode;
+    }
+    // initialize the query generator
+    d_qg->initialize(vars, d_sampler.get());
+  }
+}
+
+std::vector<Node> SynthFinder::runNext(const Node& n, modes::FindSynthTarget fst, const Node& e)
+{
+  std::vector<Node> ret;
+  Node bn = datatypes::utils::sygusToBuiltin(n, true);
+  if (fst==modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE)
+  {
+    std::vector<std::pair<bool, Node>> rewrites;
+    d_crd->addTerm(
+        n, options().quantifiers.sygusRewSynthRec, rewrites);
+    for (const std::pair<bool,Node>& r : rewrites)
+    {
+      ret.push_back(r.second);
+    }
+  }
+  else if (fst==modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_UNSOUND)
+  {
+    // check its rewritten form
+    Node nr = rewrite(n);
+    if (!d_sampler->checkEquivalent(n, nr))
+    {
+      std::stringstream ss;
+      d_sampler->checkEquivalent(n, nr, &ss);
+      Warning() << ss.str();
+      ret.push_back(n.eqNode(nr));
+    }
+  }
+  else if (fst==modes::FindSynthTarget::FIND_SYNTH_TARGET_QUERY)
+  {
+    Assert (d_qg!=nullptr);
+    std::vector<Node> queries;
+    d_qg->addTerm(solb, queries);
+    ret.insert(ret.end(), queries.begin(), queries.end());
+  }
+  return ret;
 }
 
 }  // namespace quantifiers

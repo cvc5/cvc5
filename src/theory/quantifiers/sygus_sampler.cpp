@@ -771,11 +771,11 @@ void SygusSampler::registerSygusType(TypeNode tn)
   }
 }
 
-void SygusSampler::checkEquivalent(Node bv, Node bvr, std::ostream& out)
+bool SygusSampler::checkEquivalent(Node bv, Node bvr, std::ostream* out)
 {
   if (bv == bvr)
   {
-    return;
+    return true;
   }
   Trace("sygus-rr-verify") << "Testing rewrite rule " << bv << " ---> " << bvr
                            << std::endl;
@@ -823,15 +823,17 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr, std::ostream& out)
       return;
     }
     // we have detected unsoundness in the rewriter
-    out << "(unsound-rewrite " << bv << " " << bvr << ")" << std::endl;
     // debugging information
-    out << "Terms are not equivalent for : " << std::endl;
-    out << ptOut.str();
-    Assert(bve != bvre);
-    out << "where they evaluate to " << bve << " and " << bvre << std::endl;
-    AlwaysAssert(false)
-        << "--sygus-rr-verify detected unsoundness in the rewriter!";
+    if (out)
+    {
+      (*out) << "Terms are not equivalent for : " << std::endl;
+      (*out) << ptOut.str();
+      Assert(bve != bvre);
+      (*out) << "where they evaluate to " << bve << " and " << bvre << std::endl;
+    }
+    return false;
   }
+  return true;
 }
 
 }  // namespace quantifiers
