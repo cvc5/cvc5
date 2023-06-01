@@ -23,6 +23,7 @@
 #include "theory/theory.h"
 #include "theory/uf/function_const.h"
 #include "util/integer.h"
+#include "theory/strings/regexp_eval.h"
 
 using namespace cvc5::internal::kind;
 
@@ -292,6 +293,13 @@ EvalResult Evaluator::evalInternal(
           currNodeVal = vals[pos];
           // Don't need to rewrite since range of substitution should already
           // be normalized.
+        }
+        else if (currNode.getKind()==kind::STRING_IN_REGEXP && strings::RegExpEval::canEvaluate(currNode[1]))
+        {
+          String res = results[currNode[0]].d_str;
+          Trace("evaluator") << "Evaluator: evaluate regexp membership " << res << " in " << currNode[1] << std::endl;
+          bool resReEv = strings::RegExpEval::evaluate(res, currNode[1]);
+          currNodeVal = NodeManager::currentNM()->mkConst(resReEv);
         }
         else
         {
@@ -839,7 +847,6 @@ EvalResult Evaluator::evalInternal(
           }
           break;
         }
-
         case kind::CONST_BITVECTOR:
           results[currNode] = EvalResult(currNodeVal.getConst<BitVector>());
           break;
