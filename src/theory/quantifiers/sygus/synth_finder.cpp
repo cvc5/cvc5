@@ -69,13 +69,7 @@ Node SynthFinder::getCurrent()
     // enumerator does not yet have a term
     return curr;
   }
-  Node ret = runNext(curr, d_fstu);
-  if (!ret.isNull())
-  {
-    std::ostream& out = options().base.out;
-    out << "(" << d_fst << " " << ret << ")" << std::endl;
-  }
-  return ret;
+  return runNext(curr, d_fstu);
 }
 
 class SygusEnumeratorCallbackNoSym : public SygusEnumeratorCallback
@@ -111,7 +105,8 @@ void SynthFinder::initialize(modes::FindSynthTarget fst, const Node& e)
   bool needsSampler = false;
   size_t nsamples = options().quantifiers.sygusSamples;
   bool samplerUniqueTypeIds = false;
-  if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_UNSOUND)
+  if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE ||
+    fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_UNSOUND)
   {
     needsSampler = true;
   }
@@ -176,7 +171,7 @@ Node SynthFinder::runNext(const Node& n, modes::FindSynthTarget fst)
   if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE)
   {
     std::vector<std::pair<bool, Node>> rewrites;
-    d_crd->addTerm(n, options().quantifiers.sygusRewSynthRec, rewrites);
+    d_crd->addTerm(bn, options().quantifiers.sygusRewSynthRec, rewrites);
     for (const std::pair<bool, Node>& r : rewrites)
     {
       ret.push_back(r.second);
@@ -185,20 +180,20 @@ Node SynthFinder::runNext(const Node& n, modes::FindSynthTarget fst)
   else if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_UNSOUND)
   {
     // check its rewritten form
-    Node nr = rewrite(n);
-    if (!d_sampler->checkEquivalent(n, nr))
+    Node bnr = rewrite(bn);
+    if (!d_sampler->checkEquivalent(bn, bnr))
     {
       std::stringstream ss;
-      d_sampler->checkEquivalent(n, nr, &ss);
+      d_sampler->checkEquivalent(bn, bnr, &ss);
       Warning() << ss.str();
-      ret.push_back(n.eqNode(nr));
+      ret.push_back(bn.eqNode(bnr));
     }
   }
   else if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_QUERY)
   {
     Assert(d_qg != nullptr);
     std::vector<Node> queries;
-    d_qg->addTerm(n, queries);
+    d_qg->addTerm(bn, queries);
     ret.insert(ret.end(), queries.begin(), queries.end());
   }
   if (!ret.empty())

@@ -67,6 +67,7 @@ class SygusSolver;
 class AbductionSolver;
 class InterpolationSolver;
 class QuantElimSolver;
+class FindSynthSolver;
 
 struct SolverEngineStatistics;
 class PfManager;
@@ -1061,6 +1062,8 @@ class CVC5_EXPORT SolverEngine
 
   /** The solver for sygus queries */
   std::unique_ptr<smt::SygusSolver> d_sygusSolver;
+  /** The solver for find-synth queries */
+  std::unique_ptr<smt::FindSynthSolver> d_findSynthSolver;
 
   /** The solver for abduction queries */
   std::unique_ptr<smt::AbductionSolver> d_abductSolver;

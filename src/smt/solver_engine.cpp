@@ -54,6 +54,7 @@
 #include "smt/model_core_builder.h"
 #include "smt/preprocessor.h"
 #include "smt/proof_manager.h"
+#include "smt/find_synth_solver.h"
 #include "smt/quant_elim_solver.h"
 #include "smt/set_defaults.h"
 #include "smt/smt_driver.h"
@@ -942,6 +943,12 @@ Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
         "No grammar available in call to find-synth. Either provide one or "
         "ensure synth-fun has been called.");
   }
+  // initialize find synthesis solver if not done so already
+  if (d_findSynthSolver==nullptr)
+  {
+    d_findSynthSolver.reset(new FindSynthSolver(*d_env.get()));
+  }
+  return d_findSynthSolver->findSynth(fst, gtnu);
 }
 
 /*

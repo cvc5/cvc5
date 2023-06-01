@@ -7984,8 +7984,6 @@ SynthResult Solver::checkSynthNext() const
 Term Solver::findSynth(modes::FindSynthTarget fst) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
-      << "Cannot findSynth unless sygus is enabled (use --sygus)";
   //////// all checks before this line
   return Term(d_nm, d_slv->findSynth(fst, internal::TypeNode::null()));
   ////////
@@ -7995,8 +7993,6 @@ Term Solver::findSynth(modes::FindSynthTarget fst) const
 Term Solver::findSynth(modes::FindSynthTarget fst, Grammar& grammar) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
-      << "Cannot findSynth unless sygus is enabled (use --sygus)";
   //////// all checks before this line
   return Term(d_nm, d_slv->findSynth(fst, *grammar.resolve().d_type));
   ////////

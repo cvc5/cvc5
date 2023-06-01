@@ -68,6 +68,7 @@ Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex,
     d_table["block-model-values"] = Token::BLOCK_MODEL_VALUES_TOK;
     d_table["declare-heap"] = Token::DECLARE_HEAP;
     d_table["declare-pool"] = Token::DECLARE_POOL;
+    d_table["find-synth"] = Token::FIND_SYNTH_TOK;
     d_table["get-abduct-next"] = Token::GET_ABDUCT_NEXT_TOK;
     d_table["get-abduct"] = Token::GET_ABDUCT_TOK;
     d_table["get-difficulty"] = Token::GET_DIFFICULTY_TOK;
@@ -86,7 +87,6 @@ Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex,
     d_table["check-synth"] = Token::CHECK_SYNTH_TOK;
     d_table["constraint"] = Token::CONSTRAINT_TOK;
     d_table["declare-var"] = Token::DECLARE_VAR_TOK;
-    d_table["find-synth"] = Token::FIND_SYNTH_TOK;
     d_table["inv-constraint"] = Token::INV_CONSTRAINT_TOK;
     d_table["set-feature"] = Token::SET_FEATURE_TOK;
     d_table["synth-fun"] = Token::SYNTH_FUN_TOK;

@@ -20,4 +20,4 @@ c
 ))
 
 
-(check-synth)
+(find-synth :query)

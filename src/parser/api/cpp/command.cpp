@@ -787,7 +787,14 @@ Term FindSynthCommand::getResult() const { return d_result; }
 void FindSynthCommand::printResult(cvc5::Solver* solver,
                                    std::ostream& out) const
 {
-  out << "(" << d_fst << " " << d_result << ")";
+  if (d_result.isNull())
+  {
+    out << "fail" << std::endl;
+  }
+  else
+  {
+    out << "(" << d_fst << " " << d_result << ")" << std::endl;
+  }
 }
 
 std::string FindSynthCommand::getCommandName() const { return "find-synth"; }
