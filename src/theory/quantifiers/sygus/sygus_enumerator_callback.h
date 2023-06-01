@@ -43,8 +43,7 @@ class SygusEnumeratorCallback : protected EnvObj
   SygusEnumeratorCallback(Env& env,
                           TermDbSygus* tds = nullptr,
                           SygusStatistics* s = nullptr,
-                          ExampleEvalCache* eec = nullptr,
-                          std::ostream* out = nullptr);
+                          ExampleEvalCache* eec = nullptr);
   virtual ~SygusEnumeratorCallback() {}
 
   /**
@@ -79,8 +78,6 @@ class SygusEnumeratorCallback : protected EnvObj
    * breaking).
    */
   ExampleEvalCache* d_eec;
-  /** The output stream to print unsound rewrites for above */
-  std::ostream* d_out;
 };
 
 }  // namespace quantifiers

@@ -23,6 +23,7 @@
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/query_generator.h"
 #include "theory/quantifiers/sygus_sampler.h"
+#include "theory/quantifiers/sygus/sygus_enumerator.h"
 
 namespace cvc5::internal {
 namespace theory {

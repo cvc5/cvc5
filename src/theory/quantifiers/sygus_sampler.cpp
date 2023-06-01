@@ -820,7 +820,7 @@ bool SygusSampler::checkEquivalent(Node bv, Node bvr, std::ostream* out)
           << " evaluate to different (non-constant) values on point:"
           << std::endl;
       d_env.verbose(1) << ptOut.str();
-      return;
+      return true;
     }
     // we have detected unsoundness in the rewriter
     // debugging information

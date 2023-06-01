@@ -19,6 +19,9 @@
 #include "smt/env.h"
 #include "theory/quantifiers/query_generator_sample_sat.h"
 #include "theory/quantifiers/query_generator_unsat.h"
+#include "options/base_options.h"
+#include "printer/printer.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -37,7 +40,8 @@ Node SynthFinder::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
     return Node::null();
   }
   modes::FindSynthTarget fstu = fst;
-  if (fstu==modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_FROM_INPUT)
+  // rewrites from input use the same algorithm
+  if (fstu==modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_INPUT)
   {
     fstu = modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE;
   }
@@ -63,7 +67,7 @@ Node SynthFinder::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
       continue;
     }
     // run the next expression mining for the current term
-    ret = runNext(curr, fstu);
+    ret = runNext(curr, fstu, e);
     if (!ret.empty())
     {
       // output the returned term
@@ -79,7 +83,7 @@ Node SynthFinder::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
       }
     }
   }
-  Node retn = nm->mkNode(SEXPR, ret);
+  Node retn = nm->mkNode(kind::SEXPR, ret);
   return retn;
 }
 
@@ -98,8 +102,25 @@ void SynthFinder::initialize(modes::FindSynthTarget fst, const Node& e)
 {
   options::SygusQueryGenMode qmode = options().quantifiers.sygusQueryGen;
   
+  // get the sygus variables from the type of the enumerator
+  const TypeNode& gtn = e.getType();
+  Assert (gtn.isDatatype());
+  const DType& dt = gtn.getDType();
+  Assert (dt.isSygus());
+  Node vlist = dt.getSygusVarList();
+  std::vector<Node> vars;
+  if (!vlist.isNull())
+  {
+    for (const Node& sv : vlist)
+    {
+      vars.push_back(sv);
+    }
+  }
+  
   // initialize the sampler if necessary
   bool needsSampler = false;
+  size_t nsamples = options().quantifiers.sygusSamples;
+  bool samplerUniqueTypeIds = false;
   if (fst==modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_UNSOUND)
   {
     needsSampler = true;
@@ -111,7 +132,8 @@ void SynthFinder::initialize(modes::FindSynthTarget fst, const Node& e)
   d_sampler = nullptr;
   if (needsSampler)
   {
-    size_t nsamples = options().quantifiers.sygusSamples;
+    d_sampler.reset(new SygusSampler(d_env));
+    d_sampler->initialize(dt.getSygusType(), vars, nsamples, samplerUniqueTypeIds);
   }
   
   // initialize the candidate rewrite database
@@ -134,7 +156,7 @@ void SynthFinder::initialize(modes::FindSynthTarget fst, const Node& e)
   {
     d_crd.reset(new CandidateRewriteDatabase(d_env,
             options().quantifiers.sygusRewSynthCheck));
-    d_crd->initialize(vars, &d_sampler);
+    d_crd->initialize(vars, d_sampler.get());
   }
   else if (fst==modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_UNSOUND)
   {
@@ -142,24 +164,22 @@ void SynthFinder::initialize(modes::FindSynthTarget fst, const Node& e)
   }
   else if (fst==modes::FindSynthTarget::FIND_SYNTH_TARGET_QUERY)
   {
-    std::vector<Node> vars;
-    d_sampler->getVariables(vars);
-    if (mode == options::SygusQueryGenMode::SAMPLE_SAT)
+    if (qmode == options::SygusQueryGenMode::SAMPLE_SAT)
     {
       size_t deqThresh = options().quantifiers.sygusQueryGenThresh;
       d_qg = std::make_unique<QueryGeneratorSampleSat>(d_env, deqThresh);
     }
-    else if (mode == options::SygusQueryGenMode::UNSAT)
+    else if (qmode == options::SygusQueryGenMode::UNSAT)
     {
       d_qg = std::make_unique<QueryGeneratorUnsat>(d_env);
     }
-    else if (mode == options::SygusQueryGenMode::BASIC)
+    else if (qmode == options::SygusQueryGenMode::BASIC)
     {
       d_qg = std::make_unique<QueryGeneratorBasic>(d_env);
     }
     else
     {
-      Unhandled() << "Unknown query generation mode " << mode;
+      Unhandled() << "Unknown query generation mode " << qmode;
     }
     // initialize the query generator
     d_qg->initialize(vars, d_sampler.get());
@@ -196,7 +216,7 @@ std::vector<Node> SynthFinder::runNext(const Node& n, modes::FindSynthTarget fst
   {
     Assert (d_qg!=nullptr);
     std::vector<Node> queries;
-    d_qg->addTerm(solb, queries);
+    d_qg->addTerm(n, queries);
     ret.insert(ret.end(), queries.begin(), queries.end());
   }
   return ret;

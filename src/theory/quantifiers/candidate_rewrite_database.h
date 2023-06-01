@@ -50,8 +50,6 @@ class CandidateRewriteDatabase : public ExprMiner
    * @param doCheck Whether to check rewrite rules using subsolvers.
    * @param rewAccel Whether to construct symmetry breaking lemmas based on
    * discovered rewrites (see option sygusRewSynthAccel()).
-   * @param silent Whether to silence the output of rewrites discovered by this
-   * class.
    * @param filterPairs Whether to filter rewrite pairs using filtering
    * techniques from the SAT 2019 paper above.
    */
@@ -95,7 +93,7 @@ class CandidateRewriteDatabase : public ExprMiner
    * sol, in other words, sol was a new unique term. This assumes false for
    * the argument rec.
    */
-  bool addTerm(Node sol) override;
+  bool addTerm(Node sol, std::vector<Node>& rewrites) override;
   /** Enable the (extended) rewriter for this class */
   void enableExtendedRewriter();
 

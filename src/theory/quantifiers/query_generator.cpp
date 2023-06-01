@@ -81,10 +81,10 @@ void QueryGenerator::ensureBoolean(const Node& n) const
 
 QueryGeneratorBasic::QueryGeneratorBasic(Env& env) : QueryGenerator(env) {}
 
-bool QueryGeneratorBasic::addTerm(Node n, std::ostream& out)
+bool QueryGeneratorBasic::addTerm(Node n, std::vector<Node>& queries)
 {
   ensureBoolean(n);
-  out << "(query " << n << ")" << std::endl;
+  queries.push_back(n);
   SubsolverSetupInfo ssi(d_env);
   std::unique_ptr<SolverEngine> queryChecker;
   initializeChecker(queryChecker, n, ssi);

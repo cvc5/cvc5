@@ -216,8 +216,6 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
         // sample points but do not rewrite to the same term. Hence,
         // this indicates a candidate rewrite.
         rewrites.emplace_back(verified, solb.eqNode(eq_sol));
-        // we count this as printed, despite not literally printing it
-        rew_print = true;
         // debugging information
         if (TraceIsOn("sygus-rr-debug"))
         {
@@ -277,10 +275,10 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
   return eq_sol;
 }
 
-bool CandidateRewriteDatabase::addTerm(Node sol)
+bool CandidateRewriteDatabase::addTerm(Node sol, std::vector<Node>& rewrites)
 {
-  std::vector<std::pair<bool, Node>> rewrites;
-  Node rsol = addTerm(sol, false, rewrites);
+  std::vector<std::pair<bool, Node>> rewritesFound;
+  Node rsol = addTerm(sol, false, rewritesFound);
   return sol == rsol;
 }
 

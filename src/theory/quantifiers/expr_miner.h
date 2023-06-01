@@ -62,7 +62,7 @@ class ExprMiner : protected EnvObj
    * the expression mining done by this class. For example, candidate-rewrite
    * output is printed on out by the candidate rewrite generator miner.
    */
-  virtual bool addTerm(Node n, std::ostream& out) = 0;
+  virtual bool addTerm(Node n, std::vector<Node>& found) = 0;
 
  protected:
   /** the set of variables used by this class */

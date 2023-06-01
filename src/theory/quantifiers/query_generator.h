@@ -65,7 +65,7 @@ class QueryGeneratorBasic : public QueryGenerator
    * Add term to this module. This may trigger the printing and/or checking of
    * new queries.
    */
-  bool addTerm(Node n, std::ostream& out) override;
+  bool addTerm(Node n, std::vector<Node>& queries) override;
 };
 
 }  // namespace quantifiers

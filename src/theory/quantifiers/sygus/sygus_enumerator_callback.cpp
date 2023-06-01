@@ -29,13 +29,11 @@ namespace quantifiers {
 SygusEnumeratorCallback::SygusEnumeratorCallback(Env& env,
                                                  TermDbSygus* tds,
                                                  SygusStatistics* s,
-                                                 ExampleEvalCache* eec,
-                                                 std::ostream* out)
+                                                 ExampleEvalCache* eec)
     : EnvObj(env),
       d_tds(tds),
       d_stats(s),
-      d_eec(eec),
-      d_out(out)
+      d_eec(eec)
 {
 }
 
