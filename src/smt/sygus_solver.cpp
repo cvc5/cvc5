@@ -32,7 +32,6 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
-#include "theory/quantifiers/sygus/synth_finder.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
@@ -592,8 +591,8 @@ Node SygusSolver::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
     }
     gtnu = sym.getType();
   }
-  theory::quantifiers::SynthFinder sf(d_env);
-  return sf.findSynth(fst, gtnu);
+  d_sfinder.reset(new theory::quantifiers::SynthFinder(d_env));
+  return d_sfinder->findSynth(fst, gtnu);
 }
 
 }  // namespace smt

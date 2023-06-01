@@ -86,6 +86,7 @@ Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex,
     d_table["check-synth"] = Token::CHECK_SYNTH_TOK;
     d_table["constraint"] = Token::CONSTRAINT_TOK;
     d_table["declare-var"] = Token::DECLARE_VAR_TOK;
+    d_table["find-synth"] = Token::FIND_SYNTH_TOK;
     d_table["inv-constraint"] = Token::INV_CONSTRAINT_TOK;
     d_table["set-feature"] = Token::SET_FEATURE_TOK;
     d_table["synth-fun"] = Token::SYNTH_FUN_TOK;
@@ -521,6 +522,16 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new QuitCommand());
     }
     break;
+    case Token::FIND_SYNTH_TOK:
+    {
+      d_state.checkThatLogicIsSet();
+      std::string key = d_tparser.parseKeyword();
+      modes::FindSynthTarget fst = d_state.getFindSynthTarget(key);
+      std::vector<Term> emptyVarList;
+      Grammar* g = d_tparser.parseGrammarOrNull(emptyVarList, "g_find-synth");
+      cmd.reset(new FindSynthCommand(fst, g));
+    }
+      break;
     // (get-abduct <symbol> <term> <grammar>?)
     case Token::GET_ABDUCT_TOK:
     {
@@ -829,6 +840,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
 
       Trace("parser-sygus") << "Define synth fun : " << name << std::endl;
       Solver* slv = d_state.getSolver();
+      // FIXME
       Term fun =
           isInv ? (g == nullptr ? slv->synthInv(name, sygusVars)
                                 : slv->synthInv(name, sygusVars, *g))

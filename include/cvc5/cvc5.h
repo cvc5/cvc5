@@ -5139,6 +5139,23 @@ class CVC5_EXPORT Solver
   std::vector<Term> getSynthSolutions(const std::vector<Term>& terms) const;
 
   /**
+   * Find a target artifact using sygus enumeration.
+   *
+   * SyGuS v2:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (find-synth :target)
+   * \endverbatim
+   *
+   * @return The result of the find,
+   */
+  Term findSynth(modes::FindSynthTarget fst) const;
+  Term findSynth(modes::FindSynthTarget fst,
+                Grammar& grammar) const;
+  
+  /**
    * Get a snapshot of the current state of the statistic values of this
    * solver. The returned object is completely decoupled from the solver and
    * will not change when the solver is used again.

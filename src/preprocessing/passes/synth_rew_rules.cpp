@@ -483,8 +483,6 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   Options subOptions;
   subOptions.copyValues(d_env.getOptions());
   subOptions.writeQuantifiers().sygus = true;
-  subOptions.writeQuantifiers().sygusRewSynthInput = false;
-  subOptions.writeQuantifiers().sygusRewSynth = true;
   subOptions.writeQuantifiers().sygusInst = false;
   // we should not use the extended rewriter, since we are interested
   // in rewrites that are not in the main rewriter

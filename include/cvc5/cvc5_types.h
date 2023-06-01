@@ -257,10 +257,11 @@ std::ostream& operator<<(std::ostream& out, ProofComponent pc) CVC5_EXPORT;
  */
 enum FindSynthTarget
 {
+  FIND_SYNTH_TARGET_ENUM,
   FIND_SYNTH_TARGET_REWRITE,
   FIND_SYNTH_TARGET_REWRITE_UNSOUND,
   FIND_SYNTH_TARGET_REWRITE_INPUT,
-  FIND_SYNTH_TARGET_QUERY,
+  FIND_SYNTH_TARGET_QUERY
 };
 /** Writes a synthesis find target identifier to a stream. */
 std::ostream& operator<<(std::ostream& out, FindSynthTarget fst) CVC5_EXPORT;

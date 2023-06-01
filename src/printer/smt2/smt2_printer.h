@@ -157,6 +157,11 @@ class Smt2Printer : public cvc5::internal::Printer
   /** Print check-synth-next command */
   void toStreamCmdCheckSynthNext(std::ostream& out) const override;
 
+  /** Print find-synth command */
+void toStreamCmdFindSynth(std::ostream& out,
+                                    modes::FindSynthTarget fst,
+                                   TypeNode sygusType = TypeNode::null()) const override;
+                                   
   /** Print simplify command */
   void toStreamCmdSimplify(std::ostream& out, Node nodes) const override;
 

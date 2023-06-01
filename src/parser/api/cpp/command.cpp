@@ -760,6 +760,46 @@ void CheckSynthCommand::toStream(std::ostream& out) const
   }
 }
 
+
+/* -------------------------------------------------------------------------- */
+/* class FindSynthCommand                                                    */
+/* -------------------------------------------------------------------------- */
+
+void FindSynthCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
+{
+  try
+  {
+    if (d_grammar!=nullptr)
+    {
+      d_result = solver->findSynth(d_fst, *d_grammar);
+    }
+    else
+    {
+      d_result = solver->findSynth(d_fst);
+    }
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Term FindSynthCommand::getResult() const { return d_result; }
+void FindSynthCommand::printResult(cvc5::Solver* solver,
+                                    std::ostream& out) const
+{
+  out << "(" << d_fst << " " << d_result << ")";
+}
+
+std::string FindSynthCommand::getCommandName() const
+{
+  return "find-synth";
+}
+
+void FindSynthCommand::toStream(std::ostream& out) const
+{
+  Printer::getPrinter(out)->toStreamCmdFindSynth(out, d_fst, d_grammar == nullptr ? TypeNode::null() : grammarToTypeNode(d_grammar));
+}
 /* -------------------------------------------------------------------------- */
 /* class ResetCommand                                                         */
 /* -------------------------------------------------------------------------- */

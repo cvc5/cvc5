@@ -133,14 +133,6 @@ void SynthFinder::initialize(modes::FindSynthTarget fst, const Node& e)
         dt.getSygusType(), vars, nsamples, samplerUniqueTypeIds);
   }
 
-  // initialize the candidate rewrite database
-  bool needsCandidateRewriteDb = false;
-  if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE
-      || fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_QUERY)
-  {
-    needsCandidateRewriteDb = true;
-  }
-
   // initialize the sygus enumerator callback if necessary
   d_ecb = nullptr;
   if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_UNSOUND)

@@ -101,6 +101,7 @@ std::ostream& operator<<(std::ostream& out, FindSynthTarget fst)
 {
   switch (fst)
   {
+    case FindSynthTarget::FIND_SYNTH_TARGET_ENUM: out << "enum"; break;
     case FindSynthTarget::FIND_SYNTH_TARGET_REWRITE: out << "rewrite"; break;
     case FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_UNSOUND:
       out << "rewrite_unsound";
