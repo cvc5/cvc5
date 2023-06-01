@@ -1374,14 +1374,6 @@ name   = "Quantifiers"
   help       = "the maximum number of variables per type that appear in rewrites from sygus-rr-synth-input"
 
 [[option]]
-  name       = "sygusRewSynthInputUseBool"
-  category   = "expert"
-  long       = "sygus-rr-synth-input-use-bool"
-  type       = "bool"
-  default    = "false"
-  help       = "synthesize Boolean rewrite rules based on the input formula"
-
-[[option]]
   name       = "sygusExprMinerCheckTimeout"
   category   = "expert"
   long       = "sygus-expr-miner-check-timeout=N"

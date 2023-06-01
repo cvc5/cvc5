@@ -29,18 +29,16 @@ namespace quantifiers {
 
 SynthFinder::SynthFinder(Env& env) : EnvObj(env) {}
 
-Node SynthFinder::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
+void SynthFinder::initializeFindSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
 {
   // should be a sygus datatype
-  if (gtn.isNull() || !gtn.isDatatype() || !gtn.getDType().isSygus())
-  {
-    return Node::null();
-  }
-  modes::FindSynthTarget fstu = fst;
+  Assert (!gtn.isNull() && gtn.isDatatype() && gtn.getDType().isSygus());
+  d_fst = fst;
+  d_fstu = fst;
   // rewrites from input use the same algorithm
-  if (fstu == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_INPUT)
+  if (d_fstu == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_INPUT)
   {
-    fstu = modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE;
+    d_fstu = modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE;
   }
   NodeManager* nm = NodeManager::currentNM();
 
@@ -48,47 +46,41 @@ Node SynthFinder::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
   Node e = nm->mkBoundVar(gtn);
 
   // initialize the expression miner
-  initialize(fstu, e);
+  initialize(d_fstu, e);
 
   // initialize the enumerator
-  SygusEnumerator sygusEnum(d_env);
-  sygusEnum.initialize(e);
-  // run the enumerator until we are finished
-  Node curr;
-  std::vector<Node> ret;
-  while (sygusEnum.increment())
+  d_enum.reset(new SygusEnumerator(d_env, nullptr, d_ecb.get()));
+  d_enum->initialize(e);
+}  
+
+bool SynthFinder::increment()
+{
+  Assert (d_enum!=nullptr);
+  return d_enum->increment();
+}
+
+Node SynthFinder::getCurrent()
+{
+  Assert (d_enum!=nullptr);
+  Node curr = d_enum->getCurrent();
+  if (curr.isNull())
   {
-    curr = sygusEnum.getCurrent();
-    if (curr.isNull())
-    {
-      continue;
-    }
-    // run the next expression mining for the current term
-    ret = runNext(curr, fstu, e);
-    if (!ret.empty())
-    {
-      // output the returned term
-      std::ostream& out = options().base.out;
-      for (const Node& r : ret)
-      {
-        out << "(" << fst << " " << r << ")" << std::endl;
-      }
-      // if sygus stream, we continue, otherwise we terminate and return
-      if (!options().quantifiers.sygusStream)
-      {
-        break;
-      }
-    }
+    // enumerator does not yet have a term
+    return curr;
   }
-  Node retn = nm->mkNode(kind::SEXPR, ret);
-  return retn;
+  Node ret = runNext(curr, d_fstu);
+  if (!ret.isNull())
+  {
+    std::ostream& out = options().base.out;
+    out << "(" << d_fst << " " << ret << ")" << std::endl;
+  }
+  return ret;
 }
 
 class SygusEnumeratorCallbackNoSym : public SygusEnumeratorCallback
 {
  public:
   SygusEnumeratorCallbackNoSym(Env& env) : SygusEnumeratorCallback(env) {}
-
  protected:
   /** Get the cache value for the given candidate */
   Node getCacheValue(const Node& n, const Node& bn) override { return bn; }
@@ -175,9 +167,8 @@ void SynthFinder::initialize(modes::FindSynthTarget fst, const Node& e)
   }
 }
 
-std::vector<Node> SynthFinder::runNext(const Node& n,
-                                       modes::FindSynthTarget fst,
-                                       const Node& e)
+Node SynthFinder::runNext(const Node& n,
+                                       modes::FindSynthTarget fst)
 {
   std::vector<Node> ret;
   Node bn = datatypes::utils::sygusToBuiltin(n, true);
@@ -209,7 +200,11 @@ std::vector<Node> SynthFinder::runNext(const Node& n,
     d_qg->addTerm(n, queries);
     ret.insert(ret.end(), queries.begin(), queries.end());
   }
-  return ret;
+  if (!ret.empty())
+  {
+    return NodeManager::currentNM()->mkNode(kind::SEXPR, ret);
+  }
+  return Node::null();
 }
 
 }  // namespace quantifiers

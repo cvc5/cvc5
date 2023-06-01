@@ -24,7 +24,6 @@
 #include "expr/type_node.h"
 #include "smt/assertions.h"
 #include "smt/env_obj.h"
-#include "theory/quantifiers/sygus/synth_finder.h"
 #include "util/synth_result.h"
 
 namespace cvc5::internal {
@@ -177,10 +176,7 @@ class SygusSolver : protected EnvObj
   /**
    * Find synth for the given target and grammar.
    */
-  Node findSynth(modes::FindSynthTarget fst, const TypeNode& gtn);
-  /**
-   */
-  Node findSynthNext();
+  std::vector<std::pair<Node, TypeNode>> getSynthFunctions() const;
 
  private:
   /**
@@ -264,10 +260,6 @@ class SygusSolver : protected EnvObj
    * quantifiers::SygusUtils::mkSygusConjecture.
    */
   std::unique_ptr<SolverEngine> d_subsolver;
-  /**
-   * The synthesis finder utility
-   */
-  std::unique_ptr<theory::quantifiers::SynthFinder> d_sfinder;
 };
 
 }  // namespace smt

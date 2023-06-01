@@ -42,15 +42,15 @@ class SynthFinder : protected EnvObj
   /**
    * Find synth for the given target and provided grammar.
    */
-  Node findSynth(modes::FindSynthTarget fst, const TypeNode& gtn);
-
+  void initializeFindSynth(modes::FindSynthTarget fst, const TypeNode& gtn);
+  bool increment();
+  Node getCurrent();
  private:
   /** Initialize find synthesis target */
   void initialize(modes::FindSynthTarget fst, const Node& e);
   /** Run find synthesis target */
-  std::vector<Node> runNext(const Node& n,
-                            modes::FindSynthTarget fst,
-                            const Node& e);
+  Node runNext(const Node& n,
+                            modes::FindSynthTarget fst);
   /** The enumerator callback */
   std::unique_ptr<SygusEnumeratorCallback> d_ecb;
   /** candidate rewrite database */
@@ -59,6 +59,11 @@ class SynthFinder : protected EnvObj
   std::unique_ptr<QueryGenerator> d_qg;
   /** sygus sampler object */
   std::unique_ptr<SygusSampler> d_sampler;
+  /** The enumerator */
+  std::unique_ptr<SygusEnumerator> d_enum;
+  /** */
+  modes::FindSynthTarget d_fst;
+  modes::FindSynthTarget d_fstu;
 };
 
 }  // namespace quantifiers

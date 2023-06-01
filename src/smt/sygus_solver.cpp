@@ -567,32 +567,17 @@ std::vector<Node> SygusSolver::listToVector(const NodeList& list)
   return vec;
 }
 
-Node SygusSolver::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
+std::vector<std::pair<Node, TypeNode>> SygusSolver::getSynthFunctions() const
 {
-  TypeNode gtnu = gtn;
-  // determine the grammar
-  if (gtn.isNull())
+  std::vector<std::pair<Node, TypeNode>> funs;
+  for (const Node& f : d_sygusFunSymbols)
   {
-    // take the grammar of the first function to synthesize, warning if
-    // there are more than one.
-    if (d_sygusFunSymbols.empty())
-    {
-      return Node::null();
-    }
-    if (d_sygusFunSymbols.size() > 1)
-    {
-      // WARNING
-    }
     SygusSynthGrammarAttribute ssfga;
-    Node sym = d_sygusFunSymbols[0].getAttribute(ssfga);
-    if (sym.isNull())
-    {
-      return Node::null();
-    }
-    gtnu = sym.getType();
+    Node sym = f.getAttribute(ssfga);
+    TypeNode st = sym.isNull() ? TypeNode::null() : sym.getType();
+    funs.emplace_back(f, st);
   }
-  d_sfinder.reset(new theory::quantifiers::SynthFinder(d_env));
-  return d_sfinder->findSynth(fst, gtnu);
+  return funs;
 }
 
 }  // namespace smt
