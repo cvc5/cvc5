@@ -35,7 +35,6 @@ namespace quantifiers {
 QueryGenerator::QueryGenerator(Env& env) : ExprMiner(env), d_queryCount(0) {}
 void QueryGenerator::initialize(const std::vector<Node>& vars, SygusSampler* ss)
 {
-  Assert(ss != nullptr);
   d_queryCount = 0;
   ExprMiner::initialize(vars, ss);
 }
