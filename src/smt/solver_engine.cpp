@@ -917,7 +917,8 @@ Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
   {
     if (!gtn.isNull())
     {
-      Warning() << "Ignoring grammar provided to find-synth :rewrite_input" << std::endl;
+      Warning() << "Ignoring grammar provided to find-synth :rewrite_input"
+                << std::endl;
     }
     uint64_t nvars = options().quantifiers.sygusRewSynthInputNVars;
     std::vector<Node> asserts = getAssertionsInternal();
@@ -925,7 +926,8 @@ Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
                                                                      nvars);
     if (gtnu.empty())
     {
-      Warning() << "Could not find grammar in find-synth :rewrite_input" << std::endl;
+      Warning() << "Could not find grammar in find-synth :rewrite_input"
+                << std::endl;
       return Node::null();
     }
   }
