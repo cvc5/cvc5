@@ -69,7 +69,6 @@ std::map<TypeNode, TypeNode> SynthRewRulesPass::constructTopLevelGrammar(
   std::map<TypeNode, TypeNode> tlGrammarTypes;
   if (assertions.empty())
   {
-    throw Exception("No assertions to consider for synthesizing rewrites");
     return tlGrammarTypes;
   }
   NodeManager* nm = NodeManager::currentNM();
@@ -215,7 +214,6 @@ std::map<TypeNode, TypeNode> SynthRewRulesPass::constructTopLevelGrammar(
   // exit with an exception.
   if (allVars.empty())
   {
-    throw Exception("No terms to consider for synthesizing rewrites");
     return tlGrammarTypes;
   }
 

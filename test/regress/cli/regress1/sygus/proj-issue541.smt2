@@ -1,3 +1,4 @@
+; COMMAND-LINE: -q
 ; SCRUBBER: grep -v -E '.*'
 ; EXIT: 0
 (set-logic ALL)

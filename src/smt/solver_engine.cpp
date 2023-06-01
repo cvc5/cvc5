@@ -917,12 +917,17 @@ Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
   {
     if (!gtn.isNull())
     {
-      // TODO: warn?
+      Warning() << "Ignoring grammar provided to find-synth :rewrite_input" << std::endl;
     }
     uint64_t nvars = options().quantifiers.sygusRewSynthInputNVars;
     std::vector<Node> asserts = getAssertionsInternal();
     gtnu = preprocessing::passes::SynthRewRulesPass::getGrammarsFrom(asserts,
                                                                      nvars);
+    if (gtnu.empty())
+    {
+      Warning() << "Could not find grammar in find-synth :rewrite_input" << std::endl;
+      return Node::null();
+    }
   }
   if (d_sygusSolver != nullptr && gtnu.empty())
   {
