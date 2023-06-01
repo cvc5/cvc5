@@ -45,12 +45,12 @@ class SynthFinder : protected EnvObj
   void initializeFindSynth(modes::FindSynthTarget fst, const TypeNode& gtn);
   bool increment();
   Node getCurrent();
+
  private:
   /** Initialize find synthesis target */
   void initialize(modes::FindSynthTarget fst, const Node& e);
   /** Run find synthesis target */
-  Node runNext(const Node& n,
-                            modes::FindSynthTarget fst);
+  Node runNext(const Node& n, modes::FindSynthTarget fst);
   /** The enumerator callback */
   std::unique_ptr<SygusEnumeratorCallback> d_ecb;
   /** candidate rewrite database */

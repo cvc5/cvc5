@@ -37,6 +37,7 @@
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
+#include "preprocessing/passes/synth_rew_rules.h"
 #include "printer/printer.h"
 #include "proof/unsat_core.h"
 #include "prop/prop_engine.h"
@@ -66,7 +67,6 @@
 #include "theory/quantifiers/instantiation_list.h"
 #include "theory/quantifiers/oracle_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "preprocessing/passes/synth_rew_rules.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
@@ -912,7 +912,7 @@ Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
     gtnu.push_back(gtn);
   }
   // if synthesizing rewrite rules from input, we infer the grammar here
-  if (fst==modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_INPUT)
+  if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_INPUT)
   {
     if (!gtn.isNull())
     {
@@ -920,12 +920,14 @@ Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
     }
     uint64_t nvars = options().quantifiers.sygusRewSynthInputNVars;
     std::vector<Node> asserts = getAssertionsInternal();
-    gtnu = preprocessing::passes::SynthRewRulesPass::getGrammarsFrom(asserts, nvars);
+    gtnu = preprocessing::passes::SynthRewRulesPass::getGrammarsFrom(asserts,
+                                                                     nvars);
   }
-  if (d_sygusSolver!=nullptr && gtnu.empty())
+  if (d_sygusSolver != nullptr && gtnu.empty())
   {
     // if no type provided, and the sygus solver exists,
-    std::vector<std::pair<Node, TypeNode>> funs = d_sygusSolver->getSynthFunctions();
+    std::vector<std::pair<Node, TypeNode>> funs =
+        d_sygusSolver->getSynthFunctions();
     for (const std::pair<Node, TypeNode>& f : funs)
     {
       if (!f.second.isNull())
@@ -937,9 +939,9 @@ Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
   if (gtnu.empty())
   {
     throw RecoverableModalException(
-        "No grammar available in call to find-synth. Either provide one or ensure synth-fun has been called.");
+        "No grammar available in call to find-synth. Either provide one or "
+        "ensure synth-fun has been called.");
   }
-  
 }
 
 /*

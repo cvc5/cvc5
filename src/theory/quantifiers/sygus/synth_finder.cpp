@@ -29,10 +29,11 @@ namespace quantifiers {
 
 SynthFinder::SynthFinder(Env& env) : EnvObj(env) {}
 
-void SynthFinder::initializeFindSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
+void SynthFinder::initializeFindSynth(modes::FindSynthTarget fst,
+                                      const TypeNode& gtn)
 {
   // should be a sygus datatype
-  Assert (!gtn.isNull() && gtn.isDatatype() && gtn.getDType().isSygus());
+  Assert(!gtn.isNull() && gtn.isDatatype() && gtn.getDType().isSygus());
   d_fst = fst;
   d_fstu = fst;
   // rewrites from input use the same algorithm
@@ -51,17 +52,17 @@ void SynthFinder::initializeFindSynth(modes::FindSynthTarget fst, const TypeNode
   // initialize the enumerator
   d_enum.reset(new SygusEnumerator(d_env, nullptr, d_ecb.get()));
   d_enum->initialize(e);
-}  
+}
 
 bool SynthFinder::increment()
 {
-  Assert (d_enum!=nullptr);
+  Assert(d_enum != nullptr);
   return d_enum->increment();
 }
 
 Node SynthFinder::getCurrent()
 {
-  Assert (d_enum!=nullptr);
+  Assert(d_enum != nullptr);
   Node curr = d_enum->getCurrent();
   if (curr.isNull())
   {
@@ -81,6 +82,7 @@ class SygusEnumeratorCallbackNoSym : public SygusEnumeratorCallback
 {
  public:
   SygusEnumeratorCallbackNoSym(Env& env) : SygusEnumeratorCallback(env) {}
+
  protected:
   /** Get the cache value for the given candidate */
   Node getCacheValue(const Node& n, const Node& bn) override { return bn; }
@@ -167,8 +169,7 @@ void SynthFinder::initialize(modes::FindSynthTarget fst, const Node& e)
   }
 }
 
-Node SynthFinder::runNext(const Node& n,
-                                       modes::FindSynthTarget fst)
+Node SynthFinder::runNext(const Node& n, modes::FindSynthTarget fst)
 {
   std::vector<Node> ret;
   Node bn = datatypes::utils::sygusToBuiltin(n, true);

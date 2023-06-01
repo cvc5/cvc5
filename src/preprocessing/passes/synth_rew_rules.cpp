@@ -49,11 +49,13 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
 {
   return PreprocessingPassResult::NO_CONFLICT;
 }
-  
-std::vector<TypeNode> SynthRewRulesPass::getGrammarsFrom(const std::vector<Node>& assertions, uint64_t nvars)
+
+std::vector<TypeNode> SynthRewRulesPass::getGrammarsFrom(
+    const std::vector<Node>& assertions, uint64_t nvars)
 {
   std::vector<TypeNode> ret;
-  std::map<TypeNode, TypeNode> tlGrammarTypes = constructTopLevelGrammar(assertions, nvars);
+  std::map<TypeNode, TypeNode> tlGrammarTypes =
+      constructTopLevelGrammar(assertions, nvars);
   for (std::pair<const TypeNode, TypeNode> ttp : tlGrammarTypes)
   {
     ret.push_back(ttp.second);
@@ -61,10 +63,11 @@ std::vector<TypeNode> SynthRewRulesPass::getGrammarsFrom(const std::vector<Node>
   return ret;
 }
 
-std::map<TypeNode, TypeNode> SynthRewRulesPass::constructTopLevelGrammar(const std::vector<Node>& assertions, uint64_t nvars)
+std::map<TypeNode, TypeNode> SynthRewRulesPass::constructTopLevelGrammar(
+    const std::vector<Node>& assertions, uint64_t nvars)
 {
   std::map<TypeNode, TypeNode> tlGrammarTypes;
-  if( assertions.empty())
+  if (assertions.empty())
   {
     throw Exception("No assertions to consider for synthesizing rewrites");
     return tlGrammarTypes;
@@ -183,10 +186,7 @@ std::map<TypeNode, TypeNode> SynthRewRulesPass::constructTopLevelGrammar(const s
     // This ensures that no type in our grammar has zero constructors. If
     // our input does not contain a Boolean variable, we need not allocate any
     // Boolean variables here.
-    uint64_t useNVars =
-        !tn.isBoolean()
-            ? nvars
-            : (hasBoolVar ? 1 : 0);
+    uint64_t useNVars = !tn.isBoolean() ? nvars : (hasBoolVar ? 1 : 0);
     for (uint64_t i = 0; i < useNVars; i++)
     {
       // We must have a good name for these variables, these are
@@ -304,8 +304,7 @@ std::map<TypeNode, TypeNode> SynthRewRulesPass::constructTopLevelGrammar(const s
     // we add variable constructors if we are not Boolean, we are interested
     // in purely propositional rewrites (via the option), or this term is
     // a Boolean variable.
-    if (!ctt.isBoolean()
-        || ct.getKind() == BOUND_VARIABLE)
+    if (!ctt.isBoolean() || ct.getKind() == BOUND_VARIABLE)
     {
       // may or may not have variables for this type
       if (tvars.find(ctt) != tvars.end())
