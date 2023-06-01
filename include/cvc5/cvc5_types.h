@@ -252,6 +252,19 @@ enum ProofComponent
 };
 /** Writes a proof component identifier to a stream. */
 std::ostream& operator<<(std::ostream& out, ProofComponent pc) CVC5_EXPORT;
+
+/**
+ */
+enum FindSynthTarget
+{
+  FIND_SYNTH_TARGET_REWRITE_RULE,
+  FIND_SYNTH_TARGET_REWRITE_RULE_UNSOUND,
+  FIND_SYNTH_TARGET_REWRITE_RULE_FROM_INPUT,
+  FIND_SYNTH_TARGET_QUERY,
+};
+/** Writes a synthesis find target identifier to a stream. */
+std::ostream& operator<<(std::ostream& out, FindSynthTarget fst) CVC5_EXPORT;
+
 }  // namespace cvc5::modes
 
 #endif

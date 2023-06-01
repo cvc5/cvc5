@@ -441,6 +441,10 @@ class CVC5_EXPORT SolverEngine
    * @throw Exception
    */
   SynthResult checkSynth(bool isNext = false);
+  /**
+   * Find synth for the given target and grammar.
+   */
+  Node findSynth(SynthFindTarget sft, const TypeNode& gtn);
 
   /*------------------------- end of sygus commands ------------------------*/
 

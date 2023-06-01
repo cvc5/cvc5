@@ -902,6 +902,17 @@ SynthResult SolverEngine::checkSynth(bool isNext)
   return r;
 }
 
+Node SolverEngine::findSynth(SynthFindTarget sft, const TypeNode& gtn)
+{
+  beginCall();
+  if (d_sygusSolver == nullptr)
+  {
+    throw RecoverableModalException(
+        "Cannot call find-synth without sygus enabled.");
+  }
+  return d_sygusSolver->findSynth(sft, gtn);
+}
+
 /*
    --------------------------------------------------------------------------
     End of Handling SyGuS commands

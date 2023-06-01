@@ -567,5 +567,32 @@ std::vector<Node> SygusSolver::listToVector(const NodeList& list)
   return vec;
 }
 
+Node SygusSolver::findSynth(SynthFindTarget sft, const TypeNode& gtn)
+{
+  // determine the grammar
+  if (gtn.isNull())
+  {
+    // take the grammar of the first function to synthesize, warning if
+    // there are more than one.
+    if (d_sygusFunSymbols.empty())
+    {
+      return Node::null();
+    }
+    if (d_sygusFunSymbols.size()>1)
+    {
+      // WARNING
+    }
+    SygusSynthGrammarAttribute ssfga;
+    Node sym = d_sygusFunSymbols[0].getAttribute(ssfga);
+    if (sym.isNull())
+    {
+      return Node::null();
+    }
+    gtn = sym.getType();
+  }
+  theory::quantifiers::SygusFinder sf(d_env);
+  return sf.find(sft, gtn);
+}
+
 }  // namespace smt
 }  // namespace cvc5::internal
