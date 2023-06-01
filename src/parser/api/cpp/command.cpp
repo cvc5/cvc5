@@ -760,7 +760,6 @@ void CheckSynthCommand::toStream(std::ostream& out) const
   }
 }
 
-
 /* -------------------------------------------------------------------------- */
 /* class FindSynthCommand                                                    */
 /* -------------------------------------------------------------------------- */
@@ -769,7 +768,7 @@ void FindSynthCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    if (d_grammar!=nullptr)
+    if (d_grammar != nullptr)
     {
       d_result = solver->findSynth(d_fst, *d_grammar);
     }
@@ -786,19 +785,19 @@ void FindSynthCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 
 Term FindSynthCommand::getResult() const { return d_result; }
 void FindSynthCommand::printResult(cvc5::Solver* solver,
-                                    std::ostream& out) const
+                                   std::ostream& out) const
 {
   out << "(" << d_fst << " " << d_result << ")";
 }
 
-std::string FindSynthCommand::getCommandName() const
-{
-  return "find-synth";
-}
+std::string FindSynthCommand::getCommandName() const { return "find-synth"; }
 
 void FindSynthCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(out)->toStreamCmdFindSynth(out, d_fst, d_grammar == nullptr ? TypeNode::null() : grammarToTypeNode(d_grammar));
+  Printer::getPrinter(out)->toStreamCmdFindSynth(
+      out,
+      d_fst,
+      d_grammar == nullptr ? TypeNode::null() : grammarToTypeNode(d_grammar));
 }
 /* -------------------------------------------------------------------------- */
 /* class ResetCommand                                                         */

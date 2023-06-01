@@ -735,8 +735,8 @@ class CVC5_EXPORT CheckSynthCommand : public Command
 class CVC5_EXPORT FindSynthCommand : public Command
 {
  public:
-  FindSynthCommand(modes::FindSynthTarget fst,
-                  cvc5::Grammar* g) : d_fst(fst), d_grammar(g) {};
+  FindSynthCommand(modes::FindSynthTarget fst, cvc5::Grammar* g)
+      : d_fst(fst), d_grammar(g){};
   /** returns the result of the find-synth call */
   Term getResult() const;
   /** prints the result of the find-synth call */
@@ -748,6 +748,7 @@ class CVC5_EXPORT FindSynthCommand : public Command
   std::string getCommandName() const override;
   /** prints this command */
   void toStream(std::ostream& out) const override;
+
  protected:
   /** The target type */
   modes::FindSynthTarget d_fst;

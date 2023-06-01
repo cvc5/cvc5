@@ -24,8 +24,8 @@
 #include "expr/type_node.h"
 #include "smt/assertions.h"
 #include "smt/env_obj.h"
-#include "util/synth_result.h"
 #include "theory/quantifiers/sygus/synth_finder.h"
+#include "util/synth_result.h"
 
 namespace cvc5::internal {
 

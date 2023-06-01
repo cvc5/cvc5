@@ -61,7 +61,7 @@ SynthConjecture::SynthConjecture(Env& env,
       d_hasSolution(false),
       d_computedSolution(false),
       d_runExprMiner(options().quantifiers.sygusFilterSolMode
-                            != options::SygusFilterSolMode::NONE),
+                     != options::SygusFilterSolMode::NONE),
       d_ceg_si(new CegSingleInv(env, tr, s)),
       d_templInfer(new SygusTemplateInfer(env)),
       d_ceg_proc(new SynthConjectureProcess(env)),

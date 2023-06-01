@@ -7981,7 +7981,6 @@ SynthResult Solver::checkSynthNext() const
   CVC5_API_TRY_CATCH_END;
 }
 
-
 Term Solver::findSynth(modes::FindSynthTarget fst) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -7993,8 +7992,7 @@ Term Solver::findSynth(modes::FindSynthTarget fst) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::findSynth(modes::FindSynthTarget fst,
-                Grammar& grammar) const
+Term Solver::findSynth(modes::FindSynthTarget fst, Grammar& grammar) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)

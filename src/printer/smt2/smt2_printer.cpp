@@ -2113,9 +2113,9 @@ void Smt2Printer::toStreamCmdCheckSynthNext(std::ostream& out) const
 }
 
 void Smt2Printer::toStreamCmdFindSynth(std::ostream& out,
-                                    modes::FindSynthTarget fst,
-                                   TypeNode sygusType) const
-                                   {
+                                       modes::FindSynthTarget fst,
+                                       TypeNode sygusType) const
+{
   out << "(find-synth";
   // print grammar, if any
   if (!sygusType.isNull())
@@ -2123,8 +2123,8 @@ void Smt2Printer::toStreamCmdFindSynth(std::ostream& out,
     out << " " << sygusGrammarString(sygusType);
   }
   out << " :" << fst << ")" << std::endl;
-                                   }
-                                   
+}
+
 void Smt2Printer::toStreamCmdGetInterpol(std::ostream& out,
                                          const std::string& name,
                                          Node conj,

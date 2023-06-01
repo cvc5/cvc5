@@ -531,7 +531,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       Grammar* g = d_tparser.parseGrammarOrNull(emptyVarList, "g_find-synth");
       cmd.reset(new FindSynthCommand(fst, g));
     }
-      break;
+    break;
     // (get-abduct <symbol> <term> <grammar>?)
     case Token::GET_ABDUCT_TOK:
     {

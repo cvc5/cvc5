@@ -5152,9 +5152,8 @@ class CVC5_EXPORT Solver
    * @return The result of the find,
    */
   Term findSynth(modes::FindSynthTarget fst) const;
-  Term findSynth(modes::FindSynthTarget fst,
-                Grammar& grammar) const;
-  
+  Term findSynth(modes::FindSynthTarget fst, Grammar& grammar) const;
+
   /**
    * Get a snapshot of the current state of the statistic values of this
    * solver. The returned object is completely decoupled from the solver and
