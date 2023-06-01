@@ -778,7 +778,8 @@ bool SygusSampler::checkEquivalent(Node bv, Node bvr, std::ostream* out)
     return true;
   }
   Trace("sygus-rr-verify") << "Testing rewrite rule " << bv << " ---> " << bvr
-                           << " over " << getNumSamplePoints() << " points for " << d_vars << std::endl;
+                           << " over " << getNumSamplePoints() << " points for "
+                           << d_vars << std::endl;
 
   // see if they evaluate to same thing on all sample points
   bool ptDisequal = false;
@@ -827,7 +828,8 @@ bool SygusSampler::checkEquivalent(Node bv, Node bvr, std::ostream* out)
     // debugging information
     if (out)
     {
-      (*out) << "find-synth: terms " << bv << " and " << bvr << " are not equivalent for : " << std::endl;
+      (*out) << "find-synth: terms " << bv << " and " << bvr
+             << " are not equivalent for : " << std::endl;
       (*out) << ptOut.str();
       Assert(bve != bvre);
       (*out) << "where they evaluate to " << bve << " and " << bvre

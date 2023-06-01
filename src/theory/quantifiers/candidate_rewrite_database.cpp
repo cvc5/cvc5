@@ -105,7 +105,7 @@ Node CandidateRewriteDatabase::addTerm(
   // register the term
   bool is_unique_term = true;
   Node eq_sol = d_sampler->registerTerm(sol);
-  Trace("rr-check-r")  << sol << " returns " << eq_sol << std::endl;
+  Trace("rr-check-r") << sol << " returns " << eq_sol << std::endl;
   // eq_sol is a candidate solution that is equivalent to sol
   if (eq_sol != sol)
   {
@@ -282,7 +282,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::vector<Node>& rewrites)
 {
   std::vector<std::pair<bool, Node>> rewritesFound;
   Node rsol = addTerm(sol, false, rewritesFound);
-  for (std::pair<bool,Node>& r : rewritesFound)
+  for (std::pair<bool, Node>& r : rewritesFound)
   {
     rewrites.push_back(r.second);
   }
