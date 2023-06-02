@@ -788,6 +788,7 @@ bool SygusSampler::checkEquivalent(Node bv, Node bvr, std::ostream* out)
   Node bve, bvre;
   for (unsigned i = 0, npoints = getNumSamplePoints(); i < npoints; i++)
   {
+    // do not use the rewriter in the calls to evaluate here
     const std::vector<Node>& pt = d_samples[i];
     bve = EnvObj::evaluate(bv, d_vars, pt, false);
     bvre = EnvObj::evaluate(bvr, d_vars, pt, false);

@@ -39,4 +39,5 @@
  )))
 )
 
+(find-synth :rewrite)
 (find-synth :rewrite_unsound)
