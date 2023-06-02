@@ -176,7 +176,7 @@ void SynthFinder::initialize(modes::FindSynthTarget fst, const Node& e)
     Unhandled() << "Unknown find synthesis target " << fst;
   }
   // initialize
-  if (d_current!=nullptr)
+  if (d_current != nullptr)
   {
     d_current->initialize(vars, d_sampler.get());
   }
@@ -188,7 +188,7 @@ Node SynthFinder::runNext(const Node& n, modes::FindSynthTarget fst)
   Node bn = datatypes::utils::sygusToBuiltin(n, true);
   Trace("synth-finder") << "runNext " << d_fstu << " " << bn << std::endl;
   // run the expression miner
-  Assert (d_current!=nullptr);
+  Assert(d_current != nullptr);
   d_current->addTerm(bn, ret);
   // if non-empty
   if (!ret.empty())

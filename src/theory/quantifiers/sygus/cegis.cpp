@@ -674,8 +674,7 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
   Trace("cegis-sample") << "Sample (after rewriting): " << sbody << std::endl;
 
   NodeManager* nm = NodeManager::currentNM();
-  for (size_t i = 0, size = d_cegis_sampler.getNumSamplePoints(); i < size;
-       i++)
+  for (size_t i = 0, size = d_cegis_sampler.getNumSamplePoints(); i < size; i++)
   {
     if (d_cegis_sample_refine.find(i) == d_cegis_sample_refine.end())
     {
