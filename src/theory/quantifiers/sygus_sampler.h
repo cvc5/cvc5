@@ -115,10 +115,9 @@ class SygusSampler : protected EnvObj, public LazyTrieEvaluator
    *
    * Appends sample point #index to the vector pt, d_vars to vars.
    */
-  void getSamplePoint(unsigned index,
-                      std::vector<Node>& pt);
+  const std::vector<Node>& getSamplePoint(size_t index) const;
   /** Add pt to the set of sample points considered by this sampler */
-  void addSamplePoint(std::vector<Node>& pt);
+  void addSamplePoint(const std::vector<Node>& pt);
   /** evaluate n on sample point index */
   Node evaluate(Node n, unsigned index) override;
   /**
@@ -171,16 +170,6 @@ class SygusSampler : protected EnvObj, public LazyTrieEvaluator
    */
   bool containsFreeVariables(Node a, Node b, bool strict = false);
   //--------------------------end queries about terms
-  /** check equivalent
-   *
-   * Check whether bv and bvr are equivalent on all sample points, print
-   * an error if not. Used with --sygus-rr-verify.
-   *
-   * @param bv The original term
-   * @param bvr The rewritten form of bvr
-   * @param out The output stream to write if the rewrite was unsound.
-   */
-  bool checkEquivalent(Node bv, Node bvr, std::ostream* out = nullptr);
 
  protected:
   /** sygus term database of d_qe */

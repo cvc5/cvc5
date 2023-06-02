@@ -143,11 +143,12 @@ void SynthFinder::initialize(modes::FindSynthTarget fst, const Node& e)
                                      false,
                                      true,
                                      options().quantifiers.sygusRewSynthRec));
-    d_crd->initialize(vars, d_sampler.get());
     d_current = d_crd.get();
   }
   else if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_UNSOUND)
   {
+    d_rrv.reset(new RewriteVerifier(d_env));
+    d_current = d_rrv.get();
   }
   else if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_QUERY)
   {
@@ -168,9 +169,16 @@ void SynthFinder::initialize(modes::FindSynthTarget fst, const Node& e)
     {
       Unhandled() << "Unknown query generation mode " << qmode;
     }
-    // initialize the query generator
-    d_qg->initialize(vars, d_sampler.get());
     d_current = d_qg.get();
+  }
+  else
+  {
+    Unhandled() << "Unknown find synthesis target " << fst;
+  }
+  // initialize
+  if (d_current!=nullptr)
+  {
+    d_current->initialize(vars, d_sampler.get());
   }
 }
 
@@ -179,27 +187,10 @@ Node SynthFinder::runNext(const Node& n, modes::FindSynthTarget fst)
   std::vector<Node> ret;
   Node bn = datatypes::utils::sygusToBuiltin(n, true);
   Trace("synth-finder") << "runNext " << d_fstu << " " << bn << std::endl;
-  if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE)
-  {
-    d_crd->addTerm(bn, ret);
-  }
-  else if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_UNSOUND)
-  {
-    // check its rewritten form
-    Node bnr = rewrite(bn);
-    if (!d_sampler->checkEquivalent(bn, bnr))
-    {
-      std::stringstream ss;
-      d_sampler->checkEquivalent(bn, bnr, &ss);
-      Warning() << ss.str();
-      ret.push_back(bn.eqNode(bnr));
-    }
-  }
-  else if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_QUERY)
-  {
-    Assert(d_qg != nullptr);
-    d_qg->addTerm(bn, ret);
-  }
+  // run the expression miner
+  Assert (d_current!=nullptr);
+  d_current->addTerm(bn, ret);
+  // if non-empty
   if (!ret.empty())
   {
     return NodeManager::currentNM()->mkNode(kind::SEXPR, ret);

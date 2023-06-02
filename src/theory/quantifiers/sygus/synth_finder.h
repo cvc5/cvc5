@@ -22,6 +22,7 @@
 
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/query_generator.h"
+#include "theory/quantifiers/rewrite_verifier.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus_sampler.h"
 
@@ -66,6 +67,8 @@ class SynthFinder : protected EnvObj
   std::unique_ptr<CandidateRewriteDatabase> d_crd;
   /** The query generator we are using */
   std::unique_ptr<QueryGenerator> d_qg;
+  /** Rewrite verifier */
+  std::unique_ptr<RewriteVerifier> d_rrv;
   /** sygus sampler object */
   std::unique_ptr<SygusSampler> d_sampler;
   /** The enumerator */

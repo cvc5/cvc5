@@ -458,15 +458,13 @@ void SygusSampler::getVariables(std::vector<Node>& vars) const
   vars.insert(vars.end(), d_vars.begin(), d_vars.end());
 }
 
-void SygusSampler::getSamplePoint(unsigned index,
-                                  std::vector<Node>& pt)
+const std::vector<Node>& SygusSampler::getSamplePoint(size_t index) const
 {
   Assert(index < d_samples.size());
-  std::vector<Node>& spt = d_samples[index];
-  pt.insert(pt.end(), spt.begin(), spt.end());
+  return d_samples[index];
 }
 
-void SygusSampler::addSamplePoint(std::vector<Node>& pt)
+void SygusSampler::addSamplePoint(const std::vector<Node>& pt)
 {
   Assert(pt.size() == d_vars.size());
   d_samples.push_back(pt);
@@ -769,76 +767,6 @@ void SygusSampler::registerSygusType(TypeNode tn)
       }
     }
   }
-}
-
-bool SygusSampler::checkEquivalent(Node bv, Node bvr, std::ostream* out)
-{
-  if (bv == bvr)
-  {
-    return true;
-  }
-  Trace("sygus-rr-verify") << "Testing rewrite rule " << bv << " ---> " << bvr
-                           << " over " << getNumSamplePoints() << " points for "
-                           << d_vars << std::endl;
-
-  // see if they evaluate to same thing on all sample points
-  bool ptDisequal = false;
-  bool ptDisequalConst = false;
-  unsigned pt_index = 0;
-  Node bve, bvre;
-  for (unsigned i = 0, npoints = getNumSamplePoints(); i < npoints; i++)
-  {
-    // do not use the rewriter in the calls to evaluate here
-    const std::vector<Node>& pt = d_samples[i];
-    bve = EnvObj::evaluate(bv, d_vars, pt, false);
-    bvre = EnvObj::evaluate(bvr, d_vars, pt, false);
-    if (bve != bvre)
-    {
-      ptDisequal = true;
-      pt_index = i;
-      if (bve.isConst() && bvre.isConst())
-      {
-        ptDisequalConst = true;
-        break;
-      }
-    }
-  }
-  // bv and bvr should be equivalent under examples
-  if (ptDisequal)
-  {
-    std::vector<Node> vars;
-    getVariables(vars);
-    std::vector<Node> pt;
-    getSamplePoint(pt_index, pt);
-    Assert(vars.size() == pt.size());
-    std::stringstream ptOut;
-    for (unsigned i = 0, size = pt.size(); i < size; i++)
-    {
-      ptOut << "  " << vars[i] << " -> " << pt[i] << std::endl;
-    }
-    if (!ptDisequalConst)
-    {
-      d_env.verbose(1)
-          << "Warning: " << bv << " and " << bvr
-          << " evaluate to different (non-constant) values on point:"
-          << std::endl;
-      d_env.verbose(1) << ptOut.str();
-      return true;
-    }
-    // we have detected unsoundness in the rewriter
-    // debugging information
-    if (out)
-    {
-      (*out) << "find-synth: terms " << bv << " and " << bvr
-             << " are not equivalent for : " << std::endl;
-      (*out) << ptOut.str();
-      Assert(bve != bvre);
-      (*out) << "where they evaluate to " << bve << " and " << bvre
-             << std::endl;
-    }
-    return false;
-  }
-  return true;
 }
 
 }  // namespace quantifiers

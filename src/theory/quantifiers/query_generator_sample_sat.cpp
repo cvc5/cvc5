@@ -176,8 +176,7 @@ void QueryGeneratorSampleSat::checkQuery(Node qy,
     ss << "--sygus-rr-query-gen detected unsoundness in cvc5 on input " << qy
        << "!" << std::endl;
     ss << "This query has a model : " << std::endl;
-    std::vector<Node> pt;
-    d_sampler->getSamplePoint(spIndex, pt);
+    const std::vector<Node>& pt = d_sampler->getSamplePoint(spIndex);
     Assert(pt.size() == d_vars.size());
     for (unsigned i = 0, size = pt.size(); i < size; i++)
     {

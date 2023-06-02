@@ -39,7 +39,9 @@ namespace quantifiers {
  *
  * This is a virtual base class for modules that "mines" certain information
  * from (enumerated) expressions. This includes:
- * - candidate rewrite rules (--sygus-rr-synth)
+ * - candidate rewrite rules (find-synth :rewrite)
+ * - unsound rewrite rules (find-synth :rewrite_unsound)
+ * - queries (find-synth :query)
  */
 class ExprMiner : protected EnvObj
 {
@@ -57,10 +59,8 @@ class ExprMiner : protected EnvObj
                           SygusSampler* ss = nullptr);
   /** add term
    *
-   * This registers term n with this expression miner. The output stream out
-   * is provided as an argument for the purposes of outputting the result of
-   * the expression mining done by this class. For example, candidate-rewrite
-   * output is printed on out by the candidate rewrite generator miner.
+   * This registers term n with this expression miner, and adds an expressions
+   * found (e.g. rewrites, queries) to found.
    */
   virtual bool addTerm(Node n, std::vector<Node>& found) = 0;
 
@@ -98,9 +98,7 @@ class ExprMiner : protected EnvObj
   Result doCheck(Node query, const SubsolverSetupInfo& info);
 };
 
-/**
- * Identity expression miner
- */
+/** Identity expression miner */
 class ExprMinerId : public ExprMiner
 {
  public:
