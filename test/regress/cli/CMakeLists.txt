@@ -1606,6 +1606,7 @@ set(regress_0_tests
   regress0/strings/issue8481.smt2
   regress0/strings/issue8481-2.smt2
   regress0/strings/issue8722-learned-rew.smt2
+  regress0/strings/issue9784.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/large-model.smt2
   regress0/strings/leadingzero001.smt2
