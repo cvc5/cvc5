@@ -1394,12 +1394,9 @@ name   = "Quantifiers"
   category   = "expert"
   long       = "sygus-query-gen=MODE"
   type       = "SygusQueryGenMode"
-  default    = "NONE"
+  default    = "BASIC"
   help       = "mode for generating interesting satisfiability queries using SyGuS, for internal fuzzing"
   help_mode  = "Modes for generating interesting satisfiability queries using SyGuS."
-[[option.mode.NONE]]
-  name = "none"
-  help = "Do not generate queries with SyGuS."
 [[option.mode.BASIC]]
   name = "basic"
   help = "Generate all queries using SyGuS enumeration of the given grammar"
