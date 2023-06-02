@@ -218,7 +218,7 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
       TermDbSygus::toStreamSygus("sygus-active-gen-debug", absE);
       Trace("sygus-active-gen-debug") << std::endl;
     }
-    d_qim.lemma(lem, InferenceId::QUANTIFIERS_SYGUS_EXCLUDE_CURRENT);
+    d_qim.lemma(lem, InferenceId::QUANTIFIERS_SYGUS_ACTIVE_GEN_EXCLUDE_CURRENT);
   }
   else
   {
