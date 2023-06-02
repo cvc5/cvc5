@@ -5139,7 +5139,12 @@ class CVC5_EXPORT Solver
   std::vector<Term> getSynthSolutions(const std::vector<Term>& terms) const;
 
   /**
-   * Find a target artifact using sygus enumeration.
+   * Find a target term of interest using sygus enumeration, with no provided
+   * grammar.
+   *
+   * The solver will infer which grammar to use in this call, which by default
+   * will be the grammars specified by the function(s)-to-synthesize in the
+   * current context.
    *
    * SyGuS v2:
    *
@@ -5149,9 +5154,25 @@ class CVC5_EXPORT Solver
    *     (find-synth :target)
    * \endverbatim
    *
-   * @return The result of the find,
+   * @param fst The identifier specifying what kind of term to find
+   * @return The result of the find, which is the null term if this call failed.
    */
   Term findSynth(modes::FindSynthTarget fst) const;
+  /**
+   * Find a target term of interest using sygus enumeration with a provided
+   * grammar.
+   *
+   * SyGuS v2:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (find-synth :target G)
+   * \endverbatim
+   *
+   * @param fst The identifier specifying what kind of term to find
+   * @return The result of the find, which is the null term if this call failed.
+   */
   Term findSynth(modes::FindSynthTarget fst, Grammar& grammar) const;
 
   /**
