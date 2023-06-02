@@ -5174,6 +5174,22 @@ class CVC5_EXPORT Solver
    * @return The result of the find, which is the null term if this call failed.
    */
   Term findSynth(modes::FindSynthTarget fst, Grammar& grammar) const;
+  /**
+   * Try to find a next target term of interest using sygus enumeration. Must
+   * be called immediately after a successful call to find-synth or
+   * find-synth-next.
+   *
+   * SyGuS v2:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (find-synth-next)
+   * \endverbatim
+   *
+   * @return The result of the find, which is the null term if this call failed.
+   */
+  Term findSynthNext() const;
 
   /**
    * Get a snapshot of the current state of the statistic values of this

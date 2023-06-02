@@ -7999,6 +7999,15 @@ Term Solver::findSynth(modes::FindSynthTarget fst, Grammar& grammar) const
   CVC5_API_TRY_CATCH_END;
 }
 
+Term Solver::findSynthNext() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return Term(d_nm, d_slv->findSynthNext());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 Term Solver::getSynthSolution(Term term) const
 {
   CVC5_API_TRY_CATCH_BEGIN;

@@ -955,7 +955,20 @@ Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
   {
     d_findSynthSolver.reset(new FindSynthSolver(*d_env.get()));
   }
-  return d_findSynthSolver->findSynth(fst, gtnu);
+  Node ret = d_findSynthSolver->findSynth(fst, gtnu);
+  return ret;
+}
+
+Node SolverEngine::findSynthNext()
+{
+  beginCall();
+  if (d_state->getMode() != SmtMode::FIND_SYNTH)
+  {
+    throw RecoverableModalException(
+        "Cannot find-synth-next unless immediately preceded by a successful "
+        "call to find-synth(-next).");
+  }
+  return d_findSynthSolver->findSynthNext();
 }
 
 /*

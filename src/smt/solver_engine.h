@@ -446,6 +446,10 @@ class CVC5_EXPORT SolverEngine
    * Find synth for the given target and grammar.
    */
   Node findSynth(modes::FindSynthTarget fst, const TypeNode& gtn);
+  /**
+   * Find synth for the given target and grammar.
+   */
+  Node findSynthNext();
 
   /*------------------------- end of sygus commands ------------------------*/
 

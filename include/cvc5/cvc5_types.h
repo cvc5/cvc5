@@ -271,7 +271,7 @@ enum FindSynthTarget
    *
    * This can be used to synthesize rewrite rules. Note if the rewriter is set
    * to none (--sygus-rewrite=none), this indicates a possible rewrite when
-   * implementing a rewriter from scratch. 
+   * implementing a rewriter from scratch.
    */
   FIND_SYNTH_TARGET_REWRITE,
   /**
@@ -287,7 +287,7 @@ enum FindSynthTarget
    * Find a rewrite between pairs of terms (t,s) that are matchable with terms
    * in the input assertions where t and s are equivalent but do not rewrite
    * to the same term in the given rewriter (--sygus-rewrite=MODE).
-   * 
+   *
    * This can be used to synthesize rewrite rules that apply to the current
    * problem.
    */
@@ -296,7 +296,7 @@ enum FindSynthTarget
    * Find a query over the given grammar. If the given grammar generates terms
    * that are not Boolean, we consider equalities over terms from the given
    * grammar.
-   * 
+   *
    * The algorithm for determining which queries to generate is configured by
    * --sygus-query-gen=MODE.
    */
