@@ -103,8 +103,8 @@ class ExprMiner : protected EnvObj
  */
 class ExprMinerId : public ExprMiner
 {
-public:
-  ExprMinerId(Env& env) : ExprMiner(env){}
+ public:
+  ExprMinerId(Env& env) : ExprMiner(env) {}
   virtual ~ExprMinerId() {}
   /** Returns true and adds n to found */
   bool addTerm(Node n, std::vector<Node>& found) override;

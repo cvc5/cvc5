@@ -137,8 +137,12 @@ void SynthFinder::initialize(modes::FindSynthTarget fst, const Node& e)
   }
   else if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE)
   {
-    d_crd.reset(new CandidateRewriteDatabase(
-        d_env, options().quantifiers.sygusRewSynthCheck, false, true, options().quantifiers.sygusRewSynthRec));
+    d_crd.reset(
+        new CandidateRewriteDatabase(d_env,
+                                     options().quantifiers.sygusRewSynthCheck,
+                                     false,
+                                     true,
+                                     options().quantifiers.sygusRewSynthRec));
     d_crd->initialize(vars, d_sampler.get());
     d_current = d_crd.get();
   }

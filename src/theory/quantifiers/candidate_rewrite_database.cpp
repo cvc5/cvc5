@@ -31,16 +31,16 @@ using namespace cvc5::context;
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
-  
-/** Attribute true for rewrites where verification was run  */
-struct RewriteVerifiedAttributeId {};
-typedef expr::Attribute< RewriteVerifiedAttributeId, bool > RewriteVerifiedAttribute;
 
-CandidateRewriteDatabase::CandidateRewriteDatabase(Env& env,
-                                                   bool doCheck,
-                                                   bool rewAccel,
-                                                   bool filterPairs,
-                                                   bool rec)
+/** Attribute true for rewrites where verification was run  */
+struct RewriteVerifiedAttributeId
+{
+};
+typedef expr::Attribute<RewriteVerifiedAttributeId, bool>
+    RewriteVerifiedAttribute;
+
+CandidateRewriteDatabase::CandidateRewriteDatabase(
+    Env& env, bool doCheck, bool rewAccel, bool filterPairs, bool rec)
     : ExprMiner(env),
       d_tds(nullptr),
       d_useExtRewriter(false),
@@ -92,11 +92,11 @@ void CandidateRewriteDatabase::initializeSygus(const std::vector<Node>& vars,
 bool CandidateRewriteDatabase::wasVerified(const Node& rewrite)
 {
   RewriteVerifiedAttribute rva;
-  return rewrite.getAttribute(rva);        
+  return rewrite.getAttribute(rva);
 }
 
-Node CandidateRewriteDatabase::addOrGetTerm(
-    Node sol, std::vector<Node>& rewrites)
+Node CandidateRewriteDatabase::addOrGetTerm(Node sol,
+                                            std::vector<Node>& rewrites)
 {
   // have we added this term before?
   std::unordered_map<Node, Node>::iterator itac = d_add_term_cache.find(sol);

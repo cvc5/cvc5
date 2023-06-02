@@ -71,7 +71,7 @@ class SynthFinder : protected EnvObj
   /** The enumerator */
   std::unique_ptr<SygusEnumerator> d_enum;
   /** The active expression miner */
-  ExprMiner * d_current;
+  ExprMiner* d_current;
   /** The current target we are given as input */
   modes::FindSynthTarget d_fst;
   /** The current target we are using */

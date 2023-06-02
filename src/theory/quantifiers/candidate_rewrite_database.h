@@ -100,6 +100,7 @@ class CandidateRewriteDatabase : public ExprMiner
   void enableExtendedRewriter();
   /** Was the given rewrite verified? */
   static bool wasVerified(const Node& rewrite);
+
  private:
   /** (required) pointer to the sygus term database of d_qe */
   TermDbSygus* d_tds;

@@ -26,9 +26,9 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-/** 
+/**
  * ExpressionMinerManager
- * 
+ *
  * NOTE: this should be renamed to "solution filter".
  */
 class ExpressionMinerManager : protected EnvObj
