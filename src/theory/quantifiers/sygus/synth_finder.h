@@ -58,6 +58,8 @@ class SynthFinder : protected EnvObj
   void initialize(modes::FindSynthTarget fst, const Node& e);
   /** Run find synthesis target */
   Node runNext(const Node& n, modes::FindSynthTarget fst);
+  /** An identity expression miner */
+  std::unique_ptr<ExprMinerId> d_eid;
   /** The enumerator callback */
   std::unique_ptr<SygusEnumeratorCallback> d_ecb;
   /** candidate rewrite database */
@@ -68,6 +70,8 @@ class SynthFinder : protected EnvObj
   std::unique_ptr<SygusSampler> d_sampler;
   /** The enumerator */
   std::unique_ptr<SygusEnumerator> d_enum;
+  /** The active expression miner */
+  ExprMiner * d_current;
   /** The current target we are given as input */
   modes::FindSynthTarget d_fst;
   /** The current target we are using */

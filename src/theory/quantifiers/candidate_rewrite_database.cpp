@@ -31,11 +31,16 @@ using namespace cvc5::context;
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
+  
+/** Attribute true for rewrites where verification was run  */
+struct RewriteVerifiedAttributeId {};
+typedef expr::Attribute< RewriteVerifiedAttributeId, bool > RewriteVerifiedAttribute;
 
 CandidateRewriteDatabase::CandidateRewriteDatabase(Env& env,
                                                    bool doCheck,
                                                    bool rewAccel,
-                                                   bool filterPairs)
+                                                   bool filterPairs,
+                                                   bool rec)
     : ExprMiner(env),
       d_tds(nullptr),
       d_useExtRewriter(false),
@@ -43,6 +48,7 @@ CandidateRewriteDatabase::CandidateRewriteDatabase(Env& env,
       d_rewAccel(rewAccel),
       d_filterPairs(filterPairs),
       d_using_sygus(false),
+      d_rec(rec),
       d_crewrite_filter(env)
 {
   // determine the options to use for the verification subsolvers we spawn
@@ -83,8 +89,14 @@ void CandidateRewriteDatabase::initializeSygus(const std::vector<Node>& vars,
   ExprMiner::initialize(vars, ss);
 }
 
-Node CandidateRewriteDatabase::addTerm(
-    Node sol, bool rec, std::vector<std::pair<bool, Node>>& rewrites)
+bool CandidateRewriteDatabase::wasVerified(const Node& rewrite)
+{
+  RewriteVerifiedAttribute rva;
+  return rewrite.getAttribute(rva);        
+}
+
+Node CandidateRewriteDatabase::addOrGetTerm(
+    Node sol, std::vector<Node>& rewrites)
 {
   // have we added this term before?
   std::unordered_map<Node, Node>::iterator itac = d_add_term_cache.find(sol);
@@ -93,13 +105,13 @@ Node CandidateRewriteDatabase::addTerm(
     return itac->second;
   }
 
-  if (rec)
+  if (d_rec)
   {
     // if recursive, we first add all subterms
     for (const Node& solc : sol)
     {
       // whether a candidate rewrite is printed for any subterm is irrelevant
-      addTerm(solc, rec, rewrites);
+      addTerm(solc, rewrites);
     }
   }
   // register the term
@@ -218,7 +230,13 @@ Node CandidateRewriteDatabase::addTerm(
         // The analog of terms sol and eq_sol are equivalent under
         // sample points but do not rewrite to the same term. Hence,
         // this indicates a candidate rewrite.
-        rewrites.emplace_back(verified, solb.eqNode(eq_sol));
+        Node eq = solb.eqNode(eq_sol);
+        rewrites.push_back(eq);
+        if (verified)
+        {
+          RewriteVerifiedAttribute rva;
+          eq.setAttribute(rva, true);
+        }
         // debugging information
         if (TraceIsOn("sygus-rr-debug"))
         {
@@ -280,12 +298,7 @@ Node CandidateRewriteDatabase::addTerm(
 
 bool CandidateRewriteDatabase::addTerm(Node sol, std::vector<Node>& rewrites)
 {
-  std::vector<std::pair<bool, Node>> rewritesFound;
-  Node rsol = addTerm(sol, false, rewritesFound);
-  for (std::pair<bool, Node>& r : rewritesFound)
-  {
-    rewrites.push_back(r.second);
-  }
+  Node rsol = addOrGetTerm(sol, rewrites);
   return sol == rsol;
 }
 

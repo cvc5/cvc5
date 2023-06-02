@@ -26,12 +26,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-/** ExpressionMinerManager
- *
- * This class manages a set of expression miners. It provides a common place
- * to register expressions so that multiple mining algorithms can be run in
- * coordination, possibly sharing information and utilities like a common
- * sampling object.
+/** 
+ * ExpressionMinerManager
+ * 
+ * NOTE: this should be renamed to "solution filter".
  */
 class ExpressionMinerManager : protected EnvObj
 {

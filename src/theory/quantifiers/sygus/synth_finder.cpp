@@ -27,7 +27,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-SynthFinder::SynthFinder(Env& env) : EnvObj(env) {}
+SynthFinder::SynthFinder(Env& env) : EnvObj(env), d_current(nullptr) {}
 
 void SynthFinder::initializeFindSynth(modes::FindSynthTarget fst,
                                       const TypeNode& gtn)
@@ -130,15 +130,20 @@ void SynthFinder::initialize(modes::FindSynthTarget fst, const Node& e)
   }
 
   // now, setup the handlers
-  if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE)
+  if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_ENUM)
+  {
+    d_eid.reset(new ExprMinerId(d_env));
+    d_current = d_eid.get();
+  }
+  else if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE)
   {
     d_crd.reset(new CandidateRewriteDatabase(
-        d_env, options().quantifiers.sygusRewSynthCheck));
+        d_env, options().quantifiers.sygusRewSynthCheck, false, true, options().quantifiers.sygusRewSynthRec));
     d_crd->initialize(vars, d_sampler.get());
+    d_current = d_crd.get();
   }
   else if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_UNSOUND)
   {
-    // only the sampler is required
   }
   else if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_QUERY)
   {
@@ -161,6 +166,7 @@ void SynthFinder::initialize(modes::FindSynthTarget fst, const Node& e)
     }
     // initialize the query generator
     d_qg->initialize(vars, d_sampler.get());
+    d_current = d_qg.get();
   }
 }
 
@@ -171,12 +177,7 @@ Node SynthFinder::runNext(const Node& n, modes::FindSynthTarget fst)
   Trace("synth-finder") << "runNext " << d_fstu << " " << bn << std::endl;
   if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE)
   {
-    std::vector<std::pair<bool, Node>> rewrites;
-    d_crd->addTerm(bn, options().quantifiers.sygusRewSynthRec, rewrites);
-    for (const std::pair<bool, Node>& r : rewrites)
-    {
-      ret.push_back(r.second);
-    }
+    d_crd->addTerm(bn, ret);
   }
   else if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_UNSOUND)
   {
@@ -193,9 +194,7 @@ Node SynthFinder::runNext(const Node& n, modes::FindSynthTarget fst)
   else if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_QUERY)
   {
     Assert(d_qg != nullptr);
-    std::vector<Node> queries;
-    d_qg->addTerm(bn, queries);
-    ret.insert(ret.end(), queries.begin(), queries.end());
+    d_qg->addTerm(bn, ret);
   }
   if (!ret.empty())
   {

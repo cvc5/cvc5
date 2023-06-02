@@ -98,6 +98,18 @@ class ExprMiner : protected EnvObj
   Result doCheck(Node query, const SubsolverSetupInfo& info);
 };
 
+/**
+ * Identity expression miner
+ */
+class ExprMinerId : public ExprMiner
+{
+public:
+  ExprMinerId(Env& env) : ExprMiner(env){}
+  virtual ~ExprMinerId() {}
+  /** Returns true and adds n to found */
+  bool addTerm(Node n, std::vector<Node>& found) override;
+};
+
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5::internal

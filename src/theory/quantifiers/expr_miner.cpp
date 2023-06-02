@@ -89,6 +89,12 @@ Result ExprMiner::doCheck(Node query, const SubsolverSetupInfo& info)
   return smte->checkSat();
 }
 
+bool ExprMinerId::addTerm(Node n, std::vector<Node>& found)
+{
+  found.push_back(n);
+  return true;
+}
+
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5::internal

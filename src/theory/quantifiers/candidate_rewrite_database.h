@@ -52,11 +52,14 @@ class CandidateRewriteDatabase : public ExprMiner
    * discovered rewrites (see option sygusRewSynthAccel()).
    * @param filterPairs Whether to filter rewrite pairs using filtering
    * techniques from the SAT 2019 paper above.
+   * @param rec Whether we are recursively finding rules for all subterms
+   * added to this class
    */
   CandidateRewriteDatabase(Env& env,
                            bool doCheck,
                            bool rewAccel = false,
-                           bool filterPairs = true);
+                           bool filterPairs = true,
+                           bool rec = false);
   ~CandidateRewriteDatabase() {}
   /**  Initialize this class */
   void initialize(const std::vector<Node>& var, SygusSampler* ss) override;
@@ -81,15 +84,12 @@ class CandidateRewriteDatabase : public ExprMiner
    * cause a candidate-rewrite to be printed on the output stream out.
    *
    * @param sol The term to add to this class.
-   * @param rec If true, then we also recursively add all subterms of sol
-   * to this class as well.
+   * @param rewrites The set of rewrite rules discovered on this call.
    * @return A previous term eq_sol added to this class, such that sol is
    * equivalent to eq_sol based on the criteria used by this class. We return
    * only terms that are verified to be equivalent to sol.
    */
-  Node addTerm(Node sol,
-               bool rec,
-               std::vector<std::pair<bool, Node>>& rewrites);
+  Node addOrGetTerm(Node sol, std::vector<Node>& rewrites);
   /**
    * Same as above, returns true if the return value of addTerm was equal to
    * sol, in other words, sol was a new unique term. This assumes false for
@@ -98,7 +98,8 @@ class CandidateRewriteDatabase : public ExprMiner
   bool addTerm(Node sol, std::vector<Node>& rewrites) override;
   /** Enable the (extended) rewriter for this class */
   void enableExtendedRewriter();
-
+  /** Was the given rewrite verified? */
+  static bool wasVerified(const Node& rewrite);
  private:
   /** (required) pointer to the sygus term database of d_qe */
   TermDbSygus* d_tds;
@@ -119,6 +120,8 @@ class CandidateRewriteDatabase : public ExprMiner
   bool d_filterPairs;
   /** whether we are using sygus */
   bool d_using_sygus;
+  /** Whether we are check rewrite rules for all subterms added to this class */
+  bool d_rec;
   /** candidate rewrite filter */
   CandidateRewriteFilter d_crewrite_filter;
   /** the cache for results of addTerm */

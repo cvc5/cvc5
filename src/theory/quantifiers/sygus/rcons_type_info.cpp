@@ -64,8 +64,8 @@ Node RConsTypeInfo::nextEnum()
 
 Node RConsTypeInfo::addTerm(Node n)
 {
-  std::vector<std::pair<bool, Node>> rewrites;
-  return d_crd->addTerm(n, false, rewrites);
+  std::vector<Node> rewrites;
+  return d_crd->addOrGetTerm(n, rewrites);
 }
 
 void RConsTypeInfo::setBuiltinToOb(Node t, RConsObligation* ob)
