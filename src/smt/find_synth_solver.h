@@ -44,6 +44,7 @@ class FindSynthSolver : protected EnvObj
    * findSynth above.
    */
   Node findSynthNext();
+
  private:
   /**
    * The synthesis finder utilities that are active. These are initialized

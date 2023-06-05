@@ -23,7 +23,8 @@ namespace smt {
 
 FindSynthSolver::FindSynthSolver(Env& env) : EnvObj(env) {}
 
-Node FindSynthSolver::findSynth(modes::FindSynthTarget fst, const std::vector<TypeNode>& gtns)
+Node FindSynthSolver::findSynth(modes::FindSynthTarget fst,
+                                const std::vector<TypeNode>& gtns)
 {
   d_fst = fst;
   // initialize the synthesis finders
@@ -44,31 +45,32 @@ Node FindSynthSolver::findSynthNext()
   std::vector<size_t> toErase;
   while (!d_sfinders.empty())
   {
-    Assert (d_currIndex<d_sfinders.size());
-    for (size_t i=d_currIndex, nfinders = d_sfinders.size(); i<nfinders; i++)
+    Assert(d_currIndex < d_sfinders.size());
+    for (size_t i = d_currIndex, nfinders = d_sfinders.size(); i < nfinders;
+         i++)
     {
-      theory::quantifiers::SynthFinder * curr = d_sfinders[i].get();
+      theory::quantifiers::SynthFinder* curr = d_sfinders[i].get();
       if (!curr->increment())
       {
-        toErase.push_back(i-toErase.size());
+        toErase.push_back(i - toErase.size());
         continue;
       }
       ret = curr->getCurrent();
       if (!ret.isNull())
       {
         // found a return
-        d_currIndex = i-toErase.size();
+        d_currIndex = i - toErase.size();
         break;
       }
     }
     for (size_t i : toErase)
     {
-      d_sfinders.erase(d_sfinders.begin()+i);
+      d_sfinders.erase(d_sfinders.begin() + i);
     }
     // if we terminated
     if (!ret.isNull())
     {
-      if (d_currIndex>=d_sfinders.size())
+      if (d_currIndex >= d_sfinders.size())
       {
         d_currIndex = 0;
       }
