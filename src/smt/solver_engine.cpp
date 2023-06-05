@@ -65,6 +65,7 @@
 #include "smt/sygus_solver.h"
 #include "smt/timeout_core_manager.h"
 #include "smt/unsat_core_manager.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/instantiation_list.h"
 #include "theory/quantifiers/oracle_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -907,10 +908,18 @@ SynthResult SolverEngine::checkSynth(bool isNext)
 Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
 {
   beginCall();
+  Trace("smt") << "SolverEngine::findSynth " << fst << std::endl;
+  // The grammar(s) we will use. This may be more than one if doing rewrite
+  // rule synthesis from input or if no grammar is specified, indicating we
+  // wish to use grammars for each function-to-synthesize.
   std::vector<TypeNode> gtnu;
   if (!gtn.isNull())
   {
-    gtnu.push_back(gtn);
+    // Must generalize the free symbols in the grammar to variables. Otherwise,
+    // certain algorithms (e.g. sampling) will fail to treat the free symbols
+    // of the grammar as inputs to the term to find.
+    TypeNode ggtn = theory::datatypes::utils::generalizeSygusType(gtn);
+    gtnu.push_back(ggtn);
   }
   // if synthesizing rewrite rules from input, we infer the grammar here
   if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_INPUT)
