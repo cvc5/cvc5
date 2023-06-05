@@ -1746,8 +1746,7 @@ TrustNode TheorySetsPrivate::expandChooseOperator(
   SkolemManager::SkolemFlags flags = node.getType().isBoolean()
                                          ? SkolemManager::SKOLEM_BOOL_TERM_VAR
                                          : SkolemManager::SKOLEM_DEFAULT;
-  Node x = sm->mkPurifySkolem(
-      node, flags);
+  Node x = sm->mkPurifySkolem(node, flags);
   Node A = node[0];
   TypeNode setType = A.getType();
   ensureFirstClassSetType(setType);

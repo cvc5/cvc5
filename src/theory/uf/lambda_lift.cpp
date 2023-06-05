@@ -158,8 +158,7 @@ Node LambdaLift::getSkolemFor(TNode node)
       // Make the skolem to represent the lambda
       NodeManager* nm = NodeManager::currentNM();
       SkolemManager* sm = nm->getSkolemManager();
-      skolem = sm->mkPurifySkolem(
-          node);
+      skolem = sm->mkPurifySkolem(node);
     }
   }
   return skolem;

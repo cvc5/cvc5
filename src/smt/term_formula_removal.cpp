@@ -299,8 +299,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
           << "RemoveTermFormulas::run: make ITE skolem" << std::endl;
       // Make the skolem to represent the ITE
       SkolemManager* sm = nodeManager->getSkolemManager();
-      skolem = sm->mkPurifySkolem(
-          node);
+      skolem = sm->mkPurifySkolem(node);
       d_skolem_cache.insert(node, skolem);
 
       // Notice that in very rare cases, two different terms may have the
@@ -356,8 +355,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
         // Make the skolem to witness the choice, which notice is handled
         // as a special case within SkolemManager::mkPurifySkolem.
         SkolemManager* sm = nodeManager->getSkolemManager();
-        skolem = sm->mkPurifySkolem(
-            node);
+        skolem = sm->mkPurifySkolem(node);
         d_skolem_cache.insert(node, skolem);
 
         Assert(node[0].getNumChildren() == 1);
