@@ -27,11 +27,6 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 
-struct SkolemFormAttributeId
-{
-};
-typedef expr::Attribute<SkolemFormAttributeId, Node> SkolemFormAttribute;
-
 struct OriginalFormAttributeId
 {
 };
@@ -46,7 +41,7 @@ const char* toString(SkolemFunId id)
 {
   switch (id)
   {
-    case SkolemFunId::PURIFIY: return "PURIFY";
+    case SkolemFunId::PURIFY: return "PURIFY";
     case SkolemFunId::ARRAY_DEQ_DIFF: return "ARRAY_DEQ_DIFF";
     case SkolemFunId::DIV_BY_ZERO: return "DIV_BY_ZERO";
     case SkolemFunId::INT_DIV_BY_ZERO: return "INT_DIV_BY_ZERO";
@@ -139,7 +134,7 @@ Node SkolemManager::mkPurifySkolem(Node t,
   }
   else
   {
-    k = mkSkolemInternal(SkolemFunId::PURIFY, t.getType(), {t});
+    k = mkSkolemFunction(SkolemFunId::PURIFY, t.getType(), {t});
     // shouldn't provide proof generators for other terms
     Assert(pg == nullptr);
   }
@@ -342,28 +337,6 @@ Node SkolemManager::getUnpurifiedForm(Node k)
   return k;
 }
 
-Node SkolemManager::mkSkolemInternal(Node w,
-                                     const std::string& prefix,
-                                     const std::string& comment,
-                                     int flags)
-{
-  // note that witness, original forms are independent, but share skolems
-  // w is not necessarily a witness term
-  SkolemFormAttribute sfa;
-  // could already have a skolem if we used w already
-  if (w.hasAttribute(sfa))
-  {
-    return w.getAttribute(sfa);
-  }
-  // make the new skolem
-  Node k = mkSkolemNode(prefix, w.getType(), comment, flags);
-  // set skolem form attribute for w
-  w.setAttribute(sfa, k);
-  Trace("sk-manager") << "SkolemManager::mkSkolem: " << k << " : " << w
-                      << std::endl;
-  return k;
-}
-
 Node SkolemManager::mkSkolemNode(const std::string& prefix,
                                  const TypeNode& type,
                                  const std::string& comment,
@@ -379,20 +352,19 @@ Node SkolemManager::mkSkolemNode(const std::string& prefix,
   else
   {
     n = NodeBuilder(nm, SKOLEM);
-    if ((flags & SKOLEM_EXACT_NAME) == 0)
-    {
-      std::stringstream name;
-      name << prefix << '_' << ++d_skolemCounter;
-      n.setAttribute(expr::VarNameAttr(), name.str());
-    }
-    else
-    {
-      n.setAttribute(expr::VarNameAttr(), prefix);
-    }
+  }
+  if ((flags & SKOLEM_EXACT_NAME) == 0)
+  {
+    std::stringstream name;
+    name << prefix << '_' << ++d_skolemCounter;
+    n.setAttribute(expr::VarNameAttr(), name.str());
+  }
+  else
+  {
+    n.setAttribute(expr::VarNameAttr(), prefix);
   }
   n.setAttribute(expr::TypeAttr(), type);
   n.setAttribute(expr::TypeCheckedAttr(), true);
-
   return n;
 }
 
