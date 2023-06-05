@@ -3465,7 +3465,6 @@ TEST_F(TestApiBlackSolver, proj_issue429)
 TEST_F(TestApiBlackSolver, proj_issue422)
 {
   Solver slv;
-  slv.setOption("sygus-rr-synth-input", "true");
   slv.setOption("strings-exp", "true");
   slv.setOption("sygus-abort-size", "1");
   Sort s1 = slv.mkBitVectorSort(36);
