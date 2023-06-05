@@ -159,9 +159,7 @@ Node LambdaLift::getSkolemFor(TNode node)
       NodeManager* nm = NodeManager::currentNM();
       SkolemManager* sm = nm->getSkolemManager();
       skolem = sm->mkPurifySkolem(
-          node,
-          "lambdaF",
-          "a function introduced due to term-level lambda removal");
+          node);
     }
   }
   return skolem;

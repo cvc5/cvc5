@@ -158,7 +158,7 @@ uint64_t Trigger::addInstantiations()
                                      : SkolemManager::SKOLEM_DEFAULT;
         SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
         Node k = sm->mkPurifySkolem(
-            gt, "gt", "introduced for ground subterms of triggers", flags);
+            gt, flags);
         Node eq = k.eqNode(gt);
         Trace("trigger-gt-lemma")
             << "Trigger: ground term purify lemma: " << eq << std::endl;

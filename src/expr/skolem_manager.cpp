@@ -110,8 +110,6 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id)
 SkolemManager::SkolemManager() : d_skolemCounter(0) {}
 
 Node SkolemManager::mkPurifySkolem(Node t,
-                                   const std::string& prefix,
-                                   const std::string& comment,
                                    int flags,
                                    ProofGenerator* pg)
 {

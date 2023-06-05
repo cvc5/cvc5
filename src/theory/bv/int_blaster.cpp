@@ -706,9 +706,7 @@ Node IntBlaster::translateNoChildren(Node original,
         // we introduce a fresh variable, add range constraints, and save the
         // connection between original and the new variable via intCast
         translation = d_nm->getSkolemManager()->mkPurifySkolem(
-            intCast,
-            "__intblast__var",
-            "Variable introduced in intblasting for " + original.toString());
+            intCast);
         uint32_t bvsize = original.getType().getBitVectorSize();
         addRangeConstraint(translation, bvsize, lemmas);
         // put new definition of old variable in skolems
@@ -1046,9 +1044,7 @@ Node IntBlaster::createBVAndNode(Node x,
     Node iAnd = d_nm->mkNode(kind::IAND, iAndOp, x, y);
     // get a skolem so the IAND solver knows not to do work
     returnNode = d_nm->getSkolemManager()->mkPurifySkolem(
-        iAnd,
-        "__intblast__iand",
-        "skolem for an IAND node in bitwise mode " + iAnd.toString());
+        iAnd);
     addRangeConstraint(returnNode, bvsize, lemmas);
 
     // eagerly add bitwise lemmas according to the provided granularity

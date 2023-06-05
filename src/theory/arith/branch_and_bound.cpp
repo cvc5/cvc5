@@ -49,7 +49,7 @@ std::vector<TrustNode> BranchAndBound::branchIntegerVariable(TNode var,
   NodeManager* nm = NodeManager::currentNM();
   if (doPurify)
   {
-    Node k = nm->getSkolemManager()->mkPurifySkolem(var, "bbk");
+    Node k = nm->getSkolemManager()->mkPurifySkolem(var);
     Node eq = k.eqNode(var);
     if (proofsEnabled())
     {

@@ -1363,7 +1363,7 @@ Node InferProofCons::maybePurifyTerm(Node n,
     return n;
   }
   SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-  Node k = sm->mkPurifySkolem(n, "k");
+  Node k = sm->mkPurifySkolem(n);
   return k;
 }
 

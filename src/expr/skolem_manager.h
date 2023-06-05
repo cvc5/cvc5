@@ -310,8 +310,6 @@ class SkolemManager
    * will return two different Skolems.
    *
    * @param t The term to purify
-   * @param prefix The prefix of the name of  the skolem
-   * @param comment Debug information about the skolem
    * @param flags The flags for the skolem (see SkolemFlags)
    * @param pg The proof generator for the skolemization of t. This should
    * only be provided if t is a witness term (witness ((x T)) P). If non-null,
@@ -320,8 +318,6 @@ class SkolemManager
    * @return The purification skolem for t
    */
   Node mkPurifySkolem(Node t,
-                      const std::string& prefix,
-                      const std::string& comment = "",
                       int flags = SKOLEM_DEFAULT,
                       ProofGenerator* pg = nullptr);
   /**
