@@ -134,7 +134,7 @@ Node SkolemManager::mkPurifySkolem(Node t,
   }
   else
   {
-    k = mkSkolemFunction(SkolemFunId::PURIFY, t.getType(), {t});
+    k = mkSkolemFunction(SkolemFunId::PURIFY, t.getType(), {t}, flags);
     // shouldn't provide proof generators for other terms
     Assert(pg == nullptr);
   }
@@ -160,7 +160,7 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id,
   if (it == d_skolemFuns.end())
   {
     std::stringstream ss;
-    ss << "SKOLEM_FUN_" << id;
+    ss << "SKOLEM_" << id;
     Node k = mkSkolemNode(ss.str(), tn, "an internal skolem function", flags);
     d_skolemFuns[key] = k;
     d_skolemFunMap[k] = key;
