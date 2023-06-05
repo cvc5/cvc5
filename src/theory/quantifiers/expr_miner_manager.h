@@ -35,7 +35,7 @@ class ExpressionMinerManager : protected EnvObj
 {
  public:
   ExpressionMinerManager(Env& env);
-  ~ExpressionMinerManager() {} 
+  ~ExpressionMinerManager() {}
   /** Initialize this class, sygus version
    *
    * Initializes this class, informing it that the terms added to this class
