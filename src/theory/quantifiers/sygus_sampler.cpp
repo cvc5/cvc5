@@ -93,8 +93,7 @@ void SygusSampler::initialize(TypeNode tn,
   initializeSamples(nsamples);
 }
 
-void SygusSampler::initializeSygus(TypeNode ftn,
-                                   unsigned nsamples)
+void SygusSampler::initializeSygus(TypeNode ftn, unsigned nsamples)
 {
   d_is_valid = true;
   d_ftn = ftn;

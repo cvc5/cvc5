@@ -97,8 +97,7 @@ class SygusSampler : protected EnvObj, public LazyTrieEvaluator
    * terms of the analog of the type of f, that is, the builtin type that
    * f's type encodes in the deep embedding.
    */
-  virtual void initializeSygus(TypeNode ftn,
-                               unsigned nsamples);
+  virtual void initializeSygus(TypeNode ftn, unsigned nsamples);
   /** register term n with this sampler database
    *
    * forceKeep is whether we wish to force that n is chosen as a representative
