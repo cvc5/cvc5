@@ -131,6 +131,8 @@ class SygusGrammar
   std::unordered_set<Node> d_allowConst;
   /** Mapping from non-terminals to their unresolved types. */
   std::unordered_map<Node, TypeNode> d_ntsToUnres;
+  /** The datatype type constructed by this grammar. */
+  TypeNode d_datatype;
 };
 
 }  // namespace cvc5::internal

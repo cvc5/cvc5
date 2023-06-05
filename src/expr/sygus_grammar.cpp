@@ -67,7 +67,6 @@ void SygusGrammar::addRules(const Node& ntSym, const std::vector<Node>& rules)
 
 void SygusGrammar::addAnyConstant(const Node& ntSym, const TypeNode& tn)
 {
-  d_sdts.at(ntSym).addAnyConstantConstructor(tn);
   d_allowConst.emplace(ntSym);
 }
 
@@ -85,30 +84,31 @@ void SygusGrammar::addAnyVariable(const Node& ntSym)
 
 TypeNode SygusGrammar::resolve()
 {
-  NodeManager* nm = NodeManager::currentNM();
-  Node bvl;
-  if (!d_sygusVars.empty())
+  if (!isResolved())
   {
-    bvl = nm->mkNode(kind::BOUND_VAR_LIST, d_sygusVars);
+    NodeManager* nm = NodeManager::currentNM();
+    Node bvl;
+    if (!d_sygusVars.empty())
+    {
+      bvl = nm->mkNode(kind::BOUND_VAR_LIST, d_sygusVars);
+    }
+    std::vector<DType> datatypes;
+    for (const Node& ntSym : d_ntSyms)
+    {
+      bool allowConst = d_allowConst.find(ntSym) != d_allowConst.cend();
+      d_sdts.at(ntSym).initializeDatatype(
+          ntSym.getType(), bvl, allowConst, false);
+      datatypes.push_back(d_sdts.at(ntSym).getDatatype());
+    }
+    d_datatype = nm->mkMutualDatatypeTypes(datatypes)[0];
   }
-  std::vector<DType> datatypes;
-
-  for (const Node& ntSym : d_ntSyms)
-  {
-    bool allowConst = d_allowConst.find(ntSym) != d_allowConst.cend();
-    d_sdts.at(ntSym).initializeDatatype(
-        ntSym.getType(), bvl, allowConst, false);
-    datatypes.push_back(d_sdts.at(ntSym).getDatatype());
-  }
-  std::vector<internal::TypeNode> datatypeTypes =
-      nm->mkMutualDatatypeTypes(datatypes);
-  // return is the first datatype
-  return datatypeTypes[0];
+  // return the first datatype
+  return d_datatype;
 }
 
 bool SygusGrammar::isResolved()
 {
-  return d_sdts.at(d_ntSyms[0]).isInitialized();
+  return !d_datatype.isNull();
 }
 
 const std::vector<Node>& SygusGrammar::getSygusVars() const

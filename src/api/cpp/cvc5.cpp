@@ -4542,7 +4542,7 @@ Grammar::Grammar(internal::NodeManager* nm,
                  const std::vector<Term>& sygusVars,
                  const std::vector<Term>& ntSymbols)
     : d_nm(nm),
-      d_sg(std::make_unique<internal::SygusGrammar>(
+      d_sg(std::make_shared<internal::SygusGrammar>(
           Term::termVectorToNodes(sygusVars),
           Term::termVectorToNodes(ntSymbols)))
 {
@@ -4653,15 +4653,6 @@ std::string Grammar::toString() const
 Sort Grammar::resolve()
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  // We can be in a case where the only rule specified was (Variable T)
-  // and there are no variables of type T, in which case this is a bogus
-  // grammar. This results in the error below.
-  for (const internal::Node& ntSym : d_sg->getNtSyms())
-  {
-    CVC5_API_CHECK(d_sg->getNumConstructors(ntSym) != 0)
-        << "Grouped rule listing for " << ntSym
-        << " produced an empty rule list";
-  }
   //////// all checks before this line
   return Sort(d_nm, d_sg->resolve());
   ////////

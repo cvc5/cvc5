@@ -31,7 +31,6 @@ set(EXAMPLES_API_PYTHON
   sets
   strings
   sygus-fun
-  sygus-grammar
   sygus-inv
   transcendentals
 )

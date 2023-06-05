@@ -2838,7 +2838,7 @@ class CVC5_EXPORT Grammar
   /** The node manager associated with this grammar. */
   internal::NodeManager* d_nm;
   /** The internal representation of this grammar. */
-  std::unique_ptr<internal::SygusGrammar> d_sg;
+  std::shared_ptr<internal::SygusGrammar> d_sg;
 };
 
 /**
