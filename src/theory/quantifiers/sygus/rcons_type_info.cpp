@@ -50,13 +50,13 @@ void RConsTypeInfo::initialize(Env& env,
   d_sygusSampler->initialize(stn, builtinVars, 0);
   d_crd->initialize(builtinVars, d_sygusSampler.get());
   // initialize current probability to be the initial probability.
-  cp = p = env.getOptions().quantifiers.cegqiSingleInvReconstructP;
+  d_cp = d_p = env.getOptions().quantifiers.cegqiSingleInvReconstructP;
 }
 
 Node RConsTypeInfo::nextEnum()
 {
-  size_t i = Random::getRandom().pickWithProb(cp) ? 1 : 0;
-  cp *= p;
+  size_t i = Random::getRandom().pickWithProb(d_cp) ? 1 : 0;
+  d_cp *= d_p;
   if (!d_enumerators[i]->increment())
   {
     Trace("sygus-rcons") << "no increment" << std::endl;
