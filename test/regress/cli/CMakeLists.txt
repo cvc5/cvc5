@@ -478,6 +478,7 @@ set(regress_0_tests
   regress0/bv/holes/sgt-eliminate.smt2
   regress0/bv/holes/shl-by-const-1.smt2
   regress0/bv/holes/udiv-zero.smt2
+  regress0/bv/holes/uge-eliminate.smt2
   regress0/bv/holes/ugt-eliminate.smt2
   regress0/bv/holes/ult-one.smt2
   regress0/bv/holes/zero-extend-eliminate.smt2
