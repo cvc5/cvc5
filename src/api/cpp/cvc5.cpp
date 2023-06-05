@@ -4645,7 +4645,7 @@ std::string Grammar::toString() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return d_sg->toString();
+  return d_sg == nullptr ? "" : d_sg->toString();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
