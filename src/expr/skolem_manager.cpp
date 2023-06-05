@@ -46,6 +46,7 @@ const char* toString(SkolemFunId id)
 {
   switch (id)
   {
+    case SkolemFunId::PURIFIY: return "PURIFY";
     case SkolemFunId::ARRAY_DEQ_DIFF: return "ARRAY_DEQ_DIFF";
     case SkolemFunId::DIV_BY_ZERO: return "DIV_BY_ZERO";
     case SkolemFunId::INT_DIV_BY_ZERO: return "INT_DIV_BY_ZERO";
@@ -138,7 +139,7 @@ Node SkolemManager::mkPurifySkolem(Node t,
   }
   else
   {
-    k = mkSkolemInternal(t, prefix, comment, flags);
+    k = mkSkolemInternal(SkolemFunId::PURIFY, t.getType(), {t});
     // shouldn't provide proof generators for other terms
     Assert(pg == nullptr);
   }

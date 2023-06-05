@@ -30,6 +30,8 @@ class ProofGenerator;
 enum class SkolemFunId
 {
   NONE,
+  /** purification skolem for a term t */
+  PURIFY,
   /** array diff to witness (not (= A B)) */
   ARRAY_DEQ_DIFF,
   /** an uninterpreted function f s.t. f(x) = x / 0.0 (real division) */
