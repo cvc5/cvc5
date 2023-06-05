@@ -3499,6 +3499,7 @@ TEST_F(TestApiBlackSolver, proj_issue422)
   slv.assertFormula({t301});
   // should terminate with an exception indicating we are done enumerating
   // rewrite rules.
+  // !!! temporary
   //ASSERT_THROW(slv.findSynth(FindSynthTarget::REWRITE_RULE_INPUT), CVC5ApiException);
 }
 
