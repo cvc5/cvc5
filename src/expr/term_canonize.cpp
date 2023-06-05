@@ -60,7 +60,8 @@ bool TermCanonize::getTermOrder(Node a, Node b)
   {
     if (b.getKind() == BOUND_VARIABLE)
     {
-      return getIndexForFreeVariable(a) < getIndexForFreeVariable(b);
+      // just use builtin node comparison
+      return a < b;
     }
     return true;
   }
@@ -74,7 +75,7 @@ bool TermCanonize::getTermOrder(Node a, Node b)
     {
       if (a.getNumChildren() == b.getNumChildren())
       {
-        for (unsigned i = 0, size = a.getNumChildren(); i < size; i++)
+        for (size_t i = 0, size = a.getNumChildren(); i < size; i++)
         {
           if (a[i] != b[i])
           {
