@@ -563,6 +563,7 @@ void SynthFunCommand::toStream(std::ostream& out) const
       out,
       d_symbol,
       nodeVars,
+      sortToTypeNode(d_sort),
       d_grammar == nullptr ? TypeNode::null() : grammarToTypeNode(d_grammar));
 }
 
