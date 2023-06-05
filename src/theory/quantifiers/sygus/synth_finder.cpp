@@ -118,8 +118,8 @@ void SynthFinder::initialize(modes::FindSynthTarget fst, const Node& e)
   if (needsSampler)
   {
     d_sampler.reset(new SygusSampler(d_env));
-    d_sampler->initialize(
-        dt.getSygusType(), vars, nsamples, samplerUniqueTypeIds);
+    d_sampler->initializeSygus(
+        gtn, nsamples);
   }
 
   // initialize the sygus enumerator callback if necessary

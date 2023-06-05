@@ -93,20 +93,16 @@ void SygusSampler::initialize(TypeNode tn,
   initializeSamples(nsamples);
 }
 
-void SygusSampler::initializeSygus(TermDbSygus* tds,
-                                   Node f,
-                                   unsigned nsamples,
-                                   bool useSygusType)
+void SygusSampler::initializeSygus(TypeNode ftn,
+                                   unsigned nsamples)
 {
-  d_tds = tds;
-  d_use_sygus_type = useSygusType;
   d_is_valid = true;
-  d_ftn = f.getType();
+  d_ftn = ftn;
   Assert(d_ftn.isDatatype());
   const DType& dt = d_ftn.getDType();
   Assert(dt.isSygus());
 
-  Trace("sygus-sample") << "Register sampler for " << f << std::endl;
+  Trace("sygus-sample") << "Register sampler for " << ftn << std::endl;
 
   d_vars.clear();
   d_type_vars.clear();
@@ -278,25 +274,9 @@ Node SygusSampler::registerTerm(Node n, bool forceKeep)
     // do nothing
     return n;
   }
-  Node bn = n;
   TypeNode tn = n.getType();
-  // If we are using sygus types, get the builtin analog of n.
-  if (d_use_sygus_type)
-  {
-    bn = d_tds->sygusToBuiltin(n);
-    d_builtin_to_sygus[tn][bn] = n;
-  }
   // cache based on the (original) type of n
-  Node res = d_trie[tn].add(bn, this, 0, d_samples.size(), forceKeep);
-  // If we are using sygus types, map back to an original.
-  // Notice that d_builtin_to_sygus is not necessarily bijective.
-  if (d_use_sygus_type)
-  {
-    std::map<Node, Node>& bts = d_builtin_to_sygus[tn];
-    Assert(bts.find(res) != bts.end());
-    res = res != bn ? bts[res] : n;
-  }
-  return res;
+  return d_trie[tn].add(n, this, 0, d_samples.size(), forceKeep);
 }
 
 bool SygusSampler::isContiguous(Node n)
