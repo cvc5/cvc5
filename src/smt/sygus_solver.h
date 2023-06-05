@@ -174,7 +174,8 @@ class SygusSolver : protected EnvObj
    */
   static bool canTrustSynthesisResult(const Options& opts);
   /**
-   * Find synth for the given target and grammar.
+   * Get the list of synthesis functions in the current context, each paired
+   * with their corresponding grammar (if one exists).
    */
   std::vector<std::pair<Node, TypeNode>> getSynthFunctions() const;
 
