@@ -43,9 +43,7 @@ class SygusEnumeratorCallback : protected EnvObj
   SygusEnumeratorCallback(Env& env,
                           TermDbSygus* tds = nullptr,
                           SygusStatistics* s = nullptr,
-                          ExampleEvalCache* eec = nullptr,
-                          SygusSampler* ssrv = nullptr,
-                          std::ostream* out = nullptr);
+                          ExampleEvalCache* eec = nullptr);
   virtual ~SygusEnumeratorCallback() {}
 
   /**
@@ -61,7 +59,7 @@ class SygusEnumeratorCallback : protected EnvObj
 
  protected:
   /** Get the cache value for the given candidate */
-  Node getCacheValue(const Node& n, const Node& bn, const Node& bnr);
+  virtual Node getCacheValue(const Node& n, const Node& bn);
   /**
    * Callback-specific add term
    *
@@ -70,7 +68,7 @@ class SygusEnumeratorCallback : protected EnvObj
    * @param bnr The (extended) rewritten form of bn
    * @return true if the term should be considered in the enumeration.
    */
-  bool addTermInternal(const Node& n, const Node& bn, const Node& bnr);
+  bool addTermInternal(const Node& n, const Node& bn, const Node& cval);
   /** Term database sygus */
   TermDbSygus* d_tds;
   /** pointer to the statistics */
@@ -80,10 +78,6 @@ class SygusEnumeratorCallback : protected EnvObj
    * breaking).
    */
   ExampleEvalCache* d_eec;
-  /** sampler (for --sygus-rr-verify) */
-  SygusSampler* d_samplerRrV;
-  /** The output stream to print unsound rewrites for above */
-  std::ostream* d_out;
 };
 
 }  // namespace quantifiers

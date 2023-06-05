@@ -1120,28 +1120,6 @@ Node SygusExtension::registerSearchValue(Node a,
         }
       }
 
-      if (options().quantifiers.sygusRewVerify)
-      {
-        if (bv != bvr)
-        {
-          // add to the sampler database object
-          std::map<TypeNode, std::unique_ptr<quantifiers::SygusSampler>>& smap =
-              d_sampler[a];
-          std::map<TypeNode,
-                   std::unique_ptr<quantifiers::SygusSampler>>::iterator its =
-              smap.find(tn);
-          if (its == smap.end())
-          {
-            smap[tn].reset(new quantifiers::SygusSampler(d_env));
-            smap[tn]->initializeSygus(
-                d_tds, nv, options().quantifiers.sygusSamples, false);
-            its = d_sampler[a].find(tn);
-          }
-          // check equivalent
-          its->second->checkEquivalent(bv, bvr, *options().base.out);
-        }
-      }
-
       if( !bad_val_bvr.isNull() ){
         Node bad_val = nv;
         Node bad_val_o = scasv[bad_val_bvr];
