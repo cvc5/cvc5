@@ -243,6 +243,10 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id);
  * can be seen as arguments to the skolem function. These are typically used for
  * implementing theory-specific inferences that introduce symbols that
  * are not interpreted by the theory (see SkolemFunId enum).
+ * 
+ * Note that (1) is a special instance of (2), where the purification skolem
+ * for t is equivalent to calling mkSkolemFunction on SkolemFunId::PURIFY
+ * and t.
  *
  * If a variable cannot be associated with any of the above information,
  * the method `mkDummySkolem` may be used, which always constructs a fresh
