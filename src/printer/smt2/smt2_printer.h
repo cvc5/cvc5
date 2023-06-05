@@ -135,7 +135,7 @@ class Smt2Printer : public cvc5::internal::Printer
       std::ostream& out,
       const std::string& id,
       const std::vector<Node>& vars,
-                                      TypeNode rangeType,
+      TypeNode rangeType,
       TypeNode sygusType = TypeNode::null()) const override;
 
   /** Print constraint command */

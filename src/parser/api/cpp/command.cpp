@@ -538,7 +538,7 @@ const cvc5::Grammar* SynthFunCommand::getGrammar() const { return d_grammar; }
 void SynthFunCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
   Term fun;
-  if (d_grammar!=nullptr)
+  if (d_grammar != nullptr)
   {
     fun = solver->synthFun(d_symbol, d_vars, d_sort, *d_grammar);
   }
@@ -554,10 +554,7 @@ void SynthFunCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
   d_commandStatus = CommandSuccess::instance();
 }
 
-std::string SynthFunCommand::getCommandName() const
-{
-  return "synth-fun";
-}
+std::string SynthFunCommand::getCommandName() const { return "synth-fun"; }
 
 void SynthFunCommand::toStream(std::ostream& out) const
 {
@@ -937,10 +934,7 @@ std::string DeclarePoolCommand::getCommandName() const
 void DeclarePoolCommand::toStream(std::ostream& out) const
 {
   Printer::getPrinter(out)->toStreamCmdDeclarePool(
-      out,
-      d_symbol,
-      sortToTypeNode(d_sort),
-      termVectorToNodes(d_initValue));
+      out, d_symbol, sortToTypeNode(d_sort), termVectorToNodes(d_initValue));
 }
 
 /* -------------------------------------------------------------------------- */

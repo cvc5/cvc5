@@ -166,12 +166,11 @@ class CVC5_EXPORT Printer
                                      TypeNode type) const;
 
   /** Print synth-fun command */
-  virtual void toStreamCmdSynthFun(
-      std::ostream& out,
-      const std::string& id,
-      const std::vector<Node>& vars,
-                                      TypeNode rangeType,
-      TypeNode sygusType = TypeNode::null()) const;
+  virtual void toStreamCmdSynthFun(std::ostream& out,
+                                   const std::string& id,
+                                   const std::vector<Node>& vars,
+                                   TypeNode rangeType,
+                                   TypeNode sygusType = TypeNode::null()) const;
 
   /** Print constraint command */
   virtual void toStreamCmdConstraint(std::ostream& out, Node n) const;

@@ -2054,7 +2054,7 @@ std::string Smt2Printer::sygusGrammarString(const TypeNode& t)
 }
 
 void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
-      const std::string& id,
+                                      const std::string& id,
                                       const std::vector<Node>& vars,
                                       TypeNode rangeType,
                                       TypeNode sygusType) const

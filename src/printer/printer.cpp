@@ -347,12 +347,11 @@ void Printer::toStreamCmdDeclareVar(std::ostream& out,
   printUnknownCommand(out, "declare-var");
 }
 
-void Printer::toStreamCmdSynthFun(
-      std::ostream& out,
-      const std::string& id,
-      const std::vector<Node>& vars,
-                                      TypeNode rangeType,
-      TypeNode sygusType) const
+void Printer::toStreamCmdSynthFun(std::ostream& out,
+                                  const std::string& id,
+                                  const std::vector<Node>& vars,
+                                  TypeNode rangeType,
+                                  TypeNode sygusType) const
 {
   printUnknownCommand(out, "synth-fun");
 }
