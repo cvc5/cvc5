@@ -133,9 +133,9 @@ class Smt2Printer : public cvc5::internal::Printer
   /** Print synth-fun command */
   void toStreamCmdSynthFun(
       std::ostream& out,
-      Node f,
+      const std::string& id,
       const std::vector<Node>& vars,
-      bool isInv,
+                                      TypeNode rangeType,
       TypeNode sygusType = TypeNode::null()) const override;
 
   /** Print constraint command */

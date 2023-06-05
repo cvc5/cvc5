@@ -2879,7 +2879,7 @@ class CVC5_EXPORT Grammar
 
   /**
    * Check if \p rule contains variables that are neither parameters of
-   * the corresponding synthFun/synthInv nor non-terminals.
+   * the corresponding synthFun nor non-terminals.
    * @param rule The non-terminal allowed to be any constant.
    * @return True if \p rule contains free variables and false otherwise.
    */
@@ -4978,44 +4978,6 @@ class CVC5_EXPORT Solver
   Term synthFun(const std::string& symbol,
                 const std::vector<Term>& boundVars,
                 Sort sort,
-                Grammar& grammar) const;
-
-  /**
-   * Synthesize invariant.
-   *
-   * SyGuS v2:
-   *
-   * \verbatim embed:rst:leading-asterisk
-   * .. code:: smtlib
-   *
-   *     (synth-inv <symbol> ( <boundVars>* ))
-   * \endverbatim
-   *
-   * @param symbol The name of the invariant.
-   * @param boundVars The parameters to this invariant.
-   * @return The invariant.
-   */
-  Term synthInv(const std::string& symbol,
-                const std::vector<Term>& boundVars) const;
-
-  /**
-   * Synthesize invariant following specified syntactic constraints.
-   *
-   * SyGuS v2:
-   *
-   * \verbatim embed:rst:leading-asterisk
-   * .. code:: smtlib
-   *
-   *     (synth-inv <symbol> ( <boundVars>* ) <grammar>)
-   * \endverbatim
-   *
-   * @param symbol The name of the invariant.
-   * @param boundVars The parameters to this invariant.
-   * @param grammar The syntactic constraints.
-   * @return The invariant.
-   */
-  Term synthInv(const std::string& symbol,
-                const std::vector<Term>& boundVars,
                 Grammar& grammar) const;
 
   /**

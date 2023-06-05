@@ -291,8 +291,7 @@ command [std::unique_ptr<cvc5::parser::Command>* cmd]
       }
       else
       {
-        cvc5::Term func = SOLVER->mkConst(t, name);
-        cmd->reset(new DeclareFunctionCommand(name, func, t));
+        cmd->reset(new DeclareFunctionCommand(name, t));
       }
     }
   | /* function definition */
@@ -492,7 +491,6 @@ sygusCommand returns [std::unique_ptr<cvc5::parser::Command> cmd]
   std::vector<cvc5::Term> sygusVars;
   std::string name;
   bool isAssume;
-  bool isInv;
   cvc5::Grammar* grammar = nullptr;
 }
   : /* declare-var */
@@ -505,8 +503,8 @@ sygusCommand returns [std::unique_ptr<cvc5::parser::Command> cmd]
       cmd.reset(new DeclareSygusVarCommand(name, var, t));
     }
   | /* synth-fun */
-    ( SYNTH_FUN_TOK { isInv = false; }
-      | SYNTH_INV_TOK { isInv = true; range = SOLVER->getBooleanSort(); }
+    ( SYNTH_FUN_TOK
+      | SYNTH_INV_TOK { range = SOLVER->getBooleanSort(); }
     )
     { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
@@ -525,19 +523,10 @@ sygusCommand returns [std::unique_ptr<cvc5::parser::Command> cmd]
     )?
     {
       Trace("parser-sygus") << "Define synth fun : " << name << std::endl;
-
-      fun = isInv ? (grammar == nullptr
-                         ? SOLVER->synthInv(name, sygusVars)
-                         : SOLVER->synthInv(name, sygusVars, *grammar))
-                  : (grammar == nullptr
-                         ? SOLVER->synthFun(name, sygusVars, range)
-                         : SOLVER->synthFun(name, sygusVars, range, *grammar));
-
-      Trace("parser-sygus") << "...read synth fun " << name << std::endl;
       PARSER_STATE->popScope();
       // we do not allow overloading for synth fun
       cmd = std::unique_ptr<cvc5::parser::Command>(
-          new SynthFunCommand(name, fun, sygusVars, range, isInv, grammar));
+          new SynthFunCommand(name, sygusVars, range, grammar));
     }
   | /* constraint */
     ( CONSTRAINT_TOK { isAssume = false; } | ASSUME_TOK { isAssume = true; } )
@@ -775,8 +764,7 @@ smt25Command[std::unique_ptr<cvc5::parser::Command>* cmd]
         PARSER_STATE->parseError("declare-const is not allowed in sygus "
                                  "version 2.0");
       }
-      cvc5::Term c = SOLVER->mkConst(t, name);
-      cmd->reset(new DeclareFunctionCommand(name, c, t)); }
+      cmd->reset(new DeclareFunctionCommand(name, t)); }
 
     /* get model */
   | GET_MODEL_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -972,8 +960,7 @@ extendedCommand[std::unique_ptr<cvc5::parser::Command>* cmd]
       { terms.push_back( e ); }
     )* RPAREN_TOK
     { Trace("parser") << "declare pool: '" << name << "'" << std::endl;
-      cvc5::Term pool = SOLVER->declarePool(name, t, terms);
-      cmd->reset(new DeclarePoolCommand(name, pool, t, terms));
+      cmd->reset(new DeclarePoolCommand(name, t, terms));
     }
   | BLOCK_MODEL_TOK KEYWORD { PARSER_STATE->checkThatLogicIsSet(); }
     {

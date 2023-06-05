@@ -165,7 +165,7 @@ cvc5::Term TptpState::parseOpToExpr(ParseOp& p)
     cvc5::Sort t = isPredicate(p) ? d_solver->getBooleanSort() : d_unsorted;
     expr = bindVar(p.d_name, t);  // must define at level zero
     d_auxSymbolTable[p.d_name] = expr;
-    preemptCommand(std::make_unique<DeclareFunctionCommand>(p.d_name, expr, t));
+    preemptCommand(std::make_unique<DeclareFunctionCommand>(p.d_name, t));
   }
   return expr;
 }
@@ -248,7 +248,7 @@ cvc5::Term TptpState::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
       t = d_solver->mkFunctionSort(sorts, t);
       v = bindVar(p.d_name, t);  // must define at level zero
       d_auxSymbolTable[p.d_name] = v;
-      preemptCommand(std::make_unique<DeclareFunctionCommand>(p.d_name, v, t));
+      preemptCommand(std::make_unique<DeclareFunctionCommand>(p.d_name, t));
     }
     // args might be rationals, in which case we need to create
     // distinct constants of the "unsorted" sort to represent them
@@ -467,12 +467,12 @@ cvc5::Term TptpState::convertRatToUnsorted(cvc5::Term expr)
     t = d_solver->mkFunctionSort({d_solver->getRealSort()}, d_unsorted);
     d_rtu_op = d_solver->mkConst(t, "$$rtu");
     preemptCommand(
-        std::make_unique<DeclareFunctionCommand>("$$rtu", d_rtu_op, t));
+        std::make_unique<DeclareFunctionCommand>("$$rtu", t));
     // Conversion from unsorted to rational
     t = d_solver->mkFunctionSort({d_unsorted}, d_solver->getRealSort());
     d_utr_op = d_solver->mkConst(t, "$$utr");
     preemptCommand(
-        std::make_unique<DeclareFunctionCommand>("$$utr", d_utr_op, t));
+        std::make_unique<DeclareFunctionCommand>("$$utr", t));
   }
   // Add the inverse in order to show that over the elements that
   // appear in the problem there is a bijection between unsorted and
@@ -498,8 +498,7 @@ cvc5::Term TptpState::convertStrToUnsorted(std::string str)
   cvc5::Term& e = d_distinct_objects[str];
   if (e.isNull())
   {
-    e = d_solver->mkConst(d_unsorted, str);
-    preemptCommand(std::make_unique<DeclareFunctionCommand>(str, e, d_unsorted));
+    preemptCommand(std::make_unique<DeclareFunctionCommand>(str, d_unsorted));
   }
   return e;
 }

@@ -283,8 +283,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       }
       else
       {
-        Term func = d_state.getSolver()->mkConst(t, name);
-        cmd.reset(new DeclareFunctionCommand(name, func, t));
+        cmd.reset(new DeclareFunctionCommand(name, t));
       }
     }
     break;
@@ -307,8 +306,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       Sort t = d_tparser.parseSort();
       std::vector<Term> terms = d_tparser.parseTermList();
       Trace("parser") << "declare pool: '" << name << "'" << std::endl;
-      Term pool = d_state.getSolver()->declarePool(name, t, terms);
-      cmd.reset(new DeclarePoolCommand(name, pool, t, terms));
+      cmd.reset(new DeclarePoolCommand(name, t, terms));
     }
     break;
     // (declare-sort <symbol> <numeral>)
@@ -814,8 +812,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       std::vector<std::pair<std::string, Sort>> sortedVarNames =
           d_tparser.parseSortedVarList();
       Sort range;
-      bool isInv = (tok == Token::SYNTH_INV_TOK);
-      if (isInv)
+      if (tok == Token::SYNTH_INV_TOK)
       {
         range = d_state.getSolver()->getBooleanSort();
       }
@@ -826,18 +823,10 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       d_state.pushScope();
       std::vector<cvc5::Term> sygusVars = d_state.bindBoundVars(sortedVarNames);
       Grammar* g = d_tparser.parseGrammarOrNull(sygusVars, name);
-
       Trace("parser-sygus") << "Define synth fun : " << name << std::endl;
       Solver* slv = d_state.getSolver();
-      Term fun =
-          isInv ? (g == nullptr ? slv->synthInv(name, sygusVars)
-                                : slv->synthInv(name, sygusVars, *g))
-                : (g == nullptr ? slv->synthFun(name, sygusVars, range)
-                                : slv->synthFun(name, sygusVars, range, *g));
-
-      Trace("parser-sygus") << "...read synth fun " << name << std::endl;
       d_state.popScope();
-      cmd.reset(new SynthFunCommand(name, fun, sygusVars, range, isInv, g));
+      cmd.reset(new SynthFunCommand(name, sygusVars, range, g));
     }
     break;
     case Token::EOF_TOK:

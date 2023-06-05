@@ -4567,7 +4567,7 @@ void Grammar::addRule(const Term& ntSymbol, const Term& rule)
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_isResolved) << "Grammar cannot be modified after passing "
-                                   "it as an argument to synthFun/synthInv";
+                                   "it as an argument to synthFun";
   CVC5_API_CHECK_TERM(ntSymbol);
   CVC5_API_CHECK_TERM(rule);
   CVC5_API_ARG_CHECK_EXPECTED(
@@ -4577,7 +4577,7 @@ void Grammar::addRule(const Term& ntSymbol, const Term& rule)
   CVC5_API_CHECK(ntSymbol.d_node->getType() == rule.d_node->getType())
       << "Expected ntSymbol and rule to have the same sort";
   CVC5_API_ARG_CHECK_EXPECTED(!containsFreeVariables(rule), rule)
-      << "a term whose free variables are limited to synthFun/synthInv "
+      << "a term whose free variables are limited to synthFun "
          "parameters and non-terminal symbols of the grammar";
   //////// all checks before this line
   d_ntsToTerms[ntSymbol].push_back(rule);
@@ -4589,7 +4589,7 @@ void Grammar::addRules(const Term& ntSymbol, const std::vector<Term>& rules)
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_isResolved) << "Grammar cannot be modified after passing "
-                                   "it as an argument to synthFun/synthInv";
+                                   "it as an argument to synthFun";
   CVC5_API_CHECK_TERM(ntSymbol);
   CVC5_API_CHECK_TERMS_WITH_SORT(rules, ntSymbol.getSort());
   CVC5_API_ARG_CHECK_EXPECTED(
@@ -4600,7 +4600,7 @@ void Grammar::addRules(const Term& ntSymbol, const std::vector<Term>& rules)
   {
     CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(
         !containsFreeVariables(rules[i]), rules[i], rules, i)
-        << "a term whose free variables are limited to synthFun/synthInv "
+        << "a term whose free variables are limited to synthFun "
            "parameters and non-terminal symbols of the grammar";
   }
   //////// all checks before this line
@@ -4614,7 +4614,7 @@ void Grammar::addAnyConstant(const Term& ntSymbol)
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_isResolved) << "Grammar cannot be modified after passing "
-                                   "it as an argument to synthFun/synthInv";
+                                   "it as an argument to synthFun";
   CVC5_API_CHECK_TERM(ntSymbol);
   CVC5_API_ARG_CHECK_EXPECTED(
       d_ntsToTerms.find(ntSymbol) != d_ntsToTerms.cend(), ntSymbol)
@@ -4630,7 +4630,7 @@ void Grammar::addAnyVariable(const Term& ntSymbol)
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_isResolved) << "Grammar cannot be modified after passing "
-                                   "it as an argument to synthFun/synthInv";
+                                   "it as an argument to synthFun";
   CVC5_API_CHECK_TERM(ntSymbol);
   CVC5_API_ARG_CHECK_EXPECTED(
       d_ntsToTerms.find(ntSymbol) != d_ntsToTerms.cend(), ntSymbol)
@@ -7822,35 +7822,6 @@ Term Solver::synthFun(const std::string& symbol,
       << "Cannot call synthFun unless sygus is enabled (use --sygus)";
   //////// all checks before this line
   return synthFunHelper(symbol, boundVars, sort, false, &grammar);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Solver::synthInv(const std::string& symbol,
-                      const std::vector<Term>& boundVars) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_BOUND_VARS(boundVars);
-  CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
-      << "Cannot call synthInv unless sygus is enabled (use --sygus)";
-  //////// all checks before this line
-  return synthFunHelper(
-      symbol, boundVars, Sort(d_nm, d_nm->booleanType()), true);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Solver::synthInv(const std::string& symbol,
-                      const std::vector<Term>& boundVars,
-                      Grammar& grammar) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_BOUND_VARS(boundVars);
-  CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
-      << "Cannot call synthInv unless sygus is enabled (use --sygus)";
-  //////// all checks before this line
-  return synthFunHelper(
-      symbol, boundVars, Sort(d_nm, d_nm->booleanType()), true, &grammar);
   ////////
   CVC5_API_TRY_CATCH_END;
 }

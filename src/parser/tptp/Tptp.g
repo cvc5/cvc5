@@ -1003,7 +1003,7 @@ thfAtomTyping[std::unique_ptr<cvc5::parser::Command>& cmd]
           {
             freshExpr = PARSER_STATE->bindVar(name, type);
           }
-          cmd = std::make_unique<DeclareFunctionCommand>(name, freshExpr, type);
+          cmd = std::make_unique<DeclareFunctionCommand>(name, type);
         }
       }
     )
@@ -1334,7 +1334,7 @@ tffTypedAtom[std::unique_ptr<cvc5::parser::Command>& cmd]
         } else {
           // as yet, it's undeclared
           cvc5::Term aexpr = PARSER_STATE->bindVar(name, type);
-          cmd = std::make_unique<DeclareFunctionCommand>(name, aexpr, type);
+          cmd = std::make_unique<DeclareFunctionCommand>(name, type);
         }
       }
     )
