@@ -182,6 +182,7 @@ void TimeoutCoreManager::getNextAssertions(std::vector<Node>& nextAsserts)
 
 Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions)
 {
+  verbose(1) << "TimeoutCoreManager::checkSatNext, #assertions=" << nextAssertions.size() << ", #models=" << d_modelValues.size() << std::endl;
   Trace("smt-to-core") << "--- checkSatNext #models=" << d_modelValues.size()
                        << std::endl;
   Trace("smt-to-core") << "checkSatNext: preprocess" << std::endl;
