@@ -30,11 +30,6 @@ ExpressionMinerManager::ExpressionMinerManager(Env& env)
 {
 }
 
-void ExpressionMinerManager::initialize(const std::vector<Node>& vars)
-{
-  d_vars = vars;
-}
-
 void ExpressionMinerManager::initializeSygus(const TypeNode& tn)
 {
   Assert(tn.isDatatype());
@@ -49,10 +44,6 @@ void ExpressionMinerManager::initializeSygus(const TypeNode& tn)
       d_vars.push_back(sv);
     }
   }
-}
-
-void ExpressionMinerManager::initializeMinersForOptions()
-{
   if (options().quantifiers.sygusFilterSolMode
       == options::SygusFilterSolMode::STRONG)
   {

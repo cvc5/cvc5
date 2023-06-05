@@ -754,7 +754,6 @@ ExpressionMinerManager* SynthConjecture::getExprMinerManagerFor(Node e)
   d_exprm[e].reset(new ExpressionMinerManager(d_env));
   ExpressionMinerManager* emm = d_exprm[e].get();
   emm->initializeSygus(e.getType());
-  emm->initializeMinersForOptions();
   return emm;
 }
 
