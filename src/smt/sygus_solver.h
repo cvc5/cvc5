@@ -173,6 +173,10 @@ class SygusSolver : protected EnvObj
    * approximate checking algorithm for solution correctness.
    */
   static bool canTrustSynthesisResult(const Options& opts);
+  /**
+   * Find synth for the given target and grammar.
+   */
+  std::vector<std::pair<Node, TypeNode>> getSynthFunctions() const;
 
  private:
   /**

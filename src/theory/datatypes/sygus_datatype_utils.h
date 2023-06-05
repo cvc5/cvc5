@@ -202,6 +202,11 @@ void getFreeSymbolsSygusType(TypeNode sdt, std::unordered_set<Node>& syms);
 TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
                                           const std::vector<Node>& syms,
                                           const std::vector<Node>& vars);
+/**
+ * This converts all free symbols in the grammar specified by sdt into
+ * variables using the above two methods.
+ */
+TypeNode generalizeSygusType(TypeNode sdt);
 
 /**
  * Get SyGuS term size, which is based on the weight of constructor applications
