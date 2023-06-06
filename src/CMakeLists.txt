@@ -364,8 +364,6 @@ libcvc5_add_sources(
   theory/arith/arith_preprocess.h
   theory/arith/arith_rewriter.cpp
   theory/arith/arith_rewriter.h
-  theory/arith/arith_state.cpp
-  theory/arith/arith_state.h
   theory/arith/arith_subs.cpp
   theory/arith/arith_subs.h
   theory/arith/arith_utilities.cpp

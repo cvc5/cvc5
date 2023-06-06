@@ -16,7 +16,6 @@
 #include "theory/arith/inference_manager.h"
 
 #include "options/arith_options.h"
-#include "theory/arith/arith_state.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/rewriter.h"
 
@@ -25,9 +24,8 @@ namespace theory {
 namespace arith {
 
 InferenceManager::InferenceManager(Env& env,
-                                   TheoryArith& ta,
-                                   ArithState& astate)
-    : InferenceManagerBuffered(env, ta, astate, "theory::arith::"),
+                                   TheoryArith& ta, TheoryState& s)
+    : InferenceManagerBuffered(env, ta, s, "theory::arith::"),
       // currently must track propagated literals if using the equality solver
       d_trackPropLits(options().arith.arithEqSolver),
       d_propLits(context())
