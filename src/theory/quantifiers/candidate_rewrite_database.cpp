@@ -32,13 +32,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-/** Attribute true for rewrites where verification was run  */
-struct RewriteVerifiedAttributeId
-{
-};
-typedef expr::Attribute<RewriteVerifiedAttributeId, bool>
-    RewriteVerifiedAttribute;
-
 CandidateRewriteDatabase::CandidateRewriteDatabase(
     Env& env, bool doCheck, bool rewAccel, bool filterPairs, bool rec)
     : ExprMiner(env),
@@ -91,8 +84,7 @@ void CandidateRewriteDatabase::initializeSygus(const std::vector<Node>& vars,
 
 bool CandidateRewriteDatabase::wasVerified(const Node& rewrite)
 {
-  RewriteVerifiedAttribute rva;
-  return rewrite.getAttribute(rva);
+  return d_verified.find(rewrite)!=d_verified.end();
 }
 
 Node CandidateRewriteDatabase::addOrGetTerm(Node sol,
@@ -234,8 +226,7 @@ Node CandidateRewriteDatabase::addOrGetTerm(Node sol,
         rewrites.push_back(eq);
         if (verified)
         {
-          RewriteVerifiedAttribute rva;
-          eq.setAttribute(rva, true);
+          d_verified.insert(eq);
         }
         // debugging information
         if (TraceIsOn("sygus-rr-debug"))

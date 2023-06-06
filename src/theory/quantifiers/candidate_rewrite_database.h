@@ -129,6 +129,8 @@ class CandidateRewriteDatabase : public ExprMiner
   std::unordered_map<Node, Node> d_add_term_cache;
   /** The options for subsolver calls */
   Options d_subOptions;
+  /** The set of rewrites that succeeded verification */
+  std::unordered_set<Node> d_verified;
 };
 
 }  // namespace quantifiers
