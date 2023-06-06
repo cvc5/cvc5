@@ -157,8 +157,10 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id,
       d_skolemFuns.find(key);
   if (it == d_skolemFuns.end())
   {
+    // we use @ as a prefix, which follows the SMT-LIB standard indicating
+    // internal symbols starting with @ or . are reserved for internal use.
     std::stringstream ss;
-    ss << "SKOLEM_" << id;
+    ss << "@" << id;
     Node k = mkSkolemNode(ss.str(), tn, "an internal skolem function", flags);
     d_skolemFuns[key] = k;
     d_skolemFunMap[k] = key;
