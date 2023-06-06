@@ -144,11 +144,8 @@ bool FlexLexer::eatTokenChoice(Token t, Token f)
   return false;
 }
 
-Token FlexLexer::nextTokenInternal()
-{
-  // !!! temporary until we remove Flex
-  return Token(yylex());
-}
+// !!!!!! temporary until the new lexer is connected to this
+Token FlexLexer::nextTokenInternal() { return Token(yylex()); }
 
 }  // namespace parser
 }  // namespace cvc5

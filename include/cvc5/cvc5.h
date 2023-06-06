@@ -5153,7 +5153,7 @@ class CVC5_EXPORT Solver
   void printStatisticsSafe(int fd) const;
 
   /**
-   * Determione the output stream for the given tag is enabled. Tags can be
+   * Determines if the output stream for the given tag is enabled. Tags can be
    * enabled with the `output` option (and `-o <tag>` on the command line).
    * Raises an exception when an invalid tag is given.
    * @return True if the given tag is enabled.
