@@ -1672,6 +1672,7 @@ set(regress_0_tests
   regress0/sygus/pLTL-sygus-syntax-err.sy
   regress0/sygus/print-debug.sy
   regress0/sygus/print-define-fun.sy
+  regress0/sygus/print-enumerator.sy
   regress0/sygus/print-grammar.sy
   regress0/sygus/print-sygus-gterm.sy
   regress0/sygus/proj-issue464-rr-option.smt2

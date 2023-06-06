@@ -221,10 +221,13 @@ void SynthConjecture::assign(Node q)
 
   Assert(d_candidates.empty());
   std::vector<Node> vars;
-  for (unsigned i = 0; i < d_embed_quant[0].getNumChildren(); i++)
+  for (size_t i = 0, nvars = d_embed_quant[0].getNumChildren(); i < nvars; i++)
   {
-    vars.push_back(d_embed_quant[0][i]);
-    Node e = sm->mkDummySkolem("e", d_embed_quant[0][i].getType());
+    Node v = d_embed_quant[0][i];
+    vars.push_back(v);
+    Node e = sm->mkSkolemFunction(SkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED,
+                                  v.getType(),
+                                  d_simp_quant[0][i]);
     d_candidates.push_back(e);
   }
   Trace("cegqi") << "Base quantified formula is : " << d_embed_quant
