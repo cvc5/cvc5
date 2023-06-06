@@ -12,9 +12,9 @@ This file contains a summary of important user-visible changes.
     without a provided timeout (option `--timeout-core-timeout`).
   - SMT-LIB: New command `(get-timeout-core)` which invokes the above method.
 - API: The option `--print-unsat-cores-full` has been replaced by the option
-       `--print-use-names`, which should be set to false to print all assertions
-       in the unsat core. This option also impacts how timeout cores are
-       printed.
+       `--print-use-names`. Setting this option to false will print all
+       assertions in the unsat core, regardless of whether they are named. This
+       option also impacts how timeout cores are printed.
 
 cvc5 1.0.5
 ==========
