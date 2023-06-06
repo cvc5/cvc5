@@ -23,8 +23,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-InferenceManager::InferenceManager(Env& env,
-                                   TheoryArith& ta, TheoryState& s)
+InferenceManager::InferenceManager(Env& env, TheoryArith& ta, TheoryState& s)
     : InferenceManagerBuffered(env, ta, s, "theory::arith::"),
       // currently must track propagated literals if using the equality solver
       d_trackPropLits(options().arith.arithEqSolver),

@@ -97,8 +97,7 @@ void TheoryArith::finishInit()
   // only need to create nonlinear extension if non-linear logic
   if (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear())
   {
-    d_nonlinearExtension.reset(
-        new nl::NonlinearExtension(d_env, *this));
+    d_nonlinearExtension.reset(new nl::NonlinearExtension(d_env, *this));
   }
   d_eqSolver->finishInit();
   // finish initialize in the old linear solver

@@ -28,7 +28,7 @@
 namespace cvc5::internal {
 namespace theory {
 namespace arith {
-  
+
 class InferenceManager;
 
 namespace nl {

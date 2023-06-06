@@ -22,8 +22,8 @@
 #include "expr/node.h"
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
-#include "theory/theory_state.h"
 #include "theory/ee_setup_info.h"
+#include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
 
 namespace cvc5::internal {

@@ -37,8 +37,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-NonlinearExtension::NonlinearExtension(Env& env,
-                                       TheoryArith& containing)
+NonlinearExtension::NonlinearExtension(Env& env, TheoryArith& containing)
     : EnvObj(env),
       d_containing(containing),
       d_astate(*containing.getTheoryState()),

@@ -24,9 +24,9 @@
 #include "proof/proof_node_manager.h"
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
-#include "theory/theory_state.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/pp_rewrite_eq.h"
+#include "theory/theory_state.h"
 #include "util/rational.h"
 
 namespace cvc5::internal {
