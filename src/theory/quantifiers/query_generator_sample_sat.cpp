@@ -36,7 +36,7 @@ QueryGeneratorSampleSat::QueryGeneratorSampleSat(Env& env, unsigned deqThresh)
 {
 }
 
-bool QueryGeneratorSampleSat::addTerm(Node n, std::ostream& out)
+bool QueryGeneratorSampleSat::addTerm(Node n, std::vector<Node>& foundQueries)
 {
   Node nn = n.getKind() == NOT ? n[0] : n;
   if (d_terms.find(nn) != d_terms.end())
@@ -119,7 +119,7 @@ bool QueryGeneratorSampleSat::addTerm(Node n, std::ostream& out)
     Trace("sygus-qgen-debug")
         << "; " << tIndices.size() << "/" << npts << std::endl;
     AlwaysAssert(!tIndices.empty());
-    checkQuery(qy, tIndices[0], out);
+    checkQuery(qy, tIndices[0], foundQueries);
     // add information
     for (unsigned& ti : tIndices)
     {
@@ -143,7 +143,7 @@ bool QueryGeneratorSampleSat::addTerm(Node n, std::ostream& out)
         rindex2 = rindex2 + 1;
       }
       Node qy = nm->mkNode(AND, qsi[rindex], qsi[rindex2]);
-      checkQuery(qy, i, out);
+      checkQuery(qy, i, foundQueries);
     }
   }
   Trace("sygus-qgen-check") << "...finished." << std::endl;
@@ -152,14 +152,14 @@ bool QueryGeneratorSampleSat::addTerm(Node n, std::ostream& out)
 
 void QueryGeneratorSampleSat::checkQuery(Node qy,
                                          unsigned spIndex,
-                                         std::ostream& out)
+                                         std::vector<Node>& foundQueries)
 {
   if (d_allQueries.find(qy) != d_allQueries.end())
   {
     return;
   }
   d_allQueries.insert(qy);
-  out << "(query " << qy << ")" << std::endl;
+  foundQueries.push_back(qy);
   // external query
 
   Result r;
