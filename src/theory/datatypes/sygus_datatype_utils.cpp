@@ -555,7 +555,7 @@ TypeNode generalizeSygusType(TypeNode sdt)
   for (const Node& s : syms)
   {
     svec.push_back(s);
-    vars.push_back(nm->mkBoundVar(ss.getName(), s.getType()));
+    vars.push_back(nm->mkBoundVar(s.getName(), s.getType()));
   }
   return substituteAndGeneralizeSygusType(sdt, svec, vars);
 }
