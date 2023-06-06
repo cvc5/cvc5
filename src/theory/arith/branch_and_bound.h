@@ -52,17 +52,8 @@ class BranchAndBound : protected EnvObj
    *
    * @param var The variable to branch on
    * @param value Its current model value
-   * @param doPurify If true, we send the lemma (= k var) and branch on k
-   * instead, where k is the purification skolem for var.
-   *
-   * Note if doPurify is true, this method additionally includes a purification
-   * lemma as described above. If doPurify is false, this method may choose
-   * to set doPurify if necessary, in the case that the inequality is eliminated
-   * by rewriting. This can be the case when var is (bv2nat x).
    */
-  std::vector<TrustNode> branchIntegerVariable(TNode var,
-                                               Rational value,
-                                               bool doPurify = false);
+  std::vector<TrustNode> branchIntegerVariable(TNode var, Rational value);
 
  private:
   /** Are proofs enabled? */

@@ -60,11 +60,8 @@ SynthConjecture::SynthConjecture(Env& env,
       d_verify(env, d_tds),
       d_hasSolution(false),
       d_computedSolution(false),
-      d_runExprMiner(options().quantifiers.sygusRewSynth
-                     || options().quantifiers.sygusQueryGen
-                            != options::SygusQueryGenMode::NONE
-                     || options().quantifiers.sygusFilterSolMode
-                            != options::SygusFilterSolMode::NONE),
+      d_runExprMiner(options().quantifiers.sygusFilterSolMode
+                     != options::SygusFilterSolMode::NONE),
       d_ceg_si(new CegSingleInv(env, tr, s)),
       d_templInfer(new SygusTemplateInfer(env)),
       d_ceg_proc(new SynthConjectureProcess(env)),
@@ -221,10 +218,13 @@ void SynthConjecture::assign(Node q)
 
   Assert(d_candidates.empty());
   std::vector<Node> vars;
-  for (unsigned i = 0; i < d_embed_quant[0].getNumChildren(); i++)
+  for (size_t i = 0, nvars = d_embed_quant[0].getNumChildren(); i < nvars; i++)
   {
-    vars.push_back(d_embed_quant[0][i]);
-    Node e = sm->mkDummySkolem("e", d_embed_quant[0][i].getType());
+    Node v = d_embed_quant[0][i];
+    vars.push_back(v);
+    Node e = sm->mkSkolemFunction(SkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED,
+                                  v.getType(),
+                                  d_simp_quant[0][i]);
     d_candidates.push_back(e);
   }
   Trace("cegqi") << "Base quantified formula is : " << d_embed_quant
@@ -756,8 +756,7 @@ ExpressionMinerManager* SynthConjecture::getExprMinerManagerFor(Node e)
   }
   d_exprm[e].reset(new ExpressionMinerManager(d_env));
   ExpressionMinerManager* emm = d_exprm[e].get();
-  emm->initializeSygus(d_tds, e, options().quantifiers.sygusSamples, true);
-  emm->initializeMinersForOptions();
+  emm->initializeSygus(e.getType());
   return emm;
 }
 
@@ -840,13 +839,7 @@ bool SynthConjecture::runExprMiner()
       ExpressionMinerManager* emm = getExprMinerManagerFor(e);
       if (emm != nullptr)
       {
-        bool rew_print = false;
-        bool ret = emm->addTerm(sol, out, rew_print);
-        if (rew_print)
-        {
-          // count the number of rewrites we printed
-          ++(d_stats.d_candidate_rewrites_print);
-        }
+        bool ret = emm->addTerm(sol);
         if (!ret)
         {
           // count the number of filtered solutions

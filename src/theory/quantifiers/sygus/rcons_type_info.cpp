@@ -43,7 +43,8 @@ void RConsTypeInfo::initialize(Env& env,
   d_enumerators.push_back(
       std::make_unique<SygusEnumerator>(env, tds, nullptr, &s, true));
   d_enumerators[1]->initialize(sm->mkDummySkolem("sygus_rcons", stn));
-  d_crd.reset(new CandidateRewriteDatabase(env, true, false, true, false));
+  d_crd.reset(new CandidateRewriteDatabase(env, true, false, false));
+
   // since initial samples are not always useful for equivalence checks, set
   // their number to 0
   d_sygusSampler.reset(new SygusSampler(env));
@@ -75,8 +76,8 @@ Node RConsTypeInfo::nextEnum()
 
 Node RConsTypeInfo::addTerm(Node n)
 {
-  std::stringstream out;
-  return d_crd->addTerm(n, false, out);
+  std::vector<Node> rewrites;
+  return d_crd->addOrGetTerm(n, rewrites);
 }
 
 void RConsTypeInfo::setBuiltinToOb(Node t, RConsObligation* ob)
