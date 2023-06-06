@@ -1583,6 +1583,7 @@ set(regress_0_tests
   regress0/strings/issue8481.smt2
   regress0/strings/issue8481-2.smt2
   regress0/strings/issue8722-learned-rew.smt2
+  regress0/strings/issue9784.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/large-model.smt2
   regress0/strings/leadingzero001.smt2
@@ -1671,6 +1672,7 @@ set(regress_0_tests
   regress0/sygus/pLTL-sygus-syntax-err.sy
   regress0/sygus/print-debug.sy
   regress0/sygus/print-define-fun.sy
+  regress0/sygus/print-enumerator.sy
   regress0/sygus/print-grammar.sy
   regress0/sygus/print-sygus-gterm.sy
   regress0/sygus/proj-issue464-rr-option.smt2
@@ -3587,7 +3589,7 @@ endforeach()
 # which builds the 'build_regress' target.
 add_test(build_regress_test 
     "${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}" 
-    --config "$<CONFIG>" --target build-regress -j${CTEST_NTHREADS}
+    --config "$<CONFIG>" --target build-regress
 )
 set_tests_properties(build_regress_test PROPERTIES FIXTURES_SETUP build_regress_fixture)
 
