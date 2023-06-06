@@ -30,7 +30,7 @@ namespace theory {
 namespace arith {
 
 BranchAndBound::BranchAndBound(Env& env,
-                               ArithState& s,
+                               TheoryState& s,
                                InferenceManager& im,
                                PreprocessRewriteEq& ppre)
     : EnvObj(env),
