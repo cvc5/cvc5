@@ -44,6 +44,7 @@ class NodeTemplate;
 typedef NodeTemplate<true> Node;
 typedef NodeTemplate<false> TNode;
 class TypeNode;
+class ProofNode;
 
 class Env;
 class UnsatCore;
@@ -716,7 +717,11 @@ class CVC5_EXPORT SolverEngine
    * Only permitted if cvc5 was built with proof support and the proof option
    * is on.
    */
-  std::string getProof(modes::ProofComponent c = modes::ProofComponent::FULL);
+  std::vector<std::shared_ptr<ProofNode>> getProof(
+      modes::ProofComponent c = modes::ProofComponent::FULL);
+
+  // TODO: this goes away after proof printing went into ProofNode
+  void proofToString(std::ostream& out, std::shared_ptr<ProofNode> fp);
 
   /**
    * Get the current set of assertions.  Only permitted if the
@@ -913,8 +918,8 @@ class CVC5_EXPORT SolverEngine
   void assertFormulaInternal(const Node& formula);
 
   /**
-   * Check that a generated proof checks. This method is the same as printProof,
-   * but does not print the proof. Like that method, it should be called
+   * Check that a generated proof checks. This method is the same as getProof,
+   * but does not return the proof. Like that method, it should be called
    * after an UNSAT response. It ensures that a well-formed proof of false
    * can be constructed by the combination of the PropEngine and ProofManager.
    */
@@ -1043,6 +1048,21 @@ class CVC5_EXPORT SolverEngine
    */
   std::vector<Node> convertPreprocessedToInput(const std::vector<Node>& ppa,
                                                bool isInternal);
+
+  /**
+   * Retrieves the selected proof component as proof nodes that are intended to
+   * be printed.
+   */
+  std::vector<std::shared_ptr<ProofNode>> getProofNode(
+      modes::ProofComponent c = modes::PROOF_COMPONENT_FULL);
+
+  /**
+   * Prints proof nodes using the currently configured proof format.
+   */
+  void proofsToString(std::ostream& out,
+                      std::vector<std::shared_ptr<ProofNode>> fp,
+                      bool commentProves = true);
+
   /* Members -------------------------------------------------------------- */
 
   /** Solver instance that owns this SolverEngine instance. */
