@@ -4571,7 +4571,7 @@ void Grammar::addRule(const Term& ntSymbol, const Term& rule)
                               ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
          "predeclaration";
-  CVC5_API_CHECK(ntSymbol.d_node->getType() == rule.d_node->getType())
+  CVC5_API_CHECK(ntSymbol.d_node->getType().isInstanceOf(rule.d_node->getType()))
       << "Expected ntSymbol and rule to have the same sort";
   CVC5_API_ARG_CHECK_EXPECTED(!containsFreeVariables(rule), rule)
       << "a term whose free variables are limited to synthFun/synthInv "

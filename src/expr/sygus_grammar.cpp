@@ -42,6 +42,8 @@ bool isId(const Node& n)
 
 void SygusGrammar::addRule(const Node& ntSym, const Node& rule)
 {
+  Assert(d_sdts.find(ntSym) != d_sdts.cend());
+  Assert(rule.getType().isInstanceOf(ntSym.getType()));
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> args;
   std::vector<TypeNode> cargs;
@@ -67,15 +69,18 @@ void SygusGrammar::addRules(const Node& ntSym, const std::vector<Node>& rules)
 
 void SygusGrammar::addAnyConstant(const Node& ntSym, const TypeNode& tn)
 {
+  Assert(d_sdts.find(ntSym) != d_sdts.cend());
+  Assert(tn.isInstanceOf(ntSym.getType()));
   d_allowConst.emplace(ntSym);
 }
 
 void SygusGrammar::addAnyVariable(const Node& ntSym)
 {
+  Assert(d_sdts.find(ntSym) != d_sdts.cend());
   // each variable of appropriate type becomes a sygus constructor in sdt.
   for (const Node& v : d_sygusVars)
   {
-    if (v.getType() == ntSym.getType())
+    if (v.getType().isInstanceOf(ntSym.getType()))
     {
       d_sdts.at(ntSym).addConstructor(v, v.getName(), {});
     }
@@ -127,8 +132,8 @@ std::string SygusGrammar::toString() const
 {
   std::stringstream ss;
   // clone this grammar before printing it to avoid freezing it.
-  return static_cast<printer::smt2::Smt2Printer*>(Printer::getPrinter(ss))
-      ->sygusGrammarString(SygusGrammar(*this).resolve());
+  return printer::smt2::Smt2Printer::sygusGrammarString(
+      SygusGrammar(*this).resolve());
 }
 
 Node SygusGrammar::purifySygusGNode(const Node& n,
@@ -146,7 +151,7 @@ Node SygusGrammar::purifySygusGNode(const Node& n,
   }
   std::vector<Node> pchildren;
   bool childChanged = false;
-  for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; i++)
+  for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
   {
     Node ptermc = purifySygusGNode(n[i], args, cargs);
     pchildren.push_back(ptermc);
