@@ -84,7 +84,7 @@ void CandidateRewriteDatabase::initializeSygus(const std::vector<Node>& vars,
 
 bool CandidateRewriteDatabase::wasVerified(const Node& rewrite)
 {
-  return d_verified.find(rewrite)!=d_verified.end();
+  return d_verified.find(rewrite) != d_verified.end();
 }
 
 Node CandidateRewriteDatabase::addOrGetTerm(Node sol,
