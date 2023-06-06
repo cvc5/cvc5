@@ -82,7 +82,7 @@ void CandidateRewriteDatabase::initializeSygus(const std::vector<Node>& vars,
   ExprMiner::initialize(vars, ss);
 }
 
-bool CandidateRewriteDatabase::wasVerified(const Node& rewrite)
+bool CandidateRewriteDatabase::wasVerified(const Node& rewrite) const
 {
   return d_verified.find(rewrite) != d_verified.end();
 }

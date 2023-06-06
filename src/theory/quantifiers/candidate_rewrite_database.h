@@ -99,7 +99,7 @@ class CandidateRewriteDatabase : public ExprMiner
   /** Enable the (extended) rewriter for this class */
   void enableExtendedRewriter();
   /** Was the given rewrite verified? */
-  static bool wasVerified(const Node& rewrite);
+  bool wasVerified(const Node& rewrite) const;
 
  private:
   /** (required) pointer to the sygus term database of d_qe */
