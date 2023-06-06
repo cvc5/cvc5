@@ -99,7 +99,7 @@ class CandidateRewriteDatabase : public ExprMiner
   /** Enable the (extended) rewriter for this class */
   void enableExtendedRewriter();
   /** Was the given rewrite verified? */
-  static bool wasVerified(const Node& rewrite);
+  bool wasVerified(const Node& rewrite) const;
 
  private:
   /** (required) pointer to the sygus term database of d_qe */
@@ -121,7 +121,7 @@ class CandidateRewriteDatabase : public ExprMiner
   bool d_filterPairs;
   /** whether we are using sygus */
   bool d_using_sygus;
-  /** Whether we are check rewrite rules for all subterms added to this class */
+  /** Whether we check rewrite rules for all subterms added to this class */
   bool d_rec;
   /** candidate rewrite filter */
   CandidateRewriteFilter d_crewrite_filter;
@@ -129,6 +129,8 @@ class CandidateRewriteDatabase : public ExprMiner
   std::unordered_map<Node, Node> d_add_term_cache;
   /** The options for subsolver calls */
   Options d_subOptions;
+  /** The set of rewrites that succeeded verification */
+  std::unordered_set<Node> d_verified;
 };
 
 }  // namespace quantifiers

@@ -555,9 +555,7 @@ TypeNode generalizeSygusType(TypeNode sdt)
   for (const Node& s : syms)
   {
     svec.push_back(s);
-    std::stringstream ss;
-    ss << s;
-    vars.push_back(nm->mkBoundVar(ss.str(), s.getType()));
+    vars.push_back(nm->mkBoundVar(s.getName(), s.getType()));
   }
   return substituteAndGeneralizeSygusType(sdt, svec, vars);
 }

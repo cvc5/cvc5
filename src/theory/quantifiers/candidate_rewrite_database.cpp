@@ -89,10 +89,9 @@ void CandidateRewriteDatabase::initializeSygus(const std::vector<Node>& vars,
   ExprMiner::initialize(vars, ss);
 }
 
-bool CandidateRewriteDatabase::wasVerified(const Node& rewrite)
+bool CandidateRewriteDatabase::wasVerified(const Node& rewrite) const
 {
-  RewriteVerifiedAttribute rva;
-  return rewrite.getAttribute(rva);
+  return d_verified.find(rewrite) != d_verified.end();
 }
 
 Node CandidateRewriteDatabase::addOrGetTerm(Node sol,
@@ -234,8 +233,7 @@ Node CandidateRewriteDatabase::addOrGetTerm(Node sol,
         rewrites.push_back(eq);
         if (verified)
         {
-          RewriteVerifiedAttribute rva;
-          eq.setAttribute(rva, true);
+          d_verified.insert(eq);
         }
         // debugging information
         if (TraceIsOn("sygus-rr-debug"))
