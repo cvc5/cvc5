@@ -59,8 +59,8 @@ class ExprMiner : protected EnvObj
                           SygusSampler* ss = nullptr);
   /** add term
    *
-   * This registers term n with this expression miner, and adds an expressions
-   * found (e.g. rewrites, queries) to found.
+   * This registers term n with this expression miner, and adds expressions found
+   * (e.g. rewrites, queries) to found.
    */
   virtual bool addTerm(Node n, std::vector<Node>& found) = 0;
 

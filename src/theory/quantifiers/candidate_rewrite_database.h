@@ -121,7 +121,7 @@ class CandidateRewriteDatabase : public ExprMiner
   bool d_filterPairs;
   /** whether we are using sygus */
   bool d_using_sygus;
-  /** Whether we are check rewrite rules for all subterms added to this class */
+  /** Whether we check rewrite rules for all subterms added to this class */
   bool d_rec;
   /** candidate rewrite filter */
   CandidateRewriteFilter d_crewrite_filter;
