@@ -27,8 +27,8 @@
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
-#include "theory/smt_engine_subsolver.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
+#include "theory/smt_engine_subsolver.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -301,8 +301,7 @@ bool SygusInterpol::findInterpol(SolverEngine* subSolver,
   }
 
   // get the grammar type for the interpolant
-  Node igdtbv = 
-    SygusUtils::getOrMkSygusArgumentListForSynthFun(itp);
+  Node igdtbv = SygusUtils::getOrMkSygusArgumentListForSynthFun(itp);
   // could have no variables, in which case there is nothing to do
   if (igdtbv.isNull())
   {

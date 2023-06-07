@@ -125,7 +125,9 @@ bool AbductionSolver::getAbductInternal(Node& abd)
         abd = abd[1];
       }
       // get the grammar type for the abduct
-      Node agdtbv = theory::quantifiers::SygusUtils::getOrMkSygusArgumentListForSynthFun(d_sssf);
+      Node agdtbv =
+          theory::quantifiers::SygusUtils::getOrMkSygusArgumentListForSynthFun(
+              d_sssf);
       if(!agdtbv.isNull())
       {
         Assert(agdtbv.getKind() == kind::BOUND_VAR_LIST);

@@ -98,7 +98,7 @@ class SygusUtils
    * Same as above, but adds the variables to formals.
    */
   static void getOrMkSygusArgumentListForSynthFun(Node f,
-                                              std::vector<Node>& formals);
+                                                  std::vector<Node>& formals);
   /**
    * Wrap a solution sol for f in the proper lambda, return the lambda
    * expression. Notice the returned expression is sol itself if f has no

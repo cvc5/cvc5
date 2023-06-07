@@ -151,7 +151,7 @@ Node SygusUtils::decomposeSygusBody(Node conj, std::vector<Node>& vs)
 
 void SygusUtils::setSygusArgumentListForSynthFun(Node f, const Node& bvl)
 {
-  Assert (!bvl.isNull());
+  Assert(!bvl.isNull());
   // use an attribute to mark its bound variable list
   SygusSynthFunVarListAttribute ssfvla;
   f.setAttribute(ssfvla, bvl);
@@ -179,7 +179,7 @@ Node SygusUtils::getOrMkSygusArgumentListForSynthFun(Node f)
 }
 
 void SygusUtils::getOrMkSygusArgumentListForSynthFun(Node f,
-                                                 std::vector<Node>& formals)
+                                                     std::vector<Node>& formals)
 {
   Node sfvl = getOrMkSygusArgumentListForSynthFun(f);
   if (!sfvl.isNull())
@@ -191,7 +191,7 @@ void SygusUtils::getOrMkSygusArgumentListForSynthFun(Node f,
 Node SygusUtils::wrapSolutionForSynthFun(Node f, Node sol)
 {
   Node al = getOrMkSygusArgumentListForSynthFun(f);
-  Assert (!al.isNull());
+  Assert(!al.isNull());
   sol = NodeManager::currentNM()->mkNode(LAMBDA, al, sol);
   Assert(!expr::hasFreeVar(sol));
   return sol;
@@ -199,8 +199,8 @@ Node SygusUtils::wrapSolutionForSynthFun(Node f, Node sol)
 
 void SygusUtils::setSygusTypeForSynthFun(Node f, const TypeNode& tn)
 {
-  Assert (!tn.isNull());
-  Assert (getSygusTypeForSynthFun(f).isNull());
+  Assert(!tn.isNull());
+  Assert(getSygusTypeForSynthFun(f).isNull());
   Node sym = NodeManager::currentNM()->mkBoundVar("sfproxy", tn);
   // use an attribute to mark its grammar
   SygusSynthGrammarAttribute ssfga;
