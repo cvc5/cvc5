@@ -180,8 +180,7 @@ Node SygusUtils::getOrMkSygusArgumentList(Node f)
   return sfvl;
 }
 
-void SygusUtils::getOrMkSygusArgumentList(Node f,
-                                                     std::vector<Node>& formals)
+void SygusUtils::getOrMkSygusArgumentList(Node f, std::vector<Node>& formals)
 {
   Node sfvl = getOrMkSygusArgumentList(f);
   if (!sfvl.isNull())
