@@ -114,7 +114,6 @@ void SynthFinder::initialize(modes::FindSynthTarget fst, const Node& e)
   // initialize the sampler if necessary
   bool needsSampler = false;
   size_t nsamples = options().quantifiers.sygusSamples;
-  bool samplerUniqueTypeIds = false;
   if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE
       || fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_UNSOUND)
   {

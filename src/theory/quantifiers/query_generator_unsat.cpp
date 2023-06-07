@@ -73,8 +73,7 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::vector<Node>& queries)
       std::vector<Node> aTermCurr = activeTerms;
       std::shuffle(aTermCurr.begin(), aTermCurr.end(), Random::getRandom());
       Node qy = nm->mkAnd(activeTerms);
-      queries.push_back(qy);
-      Result r = checkCurrent(qy, currModel);
+      Result r = checkCurrent(qy, currModel, queries);
       if (r.getStatus() == Result::UNSAT)
       {
         // exclude the last active term
@@ -125,7 +124,7 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::vector<Node>& queries)
 }
 
 Result QueryGeneratorUnsat::checkCurrent(const Node& qy,
-                                         std::vector<Node>& currModel)
+                                         std::vector<Node>& currModel, std::vector<Node>& queries)
 {
   Trace("sygus-qgen-check") << "Check: " << qy << std::endl;
   std::unique_ptr<SolverEngine> queryChecker;
@@ -147,7 +146,7 @@ Result QueryGeneratorUnsat::checkCurrent(const Node& qy,
     getModelFromSubsolver(*queryChecker.get(), d_skolems, currModel);
     Trace("sygus-qgen-check") << "...model: " << currModel << std::endl;
   }
-  dumpQuery(qy, r);
+  dumpQuery(qy, r, queries);
   return r;
 }
 

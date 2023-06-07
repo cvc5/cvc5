@@ -72,6 +72,7 @@ void ExprMiner::initializeChecker(std::unique_ptr<SolverEngine>& checker,
 
 Result ExprMiner::doCheck(Node query, const SubsolverSetupInfo& info)
 {
+  Trace("expr-miner-check") << "Check: " << query << std::endl;
   Node queryr = rewrite(query);
   if (queryr.isConst())
   {
@@ -86,7 +87,9 @@ Result ExprMiner::doCheck(Node query, const SubsolverSetupInfo& info)
   }
   std::unique_ptr<SolverEngine> smte;
   initializeChecker(smte, query, info);
-  return smte->checkSat();
+  Result r = smte->checkSat();
+  Trace("expr-miner-check") << "...result: " << r << std::endl;
+  return r;
 }
 
 bool ExprMinerId::addTerm(Node n, std::vector<Node>& found)

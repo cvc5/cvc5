@@ -159,7 +159,6 @@ void QueryGeneratorSampleSat::checkQuery(Node qy,
     return;
   }
   d_allQueries.insert(qy);
-  foundQueries.push_back(qy);
   // external query
 
   Result r;
@@ -185,7 +184,7 @@ void QueryGeneratorSampleSat::checkQuery(Node qy,
     ss << "but cvc5 answered unsat!" << std::endl;
     AlwaysAssert(false) << ss.str();
   }
-  dumpQuery(qy, r);
+  dumpQuery(qy, r, foundQueries);
 }
 
 void QueryGeneratorSampleSat::findQueries(
