@@ -25,7 +25,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-/** 
+/**
  * RewriteVerifier, which tests the rewritten form of terms provided to addTerm.
  */
 class RewriteVerifier : public ExprMiner
@@ -39,7 +39,8 @@ class RewriteVerifier : public ExprMiner
    * unsound.
    */
   bool addTerm(Node n, std::vector<Node>& rewrites) override;
-private:
+
+ private:
   /** check equivalent
    *
    * Check whether bv and bvr are equivalent on all sample points, print

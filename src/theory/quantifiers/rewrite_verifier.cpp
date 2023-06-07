@@ -15,8 +15,9 @@
 
 #include "theory/quantifiers/rewrite_verifier.h"
 
-#include "smt/env.h"
 #include <sstream>
+
+#include "smt/env.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -44,14 +45,14 @@ bool RewriteVerifier::checkEquivalent(Node bv, Node bvr, std::ostream* out)
   {
     return true;
   }
-  if (d_sampler==nullptr)
+  if (d_sampler == nullptr)
   {
-    Assert (false) << "Expected a sampler to test rewrites";
+    Assert(false) << "Expected a sampler to test rewrites";
     return true;
   }
   Trace("sygus-rr-verify") << "Testing rewrite rule " << bv << " ---> " << bvr
-                           << " over " << d_sampler->getNumSamplePoints() << " points for "
-                           << d_vars << std::endl;
+                           << " over " << d_sampler->getNumSamplePoints()
+                           << " points for " << d_vars << std::endl;
 
   // see if they evaluate to same thing on all sample points
   bool ptDisequal = false;
@@ -63,7 +64,7 @@ bool RewriteVerifier::checkEquivalent(Node bv, Node bvr, std::ostream* out)
   {
     // do not use the rewriter in the calls to evaluate here
     const std::vector<Node>& pt = d_sampler->getSamplePoint(i);
-    Assert (pt.size()==d_vars.size());
+    Assert(pt.size() == d_vars.size());
     bve = evaluate(bv, d_vars, pt, false);
     bvre = evaluate(bvr, d_vars, pt, false);
     if (bve != bvre)

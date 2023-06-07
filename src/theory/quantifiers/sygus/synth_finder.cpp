@@ -41,7 +41,7 @@ void SynthFinder::initializeFindSynth(modes::FindSynthTarget fst,
   {
     d_fstu = modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE;
   }
-  
+
   // clear the buffer
   d_bufferIndex = 0;
   d_buffer.clear();
@@ -194,7 +194,7 @@ void SynthFinder::initialize(modes::FindSynthTarget fst, const Node& e)
 Node SynthFinder::runNext(const Node& n, modes::FindSynthTarget fst)
 {
   // if we already have a solution from a previous call that was buffered
-  if (d_bufferIndex<d_buffer.size())
+  if (d_bufferIndex < d_buffer.size())
   {
     Node ret = d_buffer[d_bufferIndex];
     d_bufferIndex++;

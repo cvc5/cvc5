@@ -59,7 +59,7 @@ namespace passes {
  * cause candidate rewrites to be printed on the output stream. If multiple
  * types are present, then we generate a conjunction of multiple synthesis
  * conjectures, which we enumerate terms for in parallel.
- * 
+ *
  * !!! NOTE: this class will be converted into a utility
  */
 class SynthRewRulesPass : public PreprocessingPass
