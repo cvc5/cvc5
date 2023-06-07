@@ -15,9 +15,8 @@
 
 #include "theory/quantifiers/rewrite_verifier.h"
 
-#include <sstream>
-
 #include "smt/env.h"
+#include "expr/node_algorithm.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -50,8 +49,20 @@ bool RewriteVerifier::checkEquivalent(Node bv, Node bvr, std::ostream* out)
     Assert(false) << "Expected a sampler to test rewrites";
     return true;
   }
+  // check if it has variables from d_vars
+  std::unordered_set<Node> syms;
+  expr::getSymbols(bv, syms);
+  bool hasVar = false;
+  for (const Node& sym : syms)
+  {
+    if (std::find(d_vars.begin(), d_vars.end(), sym)!=d_vars.end())
+    {
+      hasVar = true;
+      break;
+    }
+  }
   Trace("sygus-rr-verify") << "Testing rewrite rule " << bv << " ---> " << bvr
-                           << " over " << d_sampler->getNumSamplePoints()
+                           << " over " << (hasVar ? d_sampler->getNumSamplePoints() : 1)
                            << " points for " << d_vars << std::endl;
 
   // see if they evaluate to same thing on all sample points
@@ -76,6 +87,11 @@ bool RewriteVerifier::checkEquivalent(Node bv, Node bvr, std::ostream* out)
         ptDisequalConst = true;
         break;
       }
+    }
+    // if we don't have variables from sample, further points don't matter
+    if (!hasVar)
+    {
+      break;
     }
   }
   Trace("sygus-rr-verify") << "...finished" << std::endl;
