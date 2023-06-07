@@ -76,14 +76,14 @@ void SygusSolver::declareSynthFun(Node fn,
   {
     Node bvl = nm->mkNode(BOUND_VAR_LIST, vars);
     // use an attribute to mark its bound variable list
-    quantifiers::SygusUtils::setSygusArgumentListForSynthFun(fn, bvl);
+    quantifiers::SygusUtils::setSygusArgumentList(fn, bvl);
   }
   // whether sygus type encodes syntax restrictions
   if (!sygusType.isNull() && sygusType.isDatatype()
       && sygusType.getDType().isSygus())
   {
     // use an attribute to mark its grammar
-    quantifiers::SygusUtils::setSygusTypeForSynthFun(fn, sygusType);
+    quantifiers::SygusUtils::setSygusType(fn, sygusType);
     // we must expand definitions for sygus operators in the block
     expandDefinitionsSygusDt(sygusType);
   }
@@ -569,7 +569,7 @@ std::vector<std::pair<Node, TypeNode>> SygusSolver::getSynthFunctions() const
   std::vector<std::pair<Node, TypeNode>> funs;
   for (const Node& f : d_sygusFunSymbols)
   {
-    TypeNode st = quantifiers::SygusUtils::getSygusTypeForSynthFun(f);
+    TypeNode st = quantifiers::SygusUtils::getSygusType(f);
     funs.emplace_back(f, st);
   }
   return funs;

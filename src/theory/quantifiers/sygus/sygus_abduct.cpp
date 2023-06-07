@@ -113,7 +113,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
         << "Make sygus grammar attribute..." << std::endl;
     // Set the sygus grammar attribute to indicate that abdGTypeS encodes the
     // grammar for abd.
-    SygusUtils::setSygusTypeForSynthFun(abd, abdGTypeS);
+    SygusUtils::setSygusType(abd, abdGTypeS);
     Trace("sygus-abduct-debug") << "Finished setting up grammar." << std::endl;
 
     // use the bound variable list from the new substituted grammar type
@@ -139,7 +139,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
 
   Trace("sygus-abduct-debug") << "Set attributes..." << std::endl;
   // set the sygus bound variable list
-  SygusUtils::setSygusArgumentListForSynthFun(abd, abvl);
+  SygusUtils::setSygusArgumentList(abd, abvl);
   Trace("sygus-abduct-debug") << "...finish" << std::endl;
 
   Trace("sygus-abduct-debug") << "Make conjecture body..." << std::endl;

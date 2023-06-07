@@ -149,7 +149,7 @@ Node SygusUtils::decomposeSygusBody(Node conj, std::vector<Node>& vs)
   return conj;
 }
 
-void SygusUtils::setSygusArgumentListForSynthFun(Node f, const Node& bvl)
+void SygusUtils::setSygusArgumentList(Node f, const Node& bvl)
 {
   if (!bvl.isNull())
   {
@@ -159,7 +159,7 @@ void SygusUtils::setSygusArgumentListForSynthFun(Node f, const Node& bvl)
   }
 }
 
-Node SygusUtils::getOrMkSygusArgumentListForSynthFun(Node f)
+Node SygusUtils::getOrMkSygusArgumentList(Node f)
 {
   Node sfvl = f.getAttribute(SygusSynthFunVarListAttribute());
   if (sfvl.isNull() && f.getType().isFunction())
@@ -180,19 +180,19 @@ Node SygusUtils::getOrMkSygusArgumentListForSynthFun(Node f)
   return sfvl;
 }
 
-void SygusUtils::getOrMkSygusArgumentListForSynthFun(Node f,
+void SygusUtils::getOrMkSygusArgumentList(Node f,
                                                      std::vector<Node>& formals)
 {
-  Node sfvl = getOrMkSygusArgumentListForSynthFun(f);
+  Node sfvl = getOrMkSygusArgumentList(f);
   if (!sfvl.isNull())
   {
     formals.insert(formals.end(), sfvl.begin(), sfvl.end());
   }
 }
 
-Node SygusUtils::wrapSolutionForSynthFun(Node f, Node sol)
+Node SygusUtils::wrapSolution(Node f, Node sol)
 {
-  Node al = getOrMkSygusArgumentListForSynthFun(f);
+  Node al = getOrMkSygusArgumentList(f);
   if (!al.isNull())
   {
     sol = NodeManager::currentNM()->mkNode(LAMBDA, al, sol);
@@ -201,17 +201,17 @@ Node SygusUtils::wrapSolutionForSynthFun(Node f, Node sol)
   return sol;
 }
 
-void SygusUtils::setSygusTypeForSynthFun(Node f, const TypeNode& tn)
+void SygusUtils::setSygusType(Node f, const TypeNode& tn)
 {
   Assert(!tn.isNull());
-  Assert(getSygusTypeForSynthFun(f).isNull());
+  Assert(getSygusType(f).isNull());
   Node sym = NodeManager::currentNM()->mkBoundVar("sfproxy", tn);
   // use an attribute to mark its grammar
   SygusSynthGrammarAttribute ssfga;
   f.setAttribute(ssfga, sym);
 }
 
-TypeNode SygusUtils::getSygusTypeForSynthFun(const Node& f)
+TypeNode SygusUtils::getSygusType(const Node& f)
 {
   Node gv = f.getAttribute(SygusSynthGrammarAttribute());
   if (!gv.isNull())

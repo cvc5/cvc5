@@ -242,7 +242,7 @@ void SygusInterpol::mkSygusConjecture(Node itp,
   Trace("sygus-interpol-debug") << "Set attributes..." << std::endl;
   if (!d_ibvlShared.isNull())
   {
-    SygusUtils::setSygusArgumentListForSynthFun(itp, d_ibvlShared);
+    SygusUtils::setSygusArgumentList(itp, d_ibvlShared);
   }
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 
@@ -301,7 +301,7 @@ bool SygusInterpol::findInterpol(SolverEngine* subSolver,
   }
 
   // get the grammar type for the interpolant
-  Node igdtbv = SygusUtils::getOrMkSygusArgumentListForSynthFun(itp);
+  Node igdtbv = SygusUtils::getOrMkSygusArgumentList(itp);
   // could have no variables, in which case there is nothing to do
   if (igdtbv.isNull())
   {

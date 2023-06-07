@@ -126,7 +126,7 @@ bool AbductionSolver::getAbductInternal(Node& abd)
       }
       // get the grammar type for the abduct
       Node agdtbv =
-          theory::quantifiers::SygusUtils::getOrMkSygusArgumentListForSynthFun(
+          theory::quantifiers::SygusUtils::getOrMkSygusArgumentList(
               d_sssf);
       if(!agdtbv.isNull())
       {
