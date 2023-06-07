@@ -191,8 +191,10 @@ void SygusUtils::getOrMkSygusArgumentListForSynthFun(Node f,
 Node SygusUtils::wrapSolutionForSynthFun(Node f, Node sol)
 {
   Node al = getOrMkSygusArgumentListForSynthFun(f);
-  Assert(!al.isNull());
-  sol = NodeManager::currentNM()->mkNode(LAMBDA, al, sol);
+  if (!al.isNull())
+  {
+    sol = NodeManager::currentNM()->mkNode(LAMBDA, al, sol);
+  }
   Assert(!expr::hasFreeVar(sol));
   return sol;
 }
