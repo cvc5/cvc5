@@ -200,6 +200,7 @@ Node SynthFinder::runNext(const Node& n, modes::FindSynthTarget fst)
     return ret;
   }
   d_bufferIndex = 0;
+  d_buffer.clear();
   Node bn = datatypes::utils::sygusToBuiltin(n, true);
   Trace("synth-finder") << "runNext " << d_fstu << " " << bn << std::endl;
   // run the expression miner
