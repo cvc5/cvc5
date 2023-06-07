@@ -82,6 +82,10 @@ class SygusUtils
   static Node decomposeSygusBody(Node conj, std::vector<Node>& vs);
 
   /**
+   * Set the formal argument list for a function-to-synthesize.
+   */
+  static void setSygusArgumentListForSynthFun(Node f, const Node& bvl);
+  /**
    * Get the formal argument list for a function-to-synthesize. This returns
    * a node of kind BOUND_VAR_LIST that corresponds to the formal argument list
    * of the function to synthesize.
@@ -89,11 +93,11 @@ class SygusUtils
    * Note that if f is constant, then this returns null, since f has no
    * arguments in this case.
    */
-  static Node getSygusArgumentListForSynthFun(Node f);
+  static Node getOrMkSygusArgumentListForSynthFun(Node f);
   /**
    * Same as above, but adds the variables to formals.
    */
-  static void getSygusArgumentListForSynthFun(Node f,
+  static void getOrMkSygusArgumentListForSynthFun(Node f,
                                               std::vector<Node>& formals);
   /**
    * Wrap a solution sol for f in the proper lambda, return the lambda
@@ -103,10 +107,15 @@ class SygusUtils
   static Node wrapSolutionForSynthFun(Node f, Node sol);
 
   /**
+   * Set the sygus datatype type that encodes the syntax restrictions for
+   * function-to-synthesize f.
+   */
+  static void setSygusTypeForSynthFun(Node f, const TypeNode& tn);
+  /**
    * Get the sygus datatype type that encodes the syntax restrictions for
    * function-to-synthesize f.
    */
-  static TypeNode getSygusTypeForSynthFun(Node f);
+  static TypeNode getSygusTypeForSynthFun(const Node& f);
 };
 
 }  // namespace quantifiers

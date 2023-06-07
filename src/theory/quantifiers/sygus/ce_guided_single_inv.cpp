@@ -72,7 +72,7 @@ void CegSingleInv::initialize(Node q)
   for (const Node& sf : q[0])
   {
     // get its argument list
-    SygusUtils::getSygusArgumentListForSynthFun(sf, progVars[sf]);
+    SygusUtils::getOrMkSygusArgumentListForSynthFun(sf, progVars[sf]);
   }
   // compute single invocation partition
   Node qq;
