@@ -146,7 +146,7 @@ bool QueryGeneratorSampleSat::addTerm(Node n, std::vector<Node>& foundQueries)
       checkQuery(qy, i, foundQueries);
     }
   }
-  Trace("sygus-qgen-check") << "...finished." << std::endl;
+  Trace("expr-miner-check") << "...finished." << std::endl;
   return true;
 }
 
@@ -162,13 +162,13 @@ void QueryGeneratorSampleSat::checkQuery(Node qy,
   // external query
 
   Result r;
-  Trace("sygus-qgen-check") << "  query: check " << qy << "..." << std::endl;
+  Trace("expr-miner-check") << "Check (qgss): " << qy << "..." << std::endl;
   // make the satisfiability query
   SubsolverSetupInfo ssi(d_env);
   std::unique_ptr<SolverEngine> queryChecker;
   initializeChecker(queryChecker, qy, ssi);
   r = queryChecker->checkSat();
-  Trace("sygus-qgen-check") << "  query: ...got : " << r << std::endl;
+  Trace("expr-miner-check") << "...result: " << r << std::endl;
   if (r.getStatus() == Result::UNSAT)
   {
     std::stringstream ss;

@@ -47,7 +47,7 @@ void QueryGenerator::dumpQuery(Node qy,
   bool isSolved =
       (r.getStatus() == Result::SAT || r.getStatus() == Result::UNSAT);
   // add to queries if not filtered
-  if (!isSolved || options().quantifiers.sygusQueryFilterSolved)
+  if (!isSolved || !options().quantifiers.sygusQueryFilterSolved)
   {
     queries.push_back(qy);
   }
@@ -93,9 +93,7 @@ bool QueryGeneratorBasic::addTerm(Node n, std::vector<Node>& queries)
 {
   ensureBoolean(n);
   SubsolverSetupInfo ssi(d_env);
-  std::unique_ptr<SolverEngine> queryChecker;
-  initializeChecker(queryChecker, n, ssi);
-  Result r = queryChecker->checkSat();
+  Result r = doCheck(n, ssi);
   dumpQuery(n, r, queries);
   return true;
 }
