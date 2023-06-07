@@ -33,42 +33,43 @@ class SynthConjecture;
 class TermDbSygus;
 
 /**
- * Utility for applying the deep embedding from Section 4 of Reynolds et al CAV 2015.
+ * Utility for applying the deep embedding from Section 4 of Reynolds et al CAV
+ * 2015.
  */
 class EmbeddingConverter : protected EnvObj
 {
-public:
- EmbeddingConverter(Env& env, TermDbSygus* tds, SynthConjecture* p);
- ~EmbeddingConverter() {}
- /** process
-  *
-  * This converts node q based on its deep embedding
-  * (Section 4 of Reynolds et al CAV 2015).
-  * The syntactic restrictions are associated with
-  * the functions-to-synthesize using the attribute
-  * SygusSynthGrammarAttribute.
-  * The arguments templates and template_args
-  * indicate templates for the function to synthesize,
-  * in particular the solution for the i^th function
-  * to synthesis must be of the form
-  *   templates[i]{ templates_arg[i] -> t }
-  * for some t if !templates[i].isNull().
-  */
- Node process(Node q,
-              const std::map<Node, Node>& templates,
-              const std::map<Node, Node>& templates_arg);
- /**
-  * Same as above, but we have already determined that the set of first-order
-  * datatype variables that will quantify the deep embedding conjecture are
-  * the vector ebvl.
-  */
- Node process(Node q,
-              const std::map<Node, Node>& templates,
-              const std::map<Node, Node>& templates_arg,
-              const std::vector<Node>& ebvl);
+ public:
+  EmbeddingConverter(Env& env, TermDbSygus* tds, SynthConjecture* p);
+  ~EmbeddingConverter() {}
+  /** process
+   *
+   * This converts node q based on its deep embedding
+   * (Section 4 of Reynolds et al CAV 2015).
+   * The syntactic restrictions are associated with
+   * the functions-to-synthesize using the attribute
+   * SygusSynthGrammarAttribute.
+   * The arguments templates and template_args
+   * indicate templates for the function to synthesize,
+   * in particular the solution for the i^th function
+   * to synthesis must be of the form
+   *   templates[i]{ templates_arg[i] -> t }
+   * for some t if !templates[i].isNull().
+   */
+  Node process(Node q,
+               const std::map<Node, Node>& templates,
+               const std::map<Node, Node>& templates_arg);
+  /**
+   * Same as above, but we have already determined that the set of first-order
+   * datatype variables that will quantify the deep embedding conjecture are
+   * the vector ebvl.
+   */
+  Node process(Node q,
+               const std::map<Node, Node>& templates,
+               const std::map<Node, Node>& templates_arg,
+               const std::vector<Node>& ebvl);
 
- /** Is the syntax restricted? */
- bool isSyntaxRestricted() { return d_is_syntax_restricted; }
+  /** Is the syntax restricted? */
+  bool isSyntaxRestricted() { return d_is_syntax_restricted; }
   /**
    * Convert node n based on deep embedding, see Section 4 of Reynolds et al
    * CAV 2015.
@@ -84,12 +85,13 @@ public:
    * functions-to-synthesize of sygus conjecture q.
    */
   static bool hasSyntaxRestrictions(Node q);
+
  private:
   /** The sygus term database we are using */
   TermDbSygus* d_tds;
   /** parent conjecture
-  * This contains global information about the synthesis conjecture.
-  */
+   * This contains global information about the synthesis conjecture.
+   */
   SynthConjecture* d_parent;
   /**
    * Maps each synthesis function to its corresponding (first-order) sygus
