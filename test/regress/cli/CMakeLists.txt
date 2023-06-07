@@ -3330,6 +3330,7 @@ set(regress_2_tests
   regress2/sygus/sumn_recur_synth.sy
   regress2/sygus/strings-no-syntax-len.sy
   regress2/sygus/three.sy
+  regress2/sygus/tp19.eqn_sygus_iter_98_0.sy
   regress2/typed_v1l50016-simp.cvc.smt2
   regress2/uflia-error0.smt2
   regress2/xs-09-16-3-4-1-5.smtv1.smt2
