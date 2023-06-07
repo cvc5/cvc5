@@ -27,9 +27,9 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/sygus/embedding_converter.h"
 #include "theory/quantifiers/sygus/enum_value_manager.h"
 #include "theory/quantifiers/sygus/print_sygus_to_builtin.h"
-#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -65,7 +65,7 @@ SynthConjecture::SynthConjecture(Env& env,
       d_ceg_si(new CegSingleInv(env, tr, s)),
       d_templInfer(new SygusTemplateInfer(env)),
       d_ceg_proc(new SynthConjectureProcess(env)),
-      d_ceg_gc(new CegGrammarConstructor(env, d_tds, this)),
+      d_embConv(new EmbeddingConverter(env, d_tds, this)),
       d_sygus_rconst(new SygusRepairConst(env, d_tds)),
       d_exampleInfer(new ExampleInfer(d_tds)),
       d_ceg_pbe(new SygusPbe(env, qs, qim, d_tds, this)),
@@ -163,7 +163,7 @@ void SynthConjecture::assign(Node q)
   // finished simplifying the quantified formula at this point
 
   // convert to deep embedding and finalize single invocation here
-  d_embed_quant = d_ceg_gc->process(d_simp_quant, templates, templates_arg);
+  d_embed_quant = d_embConv->process(d_simp_quant, templates, templates_arg);
   Trace("cegqi") << "SynthConjecture : converted to embedding : "
                  << d_embed_quant << std::endl;
 
@@ -204,7 +204,7 @@ void SynthConjecture::assign(Node q)
       return;
     }
     // convert to deep embedding
-    d_embedSideCondition = d_ceg_gc->convertToEmbedding(sc);
+    d_embedSideCondition = d_embConv->convertToEmbedding(sc);
     Trace("cegqi") << "SynthConjecture : side condition : "
                    << d_embedSideCondition << std::endl;
   }
@@ -213,7 +213,7 @@ void SynthConjecture::assign(Node q)
   // restrictions
   if (checkSingleInvocation)
   {
-    d_ceg_si->finishInit(d_ceg_gc->isSyntaxRestricted());
+    d_ceg_si->finishInit(d_embConv->isSyntaxRestricted());
   }
 
   Assert(d_candidates.empty());
