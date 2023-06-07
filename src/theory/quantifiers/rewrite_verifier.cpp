@@ -51,11 +51,10 @@ bool RewriteVerifier::checkEquivalent(Node bv, Node bvr, std::ostream* out)
   }
   // check if it has variables from d_vars
   std::unordered_set<Node> syms;
-  expr::getSymbols(bv, syms);
+  expr::getFreeVariables(bv, syms);
   bool hasVar = false;
   for (const Node& sym : syms)
   {
-    Trace("sygus-rr-verify") << "Is fv " << sym << " in " << d_vars << "?" << std::endl;
     if (std::find(d_vars.begin(), d_vars.end(), sym)!=d_vars.end())
     {
       hasVar = true;
