@@ -15,16 +15,16 @@
 
 #include "theory/quantifiers/sygus/embedding_converter.h"
 
+#include "options/base_options.h"
+#include "options/quantifiers_options.h"
+#include "printer/smt2/smt2_printer.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
-#include "theory/quantifiers/sygus/sygus_utils.h"
-#include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
-#include "options/quantifiers_options.h"
+#include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "util/rational.h"
-#include "printer/smt2/smt2_printer.h"
-#include "options/base_options.h"
 
 using namespace cvc5::internal::kind;
 
@@ -33,8 +33,8 @@ namespace theory {
 namespace quantifiers {
 
 EmbeddingConverter::EmbeddingConverter(Env& env,
-                                             TermDbSygus* tds,
-                                             SynthConjecture* p)
+                                       TermDbSygus* tds,
+                                       SynthConjecture* p)
     : EnvObj(env), d_tds(tds), d_parent(p), d_is_syntax_restricted(false)
 {
 }
@@ -56,20 +56,23 @@ bool EmbeddingConverter::hasSyntaxRestrictions(Node q)
 void EmbeddingConverter::collectTerms(
     Node n, std::map<TypeNode, std::unordered_set<Node>>& consts)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, bool> visited;
   std::unordered_map<TNode, bool>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
     it = visited.find(cur);
-    if (it == visited.end()) {
+    if (it == visited.end())
+    {
       visited[cur] = true;
       // is this a constant?
-      if( cur.isConst() ){
+      if (cur.isConst())
+      {
         TypeNode tn = cur.getType();
         Node c = cur;
         if (tn.isRealOrInt())
@@ -91,8 +94,8 @@ void EmbeddingConverter::collectTerms(
 }
 
 Node EmbeddingConverter::process(Node q,
-                                    const std::map<Node, Node>& templates,
-                                    const std::map<Node, Node>& templates_arg)
+                                 const std::map<Node, Node>& templates,
+                                 const std::map<Node, Node>& templates_arg)
 {
   // convert to deep embedding and finalize single invocation here
   // now, construct the grammar
@@ -102,15 +105,16 @@ Node EmbeddingConverter::process(Node q,
   if (options().quantifiers.sygusAddConstGrammar)
   {
     Trace("cegqi") << "SynthConjecture : collect constants..." << std::endl;
-    collectTerms( q[1], extra_cons );
+    collectTerms(q[1], extra_cons);
   }
   std::map<TypeNode, std::unordered_set<Node>> exc_cons;
   std::map<TypeNode, std::unordered_set<Node>> inc_cons;
 
   NodeManager* nm = NodeManager::currentNM();
 
-  std::vector< Node > ebvl;
-  for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
+  std::vector<Node> ebvl;
+  for (unsigned i = 0; i < q[0].getNumChildren(); i++)
+  {
     Node sf = q[0][i];
     // if non-null, v encodes the syntactic restrictions (via an inductive
     // datatype) on sf from the input.
@@ -142,7 +146,9 @@ Node EmbeddingConverter::process(Node q,
       // normalize type, if user-provided
       SygusGrammarNorm sygus_norm(d_env, d_tds);
       tn = sygus_norm.normalizeSygusType(tn, sfvl);
-    }else{
+    }
+    else
+    {
       sfvl = SygusUtils::getSygusArgumentListForSynthFun(sf);
       // check which arguments are irrelevant
       std::unordered_set<unsigned> arg_irrelevant;
@@ -157,13 +163,13 @@ Node EmbeddingConverter::process(Node q,
 
       // make the default grammar
       tn = CegGrammarConstructor::mkSygusDefaultType(options(),
-                              preGrammarType,
-                              sfvl,
-                              ss.str(),
-                              extra_cons,
-                              exc_cons,
-                              inc_cons,
-                              term_irlv);
+                                                     preGrammarType,
+                                                     sfvl,
+                                                     ss.str(),
+                                                     extra_cons,
+                                                     exc_cons,
+                                                     inc_cons,
+                                                     term_irlv);
       // print the grammar
       if (isOutputOn(OutputTag::SYGUS_GRAMMAR))
       {
@@ -178,7 +184,8 @@ Node EmbeddingConverter::process(Node q,
                          << sfvl << std::endl;
 
     std::map<Node, Node>::const_iterator itt = templates.find(sf);
-    if( itt!=templates.end() ){
+    if (itt != templates.end())
+    {
       Node templ = itt->second;
       std::map<Node, Node>::const_iterator itta = templates_arg.find(sf);
       Assert(itta != templates_arg.end());
@@ -198,9 +205,9 @@ Node EmbeddingConverter::process(Node q,
 }
 
 Node EmbeddingConverter::process(Node q,
-                                    const std::map<Node, Node>& templates,
-                                    const std::map<Node, Node>& templates_arg,
-                                    const std::vector<Node>& ebvl)
+                                 const std::map<Node, Node>& templates,
+                                 const std::map<Node, Node>& templates_arg,
+                                 const std::vector<Node>& ebvl)
 {
   Assert(q[0].getNumChildren() == ebvl.size());
   Assert(d_synth_fun_vars.empty());
@@ -264,19 +271,22 @@ Node EmbeddingConverter::process(Node q,
     Assert(tn.isDatatype());
     const DType& dt = tn.getDType();
     Assert(dt.isSygus());
-    if( !dt.getSygusAllowAll() ){
+    if (!dt.getSygusAllowAll())
+    {
       d_is_syntax_restricted = true;
     }
   }
   qchildren.push_back(nm->mkNode(kind::BOUND_VAR_LIST, ebvl));
-  if( qbody_subs!=q[1] ){
+  if (qbody_subs != q[1])
+  {
     Trace("cegqi") << "...rewriting : " << qbody_subs << std::endl;
     qbody_subs = rewrite(qbody_subs);
     Trace("cegqi") << "...got : " << qbody_subs << std::endl;
   }
   qchildren.push_back(convertToEmbedding(qbody_subs));
-  if( q.getNumChildren()==3 ){
-    qchildren.push_back( q[2] );
+  if (q.getNumChildren() == 3)
+  {
+    qchildren.push_back(q[2]);
   }
   return nm->mkNode(kind::FORALL, qchildren);
 }
@@ -289,46 +299,57 @@ Node EmbeddingConverter::convertToEmbedding(Node n)
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
     it = visited.find(cur);
-    if (it == visited.end()) {
+    if (it == visited.end())
+    {
       visited[cur] = Node::null();
       visit.push_back(cur);
       visit.insert(visit.end(), cur.begin(), cur.end());
-    } else if (it->second.isNull()) {
+    }
+    else if (it->second.isNull())
+    {
       Node ret = cur;
       Kind ret_k = cur.getKind();
       Node op;
       bool childChanged = false;
       std::vector<Node> children;
       // get the potential operator
-      if( cur.getNumChildren()>0 ){
-        if( cur.getKind()==kind::APPLY_UF ){
+      if (cur.getNumChildren() > 0)
+      {
+        if (cur.getKind() == kind::APPLY_UF)
+        {
           op = cur.getOperator();
         }
-      }else{
+      }
+      else
+      {
         op = cur;
       }
       // is the operator a synth function?
       bool makeEvalFun = false;
-      if( !op.isNull() ){
+      if (!op.isNull())
+      {
         std::map<Node, Node>::iterator its = d_synth_fun_vars.find(op);
         if (its != d_synth_fun_vars.end())
         {
-          children.push_back( its->second );
+          children.push_back(its->second);
           makeEvalFun = true;
         }
       }
       if (!makeEvalFun)
       {
         // otherwise, we apply the previous operator
-        if( cur.getMetaKind() == kind::metakind::PARAMETERIZED ){
-          children.push_back( cur.getOperator() );
+        if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+        {
+          children.push_back(cur.getOperator());
         }
       }
-      for (unsigned i = 0; i < cur.getNumChildren(); i++) {
+      for (unsigned i = 0; i < cur.getNumChildren(); i++)
+      {
         it = visited.find(cur[i]);
         Assert(it != visited.end());
         Assert(!it->second.isNull());
