@@ -41,6 +41,10 @@ void SynthFinder::initializeFindSynth(modes::FindSynthTarget fst,
   {
     d_fstu = modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE;
   }
+  
+  // clear the buffer
+  d_bufferIndex = 0;
+  d_buffer.clear();
   NodeManager* nm = NodeManager::currentNM();
 
   // make the enumerator variable
@@ -49,7 +53,7 @@ void SynthFinder::initializeFindSynth(modes::FindSynthTarget fst,
   // initialize the expression miner
   initialize(d_fstu, e);
 
-  // initialize the enumerator
+  // initialize the enumerator with the given callback
   d_enum.reset(new SygusEnumerator(d_env, nullptr, d_ecb.get()));
   d_enum->initialize(e);
 }
@@ -72,13 +76,19 @@ Node SynthFinder::getCurrent()
   return runNext(curr, d_fstu);
 }
 
+/**
+ * A callback that does not do symmetry breaking based on rewriting.
+ */
 class SygusEnumeratorCallbackNoSym : public SygusEnumeratorCallback
 {
  public:
   SygusEnumeratorCallbackNoSym(Env& env) : SygusEnumeratorCallback(env) {}
 
  protected:
-  /** Get the cache value for the given candidate */
+  /**
+   * Get the cache value for the given candidate, which returns bn itself,
+   * without invoking the rewriter.
+   */
   Node getCacheValue(const Node& n, const Node& bn) override { return bn; }
 };
 
@@ -183,16 +193,24 @@ void SynthFinder::initialize(modes::FindSynthTarget fst, const Node& e)
 
 Node SynthFinder::runNext(const Node& n, modes::FindSynthTarget fst)
 {
-  std::vector<Node> ret;
+  // if we already have a solution from a previous call that was buffered
+  if (d_bufferIndex<d_buffer.size())
+  {
+    Node ret = d_buffer[d_bufferIndex];
+    d_bufferIndex++;
+    return ret;
+  }
+  d_bufferIndex = 0;
   Node bn = datatypes::utils::sygusToBuiltin(n, true);
   Trace("synth-finder") << "runNext " << d_fstu << " " << bn << std::endl;
   // run the expression miner
   Assert(d_current != nullptr);
-  d_current->addTerm(bn, ret);
+  d_current->addTerm(bn, d_buffer);
   // if non-empty
-  if (!ret.empty())
+  if (!d_buffer.empty())
   {
-    return NodeManager::currentNM()->mkNode(kind::SEXPR, ret);
+    d_bufferIndex = 1;
+    return d_buffer[0];
   }
   return Node::null();
 }

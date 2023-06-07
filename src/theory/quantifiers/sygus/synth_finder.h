@@ -79,6 +79,10 @@ class SynthFinder : protected EnvObj
   modes::FindSynthTarget d_fst;
   /** The current target we are using */
   modes::FindSynthTarget d_fstu;
+  /** The current buffer of terms returned by expression mining */
+  std::vector<Node> d_buffer;
+  /** The index in the buffer that is next to process */
+  size_t d_bufferIndex;
 };
 
 }  // namespace quantifiers
