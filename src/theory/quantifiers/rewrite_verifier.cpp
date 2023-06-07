@@ -49,7 +49,7 @@ bool RewriteVerifier::checkEquivalent(Node bv, Node bvr, std::ostream* out)
     Assert(false) << "Expected a sampler to test rewrites";
     return true;
   }
-  // check if it has variables from d_vars
+  // check if it has variables from d_vars, if not, we only test one point
   std::unordered_set<Node> syms;
   expr::getFreeVariables(bv, syms);
   bool hasVar = false;
