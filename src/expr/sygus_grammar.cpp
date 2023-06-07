@@ -29,6 +29,7 @@ SygusGrammar::SygusGrammar(const std::vector<Node>& sygusVars,
   NodeManager* nm = NodeManager::currentNM();
   for (const Node& ntSym : ntSyms)
   {
+    d_rules[ntSym].clear();
     d_sdts.emplace(ntSym, SygusDatatype(ntSym.getName()));
     d_ntsToUnres.emplace(ntSym, nm->mkUnresolvedDatatypeSort(ntSym.getName()));
   }
@@ -44,6 +45,11 @@ void SygusGrammar::addRule(const Node& ntSym, const Node& rule)
 {
   Assert(d_sdts.find(ntSym) != d_sdts.cend());
   Assert(rule.getType().isInstanceOf(ntSym.getType()));
+  d_rules[ntSym].push_back(rule);
+}
+
+void SygusGrammar::addRuleInternal(const Node& ntSym, const Node& rule)
+{
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> args;
   std::vector<TypeNode> cargs;
@@ -82,15 +88,33 @@ void SygusGrammar::addAnyVariable(const Node& ntSym)
   {
     if (v.getType().isInstanceOf(ntSym.getType()))
     {
-      d_sdts.at(ntSym).addConstructor(v, v.getName(), {});
+      addRule(ntSym, v);
     }
   }
+}
+
+void SygusGrammar::removeRule(const Node& ntSym, const Node& rule)
+{
+  std::map<Node, std::vector<Node>>::iterator itr = d_rules.find(ntSym);
+  Assert (itr!=d_rules.end());
+  std::vector<Node>::iterator it =
+      std::find(itr->second.begin(), itr->second.end(), rule);
+  Assert (it != itr->second.end());
+  itr->second.erase(it);
 }
 
 TypeNode SygusGrammar::resolve()
 {
   if (!isResolved())
   {
+    // push the rules into the sygus datatypes
+    for (const std::pair<const Node, std::vector<Node>>& g : d_rules)
+    {
+      for (const Node& r : g.second)
+      {
+        addRuleInternal(g.first, r);
+      }
+    }
     NodeManager* nm = NodeManager::currentNM();
     Node bvl;
     if (!d_sygusVars.empty())
@@ -123,9 +147,11 @@ const std::vector<Node>& SygusGrammar::getSygusVars() const
 
 const std::vector<Node>& SygusGrammar::getNtSyms() const { return d_ntSyms; }
 
-size_t SygusGrammar::getNumConstructors(Node ntSym) const
+const std::vector<Node>& SygusGrammar::getRulesFor(const Node& ntSym) const
 {
-  return d_sdts.at(ntSym).getNumConstructors();
+  std::map<Node, std::vector<Node>>::const_iterator itr = d_rules.find(ntSym);
+  Assert (itr!=d_rules.end());
+  return itr->second;
 }
 
 std::string SygusGrammar::toString() const
