@@ -151,10 +151,12 @@ Node SygusUtils::decomposeSygusBody(Node conj, std::vector<Node>& vs)
 
 void SygusUtils::setSygusArgumentListForSynthFun(Node f, const Node& bvl)
 {
-  Assert(!bvl.isNull());
-  // use an attribute to mark its bound variable list
-  SygusSynthFunVarListAttribute ssfvla;
-  f.setAttribute(ssfvla, bvl);
+  if (!bvl.isNull())
+  {
+    // use an attribute to mark its bound variable list
+    SygusSynthFunVarListAttribute ssfvla;
+    f.setAttribute(ssfvla, bvl);
+  }
 }
 
 Node SygusUtils::getOrMkSygusArgumentListForSynthFun(Node f)
