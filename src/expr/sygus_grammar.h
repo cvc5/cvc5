@@ -95,7 +95,7 @@ class SygusGrammar
    * @return The non-terminal symbols of this grammar.
    */
   const std::vector<Node>& getNtSyms() const;
-  
+
   /**
    * @return The rules for non-terminal ntSym
    */

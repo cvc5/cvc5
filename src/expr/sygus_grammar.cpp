@@ -96,10 +96,10 @@ void SygusGrammar::addAnyVariable(const Node& ntSym)
 void SygusGrammar::removeRule(const Node& ntSym, const Node& rule)
 {
   std::map<Node, std::vector<Node>>::iterator itr = d_rules.find(ntSym);
-  Assert (itr!=d_rules.end());
+  Assert(itr != d_rules.end());
   std::vector<Node>::iterator it =
       std::find(itr->second.begin(), itr->second.end(), rule);
-  Assert (it != itr->second.end());
+  Assert(it != itr->second.end());
   itr->second.erase(it);
 }
 
@@ -150,7 +150,7 @@ const std::vector<Node>& SygusGrammar::getNtSyms() const { return d_ntSyms; }
 const std::vector<Node>& SygusGrammar::getRulesFor(const Node& ntSym) const
 {
   std::map<Node, std::vector<Node>>::const_iterator itr = d_rules.find(ntSym);
-  Assert (itr!=d_rules.end());
+  Assert(itr != d_rules.end());
   return itr->second;
 }
 
