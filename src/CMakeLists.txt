@@ -935,6 +935,8 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/example_infer.h
   theory/quantifiers/sygus/example_min_eval.cpp
   theory/quantifiers/sygus/example_min_eval.h
+  theory/quantifiers/sygus/embedding_converter.cpp
+  theory/quantifiers/sygus/embedding_converter.h
   theory/quantifiers/sygus/enum_stream_substitution.cpp
   theory/quantifiers/sygus/enum_stream_substitution.h
   theory/quantifiers/sygus/enum_value_manager.cpp
@@ -959,8 +961,6 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/sygus_eval_unfold.h
   theory/quantifiers/sygus/sygus_explain.cpp
   theory/quantifiers/sygus/sygus_explain.h
-  theory/quantifiers/sygus/sygus_grammar_cons.cpp
-  theory/quantifiers/sygus/sygus_grammar_cons.h
   theory/quantifiers/sygus/sygus_grammar_norm.cpp
   theory/quantifiers/sygus/sygus_grammar_norm.h
   theory/quantifiers/sygus/sygus_grammar_red.cpp
