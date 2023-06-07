@@ -39,10 +39,13 @@ void QueryGenerator::initialize(const std::vector<Node>& vars, SygusSampler* ss)
   ExprMiner::initialize(vars, ss);
 }
 
-void QueryGenerator::dumpQuery(Node qy, const Result& r, std::vector<Node>& queries)
+void QueryGenerator::dumpQuery(Node qy,
+                               const Result& r,
+                               std::vector<Node>& queries)
 {
   d_queryCount++;
-  bool isSolved =(r.getStatus() == Result::SAT || r.getStatus() == Result::UNSAT);
+  bool isSolved =
+      (r.getStatus() == Result::SAT || r.getStatus() == Result::UNSAT);
   // add to queries if not filtered
   if (!isSolved || options().quantifiers.sygusQueryFilterSolved)
   {

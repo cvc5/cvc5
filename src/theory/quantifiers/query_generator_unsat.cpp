@@ -124,7 +124,8 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::vector<Node>& queries)
 }
 
 Result QueryGeneratorUnsat::checkCurrent(const Node& qy,
-                                         std::vector<Node>& currModel, std::vector<Node>& queries)
+                                         std::vector<Node>& currModel,
+                                         std::vector<Node>& queries)
 {
   Trace("sygus-qgen-check") << "Check: " << qy << std::endl;
   std::unique_ptr<SolverEngine> queryChecker;
