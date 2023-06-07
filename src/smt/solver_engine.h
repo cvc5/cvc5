@@ -538,13 +538,6 @@ class CVC5_EXPORT SolverEngine
    * (list, num, etc.) is determined by printInstMode.
    */
   void printInstantiations(std::ostream& out);
-  /**
-   * Print the current proof. This method should be called after an UNSAT
-   * response. It gets the proof of false from the PropEngine and passes
-   * it to the ProofManager, which post-processes the proof and prints it
-   * in the proper format.
-   */
-  void printProof();
 
   /**
    * Get synth solution.
@@ -1059,9 +1052,9 @@ class CVC5_EXPORT SolverEngine
   /**
    * Prints proof nodes using the currently configured proof format.
    */
-  void proofsToString(std::ostream& out,
-                      std::vector<std::shared_ptr<ProofNode>> fp,
-                      bool commentProves = true);
+  void printProofs(std::ostream& out,
+                   std::vector<std::shared_ptr<ProofNode>> fp,
+                   bool commentProves = true);
 
   /* Members -------------------------------------------------------------- */
 

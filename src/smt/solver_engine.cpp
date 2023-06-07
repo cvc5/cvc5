@@ -1465,9 +1465,9 @@ std::vector<std::shared_ptr<ProofNode>> SolverEngine::getProofNode(
   return ps;
 }
 
-void SolverEngine::proofsToString(std::ostream& out,
-                                  std::vector<std::shared_ptr<ProofNode>> fp,
-                                  bool commentProves)
+void SolverEngine::printProofs(std::ostream& out,
+                               std::vector<std::shared_ptr<ProofNode>> fp,
+                               bool commentProves)
 {
   // print all proofs
   // we currently only print outermost parentheses if the format is NONE

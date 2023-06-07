@@ -65,6 +65,7 @@
 #include "options/options_public.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
+#include "proof/proof_node.h"
 #include "proof/unsat_core.h"
 #include "smt/env.h"
 #include "smt/model.h"
@@ -5037,6 +5038,66 @@ std::ostream& operator<<(std::ostream& out, const Statistics& stats)
   return out;
 }
 
+/*--------------------------------------------------------------------------- */
+/* Proof                                                                      */
+/* -------------------------------------------------------------------------- */
+
+Proof::Proof(const std::shared_ptr<internal::ProofNode> p)
+    : d_nm(internal::NodeManager::currentNM()), d_proof_node(p)
+{
+}
+
+Proof::~Proof()
+{
+  Assert(d_proof_node != nullptr);
+  d_proof_node.reset();
+}
+
+Term Proof::getResult() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return Term(d_nm, this->getProofNode()->getResult());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+const std::vector<Proof> Proof::getChildren() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  std::vector<Proof> children;
+  std::vector<std::shared_ptr<internal::ProofNode>> node_children =
+      d_proof_node->getChildren();
+  for (size_t i = 0, psize = node_children.size(); i < psize; i++)
+  {
+    children.push_back(Proof(node_children[i]));
+  }
+  return children;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+const std::vector<Term> Proof::getArguments() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  std::vector<Term> args;
+  const std::vector<internal::Node> node_args = d_proof_node->getArguments();
+  for (size_t i = 0, asize = node_args.size(); i < asize; i++)
+  {
+    args.push_back(Term(d_nm, node_args[i]));
+  }
+  return args;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+const std::shared_ptr<internal::ProofNode>& Proof::getProofNode(void) const
+{
+  return this->d_proof_node;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
@@ -7136,14 +7197,60 @@ std::pair<Result, std::vector<Term>> Solver::getTimeoutCore() const
   CVC5_API_TRY_CATCH_END;
 }
 
-std::string Solver::getProof(modes::ProofComponent c) const
+std::vector<Proof> Solver::getProof(modes::ProofComponent c) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceProofs)
       << "Cannot get proof unless proofs are enabled (try --produce-proofs)";
   CVC5_API_RECOVERABLE_CHECK(d_slv->getSmtMode() == internal::SmtMode::UNSAT)
       << "Cannot get proof unless in unsat mode.";
-  return d_slv->getProof(c);
+  //////// all checks before this line
+  std::vector<std::shared_ptr<internal::ProofNode>> proof_nodes =
+      d_slv->getProof(c);
+  std::vector<Proof> proofs;
+  for (std::shared_ptr<internal::ProofNode> p : proof_nodes)
+  {
+    proofs.push_back(Proof(p));
+  }
+  return proofs;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+/** Return true if given proof format is a defined proof format. */
+bool isProofFormat(modes::ProofFormat pf)
+{
+  return pf >= 0 && pf <= modes::PROOF_FORMAT_DEFAULT;
+}
+/** Return true if given proof component is a defined proof component. */
+bool isProofComponent(modes::ProofComponent pc)
+{
+  return pc >= 0 && pc <= modes::PROOF_COMPONENT_FULL;
+}
+
+std::string Solver::proofsToString(std::vector<Proof> proofs,
+                                   modes::ProofFormat format,
+                                   modes::ProofComponent component) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(isProofFormat(format)) << "Invalid proof format.";
+  CVC5_API_CHECK(isProofComponent(component)) << "Invalid proof component.";
+  //////// all checks before this line
+  std::ostringstream ss;
+
+  // don't need to comment that it proves false
+  bool commentProves = !(component == modes::PROOF_COMPONENT_SAT
+                         || component == modes::PROOF_COMPONENT_FULL);
+
+  std::vector<std::shared_ptr<internal::ProofNode>> proof_nodes;
+  for (Proof p : proofs)
+  {
+    proof_nodes.push_back(p.getProofNode());
+  }
+  this->d_slv->printProofs(ss, proof_nodes, format, commentProves);
+
+  return ss.str();
+  ////////
   CVC5_API_TRY_CATCH_END;
 }
 
