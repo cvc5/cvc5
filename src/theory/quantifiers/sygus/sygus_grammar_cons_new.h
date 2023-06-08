@@ -71,7 +71,9 @@ class SygusGrammarCons
    * Make the builtin constants for type "type" that should be included in a
    * sygus grammar, add them to vector ops.
    */
-  static void mkSygusConstantsForType(const TypeNode& type, std::vector<Node>& ops);
+  static void mkSygusConstantsForType(const TypeNode& type,
+                                      std::vector<Node>& ops);
+
  private:
   static SygusGrammar mkEmptyGrammarInternal(
       const Options& opts,

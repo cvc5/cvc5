@@ -17,10 +17,10 @@
 #include "theory/quantifiers/sygus/sygus_grammar_cons_new.h"
 
 #include "expr/node_algorithm.h"
-#include "util/floatingpoint.h"
-#include "util/string.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/strings/word.h"
+#include "util/floatingpoint.h"
+#include "util/string.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -201,9 +201,8 @@ void SygusGrammarCons::addDefaultPredicateRulesToInternal(
   Assert(ntSymBool.getType().isBoolean());
 }
 
-
 void SygusGrammarCons::mkSygusConstantsForType(const TypeNode& type,
-                                                    std::vector<Node>& ops)
+                                               std::vector<Node>& ops)
 {
   NodeManager* nm = NodeManager::currentNM();
   if (type.isRealOrInt())
