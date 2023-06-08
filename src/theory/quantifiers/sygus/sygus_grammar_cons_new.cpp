@@ -58,17 +58,17 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
                                                 const Node& bvl,
                                                 const std::vector<Node>& trules)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   std::map<TypeNode, Node> typeToNtSym;
   std::map<TypeNode, Node>::iterator it;
   SygusGrammar g =
       mkEmptyGrammarInternal(opts, range, bvl, trules, typeToNtSym);
-  
+
   // get the non-terminal for Booleans
   Node ntSymBool;
   TypeNode btype = nm->booleanType();
   it = typeToNtSym.find(btype);
-  if (it!=typeToNtSym.end())
+  if (it != typeToNtSym.end())
   {
     ntSymBool = it->second;
   }
@@ -81,7 +81,7 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
     Assert(it != typeToNtSym.end());
     g.addRule(it->second, r);
   }
-  
+
   for (const std::pair<const TypeNode, Node>& gr : typeToNtSym)
   {
     // add rules for each type
@@ -89,7 +89,8 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
     // add predicates for the type to the Boolean grammar if it exists
     if (!ntSymBool.isNull() && !gr.first.isBoolean())
     {
-      addDefaultPredicateRulesToInternal(opts, g, gr.second, ntSymBool, typeToNtSym);
+      addDefaultPredicateRulesToInternal(
+          opts, g, gr.second, ntSymBool, typeToNtSym);
     }
   }
   return g;
@@ -111,7 +112,7 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammarInternal(
     const std::vector<Node>& trules,
     std::map<TypeNode, Node>& typeToNtSym)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   // get the variables
   std::vector<Node> vars;
   if (!bvl.isNull())
@@ -136,12 +137,12 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammarInternal(
   tvec.push_back(range);
   for (const TypeNode& t : types)
   {
-    if (t!=range)
+    if (t != range)
     {
       tvec.push_back(t);
     }
   }
-  
+
   // construct the non-terminals
   std::vector<Node> ntSyms;
   for (const TypeNode& t : tvec)
@@ -184,8 +185,8 @@ void SygusGrammarCons::addDefaultPredicateRulesToInternal(
     const Node& ntSymBool,
     const std::map<TypeNode, Node>& typeToNtSym)
 {
-  Assert (!ntSym.getType().isBoolean());
-  Assert (ntSymBool.getType().isBoolean());
+  Assert(!ntSym.getType().isBoolean());
+  Assert(ntSymBool.getType().isBoolean());
 }
 
 }  // namespace quantifiers
