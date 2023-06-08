@@ -768,7 +768,7 @@ struct HasAbstractSubtermTag
 struct HasAbstractSubtermComputedTag
 {
 };
-/** Attribute true for expressions with bound variables in them */
+/** Attribute true for expressions that have subterms with abstract type */
 using AbstractSubtermVarAttr = expr::Attribute<HasAbstractSubtermTag, bool>;
 using HasAbstractSubtermComputedAttr =
     expr::Attribute<HasAbstractSubtermComputedTag, bool>;
