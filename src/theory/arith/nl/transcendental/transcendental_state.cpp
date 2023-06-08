@@ -23,6 +23,7 @@
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/transcendental/taylor_generator.h"
 #include "theory/rewriter.h"
+#include "theory/theory_state.h"
 
 using namespace cvc5::internal::kind;
 

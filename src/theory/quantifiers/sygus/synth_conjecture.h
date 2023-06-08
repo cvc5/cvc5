@@ -40,7 +40,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-class CegGrammarConstructor;
+class EmbeddingConverter;
 class SygusPbe;
 class SygusStatistics;
 class EnumValueManager;
@@ -213,7 +213,7 @@ class SynthConjecture : protected EnvObj
   /** utility for static preprocessing and analysis of conjectures */
   std::unique_ptr<SynthConjectureProcess> d_ceg_proc;
   /** grammar utility */
-  std::unique_ptr<CegGrammarConstructor> d_ceg_gc;
+  std::unique_ptr<EmbeddingConverter> d_embConv;
   /** repair constant utility */
   std::unique_ptr<SygusRepairConst> d_sygus_rconst;
   /** example inference utility */

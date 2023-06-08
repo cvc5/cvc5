@@ -47,7 +47,7 @@ void SolutionFilterStrength::setLogicallyStrong(bool isStrong)
   d_isStrong = isStrong;
 }
 
-bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
+bool SolutionFilterStrength::addTerm(Node n, std::vector<Node>& filtered)
 {
   if (!n.getType().isBoolean())
   {
@@ -102,10 +102,7 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
       }
       else
       {
-        const Options& opts = d_env.getOptions();
-        std::ostream* smtOut = opts.base.out;
-        (*smtOut) << "; (filtered " << (d_isStrong ? s : s.negate()) << ")"
-                  << std::endl;
+        filtered.push_back(d_isStrong ? s : s.negate());
       }
     }
     d_curr_sols.clear();
