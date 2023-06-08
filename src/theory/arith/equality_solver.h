@@ -22,8 +22,8 @@
 #include "expr/node.h"
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
-#include "theory/arith/arith_state.h"
 #include "theory/ee_setup_info.h"
+#include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
 
 namespace cvc5::internal {
@@ -51,7 +51,7 @@ class EqualitySolver : protected EnvObj
   using NodeSet = context::CDHashSet<Node>;
 
  public:
-  EqualitySolver(Env& env, ArithState& astate, InferenceManager& aim);
+  EqualitySolver(Env& env, TheoryState& astate, InferenceManager& aim);
   ~EqualitySolver() {}
   //--------------------------------- initialization
   /**
@@ -107,7 +107,7 @@ class EqualitySolver : protected EnvObj
   /** Conflict when two constants merge */
   void conflictEqConstantMerge(TNode a, TNode b);
   /** reference to the state */
-  ArithState& d_astate;
+  TheoryState& d_astate;
   /** reference to parent */
   InferenceManager& d_aim;
   /** Equality solver notify */

@@ -374,6 +374,8 @@ void TheoryArithPrivate::raiseConflict(ConstraintCP a, InferenceId id){
   Assert(id != InferenceId::UNKNOWN)
       << "Must provide an inference id in TheoryArithPrivate::raiseConflict";
   d_conflicts.push_back(std::make_pair(a, id));
+  // notify we are in conflict in this SAT context
+  d_containing.getTheoryState()->notifyInConflict();
 }
 
 void TheoryArithPrivate::raiseBlackBoxConflict(Node bb,
@@ -388,6 +390,8 @@ void TheoryArithPrivate::raiseBlackBoxConflict(Node bb,
       d_blackBoxConflictPf.set(pf);
     }
     d_blackBoxConflict = bb;
+    // notify we are in conflict in this SAT context
+    d_containing.getTheoryState()->notifyInConflict();
   }
 }
 

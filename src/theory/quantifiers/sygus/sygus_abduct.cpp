@@ -21,7 +21,6 @@
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
-#include "expr/sygus_datatype.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"

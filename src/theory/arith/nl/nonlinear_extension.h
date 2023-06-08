@@ -85,7 +85,7 @@ class NonlinearExtension : EnvObj
   typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  NonlinearExtension(Env& env, TheoryArith& containing, ArithState& state);
+  NonlinearExtension(Env& env, TheoryArith& containing);
   ~NonlinearExtension();
   /**
    * Does non-context dependent setup for a node connected to a theory.
@@ -196,7 +196,7 @@ class NonlinearExtension : EnvObj
   // The theory of arithmetic containing this extension.
   TheoryArith& d_containing;
   /** A reference to the arithmetic state object */
-  ArithState& d_astate;
+  TheoryState& d_astate;
   InferenceManager& d_im;
   /** The statistics class */
   NlStats d_stats;
