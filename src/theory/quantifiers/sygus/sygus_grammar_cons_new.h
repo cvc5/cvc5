@@ -74,6 +74,17 @@ class SygusGrammarCons
       const Node& bvl,
       const std::vector<Node>& trules,
       std::map<TypeNode, Node>& typeToNtSym);
+
+  static void addDefaultRulesToInternal(const Options& opts,
+                                SygusGrammar& g,
+                                const Node& ntSym,
+      const std::map<TypeNode, Node>& typeToNtSym);
+
+  static void addDefaultPredicateRulesToInternal(const Options& opts,
+                                         SygusGrammar& g,
+                                         const Node& ntSym,
+                                         const Node& ntSymBool,
+      const std::map<TypeNode, Node>& typeToNtSym);
 };
 
 }  // namespace quantifiers

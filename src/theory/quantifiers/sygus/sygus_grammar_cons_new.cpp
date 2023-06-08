@@ -59,8 +59,12 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
   std::map<TypeNode, Node> typeToNtSym;
   SygusGrammar g =
       mkEmptyGrammarInternal(opts, range, bvl, trules, typeToNtSym);
-  // add the terminal rules
   std::map<TypeNode, Node>::iterator it;
+  // get the non-terminal for Booleans
+  Node ntSymBool;
+  
+  
+  // add the terminal rules
   for (const Node& r : trules)
   {
     TypeNode rt = r.getType();
@@ -68,7 +72,14 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
     Assert(it != typeToNtSym.end());
     g.addRule(it->second, r);
   }
-  // add the builtin
+  // for each type
+  for (const std::pair<const TypeNode, Node>& gr : typeToNtSym)
+  {
+    if (gr.first.isBoolean())
+    {
+      
+    }
+  }
 }
 
 SygusGrammar SygusGrammarCons::mkEmptyGrammar(const Options& opts,
@@ -120,12 +131,29 @@ void SygusGrammarCons::addDefaultRulesTo(const Options& opts,
                                          SygusGrammar& g,
                                          const Node& ntSym)
 {
+  
 }
 
 void SygusGrammarCons::addDefaultPredicateRulesTo(const Options& opts,
                                                   SygusGrammar& g,
                                                   const Node& ntSym,
                                                   const Node& ntSymBool)
+{
+}
+
+void SygusGrammarCons::addDefaultRulesToInternal(const Options& opts,
+                                         SygusGrammar& g,
+                                         const Node& ntSym,
+      const std::map<TypeNode, Node>& typeToNtSym)
+{
+  
+}
+
+void SygusGrammarCons::addDefaultPredicateRulesToInternal(const Options& opts,
+                                                  SygusGrammar& g,
+                                                  const Node& ntSym,
+                                                  const Node& ntSymBool,
+      const std::map<TypeNode, Node>& typeToNtSym)
 {
 }
 
