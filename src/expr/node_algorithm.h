@@ -214,8 +214,10 @@ void getTypes(TNode n,
  * (Array T1 T2), T1 and T2 are component types of t.
  * @param t The type node under investigation
  * @param types The set which component types are added to.
+ * @param traverseDt Whether we traverse into the subfield types of datatypes
+ * (see DType::getSubfieldTypes).
  */
-void getComponentTypes(TypeNode t, std::unordered_set<TypeNode>& types);
+void getComponentTypes(TypeNode t, std::unordered_set<TypeNode>& types, bool traverseDt = false);
 
 /** match
  *

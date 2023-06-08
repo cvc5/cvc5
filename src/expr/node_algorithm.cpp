@@ -640,7 +640,7 @@ void getTypes(TNode n,
   } while (!visit.empty());
 }
 
-void getComponentTypes(TypeNode t, std::unordered_set<TypeNode>& types)
+void getComponentTypes(TypeNode t, std::unordered_set<TypeNode>& types, bool traverseDt)
 {
   std::vector<TypeNode> toProcess;
   toProcess.push_back(t);
@@ -656,6 +656,12 @@ void getComponentTypes(TypeNode t, std::unordered_set<TypeNode>& types)
       for (unsigned i = 0, nchild = curr.getNumChildren(); i < nchild; i++)
       {
         toProcess.push_back(curr[i]);
+      }
+      // traverse to subfield types if specified
+      if (traverseDt && curr.isDatatype())
+      {
+        std::unordered_set<TypeNode> sft = curr.getDType().getSubfieldTypes();
+        toProcess.insert(toProcess.end(), sft.begin(), sft.end());
       }
     }
   } while (!toProcess.empty());
