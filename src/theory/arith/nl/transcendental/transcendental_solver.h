@@ -23,12 +23,12 @@
 #include "theory/arith/nl/transcendental/exponential_solver.h"
 #include "theory/arith/nl/transcendental/sine_solver.h"
 #include "theory/arith/nl/transcendental/transcendental_state.h"
+#include "theory/theory_state.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-class ArithState;
 class InferenceManager;
 
 namespace nl {
@@ -53,7 +53,7 @@ class TranscendentalSolver : protected EnvObj
 {
  public:
   TranscendentalSolver(Env& env,
-                       ArithState& state,
+                       TheoryState& state,
                        InferenceManager& im,
                        NlModel& m);
   ~TranscendentalSolver();
@@ -198,7 +198,7 @@ class TranscendentalSolver : protected EnvObj
   int regionToConcavity(Kind k, int region);
 
   /** A reference to the arithmetic state object */
-  ArithState& d_astate;
+  TheoryState& d_astate;
   /** taylor degree
    *
    * Indicates that the degree of the polynomials in the Taylor approximation of
