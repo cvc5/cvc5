@@ -552,9 +552,9 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
     }
     if (rewriter::isRAN(left))
     {
-      return RewriteResponse(
-          REWRITE_DONE,
-          nm->mkRealAlgebraicNumber(rewriter::getRAN(left) / den));
+      return RewriteResponse(REWRITE_DONE,
+                             rewriter::ensureReal(nm->mkRealAlgebraicNumber(
+                                 rewriter::getRAN(left) / den)));
     }
 
     Node result = nm->mkConstReal(den.inverse());
