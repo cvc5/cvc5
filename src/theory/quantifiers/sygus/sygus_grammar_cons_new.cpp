@@ -63,10 +63,10 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
                                                 const std::vector<Node>& trules)
 {
   NodeManager* nm = NodeManager::currentNM();
-  std::map<TypeNode, Node> typeToNtSym;
   std::map<TypeNode, Node>::iterator it;
   SygusGrammar g =
-      mkEmptyGrammarInternal(opts, range, bvl, trules, typeToNtSym);
+      mkEmptyGrammar(opts, range, bvl, trules);
+  std::map<TypeNode, Node> typeToNtSym = getTypeToNtSymMap(g);
 
   // get the non-terminal for Booleans
   Node ntSymBool;
@@ -105,17 +105,6 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammar(const Options& opts,
                                               const Node& bvl,
                                               const std::vector<Node>& trules)
 {
-  std::map<TypeNode, Node> typeToNtSym;
-  return mkEmptyGrammarInternal(opts, range, bvl, trules, typeToNtSym);
-}
-
-SygusGrammar SygusGrammarCons::mkEmptyGrammarInternal(
-    const Options& opts,
-    const TypeNode& range,
-    const Node& bvl,
-    const std::vector<Node>& trules,
-    std::map<TypeNode, Node>& typeToNtSym)
-{
   NodeManager* nm = NodeManager::currentNM();
   // get the variables
   std::vector<Node> vars;
@@ -153,7 +142,6 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammarInternal(
   {
     Node a = nm->mkBoundVar("A", t);
     ntSyms.push_back(a);
-    typeToNtSym[t] = a;
   }
 
   // contruct the grammar
@@ -165,6 +153,8 @@ void SygusGrammarCons::addDefaultRulesTo(const Options& opts,
                                          SygusGrammar& g,
                                          const Node& ntSym)
 {
+  std::map<TypeNode, Node> typeToNtSym = getTypeToNtSymMap(g);
+  addDefaultRulesToInternal(opts, g, ntSym, typeToNtSym);
 }
 
 void SygusGrammarCons::addDefaultPredicateRulesTo(const Options& opts,
@@ -172,6 +162,8 @@ void SygusGrammarCons::addDefaultPredicateRulesTo(const Options& opts,
                                                   const Node& ntSym,
                                                   const Node& ntSymBool)
 {
+  std::map<TypeNode, Node> typeToNtSym = getTypeToNtSymMap(g);
+  addDefaultPredicateRulesToInternal(opts, g, ntSym, ntSymBool, typeToNtSym);
 }
 
 void SygusGrammarCons::addDefaultRulesToInternal(
@@ -188,6 +180,7 @@ void SygusGrammarCons::addDefaultRulesToInternal(
   {
     g.addRule(ntSym, c);
   }
+  // TODO
 }
 
 void SygusGrammarCons::addDefaultPredicateRulesToInternal(
@@ -199,6 +192,7 @@ void SygusGrammarCons::addDefaultPredicateRulesToInternal(
 {
   Assert(!ntSym.getType().isBoolean());
   Assert(ntSymBool.getType().isBoolean());
+  // TODO
 }
 
 void SygusGrammarCons::mkSygusConstantsForType(const TypeNode& type,
@@ -265,6 +259,17 @@ void SygusGrammarCons::mkSygusConstantsForType(const TypeNode& type,
     ops.push_back(nm->mkConst(FloatingPoint::makeMaxNormal(fp_size, true)));
     ops.push_back(nm->mkConst(FloatingPoint::makeMaxNormal(fp_size, false)));
   }
+}
+
+std::map<TypeNode, Node> SygusGrammarCons::getTypeToNtSymMap(const SygusGrammar& g)
+{
+  std::map<TypeNode, Node> typeToNtSym;
+  const std::vector<Node>& ntSyms = g.getNtSyms();
+  for (const Node& s : ntSyms)
+  {
+    typeToNtSym[s.getType()] = s;
+  }
+  return typeToNtSym;
 }
 
 }  // namespace quantifiers

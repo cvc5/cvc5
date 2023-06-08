@@ -75,12 +75,6 @@ class SygusGrammarCons
                                       std::vector<Node>& ops);
 
  private:
-  static SygusGrammar mkEmptyGrammarInternal(
-      const Options& opts,
-      const TypeNode& range,
-      const Node& bvl,
-      const std::vector<Node>& trules,
-      std::map<TypeNode, Node>& typeToNtSym);
 
   static void addDefaultRulesToInternal(
       const Options& opts,
@@ -94,6 +88,7 @@ class SygusGrammarCons
       const Node& ntSym,
       const Node& ntSymBool,
       const std::map<TypeNode, Node>& typeToNtSym);
+  static std::map<TypeNode, Node> getTypeToNtSymMap(const SygusGrammar& g);
 };
 
 }  // namespace quantifiers
