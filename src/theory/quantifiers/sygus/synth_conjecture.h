@@ -40,7 +40,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-class CegGrammarConstructor;
+class EmbeddingConverter;
 class SygusPbe;
 class SygusStatistics;
 class EnumValueManager;
@@ -147,6 +147,9 @@ class SynthConjecture : protected EnvObj
   /** get a reference to the statistics of parent */
   SygusStatistics& getSygusStatistics() { return d_stats; };
 
+  /** exclude the current solution { enums -> values } due to id */
+  void excludeCurrentSolution(const std::vector<Node>& values, InferenceId id);
+
  private:
   /** do refinement
    *
@@ -210,7 +213,7 @@ class SynthConjecture : protected EnvObj
   /** utility for static preprocessing and analysis of conjectures */
   std::unique_ptr<SynthConjectureProcess> d_ceg_proc;
   /** grammar utility */
-  std::unique_ptr<CegGrammarConstructor> d_ceg_gc;
+  std::unique_ptr<EmbeddingConverter> d_embConv;
   /** repair constant utility */
   std::unique_ptr<SygusRepairConst> d_sygus_rconst;
   /** example inference utility */
@@ -328,10 +331,6 @@ class SynthConjecture : protected EnvObj
    * current solution should be printed and then immediately excluded.
    */
   bool runExprMiner();
-  //-------------------------------- sygus stream
-  /** exclude the current solution { enums -> values } */
-  void excludeCurrentSolution(const std::vector<Node>& values);
-  //-------------------------------- end sygus stream
   /** expression miner managers for each function-to-synthesize
    *
    * Notice that for each function-to-synthesize, we enumerate a stream of
