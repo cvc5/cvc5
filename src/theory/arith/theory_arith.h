@@ -26,6 +26,7 @@
 #include "theory/arith/pp_rewrite_eq.h"
 #include "theory/theory.h"
 #include "theory/theory_state.h"
+#include "theory/arith/proof_checker.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -197,6 +198,8 @@ class TheoryArith : public Theory {
   ArithSubs d_arithModelCacheSubs;
   /** Is the above map computed? */
   bool d_arithModelCacheSet;
+  /** Checks the proof rules of this theory. */
+  ArithProofRuleChecker d_checker;
 
 };/* class TheoryArith */
 

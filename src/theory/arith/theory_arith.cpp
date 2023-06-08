@@ -51,7 +51,8 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
       d_opElim(d_env),
       d_arithPreproc(env, d_im, d_pnm, d_opElim),
       d_rewriter(d_opElim),
-      d_arithModelCacheSet(false)
+      d_arithModelCacheSet(false),
+      d_checker()
 {
 #ifdef CVC5_USE_COCOA
   // must be initialized before using CoCoA.
@@ -73,7 +74,7 @@ TheoryRewriter* TheoryArith::getTheoryRewriter() { return &d_rewriter; }
 
 ProofRuleChecker* TheoryArith::getProofChecker()
 {
-  return d_internal->getProofChecker();
+  return &d_checker;
 }
 
 bool TheoryArith::needsEqualityEngine(EeSetupInfo& esi)
