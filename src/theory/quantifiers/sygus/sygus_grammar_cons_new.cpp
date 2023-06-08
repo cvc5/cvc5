@@ -452,37 +452,33 @@ void SygusGrammarCons::addDefaultRulesToInternal(
       addRuleTo(g, typeToNtSym, APPLY_CONSTRUCTOR, cop, cargsCons);
     }
   }
-  else if (tn.isUninterpretedSort() || tn.isFunction()
-            || tn.isRoundingMode())
+  else if (tn.isUninterpretedSort() || tn.isFunction() || tn.isRoundingMode())
   {
     // do nothing
   }
   else
   {
-    Warning()
-        << "Warning: No implementation for default Sygus grammar of type "
-        << tn << std::endl;
+    Warning() << "Warning: No implementation for default Sygus grammar of type "
+              << tn << std::endl;
   }
-  
-  
 
-    if (g.getRulesFor(ntSym).empty())
-    {
-      // if there are not constructors yet by this point, which can happen,
-      // e.g. for unimplemented types that have no variables in the argument
-      // list of the function-to-synthesize, create a fresh ground term
-      g.addRule(ntSym, nm->mkGroundTerm(tn));
-    }
+  if (g.getRulesFor(ntSym).empty())
+  {
+    // if there are not constructors yet by this point, which can happen,
+    // e.g. for unimplemented types that have no variables in the argument
+    // list of the function-to-synthesize, create a fresh ground term
+    g.addRule(ntSym, nm->mkGroundTerm(tn));
+  }
 
-    // always add ITE
+  // always add ITE
   TypeNode btype = nm->booleanType();
-    Kind k = ITE;
-    Trace("sygus-grammar-def") << "...add for " << k << std::endl;
-    std::vector<TypeNode> cargsIte;
-    cargsIte.push_back(btype);
-    cargsIte.push_back(tn);
-    cargsIte.push_back(tn);
-      addRuleTo(g, typeToNtSym, ITE, cargsIte);
+  Kind k = ITE;
+  Trace("sygus-grammar-def") << "...add for " << k << std::endl;
+  std::vector<TypeNode> cargsIte;
+  cargsIte.push_back(btype);
+  cargsIte.push_back(tn);
+  cargsIte.push_back(tn);
+  addRuleTo(g, typeToNtSym, ITE, cargsIte);
 }
 
 void SygusGrammarCons::addDefaultPredicateRulesToInternal(
