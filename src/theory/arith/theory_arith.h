@@ -24,9 +24,9 @@
 #include "theory/arith/branch_and_bound.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/pp_rewrite_eq.h"
+#include "theory/arith/proof_checker.h"
 #include "theory/theory.h"
 #include "theory/theory_state.h"
-#include "theory/arith/proof_checker.h"
 
 namespace cvc5::internal {
 namespace theory {

@@ -72,10 +72,7 @@ TheoryArith::~TheoryArith(){
 
 TheoryRewriter* TheoryArith::getTheoryRewriter() { return &d_rewriter; }
 
-ProofRuleChecker* TheoryArith::getProofChecker()
-{
-  return &d_checker;
-}
+ProofRuleChecker* TheoryArith::getProofChecker() { return &d_checker; }
 
 bool TheoryArith::needsEqualityEngine(EeSetupInfo& esi)
 {

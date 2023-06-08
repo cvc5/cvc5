@@ -20,9 +20,9 @@
 
 #include "expr/node.h"
 #include "proof/proof_checker.h"
+#include "theory/arith/nl/coverings/proof_checker.h"
 #include "theory/arith/nl/ext/proof_checker.h"
 #include "theory/arith/nl/transcendental/proof_checker.h"
-#include "theory/arith/nl/coverings/proof_checker.h"
 
 namespace cvc5::internal {
 namespace theory {
