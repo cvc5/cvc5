@@ -75,7 +75,6 @@ class SygusGrammarCons
                                       std::vector<Node>& ops);
 
  private:
-
   static void addDefaultRulesToInternal(
       const Options& opts,
       SygusGrammar& g,

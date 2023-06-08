@@ -64,8 +64,7 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
 {
   NodeManager* nm = NodeManager::currentNM();
   std::map<TypeNode, Node>::iterator it;
-  SygusGrammar g =
-      mkEmptyGrammar(opts, range, bvl, trules);
+  SygusGrammar g = mkEmptyGrammar(opts, range, bvl, trules);
   std::map<TypeNode, Node> typeToNtSym = getTypeToNtSymMap(g);
 
   // get the non-terminal for Booleans
@@ -261,7 +260,8 @@ void SygusGrammarCons::mkSygusConstantsForType(const TypeNode& type,
   }
 }
 
-std::map<TypeNode, Node> SygusGrammarCons::getTypeToNtSymMap(const SygusGrammar& g)
+std::map<TypeNode, Node> SygusGrammarCons::getTypeToNtSymMap(
+    const SygusGrammar& g)
 {
   std::map<TypeNode, Node> typeToNtSym;
   const std::vector<Node>& ntSyms = g.getNtSyms();
