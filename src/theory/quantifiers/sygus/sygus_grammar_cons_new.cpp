@@ -17,6 +17,10 @@
 #include "theory/quantifiers/sygus/sygus_grammar_cons_new.h"
 
 #include "expr/node_algorithm.h"
+#include "util/floatingpoint.h"
+#include "util/string.h"
+#include "theory/bv/theory_bv_utils.h"
+#include "theory/strings/word.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -176,6 +180,14 @@ void SygusGrammarCons::addDefaultRulesToInternal(
     const Node& ntSym,
     const std::map<TypeNode, Node>& typeToNtSym)
 {
+  TypeNode tn = ntSym.getType();
+  // add constants
+  std::vector<Node> consts;
+  mkSygusConstantsForType(tn, consts);
+  for (const Node& c : consts)
+  {
+    g.addRule(ntSym, c);
+  }
 }
 
 void SygusGrammarCons::addDefaultPredicateRulesToInternal(
@@ -187,6 +199,73 @@ void SygusGrammarCons::addDefaultPredicateRulesToInternal(
 {
   Assert(!ntSym.getType().isBoolean());
   Assert(ntSymBool.getType().isBoolean());
+}
+
+
+void SygusGrammarCons::mkSygusConstantsForType(const TypeNode& type,
+                                                    std::vector<Node>& ops)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  if (type.isRealOrInt())
+  {
+    ops.push_back(nm->mkConstRealOrInt(type, Rational(0)));
+    ops.push_back(nm->mkConstRealOrInt(type, Rational(1)));
+  }
+  else if (type.isBitVector())
+  {
+    unsigned size = type.getBitVectorSize();
+    ops.push_back(bv::utils::mkZero(size));
+    ops.push_back(bv::utils::mkOne(size));
+  }
+  else if (type.isBoolean())
+  {
+    ops.push_back(nm->mkConst(true));
+    ops.push_back(nm->mkConst(false));
+  }
+  else if (type.isStringLike())
+  {
+    ops.push_back(strings::Word::mkEmptyWord(type));
+    if (type.isString())  // string-only
+    {
+      // Dummy character "A". This is not necessary for sequences which
+      // have the generic constructor seq.unit.
+      ops.push_back(nm->mkConst(String("A")));
+    }
+  }
+  else if (type.isArray() || type.isSet())
+  {
+    // generate constant array over the first element of the constituent type
+    Node c = nm->mkGroundTerm(type);
+    // note that c should never contain an uninterpreted sort value
+    Assert(!expr::hasSubtermKind(UNINTERPRETED_SORT_VALUE, c));
+    ops.push_back(c);
+  }
+  else if (type.isRoundingMode())
+  {
+    ops.push_back(nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_AWAY));
+    ops.push_back(nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN));
+    ops.push_back(nm->mkConst(RoundingMode::ROUND_TOWARD_NEGATIVE));
+    ops.push_back(nm->mkConst(RoundingMode::ROUND_TOWARD_POSITIVE));
+    ops.push_back(nm->mkConst(RoundingMode::ROUND_TOWARD_ZERO));
+  }
+  else if (type.isFloatingPoint())
+  {
+    FloatingPointSize fp_size(type.getFloatingPointExponentSize(),
+                              type.getFloatingPointSignificandSize());
+    ops.push_back(nm->mkConst(FloatingPoint::makeNaN(fp_size)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeInf(fp_size, true)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeInf(fp_size, false)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeZero(fp_size, true)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeZero(fp_size, false)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMinSubnormal(fp_size, true)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMinSubnormal(fp_size, false)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMaxSubnormal(fp_size, true)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMaxSubnormal(fp_size, false)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMinNormal(fp_size, true)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMinNormal(fp_size, false)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMaxNormal(fp_size, true)));
+    ops.push_back(nm->mkConst(FloatingPoint::makeMaxNormal(fp_size, false)));
+  }
 }
 
 }  // namespace quantifiers
