@@ -16,14 +16,14 @@
 
 #include "theory/quantifiers/sygus/sygus_grammar_cons_new.h"
 
+#include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
+#include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/strings/word.h"
 #include "util/floatingpoint.h"
 #include "util/string.h"
-#include "options/quantifiers_options.h"
-#include "expr/dtype.h"
-#include "expr/dtype_cons.h"
 
 using namespace cvc5::internal::kind;
 
@@ -210,13 +210,13 @@ void SygusGrammarCons::addDefaultRulesToInternal(
     for (const Node& c : consts)
     {
       // if not already there?
-      if (std::find(prevRules.begin(), prevRules.end(), c)==prevRules.end())
+      if (std::find(prevRules.begin(), prevRules.end(), c) == prevRules.end())
       {
         g.addRule(ntSym, c);
       }
     }
   }
-NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   // add the operators
   if (tn.isRealOrInt())
   {
@@ -283,18 +283,18 @@ NodeManager * nm = NodeManager::currentNM();
     }
     // binary ops
     std::vector<Kind> bin_kinds = {BITVECTOR_AND,
-                                    BITVECTOR_OR,
-                                    BITVECTOR_XOR,
-                                    BITVECTOR_ADD,
-                                    BITVECTOR_SUB,
-                                    BITVECTOR_MULT,
-                                    BITVECTOR_UDIV,
-                                    BITVECTOR_UREM,
-                                    BITVECTOR_SDIV,
-                                    BITVECTOR_SREM,
-                                    BITVECTOR_SHL,
-                                    BITVECTOR_LSHR,
-                                    BITVECTOR_ASHR};
+                                   BITVECTOR_OR,
+                                   BITVECTOR_XOR,
+                                   BITVECTOR_ADD,
+                                   BITVECTOR_SUB,
+                                   BITVECTOR_MULT,
+                                   BITVECTOR_UDIV,
+                                   BITVECTOR_UREM,
+                                   BITVECTOR_SDIV,
+                                   BITVECTOR_SREM,
+                                   BITVECTOR_SHL,
+                                   BITVECTOR_LSHR,
+                                   BITVECTOR_ASHR};
     std::vector<TypeNode> cargsBinary;
     cargsBinary.push_back(tn);
     cargsBinary.push_back(tn);
@@ -380,8 +380,7 @@ NodeManager * nm = NodeManager::currentNM();
   }
   else if (tn.isArray())
   {
-    Trace("sygus-grammar-def")
-        << "...building for array type " << tn << "\n";
+    Trace("sygus-grammar-def") << "...building for array type " << tn << "\n";
     TypeNode indexType = tn.getArrayIndexType();
     TypeNode elemType = tn.getArrayConstituentType();
     Trace("sygus-grammar-def")
@@ -394,8 +393,8 @@ NodeManager * nm = NodeManager::currentNM();
     cargsStore.push_back(elemType);
     addRuleTo(g, typeToNtSym, STORE, cargsStore);
     // add to constituent type : (select ArrayType IndexType)
-    Trace("sygus-grammar-def") << "...add select for constituent type"
-                                << elemType << "\n";
+    Trace("sygus-grammar-def")
+        << "...add select for constituent type" << elemType << "\n";
     std::vector<TypeNode> cargsSelect;
     cargsSelect.push_back(tn);
     cargsSelect.push_back(indexType);
@@ -545,13 +544,20 @@ std::map<TypeNode, Node> SygusGrammarCons::getTypeToNtSymMap(
   return typeToNtSym;
 }
 
-bool SygusGrammarCons::addRuleTo(SygusGrammar& g, const std::map<TypeNode, Node>& typeToNtSym, Kind k, const std::vector<TypeNode>& args)
+bool SygusGrammarCons::addRuleTo(SygusGrammar& g,
+                                 const std::map<TypeNode, Node>& typeToNtSym,
+                                 Kind k,
+                                 const std::vector<TypeNode>& args)
 {
   Node op;
   return addRuleTo(g, typeToNtSym, k, op, args);
 }
 
-bool SygusGrammarCons::addRuleTo(SygusGrammar& g, const std::map<TypeNode, Node>& typeToNtSym, Kind k, const Node& op, const std::vector<TypeNode>& args)
+bool SygusGrammarCons::addRuleTo(SygusGrammar& g,
+                                 const std::map<TypeNode, Node>& typeToNtSym,
+                                 Kind k,
+                                 const Node& op,
+                                 const std::vector<TypeNode>& args)
 {
   std::map<TypeNode, Node>::const_iterator it;
   std::vector<Node> children;
@@ -562,7 +568,7 @@ bool SygusGrammarCons::addRuleTo(SygusGrammar& g, const std::map<TypeNode, Node>
   for (const TypeNode& a : args)
   {
     it = typeToNtSym.find(a);
-    if (it==typeToNtSym.end())
+    if (it == typeToNtSym.end())
     {
       return false;
     }
@@ -571,7 +577,7 @@ bool SygusGrammarCons::addRuleTo(SygusGrammar& g, const std::map<TypeNode, Node>
   Node rule = NodeManager::currentNM()->mkNode(k, children);
   TypeNode rtn = rule.getType();
   it = typeToNtSym.find(rtn);
-  if (it==typeToNtSym.end())
+  if (it == typeToNtSym.end())
   {
     return false;
   }
