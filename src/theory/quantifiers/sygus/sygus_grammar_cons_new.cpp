@@ -21,6 +21,7 @@
 #include "theory/strings/word.h"
 #include "util/floatingpoint.h"
 #include "util/string.h"
+#include "options/quantifiers_options.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -152,6 +153,7 @@ void SygusGrammarCons::addDefaultRulesTo(const Options& opts,
                                          SygusGrammar& g,
                                          const Node& ntSym)
 {
+  // recompute mapping from types to non-terminal symbols
   std::map<TypeNode, Node> typeToNtSym = getTypeToNtSymMap(g);
   addDefaultRulesToInternal(opts, g, ntSym, typeToNtSym);
 }
@@ -161,6 +163,7 @@ void SygusGrammarCons::addDefaultPredicateRulesTo(const Options& opts,
                                                   const Node& ntSym,
                                                   const Node& ntSymBool)
 {
+  // recompute mapping from types to non-terminal symbols
   std::map<TypeNode, Node> typeToNtSym = getTypeToNtSymMap(g);
   addDefaultPredicateRulesToInternal(opts, g, ntSym, ntSymBool, typeToNtSym);
 }
@@ -172,12 +175,42 @@ void SygusGrammarCons::addDefaultRulesToInternal(
     const std::map<TypeNode, Node>& typeToNtSym)
 {
   TypeNode tn = ntSym.getType();
+  std::vector<Node> prevRules = g.getRulesFor(ntSym);
   // add constants
+  options::SygusGrammarConsMode tsgcm = opts.quantifiers.sygusGrammarConsMode;
+  if (tsgcm == options::SygusGrammarConsMode::ANY_TERM
+      || tsgcm == options::SygusGrammarConsMode::ANY_TERM_CONCISE)
+  {
+    // If the type does not support any term, we do any constant instead.
+    // We also fall back on any constant construction if the type has no
+    // constructors at this point (e.g. it simply encodes all constants).
+    if (!tn.isRealOrInt())
+    {
+      tsgcm = options::SygusGrammarConsMode::ANY_CONST;
+    }
+  }
   std::vector<Node> consts;
   mkSygusConstantsForType(tn, consts);
-  for (const Node& c : consts)
+  if (tsgcm == options::SygusGrammarConsMode::ANY_CONST)
   {
-    g.addRule(ntSym, c);
+    // Use the any constant constructor. Notice that for types that don't
+    // have constants (e.g. uninterpreted or function types), we don't add
+    // this constructor.
+    if (!consts.empty())
+    {
+      g.addAnyConstant(ntSym, tn);
+    }
+  }
+  else
+  {
+    for (const Node& c : consts)
+    {
+      // if not already there?
+      if (std::find(prevRules.begin(), prevRules.end(), c)==prevRules.end())
+      {
+        g.addRule(ntSym, c);
+      }
+    }
   }
   // TODO
 }
