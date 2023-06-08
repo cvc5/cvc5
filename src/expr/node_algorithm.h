@@ -217,7 +217,9 @@ void getTypes(TNode n,
  * @param traverseDt Whether we traverse into the subfield types of datatypes
  * (see DType::getSubfieldTypes).
  */
-void getComponentTypes(TypeNode t, std::unordered_set<TypeNode>& types, bool traverseDt = false);
+void getComponentTypes(TypeNode t,
+                       std::unordered_set<TypeNode>& types,
+                       bool traverseDt = false);
 
 /** match
  *

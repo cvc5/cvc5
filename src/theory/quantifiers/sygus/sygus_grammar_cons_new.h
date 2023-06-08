@@ -22,9 +22,9 @@
 #include <map>
 #include <vector>
 
-#include "options/options.h"
 #include "expr/node.h"
 #include "expr/sygus_grammar.h"
+#include "options/options.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -35,51 +35,45 @@ namespace quantifiers {
  */
 class SygusGrammarCons
 {
-public:
- static TypeNode mkDefaultSygusType(
-     const Options& opts,
-     const TypeNode& range,
-     const Node& bvl);
- static TypeNode mkDefaultSygusType(
-     const Options& opts,
-     const TypeNode& range,
-     const Node& bvl,
-     const std::vector<Node>& trules);
- 
- static SygusGrammar mkDefaultGrammar(
-     const Options& opts,
-     const TypeNode& range,
-     const Node& bvl);
+ public:
+  static TypeNode mkDefaultSygusType(const Options& opts,
+                                     const TypeNode& range,
+                                     const Node& bvl);
+  static TypeNode mkDefaultSygusType(const Options& opts,
+                                     const TypeNode& range,
+                                     const Node& bvl,
+                                     const std::vector<Node>& trules);
 
- static SygusGrammar mkDefaultGrammar(
-     const Options& opts,
-     const TypeNode& range,
-     const Node& bvl,
-     const std::vector<Node>& trules);
- 
- static SygusGrammar mkEmptyGrammar(
-     const Options& opts,
-     const TypeNode& range,
-     const Node& bvl,
-     const std::vector<Node>& trules);
- 
- static void addDefaultRulesTo(
-     const Options& opts,
-     SygusGrammar& g,
-     const Node& ntSym);
+  static SygusGrammar mkDefaultGrammar(const Options& opts,
+                                       const TypeNode& range,
+                                       const Node& bvl);
 
- static void addDefaultPredicateRulesTo(
-     const Options& opts,
-     SygusGrammar& g,
-     const Node& ntSym,
-     const Node& ntSymBool);
-private:
- static SygusGrammar mkEmptyGrammarInternal(
-     const Options& opts,
-     const TypeNode& range,
-     const Node& bvl,
-     const std::vector<Node>& trules,
-     std::map<TypeNode, Node>& typeToNtSym);
+  static SygusGrammar mkDefaultGrammar(const Options& opts,
+                                       const TypeNode& range,
+                                       const Node& bvl,
+                                       const std::vector<Node>& trules);
+
+  static SygusGrammar mkEmptyGrammar(const Options& opts,
+                                     const TypeNode& range,
+                                     const Node& bvl,
+                                     const std::vector<Node>& trules);
+
+  static void addDefaultRulesTo(const Options& opts,
+                                SygusGrammar& g,
+                                const Node& ntSym);
+
+  static void addDefaultPredicateRulesTo(const Options& opts,
+                                         SygusGrammar& g,
+                                         const Node& ntSym,
+                                         const Node& ntSymBool);
+
+ private:
+  static SygusGrammar mkEmptyGrammarInternal(
+      const Options& opts,
+      const TypeNode& range,
+      const Node& bvl,
+      const std::vector<Node>& trules,
+      std::map<TypeNode, Node>& typeToNtSym);
 };
 
 }  // namespace quantifiers

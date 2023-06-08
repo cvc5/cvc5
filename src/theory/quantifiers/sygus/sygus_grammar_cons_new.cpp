@@ -20,65 +20,61 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-TypeNode SygusGrammarCons::mkDefaultSygusType(
-    const Options& opts,
-    const TypeNode& range,
-    const Node& bvl)
+TypeNode SygusGrammarCons::mkDefaultSygusType(const Options& opts,
+                                              const TypeNode& range,
+                                              const Node& bvl)
 {
   SygusGrammar g = mkDefaultGrammar(opts, range, bvl);
   return g.resolve();
 }
 
-TypeNode SygusGrammarCons::mkDefaultSygusType(
-    const Options& opts,
-    const TypeNode& range,
-    const Node& bvl,
-    const std::vector<Node>& trules)
+TypeNode SygusGrammarCons::mkDefaultSygusType(const Options& opts,
+                                              const TypeNode& range,
+                                              const Node& bvl,
+                                              const std::vector<Node>& trules)
 {
   SygusGrammar g = mkDefaultGrammar(opts, range, bvl, trules);
   return g.resolve();
 }
 
-SygusGrammar SygusGrammarCons::mkDefaultGrammar(
-    const Options& opts,
-    const TypeNode& range,
-    const Node& bvl)
+SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
+                                                const TypeNode& range,
+                                                const Node& bvl)
 {
   // default, include all variables as terminal rules
   std::vector<Node> trules;
   if (!bvl.isNull())
   {
-    Assert (bvl.getKind()==BOUND_VARIABLE_LIST);
+    Assert(bvl.getKind() == BOUND_VARIABLE_LIST);
     trules.insert(trules.end(), bvl.begin(), bvl.end());
   }
   return mkDefaultGrammar(opts, range, bvl, trules);
 }
 
-SygusGrammar SygusGrammarCons::mkDefaultGrammar(
-    const Options& opts,
-    const TypeNode& range,
-    const Node& bvl,
-    const std::vector<Node>& trules)
+SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
+                                                const TypeNode& range,
+                                                const Node& bvl,
+                                                const std::vector<Node>& trules)
 {
   std::map<TypeNode, Node> typeToNtSym;
-  SygusGrammar g = mkEmptyGrammarInternal(opts, range, bvl, trules, typeToNtSym);
+  SygusGrammar g =
+      mkEmptyGrammarInternal(opts, range, bvl, trules, typeToNtSym);
   // add the terminal rules
   std::map<TypeNode, Node>::iterator it;
   for (const Node& r : trules)
   {
     TypeNode rt = r.getType();
     it = typeToNtSym.fidn(rt);
-    Assert (it != typeToNtSym.end());
+    Assert(it != typeToNtSym.end());
     g.addRule(it->second, r);
   }
-  // add the builtin 
+  // add the builtin
 }
 
-SygusGrammar SygusGrammarCons::mkEmptyGrammar(
-    const Options& opts,
-    const TypeNode& range,
-    const Node& bvl,
-     const std::vector<Node>& trules)
+SygusGrammar SygusGrammarCons::mkEmptyGrammar(const Options& opts,
+                                              const TypeNode& range,
+                                              const Node& bvl,
+                                              const std::vector<Node>& trules)
 {
   std::map<TypeNode, Node> typeToNtSym;
   return mkEmptyGrammarInternal(opts, range, bvl, trules, typeToNtSym);
@@ -88,14 +84,14 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammar(
     const Options& opts,
     const TypeNode& range,
     const Node& bvl,
-     const std::vector<Node>& trules,
+    const std::vector<Node>& trules,
     std::map<TypeNode, Node>* typeToNtSym)
 {
   // get the variables
   std::vector<Node> vars;
   if (!bvl.isNull())
   {
-    Assert (bvl.getKind()==BOUND_VARIABLE_LIST);
+    Assert(bvl.getKind() == BOUND_VARIABLE_LIST);
     vars.insert(vars.end(), bvl.begin(), bvl.end());
   }
   // collect the types we are considering
@@ -105,7 +101,7 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammar(
     expr::getSubfieldTypes(r.getType(), types, true);
   }
   expr::getSubfieldTypes(range, types, true);
-  
+
   // construct the non-terminals
   std::vector<Node> ntSyms;
   for (const TypeNode& t : types)
@@ -114,30 +110,25 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammar(
     ntSyms.push_back(a);
     typeToNtSym[t] = a;
   }
-  
+
   // contruct the grammar
   SygusGrammar ret(vars, ntSyms);
   return ret;
 }
 
-void SygusGrammarCons::addDefaultRulesTo(
-    const Options& opts,
-    SygusGrammar& g,
-    const Node& ntSym)
+void SygusGrammarCons::addDefaultRulesTo(const Options& opts,
+                                         SygusGrammar& g,
+                                         const Node& ntSym)
 {
-  
 }
 
- void SygusGrammarCons::addDefaultPredicateRulesTo(
-     const Options& opts,
-     SygusGrammar& g,
-     const Node& ntSym,
-     const Node& ntSymBool)
- {
-   
- }
- 
+void SygusGrammarCons::addDefaultPredicateRulesTo(const Options& opts,
+                                                  SygusGrammar& g,
+                                                  const Node& ntSym,
+                                                  const Node& ntSymBool)
+{
+}
+
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5::internal
-

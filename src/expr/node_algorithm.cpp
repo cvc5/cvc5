@@ -640,7 +640,9 @@ void getTypes(TNode n,
   } while (!visit.empty());
 }
 
-void getComponentTypes(TypeNode t, std::unordered_set<TypeNode>& types, bool traverseDt)
+void getComponentTypes(TypeNode t,
+                       std::unordered_set<TypeNode>& types,
+                       bool traverseDt)
 {
   std::vector<TypeNode> toProcess;
   toProcess.push_back(t);
