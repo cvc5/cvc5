@@ -136,8 +136,6 @@ Node EmbeddingConverter::process(Node q,
 
     // the actual sygus datatype we will use (normalized below)
     TypeNode tn;
-    std::stringstream ss;
-    ss << sf;
     Node sfvl;
     if (preGrammarType.isDatatype() && preGrammarType.getDType().isSygus())
     {
@@ -165,7 +163,7 @@ Node EmbeddingConverter::process(Node q,
       tn = CegGrammarConstructor::mkSygusDefaultType(options(),
                                                      preGrammarType,
                                                      sfvl,
-                                                     ss.str(),
+                                                     sf.getName(),
                                                      extra_cons,
                                                      exc_cons,
                                                      inc_cons,
@@ -174,7 +172,7 @@ Node EmbeddingConverter::process(Node q,
       if (isOutputOn(OutputTag::SYGUS_GRAMMAR))
       {
         output(OutputTag::SYGUS_GRAMMAR)
-            << "(sygus-grammar " << ss.str()
+            << "(sygus-grammar " << sf
             << printer::smt2::Smt2Printer::sygusGrammarString(tn) << ")"
             << std::endl;
       }
@@ -194,9 +192,7 @@ Node EmbeddingConverter::process(Node q,
     }
 
     // ev is the first-order variable corresponding to this synth fun
-    std::stringstream ssf;
-    ssf << "f" << sf;
-    Node ev = nm->mkBoundVar(ssf.str(), tn);
+    Node ev = nm->mkBoundVar("f" + sf.getName(), tn);
     ebvl.push_back(ev);
     Trace("cegqi") << "...embedding synth fun : " << sf << " -> " << ev
                    << std::endl;
