@@ -49,7 +49,7 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
       d_internal(new linear::TheoryArithPrivate(*this, env, d_bab)),
       d_nonlinearExtension(nullptr),
       d_opElim(d_env),
-      d_arithPreproc(env, d_astate, d_im, d_pnm, d_opElim),
+      d_arithPreproc(env, d_im, d_pnm, d_opElim),
       d_rewriter(d_opElim),
       d_arithModelCacheSet(false)
 {
@@ -57,8 +57,6 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
   // must be initialized before using CoCoA.
   initCocoaGlobalManager();
 #endif /* CVC5_USE_COCOA */
-  // currently a cyclic dependency to TheoryArithPrivate
-  d_astate.setParent(d_internal);
   // indicate we are using the theory state object and inference manager
   d_theoryState = &d_astate;
   d_inferManager = &d_im;
@@ -99,8 +97,7 @@ void TheoryArith::finishInit()
   // only need to create nonlinear extension if non-linear logic
   if (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear())
   {
-    d_nonlinearExtension.reset(
-        new nl::NonlinearExtension(d_env, *this, d_astate));
+    d_nonlinearExtension.reset(new nl::NonlinearExtension(d_env, *this));
   }
   d_eqSolver->finishInit();
   // finish initialize in the old linear solver
