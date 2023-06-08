@@ -20,6 +20,7 @@
 #include "printer/smt2/smt2_printer.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/sygus_grammar_cons_new.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
@@ -151,6 +152,24 @@ Node EmbeddingConverter::process(Node q,
       // check which arguments are irrelevant
       std::unordered_set<unsigned> arg_irrelevant;
       d_parent->getProcess()->getIrrelevantArgs(sf, arg_irrelevant);
+#if 1
+      std::vector<Node> trules;
+      for (const std::pair< const TypeNode, std::unordered_set<Node>>& c : extra_cons)
+      {
+        trules.insert(trules.end(), c.second.begin(), c.second.end());
+      }
+      for (size_t j=0, nargs = sfvl.getNumChildren(); j<nargs; j++)
+      {
+        if (arg_irrelevant.find(j)==arg_irrelevant.end())
+        {
+          trules.push_back(sfvl[j]);
+        }
+      }
+      tn = SygusGrammarCons::mkDefaultSygusType(options(),
+                                                     preGrammarType,
+                                                     sfvl,
+                                                     trules);
+#else
       std::unordered_set<Node> term_irlv;
       // convert to term
       for (const unsigned& arg : arg_irrelevant)
@@ -158,7 +177,6 @@ Node EmbeddingConverter::process(Node q,
         Assert(arg < sfvl.getNumChildren());
         term_irlv.insert(sfvl[arg]);
       }
-
       // make the default grammar
       tn = CegGrammarConstructor::mkSygusDefaultType(options(),
                                                      preGrammarType,
@@ -168,6 +186,7 @@ Node EmbeddingConverter::process(Node q,
                                                      exc_cons,
                                                      inc_cons,
                                                      term_irlv);
+#endif
       // print the grammar
       if (isOutputOn(OutputTag::SYGUS_GRAMMAR))
       {
