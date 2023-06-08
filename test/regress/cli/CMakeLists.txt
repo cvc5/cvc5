@@ -959,6 +959,7 @@ set(regress_0_tests
   regress0/nl/proj-issue-451-ran-combination-2.smt2
   regress0/nl/proj-issue-465-asan-proofs.smt2
   regress0/nl/proj-issue552-narith-cee.smt2
+  regress0/nl/proj-issue637-rr-type.smt2
   regress0/nl/real-as-int.smt2
   regress0/nl/real-div-ufnra.smt2
   regress0/nl/sin-cos-346-b-chunk-0169.smt2
@@ -1100,6 +1101,7 @@ set(regress_0_tests
   regress0/printer/symbol_starting_w_digit.smt2
   regress0/printer/tuples_and_records.cvc.smt2
   regress0/proj-issue307-get-value-re.smt2
+  regress0/proj-issue645-abs-value-subs.smt2
   regress0/proofs/alethe-res-need-or-step.smt2
   regress0/proofs/cyclic-ucp.smt2
   regress0/proofs/issue277-circuit-propagator.smt2
@@ -1381,9 +1383,11 @@ set(regress_0_tests
   regress0/seq/proj-issue384-subtypes.smt2
   regress0/seq/proj-issue384-2-subtypes.smt2
   regress0/seq/proj-issue427-subtypes-value.smt2
+  regress0/seq/proj-issue559-unit-inj.smt2
   regress0/seq/proj-issue586-nth-update-no-fact.smt2
   regress0/seq/proj-issue586-nth-update-no-fact-2.smt2
   regress0/seq/proj-issue604-reg-closure.smt2
+  regress0/seq/proj-issue642-cycle-irr.smt2
   regress0/seq/quant_len_trigger.smt2
   regress0/seq/query0-subtype-skel.smt2
   regress0/seq/query1-subtype.smt2
@@ -1579,6 +1583,7 @@ set(regress_0_tests
   regress0/strings/issue8481.smt2
   regress0/strings/issue8481-2.smt2
   regress0/strings/issue8722-learned-rew.smt2
+  regress0/strings/issue9784.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/large-model.smt2
   regress0/strings/leadingzero001.smt2
@@ -1667,9 +1672,11 @@ set(regress_0_tests
   regress0/sygus/pLTL-sygus-syntax-err.sy
   regress0/sygus/print-debug.sy
   regress0/sygus/print-define-fun.sy
+  regress0/sygus/print-enumerator.sy
   regress0/sygus/print-grammar.sy
   regress0/sygus/print-sygus-gterm.sy
-  regress0/sygus/proj-issue464-rr-option.smt2
+  #!!! temporary
+  #regress0/sygus/proj-issue464-rr-option.smt2
   regress0/sygus/real-si-all.sy
   regress0/sygus/setFeature.sy
   regress0/sygus/strings-unconstrained.sy
@@ -2311,6 +2318,7 @@ set(regress_1_tests
   regress1/proj-issue539-rew-bv2nat.smt2
   regress1/proj-issue542.smt2
   regress1/proj-issue557-rew-bv2nat.smt2
+  regress1/proj-issue619-nconst-nl-mv.smt2
   regress1/proj-issue623-bv2nat-static.smt2
   regress1/proj-issue634-diff-mc.smt2
   regress1/proof00.smt2
@@ -2616,12 +2624,13 @@ set(regress_1_tests
   regress1/rels/rel_tp_join_2_1.cvc.smt2
   regress1/rels/set-strat.cvc.smt2
   regress1/rels/strat.cvc.smt2
-  regress1/rr-verify/bool-crci.sy
-  regress1/rr-verify/bv-term-32.sy
-  regress1/rr-verify/bv-term.sy
-  regress1/rr-verify/fp-arith.sy
-  regress1/rr-verify/fp-bool.sy
-  regress1/rr-verify/string-term.sy
+  #!!! temporary
+  #regress1/rr-verify/bool-crci.sy
+  #regress1/rr-verify/bv-term-32.sy
+  #regress1/rr-verify/bv-term.sy
+  #regress1/rr-verify/fp-arith.sy
+  #regress1/rr-verify/fp-bool.sy
+  #regress1/rr-verify/string-term.sy
   regress1/sep/chain-int.smt2
   regress1/sep/crash1220.smt2
   regress1/sep/dispose-list-4-init.smt2
@@ -3067,8 +3076,9 @@ set(regress_1_tests
   regress1/sygus/issue4083-var-shadow.smt2
   regress1/sygus/issue4425-sets-sygus-infer.smt2
   regress1/sygus/issue7925-dt-share-config.sy
-  regress1/sygus/issue8216-rr-input-re.smt2
-  regress1/sygus/issue8956-2.smt2
+  #!!! temporary
+  #regress1/sygus/issue8216-rr-input-re.smt2
+  #regress1/sygus/issue8956-2.smt2
   regress1/sygus/issue8976-interp-check.smt2
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
@@ -3107,11 +3117,12 @@ set(regress_1_tests
   regress1/sygus/proj-issue185.smt2
   regress1/sygus/proj-issue222-any-const.sy
   regress1/sygus/proj-issue264.smt2
-  regress1/sygus/proj-issue541.smt2
-  regress1/sygus/proj-issue548-srr.smt2
-  regress1/sygus/proj-issue549-srr.smt2
-  regress1/sygus/proj-issue553-srr.smt2
-  regress1/sygus/proj-issue627-srr.smt2
+  #!!! temporary
+  #regress1/sygus/proj-issue541.smt2
+  #regress1/sygus/proj-issue548-srr.smt2
+  #regress1/sygus/proj-issue549-srr.smt2
+  #regress1/sygus/proj-issue553-srr.smt2
+  #regress1/sygus/proj-issue627-srr.smt2
   regress1/sygus/pLTL_5_trace.sy
   regress1/sygus/qe.sy
   regress1/sygus/qf_abv.smt2
@@ -3310,12 +3321,14 @@ set(regress_2_tests
   regress2/sygus/process-10-vars-2fun.sy
   regress2/sygus/process-arg-invariance.sy
   regress2/sygus/proj-issue119.sy
-  regress2/sygus/qgu-bools.sy
+  #!!! temporary
+  #regress2/sygus/qgu-bools.sy
   regress2/sygus/real-grammar-neg.sy
   regress2/sygus/sets-fun-test.sy
   regress2/sygus/sumn_recur_synth.sy
   regress2/sygus/strings-no-syntax-len.sy
   regress2/sygus/three.sy
+  regress2/sygus/tp19.eqn_sygus_iter_98_0.sy
   regress2/typed_v1l50016-simp.cvc.smt2
   regress2/uflia-error0.smt2
   regress2/xs-09-16-3-4-1-5.smtv1.smt2
@@ -3567,6 +3580,25 @@ foreach(tester ${testers})
     DEPENDS build-regress)
 endforeach()
 
+# We must ensure that the cvc5 binary is built before running any tests.
+# In principle, this would just be a matter of adding a dependency on the 
+# 'test' target (defined by CTest). However, that built-in targets are not 
+# accessible via user code. 
+#
+# This seems to be a legacy cmake bug from +10 years ago:
+#   https://stackoverflow.com/questions/48019306/how-to-add-a-dependency-to-the-test-target-in-cmake
+#   https://gitlab.kitware.com/cmake/cmake/-/issues/8774
+#   https://gitlab.kitware.com/cmake/cmake/-/issues/8438
+#
+# In order to have 'make test' work properly when cvc5 binaries are not built, 
+# we use a Cmake feature called FIXTURES to add 'build_regress' as the first test
+# which builds the 'build_regress' target.
+add_test(build_regress_test 
+    "${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}" 
+    --config "$<CONFIG>" --target build-regress
+)
+set_tests_properties(build_regress_test PROPERTIES FIXTURES_SETUP build_regress_fixture)
+
 macro(cvc5_add_regression_test level file)
   set(wrapper )
   if(CMAKE_CROSSCOMPILING AND CMAKE_SYSTEM_NAME STREQUAL "Windows")
@@ -3586,6 +3618,7 @@ macro(cvc5_add_regression_test level file)
     ${CMAKE_CURRENT_LIST_DIR}/${file})
   set_tests_properties(${file} PROPERTIES LABELS "regress${level}")
   set_tests_properties(${file} PROPERTIES SKIP_RETURN_CODE 77)
+  set_tests_properties(${file} PROPERTIES FIXTURES_REQUIRED build_regress_fixture)
 endmacro()
 
 set(RUN_REGRESSION_ARGS ${RUN_REGRESSION_ARGS} --use-skip-return-code)

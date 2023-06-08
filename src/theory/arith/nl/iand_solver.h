@@ -23,12 +23,12 @@
 #include "expr/node.h"
 #include "smt/env_obj.h"
 #include "theory/arith/nl/iand_utils.h"
+#include "theory/theory_state.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-class ArithState;
 class InferenceManager;
 
 namespace nl {
@@ -43,7 +43,7 @@ class IAndSolver : protected EnvObj
   typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  IAndSolver(Env& env, InferenceManager& im, ArithState& state, NlModel& model);
+  IAndSolver(Env& env, InferenceManager& im, NlModel& model);
   ~IAndSolver();
 
   /** init last call
@@ -86,8 +86,6 @@ class IAndSolver : protected EnvObj
   InferenceManager& d_im;
   /** Reference to the non-linear model object */
   NlModel& d_model;
-  /** Reference to the arithmetic state */
-  ArithState& d_astate;
   /** commonly used terms */
   Node d_false;
   Node d_true;

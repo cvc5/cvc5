@@ -62,10 +62,9 @@ class QueryGeneratorBasic : public QueryGenerator
   QueryGeneratorBasic(Env& env);
   ~QueryGeneratorBasic() {}
   /**
-   * Add term to this module. This may trigger the printing and/or checking of
-   * new queries.
+   * Add term to this module. This may add formulas to queries.
    */
-  bool addTerm(Node n, std::ostream& out) override;
+  bool addTerm(Node n, std::vector<Node>& queries) override;
 };
 
 }  // namespace quantifiers

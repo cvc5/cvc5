@@ -567,5 +567,18 @@ std::vector<Node> SygusSolver::listToVector(const NodeList& list)
   return vec;
 }
 
+std::vector<std::pair<Node, TypeNode>> SygusSolver::getSynthFunctions() const
+{
+  std::vector<std::pair<Node, TypeNode>> funs;
+  for (const Node& f : d_sygusFunSymbols)
+  {
+    SygusSynthGrammarAttribute ssfga;
+    Node sym = f.getAttribute(ssfga);
+    TypeNode st = sym.isNull() ? TypeNode::null() : sym.getType();
+    funs.emplace_back(f, st);
+  }
+  return funs;
+}
+
 }  // namespace smt
 }  // namespace cvc5::internal

@@ -112,14 +112,6 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
     return true;
   }
 
-  // this must be applied to assertions before they are preprocessed, so that
-  // we do not synthesize rewrite rules for internally generated symbols.
-  if (options().quantifiers.sygusRewSynthInput)
-  {
-    // do candidate rewrite rule synthesis
-    applyPass("synth-rr", ap);
-  }
-
   if (options().bv.bvGaussElim)
   {
     applyPass("bv-gauss", ap);
