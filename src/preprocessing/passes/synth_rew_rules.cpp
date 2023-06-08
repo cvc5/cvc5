@@ -18,7 +18,6 @@
 
 #include <sstream>
 
-#include "expr/sygus_datatype.h"
 #include "expr/term_canonize.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
@@ -47,16 +46,31 @@ SynthRewRulesPass::SynthRewRulesPass(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult SynthRewRulesPass::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  Trace("srs-input") << "Synthesize rewrite rules from assertions..."
-                     << std::endl;
-  const std::vector<Node>& assertions = assertionsToPreprocess->ref();
+  return PreprocessingPassResult::NO_CONFLICT;
+}
+
+std::vector<TypeNode> SynthRewRulesPass::getGrammarsFrom(
+    const std::vector<Node>& assertions, uint64_t nvars)
+{
+  std::vector<TypeNode> ret;
+  std::map<TypeNode, TypeNode> tlGrammarTypes =
+      constructTopLevelGrammar(assertions, nvars);
+  for (std::pair<const TypeNode, TypeNode> ttp : tlGrammarTypes)
+  {
+    ret.push_back(ttp.second);
+  }
+  return ret;
+}
+
+std::map<TypeNode, TypeNode> SynthRewRulesPass::constructTopLevelGrammar(
+    const std::vector<Node>& assertions, uint64_t nvars)
+{
+  std::map<TypeNode, TypeNode> tlGrammarTypes;
   if (assertions.empty())
   {
-    return PreprocessingPassResult::NO_CONFLICT;
+    return tlGrammarTypes;
   }
-
   NodeManager* nm = NodeManager::currentNM();
-
   // initialize the candidate rewrite
   std::unordered_map<TNode, bool> visited;
   std::unordered_map<TNode, bool>::iterator it;
@@ -151,11 +165,9 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   Trace("srs-input") << "Make synth variables for types..." << std::endl;
   // We will generate a fixed number of variables per type. These are the
   // variables that appear as free variables in the rewrites we generate.
-  uint64_t nvars = options().quantifiers.sygusRewSynthInputNVars;
   // must have at least one variable per type
   nvars = nvars < 1 ? 1 : nvars;
   std::map<TypeNode, std::vector<Node> > tvars;
-  std::vector<TypeNode> allVarTypes;
   std::vector<Node> allVars;
   uint64_t varCounter = 0;
   for (std::pair<const TypeNode, bool> tfp : typesFound)
@@ -172,10 +184,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     // This ensures that no type in our grammar has zero constructors. If
     // our input does not contain a Boolean variable, we need not allocate any
     // Boolean variables here.
-    uint64_t useNVars =
-        (options().quantifiers.sygusRewSynthInputUseBool || !tn.isBoolean())
-            ? nvars
-            : (hasBoolVar ? 1 : 0);
+    uint64_t useNVars = !tn.isBoolean() ? nvars : (hasBoolVar ? 1 : 0);
     for (uint64_t i = 0; i < useNVars; i++)
     {
       // We must have a good name for these variables, these are
@@ -196,7 +205,6 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
                          << std::endl;
       tvars[tn].push_back(v);
       allVars.push_back(v);
-      allVarTypes.push_back(tn);
     }
   }
   Trace("srs-input") << "...finished." << std::endl;
@@ -205,8 +213,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   // exit with an exception.
   if (allVars.empty())
   {
-    throw Exception("No terms to consider for synthesizing rewrites");
-    return PreprocessingPassResult::NO_CONFLICT;
+    return tlGrammarTypes;
   }
 
   Trace("srs-input") << "Convert subterms to free variable form..."
@@ -294,8 +301,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     // we add variable constructors if we are not Boolean, we are interested
     // in purely propositional rewrites (via the option), or this term is
     // a Boolean variable.
-    if (!ctt.isBoolean() || options().quantifiers.sygusRewSynthInputUseBool
-        || ct.getKind() == BOUND_VARIABLE)
+    if (!ctt.isBoolean() || ct.getKind() == BOUND_VARIABLE)
     {
       // may or may not have variables for this type
       if (tvars.find(ctt) != tvars.end())
@@ -409,7 +415,6 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
 
   Trace("srs-input") << "Construct the top-level types..." << std::endl;
   // we now are ready to create the "top-level" types
-  std::map<TypeNode, TypeNode> tlGrammarTypes;
   for (std::pair<const TypeNode, std::vector<Node> >& tcp : t_cterms)
   {
     TypeNode t = tcp.first;
@@ -449,61 +454,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
                        << std::endl;
   }
   Trace("srs-input") << "...finished." << std::endl;
-
-  // sygus attribute to mark the conjecture as a sygus conjecture
-  Trace("srs-input") << "Make sygus conjecture..." << std::endl;
-  // we are "synthesizing" functions for each type of subterm
-  std::vector<Node> synthConj;
-  unsigned fCounter = 1;
-  theory::SygusSynthGrammarAttribute ssg;
-  for (std::pair<const TypeNode, TypeNode> ttp : tlGrammarTypes)
-  {
-    Node gvar = nm->mkBoundVar("sfproxy", ttp.second);
-    TypeNode ft = nm->mkFunctionType(allVarTypes, ttp.first);
-    // likewise, it is helpful if these have good names, we choose f1, f2, ...
-    std::stringstream ssf;
-    ssf << "f" << fCounter;
-    fCounter++;
-    Node sfun = nm->mkBoundVar(ssf.str(), ft);
-    // this marks that the grammar used for solutions for sfun is the type of
-    // gvar, which is the sygus datatype type constructed above.
-    sfun.setAttribute(ssg, gvar);
-
-    Node body = nm->mkConst(false);
-    body = theory::quantifiers::SygusUtils::mkSygusConjecture({sfun}, body);
-    synthConj.push_back(body);
-  }
-  Node trueNode = nm->mkConst(true);
-  Node res = nm->mkAnd(synthConj);
-
-  Trace("srs-input") << "got : " << res << std::endl;
-  Trace("srs-input") << "...finished." << std::endl;
-
-  // use a separate subsolver
-  Options subOptions;
-  subOptions.copyValues(d_env.getOptions());
-  subOptions.writeQuantifiers().sygus = true;
-  subOptions.writeQuantifiers().sygusRewSynthInput = false;
-  subOptions.writeQuantifiers().sygusRewSynth = true;
-  subOptions.writeQuantifiers().sygusInst = false;
-  // we should not use the extended rewriter, since we are interested
-  // in rewrites that are not in the main rewriter
-  if (!subOptions.datatypes.sygusRewriterWasSetByUser)
-  {
-    subOptions.writeDatatypes().sygusRewriter =
-        options::SygusRewriterMode::BASIC;
-  }
-  smt::SetDefaults::disableChecking(subOptions);
-  theory::SubsolverSetupInfo ssi(d_env, subOptions);
-  theory::checkWithSubsolver(res, ssi);
-
-  // If we terminate the above check, then we throw a logic exception now.
-  // Note that typically the above call will be non-terminating, as it will
-  // enumerate rewrite rules ad infinitum, but it is possible to reach this
-  // line if a finite grammar is inferred above.
-  throw Exception("Finished synthesizing rewrite rules.");
-
-  return PreprocessingPassResult::NO_CONFLICT;
+  return tlGrammarTypes;
 }
 
 }  // namespace passes

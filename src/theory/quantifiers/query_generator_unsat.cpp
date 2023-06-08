@@ -39,7 +39,7 @@ QueryGeneratorUnsat::QueryGeneratorUnsat(Env& env) : QueryGenerator(env)
   d_subOptions.writeSmt().checkModels = true;
 }
 
-bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
+bool QueryGeneratorUnsat::addTerm(Node n, std::vector<Node>& queries)
 {
   Trace("sygus-qgen") << "Add term: " << n << std::endl;
   ensureBoolean(n);
@@ -57,6 +57,7 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
   activeTerms.push_back(n);
   bool addSuccess = true;
   size_t checkCount = 0;
+  NodeManager* nm = NodeManager::currentNM();
   while (checkCount < 10)
   {
     // if we just successfully added a term, do a satisfiability check
@@ -71,7 +72,9 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
       // the same assertion order for a subsequence.
       std::vector<Node> aTermCurr = activeTerms;
       std::shuffle(aTermCurr.begin(), aTermCurr.end(), Random::getRandom());
-      Result r = checkCurrent(aTermCurr, out, currModel);
+      Node qy = nm->mkAnd(activeTerms);
+      queries.push_back(qy);
+      Result r = checkCurrent(qy, currModel);
       if (r.getStatus() == Result::UNSAT)
       {
         // exclude the last active term
@@ -121,14 +124,10 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
   return true;
 }
 
-Result QueryGeneratorUnsat::checkCurrent(const std::vector<Node>& activeTerms,
-                                         std::ostream& out,
+Result QueryGeneratorUnsat::checkCurrent(const Node& qy,
                                          std::vector<Node>& currModel)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  Node qy = nm->mkAnd(activeTerms);
   Trace("sygus-qgen-check") << "Check: " << qy << std::endl;
-  out << "(query " << qy << ")" << std::endl;
   std::unique_ptr<SolverEngine> queryChecker;
   SubsolverSetupInfo ssi(d_env, d_subOptions);
   initializeChecker(queryChecker, qy, ssi);
