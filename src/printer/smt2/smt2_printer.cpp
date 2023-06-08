@@ -40,6 +40,7 @@
 #include "proof/unsat_core.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/builtin/abstract_type.h"
+#include "theory/builtin/generic_op.h"
 #include "theory/datatypes/project_op.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -213,6 +214,9 @@ void Smt2Printer::toStream(std::ostream& out,
       }
       break;
     }
+    case kind::APPLY_INDEXED_SYMBOLIC_OP:
+      out << smtKindString(n.getConst<GenericOp>().getKind());
+      break;
     case kind::BITVECTOR_TYPE:
       out << "(_ BitVec " << n.getConst<BitVectorSize>().d_size << ")";
       break;
@@ -668,6 +672,9 @@ void Smt2Printer::toStream(std::ostream& out,
         out << ")";
       }
       return;
+    case kind::APPLY_INDEXED_SYMBOLIC:
+      // operator is printed as kind
+      break;
 
     case kind::MATCH:
       out << smtKindString(k) << " ";
