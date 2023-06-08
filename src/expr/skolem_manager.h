@@ -52,6 +52,11 @@ enum class SkolemFunId
    * The n^th skolem for quantified formula Q. Its arguments are (Q,n).
    */
   QUANTIFIERS_SKOLEMIZE,
+  /**
+   * Quantifiers synth fun embedding, for function-to-synthesize, this the
+   * first order datatype variable for f.
+   */
+  QUANTIFIERS_SYNTH_FUN_EMBED,
   //----- string skolems are cached based on two strings (a, b)
   /** exists k. ( b occurs k times in a ) */
   STRINGS_NUM_OCCUR,

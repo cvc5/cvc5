@@ -29,15 +29,8 @@ namespace quantifiers {
 SygusEnumeratorCallback::SygusEnumeratorCallback(Env& env,
                                                  TermDbSygus* tds,
                                                  SygusStatistics* s,
-                                                 ExampleEvalCache* eec,
-                                                 SygusSampler* ssrv,
-                                                 std::ostream* out)
-    : EnvObj(env),
-      d_tds(tds),
-      d_stats(s),
-      d_eec(eec),
-      d_samplerRrV(ssrv),
-      d_out(out)
+                                                 ExampleEvalCache* eec)
+    : EnvObj(env), d_tds(tds), d_stats(s), d_eec(eec)
 {
 }
 
@@ -45,23 +38,15 @@ bool SygusEnumeratorCallback::addTerm(const Node& n,
                                       std::unordered_set<Node>& bterms)
 {
   Node bn = datatypes::utils::sygusToBuiltin(n);
-  Node bnr = d_tds == nullptr ? extendedRewrite(bn) : d_tds->rewriteNode(bn);
   if (d_stats != nullptr)
   {
     ++(d_stats->d_enumTermsRewrite);
   }
 
-  // call the solver-specific notify term
-  if (d_samplerRrV != nullptr)
-  {
-    Assert(d_out != nullptr);
-    d_samplerRrV->checkEquivalent(bn, bnr, *d_out);
-  }
-
   // check whether we should keep the term, which is based on the callback,
   // and the builtin terms
   // First, must be unique up to rewriting
-  Node cval = getCacheValue(n, bn, bnr);
+  Node cval = getCacheValue(n, bn);
   if (bterms.find(cval) != bterms.end())
   {
     Trace("sygus-enum-exc") << "Exclude (by rewriting): " << bn << std::endl;
@@ -72,25 +57,23 @@ bool SygusEnumeratorCallback::addTerm(const Node& n,
   bterms.insert(cval);
 
   // callback-specific add term
-  if (!addTermInternal(n, bn, bnr))
+  if (!addTermInternal(n, bn, cval))
   {
     return false;
   }
   return true;
 }
 
-Node SygusEnumeratorCallback::getCacheValue(const Node& n,
-                                            const Node& bn,
-                                            const Node& bnr)
+Node SygusEnumeratorCallback::getCacheValue(const Node& n, const Node& bn)
 {
   // By default, we cache based on the rewritten form.
   // Further criteria for uniqueness (e.g. weights) may go here.
-  return bnr;
+  return d_tds == nullptr ? extendedRewrite(bn) : d_tds->rewriteNode(bn);
 }
 
 bool SygusEnumeratorCallback::addTermInternal(const Node& n,
                                               const Node& bn,
-                                              const Node& bnr)
+                                              const Node& cval)
 {
   // if we are doing PBE symmetry breaking
   if (d_eec != nullptr)
@@ -100,10 +83,12 @@ bool SygusEnumeratorCallback::addTermInternal(const Node& n,
       ++(d_stats->d_enumTermsExampleEval);
     }
     // Is it equivalent under examples?
-    Node bne = d_eec->addSearchVal(n.getType(), bnr);
+    // NOTE: currently assumes the cache value is the rewritten form of bn
+    Assert(cval.getType() == bn.getType());
+    Node bne = d_eec->addSearchVal(n.getType(), cval);
     if (!bne.isNull())
     {
-      if (bnr != bne)
+      if (cval != bne)
       {
         Trace("sygus-enum-exc")
             << "Exclude (by examples): " << bn << ", since we already have "

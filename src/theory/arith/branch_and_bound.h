@@ -24,9 +24,9 @@
 #include "proof/proof_node_manager.h"
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
-#include "theory/arith/arith_state.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/pp_rewrite_eq.h"
+#include "theory/theory_state.h"
 #include "util/rational.h"
 
 namespace cvc5::internal {
@@ -42,7 +42,7 @@ class BranchAndBound : protected EnvObj
 {
  public:
   BranchAndBound(Env& env,
-                 ArithState& s,
+                 TheoryState& s,
                  InferenceManager& im,
                  PreprocessRewriteEq& ppre);
   ~BranchAndBound() {}
@@ -59,7 +59,7 @@ class BranchAndBound : protected EnvObj
   /** Are proofs enabled? */
   bool proofsEnabled() const;
   /** Reference to the state */
-  ArithState& d_astate;
+  TheoryState& d_astate;
   /** Reference to the inference manager */
   InferenceManager& d_im;
   /** Reference to the preprocess rewriter for equality */

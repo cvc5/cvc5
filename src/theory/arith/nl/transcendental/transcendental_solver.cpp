@@ -22,7 +22,6 @@
 #include "expr/node_builder.h"
 #include "options/arith_options.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/arith/arith_state.h"
 #include "theory/arith/arith_subs.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
@@ -39,7 +38,7 @@ namespace nl {
 namespace transcendental {
 
 TranscendentalSolver::TranscendentalSolver(Env& env,
-                                           ArithState& state,
+                                           TheoryState& state,
                                            InferenceManager& im,
                                            NlModel& m)
     : EnvObj(env),

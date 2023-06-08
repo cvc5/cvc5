@@ -20,7 +20,6 @@
 
 #include "options/arith_options.h"
 #include "options/smt_options.h"
-#include "theory/arith/arith_state.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/bound_inference.h"
 #include "theory/arith/inference_manager.h"
@@ -38,17 +37,15 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-NonlinearExtension::NonlinearExtension(Env& env,
-                                       TheoryArith& containing,
-                                       ArithState& state)
+NonlinearExtension::NonlinearExtension(Env& env, TheoryArith& containing)
     : EnvObj(env),
       d_containing(containing),
-      d_astate(state),
+      d_astate(*containing.getTheoryState()),
       d_im(containing.getInferenceManager()),
       d_stats(statisticsRegistry()),
       d_hasNlTerms(false),
       d_checkCounter(0),
-      d_extTheoryCb(state.getEqualityEngine()),
+      d_extTheoryCb(d_astate.getEqualityEngine()),
       d_extTheory(env, d_extTheoryCb, d_im),
       d_model(env),
       d_trSlv(d_env, d_astate, d_im, d_model),
@@ -60,8 +57,8 @@ NonlinearExtension::NonlinearExtension(Env& env,
       d_tangentPlaneSlv(d_env, &d_extState),
       d_covSlv(d_env, d_im, d_model),
       d_icpSlv(d_env, d_im),
-      d_iandSlv(env, d_im, state, d_model),
-      d_pow2Slv(env, d_im, state, d_model)
+      d_iandSlv(env, d_im, d_model),
+      d_pow2Slv(env, d_im, d_model)
 {
   d_extTheory.addFunctionKind(kind::NONLINEAR_MULT);
   d_extTheory.addFunctionKind(kind::EXPONENTIAL);
