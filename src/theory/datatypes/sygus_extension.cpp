@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1117,28 +1117,6 @@ Node SygusExtension::registerSearchValue(Node a,
         if( TraceIsOn("sygus-sb-exc") ){
           Node prev_bv = d_tds->sygusToBuiltin( itsv->second, tn );
           Trace("sygus-sb-exc") << "  ......programs " << prev_bv << " and " << bv << " rewrite to " << bvr << "." << std::endl;
-        }
-      }
-
-      if (options().quantifiers.sygusRewVerify)
-      {
-        if (bv != bvr)
-        {
-          // add to the sampler database object
-          std::map<TypeNode, std::unique_ptr<quantifiers::SygusSampler>>& smap =
-              d_sampler[a];
-          std::map<TypeNode,
-                   std::unique_ptr<quantifiers::SygusSampler>>::iterator its =
-              smap.find(tn);
-          if (its == smap.end())
-          {
-            smap[tn].reset(new quantifiers::SygusSampler(d_env));
-            smap[tn]->initializeSygus(
-                d_tds, nv, options().quantifiers.sygusSamples, false);
-            its = d_sampler[a].find(tn);
-          }
-          // check equivalent
-          its->second->checkEquivalent(bv, bvr, *options().base.out);
         }
       }
 

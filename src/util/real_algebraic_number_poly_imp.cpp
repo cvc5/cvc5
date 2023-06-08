@@ -1,11 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -64,8 +63,8 @@ RealAlgebraicNumber::RealAlgebraicNumber(const std::vector<long>& coefficients,
 #ifdef CVC5_ASSERTIONS
   for (long c : coefficients)
   {
-    Assert(std::numeric_limits<std::int32_t>::min() <= c
-           && c <= std::numeric_limits<std::int32_t>::max())
+    Assert(std::numeric_limits<int32_t>::min() <= c
+           && c <= std::numeric_limits<int32_t>::max())
         << "Coefficients need to fit within 32 bit integers. Please use the "
            "constructor based on Integer instead.";
   }

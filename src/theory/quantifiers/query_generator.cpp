@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,7 +35,6 @@ namespace quantifiers {
 QueryGenerator::QueryGenerator(Env& env) : ExprMiner(env), d_queryCount(0) {}
 void QueryGenerator::initialize(const std::vector<Node>& vars, SygusSampler* ss)
 {
-  Assert(ss != nullptr);
   d_queryCount = 0;
   ExprMiner::initialize(vars, ss);
 }
@@ -81,10 +80,10 @@ void QueryGenerator::ensureBoolean(const Node& n) const
 
 QueryGeneratorBasic::QueryGeneratorBasic(Env& env) : QueryGenerator(env) {}
 
-bool QueryGeneratorBasic::addTerm(Node n, std::ostream& out)
+bool QueryGeneratorBasic::addTerm(Node n, std::vector<Node>& queries)
 {
   ensureBoolean(n);
-  out << "(query " << n << ")" << std::endl;
+  queries.push_back(n);
   SubsolverSetupInfo ssi(d_env);
   std::unique_ptr<SolverEngine> queryChecker;
   initializeChecker(queryChecker, n, ssi);

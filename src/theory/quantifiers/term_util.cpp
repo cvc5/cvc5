@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,6 +18,7 @@
 #include "expr/array_store_all.h"
 #include "expr/function_array_const.h"
 #include "expr/node_algorithm.h"
+#include "expr/sequence.h"
 #include "expr/skolem_manager.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -236,6 +237,18 @@ bool TermUtil::containsUninterpretedConstant( Node n ) {
   {
     ret = containsUninterpretedConstant(
         n.getConst<FunctionArrayConst>().getArrayValue());
+  }
+  else if (k == CONST_SEQUENCE)
+  {
+    const std::vector<Node>& charVec = n.getConst<Sequence>().getVec();
+    for (const Node& nc : charVec)
+    {
+      if (containsUninterpretedConstant(nc))
+      {
+        ret = true;
+        break;
+      }
+    }
   }
   else
   {

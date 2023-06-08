@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yoni Zohar, Andres Noetzli, Andrew Reynolds
+ *   Yoni Zohar, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,7 +19,6 @@
 #include "options/smt_options.h"
 #include "preprocessing/passes/bv_to_int.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/arith/arith_state.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_model.h"
@@ -35,7 +34,6 @@ namespace nl {
 
 Pow2Solver::Pow2Solver(Env& env,
                        InferenceManager& im,
-                       ArithState& state,
                        NlModel& model)
     : EnvObj(env), d_im(im), d_model(model), d_initRefine(userContext())
 {

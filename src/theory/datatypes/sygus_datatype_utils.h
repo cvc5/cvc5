@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -202,6 +202,11 @@ void getFreeSymbolsSygusType(TypeNode sdt, std::unordered_set<Node>& syms);
 TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
                                           const std::vector<Node>& syms,
                                           const std::vector<Node>& vars);
+/**
+ * This converts all free symbols in the grammar specified by sdt into
+ * variables using the above two methods.
+ */
+TypeNode generalizeSygusType(TypeNode sdt);
 
 /**
  * Get SyGuS term size, which is based on the weight of constructor applications

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -62,10 +62,9 @@ class QueryGeneratorBasic : public QueryGenerator
   QueryGeneratorBasic(Env& env);
   ~QueryGeneratorBasic() {}
   /**
-   * Add term to this module. This may trigger the printing and/or checking of
-   * new queries.
+   * Add term to this module. This may add formulas to queries.
    */
-  bool addTerm(Node n, std::ostream& out) override;
+  bool addTerm(Node n, std::vector<Node>& queries) override;
 };
 
 }  // namespace quantifiers

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -354,7 +354,7 @@ void getFreeSymbolsSygusType(TypeNode sdt, std::unordered_set<Node>& syms)
   // datatype types we need to process
   std::vector<TypeNode> typeToProcess;
   // datatype types we have processed
-  std::map<TypeNode, TypeNode> typesProcessed;
+  std::unordered_set<TypeNode> typesProcessed;
   typeToProcess.push_back(sdt);
   while (!typeToProcess.empty())
   {
@@ -379,6 +379,7 @@ void getFreeSymbolsSygusType(TypeNode sdt, std::unordered_set<Node>& syms)
           }
           if (typesProcessed.find(argt) == typesProcessed.end())
           {
+            typesProcessed.insert(argt);
             typeNextToProcess.push_back(argt);
           }
         }
@@ -538,6 +539,25 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
     }
   }
   return sdtS;
+}
+
+TypeNode generalizeSygusType(TypeNode sdt)
+{
+  std::unordered_set<Node> syms;
+  getFreeSymbolsSygusType(sdt, syms);
+  if (syms.empty())
+  {
+    return sdt;
+  }
+  std::vector<Node> svec;
+  std::vector<Node> vars;
+  NodeManager* nm = NodeManager::currentNM();
+  for (const Node& s : syms)
+  {
+    svec.push_back(s);
+    vars.push_back(nm->mkBoundVar(s.getName(), s.getType()));
+  }
+  return substituteAndGeneralizeSygusType(sdt, svec, vars);
 }
 
 unsigned getSygusTermSize(Node n)

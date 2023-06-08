@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1205,6 +1205,11 @@ Node SequencesRewriter::rewriteLoopRegExp(TNode node)
     std::vector<Node> nvec;
     retNode = nm->mkNode(REGEXP_NONE, nvec);
     return returnRewrite(node, retNode, Rewrite::RE_LOOP_NONE);
+  }
+  else if (u==0)
+  {
+    retNode = nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")));
+    return returnRewrite(node, retNode, Rewrite::RE_LOOP_ZERO);
   }
   else if (r.getKind() == REGEXP_STAR)
   {

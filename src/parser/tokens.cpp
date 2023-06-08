@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -102,8 +102,6 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::SET_OPTION_TOK: o << "SET_OPTION_TOK"; break;
     case Token::SIMPLIFY_TOK: o << "SIMPLIFY_TOK"; break;
     case Token::STRING_LITERAL: o << "STRING_LITERAL"; break;
-    case Token::SYGUS_CONSTANT_TOK: o << "SYGUS_CONSTANT_TOK"; break;
-    case Token::SYGUS_VARIABLE_TOK: o << "SYGUS_VARIABLE_TOK"; break;
     case Token::SYMBOL: o << "SYMBOL"; break;
     case Token::SYNTH_FUN_TOK: o << "SYNTH_FUN_TOK"; break;
     case Token::SYNTH_INV_TOK: o << "SYNTH_INV_TOK"; break;

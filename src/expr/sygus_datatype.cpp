@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -78,7 +78,7 @@ void SygusDatatype::initializeDatatype(TypeNode sygusType,
   // should not have initialized (set sygus) yet
   Assert(!isInitialized());
   // should have added a constructor
-  Assert(!d_cons.empty());
+  Assert(allowAll || allowConst || !d_cons.empty());
   /* Use the sygus type to not lose reference to the original types (Bool,
    * Int, etc) */
   d_dt.setSygus(sygusType, sygusVars, allowConst, allowAll);
