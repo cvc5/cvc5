@@ -88,6 +88,9 @@ class SygusGrammarCons
       const Node& ntSymBool,
       const std::map<TypeNode, Node>& typeToNtSym);
   static std::map<TypeNode, Node> getTypeToNtSymMap(const SygusGrammar& g);
+  
+  static bool addRuleTo(SygusGrammar& g, const std::map<TypeNode, Node>& typeToNtSym, Kind k, const std::vector<TypeNode>& args);
+  static bool addRuleTo(SygusGrammar& g, const std::map<TypeNode, Node>& typeToNtSym, Kind k, const Node& op, const std::vector<TypeNode>& args);
 };
 
 }  // namespace quantifiers
