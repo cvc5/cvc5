@@ -146,7 +146,7 @@ bool QueryGeneratorSampleSat::addTerm(Node n, std::vector<Node>& foundQueries)
       checkQuery(qy, i, foundQueries);
     }
   }
-  Trace("sygus-qgen-check") << "...finished." << std::endl;
+  Trace("expr-miner-check") << "...finished." << std::endl;
   return true;
 }
 
@@ -159,25 +159,23 @@ void QueryGeneratorSampleSat::checkQuery(Node qy,
     return;
   }
   d_allQueries.insert(qy);
-  foundQueries.push_back(qy);
   // external query
 
   Result r;
-  Trace("sygus-qgen-check") << "  query: check " << qy << "..." << std::endl;
+  Trace("expr-miner-check") << "Check (qgss): " << qy << "..." << std::endl;
   // make the satisfiability query
   SubsolverSetupInfo ssi(d_env);
   std::unique_ptr<SolverEngine> queryChecker;
   initializeChecker(queryChecker, qy, ssi);
   r = queryChecker->checkSat();
-  Trace("sygus-qgen-check") << "  query: ...got : " << r << std::endl;
+  Trace("expr-miner-check") << "...result: " << r << std::endl;
   if (r.getStatus() == Result::UNSAT)
   {
     std::stringstream ss;
     ss << "--sygus-rr-query-gen detected unsoundness in cvc5 on input " << qy
        << "!" << std::endl;
     ss << "This query has a model : " << std::endl;
-    std::vector<Node> pt;
-    d_sampler->getSamplePoint(spIndex, pt);
+    const std::vector<Node>& pt = d_sampler->getSamplePoint(spIndex);
     Assert(pt.size() == d_vars.size());
     for (unsigned i = 0, size = pt.size(); i < size; i++)
     {
@@ -186,7 +184,7 @@ void QueryGeneratorSampleSat::checkQuery(Node qy,
     ss << "but cvc5 answered unsat!" << std::endl;
     AlwaysAssert(false) << ss.str();
   }
-  dumpQuery(qy, r);
+  dumpQuery(qy, r, foundQueries);
 }
 
 void QueryGeneratorSampleSat::findQueries(

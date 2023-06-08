@@ -58,7 +58,9 @@ class QueryGeneratorUnsat : public QueryGenerator
    * d_cores. If it is satisfiable, we add its model to currModel for
    * its free variables (which are ExprMiner::d_skolems).
    */
-  Result checkCurrent(const Node& qy, std::vector<Node>& currModel);
+  Result checkCurrent(const Node& qy,
+                      std::vector<Node>& currModel,
+                      std::vector<Node>& queries);
   /**
    * Get next random index, which returns a random index [0, d_terms.size()-1]
    * that is not already in processed.
