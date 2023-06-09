@@ -149,17 +149,17 @@ Node EmbeddingConverter::process(Node q,
       d_parent->getProcess()->getIrrelevantArgs(sf, arg_irrelevant);
 #if 1
       std::vector<Node> trules;
-      for (const std::pair<const TypeNode, std::unordered_set<Node>>& c :
-           extra_cons)
-      {
-        trules.insert(trules.end(), c.second.begin(), c.second.end());
-      }
       for (size_t j = 0, nargs = sfvl.getNumChildren(); j < nargs; j++)
       {
         if (arg_irrelevant.find(j) == arg_irrelevant.end())
         {
           trules.push_back(sfvl[j]);
         }
+      }
+      for (const std::pair<const TypeNode, std::unordered_set<Node>>& c :
+           extra_cons)
+      {
+        trules.insert(trules.end(), c.second.begin(), c.second.end());
       }
       tn = SygusGrammarCons::mkDefaultSygusType(
           options(), preGrammarType, sfvl, trules);

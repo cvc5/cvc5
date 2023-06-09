@@ -167,6 +167,7 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammar(const Options& opts,
 
   // construct the non-terminals
   std::vector<Node> ntSyms;
+  options::SygusGrammarConsMode tsgcm = opts.quantifiers.sygusGrammarConsMode;
   for (const TypeNode& t : tvec)
   {
     std::stringstream ss;
@@ -181,6 +182,26 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammar(const Options& opts,
     }
     Node a = nm->mkBoundVar(ss.str(), t);
     ntSyms.push_back(a);
+    // Some types require more than one non-terminal. Handle these cases here.
+    if (t.isReal())
+    {
+      // the positive real constant grammar, for denominators
+      Node apc = nm->mkBoundVar("A_Real_PosC", t);
+      ntSyms.push_back(apc);
+    }
+    if (tsgcm == options::SygusGrammarConsMode::ANY_TERM
+        || tsgcm == options::SygusGrammarConsMode::ANY_TERM_CONCISE)
+    {
+      if (t.isRealOrInt())
+      {
+        // construction of the the any-term grammar requires any auxiliary
+        // "any constant".
+        std::stringstream ssc;
+        ssc << "A_" << t << "_AnyC";
+        Node aac = nm->mkBoundVar(ssc.str(), t);
+        ntSyms.push_back(aac);
+      }
+    }
   }
 
   // contruct the grammar
@@ -228,10 +249,6 @@ void SygusGrammarCons::addDefaultRulesToInternal(
       tsgcm = options::SygusGrammarConsMode::ANY_CONST;
     }
   }
-  if (!tn.isBoolean())
-  {
-    g.addAnyConstant(ntSym, tn);
-  }
   std::vector<Node> consts;
   mkSygusConstantsForType(tn, consts);
   if (tsgcm == options::SygusGrammarConsMode::ANY_CONST)
@@ -239,6 +256,10 @@ void SygusGrammarCons::addDefaultRulesToInternal(
     // Use the any constant constructor. Notice that for types that don't
     // have constants (e.g. uninterpreted or function types), we don't add
     // this constructor.
+    if (!consts.empty())
+    {
+      g.addAnyConstant(ntSym, tn);
+    }
   }
   else
   {
@@ -255,65 +276,109 @@ void SygusGrammarCons::addDefaultRulesToInternal(
   // add the operators
   if (tn.isRealOrInt())
   {
-    std::vector<TypeNode> cargsOp;
-    cargsOp.push_back(tn);
-    cargsOp.push_back(tn);
-    // Add ADD, SUB
-    std::vector<Kind> kinds = {ADD, SUB};
-    for (Kind kind : kinds)
+    std::map<TypeNode, std::vector<Node>>::const_iterator it = typeToNtSym.find(tn);
+    const std::vector<Node>& arithNtSym = it->second;
+    std::vector<TypeNode> cargsBin;
+    cargsBin.push_back(tn);
+    cargsBin.push_back(tn);
+        
+    if (tsgcm == options::SygusGrammarConsMode::ANY_TERM
+    || tsgcm == options::SygusGrammarConsMode::ANY_TERM_CONCISE)
     {
-      Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
-      addRuleTo(g, typeToNtSym, kind, cargsOp);
+      // whether we will use the polynomial grammar
+      bool polynomialGrammar =
+          tsgcm == options::SygusGrammarConsMode::ANY_TERM_CONCISE;
+      // We have initialized the given type sdts[i], which should now contain
+      // a constructor for each relevant arithmetic term/variable. We now
+      // construct a sygus datatype of one of the following two forms.
+      //
+      // (1) The "sum of monomials" grammar:
+      //   I -> C*x1 | ... | C*xn | C | I + I | ite( B, I, I )
+      //   C -> any_constant
+      // where x1, ..., xn are the arithmetic terms/variables (non-arithmetic
+      // builtin operators) terms we have considered thus far.
+      //
+      // (2) The "polynomial" grammar:
+      //   I -> C*x1 + ... + C*xn + C | ite( B, I, I )
+      //   C -> any_constant
+      //
+      // The advantage of the first is that it allows for sums of terms
+      // constructible from other theories that share sorts with arithmetic, e.g.
+      //   c1*str.len(x) + c2*str.len(y)
+      // The advantage of the second is that there are fewer constructors, and
+      // hence may be more efficient.
+      Node ntSymAnyC = arithNtSym.back();
+      std::vector<Node> mons;
+      for (const Node& r : prevRules)
+      {
+        if (r.isConst())
+        {
+          continue;
+        }
+        // don't use polynomial grammar if there is a term with arguments
+        if (r.getNumChildren()>0)
+        {
+          polynomialGrammar = false;
+        }
+        // make the monomial
+        Node mon = nm->mkNode(MULT, ntSymAnyC, r);
+        mons.push_back(mon);
+      }
+      mons.push_back(ntSymAnyC);
+      // clear the rules
+      for (const Node& r : prevRules)
+      {
+        g.removeRule(ntSym, r);
+      }
+      if (polynomialGrammar)
+      {
+        Node sum = mons.size()==1 ? mons[0] : nm->mkNode(ADD, mons);
+        g.addRule(ntSym, sum);
+      }
+      else
+      {
+        // add each monomial as a rule
+        for (const Node& m : mons)
+        {
+          g.addRule(ntSym, m);
+        }
+        addRuleTo(g, typeToNtSym, ADD, cargsBin);
+      }
+      // initialize the any-constant grammar
+      Assert(arithNtSym.size()>=2);
+      g.addAnyConstant(ntSymAnyC, tn);
     }
-    if (tn.isReal())
+    else
     {
-      // in case of mixed arithmetic, include conversion TO_REAL
-      TypeNode itype = nm->integerType();
-      std::vector<TypeNode> cargsToReal;
-      cargsToReal.push_back(itype);
-      addRuleTo(g, typeToNtSym, TO_REAL, cargsToReal);
-      Trace("sygus-grammar-def") << "...add for DIVISION" << std::endl;
-      addRuleTo(g, typeToNtSym, DIVISION, cargsOp);
+      // Add ADD, SUB
+      std::vector<Kind> kinds = {ADD, SUB};
+      for (Kind kind : kinds)
+      {
+        Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
+        addRuleTo(g, typeToNtSym, kind, cargsBin);
+      }
+      if (tn.isReal())
+      {
+        // in case of mixed arithmetic, include conversion TO_REAL
+        /*
+        TypeNode itype = nm->integerType();
+        std::vector<TypeNode> cargsToReal;
+        cargsToReal.push_back(itype);
+        addRuleTo(g, typeToNtSym, TO_REAL, cargsToReal);
+        */
+        Trace("sygus-grammar-def") << "...add for DIVISION" << std::endl;
+        Assert (arithNtSym.size()>=2);
+        // add rule for constant division
+        Node ntSymPosC = arithNtSym[1];
+        Node divRule = nm->mkNode(DIVISION, ntSym, ntSymPosC);
+        g.addRule(ntSym, divRule);
+        // add the rules for positive constants
+        Node one = nm->mkConstReal(Rational(1));
+        g.addRule(ntSymPosC, one);
+        Node rulePlusOne = nm->mkNode(ADD, ntSymPosC, one);
+        g.addRule(ntSymPosC, rulePlusOne);
+      }
     }
-    /*
-    if (!tn.isInteger())
-    {
-      Trace("sygus-grammar-def")
-          << "  ...create auxiliary Positive Integers grammar\n";
-      // Creating type for positive integral reals. Notice we can't use the
-      // any constant constructor here, since it admits zero.
-      std::stringstream ss;
-      ss << fun << "_PosIReal";
-      std::string posIRealName = ss.str();
-      // make unresolved type
-      TypeNode unresPosIReal = mkUnresolvedType(posIRealName);
-      tnypes.push_back(unresPosIReal);
-      // make data type for positive constant integral reals
-      sdts.push_back(SygusDatatypeGenerator(posIRealName));
-      // Add operator 1
-      Trace("sygus-grammar-def") << "\t...add for 1.0 to PosIReal\n";
-      std::vector<TypeNode> cargsEmpty;
-      sdts.back().addConstructor(
-          nm->mkConstReal(Rational(1)), "1", cargsEmpty);
-      // Add operator ADD
-      Kind kind = ADD;
-      Trace("sygus-grammar-def") << "\t...add for ADD to PosIReal\n";
-      std::vector<TypeNode> cargsPlus;
-      cargsPlus.push_back(unresPosIReal);
-      cargsPlus.push_back(unresPosIReal);
-      sdts.back().addConstructor(kind, cargsPlus);
-      sdts.back().d_sdt.initializeDatatype(tn, bvl, true, true);
-      Trace("sygus-grammar-def")
-          << "  ...built datatype " << sdts.back().d_sdt.getDatatype() << " ";
-      // Adding division at root
-      kind = DIVISION;
-      Trace("sygus-grammar-def") << "\t...add for " << kind << std::endl;
-      std::vector<TypeNode> cargsDiv;
-      cargsDiv.push_back(tn);
-      cargsDiv.push_back(unresPosIReal);
-      g.addRule(ntSym, kind, cargsDiv);
-    }
-    */
   }
   else if (tn.isBitVector())
   {
@@ -543,10 +608,15 @@ void SygusGrammarCons::addDefaultRulesToInternal(
   }
 
   bool considerIte = true;
-  if (tn.isBoolean()
-      && opts.quantifiers.sygusUnifPi == options::SygusUnifPiMode::NONE)
+  if (tn.isBoolean())
   {
+    // don't consider ITE for Booleans, unless unif-pi is enabled (to allow
+    // decision tree learning) and the grammar is non-trivial.
     considerIte = false;
+    if (!prevRules.empty() && opts.quantifiers.sygusUnifPi != options::SygusUnifPiMode::NONE)
+    {
+      considerIte = true;
+    }
   }
 
   if (considerIte)
@@ -622,11 +692,17 @@ void SygusGrammarCons::addDefaultPredicateRulesToInternal(
   cargsBin.push_back(tn);
   cargsBin.push_back(tn);
 
+  bool realIntZeroArg = false;
+  if (tn.isRealOrInt())
+  {
+    realIntZeroArg = (opts.quantifiers.sygusGrammarConsMode == options::SygusGrammarConsMode::ANY_TERM_CONCISE);
+  }
+    
   // add equality per type, if first class
   if (tn.isFirstClass())
   {
     Trace("sygus-grammar-def") << "...add for EQUAL" << std::endl;
-    if (tn.isRealOrInt())
+    if (realIntZeroArg)
     {
       // optimization: consider (= x 0)
       Node rule =
@@ -643,9 +719,16 @@ void SygusGrammarCons::addDefaultPredicateRulesToInternal(
   if (tn.isRealOrInt())
   {
     Trace("sygus-grammar-def") << "...add for LEQ" << std::endl;
-    // optimization: consider (<= x 0)
-    Node rule = nm->mkNode(LEQ, ntSym, nm->mkConstRealOrInt(tn, Rational(0)));
-    g.addRule(ntSymBool, rule);
+    if (realIntZeroArg)
+    {
+      // optimization: consider (<= 0 ntSym)
+      Node rule = nm->mkNode(LEQ, nm->mkConstRealOrInt(tn, Rational(0)), ntSym);
+      g.addRule(ntSymBool, rule);
+    }
+    else
+    {
+      addRuleTo(g, typeToNtSym, LEQ, cargsBin);
+    }
   }
   else if (tn.isBitVector())
   {

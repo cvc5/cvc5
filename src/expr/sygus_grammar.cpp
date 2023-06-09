@@ -125,6 +125,10 @@ TypeNode SygusGrammar::resolve(bool allowAny)
     for (const Node& ntSym : d_ntSyms)
     {
       bool allowConst = d_allowConst.find(ntSym) != d_allowConst.cend();
+      if (allowConst)
+      {
+        d_sdts.at(ntSym).addAnyConstantConstructor(ntSym.getType());
+      }
       d_sdts.at(ntSym).initializeDatatype(
           ntSym.getType(), bvl, allowConst, allowAny);
       datatypes.push_back(d_sdts.at(ntSym).getDatatype());
