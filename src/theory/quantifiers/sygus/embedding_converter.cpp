@@ -57,7 +57,6 @@ bool EmbeddingConverter::hasSyntaxRestrictions(Node q)
 void EmbeddingConverter::collectTerms(
     Node n, std::map<TypeNode, std::unordered_set<Node>>& consts)
 {
-  NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, bool> visited;
   std::unordered_map<TNode, bool>::iterator it;
   std::vector<TNode> visit;
@@ -75,18 +74,7 @@ void EmbeddingConverter::collectTerms(
       if (cur.isConst())
       {
         TypeNode tn = cur.getType();
-        Node c = cur;
-        if (tn.isRealOrInt())
-        {
-          c = nm->mkConstRealOrInt(tn, c.getConst<Rational>().abs());
-        }
-        consts[tn].insert(c);
-        if (tn.isInteger())
-        {
-          c = nm->mkConstReal(c.getConst<Rational>().abs());
-          TypeNode rtype = nm->realType();
-          consts[rtype].insert(c);
-        }
+        consts[tn].insert(cur);
       }
       // recurse
       visit.insert(visit.end(), cur.begin(), cur.end());

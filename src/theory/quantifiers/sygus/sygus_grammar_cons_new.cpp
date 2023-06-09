@@ -103,6 +103,7 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
           opts, g, gr.second, ntSymBool, typeToNtSym);
     }
   }
+
   return g;
 }
 
@@ -125,9 +126,9 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammar(const Options& opts,
   std::unordered_set<TypeNode> types;
   for (const Node& r : trules)
   {
-    expr::getComponentTypes(r.getType(), types, true);
+    collectTypes(r.getType(), types);
   }
-  expr::getComponentTypes(range, types, true);
+  collectTypes(range, types);
   // always include Boolean
   TypeNode btype = nm->booleanType();
   types.insert(btype);
@@ -147,7 +148,15 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammar(const Options& opts,
   for (const TypeNode& t : tvec)
   {
     std::stringstream ss;
-    ss << "A_" << t;
+    ss << "A_";
+    if (t.getNumChildren()>0)
+    {
+      ss << t.getKind() << "_" << t.getId();
+    }
+    else
+    {
+      ss << t;
+    }
     Node a = nm->mkBoundVar(ss.str(), t);
     ntSyms.push_back(a);
   }
@@ -213,7 +222,7 @@ void SygusGrammarCons::addDefaultRulesToInternal(
   {
     for (const Node& c : consts)
     {
-      // if not already there?
+      // if the constant is not already there
       if (std::find(prevRules.begin(), prevRules.end(), c) == prevRules.end())
       {
         g.addRule(ntSym, c);
@@ -225,7 +234,7 @@ void SygusGrammarCons::addDefaultRulesToInternal(
   if (tn.isRealOrInt())
   {
     // Add ADD, SUB
-    Kind kinds[2] = {ADD, SUB};
+    std::vector<Kind> kinds = {ADD, SUB};
     for (Kind kind : kinds)
     {
       Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
@@ -233,6 +242,14 @@ void SygusGrammarCons::addDefaultRulesToInternal(
       cargsOp.push_back(tn);
       cargsOp.push_back(tn);
       addRuleTo(g, typeToNtSym, kind, cargsOp);
+    }
+    if (tn.isReal())
+    {
+      // in case of mixed arithmetic, include conversion TO_REAL
+      TypeNode itype = nm->integerType();
+      std::vector<TypeNode> cargsToReal;
+      cargsToReal.push_back(itype);
+      addRuleTo(g, typeToNtSym, TO_REAL, cargsToReal);
     }
     /*
     if (!tn.isInteger())
@@ -477,7 +494,16 @@ void SygusGrammarCons::addDefaultRulesToInternal(
       addRuleTo(g, typeToNtSym, k, cargs);
     }
   }
-  else if (tn.isUninterpretedSort() || tn.isFunction() || tn.isRoundingMode())
+  else if (tn.isFunction())
+  {
+    std::vector<TypeNode> cargs = tn.getArgTypes();
+    // add APPLY_UF for the previous rules added (i.e. the function variables)
+    for (const Node& r : prevRules)
+    {
+      addRuleTo(g, typeToNtSym, APPLY_UF, r, cargs);
+    }
+  }
+  else if (tn.isUninterpretedSort() || tn.isRoundingMode())
   {
     // do nothing
   }
@@ -504,6 +530,24 @@ void SygusGrammarCons::addDefaultRulesToInternal(
   cargsIte.push_back(tn);
   cargsIte.push_back(tn);
   addRuleTo(g, typeToNtSym, ITE, cargsIte);
+}
+
+void SygusGrammarCons::collectTypes(const TypeNode& range, std::unordered_set<TypeNode>& types)
+{
+  NodeManager * nm = NodeManager::currentNM();
+  expr::getComponentTypes(range, types, true);
+  if (range.isStringLike())
+  {
+    // theory of strings shares the integer type, e.g. for length
+    TypeNode intType = nm->integerType();
+    types.insert(intType);
+  }
+  else if (range.isFloatingPoint())
+  {
+    // FP also includes RoundingMode type
+    TypeNode rmType = nm->roundingModeType();
+    types.insert(rmType);
+  }
 }
 
 void SygusGrammarCons::addDefaultPredicateRulesToInternal(
@@ -663,7 +707,11 @@ std::map<TypeNode, Node> SygusGrammarCons::getTypeToNtSymMap(
   const std::vector<Node>& ntSyms = g.getNtSyms();
   for (const Node& s : ntSyms)
   {
-    typeToNtSym[s.getType()] = s;
+    TypeNode stn = s.getType();
+    if (typeToNtSym.find(stn)==typeToNtSym.end())
+    {
+      typeToNtSym[stn] = s;
+    }
   }
   return typeToNtSym;
 }
