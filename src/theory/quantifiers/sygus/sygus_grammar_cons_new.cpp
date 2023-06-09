@@ -276,14 +276,15 @@ void SygusGrammarCons::addDefaultRulesToInternal(
   // add the operators
   if (tn.isRealOrInt())
   {
-    std::map<TypeNode, std::vector<Node>>::const_iterator it = typeToNtSym.find(tn);
+    std::map<TypeNode, std::vector<Node>>::const_iterator it =
+        typeToNtSym.find(tn);
     const std::vector<Node>& arithNtSym = it->second;
     std::vector<TypeNode> cargsBin;
     cargsBin.push_back(tn);
     cargsBin.push_back(tn);
-        
+
     if (tsgcm == options::SygusGrammarConsMode::ANY_TERM
-    || tsgcm == options::SygusGrammarConsMode::ANY_TERM_CONCISE)
+        || tsgcm == options::SygusGrammarConsMode::ANY_TERM_CONCISE)
     {
       // whether we will use the polynomial grammar
       bool polynomialGrammar =
@@ -303,7 +304,8 @@ void SygusGrammarCons::addDefaultRulesToInternal(
       //   C -> any_constant
       //
       // The advantage of the first is that it allows for sums of terms
-      // constructible from other theories that share sorts with arithmetic, e.g.
+      // constructible from other theories that share sorts with arithmetic,
+      // e.g.
       //   c1*str.len(x) + c2*str.len(y)
       // The advantage of the second is that there are fewer constructors, and
       // hence may be more efficient.
@@ -316,7 +318,7 @@ void SygusGrammarCons::addDefaultRulesToInternal(
           continue;
         }
         // don't use polynomial grammar if there is a term with arguments
-        if (r.getNumChildren()>0)
+        if (r.getNumChildren() > 0)
         {
           polynomialGrammar = false;
         }
@@ -332,7 +334,7 @@ void SygusGrammarCons::addDefaultRulesToInternal(
       }
       if (polynomialGrammar)
       {
-        Node sum = mons.size()==1 ? mons[0] : nm->mkNode(ADD, mons);
+        Node sum = mons.size() == 1 ? mons[0] : nm->mkNode(ADD, mons);
         g.addRule(ntSym, sum);
       }
       else
@@ -345,7 +347,7 @@ void SygusGrammarCons::addDefaultRulesToInternal(
         addRuleTo(g, typeToNtSym, ADD, cargsBin);
       }
       // initialize the any-constant grammar
-      Assert(arithNtSym.size()>=2);
+      Assert(arithNtSym.size() >= 2);
       g.addAnyConstant(ntSymAnyC, tn);
     }
     else
@@ -367,7 +369,7 @@ void SygusGrammarCons::addDefaultRulesToInternal(
         addRuleTo(g, typeToNtSym, TO_REAL, cargsToReal);
         */
         Trace("sygus-grammar-def") << "...add for DIVISION" << std::endl;
-        Assert (arithNtSym.size()>=2);
+        Assert(arithNtSym.size() >= 2);
         // add rule for constant division
         Node ntSymPosC = arithNtSym[1];
         Node divRule = nm->mkNode(DIVISION, ntSym, ntSymPosC);
@@ -553,8 +555,8 @@ void SygusGrammarCons::addDefaultRulesToInternal(
         // add to the selector type the selector operator
         std::vector<TypeNode> cargsSel;
         cargsSel.push_back(tn);
-        Trace("sygus-grammar-def")
-            << "...for " << dt[l][j].getName() << ", args = " << tn << std::endl;
+        Trace("sygus-grammar-def") << "...for " << dt[l][j].getName()
+                                   << ", args = " << tn << std::endl;
         Node sel = dt[l][j].getSelector();
         addRuleTo(g, typeToNtSym, APPLY_SELECTOR, sel, cargsSel);
       }
@@ -613,7 +615,8 @@ void SygusGrammarCons::addDefaultRulesToInternal(
     // don't consider ITE for Booleans, unless unif-pi is enabled (to allow
     // decision tree learning) and the grammar is non-trivial.
     considerIte = false;
-    if (!prevRules.empty() && opts.quantifiers.sygusUnifPi != options::SygusUnifPiMode::NONE)
+    if (!prevRules.empty()
+        && opts.quantifiers.sygusUnifPi != options::SygusUnifPiMode::NONE)
     {
       considerIte = true;
     }
@@ -695,9 +698,10 @@ void SygusGrammarCons::addDefaultPredicateRulesToInternal(
   bool realIntZeroArg = false;
   if (tn.isRealOrInt())
   {
-    realIntZeroArg = (opts.quantifiers.sygusGrammarConsMode == options::SygusGrammarConsMode::ANY_TERM_CONCISE);
+    realIntZeroArg = (opts.quantifiers.sygusGrammarConsMode
+                      == options::SygusGrammarConsMode::ANY_TERM_CONCISE);
   }
-    
+
   // add equality per type, if first class
   if (tn.isFirstClass())
   {
