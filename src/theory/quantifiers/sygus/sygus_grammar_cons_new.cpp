@@ -498,17 +498,21 @@ void SygusGrammarCons::addDefaultRulesToInternal(
   }
   else if (tn.isBoolean())
   {
-    std::vector<Kind> kinds = {NOT, AND, OR};
-    for (Kind k : kinds)
+    // only add connectives if non-trivial
+    if (!prevRules.empty())
     {
-      Trace("sygus-grammar-def") << "...add for " << k << std::endl;
-      std::vector<TypeNode> cargs;
-      cargs.push_back(tn);
-      if (k != NOT)
+      std::vector<Kind> kinds = {NOT, AND, OR};
+      for (Kind k : kinds)
       {
+        Trace("sygus-grammar-def") << "...add for " << k << std::endl;
+        std::vector<TypeNode> cargs;
         cargs.push_back(tn);
+        if (k != NOT)
+        {
+          cargs.push_back(tn);
+        }
+        addRuleTo(g, typeToNtSym, k, cargs);
       }
-      addRuleTo(g, typeToNtSym, k, cargs);
     }
   }
   else if (tn.isFunction())
@@ -562,7 +566,11 @@ void SygusGrammarCons::collectTypes(const TypeNode& range,
                                     std::unordered_set<TypeNode>& types)
 {
   NodeManager* nm = NodeManager::currentNM();
-  expr::getComponentTypes(range, types, true);
+  if (types.find(range)!=types.end())
+  {
+    return;
+  }
+  expr::getComponentTypes(range, types);
   if (range.isStringLike())
   {
     // theory of strings shares the integer type, e.g. for length
@@ -574,6 +582,20 @@ void SygusGrammarCons::collectTypes(const TypeNode& range,
     // FP also includes RoundingMode type
     TypeNode rmType = nm->roundingModeType();
     types.insert(rmType);
+  }
+  else if( range.isDatatype() ){
+    const DType& dt = range.getDType();
+    for (size_t i = 0, size = dt.getNumConstructors(); i < size; ++i)
+    {
+      // get the specialized constructor type, which accounts for
+      // parametric datatypes
+      TypeNode ctn = dt[i].getInstantiatedConstructorType(range);
+      std::vector<TypeNode> argTypes = ctn.getArgTypes();
+      for (size_t j = 0, nargs = argTypes.size(); j < nargs; ++j)
+      {
+        collectTypes(argTypes[j], types);
+      }
+    }
   }
 }
 
