@@ -75,28 +75,29 @@ class SygusGrammarCons
                                       std::vector<Node>& ops);
 
  private:
-   /**
-    * This adds to types the types we should consider in the sygus grammar
-    * for the type range. This is the component types of range plus other
-    * auxiliary types for defining operators in its theory.
-    */
-   static void collectTypes(const TypeNode& range, std::unordered_set<TypeNode>& types);
-   /**
-    * Adds the default rules for non-terminal ntSym to g, where ntSym is a
-    * non-terminal of g. This may additionally add rules to other non-terminals
-    * of g, e.g. based on theory symbols that have types different from ntSym,
-    * e.g. array select.
-    */
+  /**
+   * This adds to types the types we should consider in the sygus grammar
+   * for the type range. This is the component types of range plus other
+   * auxiliary types for defining operators in its theory.
+   */
+  static void collectTypes(const TypeNode& range,
+                           std::unordered_set<TypeNode>& types);
+  /**
+   * Adds the default rules for non-terminal ntSym to g, where ntSym is a
+   * non-terminal of g. This may additionally add rules to other non-terminals
+   * of g, e.g. based on theory symbols that have types different from ntSym,
+   * e.g. array select.
+   */
   static void addDefaultRulesToInternal(
       const Options& opts,
       SygusGrammar& g,
       const Node& ntSym,
       const std::map<TypeNode, std::vector<Node>>& typeToNtSym);
 
-   /**
-    * Adds the default predicate rules for non-terminal ntSymBool to g, where
-    * ntSymBool is a Boolean non-terminal of g.
-    */
+  /**
+   * Adds the default predicate rules for non-terminal ntSymBool to g, where
+   * ntSymBool is a Boolean non-terminal of g.
+   */
   static void addDefaultPredicateRulesToInternal(
       const Options& opts,
       SygusGrammar& g,
@@ -107,37 +108,40 @@ class SygusGrammarCons
    * Computes a mapping from types to the non-terminals in g with that
    * type.
    */
-  static std::map<TypeNode, std::vector<Node>> getTypeToNtSymMap(const SygusGrammar& g);
+  static std::map<TypeNode, std::vector<Node>> getTypeToNtSymMap(
+      const SygusGrammar& g);
 
   /**
    * Adds a rule for a term whose operator is kind k and has argument types
    * given by args. The canonical non-terminals for each type is given by
    * typeToNtSym.
-   * 
+   *
    * This method returns true if a rule was added to g. This may fail if there
    * is no non-terminal for a type in args or for the return type of the
    * constructed term.
    */
-  static bool addRuleTo(SygusGrammar& g,
-                        const std::map<TypeNode, std::vector<Node>>& typeToNtSym,
-                        Kind k,
-                        const std::vector<TypeNode>& args);
+  static bool addRuleTo(
+      SygusGrammar& g,
+      const std::map<TypeNode, std::vector<Node>>& typeToNtSym,
+      Kind k,
+      const std::vector<TypeNode>& args);
   /**
    * Similar to the above method.
    *
    * Adds a rule for a term whose operator is kind k and operator op and has
    * argument types given by args. The canonical non-terminals for each type is
    * given by typeToNtSym.
-   * 
+   *
    * This method returns true if a rule was added to g. This may fail if there
    * is no non-terminal for a type in args or for the return type of the
    * constructed term.
    */
-  static bool addRuleTo(SygusGrammar& g,
-                        const std::map<TypeNode, std::vector<Node>>& typeToNtSym,
-                        Kind k,
-                        const Node& op,
-                        const std::vector<TypeNode>& args);
+  static bool addRuleTo(
+      SygusGrammar& g,
+      const std::map<TypeNode, std::vector<Node>>& typeToNtSym,
+      Kind k,
+      const Node& op,
+      const std::vector<TypeNode>& args);
 };
 
 }  // namespace quantifiers

@@ -80,7 +80,7 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
   it = typeToNtSym.find(btype);
   if (it != typeToNtSym.end())
   {
-    Assert (!it->second.empty());
+    Assert(!it->second.empty());
     ntSymBool = it->second[0];
   }
 
@@ -91,7 +91,7 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
     it = typeToNtSym.find(rt);
     if (it != typeToNtSym.end())
     {
-      Assert (!it->second.empty());
+      Assert(!it->second.empty());
       g.addRule(it->second[0], r);
     }
   }
@@ -103,7 +103,7 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
     {
       continue;
     }
-    Assert (!gr.second.empty());
+    Assert(!gr.second.empty());
     // add rules for each type
     addDefaultRulesToInternal(opts, g, gr.second[0], typeToNtSym);
     // add predicates for the type to the Boolean grammar if it exists
@@ -153,7 +153,8 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammar(const Options& opts,
   // the range type comes first
   std::vector<TypeNode> tvec;
   tvec.push_back(range);
-  Trace("sygus-grammar-def") << "For " << range << ", trules=" << trules << ", consider types";
+  Trace("sygus-grammar-def")
+      << "For " << range << ", trules=" << trules << ", consider types";
   for (const TypeNode& t : types)
   {
     Trace("sygus-grammar-def") << " " << t;
@@ -170,7 +171,7 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammar(const Options& opts,
   {
     std::stringstream ss;
     ss << "A_";
-    if (t.getNumChildren()>0)
+    if (t.getNumChildren() > 0)
     {
       ss << t.getKind() << "_" << t.getId();
     }
@@ -253,7 +254,7 @@ void SygusGrammarCons::addDefaultRulesToInternal(
   NodeManager* nm = NodeManager::currentNM();
   // add the operators
   if (tn.isRealOrInt())
-  {     
+  {
     std::vector<TypeNode> cargsOp;
     cargsOp.push_back(tn);
     cargsOp.push_back(tn);
@@ -497,9 +498,7 @@ void SygusGrammarCons::addDefaultRulesToInternal(
   }
   else if (tn.isBoolean())
   {
-    std::vector<Kind> kinds = {
-        NOT, AND, OR
-    };
+    std::vector<Kind> kinds = {NOT, AND, OR};
     for (Kind k : kinds)
     {
       Trace("sygus-grammar-def") << "...add for " << k << std::endl;
@@ -538,9 +537,10 @@ void SygusGrammarCons::addDefaultRulesToInternal(
     // list of the function-to-synthesize, create a fresh ground term
     g.addRule(ntSym, nm->mkGroundTerm(tn));
   }
-  
+
   bool considerIte = true;
-  if (tn.isBoolean() && opts.quantifiers.sygusUnifPi == options::SygusUnifPiMode::NONE)
+  if (tn.isBoolean()
+      && opts.quantifiers.sygusUnifPi == options::SygusUnifPiMode::NONE)
   {
     considerIte = false;
   }
@@ -558,9 +558,10 @@ void SygusGrammarCons::addDefaultRulesToInternal(
   }
 }
 
-void SygusGrammarCons::collectTypes(const TypeNode& range, std::unordered_set<TypeNode>& types)
+void SygusGrammarCons::collectTypes(const TypeNode& range,
+                                    std::unordered_set<TypeNode>& types)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   expr::getComponentTypes(range, types, true);
   if (range.isStringLike())
   {
@@ -591,15 +592,16 @@ void SygusGrammarCons::addDefaultPredicateRulesToInternal(
   std::vector<TypeNode> cargsBin;
   cargsBin.push_back(tn);
   cargsBin.push_back(tn);
-  
-  //add equality per type, if first class
+
+  // add equality per type, if first class
   if (tn.isFirstClass())
   {
     Trace("sygus-grammar-def") << "...add for EQUAL" << std::endl;
     if (tn.isRealOrInt())
     {
       // optimization: consider (= x 0)
-      Node rule = nm->mkNode(EQUAL, ntSym, nm->mkConstRealOrInt(tn, Rational(0)));
+      Node rule =
+          nm->mkNode(EQUAL, ntSym, nm->mkConstRealOrInt(tn, Rational(0)));
       g.addRule(ntSymBool, rule);
     }
     else
@@ -607,7 +609,7 @@ void SygusGrammarCons::addDefaultPredicateRulesToInternal(
       addRuleTo(g, typeToNtSym, EQUAL, cargsBin);
     }
   }
-  
+
   // type specific predicates
   if (tn.isRealOrInt())
   {
@@ -625,12 +627,12 @@ void SygusGrammarCons::addDefaultPredicateRulesToInternal(
   {
     Trace("sygus-grammar-def") << "...add FP predicates" << std::endl;
     std::vector<Kind> fp_unary_predicates = {FLOATINGPOINT_IS_NORMAL,
-                                              FLOATINGPOINT_IS_SUBNORMAL,
-                                              FLOATINGPOINT_IS_ZERO,
-                                              FLOATINGPOINT_IS_INF,
-                                              FLOATINGPOINT_IS_NAN,
-                                              FLOATINGPOINT_IS_NEG,
-                                              FLOATINGPOINT_IS_POS};
+                                             FLOATINGPOINT_IS_SUBNORMAL,
+                                             FLOATINGPOINT_IS_ZERO,
+                                             FLOATINGPOINT_IS_INF,
+                                             FLOATINGPOINT_IS_NAN,
+                                             FLOATINGPOINT_IS_NEG,
+                                             FLOATINGPOINT_IS_POS};
     std::vector<TypeNode> cargsUn;
     cargsUn.push_back(tn);
     for (Kind kind : fp_unary_predicates)
@@ -646,13 +648,13 @@ void SygusGrammarCons::addDefaultPredicateRulesToInternal(
   }
   else if (tn.isDatatype())
   {
-    //add for testers
+    // add for testers
     Trace("sygus-grammar-def") << "...add for testers" << std::endl;
     const DType& dt = tn.getDType();
     std::vector<TypeNode> cargsTester;
     cargsTester.push_back(tn);
     for (unsigned kind = 0, size_k = dt.getNumConstructors(); kind < size_k;
-          ++kind)
+         ++kind)
     {
       Trace("sygus-grammar-def")
           << "...for " << dt[kind].getTester() << std::endl;
@@ -668,7 +670,7 @@ void SygusGrammarCons::addDefaultPredicateRulesToInternal(
     cargsMember.push_back(etype);
     cargsMember.push_back(tn);
     Trace("sygus-grammar-def") << "...for SET_MEMBER" << std::endl;
-    addRuleTo(g, typeToNtSym, SET_MEMBER,  cargsMember);
+    addRuleTo(g, typeToNtSym, SET_MEMBER, cargsMember);
   }
 }
 
@@ -751,20 +753,22 @@ std::map<TypeNode, std::vector<Node>> SygusGrammarCons::getTypeToNtSymMap(
   return typeToNtSym;
 }
 
-bool SygusGrammarCons::addRuleTo(SygusGrammar& g,
-                                 const std::map<TypeNode, std::vector<Node>>& typeToNtSym,
-                                 Kind k,
-                                 const std::vector<TypeNode>& args)
+bool SygusGrammarCons::addRuleTo(
+    SygusGrammar& g,
+    const std::map<TypeNode, std::vector<Node>>& typeToNtSym,
+    Kind k,
+    const std::vector<TypeNode>& args)
 {
   Node op;
   return addRuleTo(g, typeToNtSym, k, op, args);
 }
 
-bool SygusGrammarCons::addRuleTo(SygusGrammar& g,
-                                 const std::map<TypeNode, std::vector<Node>>& typeToNtSym,
-                                 Kind k,
-                                 const Node& op,
-                                 const std::vector<TypeNode>& args)
+bool SygusGrammarCons::addRuleTo(
+    SygusGrammar& g,
+    const std::map<TypeNode, std::vector<Node>>& typeToNtSym,
+    Kind k,
+    const Node& op,
+    const std::vector<TypeNode>& args)
 {
   std::map<TypeNode, std::vector<Node>>::const_iterator it;
   std::vector<Node> children;
@@ -789,7 +793,7 @@ bool SygusGrammarCons::addRuleTo(SygusGrammar& g,
   {
     return false;
   }
-  Assert (!it->second.empty());
+  Assert(!it->second.empty());
   g.addRule(it->second[0], rule);
   return true;
 }
