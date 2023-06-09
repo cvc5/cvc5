@@ -88,22 +88,34 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
   {
     TypeNode rt = r.getType();
     it = typeToNtSym.find(rt);
-    Assert(it != typeToNtSym.end());
-    g.addRule(it->second, r);
+    if (it != typeToNtSym.end())
+    {
+      g.addRule(it->second, r);
+    }
   }
 
   for (const std::pair<const TypeNode, Node>& gr : typeToNtSym)
   {
+    // consider Booleans last
+    if (gr.second==ntSymBool)
+    {
+      continue;
+    }
+    Assert (!gr.first.isBoolean());
     // add rules for each type
     addDefaultRulesToInternal(opts, g, gr.second, typeToNtSym);
     // add predicates for the type to the Boolean grammar if it exists
-    if (!ntSymBool.isNull() && !gr.first.isBoolean())
+    if (!ntSymBool.isNull())
     {
       addDefaultPredicateRulesToInternal(
           opts, g, gr.second, ntSymBool, typeToNtSym);
     }
   }
-
+  if (!ntSymBool.isNull())
+  {
+    // now add Boolean connective rules
+    addDefaultRulesToInternal(opts, g, ntSymBool, typeToNtSym);
+  }
   return g;
 }
 
@@ -126,7 +138,11 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammar(const Options& opts,
   std::unordered_set<TypeNode> types;
   for (const Node& r : trules)
   {
-    collectTypes(r.getType(), types);
+    // constants don't contribute anything by themselves
+    if (!r.isConst())
+    {
+      collectTypes(r.getType(), types);
+    }
   }
   collectTypes(range, types);
   // always include Boolean
@@ -135,13 +151,16 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammar(const Options& opts,
   // the range type comes first
   std::vector<TypeNode> tvec;
   tvec.push_back(range);
+  Trace("sygus-grammar-def") << "For " << range << ", trules=" << trules << ", consider types";
   for (const TypeNode& t : types)
   {
+    Trace("sygus-grammar-def") << " " << t;
     if (t != range)
     {
       tvec.push_back(t);
     }
   }
+  Trace("sygus-grammar-def") << std::endl;
 
   // construct the non-terminals
   std::vector<Node> ntSyms;
@@ -516,16 +535,24 @@ void SygusGrammarCons::addDefaultRulesToInternal(
     // list of the function-to-synthesize, create a fresh ground term
     g.addRule(ntSym, nm->mkGroundTerm(tn));
   }
+  
+  bool considerIte = true;
+  if (tn.isBoolean() && opts.quantifiers.sygusUnifPi == options::SygusUnifPiMode::NONE)
+  {
+    considerIte = false;
+  }
 
-  // always add ITE
-  TypeNode btype = nm->booleanType();
-  Kind k = ITE;
-  Trace("sygus-grammar-def") << "...add for " << k << std::endl;
-  std::vector<TypeNode> cargsIte;
-  cargsIte.push_back(btype);
-  cargsIte.push_back(tn);
-  cargsIte.push_back(tn);
-  addRuleTo(g, typeToNtSym, ITE, cargsIte);
+  if (considerIte)
+  {
+    TypeNode btype = nm->booleanType();
+    Kind k = ITE;
+    Trace("sygus-grammar-def") << "...add for " << k << std::endl;
+    std::vector<TypeNode> cargsIte;
+    cargsIte.push_back(btype);
+    cargsIte.push_back(tn);
+    cargsIte.push_back(tn);
+    addRuleTo(g, typeToNtSym, ITE, cargsIte);
+  }
 }
 
 void SygusGrammarCons::collectTypes(const TypeNode& range, std::unordered_set<TypeNode>& types)
