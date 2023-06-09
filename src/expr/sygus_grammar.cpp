@@ -103,7 +103,7 @@ void SygusGrammar::removeRule(const Node& ntSym, const Node& rule)
   itr->second.erase(it);
 }
 
-TypeNode SygusGrammar::resolve()
+TypeNode SygusGrammar::resolve(bool allowAny)
 {
   if (!isResolved())
   {
@@ -126,7 +126,7 @@ TypeNode SygusGrammar::resolve()
     {
       bool allowConst = d_allowConst.find(ntSym) != d_allowConst.cend();
       d_sdts.at(ntSym).initializeDatatype(
-          ntSym.getType(), bvl, allowConst, false);
+          ntSym.getType(), bvl, allowConst, allowAny);
       datatypes.push_back(d_sdts.at(ntSym).getDatatype());
     }
     d_datatype = nm->mkMutualDatatypeTypes(datatypes)[0];

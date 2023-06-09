@@ -38,7 +38,7 @@ TypeNode SygusGrammarCons::mkDefaultSygusType(const Options& opts,
                                               const Node& bvl)
 {
   SygusGrammar g = mkDefaultGrammar(opts, range, bvl);
-  return g.resolve();
+  return g.resolve(true);
 }
 
 TypeNode SygusGrammarCons::mkDefaultSygusType(const Options& opts,
@@ -47,7 +47,7 @@ TypeNode SygusGrammarCons::mkDefaultSygusType(const Options& opts,
                                               const std::vector<Node>& trules)
 {
   SygusGrammar g = mkDefaultGrammar(opts, range, bvl, trules);
-  return g.resolve();
+  return g.resolve(true);
 }
 
 SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
@@ -206,6 +206,10 @@ void SygusGrammarCons::addDefaultRulesToInternal(
       tsgcm = options::SygusGrammarConsMode::ANY_CONST;
     }
   }
+  if (!tn.isBoolean())
+  {
+    g.addAnyConstant(ntSym, tn);
+  }
   std::vector<Node> consts;
   mkSygusConstantsForType(tn, consts);
   if (tsgcm == options::SygusGrammarConsMode::ANY_CONST)
@@ -213,10 +217,6 @@ void SygusGrammarCons::addDefaultRulesToInternal(
     // Use the any constant constructor. Notice that for types that don't
     // have constants (e.g. uninterpreted or function types), we don't add
     // this constructor.
-    if (!consts.empty())
-    {
-      g.addAnyConstant(ntSym, tn);
-    }
   }
   else
   {
@@ -476,7 +476,7 @@ void SygusGrammarCons::addDefaultRulesToInternal(
   else if (tn.isBoolean())
   {
     std::vector<Kind> kinds = {
-        NOT, AND, OR, ITE
+        NOT, AND, OR
     };
     for (Kind k : kinds)
     {
@@ -486,10 +486,6 @@ void SygusGrammarCons::addDefaultRulesToInternal(
       if (k != NOT)
       {
         cargs.push_back(tn);
-        if (k == ITE)
-        {
-          cargs.push_back(tn);
-        }
       }
       addRuleTo(g, typeToNtSym, k, cargs);
     }
