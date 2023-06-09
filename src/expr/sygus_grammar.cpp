@@ -130,7 +130,7 @@ TypeNode SygusGrammar::resolve(bool allowAny)
         d_sdts.at(ntSym).addAnyConstantConstructor(ntSym.getType());
       }
       d_sdts.at(ntSym).initializeDatatype(
-          ntSym.getType(), bvl, allowConst, allowAny);
+          ntSym.getType(), bvl, allowConst || allowAny, allowAny);
       datatypes.push_back(d_sdts.at(ntSym).getDatatype());
     }
     d_datatype = nm->mkMutualDatatypeTypes(datatypes)[0];

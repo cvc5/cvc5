@@ -470,21 +470,28 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
         for (unsigned k = 0, nargs = dtc[j].getNumArgs(); k < nargs; k++)
         {
           TypeNode argt = dtc[j].getArgType(k);
-          std::map<TypeNode, TypeNode>::iterator itdp = dtProcessed.find(argt);
           TypeNode argtNew;
-          if (itdp == dtProcessed.end())
+          if (argt.isDatatype() && argt.getDType().isSygus())
           {
-            std::stringstream ssutn;
-            ssutn << argt.getDType().getName() << "_s";
-            argtNew = nm->mkUnresolvedDatatypeSort(ssutn.str());
-            Trace("dtsygus-gen-debug") << "    ...unresolved type " << argtNew
-                                       << " for " << argt << std::endl;
-            dtProcessed[argt] = argtNew;
-            dtNextToProcess.push_back(argt);
+            std::map<TypeNode, TypeNode>::iterator itdp = dtProcessed.find(argt);
+            if (itdp == dtProcessed.end())
+            {
+              std::stringstream ssutn;
+              ssutn << argt.getDType().getName() << "_s";
+              argtNew = nm->mkUnresolvedDatatypeSort(ssutn.str());
+              Trace("dtsygus-gen-debug") << "    ...unresolved type " << argtNew
+                                        << " for " << argt << std::endl;
+              dtProcessed[argt] = argtNew;
+              dtNextToProcess.push_back(argt);
+            }
+            else
+            {
+              argtNew = itdp->second;
+            }
           }
           else
           {
-            argtNew = itdp->second;
+            argtNew = argt;
           }
           Trace("dtsygus-gen-debug")
               << "    Arg #" << k << ": " << argtNew << std::endl;
