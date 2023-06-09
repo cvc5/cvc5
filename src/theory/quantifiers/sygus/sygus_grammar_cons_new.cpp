@@ -484,12 +484,12 @@ void SygusGrammarCons::addDefaultRulesToInternal(
       std::vector<TypeNode> tsargs = tspec.getArgTypes();
       for (size_t j = 0, size_j = tsargs.size(); j < size_j; ++j)
       {
-        Trace("sygus-grammar-def")
-            << "...for " << dt[l][j].getName() << std::endl;
         cargsCons.push_back(tsargs[j]);
         // add to the selector type the selector operator
         std::vector<TypeNode> cargsSel;
         cargsSel.push_back(tn);
+        Trace("sygus-grammar-def")
+            << "...for " << dt[l][j].getName() << ", args = " << tn << std::endl;
         Node sel = dt[l][j].getSelector();
         addRuleTo(g, typeToNtSym, APPLY_SELECTOR, sel, cargsSel);
       }
@@ -570,21 +570,11 @@ void SygusGrammarCons::collectTypes(const TypeNode& range,
   {
     return;
   }
-  expr::getComponentTypes(range, types);
-  if (range.isStringLike())
+  // special case: datatypes we add itself and its subfield types, taking
+  // into account parametric datatypes
+  if (range.isDatatype())
   {
-    // theory of strings shares the integer type, e.g. for length
-    TypeNode intType = nm->integerType();
-    types.insert(intType);
-  }
-  else if (range.isFloatingPoint())
-  {
-    // FP also includes RoundingMode type
-    TypeNode rmType = nm->roundingModeType();
-    types.insert(rmType);
-  }
-  else if (range.isDatatype())
-  {
+    types.insert(range);
     const DType& dt = range.getDType();
     for (size_t i = 0, size = dt.getNumConstructors(); i < size; ++i)
     {
@@ -597,6 +587,22 @@ void SygusGrammarCons::collectTypes(const TypeNode& range,
         collectTypes(argTypes[j], types);
       }
     }
+    return;
+  }
+  // otherwise, get the component types
+  expr::getComponentTypes(range, types);
+  // add further types based on theory symbols
+  if (range.isStringLike())
+  {
+    // theory of strings shares the integer type, e.g. for length
+    TypeNode intType = nm->integerType();
+    types.insert(intType);
+  }
+  else if (range.isFloatingPoint())
+  {
+    // FP also includes RoundingMode type
+    TypeNode rmType = nm->roundingModeType();
+    types.insert(rmType);
   }
 }
 
