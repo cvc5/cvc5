@@ -91,7 +91,7 @@ class SygusGrammarCons
       const Options& opts,
       SygusGrammar& g,
       const Node& ntSym,
-      const std::map<TypeNode, Node>& typeToNtSym);
+      const std::map<TypeNode, std::vector<Node>>& typeToNtSym);
 
    /**
     * Adds the default predicate rules for non-terminal ntSymBool to g, where
@@ -102,12 +102,12 @@ class SygusGrammarCons
       SygusGrammar& g,
       const Node& ntSym,
       const Node& ntSymBool,
-      const std::map<TypeNode, Node>& typeToNtSym);
+      const std::map<TypeNode, std::vector<Node>>& typeToNtSym);
   /**
-   * Computes a mapping from types to the first non-terminal in g with that
-   * type. Note that other non-terminals of duplicate types are ignored.
+   * Computes a mapping from types to the non-terminals in g with that
+   * type.
    */
-  static std::map<TypeNode, Node> getTypeToNtSymMap(const SygusGrammar& g);
+  static std::map<TypeNode, std::vector<Node>> getTypeToNtSymMap(const SygusGrammar& g);
 
   /**
    * Adds a rule for a term whose operator is kind k and has argument types
@@ -119,7 +119,7 @@ class SygusGrammarCons
    * constructed term.
    */
   static bool addRuleTo(SygusGrammar& g,
-                        const std::map<TypeNode, Node>& typeToNtSym,
+                        const std::map<TypeNode, std::vector<Node>>& typeToNtSym,
                         Kind k,
                         const std::vector<TypeNode>& args);
   /**
@@ -134,7 +134,7 @@ class SygusGrammarCons
    * constructed term.
    */
   static bool addRuleTo(SygusGrammar& g,
-                        const std::map<TypeNode, Node>& typeToNtSym,
+                        const std::map<TypeNode, std::vector<Node>>& typeToNtSym,
                         Kind k,
                         const Node& op,
                         const std::vector<TypeNode>& args);

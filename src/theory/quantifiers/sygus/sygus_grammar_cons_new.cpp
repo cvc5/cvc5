@@ -58,7 +58,7 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
   std::vector<Node> trules;
   if (!bvl.isNull())
   {
-    Assert(bvl.getKind() == BOUND_VARIABLE_LIST);
+    Assert(bvl.getKind() == BOUND_VAR_LIST);
     trules.insert(trules.end(), bvl.begin(), bvl.end());
   }
   return mkDefaultGrammar(opts, range, bvl, trules);
@@ -70,9 +70,9 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
                                                 const std::vector<Node>& trules)
 {
   NodeManager* nm = NodeManager::currentNM();
-  std::map<TypeNode, Node>::iterator it;
+  std::map<TypeNode, std::vector<Node>>::iterator it;
   SygusGrammar g = mkEmptyGrammar(opts, range, bvl, trules);
-  std::map<TypeNode, Node> typeToNtSym = getTypeToNtSymMap(g);
+  std::map<TypeNode, std::vector<Node>> typeToNtSym = getTypeToNtSymMap(g);
 
   // get the non-terminal for Booleans
   Node ntSymBool;
@@ -80,7 +80,8 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
   it = typeToNtSym.find(btype);
   if (it != typeToNtSym.end())
   {
-    ntSymBool = it->second;
+    Assert (!it->second.empty());
+    ntSymBool = it->second[0];
   }
 
   // add the terminal rules
@@ -90,25 +91,26 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
     it = typeToNtSym.find(rt);
     if (it != typeToNtSym.end())
     {
-      g.addRule(it->second, r);
+      Assert (!it->second.empty());
+      g.addRule(it->second[0], r);
     }
   }
 
-  for (const std::pair<const TypeNode, Node>& gr : typeToNtSym)
+  for (const std::pair<const TypeNode, std::vector<Node>>& gr : typeToNtSym)
   {
     // consider Booleans last
-    if (gr.second==ntSymBool)
+    if (gr.first.isBoolean())
     {
       continue;
     }
-    Assert (!gr.first.isBoolean());
+    Assert (!gr.second.empty());
     // add rules for each type
-    addDefaultRulesToInternal(opts, g, gr.second, typeToNtSym);
+    addDefaultRulesToInternal(opts, g, gr.second[0], typeToNtSym);
     // add predicates for the type to the Boolean grammar if it exists
     if (!ntSymBool.isNull())
     {
       addDefaultPredicateRulesToInternal(
-          opts, g, gr.second, ntSymBool, typeToNtSym);
+          opts, g, gr.second[0], ntSymBool, typeToNtSym);
     }
   }
   if (!ntSymBool.isNull())
@@ -129,7 +131,7 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammar(const Options& opts,
   std::vector<Node> vars;
   if (!bvl.isNull())
   {
-    Assert(bvl.getKind() == BOUND_VARIABLE_LIST);
+    Assert(bvl.getKind() == BOUND_VAR_LIST);
     vars.insert(vars.end(), bvl.begin(), bvl.end());
   }
   // collect the types we are considering, which is all component types of
@@ -190,7 +192,7 @@ void SygusGrammarCons::addDefaultRulesTo(const Options& opts,
                                          const Node& ntSym)
 {
   // recompute mapping from types to non-terminal symbols
-  std::map<TypeNode, Node> typeToNtSym = getTypeToNtSymMap(g);
+  std::map<TypeNode, std::vector<Node>> typeToNtSym = getTypeToNtSymMap(g);
   addDefaultRulesToInternal(opts, g, ntSym, typeToNtSym);
 }
 
@@ -200,7 +202,7 @@ void SygusGrammarCons::addDefaultPredicateRulesTo(const Options& opts,
                                                   const Node& ntSymBool)
 {
   // recompute mapping from types to non-terminal symbols
-  std::map<TypeNode, Node> typeToNtSym = getTypeToNtSymMap(g);
+  std::map<TypeNode, std::vector<Node>> typeToNtSym = getTypeToNtSymMap(g);
   addDefaultPredicateRulesToInternal(opts, g, ntSym, ntSymBool, typeToNtSym);
 }
 
@@ -208,7 +210,7 @@ void SygusGrammarCons::addDefaultRulesToInternal(
     const Options& opts,
     SygusGrammar& g,
     const Node& ntSym,
-    const std::map<TypeNode, Node>& typeToNtSym)
+    const std::map<TypeNode, std::vector<Node>>& typeToNtSym)
 {
   TypeNode tn = ntSym.getType();
   std::vector<Node> prevRules = g.getRulesFor(ntSym);
@@ -579,7 +581,7 @@ void SygusGrammarCons::addDefaultPredicateRulesToInternal(
     SygusGrammar& g,
     const Node& ntSym,
     const Node& ntSymBool,
-    const std::map<TypeNode, Node>& typeToNtSym)
+    const std::map<TypeNode, std::vector<Node>>& typeToNtSym)
 {
   NodeManager* nm = NodeManager::currentNM();
   Assert(!ntSym.getType().isBoolean());
@@ -736,24 +738,21 @@ void SygusGrammarCons::mkSygusConstantsForType(const TypeNode& type,
   }
 }
 
-std::map<TypeNode, Node> SygusGrammarCons::getTypeToNtSymMap(
+std::map<TypeNode, std::vector<Node>> SygusGrammarCons::getTypeToNtSymMap(
     const SygusGrammar& g)
 {
-  std::map<TypeNode, Node> typeToNtSym;
+  std::map<TypeNode, std::vector<Node>> typeToNtSym;
   const std::vector<Node>& ntSyms = g.getNtSyms();
   for (const Node& s : ntSyms)
   {
     TypeNode stn = s.getType();
-    if (typeToNtSym.find(stn)==typeToNtSym.end())
-    {
-      typeToNtSym[stn] = s;
-    }
+    typeToNtSym[stn].push_back(s);
   }
   return typeToNtSym;
 }
 
 bool SygusGrammarCons::addRuleTo(SygusGrammar& g,
-                                 const std::map<TypeNode, Node>& typeToNtSym,
+                                 const std::map<TypeNode, std::vector<Node>>& typeToNtSym,
                                  Kind k,
                                  const std::vector<TypeNode>& args)
 {
@@ -762,12 +761,12 @@ bool SygusGrammarCons::addRuleTo(SygusGrammar& g,
 }
 
 bool SygusGrammarCons::addRuleTo(SygusGrammar& g,
-                                 const std::map<TypeNode, Node>& typeToNtSym,
+                                 const std::map<TypeNode, std::vector<Node>>& typeToNtSym,
                                  Kind k,
                                  const Node& op,
                                  const std::vector<TypeNode>& args)
 {
-  std::map<TypeNode, Node>::const_iterator it;
+  std::map<TypeNode, std::vector<Node>>::const_iterator it;
   std::vector<Node> children;
   if (!op.isNull())
   {
@@ -780,7 +779,8 @@ bool SygusGrammarCons::addRuleTo(SygusGrammar& g,
     {
       return false;
     }
-    children.push_back(it->second);
+    Assert(!it->second.empty());
+    children.push_back(it->second[0]);
   }
   Node rule = NodeManager::currentNM()->mkNode(k, children);
   TypeNode rtn = rule.getType();
@@ -789,7 +789,8 @@ bool SygusGrammarCons::addRuleTo(SygusGrammar& g,
   {
     return false;
   }
-  g.addRule(it->second, rule);
+  Assert (!it->second.empty());
+  g.addRule(it->second[0], rule);
   return true;
 }
 
