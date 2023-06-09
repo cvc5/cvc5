@@ -45,7 +45,7 @@ bool EmbeddingConverter::hasSyntaxRestrictions(Node q)
   Assert(q.getKind() == FORALL);
   for (const Node& f : q[0])
   {
-    TypeNode tn = SygusUtils::getSygusTypeForSynthFun(f);
+    TypeNode tn = SygusUtils::getSygusType(f);
     if (tn.isDatatype() && tn.getDType().isSygus())
     {
       return true;
@@ -119,13 +119,8 @@ Node EmbeddingConverter::process(Node q,
     Node sf = q[0][i];
     // if non-null, v encodes the syntactic restrictions (via an inductive
     // datatype) on sf from the input.
-    Node v = sf.getAttribute(SygusSynthGrammarAttribute());
-    TypeNode preGrammarType;
-    if (!v.isNull())
-    {
-      preGrammarType = v.getType();
-    }
-    else
+    TypeNode preGrammarType = SygusUtils::getSygusType(sf);
+    if (preGrammarType.isNull())
     {
       // otherwise, the grammar is the default for the range of the function
       preGrammarType = sf.getType();
@@ -148,7 +143,7 @@ Node EmbeddingConverter::process(Node q,
     }
     else
     {
-      sfvl = SygusUtils::getSygusArgumentListForSynthFun(sf);
+      sfvl = SygusUtils::getOrMkSygusArgumentList(sf);
       // check which arguments are irrelevant
       std::unordered_set<unsigned> arg_irrelevant;
       d_parent->getProcess()->getIrrelevantArgs(sf, arg_irrelevant);
@@ -235,7 +230,7 @@ Node EmbeddingConverter::process(Node q,
   {
     Node sf = q[0][i];
     d_synth_fun_vars[sf] = ebvl[i];
-    Node sfvl = SygusUtils::getSygusArgumentListForSynthFun(sf);
+    Node sfvl = SygusUtils::getOrMkSygusArgumentList(sf);
     TypeNode tn = ebvl[i].getType();
     // check if there is a template
     std::map<Node, Node>::const_iterator itt = templates.find(sf);

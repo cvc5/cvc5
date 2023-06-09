@@ -168,7 +168,7 @@ void SygusTemplateInfer::initialize(Node q)
   Assert(!templ.isNull());
 
   // get the variables
-  Node sfvl = SygusUtils::getSygusArgumentListForSynthFun(prog);
+  Node sfvl = SygusUtils::getOrMkSygusArgumentList(prog);
   if (!sfvl.isNull())
   {
     std::vector<Node> prog_vars(sfvl.begin(), sfvl.end());
