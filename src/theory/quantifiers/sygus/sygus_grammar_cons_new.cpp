@@ -566,7 +566,7 @@ void SygusGrammarCons::collectTypes(const TypeNode& range,
                                     std::unordered_set<TypeNode>& types)
 {
   NodeManager* nm = NodeManager::currentNM();
-  if (types.find(range)!=types.end())
+  if (types.find(range) != types.end())
   {
     return;
   }
@@ -583,7 +583,8 @@ void SygusGrammarCons::collectTypes(const TypeNode& range,
     TypeNode rmType = nm->roundingModeType();
     types.insert(rmType);
   }
-  else if( range.isDatatype() ){
+  else if (range.isDatatype())
+  {
     const DType& dt = range.getDType();
     for (size_t i = 0, size = dt.getNumConstructors(); i < size; ++i)
     {
