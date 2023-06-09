@@ -251,15 +251,15 @@ void SygusGrammarCons::addDefaultRulesToInternal(
   NodeManager* nm = NodeManager::currentNM();
   // add the operators
   if (tn.isRealOrInt())
-  {
+  {     
+    std::vector<TypeNode> cargsOp;
+    cargsOp.push_back(tn);
+    cargsOp.push_back(tn);
     // Add ADD, SUB
     std::vector<Kind> kinds = {ADD, SUB};
     for (Kind kind : kinds)
     {
       Trace("sygus-grammar-def") << "...add for " << kind << std::endl;
-      std::vector<TypeNode> cargsOp;
-      cargsOp.push_back(tn);
-      cargsOp.push_back(tn);
       addRuleTo(g, typeToNtSym, kind, cargsOp);
     }
     if (tn.isReal())
@@ -269,6 +269,8 @@ void SygusGrammarCons::addDefaultRulesToInternal(
       std::vector<TypeNode> cargsToReal;
       cargsToReal.push_back(itype);
       addRuleTo(g, typeToNtSym, TO_REAL, cargsToReal);
+      Trace("sygus-grammar-def") << "...add for DIVISION" << std::endl;
+      addRuleTo(g, typeToNtSym, DIVISION, cargsOp);
     }
     /*
     if (!tn.isInteger())
@@ -370,7 +372,6 @@ void SygusGrammarCons::addDefaultRulesToInternal(
         FLOATINGPOINT_RTI,
     };
     TypeNode rmType = nm->roundingModeType();
-    Assert(std::find(types.begin(), types.end(), rmType) != types.end());
     std::vector<TypeNode> cargs_rm = {rmType, tn};
     for (Kind kind : binary_rm_kinds)
     {
@@ -580,6 +581,7 @@ void SygusGrammarCons::addDefaultPredicateRulesToInternal(
     const Node& ntSymBool,
     const std::map<TypeNode, Node>& typeToNtSym)
 {
+  NodeManager* nm = NodeManager::currentNM();
   Assert(!ntSym.getType().isBoolean());
   Assert(ntSymBool.getType().isBoolean());
   TypeNode tn = ntSym.getType();
@@ -592,14 +594,25 @@ void SygusGrammarCons::addDefaultPredicateRulesToInternal(
   if (tn.isFirstClass())
   {
     Trace("sygus-grammar-def") << "...add for EQUAL" << std::endl;
-    addRuleTo(g, typeToNtSym, EQUAL, cargsBin);
+    if (tn.isRealOrInt())
+    {
+      // optimization: consider (= x 0)
+      Node rule = nm->mkNode(EQUAL, ntSym, nm->mkConstRealOrInt(tn, Rational(0)));
+      g.addRule(ntSymBool, rule);
+    }
+    else
+    {
+      addRuleTo(g, typeToNtSym, EQUAL, cargsBin);
+    }
   }
   
   // type specific predicates
   if (tn.isRealOrInt())
   {
     Trace("sygus-grammar-def") << "...add for LEQ" << std::endl;
-    addRuleTo(g, typeToNtSym, LEQ, cargsBin);
+    // optimization: consider (<= x 0)
+    Node rule = nm->mkNode(LEQ, ntSym, nm->mkConstRealOrInt(tn, Rational(0)));
+    g.addRule(ntSymBool, rule);
   }
   else if (tn.isBitVector())
   {
