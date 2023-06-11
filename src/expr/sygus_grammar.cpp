@@ -19,6 +19,7 @@
 
 #include "printer/printer.h"
 #include "printer/smt2/smt2_printer.h"
+#include "expr/skolem_manager.h"
 
 namespace cvc5::internal {
 
@@ -77,7 +78,9 @@ void SygusGrammar::addAnyConstant(const Node& ntSym, const TypeNode& tn)
 {
   Assert(d_sdts.find(ntSym) != d_sdts.cend());
   Assert(tn.isInstanceOf(ntSym.getType()));
-  d_allowConst.emplace(ntSym);
+  SkolemManager * sm = NodeManager::currentNM()->getSkolemManager();
+  Node anyConst = sm->mkSkolemFunction(SkolemFunId::ANY_CONSTANT, tn);
+  addRule(ntSym, anyConst);
 }
 
 void SygusGrammar::addAnyVariable(const Node& ntSym)
@@ -107,15 +110,26 @@ TypeNode SygusGrammar::resolve(bool allowAny)
 {
   if (!isResolved())
   {
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager * sm = nm->getSkolemManager();
+    // Set of non-terminals that can be arbitrary constants.
+    std::unordered_set<Node> allowConsts;
     // push the rules into the sygus datatypes
     for (const std::pair<const Node, std::vector<Node>>& g : d_rules)
     {
       for (const Node& r : g.second)
       {
-        addRuleInternal(g.first, r);
+        if (r.getKind()==kind::SKOLEM && sm->getSkolemFunctionId(r)==SkolemFunId::ANY_CONSTANT)
+        {
+          allowConsts.insert(g.first);
+          d_sdts.at(g.first).addAnyConstantConstructor(r.getType());
+        }
+        else
+        {
+          addRuleInternal(g.first, r);
+        }
       }
     }
-    NodeManager* nm = NodeManager::currentNM();
     Node bvl;
     if (!d_sygusVars.empty())
     {
@@ -124,11 +138,7 @@ TypeNode SygusGrammar::resolve(bool allowAny)
     std::vector<DType> datatypes;
     for (const Node& ntSym : d_ntSyms)
     {
-      bool allowConst = d_allowConst.find(ntSym) != d_allowConst.cend();
-      if (allowConst)
-      {
-        d_sdts.at(ntSym).addAnyConstantConstructor(ntSym.getType());
-      }
+      bool allowConst = allowConsts.find(ntSym) != allowConsts.cend();
       d_sdts.at(ntSym).initializeDatatype(
           ntSym.getType(), bvl, allowConst || allowAny, allowAny);
       datatypes.push_back(d_sdts.at(ntSym).getDatatype());

@@ -141,8 +141,6 @@ class SygusGrammar
   std::vector<Node> d_ntSyms;
   /** Mapping from non-terminal symbols to their production rules. */
   std::unordered_map<Node, SygusDatatype> d_sdts;
-  /** Set of non-terminals that can be arbitrary constants. */
-  std::unordered_set<Node> d_allowConst;
   /** Mapping from non-terminals to their unresolved types. */
   std::unordered_map<Node, TypeNode> d_ntsToUnres;
   /** The datatype type constructed by this grammar. */
