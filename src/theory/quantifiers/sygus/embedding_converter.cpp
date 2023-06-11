@@ -103,9 +103,9 @@ Node EmbeddingConverter::process(Node q,
   Trace("cegqi") << "SynthConjecture : convert to deep embedding..."
                  << std::endl;
   std::map<TypeNode, std::unordered_set<Node>> extra_cons;
-  if (options().quantifiers.sygusAddConstGrammar &&
-    options().quantifiers.sygusGrammarConsMode==options::SygusGrammarConsMode::SIMPLE
-  )
+  if (options().quantifiers.sygusAddConstGrammar
+      && options().quantifiers.sygusGrammarConsMode
+             == options::SygusGrammarConsMode::SIMPLE)
   {
     Trace("cegqi") << "SynthConjecture : collect constants..." << std::endl;
     collectTerms(q[1], extra_cons);

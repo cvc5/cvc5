@@ -33,7 +33,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-/** Number of stages of grammar construction */  
+/** Number of stages of grammar construction */
 const size_t s_nstages = 2;
 
 TypeNode SygusGrammarCons::mkDefaultSygusType(const Options& opts,
@@ -98,7 +98,7 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
       g.addRule(it->second[0], r);
     }
   }
-  for (size_t i=0; i<s_nstages; i++)
+  for (size_t i = 0; i < s_nstages; i++)
   {
     for (const std::pair<const TypeNode, std::vector<Node>>& gr : typeToNtSym)
     {
@@ -210,7 +210,7 @@ void SygusGrammarCons::addDefaultRulesTo(const Options& opts,
 {
   // recompute mapping from types to non-terminal symbols
   std::map<TypeNode, std::vector<Node>> typeToNtSym = getTypeToNtSymMap(g);
-  for (size_t i=0; i<s_nstages; i++)
+  for (size_t i = 0; i < s_nstages; i++)
   {
     addDefaultRulesToInternal(opts, g, ntSym, typeToNtSym, i);
   }
@@ -231,14 +231,14 @@ void SygusGrammarCons::addDefaultRulesToInternal(
     SygusGrammar& g,
     const Node& ntSym,
     const std::map<TypeNode, std::vector<Node>>& typeToNtSym,
-      size_t stage)
+    size_t stage)
 {
   TypeNode tn = ntSym.getType();
   std::vector<Node> prevRules = g.getRulesFor(ntSym);
   NodeManager* nm = NodeManager::currentNM();
   options::SygusGrammarConsMode tsgcm = opts.quantifiers.sygusGrammarConsMode;
   // add constants
-  if (stage==0)
+  if (stage == 0)
   {
     if (tsgcm == options::SygusGrammarConsMode::ANY_TERM
         || tsgcm == options::SygusGrammarConsMode::ANY_TERM_CONCISE)
@@ -251,7 +251,7 @@ void SygusGrammarCons::addDefaultRulesToInternal(
         tsgcm = options::SygusGrammarConsMode::ANY_CONST;
       }
     }
-    if (tsgcm==options::SygusGrammarConsMode::ANY_CONST)
+    if (tsgcm == options::SygusGrammarConsMode::ANY_CONST)
     {
       if (tn.isBoolean())
       {
@@ -338,18 +338,18 @@ void SygusGrammarCons::addDefaultRulesToInternal(
       }
       // binary ops
       std::vector<Kind> bin_kinds = {BITVECTOR_AND,
-                                    BITVECTOR_OR,
-                                    BITVECTOR_XOR,
-                                    BITVECTOR_ADD,
-                                    BITVECTOR_SUB,
-                                    BITVECTOR_MULT,
-                                    BITVECTOR_UDIV,
-                                    BITVECTOR_UREM,
-                                    BITVECTOR_SDIV,
-                                    BITVECTOR_SREM,
-                                    BITVECTOR_SHL,
-                                    BITVECTOR_LSHR,
-                                    BITVECTOR_ASHR};
+                                     BITVECTOR_OR,
+                                     BITVECTOR_XOR,
+                                     BITVECTOR_ADD,
+                                     BITVECTOR_SUB,
+                                     BITVECTOR_MULT,
+                                     BITVECTOR_UDIV,
+                                     BITVECTOR_UREM,
+                                     BITVECTOR_SDIV,
+                                     BITVECTOR_SREM,
+                                     BITVECTOR_SHL,
+                                     BITVECTOR_LSHR,
+                                     BITVECTOR_ASHR};
       std::vector<TypeNode> cargsBinary;
       cargsBinary.push_back(tn);
       cargsBinary.push_back(tn);
@@ -499,7 +499,7 @@ void SygusGrammarCons::addDefaultRulesToInternal(
           std::vector<TypeNode> cargsSel;
           cargsSel.push_back(tn);
           Trace("sygus-grammar-def") << "...for " << dt[l][j].getName()
-                                    << ", args = " << tn << std::endl;
+                                     << ", args = " << tn << std::endl;
           Node sel = dt[l][j].getSelector();
           addRuleTo(g, typeToNtSym, APPLY_SELECTOR, sel, cargsSel);
         }
@@ -521,11 +521,12 @@ void SygusGrammarCons::addDefaultRulesToInternal(
     }
     else
     {
-      Warning() << "Warning: No implementation for default Sygus grammar of type "
-                << tn << std::endl;
+      Warning()
+          << "Warning: No implementation for default Sygus grammar of type "
+          << tn << std::endl;
     }
   }
-  else if (stage==1)
+  else if (stage == 1)
   {
     // add the operators
     if (tn.isRealOrInt())
@@ -598,7 +599,7 @@ void SygusGrammarCons::addDefaultRulesToInternal(
           // add each monomial as a rule
           for (const Node& m : mons)
           {
-            if (m==ntSymAnyC)
+            if (m == ntSymAnyC)
             {
               g.addAnyConstant(ntSym, tn);
             }

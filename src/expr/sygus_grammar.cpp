@@ -17,9 +17,9 @@
 
 #include <sstream>
 
+#include "expr/skolem_manager.h"
 #include "printer/printer.h"
 #include "printer/smt2/smt2_printer.h"
-#include "expr/skolem_manager.h"
 
 namespace cvc5::internal {
 
@@ -78,7 +78,7 @@ void SygusGrammar::addAnyConstant(const Node& ntSym, const TypeNode& tn)
 {
   Assert(d_sdts.find(ntSym) != d_sdts.cend());
   Assert(tn.isInstanceOf(ntSym.getType()));
-  SkolemManager * sm = NodeManager::currentNM()->getSkolemManager();
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
   Node anyConst = sm->mkSkolemFunction(SkolemFunId::ANY_CONSTANT, tn);
   addRule(ntSym, anyConst);
 }
@@ -111,7 +111,7 @@ TypeNode SygusGrammar::resolve(bool allowAny)
   if (!isResolved())
   {
     NodeManager* nm = NodeManager::currentNM();
-    SkolemManager * sm = nm->getSkolemManager();
+    SkolemManager* sm = nm->getSkolemManager();
     // Set of non-terminals that can be arbitrary constants.
     std::unordered_set<Node> allowConsts;
     // push the rules into the sygus datatypes
@@ -119,7 +119,8 @@ TypeNode SygusGrammar::resolve(bool allowAny)
     {
       for (const Node& r : g.second)
       {
-        if (r.getKind()==kind::SKOLEM && sm->getSkolemFunctionId(r)==SkolemFunId::ANY_CONSTANT)
+        if (r.getKind() == kind::SKOLEM
+            && sm->getSkolemFunctionId(r) == SkolemFunId::ANY_CONSTANT)
         {
           allowConsts.insert(g.first);
           d_sdts.at(g.first).addAnyConstantConstructor(r.getType());

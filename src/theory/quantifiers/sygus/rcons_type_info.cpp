@@ -57,7 +57,7 @@ void RConsTypeInfo::initialize(Env& env,
 Node RConsTypeInfo::nextEnum()
 {
   size_t i = Random::getRandom().pickWithProb(d_cp) ? 1 : 0;
-  if (d_enumerators[i]==nullptr)
+  if (d_enumerators[i] == nullptr)
   {
     // the enumerator is already finished
     return Node::null();

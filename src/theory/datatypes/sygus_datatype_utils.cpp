@@ -473,14 +473,15 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
           TypeNode argtNew;
           if (argt.isDatatype() && argt.getDType().isSygus())
           {
-            std::map<TypeNode, TypeNode>::iterator itdp = dtProcessed.find(argt);
+            std::map<TypeNode, TypeNode>::iterator itdp =
+                dtProcessed.find(argt);
             if (itdp == dtProcessed.end())
             {
               std::stringstream ssutn;
               ssutn << argt.getDType().getName() << "_s";
               argtNew = nm->mkUnresolvedDatatypeSort(ssutn.str());
               Trace("dtsygus-gen-debug") << "    ...unresolved type " << argtNew
-                                        << " for " << argt << std::endl;
+                                         << " for " << argt << std::endl;
               dtProcessed[argt] = argtNew;
               dtNextToProcess.push_back(argt);
             }

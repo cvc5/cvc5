@@ -372,7 +372,7 @@ class SkolemManager
    * call. Updates the arguments to the values used when constructing it.
    */
   bool isSkolemFunction(TNode k, SkolemFunId& id, Node& cacheVal) const;
-  /** 
+  /**
    * Get skolem function id
    */
   SkolemFunId getSkolemFunctionId(TNode k) const;

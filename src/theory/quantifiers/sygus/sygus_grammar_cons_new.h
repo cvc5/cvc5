@@ -87,7 +87,7 @@ class SygusGrammarCons
    * non-terminal of g. This may additionally add rules to other non-terminals
    * of g, e.g. based on theory symbols that have types different from ntSym,
    * e.g. array select.
-   * 
+   *
    * This is done in stages (based on the argument stage). In the first
    * stage, we add all basic rules. In the second stage, we consider rules
    * that depend on rules added in previous stages, e.g. monomials for operators
@@ -98,8 +98,7 @@ class SygusGrammarCons
       SygusGrammar& g,
       const Node& ntSym,
       const std::map<TypeNode, std::vector<Node>>& typeToNtSym,
-      size_t stage
-                                       );
+      size_t stage);
 
   /**
    * Adds the default predicate rules for non-terminal ntSymBool to g, where
