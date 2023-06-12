@@ -31,7 +31,7 @@ struct SygusAnyConstAttributeId
 {
 };
 typedef expr::Attribute<SygusAnyConstAttributeId, bool> SygusAnyConstAttribute;
-  
+
 DTypeConstructor::DTypeConstructor(std::string name,
                                    unsigned weight)
     :  // We don't want to introduce a new data member, because eventually
@@ -109,12 +109,12 @@ void DTypeConstructor::setSygus(Node op)
 {
   Assert(!isResolved());
   d_sygusOp = op;
-  if (op.getKind()==SKOLEM)
+  if (op.getKind() == SKOLEM)
   {
     // check if stands for the "any constant" constructor
     NodeManager* nm = NodeManager::currentNM();
     SkolemManager* sm = nm->getSkolemManager();
-    if (sm->getSkolemFunctionId(op)==SkolemFunId::SYGUS_ANY_CONSTANT)
+    if (sm->getSkolemFunctionId(op) == SkolemFunId::SYGUS_ANY_CONSTANT)
     {
       // mark with attribute, which is a faster lookup
       SygusAnyConstAttribute saca;

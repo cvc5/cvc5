@@ -138,7 +138,7 @@ Node mkSygusTerm(const DType& dt,
   // if it is the any constant, we simply return the child
   if (dt[i].isSygusAnyConstant())
   {
-    Assert (children.size()==1);
+    Assert(children.size() == 1);
     return children[0];
   }
   Node ret = mkSygusTerm(opn, children, doBetaReduction);

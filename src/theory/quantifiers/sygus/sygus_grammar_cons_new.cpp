@@ -106,7 +106,7 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
       // add rules for each type
       addDefaultRulesToInternal(opts, g, gr.second[0], typeToNtSym, i);
       // add predicates for the type to the Boolean grammar if it exists
-      if (i==0 && !gr.first.isBoolean() && !ntSymBool.isNull())
+      if (i == 0 && !gr.first.isBoolean() && !ntSymBool.isNull())
       {
         addDefaultPredicateRulesToInternal(
             opts, g, gr.second[0], ntSymBool, typeToNtSym);

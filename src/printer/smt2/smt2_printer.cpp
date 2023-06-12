@@ -2026,31 +2026,31 @@ std::string Smt2Printer::sygusGrammarString(const TypeNode& t)
         const DTypeConstructor& cons = dt[i];
         if (cons.isSygusAnyConstant())
         {
-          types_list << "(Constant " << cons[0].getRangeType() << ") ";
+        types_list << "(Constant " << cons[0].getRangeType() << ") ";
         }
         else
         {
-          // make a sygus term
-          std::vector<Node> cchildren;
-          cchildren.push_back(cons.getConstructor());
-          for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
+        // make a sygus term
+        std::vector<Node> cchildren;
+        cchildren.push_back(cons.getConstructor());
+        for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
+        {
+          TypeNode argType = cons[j].getRangeType();
+          std::stringstream ss;
+          ss << argType;
+          Node bv = nm->mkBoundVar(ss.str(), argType);
+          cchildren.push_back(bv);
+          // if fresh type, store it for later processing
+          if (grammarTypes.insert(argType).second)
           {
-            TypeNode argType = cons[j].getRangeType();
-            std::stringstream ss;
-            ss << argType;
-            Node bv = nm->mkBoundVar(ss.str(), argType);
-            cchildren.push_back(bv);
-            // if fresh type, store it for later processing
-            if (grammarTypes.insert(argType).second)
-            {
-              typesToPrint.push_back(argType);
-            }
+            typesToPrint.push_back(argType);
           }
-          Node consToPrint = nm->mkNode(kind::APPLY_CONSTRUCTOR, cchildren);
-          // now, print it using the conversion to builtin with external
-          types_list << theory::datatypes::utils::sygusToBuiltin(consToPrint,
-                                                                 true);
-          types_list << ' ';
+        }
+        Node consToPrint = nm->mkNode(kind::APPLY_CONSTRUCTOR, cchildren);
+        // now, print it using the conversion to builtin with external
+        types_list << theory::datatypes::utils::sygusToBuiltin(consToPrint,
+                                                               true);
+        types_list << ' ';
         }
       }
       types_list << "))\n";
