@@ -21,6 +21,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "expr/sygus_datatype.h"
+#include "expr/skolem_manager.h"
 #include "smt/env.h"
 #include "theory/evaluator.h"
 #include "theory/rewriter.h"
@@ -150,6 +151,8 @@ Node mkSygusTerm(const Node& op,
                  const std::vector<Node>& children,
                  bool doBetaReduction)
 {
+  NodeManager * nm = NodeManager::currentNM();
+  Assert (nm->getSkolemManager()->getSkolemId(op)!=SkolemFunId::SYGUS_ANY_CONSTANT);
   Trace("dt-sygus-util") << "Operator is " << op << std::endl;
   if (children.empty())
   {
@@ -183,7 +186,7 @@ Node mkSygusTerm(const Node& op,
   Node ret;
   if (ok == BUILTIN)
   {
-    ret = NodeManager::currentNM()->mkNode(op, schildren);
+    ret = nm->mkNode(op, schildren);
     Trace("dt-sygus-util") << "...return (builtin) " << ret << std::endl;
     return ret;
   }
@@ -195,7 +198,7 @@ Node mkSygusTerm(const Node& op,
     // If it is an APPLY_UF operator, we should have at least an operator and
     // a child.
     Assert(otk != APPLY_UF || schildren.size() != 1);
-    ret = NodeManager::currentNM()->mkNode(otk, schildren);
+    ret = nm->mkNode(otk, schildren);
     Trace("dt-sygus-util") << "...return (op) " << ret << std::endl;
     return ret;
   }
