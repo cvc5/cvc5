@@ -149,8 +149,9 @@ Node EmbeddingConverter::process(Node q,
       // check which arguments are irrelevant
       std::unordered_set<unsigned> arg_irrelevant;
       d_parent->getProcess()->getIrrelevantArgs(sf, arg_irrelevant);
-#if 1
       std::vector<Node> trules;
+      // add the variables from the free variable list that we did not
+      // infer were irrelevant.
       for (size_t j = 0, nargs = sfvl.getNumChildren(); j < nargs; j++)
       {
         if (arg_irrelevant.find(j) == arg_irrelevant.end())
@@ -158,6 +159,7 @@ Node EmbeddingConverter::process(Node q,
           trules.push_back(sfvl[j]);
         }
       }
+      // add the constants computed avove
       for (const std::pair<const TypeNode, std::unordered_set<Node>>& c :
            extra_cons)
       {
@@ -165,24 +167,6 @@ Node EmbeddingConverter::process(Node q,
       }
       tn = SygusGrammarCons::mkDefaultSygusType(
           options(), preGrammarType, sfvl, trules);
-#else
-      std::unordered_set<Node> term_irlv;
-      // convert to term
-      for (const unsigned& arg : arg_irrelevant)
-      {
-        Assert(arg < sfvl.getNumChildren());
-        term_irlv.insert(sfvl[arg]);
-      }
-      // make the default grammar
-      tn = CegGrammarConstructor::mkSygusDefaultType(options(),
-                                                     preGrammarType,
-                                                     sfvl,
-                                                     sf.getName(),
-                                                     extra_cons,
-                                                     exc_cons,
-                                                     inc_cons,
-                                                     term_irlv);
-#endif
       // print the grammar
       if (isOutputOn(OutputTag::SYGUS_GRAMMAR))
       {
