@@ -10,10 +10,10 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The TheoryPpStaticRewrite preprocessing pass.
+ * The StaticRewrite preprocessing pass.
  */
 
-#include "preprocessing/passes/theory_rewrite_eq.h"
+#include "preprocessing/passes/static_rewrite.h"
 
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
@@ -25,11 +25,11 @@ namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
-TheoryPpStaticRewrite::TheoryPpStaticRewrite(
+StaticRewrite::StaticRewrite(
     PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "theory-pp-static-rewrite"){};
+    : PreprocessingPass(preprocContext, "static-rewrite"){};
 
-PreprocessingPassResult TheoryPpStaticRewrite::applyInternal(
+PreprocessingPassResult StaticRewrite::applyInternal(
     AssertionPipeline* assertions)
 {
   // apply ppRewrite to all equalities in assertions
@@ -46,7 +46,7 @@ PreprocessingPassResult TheoryPpStaticRewrite::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-TrustNode TheoryPpStaticRewrite::rewriteAssertion(TNode n)
+TrustNode StaticRewrite::rewriteAssertion(TNode n)
 {
   NodeManager* nm = NodeManager::currentNM();
   TheoryEngine* te = d_preprocContext->getTheoryEngine();

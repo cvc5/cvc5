@@ -99,6 +99,8 @@ libcvc5_add_sources(
   subs.h
   sygus_datatype.cpp
   sygus_datatype.h
+  sygus_grammar.cpp
+  sygus_grammar.h
   variadic_trie.cpp
   variadic_trie.h
 )
