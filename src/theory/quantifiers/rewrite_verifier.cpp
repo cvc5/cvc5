@@ -70,7 +70,8 @@ bool RewriteVerifier::checkEquivalent(Node bv, Node bvr, std::ostream* out)
   bool ptDisequalConst = false;
   unsigned pt_index = 0;
   Node bve, bvre;
-  size_t npoints = d_sampler->getNumSamplePoints();
+  // if we don't have variables from sample, further points don't matter
+  size_t npoints = hasVar ? d_sampler->getNumSamplePoints() : 1;
   for (size_t i = 0; i < npoints; i++)
   {
     // do not use the rewriter in the calls to evaluate here
