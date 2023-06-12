@@ -22,11 +22,12 @@
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "options/smt_options.h"
+#include "options/quantifiers_options.h"
 #include "smt/env.h"
 #include "smt/set_defaults.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/sygus_grammar_cons_new.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/smt_engine_subsolver.h"
 
@@ -188,6 +189,7 @@ TypeNode SygusInterpol::setSynthGrammar(const TypeNode& itpGType,
   else
   {
     // set default grammar
+    /*
     std::map<TypeNode, std::unordered_set<Node>> extra_cons;
     std::map<TypeNode, std::unordered_set<Node>> exclude_cons;
     std::map<TypeNode, std::unordered_set<Node>> include_cons;
@@ -202,6 +204,9 @@ TypeNode SygusInterpol::setSynthGrammar(const TypeNode& itpGType,
         exclude_cons,
         include_cons,
         terms_irrelevant);
+        */
+    TypeNode btype = NodeManager::currentNM()->booleanType();
+    itpGTypeS = SygusGrammarCons::mkDefaultSygusType(options(), btype, d_ibvlShared);
   }
   Trace("sygus-interpol-debug") << "...finish setting up grammar" << std::endl;
   return itpGTypeS;

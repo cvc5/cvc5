@@ -227,23 +227,8 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
     return false;
   }
 
-  // Ensure the type of all free functions is handled by the sygus grammar
-  // constructor utility.
-  bool typeSuccess = true;
-  for (const Node& f : free_functions)
-  {
-    TypeNode tn = f.getType();
-    if (!theory::quantifiers::CegGrammarConstructor::isHandledType(tn))
-    {
-      Trace("sygus-infer") << "...fail: unhandled type " << tn << std::endl;
-      typeSuccess = false;
-      break;
-    }
-  }
-  if (!typeSuccess)
-  {
-    return false;
-  }
+  // Note that we do not restrict based on the types of free functions here,
+  // i.e. we assume that all types are handled in sygus grammar construction.
 
   Assert(!processed_assertions.empty());
   // conjunction of the assertions
