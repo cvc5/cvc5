@@ -98,7 +98,7 @@
 (define-rule bv-redand-eliminate
   ((x ?BitVec))
   (bvredand x)
-  (bvnot (bvcomp x (bvnot (bv 0 (bvsize x))))))
+  (bvcomp x (bvnot (bv 0 (bvsize x)))))
 
 (define-rule bv-sub-eliminate
   ((x ?BitVec) (y ?BitVec))
