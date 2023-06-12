@@ -63,8 +63,8 @@ bool RewriteVerifier::checkEquivalent(Node bv, Node bvr, std::ostream* out)
   }
   size_t npoints = hasVar ? d_sampler->getNumSamplePoints() : 1;
   Trace("sygus-rr-verify") << "Testing rewrite rule " << bv << " ---> " << bvr
-                           << " over " << npoints
-  << " points for " << d_vars << std::endl;
+                           << " over " << npoints << " points for " << d_vars
+                           << std::endl;
 
   // see if they evaluate to same thing on all sample points
   bool ptDisequal = false;
