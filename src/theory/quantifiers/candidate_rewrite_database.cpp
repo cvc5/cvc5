@@ -32,13 +32,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-/** Attribute true for rewrites where verification was run  */
-struct RewriteVerifiedAttributeId
-{
-};
-typedef expr::Attribute<RewriteVerifiedAttributeId, bool>
-    RewriteVerifiedAttribute;
-
 CandidateRewriteDatabase::CandidateRewriteDatabase(
     Env& env, bool doCheck, bool rewAccel, bool filterPairs, bool rec)
     : ExprMiner(env),
