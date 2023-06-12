@@ -45,7 +45,7 @@ void QueryGenerator::dumpQuery(Node qy,
 {
   d_queryCount++;
   bool isSolved =
-      (r.getStatus() == Result::SAT || r.getStatus() == Result::UNSAT);
+      r.getStatus() == Result::SAT || r.getStatus() == Result::UNSAT;
   // add to queries if not filtered
   if (!isSolved || !options().quantifiers.sygusQueryFilterSolved)
   {
