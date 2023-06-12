@@ -15,8 +15,8 @@
 
 #include "theory/quantifiers/rewrite_verifier.h"
 
-#include "smt/env.h"
 #include "expr/node_algorithm.h"
+#include "smt/env.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -55,14 +55,15 @@ bool RewriteVerifier::checkEquivalent(Node bv, Node bvr, std::ostream* out)
   bool hasVar = false;
   for (const Node& sym : syms)
   {
-    if (std::find(d_vars.begin(), d_vars.end(), sym)!=d_vars.end())
+    if (std::find(d_vars.begin(), d_vars.end(), sym) != d_vars.end())
     {
       hasVar = true;
       break;
     }
   }
   Trace("sygus-rr-verify") << "Testing rewrite rule " << bv << " ---> " << bvr
-                           << " over " << (hasVar ? d_sampler->getNumSamplePoints() : 1)
+                           << " over "
+                           << (hasVar ? d_sampler->getNumSamplePoints() : 1)
                            << " points for " << d_vars << std::endl;
 
   // see if they evaluate to same thing on all sample points
