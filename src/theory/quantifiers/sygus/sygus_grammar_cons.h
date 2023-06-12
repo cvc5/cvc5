@@ -30,70 +30,16 @@
 
 namespace cvc5::internal {
 namespace theory {
-
-/**
- * Attribute for associating a function-to-synthesize with a first order
- * variable whose type is a sygus datatype type that encodes its grammar.
- */
-struct SygusSynthGrammarAttributeId
-{
-};
-typedef expr::Attribute<SygusSynthGrammarAttributeId, Node>
-    SygusSynthGrammarAttribute;
-
-/**
- * Attribute for associating a function-to-synthesize with its formal argument
- * list.
- */
-struct SygusSynthFunVarListAttributeId
-{
-};
-typedef expr::Attribute<SygusSynthFunVarListAttributeId, Node>
-    SygusSynthFunVarListAttribute;
-
 namespace quantifiers {
 
-class SynthConjecture;
-class TermDbSygus;
-
 /**
- * Utility for constructing datatypes that correspond to syntactic restrictions,
- * and applying the deep embedding from Section 4 of Reynolds et al CAV 2015.
+ * Utility for constructing datatypes that correspond to syntactic restrictions.
  */
-class CegGrammarConstructor : protected EnvObj
+class CegGrammarConstructor
 {
 public:
- CegGrammarConstructor(Env& env, TermDbSygus* tds, SynthConjecture* p);
+ CegGrammarConstructor() {}
  ~CegGrammarConstructor() {}
- /** process
-  *
-  * This converts node q based on its deep embedding
-  * (Section 4 of Reynolds et al CAV 2015).
-  * The syntactic restrictions are associated with
-  * the functions-to-synthesize using the attribute
-  * SygusSynthGrammarAttribute.
-  * The arguments templates and template_args
-  * indicate templates for the function to synthesize,
-  * in particular the solution for the i^th function
-  * to synthesis must be of the form
-  *   templates[i]{ templates_arg[i] -> t }
-  * for some t if !templates[i].isNull().
-  */
- Node process(Node q,
-              const std::map<Node, Node>& templates,
-              const std::map<Node, Node>& templates_arg);
- /**
-  * Same as above, but we have already determined that the set of first-order
-  * datatype variables that will quantify the deep embedding conjecture are
-  * the vector ebvl.
-  */
- Node process(Node q,
-              const std::map<Node, Node>& templates,
-              const std::map<Node, Node>& templates_arg,
-              const std::vector<Node>& ebvl);
-
- /** Is the syntax restricted? */
- bool isSyntaxRestricted() { return d_is_syntax_restricted; }
 
  /**
   * Make the default sygus datatype type corresponding to builtin type range
@@ -149,46 +95,14 @@ public:
   */
   static TypeNode mkSygusTemplateType( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl, const std::string& fun );
   /**
-   * Returns true iff there are syntax restrictions on the
-   * functions-to-synthesize of sygus conjecture q.
-   */
-  static bool hasSyntaxRestrictions(Node q);
-  /**
    * Make the builtin constants for type "type" that should be included in a
    * sygus grammar, add them to vector ops.
    */
   static void mkSygusConstantsForType(TypeNode type, std::vector<Node>& ops);
   /** Is it possible to construct a default grammar for type t? */
   static bool isHandledType(TypeNode t);
-  /**
-   * Convert node n based on deep embedding, see Section 4 of Reynolds et al
-   * CAV 2015.
-   *
-   * This returns the result of converting n to its deep embedding based on
-   * the mapping from functions to datatype variables, stored in
-   * d_synth_fun_vars. This method should be called only after calling process
-   * above.
-   */
-  Node convertToEmbedding(Node n);
 
  private:
-  /** The sygus term database we are using */
-  TermDbSygus* d_tds;
-  /** parent conjecture
-  * This contains global information about the synthesis conjecture.
-  */
-  SynthConjecture* d_parent;
-  /**
-   * Maps each synthesis function to its corresponding (first-order) sygus
-   * datatype variable. This map is initialized by the process methods.
-   */
-  std::map<Node, Node> d_synth_fun_vars;
-  /** is the syntax restricted? */
-  bool d_is_syntax_restricted;
-  /** collect terms */
-  void collectTerms(Node n,
-                    std::map<TypeNode, std::unordered_set<Node>>& consts);
-  //---------------- grammar construction
   /** A class for generating sygus datatypes */
   class SygusDatatypeGenerator
   {
@@ -259,7 +173,6 @@ public:
    */
   static Node createLambdaWithZeroArg(Kind k,
                                       TypeNode bArgType);
-  //---------------- end grammar construction
 };
 
 }  // namespace quantifiers
