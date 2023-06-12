@@ -101,14 +101,10 @@ class DTypeConstructor
   /** set sygus
    *
    * Set that this constructor is a sygus datatype constructor that encodes
-   * operator op.
+   * operator op. If op is a skolem with id SYGUS_ANY_CONSTANT, then this
+   * is treated as the "any constant" constructor.
    */
   void setSygus(Node op);
-  /**
-   * Set that this constructor is a sygus datatype constructor that encodes
-   * any constant.
-   */
-  void setSygusAnyConstant();
   /** get sygus op
    *
    * This method returns the operator or term that this constructor represents
