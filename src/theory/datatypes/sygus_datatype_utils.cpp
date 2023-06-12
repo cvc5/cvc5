@@ -20,8 +20,8 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
-#include "expr/sygus_datatype.h"
 #include "expr/skolem_manager.h"
+#include "expr/sygus_datatype.h"
 #include "smt/env.h"
 #include "theory/evaluator.h"
 #include "theory/rewriter.h"
@@ -151,8 +151,9 @@ Node mkSygusTerm(const Node& op,
                  const std::vector<Node>& children,
                  bool doBetaReduction)
 {
-  NodeManager * nm = NodeManager::currentNM();
-  Assert (nm->getSkolemManager()->getSkolemId(op)!=SkolemFunId::SYGUS_ANY_CONSTANT);
+  NodeManager* nm = NodeManager::currentNM();
+  Assert(nm->getSkolemManager()->getSkolemId(op)
+         != SkolemFunId::SYGUS_ANY_CONSTANT);
   Trace("dt-sygus-util") << "Operator is " << op << std::endl;
   if (children.empty())
   {
