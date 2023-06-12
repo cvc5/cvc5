@@ -26,7 +26,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-class ArithState;
 class InferenceManager;
 
 namespace nl {
@@ -41,7 +40,7 @@ class Pow2Solver : protected EnvObj
   using NodeSet = context::CDHashSet<Node>;
 
  public:
-  Pow2Solver(Env& env, InferenceManager& im, ArithState& state, NlModel& model);
+  Pow2Solver(Env& env, InferenceManager& im, NlModel& model);
   ~Pow2Solver();
 
   /** init last call

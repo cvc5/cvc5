@@ -54,6 +54,7 @@
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
 #include "expr/sequence.h"
+#include "expr/sygus_grammar.h"
 #include "expr/type_node.h"
 #include "options/base_options.h"
 #include "options/expr_options.h"
@@ -4535,52 +4536,48 @@ std::ostream& operator<<(std::ostream& out, const Datatype& dtype)
 /* Grammar                                                                    */
 /* -------------------------------------------------------------------------- */
 
-Grammar::Grammar()
-    : d_nm(internal::NodeManager::currentNM()),
-      d_sygusVars(),
-      d_ntSyms(),
-      d_ntsToTerms(0),
-      d_allowConst(),
-      d_allowVars(),
-      d_isResolved(false)
-{
-}
+Grammar::Grammar() : d_nm(internal::NodeManager::currentNM()) {}
 
 Grammar::Grammar(internal::NodeManager* nm,
                  const std::vector<Term>& sygusVars,
                  const std::vector<Term>& ntSymbols)
     : d_nm(nm),
-      d_sygusVars(sygusVars),
-      d_ntSyms(ntSymbols),
-      d_ntsToTerms(ntSymbols.size()),
-      d_allowConst(),
-      d_allowVars(),
-      d_isResolved(false)
+      d_sg(std::make_shared<internal::SygusGrammar>(
+          Term::termVectorToNodes(sygusVars),
+          Term::termVectorToNodes(ntSymbols)))
 {
-  for (Term ntsymbol : d_ntSyms)
-  {
-    d_ntsToTerms.emplace(ntsymbol, std::vector<Term>());
-  }
+}
+
+Grammar::~Grammar()
+{
+  Assert(d_nm != nullptr);
+  d_sg.reset();
+}
+
+bool contains(const std::vector<internal::Node>& ns, const internal::Node& n)
+{
+  return std::find(ns.cbegin(), ns.cend(), n) != ns.cend();
 }
 
 void Grammar::addRule(const Term& ntSymbol, const Term& rule)
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(!d_isResolved) << "Grammar cannot be modified after passing "
-                                   "it as an argument to synthFun/synthInv";
+  CVC5_API_CHECK(!d_sg->isResolved())
+      << "Grammar cannot be modified after passing "
+         "it as an argument to synthFun/synthInv";
   CVC5_API_CHECK_TERM(ntSymbol);
   CVC5_API_CHECK_TERM(rule);
-  CVC5_API_ARG_CHECK_EXPECTED(
-      d_ntsToTerms.find(ntSymbol) != d_ntsToTerms.cend(), ntSymbol)
+  CVC5_API_ARG_CHECK_EXPECTED(contains(d_sg->getNtSyms(), *ntSymbol.d_node),
+                              ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
          "predeclaration";
-  CVC5_API_CHECK(ntSymbol.d_node->getType() == rule.d_node->getType())
+  CVC5_API_CHECK(ntSymbol.d_node->getType().isInstanceOf(rule.d_node->getType()))
       << "Expected ntSymbol and rule to have the same sort";
   CVC5_API_ARG_CHECK_EXPECTED(!containsFreeVariables(rule), rule)
       << "a term whose free variables are limited to synthFun/synthInv "
          "parameters and non-terminal symbols of the grammar";
   //////// all checks before this line
-  d_ntsToTerms[ntSymbol].push_back(rule);
+  d_sg->addRule(*ntSymbol.d_node, *rule.d_node);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -4588,12 +4585,13 @@ void Grammar::addRule(const Term& ntSymbol, const Term& rule)
 void Grammar::addRules(const Term& ntSymbol, const std::vector<Term>& rules)
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(!d_isResolved) << "Grammar cannot be modified after passing "
-                                   "it as an argument to synthFun/synthInv";
+  CVC5_API_CHECK(!d_sg->isResolved())
+      << "Grammar cannot be modified after passing "
+         "it as an argument to synthFun/synthInv";
   CVC5_API_CHECK_TERM(ntSymbol);
   CVC5_API_CHECK_TERMS_WITH_SORT(rules, ntSymbol.getSort());
-  CVC5_API_ARG_CHECK_EXPECTED(
-      d_ntsToTerms.find(ntSymbol) != d_ntsToTerms.cend(), ntSymbol)
+  CVC5_API_ARG_CHECK_EXPECTED(contains(d_sg->getNtSyms(), *ntSymbol.d_node),
+                              ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
          "predeclaration";
   for (size_t i = 0, n = rules.size(); i < n; ++i)
@@ -4604,8 +4602,7 @@ void Grammar::addRules(const Term& ntSymbol, const std::vector<Term>& rules)
            "parameters and non-terminal symbols of the grammar";
   }
   //////// all checks before this line
-  d_ntsToTerms[ntSymbol].insert(
-      d_ntsToTerms[ntSymbol].cend(), rules.cbegin(), rules.cend());
+  d_sg->addRules(*ntSymbol.d_node, Term::termVectorToNodes(rules));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -4613,15 +4610,16 @@ void Grammar::addRules(const Term& ntSymbol, const std::vector<Term>& rules)
 void Grammar::addAnyConstant(const Term& ntSymbol)
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(!d_isResolved) << "Grammar cannot be modified after passing "
-                                   "it as an argument to synthFun/synthInv";
+  CVC5_API_CHECK(!d_sg->isResolved())
+      << "Grammar cannot be modified after passing "
+         "it as an argument to synthFun/synthInv";
   CVC5_API_CHECK_TERM(ntSymbol);
-  CVC5_API_ARG_CHECK_EXPECTED(
-      d_ntsToTerms.find(ntSymbol) != d_ntsToTerms.cend(), ntSymbol)
+  CVC5_API_ARG_CHECK_EXPECTED(contains(d_sg->getNtSyms(), *ntSymbol.d_node),
+                              ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
          "predeclaration";
   //////// all checks before this line
-  d_allowConst.insert(ntSymbol);
+  d_sg->addAnyConstant(*ntSymbol.d_node, ntSymbol.d_node->getType());
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -4629,91 +4627,25 @@ void Grammar::addAnyConstant(const Term& ntSymbol)
 void Grammar::addAnyVariable(const Term& ntSymbol)
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(!d_isResolved) << "Grammar cannot be modified after passing "
-                                   "it as an argument to synthFun/synthInv";
+  CVC5_API_CHECK(!d_sg->isResolved())
+      << "Grammar cannot be modified after passing "
+         "it as an argument to synthFun/synthInv";
   CVC5_API_CHECK_TERM(ntSymbol);
-  CVC5_API_ARG_CHECK_EXPECTED(
-      d_ntsToTerms.find(ntSymbol) != d_ntsToTerms.cend(), ntSymbol)
+  CVC5_API_ARG_CHECK_EXPECTED(contains(d_sg->getNtSyms(), *ntSymbol.d_node),
+                              ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
          "predeclaration";
   //////// all checks before this line
-  d_allowVars.insert(ntSymbol);
+  d_sg->addAnyVariable(*ntSymbol.d_node);
   ////////
   CVC5_API_TRY_CATCH_END;
-}
-
-/**
- * This function concatenates the outputs of calling f on each element between
- * first and last, seperated by sep.
- * @param first the beginning of the range
- * @param last the end of the range
- * @param f the function to call on each element in the range, its output must
- *          be overloaded for operator<<
- * @param sep the string to add between successive calls to f
- */
-template <typename Iterator, typename Function>
-std::string join(Iterator first, Iterator last, Function f, std::string sep)
-{
-  std::stringstream ss;
-  Iterator i = first;
-
-  if (i != last)
-  {
-    ss << f(*i);
-    ++i;
-  }
-
-  while (i != last)
-  {
-    ss << sep << f(*i);
-    ++i;
-  }
-
-  return ss.str();
 }
 
 std::string Grammar::toString() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  std::stringstream ss;
-  ss << "  ("  // pre-declaration
-     << join(
-            d_ntSyms.cbegin(),
-            d_ntSyms.cend(),
-            [](const Term& t) {
-              std::stringstream s;
-              s << '(' << t << ' ' << t.getSort() << ')';
-              return s.str();
-            },
-            " ")
-     << ")\n  ("  // grouped rule listing
-     << join(
-            d_ntSyms.cbegin(),
-            d_ntSyms.cend(),
-            [this](const Term& t) {
-              bool allowConst = d_allowConst.find(t) != d_allowConst.cend(),
-                   allowVars = d_allowVars.find(t) != d_allowVars.cend();
-              const std::vector<Term>& rules = d_ntsToTerms.at(t);
-              std::stringstream s;
-              s << '(' << t << ' ' << t.getSort() << " ("
-                << (allowConst ? "(Constant " + t.getSort().toString() + ")"
-                               : "")
-                << (allowConst && allowVars ? " " : "")
-                << (allowVars ? "(Var " + t.getSort().toString() + ")" : "")
-                << ((allowConst || allowVars) && !rules.empty() ? " " : "")
-                << join(
-                       rules.cbegin(),
-                       rules.cend(),
-                       [](const Term& rule) { return rule.toString(); },
-                       " ")
-                << "))";
-              return s.str();
-            },
-            "\n   ")
-     << ')';
-
-  return ss.str();
+  return d_sg == nullptr ? "" : d_sg->toString();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -4722,185 +4654,7 @@ Sort Grammar::resolve()
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-
-  d_isResolved = true;
-
-  Term bvl;
-
-  if (!d_sygusVars.empty())
-  {
-    bvl = Term(d_nm,
-               d_nm->mkNode(internal::kind::BOUND_VAR_LIST,
-                            Term::termVectorToNodes(d_sygusVars)));
-  }
-
-  std::unordered_map<Term, Sort> ntsToUnres(d_ntSyms.size());
-
-  for (Term ntsymbol : d_ntSyms)
-  {
-    // make the unresolved type, used for referencing the final version of
-    // the ntsymbol's datatype
-    ntsToUnres[ntsymbol] =
-        Sort(d_nm, d_nm->mkUnresolvedDatatypeSort(ntsymbol.toString()));
-  }
-
-  std::vector<internal::DType> datatypes;
-
-  datatypes.reserve(d_ntSyms.size());
-
-  for (const Term& ntSym : d_ntSyms)
-  {
-    // make the datatype, which encodes terms generated by this non-terminal
-    DatatypeDecl dtDecl(d_nm, ntSym.toString());
-
-    for (const Term& consTerm : d_ntsToTerms[ntSym])
-    {
-      addSygusConstructorTerm(dtDecl, consTerm, ntsToUnres);
-    }
-
-    if (d_allowVars.find(ntSym) != d_allowVars.cend())
-    {
-      addSygusConstructorVariables(dtDecl, Sort(d_nm, ntSym.d_node->getType()));
-    }
-
-    bool aci = d_allowConst.find(ntSym) != d_allowConst.end();
-    internal::TypeNode btt = ntSym.d_node->getType();
-    dtDecl.d_dtype->setSygus(btt, *bvl.d_node, aci, false);
-
-    // We can be in a case where the only rule specified was (Variable T)
-    // and there are no variables of type T, in which case this is a bogus
-    // grammar. This results in the error below.
-    CVC5_API_CHECK(dtDecl.d_dtype->getNumConstructors() != 0)
-        << "Grouped rule listing for " << *dtDecl.d_dtype
-        << " produced an empty rule list";
-
-    datatypes.push_back(*dtDecl.d_dtype);
-  }
-
-  std::vector<internal::TypeNode> datatypeTypes =
-      d_nm->mkMutualDatatypeTypes(datatypes);
-
-  // return is the first datatype
-  return Sort(d_nm, datatypeTypes[0]);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-void Grammar::addSygusConstructorTerm(
-    DatatypeDecl& dt,
-    const Term& term,
-    const std::unordered_map<Term, Sort>& ntsToUnres) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_DTDECL(dt);
-  CVC5_API_CHECK_TERM(term);
-  CVC5_API_CHECK_TERMS_MAP(ntsToUnres);
-  //////// all checks before this line
-
-  // At this point, we should know that dt is well founded, and that its
-  // builtin sygus operators are well-typed.
-  // Now, purify each occurrence of a non-terminal symbol in term, replace by
-  // free variables. These become arguments to constructors. Notice we must do
-  // a tree traversal in this function, since unique paths to the same term
-  // should be treated as distinct terms.
-  // Notice that let expressions are forbidden in the input syntax of term, so
-  // this does not lead to exponential behavior with respect to input size.
-  std::vector<Term> args;
-  std::vector<Sort> cargs;
-  Term op = purifySygusGTerm(term, args, cargs, ntsToUnres);
-  std::stringstream ssCName;
-  ssCName << op.getKind();
-  if (!args.empty())
-  {
-    Term lbvl = Term(d_nm,
-                     d_nm->mkNode(internal::kind::BOUND_VAR_LIST,
-                                  Term::termVectorToNodes(args)));
-    // its operator is a lambda
-    op = Term(d_nm,
-              d_nm->mkNode(internal::kind::LAMBDA, *lbvl.d_node, *op.d_node));
-  }
-  std::vector<internal::TypeNode> cargst = Sort::sortVectorToTypeNodes(cargs);
-  dt.d_dtype->addSygusConstructor(*op.d_node, ssCName.str(), cargst);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Grammar::purifySygusGTerm(
-    const Term& term,
-    std::vector<Term>& args,
-    std::vector<Sort>& cargs,
-    const std::unordered_map<Term, Sort>& ntsToUnres) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_TERM(term);
-  CVC5_API_CHECK_TERMS(args);
-  CVC5_API_CHECK_SORTS(cargs);
-  CVC5_API_CHECK_TERMS_MAP(ntsToUnres);
-  //////// all checks before this line
-
-  std::unordered_map<Term, Sort>::const_iterator itn = ntsToUnres.find(term);
-  if (itn != ntsToUnres.cend())
-  {
-    Term ret = Term(d_nm, d_nm->mkBoundVar(term.d_node->getType()));
-    args.push_back(ret);
-    cargs.push_back(itn->second);
-    return ret;
-  }
-  std::vector<Term> pchildren;
-  bool childChanged = false;
-  for (unsigned i = 0, nchild = term.d_node->getNumChildren(); i < nchild; i++)
-  {
-    Term ptermc = purifySygusGTerm(
-        Term(d_nm, (*term.d_node)[i]), args, cargs, ntsToUnres);
-    pchildren.push_back(ptermc);
-    childChanged = childChanged || *ptermc.d_node != (*term.d_node)[i];
-  }
-  if (!childChanged)
-  {
-    return term;
-  }
-
-  internal::Node nret;
-
-  if (term.d_node->getMetaKind() == internal::kind::metakind::PARAMETERIZED)
-  {
-    // it's an indexed operator so we should provide the op
-    internal::NodeBuilder nb(term.d_node->getKind());
-    nb << term.d_node->getOperator();
-    nb.append(Term::termVectorToNodes(pchildren));
-    nret = nb.constructNode();
-  }
-  else
-  {
-    nret = d_nm->mkNode(term.d_node->getKind(),
-                        Term::termVectorToNodes(pchildren));
-  }
-
-  return Term(d_nm, nret);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-void Grammar::addSygusConstructorVariables(DatatypeDecl& dt,
-                                           const Sort& sort) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_DTDECL(dt);
-  CVC5_API_CHECK_SORT(sort);
-  //////// all checks before this line
-
-  // each variable of appropriate type becomes a sygus constructor in dt.
-  for (unsigned i = 0, size = d_sygusVars.size(); i < size; i++)
-  {
-    Term v = d_sygusVars[i];
-    if (v.d_node->getType() == *sort.d_type)
-    {
-      std::stringstream ss;
-      ss << v;
-      std::vector<internal::TypeNode> cargs;
-      dt.d_dtype->addSygusConstructor(*v.d_node, ss.str(), cargs);
-    }
-  }
+  return Sort(d_nm, d_sg->resolve());
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -4909,17 +4663,14 @@ bool Grammar::containsFreeVariables(const Term& rule) const
 {
   // we allow the argument list and non-terminal symbols to be in scope
   std::unordered_set<internal::TNode> scope;
-
-  for (const Term& sygusVar : d_sygusVars)
+  for (const internal::Node& var : d_sg->getSygusVars())
   {
-    scope.emplace(*sygusVar.d_node);
+    scope.emplace(var);
   }
-
-  for (const Term& ntsymbol : d_ntSyms)
+  for (const internal::Node& ntsym : d_sg->getNtSyms())
   {
-    scope.emplace(*ntsymbol.d_node);
+    scope.emplace(ntsym);
   }
-
   return internal::expr::hasFreeVariablesScope(*rule.d_node, scope);
 }
 
@@ -5453,10 +5204,10 @@ Term Solver::synthFunHelper(const std::string& symbol,
   {
     if (grammar)
     {
-      CVC5_API_CHECK(grammar->d_ntSyms[0].d_node->getType() == *sort.d_type)
+      CVC5_API_CHECK(grammar->d_sg->getNtSyms()[0].getType() == *sort.d_type)
           << "Invalid Start symbol for grammar, Expected Start's sort to be "
           << *sort.d_type << " but found "
-          << grammar->d_ntSyms[0].d_node->getType();
+          << grammar->d_sg->getNtSyms()[0].getType();
     }
     varTypes.push_back(bv.d_node->getType());
   }
@@ -6409,30 +6160,23 @@ Term Solver::mkTerm(const Op& op, const std::vector<Term>& children) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkTuple(const std::vector<Sort>& sorts,
-                     const std::vector<Term>& terms) const
+Term Solver::mkTuple(const std::vector<Term>& terms) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(sorts.size() == terms.size())
-      << "Expected the same number of sorts and elements";
-  CVC5_API_SOLVER_CHECK_SORTS(sorts);
   CVC5_API_SOLVER_CHECK_TERMS(terms);
-  for (size_t i = 0, size = sorts.size(); i < size; i++)
-  {
-    CVC5_API_CHECK(terms[i].getSort() == sorts[i])
-        << "Type mismatch in mkTuple";
-  }
   //////// all checks before this line
   std::vector<internal::Node> args;
-  for (size_t i = 0, size = sorts.size(); i < size; i++)
+  std::vector<internal::TypeNode> typeNodes;
+  for (size_t i = 0, size = terms.size(); i < size; i++)
   {
-    args.push_back(*terms[i].d_node);
+    internal::Node n = *terms[i].d_node;
+    args.push_back(n);
+    typeNodes.push_back(n.getType());
   }
-
-  Sort s = mkTupleSortHelper(sorts);
-  Datatype dt = s.getDatatype();
+  internal::TypeNode tn = d_nm->mkTupleType(typeNodes);
+  internal::DType dt = tn.getDType();
   internal::NodeBuilder nb(extToIntKind(APPLY_CONSTRUCTOR));
-  nb << *dt[0].getTerm().d_node;
+  nb << dt[0].getConstructor();
   nb.append(args);
   internal::Node res = nb.constructNode();
   (void)res.getType(true); /* kick off type checking */

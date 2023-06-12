@@ -93,11 +93,11 @@ class InferProofCons : protected EnvObj, public ProofGenerator
    * Add proof of running convert on the given arguments to CDProof pf. This is
    * called lazily during proof post-processing.
    */
-  static bool addProofTo(CDProof* pf,
-                         Node conc,
-                         InferenceId infer,
-                         bool isRev,
-                         const std::vector<Node>& exp);
+  static bool convertAndAddProofTo(CDProof* pf,
+                                   Node conc,
+                                   InferenceId infer,
+                                   bool isRev,
+                                   const std::vector<Node>& exp);
   /**
    * Pack arguments of a STRING_INFERENCE rule application in args. This proof
    * rule stores the arguments to the convert method of this class below.

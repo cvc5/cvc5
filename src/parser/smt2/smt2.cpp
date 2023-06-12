@@ -154,7 +154,7 @@ void Smt2State::addDatatypesOperators()
     // (for the 0-ary tuple), and a operator, hence we call both addOperator
     // and defineVar here.
     addOperator(APPLY_CONSTRUCTOR, "tuple");
-    defineVar("tuple", d_solver->mkTuple({}, {}));
+    defineVar("tuple", d_solver->mkTuple({}));
     addIndexedOperator(UNDEFINED_KIND, "tuple.select");
     addIndexedOperator(UNDEFINED_KIND, "tuple.update");
   }
@@ -1262,14 +1262,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       else if (kind == APPLY_CONSTRUCTOR)
       {
         // tuple application
-        std::vector<Sort> sorts;
-        std::vector<Term> terms;
-        for (const Term& arg : args)
-        {
-          sorts.emplace_back(arg.getSort());
-          terms.emplace_back(arg);
-        }
-        return d_solver->mkTuple(sorts, terms);
+        return d_solver->mkTuple(args);
       }
       Trace("parser") << "Got builtin kind " << kind << " for name"
                       << std::endl;

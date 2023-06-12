@@ -193,7 +193,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
     // these options must be disabled on internal subsolvers, as they are
     // used by the user to rephrase the input.
     opts.writeQuantifiers().sygusInference = false;
-    opts.writeQuantifiers().sygusRewSynthInput = false;
     // deep restart does not work with internal subsolvers?
     opts.writeSmt().deepRestartMode = options::DeepRestartMode::NONE;
   }
@@ -1659,12 +1658,6 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
     // we must use basic sygus algorithms, since e.g. we require checking
     // a sygus side condition for consistency with axioms.
     reqBasicSygus = true;
-  }
-  if (opts.quantifiers.sygusRewSynth || opts.quantifiers.sygusRewVerify
-      || opts.quantifiers.sygusQueryGen != options::SygusQueryGenMode::NONE)
-  {
-    // rewrite rule synthesis implies that sygus stream must be true
-    opts.writeQuantifiers().sygusStream = true;
   }
   if (opts.quantifiers.sygusStream || opts.base.incrementalSolving)
   {

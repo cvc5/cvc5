@@ -54,7 +54,7 @@ class SolutionFilterStrength : public ExprMiner
    * Dually, if d_isStrong is false, then if this method returns false, then
    * the entailment n |= n_1 V ... V n_m holds.
    */
-  bool addTerm(Node n, std::ostream& out) override;
+  bool addTerm(Node n, std::vector<Node>& filtered) override;
   /** set logically strong */
   void setLogicallyStrong(bool isStrong);
 
