@@ -16,6 +16,7 @@
 
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 
+#include <numeric>  // for std::iota
 #include <sstream>
 
 #include "expr/dtype_cons.h"
@@ -26,8 +27,6 @@
 #include "theory/quantifiers/sygus/sygus_grammar_red.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-
-#include <numeric>  // for std::iota
 
 using namespace cvc5::internal::kind;
 

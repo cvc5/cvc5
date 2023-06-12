@@ -21,8 +21,8 @@
 #include "base/modal_exception.h"
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
-#include "options/smt_options.h"
 #include "options/quantifiers_options.h"
+#include "options/smt_options.h"
 #include "smt/env.h"
 #include "smt/set_defaults.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -206,7 +206,8 @@ TypeNode SygusInterpol::setSynthGrammar(const TypeNode& itpGType,
         terms_irrelevant);
         */
     TypeNode btype = NodeManager::currentNM()->booleanType();
-    itpGTypeS = SygusGrammarCons::mkDefaultSygusType(options(), btype, d_ibvlShared);
+    itpGTypeS =
+        SygusGrammarCons::mkDefaultSygusType(options(), btype, d_ibvlShared);
   }
   Trace("sygus-interpol-debug") << "...finish setting up grammar" << std::endl;
   return itpGTypeS;

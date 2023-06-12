@@ -172,8 +172,7 @@ void getMinGroundTerms(const Options& options,
  * @param extra_cons: A map of TypeNode to constants, which are added in
  *                    addition to the default grammar.
  */
-void addSpecialValues(const TypeNode& tn,
-                      std::vector<Node>& extra_cons)
+void addSpecialValues(const TypeNode& tn, std::vector<Node>& extra_cons)
 {
   if (tn.isBitVector())
   {
@@ -443,7 +442,8 @@ void SygusInst::registerQuantifier(Node q)
   for (const Node& var : q[0])
   {
     addSpecialValues(var.getType(), extra_cons);
-    TypeNode tn = SygusGrammarCons::mkDefaultSygusType(options(), var.getType(), Node(), extra_cons);
+    TypeNode tn = SygusGrammarCons::mkDefaultSygusType(
+        options(), var.getType(), Node(), extra_cons);
     types.push_back(tn);
 
     Trace("sygus-inst") << "Construct (default) datatype for " << var
