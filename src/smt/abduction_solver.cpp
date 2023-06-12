@@ -18,8 +18,8 @@
 #include <sstream>
 
 #include "base/modal_exception.h"
-#include "options/smt_options.h"
 #include "options/quantifiers_options.h"
+#include "options/smt_options.h"
 #include "smt/env.h"
 #include "smt/set_defaults.h"
 #include "smt/sygus_solver.h"

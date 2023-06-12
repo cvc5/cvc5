@@ -190,7 +190,8 @@ TypeNode SygusInterpol::setSynthGrammar(const TypeNode& itpGType,
   {
     // set default grammar
     TypeNode btype = NodeManager::currentNM()->booleanType();
-    SygusGrammar g = SygusGrammarCons::mkDefaultGrammar(options(), btype, d_ibvlShared);
+    SygusGrammar g =
+        SygusGrammarCons::mkDefaultGrammar(options(), btype, d_ibvlShared);
     // exclude rules that don't appear in operators
     std::map<TypeNode, std::unordered_set<Node>> include_cons;
     getIncludeCons(axioms, conj, include_cons);
@@ -199,14 +200,14 @@ TypeNode SygusInterpol::setSynthGrammar(const TypeNode& itpGType,
     {
       std::vector<Node> rules = g.getRulesFor(ntSym);
       TypeNode stype = ntSym.getType();
-      if (include_cons.find(stype)==include_cons.end())
+      if (include_cons.find(stype) == include_cons.end())
       {
         continue;
       }
       const std::unordered_set<Node>& icons = include_cons[ntSym.getType()];
       for (const Node& r : rules)
       {
-        if (r.hasOperator() && icons.find(r.getOperator())==icons.end())
+        if (r.hasOperator() && icons.find(r.getOperator()) == icons.end())
         {
           g.removeRule(ntSym, r);
         }
