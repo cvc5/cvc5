@@ -104,7 +104,7 @@ Node mkSygusTerm(const DType& dt,
  * Same as above, but we already have the sygus operator op. The above method
  * is syntax sugar for calling this method on dt[i].getSygusOp().
  */
-Node mkSygusTerm(Node op,
+Node mkSygusTerm(const Node& op,
                  const std::vector<Node>& children,
                  bool doBetaReduction = true);
 /**

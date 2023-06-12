@@ -135,12 +135,18 @@ Node mkSygusTerm(const DType& dt,
       opn = getExpandedDefinitionForm(op);
     }
   }
+  // if it is the any constant, we simply return the child
+  if (dt[i].isSygusAnyConstant())
+  {
+    Assert(children.size() == 1);
+    return children[0];
+  }
   Node ret = mkSygusTerm(opn, children, doBetaReduction);
   Assert(ret.getType() == dt.getSygusType());
   return ret;
 }
 
-Node mkSygusTerm(Node op,
+Node mkSygusTerm(const Node& op,
                  const std::vector<Node>& children,
                  bool doBetaReduction)
 {
@@ -150,12 +156,6 @@ Node mkSygusTerm(Node op,
     // no children, return immediately
     Trace("dt-sygus-util") << "...return direct op" << std::endl;
     return op;
-  }
-  // if it is the any constant, we simply return the child
-  if (op.getAttribute(SygusAnyConstAttribute()))
-  {
-    Assert(children.size() == 1);
-    return children[0];
   }
   std::vector<Node> schildren;
   // get the kind of the operator
@@ -470,21 +470,29 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
         for (unsigned k = 0, nargs = dtc[j].getNumArgs(); k < nargs; k++)
         {
           TypeNode argt = dtc[j].getArgType(k);
-          std::map<TypeNode, TypeNode>::iterator itdp = dtProcessed.find(argt);
           TypeNode argtNew;
-          if (itdp == dtProcessed.end())
+          if (argt.isDatatype() && argt.getDType().isSygus())
           {
-            std::stringstream ssutn;
-            ssutn << argt.getDType().getName() << "_s";
-            argtNew = nm->mkUnresolvedDatatypeSort(ssutn.str());
-            Trace("dtsygus-gen-debug") << "    ...unresolved type " << argtNew
-                                       << " for " << argt << std::endl;
-            dtProcessed[argt] = argtNew;
-            dtNextToProcess.push_back(argt);
+            std::map<TypeNode, TypeNode>::iterator itdp =
+                dtProcessed.find(argt);
+            if (itdp == dtProcessed.end())
+            {
+              std::stringstream ssutn;
+              ssutn << argt.getDType().getName() << "_s";
+              argtNew = nm->mkUnresolvedDatatypeSort(ssutn.str());
+              Trace("dtsygus-gen-debug") << "    ...unresolved type " << argtNew
+                                         << " for " << argt << std::endl;
+              dtProcessed[argt] = argtNew;
+              dtNextToProcess.push_back(argt);
+            }
+            else
+            {
+              argtNew = itdp->second;
+            }
           }
           else
           {
-            argtNew = itdp->second;
+            argtNew = argt;
           }
           Trace("dtsygus-gen-debug")
               << "    Arg #" << k << ": " << argtNew << std::endl;

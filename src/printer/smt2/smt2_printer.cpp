@@ -34,6 +34,7 @@
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
+#include "expr/sygus_datatype.h"
 #include "options/io_utils.h"
 #include "options/language.h"
 #include "printer/let_binding.h"
@@ -2012,17 +2013,23 @@ std::string Smt2Printer::sygusGrammarString(const TypeNode& t)
     {
       TypeNode curr = typesToPrint.front();
       typesToPrint.pop_front();
-      Assert(curr.isDatatype() && curr.getDType().isSygus());
+      // skip builtin fields, which can originate from any-constant constructors
+      if (!curr.isDatatype() || !curr.getDType().isSygus())
+      {
+        continue;
+      }
       const DType& dt = curr.getDType();
       types_list << '(' << dt.getName() << ' ' << dt.getSygusType() << " (";
       types_predecl << '(' << dt.getName() << ' ' << dt.getSygusType() << ") ";
-      if (dt.getSygusAllowConst())
-      {
-        types_list << "(Constant " << dt.getSygusType() << ") ";
-      }
       for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
       {
         const DTypeConstructor& cons = dt[i];
+        if (cons.isSygusAnyConstant())
+        {
+        types_list << "(Constant " << cons[0].getRangeType() << ") ";
+        }
+        else
+        {
         // make a sygus term
         std::vector<Node> cchildren;
         cchildren.push_back(cons.getConstructor());
@@ -2044,6 +2051,7 @@ std::string Smt2Printer::sygusGrammarString(const TypeNode& t)
         types_list << theory::datatypes::utils::sygusToBuiltin(consToPrint,
                                                                true);
         types_list << ' ';
+        }
       }
       types_list << "))\n";
     } while (!typesToPrint.empty());
