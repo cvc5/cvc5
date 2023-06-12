@@ -2266,6 +2266,7 @@ void SetBenchmarkLogicCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
   try
   {
+    sm->setLogic(d_logic);
     solver->setLogic(d_logic);
     d_commandStatus = CommandSuccess::instance();
   }

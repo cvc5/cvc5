@@ -3475,13 +3475,11 @@ class CVC5_EXPORT Solver
   Term mkTerm(const Op& op, const std::vector<Term>& children = {}) const;
 
   /**
-   * Create a tuple term, where terms have the provided sorts.
-   * @param sorts The sorts of the elements in the tuple.
+   * Create a tuple term.
    * @param terms The elements in the tuple.
    * @return The tuple Term.
    */
-  Term mkTuple(const std::vector<Sort>& sorts,
-               const std::vector<Term>& terms) const;
+  Term mkTuple(const std::vector<Term>& terms) const;
 
   /* .................................................................... */
   /* Create Operators                                                     */

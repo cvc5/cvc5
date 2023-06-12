@@ -648,19 +648,17 @@ public class Solver implements IPointer
   /**
    * Create a tuple term. Terms are automatically converted if sorts are
    * compatible.
-   * @param sorts The sorts of the elements in the tuple.
    * @param terms The elements in the tuple.
    * @return The tuple Term.
    */
-  public Term mkTuple(Sort[] sorts, Term[] terms)
+  public Term mkTuple(Term[] terms)
   {
-    long[] sortPointers = Utils.getPointers(sorts);
     long[] termPointers = Utils.getPointers(terms);
-    long termPointer = mkTuple(pointer, sortPointers, termPointers);
+    long termPointer = mkTuple(pointer, termPointers);
     return new Term(termPointer);
   }
 
-  private native long mkTuple(long pointer, long[] sortPointers, long[] termPointers);
+  private native long mkTuple(long pointer, long[] termPointers);
 
   /* .................................................................... */
   /* Create Operators                                                     */

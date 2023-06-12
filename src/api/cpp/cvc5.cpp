@@ -6160,30 +6160,23 @@ Term Solver::mkTerm(const Op& op, const std::vector<Term>& children) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkTuple(const std::vector<Sort>& sorts,
-                     const std::vector<Term>& terms) const
+Term Solver::mkTuple(const std::vector<Term>& terms) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(sorts.size() == terms.size())
-      << "Expected the same number of sorts and elements";
-  CVC5_API_SOLVER_CHECK_SORTS(sorts);
   CVC5_API_SOLVER_CHECK_TERMS(terms);
-  for (size_t i = 0, size = sorts.size(); i < size; i++)
-  {
-    CVC5_API_CHECK(terms[i].getSort() == sorts[i])
-        << "Type mismatch in mkTuple";
-  }
   //////// all checks before this line
   std::vector<internal::Node> args;
-  for (size_t i = 0, size = sorts.size(); i < size; i++)
+  std::vector<internal::TypeNode> typeNodes;
+  for (size_t i = 0, size = terms.size(); i < size; i++)
   {
-    args.push_back(*terms[i].d_node);
+    internal::Node n = *terms[i].d_node;
+    args.push_back(n);
+    typeNodes.push_back(n.getType());
   }
-
-  Sort s = mkTupleSortHelper(sorts);
-  Datatype dt = s.getDatatype();
+  internal::TypeNode tn = d_nm->mkTupleType(typeNodes);
+  internal::DType dt = tn.getDType();
   internal::NodeBuilder nb(extToIntKind(APPLY_CONSTRUCTOR));
-  nb << *dt[0].getTerm().d_node;
+  nb << dt[0].getConstructor();
   nb.append(args);
   internal::Node res = nb.constructNode();
   (void)res.getType(true); /* kick off type checking */
