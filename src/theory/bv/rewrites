@@ -505,7 +505,7 @@
 (define-rule bv-ult-zero-1
   ((x ?BitVec) (n Int))
   (bvult (bv 0 n) x)
-  (distinct (bv 0 (bvsize x)) x))
+  (not (= x (bv 0 n))))
 (define-rule bv-ult-zero-2
   ((x ?BitVec) (n Int))
   (bvult x (bv 0 n))
@@ -700,10 +700,6 @@
   ((x ?BitVec) (n Int))
   (bvslt x (bv 0 n))
   (= (extract (- n 1) (- n 1) x) (bv 1 1)))
-(define-rule bv-zero-ult
-  ((x ?BitVec) (n Int))
-  (bvult (bv 0 n) x)
-  (not (= x (bv 0 n))))
 
 (define-rule bv-merge-sign-extend-1
   ((x ?BitVec) (i Int) (j Int))

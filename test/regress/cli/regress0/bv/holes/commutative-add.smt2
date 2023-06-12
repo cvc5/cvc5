@@ -5,7 +5,6 @@
 
 (declare-const x (_ BitVec 3))
 (declare-const y (_ BitVec 3))
-;(assert (not (= (bvmul x y) (bvmul y x))))
-(assert (not (= (bvxor x y) (bvxor y x))))
+(assert (not (= (bvadd x y) (bvadd y x))))
 (check-sat)
 (exit)

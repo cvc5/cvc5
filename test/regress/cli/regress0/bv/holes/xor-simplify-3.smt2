@@ -4,9 +4,12 @@
 (set-info :status unsat)
 
 (declare-const x (_ BitVec 4))
+(declare-const y (_ BitVec 4))
+(declare-const z (_ BitVec 4))
+(declare-const w (_ BitVec 4))
 (assert (not (=
-	((_ repeat 3) x)
-	(concat x ((_ repeat 2) x))
+	(bvxor x (bvnot y) z y w)
+	(bvnot (bvxor x z w))
 	)))
 (check-sat)
 (exit)
