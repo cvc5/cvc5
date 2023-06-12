@@ -900,35 +900,15 @@ class SolverTest
   @Test
   void mkTuple()
   {
-    assertDoesNotThrow(()
-                           -> d_solver.mkTuple(new Sort[] {d_solver.mkBitVectorSort(3)},
-                               new Term[] {d_solver.mkBitVector(3, "101", 2)}));
-    assertThrows(CVC5ApiException.class,
-        ()
-            -> d_solver.mkTuple(
-                new Sort[] {d_solver.getRealSort()}, new Term[] {d_solver.mkInteger("5")}));
+    assertDoesNotThrow(() -> d_solver.mkTuple(new Term[] {d_solver.mkBitVector(3, "101", 2)}));
+    assertDoesNotThrow(() -> d_solver.mkTuple(new Term[] {d_solver.mkInteger("5")}));
 
-    assertThrows(CVC5ApiException.class,
-        () -> d_solver.mkTuple(new Sort[] {}, new Term[] {d_solver.mkBitVector(3, "101", 2)}));
-
-    assertThrows(CVC5ApiException.class,
-        ()
-            -> d_solver.mkTuple(new Sort[] {d_solver.mkBitVectorSort(4)},
-                new Term[] {d_solver.mkBitVector(3, "101", 2)}));
-
-    assertThrows(CVC5ApiException.class,
-        ()
-            -> d_solver.mkTuple(
-                new Sort[] {d_solver.getIntegerSort()}, new Term[] {d_solver.mkReal("5.3")}));
+    assertDoesNotThrow(() -> d_solver.mkTuple(new Term[] {d_solver.mkReal("5.3")}));
 
     Solver slv = new Solver();
-    assertDoesNotThrow(()
-                           -> slv.mkTuple(new Sort[] {d_solver.mkBitVectorSort(3)},
-                               new Term[] {slv.mkBitVector(3, "101", 2)}));
+    assertDoesNotThrow(() -> slv.mkTuple(new Term[] {slv.mkBitVector(3, "101", 2)}));
 
-    assertDoesNotThrow(()
-                           -> slv.mkTuple(new Sort[] {slv.mkBitVectorSort(3)},
-                               new Term[] {d_solver.mkBitVector(3, "101", 2)}));
+    assertDoesNotThrow(() -> slv.mkTuple(new Term[] {d_solver.mkBitVector(3, "101", 2)}));
   }
 
   @Test
@@ -2961,16 +2941,12 @@ class SolverTest
   @Test
   void tupleProject() throws CVC5ApiException
   {
-    Sort[] sorts = new Sort[] {d_solver.getBooleanSort(),
-        d_solver.getIntegerSort(),
-        d_solver.getStringSort(),
-        d_solver.mkSetSort(d_solver.getStringSort())};
     Term[] elements = new Term[] {d_solver.mkBoolean(true),
         d_solver.mkInteger(3),
         d_solver.mkString("C"),
         d_solver.mkTerm(SET_SINGLETON, d_solver.mkString("Z"))};
 
-    Term tuple = d_solver.mkTuple(sorts, elements);
+    Term tuple = d_solver.mkTuple(elements);
 
     int[] indices1 = new int[] {};
     int[] indices2 = new int[] {0};
