@@ -135,12 +135,18 @@ Node mkSygusTerm(const DType& dt,
       opn = getExpandedDefinitionForm(op);
     }
   }
+  // if it is the any constant, we simply return the child
+  if (dt[i].isSygusAnyConstant())
+  {
+    Assert (children.size()==1);
+    return children[0];
+  }
   Node ret = mkSygusTerm(opn, children, doBetaReduction);
   Assert(ret.getType() == dt.getSygusType());
   return ret;
 }
 
-Node mkSygusTerm(Node op,
+Node mkSygusTerm(const Node& op,
                  const std::vector<Node>& children,
                  bool doBetaReduction)
 {
@@ -150,12 +156,6 @@ Node mkSygusTerm(Node op,
     // no children, return immediately
     Trace("dt-sygus-util") << "...return direct op" << std::endl;
     return op;
-  }
-  // if it is the any constant, we simply return the child
-  if (op.getAttribute(SygusAnyConstAttribute()))
-  {
-    Assert(children.size() == 1);
-    return children[0];
   }
   std::vector<Node> schildren;
   // get the kind of the operator

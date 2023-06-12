@@ -272,8 +272,7 @@ Node SygusEvalUnfold::unfold(Node en,
     }
   }
   // if we are a symbolic constructor, unfolding returns the subterm itself
-  Node sop = dt[i].getSygusOp();
-  if (sop.getAttribute(SygusAnyConstAttribute()))
+  if (dt[i].isSygusAnyConstant())
   {
     Trace("sygus-eval-unfold-debug")
         << "...it is an any-constant constructor" << std::endl;
@@ -335,6 +334,7 @@ Node SygusEvalUnfold::unfold(Node en,
     pre[j] = argj;
   }
   Node ret = d_tds->mkGeneric(dt, i, pre);
+  Node sop = dt[i].getSygusOp();
   // apply the appropriate substitution to ret
   ret = datatypes::utils::applySygusArgs(dt, sop, ret, args);
   Trace("sygus-eval-unfold-debug")

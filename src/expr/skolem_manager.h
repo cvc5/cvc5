@@ -231,7 +231,7 @@ enum class SkolemFunId
   /** the "some" term, for instantiation evaluation */
   IEVAL_SOME,
   /** sygus "any constant" placeholder */
-  ANY_CONSTANT
+  SYGUS_ANY_CONSTANT
 };
 /** Converts a skolem function name to a string. */
 const char* toString(SkolemFunId id);

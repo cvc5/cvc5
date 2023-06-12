@@ -104,6 +104,11 @@ class DTypeConstructor
    * operator op.
    */
   void setSygus(Node op);
+  /**
+   * Set that this constructor is a sygus datatype constructor that encodes
+   * any constant.
+   */
+  void setSygusAnyConstant();
   /** get sygus op
    *
    * This method returns the operator or term that this constructor represents
@@ -117,6 +122,8 @@ class DTypeConstructor
    * of the form (lambda (x) x).
    */
   bool isSygusIdFunc() const;
+  /** is this the "any constant" constructor? */
+  bool isSygusAnyConstant() const;
   /** get weight
    *
    * Get the weight of this constructor. This value is used when computing the

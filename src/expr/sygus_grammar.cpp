@@ -79,7 +79,7 @@ void SygusGrammar::addAnyConstant(const Node& ntSym, const TypeNode& tn)
   Assert(d_sdts.find(ntSym) != d_sdts.cend());
   Assert(tn.isInstanceOf(ntSym.getType()));
   SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-  Node anyConst = sm->mkSkolemFunction(SkolemFunId::ANY_CONSTANT, tn);
+  Node anyConst = sm->mkSkolemFunction(SkolemFunId::SYGUS_ANY_CONSTANT, tn);
   addRule(ntSym, anyConst);
 }
 
@@ -120,7 +120,7 @@ TypeNode SygusGrammar::resolve(bool allowAny)
       for (const Node& r : g.second)
       {
         if (r.getKind() == kind::SKOLEM
-            && sm->getSkolemFunctionId(r) == SkolemFunId::ANY_CONSTANT)
+            && sm->getSkolemFunctionId(r) == SkolemFunId::SYGUS_ANY_CONSTANT)
         {
           allowConsts.insert(g.first);
           d_sdts.at(g.first).addAnyConstantConstructor(r.getType());

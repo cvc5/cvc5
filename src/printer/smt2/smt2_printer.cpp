@@ -2024,7 +2024,7 @@ std::string Smt2Printer::sygusGrammarString(const TypeNode& t)
       for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
       {
         const DTypeConstructor& cons = dt[i];
-        if (cons.getSygusOp().getAttribute(SygusAnyConstAttribute()))
+        if (cons.isSygusAnyConstant())
         {
           types_list << "(Constant " << cons[0].getRangeType() << ") ";
         }

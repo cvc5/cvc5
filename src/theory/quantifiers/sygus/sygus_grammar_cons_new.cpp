@@ -106,7 +106,7 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
       // add rules for each type
       addDefaultRulesToInternal(opts, g, gr.second[0], typeToNtSym, i);
       // add predicates for the type to the Boolean grammar if it exists
-      if (i==0 && !ntSymBool.isNull())
+      if (i==0 && !gr.first.isBoolean() && !ntSymBool.isNull())
       {
         addDefaultPredicateRulesToInternal(
             opts, g, gr.second[0], ntSymBool, typeToNtSym);
@@ -618,29 +618,31 @@ void SygusGrammarCons::addDefaultRulesToInternal(
     else if (tn.isBoolean())
     {
       // only add connectives if non-trivial
-      bool ntriv = false;
+      bool triv = true;
       for (const Node& r : prevRules)
       {
         if (!r.isConst())
         {
-          ntriv = true;
+          triv = false;
           break;
         }
       }
-      if (ntriv)
+      // if trivial, don't add any further constructors
+      if (triv)
       {
-        std::vector<Kind> kinds = {NOT, AND, OR};
-        for (Kind k : kinds)
+        return;
+      }
+      std::vector<Kind> kinds = {NOT, AND, OR};
+      for (Kind k : kinds)
+      {
+        Trace("sygus-grammar-def") << "...add for " << k << std::endl;
+        std::vector<TypeNode> cargs;
+        cargs.push_back(tn);
+        if (k != NOT)
         {
-          Trace("sygus-grammar-def") << "...add for " << k << std::endl;
-          std::vector<TypeNode> cargs;
           cargs.push_back(tn);
-          if (k != NOT)
-          {
-            cargs.push_back(tn);
-          }
-          addRuleTo(g, typeToNtSym, k, cargs);
         }
+        addRuleTo(g, typeToNtSym, k, cargs);
       }
     }
 
@@ -746,7 +748,7 @@ void SygusGrammarCons::addDefaultPredicateRulesToInternal(
   }
 
   // add equality per type, if first class
-  if (tn.isFirstClass() && !tn.isBoolean())
+  if (tn.isFirstClass())
   {
     Trace("sygus-grammar-def") << "...add for EQUAL" << std::endl;
     if (realIntZeroArg)
