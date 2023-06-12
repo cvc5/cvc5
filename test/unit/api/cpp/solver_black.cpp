@@ -1030,25 +1030,12 @@ TEST_F(TestApiBlackSolver, mkTrue)
 
 TEST_F(TestApiBlackSolver, mkTuple)
 {
-  ASSERT_NO_THROW(d_solver.mkTuple({d_solver.mkBitVectorSort(3)},
-                                   {d_solver.mkBitVector(3, "101", 2)}));
-  ASSERT_THROW(
-      d_solver.mkTuple({d_solver.getRealSort()}, {d_solver.mkInteger("5")}),
-      CVC5ApiException);
-
-  ASSERT_THROW(d_solver.mkTuple({}, {d_solver.mkBitVector(3, "101", 2)}),
-               CVC5ApiException);
-  ASSERT_THROW(d_solver.mkTuple({d_solver.mkBitVectorSort(4)},
-                                {d_solver.mkBitVector(3, "101", 2)}),
-               CVC5ApiException);
-  ASSERT_THROW(
-      d_solver.mkTuple({d_solver.getIntegerSort()}, {d_solver.mkReal("5.3")}),
-      CVC5ApiException);
+  ASSERT_NO_THROW(d_solver.mkTuple({d_solver.mkBitVector(3, "101", 2)}));
+  ASSERT_NO_THROW(d_solver.mkTuple({d_solver.mkInteger("5")}));
+  ASSERT_NO_THROW(d_solver.mkTuple({d_solver.mkReal("5.3")}));
   Solver slv;
-  ASSERT_NO_THROW(slv.mkTuple({d_solver.mkBitVectorSort(3)},
-                              {slv.mkBitVector(3, "101", 2)}));
-  ASSERT_NO_THROW(slv.mkTuple({slv.mkBitVectorSort(3)},
-                              {d_solver.mkBitVector(3, "101", 2)}));
+  ASSERT_NO_THROW(slv.mkTuple({slv.mkBitVector(3, "101", 2)}));
+  ASSERT_NO_THROW(slv.mkTuple({d_solver.mkBitVector(3, "101", 2)}));
 }
 
 TEST_F(TestApiBlackSolver, mkUniverseSet)
@@ -3012,17 +2999,13 @@ TEST_F(TestApiBlackSolver, checkSynthNext3)
 
 TEST_F(TestApiBlackSolver, tupleProject)
 {
-  std::vector<Sort> sorts = {d_solver.getBooleanSort(),
-                             d_solver.getIntegerSort(),
-                             d_solver.getStringSort(),
-                             d_solver.mkSetSort(d_solver.getStringSort())};
   std::vector<Term> elements = {
       d_solver.mkBoolean(true),
       d_solver.mkInteger(3),
       d_solver.mkString("C"),
       d_solver.mkTerm(SET_SINGLETON, {d_solver.mkString("Z")})};
 
-  Term tuple = d_solver.mkTuple(sorts, elements);
+  Term tuple = d_solver.mkTuple(elements);
 
   std::vector<uint32_t> indices1 = {};
   std::vector<uint32_t> indices2 = {0};
