@@ -485,7 +485,7 @@ set(regress_0_tests
   regress0/bv/holes/ugt-eliminate.smt2
   regress0/bv/holes/ult-one.smt2
   regress0/bv/holes/zero-extend-eliminate.smt2
-  regress0/bv/holes/slt-eliminate.smt2
+  regress0/bv/holes/slt-eliminate.smt2 # Roundabout method used
   regress0/bv/holes/redor-eliminate.smt2
   regress0/bv/holes/redand-eliminate.smt2
   regress0/bv/holes/ite-equal-children.smt2
