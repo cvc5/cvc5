@@ -68,7 +68,7 @@ bool RewriteVerifier::checkEquivalent(Node bv, Node bvr, std::ostream* out)
   // see if they evaluate to same thing on all sample points
   bool ptDisequal = false;
   bool ptDisequalConst = false;
-  unsigned pt_index = 0;
+  size_t pt_index = 0;
   Node bve, bvre;
   // if we don't have variables from sample, further points don't matter
   size_t npoints = hasVar ? d_sampler->getNumSamplePoints() : 1;
@@ -89,11 +89,6 @@ bool RewriteVerifier::checkEquivalent(Node bv, Node bvr, std::ostream* out)
         break;
       }
     }
-    // if we don't have variables from sample, further points don't matter
-    if (!hasVar)
-    {
-      break;
-    }
   }
   Trace("sygus-rr-verify") << "...finished" << std::endl;
   // bv and bvr should be equivalent under examples
@@ -104,7 +99,7 @@ bool RewriteVerifier::checkEquivalent(Node bv, Node bvr, std::ostream* out)
     const std::vector<Node>& pt = d_sampler->getSamplePoint(pt_index);
     Assert(vars.size() == pt.size());
     std::stringstream ptOut;
-    for (unsigned i = 0, size = pt.size(); i < size; i++)
+    for (size_t i = 0, size = pt.size(); i < size; i++)
     {
       ptOut << "  " << vars[i] << " -> " << pt[i] << std::endl;
     }
@@ -122,7 +117,7 @@ bool RewriteVerifier::checkEquivalent(Node bv, Node bvr, std::ostream* out)
     if (out)
     {
       (*out) << "find-synth: terms " << bv << " and " << bvr
-             << " are not equivalent for : " << std::endl;
+             << " are not equivalent for :" << std::endl;
       (*out) << ptOut.str();
       Assert(bve != bvre);
       (*out) << "where they evaluate to " << bve << " and " << bvre
