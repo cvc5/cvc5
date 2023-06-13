@@ -187,26 +187,6 @@ void SmtSolver::assertToInternal(preprocessing::AssertionPipeline& ap)
     // incompatible with global negation
     Assert(!options().quantifiers.globalNegate);
     theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
-    // note that if a skolem is eliminated in preprocessing, we remove it
-    // from the preprocessed skolem map
-    std::vector<size_t> elimSkolems;
-    for (const std::pair<const size_t, Node>& k : d_ppSkolemMap)
-    {
-      if (sm.hasSubstitution(k.second))
-      {
-        Trace("deep-restart-ism")
-            << "SKOLEM:" << k.second << " was eliminated during preprocessing"
-            << std::endl;
-        elimSkolems.push_back(k.first);
-        continue;
-      }
-      Trace("deep-restart-ism") << "SKOLEM:" << k.second << " is skolem for "
-                                << assertions[k.first] << std::endl;
-    }
-    for (size_t i : elimSkolems)
-    {
-      ism.erase(i);
-    }
     size_t startIndex = d_ppAssertions.size();
     // remember the assertions and Skolem mapping
     for (const Node& a : assertions)
@@ -215,6 +195,11 @@ void SmtSolver::assertToInternal(preprocessing::AssertionPipeline& ap)
     }
     for (const std::pair<const size_t, Node>& k : ism)
     {
+      // optimization: skip skolems that were eliminated in preprocessing
+      if (sm.hasSubstitution(k.second))
+      {
+        continue;
+      }
       size_t newIndex = k.first + startIndex;
       d_ppSkolemMap[newIndex] = k.second;
     }
