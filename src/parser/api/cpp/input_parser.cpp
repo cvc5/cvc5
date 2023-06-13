@@ -54,7 +54,7 @@ void InputParser::initialize()
     if (info.setByUser)
     {
       internal::LogicInfo tmp(info.stringValue());
-      d_sm->forceLogic(tmp.getLogicString());
+      d_sm->setLogic(tmp.getLogicString(), true);
     }
   }
   else
@@ -74,6 +74,7 @@ void InputParser::setLogic(const std::string& name)
 {
   if (d_useFlex)
   {
+    d_sm->setLogic(name);
     d_fparser->setLogic(name);
   }
   else
