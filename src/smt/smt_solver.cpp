@@ -173,7 +173,7 @@ void SmtSolver::assertToInternal(preprocessing::AssertionPipeline& ap)
   // assert to prop engine, which will convert to CNF
   d_env.verbose(2) << "converting to CNF..." << endl;
   d_propEngine->assertInputFormulas(assertions, ism);
-  
+
   // It is important to distinguish the input assertions from the skolem
   // definitions, as the decision justification heuristic treates the latter
   // specially. Note that we don't pass the preprocess learned literals

@@ -20,9 +20,8 @@
 
 #include <vector>
 
-#include "context/cdlist.h"
 #include "context/cdhashmap.h"
-
+#include "context/cdlist.h"
 #include "expr/node.h"
 #include "smt/assertions.h"
 #include "smt/env_obj.h"
@@ -67,6 +66,7 @@ struct SolverEngineStatistics;
 class SmtSolver : protected EnvObj
 {
   using NodeList = context::CDList<Node>;
+
  public:
   SmtSolver(Env& env,
             SolverEngineStatistics& stats);
