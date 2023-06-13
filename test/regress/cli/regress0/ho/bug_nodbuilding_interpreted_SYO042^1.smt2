@@ -1,3 +1,5 @@
+(set-logic HO_ALL)
+(set-info :status unsat)
 (declare-sort $$unsorted 0)
 (declare-fun tptp.g (Bool) Bool)
 (declare-fun tptp.p ((-> Bool Bool)) Bool)

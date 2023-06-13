@@ -1,3 +1,5 @@
+(set-logic ALL)
+(set-info :status unsat)
 (declare-sort $$unsorted 0)
 (declare-fun tptp.skc17 () $$unsorted)
 (declare-fun tptp.actual_world ($$unsorted) Bool)

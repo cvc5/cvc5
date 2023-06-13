@@ -1,3 +1,5 @@
+(set-logic ALL)
+(set-info :status unsat)
 (declare-sort $$unsorted 0)
 (declare-fun tptp.low () $$unsorted)
 (declare-fun tptp.number_of_routines ($$unsorted $$unsorted $$unsorted) Bool)

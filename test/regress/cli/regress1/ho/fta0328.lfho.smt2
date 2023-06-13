@@ -1,3 +1,6 @@
+; COMMAND-LINE: --finite-model-find
+(set-logic HO_ALL)
+(set-info :status sat)
 (declare-sort $$unsorted 0)
 (declare-sort tptp.poly_p1267267526omplex 0)
 (declare-sort tptp.poly_poly_complex 0)

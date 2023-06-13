@@ -1,3 +1,6 @@
+; COMMAND-LINE: --no-finite-model-find
+(set-logic ALL)
+(set-info :status unsat)
 (declare-sort $$unsorted 0)
 (declare-sort tptp.list 0)
 (declare-fun tptp.nil () tptp.list)

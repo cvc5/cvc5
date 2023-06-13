@@ -1,3 +1,5 @@
+(set-logic ALL)
+(set-info :status unsat)
 (declare-sort $$unsorted 0)
 (declare-fun tptp.cEUCountry ($$unsorted) Bool)
 (assert (forall ((A $$unsorted) (B $$unsorted)) (=> (and (= A B) (tptp.cEUCountry A)) (tptp.cEUCountry B))))

@@ -1,3 +1,6 @@
+; COMMAND-LINE: --finite-model-find
+(set-logic ALL)
+(set-info :status sat)
 (declare-sort $$unsorted 0)
 (declare-fun |"An Apple"| () $$unsorted)
 (declare-fun |"A _"Microsoft __ escape_""| () $$unsorted)

@@ -1,3 +1,5 @@
+(set-logic ALL)
+(set-info :status unsat)
 (declare-sort $$unsorted 0)
 (assert (or false false false))
 (assert (or (not false) false false))

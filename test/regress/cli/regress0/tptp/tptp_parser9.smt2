@@ -1,3 +1,6 @@
+; COMMAND-LINE: --finite-model-find
+(set-logic ALL)
+(set-info :status sat)
 (declare-sort $$unsorted 0)
 (declare-fun $$rtu (Real) $$unsorted)
 (declare-fun $$utr ($$unsorted) Real)

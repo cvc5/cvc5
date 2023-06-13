@@ -1,3 +1,5 @@
+(set-logic ALL)
+(set-info :status unsat)
 (declare-sort $$unsorted 0)
 (declare-sort tptp.student 0)
 (declare-sort tptp.professor 0)

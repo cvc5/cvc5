@@ -1,3 +1,5 @@
+; EXPECT: unknown
+(set-logic HO_ALL)
 (declare-sort $$unsorted 0)
 (declare-sort tptp.produc1516857811k_elem 0)
 (declare-sort tptp.var 0)

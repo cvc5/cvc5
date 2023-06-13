@@ -1,3 +1,6 @@
+; COMMAND-LINE: --full-saturate-quant --ho-elim
+(set-logic HO_ALL)
+(set-info :status unsat)
 (declare-sort $$unsorted 0)
 (declare-sort tptp.com 0)
 (declare-sort tptp.pname 0)

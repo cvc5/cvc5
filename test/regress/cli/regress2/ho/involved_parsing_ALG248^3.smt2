@@ -1,3 +1,6 @@
+; COMMAND-LINE: --ho-elim
+(set-logic HO_ALL)
+(set-info :status unsat)
 (declare-sort $$unsorted 0)
 (declare-sort tptp.term 0)
 (declare-sort tptp.subst 0)

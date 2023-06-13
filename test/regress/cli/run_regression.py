@@ -327,7 +327,7 @@ class DumpTester(Tester):
         super().__init__("dump")
 
     def applies(self, benchmark_info):
-        return benchmark_info.benchmark_ext != ".p"
+        return True
 
     def run_internal(self, benchmark_info):
         ext_to_lang = {
@@ -615,17 +615,10 @@ def run_regression(
     if benchmark_ext == ".smt2":
         status_regex = r"set-info\s*:status\s*(sat|unsat)"
         comment_char = ";"
-    elif benchmark_ext == ".p":
-        status_regex = (
-            r"% Status\s*:\s*(Theorem|Unsatisfiable|CounterSatisfiable|Satisfiable)"
-        )
-        status_to_output = lambda s: "% SZS status {} for {}".format(
-            s, benchmark_filename
-        )
     elif benchmark_ext == ".sy":
         comment_char = ";"
     else:
-        sys.exit('"{}" must be *.smt2 or *.p or *.sy'.format(benchmark_basename))
+        sys.exit('"{}" must be *.smt2 or *.sy'.format(benchmark_basename))
 
     benchmark_lines = None
     with open(benchmark_path, "r") as benchmark_file:

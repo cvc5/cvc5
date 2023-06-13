@@ -1,3 +1,6 @@
+; COMMAND-LINE: --finite-model-find -q
+(set-logic HO_ALL)
+(set-info :status sat)
 (declare-sort $$unsorted 0)
 (declare-sort tptp.nat 0)
 (declare-fun tptp.ord_less_eq_nat (tptp.nat tptp.nat) Bool)

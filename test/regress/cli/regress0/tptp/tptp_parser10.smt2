@@ -1,3 +1,5 @@
+(set-logic ALL)
+(set-info :status unsat)
 (declare-sort $$unsorted 0)
 (declare-fun tptp.e ($$unsorted) $$unsorted)
 (assert (forall ((A $$unsorted) (B $$unsorted)) (=> (not (= A B)) (not (= (tptp.e A) (tptp.e B))))))

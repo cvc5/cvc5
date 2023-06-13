@@ -1,3 +1,5 @@
+(set-logic ALL)
+(set-info :status unsat)
 (declare-sort $$unsorted 0)
 (declare-fun tptp.add ($$unsorted $$unsorted) $$unsorted)
 (declare-fun tptp.multiply ($$unsorted $$unsorted) $$unsorted)

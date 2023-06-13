@@ -1,3 +1,6 @@
+; COMMAND-LINE: --finite-model-find
+(set-logic HO_ALL)
+(set-info :status sat)
 (declare-sort $$unsorted 0)
 (declare-fun tptp.mvalid ((-> $$unsorted Bool)) Bool)
 (assert (= tptp.mvalid (lambda ((Phi (-> $$unsorted Bool))) (forall ((W $$unsorted)) (@ Phi W)))))

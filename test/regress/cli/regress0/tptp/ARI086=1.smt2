@@ -1,3 +1,5 @@
+(set-logic ALL)
+(set-info :status sat)
 (declare-sort $$unsorted 0)
 (assert (not (= (+ 2 2) 5)))
 (set-info :filename ARI086=1)
