@@ -42,7 +42,7 @@ class SynthFinder : protected EnvObj
   /**
    * Initialize find synth for the given target and provided grammar.
    */
-  void initializeFindSynth(modes::FindSynthTarget fst, const TypeNode& gtn);
+  void initialize(modes::FindSynthTarget fst, const TypeNode& gtn);
   /**
    * Increment the enumerator of this class, returns false if the enumerator
    * is finished generating values.
@@ -56,7 +56,7 @@ class SynthFinder : protected EnvObj
 
  private:
   /** Initialize find synthesis target */
-  void initialize(modes::FindSynthTarget fst, const Node& e);
+  void initializeInternal(modes::FindSynthTarget fst, const Node& e);
   /** Run find synthesis target */
   Node runNext(const Node& n, modes::FindSynthTarget fst);
   /** An identity expression miner */
