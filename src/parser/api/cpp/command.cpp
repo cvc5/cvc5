@@ -29,6 +29,7 @@
 #include "base/output.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
+#include "expr/node_manager.h"
 #include "options/io_utils.h"
 #include "options/main_options.h"
 #include "options/options.h"
