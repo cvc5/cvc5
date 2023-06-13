@@ -781,9 +781,11 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore()
 {
   Trace("smt") << "SolverEngine::getTimeoutCore()" << std::endl;
   beginCall(true);
-  // refresh the assertions
+  // refresh the assertions, to ensure we have applied preprocessing to
+  // all current assertions
   d_smtDriver->refreshAssertions();
   TimeoutCoreManager tcm(*d_env.get());
+  // get the preprocessed assertions
   const context::CDList<Node>& assertions =
       d_smtSolver->getPreprocessedAssertions();
   std::vector<Node> passerts;
@@ -792,6 +794,7 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore()
     passerts.push_back(a);
   }
   std::pair<Result, std::vector<Node>> ret = tcm.getTimeoutCore(passerts);
+  // convert the preprocessed assertions to input assertions
   std::vector<Node> core = convertPreprocessedToUnsatCore(ret.second, true);
   endCall();
   return std::pair<Result, std::vector<Node>>(ret.first, core);
