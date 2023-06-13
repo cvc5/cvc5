@@ -78,7 +78,8 @@ class TimeoutCoreManager : protected EnvObj
    * for the set of assertions. Otherwise, the list of formulas is empty and the
    * result has the same guarantees as a response to checkSat.
    */
-  std::pair<Result, std::vector<Node>> getTimeoutCore(const std::vector<Node>& ppAsserts);
+  std::pair<Result, std::vector<Node>> getTimeoutCore(
+      const std::vector<Node>& ppAsserts);
 
  private:
   /** initialize assertions */

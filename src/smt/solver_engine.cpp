@@ -1246,7 +1246,8 @@ void SolverEngine::ensureWellFormedTerms(const std::vector<Node>& ns,
   }
 }
 
-std::vector<Node> SolverEngine::convertPreprocessedToUnsatCore(const std::vector<Node>& ppa, bool isInternal)
+std::vector<Node> SolverEngine::convertPreprocessedToUnsatCore(
+    const std::vector<Node>& ppa, bool isInternal)
 {
   std::vector<Node> core;
   CDProof cdp(*d_env);
