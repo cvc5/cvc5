@@ -104,11 +104,11 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
     {
       Assert(!gr.second.empty());
       // add rules for each type
-      addDefaultRulesToInternal(opts, g, gr.second[0], typeToNtSym, i);
+      addDefaultRulesTo(opts, g, gr.second[0], typeToNtSym, i);
       // add predicates for the type to the Boolean grammar if it exists
       if (i == 0 && !gr.first.isBoolean() && !ntSymBool.isNull())
       {
-        addDefaultPredicateRulesToInternal(
+        addDefaultPredicateRulesTo(
             opts, g, gr.second[0], ntSymBool, typeToNtSym);
       }
     }
@@ -204,29 +204,7 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammar(const Options& opts,
   return ret;
 }
 
-void SygusGrammarCons::addDefaultRulesTo(const Options& opts,
-                                         SygusGrammar& g,
-                                         const Node& ntSym)
-{
-  // recompute mapping from types to non-terminal symbols
-  std::map<TypeNode, std::vector<Node>> typeToNtSym = getTypeToNtSymMap(g);
-  for (size_t i = 0; i < s_nstages; i++)
-  {
-    addDefaultRulesToInternal(opts, g, ntSym, typeToNtSym, i);
-  }
-}
-
-void SygusGrammarCons::addDefaultPredicateRulesTo(const Options& opts,
-                                                  SygusGrammar& g,
-                                                  const Node& ntSym,
-                                                  const Node& ntSymBool)
-{
-  // recompute mapping from types to non-terminal symbols
-  std::map<TypeNode, std::vector<Node>> typeToNtSym = getTypeToNtSymMap(g);
-  addDefaultPredicateRulesToInternal(opts, g, ntSym, ntSymBool, typeToNtSym);
-}
-
-void SygusGrammarCons::addDefaultRulesToInternal(
+void SygusGrammarCons::addDefaultRulesTo(
     const Options& opts,
     SygusGrammar& g,
     const Node& ntSym,
@@ -731,7 +709,7 @@ void SygusGrammarCons::collectTypes(const TypeNode& range,
   }
 }
 
-void SygusGrammarCons::addDefaultPredicateRulesToInternal(
+void SygusGrammarCons::addDefaultPredicateRulesTo(
     const Options& opts,
     SygusGrammar& g,
     const Node& ntSym,
