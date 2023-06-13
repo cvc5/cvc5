@@ -38,6 +38,7 @@ runs:
         cd build-shared/ && pwd=$(pwd)
         $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir = $pwd" $CCACHE_CONFIGPATH
         
+        mkdir install
         make -j${{ env.num_proc }}
 
         echo "build-dir=$pwd" >> $GITHUB_OUTPUT 
@@ -56,7 +57,8 @@ runs:
 
         cd build-static/ && pwd=$(pwd)
         $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir = $pwd" $CCACHE_CONFIGPATH
-
+        
+        mkdir install
         make -j${{ env.num_proc }}
 
         if [[ "${{ inputs.strip-bin }}" != "" ]]; then
