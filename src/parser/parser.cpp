@@ -28,9 +28,7 @@
 #include "base/output.h"
 #include "expr/kind.h"
 #include "parser/api/cpp/command.h"
-#include "parser/input.h"
 #include "parser/parser_exception.h"
-#include "parser/smt2/smt2_input.h"
 
 using namespace std;
 

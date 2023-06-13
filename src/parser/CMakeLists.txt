@@ -37,8 +37,6 @@ set(libcvc5parser_src_files
   flex_lexer.h
   flex_parser.cpp
   flex_parser.h
-  input.cpp
-  input.h
   parse_op.cpp
   parse_op.h
   parser.cpp
@@ -54,14 +52,10 @@ set(libcvc5parser_src_files
   smt2/smt2_lexer_new.h
   smt2/smt2_cmd_parser.cpp
   smt2/smt2_cmd_parser.h
-  smt2/smt2_input.cpp
-  smt2/smt2_input.h
   smt2/smt2_parser.cpp
   smt2/smt2_parser.h
   smt2/smt2_term_parser.cpp
   smt2/smt2_term_parser.h
-  smt2/sygus_input.cpp
-  smt2/sygus_input.h
   symbol_table.cpp
   symbol_table.h
   tokens.cpp
