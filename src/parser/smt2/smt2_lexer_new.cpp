@@ -25,8 +25,6 @@ namespace parser {
 
 Smt2LexerNew::Smt2LexerNew(bool isStrict, bool isSygus)
     : FlexLexer(),
-      d_peekedChar(false),
-      d_chPeeked(0),
       d_isStrict(isStrict),
       d_isSygus(isSygus)
 {
@@ -143,7 +141,7 @@ Token Smt2LexerNew::computeNextToken()
           // parse [01]+
           if (!parseNonEmptyCharList(CharacterClass::BIT))
           {
-            return Token::NONE;
+            parseError("Error expected bit string");
           }
           return Token::BINARY_LITERAL;
         case 'x':
@@ -151,7 +149,7 @@ Token Smt2LexerNew::computeNextToken()
           // parse [0-9a-fA-F]+
           if (!parseNonEmptyCharList(CharacterClass::HEXADECIMAL_DIGIT))
           {
-            return Token::NONE;
+            parseError("Error expected hexidecimal string");
           }
           return Token::HEX_LITERAL;
         case 'f':
@@ -159,20 +157,21 @@ Token Smt2LexerNew::computeNextToken()
           // parse [0-9]+m[0-9]+
           if (!parseNonEmptyCharList(CharacterClass::DECIMAL_DIGIT))
           {
-            return Token::NONE;
+            parseError("Error expected decimal for finite field value");
           }
           if (!parseLiteralChar('m'))
           {
-            return Token::NONE;
+            parseError("Error bad syntax for finite field value");
           }
           if (!parseNonEmptyCharList(CharacterClass::DECIMAL_DIGIT))
           {
-            return Token::NONE;
+            parseError("Error expected decimal for finite field size");
           }
           return Token::FIELD_LITERAL;
         default:
           // otherwise error
-          return Token::NONE;
+          parseError("Error finding token following #");
+          break;
       }
       break;
     case '"':
@@ -201,7 +200,7 @@ Token Smt2LexerNew::computeNextToken()
       // parse a simple symbol
       if (!parseChar(CharacterClass::SYMBOL_START))
       {
-        return Token::NONE;
+        parseError("Error expected symbol following :");
       }
       parseNonEmptyCharList(CharacterClass::SYMBOL);
       return Token::KEYWORD;
@@ -220,7 +219,7 @@ Token Smt2LexerNew::computeNextToken()
           // parse [0-9]+
           if (!parseNonEmptyCharList(CharacterClass::DECIMAL_DIGIT))
           {
-            return Token::NONE;
+            parseError("Error expected decimal string following .");
           }
         }
         else
@@ -241,6 +240,7 @@ Token Smt2LexerNew::computeNextToken()
       // otherwise error
       break;
   }
+  parseError("Error finding token");
   return Token::NONE;
 }
 
