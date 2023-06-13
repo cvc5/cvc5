@@ -21,7 +21,7 @@
 #include <cvc5/cvc5.h>
 
 #include "parser/smt2/smt2.h"
-#include "parser/smt2/smt2_lexer.h"
+#include "parser/smt2/smt2_lexer_new.h"
 
 namespace cvc5 {
 namespace parser {
@@ -34,7 +34,7 @@ namespace parser {
 class Smt2TermParser
 {
  public:
-  Smt2TermParser(Smt2Lexer& lex, Smt2State& state);
+  Smt2TermParser(Smt2LexerNew& lex, Smt2State& state);
   virtual ~Smt2TermParser() {}
 
   /** Parses an SMT-LIB term <term> */
@@ -152,7 +152,7 @@ class Smt2TermParser
    */
   Term parseMatchCasePattern(Sort headSort, std::vector<Term>& boundVars);
   /** The lexer */
-  Smt2Lexer& d_lex;
+  Smt2LexerNew& d_lex;
   /** The state */
   Smt2State& d_state;
 };

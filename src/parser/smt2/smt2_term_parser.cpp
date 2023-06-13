@@ -91,7 +91,7 @@ enum class ParseCtx
   TERM_ANNOTATE_NEXT_ATTR
 };
 
-Smt2TermParser::Smt2TermParser(Smt2Lexer& lex, Smt2State& state)
+Smt2TermParser::Smt2TermParser(Smt2LexerNew& lex, Smt2State& state)
     : d_lex(lex), d_state(state)
 {
 }

@@ -889,9 +889,8 @@ bool TermDbSygus::isSymbolicConsApp(Node n) const
   const DType& dt = tn.getDType();
   Assert(dt.isSygus());
   unsigned cindex = datatypes::utils::indexOf(n.getOperator());
-  Node sygusOp = dt[cindex].getSygusOp();
   // it is symbolic if it represents "any constant"
-  return sygusOp.getAttribute(SygusAnyConstAttribute());
+  return dt[cindex].isSygusAnyConstant();
 }
 
 bool TermDbSygus::canConstructKind(TypeNode tn,
