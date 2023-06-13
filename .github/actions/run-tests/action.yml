@@ -42,7 +42,7 @@ runs:
       shell: bash
       run: |
         if [[ "${{ inputs.check-python-bindings }}" != "true" ]]; then exit 0; fi
-        export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(find ${{ inputs.build-dir }}/install -name 'cvc5_python_base*')))"
+        find ${{ inputs.build-dir }}/install -name 'cvc5_python_base*' | grep . && export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(find ${{ inputs.build-dir }}/install -name 'cvc5_python_base*')))"
         echo PYTHONPATH=$PYTHONPATH
         python3 -c "import cvc5"
 
