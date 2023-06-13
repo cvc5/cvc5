@@ -30,7 +30,8 @@ SygusGrammar::SygusGrammar(const std::vector<Node>& sygusVars,
   NodeManager* nm = NodeManager::currentNM();
   for (const Node& ntSym : ntSyms)
   {
-    d_rules.emplace(ntSym, {});
+    std::vector<Node> emptyVec;
+    d_rules.emplace(ntSym, emptyVec);
     d_sdts.emplace(ntSym, SygusDatatype(ntSym.getName()));
     d_ntsToUnres.emplace(ntSym, nm->mkUnresolvedDatatypeSort(ntSym.getName()));
   }
@@ -98,7 +99,7 @@ void SygusGrammar::addAnyVariable(const Node& ntSym)
 
 void SygusGrammar::removeRule(const Node& ntSym, const Node& rule)
 {
-  std::map<Node, std::vector<Node>>::iterator itr = d_rules.find(ntSym);
+  std::unordered_map<Node, std::vector<Node>>::iterator itr = d_rules.find(ntSym);
   Assert(itr != d_rules.end());
   std::vector<Node>::iterator it =
       std::find(itr->second.begin(), itr->second.end(), rule);
@@ -120,7 +121,7 @@ TypeNode SygusGrammar::resolve(bool allowAny)
       for (const Node& r : g.second)
       {
         if (r.getKind() == kind::SKOLEM
-            && sm->getSkolemFunctionId(r) == SkolemFunId::SYGUS_ANY_CONSTANT)
+            && sm->getId(r) == SkolemFunId::SYGUS_ANY_CONSTANT)
         {
           allowConsts.insert(g.first);
           d_sdts.at(g.first).addAnyConstantConstructor(r.getType());
@@ -164,7 +165,7 @@ const std::vector<Node>& SygusGrammar::getNtSyms() const { return d_ntSyms; }
 
 const std::vector<Node>& SygusGrammar::getRulesFor(const Node& ntSym) const
 {
-  std::map<Node, std::vector<Node>>::const_iterator itr = d_rules.find(ntSym);
+  std::unordered_map<Node, std::vector<Node>>::const_iterator itr = d_rules.find(ntSym);
   Assert(itr != d_rules.end());
   return itr->second;
 }
