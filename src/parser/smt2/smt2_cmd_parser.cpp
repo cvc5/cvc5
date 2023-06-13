@@ -763,10 +763,10 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
     // (set-logic <symbol>)
     case Token::SET_LOGIC_TOK:
     {
+      SymbolManager* sm = d_state.getSymbolManager();
       std::string name = d_tparser.parseSymbol(CHECK_NONE, SYM_SORT);
       // replace the logic with the forced logic, if applicable.
-      std::string lname =
-          d_state.logicIsForced() ? d_state.getForcedLogic() : name;
+      std::string lname = sm->isLogicForced() ? sm->getLogic() : name;
       d_state.setLogic(lname);
       cmd.reset(new SetBenchmarkLogicCommand(lname));
     }

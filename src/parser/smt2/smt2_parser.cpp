@@ -49,6 +49,8 @@ Term Smt2Parser::parseNextExpression()
   {
     return Term();
   }
+  // check that the logic has been set
+  d_state.checkThatLogicIsSet();
   // Parse the term.
   return d_termParser.parseTerm();
 }

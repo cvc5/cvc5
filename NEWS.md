@@ -6,6 +6,8 @@ This file contains a summary of important user-visible changes.
        `Solver::mkFloatingPoint(const Term& sign, const Term& exp, const Term& sig)`,
        returns a floating-point value from the three IEEE-754 bit-vector value
        components.
+- API: Simplified the `Solver::mkTuple` method. The sorts of the elements no longer
+       need to be provided.
 - Support for timeout cores
   - API: New API function `Solver::getTimeoutCore()` when applicable
     returns a subset of the current assertions that cause the solver to timeout

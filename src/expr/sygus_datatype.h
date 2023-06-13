@@ -27,12 +27,6 @@
 
 namespace cvc5::internal {
 
-/** Attribute true for variables that represent any constant */
-struct SygusAnyConstAttributeId
-{
-};
-typedef expr::Attribute<SygusAnyConstAttributeId, bool> SygusAnyConstAttribute;
-
 /**
  * Information necessary to specify a sygus constructor. Further detail on these
  * fields can be found in SygusDatatype below.

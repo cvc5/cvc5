@@ -20,40 +20,22 @@
 
 #include "expr/node.h"
 #include "smt/env_obj.h"
-#include "theory/quantifiers/candidate_rewrite_database.h"
-#include "theory/quantifiers/query_generator.h"
 #include "theory/quantifiers/solution_filter.h"
-#include "theory/quantifiers/sygus_sampler.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-/** ExpressionMinerManager
+/**
+ * ExpressionMinerManager
  *
- * This class manages a set of expression miners. It provides a common place
- * to register expressions so that multiple mining algorithms can be run in
- * coordination, possibly sharing information and utilities like a common
- * sampling object.
+ * NOTE: this should be renamed to "solution filter".
  */
 class ExpressionMinerManager : protected EnvObj
 {
  public:
   ExpressionMinerManager(Env& env);
   ~ExpressionMinerManager() {}
-  /**  Initialize this class
-   *
-   * Initializes this class, informing it that the free variables of terms
-   * added to this class via addTerm will have free variables that are a subset
-   * of vars, and have type tn. All expression miners in this class with be
-   * initialized with this variable list. The arguments nsamples and
-   * unique_type_ids are used for initializing the sampler class of this manager
-   * (see SygusSampler::initialize for details).
-   */
-  void initialize(const std::vector<Node>& vars,
-                  TypeNode tn,
-                  unsigned nsamples,
-                  bool unique_type_ids = false);
   /** Initialize this class, sygus version
    *
    * Initializes this class, informing it that the terms added to this class
@@ -63,12 +45,7 @@ class ExpressionMinerManager : protected EnvObj
    * If useSygusType is false, the terms are the builtin equivalent of these
    * terms. The argument nsamples is used to initialize the sampler.
    */
-  void initializeSygus(TermDbSygus* tds,
-                       Node f,
-                       unsigned nsamples,
-                       bool useSygusType);
-  /** initialize options */
-  void initializeMinersForOptions();
+  void initializeSygus(const TypeNode& tn);
   /** add term
    *
    * Expression miners may print information on the output stream out, for
@@ -76,40 +53,19 @@ class ExpressionMinerManager : protected EnvObj
    * distinct (up to T-equivalence) with all previous terms added to this class,
    * which is computed based on the miners that this manager enables.
    */
-  bool addTerm(Node sol, std::ostream& out);
-  /**
-   * Same as above, but the argument rew_print is set to true if a rewrite rule
-   * was printed on the output stream out.
-   */
-  bool addTerm(Node sol, std::ostream& out, bool& rew_print);
+  bool addTerm(Node sol);
 
  private:
-  /** enable rewrite rule synthesis (--sygus-rr-synth) */
-  void enableRewriteRuleSynth();
-  /** enable query generation (--sygus-query-gen) */
-  void enableQueryGeneration(unsigned deqThresh);
   /** filter strong solutions (--sygus-filter-sol=strong) */
   void enableFilterStrongSolutions();
   /** filter weak solutions (--sygus-filter-sol=weak) */
   void enableFilterWeakSolutions();
-  /** whether we are doing rewrite synthesis */
-  bool d_doRewSynth;
   /** whether we are filtering solutions based on logical strength */
   bool d_doFilterLogicalStrength;
-  /** the sygus function passed to initializeSygus, if any */
-  Node d_sygus_fun;
-  /** whether we are using sygus types */
-  bool d_use_sygus_type;
-  /** the sygus term database of the quantifiers engine */
-  TermDbSygus* d_tds;
-  /** candidate rewrite database */
-  CandidateRewriteDatabase d_crd;
-  /** The query generator we are using */
-  std::unique_ptr<QueryGenerator> d_qg;
   /** solution filter based on logical strength */
   SolutionFilterStrength d_sols;
-  /** sygus sampler object */
-  SygusSampler d_sampler;
+  /** The variables */
+  std::vector<Node> d_vars;
 };
 
 }  // namespace quantifiers
