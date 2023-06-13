@@ -35,7 +35,6 @@ namespace bags {
  */
 struct BinaryOperatorTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -49,7 +48,6 @@ struct BinaryOperatorTypeRule
  */
 struct SubBagTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -62,7 +60,6 @@ struct SubBagTypeRule
  */
 struct CountTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -75,7 +72,6 @@ struct CountTypeRule
  */
 struct MemberTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -87,7 +83,6 @@ struct MemberTypeRule
  */
 struct DuplicateRemovalTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -100,7 +95,6 @@ struct DuplicateRemovalTypeRule
  */
 struct BagMakeTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nm,
                               TNode n,
                               bool check,
@@ -113,7 +107,6 @@ struct BagMakeTypeRule
  */
 struct IsSingletonTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -125,7 +118,6 @@ struct IsSingletonTypeRule
  */
 struct EmptyBagTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -137,7 +129,6 @@ struct EmptyBagTypeRule
  */
 struct CardTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -149,7 +140,6 @@ struct CardTypeRule
  */
 struct ChooseTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -161,7 +151,6 @@ struct ChooseTypeRule
  */
 struct FromSetTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -173,7 +162,6 @@ struct FromSetTypeRule
  */
 struct ToSetTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -186,7 +174,6 @@ struct ToSetTypeRule
  */
 struct BagMapTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -199,7 +186,6 @@ struct BagMapTypeRule
  */
 struct BagFilterTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -212,7 +198,6 @@ struct BagFilterTypeRule
  */
 struct BagFoldTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -226,7 +211,6 @@ struct BagFoldTypeRule
  */
 struct BagPartitionTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -239,7 +223,6 @@ struct BagPartitionTypeRule
  */
 struct TableProductTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -254,7 +237,6 @@ struct TableProductTypeRule
  */
 struct TableProjectTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -271,7 +253,6 @@ struct TableProjectTypeRule
  */
 struct TableAggregateTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -289,7 +270,6 @@ struct TableAggregateTypeRule
  */
 struct TableJoinTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -304,7 +284,6 @@ struct TableJoinTypeRule
  */
 struct TableGroupTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
