@@ -685,6 +685,12 @@ const DType& TypeNode::getDType() const
   return NodeManager::currentNM()->getDTypeFor(*this);
 }
 
+bool TypeNode::isRelation() const
+{
+  return getKind() == kind::SET_TYPE
+         && (*this)[0].getKind() == kind::TUPLE_TYPE;
+}
+
 bool TypeNode::isBag() const
 {
   return getKind() == kind::BAG_TYPE;
