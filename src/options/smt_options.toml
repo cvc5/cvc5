@@ -176,12 +176,12 @@ name   = "SMT Layer"
   help       = "if an unsat core is produced, it is reduced to a minimal unsat core"
 
 [[option]]
-  name       = "printUseNames"
+  name       = "printCoresFull"
   category   = "regular"
-  long       = "print-use-names"
+  long       = "print-cores-full"
   type       = "bool"
-  default    = "true"
-  help       = "use names for assertions when printing formulas, e.g. in unsat cores"
+  default    = "false"
+  help       = "print all formulas regardless of whether they are named, e.g. in unsat cores"
 
 [[option]]
   name       = "checkUnsatCores"
