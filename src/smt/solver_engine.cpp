@@ -781,11 +781,14 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore()
 {
   Trace("smt") << "SolverEngine::getTimeoutCore()" << std::endl;
   beginCall(true);
+  // refresh the assertions
+  d_smtDriver->refreshAssertions();
   TimeoutCoreManager tcm(*d_env.get());
   std::pair<Result, std::vector<Node>> ret =
-      tcm.getTimeoutCore(d_smtSolver->getAssertions());
+      tcm.getTimeoutCore(d_smtSolver->getPreprocessedAssertions());
+  std::vector<Node> core = convertPreprocessedToUnsatCore(ret.second, true);
   endCall();
-  return ret;
+  return std::pair<Result, std::vector<Node>>(ret.first, core);
 }
 
 std::vector<Node> SolverEngine::getUnsatAssumptions(void)
@@ -1243,6 +1246,21 @@ void SolverEngine::ensureWellFormedTerms(const std::vector<Node>& ns,
   }
 }
 
+std::vector<Node> SolverEngine::convertPreprocessedToUnsatCore(const std::vector<Node>& ppa, bool isInternal)
+{
+  std::vector<Node> core;
+  CDProof cdp(*d_env);
+  Node fnode = NodeManager::currentNM()->mkConst(false);
+  cdp.addStep(fnode, PfRule::SAT_REFUTATION, ppa, {});
+  std::shared_ptr<ProofNode> pepf = cdp.getProofFor(fnode);
+  Assert(pepf != nullptr);
+  std::shared_ptr<ProofNode> pfn =
+      d_pfManager->connectProofToAssertions(pepf, *d_smtSolver.get());
+  d_ucManager->getUnsatCore(
+      pfn, d_smtSolver->getAssertions(), core, isInternal);
+  return core;
+}
+
 std::vector<Node> SolverEngine::getSubstitutedAssertions()
 {
   std::vector<Node> easserts = getAssertions();
@@ -1378,17 +1396,7 @@ UnsatCore SolverEngine::getUnsatCoreInternal(bool isInternal)
   // unsat core computed by the prop engine
   std::vector<Node> pcore;
   pe->getUnsatCore(pcore);
-  CDProof cdp(*d_env);
-  Node fnode = NodeManager::currentNM()->mkConst(false);
-  cdp.addStep(fnode, PfRule::SAT_REFUTATION, pcore, {});
-  std::shared_ptr<ProofNode> pepf = cdp.getProofFor(fnode);
-
-  Assert(pepf != nullptr);
-  std::shared_ptr<ProofNode> pfn =
-      d_pfManager->connectProofToAssertions(pepf, *d_smtSolver.get());
-  std::vector<Node> core;
-  d_ucManager->getUnsatCore(
-      pfn, d_smtSolver->getAssertions(), core, isInternal);
+  std::vector<Node> core = convertPreprocessedToUnsatCore(pcore, isInternal);
   return UnsatCore(core);
 }
 

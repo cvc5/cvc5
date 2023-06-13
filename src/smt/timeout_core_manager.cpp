@@ -44,17 +44,8 @@ TimeoutCoreManager::TimeoutCoreManager(Env& env)
 }
 
 std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
-    const Assertions& as)
+    const std::vector<Node>& ppAsserts)
 {
-  // provide all assertions initially
-  std::vector<Node> ppAsserts;
-  const context::CDList<Node>& al = as.getAssertionList();
-  for (const Node& a : al)
-  {
-    Trace("smt-to-core-asserts")
-        << "#" << ppAsserts.size() << ": " << a << std::endl;
-    ppAsserts.push_back(a);
-  }
   initializePreprocessedAssertions(ppAsserts);
 
   std::vector<Node> nextAssertions;
