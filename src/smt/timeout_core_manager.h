@@ -69,7 +69,7 @@ class TimeoutCoreManager : protected EnvObj
  public:
   TimeoutCoreManager(Env& env);
 
-  /** get timeout core for the current set of assertions stored in as.
+  /** get timeout core for the current set of assertions stored in ppAsserts.
    *
    * Returns a pair containing a result and a list of formulas C. If the result
    * is unknown and the reason is timeout, then the list C corresponds to
