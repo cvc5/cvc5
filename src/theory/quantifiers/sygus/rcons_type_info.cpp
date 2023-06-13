@@ -57,13 +57,13 @@ void RConsTypeInfo::initialize(Env& env,
 Node RConsTypeInfo::nextEnum()
 {
   size_t i = Random::getRandom().pickWithProb(d_cp) ? 1 : 0;
+  d_cp *= d_p;
   if (d_enumerators[i] == nullptr)
   {
     // the enumerator is already finished
     return Node::null();
   }
   Node sz = d_enumerators[i]->getCurrent();
-  d_cp *= d_p;
   if (!d_enumerators[i]->increment())
   {
     Trace("sygus-rcons") << "no increment" << std::endl;
