@@ -13,6 +13,7 @@ This file contains a summary of important user-visible changes.
     returns a subset of the current assertions that cause the solver to timeout
     without a provided timeout (option `--timeout-core-timeout`).
   - SMT-LIB: New command `(get-timeout-core)` which invokes the above method.
+- Removed support for the ANTLR parser and parsing for the TPTP language.
 
 cvc5 1.0.5
 ==========
