@@ -784,8 +784,15 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore()
   // refresh the assertions
   d_smtDriver->refreshAssertions();
   TimeoutCoreManager tcm(*d_env.get());
+    const context::CDList<Node>& assertions =
+        d_smtSolver->getPreprocessedAssertions();
+  std::vector<Node> passerts;
+  for (const Node& a :assertions)
+  {
+    passerts.push_back(a);
+  }
   std::pair<Result, std::vector<Node>> ret =
-      tcm.getTimeoutCore(d_smtSolver->getPreprocessedAssertions());
+      tcm.getTimeoutCore(passerts);
   std::vector<Node> core = convertPreprocessedToUnsatCore(ret.second, true);
   endCall();
   return std::pair<Result, std::vector<Node>>(ret.first, core);
@@ -1521,7 +1528,7 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   if (c == modes::PROOF_COMPONENT_RAW_PREPROCESS)
   {
     // use all preprocessed assertions
-    const std::vector<Node>& assertions =
+    const context::CDList<Node>& assertions =
         d_smtSolver->getPreprocessedAssertions();
     connectToPreprocess = true;
     // We start with (ASSUME a) for each preprocessed assertion a. This
