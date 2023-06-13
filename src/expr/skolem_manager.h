@@ -375,7 +375,7 @@ class SkolemManager
   /**
    * Get skolem function id
    */
-  SkolemFunId getSkolemFunctionId(TNode k) const;
+  SkolemFunId getId(TNode k) const;
   /**
    * Create a skolem constant with the given name, type, and comment. This
    * should only be used if the definition of the skolem does not matter.
