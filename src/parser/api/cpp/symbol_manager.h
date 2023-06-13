@@ -239,12 +239,16 @@ class CVC5_EXPORT SymbolManager
   /**
    * Force the logic to the given string. Note that this information is
    * context-independent.
+   *
+   * @param logic The string of the logic
+   * @param isForced If true, the logic is set and we ignore subsequent calls
+   * to this method where isForced is false.
    */
-  void forceLogic(const std::string& logic);
-  /** Have we called the above method? */
+  void setLogic(const std::string& logic, bool isForced = false);
+  /** Have we called the above method with isForced=true? */
   bool isLogicForced() const;
-  /** Get the last string in an above call, valid if logic is forced */
-  const std::string& getForcedLogic() const;
+  /** Get the last string in an above call */
+  const std::string& getLogic() const;
 
  private:
   /** The API Solver object. */
@@ -259,8 +263,8 @@ class CVC5_EXPORT SymbolManager
   bool d_globalDeclarations;
   /** Whether the logic has been forced with --force-logic. */
   bool d_logicIsForced;
-  /** The logic, if d_logicIsForced == true. */
-  std::string d_forcedLogic;
+  /** The logic. */
+  std::string d_logic;
 };
 
 }  // namespace parser

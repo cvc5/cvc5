@@ -20,12 +20,12 @@
 #include "expr/node.h"
 #include "theory/arith/arith_preprocess.h"
 #include "theory/arith/arith_rewriter.h"
-#include "theory/arith/arith_state.h"
 #include "theory/arith/arith_subs.h"
 #include "theory/arith/branch_and_bound.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/pp_rewrite_eq.h"
 #include "theory/theory.h"
+#include "theory/theory_state.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -157,8 +157,8 @@ class TheoryArith : public Theory {
   eq::ProofEqEngine* getProofEqEngine();
   /** Timer for ppRewrite */
   TimerStat d_ppRewriteTimer;
-  /** The state object wrapping TheoryArithPrivate  */
-  ArithState d_astate;
+  /** The state object  */
+  TheoryState d_astate;
   /** The arith::InferenceManager. */
   InferenceManager d_im;
   /** The preprocess rewriter for equality */

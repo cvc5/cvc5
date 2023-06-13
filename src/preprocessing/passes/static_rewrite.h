@@ -10,13 +10,13 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The TheoryPpStaticRewrite preprocessing pass.
+ * The StaticRewrite preprocessing pass.
  */
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__PREPROCESSING__PASSES__THEORY_REWRITE_EQ_H
-#define CVC5__PREPROCESSING__PASSES__THEORY_REWRITE_EQ_H
+#ifndef CVC5__PREPROCESSING__PASSES__STATIC_REWRITE_H
+#define CVC5__PREPROCESSING__PASSES__STATIC_REWRITE_H
 
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
@@ -32,10 +32,10 @@ namespace passes {
  * recommended that ppRewrite is called on equalities generated in lemmas (e.g.
  * it may interfere with equality splitting in theory combination).
  */
-class TheoryPpStaticRewrite : public PreprocessingPass
+class StaticRewrite : public PreprocessingPass
 {
  public:
-  TheoryPpStaticRewrite(PreprocessingPassContext* preprocContext);
+  StaticRewrite(PreprocessingPassContext* preprocContext);
 
  protected:
   PreprocessingPassResult applyInternal(
@@ -54,4 +54,4 @@ class TheoryPpStaticRewrite : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace cvc5::internal
 
-#endif /* CVC5__PREPROCESSING__PASSES__THEORY_REWRITE_EQ_H */
+#endif /* CVC5__PREPROCESSING__PASSES__STATIC_PP_REWRITE_H */

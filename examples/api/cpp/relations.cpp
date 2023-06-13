@@ -114,7 +114,7 @@ int main()
 
   // (assert (forall ((x Person)) (not (set.member (tuple x x) ancestor))))
   Term x = solver.mkVar(personSort, "x");
-  Term xxTuple = solver.mkTuple({personSort, personSort}, {x, x});
+  Term xxTuple = solver.mkTuple({x, x});
   Term member = solver.mkTerm(SET_MEMBER, {xxTuple, ancestor});
   Term notMember = solver.mkTerm(NOT, {member});
 

@@ -1009,15 +1009,11 @@ def test_get_rounding_mode_value(solver):
 
 
 def test_get_tuple(solver):
-    s1 = solver.getIntegerSort()
-    s2 = solver.getRealSort()
-    s3 = solver.getStringSort()
-
     t1 = solver.mkInteger(15)
     t2 = solver.mkReal(17, 25)
     t3 = solver.mkString("abc")
 
-    tup = solver.mkTuple([s1, s2, s3], [t1, t2, t3])
+    tup = solver.mkTuple([t1, t2, t3])
 
     assert tup.isTupleValue()
     assert [t1, t2, t3] == tup.getTupleValue()
