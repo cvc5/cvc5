@@ -80,7 +80,7 @@ void SmtDriverDeepRestarts::getNextAssertions(
   preprocessing::IteSkolemMap& ismr = ap.getIteSkolemMap();
   const context::CDHashMap<size_t, Node>& ppSkolemMap =
       d_smt.getPreprocessedSkolemMap();
-  for (const std::pair<const size_t, Node>& k : ppSkolemMap)
+  for (const auto& k : ppSkolemMap)
   {
     // carry the entire skolem map, which should align with the order of
     // assertions passed into the new assertions pipeline
