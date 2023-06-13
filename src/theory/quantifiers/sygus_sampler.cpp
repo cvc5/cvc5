@@ -93,20 +93,15 @@ void SygusSampler::initialize(TypeNode tn,
   initializeSamples(nsamples);
 }
 
-void SygusSampler::initializeSygus(TermDbSygus* tds,
-                                   Node f,
-                                   unsigned nsamples,
-                                   bool useSygusType)
+void SygusSampler::initializeSygus(TypeNode ftn, unsigned nsamples)
 {
-  d_tds = tds;
-  d_use_sygus_type = useSygusType;
   d_is_valid = true;
-  d_ftn = f.getType();
+  d_ftn = ftn;
   Assert(d_ftn.isDatatype());
   const DType& dt = d_ftn.getDType();
   Assert(dt.isSygus());
 
-  Trace("sygus-sample") << "Register sampler for " << f << std::endl;
+  Trace("sygus-sample") << "Register sampler for " << ftn << std::endl;
 
   d_vars.clear();
   d_type_vars.clear();
@@ -278,25 +273,9 @@ Node SygusSampler::registerTerm(Node n, bool forceKeep)
     // do nothing
     return n;
   }
-  Node bn = n;
   TypeNode tn = n.getType();
-  // If we are using sygus types, get the builtin analog of n.
-  if (d_use_sygus_type)
-  {
-    bn = d_tds->sygusToBuiltin(n);
-    d_builtin_to_sygus[tn][bn] = n;
-  }
   // cache based on the (original) type of n
-  Node res = d_trie[tn].add(bn, this, 0, d_samples.size(), forceKeep);
-  // If we are using sygus types, map back to an original.
-  // Notice that d_builtin_to_sygus is not necessarily bijective.
-  if (d_use_sygus_type)
-  {
-    std::map<Node, Node>& bts = d_builtin_to_sygus[tn];
-    Assert(bts.find(res) != bts.end());
-    res = res != bn ? bts[res] : n;
-  }
-  return res;
+  return d_trie[tn].add(n, this, 0, d_samples.size(), forceKeep);
 }
 
 bool SygusSampler::isContiguous(Node n)
@@ -458,15 +437,13 @@ void SygusSampler::getVariables(std::vector<Node>& vars) const
   vars.insert(vars.end(), d_vars.begin(), d_vars.end());
 }
 
-void SygusSampler::getSamplePoint(unsigned index,
-                                  std::vector<Node>& pt)
+const std::vector<Node>& SygusSampler::getSamplePoint(size_t index) const
 {
   Assert(index < d_samples.size());
-  std::vector<Node>& spt = d_samples[index];
-  pt.insert(pt.end(), spt.begin(), spt.end());
+  return d_samples[index];
 }
 
-void SygusSampler::addSamplePoint(std::vector<Node>& pt)
+void SygusSampler::addSamplePoint(const std::vector<Node>& pt)
 {
   Assert(pt.size() == d_vars.size());
   d_samples.push_back(pt);
@@ -768,69 +745,6 @@ void SygusSampler::registerSygusType(TypeNode tn)
         registerSygusType(tnc);
       }
     }
-  }
-}
-
-void SygusSampler::checkEquivalent(Node bv, Node bvr, std::ostream& out)
-{
-  if (bv == bvr)
-  {
-    return;
-  }
-  Trace("sygus-rr-verify") << "Testing rewrite rule " << bv << " ---> " << bvr
-                           << std::endl;
-
-  // see if they evaluate to same thing on all sample points
-  bool ptDisequal = false;
-  bool ptDisequalConst = false;
-  unsigned pt_index = 0;
-  Node bve, bvre;
-  for (unsigned i = 0, npoints = getNumSamplePoints(); i < npoints; i++)
-  {
-    bve = evaluate(bv, i);
-    bvre = evaluate(bvr, i);
-    if (bve != bvre)
-    {
-      ptDisequal = true;
-      pt_index = i;
-      if (bve.isConst() && bvre.isConst())
-      {
-        ptDisequalConst = true;
-        break;
-      }
-    }
-  }
-  // bv and bvr should be equivalent under examples
-  if (ptDisequal)
-  {
-    std::vector<Node> vars;
-    getVariables(vars);
-    std::vector<Node> pt;
-    getSamplePoint(pt_index, pt);
-    Assert(vars.size() == pt.size());
-    std::stringstream ptOut;
-    for (unsigned i = 0, size = pt.size(); i < size; i++)
-    {
-      ptOut << "  " << vars[i] << " -> " << pt[i] << std::endl;
-    }
-    if (!ptDisequalConst)
-    {
-      d_env.verbose(1)
-          << "Warning: " << bv << " and " << bvr
-          << " evaluate to different (non-constant) values on point:"
-          << std::endl;
-      d_env.verbose(1) << ptOut.str();
-      return;
-    }
-    // we have detected unsoundness in the rewriter
-    out << "(unsound-rewrite " << bv << " " << bvr << ")" << std::endl;
-    // debugging information
-    out << "Terms are not equivalent for : " << std::endl;
-    out << ptOut.str();
-    Assert(bve != bvre);
-    out << "where they evaluate to " << bve << " and " << bvre << std::endl;
-    AlwaysAssert(false)
-        << "--sygus-rr-verify detected unsoundness in the rewriter!";
   }
 }
 

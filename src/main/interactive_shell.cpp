@@ -97,7 +97,7 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
   if (d_solver->getOptionInfo("force-logic").setByUser)
   {
     LogicInfo tmp(d_solver->getOption("force-logic"));
-    d_symman->forceLogic(tmp.getLogicString());
+    d_symman->setLogic(tmp.getLogicString(), true);
   }
   /* Create parser with bogus input. */
   d_parser.reset(new cvc5::parser::InputParser(d_solver, d_symman));

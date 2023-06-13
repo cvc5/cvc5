@@ -73,8 +73,7 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::vector<Node>& queries)
       std::vector<Node> aTermCurr = activeTerms;
       std::shuffle(aTermCurr.begin(), aTermCurr.end(), Random::getRandom());
       Node qy = nm->mkAnd(activeTerms);
-      queries.push_back(qy);
-      Result r = checkCurrent(qy, currModel);
+      Result r = checkCurrent(qy, currModel, queries);
       if (r.getStatus() == Result::UNSAT)
       {
         // exclude the last active term
@@ -125,29 +124,30 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::vector<Node>& queries)
 }
 
 Result QueryGeneratorUnsat::checkCurrent(const Node& qy,
-                                         std::vector<Node>& currModel)
+                                         std::vector<Node>& currModel,
+                                         std::vector<Node>& queries)
 {
-  Trace("sygus-qgen-check") << "Check: " << qy << std::endl;
+  Trace("expr-miner-check") << "Check (qgu): " << qy << std::endl;
   std::unique_ptr<SolverEngine> queryChecker;
   SubsolverSetupInfo ssi(d_env, d_subOptions);
   initializeChecker(queryChecker, qy, ssi);
   Result r = queryChecker->checkSat();
-  Trace("sygus-qgen-check") << "..finished check got " << r << std::endl;
+  Trace("expr-miner-check") << "...result: " << r << std::endl;
   if (r.getStatus() == Result::UNSAT)
   {
     // if unsat, get the unsat core
     std::vector<Node> unsatCore;
     getUnsatCoreFromSubsolver(*queryChecker.get(), unsatCore);
     Assert(!unsatCore.empty());
-    Trace("sygus-qgen-check") << "...unsat core: " << unsatCore << std::endl;
+    Trace("expr-miner-check") << "...unsat core: " << unsatCore << std::endl;
     d_cores.add(d_false, unsatCore);
   }
   else if (r.getStatus() == Result::SAT)
   {
     getModelFromSubsolver(*queryChecker.get(), d_skolems, currModel);
-    Trace("sygus-qgen-check") << "...model: " << currModel << std::endl;
+    Trace("expr-miner-check") << "...model: " << currModel << std::endl;
   }
-  dumpQuery(qy, r);
+  dumpQuery(qy, r, queries);
   return r;
 }
 
