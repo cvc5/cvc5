@@ -30,7 +30,7 @@ SygusGrammar::SygusGrammar(const std::vector<Node>& sygusVars,
   NodeManager* nm = NodeManager::currentNM();
   for (const Node& ntSym : ntSyms)
   {
-    d_rules[ntSym].clear();
+    d_rules.emplace(ntSym, {});
     d_sdts.emplace(ntSym, SygusDatatype(ntSym.getName()));
     d_ntsToUnres.emplace(ntSym, nm->mkUnresolvedDatatypeSort(ntSym.getName()));
   }
