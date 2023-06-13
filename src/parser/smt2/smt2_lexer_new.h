@@ -59,37 +59,6 @@ class Smt2LexerNew : public FlexLexer
    * null terminate.
    */
   Token computeNextToken();
-  /** Get the next character */
-  char nextChar()
-  {
-    char res;
-    if (d_peekedChar)
-    {
-      res = d_chPeeked;
-      d_peekedChar = false;
-    }
-    else
-    {
-      res = readNextChar();
-      if (res == '\n')
-      {
-        d_span.d_end.d_line++;
-        d_span.d_end.d_column = 0;
-      }
-      else
-      {
-        d_span.d_end.d_column++;
-      }
-    }
-    return res;
-  }
-  /** Save character */
-  void saveChar(char ch)
-  {
-    Assert(!d_peekedChar);
-    d_peekedChar = true;
-    d_chPeeked = ch;
-  }
   /** Push a character to the stored token */
   void pushToToken(char ch)
   {
@@ -137,10 +106,6 @@ class Smt2LexerNew : public FlexLexer
   Token tokenizeCurrentSymbol() const;
   /** The characters in the current token */
   std::vector<char> d_token;
-  /** True if we have a saved character that has not been consumed yet. */
-  bool d_peekedChar;
-  /** The saved character. */
-  char d_chPeeked;
   /** Is strict parsing enabled */
   bool d_isStrict;
   /** Is sygus enabled */
