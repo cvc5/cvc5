@@ -209,7 +209,7 @@ bool SkolemManager::isSkolemFunction(TNode k,
   return true;
 }
 
-SkolemFunId SkolemManager::getSkolemFunctionId(TNode k) const
+SkolemFunId SkolemManager::getId(TNode k) const
 {
   SkolemFunId id;
   Node cacheVal;

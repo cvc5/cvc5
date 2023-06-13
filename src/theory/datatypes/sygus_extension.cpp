@@ -589,7 +589,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
   // get the kind of the constructor operator
   Kind nk = ti.getConsNumKind(tindex);
   // is this the any-constant constructor?
-  bool isAnyConstant = sop.getAttribute(SygusAnyConstAttribute());
+  bool isAnyConstant = dt[tindex].isSygusAnyConstant();
 
   // conjunctive conclusion of lemma
   std::vector<Node> sbp_conj;
