@@ -915,7 +915,16 @@ cdef class DatatypeSelector:
 # ----------------------------------------------------------------------------
 
 cdef class Op:
-    """Wrapper class for :cpp:class:`cvc5::api::Op`."""
+    """
+        A cvc5 operator.
+
+        An operator is a term that represents certain operators,
+        instantiated with its required parameters, e.g.,
+        a term of kind
+        :py:obj:`BITVECTOR_EXTRACT <Kind.BITVECTOR_EXTRACT>`.
+
+        Wrapper class for :cpp:class:`cvc5::Op`.
+    """
     cdef c_Op cop
     cdef TermManager tm
 
@@ -939,10 +948,10 @@ cdef class Op:
 
     def getKind(self):
         """
-            :return: the kind of this operator.
+            :return: The kind of this operator.
         """
-        return kind(<int> self.cop.getKind())
-    
+        return Kind(<int> self.cop.getKind())
+
     def isIndexed(self):
         """
             :return: True iff this operator is indexed.
