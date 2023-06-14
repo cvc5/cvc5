@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -220,6 +220,16 @@ class CoreSolver : protected EnvObj
   //-----------------------end inference steps
 
   //--------------------------- query functions
+  /**
+   * Get relevant disequalities, which is a list of disequalities that are
+   * asserted in the current context between strings whose lengths are not
+   * already disequal. This list is filtered to not contain pairs of
+   * disequalities that are congruent.
+   *
+   * This list is used, e.g., when implementing the injectivity lemma schema
+   * for str.to_code.
+   */
+  const std::vector<Node>& getRelevantDeq() const;
   /**
    * Get normal form for string term n. For details on this data structure,
    * see theory/strings/normal_form.h.
@@ -522,6 +532,8 @@ class CoreSolver : protected EnvObj
    * on the ordering described in checkCycles.
    */
   std::vector<Node> d_strings_eqc;
+  /** The relevant disequalities */
+  std::vector<Node> d_rlvDeq;
   /** map from terms to their normal forms */
   std::map<Node, NormalForm> d_normal_form;
   /**

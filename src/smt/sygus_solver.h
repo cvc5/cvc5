@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -166,6 +166,18 @@ class SygusSolver : protected EnvObj
    * synthesis conjecture.
    */
   bool getSubsolverSynthSolutions(std::map<Node, Node>& solMap);
+
+  /**
+   * Returns true if we can trust the results of synthesis solutions for
+   * solvers that use the given options. This is false e.g. if we are using an
+   * approximate checking algorithm for solution correctness.
+   */
+  static bool canTrustSynthesisResult(const Options& opts);
+  /**
+   * Get the list of synthesis functions in the current context, each paired
+   * with their corresponding grammar (if one exists).
+   */
+  std::vector<std::pair<Node, TypeNode>> getSynthFunctions() const;
 
  private:
   /**

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -344,7 +344,7 @@ atomicFormula[cvc5::Term& expr]
         }
       }
     | { // predicate
-        p.d_type = SOLVER->getBooleanSort();
+        PARSER_STATE->markPredicate(p);
         expr = args.empty() ? PARSER_STATE->parseOpToExpr(p)
                             : PARSER_STATE->applyParseOp(p, args);
       }
@@ -382,7 +382,7 @@ atomicFormula[cvc5::Term& expr]
     )?
   | definedPred[p] (LPAREN_TOK arguments[args] RPAREN_TOK)
     {
-      p.d_type = SOLVER->getBooleanSort();
+      PARSER_STATE->markPredicate(p);
       expr = PARSER_STATE->applyParseOp(p, args);
     }
   | definedProp[expr]
@@ -422,7 +422,7 @@ thfAtomicFormula[cvc5::ParseOp& p]
   | conditionalTerm[p.d_expr]
   | thfDefinedPred[p] (LPAREN_TOK arguments[args] RPAREN_TOK)?
     {
-      p.d_type = SOLVER->getBooleanSort();
+      PARSER_STATE->markPredicate(p);
       if (!args.empty())
       {
         p.d_expr = PARSER_STATE->applyParseOp(p, args);

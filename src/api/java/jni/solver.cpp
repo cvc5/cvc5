@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -196,7 +196,6 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkFiniteFieldSort(
   return reinterpret_cast<jlong>(sortPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
-
 
 /*
  * Class:     io_github_cvc5_Solver
@@ -775,20 +774,18 @@ Java_io_github_cvc5_Solver_mkTerm__JJ_3J(JNIEnv* env,
 /*
  * Class:     io_github_cvc5_Solver
  * Method:    mkTuple
- * Signature: (J[J[J)J
+ * Signature: (J[J)J
  */
 JNIEXPORT jlong JNICALL
 Java_io_github_cvc5_Solver_mkTuple(JNIEnv* env,
                                    jobject,
                                    jlong pointer,
-                                   jlongArray sortPointers,
                                    jlongArray termPointers)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  std::vector<Sort> sorts = getObjectsFromPointers<Sort>(env, sortPointers);
   std::vector<Term> terms = getObjectsFromPointers<Term>(env, termPointers);
-  Term* retPointer = new Term(solver->mkTuple(sorts, terms));
+  Term* retPointer = new Term(solver->mkTuple(terms));
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
@@ -1253,8 +1250,7 @@ Java_io_github_cvc5_Solver_mkBitVector__JILjava_lang_String_2I(
  * Method:    mkFiniteFieldElem
  * Signature: (JLjava/lang/String;J)J
  */
-JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_Solver_mkFiniteFieldElem(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkFiniteFieldElem(
     JNIEnv* env, jobject, jlong pointer, jstring jS, jlong sortPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1395,6 +1391,29 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkFloatingPoint(
   Term* val = reinterpret_cast<Term*>(valPointer);
   Term* retPointer =
       new Term(solver->mkFloatingPoint((uint32_t)exp, (uint32_t)sig, *val));
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    mkFloatingPoint
+ * Signature: (JJJJ)J
+ */
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_Solver_mkFloatingPointX(JNIEnv* env,
+                                            jobject,
+                                            jlong pointer,
+                                            jlong signPointer,
+                                            jlong expPointer,
+                                            jlong sigPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  Term* sign = reinterpret_cast<Term*>(signPointer);
+  Term* exp = reinterpret_cast<Term*>(expPointer);
+  Term* sig = reinterpret_cast<Term*>(sigPointer);
+  Term* retPointer = new Term(solver->mkFloatingPoint(*sign, *exp, *sig));
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
@@ -2003,6 +2022,35 @@ Java_io_github_cvc5_Solver_getDifficulty(JNIEnv* env, jobject, jlong pointer)
     env->CallObjectMethod(hashMap, putMethod, key, value);
   }
   return hashMap;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    getTimeoutCore
+ * Signature: (J)Lio/github/cvc5/Pair;
+ */
+JNIEXPORT jobject JNICALL
+Java_io_github_cvc5_Solver_getTimeoutCore(JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  auto [result, terms] = solver->getTimeoutCore();
+  Result* resultPointer = new Result(result);
+  jlongArray a = getPointersFromObjects<Term>(env, terms);
+  
+  // Long r = new Long(resultPointer);
+  jclass longClass = env->FindClass("Ljava/lang/Long;");
+  jmethodID longConstructor = env->GetMethodID(longClass, "<init>", "(J)V");
+  jobject r = env->NewObject(longClass, longConstructor, resultPointer);
+
+  // Pair pair = new Pair<Long, long[]>(r, a);
+  jclass pairClass = env->FindClass("Lio/github/cvc5/Pair;");
+  jmethodID pairConstructor = env->GetMethodID(
+      pairClass, "<init>", "(Ljava/lang/Object;Ljava/lang/Object;)V");
+  jobject pair = env->NewObject(pairClass, pairConstructor, r, a);
+
+  return pair;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
 

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +27,7 @@ namespace cvc5::internal {
 namespace rewriter {
 
 RewriteProofRule::RewriteProofRule()
-    : d_id(DslPfRule::FAIL), d_isFlatForm(false)
+    : d_id(DslPfRule::FAIL)
 {
 }
 
@@ -36,8 +36,7 @@ void RewriteProofRule::init(DslPfRule id,
                             const std::vector<Node>& fvs,
                             const std::vector<Node>& cond,
                             Node conc,
-                            Node context,
-                            bool isFlatForm)
+                            Node context)
 {
   // not initialized yet
   Assert(d_cond.empty() && d_obGen.empty() && d_fvs.empty());
@@ -55,7 +54,6 @@ void RewriteProofRule::init(DslPfRule id,
   }
   d_conc = conc;
   d_context = context;
-  d_isFlatForm = isFlatForm;
   if (!expr::getListVarContext(conc, d_listVarCtx))
   {
     Unhandled() << "Ambiguous context for list variables in conclusion of rule "
@@ -152,6 +150,5 @@ bool RewriteProofRule::isFixedPoint() const
 {
   return d_context != Node::null();
 }
-bool RewriteProofRule::isFlatForm() const { return d_isFlatForm; }
 }  // namespace rewriter
 }  // namespace cvc5::internal

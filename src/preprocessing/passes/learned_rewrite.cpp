@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -150,6 +150,7 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
     Node e = rewriteLearnedRec(prev, binfer, learnedLits, llrw, visited);
     if (e != prev)
     {
+      e = rewrite(e);
       Trace("learned-rewrite-assert")
           << ".......................: " << e << std::endl;
       assertionsToPreprocess->replace(i, e);
@@ -164,6 +165,7 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
     Node llc = nm->mkAnd(llrvec);
     Trace("learned-rewrite-assert")
         << "Re-add rewritten learned conjunction: " << llc << std::endl;
+    llc = rewrite(llc);
     assertionsToPreprocess->push_back(llc);
   }
 
@@ -223,6 +225,7 @@ Node LearnedRewrite::rewriteLearnedRec(Node n,
         ret = nm->mkNode(cur.getKind(), children);
       }
       // rewrite here
+      ret = rewrite(ret);
       ret = rewriteLearned(ret, binfer, learnedLits, lems);
       visited[cur] = ret;
     }
@@ -232,20 +235,19 @@ Node LearnedRewrite::rewriteLearnedRec(Node n,
   return visited[n];
 }
 
-Node LearnedRewrite::rewriteLearned(Node n,
+Node LearnedRewrite::rewriteLearned(Node nr,
                                     arith::BoundInference& binfer,
                                     const std::vector<Node>& learnedLits,
                                     std::unordered_set<Node>& lems)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Trace("learned-rewrite-rr-debug") << "Rewrite " << n << std::endl;
-  Node nr = rewrite(n);
+  Trace("learned-rewrite-rr-debug") << "Rewrite " << nr << std::endl;
   Kind k = nr.getKind();
   if (k == INTS_DIVISION || k == INTS_MODULUS || k == DIVISION)
   {
     // simpler if we know the divisor is non-zero
-    Node num = n[0];
-    Node den = n[1];
+    Node num = nr[0];
+    Node den = nr[1];
     bool isNonZeroDen = false;
     if (den.isConst())
     {
@@ -276,6 +278,8 @@ Node LearnedRewrite::rewriteLearned(Node n,
         if (std::find(learnedLits.begin(), learnedLits.end(), deq)
             != learnedLits.end())
         {
+          Trace("learned-rewrite-rr-debug")
+              << "...deq " << deq << " is in learned lit set" << std::endl;
           isNonZeroDen = true;
         }
       }
@@ -293,7 +297,7 @@ Node LearnedRewrite::rewriteLearned(Node n,
         default: Assert(false); break;
       }
       std::vector<Node> children;
-      children.insert(children.end(), n.begin(), n.end());
+      children.insert(children.end(), nr.begin(), nr.end());
       Node ret = nm->mkNode(nk, children);
       nr = returnRewriteLearned(nr, ret, LearnedRewriteId::NON_ZERO_DEN);
       nr = rewrite(nr);
@@ -303,8 +307,8 @@ Node LearnedRewrite::rewriteLearned(Node n,
   // constant int mod elimination by bound inference
   if (k == INTS_MODULUS_TOTAL)
   {
-    Node num = n[0];
-    Node den = n[1];
+    Node num = nr[0];
+    Node den = nr[1];
     arith::Bounds db = binfer.get(den);
     if (!db.lower_value.isNull() && !db.upper_value.isNull())
     {

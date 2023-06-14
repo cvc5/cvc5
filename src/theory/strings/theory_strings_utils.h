@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -112,6 +112,11 @@ Node mkSubstrChain(Node base,
                    const std::vector<Node>& ls);
 
 /**
+ * Make the concatenation of seq.unit chains for a given constant sequence.
+ */
+Node mkConcatForConstSequence(const Node& c);
+
+/**
  * Collects equal-to-empty nodes from a conjunction or a single
  * node. Returns a list of nodes that are compared to empty nodes
  * and a boolean that indicates whether all nodes in the
@@ -139,6 +144,11 @@ std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x);
  * @return true if n is constant-like.
  */
 bool isConstantLike(Node n);
+
+/**
+ * Return true if the arguments of REGEXP_RANGE term t are characters.
+ */
+bool isCharacterRange(TNode t);
 
 /**
  * Given a vector of regular expression nodes and a start index that points to

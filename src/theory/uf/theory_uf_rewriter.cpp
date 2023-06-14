@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Morgan Deters
+ *   Andrew Reynolds, Liana Hadarean, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -226,15 +226,15 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
 RewriteResponse TheoryUfRewriter::rewriteBVToNat(TNode node)
 {
   Assert(node.getKind() == kind::BITVECTOR_TO_NAT);
+  NodeManager* nm = NodeManager::currentNM();
   if (node[0].isConst())
   {
-    Node resultNode = arith::eliminateBv2Nat(node);
+    Node resultNode = nm->mkConstInt(node[0].getConst<BitVector>().toInteger());
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
   }
   else if (node[0].getKind() == kind::INT_TO_BITVECTOR)
   {
     // (bv2nat ((_ int2bv w) x)) ----> (mod x 2^w)
-    NodeManager* nm = NodeManager::currentNM();
     const uint32_t size =
         node[0].getOperator().getConst<IntToBitVector>().d_size;
     Node sn = nm->mkConstInt(Rational(Integer(2).pow(size)));
@@ -249,7 +249,10 @@ RewriteResponse TheoryUfRewriter::rewriteIntToBV(TNode node)
   Assert(node.getKind() == kind::INT_TO_BITVECTOR);
   if (node[0].isConst())
   {
-    Node resultNode = arith::eliminateInt2Bv(node);
+    NodeManager* nm = NodeManager::currentNM();
+    const uint32_t size = node.getOperator().getConst<IntToBitVector>().d_size;
+    Node resultNode = nm->mkConst(
+        BitVector(size, node[0].getConst<Rational>().getNumerator()));
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
   }
   else if (node[0].getKind() == kind::BITVECTOR_TO_NAT)
@@ -272,9 +275,9 @@ RewriteResponse TheoryUfRewriter::rewriteIntToBV(TNode node)
     }
     else
     {
-      // ((_ int2bv w) (bv2nat x)) ---> ((_ extract w 0) x)
+      // ((_ int2bv w) (bv2nat x)) ---> ((_ extract w-1 0) x)
       Assert(osize < isize);
-      Node extract = bv::utils::mkExtract(node[0][0], osize, 0);
+      Node extract = bv::utils::mkExtract(node[0][0], osize-1, 0);
       return RewriteResponse(REWRITE_AGAIN_FULL, extract);
     }
   }

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -751,9 +751,16 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
         Trace("sygus-ccore-sy") << "Sygus solution : " << sol << std::endl;
         return sol;
       }
+      else if (uasserts.empty())
+      {
+        // should never happen, since we check that side condition is
+        // satisfiable when initializing the sygus conjecture
+        Assert(false);
+        Trace("sygus-ccore") << "--- Empty core, skip" << std::endl;
+        return Node::null();
+      }
       else
       {
-        Assert(!uasserts.empty());
         Node xu = uasserts[0];
         Trace("sygus-ccore")
             << "--- Add false core : " << uasserts << std::endl;

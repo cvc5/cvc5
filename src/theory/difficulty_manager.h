@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,8 +46,12 @@ class DifficultyManager : protected EnvObj
   /**
    * Get difficulty map, which populates dmap mapping preprocessed assertions
    * to a difficulty measure (a constant integer).
+   *
+   * @param dmap The difficulty map to populate.
+   * @param includeLemmas Whether to include difficulty of lemmas in the domain
+   * of dmap.
    */
-  void getDifficultyMap(std::map<Node, Node>& dmap);
+  void getDifficultyMap(std::map<Node, Node>& dmap, bool includeLemmas = false);
   /**
    * Get the current difficulty for input formula or lemma n.
    */
@@ -66,6 +70,8 @@ class DifficultyManager : protected EnvObj
    * lemma was sent.
    */
   void notifyLemma(Node lem, bool inFullEffortCheck);
+  /** Needs candidate model, return true if the method below requires calling */
+  bool needsCandidateModel() const;
   /**
    * Notify that `m` is a (candidate) model. This increments the difficulty
    * of assertions that are not satisfied by that model.
@@ -79,11 +85,10 @@ class DifficultyManager : protected EnvObj
   void incrementDifficulty(TNode a, uint64_t amount = 1);
   /** Pointer to the parent relevance manager */
   RelevanceManager* d_rlv;
-  /**
-   * The input assertions, tracked to ensure we do not increment difficulty
-   * on lemmas.
-   */
+  /** The input assertions */
   NodeSet d_input;
+  /** The lemmas */
+  NodeSet d_lemma;
   /** The valuation object, used to query current value of theory literals */
   Valuation d_val;
   /**

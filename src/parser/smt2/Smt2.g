@@ -1,10 +1,10 @@
 /* ****************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ *   Andrew Reynolds, Morgan Deters, Christopher L. Conway
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -211,7 +211,12 @@ command [std::unique_ptr<cvc5::parser::Command>* cmd]
   : /* set the logic */
     SET_LOGIC_TOK symbol[name,CHECK_NONE,SYM_SORT]
     {
-      cmd->reset(PARSER_STATE->setLogic(name));
+      // replace the logic with the forced logic, if applicable.
+      std::string lname = SYM_MAN->isLogicForced() 
+                          ? SYM_MAN->getLogic()
+                          : name;
+      PARSER_STATE->setLogic(lname);
+      cmd->reset(new SetBenchmarkLogicCommand(lname));
     }
   | /* set-info */
     SET_INFO_TOK setInfoInternal[cmd]
@@ -410,6 +415,9 @@ command [std::unique_ptr<cvc5::parser::Command>* cmd]
   | /* get-unsat-core */
     GET_UNSAT_CORE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetUnsatCoreCommand); }
+  | /* get-timeout-core */
+    GET_TIMEOUT_CORE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { cmd->reset(new GetTimeoutCoreCommand); }
   | /* get-difficulty */
     GET_DIFFICULTY_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetDifficultyCommand); }
@@ -1113,7 +1121,7 @@ datatypesDef[bool isCo,
     }
     PARSER_STATE->popScope();
     cmd->reset(new DatatypeDeclarationCommand(
-        PARSER_STATE->bindMutualDatatypeTypes(dts, true)));
+        PARSER_STATE->mkMutualDatatypeTypes(dts)));
   }
   ;
 
@@ -1336,13 +1344,10 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
           {
             f = PARSER_STATE->getVariable(name);
             type = f.getSort();
-            if (!type.isDatatypeConstructor() ||
-                !type.getDatatypeConstructorDomainSorts().empty())
+            if (!type.isDatatype())
             {
               PARSER_STATE->parseError("Must apply constructors of arity greater than 0 to arguments in pattern.");
             }
-            // make nullary constructor application
-            f = MK_TERM(cvc5::APPLY_CONSTRUCTOR, f);
           }
           else
           {
@@ -1509,19 +1514,12 @@ identifier[cvc5::ParseOp& p]
       }
     | functionName[opName, CHECK_NONE] nonemptyNumeralList[numerals]
       {
-        cvc5::Kind k = PARSER_STATE->getIndexedOpKind(opName);
-        if (k == cvc5::UNDEFINED_KIND)
-        {
-          // We don't know which kind to use until we know the type of the
-          // arguments. This case handles to_fp, tuple.select and tuple.update
-          p.d_name = opName;
-          p.d_indices = numerals;
-          p.d_kind = cvc5::UNDEFINED_KIND;
-        }
-        else
-        {
-          p.d_op = SOLVER->mkOp(k, numerals);
-        }
+        // In some cases, we don't know which kind to use until we know the
+        // type of the arguments. This case handles to_fp, tuple.select and
+        // tuple.update. For consistency, we always construct the op lazily.
+        p.d_name = opName;
+        p.d_indices = numerals;
+        p.d_kind = cvc5::UNDEFINED_KIND;
       }
     )
     RPAREN_TOK
@@ -1962,6 +1960,7 @@ GET_ASSERTIONS_TOK : 'get-assertions';
 GET_PROOF_TOK : 'get-proof';
 GET_UNSAT_ASSUMPTIONS_TOK : 'get-unsat-assumptions';
 GET_UNSAT_CORE_TOK : 'get-unsat-core';
+GET_TIMEOUT_CORE_TOK : 'get-timeout-core';
 GET_DIFFICULTY_TOK : 'get-difficulty';
 GET_LEARNED_LITERALS_TOK : 'get-learned-literals';
 EXIT_TOK : 'exit';

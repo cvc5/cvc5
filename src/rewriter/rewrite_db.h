@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,10 +25,23 @@
 #include "expr/nary_term_util.h"
 #include "expr/node.h"
 #include "expr/term_canonize.h"
+#include "rewriter/rewrite_proof_rule.h"
 #include "rewriter/rewrites.h"
 
 namespace cvc5::internal {
 namespace rewriter {
+
+/** Type class callback */
+class IsListTypeClassCallback : public expr::TypeClassCallback
+{
+ public:
+  /**
+   * Returns an identifier that distinguished whether v has list semantics
+   * (1 if yes, 0 if no). This is used when canonizing terms for the
+   * database below.
+   */
+  uint32_t getTypeClass(TNode v) override;
+};
 
 /**
  * A database of conditional rewrite rules. The rules of this class are
@@ -51,15 +64,53 @@ class RewriteDb
    * @param b The right hand side of the rule
    * @param cond The condition, or null if this is not a conditional rule
    * @param context The term context, if one exists
-   * @param isFlatForm Whether the rule is in flat form
    */
   void addRule(DslPfRule id,
                const std::vector<Node> fvs,
                Node a,
                Node b,
                Node cond,
-               Node context,
-               bool isFlatForm = false);
+               Node context);
+  /**
+   * Get matches, which incrementally makes callbacks on the notify class
+   * ntm for all rules that match eq.
+   */
+  void getMatches(const Node& eq, expr::NotifyMatch* ntm);
+  /** Get the rule definition for id */
+  const RewriteProofRule& getRule(DslPfRule id) const;
+  /**
+   * Get ids for conclusion, returns the list of identifiers of rules whose
+   * conclusion is eq.
+   */
+  const std::vector<DslPfRule>& getRuleIdsForConclusion(const Node& eq) const;
+  /**
+   * Get ids for head, returns the list of identifiers of rules whose
+   * head (the left hand side of its equality) is h.
+   */
+  const std::vector<DslPfRule>& getRuleIdsForHead(const Node& h) const;
+  /** Return the union of free variables in all rules */
+  const std::unordered_set<Node>& getAllFreeVariables() const;
+
+ private:
+  /** common constants */
+  Node d_true;
+  Node d_false;
+  /** Callback to distinguish list variables */
+  IsListTypeClassCallback d_canonCb;
+  /** the term canonization utility */
+  expr::TermCanonize d_canon;
+  /** The match trie */
+  expr::NaryMatchTrie d_mt;
+  /** map ids to rewrite db rule information */
+  std::map<DslPfRule, RewriteProofRule> d_rewDbRule;
+  /** map conclusions to proof ids */
+  std::map<Node, std::vector<DslPfRule> > d_concToRules;
+  /** map head to proof ids */
+  std::map<Node, std::vector<DslPfRule> > d_headToRules;
+  /** dummy empty vector */
+  std::vector<DslPfRule> d_emptyVec;
+  /** All free variables in all rules */
+  std::unordered_set<Node> d_allFv;
 };
 
 }  // namespace rewriter

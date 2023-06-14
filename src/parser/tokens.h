@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -77,6 +77,7 @@ enum Token : int
   GET_PROOF_TOK,
   GET_QE_DISJUNCT_TOK,
   GET_QE_TOK,
+  GET_TIMEOUT_CORE_TOK,
   GET_UNSAT_ASSUMPTIONS_TOK,
   GET_UNSAT_CORE_TOK,
   GET_VALUE_TOK,
@@ -103,8 +104,6 @@ enum Token : int
   SET_OPTION_TOK,
   SIMPLIFY_TOK,
   STRING_LITERAL,
-  SYGUS_CONSTANT_TOK,
-  SYGUS_VARIABLE_TOK,
   SYMBOL,
   SYNTH_FUN_TOK,
   SYNTH_INV_TOK,

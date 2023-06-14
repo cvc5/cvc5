@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,70 +27,53 @@ namespace theory {
 namespace quantifiers {
 
 SygusEnumeratorCallback::SygusEnumeratorCallback(Env& env,
-                                                 Node e,
                                                  TermDbSygus* tds,
-                                                 SygusStatistics* s)
-    : EnvObj(env), d_enum(e), d_tds(tds), d_stats(s)
+                                                 SygusStatistics* s,
+                                                 ExampleEvalCache* eec)
+    : EnvObj(env), d_tds(tds), d_stats(s), d_eec(eec)
 {
-  d_tn = e.getType();
 }
 
-bool SygusEnumeratorCallback::addTerm(Node n, std::unordered_set<Node>& bterms)
+bool SygusEnumeratorCallback::addTerm(const Node& n,
+                                      std::unordered_set<Node>& bterms)
 {
   Node bn = datatypes::utils::sygusToBuiltin(n);
-  Node bnr = d_tds == nullptr ? extendedRewrite(bn) : d_tds->rewriteNode(bn);
   if (d_stats != nullptr)
   {
     ++(d_stats->d_enumTermsRewrite);
   }
-  // call the solver-specific notify term
-  notifyTermInternal(n, bn, bnr);
+
   // check whether we should keep the term, which is based on the callback,
   // and the builtin terms
   // First, must be unique up to rewriting
-  if (bterms.find(bnr) != bterms.end())
+  Node cval = getCacheValue(n, bn);
+  if (bterms.find(cval) != bterms.end())
   {
     Trace("sygus-enum-exc") << "Exclude (by rewriting): " << bn << std::endl;
     return false;
   }
   // insert to builtin term cache, regardless of whether it is redundant
   // based on the callback
-  bterms.insert(bnr);
+  bterms.insert(cval);
+
   // callback-specific add term
-  if (!addTermInternal(n, bn, bnr))
+  if (!addTermInternal(n, bn, cval))
   {
     return false;
   }
-  Trace("sygus-enum-terms") << "tc(" << d_tn << "): term " << bn << std::endl;
   return true;
 }
 
-SygusEnumeratorCallbackDefault::SygusEnumeratorCallbackDefault(
-    Env& env,
-    Node e,
-    TermDbSygus* tds,
-    SygusStatistics* s,
-    ExampleEvalCache* eec,
-    SygusSampler* ssrv,
-    std::ostream* out)
-    : SygusEnumeratorCallback(env, e, tds, s),
-      d_eec(eec),
-      d_samplerRrV(ssrv),
-      d_out(out)
+Node SygusEnumeratorCallback::getCacheValue(const Node& n, const Node& bn)
 {
-}
-void SygusEnumeratorCallbackDefault::notifyTermInternal(Node n,
-                                                        Node bn,
-                                                        Node bnr)
-{
-  if (d_samplerRrV != nullptr)
-  {
-    Assert(d_out != nullptr);
-    d_samplerRrV->checkEquivalent(bn, bnr, *d_out);
-  }
+  // By default, we cache based on the rewritten form.
+  // Further criteria for uniqueness (e.g. weights) may go here.
+  return d_tds == nullptr ? extendedRewrite(bn) : d_tds->rewriteNode(bn);
 }
 
-bool SygusEnumeratorCallbackDefault::addTermInternal(Node n, Node bn, Node bnr)
+bool SygusEnumeratorCallback::addTermInternal(const Node& n,
+                                              const Node& bn,
+                                              const Node& cval)
 {
   // if we are doing PBE symmetry breaking
   if (d_eec != nullptr)
@@ -100,10 +83,12 @@ bool SygusEnumeratorCallbackDefault::addTermInternal(Node n, Node bn, Node bnr)
       ++(d_stats->d_enumTermsExampleEval);
     }
     // Is it equivalent under examples?
-    Node bne = d_eec->addSearchVal(n.getType(), bnr);
+    // NOTE: currently assumes the cache value is the rewritten form of bn
+    Assert(cval.getType() == bn.getType());
+    Node bne = d_eec->addSearchVal(n.getType(), cval);
     if (!bne.isNull())
     {
-      if (bnr != bne)
+      if (cval != bne)
       {
         Trace("sygus-enum-exc")
             << "Exclude (by examples): " << bn << ", since we already have "

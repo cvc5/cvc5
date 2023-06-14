@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Abdalrhman Mohamed, Andrew Reynolds, Mathias Preiner
+ *   Abdalrhman Mohamed, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -213,6 +213,9 @@ class Smt2Printer : public cvc5::internal::Printer
 
   /** Print get-difficulty command */
   void toStreamCmdGetDifficulty(std::ostream& out) const override;
+
+  /** Print get-timeout-core command */
+  void toStreamCmdGetTimeoutCore(std::ostream& out) const override;
 
   /** Print get-learned-literals command */
   void toStreamCmdGetLearnedLiterals(std::ostream& out,

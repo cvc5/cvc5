@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andres Noetzli, Aina Niemetz
+ *   Mudathir Mohamed, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -930,15 +930,11 @@ class TermTest
   @Test
   void getTuple()
   {
-    Sort s1 = d_solver.getIntegerSort();
-    Sort s2 = d_solver.getRealSort();
-    Sort s3 = d_solver.getStringSort();
-
     Term t1 = d_solver.mkInteger(15);
     Term t2 = d_solver.mkReal(17, 25);
     Term t3 = d_solver.mkString("abc");
 
-    Term tup = d_solver.mkTuple(new Sort[] {s1, s2, s3}, new Term[] {t1, t2, t3});
+    Term tup = d_solver.mkTuple(new Term[] {t1, t2, t3});
 
     assertTrue(tup.isTupleValue());
     assertEquals(Arrays.asList((new Term[] {t1, t2, t3})), Arrays.asList(tup.getTupleValue()));

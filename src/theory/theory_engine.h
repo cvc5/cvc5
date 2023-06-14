@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -184,6 +184,10 @@ class TheoryEngine : protected EnvObj
    * lemmas to lems, for details see Theory::ppRewrite.
    */
   TrustNode ppRewrite(TNode term, std::vector<theory::SkolemLemma>& lems);
+  /**
+   * Same as above, but applied only at preprocess time.
+   */
+  TrustNode ppStaticRewrite(TNode term);
   /** Notify (preprocessed) assertions. */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
 
@@ -391,7 +395,7 @@ class TheoryEngine : protected EnvObj
    *
    * For details, see theory/difficuly_manager.h.
    */
-  void getDifficultyMap(std::map<Node, Node>& dmap);
+  void getDifficultyMap(std::map<Node, Node>& dmap, bool includeLemmas = false);
 
   /** Get incomplete id, valid when isModelUnsound is true. */
   theory::IncompleteId getModelUnsoundId() const;

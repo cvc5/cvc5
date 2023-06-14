@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hanna Lachnitt, Mathias Preiner
+ *   Andrew Reynolds, Hanna Lachnitt, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,6 +16,9 @@
 #include "theory/builtin/proof_checker.h"
 
 #include "expr/skolem_manager.h"
+#include "rewriter/rewrite_db.h"
+#include "rewriter/rewrite_db_term_process.h"
+#include "rewriter/rewrite_proof_rule.h"
 #include "smt/env.h"
 #include "smt/term_formula_removal.h"
 #include "theory/evaluator.h"
@@ -31,7 +34,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace builtin {
 
-BuiltinProofRuleChecker::BuiltinProofRuleChecker(Env& env) : d_env(env) {}
+BuiltinProofRuleChecker::BuiltinProofRuleChecker(Env& env)
+    : d_env(env), d_rdb(nullptr)
+{
+}
 
 void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
 {
@@ -41,6 +47,8 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::EVALUATE, this);
   pc->registerChecker(PfRule::ANNOTATION, this);
   pc->registerChecker(PfRule::REMOVE_TERM_FORMULA_AXIOM, this);
+  pc->registerChecker(PfRule::ENCODE_PRED_TRANSFORM, this);
+  pc->registerChecker(PfRule::DSL_REWRITE, this);
   // rules depending on the rewriter
   pc->registerTrustedChecker(PfRule::REWRITE, this, 4);
   pc->registerTrustedChecker(PfRule::MACRO_SR_EQ_INTRO, this, 4);
@@ -65,6 +73,8 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   // external proof rules
   pc->registerChecker(PfRule::LFSC_RULE, this);
   pc->registerChecker(PfRule::ALETHE_RULE, this);
+
+  d_rdb = pc->getRewriteDatabase();
 }
 
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(
@@ -403,10 +413,57 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(args[0].getType().isInteger());
     return args[1];
   }
+  else if (id == PfRule::ENCODE_PRED_TRANSFORM)
+  {
+    Assert(children.size() == 1);
+    Assert(args.size() == 1);
+    rewriter::RewriteDbNodeConverter rconv;
+    Node f = children[0];
+    Node g = args[0];
+    // equivalent up to conversion via utility
+    if (rconv.convert(f) != rconv.convert(g))
+    {
+      return Node::null();
+    }
+    return g;
+  }
   else if (id == PfRule::ANNOTATION)
   {
     Assert(children.size() == 1);
     return children[0];
+  }
+  else if (id == PfRule::DSL_REWRITE)
+  {
+    // consult rewrite db, apply args[1]...args[n] as a substituion
+    // to variable list and prove equality between LHS and RHS.
+    Assert(d_rdb != nullptr);
+    rewriter::DslPfRule di;
+    if (!getDslPfRule(args[0], di))
+    {
+      return Node::null();
+    }
+    const rewriter::RewriteProofRule& rpr = d_rdb->getRule(di);
+    const std::vector<Node>& varList = rpr.getVarList();
+    const std::vector<Node>& conds = rpr.getConditions();
+    std::vector<Node> subs(args.begin() + 1, args.end());
+    if (varList.size() != subs.size())
+    {
+      return Node::null();
+    }
+    // check whether child proof match
+    if (conds.size() != children.size())
+    {
+      return Node::null();
+    }
+    for (size_t i = 0, nchildren = children.size(); i < nchildren; i++)
+    {
+      Node scond = expr::narySubstitute(conds[i], varList, subs);
+      if (scond != children[i])
+      {
+        return Node::null();
+      }
+    }
+    return rpr.getConclusionFor(subs);
   }
 
   // no rule

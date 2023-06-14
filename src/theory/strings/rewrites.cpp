@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -94,6 +94,7 @@ const char* toString(Rewrite r)
     case Rewrite::RE_IN_INCLUSION: return "RE_IN_INCLUSION";
     case Rewrite::RE_LOOP: return "RE_LOOP";
     case Rewrite::RE_LOOP_NONE: return "RE_LOOP_NONE";
+    case Rewrite::RE_LOOP_ZERO: return "RE_LOOP_ZERO";
     case Rewrite::RE_LOOP_STAR: return "RE_LOOP_STAR";
     case Rewrite::RE_OR_ALL: return "RE_OR_ALL";
     case Rewrite::RE_SIMPLE_CONSUME: return "RE_SIMPLE_CONSUME";
