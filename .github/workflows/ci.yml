@@ -115,7 +115,7 @@ jobs:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
         check-examples: ${{ matrix.check-examples }}
         # Temporarily disabling checking of python bindings on MacOS.
-        check-python-bindings: ${{ contains(matrix.os-name, 'macos') && false || matrix.python-bindings }} 
+        check-python-bindings: ${{ contains(matrix.os, 'macos') && false || matrix.python-bindings }} 
         regressions-args: ${{ matrix.run_regression_args }}
         regressions-exclude: ${{ matrix.exclude_regress }}
   
