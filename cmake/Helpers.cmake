@@ -258,11 +258,11 @@ endfunction()
 
 macro(find_supported_python_version)
   if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.19")
-    find_package(Python 3.6...<3.10.999 COMPONENTS Interpreter REQUIRED)
+    find_package(Python 3.6...<3.11.999 COMPONENTS Interpreter REQUIRED)
   else()
     # The version range syntax is only supported from CMake 3.19 on.
     # So, for previous versions, we manually search for an allowed python version
-    foreach (python_version 3.10 3.9 3.8 3.7 3.6)
+    foreach (python_version 3.11 3.10 3.9 3.8 3.7 3.6)
       find_package(Python ${python_version} EXACT COMPONENTS Interpreter)
       if(${Python_FOUND})
         break()
