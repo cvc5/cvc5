@@ -484,7 +484,9 @@ set(regress_0_tests
   regress0/bv/holes/uge-eliminate.smt2
   regress0/bv/holes/ugt-eliminate.smt2
   regress0/bv/holes/ult-one.smt2
+  regress0/bv/holes/sdiv-eliminate-fewer-bitwise-ops.smt2 # Timeout!
   regress0/bv/holes/zero-extend-eliminate.smt2
+  regress0/bv/holes/sign-extend-eliminate.smt2 # Roundabout method used
   regress0/bv/holes/slt-eliminate.smt2 # Roundabout method used
   regress0/bv/holes/redor-eliminate.smt2
   regress0/bv/holes/redand-eliminate.smt2
@@ -498,8 +500,19 @@ set(regress_0_tests
   regress0/bv/holes/ite-merge-else-if.smt2
   regress0/bv/holes/ite-merge-then-else.smt2 # Roundabout method used
   regress0/bv/holes/ite-merge-else-else.smt2
+  regress0/bv/holes/lshr-by-const-1.smt2
+  regress0/bv/holes/ashr-by-const-0.smt2
+  regress0/bv/holes/ashr-by-const-1.smt2 # Could not find rule
+  regress0/bv/holes/ashr-by-const-2.smt2 # Could not find rule?
+  regress0/bv/holes/xor-not.smt2 # Roundabout method
+  regress0/bv/holes/lt-self.smt2 # Roundabout method
+  regress0/bv/holes/sle-self.smt2 # Roundabout method
+  regress0/bv/holes/not-ule.smt2 # Roundabout method (constant size, so it should be ok)
+  regress0/bv/holes/not-sle.smt2 # Roundabout method (constant size, so it should be ok)
+  regress0/bv/holes/mult-pow2-2b.smt2 # Could not find rule
   regress0/bv/holes/sub-eliminate.smt2 # Subsumed by ARITH_POLY_NORM
   regress0/bv/holes/neg-idemp.smt2     # Subsumed by ARITH_POLY_NORM
+  regress0/bv/holes/not-xor.smt2     # Roundabout method
   regress0/bv/holes/and-simplify-1.smt2
   regress0/bv/holes/and-simplify-2.smt2
   regress0/bv/holes/or-simplify-1.smt2
