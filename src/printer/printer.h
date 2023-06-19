@@ -18,6 +18,8 @@
 #ifndef CVC5__PRINTER__PRINTER_H
 #define CVC5__PRINTER__PRINTER_H
 
+#include <cvc5/cvc5_export.h>
+
 #include <string>
 #include <vector>
 #include <memory>
