@@ -1183,24 +1183,20 @@ cdef class Solver:
             term.cterm = self.csolver.mkTerm((<Op?> op).cop, v)
         return term
 
-    def mkTuple(self, sorts, terms):
+    def mkTuple(self, terms):
         """
             Create a tuple term. Terms are automatically converted if sorts are
             compatible.
 
-            :param sorts: The sorts of the elements in the tuple.
             :param terms: The elements in the tuple.
             :return: The tuple Term.
         """
-        cdef vector[c_Sort] csorts
         cdef vector[c_Term] cterms
 
-        for s in sorts:
-            csorts.push_back((<Sort?> s).csort)
         for s in terms:
             cterms.push_back((<Term?> s).cterm)
         cdef Term result = Term(self)
-        result.cterm = self.csolver.mkTuple(csorts, cterms)
+        result.cterm = self.csolver.mkTuple(cterms)
         return result
 
     def mkOp(self, k, *args):

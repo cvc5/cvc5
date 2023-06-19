@@ -118,7 +118,7 @@ if __name__ == "__main__":
 
     # (assert (forall ((x Person)) (not (set.member (tuple x x) ancestor))))
     x = solver.mkVar(personSort, "x")
-    xxTuple = solver.mkTuple([personSort, personSort], [x, x])
+    xxTuple = solver.mkTuple([x, x])
     member = solver.mkTerm(Kind.SET_MEMBER, xxTuple, ancestor)
     notMember = solver.mkTerm(Kind.NOT, member)
 
