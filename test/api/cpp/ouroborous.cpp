@@ -87,7 +87,7 @@ std::string parse(std::string instr,
     solver.setOption("input-language", input_language);
     solver.setOption("output-language", output_language);
     SymbolManager symman(&solver);
-    InputParser parser(d_solver.get(), d_symman.get());
+    InputParser parser(&solver, d_symman.get());
     std::stringstream ss;
     ss << declarations;
     parser.setStreamInput(ilang, ss, "internal-buffer");
