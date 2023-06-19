@@ -15,7 +15,6 @@
 
 #include "theory/arith/arith_preprocess.h"
 
-#include "theory/arith/arith_state.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/skolem_lemma.h"
 
@@ -24,7 +23,6 @@ namespace theory {
 namespace arith {
 
 ArithPreprocess::ArithPreprocess(Env& env,
-                                 ArithState& state,
                                  InferenceManager& im,
                                  ProofNodeManager* pnm,
                                  OperatorElim& oe)

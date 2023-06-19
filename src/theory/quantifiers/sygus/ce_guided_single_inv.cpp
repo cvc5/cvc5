@@ -72,7 +72,7 @@ void CegSingleInv::initialize(Node q)
   for (const Node& sf : q[0])
   {
     // get its argument list
-    SygusUtils::getSygusArgumentListForSynthFun(sf, progVars[sf]);
+    SygusUtils::getOrMkSygusArgumentList(sf, progVars[sf]);
   }
   // compute single invocation partition
   Node qq;
@@ -422,7 +422,7 @@ Node CegSingleInv::getSolutionFromInst(size_t index)
   s = extendedRewrite(s);
   Trace("csi-sol") << "Solution (post-simplification): " << s << std::endl;
   // wrap into lambda, as needed
-  return SygusUtils::wrapSolutionForSynthFun(prog, s);
+  return SygusUtils::wrapSolution(prog, s);
 }
 
 void CegSingleInv::setSolution()

@@ -30,7 +30,6 @@ class SkolemLemma;
 
 namespace arith {
 
-class ArithState;
 class InferenceManager;
 class OperatorElim;
 
@@ -45,7 +44,6 @@ class ArithPreprocess : protected EnvObj
 {
  public:
   ArithPreprocess(Env& env,
-                  ArithState& state,
                   InferenceManager& im,
                   ProofNodeManager* pnm,
                   OperatorElim& oe);

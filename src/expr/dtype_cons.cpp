@@ -26,6 +26,12 @@ using namespace cvc5::internal::theory;
 
 namespace cvc5::internal {
 
+/** Attribute true for variables that represent any constant */
+struct SygusAnyConstAttributeId
+{
+};
+typedef expr::Attribute<SygusAnyConstAttributeId, bool> SygusAnyConstAttribute;
+
 DTypeConstructor::DTypeConstructor(std::string name,
                                    unsigned weight)
     :  // We don't want to introduce a new data member, because eventually
@@ -103,6 +109,18 @@ void DTypeConstructor::setSygus(Node op)
 {
   Assert(!isResolved());
   d_sygusOp = op;
+  if (op.getKind() == SKOLEM)
+  {
+    // check if stands for the "any constant" constructor
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
+    if (sm->getId(op) == SkolemFunId::SYGUS_ANY_CONSTANT)
+    {
+      // mark with attribute, which is a faster lookup
+      SygusAnyConstAttribute saca;
+      op.setAttribute(saca, true);
+    }
+  }
 }
 
 Node DTypeConstructor::getSygusOp() const
@@ -114,8 +132,16 @@ Node DTypeConstructor::getSygusOp() const
 bool DTypeConstructor::isSygusIdFunc() const
 {
   Assert(isResolved());
+  Assert(!d_sygusOp.isNull());
   return (d_sygusOp.getKind() == LAMBDA && d_sygusOp[0].getNumChildren() == 1
           && d_sygusOp[0][0] == d_sygusOp[1]);
+}
+
+bool DTypeConstructor::isSygusAnyConstant() const
+{
+  Assert(isResolved());
+  Assert(!d_sygusOp.isNull());
+  return d_sygusOp.getAttribute(SygusAnyConstAttribute());
 }
 
 unsigned DTypeConstructor::getWeight() const
