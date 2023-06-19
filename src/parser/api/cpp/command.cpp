@@ -15,8 +15,6 @@
 
 #include "parser/api/cpp/command.h"
 
-#include <cvc5/cvc5.h>
-
 #include <exception>
 #include <iostream>
 #include <iterator>
