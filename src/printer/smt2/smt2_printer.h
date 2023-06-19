@@ -23,6 +23,7 @@
 namespace cvc5::internal {
 
 class LetBinding;
+class DType;
 
 namespace printer {
 namespace smt2 {

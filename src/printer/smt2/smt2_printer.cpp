@@ -35,6 +35,7 @@
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
 #include "expr/sygus_datatype.h"
+#include "smt/model.h"
 #include "options/io_utils.h"
 #include "options/language.h"
 #include "printer/let_binding.h"
