@@ -53,7 +53,7 @@ void testGetInfo(cvc5::Solver* solver, const char* s)
 {
   std::unique_ptr<SymbolManager> symman(new SymbolManager(solver));
 
-  InputParser p(solver, d_symman.get());
+  InputParser p(solver, symman.get());
   std::stringstream ssi;
   ssi << "(get-info " << s << ")";
   p.getStreamInput("LANG_SMTLIB_V2_6", ssi, "<internal>");
