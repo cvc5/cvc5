@@ -116,14 +116,7 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
     ::using_history();
 
     std::string lang = d_solver->getOption("input-language");
-    if (lang == "LANG_TPTP")
-    {
-      d_historyFilename = string(getenv("HOME")) + "/.cvc5_history_tptp";
-      commandsBegin = tptp_commands;
-      commandsEnd =
-          tptp_commands + sizeof(tptp_commands) / sizeof(*tptp_commands);
-    }
-    else if (lang == "LANG_SMTLIB_V2_6")
+    if (lang == "LANG_SMTLIB_V2_6")
     {
       d_historyFilename = string(getenv("HOME")) + "/.cvc5_history_smtlib2";
       commandsBegin = smt2_commands;

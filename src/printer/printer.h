@@ -19,17 +19,27 @@
 #define CVC5__PRINTER__PRINTER_H
 
 #include <string>
+#include <vector>
+#include <memory>
 
-#include "expr/node.h"
 #include "options/language.h"
-#include "smt/model.h"
 #include "util/result.h"
+#include "expr/kind.h"
 
 namespace cvc5::internal {
 
+template <bool ref_count>
+class NodeTemplate;
+typedef NodeTemplate<true> Node;
+typedef NodeTemplate<false> TNode;
+class TypeNode;
 class UnsatCore;
 struct InstantiationList;
 struct SkolemList;
+
+namespace smt {
+    class Model;
+}
 
 class CVC5_EXPORT Printer
 {
@@ -170,7 +180,7 @@ class CVC5_EXPORT Printer
                                    Node f,
                                    const std::vector<Node>& vars,
                                    bool isInv,
-                                   TypeNode sygusType = TypeNode::null()) const;
+                                   TypeNode sygusType) const;
 
   /** Print constraint command */
   virtual void toStreamCmdConstraint(std::ostream& out, Node n) const;

@@ -145,11 +145,6 @@ std::unique_ptr<FlexParser> FlexParser::mkFlexParser(const std::string& lang,
     bool strictMode = solver->getOptionInfo("strict-parsing").boolValue();
     parser.reset(new Smt2Parser(solver, sm, strictMode, isSygus));
   }
-  else if (lang == "LANG_TPTP")
-  {
-    // TPTP is not supported
-    Unhandled() << "the TPTP input language is not supported with flex.";
-  }
   else
   {
     Unhandled() << "unable to detect input file format, try --lang";
