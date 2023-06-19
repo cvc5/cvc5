@@ -114,7 +114,7 @@ class TestInputParserBlackInputParser : public TestInternal
           }
           std::cout << "\nBad input succeeded:\n" << badInput << std::endl;
         },
-        InputParserException);
+        ParserException);
   }
 
   void tryGoodExpr(const std::string goodExpr)
@@ -163,7 +163,7 @@ class TestInputParserBlackInputParser : public TestInternal
                            << "Bad expr succeeded." << std::endl
                            << "Input: <<" << badExpr << ">>" << std::endl
                            << "Output: <<" << e << ">>" << std::endl;
-                 , InputParserException);
+                 , ParserException);
   }
 
   std::string d_lang;
