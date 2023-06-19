@@ -64,8 +64,6 @@ void ExprMiner::initializeChecker(std::unique_ptr<SolverEngine>& checker,
       info,
       options().quantifiers.sygusExprMinerCheckTimeoutWasSetByUser,
       options().quantifiers.sygusExprMinerCheckTimeout);
-  // disable options that would lead to infinite loops
-  checker->setOption("sygus-rr-synth-input", "false");
   // Convert bound variables to skolems. This ensures the satisfiability
   // check is ground.
   Node squery = convertToSkolem(query);
@@ -89,6 +87,12 @@ Result ExprMiner::doCheck(Node query, const SubsolverSetupInfo& info)
   std::unique_ptr<SolverEngine> smte;
   initializeChecker(smte, query, info);
   return smte->checkSat();
+}
+
+bool ExprMinerId::addTerm(Node n, std::vector<Node>& found)
+{
+  found.push_back(n);
+  return true;
 }
 
 }  // namespace quantifiers

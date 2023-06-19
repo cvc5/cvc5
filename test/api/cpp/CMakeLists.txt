@@ -25,12 +25,10 @@ include_directories(${CMAKE_BINARY_DIR}/src)
 add_custom_target(build-apitests)
 add_dependencies(build-tests build-apitests)
 
-# See the comment about 'make test' in test/regress/cli/CMakeLists.txt
-add_test(build_apitests_test 
-    "${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}" 
-    --config "$<CONFIG>" --target build-apitests
-)
-set_tests_properties(build_apitests_test PROPERTIES FIXTURES_SETUP build_apitests_fixture)
+# Disabled temporarily due to problems in the nightly builds
+# # See the comment about 'make test' in test/regress/cli/CMakeLists.txt
+# add_test(build_apitests_test "${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}" --config "$<CONFIG>" --target build-apitests)
+# set_tests_properties(build_apitests_test PROPERTIES FIXTURES_SETUP build_apitests_fixture)
 
 add_custom_target(apitests
   COMMAND ctest --output-on-failure -L "api" -j${CTEST_NTHREADS} $$ARGS
@@ -47,7 +45,7 @@ macro(cvc5_add_api_test name)
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${test_bin_dir})
   add_test(api/cpp/${name} ${test_bin_dir}/${name})
   set_tests_properties(api/cpp/${name} PROPERTIES LABELS "api")
-  set_tests_properties(api/cpp/${name} PROPERTIES FIXTURES_REQUIRED build_apitests_fixture)
+  # set_tests_properties(api/cpp/${name} PROPERTIES FIXTURES_REQUIRED build_apitests_fixture)
   add_dependencies(build-apitests ${name})
 endmacro()
 

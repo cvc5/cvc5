@@ -55,6 +55,8 @@ const char* toString(SkolemFunId id)
       return "TRANSCENDENTAL_PURIFY_ARG";
     case SkolemFunId::SHARED_SELECTOR: return "SHARED_SELECTOR";
     case SkolemFunId::QUANTIFIERS_SKOLEMIZE: return "QUANTIFIERS_SKOLEMIZE";
+    case SkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED:
+      return "QUANTIFIERS_SYNTH_FUN_EMBED";
     case SkolemFunId::STRINGS_NUM_OCCUR: return "STRINGS_NUM_OCCUR";
     case SkolemFunId::STRINGS_OCCUR_INDEX: return "STRINGS_OCCUR_INDEX";
     case SkolemFunId::STRINGS_OCCUR_LEN: return "STRINGS_OCCUR_LEN";
@@ -101,6 +103,7 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::IEVAL_NONE: return "IEVAL_NONE";
     case SkolemFunId::IEVAL_SOME: return "IEVAL_SOME";
     case SkolemFunId::ABSTRACT_VALUE: return "ABSTRACT_VALUE";
+    case SkolemFunId::SYGUS_ANY_CONSTANT: return "SYGUS_ANY_CONSTANT";
     default: return "?";
   }
 }
@@ -204,6 +207,17 @@ bool SkolemManager::isSkolemFunction(TNode k,
   id = std::get<0>(it->second);
   cacheVal = std::get<2>(it->second);
   return true;
+}
+
+SkolemFunId SkolemManager::getId(TNode k) const
+{
+  SkolemFunId id;
+  Node cacheVal;
+  if (isSkolemFunction(k, id, cacheVal))
+  {
+    return id;
+  }
+  return SkolemFunId::NONE;
 }
 
 Node SkolemManager::mkDummySkolem(const std::string& prefix,

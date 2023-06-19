@@ -25,7 +25,7 @@ namespace theory {
 namespace arith {
 
 EqualitySolver::EqualitySolver(Env& env,
-                               ArithState& astate,
+                               TheoryState& astate,
                                InferenceManager& aim)
     : EnvObj(env),
       d_astate(astate),

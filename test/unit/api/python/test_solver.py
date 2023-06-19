@@ -910,23 +910,12 @@ def test_mk_true(solver):
 
 
 def test_mk_tuple(solver):
-    solver.mkTuple([solver.mkBitVectorSort(3)],
-                   [solver.mkBitVector(3, "101", 2)])
-    with pytest.raises(RuntimeError):
-      solver.mkTuple([solver.getRealSort()], [solver.mkInteger("5")])
-
-    with pytest.raises(RuntimeError):
-        solver.mkTuple([], [solver.mkBitVector(3, "101", 2)])
-    with pytest.raises(RuntimeError):
-        solver.mkTuple([solver.mkBitVectorSort(4)],
-                       [solver.mkBitVector(3, "101", 2)])
-    with pytest.raises(RuntimeError):
-        solver.mkTuple([solver.getIntegerSort()], [solver.mkReal("5.3")])
+    solver.mkTuple([solver.mkBitVector(3, "101", 2)])
+    solver.mkTuple([solver.mkInteger("5")])
+    solver.mkTuple([solver.mkReal("5.3")])
     slv = cvc5.Solver()
-    slv.mkTuple([solver.mkBitVectorSort(3)],
-                [slv.mkBitVector(3, "101", 2)])
-    slv.mkTuple([slv.mkBitVectorSort(3)],
-                [solver.mkBitVector(3, "101", 2)])
+    slv.mkTuple([slv.mkBitVector(3, "101", 2)])
+    slv.mkTuple([solver.mkBitVector(3, "101", 2)])
 
 
 def test_mk_universe_set(solver):
@@ -2723,17 +2712,13 @@ def test_synth_fun(solver):
 
 
 def test_tuple_project(solver):
-    sorts = [solver.getBooleanSort(),\
-                               solver.getIntegerSort(),\
-                               solver.getStringSort(),\
-                               solver.mkSetSort(solver.getStringSort())]
     elements = [\
         solver.mkBoolean(True), \
         solver.mkInteger(3),\
         solver.mkString("C"),\
         solver.mkTerm(Kind.SET_SINGLETON, solver.mkString("Z"))]
 
-    tuple = solver.mkTuple(sorts, elements)
+    tuple = solver.mkTuple(elements)
 
     indices1 = []
     indices2 = [0]

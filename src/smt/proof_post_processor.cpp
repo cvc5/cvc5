@@ -965,7 +965,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     if (theory::strings::InferProofCons::unpackArgs(
             args, conc, iid, isRev, exp))
     {
-      if (theory::strings::InferProofCons::addProofTo(
+      if (theory::strings::InferProofCons::convertAndAddProofTo(
               cdp, conc, iid, isRev, exp))
       {
         return conc;

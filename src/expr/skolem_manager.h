@@ -52,6 +52,11 @@ enum class SkolemFunId
    * The n^th skolem for quantified formula Q. Its arguments are (Q,n).
    */
   QUANTIFIERS_SKOLEMIZE,
+  /**
+   * Quantifiers synth fun embedding, for function-to-synthesize, this the
+   * first order datatype variable for f.
+   */
+  QUANTIFIERS_SYNTH_FUN_EMBED,
   //----- string skolems are cached based on two strings (a, b)
   /** exists k. ( b occurs k times in a ) */
   STRINGS_NUM_OCCUR,
@@ -224,7 +229,9 @@ enum class SkolemFunId
   /** the "none" term, for instantiation evaluation */
   IEVAL_NONE,
   /** the "some" term, for instantiation evaluation */
-  IEVAL_SOME
+  IEVAL_SOME,
+  /** sygus "any constant" placeholder */
+  SYGUS_ANY_CONSTANT
 };
 /** Converts a skolem function name to a string. */
 const char* toString(SkolemFunId id);
@@ -365,6 +372,10 @@ class SkolemManager
    * call. Updates the arguments to the values used when constructing it.
    */
   bool isSkolemFunction(TNode k, SkolemFunId& id, Node& cacheVal) const;
+  /**
+   * Get skolem function id
+   */
+  SkolemFunId getId(TNode k) const;
   /**
    * Create a skolem constant with the given name, type, and comment. This
    * should only be used if the definition of the skolem does not matter.

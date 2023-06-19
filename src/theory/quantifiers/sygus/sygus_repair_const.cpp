@@ -324,8 +324,7 @@ bool SygusRepairConst::isRepairable(Node n, bool useConstantsAsHoles)
   }
   Node op = n.getOperator();
   unsigned cindex = datatypes::utils::indexOf(op);
-  Node sygusOp = dt[cindex].getSygusOp();
-  if (sygusOp.getAttribute(SygusAnyConstAttribute()))
+  if (dt[cindex].isSygusAnyConstant())
   {
     // if it represents "any constant" then it is repairable
     return true;
@@ -336,7 +335,7 @@ bool SygusRepairConst::isRepairable(Node n, bool useConstantsAsHoles)
   }
   if (useConstantsAsHoles && dt.getSygusAllowConst())
   {
-    if (sygusOp.isConst())
+    if (dt[cindex].getSygusOp().isConst())
     {
       // if a constant, it is repairable
       return true;
