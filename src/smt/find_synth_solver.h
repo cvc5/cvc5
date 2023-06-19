@@ -36,7 +36,7 @@ class FindSynthSolver : protected EnvObj
   ~FindSynthSolver() {}
   /**
    * Find synth for target fst the given target and (possibly multiple)
-   * grammars.
+   * grammars. Returns the result of the find-synth query.
    */
   Node findSynth(modes::FindSynthTarget fst, const std::vector<TypeNode>& gtns);
   /**

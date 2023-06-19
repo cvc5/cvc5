@@ -32,7 +32,7 @@ Node FindSynthSolver::findSynth(modes::FindSynthTarget fst,
   for (const TypeNode& gtn : gtns)
   {
     d_sfinders.emplace_back(new theory::quantifiers::SynthFinder(d_env));
-    d_sfinders.back()->initializeFindSynth(fst, gtn);
+    d_sfinders.back()->initialize(fst, gtn);
   }
   d_currIndex = 0;
   return findSynthNext();
