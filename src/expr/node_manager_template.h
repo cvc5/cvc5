@@ -651,7 +651,7 @@ class NodeManager
 
   template <class NodeClass, class T>
   NodeClass mkConstInternal(Kind k, const T&);
-
+  
   /**
    * Make constant real. Returns constant of kind CONST_RATIONAL with Rational
    * payload.
