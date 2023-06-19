@@ -115,6 +115,9 @@ class CVC5_EXPORT InputParser
    * to this point.
    */
   Term nextExpression();
+  
+  /** Is this parser done reading input? */
+  bool done() const;
 
  private:
   /** Initialize this input parser, called during construction */

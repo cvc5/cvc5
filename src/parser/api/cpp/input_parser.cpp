@@ -106,5 +106,10 @@ void InputParser::appendIncrementalStringInput(const std::string& input)
   d_fparser->setStringInput(input, d_istringName);
 }
 
+bool InputParser::done() const
+{
+  return d_fparser==nullptr || d_fparser->done();
+}
+
 }  // namespace parser
 }  // namespace cvc5

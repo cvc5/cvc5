@@ -132,6 +132,11 @@ Term FlexParser::nextExpression()
   return result;
 }
 
+bool FlexParser::done() const
+{
+  return d_done;
+}
+
 std::unique_ptr<FlexParser> FlexParser::mkFlexParser(const std::string& lang,
                                                      Solver* solver,
                                                      SymbolManager* sm)
