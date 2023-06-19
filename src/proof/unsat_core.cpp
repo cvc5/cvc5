@@ -15,6 +15,7 @@
 
 #include "proof/unsat_core.h"
 
+#include "expr/node.h"
 #include "base/check.h"
 #include "options/base_options.h"
 #include "options/io_utils.h"
