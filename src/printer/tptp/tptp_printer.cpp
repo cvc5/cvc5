@@ -22,6 +22,8 @@
 #include "options/language.h"     // for LANG_AST
 #include "options/smt_options.h"  // for unsat cores
 #include "proof/unsat_core.h"
+#include "expr/node.h"
+#include "smt/model.h"
 
 using namespace std;
 
