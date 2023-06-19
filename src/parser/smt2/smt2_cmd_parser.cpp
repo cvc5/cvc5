@@ -22,7 +22,7 @@
 namespace cvc5 {
 namespace parser {
 
-Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex,
+Smt2CmdParser::Smt2CmdParser(Smt2LexerNew& lex,
                              Smt2State& state,
                              Smt2TermParser& tparser)
     : d_lex(lex), d_state(state), d_tparser(tparser)
