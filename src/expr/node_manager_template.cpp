@@ -140,77 +140,92 @@ bool NodeManager::isNAryKind(Kind k)
 
 TypeNode NodeManager::booleanType()
 {
-  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT, BOOLEAN_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 BOOLEAN_TYPE);
 }
 
 TypeNode NodeManager::integerType()
 {
-  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT, INTEGER_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 INTEGER_TYPE);
 }
 
 TypeNode NodeManager::realType()
 {
-  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT, REAL_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 REAL_TYPE);
 }
 
 TypeNode NodeManager::stringType()
 {
-  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT, STRING_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 STRING_TYPE);
 }
 
 TypeNode NodeManager::regExpType()
 {
-  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT, REGEXP_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 REGEXP_TYPE);
 }
 
 TypeNode NodeManager::roundingModeType()
 {
-  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT, ROUNDINGMODE_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 ROUNDINGMODE_TYPE);
 }
 
 TypeNode NodeManager::boundVarListType()
 {
-  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT, BOUND_VAR_LIST_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 BOUND_VAR_LIST_TYPE);
 }
 
 TypeNode NodeManager::instPatternType()
 {
-  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT, INST_PATTERN_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 INST_PATTERN_TYPE);
 }
 
 TypeNode NodeManager::instPatternListType()
 {
-  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT, INST_PATTERN_LIST_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 INST_PATTERN_LIST_TYPE);
 }
 
 TypeNode NodeManager::builtinOperatorType()
 {
-  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT, BUILTIN_OPERATOR_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 BUILTIN_OPERATOR_TYPE);
 }
 
 TypeNode NodeManager::mkBitVectorType(unsigned size)
 {
-  return mkConstInternal<TypeNode, BitVectorSize>(kind::BITVECTOR_TYPE, BitVectorSize(size));
+  return mkConstInternal<TypeNode, BitVectorSize>(kind::BITVECTOR_TYPE,
+                                                  BitVectorSize(size));
 }
 
 TypeNode NodeManager::mkFiniteFieldType(const Integer& modulus)
 {
-  return mkConstInternal<TypeNode, FfSize>(kind::FINITE_FIELD_TYPE, FfSize(modulus));
+  return mkConstInternal<TypeNode, FfSize>(kind::FINITE_FIELD_TYPE,
+                                           FfSize(modulus));
 }
 
 TypeNode NodeManager::sExprType()
 {
-  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT, SEXPR_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 SEXPR_TYPE);
 }
 
 TypeNode NodeManager::mkFloatingPointType(unsigned exp, unsigned sig)
 {
-  return mkConstInternal<TypeNode, FloatingPointSize>(kind::FLOATINGPOINT_TYPE, FloatingPointSize(exp, sig));
+  return mkConstInternal<TypeNode, FloatingPointSize>(
+      kind::FLOATINGPOINT_TYPE, FloatingPointSize(exp, sig));
 }
 
 TypeNode NodeManager::mkFloatingPointType(FloatingPointSize fs)
 {
-  return mkConstInternal<TypeNode, FloatingPointSize>(kind::FLOATINGPOINT_TYPE, fs);
+  return mkConstInternal<TypeNode, FloatingPointSize>(kind::FLOATINGPOINT_TYPE,
+                                                      fs);
 }
 
 NodeManager::~NodeManager()
@@ -608,7 +623,8 @@ TypeNode NodeManager::mkAbstractType(Kind k)
     TypeNode a = mkAbstractType(kind::ABSTRACT_TYPE);
     return mkSequenceType(a);
   }
-  return mkConstInternal<TypeNode, AbstractType>(kind::ABSTRACT_TYPE, AbstractType(k));
+  return mkConstInternal<TypeNode, AbstractType>(kind::ABSTRACT_TYPE,
+                                                 AbstractType(k));
 }
 
 TypeNode NodeManager::mkDatatypeType(DType& datatype)
