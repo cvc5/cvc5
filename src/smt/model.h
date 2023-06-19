@@ -26,6 +26,8 @@
 namespace cvc5::internal {
 namespace smt {
 
+class Model;
+
 std::ostream& operator<<(std::ostream&, const Model&);
 
 /**
