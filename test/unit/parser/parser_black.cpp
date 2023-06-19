@@ -22,8 +22,8 @@
 #include "options/language.h"
 #include "options/options.h"
 #include "parser/api/cpp/command.h"
-#include "parser/api/cpp/symbol_manager.h"
 #include "parser/api/cpp/input_parser.h"
+#include "parser/api/cpp/symbol_manager.h"
 #include "test.h"
 
 using namespace cvc5::parser;
@@ -173,10 +173,14 @@ class TestInputParserBlackInputParser : public TestInternal
 
 /* -------------------------------------------------------------------------- */
 
-class TestInputParserBlackSmt2InputParser : public TestInputParserBlackInputParser
+class TestInputParserBlackSmt2InputParser
+    : public TestInputParserBlackInputParser
 {
  protected:
-  TestInputParserBlackSmt2InputParser() : TestInputParserBlackInputParser("LANG_SMTLIB_V2_6") {}
+  TestInputParserBlackSmt2InputParser()
+      : TestInputParserBlackInputParser("LANG_SMTLIB_V2_6")
+  {
+  }
 };
 
 TEST_F(TestInputParserBlackSmt2InputParser, good_inputs)

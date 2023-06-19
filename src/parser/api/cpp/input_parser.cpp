@@ -108,7 +108,7 @@ void InputParser::appendIncrementalStringInput(const std::string& input)
 
 bool InputParser::done() const
 {
-  return d_fparser==nullptr || d_fparser->done();
+  return d_fparser == nullptr || d_fparser->done();
 }
 
 }  // namespace parser
