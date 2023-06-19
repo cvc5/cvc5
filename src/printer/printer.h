@@ -20,19 +20,16 @@
 
 #include <string>
 
+#include "expr/node.h"
 #include "options/language.h"
+#include "smt/model.h"
 #include "util/result.h"
 
 namespace cvc5::internal {
 
-typedef NodeTemplate<true> Node;
 class UnsatCore;
 struct InstantiationList;
 struct SkolemList;
-
-namespace smt {
-    class Model;
-}
 
 class CVC5_EXPORT Printer
 {

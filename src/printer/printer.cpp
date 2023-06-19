@@ -17,7 +17,6 @@
 #include <sstream>
 #include <string>
 
-#include "expr/node.h"
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/printer_options.h"
@@ -26,7 +25,6 @@
 #include "printer/tptp/tptp_printer.h"
 #include "proof/unsat_core.h"
 #include "theory/quantifiers/instantiation_list.h"
-#include "smt/model.h"
 
 using namespace std;
 
