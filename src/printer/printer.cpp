@@ -47,6 +47,9 @@ unique_ptr<Printer> Printer::makePrinter(Language lang)
       return unique_ptr<Printer>(
           new printer::smt2::Smt2Printer(printer::smt2::smt2_6_variant));
 
+    case Language::LANG_TPTP:
+      return unique_ptr<Printer>(new printer::tptp::TptpPrinter());
+
     case Language::LANG_AST:
       return unique_ptr<Printer>(new printer::ast::AstPrinter());
 
