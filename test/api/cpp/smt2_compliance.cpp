@@ -20,9 +20,7 @@
 #include <sstream>
 
 #include "parser/api/cpp/command.h"
-#include "parser/parser_antlr.h"
-#include "parser/parser_builder.h"
-#include "smt/solver_engine.h"
+#include "parser/api/cpp/input_parser.h"
 
 using namespace cvc5;
 using namespace cvc5::internal;
@@ -55,15 +53,15 @@ void testGetInfo(cvc5::Solver* solver, const char* s)
 {
   std::unique_ptr<SymbolManager> symman(new SymbolManager(solver));
 
-  std::unique_ptr<Parser> p(ParserBuilder(solver, symman.get(), true).build());
-  p->setInput(Input::newStringInput(
-      "LANG_SMTLIB_V2_6", string("(get-info ") + s + ")", "<internal>"));
-  assert(p != NULL);
-  std::unique_ptr<Command> c = p->nextCommand();
-  assert(c != NULL);
-  cout << c.get() << endl;
-  stringstream ss;
+  InputParser p(solver, d_symman.get());
+  std::stringstream ssi;
+  ssi << "(get-info " << s << ")";
+  p.getStreamInput("LANG_SMTLIB_V2_6", ssi, "<internal>");
+  std::unique_ptr<Command> c = p.nextCommand();
+  assert(c != nullptr);
+  std::cout << c.get() << std::endl;
+  std::stringstream ss;
   c->invoke(solver, symman.get(), ss);
-  assert(p->nextCommand() == NULL);
-  cout << ss.str() << endl << endl;
+  assert(p.nextCommand() == nullptr);
+  std::cout << ss.str() << std::endl << std::endl;
 }
