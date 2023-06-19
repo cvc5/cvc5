@@ -208,12 +208,14 @@ void CommandFailure::toStream(std::ostream& out) const
 
 void CommandRecoverableFailure::toStream(std::ostream& out) const
 {
-  internal::Printer::getPrinter(out)->toStreamCmdRecoverableFailure(out, d_message);
+  internal::Printer::getPrinter(out)->toStreamCmdRecoverableFailure(out,
+                                                                    d_message);
 }
 
 void Command::resetSolver(cvc5::Solver* solver)
 {
-  std::unique_ptr<internal::Options> opts = std::make_unique<internal::Options>();
+  std::unique_ptr<internal::Options> opts =
+      std::make_unique<internal::Options>();
   opts->copyValues(*solver->d_originalOptions);
   // This reconstructs a new solver object at the same memory location as the
   // current one. Note that this command does not own the solver object!
@@ -224,7 +226,10 @@ void Command::resetSolver(cvc5::Solver* solver)
   new (solver) cvc5::Solver(std::move(opts));
 }
 
-internal::Node Command::termToNode(const cvc5::Term& term) { return term.getNode(); }
+internal::Node Command::termToNode(const cvc5::Term& term)
+{
+  return term.getNode();
+}
 
 std::vector<internal::Node> Command::termVectorToNodes(
     const std::vector<cvc5::Term>& terms)
@@ -324,7 +329,8 @@ std::string AssertCommand::getCommandName() const { return "assert"; }
 
 void AssertCommand::toStream(std::ostream& out) const
 {
-  internal::Printer::getPrinter(out)->toStreamCmdAssert(out, termToNode(d_term));
+  internal::Printer::getPrinter(out)->toStreamCmdAssert(out,
+                                                        termToNode(d_term));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -560,7 +566,8 @@ void SynthFunCommand::toStream(std::ostream& out) const
       termToNode(d_fun),
       nodeVars,
       d_isInv,
-      d_grammar == nullptr ? internal::TypeNode::null() : grammarToTypeNode(d_grammar));
+      d_grammar == nullptr ? internal::TypeNode::null()
+                           : grammarToTypeNode(d_grammar));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -604,11 +611,13 @@ void SygusConstraintCommand::toStream(std::ostream& out) const
 {
   if (d_isAssume)
   {
-    internal::Printer::getPrinter(out)->toStreamCmdAssume(out, termToNode(d_term));
+    internal::Printer::getPrinter(out)->toStreamCmdAssume(out,
+                                                          termToNode(d_term));
   }
   else
   {
-    internal::Printer::getPrinter(out)->toStreamCmdConstraint(out, termToNode(d_term));
+    internal::Printer::getPrinter(out)->toStreamCmdConstraint(
+        out, termToNode(d_term));
   }
 }
 
@@ -699,8 +708,8 @@ void CheckSynthCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
       std::vector<cvc5::Term> synthFuns = sm->getFunctionsToSynthesize();
       d_solution << "(" << std::endl;
       internal::options::ioutils::Scope scope(d_solution);
-      internal::options::ioutils::applyOutputLanguage(d_solution,
-                                            internal::Language::LANG_SYGUS_V2);
+      internal::options::ioutils::applyOutputLanguage(
+          d_solution, internal::Language::LANG_SYGUS_V2);
       internal::Printer* p = internal::Printer::getPrinter(d_solution);
       for (cvc5::Term& f : synthFuns)
       {
@@ -1028,7 +1037,8 @@ std::string DeclareSortCommand::getCommandName() const
 
 void DeclareSortCommand::toStream(std::ostream& out) const
 {
-  internal::Printer::getPrinter(out)->toStreamCmdDeclareType(out, sortToTypeNode(d_sort));
+  internal::Printer::getPrinter(out)->toStreamCmdDeclareType(
+      out, sortToTypeNode(d_sort));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1260,7 +1270,8 @@ std::string SimplifyCommand::getCommandName() const { return "simplify"; }
 
 void SimplifyCommand::toStream(std::ostream& out) const
 {
-  internal::Printer::getPrinter(out)->toStreamCmdSimplify(out, termToNode(d_term));
+  internal::Printer::getPrinter(out)->toStreamCmdSimplify(out,
+                                                          termToNode(d_term));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1330,8 +1341,8 @@ std::string GetValueCommand::getCommandName() const { return "get-value"; }
 
 void GetValueCommand::toStream(std::ostream& out) const
 {
-  internal::Printer::getPrinter(out)->toStreamCmdGetValue(out,
-                                                termVectorToNodes(d_terms));
+  internal::Printer::getPrinter(out)->toStreamCmdGetValue(
+      out, termVectorToNodes(d_terms));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2158,7 +2169,8 @@ std::string GetLearnedLiteralsCommand::getCommandName() const
 
 void GetLearnedLiteralsCommand::toStream(std::ostream& out) const
 {
-  internal::Printer::getPrinter(out)->toStreamCmdGetLearnedLiterals(out, d_type);
+  internal::Printer::getPrinter(out)->toStreamCmdGetLearnedLiterals(out,
+                                                                    d_type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2232,7 +2244,8 @@ std::string SetBenchmarkLogicCommand::getCommandName() const
 
 void SetBenchmarkLogicCommand::toStream(std::ostream& out) const
 {
-  internal::Printer::getPrinter(out)->toStreamCmdSetBenchmarkLogic(out, d_logic);
+  internal::Printer::getPrinter(out)->toStreamCmdSetBenchmarkLogic(out,
+                                                                   d_logic);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2360,7 +2373,8 @@ std::string SetOptionCommand::getCommandName() const { return "set-option"; }
 
 void SetOptionCommand::toStream(std::ostream& out) const
 {
-  internal::Printer::getPrinter(out)->toStreamCmdSetOption(out, d_flag, d_value);
+  internal::Printer::getPrinter(out)->toStreamCmdSetOption(
+      out, d_flag, d_value);
 }
 
 /* -------------------------------------------------------------------------- */

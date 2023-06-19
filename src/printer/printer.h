@@ -20,13 +20,13 @@
 
 #include <cvc5/cvc5_export.h>
 
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
+#include "expr/kind.h"
 #include "options/language.h"
 #include "util/result.h"
-#include "expr/kind.h"
 
 namespace cvc5::internal {
 
@@ -40,7 +40,7 @@ struct InstantiationList;
 struct SkolemList;
 
 namespace smt {
-    class Model;
+class Model;
 }
 
 class CVC5_EXPORT Printer

@@ -25,7 +25,7 @@
 #include <vector>
 
 namespace cvc5::internal {
-  
+
 template <bool ref_count>
 class NodeTemplate;
 typedef NodeTemplate<true> Node;
