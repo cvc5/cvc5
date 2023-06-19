@@ -17,6 +17,7 @@
 #include <sstream>
 #include <string>
 
+#include "expr/node.h"
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/printer_options.h"
