@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -76,17 +76,14 @@ void SygusSolver::declareSynthFun(Node fn,
   {
     Node bvl = nm->mkNode(BOUND_VAR_LIST, vars);
     // use an attribute to mark its bound variable list
-    SygusSynthFunVarListAttribute ssfvla;
-    fn.setAttribute(ssfvla, bvl);
+    quantifiers::SygusUtils::setSygusArgumentList(fn, bvl);
   }
   // whether sygus type encodes syntax restrictions
   if (!sygusType.isNull() && sygusType.isDatatype()
       && sygusType.getDType().isSygus())
   {
-    Node sym = nm->mkBoundVar("sfproxy", sygusType);
     // use an attribute to mark its grammar
-    SygusSynthGrammarAttribute ssfga;
-    fn.setAttribute(ssfga, sym);
+    quantifiers::SygusUtils::setSygusType(fn, sygusType);
     // we must expand definitions for sygus operators in the block
     expandDefinitionsSygusDt(sygusType);
   }
@@ -565,6 +562,17 @@ std::vector<Node> SygusSolver::listToVector(const NodeList& list)
     vec.push_back(n);
   }
   return vec;
+}
+
+std::vector<std::pair<Node, TypeNode>> SygusSolver::getSynthFunctions() const
+{
+  std::vector<std::pair<Node, TypeNode>> funs;
+  for (const Node& f : d_sygusFunSymbols)
+  {
+    TypeNode st = quantifiers::SygusUtils::getSygusType(f);
+    funs.emplace_back(f, st);
+  }
+  return funs;
 }
 
 }  // namespace smt

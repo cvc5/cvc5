@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -345,13 +345,21 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
 
 TrustNode TheoryDatatypes::ppRewrite(TNode in, std::vector<SkolemLemma>& lems)
 {
-  Trace("tuprec") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
+  Trace("datatypes") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
   // first, see if we need to expand definitions
   TrustNode texp = d_rewriter.expandDefinition(in);
   if (!texp.isNull())
   {
     return texp;
   }
+  // nothing to do
+  return TrustNode::null();
+}
+
+TrustNode TheoryDatatypes::ppStaticRewrite(TNode in)
+{
+  Trace("datatypes") << "TheoryDatatypes::ppStaticRewrite(" << in << ")"
+                     << endl;
   if( in.getKind()==EQUAL ){
     Node nn;
     std::vector< Node > rew;
@@ -368,8 +376,6 @@ TrustNode TheoryDatatypes::ppRewrite(TNode in, std::vector<SkolemLemma>& lems)
       return TrustNode::mkTrustRewrite(in, nn, nullptr);
     }
   }
-
-  // nothing to do
   return TrustNode::null();
 }
 

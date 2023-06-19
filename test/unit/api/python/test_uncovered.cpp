@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Mathias Preiner, Andrew Reynolds
+ *   Gereon Kremer, Mathias Preiner, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -48,6 +48,7 @@ TEST_F(TestApiBlackUncovered, streaming_operators)
   ss << cvc5::modes::BlockModelsMode::LITERALS;
   ss << cvc5::modes::LearnedLitType::LEARNED_LIT_PREPROCESS;
   ss << cvc5::modes::ProofComponent::PROOF_COMPONENT_FULL;
+  ss << cvc5::modes::FindSynthTarget::FIND_SYNTH_TARGET_ENUM;
   ss << cvc5::Result();
   ss << cvc5::Op();
   ss << cvc5::SynthResult();

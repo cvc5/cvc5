@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Abdalrhman Mohamed
+ *   Andrew Reynolds, Tim King, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1952,7 +1952,7 @@ void GetUnsatCoreCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 void GetUnsatCoreCommand::printResult(cvc5::Solver* solver,
                                       std::ostream& out) const
 {
-  if (d_solver->getOption("print-unsat-cores-full") == "true")
+  if (d_solver->getOption("print-cores-full") == "true")
   {
     // use the assertions
     UnsatCore ucr(termVectorToNodes(d_result));
@@ -2044,6 +2044,73 @@ std::string GetDifficultyCommand::getCommandName() const
 void GetDifficultyCommand::toStream(std::ostream& out) const
 {
   Printer::getPrinter(out)->toStreamCmdGetDifficulty(out);
+}
+
+/* -------------------------------------------------------------------------- */
+/* class GetTimeoutCoreCommand */
+/* -------------------------------------------------------------------------- */
+
+GetTimeoutCoreCommand::GetTimeoutCoreCommand()
+    : d_solver(nullptr), d_sm(nullptr)
+{
+}
+void GetTimeoutCoreCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
+{
+  try
+  {
+    d_sm = sm;
+    d_solver = solver;
+    d_result = solver->getTimeoutCore();
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (cvc5::CVC5ApiRecoverableException& e)
+  {
+    d_commandStatus = new CommandRecoverableFailure(e.what());
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+void GetTimeoutCoreCommand::printResult(cvc5::Solver* solver,
+                                        std::ostream& out) const
+{
+  cvc5::Result res = d_result.first;
+  out << res << std::endl;
+  if (res.isUnsat()
+      || (res.isUnknown() && res.getUnknownExplanation() == TIMEOUT))
+  {
+    if (d_solver->getOption("print-cores-full") == "true")
+    {
+      // use the assertions
+      UnsatCore ucr(termVectorToNodes(d_result.second));
+      ucr.toStream(out);
+    }
+    else
+    {
+      // otherwise, use the names
+      std::vector<std::string> names;
+      d_sm->getExpressionNames(d_result.second, names, true);
+      UnsatCore ucr(names);
+      ucr.toStream(out);
+    }
+  }
+}
+cvc5::Result GetTimeoutCoreCommand::getResult() const { return d_result.first; }
+const std::vector<cvc5::Term>& GetTimeoutCoreCommand::getTimeoutCore() const
+{
+  return d_result.second;
+}
+
+std::string GetTimeoutCoreCommand::getCommandName() const
+{
+  return "get-timeout-core";
+}
+
+void GetTimeoutCoreCommand::toStream(std::ostream& out) const
+{
+  Printer::getPrinter(out)->toStreamCmdGetTimeoutCore(out);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2153,6 +2220,7 @@ void SetBenchmarkLogicCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
   try
   {
+    sm->setLogic(d_logic);
     solver->setLogic(d_logic);
     d_commandStatus = CommandSuccess::instance();
   }

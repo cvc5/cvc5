@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Abdalrhman Mohamed, Andrew Reynolds, Gereon Kremer
+ *   Abdalrhman Mohamed, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -471,6 +471,11 @@ void Printer::toStreamCmdGetUnsatCore(std::ostream& out) const
 void Printer::toStreamCmdGetDifficulty(std::ostream& out) const
 {
   printUnknownCommand(out, "get-difficulty");
+}
+
+void Printer::toStreamCmdGetTimeoutCore(std::ostream& out) const
+{
+  printUnknownCommand(out, "get-timeout-core");
 }
 
 void Printer::toStreamCmdGetLearnedLiterals(std::ostream& out,

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,6 +27,7 @@
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/smt_engine_subsolver.h"
 
 namespace cvc5::internal {
@@ -241,7 +242,7 @@ void SygusInterpol::mkSygusConjecture(Node itp,
   Trace("sygus-interpol-debug") << "Set attributes..." << std::endl;
   if (!d_ibvlShared.isNull())
   {
-    itp.setAttribute(SygusSynthFunVarListAttribute(), d_ibvlShared);
+    SygusUtils::setSygusArgumentList(itp, d_ibvlShared);
   }
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 
@@ -276,7 +277,10 @@ bool SygusInterpol::findInterpol(SolverEngine* subSolver,
 {
   // get the synthesis solution
   std::map<Node, Node> sols;
-  subSolver->getSynthSolutions(sols);
+  if (!subSolver->getSynthSolutions(sols))
+  {
+    return false;
+  }
   Assert(sols.size() == 1);
   std::map<Node, Node>::iterator its = sols.find(itp);
   if (its == sols.end())
@@ -297,7 +301,7 @@ bool SygusInterpol::findInterpol(SolverEngine* subSolver,
   }
 
   // get the grammar type for the interpolant
-  Node igdtbv = itp.getAttribute(SygusSynthFunVarListAttribute());
+  Node igdtbv = SygusUtils::getOrMkSygusArgumentList(itp);
   // could have no variables, in which case there is nothing to do
   if (igdtbv.isNull())
   {

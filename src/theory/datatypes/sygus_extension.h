@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,7 +28,6 @@
 #include "smt/env_obj.h"
 #include "theory/datatypes/sygus_simple_sym.h"
 #include "theory/decision_manager.h"
-#include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers/term_database.h"
 
 namespace cvc5::internal {
@@ -284,13 +283,6 @@ private:
    */
   Node eliminateTraversalPredicates(Node n);
   //-----------------------------------end traversal predicates
-  /** a sygus sampler object for each (anchor, sygus type) pair
-   *
-   * This is used for the sygusRewVerify() option to verify the correctness of
-   * the rewriter.
-   */
-  std::map<Node, std::map<TypeNode, std::unique_ptr<quantifiers::SygusSampler>>>
-      d_sampler;
   /** Assert tester internal
    *
    * This function is called when the tester with index tindex is asserted for
@@ -562,12 +554,6 @@ private:
                               TheoryState& s);
     /** the measure term */
     Node d_this;
-    /**
-     * For each size n, an explanation for why this measure term has size at
-     * most n. This is typically the literal (DT_SYGUS_BOUND m n), which
-     * we call the (n^th) "fairness literal" for m.
-     */
-    std::map< unsigned, Node > d_search_size_exp;
     /**
      * For each size, whether we have called SygusExtension::notifySearchSize.
      */

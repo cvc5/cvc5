@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -1009,15 +1009,11 @@ def test_get_rounding_mode_value(solver):
 
 
 def test_get_tuple(solver):
-    s1 = solver.getIntegerSort()
-    s2 = solver.getRealSort()
-    s3 = solver.getStringSort()
-
     t1 = solver.mkInteger(15)
     t2 = solver.mkReal(17, 25)
     t3 = solver.mkString("abc")
 
-    tup = solver.mkTuple([s1, s2, s3], [t1, t2, t3])
+    tup = solver.mkTuple([t1, t2, t3])
 
     assert tup.isTupleValue()
     assert [t1, t2, t3] == tup.getTupleValue()

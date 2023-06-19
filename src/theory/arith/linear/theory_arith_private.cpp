@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Gereon Kremer, Alex Ozdemir
+ *   Tim King, Gereon Kremer, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -374,6 +374,8 @@ void TheoryArithPrivate::raiseConflict(ConstraintCP a, InferenceId id){
   Assert(id != InferenceId::UNKNOWN)
       << "Must provide an inference id in TheoryArithPrivate::raiseConflict";
   d_conflicts.push_back(std::make_pair(a, id));
+  // notify we are in conflict in this SAT context
+  d_containing.getTheoryState()->notifyInConflict();
 }
 
 void TheoryArithPrivate::raiseBlackBoxConflict(Node bb,
@@ -388,6 +390,8 @@ void TheoryArithPrivate::raiseBlackBoxConflict(Node bb,
       d_blackBoxConflictPf.set(pf);
     }
     d_blackBoxConflict = bb;
+    // notify we are in conflict in this SAT context
+    d_containing.getTheoryState()->notifyInConflict();
   }
 }
 

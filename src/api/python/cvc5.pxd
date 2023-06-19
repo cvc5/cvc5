@@ -234,7 +234,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Sort mkTupleSort(const vector[Sort]& sorts) except +
         Term mkTerm(Op op) except +
         Term mkTerm(Op op, const vector[Term]& children) except +
-        Term mkTuple(const vector[Sort]& sorts, const vector[Term]& terms) except +
+        Term mkTuple(const vector[Term]& terms) except +
         Op mkOp(Kind kind) except +
         Op mkOp(Kind kind, const string& arg) except +
         Op mkOp(Kind kind, const vector[uint32_t]& args) except +
@@ -328,6 +328,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         vector[Term] getUnsatAssumptions() except +
         vector[Term] getUnsatCore() except +
         map[Term,Term] getDifficulty() except +
+        pair[Result, vector[Term]] getTimeoutCore() except +
         Term getValue(Term term) except +
         vector[Term] getValue(const vector[Term]& terms) except +
         Term getQuantifierElimination(const Term& q) except +

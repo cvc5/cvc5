@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -648,19 +648,17 @@ public class Solver implements IPointer
   /**
    * Create a tuple term. Terms are automatically converted if sorts are
    * compatible.
-   * @param sorts The sorts of the elements in the tuple.
    * @param terms The elements in the tuple.
    * @return The tuple Term.
    */
-  public Term mkTuple(Sort[] sorts, Term[] terms)
+  public Term mkTuple(Term[] terms)
   {
-    long[] sortPointers = Utils.getPointers(sorts);
     long[] termPointers = Utils.getPointers(terms);
-    long termPointer = mkTuple(pointer, sortPointers, termPointers);
+    long termPointer = mkTuple(pointer, termPointers);
     return new Term(termPointer);
   }
 
-  private native long mkTuple(long pointer, long[] sortPointers, long[] termPointers);
+  private native long mkTuple(long pointer, long[] termPointers);
 
   /* .................................................................... */
   /* Create Operators                                                     */
@@ -1988,6 +1986,42 @@ public class Solver implements IPointer
   }
 
   private native Map<Long, Long> getDifficulty(long pointer);
+
+  /**
+   * Get a timeout core, which computes a subset of the current assertions that
+   * cause a timeout. Note it does not require being proceeded by a call to
+   * checkSat.
+   *
+   * SMT-LIB:
+   * {@code
+   * (get-timeout-core)
+   * }
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @return The result of the timeout core computation. This is a pair
+   * containing a result and a list of formulas. If the result is unknown
+   * and the reason is timeout, then the list of formulas correspond to a
+   * subset of the current assertions that cause a timeout in the specified
+   * time {@code timeout-core-timeout}.
+   * If the result is unsat, then the list of formulas correspond to an
+   * unsat core for the current assertions. Otherwise, the result is sat,
+   * indicating that the current assertions are satisfiable, and
+   * the list of formulas is empty.
+   *
+   * This method may make multiple checks for satisfiability internally, each
+   * limited by the timeout value given by {@code timeout-core-timeout}.
+   */
+  public Pair<Result, Term[]> getTimeoutCore()
+  {
+    Pair<Long, long[]> pair = getTimeoutCore(pointer);
+    Result result = new Result(pair.first);
+    Term[] terms = Utils.getTerms(pair.second);
+    Pair<Result, Term[]> ret = new Pair<>(result, terms);
+    return ret;
+  }
+
+  private native Pair<Long, long[]> getTimeoutCore(long pointer);
 
   /**
    * Get refutation proof for the most recent call to checkSat.

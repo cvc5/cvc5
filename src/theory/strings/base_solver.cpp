@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -392,7 +392,9 @@ bool BaseSolver::processConstantLike(Node a, Node b)
     {
       // (seq.unit x) = (seq.unit y) => x=y, or
       // (seq.unit x) = (seq.unit c) => x=c
-      d_im.sendInference(exp, eq, InferenceId::STRINGS_UNIT_INJ);
+      // Must send this as lemma since it may impact other theories, or
+      // imply length constraints if the conclusion involves strings/sequences.
+      d_im.sendInference(exp, eq, InferenceId::STRINGS_UNIT_INJ, false, true);
       Trace("strings-base") << "...inj seq" << std::endl;
     }
   }
@@ -680,9 +682,15 @@ bool BaseSolver::isCardinalityOk(size_t typeCardSize,
                                  size_t eqcCount,
                                  size_t& lenNeed) const
 {
+  Trace("strings-card") << "isCardinalityOk? " << typeCardSize << " "
+                        << eqcCount << std::endl;
   if (eqcCount <= 1)
   {
     return true;
+  }
+  else if (typeCardSize == 1)
+  {
+    return false;
   }
   lenNeed = 1;
   double curr = static_cast<double>(eqcCount);

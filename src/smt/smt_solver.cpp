@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,12 +34,10 @@ using namespace std;
 namespace cvc5::internal {
 namespace smt {
 
-SmtSolver::SmtSolver(Env& env,
-                     AbstractValues& abs,
-                     SolverEngineStatistics& stats)
+SmtSolver::SmtSolver(Env& env, SolverEngineStatistics& stats)
     : EnvObj(env),
       d_pp(env, stats),
-      d_asserts(env, abs),
+      d_asserts(env),
       d_stats(stats),
       d_theoryEngine(nullptr),
       d_propEngine(nullptr)
@@ -260,13 +258,10 @@ void SmtSolver::popPropContext()
   d_propEngine->pop();
 }
 
-void SmtSolver::postsolve()
+void SmtSolver::resetTrail()
 {
   Assert(d_propEngine != nullptr);
   d_propEngine->resetTrail();
-
-  Assert(d_theoryEngine != nullptr);
-  d_theoryEngine->postsolve();
 }
 
 }  // namespace smt

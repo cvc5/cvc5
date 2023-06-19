@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -72,7 +72,7 @@ void CegSingleInv::initialize(Node q)
   for (const Node& sf : q[0])
   {
     // get its argument list
-    SygusUtils::getSygusArgumentListForSynthFun(sf, progVars[sf]);
+    SygusUtils::getOrMkSygusArgumentList(sf, progVars[sf]);
   }
   // compute single invocation partition
   Node qq;
@@ -422,7 +422,7 @@ Node CegSingleInv::getSolutionFromInst(size_t index)
   s = extendedRewrite(s);
   Trace("csi-sol") << "Solution (post-simplification): " << s << std::endl;
   // wrap into lambda, as needed
-  return SygusUtils::wrapSolutionForSynthFun(prog, s);
+  return SygusUtils::wrapSolution(prog, s);
 }
 
 void CegSingleInv::setSolution()

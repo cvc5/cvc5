@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Abdalrhman Mohamed, Andrew Reynolds, Aina Niemetz
+ *   Abdalrhman Mohamed, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -247,6 +247,9 @@ class CVC5_EXPORT Printer
 
   /** Print get-difficulty command */
   virtual void toStreamCmdGetDifficulty(std::ostream& out) const;
+
+  /** Print get-timeout-core command */
+  virtual void toStreamCmdGetTimeoutCore(std::ostream& out) const;
 
   /** Print get-learned-literals command */
   virtual void toStreamCmdGetLearnedLiterals(std::ostream& out,
