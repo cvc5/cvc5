@@ -254,7 +254,7 @@ enum ProofComponent
 std::ostream& operator<<(std::ostream& out, ProofComponent pc) CVC5_EXPORT;
 
 /**
- * Find synthesis targets, used as a argument to Solver::findSynth. These
+ * Find synthesis targets, used as an argument to Solver::findSynth. These
  * specify various kinds of terms that can be found by this method.
  */
 enum FindSynthTarget

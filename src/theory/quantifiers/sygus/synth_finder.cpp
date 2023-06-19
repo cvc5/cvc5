@@ -20,8 +20,12 @@
 #include "printer/printer.h"
 #include "smt/env.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
+#include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/query_generator_sample_sat.h"
 #include "theory/quantifiers/query_generator_unsat.h"
+#include "theory/quantifiers/rewrite_verifier.h"
+#include "theory/quantifiers/sygus/sygus_enumerator.h"
+#include "theory/quantifiers/sygus_sampler.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -29,8 +33,7 @@ namespace quantifiers {
 
 SynthFinder::SynthFinder(Env& env) : EnvObj(env), d_current(nullptr) {}
 
-void SynthFinder::initializeFindSynth(modes::FindSynthTarget fst,
-                                      const TypeNode& gtn)
+void SynthFinder::initialize(modes::FindSynthTarget fst, const TypeNode& gtn)
 {
   // should be a sygus datatype
   Assert(!gtn.isNull() && gtn.isDatatype() && gtn.getDType().isSygus());
@@ -51,7 +54,7 @@ void SynthFinder::initializeFindSynth(modes::FindSynthTarget fst,
   Node e = nm->mkBoundVar(gtn);
 
   // initialize the expression miner
-  initialize(d_fstu, e);
+  initializeInternal(d_fstu, e);
 
   // initialize the enumerator with the given callback
   d_enum.reset(new SygusEnumerator(d_env, nullptr, d_ecb.get()));
@@ -92,7 +95,7 @@ class SygusEnumeratorCallbackNoSym : public SygusEnumeratorCallback
   Node getCacheValue(const Node& n, const Node& bn) override { return bn; }
 };
 
-void SynthFinder::initialize(modes::FindSynthTarget fst, const Node& e)
+void SynthFinder::initializeInternal(modes::FindSynthTarget fst, const Node& e)
 {
   options::SygusQueryGenMode qmode = options().quantifiers.sygusQueryGen;
 

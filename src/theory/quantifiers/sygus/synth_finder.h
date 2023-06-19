@@ -20,15 +20,20 @@
 
 #include <cvc5/cvc5_types.h>
 
-#include "theory/quantifiers/candidate_rewrite_database.h"
-#include "theory/quantifiers/query_generator.h"
-#include "theory/quantifiers/rewrite_verifier.h"
-#include "theory/quantifiers/sygus/sygus_enumerator.h"
-#include "theory/quantifiers/sygus_sampler.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
+
+class ExprMiner;
+class ExprMinerId;
+class SygusEnumeratorCallback;
+class CandidateRewriteDatabase;
+class QueryGenerator;
+class RewriteVerifier;
+class SygusSampler;
+class SygusEnumerator;
 
 /**
  * Algorithms for finding terms from sygus enumeration. This can be
@@ -42,7 +47,7 @@ class SynthFinder : protected EnvObj
   /**
    * Initialize find synth for the given target and provided grammar.
    */
-  void initializeFindSynth(modes::FindSynthTarget fst, const TypeNode& gtn);
+  void initialize(modes::FindSynthTarget fst, const TypeNode& gtn);
   /**
    * Increment the enumerator of this class, returns false if the enumerator
    * is finished generating values.
@@ -56,7 +61,7 @@ class SynthFinder : protected EnvObj
 
  private:
   /** Initialize find synthesis target */
-  void initialize(modes::FindSynthTarget fst, const Node& e);
+  void initializeInternal(modes::FindSynthTarget fst, const Node& e);
   /** Run find synthesis target */
   Node runNext(const Node& n, modes::FindSynthTarget fst);
   /** An identity expression miner */
