@@ -27,8 +27,6 @@
 #include "base/check.h"
 #include "base/modal_exception.h"
 #include "base/output.h"
-#include "expr/node.h"
-#include "expr/type_node.h"
 #include "options/io_utils.h"
 #include "options/main_options.h"
 #include "options/options.h"
