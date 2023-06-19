@@ -71,10 +71,6 @@ static const std::string smt2_commands[] = {
 #include "main/smt2_tokens.h"
 };/* smt2_commands */
 
-static const std::string tptp_commands[] = {
-#include "main/tptp_tokens.h"
-};/* tptp_commands */
-
 static const std::string* commandsBegin;
 static const std::string* commandsEnd;
 
