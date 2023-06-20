@@ -62,7 +62,7 @@ std::unique_ptr<Parser> ParserBuilder::build()
   // the TPTP parser, where forced logic is processed upon construction.
   if (d_logicIsForced)
   {
-    d_symman->forceLogic(d_forcedLogic);
+    d_symman->setLogic(d_forcedLogic, true);
   }
 
   if (d_lang == "LANG_TPTP")
