@@ -81,31 +81,31 @@ std::string parse(std::string instr,
   (declare-fun a () (Array U (Array U U)))\n\
   ";
 
-    cvc5::Solver solver;
-    std::string ilang = "LANG_SMTLIB_V2_6";
+  cvc5::Solver solver;
+  std::string ilang = "LANG_SMTLIB_V2_6";
 
-    solver.setOption("input-language", input_language);
-    solver.setOption("output-language", output_language);
-    SymbolManager symman(&solver);
-    InputParser parser(&solver, d_symman.get());
-    std::stringstream ss;
-    ss << declarations;
-    parser.setStreamInput(ilang, ss, "internal-buffer");
-    // we don't need to execute the commands, but we DO need to parse them to
-    // get the declarations
-    while (std::unique_ptr<Command> c = parser.nextCommand())
-    {
+  solver.setOption("input-language", input_language);
+  solver.setOption("output-language", output_language);
+  SymbolManager symman(&solver);
+  InputParser parser(&solver, &symman);
+  std::stringstream ss;
+  ss << declarations;
+  parser.setStreamInput(ilang, ss, "internal-buffer");
+  // we don't need to execute the commands, but we DO need to parse them to
+  // get the declarations
+  while (std::unique_ptr<Command> c = parser.nextCommand())
+  {
     // invoke the command, which may bind symbols
     c->invoke(&solver, &symman);
-    }
-    assert(parser.done());  // parser should be done
-    std::stringstream ssi;
-    ssi << instr;
-    parser.setStreamInput(ilang, ss, "internal-buffer");
-    cvc5::Term e = parser.nextExpression();
-    std::string s = e.toString();
-    assert(parser.nextExpression().isNull());  // next expr should be null
-    return s;
+  }
+  assert(parser.done());  // parser should be done
+  std::stringstream ssi;
+  ssi << instr;
+  parser.setStreamInput(ilang, ss, "internal-buffer");
+  cvc5::Term e = parser.nextExpression();
+  std::string s = e.toString();
+  assert(parser.nextExpression().isNull());  // next expr should be null
+  return s;
 }
 
 std::string translate(std::string instr,

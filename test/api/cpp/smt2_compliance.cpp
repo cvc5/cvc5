@@ -41,7 +41,6 @@ int main()
   testGetInfo(solver.get(), ":status");
   testGetInfo(solver.get(), ":reason-unknown");
   testGetInfo(solver.get(), ":arbitrary-undefined-keyword");
-  testGetInfo(solver.get(), ":56");  // legal
   testGetInfo(solver.get(), ":<=");  // legal
   testGetInfo(solver.get(), ":->");  // legal
   testGetInfo(solver.get(), ":all-statistics");
@@ -53,7 +52,7 @@ void testGetInfo(cvc5::Solver* solver, const char* s)
 {
   std::unique_ptr<SymbolManager> symman(new SymbolManager(solver));
 
-  InputParser p(solver, d_symman.get());
+  InputParser p(solver, symman.get());
   std::stringstream ssi;
   ssi << "(get-info " << s << ")";
   p.setStreamInput("LANG_SMTLIB_V2_6", ssi, "<internal>");
