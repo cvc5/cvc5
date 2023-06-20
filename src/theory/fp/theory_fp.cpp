@@ -803,7 +803,6 @@ Node TheoryFp::getValue(TNode node)
       {
         iit = d_modelCache.find(child);
         Assert(iit != d_modelCache.end());
-        Assert(iit->second.isConst());
         nb << iit->second;
       }
       it->second = rewrite(nb.constructNode());
