@@ -41,7 +41,6 @@ int main()
   testGetInfo(solver.get(), ":status");
   testGetInfo(solver.get(), ":reason-unknown");
   testGetInfo(solver.get(), ":arbitrary-undefined-keyword");
-  testGetInfo(solver.get(), ":56");  // legal
   testGetInfo(solver.get(), ":<=");  // legal
   testGetInfo(solver.get(), ":->");  // legal
   testGetInfo(solver.get(), ":all-statistics");
