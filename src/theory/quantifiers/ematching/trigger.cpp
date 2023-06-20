@@ -157,8 +157,7 @@ uint64_t Trigger::addInstantiations()
             gt.getType().isBoolean() ? SkolemManager::SKOLEM_BOOL_TERM_VAR
                                      : SkolemManager::SKOLEM_DEFAULT;
         SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-        Node k = sm->mkPurifySkolem(
-            gt, "gt", "introduced for ground subterms of triggers", flags);
+        Node k = sm->mkPurifySkolem(gt, flags);
         Node eq = k.eqNode(gt);
         Trace("trigger-gt-lemma")
             << "Trigger: ground term purify lemma: " << eq << std::endl;

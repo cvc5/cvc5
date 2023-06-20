@@ -475,7 +475,7 @@ Node TranscendentalState::getPurifiedForm(TNode n)
   Node y;
   if (isSimplePurify(n))
   {
-    y = sm->mkPurifySkolem(n[0], "transk");
+    y = sm->mkPurifySkolem(n[0]);
   }
   else
   {

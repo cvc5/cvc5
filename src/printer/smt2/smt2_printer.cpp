@@ -581,7 +581,7 @@ void Smt2Printer::toStream(std::ostream& out,
   {
     // abstract value
     std::string s = n.getName();
-    out << "(as @" << cvc5::internal::quoteSymbol(s) << " " << n.getType() << ")";
+    out << "(as " << cvc5::internal::quoteSymbol(s) << " " << n.getType() << ")";
     return;
   }
   else if (n.isVar())
