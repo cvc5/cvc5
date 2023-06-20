@@ -156,7 +156,7 @@ class TestInputParserBlackInputParser : public TestInternal
     setupContext(parser);
     std::stringstream ss;
     ss << badExpr;
-    parser.setStreamInput(d_lang, ss.str(), "parser_black");
+    parser.setStreamInput(d_lang, ss, "parser_black");
     ASSERT_FALSE(parser.done());
     ASSERT_THROW(cvc5::Term e = parser.nextExpression();
                  std::cout << std::endl
