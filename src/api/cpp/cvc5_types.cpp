@@ -97,4 +97,22 @@ std::ostream& operator<<(std::ostream& out, ProofComponent pc)
   return out;
 }
 
+std::ostream& operator<<(std::ostream& out, FindSynthTarget fst)
+{
+  switch (fst)
+  {
+    case FindSynthTarget::FIND_SYNTH_TARGET_ENUM: out << "enum"; break;
+    case FindSynthTarget::FIND_SYNTH_TARGET_REWRITE: out << "rewrite"; break;
+    case FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_UNSOUND:
+      out << "rewrite_unsound";
+      break;
+    case FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_INPUT:
+      out << "rewrite_input";
+      break;
+    case FindSynthTarget::FIND_SYNTH_TARGET_QUERY: out << "query"; break;
+    default: out << "?";
+  }
+  return out;
+}
+
 }  // namespace cvc5::modes

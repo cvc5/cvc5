@@ -17,6 +17,7 @@
 
 #include <sstream>
 
+#include "expr/skolem_manager.h"
 #include "printer/printer.h"
 #include "printer/smt2/smt2_printer.h"
 
@@ -29,6 +30,8 @@ SygusGrammar::SygusGrammar(const std::vector<Node>& sygusVars,
   NodeManager* nm = NodeManager::currentNM();
   for (const Node& ntSym : ntSyms)
   {
+    std::vector<Node> emptyVec;
+    d_rules.emplace(ntSym, emptyVec);
     d_sdts.emplace(ntSym, SygusDatatype(ntSym.getName()));
     d_ntsToUnres.emplace(ntSym, nm->mkUnresolvedDatatypeSort(ntSym.getName()));
   }
@@ -44,6 +47,11 @@ void SygusGrammar::addRule(const Node& ntSym, const Node& rule)
 {
   Assert(d_sdts.find(ntSym) != d_sdts.cend());
   Assert(rule.getType().isInstanceOf(ntSym.getType()));
+  d_rules[ntSym].push_back(rule);
+}
+
+void SygusGrammar::addRuleInternal(const Node& ntSym, const Node& rule)
+{
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> args;
   std::vector<TypeNode> cargs;
@@ -71,7 +79,9 @@ void SygusGrammar::addAnyConstant(const Node& ntSym, const TypeNode& tn)
 {
   Assert(d_sdts.find(ntSym) != d_sdts.cend());
   Assert(tn.isInstanceOf(ntSym.getType()));
-  d_allowConst.emplace(ntSym);
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  Node anyConst = sm->mkSkolemFunction(SkolemFunId::SYGUS_ANY_CONSTANT, tn);
+  addRule(ntSym, anyConst);
 }
 
 void SygusGrammar::addAnyVariable(const Node& ntSym)
@@ -82,16 +92,47 @@ void SygusGrammar::addAnyVariable(const Node& ntSym)
   {
     if (v.getType().isInstanceOf(ntSym.getType()))
     {
-      d_sdts.at(ntSym).addConstructor(v, v.getName(), {});
+      addRule(ntSym, v);
     }
   }
 }
 
-TypeNode SygusGrammar::resolve()
+void SygusGrammar::removeRule(const Node& ntSym, const Node& rule)
+{
+  std::unordered_map<Node, std::vector<Node>>::iterator itr =
+      d_rules.find(ntSym);
+  Assert(itr != d_rules.end());
+  std::vector<Node>::iterator it =
+      std::find(itr->second.begin(), itr->second.end(), rule);
+  Assert(it != itr->second.end());
+  itr->second.erase(it);
+}
+
+TypeNode SygusGrammar::resolve(bool allowAny)
 {
   if (!isResolved())
   {
     NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
+    // Set of non-terminals that can be arbitrary constants.
+    std::unordered_set<Node> allowConsts;
+    // push the rules into the sygus datatypes
+    for (const std::pair<const Node, std::vector<Node>>& g : d_rules)
+    {
+      for (const Node& r : g.second)
+      {
+        if (r.getKind() == kind::SKOLEM
+            && sm->getId(r) == SkolemFunId::SYGUS_ANY_CONSTANT)
+        {
+          allowConsts.insert(g.first);
+          d_sdts.at(g.first).addAnyConstantConstructor(r.getType());
+        }
+        else
+        {
+          addRuleInternal(g.first, r);
+        }
+      }
+    }
     Node bvl;
     if (!d_sygusVars.empty())
     {
@@ -100,9 +141,9 @@ TypeNode SygusGrammar::resolve()
     std::vector<DType> datatypes;
     for (const Node& ntSym : d_ntSyms)
     {
-      bool allowConst = d_allowConst.find(ntSym) != d_allowConst.cend();
+      bool allowConst = allowConsts.find(ntSym) != allowConsts.cend();
       d_sdts.at(ntSym).initializeDatatype(
-          ntSym.getType(), bvl, allowConst, false);
+          ntSym.getType(), bvl, allowConst || allowAny, allowAny);
       datatypes.push_back(d_sdts.at(ntSym).getDatatype());
     }
     d_datatype = nm->mkMutualDatatypeTypes(datatypes)[0];
@@ -123,9 +164,12 @@ const std::vector<Node>& SygusGrammar::getSygusVars() const
 
 const std::vector<Node>& SygusGrammar::getNtSyms() const { return d_ntSyms; }
 
-size_t SygusGrammar::getNumConstructors(Node ntSym) const
+const std::vector<Node>& SygusGrammar::getRulesFor(const Node& ntSym) const
 {
-  return d_sdts.at(ntSym).getNumConstructors();
+  std::unordered_map<Node, std::vector<Node>>::const_iterator itr =
+      d_rules.find(ntSym);
+  Assert(itr != d_rules.end());
+  return itr->second;
 }
 
 std::string SygusGrammar::toString() const
