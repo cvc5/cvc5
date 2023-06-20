@@ -32,12 +32,12 @@ using namespace cvc5::internal::parser;
 namespace cvc5::internal {
 namespace test {
 
-class TestInputParserBlackInputParser : public TestInternal
+class TestParserBlackInputParser : public TestInternal
 {
  protected:
-  TestInputParserBlackInputParser(const std::string& lang) : d_lang(lang) {}
+  TestParserBlackInputParser(const std::string& lang) : d_lang(lang) {}
 
-  virtual ~TestInputParserBlackInputParser() {}
+  virtual ~TestParserBlackInputParser() {}
 
   void SetUp() override
   {
@@ -156,7 +156,7 @@ class TestInputParserBlackInputParser : public TestInternal
     setupContext(parser);
     std::stringstream ss;
     ss << badExpr;
-    parser.setStreamInput(d_lang, ss.str(), "parser_black");
+    parser.setStreamInput(d_lang, ss, "parser_black");
     ASSERT_FALSE(parser.done());
     ASSERT_THROW(cvc5::Term e = parser.nextExpression();
                  std::cout << std::endl
@@ -174,11 +174,11 @@ class TestInputParserBlackInputParser : public TestInternal
 /* -------------------------------------------------------------------------- */
 
 class TestInputParserBlackSmt2InputParser
-    : public TestInputParserBlackInputParser
+    : public TestParserBlackInputParser
 {
  protected:
   TestInputParserBlackSmt2InputParser()
-      : TestInputParserBlackInputParser("LANG_SMTLIB_V2_6")
+      : TestParserBlackInputParser("LANG_SMTLIB_V2_6")
   {
   }
 };
