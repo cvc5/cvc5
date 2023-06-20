@@ -1418,6 +1418,14 @@ name   = "Quantifiers"
   help = "Generate interesting UNSAT queries, for e.g. proof testing."
 
 [[option]]
+  name       = "sygusQueryFilterSolved"
+  category   = "expert"
+  long       = "sygus-query-gen-filter-solved"
+  type       = "bool"
+  default    = "false"
+  help       = "do not print queries that are solved"
+
+[[option]]
   name       = "sygusQueryGenThresh"
   category   = "expert"
   long       = "sygus-query-gen-thresh=N"

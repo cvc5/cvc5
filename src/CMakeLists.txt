@@ -914,6 +914,8 @@ libcvc5_add_sources(
   theory/quantifiers/query_generator_unsat.h
   theory/quantifiers/relevant_domain.cpp
   theory/quantifiers/relevant_domain.h
+  theory/quantifiers/rewrite_verifier.cpp
+  theory/quantifiers/rewrite_verifier.h
   theory/quantifiers/single_inv_partition.cpp
   theory/quantifiers/single_inv_partition.h
   theory/quantifiers/skolemize.cpp
@@ -1005,6 +1007,8 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/synth_conjecture.h
   theory/quantifiers/sygus/synth_engine.cpp
   theory/quantifiers/sygus/synth_engine.h
+  theory/quantifiers/sygus/synth_finder.cpp
+  theory/quantifiers/sygus/synth_finder.h
   theory/quantifiers/sygus/synth_verify.cpp
   theory/quantifiers/sygus/synth_verify.h
   theory/quantifiers/sygus/template_infer.cpp
