@@ -69,9 +69,17 @@ class SygusGrammar
   void addAnyVariable(const Node& ntSym);
 
   /**
+   * Remove \p rule from the set of rules corresponding to \p ntSym.
+   * @param ntSym The non-terminal from which the rule is removed.
+   * @param rule The rule to remove. This must be a rule that occurs
+   * in the list of rules for ntSym.
+   */
+  void removeRule(const Node& ntSym, const Node& rule);
+
+  /**
    * @return The resolved datatype of the Start symbol of the grammar.
    */
-  TypeNode resolve();
+  TypeNode resolve(bool allowAny = false);
 
   /**
    * @return whether or not this grammar is resolved.
@@ -88,11 +96,10 @@ class SygusGrammar
    */
   const std::vector<Node>& getNtSyms() const;
 
-  /** Get the number of constructors added to \p ntSym so far.
-   * @param ntSym The non-terminal to get the number of constructors for.
-   * @return The number of constructors added to \p ntSym so far.
+  /**
+   * @return The rules for non-terminal ntSym
    */
-  size_t getNumConstructors(Node ntSym) const;
+  const std::vector<Node>& getRulesFor(const Node& ntSym) const;
 
   /**
    * @return A string representation of this grammar.
@@ -100,6 +107,12 @@ class SygusGrammar
   std::string toString() const;
 
  private:
+  /**
+   * Add \p rule to the set of rules corresponding to \p ntSym.
+   * @param ntSym The non-terminal to which the rule is added.
+   * @param rule The rule to add.
+   */
+  void addRuleInternal(const Node& ntSym, const Node& rule);
   /**
    * Purify SyGuS grammar node.
    *
@@ -120,15 +133,14 @@ class SygusGrammar
   Node purifySygusGNode(const Node& n,
                         std::vector<Node>& args,
                         std::vector<TypeNode>& cargs) const;
-
+  /** The rules */
+  std::unordered_map<Node, std::vector<Node>> d_rules;
   /** Input variables to the corresponding function/invariant to synthesize.*/
   std::vector<Node> d_sygusVars;
   /** The non-terminal symbols of this grammar. */
   std::vector<Node> d_ntSyms;
   /** Mapping from non-terminal symbols to their production rules. */
   std::unordered_map<Node, SygusDatatype> d_sdts;
-  /** Set of non-terminals that can be arbitrary constants. */
-  std::unordered_set<Node> d_allowConst;
   /** Mapping from non-terminals to their unresolved types. */
   std::unordered_map<Node, TypeNode> d_ntsToUnres;
   /** The datatype type constructed by this grammar. */
