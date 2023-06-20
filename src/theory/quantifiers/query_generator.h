@@ -46,7 +46,7 @@ class QueryGenerator : public ExprMiner
   /**
    * Dumps query qy to the a file queryN.smt2 for the current counter N
    */
-  void dumpQuery(Node qy, const Result& r);
+  void dumpQuery(Node qy, const Result& r, std::vector<Node>& queries);
   /** ensure that node n added to the generator is Boolean */
   void ensureBoolean(const Node& n) const;
 };

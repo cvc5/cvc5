@@ -63,11 +63,11 @@ void InferProofCons::notifyLemma(const InferInfo& ii)
   d_lazyFactMap[ii.d_conc] = std::make_shared<InferInfo>(ii);
 }
 
-bool InferProofCons::addProofTo(CDProof* pf,
-                                Node conc,
-                                InferenceId infer,
-                                bool isRev,
-                                const std::vector<Node>& exp)
+bool InferProofCons::convertAndAddProofTo(CDProof* pf,
+                                          Node conc,
+                                          InferenceId infer,
+                                          bool isRev,
+                                          const std::vector<Node>& exp)
 {
   // now go back and convert it to proof steps and add to proof
   bool useBuffer = false;
