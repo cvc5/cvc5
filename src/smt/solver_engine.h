@@ -1011,16 +1011,17 @@ class CVC5_EXPORT SolverEngine
   void ensureWellFormedTerms(const std::vector<Node>& ns,
                              const std::string& src) const;
   /**
-   * Convert preprocessed assertions to unsat core. This converts a
-   * set of preprocessed assertions to a set of input assertions based on the
-   * proof of preprocessing. It is used for unsat cores and timeout cores.
+   * Convert preprocessed assertions to the input formulas that imply them. In
+   * detail, this converts a set of preprocessed assertions to a set of input
+   * assertions based on the proof of preprocessing. It is used for unsat cores
+   * and timeout cores.
    *
    * @param ppa The preprocessed assertions to convert
    * @param isInternal Used for debug printing unsat cores, i.e. when isInternal
    * is false, we print debug information.
    */
-  std::vector<Node> convertPreprocessedToUnsatCore(const std::vector<Node>& ppa,
-                                                   bool isInternal);
+  std::vector<Node> convertPreprocessedToInput(const std::vector<Node>& ppa,
+                                               bool isInternal);
   /* Members -------------------------------------------------------------- */
 
   /** Solver instance that owns this SolverEngine instance. */

@@ -795,7 +795,7 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore()
   }
   std::pair<Result, std::vector<Node>> ret = tcm.getTimeoutCore(passerts);
   // convert the preprocessed assertions to input assertions
-  std::vector<Node> core = convertPreprocessedToUnsatCore(ret.second, true);
+  std::vector<Node> core = convertPreprocessedToInput(ret.second, true);
   endCall();
   return std::pair<Result, std::vector<Node>>(ret.first, core);
 }
@@ -1255,7 +1255,7 @@ void SolverEngine::ensureWellFormedTerms(const std::vector<Node>& ns,
   }
 }
 
-std::vector<Node> SolverEngine::convertPreprocessedToUnsatCore(
+std::vector<Node> SolverEngine::convertPreprocessedToInput(
     const std::vector<Node>& ppa, bool isInternal)
 {
   std::vector<Node> core;
@@ -1406,7 +1406,7 @@ UnsatCore SolverEngine::getUnsatCoreInternal(bool isInternal)
   // unsat core computed by the prop engine
   std::vector<Node> pcore;
   pe->getUnsatCore(pcore);
-  std::vector<Node> core = convertPreprocessedToUnsatCore(pcore, isInternal);
+  std::vector<Node> core = convertPreprocessedToInput(pcore, isInternal);
   return UnsatCore(core);
 }
 
