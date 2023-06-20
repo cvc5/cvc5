@@ -32,12 +32,12 @@ using namespace cvc5::internal::parser;
 namespace cvc5::internal {
 namespace test {
 
-class TestParserBlackInputParser : public TestInternal
+class TestInputParserBlackInputParser : public TestInternal
 {
  protected:
-  TestParserBlackInputParser(const std::string& lang) : d_lang(lang) {}
+  TestInputParserBlackInputParser(const std::string& lang) : d_lang(lang) {}
 
-  virtual ~TestParserBlackInputParser() {}
+  virtual ~TestInputParserBlackInputParser() {}
 
   void SetUp() override
   {
@@ -57,6 +57,7 @@ class TestParserBlackInputParser : public TestInternal
   void setupContext(InputParser& parser)
   {
     std::stringstream ss;
+    ss << "(set-logic ALL)" << std::endl;
     ss << "(declare-fun a () Bool)" << std::endl;
     ss << "(declare-fun b () Bool)" << std::endl;
     ss << "(declare-fun c () Bool)" << std::endl;
@@ -99,6 +100,7 @@ class TestParserBlackInputParser : public TestInternal
   void tryBadInput(const std::string badInput, bool strictMode = false)
   {
     d_solver.reset(new cvc5::Solver());
+    d_solver->setOption("strict-parsing", strictMode ? "true" : "false");
     d_symman.reset(new SymbolManager(d_solver.get()));
     InputParser parser(d_solver.get(), d_symman.get());
     std::stringstream ss;
@@ -119,19 +121,15 @@ class TestParserBlackInputParser : public TestInternal
 
   void tryGoodExpr(const std::string goodExpr)
   {
+    d_solver.reset(new cvc5::Solver());
     d_symman.reset(new SymbolManager(d_solver.get()));
     InputParser parser(d_solver.get(), d_symman.get());
-    if (d_lang == "LANG_SMTLIB_V2_6")
-    {
-      /* Use QF_LIA to make multiplication ("*") available */
-      parser.setLogic("QF_LIA");
-    }
+    setupContext(parser);
+
     std::stringstream ss;
     ss << goodExpr;
     parser.setStreamInput(d_lang, ss, "parser_black");
 
-    ASSERT_FALSE(parser.done());
-    setupContext(parser);
     ASSERT_FALSE(parser.done());
     cvc5::Term e = parser.nextExpression();
     ASSERT_FALSE(e.isNull());
@@ -151,6 +149,8 @@ class TestParserBlackInputParser : public TestInternal
    */
   void tryBadExpr(const std::string badExpr, bool strictMode = false)
   {
+    d_solver.reset(new cvc5::Solver());
+    d_solver->setOption("strict-parsing", strictMode ? "true" : "false");
     d_symman.reset(new SymbolManager(d_solver.get()));
     InputParser parser(d_solver.get(), d_symman.get());
     setupContext(parser);
@@ -174,11 +174,11 @@ class TestParserBlackInputParser : public TestInternal
 /* -------------------------------------------------------------------------- */
 
 class TestInputParserBlackSmt2InputParser
-    : public TestParserBlackInputParser
+    : public TestInputParserBlackInputParser
 {
  protected:
   TestInputParserBlackSmt2InputParser()
-      : TestParserBlackInputParser("LANG_SMTLIB_V2_6")
+      : TestInputParserBlackInputParser("LANG_SMTLIB_V2_6")
   {
   }
 };
