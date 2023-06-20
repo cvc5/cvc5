@@ -125,7 +125,7 @@ class TestInputParserBlackInputParser : public TestInternal
     d_symman.reset(new SymbolManager(d_solver.get()));
     InputParser parser(d_solver.get(), d_symman.get());
     setupContext(parser);
-    
+
     std::stringstream ss;
     ss << goodExpr;
     parser.setStreamInput(d_lang, ss, "parser_black");
