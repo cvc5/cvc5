@@ -273,9 +273,9 @@ TEST_F(TestInputParserBlackSmt2InputParser, bad_exprs)
   tryBadExpr("#xg0f");
   tryBadExpr("#b9");
   // Bad strict exprs
-  //tryBadExpr("(and a)", true);   // no unary and's
-  //tryBadExpr("(or a)", true);    // no unary or's
-  //tryBadExpr("(* 5 01)", true);  // '01' is not a valid integer constant
+  tryBadExpr("(and a)", true);   // no unary and's
+  tryBadExpr("(or a)", true);    // no unary or's
+  tryBadExpr("(* 5 01)", true);  // '01' is not a valid integer constant
 #endif
 }
 }  // namespace test
