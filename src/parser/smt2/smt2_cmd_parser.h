@@ -19,7 +19,7 @@
 #define CVC5__PARSER__SMT2_CMD_PARSER_H
 
 #include "parser/smt2/smt2.h"
-#include "parser/smt2/smt2_lexer.h"
+#include "parser/smt2/smt2_lexer_new.h"
 #include "parser/smt2/smt2_term_parser.h"
 
 namespace cvc5 {
@@ -34,7 +34,7 @@ class Command;
 class Smt2CmdParser
 {
  public:
-  Smt2CmdParser(Smt2Lexer& lex, Smt2State& state, Smt2TermParser& tparser);
+  Smt2CmdParser(Smt2LexerNew& lex, Smt2State& state, Smt2TermParser& tparser);
   virtual ~Smt2CmdParser() {}
   /**
    * Parse and return the next command, or nullptr if we are at the end of file.
@@ -45,7 +45,7 @@ class Smt2CmdParser
   /** Next command token */
   Token nextCommandToken();
   /** The lexer */
-  Smt2Lexer& d_lex;
+  Smt2LexerNew& d_lex;
   /** The state */
   Smt2State& d_state;
   /** The term parser */

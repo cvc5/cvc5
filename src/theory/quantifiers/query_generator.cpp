@@ -39,9 +39,18 @@ void QueryGenerator::initialize(const std::vector<Node>& vars, SygusSampler* ss)
   ExprMiner::initialize(vars, ss);
 }
 
-void QueryGenerator::dumpQuery(Node qy, const Result& r)
+void QueryGenerator::dumpQuery(Node qy,
+                               const Result& r,
+                               std::vector<Node>& queries)
 {
   d_queryCount++;
+  bool isSolved =
+      r.getStatus() == Result::SAT || r.getStatus() == Result::UNSAT;
+  // add to queries if not filtered
+  if (!isSolved || !options().quantifiers.sygusQueryFilterSolved)
+  {
+    queries.push_back(qy);
+  }
   // return if we should not dump the query based on the options
   if (options().quantifiers.sygusQueryGenDumpFiles
       == options::SygusQueryDumpFilesMode::NONE)
@@ -51,7 +60,7 @@ void QueryGenerator::dumpQuery(Node qy, const Result& r)
   if (options().quantifiers.sygusQueryGenDumpFiles
       == options::SygusQueryDumpFilesMode::UNSOLVED)
   {
-    if (r.getStatus() == Result::SAT || r.getStatus() == Result::UNSAT)
+    if (isSolved)
     {
       return;
     }
@@ -83,12 +92,9 @@ QueryGeneratorBasic::QueryGeneratorBasic(Env& env) : QueryGenerator(env) {}
 bool QueryGeneratorBasic::addTerm(Node n, std::vector<Node>& queries)
 {
   ensureBoolean(n);
-  queries.push_back(n);
   SubsolverSetupInfo ssi(d_env);
-  std::unique_ptr<SolverEngine> queryChecker;
-  initializeChecker(queryChecker, n, ssi);
-  Result r = queryChecker->checkSat();
-  dumpQuery(n, r);
+  Result r = doCheck(n, ssi);
+  dumpQuery(n, r, queries);
   return true;
 }
 

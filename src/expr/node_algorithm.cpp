@@ -762,5 +762,47 @@ bool isTheoryAtom(TNode n)
          && k != kind::XOR && (k != kind::EQUAL || !n[0].getType().isBoolean());
 }
 
+struct HasAbstractSubtermTag
+{
+};
+struct HasAbstractSubtermComputedTag
+{
+};
+/** Attribute true for expressions that have subterms with abstract type */
+using AbstractSubtermVarAttr = expr::Attribute<HasAbstractSubtermTag, bool>;
+using HasAbstractSubtermComputedAttr =
+    expr::Attribute<HasAbstractSubtermComputedTag, bool>;
+
+bool hasAbstractSubterm(TNode n)
+{
+  if (!n.getAttribute(HasAbstractSubtermComputedAttr()))
+  {
+    bool hasAbs = false;
+    if (n.getType().isAbstract())
+    {
+      hasAbs = true;
+    }
+    else
+    {
+      for (auto i = n.begin(); i != n.end(); ++i)
+      {
+        if (hasAbstractSubterm(*i))
+        {
+          hasAbs = true;
+          break;
+        }
+      }
+    }
+    if (!hasAbs && n.hasOperator())
+    {
+      hasAbs = hasAbstractSubterm(n.getOperator());
+    }
+    n.setAttribute(AbstractSubtermVarAttr(), hasAbs);
+    n.setAttribute(HasAbstractSubtermComputedAttr(), true);
+    return hasAbs;
+  }
+  return n.getAttribute(AbstractSubtermVarAttr());
+}
+
 }  // namespace expr
 }  // namespace cvc5::internal

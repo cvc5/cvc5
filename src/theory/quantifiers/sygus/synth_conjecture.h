@@ -147,6 +147,9 @@ class SynthConjecture : protected EnvObj
   /** get a reference to the statistics of parent */
   SygusStatistics& getSygusStatistics() { return d_stats; };
 
+  /** exclude the current solution { enums -> values } due to id */
+  void excludeCurrentSolution(const std::vector<Node>& values, InferenceId id);
+
  private:
   /** do refinement
    *
@@ -328,10 +331,6 @@ class SynthConjecture : protected EnvObj
    * current solution should be printed and then immediately excluded.
    */
   bool runExprMiner();
-  //-------------------------------- sygus stream
-  /** exclude the current solution { enums -> values } */
-  void excludeCurrentSolution(const std::vector<Node>& values);
-  //-------------------------------- end sygus stream
   /** expression miner managers for each function-to-synthesize
    *
    * Notice that for each function-to-synthesize, we enumerate a stream of
