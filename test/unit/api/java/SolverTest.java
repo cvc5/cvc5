@@ -1885,6 +1885,7 @@ class SolverTest
   void getTimeoutCoreUnsat() throws CVC5ApiException
   {
     d_solver.setOption("timeout-core-timeout", "100");
+    d_solver.setOption("produce-unsat-cores", "true");
     Sort intSort = d_solver.getIntegerSort();
     Term x = d_solver.mkConst(intSort, "x");
     Term tt = d_solver.mkBoolean(true);
@@ -1902,6 +1903,7 @@ class SolverTest
   @Test
   void getTimeoutCore() throws CVC5ApiException
   {
+    d_solver.setOption("produce-unsat-cores", "true");
     Term ff = d_solver.mkBoolean(false);
     Term tt = d_solver.mkBoolean(true);
     d_solver.assertFormula(tt);
