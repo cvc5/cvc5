@@ -275,7 +275,7 @@ void TimeoutCoreManager::initializePreprocessedAssertions(
   d_ppAsserts.clear();
 
   Trace("smt-to-core") << "initializePreprocessedAssertions" << std::endl;
-  Trace("smt-to-core") << "# asserts = " << ppAsserts.size() << std::endl;
+  Trace("smt-to-core") << "#asserts = " << ppAsserts.size() << std::endl;
   std::map<size_t, Node>::const_iterator itc;
   for (size_t i = 0, nasserts = ppAsserts.size(); i < nasserts; i++)
   {
@@ -310,6 +310,7 @@ void TimeoutCoreManager::initializePreprocessedAssertions(
   {
     expr::getSymbols(d_ppAsserts[i], d_syms[i]);
   }
+  Trace("smt-to-core") << "after processing, #asserts = " << d_ppAsserts.size() << ", #skolem-defs = " << d_skolemToAssert.size() << std::endl;
 }
 
 bool TimeoutCoreManager::recordCurrentModel(bool& allAssertsSat,
