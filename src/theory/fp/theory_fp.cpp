@@ -777,7 +777,12 @@ Node TheoryFp::getValue(TNode node)
 
     Node value;
 
-    if (Theory::isLeafOf(cur, theory::THEORY_FP))
+    Kind kind = cur.getKind();
+    if (kind == kind::FLOATINGPOINT_TO_FP_FROM_SBV
+        || kind == kind::FLOATINGPOINT_TO_FP_FROM_UBV
+        || kind == kind::FLOATINGPOINT_TO_FP_FROM_REAL
+        || kind == kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV
+        || Theory::isLeafOf(cur, theory::THEORY_FP))
     {
       value = d_wordBlaster->getValue(d_valuation, cur);
       d_modelCache[cur] = value;
@@ -792,7 +797,7 @@ Node TheoryFp::getValue(TNode node)
     }
     else if (it->second.isNull())
     {
-      NodeBuilder nb(cur.getKind());
+      NodeBuilder nb(kind);
       if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         nb << cur.getOperator();
