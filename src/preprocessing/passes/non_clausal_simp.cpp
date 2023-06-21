@@ -82,20 +82,30 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 
   // Assert all the assertions to the propagator
   Trace("non-clausal-simplify") << "asserting to propagator" << std::endl;
+  std::unordered_set<Node> simpleLearned;
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
-    Assert(rewrite((*assertionsToPreprocess)[i])
-           == (*assertionsToPreprocess)[i]) << (*assertionsToPreprocess)[i];
+    const Node& n = (*assertionsToPreprocess)[i];
+    Assert(rewrite(n)
+           == n) << n;
     // Don't reprocess substitutions
     if (assertionsToPreprocess->isSubstsIndex(i))
     {
       continue;
     }
     Trace("non-clausal-simplify")
-        << "asserting " << (*assertionsToPreprocess)[i] << std::endl;
-    Trace("cores") << "propagator->assertTrue: " << (*assertionsToPreprocess)[i]
+        << "asserting " << n << std::endl;
+    Trace("cores") << "propagator->assertTrue: " << n
                    << std::endl;
-    propagator->assertTrue((*assertionsToPreprocess)[i]);
+    propagator->assertTrue(n);
+    if (n.getKind()==kind::AND)
+    {
+      simpleLearned.insert(n.begin(), n.end());
+    }
+    else
+    {
+      simpleLearned.insert(n);
+    }
   }
 
   Trace("non-clausal-simplify") << "propagating" << std::endl;
@@ -373,6 +383,10 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     // process learned literal
     learned = processLearnedLit(
         learned, newSubstitutions.get(), constantPropagations.get());
+    if (simpleLearned.find(learned)!=simpleLearned.end())
+    {
+      continue;
+    }
     if (s.find(learned) != s.end())
     {
       continue;
