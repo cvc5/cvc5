@@ -44,9 +44,10 @@ TimeoutCoreManager::TimeoutCoreManager(Env& env)
 }
 
 std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
-    const std::vector<Node>& ppAsserts)
+    const std::vector<Node>& ppAsserts,
+                                                      const std::map<size_t, Node>& ppSkolemMap)
 {
-  initializePreprocessedAssertions(ppAsserts);
+  initializePreprocessedAssertions(ppAsserts, ppSkolemMap);
 
   std::vector<Node> nextAssertions;
   Result result;
@@ -69,10 +70,12 @@ std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
   std::vector<Node> toCore;
   for (std::pair<const size_t, AssertInfo>& a : d_ainfo)
   {
-    Assert(a.first < d_asserts.size());
+    Assert(a.first < d_ppAsserts.size());
     Trace("smt-to-core-asserts") << "...return #" << a.first << std::endl;
-    toCore.push_back(d_asserts[a.first]);
+    toCore.push_back(d_ppAsserts[a.first]);
   }
+  // include the skolem definitions
+  getActiveSkolemDefinitions(toCore);
   return std::pair<Result, std::vector<Node>>(result, toCore);
 }
 
@@ -164,11 +167,30 @@ void TimeoutCoreManager::getNextAssertions(std::vector<Node>& nextAsserts)
     std::unordered_set<Node>& syms = d_syms[d_nextIndexToInclude];
     d_asymbols.insert(syms.begin(), syms.end());
   }
+  
+  // include the skolem definitions
+  getActiveSkolemDefinitions(nextAsserts);
 
   Trace("smt-to-core")
       << "...finished get next assertions, #current assertions = "
       << d_ainfo.size() << ", #free variables = " << d_asymbols.size()
-      << std::endl;
+      << ", #asserts and skolem defs=" << nextAsserts.size() << std::endl;
+}
+
+void TimeoutCoreManager::getActiveSkolemDefinitions(std::vector<Node>& nextAsserts)
+{
+  if (!d_skolemToAssert.empty())
+  {
+    std::map<Node, Node>::const_iterator itk;
+    for (const Node& s : d_asymbols)
+    {
+      itk = d_skolemToAssert.find(s);
+      if (itk!=d_skolemToAssert.end())
+      {
+        nextAsserts.push_back(itk->second);
+      }
+    }
+  }
 }
 
 Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions)
@@ -246,15 +268,17 @@ Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions)
 }
 
 void TimeoutCoreManager::initializePreprocessedAssertions(
-    const std::vector<Node>& ppAsserts)
+    const std::vector<Node>& ppAsserts,
+                                                      const std::map<size_t, Node>& ppSkolemMap)
 {
   d_ppAsserts.clear();
 
   Trace("smt-to-core") << "initializePreprocessedAssertions" << std::endl;
   Trace("smt-to-core") << "# asserts = " << ppAsserts.size() << std::endl;
-  theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
-  for (const Node& pa : ppAsserts)
+  std::map<size_t, Node>::const_iterator itc;
+  for (size_t i=0, nasserts = ppAsserts.size(); i<nasserts; i++)
   {
+    const Node& pa = ppAsserts[i];
     if (pa.isConst())
     {
       if (pa.getConst<bool>())
@@ -265,24 +289,19 @@ void TimeoutCoreManager::initializePreprocessedAssertions(
       else
       {
         // false assertion, we are done
-        d_asserts.clear();
         d_ppAsserts.clear();
-        d_asserts.push_back(pa);
         d_ppAsserts.push_back(pa);
         return;
       }
     }
-    // remember the unpreprocessed version
-    d_asserts.push_back(pa);
-    // apply top-level substitutions
-    Node pas = sm.apply(pa);
-    if (pas != pa)
+    itc = ppSkolemMap.find(i);
+    if (itc==ppSkolemMap.end())
     {
-      d_ppAsserts.push_back(rewrite(pas));
+      d_ppAsserts.push_back(pa);
     }
     else
     {
-      d_ppAsserts.push_back(pa);
+      d_skolemToAssert[itc->second] = pa;
     }
   }
   Trace("smt-to-core") << "get symbols..." << std::endl;
