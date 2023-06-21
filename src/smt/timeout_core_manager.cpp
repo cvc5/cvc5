@@ -310,7 +310,9 @@ void TimeoutCoreManager::initializePreprocessedAssertions(
   {
     expr::getSymbols(d_ppAsserts[i], d_syms[i]);
   }
-  Trace("smt-to-core") << "after processing, #asserts = " << d_ppAsserts.size() << ", #skolem-defs = " << d_skolemToAssert.size() << std::endl;
+  Trace("smt-to-core") << "after processing, #asserts = " << d_ppAsserts.size()
+                       << ", #skolem-defs = " << d_skolemToAssert.size()
+                       << std::endl;
 }
 
 bool TimeoutCoreManager::recordCurrentModel(bool& allAssertsSat,
