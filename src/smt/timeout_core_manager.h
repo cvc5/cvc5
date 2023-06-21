@@ -80,12 +80,13 @@ class TimeoutCoreManager : protected EnvObj
    */
   std::pair<Result, std::vector<Node>> getTimeoutCore(
       const std::vector<Node>& ppAsserts,
-                                                      const std::map<size_t, Node>& ppSkolemMap);
+      const std::map<size_t, Node>& ppSkolemMap);
 
  private:
   /** initialize assertions */
-  void initializePreprocessedAssertions(const std::vector<Node>& ppAsserts,
-                                                      const std::map<size_t, Node>& ppSkolemMap);
+  void initializePreprocessedAssertions(
+      const std::vector<Node>& ppAsserts,
+      const std::map<size_t, Node>& ppSkolemMap);
   /** get next assertions */
   void getNextAssertions(std::vector<Node>& nextAssertions);
   /** check sat next */
@@ -105,7 +106,7 @@ class TimeoutCoreManager : protected EnvObj
   bool hasCurrentSharedSymbol(size_t i) const;
   /** Add skolem definitions */
   void getActiveSkolemDefinitions(std::vector<Node>& nextAssertions);
-  
+
   /** Common nodes */
   Node d_true;
   Node d_false;

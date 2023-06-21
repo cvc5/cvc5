@@ -45,7 +45,7 @@ TimeoutCoreManager::TimeoutCoreManager(Env& env)
 
 std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
     const std::vector<Node>& ppAsserts,
-                                                      const std::map<size_t, Node>& ppSkolemMap)
+    const std::map<size_t, Node>& ppSkolemMap)
 {
   initializePreprocessedAssertions(ppAsserts, ppSkolemMap);
 
@@ -167,7 +167,7 @@ void TimeoutCoreManager::getNextAssertions(std::vector<Node>& nextAsserts)
     std::unordered_set<Node>& syms = d_syms[d_nextIndexToInclude];
     d_asymbols.insert(syms.begin(), syms.end());
   }
-  
+
   // include the skolem definitions
   getActiveSkolemDefinitions(nextAsserts);
 
@@ -177,7 +177,8 @@ void TimeoutCoreManager::getNextAssertions(std::vector<Node>& nextAsserts)
       << ", #asserts and skolem defs=" << nextAsserts.size() << std::endl;
 }
 
-void TimeoutCoreManager::getActiveSkolemDefinitions(std::vector<Node>& nextAsserts)
+void TimeoutCoreManager::getActiveSkolemDefinitions(
+    std::vector<Node>& nextAsserts)
 {
   if (!d_skolemToAssert.empty())
   {
@@ -185,7 +186,7 @@ void TimeoutCoreManager::getActiveSkolemDefinitions(std::vector<Node>& nextAsser
     for (const Node& s : d_asymbols)
     {
       itk = d_skolemToAssert.find(s);
-      if (itk!=d_skolemToAssert.end())
+      if (itk != d_skolemToAssert.end())
       {
         nextAsserts.push_back(itk->second);
       }
@@ -269,14 +270,14 @@ Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions)
 
 void TimeoutCoreManager::initializePreprocessedAssertions(
     const std::vector<Node>& ppAsserts,
-                                                      const std::map<size_t, Node>& ppSkolemMap)
+    const std::map<size_t, Node>& ppSkolemMap)
 {
   d_ppAsserts.clear();
 
   Trace("smt-to-core") << "initializePreprocessedAssertions" << std::endl;
   Trace("smt-to-core") << "# asserts = " << ppAsserts.size() << std::endl;
   std::map<size_t, Node>::const_iterator itc;
-  for (size_t i=0, nasserts = ppAsserts.size(); i<nasserts; i++)
+  for (size_t i = 0, nasserts = ppAsserts.size(); i < nasserts; i++)
   {
     const Node& pa = ppAsserts[i];
     if (pa.isConst())
@@ -295,7 +296,7 @@ void TimeoutCoreManager::initializePreprocessedAssertions(
       }
     }
     itc = ppSkolemMap.find(i);
-    if (itc==ppSkolemMap.end())
+    if (itc == ppSkolemMap.end())
     {
       d_ppAsserts.push_back(pa);
     }
