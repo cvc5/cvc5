@@ -75,7 +75,7 @@ Node TheoryArraysRewriter::normalizeConstant(TNode node)
   Node ret;
   TypeNode tn = node[1].getType();
   CardinalityClass tcc = itype.getCardinalityClass();
-  if (tcc==CardinalityClass::FINITE || tcc==CardinalityClass::ONE)
+  if (tcc == CardinalityClass::FINITE || tcc == CardinalityClass::ONE)
   {
     ret = normalizeConstant(node, tn.getCardinality());
   }
