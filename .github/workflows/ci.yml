@@ -23,7 +23,7 @@ jobs:
             config: production --auto-download --python-bindings --editline
             cache-key: production
             strip-bin: strip
-            python-bindings: true
+            python-bindings: false  # Temporarily disabling checking of python bindings on MacOS.
             check-examples: true
             binary-name: cvc5-macOS
             exclude_regress: 3-4
@@ -34,7 +34,7 @@ jobs:
             config: production --auto-download --python-bindings --editline --arm64
             cache-key: production-arm64
             strip-bin: strip
-            python-bindings: true
+            python-bindings: false  # Temporarily disabling checking of python bindings on MacOS.
             binary-name: cvc5-macOS-arm64
 
           - name: win64:production
@@ -114,8 +114,7 @@ jobs:
       with:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
         check-examples: ${{ matrix.check-examples }}
-        # Temporarily disabling checking of python bindings on MacOS.
-        check-python-bindings: ${{ contains(matrix.os, 'macos') && false || matrix.python-bindings }} 
+        check-python-bindings: ${{ matrix.python-bindings }} 
         regressions-args: ${{ matrix.run_regression_args }}
         regressions-exclude: ${{ matrix.exclude_regress }}
   
