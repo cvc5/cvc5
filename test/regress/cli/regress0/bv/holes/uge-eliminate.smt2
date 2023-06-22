@@ -5,9 +5,9 @@
 
 (declare-const x (_ BitVec 5))
 (declare-const y (_ BitVec 5))
-(assert (not (=
+(assert (=
 	(bvuge x y)
-	(bvult y x)
-	)))
+	(bvult x y)
+	))
 (check-sat)
 (exit)
