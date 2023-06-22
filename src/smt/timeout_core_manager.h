@@ -116,6 +116,8 @@ class TimeoutCoreManager : protected EnvObj
    */
   std::vector<Node> d_ppAsserts;
   /**
+   * Mapping from skolem variables to their skolem definitions included in
+   * the assertions.
    */
   std::map<Node, Node> d_skolemToAssert;
   /**
