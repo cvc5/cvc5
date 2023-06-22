@@ -20,7 +20,8 @@ jobs:
 
           - name: macos:production
             os: macos-11
-            config: production --auto-download --python-bindings --editline
+            config: production --auto-download --editline
+            # config: production --auto-download --python-bindings --editline
             cache-key: production
             strip-bin: strip
             python-bindings: false  # Temporarily disabling checking of python bindings on MacOS.
@@ -31,7 +32,8 @@ jobs:
  
           - name: macos:production-arm64
             os: macos-12
-            config: production --auto-download --python-bindings --editline --arm64
+            config: production --auto-download --editline --arm64
+            # config: production --auto-download --python-bindings --editline --arm64
             cache-key: production-arm64
             strip-bin: strip
             python-bindings: false  # Temporarily disabling checking of python bindings on MacOS.
