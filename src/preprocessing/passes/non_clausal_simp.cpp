@@ -82,6 +82,9 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 
   // Assert all the assertions to the propagator
   Trace("non-clausal-simplify") << "asserting to propagator" << std::endl;
+  // The set of all top-level formulas, or children of top-level AND formulas.
+  // This set is tracked to avoid appending literals learned by the circuit
+  // propagator that already hold at top-level.
   std::unordered_set<Node> simpleLearned;
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
