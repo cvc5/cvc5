@@ -21,7 +21,6 @@
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
-#include "expr/sygus_datatype.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
@@ -112,11 +111,9 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
 
     Trace("sygus-abduct-debug")
         << "Make sygus grammar attribute..." << std::endl;
-    Node sym = nm->mkBoundVar("sfproxy_abduct", abdGTypeS);
     // Set the sygus grammar attribute to indicate that abdGTypeS encodes the
     // grammar for abd.
-    theory::SygusSynthGrammarAttribute ssg;
-    abd.setAttribute(ssg, sym);
+    SygusUtils::setSygusType(abd, abdGTypeS);
     Trace("sygus-abduct-debug") << "Finished setting up grammar." << std::endl;
 
     // use the bound variable list from the new substituted grammar type
@@ -142,7 +139,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
 
   Trace("sygus-abduct-debug") << "Set attributes..." << std::endl;
   // set the sygus bound variable list
-  abd.setAttribute(theory::SygusSynthFunVarListAttribute(), abvl);
+  SygusUtils::setSygusArgumentList(abd, abvl);
   Trace("sygus-abduct-debug") << "...finish" << std::endl;
 
   Trace("sygus-abduct-debug") << "Make conjecture body..." << std::endl;

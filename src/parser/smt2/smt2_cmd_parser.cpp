@@ -22,7 +22,7 @@
 namespace cvc5 {
 namespace parser {
 
-Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex,
+Smt2CmdParser::Smt2CmdParser(Smt2LexerNew& lex,
                              Smt2State& state,
                              Smt2TermParser& tparser)
     : d_lex(lex), d_state(state), d_tparser(tparser)
@@ -763,8 +763,12 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
     // (set-logic <symbol>)
     case Token::SET_LOGIC_TOK:
     {
+      SymbolManager* sm = d_state.getSymbolManager();
       std::string name = d_tparser.parseSymbol(CHECK_NONE, SYM_SORT);
-      cmd.reset(d_state.setLogic(name));
+      // replace the logic with the forced logic, if applicable.
+      std::string lname = sm->isLogicForced() ? sm->getLogic() : name;
+      d_state.setLogic(lname);
+      cmd.reset(new SetBenchmarkLogicCommand(lname));
     }
     break;
     // (set-option <option>)

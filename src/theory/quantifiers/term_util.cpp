@@ -18,6 +18,7 @@
 #include "expr/array_store_all.h"
 #include "expr/function_array_const.h"
 #include "expr/node_algorithm.h"
+#include "expr/sequence.h"
 #include "expr/skolem_manager.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -236,6 +237,18 @@ bool TermUtil::containsUninterpretedConstant( Node n ) {
   {
     ret = containsUninterpretedConstant(
         n.getConst<FunctionArrayConst>().getArrayValue());
+  }
+  else if (k == CONST_SEQUENCE)
+  {
+    const std::vector<Node>& charVec = n.getConst<Sequence>().getVec();
+    for (const Node& nc : charVec)
+    {
+      if (containsUninterpretedConstant(nc))
+      {
+        ret = true;
+        break;
+      }
+    }
   }
   else
   {

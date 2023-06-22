@@ -58,6 +58,7 @@ class Options;
 class Random;
 class Rational;
 class Result;
+class SygusGrammar;
 class SynthResult;
 class StatisticsRegistry;
 }  // namespace internal
@@ -1982,7 +1983,6 @@ class CVC5_EXPORT DatatypeDecl
 {
   friend class DatatypeConstructorArg;
   friend class Solver;
-  friend class Grammar;
 
  public:
   /** Constructor.  */
@@ -2806,6 +2806,11 @@ class CVC5_EXPORT Grammar
    */
   Grammar();
 
+  /**
+   * Destructor for bookeeping.
+   */
+  ~Grammar();
+
  private:
   /**
    * Constructor.
@@ -2823,61 +2828,6 @@ class CVC5_EXPORT Grammar
   Sort resolve();
 
   /**
-   * Adds a constructor to sygus datatype <dt> whose sygus operator is <term>.
-   *
-   * \p ntsToUnres contains a mapping from non-terminal symbols to the
-   * unresolved sorts they correspond to. This map indicates how the argument
-   * <term> should be interpreted (instances of symbols from the domain of
-   * \p ntsToUnres correspond to constructor arguments).
-   *
-   * The sygus operator that is actually added to <dt> corresponds to replacing
-   * each occurrence of non-terminal symbols from the domain of \p ntsToUnres
-   * with bound variables via purifySygusGTerm, and binding these variables
-   * via a lambda.
-   *
-   * @param dt The non-terminal's datatype to which a constructor is added.
-   * @param term The sygus operator of the constructor.
-   * @param ntsToUnres Mapping from non-terminals to their unresolved sorts.
-   */
-  void addSygusConstructorTerm(
-      DatatypeDecl& dt,
-      const Term& term,
-      const std::unordered_map<Term, Sort>& ntsToUnres) const;
-
-  /**
-   * Purify SyGuS grammar term.
-   *
-   * This returns a term where all occurrences of non-terminal symbols (those
-   * in the domain of \p ntsToUnres) are replaced by fresh variables. For
-   * each variable replaced in this way, we add the fresh variable it is
-   * replaced with to \p args, and the unresolved sorts corresponding to the
-   * non-terminal symbol to \p cargs (constructor args). In other words,
-   * \p args contains the free variables in the term returned by this method
-   * (which should be bound by a lambda), and \p cargs contains the sorts of
-   * the arguments of the sygus constructor.
-   *
-   * @param term The term to purify.
-   * @param args The free variables in the term returned by this method.
-   * @param cargs The sorts of the arguments of the sygus constructor.
-   * @param ntsToUnres Mapping from non-terminals to their unresolved sorts.
-   * @return The purfied term.
-   */
-  Term purifySygusGTerm(const Term& term,
-                        std::vector<Term>& args,
-                        std::vector<Sort>& cargs,
-                        const std::unordered_map<Term, Sort>& ntsToUnres) const;
-
-  /**
-   * This adds constructors to \p dt for sygus variables in \p d_sygusVars
-   * whose sort is argument \p sort. This method should be called when the
-   * sygus grammar term (Variable sort) is encountered.
-   *
-   * @param dt The non-terminal's datatype to which the constructors are added.
-   * @param sort The sort of the sygus variables to add.
-   */
-  void addSygusConstructorVariables(DatatypeDecl& dt, const Sort& sort) const;
-
-  /**
    * Check if \p rule contains variables that are neither parameters of
    * the corresponding synthFun/synthInv nor non-terminals.
    * @param rule The non-terminal allowed to be any constant.
@@ -2887,18 +2837,8 @@ class CVC5_EXPORT Grammar
 
   /** The node manager associated with this grammar. */
   internal::NodeManager* d_nm;
-  /** Input variables to the corresponding function/invariant to synthesize.*/
-  std::vector<Term> d_sygusVars;
-  /** The non-terminal symbols of this grammar. */
-  std::vector<Term> d_ntSyms;
-  /** The mapping from non-terminal symbols to their production terms. */
-  std::unordered_map<Term, std::vector<Term>> d_ntsToTerms;
-  /** The set of non-terminals that can be arbitrary constants. */
-  std::unordered_set<Term> d_allowConst;
-  /** The set of non-terminals that can be sygus variables. */
-  std::unordered_set<Term> d_allowVars;
-  /** Did we call resolve() before? */
-  bool d_isResolved;
+  /** The internal representation of this grammar. */
+  std::shared_ptr<internal::SygusGrammar> d_sg;
 };
 
 /**
@@ -3535,13 +3475,11 @@ class CVC5_EXPORT Solver
   Term mkTerm(const Op& op, const std::vector<Term>& children = {}) const;
 
   /**
-   * Create a tuple term, where terms have the provided sorts.
-   * @param sorts The sorts of the elements in the tuple.
+   * Create a tuple term.
    * @param terms The elements in the tuple.
    * @return The tuple Term.
    */
-  Term mkTuple(const std::vector<Sort>& sorts,
-               const std::vector<Term>& terms) const;
+  Term mkTuple(const std::vector<Term>& terms) const;
 
   /* .................................................................... */
   /* Create Operators                                                     */
@@ -5153,7 +5091,7 @@ class CVC5_EXPORT Solver
   void printStatisticsSafe(int fd) const;
 
   /**
-   * Determione the output stream for the given tag is enabled. Tags can be
+   * Determines if the output stream for the given tag is enabled. Tags can be
    * enabled with the `output` option (and `-o <tag>` on the command line).
    * Raises an exception when an invalid tag is given.
    * @return True if the given tag is enabled.

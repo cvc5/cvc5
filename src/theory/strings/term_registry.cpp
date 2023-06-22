@@ -249,8 +249,9 @@ void TermRegistry::registerSubterms(Node n)
     if (d_registeredTerms.find(cur) == d_registeredTerms.end())
     {
       registerTermInternal(cur);
+      Kind k = cur.getKind();
       // only traverse beneath operators belonging to strings
-      if (theory::kindToTheoryId(cur.getKind())==THEORY_STRINGS)
+      if (k==EQUAL || theory::kindToTheoryId(k)==THEORY_STRINGS)
       {
         // strings does not have any closure kinds
         Assert (!cur.isClosure());
@@ -285,21 +286,36 @@ void TermRegistry::registerTermInternal(Node n)
     //  for concat/const/replace, introduce proxy var and state length relation
     regTermLem = getRegisterTermLemma(n);
   }
-  else if (n.getKind() != STRING_CONTAINS)
+  else
   {
     // we don't send out eager reduction lemma for str.contains currently
-    Node eagerRedLemma = eagerReduce(n, &d_skCache, d_alphaCard);
-    if (!eagerRedLemma.isNull())
+    bool doEagerReduce = true;
+    Kind k = n.getKind();
+    if (k == STRING_CONTAINS)
     {
-      // if there was an eager reduction, we make the trust node for it
-      if (d_epg != nullptr)
+      doEagerReduce = false;
+    }
+    else if (k == STRING_TO_CODE)
+    {
+      // code for proxy are implied
+      Node c = SkolemManager::getOriginalForm(n[0]);
+      doEagerReduce = !c.isConst();
+    }
+    if (doEagerReduce)
+    {
+      Node eagerRedLemma = eagerReduce(n, &d_skCache, d_alphaCard);
+      if (!eagerRedLemma.isNull())
       {
-        regTermLem = d_epg->mkTrustNode(
-            eagerRedLemma, PfRule::STRING_EAGER_REDUCTION, {}, {n});
-      }
-      else
-      {
-        regTermLem = TrustNode::mkTrustLemma(eagerRedLemma, nullptr);
+        // if there was an eager reduction, we make the trust node for it
+        if (d_epg != nullptr)
+        {
+          regTermLem = d_epg->mkTrustNode(
+              eagerRedLemma, PfRule::STRING_EAGER_REDUCTION, {}, {n});
+        }
+        else
+        {
+          regTermLem = TrustNode::mkTrustLemma(eagerRedLemma, nullptr);
+        }
       }
     }
   }

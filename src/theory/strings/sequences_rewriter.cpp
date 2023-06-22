@@ -1206,6 +1206,11 @@ Node SequencesRewriter::rewriteLoopRegExp(TNode node)
     retNode = nm->mkNode(REGEXP_NONE, nvec);
     return returnRewrite(node, retNode, Rewrite::RE_LOOP_NONE);
   }
+  else if (u==0)
+  {
+    retNode = nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")));
+    return returnRewrite(node, retNode, Rewrite::RE_LOOP_ZERO);
+  }
   else if (r.getKind() == REGEXP_STAR)
   {
     return returnRewrite(node, r, Rewrite::RE_LOOP_STAR);
