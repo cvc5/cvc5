@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -80,6 +80,14 @@ bool ModelManager::buildModel()
     // already computed
     return d_modelBuiltSuccess;
   }
+
+  ResourceManager* rm = d_env.getResourceManager();
+
+  // Disable resource manager limit while building the model. This ensures
+  // that building the model is not interrupted (and shouldn't take too
+  // long).
+  rm->setEnabled(false);
+
   // reset the flags now
   d_modelBuilt = true;
   d_modelBuiltSuccess = false;
@@ -88,20 +96,24 @@ bool ModelManager::buildModel()
   if (!prepareModel())
   {
     Trace("model-builder") << "ModelManager: fail prepare model" << std::endl;
-    return false;
   }
-
-  // now, finish building the model
-  d_modelBuiltSuccess = finishBuildModel();
-
-  if (TraceIsOn("model-final"))
+  else
   {
-    Trace("model-final") << "Final model:" << std::endl;
-    Trace("model-final") << d_model->debugPrintModelEqc() << std::endl;
+    // now, finish building the model
+    d_modelBuiltSuccess = finishBuildModel();
+
+    if (TraceIsOn("model-final"))
+    {
+      Trace("model-final") << "Final model:" << std::endl;
+      Trace("model-final") << d_model->debugPrintModelEqc() << std::endl;
+    }
+
+    Trace("model-builder") << "ModelManager: model built success is "
+                           << d_modelBuiltSuccess << std::endl;
   }
 
-  Trace("model-builder") << "ModelManager: model built success is "
-                         << d_modelBuiltSuccess << std::endl;
+  // Enable resource management again.
+  rm->setEnabled(true);
 
   return d_modelBuiltSuccess;
 }

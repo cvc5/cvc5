@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *   Gereon Kremer, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,9 +17,10 @@
 #ifndef CVC5__MAIN__PORTFOLIO_DRIVER_H
 #define CVC5__MAIN__PORTFOLIO_DRIVER_H
 
+#include <cvc5/cvc5.h>
+
 #include <optional>
 
-#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "main/command_executor.h"
 #include "parser/api/cpp/command.h"
@@ -104,7 +105,8 @@ struct PortfolioConfig
       solver.setOption(o.first, o.second);
     }
   }
-
+  /** To option string */
+  std::string toOptionString() const;
   /** List of options as pair of name and value */
   std::vector<std::pair<std::string, std::string>> d_options;
   /** Timeout as part of the total timeout */

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -128,6 +128,7 @@ bool Instantiate::addInstantiationInternal(
       Trace("inst-add-debug") << std::endl;
     }
     Trace("inst-add-debug") << "id is " << id << std::endl;
+    Trace("inst-add-debug") << "doVts is " << doVts << std::endl;
   }
   // ensure the terms are non-null and well-typed
   for (size_t i = 0, size = terms.size(); i < size; i++)

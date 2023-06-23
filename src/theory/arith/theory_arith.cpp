@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -49,16 +49,15 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
       d_internal(new linear::TheoryArithPrivate(*this, env, d_bab)),
       d_nonlinearExtension(nullptr),
       d_opElim(d_env),
-      d_arithPreproc(env, d_astate, d_im, d_pnm, d_opElim),
+      d_arithPreproc(env, d_im, d_pnm, d_opElim),
       d_rewriter(d_opElim),
-      d_arithModelCacheSet(false)
+      d_arithModelCacheSet(false),
+      d_checker()
 {
 #ifdef CVC5_USE_COCOA
   // must be initialized before using CoCoA.
   initCocoaGlobalManager();
 #endif /* CVC5_USE_COCOA */
-  // currently a cyclic dependency to TheoryArithPrivate
-  d_astate.setParent(d_internal);
   // indicate we are using the theory state object and inference manager
   d_theoryState = &d_astate;
   d_inferManager = &d_im;
@@ -73,10 +72,7 @@ TheoryArith::~TheoryArith(){
 
 TheoryRewriter* TheoryArith::getTheoryRewriter() { return &d_rewriter; }
 
-ProofRuleChecker* TheoryArith::getProofChecker()
-{
-  return d_internal->getProofChecker();
-}
+ProofRuleChecker* TheoryArith::getProofChecker() { return &d_checker; }
 
 bool TheoryArith::needsEqualityEngine(EeSetupInfo& esi)
 {
@@ -99,8 +95,7 @@ void TheoryArith::finishInit()
   // only need to create nonlinear extension if non-linear logic
   if (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear())
   {
-    d_nonlinearExtension.reset(
-        new nl::NonlinearExtension(d_env, *this, d_astate));
+    d_nonlinearExtension.reset(new nl::NonlinearExtension(d_env, *this));
   }
   d_eqSolver->finishInit();
   // finish initialize in the old linear solver
@@ -168,12 +163,7 @@ void TheoryArith::notifySharedTerm(TNode n)
 TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
   CodeTimer timer(d_ppRewriteTimer, /* allow_reentrant = */ true);
-  Trace("arith::preprocess") << "arith::preprocess() : " << atom << endl;
-
-  if (atom.getKind() == kind::EQUAL)
-  {
-    return d_ppre.ppRewriteEq(atom);
-  }
+  Trace("arith::preprocess") << "arith::ppRewrite() : " << atom << endl;
   Assert(d_env.theoryOf(atom) == THEORY_ARITH);
   // Eliminate operators. Notice we must do this here since other
   // theories may generate lemmas that involve non-standard operators. For
@@ -182,6 +172,26 @@ TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   // call eliminate operators. In contrast to expandDefinitions, we eliminate
   // *all* extended arithmetic operators here, including total ones.
   return d_arithPreproc.eliminate(atom, lems, false);
+}
+
+TrustNode TheoryArith::ppStaticRewrite(TNode atom)
+{
+  Trace("arith::preprocess") << "arith::ppStaticRewrite() : " << atom << endl;
+  Kind k = atom.getKind();
+  if (k == kind::EQUAL)
+  {
+    return d_ppre.ppRewriteEq(atom);
+  }
+  else if (k == kind::GEQ)
+  {
+    // try to eliminate bv2nat from inequalities
+    Node atomr = ArithRewriter::rewriteIneqToBv(atom);
+    if (atomr != atom)
+    {
+      return TrustNode::mkTrustRewrite(atom, atomr);
+    }
+  }
+  return TrustNode::null();
 }
 
 Theory::PPAssertStatus TheoryArith::ppAssert(
@@ -329,20 +339,11 @@ bool TheoryArith::collectModelInfo(TheoryModel* m,
   // If we have a buffered lemma (from the non-linear extension), then we
   // do not assert model values, since those values are likely incorrect.
   // Moreover, the model does not need to satisfy the assertions, so
-  // arbitrary values can be used for arithmetic terms. We do, however,
-  // require for the sake of theory combination that the information in the
-  // equality engine is respected. Hence, we run the (default) implementation
-  // of collectModelInfo here. The buffered lemmas will be sent immediately
+  // arbitrary values can be used for arithmetic terms. Hence, we do
+  // nothing here. The buffered lemmas will be sent immediately
   // at LAST_CALL effort (see postCheck).
   if (d_im.hasPendingLemma())
   {
-    if (!termSet.empty())
-    {
-      if (!m->assertEqualityEngine(d_equalityEngine, &termSet))
-      {
-        return false;
-      }
-    }
     return true;
   }
   // this overrides behavior to not assert equality engine

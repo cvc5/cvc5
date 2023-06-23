@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Aina Niemetz, Mathias Preiner, Yoni Zohar
+#   Aina Niemetz, Andrew Reynolds, Mathias Preiner
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -25,6 +25,11 @@ include_directories(${CMAKE_BINARY_DIR}/src)
 add_custom_target(build-apitests)
 add_dependencies(build-tests build-apitests)
 
+# Disabled temporarily due to problems in the nightly builds
+# # See the comment about 'make test' in test/regress/cli/CMakeLists.txt
+# add_test(build_apitests_test "${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}" --config "$<CONFIG>" --target build-apitests)
+# set_tests_properties(build_apitests_test PROPERTIES FIXTURES_SETUP build_apitests_fixture)
+
 add_custom_target(apitests
   COMMAND ctest --output-on-failure -L "api" -j${CTEST_NTHREADS} $$ARGS
   DEPENDS build-apitests)
@@ -40,6 +45,7 @@ macro(cvc5_add_api_test name)
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${test_bin_dir})
   add_test(api/cpp/${name} ${test_bin_dir}/${name})
   set_tests_properties(api/cpp/${name} PROPERTIES LABELS "api")
+  # set_tests_properties(api/cpp/${name} PROPERTIES FIXTURES_REQUIRED build_apitests_fixture)
   add_dependencies(build-apitests ${name})
 endmacro()
 
@@ -65,3 +71,18 @@ cvc5_add_api_test(proj-issue421)
 cvc5_add_api_test(proj-issue445)
 cvc5_add_api_test(proj-issue455)
 cvc5_add_api_test(proj-issue484)
+cvc5_add_api_test(proj-issue538)
+cvc5_add_api_test(proj-issue567)
+cvc5_add_api_test(proj-issue570)
+cvc5_add_api_test(proj-issue573)
+cvc5_add_api_test(proj-issue574)
+cvc5_add_api_test(proj-issue575)
+cvc5_add_api_test(proj-issue576)
+cvc5_add_api_test(proj-issue580)
+cvc5_add_api_test(proj-issue581)
+cvc5_add_api_test(proj-issue587)
+cvc5_add_api_test(proj-issue600)
+cvc5_add_api_test(proj-issue611)
+cvc5_add_api_test(proj-issue612)
+cvc5_add_api_test(proj-issue618)
+cvc5_add_api_test(proj-issue621)

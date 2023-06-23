@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1513,22 +1513,35 @@ void CegInstantiator::markSolved(Node n, bool solved)
   }
 }
 
-void CegInstantiator::collectCeAtoms( Node n, std::map< Node, bool >& visited ) {
-  if( n.getKind()==FORALL ){
-    d_is_nested_quant = true;
-  }else if( visited.find( n )==visited.end() ){
-    visited[n] = true;
-    if( TermUtil::isBoolConnectiveTerm( n ) ){
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        collectCeAtoms( n[i], visited );
+void CegInstantiator::collectCeAtoms(Node n)
+{
+  std::unordered_set<TNode> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+      if (cur.getKind() == FORALL)
+      {
+        d_is_nested_quant = true;
       }
-    }else{
-      if( std::find( d_ce_atoms.begin(), d_ce_atoms.end(), n )==d_ce_atoms.end() ){
-        Trace("cegqi-ce-atoms") << "CE atoms : " << n << std::endl;
-        d_ce_atoms.push_back( n );
+      if (TermUtil::isBoolConnectiveTerm(cur))
+      {
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
+      else if (std::find(d_ce_atoms.begin(), d_ce_atoms.end(), cur)
+               == d_ce_atoms.end())
+      {
+        Trace("cegqi-ce-atoms") << "CE atoms : " << cur << std::endl;
+        d_ce_atoms.push_back(cur);
       }
     }
-  }
+  } while (!visit.empty());
 }
 
 void CegInstantiator::registerCounterexampleLemma(Node lem,
@@ -1653,11 +1666,12 @@ void CegInstantiator::registerCounterexampleLemma(Node lem,
   // collect atoms from all lemmas: we will only solve for literals coming from
   // the original body
   d_is_nested_quant = false;
-  std::map< Node, bool > visited;
-  collectCeAtoms(lem, visited);
+  Node lemr = rewrite(lem);
+  collectCeAtoms(lemr);
   for (const Node& alem : auxLems)
   {
-    collectCeAtoms(alem, visited);
+    Node alemr = rewrite(alem);
+    collectCeAtoms(alemr);
   }
 }
 

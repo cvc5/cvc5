@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Tim King
+ *   Andrew Reynolds, Aina Niemetz, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -137,6 +137,15 @@ TypeNode WitnessTypeRule::computeType(NodeManager* nodeManager,
   return n[0][0].getType();
 }
 
+TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
+                                                   TNode n,
+                                                   bool check,
+                                                   std::ostream* errOut)
+{
+  // Note that this could be more precise by case splitting on the kind
+  // of indexed operator, but we don't do this for simplicity.
+  return nodeManager->mkAbstractType(kind::ABSTRACT_TYPE);
+}
 /**
  * Attribute for caching the ground term for each type. Maps TypeNode to the
  * skolem to return for mkGroundTerm.

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Gereon Kremer, Alex Ozdemir
+ *   Tim King, Gereon Kremer, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -93,7 +93,6 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_bab(bab),
       d_pnm(d_env.isTheoryProofProducing() ? d_env.getProofNodeManager()
                                            : nullptr),
-      d_checker(),
       d_pfGen(new EagerProofGenerator(env, userContext())),
       d_constraintDatabase(d_env,
                            d_partialModel,
@@ -374,6 +373,8 @@ void TheoryArithPrivate::raiseConflict(ConstraintCP a, InferenceId id){
   Assert(id != InferenceId::UNKNOWN)
       << "Must provide an inference id in TheoryArithPrivate::raiseConflict";
   d_conflicts.push_back(std::make_pair(a, id));
+  // notify we are in conflict in this SAT context
+  d_containing.getTheoryState()->notifyInConflict();
 }
 
 void TheoryArithPrivate::raiseBlackBoxConflict(Node bb,
@@ -388,6 +389,8 @@ void TheoryArithPrivate::raiseBlackBoxConflict(Node bb,
       d_blackBoxConflictPf.set(pf);
     }
     d_blackBoxConflict = bb;
+    // notify we are in conflict in this SAT context
+    d_containing.getTheoryState()->notifyInConflict();
   }
 }
 
@@ -4890,7 +4893,11 @@ bool TheoryArithPrivate::decomposeLiteral(Node lit, Kind& k, int& dir, Rational&
   Node diff = rewrite(NodeManager::currentNM()->mkNode(kind::SUB, left, right));
   Rational dc;
   success = decomposeTerm(diff, dm, dp, dc);
-  Assert(success);
+  // can occur in entailment tests involving ITE terms
+  if (!success)
+  {
+    return false;
+  }
 
   // reduce the kind of the to not include literals
   // GT, NOT LEQ
@@ -5002,11 +5009,6 @@ void TheoryArithPrivate::entailmentCheckRowSum(std::pair<Node, DeltaRational>& t
   }
   // success
   tmp.first = nb;
-}
-
-ArithProofRuleChecker* TheoryArithPrivate::getProofChecker()
-{
-  return &d_checker;
 }
 
 ArithCongruenceManager* TheoryArithPrivate::getCongruenceManager()

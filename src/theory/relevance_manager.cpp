@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -252,6 +252,8 @@ bool RelevanceManager::updateJustifyLastChild(const RlvPair& cur,
         return false;
       }
     }
+    // add current child to list first before (possibly) computing result
+    childrenJustify.push_back(lastChildJustify);
     if (index + 1 == nchildren)
     {
       // finished all children, compute the overall value
@@ -269,7 +271,6 @@ bool RelevanceManager::updateJustifyLastChild(const RlvPair& cur,
     else
     {
       // continue
-      childrenJustify.push_back(lastChildJustify);
       return true;
     }
   }
@@ -557,6 +558,14 @@ void RelevanceManager::notifyLemma(TNode n,
   }
 }
 
+bool RelevanceManager::needsCandidateModel()
+{
+  if (d_dman != nullptr)
+  {
+    return d_dman->needsCandidateModel();
+  }
+  return false;
+}
 void RelevanceManager::notifyCandidateModel(TheoryModel* m)
 {
   if (d_dman != nullptr)
@@ -565,11 +574,12 @@ void RelevanceManager::notifyCandidateModel(TheoryModel* m)
   }
 }
 
-void RelevanceManager::getDifficultyMap(std::map<Node, Node>& dmap)
+void RelevanceManager::getDifficultyMap(std::map<Node, Node>& dmap,
+                                        bool includeLemmas)
 {
   if (d_dman != nullptr)
   {
-    d_dman->getDifficultyMap(dmap);
+    d_dman->getDifficultyMap(dmap, includeLemmas);
   }
 }
 

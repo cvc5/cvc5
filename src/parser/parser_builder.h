@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,9 +18,10 @@
 #ifndef CVC5__PARSER__PARSER_BUILDER_H
 #define CVC5__PARSER__PARSER_BUILDER_H
 
+#include <cvc5/cvc5_export.h>
+
 #include <string>
 
-#include "cvc5_export.h"
 #include "options/language.h"
 #include "parser/input.h"
 

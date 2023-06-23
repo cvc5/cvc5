@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Kshitij Bansal, Andres Noetzli
+ *   Mudathir Mohamed, Andrew Reynolds, Kshitij Bansal
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -271,7 +271,7 @@ class TheorySetsPrivate : protected EnvObj
   /**
    * generate skolem variable for node n and add pending lemma for the equality
    */
-  Node registerAndAssertSkolemLemma(Node& n, const std::string& prefix);
+  Node registerAndAssertSkolemLemma(Node& n);
   /**
    * This implements a strategy for splitting for set disequalities which
    * roughly corresponds the SET DISEQUALITY rule from Bansal et al IJCAR 2016.

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -551,8 +551,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
     SkolemManager::SkolemFlags flags = eval.getType().isBoolean()
                                            ? SkolemManager::SKOLEM_BOOL_TERM_VAR
                                            : SkolemManager::SKOLEM_DEFAULT;
-    Node k = sm->mkPurifySkolem(
-        eval, "eval", "evaluation variable for sygus-inst", flags);
+    Node k = sm->mkPurifySkolem(eval, flags);
     // Requires instantiation constant attribute as well. This ensures that
     // other instantiation methods, e.g. E-matching do not consider this term
     // for instantiation, as it is model-unsound to do so.

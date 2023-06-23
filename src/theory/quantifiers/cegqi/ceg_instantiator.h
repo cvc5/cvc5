@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -454,8 +454,8 @@ class CegInstantiator : protected EnvObj
   bool d_is_nested_quant;
   /** the atoms of the CE lemma */
   std::vector<Node> d_ce_atoms;
-  /** collect atoms */
-  void collectCeAtoms(Node n, std::map<Node, bool>& visited);
+  /** collect atoms in n, store in d_ce_atoms */
+  void collectCeAtoms(Node n);
   //-------------------------------end quantified formula info
 
   //-------------------------------current state

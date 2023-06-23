@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Tim King, Morgan Deters
+ *   Mathias Preiner, Andrew Reynolds, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,13 +22,14 @@
 #ifndef CVC5__PARSER__API__CPP__COMMAND_H
 #define CVC5__PARSER__API__CPP__COMMAND_H
 
+#include <cvc5/cvc5.h>
+#include <cvc5/cvc5_export.h>
+
 #include <iosfwd>
 #include <sstream>
 #include <string>
 #include <vector>
 
-#include "api/cpp/cvc5.h"
-#include "cvc5_export.h"
 #include "options/language.h"
 
 namespace cvc5 {
@@ -1064,6 +1065,28 @@ class CVC5_EXPORT GetDifficultyCommand : public Command
   parser::SymbolManager* d_sm;
   /** the result of the get difficulty call */
   std::map<cvc5::Term, cvc5::Term> d_result;
+};
+
+class CVC5_EXPORT GetTimeoutCoreCommand : public Command
+{
+ public:
+  GetTimeoutCoreCommand();
+  cvc5::Result getResult() const;
+  const std::vector<cvc5::Term>& getTimeoutCore() const;
+
+  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void printResult(cvc5::Solver* solver, std::ostream& out) const override;
+
+  std::string getCommandName() const override;
+  void toStream(std::ostream& out) const override;
+
+ protected:
+  /** The solver we were invoked with */
+  cvc5::Solver* d_solver;
+  /** The symbol manager we were invoked with */
+  parser::SymbolManager* d_sm;
+  /** the result of the timeout core call */
+  std::pair<cvc5::Result, std::vector<cvc5::Term>> d_result;
 };
 
 class CVC5_EXPORT GetLearnedLiteralsCommand : public Command

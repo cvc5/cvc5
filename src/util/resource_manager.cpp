@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -87,6 +87,7 @@ const char* toString(Resource r)
     case Resource::RestartStep: return "RestartStep";
     case Resource::RewriteStep: return "RewriteStep";
     case Resource::SatConflictStep: return "SatConflictStep";
+    case Resource::SygusCheckStep: return "SygusCheckStep";
     case Resource::TheoryCheckStep: return "TheoryCheckStep";
     default: return "?Resource?";
   }
@@ -241,6 +242,9 @@ void ResourceManager::spendResource(theory::InferenceId iid)
 
 void ResourceManager::beginCall()
 {
+  // refresh here if not already done so
+  refresh();
+  // begin call
   d_perCallTimer.set(d_options.base.perCallMillisecondLimit);
   d_thisCallResourceUsed = 0;
 
@@ -260,7 +264,7 @@ void ResourceManager::beginCall()
   }
 }
 
-void ResourceManager::endCall()
+void ResourceManager::refresh()
 {
   d_cumulativeTimeUsed += d_perCallTimer.elapsed();
   d_perCallTimer.set(0);

@@ -2,8 +2,8 @@
 ; COMMAND-LINE: -o sygus-grammar
 ; EXPECT: (sygus-grammar f
 ; EXPECT: ((f_Int Int) (f_Bool Bool) )
-; EXPECT: ((f_Int Int ((Constant Int) x y 0 1 (+ f_Int f_Int) (- f_Int f_Int) (ite f_Bool f_Int f_Int) ))
-; EXPECT: (f_Bool Bool ((Constant Bool) true false (= f_Int f_Int) (<= f_Int f_Int) (not f_Bool) (and f_Bool f_Bool) (or f_Bool f_Bool) ))
+; EXPECT: ((f_Int Int (x y 0 1 (+ f_Int f_Int) (- f_Int f_Int) (ite f_Bool f_Int f_Int) ))
+; EXPECT: (f_Bool Bool (true false (= f_Int f_Int) (<= f_Int f_Int) (not f_Bool) (and f_Bool f_Bool) (or f_Bool f_Bool) ))
 ; EXPECT: ))
 ; EXPECT: (
 ; EXPECT: (define-fun f ((x Int) (y Int)) Int 0)

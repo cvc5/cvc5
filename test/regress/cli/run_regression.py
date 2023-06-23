@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 ###############################################################################
 # Top contributors (to current version):
-#   Andres Noetzli, Aina Niemetz, Yoni Zohar
+#   Andres Noetzli, Abdalrhman Mohamed, Aina Niemetz
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -174,6 +174,25 @@ class ProofTester(Tester):
             )
         )
 
+class DslProofTester(Tester):
+
+    def __init__(self):
+        super().__init__("dsl-proof")
+
+    def applies(self, benchmark_info):
+        expected_output_lines = benchmark_info.expected_output.split()
+        return (
+            benchmark_info.benchmark_ext != ".sy"
+            and "unsat" in benchmark_info.expected_output.split()
+        )
+
+    def run_internal(self, benchmark_info):
+        return super().run_internal(
+            benchmark_info._replace(
+                command_line_args=benchmark_info.command_line_args +
+                ["--check-proofs", "--proof-granularity=dsl-rewrite", "--proof-check=lazy"]
+            )
+        )
 
 class LfscTester(Tester):
 
@@ -308,7 +327,7 @@ class DumpTester(Tester):
         super().__init__("dump")
 
     def applies(self, benchmark_info):
-        return benchmark_info.benchmark_ext != ".p"
+        return True
 
     def run_internal(self, benchmark_info):
         ext_to_lang = {
@@ -364,6 +383,7 @@ g_testers = {
     "synth": SynthTester(),
     "abduct": AbductTester(),
     "dump": DumpTester(),
+    "dsl-proof": DslProofTester()
 }
 
 g_default_testers = [
@@ -595,17 +615,10 @@ def run_regression(
     if benchmark_ext == ".smt2":
         status_regex = r"set-info\s*:status\s*(sat|unsat)"
         comment_char = ";"
-    elif benchmark_ext == ".p":
-        status_regex = (
-            r"% Status\s*:\s*(Theorem|Unsatisfiable|CounterSatisfiable|Satisfiable)"
-        )
-        status_to_output = lambda s: "% SZS status {} for {}".format(
-            s, benchmark_filename
-        )
     elif benchmark_ext == ".sy":
         comment_char = ";"
     else:
-        sys.exit('"{}" must be *.smt2 or *.p or *.sy'.format(benchmark_basename))
+        sys.exit('"{}" must be *.smt2 or *.sy'.format(benchmark_basename))
 
     benchmark_lines = None
     with open(benchmark_path, "r") as benchmark_file:
@@ -647,8 +660,11 @@ def run_regression(
                 return EXIT_FAILURE
             if disable_tester in testers:
                 testers.remove(disable_tester)
-                if disable_tester == "proof" and "lfsc" in testers:
+            if disable_tester == "proof":
+                if "lfsc" in testers:
                     testers.remove("lfsc")
+                if "dsl-proof" in testers:
+                    testers.remove("dsl-proof")
 
     expected_output = expected_output.strip()
     expected_error = expected_error.strip()

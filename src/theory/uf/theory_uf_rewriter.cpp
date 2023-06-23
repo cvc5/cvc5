@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Morgan Deters
+ *   Andrew Reynolds, Liana Hadarean, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,9 +19,11 @@
 #include "expr/function_array_const.h"
 #include "expr/node_algorithm.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/uf/function_const.h"
+#include "util/bitvector.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -223,9 +225,20 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
 
 RewriteResponse TheoryUfRewriter::rewriteBVToNat(TNode node)
 {
+  Assert(node.getKind() == kind::BITVECTOR_TO_NAT);
+  NodeManager* nm = NodeManager::currentNM();
   if (node[0].isConst())
   {
-    Node resultNode = arith::eliminateBv2Nat(node);
+    Node resultNode = nm->mkConstInt(node[0].getConst<BitVector>().toInteger());
+    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
+  }
+  else if (node[0].getKind() == kind::INT_TO_BITVECTOR)
+  {
+    // (bv2nat ((_ int2bv w) x)) ----> (mod x 2^w)
+    const uint32_t size =
+        node[0].getOperator().getConst<IntToBitVector>().d_size;
+    Node sn = nm->mkConstInt(Rational(Integer(2).pow(size)));
+    Node resultNode = nm->mkNode(kind::INTS_MODULUS_TOTAL, node[0][0], sn);
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
   }
   return RewriteResponse(REWRITE_DONE, node);
@@ -233,10 +246,40 @@ RewriteResponse TheoryUfRewriter::rewriteBVToNat(TNode node)
 
 RewriteResponse TheoryUfRewriter::rewriteIntToBV(TNode node)
 {
+  Assert(node.getKind() == kind::INT_TO_BITVECTOR);
   if (node[0].isConst())
   {
-    Node resultNode = arith::eliminateInt2Bv(node);
+    NodeManager* nm = NodeManager::currentNM();
+    const uint32_t size = node.getOperator().getConst<IntToBitVector>().d_size;
+    Node resultNode = nm->mkConst(
+        BitVector(size, node[0].getConst<Rational>().getNumerator()));
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
+  }
+  else if (node[0].getKind() == kind::BITVECTOR_TO_NAT)
+  {
+    TypeNode otype = node.getType();
+    TypeNode itype = node[0][0].getType();
+    if (otype == itype)
+    {
+      return RewriteResponse(REWRITE_AGAIN_FULL, node[0][0]);
+    }
+    size_t osize = otype.getBitVectorSize();
+    size_t isize = itype.getBitVectorSize();
+    if (osize > isize)
+    {
+      // ((_ int2bv w) (bv2nat x)) ---> (concat (_ bv0 v) x)
+      Node zero = bv::utils::mkZero(osize - isize);
+      Node concat = NodeManager::currentNM()->mkNode(
+          kind::BITVECTOR_CONCAT, zero, node[0][0]);
+      return RewriteResponse(REWRITE_AGAIN_FULL, concat);
+    }
+    else
+    {
+      // ((_ int2bv w) (bv2nat x)) ---> ((_ extract w-1 0) x)
+      Assert(osize < isize);
+      Node extract = bv::utils::mkExtract(node[0][0], osize-1, 0);
+      return RewriteResponse(REWRITE_AGAIN_FULL, extract);
+    }
   }
   return RewriteResponse(REWRITE_DONE, node);
 }

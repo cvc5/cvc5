@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -63,11 +63,11 @@ void InferProofCons::notifyLemma(const InferInfo& ii)
   d_lazyFactMap[ii.d_conc] = std::make_shared<InferInfo>(ii);
 }
 
-bool InferProofCons::addProofTo(CDProof* pf,
-                                Node conc,
-                                InferenceId infer,
-                                bool isRev,
-                                const std::vector<Node>& exp)
+bool InferProofCons::convertAndAddProofTo(CDProof* pf,
+                                          Node conc,
+                                          InferenceId infer,
+                                          bool isRev,
+                                          const std::vector<Node>& exp)
 {
   // now go back and convert it to proof steps and add to proof
   bool useBuffer = false;
@@ -1363,7 +1363,7 @@ Node InferProofCons::maybePurifyTerm(Node n,
     return n;
   }
   SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-  Node k = sm->mkPurifySkolem(n, "k");
+  Node k = sm->mkPurifySkolem(n);
   return k;
 }
 

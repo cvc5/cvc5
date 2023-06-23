@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -399,8 +399,13 @@ bool TheoryModel::assertEquality(TNode a, TNode b, bool polarity)
   if (a == b && polarity) {
     return true;
   }
-  Trace("model-builder-assertions") << "(assert " << (polarity ? "(= " : "(not (= ") << a << " " << b << (polarity ? "));" : ")));") << endl;
+  Trace("model-builder-assertions")
+      << "(assert " << (polarity ? "(= " : "(not (= ") << a << " " << b
+      << (polarity ? "));" : ")));");
   d_equalityEngine->assertEquality( a.eqNode(b), polarity, Node::null() );
+  Trace("model-builder-assertions")
+      << (d_equalityEngine->consistent() ? "" : "...inconsistent!")
+      << std::endl;
   return d_equalityEngine->consistent();
 }
 

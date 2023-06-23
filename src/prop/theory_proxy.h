@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -71,6 +71,8 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** Presolve, which calls presolve for the modules managed by this class */
   void presolve();
+  /** Postsolve, which calls postsolve for the modules managed by this class */
+  void postsolve();
 
   /**
    * Notify that lhs was substituted by rhs during preprocessing. This impacts
@@ -158,9 +160,6 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   SatValue getDecisionPolarity(SatVariable var);
 
-  /** Return decision level at which `var` was decided on. */
-  int32_t getDecisionLevel(TNode node) const;
-
   CnfStream* getCnfStream();
 
   /**
@@ -227,8 +226,8 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** The theory engine we are using. */
   TheoryEngine* d_theoryEngine;
 
-  /** Queue of asserted facts */
-  context::CDQueue<TNode> d_queue;
+  /** Queue of asserted facts and their decision level. */
+  context::CDQueue<std::pair<TNode, int32_t>> d_queue;
 
   /** The theory preprocessor */
   theory::TheoryPreprocessor d_tpp;
@@ -252,9 +251,6 @@ class TheoryProxy : protected EnvObj, public Registrar
    * are dynamically activated only when decision=justification.
    */
   bool d_activatedSkDefs;
-
-  /** Map to store current decision level for theory literals. */
-  std::unordered_map<Node, int32_t> d_var_decision_levels;
 }; /* class TheoryProxy */
 
 }  // namespace prop

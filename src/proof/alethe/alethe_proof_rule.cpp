@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -61,6 +61,8 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::DISTINCT_ELIM: return "distinct_elim";
     case AletheRule::LA_RW_EQ: return "la_rw_eq";
     case AletheRule::LA_GENERIC: return "la_generic";
+    case AletheRule::LA_MULT_POS: return "la_mult_pos";
+    case AletheRule::LA_MULT_NEG: return "la_mult_neg";
     case AletheRule::LIA_GENERIC: return "lia_generic";
     case AletheRule::LA_DISEQUALITY: return "la_disequality";
     case AletheRule::LA_TOTALITY: return "la_totality";

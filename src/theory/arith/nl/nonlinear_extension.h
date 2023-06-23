@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +27,6 @@
 #include "theory/arith/nl/ext/factoring_check.h"
 #include "theory/arith/nl/ext/monomial_bounds_check.h"
 #include "theory/arith/nl/ext/monomial_check.h"
-#include "theory/arith/nl/ext/proof_checker.h"
 #include "theory/arith/nl/ext/split_zero_check.h"
 #include "theory/arith/nl/ext/tangent_plane_check.h"
 #include "theory/arith/nl/ext_theory_callback.h"
@@ -85,7 +84,7 @@ class NonlinearExtension : EnvObj
   typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  NonlinearExtension(Env& env, TheoryArith& containing, ArithState& state);
+  NonlinearExtension(Env& env, TheoryArith& containing);
   ~NonlinearExtension();
   /**
    * Does non-context dependent setup for a node connected to a theory.
@@ -196,7 +195,7 @@ class NonlinearExtension : EnvObj
   // The theory of arithmetic containing this extension.
   TheoryArith& d_containing;
   /** A reference to the arithmetic state object */
-  ArithState& d_astate;
+  TheoryState& d_astate;
   InferenceManager& d_im;
   /** The statistics class */
   NlStats d_stats;
@@ -224,8 +223,6 @@ class NonlinearExtension : EnvObj
    * transcendental functions.
    */
   transcendental::TranscendentalSolver d_trSlv;
-  /** The proof checker for proofs of the nlext. */
-  ExtProofRuleChecker d_proofChecker;
   /**
    * Holds common lookup data for the checks implemented in the "nl-ext"
    * solvers (from Cimatti et al., TACAS 2017).

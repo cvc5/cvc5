@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -111,7 +111,7 @@ Node SkolemCache::mkTypedSkolemCached(
       // they must be Boolean term variables.
       int flags = a.getType().isBoolean() ? SkolemManager::SKOLEM_BOOL_TERM_VAR
                                           : SkolemManager::SKOLEM_DEFAULT;
-      sk = sm->mkPurifySkolem(a, c, "string purify skolem", flags);
+      sk = sm->mkPurifySkolem(a, flags);
     }
     break;
     // these are eliminated by normalizeStringSkolem

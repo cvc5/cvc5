@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli
+ *   Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -14,7 +14,7 @@
  * the language bindings are generated automatically.
  */
 
-#include "api/cpp/cvc5_types.h"
+#include <cvc5/cvc5_types.h>
 
 #include <iostream>
 
@@ -92,6 +92,24 @@ std::ostream& operator<<(std::ostream& out, ProofComponent pc)
       out << "theory_lemmas";
       break;
     case ProofComponent::PROOF_COMPONENT_FULL: out << "full"; break;
+    default: out << "?";
+  }
+  return out;
+}
+
+std::ostream& operator<<(std::ostream& out, FindSynthTarget fst)
+{
+  switch (fst)
+  {
+    case FindSynthTarget::FIND_SYNTH_TARGET_ENUM: out << "enum"; break;
+    case FindSynthTarget::FIND_SYNTH_TARGET_REWRITE: out << "rewrite"; break;
+    case FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_UNSOUND:
+      out << "rewrite_unsound";
+      break;
+    case FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_INPUT:
+      out << "rewrite_input";
+      break;
+    case FindSynthTarget::FIND_SYNTH_TARGET_QUERY: out << "query"; break;
     default: out << "?";
   }
   return out;

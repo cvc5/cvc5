@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -316,7 +316,7 @@ SymbolManager::SymbolManager(cvc5::Solver* s)
       d_implementation(new SymbolManager::Implementation()),
       d_globalDeclarations(false),
       d_logicIsForced(false),
-      d_forcedLogic()
+      d_logic()
 {
 }
 
@@ -337,6 +337,70 @@ bool SymbolManager::bind(const std::string& name,
 void SymbolManager::bindType(const std::string& name, cvc5::Sort t)
 {
   return d_implementation->getSymbolTable().bindType(name, t);
+}
+
+bool SymbolManager::bindMutualDatatypeTypes(
+    const std::vector<cvc5::Sort>& datatypes, bool bindTesters)
+{
+  for (size_t i = 0, ntypes = datatypes.size(); i < ntypes; ++i)
+  {
+    Sort t = datatypes[i];
+    const Datatype& dt = t.getDatatype();
+    const std::string& name = dt.getName();
+    Trace("parser-idt") << "define " << name << " as " << t << std::endl;
+    if (dt.isParametric())
+    {
+      std::vector<Sort> paramTypes = dt.getParameters();
+      bindType(name, paramTypes, t);
+    }
+    else
+    {
+      bindType(name, t);
+    }
+    for (size_t j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
+    {
+      const DatatypeConstructor& ctor = dt[j];
+      Term constructor = ctor.getTerm();
+      Trace("parser-idt") << "+ define " << constructor << std::endl;
+      std::string constructorName = ctor.getName();
+      // A zero argument constructor is actually APPLY_CONSTRUCTOR for the
+      // constructor.
+      if (ctor.getNumSelectors() == 0)
+      {
+        constructor = d_solver->mkTerm(APPLY_CONSTRUCTOR, {constructor});
+      }
+      // always do overloading
+      if (!bind(constructorName, constructor, true))
+      {
+        return false;
+      }
+      if (bindTesters)
+      {
+        std::stringstream testerName;
+        testerName << "is-" << constructorName;
+        Term tester = ctor.getTesterTerm();
+        Trace("parser-idt") << "+ define " << testerName.str() << std::endl;
+        // always do overloading
+        if (!bind(testerName.str(), tester, true))
+        {
+          return false;
+        }
+      }
+      for (size_t k = 0, nargs = ctor.getNumSelectors(); k < nargs; k++)
+      {
+        const DatatypeSelector& sel = ctor[k];
+        Term selector = sel.getTerm();
+        Trace("parser-idt") << "+++ define " << selector << std::endl;
+        std::string selectorName = sel.getName();
+        // always do overloading
+        if (!bind(selectorName, selector, true))
+        {
+          return false;
+        }
+      }
+    }
+  }
+  return true;
 }
 
 void SymbolManager::bindType(const std::string& name,
@@ -462,17 +526,17 @@ void SymbolManager::resetAssertions()
   }
 }
 
-void SymbolManager::forceLogic(const std::string& logic)
+void SymbolManager::setLogic(const std::string& logic, bool isForced)
 {
-  Assert(!d_logicIsForced);
-  d_logicIsForced = true;
-  d_forcedLogic = logic;
+  // if already forced and this isn't forced, ignore
+  if (!d_logicIsForced || isForced)
+  {
+    d_logicIsForced = isForced;
+    d_logic = logic;
+  }
 }
 bool SymbolManager::isLogicForced() const { return d_logicIsForced; }
 
-const std::string& SymbolManager::getForcedLogic() const
-{
-  return d_forcedLogic;
-}
+const std::string& SymbolManager::getLogic() const { return d_logic; }
 
 }  // namespace cvc5::parser

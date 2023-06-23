@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli
+ *   Andrew Reynolds, Christopher L. Conway
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,10 +18,12 @@
 #ifndef CVC5__PARSER__API__CPP__INPUT_PARSER_H
 #define CVC5__PARSER__API__CPP__INPUT_PARSER_H
 
+#include <cvc5/cvc5.h>
+#include <cvc5/cvc5_export.h>
+
 #include <memory>
 
-#include "api/cpp/cvc5.h"
-#include "cvc5_export.h"
+#include "parser/api/cpp/command.h"
 #include "parser/flex_parser.h"
 #include "parser/parser_antlr.h"
 
@@ -61,6 +63,12 @@ class CVC5_EXPORT InputParser
   Solver* getSolver();
   /** Get the underlying symbol manager of this input parser */
   SymbolManager* getSymbolManager();
+  /**
+   * Set the logic to use. This determines which builtin symbols are included.
+   *
+   * @param name The name of the logic.
+   */
+  void setLogic(const std::string& name);
   /** Set the input for the given file.
    *
    * @param lang the input language
@@ -97,12 +105,16 @@ class CVC5_EXPORT InputParser
   void appendIncrementalStringInput(const std::string& input);
 
   /**
-   * Parse and return the next command.
-   * NOTE: currently memory management of commands is handled internally.
+   * Parse and return the next command. Will initialize the logic to "ALL"
+   * or the forced logic if no logic is set prior to this point and a command
+   * is read that requires initializing the logic.
    */
-  Command* nextCommand();
+  std::unique_ptr<Command> nextCommand();
 
-  /** Parse and return the next expression. */
+  /**
+   * Parse and return the next expression. Requires setting the logic prior
+   * to this point.
+   */
   Term nextExpression();
 
  private:

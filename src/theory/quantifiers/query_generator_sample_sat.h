@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -64,7 +64,7 @@ class QueryGeneratorSampleSat : public QueryGenerator
    * Add term to this module. This may trigger the printing and/or checking of
    * new queries.
    */
-  bool addTerm(Node n, std::ostream& out) override;
+  bool addTerm(Node n, std::vector<Node>& foundQueries) override;
 
  private:
   /** find queries
@@ -84,7 +84,7 @@ class QueryGeneratorSampleSat : public QueryGenerator
    * using a separate copy of the SMT engine. Throws an exception if qy is
    * reported to be unsatisfiable.
    */
-  void checkQuery(Node qy, unsigned spIndex, std::ostream& out);
+  void checkQuery(Node qy, unsigned spIndex, std::vector<Node>& foundQueries);
   /** cache of all terms registered to this generator */
   std::unordered_set<Node> d_terms;
   /** the threshold used by this module for maximum number of sat points */

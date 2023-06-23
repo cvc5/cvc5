@@ -22,7 +22,11 @@ from skbuild.cmaker import CMaker
 
 python_version = CMaker.get_python_version()
 args = [
-	'-DPYTHON_VERSION_STRING:STRING=' + sys.version.split(' ')[0],
+	'-DBUILD_BINDINGS_PYTHON_VERSION:STRING=' + python_version,
+	'-DPython_INCLUDE_DIR:PATH=' +
+			CMaker.get_python_include_dir(python_version),
+	'-DPython_LIBRARY:FILEPATH=' +
+			CMaker.get_python_library(python_version),
 	'-DPYTHON_INCLUDE_DIR:PATH=' +
 			CMaker.get_python_include_dir(python_version),
 	'-DPYTHON_LIBRARY:FILEPATH=' +

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Morgan Deters
+ *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -249,7 +249,14 @@ void TermRegistry::registerSubterms(Node n)
     if (d_registeredTerms.find(cur) == d_registeredTerms.end())
     {
       registerTermInternal(cur);
-      visit.insert(visit.end(), cur.begin(), cur.end());
+      Kind k = cur.getKind();
+      // only traverse beneath operators belonging to strings
+      if (k==EQUAL || theory::kindToTheoryId(k)==THEORY_STRINGS)
+      {
+        // strings does not have any closure kinds
+        Assert (!cur.isClosure());
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
     }
   } while (!visit.empty());
 }
@@ -279,21 +286,36 @@ void TermRegistry::registerTermInternal(Node n)
     //  for concat/const/replace, introduce proxy var and state length relation
     regTermLem = getRegisterTermLemma(n);
   }
-  else if (n.getKind() != STRING_CONTAINS)
+  else
   {
     // we don't send out eager reduction lemma for str.contains currently
-    Node eagerRedLemma = eagerReduce(n, &d_skCache, d_alphaCard);
-    if (!eagerRedLemma.isNull())
+    bool doEagerReduce = true;
+    Kind k = n.getKind();
+    if (k == STRING_CONTAINS)
     {
-      // if there was an eager reduction, we make the trust node for it
-      if (d_epg != nullptr)
+      doEagerReduce = false;
+    }
+    else if (k == STRING_TO_CODE)
+    {
+      // code for proxy are implied
+      Node c = SkolemManager::getOriginalForm(n[0]);
+      doEagerReduce = !c.isConst();
+    }
+    if (doEagerReduce)
+    {
+      Node eagerRedLemma = eagerReduce(n, &d_skCache, d_alphaCard);
+      if (!eagerRedLemma.isNull())
       {
-        regTermLem = d_epg->mkTrustNode(
-            eagerRedLemma, PfRule::STRING_EAGER_REDUCTION, {}, {n});
-      }
-      else
-      {
-        regTermLem = TrustNode::mkTrustLemma(eagerRedLemma, nullptr);
+        // if there was an eager reduction, we make the trust node for it
+        if (d_epg != nullptr)
+        {
+          regTermLem = d_epg->mkTrustNode(
+              eagerRedLemma, PfRule::STRING_EAGER_REDUCTION, {}, {n});
+        }
+        else
+        {
+          regTermLem = TrustNode::mkTrustLemma(eagerRedLemma, nullptr);
+        }
       }
     }
   }

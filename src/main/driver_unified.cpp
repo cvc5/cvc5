@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Morgan Deters, Mathias Preiner
+ *   Gereon Kremer, Andrew Reynolds, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -13,6 +13,7 @@
  * Driver for cvc5 executable (cvc5).
  */
 
+#include <cvc5/cvc5.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -24,7 +25,6 @@
 #include <new>
 #include <optional>
 
-#include "api/cpp/cvc5.h"
 #include "base/configuration.h"
 #include "base/cvc5config.h"
 #include "base/output.h"
@@ -169,10 +169,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
     // Parse and execute commands until we are done
     if (solver->getOptionInfo("interactive").boolValue() && inputFromStdin)
     {
-      if (!solver->getOptionInfo("incremental").setByUser)
-      {
-        solver->setOption("incremental", "true");
-      }
       // We use the interactive shell when piping from stdin, even some cases
       // where the input stream is not a TTY. We do this to avoid memory issues
       // involving tokens that span multiple lines.
@@ -180,6 +176,11 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
       // (via isatty). If we are not interactive, we disable certain output
       // information, e.g. for querying the user.
       bool isInteractive = isatty(fileno(stdin));
+      // set incremental if we are in interactive mode
+      if (!solver->getOptionInfo("incremental").setByUser)
+      {
+        solver->setOption("incremental", isInteractive ? "true" : "false");
+      }
       InteractiveShell shell(
           pExecutor.get(), dopts.in(), dopts.out(), isInteractive);
 

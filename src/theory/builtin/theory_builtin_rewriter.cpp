@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
+ *   Andrew Reynolds, Aina Niemetz, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,7 @@
 #include "expr/attribute.h"
 #include "expr/elim_shadow_converter.h"
 #include "expr/node_algorithm.h"
-#include "theory/rewriter.h"
+#include "theory/builtin/generic_op.h"
 
 using namespace std;
 
@@ -84,8 +84,18 @@ RewriteResponse TheoryBuiltinRewriter::doRewrite(TNode node)
     }
     case kind::DISTINCT:
       return RewriteResponse(REWRITE_DONE, blastDistinct(node));
-    default: return RewriteResponse(REWRITE_DONE, node);
+    case kind::APPLY_INDEXED_SYMBOLIC:
+    {
+      Node rnode = rewriteApplyIndexedSymbolic(node);
+      if (rnode != node)
+      {
+        return RewriteResponse(REWRITE_AGAIN_FULL, rnode);
+      }
+    }
+    break;
+    default: break;
   }
+  return RewriteResponse(REWRITE_DONE, node);
 }
 
 Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
@@ -123,6 +133,25 @@ Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
   }
   // eliminate shadowing
   return ElimShadowNodeConverter::eliminateShadow(node);
+}
+
+Node TheoryBuiltinRewriter::rewriteApplyIndexedSymbolic(TNode node)
+{
+  Assert(node.getKind() == kind::APPLY_INDEXED_SYMBOLIC);
+  Assert(node.getNumChildren() > 1);
+  // if all arguments are constant, we return the non-symbolic version
+  // of the operator, e.g. (extract 2 1 #b0000) ---> ((_ extract 2 1) #b0000)
+  for (const Node& nc : node)
+  {
+    if (!nc.isConst())
+    {
+      return node;
+    }
+  }
+  Trace("builtin-rewrite") << "rewriteApplyIndexedSymbolic: " << node
+                           << std::endl;
+  // use the utility
+  return GenericOp::getConcreteApp(node);
 }
 
 }  // namespace builtin

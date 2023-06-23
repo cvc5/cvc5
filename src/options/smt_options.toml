@@ -176,12 +176,12 @@ name   = "SMT Layer"
   help       = "if an unsat core is produced, it is reduced to a minimal unsat core"
 
 [[option]]
-  name       = "printUnsatCoresFull"
+  name       = "printCoresFull"
   category   = "regular"
-  long       = "print-unsat-cores-full"
+  long       = "print-cores-full"
   type       = "bool"
   default    = "false"
-  help       = "when printing unsat cores, include unlabeled assertions"
+  help       = "print all formulas regardless of whether they are named, e.g. in unsat cores"
 
 [[option]]
   name       = "checkUnsatCores"
@@ -386,6 +386,7 @@ name   = "SMT Layer"
   long       = "bvand-integer-granularity=N"
   type       = "uint64_t"
   default    = "1"
+  minimum    = "1"
   maximum    = "8"
   help       = "granularity to use in --solve-bv-as-int mode and for iand operator (experimental)"
 
@@ -513,3 +514,11 @@ name   = "SMT Layer"
   minimum    = "0.0"
   maximum    = "1000.0"
   help       = "sets the threshold for average assertions per literal before a deep restart"
+
+[[option]]
+  name       = "toCoreTimeout"
+  category   = "expert"
+  long       = "timeout-core-timeout=N"
+  type       = "uint64_t"
+  default    = "10000"
+  help       = "timeout (in milliseconds) for satisfiability checks for timeout cores"

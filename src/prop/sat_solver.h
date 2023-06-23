@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -141,6 +141,11 @@ class CDCLTSatSolver : public SatSolver
   virtual bool isDecision(SatVariable decn) const = 0;
 
   /**
+   * Return whether variable has a fixed assignment.
+   */
+  virtual bool isFixed(SatVariable var) const = 0;
+
+  /**
    * Return the current list of decisions made by the SAT solver.
    */
   virtual std::vector<SatLiteral> getDecisions() const = 0;
@@ -150,11 +155,6 @@ class CDCLTSatSolver : public SatSolver
    * of literals ordered with respect to variable activity.
    */
   virtual std::vector<Node> getOrderHeap() const = 0;
-
-  /**
-   * Return the user-context level when `lit` was introduced..
-   */
-  virtual int32_t getIntroLevel(SatVariable v) const { return -1; }
 
   virtual std::shared_ptr<ProofNode> getProof() = 0;
 

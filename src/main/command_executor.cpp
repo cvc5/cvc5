@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Morgan Deters
+ *   Andrew Reynolds, Gereon Kremer, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -202,7 +202,8 @@ bool CommandExecutor::solverInvoke(cvc5::Solver* solver,
   // commands because they add function names to the symbol table.
   if (d_parseOnly && dynamic_cast<SetBenchmarkLogicCommand*>(cmd) == nullptr
       && dynamic_cast<ResetCommand*>(cmd) == nullptr
-      && dynamic_cast<DeclarationDefinitionCommand*>(cmd) == nullptr)
+      && dynamic_cast<DeclarationDefinitionCommand*>(cmd) == nullptr
+      && dynamic_cast<DatatypeDeclarationCommand*>(cmd) == nullptr)
   {
     return true;
   }

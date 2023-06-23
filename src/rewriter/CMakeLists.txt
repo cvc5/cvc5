@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Andres Noetzli
+#   Andrew Reynolds, Mathias Preiner
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -27,6 +27,8 @@ libcvc5_add_sources(
   rewrite_db.h
   rewrite_db_proof_cons.cpp
   rewrite_db_proof_cons.h
+  rewrite_db_term_process.cpp
+  rewrite_db_term_process.h
   rewrite_proof_rule.cpp
   rewrite_proof_rule.h
 )

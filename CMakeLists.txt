@@ -53,6 +53,13 @@ if(POLICY CMP0135)
   cmake_policy(SET CMP0135 NEW)
 endif()
 
+if(POLICY CMP0079)
+  # Allows target_link_libraries() to use targets from other directories.
+  # This will prevent issues with INTERFACE_LINK_LIBRARIES, which allows
+  # cvc5 to be properly linked as a static library on other CMake projects.
+  cmake_policy(SET CMP0079 NEW)
+endif()
+
 #-----------------------------------------------------------------------------#
 # Tell CMake where to find our dependencies
 
@@ -321,7 +328,20 @@ else()
   endif()
 endif()
 
-find_package(Python 3.6...3.10.999 COMPONENTS Interpreter REQUIRED)
+if(DEFINED BUILD_BINDINGS_PYTHON_VERSION) 
+  find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Interpreter REQUIRED)
+else()
+  find_supported_python_version()
+endif()
+
+# Some cmake packages are not compatible with the newest version
+# of FindPython, introduced in cmake 3.12.
+# We define the symbols below to be backward compatible.
+# FindPython Interpreter sets Python_EXECUTABLE
+if(NOT DEFINED PYTHON_EXECUTABLE) 
+  set(PYTHON_EXECUTABLE "${Python_EXECUTABLE}")
+endif()
+
 find_package(GMP 6.1 REQUIRED)
 
 if(ENABLE_ASAN)
@@ -486,6 +506,13 @@ endif()
 
 #-----------------------------------------------------------------------------#
 # Add subdirectories
+
+# Include public headers
+include_directories(include)
+include_directories(${CMAKE_BINARY_DIR}/include)
+
+# Install public headers
+install(DIRECTORY include/cvc5 DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 add_subdirectory(src)
 

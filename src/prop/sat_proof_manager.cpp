@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -154,21 +154,12 @@ void SatProofManager::endResChain(const Minisat::Clause& clause)
   {
     clauseLits.insert(MinisatSatSolver::toSatLiteral(clause[i]));
   }
-  Node conclusion = getClauseNode(clause);
-  uint32_t clauseLevel = clause.level() + 1;
-  if (clauseLevel < userContext()->getLevel()
-      && !d_resChains.hasGenerator(conclusion))
-  {
-    d_optResLevels[conclusion] = clauseLevel;
-    Trace("sat-proof") << "SatProofManager::endResChain: ..clause's lvl "
-                       << clause.level() + 1 << " below curr user level "
-                       << userContext()->getLevel() << "\n";
-  }
-  endResChain(conclusion, clauseLits);
+  endResChain(getClauseNode(clause), clauseLits, clause.level() + 1);
 }
 
 void SatProofManager::endResChain(Node conclusion,
-                                  const std::set<SatLiteral>& conclusionLits)
+                                  const std::set<SatLiteral>& conclusionLits,
+                                  uint32_t clauseLevel)
 {
   Trace("sat-proof") << ", " << conclusion << "\n";
   if (d_resChains.hasGenerator(conclusion))
@@ -258,6 +249,15 @@ void SatProofManager::endResChain(Node conclusion,
           << conclusion << " is equal to a premise\n";
       return;
     }
+  }
+  // if this is a clause whose level is below the current user level, we save it
+  // to have its proof kept during backtracking
+  if (clauseLevel < userContext()->getLevel())
+  {
+    d_optResLevels[conclusion] = clauseLevel;
+    Trace("sat-proof") << "SatProofManager::endResChain: ..clause's lvl "
+                       << clauseLevel << " below curr user level "
+                       << userContext()->getLevel() << "\n";
   }
   // since the conclusion can be both reordered and without duplicates and the
   // SAT solver does not record this information, we use a MACRO_RESOLUTION
@@ -821,7 +821,7 @@ void SatProofManager::notifyPop()
     // proof node saved to be restored of suffering unintended updates. This is
     // *necessary*.
     std::shared_ptr<ProofNode> clauseResPf =
-        d_env.getProofNodeManager()->clone(d_resChains.getProofFor(it->first));
+        d_resChains.getProofFor(it->first)->clone();
     Assert(clauseResPf && clauseResPf->getRule() != PfRule::ASSUME);
     d_optResProofs[it->second].push_back(clauseResPf);
   }

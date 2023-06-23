@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Christopher L. Conway, Gereon Kremer
+ *   Christopher L. Conway, Andrew Reynolds, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,9 +16,10 @@
 // This must be included first.
 #include "parser/parser_builder.h"
 
+#include <cvc5/cvc5.h>
+
 #include <string>
 
-#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "parser/antlr_input.h"
 #include "parser/input.h"
@@ -61,7 +62,7 @@ std::unique_ptr<Parser> ParserBuilder::build()
   // the TPTP parser, where forced logic is processed upon construction.
   if (d_logicIsForced)
   {
-    d_symman->forceLogic(d_forcedLogic);
+    d_symman->setLogic(d_forcedLogic, true);
   }
 
   if (d_lang == "LANG_TPTP")

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Alex Ozdemir
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -91,7 +91,7 @@ enum class ParseCtx
   TERM_ANNOTATE_NEXT_ATTR
 };
 
-Smt2TermParser::Smt2TermParser(Smt2Lexer& lex, Smt2State& state)
+Smt2TermParser::Smt2TermParser(Smt2LexerNew& lex, Smt2State& state)
     : d_lex(lex), d_state(state)
 {
 }
@@ -130,7 +130,10 @@ Term Smt2TermParser::parseTerm()
             // a standalone qualified identifier
             ParseOp op = continueParseQualifiedIdentifier(false);
             ret = op.d_expr;
-            Assert(!ret.isNull());
+            if (ret.isNull() || op.d_kind == INTERNAL_KIND)
+            {
+              d_lex.parseError("Unexpected qualified identifier");
+            }
           }
           break;
           case Token::INDEX_TOK:
@@ -138,7 +141,10 @@ Term Smt2TermParser::parseTerm()
             // a standalone indexed symbol
             ParseOp op = continueParseIndexedIdentifier(false);
             ret = op.d_expr;
-            Assert(!ret.isNull());
+            if (ret.isNull())
+            {
+              d_lex.parseError("Unexpected indexed symbol");
+            }
           }
           break;
           case Token::LPAREN_TOK:
@@ -230,14 +236,13 @@ Term Smt2TermParser::parseTerm()
       // ------------------- close paren
       case Token::RPAREN_TOK:
       {
-        if (tstack.empty())
+        // should only be here if we are expecting arguments
+        if (tstack.empty() || (xstack.back() != ParseCtx::NEXT_ARG
+               && xstack.back() != ParseCtx::CLOSURE_NEXT_ARG))
         {
           d_lex.unexpectedTokenError(
               tok, "Mismatched parentheses in SMT-LIBv2 term");
         }
-        // should only be here if we are expecting arguments
-        Assert(xstack.back() == ParseCtx::NEXT_ARG
-               || xstack.back() == ParseCtx::CLOSURE_NEXT_ARG);
         // Construct the application term specified by tstack.back()
         ParseOp& op = tstack.back().first;
         ret = d_state.applyParseOp(op, tstack.back().second);
@@ -257,7 +262,7 @@ Term Smt2TermParser::parseTerm()
       case Token::QUOTED_SYMBOL:
       {
         std::string name = tokenStrToSymbol(tok);
-        ret = d_state.getExpressionForName(name);
+        ret = d_state.getVariable(name);
       }
       break;
       case Token::UNTERMINATED_QUOTED_SYMBOL:
@@ -397,7 +402,10 @@ Term Smt2TermParser::parseTerm()
           {
             d_lex.parseError("Cannot match on non-datatype term.");
           }
-          tstack.back().first.d_type = retSort;
+          // we use a placeholder to store the type (retSort), which is
+          // used during MATCH_NEXT_CASE
+          tstack.back().first.d_kind = INTERNAL_KIND;
+          tstack.back().first.d_expr = slv->mkConst(retSort, "_placeholder_");
           ret = Term();
           xstack[xstack.size() - 1] = ParseCtx::MATCH_NEXT_CASE;
           needsUpdateCtx = true;
@@ -424,10 +432,10 @@ Term Smt2TermParser::parseTerm()
             // push the scope
             d_state.pushScope();
             // parse the pattern, which also does the binding
-            Assert(!tstack.back().first.d_type.isNull());
+            Assert(!tstack.back().first.d_expr.isNull());
             std::vector<Term> boundVars;
-            Term pattern =
-                parseMatchCasePattern(tstack.back().first.d_type, boundVars);
+            Term pattern = parseMatchCasePattern(
+                tstack.back().first.d_expr.getSort(), boundVars);
             // If we bound variables when parsing the pattern, we will construct
             // a match bind case
             ParseOp op;
@@ -454,7 +462,7 @@ Term Smt2TermParser::parseTerm()
             // head sort.
             ParseOp& op = tstack.back().first;
             op.d_kind = MATCH;
-            op.d_type = Sort();
+            op.d_expr = Term();
             xstack[xstack.size() - 1] = ParseCtx::NEXT_ARG;
           }
         }
@@ -654,6 +662,7 @@ Term Smt2TermParser::parseSymbolicExpr()
   Token tok;
   std::vector<std::vector<Term>> sstack;
   Solver* slv = d_state.getSolver();
+  Sort dummyType = slv->getBooleanSort();
   do
   {
     tok = d_lex.nextToken();
@@ -683,7 +692,7 @@ Term Smt2TermParser::parseSymbolicExpr()
       {
         // note that there are no tokens that are forbidden here
         std::string str = d_lex.tokenStr();
-        ret = slv->mkString(d_state.processAdHocStringEsc(str));
+        ret = slv->mkVar(dummyType, str);
       }
       break;
     }
@@ -911,28 +920,33 @@ Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
       if (tok == Token::LPAREN_TOK)
       {
         Token tok2 = d_lex.nextToken();
-        switch (tok2)
+        if (tok2 == Token::SYMBOL)
         {
-          case Token::SYGUS_CONSTANT_TOK:
+          std::string tokenStr(d_lex.tokenStr());
+          if (tokenStr == "Constant")
           {
             t = parseSort();
             ret->addAnyConstant(ntSyms[i]);
             d_lex.eatToken(Token::RPAREN_TOK);
             parsedGTerm = true;
           }
-          break;
-          case Token::SYGUS_VARIABLE_TOK:
+          else if (tokenStr == "Variable")
           {
             t = parseSort();
             ret->addAnyVariable(ntSyms[i]);
             d_lex.eatToken(Token::RPAREN_TOK);
             parsedGTerm = true;
           }
-          break;
-          default:
+          else
+          {
             // Did not process tok2.
             d_lex.reinsertToken(tok2);
-            break;
+          }
+        }
+        else
+        {
+          // Did not process tok2.
+          d_lex.reinsertToken(tok2);
         }
       }
       if (!parsedGTerm)
@@ -1112,11 +1126,11 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypesDef(
     }
     tok = d_lex.nextToken();
   }
-  d_lex.reinsertToken(tok);
   if (dts.size() != dnames.size())
   {
-    d_lex.parseError("Wrong number of datatypes provided.");
+    d_lex.unexpectedTokenError(tok, "Wrong number of datatypes provided.");
   }
+  d_lex.reinsertToken(tok);
   d_state.popScope();
   return dts;
 }
@@ -1215,7 +1229,10 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
         // (_ char <hex_literal>) expects a hex literal
         symbols.push_back(d_lex.tokenStr());
         break;
-      default: break;
+      default:
+        d_lex.unexpectedTokenError(
+            tok, "Expected index while parsing indexed identifier");
+        break;
     }
     tok = d_lex.nextToken();
   }
@@ -1233,22 +1250,14 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
     }
     else
     {
-      Kind k = d_state.getIndexedOpKind(name);
-      if (k == UNDEFINED_KIND)
-      {
-        // We don't know which kind to use until we know the type of the
-        // arguments, which is the case for:
-        // - to_fp
-        // - (_ tuple.select n) and (_ tuple.update n)
-        p.d_name = name;
-        p.d_indices = numerals;
-        p.d_kind = UNDEFINED_KIND;
-      }
-      else
-      {
-        // otherwise, we are ready to make the operator
-        p.d_op = d_state.getSolver()->mkOp(k, numerals);
-      }
+      // In some cases, we don't know which kind to use until we know the type
+      // of the arguments, which is the case for:
+      // - to_fp
+      // - (_ tuple.select n) and (_ tuple.update n)
+      // For consistency, we always construct the op lazily.
+      p.d_name = name;
+      p.d_indices = numerals;
+      p.d_kind = UNDEFINED_KIND;
     }
   }
   // otherwise, indexed by symbols
@@ -1264,7 +1273,10 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
     // handles:
     // - testers and updaters indexed by constructor names
     Kind k = d_state.getIndexedOpKind(name);
-    Assert(k == APPLY_UPDATER || k == APPLY_TESTER);
+    if (k != APPLY_UPDATER && k != APPLY_TESTER)
+    {
+      d_lex.parseError(std::string("Unexpected indexed symbol " + name));
+    }
     if (symbols.size() != 1)
     {
       d_lex.parseError(std::string("Unexpected number of indices for " + name));
@@ -1326,15 +1338,14 @@ Term Smt2TermParser::parseMatchCasePattern(Sort headSort,
     {
       Term pat = d_state.getVariable(name);
       Sort type = pat.getSort();
-      if (!type.isDatatypeConstructor()
-          || !type.getDatatypeConstructorDomainSorts().empty())
+      if (!type.isDatatype())
       {
         d_lex.parseError(
             "Must apply constructors of arity greater than 0 to arguments in "
             "pattern.");
       }
       // make nullary constructor application
-      return d_state.getSolver()->mkTerm(APPLY_CONSTRUCTOR, {pat});
+      return pat;
     }
     // it has the type of the head expr
     Term pat = d_state.bindBoundVar(name, headSort);

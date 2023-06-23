@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Dejan Jovanovic
+ *   Andrew Reynolds, Gereon Kremer, Dejan Jovanovic
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,6 +41,13 @@ class ArithRewriter : public TheoryRewriter
    * the given node.
    */
   TrustNode expandDefinition(Node node) override;
+  /**
+   * Rewrite inequality to bv. If ineq contains a single bv2nat term, then
+   * if possible, return an equivalent formula involving a bitvector inequality.
+   * Otherwise, return ineq itself.
+   */
+  static Node rewriteIneqToBv(const Node& ineq);
+
  private:
   /** preRewrite for atoms */
   static RewriteResponse preRewriteAtom(TNode t);
@@ -97,13 +104,13 @@ class ArithRewriter : public TheoryRewriter
   static RewriteResponse returnRewrite(TNode t, Node ret, Rewrite r);
 
   /**
-   * Rewrite inequality to bv. If applicable, return the rewrite response for
+   * Rewrite inequality to bv. If applicable, return
    * the bitvector inequality that is the rewritten form of the arithmetic
    * inequality ineq that is equivalent to (<k> sum 0).
    */
-  static RewriteResponse rewriteIneqToBv(Kind k,
-                                         const rewriter::Sum& sum,
-                                         const Node& ineq);
+  static Node rewriteIneqToBv(Kind k,
+                              const rewriter::Sum& sum,
+                              const Node& ineq);
   /** The operator elimination utility */
   OperatorElim& d_opElim;
 }; /* class ArithRewriter */

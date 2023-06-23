@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -485,8 +485,6 @@ std::vector<NodeValue*> NodeManager::TopologicalSort(
 
 TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
 {
-  // !!!! temporary
-  std::stringstream errOutTmp;
   TypeNode typeNode;
   TypeAttr ta;
   TypeCheckedAttr tca;
@@ -537,12 +535,10 @@ TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
     {
       visited[cur] = true;
       // children now have types assigned
-      typeNode = TypeChecker::computeType(this, cur, check, &errOutTmp);
+      typeNode = TypeChecker::computeType(this, cur, check, errOut);
       // if null, immediately return without further caching
       if (typeNode.isNull())
       {
-        // !!! temporary
-        throw TypeCheckingExceptionPrivate(cur, errOutTmp.str());
         return typeNode;
       }
       setAttribute(cur, ta, typeNode);
@@ -693,8 +689,11 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypesInternal(
     }
     if (nameResolutions.find(dtp->getName()) != nameResolutions.end())
     {
-      throw Exception(
-          "cannot construct two datatypes at the same time with the same name");
+      std::stringstream ss;
+      ss << "cannot construct two datatypes at the same time with the same "
+            "name ("
+         << dtp->getName() << ")";
+      throw Exception(ss.str());
     }
     nameResolutions.insert(std::make_pair(dtp->getName(), typeNode));
     dtts.push_back(typeNode);

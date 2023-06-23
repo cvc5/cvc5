@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -87,7 +87,7 @@ class EnumValueManager : protected EnvObj
   /** Sygus sampler (for --sygus-rr-verify) */
   std::unique_ptr<SygusSampler> d_samplerRrV;
   /** if we allocated a default sygus enumerator callback */
-  std::unique_ptr<SygusEnumeratorCallbackDefault> d_secd;
+  std::unique_ptr<SygusEnumeratorCallback> d_secd;
   /** enumerator generators for each actively-generated enumerator */
   std::unique_ptr<EnumValGenerator> d_evg;
   /** example evaluation cache utility for each enumerator */
