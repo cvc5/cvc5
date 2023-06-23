@@ -76,18 +76,14 @@ class TheoryFp : public Theory
   Node getCandidateModelValue(TNode var) override;
   bool collectModelInfo(TheoryModel* m,
                         const std::set<Node>& relevantTerms) override;
-  /**
-   * Collect model values in m based on the relevant terms given by
-   * relevantTerms.
-   */
   bool collectModelValues(TheoryModel* m,
-                          const std::set<Node>& relevantTerms) override;
+                          const std::set<Node>& termSet) override;
 
   std::string identify() const override { return "THEORY_FP"; }
 
   TrustNode explain(TNode n) override;
 
- protected:
+ private:
   using ConversionAbstractionMap = context::CDHashMap<TypeNode, Node>;
   using AbstractionMap = context::CDHashMap<Node, Node>;
 
@@ -97,12 +93,8 @@ class TheoryFp : public Theory
   void registerTerm(TNode node);
   bool isRegistered(TNode node);
 
-  context::CDHashSet<Node> d_registeredTerms;
-
   /** The word-blaster. Translates FP -> BV. */
   std::unique_ptr<FpWordBlaster> d_wordBlaster;
-
-  bool d_expansionRequested;
 
   void wordBlastAndEquateTerm(TNode node);
 
@@ -121,7 +113,9 @@ class TheoryFp : public Theory
 
   bool refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete);
 
- private:
+  /** The terms registered via registerTerm(). */
+  context::CDHashSet<Node> d_registeredTerms;
+
   /** Map abstraction skolem to abstracted FP_TO_REAL/FP_FROM_REAL node. */
   AbstractionMap d_abstractionMap;  // abstract -> original
 

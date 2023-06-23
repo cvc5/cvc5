@@ -661,6 +661,8 @@ void CoreSolver::normalizeEquivalenceClass(Node eqc,
   }
 }
 
+const std::vector<Node>& CoreSolver::getRelevantDeq() const { return d_rlvDeq; }
+
 NormalForm& CoreSolver::getNormalForm(Node n)
 {
   std::map<Node, NormalForm>::iterator itn = d_normal_form.find(n);
@@ -2508,7 +2510,7 @@ void CoreSolver::checkNormalFormsDeq()
   const context::CDList<Node>& deqs = d_state.getDisequalityList();
 
   Trace("str-deq") << "Process disequalites..." << std::endl;
-  std::vector<Node> relevantDeqs;
+  d_rlvDeq.clear();
   // for each pair of disequal strings, must determine whether their lengths
   // are equal or disequal
   for (const Node& eq : deqs)
@@ -2529,7 +2531,7 @@ void CoreSolver::checkNormalFormsDeq()
       if (d_state.areEqual(lt[0], lt[1]))
       {
         // if they have equal lengths, we must process the disequality below
-        relevantDeqs.push_back(eq);
+        d_rlvDeq.push_back(eq);
         Trace("str-deq") << "...relevant, lengths equal (" << lt[0] << " "
                          << lt[1] << ")" << std::endl;
       }
@@ -2554,7 +2556,7 @@ void CoreSolver::checkNormalFormsDeq()
     // added splitting lemma above
     return;
   }
-  for (const Node& eq : relevantDeqs)
+  for (const Node& eq : d_rlvDeq)
   {
     Assert(!d_state.isInConflict());
     // If using the sequence update solver, we always apply extensionality.

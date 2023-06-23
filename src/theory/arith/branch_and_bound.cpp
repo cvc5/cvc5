@@ -30,7 +30,7 @@ namespace theory {
 namespace arith {
 
 BranchAndBound::BranchAndBound(Env& env,
-                               ArithState& s,
+                               TheoryState& s,
                                InferenceManager& im,
                                PreprocessRewriteEq& ppre)
     : EnvObj(env),
@@ -42,28 +42,10 @@ BranchAndBound::BranchAndBound(Env& env,
 }
 
 std::vector<TrustNode> BranchAndBound::branchIntegerVariable(TNode var,
-                                                             Rational value,
-                                                             bool doPurify)
+                                                             Rational value)
 {
   std::vector<TrustNode> lems;
   NodeManager* nm = NodeManager::currentNM();
-  if (doPurify)
-  {
-    Node k = nm->getSkolemManager()->mkPurifySkolem(var, "bbk");
-    Node eq = k.eqNode(var);
-    if (proofsEnabled())
-    {
-      // justified trivially by predicate introduction
-      lems.push_back(
-          d_pfGen->mkTrustNode(eq, PfRule::MACRO_SR_PRED_INTRO, {}, {eq}));
-    }
-    else
-    {
-      lems.push_back(TrustNode::mkTrustLemma(eq, nullptr));
-    }
-    // now use the purification variable
-    var = k;
-  }
   Integer floor = value.floor();
   if (options().arith.brabTest)
   {
@@ -77,12 +59,11 @@ std::vector<TrustNode> BranchAndBound::branchIntegerVariable(TNode var,
     // Prioritize trying a simple rounding of the real solution first,
     // it that fails, fall back on original branch and bound strategy.
     Node ub = rewrite(nm->mkNode(LEQ, var, nm->mkConstInt(nearest - 1)));
+    // The rewritten form should be a GEQ literal, otherwise the split returned
+    // by this method will not have its intended effect
+    Assert(ub.getKind() == GEQ
+           || (ub.getKind() == NOT && ub[0].getKind() == GEQ));
     Node ubatom = ub.getKind() == NOT ? ub[0] : ub;
-    // if it rewrites to a non-arithmetic inequality, we must purify
-    if (ubatom.getKind() != GEQ && !doPurify)
-    {
-      return branchIntegerVariable(var, value, true);
-    }
     Node lb = rewrite(nm->mkNode(GEQ, var, nm->mkConstInt(nearest + 1)));
     Node right = nm->mkNode(OR, ub, lb);
     Node rawEq = nm->mkNode(EQUAL, var, nm->mkConstInt(nearest));
@@ -144,12 +125,10 @@ std::vector<TrustNode> BranchAndBound::branchIntegerVariable(TNode var,
   else
   {
     Node ub = rewrite(nm->mkNode(LEQ, var, nm->mkConstInt(floor)));
-    Node ubatom = ub.getKind() == NOT ? ub[0] : ub;
-    // if it rewrites to a non-arithmetic inequality, we must purify
-    if (ubatom.getKind() != GEQ && !doPurify)
-    {
-      return branchIntegerVariable(var, value, true);
-    }
+    // Similar to above, the rewritten form should be a GEQ literal, otherwise
+    // the split returned by this method will not have its intended effect
+    Assert(ub.getKind() == GEQ
+           || (ub.getKind() == NOT && ub[0].getKind() == GEQ));
     Node lb = ub.notNode();
     if (proofsEnabled())
     {
