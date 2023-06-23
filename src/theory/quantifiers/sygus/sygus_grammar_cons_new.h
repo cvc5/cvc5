@@ -66,7 +66,7 @@ class SygusGrammarCons
                                      const std::vector<Node>& trules);
 
   /**
-   * Make  the default sygus grammar type returning range with bound variables
+   * Make the default sygus grammar type returning range with bound variables
    * bvl.
    *
    * @param opts The options, which impact grammar construction

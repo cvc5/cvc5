@@ -189,7 +189,7 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammar(const Options& opts,
     {
       if (t.isRealOrInt())
       {
-        // construction of the the any-term grammar requires any auxiliary
+        // construction of the any-term grammar requires an auxiliary
         // "any constant".
         std::stringstream ssc;
         ssc << "A_" << t << "_AnyC";
