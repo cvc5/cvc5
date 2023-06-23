@@ -186,8 +186,11 @@ void TimeoutCoreManager::getActiveSkolemDefinitions(
     for (const Node& s : d_asymbols)
     {
       itk = d_skolemToAssert.find(s);
-      // avoid duplicates, as a skolem definition may have been added as an ordinary assertion
-      if (itk != d_skolemToAssert.end() && std::find(nextAsserts.begin(), nextAsserts.end(), itk->second)==nextAsserts.end())
+      // avoid duplicates, as a skolem definition may have been added as an
+      // ordinary assertion
+      if (itk != d_skolemToAssert.end()
+          && std::find(nextAsserts.begin(), nextAsserts.end(), itk->second)
+                 == nextAsserts.end())
       {
         nextAsserts.push_back(itk->second);
       }
@@ -357,13 +360,14 @@ bool TimeoutCoreManager::recordCurrentModel(bool& allAssertsSat,
       // a different one
       continue;
     }
-    if (indexScore == 7 || (indexSet && i>=d_numAssertsNsk))
+    if (indexScore == 7 || (indexSet && i >= d_numAssertsNsk))
     {
       // already max score, or we found a normal assertion
       continue;
     }
     // prefer false over unknown, shared symbols over no shared symbols
-    size_t currScore = (isFalse ? 1 : 0) + (hasCurrentSharedSymbol(ii) ? 2 : 0) + (i>=d_numAssertsNsk ? 0 : 4);
+    size_t currScore = (isFalse ? 1 : 0) + (hasCurrentSharedSymbol(ii) ? 2 : 0)
+                       + (i >= d_numAssertsNsk ? 0 : 4);
     Trace("smt-to-core-debug") << "score " << currScore << std::endl;
     if (indexSet && indexScore >= currScore)
     {
