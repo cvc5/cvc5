@@ -31,10 +31,12 @@ class TestApiTypes : public ::testing::Test
 TEST_F(TestApiTypes, printEnum)
 {
   std::stringstream ss;
+  ss << cvc5::SortKind::ARRAY_SORT;
   ss << cvc5::UnknownExplanation::UNKNOWN_REASON;
   ss << cvc5::modes::BlockModelsMode::LITERALS;
   ss << cvc5::modes::LearnedLitType::LEARNED_LIT_PREPROCESS;
   ss << cvc5::modes::ProofComponent::PROOF_COMPONENT_FULL;
+  ss << cvc5::modes::FindSynthTarget::FIND_SYNTH_TARGET_ENUM;
 }
 
 }  // namespace test
