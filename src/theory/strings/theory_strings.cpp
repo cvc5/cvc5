@@ -803,7 +803,7 @@ Node TheoryStrings::mkSkeletonFor(Node c)
     Assert(snv.getType() == etn);
     Node v = bvm->mkBoundVar<SeqModelVarAttribute>(snv, etn);
     // use a skolem, not a bound variable
-    Node kv = sm->mkPurifySkolem(v, "smv");
+    Node kv = sm->mkPurifySkolem(v);
     skChildren.push_back(utils::mkUnit(tn, kv));
   }
   return utils::mkConcat(skChildren, c.getType());

@@ -62,9 +62,8 @@ Node buildConjunct(const std::vector<TNode> &assumptions) {
 /** Constructs a new instance of TheoryFp w.r.t. the provided contexts. */
 TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_FP, env, out, valuation),
-      d_registeredTerms(userContext()),
       d_wordBlaster(new FpWordBlaster(userContext())),
-      d_expansionRequested(false),
+      d_registeredTerms(userContext()),
       d_abstractionMap(userContext()),
       d_rewriter(userContext()),
       d_state(env, valuation),
@@ -549,7 +548,7 @@ void TheoryFp::registerTerm(TNode node)
     // Purify (fp.to_real x)
     NodeManager* nm = NodeManager::currentNM();
     SkolemManager* sm = nm->getSkolemManager();
-    Node sk = sm->mkPurifySkolem(node, "to_real", "fp purify skolem");
+    Node sk = sm->mkPurifySkolem(node);
     handleLemma(node.eqNode(sk), InferenceId::FP_REGISTER_TERM);
     d_abstractionMap.insert(sk, node);
 
@@ -575,7 +574,7 @@ void TheoryFp::registerTerm(TNode node)
     // Purify ((_ to_fp eb sb) rm x)
     NodeManager* nm = NodeManager::currentNM();
     SkolemManager* sm = nm->getSkolemManager();
-    Node sk = sm->mkPurifySkolem(node, "to_real_fp", "fp purify skolem");
+    Node sk = sm->mkPurifySkolem(node);
     handleLemma(node.eqNode(sk), InferenceId::FP_REGISTER_TERM);
     d_abstractionMap.insert(sk, node);
 
@@ -777,18 +776,22 @@ bool TheoryFp::collectModelInfo(TheoryModel* m,
 }
 
 bool TheoryFp::collectModelValues(TheoryModel* m,
-                                  const std::set<Node>& relevantTerms)
+                                  const std::set<Node>& termSet)
 {
-  Trace("fp-collectModelInfo")
-      << "TheoryFp::collectModelInfo(): begin" << std::endl;
-  if (TraceIsOn("fp-collectModelInfo")) {
-    for (std::set<Node>::const_iterator i(relevantTerms.begin());
-         i != relevantTerms.end(); ++i) {
-      Trace("fp-collectModelInfo")
-          << "TheoryFp::collectModelInfo(): relevantTerms " << *i << std::endl;
+  Trace("fp-collectModelValues")
+      << "TheoryFp::collectModelValues(): begin" << std::endl;
+  if (TraceIsOn("fp-collectModelValues"))
+  {
+    for (std::set<Node>::const_iterator i(termSet.begin());
+         i != termSet.end();
+         ++i)
+    {
+      Trace("fp-collectModelValues")
+          << "TheoryFp::collectModelValues(): termSet " << *i
+          << std::endl;
     }
   }
-  for (const Node& node : relevantTerms)
+  for (const Node& node : termSet)
   {
     TypeNode t = node.getType();
     if ((!t.isRoundingMode() && !t.isFloatingPoint()) || !this->isLeaf(node))
@@ -796,8 +799,8 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
       continue;
     }
 
-    Trace("fp-collectModelInfo")
-        << "TheoryFp::collectModelInfo(): " << node << std::endl;
+    Trace("fp-collectModelValues")
+        << "TheoryFp::collectModelValues(): " << node << std::endl;
 
     Node wordBlasted = d_wordBlaster->getValue(d_valuation, node);
     // We only assign the value if the FpWordBlaster actually has one, that is,
@@ -805,7 +808,7 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
     if (!wordBlasted.isNull() && !m->assertEquality(node, wordBlasted, true))
     {
       Trace("fp-collectModelInfo")
-          << "TheoryFp::collectModelInfo(): ... not converted" << std::endl;
+          << "TheoryFp::collectModelValues(): ... not converted" << std::endl;
       return false;
     }
 
