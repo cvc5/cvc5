@@ -548,7 +548,7 @@ void TheoryFp::registerTerm(TNode node)
     // Purify (fp.to_real x)
     NodeManager* nm = NodeManager::currentNM();
     SkolemManager* sm = nm->getSkolemManager();
-    Node sk = sm->mkPurifySkolem(node, "to_real", "fp purify skolem");
+    Node sk = sm->mkPurifySkolem(node);
     handleLemma(node.eqNode(sk), InferenceId::FP_REGISTER_TERM);
     d_abstractionMap.insert(sk, node);
 
@@ -574,7 +574,7 @@ void TheoryFp::registerTerm(TNode node)
     // Purify ((_ to_fp eb sb) rm x)
     NodeManager* nm = NodeManager::currentNM();
     SkolemManager* sm = nm->getSkolemManager();
-    Node sk = sm->mkPurifySkolem(node, "to_real_fp", "fp purify skolem");
+    Node sk = sm->mkPurifySkolem(node);
     handleLemma(node.eqNode(sk), InferenceId::FP_REGISTER_TERM);
     d_abstractionMap.insert(sk, node);
 
