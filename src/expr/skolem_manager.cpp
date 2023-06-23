@@ -27,11 +27,6 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 
-struct SkolemFormAttributeId
-{
-};
-typedef expr::Attribute<SkolemFormAttributeId, Node> SkolemFormAttribute;
-
 struct OriginalFormAttributeId
 {
 };
@@ -46,6 +41,7 @@ const char* toString(SkolemFunId id)
 {
   switch (id)
   {
+    case SkolemFunId::PURIFY: return "PURIFY";
     case SkolemFunId::ARRAY_DEQ_DIFF: return "ARRAY_DEQ_DIFF";
     case SkolemFunId::DIV_BY_ZERO: return "DIV_BY_ZERO";
     case SkolemFunId::INT_DIV_BY_ZERO: return "INT_DIV_BY_ZERO";
@@ -103,6 +99,7 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::IEVAL_NONE: return "IEVAL_NONE";
     case SkolemFunId::IEVAL_SOME: return "IEVAL_SOME";
     case SkolemFunId::ABSTRACT_VALUE: return "ABSTRACT_VALUE";
+    case SkolemFunId::SYGUS_ANY_CONSTANT: return "SYGUS_ANY_CONSTANT";
     default: return "?";
   }
 }
@@ -116,8 +113,6 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id)
 SkolemManager::SkolemManager() : d_skolemCounter(0) {}
 
 Node SkolemManager::mkPurifySkolem(Node t,
-                                   const std::string& prefix,
-                                   const std::string& comment,
                                    int flags,
                                    ProofGenerator* pg)
 {
@@ -140,7 +135,7 @@ Node SkolemManager::mkPurifySkolem(Node t,
   }
   else
   {
-    k = mkSkolemInternal(t, prefix, comment, flags);
+    k = mkSkolemFunction(SkolemFunId::PURIFY, t.getType(), {t}, flags);
     // shouldn't provide proof generators for other terms
     Assert(pg == nullptr);
   }
@@ -165,8 +160,10 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id,
       d_skolemFuns.find(key);
   if (it == d_skolemFuns.end())
   {
+    // we use @ as a prefix, which follows the SMT-LIB standard indicating
+    // internal symbols starting with @ or . are reserved for internal use.
     std::stringstream ss;
-    ss << "SKOLEM_FUN_" << id;
+    ss << "@" << id;
     Node k = mkSkolemNode(ss.str(), tn, "an internal skolem function", flags);
     d_skolemFuns[key] = k;
     d_skolemFunMap[k] = key;
@@ -206,6 +203,17 @@ bool SkolemManager::isSkolemFunction(TNode k,
   id = std::get<0>(it->second);
   cacheVal = std::get<2>(it->second);
   return true;
+}
+
+SkolemFunId SkolemManager::getId(TNode k) const
+{
+  SkolemFunId id;
+  Node cacheVal;
+  if (isSkolemFunction(k, id, cacheVal))
+  {
+    return id;
+  }
+  return SkolemFunId::NONE;
 }
 
 Node SkolemManager::mkDummySkolem(const std::string& prefix,
@@ -343,28 +351,6 @@ Node SkolemManager::getUnpurifiedForm(Node k)
   return k;
 }
 
-Node SkolemManager::mkSkolemInternal(Node w,
-                                     const std::string& prefix,
-                                     const std::string& comment,
-                                     int flags)
-{
-  // note that witness, original forms are independent, but share skolems
-  // w is not necessarily a witness term
-  SkolemFormAttribute sfa;
-  // could already have a skolem if we used w already
-  if (w.hasAttribute(sfa))
-  {
-    return w.getAttribute(sfa);
-  }
-  // make the new skolem
-  Node k = mkSkolemNode(prefix, w.getType(), comment, flags);
-  // set skolem form attribute for w
-  w.setAttribute(sfa, k);
-  Trace("sk-manager") << "SkolemManager::mkSkolem: " << k << " : " << w
-                      << std::endl;
-  return k;
-}
-
 Node SkolemManager::mkSkolemNode(const std::string& prefix,
                                  const TypeNode& type,
                                  const std::string& comment,
@@ -380,20 +366,19 @@ Node SkolemManager::mkSkolemNode(const std::string& prefix,
   else
   {
     n = NodeBuilder(nm, SKOLEM);
-    if ((flags & SKOLEM_EXACT_NAME) == 0)
-    {
-      std::stringstream name;
-      name << prefix << '_' << ++d_skolemCounter;
-      n.setAttribute(expr::VarNameAttr(), name.str());
-    }
-    else
-    {
-      n.setAttribute(expr::VarNameAttr(), prefix);
-    }
+  }
+  if ((flags & SKOLEM_EXACT_NAME) == 0)
+  {
+    std::stringstream name;
+    name << prefix << '_' << ++d_skolemCounter;
+    n.setAttribute(expr::VarNameAttr(), name.str());
+  }
+  else
+  {
+    n.setAttribute(expr::VarNameAttr(), prefix);
   }
   n.setAttribute(expr::TypeAttr(), type);
   n.setAttribute(expr::TypeCheckedAttr(), true);
-
   return n;
 }
 

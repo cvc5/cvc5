@@ -113,6 +113,8 @@ libcvc5_add_sources(
   preprocessing/passes/sort_infer.h
   preprocessing/passes/static_learning.cpp
   preprocessing/passes/static_learning.h
+  preprocessing/passes/static_rewrite.cpp
+  preprocessing/passes/static_rewrite.h
   preprocessing/passes/strings_eager_pp.cpp
   preprocessing/passes/strings_eager_pp.h
   preprocessing/passes/sygus_inference.cpp
@@ -121,8 +123,6 @@ libcvc5_add_sources(
   preprocessing/passes/synth_rew_rules.h
   preprocessing/passes/theory_preprocess.cpp
   preprocessing/passes/theory_preprocess.h
-  preprocessing/passes/theory_rewrite_eq.cpp
-  preprocessing/passes/theory_rewrite_eq.h
   preprocessing/passes/unconstrained_simplifier.cpp
   preprocessing/passes/unconstrained_simplifier.h
   preprocessing/preprocessing_pass.cpp
@@ -910,6 +910,8 @@ libcvc5_add_sources(
   theory/quantifiers/query_generator_unsat.h
   theory/quantifiers/relevant_domain.cpp
   theory/quantifiers/relevant_domain.h
+  theory/quantifiers/rewrite_verifier.cpp
+  theory/quantifiers/rewrite_verifier.h
   theory/quantifiers/single_inv_partition.cpp
   theory/quantifiers/single_inv_partition.h
   theory/quantifiers/skolemize.cpp
@@ -963,6 +965,8 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/sygus_explain.h
   theory/quantifiers/sygus/sygus_grammar_cons.cpp
   theory/quantifiers/sygus/sygus_grammar_cons.h
+  theory/quantifiers/sygus/sygus_grammar_cons_new.cpp
+  theory/quantifiers/sygus/sygus_grammar_cons_new.h
   theory/quantifiers/sygus/sygus_grammar_norm.cpp
   theory/quantifiers/sygus/sygus_grammar_norm.h
   theory/quantifiers/sygus/sygus_grammar_red.cpp
@@ -1001,6 +1005,8 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/synth_conjecture.h
   theory/quantifiers/sygus/synth_engine.cpp
   theory/quantifiers/sygus/synth_engine.h
+  theory/quantifiers/sygus/synth_finder.cpp
+  theory/quantifiers/sygus/synth_finder.h
   theory/quantifiers/sygus/synth_verify.cpp
   theory/quantifiers/sygus/synth_verify.h
   theory/quantifiers/sygus/template_infer.cpp

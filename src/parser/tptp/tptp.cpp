@@ -70,8 +70,7 @@ TptpState::TptpState(ParserStateCallback* psc,
   // Handle forced logic immediately.
   if (sm->isLogicForced())
   {
-    preemptCommand(
-        std::make_unique<SetBenchmarkLogicCommand>(sm->getForcedLogic()));
+    preemptCommand(std::make_unique<SetBenchmarkLogicCommand>(sm->getLogic()));
   }
 }
 

@@ -660,7 +660,7 @@ set(regress_0_tests
   regress0/expect/scrub.03.smt2
   regress0/expect/scrub.06.cvc.smt2
   regress0/expect/scrub.08.sy
-  regress0/expect/scrub.09.p
+  regress0/expect/scrub.09.smt2
   regress0/ff/as.smt2
   regress0/ff/bigff_is_zero_sound.smt2
   regress0/ff/bigff_is_zero_unsound.smt2
@@ -756,7 +756,7 @@ set(regress_0_tests
   regress0/get-value-reals.smt2
   regress0/ho/apply-collapse-sat.smt2
   regress0/ho/apply-collapse-unsat.smt2
-  regress0/ho/bug_nodbuilding_interpreted_SYO042^1.p
+  regress0/ho/bug_nodbuilding_interpreted_SYO042^1.smt2
   regress0/ho/cong-full-apply.smt2
   regress0/ho/cong.smt2
   regress0/ho/datatype-field-ho.smt2
@@ -1092,6 +1092,7 @@ set(regress_0_tests
   regress0/printer/incomplete.smt2
   regress0/printer/learned-lit-output.smt2
   regress0/printer/let_shadowing.smt2
+  regress0/printer/portfolio-out.smt2
   regress0/printer/post-asserts-output.smt2
   regress0/printer/pre-asserts-output.smt2
   regress0/printer/print_sat_lemmas.smt2
@@ -1112,6 +1113,7 @@ set(regress_0_tests
   regress0/proofs/issue9205-eqProofNary.smt2
   regress0/proofs/issue9393-optResReconstruction-alethebug.smt2
   regress0/proofs/issue9531-alethe-resolution.smt2
+  regress0/proofs/issue9669-clause-level-opt-incremental.smt2
   regress0/proofs/lfsc-test-1.smt2
   regress0/proofs/nomerge-alethe-pf.smt2
   regress0/proofs/open-pf-datatypes.smt2
@@ -1688,35 +1690,35 @@ set(regress_0_tests
   regress0/test11.cvc.smt2
   regress0/test9.cvc.smt2
   regress0/timeout_core_simple.smt2
-  regress0/tptp/ARI086=1.p
-  regress0/tptp/DAT001=1.p
-  regress0/tptp/is_rat_simple.p
-  regress0/tptp/KRS018+1.p
-  regress0/tptp/KRS063+1.p
-  regress0/tptp/MGT019+2.p
-  regress0/tptp/MGT041-2.p
-  regress0/tptp/PUZ131_1.p
-  regress0/tptp/parse-neg-rational.p
-  regress0/tptp/SYN000_1.p
-  regress0/tptp/SYN000_2.p
-  regress0/tptp/SYN000-1.p
-  regress0/tptp/SYN000-2.p
-  regress0/tptp/SYN000+1.p
-  regress0/tptp/SYN000+2.p
-  regress0/tptp/SYN000=2.p
-  regress0/tptp/SYN075-1.p
-  regress0/tptp/tff0-arith.p
-  regress0/tptp/tff0.p
-  regress0/tptp/tptp_parser.p
-  regress0/tptp/tptp_parser10.p
-  regress0/tptp/tptp_parser2.p
-  regress0/tptp/tptp_parser3.p
-  regress0/tptp/tptp_parser4.p
-  regress0/tptp/tptp_parser5.p
-  regress0/tptp/tptp_parser6.p
-  regress0/tptp/tptp_parser7.p
-  regress0/tptp/tptp_parser8.p
-  regress0/tptp/tptp_parser9.p
+  regress0/tptp/ARI086=1.smt2
+  regress0/tptp/DAT001=1.smt2
+  regress0/tptp/is_rat_simple.smt2
+  regress0/tptp/KRS018+1.smt2
+  regress0/tptp/KRS063+1.smt2
+  regress0/tptp/MGT019+2.smt2
+  regress0/tptp/MGT041-2.smt2
+  regress0/tptp/PUZ131_1.smt2
+  regress0/tptp/parse-neg-rational.smt2
+  regress0/tptp/SYN000_1.smt2
+  regress0/tptp/SYN000_2.smt2
+  regress0/tptp/SYN000-1.smt2
+  regress0/tptp/SYN000-2.smt2
+  regress0/tptp/SYN000+1.smt2
+  regress0/tptp/SYN000+2.smt2
+  regress0/tptp/SYN000=2.smt2
+  regress0/tptp/SYN075-1.smt2
+  regress0/tptp/tff0-arith.smt2
+  regress0/tptp/tff0.smt2
+  regress0/tptp/tptp_parser.smt2
+  regress0/tptp/tptp_parser10.smt2
+  regress0/tptp/tptp_parser2.smt2
+  regress0/tptp/tptp_parser3.smt2
+  regress0/tptp/tptp_parser4.smt2
+  regress0/tptp/tptp_parser5.smt2
+  regress0/tptp/tptp_parser6.smt2
+  regress0/tptp/tptp_parser7.smt2
+  regress0/tptp/tptp_parser8.smt2
+  regress0/tptp/tptp_parser9.smt2
   regress0/uf/bool-pred-nested.smt2
   regress0/uf/ccredesign-fuzz.smtv1.smt2
   regress0/uf/cnf_abc.smt2
@@ -2068,6 +2070,7 @@ set(regress_1_tests
   regress1/datatypes/issue8124-real-int-cg.smt2
   regress1/datatypes/issue-variant-dt-zero.smt2
   regress1/datatypes/manos-model.smt2
+  regress1/datatypes/nested-rec-array-aa.smt2
   regress1/datatypes/non-simple-rec.smt2
   regress1/datatypes/non-simple-rec-mut-unsat.smt2
   regress1/datatypes/non-simple-rec-param.smt2
@@ -2153,10 +2156,10 @@ set(regress_1_tests
   regress1/gensys_brn001.smt2
   regress1/get-learned-literals.smt2
   regress1/get-learned-literals-types.smt2
-  regress1/ho/bug_freeVar_BDD_General_data_270.p
+  regress1/ho/bug_freeVar_BDD_General_data_270.smt2
   regress1/ho/bug_freevar_PHI004^4-delta.smt2
-  regress1/ho/bound_var_bug.p
-  regress1/ho/fta0328.lfho.p
+  regress1/ho/bound_var_bug.smt2
+  regress1/ho/fta0328.lfho.smt2
   regress1/ho/ho-fun-sharing-dd.smt2
   regress1/ho/issue3136-fconst-bool-bool.smt2
   regress1/ho/issue4065-no-rep.smt2
@@ -2167,10 +2170,10 @@ set(regress_1_tests
   regress1/ho/issue5201-1.smt2
   regress1/ho/issue5741-3.smt2
   regress1/ho/NUM638^1.smt2
-  regress1/ho/NUM925^1.p
+  regress1/ho/NUM925^1.smt2
   regress1/ho/proj-issue139-2.smt2
-  regress1/ho/soundness_fmf_SYO362^5-delta.p
-  regress1/ho/store-ax-min.p
+  regress1/ho/soundness_fmf_SYO362^5-delta.smt2
+  regress1/ho/store-ax-min.smt2
   regress1/hole6.cvc.smt2
   regress1/interpolant-unk-570.smt2
   regress1/ite5.smt2
@@ -3241,10 +3244,10 @@ set(regress_2_tests
   regress2/hash_sat_09_09.smt2
   regress2/hash_sat_10_09.smt2
   regress2/ho/auth0068.smt2
-  regress2/ho/bug_instfalse_SEU882^5.p
+  regress2/ho/bug_instfalse_SEU882^5.smt2
   regress2/ho/fta0409.smt2
-  regress2/ho/involved_parsing_ALG248^3.p
-  regress2/ho/partial_app_interpreted_SWW474^2.p
+  regress2/ho/involved_parsing_ALG248^3.smt2
+  regress2/ho/partial_app_interpreted_SWW474^2.smt2
   regress2/hole7.cvc.smt2
   regress2/hole8.cvc.smt2
   regress2/instance_1444.smtv1.smt2
@@ -3428,11 +3431,11 @@ set(regression_disabled_tests
   regress0/proofs/issue9515-alethe-skolems-crash.smt2
   regress0/proofs/issue9516-alethe-skolems-undef-in-proof.smt2
   # need finite model finding command line in tptp regression
-  regress0/tptp/BOO003-4.p
-  regress0/tptp/BOO027-1.p
-  regress0/tptp/MGT031-1.p
-  regress0/tptp/NLP114-1.p
-  regress0/tptp/SYN075+1.p
+  regress0/tptp/BOO003-4.smt2
+  regress0/tptp/BOO027-1.smt2
+  regress0/tptp/MGT031-1.smt2
+  regress0/tptp/NLP114-1.smt2
+  regress0/tptp/SYN075+1.smt2
   regress0/uf/iso_icl_repgen004.smtv1.smt2
   # previously was an options error, now times out
   regress0/strings/issue7974-incomplete-neg-member.smt2
@@ -3445,7 +3448,7 @@ set(regression_disabled_tests
   # after disallowing solving for terms with quantifiers
   regress1/ho/nested_lambdas-AGT034^2.smt2
   regress1/ho/nested_lambdas-sat-SYO056^1-delta.smt2
-  regress1/ho/SYO056^1.p
+  regress1/ho/SYO056^1.smt2
   # times out after update to circuit propagator
   regress1/nl/dumortier_llibre_artes_ex_5_13.transcendental.k2.smt2
   # times out after update to tangent planes
@@ -3516,7 +3519,7 @@ set(regression_disabled_tests
   # timeout on some builds after changes to justification heuristic
   regress2/nl/nt-lemmas-bad.smt2
   # timeout after refactoring justification heuristic
-  regress2/ho/SYO362^5.p
+  regress2/ho/SYO362^5.smt2
   # timeout after refactoring selectors
   regress2/quantifiers/exp-trivially-dd3.smt2
   # time out
@@ -3528,7 +3531,7 @@ set(regression_disabled_tests
   regress3/bv_to_int_and_or.smt2
   regress3/decision-wchains010ue.smtv1.smt2
   regress3/friedman_n6_i4.smtv1.smt2
-  regress3/ho/SYO362^5.p
+  regress3/ho/SYO362^5.smt2
   regress3/issue4714.smt2
   regress3/quantifiers/sygus-inst-ufbv-sdlx-fixpoint-5.smt2
   regress3/regex-rrv.sy
@@ -3593,11 +3596,9 @@ endforeach()
 # In order to have 'make test' work properly when cvc5 binaries are not built, 
 # we use a Cmake feature called FIXTURES to add 'build_regress' as the first test
 # which builds the 'build_regress' target.
-add_test(build_regress_test 
-    "${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}" 
-    --config "$<CONFIG>" --target build-regress
-)
-set_tests_properties(build_regress_test PROPERTIES FIXTURES_SETUP build_regress_fixture)
+# Disabled temporarily due to problems in the nightly builds
+# add_test(build_regress_test "${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}" --config "$<CONFIG>" --target build-regress)
+# set_tests_properties(build_regress_test PROPERTIES FIXTURES_SETUP build_regress_fixture)
 
 macro(cvc5_add_regression_test level file)
   set(wrapper )
@@ -3618,7 +3619,7 @@ macro(cvc5_add_regression_test level file)
     ${CMAKE_CURRENT_LIST_DIR}/${file})
   set_tests_properties(${file} PROPERTIES LABELS "regress${level}")
   set_tests_properties(${file} PROPERTIES SKIP_RETURN_CODE 77)
-  set_tests_properties(${file} PROPERTIES FIXTURES_REQUIRED build_regress_fixture)
+  # set_tests_properties(${file} PROPERTIES FIXTURES_REQUIRED build_regress_fixture)
 endmacro()
 
 set(RUN_REGRESSION_ARGS ${RUN_REGRESSION_ARGS} --use-skip-return-code)
