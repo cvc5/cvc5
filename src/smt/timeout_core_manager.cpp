@@ -311,7 +311,9 @@ void TimeoutCoreManager::initializePreprocessedAssertions(
       skDefs.push_back(pa);
     }
   }
+  // remember the size of the prefix of non-skolem definitions
   d_numAssertsNsk = d_ppAsserts.size();
+  // now, append the skolem definitions to the end of the assertion list
   d_ppAsserts.insert(d_ppAsserts.end(), skDefs.begin(), skDefs.end());
   Trace("smt-to-core") << "get symbols..." << std::endl;
   for (size_t i = 0, npasserts = d_ppAsserts.size(); i < npasserts; i++)
