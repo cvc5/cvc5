@@ -49,6 +49,7 @@
 #include "smt/interpolation_solver.h"
 #include "smt/listeners.h"
 #include "smt/logic_exception.h"
+#include "smt/model.h"
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
 #include "smt/preprocessor.h"
