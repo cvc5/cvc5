@@ -257,7 +257,7 @@ SatLiteral CnfStream::convertAtom(TNode node)
   bool preRegister = false;
 
   // Is this a variable add it to the list
-  if (node.isVar() && node.getKind() != kind::BOOLEAN_TERM_VARIABLE)
+  if (node.isVar() && node.getKind() != kind::SKOLEM)
   {
     d_booleanVariables.push_back(node);
     // if TRACK_AND_NOTIFY_VAR, we are notified when Boolean variables are

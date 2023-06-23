@@ -388,7 +388,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
       }
     }
   }
-  else if (node.getKind() != kind::BOOLEAN_TERM_VARIABLE && nodeType.isBoolean()
+  else if (node.getKind() != kind::SKOLEM && nodeType.isBoolean()
            && inTerm)
   {
     // if a non-variable Boolean term within another term, replace it
@@ -396,14 +396,14 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
     if (skolem.isNull())
     {
       Trace("rtf-proof-debug")
-          << "RemoveTermFormulas::run: make BOOLEAN_TERM_VARIABLE skolem"
+          << "RemoveTermFormulas::run: make Boolean skolem"
           << std::endl;
       // Make the skolem to represent the Boolean term
       // Skolems introduced for Boolean formulas appearing in terms have a
-      // special kind (BOOLEAN_TERM_VARIABLE) that ensures they are handled
+      // special kind (SKOLEM) that ensures they are handled
       // properly in theory combination. We must use this kind here instead of a
       // generic skolem. Notice that the name/comment are currently ignored
-      // within SkolemManager::mkPurifySkolem, since BOOLEAN_TERM_VARIABLE
+      // within SkolemManager::mkPurifySkolem, since SKOLEM
       // variables cannot be given names.
       SkolemManager* sm = nodeManager->getSkolemManager();
       skolem = sm->mkPurifySkolem(

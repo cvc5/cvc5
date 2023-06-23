@@ -113,11 +113,11 @@ bool SkolemDefManager::hasSkolems(TNode n)
         // ground term purification for E-matching, etc.
         if (ck == kind::SKOLEM)
         {
-          d_hasSkolems[cur] = (d_skDefs.find(cur) != d_skDefs.end());
+          d_hasSkolems[cur] = (d_skDefs.find(cur) != d_skDefs.end()) || cur.getType().isBoolean();
         }
         else
         {
-          d_hasSkolems[cur] = (ck == kind::BOOLEAN_TERM_VARIABLE);
+          d_hasSkolems[cur] = false;
         }
       }
       else

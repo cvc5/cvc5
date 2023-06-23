@@ -357,16 +357,7 @@ Node SkolemManager::mkSkolemNode(const std::string& prefix,
                                  int flags)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node n;
-  if (flags & SKOLEM_BOOL_TERM_VAR)
-  {
-    Assert(type.isBoolean());
-    n = NodeBuilder(nm, BOOLEAN_TERM_VARIABLE);
-  }
-  else
-  {
-    n = NodeBuilder(nm, SKOLEM);
-  }
+  Node n = NodeBuilder(nm, SKOLEM);
   if ((flags & SKOLEM_EXACT_NAME) == 0)
   {
     std::stringstream name;

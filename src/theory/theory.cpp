@@ -150,7 +150,7 @@ TheoryId Theory::theoryOf(TNode node,
       // Constants, variables, 0-ary constructors
       if (node.isVar())
       {
-        if (node.getKind() == kind::BOOLEAN_TERM_VARIABLE)
+        if (node.getKind() == kind::SKOLEM)
         {
           tid = THEORY_UF;
         }
@@ -183,7 +183,7 @@ TheoryId Theory::theoryOf(TNode node,
         }
         else
         {
-          if (node.getKind() == kind::BOOLEAN_TERM_VARIABLE)
+          if (node.getKind() == kind::SKOLEM)
           {
             // Boolean vars go to UF
             tid = THEORY_UF;
@@ -310,8 +310,8 @@ void Theory::debugPrintFacts() const{
 bool Theory::isLegalElimination(TNode x, TNode val)
 {
   Assert(x.isVar());
-  if (x.getKind() == kind::BOOLEAN_TERM_VARIABLE
-      || val.getKind() == kind::BOOLEAN_TERM_VARIABLE)
+  if (x.getKind() == kind::SKOLEM
+      || val.getKind() == kind::SKOLEM)
   {
     return false;
   }
@@ -457,13 +457,13 @@ Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
     // 2) x is not in the term t
     // 3) x : T and t : S, then S <: T
     if (in[0].isVar() && isLegalElimination(in[0], in[1])
-        && in[0].getKind() != kind::BOOLEAN_TERM_VARIABLE)
+        && in[0].getKind() != kind::SKOLEM)
     {
       outSubstitutions.addSubstitutionSolved(in[0], in[1], tin);
       return PP_ASSERT_STATUS_SOLVED;
     }
     if (in[1].isVar() && isLegalElimination(in[1], in[0])
-        && in[1].getKind() != kind::BOOLEAN_TERM_VARIABLE)
+        && in[1].getKind() != kind::SKOLEM)
     {
       outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
       return PP_ASSERT_STATUS_SOLVED;
