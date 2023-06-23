@@ -150,13 +150,14 @@ TheoryId Theory::theoryOf(TNode node,
       // Constants, variables, 0-ary constructors
       if (node.isVar())
       {
-        if (node.getKind() == kind::SKOLEM)
+        TypeNode tn = node.getType();
+        if (node.getKind() == kind::SKOLEM && tn.isBoolean())
         {
           tid = THEORY_UF;
         }
         else
         {
-          tid = theoryOf(node.getType(), usortOwner);
+          tid = theoryOf(tn, usortOwner);
         }
       }
       else if (node.getKind() == kind::EQUAL)
