@@ -965,6 +965,8 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/sygus_explain.h
   theory/quantifiers/sygus/sygus_grammar_cons.cpp
   theory/quantifiers/sygus/sygus_grammar_cons.h
+  theory/quantifiers/sygus/sygus_grammar_cons_new.cpp
+  theory/quantifiers/sygus/sygus_grammar_cons_new.h
   theory/quantifiers/sygus/sygus_grammar_norm.cpp
   theory/quantifiers/sygus/sygus_grammar_norm.h
   theory/quantifiers/sygus/sygus_grammar_red.cpp
@@ -1003,6 +1005,8 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/synth_conjecture.h
   theory/quantifiers/sygus/synth_engine.cpp
   theory/quantifiers/sygus/synth_engine.h
+  theory/quantifiers/sygus/synth_finder.cpp
+  theory/quantifiers/sygus/synth_finder.h
   theory/quantifiers/sygus/synth_verify.cpp
   theory/quantifiers/sygus/synth_verify.h
   theory/quantifiers/sygus/template_infer.cpp

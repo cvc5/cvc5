@@ -1998,6 +1998,7 @@ TEST_F(TestApiBlackSolver, getLearnedLiterals2)
 TEST_F(TestApiBlackSolver, getTimeoutCoreUnsat)
 {
   d_solver.setOption("timeout-core-timeout", "100");
+  d_solver.setOption("produce-unsat-cores", "true");
   Sort intSort = d_solver.getIntegerSort();
   Term x = d_solver.mkConst(intSort, "x");
   Term tt = d_solver.mkBoolean(true);
@@ -2015,6 +2016,7 @@ TEST_F(TestApiBlackSolver, getTimeoutCoreUnsat)
 
 TEST_F(TestApiBlackSolver, getTimeoutCore)
 {
+  d_solver.setOption("produce-unsat-cores", "true");
   Term ff = d_solver.mkBoolean(false);
   Term tt = d_solver.mkBoolean(true);
   d_solver.assertFormula(tt);

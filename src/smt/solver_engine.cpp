@@ -49,6 +49,7 @@
 #include "smt/interpolation_solver.h"
 #include "smt/listeners.h"
 #include "smt/logic_exception.h"
+#include "smt/model.h"
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
 #include "smt/preprocessor.h"
@@ -781,11 +782,23 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore()
 {
   Trace("smt") << "SolverEngine::getTimeoutCore()" << std::endl;
   beginCall(true);
+  // refresh the assertions, to ensure we have applied preprocessing to
+  // all current assertions
+  d_smtDriver->refreshAssertions();
   TimeoutCoreManager tcm(*d_env.get());
-  std::pair<Result, std::vector<Node>> ret =
-      tcm.getTimeoutCore(d_smtSolver->getAssertions());
+  // get the preprocessed assertions
+  const context::CDList<Node>& assertions =
+      d_smtSolver->getPreprocessedAssertions();
+  std::vector<Node> passerts;
+  for (const Node& a : assertions)
+  {
+    passerts.push_back(a);
+  }
+  std::pair<Result, std::vector<Node>> ret = tcm.getTimeoutCore(passerts);
+  // convert the preprocessed assertions to input assertions
+  std::vector<Node> core = convertPreprocessedToInput(ret.second, true);
   endCall();
-  return ret;
+  return std::pair<Result, std::vector<Node>>(ret.first, core);
 }
 
 std::vector<Node> SolverEngine::getUnsatAssumptions(void)
@@ -1243,6 +1256,22 @@ void SolverEngine::ensureWellFormedTerms(const std::vector<Node>& ns,
   }
 }
 
+std::vector<Node> SolverEngine::convertPreprocessedToInput(
+    const std::vector<Node>& ppa, bool isInternal)
+{
+  std::vector<Node> core;
+  CDProof cdp(*d_env);
+  Node fnode = NodeManager::currentNM()->mkConst(false);
+  cdp.addStep(fnode, PfRule::SAT_REFUTATION, ppa, {});
+  std::shared_ptr<ProofNode> pepf = cdp.getProofFor(fnode);
+  Assert(pepf != nullptr);
+  std::shared_ptr<ProofNode> pfn =
+      d_pfManager->connectProofToAssertions(pepf, *d_smtSolver.get());
+  d_ucManager->getUnsatCore(
+      pfn, d_smtSolver->getAssertions(), core, isInternal);
+  return core;
+}
+
 std::vector<Node> SolverEngine::getSubstitutedAssertions()
 {
   std::vector<Node> easserts = getAssertions();
@@ -1378,17 +1407,7 @@ UnsatCore SolverEngine::getUnsatCoreInternal(bool isInternal)
   // unsat core computed by the prop engine
   std::vector<Node> pcore;
   pe->getUnsatCore(pcore);
-  CDProof cdp(*d_env);
-  Node fnode = NodeManager::currentNM()->mkConst(false);
-  cdp.addStep(fnode, PfRule::SAT_REFUTATION, pcore, {});
-  std::shared_ptr<ProofNode> pepf = cdp.getProofFor(fnode);
-
-  Assert(pepf != nullptr);
-  std::shared_ptr<ProofNode> pfn =
-      d_pfManager->connectProofToAssertions(pepf, *d_smtSolver.get());
-  std::vector<Node> core;
-  d_ucManager->getUnsatCore(
-      pfn, d_smtSolver->getAssertions(), core, isInternal);
+  std::vector<Node> core = convertPreprocessedToInput(pcore, isInternal);
   return UnsatCore(core);
 }
 
@@ -1512,7 +1531,7 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   if (c == modes::PROOF_COMPONENT_RAW_PREPROCESS)
   {
     // use all preprocessed assertions
-    const std::vector<Node>& assertions =
+    const context::CDList<Node>& assertions =
         d_smtSolver->getPreprocessedAssertions();
     connectToPreprocess = true;
     // We start with (ASSUME a) for each preprocessed assertion a. This
