@@ -105,7 +105,7 @@ void InstStrategyMbqi::process(Node q)
   Subs skolems;
   for (const Node& v : q[0])
   {
-    Node k = sm->mkPurifySkolem(v, "mbk");
+    Node k = sm->mkPurifySkolem(v);
     skolems.add(v, k);
     // do not take its model value (which does not exist) in conversion below
     tmpConvertMap[k] = k;
@@ -339,7 +339,7 @@ Node InstStrategyMbqi::convertToQuery(
       else if (ck == UNINTERPRETED_SORT_VALUE || ck == REAL_ALGEBRAIC_NUMBER)
       {
         // return the fresh variable for this term
-        Node k = sm->mkPurifySkolem(cur, "mbk");
+        Node k = sm->mkPurifySkolem(cur);
         freshVarType[cur.getType()].insert(k);
         cmap[cur] = k;
         continue;

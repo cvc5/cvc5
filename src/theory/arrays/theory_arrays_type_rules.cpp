@@ -133,8 +133,16 @@ bool ArrayStoreTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
     return false;
   }
 
+  TypeNode itype = index.getType();
+  CardinalityClass itcc = itype.getCardinalityClass();
+
+  if (itcc != CardinalityClass::FINITE && itcc != CardinalityClass::ONE)
+  {
+    return true;
+  }
+
   // Get the cardinality of the index type
-  Cardinality indexCard = index.getType().getCardinality();
+  Cardinality indexCard = itype.getCardinality();
 
   if (indexCard.isInfinite())
   {

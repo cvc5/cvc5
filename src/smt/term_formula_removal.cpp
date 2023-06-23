@@ -299,10 +299,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
           << "RemoveTermFormulas::run: make ITE skolem" << std::endl;
       // Make the skolem to represent the ITE
       SkolemManager* sm = nodeManager->getSkolemManager();
-      skolem = sm->mkPurifySkolem(
-          node,
-          "termITE",
-          "a variable introduced due to term-level ITE removal");
+      skolem = sm->mkPurifySkolem(node);
       d_skolem_cache.insert(node, skolem);
 
       // Notice that in very rare cases, two different terms may have the
@@ -358,10 +355,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
         // Make the skolem to witness the choice, which notice is handled
         // as a special case within SkolemManager::mkPurifySkolem.
         SkolemManager* sm = nodeManager->getSkolemManager();
-        skolem = sm->mkPurifySkolem(
-            node,
-            "witnessK",
-            "a skolem introduced due to term-level witness removal");
+        skolem = sm->mkPurifySkolem(node);
         d_skolem_cache.insert(node, skolem);
 
         Assert(node[0].getNumChildren() == 1);
@@ -414,8 +408,6 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
       SkolemManager* sm = nodeManager->getSkolemManager();
       skolem = sm->mkPurifySkolem(
           node,
-          "btvK",
-          "a Boolean term variable introduced during term formula removal",
           SkolemManager::SKOLEM_BOOL_TERM_VAR);
       d_skolem_cache.insert(node, skolem);
 

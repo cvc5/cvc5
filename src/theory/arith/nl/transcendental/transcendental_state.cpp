@@ -52,8 +52,6 @@ TranscendentalState::TranscendentalState(Env& env,
   {
     d_proof.reset(
         new CDProofSet<CDProof>(d_env, d_env.getUserContext(), "nl-trans"));
-    d_proofChecker.reset(new TranscendentalProofRuleChecker());
-    d_proofChecker->registerTo(d_env.getProofNodeManager()->getChecker());
   }
 }
 
@@ -477,7 +475,7 @@ Node TranscendentalState::getPurifiedForm(TNode n)
   Node y;
   if (isSimplePurify(n))
   {
-    y = sm->mkPurifySkolem(n[0], "transk");
+    y = sm->mkPurifySkolem(n[0]);
   }
   else
   {
