@@ -673,7 +673,6 @@ TheoryModel* SolverEngine::getAvailableModel(const char* c) const
     // we get the assertions using the getAssertionsInternal, which does not
     // impact whether we are in "sat" mode
     std::vector<Node> asserts = getAssertionsInternal();
-    d_smtSolver->getPreprocessor()->applySubstitutions(asserts);
     ModelCoreBuilder mcb(*d_env.get());
     mcb.setModelCore(asserts, m, opts.smt.modelCoresMode);
   }
