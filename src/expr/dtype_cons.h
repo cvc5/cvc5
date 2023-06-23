@@ -105,11 +105,6 @@ class DTypeConstructor
    * is treated as the "any constant" constructor.
    */
   void setSygus(Node op);
-  /**
-   * Set that this constructor is a sygus datatype constructor that encodes
-   * any constant.
-   */
-  void setSygusAnyConstant();
   /** get sygus op
    *
    * This method returns the operator or term that this constructor represents
