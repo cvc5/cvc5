@@ -1092,6 +1092,7 @@ set(regress_0_tests
   regress0/printer/incomplete.smt2
   regress0/printer/learned-lit-output.smt2
   regress0/printer/let_shadowing.smt2
+  regress0/printer/portfolio-out.smt2
   regress0/printer/post-asserts-output.smt2
   regress0/printer/pre-asserts-output.smt2
   regress0/printer/print_sat_lemmas.smt2
@@ -1112,6 +1113,7 @@ set(regress_0_tests
   regress0/proofs/issue9205-eqProofNary.smt2
   regress0/proofs/issue9393-optResReconstruction-alethebug.smt2
   regress0/proofs/issue9531-alethe-resolution.smt2
+  regress0/proofs/issue9669-clause-level-opt-incremental.smt2
   regress0/proofs/lfsc-test-1.smt2
   regress0/proofs/nomerge-alethe-pf.smt2
   regress0/proofs/open-pf-datatypes.smt2
@@ -2068,6 +2070,7 @@ set(regress_1_tests
   regress1/datatypes/issue8124-real-int-cg.smt2
   regress1/datatypes/issue-variant-dt-zero.smt2
   regress1/datatypes/manos-model.smt2
+  regress1/datatypes/nested-rec-array-aa.smt2
   regress1/datatypes/non-simple-rec.smt2
   regress1/datatypes/non-simple-rec-mut-unsat.smt2
   regress1/datatypes/non-simple-rec-param.smt2
