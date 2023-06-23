@@ -1199,12 +1199,17 @@ Node SequencesRewriter::rewriteLoopRegExp(TNode node)
   Node retNode = node;
 
   NodeManager* nm = NodeManager::currentNM();
-  if (u < l || u == 0)
+  if (u < l)
   {
-    // ((_ re.loop l u) r) --> re.none if u < l or u==0
+    // ((_ re.loop l u) r) --> re.none if u < l
     std::vector<Node> nvec;
     retNode = nm->mkNode(REGEXP_NONE, nvec);
     return returnRewrite(node, retNode, Rewrite::RE_LOOP_NONE);
+  }
+  else if (u==0)
+  {
+    retNode = nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")));
+    return returnRewrite(node, retNode, Rewrite::RE_LOOP_ZERO);
   }
   else if (r.getKind() == REGEXP_STAR)
   {

@@ -103,8 +103,11 @@ Node mkSygusTerm(const DType& dt,
 /**
  * Same as above, but we already have the sygus operator op. The above method
  * is syntax sugar for calling this method on dt[i].getSygusOp().
+ *
+ * Note that this method should not be used on sygus operators that denote
+ * the "any constant" constructor.
  */
-Node mkSygusTerm(Node op,
+Node mkSygusTerm(const Node& op,
                  const std::vector<Node>& children,
                  bool doBetaReduction = true);
 /**
@@ -202,6 +205,11 @@ void getFreeSymbolsSygusType(TypeNode sdt, std::unordered_set<Node>& syms);
 TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
                                           const std::vector<Node>& syms,
                                           const std::vector<Node>& vars);
+/**
+ * This converts all free symbols in the grammar specified by sdt into
+ * variables using the above two methods.
+ */
+TypeNode generalizeSygusType(TypeNode sdt);
 
 /**
  * Get SyGuS term size, which is based on the weight of constructor applications

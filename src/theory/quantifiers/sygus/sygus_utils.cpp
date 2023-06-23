@@ -38,6 +38,26 @@ struct SygusSolutionAttributeId
 };
 typedef expr::Attribute<SygusSolutionAttributeId, Node> SygusSolutionAttribute;
 
+/**
+ * Attribute for associating a function-to-synthesize with a first order
+ * variable whose type is a sygus datatype type that encodes its grammar.
+ */
+struct SygusSynthGrammarAttributeId
+{
+};
+typedef expr::Attribute<SygusSynthGrammarAttributeId, Node>
+    SygusSynthGrammarAttribute;
+
+/**
+ * Attribute for associating a function-to-synthesize with its formal argument
+ * list.
+ */
+struct SygusSynthFunVarListAttributeId
+{
+};
+typedef expr::Attribute<SygusSynthFunVarListAttributeId, Node>
+    SygusSynthFunVarListAttribute;
+
 Node SygusUtils::mkSygusConjecture(const std::vector<Node>& fs,
                                    Node conj,
                                    const std::vector<Node>& iattrs)
@@ -129,7 +149,17 @@ Node SygusUtils::decomposeSygusBody(Node conj, std::vector<Node>& vs)
   return conj;
 }
 
-Node SygusUtils::getSygusArgumentListForSynthFun(Node f)
+void SygusUtils::setSygusArgumentList(Node f, const Node& bvl)
+{
+  if (!bvl.isNull())
+  {
+    // use an attribute to mark its bound variable list
+    SygusSynthFunVarListAttribute ssfvla;
+    f.setAttribute(ssfvla, bvl);
+  }
+}
+
+Node SygusUtils::getOrMkSygusArgumentList(Node f)
 {
   Node sfvl = f.getAttribute(SygusSynthFunVarListAttribute());
   if (sfvl.isNull() && f.getType().isFunction())
@@ -150,19 +180,18 @@ Node SygusUtils::getSygusArgumentListForSynthFun(Node f)
   return sfvl;
 }
 
-void SygusUtils::getSygusArgumentListForSynthFun(Node f,
-                                                 std::vector<Node>& formals)
+void SygusUtils::getOrMkSygusArgumentList(Node f, std::vector<Node>& formals)
 {
-  Node sfvl = getSygusArgumentListForSynthFun(f);
+  Node sfvl = getOrMkSygusArgumentList(f);
   if (!sfvl.isNull())
   {
     formals.insert(formals.end(), sfvl.begin(), sfvl.end());
   }
 }
 
-Node SygusUtils::wrapSolutionForSynthFun(Node f, Node sol)
+Node SygusUtils::wrapSolution(Node f, Node sol)
 {
-  Node al = getSygusArgumentListForSynthFun(f);
+  Node al = getOrMkSygusArgumentList(f);
   if (!al.isNull())
   {
     sol = NodeManager::currentNM()->mkNode(LAMBDA, al, sol);
@@ -171,7 +200,17 @@ Node SygusUtils::wrapSolutionForSynthFun(Node f, Node sol)
   return sol;
 }
 
-TypeNode SygusUtils::getSygusTypeForSynthFun(Node f)
+void SygusUtils::setSygusType(Node f, const TypeNode& tn)
+{
+  Assert(!tn.isNull());
+  Assert(getSygusType(f).isNull());
+  Node sym = NodeManager::currentNM()->mkBoundVar("sfproxy", tn);
+  // use an attribute to mark its grammar
+  SygusSynthGrammarAttribute ssfga;
+  f.setAttribute(ssfga, sym);
+}
+
+TypeNode SygusUtils::getSygusType(const Node& f)
 {
   Node gv = f.getAttribute(SygusSynthGrammarAttribute());
   if (!gv.isNull())
