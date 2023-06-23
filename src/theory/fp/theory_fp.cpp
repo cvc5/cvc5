@@ -839,6 +839,8 @@ TrustNode TheoryFp::explain(TNode n)
   return TrustNode::mkTrustPropExp(n, exp, nullptr);
 }
 
+Node TheoryFp::getCandidateModelValue(TNode node) { return getValue(node); }
+
 EqualityStatus TheoryFp::getEqualityStatus(TNode a, TNode b)
 {
   Node value_a = getValue(a);

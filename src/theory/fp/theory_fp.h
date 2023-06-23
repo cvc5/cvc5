@@ -82,6 +82,8 @@ class TheoryFp : public Theory
 
   TrustNode explain(TNode n) override;
 
+  Node getCandidateModelValue(TNode node) override;
+
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
  private:
