@@ -37,7 +37,7 @@ namespace cvc5::internal {
 namespace smt {
 
 TimeoutCoreManager::TimeoutCoreManager(Env& env)
-    : EnvObj(env), d_nextIndexToInclude(0)
+    : EnvObj(env), d_numAssertsNsk(0), d_nextIndexToInclude(0)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -186,7 +186,8 @@ void TimeoutCoreManager::getActiveSkolemDefinitions(
     for (const Node& s : d_asymbols)
     {
       itk = d_skolemToAssert.find(s);
-      if (itk != d_skolemToAssert.end())
+      // avoid duplicates, as a skolem definition may have been added as an ordinary assertion
+      if (itk != d_skolemToAssert.end() && std::find(nextAsserts.begin(), nextAsserts.end(), itk->second)==nextAsserts.end())
       {
         nextAsserts.push_back(itk->second);
       }
@@ -277,6 +278,7 @@ void TimeoutCoreManager::initializePreprocessedAssertions(
   Trace("smt-to-core") << "initializePreprocessedAssertions" << std::endl;
   Trace("smt-to-core") << "#asserts = " << ppAsserts.size() << std::endl;
   std::map<size_t, Node>::const_iterator itc;
+  std::vector<Node> skDefs;
   for (size_t i = 0, nasserts = ppAsserts.size(); i < nasserts; i++)
   {
     const Node& pa = ppAsserts[i];
@@ -303,8 +305,11 @@ void TimeoutCoreManager::initializePreprocessedAssertions(
     else
     {
       d_skolemToAssert[itc->second] = pa;
+      skDefs.push_back(pa);
     }
   }
+  d_numAssertsNsk = d_ppAsserts.size();
+  d_ppAsserts.insert(d_ppAsserts.end(), skDefs.begin(), skDefs.end());
   Trace("smt-to-core") << "get symbols..." << std::endl;
   for (size_t i = 0, npasserts = d_ppAsserts.size(); i < npasserts; i++)
   {
@@ -352,13 +357,13 @@ bool TimeoutCoreManager::recordCurrentModel(bool& allAssertsSat,
       // a different one
       continue;
     }
-    if (indexScore == 3)
+    if (indexScore == 7 || (indexSet && i>=d_numAssertsNsk))
     {
-      // already max score
+      // already max score, or we found a normal assertion
       continue;
     }
     // prefer false over unknown, shared symbols over no shared symbols
-    size_t currScore = (isFalse ? 1 : 0) + (hasCurrentSharedSymbol(ii) ? 2 : 0);
+    size_t currScore = (isFalse ? 1 : 0) + (hasCurrentSharedSymbol(ii) ? 2 : 0) + (i>=d_numAssertsNsk ? 0 : 4);
     Trace("smt-to-core-debug") << "score " << currScore << std::endl;
     if (indexSet && indexScore >= currScore)
     {

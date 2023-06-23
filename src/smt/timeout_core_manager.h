@@ -115,6 +115,8 @@ class TimeoutCoreManager : protected EnvObj
    * rewriting on
    */
   std::vector<Node> d_ppAsserts;
+  /** Number of non-skolem definitions, a prefix of d_ppAsserts */
+  size_t d_numAssertsNsk;
   /**
    * Mapping from skolem variables to their skolem definitions included in
    * the assertions.
