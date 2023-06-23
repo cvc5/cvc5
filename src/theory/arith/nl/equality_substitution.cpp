@@ -78,6 +78,7 @@ std::vector<Node> EqualitySubstitution::eliminateEqualities(
       tracker.clear();
       d_substitutions->invalidateCache();
       Node o = d_substitutions->apply(orig, &tracker, &stc);
+      o = rewrite(o);
       if (o.getKind() != Kind::EQUAL) continue;
       Assert(o.getNumChildren() == 2);
       for (size_t i = 0; i < 2; ++i)
@@ -118,6 +119,7 @@ std::vector<Node> EqualitySubstitution::eliminateEqualities(
       tracker.clear();
       d_substitutions->invalidateCache();
       Node simp = d_substitutions->apply(a, &tracker, &stc);
+      simp = rewrite(simp);
       if (simp.isConst())
       {
         if (simp.getConst<bool>())
