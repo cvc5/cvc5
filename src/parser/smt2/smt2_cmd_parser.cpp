@@ -22,7 +22,7 @@
 namespace cvc5 {
 namespace parser {
 
-Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex,
+Smt2CmdParser::Smt2CmdParser(Smt2LexerNew& lex,
                              Smt2State& state,
                              Smt2TermParser& tparser)
     : d_lex(lex), d_state(state), d_tparser(tparser)
@@ -66,8 +66,9 @@ Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex,
   {
     d_table["block-model"] = Token::BLOCK_MODEL_TOK;
     d_table["block-model-values"] = Token::BLOCK_MODEL_VALUES_TOK;
-    d_table["declare-heap"] = Token::DECLARE_HEAP;
-    d_table["declare-pool"] = Token::DECLARE_POOL;
+    d_table["declare-heap"] = Token::DECLARE_HEAP_TOK;
+    d_table["declare-oracle-fun"] = Token::DECLARE_ORACLE_FUN_TOK;
+    d_table["declare-pool"] = Token::DECLARE_POOL_TOK;
     d_table["get-abduct-next"] = Token::GET_ABDUCT_NEXT_TOK;
     d_table["get-abduct"] = Token::GET_ABDUCT_TOK;
     d_table["get-difficulty"] = Token::GET_DIFFICULTY_TOK;
@@ -289,7 +290,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
     }
     break;
     // (declare-heap (<sort> <sort>))
-    case Token::DECLARE_HEAP:
+    case Token::DECLARE_HEAP_TOK:
     {
       d_lex.eatToken(Token::LPAREN_TOK);
       Sort t = d_tparser.parseSort();
@@ -298,8 +299,32 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       d_lex.eatToken(Token::RPAREN_TOK);
     }
     break;
+    // (declare-oracle-fun <symbol> (<sort>∗) <sort> <symbol>)
+    case Token::DECLARE_ORACLE_FUN_TOK:
+    {
+      d_state.checkThatLogicIsSet();
+      std::string name = d_tparser.parseSymbol(CHECK_NONE, SYM_VARIABLE);
+      d_state.checkUserSymbol(name);
+      std::vector<Sort> sorts;
+      sorts = d_tparser.parseSortList();
+      Sort t = d_tparser.parseSort();
+      if (!sorts.empty())
+      {
+        t = d_state.mkFlatFunctionType(sorts, t);
+      }
+      tok = d_lex.peekToken();
+      std::string binName;
+      if (tok != Token::RPAREN_TOK)
+      {
+        binName = d_tparser.parseSymbol(CHECK_NONE, SYM_VARIABLE);
+      }
+      // not supported
+      d_state.warning("Oracles not supported via the text interface in this version");
+      cmd.reset(new EmptyCommand());
+    }
+    break;
     // (declare-pool <symbol> <sort> (<term>∗))
-    case Token::DECLARE_POOL:
+    case Token::DECLARE_POOL_TOK:
     {
       d_state.checkThatLogicIsSet();
       std::string name = d_tparser.parseSymbol(CHECK_NONE, SYM_VARIABLE);

@@ -39,8 +39,10 @@
 #include "options/language.h"
 #include "printer/let_binding.h"
 #include "proof/unsat_core.h"
+#include "smt/model.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/builtin/abstract_type.h"
+#include "theory/builtin/generic_op.h"
 #include "theory/datatypes/project_op.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -214,6 +216,9 @@ void Smt2Printer::toStream(std::ostream& out,
       }
       break;
     }
+    case kind::APPLY_INDEXED_SYMBOLIC_OP:
+      out << smtKindString(n.getConst<GenericOp>().getKind());
+      break;
     case kind::BITVECTOR_TYPE:
       out << "(_ BitVec " << n.getConst<BitVectorSize>().d_size << ")";
       break;
@@ -577,7 +582,7 @@ void Smt2Printer::toStream(std::ostream& out,
   {
     // abstract value
     std::string s = n.getName();
-    out << "(as @" << cvc5::internal::quoteSymbol(s) << " " << n.getType() << ")";
+    out << "(as " << cvc5::internal::quoteSymbol(s) << " " << n.getType() << ")";
     return;
   }
   else if (n.isVar())
@@ -669,6 +674,9 @@ void Smt2Printer::toStream(std::ostream& out,
         out << ")";
       }
       return;
+    case kind::APPLY_INDEXED_SYMBOLIC:
+      // operator is printed as kind
+      break;
 
     case kind::MATCH:
       out << smtKindString(k) << " ";
@@ -2026,31 +2034,31 @@ std::string Smt2Printer::sygusGrammarString(const TypeNode& t)
         const DTypeConstructor& cons = dt[i];
         if (cons.isSygusAnyConstant())
         {
-        types_list << "(Constant " << cons[0].getRangeType() << ") ";
+          types_list << "(Constant " << cons[0].getRangeType() << ") ";
         }
         else
         {
-        // make a sygus term
-        std::vector<Node> cchildren;
-        cchildren.push_back(cons.getConstructor());
-        for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
-        {
-          TypeNode argType = cons[j].getRangeType();
-          std::stringstream ss;
-          ss << argType;
-          Node bv = nm->mkBoundVar(ss.str(), argType);
-          cchildren.push_back(bv);
-          // if fresh type, store it for later processing
-          if (grammarTypes.insert(argType).second)
+          // make a sygus term
+          std::vector<Node> cchildren;
+          cchildren.push_back(cons.getConstructor());
+          for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
           {
-            typesToPrint.push_back(argType);
+            TypeNode argType = cons[j].getRangeType();
+            std::stringstream ss;
+            ss << argType;
+            Node bv = nm->mkBoundVar(ss.str(), argType);
+            cchildren.push_back(bv);
+            // if fresh type, store it for later processing
+            if (grammarTypes.insert(argType).second)
+            {
+              typesToPrint.push_back(argType);
+            }
           }
-        }
-        Node consToPrint = nm->mkNode(kind::APPLY_CONSTRUCTOR, cchildren);
-        // now, print it using the conversion to builtin with external
-        types_list << theory::datatypes::utils::sygusToBuiltin(consToPrint,
-                                                               true);
-        types_list << ' ';
+          Node consToPrint = nm->mkNode(kind::APPLY_CONSTRUCTOR, cchildren);
+          // now, print it using the conversion to builtin with external
+          types_list << theory::datatypes::utils::sygusToBuiltin(consToPrint,
+                                                                true);
+          types_list << ' ';
         }
       }
       types_list << "))\n";

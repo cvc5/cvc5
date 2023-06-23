@@ -18,6 +18,7 @@
 #ifndef CVC5__API__CVC5_KIND_H
 #define CVC5__API__CVC5_KIND_H
 
+#include <cstdint>
 #include <ostream>
 
 namespace cvc5 {

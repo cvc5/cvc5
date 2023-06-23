@@ -103,6 +103,9 @@ Node mkSygusTerm(const DType& dt,
 /**
  * Same as above, but we already have the sygus operator op. The above method
  * is syntax sugar for calling this method on dt[i].getSygusOp().
+ *
+ * Note that this method should not be used on sygus operators that denote
+ * the "any constant" constructor.
  */
 Node mkSygusTerm(const Node& op,
                  const std::vector<Node>& children,

@@ -70,7 +70,7 @@ class SygusGrammar
 
   /**
    * Remove \p rule from the set of rules corresponding to \p ntSym.
-   * @param ntSym The non-terminal to which the rule is removed.
+   * @param ntSym The non-terminal from which the rule is removed.
    * @param rule The rule to remove. This must be a rule that occurs
    * in the list of rules for ntSym.
    */
@@ -134,7 +134,7 @@ class SygusGrammar
                         std::vector<Node>& args,
                         std::vector<TypeNode>& cargs) const;
   /** The rules */
-  std::map<Node, std::vector<Node>> d_rules;
+  std::unordered_map<Node, std::vector<Node>> d_rules;
   /** Input variables to the corresponding function/invariant to synthesize.*/
   std::vector<Node> d_sygusVars;
   /** The non-terminal symbols of this grammar. */

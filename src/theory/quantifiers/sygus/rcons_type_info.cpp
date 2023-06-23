@@ -64,6 +64,12 @@ Node RConsTypeInfo::nextEnum()
   }
   Node sz = d_enumerators[i]->getCurrent();
   d_cp *= d_p;
+  if (d_enumerators[i] == nullptr)
+  {
+    // the enumerator is already finished
+    return Node::null();
+  }
+  Node sz = d_enumerators[i]->getCurrent();
   if (!d_enumerators[i]->increment())
   {
     Trace("sygus-rcons") << "no increment" << std::endl;

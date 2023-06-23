@@ -111,7 +111,7 @@ Node SkolemCache::mkTypedSkolemCached(
       // they must be Boolean term variables.
       int flags = a.getType().isBoolean() ? SkolemManager::SKOLEM_BOOL_TERM_VAR
                                           : SkolemManager::SKOLEM_DEFAULT;
-      sk = sm->mkPurifySkolem(a, c, "string purify skolem", flags);
+      sk = sm->mkPurifySkolem(a, flags);
     }
     break;
     // these are eliminated by normalizeStringSkolem
