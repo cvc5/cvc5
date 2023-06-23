@@ -195,7 +195,7 @@ bool DType::resolve(const std::map<std::string, TypeNode>& resolutions,
                     const std::vector<TypeNode>& paramTypes,
                     const std::vector<TypeNode>& paramReplacements)
 {
-  Trace("datatypes-init") << "DType::resolve: " << std::endl;
+  Trace("datatypes-init") << "DType::resolve: " << d_name << std::endl;
   Assert(!d_resolved);
   Assert(resolutions.find(d_name) != resolutions.end());
   Assert(placeholders.size() == replacements.size());

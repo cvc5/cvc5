@@ -262,14 +262,14 @@ void SygusGrammarCons::addDefaultRulesTo(
     // add the operators
     if (tn.isRealOrInt())
     {
+      std::map<TypeNode, std::vector<Node>>::const_iterator it =
+          typeToNtSym.find(tn);
+      const std::vector<Node>& arithNtSym = it->second;
       // we delay construction until the next phase if considering the any
       // term grammar
       if (tsgcm != options::SygusGrammarConsMode::ANY_TERM
           && tsgcm != options::SygusGrammarConsMode::ANY_TERM_CONCISE)
       {
-        std::map<TypeNode, std::vector<Node>>::const_iterator it =
-            typeToNtSym.find(tn);
-        const std::vector<Node>& arithNtSym = it->second;
         std::vector<TypeNode> cargsBin;
         cargsBin.push_back(tn);
         cargsBin.push_back(tn);
@@ -295,12 +295,17 @@ void SygusGrammarCons::addDefaultRulesTo(
           Node ntSymPosC = arithNtSym[1];
           Node divRule = nm->mkNode(DIVISION, ntSym, ntSymPosC);
           g.addRule(ntSym, divRule);
-          // add the rules for positive constants
-          Node one = nm->mkConstReal(Rational(1));
-          g.addRule(ntSymPosC, one);
-          Node rulePlusOne = nm->mkNode(ADD, ntSymPosC, one);
-          g.addRule(ntSymPosC, rulePlusOne);
         }
+      }
+      if (tn.isReal())
+      {
+        Assert(arithNtSym.size() >= 2);
+        Node ntSymPosC = arithNtSym[1];
+        // add the rules for positive constants
+        Node one = nm->mkConstReal(Rational(1));
+        g.addRule(ntSymPosC, one);
+        Node rulePlusOne = nm->mkNode(ADD, ntSymPosC, one);
+        g.addRule(ntSymPosC, rulePlusOne);
       }
     }
     else if (tn.isBitVector())
