@@ -41,7 +41,6 @@ endif()
 
 set(SYGUS_EXAMPLES_API
   sygus-fun
-  sygus-grammar
   sygus-inv
 )
 

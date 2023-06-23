@@ -72,7 +72,17 @@ Node TheoryArraysRewriter::normalizeConstant(TNode node)
   {
     return node;
   }
-  Node ret = normalizeConstant(node, node[1].getType().getCardinality());
+  Node ret;
+  TypeNode tn = node[1].getType();
+  CardinalityClass tcc = tn.getCardinalityClass();
+  if (tcc == CardinalityClass::FINITE || tcc == CardinalityClass::ONE)
+  {
+    ret = normalizeConstant(node, tn.getCardinality());
+  }
+  else
+  {
+    ret = normalizeConstant(node, Cardinality::INTEGERS);
+  }
   Assert(ret.isConst()) << "Non-constant after normalization: " << ret;
   return ret;
 }

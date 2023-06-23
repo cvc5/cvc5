@@ -25,6 +25,7 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_abduct.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/smt_engine_subsolver.h"
 #include "theory/trust_substitutions.h"
 
@@ -124,7 +125,8 @@ bool AbductionSolver::getAbductInternal(Node& abd)
         abd = abd[1];
       }
       // get the grammar type for the abduct
-      Node agdtbv = d_sssf.getAttribute(SygusSynthFunVarListAttribute());
+      Node agdtbv =
+          theory::quantifiers::SygusUtils::getOrMkSygusArgumentList(d_sssf);
       if(!agdtbv.isNull())
       {
         Assert(agdtbv.getKind() == kind::BOUND_VAR_LIST);

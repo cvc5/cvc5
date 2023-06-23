@@ -980,15 +980,11 @@ TEST_F(TestApiBlackTerm, getRoundingModeValue)
 
 TEST_F(TestApiBlackTerm, getTuple)
 {
-  Sort s1 = d_solver.getIntegerSort();
-  Sort s2 = d_solver.getRealSort();
-  Sort s3 = d_solver.getStringSort();
-
   Term t1 = d_solver.mkInteger(15);
   Term t2 = d_solver.mkReal(17, 25);
   Term t3 = d_solver.mkString("abc");
 
-  Term tup = d_solver.mkTuple({s1, s2, s3}, {t1, t2, t3});
+  Term tup = d_solver.mkTuple({t1, t2, t3});
 
   ASSERT_TRUE(tup.isTupleValue());
   ASSERT_EQ(std::vector<Term>({t1, t2, t3}), tup.getTupleValue());

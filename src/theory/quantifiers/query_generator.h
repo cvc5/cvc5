@@ -46,7 +46,7 @@ class QueryGenerator : public ExprMiner
   /**
    * Dumps query qy to the a file queryN.smt2 for the current counter N
    */
-  void dumpQuery(Node qy, const Result& r);
+  void dumpQuery(Node qy, const Result& r, std::vector<Node>& queries);
   /** ensure that node n added to the generator is Boolean */
   void ensureBoolean(const Node& n) const;
 };
@@ -62,10 +62,9 @@ class QueryGeneratorBasic : public QueryGenerator
   QueryGeneratorBasic(Env& env);
   ~QueryGeneratorBasic() {}
   /**
-   * Add term to this module. This may trigger the printing and/or checking of
-   * new queries.
+   * Add term to this module. This may add formulas to queries.
    */
-  bool addTerm(Node n, std::ostream& out) override;
+  bool addTerm(Node n, std::vector<Node>& queries) override;
 };
 
 }  // namespace quantifiers

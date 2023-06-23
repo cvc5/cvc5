@@ -28,7 +28,6 @@
 #include "smt/env_obj.h"
 #include "theory/datatypes/sygus_simple_sym.h"
 #include "theory/decision_manager.h"
-#include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers/term_database.h"
 
 namespace cvc5::internal {
@@ -284,13 +283,6 @@ private:
    */
   Node eliminateTraversalPredicates(Node n);
   //-----------------------------------end traversal predicates
-  /** a sygus sampler object for each (anchor, sygus type) pair
-   *
-   * This is used for the sygusRewVerify() option to verify the correctness of
-   * the rewriter.
-   */
-  std::map<Node, std::map<TypeNode, std::unique_ptr<quantifiers::SygusSampler>>>
-      d_sampler;
   /** Assert tester internal
    *
    * This function is called when the tester with index tindex is asserted for
