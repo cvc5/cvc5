@@ -88,7 +88,7 @@ std::vector<Node> PartitionGenerator::collectLiterals(LiteralListType litType)
       // of the not instead of the not itself.
       Node original = originalN.getKind() == kind::NOT ? originalN[0] : originalN;
 
-      // Filter out the types of literals we don't want. 
+      // Filter out the types of literals we don't want.
       // Make sure the literal does not have a skolem in it.
       if (expr::hasSubtermKind(kind::SKOLEM, original)
           || !d_valuation->isSatLiteral(original)
@@ -114,8 +114,7 @@ std::vector<Node> PartitionGenerator::collectLiterals(LiteralListType litType)
 
       if (expr::hasSubtermKind(kind::SKOLEM, original)
           || !d_valuation->isSatLiteral(original)
-          || Theory::theoryOf(original) == THEORY_BOOL
-          || n.isConst())
+          || Theory::theoryOf(original) == THEORY_BOOL || n.isConst())
       {
         continue;
       }

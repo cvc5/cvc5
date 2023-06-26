@@ -149,9 +149,7 @@ Node SkolemManager::mkPurifySkolem(Node t,
   return k;
 }
 
-Node SkolemManager::mkSkolemFunction(SkolemFunId id,
-                                     TypeNode tn,
-                                     Node cacheVal)
+Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal)
 {
   std::tuple<SkolemFunId, TypeNode, Node> key(id, tn, cacheVal);
   std::map<std::tuple<SkolemFunId, TypeNode, Node>, Node>::iterator it =
@@ -162,7 +160,8 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id,
     // internal symbols starting with @ or . are reserved for internal use.
     std::stringstream ss;
     ss << "@" << id;
-    Node k = mkSkolemNode(ss.str(), tn, "an internal skolem function", SKOLEM_DEFAULT);
+    Node k = mkSkolemNode(
+        ss.str(), tn, "an internal skolem function", SKOLEM_DEFAULT);
     d_skolemFuns[key] = k;
     d_skolemFunMap[k] = key;
     Trace("sk-manager-skolem") << "mkSkolemFunction(" << id << ", " << cacheVal
