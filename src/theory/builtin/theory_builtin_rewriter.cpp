@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
+ *   Andrew Reynolds, Aina Niemetz, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -137,6 +137,7 @@ Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
 
 Node TheoryBuiltinRewriter::rewriteApplyIndexedSymbolic(TNode node)
 {
+  Assert(node.getKind() == kind::APPLY_INDEXED_SYMBOLIC);
   Assert(node.getNumChildren() > 1);
   // if all arguments are constant, we return the non-symbolic version
   // of the operator, e.g. (extract 2 1 #b0000) ---> ((_ extract 2 1) #b0000)
@@ -147,16 +148,10 @@ Node TheoryBuiltinRewriter::rewriteApplyIndexedSymbolic(TNode node)
       return node;
     }
   }
-  Kind okind = node.getOperator().getConst<GenericOp>().getKind();
-  // determine how many arguments should be passed to the end function,
-  // for now, assume one
-  size_t nargs = 1;
-  std::vector<Node> indices(node.begin(), node.end() - nargs);
-  Node op = GenericOp::getOperatorForIndices(okind, indices);
-  std::vector<Node> args;
-  args.push_back(op);
-  args.insert(args.end(), node.end() - nargs, node.end());
-  return NodeManager::currentNM()->mkNode(okind, args);
+  Trace("builtin-rewrite") << "rewriteApplyIndexedSymbolic: " << node
+                           << std::endl;
+  // use the utility
+  return GenericOp::getConcreteApp(node);
 }
 
 }  // namespace builtin

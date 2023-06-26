@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Abdalrhman Mohamed, Andrew Reynolds, Aina Niemetz
+ *   Abdalrhman Mohamed, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,18 +18,30 @@
 #ifndef CVC5__PRINTER__PRINTER_H
 #define CVC5__PRINTER__PRINTER_H
 
-#include <string>
+#include <cvc5/cvc5_export.h>
 
-#include "expr/node.h"
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "expr/kind.h"
 #include "options/language.h"
-#include "smt/model.h"
 #include "util/result.h"
 
 namespace cvc5::internal {
 
+template <bool ref_count>
+class NodeTemplate;
+typedef NodeTemplate<true> Node;
+typedef NodeTemplate<false> TNode;
+class TypeNode;
 class UnsatCore;
 struct InstantiationList;
 struct SkolemList;
+
+namespace smt {
+class Model;
+}
 
 class CVC5_EXPORT Printer
 {
@@ -170,7 +182,7 @@ class CVC5_EXPORT Printer
                                    Node f,
                                    const std::vector<Node>& vars,
                                    bool isInv,
-                                   TypeNode sygusType = TypeNode::null()) const;
+                                   TypeNode sygusType) const;
 
   /** Print constraint command */
   virtual void toStreamCmdConstraint(std::ostream& out, Node n) const;

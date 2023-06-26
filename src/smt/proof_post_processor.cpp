@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,9 +40,11 @@ ProofPostprocessCallback::ProofPostprocessCallback(Env& env,
                                                    rewriter::RewriteDb* rdb,
                                                    bool updateScopedAssumptions)
     : EnvObj(env),
+      d_pc(nullptr),
       d_pppg(nullptr),
       d_rdbPc(env, rdb),
       d_wfpm(env),
+      d_elimAllTrusted(false),
       d_updateScopedAssumptions(updateScopedAssumptions)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -53,6 +55,7 @@ void ProofPostprocessCallback::initializeUpdate(ProofGenerator* pppg)
   d_pppg = pppg;
   d_assumpToProof.clear();
   d_wfAssumptions.clear();
+  d_pc = d_env.getProofNodeManager()->getChecker();
 }
 
 void ProofPostprocessCallback::setEliminateRule(PfRule rule)
@@ -60,21 +63,29 @@ void ProofPostprocessCallback::setEliminateRule(PfRule rule)
   d_elimRules.insert(rule);
 }
 
+void ProofPostprocessCallback::setEliminateAllTrustedRules()
+{
+  d_elimAllTrusted = true;
+}
+
 bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                             const std::vector<Node>& fa,
                                             bool& continueUpdate)
 {
   PfRule id = pn->getRule();
-  if (d_elimRules.find(id) != d_elimRules.end())
+  if (shouldExpand(id))
   {
     return true;
   }
   // other than elimination rules, we always update assumptions as long as
   // d_updateScopedAssumptions is true or they are *not* in scope, i.e., not in
   // fa
-  if (id != PfRule::ASSUME
-      || (!d_updateScopedAssumptions
-          && std::find(fa.begin(), fa.end(), pn->getResult()) != fa.end()))
+  if (id != PfRule::ASSUME)
+  {
+    return false;
+  }
+  if (!d_updateScopedAssumptions
+      && std::find(fa.begin(), fa.end(), pn->getResult()) != fa.end())
   {
     Trace("smt-proof-pp-debug")
         << "... not updating in-scope assumption " << pn->getResult() << "\n";
@@ -142,7 +153,7 @@ bool ProofPostprocessCallback::update(Node res,
     cdp->addProof(pfn);
     return true;
   }
-  Node ret = expandMacros(id, children, args, cdp);
+  Node ret = expandMacros(id, children, args, cdp, res);
   Trace("smt-proof-pp-debug") << "...expanded = " << !ret.isNull() << std::endl;
   return !ret.isNull();
 }
@@ -157,12 +168,26 @@ bool ProofPostprocessCallback::updateInternal(Node res,
   return update(res, id, children, args, cdp, continueUpdate);
 }
 
+bool ProofPostprocessCallback::shouldExpand(PfRule id) const
+{
+  if (d_elimRules.find(id) != d_elimRules.end())
+  {
+    return true;
+  }
+  if (d_elimAllTrusted && d_pc->getPedanticLevel(id) > 0)
+  {
+    return true;
+  }
+  return false;
+}
+
 Node ProofPostprocessCallback::expandMacros(PfRule id,
                                             const std::vector<Node>& children,
                                             const std::vector<Node>& args,
-                                            CDProof* cdp)
+                                            CDProof* cdp,
+                                            Node res)
 {
-  if (d_elimRules.find(id) == d_elimRules.end())
+  if (!shouldExpand(id))
   {
     // not eliminated
     return Node::null();
@@ -414,7 +439,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     ProofNodeManager* pnm = d_env.getProofNodeManager();
     // first generate the naive chain_resolution
     std::vector<Node> chainResArgs{args.begin() + 1, args.end()};
-    Node chainConclusion = pnm->getChecker()->checkDebug(
+    Node chainConclusion = d_pc->checkDebug(
         PfRule::CHAIN_RESOLUTION, children, chainResArgs, Node::null(), "");
     Trace("smt-proof-pp-debug") << "Original conclusion: " << args[0] << "\n";
     Trace("smt-proof-pp-debug")
@@ -878,26 +903,6 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     }
     return eq;
   }
-  else if (id == PfRule::THEORY_REWRITE)
-  {
-    Assert(!args.empty());
-    Node eq = args[0];
-    Assert(eq.getKind() == EQUAL);
-    TheoryId tid = THEORY_BUILTIN;
-    builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
-    MethodId mid = MethodId::RW_REWRITE;
-    getMethodId(args[2], mid);
-    int64_t recLimit = options().proof.proofRewriteRconsRecLimit;
-    // attempt to reconstruct the proof of the equality into cdp using the
-    // rewrite database proof reconstructor
-    if (d_rdbPc.prove(cdp, args[0][0], args[0][1], tid, mid, recLimit))
-    {
-      // if successful, we update the proof
-      return eq;
-    }
-    // otherwise no update
-    Trace("final-pf-hole") << "hole: " << id << " : " << eq << std::endl;
-  }
   else if (id == PfRule::MACRO_ARITH_SCALE_SUM_UB)
   {
     Trace("macro::arith") << "Expand MACRO_ARITH_SCALE_SUM_UB" << std::endl;
@@ -910,9 +915,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       Trace("macro::arith") << "   args: " << args << std::endl;
     }
     Assert(args.size() == children.size());
-    ProofNodeManager* pnm = d_env.getProofNodeManager();
     NodeManager* nm = NodeManager::currentNM();
-    ProofStepBuffer steps{pnm->getChecker()};
+    ProofStepBuffer steps{d_pc};
 
     // Scale all children, accumulating
     std::vector<Node> scaledRels;
@@ -961,7 +965,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     if (theory::strings::InferProofCons::unpackArgs(
             args, conc, iid, isRev, exp))
     {
-      if (theory::strings::InferProofCons::addProofTo(
+      if (theory::strings::InferProofCons::convertAndAddProofTo(
               cdp, conc, iid, isRev, exp))
       {
         return conc;
@@ -977,6 +981,44 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     Node bbAtom = bb.getStoredBBAtom(eq[0]);
     bb.getProofGenerator()->addProofTo(eq[0].eqNode(bbAtom), cdp);
     return eq;
+  }
+  else if (d_elimAllTrusted && d_pc->getPedanticLevel(id) > 0)
+  {
+    if (res.isNull())
+    {
+      res = d_pc->checkDebug(id, children, args);
+      Assert(!res.isNull());
+    }
+    bool reqTrueElim = false;
+    // if not an equality, make (= res true).
+    if (res.getKind() != EQUAL)
+    {
+      res = res.eqNode(d_true);
+      reqTrueElim = true;
+    }
+    TheoryId tid = THEORY_LAST;
+    MethodId mid = MethodId::RW_REWRITE;
+    // if theory rewrite, get diagnostic information
+    if (id == PfRule::THEORY_REWRITE)
+    {
+      builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
+      getMethodId(args[2], mid);
+    }
+    int64_t recLimit = options().proof.proofRewriteRconsRecLimit;
+    // attempt to reconstruct the proof of the equality into cdp using the
+    // rewrite database proof reconstructor
+    if (d_rdbPc.prove(cdp, res[0], res[1], tid, mid, recLimit))
+    {
+      // If we made (= res true) above, conclude the original res.
+      if (reqTrueElim)
+      {
+        cdp->addStep(res[0], PfRule::TRUE_ELIM, {res}, {});
+        res = res[0];
+      }
+      // if successful, we update the proof
+      return res;
+    }
+    // otherwise no update
   }
 
   // TRUST, PREPROCESS, THEORY_LEMMA, THEORY_PREPROCESS?
@@ -1105,6 +1147,11 @@ void ProofPostprocess::process(std::shared_ptr<ProofNode> pf,
 void ProofPostprocess::setEliminateRule(PfRule rule)
 {
   d_cb.setEliminateRule(rule);
+}
+
+void ProofPostprocess::setEliminateAllTrustedRules()
+{
+  d_cb.setEliminateAllTrustedRules();
 }
 
 }  // namespace smt

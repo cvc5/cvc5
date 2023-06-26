@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Francois Bobot, Andrew Reynolds, Mathias Preiner
+ *   Andrew Reynolds, Francois Bobot, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -179,6 +179,10 @@ class TptpState : public ParserState
 
   /** Get TPTP directory */
   const std::string& getTptpDir() const;
+
+  /** For marking whether a parsed operator is a predicate */
+  void markPredicate(ParseOp& p) const;
+  bool isPredicate(ParseOp& p) const;
 
  private:
   void addArithmeticOperators();

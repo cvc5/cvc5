@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,6 +43,12 @@ class FlexParser : public ParserStateCallback
  public:
   FlexParser(Solver* solver, SymbolManager* sm);
   virtual ~FlexParser() {}
+  /**
+   * Set the logic
+   *
+   * @param name The name of the logic.
+   */
+  virtual void setLogic(const std::string& name);
   /** Set the input for the given file.
    *
    * @param filename the input filename

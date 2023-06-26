@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -264,10 +264,18 @@ const char* toString(InferenceId i)
       return "QUANTIFIERS_SYQI_EVAL_UNFOLD";
     case InferenceId::QUANTIFIERS_SYGUS_ENUM_ACTIVE_GUARD_SPLIT:
       return "QUANTIFIERS_SYGUS_ENUM_ACTIVE_GUARD_SPLIT";
-    case InferenceId::QUANTIFIERS_SYGUS_EXCLUDE_CURRENT:
-      return "QUANTIFIERS_SYGUS_EXCLUDE_CURRENT";
+    case InferenceId::QUANTIFIERS_SYGUS_ACTIVE_GEN_EXCLUDE_CURRENT:
+      return "QUANTIFIERS_SYGUS_ACTIVE_GEN_EXCLUDE_CURRENT";
     case InferenceId::QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT:
       return "QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT";
+    case InferenceId::QUANTIFIERS_SYGUS_INC_EXCLUDE_CURRENT:
+      return "QUANTIFIERS_SYGUS_INC_EXCLUDE_CURRENT";
+    case InferenceId::QUANTIFIERS_SYGUS_SC_EXCLUDE_CURRENT:
+      return "QUANTIFIERS_SYGUS_SC_EXCLUDE_CURRENT";
+    case InferenceId::QUANTIFIERS_SYGUS_NO_VERIFY_EXCLUDE_CURRENT:
+      return "QUANTIFIERS_SYGUS_NO_VERIFY_EXCLUDE_CURRENT";
+    case InferenceId::QUANTIFIERS_SYGUS_REPEAT_CEX_EXCLUDE_CURRENT:
+      return "QUANTIFIERS_SYGUS_REPEAT_CEX_EXCLUDE_CURRENT";
     case InferenceId::QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA:
       return "QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA";
     case InferenceId::QUANTIFIERS_SYGUS_SI_INFEASIBLE:

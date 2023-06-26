@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,12 +21,14 @@
 #include "base/modal_exception.h"
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
+#include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
 #include "smt/set_defaults.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/sygus_grammar_cons_new.h"
+#include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/smt_engine_subsolver.h"
 
 namespace cvc5::internal {
@@ -187,20 +189,31 @@ TypeNode SygusInterpol::setSynthGrammar(const TypeNode& itpGType,
   else
   {
     // set default grammar
-    std::map<TypeNode, std::unordered_set<Node>> extra_cons;
-    std::map<TypeNode, std::unordered_set<Node>> exclude_cons;
+    TypeNode btype = NodeManager::currentNM()->booleanType();
+    SygusGrammar g =
+        SygusGrammarCons::mkDefaultGrammar(options(), btype, d_ibvlShared);
+    // exclude rules that don't appear in operators
     std::map<TypeNode, std::unordered_set<Node>> include_cons;
     getIncludeCons(axioms, conj, include_cons);
-    std::unordered_set<Node> terms_irrelevant;
-    itpGTypeS = CegGrammarConstructor::mkSygusDefaultType(
-        options(),
-        NodeManager::currentNM()->booleanType(),
-        d_ibvlShared,
-        "interpolation_grammar",
-        extra_cons,
-        exclude_cons,
-        include_cons,
-        terms_irrelevant);
+    const std::vector<Node>& ntSyms = g.getNtSyms();
+    for (const Node& ntSym : ntSyms)
+    {
+      std::vector<Node> rules = g.getRulesFor(ntSym);
+      TypeNode stype = ntSym.getType();
+      if (include_cons.find(stype) == include_cons.end())
+      {
+        continue;
+      }
+      const std::unordered_set<Node>& icons = include_cons[ntSym.getType()];
+      for (const Node& r : rules)
+      {
+        if (r.hasOperator() && icons.find(r.getOperator()) == icons.end())
+        {
+          g.removeRule(ntSym, r);
+        }
+      }
+    }
+    itpGTypeS = g.resolve(true);
   }
   Trace("sygus-interpol-debug") << "...finish setting up grammar" << std::endl;
   return itpGTypeS;
@@ -241,7 +254,7 @@ void SygusInterpol::mkSygusConjecture(Node itp,
   Trace("sygus-interpol-debug") << "Set attributes..." << std::endl;
   if (!d_ibvlShared.isNull())
   {
-    itp.setAttribute(SygusSynthFunVarListAttribute(), d_ibvlShared);
+    SygusUtils::setSygusArgumentList(itp, d_ibvlShared);
   }
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 
@@ -276,7 +289,10 @@ bool SygusInterpol::findInterpol(SolverEngine* subSolver,
 {
   // get the synthesis solution
   std::map<Node, Node> sols;
-  subSolver->getSynthSolutions(sols);
+  if (!subSolver->getSynthSolutions(sols))
+  {
+    return false;
+  }
   Assert(sols.size() == 1);
   std::map<Node, Node>::iterator its = sols.find(itp);
   if (its == sols.end())
@@ -297,7 +313,7 @@ bool SygusInterpol::findInterpol(SolverEngine* subSolver,
   }
 
   // get the grammar type for the interpolant
-  Node igdtbv = itp.getAttribute(SygusSynthFunVarListAttribute());
+  Node igdtbv = SygusUtils::getOrMkSygusArgumentList(itp);
   // could have no variables, in which case there is nothing to do
   if (igdtbv.isNull())
   {

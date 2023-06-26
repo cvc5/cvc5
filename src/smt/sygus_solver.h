@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -173,6 +173,11 @@ class SygusSolver : protected EnvObj
    * approximate checking algorithm for solution correctness.
    */
   static bool canTrustSynthesisResult(const Options& opts);
+  /**
+   * Get the list of synthesis functions in the current context, each paired
+   * with their corresponding grammar (if one exists).
+   */
+  std::vector<std::pair<Node, TypeNode>> getSynthFunctions() const;
 
  private:
   /**

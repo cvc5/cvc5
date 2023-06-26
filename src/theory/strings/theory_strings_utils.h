@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -110,6 +110,11 @@ Node decomposeSubstrChain(Node s, std::vector<Node>& ss, std::vector<Node>& ls);
 Node mkSubstrChain(Node base,
                    const std::vector<Node>& ss,
                    const std::vector<Node>& ls);
+
+/**
+ * Make the concatenation of seq.unit chains for a given constant sequence.
+ */
+Node mkConcatForConstSequence(const Node& c);
 
 /**
  * Collects equal-to-empty nodes from a conjunction or a single
