@@ -113,6 +113,28 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
       }
     }
   }
+  // Remove disjunctive rules (ITE, OR) if specified. This option is set to
+  // false internally for abduction queries.
+  if (!opts.quantifiers.sygusGrammarUseDisj)
+  {
+    const std::vector<Node>& ntSyms = g.getNtSyms();
+    for (const Node& sym : ntSyms)
+    {
+      const std::vector<Node>& rules = g.getRulesFor(sym);
+      std::vector<Node> toErase;
+      for (const Node& r : rules)
+      {
+        if (r.getKind()==OR || r.getKind()==ITE)
+        {
+          toErase.push_back(r);
+        }
+      }
+      for (const Node& r : toErase)
+      {
+        g.removeRule(sym, r);
+      }
+    }
+  }
   return g;
 }
 

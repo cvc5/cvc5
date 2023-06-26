@@ -59,7 +59,7 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
   d_abdConj = conjn;
   asserts.push_back(conjn);
   std::string name("__internal_abduct");
-  Node aconj = quantifiers::SygusAbduct::mkAbductionConjecture(options(),
+  Node aconj = quantifiers::SygusAbduct::mkAbductionConjecture(
       name, asserts, axioms, grammarType);
   // should be a quantified conjecture with one function-to-synthesize
   Assert(aconj.getKind() == kind::FORALL && aconj[0].getNumChildren() == 1);
@@ -71,6 +71,11 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
   Options subOptions;
   subOptions.copyValues(d_env.getOptions());
   subOptions.writeQuantifiers().sygus = true;
+  // by default, we don't want disjunctive terms (ITE, OR) in abducts
+  if (!d_env.getOptions().quantifiers.sygusGrammarUseDisjWasSetByUser)
+  {
+    subOptions.writeQuantifiers().sygusGrammarUseDisj = false;
+  }
   SetDefaults::disableChecking(subOptions);
   SubsolverSetupInfo ssi(d_env, subOptions);
   // we generate a new smt engine to do the abduction query
