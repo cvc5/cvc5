@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -414,8 +414,11 @@ class SatProofManager : protected EnvObj
    *
    * @param conclusion the node-level conclusion of the resolution chain
    * @param conclusionLits the set of literals in the conclusion
+   * @param clauseLevel the level of the clause in the SAT solver (if any)
    */
-  void endResChain(Node conclusion, const std::set<SatLiteral>& conclusionLits);
+  void endResChain(Node conclusion,
+                   const std::set<SatLiteral>& conclusionLits,
+                   uint32_t clauseLevel = -1);
 
   /** Explain redundant literal and generate corresponding resolution steps
    *

@@ -67,11 +67,6 @@ runs:
         echo "::group::Install macOS software"
         brew update --quiet
 
-        # Temporary workaround while versions of python greater than 3.10 are not supported:
-        # Hardcoding python version to 3.10 on macOS CI.
-        brew link --overwrite python@3.10
-        ln -s -f /usr/local/bin/python3.10 /usr/local/bin/python3
-
         brew install \
           ccache \
           cln \

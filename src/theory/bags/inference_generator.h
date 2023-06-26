@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -512,7 +512,7 @@ class InferenceGenerator
   /**
    * generate skolem variable for node n and add pending lemma for the equality
    */
-  Node registerAndAssertSkolemLemma(Node& n, const std::string& prefix);
+  Node registerAndAssertSkolemLemma(Node& n);
 
   NodeManager* d_nm;
   SkolemManager* d_sm;

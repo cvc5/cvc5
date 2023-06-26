@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -63,7 +63,7 @@ void RewriteDb::addRule(DslPfRule id,
   // must canonize
   Trace("rewrite-db") << "Add rule " << id << ": " << cond << " => " << a
                       << " == " << b << std::endl;
-  Assert(a.getType() == b.getType());
+  Assert(a.getType().isComparableTo(b.getType()));
   Node cr = d_canon.getCanonicalTerm(tmp, false, false);
   context = d_canon.getCanonicalTerm(context, false, false);
 

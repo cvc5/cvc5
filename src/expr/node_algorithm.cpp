@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
+ *   Andrew Reynolds, Andres Noetzli, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -760,6 +760,48 @@ bool isTheoryAtom(TNode n)
   Assert(k != kind::NOT);
   return k != kind::AND && k != kind::OR && k != kind::IMPLIES && k != kind::ITE
          && k != kind::XOR && (k != kind::EQUAL || !n[0].getType().isBoolean());
+}
+
+struct HasAbstractSubtermTag
+{
+};
+struct HasAbstractSubtermComputedTag
+{
+};
+/** Attribute true for expressions that have subterms with abstract type */
+using AbstractSubtermVarAttr = expr::Attribute<HasAbstractSubtermTag, bool>;
+using HasAbstractSubtermComputedAttr =
+    expr::Attribute<HasAbstractSubtermComputedTag, bool>;
+
+bool hasAbstractSubterm(TNode n)
+{
+  if (!n.getAttribute(HasAbstractSubtermComputedAttr()))
+  {
+    bool hasAbs = false;
+    if (n.getType().isAbstract())
+    {
+      hasAbs = true;
+    }
+    else
+    {
+      for (auto i = n.begin(); i != n.end(); ++i)
+      {
+        if (hasAbstractSubterm(*i))
+        {
+          hasAbs = true;
+          break;
+        }
+      }
+    }
+    if (!hasAbs && n.hasOperator())
+    {
+      hasAbs = hasAbstractSubterm(n.getOperator());
+    }
+    n.setAttribute(AbstractSubtermVarAttr(), hasAbs);
+    n.setAttribute(HasAbstractSubtermComputedAttr(), true);
+    return hasAbs;
+  }
+  return n.getAttribute(AbstractSubtermVarAttr());
 }
 
 }  // namespace expr

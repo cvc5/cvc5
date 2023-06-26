@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
+ *   Andrew Reynolds, Gereon Kremer, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -55,13 +55,15 @@ ParserState::~ParserState() {}
 
 Solver* ParserState::getSolver() const { return d_solver; }
 
-Term ParserState::getSymbol(const std::string& name, SymbolType type)
+Term ParserState::getVariable(const std::string& name)
 {
-  checkDeclaration(name, CHECK_DECLARED, type);
-  Assert(isDeclared(name, type));
-  Assert(type == SYM_VARIABLE);
-  // Functions share var namespace
-  return d_symtab->lookup(name);
+  Term ret = d_symtab->lookup(name);
+  // if the lookup failed, throw an error
+  if (ret.isNull())
+  {
+    checkDeclaration(name, CHECK_DECLARED, SYM_VARIABLE);
+  }
+  return ret;
 }
 std::string ParserState::getNameForUserName(const std::string& name) const
 {
@@ -72,28 +74,6 @@ std::string ParserState::getNameForUserName(const std::string& name) const
     return ss.str();
   }
   return name;
-}
-
-const std::string& ParserState::getForcedLogic() const
-{
-  return d_symman->getForcedLogic();
-}
-bool ParserState::logicIsForced() const { return d_symman->isLogicForced(); }
-
-Term ParserState::getVariable(const std::string& name)
-{
-  return getSymbol(name, SYM_VARIABLE);
-}
-
-Term ParserState::getFunction(const std::string& name)
-{
-  return getSymbol(name, SYM_VARIABLE);
-}
-
-Term ParserState::getExpressionForName(const std::string& name)
-{
-  Sort t;
-  return getExpressionForNameAndType(name, t);
 }
 
 Term ParserState::getExpressionForNameAndType(const std::string& name, Sort t)
@@ -119,14 +99,7 @@ Term ParserState::getExpressionForNameAndType(const std::string& name, Sort t)
       parseError("Overloaded constants must be type cast.");
     }
   }
-  // now, post-process the expression
   Assert(!expr.isNull());
-  Sort te = expr.getSort();
-  if (te.isDatatypeConstructor() && te.getDatatypeConstructorArity() == 0)
-  {
-    // nullary constructors have APPLY_CONSTRUCTOR kind with no children
-    expr = d_solver->mkTerm(APPLY_CONSTRUCTOR, {expr});
-  }
   return expr;
 }
 
@@ -160,18 +133,24 @@ Kind ParserState::getKindForFunction(Term fun)
 
 Sort ParserState::getSort(const std::string& name)
 {
-  checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
-  Assert(isDeclared(name, SYM_SORT));
   Sort t = d_symtab->lookupType(name);
+  // if we fail, throw an error
+  if (t.isNull())
+  {
+    checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
+  }
   return t;
 }
 
 Sort ParserState::getParametricSort(const std::string& name,
                                     const std::vector<Sort>& params)
 {
-  checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
-  Assert(isDeclared(name, SYM_SORT));
   Sort t = d_symtab->lookupType(name, params);
+  // if we fail, throw an error
+  if (t.isNull())
+  {
+    checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
+  }
   return t;
 }
 
@@ -336,8 +315,8 @@ Sort ParserState::mkUnresolvedType(const std::string& name, size_t arity)
   return mkUnresolvedTypeConstructor(name, arity);
 }
 
-std::vector<Sort> ParserState::bindMutualDatatypeTypes(
-    std::vector<DatatypeDecl>& datatypes, bool doOverload)
+std::vector<Sort> ParserState::mkMutualDatatypeTypes(
+    std::vector<DatatypeDecl>& datatypes)
 {
   try
   {
@@ -355,15 +334,6 @@ std::vector<Sort> ParserState::bindMutualDatatypeTypes(
       {
         throw ParserException(name + " already declared");
       }
-      if (dt.isParametric())
-      {
-        std::vector<Sort> paramTypes = dt.getParameters();
-        defineType(name, paramTypes, t);
-      }
-      else
-      {
-        defineType(name, t);
-      }
       std::unordered_set<std::string> consNames;
       std::unordered_set<std::string> selNames;
       for (size_t j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
@@ -371,14 +341,9 @@ std::vector<Sort> ParserState::bindMutualDatatypeTypes(
         const DatatypeConstructor& ctor = dt[j];
         Term constructor = ctor.getTerm();
         Trace("parser-idt") << "+ define " << constructor << std::endl;
-        string constructorName = ctor.getName();
+        std::string constructorName = ctor.getName();
         if (consNames.find(constructorName) == consNames.end())
         {
-          if (!doOverload)
-          {
-            checkDeclaration(constructorName, CHECK_UNDECLARED);
-          }
-          defineVar(constructorName, constructor, doOverload);
           consNames.insert(constructorName);
         }
         else
@@ -386,30 +351,14 @@ std::vector<Sort> ParserState::bindMutualDatatypeTypes(
           throw ParserException(constructorName
                                 + " already declared in this datatype");
         }
-        std::string testerName;
-        if (getTesterName(constructor, testerName))
-        {
-          Term tester = ctor.getTesterTerm();
-          Trace("parser-idt") << "+ define " << testerName << std::endl;
-          if (!doOverload)
-          {
-            checkDeclaration(testerName, CHECK_UNDECLARED);
-          }
-          defineVar(testerName, tester, doOverload);
-        }
         for (size_t k = 0, nargs = ctor.getNumSelectors(); k < nargs; k++)
         {
           const DatatypeSelector& sel = ctor[k];
           Term selector = sel.getTerm();
           Trace("parser-idt") << "+++ define " << selector << std::endl;
-          string selectorName = sel.getName();
+          std::string selectorName = sel.getName();
           if (selNames.find(selectorName) == selNames.end())
           {
-            if (!doOverload)
-            {
-              checkDeclaration(selectorName, CHECK_UNDECLARED);
-            }
-            defineVar(selectorName, selector, doOverload);
             selNames.insert(selectorName);
           }
           else

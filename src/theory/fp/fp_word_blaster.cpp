@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1291,7 +1291,11 @@ Node FpWordBlaster::wordBlast(TNode node)
 
 Node FpWordBlaster::getValue(Valuation& val, TNode var)
 {
-  Assert(Theory::isLeafOf(var, THEORY_FP));
+  Assert(var.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_SBV
+         || var.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_UBV
+         || var.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_REAL
+         || var.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV
+         || Theory::isLeafOf(var, THEORY_FP));
 
   TypeNode t(var.getType());
 

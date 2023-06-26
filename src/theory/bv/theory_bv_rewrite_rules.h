@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -136,7 +136,7 @@ enum RewriteRuleId
   OrZero,
   OrOne,
   XorDuplicate,
-  XorOne,
+  XorOnes,
   XorZero,
   BitwiseNotAnd,
   BitwiseNotOr,
@@ -320,7 +320,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case AndOne :       out << "AndOne";        return out;
   case OrZero :       out << "OrZero";        return out;
   case OrOne :       out << "OrOne";        return out;
-  case XorOne :       out << "XorOne";        return out;
+  case XorOnes: out << "XorOnes"; return out;
   case XorZero :       out << "XorZero";        return out;
   case MultPow2 :            out << "MultPow2";             return out;
   case MultSlice :            out << "MultSlice";             return out;
@@ -557,7 +557,7 @@ struct AllRewriteRules {
   RewriteRule<OrZero>                         rule80;
   RewriteRule<OrOne>                          rule81;
   RewriteRule<SubEliminate>                   rule82;
-  RewriteRule<XorOne>                         rule83;
+  RewriteRule<XorOnes> rule83;
   RewriteRule<XorZero>                        rule84;
   RewriteRule<MultSlice>                      rule85;
   RewriteRule<FlattenAssocCommutNoDuplicates> rule86;

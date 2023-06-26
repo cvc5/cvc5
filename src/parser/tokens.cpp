@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,8 +45,9 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::DECLARE_DATATYPES_TOK: o << "DECLARE_DATATYPES_TOK"; break;
     case Token::DECLARE_DATATYPE_TOK: o << "DECLARE_DATATYPE_TOK"; break;
     case Token::DECLARE_FUN_TOK: o << "DECLARE_FUN_TOK"; break;
-    case Token::DECLARE_HEAP: o << "DECLARE_HEAP"; break;
-    case Token::DECLARE_POOL: o << "DECLARE_POOL"; break;
+    case Token::DECLARE_HEAP_TOK: o << "DECLARE_HEAP_TOK"; break;
+    case Token::DECLARE_ORACLE_FUN_TOK: o << "DECLARE_ORACLE_FUN_TOK"; break;
+    case Token::DECLARE_POOL_TOK: o << "DECLARE_POOL_TOK"; break;
     case Token::DECLARE_SORT_TOK: o << "DECLARE_SORT_TOK"; break;
     case Token::DECLARE_VAR_TOK: o << "DECLARE_VAR_TOK"; break;
     case Token::DEFINE_CONST_TOK: o << "DEFINE_CONST_TOK"; break;
@@ -73,6 +74,7 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::GET_PROOF_TOK: o << "GET_PROOF_TOK"; break;
     case Token::GET_QE_DISJUNCT_TOK: o << "GET_QE_DISJUNCT_TOK"; break;
     case Token::GET_QE_TOK: o << "GET_QE_TOK"; break;
+    case Token::GET_TIMEOUT_CORE_TOK: o << "GET_TIMEOUT_CORE_TOK"; break;
     case Token::GET_UNSAT_ASSUMPTIONS_TOK:
       o << "GET_UNSAT_ASSUMPTIONS_TOK";
       break;
@@ -101,8 +103,6 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::SET_OPTION_TOK: o << "SET_OPTION_TOK"; break;
     case Token::SIMPLIFY_TOK: o << "SIMPLIFY_TOK"; break;
     case Token::STRING_LITERAL: o << "STRING_LITERAL"; break;
-    case Token::SYGUS_CONSTANT_TOK: o << "SYGUS_CONSTANT_TOK"; break;
-    case Token::SYGUS_VARIABLE_TOK: o << "SYGUS_VARIABLE_TOK"; break;
     case Token::SYMBOL: o << "SYMBOL"; break;
     case Token::SYNTH_FUN_TOK: o << "SYNTH_FUN_TOK"; break;
     case Token::SYNTH_INV_TOK: o << "SYNTH_INV_TOK"; break;

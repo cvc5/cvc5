@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Gereon Kremer
+ *   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,6 +26,7 @@
 #include "smt/env.h"
 #include "smt/print_benchmark.h"
 #include "smt/set_defaults.h"
+#include "theory/quantifiers/skolemize.h"
 #include "theory/smt_engine_subsolver.h"
 
 namespace cvc5::internal {
@@ -157,10 +158,7 @@ void UnsatCoreManager::getRelevantQuantTermVectors(
       }
       if (!exists.isNull())
       {
-        std::vector<Node> skolems;
-        SkolemManager* sm = nm->getSkolemManager();
-        Node res = sm->mkSkolemize(q, skolems, "k");
-        sks[q] = skolems;
+        sks[q] = theory::quantifiers::Skolemize::getSkolemConstants(exists);
       }
     }
     for (const std::shared_ptr<ProofNode>& cp : cs)

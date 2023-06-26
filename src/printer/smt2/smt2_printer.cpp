@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Abdalrhman Mohamed
+ *   Andrew Reynolds, Abdalrhman Mohamed, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,12 +34,15 @@
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
+#include "expr/sygus_datatype.h"
 #include "options/io_utils.h"
 #include "options/language.h"
 #include "printer/let_binding.h"
 #include "proof/unsat_core.h"
+#include "smt/model.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/builtin/abstract_type.h"
+#include "theory/builtin/generic_op.h"
 #include "theory/datatypes/project_op.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -213,6 +216,9 @@ void Smt2Printer::toStream(std::ostream& out,
       }
       break;
     }
+    case kind::APPLY_INDEXED_SYMBOLIC_OP:
+      out << smtKindString(n.getConst<GenericOp>().getKind());
+      break;
     case kind::BITVECTOR_TYPE:
       out << "(_ BitVec " << n.getConst<BitVectorSize>().d_size << ")";
       break;
@@ -360,6 +366,9 @@ void Smt2Printer::toStream(std::ostream& out,
       out << ss.str();
       break;
     }
+    case kind::DIVISIBLE_OP:
+      out << "(_ divisible " << n.getConst<Divisible>().k << ")";
+      break;
     case kind::SET_EMPTY:
       out << "(as set.empty ";
       toStreamType(out, n.getConst<EmptySet>().getType());
@@ -474,6 +483,33 @@ void Smt2Printer::toStream(std::ostream& out,
       out << "(_ re.loop " << n.getConst<RegExpLoop>().d_loopMinOcc << " "
           << n.getConst<RegExpLoop>().d_loopMaxOcc << ")";
       break;
+    case kind::TUPLE_PROJECT_OP:
+    case kind::TABLE_PROJECT_OP:
+    case kind::TABLE_AGGREGATE_OP:
+    case kind::TABLE_JOIN_OP:
+    case kind::TABLE_GROUP_OP:
+    case kind::RELATION_GROUP_OP:
+    case kind::RELATION_AGGREGATE_OP:
+    case kind::RELATION_PROJECT_OP:
+    {
+      ProjectOp op = n.getConst<ProjectOp>();
+      const std::vector<uint32_t>& indices = op.getIndices();
+      Kind k = NodeManager::operatorToKind(n);
+      if (indices.empty())
+      {
+        out << smtKindString(k);
+      }
+      else
+      {
+        out << "(_ " << smtKindString(k);
+        for (uint32_t i : indices)
+        {
+          out << " " << i;
+        }
+        out << ")";
+      }
+    }
+      break;
     default:
       // fall back on whatever operator<< does on underlying type; we
       // might luck out and be SMT-LIB v2 compliant
@@ -546,7 +582,7 @@ void Smt2Printer::toStream(std::ostream& out,
   {
     // abstract value
     std::string s = n.getName();
-    out << "(as @" << cvc5::internal::quoteSymbol(s) << " " << n.getType() << ")";
+    out << "(as " << cvc5::internal::quoteSymbol(s) << " " << n.getType() << ")";
     return;
   }
   else if (n.isVar())
@@ -589,7 +625,6 @@ void Smt2Printer::toStream(std::ostream& out,
   }
 
   bool stillNeedToPrintParams = true;
-  bool forceBinary = false; // force N-ary to binary when outputing children
   // operator
   if (n.getNumChildren() != 0 && k != kind::CONSTRUCTOR_TYPE)
   {
@@ -639,6 +674,9 @@ void Smt2Printer::toStream(std::ostream& out,
         out << ")";
       }
       return;
+    case kind::APPLY_INDEXED_SYMBOLIC:
+      // operator is printed as kind
+      break;
 
     case kind::MATCH:
       out << smtKindString(k) << " ";
@@ -701,7 +739,8 @@ void Smt2Printer::toStream(std::ostream& out,
       break;
 
     case kind::DIVISIBLE:
-      out << "(_ divisible " << n.getOperator().getConst<Divisible>().k << ")";
+      toStream(out, n.getOperator(), toDepth, nullptr);
+      out << ' ';
       stillNeedToPrintParams = false;
       break;
     case kind::REAL_ALGEBRAIC_NUMBER:
@@ -736,7 +775,6 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::BITVECTOR_ADD:
   {
     out << smtKindString(k) << " ";
-    forceBinary = true;
   }
   break;
 
@@ -811,126 +849,18 @@ void Smt2Printer::toStream(std::ostream& out,
     break;
   }
   case kind::TUPLE_PROJECT:
-  {
-    ProjectOp op = n.getOperator().getConst<ProjectOp>();
-    if (op.getIndices().empty())
-    {
-      // e.g. (tuple.project tuple)
-      out << "tuple.project " << n[0] << ")";
-    }
-    else
-    {
-      // e.g. ((_ tuple.project 2 4 4) tuple)
-      out << "(_ tuple.project" << op << ") " << n[0] << ")";
-    }
-    return;
-  }
   case kind::TABLE_PROJECT:
-  {
-    ProjectOp op = n.getOperator().getConst<ProjectOp>();
-    if (op.getIndices().empty())
-    {
-      // e.g. (table.project A)
-      out << "table.project " << n[0] << ")";
-    }
-    else
-    {
-      // e.g. ((_ table.project 2 4 4) A)
-      out << "(_ table.project" << op << ") " << n[0] << ")";
-    }
-    return;
-  }
   case kind::TABLE_AGGREGATE:
-  {
-    ProjectOp op = n.getOperator().getConst<ProjectOp>();
-    if (op.getIndices().empty())
-    {
-      // e.g. (table.aggr function initial_value bag)
-      out << "table.aggr " << n[0] << " " << n[1] << " " << n[2] << ")";
-    }
-    else
-    {
-      // e.g.  ((_ table.aggr 0) function initial_value bag)
-      out << "(_ table.aggr" << op << ") " << n[0] << " " << n[1] << " " << n[2]
-          << ")";
-    }
-    return;
-  }
   case kind::TABLE_JOIN:
-  {
-    ProjectOp op = n.getOperator().getConst<ProjectOp>();
-    if (op.getIndices().empty())
-    {
-      // e.g. (table.join A B)
-      out << "table.join " << n[0] << " " << n[1] << ")";
-    }
-    else
-    {
-      // e.g. ((_ table.project 0 1 2 3) A B)
-      out << "(_ table.join" << op << ") " << n[0] << " " << n[1] << ")";
-    }
-    return;
-  }
   case kind::TABLE_GROUP:
-  {
-    ProjectOp op = n.getOperator().getConst<ProjectOp>();
-    if (op.getIndices().empty())
-    {
-      // e.g. (table.group A)
-      out << "table.group " << n[0] << ")";
-    }
-    else
-    {
-      // e.g. ((_ table.group 0 1 2 3) A)
-      out << "(_ table.group" << op << ") " << n[0] << ")";
-    }
-    return;
-  }
   case kind::RELATION_GROUP:
-  {
-    ProjectOp op = n.getOperator().getConst<ProjectOp>();
-    if (op.getIndices().empty())
-    {
-      // e.g. (rel.group A)
-      out << "rel.group " << n[0] << ")";
-    }
-    else
-    {
-      // e.g. ((_ rel.group 0 1 2 3) A)
-      out << "(_ rel.group" << op << ") " << n[0] << ")";
-    }
-    return;
-  }
   case kind::RELATION_AGGREGATE:
-  {
-    ProjectOp op = n.getOperator().getConst<ProjectOp>();
-    if (op.getIndices().empty())
-    {
-      // e.g. (rel.aggr function initial_value bag)
-      out << "rel.aggr " << n[0] << " " << n[1] << " " << n[2] << ")";
-    }
-    else
-    {
-      // e.g.  ((_ rel.aggr 0) function initial_value bag)
-      out << "(_ rel.aggr" << op << ") " << n[0] << " " << n[1] << " " << n[2]
-          << ")";
-    }
-    return;
-  }
   case kind::RELATION_PROJECT:
   {
-    ProjectOp op = n.getOperator().getConst<ProjectOp>();
-    if (op.getIndices().empty())
-    {
-      // e.g. (rel.project A)
-      out << "rel.project " << n[0] << ")";
-    }
-    else
-    {
-      // e.g. ((_ rel.project 2 4 4) A)
-      out << "(_ rel.project" << op << ") " << n[0] << ")";
-    }
-    return;
+    toStream(out, n.getOperator(), toDepth, nullptr);
+    out << ' ';
+    stillNeedToPrintParams = false;
+    break;
   }
   case kind::CONSTRUCTOR_TYPE:
   {
@@ -1114,15 +1044,7 @@ void Smt2Printer::toStream(std::ostream& out,
       out << "(...)";
     }
     if(++i < n.getNumChildren()) {
-      if(forceBinary && i < n.getNumChildren() - 1) {
-        // not going to work properly for parameterized kinds!
-        Assert(n.getMetaKind() != kind::metakind::PARAMETERIZED);
-        out << " (" << smtKindStringOf(n) << ' ';
-        parens << ')';
-        ++c;
-      } else {
-        out << ' ';
-      }
+      out << ' ';
     }
   }
   if (n.getNumChildren() != 0)
@@ -1258,6 +1180,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case kind::APPLY_TESTER: return "is";
     case kind::APPLY_UPDATER: return "update";
     case kind::TUPLE_TYPE: return "Tuple";
+    case kind::TUPLE_PROJECT: return "tuple.project";
 
     // set theory
     case kind::SET_UNION: return "set.union";
@@ -1924,6 +1847,11 @@ void Smt2Printer::toStreamCmdGetDifficulty(std::ostream& out) const
   out << "(get-difficulty)" << std::endl;
 }
 
+void Smt2Printer::toStreamCmdGetTimeoutCore(std::ostream& out) const
+{
+  out << "(get-timeout-core)" << std::endl;
+}
+
 void Smt2Printer::toStreamCmdGetLearnedLiterals(std::ostream& out,
                                                 modes::LearnedLitType t) const
 {
@@ -2093,38 +2021,45 @@ std::string Smt2Printer::sygusGrammarString(const TypeNode& t)
     {
       TypeNode curr = typesToPrint.front();
       typesToPrint.pop_front();
-      Assert(curr.isDatatype() && curr.getDType().isSygus());
+      // skip builtin fields, which can originate from any-constant constructors
+      if (!curr.isDatatype() || !curr.getDType().isSygus())
+      {
+        continue;
+      }
       const DType& dt = curr.getDType();
       types_list << '(' << dt.getName() << ' ' << dt.getSygusType() << " (";
       types_predecl << '(' << dt.getName() << ' ' << dt.getSygusType() << ") ";
-      if (dt.getSygusAllowConst())
-      {
-        types_list << "(Constant " << dt.getSygusType() << ") ";
-      }
       for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
       {
         const DTypeConstructor& cons = dt[i];
-        // make a sygus term
-        std::vector<Node> cchildren;
-        cchildren.push_back(cons.getConstructor());
-        for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
+        if (cons.isSygusAnyConstant())
         {
-          TypeNode argType = cons[j].getRangeType();
-          std::stringstream ss;
-          ss << argType;
-          Node bv = nm->mkBoundVar(ss.str(), argType);
-          cchildren.push_back(bv);
-          // if fresh type, store it for later processing
-          if (grammarTypes.insert(argType).second)
-          {
-            typesToPrint.push_back(argType);
-          }
+          types_list << "(Constant " << cons[0].getRangeType() << ") ";
         }
-        Node consToPrint = nm->mkNode(kind::APPLY_CONSTRUCTOR, cchildren);
-        // now, print it using the conversion to builtin with external
-        types_list << theory::datatypes::utils::sygusToBuiltin(consToPrint,
-                                                               true);
-        types_list << ' ';
+        else
+        {
+          // make a sygus term
+          std::vector<Node> cchildren;
+          cchildren.push_back(cons.getConstructor());
+          for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
+          {
+            TypeNode argType = cons[j].getRangeType();
+            std::stringstream ss;
+            ss << argType;
+            Node bv = nm->mkBoundVar(ss.str(), argType);
+            cchildren.push_back(bv);
+            // if fresh type, store it for later processing
+            if (grammarTypes.insert(argType).second)
+            {
+              typesToPrint.push_back(argType);
+            }
+          }
+          Node consToPrint = nm->mkNode(kind::APPLY_CONSTRUCTOR, cchildren);
+          // now, print it using the conversion to builtin with external
+          types_list << theory::datatypes::utils::sygusToBuiltin(consToPrint,
+                                                                true);
+          types_list << ' ';
+        }
       }
       types_list << "))\n";
     } while (!typesToPrint.empty());

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -193,7 +193,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
     // these options must be disabled on internal subsolvers, as they are
     // used by the user to rephrase the input.
     opts.writeQuantifiers().sygusInference = false;
-    opts.writeQuantifiers().sygusRewSynthInput = false;
     // deep restart does not work with internal subsolvers?
     opts.writeSmt().deepRestartMode = options::DeepRestartMode::NONE;
   }
@@ -203,7 +202,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
 {
   if (opts.quantifiers.sygusInstWasSetByUser)
   {
-    if (isSygus(opts))
+    if (opts.quantifiers.sygusInst && isSygus(opts))
     {
       throw OptionException(std::string(
           "SyGuS instantiation quantifiers module cannot be enabled "
@@ -1659,12 +1658,6 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
     // we must use basic sygus algorithms, since e.g. we require checking
     // a sygus side condition for consistency with axioms.
     reqBasicSygus = true;
-  }
-  if (opts.quantifiers.sygusRewSynth || opts.quantifiers.sygusRewVerify
-      || opts.quantifiers.sygusQueryGen != options::SygusQueryGenMode::NONE)
-  {
-    // rewrite rule synthesis implies that sygus stream must be true
-    opts.writeQuantifiers().sygusStream = true;
   }
   if (opts.quantifiers.sygusStream || opts.base.incrementalSolving)
   {

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,15 +34,15 @@ using namespace std;
 namespace cvc5::internal {
 namespace smt {
 
-SmtSolver::SmtSolver(Env& env,
-                     AbstractValues& abs,
-                     SolverEngineStatistics& stats)
+SmtSolver::SmtSolver(Env& env, SolverEngineStatistics& stats)
     : EnvObj(env),
       d_pp(env, stats),
-      d_asserts(env, abs),
+      d_asserts(env),
       d_stats(stats),
       d_theoryEngine(nullptr),
-      d_propEngine(nullptr)
+      d_propEngine(nullptr),
+      d_ppAssertions(userContext()),
+      d_ppSkolemMap(userContext())
 {
 }
 
@@ -163,46 +163,6 @@ void SmtSolver::preprocess(preprocessing::AssertionPipeline& ap)
 
   // end: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
-
-  const std::vector<Node>& assertions = ap.ref();
-  // It is important to distinguish the input assertions from the skolem
-  // definitions, as the decision justification heuristic treates the latter
-  // specially. Note that we don't pass the preprocess learned literals
-  // d_pp.getLearnedLiterals() here, since they may not exactly correspond
-  // to the actual preprocessed learned literals, as the input may have
-  // undergone further preprocessing.
-  preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
-  // if we can deep restart, we always remember the preprocessed formulas,
-  // which are the basis for the next check-sat.
-  if (trackPreprocessedAssertions())
-  {
-    // incompatible with global negation
-    Assert(!options().quantifiers.globalNegate);
-    theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
-    // note that if a skolem is eliminated in preprocessing, we remove it
-    // from the preprocessed skolem map
-    std::vector<size_t> elimSkolems;
-    for (const std::pair<const size_t, Node>& k : d_ppSkolemMap)
-    {
-      if (sm.hasSubstitution(k.second))
-      {
-        Trace("deep-restart-ism")
-            << "SKOLEM:" << k.second << " was eliminated during preprocessing"
-            << std::endl;
-        elimSkolems.push_back(k.first);
-        continue;
-      }
-      Trace("deep-restart-ism") << "SKOLEM:" << k.second << " is skolem for "
-                                << assertions[k.first] << std::endl;
-    }
-    for (size_t i : elimSkolems)
-    {
-      ism.erase(i);
-    }
-    // remember the assertions and Skolem mapping
-    d_ppAssertions = assertions;
-    d_ppSkolemMap = ism;
-  }
 }
 
 void SmtSolver::assertToInternal(preprocessing::AssertionPipeline& ap)
@@ -213,14 +173,45 @@ void SmtSolver::assertToInternal(preprocessing::AssertionPipeline& ap)
   // assert to prop engine, which will convert to CNF
   d_env.verbose(2) << "converting to CNF..." << endl;
   d_propEngine->assertInputFormulas(assertions, ism);
+
+  // It is important to distinguish the input assertions from the skolem
+  // definitions, as the decision justification heuristic treates the latter
+  // specially. Note that we don't pass the preprocess learned literals
+  // d_pp.getLearnedLiterals() here, since they may not exactly correspond
+  // to the actual preprocessed learned literals, as the input may have
+  // undergone further preprocessing.
+  // if we can deep restart, we always remember the preprocessed formulas,
+  // which are the basis for the next check-sat.
+  if (trackPreprocessedAssertions())
+  {
+    // incompatible with global negation
+    Assert(!options().quantifiers.globalNegate);
+    theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
+    size_t startIndex = d_ppAssertions.size();
+    // remember the assertions and Skolem mapping
+    for (const Node& a : assertions)
+    {
+      d_ppAssertions.push_back(a);
+    }
+    for (const std::pair<const size_t, Node>& k : ism)
+    {
+      // optimization: skip skolems that were eliminated in preprocessing
+      if (sm.hasSubstitution(k.second))
+      {
+        continue;
+      }
+      size_t newIndex = k.first + startIndex;
+      d_ppSkolemMap[newIndex] = k.second;
+    }
+  }
 }
 
-const std::vector<Node>& SmtSolver::getPreprocessedAssertions() const
+const context::CDList<Node>& SmtSolver::getPreprocessedAssertions() const
 {
   return d_ppAssertions;
 }
 
-const std::unordered_map<size_t, Node>& SmtSolver::getPreprocessedSkolemMap()
+const context::CDHashMap<size_t, Node>& SmtSolver::getPreprocessedSkolemMap()
     const
 {
   return d_ppSkolemMap;
@@ -260,13 +251,10 @@ void SmtSolver::popPropContext()
   d_propEngine->pop();
 }
 
-void SmtSolver::postsolve()
+void SmtSolver::resetTrail()
 {
   Assert(d_propEngine != nullptr);
   d_propEngine->resetTrail();
-
-  Assert(d_theoryEngine != nullptr);
-  d_theoryEngine->postsolve();
 }
 
 }  // namespace smt

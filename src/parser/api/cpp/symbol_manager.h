@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -109,6 +109,14 @@ class CVC5_EXPORT SymbolManager
   void bindType(const std::string& name,
                 const std::vector<cvc5::Sort>& params,
                 cvc5::Sort t);
+  /**
+   * Binds sorts of a list of mutually-recursive datatype declarations.
+   *
+   * If bindTesters is true, we bind the testers of this datatype to
+   * `is-C` where `C` is the name of the constructor for that tester.
+   */
+  bool bindMutualDatatypeTypes(const std::vector<cvc5::Sort>& datatypes,
+                               bool bindTesters = true);
 
   //---------------------------- named expressions
   /** Set name of term t to name
@@ -231,12 +239,16 @@ class CVC5_EXPORT SymbolManager
   /**
    * Force the logic to the given string. Note that this information is
    * context-independent.
+   *
+   * @param logic The string of the logic
+   * @param isForced If true, the logic is set and we ignore subsequent calls
+   * to this method where isForced is false.
    */
-  void forceLogic(const std::string& logic);
-  /** Have we called the above method? */
+  void setLogic(const std::string& logic, bool isForced = false);
+  /** Have we called the above method with isForced=true? */
   bool isLogicForced() const;
-  /** Get the last string in an above call, valid if logic is forced */
-  const std::string& getForcedLogic() const;
+  /** Get the last string in an above call */
+  const std::string& getLogic() const;
 
  private:
   /** The API Solver object. */
@@ -251,8 +263,8 @@ class CVC5_EXPORT SymbolManager
   bool d_globalDeclarations;
   /** Whether the logic has been forced with --force-logic. */
   bool d_logicIsForced;
-  /** The logic, if d_logicIsForced == true. */
-  std::string d_forcedLogic;
+  /** The logic. */
+  std::string d_logic;
 };
 
 }  // namespace parser

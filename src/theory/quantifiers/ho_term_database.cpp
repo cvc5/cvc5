@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -57,8 +57,7 @@ void HoTermDb::addTermInternal(Node n)
       Node psk;
       if (itp == d_hoFunOpPurify.end())
       {
-        psk = sm->mkPurifySkolem(
-            curr, "pfun", "purify for function operator term indexing");
+        psk = sm->mkPurifySkolem(curr);
         d_hoFunOpPurify[curr] = psk;
         // we do not add it to d_ops since it is an internal operator
       }

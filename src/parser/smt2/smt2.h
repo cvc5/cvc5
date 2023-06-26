@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *   Andrew Reynolds, Andres Noetzli, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -216,12 +216,8 @@ class Smt2State : public ParserState
    * theory symbols.
    *
    * @param name the name of the logic (e.g., QF_UF, AUFLIA)
-   * @param fromCommand should be set to true if the request originates from a
-   *                    set-logic command and false otherwise
-   * @return the command corresponding to setting the logic (if fromCommand
-   * is true), and nullptr otherwise.
    */
-  Command* setLogic(std::string name, bool fromCommand = true);
+  void setLogic(std::string name);
 
   /**
    * Get the logic.
@@ -237,7 +233,7 @@ class Smt2State : public ParserState
   Grammar* mkGrammar(const std::vector<Term>& boundVars,
                      const std::vector<Term>& ntSymbols);
 
-  /** Are we using a sygus language? */
+  /** Are we using a sygus language?  */
   bool sygus() const;
 
   /**
@@ -449,9 +445,13 @@ class Smt2State : public ParserState
    */
   Term mkAnd(const std::vector<Term>& es) const;
   /**
-   * Is term t a constant integer?
+   * @return True if term t an integer value.
    */
   static bool isConstInt(const Term& t);
+  /**
+   * @return True if term t is a bit-vector value.
+   */
+  static bool isConstBv(const Term& t);
 
   /** Are we parsing a sygus file? */
   bool d_isSygus;

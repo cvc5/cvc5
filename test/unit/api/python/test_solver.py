@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -439,6 +439,14 @@ def test_mk_floating_point(solver):
     with pytest.raises(RuntimeError):
         solver.mkFloatingPoint(3, 5, t2)
 
+    sign = solver.mkBitVector(1)
+    exp = solver.mkBitVector(5)
+    sig = solver.mkBitVector(10)
+    bv = solver.mkBitVector(16)
+    a = solver.mkFloatingPoint(
+            sign, exp, sig)
+    assert solver.mkFloatingPoint(
+            sign, exp, sig) == solver.mkFloatingPoint(5, 11, bv)
     slv = cvc5.Solver()
     slv.mkFloatingPoint(3, 5, t1)
 
@@ -902,23 +910,12 @@ def test_mk_true(solver):
 
 
 def test_mk_tuple(solver):
-    solver.mkTuple([solver.mkBitVectorSort(3)],
-                   [solver.mkBitVector(3, "101", 2)])
-    with pytest.raises(RuntimeError):
-      solver.mkTuple([solver.getRealSort()], [solver.mkInteger("5")])
-
-    with pytest.raises(RuntimeError):
-        solver.mkTuple([], [solver.mkBitVector(3, "101", 2)])
-    with pytest.raises(RuntimeError):
-        solver.mkTuple([solver.mkBitVectorSort(4)],
-                       [solver.mkBitVector(3, "101", 2)])
-    with pytest.raises(RuntimeError):
-        solver.mkTuple([solver.getIntegerSort()], [solver.mkReal("5.3")])
+    solver.mkTuple([solver.mkBitVector(3, "101", 2)])
+    solver.mkTuple([solver.mkInteger("5")])
+    solver.mkTuple([solver.mkReal("5.3")])
     slv = cvc5.Solver()
-    slv.mkTuple([solver.mkBitVectorSort(3)],
-                [slv.mkBitVector(3, "101", 2)])
-    slv.mkTuple([slv.mkBitVectorSort(3)],
-                [solver.mkBitVector(3, "101", 2)])
+    slv.mkTuple([slv.mkBitVector(3, "101", 2)])
+    slv.mkTuple([solver.mkBitVector(3, "101", 2)])
 
 
 def test_mk_universe_set(solver):
@@ -1482,6 +1479,33 @@ def test_learned_literals2(solver):
     solver.checkSat()
     solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_INPUT)
 
+def test_get_timeout_core_unsat(solver):
+  solver.setOption("timeout-core-timeout", "100")
+  solver.setOption("produce-unsat-cores", "true")
+  intSort = solver.getIntegerSort()
+  x = solver.mkConst(intSort, "x")
+  tt = solver.mkBoolean(True)
+  hard = solver.mkTerm(Kind.EQUAL,
+                       solver.mkTerm(Kind.MULT, x, x),
+                       solver.mkInteger("501240912901901249014210220059591"))
+  solver.assertFormula(tt)
+  solver.assertFormula(hard)
+  res = solver.getTimeoutCore()
+  assert res[0].isUnknown()
+  assert len(res[1]) == 1
+  assert res[1][0] == hard
+
+def test_get_timeout_core(solver):
+  solver.setOption("produce-unsat-cores", "true")
+  ff = solver.mkBoolean(False)
+  tt = solver.mkBoolean(True)
+  solver.assertFormula(tt)
+  solver.assertFormula(ff)
+  solver.assertFormula(tt)
+  res = solver.getTimeoutCore()
+  assert res[0].isUnsat()
+  assert len(res[1]) == 1
+  assert res[1][0] == ff
 
 def test_get_value1(solver):
     solver.setOption("produce-models", "false")
@@ -2649,7 +2673,6 @@ def test_mk_sygus_var(solver):
     with pytest.raises(RuntimeError):
         solver.declareSygusVar("", cvc5.Sort(solver))
     slv = cvc5.Solver()
-    solver.setOption("sygus", "true")
     with pytest.raises(RuntimeError):
         slv.declareSygusVar("", boolSort)
 
@@ -2691,17 +2714,13 @@ def test_synth_fun(solver):
 
 
 def test_tuple_project(solver):
-    sorts = [solver.getBooleanSort(),\
-                               solver.getIntegerSort(),\
-                               solver.getStringSort(),\
-                               solver.mkSetSort(solver.getStringSort())]
     elements = [\
         solver.mkBoolean(True), \
         solver.mkInteger(3),\
         solver.mkString("C"),\
         solver.mkTerm(Kind.SET_SINGLETON, solver.mkString("Z"))]
 
-    tuple = solver.mkTuple(sorts, elements)
+    tuple = solver.mkTuple(elements)
 
     indices1 = []
     indices2 = [0]

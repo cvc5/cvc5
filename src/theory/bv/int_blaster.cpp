@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -705,10 +705,7 @@ Node IntBlaster::translateNoChildren(Node original,
         Node bvCast;
         // we introduce a fresh variable, add range constraints, and save the
         // connection between original and the new variable via intCast
-        translation = d_nm->getSkolemManager()->mkPurifySkolem(
-            intCast,
-            "__intblast__var",
-            "Variable introduced in intblasting for " + original.toString());
+        translation = d_nm->getSkolemManager()->mkPurifySkolem(intCast);
         uint32_t bvsize = original.getType().getBitVectorSize();
         addRangeConstraint(translation, bvsize, lemmas);
         // put new definition of old variable in skolems
@@ -1045,10 +1042,7 @@ Node IntBlaster::createBVAndNode(Node x,
     Node iAndOp = d_nm->mkConst(IntAnd(bvsize));
     Node iAnd = d_nm->mkNode(kind::IAND, iAndOp, x, y);
     // get a skolem so the IAND solver knows not to do work
-    returnNode = d_nm->getSkolemManager()->mkPurifySkolem(
-        iAnd,
-        "__intblast__iand",
-        "skolem for an IAND node in bitwise mode " + iAnd.toString());
+    returnNode = d_nm->getSkolemManager()->mkPurifySkolem(iAnd);
     addRangeConstraint(returnNode, bvsize, lemmas);
 
     // eagerly add bitwise lemmas according to the provided granularity

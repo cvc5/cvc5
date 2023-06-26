@@ -1183,24 +1183,20 @@ cdef class Solver:
             term.cterm = self.csolver.mkTerm((<Op?> op).cop, v)
         return term
 
-    def mkTuple(self, sorts, terms):
+    def mkTuple(self, terms):
         """
             Create a tuple term. Terms are automatically converted if sorts are
             compatible.
 
-            :param sorts: The sorts of the elements in the tuple.
             :param terms: The elements in the tuple.
             :return: The tuple Term.
         """
-        cdef vector[c_Sort] csorts
         cdef vector[c_Term] cterms
 
-        for s in sorts:
-            csorts.push_back((<Sort?> s).csort)
         for s in terms:
             cterms.push_back((<Term?> s).cterm)
         cdef Term result = Term(self)
-        result.cterm = self.csolver.mkTuple(csorts, cterms)
+        result.cterm = self.csolver.mkTuple(cterms)
         return result
 
     def mkOp(self, k, *args):
@@ -1579,17 +1575,28 @@ cdef class Solver:
         term.cterm = self.csolver.mkRoundingMode(<c_RoundingMode> rm.value)
         return term
 
-    def mkFloatingPoint(self, int exp, int sig, Term val):
+    def mkFloatingPoint(self, arg0, arg1, Term arg2):
         """
-            Create a floating-point constant.
+            Create a floating-point value from a bit-vector given in IEEE-754
+            format, or from its three IEEE-754 bit-vector value components
+            (sign bit, exponent, significand). Arguments must be either given
+            as (int, int, Term) or (Term, Term, Term).
 
-            :param exp: Size of the exponent.
-            :param sig: Size of the significand.
-            :param val: Value of the floating-point constant as a bit-vector
-                        term.
+            :param arg0  The size of the exponent or the sign bit.
+            :param arg1  The size of the signifcand or the bit-vector
+                         representing the exponent.
+            :param arg2: The value of the floating-point constant as a
+                         bit-vector term or the bit-vector representing the
+                         significand.
+            :return The floating-point value.
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.mkFloatingPoint(exp, sig, val.cterm)
+        if isinstance(arg0, int):
+            term.cterm = self.csolver.mkFloatingPoint(
+                <int> arg0, <int> arg1, arg2.cterm)
+        else:
+            term.cterm = self.csolver.mkFloatingPoint(
+                (<Term> arg0).cterm, (<Term> arg1).cterm, arg2.cterm)
         return term
 
     def mkCardinalityConstraint(self, Sort sort, int index):
@@ -2454,6 +2461,45 @@ cdef class Solver:
 
             diffi[termk] = termv
         return diffi
+
+    def getTimeoutCore(self):
+        """
+            Get a timeout core, which computes a subset of the current
+            assertions that cause a timeout. Note it does not require being
+            proceeded by a call to checkSat.
+
+            .. code-block:: smtlib
+
+                (get-timeout-core)
+
+            .. warning:: This method is experimental and may change in future
+                         versions.
+
+            :return: The result of the timeout core computation. This is a pair
+            containing a result and a list of formulas. If the result is unknown
+            and the reason is timeout, then the list of formulas correspond to a
+            subset of the current assertions that cause a timeout in the
+            specified time
+            :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+            If the result is unsat, then the list of formulas correspond to an
+            unsat core for the current assertions. Otherwise, the result is sat,
+            indicating that the current assertions are satisfiable, and
+            the list of formulas is empty.
+
+            This method may make multiple checks for satisfiability internally,
+            each limited by the timeout value given by
+            :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+        """
+        cdef pair[c_Result, vector[c_Term]] res
+        res = self.csolver.getTimeoutCore()
+        core = []
+        for a in res.second:
+            term = Term(self)
+            term.cterm = a
+            core.append(term)
+        cdef Result r = Result()
+        r.cr = res.first
+        return (r, core)
 
     def getValue(self, term_or_list):
         """

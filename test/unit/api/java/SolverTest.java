@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -482,6 +482,10 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.mkFloatingPoint(3, 5, t2));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkFloatingPoint(3, 5, t2));
 
+    assertEquals(d_solver.mkFloatingPoint(
+                     d_solver.mkBitVector(1), d_solver.mkBitVector(5), d_solver.mkBitVector(10)),
+        d_solver.mkFloatingPoint(5, 11, d_solver.mkBitVector(16)));
+
     Solver slv = new Solver();
     assertDoesNotThrow(() -> slv.mkFloatingPoint(3, 5, t1));
   }
@@ -896,35 +900,15 @@ class SolverTest
   @Test
   void mkTuple()
   {
-    assertDoesNotThrow(()
-                           -> d_solver.mkTuple(new Sort[] {d_solver.mkBitVectorSort(3)},
-                               new Term[] {d_solver.mkBitVector(3, "101", 2)}));
-    assertThrows(CVC5ApiException.class,
-        ()
-            -> d_solver.mkTuple(
-                new Sort[] {d_solver.getRealSort()}, new Term[] {d_solver.mkInteger("5")}));
+    assertDoesNotThrow(() -> d_solver.mkTuple(new Term[] {d_solver.mkBitVector(3, "101", 2)}));
+    assertDoesNotThrow(() -> d_solver.mkTuple(new Term[] {d_solver.mkInteger("5")}));
 
-    assertThrows(CVC5ApiException.class,
-        () -> d_solver.mkTuple(new Sort[] {}, new Term[] {d_solver.mkBitVector(3, "101", 2)}));
-
-    assertThrows(CVC5ApiException.class,
-        ()
-            -> d_solver.mkTuple(new Sort[] {d_solver.mkBitVectorSort(4)},
-                new Term[] {d_solver.mkBitVector(3, "101", 2)}));
-
-    assertThrows(CVC5ApiException.class,
-        ()
-            -> d_solver.mkTuple(
-                new Sort[] {d_solver.getIntegerSort()}, new Term[] {d_solver.mkReal("5.3")}));
+    assertDoesNotThrow(() -> d_solver.mkTuple(new Term[] {d_solver.mkReal("5.3")}));
 
     Solver slv = new Solver();
-    assertDoesNotThrow(()
-                           -> slv.mkTuple(new Sort[] {d_solver.mkBitVectorSort(3)},
-                               new Term[] {slv.mkBitVector(3, "101", 2)}));
+    assertDoesNotThrow(() -> slv.mkTuple(new Term[] {slv.mkBitVector(3, "101", 2)}));
 
-    assertDoesNotThrow(()
-                           -> slv.mkTuple(new Sort[] {slv.mkBitVectorSort(3)},
-                               new Term[] {d_solver.mkBitVector(3, "101", 2)}));
+    assertDoesNotThrow(() -> slv.mkTuple(new Term[] {d_solver.mkBitVector(3, "101", 2)}));
   }
 
   @Test
@@ -1895,6 +1879,40 @@ class SolverTest
     d_solver.assertFormula(f1);
     d_solver.checkSat();
     assertDoesNotThrow(() -> d_solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_INPUT));
+  }
+
+  @Test
+  void getTimeoutCoreUnsat() throws CVC5ApiException
+  {
+    d_solver.setOption("timeout-core-timeout", "100");
+    d_solver.setOption("produce-unsat-cores", "true");
+    Sort intSort = d_solver.getIntegerSort();
+    Term x = d_solver.mkConst(intSort, "x");
+    Term tt = d_solver.mkBoolean(true);
+    Term hard = d_solver.mkTerm(EQUAL,
+        new Term[] {d_solver.mkTerm(MULT, new Term[] {x, x}),
+            d_solver.mkInteger("501240912901901249014210220059591")});
+    d_solver.assertFormula(tt);
+    d_solver.assertFormula(hard);
+    Pair<Result, Term[]> res = d_solver.getTimeoutCore();
+    assertTrue(res.first.isUnknown());
+    assertTrue(res.second.length == 1);
+    assertEquals(res.second[0], hard);
+  }
+
+  @Test
+  void getTimeoutCore() throws CVC5ApiException
+  {
+    d_solver.setOption("produce-unsat-cores", "true");
+    Term ff = d_solver.mkBoolean(false);
+    Term tt = d_solver.mkBoolean(true);
+    d_solver.assertFormula(tt);
+    d_solver.assertFormula(ff);
+    d_solver.assertFormula(tt);
+    Pair<Result, Term[]> res = d_solver.getTimeoutCore();
+    assertTrue(res.first.isUnsat());
+    assertTrue(res.second.length == 1);
+    assertEquals(res.second[0], ff);
   }
 
   @Test
@@ -2925,16 +2943,12 @@ class SolverTest
   @Test
   void tupleProject() throws CVC5ApiException
   {
-    Sort[] sorts = new Sort[] {d_solver.getBooleanSort(),
-        d_solver.getIntegerSort(),
-        d_solver.getStringSort(),
-        d_solver.mkSetSort(d_solver.getStringSort())};
     Term[] elements = new Term[] {d_solver.mkBoolean(true),
         d_solver.mkInteger(3),
         d_solver.mkString("C"),
         d_solver.mkTerm(SET_SINGLETON, d_solver.mkString("Z"))};
 
-    Term tuple = d_solver.mkTuple(sorts, elements);
+    Term tuple = d_solver.mkTuple(elements);
 
     int[] indices1 = new int[] {};
     int[] indices2 = new int[] {0};

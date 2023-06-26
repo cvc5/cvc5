@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -110,14 +110,6 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
   {
     // nothing to do
     return true;
-  }
-
-  // this must be applied to assertions before they are preprocessed, so that
-  // we do not synthesize rewrite rules for internally generated symbols.
-  if (options().quantifiers.sygusRewSynthInput)
-  {
-    // do candidate rewrite rule synthesis
-    applyPass("synth-rr", ap);
   }
 
   if (options().bv.bvGaussElim)
@@ -324,8 +316,16 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
 
   // ensure rewritten
   applyPass("rewrite", ap);
-  // rewrite equalities based on theory-specific rewriting
-  applyPass("theory-rewrite-eq", ap);
+
+  // Note the two passes below are very similar. Ideally, they could be
+  // done in a single traversal, e.g. do both static (ppStaticRewrite) and
+  // normal (ppRewrite) in one pass. However, we do theory-preprocess
+  // separately since it is cached in TheoryPreprocessor, which is subsequently
+  // used for theory preprocessing lemmas as well, whereas a combined
+  // pass could not be used for this purpose.
+
+  // rewrite terms based on static theory-specific rewriting
+  applyPass("static-rewrite", ap);
   // apply theory preprocess, which includes ITE removal
   applyPass("theory-preprocess", ap);
   // notice that we do not apply substitutions as a last step here, since

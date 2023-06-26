@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# script is used for FNT division
+
+# Assumes a binary $cvc5conv for converting tptp (*.p) files to *.smt2.
+# cvc5 version 1.0.5 is recommended for this purpose.
+
+here=`dirname $0`
+cvc5=$here/cvc5
+cvc5conv=$here/cvc5-tptp-to-smt2
+bench="$1"
+
+file=${bench##*/}
+filename=${file%.*}
+unsatResult="Unsatisfiable"
+satResult="Satisfiable"
+
+echo "------- convert to smt2 : $bench..."
+
+$cvc5conv -o raw-benchmark --parse-only --output-lang=smt2 $bench > $here/$filename.smt2
+
+echo -n "------- get file name : "
+
+function processFileName {
+  read pct file colon name colon;
+  echo "$name"
+}
+tptpfilename=$(grep "% File " $bench 2>/dev/null | processFileName)
+echo "TPTP file name is $tptpfilename"
+
+echo "------- cvc5-fnt : $here/$filename.smt2..."
+
+function processresult {
+  (read result;
+  case "$result" in
+  unsat) echo "% SZS status $unsatResult for $tptpfilename";cat;exit 0;;
+  sat) 
+    echo "% SZS status $satResult for $tptpfilename";
+    echo "% SZS output start FiniteModel for $tptpfilename";
+    cat;
+    echo "% SZS output end FiniteModel for $tptpfilename";
+    exit 0;;
+  esac; exit 1)
+}
+  
+# use: trywith [params..]
+# to attempt a run.  If an SZS ontology result is printed, then
+# the run script terminates immediately.  Otherwise, this
+# function returns normally.
+function trywith {
+  limit=$1; shift;
+  echo "--- Run $@ at $limit...";
+  (ulimit -S -t "$limit";$cvc5 --lang=smt2 --no-type-checking --no-interactive --dump-models --force-no-limit-cpu-while-dump -q "$@" $here/$filename.smt2) 2>/dev/null | processresult
+  if [ ${PIPESTATUS[1]} -eq 0 ]; then exit 0; fi
+}
+function finishwith {
+  echo "--- Run $@...";
+  $cvc5 --lang=smt2 --no-type-checking --no-interactive --dump-models --force-no-limit-cpu-while-dump -q "$@" $here/$filename.smt2 | processresult
+}
+
+# designed for 300 seconds
+trywith 30 --finite-model-find
+finishwith --finite-model-find --macros-quant --macros-quant-mode=all --sort-inference
+# echo "% SZS status" "GaveUp for $filename"
+
