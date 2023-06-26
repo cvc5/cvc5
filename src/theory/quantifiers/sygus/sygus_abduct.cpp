@@ -25,6 +25,7 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
+#include "theory/quantifiers/sygus/sygus_grammar_cons_new.h"
 #include "theory/quantifiers/term_util.h"
 
 using namespace std;
@@ -111,15 +112,27 @@ Node SygusAbduct::mkAbductionConjecture(const Options& opts,
   else
   {
     TypeNode btype = nm->booleanType();
-    std::map<TypeNode, std::unordered_set<Node>> extra_cons;
-    std::map<TypeNode, std::unordered_set<Node>> exclude_cons;
-    // exclude OR and ITE, as we don't want disjunctive abducts
-    exclude_cons[btype].insert(nm->operatorOf(OR));
-    exclude_cons[btype].insert(nm->operatorOf(ITE));
-    std::map<TypeNode, std::unordered_set<Node>> include_cons;
-    std::unordered_set<Node> term_irrelevant;
     Node bvl = nm->mkNode(BOUND_VAR_LIST, varlist);
-    abdGTypeS = CegGrammarConstructor::mkSygusDefaultType(opts, btype, bvl, name, extra_cons, exclude_cons, include_cons, term_irrelevant);
+    SygusGrammar g = SygusGrammarCons::mkDefaultGrammar(opts, btype, bvl);
+    // exclude OR and ITE, as we don't want disjunctive abducts
+    const std::vector<Node>& ntSyms = g.getNtSyms();
+    for (const Node& sym : ntSyms)
+    {
+      const std::vector<Node>& rules = g.getRulesFor(sym);
+      std::vector<Node> toErase;
+      for (const Node& r : rules)
+      {
+        if (r.getKind()==OR || r.getKind()==ITE)
+        {
+          toErase.push_back(r);
+        }
+      }
+      for (const Node& r : rules)
+      {
+        g.removeRule(sym, r);
+      }
+    }
+    abdGTypeS = g.resolve(true);
   }
   Assert(abdGTypeS.isDatatype() && abdGTypeS.getDType().isSygus());
 
