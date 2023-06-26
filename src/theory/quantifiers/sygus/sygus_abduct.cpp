@@ -127,7 +127,7 @@ Node SygusAbduct::mkAbductionConjecture(const Options& opts,
           toErase.push_back(r);
         }
       }
-      for (const Node& r : rules)
+      for (const Node& r : toErase)
       {
         g.removeRule(sym, r);
       }

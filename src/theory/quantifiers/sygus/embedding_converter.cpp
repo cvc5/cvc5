@@ -166,14 +166,14 @@ Node EmbeddingConverter::process(Node q,
       }
       tn = SygusGrammarCons::mkDefaultSygusType(
           options(), preGrammarType, sfvl, trules);
-      // print the grammar
-      if (isOutputOn(OutputTag::SYGUS_GRAMMAR))
-      {
-        output(OutputTag::SYGUS_GRAMMAR)
-            << "(sygus-grammar " << sf
-            << printer::smt2::Smt2Printer::sygusGrammarString(tn) << ")"
-            << std::endl;
-      }
+    }
+    // print the grammar
+    if (isOutputOn(OutputTag::SYGUS_GRAMMAR))
+    {
+      output(OutputTag::SYGUS_GRAMMAR)
+          << "(sygus-grammar " << sf
+          << printer::smt2::Smt2Printer::sygusGrammarString(tn) << ")"
+          << std::endl;
     }
     // sfvl may be null for constant synthesis functions
     Trace("cegqi-debug") << "...sygus var list associated with " << sf << " is "
