@@ -271,7 +271,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
                                             TConvProofGenerator* pg)
 {
   NodeManager *nodeManager = NodeManager::currentNM();
-      SkolemManager* sm = nodeManager->getSkolemManager();
+  SkolemManager* sm = nodeManager->getSkolemManager();
 
   TypeNode nodeType = node.getType();
   Node skolem;
@@ -387,15 +387,15 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
       }
     }
   }
-  else if (nodeType.isBoolean() && inTerm && sm->getId(node)!=SkolemFunId::PURIFY)
+  else if (nodeType.isBoolean() && inTerm
+           && sm->getId(node) != SkolemFunId::PURIFY)
   {
     // if a non-variable Boolean term within another term, replace it
     skolem = getSkolemForNode(node);
     if (skolem.isNull())
     {
       Trace("rtf-proof-debug")
-          << "RemoveTermFormulas::run: make Boolean skolem"
-          << std::endl;
+          << "RemoveTermFormulas::run: make Boolean skolem" << std::endl;
       // Make the skolem to represent the Boolean term
       // Skolems introduced for Boolean formulas appearing in terms have a
       // special kind (SKOLEM) that ensures they are handled

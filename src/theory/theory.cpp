@@ -154,8 +154,8 @@ TheoryId Theory::theoryOf(TNode node,
         tid = theoryOf(node.getType(), usortOwner);
         if (theoryOf(node.getType(), usortOwner) == theory::THEORY_BOOL)
         {
-          SkolemManager * sm = NodeManager::currentNM()->getSkolemManager();
-          if (sm->getId(node)==SkolemFunId::PURIFY)
+          SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+          if (sm->getId(node) == SkolemFunId::PURIFY)
           {
             tid = THEORY_UF;
           }
@@ -312,8 +312,7 @@ void Theory::debugPrintFacts() const{
 bool Theory::isLegalElimination(TNode x, TNode val)
 {
   Assert(x.isVar());
-  if (x.getKind() == kind::SKOLEM
-      || val.getKind() == kind::SKOLEM)
+  if (x.getKind() == kind::SKOLEM || val.getKind() == kind::SKOLEM)
   {
     return false;
   }
