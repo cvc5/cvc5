@@ -17,6 +17,7 @@
 
 #include <sstream>
 
+#include "expr/dtype.h"
 #include "expr/skolem_manager.h"
 #include "printer/printer.h"
 #include "printer/smt2/smt2_printer.h"
@@ -148,15 +149,15 @@ bool isId(const Node& n)
 }
 
 /**
- * Add \p rule to the set of rules corresponding to \p ntSym.
+ * Add \p rule to the set of constructors of \p dt.
  *
- * @param ntSym The non-terminal to which the rule is added.
+ * @param dt The datatype to which the rule is added.
  * @param rule The rule to add.
  * @param ntsToUnres Mapping from non-terminals to their unresolved types.
  */
-void addRuleInternal(DType& dt,
-                     const Node& rule,
-                     const std::unordered_map<Node, TypeNode>& ntsToUnres)
+void addSygusConstructor(DType& dt,
+                         const Node& rule,
+                         const std::unordered_map<Node, TypeNode>& ntsToUnres)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
@@ -218,7 +219,7 @@ TypeNode SygusGrammar::resolve(bool allowAny)
         }
         else
         {
-          addRuleInternal(dt, rule, ntsToUnres);
+          addSygusConstructor(dt, rule, ntsToUnres);
         }
       }
       bool aci = allowConsts.find(ntSym) != allowConsts.end();

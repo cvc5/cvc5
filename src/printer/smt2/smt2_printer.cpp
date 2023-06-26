@@ -34,7 +34,6 @@
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
-#include "expr/sygus_datatype.h"
 #include "options/io_utils.h"
 #include "options/language.h"
 #include "printer/let_binding.h"
