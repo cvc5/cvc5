@@ -124,7 +124,7 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Options& opts,
       std::vector<Node> toErase;
       for (const Node& r : rules)
       {
-        if (r.getKind()==OR || r.getKind()==ITE)
+        if (r.getKind() == OR || r.getKind() == ITE)
         {
           toErase.push_back(r);
         }
