@@ -403,9 +403,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
       // generic skolem. Notice that the name/comment are currently ignored
       // within SkolemManager::mkPurifySkolem, since SKOLEM
       // variables cannot be given names.
-      skolem = sm->mkPurifySkolem(
-          node,
-          SkolemManager::SKOLEM_BOOL_TERM_VAR);
+      skolem = sm->mkPurifySkolem(node);
       d_skolem_cache.insert(node, skolem);
 
       // The new assertion

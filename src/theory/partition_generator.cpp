@@ -112,7 +112,7 @@ std::vector<Node> PartitionGenerator::collectLiterals(LiteralListType litType)
       // of the not instead of the not itself.
       Node original = originalN.getKind() == kind::NOT ? originalN[0] : originalN;
 
-      if (expr::hasSubtermKinds(kinds, original)
+      if (expr::hasSubtermKind(kind::SKOLEM, original)
           || !d_valuation->isSatLiteral(original)
           || Theory::theoryOf(original) == THEORY_BOOL
           || n.isConst())
