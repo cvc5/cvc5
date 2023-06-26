@@ -316,10 +316,6 @@ void Theory::debugPrintFacts() const{
 bool Theory::isLegalElimination(TNode x, TNode val)
 {
   Assert(x.isVar());
-  if (x.getKind() == kind::SKOLEM || val.getKind() == kind::SKOLEM)
-  {
-    return false;
-  }
   if (expr::hasSubterm(val, x))
   {
     return false;
@@ -461,14 +457,12 @@ Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
     // 1) x is a variable
     // 2) x is not in the term t
     // 3) x : T and t : S, then S <: T
-    if (in[0].isVar() && isLegalElimination(in[0], in[1])
-        && in[0].getKind() != kind::SKOLEM)
+    if (in[0].isVar() && isLegalElimination(in[0], in[1]))
     {
       outSubstitutions.addSubstitutionSolved(in[0], in[1], tin);
       return PP_ASSERT_STATUS_SOLVED;
     }
-    if (in[1].isVar() && isLegalElimination(in[1], in[0])
-        && in[1].getKind() != kind::SKOLEM)
+    if (in[1].isVar() && isLegalElimination(in[1], in[0]))
     {
       outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
       return PP_ASSERT_STATUS_SOLVED;

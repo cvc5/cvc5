@@ -257,17 +257,22 @@ SatLiteral CnfStream::convertAtom(TNode node)
   bool canEliminate = true;
   bool preRegister = false;
 
-  // Is this a variable add it to the list
-  bool isBoolVar = false;
+  // Is this a variable add it to the list. We distinguish whether a Boolean
+  // variable has been marked as a "purification skolem". This is done
+  // by the term formula removal pass (term_formula_removal.h/cpp). We treat
+  // such variables as theory atoms since they may occur in term positions and
+  // thus need to be considered e.g. for theory combination.
+  bool isInternalBoolVar = false;
   if (node.isVar())
   {
     SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
     if (sm->getId(node) != SkolemFunId::PURIFY)
     {
-      isBoolVar = true;
+      // not a purification variable, just treat as an internal variable.
+      isInternalBoolVar = true;
     }
   }
-  if (isBoolVar)
+  if (isInternalBoolVar)
   {
     d_booleanVariables.push_back(node);
     // if TRACK_AND_NOTIFY_VAR, we are notified when Boolean variables are

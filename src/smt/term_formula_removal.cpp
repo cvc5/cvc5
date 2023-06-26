@@ -397,12 +397,9 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
       Trace("rtf-proof-debug")
           << "RemoveTermFormulas::run: make Boolean skolem" << std::endl;
       // Make the skolem to represent the Boolean term
-      // Skolems introduced for Boolean formulas appearing in terms have a
-      // special kind (SKOLEM) that ensures they are handled
-      // properly in theory combination. We must use this kind here instead of a
-      // generic skolem. Notice that the name/comment are currently ignored
-      // within SkolemManager::mkPurifySkolem, since SKOLEM
-      // variables cannot be given names.
+      // Skolems introduced for Boolean formulas appearing in terms are
+      // purified here (SkolemFunId::PURIFY), which ensures they are handled
+      // properly in theory combination.
       skolem = sm->mkPurifySkolem(node);
       d_skolem_cache.insert(node, skolem);
 
