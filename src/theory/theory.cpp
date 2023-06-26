@@ -22,6 +22,7 @@
 
 #include "base/check.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
@@ -150,14 +151,14 @@ TheoryId Theory::theoryOf(TNode node,
       // Constants, variables, 0-ary constructors
       if (node.isVar())
       {
-        TypeNode tn = node.getType();
-        if (node.getKind() == kind::SKOLEM && tn.isBoolean())
+        tid = theoryOf(node.getType(), usortOwner);
+        if (theoryOf(node.getType(), usortOwner) == theory::THEORY_BOOL)
         {
-          tid = THEORY_UF;
-        }
-        else
-        {
-          tid = theoryOf(tn, usortOwner);
+          SkolemManager * sm = NodeManager::currentNM()->getSkolemManager();
+          if (sm->getId(node)==SkolemFunId::PURIFY)
+          {
+            tid = THEORY_UF;
+          }
         }
       }
       else if (node.getKind() == kind::EQUAL)

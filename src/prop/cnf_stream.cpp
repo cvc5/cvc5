@@ -20,6 +20,7 @@
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/node.h"
+#include "expr/skolem_manager.h"
 #include "options/bv_options.h"
 #include "printer/printer.h"
 #include "proof/clause_id.h"
@@ -257,7 +258,16 @@ SatLiteral CnfStream::convertAtom(TNode node)
   bool preRegister = false;
 
   // Is this a variable add it to the list
-  if (node.isVar() && node.getKind() != kind::SKOLEM)
+  bool isBoolVar = false;
+  if (node.isVar())
+  {
+    SkolemManager * sm = NodeManager::currentNM()->getSkolemManager();
+    if (sm->getId(node)!=SkolemFunId::PURIFY)
+    {
+      isBoolVar = true;
+    }
+  }
+  if (isBoolVar)
   {
     d_booleanVariables.push_back(node);
     // if TRACK_AND_NOTIFY_VAR, we are notified when Boolean variables are

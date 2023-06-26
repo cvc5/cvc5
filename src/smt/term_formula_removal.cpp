@@ -271,6 +271,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
                                             TConvProofGenerator* pg)
 {
   NodeManager *nodeManager = NodeManager::currentNM();
+      SkolemManager* sm = nodeManager->getSkolemManager();
 
   TypeNode nodeType = node.getType();
   Node skolem;
@@ -298,7 +299,6 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
       Trace("rtf-proof-debug")
           << "RemoveTermFormulas::run: make ITE skolem" << std::endl;
       // Make the skolem to represent the ITE
-      SkolemManager* sm = nodeManager->getSkolemManager();
       skolem = sm->mkPurifySkolem(node);
       d_skolem_cache.insert(node, skolem);
 
@@ -354,7 +354,6 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
             << "RemoveTermFormulas::run: make WITNESS skolem" << std::endl;
         // Make the skolem to witness the choice, which notice is handled
         // as a special case within SkolemManager::mkPurifySkolem.
-        SkolemManager* sm = nodeManager->getSkolemManager();
         skolem = sm->mkPurifySkolem(node);
         d_skolem_cache.insert(node, skolem);
 
@@ -388,8 +387,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
       }
     }
   }
-  else if (node.getKind() != kind::SKOLEM && nodeType.isBoolean()
-           && inTerm)
+  else if (nodeType.isBoolean() && inTerm && sm->getId(node)!=SkolemFunId::PURIFY)
   {
     // if a non-variable Boolean term within another term, replace it
     skolem = getSkolemForNode(node);
@@ -405,7 +403,6 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
       // generic skolem. Notice that the name/comment are currently ignored
       // within SkolemManager::mkPurifySkolem, since SKOLEM
       // variables cannot be given names.
-      SkolemManager* sm = nodeManager->getSkolemManager();
       skolem = sm->mkPurifySkolem(
           node,
           SkolemManager::SKOLEM_BOOL_TERM_VAR);
