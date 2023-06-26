@@ -189,14 +189,15 @@ TheoryId Theory::theoryOf(TNode node,
         }
         else
         {
-          if (node.getKind() == kind::SKOLEM)
+          SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+          if (sm->getId(node) == SkolemFunId::PURIFY)
           {
-            // Boolean vars go to UF
+            // purify vars also go to UF
             tid = THEORY_UF;
           }
           else
           {
-            // Except for the Boolean ones
+            // Other Boolean variables are Bool
             tid = THEORY_BOOL;
           }
         }
