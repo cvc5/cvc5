@@ -302,8 +302,6 @@ class SkolemManager
     SKOLEM_DEFAULT = 0,
     /** do not make the name unique by adding the id */
     SKOLEM_EXACT_NAME = 1,
-    /** vars requiring kind BOOLEAN_TERM_VARIABLE */
-    SKOLEM_BOOL_TERM_VAR = 2,
   };
   /**
    * Make purification skolem. This skolem is unique for each t, which we
