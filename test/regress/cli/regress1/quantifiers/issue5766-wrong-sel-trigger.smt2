@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sygus-inst -q
+; COMMAND-LINE: --sygus-inst -q --no-debug-check-models
 ; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)

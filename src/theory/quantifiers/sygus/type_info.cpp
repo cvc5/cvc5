@@ -153,7 +153,7 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
       d_arg_kind[i] = builtinKind;
     }
     // symbolic constructors
-    if (sop.getAttribute(SygusAnyConstAttribute()))
+    if (dt[i].isSygusAnyConstant())
     {
       d_sym_cons_any_constant = i;
       d_has_subterm_sym_cons = true;
