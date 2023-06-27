@@ -63,7 +63,7 @@ TypeNode ArraySelectTypeRule::computeType(NodeManager* nodeManager,
     // if selecting from a (fully) abstract array, the return is unknown.
     return nodeManager->mkAbstractType(kind::ABSTRACT_TYPE);
   }
-  // otheriw
+  // otherwise
   return arrayType.getArrayConstituentType();
 }
 
