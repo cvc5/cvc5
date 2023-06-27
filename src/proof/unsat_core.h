@@ -18,12 +18,18 @@
 #ifndef CVC5__UNSAT_CORE_H
 #define CVC5__UNSAT_CORE_H
 
+#include <cvc5/cvc5_export.h>
+
 #include <iosfwd>
+#include <string>
 #include <vector>
 
-#include "expr/node.h"
-
 namespace cvc5::internal {
+
+template <bool ref_count>
+class NodeTemplate;
+typedef NodeTemplate<true> Node;
+typedef NodeTemplate<false> TNode;
 
 /**
  * An unsat core, which can optionally be initialized as a list of names

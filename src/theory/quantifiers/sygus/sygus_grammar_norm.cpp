@@ -16,18 +16,17 @@
 
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 
+#include <numeric>  // for std::iota
 #include <sstream>
 
 #include "expr/dtype_cons.h"
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
-#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/sygus_grammar_cons_new.h"
 #include "theory/quantifiers/sygus/sygus_grammar_red.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-
-#include <numeric>  // for std::iota
 
 using namespace cvc5::internal::kind;
 
@@ -447,7 +446,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
     {
       // add default constant constructors
       std::vector<Node> ops;
-      CegGrammarConstructor::mkSygusConstantsForType(sygus_type, ops);
+      SygusGrammarCons::mkSygusConstantsForType(sygus_type, ops);
       for (const Node& op : ops)
       {
         std::stringstream ss;

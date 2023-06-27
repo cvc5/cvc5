@@ -291,12 +291,6 @@ Node NodeManager::mkConst<${class}>(const ${class}& val)
 {
   return mkConstInternal<Node, ${class}>(::cvc5::internal::kind::$1, val);
 }
-
-template<>
-TypeNode NodeManager::mkTypeConst<${class}>(const ${class}& val)
-{
-  return mkConstInternal<TypeNode, ${class}>(::cvc5::internal::kind::$1, val);
-}
 "
     metakind_mkConst="${metakind_mkConst}
 template<>
