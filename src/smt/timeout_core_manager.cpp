@@ -277,6 +277,7 @@ void TimeoutCoreManager::initializePreprocessedAssertions(
     const std::map<size_t, Node>& ppSkolemMap)
 {
   d_ppAsserts.clear();
+  d_skolemToAssert.clear();
 
   Trace("smt-to-core") << "initializePreprocessedAssertions" << std::endl;
   Trace("smt-to-core") << "#asserts = " << ppAsserts.size() << std::endl;
