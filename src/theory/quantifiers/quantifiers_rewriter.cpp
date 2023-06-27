@@ -33,8 +33,8 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
-#include "theory/uf/theory_uf_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/uf/theory_uf_rewriter.h"
 #include "util/rational.h"
 
 using namespace std;
@@ -681,7 +681,7 @@ Node QuantifiersRewriter::computeProcessTerms2(
       ret = nm->mkNode(ITE, iconds[i], elements[i], ret);
     }
   }
-  else if (ret.getKind()==HO_APPLY && !ret.getType().isFunction())
+  else if (ret.getKind() == HO_APPLY && !ret.getType().isFunction())
   {
     // fully applied functions are converted to APPLY_UF here.
     Node fullApp = uf::TheoryUfRewriter::getApplyUfForHoApply(ret);

@@ -45,7 +45,7 @@ class TheoryUfRewriter : public TheoryRewriter
    * (f a b) becomes (@ (@ f a) b).
    */
   static Node getHoApplyForApplyUf(TNode n);
-  /** 
+  /**
    * Converts a curried HO_APPLY into an APPLY_UF e.g.
    * (@ (@ f a) b) becomes (f a b).
    * Returns null if f cannot be used as an operator for APPLY_UF (see
