@@ -348,6 +348,8 @@ TrustNode TheoryDatatypes::ppRewrite(TNode in, std::vector<SkolemLemma>& lems)
   Trace("datatypes") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
   // Eliminate DT_SIZE, which is only used for enforcing fairness in sygus.
   // We only assume that DT_SIZE terms are greater than or equal to zero.
+  // Note that this ensures that spurious check-model failures are not
+  // generated.
   if (in.getKind() == DT_SIZE)
   {
     NodeManager* nm = NodeManager::currentNM();
