@@ -39,6 +39,7 @@
 #include "options/language.h"
 #include "printer/let_binding.h"
 #include "proof/unsat_core.h"
+#include "smt/model.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/builtin/abstract_type.h"
 #include "theory/builtin/generic_op.h"

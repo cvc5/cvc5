@@ -253,7 +253,13 @@ endif ()
 # Use interprocedural optimization if requested
 
 if(ENABLE_IPO)
-  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+  check_ipo_supported(RESULT have_ipo_support)
+  if(have_ipo_support)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+  else()
+    message(STATUS "Interprocedural optimization not supported.")
+    set(ENABLE_IPO OFF)
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#

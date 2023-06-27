@@ -163,6 +163,19 @@ bool ArrayStoreTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
     return false;
   }
 
+  TypeNode itype = index.getTypeOrNull();
+  // if the index is ill-typed, just return false
+  if (itype.isNull())
+  {
+    return false;
+  }
+  CardinalityClass itcc = itype.getCardinalityClass();
+
+  if (itcc != CardinalityClass::FINITE && itcc != CardinalityClass::ONE)
+  {
+    return true;
+  }
+
   // Get the cardinality of the index type
   Cardinality indexCard = index.getTypeOrNull().getCardinality();
 
