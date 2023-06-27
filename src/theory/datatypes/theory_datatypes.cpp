@@ -346,6 +346,20 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
 TrustNode TheoryDatatypes::ppRewrite(TNode in, std::vector<SkolemLemma>& lems)
 {
   Trace("datatypes") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
+  // Eliminate DT_SIZE, which is only used for enforcing fairness in sygus.
+  // We only assume that DT_SIZE terms are greater than or equal to zero.
+  if (in.getKind() == DT_SIZE)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
+    Node k = sm->mkPurifySkolem(in);
+    Node lem = nm->mkNode(LEQ, d_zero, k);
+    Trace("datatypes-infer")
+        << "DtInfer : size geq zero : " << lem << std::endl;
+    TrustNode tlem = TrustNode::mkTrustLemma(lem);
+    lems.emplace_back(tlem, k);
+    return TrustNode::mkTrustRewrite(in, k);
+  }
   // first, see if we need to expand definitions
   TrustNode texp = d_rewriter.expandDefinition(in);
   if (!texp.isNull())
@@ -397,7 +411,7 @@ void TheoryDatatypes::eqNotifyNewClass(TNode n)
       d_functionTerms.push_back(n);
     }
   }
-  if (nk == APPLY_SELECTOR || nk == DT_SIZE || nk == DT_HEIGHT_BOUND)
+  if (nk == APPLY_SELECTOR || nk == DT_HEIGHT_BOUND)
   {
     d_functionTerms.push_back(n);
     // we must also record which selectors exist
@@ -1127,14 +1141,7 @@ void TheoryDatatypes::registerInitialLemmas(Node n)
 
   NodeManager* nm = NodeManager::currentNM();
   Kind nk = n.getKind();
-  if (nk == DT_SIZE)
-  {
-    Node lem = nm->mkNode(LEQ, d_zero, n);
-    Trace("datatypes-infer")
-        << "DtInfer : size geq zero : " << lem << std::endl;
-    d_im.addPendingLemma(lem, InferenceId::DATATYPES_SIZE_POS);
-  }
-  else if (nk == DT_HEIGHT_BOUND && n[1].getConst<Rational>().isZero())
+  if (nk == DT_HEIGHT_BOUND && n[1].getConst<Rational>().isZero())
   {
     std::vector<Node> children;
     const DType& dt = n[0].getType().getDType();
