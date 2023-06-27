@@ -685,7 +685,11 @@ Node QuantifiersRewriter::computeProcessTerms2(
   {
     // fully applied functions are converted to APPLY_UF here.
     Node fullApp = uf::TheoryUfRewriter::getApplyUfForHoApply(ret);
-    ret = fullApp;
+    // it may not be possible to convert e.g. if the head is not a variable
+    if (!fullApp.isNull())
+    {
+      ret = fullApp;
+    }
   }
   cache[body] = ret;
   return ret;
