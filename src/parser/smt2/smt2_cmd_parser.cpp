@@ -688,7 +688,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new GetUnsatCoreCommand);
     }
     break;
-    // (get-value (<term>*))
+    // (get-value (<term>+))
     case Token::GET_VALUE_TOK:
     {
       d_state.checkThatLogicIsSet();
@@ -696,6 +696,10 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       // values
       d_state.pushGetValueScope();
       std::vector<Term> terms = d_tparser.parseTermList();
+      if (terms.empty())
+      {
+        d_lex.parseError("Expected non-empty list of terms for get-value");
+      }
       cmd.reset(new GetValueCommand(terms));
       d_state.popScope();
     }
