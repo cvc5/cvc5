@@ -72,15 +72,15 @@ void SmtDriverDeepRestarts::getNextAssertions(
   Trace("deep-restart") << "Have " << d_zll.size()
                         << " zero level learned literals" << std::endl;
   // Copy the preprocessed assertions and skolem map information directly
-  const std::vector<Node>& ppAssertions = d_smt.getPreprocessedAssertions();
+  const context::CDList<Node>& ppAssertions = d_smt.getPreprocessedAssertions();
   for (const Node& a : ppAssertions)
   {
     ap.push_back(a);
   }
   preprocessing::IteSkolemMap& ismr = ap.getIteSkolemMap();
-  const std::unordered_map<size_t, Node>& ppSkolemMap =
+  const context::CDHashMap<size_t, Node>& ppSkolemMap =
       d_smt.getPreprocessedSkolemMap();
-  for (const std::pair<const size_t, Node>& k : ppSkolemMap)
+  for (const auto& k : ppSkolemMap)
   {
     // carry the entire skolem map, which should align with the order of
     // assertions passed into the new assertions pipeline

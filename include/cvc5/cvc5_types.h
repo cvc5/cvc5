@@ -252,6 +252,59 @@ enum ProofComponent
 };
 /** Writes a proof component identifier to a stream. */
 std::ostream& operator<<(std::ostream& out, ProofComponent pc) CVC5_EXPORT;
+
+/**
+ * Find synthesis targets, used as an argument to Solver::findSynth. These
+ * specify various kinds of terms that can be found by this method.
+ */
+enum FindSynthTarget
+{
+  /**
+   * Find the next term in the enumeration of the target grammar.
+   */
+  FIND_SYNTH_TARGET_ENUM,
+  /**
+   * Find a pair of terms (t,s) in the target grammar which are equivalent
+   * but do not rewrite to the same term in the given rewriter
+   * (--sygus-rewrite=MODE). If so, the equality (= t s) is returned by
+   * findSynth.
+   *
+   * This can be used to synthesize rewrite rules. Note if the rewriter is set
+   * to none (--sygus-rewrite=none), this indicates a possible rewrite when
+   * implementing a rewriter from scratch.
+   */
+  FIND_SYNTH_TARGET_REWRITE,
+  /**
+   * Find a term t in the target grammar which rewrites to a term s that is
+   * not equivalent to it. If so, the equality (= t s) is returned by
+   * findSynth.
+   *
+   * This can be used to test the correctness of the given rewriter. Any
+   * returned rewrite indicates an unsoundness in the given rewriter.
+   */
+  FIND_SYNTH_TARGET_REWRITE_UNSOUND,
+  /**
+   * Find a rewrite between pairs of terms (t,s) that are matchable with terms
+   * in the input assertions where t and s are equivalent but do not rewrite
+   * to the same term in the given rewriter (--sygus-rewrite=MODE).
+   *
+   * This can be used to synthesize rewrite rules that apply to the current
+   * problem.
+   */
+  FIND_SYNTH_TARGET_REWRITE_INPUT,
+  /**
+   * Find a query over the given grammar. If the given grammar generates terms
+   * that are not Boolean, we consider equalities over terms from the given
+   * grammar.
+   *
+   * The algorithm for determining which queries to generate is configured by
+   * --sygus-query-gen=MODE.
+   */
+  FIND_SYNTH_TARGET_QUERY
+};
+/** Writes a synthesis find target identifier to a stream. */
+std::ostream& operator<<(std::ostream& out, FindSynthTarget fst) CVC5_EXPORT;
+
 }  // namespace cvc5::modes
 
 #endif

@@ -44,13 +44,13 @@ void SygusRedundantCons::initialize(TermDbSygus* tds, TypeNode tn)
   {
     Trace("sygus-red") << "  Is " << dt[i].getName() << " a redundant operator?"
                        << std::endl;
-    Node sop = dt[i].getSygusOp();
-    if (sop.getAttribute(SygusAnyConstAttribute()))
+    if (dt[i].isSygusAnyConstant())
     {
       // the any constant constructor is never redundant
       d_sygus_red_status.push_back(0);
       continue;
     }
+    Node sop = dt[i].getSygusOp();
     std::map<int, Node> pre;
     // We do not do beta reduction, since we want the arguments to match the
     // the types of the datatype.

@@ -93,7 +93,6 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_bab(bab),
       d_pnm(d_env.isTheoryProofProducing() ? d_env.getProofNodeManager()
                                            : nullptr),
-      d_checker(),
       d_pfGen(new EagerProofGenerator(env, userContext())),
       d_constraintDatabase(d_env,
                            d_partialModel,
@@ -5010,11 +5009,6 @@ void TheoryArithPrivate::entailmentCheckRowSum(std::pair<Node, DeltaRational>& t
   }
   // success
   tmp.first = nb;
-}
-
-ArithProofRuleChecker* TheoryArithPrivate::getProofChecker()
-{
-  return &d_checker;
 }
 
 ArithCongruenceManager* TheoryArithPrivate::getCongruenceManager()
