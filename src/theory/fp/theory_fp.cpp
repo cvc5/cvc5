@@ -70,6 +70,7 @@ TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
       d_im(env, *this, d_state, "theory::fp::", true),
       d_notify(d_im),
       d_wbFactsCache(userContext()),
+      d_invalidateModelCache(context(), true),
       d_true(NodeManager::currentNM()->mkConst(true))
 {
   // indicate we are using the default theory state and inference manager
@@ -670,6 +671,8 @@ bool TheoryFp::needsCheckLastEffort()
 
 void TheoryFp::postCheck(Effort level)
 {
+  d_invalidateModelCache = true;
+
   /* Resolve the abstractions for the conversion lemmas */
   if (level == EFFORT_LAST_CALL)
   {
@@ -743,6 +746,79 @@ void TheoryFp::notifySharedTerm(TNode n)
   }
 }
 
+Node TheoryFp::getValue(TNode node)
+{
+  if (d_invalidateModelCache.get())
+  {
+    d_modelCache.clear();
+  }
+  d_invalidateModelCache.set(false);
+
+  std::vector<TNode> visit;
+
+  TNode cur;
+  visit.push_back(node);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+
+    auto it = d_modelCache.find(cur);
+    if (it != d_modelCache.end() && !it->second.isNull())
+    {
+      continue;
+    }
+
+    if (cur.isConst())
+    {
+      d_modelCache[cur] = cur;
+      continue;
+    }
+
+    Node value;
+
+    Kind kind = cur.getKind();
+    if (kind == kind::FLOATINGPOINT_TO_FP_FROM_SBV
+        || kind == kind::FLOATINGPOINT_TO_FP_FROM_UBV
+        || kind == kind::FLOATINGPOINT_TO_FP_FROM_REAL
+        || kind == kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV
+        || Theory::isLeafOf(cur, theory::THEORY_FP))
+    {
+      value = d_wordBlaster->getValue(d_valuation, cur);
+      d_modelCache[cur] = value;
+      continue;
+    }
+
+    if (it == d_modelCache.end())
+    {
+      visit.push_back(cur);
+      d_modelCache.emplace(cur, Node());
+      visit.insert(visit.end(), cur.begin(), cur.end());
+    }
+    else if (it->second.isNull())
+    {
+      NodeBuilder nb(kind);
+      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
+        nb << cur.getOperator();
+      }
+
+      std::unordered_map<Node, Node>::iterator iit;
+      for (const TNode& child : cur)
+      {
+        iit = d_modelCache.find(child);
+        Assert(iit != d_modelCache.end());
+        nb << iit->second;
+      }
+      it->second = rewrite(nb.constructNode());
+    }
+  } while (!visit.empty());
+
+  auto it = d_modelCache.find(node);
+  Assert(it != d_modelCache.end());
+  return it->second;
+}
+
 TrustNode TheoryFp::explain(TNode n)
 {
   Trace("fp") << "TheoryFp::explain(): explain " << n << std::endl;
@@ -763,9 +839,23 @@ TrustNode TheoryFp::explain(TNode n)
   return TrustNode::mkTrustPropExp(n, exp, nullptr);
 }
 
-Node TheoryFp::getCandidateModelValue(TNode var)
+Node TheoryFp::getCandidateModelValue(TNode node) { return getValue(node); }
+
+EqualityStatus TheoryFp::getEqualityStatus(TNode a, TNode b)
 {
-  return d_wordBlaster->getValue(d_valuation, var);
+  Node value_a = getValue(a);
+  Node value_b = getValue(b);
+  if (value_a.isNull() || value_b.isNull())
+  {
+    return EqualityStatus::EQUALITY_UNKNOWN;
+  }
+  if (value_a == value_b)
+  {
+    Trace("theory-fp") << EqualityStatus::EQUALITY_TRUE_IN_MODEL << std::endl;
+    return EqualityStatus::EQUALITY_TRUE_IN_MODEL;
+  }
+  Trace("theory-fp") << EqualityStatus::EQUALITY_FALSE_IN_MODEL << std::endl;
+  return EqualityStatus::EQUALITY_FALSE_IN_MODEL;
 }
 
 bool TheoryFp::collectModelInfo(TheoryModel* m,

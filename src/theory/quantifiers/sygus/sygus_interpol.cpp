@@ -21,12 +21,13 @@
 #include "base/modal_exception.h"
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
+#include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
 #include "smt/set_defaults.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/sygus_grammar_cons_new.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/smt_engine_subsolver.h"
 
@@ -188,20 +189,31 @@ TypeNode SygusInterpol::setSynthGrammar(const TypeNode& itpGType,
   else
   {
     // set default grammar
-    std::map<TypeNode, std::unordered_set<Node>> extra_cons;
-    std::map<TypeNode, std::unordered_set<Node>> exclude_cons;
+    TypeNode btype = NodeManager::currentNM()->booleanType();
+    SygusGrammar g =
+        SygusGrammarCons::mkDefaultGrammar(options(), btype, d_ibvlShared);
+    // exclude rules that don't appear in operators
     std::map<TypeNode, std::unordered_set<Node>> include_cons;
     getIncludeCons(axioms, conj, include_cons);
-    std::unordered_set<Node> terms_irrelevant;
-    itpGTypeS = CegGrammarConstructor::mkSygusDefaultType(
-        options(),
-        NodeManager::currentNM()->booleanType(),
-        d_ibvlShared,
-        "interpolation_grammar",
-        extra_cons,
-        exclude_cons,
-        include_cons,
-        terms_irrelevant);
+    const std::vector<Node>& ntSyms = g.getNtSyms();
+    for (const Node& ntSym : ntSyms)
+    {
+      std::vector<Node> rules = g.getRulesFor(ntSym);
+      TypeNode stype = ntSym.getType();
+      if (include_cons.find(stype) == include_cons.end())
+      {
+        continue;
+      }
+      const std::unordered_set<Node>& icons = include_cons[ntSym.getType()];
+      for (const Node& r : rules)
+      {
+        if (r.hasOperator() && icons.find(r.getOperator()) == icons.end())
+        {
+          g.removeRule(ntSym, r);
+        }
+      }
+    }
+    itpGTypeS = g.resolve(true);
   }
   Trace("sygus-interpol-debug") << "...finish setting up grammar" << std::endl;
   return itpGTypeS;

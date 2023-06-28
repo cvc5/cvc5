@@ -32,12 +32,12 @@ using namespace cvc5::internal::parser;
 namespace cvc5::internal {
 namespace test {
 
-class TestInputParserBlackInputParser : public TestInternal
+class TestInputParserBlack : public TestInternal
 {
  protected:
-  TestInputParserBlackInputParser(const std::string& lang) : d_lang(lang) {}
+  TestInputParserBlack(const std::string& lang) : d_lang(lang) {}
 
-  virtual ~TestInputParserBlackInputParser() {}
+  virtual ~TestInputParserBlack() {}
 
   void SetUp() override
   {
@@ -174,11 +174,11 @@ class TestInputParserBlackInputParser : public TestInternal
 /* -------------------------------------------------------------------------- */
 
 class TestInputParserBlackSmt2InputParser
-    : public TestInputParserBlackInputParser
+    : public TestInputParserBlack
 {
  protected:
   TestInputParserBlackSmt2InputParser()
-      : TestInputParserBlackInputParser("LANG_SMTLIB_V2_6")
+      : TestInputParserBlack("LANG_SMTLIB_V2_6")
   {
   }
 };
