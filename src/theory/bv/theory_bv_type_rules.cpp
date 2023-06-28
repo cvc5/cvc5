@@ -332,7 +332,7 @@ TypeNode BitVectorITETypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode BitVectorBitOfTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode BitVectorBitOfTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
@@ -362,7 +362,8 @@ TypeNode BitVectorBitOfTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode BitVectorExtractTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  BitVectorExtract extractInfo = n.getOperator().getConst<BitVectorExtract>();
+  return nm->mkBitVectorType(extractInfo.d_high - extractInfo.d_low + 1);
 }
 TypeNode BitVectorExtractTypeRule::computeType(NodeManager* nodeManager,
                                                TNode n,

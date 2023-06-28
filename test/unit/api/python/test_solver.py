@@ -1481,6 +1481,7 @@ def test_learned_literals2(solver):
 
 def test_get_timeout_core_unsat(solver):
   solver.setOption("timeout-core-timeout", "100")
+  solver.setOption("produce-unsat-cores", "true")
   intSort = solver.getIntegerSort()
   x = solver.mkConst(intSort, "x")
   tt = solver.mkBoolean(True)
@@ -1495,6 +1496,7 @@ def test_get_timeout_core_unsat(solver):
   assert res[1][0] == hard
 
 def test_get_timeout_core(solver):
+  solver.setOption("produce-unsat-cores", "true")
   ff = solver.mkBoolean(False)
   tt = solver.mkBoolean(True)
   solver.assertFormula(tt)
