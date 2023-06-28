@@ -15,6 +15,7 @@
 
 #include "parser/api/cpp/input_parser.h"
 
+#include "base/check.h"
 #include "base/output.h"
 #include "parser/api/cpp/command.h"
 #include "parser/input.h"
@@ -53,7 +54,7 @@ void InputParser::initialize()
     if (info.setByUser)
     {
       internal::LogicInfo tmp(info.stringValue());
-      d_sm->forceLogic(tmp.getLogicString());
+      d_sm->setLogic(tmp.getLogicString(), true);
     }
   }
   else
@@ -68,6 +69,20 @@ void InputParser::initialize()
 Solver* InputParser::getSolver() { return d_solver; }
 
 SymbolManager* InputParser::getSymbolManager() { return d_sm; }
+
+void InputParser::setLogic(const std::string& name)
+{
+  if (d_useFlex)
+  {
+    d_sm->setLogic(name);
+    d_fparser->setLogic(name);
+  }
+  else
+  {
+    // not supported in ANTLR
+    Unhandled() << "set-logic not supported in input parser using ANTLR.";
+  }
+}
 
 std::unique_ptr<Command> InputParser::nextCommand()
 {

@@ -76,12 +76,6 @@ std::string ParserState::getNameForUserName(const std::string& name) const
   return name;
 }
 
-const std::string& ParserState::getForcedLogic() const
-{
-  return d_symman->getForcedLogic();
-}
-bool ParserState::logicIsForced() const { return d_symman->isLogicForced(); }
-
 Term ParserState::getExpressionForNameAndType(const std::string& name, Sort t)
 {
   Assert(isDeclared(name));

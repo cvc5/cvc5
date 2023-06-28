@@ -1007,7 +1007,7 @@ void TheorySetsPrivate::groupNotEmpty(Node n)
   TypeNode bagType = n.getType();
   Node A = n[0];
   Node emptyPart = nm->mkConst(EmptySet(A.getType()));
-  Node skolem = registerAndAssertSkolemLemma(n, "skolem_group");
+  Node skolem = registerAndAssertSkolemLemma(n);
 
   Node A_isEmpty = A.eqNode(emptyPart);
   std::vector<Node> exp;
@@ -1035,11 +1035,11 @@ void TheorySetsPrivate::groupUp1(Node n, Node x, Node part)
   exp.push_back(member_x_A);
 
   Node part_x = nm->mkNode(APPLY_UF, part, x);
-  part_x = registerAndAssertSkolemLemma(part_x, "part_x");
+  part_x = registerAndAssertSkolemLemma(part_x);
 
   Node member_x_part_x = nm->mkNode(SET_MEMBER, x, part_x);
 
-  Node skolem = registerAndAssertSkolemLemma(n, "skolem_group");
+  Node skolem = registerAndAssertSkolemLemma(n);
   Node member_part_x_n = nm->mkNode(SET_MEMBER, part_x, skolem);
 
   Node emptyPart = nm->mkConst(EmptySet(setType));
@@ -1065,7 +1065,7 @@ void TheorySetsPrivate::groupUp2(Node n, Node x, Node part)
   exp.push_back(member_x_A.notNode());
 
   Node part_x = nm->mkNode(APPLY_UF, part, x);
-  part_x = registerAndAssertSkolemLemma(part_x, "part_x");
+  part_x = registerAndAssertSkolemLemma(part_x);
   Node part_x_is_empty = part_x.eqNode(nm->mkConst(EmptySet(setType)));
   Node conclusion = part_x_is_empty;
   d_im.assertInference(conclusion, InferenceId::SETS_RELS_GROUP_UP2, exp, 1);
@@ -1082,14 +1082,14 @@ void TheorySetsPrivate::groupDown(Node n, Node B, Node x, Node part)
 
   Node member_x_B = nm->mkNode(SET_MEMBER, x, B);
 
-  Node skolem = registerAndAssertSkolemLemma(n, "skolem_group");
+  Node skolem = registerAndAssertSkolemLemma(n);
   Node member_B_n = nm->mkNode(SET_MEMBER, B, skolem);
   std::vector<Node> exp;
   exp.push_back(member_B_n);
   exp.push_back(member_x_B);
   Node member_x_A = nm->mkNode(SET_MEMBER, x, A);
   Node part_x = nm->mkNode(APPLY_UF, part, x);
-  part_x = registerAndAssertSkolemLemma(part_x, "part_x");
+  part_x = registerAndAssertSkolemLemma(part_x);
   Node part_x_is_B = part_x.eqNode(B);
   Node conclusion = nm->mkNode(AND, member_x_A, part_x_is_B);
   d_im.assertInference(conclusion, InferenceId::SETS_RELS_GROUP_DOWN, exp, 1);
@@ -1107,7 +1107,7 @@ void TheorySetsPrivate::groupPartMember(Node n, Node B, Node part)
   TypeNode setType = A.getType();
   Node empty = nm->mkConst(EmptySet(setType));
 
-  Node skolem = registerAndAssertSkolemLemma(n, "skolem_group");
+  Node skolem = registerAndAssertSkolemLemma(n);
   Node member_B_n = nm->mkNode(SET_MEMBER, B, skolem);
   std::vector<Node> exp;
   exp.push_back(member_B_n);
@@ -1119,7 +1119,7 @@ void TheorySetsPrivate::groupPartMember(Node n, Node B, Node part)
                                 {n, B});
   d_state.registerPartElementSkolem(n, x);
   Node part_x = nm->mkNode(APPLY_UF, part, x);
-  part_x = registerAndAssertSkolemLemma(part_x, "part_x");
+  part_x = registerAndAssertSkolemLemma(part_x);
   Node B_is_part_x = B.eqNode(part_x);
   Node member_x_A = nm->mkNode(SET_MEMBER, x, A);
   Node member_x_B = nm->mkNode(SET_MEMBER, x, B);
@@ -1144,7 +1144,7 @@ void TheorySetsPrivate::groupSameProjection(
   Node member_x_B = nm->mkNode(SET_MEMBER, x, B);
   Node member_y_B = nm->mkNode(SET_MEMBER, y, B);
 
-  Node skolem = registerAndAssertSkolemLemma(n, "skolem_group");
+  Node skolem = registerAndAssertSkolemLemma(n);
   Node member_B_n = nm->mkNode(SET_MEMBER, B, skolem);
 
   // premises
@@ -1161,9 +1161,9 @@ void TheorySetsPrivate::groupSameProjection(
   Node yProjection = TupleUtils::getTupleProjection(indices, y);
   Node sameProjection = xProjection.eqNode(yProjection);
   Node part_x = nm->mkNode(APPLY_UF, part, x);
-  part_x = registerAndAssertSkolemLemma(part_x, "part_x");
+  part_x = registerAndAssertSkolemLemma(part_x);
   Node part_y = nm->mkNode(APPLY_UF, part, y);
-  part_y = registerAndAssertSkolemLemma(part_y, "part_y");
+  part_y = registerAndAssertSkolemLemma(part_y);
   Node samePart = part_x.eqNode(part_y);
   Node part_x_is_B = part_x.eqNode(B);
   Node conclusion = nm->mkNode(AND, sameProjection, samePart, part_x_is_B);
@@ -1186,7 +1186,7 @@ void TheorySetsPrivate::groupSamePart(Node n, Node B, Node x, Node y, Node part)
   Node member_y_A = nm->mkNode(SET_MEMBER, y, A);
   Node member_y_B = nm->mkNode(SET_MEMBER, y, B);
 
-  Node skolem = registerAndAssertSkolemLemma(n, "skolem_group");
+  Node skolem = registerAndAssertSkolemLemma(n);
   Node member_B_n = nm->mkNode(SET_MEMBER, B, skolem);
   const std::vector<uint32_t>& indices =
       n.getOperator().getConst<ProjectOp>().getIndices();
@@ -1202,9 +1202,9 @@ void TheorySetsPrivate::groupSamePart(Node n, Node B, Node x, Node y, Node part)
   exp.push_back(xProjection.eqNode(yProjection));
 
   Node part_x = nm->mkNode(APPLY_UF, part, x);
-  part_x = registerAndAssertSkolemLemma(part_x, "part_x");
+  part_x = registerAndAssertSkolemLemma(part_x);
   Node part_y = nm->mkNode(APPLY_UF, part, y);
-  part_y = registerAndAssertSkolemLemma(part_y, "part_y");
+  part_y = registerAndAssertSkolemLemma(part_y);
   Node samePart = part_x.eqNode(part_y);
   Node part_x_is_B = part_x.eqNode(B);
   Node conclusion = nm->mkNode(AND, member_y_B, samePart, part_x_is_B);
@@ -1229,12 +1229,11 @@ Node TheorySetsPrivate::defineSkolemPartFunction(Node n)
   return part;
 }
 
-Node TheorySetsPrivate::registerAndAssertSkolemLemma(Node& n,
-                                                     const std::string& prefix)
+Node TheorySetsPrivate::registerAndAssertSkolemLemma(Node& n)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  Node skolem = sm->mkPurifySkolem(n, prefix);
+  Node skolem = sm->mkPurifySkolem(n);
   Node lemma = n.eqNode(skolem);
   d_im.addPendingLemma(lemma, InferenceId::SETS_SKOLEM);
   Trace("sets-skolems") << "sets-skolems:  " << skolem << " = " << n
@@ -1323,7 +1322,7 @@ void TheorySetsPrivate::checkReduceComprehensions()
     body = body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
     Node bvl = nm->mkNode(BOUND_VAR_LIST, subs);
     body = nm->mkNode(EXISTS, bvl, body);
-    Node k = sm->mkPurifySkolem(n, "kcomp");
+    Node k = sm->mkPurifySkolem(n);
     Node mem = nm->mkNode(SET_MEMBER, v, k);
     Node lem = nm->mkNode(
         AND,
@@ -1717,7 +1716,7 @@ TrustNode TheorySetsPrivate::ppRewrite(Node node,
         // a sibling of (set.minus set.universe x).
         NodeManager* nm = NodeManager::currentNM();
         SkolemManager* sm = nm->getSkolemManager();
-        Node sk = sm->mkPurifySkolem(node[0], "univ");
+        Node sk = sm->mkPurifySkolem(node[0]);
         Node eq = sk.eqNode(node[0]);
         lems.push_back(SkolemLemma(TrustNode::mkTrustLemma(eq), sk));
         Node ret = nm->mkNode(kind::SET_MINUS, sk, node[1]);
@@ -1747,8 +1746,7 @@ TrustNode TheorySetsPrivate::expandChooseOperator(
   SkolemManager::SkolemFlags flags = node.getType().isBoolean()
                                          ? SkolemManager::SKOLEM_BOOL_TERM_VAR
                                          : SkolemManager::SKOLEM_DEFAULT;
-  Node x = sm->mkPurifySkolem(
-      node, "setChoose", "a variable used to eliminate set choose", flags);
+  Node x = sm->mkPurifySkolem(node, flags);
   Node A = node[0];
   TypeNode setType = A.getType();
   ensureFirstClassSetType(setType);

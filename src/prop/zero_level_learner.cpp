@@ -292,17 +292,14 @@ void ZeroLevelLearner::processLearnedLiteral(const Node& lit,
     // are mapped back to their original form
     output(OutputTag::LEARNED_LITS)
         << "(learned-lit " << SkolemManager::getOriginalForm(lit);
-    if (ltype != modes::LEARNED_LIT_INPUT)
-    {
-      std::stringstream tss;
-      tss << ltype;
-      std::string ltstr = tss.str();
-      std::transform(
-          ltstr.begin(), ltstr.end(), ltstr.begin(), [](unsigned char c) {
-            return std::tolower(c);
-          });
-      output(OutputTag::LEARNED_LITS) << " :" << ltstr;
-    }
+    std::stringstream tss;
+    tss << ltype;
+    std::string ltstr = tss.str();
+    std::transform(
+        ltstr.begin(), ltstr.end(), ltstr.begin(), [](unsigned char c) {
+          return std::tolower(c);
+        });
+    output(OutputTag::LEARNED_LITS) << " :" << ltstr;
     output(OutputTag::LEARNED_LITS) << ")" << std::endl;
   }
 }

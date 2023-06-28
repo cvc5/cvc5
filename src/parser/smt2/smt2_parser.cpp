@@ -23,16 +23,18 @@ namespace parser {
 
 Smt2Parser::Smt2Parser(Solver* solver,
                        SymbolManager* sm,
-                       bool strictMode,
+                       bool isStrict,
                        bool isSygus)
     : FlexParser(solver, sm),
-      d_slex(isSygus, strictMode),
-      d_state(this, solver, sm, strictMode, isSygus),
+      d_slex(isStrict, isSygus),
+      d_state(this, solver, sm, isStrict, isSygus),
       d_termParser(d_slex, d_state),
       d_cmdParser(d_slex, d_state, d_termParser)
 {
   d_lex = &d_slex;
 }
+
+void Smt2Parser::setLogic(const std::string& logic) { d_state.setLogic(logic); }
 
 std::unique_ptr<Command> Smt2Parser::parseNextCommand()
 {
@@ -47,6 +49,9 @@ Term Smt2Parser::parseNextExpression()
   {
     return Term();
   }
+  // check that the logic has been set
+  d_state.checkThatLogicIsSet();
+  // Parse the term.
   return d_termParser.parseTerm();
 }
 

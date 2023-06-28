@@ -93,7 +93,6 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_bab(bab),
       d_pnm(d_env.isTheoryProofProducing() ? d_env.getProofNodeManager()
                                            : nullptr),
-      d_checker(),
       d_pfGen(new EagerProofGenerator(env, userContext())),
       d_constraintDatabase(d_env,
                            d_partialModel,
@@ -374,6 +373,8 @@ void TheoryArithPrivate::raiseConflict(ConstraintCP a, InferenceId id){
   Assert(id != InferenceId::UNKNOWN)
       << "Must provide an inference id in TheoryArithPrivate::raiseConflict";
   d_conflicts.push_back(std::make_pair(a, id));
+  // notify we are in conflict in this SAT context
+  d_containing.getTheoryState()->notifyInConflict();
 }
 
 void TheoryArithPrivate::raiseBlackBoxConflict(Node bb,
@@ -388,6 +389,8 @@ void TheoryArithPrivate::raiseBlackBoxConflict(Node bb,
       d_blackBoxConflictPf.set(pf);
     }
     d_blackBoxConflict = bb;
+    // notify we are in conflict in this SAT context
+    d_containing.getTheoryState()->notifyInConflict();
   }
 }
 
@@ -5006,11 +5009,6 @@ void TheoryArithPrivate::entailmentCheckRowSum(std::pair<Node, DeltaRational>& t
   }
   // success
   tmp.first = nb;
-}
-
-ArithProofRuleChecker* TheoryArithPrivate::getProofChecker()
-{
-  return &d_checker;
 }
 
 ArithCongruenceManager* TheoryArithPrivate::getCongruenceManager()

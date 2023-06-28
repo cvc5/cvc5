@@ -21,14 +21,9 @@
 #include <fstream>
 #include <iosfwd>
 #include <string>
-
-// https://stackoverflow.com/a/40665154/4917890
-#if !defined(yyFlexLexerOnce)
-#include <FlexLexer.h>
-#endif
-
 #include <vector>
 
+#include "base/check.h"
 #include "parser/flex_input.h"
 #include "parser/tokens.h"
 
@@ -61,7 +56,7 @@ std::ostream& operator<<(std::ostream& o, const Span& l);
  * Custom lexers (e.g. for smt2) override the yylex method of the base
  * class.
  */
-class FlexLexer : public yyFlexLexer
+class FlexLexer
 {
  public:
   FlexLexer();
@@ -76,7 +71,7 @@ class FlexLexer : public yyFlexLexer
    * String corresponding to the last token (old top of stack). This is only
    * valid if no tokens are currently peeked.
    */
-  virtual const char* tokenStr() const;
+  virtual const char* tokenStr() const = 0;
   /** Advance to the next token (pop from stack) */
   Token nextToken();
   /** Add a token back into the stream (push to stack) */
@@ -100,7 +95,7 @@ class FlexLexer : public yyFlexLexer
  protected:
   // -----------------
   /** Compute the next token by reading from the stream */
-  virtual Token nextTokenInternal();
+  virtual Token nextTokenInternal() = 0;
   /** Get the next character */
   char readNextChar()
   {
@@ -130,6 +125,37 @@ class FlexLexer : public yyFlexLexer
     }
     return d_ch;
   }
+  /** Get the next character */
+  char nextChar()
+  {
+    char res;
+    if (d_peekedChar)
+    {
+      res = d_chPeeked;
+      d_peekedChar = false;
+    }
+    else
+    {
+      res = readNextChar();
+      if (res == '\n')
+      {
+        d_span.d_end.d_line++;
+        d_span.d_end.d_column = 0;
+      }
+      else
+      {
+        d_span.d_end.d_column++;
+      }
+    }
+    return res;
+  }
+  /** Save character */
+  void saveChar(char ch)
+  {
+    Assert(!d_peekedChar);
+    d_peekedChar = true;
+    d_chPeeked = ch;
+  }
   // -----------------
   /** Used to initialize d_span. */
   void initSpan();
@@ -144,7 +170,7 @@ class FlexLexer : public yyFlexLexer
   void addLines(uint32_t lines)
   {
     d_span.d_end.d_line += lines;
-    d_span.d_end.d_column = 1;
+    d_span.d_end.d_column = 0;
   }
   /** Span of last token pulled from underlying lexer (old top of stack) */
   Span d_span;
@@ -170,6 +196,10 @@ class FlexLexer : public yyFlexLexer
   size_t d_bufferEnd;
   /** The current character we read. */
   char d_ch;
+  /** True if we have a saved character that has not been consumed yet. */
+  bool d_peekedChar;
+  /** The saved character. */
+  char d_chPeeked;
 };
 
 }  // namespace parser

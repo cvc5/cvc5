@@ -1,4 +1,4 @@
-; EXPECT: (define-fun comm ((x Int) (y Int)) Int (+ x y))
+; EXPECT: (define-fun comm ((x Int) (y Int)) Int (+ y x))
 ; EXPECT: (define-fun comm ((x Int) (y Int)) Int (- x x))
 ; EXPECT: (error "Maximum term size (2) for enumerative SyGuS exceeded.")
 ; EXIT: 1
