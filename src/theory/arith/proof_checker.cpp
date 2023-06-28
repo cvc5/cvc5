@@ -30,6 +30,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
+ArithProofRuleChecker::ArithProofRuleChecker() {}
+
 void ArithProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(PfRule::MACRO_ARITH_SCALE_SUM_UB, this);
@@ -41,6 +43,12 @@ void ArithProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::ARITH_MULT_POS, this);
   pc->registerChecker(PfRule::ARITH_MULT_NEG, this);
   pc->registerChecker(PfRule::ARITH_POLY_NORM, this);
+  // register the extended proof checkers
+  d_extChecker.registerTo(pc);
+  d_trChecker.registerTo(pc);
+#ifdef CVC5_POLY_IMP
+  d_covChecker.registerTo(pc);
+#endif
 }
 
 Node ArithProofRuleChecker::checkInternal(PfRule id,

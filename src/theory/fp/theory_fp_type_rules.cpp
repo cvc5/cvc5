@@ -30,6 +30,10 @@ namespace fp {
   Trace("fp-type") << FUNCTION "::computeType(" << check << "): " << n \
                    << std::endl
 
+TypeNode FloatingPointConstantTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode FloatingPointConstantTypeRule::computeType(NodeManager* nodeManager,
                                                     TNode n,
                                                     bool check,
@@ -55,6 +59,10 @@ TypeNode FloatingPointConstantTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkFloatingPointType(f.getSize());
 }
 
+TypeNode RoundingModeConstantTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode RoundingModeConstantTypeRule::computeType(NodeManager* nodeManager,
                                                    TNode n,
                                                    bool check,
@@ -66,6 +74,10 @@ TypeNode RoundingModeConstantTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->roundingModeType();
 }
 
+TypeNode FloatingPointFPTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode FloatingPointFPTypeRule::computeType(NodeManager* nodeManager,
                                               TNode n,
                                               bool check,
@@ -111,6 +123,10 @@ TypeNode FloatingPointFPTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkFloatingPointType(exponentBits, significandBits + 1);
 }
 
+TypeNode FloatingPointTestTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->booleanType();
+}
 TypeNode FloatingPointTestTypeRule::computeType(NodeManager* nodeManager,
                                                 TNode n,
                                                 bool check,
@@ -142,6 +158,11 @@ TypeNode FloatingPointTestTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
+TypeNode FloatingPointOperationTypeRule::preComputeType(NodeManager* nm,
+                                                        TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode FloatingPointOperationTypeRule::computeType(NodeManager* nodeManager,
                                                      TNode n,
                                                      bool check,
@@ -173,6 +194,11 @@ TypeNode FloatingPointOperationTypeRule::computeType(NodeManager* nodeManager,
   return firstOperand;
 }
 
+TypeNode FloatingPointRoundingOperationTypeRule::preComputeType(NodeManager* nm,
+                                                                TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode FloatingPointRoundingOperationTypeRule::computeType(
     NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
@@ -213,6 +239,11 @@ TypeNode FloatingPointRoundingOperationTypeRule::computeType(
   return firstOperand;
 }
 
+TypeNode FloatingPointPartialOperationTypeRule::preComputeType(NodeManager* nm,
+                                                               TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode FloatingPointPartialOperationTypeRule::computeType(
     NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
@@ -253,14 +284,11 @@ TypeNode FloatingPointPartialOperationTypeRule::computeType(
   return firstOperand;
 }
 
-TypeNode FloatingPointParametricOpTypeRule::computeType(
-    NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
+TypeNode FloatingPointToFPIEEEBitVectorTypeRule::preComputeType(NodeManager* nm,
+                                                                TNode n)
 {
-  TRACE("FloatingPointParametricOpTypeRule");
-
-  return nodeManager->builtinOperatorType();
+  return TypeNode::null();
 }
-
 TypeNode FloatingPointToFPIEEEBitVectorTypeRule::computeType(
     NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
@@ -295,6 +323,13 @@ TypeNode FloatingPointToFPIEEEBitVectorTypeRule::computeType(
   return nodeManager->mkFloatingPointType(info.getSize());
 }
 
+TypeNode FloatingPointToFPFloatingPointTypeRule::preComputeType(NodeManager* nm,
+                                                                TNode n)
+{
+  FloatingPointToFPFloatingPoint info =
+      n.getOperator().getConst<FloatingPointToFPFloatingPoint>();
+  return nm->mkFloatingPointType(info.getSize());
+}
 TypeNode FloatingPointToFPFloatingPointTypeRule::computeType(
     NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
@@ -328,6 +363,12 @@ TypeNode FloatingPointToFPFloatingPointTypeRule::computeType(
   return nodeManager->mkFloatingPointType(info.getSize());
 }
 
+TypeNode FloatingPointToFPRealTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  FloatingPointToFPReal info =
+      n.getOperator().getConst<FloatingPointToFPReal>();
+  return nm->mkFloatingPointType(info.getSize());
+}
 TypeNode FloatingPointToFPRealTypeRule::computeType(NodeManager* nodeManager,
                                                     TNode n,
                                                     bool check,
@@ -363,6 +404,13 @@ TypeNode FloatingPointToFPRealTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkFloatingPointType(info.getSize());
 }
 
+TypeNode FloatingPointToFPSignedBitVectorTypeRule::preComputeType(
+    NodeManager* nm, TNode n)
+{
+  FloatingPointToFPSignedBitVector info =
+      n.getOperator().getConst<FloatingPointToFPSignedBitVector>();
+  return nm->mkFloatingPointType(info.getSize());
+}
 TypeNode FloatingPointToFPSignedBitVectorTypeRule::computeType(
     NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
@@ -396,6 +444,13 @@ TypeNode FloatingPointToFPSignedBitVectorTypeRule::computeType(
   return nodeManager->mkFloatingPointType(info.getSize());
 }
 
+TypeNode FloatingPointToFPUnsignedBitVectorTypeRule::preComputeType(
+    NodeManager* nm, TNode n)
+{
+  FloatingPointToFPUnsignedBitVector info =
+      n.getOperator().getConst<FloatingPointToFPUnsignedBitVector>();
+  return nm->mkFloatingPointType(info.getSize());
+}
 TypeNode FloatingPointToFPUnsignedBitVectorTypeRule::computeType(
     NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
@@ -429,6 +484,11 @@ TypeNode FloatingPointToFPUnsignedBitVectorTypeRule::computeType(
   return nodeManager->mkFloatingPointType(info.getSize());
 }
 
+TypeNode FloatingPointToUBVTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  FloatingPointToUBV info = n.getOperator().getConst<FloatingPointToUBV>();
+  return nm->mkBitVectorType(info.d_bv_size);
+}
 TypeNode FloatingPointToUBVTypeRule::computeType(NodeManager* nodeManager,
                                                  TNode n,
                                                  bool check,
@@ -463,6 +523,11 @@ TypeNode FloatingPointToUBVTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkBitVectorType(info.d_bv_size);
 }
 
+TypeNode FloatingPointToSBVTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  FloatingPointToSBV info = n.getOperator().getConst<FloatingPointToSBV>();
+  return nm->mkBitVectorType(info.d_bv_size);
+}
 TypeNode FloatingPointToSBVTypeRule::computeType(NodeManager* nodeManager,
                                                  TNode n,
                                                  bool check,
@@ -497,6 +562,13 @@ TypeNode FloatingPointToSBVTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkBitVectorType(info.d_bv_size);
 }
 
+TypeNode FloatingPointToUBVTotalTypeRule::preComputeType(NodeManager* nm,
+                                                         TNode n)
+{
+  FloatingPointToUBVTotal info =
+      n.getOperator().getConst<FloatingPointToUBVTotal>();
+  return nm->mkBitVectorType(info.d_bv_size);
+}
 TypeNode FloatingPointToUBVTotalTypeRule::computeType(NodeManager* nodeManager,
                                                       TNode n,
                                                       bool check,
@@ -545,6 +617,13 @@ TypeNode FloatingPointToUBVTotalTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkBitVectorType(info.d_bv_size);
 }
 
+TypeNode FloatingPointToSBVTotalTypeRule::preComputeType(NodeManager* nm,
+                                                         TNode n)
+{
+  FloatingPointToSBVTotal info =
+      n.getOperator().getConst<FloatingPointToSBVTotal>();
+  return nm->mkBitVectorType(info.d_bv_size);
+}
 TypeNode FloatingPointToSBVTotalTypeRule::computeType(NodeManager* nodeManager,
                                                       TNode n,
                                                       bool check,
@@ -591,6 +670,10 @@ TypeNode FloatingPointToSBVTotalTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkBitVectorType(info.d_bv_size);
 }
 
+TypeNode FloatingPointToRealTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->realType();
+}
 TypeNode FloatingPointToRealTypeRule::computeType(NodeManager* nodeManager,
                                                   TNode n,
                                                   bool check,
@@ -613,6 +696,11 @@ TypeNode FloatingPointToRealTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->realType();
 }
 
+TypeNode FloatingPointToRealTotalTypeRule::preComputeType(NodeManager* nm,
+                                                          TNode n)
+{
+  return nm->realType();
+}
 TypeNode FloatingPointToRealTotalTypeRule::computeType(NodeManager* nodeManager,
                                                        TNode n,
                                                        bool check,
@@ -644,6 +732,10 @@ TypeNode FloatingPointToRealTotalTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->realType();
 }
 
+TypeNode FloatingPointComponentBit::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->mkBitVectorType(1);
+}
 TypeNode FloatingPointComponentBit::computeType(NodeManager* nodeManager,
                                                 TNode n,
                                                 bool check,
@@ -675,6 +767,11 @@ TypeNode FloatingPointComponentBit::computeType(NodeManager* nodeManager,
   return nodeManager->mkBitVectorType(1);
 }
 
+TypeNode FloatingPointComponentExponent::preComputeType(NodeManager* nm,
+                                                        TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode FloatingPointComponentExponent::computeType(NodeManager* nodeManager,
                                                      TNode n,
                                                      bool check,
@@ -713,6 +810,11 @@ TypeNode FloatingPointComponentExponent::computeType(NodeManager* nodeManager,
   return nodeManager->mkBitVectorType(bw);
 }
 
+TypeNode FloatingPointComponentSignificand::preComputeType(NodeManager* nm,
+                                                           TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode FloatingPointComponentSignificand::computeType(
     NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
@@ -745,6 +847,10 @@ TypeNode FloatingPointComponentSignificand::computeType(
   return nodeManager->mkBitVectorType(bw);
 }
 
+TypeNode RoundingModeBitBlast::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->mkBitVectorType(CVC5_NUM_ROUNDING_MODES);
+}
 TypeNode RoundingModeBitBlast::computeType(NodeManager* nodeManager,
                                            TNode n,
                                            bool check,

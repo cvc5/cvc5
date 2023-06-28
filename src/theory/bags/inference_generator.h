@@ -512,7 +512,7 @@ class InferenceGenerator
   /**
    * generate skolem variable for node n and add pending lemma for the equality
    */
-  Node registerAndAssertSkolemLemma(Node& n, const std::string& prefix);
+  Node registerAndAssertSkolemLemma(Node& n);
 
   NodeManager* d_nm;
   SkolemManager* d_sm;
