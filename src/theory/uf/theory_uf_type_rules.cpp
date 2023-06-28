@@ -152,10 +152,6 @@ TypeNode HoApplyTypeRule::preComputeType(NodeManager* nm, TNode n)
   return TypeNode::null();
 }
 
-TypeNode HoApplyTypeRule::preComputeType(NodeManager* nm, TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode HoApplyTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
                                       bool check,

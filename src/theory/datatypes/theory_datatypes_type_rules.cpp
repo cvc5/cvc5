@@ -33,6 +33,16 @@ namespace datatypes {
 
 TypeNode DatatypeConstructorTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
+  TypeNode consType = n.getOperator().getTypeOrNull();
+  if (consType.isDatatypeConstructor())
+  {
+    TypeNode t = consType.getDatatypeConstructorRangeType();
+    // if not parametric, the return type can be obtained from constructor op
+    if (!t.isParametricDatatype())
+    {
+      return t;
+    }
+  }
   return TypeNode::null();
 }
 TypeNode DatatypeConstructorTypeRule::computeType(NodeManager* nodeManager,
@@ -117,7 +127,7 @@ TypeNode DatatypeConstructorTypeRule::computeType(NodeManager* nodeManager,
         }
       }
     }
-    return consType.getDatatypeConstructorRangeType();
+    return t;
   }
 }
 
@@ -681,10 +691,6 @@ TypeNode TupleProjectTypeRule::preComputeType(NodeManager* nm, TNode n)
   return TypeNode::null();
 }
 
-TypeNode TupleProjectTypeRule::preComputeType(NodeManager* nm, TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode TupleProjectTypeRule::computeType(NodeManager* nm,
                                            TNode n,
                                            bool check,
