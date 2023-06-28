@@ -156,7 +156,7 @@ TypeNode CountTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode MemberTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode MemberTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
@@ -192,6 +192,7 @@ TypeNode MemberTypeRule::computeType(NodeManager* nodeManager,
   }
   return nodeManager->booleanType();
 }
+
 TypeNode DuplicateRemovalTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return TypeNode::null();
@@ -267,7 +268,7 @@ bool BagMakeTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
 
 TypeNode IsSingletonTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode IsSingletonTypeRule::computeType(NodeManager* nodeManager,
                                           TNode n,

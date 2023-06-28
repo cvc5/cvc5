@@ -26,7 +26,7 @@ bool isMaybeBoolean(const TypeNode& tn)
 
 TypeNode SepEmpTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode SepEmpTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,

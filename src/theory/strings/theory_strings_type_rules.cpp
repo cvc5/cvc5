@@ -43,7 +43,6 @@ TypeNode StringConcatTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return TypeNode::null();
 }
-
 TypeNode StringConcatTypeRule::computeType(NodeManager* nodeManager,
                                            TNode n,
                                            bool check,
@@ -136,7 +135,6 @@ TypeNode StringUpdateTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return TypeNode::null();
 }
-
 TypeNode StringUpdateTypeRule::computeType(NodeManager* nodeManager,
                                            TNode n,
                                            bool check,

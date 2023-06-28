@@ -213,7 +213,7 @@ TypeNode DatatypeSelectorTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode DatatypeTesterTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode DatatypeTesterTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
@@ -317,7 +317,7 @@ TypeNode DatatypeUpdateTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode DatatypeAscriptionTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return n.getOperator().getConst<AscriptionType>().getType();
 }
 TypeNode DatatypeAscriptionTypeRule::computeType(NodeManager* nodeManager,
                                                  TNode n,
@@ -369,7 +369,7 @@ Cardinality ConstructorProperties::computeCardinality(TypeNode type)
 
 TypeNode DtSizeTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->integerType();
 }
 TypeNode DtSizeTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
@@ -393,7 +393,7 @@ TypeNode DtSizeTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode DtBoundTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return TypeNode::null();
+  return nm->booleanType();
 }
 TypeNode DtBoundTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
@@ -681,6 +681,10 @@ TypeNode TupleProjectTypeRule::preComputeType(NodeManager* nm, TNode n)
   return TypeNode::null();
 }
 
+TypeNode TupleProjectTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode TupleProjectTypeRule::computeType(NodeManager* nm,
                                            TNode n,
                                            bool check,

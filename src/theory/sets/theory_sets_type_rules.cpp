@@ -563,7 +563,6 @@ TypeNode SetFoldTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return TypeNode::null();
 }
-
 TypeNode SetFoldTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
                                       bool check,

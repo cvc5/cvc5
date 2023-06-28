@@ -30,7 +30,6 @@ TypeNode BooleanTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return nm->booleanType();
 }
-
 TypeNode BooleanTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
                                       bool check,
@@ -59,7 +58,6 @@ TypeNode IteTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return TypeNode::null();
 }
-
 TypeNode IteTypeRule::computeType(NodeManager* nodeManager,
                                   TNode n,
                                   bool check,
