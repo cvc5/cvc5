@@ -35,7 +35,6 @@ TypeNode ArithConstantTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return TypeNode::null();
 }
-
 TypeNode ArithConstantTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check,
@@ -202,29 +201,10 @@ TypeNode RealNullaryOperatorTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->realType();
 }
 
-TypeNode IAndOpTypeRule::preComputeType(NodeManager* nm, TNode n)
-{
-  return TypeNode::null();
-}
-TypeNode IAndOpTypeRule::computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check,
-                                     std::ostream* errOut)
-{
-  Assert(n.getKind() == kind::IAND_OP)
-      << "IAND_OP typerule invoked for " << n << " instead of IAND_OP kind";
-  TypeNode iType = nodeManager->integerType();
-  std::vector<TypeNode> argTypes;
-  argTypes.push_back(iType);
-  argTypes.push_back(iType);
-  return nodeManager->mkFunctionType(argTypes, iType);
-}
-
 TypeNode IAndTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return nm->integerType();
 }
-
 TypeNode IAndTypeRule::computeType(NodeManager* nodeManager,
                                    TNode n,
                                    bool check,
@@ -252,7 +232,6 @@ TypeNode Pow2TypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return nm->integerType();
 }
-
 TypeNode Pow2TypeRule::computeType(NodeManager* nodeManager,
                                    TNode n,
                                    bool check,
