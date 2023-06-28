@@ -236,6 +236,11 @@ name   = "Base"
   help = "print the corresponding benchmark when successfully computing an unsat core."
   description = "With ``-o unsat-core-benchmark``, cvc5 prints the corresponding benchmark when it successfully computes an unsat core."
   example-file = "regress0/printer/print_unsat_core.smt2"
+[[option.mode.PORTFOLIO]]
+  name = "portfolio"
+  help = "prints the option strings tried in portfolio mode."
+  description = "With ``-o portfolio``, cvc5 prints the option strings tried in portfolio mode."
+  example-file = "regress0/portfolio-out.smt2"
 
 # Stores then enabled output tags.
 [[option]]

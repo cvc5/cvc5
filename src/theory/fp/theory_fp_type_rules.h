@@ -120,21 +120,6 @@ class FloatingPointPartialOperationTypeRule
                               std::ostream* errOut);
 };
 
-/**
- * Type rule for floating-point parametric operators (to_fp, to_fp_unsigned)
- * which expect that all operands are floating-points to check if all operands
- * are floating-points of the same sort.
- */
-class FloatingPointParametricOpTypeRule
-{
- public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
-  static TypeNode computeType(NodeManager* nodeManager,
-                              TNode n,
-                              bool check,
-                              std::ostream* errOut);
-};
-
 /** Type rule for floating-point to_fp conversion from IEEE bit-vector. */
 class FloatingPointToFPIEEEBitVectorTypeRule
 {
