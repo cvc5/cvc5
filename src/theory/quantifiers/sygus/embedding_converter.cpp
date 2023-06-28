@@ -19,7 +19,7 @@
 #include "options/quantifiers_options.h"
 #include "printer/smt2/smt2_printer.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
-#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/sygus_grammar_cons_new.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
@@ -102,7 +102,9 @@ Node EmbeddingConverter::process(Node q,
   Trace("cegqi") << "SynthConjecture : convert to deep embedding..."
                  << std::endl;
   std::map<TypeNode, std::unordered_set<Node>> extra_cons;
-  if (options().quantifiers.sygusAddConstGrammar)
+  if (options().quantifiers.sygusAddConstGrammar
+      && options().quantifiers.sygusGrammarConsMode
+             == options::SygusGrammarConsMode::SIMPLE)
   {
     Trace("cegqi") << "SynthConjecture : collect constants..." << std::endl;
     collectTerms(q[1], extra_cons);
@@ -146,31 +148,32 @@ Node EmbeddingConverter::process(Node q,
       // check which arguments are irrelevant
       std::unordered_set<unsigned> arg_irrelevant;
       d_parent->getProcess()->getIrrelevantArgs(sf, arg_irrelevant);
-      std::unordered_set<Node> term_irlv;
-      // convert to term
-      for (const unsigned& arg : arg_irrelevant)
+      std::vector<Node> trules;
+      // add the variables from the free variable list that we did not
+      // infer were irrelevant.
+      for (size_t j = 0, nargs = sfvl.getNumChildren(); j < nargs; j++)
       {
-        Assert(arg < sfvl.getNumChildren());
-        term_irlv.insert(sfvl[arg]);
+        if (arg_irrelevant.find(j) == arg_irrelevant.end())
+        {
+          trules.push_back(sfvl[j]);
+        }
       }
-
-      // make the default grammar
-      tn = CegGrammarConstructor::mkSygusDefaultType(options(),
-                                                     preGrammarType,
-                                                     sfvl,
-                                                     sf.getName(),
-                                                     extra_cons,
-                                                     exc_cons,
-                                                     inc_cons,
-                                                     term_irlv);
-      // print the grammar
-      if (isOutputOn(OutputTag::SYGUS_GRAMMAR))
+      // add the constants computed avove
+      for (const std::pair<const TypeNode, std::unordered_set<Node>>& c :
+           extra_cons)
       {
-        output(OutputTag::SYGUS_GRAMMAR)
-            << "(sygus-grammar " << sf
-            << printer::smt2::Smt2Printer::sygusGrammarString(tn) << ")"
-            << std::endl;
+        trules.insert(trules.end(), c.second.begin(), c.second.end());
       }
+      tn = SygusGrammarCons::mkDefaultSygusType(
+          options(), preGrammarType, sfvl, trules);
+    }
+    // print the grammar
+    if (isOutputOn(OutputTag::SYGUS_GRAMMAR))
+    {
+      output(OutputTag::SYGUS_GRAMMAR)
+          << "(sygus-grammar " << sf
+          << printer::smt2::Smt2Printer::sygusGrammarString(tn) << ")"
+          << std::endl;
     }
     // sfvl may be null for constant synthesis functions
     Trace("cegqi-debug") << "...sygus var list associated with " << sf << " is "

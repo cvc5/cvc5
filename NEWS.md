@@ -13,6 +13,10 @@ This file contains a summary of important user-visible changes.
     returns a subset of the current assertions that cause the solver to timeout
     without a provided timeout (option `--timeout-core-timeout`).
   - SMT-LIB: New command `(get-timeout-core)` which invokes the above method.
+- API: The option `--print-unsat-cores-full` has been renamed to
+       `--print-cores-full`. Setting this option to true will print all
+       assertions in the unsat core, regardless of whether they are named. This
+       option also impacts how timeout cores are printed.
 
 cvc5 1.0.5
 ==========
