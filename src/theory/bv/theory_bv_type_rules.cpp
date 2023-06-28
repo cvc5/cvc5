@@ -246,7 +246,6 @@ TypeNode BitVectorBVPredTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkBitVectorType(1);
 }
 
-<<<<<<< HEAD
 TypeNode BitVectorSizeTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return nm->integerType();
@@ -264,8 +263,6 @@ TypeNode BitVectorSizeTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
-=======
->>>>>>> 5e45342430b16de082ade29657fa86d7e09360c9
 TypeNode BitVectorConcatTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return TypeNode::null();
@@ -318,7 +315,6 @@ TypeNode BitVectorToBVTypeRule::computeType(NodeManager* nodeManager,
 {
   for (const auto& child : n)
   {
-<<<<<<< HEAD
     TypeNode t = child.getTypeOrNull();
     if (!isMaybeBoolean(t))
     {
@@ -327,12 +323,6 @@ TypeNode BitVectorToBVTypeRule::computeType(NodeManager* nodeManager,
         (*errOut) << "expecting Boolean terms";
       }
       return TypeNode::null();
-=======
-    TypeNode t = child.getType(check);
-    if (!t.isBoolean())
-    {
-      throw TypeCheckingExceptionPrivate(n, "expecting Boolean terms");
->>>>>>> 5e45342430b16de082ade29657fa86d7e09360c9
     }
   }
   return nodeManager->mkBitVectorType(n.getNumChildren());
@@ -374,11 +364,7 @@ TypeNode BitVectorITETypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode BitVectorBitOfTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-<<<<<<< HEAD
-  return TypeNode::null();
-=======
   return nm->booleanType();
->>>>>>> 5e45342430b16de082ade29657fa86d7e09360c9
 }
 TypeNode BitVectorBitOfTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
@@ -408,12 +394,8 @@ TypeNode BitVectorBitOfTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode BitVectorExtractTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-<<<<<<< HEAD
-  return TypeNode::null();
-=======
   BitVectorExtract extractInfo = n.getOperator().getConst<BitVectorExtract>();
   return nm->mkBitVectorType(extractInfo.d_high - extractInfo.d_low + 1);
->>>>>>> 5e45342430b16de082ade29657fa86d7e09360c9
 }
 TypeNode BitVectorExtractTypeRule::computeType(NodeManager* nodeManager,
                                                TNode n,
