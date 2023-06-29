@@ -111,7 +111,7 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
   {
     const std::vector<Node>& args = pft->getArguments();
     cfaAllowed.insert(args.begin(), args.end());
-    pft = pf->getChildren()[0];
+    pft = pft->getChildren()[0];
   }
   Trace("pf-process") << "ProofNodeUpdater::process" << std::endl;
   std::unordered_map<std::shared_ptr<ProofNode>, bool> visited;
