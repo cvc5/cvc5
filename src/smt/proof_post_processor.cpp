@@ -1009,7 +1009,6 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     // rewrite database proof reconstructor
     if (d_rdbPc.prove(cdp, res[0], res[1], tid, mid, recLimit))
     {
-      // If we made (= res true) above, conclude the original res.
       if (reqTrueElim)
       {
         cdp->addStep(res[0], PfRule::TRUE_ELIM, {res}, {});
@@ -1152,6 +1151,12 @@ void ProofPostprocess::setEliminateRule(PfRule rule)
 void ProofPostprocess::setEliminateAllTrustedRules()
 {
   d_cb.setEliminateAllTrustedRules();
+}
+
+void ProofPostprocess::setAssertions(const std::vector<Node>& assertions, bool doDebug)
+{
+  // for debugging (slow)
+  d_updater.setFreeAssumptions(assertions, doDebug);
 }
 
 }  // namespace smt

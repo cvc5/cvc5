@@ -104,6 +104,15 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
   std::map<Node, std::vector<std::shared_ptr<ProofNode>>> resCacheNcWaiting;
   // Map from proof nodes to whether they contain assumptions
   std::unordered_map<const ProofNode*, bool> cfaMap;
+  std::unordered_set<Node> cfaAllowed;
+  cfaAllowed.insert(fa.begin(), fa.end());
+  std::shared_ptr<ProofNode> pft = pf;
+  while (pft->getRule()==PfRule::SCOPE)
+  {
+    const std::vector<Node>& args = pft->getArguments();
+    cfaAllowed.insert(args.begin(), args.end());
+    pft = pf->getChildren()[0];
+  }
   Trace("pf-process") << "ProofNodeUpdater::process" << std::endl;
   std::unordered_map<std::shared_ptr<ProofNode>, bool> visited;
   std::unordered_map<std::shared_ptr<ProofNode>, bool>::iterator it;
@@ -148,7 +157,7 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
         // no further changes should be made to cur according to the callback
         Trace("pf-process-debug")
             << "...marked to not continue update." << std::endl;
-        runFinalize(cur, fa, resCache, resCacheNcWaiting, cfaMap);
+        runFinalize(cur, fa, resCache, resCacheNcWaiting, cfaMap, cfaAllowed);
         continue;
       }
       traversing.push_back(cur);
@@ -190,7 +199,19 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
         Assert(fa.size() >= args.size());
         fa.resize(fa.size() - args.size());
       }
-      runFinalize(cur, fa, resCache, resCacheNcWaiting, cfaMap);
+      // maybe found a proof in the meantime
+      itc = resCache.find(res);
+      if (itc != resCache.end())
+      {
+        // already have a proof, merge it into this one
+        visited[cur] = true;
+        pnm->updateNode(cur.get(), itc->second.get());
+        // does not contain free assumptions since the range of resCache does
+        // not contain free assumptions
+        cfaMap[cur.get()] = false;
+        continue;
+      }
+      runFinalize(cur, fa, resCache, resCacheNcWaiting, cfaMap, cfaAllowed);
     }
   } while (!visit.empty());
   Trace("pf-process") << "ProofNodeUpdater::process: finished" << std::endl;
@@ -271,7 +292,8 @@ void ProofNodeUpdater::runFinalize(
     const std::vector<Node>& fa,
     std::map<Node, std::shared_ptr<ProofNode>>& resCache,
     std::map<Node, std::vector<std::shared_ptr<ProofNode>>>& resCacheNcWaiting,
-    std::unordered_map<const ProofNode*, bool>& cfaMap)
+    std::unordered_map<const ProofNode*, bool>& cfaMap,
+                   const std::unordered_set<Node>& cfaAllowed)
 {
   // run update (marked as post-visit) to a fixed point
   bool dummyContinueUpdate;
@@ -283,7 +305,7 @@ void ProofNodeUpdater::runFinalize(
   {
     Node res = cur->getResult();
     // cache the result if we don't contain an assumption
-    if (!expr::containsAssumption(cur.get(), cfaMap))
+    if (!expr::containsAssumption(cur.get(), cfaMap, cfaAllowed))
     {
       // cache result if we are merging subproofs
       resCache[res] = cur;
@@ -302,6 +324,7 @@ void ProofNodeUpdater::runFinalize(
     }
     else
     {
+      Trace("pf-process-debug") << "Not: " << *cur.get() << ", with " << cfaAllowed.size() << std::endl;
       resCacheNcWaiting[res].push_back(cur);
     }
   }
@@ -316,8 +339,8 @@ void ProofNodeUpdater::runFinalize(
   }
 }
 
-void ProofNodeUpdater::setDebugFreeAssumptions(
-    const std::vector<Node>& freeAssumps)
+void ProofNodeUpdater::setFreeAssumptions(
+    const std::vector<Node>& freeAssumps, bool doDebug)
 {
   d_freeAssumps.clear();
   d_freeAssumps.insert(

@@ -123,7 +123,7 @@ class ProofNodeUpdater : protected EnvObj
    * expensive in general. It is not recommended that this method is called
    * by default.
    */
-  void setDebugFreeAssumptions(const std::vector<Node>& freeAssumps);
+  void setFreeAssumptions(const std::vector<Node>& freeAssumps, bool doDebug);
 
  private:
   /** The callback */
@@ -174,7 +174,8 @@ class ProofNodeUpdater : protected EnvObj
                    std::map<Node, std::shared_ptr<ProofNode>>& resCache,
                    std::map<Node, std::vector<std::shared_ptr<ProofNode>>>&
                        resCacheNcWaiting,
-                   std::unordered_map<const ProofNode*, bool>& cfaMap);
+                   std::unordered_map<const ProofNode*, bool>& cfaMap,
+                   const std::unordered_set<Node>& cfaAllowed);
   /** Are we debugging free assumptions? */
   bool d_debugFreeAssumps;
   /** The initial free assumptions */

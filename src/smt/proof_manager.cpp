@@ -163,6 +163,7 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
   Trace("smt-proof")
       << "SolverEngine::connectProofToAssertions(): postprocess...\n";
   Assert(d_pfpp != nullptr);
+  d_pfpp->setAssertions(assertions, false);
   d_pfpp->process(pfn, pppg);
 
   switch (scopeMode)
