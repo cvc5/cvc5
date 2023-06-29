@@ -74,11 +74,6 @@ Term InputParser::nextExpression()
   return d_fparser->nextExpression();
 }
 
-bool InputParser::done() const
-{
-  return d_fparser == nullptr || d_fparser->done();
-}
-
 void InputParser::setFileInput(const std::string& lang,
                                const std::string& filename)
 {
