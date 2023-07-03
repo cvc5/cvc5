@@ -132,7 +132,7 @@ TypeNode FloatingPointFPTypeRule::computeType(NodeManager* nodeManager,
         return TypeNode::null();
       }
     }
-    else if (!(validExponentSize(exponentBits)))
+    if (!(validExponentSize(exponentBits)))
     {
       if (errOut)
       {

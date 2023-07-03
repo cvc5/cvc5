@@ -784,7 +784,18 @@ Node TheoryFp::getValue(TNode node)
         || kind == kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV
         || Theory::isLeafOf(cur, theory::THEORY_FP))
     {
-      value = d_wordBlaster->getValue(d_valuation, cur);
+      if (cur.getType().isFloatingPoint() || cur.getType().isRoundingMode())
+      {
+        value = d_wordBlaster->getValue(d_valuation, cur);
+      }
+      else
+      {
+        value = d_valuation.getCandidateModelValue(cur);
+        if (value.isNull())
+        {
+          return value;
+        }
+      }
       d_modelCache[cur] = value;
       continue;
     }
