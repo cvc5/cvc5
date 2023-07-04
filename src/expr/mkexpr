@@ -69,6 +69,7 @@ mkConst_instantiations=
 mkConst_implementations=
 exportConstant_cases=
 
+pretyperules=
 typerules=
 construles=
 
@@ -158,6 +159,11 @@ function typerule {
   typerules="${typerules}
   case kind::$1:
     typeNode = $2::computeType(nodeManager, n, check, errOut);
+    break;
+"
+  pretyperules="${pretyperules}
+  case kind::$1:
+    typeNode = $2::preComputeType(nodeManager, n);
     break;
 "
 }
@@ -294,6 +300,7 @@ for var in \
     exportConstant_cases \
     typechecker_includes \
     typerules \
+    pretyperules \
     construles \
     ; do
   eval text="\${text//\\\$\\{$var\\}/\${$var}}"

@@ -77,6 +77,9 @@ class FlexParser : public ParserStateCallback
   /** Parse and return the next expression. */
   Term nextExpression();
 
+  /** Is this parser done reading input? */
+  bool done() const;
+
   /** Issue a warning to the user. */
   void warning(const std::string& msg) override;
   /** Raise a parse error with the given message. */
