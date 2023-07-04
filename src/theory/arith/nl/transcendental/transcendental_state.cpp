@@ -23,6 +23,7 @@
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/transcendental/taylor_generator.h"
 #include "theory/rewriter.h"
+#include "theory/theory_state.h"
 
 using namespace cvc5::internal::kind;
 
@@ -51,8 +52,6 @@ TranscendentalState::TranscendentalState(Env& env,
   {
     d_proof.reset(
         new CDProofSet<CDProof>(d_env, d_env.getUserContext(), "nl-trans"));
-    d_proofChecker.reset(new TranscendentalProofRuleChecker());
-    d_proofChecker->registerTo(d_env.getProofNodeManager()->getChecker());
   }
 }
 
@@ -476,7 +475,7 @@ Node TranscendentalState::getPurifiedForm(TNode n)
   Node y;
   if (isSimplePurify(n))
   {
-    y = sm->mkPurifySkolem(n[0], "transk");
+    y = sm->mkPurifySkolem(n[0]);
   }
   else
   {

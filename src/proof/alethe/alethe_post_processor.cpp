@@ -1347,10 +1347,7 @@ bool AletheProofPostprocessCallback::update(Node res,
         // variable. So we must take the suffix of variables from that one (note
         // that when i == 1 the suffix is all the variables)
         Node curSkolemizing =
-            i == 1 ? quant
-                   : nm->mkNode(quantKind,
-                                nm->mkNode(kind::BOUND_VAR_LIST, ithBVars),
-                                quant[1]);
+            i == 1 ? quant : nm->mkNode(quantKind, ithBVars, quant[1]);
         // The choice term is for the (i-1)-th variable defined as the
         // quantifier with the suffix from the i-th variable. This is the same
         // as the term we skolemized in the previous iteration. Note that for

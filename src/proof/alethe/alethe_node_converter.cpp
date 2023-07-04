@@ -96,8 +96,7 @@ Node AletheNodeConverter::postConvert(Node n)
               nm->mkNode(kind::WITNESS,
                          nm->mkNode(kind::BOUND_VAR_LIST, quant[0][index]),
                          body);
-          d_skVarToWitnessesMap[quant[index]] = witness;
-          Trace("alethe-conv") << ".. witness " << witness << "\n";
+          Trace("alethe-conv") << ".. witness: " << witness << "\n";
           return convert(witness);
         }
       }
@@ -119,7 +118,9 @@ Node AletheNodeConverter::postConvert(Node n)
       }
       TypeNode fType = nm->mkFunctionType(childrenTypes, n.getType());
       Node choiceOp = mkInternalSymbol("choice", fType);
-      return nm->mkNode(kind::APPLY_UF, choiceOp, n[0], n[1]);
+      Node converted = nm->mkNode(kind::APPLY_UF, choiceOp, n[0], n[1]);
+      Trace("alethe-conv") << ".. converted to choice: " << converted << "\n";
+      return converted;
     }
     default:
     {

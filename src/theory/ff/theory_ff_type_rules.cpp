@@ -31,6 +31,10 @@ Cardinality FiniteFieldProperties::computeCardinality(TypeNode type)
   return cardinality;
 }
 
+TypeNode FiniteFieldConstantTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode FiniteFieldConstantTypeRule::computeType(NodeManager* nodeManager,
                                                   TNode n,
                                                   bool check,
@@ -40,6 +44,10 @@ TypeNode FiniteFieldConstantTypeRule::computeType(NodeManager* nodeManager,
       n.getConst<FiniteFieldValue>().getFieldSize());
 }
 
+TypeNode FiniteFieldFixedFieldTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode FiniteFieldFixedFieldTypeRule::computeType(NodeManager* nodeManager,
                                                     TNode n,
                                                     bool check,

@@ -589,7 +589,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
   // get the kind of the constructor operator
   Kind nk = ti.getConsNumKind(tindex);
   // is this the any-constant constructor?
-  bool isAnyConstant = sop.getAttribute(SygusAnyConstAttribute());
+  bool isAnyConstant = dt[tindex].isSygusAnyConstant();
 
   // conjunctive conclusion of lemma
   std::vector<Node> sbp_conj;
@@ -1117,28 +1117,6 @@ Node SygusExtension::registerSearchValue(Node a,
         if( TraceIsOn("sygus-sb-exc") ){
           Node prev_bv = d_tds->sygusToBuiltin( itsv->second, tn );
           Trace("sygus-sb-exc") << "  ......programs " << prev_bv << " and " << bv << " rewrite to " << bvr << "." << std::endl;
-        }
-      }
-
-      if (options().quantifiers.sygusRewVerify)
-      {
-        if (bv != bvr)
-        {
-          // add to the sampler database object
-          std::map<TypeNode, std::unique_ptr<quantifiers::SygusSampler>>& smap =
-              d_sampler[a];
-          std::map<TypeNode,
-                   std::unique_ptr<quantifiers::SygusSampler>>::iterator its =
-              smap.find(tn);
-          if (its == smap.end())
-          {
-            smap[tn].reset(new quantifiers::SygusSampler(d_env));
-            smap[tn]->initializeSygus(
-                d_tds, nv, options().quantifiers.sygusSamples, false);
-            its = d_sampler[a].find(tn);
-          }
-          // check equivalent
-          its->second->checkEquivalent(bv, bvr, *options().base.out);
         }
       }
 

@@ -27,6 +27,12 @@ include_directories(${CMAKE_BINARY_DIR}/src)
 add_custom_target(build-units)
 add_dependencies(build-tests build-units)
 
+
+# See the comment about 'make test' in test/regress/cli/CMakeLists.txt
+# Disabled temporarily due to problems in the nightly builds
+# add_test(build_units_test "${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}" --config "$<CONFIG>" --target build-units)
+# set_tests_properties(build_units_test PROPERTIES FIXTURES_SETUP build_units_fixture)
+
 add_custom_target(units
   COMMAND ctest --output-on-failure -L "unit" -j${CTEST_NTHREADS} $$ARGS
   DEPENDS build-units)
@@ -77,6 +83,7 @@ macro(cvc5_add_unit_test is_white name output_dir)
     endif()
     add_test(${test_name} ${test_bin_dir}/${name})
     set_tests_properties(${test_name} PROPERTIES LABELS "unit")
+    # set_tests_properties(${test_name} PROPERTIES FIXTURES_REQUIRED build_units_fixture)
   endif()
 endmacro()
 

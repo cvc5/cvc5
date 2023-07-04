@@ -43,6 +43,12 @@ class FlexParser : public ParserStateCallback
  public:
   FlexParser(Solver* solver, SymbolManager* sm);
   virtual ~FlexParser() {}
+  /**
+   * Set the logic
+   *
+   * @param name The name of the logic.
+   */
+  virtual void setLogic(const std::string& name);
   /** Set the input for the given file.
    *
    * @param filename the input filename
@@ -70,6 +76,9 @@ class FlexParser : public ParserStateCallback
 
   /** Parse and return the next expression. */
   Term nextExpression();
+
+  /** Is this parser done reading input? */
+  bool done() const;
 
   /** Issue a warning to the user. */
   void warning(const std::string& msg) override;

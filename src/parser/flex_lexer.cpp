@@ -19,7 +19,6 @@
 #include <iostream>
 #include <sstream>
 
-#include "base/check.h"
 #include "base/output.h"
 #include "parser/parser_exception.h"
 
@@ -35,7 +34,10 @@ std::ostream& operator<<(std::ostream& o, const Span& l)
   return o << l.d_start << "-" << l.d_end;
 }
 
-FlexLexer::FlexLexer() : yyFlexLexer(), d_bufferPos(0), d_bufferEnd(0) {}
+FlexLexer::FlexLexer()
+    : d_bufferPos(0), d_bufferEnd(0), d_peekedChar(false), d_chPeeked(0)
+{
+}
 
 void FlexLexer::warning(const std::string& msg)
 {
@@ -60,10 +62,11 @@ void FlexLexer::parseError(const std::string& msg, bool eofException)
 void FlexLexer::initSpan()
 {
   d_span.d_start.d_line = 1;
-  d_span.d_start.d_column = 1;
+  d_span.d_start.d_column = 0;
   d_span.d_end.d_line = 1;
-  d_span.d_end.d_column = 1;
+  d_span.d_end.d_column = 0;
 }
+
 void FlexLexer::initialize(FlexInput* input, const std::string& inputName)
 {
   Assert(input != nullptr);
@@ -72,15 +75,10 @@ void FlexLexer::initialize(FlexInput* input, const std::string& inputName)
   d_inputName = inputName;
   initSpan();
   d_peeked.clear();
-  // use the std::istream* version which is supported in earlier Flex versions
-  // !!! temporary until we remove Flex
-  yyrestart(d_istream);
-}
-
-const char* FlexLexer::tokenStr() const
-{
-  Assert(d_peeked.empty());
-  return YYText();
+  d_bufferPos = 0;
+  d_bufferEnd = 0;
+  d_peekedChar = false;
+  d_chPeeked = 0;
 }
 
 Token FlexLexer::nextToken()
@@ -142,12 +140,6 @@ bool FlexLexer::eatTokenChoice(Token t, Token f)
     unexpectedTokenError(tt, o.str());
   }
   return false;
-}
-
-Token FlexLexer::nextTokenInternal()
-{
-  // !!! temporary until we remove Flex
-  return Token(yylex());
 }
 
 }  // namespace parser

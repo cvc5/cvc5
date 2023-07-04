@@ -30,6 +30,8 @@ FlexParser::FlexParser(Solver* solver, SymbolManager* sm)
 {
 }
 
+void FlexParser::setLogic(const std::string& name) {}
+
 void FlexParser::setFileInput(const std::string& filename)
 {
   d_flexInput = FlexInput::mkFileInput(filename);
@@ -129,6 +131,8 @@ Term FlexParser::nextExpression()
   Trace("parser") << "nextExpression() => " << result << std::endl;
   return result;
 }
+
+bool FlexParser::done() const { return d_done; }
 
 std::unique_ptr<FlexParser> FlexParser::mkFlexParser(const std::string& lang,
                                                      Solver* solver,
