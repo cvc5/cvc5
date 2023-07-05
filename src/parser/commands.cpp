@@ -1568,7 +1568,27 @@ void GetProofCommand::invoke(cvc5::Solver* solver, SymManager* sm)
 {
   try
   {
-    d_result = solver->getProof(d_component);
+    stringstream ss;
+    const vector<cvc5::Proof> ps = solver->getProof(d_component);
+
+    // mode == options::ProofFormatMode::NONE)
+    // solver-> somethingsomething Option ----> mode Info
+    // how to get this?
+    // TODO: set correctly
+    bool outermostParentheses = false;
+
+    if (outermostParentheses)
+    {
+      ss << "(\n";
+    }
+    ss << solver->proofsToString(ps, modes::PROOF_FORMAT_DEFAULT, d_component)
+       << "\n";
+    if (outermostParentheses)
+    {
+      ss << ")\n";
+    }
+
+    d_result = ss.str();
     d_commandStatus = CommandSuccess::instance();
   }
   catch (cvc5::CVC5ApiRecoverableException& e)
