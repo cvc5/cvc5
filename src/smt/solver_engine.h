@@ -1050,10 +1050,11 @@ class CVC5_EXPORT SolverEngine
       modes::ProofComponent c = modes::PROOF_COMPONENT_FULL);
 
   /**
-   * Prints proof nodes using the currently configured proof format.
+   * Prints proof nodes using a proof format of choice .
    */
   void printProofs(std::ostream& out,
                    std::vector<std::shared_ptr<ProofNode>> fp,
+                   modes::ProofFormat proofFormat,
                    bool commentProves = true);
 
   /* Members -------------------------------------------------------------- */

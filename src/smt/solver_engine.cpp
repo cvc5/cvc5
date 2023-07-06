@@ -1407,7 +1407,7 @@ std::vector<std::shared_ptr<ProofNode>> SolverEngine::getProofNode(
   if (c == modes::PROOF_COMPONENT_RAW_PREPROCESS)
   {
     // use all preprocessed assertions
-    const std::vector<Node>& assertions =
+    const context::CDList<Node>& assertions =
         d_smtSolver->getPreprocessedAssertions();
     connectToPreprocess = true;
     // We start with (ASSUME a) for each preprocessed assertion a. This
@@ -1467,13 +1467,28 @@ std::vector<std::shared_ptr<ProofNode>> SolverEngine::getProofNode(
 
 void SolverEngine::printProofs(std::ostream& out,
                                std::vector<std::shared_ptr<ProofNode>> fp,
+                               modes::ProofFormat proofFormat,
                                bool commentProves)
 {
   // print all proofs
   // we currently only print outermost parentheses if the format is NONE
 
   // we print in the format based on the proof mode
-  options::ProofFormatMode mode = options().proof.proofFormatMode;
+  options::ProofFormatMode mode = options::ProofFormatMode::NONE;
+  switch (proofFormat)
+  {
+    case modes::PROOF_FORMAT_DEFAULT:
+      mode = options().proof.proofFormatMode;
+      break;
+    case modes::PROOF_FORMAT_NONE: mode = options::ProofFormatMode::NONE; break;
+    case modes::PROOF_FORMAT_DOT: mode = options::ProofFormatMode::DOT; break;
+    case modes::PROOF_FORMAT_ALETHE:
+      mode = options::ProofFormatMode::ALETHE;
+      break;
+    case modes::PROOF_FORMAT_LFSC: mode = options::ProofFormatMode::LFSC; break;
+    case modes::PROOF_FORMAT_TPTP: mode = options::ProofFormatMode::TPTP; break;
+  }
+
   if (mode == options::ProofFormatMode::NONE)
   {
     out << "(" << std::endl;
