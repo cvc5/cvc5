@@ -832,8 +832,7 @@ Node TheoryFp::getValue(TNode node)
         Assert(!iit->second.isNull());
         nb << iit->second;
       }
-      Node n = nb.constructNode();
-      d_modelCache[cur] = rewrite(n);
+      d_modelCache[cur] = rewrite(nb.constructNode());
       vit->second = true;
     }
   } while (!visit.empty());
