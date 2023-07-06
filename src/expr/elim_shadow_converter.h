@@ -17,6 +17,8 @@
 #ifndef CVC4__EXPR__ELIM_SHADOW_NODE_CONVERTER_H
 #define CVC4__EXPR__ELIM_SHADOW_NODE_CONVERTER_H
 
+#include <unordered_set>
+
 #include "expr/node.h"
 #include "expr/node_converter.h"
 
@@ -37,6 +39,7 @@ class ElimShadowNodeConverter : public NodeConverter
 {
  public:
   ElimShadowNodeConverter(const Node& q);
+  ElimShadowNodeConverter(const std::unordered_set<Node>& vars);
   ~ElimShadowNodeConverter() {}
   /**
    * Convert node n as described above during post-order traversal. This

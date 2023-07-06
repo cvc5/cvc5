@@ -62,22 +62,21 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
                           << lambda << " for " << node << "\n";
       std::vector<TNode> vars(lambda[0].begin(), lambda[0].end());
       std::vector<TNode> subs(node.begin(), node.end());
-      bool hasFreeVar = false;
+      std::unordered_set<Node> fvs;
       for (TNode s : subs)
       {
-        if (expr::hasFreeVar(s))
-        {
-          hasFreeVar = true;
-          break;
-        }
+        expr::getFreeVariables(s, fvs);
       }
-      if (!hasFreeVar)
+      Node new_body = lambda[1];
+      if (!fvs.empty())
       {
-        Node ret = lambda[1].substitute(
-            vars.begin(), vars.end(), subs.begin(), subs.end());
-
-        return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+        ElimShadowNodeConverter esnc(fvs);
+        new_body = esnc.convert(new_body);
       }
+      Node ret = new_body.substitute(
+          vars.begin(), vars.end(), subs.begin(), subs.end());
+
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
     if (!canUseAsApplyUfOperator(node.getOperator()))
     {
@@ -108,13 +107,17 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       }
 
       TNode arg = node[1];
-      if (!expr::hasFreeVar(arg))
+      std::unordered_set<Node> fvs;
+      expr::getFreeVariables(arg, fvs);
+      if (!fvs.empty())
       {
-        TNode var = lambda[0][0];
-        new_body = new_body.substitute(var, arg);
-        Trace("uf-ho-beta") << "uf-ho-beta : ..new body : " << new_body << "\n";
-        return RewriteResponse(REWRITE_AGAIN_FULL, new_body);
+        ElimShadowNodeConverter esnc(fvs);
+        new_body = esnc.convert(new_body);
       }
+      TNode var = lambda[0][0];
+      new_body = new_body.substitute(var, arg);
+      Trace("uf-ho-beta") << "uf-ho-beta : ..new body : " << new_body << "\n";
+      return RewriteResponse(REWRITE_AGAIN_FULL, new_body);
     }
   }
   else if (k == kind::LAMBDA)
