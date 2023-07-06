@@ -1,6 +1,11 @@
 on: [push, pull_request]
 name: CI
 
+# Prevents github from relying of clones of homebrew-core or homebrew-cask.
+# https://github.com/orgs/Homebrew/discussions/4612
+env:
+    HOMEBREW_NO_INSTALL_FROM_API: ""
+
 jobs:
   build:
     strategy:
