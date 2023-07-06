@@ -1043,13 +1043,6 @@ class CVC5_EXPORT SolverEngine
                                                bool isInternal);
 
   /**
-   * Retrieves the selected proof component as proof nodes that are intended to
-   * be printed.
-   */
-  std::vector<std::shared_ptr<ProofNode>> getProofNode(
-      modes::ProofComponent c = modes::PROOF_COMPONENT_FULL);
-
-  /**
    * Prints proof nodes using a proof format of choice .
    */
   void printProofs(std::ostream& out,
