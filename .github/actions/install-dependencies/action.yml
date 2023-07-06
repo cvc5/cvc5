@@ -68,7 +68,6 @@ runs:
         brew config
         brew untap homebrew/core homebrew/cask
         brew config
-        brew update --quiet
 
         brew install \
           ccache \
