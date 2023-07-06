@@ -62,12 +62,24 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
                           << lambda << " for " << node << "\n";
       std::vector<TNode> vars(lambda[0].begin(), lambda[0].end());
       std::vector<TNode> subs(node.begin(), node.end());
-      Node ret = lambda[1].substitute(
-          vars.begin(), vars.end(), subs.begin(), subs.end());
+      bool hasFreeVar = false;
+      for (TNode s : subs)
+      {
+        if (expr::hasFreeVar(s))
+        {
+          hasFreeVar = true;
+          break;
+        }
+      }
+      if (!hasFreeVar)
+      {
+        Node ret = lambda[1].substitute(
+            vars.begin(), vars.end(), subs.begin(), subs.end());
 
-      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+        return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+      }
     }
-    else if (!canUseAsApplyUfOperator(node.getOperator()))
+    if (!canUseAsApplyUfOperator(node.getOperator()))
     {
       return RewriteResponse(REWRITE_AGAIN_FULL, getHoApplyForApplyUf(node));
     }
@@ -96,11 +108,13 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       }
 
       TNode arg = node[1];
-      TNode var = lambda[0][0];
-      new_body = new_body.substitute(var, arg);
-
-      Trace("uf-ho-beta") << "uf-ho-beta : ..new body : " << new_body << "\n";
-      return RewriteResponse(REWRITE_AGAIN_FULL, new_body);
+      if (!expr::hasFreeVar(arg))
+      {
+        TNode var = lambda[0][0];
+        new_body = new_body.substitute(var, arg);
+        Trace("uf-ho-beta") << "uf-ho-beta : ..new body : " << new_body << "\n";
+        return RewriteResponse(REWRITE_AGAIN_FULL, new_body);
+      }
     }
   }
   else if (k == kind::LAMBDA)
