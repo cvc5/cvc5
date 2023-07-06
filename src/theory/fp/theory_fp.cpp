@@ -17,6 +17,7 @@
 
 #include <set>
 #include <stack>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -755,6 +756,7 @@ Node TheoryFp::getValue(TNode node)
   d_invalidateModelCache.set(false);
 
   std::vector<TNode> visit;
+  std::unordered_map<TNode, bool> visited;
 
   TNode cur;
   visit.push_back(node);
@@ -769,9 +771,16 @@ Node TheoryFp::getValue(TNode node)
       continue;
     }
 
+    auto vit = visited.find(cur);
+    if (vit != visited.end())
+    {
+      continue;
+    }
+
     if (cur.isConst())
     {
       d_modelCache[cur] = cur;
+      visited[cur] = true;
       continue;
     }
 
@@ -797,16 +806,17 @@ Node TheoryFp::getValue(TNode node)
         }
       }
       d_modelCache[cur] = value;
+      visited[cur] = true;
       continue;
     }
 
-    if (it == d_modelCache.end())
+    if (vit == visited.end())
     {
       visit.push_back(cur);
-      d_modelCache.emplace(cur, Node());
+      visited.emplace(cur, false);
       visit.insert(visit.end(), cur.begin(), cur.end());
     }
-    else if (it->second.isNull())
+    else if (!vit->second)
     {
       NodeBuilder nb(kind);
       if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
@@ -822,6 +832,7 @@ Node TheoryFp::getValue(TNode node)
         nb << iit->second;
       }
       it->second = rewrite(nb.constructNode());
+      vit->second = true;
     }
   } while (!visit.empty());
 
