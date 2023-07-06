@@ -772,7 +772,7 @@ Node TheoryFp::getValue(TNode node)
     }
 
     auto vit = visited.find(cur);
-    if (vit != visited.end())
+    if (vit != visited.end() && vit->second)
     {
       continue;
     }
@@ -829,9 +829,10 @@ Node TheoryFp::getValue(TNode node)
       {
         iit = d_modelCache.find(child);
         Assert(iit != d_modelCache.end());
+        Assert(!iit->second.isNull());
         nb << iit->second;
       }
-      it->second = rewrite(nb.constructNode());
+      d_modelCache[cur] = rewrite(nb.constructNode());
       vit->second = true;
     }
   } while (!visit.empty());
