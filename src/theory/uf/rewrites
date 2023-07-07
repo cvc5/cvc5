@@ -1,17 +1,24 @@
 ; Equality
 
-(define-rule eq-refl ((t ?)) (= t t) true)
-(define-rule eq-symm ((t ?) (s ?)) (= t s) (= s t))
+; Original cvc5 Rewrites
 
-(define-rule distinct-binary-elim ((t ?) (s ?)) (distinct t s) (not (= t s)))
+;done   (define-rule eq-refl ((t ?)) (= t t) true)
+;(define-rule eq-symm ((t ?) (s ?)) (= t s) (= s t))
 
-; bv to arith conversions
+;(define-rule distinct-binary-elim ((t ?) (s ?)) (distinct t s) (not (= t s)))
 
-;(define-cond-rule uf-bv2nat-int2bv ((w Int) (t ?BitVec))
-;  (= (bvsize t) w)
-;  (int2bv w (bv2nat t))
-;  t)
-;
-;(define-rule uf-int2bv-bv2nat ((w Int) (t Int))
-;  (bv2nat (int2bv w t))
-;  (mod t (^ 2 w)))
+
+; VeriT Rewrites
+
+(define-rule eq_simplify1 ((x ?)) (= x x) true)
+
+(define-rule connective_def2 ((x Bool) (y Bool)) (x = y) (and (=> x y) (=> y x)))
+
+(define-rule equiv_simplify1 ((x Bool) (y Bool)) (= (not x) (not y)) (= x y))
+(define-rule equiv_simplify2 ((x Bool)) (= x x) true)
+(define-rule equiv_simplify3 ((x Bool)) (= x (not x)) false)
+(define-rule equiv_simplify4 ((x Bool)) (= (not x) x) false)
+(define-rule equiv_simplify5 ((x Bool)) (= true x) x)
+(define-rule equiv_simplify6 ((x Bool)) (= x true) x)
+(define-rule equiv_simplify7 ((x Bool)) (= false x) (not x))
+(define-rule equiv_simplify8 ((x Bool)) (= x false) (not x))

@@ -1,12 +1,31 @@
 
 ; ITE
 
-(define-rule ite-true-cond ((x ?) (y ?)) (ite true x y) x)
-(define-rule ite-false-cond ((x ?) (y ?)) (ite false x y) y)
-(define-rule ite-not-cond ((c Bool) (x ?) (y ?)) (ite (not c) x y) (ite c y x))
-(define-rule ite-eq-branch ((c Bool) (x ?)) (ite c x x) x)
 
-(define-rule ite-then-lookahead ((c Bool) (x ?) (y ?) (z ?)) (ite c (ite c x y) z) (ite c x z))
-(define-rule ite-else-lookahead ((c Bool) (x ?) (y ?) (z ?)) (ite c x (ite c y z)) (ite c x z))
-(define-rule ite-then-neg-lookahead ((c Bool) (x ?) (y ?) (z ?)) (ite c (ite (not c) x y) z) (ite c y z))
-(define-rule ite-else-neg-lookahead ((c Bool) (x ?) (y ?) (z ?)) (ite c x (ite (not c) y z)) (ite c x y))
+; Original cvc5 Rewrites
+
+;done   (define-rule ite-true-cond ((x ?) (y ?)) (ite true x y) x)
+;done   (define-rule ite-false-cond ((x ?) (y ?)) (ite false x y) y)
+;done   (define-rule ite-not-cond ((c Bool) (x ?) (y ?)) (ite (not c) x y) (ite c y x))
+;done   (define-rule ite-eq-branch ((c Bool) (x ?)) (ite c x x) x)
+
+;done   (define-rule ite-then-lookahead ((c Bool) (x ?) (y ?) (z ?)) (ite c (ite c x y) z) (ite c x z))
+;done   (define-rule ite-else-lookahead ((c Bool) (x ?) (y ?) (z ?)) (ite c x (ite c y z)) (ite c x z))
+;(define-rule ite-then-neg-lookahead ((c Bool) (x ?) (y ?) (z ?)) (ite c (ite (not c) x y) z) (ite c y z))
+;(define-rule ite-else-neg-lookahead ((c Bool) (x ?) (y ?) (z ?)) (ite c x (ite (not c) y z)) (ite c x y))
+
+
+; VeriT Rewrites
+
+(define-rule ite_simplify1 ((x ?) (y ?)) (ite true x y) x)
+(define-rule ite_simplify2 ((x ?) (y ?)) (ite false x y) y)
+(define-rule ite_simplify3 ((c Bool) (x ?)) (ite c x x) x)
+(define-rule ite_simplify4 ((c Bool) (x ?) (y ?)) (ite (not c) x y) (ite c y x))
+(define-rule ite_simplify5 ((c Bool) (x ?) (y ?) (z ?)) (ite c (ite c x y) z) (ite c x z))
+(define-rule ite_simplify6 ((c Bool) (x ?) (y ?) (z ?)) (ite c x (ite c y z)) (ite c x z))
+(define-rule ite_simplify7 ((c Bool)) (ite c false true) c)
+(define-rule ite_simplify8 ((c Bool)) (ite c true false) (not c))
+(define-rule ite_simplify9 ((c Bool) (x Bool)) (ite c true x) (or c x))
+(define-rule ite_simplify10 ((c Bool) (x Bool)) (ite c x false) (and c x))
+(define-rule ite_simplify11 ((c Bool) (x Bool)) (ite c false x) (and (not c) x))
+(define-rule ite_simplify12 ((c Bool) (x Bool)) (ite c x true) (or (not c) x))
