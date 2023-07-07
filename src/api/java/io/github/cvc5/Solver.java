@@ -19,6 +19,7 @@ import io.github.cvc5.modes.BlockModelsMode;
 import io.github.cvc5.modes.FindSynthTarget;
 import io.github.cvc5.modes.LearnedLitType;
 import io.github.cvc5.modes.ProofComponent;
+import io.github.cvc5.modes.ProofFormat;
 import java.io.IOException;
 import java.util.*;
 
@@ -2127,15 +2128,15 @@ public class Solver implements IPointer
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @return A string representing the proof. This is impacted by the value of
-   * proof-format-mode.
+   * @return A vector of proof nodes. This is equivalent to getProof
+   * when c is PROOF_COMPONENT_FULL.
    */
-  public String getProof()
+  public Proof[] getProof()
   {
-    return getProof(pointer);
+    return Utils.getProofs(getProof(pointer));
   }
 
-  private native String getProof(long pointer);
+  private native long[] getProof(long pointer);
 
   /**
    * Get a proof associated with the most recent call to checkSat.
@@ -2150,15 +2151,36 @@ public class Solver implements IPointer
    * @api.note This method is experimental and may change in future versions.
    *
    * @param c The component of the proof to return
-   * @return A string representing the proof. This is equivalent to getProof
-   * when c is FULL.
+   * @return A vector of proof nodes.
    */
-  public String getProof(ProofComponent c)
+  public Proof[] getProof(ProofComponent c)
   {
-    return getProof(pointer, c.getValue());
+    return Utils.getProofs(getProof(pointer, c.getValue()));
   }
 
-  private native String getProof(long pointer, int c);
+  private native long[] getProof(long pointer, int c);
+
+  /**
+   * Prints a vector of proofs into a string with a slected proof format mode.
+   * Other aspects of printing are taken from the solver options.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @param proof A list of proofs.
+   * @param format The proof format used to print the proof.
+   * @param component The proof component represented by the proof.  If the
+   * component is either a SAT proof or a full proof the printed proof is not
+   * anotated with the conclusion, because the conclusion is always `false` in
+   * this case.
+   * @return The proofs printed in the current format.
+   */
+  public String proofsToString(Proof[] proof, ProofFormat format, ProofComponent component)
+  {
+    long[] proofPointers = Utils.getPointers(proof);
+    return proofsToString(pointer, proofPointers, format.getValue(), component.getValue());
+  }
+
+  private native String proofsToString(long pointer, long[] proofs, long format, long component);
 
   /**
    * Get the value of the given term in the current model.

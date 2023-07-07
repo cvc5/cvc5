@@ -102,6 +102,7 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Op.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/OptionInfo.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Pair.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Proof.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Result.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Solver.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Sort.java
@@ -125,6 +126,7 @@ set(JNI_HEADERS
   ${JNI_DIR}/io_github_cvc5_Grammar.h
   ${JNI_DIR}/io_github_cvc5_Op.h
   ${JNI_DIR}/io_github_cvc5_OptionInfo.h
+  ${JNI_DIR}/io_github_cvc5_Proof.h
   ${JNI_DIR}/io_github_cvc5_Result.h
   ${JNI_DIR}/io_github_cvc5_Solver.h
   ${JNI_DIR}/io_github_cvc5_Sort.h
@@ -172,6 +174,7 @@ add_library(cvc5jni
   jni/grammar.cpp
   jni/op.cpp
   jni/option_info.cpp
+  jni/proof.cpp
   jni/result.cpp
   jni/solver.cpp
   jni/sort.cpp
