@@ -3344,11 +3344,6 @@ class CVC5_EXPORT Proof
   friend class Solver;
 
  public:
-  /*
-   * Destructor.
-   */
-  ~Proof();
-
   /** @return The conclusion of the root step of the proof. */
   Term getResult() const;
 
@@ -3360,6 +3355,16 @@ class CVC5_EXPORT Proof
    *         Some of those terms might be strings.
    */
   const std::vector<Term> getArguments() const;
+
+  /*
+   * Destructor.
+   */
+  ~Proof();
+
+  /**
+   * Nullary constructor. Needed for the Cython API.
+   */
+  Proof();
 
  private:
   /** Construct a proof by wrapping a ProofNode. */

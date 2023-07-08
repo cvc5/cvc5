@@ -5042,6 +5042,8 @@ std::ostream& operator<<(std::ostream& out, const Statistics& stats)
 /* Proof                                                                      */
 /* -------------------------------------------------------------------------- */
 
+Proof::Proof() : d_nm(internal::NodeManager::currentNM()) {}
+
 Proof::Proof(const std::shared_ptr<internal::ProofNode> p)
     : d_nm(internal::NodeManager::currentNM()), d_proof_node(p)
 {

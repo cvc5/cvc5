@@ -30,6 +30,8 @@ from cvc5 cimport Solver as c_Solver
 from cvc5 cimport Statistics as c_Statistics
 from cvc5 cimport Stat as c_Stat
 from cvc5 cimport Grammar as c_Grammar
+from cvc5 cimport Proof as c_Proof
+from cvc5 cimport Sort as c_Sort
 from cvc5 cimport Sort as c_Sort
 from cvc5 cimport Term as c_Term
 from cvc5 cimport hash as c_hash
@@ -2239,11 +2241,22 @@ cdef class Solver:
 
             .. warning:: This method is experimental and may change in future
                          versions.
-            :param c: The component of the proof to return
-            :return: A string representing the proof. This takes into account
-            proof-format-mode when c is FULL.
+            :param c: The component of the proof to return 
+            :return: A vector of proof nodes.
         """
-        return self.csolver.getProof(<c_ProofComponent> c.value)
+        proofs = []
+        for p in self.csolver.getProof(<c_ProofComponent> c.value):
+            proof = Proof(self)
+            proof.cproof = p
+            proofs.append(proof)
+        return proofs
+
+    def proofsToString(self, proof, format, component):
+        cdef vector[c_Proof] cproofs
+        for p in proof:
+            cproofs.push_back((<Proof?> p).cproof)
+        return self.csolver.proofsToString(cproofs, <c_ProofFormat> format.value,
+                                           <c_ProofComponent> component.value)
 
     def getLearnedLiterals(self, type = LearnedLitType.INPUT):
         """
@@ -4397,3 +4410,47 @@ cdef class Term:
                 res[k] = v
 
             return res
+
+cdef class Proof:
+    """
+        A cvc5 proof.  Proofs are trees and every proof object corresponds to the
+        root step of a proof.  The branches of the root step are the premises of
+        the step.
+
+        Wrapper class for :cpp:class:`cvc5::Proof`.
+    """
+    cdef c_Proof cproof
+    cdef Solver solver
+    def __cinit__(self, Solver solver):
+        self.solver = solver
+
+    """
+        :return: The conclusion of the root step of the proof.
+    """
+    def getResult(self):
+        term = Term(self.solver)
+        term.cterm = self.cproof.getResult()
+        return term
+    
+    """
+        :return: The premises of the root step of the proof.
+    """
+    def getChildren(self):
+        proofs = []
+        for p in self.cproof.getChildren():
+            proof = Proof(self)
+            proof.cproof = p
+            proofs.append(proof)
+        return proofs
+
+    """
+        :return: The arguments of the root step of the proof as a vector of terms.
+                Some of those terms might be strings.
+    """
+    def getArguments(self):
+        args = []
+        for a in self.cproof.getArguments():
+            term = Term(self.solver)
+            term.cterm = a
+            args.append(term)
+        return args
