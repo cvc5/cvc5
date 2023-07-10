@@ -1402,7 +1402,6 @@ void SolverEngine::printProofs(std::ostream& out,
       mode = options::ProofFormatMode::ALETHE;
       break;
     case modes::PROOF_FORMAT_LFSC: mode = options::ProofFormatMode::LFSC; break;
-    case modes::PROOF_FORMAT_TPTP: mode = options::ProofFormatMode::TPTP; break;
   }
 
   if (mode == options::ProofFormatMode::NONE)

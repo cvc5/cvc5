@@ -413,8 +413,6 @@ enum ProofFormat
   PROOF_FORMAT_LFSC,
   /** Output Alethe proof. */
   PROOF_FORMAT_ALETHE,
-  /** Output TPTP proof (work in progress). */
-  PROOF_FORMAT_TPTP,
   /** Use the proof format mode set in the solver options. */
   PROOF_FORMAT_DEFAULT
 };
