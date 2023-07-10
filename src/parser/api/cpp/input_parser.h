@@ -128,8 +128,6 @@ class CVC5_EXPORT InputParser
   std::unique_ptr<SymbolManager> d_allocSm;
   /** Symbol manager */
   SymbolManager* d_sm;
-  /** whether to use flex */
-  bool d_use;
   /** Incremental string input language */
   std::string d_istringLang;
   /** Incremental string name */
