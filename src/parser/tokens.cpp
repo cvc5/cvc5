@@ -105,7 +105,6 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::STRING_LITERAL: o << "STRING_LITERAL"; break;
     case Token::SYMBOL: o << "SYMBOL"; break;
     case Token::SYNTH_FUN_TOK: o << "SYNTH_FUN_TOK"; break;
-    case Token::SYNTH_INV_TOK: o << "SYNTH_INV_TOK"; break;
     case Token::UNTERMINATED_QUOTED_SYMBOL:
       o << "UNTERMINATED_QUOTED_SYMBOL";
       break;

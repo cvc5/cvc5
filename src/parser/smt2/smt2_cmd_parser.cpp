@@ -90,7 +90,6 @@ Smt2CmdParser::Smt2CmdParser(Smt2LexerNew& lex,
     d_table["inv-constraint"] = Token::INV_CONSTRAINT_TOK;
     d_table["set-feature"] = Token::SET_FEATURE_TOK;
     d_table["synth-fun"] = Token::SYNTH_FUN_TOK;
-    d_table["synth-inv"] = Token::SYNTH_INV_TOK;
   }
 }
 
