@@ -90,6 +90,7 @@ Smt2CmdParser::Smt2CmdParser(Smt2LexerNew& lex,
     d_table["inv-constraint"] = Token::INV_CONSTRAINT_TOK;
     d_table["set-feature"] = Token::SET_FEATURE_TOK;
     d_table["synth-fun"] = Token::SYNTH_FUN_TOK;
+    d_table["synth-inv"] = Token::SYNTH_INV_TOK;
   }
 }
 
@@ -831,16 +832,28 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
     }
     break;
     // (synth-fun <symbol> (<sorted_var>*) <sort> <grammar>?)
+    // (synth-inv <symbol> (<sorted_var>*) <grammar>?)
     case Token::SYNTH_FUN_TOK:
+    case Token::SYNTH_INV_TOK:
     {
       d_state.checkThatLogicIsSet();
       std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
       std::vector<std::pair<std::string, Sort>> sortedVarNames =
           d_tparser.parseSortedVarList();
-      Sort range = d_tparser.parseSort();
+      Sort range;
+      bool isInv = (tok == Token::SYNTH_INV_TOK);
+      if (isInv)
+      {
+        range = d_state.getSolver()->getBooleanSort();
+      }
+      else
+      {
+        range = d_tparser.parseSort();
+      }
       d_state.pushScope();
       std::vector<cvc5::Term> sygusVars = d_state.bindBoundVars(sortedVarNames);
       Grammar* g = d_tparser.parseGrammarOrNull(sygusVars, name);
+
       Trace("parser-sygus") << "Define synth fun : " << name << std::endl;
       d_state.popScope();
       cmd.reset(new SynthFunCommand(name, sygusVars, range, g));
