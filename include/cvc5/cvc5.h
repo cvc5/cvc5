@@ -3884,7 +3884,7 @@ class CVC5_EXPORT Solver
    * Simplify a formula without doing "much" work.
    *
    * Does not involve the SAT Engine in the simplification, but uses the
-   * current definitions, and assertions.  It also involves theory
+   * current definitions, and assertions. It also involves theory
    * normalization.
    *
    * @warning This method is experimental and may change in future versions.
@@ -3893,6 +3893,20 @@ class CVC5_EXPORT Solver
    * @return The simplified formula.
    */
   Term simplify(const Term& t);
+
+  /**
+   * Rewrite a formula.
+   *
+   * This performs theory normalization on t and returns the result. In 
+   * contrast to simplify, the current assertions are not used. The
+   * returned term is theory equivalent to t.
+   *
+   * @warning This method is experimental and may change in future versions.
+   *
+   * @param t The formula to rewrite.
+   * @return The rewitten formula.
+   */
+  Term rewrite(const Term& t);
 
   /**
    * Assert a formula.

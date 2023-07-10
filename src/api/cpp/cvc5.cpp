@@ -72,6 +72,7 @@
 #include "theory/datatypes/project_op.h"
 #include "theory/logic_info.h"
 #include "theory/theory_model.h"
+#include "theory/rewriter.h"
 #include "util/bitvector.h"
 #include "util/divisible.h"
 #include "util/finite_field_value.h"
@@ -6347,6 +6348,18 @@ Term Solver::simplify(const Term& term)
   CVC5_API_SOLVER_CHECK_TERM(term);
   //////// all checks before this line
   Term res = Term(d_nm, d_slv->simplify(*term.d_node));
+  Assert(*res.getSort().d_type == *term.getSort().d_type);
+  return res;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Solver::rewrite(const Term& term)
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_SOLVER_CHECK_TERM(term);
+  //////// all checks before this line
+  Term res = Term(d_nm, d_slv->getEnv().getRewriter()->rewrite(*term.d_node));
   Assert(*res.getSort().d_type == *term.getSort().d_type);
   return res;
   ////////

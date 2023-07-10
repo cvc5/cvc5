@@ -1726,6 +1726,24 @@ cdef class Solver:
         term.cterm = self.csolver.simplify(t.cterm)
         return term
 
+    def rewrite(self, Term t):
+        """
+            Rewrite a formula.
+        
+            This performs theory normalization on t and returns the result. In 
+            contrast to simplify, the current assertions are not used. The
+            returned term is theory equivalent to t.
+
+            .. warning:: This method is experimental and may change in future
+                         versions.
+
+            :param t: The formula to rewrite.
+            :return: The rewritten formula.
+        """
+        cdef Term term = Term(self)
+        term.cterm = self.csolver.rewrite(t.cterm)
+        return term
+    
     def assertFormula(self, Term term):
         """
             Assert a formula
