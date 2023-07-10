@@ -57,12 +57,14 @@ Node FunDefEvaluator::evaluateDefinitions(Node n) const
   Assert(rewrite(n) == n);
   Trace("fd-eval") << "FunDefEvaluator: evaluateDefinitions " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<Node, unsigned> funDefCount;
-  std::unordered_map<Node, unsigned>::iterator itCount;
-  std::unordered_map<Node, Node> visited;
-  std::unordered_map<Node, Node>::iterator it;
+  std::unordered_map<TNode, unsigned> funDefCount;
+  std::unordered_map<TNode, unsigned>::iterator itCount;
+  std::unordered_map<TNode, Node> visited;
+  std::unordered_map<TNode, Node>::iterator it;
+  // to ensure all nodes are ref counted
+  std::unordered_set<Node> keep;
   std::map<Node, FunDefInfo>::const_iterator itf;
-  std::vector<Node> visit;
+  std::vector<TNode> visit;
   TNode cur;
   TNode curEval;
   Node f;
@@ -199,6 +201,7 @@ Node FunDefEvaluator::evaluateDefinitions(Node n) const
             }
             Assert(!sbody.isNull());
           }
+          keep.insert(sbody);
           // our result is the result of the body
           visited[cur] = sbody;
           // If its not constant, we push back self and the substituted body.
@@ -218,6 +221,7 @@ Node FunDefEvaluator::evaluateDefinitions(Node n) const
           {
             ret = nm->mkNode(cur.getKind(), children);
             ret = rewrite(ret);
+            keep.insert(ret);
           }
           Trace("fd-eval-debug2") << "built from arguments " << ret << "\n";
           visited[cur] = ret;
@@ -241,8 +245,8 @@ Node FunDefEvaluator::evaluateDefinitions(Node n) const
           Trace("fd-eval-debug2")
               << "eval with definition " << it->second << "\n";
           visited[cur] = it->second;
+        }
       }
-    }
     }
   } while (!visit.empty());
   Trace("fd-eval") << "FunDefEvaluator: return " << visited[n] << ", SUCCESS\n";
