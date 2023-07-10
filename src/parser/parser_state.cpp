@@ -13,7 +13,7 @@
  * Parser state implementation.
  */
 
-#include "parser/parser.h"
+#include "parser/parser_state.h"
 
 #include <cvc5/cvc5.h>
 

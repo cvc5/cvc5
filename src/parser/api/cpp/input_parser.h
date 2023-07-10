@@ -24,7 +24,7 @@
 #include <memory>
 
 #include "parser/api/cpp/command.h"
-#include "parser/flex_parser.h"
+#include "parser/parser.h"
 
 namespace cvc5 {
 namespace parser {
@@ -129,13 +129,13 @@ class CVC5_EXPORT InputParser
   /** Symbol manager */
   SymbolManager* d_sm;
   /** whether to use flex */
-  bool d_useFlex;
+  bool d_use;
   /** Incremental string input language */
   std::string d_istringLang;
   /** Incremental string name */
   std::string d_istringName;
   /** The parser */
-  std::unique_ptr<FlexParser> d_fparser;
+  std::unique_ptr<Parser> d_fparser;
 };
 
 }  // namespace parser

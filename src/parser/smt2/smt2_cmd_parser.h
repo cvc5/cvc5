@@ -18,8 +18,8 @@
 #ifndef CVC5__PARSER__SMT2_CMD_PARSER_H
 #define CVC5__PARSER__SMT2_CMD_PARSER_H
 
-#include "parser/smt2/smt2.h"
-#include "parser/smt2/smt2_lexer_new.h"
+#include "parser/smt2/smt2_state.h"
+#include "parser/smt2/smt2_lexer.h"
 #include "parser/smt2/smt2_term_parser.h"
 
 namespace cvc5 {

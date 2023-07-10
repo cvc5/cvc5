@@ -13,18 +13,18 @@
  * The lexer for smt2
  */
 
-#include "parser/smt2/smt2_lexer_new.h"
+#include "parser/smt2/smt2_lexer.h"
 
 #include <cstdio>
 
 #include "base/output.h"
-#include "parser/flex_lexer.h"
+#include "parser/lexer.h"
 
 namespace cvc5 {
 namespace parser {
 
 Smt2LexerNew::Smt2LexerNew(bool isStrict, bool isSygus)
-    : FlexLexer(),
+    : Lexer(),
       d_isStrict(isStrict),
       d_isSygus(isSygus)
 {

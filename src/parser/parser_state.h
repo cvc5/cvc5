@@ -15,8 +15,8 @@
 
 #include "cvc5parser_public.h"
 
-#ifndef CVC5__PARSER__PARSER_H
-#define CVC5__PARSER__PARSER_H
+#ifndef CVC5__PARSER__PARSER_STATE_H
+#define CVC5__PARSER__PARSER_STATE_H
 
 #include <cvc5/cvc5.h>
 #include <cvc5/cvc5_export.h>

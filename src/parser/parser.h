@@ -10,39 +10,39 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Base class for Flex parsing.
+ * Base class for  parsing.
  */
 
 #include "cvc5parser_public.h"
 
-#ifndef CVC5__PARSER__FLEX_PARSER_H
-#define CVC5__PARSER__FLEX_PARSER_H
+#ifndef CVC5__PARSER__PARSER_H
+#define CVC5__PARSER__PARSER_H
 
 #include <cvc5/cvc5.h>
 
 #include <list>
 #include <memory>
 
-#include "parser/flex_input.h"
-#include "parser/parser.h"
+#include "parser/input.h"
+#include "parser/parser_state.h"
 
 namespace cvc5 {
 namespace parser {
 
 class Command;
 class SymbolManager;
-class FlexLexer;
+class Lexer;
 
 /**
- * A parser that uses the FlexLexer for lexing. It is used as a callback
+ * A parser that uses the Lexer for lexing. It is used as a callback
  * for error reporting. Its main methods are those that set up the input,
  * nextCommand for parsing commands and nextExpression for parsing terms.
  */
-class FlexParser : public ParserStateCallback
+class Parser : public ParserStateCallback
 {
  public:
-  FlexParser(Solver* solver, SymbolManager* sm);
-  virtual ~FlexParser() {}
+  Parser(Solver* solver, SymbolManager* sm);
+  virtual ~Parser() {}
   /**
    * Set the logic
    *
@@ -88,7 +88,7 @@ class FlexParser : public ParserStateCallback
   void unexpectedEOF(const std::string& msg) override;
 
   /** make flex parser from language string */
-  static std::unique_ptr<FlexParser> mkFlexParser(const std::string& lang,
+  static std::unique_ptr<Parser> mkParser(const std::string& lang,
                                                   Solver* solver,
                                                   SymbolManager* sm);
 
@@ -111,9 +111,9 @@ class FlexParser : public ParserStateCallback
   /** Symbol manager */
   SymbolManager* d_sm;
   /** The lexer we are using */
-  FlexLexer* d_lex;
+  Lexer* d_lex;
   /** The flex input */
-  std::unique_ptr<FlexInput> d_flexInput;
+  std::unique_ptr<Input> d_flexInput;
   /** Are we done */
   bool d_done;
 };
