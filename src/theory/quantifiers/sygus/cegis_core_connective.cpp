@@ -203,6 +203,8 @@ bool CegisCoreConnective::processInitialize(Node conj,
     }
     else
     {
+      Trace("sygus-ccore-init") << "  use " << (r == 0 ? "pre" : "post")
+                                << "condition as a filter." << std::endl;
       // just use as a filtering
       c.initialize(node, Node::null());
     }
