@@ -831,23 +831,13 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
     }
     break;
     // (synth-fun <symbol> (<sorted_var>*) <sort> <grammar>?)
-    // (synth-inv <symbol> (<sorted_var>*) <grammar>?)
     case Token::SYNTH_FUN_TOK:
-    case Token::SYNTH_INV_TOK:
     {
       d_state.checkThatLogicIsSet();
       std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
       std::vector<std::pair<std::string, Sort>> sortedVarNames =
           d_tparser.parseSortedVarList();
-      Sort range;
-      if (tok == Token::SYNTH_INV_TOK)
-      {
-        range = d_state.getSolver()->getBooleanSort();
-      }
-      else
-      {
-        range = d_tparser.parseSort();
-      }
+      Sort range = d_tparser.parseSort();
       d_state.pushScope();
       std::vector<cvc5::Term> sygusVars = d_state.bindBoundVars(sortedVarNames);
       Grammar* g = d_tparser.parseGrammarOrNull(sygusVars, name);
