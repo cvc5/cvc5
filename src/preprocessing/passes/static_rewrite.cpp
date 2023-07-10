@@ -50,10 +50,10 @@ TrustNode StaticRewrite::rewriteAssertion(TNode n)
 {
   NodeManager* nm = NodeManager::currentNM();
   TheoryEngine* te = d_preprocContext->getTheoryEngine();
-  std::unordered_map<TNode, Node> visited;
-  std::unordered_map<TNode, Node> rewrittenTo;
-  std::unordered_map<TNode, Node>::iterator it;
-  std::vector<TNode> visit;
+  std::unordered_map<Node, Node> visited;
+  std::unordered_map<Node, Node> rewrittenTo;
+  std::unordered_map<Node, Node>::iterator it;
+  std::vector<Node> visit;
   TNode cur;
   visit.push_back(n);
   do

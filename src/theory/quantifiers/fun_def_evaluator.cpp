@@ -57,12 +57,12 @@ Node FunDefEvaluator::evaluateDefinitions(Node n) const
   Assert(rewrite(n) == n);
   Trace("fd-eval") << "FunDefEvaluator: evaluateDefinitions " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<TNode, unsigned> funDefCount;
-  std::unordered_map<TNode, unsigned>::iterator itCount;
-  std::unordered_map<TNode, Node> visited;
-  std::unordered_map<TNode, Node>::iterator it;
+  std::unordered_map<Node, unsigned> funDefCount;
+  std::unordered_map<Node, unsigned>::iterator itCount;
+  std::unordered_map<Node, Node> visited;
+  std::unordered_map<Node, Node>::iterator it;
   std::map<Node, FunDefInfo>::const_iterator itf;
-  std::vector<TNode> visit;
+  std::vector<Node> visit;
   TNode cur;
   TNode curEval;
   Node f;
