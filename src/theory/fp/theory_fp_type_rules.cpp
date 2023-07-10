@@ -30,6 +30,11 @@ namespace fp {
   Trace("fp-type") << FUNCTION "::computeType(" << check << "): " << n \
                    << std::endl
 
+bool isMaybeRoundingMode(const TypeNode& tn)
+{
+  return tn.isRoundingMode() || tn.isFullyAbstract();
+}
+
 TypeNode FloatingPointConstantTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return TypeNode::null();
@@ -47,13 +52,19 @@ TypeNode FloatingPointConstantTypeRule::computeType(NodeManager* nodeManager,
   {
     if (!(validExponentSize(f.getSize().exponentWidth())))
     {
-      throw TypeCheckingExceptionPrivate(n,
-                                         "constant with invalid exponent size");
+      if (errOut)
+      {
+        (*errOut) << "constant with invalid exponent size";
+      }
+      return TypeNode::null();
     }
     if (!(validSignificandSize(f.getSize().significandWidth())))
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "constant with invalid significand size");
+      if (errOut)
+      {
+        (*errOut) << "constant with invalid significand size";
+      }
+      return TypeNode::null();
     }
   }
   return nodeManager->mkFloatingPointType(f.getSize());
@@ -85,37 +96,57 @@ TypeNode FloatingPointFPTypeRule::computeType(NodeManager* nodeManager,
 {
   TRACE("FloatingPointFPTypeRule");
 
-  TypeNode signType = n[0].getType(check);
-  TypeNode exponentType = n[1].getType(check);
-  TypeNode significandType = n[2].getType(check);
+  TypeNode signType = n[0].getTypeOrNull();
+  TypeNode exponentType = n[1].getTypeOrNull();
+  TypeNode significandType = n[2].getTypeOrNull();
 
-  if (!signType.isBitVector() || !exponentType.isBitVector()
-      || !significandType.isBitVector())
+  if (!signType.isMaybeKind(kind::BITVECTOR_TYPE)
+      || !exponentType.isMaybeKind(kind::BITVECTOR_TYPE)
+      || !significandType.isMaybeKind(kind::BITVECTOR_TYPE))
   {
-    throw TypeCheckingExceptionPrivate(n,
-                                       "arguments to fp must be bit vectors");
+    if (errOut)
+    {
+      (*errOut) << "arguments to fp must be bit vectors";
+    }
+    return TypeNode::null();
   }
-
-  uint32_t signBits = signType.getBitVectorSize();
+  // if not concrete, we are abstract floating point
+  if (!exponentType.isBitVector() || !significandType.isBitVector())
+  {
+    return nodeManager->mkAbstractType(kind::FLOATINGPOINT_TYPE);
+  }
   uint32_t exponentBits = exponentType.getBitVectorSize();
   uint32_t significandBits = significandType.getBitVectorSize();
 
   if (check)
   {
-    if (signBits != 1)
+    if (signType.isBitVector())
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "sign bit vector in fp must be 1 bit long");
+      uint32_t signBits = signType.getBitVectorSize();
+      if (signBits != 1)
+      {
+        if (errOut)
+        {
+          (*errOut) << "sign bit vector in fp must be 1 bit long";
+        }
+        return TypeNode::null();
+      }
     }
-    else if (!(validExponentSize(exponentBits)))
+    if (!(validExponentSize(exponentBits)))
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "exponent bit vector in fp is an invalid size");
+      if (errOut)
+      {
+        (*errOut) << "exponent bit vector in fp is an invalid size";
+      }
+      return TypeNode::null();
     }
     else if (!(validSignificandSize(significandBits)))
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "significand bit vector in fp is an invalid size");
+      if (errOut)
+      {
+        (*errOut) << "significand bit vector in fp is an invalid size";
+      }
+      return TypeNode::null();
     }
   }
 
@@ -136,21 +167,27 @@ TypeNode FloatingPointTestTypeRule::computeType(NodeManager* nodeManager,
 
   if (check)
   {
-    TypeNode firstOperand = n[0].getType(check);
+    TypeNode firstOperand = n[0].getTypeOrNull();
 
-    if (!firstOperand.isFloatingPoint())
+    if (!firstOperand.isMaybeKind(kind::FLOATINGPOINT_TYPE))
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "floating-point test applied to a non floating-point sort");
+      if (errOut)
+      {
+        (*errOut) << "floating-point test applied to a non floating-point sort";
+      }
+      return TypeNode::null();
     }
 
     size_t children = n.getNumChildren();
     for (size_t i = 1; i < children; ++i)
     {
-      if (!(n[i].getType(check) == firstOperand))
+      if (!n[i].getTypeOrNull().isComparableTo(firstOperand))
       {
-        throw TypeCheckingExceptionPrivate(
-            n, "floating-point test applied to mixed sorts");
+        if (errOut)
+        {
+          (*errOut) << "floating-point test applied to mixed sorts";
+        }
+        return TypeNode::null();
       }
     }
   }
@@ -170,23 +207,30 @@ TypeNode FloatingPointOperationTypeRule::computeType(NodeManager* nodeManager,
 {
   TRACE("FloatingPointOperationTypeRule");
 
-  TypeNode firstOperand = n[0].getType(check);
+  TypeNode firstOperand = n[0].getTypeOrNull();
 
   if (check)
   {
-    if (!firstOperand.isFloatingPoint())
+    if (!firstOperand.isMaybeKind(kind::FLOATINGPOINT_TYPE))
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "floating-point operation applied to a non floating-point sort");
+      if (errOut)
+      {
+        (*errOut)
+            << "floating-point operation applied to a non floating-point sort";
+      }
+      return TypeNode::null();
     }
 
     size_t children = n.getNumChildren();
     for (size_t i = 1; i < children; ++i)
     {
-      if (!(n[i].getType(check) == firstOperand))
+      if (!n[i].getTypeOrNull().isComparableTo(firstOperand))
       {
-        throw TypeCheckingExceptionPrivate(
-            n, "floating-point test applied to mixed sorts");
+        if (errOut)
+        {
+          (*errOut) << "floating-point test applied to mixed sorts";
+        }
+        return TypeNode::null();
       }
     }
   }
@@ -206,32 +250,42 @@ TypeNode FloatingPointRoundingOperationTypeRule::computeType(
 
   if (check)
   {
-    TypeNode roundingModeType = n[0].getType(check);
+    TypeNode roundingModeType = n[0].getTypeOrNull();
 
-    if (!roundingModeType.isRoundingMode())
+    if (!isMaybeRoundingMode(roundingModeType))
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "first argument must be a rounding mode");
+      if (errOut)
+      {
+        (*errOut) << "first argument must be a rounding mode";
+      }
+      return TypeNode::null();
     }
   }
 
-  TypeNode firstOperand = n[1].getType(check);
+  TypeNode firstOperand = n[1].getTypeOrNull();
 
   if (check)
   {
-    if (!firstOperand.isFloatingPoint())
+    if (!firstOperand.isMaybeKind(kind::FLOATINGPOINT_TYPE))
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "floating-point operation applied to a non floating-point sort");
+      if (errOut)
+      {
+        (*errOut)
+            << "floating-point operation applied to a non floating-point sort";
+      }
+      return TypeNode::null();
     }
 
     size_t children = n.getNumChildren();
     for (size_t i = 2; i < children; ++i)
     {
-      if (!(n[i].getType(check) == firstOperand))
+      if (!n[i].getTypeOrNull().isComparableTo(firstOperand))
       {
-        throw TypeCheckingExceptionPrivate(
-            n, "floating-point operation applied to mixed sorts");
+        if (errOut)
+        {
+          (*errOut) << "floating-point operation applied to mixed sorts";
+        }
+        return TypeNode::null();
       }
     }
   }
@@ -250,34 +304,46 @@ TypeNode FloatingPointPartialOperationTypeRule::computeType(
   TRACE("FloatingPointOperationTypeRule");
   AlwaysAssert(n.getNumChildren() > 0);
 
-  TypeNode firstOperand = n[0].getType(check);
+  TypeNode firstOperand = n[0].getTypeOrNull();
 
   if (check)
   {
-    if (!firstOperand.isFloatingPoint())
+    if (!firstOperand.isMaybeKind(kind::FLOATINGPOINT_TYPE))
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "floating-point operation applied to a non floating-point sort");
+      if (errOut)
+      {
+        (*errOut)
+            << "floating-point operation applied to a non floating-point sort";
+      }
+      return TypeNode::null();
     }
 
     const size_t children = n.getNumChildren();
     for (size_t i = 1; i < children - 1; ++i)
     {
-      if (n[i].getType(check) != firstOperand)
+      if (!n[i].getTypeOrNull().isComparableTo(firstOperand))
       {
-        throw TypeCheckingExceptionPrivate(
-            n, "floating-point partial operation applied to mixed sorts");
+        if (errOut)
+        {
+          (*errOut)
+              << "floating-point partial operation applied to mixed sorts";
+        }
+        return TypeNode::null();
       }
     }
 
-    TypeNode UFValueType = n[children - 1].getType(check);
+    TypeNode UFValueType = n[children - 1].getTypeOrNull();
 
-    if (!(UFValueType.isBitVector()) || !(UFValueType.getBitVectorSize() == 1))
+    if (!UFValueType.isMaybeKind(kind::BITVECTOR_TYPE)
+        || (UFValueType.isBitVector() && UFValueType.getBitVectorSize() != 1))
     {
-      throw TypeCheckingExceptionPrivate(
-          n,
-          "floating-point partial operation final argument must be a "
-          "bit-vector of length 1");
+      if (errOut)
+      {
+        (*errOut)
+            << "floating-point partial operation final argument must be a "
+               "bit-vector of length 1";
+      }
+      return TypeNode::null();
     }
   }
 
@@ -289,6 +355,7 @@ TypeNode FloatingPointToFPIEEEBitVectorTypeRule::preComputeType(NodeManager* nm,
 {
   return TypeNode::null();
 }
+
 TypeNode FloatingPointToFPIEEEBitVectorTypeRule::computeType(
     NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
@@ -300,23 +367,30 @@ TypeNode FloatingPointToFPIEEEBitVectorTypeRule::computeType(
 
   if (check)
   {
-    TypeNode operandType = n[0].getType(check);
+    TypeNode operandType = n[0].getTypeOrNull();
 
-    if (!(operandType.isBitVector()))
+    if (!operandType.isMaybeKind(kind::BITVECTOR_TYPE))
     {
-      throw TypeCheckingExceptionPrivate(n,
-                                         "conversion to floating-point from "
-                                         "bit vector used with sort other "
-                                         "than bit vector");
+      if (errOut)
+      {
+        (*errOut) << "conversion to floating-point from "
+                     "bit vector used with sort other "
+                     "than bit vector";
+      }
+      return TypeNode::null();
     }
-    else if (!(operandType.getBitVectorSize()
-               == info.getSize().exponentWidth()
-                      + info.getSize().significandWidth()))
+    else if (operandType.isBitVector()
+             && operandType.getBitVectorSize()
+                    != info.getSize().exponentWidth()
+                           + info.getSize().significandWidth())
     {
-      throw TypeCheckingExceptionPrivate(
-          n,
-          "conversion to floating-point from bit vector used with bit vector "
-          "length that does not match floating point parameters");
+      if (errOut)
+      {
+        (*errOut) << "conversion to floating-point from bit vector used with "
+                     "bit vector "
+                     "length that does not match floating point parameters";
+      }
+      return TypeNode::null();
     }
   }
 
@@ -341,22 +415,28 @@ TypeNode FloatingPointToFPFloatingPointTypeRule::computeType(
 
   if (check)
   {
-    TypeNode roundingModeType = n[0].getType(check);
+    TypeNode roundingModeType = n[0].getTypeOrNull();
 
-    if (!roundingModeType.isRoundingMode())
+    if (!isMaybeRoundingMode(roundingModeType))
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "first argument must be a rounding mode");
+      if (errOut)
+      {
+        (*errOut) << "first argument must be a rounding mode";
+      }
+      return TypeNode::null();
     }
 
-    TypeNode operandType = n[1].getType(check);
+    TypeNode operandType = n[1].getTypeOrNull();
 
-    if (!(operandType.isFloatingPoint()))
+    if (!operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE))
     {
-      throw TypeCheckingExceptionPrivate(n,
-                                         "conversion to floating-point from "
-                                         "floating-point used with sort "
-                                         "other than floating-point");
+      if (errOut)
+      {
+        (*errOut) << "conversion to floating-point from "
+                     "floating-point used with sort "
+                     "other than floating-point";
+      }
+      return TypeNode::null();
     }
   }
 
@@ -382,22 +462,28 @@ TypeNode FloatingPointToFPRealTypeRule::computeType(NodeManager* nodeManager,
 
   if (check)
   {
-    TypeNode roundingModeType = n[0].getType(check);
+    TypeNode roundingModeType = n[0].getTypeOrNull();
 
-    if (!roundingModeType.isRoundingMode())
+    if (!isMaybeRoundingMode(roundingModeType))
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "first argument must be a rounding mode");
+      if (errOut)
+      {
+        (*errOut) << "first argument must be a rounding mode";
+      }
+      return TypeNode::null();
     }
 
-    TypeNode operandType = n[1].getType(check);
+    TypeNode operandType = n[1].getTypeOrNull();
 
     if (!(operandType.isReal()))
     {
-      throw TypeCheckingExceptionPrivate(n,
-                                         "conversion to floating-point from "
-                                         "real used with sort other than "
-                                         "real");
+      if (errOut)
+      {
+        (*errOut) << "conversion to floating-point from "
+                     "real used with sort other than "
+                     "real";
+      }
+      return TypeNode::null();
     }
   }
 
@@ -422,22 +508,28 @@ TypeNode FloatingPointToFPSignedBitVectorTypeRule::computeType(
 
   if (check)
   {
-    TypeNode roundingModeType = n[0].getType(check);
+    TypeNode roundingModeType = n[0].getTypeOrNull();
 
-    if (!roundingModeType.isRoundingMode())
+    if (!isMaybeRoundingMode(roundingModeType))
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "first argument must be a rounding mode");
+      if (errOut)
+      {
+        (*errOut) << "first argument must be a rounding mode";
+      }
+      return TypeNode::null();
     }
 
-    TypeNode operandType = n[1].getType(check);
+    TypeNode operandType = n[1].getTypeOrNull();
 
-    if (!(operandType.isBitVector()))
+    if (!(operandType.isMaybeKind(kind::BITVECTOR_TYPE)))
     {
-      throw TypeCheckingExceptionPrivate(n,
-                                         "conversion to floating-point from "
-                                         "signed bit vector used with sort "
-                                         "other than bit vector");
+      if (errOut)
+      {
+        (*errOut) << "conversion to floating-point from "
+                     "signed bit vector used with sort "
+                     "other than bit vector";
+      }
+      return TypeNode::null();
     }
   }
 
@@ -462,22 +554,28 @@ TypeNode FloatingPointToFPUnsignedBitVectorTypeRule::computeType(
 
   if (check)
   {
-    TypeNode roundingModeType = n[0].getType(check);
+    TypeNode roundingModeType = n[0].getTypeOrNull();
 
-    if (!roundingModeType.isRoundingMode())
+    if (!isMaybeRoundingMode(roundingModeType))
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "first argument must be a rounding mode");
+      if (errOut)
+      {
+        (*errOut) << "first argument must be a rounding mode";
+      }
+      return TypeNode::null();
     }
 
-    TypeNode operandType = n[1].getType(check);
+    TypeNode operandType = n[1].getTypeOrNull();
 
-    if (!(operandType.isBitVector()))
+    if (!(operandType.isMaybeKind(kind::BITVECTOR_TYPE)))
     {
-      throw TypeCheckingExceptionPrivate(n,
-                                         "conversion to floating-point from "
-                                         "unsigned bit vector used with sort "
-                                         "other than bit vector");
+      if (errOut)
+      {
+        (*errOut) << "conversion to floating-point from "
+                     "unsigned bit vector used with sort "
+                     "other than bit vector";
+      }
+      return TypeNode::null();
     }
   }
 
@@ -501,22 +599,28 @@ TypeNode FloatingPointToUBVTypeRule::computeType(NodeManager* nodeManager,
 
   if (check)
   {
-    TypeNode roundingModeType = n[0].getType(check);
+    TypeNode roundingModeType = n[0].getTypeOrNull();
 
-    if (!roundingModeType.isRoundingMode())
+    if (!isMaybeRoundingMode(roundingModeType))
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "first argument must be a rounding mode");
+      if (errOut)
+      {
+        (*errOut) << "first argument must be a rounding mode";
+      }
+      return TypeNode::null();
     }
 
-    TypeNode operandType = n[1].getType(check);
+    TypeNode operandType = n[1].getTypeOrNull();
 
-    if (!(operandType.isFloatingPoint()))
+    if (!(operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE)))
     {
-      throw TypeCheckingExceptionPrivate(n,
-                                         "conversion to unsigned bit vector "
-                                         "used with a sort other than "
-                                         "floating-point");
+      if (errOut)
+      {
+        (*errOut) << "conversion to unsigned bit vector "
+                     "used with a sort other than "
+                     "floating-point";
+      }
+      return TypeNode::null();
     }
   }
 
@@ -540,22 +644,28 @@ TypeNode FloatingPointToSBVTypeRule::computeType(NodeManager* nodeManager,
 
   if (check)
   {
-    TypeNode roundingModeType = n[0].getType(check);
+    TypeNode roundingModeType = n[0].getTypeOrNull();
 
-    if (!roundingModeType.isRoundingMode())
+    if (!isMaybeRoundingMode(roundingModeType))
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "first argument must be a rounding mode");
+      if (errOut)
+      {
+        (*errOut) << "first argument must be a rounding mode";
+      }
+      return TypeNode::null();
     }
 
-    TypeNode operandType = n[1].getType(check);
+    TypeNode operandType = n[1].getTypeOrNull();
 
-    if (!(operandType.isFloatingPoint()))
+    if (!(operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE)))
     {
-      throw TypeCheckingExceptionPrivate(n,
-                                         "conversion to signed bit vector "
-                                         "used with a sort other than "
-                                         "floating-point");
+      if (errOut)
+      {
+        (*errOut) << "conversion to signed bit vector "
+                     "used with a sort other than "
+                     "floating-point";
+      }
+      return TypeNode::null();
     }
   }
 
@@ -582,35 +692,42 @@ TypeNode FloatingPointToUBVTotalTypeRule::computeType(NodeManager* nodeManager,
 
   if (check)
   {
-    TypeNode roundingModeType = n[0].getType(check);
+    TypeNode roundingModeType = n[0].getTypeOrNull();
 
-    if (!roundingModeType.isRoundingMode())
+    if (!isMaybeRoundingMode(roundingModeType))
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "first argument must be a rounding mode");
+      if (errOut)
+      {
+        (*errOut) << "first argument must be a rounding mode";
+      }
+      return TypeNode::null();
     }
 
-    TypeNode operandType = n[1].getType(check);
+    TypeNode operandType = n[1].getTypeOrNull();
 
-    if (!(operandType.isFloatingPoint()))
+    if (!(operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE)))
     {
-      throw TypeCheckingExceptionPrivate(
-          n,
-          "conversion to unsigned bit vector total"
-          "used with a sort other than "
-          "floating-point");
+      if (errOut)
+      {
+        (*errOut) << "conversion to unsigned bit vector total"
+                     "used with a sort other than "
+                     "floating-point";
+      }
+      return TypeNode::null();
     }
 
-    TypeNode defaultValueType = n[2].getType(check);
+    TypeNode defaultValueType = n[2].getTypeOrNull();
 
-    if (!(defaultValueType.isBitVector())
+    if (!(defaultValueType.isMaybeKind(kind::BITVECTOR_TYPE))
         || !(defaultValueType.getBitVectorSize() == info))
     {
-      throw TypeCheckingExceptionPrivate(
-          n,
-          "conversion to unsigned bit vector total"
-          "needs a bit vector of the same length"
-          "as last argument");
+      if (errOut)
+      {
+        (*errOut) << "conversion to unsigned bit vector total"
+                     "needs a bit vector of the same length"
+                     "as last argument";
+      }
+      return TypeNode::null();
     }
   }
 
@@ -637,33 +754,42 @@ TypeNode FloatingPointToSBVTotalTypeRule::computeType(NodeManager* nodeManager,
 
   if (check)
   {
-    TypeNode roundingModeType = n[0].getType(check);
+    TypeNode roundingModeType = n[0].getTypeOrNull();
 
-    if (!roundingModeType.isRoundingMode())
+    if (!isMaybeRoundingMode(roundingModeType))
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "first argument must be a rounding mode");
+      if (errOut)
+      {
+        (*errOut) << "first argument must be a rounding mode";
+      }
+      return TypeNode::null();
     }
 
-    TypeNode operandType = n[1].getType(check);
+    TypeNode operandType = n[1].getTypeOrNull();
 
-    if (!(operandType.isFloatingPoint()))
+    if (!(operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE)))
     {
-      throw TypeCheckingExceptionPrivate(n,
-                                         "conversion to signed bit vector "
-                                         "used with a sort other than "
-                                         "floating-point");
+      if (errOut)
+      {
+        (*errOut) << "conversion to signed bit vector "
+                     "used with a sort other than "
+                     "floating-point";
+      }
+      return TypeNode::null();
     }
 
-    TypeNode defaultValueType = n[2].getType(check);
+    TypeNode defaultValueType = n[2].getTypeOrNull();
 
-    if (!(defaultValueType.isBitVector())
+    if (!(defaultValueType.isMaybeKind(kind::BITVECTOR_TYPE))
         || !(defaultValueType.getBitVectorSize() == info))
     {
-      throw TypeCheckingExceptionPrivate(n,
-                                         "conversion to signed bit vector total"
-                                         "needs a bit vector of the same length"
-                                         "as last argument");
+      if (errOut)
+      {
+        (*errOut) << "conversion to signed bit vector total"
+                     "needs a bit vector of the same length"
+                     "as last argument";
+      }
+      return TypeNode::null();
     }
   }
 
@@ -684,12 +810,16 @@ TypeNode FloatingPointToRealTypeRule::computeType(NodeManager* nodeManager,
 
   if (check)
   {
-    TypeNode operandType = n[0].getType(check);
+    TypeNode operandType = n[0].getTypeOrNull();
 
-    if (!operandType.isFloatingPoint())
+    if (!operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE))
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "floating-point to real applied to a non floating-point sort");
+      if (errOut)
+      {
+        (*errOut)
+            << "floating-point to real applied to a non floating-point sort";
+      }
+      return TypeNode::null();
     }
   }
 
@@ -711,21 +841,28 @@ TypeNode FloatingPointToRealTotalTypeRule::computeType(NodeManager* nodeManager,
 
   if (check)
   {
-    TypeNode operandType = n[0].getType(check);
+    TypeNode operandType = n[0].getTypeOrNull();
 
-    if (!operandType.isFloatingPoint())
+    if (!operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE))
     {
-      throw TypeCheckingExceptionPrivate(
-          n,
-          "floating-point to real total applied to a non floating-point sort");
+      if (errOut)
+      {
+        (*errOut) << "floating-point to real total applied to a non "
+                     "floating-point sort";
+      }
+      return TypeNode::null();
     }
 
-    TypeNode defaultValueType = n[1].getType(check);
+    TypeNode defaultValueType = n[1].getTypeOrNull();
 
     if (!defaultValueType.isReal())
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "floating-point to real total needs a real second argument");
+      if (errOut)
+      {
+        (*errOut)
+            << "floating-point to real total needs a real second argument";
+      }
+      return TypeNode::null();
     }
   }
 
@@ -745,22 +882,28 @@ TypeNode FloatingPointComponentBit::computeType(NodeManager* nodeManager,
 
   if (check)
   {
-    TypeNode operandType = n[0].getType(check);
+    TypeNode operandType = n[0].getTypeOrNull();
 
-    if (!operandType.isFloatingPoint())
+    if (!operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE))
     {
-      throw TypeCheckingExceptionPrivate(n,
-                                         "floating-point bit component "
-                                         "applied to a non floating-point "
-                                         "sort");
+      if (errOut)
+      {
+        (*errOut) << "floating-point bit component "
+                     "applied to a non floating-point "
+                     "sort";
+      }
+      return TypeNode::null();
     }
     if (!(Theory::isLeafOf(n[0], THEORY_FP)
           || n[0].getKind() == kind::FLOATINGPOINT_TO_FP_FROM_REAL))
     {
-      throw TypeCheckingExceptionPrivate(n,
-                                         "floating-point bit component "
-                                         "applied to a non leaf / to_fp leaf "
-                                         "node");
+      if (errOut)
+      {
+        (*errOut) << "floating-point bit component "
+                     "applied to a non leaf / to_fp leaf "
+                     "node";
+      }
+      return TypeNode::null();
     }
   }
 
@@ -779,24 +922,30 @@ TypeNode FloatingPointComponentExponent::computeType(NodeManager* nodeManager,
 {
   TRACE("FloatingPointComponentExponent");
 
-  TypeNode operandType = n[0].getType(check);
+  TypeNode operandType = n[0].getTypeOrNull();
 
   if (check)
   {
-    if (!operandType.isFloatingPoint())
+    if (!operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE))
     {
-      throw TypeCheckingExceptionPrivate(n,
-                                         "floating-point exponent component "
-                                         "applied to a non floating-point "
-                                         "sort");
+      if (errOut)
+      {
+        (*errOut) << "floating-point exponent component "
+                     "applied to a non floating-point "
+                     "sort";
+      }
+      return TypeNode::null();
     }
     if (!(Theory::isLeafOf(n[0], THEORY_FP)
           || n[0].getKind() == kind::FLOATINGPOINT_TO_FP_FROM_REAL))
     {
-      throw TypeCheckingExceptionPrivate(n,
-                                         "floating-point exponent component "
-                                         "applied to a non leaf / to_fp "
-                                         "node");
+      if (errOut)
+      {
+        (*errOut) << "floating-point exponent component "
+                     "applied to a non leaf / to_fp "
+                     "node";
+      }
+      return TypeNode::null();
     }
   }
 
@@ -820,24 +969,30 @@ TypeNode FloatingPointComponentSignificand::computeType(
 {
   TRACE("FloatingPointComponentSignificand");
 
-  TypeNode operandType = n[0].getType(check);
+  TypeNode operandType = n[0].getTypeOrNull();
 
   if (check)
   {
-    if (!operandType.isFloatingPoint())
+    if (!operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE))
     {
-      throw TypeCheckingExceptionPrivate(n,
-                                         "floating-point significand "
-                                         "component applied to a non "
-                                         "floating-point sort");
+      if (errOut)
+      {
+        (*errOut) << "floating-point significand "
+                     "component applied to a non "
+                     "floating-point sort";
+      }
+      return TypeNode::null();
     }
     if (!(Theory::isLeafOf(n[0], THEORY_FP)
           || n[0].getKind() == kind::FLOATINGPOINT_TO_FP_FROM_REAL))
     {
-      throw TypeCheckingExceptionPrivate(n,
-                                         "floating-point significand "
-                                         "component applied to a non leaf / "
-                                         "to_fp node");
+      if (errOut)
+      {
+        (*errOut) << "floating-point significand "
+                     "component applied to a non leaf / "
+                     "to_fp node";
+      }
+      return TypeNode::null();
     }
   }
 
@@ -860,17 +1015,24 @@ TypeNode RoundingModeBitBlast::computeType(NodeManager* nodeManager,
 
   if (check)
   {
-    TypeNode operandType = n[0].getType(check);
+    TypeNode operandType = n[0].getTypeOrNull();
 
-    if (!operandType.isRoundingMode())
+    if (!isMaybeRoundingMode(operandType))
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "rounding mode bit-blast applied to a non rounding-mode sort");
+      if (errOut)
+      {
+        (*errOut)
+            << "rounding mode bit-blast applied to a non rounding-mode sort";
+      }
+      return TypeNode::null();
     }
     if (!Theory::isLeafOf(n[0], THEORY_FP))
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "rounding mode bit-blast applied to a non leaf node");
+      if (errOut)
+      {
+        (*errOut) << "rounding mode bit-blast applied to a non leaf node";
+      }
+      return TypeNode::null();
     }
   }
 
