@@ -1765,9 +1765,11 @@ void Smt2Printer::toStreamCmdDefineType(std::ostream& out,
   out << ") " << t << ")" << std::endl;
 }
 
-void Smt2Printer::toStreamCmdSimplify(std::ostream& out, Node n) const
+void Smt2Printer::toStreamCmdSimplify(std::ostream& out, Node n, bool isSimplify) const
 {
-  out << "(simplify " << n << ')' << std::endl;
+  out << "(";
+  out << (isSimplify ? "simplify " : "rewrite ");
+  out << n << ")" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetValue(std::ostream& out,

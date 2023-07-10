@@ -79,6 +79,7 @@ Smt2CmdParser::Smt2CmdParser(Smt2LexerNew& lex,
     d_table["get-qe"] = Token::GET_QE_TOK;
     d_table["include"] = Token::INCLUDE_TOK;
     d_table["simplify"] = Token::SIMPLIFY_TOK;
+    d_table["rewrite"] = Token::REWRITE_TOK;
   }
   if (d_lex.isSygus())
   {
@@ -764,6 +765,14 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new ResetAssertionsCommand());
     }
     break;
+    // (rewrite <term>)
+    case Token::REWRITE_TOK:
+    {
+      d_state.checkThatLogicIsSet();
+      Term t = d_tparser.parseTerm();
+      cmd.reset(new SimplifyCommand(t, false));
+    }
+    break;
     // (set-feature <attribute>)
     case Token::SET_FEATURE_TOK:
     {
@@ -830,7 +839,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
     {
       d_state.checkThatLogicIsSet();
       Term t = d_tparser.parseTerm();
-      cmd.reset(new SimplifyCommand(t));
+      cmd.reset(new SimplifyCommand(t, true));
     }
     break;
     // (synth-fun <symbol> (<sorted_var>*) <sort> <grammar>?)

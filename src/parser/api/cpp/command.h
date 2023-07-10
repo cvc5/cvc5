@@ -733,15 +733,18 @@ class CVC5_EXPORT CheckSynthCommand : public Command
 
 /* ------------------- sygus commands  ------------------ */
 
-// this is TRANSFORM in the CVC presentation language
 class CVC5_EXPORT SimplifyCommand : public Command
 {
  protected:
   cvc5::Term d_term;
   cvc5::Term d_result;
-
+  bool d_doSimplify;
  public:
-  SimplifyCommand(cvc5::Term term);
+  /**
+   * @param term The term to simplify
+   * @param doSimplify If true, we call simplify, else we call rewrite.
+   */
+  SimplifyCommand(cvc5::Term term, bool doSimplify);
 
   cvc5::Term getTerm() const;
   cvc5::Term getResult() const;

@@ -96,6 +96,7 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::QUOTED_SYMBOL: o << "QUOTED_SYMBOL"; break;
     case Token::RESET_ASSERTIONS_TOK: o << "RESET_ASSERTIONS_TOK"; break;
     case Token::RESET_TOK: o << "RESET_TOK"; break;
+    case Token::REWRITE_TOK: o << "REWRITE_TOK"; break;
     case Token::RPAREN_TOK: o << "RPAREN_TOK"; break;
     case Token::SET_FEATURE_TOK: o << "SET_FEATURE_TOK"; break;
     case Token::SET_INFO_TOK: o << "SET_INFO_TOK"; break;
