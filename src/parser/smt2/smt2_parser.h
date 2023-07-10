@@ -59,7 +59,7 @@ class Smt2Parser : public Parser
    */
   Term parseNextExpression() override;
   /** The lexer */
-  Smt2LexerNew d_slex;
+  Smt2Lexer d_slex;
   /** The state */
   Smt2State d_state;
   /** Term parser */

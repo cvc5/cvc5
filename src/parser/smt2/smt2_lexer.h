@@ -38,10 +38,10 @@ namespace parser {
  * Partially based on
  * https://github.com/bitwuzla/bitwuzla/blob/dev/src/parser/smt2/lexer.h
  */
-class Smt2LexerNew : public Lexer
+class Smt2Lexer : public Lexer
 {
  public:
-  Smt2LexerNew(bool isStrict, bool isSygus);
+  Smt2Lexer(bool isStrict, bool isSygus);
   const char* tokenStr() const override;
   /** Are we in strict mode? */
   bool isStrict() const;
