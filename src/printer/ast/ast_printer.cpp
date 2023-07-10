@@ -286,7 +286,9 @@ void AstPrinter::toStreamCmdDefineType(std::ostream& out,
   out << "]," << t << ')' << std::endl;
 }
 
-void AstPrinter::toStreamCmdSimplify(std::ostream& out, Node n, bool isSimplify) const
+void AstPrinter::toStreamCmdSimplify(std::ostream& out,
+                                     Node n,
+                                     bool isSimplify) const
 {
   out << (isSimplify ? "Simplify" : "Rewrite");
   out << "( << " << n << " >> )" << std::endl;

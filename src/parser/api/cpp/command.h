@@ -739,6 +739,7 @@ class CVC5_EXPORT SimplifyCommand : public Command
   cvc5::Term d_term;
   cvc5::Term d_result;
   bool d_doSimplify;
+
  public:
   /**
    * @param term The term to simplify

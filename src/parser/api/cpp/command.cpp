@@ -1245,7 +1245,10 @@ void DeclareHeapCommand::toStream(std::ostream& out) const
 /* class SimplifyCommand                                                      */
 /* -------------------------------------------------------------------------- */
 
-SimplifyCommand::SimplifyCommand(cvc5::Term term, bool doSimplify) : d_term(term), d_doSimplify(doSimplify) {}
+SimplifyCommand::SimplifyCommand(cvc5::Term term, bool doSimplify)
+    : d_term(term), d_doSimplify(doSimplify)
+{
+}
 cvc5::Term SimplifyCommand::getTerm() const { return d_term; }
 void SimplifyCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
@@ -1277,9 +1280,8 @@ std::string SimplifyCommand::getCommandName() const { return "simplify"; }
 
 void SimplifyCommand::toStream(std::ostream& out) const
 {
-  internal::Printer::getPrinter(out)->toStreamCmdSimplify(out,
-                                                          termToNode(d_term),
-                                                          d_doSimplify);
+  internal::Printer::getPrinter(out)->toStreamCmdSimplify(
+      out, termToNode(d_term), d_doSimplify);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -379,7 +379,9 @@ void Printer::toStreamCmdCheckSynthNext(std::ostream& out) const
   printUnknownCommand(out, "check-synth-next");
 }
 
-void Printer::toStreamCmdSimplify(std::ostream& out, Node n, bool isSimplify) const
+void Printer::toStreamCmdSimplify(std::ostream& out,
+                                  Node n,
+                                  bool isSimplify) const
 {
   printUnknownCommand(out, "simplify");
 }

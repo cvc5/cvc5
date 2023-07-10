@@ -95,7 +95,9 @@ class AstPrinter : public cvc5::internal::Printer
   void toStreamCmdQuery(std::ostream& out, Node n) const override;
 
   /** Print simplify command */
-  void toStreamCmdSimplify(std::ostream& out, Node node, bool isSimplify) const override;
+  void toStreamCmdSimplify(std::ostream& out,
+                           Node node,
+                           bool isSimplify) const override;
 
   /** Print get-value command */
   void toStreamCmdGetValue(std::ostream& out,

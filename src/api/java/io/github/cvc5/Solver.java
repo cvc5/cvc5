@@ -1464,7 +1464,7 @@ public class Solver implements IPointer
   /**
    * Rewrite a formula.
    *
-   * This performs theory normalization on t and returns the result. In 
+   * This performs theory normalization on t and returns the result. In
    * contrast to simplify, the current assertions are not used. The
    * returned term is theory equivalent to t.
    *
