@@ -930,15 +930,11 @@ class TermTest
   @Test
   void getTuple()
   {
-    Sort s1 = d_solver.getIntegerSort();
-    Sort s2 = d_solver.getRealSort();
-    Sort s3 = d_solver.getStringSort();
-
     Term t1 = d_solver.mkInteger(15);
     Term t2 = d_solver.mkReal(17, 25);
     Term t3 = d_solver.mkString("abc");
 
-    Term tup = d_solver.mkTuple(new Sort[] {s1, s2, s3}, new Term[] {t1, t2, t3});
+    Term tup = d_solver.mkTuple(new Term[] {t1, t2, t3});
 
     assertTrue(tup.isTupleValue());
     assertEquals(Arrays.asList((new Term[] {t1, t2, t3})), Arrays.asList(tup.getTupleValue()));

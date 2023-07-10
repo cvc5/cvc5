@@ -23,6 +23,7 @@
 namespace cvc5::internal {
 
 class LetBinding;
+class DType;
 
 namespace printer {
 namespace smt2 {
@@ -136,7 +137,7 @@ class Smt2Printer : public cvc5::internal::Printer
       const std::string& id,
       const std::vector<Node>& vars,
       TypeNode rangeType,
-      TypeNode sygusType = TypeNode::null()) const override;
+      TypeNode sygusType) const override;
 
   /** Print constraint command */
   void toStreamCmdConstraint(std::ostream& out, Node n) const override;

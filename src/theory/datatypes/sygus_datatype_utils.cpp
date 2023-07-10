@@ -20,6 +20,7 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "expr/sygus_datatype.h"
 #include "smt/env.h"
 #include "theory/evaluator.h"
@@ -135,27 +136,29 @@ Node mkSygusTerm(const DType& dt,
       opn = getExpandedDefinitionForm(op);
     }
   }
+  // if it is the any constant, we simply return the child
+  if (dt[i].isSygusAnyConstant())
+  {
+    Assert(children.size() == 1);
+    return children[0];
+  }
   Node ret = mkSygusTerm(opn, children, doBetaReduction);
   Assert(ret.getType() == dt.getSygusType());
   return ret;
 }
 
-Node mkSygusTerm(Node op,
+Node mkSygusTerm(const Node& op,
                  const std::vector<Node>& children,
                  bool doBetaReduction)
 {
+  NodeManager* nm = NodeManager::currentNM();
+  Assert(nm->getSkolemManager()->getId(op) != SkolemFunId::SYGUS_ANY_CONSTANT);
   Trace("dt-sygus-util") << "Operator is " << op << std::endl;
   if (children.empty())
   {
     // no children, return immediately
     Trace("dt-sygus-util") << "...return direct op" << std::endl;
     return op;
-  }
-  // if it is the any constant, we simply return the child
-  if (op.getAttribute(SygusAnyConstAttribute()))
-  {
-    Assert(children.size() == 1);
-    return children[0];
   }
   std::vector<Node> schildren;
   // get the kind of the operator
@@ -183,7 +186,7 @@ Node mkSygusTerm(Node op,
   Node ret;
   if (ok == BUILTIN)
   {
-    ret = NodeManager::currentNM()->mkNode(op, schildren);
+    ret = nm->mkNode(op, schildren);
     Trace("dt-sygus-util") << "...return (builtin) " << ret << std::endl;
     return ret;
   }
@@ -195,7 +198,7 @@ Node mkSygusTerm(Node op,
     // If it is an APPLY_UF operator, we should have at least an operator and
     // a child.
     Assert(otk != APPLY_UF || schildren.size() != 1);
-    ret = NodeManager::currentNM()->mkNode(otk, schildren);
+    ret = nm->mkNode(otk, schildren);
     Trace("dt-sygus-util") << "...return (op) " << ret << std::endl;
     return ret;
   }
@@ -354,7 +357,7 @@ void getFreeSymbolsSygusType(TypeNode sdt, std::unordered_set<Node>& syms)
   // datatype types we need to process
   std::vector<TypeNode> typeToProcess;
   // datatype types we have processed
-  std::map<TypeNode, TypeNode> typesProcessed;
+  std::unordered_set<TypeNode> typesProcessed;
   typeToProcess.push_back(sdt);
   while (!typeToProcess.empty())
   {
@@ -379,6 +382,7 @@ void getFreeSymbolsSygusType(TypeNode sdt, std::unordered_set<Node>& syms)
           }
           if (typesProcessed.find(argt) == typesProcessed.end())
           {
+            typesProcessed.insert(argt);
             typeNextToProcess.push_back(argt);
           }
         }
@@ -469,21 +473,29 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
         for (unsigned k = 0, nargs = dtc[j].getNumArgs(); k < nargs; k++)
         {
           TypeNode argt = dtc[j].getArgType(k);
-          std::map<TypeNode, TypeNode>::iterator itdp = dtProcessed.find(argt);
           TypeNode argtNew;
-          if (itdp == dtProcessed.end())
+          if (argt.isDatatype() && argt.getDType().isSygus())
           {
-            std::stringstream ssutn;
-            ssutn << argt.getDType().getName() << "_s";
-            argtNew = nm->mkUnresolvedDatatypeSort(ssutn.str());
-            Trace("dtsygus-gen-debug") << "    ...unresolved type " << argtNew
-                                       << " for " << argt << std::endl;
-            dtProcessed[argt] = argtNew;
-            dtNextToProcess.push_back(argt);
+            std::map<TypeNode, TypeNode>::iterator itdp =
+                dtProcessed.find(argt);
+            if (itdp == dtProcessed.end())
+            {
+              std::stringstream ssutn;
+              ssutn << argt.getDType().getName() << "_s";
+              argtNew = nm->mkUnresolvedDatatypeSort(ssutn.str());
+              Trace("dtsygus-gen-debug") << "    ...unresolved type " << argtNew
+                                         << " for " << argt << std::endl;
+              dtProcessed[argt] = argtNew;
+              dtNextToProcess.push_back(argt);
+            }
+            else
+            {
+              argtNew = itdp->second;
+            }
           }
           else
           {
-            argtNew = itdp->second;
+            argtNew = argt;
           }
           Trace("dtsygus-gen-debug")
               << "    Arg #" << k << ": " << argtNew << std::endl;
@@ -538,6 +550,25 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
     }
   }
   return sdtS;
+}
+
+TypeNode generalizeSygusType(TypeNode sdt)
+{
+  std::unordered_set<Node> syms;
+  getFreeSymbolsSygusType(sdt, syms);
+  if (syms.empty())
+  {
+    return sdt;
+  }
+  std::vector<Node> svec;
+  std::vector<Node> vars;
+  NodeManager* nm = NodeManager::currentNM();
+  for (const Node& s : syms)
+  {
+    svec.push_back(s);
+    vars.push_back(nm->mkBoundVar(s.getName(), s.getType()));
+  }
+  return substituteAndGeneralizeSygusType(sdt, svec, vars);
 }
 
 unsigned getSygusTermSize(Node n)

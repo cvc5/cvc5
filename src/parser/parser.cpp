@@ -28,9 +28,7 @@
 #include "base/output.h"
 #include "expr/kind.h"
 #include "parser/api/cpp/command.h"
-#include "parser/input.h"
 #include "parser/parser_exception.h"
-#include "parser/smt2/smt2_input.h"
 
 using namespace std;
 
@@ -65,22 +63,6 @@ Term ParserState::getVariable(const std::string& name)
   }
   return ret;
 }
-std::string ParserState::getNameForUserName(const std::string& name) const
-{
-  if (!d_printNamespace.empty())
-  {
-    std::stringstream ss;
-    ss << d_printNamespace << name;
-    return ss.str();
-  }
-  return name;
-}
-
-const std::string& ParserState::getForcedLogic() const
-{
-  return d_symman->getForcedLogic();
-}
-bool ParserState::logicIsForced() const { return d_symman->isLogicForced(); }
 
 Term ParserState::getExpressionForNameAndType(const std::string& name, Sort t)
 {
@@ -176,7 +158,7 @@ Term ParserState::bindVar(const std::string& name,
                           bool doOverload)
 {
   Trace("parser") << "bindVar(" << name << ", " << type << ")" << std::endl;
-  Term expr = d_solver->mkConst(type, getNameForUserName(name));
+  Term expr = d_solver->mkConst(type, name);
   defineVar(name, expr, doOverload);
   return expr;
 }
@@ -271,7 +253,7 @@ void ParserState::defineParameterizedType(const std::string& name,
 Sort ParserState::mkSort(const std::string& name)
 {
   Trace("parser") << "newSort(" << name << ")" << std::endl;
-  Sort type = d_solver->mkUninterpretedSort(getNameForUserName(name));
+  Sort type = d_solver->mkUninterpretedSort(name);
   defineType(name, type);
   return type;
 }
@@ -280,8 +262,7 @@ Sort ParserState::mkSortConstructor(const std::string& name, size_t arity)
 {
   Trace("parser") << "newSortConstructor(" << name << ", " << arity << ")"
                   << std::endl;
-  Sort type = d_solver->mkUninterpretedSortConstructorSort(
-      arity, getNameForUserName(name));
+  Sort type = d_solver->mkUninterpretedSortConstructorSort(arity, name);
   defineType(name, vector<Sort>(arity), type);
   return type;
 }
@@ -603,11 +584,6 @@ void ParserState::parseError(const std::string& msg) { d_psc->parseError(msg); }
 void ParserState::unexpectedEOF(const std::string& msg)
 {
   d_psc->unexpectedEOF(msg);
-}
-
-void ParserState::preemptCommand(std::unique_ptr<Command> cmd)
-{
-  d_psc->preemptCommand(std::move(cmd));
 }
 
 void ParserState::attributeNotSupported(const std::string& attr)

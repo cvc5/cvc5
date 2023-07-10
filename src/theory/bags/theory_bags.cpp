@@ -140,8 +140,7 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
   SkolemManager::SkolemFlags flags = node.getType().isBoolean()
                                          ? SkolemManager::SKOLEM_BOOL_TERM_VAR
                                          : SkolemManager::SKOLEM_DEFAULT;
-  Node x = sm->mkPurifySkolem(
-      node, "bagChoose", "a variable used to eliminate bag choose", flags);
+  Node x = sm->mkPurifySkolem(node, flags);
   Node A = node[0];
   TypeNode bagType = A.getType();
   TypeNode ufType = nm->mkFunctionType(bagType, bagType.getBagElementType());

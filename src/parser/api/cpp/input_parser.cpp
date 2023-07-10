@@ -18,8 +18,6 @@
 #include "base/check.h"
 #include "base/output.h"
 #include "parser/api/cpp/command.h"
-#include "parser/input.h"
-#include "parser/parser_builder.h"
 #include "theory/logic_info.h"
 
 namespace cvc5 {
@@ -41,29 +39,14 @@ InputParser::InputParser(Solver* solver)
 
 void InputParser::initialize()
 {
-  d_useFlex = d_solver->getOptionInfo("flex-parser").boolValue();
-  // flex not supported with TPTP yet
-  if (d_solver->getOption("input-language") == "LANG_TPTP")
+  // process the forced logic
+  auto info = d_solver->getOptionInfo("force-logic");
+  if (info.setByUser)
   {
-    d_useFlex = false;
+    internal::LogicInfo tmp(info.stringValue());
+    d_sm->setLogic(tmp.getLogicString(), true);
   }
-  if (d_useFlex)
-  {
-    // process the forced logic
-    auto info = d_solver->getOptionInfo("force-logic");
-    if (info.setByUser)
-    {
-      internal::LogicInfo tmp(info.stringValue());
-      d_sm->forceLogic(tmp.getLogicString());
-    }
-  }
-  else
-  {
-    // Allocate an ANTLR parser
-    ParserBuilder parserBuilder(d_solver, d_sm, true);
-    d_state = parserBuilder.build();
-  }
-  // if flex, don't make anything yet
+  // notice that we don't create the parser object until the input is set.
 }
 
 Solver* InputParser::getSolver() { return d_solver; }
@@ -72,35 +55,23 @@ SymbolManager* InputParser::getSymbolManager() { return d_sm; }
 
 void InputParser::setLogic(const std::string& name)
 {
-  if (d_useFlex)
-  {
-    d_fparser->setLogic(name);
-  }
-  else
-  {
-    // not supported in ANTLR
-    Unhandled() << "set-logic not supported in input parser using ANTLR.";
-  }
+  Assert(d_fparser != nullptr);
+  d_sm->setLogic(name);
+  d_fparser->setLogic(name);
 }
 
 std::unique_ptr<Command> InputParser::nextCommand()
 {
+  Assert(d_fparser != nullptr);
   Trace("parser") << "nextCommand()" << std::endl;
-  if (d_useFlex)
-  {
-    return d_fparser->nextCommand();
-  }
-  return d_state->nextCommand();
+  return d_fparser->nextCommand();
 }
 
 Term InputParser::nextExpression()
 {
+  Assert(d_fparser != nullptr);
   Trace("parser") << "nextExpression()" << std::endl;
-  if (d_useFlex)
-  {
-    return d_fparser->nextExpression();
-  }
-  return d_state->nextExpression();
+  return d_fparser->nextExpression();
 }
 
 void InputParser::setFileInput(const std::string& lang,
@@ -108,15 +79,8 @@ void InputParser::setFileInput(const std::string& lang,
 {
   Trace("parser") << "setFileInput(" << lang << ", " << filename << ")"
                   << std::endl;
-  if (d_useFlex)
-  {
-    d_fparser = FlexParser::mkFlexParser(lang, d_solver, d_sm);
-    d_fparser->setFileInput(filename);
-  }
-  else
-  {
-    d_state->setInput(Input::newFileInput(lang, filename));
-  }
+  d_fparser = FlexParser::mkFlexParser(lang, d_solver, d_sm);
+  d_fparser->setFileInput(filename);
 }
 
 void InputParser::setStreamInput(const std::string& lang,
@@ -125,15 +89,8 @@ void InputParser::setStreamInput(const std::string& lang,
 {
   Trace("parser") << "setStreamInput(" << lang << ", ..., " << name << ")"
                   << std::endl;
-  if (d_useFlex)
-  {
-    d_fparser = FlexParser::mkFlexParser(lang, d_solver, d_sm);
-    d_fparser->setStreamInput(input, name);
-  }
-  else
-  {
-    d_state->setInput(Input::newStreamInput(lang, input, name));
-  }
+  d_fparser = FlexParser::mkFlexParser(lang, d_solver, d_sm);
+  d_fparser->setStreamInput(input, name);
 }
 
 void InputParser::setIncrementalStringInput(const std::string& lang,
@@ -143,25 +100,19 @@ void InputParser::setIncrementalStringInput(const std::string& lang,
                   << ")" << std::endl;
   d_istringLang = lang;
   d_istringName = name;
-  if (d_useFlex)
-  {
-    // initialize the parser
-    d_fparser = FlexParser::mkFlexParser(lang, d_solver, d_sm);
-  }
-  // if ANTLR, parser is already initialized
+  // initialize the parser
+  d_fparser = FlexParser::mkFlexParser(lang, d_solver, d_sm);
 }
 void InputParser::appendIncrementalStringInput(const std::string& input)
 {
+  Assert(d_fparser != nullptr);
   Trace("parser") << "appendIncrementalStringInput(...)" << std::endl;
-  if (d_useFlex)
-  {
-    d_fparser->setStringInput(input, d_istringName);
-  }
-  else
-  {
-    d_state->setInput(
-        Input::newStringInput(d_istringLang, input, d_istringName));
-  }
+  d_fparser->setStringInput(input, d_istringName);
+}
+
+bool InputParser::done() const
+{
+  return d_fparser == nullptr || d_fparser->done();
 }
 
 }  // namespace parser

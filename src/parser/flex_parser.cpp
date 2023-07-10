@@ -66,41 +66,24 @@ void FlexParser::unexpectedEOF(const std::string& msg)
   d_lex->parseError(msg, true);
 }
 
-void FlexParser::preemptCommand(std::unique_ptr<Command> cmd)
-{
-  d_commandQueue.push_back(std::move(cmd));
-}
-
 std::unique_ptr<Command> FlexParser::nextCommand()
 {
   Trace("parser") << "nextCommand()" << std::endl;
   std::unique_ptr<Command> cmd;
-  if (!d_commandQueue.empty())
+  try
   {
-    cmd = std::move(d_commandQueue.front());
-    d_commandQueue.pop_front();
+    cmd = parseNextCommand();
     setDone(cmd == nullptr);
   }
-  else
+  catch (ParserException& e)
   {
-    try
-    {
-      cmd = parseNextCommand();
-      d_commandQueue.push_back(std::move(cmd));
-      cmd = std::move(d_commandQueue.front());
-      d_commandQueue.pop_front();
-      setDone(cmd == nullptr);
-    }
-    catch (ParserException& e)
-    {
-      setDone();
-      throw;
-    }
-    catch (std::exception& e)
-    {
-      setDone();
-      parseError(e.what());
-    }
+    setDone();
+    throw;
+  }
+  catch (std::exception& e)
+  {
+    setDone();
+    parseError(e.what());
   }
   Trace("parser") << "nextCommand() => " << cmd.get() << std::endl;
   return cmd;
@@ -132,6 +115,8 @@ Term FlexParser::nextExpression()
   return result;
 }
 
+bool FlexParser::done() const { return d_done; }
+
 std::unique_ptr<FlexParser> FlexParser::mkFlexParser(const std::string& lang,
                                                      Solver* solver,
                                                      SymbolManager* sm)
@@ -142,11 +127,6 @@ std::unique_ptr<FlexParser> FlexParser::mkFlexParser(const std::string& lang,
     bool isSygus = (lang == "LANG_SYGUS_V2");
     bool strictMode = solver->getOptionInfo("strict-parsing").boolValue();
     parser.reset(new Smt2Parser(solver, sm, strictMode, isSygus));
-  }
-  else if (lang == "LANG_TPTP")
-  {
-    // TPTP is not supported
-    Unhandled() << "the TPTP input language is not supported with flex.";
   }
   else
   {

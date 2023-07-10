@@ -774,20 +774,18 @@ Java_io_github_cvc5_Solver_mkTerm__JJ_3J(JNIEnv* env,
 /*
  * Class:     io_github_cvc5_Solver
  * Method:    mkTuple
- * Signature: (J[J[J)J
+ * Signature: (J[J)J
  */
 JNIEXPORT jlong JNICALL
 Java_io_github_cvc5_Solver_mkTuple(JNIEnv* env,
                                    jobject,
                                    jlong pointer,
-                                   jlongArray sortPointers,
                                    jlongArray termPointers)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  std::vector<Sort> sorts = getObjectsFromPointers<Sort>(env, sortPointers);
   std::vector<Term> terms = getObjectsFromPointers<Term>(env, termPointers);
-  Term* retPointer = new Term(solver->mkTuple(sorts, terms));
+  Term* retPointer = new Term(solver->mkTuple(terms));
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

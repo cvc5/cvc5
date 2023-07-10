@@ -6,11 +6,18 @@ This file contains a summary of important user-visible changes.
        `Solver::mkFloatingPoint(const Term& sign, const Term& exp, const Term& sig)`,
        returns a floating-point value from the three IEEE-754 bit-vector value
        components.
+- API: Simplified the `Solver::mkTuple` method. The sorts of the elements no longer
+       need to be provided.
 - Support for timeout cores
   - API: New API function `Solver::getTimeoutCore()` when applicable
     returns a subset of the current assertions that cause the solver to timeout
     without a provided timeout (option `--timeout-core-timeout`).
   - SMT-LIB: New command `(get-timeout-core)` which invokes the above method.
+- API: The option `--print-unsat-cores-full` has been renamed to
+       `--print-cores-full`. Setting this option to true will print all
+       assertions in the unsat core, regardless of whether they are named. This
+       option also impacts how timeout cores are printed.
+- Removed support for the ANTLR parser and parsing for the TPTP language.
 
 cvc5 1.0.5
 ==========
