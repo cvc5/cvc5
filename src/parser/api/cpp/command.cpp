@@ -938,7 +938,7 @@ std::string DeclarePoolCommand::getCommandName() const
 
 void DeclarePoolCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(out)->toStreamCmdDeclarePool(
+  internal::Printer::getPrinter(out)->toStreamCmdDeclarePool(
       out, d_symbol, sortToTypeNode(d_sort), termVectorToNodes(d_initValue));
 }
 
