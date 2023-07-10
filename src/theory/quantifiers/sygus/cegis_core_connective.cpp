@@ -203,7 +203,7 @@ bool CegisCoreConnective::processInitialize(Node conj,
     }
     else
     {
-      Trace("sygus-ccore-init") << "  use " << (r == 0 ? "pre" : "post")
+      Trace("sygus-ccore-init") << "  will use " << (r == 0 ? "pre" : "post")
                                 << "condition as a filter." << std::endl;
       // just use as a filtering
       c.initialize(node, Node::null());
@@ -706,7 +706,10 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
       std::vector<Node> uasserts;
       std::unordered_set<Node> queryAsserts;
       queryAsserts.insert(ccheck.getFormula());
-      queryAsserts.insert(d_sc);
+      if (!d_sc.isNull())
+      {
+        queryAsserts.insert(d_sc);
+      }
       bool hasQuery =
           getUnsatCoreFromSubsolver(*checkSol, queryAsserts, uasserts);
       // now, check the side condition
@@ -756,9 +759,17 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
       {
         // In terms of Variant #2, this is the line:
         //   "return u_1 AND ... AND u_m where U = { u_1, ..., u_m }".
-        Trace("sygus-ccore") << ">>> Solution : " << uasserts << std::endl;
         // We convert the builtin solution to a sygus datatype to
         // communicate with the sygus solver.
+        if (uasserts.empty())
+        {
+          // In the rare case in which the side condition implies the goal
+          // already, then uasserts is empty and any solution suffices. Take
+          // the last enumerated term.
+          Assert (!passerts.empty());
+          uasserts.push_back(passerts.back());
+        }
+        Trace("sygus-ccore") << ">>> Solution : " << uasserts << std::endl;
         Node sol = ccheck.getSygusSolution(uasserts);
         Trace("sygus-ccore-sy") << "Sygus solution : " << sol << std::endl;
         return sol;
