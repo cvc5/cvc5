@@ -1705,7 +1705,6 @@ std::vector<std::shared_ptr<ProofNode>> SolverEngine::getProof(
   std::vector<std::shared_ptr<ProofNode>> ps;
   bool connectToPreprocess = false;
   bool connectMkOuterScope = false;
-  options::ProofFormatMode mode = options::ProofFormatMode::NONE;
   if (c == modes::ProofComponent::RAW_PREPROCESS)
   {
     // use all preprocessed assertions
@@ -1736,8 +1735,6 @@ std::vector<std::shared_ptr<ProofNode>> SolverEngine::getProof(
     ps.push_back(pe->getProof(true));
     connectToPreprocess = true;
     connectMkOuterScope = true;
-    // we print in the format based on the proof mode
-    mode = options().proof.proofFormatMode;
   }
   else
   {
@@ -1750,11 +1747,9 @@ std::vector<std::shared_ptr<ProofNode>> SolverEngine::getProof(
   // connect proofs to preprocessing, if specified
   if (connectToPreprocess)
   {
-    ProofScopeMode scopeMode =
-        connectMkOuterScope ? mode == options::ProofFormatMode::LFSC
-                                  ? ProofScopeMode::DEFINITIONS_AND_ASSERTIONS
-                                  : ProofScopeMode::UNIFIED
-                            : ProofScopeMode::NONE;
+    ProofScopeMode scopeMode = connectMkOuterScope
+                                   ? ProofScopeMode::DEFINITIONS_AND_ASSERTIONS
+                                   : ProofScopeMode::NONE;
     for (std::shared_ptr<ProofNode>& p : ps)
     {
       Assert(p != nullptr);
