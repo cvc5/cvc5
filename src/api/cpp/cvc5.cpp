@@ -7230,9 +7230,9 @@ bool isProofComponent(modes::ProofComponent pc)
   return pc >= 0 && pc <= modes::PROOF_COMPONENT_FULL;
 }
 
-std::string Solver::proofsToString(std::vector<Proof> proofs,
-                                   modes::ProofFormat format,
-                                   modes::ProofComponent component) const
+std::string Solver::proofToString(std::vector<Proof> proofs,
+                                  modes::ProofFormat format,
+                                  modes::ProofComponent component) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(isProofFormat(format)) << "Invalid proof format.";

@@ -4540,7 +4540,7 @@ class CVC5_EXPORT Solver
    * this case.
    * @return The proofs printed in the current format.
    */
-  std::string proofsToString(
+  std::string proofToString(
       std::vector<Proof> proof,
       modes::ProofFormat format = modes::PROOF_FORMAT_DEFAULT,
       modes::ProofComponent component = modes::PROOF_COMPONENT_FULL) const;

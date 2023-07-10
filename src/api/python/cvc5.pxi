@@ -2251,12 +2251,12 @@ cdef class Solver:
             proofs.append(proof)
         return proofs
 
-    def proofsToString(self, proof, format, component):
+    def proofToString(self, proof, format, component):
         cdef vector[c_Proof] cproofs
         for p in proof:
             cproofs.push_back((<Proof?> p).cproof)
-        return self.csolver.proofsToString(cproofs, <c_ProofFormat> format.value,
-                                           <c_ProofComponent> component.value)
+        return self.csolver.proofToString(cproofs, <c_ProofFormat> format.value,
+                                          <c_ProofComponent> component.value)
 
     def getLearnedLiterals(self, type = LearnedLitType.INPUT):
         """

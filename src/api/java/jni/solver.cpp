@@ -2160,23 +2160,23 @@ JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getProof__JI(
 
 /*
  * Class:     io_github_cvc5_Solver
- * Method:    proofsToString
+ * Method:    proofToString
  * Signature: (J[JII)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL
-Java_io_github_cvc5_Solver_proofsToString(JNIEnv* env,
-                                          jobject,
-                                          jlong pointer,
-                                          jlongArray proofPointers,
-                                          jint pfvalue,
-                                          jint pcvalue)
+Java_io_github_cvc5_Solver_proofToString(JNIEnv* env,
+                                         jobject,
+                                         jlong pointer,
+                                         jlongArray proofPointers,
+                                         jint pfvalue,
+                                         jint pcvalue)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   std::vector<Proof> proofs = getObjectsFromPointers<Proof>(env, proofPointers);
   modes::ProofFormat pf = static_cast<modes::ProofFormat>(pfvalue);
   modes::ProofComponent pc = static_cast<modes::ProofComponent>(pcvalue);
-  std::string proof = solver->proofsToString(proofs, pf, pc);
+  std::string proof = solver->proofToString(proofs, pf, pc);
   return env->NewStringUTF(proof.c_str());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

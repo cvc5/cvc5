@@ -2174,13 +2174,13 @@ public class Solver implements IPointer
    * this case.
    * @return The proofs printed in the current format.
    */
-  public String proofsToString(Proof[] proof, ProofFormat format, ProofComponent component)
+  public String proofToString(Proof[] proof, ProofFormat format, ProofComponent component)
   {
     long[] proofPointers = Utils.getPointers(proof);
-    return proofsToString(pointer, proofPointers, format.getValue(), component.getValue());
+    return proofToString(pointer, proofPointers, format.getValue(), component.getValue());
   }
 
-  private native String proofsToString(long pointer, long[] proofs, long format, long component);
+  private native String proofToString(long pointer, long[] proofs, long format, long component);
 
   /**
    * Get the value of the given term in the current model.
