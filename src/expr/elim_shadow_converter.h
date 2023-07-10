@@ -38,8 +38,15 @@ namespace cvc5::internal {
 class ElimShadowNodeConverter : public NodeConverter
 {
  public:
+  /**
+   * Eliminate shadowing of the top-most variables in closure q.
+   */
   ElimShadowNodeConverter(const Node& q);
-  ElimShadowNodeConverter(const std::unordered_set<Node>& vars);
+  /**
+   * Eliminate shadowing of variables vars. Node n is a term used as a unique
+   * identifier for which the introduced bound variables are indexed on.
+   */
+  ElimShadowNodeConverter(const Node& n, const std::unordered_set<Node>& vars);
   ~ElimShadowNodeConverter() {}
   /**
    * Convert node n as described above during post-order traversal. This

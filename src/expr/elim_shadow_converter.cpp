@@ -41,10 +41,9 @@ ElimShadowNodeConverter::ElimShadowNodeConverter(const Node& q) : d_closure(q)
 }
 
 ElimShadowNodeConverter::ElimShadowNodeConverter(
-    const std::unordered_set<Node>& vars)
+    const Node& n, const std::unordered_set<Node>& vars)
 {
-  // just use true
-  d_closure = NodeManager::currentNM()->mkConst(true);
+  d_closure = n;
   d_vars.insert(d_vars.end(), vars.begin(), vars.end());
 }
 
