@@ -174,6 +174,15 @@ class ProofNodeUpdater : protected EnvObj
    * these map result formulas to proof nodes with/without assumptions. If we
    * are updating nodes at post visit time, then we run updateProofNode on it.
    *
+   * @param cur The proof node to finalize
+   * @param fa The current free assumptions in scope
+   * @param resCache The cache of proof nodes with no free assumptions
+   * @param resCacheNcWaiting The cache of proof nodes that have free
+   * assumptions
+   * @param cfaMap Mapping from proof nodes to whether they contain free
+   * assumptions
+   * @param cfaAllowed The free assumptions this proof is globally allowed to
+   * have.
    */
   void runFinalize(std::shared_ptr<ProofNode> cur,
                    const std::vector<Node>& fa,
@@ -182,7 +191,11 @@ class ProofNodeUpdater : protected EnvObj
                        resCacheNcWaiting,
                    std::unordered_map<const ProofNode*, bool>& cfaMap,
                    const std::unordered_set<Node>& cfaAllowed);
-  /** Check for merging */
+  /**
+   * Check for merging. Returns true if the result of cur is already in the
+   * result cache (resCache). If so, we update the contents of cur to the
+   * contents of the given proof node and update the contents of cfaMap.
+   */
   bool checkMergeProof(
       std::shared_ptr<ProofNode>& cur,
       const std::map<Node, std::shared_ptr<ProofNode>>& resCache,
