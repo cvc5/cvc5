@@ -76,6 +76,13 @@ class ProofTest
   }
 
   @Test
+  void getRule() throws CVC5ApiException
+  {
+    Proof proof = create_proof();
+    assertEquals("SCOPE", proof.getRule());
+  }
+
+  @Test
   void getResult() throws CVC5ApiException
   {
     Proof proof = create_proof();  

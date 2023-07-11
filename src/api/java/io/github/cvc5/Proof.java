@@ -45,6 +45,14 @@ public class Proof implements IPointer
     return pointer;
   }
 
+  /** @return The proof rule used by the root step of the proof. */
+  public String getRule()
+  {
+    return getRule(pointer);
+  }
+
+  private native String getRule(long pointer);
+
   /** @return The conclusion of the root step of the proof. */
   public Term getResult()
   {

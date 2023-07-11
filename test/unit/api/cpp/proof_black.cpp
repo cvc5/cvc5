@@ -57,6 +57,12 @@ class TestApiBlackProof : public TestApi
   }
 };
 
+TEST_F(TestApiBlackProof, getRule)
+{
+  Proof proof = create_proof();
+  ASSERT_EQ(proof.getRule(), "SCOPE");
+}
+
 TEST_F(TestApiBlackProof, getResult)
 {
   Proof proof = create_proof();

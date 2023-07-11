@@ -3344,6 +3344,9 @@ class CVC5_EXPORT Proof
   friend class Solver;
 
  public:
+  /** @return The proof rule used by the root step of the proof. */
+  std::string getRule() const;
+
   /** @return The conclusion of the root step of the proof. */
   Term getResult() const;
 

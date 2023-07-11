@@ -57,6 +57,12 @@ def create_proof(solver):
 
 def test_get_result(solver):
     proof = create_proof()
+    rule = proof.getRule()
+    assert rule == "SCOPE"
+
+
+def test_get_result(solver):
+    proof = create_proof()
     proof.getResult()
 
 

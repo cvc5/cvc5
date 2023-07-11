@@ -36,6 +36,22 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_Proof_deletePointer(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_Proof
+ * Method:    getRule
+ * Signature: (J)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_Proof_getRule(JNIEnv* env,
+                                                            jobject,
+                                                            jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Proof* current = reinterpret_cast<Proof*>(pointer);
+  std::string rule = current->getRule();
+  return env->NewStringUTF(rule.c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Proof
  * Method:    getResult
  * Signature: (J)J
  */

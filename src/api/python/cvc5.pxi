@@ -4425,6 +4425,12 @@ cdef class Proof:
         self.solver = solver
 
     """
+        :return: The proof rule used by the root step of the proof.
+    """
+    def getRule(self):
+        return self.cproof.getRule()
+    
+    """
         :return: The conclusion of the root step of the proof.
     """
     def getResult(self):

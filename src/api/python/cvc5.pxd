@@ -553,6 +553,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         size_t operator()(const Term & t) except +
 
     cdef cppclass Proof:
+        string getRule() except +
         Term getResult() except +
         vector[Proof] getChildren() except +
         vector[Term] getArguments() except +
