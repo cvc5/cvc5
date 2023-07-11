@@ -73,7 +73,6 @@ class TheoryFp : public Theory
                      bool isInternal) override;
   //--------------------------------- end standard check
 
-  Node getCandidateModelValue(TNode var) override;
   bool collectModelInfo(TheoryModel* m,
                         const std::set<Node>& relevantTerms) override;
   bool collectModelValues(TheoryModel* m,
@@ -83,11 +82,17 @@ class TheoryFp : public Theory
 
   TrustNode explain(TNode n) override;
 
+  Node getCandidateModelValue(TNode node) override;
+
+  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
+
  private:
   using ConversionAbstractionMap = context::CDHashMap<TypeNode, Node>;
   using AbstractionMap = context::CDHashMap<Node, Node>;
 
   void notifySharedTerm(TNode n) override;
+
+  Node getValue(TNode node);
 
   /** General utility. */
   void registerTerm(TNode node);
@@ -130,6 +135,17 @@ class TheoryFp : public Theory
 
   /** Cache of word-blasted facts. */
   context::CDHashSet<Node> d_wbFactsCache;
+
+  /** Flag indicating whether `d_modelCache` should be invalidated. */
+  context::CDO<bool> d_invalidateModelCache;
+
+  /**
+   * Cache for getValue() calls.
+   *
+   * Is cleared at the beginning of a getValue() call if the
+   * `d_invalidateModelCache` flag is set to true.
+   */
+  std::unordered_map<Node, Node> d_modelCache;
 
   /** True constant. */
   Node d_true;

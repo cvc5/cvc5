@@ -6966,6 +6966,9 @@ std::map<Term, Term> Solver::getDifficulty() const
 std::pair<Result, std::vector<Term>> Solver::getTimeoutCore() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceUnsatCores)
+      << "Cannot get timeout core unless unsat cores are enabled "
+         "(try --produce-unsat-cores)";
   //////// all checks before this line
   std::vector<Term> res;
   std::pair<internal::Result, std::vector<internal::Node>> resi =

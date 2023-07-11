@@ -20,7 +20,6 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 
 using namespace cvc5::internal::kind;
 

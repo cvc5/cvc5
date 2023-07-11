@@ -30,7 +30,6 @@
 #include "smt/smt_solver.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"

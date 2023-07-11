@@ -231,9 +231,6 @@ add_check_cxx_supression_flag("-Wno-class-memaccess")
 
 if (WIN32)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--stack,100000000")
-
-  # ANTLR uses pragmas that certain versions of MinGW does not support
-  add_check_c_cxx_flag("-Wno-error=unknown-pragmas")
 endif ()
 
 #-----------------------------------------------------------------------------#
@@ -253,7 +250,13 @@ endif ()
 # Use interprocedural optimization if requested
 
 if(ENABLE_IPO)
-  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+  check_ipo_supported(RESULT have_ipo_support)
+  if(have_ipo_support)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+  else()
+    message(STATUS "Interprocedural optimization not supported.")
+    set(ENABLE_IPO OFF)
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#

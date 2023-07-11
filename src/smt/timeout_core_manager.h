@@ -69,7 +69,7 @@ class TimeoutCoreManager : protected EnvObj
  public:
   TimeoutCoreManager(Env& env);
 
-  /** get timeout core for the current set of assertions stored in as.
+  /** get timeout core for the current set of assertions stored in ppAsserts.
    *
    * Returns a pair containing a result and a list of formulas C. If the result
    * is unknown and the reason is timeout, then the list C corresponds to
@@ -78,7 +78,8 @@ class TimeoutCoreManager : protected EnvObj
    * for the set of assertions. Otherwise, the list of formulas is empty and the
    * result has the same guarantees as a response to checkSat.
    */
-  std::pair<Result, std::vector<Node>> getTimeoutCore(const Assertions& as);
+  std::pair<Result, std::vector<Node>> getTimeoutCore(
+      const std::vector<Node>& ppAsserts);
 
  private:
   /** initialize assertions */

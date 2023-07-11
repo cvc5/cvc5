@@ -45,8 +45,9 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::DECLARE_DATATYPES_TOK: o << "DECLARE_DATATYPES_TOK"; break;
     case Token::DECLARE_DATATYPE_TOK: o << "DECLARE_DATATYPE_TOK"; break;
     case Token::DECLARE_FUN_TOK: o << "DECLARE_FUN_TOK"; break;
-    case Token::DECLARE_HEAP: o << "DECLARE_HEAP"; break;
-    case Token::DECLARE_POOL: o << "DECLARE_POOL"; break;
+    case Token::DECLARE_HEAP_TOK: o << "DECLARE_HEAP_TOK"; break;
+    case Token::DECLARE_ORACLE_FUN_TOK: o << "DECLARE_ORACLE_FUN_TOK"; break;
+    case Token::DECLARE_POOL_TOK: o << "DECLARE_POOL_TOK"; break;
     case Token::DECLARE_SORT_TOK: o << "DECLARE_SORT_TOK"; break;
     case Token::DECLARE_VAR_TOK: o << "DECLARE_VAR_TOK"; break;
     case Token::DEFINE_CONST_TOK: o << "DEFINE_CONST_TOK"; break;

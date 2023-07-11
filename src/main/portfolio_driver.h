@@ -105,7 +105,8 @@ struct PortfolioConfig
       solver.setOption(o.first, o.second);
     }
   }
-
+  /** To option string */
+  std::string toOptionString() const;
   /** List of options as pair of name and value */
   std::vector<std::pair<std::string, std::string>> d_options;
   /** Timeout as part of the total timeout */
