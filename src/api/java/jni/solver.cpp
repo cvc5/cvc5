@@ -2161,10 +2161,50 @@ JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getProof__JI(
 /*
  * Class:     io_github_cvc5_Solver
  * Method:    proofToString
+ * Signature: (J[J)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL
+Java_io_github_cvc5_Solver_proofToString__J3J(JNIEnv* env,
+                                         jobject,
+                                         jlong pointer,
+                                         jlongArray proofPointers)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  std::vector<Proof> proofs = getObjectsFromPointers<Proof>(env, proofPointers);
+  std::string proof = solver->proofToString(proofs);
+  return env->NewStringUTF(proof.c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    proofToString
+ * Signature: (J[JI)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL
+Java_io_github_cvc5_Solver_proofToString__J3JI(JNIEnv* env,
+                                         jobject,
+                                         jlong pointer,
+                                         jlongArray proofPointers,
+                                         jint pfvalue)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  std::vector<Proof> proofs = getObjectsFromPointers<Proof>(env, proofPointers);
+  modes::ProofFormat pf = static_cast<modes::ProofFormat>(pfvalue);
+  std::string proof = solver->proofToString(proofs, pf);
+  return env->NewStringUTF(proof.c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    proofToString
  * Signature: (J[JII)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL
-Java_io_github_cvc5_Solver_proofToString(JNIEnv* env,
+Java_io_github_cvc5_Solver_proofToString__J3JII(JNIEnv* env,
                                          jobject,
                                          jlong pointer,
                                          jlongArray proofPointers,

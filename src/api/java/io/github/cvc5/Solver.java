@@ -2167,6 +2167,41 @@ public class Solver implements IPointer
    * @api.note This method is experimental and may change in future versions.
    *
    * @param proof A list of proofs.
+   * @return The proofs printed in the current format.
+   */
+  public String proofToString(Proof[] proof)
+  {
+    long[] proofPointers = Utils.getPointers(proof);
+    return proofToString(pointer, proofPointers);
+  }
+
+  private native String proofToString(long pointer, long[] proofs);
+
+  /**
+   * Prints a vector of proofs into a string with a slected proof format mode.
+   * Other aspects of printing are taken from the solver options.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @param proof A list of proofs.
+   * @param format The proof format used to print the proof.
+   * @return The proofs printed in the current format.
+   */
+  public String proofToString(Proof[] proof, ProofFormat format)
+  {
+    long[] proofPointers = Utils.getPointers(proof);
+    return proofToString(pointer, proofPointers, format.getValue());
+  }
+
+  private native String proofToString(long pointer, long[] proofs, long format);
+
+  /**
+   * Prints a vector of proofs into a string with a slected proof format mode.
+   * Other aspects of printing are taken from the solver options.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @param proof A list of proofs.
    * @param format The proof format used to print the proof.
    * @param component The proof component represented by the proof.  If the
    * component is either a SAT proof or a full proof the printed proof is not
