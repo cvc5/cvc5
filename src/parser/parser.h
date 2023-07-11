@@ -51,13 +51,6 @@ class ParserStateCallback
   virtual void parseError(const std::string& msg) = 0;
   /** Unexpectedly encountered an EOF */
   virtual void unexpectedEOF(const std::string& msg) = 0;
-  /**
-   * Preempt the next returned command with other ones; used to
-   * support the :named attribute in SMT-LIBv2, which implicitly
-   * inserts a new command before the current one. Also used in TPTP
-   * because function and predicate symbols are implicitly declared.
-   */
-  virtual void preemptCommand(std::unique_ptr<Command> cmd) = 0;
 };
 
 /**
@@ -431,8 +424,6 @@ class CVC5_EXPORT ParserState
   void parseError(const std::string& msg);
   /** Unexpectedly encountered an EOF */
   void unexpectedEOF(const std::string& msg);
-  /** Preempt command */
-  void preemptCommand(std::unique_ptr<Command> cmd);
   //-------------------- end callbacks to parser
   /** Issue a warning to the user, but only once per attribute. */
   void attributeNotSupported(const std::string& attr);
@@ -544,19 +535,6 @@ class CVC5_EXPORT ParserState
  protected:
   /** The API Solver object. */
   Solver* d_solver;
-  /**
-   * A string to prepend to the name of all declared symbols, which helps
-   * when converting benchmarks from one format to another.
-   *
-   * The print namespace does not impact the symbol bindings. For example,
-   * if a variable "x" is declared and the print namespace is "tptp.", then
-   * we bind the symbol "x" to a variable whose name is "tptp.x". This means
-   * that "x" can be parsed, but the variable will be printed as "tptp.x".
-   *
-   * !!!!!!!!! This is only necessary for the TPTP to smt2 conversion, and
-   * can be deleted if the TPTP parser is deleted.
-   */
-  std::string d_printNamespace;
 
  private:
   /** The callback */
@@ -595,8 +573,6 @@ class CVC5_EXPORT ParserState
    * Owns the memory of the Commands in the queue.
    */
   std::list<Command*> d_commandQueue;
-  /** Get name for user name */
-  std::string getNameForUserName(const std::string& name) const;
 }; /* class Parser */
 
 /** Compute the unsigned integer for a token. */

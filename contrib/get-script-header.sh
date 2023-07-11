@@ -12,15 +12,6 @@ INSTALL_BIN_DIR="$INSTALL_DIR/bin"
 
 mkdir -p "$DEPS_DIR"
 
-if ! [ -e src/parser/smt2/Smt2.g ]; then
-  echo "$(basename $0): I expect to be in the contrib/ of a cvc5 source tree," >&2
-  echo "but apparently:" >&2
-  echo >&2
-  echo "  $(pwd)" >&2
-  echo >&2
-  echo "is not a cvc5 source tree ?!" >&2
-  exit 1
-fi
 
 function webget {
   if [ -x "$(command -v wget)" ]; then
