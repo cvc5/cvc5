@@ -764,8 +764,8 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
         if (uasserts.empty())
         {
           // In the rare case in which the side condition implies the goal
-          // already, then uasserts is empty and any solution suffices. Take
-          // the last enumerated term.
+          // already, then uasserts may be empty and any solution suffices.
+          // Take the last enumerated term from the pool.
           Assert (!passerts.empty());
           uasserts.push_back(passerts.back());
         }
