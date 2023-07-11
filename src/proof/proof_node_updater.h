@@ -176,6 +176,10 @@ class ProofNodeUpdater : protected EnvObj
                        resCacheNcWaiting,
                    std::unordered_map<const ProofNode*, bool>& cfaMap,
                    const std::unordered_set<Node>& cfaAllowed);
+  /** Check for merging */
+  bool checkMergeProof(std::shared_ptr<ProofNode>& cur,
+                       const std::map<Node, std::shared_ptr<ProofNode>>& resCache,
+                   std::unordered_map<const ProofNode*, bool>& cfaMap);
   /** Are we debugging free assumptions? */
   bool d_debugFreeAssumps;
   /** The initial free assumptions */

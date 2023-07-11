@@ -120,30 +120,19 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
   std::shared_ptr<ProofNode> cur;
   visit.push_back(pf);
   std::map<Node, std::shared_ptr<ProofNode>>::iterator itc;
-  Node res;
-  ProofNodeManager* pnm = d_env.getProofNodeManager();
   Assert(pnm != nullptr);
   do
   {
     cur = visit.back();
     visit.pop_back();
     it = visited.find(cur);
-    res = cur->getResult();
     if (it == visited.end())
     {
-      if (d_mergeSubproofs)
+      // check if there is a proof in resCache with the same result
+      if (checkMergeProof(cur, resCache, cfaMap))
       {
-        itc = resCache.find(res);
-        if (itc != resCache.end())
-        {
-          // already have a proof, merge it into this one
-          visited[cur] = true;
-          pnm->updateNode(cur.get(), itc->second.get());
-          // does not contain free assumptions since the range of resCache does
-          // not contain free assumptions
-          cfaMap[cur.get()] = false;
-          continue;
-        }
+        visited[cur] = true;
+        continue;
       }
       // run update to a fixed point
       bool continueUpdate = true;
@@ -199,16 +188,11 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
         Assert(fa.size() >= args.size());
         fa.resize(fa.size() - args.size());
       }
-      // maybe found a proof in the meantime
-      itc = resCache.find(res);
-      if (itc != resCache.end())
+      // maybe found a proof in the meantime, i.e. a subproof of the current
+      // proof with the same result.
+      if (checkMergeProof(cur, resCache, cfaMap))
       {
-        // already have a proof, merge it into this one
         visited[cur] = true;
-        pnm->updateNode(cur.get(), itc->second.get());
-        // does not contain free assumptions since the range of resCache does
-        // not contain free assumptions
-        cfaMap[cur.get()] = false;
         continue;
       }
       runFinalize(cur, fa, resCache, resCacheNcWaiting, cfaMap, cfaAllowed);
@@ -307,6 +291,7 @@ void ProofNodeUpdater::runFinalize(
     // cache the result if we don't contain an assumption
     if (!expr::containsAssumption(cur.get(), cfaMap, cfaAllowed))
     {
+      Trace("pf-process-debug") << "No assumption pf: " << *cur.get() << std::endl;
       // cache result if we are merging subproofs
       resCache[res] = cur;
       // go back and merge into the non-closed proofs of the same fact
@@ -324,7 +309,7 @@ void ProofNodeUpdater::runFinalize(
     }
     else
     {
-      Trace("pf-process-debug") << "Not: " << *cur.get() << ", with " << cfaAllowed.size() << std::endl;
+      Trace("pf-process-debug") << "Assumption pf: " << *cur.get() << ", with " << cfaAllowed.size() << std::endl;
       resCacheNcWaiting[res].push_back(cur);
     }
   }
@@ -337,6 +322,29 @@ void ProofNodeUpdater::runFinalize(
     pfnEnsureClosedWrt(
         options(), cur.get(), fa, "pfnu-debug", "ProofNodeUpdater:finalize");
   }
+}
+
+bool ProofNodeUpdater::checkMergeProof(std::shared_ptr<ProofNode>& cur,
+                      const std::map<Node, std::shared_ptr<ProofNode>>& resCache,
+                  std::unordered_map<const ProofNode*, bool>& cfaMap)
+{
+    // maybe found a proof in the meantime
+    if (d_mergeSubproofs)
+    {
+      const Node& res = cur->getResult();
+      std::map<Node, std::shared_ptr<ProofNode>>::const_iterator itc = resCache.find(res);
+      if (itc != resCache.end())
+      {
+  ProofNodeManager* pnm = d_env.getProofNodeManager();
+        // already have a proof, merge it into this one
+        pnm->updateNode(cur.get(), itc->second.get());
+        // does not contain free assumptions since the range of resCache does
+        // not contain free assumptions
+        cfaMap[cur.get()] = false;
+        return true;
+      }
+    }
+    return false;
 }
 
 void ProofNodeUpdater::setFreeAssumptions(

@@ -119,11 +119,8 @@ constexpr typename std::vector<T, Alloc>::size_type erase_if(
 std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
     std::shared_ptr<ProofNode> pfn, SmtSolver& smt, ProofScopeMode scopeMode)
 {
-  // clone the proof in incremental solving
-  if (options().base.incrementalSolving)
-  {
-    pfn = pfn->clone();
-  }
+  // always clone the proof
+  pfn = pfn->clone();
   Assertions& as = smt.getAssertions();
   PreprocessProofGenerator* pppg =
       smt.getPreprocessor()->getPreprocessProofGenerator();
