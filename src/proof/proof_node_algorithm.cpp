@@ -167,7 +167,7 @@ bool containsAssumption(const ProofNode* pn,
       PfRule r = cur->getRule();
       if (r == PfRule::ASSUME)
       {
-        bool ret = allowed.find(cur->getArguments()[0])==allowed.end();
+        bool ret = allowed.find(cur->getArguments()[0]) == allowed.end();
         visited[cur] = ret;
         caMap[cur] = ret;
         foundAssumption = ret;

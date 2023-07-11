@@ -1154,11 +1154,12 @@ void ProofPostprocess::setEliminateAllTrustedRules()
   d_cb.setEliminateAllTrustedRules();
 }
 
-void ProofPostprocess::setAssertions(const std::vector<Node>& assertions, bool doDebug)
+void ProofPostprocess::setAssertions(const std::vector<Node>& assertions,
+                                     bool doDebug)
 {
   // for debugging (slow)
   // FIXME
-  //d_updater.setFreeAssumptions(assertions, doDebug);
+  // d_updater.setFreeAssumptions(assertions, doDebug);
 }
 
 }  // namespace smt
