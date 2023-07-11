@@ -7253,6 +7253,9 @@ std::string Solver::proofToString(std::vector<Proof> proofs,
   // don't need to comment that it proves false
   bool commentProves = !(component == modes::PROOF_COMPONENT_SAT
                          || component == modes::PROOF_COMPONENT_FULL);
+  // Ignore proof format, if the proof is not the full proof
+  if (component != modes::PROOF_COMPONENT_FULL)
+    format = modes::PROOF_FORMAT_NONE;
 
   std::vector<std::shared_ptr<internal::ProofNode>> proof_nodes;
   for (Proof p : proofs)

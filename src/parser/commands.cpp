@@ -1570,24 +1570,7 @@ void GetProofCommand::invoke(cvc5::Solver* solver, SymManager* sm)
   {
     stringstream ss;
     const vector<cvc5::Proof> ps = solver->getProof(d_component);
-
-    // mode == options::ProofFormatMode::NONE)
-    // solver-> somethingsomething Option ----> mode Info
-    // how to get this?
-    // TODO: set correctly
-    bool outermostParentheses = false;
-
-    if (outermostParentheses)
-    {
-      ss << "(\n";
-    }
-    ss << solver->proofToString(ps, modes::PROOF_FORMAT_DEFAULT, d_component)
-       << "\n";
-    if (outermostParentheses)
-    {
-      ss << ")\n";
-    }
-
+    ss << solver->proofToString(ps, modes::PROOF_FORMAT_DEFAULT, d_component);
     d_result = ss.str();
     d_commandStatus = CommandSuccess::instance();
   }

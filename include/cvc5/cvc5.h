@@ -4536,7 +4536,8 @@ class CVC5_EXPORT Solver
    * @warning This method is experimental and may change in future versions.
    *
    * @param proof A vector of proofs, usually obtained from Solver::getProof().
-   * @param format The proof format used to print the proof.
+   * @param format The proof format used to print the proof.  This is ignored if
+   * the component is not the full proof.
    * @param component The proof component represented by the proof.  If the
    * component is either a SAT proof or a full proof the printed proof is not
    * anotated with the conclusion, because the conclusion is always `false` in

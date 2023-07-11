@@ -2251,7 +2251,27 @@ cdef class Solver:
             proofs.append(proof)
         return proofs
 
-    def proofToString(self, proof, format, component):
+    def proofToString(self, proof,
+                      format = ProofFormat.PROOF_FORMAT_DEFAULT,
+                      component = ProofComponent.PROOF_COMPONENT_FULL):
+        """
+            Prints a vector of proofs into a string with a slected proof format mode.
+            Other aspects of printing are taken from the solver options.
+
+            .. warning:: This method is experimental and may change in
+                         future versions.
+
+            :param proof: A vector of proofs, usually obtained from
+                          :py:meth:`getProof()`.
+            :param format: The proof format used to print the proof.  This is
+                           ignored if the component is not the full proof.
+            :param component: The proof component represented by the proof.
+                              If the component is either a SAT proof or a full
+                              proof the printed proof is not anotated with the
+                              conclusion, because the conclusion is always
+                              `false` in this case.
+            :return: The proofs printed in the current format.
+        """
         cdef vector[c_Proof] cproofs
         for p in proof:
             cproofs.push_back((<Proof?> p).cproof)

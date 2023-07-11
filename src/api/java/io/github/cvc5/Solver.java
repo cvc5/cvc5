@@ -2203,6 +2203,7 @@ public class Solver implements IPointer
    *
    * @param proof A list of proofs.
    * @param format The proof format used to print the proof.
+   * This is ignored if the component is not the full proof.
    * @param component The proof component represented by the proof.  If the
    * component is either a SAT proof or a full proof the printed proof is not
    * anotated with the conclusion, because the conclusion is always `false` in
