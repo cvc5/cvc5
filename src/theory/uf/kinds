@@ -45,7 +45,7 @@ constant CARDINALITY_CONSTRAINT_OP \
 parameterized CARDINALITY_CONSTRAINT CARDINALITY_CONSTRAINT_OP 0 "a fixed upper bound on the cardinality of an uninterpreted sort"
 
 typerule CARDINALITY_CONSTRAINT_OP ::cvc5::internal::theory::uf::CardinalityConstraintOpTypeRule
-typerule CARDINALITY_CONSTRAINT ::cvc5::internal::theory::uf::CardinalityConstraintTypeRule
+typerule CARDINALITY_CONSTRAINT "SimpleTypeRule<RBool>"
 
 constant COMBINED_CARDINALITY_CONSTRAINT_OP \
   class \
@@ -56,7 +56,7 @@ constant COMBINED_CARDINALITY_CONSTRAINT_OP \
 parameterized COMBINED_CARDINALITY_CONSTRAINT COMBINED_CARDINALITY_CONSTRAINT_OP 0 "a fixed upper bound on the sum of cardinalities of uninterpreted sorts"
 
 typerule COMBINED_CARDINALITY_CONSTRAINT_OP ::cvc5::internal::theory::uf::CombinedCardinalityConstraintOpTypeRule
-typerule COMBINED_CARDINALITY_CONSTRAINT ::cvc5::internal::theory::uf::CombinedCardinalityConstraintTypeRule
+typerule COMBINED_CARDINALITY_CONSTRAINT "SimpleTypeRule<RBool>"
 
 
 constant FUNCTION_ARRAY_CONST \

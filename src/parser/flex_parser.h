@@ -77,19 +77,15 @@ class FlexParser : public ParserStateCallback
   /** Parse and return the next expression. */
   Term nextExpression();
 
+  /** Is this parser done reading input? */
+  bool done() const;
+
   /** Issue a warning to the user. */
   void warning(const std::string& msg) override;
   /** Raise a parse error with the given message. */
   void parseError(const std::string& msg) override;
   /** Unexpectedly encountered an EOF */
   void unexpectedEOF(const std::string& msg) override;
-  /**
-   * Preempt the next returned command with other ones; used to
-   * support the :named attribute in SMT-LIBv2, which implicitly
-   * inserts a new command before the current one. Also used in TPTP
-   * because function and predicate symbols are implicitly declared.
-   */
-  void preemptCommand(std::unique_ptr<Command> cmd) override;
 
   /** make flex parser from language string */
   static std::unique_ptr<FlexParser> mkFlexParser(const std::string& lang,
@@ -118,14 +114,6 @@ class FlexParser : public ParserStateCallback
   FlexLexer* d_lex;
   /** The flex input */
   std::unique_ptr<FlexInput> d_flexInput;
-  /**
-   * "Preemption commands": extra commands implied by subterms that
-   * should be issued before the currently-being-parsed command is
-   * issued.  Used to support SMT-LIBv2 ":named" attribute on terms.
-   *
-   * Owns the memory of the Commands in the queue.
-   */
-  std::list<std::unique_ptr<Command>> d_commandQueue;
   /** Are we done */
   bool d_done;
 };
