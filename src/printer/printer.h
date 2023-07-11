@@ -204,7 +204,7 @@ class CVC5_EXPORT Printer
   virtual void toStreamCmdFindSynth(
       std::ostream& out,
       modes::FindSynthTarget fst,
-      TypeNode sygusType = TypeNode::null()) const;
+      TypeNode sygusType) const;
 
   /** Print simplify command */
   virtual void toStreamCmdSimplify(std::ostream& out, Node n) const;

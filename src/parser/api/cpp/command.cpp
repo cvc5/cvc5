@@ -805,10 +805,10 @@ std::string FindSynthCommand::getCommandName() const { return "find-synth"; }
 
 void FindSynthCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(out)->toStreamCmdFindSynth(
+  internal::Printer::getPrinter(out)->toStreamCmdFindSynth(
       out,
       d_fst,
-      d_grammar == nullptr ? TypeNode::null() : grammarToTypeNode(d_grammar));
+      d_grammar == nullptr ? internal::TypeNode::null() : grammarToTypeNode(d_grammar));
 }
 /* -------------------------------------------------------------------------- */
 /* class ResetCommand                                                         */
