@@ -2063,11 +2063,11 @@ TEST_F(TestApiBlackSolver, getProofAndProofToString)
   ASSERT_FALSE(proof.empty());
   ASSERT_NO_THROW(printedProof = d_solver.proofToString(proof));
   ASSERT_FALSE(printedProof.empty());
-
-  ASSERT_NO_THROW(proof = d_solver.getProof(modes::PROOF_COMPONENT_SAT));
   ASSERT_NO_THROW(
       printedProof = d_solver.proofToString(
-          proof, modes::PROOF_FORMAT_ALETHE, modes::PROOF_COMPONENT_SAT));
+          proof, modes::PROOF_FORMAT_ALETHE));
+
+  ASSERT_NO_THROW(proof = d_solver.getProof(modes::PROOF_COMPONENT_SAT));
   ASSERT_FALSE(printedProof.empty());
 }
 
