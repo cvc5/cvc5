@@ -120,7 +120,6 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
   std::shared_ptr<ProofNode> cur;
   visit.push_back(pf);
   std::map<Node, std::shared_ptr<ProofNode>>::iterator itc;
-  Assert(pnm != nullptr);
   do
   {
     cur = visit.back();
@@ -331,7 +330,6 @@ bool ProofNodeUpdater::checkMergeProof(
     const std::map<Node, std::shared_ptr<ProofNode>>& resCache,
     std::unordered_map<const ProofNode*, bool>& cfaMap)
 {
-  // maybe found a proof in the meantime
   if (d_mergeSubproofs)
   {
     const Node& res = cur->getResult();
@@ -340,6 +338,7 @@ bool ProofNodeUpdater::checkMergeProof(
     if (itc != resCache.end())
     {
       ProofNodeManager* pnm = d_env.getProofNodeManager();
+      Assert(pnm != nullptr);
       // already have a proof, merge it into this one
       pnm->updateNode(cur.get(), itc->second.get());
       // does not contain free assumptions since the range of resCache does
