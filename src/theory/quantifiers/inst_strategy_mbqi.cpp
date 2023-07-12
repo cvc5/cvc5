@@ -25,6 +25,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/smt_engine_subsolver.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/arith/nl/poly_conversion.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -336,13 +337,19 @@ Node InstStrategyMbqi::convertToQuery(
       {
         cmap[cur] = cur;
       }
-      else if (ck == UNINTERPRETED_SORT_VALUE || ck == REAL_ALGEBRAIC_NUMBER)
+      else if (ck == UNINTERPRETED_SORT_VALUE)
       {
         // return the fresh variable for this term
         Node k = sm->mkPurifySkolem(cur);
         freshVarType[cur.getType()].insert(k);
         cmap[cur] = k;
         continue;
+      }
+      else if (ck == REAL_ALGEBRAIC_NUMBER)
+      {
+        Node v = nm->mkBoundVar(nm->realType());
+        Node witness = PolyConverter::ran_to_node(cur.getOperator().getConst<RealAlgebraicNumber>(), v);
+        cmap[cur] = witness;
       }
       else if (ck == CONST_SEQUENCE || cur.isVar())
       {
@@ -463,7 +470,7 @@ Node InstStrategyMbqi::convertFromModel(
     if (processingChildren.find(cur) == processingChildren.end())
     {
       Kind ck = cur.getKind();
-      if (ck == UNINTERPRETED_SORT_VALUE || ck == REAL_ALGEBRAIC_NUMBER)
+      if (ck == UNINTERPRETED_SORT_VALUE)
       {
         // converting from query, find the variable that it is equal to
         std::map<Node, Node>::const_iterator itmv = mvToFreshVar.find(cur);
@@ -477,6 +484,12 @@ Node InstStrategyMbqi::convertFromModel(
           // failed to find equal, we fail
           return Node::null();
         }
+      }
+      else if (ck == REAL_ALGEBRAIC_NUMBER)
+      {
+        Node v = nm->mkBoundVar(nm->realType());
+        Node witness = PolyConverter::ran_to_node(cur.getOperator().getConst<RealAlgebraicNumber>(), v);
+        cmap[cur] = witness;
       }
       else if (ck == CONST_SEQUENCE)
       {
