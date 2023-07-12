@@ -1740,6 +1740,27 @@ class CVC5_EXPORT Term
    */
   std::pair<Sort, uint32_t> getCardinalityConstraint() const;
 
+  /**
+   * @return True if the term is a real algebraic number.
+   */
+  bool isRealAlgebraicNumber() const;
+  /**
+   * @note Asserts isRealAlgebraicNumber().
+   * @param v The variable over which to express the polynomial.
+   * @return The defining polynomial for the real algebraic number, expressed in terms of the given variable.
+   */
+  Term getRealAlgebraicNumberDefiningPolynomial(const Term& v) const;
+  /**
+   * @note Asserts isRealAlgebraicNumber().
+   * @return The lower bound for the value of the real algebraic number.
+   */
+  Term getRealAlgebraicNumberLowerBound() const;
+  /**
+   * @note Asserts isRealAlgebraicNumber().
+   * @return The upper bound for the value of the real algebraic number.
+   */
+  Term getRealAlgebraicNumberUpperBound() const;
+
  protected:
   /**
    * The associated node manager.
