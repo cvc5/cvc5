@@ -187,11 +187,7 @@ TermPools* TermRegistry::getTermPools() const { return d_termPools.get(); }
 
 VtsTermCache* TermRegistry::getVtsTermCache() const { return d_vtsCache.get(); }
 
-
-BvInverter* TermRegistry::getBvInverter() const
-{
-  return d_bvInvert.get();
-}
+BvInverter* TermRegistry::getBvInverter() const { return d_bvInvert.get(); }
 
 ieval::InstEvaluatorManager* TermRegistry::getInstEvaluatorManager() const
 {

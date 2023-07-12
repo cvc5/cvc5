@@ -23,8 +23,8 @@
 
 #include "context/cdhashset.h"
 #include "smt/env_obj.h"
-#include "theory/quantifiers/cegqi/vts_term_cache.h"
 #include "theory/quantifiers/bv_inverter.h"
+#include "theory/quantifiers/cegqi/vts_term_cache.h"
 #include "theory/quantifiers/entailment_check.h"
 #include "theory/quantifiers/ieval/inst_evaluator_manager.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"

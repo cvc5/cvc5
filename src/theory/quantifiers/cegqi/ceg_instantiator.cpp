@@ -1117,7 +1117,8 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
   VtsTermCache* vtc = d_treg.getVtsTermCache();
   bool usedVts = vtc->containsVtsTerm(subs, false);
   Instantiate* inst = d_qim.getInstantiate();
-  //if doing partial quantifier elimination, record the instantiation and set the incomplete flag instead of sending instantiation lemma
+  // if doing partial quantifier elimination, record the instantiation and set
+  // the incomplete flag instead of sending instantiation lemma
   if (d_qreg.getQuantAttributes().isQuantElimPartial(d_quant))
   {
     inst->recordInstantiation(d_quant, subs, usedVts);
@@ -1134,7 +1135,6 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
   // this should never happen for monotonic selection strategies
   Trace("cegqi-warn") << "WARNING: Existing instantiation" << std::endl;
   return false;
-
 }
 
 bool CegInstantiator::isEligibleForInstantiation(Node n) const

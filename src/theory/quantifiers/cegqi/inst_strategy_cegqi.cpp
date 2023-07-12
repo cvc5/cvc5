@@ -266,11 +266,11 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
       for( std::map< Node, bool >::iterator it = d_active_quant.begin(); it != d_active_quant.end(); ++it ){
         Node q = it->first;
         Trace("cegqi") << "CBQI : Process quantifier " << q[0] << " at effort " << ee << std::endl;
-          if (d_qreg.getQuantAttributes().isQuantElimPartial(q))
-  {
-    d_cbqi_set_quant_inactive = true;
-    d_incomplete_check = true;
-  }
+        if (d_qreg.getQuantAttributes().isQuantElimPartial(q))
+        {
+          d_cbqi_set_quant_inactive = true;
+          d_incomplete_check = true;
+        }
         process(q, e, ee);
         if (d_qstate.isInConflict())
         {
@@ -507,7 +507,8 @@ CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
   std::map<Node, std::unique_ptr<CegInstantiator>>::iterator it =
       d_cinst.find(q);
   if( it==d_cinst.end() ){
-    d_cinst[q].reset(new CegInstantiator(d_env, q, d_qstate, d_qim, d_qreg, d_treg));
+    d_cinst[q].reset(
+        new CegInstantiator(d_env, q, d_qstate, d_qim, d_qreg, d_treg));
     return d_cinst[q].get();
   }
   return it->second.get();
