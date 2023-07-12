@@ -215,8 +215,7 @@ class CegInstantiator : protected EnvObj
   CegInstantiator(Env& env,
                   Node q,
                   QuantifiersState& qs,
-                  TermRegistry& tr,
-                  InstStrategyCegqi* parent);
+                  TermRegistry& tr);
   virtual ~CegInstantiator();
   /** check
    * This adds instantiations based on the state of d_vars in current context

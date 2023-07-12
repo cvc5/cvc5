@@ -56,18 +56,12 @@ InstStrategyCegqi::InstStrategyCegqi(Env& env,
       d_cbqi_set_quant_inactive(false),
       d_incomplete_check(false),
       d_added_cbqi_lemma(userContext()),
-      d_bv_invert(nullptr),
       d_small_const_multiplier(NodeManager::currentNM()->mkConstReal(
           Rational(1) / Rational(1000000))),
       d_small_const(d_small_const_multiplier),
       d_freeDeltaLb(userContext(), false)
 {
   d_check_vts_lemma_lc = false;
-  if (options().quantifiers.cegqiBv)
-  {
-    // if doing instantiation for BV, need the inverter class
-    d_bv_invert.reset(new BvInverter(env.getOptions(), env.getRewriter()));
-  }
   if (options().quantifiers.cegqiNestedQE)
   {
     d_nestedQe.reset(new NestedQe(d_env));
@@ -535,7 +529,7 @@ CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
   std::map<Node, std::unique_ptr<CegInstantiator>>::iterator it =
       d_cinst.find(q);
   if( it==d_cinst.end() ){
-    d_cinst[q].reset(new CegInstantiator(d_env, q, d_qstate, d_treg, this));
+    d_cinst[q].reset(new CegInstantiator(d_env, q, d_qstate, d_treg));
     return d_cinst[q].get();
   }
   return it->second.get();

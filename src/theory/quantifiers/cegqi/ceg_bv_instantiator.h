@@ -105,7 +105,7 @@ class BvInstantiator : public Instantiator
 
  private:
   /** pointer to the bv inverter class */
-  BvInverter* d_inverter;
+  BvInverter d_inverter;
   /** Utility class */
   BvInstantiatorUtil d_util;
   //--------------------------------solved forms
