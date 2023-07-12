@@ -185,10 +185,14 @@ void SolvedForm::pop_back(Node pv, Node n, TermProperties& pv_prop)
 CegInstantiator::CegInstantiator(Env& env,
                                  Node q,
                                  QuantifiersState& qs,
+                                 QuantifiersInferenceManager& qim,
+                                 QuantifiersRegistry& qr,
                                  TermRegistry& tr)
     : EnvObj(env),
       d_quant(q),
       d_qstate(qs),
+      d_qim(qim),
+      d_qreg(qr),
       d_treg(tr),
       d_is_nested_quant(false),
       d_effort(CEG_INST_EFFORT_NONE)
@@ -494,7 +498,7 @@ void CegInstantiator::activateInstantiationVariable(Node v, unsigned index)
     }
     else if (tn.isBitVector())
     {
-      vinst = new BvInstantiator(d_env, tn);
+      vinst = new BvInstantiator(d_env, tn, d_treg.getBvInverter());
     }
     else if (tn.isBoolean())
     {
@@ -1116,8 +1120,6 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
   //if doing partial quantifier elimination, record the instantiation and set the incomplete flag instead of sending instantiation lemma
   if (d_qreg.getQuantAttributes().isQuantElimPartial(d_quant))
   {
-    d_cbqi_set_quant_inactive = true;
-    d_incomplete_check = true;
     inst->recordInstantiation(d_quant, subs, usedVts);
     return true;
   }

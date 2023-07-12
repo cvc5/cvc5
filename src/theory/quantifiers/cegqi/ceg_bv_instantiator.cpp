@@ -53,8 +53,8 @@ class CegInstantiatorBvInverterQuery : public BvInverterQuery
   CegInstantiator* d_ci;
 };
 
-BvInstantiator::BvInstantiator(Env& env, TypeNode tn)
-    : Instantiator(env, tn), d_inverter(options(), env.getRewriter()), d_util(env), d_inst_id_counter(0)
+BvInstantiator::BvInstantiator(Env& env, TypeNode tn, BvInverter* inv)
+    : Instantiator(env, tn), d_inverter(inv), d_util(env), d_inst_id_counter(0)
 {
   // The inverter utility d_inverter is global to all BvInstantiator classes.
   // This must be global since we need to:
