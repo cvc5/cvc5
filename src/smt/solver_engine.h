@@ -471,12 +471,16 @@ class CVC5_EXPORT SolverEngine
    * definitions, assertions, and the current partial model, if one
    * has been constructed.  It also involves theory normalization.
    *
-   * @throw TypeCheckingException, LogicException
-   *
-   * @todo (design) is this meant to give an equivalent or an
-   * equisatisfiable formula?
+   * This returns a term that is equivalent to t in all models of the current
+   * assertions.
    */
-  Node simplify(const Node& e);
+  Node simplify(const Node& t);
+  /**
+   * Rewrite the given term, initializing if necessary.
+   *
+   * This returns a term that is equivalent to t.
+   */
+  Node rewrite(const Node& t);
 
   /**
    * Get the assigned value of an expr (only if immediately preceded by a SAT

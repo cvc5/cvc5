@@ -992,6 +992,18 @@ Node SolverEngine::simplify(const Node& t)
   return ret;
 }
 
+Node SolverEngine::rewrite(const Node& t)
+{
+  beginCall(true);
+  // now rewrite
+  Node ret = d_env->getRewriter()->rewrite(t);
+  // make so that the returned term does not involve arithmetic subtyping
+  SubtypeElimNodeConverter senc;
+  ret = senc.convert(ret);
+  endCall();
+  return ret;
+}
+
 Node SolverEngine::getValue(const Node& t) const
 {
   ensureWellFormedTerm(t, "get value");
