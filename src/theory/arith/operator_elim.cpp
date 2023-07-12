@@ -24,9 +24,9 @@
 #include "smt/env.h"
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/nl/poly_conversion.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
-#include "theory/arith/nl/poly_conversion.h"
 
 using namespace cvc5::internal::kind;
 
@@ -35,12 +35,14 @@ namespace theory {
 namespace arith {
 
 /**
- * A bound variable for the witness term used to eliminate real algebraic numbers.
+ * A bound variable for the witness term used to eliminate real algebraic
+ * numbers.
  */
 struct RealAlgebraicNumberVarAttributeId
 {
 };
-typedef expr::Attribute<RealAlgebraicNumberVarAttributeId, Node> RealAlgebraicNumberVarAttribute;
+typedef expr::Attribute<RealAlgebraicNumberVarAttributeId, Node>
+    RealAlgebraicNumberVarAttribute;
 
 OperatorElim::OperatorElim(Env& env) : EagerProofGenerator(env) {}
 
@@ -396,10 +398,10 @@ Node OperatorElim::eliminateOperators(Node node,
     case REAL_ALGEBRAIC_NUMBER:
     {
       BoundVarManager* bvm = nm->getBoundVarManager();
-      Node v =
-          bvm->mkBoundVar<RealAlgebraicNumberVarAttribute>(node, "i", nm->realType());
+      Node v = bvm->mkBoundVar<RealAlgebraicNumberVarAttribute>(
+          node, "i", nm->realType());
       Node w = PolyConverter::ran_to_node(
-            node.getOperator().getConst<RealAlgebraicNumber>(), v);
+          node.getOperator().getConst<RealAlgebraicNumber>(), v);
       return w;
     }
 
