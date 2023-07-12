@@ -1933,11 +1933,11 @@ def test_rewrite(solver):
         solver.rewrite(cvc5.Term(solver))
 
     intSort = solver.getIntegerSort()
-    x = d_solver.mkConst(intSort)
-    eq = d_solver.mkTerm(Kind.EQUAL, x, x)
+    x = solver.mkConst(intSort)
+    eq = solver.mkTerm(Kind.EQUAL, x, x)
 
-    trueTerm = d_solver.mkBoolean(True)
-    assert trueTerm == d_solver.rewrite(eq)
+    trueTerm = solver.mkBoolean(True)
+    assert trueTerm == solver.rewrite(eq)
 
 def test_assert_formula(solver):
     solver.assertFormula(solver.mkTrue())
