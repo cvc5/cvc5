@@ -17,7 +17,7 @@
 
 #include "base/check.h"
 #include "base/output.h"
-#include "parser/api/cpp/command.h"
+#include "parser/commands.h"
 
 namespace cvc5 {
 namespace parser {

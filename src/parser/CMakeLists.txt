@@ -31,6 +31,8 @@ set(libcvc5parserapi_src_files
 )
 
 set(libcvc5parser_src_files
+  commands.cpp
+  commands.h
   flex_input.cpp
   flex_input.h
   flex_lexer.cpp
