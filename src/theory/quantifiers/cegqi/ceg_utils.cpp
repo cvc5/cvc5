@@ -15,6 +15,8 @@
 
 #include "theory/quantifiers/cegqi/ceg_utils.h"
 
+#include "theory/arith/arith_utilities.h"
+
 using namespace std;
 using namespace cvc5::internal::kind;
 
