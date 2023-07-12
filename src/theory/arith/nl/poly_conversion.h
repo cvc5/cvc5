@@ -168,8 +168,8 @@ class PolyConverter
   static Node ran_to_node(const RealAlgebraicNumber& ran,
                           const Node& ran_variable);
   /**
-   * Get the defining polynomial for the given ran, expressed over variable ran_variable.
-   * Returns null if the defining polynomial does not exist.
+   * Get the defining polynomial for the given ran, expressed over variable
+   * ran_variable. Returns null if the defining polynomial does not exist.
    */
   static Node ran_to_defining_polynomial(const RealAlgebraicNumber& ran,
                                          const Node& ran_variable);

@@ -405,8 +405,9 @@ Node OperatorElim::eliminateOperators(Node node,
       w = PolyConverter::ran_to_node(
           node.getOperator().getConst<RealAlgebraicNumber>(), v);
 #endif
-      // it should not be possible to define real algebraic numbers unless poly is enabled
-      Assert (!w.isNull());
+      // it should not be possible to define real algebraic numbers unless poly
+      // is enabled
+      Assert(!w.isNull());
       return w;
     }
 
