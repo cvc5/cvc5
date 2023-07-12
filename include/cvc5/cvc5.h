@@ -1747,7 +1747,8 @@ class CVC5_EXPORT Term
   /**
    * @note Asserts isRealAlgebraicNumber().
    * @param v The variable over which to express the polynomial.
-   * @return The defining polynomial for the real algebraic number, expressed in terms of the given variable.
+   * @return The defining polynomial for the real algebraic number, expressed in
+   * terms of the given variable.
    */
   Term getRealAlgebraicNumberDefiningPolynomial(const Term& v) const;
   /**

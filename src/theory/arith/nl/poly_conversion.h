@@ -170,7 +170,8 @@ class PolyConverter
   /**
    * Get the defining polynomial, lower/upper bounds for the given ran.
    */
-  static Node ran_to_defining_polynomial(const RealAlgebraicNumber& ran, const Node& ran_variable);
+  static Node ran_to_defining_polynomial(const RealAlgebraicNumber& ran,
+                                         const Node& ran_variable);
   static Node ran_to_lower(const RealAlgebraicNumber& ran);
   static Node ran_to_upper(const RealAlgebraicNumber& ran);
 

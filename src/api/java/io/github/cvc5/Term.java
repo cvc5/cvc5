@@ -747,7 +747,6 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   private native Pair<Long, BigInteger> getCardinalityConstraint(long pointer);
 
-
   /**
    * @return True if the term is a real algebraic number.
    */
@@ -760,7 +759,8 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   /**
    * @note Asserts isRealAlgebraicNumber().
    * @param v The variable over which to express the polynomial.
-   * @return The defining polynomial for the real algebraic number, expressed in terms of the given variable.
+   * @return The defining polynomial for the real algebraic number, expressed in terms of the given
+   *     variable.
    */
   public Term getRealAlgebraicNumberDefiningPolynomial(Term v)
   {

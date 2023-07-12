@@ -69,8 +69,8 @@
 #include "smt/model.h"
 #include "smt/smt_mode.h"
 #include "smt/solver_engine.h"
-#include "theory/datatypes/project_op.h"
 #include "theory/arith/nl/poly_conversion.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/logic_info.h"
 #include "theory/theory_model.h"
 #include "util/bitvector.h"
@@ -3581,12 +3581,17 @@ Term Term::getRealAlgebraicNumberDefiningPolynomial(const Term& v) const
       << "Term to be a real algebraic number when calling "
          "getRealAlgebraicNumberDefiningPolynomial()";
 #ifndef CVC5_POLY_IMP
-  throw CVC5ApiException("Expected libpoly enabled build when calling getRealAlgebraicNumberDefiningPolynomial");
+  throw CVC5ApiException(
+      "Expected libpoly enabled build when calling "
+      "getRealAlgebraicNumberDefiningPolynomial");
 #endif
   //////// all checks before this line
 #ifdef CVC5_POLY_IMP
-  const internal::RealAlgebraicNumber& ran = d_node->getOperator().getConst<internal::RealAlgebraicNumber>();
-  return Term(d_nm, internal::PolyConverter::ran_to_defining_polynomial(ran, *v.d_node.get()));
+  const internal::RealAlgebraicNumber& ran =
+      d_node->getOperator().getConst<internal::RealAlgebraicNumber>();
+  return Term(d_nm,
+              internal::PolyConverter::ran_to_defining_polynomial(
+                  ran, *v.d_node.get()));
 #else
   return Term();
 #endif
@@ -3603,11 +3608,14 @@ Term Term::getRealAlgebraicNumberLowerBound() const
       << "Term to be a real algebraic number when calling "
          "getRealAlgebraicNumberDefiningPolynomial()";
 #ifndef CVC5_POLY_IMP
-  throw CVC5ApiException("Expected libpoly enabled build when calling getRealAlgebraicNumberLowerBound");
+  throw CVC5ApiException(
+      "Expected libpoly enabled build when calling "
+      "getRealAlgebraicNumberLowerBound");
 #endif
   //////// all checks before this line
 #ifdef CVC5_POLY_IMP
-  const internal::RealAlgebraicNumber& ran = d_node->getOperator().getConst<internal::RealAlgebraicNumber>();
+  const internal::RealAlgebraicNumber& ran =
+      d_node->getOperator().getConst<internal::RealAlgebraicNumber>();
   return Term(d_nm, internal::PolyConverter::ran_to_lower(ran));
 #else
   return Term();
@@ -3625,11 +3633,14 @@ Term Term::getRealAlgebraicNumberUpperBound() const
       << "Term to be a real algebraic number when calling "
          "getRealAlgebraicNumberDefiningPolynomial()";
 #ifndef CVC5_POLY_IMP
-  throw CVC5ApiException("Expected libpoly enabled build when calling getRealAlgebraicNumberUpperBound");
+  throw CVC5ApiException(
+      "Expected libpoly enabled build when calling "
+      "getRealAlgebraicNumberUpperBound");
 #endif
   //////// all checks before this line
 #ifdef CVC5_POLY_IMP
-  const internal::RealAlgebraicNumber& ran = d_node->getOperator().getConst<internal::RealAlgebraicNumber>();
+  const internal::RealAlgebraicNumber& ran =
+      d_node->getOperator().getConst<internal::RealAlgebraicNumber>();
   return Term(d_nm, internal::PolyConverter::ran_to_upper(ran));
 #else
   return Term();

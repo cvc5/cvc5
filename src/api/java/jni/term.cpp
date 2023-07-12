@@ -1016,15 +1016,15 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Term_isRealAlgebraicNumber(
  * Method:    getRealAlgebraicNumberDefiningPolynomial
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Term_getRealAlgebraicNumberDefiningPolynomial(JNIEnv* env,
-                                                         jobject,
-                                                         jlong pointer,
-                                                         jlong termPointer)
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_Term_getRealAlgebraicNumberDefiningPolynomial(
+    JNIEnv* env, jobject, jlong pointer, jlong termPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
   Term* term = reinterpret_cast<Term*>(termPointer);
-  Term* ret = new Term(current->getRealAlgebraicNumberDefiningPolynomial(*term));
+  Term* ret =
+      new Term(current->getRealAlgebraicNumberDefiningPolynomial(*term));
   return reinterpret_cast<jlong>(ret);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
@@ -1034,9 +1034,10 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Term_getRealAlgebraicNumberDefiningP
  * Method:    getRealAlgebraicNumberLowerBound
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Term_getRealAlgebraicNumberLowerBound(JNIEnv* env,
-                                                         jobject,
-                                                         jlong pointer)
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_Term_getRealAlgebraicNumberLowerBound(JNIEnv* env,
+                                                          jobject,
+                                                          jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -1050,9 +1051,10 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Term_getRealAlgebraicNumberLowerBoun
  * Method:    getRealAlgebraicNumberUpperBound
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Term_getRealAlgebraicNumberUpperBound(JNIEnv* env,
-                                                         jobject,
-                                                         jlong pointer)
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_Term_getRealAlgebraicNumberUpperBound(JNIEnv* env,
+                                                          jobject,
+                                                          jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
