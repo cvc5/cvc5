@@ -18,7 +18,6 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "expr/subs.h"
-#include "theory/arith/nl/poly_conversion.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
@@ -345,13 +344,6 @@ Node InstStrategyMbqi::convertToQuery(
         cmap[cur] = k;
         continue;
       }
-      else if (ck == REAL_ALGEBRAIC_NUMBER)
-      {
-        Node v = nm->mkBoundVar(nm->realType());
-        Node witness = PolyConverter::ran_to_node(
-            cur.getOperator().getConst<RealAlgebraicNumber>(), v);
-        cmap[cur] = witness;
-      }
       else if (ck == CONST_SEQUENCE || cur.isVar())
       {
         // constant sequences and variables require two passes
@@ -485,13 +477,6 @@ Node InstStrategyMbqi::convertFromModel(
           // failed to find equal, we fail
           return Node::null();
         }
-      }
-      else if (ck == REAL_ALGEBRAIC_NUMBER)
-      {
-        Node v = nm->mkBoundVar(nm->realType());
-        Node witness = PolyConverter::ran_to_node(
-            cur.getOperator().getConst<RealAlgebraicNumber>(), v);
-        cmap[cur] = witness;
       }
       else if (ck == CONST_SEQUENCE)
       {
