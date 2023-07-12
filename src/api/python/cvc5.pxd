@@ -506,6 +506,10 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         const_iterator end() except +
         bint isCardinalityConstraint() except +
         pair[Sort, uint32_t] getCardinalityConstraint() except +
+        bint isRealAlgebraicNumber() except +
+        Term getRealAlgebraicNumberDefiningPolynomial(const Term& v) except +
+        Term getRealAlgebraicNumberLowerBound() except +
+        Term getRealAlgebraicNumberUpperBound() except +
 
         bint isConstArray() except +
         bint isBooleanValue() except +
