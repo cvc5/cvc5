@@ -163,11 +163,15 @@ class PolyConverter
   /**
    * Transforms a real algebraic number to a node suitable for putting it into a
    * model. The resulting node can be either a constant (suitable for
-   * addSubstitution) or a witness term (suitable for
-   * addWitness).
+   * addSubstitution) or a witness term (suitable for addWitness).
    */
   static Node ran_to_node(const RealAlgebraicNumber& ran,
                           const Node& ran_variable);
+  /**
+   * Get the lower/upper bounds for the given ran.
+   */
+  static Node ran_to_lower(const RealAlgebraicNumber& ran);
+  static Node ran_to_upper(const RealAlgebraicNumber& ran);
 
   /** Transforms a node to a RealAlgebraicNumber by calling node_to_poly_ran. */
   static RealAlgebraicNumber node_to_ran(const Node& n,

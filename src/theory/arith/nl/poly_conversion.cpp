@@ -817,6 +817,26 @@ Node PolyConverter::ran_to_node(const RealAlgebraicNumber& ran,
   return nm->mkConstReal(ran.getRationalValue());
 }
 
+Node PolyConverter::ran_to_lower(const RealAlgebraicNumber& ran)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  if (!ran.d_isRational)
+  {
+    return nm->mkConstReal(poly_utils::toRational(get_lower(di)));
+  }
+  return nm->mkConstReal(ran.getRationalValue());
+}
+
+Node PolyConverter::ran_to_upper(const RealAlgebraicNumber& ran)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  if (!ran.d_isRational)
+  {
+    return nm->mkConstReal(poly_utils::toRational(get_upper(di)));
+  }
+  return nm->mkConstReal(ran.getRationalValue());
+}
+
 RealAlgebraicNumber PolyConverter::node_to_ran(const Node& n,
                                                const Node& ran_variable)
 {
