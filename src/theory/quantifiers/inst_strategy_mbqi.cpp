@@ -18,6 +18,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "expr/subs.h"
+#include "theory/arith/nl/poly_conversion.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
@@ -25,7 +26,6 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/smt_engine_subsolver.h"
 #include "theory/strings/theory_strings_utils.h"
-#include "theory/arith/nl/poly_conversion.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -348,7 +348,8 @@ Node InstStrategyMbqi::convertToQuery(
       else if (ck == REAL_ALGEBRAIC_NUMBER)
       {
         Node v = nm->mkBoundVar(nm->realType());
-        Node witness = PolyConverter::ran_to_node(cur.getOperator().getConst<RealAlgebraicNumber>(), v);
+        Node witness = PolyConverter::ran_to_node(
+            cur.getOperator().getConst<RealAlgebraicNumber>(), v);
         cmap[cur] = witness;
       }
       else if (ck == CONST_SEQUENCE || cur.isVar())
@@ -488,7 +489,8 @@ Node InstStrategyMbqi::convertFromModel(
       else if (ck == REAL_ALGEBRAIC_NUMBER)
       {
         Node v = nm->mkBoundVar(nm->realType());
-        Node witness = PolyConverter::ran_to_node(cur.getOperator().getConst<RealAlgebraicNumber>(), v);
+        Node witness = PolyConverter::ran_to_node(
+            cur.getOperator().getConst<RealAlgebraicNumber>(), v);
         cmap[cur] = witness;
       }
       else if (ck == CONST_SEQUENCE)

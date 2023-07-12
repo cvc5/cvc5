@@ -810,7 +810,8 @@ Node PolyConverter::ran_to_node(const RealAlgebraicNumber& ran,
   if (!ran.d_isRational)
   {
     Node pred = theory::arith::nl::ran_to_node(ran.getValue(), ran_variable);
-    return nm->mkNode(kind::WITNESS, nm->mkNode(kind::BOUND_VAR_LIST, ran_variable), pred);
+    return nm->mkNode(
+        kind::WITNESS, nm->mkNode(kind::BOUND_VAR_LIST, ran_variable), pred);
   }
   // otherwise, just make the real from the rational value
   return nm->mkConstReal(ran.getRationalValue());
