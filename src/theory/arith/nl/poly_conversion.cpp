@@ -843,6 +843,7 @@ Node PolyConverter::ran_to_lower(const RealAlgebraicNumber& ran)
     Assert (witness[1][1][0].isConst());
     return witness[1][1][0];
   }
+  Assert (witness.isConst());
   return witness;
 }
 
@@ -854,10 +855,11 @@ Node PolyConverter::ran_to_upper(const RealAlgebraicNumber& ran)
   if (witness.getKind()==kind::WITNESS)
   {
     Assert (witness[1].getKind()==kind::AND && witness[1].getNumChildren()==3);
-    Assert (witness[1][1].getKind()==kind::LT);
+    Assert (witness[1][2].getKind()==kind::LT);
     Assert (witness[1][2][1].isConst());
     return witness[1][2][1];
   }
+  Assert (witness.isConst());
   return witness;
 }
 
