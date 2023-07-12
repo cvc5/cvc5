@@ -757,7 +757,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native boolean isRealAlgebraicNumber(long pointer);
 
   /**
-   * @note Asserts isRealAlgebraicNumber().
+   * Asserts isRealAlgebraicNumber().
    * @param v The variable over which to express the polynomial.
    * @return The defining polynomial for the real algebraic number, expressed in terms of the given
    *     variable.
@@ -771,7 +771,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native long getRealAlgebraicNumberDefiningPolynomial(long pointer, long termPointer);
 
   /**
-   * @note Asserts isRealAlgebraicNumber().
+   * Asserts isRealAlgebraicNumber().
    * @return The lower bound for the value of the real algebraic number.
    */
   public Term getRealAlgebraicNumberLowerBound()
@@ -783,7 +783,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native long getRealAlgebraicNumberLowerBound(long pointer);
 
   /**
-   * @note Asserts isRealAlgebraicNumber().
+   * Asserts isRealAlgebraicNumber().
    * @return The upper bound for the value of the real algebraic number.
    */
   public Term getRealAlgebraicNumberUpperBound()
