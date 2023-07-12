@@ -2569,6 +2569,18 @@ TEST_F(TestApiBlackSolver, simplify)
   ASSERT_NO_THROW(d_solver.simplify(f2));
 }
 
+TEST_F(TestApiBlackSolver, rewrite)
+{
+  ASSERT_THROW(d_solver.rewrite(Term()), CVC5ApiException);
+
+  Sort intSort = d_solver.getIntegerSort();
+  Term x = d_solver.mkConst(intSort);
+  Term eq = d_solver.mkTerm(EQUAL, {x, x});
+
+  Term trueTerm = d_solver.mkBoolean(true);
+  ASSERT_EQ(trueTerm, d_solver.rewrite(eq));
+}
+
 TEST_F(TestApiBlackSolver, assertFormula)
 {
   ASSERT_NO_THROW(d_solver.assertFormula(d_solver.mkTrue()));

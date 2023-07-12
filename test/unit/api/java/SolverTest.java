@@ -2482,6 +2482,19 @@ class SolverTest
   }
 
   @Test
+  void rewrite() throws CVC5ApiException
+  {
+    assertThrows(CVC5ApiException.class, () -> d_solver.rewrite(new Term()));
+
+    Sort intSort = d_solver.getIntegerSort();
+    Term x = d_solver.mkConst(intSort);
+    Term eq = d_solver.mkTerm(EQUAL, new Term[] {x, x});
+
+    Term trueTerm = d_solver.mkBoolean(true);
+    assertEquals(trueTerm, d_solver.rewrite(eq));
+  }
+
+  @Test
   void assertFormula()
   {
     assertDoesNotThrow(() -> d_solver.assertFormula(d_solver.mkTrue()));
