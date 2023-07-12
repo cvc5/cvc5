@@ -1577,6 +1577,24 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_simplify(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_Solver
+ * Method:    rewrite
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_rewrite(JNIEnv* env,
+                                                            jobject,
+                                                            jlong pointer,
+                                                            jlong termPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  Term* term = reinterpret_cast<Term*>(termPointer);
+  Term* retPointer = new Term(solver->rewrite(*term));
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
  * Method:    assertFormula
  * Signature: (JJ)V
  */
