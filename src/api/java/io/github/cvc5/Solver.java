@@ -2193,7 +2193,7 @@ public class Solver implements IPointer
     return proofToString(pointer, proofPointers, format.getValue());
   }
 
-  private native String proofToString(long pointer, long[] proofs, long format);
+  private native String proofToString(long pointer, long[] proofs, int format);
 
   /**
    * Prints a vector of proofs into a string with a slected proof format mode.
@@ -2216,7 +2216,7 @@ public class Solver implements IPointer
     return proofToString(pointer, proofPointers, format.getValue(), component.getValue());
   }
 
-  private native String proofToString(long pointer, long[] proofs, long format, long component);
+  private native String proofToString(long pointer, long[] proofs, int format, int component);
 
   /**
    * Get the value of the given term in the current model.

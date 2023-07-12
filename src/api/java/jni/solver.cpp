@@ -2164,7 +2164,7 @@ JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getProof__JI(
  * Signature: (J[J)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL
-Java_io_github_cvc5_Solver_proofToString__J3J(JNIEnv* env,
+Java_io_github_cvc5_Solver_proofToString__J_3J(JNIEnv* env,
                                          jobject,
                                          jlong pointer,
                                          jlongArray proofPointers)
@@ -2183,7 +2183,7 @@ Java_io_github_cvc5_Solver_proofToString__J3J(JNIEnv* env,
  * Signature: (J[JI)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL
-Java_io_github_cvc5_Solver_proofToString__J3JI(JNIEnv* env,
+Java_io_github_cvc5_Solver_proofToString__J_3JI(JNIEnv* env,
                                          jobject,
                                          jlong pointer,
                                          jlongArray proofPointers,
@@ -2204,7 +2204,7 @@ Java_io_github_cvc5_Solver_proofToString__J3JI(JNIEnv* env,
  * Signature: (J[JII)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL
-Java_io_github_cvc5_Solver_proofToString__J3JII(JNIEnv* env,
+Java_io_github_cvc5_Solver_proofToString__J_3JII(JNIEnv* env,
                                          jobject,
                                          jlong pointer,
                                          jlongArray proofPointers,

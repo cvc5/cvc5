@@ -17,7 +17,7 @@
 
 import pytest
 import cvc5
-from cvc5 import Kind, SortKind, Sort
+from cvc5 import Kind
 
 
 @pytest.fixture
@@ -56,22 +56,22 @@ def create_proof(solver):
 
 
 def test_get_result(solver):
-    proof = create_proof()
+    proof = create_proof(solver)
     rule = proof.getRule()
     assert rule == "SCOPE"
 
 
 def test_get_result(solver):
-    proof = create_proof()
+    proof = create_proof(solver)
     proof.getResult()
 
 
 def test_get_children(solver):
-    proof = create_proof()
+    proof = create_proof(solver)
     children = proof.getChildren()
     assert len(children) > 0
 
 
 def test_get_arguments(solver):
-    proof = create_proof()
+    proof = create_proof(solver)
     proof.getArguments()

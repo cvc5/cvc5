@@ -4444,36 +4444,36 @@ cdef class Proof:
     def __cinit__(self, Solver solver):
         self.solver = solver
 
-    """
-        :return: The proof rule used by the root step of the proof.
-    """
     def getRule(self):
+        """
+            :return: The proof rule used by the root step of the proof.
+        """
         return self.cproof.getRule()
     
-    """
-        :return: The conclusion of the root step of the proof.
-    """
     def getResult(self):
+        """
+            :return: The conclusion of the root step of the proof.
+        """
         term = Term(self.solver)
         term.cterm = self.cproof.getResult()
         return term
     
-    """
-        :return: The premises of the root step of the proof.
-    """
     def getChildren(self):
+        """
+            :return: The premises of the root step of the proof.
+        """
         proofs = []
         for p in self.cproof.getChildren():
-            proof = Proof(self)
+            proof = Proof(self.solver)
             proof.cproof = p
             proofs.append(proof)
         return proofs
 
-    """
-        :return: The arguments of the root step of the proof as a vector of terms.
-                Some of those terms might be strings.
-    """
     def getArguments(self):
+        """
+            :return: The arguments of the root step of the proof as a vector of terms.
+                    Some of those terms might be strings.
+        """
         args = []
         for a in self.cproof.getArguments():
             term = Term(self.solver)
