@@ -400,8 +400,13 @@ Node OperatorElim::eliminateOperators(Node node,
       BoundVarManager* bvm = nm->getBoundVarManager();
       Node v = bvm->mkBoundVar<RealAlgebraicNumberVarAttribute>(
           node, "i", nm->realType());
-      Node w = PolyConverter::ran_to_node(
+      Node w;
+#ifdef CVC5_POLY_IMP
+      w = PolyConverter::ran_to_node(
           node.getOperator().getConst<RealAlgebraicNumber>(), v);
+#endif
+      // it should not be possible to define real algebraic numbers unless poly is enabled
+      Assert (!w.isNull());
       return w;
     }
 

@@ -168,11 +168,18 @@ class PolyConverter
   static Node ran_to_node(const RealAlgebraicNumber& ran,
                           const Node& ran_variable);
   /**
-   * Get the defining polynomial, lower/upper bounds for the given ran.
+   * Get the defining polynomial for the given ran, expressed over variable ran_variable.
+   * Returns null if the defining polynomial does not exist.
    */
   static Node ran_to_defining_polynomial(const RealAlgebraicNumber& ran,
                                          const Node& ran_variable);
+  /**
+   * Get the lower bound for the given ran, which is a constant real.
+   */
   static Node ran_to_lower(const RealAlgebraicNumber& ran);
+  /**
+   * Get the upper bound for the given ran, which is a constant real.
+   */
   static Node ran_to_upper(const RealAlgebraicNumber& ran);
 
   /** Transforms a node to a RealAlgebraicNumber by calling node_to_poly_ran. */
