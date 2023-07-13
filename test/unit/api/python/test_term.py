@@ -1344,9 +1344,9 @@ def test_get_real_algebraic_number(solver):
     y = d_solver.mkVar(realsort, "y")
     poly = vx.getRealAlgebraicNumberDefiningPolynomial(y)
     assert not poly.isNull()
-    lb = vs.getRealAlgebraicNumberLowerBound()
+    lb = vx.getRealAlgebraicNumberLowerBound()
     assert lb.isRealValue()
-    ub = vs.getRealAlgebraicNumberUpperBound()
+    ub = vx.getRealAlgebraicNumberUpperBound()
     assert ub.isRealValue()
   }
 }

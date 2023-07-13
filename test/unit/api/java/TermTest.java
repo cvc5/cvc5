@@ -1068,9 +1068,9 @@ class TermTest
       Term y = d_solver.mkVar(realsort, "y");
       Term poly = vx.getRealAlgebraicNumberDefiningPolynomial(y);
       assertTrue(!poly.isNull());
-      Term lb = vs.getRealAlgebraicNumberLowerBound();
+      Term lb = vx.getRealAlgebraicNumberLowerBound();
       assertTrue(lb.isRealValue());
-      Term ub = vs.getRealAlgebraicNumberUpperBound();
+      Term ub = vx.getRealAlgebraicNumberUpperBound();
       assertTrue(ub.isRealValue());
     }
   }
