@@ -17,6 +17,7 @@ This file contains a summary of important user-visible changes.
        `--print-cores-full`. Setting this option to true will print all
        assertions in the unsat core, regardless of whether they are named. This
        option also impacts how timeout cores are printed.
+- Removed support for the ANTLR parser and parsing for the TPTP language.
 
 cvc5 1.0.5
 ==========

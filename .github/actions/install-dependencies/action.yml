@@ -65,7 +65,9 @@ runs:
       shell: bash
       run: |
         echo "::group::Install macOS software"
-        brew update --quiet
+        brew config
+        brew untap homebrew/core homebrew/cask
+        brew config
 
         brew install \
           ccache \
