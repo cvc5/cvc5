@@ -1334,13 +1334,12 @@ def test_get_real_algebraic_number(solver):
   solver.assertFormula(eq)
   # Note that check-sat should only return "sat" if libpoly is enabled.
   # Otherwise, we do not test the following functionality.
-  if (solver.checkSat().isSat())
-  {
+  if solver.checkSat().isSat():
     # We find a model for (x*x = 2), where x should be a real algebraic number.
     # We assert that its defining polynomial is non-null and its lower and
     # upper bounds are real.
     vx = d_solver.getValue(x)
-    assert vx.isRealAlgebraicNumber())
+    assert vx.isRealAlgebraicNumber()
     y = d_solver.mkVar(realsort, "y")
     poly = vx.getRealAlgebraicNumberDefiningPolynomial(y)
     assert not poly.isNull()
@@ -1348,7 +1347,6 @@ def test_get_real_algebraic_number(solver):
     assert lb.isRealValue()
     ub = vx.getRealAlgebraicNumberUpperBound()
     assert ub.isRealValue()
-  }
 }
 
 def test_term_scoped_to_string(solver):
