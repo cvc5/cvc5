@@ -30,6 +30,8 @@
 #include "base/exception.h"
 #include "base/output.h"
 #include "main/command_executor.h"
+#include "parser/commands.h"
+#include "parser/command_status.h"
 
 using namespace cvc5::parser;
 
