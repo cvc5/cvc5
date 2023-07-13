@@ -1204,9 +1204,9 @@ TEST_F(TestApiBlackTerm, getRealAlgebraicNumber)
     Term y = d_solver.mkVar(realsort, "y");
     Term poly = vx.getRealAlgebraicNumberDefiningPolynomial(y);
     ASSERT_TRUE(!poly.isNull());
-    Term lb = vs.getRealAlgebraicNumberLowerBound();
+    Term lb = vx.getRealAlgebraicNumberLowerBound();
     ASSERT_TRUE(lb.isRealValue());
-    Term ub = vs.getRealAlgebraicNumberUpperBound();
+    Term ub = vx.getRealAlgebraicNumberUpperBound();
     ASSERT_TRUE(ub.isRealValue());
   }
 }
