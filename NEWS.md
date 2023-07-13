@@ -17,6 +17,12 @@ This file contains a summary of important user-visible changes.
        `--print-cores-full`. Setting this option to true will print all
        assertions in the unsat core, regardless of whether they are named. This
        option also impacts how timeout cores are printed.
+- API: Added support for querying the values of real algebraic numbers in the
+       API. In particular, the methods `Term::isRealAlgebraicNumber()`,
+       `Term::getRealAlgebraicNumberDefiningPolynomial()`,
+       `Term::getRealAlgebraicNumberLowerBound()`, and
+       `Term::getRealAlgebraicNumberUpperBound()` may now be used to query
+       the contents of terms corresponding to real algebraic numbers.
 - Removed support for the ANTLR parser and parsing for the TPTP language.
 
 cvc5 1.0.5
