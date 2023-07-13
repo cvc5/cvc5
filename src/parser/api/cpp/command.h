@@ -33,13 +33,8 @@
 #include "options/language.h"
 
 namespace cvc5 {
-
-class Solver;
-class Term;
-
 namespace parser {
 
-class Command;
 class CommandStatus;
 class SymbolManager;
 
