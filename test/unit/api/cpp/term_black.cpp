@@ -1185,7 +1185,7 @@ TEST_F(TestApiBlackTerm, getCardinalityConstraint)
 TEST_F(TestApiBlackTerm, getRealAlgebraicNumber)
 {
   d_solver.setOption("produce-models", "true");
-  d_solver.setOption("set-logic", "QF_NRA");
+  d_solver.setLogic("QF_NRA");
   Sort realsort = d_solver.getRealSort();
   Term x = d_solver.mkConst(realsort, "x");
   Term x2 = d_solver.mkTerm(MULT, {x, x});

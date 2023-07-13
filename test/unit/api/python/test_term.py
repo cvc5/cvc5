@@ -1324,7 +1324,7 @@ def test_get_cardinality_constraint(solver):
 
 def test_get_real_algebraic_number(solver):
   solver.setOption("produce-models", "true")
-  solver.setOption("set-logic", "QF_NRA")
+  solver.setLogic("QF_NRA")
   realsort = solver.getRealSort()
   x = solver.mkConst(realsort, "x")
   x2 = solver.mkTerm(Kind.MULT, x, x)
