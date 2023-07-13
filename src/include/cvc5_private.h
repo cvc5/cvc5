@@ -17,7 +17,6 @@
 #ifndef CVC5_PRIVATE_H
 #define CVC5_PRIVATE_H
 
-
 #include "base/cvc5config.h"
 #include "cvc5_public.h"
 

@@ -15,27 +15,7 @@
 
 #include "parser/command_status.h"
 
-#include <exception>
-#include <iostream>
-#include <iterator>
-#include <sstream>
-#include <utility>
-#include <vector>
-
-#include "base/check.h"
-#include "base/modal_exception.h"
-#include "base/output.h"
-#include "expr/node_manager.h"
-#include "options/io_utils.h"
-#include "options/main_options.h"
-#include "options/options.h"
-#include "options/printer_options.h"
-#include "options/smt_options.h"
-#include "parser/api/cpp/symbol_manager.h"
 #include "printer/printer.h"
-#include "proof/unsat_core.h"
-#include "util/smt2_quote_string.h"
-#include "util/utility.h"
 
 using namespace std;
 using namespace cvc5::parser;
