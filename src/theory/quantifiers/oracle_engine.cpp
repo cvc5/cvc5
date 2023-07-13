@@ -94,7 +94,6 @@ void OracleEngine::check(Theory::Effort e, QEffort quant_e)
   }
   FirstOrderModel* fm = d_treg.getModel();
   TermDb* termDatabase = d_treg.getTermDatabase();
-  eq::EqualityEngine* eq = getEqualityEngine();
   NodeManager* nm = NodeManager::currentNM();
   unsigned nquant = fm->getNumAssertedQuantifiers();
   std::vector<Node> currInterfaces;
@@ -149,7 +148,7 @@ void OracleEngine::check(Theory::Effort e, QEffort quant_e)
       }
       // call oracle
       Node fappWithValues = nm->mkNode(APPLY_UF, arguments);
-      Node predictedResponse = eq->getRepresentative(fapp);
+      Node predictedResponse = fm->getValue(fapp);
       if (!d_ochecker->checkConsistent(
               fappWithValues, predictedResponse, learnedLemmas))
       {
