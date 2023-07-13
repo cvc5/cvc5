@@ -1337,9 +1337,9 @@ def test_get_real_algebraic_number(solver):
     # We find a model for (x*x = 2), where x should be a real algebraic number.
     # We assert that its defining polynomial is non-null and its lower and
     # upper bounds are real.
-    vx = d_solver.getValue(x)
+    vx = solver.getValue(x)
     assert vx.isRealAlgebraicNumber()
-    y = d_solver.mkVar(realsort, "y")
+    y = solver.mkVar(realsort, "y")
     poly = vx.getRealAlgebraicNumberDefiningPolynomial(y)
     assert not poly.isNull()
     lb = vx.getRealAlgebraicNumberLowerBound()
