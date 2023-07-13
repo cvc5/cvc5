@@ -647,8 +647,10 @@ std::optional<Rational> get_upper_bound(const Node& n)
 /** Returns indices of appropriate parts of ran encoding.
  * Returns (poly equation ; lower bound ; upper bound)
  */
-std::tuple<Node, Rational, Rational> detect_ran_encoding(const Node& n)
+std::tuple<Node, Rational, Rational> detect_ran_encoding(const Node& w)
 {
+  Assert(w.getKind()==WITNESS) << "Invalid node structure.";
+  Node n = w[1];
   Assert(n.getKind() == Kind::AND) << "Invalid node structure.";
   Assert(n.getNumChildren() == 3) << "Invalid node structure.";
 
