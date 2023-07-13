@@ -1323,7 +1323,6 @@ def test_get_cardinality_constraint(solver):
     nullt.isCardinalityConstraint()
 
 def test_get_real_algebraic_number(solver):
-{
   solver.setOption("produce-models", "true")
   solver.setOption("set-logic", "QF_NRA")
   realsort = solver.getRealSort()
@@ -1347,7 +1346,6 @@ def test_get_real_algebraic_number(solver):
     assert lb.isRealValue()
     ub = vx.getRealAlgebraicNumberUpperBound()
     assert ub.isRealValue()
-}
 
 def test_term_scoped_to_string(solver):
     intsort = solver.getIntegerSort()
