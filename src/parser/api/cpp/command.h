@@ -142,6 +142,9 @@ class CVC5_EXPORT Command
   static internal::TypeNode grammarToTypeNode(cvc5::Grammar* grammar);
 }; /* class Command */
 
+std::ostream& operator<<(std::ostream&, const Command&) CVC5_EXPORT;
+std::ostream& operator<<(std::ostream&, const Command*) CVC5_EXPORT;
+
 }  // namespace parser
 }  // namespace cvc5
 

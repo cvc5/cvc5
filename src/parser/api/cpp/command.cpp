@@ -36,6 +36,8 @@
 #include "proof/unsat_core.h"
 #include "util/smt2_quote_string.h"
 #include "util/utility.h"
+#include "parser/commands.h"
+#include "parser/command_status.h"
 
 using namespace std;
 using namespace cvc5::parser;
@@ -154,6 +156,25 @@ internal::TypeNode Command::grammarToTypeNode(cvc5::Grammar* grammar)
 {
   return grammar == nullptr ? internal::TypeNode::null()
                             : sortToTypeNode(grammar->resolve());
+}
+
+std::ostream& operator<<(std::ostream& out, const Command& c)
+{
+  c.toStream(out);
+  return out;
+}
+
+ostream& operator<<(ostream& out, const Command* c)
+{
+  if (c == NULL)
+  {
+    out << "null";
+  }
+  else
+  {
+    out << *c;
+  }
+  return out;
 }
 
 }  // namespace cvc5::parser

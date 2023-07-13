@@ -36,6 +36,7 @@
 #include "proof/unsat_core.h"
 #include "util/smt2_quote_string.h"
 #include "util/utility.h"
+#include "parser/command_status.h"
 
 using namespace std;
 using namespace cvc5::parser;
@@ -70,74 +71,6 @@ std::string sexprToString(cvc5::Term sexpr)
   ss << ')';
 
   return ss.str();
-}
-
-const CommandSuccess* CommandSuccess::s_instance = new CommandSuccess();
-const CommandInterrupted* CommandInterrupted::s_instance =
-    new CommandInterrupted();
-
-std::ostream& operator<<(std::ostream& out, const Command& c)
-{
-  c.toStream(out);
-  return out;
-}
-
-ostream& operator<<(ostream& out, const Command* c)
-{
-  if (c == NULL)
-  {
-    out << "null";
-  }
-  else
-  {
-    out << *c;
-  }
-  return out;
-}
-
-std::ostream& operator<<(std::ostream& out, const CommandStatus& s)
-{
-  s.toStream(out);
-  return out;
-}
-
-ostream& operator<<(ostream& out, const CommandStatus* s)
-{
-  if (s == NULL)
-  {
-    out << "null";
-  }
-  else
-  {
-    out << *s;
-  }
-  return out;
-}
-
-void CommandSuccess::toStream(std::ostream& out) const
-{
-  internal::Printer::getPrinter(out)->toStreamCmdSuccess(out);
-}
-
-void CommandInterrupted::toStream(std::ostream& out) const
-{
-  internal::Printer::getPrinter(out)->toStreamCmdInterrupted(out);
-}
-
-void CommandUnsupported::toStream(std::ostream& out) const
-{
-  internal::Printer::getPrinter(out)->toStreamCmdUnsupported(out);
-}
-
-void CommandFailure::toStream(std::ostream& out) const
-{
-  internal::Printer::getPrinter(out)->toStreamCmdFailure(out, d_message);
-}
-
-void CommandRecoverableFailure::toStream(std::ostream& out) const
-{
-  internal::Printer::getPrinter(out)->toStreamCmdRecoverableFailure(out,
-                                                                    d_message);
 }
 
 /* -------------------------------------------------------------------------- */
