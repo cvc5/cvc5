@@ -1322,6 +1322,34 @@ def test_get_cardinality_constraint(solver):
   with pytest.raises(RuntimeError):
     nullt.isCardinalityConstraint()
 
+def test_get_real_algebraic_number(solver):
+{
+  solver.setOption("produce-models", "true")
+  solver.setOption("set-logic", "QF_NRA")
+  realsort = solver.getRealSort()
+  x = solver.mkConst(realsort, "x")
+  x2 = solver.mkTerm(Kind.MULT, x, x)
+  two = solver.mkReal(2, 1)
+  eq = solver.mkTerm(Kind.EQUAL, x2, two)
+  solver.assertFormula(eq)
+  # Note that check-sat should only return "sat" if libpoly is enabled.
+  # Otherwise, we do not test the following functionality.
+  if (solver.checkSat().isSat())
+  {
+    # We find a model for (x*x = 2), where x should be a real algebraic number.
+    # We assert that its defining polynomial is non-null and its lower and
+    # upper bounds are real.
+    vx = d_solver.getValue(x)
+    assert vx.isRealAlgebraicNumber())
+    y = d_solver.mkVar(realsort, "y")
+    poly = vx.getRealAlgebraicNumberDefiningPolynomial(y)
+    assert not poly.isNull()
+    lb = vs.getRealAlgebraicNumberLowerBound()
+    assert lb.isRealValue()
+    ub = vs.getRealAlgebraicNumberUpperBound()
+    assert ub.isRealValue()
+  }
+}
 
 def test_term_scoped_to_string(solver):
     intsort = solver.getIntegerSort()
