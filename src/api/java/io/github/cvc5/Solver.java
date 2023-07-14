@@ -3029,12 +3029,12 @@ public class Solver implements IPointer
    *
    * @api.note This method is experimental and may change in future versions.
    */
-  public Term findSynth(Grammar grammar)
+  public Term findSynth(FindSynthTarget fst)
   {
-    long termPointer = findSynth(pointer, grammar.getPointer());
+    long termPointer = findSynth(pointer, fst.getValue());
     return new Term(termPointer);
   }
-  private native long findSynth(long pointer, long grammarPointer);
+  private native long findSynth(long pointer, int fst);
   
   /**
    * Find a target term of interest using sygus enumeration with a provided
@@ -3072,10 +3072,10 @@ public class Solver implements IPointer
    *
    * @api.note This method is experimental and may change in future versions.
    */
-  public SynthResult findSynthNext()
+  public Term findSynthNext()
   {
-    long resultPointer = findSynthNext(pointer);
-    return new SynthResult(resultPointer);
+    long termPointer = findSynthNext(pointer);
+    return new Term(termPointer);
   }
 
   private native long findSynthNext(long pointer);
