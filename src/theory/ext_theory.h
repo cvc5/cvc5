@@ -52,7 +52,7 @@ class OutputChannel;
 /** Reasons for why a term was marked reduced */
 enum class ExtReducedId
 {
-  UNKNOWN,
+  NONE,
   // the extended function substitutes+rewrites to a constant
   SR_CONST,
   // the extended function was reduced by the callback
@@ -81,6 +81,7 @@ enum class ExtReducedId
   STRINGS_REGEXP_PDERIVATIVE,
   // reduction for seq.nth over seq.rev
   STRINGS_NTH_REV,
+  UNKNOWN,
 };
 /**
  * Converts an ext reduced identifier to a string.
