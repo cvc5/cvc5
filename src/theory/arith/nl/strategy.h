@@ -89,7 +89,7 @@ enum class InferStep
   TRANS_MONOTONIC,
   /** Tangent planes from transcendental solver */
   TRANS_TANGENT_PLANES,
-  
+
   UNKNOWN
 };
 

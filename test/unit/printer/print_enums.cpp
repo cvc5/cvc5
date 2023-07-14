@@ -18,8 +18,8 @@
 #include <iostream>
 
 #include "test_smt.h"
-#include "theory/arith/rewrites.h"
 #include "theory/arith/nl/strategy.h"
+#include "theory/arith/rewrites.h"
 #include "theory/ext_theory.h"
 #include "theory/incomplete_id.h"
 #include "theory/inference_id.h"

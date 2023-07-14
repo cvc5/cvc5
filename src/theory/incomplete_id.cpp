@@ -16,6 +16,7 @@
 #include "theory/incomplete_id.h"
 
 #include <iostream>
+
 #include "base/check.h"
 
 namespace cvc5::internal {
@@ -54,7 +55,9 @@ const char* toString(IncompleteId i)
     case IncompleteId::UF_CARD_MODE: return "UF_CARD_MODE";
     case IncompleteId::STOP_SEARCH: return "STOP_SEARCH";
     case IncompleteId::UNKNOWN: return "UNKNOWN";
-    default: Assert(false) << "No print for incomplete id " << static_cast<size_t>(i); return "?IncompleteId?";
+    default:
+      Assert(false) << "No print for incomplete id " << static_cast<size_t>(i);
+      return "?IncompleteId?";
   }
 }
 
