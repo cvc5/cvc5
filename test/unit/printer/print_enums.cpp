@@ -18,6 +18,8 @@
 #include <iostream>
 #include "theory/inference_id.h"
 
+using namespace cvc5::internal::theory;
+
 namespace cvc5::internal {
 namespace test {
   
