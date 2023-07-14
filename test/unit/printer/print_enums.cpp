@@ -17,6 +17,8 @@
 
 #include <iostream>
 #include "theory/inference_id.h"
+#include "theory/strings/rewrites.h"
+#include "theory/strings/strategy.h"
 
 using namespace cvc5::internal::theory;
 
@@ -42,6 +44,8 @@ TEST_F(TestPrintEnums, print_enums)
 {
   std::stringstream out;
   TEST_ENUM_RANGE(InferenceId, InferenceId::NONE, InferenceId::UNKNOWN);
+  TEST_ENUM_RANGE(strings::Rewrite, strings::Rewrite::NONE, strings::Rewrite::UNKNOWN);
+  TEST_ENUM_RANGE(strings::InferStep, strings::InferStep::NONE, strings::InferStep::UNKNOWN);
 }
 
 }  // namespace test

@@ -33,8 +33,9 @@ namespace strings {
  * details on the individual steps, see documentation on the inference schemas
  * within Strategy.
  */
-enum InferStep
+enum class InferStep : uint32_t
 {
+  NONE,
   // indicates that the strategy should break if lemmas or facts are added
   BREAK,
   // check initial
@@ -75,6 +76,9 @@ enum InferStep
   CHECK_SEQUENCES_ARRAY,
   // check sequence
   CHECK_SEQUENCES_ARRAY_EAGER,
+  
+  //unknown
+  UNKNOWN
 };
 std::ostream& operator<<(std::ostream& out, InferStep i);
 
