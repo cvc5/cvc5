@@ -2872,7 +2872,7 @@ JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getSynthSolutions(
  * Method:    findSynth
  * Signature: (JI)J
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_findSynth__JI(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_findSynth__JI(
     JNIEnv* env, jobject, jlong pointer, jint fstvalue)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -2888,7 +2888,7 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_findSynth__JI(
  * Method:    findSynth
  * Signature: (JIJ)J
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_findSynth__JIJ(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_findSynth__JIJ(
     JNIEnv* env, jobject, jlong pointer, jint fstvalue, jlong grammarPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
