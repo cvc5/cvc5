@@ -52,6 +52,7 @@ TEST_F(TestPrintEnums, print_enums)
   std::stringstream out;
   TEST_ENUM_RANGE(InferenceId, InferenceId::NONE, InferenceId::UNKNOWN);
   TEST_ENUM_RANGE(IncompleteId, IncompleteId::NONE, IncompleteId::UNKNOWN);
+  TEST_ENUM_RANGE(ExtReducedId, ExtReducedId::NONE, ExtReducedId::UNKNOWN);
   TEST_ENUM_RANGE(
       strings::Rewrite, strings::Rewrite::NONE, strings::Rewrite::UNKNOWN);
   TEST_ENUM_RANGE(strings::InferStep,
