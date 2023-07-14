@@ -41,7 +41,8 @@ const char* toString(Rewrite r)
     case Rewrite::INT_EXT_PI: return "INT_EXT_PI";
     case Rewrite::INT_EXT_TO_REAL: return "INT_EXT_TO_REAL";
     case Rewrite::INEQ_BV_TO_NAT_ELIM: return "INEQ_BV_TO_NAT_ELIM";
-    default: return "?";
+    case Rewrite::UNKNOWN: return "?";
+    default: return "?unhandled";
   }
 }
 
