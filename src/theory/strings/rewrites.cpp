@@ -16,6 +16,7 @@
 #include "theory/strings/rewrites.h"
 
 #include <iostream>
+#include "base/check.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -235,7 +236,7 @@ const char* toString(Rewrite r)
     case Rewrite::SEQ_NTH_EVAL_OOB: return "SEQ_NTH_EVAL_OOB";
     case Rewrite::SEQ_NTH_EVAL_SYM: return "SEQ_NTH_EVAL_SYM";
     case Rewrite::UNKNOWN: return "?";
-    default: return "?Unhandled";
+    default: Assert(false) << "No print for rewrite " << static_cast<size_t>(r); return "?Unhandled";
   }
 }
 

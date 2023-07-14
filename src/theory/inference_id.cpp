@@ -545,7 +545,8 @@ const char* toString(InferenceId i)
       return "UF_ARITH_BV_CONV_REDUCTION";
     case InferenceId::UNKNOWN: return "?";
 
-    default: return "?Unhandled";
+    default: Assert(false) << "No print for inference id " << static_cast<size_t>(i);
+    return "?Unhandled";
   }
 }
 

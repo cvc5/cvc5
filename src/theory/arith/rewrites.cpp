@@ -16,6 +16,7 @@
 #include "theory/arith/rewrites.h"
 
 #include <iostream>
+#include "base/check.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -42,7 +43,7 @@ const char* toString(Rewrite r)
     case Rewrite::INT_EXT_TO_REAL: return "INT_EXT_TO_REAL";
     case Rewrite::INEQ_BV_TO_NAT_ELIM: return "INEQ_BV_TO_NAT_ELIM";
     case Rewrite::UNKNOWN: return "?";
-    default: return "?unhandled";
+    default: Assert(false) << "No print for rewrite " << static_cast<size_t>(r); return "?unhandled";
   }
 }
 

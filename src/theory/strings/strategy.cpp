@@ -62,7 +62,7 @@ std::ostream& operator<<(std::ostream& out, InferStep s)
       out << "check_sequences_array_eager";
       break;
     case InferStep::UNKNOWN: out << "?"; break;
-    default: out << "?unhandled"; break;
+    default: Unreachable(); out << "?unhandled"; break;
   }
   return out;
 }

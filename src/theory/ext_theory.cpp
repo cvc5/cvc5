@@ -53,7 +53,7 @@ const char* toString(ExtReducedId id)
     case ExtReducedId::STRINGS_REGEXP_PDERIVATIVE:
       return "STRINGS_REGEXP_PDERIVATIVE";
     case ExtReducedId::UNKNOWN: return "?";
-    default: return "?ExtReducedId?";
+    default: Unreachable(); return "?ExtReducedId?";
   }
 }
 

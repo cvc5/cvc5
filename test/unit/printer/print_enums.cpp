@@ -19,6 +19,7 @@
 
 #include "test_smt.h"
 #include "theory/arith/rewrites.h"
+#include "theory/arith/nl/strategy.h"
 #include "theory/ext_theory.h"
 #include "theory/incomplete_id.h"
 #include "theory/inference_id.h"
@@ -60,6 +61,9 @@ TEST_F(TestPrintEnums, print_enums)
                   strings::InferStep::UNKNOWN);
   TEST_ENUM_RANGE(
       arith::Rewrite, arith::Rewrite::NONE, arith::Rewrite::UNKNOWN);
+  TEST_ENUM_RANGE(arith::nl::InferStep,
+                  arith::nl::InferStep::NONE,
+                  arith::nl::InferStep::UNKNOWN);
 }
 
 }  // namespace test
