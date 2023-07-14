@@ -1576,7 +1576,9 @@ void GetProofCommand::invoke(cvc5::Solver* solver, SymManager* sm)
     modes::ProofFormat format = modes::PROOF_FORMAT_DEFAULT;
     // Ignore proof format, if the proof is not the full proof
     if (d_component != modes::PROOF_COMPONENT_FULL)
+    {
       format = modes::PROOF_FORMAT_NONE;
+    }
 
     if (format == modes::PROOF_FORMAT_NONE)
     {
