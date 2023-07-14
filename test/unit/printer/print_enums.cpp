@@ -38,6 +38,7 @@ class TestPrintEnums : public TestSmt
 
 TEST_F(TestPrintEnums, print_enums)
 {
+  std::stringstream out;
   TEST_ENUM_RANGE(InferenceId, InferenceId::NONE, InferenceId::UNKNOWN);
 }
 
