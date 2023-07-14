@@ -10,7 +10,7 @@
 # directory for licensing information.
 # #############################################################################
 #
-# Unit tests for sort API.
+# Unit tests for proof API.
 #
 # Obtained by translating test/unit/api/sort_black.cpp
 ##

@@ -1741,8 +1741,8 @@ void SolverEngine::proofToString(std::ostream& out,
                                  std::shared_ptr<ProofNode> fp)
 {
   options::ProofFormatMode format_mode =
-      this->getOptions().proof.proofFormatMode;
-  this->getPfManager()->printProof(out, fp, format_mode);
+      getOptions().proof.proofFormatMode;
+  d_pfManager->printProof(out, fp, format_mode);
 }
 
 void SolverEngine::printInstantiations(std::ostream& out)
