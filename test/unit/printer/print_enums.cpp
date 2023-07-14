@@ -18,13 +18,12 @@
 #include <iostream>
 
 #include "test_smt.h"
-
 #include "theory/arith/rewrites.h"
-#include "theory/inference_id.h"
+#include "theory/ext_theory.h"
 #include "theory/incomplete_id.h"
+#include "theory/inference_id.h"
 #include "theory/strings/rewrites.h"
 #include "theory/strings/strategy.h"
-#include "theory/ext_theory.h"
 
 using namespace cvc5::internal::theory;
 
