@@ -18,6 +18,9 @@ This file contains a summary of important user-visible changes.
        assertions in the unsat core, regardless of whether they are named. This
        option also impacts how timeout cores are printed.
 - Removed support for the ANTLR parser and parsing for the TPTP language.
+- API: Removed API support for the deprecated SyGuS 2.0 command
+       `Solver::synthInv`. This method is equivalent to `Solver::synthFun`
+       with a Boolean range sort.
 
 cvc5 1.0.5
 ==========
