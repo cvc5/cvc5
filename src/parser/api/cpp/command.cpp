@@ -808,7 +808,8 @@ void FindSynthCommand::toStream(std::ostream& out) const
   internal::Printer::getPrinter(out)->toStreamCmdFindSynth(
       out,
       d_fst,
-      d_grammar == nullptr ? internal::TypeNode::null() : grammarToTypeNode(d_grammar));
+      d_grammar == nullptr ? internal::TypeNode::null()
+                           : grammarToTypeNode(d_grammar));
 }
 /* -------------------------------------------------------------------------- */
 /* class ResetCommand                                                         */

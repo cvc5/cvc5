@@ -16,9 +16,9 @@
 package io.github.cvc5;
 
 import io.github.cvc5.modes.BlockModelsMode;
+import io.github.cvc5.modes.FindSynthTarget;
 import io.github.cvc5.modes.LearnedLitType;
 import io.github.cvc5.modes.ProofComponent;
-import io.github.cvc5.modes.FindSynthTarget;
 import java.io.IOException;
 import java.util.*;
 
@@ -3035,7 +3035,7 @@ public class Solver implements IPointer
     return new Term(termPointer);
   }
   private native long findSynth(long pointer, int fst);
-  
+
   /**
    * Find a target term of interest using sygus enumeration with a provided
    * grammar.
@@ -3052,12 +3052,11 @@ public class Solver implements IPointer
    */
   public Term findSynth(FindSynthTarget fst, Grammar grammar)
   {
-    long termPointer =
-        findSynth(pointer, fst.getValue(), grammar.getPointer());
+    long termPointer = findSynth(pointer, fst.getValue(), grammar.getPointer());
     return new Term(termPointer);
   }
   private native long findSynth(long pointer, int fst, long grammarPointer);
-  
+
   /**
    * Try to find a next target term of interest using sygus enumeration. Must
    * be called immediately after a successful call to find-synth or
@@ -3079,7 +3078,7 @@ public class Solver implements IPointer
   }
 
   private native long findSynthNext(long pointer);
-  
+
   /**
    * Returns a snapshot of the current state of the statistic values of this
    * solver. The returned object is completely decoupled from the solver and

@@ -5094,7 +5094,7 @@ class CVC5_EXPORT Solver
    *
    * @param fst The identifier specifying what kind of term to find
    * @return The result of the find, which is the null term if this call failed.
-   * 
+   *
    * @warning This method is experimental and may change in future versions.
    */
   Term findSynth(modes::FindSynthTarget fst) const;

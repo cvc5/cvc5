@@ -201,10 +201,9 @@ class CVC5_EXPORT Printer
   virtual void toStreamCmdCheckSynthNext(std::ostream& out) const;
 
   /** Print find-synth command */
-  virtual void toStreamCmdFindSynth(
-      std::ostream& out,
-      modes::FindSynthTarget fst,
-      TypeNode sygusType) const;
+  virtual void toStreamCmdFindSynth(std::ostream& out,
+                                    modes::FindSynthTarget fst,
+                                    TypeNode sygusType) const;
 
   /** Print simplify command */
   virtual void toStreamCmdSimplify(std::ostream& out, Node n) const;

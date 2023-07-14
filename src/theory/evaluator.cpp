@@ -19,11 +19,11 @@
 
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
+#include "theory/strings/regexp_eval.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/theory.h"
 #include "theory/uf/function_const.h"
 #include "util/integer.h"
-#include "theory/strings/regexp_eval.h"
 
 using namespace cvc5::internal::kind;
 
@@ -298,11 +298,12 @@ EvalResult Evaluator::evalInternal(
         else if (currNode.getKind() == kind::STRING_IN_REGEXP)
         {
           EvalResult& er = results[currNode[0]];
-          if (er.d_tag==EvalResult::STRING && strings::RegExpEval::canEvaluate(currNode[1]))
+          if (er.d_tag == EvalResult::STRING
+              && strings::RegExpEval::canEvaluate(currNode[1]))
           {
             String res = er.d_str;
-            Trace("evaluator") << "Evaluator: evaluate regexp membership " << res
-                              << " in " << currNode[1] << std::endl;
+            Trace("evaluator") << "Evaluator: evaluate regexp membership "
+                               << res << " in " << currNode[1] << std::endl;
             bool resReEv = strings::RegExpEval::evaluate(res, currNode[1]);
             currNodeVal = NodeManager::currentNM()->mkConst(resReEv);
             needsReconstruct = false;
