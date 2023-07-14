@@ -66,7 +66,7 @@ enum class Rewrite : uint32_t
   //      (ite (>= N 2^w) true (ite (< N 0) false (bvule x ((_ int2bv w) N))
   // where N is a constant and w is the bitwidth of the type of x.
   INEQ_BV_TO_NAT_ELIM,
-  
+
   UNKNOWN
 };
 

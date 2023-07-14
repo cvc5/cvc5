@@ -1277,26 +1277,42 @@ void TheoryStrings::runInferStep(InferStep s, Theory::Effort e, int effort)
   switch (s)
   {
     case InferStep::CHECK_INIT: d_bsolver.checkInit(); break;
-    case InferStep::CHECK_CONST_EQC: d_bsolver.checkConstantEquivalenceClasses(); break;
+    case InferStep::CHECK_CONST_EQC:
+      d_bsolver.checkConstantEquivalenceClasses();
+      break;
     case InferStep::CHECK_EXTF_EVAL: d_esolver.checkExtfEval(effort); break;
     case InferStep::CHECK_CYCLES: d_csolver.checkCycles(); break;
     case InferStep::CHECK_FLAT_FORMS: d_csolver.checkFlatForms(); break;
-    case InferStep::CHECK_NORMAL_FORMS_EQ_PROP: d_csolver.checkNormalFormsEqProp(); break;
-    case InferStep::CHECK_NORMAL_FORMS_EQ: d_csolver.checkNormalFormsEq(); break;
-    case InferStep::CHECK_NORMAL_FORMS_DEQ: d_csolver.checkNormalFormsDeq(); break;
+    case InferStep::CHECK_NORMAL_FORMS_EQ_PROP:
+      d_csolver.checkNormalFormsEqProp();
+      break;
+    case InferStep::CHECK_NORMAL_FORMS_EQ:
+      d_csolver.checkNormalFormsEq();
+      break;
+    case InferStep::CHECK_NORMAL_FORMS_DEQ:
+      d_csolver.checkNormalFormsDeq();
+      break;
     case InferStep::CHECK_CODES: d_psolver.checkCodes(); break;
     case InferStep::CHECK_LENGTH_EQC: d_csolver.checkLengthsEqc(); break;
-    case InferStep::CHECK_SEQUENCES_ARRAY_CONCAT: d_asolver.checkArrayConcat(); break;
+    case InferStep::CHECK_SEQUENCES_ARRAY_CONCAT:
+      d_asolver.checkArrayConcat();
+      break;
     case InferStep::CHECK_SEQUENCES_ARRAY: d_asolver.checkArray(); break;
-    case InferStep::CHECK_SEQUENCES_ARRAY_EAGER: d_asolver.checkArrayEager(); break;
+    case InferStep::CHECK_SEQUENCES_ARRAY_EAGER:
+      d_asolver.checkArrayEager();
+      break;
     case InferStep::CHECK_REGISTER_TERMS_NF:
       d_csolver.checkRegisterTermsNormalForms();
       break;
     case InferStep::CHECK_EXTF_REDUCTION_EAGER:
       d_esolver.checkExtfReductionsEager();
       break;
-    case InferStep::CHECK_EXTF_REDUCTION: d_esolver.checkExtfReductions(e); break;
-    case InferStep::CHECK_MEMBERSHIP_EAGER: d_rsolver.checkMembershipsEager(); break;
+    case InferStep::CHECK_EXTF_REDUCTION:
+      d_esolver.checkExtfReductions(e);
+      break;
+    case InferStep::CHECK_MEMBERSHIP_EAGER:
+      d_rsolver.checkMembershipsEager();
+      break;
     case InferStep::CHECK_MEMBERSHIP: d_rsolver.checkMemberships(e); break;
     case InferStep::CHECK_CARDINALITY: d_bsolver.checkCardinality(); break;
     default: Unreachable(); break;

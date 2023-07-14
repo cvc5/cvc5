@@ -32,20 +32,32 @@ std::ostream& operator<<(std::ostream& out, InferStep s)
     case InferStep::CHECK_EXTF_EVAL: out << "check_extf_eval"; break;
     case InferStep::CHECK_CYCLES: out << "check_cycles"; break;
     case InferStep::CHECK_FLAT_FORMS: out << "check_flat_forms"; break;
-    case InferStep::CHECK_NORMAL_FORMS_EQ_PROP: out << "check_normal_forms_eq_prop"; break;
-    case InferStep::CHECK_NORMAL_FORMS_EQ: out << "check_normal_forms_eq"; break;
-    case InferStep::CHECK_NORMAL_FORMS_DEQ: out << "check_normal_forms_deq"; break;
+    case InferStep::CHECK_NORMAL_FORMS_EQ_PROP:
+      out << "check_normal_forms_eq_prop";
+      break;
+    case InferStep::CHECK_NORMAL_FORMS_EQ:
+      out << "check_normal_forms_eq";
+      break;
+    case InferStep::CHECK_NORMAL_FORMS_DEQ:
+      out << "check_normal_forms_deq";
+      break;
     case InferStep::CHECK_CODES: out << "check_codes"; break;
     case InferStep::CHECK_LENGTH_EQC: out << "check_length_eqc"; break;
-    case InferStep::CHECK_EXTF_REDUCTION_EAGER: out << "check_extf_reduction_eager"; break;
+    case InferStep::CHECK_EXTF_REDUCTION_EAGER:
+      out << "check_extf_reduction_eager";
+      break;
     case InferStep::CHECK_EXTF_REDUCTION: out << "check_extf_reduction"; break;
-    case InferStep::CHECK_MEMBERSHIP_EAGER: out << "check_membership_eager"; break;
+    case InferStep::CHECK_MEMBERSHIP_EAGER:
+      out << "check_membership_eager";
+      break;
     case InferStep::CHECK_MEMBERSHIP: out << "check_membership"; break;
     case InferStep::CHECK_CARDINALITY: out << "check_cardinality"; break;
     case InferStep::CHECK_SEQUENCES_ARRAY_CONCAT:
       out << "check_sequences_update_concat_terms";
       break;
-    case InferStep::CHECK_SEQUENCES_ARRAY: out << "check_sequences_array"; break;
+    case InferStep::CHECK_SEQUENCES_ARRAY:
+      out << "check_sequences_array";
+      break;
     case InferStep::CHECK_SEQUENCES_ARRAY_EAGER:
       out << "check_sequences_array_eager";
       break;

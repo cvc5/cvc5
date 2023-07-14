@@ -76,8 +76,8 @@ enum class InferStep : uint32_t
   CHECK_SEQUENCES_ARRAY,
   // check sequence
   CHECK_SEQUENCES_ARRAY_EAGER,
-  
-  //unknown
+
+  // unknown
   UNKNOWN
 };
 std::ostream& operator<<(std::ostream& out, InferStep i);

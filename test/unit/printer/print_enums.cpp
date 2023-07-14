@@ -16,27 +16,28 @@
 #include <cvc5/cvc5.h>
 
 #include <iostream>
+
+#include "theory/arith/rewrites.h"
 #include "theory/inference_id.h"
 #include "theory/strings/rewrites.h"
 #include "theory/strings/strategy.h"
-#include "theory/arith/rewrites.h"
 
 using namespace cvc5::internal::theory;
 
 namespace cvc5::internal {
 namespace test {
-  
+
 /**
  * Set domain.optName to value due to reason. Notify if value changes.
  */
 #define TEST_ENUM_RANGE(enumName, firstEnum, lastEnum) \
   size_t begin = static_cast<size_t>(firstEnum);       \
   size_t end = static_cast<size_t>(lastEnum);          \
-  for (size_t i=begin; i<end; i++)                     \
+  for (size_t i = begin; i < end; i++)                 \
   {                                                    \
     out << static_cast<enumName>(i) << std::endl;      \
   }
-  
+
 class TestPrintEnums : public TestSmt
 {
 };
@@ -45,9 +46,13 @@ TEST_F(TestPrintEnums, print_enums)
 {
   std::stringstream out;
   TEST_ENUM_RANGE(InferenceId, InferenceId::NONE, InferenceId::UNKNOWN);
-  TEST_ENUM_RANGE(strings::Rewrite, strings::Rewrite::NONE, strings::Rewrite::UNKNOWN);
-  TEST_ENUM_RANGE(strings::InferStep, strings::InferStep::NONE, strings::InferStep::UNKNOWN);
-  TEST_ENUM_RANGE(arith::Rewrite, arith::Rewrite::NONE, arith::Rewrite::UNKNOWN);
+  TEST_ENUM_RANGE(
+      strings::Rewrite, strings::Rewrite::NONE, strings::Rewrite::UNKNOWN);
+  TEST_ENUM_RANGE(strings::InferStep,
+                  strings::InferStep::NONE,
+                  strings::InferStep::UNKNOWN);
+  TEST_ENUM_RANGE(
+      arith::Rewrite, arith::Rewrite::NONE, arith::Rewrite::UNKNOWN);
 }
 
 }  // namespace test
