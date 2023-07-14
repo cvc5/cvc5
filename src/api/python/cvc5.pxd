@@ -10,7 +10,7 @@ from libcpp.map cimport map
 from libcpp.pair cimport pair
 from cvc5kinds cimport Kind
 from cvc5sortkinds cimport SortKind
-from cvc5types cimport BlockModelsMode, LearnedLitType, ProofComponent, RoundingMode, UnknownExplanation
+from cvc5types cimport BlockModelsMode, LearnedLitType, ProofComponent, RoundingMode, UnknownExplanation, FindSynthTarget
 
 
 cdef extern from "<iostream>" namespace "std":
@@ -252,6 +252,9 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         SynthResult checkSynthNext() except +
         Term getSynthSolution(Term t) except +
         vector[Term] getSynthSolutions(const vector[Term]& terms) except +
+        Term findSynth(FindSynthTarget fst) except +
+        Term findSynth(FindSynthTarget fst, Grammar grammar) except +
+        Term findSynthNext() except +
         Term synthInv(const string& symbol, const vector[Term]& bound_vars) except +
         Term synthInv(const string& symbol, const vector[Term]& bound_vars, Grammar grammar) except +
         # End of sygus related functions
