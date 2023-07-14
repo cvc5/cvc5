@@ -2038,7 +2038,7 @@ TEST_F(TestApiBlackSolver, getProofAndProofToString)
   Sort boolSort = d_solver.getBooleanSort();
   Sort uToIntSort = d_solver.mkFunctionSort({uSort}, intSort);
   Sort intPredSort = d_solver.mkFunctionSort({intSort}, boolSort);
-  std::vector<Proof> proof;
+  std::vector<Proof> proofs;
 
   Term x = d_solver.mkConst(uSort, "x");
   Term y = d_solver.mkConst(uSort, "y");
@@ -2059,15 +2059,14 @@ TEST_F(TestApiBlackSolver, getProofAndProofToString)
   ASSERT_TRUE(d_solver.checkSat().isUnsat());
 
   std::string printedProof;
-  ASSERT_NO_THROW(proof = d_solver.getProof());
-  ASSERT_FALSE(proof.empty());
-  ASSERT_NO_THROW(printedProof = d_solver.proofToString(proof));
+  ASSERT_NO_THROW(proofs = d_solver.getProof());
+  ASSERT_FALSE(proofs.empty());
+  ASSERT_NO_THROW(printedProof = d_solver.proofToString(proofs[0]));
   ASSERT_FALSE(printedProof.empty());
-  ASSERT_NO_THROW(
-      printedProof = d_solver.proofToString(
-          proof, modes::PROOF_FORMAT_ALETHE));
+  ASSERT_NO_THROW(printedProof = d_solver.proofToString(
+                      proofs[0], modes::PROOF_FORMAT_ALETHE));
 
-  ASSERT_NO_THROW(proof = d_solver.getProof(modes::PROOF_COMPONENT_SAT));
+  ASSERT_NO_THROW(proofs = d_solver.getProof(modes::PROOF_COMPONENT_SAT));
   ASSERT_FALSE(printedProof.empty());
 }
 

@@ -1570,7 +1570,34 @@ void GetProofCommand::invoke(cvc5::Solver* solver, SymManager* sm)
   {
     stringstream ss;
     const vector<cvc5::Proof> ps = solver->getProof(d_component);
-    ss << solver->proofToString(ps, modes::PROOF_FORMAT_DEFAULT, d_component);
+
+    bool commentProves = !(d_component == modes::PROOF_COMPONENT_SAT
+                           || d_component == modes::PROOF_COMPONENT_FULL);
+    modes::ProofFormat format = modes::PROOF_FORMAT_DEFAULT;
+    // Ignore proof format, if the proof is not the full proof
+    if (d_component != modes::PROOF_COMPONENT_FULL)
+      format = modes::PROOF_FORMAT_NONE;
+
+    if (format == modes::PROOF_FORMAT_NONE)
+    {
+      ss << "(" << std::endl;
+    }
+    for (Proof p : ps)
+    {
+      if (commentProves)
+      {
+        ss << "(!" << std::endl;
+      }
+      ss << solver->proofToString(p, format);
+      if (commentProves)
+      {
+        ss << ":proves " << p.getResult() << ")" << std::endl;
+      }
+    }
+    if (format == modes::PROOF_FORMAT_NONE)
+    {
+      ss << ")" << std::endl;
+    }
     d_result = ss.str();
     d_commandStatus = CommandSuccess::instance();
   }

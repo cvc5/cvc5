@@ -2252,31 +2252,23 @@ cdef class Solver:
         return proofs
 
     def proofToString(self, proof,
-                      format = ProofFormat.PROOF_FORMAT_DEFAULT,
-                      component = ProofComponent.PROOF_COMPONENT_FULL):
+                      format = ProofFormat.PROOF_FORMAT_DEFAULT):
         """
-            Prints a vector of proofs into a string with a slected proof format mode.
+            Prints proof into a string with a selected proof format mode.
             Other aspects of printing are taken from the solver options.
 
             .. warning:: This method is experimental and may change in
                          future versions.
 
-            :param proof: A vector of proofs, usually obtained from
+            :param proof: A proof, usually obtained from
                           :py:meth:`getProof()`.
-            :param format: The proof format used to print the proof.  This is
-                           ignored if the component is not the full proof.
-            :param component: The proof component represented by the proof.
-                              If the component is either a SAT proof or a full
-                              proof the printed proof is not anotated with the
-                              conclusion, because the conclusion is always
-                              `false` in this case.
-            :return: The proofs printed in the current format.
+            :param format: The proof format used to print the proof.  Must be
+                          "None" if the proof is not a full proof.
+
+            :return: The proof printed in the current format.
         """
-        cdef vector[c_Proof] cproofs
-        for p in proof:
-            cproofs.push_back((<Proof?> p).cproof)
-        return self.csolver.proofToString(cproofs, <c_ProofFormat> format.value,
-                                          <c_ProofComponent> component.value)
+        return self.csolver.proofToString((<Proof?> proof).cproof,
+                                         <c_ProofFormat> format.value)
 
     def getLearnedLiterals(self, type = LearnedLitType.INPUT):
         """

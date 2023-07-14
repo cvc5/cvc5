@@ -7240,30 +7240,13 @@ bool isProofComponent(modes::ProofComponent pc)
   return pc >= 0 && pc <= modes::PROOF_COMPONENT_FULL;
 }
 
-std::string Solver::proofToString(std::vector<Proof> proofs,
-                                  modes::ProofFormat format,
-                                  modes::ProofComponent component) const
+std::string Solver::proofToString(Proof proof, modes::ProofFormat format) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(isProofFormat(format)) << "Invalid proof format.";
-  CVC5_API_CHECK(isProofComponent(component)) << "Invalid proof component.";
   //////// all checks before this line
   std::ostringstream ss;
-
-  // don't need to comment that it proves false
-  bool commentProves = !(component == modes::PROOF_COMPONENT_SAT
-                         || component == modes::PROOF_COMPONENT_FULL);
-  // Ignore proof format, if the proof is not the full proof
-  if (component != modes::PROOF_COMPONENT_FULL)
-    format = modes::PROOF_FORMAT_NONE;
-
-  std::vector<std::shared_ptr<internal::ProofNode>> proof_nodes;
-  for (Proof p : proofs)
-  {
-    proof_nodes.push_back(p.getProofNode());
-  }
-  this->d_slv->printProofs(ss, proof_nodes, format, commentProves);
-
+  this->d_slv->printProof(ss, proof.getProofNode(), format);
   return ss.str();
   ////////
   CVC5_API_TRY_CATCH_END;

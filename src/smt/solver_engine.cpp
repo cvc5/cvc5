@@ -1381,14 +1381,10 @@ std::vector<Node> SolverEngine::convertPreprocessedToInput(
   return core;
 }
 
-void SolverEngine::printProofs(std::ostream& out,
-                               std::vector<std::shared_ptr<ProofNode>> fp,
-                               modes::ProofFormat proofFormat,
-                               bool commentProves)
+void SolverEngine::printProof(std::ostream& out,
+                              std::shared_ptr<ProofNode> fp,
+                              modes::ProofFormat proofFormat)
 {
-  // print all proofs
-  // we currently only print outermost parentheses if the format is NONE
-
   // we print in the format based on the proof mode
   options::ProofFormatMode mode = options::ProofFormatMode::NONE;
   switch (proofFormat)
@@ -1404,27 +1400,8 @@ void SolverEngine::printProofs(std::ostream& out,
     case modes::PROOF_FORMAT_LFSC: mode = options::ProofFormatMode::LFSC; break;
   }
 
-  if (mode == options::ProofFormatMode::NONE)
-  {
-    out << "(" << std::endl;
-  }
-  for (std::shared_ptr<ProofNode>& p : fp)
-  {
-    if (commentProves)
-    {
-      out << "(!" << std::endl;
-    }
-    d_pfManager->printProof(out, p, mode);
-    out << std::endl;
-    if (commentProves)
-    {
-      out << ":proves " << p->getResult() << ")" << std::endl;
-    }
-  }
-  if (mode == options::ProofFormatMode::NONE)
-  {
-    out << ")" << std::endl;
-  }
+  d_pfManager->printProof(out, fp, mode);
+  out << std::endl;
 }
 
 std::vector<Node> SolverEngine::getSubstitutedAssertions()

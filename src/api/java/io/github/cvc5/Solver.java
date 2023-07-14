@@ -2161,62 +2161,39 @@ public class Solver implements IPointer
   private native long[] getProof(long pointer, int c);
 
   /**
-   * Prints a vector of proofs into a string with a slected proof format mode.
+   * Prints a proof into a string with a slected proof format mode.
    * Other aspects of printing are taken from the solver options.
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @param proof A list of proofs.
-   * @return The proofs printed in the current format.
+   * @param proof A proof.
+   * @return The proof printed in the current format.
    */
-  public String proofToString(Proof[] proof)
+  public String proofToString(Proof proof)
   {
-    long[] proofPointers = Utils.getPointers(proof);
-    return proofToString(pointer, proofPointers);
+    return proofToString(pointer, proof.getPointer());
   }
 
-  private native String proofToString(long pointer, long[] proofs);
+  private native String proofToString(long pointer, long proofs);
 
   /**
-   * Prints a vector of proofs into a string with a slected proof format mode.
+   * Prints a proof into a string with a slected proof format mode.
    * Other aspects of printing are taken from the solver options.
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @param proof A list of proofs.
-   * @param format The proof format used to print the proof.
-   * @return The proofs printed in the current format.
+   * @param proof A proof.
+   * @param format The proof format used to print the proof. Must be
+   * `PROOF_FORMAT_NONE` if the proof is from a component other than
+   * `PROOF_COMPONENT_FULL`.
+   * @return The proof printed in the current format.
    */
-  public String proofToString(Proof[] proof, ProofFormat format)
+  public String proofToString(Proof proof, ProofFormat format)
   {
-    long[] proofPointers = Utils.getPointers(proof);
-    return proofToString(pointer, proofPointers, format.getValue());
+    return proofToString(pointer, proof.getPointer(), format.getValue());
   }
 
-  private native String proofToString(long pointer, long[] proofs, int format);
-
-  /**
-   * Prints a vector of proofs into a string with a slected proof format mode.
-   * Other aspects of printing are taken from the solver options.
-   *
-   * @api.note This method is experimental and may change in future versions.
-   *
-   * @param proof A list of proofs.
-   * @param format The proof format used to print the proof.
-   * This is ignored if the component is not the full proof.
-   * @param component The proof component represented by the proof.  If the
-   * component is either a SAT proof or a full proof the printed proof is not
-   * anotated with the conclusion, because the conclusion is always `false` in
-   * this case.
-   * @return The proofs printed in the current format.
-   */
-  public String proofToString(Proof[] proof, ProofFormat format, ProofComponent component)
-  {
-    long[] proofPointers = Utils.getPointers(proof);
-    return proofToString(pointer, proofPointers, format.getValue(), component.getValue());
-  }
-
-  private native String proofToString(long pointer, long[] proofs, int format, int component);
+  private native String proofToString(long pointer, long proofs, int format);
 
   /**
    * Get the value of the given term in the current model.

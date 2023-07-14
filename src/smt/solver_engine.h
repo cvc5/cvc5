@@ -1043,12 +1043,11 @@ class CVC5_EXPORT SolverEngine
                                                bool isInternal);
 
   /**
-   * Prints proof nodes using a proof format of choice .
+   * Prints a proof node using a proof format of choice.
    */
-  void printProofs(std::ostream& out,
-                   std::vector<std::shared_ptr<ProofNode>> fp,
-                   modes::ProofFormat proofFormat,
-                   bool commentProves = true);
+  void printProof(std::ostream& out,
+                  std::shared_ptr<ProofNode> fp,
+                  modes::ProofFormat proofFormat);
 
   /* Members -------------------------------------------------------------- */
 

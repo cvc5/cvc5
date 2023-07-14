@@ -317,7 +317,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Term defineFunsRec(vector[Term]& funs, vector[vector[Term]]& bound_vars,
                            vector[Term]& terms, bint glbl) except +
         vector[Proof] getProof(ProofComponent c) except +
-        string proofToString(vector[Proof] proofs, ProofFormat format, ProofComponent component) except +
+        string proofToString(Proof proof, ProofFormat format) except +
         vector[Term] getLearnedLiterals(LearnedLitType type) except +
         vector[Term] getAssertions() except +
         string getInfo(const string& flag) except +

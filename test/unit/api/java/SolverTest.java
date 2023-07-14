@@ -1876,16 +1876,16 @@ class SolverTest
     d_solver.assertFormula(p_f_y.notTerm());
     assertTrue(d_solver.checkSat().isUnsat());
 
-    Proof[] proof = d_solver.getProof();
-    assertNotEquals(0, proof.length);
-    String printedProof = d_solver.proofToString(proof);
+    Proof[] proofs = d_solver.getProof();
+    assertNotEquals(0, proofs.length);
+    String printedProof = d_solver.proofToString(proofs[0]);
     assertFalse(printedProof.isEmpty());
-    printedProof = d_solver.proofToString(proof, ProofFormat.PROOF_FORMAT_ALETHE);
+    printedProof = d_solver.proofToString(proofs[0], ProofFormat.PROOF_FORMAT_ALETHE);
     assertFalse(printedProof.isEmpty());
 
-    proof = d_solver.getProof(ProofComponent.PROOF_COMPONENT_SAT);
-    assertNotEquals(0, proof.length);
-    printedProof = d_solver.proofToString(proof, ProofFormat.PROOF_FORMAT_DEFAULT, ProofComponent.PROOF_COMPONENT_SAT);
+    proofs = d_solver.getProof(ProofComponent.PROOF_COMPONENT_SAT);
+    assertNotEquals(0, proofs.length);
+    printedProof = d_solver.proofToString(proofs[0], ProofFormat.PROOF_FORMAT_DEFAULT);
     assertFalse(printedProof.isEmpty());
   }
 

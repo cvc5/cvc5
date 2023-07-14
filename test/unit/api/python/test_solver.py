@@ -1507,16 +1507,15 @@ def test_get_unsat_core_and_proof_to_string(solver):
     solver.assertFormula(p_f_y.notTerm())
     assert solver.checkSat().isUnsat()
 
-    proof = solver.getProof()
-    assert len(proof) > 0
-    printedProof = solver.proofToString(proof)
+    proofs = solver.getProof()
+    assert len(proofs) > 0
+    printedProof = solver.proofToString(proofs[0])
     assert len(printedProof) > 0
-    printedProof = solver.proofToString(proof, ProofFormat.PROOF_FORMAT_ALETHE)
+    printedProof = solver.proofToString(proofs[0], ProofFormat.PROOF_FORMAT_ALETHE)
     assert len(printedProof) > 0
     
-    proof = solver.getProof(ProofComponent.PROOF_COMPONENT_SAT)
-    printedProof = solver.proofToString(proof, ProofFormat.PROOF_FORMAT_DEFAULT,
-                                        ProofComponent.PROOF_COMPONENT_SAT)
+    proofs = solver.getProof(ProofComponent.PROOF_COMPONENT_SAT)
+    printedProof = solver.proofToString(proofs[0], ProofFormat.PROOF_FORMAT_DEFAULT)
     assert len(printedProof) > 0
 
 def test_learned_literals(solver):
