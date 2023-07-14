@@ -87,7 +87,7 @@ std::vector<std::pair<InferStep, int> >::iterator Strategy::stepEnd(
 void Strategy::addStrategyStep(InferStep s, int effort, bool addBreak)
 {
   // must run check init first
-  Assert((s == CHECK_INIT) == d_infer_steps.empty());
+  Assert((s == InferStep::CHECK_INIT) == d_infer_steps.empty());
   d_infer_steps.push_back(std::pair<InferStep, int>(s, effort));
   if (addBreak)
   {
