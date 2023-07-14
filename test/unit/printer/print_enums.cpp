@@ -17,6 +17,8 @@
 
 #include <iostream>
 
+#include "test_smt.h"
+
 #include "theory/arith/rewrites.h"
 #include "theory/inference_id.h"
 #include "theory/strings/rewrites.h"
