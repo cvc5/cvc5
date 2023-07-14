@@ -78,6 +78,11 @@
 #include "util/resource_manager.h"
 #include "util/sexpr.h"
 #include "util/statistics_registry.h"
+#include "theory/quantifiers/candidate_rewrite_database.h"
+#include "theory/quantifiers/query_generator.h"
+#include "theory/quantifiers/rewrite_verifier.h"
+#include "theory/quantifiers/sygus/sygus_enumerator.h"
+#include "theory/quantifiers/sygus_sampler.h"
 
 // required for hacks related to old proofs for unsat cores
 #include "base/configuration.h"
