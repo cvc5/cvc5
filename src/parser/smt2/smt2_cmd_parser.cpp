@@ -869,7 +869,6 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
 
       Trace("parser-sygus") << "Define synth fun : " << name << std::endl;
       Solver* slv = d_state.getSolver();
-      // FIXME
       Term fun =
           isInv ? (g == nullptr ? slv->synthInv(name, sygusVars)
                                 : slv->synthInv(name, sygusVars, *g))
