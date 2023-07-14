@@ -4,7 +4,7 @@
 ; )
 
 (set-logic LIA)
-(synth-inv inv-f ((x Int)))
+(synth-fun inv-f ((x Int)) Bool)
 (define-fun pre-f ((x Int)) Bool (= x 0))
 (define-fun trans-f ((x Int) (xp Int)) Bool (ite (< x 10) (= xp (+ x 1)) (= xp x)))
 (define-fun post-f ((x Int)) Bool (<= x 10))

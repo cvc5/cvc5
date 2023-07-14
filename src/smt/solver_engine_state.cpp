@@ -89,7 +89,7 @@ void SolverEngineState::notifyCheckSynthResult(const SynthResult& r)
 {
   if (r.getStatus() == SynthResult::SOLUTION)
   {
-    // successfully generated a synthesis solution, update to abduct state
+    // successfully generated a synthesis solution, update to synth state
     d_smtMode = SmtMode::SYNTH;
   }
   else
@@ -119,6 +119,19 @@ void SolverEngineState::notifyGetInterpol(bool success)
   {
     // successfully generated an interpolant, update to interpol state
     d_smtMode = SmtMode::INTERPOL;
+  }
+  else
+  {
+    // failed, we revert to the assert state
+    d_smtMode = SmtMode::ASSERT;
+  }
+}
+
+void SolverEngineState::notifyFindSynth(bool success)
+{
+  if (success)
+  {
+    d_smtMode = SmtMode::FIND_SYNTH;
   }
   else
   {
