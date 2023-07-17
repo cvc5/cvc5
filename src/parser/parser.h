@@ -515,18 +515,6 @@ class CVC5_EXPORT ParserState
    */
   Term mkCharConstant(const std::string& s);
 
-  /** ad-hoc string escaping
-   *
-   * Returns the (internal) vector of code points corresponding to processing
-   * the escape sequences in string s. This is to support string inputs that
-   * do no comply with the SMT-LIB standard.
-   *
-   * This method handles escape sequences, including \n, \t, \v, \b, \r, \f, \a,
-   * \\, \x[N] and octal escape sequences of the form \[c1]([c2]([c3])?)? where
-   * c1, c2, c3 are digits from 0 to 7.
-   */
-  std::wstring processAdHocStringEsc(const std::string& s);
-
   /**
    * Strip quotes off a string, or return a parse error otherwise.
    */
