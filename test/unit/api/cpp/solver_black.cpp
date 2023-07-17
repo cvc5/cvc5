@@ -3515,7 +3515,7 @@ TEST_F(TestApiBlackSolver, proj_issue422)
   slv.assertFormula({t301});
   // should terminate with a null indicating we are done enumerating
   // rewrite rules.
-  Term t = slv.findSynth(FindSynthTarget::REWRITE_RULE_INPUT);
+  Term t = slv.findSynth(modes::FIND_SYNTH_TARGET_REWRITE_INPUT);
   ASSERT_TRUE(t.isNull());
 }
 
