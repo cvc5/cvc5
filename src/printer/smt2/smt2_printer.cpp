@@ -2132,13 +2132,13 @@ void Smt2Printer::toStreamCmdFindSynth(std::ostream& out,
                                        modes::FindSynthTarget fst,
                                        TypeNode sygusType) const
 {
-  out << "(find-synth";
+  out << "(find-synth :" << fst;
   // print grammar, if any
   if (!sygusType.isNull())
   {
     out << " " << sygusGrammarString(sygusType);
   }
-  out << " :" << fst << ")" << std::endl;
+  out << ")" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdFindSynthNext(std::ostream& out) const
