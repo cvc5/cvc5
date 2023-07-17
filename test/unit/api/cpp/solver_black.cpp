@@ -2999,6 +2999,34 @@ TEST_F(TestApiBlackSolver, checkSynthNext3)
   ASSERT_THROW(d_solver.checkSynthNext(), CVC5ApiException);
 }
 
+
+TEST_F(TestApiBlackSolver, findSynth)
+{
+  d_solver.setOption("sygus", "true");
+  Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort());
+
+  // should enumerate based on the grammar of the function to synthesize above
+  cvc5::Term t = d_solver.findSynth(modes::FIND_SYNTH_TARGET_ENUM);
+  ASSERT_TRUE(!t.isNull() && t.getSort().isBoolean());
+  
+  ASSERT_THROW(d_solver.findSynthNext(), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, findSynth2)
+{
+  d_solver.setOption("sygus", "true");
+  d_solver.setOption("incremental", "true");
+  Sort boolean = d_solver.getBooleanSort();
+  Term start = d_solver.mkVar(boolean);
+  Grammar g = d_solver.mkGrammar({}, {start});
+
+  // should enumerate true/false
+  cvc5::Term t = d_solver.findSynth(modes::FIND_SYNTH_TARGET_ENUM, g);
+  ASSERT_TRUE(!t.isNull() && t.getSort().isBoolean());
+  t = d_solver.findSynthNext();
+  ASSERT_TRUE(!t.isNull() && t.getSort().isBoolean());
+}
+
 TEST_F(TestApiBlackSolver, tupleProject)
 {
   std::vector<Term> elements = {
