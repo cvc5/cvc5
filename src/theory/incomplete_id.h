@@ -32,6 +32,7 @@ namespace theory {
  */
 enum class IncompleteId
 {
+  // there is no marked incompleteness
   NONE,
   // the non-linear arithmetic solver was disabled
   ARITH_NL_DISABLED,
@@ -83,6 +84,7 @@ enum class IncompleteId
   // the prop layer stopped search
   STOP_SEARCH,
   //------------------- unknown
+  // the reason for the incompleteness is unknown
   UNKNOWN
 };
 

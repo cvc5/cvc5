@@ -30,6 +30,7 @@ namespace strings {
  */
 enum class Rewrite : uint32_t
 {
+  // no rewrite
   NONE,
   CTN_COMPONENT,
   CTN_CONCAT_CHAR,
@@ -236,6 +237,7 @@ enum class Rewrite : uint32_t
   SEQ_NTH_EVAL_OOB,
   SEQ_NTH_EVAL_SYM,
 
+  // the rewrite was unspecified
   UNKNOWN
 };
 

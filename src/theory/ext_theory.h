@@ -52,6 +52,7 @@ class OutputChannel;
 /** Reasons for why a term was marked reduced */
 enum class ExtReducedId
 {
+  // the extended function is not marked reduced
   NONE,
   // the extended function substitutes+rewrites to a constant
   SR_CONST,
@@ -81,6 +82,7 @@ enum class ExtReducedId
   STRINGS_REGEXP_PDERIVATIVE,
   // reduction for seq.nth over seq.rev
   STRINGS_NTH_REV,
+  // the reason for the reduction is unknown
   UNKNOWN,
 };
 /**

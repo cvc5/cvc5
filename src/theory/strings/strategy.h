@@ -35,7 +35,9 @@ namespace strings {
  */
 enum class InferStep : uint32_t
 {
+  // placeholder specfying no inference step 
   NONE,
+
   // indicates that the strategy should break if lemmas or facts are added
   BREAK,
   // check initial
@@ -77,7 +79,7 @@ enum class InferStep : uint32_t
   // check sequence
   CHECK_SEQUENCES_ARRAY_EAGER,
 
-  // unknown
+  // unknown inference step
   UNKNOWN
 };
 std::ostream& operator<<(std::ostream& out, InferStep i);
