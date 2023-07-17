@@ -35,7 +35,7 @@ namespace strings {
  */
 enum class InferStep : uint32_t
 {
-  // placeholder specfying no inference step 
+  // placeholder specfying no inference step
   NONE,
 
   // indicates that the strategy should break if lemmas or facts are added
