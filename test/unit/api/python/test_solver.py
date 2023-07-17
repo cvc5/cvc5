@@ -2281,6 +2281,8 @@ def test_check_synth_next3(solver):
 
 def find_synth(solver):
     solver.setOption("sygus", "true")
+    boolSort = solver.getBooleanSort()
+    start = solver.mkVar(boolSort)
     g = solver.mkGrammar([], [start])
     truen = solver.mkBoolean(True)
     falsen = solver.mkBoolean(False)

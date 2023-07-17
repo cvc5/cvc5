@@ -3002,6 +3002,8 @@ TEST_F(TestApiBlackSolver, checkSynthNext3)
 TEST_F(TestApiBlackSolver, findSynth)
 {
   d_solver.setOption("sygus", "true");
+  Sort boolean = d_solver.getBooleanSort();
+  Term start = d_solver.mkVar(boolean);
   Grammar g = d_solver.mkGrammar({}, {start});
   Term truen = d_solver.mkBoolean(true);
   Term falsen = d_solver.mkBoolean(false);

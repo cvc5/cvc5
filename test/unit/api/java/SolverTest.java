@@ -2945,6 +2945,8 @@ class SolverTest
   void findSynth() throws CVC5ApiException
   {
     d_solver.setOption("sygus", "true");
+    Sort boolSort = d_solver.getBooleanSort();
+    Term start = d_solver.mkVar(boolSort);
     Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
     Term truen = d_solver.mkBoolean(true);
     Term falsen = d_solver.mkBoolean(false);
