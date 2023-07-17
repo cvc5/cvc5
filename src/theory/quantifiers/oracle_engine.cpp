@@ -24,6 +24,7 @@
 #include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_tuple_enumerator.h"
+#include "theory/trust_substitutions.h"
 
 using namespace cvc5::internal::kind;
 using namespace cvc5::context;
