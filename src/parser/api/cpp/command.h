@@ -774,6 +774,7 @@ class CVC5_EXPORT FindSynthNextCommand : public Command
   std::string getCommandName() const override;
   /** prints this command */
   void toStream(std::ostream& out) const override;
+
  protected:
   /** result of the check-synth call */
   Term d_result;

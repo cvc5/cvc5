@@ -812,7 +812,6 @@ void FindSynthCommand::toStream(std::ostream& out) const
                            : grammarToTypeNode(d_grammar));
 }
 
-
 /* -------------------------------------------------------------------------- */
 /* class FindSynthNextCommand */
 /* -------------------------------------------------------------------------- */
@@ -855,7 +854,6 @@ void FindSynthNextCommand::toStream(std::ostream& out) const
 {
   internal::Printer::getPrinter(out)->toStreamCmdFindSynthNext(out);
 }
-
 
 /* -------------------------------------------------------------------------- */
 /* class ResetCommand                                                         */

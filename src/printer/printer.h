@@ -204,7 +204,7 @@ class CVC5_EXPORT Printer
   virtual void toStreamCmdFindSynth(std::ostream& out,
                                     modes::FindSynthTarget fst,
                                     TypeNode sygusType) const;
-                                    
+
   /** Print find-synth-next command */
   virtual void toStreamCmdFindSynthNext(std::ostream& out) const;
 
