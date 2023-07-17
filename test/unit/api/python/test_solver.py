@@ -2281,7 +2281,12 @@ def test_check_synth_next3(solver):
 
 def find_synth(solver):
     solver.setOption("sygus", "true")
-    f = solver.synthFun("f", [], solver.getBooleanSort())
+    g = solver.mkGrammar([], [start])
+    truen = solver.mkBoolean(True)
+    falsen = solver.mkBoolean(False)
+    g.addRule(start, truen)
+    g.addRule(start, falsen)
+    f = solver.synthFun("f", [], solver.getBooleanSort(), g)
 
     # should enumerate based on the grammar of the function to synthesize above
     t = d_solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM)

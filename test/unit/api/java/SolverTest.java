@@ -2945,7 +2945,12 @@ class SolverTest
   void findSynth() throws CVC5ApiException
   {
     d_solver.setOption("sygus", "true");
-    Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
+    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
+    Term truen = d_solver.mkBoolean(true);
+    Term falsen = d_solver.mkBoolean(false);
+    g.addRule(start, truen);
+    g.addRule(start, falsen);
+    Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort(), g);
 
     // should enumerate based on the grammar of the function to synthesize above
     Term t = d_solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM);
