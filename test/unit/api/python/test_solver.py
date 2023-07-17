@@ -2284,7 +2284,7 @@ def find_synth(solver):
     f = solver.synthFun("f", [], solver.getBooleanSort())
 
     # should enumerate based on the grammar of the function to synthesize above
-    Term t = d_solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM)
+    t = d_solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM)
     assert !t.isNull() && t.getSort().isBoolean()
     with pytest.raises(RuntimeError):
         solver.findSynthNext()
@@ -2298,7 +2298,7 @@ def find_synth2(solver):
     g = solver.mkGrammar([], [start])
 
     # should enumerate true/false
-    Term t = solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM, g)
+    t = solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM, g)
     assert !t.isNull() && t.getSort().isBoolean()
     t = solver.findSynthNext()
     assert !t.isNull() && t.getSort().isBoolean()
