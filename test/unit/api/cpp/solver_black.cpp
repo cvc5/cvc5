@@ -3018,7 +3018,11 @@ TEST_F(TestApiBlackSolver, findSynth2)
   Sort boolean = d_solver.getBooleanSort();
   Term start = d_solver.mkVar(boolean);
   Grammar g = d_solver.mkGrammar({}, {start});
-
+  Term truen = d_solver.mkBoolean(true);
+  Term falsen = d_solver.mkBoolean(false);
+  g.addRule(start, truen);
+  g.addRule(start, falsen);
+  
   // should enumerate true/false
   cvc5::Term t = d_solver.findSynth(modes::FIND_SYNTH_TARGET_ENUM, g);
   ASSERT_TRUE(!t.isNull() && t.getSort().isBoolean());
@@ -3509,11 +3513,10 @@ TEST_F(TestApiBlackSolver, proj_issue422)
   Term t300 = slv.mkTerm(Kind::BITVECTOR_SLT, {t276, t276});
   Term t301 = slv.mkTerm(Kind::EQUAL, {t288, t300});
   slv.assertFormula({t301});
-  // should terminate with an exception indicating we are done enumerating
+  // should terminate with a null indicating we are done enumerating
   // rewrite rules.
-  // !!! temporary
-  // ASSERT_THROW(slv.findSynth(FindSynthTarget::REWRITE_RULE_INPUT),
-  // CVC5ApiException);
+  Term t = slv.findSynth(FindSynthTarget::REWRITE_RULE_INPUT);
+  ASSERT_TRUE(t.isNull());
 }
 
 TEST_F(TestApiBlackSolver, proj_issue423)

@@ -2961,6 +2961,10 @@ class SolverTest
     Sort boolSort = d_solver.getBooleanSort();
     Term start = d_solver.mkVar(boolSort);
     Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
+    Term truen = d_solver.mkBoolean(true);
+    Term falsen = d_solver.mkBoolean(false);
+    g.addRule(start, truen);
+    g.addRule(start, falsen);
 
     // should enumerate true/false
     Term t = d_solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM, g);

@@ -2296,6 +2296,10 @@ def find_synth2(solver):
     boolSort = solver.getBooleanSort()
     start = solver.mkVar(boolSort)
     g = solver.mkGrammar([], [start])
+    truen = solver.mkBoolean(True)
+    falsen = solver.mkBoolean(False)
+    g.addRule(start, truen)
+    g.addRule(start, falsen)
 
     # should enumerate true/false
     t = solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM, g)
