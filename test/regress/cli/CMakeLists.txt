@@ -1653,6 +1653,7 @@ set(regress_0_tests
   regress0/sygus/const-var-test.sy
   regress0/sygus/dt-no-syntax.sy
   regress0/sygus/dt-sel-parse1.sy
+  regress0/sygus/find-synth-next.smt2
   regress0/sygus/General_plus10.sy
   regress0/sygus/hd-05-d1-prog-nogrammar.sy
   regress0/sygus/ho-occ-synth-fun.sy

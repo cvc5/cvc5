@@ -55,12 +55,12 @@ Node FindSynthSolver::findSynthNext()
          i++)
     {
       theory::quantifiers::SynthFinder* curr = d_sfinders[i].get();
+      ret = curr->getCurrent();
       if (!curr->increment())
       {
         toErase.push_back(i - toErase.size());
         continue;
       }
-      ret = curr->getCurrent();
       if (!ret.isNull())
       {
         // found a return

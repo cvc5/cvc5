@@ -2141,6 +2141,11 @@ void Smt2Printer::toStreamCmdFindSynth(std::ostream& out,
   out << " :" << fst << ")" << std::endl;
 }
 
+void Smt2Printer::toStreamCmdFindSynthNext(std::ostream& out) const
+{
+  out << "(find-synth-next)" << std::endl;
+}
+
 void Smt2Printer::toStreamCmdGetInterpol(std::ostream& out,
                                          const std::string& name,
                                          Node conj,

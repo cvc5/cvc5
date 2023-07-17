@@ -172,7 +172,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         Trace("non-clausal-simplify")
             << "conflict with " << learned_literals[i].getNode() << std::endl;
         assertionsToPreprocess->clear();
-        assertionsToPreprocess->push_back(learnedLiteral, false, d_llpg.get());
+        Node n = nm->mkConst<bool>(false);
+        assertionsToPreprocess->push_back(n, false, d_llpg.get());
         return PreprocessingPassResult::CONFLICT;
       }
     }

@@ -758,6 +758,27 @@ class CVC5_EXPORT FindSynthCommand : public Command
   Term d_result;
 };
 
+/** Find synth command */
+class CVC5_EXPORT FindSynthNextCommand : public Command
+{
+ public:
+  FindSynthNextCommand(){};
+  /** returns the result of the find-synth call */
+  Term getResult() const;
+  /** prints the result of the find-synth call */
+  void printResult(cvc5::Solver* solver, std::ostream& out) const override;
+  /** invokes this command
+   */
+  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  /** returns this command's name */
+  std::string getCommandName() const override;
+  /** prints this command */
+  void toStream(std::ostream& out) const override;
+ protected:
+  /** result of the check-synth call */
+  Term d_result;
+};
+
 /* ------------------- sygus commands  ------------------ */
 
 // this is TRANSFORM in the CVC presentation language

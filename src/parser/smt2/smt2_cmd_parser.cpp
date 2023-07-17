@@ -70,6 +70,7 @@ Smt2CmdParser::Smt2CmdParser(Smt2LexerNew& lex,
     d_table["declare-oracle-fun"] = Token::DECLARE_ORACLE_FUN_TOK;
     d_table["declare-pool"] = Token::DECLARE_POOL_TOK;
     d_table["find-synth"] = Token::FIND_SYNTH_TOK;
+    d_table["find-synth-next"] = Token::FIND_SYNTH_NEXT_TOK;
     d_table["get-abduct-next"] = Token::GET_ABDUCT_NEXT_TOK;
     d_table["get-abduct"] = Token::GET_ABDUCT_TOK;
     d_table["get-difficulty"] = Token::GET_DIFFICULTY_TOK;
@@ -555,6 +556,12 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       std::vector<Term> emptyVarList;
       Grammar* g = d_tparser.parseGrammarOrNull(emptyVarList, "g_find-synth");
       cmd.reset(new FindSynthCommand(fst, g));
+    }
+    break;
+    case Token::FIND_SYNTH_NEXT_TOK:
+    {
+      d_state.checkThatLogicIsSet();
+      cmd.reset(new FindSynthNextCommand);
     }
     break;
     // (get-abduct <symbol> <term> <grammar>?)

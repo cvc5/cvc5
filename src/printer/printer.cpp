@@ -386,6 +386,11 @@ void Printer::toStreamCmdFindSynth(std::ostream& out,
   printUnknownCommand(out, "find-synth");
 }
 
+void Printer::toStreamCmdFindSynthNext(std::ostream& out) const
+{
+  printUnknownCommand(out, "find-synth-next");
+}
+
 void Printer::toStreamCmdSimplify(std::ostream& out, Node n) const
 {
   printUnknownCommand(out, "simplify");
