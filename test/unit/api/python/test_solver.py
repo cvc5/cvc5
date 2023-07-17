@@ -2285,7 +2285,7 @@ def find_synth(solver):
 
     # should enumerate based on the grammar of the function to synthesize above
     t = d_solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM)
-    assert !t.isNull() && t.getSort().isBoolean()
+    assert not t.isNull() && t.getSort().isBoolean()
     with pytest.raises(RuntimeError):
         solver.findSynthNext()
 
@@ -2299,9 +2299,9 @@ def find_synth2(solver):
 
     # should enumerate true/false
     t = solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM, g)
-    assert !t.isNull() && t.getSort().isBoolean()
+    assert not t.isNull() && t.getSort().isBoolean()
     t = solver.findSynthNext()
-    assert !t.isNull() && t.getSort().isBoolean()
+    assert not t.isNull() && t.getSort().isBoolean()
 
 
 def test_get_abduct(solver):
