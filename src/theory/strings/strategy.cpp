@@ -43,6 +43,7 @@ std::ostream& operator<<(std::ostream& out, InferStep s)
       break;
     case InferStep::CHECK_CODES: out << "check_codes"; break;
     case InferStep::CHECK_LENGTH_EQC: out << "check_length_eqc"; break;
+    case InferStep::CHECK_REGISTER_TERMS_NF: out << "check_register_terms_nf"; break;
     case InferStep::CHECK_EXTF_REDUCTION_EAGER:
       out << "check_extf_reduction_eager";
       break;
