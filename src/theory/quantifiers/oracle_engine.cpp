@@ -58,7 +58,40 @@ OracleEngine::OracleEngine(Env& env,
   Assert(d_ochecker != nullptr);
 }
 
-void OracleEngine::presolve() {}
+void OracleEngine::presolve() {
+  // Ensure all oracle functions in top-level substitutions occur in
+  // lemmas. Otherwise the oracles will not be invoked for those values
+  // and the model will be inaccurate.
+  std::unordered_map<Node, Node> subs =
+      d_env.getTopLevelSubstitutions().get().getSubstitutions();
+  std::unordered_set<Node> visited;
+  std::vector<TNode> visit;
+  for (const std::pair<const Node, Node>& s : subs)
+  {
+    visit.push_back(s.second);
+  }
+  TNode cur;
+  while (!visit.empty())
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+      if (OracleCaller::isOracleFunctionApp(cur))
+      {
+        SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+        Node k = sm->mkPurifySkolem(cur);
+        Node eq = k.eqNode(cur);
+        d_qim.lemma(eq, InferenceId::QUANTIFIERS_ORACLE_PURIFY_SUBS);
+      }
+      if (cur.getNumChildren() > 0)
+      {
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
+    }
+  }
+}
 
 bool OracleEngine::needsCheck(Theory::Effort e)
 {
