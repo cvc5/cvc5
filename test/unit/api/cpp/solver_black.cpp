@@ -3022,7 +3022,7 @@ TEST_F(TestApiBlackSolver, findSynth2)
   Term falsen = d_solver.mkBoolean(false);
   g.addRule(start, truen);
   g.addRule(start, falsen);
-  
+
   // should enumerate true/false
   cvc5::Term t = d_solver.findSynth(modes::FIND_SYNTH_TARGET_ENUM, g);
   ASSERT_TRUE(!t.isNull() && t.getSort().isBoolean());
