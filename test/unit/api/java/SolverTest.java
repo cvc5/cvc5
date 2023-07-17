@@ -22,9 +22,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.cvc5.*;
 import io.github.cvc5.modes.BlockModelsMode;
+import io.github.cvc5.modes.FindSynthTarget;
 import io.github.cvc5.modes.LearnedLitType;
 import io.github.cvc5.modes.ProofComponent;
-import io.github.cvc5.modes.FindSynthTarget;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -2940,7 +2940,6 @@ class SolverTest
 
     assertThrows(CVC5ApiException.class, () -> d_solver.checkSynthNext());
   }
-  
 
   @Test
   void findSynth() throws CVC5ApiException

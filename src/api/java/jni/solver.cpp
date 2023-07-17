@@ -2872,8 +2872,10 @@ JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getSynthSolutions(
  * Method:    findSynth
  * Signature: (JI)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_findSynth__JI(
-    JNIEnv* env, jobject, jlong pointer, jint fstvalue)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_findSynth__JI(JNIEnv* env,
+                                                                 jobject,
+                                                                 jlong pointer,
+                                                                 jint fstvalue)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
