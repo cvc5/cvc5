@@ -52,6 +52,8 @@ const char* toString(ExtReducedId id)
       return "STRINGS_REGEXP_RE_SYM_NF";
     case ExtReducedId::STRINGS_REGEXP_PDERIVATIVE:
       return "STRINGS_REGEXP_PDERIVATIVE";
+    case ExtReducedId::STRINGS_NTH_REV:
+      return "STRINGS_NTH_REV";
     case ExtReducedId::UNKNOWN: return "?";
     default: Unreachable(); return "?ExtReducedId?";
   }
