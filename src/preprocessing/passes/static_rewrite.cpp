@@ -53,6 +53,8 @@ TrustNode StaticRewrite::rewriteAssertion(TNode n)
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node> rewrittenTo;
   std::unordered_map<TNode, Node>::iterator it;
+  // to ensure all nodes are ref counted
+  std::unordered_set<Node> keep;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -114,6 +116,7 @@ TrustNode StaticRewrite::rewriteAssertion(TNode n)
             << "Rewrite " << ret << " to " << trn.getNode() << std::endl;
         wasRewritten = true;
         Node retr = trn.getNode();
+        keep.insert(retr);
         rewrittenTo[cur] = retr;
         rewrittenTo[ret] = retr;
         visit.push_back(retr);
@@ -121,6 +124,7 @@ TrustNode StaticRewrite::rewriteAssertion(TNode n)
       if (!wasRewritten)
       {
         visit.pop_back();
+        keep.insert(ret);
         visited[cur] = ret;
       }
     }
