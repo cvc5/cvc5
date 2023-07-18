@@ -170,7 +170,6 @@ Node TheoryUfRewriter::getHoApplyForApplyUf(TNode n)
 }
 Node TheoryUfRewriter::getApplyUfForHoApply(TNode n)
 {
-  Assert(n.getType().getNumChildren() == 2);
   std::vector<TNode> children;
   TNode curr = decomposeHoApply(n, children, true);
   // if operator is standard

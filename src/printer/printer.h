@@ -179,9 +179,9 @@ class CVC5_EXPORT Printer
 
   /** Print synth-fun command */
   virtual void toStreamCmdSynthFun(std::ostream& out,
-                                   Node f,
+                                   const std::string& id,
                                    const std::vector<Node>& vars,
-                                   bool isInv,
+                                   TypeNode rangeType,
                                    TypeNode sygusType) const;
 
   /** Print constraint command */
