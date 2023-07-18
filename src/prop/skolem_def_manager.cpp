@@ -112,8 +112,8 @@ bool SkolemDefManager::hasSkolems(TNode n)
         // This is for example the case in strings reduction for Booleans,
         // ground term purification for E-matching, etc.
         d_hasSkolems[cur] =
-            (ck == kind::SKOLEM && (d_skDefs.find(cur) != d_skDefs.end())
-             || cur.getType().isBoolean());
+            (ck == kind::SKOLEM && (d_skDefs.find(cur) != d_skDefs.end()
+             || cur.getType().isBoolean()));
       }
       else
       {
