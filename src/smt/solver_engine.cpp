@@ -802,7 +802,15 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore()
   {
     passerts.push_back(a);
   }
-  std::pair<Result, std::vector<Node>> ret = tcm.getTimeoutCore(passerts);
+  const context::CDHashMap<size_t, Node>& ppsm =
+      d_smtSolver->getPreprocessedSkolemMap();
+  std::map<size_t, Node> ppSkolemMap;
+  for (auto& pk : ppsm)
+  {
+    ppSkolemMap[pk.first] = pk.second;
+  }
+  std::pair<Result, std::vector<Node>> ret =
+      tcm.getTimeoutCore(passerts, ppSkolemMap);
   // convert the preprocessed assertions to input assertions
   std::vector<Node> core = convertPreprocessedToInput(ret.second, true);
   endCall();
