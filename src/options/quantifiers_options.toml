@@ -1058,7 +1058,7 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "sygus-core-connective"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "use unsat core analysis to construct Boolean connective to sygus conjectures"
 
 [[option]]
