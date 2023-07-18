@@ -363,6 +363,7 @@ bool TimeoutCoreManager::recordCurrentModel(bool& allAssertsSat,
       // a different one
       continue;
     }
+    // 7 is the max value for indexScore as computed below
     if (indexScore == 7 || (indexSet && i >= d_numAssertsNsk))
     {
       // already max score, or we found a normal assertion
