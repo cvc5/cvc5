@@ -62,12 +62,23 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
                           << lambda << " for " << node << "\n";
       std::vector<TNode> vars(lambda[0].begin(), lambda[0].end());
       std::vector<TNode> subs(node.begin(), node.end());
-      Node ret = lambda[1].substitute(
+      std::unordered_set<Node> fvs;
+      for (TNode s : subs)
+      {
+        expr::getFreeVariables(s, fvs);
+      }
+      Node new_body = lambda[1];
+      if (!fvs.empty())
+      {
+        ElimShadowNodeConverter esnc(node, fvs);
+        new_body = esnc.convert(new_body);
+      }
+      Node ret = new_body.substitute(
           vars.begin(), vars.end(), subs.begin(), subs.end());
 
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
-    else if (!canUseAsApplyUfOperator(node.getOperator()))
+    if (!canUseAsApplyUfOperator(node.getOperator()))
     {
       return RewriteResponse(REWRITE_AGAIN_FULL, getHoApplyForApplyUf(node));
     }
@@ -96,9 +107,15 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       }
 
       TNode arg = node[1];
+      std::unordered_set<Node> fvs;
+      expr::getFreeVariables(arg, fvs);
+      if (!fvs.empty())
+      {
+        ElimShadowNodeConverter esnc(node, fvs);
+        new_body = esnc.convert(new_body);
+      }
       TNode var = lambda[0][0];
       new_body = new_body.substitute(var, arg);
-
       Trace("uf-ho-beta") << "uf-ho-beta : ..new body : " << new_body << "\n";
       return RewriteResponse(REWRITE_AGAIN_FULL, new_body);
     }
@@ -153,7 +170,6 @@ Node TheoryUfRewriter::getHoApplyForApplyUf(TNode n)
 }
 Node TheoryUfRewriter::getApplyUfForHoApply(TNode n)
 {
-  Assert(n.getType().getNumChildren() == 2);
   std::vector<TNode> children;
   TNode curr = decomposeHoApply(n, children, true);
   // if operator is standard
