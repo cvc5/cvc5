@@ -97,15 +97,15 @@ std::ostream& operator<<(std::ostream& out, TConvCachePolicy tcpol);
  *
  * For example, RtfTermContext uses hash value 2 to indicate we are in a "term
  * position". Say the user of this class calls:
- *   addRewriteStep( (and A B), BOOLEAN_TERM_VARIABLE_1, pg, true, 2)
- * This indicates that (and A B) should rewrite to BOOLEAN_TERM_VARIABLE_1 if
+ *   addRewriteStep( (and A B), @PURIFY_1, pg, true, 2)
+ * This indicates that (and A B) should rewrite to @PURIFY_1 if
  * (and A B) occurs in a term position, where pg is a proof generator that can
  * provide a closed proof of:
- *   (= (and A B) BOOLEAN_TERM_VARIABLE_1)
+ *   (= (and A B) @PURIFY_1)
  * Subsequently, this class may respond to a call to getProofFor on:
  *   (=
  *     (or (and A B) (P (and A B)))
- *     (or (and A B) (P BOOLEAN_TERM_VARIABLE_1)))
+ *     (or (and A B) (P @PURIFY_1)))
  * where P is a predicate Bool -> Bool. The proof returned by this class
  * involves congruence and pg's proof of the equivalence above. In particular,
  * assuming its proof of the equivalence is P1, this proof is:
