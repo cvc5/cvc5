@@ -38,7 +38,6 @@ TypeNode TypeChecker::preComputeType(NodeManager* nodeManager, TNode n)
     case kind::SKOLEM:
     case kind::BOUND_VARIABLE:
     case kind::INST_CONSTANT:
-    case kind::BOOLEAN_TERM_VARIABLE:
     case kind::RAW_SYMBOL:
       // variable kinds have their type marked as an attribute upon construction
       typeNode = nodeManager->getAttribute(n, TypeAttr());
