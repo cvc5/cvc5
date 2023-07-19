@@ -2957,7 +2957,6 @@ class SolverTest
     // should enumerate based on the grammar of the function to synthesize above
     Term t = d_solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM);
     assertTrue(!t.isNull() && t.getSort().isBoolean());
-    assertThrows(CVC5ApiException.class, () -> d_solver.findSynthNext());
   }
 
   @Test

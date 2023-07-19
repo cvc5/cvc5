@@ -3014,8 +3014,6 @@ TEST_F(TestApiBlackSolver, findSynth)
   // should enumerate based on the grammar of the function to synthesize above
   cvc5::Term t = d_solver.findSynth(modes::FIND_SYNTH_TARGET_ENUM);
   ASSERT_TRUE(!t.isNull() && t.getSort().isBoolean());
-
-  ASSERT_THROW(d_solver.findSynthNext(), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, findSynth2)
