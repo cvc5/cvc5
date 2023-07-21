@@ -298,7 +298,8 @@ enum FindSynthTarget
    * grammar.
    *
    * The algorithm for determining which queries to generate is configured by
-   * --sygus-query-gen=MODE.
+   * --sygus-query-gen=MODE. Queries that are internally solved can be
+   * filtered by the option --sygus-query-gen-filter-solved.
    */
   FIND_SYNTH_TARGET_QUERY
 };
