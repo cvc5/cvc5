@@ -2761,32 +2761,6 @@ TEST_F(TestApiBlackSolver, synthFun)
   ASSERT_NO_THROW(slv.synthFun("f1", {x}, d_solver.getBooleanSort()));
 }
 
-TEST_F(TestApiBlackSolver, synthInv)
-{
-  d_solver.setOption("sygus", "true");
-  Sort boolean = d_solver.getBooleanSort();
-  Sort integer = d_solver.getIntegerSort();
-
-  Term nullTerm;
-  Term x = d_solver.mkVar(boolean);
-
-  Term start1 = d_solver.mkVar(boolean);
-  Term start2 = d_solver.mkVar(integer);
-
-  Grammar g1 = d_solver.mkGrammar({x}, {start1});
-  g1.addRule(start1, d_solver.mkBoolean(false));
-
-  Grammar g2 = d_solver.mkGrammar({x}, {start2});
-  g2.addRule(start2, d_solver.mkInteger(0));
-
-  ASSERT_NO_THROW(d_solver.synthInv("", {}));
-  ASSERT_NO_THROW(d_solver.synthInv("i1", {x}));
-  ASSERT_NO_THROW(d_solver.synthInv("i2", {x}, g1));
-
-  ASSERT_THROW(d_solver.synthInv("i3", {nullTerm}), CVC5ApiException);
-  ASSERT_THROW(d_solver.synthInv("i4", {x}, g2), CVC5ApiException);
-}
-
 TEST_F(TestApiBlackSolver, addSygusConstraint)
 {
   d_solver.setOption("sygus", "true");

@@ -255,8 +255,6 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Term findSynth(FindSynthTarget fst) except +
         Term findSynth(FindSynthTarget fst, Grammar grammar) except +
         Term findSynthNext() except +
-        Term synthInv(const string& symbol, const vector[Term]& bound_vars) except +
-        Term synthInv(const string& symbol, const vector[Term]& bound_vars, Grammar grammar) except +
         # End of sygus related functions
 
         Term mkTrue() except +

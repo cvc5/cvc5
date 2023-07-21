@@ -2070,21 +2070,16 @@ std::string Smt2Printer::sygusGrammarString(const TypeNode& t)
 }
 
 void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
-                                      Node f,
+                                      const std::string& id,
                                       const std::vector<Node>& vars,
-                                      bool isInv,
+                                      TypeNode rangeType,
                                       TypeNode sygusType) const
 {
-  out << '(' << (isInv ? "synth-inv " : "synth-fun ") << f << ' ';
+  out << "(synth-fun " << cvc5::internal::quoteSymbol(id) << ' ';
   // print variable list
   toStreamSortedVarList(out, vars);
-  // if not invariant-to-synthesize, print return type
-  if (!isInv)
-  {
-    TypeNode ftn = f.getType();
-    TypeNode range = ftn.isFunction() ? ftn.getRangeType() : ftn;
-    out << ' ' << range;
-  }
+  // print return type
+  out << ' ' << rangeType;
   out << '\n';
   // print grammar, if any
   if (!sygusType.isNull())

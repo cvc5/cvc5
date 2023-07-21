@@ -25,10 +25,9 @@ namespace cvc5 {
 namespace parser {
 
 /**
- * Definitions of tokens used in Flex parsers. This must be an `int` to match
- * Flex's auto-generated lexing code.
+ * Definitions of tokens used in parsers.
  */
-enum Token : int
+enum Token : uint32_t
 {
   EOF_TOK = 0,
   ALPHA,
