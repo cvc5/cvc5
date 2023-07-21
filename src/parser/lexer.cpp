@@ -13,7 +13,7 @@
  * Base class lexer
  */
 
-#include "parser/flex_lexer.h"
+#include "parser/lexer.h"
 
 #include <cassert>
 #include <iostream>
@@ -34,18 +34,18 @@ std::ostream& operator<<(std::ostream& o, const Span& l)
   return o << l.d_start << "-" << l.d_end;
 }
 
-FlexLexer::FlexLexer()
+Lexer::Lexer()
     : d_bufferPos(0), d_bufferEnd(0), d_peekedChar(false), d_chPeeked(0)
 {
 }
 
-void FlexLexer::warning(const std::string& msg)
+void Lexer::warning(const std::string& msg)
 {
   Warning() << d_inputName << ':' << d_span.d_start.d_line << '.'
             << d_span.d_start.d_column << ": " << msg << std::endl;
 }
 
-void FlexLexer::parseError(const std::string& msg, bool eofException)
+void Lexer::parseError(const std::string& msg, bool eofException)
 {
   if (eofException)
   {
@@ -59,7 +59,7 @@ void FlexLexer::parseError(const std::string& msg, bool eofException)
   }
 }
 
-void FlexLexer::initSpan()
+void Lexer::initSpan()
 {
   d_span.d_start.d_line = 1;
   d_span.d_start.d_column = 0;
@@ -67,7 +67,7 @@ void FlexLexer::initSpan()
   d_span.d_end.d_column = 0;
 }
 
-void FlexLexer::initialize(FlexInput* input, const std::string& inputName)
+void Lexer::initialize(Input* input, const std::string& inputName)
 {
   Assert(input != nullptr);
   d_istream = input->getStream();
@@ -81,7 +81,7 @@ void FlexLexer::initialize(FlexInput* input, const std::string& inputName)
   d_chPeeked = 0;
 }
 
-Token FlexLexer::nextToken()
+Token Lexer::nextToken()
 {
   if (d_peeked.empty())
   {
@@ -93,7 +93,7 @@ Token FlexLexer::nextToken()
   return t;
 }
 
-Token FlexLexer::peekToken()
+Token Lexer::peekToken()
 {
   // parse next token
   Token t = nextTokenInternal();
@@ -103,9 +103,9 @@ Token FlexLexer::peekToken()
   return t;
 }
 
-void FlexLexer::reinsertToken(Token t) { d_peeked.push_back(t); }
+void Lexer::reinsertToken(Token t) { d_peeked.push_back(t); }
 
-void FlexLexer::unexpectedTokenError(Token t, const std::string& info)
+void Lexer::unexpectedTokenError(Token t, const std::string& info)
 {
   Assert(d_peeked.empty());
   std::ostringstream o{};
@@ -115,7 +115,7 @@ void FlexLexer::unexpectedTokenError(Token t, const std::string& info)
   parseError(o.str(), t == Token::EOF_TOK);
 }
 
-void FlexLexer::eatToken(Token t)
+void Lexer::eatToken(Token t)
 {
   Token tt = nextToken();
   if (t != tt)
@@ -126,7 +126,7 @@ void FlexLexer::eatToken(Token t)
   }
 }
 
-bool FlexLexer::eatTokenChoice(Token t, Token f)
+bool Lexer::eatTokenChoice(Token t, Token f)
 {
   Token tt = nextToken();
   if (tt == t)

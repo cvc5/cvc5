@@ -15,8 +15,8 @@
 
 #include "cvc5parser_private.h"
 
-#ifndef CVC5__PARSER__SMT2__SMT2_H
-#define CVC5__PARSER__SMT2__SMT2_H
+#ifndef CVC5__PARSER__SMT2__SMT2_STATE_H
+#define CVC5__PARSER__SMT2__SMT2_STATE_H
 
 #include <cvc5/cvc5.h>
 
