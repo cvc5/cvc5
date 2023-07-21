@@ -1399,7 +1399,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
            || logic.isTheoryEnabled(THEORY_FP)))
       || opts.quantifiers.cegqiAll)
   {
-    SET_AND_NOTIFY(Quantifiers, cegqi, true, "logic");
+    SET_AND_NOTIFY_IF_NOT_USER(Quantifiers, cegqi, true, "logic");
     // check whether we should apply full cbqi
     if (logic.isPure(THEORY_BV))
     {
