@@ -10,13 +10,13 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Flex input class.
+ *  input class.
  */
 
 #include "cvc5parser_public.h"
 
-#ifndef CVC5__PARSER__FLEX_INPUT_H
-#define CVC5__PARSER__FLEX_INPUT_H
+#ifndef CVC5__PARSER__INPUT_H
+#define CVC5__PARSER__INPUT_H
 
 #include <memory>
 #include <sstream>
@@ -30,30 +30,30 @@ namespace parser {
  *
  * Currently this is std::istream& obtainable via getStream.
  */
-class FlexInput
+class Input
 {
  public:
-  FlexInput();
-  virtual ~FlexInput() {}
+  Input();
+  virtual ~Input() {}
   /** Set the input for the given file.
    *
    * @param filename the input filename
    */
-  static std::unique_ptr<FlexInput> mkFileInput(const std::string& filename);
+  static std::unique_ptr<Input> mkFileInput(const std::string& filename);
 
   /** Set the input for the given stream.
    *
    * @param input the input stream
    * @param name the name of the stream, for use in error messages
    */
-  static std::unique_ptr<FlexInput> mkStreamInput(std::istream& input);
+  static std::unique_ptr<Input> mkStreamInput(std::istream& input);
 
   /** Set the input for the given string
    *
    * @param input the input string
    * @param name the name of the stream, for use in error messages
    */
-  static std::unique_ptr<FlexInput> mkStringInput(const std::string& input);
+  static std::unique_ptr<Input> mkStringInput(const std::string& input);
   /** Get the stream to pass to the flex lexer. */
   virtual std::istream* getStream() = 0;
   /**

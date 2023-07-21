@@ -113,6 +113,11 @@ class SolverEngineState : protected EnvObj
    */
   void notifyGetInterpol(bool success);
   /**
+   * Notify that we finished a find-synth or find-synth-next query, where
+   * success is whether the command was successful.
+   */
+  void notifyFindSynth(bool success);
+  /**
    * Set that we are in a fully initialized state.
    */
   void markFinishInit();
