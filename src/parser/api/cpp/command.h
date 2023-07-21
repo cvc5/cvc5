@@ -17,7 +17,7 @@
  * code.
  */
 
-#include "cvc5parser_public.h"
+#include "cvc5_public.h"
 
 #ifndef CVC5__PARSER__API__CPP__COMMAND_H
 #define CVC5__PARSER__API__CPP__COMMAND_H
