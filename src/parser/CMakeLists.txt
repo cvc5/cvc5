@@ -31,25 +31,25 @@ set(libcvc5parserapi_src_files
 )
 
 set(libcvc5parser_src_files
-  flex_input.cpp
-  flex_input.h
-  flex_lexer.cpp
-  flex_lexer.h
-  flex_parser.cpp
-  flex_parser.h
-  parse_op.cpp
-  parse_op.h
+  input.cpp
+  input.h
+  lexer.cpp
+  lexer.h
   parser.cpp
   parser.h
+  parse_op.cpp
+  parse_op.h
+  parser_state.cpp
+  parser_state.h
   parser_exception.h
   parser_utils.cpp
   parser_utils.h
-  smt2/smt2.cpp
-  smt2/smt2.h
+  smt2/smt2_state.cpp
+  smt2/smt2_state.h
   smt2/smt2_cmd_parser.cpp
   smt2/smt2_cmd_parser.h
-  smt2/smt2_lexer_new.cpp
-  smt2/smt2_lexer_new.h
+  smt2/smt2_lexer.cpp
+  smt2/smt2_lexer.h
   smt2/smt2_cmd_parser.cpp
   smt2/smt2_cmd_parser.h
   smt2/smt2_parser.cpp

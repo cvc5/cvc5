@@ -1968,36 +1968,6 @@ cdef class Solver:
             result.append(term)
         return result
 
-
-    def synthInv(self, symbol, bound_vars, Grammar grammar=None):
-        """
-            Synthesize invariant.
-
-            SyGuS v2:
-
-            .. code-block:: smtlib
-
-                ( synth-inv <symbol> ( <boundVars>* ) <grammar> )
-
-            :param symbol: The name of the invariant.
-            :param boundVars: The parameters to this invariant.
-            :param grammar: The syntactic constraints.
-            :return: The invariant.
-        """
-        cdef Term term = Term(self)
-        cdef vector[c_Term] v
-        for bv in bound_vars:
-            v.push_back((<Term?> bv).cterm)
-        if grammar is None:
-            term.cterm = self.csolver.synthInv(
-                    symbol.encode(), <const vector[c_Term]&> v)
-        else:
-            term.cterm = self.csolver.synthInv(
-                    symbol.encode(),
-                    <const vector[c_Term]&> v,
-                    grammar.cgrammar)
-        return term
-
     def checkSatAssuming(self, *assumptions):
         """
             Check satisfiability assuming the given formula.
