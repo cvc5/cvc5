@@ -758,8 +758,12 @@ libcvc5_add_sources(
   theory/quantifiers/cegqi/ceg_dt_instantiator.h
   theory/quantifiers/cegqi/ceg_instantiator.cpp
   theory/quantifiers/cegqi/ceg_instantiator.h
+  theory/quantifiers/cegqi/ceg_utils.cpp
+  theory/quantifiers/cegqi/ceg_utils.h
   theory/quantifiers/cegqi/inst_strategy_cegqi.cpp
   theory/quantifiers/cegqi/inst_strategy_cegqi.h
+  theory/quantifiers/cegqi/instantiator.cpp
+  theory/quantifiers/cegqi/instantiator.h
   theory/quantifiers/cegqi/nested_qe.cpp
   theory/quantifiers/cegqi/nested_qe.h
   theory/quantifiers/cegqi/vts_term_cache.cpp
