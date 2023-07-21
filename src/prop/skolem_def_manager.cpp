@@ -28,7 +28,7 @@ SkolemDefManager::~SkolemDefManager() {}
 
 void SkolemDefManager::notifySkolemDefinition(TNode skolem, Node def)
 {
-  // Notice that skolem may have kind SKOLEM or BOOLEAN_TERM_VARIABLE
+  // Notice that skolem should have kind SKOLEM
   Trace("sk-defs") << "notifySkolemDefinition: " << def << " for " << skolem
                    << std::endl;
   // in very rare cases, a skolem may be generated twice for terms that are
@@ -111,14 +111,9 @@ bool SkolemDefManager::hasSkolems(TNode n)
         // introduced in a lemma prior to its definition being introduced.
         // This is for example the case in strings reduction for Booleans,
         // ground term purification for E-matching, etc.
-        if (ck == kind::SKOLEM)
-        {
-          d_hasSkolems[cur] = (d_skDefs.find(cur) != d_skDefs.end());
-        }
-        else
-        {
-          d_hasSkolems[cur] = (ck == kind::BOOLEAN_TERM_VARIABLE);
-        }
+        d_hasSkolems[cur] = (ck == kind::SKOLEM
+                             && (d_skDefs.find(cur) != d_skDefs.end()
+                                 || cur.getType().isBoolean()));
       }
       else
       {

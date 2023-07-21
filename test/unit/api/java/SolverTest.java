@@ -2697,33 +2697,6 @@ class SolverTest
   }
 
   @Test
-  void synthInv() throws CVC5ApiException
-  {
-    d_solver.setOption("sygus", "true");
-    Sort bool = d_solver.getBooleanSort();
-    Sort integer = d_solver.getIntegerSort();
-
-    Term nullTerm = new Term();
-    Term x = d_solver.mkVar(bool);
-
-    Term start1 = d_solver.mkVar(bool);
-    Term start2 = d_solver.mkVar(integer);
-
-    Grammar g1 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
-    g1.addRule(start1, d_solver.mkBoolean(false));
-
-    Grammar g2 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start2});
-    g2.addRule(start2, d_solver.mkInteger(0));
-
-    assertDoesNotThrow(() -> d_solver.synthInv("", new Term[] {}));
-    assertDoesNotThrow(() -> d_solver.synthInv("i1", new Term[] {x}));
-    assertDoesNotThrow(() -> d_solver.synthInv("i2", new Term[] {x}, g1));
-
-    assertThrows(CVC5ApiException.class, () -> d_solver.synthInv("i3", new Term[] {nullTerm}));
-    assertThrows(CVC5ApiException.class, () -> d_solver.synthInv("i4", new Term[] {x}, g2));
-  }
-
-  @Test
   void addSygusConstraint() throws CVC5ApiException
   {
     d_solver.setOption("sygus", "true");
