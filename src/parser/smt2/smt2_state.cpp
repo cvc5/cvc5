@@ -12,7 +12,7 @@
  *
  * Definitions of SMT2 constants.
  */
-#include "parser/smt2/smt2.h"
+#include "parser/smt2/smt2_state.h"
 
 #include <algorithm>
 

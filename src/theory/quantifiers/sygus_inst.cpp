@@ -538,10 +538,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
     // evaluation function, since we are not using the builtin support
     // for evaluation functions. We use the DT_SYGUS_EVAL term so that the
     // skolem construction here is deterministic and reproducible.
-    SkolemManager::SkolemFlags flags = eval.getType().isBoolean()
-                                           ? SkolemManager::SKOLEM_BOOL_TERM_VAR
-                                           : SkolemManager::SKOLEM_DEFAULT;
-    Node k = sm->mkPurifySkolem(eval, flags);
+    Node k = sm->mkPurifySkolem(eval);
     // Requires instantiation constant attribute as well. This ensures that
     // other instantiation methods, e.g. E-matching do not consider this term
     // for instantiation, as it is model-unsound to do so.

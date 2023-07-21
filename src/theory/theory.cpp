@@ -22,6 +22,7 @@
 
 #include "base/check.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
@@ -150,13 +151,18 @@ TheoryId Theory::theoryOf(TNode node,
       // Constants, variables, 0-ary constructors
       if (node.isVar())
       {
-        if (node.getKind() == kind::BOOLEAN_TERM_VARIABLE)
+        tid = theoryOf(node.getType(), usortOwner);
+        if (theoryOf(node.getType(), usortOwner) == theory::THEORY_BOOL)
         {
-          tid = THEORY_UF;
-        }
-        else
-        {
-          tid = theoryOf(node.getType(), usortOwner);
+          SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+          // Boolean variables belong to UF if they are "purify" variables.
+          // Purify variables are considered theory literals and sent to the
+          // UF theory to ensure theory combination is run properly on functions
+          // having Boolean arguments.
+          if (sm->getId(node) == SkolemFunId::PURIFY)
+          {
+            tid = THEORY_UF;
+          }
         }
       }
       else if (node.getKind() == kind::EQUAL)
@@ -183,14 +189,15 @@ TheoryId Theory::theoryOf(TNode node,
         }
         else
         {
-          if (node.getKind() == kind::BOOLEAN_TERM_VARIABLE)
+          SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+          if (sm->getId(node) == SkolemFunId::PURIFY)
           {
-            // Boolean vars go to UF
+            // purify vars also go to UF
             tid = THEORY_UF;
           }
           else
           {
-            // Except for the Boolean ones
+            // Other Boolean variables are Bool
             tid = THEORY_BOOL;
           }
         }
@@ -310,11 +317,6 @@ void Theory::debugPrintFacts() const{
 bool Theory::isLegalElimination(TNode x, TNode val)
 {
   Assert(x.isVar());
-  if (x.getKind() == kind::BOOLEAN_TERM_VARIABLE
-      || val.getKind() == kind::BOOLEAN_TERM_VARIABLE)
-  {
-    return false;
-  }
   if (expr::hasSubterm(val, x))
   {
     return false;
@@ -456,14 +458,12 @@ Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
     // 1) x is a variable
     // 2) x is not in the term t
     // 3) x : T and t : S, then S <: T
-    if (in[0].isVar() && isLegalElimination(in[0], in[1])
-        && in[0].getKind() != kind::BOOLEAN_TERM_VARIABLE)
+    if (in[0].isVar() && isLegalElimination(in[0], in[1]))
     {
       outSubstitutions.addSubstitutionSolved(in[0], in[1], tin);
       return PP_ASSERT_STATUS_SOLVED;
     }
-    if (in[1].isVar() && isLegalElimination(in[1], in[0])
-        && in[1].getKind() != kind::BOOLEAN_TERM_VARIABLE)
+    if (in[1].isVar() && isLegalElimination(in[1], in[0]))
     {
       outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
       return PP_ASSERT_STATUS_SOLVED;

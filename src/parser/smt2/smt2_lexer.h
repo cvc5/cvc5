@@ -15,8 +15,8 @@
 
 #include "cvc5parser_private.h"
 
-#ifndef CVC5__PARSER__SMT2__SMT2_LEXER_NEW_H
-#define CVC5__PARSER__SMT2__SMT2_LEXER_NEW_H
+#ifndef CVC5__PARSER__SMT2__SMT2_LEXER_H
+#define CVC5__PARSER__SMT2__SMT2_LEXER_H
 
 #include <array>
 #include <cstdlib>
@@ -25,7 +25,7 @@
 #include <vector>
 
 #include "base/check.h"
-#include "parser/flex_lexer.h"
+#include "parser/lexer.h"
 #include "parser/tokens.h"
 
 namespace cvc5 {
@@ -38,10 +38,10 @@ namespace parser {
  * Partially based on
  * https://github.com/bitwuzla/bitwuzla/blob/dev/src/parser/smt2/lexer.h
  */
-class Smt2LexerNew : public FlexLexer
+class Smt2Lexer : public Lexer
 {
  public:
-  Smt2LexerNew(bool isStrict, bool isSygus);
+  Smt2Lexer(bool isStrict, bool isSygus);
   const char* tokenStr() const override;
   /** Are we in strict mode? */
   bool isStrict() const;
