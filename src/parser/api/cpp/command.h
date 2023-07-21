@@ -334,12 +334,10 @@ class CVC5_EXPORT DeclarationDefinitionCommand : public Command
 class CVC5_EXPORT DeclareFunctionCommand : public DeclarationDefinitionCommand
 {
  protected:
-  cvc5::Term d_func;
   cvc5::Sort d_sort;
 
  public:
   DeclareFunctionCommand(const std::string& id,
-                         cvc5::Term func,
                          cvc5::Sort sort);
   cvc5::Term getFunction() const;
   cvc5::Sort getSort() const;
@@ -352,13 +350,11 @@ class CVC5_EXPORT DeclareFunctionCommand : public DeclarationDefinitionCommand
 class CVC5_EXPORT DeclarePoolCommand : public DeclarationDefinitionCommand
 {
  protected:
-  cvc5::Term d_func;
   cvc5::Sort d_sort;
   std::vector<cvc5::Term> d_initValue;
 
  public:
   DeclarePoolCommand(const std::string& id,
-                     cvc5::Term func,
                      cvc5::Sort sort,
                      const std::vector<cvc5::Term>& initValue);
   cvc5::Term getFunction() const;
@@ -595,19 +591,13 @@ class CVC5_EXPORT SynthFunCommand : public DeclarationDefinitionCommand
 {
  public:
   SynthFunCommand(const std::string& id,
-                  cvc5::Term fun,
                   const std::vector<cvc5::Term>& vars,
                   cvc5::Sort sort,
-                  bool isInv,
                   cvc5::Grammar* g);
-  /** returns the function-to-synthesize */
-  cvc5::Term getFunction() const;
   /** returns the input variables of the function-to-synthesize */
   const std::vector<cvc5::Term>& getVars() const;
   /** returns the sygus sort of the function-to-synthesize */
   cvc5::Sort getSort() const;
-  /** returns whether the function-to-synthesize should be an invariant */
-  bool isInv() const;
   /** Get the sygus grammar given for the synth fun command */
   const cvc5::Grammar* getGrammar() const;
 
@@ -623,14 +613,10 @@ class CVC5_EXPORT SynthFunCommand : public DeclarationDefinitionCommand
   void toStream(std::ostream& out) const override;
 
  protected:
-  /** the function-to-synthesize */
-  cvc5::Term d_fun;
   /** the input variables of the function-to-synthesize */
   std::vector<cvc5::Term> d_vars;
   /** sort of the function-to-synthesize */
   cvc5::Sort d_sort;
-  /** whether the function-to-synthesize should be an invariant */
-  bool d_isInv;
   /** optional grammar for the possible values of the function-to-sytnhesize */
   cvc5::Grammar* d_grammar;
 };

@@ -24,6 +24,7 @@
 #include "smt/env.h"
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/nl/poly_conversion.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
@@ -32,6 +33,16 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 namespace arith {
+
+/**
+ * A bound variable for the witness term used to eliminate real algebraic
+ * numbers.
+ */
+struct RealAlgebraicNumberVarAttributeId
+{
+};
+typedef expr::Attribute<RealAlgebraicNumberVarAttributeId, Node>
+    RealAlgebraicNumberVarAttribute;
 
 OperatorElim::OperatorElim(Env& env) : EagerProofGenerator(env) {}
 
@@ -383,6 +394,21 @@ Node OperatorElim::eliminateOperators(Node node,
       Assert(!lem.isNull());
       lems.push_back(mkSkolemLemma(lem, var));
       return var;
+    }
+    case REAL_ALGEBRAIC_NUMBER:
+    {
+      BoundVarManager* bvm = nm->getBoundVarManager();
+      Node v = bvm->mkBoundVar<RealAlgebraicNumberVarAttribute>(
+          node, "i", nm->realType());
+      Node w;
+#ifdef CVC5_POLY_IMP
+      w = PolyConverter::ran_to_node(
+          node.getOperator().getConst<RealAlgebraicNumber>(), v);
+#endif
+      // it should not be possible to define real algebraic numbers unless poly
+      // is enabled
+      Assert(!w.isNull());
+      return w;
     }
 
     default: break;

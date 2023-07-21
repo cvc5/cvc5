@@ -252,8 +252,6 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         SynthResult checkSynthNext() except +
         Term getSynthSolution(Term t) except +
         vector[Term] getSynthSolutions(const vector[Term]& terms) except +
-        Term synthInv(const string& symbol, const vector[Term]& bound_vars) except +
-        Term synthInv(const string& symbol, const vector[Term]& bound_vars, Grammar grammar) except +
         # End of sygus related functions
 
         Term mkTrue() except +
@@ -506,6 +504,10 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         const_iterator end() except +
         bint isCardinalityConstraint() except +
         pair[Sort, uint32_t] getCardinalityConstraint() except +
+        bint isRealAlgebraicNumber() except +
+        Term getRealAlgebraicNumberDefiningPolynomial(const Term& v) except +
+        Term getRealAlgebraicNumberLowerBound() except +
+        Term getRealAlgebraicNumberUpperBound() except +
 
         bint isConstArray() except +
         bint isBooleanValue() except +

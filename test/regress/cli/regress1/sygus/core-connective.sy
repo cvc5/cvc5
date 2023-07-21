@@ -1,0 +1,13 @@
+; COMMAND-LINE: --sygus-core-connective --sygus-out=status
+; EXPECT: feasible
+(set-logic ALL)
+(synth-fun P ((x Int) (y Int) (z Int)) Bool)
+
+(declare-var x Int)
+(declare-var y Int)
+(declare-var z Int)
+
+(constraint (=> (and (> x 2) (> y 2) (> z 2)) (P x y z)))
+(constraint (=> (P x y z) (> (+ x y z) 0)))
+
+(check-synth)
