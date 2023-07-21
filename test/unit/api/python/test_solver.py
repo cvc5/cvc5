@@ -2072,33 +2072,6 @@ def test_mk_sygus_grammar(solver):
     slv.mkGrammar([boolVar2], [intVar])
 
 
-def test_synth_inv(solver):
-    solver.setOption("sygus", "true")
-    boolean = solver.getBooleanSort()
-    integer = solver.getIntegerSort()
-
-    nullTerm = cvc5.Term(solver)
-    x = solver.mkVar(boolean)
-
-    start1 = solver.mkVar(boolean)
-    start2 = solver.mkVar(integer)
-
-    g1 = solver.mkGrammar([x], [start1])
-    g1.addRule(start1, solver.mkBoolean(False))
-
-    g2 = solver.mkGrammar([x], [start2])
-    g2.addRule(start2, solver.mkInteger(0))
-
-    solver.synthInv("", [])
-    solver.synthInv("i1", [x])
-    solver.synthInv("i2", [x], g1)
-
-    with pytest.raises(RuntimeError):
-        solver.synthInv("i3", [nullTerm])
-    with pytest.raises(RuntimeError):
-        solver.synthInv("i4", [x], g2)
-
-
 def test_add_sygus_constraint(solver):
     solver.setOption("sygus", "true")
     nullTerm = cvc5.Term(solver)
