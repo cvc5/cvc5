@@ -105,6 +105,7 @@ TrustNode StaticRewrite::rewriteAssertion(TNode n)
       if (childChanged)
       {
         ret = nm->mkNode(cur.getKind(), children);
+        keep.insert(ret);
       }
       bool wasRewritten = false;
       // For example, (= x y) ---> (and (>= x y) (<= x y))
@@ -124,7 +125,6 @@ TrustNode StaticRewrite::rewriteAssertion(TNode n)
       if (!wasRewritten)
       {
         visit.pop_back();
-        keep.insert(ret);
         visited[cur] = ret;
       }
     }
