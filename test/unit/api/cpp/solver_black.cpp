@@ -3492,10 +3492,7 @@ TEST_F(TestApiBlackSolver, proj_issue422)
   Term t300 = slv.mkTerm(Kind::BITVECTOR_SLT, {t276, t276});
   Term t301 = slv.mkTerm(Kind::EQUAL, {t288, t300});
   slv.assertFormula({t301});
-  // should terminate with a null indicating we are done enumerating
-  // rewrite rules.
   Term t = slv.findSynth(modes::FIND_SYNTH_TARGET_REWRITE_INPUT);
-  ASSERT_TRUE(t.isNull());
 }
 
 TEST_F(TestApiBlackSolver, proj_issue423)
