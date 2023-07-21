@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mathias Preiner, Andrew Reynolds, Andres Noetzli
+#   Andrew Reynolds, Mathias Preiner, Andres Noetzli
 #
 # This file is part of the cvc5 project.
 #
