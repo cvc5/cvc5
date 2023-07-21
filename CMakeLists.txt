@@ -231,22 +231,33 @@ add_check_cxx_supression_flag("-Wno-class-memaccess")
 
 if (WIN32)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--stack,100000000")
-
-  # ANTLR uses pragmas that certain versions of MinGW does not support
-  add_check_c_cxx_flag("-Wno-error=unknown-pragmas")
 endif ()
 
 #-----------------------------------------------------------------------------#
-# Use ld.gold if available
+# Use ld.mold if available, otherwise use ld.gold if available
 
+set(USE_EXPLICIT_LINKER_FLAG FALSE)
 execute_process(COMMAND ${CMAKE_C_COMPILER}
-                -fuse-ld=gold
-                -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_VERSION)
-if ("${LD_VERSION}" MATCHES "GNU gold")
-  string(APPEND CMAKE_EXE_LINKER_FLAGS " -fuse-ld=gold")
-  string(APPEND CMAKE_SHARED_LINKER_FLAGS " -fuse-ld=gold")
-  string(APPEND CMAKE_MODULE_LINKER_FLAGS " -fuse-ld=gold")
-  message(STATUS "Using GNU gold linker.")
+                -fuse-ld=mold
+                -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_MOLD_VERSION)
+if ("${LD_MOLD_VERSION}" MATCHES "mold")
+  set(USE_EXPLICIT_LINKER_FLAG TRUE)
+  set(EXPLICIT_LINKER_FLAG " -fuse-ld=mold")
+  message(STATUS "Using mold linker.")
+else ()
+  execute_process(COMMAND ${CMAKE_C_COMPILER}
+                  -fuse-ld=gold
+                  -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_GOLD_VERSION)
+  if ("${LD_GOLD_VERSION}" MATCHES "GNU gold")
+    set(USE_EXPLICIT_LINKER_FLAG TRUE)
+    set(EXPLICIT_LINKER_FLAG " -fuse-ld=gold")
+    message(STATUS "Using GNU gold linker.")
+  endif ()
+endif ()
+if (USE_EXPLICIT_LINKER_FLAG)
+  string(APPEND CMAKE_EXE_LINKER_FLAGS ${EXPLICIT_LINKER_FLAG})
+  string(APPEND CMAKE_SHARED_LINKER_FLAGS ${EXPLICIT_LINKER_FLAG})
+  string(APPEND CMAKE_MODULE_LINKER_FLAGS ${EXPLICIT_LINKER_FLAG})
 endif ()
 
 #-----------------------------------------------------------------------------#
