@@ -33,6 +33,8 @@ class Instantiator;
 class InstantiatorPreprocess;
 class InstStrategyCegqi;
 class QuantifiersState;
+class QuantifiersInferenceManager;
+class QuantifiersRegistry;
 class TermRegistry;
 
 /**
@@ -215,8 +217,9 @@ class CegInstantiator : protected EnvObj
   CegInstantiator(Env& env,
                   Node q,
                   QuantifiersState& qs,
-                  TermRegistry& tr,
-                  InstStrategyCegqi* parent);
+                  QuantifiersInferenceManager& qim,
+                  QuantifiersRegistry& qr,
+                  TermRegistry& tr);
   virtual ~CegInstantiator();
   /** check
    * This adds instantiations based on the state of d_vars in current context
@@ -357,6 +360,10 @@ class CegInstantiator : protected EnvObj
   Node d_quant;
   /** Reference to the quantifiers state */
   QuantifiersState& d_qstate;
+  /** Reference to the quantifiers inference manager */
+  QuantifiersInferenceManager& d_qim;
+  /** Reference to the quantifiers registry */
+  QuantifiersRegistry& d_qreg;
   /** Reference to the term registry */
   TermRegistry& d_treg;
   /** The parent of this instantiator */

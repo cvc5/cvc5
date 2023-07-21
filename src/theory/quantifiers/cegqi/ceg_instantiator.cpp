@@ -185,13 +185,15 @@ void SolvedForm::pop_back(Node pv, Node n, TermProperties& pv_prop)
 CegInstantiator::CegInstantiator(Env& env,
                                  Node q,
                                  QuantifiersState& qs,
-                                 TermRegistry& tr,
-                                 InstStrategyCegqi* parent)
+                                 QuantifiersInferenceManager& qim,
+                                 QuantifiersRegistry& qr,
+                                 TermRegistry& tr)
     : EnvObj(env),
       d_quant(q),
       d_qstate(qs),
+      d_qim(qim),
+      d_qreg(qr),
       d_treg(tr),
-      d_parent(parent),
       d_is_nested_quant(false),
       d_effort(CEG_INST_EFFORT_NONE)
 {
@@ -487,7 +489,8 @@ void CegInstantiator::activateInstantiationVariable(Node v, unsigned index)
     Instantiator * vinst;
     if (tn.isRealOrInt())
     {
-      vinst = new ArithInstantiator(d_env, tn, d_parent->getVtsTermCache());
+      VtsTermCache* vtc = d_treg.getVtsTermCache();
+      vinst = new ArithInstantiator(d_env, tn, vtc);
     }
     else if (tn.isDatatype())
     {
@@ -495,7 +498,7 @@ void CegInstantiator::activateInstantiationVariable(Node v, unsigned index)
     }
     else if (tn.isBitVector())
     {
-      vinst = new BvInstantiator(d_env, tn, d_parent->getBvInverter());
+      vinst = new BvInstantiator(d_env, tn, d_treg.getBvInverter());
     }
     else if (tn.isBoolean())
     {
@@ -1108,7 +1111,30 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
     }
   }
   Trace("cegqi-inst-debug") << "Do the instantiation...." << std::endl;
-  return d_parent->doAddInstantiation(subs);
+
+  Assert(!d_quant.isNull());
+  // check if we need virtual term substitution (if used delta or infinity)
+  VtsTermCache* vtc = d_treg.getVtsTermCache();
+  bool usedVts = vtc->containsVtsTerm(subs, false);
+  Instantiate* inst = d_qim.getInstantiate();
+  // if doing partial quantifier elimination, record the instantiation and set
+  // the incomplete flag instead of sending instantiation lemma
+  if (d_qreg.getQuantAttributes().isQuantElimPartial(d_quant))
+  {
+    inst->recordInstantiation(d_quant, subs, usedVts);
+    return true;
+  }
+  else if (inst->addInstantiation(d_quant,
+                                  subs,
+                                  InferenceId::QUANTIFIERS_INST_CEGQI,
+                                  Node::null(),
+                                  usedVts))
+  {
+    return true;
+  }
+  // this should never happen for monotonic selection strategies
+  Trace("cegqi-warn") << "WARNING: Existing instantiation" << std::endl;
+  return false;
 }
 
 bool CegInstantiator::isEligibleForInstantiation(Node n) const
