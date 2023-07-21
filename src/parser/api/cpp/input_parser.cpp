@@ -79,7 +79,7 @@ void InputParser::setFileInput(const std::string& lang,
 {
   Trace("parser") << "setFileInput(" << lang << ", " << filename << ")"
                   << std::endl;
-  d_fparser = FlexParser::mkFlexParser(lang, d_solver, d_sm);
+  d_fparser = Parser::mkParser(lang, d_solver, d_sm);
   d_fparser->setFileInput(filename);
 }
 
@@ -89,7 +89,7 @@ void InputParser::setStreamInput(const std::string& lang,
 {
   Trace("parser") << "setStreamInput(" << lang << ", ..., " << name << ")"
                   << std::endl;
-  d_fparser = FlexParser::mkFlexParser(lang, d_solver, d_sm);
+  d_fparser = Parser::mkParser(lang, d_solver, d_sm);
   d_fparser->setStreamInput(input, name);
 }
 
@@ -101,7 +101,7 @@ void InputParser::setIncrementalStringInput(const std::string& lang,
   d_istringLang = lang;
   d_istringName = name;
   // initialize the parser
-  d_fparser = FlexParser::mkFlexParser(lang, d_solver, d_sm);
+  d_fparser = Parser::mkParser(lang, d_solver, d_sm);
 }
 void InputParser::appendIncrementalStringInput(const std::string& input)
 {
