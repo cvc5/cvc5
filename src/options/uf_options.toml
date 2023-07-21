@@ -64,7 +64,7 @@ name   = "Uninterpreted Functions Theory"
   category   = "regular"
   long       = "uf-lazy-ll"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "do lambda lifting lazily"
 
 [[option]]

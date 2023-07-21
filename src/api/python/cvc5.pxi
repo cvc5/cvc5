@@ -1968,36 +1968,6 @@ cdef class Solver:
             result.append(term)
         return result
 
-
-    def synthInv(self, symbol, bound_vars, Grammar grammar=None):
-        """
-            Synthesize invariant.
-
-            SyGuS v2:
-
-            .. code-block:: smtlib
-
-                ( synth-inv <symbol> ( <boundVars>* ) <grammar> )
-
-            :param symbol: The name of the invariant.
-            :param boundVars: The parameters to this invariant.
-            :param grammar: The syntactic constraints.
-            :return: The invariant.
-        """
-        cdef Term term = Term(self)
-        cdef vector[c_Term] v
-        for bv in bound_vars:
-            v.push_back((<Term?> bv).cterm)
-        if grammar is None:
-            term.cterm = self.csolver.synthInv(
-                    symbol.encode(), <const vector[c_Term]&> v)
-        else:
-            term.cterm = self.csolver.synthInv(
-                    symbol.encode(),
-                    <const vector[c_Term]&> v,
-                    grammar.cgrammar)
-        return term
-
     def checkSatAssuming(self, *assumptions):
         """
             Check satisfiability assuming the given formula.
@@ -4112,6 +4082,8 @@ cdef class Term:
 
     def getCardinalityConstraint(self):
         """
+            .. note:: Asserts :py:meth:`isCardinalityConstraint()`.
+
             :return: The sort the cardinality constraint is for and its upper
                      bound.
 
@@ -4124,6 +4096,47 @@ cdef class Term:
         sort.csort = p.first
         return (sort, p.second)
 
+    def isRealAlgebraicNumber(self):
+        """
+            :return: True if the term is a real algebraic number.
+
+            .. warning:: This method is experimental and may change in future
+                         versions.
+        """
+        return self.cterm.isRealAlgebraicNumber()
+
+
+    def getRealAlgebraicNumberDefiningPolynomial(self, Term v):
+        """
+            .. note:: Asserts :py:meth:`isRealAlgebraicNumber()`.
+
+           :param v: The variable over which to express the polynomial
+           :return: The defining polynomial for the real algebraic number, expressed in
+                    terms of the given variable.
+        """
+        cdef Term term = Term(self.solver)
+        term.cterm = self.cterm.getRealAlgebraicNumberDefiningPolynomial(v.cterm)
+        return term
+
+    def getRealAlgebraicNumberLowerBound(self):
+        """
+            .. note:: Asserts :py:meth:`isRealAlgebraicNumber()`.
+
+	        :return: The lower bound for the value of the real algebraic number.
+        """
+        cdef Term term = Term(self.solver)
+        term.cterm = self.cterm.getRealAlgebraicNumberLowerBound()
+        return term
+
+    def getRealAlgebraicNumberUpperBound(self):
+        """
+            .. note:: Asserts :py:meth:`isRealAlgebraicNumber()`.
+
+	        :return: The upper bound for the value of the real algebraic number.
+        """
+        cdef Term term = Term(self.solver)
+        term.cterm = self.cterm.getRealAlgebraicNumberUpperBound()
+        return term
 
     def isUninterpretedSortValue(self):
         """
