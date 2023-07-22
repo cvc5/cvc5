@@ -60,7 +60,7 @@ int main()
       slv.defineFun("post-f", {x}, boolean, slv.mkTerm(LEQ, {x, ten}));
 
   // declare the invariant-to-synthesize
-  Term inv_f = slv.synthInv("inv-f", {x});
+  Term inv_f = slv.synthFun("inv-f", {x}, boolean);
 
   slv.addSygusInvConstraint(inv_f, pre_f, trans_f, post_f);
 

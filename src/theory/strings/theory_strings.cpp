@@ -79,7 +79,7 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
                 d_csolver,
                 d_extTheory,
                 d_statistics),
-      d_psolver(env, d_state, d_im, d_termReg, d_bsolver),
+      d_psolver(env, d_state, d_im, d_termReg, d_bsolver, d_csolver),
       d_asolver(env,
                 d_state,
                 d_im,
@@ -288,7 +288,6 @@ struct SortSeqIndex
   {
     Assert(i.first.isConst() && i.first.getType().isInteger()
            && j.first.isConst() && j.first.getType().isInteger());
-    Assert(i.first != j.first);
     return i.first.getConst<Rational>() < j.first.getConst<Rational>();
   }
 };
@@ -803,7 +802,7 @@ Node TheoryStrings::mkSkeletonFor(Node c)
     Assert(snv.getType() == etn);
     Node v = bvm->mkBoundVar<SeqModelVarAttribute>(snv, etn);
     // use a skolem, not a bound variable
-    Node kv = sm->mkPurifySkolem(v, "smv");
+    Node kv = sm->mkPurifySkolem(v);
     skChildren.push_back(utils::mkUnit(tn, kv));
   }
   return utils::mkConcat(skChildren, c.getType());

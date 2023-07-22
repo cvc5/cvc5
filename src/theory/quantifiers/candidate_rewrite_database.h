@@ -50,16 +50,16 @@ class CandidateRewriteDatabase : public ExprMiner
    * @param doCheck Whether to check rewrite rules using subsolvers.
    * @param rewAccel Whether to construct symmetry breaking lemmas based on
    * discovered rewrites (see option sygusRewSynthAccel()).
-   * @param silent Whether to silence the output of rewrites discovered by this
-   * class.
    * @param filterPairs Whether to filter rewrite pairs using filtering
    * techniques from the SAT 2019 paper above.
+   * @param rec Whether we are recursively finding rules for all subterms
+   * added to this class
    */
   CandidateRewriteDatabase(Env& env,
                            bool doCheck,
                            bool rewAccel = false,
-                           bool silent = false,
-                           bool filterPairs = true);
+                           bool filterPairs = true,
+                           bool rec = false);
   ~CandidateRewriteDatabase() {}
   /**  Initialize this class */
   void initialize(const std::vector<Node>& var, SygusSampler* ss) override;
@@ -84,26 +84,22 @@ class CandidateRewriteDatabase : public ExprMiner
    * cause a candidate-rewrite to be printed on the output stream out.
    *
    * @param sol The term to add to this class.
-   * @param rec If true, then we also recursively add all subterms of sol
-   * to this class as well.
-   * @param out The stream to output rewrite rules on.
-   * @param rew_print Set to true if this class printed a rewrite involving sol.
+   * @param rewrites The set of rewrite rules discovered on this call.
    * @return A previous term eq_sol added to this class, such that sol is
    * equivalent to eq_sol based on the criteria used by this class. We return
    * only terms that are verified to be equivalent to sol.
    */
-  Node addTerm(Node sol, bool rec, std::ostream& out, bool& rew_print);
-  Node addTerm(Node sol, bool rec, std::ostream& out);
+  Node addOrGetTerm(Node sol, std::vector<Node>& rewrites);
   /**
    * Same as above, returns true if the return value of addTerm was equal to
    * sol, in other words, sol was a new unique term. This assumes false for
    * the argument rec.
    */
-  bool addTerm(Node sol, std::ostream& out) override;
-  /** sets whether this class should output candidate rewrites it finds */
-  void setSilent(bool flag);
+  bool addTerm(Node sol, std::vector<Node>& rewrites) override;
   /** Enable the (extended) rewriter for this class */
   void enableExtendedRewriter();
+  /** Was the given rewrite verified? */
+  bool wasVerified(const Node& rewrite) const;
 
  private:
   /** (required) pointer to the sygus term database of d_qe */
@@ -125,12 +121,16 @@ class CandidateRewriteDatabase : public ExprMiner
   bool d_filterPairs;
   /** whether we are using sygus */
   bool d_using_sygus;
+  /** Whether we check rewrite rules for all subterms added to this class */
+  bool d_rec;
   /** candidate rewrite filter */
   CandidateRewriteFilter d_crewrite_filter;
   /** the cache for results of addTerm */
   std::unordered_map<Node, Node> d_add_term_cache;
   /** The options for subsolver calls */
   Options d_subOptions;
+  /** The set of rewrites that succeeded verification */
+  std::unordered_set<Node> d_verified;
 };
 
 }  // namespace quantifiers

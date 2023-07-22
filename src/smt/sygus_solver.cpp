@@ -30,7 +30,6 @@
 #include "smt/smt_solver.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
@@ -76,17 +75,14 @@ void SygusSolver::declareSynthFun(Node fn,
   {
     Node bvl = nm->mkNode(BOUND_VAR_LIST, vars);
     // use an attribute to mark its bound variable list
-    SygusSynthFunVarListAttribute ssfvla;
-    fn.setAttribute(ssfvla, bvl);
+    quantifiers::SygusUtils::setSygusArgumentList(fn, bvl);
   }
   // whether sygus type encodes syntax restrictions
   if (!sygusType.isNull() && sygusType.isDatatype()
       && sygusType.getDType().isSygus())
   {
-    Node sym = nm->mkBoundVar("sfproxy", sygusType);
     // use an attribute to mark its grammar
-    SygusSynthGrammarAttribute ssfga;
-    fn.setAttribute(ssfga, sym);
+    quantifiers::SygusUtils::setSygusType(fn, sygusType);
     // we must expand definitions for sygus operators in the block
     expandDefinitionsSygusDt(sygusType);
   }
@@ -565,6 +561,17 @@ std::vector<Node> SygusSolver::listToVector(const NodeList& list)
     vec.push_back(n);
   }
   return vec;
+}
+
+std::vector<std::pair<Node, TypeNode>> SygusSolver::getSynthFunctions() const
+{
+  std::vector<std::pair<Node, TypeNode>> funs;
+  for (const Node& f : d_sygusFunSymbols)
+  {
+    TypeNode st = quantifiers::SygusUtils::getSygusType(f);
+    funs.emplace_back(f, st);
+  }
+  return funs;
 }
 
 }  // namespace smt

@@ -67,6 +67,7 @@ class SygusSolver;
 class AbductionSolver;
 class InterpolationSolver;
 class QuantElimSolver;
+class FindSynthSolver;
 
 struct SolverEngineStatistics;
 class PfManager;
@@ -441,6 +442,14 @@ class CVC5_EXPORT SolverEngine
    * @throw Exception
    */
   SynthResult checkSynth(bool isNext = false);
+  /**
+   * Find synth for the given target and grammar.
+   */
+  Node findSynth(modes::FindSynthTarget fst, const TypeNode& gtn);
+  /**
+   * Find synth for the given target and grammar.
+   */
+  Node findSynthNext();
 
   /*------------------------- end of sygus commands ------------------------*/
 
@@ -853,6 +862,24 @@ class CVC5_EXPORT SolverEngine
   SolverEngine(const SolverEngine&) = delete;
   SolverEngine& operator=(const SolverEngine&) = delete;
 
+  /**
+   * Begin call, which is called before any method that requires initializing
+   * this solver engine and make the state of the internal solver current.
+   *
+   * In particular, this ensures the solver is initialized, the pending pops
+   * on the context are processed, and optionally calls the resource manager
+   * to reset its limits (ResourceManager::beginCall).
+   *
+   * @param needsRLlimit If true, then beginCall() is called on the resource
+   * manager maintained by this class.
+   */
+  void beginCall(bool needsRLlimit = false);
+  /**
+   * End call. Should follow after a call to beginCall where needsRLlimit
+   * was true.
+   */
+  void endCall();
+
   /** Set solver instance that owns this SolverEngine. */
   void setSolver(cvc5::Solver* solver) { d_solver = solver; }
 
@@ -992,6 +1019,18 @@ class CVC5_EXPORT SolverEngine
   /** Vector version of above. */
   void ensureWellFormedTerms(const std::vector<Node>& ns,
                              const std::string& src) const;
+  /**
+   * Convert preprocessed assertions to the input formulas that imply them. In
+   * detail, this converts a set of preprocessed assertions to a set of input
+   * assertions based on the proof of preprocessing. It is used for unsat cores
+   * and timeout cores.
+   *
+   * @param ppa The preprocessed assertions to convert
+   * @param isInternal Used for debug printing unsat cores, i.e. when isInternal
+   * is false, we print debug information.
+   */
+  std::vector<Node> convertPreprocessedToInput(const std::vector<Node>& ppa,
+                                               bool isInternal);
   /* Members -------------------------------------------------------------- */
 
   /** Solver instance that owns this SolverEngine instance. */
@@ -1039,6 +1078,8 @@ class CVC5_EXPORT SolverEngine
 
   /** The solver for sygus queries */
   std::unique_ptr<smt::SygusSolver> d_sygusSolver;
+  /** The solver for find-synth queries */
+  std::unique_ptr<smt::FindSynthSolver> d_findSynthSolver;
 
   /** The solver for abduction queries */
   std::unique_ptr<smt::AbductionSolver> d_abductSolver;

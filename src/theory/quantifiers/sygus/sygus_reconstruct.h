@@ -139,7 +139,9 @@ using NodePairMap = std::unordered_map<Node, Node>;
  *           push(Stack, k'')
  * }
  */
-class SygusReconstruct : public expr::NotifyMatch, protected EnvObj
+class SygusReconstruct : protected expr::NotifyMatch,
+                         protected NodeConverter,
+                         protected EnvObj
 {
  public:
   /**
@@ -175,6 +177,15 @@ class SygusReconstruct : public expr::NotifyMatch, protected EnvObj
                            int8_t& reconstructed,
                            uint64_t enumLimit);
 
+ protected:
+  /**
+   * Replaces n-ary operators with their binary versions.
+   *
+   * @param n the term to convert term
+   * @return the converted term
+   */
+  Node postConvert(Node n) override;
+
  private:
   /**
    * Implements the reconstruction procedure.
@@ -199,11 +210,11 @@ class SygusReconstruct : public expr::NotifyMatch, protected EnvObj
    */
   void fast(Node sol, TypeNode stn, int8_t& reconstructed);
 
-  /** Match builtin term `t` with pattern `sz`.
+  /** Match builtin term `t` with pattern `sz` and create new obligations.
    *
-   * This function matches the builtin term to reconstruct `t` with the builtin
-   * analog of the pattern `sz`. If the match succeeds, `sz` is added to the set
-   * of candidate solutions for the obligation `ob` corresponding to the builtin
+   * This function calls `match` to reconstruct `t` with the builtin analog of
+   * the pattern `sz`. If the match succeeds, `sz` is added to the set of
+   * candidate solutions for the obligation `ob` corresponding to the builtin
    * term `t` and a set of new sub-terms to reconstruct is returned. If there
    * are no new sub-terms to reconstruct, then `sz` is considered a solution to
    * obligation `ob` and `markSolved(ob, sz)` is called. For example, given:
@@ -231,6 +242,32 @@ class SygusReconstruct : public expr::NotifyMatch, protected EnvObj
    * @return a set of new builtin terms to reconstruct if the match succeeds
    */
   TypeBuiltinSetMap matchNewObs(Node t, Node sz);
+
+  /** Match builtin term `t` with builtin pattern `tz`.
+   *
+   * If the match succeeds, `subs` will contain substitions from variables `z`
+   * in `tz` to builtin terms such that:
+   *
+   * |=_X tz * subs = t (where * denotes application of substitution).
+   *
+   * For example, given:
+   * tz = (+ a (* z1 2)) (z1 denotes a free variable)
+   * t  = (+ a (* b 2))
+   * a call to match may return `false` or `true` with `subs` = {(z1, b)}
+   *
+   * This method may perform simple pattern-matching or more elaborate
+   * procedures. For example, given:
+   * tz = (and z1 z2) (z1 and z2 denote free variables)
+   * t  = (not (or a b))
+   * a call to match may return `false` or `true` with `subs` = {(z1, (not a)),
+   * (z2, (not b))}
+   *
+   * @param t target builtin term to match against
+   * @param tz pattern to instantiate
+   * @param subs mapping from free vars in `tz` to builtin terms
+   * @return whether or not matching `tz` against `t` was successful
+   */
+  bool match(Node t, Node tz, NodePairMap& subs);
 
   /** mark obligation `ob` as solved.
    *

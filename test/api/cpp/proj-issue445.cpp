@@ -23,7 +23,6 @@ using namespace cvc5;
 int main(void)
 {
   Solver slv;
-  slv.setOption("sygus-rr-synth-input", "true");
   slv.setOption("strings-exp", "true");
   slv.setOption("sygus-abort-size", "1");
   Sort s1 = slv.mkUninterpretedSort("_u0");

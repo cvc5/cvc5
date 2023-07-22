@@ -140,77 +140,92 @@ bool NodeManager::isNAryKind(Kind k)
 
 TypeNode NodeManager::booleanType()
 {
-  return mkTypeConst<TypeConstant>(BOOLEAN_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 BOOLEAN_TYPE);
 }
 
 TypeNode NodeManager::integerType()
 {
-  return mkTypeConst<TypeConstant>(INTEGER_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 INTEGER_TYPE);
 }
 
 TypeNode NodeManager::realType()
 {
-  return mkTypeConst<TypeConstant>(REAL_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 REAL_TYPE);
 }
 
 TypeNode NodeManager::stringType()
 {
-  return mkTypeConst<TypeConstant>(STRING_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 STRING_TYPE);
 }
 
 TypeNode NodeManager::regExpType()
 {
-  return mkTypeConst<TypeConstant>(REGEXP_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 REGEXP_TYPE);
 }
 
 TypeNode NodeManager::roundingModeType()
 {
-  return mkTypeConst<TypeConstant>(ROUNDINGMODE_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 ROUNDINGMODE_TYPE);
 }
 
 TypeNode NodeManager::boundVarListType()
 {
-  return mkTypeConst<TypeConstant>(BOUND_VAR_LIST_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 BOUND_VAR_LIST_TYPE);
 }
 
 TypeNode NodeManager::instPatternType()
 {
-  return mkTypeConst<TypeConstant>(INST_PATTERN_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 INST_PATTERN_TYPE);
 }
 
 TypeNode NodeManager::instPatternListType()
 {
-  return mkTypeConst<TypeConstant>(INST_PATTERN_LIST_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 INST_PATTERN_LIST_TYPE);
 }
 
 TypeNode NodeManager::builtinOperatorType()
 {
-  return mkTypeConst<TypeConstant>(BUILTIN_OPERATOR_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 BUILTIN_OPERATOR_TYPE);
 }
 
 TypeNode NodeManager::mkBitVectorType(unsigned size)
 {
-  return mkTypeConst<BitVectorSize>(BitVectorSize(size));
+  return mkConstInternal<TypeNode, BitVectorSize>(kind::BITVECTOR_TYPE,
+                                                  BitVectorSize(size));
 }
 
 TypeNode NodeManager::mkFiniteFieldType(const Integer& modulus)
 {
-  return mkTypeConst<FfSize>(FfSize(modulus));
+  return mkConstInternal<TypeNode, FfSize>(kind::FINITE_FIELD_TYPE,
+                                           FfSize(modulus));
 }
 
 TypeNode NodeManager::sExprType()
 {
-  return mkTypeConst<TypeConstant>(SEXPR_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 SEXPR_TYPE);
 }
 
 TypeNode NodeManager::mkFloatingPointType(unsigned exp, unsigned sig)
 {
-  return mkTypeConst<FloatingPointSize>(FloatingPointSize(exp, sig));
+  return mkConstInternal<TypeNode, FloatingPointSize>(
+      kind::FLOATINGPOINT_TYPE, FloatingPointSize(exp, sig));
 }
 
 TypeNode NodeManager::mkFloatingPointType(FloatingPointSize fs)
 {
-  return mkTypeConst<FloatingPointSize>(fs);
+  return mkConstInternal<TypeNode, FloatingPointSize>(kind::FLOATINGPOINT_TYPE,
+                                                      fs);
 }
 
 NodeManager::~NodeManager()
@@ -535,14 +550,10 @@ TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
     {
       visited[cur] = true;
       // children now have types assigned
-      typeNode = TypeChecker::computeType(this, cur, check, nullptr);
+      typeNode = TypeChecker::computeType(this, cur, check, errOut);
       // if null, immediately return without further caching
       if (typeNode.isNull())
       {
-        // !!!! temporary: recompute with an error stream
-        std::stringstream errOutTmp;
-        TypeChecker::computeType(this, cur, check, &errOutTmp);
-        throw TypeCheckingExceptionPrivate(cur, errOutTmp.str());
         return typeNode;
       }
       setAttribute(cur, ta, typeNode);
@@ -612,7 +623,8 @@ TypeNode NodeManager::mkAbstractType(Kind k)
     TypeNode a = mkAbstractType(kind::ABSTRACT_TYPE);
     return mkSequenceType(a);
   }
-  return mkTypeConst<AbstractType>(AbstractType(k));
+  return mkConstInternal<TypeNode, AbstractType>(kind::ABSTRACT_TYPE,
+                                                 AbstractType(k));
 }
 
 TypeNode NodeManager::mkDatatypeType(DType& datatype)
@@ -1227,6 +1239,7 @@ NodeClass NodeManager::mkConstInternal(Kind k, const T& val)
     && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Warray-bounds"
+#pragma GCC diagnostic ignored "-Wzero-length-bounds"
 #endif
 
   nvStack.d_children[0] = const_cast<expr::NodeValue*>(

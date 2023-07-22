@@ -11,6 +11,7 @@
 ; EXPECT: hard
 ; EXPECT: )
 (set-logic ALL)
+(set-option :produce-unsat-cores true)
 (declare-fun x () Int)
 (declare-fun w () Int)
 (declare-fun u () Int)

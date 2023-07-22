@@ -20,7 +20,7 @@
 
 #include <cvc5/cvc5.h>
 
-#include "parser/smt2/smt2.h"
+#include "parser/smt2/smt2_state.h"
 #include "parser/smt2/smt2_lexer.h"
 
 namespace cvc5 {

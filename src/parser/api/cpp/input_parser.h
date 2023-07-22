@@ -23,8 +23,8 @@
 
 #include <memory>
 
-#include "parser/flex_parser.h"
-#include "parser/parser_antlr.h"
+#include "parser/api/cpp/command.h"
+#include "parser/parser.h"
 
 namespace cvc5 {
 namespace parser {
@@ -62,6 +62,12 @@ class CVC5_EXPORT InputParser
   Solver* getSolver();
   /** Get the underlying symbol manager of this input parser */
   SymbolManager* getSymbolManager();
+  /**
+   * Set the logic to use. This determines which builtin symbols are included.
+   *
+   * @param name The name of the logic.
+   */
+  void setLogic(const std::string& name);
   /** Set the input for the given file.
    *
    * @param lang the input language
@@ -98,12 +104,20 @@ class CVC5_EXPORT InputParser
   void appendIncrementalStringInput(const std::string& input);
 
   /**
-   * Parse and return the next command.
+   * Parse and return the next command. Will initialize the logic to "ALL"
+   * or the forced logic if no logic is set prior to this point and a command
+   * is read that requires initializing the logic.
    */
   std::unique_ptr<Command> nextCommand();
 
-  /** Parse and return the next expression. */
+  /**
+   * Parse and return the next expression. Requires setting the logic prior
+   * to this point.
+   */
   Term nextExpression();
+
+  /** Is this parser done reading input? */
+  bool done() const;
 
  private:
   /** Initialize this input parser, called during construction */
@@ -114,22 +128,12 @@ class CVC5_EXPORT InputParser
   std::unique_ptr<SymbolManager> d_allocSm;
   /** Symbol manager */
   SymbolManager* d_sm;
-  /** whether to use flex */
-  bool d_useFlex;
   /** Incremental string input language */
   std::string d_istringLang;
   /** Incremental string name */
   std::string d_istringName;
-  //!!!!!!!!!!!!!! TODO: this implementation is deprecated and should be
-  // replaced (wishue #142).
-  /**  The parser state. */
-  std::unique_ptr<Parser> d_state;
-  /** The underlying input */
-  std::unique_ptr<Input> d_input;
-  //!!!!!!!!!!!!!!
-  //!!!!!!!!!!!!!! new implementation
-  std::unique_ptr<FlexParser> d_fparser;
-  //!!!!!!!!!!!!!!
+  /** The parser */
+  std::unique_ptr<Parser> d_fparser;
 };
 
 }  // namespace parser

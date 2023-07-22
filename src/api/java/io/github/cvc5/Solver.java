@@ -648,19 +648,17 @@ public class Solver implements IPointer
   /**
    * Create a tuple term. Terms are automatically converted if sorts are
    * compatible.
-   * @param sorts The sorts of the elements in the tuple.
    * @param terms The elements in the tuple.
    * @return The tuple Term.
    */
-  public Term mkTuple(Sort[] sorts, Term[] terms)
+  public Term mkTuple(Term[] terms)
   {
-    long[] sortPointers = Utils.getPointers(sorts);
     long[] termPointers = Utils.getPointers(terms);
-    long termPointer = mkTuple(pointer, sortPointers, termPointers);
+    long termPointer = mkTuple(pointer, termPointers);
     return new Term(termPointer);
   }
 
-  private native long mkTuple(long pointer, long[] sortPointers, long[] termPointers);
+  private native long mkTuple(long pointer, long[] termPointers);
 
   /* .................................................................... */
   /* Create Operators                                                     */
@@ -2800,50 +2798,6 @@ public class Solver implements IPointer
 
   private native long synthFun(
       long pointer, String symbol, long[] boundVarPointers, long sortPointer, long grammarPointer);
-
-  /**
-   * Synthesize invariant.
-   *
-   * SyGuS v2:
-   * {@code
-   *   ( synth-inv <symbol> ( <boundVars>* ) )
-   * }
-   *
-   * @param symbol The name of the invariant.
-   * @param boundVars The parameters to this invariant.
-   * @return The invariant.
-   */
-  public Term synthInv(String symbol, Term[] boundVars)
-  {
-    long[] boundVarPointers = Utils.getPointers(boundVars);
-    long termPointer = synthInv(pointer, symbol, boundVarPointers);
-    return new Term(termPointer);
-  }
-
-  private native long synthInv(long pointer, String symbol, long[] boundVarPointers);
-
-  /**
-   * Synthesize invariant following specified syntactic constraints.
-   *
-   * SyGuS v2:
-   * {@code
-   *   ( synth-inv <symbol> ( <boundVars>* ) <g> )
-   * }
-   *
-   * @param symbol The name of the invariant.
-   * @param boundVars The parameters to this invariant.
-   * @param grammar The syntactic constraints.
-   * @return The invariant.
-   */
-  public Term synthInv(String symbol, Term[] boundVars, Grammar grammar)
-  {
-    long[] boundVarPointers = Utils.getPointers(boundVars);
-    long termPointer = synthInv(pointer, symbol, boundVarPointers, grammar.getPointer());
-    return new Term(termPointer);
-  }
-
-  private native long synthInv(
-      long pointer, String symbol, long[] boundVarPointers, long grammarPointer);
 
   /**
    * Add a forumla to the set of Sygus constraints.

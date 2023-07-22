@@ -94,10 +94,6 @@ std::string Configuration::copyright() {
   ss << "THIS SOFTWARE IS PROVIDED AS-IS, WITHOUT ANY WARRANTIES.\n"
      << "USE AT YOUR OWN RISK.\n\n";
 
-  ss << "cvc5 incorporates code from ANTLR3 (http://www.antlr.org).\n"
-     << "See licenses/antlr3-LICENSE for copyright and licensing information."
-     << "\n\n";
-
   ss << "This version of cvc5 is linked against the following non-(L)GPL'ed\n"
      << "third party libraries.\n\n";
 
@@ -130,7 +126,7 @@ std::string Configuration::copyright() {
   }
 
   ss << "  SymFPU - The Symbolic Floating Point Unit\n"
-     << "  See https://github.com/martin-cs/symfpu/tree/cvc5 for copyright "
+     << "  See https://github.com/martin-cs/symfpu/tree/CVC4 for copyright "
      << "information.\n\n";
 
   if (Configuration::isBuiltWithGmp() || Configuration::isBuiltWithPoly())

@@ -16,7 +16,7 @@
 
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/embedding_converter.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers/term_util.h"
 
@@ -47,7 +47,7 @@ void SygusTemplateInfer::initialize(Node q)
     else if (!options().quantifiers.sygusInvTemplWhenSyntax)
     {
       // only use invariant templates if no syntactic restrictions
-      if (CegGrammarConstructor::hasSyntaxRestrictions(q))
+      if (EmbeddingConverter::hasSyntaxRestrictions(q))
       {
         tmode = options::SygusInvTemplMode::NONE;
       }
@@ -168,7 +168,7 @@ void SygusTemplateInfer::initialize(Node q)
   Assert(!templ.isNull());
 
   // get the variables
-  Node sfvl = SygusUtils::getSygusArgumentListForSynthFun(prog);
+  Node sfvl = SygusUtils::getOrMkSygusArgumentList(prog);
   if (!sfvl.isNull())
   {
     std::vector<Node> prog_vars(sfvl.begin(), sfvl.end());

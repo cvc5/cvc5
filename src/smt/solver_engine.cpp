@@ -37,6 +37,7 @@
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
+#include "preprocessing/passes/synth_rew_rules.h"
 #include "printer/printer.h"
 #include "proof/unsat_core.h"
 #include "prop/prop_engine.h"
@@ -46,9 +47,11 @@
 #include "smt/context_manager.h"
 #include "smt/env.h"
 #include "smt/expand_definitions.h"
+#include "smt/find_synth_solver.h"
 #include "smt/interpolation_solver.h"
 #include "smt/listeners.h"
 #include "smt/logic_exception.h"
+#include "smt/model.h"
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
 #include "smt/preprocessor.h"
@@ -63,9 +66,15 @@
 #include "smt/sygus_solver.h"
 #include "smt/timeout_core_manager.h"
 #include "smt/unsat_core_manager.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
+#include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/instantiation_list.h"
 #include "theory/quantifiers/oracle_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/query_generator.h"
+#include "theory/quantifiers/rewrite_verifier.h"
+#include "theory/quantifiers/sygus/sygus_enumerator.h"
+#include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
@@ -507,8 +516,7 @@ void SolverEngine::defineFunction(Node func,
                                   Node formula,
                                   bool global)
 {
-  finishInit();
-  d_ctxManager->doPendingPops();
+  beginCall();
   Trace("smt") << "SMT defineFunction(" << func << ")" << endl;
   debugCheckFormals(formals, func);
 
@@ -528,8 +536,7 @@ void SolverEngine::defineFunction(Node func,
 
 void SolverEngine::defineFunction(Node func, Node lambda, bool global)
 {
-  finishInit();
-  d_ctxManager->doPendingPops();
+  beginCall();
   // A define-fun is treated as a (higher-order) assertion. It is provided
   // to the assertions object. It will be added as a top-level substitution
   // within this class, possibly multiple times if global is true.
@@ -543,8 +550,7 @@ void SolverEngine::defineFunctionsRec(
     const std::vector<Node>& formulas,
     bool global)
 {
-  finishInit();
-  d_ctxManager->doPendingPops();
+  beginCall();
   Trace("smt") << "SMT defineFunctionsRec(...)" << endl;
 
   if (funcs.size() != formals.size() && funcs.size() != formulas.size())
@@ -697,32 +703,42 @@ QuantifiersEngine* SolverEngine::getAvailableQuantifiersEngine(
   return qe;
 }
 
-Result SolverEngine::checkSat() { return checkSatInternal({}); }
+Result SolverEngine::checkSat()
+{
+  beginCall(true);
+  Result res = checkSatInternal({});
+  endCall();
+  return res;
+}
 
 Result SolverEngine::checkSat(const Node& assumption)
 {
+  beginCall(true);
   std::vector<Node> assump;
   if (!assumption.isNull())
   {
     assump.push_back(assumption);
   }
-  return checkSatInternal(assump);
+  Result res = checkSatInternal(assump);
+  endCall();
+  return res;
 }
 
 Result SolverEngine::checkSat(const std::vector<Node>& assumptions)
 {
-  return checkSatInternal(assumptions);
+  beginCall(true);
+  Result res = checkSatInternal(assumptions);
+  endCall();
+  return res;
 }
 
 Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
 {
   ensureWellFormedTerms(assumptions, "checkSat");
-  finishInit();
 
   Trace("smt") << "SolverEngine::checkSat(" << assumptions << ")" << endl;
   // update the state to indicate we are about to run a check-sat
   d_state->notifyCheckSat();
-  d_ctxManager->doPendingPops();
 
   // Call the SMT solver driver to check for satisfiability. Note that in the
   // case of options like e.g. deep restarts, this may invokve multiple calls
@@ -772,10 +788,33 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
 
 std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore()
 {
-  finishInit();
   Trace("smt") << "SolverEngine::getTimeoutCore()" << std::endl;
+  beginCall(true);
+  // refresh the assertions, to ensure we have applied preprocessing to
+  // all current assertions
+  d_smtDriver->refreshAssertions();
   TimeoutCoreManager tcm(*d_env.get());
-  return tcm.getTimeoutCore(d_smtSolver->getAssertions());
+  // get the preprocessed assertions
+  const context::CDList<Node>& assertions =
+      d_smtSolver->getPreprocessedAssertions();
+  std::vector<Node> passerts;
+  for (const Node& a : assertions)
+  {
+    passerts.push_back(a);
+  }
+  const context::CDHashMap<size_t, Node>& ppsm =
+      d_smtSolver->getPreprocessedSkolemMap();
+  std::map<size_t, Node> ppSkolemMap;
+  for (auto& pk : ppsm)
+  {
+    ppSkolemMap[pk.first] = pk.second;
+  }
+  std::pair<Result, std::vector<Node>> ret =
+      tcm.getTimeoutCore(passerts, ppSkolemMap);
+  // convert the preprocessed assertions to input assertions
+  std::vector<Node> core = convertPreprocessedToInput(ret.second, true);
+  endCall();
+  return std::pair<Result, std::vector<Node>>(ret.first, core);
 }
 
 std::vector<Node> SolverEngine::getUnsatAssumptions(void)
@@ -793,7 +832,6 @@ std::vector<Node> SolverEngine::getUnsatAssumptions(void)
         "Cannot get unsat assumptions unless immediately preceded by "
         "UNSAT.");
   }
-  finishInit();
   UnsatCore core = getUnsatCoreInternal();
   std::vector<Node> res;
   std::vector<Node>& assumps = d_smtSolver->getAssertions().getAssumptions();
@@ -809,8 +847,7 @@ std::vector<Node> SolverEngine::getUnsatAssumptions(void)
 
 void SolverEngine::assertFormula(const Node& formula)
 {
-  finishInit();
-  d_ctxManager->doPendingPops();
+  beginCall();
   ensureWellFormedTerm(formula, "assertFormula");
   assertFormulaInternal(formula);
 }
@@ -831,6 +868,7 @@ void SolverEngine::assertFormulaInternal(const Node& formula)
 
 void SolverEngine::declareSygusVar(Node var)
 {
+  beginCall();
   d_sygusSolver->declareSygusVar(var);
 }
 
@@ -839,34 +877,34 @@ void SolverEngine::declareSynthFun(Node func,
                                    bool isInv,
                                    const std::vector<Node>& vars)
 {
-  finishInit();
-  d_ctxManager->doPendingPops();
+  beginCall();
   d_sygusSolver->declareSynthFun(func, sygusType, isInv, vars);
 }
 void SolverEngine::declareSynthFun(Node func,
                                    bool isInv,
                                    const std::vector<Node>& vars)
 {
+  beginCall();
   // use a null sygus type
   TypeNode sygusType;
-  declareSynthFun(func, sygusType, isInv, vars);
+  d_sygusSolver->declareSynthFun(func, sygusType, isInv, vars);
 }
 
 void SolverEngine::assertSygusConstraint(Node n, bool isAssume)
 {
-  finishInit();
+  beginCall();
   d_sygusSolver->assertSygusConstraint(n, isAssume);
 }
 
 std::vector<Node> SolverEngine::getSygusConstraints()
 {
-  finishInit();
+  beginCall();
   return d_sygusSolver->getSygusConstraints();
 }
 
 std::vector<Node> SolverEngine::getSygusAssumptions()
 {
-  finishInit();
+  beginCall();
   return d_sygusSolver->getSygusAssumptions();
 }
 
@@ -875,13 +913,13 @@ void SolverEngine::assertSygusInvConstraint(Node inv,
                                             Node trans,
                                             Node post)
 {
-  finishInit();
+  beginCall();
   d_sygusSolver->assertSygusInvConstraint(inv, pre, trans, post);
 }
 
 SynthResult SolverEngine::checkSynth(bool isNext)
 {
-  finishInit();
+  beginCall();
   if (isNext && d_state->getMode() != SmtMode::SYNTH)
   {
     throw RecoverableModalException(
@@ -891,6 +929,81 @@ SynthResult SolverEngine::checkSynth(bool isNext)
   SynthResult r = d_sygusSolver->checkSynth(isNext);
   d_state->notifyCheckSynthResult(r);
   return r;
+}
+
+Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
+{
+  beginCall();
+  Trace("smt") << "SolverEngine::findSynth " << fst << std::endl;
+  // The grammar(s) we will use. This may be more than one if doing rewrite
+  // rule synthesis from input or if no grammar is specified, indicating we
+  // wish to use grammars for each function-to-synthesize.
+  std::vector<TypeNode> gtnu;
+  if (!gtn.isNull())
+  {
+    // Must generalize the free symbols in the grammar to variables. Otherwise,
+    // certain algorithms (e.g. sampling) will fail to treat the free symbols
+    // of the grammar as inputs to the term to find.
+    TypeNode ggtn = theory::datatypes::utils::generalizeSygusType(gtn);
+    gtnu.push_back(ggtn);
+  }
+  // if synthesizing rewrite rules from input, we infer the grammar here
+  if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_INPUT)
+  {
+    if (!gtn.isNull())
+    {
+      Warning() << "Ignoring grammar provided to find-synth :rewrite_input"
+                << std::endl;
+    }
+    uint64_t nvars = options().quantifiers.sygusRewSynthInputNVars;
+    std::vector<Node> asserts = getAssertionsInternal();
+    gtnu = preprocessing::passes::SynthRewRulesPass::getGrammarsFrom(asserts,
+                                                                     nvars);
+    if (gtnu.empty())
+    {
+      Warning() << "Could not find grammar in find-synth :rewrite_input"
+                << std::endl;
+      return Node::null();
+    }
+  }
+  if (d_sygusSolver != nullptr && gtnu.empty())
+  {
+    // if no type provided, and the sygus solver exists,
+    std::vector<std::pair<Node, TypeNode>> funs =
+        d_sygusSolver->getSynthFunctions();
+    for (const std::pair<Node, TypeNode>& f : funs)
+    {
+      if (!f.second.isNull())
+      {
+        gtnu.push_back(f.second);
+      }
+    }
+  }
+  if (gtnu.empty())
+  {
+    throw RecoverableModalException(
+        "No grammar available in call to find-synth. Either provide one or "
+        "ensure synth-fun has been called.");
+  }
+  // initialize find synthesis solver if not done so already
+  if (d_findSynthSolver == nullptr)
+  {
+    d_findSynthSolver.reset(new FindSynthSolver(*d_env.get()));
+  }
+  Node ret = d_findSynthSolver->findSynth(fst, gtnu);
+  return ret;
+}
+
+Node SolverEngine::findSynthNext()
+{
+  beginCall();
+  if (d_state->getMode() != SmtMode::FIND_SYNTH)
+  {
+    throw RecoverableModalException(
+        "Cannot find-synth-next unless immediately preceded by a successful "
+        "call to find-synth(-next).");
+  }
+  return d_findSynthSolver->findSynthNext();
 }
 
 /*
@@ -903,7 +1016,7 @@ void SolverEngine::declarePool(const Node& p,
                                const std::vector<Node>& initValue)
 {
   Assert(p.isVar() && p.getType().isSet());
-  finishInit();
+  beginCall();
   QuantifiersEngine* qe = getAvailableQuantifiersEngine("declareTermPool");
   qe->declarePool(p, initValue);
 }
@@ -911,8 +1024,7 @@ void SolverEngine::declarePool(const Node& p,
 void SolverEngine::declareOracleFun(
     Node var, std::function<std::vector<Node>(const std::vector<Node>&)> fn)
 {
-  finishInit();
-  d_ctxManager->doPendingPops();
+  beginCall();
   QuantifiersEngine* qe = getAvailableQuantifiersEngine("declareOracleFun");
   qe->declareOracleFun(var);
   NodeManager* nm = NodeManager::currentNM();
@@ -957,8 +1069,7 @@ void SolverEngine::declareOracleFun(
 
 Node SolverEngine::simplify(const Node& t)
 {
-  finishInit();
-  d_ctxManager->doPendingPops();
+  beginCall(true);
   // ensure we've processed assertions
   d_smtDriver->refreshAssertions();
   // apply substitutions
@@ -968,6 +1079,7 @@ Node SolverEngine::simplify(const Node& t)
   // make so that the returned term does not involve arithmetic subtyping
   SubtypeElimNodeConverter senc;
   ret = senc.convert(ret);
+  endCall();
   return ret;
 }
 
@@ -1033,8 +1145,12 @@ Node SolverEngine::getValue(const Node& t) const
       SkolemManager* skm = NodeManager::currentNM()->getSkolemManager();
       Node a =
           skm->mkSkolemFunction(SkolemFunId::ABSTRACT_VALUE, rtn, resultNode);
-      // add to top-level substitutions
-      d_env->getTopLevelSubstitutions().addSubstitution(resultNode, a);
+      // add to top-level substitutions if applicable
+      theory::TrustSubstitutionMap& tsm = d_env->getTopLevelSubstitutions();
+      if (!tsm.get().hasSubstitution(resultNode))
+      {
+        tsm.addSubstitution(resultNode, a);
+      }
       resultNode = a;
       Trace("smt") << "--- abstract value >> " << resultNode << endl;
     }
@@ -1120,9 +1236,6 @@ std::string SolverEngine::getModel(const std::vector<TypeNode>& declaredSorts,
 void SolverEngine::blockModel(modes::BlockModelsMode mode)
 {
   Trace("smt") << "SMT blockModel()" << endl;
-
-  finishInit();
-
   TheoryModel* m = getAvailableModel("block model");
 
   // get expanded assertions
@@ -1130,15 +1243,16 @@ void SolverEngine::blockModel(modes::BlockModelsMode mode)
   ModelBlocker mb(*d_env.get());
   Node eblocker = mb.getModelBlocker(eassertsProc, m, mode);
   Trace("smt") << "Block formula: " << eblocker << std::endl;
+
+  // Must begin call now to ensure pops are processed. We cannot call this
+  // above since we are accessing the model.
+  beginCall();
   assertFormulaInternal(eblocker);
 }
 
 void SolverEngine::blockModelValues(const std::vector<Node>& exprs)
 {
   Trace("smt") << "SMT blockModelValues()" << endl;
-
-  finishInit();
-
   for (const Node& e : exprs)
   {
     ensureWellFormedTerm(e, "block model values");
@@ -1152,6 +1266,9 @@ void SolverEngine::blockModelValues(const std::vector<Node>& exprs)
   ModelBlocker mb(*d_env.get());
   Node eblocker = mb.getModelBlocker(
       eassertsProc, m, modes::BlockModelsMode::VALUES, exprs);
+
+  // Call begin call here, for same reasons as above.
+  beginCall();
   assertFormulaInternal(eblocker);
 }
 
@@ -1228,6 +1345,22 @@ void SolverEngine::ensureWellFormedTerms(const std::vector<Node>& ns,
       ensureWellFormedTerm(n, src);
     }
   }
+}
+
+std::vector<Node> SolverEngine::convertPreprocessedToInput(
+    const std::vector<Node>& ppa, bool isInternal)
+{
+  std::vector<Node> core;
+  CDProof cdp(*d_env);
+  Node fnode = NodeManager::currentNM()->mkConst(false);
+  cdp.addStep(fnode, PfRule::SAT_REFUTATION, ppa, {});
+  std::shared_ptr<ProofNode> pepf = cdp.getProofFor(fnode);
+  Assert(pepf != nullptr);
+  std::shared_ptr<ProofNode> pfn =
+      d_pfManager->connectProofToAssertions(pepf, *d_smtSolver.get());
+  d_ucManager->getUnsatCore(
+      pfn, d_smtSolver->getAssertions(), core, isInternal);
+  return core;
 }
 
 std::vector<Node> SolverEngine::getSubstitutedAssertions()
@@ -1311,6 +1444,33 @@ void SolverEngine::checkProof()
   }
 }
 
+void SolverEngine::beginCall(bool needsRLlimit)
+{
+  // ensure this solver engine has been initialized
+  finishInit();
+  // ensure the context is current
+  d_ctxManager->doPendingPops();
+  // optionally, ensure the resource manager's state is current
+  if (needsRLlimit)
+  {
+    ResourceManager* rm = getResourceManager();
+    rm->beginCall();
+    Trace("limit") << "SolverEngine::beginCall(): cumulative millis "
+                   << rm->getTimeUsage() << ", resources "
+                   << rm->getResourceUsage() << std::endl;
+  }
+}
+
+void SolverEngine::endCall()
+{
+  // refresh the resource manager (for stats)
+  ResourceManager* rm = getResourceManager();
+  rm->refresh();
+  Trace("limit") << "SolverEngine::endCall(): cumulative millis "
+                 << rm->getTimeUsage() << ", resources "
+                 << rm->getResourceUsage() << std::endl;
+}
+
 StatisticsRegistry& SolverEngine::getStatisticsRegistry()
 {
   return d_env->getStatisticsRegistry();
@@ -1338,17 +1498,7 @@ UnsatCore SolverEngine::getUnsatCoreInternal(bool isInternal)
   // unsat core computed by the prop engine
   std::vector<Node> pcore;
   pe->getUnsatCore(pcore);
-  CDProof cdp(*d_env);
-  Node fnode = NodeManager::currentNM()->mkConst(false);
-  cdp.addStep(fnode, PfRule::SAT_REFUTATION, pcore, {});
-  std::shared_ptr<ProofNode> pepf = cdp.getProofFor(fnode);
-
-  Assert(pepf != nullptr);
-  std::shared_ptr<ProofNode> pfn =
-      d_pfManager->connectProofToAssertions(pepf, *d_smtSolver.get());
-  std::vector<Node> core;
-  d_ucManager->getUnsatCore(
-      pfn, d_smtSolver->getAssertions(), core, isInternal);
+  std::vector<Node> core = convertPreprocessedToInput(pcore, isInternal);
   return UnsatCore(core);
 }
 
@@ -1426,7 +1576,6 @@ void SolverEngine::checkModel(bool hardFailure)
 UnsatCore SolverEngine::getUnsatCore()
 {
   Trace("smt") << "SMT getUnsatCore()" << std::endl;
-  finishInit();
   return getUnsatCoreInternal(false);
 }
 
@@ -1449,7 +1598,6 @@ void SolverEngine::getRelevantQuantTermVectors(
 std::string SolverEngine::getProof(modes::ProofComponent c)
 {
   Trace("smt") << "SMT getProof()\n";
-  finishInit();
   if (!d_env->getOptions().smt.produceProofs)
   {
     throw ModalException("Cannot get a proof when proof option is off.");
@@ -1474,7 +1622,7 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   if (c == modes::PROOF_COMPONENT_RAW_PREPROCESS)
   {
     // use all preprocessed assertions
-    const std::vector<Node>& assertions =
+    const context::CDList<Node>& assertions =
         d_smtSolver->getPreprocessedAssertions();
     connectToPreprocess = true;
     // We start with (ASSUME a) for each preprocessed assertion a. This
@@ -1558,7 +1706,6 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
 
 void SolverEngine::printInstantiations(std::ostream& out)
 {
-  finishInit();
   QuantifiersEngine* qe = getAvailableQuantifiersEngine("printInstantiations");
 
   // First, extract and print the skolemizations
@@ -1652,7 +1799,6 @@ void SolverEngine::printInstantiations(std::ostream& out)
 void SolverEngine::getInstantiationTermVectors(
     std::map<Node, std::vector<std::vector<Node>>>& insts)
 {
-  finishInit();
   QuantifiersEngine* qe =
       getAvailableQuantifiersEngine("getInstantiationTermVectors");
   // get the list of all instantiations
@@ -1661,7 +1807,11 @@ void SolverEngine::getInstantiationTermVectors(
 
 bool SolverEngine::getSynthSolutions(std::map<Node, Node>& solMap)
 {
-  finishInit();
+  if (d_sygusSolver == nullptr)
+  {
+    throw RecoverableModalException(
+        "Cannot get synth solutions in this context.");
+  }
   bool ret = d_sygusSolver->getSynthSolutions(solMap);
   // we return false if solMap is empty, that is, when we ask for a solution
   // when none is available.
@@ -1670,7 +1820,11 @@ bool SolverEngine::getSynthSolutions(std::map<Node, Node>& solMap)
 
 bool SolverEngine::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
 {
-  finishInit();
+  if (d_sygusSolver == nullptr)
+  {
+    throw RecoverableModalException(
+        "Cannot get subsolver synth solutions in this context.");
+  }
   bool ret = d_sygusSolver->getSubsolverSynthSolutions(solMap);
   // we return false if solMap is empty, that is, when we ask for a solution
   // when none is available.
@@ -1679,16 +1833,16 @@ bool SolverEngine::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
 
 Node SolverEngine::getQuantifierElimination(Node q, bool doFull)
 {
-  finishInit();
-  d_ctxManager->doPendingPops();
+  beginCall(true);
   Node result = d_quantElimSolver->getQuantifierElimination(
       q, doFull, d_isInternalSubsolver);
+  endCall();
   return result;
 }
 
 Node SolverEngine::getInterpolant(const Node& conj, const TypeNode& grammarType)
 {
-  finishInit();
+  beginCall(true);
   std::vector<Node> axioms = getSubstitutedAssertions();
   // expand definitions in the conjecture as well
   Node conje = d_smtSolver->getPreprocessor()->applySubstitutions(conj);
@@ -1698,13 +1852,14 @@ Node SolverEngine::getInterpolant(const Node& conj, const TypeNode& grammarType)
   // notify the state of whether the get-interpolant call was successfuly, which
   // impacts the SMT mode.
   d_state->notifyGetInterpol(success);
+  endCall();
   Assert(success == !interpol.isNull());
   return interpol;
 }
 
 Node SolverEngine::getInterpolantNext()
 {
-  finishInit();
+  beginCall(true);
   if (d_state->getMode() != SmtMode::INTERPOL)
   {
     throw RecoverableModalException(
@@ -1716,13 +1871,14 @@ Node SolverEngine::getInterpolantNext()
   bool success = d_interpolSolver->getInterpolantNext(interpol);
   // notify the state of whether the get-interpolantant-next call was successful
   d_state->notifyGetInterpol(success);
+  endCall();
   Assert(success == !interpol.isNull());
   return interpol;
 }
 
 Node SolverEngine::getAbduct(const Node& conj, const TypeNode& grammarType)
 {
-  finishInit();
+  beginCall(true);
   std::vector<Node> axioms = getSubstitutedAssertions();
   // expand definitions in the conjecture as well
   Node conje = d_smtSolver->getPreprocessor()->applySubstitutions(conj);
@@ -1731,13 +1887,14 @@ Node SolverEngine::getAbduct(const Node& conj, const TypeNode& grammarType)
   // notify the state of whether the get-abduct call was successful, which
   // impacts the SMT mode.
   d_state->notifyGetAbduct(success);
+  endCall();
   Assert(success == !abd.isNull());
   return abd;
 }
 
 Node SolverEngine::getAbductNext()
 {
-  finishInit();
+  beginCall(true);
   if (d_state->getMode() != SmtMode::ABDUCT)
   {
     throw RecoverableModalException(
@@ -1769,9 +1926,8 @@ void SolverEngine::getInstantiationTermVectors(
 
 std::vector<Node> SolverEngine::getAssertions()
 {
-  finishInit();
-  d_ctxManager->doPendingPops();
   Trace("smt") << "SMT getAssertions()" << endl;
+  beginCall();
   // note we always enable assertions, so it is available here
   return getAssertionsInternal();
 }
@@ -1779,7 +1935,7 @@ std::vector<Node> SolverEngine::getAssertions()
 void SolverEngine::getDifficultyMap(std::map<Node, Node>& dmap)
 {
   Trace("smt") << "SMT getDifficultyMap()\n";
-  finishInit();
+  beginCall();
   if (!d_env->getOptions().smt.produceDifficulty)
   {
     throw ModalException(
@@ -1797,8 +1953,7 @@ void SolverEngine::getDifficultyMap(std::map<Node, Node>& dmap)
 
 void SolverEngine::push()
 {
-  finishInit();
-  d_ctxManager->doPendingPops();
+  beginCall();
   Trace("smt") << "SMT push()" << endl;
   d_smtDriver->refreshAssertions();
   d_ctxManager->userPush();
@@ -1806,7 +1961,7 @@ void SolverEngine::push()
 
 void SolverEngine::pop()
 {
-  finishInit();
+  beginCall();
   Trace("smt") << "SMT pop()" << endl;
   d_ctxManager->userPop();
 

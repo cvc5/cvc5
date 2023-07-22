@@ -23,6 +23,7 @@
 namespace cvc5::internal {
 
 class LetBinding;
+class DType;
 
 namespace printer {
 namespace smt2 {
@@ -133,10 +134,10 @@ class Smt2Printer : public cvc5::internal::Printer
   /** Print synth-fun command */
   void toStreamCmdSynthFun(
       std::ostream& out,
-      Node f,
+      const std::string& id,
       const std::vector<Node>& vars,
-      bool isInv,
-      TypeNode sygusType = TypeNode::null()) const override;
+      TypeNode rangeType,
+      TypeNode sygusType) const override;
 
   /** Print constraint command */
   void toStreamCmdConstraint(std::ostream& out, Node n) const override;

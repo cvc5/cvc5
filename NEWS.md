@@ -6,11 +6,27 @@ This file contains a summary of important user-visible changes.
        `Solver::mkFloatingPoint(const Term& sign, const Term& exp, const Term& sig)`,
        returns a floating-point value from the three IEEE-754 bit-vector value
        components.
+- API: Simplified the `Solver::mkTuple` method. The sorts of the elements no longer
+       need to be provided.
 - Support for timeout cores
   - API: New API function `Solver::getTimeoutCore()` when applicable
     returns a subset of the current assertions that cause the solver to timeout
     without a provided timeout (option `--timeout-core-timeout`).
   - SMT-LIB: New command `(get-timeout-core)` which invokes the above method.
+- API: The option `--print-unsat-cores-full` has been renamed to
+       `--print-cores-full`. Setting this option to true will print all
+       assertions in the unsat core, regardless of whether they are named. This
+       option also impacts how timeout cores are printed.
+- API: Added support for querying the values of real algebraic numbers in the
+       API. In particular, the methods `Term::isRealAlgebraicNumber()`,
+       `Term::getRealAlgebraicNumberDefiningPolynomial()`,
+       `Term::getRealAlgebraicNumberLowerBound()`, and
+       `Term::getRealAlgebraicNumberUpperBound()` may now be used to query
+       the contents of terms corresponding to real algebraic numbers.
+- Removed support for the ANTLR parser and parsing for the TPTP language.
+- API: Removed API support for the deprecated SyGuS 2.0 command
+       `Solver::synthInv`. This method is equivalent to `Solver::synthFun`
+       with a Boolean range sort.
 
 cvc5 1.0.5
 ==========
