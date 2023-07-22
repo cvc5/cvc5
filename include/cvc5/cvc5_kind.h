@@ -5737,7 +5737,7 @@ struct CVC5_EXPORT hash<cvc5::Kind>
 
 #ifdef CVC5_API_USE_C_ENUMS
 #undef EVALUE
-#define EVALUE(name) CVC5_SORTKIND_##name
+#define EVALUE(name) CVC5_SORT_KIND_##name
 #endif
 
 #ifndef CVC5_API_USE_C_ENUMS
