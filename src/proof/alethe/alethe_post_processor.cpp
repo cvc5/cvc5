@@ -412,10 +412,10 @@ bool AletheProofPostprocessCallback::update(Node res,
           }
           else if (args[i].getKind() == kind::SEXPR)
           {
-            new_args.push_back(
-                nm->mkNode(kind::SEXPR,
-                           nm->mkBoundVar("cvc5_nary_op", nm->sExprType()),
-                           args[i][0]));
+            std::vector<Node> list_arg;
+            list_arg.push_back(nm->mkBoundVar("cvc5_nary_op", nm->sExprType()));
+            list_arg.insert(list_arg.end(),args[i].begin(), args[i].end());
+            new_args.push_back(nm->mkNode(kind::SEXPR,list_arg));
           }
           else
           {
