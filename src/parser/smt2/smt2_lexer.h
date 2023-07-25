@@ -89,7 +89,7 @@ class Smt2Lexer : public Lexer
   /** Return true if ch is in character class cc */
   bool isCharacterClass(int32_t ch, CharacterClass cc) const
   {
-    return d_int32_tClass[static_cast<uint8_t>(ch)] & static_cast<uint8_t>(cc);
+    return d_charClass[static_cast<uint8_t>(ch)] & static_cast<uint8_t>(cc);
   }
   //----------- Utilizes for tokenizing d_token
   /**
@@ -111,7 +111,7 @@ class Smt2Lexer : public Lexer
   /** Is sygus enabled */
   bool d_isSygus;
   /** The character classes. */
-  std::array<uint8_t, 256> d_int32_tClass{};  // value-initialized to 0
+  std::array<uint8_t, 256> d_charClass{};  // value-initialized to 0
 };
 
 }  // namespace parser

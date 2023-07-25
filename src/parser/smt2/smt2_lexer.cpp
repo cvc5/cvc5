@@ -30,41 +30,41 @@ Smt2Lexer::Smt2Lexer(bool isStrict, bool isSygus)
 {
   for (int32_t ch = 'a'; ch <= 'z'; ++ch)
   {
-    d_int32_tClass[ch] |= static_cast<uint32_t>(CharacterClass::SYMBOL_START);
-    d_int32_tClass[ch] |= static_cast<uint32_t>(CharacterClass::SYMBOL);
+    d_charClass[ch] |= static_cast<uint32_t>(CharacterClass::SYMBOL_START);
+    d_charClass[ch] |= static_cast<uint32_t>(CharacterClass::SYMBOL);
   }
   for (int32_t ch = 'a'; ch <= 'f'; ++ch)
   {
-    d_int32_tClass[ch] |= static_cast<uint32_t>(CharacterClass::HEXADECIMAL_DIGIT);
+    d_charClass[ch] |= static_cast<uint32_t>(CharacterClass::HEXADECIMAL_DIGIT);
   }
   for (int32_t ch = 'A'; ch <= 'Z'; ++ch)
   {
-    d_int32_tClass[ch] |= static_cast<uint32_t>(CharacterClass::SYMBOL_START);
-    d_int32_tClass[ch] |= static_cast<uint32_t>(CharacterClass::SYMBOL);
+    d_charClass[ch] |= static_cast<uint32_t>(CharacterClass::SYMBOL_START);
+    d_charClass[ch] |= static_cast<uint32_t>(CharacterClass::SYMBOL);
   }
   for (int32_t ch = 'A'; ch <= 'F'; ++ch)
   {
-    d_int32_tClass[ch] |= static_cast<uint32_t>(CharacterClass::HEXADECIMAL_DIGIT);
+    d_charClass[ch] |= static_cast<uint32_t>(CharacterClass::HEXADECIMAL_DIGIT);
   }
   for (int32_t ch = '0'; ch <= '9'; ++ch)
   {
-    d_int32_tClass[ch] |= static_cast<uint32_t>(CharacterClass::HEXADECIMAL_DIGIT);
-    d_int32_tClass[ch] |= static_cast<uint32_t>(CharacterClass::DECIMAL_DIGIT);
-    d_int32_tClass[ch] |= static_cast<uint32_t>(CharacterClass::SYMBOL);
+    d_charClass[ch] |= static_cast<uint32_t>(CharacterClass::HEXADECIMAL_DIGIT);
+    d_charClass[ch] |= static_cast<uint32_t>(CharacterClass::DECIMAL_DIGIT);
+    d_charClass[ch] |= static_cast<uint32_t>(CharacterClass::SYMBOL);
   }
-  d_int32_tClass['0'] |= static_cast<uint32_t>(CharacterClass::BIT);
-  d_int32_tClass['1'] |= static_cast<uint32_t>(CharacterClass::BIT);
+  d_charClass['0'] |= static_cast<uint32_t>(CharacterClass::BIT);
+  d_charClass['1'] |= static_cast<uint32_t>(CharacterClass::BIT);
   // ~!@$%^&*_-+|=<>.?/
   for (int32_t ch : s_extraSymbolChars)
   {
-    d_int32_tClass[ch] |= static_cast<uint32_t>(CharacterClass::SYMBOL_START);
-    d_int32_tClass[ch] |= static_cast<uint32_t>(CharacterClass::SYMBOL);
+    d_charClass[ch] |= static_cast<uint32_t>(CharacterClass::SYMBOL_START);
+    d_charClass[ch] |= static_cast<uint32_t>(CharacterClass::SYMBOL);
   }
   // whitespace
-  d_int32_tClass[' '] |= static_cast<uint32_t>(CharacterClass::WHITESPACE);
-  d_int32_tClass['\t'] |= static_cast<uint32_t>(CharacterClass::WHITESPACE);
-  d_int32_tClass['\r'] |= static_cast<uint32_t>(CharacterClass::WHITESPACE);
-  d_int32_tClass['\n'] |= static_cast<uint32_t>(CharacterClass::WHITESPACE);
+  d_charClass[' '] |= static_cast<uint32_t>(CharacterClass::WHITESPACE);
+  d_charClass['\t'] |= static_cast<uint32_t>(CharacterClass::WHITESPACE);
+  d_charClass['\r'] |= static_cast<uint32_t>(CharacterClass::WHITESPACE);
+  d_charClass['\n'] |= static_cast<uint32_t>(CharacterClass::WHITESPACE);
 }
 
 const char* Smt2Lexer::tokenStr() const
