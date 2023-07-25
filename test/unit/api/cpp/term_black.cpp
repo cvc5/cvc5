@@ -1182,6 +1182,35 @@ TEST_F(TestApiBlackTerm, getCardinalityConstraint)
   ASSERT_THROW(nullt.isCardinalityConstraint(), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackTerm, getRealAlgebraicNumber)
+{
+  d_solver.setOption("produce-models", "true");
+  d_solver.setLogic("QF_NRA");
+  Sort realsort = d_solver.getRealSort();
+  Term x = d_solver.mkConst(realsort, "x");
+  Term x2 = d_solver.mkTerm(MULT, {x, x});
+  Term two = d_solver.mkReal(2, 1);
+  Term eq = d_solver.mkTerm(EQUAL, {x2, two});
+  d_solver.assertFormula(eq);
+  // Note that check-sat should only return "sat" if libpoly is enabled.
+  // Otherwise, we do not test the following functionality.
+  if (d_solver.checkSat().isSat())
+  {
+    // We find a model for (x*x = 2), where x should be a real algebraic number.
+    // We assert that its defining polynomial is non-null and its lower and
+    // upper bounds are real.
+    Term vx = d_solver.getValue(x);
+    ASSERT_TRUE(vx.isRealAlgebraicNumber());
+    Term y = d_solver.mkVar(realsort, "y");
+    Term poly = vx.getRealAlgebraicNumberDefiningPolynomial(y);
+    ASSERT_TRUE(!poly.isNull());
+    Term lb = vx.getRealAlgebraicNumberLowerBound();
+    ASSERT_TRUE(lb.isRealValue());
+    Term ub = vx.getRealAlgebraicNumberUpperBound();
+    ASSERT_TRUE(ub.isRealValue());
+  }
+}
+
 TEST_F(TestApiBlackTerm, termScopedToString)
 {
   Sort intsort = d_solver.getIntegerSort();
