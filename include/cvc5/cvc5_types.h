@@ -16,12 +16,26 @@
 
 #include <cvc5/cvc5_export.h>
 
-#ifndef CVC5__API__CVC5_TYPES_H
-#define CVC5__API__CVC5_TYPES_H
+#if (!defined(CVC5_API_USE_C_ENUMS) && !defined(CVC5__API__CVC5_CPP_TYPES_H)) \
+    || (defined(CVC5_API_USE_C_ENUMS) && !defined(CVC5__API__CVC5_C_TYPES_H))
 
+#ifdef CVC5_API_USE_C_ENUMS
+#define ENUM(name) Cvc5##name
+#else
 #include <iosfwd>
-
 namespace cvc5 {
+#define ENUM(name) class name
+#define EVALUE(name) name
+#endif
+
+/* -------------------------------------------------------------------------- */
+/* UnknownExplanation                                                         */
+/* -------------------------------------------------------------------------- */
+
+#ifdef CVC5_API_USE_C_ENUMS
+#undef EVALUE
+#define EVALUE(name) CVC5_UNKNOWN_EXP_##name
+#endif
 
 /**
  * The different reasons for returning an "unknown" result.
@@ -53,13 +67,37 @@ enum UnknownExplanation
   UNKNOWN_REASON
 };
 
+#ifdef CVC5_API_USE_C_ENUMS
+#ifndef DOXYGEN_SKIP
+typedef enum ENUM(UnknownExplanation) ENUM(UnknownExplanation);
+#endif
+#endif
+
+#ifdef CVC5_API_USE_C_ENUMS
+/**
+ * Get a string representation of a Cvc5UnknownExplanation.
+ * @param exp The unknown explanation.
+ * @return The string representation.
+ */
+const char* cvc5_unknown_explanation_to_string(Cvc5UnknownExplanation exp);
+#else
 /**
  * Serialize an UnknownExplanation to given stream.
- * @param out the output stream
- * @param e the explanation to be serialized to the given output stream
- * @return the output stream
+ * @param out The output stream
+ * @param e The explanation to be serialized to the given output stream
+ * @return The output stream
  */
 std::ostream& operator<<(std::ostream& out, UnknownExplanation e) CVC5_EXPORT;
+#endif
+
+/* -------------------------------------------------------------------------- */
+/* RoundingMode                                                               */
+/* -------------------------------------------------------------------------- */
+
+#ifdef CVC5_API_USE_C_ENUMS
+#undef EVALUE
+#define EVALUE(name) CVC5_RM_##name
+#endif
 
 /**
  * Rounding modes for floating-point numbers.
@@ -116,9 +154,28 @@ enum RoundingMode
   ROUND_NEAREST_TIES_TO_AWAY,
 };
 
-}  // namespace cvc5
+#ifdef CVC5_API_USE_C_ENUMS
+#ifndef DOXYGEN_SKIP
+typedef enum ENUM(RoundingMode) ENUM(RoundingMode);
+#endif
+#endif
 
+#ifndef CVC5_API_USE_C_ENUMS
+}  // namespace cvc5
+#endif
+
+#ifndef CVC5_API_USE_C_ENUMS
 namespace cvc5::modes {
+#endif
+
+/* -------------------------------------------------------------------------- */
+/* BlockModelsMode                                                            */
+/* -------------------------------------------------------------------------- */
+
+#ifdef CVC5_API_USE_C_ENUMS
+#undef EVALUE
+#define EVALUE(name) CVC5_BLOCK_MODELS_MODE_##name
+#endif
 
 /**
  * Mode for blocking models.
@@ -133,8 +190,38 @@ enum BlockModelsMode
   /** Block models based on the concrete model values for the free variables. */
   VALUES
 };
-/** Writes a block models mode to a stream. */
-std::ostream& operator<<(std::ostream& out, BlockModelsMode bmode) CVC5_EXPORT;
+
+#ifdef CVC5_API_USE_C_ENUMS
+#ifndef DOXYGEN_SKIP
+typedef enum ENUM(BlockModelsMode) ENUM(BlockModelsMode);
+#endif
+#endif
+
+#ifdef CVC5_API_USE_C_ENUMS
+/**
+ * Get a string representation of a Cvc5BlockModelsMode.
+ * @param mode The mode.
+ * @return The string representation.
+ */
+const char* cvc5_block_models_mode_to_string(Cvc5BlockModelsMode mode);
+#else
+/**
+ * Serialize a BlockModelsMode to given stream.
+ * @param out The output stream
+ * @param mode The mode.
+ * @return The output stream
+ */
+std::ostream& operator<<(std::ostream& out, BlockModelsMode mode) CVC5_EXPORT;
+#endif
+
+/* -------------------------------------------------------------------------- */
+/* LearnedLitType                                                             */
+/* -------------------------------------------------------------------------- */
+
+#ifdef CVC5_API_USE_C_ENUMS
+#undef EVALUE
+#define EVALUE(name) CVC5_LEARNED_LIT_TYPE_##name
+#endif
 
 /**
  * Types of learned literals.
@@ -191,8 +278,33 @@ enum LearnedLitType
   /** Special case for when produce-learned-literals is not set.  */
   LEARNED_LIT_UNKNOWN
 };
-/** Writes a learned literal type to a stream. */
-std::ostream& operator<<(std::ostream& out, LearnedLitType ltype) CVC5_EXPORT;
+
+#ifdef CVC5_API_USE_C_ENUMS
+#ifndef DOXYGEN_SKIP
+typedef enum ENUM(LearnedLitType) ENUM(LearnedLitType);
+#endif
+#endif
+
+#ifdef CVC5_API_USE_C_ENUMS
+/**
+ * Get a string representation of a Cvc5LearnedLitType.
+ * @param type The learned literal type.
+ * @return The string representation.
+ */
+const char* cvc5_learned_lit_type_to_string(Cvc5LearnedLitType type);
+#else
+/**
+ * Serialize a LearnedLitType to given stream.
+ * @param out The output stream
+ * @param type The learned literal type.
+ * @return The output stream
+ */
+std::ostream& operator<<(std::ostream& out, LearnedLitType type) CVC5_EXPORT;
+#endif
+
+/* -------------------------------------------------------------------------- */
+/* ProofComponent                                                             */
+/* -------------------------------------------------------------------------- */
 
 /**
  * Components to include in a proof.
@@ -250,8 +362,33 @@ enum ProofComponent
    */
   PROOF_COMPONENT_FULL,
 };
-/** Writes a proof component identifier to a stream. */
+
+#ifdef CVC5_API_USE_C_ENUMS
+#ifndef DOXYGEN_SKIP
+typedef enum ENUM(ProofComponent) ENUM(ProofComponent);
+#endif
+#endif
+
+#ifdef CVC5_API_USE_C_ENUMS
+/**
+ * Get a string representation of a Cvc5ProofComponent.
+ * @param pc The proof component.
+ * @return The string representation.
+ */
+const char* cvc5_proof_component_to_string(Cvc5ProofComponent pc);
+#else
+/**
+ * Serialize a ProofComponent to given stream.
+ * @param out The output stream
+ * @param pc The proof component.
+ * @return The output stream
+ */
 std::ostream& operator<<(std::ostream& out, ProofComponent pc) CVC5_EXPORT;
+#endif
+
+/* -------------------------------------------------------------------------- */
+/* FindSynthTarget                                                            */
+/* -------------------------------------------------------------------------- */
 
 /**
  * Find synthesis targets, used as an argument to Solver::findSynth. These
@@ -303,9 +440,40 @@ enum FindSynthTarget
    */
   FIND_SYNTH_TARGET_QUERY
 };
-/** Writes a synthesis find target identifier to a stream. */
-std::ostream& operator<<(std::ostream& out, FindSynthTarget fst) CVC5_EXPORT;
+
+#ifdef CVC5_API_USE_C_ENUMS
+#ifndef DOXYGEN_SKIP
+typedef enum ENUM(FindSynthTarget) ENUM(FindSynthTarget);
+#endif
+#endif
+
+#ifdef CVC5_API_USE_C_ENUMS
+/**
+ * Get a string representation of a Cvc5FindSynthTarget.
+ * @param target The synthesis find target.
+ * @return The string representation.
+ */
+const char* cvc5_find_synthesis_target_to_string(Cvc5FindSynthTarget target);
+#else
+/**
+ * Serialize a FindSynthTarget to given stream.
+ * @param out The output stream
+ * @param targetThe synthesis find target.
+ * @return The output stream
+ */
+std::ostream& operator<<(std::ostream& out, FindSynthTarget target) CVC5_EXPORT;
+#endif
 
 }  // namespace cvc5::modes
 
+#endif
+
+#ifndef CVC5_API_USE_C_ENUMS
+#ifndef CVC5__API__CVC5_CPP_TYPES_H
+#define CVC5__API__CVC5_CPP_TYPES_H
+#endif
+#else
+#ifndef CVC5__API__CVC5_C_TYPES_H
+#define CVC5__API__CVC5_C_TYPES_H
+#endif
 #endif
