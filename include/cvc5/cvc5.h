@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1740,6 +1740,28 @@ class CVC5_EXPORT Term
    */
   std::pair<Sort, uint32_t> getCardinalityConstraint() const;
 
+  /**
+   * @return True if the term is a real algebraic number.
+   */
+  bool isRealAlgebraicNumber() const;
+  /**
+   * @note Asserts isRealAlgebraicNumber().
+   * @param v The variable over which to express the polynomial.
+   * @return The defining polynomial for the real algebraic number, expressed in
+   * terms of the given variable.
+   */
+  Term getRealAlgebraicNumberDefiningPolynomial(const Term& v) const;
+  /**
+   * @note Asserts isRealAlgebraicNumber().
+   * @return The lower bound for the value of the real algebraic number.
+   */
+  Term getRealAlgebraicNumberLowerBound() const;
+  /**
+   * @note Asserts isRealAlgebraicNumber().
+   * @return The upper bound for the value of the real algebraic number.
+   */
+  Term getRealAlgebraicNumberUpperBound() const;
+
  protected:
   /**
    * The associated node manager.
@@ -2829,7 +2851,7 @@ class CVC5_EXPORT Grammar
 
   /**
    * Check if \p rule contains variables that are neither parameters of
-   * the corresponding synthFun/synthInv nor non-terminals.
+   * the corresponding synthFun nor non-terminals.
    * @param rule The non-terminal allowed to be any constant.
    * @return True if \p rule contains free variables and false otherwise.
    */
@@ -4916,44 +4938,6 @@ class CVC5_EXPORT Solver
   Term synthFun(const std::string& symbol,
                 const std::vector<Term>& boundVars,
                 Sort sort,
-                Grammar& grammar) const;
-
-  /**
-   * Synthesize invariant.
-   *
-   * SyGuS v2:
-   *
-   * \verbatim embed:rst:leading-asterisk
-   * .. code:: smtlib
-   *
-   *     (synth-inv <symbol> ( <boundVars>* ))
-   * \endverbatim
-   *
-   * @param symbol The name of the invariant.
-   * @param boundVars The parameters to this invariant.
-   * @return The invariant.
-   */
-  Term synthInv(const std::string& symbol,
-                const std::vector<Term>& boundVars) const;
-
-  /**
-   * Synthesize invariant following specified syntactic constraints.
-   *
-   * SyGuS v2:
-   *
-   * \verbatim embed:rst:leading-asterisk
-   * .. code:: smtlib
-   *
-   *     (synth-inv <symbol> ( <boundVars>* ) <grammar>)
-   * \endverbatim
-   *
-   * @param symbol The name of the invariant.
-   * @param boundVars The parameters to this invariant.
-   * @param grammar The syntactic constraints.
-   * @return The invariant.
-   */
-  Term synthInv(const std::string& symbol,
-                const std::vector<Term>& boundVars,
                 Grammar& grammar) const;
 
   /**

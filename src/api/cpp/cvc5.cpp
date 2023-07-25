@@ -69,6 +69,7 @@
 #include "smt/model.h"
 #include "smt/smt_mode.h"
 #include "smt/solver_engine.h"
+#include "theory/arith/nl/poly_conversion.h"
 #include "theory/datatypes/project_op.h"
 #include "theory/logic_info.h"
 #include "theory/theory_model.h"
@@ -3561,6 +3562,93 @@ std::pair<Sort, uint32_t> Term::getCardinalityConstraint() const
   CVC5_API_TRY_CATCH_END;
 }
 
+bool Term::isRealAlgebraicNumber() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_node->getKind() == internal::Kind::REAL_ALGEBRAIC_NUMBER;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Term::getRealAlgebraicNumberDefiningPolynomial(const Term& v) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_ARG_CHECK_EXPECTED(
+      d_node->getKind() == internal::Kind::REAL_ALGEBRAIC_NUMBER, *d_node)
+      << "Term to be a real algebraic number when calling "
+         "getRealAlgebraicNumberDefiningPolynomial()";
+#ifndef CVC5_POLY_IMP
+  throw CVC5ApiException(
+      "Expected libpoly enabled build when calling "
+      "getRealAlgebraicNumberDefiningPolynomial");
+#endif
+  //////// all checks before this line
+#ifdef CVC5_POLY_IMP
+  const internal::RealAlgebraicNumber& ran =
+      d_node->getOperator().getConst<internal::RealAlgebraicNumber>();
+  return Term(d_nm,
+              internal::PolyConverter::ran_to_defining_polynomial(
+                  ran, *v.d_node.get()));
+#else
+  return Term();
+#endif
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Term::getRealAlgebraicNumberLowerBound() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_ARG_CHECK_EXPECTED(
+      d_node->getKind() == internal::Kind::REAL_ALGEBRAIC_NUMBER, *d_node)
+      << "Term to be a real algebraic number when calling "
+         "getRealAlgebraicNumberDefiningPolynomial()";
+#ifndef CVC5_POLY_IMP
+  throw CVC5ApiException(
+      "Expected libpoly enabled build when calling "
+      "getRealAlgebraicNumberLowerBound");
+#endif
+  //////// all checks before this line
+#ifdef CVC5_POLY_IMP
+  const internal::RealAlgebraicNumber& ran =
+      d_node->getOperator().getConst<internal::RealAlgebraicNumber>();
+  return Term(d_nm, internal::PolyConverter::ran_to_lower(ran));
+#else
+  return Term();
+#endif
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Term::getRealAlgebraicNumberUpperBound() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_ARG_CHECK_EXPECTED(
+      d_node->getKind() == internal::Kind::REAL_ALGEBRAIC_NUMBER, *d_node)
+      << "Term to be a real algebraic number when calling "
+         "getRealAlgebraicNumberDefiningPolynomial()";
+#ifndef CVC5_POLY_IMP
+  throw CVC5ApiException(
+      "Expected libpoly enabled build when calling "
+      "getRealAlgebraicNumberUpperBound");
+#endif
+  //////// all checks before this line
+#ifdef CVC5_POLY_IMP
+  const internal::RealAlgebraicNumber& ran =
+      d_node->getOperator().getConst<internal::RealAlgebraicNumber>();
+  return Term(d_nm, internal::PolyConverter::ran_to_upper(ran));
+#else
+  return Term();
+#endif
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 std::ostream& operator<<(std::ostream& out, const Term& t)
 {
   // Note that this ignores the options::ioutils properties of `out`.
@@ -4564,7 +4652,7 @@ void Grammar::addRule(const Term& ntSymbol, const Term& rule)
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_sg->isResolved())
       << "Grammar cannot be modified after passing "
-         "it as an argument to synthFun/synthInv";
+         "it as an argument to synthFun";
   CVC5_API_CHECK_TERM(ntSymbol);
   CVC5_API_CHECK_TERM(rule);
   CVC5_API_ARG_CHECK_EXPECTED(contains(d_sg->getNtSyms(), *ntSymbol.d_node),
@@ -4574,7 +4662,7 @@ void Grammar::addRule(const Term& ntSymbol, const Term& rule)
   CVC5_API_CHECK(ntSymbol.d_node->getType().isInstanceOf(rule.d_node->getType()))
       << "Expected ntSymbol and rule to have the same sort";
   CVC5_API_ARG_CHECK_EXPECTED(!containsFreeVariables(rule), rule)
-      << "a term whose free variables are limited to synthFun/synthInv "
+      << "a term whose free variables are limited to synthFun "
          "parameters and non-terminal symbols of the grammar";
   //////// all checks before this line
   d_sg->addRule(*ntSymbol.d_node, *rule.d_node);
@@ -4587,7 +4675,7 @@ void Grammar::addRules(const Term& ntSymbol, const std::vector<Term>& rules)
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_sg->isResolved())
       << "Grammar cannot be modified after passing "
-         "it as an argument to synthFun/synthInv";
+         "it as an argument to synthFun";
   CVC5_API_CHECK_TERM(ntSymbol);
   CVC5_API_CHECK_TERMS_WITH_SORT(rules, ntSymbol.getSort());
   CVC5_API_ARG_CHECK_EXPECTED(contains(d_sg->getNtSyms(), *ntSymbol.d_node),
@@ -4598,7 +4686,7 @@ void Grammar::addRules(const Term& ntSymbol, const std::vector<Term>& rules)
   {
     CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(
         !containsFreeVariables(rules[i]), rules[i], rules, i)
-        << "a term whose free variables are limited to synthFun/synthInv "
+        << "a term whose free variables are limited to synthFun "
            "parameters and non-terminal symbols of the grammar";
   }
   //////// all checks before this line
@@ -4612,7 +4700,7 @@ void Grammar::addAnyConstant(const Term& ntSymbol)
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_sg->isResolved())
       << "Grammar cannot be modified after passing "
-         "it as an argument to synthFun/synthInv";
+         "it as an argument to synthFun";
   CVC5_API_CHECK_TERM(ntSymbol);
   CVC5_API_ARG_CHECK_EXPECTED(contains(d_sg->getNtSyms(), *ntSymbol.d_node),
                               ntSymbol)
@@ -4629,7 +4717,7 @@ void Grammar::addAnyVariable(const Term& ntSymbol)
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_sg->isResolved())
       << "Grammar cannot be modified after passing "
-         "it as an argument to synthFun/synthInv";
+         "it as an argument to synthFun";
   CVC5_API_CHECK_TERM(ntSymbol);
   CVC5_API_ARG_CHECK_EXPECTED(contains(d_sg->getNtSyms(), *ntSymbol.d_node),
                               ntSymbol)
@@ -7569,35 +7657,6 @@ Term Solver::synthFun(const std::string& symbol,
       << "Cannot call synthFun unless sygus is enabled (use --sygus)";
   //////// all checks before this line
   return synthFunHelper(symbol, boundVars, sort, false, &grammar);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Solver::synthInv(const std::string& symbol,
-                      const std::vector<Term>& boundVars) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_BOUND_VARS(boundVars);
-  CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
-      << "Cannot call synthInv unless sygus is enabled (use --sygus)";
-  //////// all checks before this line
-  return synthFunHelper(
-      symbol, boundVars, Sort(d_nm, d_nm->booleanType()), true);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Solver::synthInv(const std::string& symbol,
-                      const std::vector<Term>& boundVars,
-                      Grammar& grammar) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_BOUND_VARS(boundVars);
-  CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
-      << "Cannot call synthInv unless sygus is enabled (use --sygus)";
-  //////// all checks before this line
-  return synthFunHelper(
-      symbol, boundVars, Sort(d_nm, d_nm->booleanType()), true, &grammar);
   ////////
   CVC5_API_TRY_CATCH_END;
 }

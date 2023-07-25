@@ -10,10 +10,10 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Flex input class.
+ *  input class.
  */
 
-#include "parser/flex_input.h"
+#include "parser/input.h"
 
 #include <fstream>
 
@@ -23,10 +23,10 @@ namespace cvc5 {
 namespace parser {
 
 /** File input class */
-class FlexFileInput : public FlexInput
+class FileInput : public Input
 {
  public:
-  FlexFileInput(const std::string& filename) : FlexInput()
+  FileInput(const std::string& filename) : Input()
   {
     d_fs.open(filename, std::fstream::in);
     if (!d_fs.is_open())
@@ -44,10 +44,10 @@ class FlexFileInput : public FlexInput
 };
 
 /** Stream reference input class */
-class FlexStreamInput : public FlexInput
+class StreamInput : public Input
 {
  public:
-  FlexStreamInput(std::istream& input) : FlexInput(), d_input(input) {}
+  StreamInput(std::istream& input) : Input(), d_input(input) {}
   std::istream* getStream() override { return &d_input; }
   bool isInteractive() const override { return true; }
 
@@ -57,10 +57,10 @@ class FlexStreamInput : public FlexInput
 };
 
 /** String input class, which buffers to a std::stringstream */
-class FlexStringInput : public FlexInput
+class StringInput : public Input
 {
  public:
-  FlexStringInput(const std::string& input) : FlexInput() { d_input << input; }
+  StringInput(const std::string& input) : Input() { d_input << input; }
   std::istream* getStream() override { return &d_input; }
 
  private:
@@ -68,23 +68,23 @@ class FlexStringInput : public FlexInput
   std::stringstream d_input;
 };
 
-FlexInput::FlexInput() {}
+Input::Input() {}
 
-std::unique_ptr<FlexInput> FlexInput::mkFileInput(const std::string& filename)
+std::unique_ptr<Input> Input::mkFileInput(const std::string& filename)
 {
-  return std::unique_ptr<FlexInput>(new FlexFileInput(filename));
+  return std::unique_ptr<Input>(new FileInput(filename));
 }
 
-std::unique_ptr<FlexInput> FlexInput::mkStreamInput(std::istream& input)
+std::unique_ptr<Input> Input::mkStreamInput(std::istream& input)
 {
-  return std::unique_ptr<FlexInput>(new FlexStreamInput(input));
+  return std::unique_ptr<Input>(new StreamInput(input));
 }
 
-std::unique_ptr<FlexInput> FlexInput::mkStringInput(const std::string& input)
+std::unique_ptr<Input> Input::mkStringInput(const std::string& input)
 {
-  return std::unique_ptr<FlexInput>(new FlexStringInput(input));
+  return std::unique_ptr<Input>(new StringInput(input));
 }
-bool FlexInput::isInteractive() const { return false; }
+bool Input::isInteractive() const { return false; }
 
 }  // namespace parser
 }  // namespace cvc5

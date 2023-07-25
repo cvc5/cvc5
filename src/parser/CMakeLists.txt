@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mathias Preiner, Andrew Reynolds, Andres Noetzli
+#   Andrew Reynolds, Mathias Preiner, Andres Noetzli
 #
 # This file is part of the cvc5 project.
 #
@@ -12,11 +12,6 @@
 #
 # The build system configuration.
 ##
-
-find_package(ANTLR3 3.4 REQUIRED)
-
-# Java runtime is required for ANTLR
-find_package(Java COMPONENTS Runtime REQUIRED)
 
 #-----------------------------------------------------------------------------#
 # libcvc5parser source files
@@ -33,25 +28,25 @@ set(libcvc5parserapi_src_files
 set(libcvc5parser_src_files
   commands.h
   command_status.h
-  flex_input.cpp
-  flex_input.h
-  flex_lexer.cpp
-  flex_lexer.h
-  flex_parser.cpp
-  flex_parser.h
-  parse_op.cpp
-  parse_op.h
+  input.cpp
+  input.h
+  lexer.cpp
+  lexer.h
   parser.cpp
   parser.h
+  parse_op.cpp
+  parse_op.h
+  parser_state.cpp
+  parser_state.h
   parser_exception.h
   parser_utils.cpp
   parser_utils.h
-  smt2/smt2.cpp
-  smt2/smt2.h
+  smt2/smt2_state.cpp
+  smt2/smt2_state.h
   smt2/smt2_cmd_parser.cpp
   smt2/smt2_cmd_parser.h
-  smt2/smt2_lexer_new.cpp
-  smt2/smt2_lexer_new.h
+  smt2/smt2_lexer.cpp
+  smt2/smt2_lexer.h
   smt2/smt2_cmd_parser.cpp
   smt2/smt2_cmd_parser.h
   smt2/smt2_parser.cpp
@@ -75,9 +70,7 @@ add_library(cvc5parserapi-objs OBJECT ${libcvc5parserapi_src_files})
 set_target_properties(cvc5parserapi-objs PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_compile_definitions(cvc5parserapi-objs PUBLIC -D__BUILDING_CVC5LIB -Dcvc5_obj_EXPORTS)
 
-add_dependencies(cvc5parser-objs ANTLR3)
-add_dependencies(cvc5parserapi-objs cvc5parser-objs)
-target_include_directories(cvc5parser-objs PRIVATE ${ANTLR3_INCLUDE_DIR})
+add_dependencies(cvc5parserapi-objs cvc5parser-objs gen-expr)
 
 add_library(cvc5parser
   $<TARGET_OBJECTS:cvc5parser-objs>
@@ -89,7 +82,6 @@ endif()
 
 set_target_properties(cvc5parser PROPERTIES OUTPUT_NAME cvc5parser)
 target_link_libraries(cvc5parser PRIVATE cvc5)
-target_link_libraries(cvc5parser PRIVATE ANTLR3)
 
 install(TARGETS cvc5parser
   EXPORT cvc5-targets
