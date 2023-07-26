@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed, Morgan Deters
+ *   Andrew Reynolds, Morgan Deters, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
