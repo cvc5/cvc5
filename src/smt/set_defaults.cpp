@@ -48,6 +48,7 @@ namespace smt {
 
 /**
  * Set domain.optName to value due to reason. Notify if value changes.
+ * Note this macro should be used if the value is concrete.
  */
 #define SET_AND_NOTIFY(domain, optName, value, reason) \
   if (opts.write##domain().optName != value)           \
@@ -60,7 +61,7 @@ namespace smt {
  * Print the value using a stringstream conversion.
  *
  * Note this macro should be used if the value passed to the macro is not
- * concrete (e.g. is stored in a variable).
+ * concrete (i.e., stored in a variable).
  */
 #define SET_AND_NOTIFY_VAL_SYM(domain, optName, value, reason) \
   if (opts.write##domain().optName != value)                   \
@@ -73,6 +74,7 @@ namespace smt {
 /**
  * Set domain.optName to value due to reason if the option was not already set
  * by the user. Notify if value changes.
+ * Note this macro should be used if the value is concrete.
  */
 #define SET_AND_NOTIFY_IF_NOT_USER(domain, optName, value, reason) \
   if (!opts.write##domain().optName##WasSetByUser                  \
