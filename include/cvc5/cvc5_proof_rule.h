@@ -17,6 +17,7 @@
 #define CVC5__API__PROOF_RULE_H
 
 #include <iosfwd>
+#include <cstdint>
 
 namespace cvc5 {
 
