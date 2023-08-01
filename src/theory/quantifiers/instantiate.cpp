@@ -287,10 +287,10 @@ bool Instantiate::addInstantiationInternal(
       // add the transformation proof, or the trusted rule if none provided
       pfTmp->addLazyStep(proven,
                          tpBody.getGenerator(),
-                         PfRule::QUANTIFIERS_PREPROCESS,
+                         ProofRule::QUANTIFIERS_PREPROCESS,
                          true,
                          "Instantiate::getInstantiation:qpreprocess");
-      pfTmp->addStep(body, PfRule::EQ_RESOLVE, {orig_body, proven}, {});
+      pfTmp->addStep(body, ProofRule::EQ_RESOLVE, {orig_body, proven}, {});
     }
   }
   Trace("inst-debug") << "...preprocess to " << body << std::endl;
@@ -326,7 +326,7 @@ bool Instantiate::addInstantiationInternal(
     lem = rewrite(lem);
     if (prevLem != lem)
     {
-      d_pfInst->addStep(lem, PfRule::MACRO_SR_PRED_ELIM, {prevLem}, {});
+      d_pfInst->addStep(lem, ProofRule::MACRO_SR_PRED_ELIM, {prevLem}, {});
     }
     hasProof = true;
   }
@@ -580,7 +580,7 @@ Node Instantiate::getInstantiation(Node q,
         pfTerms.push_back(pfArg);
       }
     }
-    pf->addStep(body, PfRule::INSTANTIATE, {q}, pfTerms);
+    pf->addStep(body, ProofRule::INSTANTIATE, {q}, pfTerms);
   }
 
   // run rewriters to rewrite the instantiation in sequence.
@@ -596,10 +596,10 @@ Node Instantiate::getInstantiation(Node q,
         Node proven = trn.getProven();
         pf->addLazyStep(proven,
                         trn.getGenerator(),
-                        PfRule::THEORY_PREPROCESS,
+                        ProofRule::THEORY_PREPROCESS,
                         true,
                         "Instantiate::getInstantiation:rewrite_inst");
-        pf->addStep(newBody, PfRule::EQ_RESOLVE, {body, proven}, {});
+        pf->addStep(newBody, ProofRule::EQ_RESOLVE, {body, proven}, {});
       }
       body = newBody;
     }

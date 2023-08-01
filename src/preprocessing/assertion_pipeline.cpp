@@ -155,7 +155,7 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
       //   rewrite( d_nodes[i] ^ n )
       // allocate a fresh proof which will act as the proof generator
       LazyCDProof* lcp = d_pppg->allocateHelperProof();
-      lcp->addLazyStep(n, pg, PfRule::PREPROCESS);
+      lcp->addLazyStep(n, pg, ProofRule::PREPROCESS);
       if (d_nodes[i].isConst() && d_nodes[i].getConst<bool>())
       {
         // skip the AND_INTRO if the previous d_nodes[i] was true
@@ -164,12 +164,14 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
       else
       {
         lcp->addLazyStep(d_nodes[i], d_pppg);
-        lcp->addStep(newConj, PfRule::AND_INTRO, {d_nodes[i], n}, {});
+        lcp->addStep(newConj, ProofRule::AND_INTRO, {d_nodes[i], n}, {});
       }
       if (!CDProof::isSame(newConjr, newConj))
       {
-        lcp->addStep(
-            newConjr, PfRule::MACRO_SR_PRED_TRANSFORM, {newConj}, {newConjr});
+        lcp->addStep(newConjr,
+                     ProofRule::MACRO_SR_PRED_TRANSFORM,
+                     {newConj},
+                     {newConjr});
       }
       // Notice we have constructed a proof of a new assertion, where d_pppg
       // is referenced in the lazy proof above. If alternatively we had

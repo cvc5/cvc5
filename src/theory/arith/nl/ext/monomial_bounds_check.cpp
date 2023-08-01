@@ -342,8 +342,8 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
                                        nm->mkNode(Kind::AND, exp[0], simpleeq),
                                        infer);
               proof->addStep(tmplem,
-                             mmv_sign == 1 ? PfRule::ARITH_MULT_POS
-                                           : PfRule::ARITH_MULT_NEG,
+                             mmv_sign == 1 ? ProofRule::ARITH_MULT_POS
+                                           : ProofRule::ARITH_MULT_NEG,
                              {},
                              {mult, simpleeq});
               if (type == Kind::EQUAL && (rewrite(simpleeq) != rewrite(exp[1])))
@@ -368,42 +368,56 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
                 // Hence, we apply MACRO_SR_PRED_TRANSFORM to them, and check
                 // which corresponds to which subterm of the premise.
                 proof->addStep(exp[1][0],
-                               PfRule::AND_ELIM,
+                               ProofRule::AND_ELIM,
                                {exp[1]},
                                {nm->mkConstInt(Rational(0))});
                 proof->addStep(exp[1][1],
-                               PfRule::AND_ELIM,
+                               ProofRule::AND_ELIM,
                                {exp[1]},
                                {nm->mkConstInt(Rational(1))});
                 Node lb = nm->mkNode(Kind::GEQ, simpleeq[0], simpleeq[1]);
                 Node rb = nm->mkNode(Kind::LEQ, simpleeq[0], simpleeq[1]);
                 if (rewrite(lb) == rewrite(exp[1][0]))
                 {
-                  proof->addStep(
-                      lb, PfRule::MACRO_SR_PRED_TRANSFORM, {exp[1][0]}, {lb});
-                  proof->addStep(
-                      rb, PfRule::MACRO_SR_PRED_TRANSFORM, {exp[1][1]}, {rb});
+                  proof->addStep(lb,
+                                 ProofRule::MACRO_SR_PRED_TRANSFORM,
+                                 {exp[1][0]},
+                                 {lb});
+                  proof->addStep(rb,
+                                 ProofRule::MACRO_SR_PRED_TRANSFORM,
+                                 {exp[1][1]},
+                                 {rb});
                 }
                 else
                 {
-                  proof->addStep(
-                      lb, PfRule::MACRO_SR_PRED_TRANSFORM, {exp[1][1]}, {lb});
-                  proof->addStep(
-                      rb, PfRule::MACRO_SR_PRED_TRANSFORM, {exp[1][0]}, {rb});
+                  proof->addStep(lb,
+                                 ProofRule::MACRO_SR_PRED_TRANSFORM,
+                                 {exp[1][1]},
+                                 {lb});
+                  proof->addStep(rb,
+                                 ProofRule::MACRO_SR_PRED_TRANSFORM,
+                                 {exp[1][0]},
+                                 {rb});
                 }
+                proof->addStep(simpleeq,
+                               ProofRule::ARITH_TRICHOTOMY,
+                               {lb, rb},
+                               {simpleeq});
                 proof->addStep(
-                    simpleeq, PfRule::ARITH_TRICHOTOMY, {lb, rb}, {simpleeq});
+                    tmplem[0], ProofRule::AND_INTRO, {exp[0], simpleeq}, {});
+                proof->addStep(tmplem[1],
+                               ProofRule::MODUS_PONENS,
+                               {tmplem[0], tmplem},
+                               {});
                 proof->addStep(
-                    tmplem[0], PfRule::AND_INTRO, {exp[0], simpleeq}, {});
-                proof->addStep(
-                    tmplem[1], PfRule::MODUS_PONENS, {tmplem[0], tmplem}, {});
-                proof->addStep(
-                    iblem, PfRule::SCOPE, {tmplem[1]}, {exp[0], exp[1]});
+                    iblem, ProofRule::SCOPE, {tmplem[1]}, {exp[0], exp[1]});
               }
               else
               {
-                proof->addStep(
-                    iblem, PfRule::MACRO_SR_PRED_TRANSFORM, {tmplem}, {iblem});
+                proof->addStep(iblem,
+                               ProofRule::MACRO_SR_PRED_TRANSFORM,
+                               {tmplem},
+                               {iblem});
               }
             }
             d_data->d_im.addPendingLemma(iblem,

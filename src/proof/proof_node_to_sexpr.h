@@ -73,7 +73,7 @@ class ProofNodeToSExpr
     NODE_VAR
   };
   /** map proof rules to a variable */
-  std::map<PfRule, Node> d_pfrMap;
+  std::map<ProofRule, Node> d_pfrMap;
   /** map kind to a variable displaying the kind they represent */
   std::map<Kind, Node> d_kindMap;
   /** map theory ids to a variable displaying the theory id they represent */
@@ -84,7 +84,7 @@ class ProofNodeToSExpr
   std::map<theory::InferenceId, Node> d_iidMap;
   /** map dsl rewrite ids to a variable displaying the dsl rewrite id they
    * represent */
-  std::map<rewriter::DslPfRule, Node> d_dslrMap;
+  std::map<rewriter::DslProofRule, Node> d_dslrMap;
   /** Dummy ":args" marker */
   Node d_argsMarker;
   /** Dummy ":conclusion" marker */
@@ -97,7 +97,7 @@ class ProofNodeToSExpr
    */
   std::map<TNode, Node> d_nodeMap;
   /** get or make pf rule variable */
-  Node getOrMkPfRuleVariable(PfRule r);
+  Node getOrMkProofRuleVariable(ProofRule r);
   /** get or make kind variable from the kind embedded in n */
   Node getOrMkKindVariable(TNode n);
   /** get or make theory id variable */

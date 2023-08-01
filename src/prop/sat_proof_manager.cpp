@@ -264,7 +264,7 @@ void SatProofManager::endResChain(Node conclusion,
   // step, which bypasses these. Note that we could generate a chain resolution
   // rule here by explicitly computing the detailed steps, but leave this for
   // post-processing.
-  ProofStep ps(PfRule::MACRO_RESOLUTION_TRUST, children, args);
+  ProofStep ps(ProofRule::MACRO_RESOLUTION_TRUST, children, args);
   // note that we must tell the proof generator to overwrite if repeated
   d_resChainPg.addStep(conclusion, ps);
   // the premises of this resolution may not have been justified yet, so we do
@@ -477,7 +477,7 @@ void SatProofManager::explainLit(SatLiteral lit,
   Trace("sat-proof") << pop;
   // create step
   args.insert(args.begin(), litNode);
-  ProofStep ps(PfRule::MACRO_RESOLUTION_TRUST, children, args);
+  ProofStep ps(ProofRule::MACRO_RESOLUTION_TRUST, children, args);
   d_resChainPg.addStep(litNode, ps);
   // the premises in the limit of the justification may correspond to other
   // links in the chain which have, themselves, literals yet to be justified. So
@@ -516,7 +516,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
             << "SatProofManager::finalizeProof:  " << it->second;
       }
       // a refl step added due to double elim negation, ignore
-      else if (link.second->getRule() == PfRule::REFL)
+      else if (link.second->getRule() == ProofRule::REFL)
       {
         continue;
       }
@@ -538,10 +538,10 @@ void SatProofManager::finalizeProof(Node inConflictNode,
       // get resolution
       Node cur = link.first;
       std::shared_ptr<ProofNode> pfn = link.second;
-      while (pfn->getRule() != PfRule::MACRO_RESOLUTION_TRUST)
+      while (pfn->getRule() != ProofRule::MACRO_RESOLUTION_TRUST)
       {
         Assert(pfn->getChildren().size() == 1
-               && pfn->getChildren()[0]->getRule() == PfRule::ASSUME)
+               && pfn->getChildren()[0]->getRule() == ProofRule::ASSUME)
             << *link.second.get() << "\n"
             << *pfn.get();
         cur = pfn->getChildren()[0]->getResult();
@@ -625,7 +625,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
   }
   // create step
   args.insert(args.begin(), d_false);
-  ProofStep ps(PfRule::MACRO_RESOLUTION_TRUST, children, args);
+  ProofStep ps(ProofRule::MACRO_RESOLUTION_TRUST, children, args);
   d_resChainPg.addStep(d_false, ps);
   // not yet ready to check closedness because maybe only now we will justify
   // literals used in resolutions
@@ -822,7 +822,7 @@ void SatProofManager::notifyPop()
     // *necessary*.
     std::shared_ptr<ProofNode> clauseResPf =
         d_resChains.getProofFor(it->first)->clone();
-    Assert(clauseResPf && clauseResPf->getRule() != PfRule::ASSUME);
+    Assert(clauseResPf && clauseResPf->getRule() != ProofRule::ASSUME);
     d_optResProofs[it->second].push_back(clauseResPf);
   }
 }

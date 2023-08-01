@@ -93,7 +93,7 @@ class ProofCircuitPropagator
 
   /** Construct proof using the given rule, children and args */
   std::shared_ptr<ProofNode> mkProof(
-      PfRule rule,
+      ProofRule rule,
       const std::vector<std::shared_ptr<ProofNode>>& children,
       const std::vector<Node>& args = {});
   /**

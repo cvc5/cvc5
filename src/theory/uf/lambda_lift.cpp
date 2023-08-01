@@ -55,7 +55,7 @@ TrustNode LambdaLift::lift(Node node)
     return TrustNode::mkTrustLemma(assertion);
   }
   return d_epg->mkTrustNode(
-      assertion, PfRule::MACRO_SR_PRED_INTRO, {}, {assertion});
+      assertion, ProofRule::MACRO_SR_PRED_INTRO, {}, {assertion});
 }
 
 TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
@@ -79,7 +79,7 @@ TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
   }
   Node eq = node.eqNode(skolem);
   return d_epg->mkTrustedRewrite(
-      node, skolem, PfRule::MACRO_SR_PRED_INTRO, {eq});
+      node, skolem, ProofRule::MACRO_SR_PRED_INTRO, {eq});
 }
 
 Node LambdaLift::getLambdaFor(TNode skolem) const
@@ -182,7 +182,7 @@ TrustNode LambdaLift::betaReduce(TNode node) const
         return TrustNode::mkTrustRewrite(node, app);
       }
       return d_epg->mkTrustedRewrite(
-          node, app, PfRule::MACRO_SR_PRED_INTRO, {node.eqNode(app)});
+          node, app, ProofRule::MACRO_SR_PRED_INTRO, {node.eqNode(app)});
     }
   }
   // otherwise, unchanged

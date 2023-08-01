@@ -57,9 +57,9 @@ TEST_F(TestUtilBlackStats, stats)
   HistogramStat<int64_t> histInt = reg.registerHistogram<int64_t>("hist-int");
   histInt << 15 << 16 << 15 << 14 << 16;
 
-  HistogramStat<PfRule> histPfRule =
-      reg.registerHistogram<PfRule>("hist-pfrule");
-  histPfRule << PfRule::ASSUME << PfRule::SCOPE << PfRule::ASSUME;
+  HistogramStat<ProofRule> histProofRule =
+      reg.registerHistogram<ProofRule>("hist-pfrule");
+  histProofRule << ProofRule::ASSUME << ProofRule::SCOPE << ProofRule::ASSUME;
 
   IntStat intstat = reg.registerInt("int");
   intstat = 5;
