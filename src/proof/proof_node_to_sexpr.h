@@ -23,7 +23,7 @@
 #include "expr/kind.h"
 #include "expr/node.h"
 #include "proof/method_id.h"
-#include "proof/proof_rule.h"
+#include "cvc5/cvc5_proof_rule.h"
 #include "rewriter/rewrites.h"
 #include "theory/inference_id.h"
 #include "theory/theory_id.h"

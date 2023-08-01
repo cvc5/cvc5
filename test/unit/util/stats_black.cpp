@@ -21,7 +21,7 @@
 #include <thread>
 
 #include "lib/clock_gettime.h"
-#include "proof/proof_rule.h"
+#include "cvc5/cvc5_proof_rule.h"
 #include "test_env.h"
 #include "util/statistics_registry.h"
 #include "util/statistics_stats.h"

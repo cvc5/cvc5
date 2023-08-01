@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 #include "proof/proof_checker.h"
-#include "proof/proof_rule.h"
+#include "cvc5/cvc5_proof_rule.h"
 #include "proof/theory_proof_step_buffer.h"
 #include "smt/env_obj.h"
 #include "theory/builtin/proof_checker.h"
