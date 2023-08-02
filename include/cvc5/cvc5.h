@@ -3435,11 +3435,14 @@ class CVC5_EXPORT Solver
   Sort mkFloatingPointSort(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a finite-field sort.
-   * @param size the modulus of the field. Must be prime.
+   * Create a finite-field sort from a given string of
+   * base n.
+   *
+   * @param size The modulus of the field. Must be prime.
+   * @param base The base of the string representation. Default is 10.
    * @return The finite-field sort.
    */
-  Sort mkFiniteFieldSort(const std::string& size) const;
+  Sort mkFiniteFieldSort(const std::string& size, uint32_t base = 10) const;
 
   /**
    * Create a datatype sort.
@@ -3848,7 +3851,20 @@ class CVC5_EXPORT Solver
    * @param sort The field sort.
    *
    */
-  Term mkFiniteFieldElem(const std::string& value, const Sort& sort) const;
+
+  /**
+   * Create a finite field constant in a given field from a given string
+   * of base n.
+   *
+   * @param value The string representation of the constant.
+   * @param base The base of the string representation. Default is 10.
+   * @param sort The field sort.
+   *
+   * If `size` is the field size, the constant needs not be in the range [0,size).
+   * If it is outside this range, it will be reduced modulo size before being
+   * constructed.
+   */
+  Term mkFiniteFieldElem(const std::string& value, const Sort& sort, uint32_t base = 10) const;
 
   /**
    * Create a constant array with the provided constant value stored at every

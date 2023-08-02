@@ -5558,11 +5558,11 @@ Sort Solver::mkBitVectorSort(uint32_t size) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort Solver::mkFiniteFieldSort(const std::string& modulus) const
+Sort Solver::mkFiniteFieldSort(const std::string& modulus, uint32_t base) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  internal::Integer m(modulus, 10);
+  internal::Integer m(modulus, base);
   CVC5_API_ARG_CHECK_EXPECTED(m.isProbablePrime(), modulus) << "modulus is prime";
   return Sort(d_nm, d_nm->mkFiniteFieldType(m));
   ////////
@@ -6013,13 +6013,13 @@ Term Solver::mkBitVector(uint32_t size,
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkFiniteFieldElem(const std::string& value, const Sort& sort) const
+Term Solver::mkFiniteFieldElem(const std::string& value, const Sort& sort, uint32_t base) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_ARG_CHECK_EXPECTED(sort.isFiniteField(), sort)
       << "a finite field sort";
   //////// all checks before this line
-  internal::Integer v(value, 10);
+  internal::Integer v(value, base);
   internal::FiniteFieldValue f(v, sort.d_type->getFfSize());
 
   return mkValHelper<internal::FiniteFieldValue>(d_nm, f);

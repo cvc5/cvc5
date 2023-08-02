@@ -212,7 +212,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Sort mkArraySort(Sort indexSort, Sort elemSort) except +
         Sort mkBitVectorSort(uint32_t size) except +
         Sort mkFloatingPointSort(uint32_t exp, uint32_t sig) except +
-        Sort mkFiniteFieldSort(const string& size) except +
+        Sort mkFiniteFieldSort(const string& size, uint32_t base) except +
         Sort mkDatatypeSort(DatatypeDecl dtypedecl) except +
         vector[Sort] mkDatatypeSorts(const vector[DatatypeDecl]& dtypedecls) except +
         Sort mkFunctionSort(const vector[Sort]& sorts, Sort codomain) except +
@@ -279,7 +279,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Term mkBitVector(const string& s) except +
         Term mkBitVector(const string& s, uint32_t base) except +
         Term mkBitVector(uint32_t size, string& s, uint32_t base) except +
-        Term mkFiniteFieldElem(const string& s, Sort sort) except +
+        Term mkFiniteFieldElem(const string& s, Sort sort, uint32_t base) except +
         Term mkConstArray(Sort sort, Term val) except +
         Term mkFloatingPointPosInf(uint32_t exp, uint32_t sig) except +
         Term mkFloatingPointNegInf(uint32_t exp, uint32_t sig) except +

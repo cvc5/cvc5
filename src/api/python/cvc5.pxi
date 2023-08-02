@@ -902,14 +902,40 @@ cdef class Solver:
         sort.csort = self.csolver.mkFloatingPointSort(exp, sig)
         return sort
 
-    def mkFiniteFieldSort(self, size):
+    def mkFiniteFieldSort(self, size, int base=10):
         """
             Create a finite field sort.
 
-            :param size: The size of the field. Must be a prime-power.
+            Supports the following arguments:
+
+            - ``Sort mkFiniteFieldSort(int size)``
+            - ``Sort mkFiniteFieldSort(string size, int base=10)``
+
+            :param size: The size of the field. Must be a prime-power. 
+                         An integer in the first form.
+                         In the second form, a string representing the value.
+            :param base: The base of the string representation (second form only).
         """
         cdef Sort sort = Sort(self)
-        sort.csort = self.csolver.mkFiniteFieldSort(str(size).encode())
+        
+        if base == 10:
+            if not isinstance(size, str) and not isinstance(size, int):
+                raise ValueError(
+                    "Invalid first argument to mkFiniteFieldSort '{}', "
+                    "expected string or integer value".format(size))
+        else:
+            if not isinstance(size, str):
+                raise ValueError(
+                    "Invalid first argument to mkFiniteFieldSort '{}', "
+                    "expected string value".format(size))
+ 
+        if not isinstance(base, int):
+            raise ValueError(
+            "Invalid second argument to mkFiniteFieldSort '{}', "
+            "expected integer value".format(base))
+        sort.csort = self.csolver.mkFiniteFieldSort(
+            <const string&> str(size).encode(),
+            <uint32_t> base)
         return sort
 
     def mkDatatypeSort(self, DatatypeDecl dtypedecl):
@@ -1478,16 +1504,41 @@ cdef class Solver:
             raise ValueError("Unexpected inputs to mkBitVector")
         return term
 
-    def mkFiniteFieldElem(self, value, Sort sort):
+    def mkFiniteFieldElem(self, value, Sort sort, int base=10):
         """
             Create finite field value.
+
+            Supports the following arguments:
+            
+            - ``Term mkFiniteFieldElem(int value, Sort sort)``
+            - ``Term mkFiniteFieldElem(string value, Sort sort, int base=10)``
 
             :return: A Term representing a finite field value.
             :param value: The value of the element's integer representation.
             :param sort: The field to create the element in.
+            :param base: The base of the string representation.
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.mkFiniteFieldElem(str(value).encode(), sort.csort)
+        
+        if base == 10:
+            if not isinstance(value, str) and not isinstance(value, int):
+                raise ValueError(
+                    "Invalid first argument to mkFiniteFieldElem '{}', "
+                    "expected string or integer value".format(value))
+        else:
+            if not isinstance(value, str):
+                raise ValueError(
+                    "Invalid first argument to mkFiniteFieldElem '{}', "
+                    "expected string value".format(value))
+
+        if not isinstance(base, int):
+            raise ValueError(
+            "Invalid third argument to mkFiniteFieldElem '{}', "
+            "expected integer value".format(base))
+        term.cterm = self.csolver.mkFiniteFieldElem(
+            <const string&> str(value).encode(),
+            sort.csort,
+            <uint32_t> base)
         return term
 
     def mkConstArray(self, Sort sort, Term val):

@@ -53,3 +53,43 @@ def test_basic_finite_field(solver):
     solver.assertFormula(bIsTwo)
     r = solver.checkSat()
     assert not r.isSat()
+
+def test_basic_finite_field_base(solver):
+    solver.setOption("produce-models", "true")
+    F = solver.mkFiniteFieldSort("101", 2)
+    a = solver.mkConst(F, "a")
+    b = solver.mkConst(F, "b")
+    assert 5 == F.getFiniteFieldSize()
+
+    inv = solver.mkTerm(
+        Kind.EQUAL,
+        solver.mkTerm(Kind.FINITE_FIELD_MULT, a, b),
+        solver.mkFiniteFieldElem("1", F, 3),
+    )
+    aIsTwo = solver.mkTerm(
+        Kind.EQUAL,
+        a,
+        solver.mkFiniteFieldElem("10", F, 2),
+    )
+    solver.assertFormula(inv)
+    solver.assertFormula(aIsTwo)
+    r = solver.checkSat()
+    assert r.isSat()
+    assert solver.getValue(a).toPythonObj() == 2
+    assert solver.getValue(b).toPythonObj() == -2
+
+    bIsTwo = solver.mkTerm(
+        Kind.EQUAL,
+        b,
+        solver.mkFiniteFieldElem(2, F),
+    )
+    solver.assertFormula(bIsTwo)
+    r = solver.checkSat()
+    assert not r.isSat()
+
+def test_finite_field_base_equality(solver):
+    F = solver.mkFiniteFieldSort("11", 4)
+    c = solver.mkFiniteFieldElem("-6d", F, 16)
+    d = solver.mkFiniteFieldElem("1", F, 16)
+    assert c == d
+

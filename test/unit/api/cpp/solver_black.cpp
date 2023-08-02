@@ -192,6 +192,22 @@ TEST_F(TestApiBlackSolver, mkFiniteFieldSort)
 {
   ASSERT_NO_THROW(d_solver.mkFiniteFieldSort("31"));
   ASSERT_THROW(d_solver.mkFiniteFieldSort("6"), CVC5ApiException);
+
+  ASSERT_THROW(d_solver.mkFiniteFieldSort("b"), CVC5ApiException);
+
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldSort("1100101",2));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldSort("10202", 3));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldSort("401",   5));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldSort("791a", 11));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldSort("970f", 16));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldSort("8CC5", 16));
+  
+  ASSERT_THROW(d_solver.mkFiniteFieldSort("1100100",2), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkFiniteFieldSort("10201", 3), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkFiniteFieldSort("400",   5),CVC5ApiException);
+  ASSERT_THROW(d_solver.mkFiniteFieldSort("7919", 11),CVC5ApiException);
+  ASSERT_THROW(d_solver.mkFiniteFieldSort("970e", 16),CVC5ApiException);
+  ASSERT_THROW(d_solver.mkFiniteFieldSort("8CC4", 16),CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, mkFloatingPointSort)
@@ -495,12 +511,29 @@ TEST_F(TestApiBlackSolver, mkFiniteFieldElem)
   ASSERT_NO_THROW(d_solver.mkFiniteFieldElem("8", f));
   ASSERT_NO_THROW(d_solver.mkFiniteFieldElem("-1", f));
 
+  ASSERT_THROW(d_solver.mkFiniteFieldElem("a", f), CVC5ApiException);
+
   ASSERT_THROW(d_solver.mkFiniteFieldElem("-1", bv), CVC5ApiException);
 
   ASSERT_EQ(d_solver.mkFiniteFieldElem("-1", f),
             d_solver.mkFiniteFieldElem("6", f));
   ASSERT_EQ(d_solver.mkFiniteFieldElem("1", f),
             d_solver.mkFiniteFieldElem("8", f));
+  
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldElem("0", f, 2));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldElem("101", f, 3));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldElem("-10", f, 7));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldElem("abcde", f, 16));
+
+  ASSERT_EQ(d_solver.mkFiniteFieldElem("0", f, 2),
+            d_solver.mkFiniteFieldElem("0", f, 3));
+  ASSERT_EQ(d_solver.mkFiniteFieldElem("11", f, 2),
+            d_solver.mkFiniteFieldElem("10", f, 3));
+  ASSERT_EQ(d_solver.mkFiniteFieldElem("1010", f, 2),
+            d_solver.mkFiniteFieldElem("A", f, 16));
+
+  ASSERT_EQ(d_solver.mkFiniteFieldElem("-22", f, 3),
+            d_solver.mkFiniteFieldElem("10", f, 6));
 }
 
 TEST_F(TestApiBlackSolver, mkVar)
@@ -3819,6 +3852,64 @@ TEST_F(TestApiBlackSolver, multipleSolvers)
     Term value3 = s3.getValue(function2);
     ASSERT_EQ(value1, value3);
   }
+}
+
+TEST_F(TestApiBlackSolver, basicFiniteField){
+    Solver slv;
+    slv.setOption("produce-models", "true");
+
+    Sort F = slv.mkFiniteFieldSort("5");
+    Term a = slv.mkConst(F, "a");
+    Term b = slv.mkConst(F, "b");
+    ASSERT_EQ("5", F.getFiniteFieldSize());
+
+    Term inv = slv.mkTerm(
+            Kind::EQUAL, 
+            {
+                slv.mkTerm(Kind::FINITE_FIELD_MULT, {a, b}),
+                slv.mkFiniteFieldElem("1", F)
+            }
+        );
+    Term aIsTwo = slv.mkTerm(Kind::EQUAL, {a, slv.mkFiniteFieldElem("2", F)});
+
+    slv.assertFormula(inv);
+    slv.assertFormula(aIsTwo);
+    ASSERT_TRUE(slv.checkSat().isSat());
+    ASSERT_EQ(slv.getValue(a).getFiniteFieldValue(), "2");
+    ASSERT_EQ(slv.getValue(b).getFiniteFieldValue(), "-2");
+
+    Term bIsTwo = slv.mkTerm(Kind::EQUAL, {b, slv.mkFiniteFieldElem("2", F)});
+    slv.assertFormula(bIsTwo);
+    ASSERT_FALSE(slv.checkSat().isSat());
+}
+
+TEST_F(TestApiBlackSolver, basicFiniteFieldBase){
+    Solver slv;
+    slv.setOption("produce-models", "true");
+
+    Sort F = slv.mkFiniteFieldSort("101", 2);
+    Term a = slv.mkConst(F, "a");
+    Term b = slv.mkConst(F, "b");
+    ASSERT_EQ("5", F.getFiniteFieldSize());
+
+    Term inv = slv.mkTerm(
+            Kind::EQUAL, 
+            {
+                slv.mkTerm(Kind::FINITE_FIELD_MULT, {a, b}),
+                slv.mkFiniteFieldElem("1", F, 3)
+            }
+        );
+    Term aIsTwo = slv.mkTerm(Kind::EQUAL, {a, slv.mkFiniteFieldElem("10", F, 2)});
+
+    slv.assertFormula(inv);
+    slv.assertFormula(aIsTwo);
+    ASSERT_TRUE(slv.checkSat().isSat());
+    ASSERT_EQ(slv.getValue(a).getFiniteFieldValue(), "2");
+    ASSERT_EQ(slv.getValue(b).getFiniteFieldValue(), "-2");
+
+    Term bIsTwo = slv.mkTerm(Kind::EQUAL, {b, slv.mkFiniteFieldElem("2", F)});
+    slv.assertFormula(bIsTwo);
+    ASSERT_FALSE(slv.checkSat().isSat());
 }
 
 }  // namespace test
