@@ -222,9 +222,9 @@ TypeNode SygusGrammar::resolve(bool allowAny)
           addSygusConstructor(dt, rule, ntsToUnres);
         }
       }
-      bool aci = allowConsts.find(ntSym) != allowConsts.end();
+      bool allowConst = allowConsts.find(ntSym) != allowConsts.end();
       TypeNode btt = ntSym.getType();
-      dt.setSygus(btt, bvl, aci, false);
+      dt.setSygus(ntSym.getType(), bvl, allowConst || allowAny, allowAny);
       // We can be in a case where the only rule specified was (Variable T)
       // and there are no variables of type T, in which case this is a bogus
       // grammar. This results in the error below.
