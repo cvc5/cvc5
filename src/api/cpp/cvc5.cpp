@@ -881,28 +881,30 @@ const static std::unordered_map<Kind, internal::Kind> s_op_kinds{
 
 const static std::unordered_map<RoundingMode, cvc5::internal::RoundingMode>
     s_rmodes{
-        {ROUND_NEAREST_TIES_TO_EVEN,
+        {RoundingMode::ROUND_NEAREST_TIES_TO_EVEN,
          cvc5::internal::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN},
-        {ROUND_TOWARD_POSITIVE,
+        {RoundingMode::ROUND_TOWARD_POSITIVE,
          cvc5::internal::RoundingMode::ROUND_TOWARD_POSITIVE},
-        {ROUND_TOWARD_NEGATIVE,
+        {RoundingMode::ROUND_TOWARD_NEGATIVE,
          cvc5::internal::RoundingMode::ROUND_TOWARD_NEGATIVE},
-        {ROUND_TOWARD_ZERO, cvc5::internal::RoundingMode::ROUND_TOWARD_ZERO},
-        {ROUND_NEAREST_TIES_TO_AWAY,
+        {RoundingMode::ROUND_TOWARD_ZERO,
+         cvc5::internal::RoundingMode::ROUND_TOWARD_ZERO},
+        {RoundingMode::ROUND_NEAREST_TIES_TO_AWAY,
          cvc5::internal::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY},
     };
 
 const static std::unordered_map<cvc5::internal::RoundingMode, RoundingMode>
     s_rmodes_internal{
         {cvc5::internal::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN,
-         ROUND_NEAREST_TIES_TO_EVEN},
+         RoundingMode::ROUND_NEAREST_TIES_TO_EVEN},
         {cvc5::internal::RoundingMode::ROUND_TOWARD_POSITIVE,
-         ROUND_TOWARD_POSITIVE},
+         RoundingMode::ROUND_TOWARD_POSITIVE},
         {cvc5::internal::RoundingMode::ROUND_TOWARD_NEGATIVE,
-         ROUND_TOWARD_NEGATIVE},
-        {cvc5::internal::RoundingMode::ROUND_TOWARD_ZERO, ROUND_TOWARD_ZERO},
+         RoundingMode::ROUND_TOWARD_NEGATIVE},
+        {cvc5::internal::RoundingMode::ROUND_TOWARD_ZERO,
+         RoundingMode::ROUND_TOWARD_ZERO},
         {cvc5::internal::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY,
-         ROUND_NEAREST_TIES_TO_AWAY},
+         RoundingMode::ROUND_NEAREST_TIES_TO_AWAY},
     };
 
 /* -------------------------------------------------------------------------- */

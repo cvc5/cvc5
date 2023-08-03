@@ -33,8 +33,8 @@ NL = '\n'
 
 NAMESPACE_START = 'namespace'
 
-# Expected C++ Enum Declarations
-ENUM_START = 'enum'
+# Expected 'enum' with ENUM macro
+ENUM_START = 'enum ENUM('
 ENUM_END = CCB + SC
 
 # Comments and Macro Tokens
@@ -192,8 +192,8 @@ class EnumParser:
                     enum.enumerators_doc[name] = fmt_comment
                 elif line.startswith(ENUM_START):
                     self.in_enum = True
-                    tokens = line.split()
-                    name = tokens[1]
+                    tokens = line.split('(')
+                    name = tokens[1][:-1]
                     self.get_current_namespace().enums.append(CppEnum(name))
                     continue
                 elif line.startswith(NAMESPACE_START):

@@ -59,12 +59,15 @@ context::CDHashSet<Node>& LearnedDb::getLiteralSet(modes::LearnedLitType ltype)
 {
   switch (ltype)
   {
-    case modes::LEARNED_LIT_PREPROCESS_SOLVED: return d_preprocessSolvedLits;
-    case modes::LEARNED_LIT_PREPROCESS: return d_preprocessLits;
-    case modes::LEARNED_LIT_INPUT: return d_inputLits;
-    case modes::LEARNED_LIT_SOLVABLE: return d_solvableLits;
-    case modes::LEARNED_LIT_CONSTANT_PROP: return d_cpropLits;
-    default: Assert(ltype == modes::LEARNED_LIT_INTERNAL); break;
+    case modes::LearnedLitType::LEARNED_LIT_PREPROCESS_SOLVED:
+      return d_preprocessSolvedLits;
+    case modes::LearnedLitType::LEARNED_LIT_PREPROCESS: return d_preprocessLits;
+    case modes::LearnedLitType::LEARNED_LIT_INPUT: return d_inputLits;
+    case modes::LearnedLitType::LEARNED_LIT_SOLVABLE: return d_solvableLits;
+    case modes::LearnedLitType::LEARNED_LIT_CONSTANT_PROP: return d_cpropLits;
+    default:
+      Assert(ltype == modes::LearnedLitType::LEARNED_LIT_INTERNAL);
+      break;
   }
   return d_internalLits;
 }
@@ -74,12 +77,15 @@ const context::CDHashSet<Node>& LearnedDb::getLiteralSet(
 {
   switch (ltype)
   {
-    case modes::LEARNED_LIT_PREPROCESS_SOLVED: return d_preprocessSolvedLits;
-    case modes::LEARNED_LIT_PREPROCESS: return d_preprocessLits;
-    case modes::LEARNED_LIT_INPUT: return d_inputLits;
-    case modes::LEARNED_LIT_SOLVABLE: return d_solvableLits;
-    case modes::LEARNED_LIT_CONSTANT_PROP: return d_cpropLits;
-    default: Assert(ltype == modes::LEARNED_LIT_INTERNAL); break;
+    case modes::LearnedLitType::LEARNED_LIT_PREPROCESS_SOLVED:
+      return d_preprocessSolvedLits;
+    case modes::LearnedLitType::LEARNED_LIT_PREPROCESS: return d_preprocessLits;
+    case modes::LearnedLitType::LEARNED_LIT_INPUT: return d_inputLits;
+    case modes::LearnedLitType::LEARNED_LIT_SOLVABLE: return d_solvableLits;
+    case modes::LearnedLitType::LEARNED_LIT_CONSTANT_PROP: return d_cpropLits;
+    default:
+      Assert(ltype == modes::LearnedLitType::LEARNED_LIT_INTERNAL);
+      break;
   }
   return d_internalLits;
 }
@@ -87,12 +93,12 @@ const context::CDHashSet<Node>& LearnedDb::getLiteralSet(
 std::string LearnedDb::toStringDebug() const
 {
   std::stringstream ss;
-  ss << toStringDebugType(modes::LEARNED_LIT_PREPROCESS_SOLVED);
-  ss << toStringDebugType(modes::LEARNED_LIT_PREPROCESS);
-  ss << toStringDebugType(modes::LEARNED_LIT_INPUT);
-  ss << toStringDebugType(modes::LEARNED_LIT_SOLVABLE);
-  ss << toStringDebugType(modes::LEARNED_LIT_CONSTANT_PROP);
-  ss << toStringDebugType(modes::LEARNED_LIT_INTERNAL);
+  ss << toStringDebugType(modes::LearnedLitType::LEARNED_LIT_PREPROCESS_SOLVED);
+  ss << toStringDebugType(modes::LearnedLitType::LEARNED_LIT_PREPROCESS);
+  ss << toStringDebugType(modes::LearnedLitType::LEARNED_LIT_INPUT);
+  ss << toStringDebugType(modes::LearnedLitType::LEARNED_LIT_SOLVABLE);
+  ss << toStringDebugType(modes::LearnedLitType::LEARNED_LIT_CONSTANT_PROP);
+  ss << toStringDebugType(modes::LearnedLitType::LEARNED_LIT_INTERNAL);
   return ss.str();
 }
 

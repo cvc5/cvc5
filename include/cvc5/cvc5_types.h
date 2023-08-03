@@ -40,7 +40,7 @@ namespace cvc5 {
 /**
  * The different reasons for returning an "unknown" result.
  */
-enum UnknownExplanation
+enum ENUM(UnknownExplanation)
 {
   /**
    * Full satisfiability check required (e.g., if only preprocessing was
@@ -113,7 +113,7 @@ std::ostream& operator<<(std::ostream& out, UnknownExplanation e) CVC5_EXPORT;
  * Standard 754.
  * \endverbatim
  */
-enum RoundingMode
+enum ENUM(RoundingMode)
 {
   /**
    * Round to the nearest even number.
@@ -183,7 +183,7 @@ namespace cvc5::modes {
  * Specifies how models are blocked in Solver::blockModel and
  * Solver::blockModelValues.
  */
-enum BlockModelsMode
+enum ENUM(BlockModelsMode)
 {
   /** Block models based on the SAT skeleton. */
   LITERALS,
@@ -232,7 +232,7 @@ std::ostream& operator<<(std::ostream& out, BlockModelsMode mode) CVC5_EXPORT;
  * Note that a literal may conceptually belong to multiple categories. We
  * classify literals based on the first criteria in this list that they meet.
  */
-enum LearnedLitType
+enum ENUM(LearnedLitType)
 {
   /**
    * An equality that was turned into a substitution during preprocessing.
@@ -309,7 +309,7 @@ std::ostream& operator<<(std::ostream& out, LearnedLitType type) CVC5_EXPORT;
 /**
  * Components to include in a proof.
  */
-enum ProofComponent
+enum ENUM(ProofComponent)
 {
   /**
    * Proofs of G1 ... Gn whose free assumptions are a subset of
@@ -394,7 +394,7 @@ std::ostream& operator<<(std::ostream& out, ProofComponent pc) CVC5_EXPORT;
  * Find synthesis targets, used as an argument to Solver::findSynth. These
  * specify various kinds of terms that can be found by this method.
  */
-enum FindSynthTarget
+enum ENUM(FindSynthTarget)
 {
   /**
    * Find the next term in the enumeration of the target grammar.

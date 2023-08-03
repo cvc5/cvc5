@@ -353,30 +353,30 @@ modes::LearnedLitType Smt2State::getLearnedLitType(const std::string& mode)
 {
   if (mode == "preprocess_solved")
   {
-    return modes::LEARNED_LIT_PREPROCESS_SOLVED;
+    return modes::LearnedLitType::LEARNED_LIT_PREPROCESS_SOLVED;
   }
   else if (mode == "preprocess")
   {
-    return modes::LEARNED_LIT_PREPROCESS;
+    return modes::LearnedLitType::LEARNED_LIT_PREPROCESS;
   }
   else if (mode == "input")
   {
-    return modes::LEARNED_LIT_INPUT;
+    return modes::LearnedLitType::LEARNED_LIT_INPUT;
   }
   else if (mode == "solvable")
   {
-    return modes::LEARNED_LIT_SOLVABLE;
+    return modes::LearnedLitType::LEARNED_LIT_SOLVABLE;
   }
   else if (mode == "constant_prop")
   {
-    return modes::LEARNED_LIT_CONSTANT_PROP;
+    return modes::LearnedLitType::LEARNED_LIT_CONSTANT_PROP;
   }
   else if (mode == "internal")
   {
-    return modes::LEARNED_LIT_INTERNAL;
+    return modes::LearnedLitType::LEARNED_LIT_INTERNAL;
   }
   parseError(std::string("Unknown learned literal type `") + mode + "'");
-  return modes::LEARNED_LIT_UNKNOWN;
+  return modes::LearnedLitType::LEARNED_LIT_UNKNOWN;
 }
 
 modes::ProofComponent Smt2State::getProofComponent(const std::string& pc)
@@ -927,20 +927,29 @@ void Smt2State::setLogic(std::string name)
     defineType("Float64", d_solver->mkFloatingPointSort(11, 53), true);
     defineType("Float128", d_solver->mkFloatingPointSort(15, 113), true);
 
-    defineVar("RNE", d_solver->mkRoundingMode(ROUND_NEAREST_TIES_TO_EVEN));
-    defineVar("roundNearestTiesToEven",
-              d_solver->mkRoundingMode(ROUND_NEAREST_TIES_TO_EVEN));
-    defineVar("RNA", d_solver->mkRoundingMode(ROUND_NEAREST_TIES_TO_AWAY));
-    defineVar("roundNearestTiesToAway",
-              d_solver->mkRoundingMode(ROUND_NEAREST_TIES_TO_AWAY));
-    defineVar("RTP", d_solver->mkRoundingMode(ROUND_TOWARD_POSITIVE));
+    defineVar(
+        "RNE",
+        d_solver->mkRoundingMode(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN));
+    defineVar(
+        "roundNearestTiesToEven",
+        d_solver->mkRoundingMode(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN));
+    defineVar(
+        "RNA",
+        d_solver->mkRoundingMode(RoundingMode::ROUND_NEAREST_TIES_TO_AWAY));
+    defineVar(
+        "roundNearestTiesToAway",
+        d_solver->mkRoundingMode(RoundingMode::ROUND_NEAREST_TIES_TO_AWAY));
+    defineVar("RTP",
+              d_solver->mkRoundingMode(RoundingMode::ROUND_TOWARD_POSITIVE));
     defineVar("roundTowardPositive",
-              d_solver->mkRoundingMode(ROUND_TOWARD_POSITIVE));
-    defineVar("RTN", d_solver->mkRoundingMode(ROUND_TOWARD_NEGATIVE));
+              d_solver->mkRoundingMode(RoundingMode::ROUND_TOWARD_POSITIVE));
+    defineVar("RTN",
+              d_solver->mkRoundingMode(RoundingMode::ROUND_TOWARD_NEGATIVE));
     defineVar("roundTowardNegative",
-              d_solver->mkRoundingMode(ROUND_TOWARD_NEGATIVE));
-    defineVar("RTZ", d_solver->mkRoundingMode(ROUND_TOWARD_ZERO));
-    defineVar("roundTowardZero", d_solver->mkRoundingMode(ROUND_TOWARD_ZERO));
+              d_solver->mkRoundingMode(RoundingMode::ROUND_TOWARD_NEGATIVE));
+    defineVar("RTZ", d_solver->mkRoundingMode(RoundingMode::ROUND_TOWARD_ZERO));
+    defineVar("roundTowardZero",
+              d_solver->mkRoundingMode(RoundingMode::ROUND_TOWARD_ZERO));
 
     addFloatingPointOperators();
   }

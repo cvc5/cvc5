@@ -1605,9 +1605,10 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   {
     throw ModalException("Cannot get a proof when proof option is off.");
   }
-  // The component modes::PROOF_COMPONENT_PREPROCESS returns the proof of
-  // all preprocessed assertions. It does not require being in an unsat state.
-  if (c != modes::PROOF_COMPONENT_RAW_PREPROCESS
+  // The component modes::ProofComponent::PROOF_COMPONENT_PREPROCESS returns
+  // the proof of all preprocessed assertions. It does not require being in an
+  // unsat state.
+  if (c != modes::ProofComponent::PROOF_COMPONENT_RAW_PREPROCESS
       && d_state->getMode() != SmtMode::UNSAT)
   {
     throw RecoverableModalException(
@@ -1622,7 +1623,7 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   bool connectMkOuterScope = false;
   bool commentProves = true;
   options::ProofFormatMode mode = options::ProofFormatMode::NONE;
-  if (c == modes::PROOF_COMPONENT_RAW_PREPROCESS)
+  if (c == modes::ProofComponent::PROOF_COMPONENT_RAW_PREPROCESS)
   {
     // use all preprocessed assertions
     const context::CDList<Node>& assertions =
@@ -1636,20 +1637,21 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
       ps.push_back(pnm->mkAssume(a));
     }
   }
-  else if (c == modes::PROOF_COMPONENT_SAT)
+  else if (c == modes::ProofComponent::PROOF_COMPONENT_SAT)
   {
     ps.push_back(pe->getProof(false));
     // don't need to comment that it proves false
     commentProves = false;
   }
-  else if (c == modes::PROOF_COMPONENT_THEORY_LEMMAS
-           || c == modes::PROOF_COMPONENT_PREPROCESS)
+  else if (c == modes::ProofComponent::PROOF_COMPONENT_THEORY_LEMMAS
+           || c == modes::ProofComponent::PROOF_COMPONENT_PREPROCESS)
   {
     ps = pe->getProofLeaves(c);
     // connect to preprocess proofs for preprocess mode
-    connectToPreprocess = (c == modes::PROOF_COMPONENT_PREPROCESS);
+    connectToPreprocess =
+        (c == modes::ProofComponent::PROOF_COMPONENT_PREPROCESS);
   }
-  else if (c == modes::PROOF_COMPONENT_FULL)
+  else if (c == modes::ProofComponent::PROOF_COMPONENT_FULL)
   {
     ps.push_back(pe->getProof(true));
     connectToPreprocess = true;
