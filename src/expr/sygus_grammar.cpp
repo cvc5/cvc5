@@ -161,26 +161,27 @@ void addSygusConstructor(DType& dt,
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  std::vector<Node> args;
-  std::vector<TypeNode> cargs;
-  Node op = purifySygusGNode(rule, args, cargs, ntsToUnres);
   std::stringstream ss;
   if (rule.getKind() == kind::SKOLEM
       && sm->getId(rule) == SkolemFunId::SYGUS_ANY_CONSTANT)
   {
     ss << dt.getName() << "_any_constant";
+    dt.addSygusConstructor(rule, ss.str(), {rule.getType()}, 0);
   }
   else
   {
+    std::vector<Node> args;
+    std::vector<TypeNode> cargs;
+    Node op = purifySygusGNode(rule, args, cargs, ntsToUnres);
     ss << op.getKind();
+    if (!args.empty())
+    {
+      Node lbvl = nm->mkNode(kind::BOUND_VAR_LIST, args);
+      op = nm->mkNode(kind::LAMBDA, lbvl, op);
+    }
+    // assign identity rules a weight of 0.
+    dt.addSygusConstructor(op, ss.str(), cargs, isId(op) ? 0 : -1);
   }
-  if (!args.empty())
-  {
-    Node lbvl = nm->mkNode(kind::BOUND_VAR_LIST, args);
-    op = nm->mkNode(kind::LAMBDA, lbvl, op);
-  }
-  // assign identity rules a weight of 0.
-  dt.addSygusConstructor(op, ss.str(), cargs, isId(op) ? 0 : -1);
 }
 
 TypeNode SygusGrammar::resolve(bool allowAny)
@@ -217,13 +218,9 @@ TypeNode SygusGrammar::resolve(bool allowAny)
         {
           allowConsts.insert(ntSym);
         }
-        else
-        {
-          addSygusConstructor(dt, rule, ntsToUnres);
-        }
+        addSygusConstructor(dt, rule, ntsToUnres);
       }
       bool allowConst = allowConsts.find(ntSym) != allowConsts.end();
-      TypeNode btt = ntSym.getType();
       dt.setSygus(ntSym.getType(), bvl, allowConst || allowAny, allowAny);
       // We can be in a case where the only rule specified was (Variable T)
       // and there are no variables of type T, in which case this is a bogus
