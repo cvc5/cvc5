@@ -19,7 +19,6 @@
 #define CVC5__API__CVC5_H
 
 #include <cvc5/cvc5_kind.h>
-#include <cvc5/cvc5_sort_kind.h>
 #include <cvc5/cvc5_types.h>
 
 #include <functional>
