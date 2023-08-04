@@ -10,22 +10,34 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The term kinds of the cvc5 C++ API.
+ * The term kinds of the cvc5 C++ and C APIs.
  */
 
-#include <cvc5/cvc5_export.h>
+#if (!defined(CVC5_API_USE_C_ENUMS) && !defined(CVC5__API__CVC5_CPP_KIND_H)) \
+    || (defined(CVC5_API_USE_C_ENUMS) && !defined(CVC5__API__CVC5_C_KIND_H))
 
-#ifndef CVC5__API__CVC5_KIND_H
-#define CVC5__API__CVC5_KIND_H
+#ifdef CVC5_API_USE_C_ENUMS
+#undef ENUM
+#define ENUM(name) Cvc5##name
+#else
+#include <cvc5/cvc5_export.h>
 
 #include <cstdint>
 #include <ostream>
-
 namespace cvc5 {
+#undef ENUM
+#define ENUM(name) class name
+#define EVALUE(name) name
+#endif
 
 /* -------------------------------------------------------------------------- */
 /* Kind                                                                       */
 /* -------------------------------------------------------------------------- */
+
+#ifdef CVC5_API_USE_C_ENUMS
+#undef EVALUE
+#define EVALUE(name) CVC5_KIND_##name
+#endif
 
 // clang-format off
 /**
@@ -41,7 +53,7 @@ namespace cvc5 {
  * of this type depends on the size of `cvc5::internal::Kind`
  * (`NodeValue::NBITS_KIND`, currently 10 bits, see expr/node_value.h).
  */
-enum Kind : int32_t
+enum ENUM(Kind) : int32_t
 {
   /**
    * Internal kind.
@@ -5610,23 +5622,46 @@ enum Kind : int32_t
 };
 // clang-format on
 
+#ifdef CVC5_API_USE_C_ENUMS
+#ifndef DOXYGEN_SKIP
+typedef enum ENUM(Kind) ENUM(Kind);
+#endif
+#endif
+
+#ifdef CVC5_API_USE_C_ENUMS
+/**
+ * Get a string representation of a Cvc5Kind.
+ * @param kind The kind.
+ * @return The string representation.
+ */
+const char* cvc5_kind_to_string(Cvc5Kind kind);
+#else
 /**
  * Get the string representation of a given kind.
- * @param k the kind
- * @return the string representation of kind k
+ * @param kind The kind
+ * @return The string representation.
  */
-std::string kindToString(Kind k) CVC5_EXPORT;
+std::string kindToString(Kind kind) CVC5_EXPORT;
 
 /**
  * Serialize a kind to given stream.
- * @param out the output stream
- * @param k the kind to be serialized to the given output stream
- * @return the output stream
+ * @param out  The output stream.
+ * @param kind The kind to be serialized to the given output stream.
+ * @return The output stream.
  */
-std::ostream& operator<<(std::ostream& out, Kind k) CVC5_EXPORT;
+std::ostream& operator<<(std::ostream& out, Kind kind) CVC5_EXPORT;
 
 }  // namespace cvc5
+#endif
 
+#ifdef CVC5_API_USE_C_ENUMS
+/**
+ * Hash function for Cvc5Kinds.
+ * @param kind The kind.
+ * @return The hash value.
+ */
+size_t cvc5_kind_hash(Cvc5Kind kind);
+#else
 namespace std {
 
 /**
@@ -5637,17 +5672,27 @@ struct CVC5_EXPORT hash<cvc5::Kind>
 {
   /**
    * Hashes a Kind to a size_t.
+   * @param kind The kind.
+   * @return The hash value.
    */
-  size_t operator()(cvc5::Kind k) const;
+  size_t operator()(cvc5::Kind kind) const;
 };
 
 }  // namespace std
+#endif
 
 /* -------------------------------------------------------------------------- */
 /* SortKind */
 /* -------------------------------------------------------------------------- */
 
+#ifdef CVC5_API_USE_C_ENUMS
+#undef EVALUE
+#define EVALUE(name) CVC5_SORTKIND_##name
+#endif
+
+#ifndef CVC5_API_USE_C_ENUMS
 namespace cvc5 {
+#endif
 
 // clang-format off
 /**
@@ -5857,6 +5902,20 @@ enum SortKind : int32_t
 };
 // clang-format on
 
+#ifdef CVC5_API_USE_C_ENUMS
+#ifndef DOXYGEN_SKIP
+typedef enum ENUM(SortKind) ENUM(SortKind);
+#endif
+#endif
+
+#ifdef CVC5_API_USE_C_ENUMS
+/**
+ * Get a string representation of a Cvc5SortKind.
+ * @param kind The sort kind.
+ * @return The string representation.
+ */
+const char* cvc5_sort_kind_to_string(Cvc5SortKind kind);
+#else
 /**
  * Get the string representation of a given kind.
  * @param k the sort kind
@@ -5873,20 +5932,42 @@ std::string sortKindToString(SortKind k) CVC5_EXPORT;
 std::ostream& operator<<(std::ostream& out, SortKind k) CVC5_EXPORT;
 
 }  // namespace cvc5
+#endif
 
+#ifdef CVC5_API_USE_C_ENUMS
+/**
+ * Hash function for Cvc5SortKinds.
+ * @param kind The kind.
+ * @return The hash value.
+ */
+size_t cvc5_sort_kind_hash(Cvc5SortKind kind);
+#else
 namespace std {
 
 /**
- * Hash function for Kinds.
+ * Hash function for SortKinds.
  */
 template <>
 struct CVC5_EXPORT hash<cvc5::SortKind>
 {
   /**
    * Hashes a SortKind to a size_t.
+   * @param The kind.
+   * @return The hash value.
    */
-  size_t operator()(cvc5::SortKind k) const;
+  size_t operator()(cvc5::SortKind kind) const;
 };
 }  // namespace std
+#endif
 
+#endif
+
+#ifndef CVC5_API_USE_C_ENUMS
+#ifndef CVC5__API__CVC5_CPP_KIND_H
+#define CVC5__API__CVC5_CPP_KIND_H
+#endif
+#else
+#ifndef CVC5__API__CVC5_C_KIND_H
+#define CVC5__API__CVC5_C_KIND_H
+#endif
 #endif
