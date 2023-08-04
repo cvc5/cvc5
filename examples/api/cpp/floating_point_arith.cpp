@@ -41,7 +41,7 @@ int main()
 
   // Assert that floating-point addition is not associative:
   // (a + (b + c)) != ((a + b) + c)
-  Term rm = solver.mkRoundingMode(ROUND_NEAREST_TIES_TO_EVEN);
+  Term rm = solver.mkRoundingMode(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN);
   Term lhs = solver.mkTerm(
       FLOATINGPOINT_ADD, {rm, a, solver.mkTerm(FLOATINGPOINT_ADD, {rm, b, c})});
   Term rhs = solver.mkTerm(
@@ -71,8 +71,8 @@ int main()
   // And now for something completely different. Let's try to find a (normal)
   // floating-point number that rounds to different integer values for
   // different rounding modes.
-  Term rtp = solver.mkRoundingMode(ROUND_TOWARD_POSITIVE);
-  Term rtn = solver.mkRoundingMode(ROUND_TOWARD_NEGATIVE);
+  Term rtp = solver.mkRoundingMode(RoundingMode::ROUND_TOWARD_POSITIVE);
+  Term rtn = solver.mkRoundingMode(RoundingMode::ROUND_TOWARD_NEGATIVE);
   Op op = solver.mkOp(FLOATINGPOINT_TO_SBV, {16});  // (_ fp.to_sbv 16)
   lhs = solver.mkTerm(op, {rtp, d});
   rhs = solver.mkTerm(op, {rtn, d});
