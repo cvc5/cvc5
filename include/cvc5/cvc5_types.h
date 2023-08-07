@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli, Mudathir Mohamed, Mathias Preiner
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -298,7 +298,8 @@ enum FindSynthTarget
    * grammar.
    *
    * The algorithm for determining which queries to generate is configured by
-   * --sygus-query-gen=MODE.
+   * --sygus-query-gen=MODE. Queries that are internally solved can be
+   * filtered by the option --sygus-query-gen-filter-solved.
    */
   FIND_SYNTH_TARGET_QUERY
 };

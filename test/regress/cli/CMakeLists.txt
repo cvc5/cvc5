@@ -759,6 +759,8 @@ set(regress_0_tests
   regress0/fp/issue7002.smt2
   regress0/fp/issue7569.smt2
   regress0/fp/issue9858.smt2
+  regress0/fp/issue9864.smt2
+  regress0/fp/issuepr650.smt2
   regress0/fp/proj-issue329-prereg-context.smt2
   regress0/fp/proj-issue477-fp-set-comprehension.smt2
   regress0/fp/proj-issue509-fp-set-comprehension.smt2
@@ -1674,6 +1676,7 @@ set(regress_0_tests
   regress0/sygus/const-var-test.sy
   regress0/sygus/dt-no-syntax.sy
   regress0/sygus/dt-sel-parse1.sy
+  regress0/sygus/find-synth-next.smt2
   regress0/sygus/General_plus10.sy
   regress0/sygus/hd-05-d1-prog-nogrammar.sy
   regress0/sygus/ho-occ-synth-fun.sy
@@ -1702,8 +1705,7 @@ set(regress_0_tests
   regress0/sygus/print-enumerator.sy
   regress0/sygus/print-grammar.sy
   regress0/sygus/print-sygus-gterm.sy
-  #!!! temporary
-  #regress0/sygus/proj-issue464-rr-option.smt2
+  regress0/sygus/proj-issue464-rr-option.smt2
   regress0/sygus/real-si-all.sy
   regress0/sygus/setFeature.sy
   regress0/sygus/strings-unconstrained.sy
@@ -2652,13 +2654,12 @@ set(regress_1_tests
   regress1/rels/rel_tp_join_2_1.cvc.smt2
   regress1/rels/set-strat.cvc.smt2
   regress1/rels/strat.cvc.smt2
-  #!!! temporary
-  #regress1/rr-verify/bool-crci.sy
-  #regress1/rr-verify/bv-term-32.sy
-  #regress1/rr-verify/bv-term.sy
-  #regress1/rr-verify/fp-arith.sy
-  #regress1/rr-verify/fp-bool.sy
-  #regress1/rr-verify/string-term.sy
+  regress1/rr-verify/bool-crci.sy
+  regress1/rr-verify/bv-term-32.sy
+  regress1/rr-verify/bv-term.sy
+  regress1/rr-verify/fp-arith.sy
+  regress1/rr-verify/fp-bool.sy
+  regress1/rr-verify/string-term.sy
   regress1/sep/chain-int.smt2
   regress1/sep/crash1220.smt2
   regress1/sep/dispose-list-4-init.smt2
@@ -2776,6 +2777,7 @@ set(regress_1_tests
   regress1/sets/sets-tuple-poly.cvc.smt2
   regress1/sets/sets-uc-wrong.smt2
   regress1/sets/set-comp-sat.smt2
+  regress1/sets/set_filter_sat.smt2
   regress1/sets/set_filter1.smt2
   regress1/sets/set_filter2.smt2
   regress1/sets/set_filter3.smt2
@@ -3031,6 +3033,7 @@ set(regress_1_tests
   regress1/sygus/constant-dec-tree-bug.sy
   regress1/sygus/constant-ite-bv.sy
   regress1/sygus/constant.sy
+  regress1/sygus/core-connective.sy
   regress1/sygus/crci-ssb-unk.sy
   regress1/sygus/crcy-si.sy
   regress1/sygus/cube-nia.sy
@@ -3076,6 +3079,7 @@ set(regress_1_tests
   regress1/sygus/interpol_cosa_1.smt2
   regress1/sygus/interpol_from_pono_1.smt2
   regress1/sygus/interpol_from_pono_2.smt2
+  regress1/sygus/interpolant-conj-simple.smt2
   regress1/sygus/issue2914.sy
   regress1/sygus/issue2935.sy
   regress1/sygus/issue3109-share-sel.sy
@@ -3104,9 +3108,8 @@ set(regress_1_tests
   regress1/sygus/issue4083-var-shadow.smt2
   regress1/sygus/issue4425-sets-sygus-infer.smt2
   regress1/sygus/issue7925-dt-share-config.sy
-  #!!! temporary
-  #regress1/sygus/issue8216-rr-input-re.smt2
-  #regress1/sygus/issue8956-2.smt2
+  regress1/sygus/issue8216-rr-input-re.smt2
+  regress1/sygus/issue8956-2.smt2
   regress1/sygus/issue8976-interp-check.smt2
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
@@ -3145,12 +3148,13 @@ set(regress_1_tests
   regress1/sygus/proj-issue185.smt2
   regress1/sygus/proj-issue222-any-const.sy
   regress1/sygus/proj-issue264.smt2
-  #!!! temporary
-  #regress1/sygus/proj-issue541.smt2
-  #regress1/sygus/proj-issue548-srr.smt2
-  #regress1/sygus/proj-issue549-srr.smt2
-  #regress1/sygus/proj-issue553-srr.smt2
-  #regress1/sygus/proj-issue627-srr.smt2
+  regress1/sygus/proj-issue541.smt2
+  regress1/sygus/proj-issue548-srr.smt2
+  regress1/sygus/proj-issue549-srr.smt2
+  regress1/sygus/proj-issue553-srr.smt2
+  regress1/sygus/proj-issue584-srr.smt2
+  regress1/sygus/proj-issue590-srr.smt2
+  regress1/sygus/proj-issue627-srr.smt2
   regress1/sygus/pLTL_5_trace.sy
   regress1/sygus/qe.sy
   regress1/sygus/qf_abv.smt2
@@ -3349,8 +3353,7 @@ set(regress_2_tests
   regress2/sygus/process-10-vars-2fun.sy
   regress2/sygus/process-arg-invariance.sy
   regress2/sygus/proj-issue119.sy
-  #!!! temporary
-  #regress2/sygus/qgu-bools.sy
+  regress2/sygus/qgu-bools.sy
   regress2/sygus/real-grammar-neg.sy
   regress2/sygus/sets-fun-test.sy
   regress2/sygus/sumn_recur_synth.sy
@@ -3452,6 +3455,8 @@ set(regression_disabled_tests
   regress0/datatypes/datatype-dump.cvc.smt2
   # no longer support overloaded symbols across multiple parametric datatypes
   regress0/datatypes/repeated-selectors-2769.smt2
+  # fails with unknown on some builds
+  regress0/quantifiers/nl-sqrt2-q.smt2
   # issues with skolems
   regress0/proofs/issue9515-alethe-skolems-crash.smt2
   regress0/proofs/issue9516-alethe-skolems-undef-in-proof.smt2

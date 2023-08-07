@@ -179,9 +179,9 @@ class CVC5_EXPORT Printer
 
   /** Print synth-fun command */
   virtual void toStreamCmdSynthFun(std::ostream& out,
-                                   Node f,
+                                   const std::string& id,
                                    const std::vector<Node>& vars,
-                                   bool isInv,
+                                   TypeNode rangeType,
                                    TypeNode sygusType) const;
 
   /** Print constraint command */
@@ -199,6 +199,14 @@ class CVC5_EXPORT Printer
 
   /** Print check-synth-next command */
   virtual void toStreamCmdCheckSynthNext(std::ostream& out) const;
+
+  /** Print find-synth command */
+  virtual void toStreamCmdFindSynth(std::ostream& out,
+                                    modes::FindSynthTarget fst,
+                                    TypeNode sygusType) const;
+
+  /** Print find-synth-next command */
+  virtual void toStreamCmdFindSynthNext(std::ostream& out) const;
 
   /** Print simplify command */
   virtual void toStreamCmdSimplify(std::ostream& out, Node n) const;

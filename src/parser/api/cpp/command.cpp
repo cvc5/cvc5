@@ -517,21 +517,15 @@ void DeclareSygusVarCommand::toStream(std::ostream& out) const
 /* -------------------------------------------------------------------------- */
 
 SynthFunCommand::SynthFunCommand(const std::string& id,
-                                 cvc5::Term fun,
                                  const std::vector<cvc5::Term>& vars,
                                  cvc5::Sort sort,
-                                 bool isInv,
                                  cvc5::Grammar* g)
     : DeclarationDefinitionCommand(id),
-      d_fun(fun),
       d_vars(vars),
       d_sort(sort),
-      d_isInv(isInv),
       d_grammar(g)
 {
 }
-
-cvc5::Term SynthFunCommand::getFunction() const { return d_fun; }
 
 const std::vector<cvc5::Term>& SynthFunCommand::getVars() const
 {
@@ -539,33 +533,38 @@ const std::vector<cvc5::Term>& SynthFunCommand::getVars() const
 }
 
 cvc5::Sort SynthFunCommand::getSort() const { return d_sort; }
-bool SynthFunCommand::isInv() const { return d_isInv; }
 
 const cvc5::Grammar* SynthFunCommand::getGrammar() const { return d_grammar; }
 
 void SynthFunCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
-  if (!bindToTerm(sm, d_fun, true))
+  Term fun;
+  if (d_grammar != nullptr)
+  {
+    fun = solver->synthFun(d_symbol, d_vars, d_sort, *d_grammar);
+  }
+  else
+  {
+    fun = solver->synthFun(d_symbol, d_vars, d_sort);
+  }
+  if (!bindToTerm(sm, fun, true))
   {
     return;
   }
-  sm->addFunctionToSynthesize(d_fun);
+  sm->addFunctionToSynthesize(fun);
   d_commandStatus = CommandSuccess::instance();
 }
 
-std::string SynthFunCommand::getCommandName() const
-{
-  return d_isInv ? "synth-inv" : "synth-fun";
-}
+std::string SynthFunCommand::getCommandName() const { return "synth-fun"; }
 
 void SynthFunCommand::toStream(std::ostream& out) const
 {
   std::vector<internal::Node> nodeVars = termVectorToNodes(d_vars);
   internal::Printer::getPrinter(out)->toStreamCmdSynthFun(
       out,
-      termToNode(d_fun),
+      d_symbol,
       nodeVars,
-      d_isInv,
+      sortToTypeNode(d_sort),
       d_grammar == nullptr ? internal::TypeNode::null()
                            : grammarToTypeNode(d_grammar));
 }
@@ -765,6 +764,97 @@ void CheckSynthCommand::toStream(std::ostream& out) const
 }
 
 /* -------------------------------------------------------------------------- */
+/* class FindSynthCommand                                                    */
+/* -------------------------------------------------------------------------- */
+
+void FindSynthCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
+{
+  try
+  {
+    if (d_grammar != nullptr)
+    {
+      d_result = solver->findSynth(d_fst, *d_grammar);
+    }
+    else
+    {
+      d_result = solver->findSynth(d_fst);
+    }
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Term FindSynthCommand::getResult() const { return d_result; }
+void FindSynthCommand::printResult(cvc5::Solver* solver,
+                                   std::ostream& out) const
+{
+  if (d_result.isNull())
+  {
+    out << "fail" << std::endl;
+  }
+  else
+  {
+    out << d_result << std::endl;
+  }
+}
+
+std::string FindSynthCommand::getCommandName() const { return "find-synth"; }
+
+void FindSynthCommand::toStream(std::ostream& out) const
+{
+  internal::Printer::getPrinter(out)->toStreamCmdFindSynth(
+      out,
+      d_fst,
+      d_grammar == nullptr ? internal::TypeNode::null()
+                           : grammarToTypeNode(d_grammar));
+}
+
+/* -------------------------------------------------------------------------- */
+/* class FindSynthNextCommand */
+/* -------------------------------------------------------------------------- */
+
+cvc5::Term FindSynthNextCommand::getResult() const { return d_result; }
+
+void FindSynthNextCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
+{
+  try
+  {
+    // Get the name of the abduct from the symbol manager
+    d_result = solver->findSynthNext();
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+void FindSynthNextCommand::printResult(cvc5::Solver* solver,
+                                       std::ostream& out) const
+{
+  if (d_result.isNull())
+  {
+    out << "fail" << std::endl;
+  }
+  else
+  {
+    out << d_result << std::endl;
+  }
+}
+
+std::string FindSynthNextCommand::getCommandName() const
+{
+  return "find-synth-next";
+}
+
+void FindSynthNextCommand::toStream(std::ostream& out) const
+{
+  internal::Printer::getPrinter(out)->toStreamCmdFindSynthNext(out);
+}
+
+/* -------------------------------------------------------------------------- */
 /* class ResetCommand                                                         */
 /* -------------------------------------------------------------------------- */
 
@@ -865,23 +955,22 @@ bool DeclarationDefinitionCommand::bindToTerm(SymbolManager* sm,
 /* -------------------------------------------------------------------------- */
 
 DeclareFunctionCommand::DeclareFunctionCommand(const std::string& id,
-                                               cvc5::Term func,
                                                cvc5::Sort sort)
-    : DeclarationDefinitionCommand(id), d_func(func), d_sort(sort)
+    : DeclarationDefinitionCommand(id), d_sort(sort)
 {
 }
 
-cvc5::Term DeclareFunctionCommand::getFunction() const { return d_func; }
 cvc5::Sort DeclareFunctionCommand::getSort() const { return d_sort; }
 
 void DeclareFunctionCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
-  if (!bindToTerm(sm, d_func, true))
+  Term fun = solver->mkConst(d_sort, d_symbol);
+  if (!bindToTerm(sm, fun, true))
   {
     return;
   }
   // mark that it will be printed in the model
-  sm->addModelDeclarationTerm(d_func);
+  sm->addModelDeclarationTerm(fun);
   d_commandStatus = CommandSuccess::instance();
 }
 
@@ -898,7 +987,7 @@ void DeclareFunctionCommand::toStream(std::ostream& out) const
   // we require a namespace prefix. Using the function symbol name ensures
   // that e.g. `-o raw-benchmark` results in a valid benchmark.
   internal::Printer::getPrinter(out)->toStreamCmdDeclareFunction(
-      out, d_func.getSymbol(), sortToTypeNode(d_func.getSort()));
+      out, d_symbol, sortToTypeNode(d_sort));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -906,17 +995,14 @@ void DeclareFunctionCommand::toStream(std::ostream& out) const
 /* -------------------------------------------------------------------------- */
 
 DeclarePoolCommand::DeclarePoolCommand(const std::string& id,
-                                       cvc5::Term func,
                                        cvc5::Sort sort,
                                        const std::vector<cvc5::Term>& initValue)
     : DeclarationDefinitionCommand(id),
-      d_func(func),
       d_sort(sort),
       d_initValue(initValue)
 {
 }
 
-cvc5::Term DeclarePoolCommand::getFunction() const { return d_func; }
 cvc5::Sort DeclarePoolCommand::getSort() const { return d_sort; }
 const std::vector<cvc5::Term>& DeclarePoolCommand::getInitialValue() const
 {
@@ -925,7 +1011,8 @@ const std::vector<cvc5::Term>& DeclarePoolCommand::getInitialValue() const
 
 void DeclarePoolCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
-  if (!bindToTerm(sm, d_func, true))
+  Term pool = solver->declarePool(d_symbol, d_sort, d_initValue);
+  if (!bindToTerm(sm, pool, true))
   {
     return;
   }
@@ -943,10 +1030,7 @@ std::string DeclarePoolCommand::getCommandName() const
 void DeclarePoolCommand::toStream(std::ostream& out) const
 {
   internal::Printer::getPrinter(out)->toStreamCmdDeclarePool(
-      out,
-      d_func.toString(),
-      sortToTypeNode(d_sort),
-      termVectorToNodes(d_initValue));
+      out, d_symbol, sortToTypeNode(d_sort), termVectorToNodes(d_initValue));
 }
 
 /* -------------------------------------------------------------------------- */

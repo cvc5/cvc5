@@ -37,7 +37,7 @@ from cvc5 cimport wstring as c_wstring
 from cvc5 cimport tuple as c_tuple
 from cvc5 cimport get0, get1, get2
 from cvc5kinds cimport Kind as c_Kind
-from cvc5sortkinds cimport SortKind as c_SortKind
+from cvc5kinds cimport SortKind as c_SortKind
 from cvc5types cimport BlockModelsMode as c_BlockModelsMode
 from cvc5types cimport RoundingMode as c_RoundingMode
 from cvc5types cimport UnknownExplanation as c_UnknownExplanation
@@ -1968,34 +1968,68 @@ cdef class Solver:
             result.append(term)
         return result
 
-
-    def synthInv(self, symbol, bound_vars, Grammar grammar=None):
+    def findSynth(self, fst):
         """
-            Synthesize invariant.
+            Find a target term of interest using sygus enumeration, with no
+            provided grammar.
+   
+            The solver will infer which grammar to use in this call, which by
+            default will be the grammars specified by the
+            function(s)-to-synthesize in the current context.
 
             SyGuS v2:
 
             .. code-block:: smtlib
 
-                ( synth-inv <symbol> ( <boundVars>* ) <grammar> )
+                ( find-synth :target )
 
-            :param symbol: The name of the invariant.
-            :param boundVars: The parameters to this invariant.
-            :param grammar: The syntactic constraints.
-            :return: The invariant.
+            :param fst: The identifier specifying what kind of term to find.
+            :param grammar: The grammar for the term.
+            :return: The result of the find, which is the null term if this
+                     call failed.
         """
         cdef Term term = Term(self)
-        cdef vector[c_Term] v
-        for bv in bound_vars:
-            v.push_back((<Term?> bv).cterm)
-        if grammar is None:
-            term.cterm = self.csolver.synthInv(
-                    symbol.encode(), <const vector[c_Term]&> v)
-        else:
-            term.cterm = self.csolver.synthInv(
-                    symbol.encode(),
-                    <const vector[c_Term]&> v,
-                    grammar.cgrammar)
+        term.cterm = self.csolver.findSynth(<c_FindSynthTarget> fst.value)
+        return term
+
+    def findSynth(self, fst, Grammar grammar):
+        """
+            Find a target term of interest using sygus enumeration with a
+            provided grammar.
+
+            SyGuS v2:
+
+            .. code-block:: smtlib
+
+                ( find-synth :target G)
+
+            :param fst: The identifier specifying what kind of term to find.
+            :return: The result of the find, which is the null term if this
+                     call failed.
+        """
+        cdef Term term = Term(self)
+        term.cterm = self.csolver.findSynth(<c_FindSynthTarget> fst.value, grammar.cgrammar)
+        return term
+        
+    def findSynthNext(self):
+        """
+            Try to find a next solution for the synthesis conjecture
+            corresponding to the current list of functions-to-synthesize,
+            universal variables and constraints. Must be called immediately
+            after a successful call to check-synth or check-synth-next.
+            Requires incremental mode.
+
+            SyGuS v2:
+
+            .. code-block:: smtlib
+
+                ( find-synth-next )
+
+            :return: The result of the find, which is the null term if this
+                     call failed.
+        """
+        cdef Term term = Term(self)
+        term.cterm = self.csolver.findSynthNext()
         return term
 
     def checkSatAssuming(self, *assumptions):
@@ -4112,6 +4146,8 @@ cdef class Term:
 
     def getCardinalityConstraint(self):
         """
+            .. note:: Asserts :py:meth:`isCardinalityConstraint()`.
+
             :return: The sort the cardinality constraint is for and its upper
                      bound.
 
@@ -4124,6 +4160,47 @@ cdef class Term:
         sort.csort = p.first
         return (sort, p.second)
 
+    def isRealAlgebraicNumber(self):
+        """
+            :return: True if the term is a real algebraic number.
+
+            .. warning:: This method is experimental and may change in future
+                         versions.
+        """
+        return self.cterm.isRealAlgebraicNumber()
+
+
+    def getRealAlgebraicNumberDefiningPolynomial(self, Term v):
+        """
+            .. note:: Asserts :py:meth:`isRealAlgebraicNumber()`.
+
+           :param v: The variable over which to express the polynomial
+           :return: The defining polynomial for the real algebraic number, expressed in
+                    terms of the given variable.
+        """
+        cdef Term term = Term(self.solver)
+        term.cterm = self.cterm.getRealAlgebraicNumberDefiningPolynomial(v.cterm)
+        return term
+
+    def getRealAlgebraicNumberLowerBound(self):
+        """
+            .. note:: Asserts :py:meth:`isRealAlgebraicNumber()`.
+
+	        :return: The lower bound for the value of the real algebraic number.
+        """
+        cdef Term term = Term(self.solver)
+        term.cterm = self.cterm.getRealAlgebraicNumberLowerBound()
+        return term
+
+    def getRealAlgebraicNumberUpperBound(self):
+        """
+            .. note:: Asserts :py:meth:`isRealAlgebraicNumber()`.
+
+	        :return: The upper bound for the value of the real algebraic number.
+        """
+        cdef Term term = Term(self.solver)
+        term.cterm = self.cterm.getRealAlgebraicNumberUpperBound()
+        return term
 
     def isUninterpretedSortValue(self):
         """

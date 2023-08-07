@@ -24,8 +24,7 @@
 #include <memory>
 
 #include "parser/api/cpp/command.h"
-#include "parser/flex_parser.h"
-#include "parser/parser_antlr.h"
+#include "parser/parser.h"
 
 namespace cvc5 {
 namespace parser {
@@ -129,22 +128,12 @@ class CVC5_EXPORT InputParser
   std::unique_ptr<SymbolManager> d_allocSm;
   /** Symbol manager */
   SymbolManager* d_sm;
-  /** whether to use flex */
-  bool d_useFlex;
   /** Incremental string input language */
   std::string d_istringLang;
   /** Incremental string name */
   std::string d_istringName;
-  //!!!!!!!!!!!!!! TODO: this implementation is deprecated and should be
-  // replaced (wishue #142).
-  /**  The parser state. */
-  std::unique_ptr<Parser> d_state;
-  /** The underlying input */
-  std::unique_ptr<Input> d_input;
-  //!!!!!!!!!!!!!!
-  //!!!!!!!!!!!!!! new implementation
-  std::unique_ptr<FlexParser> d_fparser;
-  //!!!!!!!!!!!!!!
+  /** The parser */
+  std::unique_ptr<Parser> d_fparser;
 };
 
 }  // namespace parser

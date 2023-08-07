@@ -22,7 +22,7 @@
 namespace cvc5 {
 namespace parser {
 
-Smt2CmdParser::Smt2CmdParser(Smt2LexerNew& lex,
+Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex,
                              Smt2State& state,
                              Smt2TermParser& tparser)
     : d_lex(lex), d_state(state), d_tparser(tparser)
@@ -69,6 +69,8 @@ Smt2CmdParser::Smt2CmdParser(Smt2LexerNew& lex,
     d_table["declare-heap"] = Token::DECLARE_HEAP_TOK;
     d_table["declare-oracle-fun"] = Token::DECLARE_ORACLE_FUN_TOK;
     d_table["declare-pool"] = Token::DECLARE_POOL_TOK;
+    d_table["find-synth"] = Token::FIND_SYNTH_TOK;
+    d_table["find-synth-next"] = Token::FIND_SYNTH_NEXT_TOK;
     d_table["get-abduct-next"] = Token::GET_ABDUCT_NEXT_TOK;
     d_table["get-abduct"] = Token::GET_ABDUCT_TOK;
     d_table["get-difficulty"] = Token::GET_DIFFICULTY_TOK;
@@ -284,8 +286,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       }
       else
       {
-        Term func = d_state.getSolver()->mkConst(t, name);
-        cmd.reset(new DeclareFunctionCommand(name, func, t));
+        cmd.reset(new DeclareFunctionCommand(name, t));
       }
     }
     break;
@@ -332,8 +333,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       Sort t = d_tparser.parseSort();
       std::vector<Term> terms = d_tparser.parseTermList();
       Trace("parser") << "declare pool: '" << name << "'" << std::endl;
-      Term pool = d_state.getSolver()->declarePool(name, t, terms);
-      cmd.reset(new DeclarePoolCommand(name, pool, t, terms));
+      cmd.reset(new DeclarePoolCommand(name, t, terms));
     }
     break;
     // (declare-sort <symbol> <numeral>)
@@ -544,6 +544,22 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
     case Token::EXIT_TOK:
     {
       cmd.reset(new QuitCommand());
+    }
+    break;
+    case Token::FIND_SYNTH_TOK:
+    {
+      d_state.checkThatLogicIsSet();
+      std::string key = d_tparser.parseKeyword();
+      modes::FindSynthTarget fst = d_state.getFindSynthTarget(key);
+      std::vector<Term> emptyVarList;
+      Grammar* g = d_tparser.parseGrammarOrNull(emptyVarList, "g_find-synth");
+      cmd.reset(new FindSynthCommand(fst, g));
+    }
+    break;
+    case Token::FIND_SYNTH_NEXT_TOK:
+    {
+      d_state.checkThatLogicIsSet();
+      cmd.reset(new FindSynthNextCommand);
     }
     break;
     // (get-abduct <symbol> <term> <grammar>?)
@@ -857,16 +873,8 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       Grammar* g = d_tparser.parseGrammarOrNull(sygusVars, name);
 
       Trace("parser-sygus") << "Define synth fun : " << name << std::endl;
-      Solver* slv = d_state.getSolver();
-      Term fun =
-          isInv ? (g == nullptr ? slv->synthInv(name, sygusVars)
-                                : slv->synthInv(name, sygusVars, *g))
-                : (g == nullptr ? slv->synthFun(name, sygusVars, range)
-                                : slv->synthFun(name, sygusVars, range, *g));
-
-      Trace("parser-sygus") << "...read synth fun " << name << std::endl;
       d_state.popScope();
-      cmd.reset(new SynthFunCommand(name, fun, sygusVars, range, isInv, g));
+      cmd.reset(new SynthFunCommand(name, sygusVars, range, g));
     }
     break;
     case Token::EOF_TOK:

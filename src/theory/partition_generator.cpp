@@ -55,11 +55,6 @@ std::vector<Node> PartitionGenerator::collectLiterals(LiteralListType litType)
 {
   std::vector<Node> filteredLiterals;
   std::vector<Node> unfilteredLiterals;
-  
-  // Filter out the types of literals we don't want. 
-  // Make sure the literal does not have a boolean term or skolem in it.
-  const std::unordered_set<Kind, kind::KindHashFunction> kinds = {
-      kind::SKOLEM, kind::BOOLEAN_TERM_VARIABLE};
 
   switch (litType)
   {
@@ -93,7 +88,9 @@ std::vector<Node> PartitionGenerator::collectLiterals(LiteralListType litType)
       // of the not instead of the not itself.
       Node original = originalN.getKind() == kind::NOT ? originalN[0] : originalN;
 
-      if (expr::hasSubtermKinds(kinds, original)
+      // Filter out the types of literals we don't want.
+      // Make sure the literal does not have a skolem in it.
+      if (expr::hasSubtermKind(kind::SKOLEM, original)
           || !d_valuation->isSatLiteral(original)
           || Theory::theoryOf(original) == THEORY_BOOL || n.isConst()
           || nType != modes::LEARNED_LIT_INPUT
@@ -115,10 +112,9 @@ std::vector<Node> PartitionGenerator::collectLiterals(LiteralListType litType)
       // of the not instead of the not itself.
       Node original = originalN.getKind() == kind::NOT ? originalN[0] : originalN;
 
-      if (expr::hasSubtermKinds(kinds, original)
+      if (expr::hasSubtermKind(kind::SKOLEM, original)
           || !d_valuation->isSatLiteral(original)
-          || Theory::theoryOf(original) == THEORY_BOOL
-          || n.isConst())
+          || Theory::theoryOf(original) == THEORY_BOOL || n.isConst())
       {
         continue;
       }

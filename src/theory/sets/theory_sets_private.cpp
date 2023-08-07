@@ -1741,12 +1741,7 @@ TrustNode TheorySetsPrivate::expandChooseOperator(
 
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  // the skolem will occur in a term context, thus we give it Boolean
-  // term variable kind immediately.
-  SkolemManager::SkolemFlags flags = node.getType().isBoolean()
-                                         ? SkolemManager::SKOLEM_BOOL_TERM_VAR
-                                         : SkolemManager::SKOLEM_DEFAULT;
-  Node x = sm->mkPurifySkolem(node, flags);
+  Node x = sm->mkPurifySkolem(node);
   Node A = node[0];
   TypeNode setType = A.getType();
   ensureFirstClassSetType(setType);

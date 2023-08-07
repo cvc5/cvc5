@@ -121,7 +121,7 @@ Node LfscNodeConverter::postConvert(Node n)
     // ignore internally generated symbols
     return n;
   }
-  else if (k == SKOLEM || k == BOOLEAN_TERM_VARIABLE)
+  else if (k == SKOLEM)
   {
     // constructors/selectors are represented by skolems, which are defined
     // symbols
