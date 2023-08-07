@@ -379,6 +379,18 @@ void Printer::toStreamCmdCheckSynthNext(std::ostream& out) const
   printUnknownCommand(out, "check-synth-next");
 }
 
+void Printer::toStreamCmdFindSynth(std::ostream& out,
+                                   modes::FindSynthTarget fst,
+                                   TypeNode sygusType) const
+{
+  printUnknownCommand(out, "find-synth");
+}
+
+void Printer::toStreamCmdFindSynthNext(std::ostream& out) const
+{
+  printUnknownCommand(out, "find-synth-next");
+}
+
 void Printer::toStreamCmdSimplify(std::ostream& out, Node n) const
 {
   printUnknownCommand(out, "simplify");

@@ -19,7 +19,6 @@
 #define CVC5__API__CVC5_H
 
 #include <cvc5/cvc5_kind.h>
-#include <cvc5/cvc5_sort_kind.h>
 #include <cvc5/cvc5_types.h>
 
 #include <functional>
@@ -5059,6 +5058,66 @@ class CVC5_EXPORT Solver
    * @return The synthesis solutions of the given terms.
    */
   std::vector<Term> getSynthSolutions(const std::vector<Term>& terms) const;
+
+  /**
+   * Find a target term of interest using sygus enumeration, with no provided
+   * grammar.
+   *
+   * The solver will infer which grammar to use in this call, which by default
+   * will be the grammars specified by the function(s)-to-synthesize in the
+   * current context.
+   *
+   * SyGuS v2:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (find-synth :target)
+   * \endverbatim
+   *
+   * @param fst The identifier specifying what kind of term to find
+   * @return The result of the find, which is the null term if this call failed.
+   *
+   * @warning This method is experimental and may change in future versions.
+   */
+  Term findSynth(modes::FindSynthTarget fst) const;
+  /**
+   * Find a target term of interest using sygus enumeration with a provided
+   * grammar.
+   *
+   * SyGuS v2:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (find-synth :target G)
+   * \endverbatim
+   *
+   * @param fst The identifier specifying what kind of term to find
+   * @param grammar The grammar for the term
+   * @return The result of the find, which is the null term if this call failed.
+   *
+   * @warning This method is experimental and may change in future versions.
+   */
+  Term findSynth(modes::FindSynthTarget fst, Grammar& grammar) const;
+  /**
+   * Try to find a next target term of interest using sygus enumeration. Must
+   * be called immediately after a successful call to find-synth or
+   * find-synth-next.
+   *
+   * SyGuS v2:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (find-synth-next)
+   * \endverbatim
+   *
+   * @return The result of the find, which is the null term if this call failed.
+   *
+   * @warning This method is experimental and may change in future versions.
+   */
+  Term findSynthNext() const;
 
   /**
    * Get a snapshot of the current state of the statistic values of this
