@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.cvc5.*;
 import io.github.cvc5.modes.BlockModelsMode;
+import io.github.cvc5.modes.FindSynthTarget;
 import io.github.cvc5.modes.LearnedLitType;
 import io.github.cvc5.modes.ProofComponent;
 import java.math.BigInteger;
@@ -2911,6 +2912,44 @@ class SolverTest
     Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
 
     assertThrows(CVC5ApiException.class, () -> d_solver.checkSynthNext());
+  }
+
+  @Test
+  void findSynth() throws CVC5ApiException
+  {
+    d_solver.setOption("sygus", "true");
+    Sort boolSort = d_solver.getBooleanSort();
+    Term start = d_solver.mkVar(boolSort);
+    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
+    Term truen = d_solver.mkBoolean(true);
+    Term falsen = d_solver.mkBoolean(false);
+    g.addRule(start, truen);
+    g.addRule(start, falsen);
+    Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort(), g);
+
+    // should enumerate based on the grammar of the function to synthesize above
+    Term t = d_solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM);
+    assertTrue(!t.isNull() && t.getSort().isBoolean());
+  }
+
+  @Test
+  void findSynth2() throws CVC5ApiException
+  {
+    d_solver.setOption("sygus", "true");
+    d_solver.setOption("incremental", "true");
+    Sort boolSort = d_solver.getBooleanSort();
+    Term start = d_solver.mkVar(boolSort);
+    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
+    Term truen = d_solver.mkBoolean(true);
+    Term falsen = d_solver.mkBoolean(false);
+    g.addRule(start, truen);
+    g.addRule(start, falsen);
+
+    // should enumerate true/false
+    Term t = d_solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM, g);
+    assertTrue(!t.isNull() && t.getSort().isBoolean());
+    t = d_solver.findSynthNext();
+    assertTrue(!t.isNull() && t.getSort().isBoolean());
   }
 
   @Test
