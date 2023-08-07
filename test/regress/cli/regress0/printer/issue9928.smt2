@@ -1,4 +1,5 @@
 (set-logic QF_UF)
+(set-info :status sat)
 (declare-sort S 1)
 (declare-sort T 0)
 (declare-const x (S T))

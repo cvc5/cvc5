@@ -56,7 +56,7 @@ void PrintBenchmark::printAssertions(std::ostream& out,
       std::vector<TypeNode> datatypeBlock;
       for (const TypeNode& ctn : connectedTypes)
       {
-        if (ctn.isUninterpretedSort())
+        if ((ctn.isUninterpretedSort() && ctn.getNumChildren()==0) || ctn.isUninterpretedSortConstructor())
         {
           d_printer->toStreamCmdDeclareType(out, ctn);
         }
@@ -183,7 +183,7 @@ void PrintBenchmark::getConnectedSubfieldTypes(
     return;
   }
   processed.insert(tn);
-  if (tn.isUninterpretedSort())
+  if ((tn.isUninterpretedSort() && tn.getNumChildren()==0) || tn.isUninterpretedSortConstructor())
   {
     connectedTypes.push_back(tn);
   }
