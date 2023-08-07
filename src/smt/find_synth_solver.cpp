@@ -48,13 +48,13 @@ Node FindSynthSolver::findSynthNext()
 {
   // cycle through each until one returns a solution
   Node ret;
-  while (d_finished.size()<d_sfinders.size())
+  while (d_finished.size() < d_sfinders.size())
   {
-    if (d_currIndex==d_sfinders.size())
+    if (d_currIndex == d_sfinders.size())
     {
       d_currIndex = 0;
     }
-    if (d_finished.find(d_currIndex)==d_finished.end())
+    if (d_finished.find(d_currIndex) == d_finished.end())
     {
       theory::quantifiers::SynthFinder* curr = d_sfinders[d_currIndex].get();
       ret = curr->getCurrent();
