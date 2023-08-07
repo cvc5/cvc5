@@ -3002,6 +3002,7 @@ public class Solver implements IPointer
    * }
    *
    * @param fst The identifier specifying what kind of term to find
+   * @param grammar The grammar for the term
    * @return The result of the find, which is the null term if this call failed.
    *
    * @api.note This method is experimental and may change in future versions.

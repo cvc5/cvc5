@@ -5094,6 +5094,7 @@ class CVC5_EXPORT Solver
    * \endverbatim
    *
    * @param fst The identifier specifying what kind of term to find
+   * @param grammar The grammar for the term
    * @return The result of the find, which is the null term if this call failed.
    *
    * @warning This method is experimental and may change in future versions.
