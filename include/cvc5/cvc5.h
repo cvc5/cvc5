@@ -3898,7 +3898,7 @@ class CVC5_EXPORT Solver
    * Rewrite a formula.
    *
    * This performs theory normalization on t and returns the result. In
-   * contrast to simplify, the current assertions are not used. The
+   * contrast to simplify, this normalization is independent of the current assertions. The
    * returned term is theory equivalent to t.
    *
    * @warning This method is experimental and may change in future versions.
