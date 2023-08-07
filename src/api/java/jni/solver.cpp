@@ -2823,6 +2823,57 @@ JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getSynthSolutions(
 
 /*
  * Class:     io_github_cvc5_Solver
+ * Method:    findSynth
+ * Signature: (JI)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_findSynth__JI(JNIEnv* env,
+                                                                 jobject,
+                                                                 jlong pointer,
+                                                                 jint fstvalue)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  modes::FindSynthTarget fst = static_cast<modes::FindSynthTarget>(fstvalue);
+  Term* retPointer = new Term(solver->findSynth(fst));
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    findSynth
+ * Signature: (JIJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_findSynth__JIJ(
+    JNIEnv* env, jobject, jlong pointer, jint fstvalue, jlong grammarPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  modes::FindSynthTarget fst = static_cast<modes::FindSynthTarget>(fstvalue);
+  Grammar* grammar = reinterpret_cast<Grammar*>(grammarPointer);
+  Term* retPointer = new Term(solver->findSynth(fst, *grammar));
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    findSynthNext
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_findSynthNext(JNIEnv* env,
+                                                                 jobject,
+                                                                 jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  Term* retPointer = new Term(solver->findSynthNext());
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
  * Method:    getStatistics
  * Signature: (J)J
  */

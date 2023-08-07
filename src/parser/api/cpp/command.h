@@ -717,6 +717,55 @@ class CVC5_EXPORT CheckSynthCommand : public Command
   std::stringstream d_solution;
 };
 
+/** Find synth command */
+class CVC5_EXPORT FindSynthCommand : public Command
+{
+ public:
+  FindSynthCommand(modes::FindSynthTarget fst, cvc5::Grammar* g)
+      : d_fst(fst), d_grammar(g){};
+  /** returns the result of the find-synth call */
+  Term getResult() const;
+  /** prints the result of the find-synth call */
+  void printResult(cvc5::Solver* solver, std::ostream& out) const override;
+  /** invokes this command
+   */
+  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  /** returns this command's name */
+  std::string getCommandName() const override;
+  /** prints this command */
+  void toStream(std::ostream& out) const override;
+
+ protected:
+  /** The target type */
+  modes::FindSynthTarget d_fst;
+  /** optional grammar for the possible values */
+  cvc5::Grammar* d_grammar;
+  /** result of the check-synth call */
+  Term d_result;
+};
+
+/** Find synth next command */
+class CVC5_EXPORT FindSynthNextCommand : public Command
+{
+ public:
+  FindSynthNextCommand(){};
+  /** returns the result of the find-synth call */
+  Term getResult() const;
+  /** prints the result of the find-synth call */
+  void printResult(cvc5::Solver* solver, std::ostream& out) const override;
+  /** invokes this command
+   */
+  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  /** returns this command's name */
+  std::string getCommandName() const override;
+  /** prints this command */
+  void toStream(std::ostream& out) const override;
+
+ protected:
+  /** result of the check-synth call */
+  Term d_result;
+};
+
 /* ------------------- sygus commands  ------------------ */
 
 // this is TRANSFORM in the CVC presentation language
