@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Martin Brain, Tim King
+ *   Andrew Reynolds, Aina Niemetz, Martin Brain
  *
  * This file is part of the cvc5 project.
  *

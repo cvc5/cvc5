@@ -82,26 +82,6 @@ add_custom_command(
 )
 add_custom_target(cvc5kinds DEPENDS ${GENERATED_KINDS_FILES})
 
-# Generate cvc5sortkinds.{pxd,pxi}
-set(GENERATED_SORT_KINDS_FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/cvc5sortkinds.pxd"
-  "${CMAKE_CURRENT_BINARY_DIR}/cvc5sortkinds.pxi"
-)
-add_custom_command(
-  OUTPUT
-    ${GENERATED_SORT_KINDS_FILES}
-  COMMAND
-    "${Python_EXECUTABLE}"
-    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_sort_kind.h"
-    --enums-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/cvc5sortkinds"
-  DEPENDS
-    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
-    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_sort_kind.h"
-)
-add_custom_target(cvc5sortkinds DEPENDS ${GENERATED_SORT_KINDS_FILES})
-
 set(GENERATED_TYPES_FILES
   "${CMAKE_CURRENT_BINARY_DIR}/cvc5types.pxd"
   "${CMAKE_CURRENT_BINARY_DIR}/cvc5types.pxi"
@@ -127,7 +107,7 @@ add_cython_target(cvc5_python_base CXX)
 add_library(cvc5_python_base
             MODULE
             cvc5_python_base)
-add_dependencies(cvc5_python_base cvc5kinds cvc5sortkinds cvc5types)
+add_dependencies(cvc5_python_base cvc5kinds cvc5types)
 
 target_include_directories(cvc5_python_base
   PRIVATE

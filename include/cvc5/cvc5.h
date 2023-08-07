@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,7 +19,6 @@
 #define CVC5__API__CVC5_H
 
 #include <cvc5/cvc5_kind.h>
-#include <cvc5/cvc5_sort_kind.h>
 #include <cvc5/cvc5_types.h>
 
 #include <functional>
@@ -1739,6 +1738,28 @@ class CVC5_EXPORT Term
    * @return The sort the cardinality constraint is for and its upper bound.
    */
   std::pair<Sort, uint32_t> getCardinalityConstraint() const;
+
+  /**
+   * @return True if the term is a real algebraic number.
+   */
+  bool isRealAlgebraicNumber() const;
+  /**
+   * @note Asserts isRealAlgebraicNumber().
+   * @param v The variable over which to express the polynomial.
+   * @return The defining polynomial for the real algebraic number, expressed in
+   * terms of the given variable.
+   */
+  Term getRealAlgebraicNumberDefiningPolynomial(const Term& v) const;
+  /**
+   * @note Asserts isRealAlgebraicNumber().
+   * @return The lower bound for the value of the real algebraic number.
+   */
+  Term getRealAlgebraicNumberLowerBound() const;
+  /**
+   * @note Asserts isRealAlgebraicNumber().
+   * @return The upper bound for the value of the real algebraic number.
+   */
+  Term getRealAlgebraicNumberUpperBound() const;
 
  protected:
   /**
