@@ -744,7 +744,7 @@ class CVC5_EXPORT FindSynthCommand : public Command
   Term d_result;
 };
 
-/** Find synth command */
+/** Find synth next command */
 class CVC5_EXPORT FindSynthNextCommand : public Command
 {
  public:
