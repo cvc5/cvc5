@@ -71,10 +71,6 @@ static const std::string smt2_commands[] = {
 #include "main/smt2_tokens.h"
 };/* smt2_commands */
 
-static const std::string tptp_commands[] = {
-#include "main/tptp_tokens.h"
-};/* tptp_commands */
-
 static const std::string* commandsBegin;
 static const std::string* commandsEnd;
 
@@ -97,7 +93,7 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
   if (d_solver->getOptionInfo("force-logic").setByUser)
   {
     LogicInfo tmp(d_solver->getOption("force-logic"));
-    d_symman->forceLogic(tmp.getLogicString());
+    d_symman->setLogic(tmp.getLogicString(), true);
   }
   /* Create parser with bogus input. */
   d_parser.reset(new cvc5::parser::InputParser(d_solver, d_symman));
@@ -116,14 +112,7 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
     ::using_history();
 
     std::string lang = d_solver->getOption("input-language");
-    if (lang == "LANG_TPTP")
-    {
-      d_historyFilename = string(getenv("HOME")) + "/.cvc5_history_tptp";
-      commandsBegin = tptp_commands;
-      commandsEnd =
-          tptp_commands + sizeof(tptp_commands) / sizeof(*tptp_commands);
-    }
-    else if (lang == "LANG_SMTLIB_V2_6")
+    if (lang == "LANG_SMTLIB_V2_6")
     {
       d_historyFilename = string(getenv("HOME")) + "/.cvc5_history_smtlib2";
       commandsBegin = smt2_commands;

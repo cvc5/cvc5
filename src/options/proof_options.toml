@@ -21,9 +21,6 @@ name   = "Proof"
 [[option.mode.ALETHE]]
   name       = "alethe"
   help       = "Output Alethe proof"
-[[option.mode.TPTP]]
-  name       = "tptp"
-  help       = "Output TPTP proof (work in progress)"
 
 [[option]]
   name       = "proofPrintConclusion"

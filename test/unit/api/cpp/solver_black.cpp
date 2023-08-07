@@ -1030,25 +1030,12 @@ TEST_F(TestApiBlackSolver, mkTrue)
 
 TEST_F(TestApiBlackSolver, mkTuple)
 {
-  ASSERT_NO_THROW(d_solver.mkTuple({d_solver.mkBitVectorSort(3)},
-                                   {d_solver.mkBitVector(3, "101", 2)}));
-  ASSERT_THROW(
-      d_solver.mkTuple({d_solver.getRealSort()}, {d_solver.mkInteger("5")}),
-      CVC5ApiException);
-
-  ASSERT_THROW(d_solver.mkTuple({}, {d_solver.mkBitVector(3, "101", 2)}),
-               CVC5ApiException);
-  ASSERT_THROW(d_solver.mkTuple({d_solver.mkBitVectorSort(4)},
-                                {d_solver.mkBitVector(3, "101", 2)}),
-               CVC5ApiException);
-  ASSERT_THROW(
-      d_solver.mkTuple({d_solver.getIntegerSort()}, {d_solver.mkReal("5.3")}),
-      CVC5ApiException);
+  ASSERT_NO_THROW(d_solver.mkTuple({d_solver.mkBitVector(3, "101", 2)}));
+  ASSERT_NO_THROW(d_solver.mkTuple({d_solver.mkInteger("5")}));
+  ASSERT_NO_THROW(d_solver.mkTuple({d_solver.mkReal("5.3")}));
   Solver slv;
-  ASSERT_NO_THROW(slv.mkTuple({d_solver.mkBitVectorSort(3)},
-                              {slv.mkBitVector(3, "101", 2)}));
-  ASSERT_NO_THROW(slv.mkTuple({slv.mkBitVectorSort(3)},
-                              {d_solver.mkBitVector(3, "101", 2)}));
+  ASSERT_NO_THROW(slv.mkTuple({slv.mkBitVector(3, "101", 2)}));
+  ASSERT_NO_THROW(slv.mkTuple({d_solver.mkBitVector(3, "101", 2)}));
 }
 
 TEST_F(TestApiBlackSolver, mkUniverseSet)
@@ -2011,6 +1998,7 @@ TEST_F(TestApiBlackSolver, getLearnedLiterals2)
 TEST_F(TestApiBlackSolver, getTimeoutCoreUnsat)
 {
   d_solver.setOption("timeout-core-timeout", "100");
+  d_solver.setOption("produce-unsat-cores", "true");
   Sort intSort = d_solver.getIntegerSort();
   Term x = d_solver.mkConst(intSort, "x");
   Term tt = d_solver.mkBoolean(true);
@@ -2028,6 +2016,7 @@ TEST_F(TestApiBlackSolver, getTimeoutCoreUnsat)
 
 TEST_F(TestApiBlackSolver, getTimeoutCore)
 {
+  d_solver.setOption("produce-unsat-cores", "true");
   Term ff = d_solver.mkBoolean(false);
   Term tt = d_solver.mkBoolean(true);
   d_solver.assertFormula(tt);
@@ -2772,32 +2761,6 @@ TEST_F(TestApiBlackSolver, synthFun)
   ASSERT_NO_THROW(slv.synthFun("f1", {x}, d_solver.getBooleanSort()));
 }
 
-TEST_F(TestApiBlackSolver, synthInv)
-{
-  d_solver.setOption("sygus", "true");
-  Sort boolean = d_solver.getBooleanSort();
-  Sort integer = d_solver.getIntegerSort();
-
-  Term nullTerm;
-  Term x = d_solver.mkVar(boolean);
-
-  Term start1 = d_solver.mkVar(boolean);
-  Term start2 = d_solver.mkVar(integer);
-
-  Grammar g1 = d_solver.mkGrammar({x}, {start1});
-  g1.addRule(start1, d_solver.mkBoolean(false));
-
-  Grammar g2 = d_solver.mkGrammar({x}, {start2});
-  g2.addRule(start2, d_solver.mkInteger(0));
-
-  ASSERT_NO_THROW(d_solver.synthInv("", {}));
-  ASSERT_NO_THROW(d_solver.synthInv("i1", {x}));
-  ASSERT_NO_THROW(d_solver.synthInv("i2", {x}, g1));
-
-  ASSERT_THROW(d_solver.synthInv("i3", {nullTerm}), CVC5ApiException);
-  ASSERT_THROW(d_solver.synthInv("i4", {x}, g2), CVC5ApiException);
-}
-
 TEST_F(TestApiBlackSolver, addSygusConstraint)
 {
   d_solver.setOption("sygus", "true");
@@ -3010,19 +2973,51 @@ TEST_F(TestApiBlackSolver, checkSynthNext3)
   ASSERT_THROW(d_solver.checkSynthNext(), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, findSynth)
+{
+  d_solver.setOption("sygus", "true");
+  Sort boolean = d_solver.getBooleanSort();
+  Term start = d_solver.mkVar(boolean);
+  Grammar g = d_solver.mkGrammar({}, {start});
+  Term truen = d_solver.mkBoolean(true);
+  Term falsen = d_solver.mkBoolean(false);
+  g.addRule(start, truen);
+  g.addRule(start, falsen);
+  Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort(), g);
+
+  // should enumerate based on the grammar of the function to synthesize above
+  cvc5::Term t = d_solver.findSynth(modes::FIND_SYNTH_TARGET_ENUM);
+  ASSERT_TRUE(!t.isNull() && t.getSort().isBoolean());
+}
+
+TEST_F(TestApiBlackSolver, findSynth2)
+{
+  d_solver.setOption("sygus", "true");
+  d_solver.setOption("incremental", "true");
+  Sort boolean = d_solver.getBooleanSort();
+  Term start = d_solver.mkVar(boolean);
+  Grammar g = d_solver.mkGrammar({}, {start});
+  Term truen = d_solver.mkBoolean(true);
+  Term falsen = d_solver.mkBoolean(false);
+  g.addRule(start, truen);
+  g.addRule(start, falsen);
+
+  // should enumerate true/false
+  cvc5::Term t = d_solver.findSynth(modes::FIND_SYNTH_TARGET_ENUM, g);
+  ASSERT_TRUE(!t.isNull() && t.getSort().isBoolean());
+  t = d_solver.findSynthNext();
+  ASSERT_TRUE(!t.isNull() && t.getSort().isBoolean());
+}
+
 TEST_F(TestApiBlackSolver, tupleProject)
 {
-  std::vector<Sort> sorts = {d_solver.getBooleanSort(),
-                             d_solver.getIntegerSort(),
-                             d_solver.getStringSort(),
-                             d_solver.mkSetSort(d_solver.getStringSort())};
   std::vector<Term> elements = {
       d_solver.mkBoolean(true),
       d_solver.mkInteger(3),
       d_solver.mkString("C"),
       d_solver.mkTerm(SET_SINGLETON, {d_solver.mkString("Z")})};
 
-  Term tuple = d_solver.mkTuple(sorts, elements);
+  Term tuple = d_solver.mkTuple(elements);
 
   std::vector<uint32_t> indices1 = {};
   std::vector<uint32_t> indices2 = {0};
@@ -3465,7 +3460,6 @@ TEST_F(TestApiBlackSolver, proj_issue429)
 TEST_F(TestApiBlackSolver, proj_issue422)
 {
   Solver slv;
-  slv.setOption("sygus-rr-synth-input", "true");
   slv.setOption("strings-exp", "true");
   slv.setOption("sygus-abort-size", "1");
   Sort s1 = slv.mkBitVectorSort(36);
@@ -3498,9 +3492,7 @@ TEST_F(TestApiBlackSolver, proj_issue422)
   Term t300 = slv.mkTerm(Kind::BITVECTOR_SLT, {t276, t276});
   Term t301 = slv.mkTerm(Kind::EQUAL, {t288, t300});
   slv.assertFormula({t301});
-  // should terminate with an exception indicating we are done enumerating
-  // rewrite rules.
-  ASSERT_THROW(slv.push(4), CVC5ApiException);
+  Term t = slv.findSynth(modes::FIND_SYNTH_TARGET_REWRITE_INPUT);
 }
 
 TEST_F(TestApiBlackSolver, proj_issue423)

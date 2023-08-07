@@ -930,15 +930,11 @@ class TermTest
   @Test
   void getTuple()
   {
-    Sort s1 = d_solver.getIntegerSort();
-    Sort s2 = d_solver.getRealSort();
-    Sort s3 = d_solver.getStringSort();
-
     Term t1 = d_solver.mkInteger(15);
     Term t2 = d_solver.mkReal(17, 25);
     Term t3 = d_solver.mkString("abc");
 
-    Term tup = d_solver.mkTuple(new Sort[] {s1, s2, s3}, new Term[] {t1, t2, t3});
+    Term tup = d_solver.mkTuple(new Term[] {t1, t2, t3});
 
     assertTrue(tup.isTupleValue());
     assertEquals(Arrays.asList((new Term[] {t1, t2, t3})), Arrays.asList(tup.getTupleValue()));
@@ -1047,6 +1043,36 @@ class TermTest
     assertThrows(CVC5ApiException.class, () -> x.getCardinalityConstraint());
     Term nullt = new Term();
     assertThrows(CVC5ApiException.class, () -> nullt.isCardinalityConstraint());
+  }
+
+  @Test
+  void getRealAlgebraicNumber() throws CVC5ApiException
+  {
+    d_solver.setOption("produce-models", "true");
+    d_solver.setLogic("QF_NRA");
+    Sort realsort = d_solver.getRealSort();
+    Term x = d_solver.mkConst(realsort, "x");
+    Term x2 = d_solver.mkTerm(MULT, x, x);
+    Term two = d_solver.mkReal(2, 1);
+    Term eq = d_solver.mkTerm(EQUAL, x2, two);
+    d_solver.assertFormula(eq);
+    // Note that check-sat should only return "sat" if libpoly is enabled.
+    // Otherwise, we do not test the following functionality.
+    if (d_solver.checkSat().isSat())
+    {
+      // We find a model for (x*x = 2), where x should be a real algebraic number.
+      // We assert that its defining polynomial is non-null and its lower and
+      // upper bounds are real.
+      Term vx = d_solver.getValue(x);
+      assertTrue(vx.isRealAlgebraicNumber());
+      Term y = d_solver.mkVar(realsort, "y");
+      Term poly = vx.getRealAlgebraicNumberDefiningPolynomial(y);
+      assertTrue(!poly.isNull());
+      Term lb = vx.getRealAlgebraicNumberLowerBound();
+      assertTrue(lb.isRealValue());
+      Term ub = vx.getRealAlgebraicNumberUpperBound();
+      assertTrue(ub.isRealValue());
+    }
   }
 
   @Test

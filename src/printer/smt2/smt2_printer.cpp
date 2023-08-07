@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed, Morgan Deters
+ *   Andrew Reynolds, Morgan Deters, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
@@ -38,8 +38,10 @@
 #include "options/language.h"
 #include "printer/let_binding.h"
 #include "proof/unsat_core.h"
+#include "smt/model.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/builtin/abstract_type.h"
+#include "theory/builtin/generic_op.h"
 #include "theory/datatypes/project_op.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -213,6 +215,9 @@ void Smt2Printer::toStream(std::ostream& out,
       }
       break;
     }
+    case kind::APPLY_INDEXED_SYMBOLIC_OP:
+      out << smtKindString(n.getConst<GenericOp>().getKind());
+      break;
     case kind::BITVECTOR_TYPE:
       out << "(_ BitVec " << n.getConst<BitVectorSize>().d_size << ")";
       break;
@@ -576,7 +581,7 @@ void Smt2Printer::toStream(std::ostream& out,
   {
     // abstract value
     std::string s = n.getName();
-    out << "(as @" << cvc5::internal::quoteSymbol(s) << " " << n.getType() << ")";
+    out << "(as " << cvc5::internal::quoteSymbol(s) << " " << n.getType() << ")";
     return;
   }
   else if (n.isVar())
@@ -668,6 +673,9 @@ void Smt2Printer::toStream(std::ostream& out,
         out << ")";
       }
       return;
+    case kind::APPLY_INDEXED_SYMBOLIC:
+      // operator is printed as kind
+      break;
 
     case kind::MATCH:
       out << smtKindString(k) << " ";
@@ -2012,38 +2020,45 @@ std::string Smt2Printer::sygusGrammarString(const TypeNode& t)
     {
       TypeNode curr = typesToPrint.front();
       typesToPrint.pop_front();
-      Assert(curr.isDatatype() && curr.getDType().isSygus());
+      // skip builtin fields, which can originate from any-constant constructors
+      if (!curr.isDatatype() || !curr.getDType().isSygus())
+      {
+        continue;
+      }
       const DType& dt = curr.getDType();
       types_list << '(' << dt.getName() << ' ' << dt.getSygusType() << " (";
       types_predecl << '(' << dt.getName() << ' ' << dt.getSygusType() << ") ";
-      if (dt.getSygusAllowConst())
-      {
-        types_list << "(Constant " << dt.getSygusType() << ") ";
-      }
       for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
       {
         const DTypeConstructor& cons = dt[i];
-        // make a sygus term
-        std::vector<Node> cchildren;
-        cchildren.push_back(cons.getConstructor());
-        for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
+        if (cons.isSygusAnyConstant())
         {
-          TypeNode argType = cons[j].getRangeType();
-          std::stringstream ss;
-          ss << argType;
-          Node bv = nm->mkBoundVar(ss.str(), argType);
-          cchildren.push_back(bv);
-          // if fresh type, store it for later processing
-          if (grammarTypes.insert(argType).second)
-          {
-            typesToPrint.push_back(argType);
-          }
+          types_list << "(Constant " << cons[0].getRangeType() << ") ";
         }
-        Node consToPrint = nm->mkNode(kind::APPLY_CONSTRUCTOR, cchildren);
-        // now, print it using the conversion to builtin with external
-        types_list << theory::datatypes::utils::sygusToBuiltin(consToPrint,
-                                                               true);
-        types_list << ' ';
+        else
+        {
+          // make a sygus term
+          std::vector<Node> cchildren;
+          cchildren.push_back(cons.getConstructor());
+          for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
+          {
+            TypeNode argType = cons[j].getRangeType();
+            std::stringstream ss;
+            ss << argType;
+            Node bv = nm->mkBoundVar(ss.str(), argType);
+            cchildren.push_back(bv);
+            // if fresh type, store it for later processing
+            if (grammarTypes.insert(argType).second)
+            {
+              typesToPrint.push_back(argType);
+            }
+          }
+          Node consToPrint = nm->mkNode(kind::APPLY_CONSTRUCTOR, cchildren);
+          // now, print it using the conversion to builtin with external
+          types_list << theory::datatypes::utils::sygusToBuiltin(consToPrint,
+                                                                true);
+          types_list << ' ';
+        }
       }
       types_list << "))\n";
     } while (!typesToPrint.empty());
@@ -2054,21 +2069,16 @@ std::string Smt2Printer::sygusGrammarString(const TypeNode& t)
 }
 
 void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
-                                      Node f,
+                                      const std::string& id,
                                       const std::vector<Node>& vars,
-                                      bool isInv,
+                                      TypeNode rangeType,
                                       TypeNode sygusType) const
 {
-  out << '(' << (isInv ? "synth-inv " : "synth-fun ") << f << ' ';
+  out << "(synth-fun " << cvc5::internal::quoteSymbol(id) << ' ';
   // print variable list
   toStreamSortedVarList(out, vars);
-  // if not invariant-to-synthesize, print return type
-  if (!isInv)
-  {
-    TypeNode ftn = f.getType();
-    TypeNode range = ftn.isFunction() ? ftn.getRangeType() : ftn;
-    out << ' ' << range;
-  }
+  // print return type
+  out << ' ' << rangeType;
   out << '\n';
   // print grammar, if any
   if (!sygusType.isNull())
@@ -2110,6 +2120,24 @@ void Smt2Printer::toStreamCmdCheckSynth(std::ostream& out) const
 void Smt2Printer::toStreamCmdCheckSynthNext(std::ostream& out) const
 {
   out << "(check-synth-next)" << std::endl;
+}
+
+void Smt2Printer::toStreamCmdFindSynth(std::ostream& out,
+                                       modes::FindSynthTarget fst,
+                                       TypeNode sygusType) const
+{
+  out << "(find-synth :" << fst;
+  // print grammar, if any
+  if (!sygusType.isNull())
+  {
+    out << " " << sygusGrammarString(sygusType);
+  }
+  out << ")" << std::endl;
+}
+
+void Smt2Printer::toStreamCmdFindSynthNext(std::ostream& out) const
+{
+  out << "(find-synth-next)" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetInterpol(std::ostream& out,

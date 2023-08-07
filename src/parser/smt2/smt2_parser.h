@@ -20,8 +20,8 @@
 
 #include <cvc5/cvc5.h>
 
-#include "parser/flex_parser.h"
-#include "parser/smt2/smt2.h"
+#include "parser/parser.h"
+#include "parser/smt2/smt2_state.h"
 #include "parser/smt2/smt2_cmd_parser.h"
 #include "parser/smt2/smt2_lexer.h"
 #include "parser/smt2/smt2_term_parser.h"
@@ -30,16 +30,16 @@ namespace cvc5 {
 namespace parser {
 
 /**
- * Flex-based smt2 parser. It maintains a lexer, a state, a term parser and a
+ * -based smt2 parser. It maintains a lexer, a state, a term parser and a
  * command parser. The latter two are used for parsing terms and commands. The
  * command parser depends on the term parser.
  */
-class Smt2Parser : public FlexParser
+class Smt2Parser : public Parser
 {
  public:
   Smt2Parser(Solver* solver,
              SymbolManager* sm,
-             bool strictMode = false,
+             bool isStrict = false,
              bool isSygus = false);
   virtual ~Smt2Parser() {}
   /** Set the logic */

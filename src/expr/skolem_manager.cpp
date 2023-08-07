@@ -27,11 +27,6 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 
-struct SkolemFormAttributeId
-{
-};
-typedef expr::Attribute<SkolemFormAttributeId, Node> SkolemFormAttribute;
-
 struct OriginalFormAttributeId
 {
 };
@@ -46,6 +41,7 @@ const char* toString(SkolemFunId id)
 {
   switch (id)
   {
+    case SkolemFunId::PURIFY: return "PURIFY";
     case SkolemFunId::ARRAY_DEQ_DIFF: return "ARRAY_DEQ_DIFF";
     case SkolemFunId::DIV_BY_ZERO: return "DIV_BY_ZERO";
     case SkolemFunId::INT_DIV_BY_ZERO: return "INT_DIV_BY_ZERO";
@@ -55,6 +51,8 @@ const char* toString(SkolemFunId id)
       return "TRANSCENDENTAL_PURIFY_ARG";
     case SkolemFunId::SHARED_SELECTOR: return "SHARED_SELECTOR";
     case SkolemFunId::QUANTIFIERS_SKOLEMIZE: return "QUANTIFIERS_SKOLEMIZE";
+    case SkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED:
+      return "QUANTIFIERS_SYNTH_FUN_EMBED";
     case SkolemFunId::STRINGS_NUM_OCCUR: return "STRINGS_NUM_OCCUR";
     case SkolemFunId::STRINGS_OCCUR_INDEX: return "STRINGS_OCCUR_INDEX";
     case SkolemFunId::STRINGS_OCCUR_LEN: return "STRINGS_OCCUR_LEN";
@@ -101,6 +99,7 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::IEVAL_NONE: return "IEVAL_NONE";
     case SkolemFunId::IEVAL_SOME: return "IEVAL_SOME";
     case SkolemFunId::ABSTRACT_VALUE: return "ABSTRACT_VALUE";
+    case SkolemFunId::SYGUS_ANY_CONSTANT: return "SYGUS_ANY_CONSTANT";
     default: return "?";
   }
 }
@@ -114,9 +113,6 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id)
 SkolemManager::SkolemManager() : d_skolemCounter(0) {}
 
 Node SkolemManager::mkPurifySkolem(Node t,
-                                   const std::string& prefix,
-                                   const std::string& comment,
-                                   int flags,
                                    ProofGenerator* pg)
 {
   // We do not recursively compute the original form of t here
@@ -138,7 +134,7 @@ Node SkolemManager::mkPurifySkolem(Node t,
   }
   else
   {
-    k = mkSkolemInternal(t, prefix, comment, flags);
+    k = mkSkolemFunction(SkolemFunId::PURIFY, t.getType(), {t});
     // shouldn't provide proof generators for other terms
     Assert(pg == nullptr);
   }
@@ -153,19 +149,19 @@ Node SkolemManager::mkPurifySkolem(Node t,
   return k;
 }
 
-Node SkolemManager::mkSkolemFunction(SkolemFunId id,
-                                     TypeNode tn,
-                                     Node cacheVal,
-                                     int flags)
+Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal)
 {
   std::tuple<SkolemFunId, TypeNode, Node> key(id, tn, cacheVal);
   std::map<std::tuple<SkolemFunId, TypeNode, Node>, Node>::iterator it =
       d_skolemFuns.find(key);
   if (it == d_skolemFuns.end())
   {
+    // we use @ as a prefix, which follows the SMT-LIB standard indicating
+    // internal symbols starting with @ or . are reserved for internal use.
     std::stringstream ss;
-    ss << "SKOLEM_FUN_" << id;
-    Node k = mkSkolemNode(ss.str(), tn, "an internal skolem function", flags);
+    ss << "@" << id;
+    Node k = mkSkolemNode(
+        ss.str(), tn, "an internal skolem function", SKOLEM_DEFAULT);
     d_skolemFuns[key] = k;
     d_skolemFunMap[k] = key;
     Trace("sk-manager-skolem") << "mkSkolemFunction(" << id << ", " << cacheVal
@@ -177,8 +173,7 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id,
 
 Node SkolemManager::mkSkolemFunction(SkolemFunId id,
                                      TypeNode tn,
-                                     const std::vector<Node>& cacheVals,
-                                     int flags)
+                                     const std::vector<Node>& cacheVals)
 {
   Node cacheVal;
   // use null node if cacheVals is empty
@@ -188,7 +183,7 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id,
                    ? cacheVals[0]
                    : NodeManager::currentNM()->mkNode(SEXPR, cacheVals);
   }
-  return mkSkolemFunction(id, tn, cacheVal, flags);
+  return mkSkolemFunction(id, tn, cacheVal);
 }
 
 bool SkolemManager::isSkolemFunction(TNode k,
@@ -204,6 +199,17 @@ bool SkolemManager::isSkolemFunction(TNode k,
   id = std::get<0>(it->second);
   cacheVal = std::get<2>(it->second);
   return true;
+}
+
+SkolemFunId SkolemManager::getId(TNode k) const
+{
+  SkolemFunId id;
+  Node cacheVal;
+  if (isSkolemFunction(k, id, cacheVal))
+  {
+    return id;
+  }
+  return SkolemFunId::NONE;
 }
 
 Node SkolemManager::mkDummySkolem(const std::string& prefix,
@@ -341,57 +347,25 @@ Node SkolemManager::getUnpurifiedForm(Node k)
   return k;
 }
 
-Node SkolemManager::mkSkolemInternal(Node w,
-                                     const std::string& prefix,
-                                     const std::string& comment,
-                                     int flags)
-{
-  // note that witness, original forms are independent, but share skolems
-  // w is not necessarily a witness term
-  SkolemFormAttribute sfa;
-  // could already have a skolem if we used w already
-  if (w.hasAttribute(sfa))
-  {
-    return w.getAttribute(sfa);
-  }
-  // make the new skolem
-  Node k = mkSkolemNode(prefix, w.getType(), comment, flags);
-  // set skolem form attribute for w
-  w.setAttribute(sfa, k);
-  Trace("sk-manager") << "SkolemManager::mkSkolem: " << k << " : " << w
-                      << std::endl;
-  return k;
-}
-
 Node SkolemManager::mkSkolemNode(const std::string& prefix,
                                  const TypeNode& type,
                                  const std::string& comment,
                                  int flags)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node n;
-  if (flags & SKOLEM_BOOL_TERM_VAR)
+  Node n = NodeBuilder(nm, SKOLEM);
+  if ((flags & SKOLEM_EXACT_NAME) == 0)
   {
-    Assert(type.isBoolean());
-    n = NodeBuilder(nm, BOOLEAN_TERM_VARIABLE);
+    std::stringstream name;
+    name << prefix << '_' << ++d_skolemCounter;
+    n.setAttribute(expr::VarNameAttr(), name.str());
   }
   else
   {
-    n = NodeBuilder(nm, SKOLEM);
-    if ((flags & SKOLEM_EXACT_NAME) == 0)
-    {
-      std::stringstream name;
-      name << prefix << '_' << ++d_skolemCounter;
-      n.setAttribute(expr::VarNameAttr(), name.str());
-    }
-    else
-    {
-      n.setAttribute(expr::VarNameAttr(), prefix);
-    }
+    n.setAttribute(expr::VarNameAttr(), prefix);
   }
   n.setAttribute(expr::TypeAttr(), type);
   n.setAttribute(expr::TypeCheckedAttr(), true);
-
   return n;
 }
 

@@ -97,22 +97,18 @@ endif()
 #-----------------------------------------------------------------------------#
 # Generate language tokens header files.
 
-foreach(lang Cvc Smt2 Tptp)
-  string(TOLOWER ${lang} lang_lc)
-  add_custom_command(
-    OUTPUT ${lang_lc}_tokens.h
-    COMMAND
-      sh ${CMAKE_CURRENT_LIST_DIR}/gen-token-header.sh
-          ${CMAKE_CURRENT_LIST_DIR}/../parser/${lang_lc}/${lang}.g
-          ${CMAKE_CURRENT_BINARY_DIR}/${lang_lc}_tokens.h
-    DEPENDS ../parser/${lang_lc}/${lang}.g
-  )
-endforeach()
+add_custom_command(
+  OUTPUT smt2_tokens.h
+  COMMAND
+    sh ${CMAKE_CURRENT_LIST_DIR}/gen-token-header.sh
+        ${CMAKE_CURRENT_LIST_DIR}/../parser/smt2/smt2_cmd_parser.cpp
+        smt2_tokens.h
+  DEPENDS ../parser/smt2/smt2_cmd_parser.cpp
+)
 
 # Create target used as a dependency for libmain.
 add_custom_target(gen-tokens
   DEPENDS
     smt2_tokens.h
-    tptp_tokens.h
 )
 

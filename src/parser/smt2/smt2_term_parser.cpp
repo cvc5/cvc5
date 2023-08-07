@@ -993,7 +993,8 @@ uint32_t Smt2TermParser::tokenStrToUnsigned()
   // forbid leading zeroes if in strict mode
   if (d_lex.isStrict())
   {
-    if (d_lex.tokenStr()[0] == '0')
+    std::string token = d_lex.tokenStr();
+    if (token.size() > 1 && token[0] == '0')
     {
       d_lex.parseError("Numeral with leading zeroes are forbidden");
     }

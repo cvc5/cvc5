@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
@@ -15,7 +15,6 @@
 
 #include "theory/arith/arith_preprocess.h"
 
-#include "theory/arith/arith_state.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/skolem_lemma.h"
 
@@ -24,7 +23,6 @@ namespace theory {
 namespace arith {
 
 ArithPreprocess::ArithPreprocess(Env& env,
-                                 ArithState& state,
                                  InferenceManager& im,
                                  ProofNodeManager* pnm,
                                  OperatorElim& oe)

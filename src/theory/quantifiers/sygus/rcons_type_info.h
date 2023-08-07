@@ -88,8 +88,10 @@ class RConsTypeInfo
   RConsObligation* builtinToOb(Node t);
 
  private:
-  /** Sygus terms enumerator for this class' Sygus datatype type */
-  std::unique_ptr<SygusEnumerator> d_enumerator;
+  /** Sygus terms/patterns enumerators for this class' Sygus datatype type */
+  std::vector<std::unique_ptr<SygusEnumerator>> d_enumerators;
+  /** Initial and current probabilities for choosing which enumerator to use. */
+  double d_p, d_cp;
   /** Candidate rewrite database for this class' sygus datatype type */
   std::unique_ptr<CandidateRewriteDatabase> d_crd;
   /** Sygus sampler needed for initializing the candidate rewrite database */

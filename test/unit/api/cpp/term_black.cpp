@@ -980,15 +980,11 @@ TEST_F(TestApiBlackTerm, getRoundingModeValue)
 
 TEST_F(TestApiBlackTerm, getTuple)
 {
-  Sort s1 = d_solver.getIntegerSort();
-  Sort s2 = d_solver.getRealSort();
-  Sort s3 = d_solver.getStringSort();
-
   Term t1 = d_solver.mkInteger(15);
   Term t2 = d_solver.mkReal(17, 25);
   Term t3 = d_solver.mkString("abc");
 
-  Term tup = d_solver.mkTuple({s1, s2, s3}, {t1, t2, t3});
+  Term tup = d_solver.mkTuple({t1, t2, t3});
 
   ASSERT_TRUE(tup.isTupleValue());
   ASSERT_EQ(std::vector<Term>({t1, t2, t3}), tup.getTupleValue());
@@ -1184,6 +1180,35 @@ TEST_F(TestApiBlackTerm, getCardinalityConstraint)
   ASSERT_THROW(x.getCardinalityConstraint(), CVC5ApiException);
   Term nullt;
   ASSERT_THROW(nullt.isCardinalityConstraint(), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackTerm, getRealAlgebraicNumber)
+{
+  d_solver.setOption("produce-models", "true");
+  d_solver.setLogic("QF_NRA");
+  Sort realsort = d_solver.getRealSort();
+  Term x = d_solver.mkConst(realsort, "x");
+  Term x2 = d_solver.mkTerm(MULT, {x, x});
+  Term two = d_solver.mkReal(2, 1);
+  Term eq = d_solver.mkTerm(EQUAL, {x2, two});
+  d_solver.assertFormula(eq);
+  // Note that check-sat should only return "sat" if libpoly is enabled.
+  // Otherwise, we do not test the following functionality.
+  if (d_solver.checkSat().isSat())
+  {
+    // We find a model for (x*x = 2), where x should be a real algebraic number.
+    // We assert that its defining polynomial is non-null and its lower and
+    // upper bounds are real.
+    Term vx = d_solver.getValue(x);
+    ASSERT_TRUE(vx.isRealAlgebraicNumber());
+    Term y = d_solver.mkVar(realsort, "y");
+    Term poly = vx.getRealAlgebraicNumberDefiningPolynomial(y);
+    ASSERT_TRUE(!poly.isNull());
+    Term lb = vx.getRealAlgebraicNumberLowerBound();
+    ASSERT_TRUE(lb.isRealValue());
+    Term ub = vx.getRealAlgebraicNumberUpperBound();
+    ASSERT_TRUE(ub.isRealValue());
+  }
 }
 
 TEST_F(TestApiBlackTerm, termScopedToString)

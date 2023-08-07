@@ -120,14 +120,12 @@ Languages currently supported as arguments to the -L / --lang option:
   auto                           attempt to automatically determine language
   smt | smtlib | smt2 |
   smt2.6 | smtlib2.6             SMT-LIB format 2.6 with support for the strings standard
-  tptp                           TPTP format (cnf, fof and tff)
   sygus | sygus2                 SyGuS version 2.0
 
 Languages currently supported as arguments to the --output-lang option:
   auto                           match output language to input language
   smt | smtlib | smt2 |
   smt2.6 | smtlib2.6             SMT-LIB format 2.6 with support for the strings standard
-  tptp                           TPTP format
   ast                            internal format (simple syntax trees)
 )FOOBAR" << std::endl;
     throw OptionException("help is not a valid language");

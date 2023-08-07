@@ -381,6 +381,9 @@ enum class InferenceId
   // For example, (= (f c) d) where (c, d) is an I/O pair obtained from calling
   // the oracle associated with oracle function f.
   QUANTIFIERS_ORACLE_INTERFACE,
+  // purification lemma to ensure oracle functions in substitutions are taken
+  // into account
+  QUANTIFIERS_ORACLE_PURIFY_SUBS,
   //-------------------- syntax-guided instantiation
   // a counterexample lemma
   QUANTIFIERS_SYQI_CEX,
@@ -389,10 +392,18 @@ enum class InferenceId
   //-------------------- sygus solver
   // G or ~G where G is the active guard for a sygus enumerator
   QUANTIFIERS_SYGUS_ENUM_ACTIVE_GUARD_SPLIT,
-  // manual exclusion of a current solution
-  QUANTIFIERS_SYGUS_EXCLUDE_CURRENT,
+  // manual exclusion of a current solution for an actively generated enumerator
+  QUANTIFIERS_SYGUS_ACTIVE_GEN_EXCLUDE_CURRENT,
   // manual exclusion of a current solution for sygus-stream
   QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT,
+  // manual exclusion of a current solution for incremental sygus
+  QUANTIFIERS_SYGUS_INC_EXCLUDE_CURRENT,
+  // manual exclusion of a current solution for a failed side condition
+  QUANTIFIERS_SYGUS_SC_EXCLUDE_CURRENT,
+  // manual exclusion of a current solution for a failed verification
+  QUANTIFIERS_SYGUS_NO_VERIFY_EXCLUDE_CURRENT,
+  // manual exclusion of a current solution for a repeated counterexample
+  QUANTIFIERS_SYGUS_REPEAT_CEX_EXCLUDE_CURRENT,
   // ~Q where Q is a PBE conjecture with conflicting examples
   QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA,
   // infeasible determined by single-invocation solver

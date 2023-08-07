@@ -105,7 +105,7 @@ void InstStrategyMbqi::process(Node q)
   Subs skolems;
   for (const Node& v : q[0])
   {
-    Node k = sm->mkPurifySkolem(v, "mbk");
+    Node k = sm->mkPurifySkolem(v);
     skolems.add(v, k);
     // do not take its model value (which does not exist) in conversion below
     tmpConvertMap[k] = k;
@@ -336,10 +336,10 @@ Node InstStrategyMbqi::convertToQuery(
       {
         cmap[cur] = cur;
       }
-      else if (ck == UNINTERPRETED_SORT_VALUE || ck == REAL_ALGEBRAIC_NUMBER)
+      else if (ck == UNINTERPRETED_SORT_VALUE)
       {
         // return the fresh variable for this term
-        Node k = sm->mkPurifySkolem(cur, "mbk");
+        Node k = sm->mkPurifySkolem(cur);
         freshVarType[cur.getType()].insert(k);
         cmap[cur] = k;
         continue;
@@ -463,7 +463,7 @@ Node InstStrategyMbqi::convertFromModel(
     if (processingChildren.find(cur) == processingChildren.end())
     {
       Kind ck = cur.getKind();
-      if (ck == UNINTERPRETED_SORT_VALUE || ck == REAL_ALGEBRAIC_NUMBER)
+      if (ck == UNINTERPRETED_SORT_VALUE)
       {
         // converting from query, find the variable that it is equal to
         std::map<Node, Node>::const_iterator itmv = mvToFreshVar.find(cur);
