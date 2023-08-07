@@ -1,0 +1,8 @@
+(set-logic QF_UF)
+(declare-sort S 1)
+(declare-sort T 0)
+(declare-const x (S T))
+(declare-const y (S T))
+(assert (= x y))
+(check-sat)
+(exit)
