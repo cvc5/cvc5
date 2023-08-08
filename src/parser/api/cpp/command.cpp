@@ -36,6 +36,8 @@
 #include "proof/unsat_core.h"
 #include "util/smt2_quote_string.h"
 #include "util/utility.h"
+#include "parser/commands.h"
+#include "parser/command_status.h"
 
 using namespace std;
 using namespace cvc5::parser;
@@ -761,6 +763,97 @@ void CheckSynthCommand::toStream(std::ostream& out) const
   {
     internal::Printer::getPrinter(out)->toStreamCmdCheckSynth(out);
   }
+}
+
+/* -------------------------------------------------------------------------- */
+/* class FindSynthCommand                                                    */
+/* -------------------------------------------------------------------------- */
+
+void FindSynthCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
+{
+  try
+  {
+    if (d_grammar != nullptr)
+    {
+      d_result = solver->findSynth(d_fst, *d_grammar);
+    }
+    else
+    {
+      d_result = solver->findSynth(d_fst);
+    }
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Term FindSynthCommand::getResult() const { return d_result; }
+void FindSynthCommand::printResult(cvc5::Solver* solver,
+                                   std::ostream& out) const
+{
+  if (d_result.isNull())
+  {
+    out << "fail" << std::endl;
+  }
+  else
+  {
+    out << d_result << std::endl;
+  }
+}
+
+std::string FindSynthCommand::getCommandName() const { return "find-synth"; }
+
+void FindSynthCommand::toStream(std::ostream& out) const
+{
+  internal::Printer::getPrinter(out)->toStreamCmdFindSynth(
+      out,
+      d_fst,
+      d_grammar == nullptr ? internal::TypeNode::null()
+                           : grammarToTypeNode(d_grammar));
+}
+
+/* -------------------------------------------------------------------------- */
+/* class FindSynthNextCommand */
+/* -------------------------------------------------------------------------- */
+
+cvc5::Term FindSynthNextCommand::getResult() const { return d_result; }
+
+void FindSynthNextCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
+{
+  try
+  {
+    // Get the name of the abduct from the symbol manager
+    d_result = solver->findSynthNext();
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+void FindSynthNextCommand::printResult(cvc5::Solver* solver,
+                                       std::ostream& out) const
+{
+  if (d_result.isNull())
+  {
+    out << "fail" << std::endl;
+  }
+  else
+  {
+    out << d_result << std::endl;
+  }
+}
+
+std::string FindSynthNextCommand::getCommandName() const
+{
+  return "find-synth-next";
+}
+
+void FindSynthNextCommand::toStream(std::ostream& out) const
+{
+  internal::Printer::getPrinter(out)->toStreamCmdFindSynthNext(out);
 }
 
 /* -------------------------------------------------------------------------- */

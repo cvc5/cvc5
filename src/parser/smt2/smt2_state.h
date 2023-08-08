@@ -93,6 +93,8 @@ class Smt2State : public ParserState
   modes::LearnedLitType getLearnedLitType(const std::string& mode);
   /** Parse proof component */
   modes::ProofComponent getProofComponent(const std::string& pc);
+  /** Parse find synth target */
+  modes::FindSynthTarget getFindSynthTarget(const std::string& fst);
 
   bool isTheoryEnabled(internal::theory::TheoryId theory) const;
 
