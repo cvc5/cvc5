@@ -5723,7 +5723,7 @@ enum ENUM(SortKind) : int32_t
    * .. note:: Should never be created via the API.
    * \endrst
    */
-  EVALUE(INTERNAL_SORT_KIND) = -2,
+  EVALUE(INTERNAL_SORT_KIND = -2),
   /**
    * Undefined kind.
    *
@@ -5731,7 +5731,7 @@ enum ENUM(SortKind) : int32_t
    * .. note:: Should never be exposed or created via the API.
    * \endrst
    */
-  EVALUE(UNDEFINED_SORT_KIND) = -1,
+  EVALUE(UNDEFINED_SORT_KIND = -1),
   /**
    * Null kind.
    *
