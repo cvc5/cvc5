@@ -933,8 +933,8 @@ SynthResult SolverEngine::checkSynth(bool isNext)
 
 Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
 {
-  beginCall();
   Trace("smt") << "SolverEngine::findSynth " << fst << std::endl;
+  beginCall(true);
   // The grammar(s) we will use. This may be more than one if doing rewrite
   // rule synthesis from input or if no grammar is specified, indicating we
   // wish to use grammars for each function-to-synthesize.
@@ -992,6 +992,7 @@ Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
   }
   Node ret = d_findSynthSolver->findSynth(fst, gtnu);
   d_state->notifyFindSynth(!ret.isNull());
+  endCall();
   return ret;
 }
 
