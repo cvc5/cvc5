@@ -1986,7 +1986,7 @@ cdef class Solver:
         """
         cdef Term term = Term(self)
         if grammar is None:
-            result.cterm = self.csolver.findSynth(<c_FindSynthTarget> fst.value)
+            term.cterm = self.csolver.findSynth(<c_FindSynthTarget> fst.value)
         else:
             term.cterm = self.csolver.findSynth(<c_FindSynthTarget> fst.value,
                                                 grammar.cgrammar)
