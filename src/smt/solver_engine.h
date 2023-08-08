@@ -706,8 +706,7 @@ class CVC5_EXPORT SolverEngine
    * Only permitted if cvc5 was built with proof support and the proof option
    * is on.
    */
-  std::string getProof(
-      modes::ProofComponent c = modes::ProofComponent::PROOF_COMPONENT_FULL);
+  std::string getProof(modes::ProofComponent c = modes::ProofComponent::FULL);
 
   /**
    * Get the current set of assertions.  Only permitted if the

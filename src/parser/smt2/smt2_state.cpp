@@ -353,56 +353,56 @@ modes::LearnedLitType Smt2State::getLearnedLitType(const std::string& mode)
 {
   if (mode == "preprocess_solved")
   {
-    return modes::LearnedLitType::LEARNED_LIT_PREPROCESS_SOLVED;
+    return modes::LearnedLitType::PREPROCESS_SOLVED;
   }
   else if (mode == "preprocess")
   {
-    return modes::LearnedLitType::LEARNED_LIT_PREPROCESS;
+    return modes::LearnedLitType::PREPROCESS;
   }
   else if (mode == "input")
   {
-    return modes::LearnedLitType::LEARNED_LIT_INPUT;
+    return modes::LearnedLitType::INPUT;
   }
   else if (mode == "solvable")
   {
-    return modes::LearnedLitType::LEARNED_LIT_SOLVABLE;
+    return modes::LearnedLitType::SOLVABLE;
   }
   else if (mode == "constant_prop")
   {
-    return modes::LearnedLitType::LEARNED_LIT_CONSTANT_PROP;
+    return modes::LearnedLitType::CONSTANT_PROP;
   }
   else if (mode == "internal")
   {
-    return modes::LearnedLitType::LEARNED_LIT_INTERNAL;
+    return modes::LearnedLitType::INTERNAL;
   }
   parseError(std::string("Unknown learned literal type `") + mode + "'");
-  return modes::LearnedLitType::LEARNED_LIT_UNKNOWN;
+  return modes::LearnedLitType::UNKNOWN;
 }
 
 modes::ProofComponent Smt2State::getProofComponent(const std::string& pc)
 {
   if (pc == "raw_preprocess")
   {
-    return modes::ProofComponent::PROOF_COMPONENT_RAW_PREPROCESS;
+    return modes::ProofComponent::RAW_PREPROCESS;
   }
   else if (pc == "preprocess")
   {
-    return modes::ProofComponent::PROOF_COMPONENT_PREPROCESS;
+    return modes::ProofComponent::PREPROCESS;
   }
   else if (pc == "sat")
   {
-    return modes::ProofComponent::PROOF_COMPONENT_SAT;
+    return modes::ProofComponent::SAT;
   }
   else if (pc == "theory_lemmas")
   {
-    return modes::ProofComponent::PROOF_COMPONENT_THEORY_LEMMAS;
+    return modes::ProofComponent::THEORY_LEMMAS;
   }
   else if (pc == "full")
   {
-    return modes::ProofComponent::PROOF_COMPONENT_FULL;
+    return modes::ProofComponent::FULL;
   }
   parseError(std::string("Unknown proof component `") + pc + "'");
-  return modes::ProofComponent::PROOF_COMPONENT_FULL;
+  return modes::ProofComponent::FULL;
 }
 
 modes::FindSynthTarget Smt2State::getFindSynthTarget(const std::string& fst)

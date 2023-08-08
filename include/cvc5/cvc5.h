@@ -4316,10 +4316,10 @@ class CVC5_EXPORT Solver
    * @param c The component of the proof to return
    * @return A string representing the proof. This takes into account
    * :ref:`proof-format-mode <lbl-option-proof-format-mode>` when `c` is
-   * `ProofComponent::PROOF_COMPONENT_FULL`.
+   * `ProofComponent::FULL`.
    */
-  std::string getProof(modes::ProofComponent c =
-                           modes::ProofComponent::PROOF_COMPONENT_FULL) const;
+  std::string getProof(
+      modes::ProofComponent c = modes::ProofComponent::FULL) const;
 
   /**
    * Get a list of learned literals that are entailed by the current set of
@@ -4331,7 +4331,7 @@ class CVC5_EXPORT Solver
    * @return A list of literals that were learned at top-level.
    */
   std::vector<Term> getLearnedLiterals(
-      modes::LearnedLitType t = modes::LearnedLitType::LEARNED_LIT_INPUT) const;
+      modes::LearnedLitType t = modes::LearnedLitType::INPUT) const;
 
   /**
    * Get the value of the given term in the current model.

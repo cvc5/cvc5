@@ -174,7 +174,7 @@ namespace cvc5::modes {
 
 #ifdef CVC5_API_USE_C_ENUMS
 #undef EVALUE
-#define EVALUE(name) CVC5_BLOCK_MODELS_MODE_##name
+#define EVALUE(name) CVC5_BLOCK_MODELS_##name
 #endif
 
 /**
@@ -240,19 +240,19 @@ enum ENUM(LearnedLitType)
    * In particular, literals in this category are of the form (= x t) where
    * x does not occur in t.
    */
-  EVALUE(LEARNED_LIT_PREPROCESS_SOLVED),
+  EVALUE(PREPROCESS_SOLVED),
   /**
    * A top-level literal (unit clause) from the preprocessed set of input
    * formulas.
    */
-  EVALUE(LEARNED_LIT_PREPROCESS),
+  EVALUE(PREPROCESS),
   /**
    * A literal from the preprocessed set of input formulas that does not
    * occur at top-level after preprocessing.
    *
    * Typically), this is the most interesting category of literals to learn.
    */
-  EVALUE(LEARNED_LIT_INPUT),
+  EVALUE(INPUT),
   /**
    * An internal literal that is solvable for an input variable.
    *
@@ -263,7 +263,7 @@ enum ENUM(LearnedLitType)
    * Note that solvable literals can be turned into substitutions during
    * preprocessing.
    */
-  EVALUE(LEARNED_LIT_SOLVABLE),
+  EVALUE(SOLVABLE),
   /**
    * An internal literal that can be made into a constant propagation for an
    * input term.
@@ -272,11 +272,11 @@ enum ENUM(LearnedLitType)
    * c is a constant, the preprocessed set of input formulas contains the
    * term t, but not the literal (= t c).
    */
-  EVALUE(LEARNED_LIT_CONSTANT_PROP),
+  EVALUE(CONSTANT_PROP),
   /** Any internal literal that does not fall into the above categories. */
-  EVALUE(LEARNED_LIT_INTERNAL),
+  EVALUE(INTERNAL),
   /** Special case for when produce-learned-literals is not set.  */
-  EVALUE(LEARNED_LIT_UNKNOWN),
+  EVALUE(UNKNOWN),
 };
 
 #ifdef CVC5_API_USE_C_ENUMS
@@ -306,6 +306,11 @@ std::ostream& operator<<(std::ostream& out, LearnedLitType type) CVC5_EXPORT;
 /* ProofComponent                                                             */
 /* -------------------------------------------------------------------------- */
 
+#ifdef CVC5_API_USE_C_ENUMS
+#undef EVALUE
+#define EVALUE(name) CVC5_PROOF_COMPONENT_##name
+#endif
+
 /**
  * Components to include in a proof.
  */
@@ -319,7 +324,7 @@ enum ENUM(ProofComponent)
    *
    * Note that G1 ... Gn may be arbitrary formulas, not necessarily clauses.
    */
-  EVALUE(PROOF_COMPONENT_RAW_PREPROCESS),
+  EVALUE(RAW_PREPROCESS),
   /**
    * Proofs of Gu1 ... Gun whose free assumptions are Fu1, ... Fum,
    * where:
@@ -333,7 +338,7 @@ enum ENUM(ProofComponent)
    *
    * Only valid immediately after an unsat response.
    */
-  EVALUE(PROOF_COMPONENT_PREPROCESS),
+  EVALUE(PREPROCESS),
   /**
    * A proof of false whose free assumptions are Gu1, ... Gun, L1 ... Lk,
    * where:
@@ -342,7 +347,7 @@ enum ENUM(ProofComponent)
    *
    * Only valid immediately after an unsat response.
    */
-  EVALUE(PROOF_COMPONENT_SAT),
+  EVALUE(SAT),
   /**
    * Proofs of L1 ... Lk where:
    * - L1, ..., Lk are clauses corresponding to theory lemmas used in the SAT
@@ -353,14 +358,14 @@ enum ENUM(ProofComponent)
    *
    * Only valid immediately after an unsat response.
    */
-  EVALUE(PROOF_COMPONENT_THEORY_LEMMAS),
+  EVALUE(THEORY_LEMMAS),
   /**
    * A proof of false whose free assumptions are a subset of the input formulas
    * F1), ... Fm.
    *
    * Only valid immediately after an unsat response.
    */
-  EVALUE(PROOF_COMPONENT_FULL),
+  EVALUE(FULL),
 };
 
 #ifdef CVC5_API_USE_C_ENUMS
@@ -390,6 +395,11 @@ std::ostream& operator<<(std::ostream& out, ProofComponent pc) CVC5_EXPORT;
 /* FindSynthTarget                                                            */
 /* -------------------------------------------------------------------------- */
 
+#ifdef CVC5_API_USE_C_ENUMS
+#undef EVALUE
+#define EVALUE(name) CVC5_FIND_SYNTH_TARGET_##name
+#endif
+
 /**
  * Find synthesis targets, used as an argument to Solver::findSynth. These
  * specify various kinds of terms that can be found by this method.
@@ -399,7 +409,7 @@ enum ENUM(FindSynthTarget)
   /**
    * Find the next term in the enumeration of the target grammar.
    */
-  EVALUE(FIND_SYNTH_TARGET_ENUM),
+  EVALUE(ENUM),
   /**
    * Find a pair of terms (t,s) in the target grammar which are equivalent
    * but do not rewrite to the same term in the given rewriter
@@ -410,7 +420,7 @@ enum ENUM(FindSynthTarget)
    * to none (--sygus-rewrite=none), this indicates a possible rewrite when
    * implementing a rewriter from scratch.
    */
-  EVALUE(FIND_SYNTH_TARGET_REWRITE),
+  EVALUE(REWRITE),
   /**
    * Find a term t in the target grammar which rewrites to a term s that is
    * not equivalent to it. If so, the equality (= t s) is returned by
@@ -419,7 +429,7 @@ enum ENUM(FindSynthTarget)
    * This can be used to test the correctness of the given rewriter. Any
    * returned rewrite indicates an unsoundness in the given rewriter.
    */
-  EVALUE(FIND_SYNTH_TARGET_REWRITE_UNSOUND),
+  EVALUE(REWRITE_UNSOUND),
   /**
    * Find a rewrite between pairs of terms (t,s) that are matchable with terms
    * in the input assertions where t and s are equivalent but do not rewrite
@@ -428,7 +438,7 @@ enum ENUM(FindSynthTarget)
    * This can be used to synthesize rewrite rules that apply to the current
    * problem.
    */
-  EVALUE(FIND_SYNTH_TARGET_REWRITE_INPUT),
+  EVALUE(REWRITE_INPUT),
   /**
    * Find a query over the given grammar. If the given grammar generates terms
    * that are not Boolean, we consider equalities over terms from the given
@@ -438,7 +448,7 @@ enum ENUM(FindSynthTarget)
    * --sygus-query-gen=MODE. Queries that are internally solved can be
    * filtered by the option --sygus-query-gen-filter-solved.
    */
-  EVALUE(FIND_SYNTH_TARGET_QUERY),
+  EVALUE(QUERY),
 };
 
 #ifdef CVC5_API_USE_C_ENUMS
