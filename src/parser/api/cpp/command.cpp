@@ -38,6 +38,7 @@
 #include "util/utility.h"
 #include "parser/commands.h"
 #include "parser/command_status.h"
+#include "main/command_executor.h"
 
 using namespace std;
 using namespace cvc5::parser;
@@ -120,13 +121,12 @@ ostream& operator<<(ostream& out, const CommandStatus* s)
 /* class Command                                                              */
 /* -------------------------------------------------------------------------- */
 
-Command::Command() : d_commandStatus(nullptr), d_muted(false) {}
+Command::Command() : d_commandStatus(nullptr) {}
 
 Command::Command(const Command& cmd)
 {
   d_commandStatus =
       (cmd.d_commandStatus == NULL) ? NULL : &cmd.d_commandStatus->clone();
-  d_muted = cmd.d_muted;
 }
 
 Command::~Command()
@@ -163,7 +163,7 @@ void Command::invoke(cvc5::Solver* solver, SymbolManager* sm, std::ostream& out)
   {
     out << *d_commandStatus;
   }
-  else if (!isMuted())
+  else
   {
     printResult(solver, out);
   }
@@ -212,20 +212,6 @@ void CommandRecoverableFailure::toStream(std::ostream& out) const
 {
   internal::Printer::getPrinter(out)->toStreamCmdRecoverableFailure(out,
                                                                     d_message);
-}
-
-void Command::resetSolver(cvc5::Solver* solver)
-{
-  std::unique_ptr<internal::Options> opts =
-      std::make_unique<internal::Options>();
-  opts->copyValues(*solver->d_originalOptions);
-  // This reconstructs a new solver object at the same memory location as the
-  // current one. Note that this command does not own the solver object!
-  // It may be safer to instead make the ResetCommand a special case in the
-  // CommandExecutor such that this reconstruction can be done within the
-  // CommandExecutor, who actually owns the solver.
-  solver->~Solver();
-  new (solver) cvc5::Solver(std::move(opts));
 }
 
 internal::Node Command::termToNode(const cvc5::Term& term)
@@ -865,7 +851,7 @@ void ResetCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
   try
   {
     sm->reset();
-    resetSolver(solver);
+    main::CommandExecutor::resetSolver(solver);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)

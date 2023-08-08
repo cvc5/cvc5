@@ -64,14 +64,6 @@ class CVC5_EXPORT Command
   virtual std::string getCommandName() const = 0;
 
   /**
-   * If false, instruct this Command not to print a success message.
-   */
-  void setMuted(bool muted) { d_muted = muted; }
-  /**
-   * Determine whether this Command will print a success message.
-   */
-  bool isMuted() { return d_muted; }
-  /**
    * Either the command hasn't run yet, or it completed successfully
    * (CommandSuccess, not CommandUnsupported or CommandFailure).
    */
@@ -88,9 +80,7 @@ class CVC5_EXPORT Command
    */
   bool interrupted() const;
 
-  /** Get the command status (it's NULL if we haven't run yet). */
-  const CommandStatus* getCommandStatus() const { return d_commandStatus; }
-
+ protected:
   /**
    * This field contains a command status if the command has been
    * invoked, or NULL if it has not.  This field is either a
@@ -100,20 +90,6 @@ class CVC5_EXPORT Command
    * case of a successful command.
    */
   const CommandStatus* d_commandStatus;
-
-  /**
-   * True if this command is "muted"---i.e., don't print "success" on
-   * successful execution.
-   */
-  bool d_muted;
-
-  /**
-   * Reset the given solver in-place (keep the object at the same memory
-   * location).
-   */
-  static void resetSolver(cvc5::Solver* solver);
-
- protected:
   /**
    * Print the result of running the command. This method is only called if the
    * command ran successfully.
