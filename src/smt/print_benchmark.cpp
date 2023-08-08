@@ -182,11 +182,14 @@ void PrintBenchmark::getConnectedSubfieldTypes(
   if (tn.isParametricDatatype())
   {
     const DType& dt = tn.getDType();
-    // ignore the parameters
+    // ignore its parameters
     for (size_t i = 0, nparams = dt.getNumParameters(); i < nparams; i++)
     {
       processed.insert(dt.getParameter(i));
     }
+    // we do not process the datatype here, instead we will traverse to the
+    // head of the parameteric datatype (tn[0]), which will subsequently
+    // process its subfield types.
   }
   else
   {
