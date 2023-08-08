@@ -244,8 +244,8 @@ TEST_F(TestApiBlackUncovered, declareOracleFunUnsat)
       });
   Term three = d_solver.mkInteger(3);
   Term five = d_solver.mkInteger(5);
-  Term eq =
-      d_solver.mkTerm(EQUAL, {d_solver.mkTerm(APPLY_UF, {f, three}), five});
+  Term eq = d_solver.mkTerm(
+      Kind::EQUAL, {d_solver.mkTerm(Kind::APPLY_UF, {f, three}), five});
   d_solver.assertFormula(eq);
   d_solver.checkSat();
 }

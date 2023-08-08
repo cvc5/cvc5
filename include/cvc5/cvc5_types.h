@@ -46,25 +46,25 @@ enum ENUM(UnknownExplanation)
    * Full satisfiability check required (e.g., if only preprocessing was
    * performed).
    */
-  REQUIRES_FULL_CHECK,
+  EVALUE(REQUIRES_FULL_CHECK),
   /** Incomplete theory solver. */
-  INCOMPLETE,
+  EVALUE(INCOMPLETE),
   /** Time limit reached. */
-  TIMEOUT,
+  EVALUE(TIMEOUT),
   /** Resource limit reached. */
-  RESOURCEOUT,
+  EVALUE(RESOURCEOUT),
   /** Memory limit reached. */
-  MEMOUT,
+  EVALUE(MEMOUT),
   /** Solver was interrupted. */
-  INTERRUPTED,
+  EVALUE(INTERRUPTED),
   /** Unsupported feature encountered. */
-  UNSUPPORTED,
+  EVALUE(UNSUPPORTED),
   /** Other reason. */
-  OTHER,
+  EVALUE(OTHER),
   /** Requires another satisfiability check */
-  REQUIRES_CHECK_AGAIN,
+  EVALUE(REQUIRES_CHECK_AGAIN),
   /** No specific reason given. */
-  UNKNOWN_REASON
+  EVALUE(UNKNOWN_REASON),
 };
 
 #ifdef CVC5_API_USE_C_ENUMS
@@ -122,36 +122,36 @@ enum ENUM(RoundingMode)
    * infinitely precise result are equally near, the one with an even least
    * significant digit will be delivered.
    */
-  ROUND_NEAREST_TIES_TO_EVEN,
+  EVALUE(ROUND_NEAREST_TIES_TO_EVEN),
   /**
    * Round towards positive infinity (SMT-LIB: ``+oo``).
    *
    * The result shall be the format's floating-point number (possibly ``+oo``)
    * closest to and no less than the infinitely precise result.
    */
-  ROUND_TOWARD_POSITIVE,
+  EVALUE(ROUND_TOWARD_POSITIVE),
   /**
    * Round towards negative infinity (``-oo``).
    *
    * The result shall be the format's floating-point number (possibly ``-oo``)
    * closest to and no less than the infinitely precise result.
    */
-  ROUND_TOWARD_NEGATIVE,
+  EVALUE(ROUND_TOWARD_NEGATIVE),
   /**
    * Round towards zero.
    *
    * The result shall be the format's floating-point number closest to and no
    * greater in magnitude than the infinitely precise result.
    */
-  ROUND_TOWARD_ZERO,
+  EVALUE(ROUND_TOWARD_ZERO),
   /**
    * Round to the nearest number away from zero.
    *
    * If the two nearest floating-point numbers bracketing an unrepresentable
-   * infinitely precise result are equally near, the one with larger magnitude
+   * infinitely precise result are equally near), the one with larger magnitude
    * will be selected.
    */
-  ROUND_NEAREST_TIES_TO_AWAY,
+  EVALUE(ROUND_NEAREST_TIES_TO_AWAY),
 };
 
 #ifdef CVC5_API_USE_C_ENUMS
@@ -186,9 +186,9 @@ namespace cvc5::modes {
 enum ENUM(BlockModelsMode)
 {
   /** Block models based on the SAT skeleton. */
-  LITERALS,
+  EVALUE(LITERALS),
   /** Block models based on the concrete model values for the free variables. */
-  VALUES
+  EVALUE(VALUES),
 };
 
 #ifdef CVC5_API_USE_C_ENUMS
@@ -240,19 +240,19 @@ enum ENUM(LearnedLitType)
    * In particular, literals in this category are of the form (= x t) where
    * x does not occur in t.
    */
-  LEARNED_LIT_PREPROCESS_SOLVED,
+  EVALUE(LEARNED_LIT_PREPROCESS_SOLVED),
   /**
    * A top-level literal (unit clause) from the preprocessed set of input
    * formulas.
    */
-  LEARNED_LIT_PREPROCESS,
+  EVALUE(LEARNED_LIT_PREPROCESS),
   /**
    * A literal from the preprocessed set of input formulas that does not
    * occur at top-level after preprocessing.
    *
-   * Typically, this is the most interesting category of literals to learn.
+   * Typically), this is the most interesting category of literals to learn.
    */
-  LEARNED_LIT_INPUT,
+  EVALUE(LEARNED_LIT_INPUT),
   /**
    * An internal literal that is solvable for an input variable.
    *
@@ -263,7 +263,7 @@ enum ENUM(LearnedLitType)
    * Note that solvable literals can be turned into substitutions during
    * preprocessing.
    */
-  LEARNED_LIT_SOLVABLE,
+  EVALUE(LEARNED_LIT_SOLVABLE),
   /**
    * An internal literal that can be made into a constant propagation for an
    * input term.
@@ -272,11 +272,11 @@ enum ENUM(LearnedLitType)
    * c is a constant, the preprocessed set of input formulas contains the
    * term t, but not the literal (= t c).
    */
-  LEARNED_LIT_CONSTANT_PROP,
+  EVALUE(LEARNED_LIT_CONSTANT_PROP),
   /** Any internal literal that does not fall into the above categories. */
-  LEARNED_LIT_INTERNAL,
+  EVALUE(LEARNED_LIT_INTERNAL),
   /** Special case for when produce-learned-literals is not set.  */
-  LEARNED_LIT_UNKNOWN
+  EVALUE(LEARNED_LIT_UNKNOWN),
 };
 
 #ifdef CVC5_API_USE_C_ENUMS
@@ -319,7 +319,7 @@ enum ENUM(ProofComponent)
    *
    * Note that G1 ... Gn may be arbitrary formulas, not necessarily clauses.
    */
-  PROOF_COMPONENT_RAW_PREPROCESS,
+  EVALUE(PROOF_COMPONENT_RAW_PREPROCESS),
   /**
    * Proofs of Gu1 ... Gun whose free assumptions are Fu1, ... Fum,
    * where:
@@ -333,7 +333,7 @@ enum ENUM(ProofComponent)
    *
    * Only valid immediately after an unsat response.
    */
-  PROOF_COMPONENT_PREPROCESS,
+  EVALUE(PROOF_COMPONENT_PREPROCESS),
   /**
    * A proof of false whose free assumptions are Gu1, ... Gun, L1 ... Lk,
    * where:
@@ -342,10 +342,10 @@ enum ENUM(ProofComponent)
    *
    * Only valid immediately after an unsat response.
    */
-  PROOF_COMPONENT_SAT,
+  EVALUE(PROOF_COMPONENT_SAT),
   /**
    * Proofs of L1 ... Lk where:
-   *- L1, ..., Lk are clauses corresponding to theory lemmas used in the SAT
+   * - L1, ..., Lk are clauses corresponding to theory lemmas used in the SAT
    * proof.
    *
    * In contrast to proofs given for preprocess, L1 ... Lk are clauses that are
@@ -353,14 +353,14 @@ enum ENUM(ProofComponent)
    *
    * Only valid immediately after an unsat response.
    */
-  PROOF_COMPONENT_THEORY_LEMMAS,
+  EVALUE(PROOF_COMPONENT_THEORY_LEMMAS),
   /**
    * A proof of false whose free assumptions are a subset of the input formulas
-   * F1, ... Fm.
+   * F1), ... Fm.
    *
    * Only valid immediately after an unsat response.
    */
-  PROOF_COMPONENT_FULL,
+  EVALUE(PROOF_COMPONENT_FULL),
 };
 
 #ifdef CVC5_API_USE_C_ENUMS
@@ -399,7 +399,7 @@ enum ENUM(FindSynthTarget)
   /**
    * Find the next term in the enumeration of the target grammar.
    */
-  FIND_SYNTH_TARGET_ENUM,
+  EVALUE(FIND_SYNTH_TARGET_ENUM),
   /**
    * Find a pair of terms (t,s) in the target grammar which are equivalent
    * but do not rewrite to the same term in the given rewriter
@@ -410,7 +410,7 @@ enum ENUM(FindSynthTarget)
    * to none (--sygus-rewrite=none), this indicates a possible rewrite when
    * implementing a rewriter from scratch.
    */
-  FIND_SYNTH_TARGET_REWRITE,
+  EVALUE(FIND_SYNTH_TARGET_REWRITE),
   /**
    * Find a term t in the target grammar which rewrites to a term s that is
    * not equivalent to it. If so, the equality (= t s) is returned by
@@ -419,7 +419,7 @@ enum ENUM(FindSynthTarget)
    * This can be used to test the correctness of the given rewriter. Any
    * returned rewrite indicates an unsoundness in the given rewriter.
    */
-  FIND_SYNTH_TARGET_REWRITE_UNSOUND,
+  EVALUE(FIND_SYNTH_TARGET_REWRITE_UNSOUND),
   /**
    * Find a rewrite between pairs of terms (t,s) that are matchable with terms
    * in the input assertions where t and s are equivalent but do not rewrite
@@ -428,7 +428,7 @@ enum ENUM(FindSynthTarget)
    * This can be used to synthesize rewrite rules that apply to the current
    * problem.
    */
-  FIND_SYNTH_TARGET_REWRITE_INPUT,
+  EVALUE(FIND_SYNTH_TARGET_REWRITE_INPUT),
   /**
    * Find a query over the given grammar. If the given grammar generates terms
    * that are not Boolean, we consider equalities over terms from the given
@@ -438,7 +438,7 @@ enum ENUM(FindSynthTarget)
    * --sygus-query-gen=MODE. Queries that are internally solved can be
    * filtered by the option --sygus-query-gen-filter-solved.
    */
-  FIND_SYNTH_TARGET_QUERY
+  EVALUE(FIND_SYNTH_TARGET_QUERY),
 };
 
 #ifdef CVC5_API_USE_C_ENUMS
