@@ -36,6 +36,8 @@
 #include "proof/unsat_core.h"
 #include "util/smt2_quote_string.h"
 #include "util/utility.h"
+#include "parser/commands.h"
+#include "parser/command_status.h"
 
 using namespace std;
 using namespace cvc5::parser;

@@ -18,7 +18,7 @@
 
 #include "base/check.h"
 #include "base/output.h"
-#include "parser/api/cpp/command.h"
+#include "parser/commands.h"
 #include "util/floatingpoint_size.h"
 
 namespace cvc5 {

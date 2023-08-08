@@ -26,6 +26,8 @@ set(libcvc5parserapi_src_files
 )
 
 set(libcvc5parser_src_files
+  commands.h
+  command_status.h
   input.cpp
   input.h
   lexer.cpp
