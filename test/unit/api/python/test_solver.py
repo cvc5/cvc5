@@ -2264,7 +2264,7 @@ def test_find_synth(solver):
     f = solver.synthFun("f", [], solver.getBooleanSort(), g)
 
     # should enumerate based on the grammar of the function to synthesize above
-    t = d_solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM)
+    t = solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM)
     assert not t.isNull() and t.getSort().isBoolean()
 
 
