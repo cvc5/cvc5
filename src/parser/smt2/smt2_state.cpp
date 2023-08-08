@@ -409,26 +409,26 @@ modes::FindSynthTarget Smt2State::getFindSynthTarget(const std::string& fst)
 {
   if (fst == "enum")
   {
-    return modes::FindSynthTarget::FIND_SYNTH_TARGET_ENUM;
+    return modes::FindSynthTarget::ENUM;
   }
   else if (fst == "rewrite")
   {
-    return modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE;
+    return modes::FindSynthTarget::REWRITE;
   }
   else if (fst == "rewrite_unsound")
   {
-    return modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_UNSOUND;
+    return modes::FindSynthTarget::REWRITE_UNSOUND;
   }
   else if (fst == "rewrite_input")
   {
-    return modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_INPUT;
+    return modes::FindSynthTarget::REWRITE_INPUT;
   }
   else if (fst == "query")
   {
-    return modes::FindSynthTarget::FIND_SYNTH_TARGET_QUERY;
+    return modes::FindSynthTarget::QUERY;
   }
   parseError(std::string("Unknown find synth target `") + fst + "'");
-  return modes::FindSynthTarget::FIND_SYNTH_TARGET_ENUM;
+  return modes::FindSynthTarget::ENUM;
 }
 
 bool Smt2State::isTheoryEnabled(internal::theory::TheoryId theory) const
