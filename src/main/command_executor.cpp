@@ -102,22 +102,7 @@ bool CommandExecutor::doCommand(Command* cmd)
 void CommandExecutor::reset()
 {
   printStatistics(d_solver->getDriverOptions().err());
-  resetSolver(d_solver.get());
-}
-
-
-void CommandExecutor::resetSolver(cvc5::Solver* solver)
-{
-  std::unique_ptr<internal::Options> opts =
-      std::make_unique<internal::Options>();
-  opts->copyValues(*solver->d_originalOptions);
-  // This reconstructs a new solver object at the same memory location as the
-  // current one. Note that this command does not own the solver object!
-  // It may be safer to instead make the ResetCommand a special case in the
-  // CommandExecutor such that this reconstruction can be done within the
-  // CommandExecutor, who actually owns the solver.
-  solver->~Solver();
-  new (solver) cvc5::Solver(std::move(opts));
+  Command::resetSolver(d_solver.get());
 }
 
 bool CommandExecutor::doCommandSingleton(Command* cmd)

@@ -101,12 +101,6 @@ class CommandExecutor
   void printStatisticsSafe(int fd) const;
 
   void flushOutputStreams();
-
-  /**
-   * Reset the given solver in-place (keep the object at the same memory
-   * location).
-   */
-  static void resetSolver(cvc5::Solver* solver);
 protected:
   /** Executes treating cmd as a singleton */
  virtual bool doCommandSingleton(cvc5::parser::Command* cmd);

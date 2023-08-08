@@ -33,6 +33,11 @@
 #include "options/language.h"
 
 namespace cvc5 {
+
+namespace main {
+class CommandExecutor;
+}
+
 namespace parser {
 
 class CommandStatus;
@@ -40,6 +45,7 @@ class SymbolManager;
 
 class CVC5_EXPORT Command
 {
+  friend class main::CommandExecutor;
  public:
   Command();
   Command(const Command& cmd);
@@ -95,6 +101,11 @@ class CVC5_EXPORT Command
    * command ran successfully.
    */
   virtual void printResult(cvc5::Solver* solver, std::ostream& out) const;
+  /**
+   * Reset the given solver in-place (keep the object at the same memory
+   * location).
+   */
+  static void resetSolver(cvc5::Solver* solver);
 
   // These methods rely on Command being a friend of classes in the API.
   // Subclasses of command should use these methods for conversions,
