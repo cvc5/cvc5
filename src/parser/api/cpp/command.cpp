@@ -26,19 +26,19 @@
 #include "base/modal_exception.h"
 #include "base/output.h"
 #include "expr/node_manager.h"
+#include "main/command_executor.h"
 #include "options/io_utils.h"
 #include "options/main_options.h"
 #include "options/options.h"
 #include "options/printer_options.h"
 #include "options/smt_options.h"
 #include "parser/api/cpp/symbol_manager.h"
+#include "parser/command_status.h"
+#include "parser/commands.h"
 #include "printer/printer.h"
 #include "proof/unsat_core.h"
 #include "util/smt2_quote_string.h"
 #include "util/utility.h"
-#include "parser/commands.h"
-#include "parser/command_status.h"
-#include "main/command_executor.h"
 
 using namespace std;
 using namespace cvc5::parser;

@@ -46,6 +46,7 @@ class SymbolManager;
 class CVC5_EXPORT Command
 {
   friend class main::CommandExecutor;
+
  public:
   Command();
   Command(const Command& cmd);
