@@ -183,7 +183,7 @@ void PrintBenchmark::getConnectedSubfieldTypes(
   {
     const DType& dt = tn.getDType();
     // ignore the parameters
-    for(size_t i=0, nparams=dt.getNumParameters(); i<nparams; i++)
+    for (size_t i = 0, nparams = dt.getNumParameters(); i < nparams; i++)
     {
       processed.insert(dt.getParameter(i));
     }
