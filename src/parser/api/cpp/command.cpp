@@ -188,6 +188,11 @@ void Command::printResult(cvc5::Solver* solver, std::ostream& out) const
   }
 }
 
+void CommandSuccess::toStream(std::ostream& out) const
+{
+  internal::Printer::getPrinter(out)->toStreamCmdSuccess(out);
+}
+
 void Command::resetSolver(cvc5::Solver* solver)
 {
   std::unique_ptr<internal::Options> opts =
@@ -200,11 +205,6 @@ void Command::resetSolver(cvc5::Solver* solver)
   // CommandExecutor, who actually owns the solver.
   solver->~Solver();
   new (solver) cvc5::Solver(std::move(opts));
-}
-
-void CommandSuccess::toStream(std::ostream& out) const
-{
-  internal::Printer::getPrinter(out)->toStreamCmdSuccess(out);
 }
 
 void CommandInterrupted::toStream(std::ostream& out) const
