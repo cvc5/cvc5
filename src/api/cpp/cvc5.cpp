@@ -7839,6 +7839,33 @@ std::vector<Term> Solver::getSynthSolutions(
   CVC5_API_TRY_CATCH_END;
 }
 
+Term Solver::findSynth(modes::FindSynthTarget fst) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return Term(d_nm, d_slv->findSynth(fst, internal::TypeNode::null()));
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Solver::findSynth(modes::FindSynthTarget fst, Grammar& grammar) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return Term(d_nm, d_slv->findSynth(fst, *grammar.resolve().d_type));
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Solver::findSynthNext() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return Term(d_nm, d_slv->findSynthNext());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 Statistics Solver::getStatistics() const
 {
   return Statistics(d_slv->getStatisticsRegistry());
