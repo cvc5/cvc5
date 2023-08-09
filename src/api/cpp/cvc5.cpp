@@ -5669,8 +5669,10 @@ Sort Solver::mkSequenceSort(const Sort& elemSort) const
 Sort Solver::mkAbstractSort(SortKind k) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
   internal::Kind ik = extToIntSortKind(k);
+  CVC5_API_CHECK(d_nm->isSortKindAbstractable(ik))
+      << "Cannot construct abstract type for kind " << k;
+  //////// all checks before this line
   return Sort(d_nm, d_nm->mkAbstractType(ik));
   ////////
   CVC5_API_TRY_CATCH_END;
