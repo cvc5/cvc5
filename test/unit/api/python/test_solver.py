@@ -1443,9 +1443,9 @@ def test_get_unsat_core_and_proof(solver):
     assert solver.checkSat().isUnsat()
 
     unsat_core = solver.getUnsatCore()
-    
+
     solver.getProof()
-    solver.getProof(ProofComponent.PROOF_COMPONENT_SAT)
+    solver.getProof(ProofComponent.SAT)
 
     solver.resetAssertions()
     for t in unsat_core:
@@ -1460,7 +1460,7 @@ def test_learned_literals(solver):
         solver.getLearnedLiterals()
     solver.checkSat()
     solver.getLearnedLiterals()
-    solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_PREPROCESS)
+    solver.getLearnedLiterals(LearnedLitType.PREPROCESS)
 
 def test_learned_literals2(solver):
     solver.setOption("produce-learned-literals", "true")
@@ -1477,7 +1477,7 @@ def test_learned_literals2(solver):
     solver.assertFormula(f0)
     solver.assertFormula(f1)
     solver.checkSat()
-    solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_INPUT)
+    solver.getLearnedLiterals(LearnedLitType.INPUT)
 
 def test_get_timeout_core_unsat(solver):
   solver.setOption("timeout-core-timeout", "100")

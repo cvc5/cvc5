@@ -2234,7 +2234,7 @@ cdef class Solver:
 
         self.csolver.defineFunsRec(vf, vbv, vt, glb)
 
-    def getProof(self, c = ProofComponent.PROOF_COMPONENT_FULL):
+    def getProof(self, c = ProofComponent.FULL):
         """
             Get a proof associated with the most recent call to checkSat.
 
@@ -2251,11 +2251,11 @@ cdef class Solver:
                          versions.
             :param c: The component of the proof to return 
             :return: A string representing the proof. This takes into account
-            proof-format-mode when c is PROOF_COMPONENT_FULL.
+            proof-format-mode when c is FULL.
         """
         return self.csolver.getProof(<c_ProofComponent> c.value)
 
-    def getLearnedLiterals(self, type = LearnedLitType.LEARNED_LIT_INPUT):
+    def getLearnedLiterals(self, type = LearnedLitType.INPUT):
         """
             Get a list of literals that are entailed by the current set of assertions
 
