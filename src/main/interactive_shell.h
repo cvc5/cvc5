@@ -66,7 +66,7 @@ class InteractiveShell
  private:
   main::CommandExecutor* d_cexec;
   Solver* d_solver;
-  cvc5::parser::SymbolManager* d_symman;
+  cvc5::parser::SymManager* d_symman;
   std::istream& d_in;
   std::ostream& d_out;
   std::unique_ptr<cvc5::parser::InputParser> d_parser;

@@ -28,19 +28,28 @@
 namespace cvc5 {
 namespace parser {
 
+class Command;
+class InputParser;
 class SymManager;
-class Smt2Parser;
+
+namespace internal {
+class InteractiveShell;
+}
 
 /**
  * Symbol manager
  */
 class CVC5_EXPORT SymbolManager
 {
-  friend class Smt2Parser;
+  friend class InputParser;
+  friend class Command;
+  friend class internal::InteractiveShell;
  public:
   SymbolManager(cvc5::Solver* s);
   ~SymbolManager();
  private:
+  /** Get */
+  SymManager* get();
   /** The implementation of the symbol manager */
   std::shared_ptr<SymManager> d_sm;
 };

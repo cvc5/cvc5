@@ -85,7 +85,7 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
                                    bool isInteractive)
     : d_cexec(cexec),
       d_solver(cexec->getSolver()),
-      d_symman(cexec->getSymbolManager()),
+      d_symman(cexec->getSymbolManager()->get()),
       d_in(in),
       d_out(out),
       d_isInteractive(isInteractive),

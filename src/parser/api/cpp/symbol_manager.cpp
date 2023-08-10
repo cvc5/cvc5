@@ -26,4 +26,9 @@ SymbolManager::SymbolManager(cvc5::Solver* s)
 
 SymbolManager::~SymbolManager() {}
 
+SymManager* SymbolManager::get()
+{
+  return d_sm.get();
+}
+  
 }  // namespace cvc5::parser

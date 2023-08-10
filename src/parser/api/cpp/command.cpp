@@ -32,6 +32,7 @@
 #include "options/printer_options.h"
 #include "options/smt_options.h"
 #include "parser/api/cpp/symbol_manager.h"
+#include "parser/sym_manager.h"
 #include "printer/printer.h"
 #include "proof/unsat_core.h"
 #include "util/smt2_quote_string.h"
@@ -160,7 +161,7 @@ void Command::invoke(cvc5::Solver* solver,
                      parser::SymbolManager* sm,
                      std::ostream& out)
 {
-  invokeInternal(solver, sm->d_sm.get());
+  invokeInternal(solver, sm->get());
   if (!ok())
   {
     out << *d_commandStatus;
