@@ -271,4 +271,4 @@ class CVC5_EXPORT SymManager
 }  // namespace parser
 }  // namespace cvc5
 
-#endif /* CVC5__EXPR__SYMBOL_MANAGER_H */
+#endif /* CVC5__PARSER__SYM_MANAGER_H */
