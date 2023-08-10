@@ -163,8 +163,8 @@ void Command::invoke(cvc5::Solver* solver,
   invokeInternal(solver, sm->get(), out);
 }
 void Command::invokeInternal(cvc5::Solver* solver,
-                     parser::SymManager* sm,
-                     std::ostream& out)
+                             parser::SymManager* sm,
+                             std::ostream& out)
 {
   invokeInternal(solver, sm);
   if (!ok())

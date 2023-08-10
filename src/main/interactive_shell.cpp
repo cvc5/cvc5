@@ -47,8 +47,8 @@
 #include "parser/api/cpp/command.h"
 #include "parser/api/cpp/input_parser.h"
 #include "parser/api/cpp/symbol_manager.h"
-#include "parser/sym_manager.h"
 #include "parser/commands.h"
+#include "parser/sym_manager.h"
 #include "theory/logic_info.h"
 
 using namespace std;
@@ -93,7 +93,8 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
       d_quit(false)
 {
   /* Create parser with bogus input. */
-  d_parser.reset(new cvc5::parser::InputParser(d_solver, cexec->getSymbolManager()));
+  d_parser.reset(
+      new cvc5::parser::InputParser(d_solver, cexec->getSymbolManager()));
   // initialize for incremental string input
   d_parser->setIncrementalStringInput(d_solver->getOption("input-language"),
                                       INPUT_FILENAME);
