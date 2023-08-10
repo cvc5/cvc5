@@ -38,7 +38,16 @@ class InputParser;
 class SymManager;
 
 /**
- * Symbol manager
+ * Symbol manager. Internally, this class manages a symbol table and other
+ * meta-information pertaining to SMT2 file inputs (e.g. named assertions,
+ * declared functions, etc.).
+ *
+ * A symbol manager can be modified by invoking commands, see Command::invoke.
+ *
+ * A symbol manager can be provided when constructing an InputParser, in which
+ * case that InputParser has symbols of this symbol manager preloaded.
+ *
+ * The symbol manager's interface is otherwise not publicly available.
  */
 class CVC5_EXPORT SymbolManager
 {
@@ -50,7 +59,7 @@ class CVC5_EXPORT SymbolManager
   SymbolManager(cvc5::Solver* s);
   ~SymbolManager();
  private:
-  /** Get */
+  /** Get the underlying implementation */
   SymManager* get();
   /** The implementation of the symbol manager */
   std::shared_ptr<SymManager> d_sm;

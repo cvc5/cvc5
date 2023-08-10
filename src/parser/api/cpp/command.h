@@ -48,7 +48,8 @@ class CVC5_EXPORT Command
   virtual ~Command();
 
   /**
-   * Invoke the command on the solver and symbol manager sm.
+   * Invoke the command on the solver and symbol manager sm, prints the result
+   * to output stream out.
    */
   void invoke(cvc5::Solver* solver,
               parser::SymbolManager* sm,

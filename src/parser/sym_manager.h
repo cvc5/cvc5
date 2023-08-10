@@ -49,9 +49,6 @@ enum class NamingResult
  * Symbol manager, which manages:
  * (1) The symbol table used by the parser,
  * (2) Information related to the (! ... :named s) feature in SMT-LIB version 2.
- *
- * Like SymbolTable, this class currently lives in src/expr/ since it uses
- * context-dependent data structures.
  */
 class CVC5_EXPORT SymManager
 {
