@@ -17,7 +17,6 @@
 
 #include "base/output.h"
 #include "parser/api/cpp/command.h"
-#include "parser/api/cpp/symbol_manager.h"
 
 namespace cvc5 {
 namespace parser {

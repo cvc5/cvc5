@@ -41,7 +41,6 @@
 #include "util/utility.h"
 
 using namespace std;
-using namespace cvc5::parser;
 
 namespace cvc5::parser {
 
