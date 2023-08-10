@@ -39,7 +39,6 @@ namespace parser {
 
 class Command;
 class CommandStatus;
-class SymbolManager;
 class SymManager;
 
 /**
