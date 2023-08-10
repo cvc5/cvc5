@@ -17,12 +17,13 @@
 
 #include "base/output.h"
 #include "parser/api/cpp/command.h"
+#include "parser/api/cpp/symbol_manager.h"
 
 namespace cvc5 {
 namespace parser {
 
 Smt2Parser::Smt2Parser(Solver* solver,
-                       SymbolManager* sm,
+                       SymManager* sm,
                        bool isStrict,
                        bool isSygus)
     : Parser(solver, sm),

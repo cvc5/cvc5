@@ -101,7 +101,7 @@ void InputParser::setIncrementalStringInput(const std::string& lang,
   d_istringLang = lang;
   d_istringName = name;
   // initialize the parser
-  d_fparser = Parser::mkParser(lang, d_solver, d_sm);
+  d_fparser = Parser::mkParser(lang, d_solver, d_sm->d_sm.get());
 }
 void InputParser::appendIncrementalStringInput(const std::string& input)
 {

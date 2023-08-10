@@ -40,6 +40,7 @@ namespace parser {
 class Command;
 class CommandStatus;
 class SymbolManager;
+class SymManager;
 
 /**
  * Convert a symbolic expression to string. This method differs from
@@ -59,7 +60,7 @@ class CVC5_EXPORT EmptyCommand : public Command
  public:
   EmptyCommand(std::string name = "");
   std::string getName() const;
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
 
@@ -74,9 +75,9 @@ class CVC5_EXPORT EchoCommand : public Command
 
   std::string getOutput() const;
 
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
-  void invoke(cvc5::Solver* solver,
-              parser::SymbolManager* sm,
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver,
+              parser::SymManager* sm,
               std::ostream& out) override;
 
   std::string getCommandName() const override;
@@ -96,7 +97,7 @@ class CVC5_EXPORT AssertCommand : public Command
 
   cvc5::Term getTerm() const;
 
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
 
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
@@ -107,7 +108,7 @@ class CVC5_EXPORT PushCommand : public Command
  public:
   PushCommand(uint32_t nscopes);
 
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
 
@@ -120,7 +121,7 @@ class CVC5_EXPORT PopCommand : public Command
  public:
   PopCommand(uint32_t nscopes);
 
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
 
@@ -136,12 +137,12 @@ class CVC5_EXPORT DeclarationDefinitionCommand : public Command
    * Bind the symbol of this command to the given term. Return false if the
    * binding was invalid. In this case, set command status to CommandFailure.
    */
-  bool bindToTerm(parser::SymbolManager* sm, cvc5::Term t, bool doOverload);
+  bool bindToTerm(parser::SymManager* sm, cvc5::Term t, bool doOverload);
 
  public:
   DeclarationDefinitionCommand(const std::string& id);
 
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override = 0;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override = 0;
   std::string getSymbol() const;
 }; /* class DeclarationDefinitionCommand */
 
@@ -156,7 +157,7 @@ class CVC5_EXPORT DeclareFunctionCommand : public DeclarationDefinitionCommand
   cvc5::Term getFunction() const;
   cvc5::Sort getSort() const;
 
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
 }; /* class DeclareFunctionCommand */
@@ -175,7 +176,7 @@ class CVC5_EXPORT DeclarePoolCommand : public DeclarationDefinitionCommand
   cvc5::Sort getSort() const;
   const std::vector<cvc5::Term>& getInitialValue() const;
 
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
 }; /* class DeclarePoolCommand */
@@ -191,7 +192,7 @@ class CVC5_EXPORT DeclareOracleFunCommand : public Command
   Sort getSort() const;
   const std::string& getBinaryName() const;
 
-  void invoke(Solver* solver, SymbolManager* sm) override;
+  void invokeInternal(Solver* solver, parser::SymManager* sm) override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
 
@@ -216,7 +217,7 @@ class CVC5_EXPORT DeclareSortCommand : public DeclarationDefinitionCommand
   size_t getArity() const;
   cvc5::Sort getSort() const;
 
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
 }; /* class DeclareSortCommand */
@@ -236,7 +237,7 @@ class CVC5_EXPORT DefineSortCommand : public DeclarationDefinitionCommand
   const std::vector<cvc5::Sort>& getParameters() const;
   cvc5::Sort getSort() const;
 
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
 }; /* class DefineSortCommand */
@@ -256,7 +257,7 @@ class CVC5_EXPORT DefineFunctionCommand : public DeclarationDefinitionCommand
   cvc5::Sort getSort() const;
   cvc5::Term getFormula() const;
 
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
 
@@ -288,7 +289,7 @@ class CVC5_EXPORT DefineFunctionRecCommand : public Command
   const std::vector<std::vector<cvc5::Term> >& getFormals() const;
   const std::vector<cvc5::Term>& getFormulas() const;
 
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
 
@@ -313,7 +314,7 @@ class CVC5_EXPORT DeclareHeapCommand : public Command
   DeclareHeapCommand(cvc5::Sort locSort, cvc5::Sort dataSort);
   cvc5::Sort getLocationSort() const;
   cvc5::Sort getDataSort() const;
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
 
@@ -333,7 +334,7 @@ class CVC5_EXPORT CheckSatCommand : public Command
  public:
   CheckSatCommand();
   cvc5::Result getResult() const;
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   void printResult(cvc5::Solver* solver, std::ostream& out) const override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
@@ -355,7 +356,7 @@ class CVC5_EXPORT CheckSatAssumingCommand : public Command
 
   const std::vector<cvc5::Term>& getTerms() const;
   cvc5::Result getResult() const;
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   void printResult(cvc5::Solver* solver, std::ostream& out) const override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
@@ -378,12 +379,12 @@ class CVC5_EXPORT DeclareSygusVarCommand : public DeclarationDefinitionCommand
   cvc5::Term getVar() const;
   /** returns the declared variable's sort */
   cvc5::Sort getSort() const;
-  /** invokes this command
+  /** invokeInternals this command
    *
    * The declared sygus variable is communicated to the SMT engine in case a
    * synthesis conjecture is built later on.
    */
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   /** returns this command's name */
   std::string getCommandName() const override;
   /** prints this command */
@@ -415,12 +416,12 @@ class CVC5_EXPORT SynthFunCommand : public DeclarationDefinitionCommand
   /** Get the sygus grammar given for the synth fun command */
   const cvc5::Grammar* getGrammar() const;
 
-  /** invokes this command
+  /** invokeInternals this command
    *
    * The declared function-to-synthesize is communicated to the SMT engine in
    * case a synthesis conjecture is built later on.
    */
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   /** returns this command's name */
   std::string getCommandName() const override;
   /** prints this command */
@@ -442,12 +443,12 @@ class CVC5_EXPORT SygusConstraintCommand : public Command
   SygusConstraintCommand(const cvc5::Term& t, bool isAssume = false);
   /** returns the declared constraint */
   cvc5::Term getTerm() const;
-  /** invokes this command
+  /** invokeInternals this command
    *
    * The declared constraint is communicated to the SMT engine in case a
    * synthesis conjecture is built later on.
    */
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   /** returns this command's name */
   std::string getCommandName() const override;
   /** prints this command */
@@ -480,13 +481,13 @@ class CVC5_EXPORT SygusInvConstraintCommand : public Command
                             const cvc5::Term& post);
   /** returns the place holder predicates */
   const std::vector<cvc5::Term>& getPredicates() const;
-  /** invokes this command
+  /** invokeInternals this command
    *
    * The place holders are communicated to the SMT engine and the actual
    * invariant constraint is built, in case an actual synthesis conjecture is
    * built later on.
    */
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   /** returns this command's name */
   std::string getCommandName() const override;
   /** prints this command */
@@ -508,7 +509,7 @@ class CVC5_EXPORT CheckSynthCommand : public Command
   cvc5::SynthResult getResult() const;
   /** prints the result of the check-synth-call */
   void printResult(cvc5::Solver* solver, std::ostream& out) const override;
-  /** invokes this command
+  /** invokeInternals this command
    *
    * This invocation makes the SMT engine build a synthesis conjecture based on
    * previously declared information (such as universal variables,
@@ -516,7 +517,7 @@ class CVC5_EXPORT CheckSynthCommand : public Command
    * and then perform a satisfiability check, whose result is stored in
    * d_result.
    */
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   /** returns this command's name */
   std::string getCommandName() const override;
   /** prints this command */
@@ -542,9 +543,9 @@ class CVC5_EXPORT FindSynthCommand : public Command
   Term getResult() const;
   /** prints the result of the find-synth call */
   void printResult(cvc5::Solver* solver, std::ostream& out) const override;
-  /** invokes this command
+  /** invokeInternals this command
    */
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   /** returns this command's name */
   std::string getCommandName() const override;
   /** prints this command */
@@ -568,9 +569,9 @@ class CVC5_EXPORT FindSynthNextCommand : public Command
   Term getResult() const;
   /** prints the result of the find-synth call */
   void printResult(cvc5::Solver* solver, std::ostream& out) const override;
-  /** invokes this command
+  /** invokeInternals this command
    */
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   /** returns this command's name */
   std::string getCommandName() const override;
   /** prints this command */
@@ -595,7 +596,7 @@ class CVC5_EXPORT SimplifyCommand : public Command
 
   cvc5::Term getTerm() const;
   cvc5::Term getResult() const;
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   void printResult(cvc5::Solver* solver, std::ostream& out) const override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
@@ -613,7 +614,7 @@ class CVC5_EXPORT GetValueCommand : public Command
 
   const std::vector<cvc5::Term>& getTerms() const;
   const std::vector<cvc5::Term>& getResult() const;
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   void printResult(cvc5::Solver* solver, std::ostream& out) const override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
@@ -628,7 +629,7 @@ class CVC5_EXPORT GetAssignmentCommand : public Command
   GetAssignmentCommand();
 
   cvc5::Term getResult() const;
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   void printResult(cvc5::Solver* solver, std::ostream& out) const override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
@@ -638,7 +639,7 @@ class CVC5_EXPORT GetModelCommand : public Command
 {
  public:
   GetModelCommand();
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   void printResult(cvc5::Solver* solver, std::ostream& out) const override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
@@ -654,7 +655,7 @@ class CVC5_EXPORT BlockModelCommand : public Command
  public:
   BlockModelCommand(modes::BlockModelsMode mode);
 
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
 
@@ -670,7 +671,7 @@ class CVC5_EXPORT BlockModelValuesCommand : public Command
   BlockModelValuesCommand(const std::vector<cvc5::Term>& terms);
 
   const std::vector<cvc5::Term>& getTerms() const;
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
 
@@ -684,7 +685,7 @@ class CVC5_EXPORT GetProofCommand : public Command
  public:
   GetProofCommand(modes::ProofComponent c = modes::PROOF_COMPONENT_FULL);
 
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
 
   void printResult(cvc5::Solver* solver, std::ostream& out) const override;
 
@@ -704,7 +705,7 @@ class CVC5_EXPORT GetInstantiationsCommand : public Command
   GetInstantiationsCommand();
 
   static bool isEnabled(cvc5::Solver* solver, const cvc5::Result& res);
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   void printResult(cvc5::Solver* solver, std::ostream& out) const override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
@@ -737,7 +738,7 @@ class CVC5_EXPORT GetInterpolantCommand : public Command
    * query. */
   cvc5::Term getResult() const;
 
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   void printResult(cvc5::Solver* solver, std::ostream& out) const override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
@@ -764,7 +765,7 @@ class CVC5_EXPORT GetInterpolantNextCommand : public Command
    */
   cvc5::Term getResult() const;
 
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   void printResult(cvc5::Solver* solver, std::ostream& out) const override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
@@ -804,7 +805,7 @@ class CVC5_EXPORT GetAbductCommand : public Command
    */
   cvc5::Term getResult() const;
 
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   void printResult(cvc5::Solver* solver, std::ostream& out) const override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
@@ -830,7 +831,7 @@ class CVC5_EXPORT GetAbductNextCommand : public Command
    */
   cvc5::Term getResult() const;
 
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   void printResult(cvc5::Solver* solver, std::ostream& out) const override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
@@ -855,7 +856,7 @@ class CVC5_EXPORT GetQuantifierEliminationCommand : public Command
 
   cvc5::Term getTerm() const;
   bool getDoFull() const;
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   cvc5::Term getResult() const;
   void printResult(cvc5::Solver* solver, std::ostream& out) const override;
 
@@ -867,7 +868,7 @@ class CVC5_EXPORT GetUnsatAssumptionsCommand : public Command
 {
  public:
   GetUnsatAssumptionsCommand();
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   std::vector<cvc5::Term> getResult() const;
   void printResult(cvc5::Solver* solver, std::ostream& out) const override;
   std::string getCommandName() const override;
@@ -883,17 +884,17 @@ class CVC5_EXPORT GetUnsatCoreCommand : public Command
   GetUnsatCoreCommand();
   const std::vector<cvc5::Term>& getUnsatCore() const;
 
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   void printResult(cvc5::Solver* solver, std::ostream& out) const override;
 
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
 
  protected:
-  /** The solver we were invoked with */
+  /** The solver we were invokeInternald with */
   cvc5::Solver* d_solver;
-  /** The symbol manager we were invoked with */
-  parser::SymbolManager* d_sm;
+  /** The symbol manager we were invokeInternald with */
+  parser::SymManager* d_sm;
   /** the result of the unsat core call */
   std::vector<cvc5::Term> d_result;
 }; /* class GetUnsatCoreCommand */
@@ -904,15 +905,15 @@ class CVC5_EXPORT GetDifficultyCommand : public Command
   GetDifficultyCommand();
   const std::map<cvc5::Term, cvc5::Term>& getDifficultyMap() const;
 
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   void printResult(cvc5::Solver* solver, std::ostream& out) const override;
 
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
 
  protected:
-  /** The symbol manager we were invoked with */
-  parser::SymbolManager* d_sm;
+  /** The symbol manager we were invokeInternald with */
+  parser::SymManager* d_sm;
   /** the result of the get difficulty call */
   std::map<cvc5::Term, cvc5::Term> d_result;
 };
@@ -924,17 +925,17 @@ class CVC5_EXPORT GetTimeoutCoreCommand : public Command
   cvc5::Result getResult() const;
   const std::vector<cvc5::Term>& getTimeoutCore() const;
 
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   void printResult(cvc5::Solver* solver, std::ostream& out) const override;
 
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
 
  protected:
-  /** The solver we were invoked with */
+  /** The solver we were invokeInternald with */
   cvc5::Solver* d_solver;
-  /** The symbol manager we were invoked with */
-  parser::SymbolManager* d_sm;
+  /** The symbol manager we were invokeInternald with */
+  parser::SymManager* d_sm;
   /** the result of the timeout core call */
   std::pair<cvc5::Result, std::vector<cvc5::Term>> d_result;
 };
@@ -945,7 +946,7 @@ class CVC5_EXPORT GetLearnedLiteralsCommand : public Command
   GetLearnedLiteralsCommand(modes::LearnedLitType t);
   const std::vector<cvc5::Term>& getLearnedLiterals() const;
 
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   void printResult(cvc5::Solver* solver, std::ostream& out) const override;
 
   std::string getCommandName() const override;
@@ -966,7 +967,7 @@ class CVC5_EXPORT GetAssertionsCommand : public Command
  public:
   GetAssertionsCommand();
 
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   std::string getResult() const;
   void printResult(cvc5::Solver* solver, std::ostream& out) const override;
   std::string getCommandName() const override;
@@ -982,7 +983,7 @@ class CVC5_EXPORT SetBenchmarkLogicCommand : public Command
   SetBenchmarkLogicCommand(std::string logic);
 
   std::string getLogic() const;
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
 }; /* class SetBenchmarkLogicCommand */
@@ -999,7 +1000,7 @@ class CVC5_EXPORT SetInfoCommand : public Command
   const std::string& getFlag() const;
   const std::string& getValue() const;
 
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
 }; /* class SetInfoCommand */
@@ -1016,7 +1017,7 @@ class CVC5_EXPORT GetInfoCommand : public Command
   std::string getFlag() const;
   std::string getResult() const;
 
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   void printResult(cvc5::Solver* solver, std::ostream& out) const override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
@@ -1034,7 +1035,7 @@ class CVC5_EXPORT SetOptionCommand : public Command
   const std::string& getFlag() const;
   const std::string& getValue() const;
 
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
 }; /* class SetOptionCommand */
@@ -1051,7 +1052,7 @@ class CVC5_EXPORT GetOptionCommand : public Command
   std::string getFlag() const;
   std::string getResult() const;
 
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   void printResult(cvc5::Solver* solver, std::ostream& out) const override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
@@ -1067,7 +1068,7 @@ class CVC5_EXPORT DatatypeDeclarationCommand : public Command
 
   DatatypeDeclarationCommand(const std::vector<cvc5::Sort>& datatypes);
   const std::vector<cvc5::Sort>& getDatatypes() const;
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
 }; /* class DatatypeDeclarationCommand */
@@ -1076,7 +1077,7 @@ class CVC5_EXPORT ResetCommand : public Command
 {
  public:
   ResetCommand() {}
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
 }; /* class ResetCommand */
@@ -1085,7 +1086,7 @@ class CVC5_EXPORT ResetAssertionsCommand : public Command
 {
  public:
   ResetAssertionsCommand() {}
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
 }; /* class ResetAssertionsCommand */
@@ -1094,7 +1095,7 @@ class CVC5_EXPORT QuitCommand : public Command
 {
  public:
   QuitCommand() {}
-  void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
+  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
 }; /* class QuitCommand */
