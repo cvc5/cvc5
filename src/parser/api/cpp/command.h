@@ -50,9 +50,9 @@ class CVC5_EXPORT Command
   /**
    * Invoke the command on the solver and symbol manager sm.
    */
- void invoke(cvc5::Solver* solver,
-             parser::SymbolManager* sm,
-             std::ostream& out);
+  void invoke(cvc5::Solver* solver,
+              parser::SymbolManager* sm,
+              std::ostream& out);
 
   virtual void toStream(std::ostream& out) const = 0;
 
@@ -140,8 +140,8 @@ class CVC5_EXPORT Command
    * Same as above, and prints the result to output stream out.
    */
   virtual void invokeInternal(cvc5::Solver* solver,
-                      parser::SymManager* sm,
-                      std::ostream& out);
+                              parser::SymManager* sm,
+                              std::ostream& out);
 }; /* class Command */
 
 std::ostream& operator<<(std::ostream&, const Command&) CVC5_EXPORT;

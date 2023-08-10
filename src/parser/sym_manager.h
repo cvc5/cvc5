@@ -27,7 +27,7 @@
 
 namespace cvc5 {
 
-namespace internal::parser{
+namespace internal::parser {
 class SymbolTable;
 }
 namespace parser {
@@ -56,6 +56,7 @@ enum class NamingResult
 class CVC5_EXPORT SymManager
 {
   friend class cvc5::parser::Command;
+
  public:
   SymManager(cvc5::Solver* s);
   ~SymManager();
@@ -270,7 +271,7 @@ class CVC5_EXPORT SymManager
   std::string d_logic;
 };
 
-}
-}
+}  // namespace parser
+}  // namespace cvc5
 
 #endif /* CVC5__EXPR__SYMBOL_MANAGER_H */

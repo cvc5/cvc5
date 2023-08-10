@@ -146,8 +146,8 @@ NamingResult SymManager::Implementation::setExpressionName(
 }
 
 bool SymManager::Implementation::getExpressionName(cvc5::Term t,
-                                                      std::string& name,
-                                                      bool isAssertion) const
+                                                   std::string& name,
+                                                   bool isAssertion) const
 {
   TermStringMap::const_iterator it = d_names.find(t);
   if (it == d_names.end())
@@ -200,24 +200,22 @@ SymManager::Implementation::getExpressionNames(bool areAssertions) const
   return emap;
 }
 
-std::vector<cvc5::Sort> SymManager::Implementation::getModelDeclareSorts()
-    const
+std::vector<cvc5::Sort> SymManager::Implementation::getModelDeclareSorts() const
 {
   std::vector<cvc5::Sort> declareSorts(d_declareSorts.begin(),
                                        d_declareSorts.end());
   return declareSorts;
 }
 
-std::vector<cvc5::Term> SymManager::Implementation::getModelDeclareTerms()
-    const
+std::vector<cvc5::Term> SymManager::Implementation::getModelDeclareTerms() const
 {
   std::vector<cvc5::Term> declareTerms(d_declareTerms.begin(),
                                        d_declareTerms.end());
   return declareTerms;
 }
 
-std::vector<cvc5::Term>
-SymManager::Implementation::getFunctionsToSynthesize() const
+std::vector<cvc5::Term> SymManager::Implementation::getFunctionsToSynthesize()
+    const
 {
   return std::vector<cvc5::Term>(d_funToSynth.begin(), d_funToSynth.end());
 }
@@ -327,9 +325,7 @@ SymbolTable* SymManager::getSymbolTable()
   return &d_implementation->getSymbolTable();
 }
 
-bool SymManager::bind(const std::string& name,
-                         cvc5::Term obj,
-                         bool doOverload)
+bool SymManager::bind(const std::string& name, cvc5::Term obj, bool doOverload)
 {
   return d_implementation->getSymbolTable().bind(name, obj, doOverload);
 }
@@ -404,29 +400,29 @@ bool SymManager::bindMutualDatatypeTypes(
 }
 
 void SymManager::bindType(const std::string& name,
-                             const std::vector<cvc5::Sort>& params,
-                             cvc5::Sort t)
+                          const std::vector<cvc5::Sort>& params,
+                          cvc5::Sort t)
 {
   return d_implementation->getSymbolTable().bindType(name, params, t);
 }
 
 NamingResult SymManager::setExpressionName(cvc5::Term t,
-                                              const std::string& name,
-                                              bool isAssertion)
+                                           const std::string& name,
+                                           bool isAssertion)
 {
   return d_implementation->setExpressionName(t, name, isAssertion);
 }
 
 bool SymManager::getExpressionName(cvc5::Term t,
-                                      std::string& name,
-                                      bool isAssertion) const
+                                   std::string& name,
+                                   bool isAssertion) const
 {
   return d_implementation->getExpressionName(t, name, isAssertion);
 }
 
 void SymManager::getExpressionNames(const std::vector<cvc5::Term>& ts,
-                                       std::vector<std::string>& names,
-                                       bool areAssertions) const
+                                    std::vector<std::string>& names,
+                                    bool areAssertions) const
 {
   return d_implementation->getExpressionNames(ts, names, areAssertions);
 }
@@ -500,10 +496,7 @@ void SymManager::setGlobalDeclarations(bool flag)
   d_globalDeclarations = flag;
 }
 
-bool SymManager::getGlobalDeclarations() const
-{
-  return d_globalDeclarations;
-}
+bool SymManager::getGlobalDeclarations() const { return d_globalDeclarations; }
 
 void SymManager::setLastSynthName(const std::string& name)
 {

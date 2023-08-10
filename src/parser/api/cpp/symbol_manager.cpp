@@ -19,16 +19,10 @@
 
 namespace cvc5::parser {
 
-SymbolManager::SymbolManager(cvc5::Solver* s)
-{
-  d_sm.reset(new SymManager(s));
-}
+SymbolManager::SymbolManager(cvc5::Solver* s) { d_sm.reset(new SymManager(s)); }
 
 SymbolManager::~SymbolManager() {}
 
-SymManager* SymbolManager::get()
-{
-  return d_sm.get();
-}
-  
+SymManager* SymbolManager::get() { return d_sm.get(); }
+
 }  // namespace cvc5::parser

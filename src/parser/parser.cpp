@@ -118,8 +118,8 @@ Term Parser::nextExpression()
 bool Parser::done() const { return d_done; }
 
 std::unique_ptr<Parser> Parser::mkParser(const std::string& lang,
-                                                     Solver* solver,
-                                                     SymManager* sm)
+                                         Solver* solver,
+                                         SymManager* sm)
 {
   std::unique_ptr<Parser> parser;
   if (lang == "LANG_SYGUS_V2" || lang == "LANG_SMTLIB_V2_6")

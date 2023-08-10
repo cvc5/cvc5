@@ -32,13 +32,13 @@
 #include "options/printer_options.h"
 #include "options/smt_options.h"
 #include "parser/api/cpp/symbol_manager.h"
+#include "parser/command_status.h"
+#include "parser/commands.h"
 #include "parser/sym_manager.h"
 #include "printer/printer.h"
 #include "proof/unsat_core.h"
 #include "util/smt2_quote_string.h"
 #include "util/utility.h"
-#include "parser/commands.h"
-#include "parser/command_status.h"
 
 using namespace std;
 using namespace cvc5::parser;
@@ -293,8 +293,8 @@ void EchoCommand::invokeInternal(cvc5::Solver* solver, SymManager* sm)
 }
 
 void EchoCommand::invokeInternal(cvc5::Solver* solver,
-                         SymManager* sm,
-                         std::ostream& out)
+                                 SymManager* sm,
+                                 std::ostream& out)
 {
   out << cvc5::internal::quoteString(d_output) << std::endl;
   Trace("dtview::command") << "* ~COMMAND: echo |" << d_output << "|~"
@@ -445,7 +445,8 @@ const std::vector<cvc5::Term>& CheckSatAssumingCommand::getTerms() const
   return d_terms;
 }
 
-void CheckSatAssumingCommand::invokeInternal(cvc5::Solver* solver, SymManager* sm)
+void CheckSatAssumingCommand::invokeInternal(cvc5::Solver* solver,
+                                             SymManager* sm)
 {
   Trace("dtview::command") << "* ~COMMAND: (check-sat-assuming ( " << d_terms
                            << " )~" << std::endl;
@@ -497,7 +498,8 @@ DeclareSygusVarCommand::DeclareSygusVarCommand(const std::string& id,
 cvc5::Term DeclareSygusVarCommand::getVar() const { return d_var; }
 cvc5::Sort DeclareSygusVarCommand::getSort() const { return d_sort; }
 
-void DeclareSygusVarCommand::invokeInternal(cvc5::Solver* solver, SymManager* sm)
+void DeclareSygusVarCommand::invokeInternal(cvc5::Solver* solver,
+                                            SymManager* sm)
 {
   if (!bindToTerm(sm, d_var, true))
   {
@@ -584,7 +586,8 @@ SygusConstraintCommand::SygusConstraintCommand(const cvc5::Term& t,
 {
 }
 
-void SygusConstraintCommand::invokeInternal(cvc5::Solver* solver, SymManager* sm)
+void SygusConstraintCommand::invokeInternal(cvc5::Solver* solver,
+                                            SymManager* sm)
 {
   try
   {
@@ -643,7 +646,8 @@ SygusInvConstraintCommand::SygusInvConstraintCommand(const cvc5::Term& inv,
 {
 }
 
-void SygusInvConstraintCommand::invokeInternal(cvc5::Solver* solver, SymManager* sm)
+void SygusInvConstraintCommand::invokeInternal(cvc5::Solver* solver,
+                                               SymManager* sm)
 {
   try
   {
@@ -888,7 +892,8 @@ void ResetCommand::toStream(std::ostream& out) const
 /* class ResetAssertionsCommand                                               */
 /* -------------------------------------------------------------------------- */
 
-void ResetAssertionsCommand::invokeInternal(cvc5::Solver* solver, SymManager* sm)
+void ResetAssertionsCommand::invokeInternal(cvc5::Solver* solver,
+                                            SymManager* sm)
 {
   try
   {
@@ -967,7 +972,8 @@ DeclareFunctionCommand::DeclareFunctionCommand(const std::string& id,
 
 cvc5::Sort DeclareFunctionCommand::getSort() const { return d_sort; }
 
-void DeclareFunctionCommand::invokeInternal(cvc5::Solver* solver, SymManager* sm)
+void DeclareFunctionCommand::invokeInternal(cvc5::Solver* solver,
+                                            SymManager* sm)
 {
   Term fun = solver->mkConst(d_sort, d_symbol);
   if (!bindToTerm(sm, fun, true))
@@ -1272,7 +1278,8 @@ const std::vector<cvc5::Term>& DefineFunctionRecCommand::getFormulas() const
   return d_formulas;
 }
 
-void DefineFunctionRecCommand::invokeInternal(cvc5::Solver* solver, SymManager* sm)
+void DefineFunctionRecCommand::invokeInternal(cvc5::Solver* solver,
+                                              SymManager* sm)
 {
   try
   {
@@ -1576,7 +1583,8 @@ const std::vector<cvc5::Term>& BlockModelValuesCommand::getTerms() const
 {
   return d_terms;
 }
-void BlockModelValuesCommand::invokeInternal(cvc5::Solver* solver, SymManager* sm)
+void BlockModelValuesCommand::invokeInternal(cvc5::Solver* solver,
+                                             SymManager* sm)
 {
   try
   {
@@ -1652,7 +1660,8 @@ bool GetInstantiationsCommand::isEnabled(cvc5::Solver* solver,
                      == cvc5::UnknownExplanation::INCOMPLETE))
          || res.isUnsat();
 }
-void GetInstantiationsCommand::invokeInternal(cvc5::Solver* solver, SymManager* sm)
+void GetInstantiationsCommand::invokeInternal(cvc5::Solver* solver,
+                                              SymManager* sm)
 {
   try
   {
@@ -1934,7 +1943,7 @@ GetQuantifierEliminationCommand::GetQuantifierEliminationCommand(
 cvc5::Term GetQuantifierEliminationCommand::getTerm() const { return d_term; }
 bool GetQuantifierEliminationCommand::getDoFull() const { return d_doFull; }
 void GetQuantifierEliminationCommand::invokeInternal(cvc5::Solver* solver,
-                                             SymManager* sm)
+                                                     SymManager* sm)
 {
   try
   {
@@ -1981,7 +1990,8 @@ void GetQuantifierEliminationCommand::toStream(std::ostream& out) const
 
 GetUnsatAssumptionsCommand::GetUnsatAssumptionsCommand() {}
 
-void GetUnsatAssumptionsCommand::invokeInternal(cvc5::Solver* solver, SymManager* sm)
+void GetUnsatAssumptionsCommand::invokeInternal(cvc5::Solver* solver,
+                                                SymManager* sm)
 {
   try
   {
@@ -2065,7 +2075,8 @@ void GetUnsatCoreCommand::printResult(cvc5::Solver* solver,
 
 const std::vector<cvc5::Term>& GetUnsatCoreCommand::getUnsatCore() const
 {
-  // of course, this will be empty if the command hasn't been invokeInternald yet
+  // of course, this will be empty if the command hasn't been invokeInternald
+  // yet
   return d_result;
 }
 
@@ -2216,7 +2227,8 @@ GetLearnedLiteralsCommand::GetLearnedLiteralsCommand(modes::LearnedLitType t)
     : d_type(t)
 {
 }
-void GetLearnedLiteralsCommand::invokeInternal(cvc5::Solver* solver, SymManager* sm)
+void GetLearnedLiteralsCommand::invokeInternal(cvc5::Solver* solver,
+                                               SymManager* sm)
 {
   try
   {
@@ -2312,7 +2324,8 @@ SetBenchmarkLogicCommand::SetBenchmarkLogicCommand(std::string logic)
 }
 
 std::string SetBenchmarkLogicCommand::getLogic() const { return d_logic; }
-void SetBenchmarkLogicCommand::invokeInternal(cvc5::Solver* solver, SymManager* sm)
+void SetBenchmarkLogicCommand::invokeInternal(cvc5::Solver* solver,
+                                              SymManager* sm)
 {
   try
   {
@@ -2528,7 +2541,8 @@ const std::vector<cvc5::Sort>& DatatypeDeclarationCommand::getDatatypes() const
   return d_datatypes;
 }
 
-void DatatypeDeclarationCommand::invokeInternal(cvc5::Solver* solver, SymManager* sm)
+void DatatypeDeclarationCommand::invokeInternal(cvc5::Solver* solver,
+                                                SymManager* sm)
 {
   // Implement the bindings. We bind tester names is-C if strict parsing is
   // disabled.

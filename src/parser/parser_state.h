@@ -25,10 +25,10 @@
 #include <memory>
 #include <string>
 
-#include "parser/sym_manager.h"
 #include "parser/parse_op.h"
 #include "parser/parser_exception.h"
 #include "parser/parser_utils.h"
+#include "parser/sym_manager.h"
 #include "parser/symbol_table.h"
 
 namespace cvc5 {

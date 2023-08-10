@@ -76,8 +76,8 @@ class CVC5_EXPORT EchoCommand : public Command
 
   void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   void invokeInternal(cvc5::Solver* solver,
-              parser::SymManager* sm,
-              std::ostream& out) override;
+                      parser::SymManager* sm,
+                      std::ostream& out) override;
 
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
@@ -141,7 +141,8 @@ class CVC5_EXPORT DeclarationDefinitionCommand : public Command
  public:
   DeclarationDefinitionCommand(const std::string& id);
 
-  void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override = 0;
+  void invokeInternal(cvc5::Solver* solver,
+                      parser::SymManager* sm) override = 0;
   std::string getSymbol() const;
 }; /* class DeclarationDefinitionCommand */
 

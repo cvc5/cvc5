@@ -44,6 +44,7 @@ class CVC5_EXPORT SymbolManager
   friend class InputParser;
   friend class Command;
   friend class internal::InteractiveShell;
+
  public:
   SymbolManager(cvc5::Solver* s);
   ~SymbolManager();

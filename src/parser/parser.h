@@ -89,8 +89,8 @@ class Parser : public ParserStateCallback
 
   /** make flex parser from language string */
   static std::unique_ptr<Parser> mkParser(const std::string& lang,
-                                                  Solver* solver,
-                                                  SymManager* sm);
+                                          Solver* solver,
+                                          SymManager* sm);
 
  protected:
   /** Initialize input */
