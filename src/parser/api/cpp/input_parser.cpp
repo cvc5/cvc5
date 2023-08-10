@@ -45,7 +45,7 @@ void InputParser::initialize()
   auto info = d_solver->getOptionInfo("force-logic");
   if (info.setByUser)
   {
-    cvc5::internal::LogicInfo tmp(info.stringValue());
+    internal::LogicInfo tmp(info.stringValue());
     d_sm->get()->setLogic(tmp.getLogicString(), true);
   }
   // notice that we don't create the parser object until the input is set.

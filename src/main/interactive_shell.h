@@ -29,7 +29,7 @@ class Solver;
 namespace parser {
 class Command;
 class InputParser;
-class SymbolManager;
+class SymManager;
 }  // namespace parser
 
 namespace main {

@@ -26,15 +26,16 @@
 #include <string>
 
 namespace cvc5 {
+
+namespace internal {
+class InteractiveShell;
+}
+
 namespace parser {
 
 class Command;
 class InputParser;
 class SymManager;
-
-namespace internal {
-class InteractiveShell;
-}
 
 /**
  * Symbol manager
