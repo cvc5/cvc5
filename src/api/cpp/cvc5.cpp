@@ -3580,6 +3580,10 @@ Term Term::getRealAlgebraicNumberDefiningPolynomial(const Term& v) const
       d_node->getKind() == internal::Kind::REAL_ALGEBRAIC_NUMBER, *d_node)
       << "Term to be a real algebraic number when calling "
          "getRealAlgebraicNumberDefiningPolynomial()";
+  CVC5_API_ARG_CHECK_EXPECTED(
+      v.getKind() == Kind::VARIABLE, v)
+      << "Expected a variable as argument when calling "
+         "getRealAlgebraicNumberDefiningPolynomial()";
 #ifndef CVC5_POLY_IMP
   throw CVC5ApiException(
       "Expected libpoly enabled build when calling "
