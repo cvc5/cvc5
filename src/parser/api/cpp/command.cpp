@@ -26,18 +26,19 @@
 #include "base/modal_exception.h"
 #include "base/output.h"
 #include "expr/node_manager.h"
+#include "main/command_executor.h"
 #include "options/io_utils.h"
 #include "options/main_options.h"
 #include "options/options.h"
 #include "options/printer_options.h"
 #include "options/smt_options.h"
 #include "parser/api/cpp/symbol_manager.h"
+#include "parser/command_status.h"
+#include "parser/commands.h"
 #include "printer/printer.h"
 #include "proof/unsat_core.h"
 #include "util/smt2_quote_string.h"
 #include "util/utility.h"
-#include "parser/commands.h"
-#include "parser/command_status.h"
 
 using namespace std;
 using namespace cvc5::parser;
@@ -120,13 +121,12 @@ ostream& operator<<(ostream& out, const CommandStatus* s)
 /* class Command                                                              */
 /* -------------------------------------------------------------------------- */
 
-Command::Command() : d_commandStatus(nullptr), d_muted(false) {}
+Command::Command() : d_commandStatus(nullptr) {}
 
 Command::Command(const Command& cmd)
 {
   d_commandStatus =
       (cmd.d_commandStatus == NULL) ? NULL : &cmd.d_commandStatus->clone();
-  d_muted = cmd.d_muted;
 }
 
 Command::~Command()
@@ -163,7 +163,7 @@ void Command::invoke(cvc5::Solver* solver, SymbolManager* sm, std::ostream& out)
   {
     out << *d_commandStatus;
   }
-  else if (!isMuted())
+  else
   {
     printResult(solver, out);
   }
