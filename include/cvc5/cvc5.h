@@ -4524,22 +4524,22 @@ class CVC5_EXPORT Solver
    * @warning This function is experimental and may change in future versions.
    *
    * @param c The component of the proof to return
-   * @return A vector of proof nodes.
+   * @return A vector of proofs.
    */
   std::vector<Proof> getProof(
       modes::ProofComponent c = modes::ProofComponent::FULL) const;
 
   /**
-   * Prints a proof into a string with a slected proof format mode.
+   * Prints a proof as a string in a selected proof format mode.
    * Other aspects of printing are taken from the solver options.
    *
-   * @warning This method is experimental and may change in future versions.
+   * @warning This function is experimental and may change in future versions.
    *
-   * @param proof A vector of proofs, usually obtained from Solver::getProof().
+   * @param proof A proof, usually obtained from Solver::getProof().
    * @param format The proof format used to print the proof.  Must be
    * `modes::PROOF_FORMAT_NONE` if the proof is from a component other than
    * `modes::PROOF_COMPONENT_FULL`.
-   * @return The proof printed in the current format.
+   * @return The string representation of the proof in the given format.
    */
   std::string proofToString(
       Proof proof,
