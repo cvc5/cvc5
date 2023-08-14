@@ -3857,7 +3857,16 @@ class CVC5_EXPORT Solver
    */
   Term mkVar(const Sort& sort,
              const std::optional<std::string>& symbol = std::nullopt) const;
-
+  /**
+   * Create a canonical free constant. This is used for constructing constants
+   * in a canonical way.
+   *
+   * @param sort The sort of the constant.
+   * @param name The name of the constant
+   * @return The constant.
+   */
+  Term getOrMkConst(const Sort& sort, const std::string& name
+                        ) const;
   /* .................................................................... */
   /* Create datatype constructor declarations                             */
   /* .................................................................... */

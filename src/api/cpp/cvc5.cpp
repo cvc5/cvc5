@@ -54,6 +54,7 @@
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
 #include "expr/sequence.h"
+#include "expr/skolem_manager.h"
 #include "expr/sygus_grammar.h"
 #include "expr/type_node.h"
 #include "options/base_options.h"
@@ -6187,6 +6188,25 @@ Term Solver::mkVar(const Sort& sort,
                               : d_nm->mkBoundVar(*sort.d_type);
   (void)res.getType(true); /* kick off type checking */
   increment_vars_consts_stats(sort, true);
+  return Term(d_nm, res);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+/* Create variables                                                           */
+/* -------------------------------------------------------------------------- */
+
+Term Solver::getOrMkConst(
+                              const Sort& sort, const std::string& name) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_SOLVER_CHECK_SORT(sort);
+  //////// all checks before this line
+  std::vector<internal::Node> cnodes;
+  cnodes.push_back(d_nm->mkConst(internal::String(name,false)));
+  cnodes.push_back(d_nm->mkGroundTerm(*sort.d_type));
+  internal::SkolemManager* sm = d_nm->getSkolemManager();
+  internal::Node res = sm->mkSkolemFunction(internal::SkolemFunId::INPUT_VARIABLE, *sort.d_type, cnodes);
   return Term(d_nm, res);
   ////////
   CVC5_API_TRY_CATCH_END;

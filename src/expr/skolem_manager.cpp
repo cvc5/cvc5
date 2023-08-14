@@ -41,6 +41,7 @@ const char* toString(SkolemFunId id)
 {
   switch (id)
   {
+    case SkolemFunId::INPUT_VARIABLE: return "INPUT_VARIABLE";
     case SkolemFunId::PURIFY: return "PURIFY";
     case SkolemFunId::ARRAY_DEQ_DIFF: return "ARRAY_DEQ_DIFF";
     case SkolemFunId::DIV_BY_ZERO: return "DIV_BY_ZERO";
@@ -345,6 +346,29 @@ Node SkolemManager::getUnpurifiedForm(Node k)
     return k.getAttribute(ufa);
   }
   return k;
+}
+
+SkolemFunId SkolemManager::stringToSkolemFunId(const std::string& str)
+{
+  // initialize the mapping if necessary
+  if (d_strToId.empty())
+  {
+    size_t begin = static_cast<size_t>(SkolemFunId::NONE);
+    size_t end = static_cast<size_t>(SkolemFunId::UNKNOWN);
+    for (size_t i = begin + 1; i < end; i++)
+    {
+      std::stringstream ss;
+      SkolemFunId id = static_cast<SkolemFunId>(i);
+      ss << id;
+      d_strToId[ss.str()] = id;
+    }
+  }
+  std::map<std::string, SkolemFunId>::iterator it = d_strToId.find(str);
+  if (it != d_strToId.end())
+  {
+    return it->second;
+  }
+  return SkolemFunId::NONE;
 }
 
 Node SkolemManager::mkSkolemNode(const std::string& prefix,

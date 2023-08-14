@@ -405,7 +405,7 @@ Term Smt2TermParser::parseTerm()
           // we use a placeholder to store the type (retSort), which is
           // used during MATCH_NEXT_CASE
           tstack.back().first.d_kind = INTERNAL_KIND;
-          tstack.back().first.d_expr = slv->mkConst(retSort, "_placeholder_");
+          tstack.back().first.d_expr = slv->mkConst(retSort);
           ret = Term();
           xstack[xstack.size() - 1] = ParseCtx::MATCH_NEXT_CASE;
           needsUpdateCtx = true;
@@ -1274,7 +1274,7 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
     // handles:
     // - testers and updaters indexed by constructor names
     Kind k = d_state.getIndexedOpKind(name);
-    if (k != APPLY_UPDATER && k != APPLY_TESTER)
+    if (k != APPLY_UPDATER && k != APPLY_TESTER && k != CONSTANT)
     {
       d_lex.parseError(std::string("Unexpected indexed symbol " + name));
     }

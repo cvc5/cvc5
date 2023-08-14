@@ -577,14 +577,35 @@ void Smt2Printer::toStream(std::ostream& out,
     return;
   }
 
-  if (k == kind::SKOLEM && nm->getSkolemManager()->isAbstractValue(n))
+  if (k == kind::SKOLEM)
   {
-    // abstract value
-    std::string s = n.getName();
-    out << "(as " << cvc5::internal::quoteSymbol(s) << " " << n.getType() << ")";
-    return;
+    SkolemFunId id;
+    Node cacheVal;
+    if (nm->getSkolemManager()->isSkolemFunction(n, id, cacheVal))
+    {
+      switch (id)
+      {
+        case SkolemFunId::INPUT_VARIABLE:
+        {
+          Assert (cacheVal.getNumChildren()==2);
+          //out << "(as (_ const " << cacheVal[0] << ") " << cacheVal[1].getType() << ")";
+          std::string name = cacheVal[0].getConst<String>().toString();
+          out << cvc5::internal::quoteSymbol(name);
+          return;
+        }
+        case SkolemFunId::ABSTRACT_VALUE:
+        {
+          // abstract value
+          std::string s = n.getName();
+          out << "(as " << cvc5::internal::quoteSymbol(s) << " " << n.getType() << ")";
+          return;
+        }
+        default:
+          break;
+      }
+    }
   }
-  else if (n.isVar())
+  if (n.isVar())
   {
     // variable
     if (n.hasName())
