@@ -5964,12 +5964,12 @@ struct CVC5_EXPORT hash<cvc5::SortKind>
 
 #endif
 
-#ifndef CVC5_API_USE_C_ENUMS
-#ifndef CVC5__API__CVC5_CPP_KIND_H
-#define CVC5__API__CVC5_CPP_KIND_H
-#endif
-#else
+#ifdef CVC5_API_USE_C_ENUMS
 #ifndef CVC5__API__CVC5_C_KIND_H
 #define CVC5__API__CVC5_C_KIND_H
+#endif
+#else
+#ifndef CVC5__API__CVC5_CPP_KIND_H
+#define CVC5__API__CVC5_CPP_KIND_H
 #endif
 #endif

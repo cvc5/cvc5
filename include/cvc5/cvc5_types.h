@@ -478,12 +478,12 @@ std::ostream& operator<<(std::ostream& out, FindSynthTarget target) CVC5_EXPORT;
 
 #endif
 
-#ifndef CVC5_API_USE_C_ENUMS
-#ifndef CVC5__API__CVC5_CPP_TYPES_H
-#define CVC5__API__CVC5_CPP_TYPES_H
-#endif
-#else
+#ifdef CVC5_API_USE_C_ENUMS
 #ifndef CVC5__API__CVC5_C_TYPES_H
 #define CVC5__API__CVC5_C_TYPES_H
+#endif
+#else
+#ifndef CVC5__API__CVC5_CPP_TYPES_H
+#define CVC5__API__CVC5_CPP_TYPES_H
 #endif
 #endif
