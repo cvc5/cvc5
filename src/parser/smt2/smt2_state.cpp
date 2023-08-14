@@ -1399,7 +1399,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
     {
       parseError("Expected no arguments for const");
     }
-    Term ret = d_solver->getOrMkConst( p.d_expr.getSort(), p.d_name);
+    Term ret = d_solver->getOrMkConst(p.d_expr.getSort(), p.d_name);
     Trace("parser") << "Returned " << ret << std::endl;
     return ret;
   }

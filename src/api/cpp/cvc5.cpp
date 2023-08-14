@@ -6196,17 +6196,17 @@ Term Solver::mkVar(const Sort& sort,
 /* Create variables                                                           */
 /* -------------------------------------------------------------------------- */
 
-Term Solver::getOrMkConst(
-                              const Sort& sort, const std::string& name) const
+Term Solver::getOrMkConst(const Sort& sort, const std::string& name) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(sort);
   //////// all checks before this line
   std::vector<internal::Node> cnodes;
-  cnodes.push_back(d_nm->mkConst(internal::String(name,false)));
+  cnodes.push_back(d_nm->mkConst(internal::String(name, false)));
   cnodes.push_back(d_nm->mkGroundTerm(*sort.d_type));
   internal::SkolemManager* sm = d_nm->getSkolemManager();
-  internal::Node res = sm->mkSkolemFunction(internal::SkolemFunId::INPUT_VARIABLE, *sort.d_type, cnodes);
+  internal::Node res = sm->mkSkolemFunction(
+      internal::SkolemFunId::INPUT_VARIABLE, *sort.d_type, cnodes);
   return Term(d_nm, res);
   ////////
   CVC5_API_TRY_CATCH_END;

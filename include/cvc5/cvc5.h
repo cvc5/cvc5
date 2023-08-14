@@ -3865,8 +3865,7 @@ class CVC5_EXPORT Solver
    * @param name The name of the constant
    * @return The constant.
    */
-  Term getOrMkConst(const Sort& sort, const std::string& name
-                        ) const;
+  Term getOrMkConst(const Sort& sort, const std::string& name) const;
   /* .................................................................... */
   /* Create datatype constructor declarations                             */
   /* .................................................................... */

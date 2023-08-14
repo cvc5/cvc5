@@ -587,8 +587,9 @@ void Smt2Printer::toStream(std::ostream& out,
       {
         case SkolemFunId::INPUT_VARIABLE:
         {
-          Assert (cacheVal.getNumChildren()==2);
-          //out << "(as (_ const " << cacheVal[0] << ") " << cacheVal[1].getType() << ")";
+          Assert(cacheVal.getNumChildren() == 2);
+          // out << "(as (_ const " << cacheVal[0] << ") " <<
+          // cacheVal[1].getType() << ")";
           std::string name = cacheVal[0].getConst<String>().toString();
           out << cvc5::internal::quoteSymbol(name);
           return;
@@ -597,11 +598,11 @@ void Smt2Printer::toStream(std::ostream& out,
         {
           // abstract value
           std::string s = n.getName();
-          out << "(as " << cvc5::internal::quoteSymbol(s) << " " << n.getType() << ")";
+          out << "(as " << cvc5::internal::quoteSymbol(s) << " " << n.getType()
+              << ")";
           return;
         }
-        default:
-          break;
+        default: break;
       }
     }
   }
