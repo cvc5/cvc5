@@ -235,15 +235,17 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
           boundVars.push_back(v);
         }
       }
+      continueCombine = false;
       if (body.getNumChildren() == 2 && body[1].getKind() == FORALL)
       {
-        body = body[1];
-        continueCombine = true;
-        combineQuantifiers = true;
-      }
-      else
-      {
-        continueCombine = false;
+        QAttributes qa;
+        QuantAttributes::computeQuantAttributes(body[1], qa);
+        if (doOperation(body[1], COMPUTE_PRENEX, qa))
+        {
+          body = body[1];
+          continueCombine = true;
+          combineQuantifiers = true;
+        }
       }
     }
     while (continueCombine);
