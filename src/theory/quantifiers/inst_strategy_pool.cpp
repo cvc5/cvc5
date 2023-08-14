@@ -209,6 +209,10 @@ bool InstStrategyPool::process(Node q, Node p, uint64_t& addedLemmas)
   {
     return processTuple(q, p, addedLemmas);
   }
+  else if (!hasProductSemantics(q, p))
+  {
+    return false;
+  }
   // otherwise, process standard
   Instantiate* ie = d_qim.getInstantiate();
   TermTupleEnumeratorEnv ttec;
