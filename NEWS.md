@@ -22,7 +22,7 @@ This file contains a summary of important user-visible changes.
     (`FIND_SYNTH_TARGET_ENUM`), or as a way of finding other terms of interest,
     e.g. a rewrite rule that is applicable to the current set of assertions
     (`FIND_SYNTH_TARGET_REWRITE_INPUT`).
-  - API: New API function `Solver::findSynthNext` which gets the next term
+  * API: New API function `Solver::findSynthNext` which gets the next term
     in the enumeration.
   * SMT-LIB: New commands `find-synth` and `find-synth-next` which invoke the
     above methods.
