@@ -42,6 +42,7 @@ namespace parser {
 
 class CommandStatus;
 class SymbolManager;
+class SymManager;
 
 class CVC5_EXPORT Command
 {
@@ -54,15 +55,12 @@ class CVC5_EXPORT Command
   virtual ~Command();
 
   /**
-   * Invoke the command on the solver and symbol manager sm.
+   * Invoke the command on the solver and symbol manager sm, prints the result
+   * to output stream out.
    */
-  virtual void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) = 0;
-  /**
-   * Same as above, and prints the result to output stream out.
-   */
-  virtual void invoke(cvc5::Solver* solver,
-                      parser::SymbolManager* sm,
-                      std::ostream& out);
+  void invoke(cvc5::Solver* solver,
+              parser::SymbolManager* sm,
+              std::ostream& out);
 
   virtual void toStream(std::ostream& out) const = 0;
 
@@ -123,6 +121,16 @@ class CVC5_EXPORT Command
       const std::vector<cvc5::Sort>& sorts);
   /** Helper to convert a Grammar to an internal internal::TypeNode */
   static internal::TypeNode grammarToTypeNode(cvc5::Grammar* grammar);
+  /**
+   * Invoke the command on the solver and symbol manager sm.
+   */
+  virtual void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) = 0;
+  /**
+   * Same as above, and prints the result to output stream out.
+   */
+  virtual void invokeInternal(cvc5::Solver* solver,
+                              parser::SymManager* sm,
+                              std::ostream& out);
 }; /* class Command */
 
 std::ostream& operator<<(std::ostream&, const Command&) CVC5_EXPORT;

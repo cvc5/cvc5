@@ -42,7 +42,7 @@ class Smt2State : public ParserState
  public:
   Smt2State(ParserStateCallback* psc,
             Solver* solver,
-            SymbolManager* sm,
+            SymManager* sm,
             bool strictMode = false,
             bool isSygus = false);
 
