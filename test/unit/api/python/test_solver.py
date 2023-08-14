@@ -2255,7 +2255,7 @@ def test_check_synth_next3(solver):
     with pytest.raises(RuntimeError):
         solver.checkSynthNext()
 
-def find_synth(solver):
+def test_find_synth(solver):
     solver.setOption("sygus", "true")
     boolSort = solver.getBooleanSort()
     start = solver.mkVar(boolSort)
@@ -2267,11 +2267,11 @@ def find_synth(solver):
     f = solver.synthFun("f", [], solver.getBooleanSort(), g)
 
     # should enumerate based on the grammar of the function to synthesize above
-    t = d_solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM)
+    t = solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM)
     assert not t.isNull() and t.getSort().isBoolean()
 
 
-def find_synth2(solver):
+def test_find_synth2(solver):
     solver.setOption("sygus", "true")
     solver.setOption("incremental", "true")
     boolSort = solver.getBooleanSort()

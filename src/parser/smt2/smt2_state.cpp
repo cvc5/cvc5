@@ -26,7 +26,7 @@ namespace parser {
 
 Smt2State::Smt2State(ParserStateCallback* psc,
                      Solver* solver,
-                     SymbolManager* sm,
+                     SymManager* sm,
                      bool strictMode,
                      bool isSygus)
     : ParserState(psc, solver, sm, strictMode),
@@ -995,7 +995,7 @@ void Smt2State::checkThatLogicIsSet()
     }
     else
     {
-      SymbolManager* sm = getSymbolManager();
+      SymManager* sm = getSymbolManager();
       // the calls to setLogic below set the logic on the solver directly
       if (sm->isLogicForced())
       {

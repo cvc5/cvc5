@@ -72,9 +72,10 @@ class TestInputParserBlack : public TestInternal
     ss << "(declare-fun z () v)" << std::endl;
     parser.setStreamInput("LANG_SMTLIB_V2_6", ss, "parser_black");
     std::unique_ptr<Command> cmd;
+    std::stringstream tmp;
     while ((cmd = parser.nextCommand()) != nullptr)
     {
-      cmd->invoke(d_solver.get(), d_symman.get());
+      cmd->invoke(d_solver.get(), d_symman.get(), tmp);
     }
   }
 
@@ -88,10 +89,11 @@ class TestInputParserBlack : public TestInternal
     parser.setStreamInput("LANG_SMTLIB_V2_6", ss, "parser_black");
     ASSERT_FALSE(parser.done());
     std::unique_ptr<Command> cmd;
+    std::stringstream tmp;
     while ((cmd = parser.nextCommand()) != nullptr)
     {
       Trace("parser") << "Parsed command: " << (*cmd) << std::endl;
-      cmd->invoke(d_solver.get(), d_symman.get());
+      cmd->invoke(d_solver.get(), d_symman.get(), tmp);
     }
 
     ASSERT_TRUE(parser.done());
@@ -109,10 +111,11 @@ class TestInputParserBlack : public TestInternal
     ASSERT_THROW(
         {
           std::unique_ptr<Command> cmd;
+          std::stringstream tmp;
           while ((cmd = parser.nextCommand()) != NULL)
           {
             Trace("parser") << "Parsed command: " << (*cmd) << std::endl;
-            cmd->invoke(d_solver.get(), d_symman.get());
+            cmd->invoke(d_solver.get(), d_symman.get(), tmp);
           }
           std::cout << "\nBad input succeeded:\n" << badInput << std::endl;
         },
