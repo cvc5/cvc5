@@ -47,6 +47,14 @@ std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
     const std::vector<Node>& ppAsserts,
     const std::map<size_t, Node>& ppSkolemMap)
 {
+  d_ppAsserts.clear();
+  d_skolemToAssert.clear();
+  d_modelValues.clear();
+  d_modelToAssert.clear();
+  d_unkModels.clear();
+  d_ainfo.clear();
+  d_asymbols.clear();
+  d_syms.clear();
   initializePreprocessedAssertions(ppAsserts, ppSkolemMap);
 
   std::vector<Node> nextAssertions;
@@ -276,9 +284,6 @@ void TimeoutCoreManager::initializePreprocessedAssertions(
     const std::vector<Node>& ppAsserts,
     const std::map<size_t, Node>& ppSkolemMap)
 {
-  d_ppAsserts.clear();
-  d_skolemToAssert.clear();
-
   Trace("smt-to-core") << "initializePreprocessedAssertions" << std::endl;
   Trace("smt-to-core") << "#asserts = " << ppAsserts.size() << std::endl;
   std::map<size_t, Node>::const_iterator itc;
