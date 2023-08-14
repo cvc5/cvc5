@@ -7220,7 +7220,7 @@ std::vector<Proof> Solver::getProof(modes::ProofComponent c) const
   std::vector<std::shared_ptr<internal::ProofNode>> proof_nodes =
       d_slv->getProof(c);
   std::vector<Proof> proofs;
-  for (std::shared_ptr<internal::ProofNode> p : proof_nodes)
+  for (auto& p : proof_nodes)
   {
     proofs.push_back(Proof(p));
   }
