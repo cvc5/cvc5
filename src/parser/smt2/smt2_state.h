@@ -42,7 +42,7 @@ class Smt2State : public ParserState
  public:
   Smt2State(ParserStateCallback* psc,
             Solver* solver,
-            SymbolManager* sm,
+            SymManager* sm,
             bool strictMode = false,
             bool isSygus = false);
 
@@ -93,6 +93,8 @@ class Smt2State : public ParserState
   modes::LearnedLitType getLearnedLitType(const std::string& mode);
   /** Parse proof component */
   modes::ProofComponent getProofComponent(const std::string& pc);
+  /** Parse find synth target */
+  modes::FindSynthTarget getFindSynthTarget(const std::string& fst);
 
   bool isTheoryEnabled(internal::theory::TheoryId theory) const;
 

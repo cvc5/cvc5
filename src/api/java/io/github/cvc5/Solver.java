@@ -16,6 +16,7 @@
 package io.github.cvc5;
 
 import io.github.cvc5.modes.BlockModelsMode;
+import io.github.cvc5.modes.FindSynthTarget;
 import io.github.cvc5.modes.LearnedLitType;
 import io.github.cvc5.modes.ProofComponent;
 import java.io.IOException;
@@ -2965,6 +2966,75 @@ public class Solver implements IPointer
   }
 
   private native long[] getSynthSolutions(long pointer, long[] termPointers);
+
+  /**
+   * Find a target term of interest using sygus enumeration, with no provided
+   * grammar.
+   *
+   * The solver will infer which grammar to use in this call, which by default
+   * will be the grammars specified by the function(s)-to-synthesize in the
+   * current context.
+   *
+   * SyGuS v2:
+   * {@code
+   *     (find-synth :target)
+   * }
+   *
+   * @param fst The identifier specifying what kind of term to find
+   * @return The result of the find, which is the null term if this call failed.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   */
+  public Term findSynth(FindSynthTarget fst)
+  {
+    long termPointer = findSynth(pointer, fst.getValue());
+    return new Term(termPointer);
+  }
+  private native long findSynth(long pointer, int fst);
+
+  /**
+   * Find a target term of interest using sygus enumeration with a provided
+   * grammar.
+   *
+   * SyGuS v2:
+   * {@code
+   *     (find-synth :target G)
+   * }
+   *
+   * @param fst The identifier specifying what kind of term to find
+   * @param grammar The grammar for the term
+   * @return The result of the find, which is the null term if this call failed.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   */
+  public Term findSynth(FindSynthTarget fst, Grammar grammar)
+  {
+    long termPointer = findSynth(pointer, fst.getValue(), grammar.getPointer());
+    return new Term(termPointer);
+  }
+  private native long findSynth(long pointer, int fst, long grammarPointer);
+
+  /**
+   * Try to find a next target term of interest using sygus enumeration. Must
+   * be called immediately after a successful call to find-synth or
+   * find-synth-next.
+   *
+   * SyGuS v2:
+   * {@code
+   *     (find-synth-next)
+   * }
+   *
+   * @return The result of the find, which is the null term if this call failed.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   */
+  public Term findSynthNext()
+  {
+    long termPointer = findSynthNext(pointer);
+    return new Term(termPointer);
+  }
+
+  private native long findSynthNext(long pointer);
 
   /**
    * Returns a snapshot of the current state of the statistic values of this

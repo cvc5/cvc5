@@ -2973,6 +2973,42 @@ TEST_F(TestApiBlackSolver, checkSynthNext3)
   ASSERT_THROW(d_solver.checkSynthNext(), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, findSynth)
+{
+  d_solver.setOption("sygus", "true");
+  Sort boolean = d_solver.getBooleanSort();
+  Term start = d_solver.mkVar(boolean);
+  Grammar g = d_solver.mkGrammar({}, {start});
+  Term truen = d_solver.mkBoolean(true);
+  Term falsen = d_solver.mkBoolean(false);
+  g.addRule(start, truen);
+  g.addRule(start, falsen);
+  Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort(), g);
+
+  // should enumerate based on the grammar of the function to synthesize above
+  cvc5::Term t = d_solver.findSynth(modes::FIND_SYNTH_TARGET_ENUM);
+  ASSERT_TRUE(!t.isNull() && t.getSort().isBoolean());
+}
+
+TEST_F(TestApiBlackSolver, findSynth2)
+{
+  d_solver.setOption("sygus", "true");
+  d_solver.setOption("incremental", "true");
+  Sort boolean = d_solver.getBooleanSort();
+  Term start = d_solver.mkVar(boolean);
+  Grammar g = d_solver.mkGrammar({}, {start});
+  Term truen = d_solver.mkBoolean(true);
+  Term falsen = d_solver.mkBoolean(false);
+  g.addRule(start, truen);
+  g.addRule(start, falsen);
+
+  // should enumerate true/false
+  cvc5::Term t = d_solver.findSynth(modes::FIND_SYNTH_TARGET_ENUM, g);
+  ASSERT_TRUE(!t.isNull() && t.getSort().isBoolean());
+  t = d_solver.findSynthNext();
+  ASSERT_TRUE(!t.isNull() && t.getSort().isBoolean());
+}
+
 TEST_F(TestApiBlackSolver, tupleProject)
 {
   std::vector<Term> elements = {
@@ -3456,11 +3492,7 @@ TEST_F(TestApiBlackSolver, proj_issue422)
   Term t300 = slv.mkTerm(Kind::BITVECTOR_SLT, {t276, t276});
   Term t301 = slv.mkTerm(Kind::EQUAL, {t288, t300});
   slv.assertFormula({t301});
-  // should terminate with an exception indicating we are done enumerating
-  // rewrite rules.
-  // !!! temporary
-  // ASSERT_THROW(slv.findSynth(FindSynthTarget::REWRITE_RULE_INPUT),
-  // CVC5ApiException);
+  Term t = slv.findSynth(modes::FIND_SYNTH_TARGET_REWRITE_INPUT);
 }
 
 TEST_F(TestApiBlackSolver, proj_issue423)

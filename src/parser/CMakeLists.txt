@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mathias Preiner, Andrew Reynolds, Andres Noetzli
+#   Andrew Reynolds, Mathias Preiner, Andres Noetzli
 #
 # This file is part of the cvc5 project.
 #
@@ -12,11 +12,6 @@
 #
 # The build system configuration.
 ##
-
-find_package(ANTLR3 3.4 REQUIRED)
-
-# Java runtime is required for ANTLR
-find_package(Java COMPONENTS Runtime REQUIRED)
 
 #-----------------------------------------------------------------------------#
 # libcvc5parser source files
@@ -31,6 +26,8 @@ set(libcvc5parserapi_src_files
 )
 
 set(libcvc5parser_src_files
+  commands.h
+  command_status.h
   input.cpp
   input.h
   lexer.cpp
@@ -56,6 +53,8 @@ set(libcvc5parser_src_files
   smt2/smt2_parser.h
   smt2/smt2_term_parser.cpp
   smt2/smt2_term_parser.h
+  sym_manager.cpp
+  sym_manager.h
   symbol_table.cpp
   symbol_table.h
   tokens.cpp
@@ -73,9 +72,7 @@ add_library(cvc5parserapi-objs OBJECT ${libcvc5parserapi_src_files})
 set_target_properties(cvc5parserapi-objs PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_compile_definitions(cvc5parserapi-objs PUBLIC -D__BUILDING_CVC5LIB -Dcvc5_obj_EXPORTS)
 
-add_dependencies(cvc5parser-objs ANTLR3)
-add_dependencies(cvc5parserapi-objs cvc5parser-objs)
-target_include_directories(cvc5parser-objs PRIVATE ${ANTLR3_INCLUDE_DIR})
+add_dependencies(cvc5parserapi-objs cvc5parser-objs gen-expr)
 
 add_library(cvc5parser
   $<TARGET_OBJECTS:cvc5parser-objs>
@@ -87,7 +84,6 @@ endif()
 
 set_target_properties(cvc5parser PROPERTIES OUTPUT_NAME cvc5parser)
 target_link_libraries(cvc5parser PRIVATE cvc5)
-target_link_libraries(cvc5parser PRIVATE ANTLR3)
 
 install(TARGETS cvc5parser
   EXPORT cvc5-targets

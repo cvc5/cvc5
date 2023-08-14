@@ -747,7 +747,7 @@ void TheoryFp::notifySharedTerm(TNode n)
   }
 }
 
-Node TheoryFp::getValue(TNode node)
+Node TheoryFp::getCandidateModelValue(TNode node)
 {
   if (d_invalidateModelCache.get())
   {
@@ -862,12 +862,10 @@ TrustNode TheoryFp::explain(TNode n)
   return TrustNode::mkTrustPropExp(n, exp, nullptr);
 }
 
-Node TheoryFp::getCandidateModelValue(TNode node) { return getValue(node); }
-
 EqualityStatus TheoryFp::getEqualityStatus(TNode a, TNode b)
 {
-  Node value_a = getValue(a);
-  Node value_b = getValue(b);
+  Node value_a = getCandidateModelValue(a);
+  Node value_b = getCandidateModelValue(b);
   if (value_a.isNull() || value_b.isNull())
   {
     return EqualityStatus::EQUALITY_UNKNOWN;

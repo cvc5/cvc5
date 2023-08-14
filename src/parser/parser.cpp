@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Christopher L. Conway, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
@@ -25,7 +25,7 @@
 namespace cvc5 {
 namespace parser {
 
-Parser::Parser(Solver* solver, SymbolManager* sm)
+Parser::Parser(Solver* solver, SymManager* sm)
     : d_solver(solver), d_sm(sm), d_lex(nullptr), d_done(true)
 {
 }
@@ -118,8 +118,8 @@ Term Parser::nextExpression()
 bool Parser::done() const { return d_done; }
 
 std::unique_ptr<Parser> Parser::mkParser(const std::string& lang,
-                                                     Solver* solver,
-                                                     SymbolManager* sm)
+                                         Solver* solver,
+                                         SymManager* sm)
 {
   std::unique_ptr<Parser> parser;
   if (lang == "LANG_SYGUS_V2" || lang == "LANG_SMTLIB_V2_6")

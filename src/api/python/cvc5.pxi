@@ -37,7 +37,7 @@ from cvc5 cimport wstring as c_wstring
 from cvc5 cimport tuple as c_tuple
 from cvc5 cimport get0, get1, get2
 from cvc5kinds cimport Kind as c_Kind
-from cvc5sortkinds cimport SortKind as c_SortKind
+from cvc5kinds cimport SortKind as c_SortKind
 from cvc5types cimport BlockModelsMode as c_BlockModelsMode
 from cvc5types cimport RoundingMode as c_RoundingMode
 from cvc5types cimport UnknownExplanation as c_UnknownExplanation
@@ -1968,6 +1968,51 @@ cdef class Solver:
             result.append(term)
         return result
 
+    def findSynth(self, fst, Grammar grammar=None):
+        """
+            Find a target term of interest using sygus enumeration with a
+            provided grammar.
+
+            SyGuS v2:
+
+            .. code-block:: smtlib
+
+                ( find-synth :target G)
+
+            :param fst: The identifier specifying what kind of term to find.
+            :param grammar: The grammar for the term.
+            :return: The result of the find, which is the null term if this
+                     call failed.
+        """
+        cdef Term term = Term(self)
+        if grammar is None:
+            term.cterm = self.csolver.findSynth(<c_FindSynthTarget> fst.value)
+        else:
+            term.cterm = self.csolver.findSynth(<c_FindSynthTarget> fst.value,
+                                                grammar.cgrammar)
+        return term
+        
+    def findSynthNext(self):
+        """
+            Try to find a next solution for the synthesis conjecture
+            corresponding to the current list of functions-to-synthesize,
+            universal variables and constraints. Must be called immediately
+            after a successful call to check-synth or check-synth-next.
+            Requires incremental mode.
+
+            SyGuS v2:
+
+            .. code-block:: smtlib
+
+                ( find-synth-next )
+
+            :return: The result of the find, which is the null term if this
+                     call failed.
+        """
+        cdef Term term = Term(self)
+        term.cterm = self.csolver.findSynthNext()
+        return term
+
     def checkSatAssuming(self, *assumptions):
         """
             Check satisfiability assuming the given formula.
@@ -2816,7 +2861,7 @@ cdef class Solver:
                         versions.
 
             :param conj: The conjecture term.
-            :param grammar: A grammar for the inteprolant.
+            :param grammar: A grammar for the interpolant.
             :return: The interpolant.
                      See :cpp:func:`cvc5::Solver::getInterpolant` for details.
         """

@@ -118,8 +118,8 @@ versions; more recent versions should be compatible.
 - `GNU C and C++ (gcc and g++, >= 7) <https://gcc.gnu.org>`_
   or `Clang (>= 5) <https://clang.llvm.org>`_
 - `CMake >= 3.9 <https://cmake.org>`_
-- `Python >= 3.6 <https://www.python.org>`_
-  + module `toml <https://pypi.org/project/toml/>`_
+- `Python >= 3.6 and <= 3.10 <https://www.python.org>`_
+  + module `tomli <https://pypi.org/project/tomli/>`_
   + module `pyparsing <https://pypi.org/project/pyparsing/>`_
 - `GMP v6.1 (GNU Multi-Precision arithmetic library) <https://gmplib.org>`_
 - `CaDiCaL (SAT solver) <https://github.com/arminbiere/cadical>`_

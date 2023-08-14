@@ -51,6 +51,8 @@ class FindSynthSolver : protected EnvObj
    * for each type node in gtns called by findSynth above.
    */
   std::vector<std::unique_ptr<theory::quantifiers::SynthFinder>> d_sfinders;
+  /** finished indices */
+  std::unordered_set<size_t> d_finished;
   /**  Current index in d_sfinders we are looking at.*/
   size_t d_currIndex;
   /** The current target we are given as input */

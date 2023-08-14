@@ -15,7 +15,7 @@ import pytest
 import cvc5
 import sys
 
-from cvc5 import Kind, SortKind, BlockModelsMode, RoundingMode, LearnedLitType, ProofComponent
+from cvc5 import Kind, SortKind, BlockModelsMode, RoundingMode, LearnedLitType, ProofComponent, FindSynthTarget
 
 
 @pytest.fixture
@@ -2251,6 +2251,40 @@ def test_check_synth_next3(solver):
     f = solver.synthFun("f", [], solver.getBooleanSort())
     with pytest.raises(RuntimeError):
         solver.checkSynthNext()
+
+def test_find_synth(solver):
+    solver.setOption("sygus", "true")
+    boolSort = solver.getBooleanSort()
+    start = solver.mkVar(boolSort)
+    g = solver.mkGrammar([], [start])
+    truen = solver.mkBoolean(True)
+    falsen = solver.mkBoolean(False)
+    g.addRule(start, truen)
+    g.addRule(start, falsen)
+    f = solver.synthFun("f", [], solver.getBooleanSort(), g)
+
+    # should enumerate based on the grammar of the function to synthesize above
+    t = solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM)
+    assert not t.isNull() and t.getSort().isBoolean()
+
+
+def test_find_synth2(solver):
+    solver.setOption("sygus", "true")
+    solver.setOption("incremental", "true")
+    boolSort = solver.getBooleanSort()
+    start = solver.mkVar(boolSort)
+    g = solver.mkGrammar([], [start])
+    truen = solver.mkBoolean(True)
+    falsen = solver.mkBoolean(False)
+    g.addRule(start, truen)
+    g.addRule(start, falsen)
+
+    # should enumerate true/false
+    t = solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM, g)
+    assert not t.isNull() and t.getSort().isBoolean()
+    t = solver.findSynthNext()
+    assert not t.isNull() and t.getSort().isBoolean()
+
 
 def test_get_abduct(solver):
     solver.setLogic("QF_LIA")

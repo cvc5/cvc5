@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed, Morgan Deters
+ *   Andrew Reynolds, Morgan Deters, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
@@ -34,7 +34,6 @@
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
-#include "expr/sygus_datatype.h"
 #include "options/io_utils.h"
 #include "options/language.h"
 #include "printer/let_binding.h"
@@ -2121,6 +2120,24 @@ void Smt2Printer::toStreamCmdCheckSynth(std::ostream& out) const
 void Smt2Printer::toStreamCmdCheckSynthNext(std::ostream& out) const
 {
   out << "(check-synth-next)" << std::endl;
+}
+
+void Smt2Printer::toStreamCmdFindSynth(std::ostream& out,
+                                       modes::FindSynthTarget fst,
+                                       TypeNode sygusType) const
+{
+  out << "(find-synth :" << fst;
+  // print grammar, if any
+  if (!sygusType.isNull())
+  {
+    out << " " << sygusGrammarString(sygusType);
+  }
+  out << ")" << std::endl;
+}
+
+void Smt2Printer::toStreamCmdFindSynthNext(std::ostream& out) const
+{
+  out << "(find-synth-next)" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetInterpol(std::ostream& out,
