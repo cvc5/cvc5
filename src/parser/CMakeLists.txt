@@ -53,6 +53,8 @@ set(libcvc5parser_src_files
   smt2/smt2_parser.h
   smt2/smt2_term_parser.cpp
   smt2/smt2_term_parser.h
+  sym_manager.cpp
+  sym_manager.h
   symbol_table.cpp
   symbol_table.h
   tokens.cpp

@@ -38,7 +38,7 @@ class Smt2Parser : public Parser
 {
  public:
   Smt2Parser(Solver* solver,
-             SymbolManager* sm,
+             SymManager* sm,
              bool isStrict = false,
              bool isSygus = false);
   virtual ~Smt2Parser() {}

@@ -33,6 +33,7 @@
 
 #include "parser/api/cpp/command.h"
 #include "parser/api/cpp/input_parser.h"
+#include "parser/api/cpp/symbol_manager.h"
 
 using namespace cvc5;
 using namespace cvc5::internal;
@@ -93,10 +94,11 @@ std::string parse(std::string instr,
   parser.setStreamInput(ilang, ss, "internal-buffer");
   // we don't need to execute the commands, but we DO need to parse them to
   // get the declarations
+  std::stringstream tmp;
   while (std::unique_ptr<Command> c = parser.nextCommand())
   {
     // invoke the command, which may bind symbols
-    c->invoke(&solver, &symman);
+    c->invoke(&solver, &symman, tmp);
   }
   assert(parser.done());  // parser should be done
   std::stringstream ssi;

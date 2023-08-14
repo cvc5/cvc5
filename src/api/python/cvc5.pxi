@@ -1968,31 +1968,7 @@ cdef class Solver:
             result.append(term)
         return result
 
-    def findSynth(self, fst):
-        """
-            Find a target term of interest using sygus enumeration, with no
-            provided grammar.
-   
-            The solver will infer which grammar to use in this call, which by
-            default will be the grammars specified by the
-            function(s)-to-synthesize in the current context.
-
-            SyGuS v2:
-
-            .. code-block:: smtlib
-
-                ( find-synth :target )
-
-            :param fst: The identifier specifying what kind of term to find.
-            :param grammar: The grammar for the term.
-            :return: The result of the find, which is the null term if this
-                     call failed.
-        """
-        cdef Term term = Term(self)
-        term.cterm = self.csolver.findSynth(<c_FindSynthTarget> fst.value)
-        return term
-
-    def findSynth(self, fst, Grammar grammar):
+    def findSynth(self, fst, Grammar grammar=None):
         """
             Find a target term of interest using sygus enumeration with a
             provided grammar.
@@ -2004,11 +1980,16 @@ cdef class Solver:
                 ( find-synth :target G)
 
             :param fst: The identifier specifying what kind of term to find.
+            :param grammar: The grammar for the term.
             :return: The result of the find, which is the null term if this
                      call failed.
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.findSynth(<c_FindSynthTarget> fst.value, grammar.cgrammar)
+        if grammar is None:
+            term.cterm = self.csolver.findSynth(<c_FindSynthTarget> fst.value)
+        else:
+            term.cterm = self.csolver.findSynth(<c_FindSynthTarget> fst.value,
+                                                grammar.cgrammar)
         return term
         
     def findSynthNext(self):
@@ -2880,7 +2861,7 @@ cdef class Solver:
                         versions.
 
             :param conj: The conjecture term.
-            :param grammar: A grammar for the inteprolant.
+            :param grammar: A grammar for the interpolant.
             :return: The interpolant.
                      See :cpp:func:`cvc5::Solver::getInterpolant` for details.
         """
