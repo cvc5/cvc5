@@ -1208,6 +1208,9 @@ TEST_F(TestApiBlackTerm, getRealAlgebraicNumber)
     ASSERT_TRUE(lb.isRealValue());
     Term ub = vx.getRealAlgebraicNumberUpperBound();
     ASSERT_TRUE(ub.isRealValue());
+    // cannot call with non-variable
+    Term yc = d_solver.mkConst(realsort, "y");
+    ASSERT_THROW(vx.getRealAlgebraicNumberDefiningPolynomial(yc), CVC5ApiException);
   }
 }
 
