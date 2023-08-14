@@ -240,7 +240,12 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
       {
         QAttributes qa;
         QuantAttributes::computeQuantAttributes(body[1], qa);
-        if (doOperation(body[1], COMPUTE_PRENEX, qa))
+        // should never combine a quantified formula with a pool here
+        // note that we technically should check
+        // doOperation(body[1], COMPUTE_PRENEX, qa) here, although this
+        // is too restrictive, as sometimes nested patterns should just be
+        // applied to the top level.
+        if (qa.isStandard() && !qa.d_hasPool)
         {
           body = body[1];
           continueCombine = true;
