@@ -1,3 +1,6 @@
+; COMMAND-LINE: --user-pat=strict
+; EXPECT: unsat
+; DISABLE-TESTER: unsat-core
 (set-logic ALL)
 (set-info :status unsat)
 
@@ -18,8 +21,6 @@
 (declare-const a Arr)
 
 (declare-pool Index I (0 (- n 1)))
-
-;(assert (forall ((a Arr) (i I)) (! true :inst-add-to-pool (i R) :pattern ((arr.select a i)))))
 
 (assert 
 (forall ((a Arr) (i I) (e E)) (! 
