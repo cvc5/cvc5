@@ -26,6 +26,7 @@
 #include "base/modal_exception.h"
 #include "base/output.h"
 #include "expr/node_manager.h"
+#include "main/command_executor.h"
 #include "options/io_utils.h"
 #include "options/main_options.h"
 #include "options/options.h"
@@ -120,13 +121,12 @@ ostream& operator<<(ostream& out, const CommandStatus* s)
 /* class Command                                                              */
 /* -------------------------------------------------------------------------- */
 
-Command::Command() : d_commandStatus(nullptr), d_muted(false) {}
+Command::Command() : d_commandStatus(nullptr) {}
 
 Command::Command(const Command& cmd)
 {
   d_commandStatus =
       (cmd.d_commandStatus == NULL) ? NULL : &cmd.d_commandStatus->clone();
-  d_muted = cmd.d_muted;
 }
 
 Command::~Command()
@@ -171,7 +171,7 @@ void Command::invokeInternal(cvc5::Solver* solver,
   {
     out << *d_commandStatus;
   }
-  else if (!isMuted())
+  else
   {
     printResult(solver, out);
   }
