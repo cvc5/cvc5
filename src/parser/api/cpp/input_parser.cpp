@@ -21,6 +21,7 @@
 #include "parser/api/cpp/symbol_manager.h"
 #include "parser/sym_manager.h"
 #include "theory/logic_info.h"
+#include "parser/parser.h"
 
 namespace cvc5 {
 namespace parser {
