@@ -267,6 +267,8 @@ class CVC5_EXPORT SymManager
    */
   bool d_globalDeclarations;
   /**
+   * Whether the fresh declarations option is enabled. By default, its value is
+   * true.
    */
   bool d_freshDeclarations;
   /** Whether the logic has been forced with --force-logic. */

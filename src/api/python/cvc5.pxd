@@ -293,6 +293,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Term mkCardinalityConstraint(Sort sort, int32_t index) except +
         Term mkConst(Sort sort, const string& symbol, bint fresh) except +
         # default value for symbol defined in cpp/cvc5.h
+        Term mkConst(Sort sort, const string& symbol) except +
         Term mkConst(Sort sort) except +
         Term mkVar(Sort sort, const string& symbol) except +
         DatatypeConstructorDecl mkDatatypeConstructorDecl(const string& name) except +
