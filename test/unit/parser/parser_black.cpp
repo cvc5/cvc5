@@ -25,6 +25,8 @@
 #include "parser/api/cpp/input_parser.h"
 #include "parser/api/cpp/symbol_manager.h"
 #include "test.h"
+#include "parser/parser_exception.h"
+
 
 using namespace cvc5::parser;
 using namespace cvc5::internal::parser;
