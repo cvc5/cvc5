@@ -44,7 +44,8 @@ fi
 # configure cvc5
 echo "Configuring"
 rm -rf build_wheel/
-python contrib/packaging_python/mk_build_dir.py $CONFIG --python-bindings --name=build_wheel -DPython_FIND_VIRTUALENV=ONLY
+./configure.sh $CONFIG --python-bindings --name=build_wheel -DPython_FIND_VIRTUALENV=ONLY
+# python contrib/packaging_python/mk_build_dir.py $CONFIG --python-bindings --name=build_wheel -DPython_FIND_VIRTUALENV=ONLY
 
 # building wheel
 echo "Building pycvc5 wheel"
