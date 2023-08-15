@@ -980,15 +980,9 @@ cvc5::Sort DeclareFunctionCommand::getSort() const { return d_sort; }
 void DeclareFunctionCommand::invokeInternal(cvc5::Solver* solver,
                                             SymManager* sm)
 {
-  Term fun;
-  if (sm->getX())
-  {
-    fun = solver->getOrMkConst(d_sort, d_symbol);
-  }
-  else
-  {
-    fun = solver->mkConst(d_sort, d_symbol);
-  }
+  // determine if this will be a fresh declaration
+  bool fresh = sm->getFreshDeclarations();
+  Term fun = solver->mkConst(d_sort, d_symbol, fresh);
   if (!bindToTerm(sm, fun, true))
   {
     return;

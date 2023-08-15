@@ -6161,13 +6161,37 @@ Term Solver::mkCardinalityConstraint(const Sort& sort, uint32_t upperBound) cons
 /* -------------------------------------------------------------------------- */
 
 Term Solver::mkConst(const Sort& sort,
-                     const std::optional<std::string>& symbol) const
+                     const std::optional<std::string>& symbol,
+                     bool fresh) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(sort);
+  CVC5_API_CHECK(fresh || symbol) << "Expected a symbol when constructing a (non-fresh) constant";
   //////// all checks before this line
-  internal::Node res =
-      symbol ? d_nm->mkVar(*symbol, *sort.d_type) : d_nm->mkVar(*sort.d_type);
+  internal::Node res;
+  if (symbol)
+  {
+    if (fresh)
+    {
+      res = d_nm->mkVar(*symbol, *sort.d_type);
+    }
+    else
+    {
+      // to construct a variable in a canonical way, we use the skolem
+      // manager, where SkolemFunId::INPUT_VARIABLE identifies that the
+      // variable is unique
+      std::vector<internal::Node> cnodes;
+      cnodes.push_back(d_nm->mkConst(internal::String(*symbol, false)));
+      cnodes.push_back(d_nm->mkGroundTerm(*sort.d_type));
+      internal::SkolemManager* sm = d_nm->getSkolemManager();
+      res = sm->mkSkolemFunction(
+          internal::SkolemFunId::INPUT_VARIABLE, *sort.d_type, cnodes);
+    }
+  }
+  else
+  {
+    res = d_nm->mkVar(*sort.d_type);
+  }
   (void)res.getType(true); /* kick off type checking */
   increment_vars_consts_stats(sort, false);
   return Term(d_nm, res);
@@ -6188,25 +6212,6 @@ Term Solver::mkVar(const Sort& sort,
                               : d_nm->mkBoundVar(*sort.d_type);
   (void)res.getType(true); /* kick off type checking */
   increment_vars_consts_stats(sort, true);
-  return Term(d_nm, res);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-/* Create variables                                                           */
-/* -------------------------------------------------------------------------- */
-
-Term Solver::getOrMkConst(const Sort& sort, const std::string& name) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_SORT(sort);
-  //////// all checks before this line
-  std::vector<internal::Node> cnodes;
-  cnodes.push_back(d_nm->mkConst(internal::String(name, false)));
-  cnodes.push_back(d_nm->mkGroundTerm(*sort.d_type));
-  internal::SkolemManager* sm = d_nm->getSkolemManager();
-  internal::Node res = sm->mkSkolemFunction(
-      internal::SkolemFunId::INPUT_VARIABLE, *sort.d_type, cnodes);
   return Term(d_nm, res);
   ////////
   CVC5_API_TRY_CATCH_END;

@@ -3842,11 +3842,15 @@ class CVC5_EXPORT Solver
    * \endverbatim
    *
    * @param sort The sort of the constant.
-   * @param symbol The name of the constant (optional).
+   * @param symbol The name of the constant (optional when fresh=true).
+   * @param fresh If true, then this method always returns a new constant.
+   * If false, then this method will always return the same constant
+   * for the given sort and symbol.
    * @return The constant.
    */
   Term mkConst(const Sort& sort,
-               const std::optional<std::string>& symbol = std::nullopt) const;
+               const std::optional<std::string>& symbol = std::nullopt,
+               bool fresh = true) const;
 
   /**
    * Create a bound variable to be used in a binder (i.e., a quantifier, a
@@ -3857,15 +3861,6 @@ class CVC5_EXPORT Solver
    */
   Term mkVar(const Sort& sort,
              const std::optional<std::string>& symbol = std::nullopt) const;
-  /**
-   * Create a canonical free constant. This is used for constructing constants
-   * in a canonical way.
-   *
-   * @param sort The sort of the constant.
-   * @param name The name of the constant
-   * @return The constant.
-   */
-  Term getOrMkConst(const Sort& sort, const std::string& name) const;
   /* .................................................................... */
   /* Create datatype constructor declarations                             */
   /* .................................................................... */

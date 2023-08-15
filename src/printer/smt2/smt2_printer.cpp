@@ -583,14 +583,15 @@ void Smt2Printer::toStream(std::ostream& out,
     Node cacheVal;
     if (nm->getSkolemManager()->isSkolemFunction(n, id, cacheVal))
     {
+      // special cases for printing skolem functions
       switch (id)
       {
         case SkolemFunId::INPUT_VARIABLE:
         {
           Assert(cacheVal.getNumChildren() == 2);
-          out << "((as (_ const INPUT_VARIABLE) " << cacheVal[1].getType() << ") " << cacheVal[0] << ")";
-          //std::string name = cacheVal[0].getConst<String>().toString();
-          //out << cvc5::internal::quoteSymbol(name);
+          // just print out its name
+          std::string name = cacheVal[0].getConst<String>().toString();
+          out << cvc5::internal::quoteSymbol(name);
           return;
         }
         case SkolemFunId::ABSTRACT_VALUE:

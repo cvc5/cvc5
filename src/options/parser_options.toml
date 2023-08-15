@@ -25,6 +25,14 @@ name   = "Parser"
   default    = "false"
   help       = "force all declarations and definitions to be global"
 
+[[option]]
+  name       = "freshDeclarations"
+  long       = "fresh-declarations"
+  category   = "regular"
+  type       = "bool"
+  default    = "true"
+  help       = "force all declarations and definitions to be fresh variables"
+
 # this is to support security in the online version, and in other similar
 # contexts (--no-include-file disables filesystem access in TPTP and SMT2
 # parsers) the name --no-include-file is legacy: it also now limits any

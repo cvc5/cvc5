@@ -793,10 +793,6 @@ void Smt2State::setLogic(std::string name)
       addOperator(POW2, "int.pow2");
     }
   }
-  if (!strictModeEnabled())
-  {
-    addIndexedOperator(CONSTANT, "const");
-  }
 
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_ARRAYS))
   {
@@ -1079,7 +1075,7 @@ void Smt2State::parseOpApplyTypeAscription(ParseOp& p, Sort type)
       // of the given type. The kind INTERNAL_KIND is used to mark that we
       // are a placeholder.
       p.d_kind = INTERNAL_KIND;
-      p.d_expr = d_solver->mkConst(type);
+      p.d_expr = d_solver->mkConst(type, "_placeholder_");
       return;
     }
     else if (p.d_name.find("ff") == 0)
@@ -1094,12 +1090,6 @@ void Smt2State::parseOpApplyTypeAscription(ParseOp& p, Sort type)
       }
       p.d_expr = d_solver->mkFiniteFieldElem(rest, type);
       return;
-    }
-    else if (p.d_kind == CONSTANT)
-    {
-      // same as the placeholder for constant arrays above, store the type
-      // in a placeholder expr.
-      p.d_expr = d_solver->mkConst(type);
     }
     if (p.d_expr.isNull())
     {
@@ -1390,22 +1380,6 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
     Term iop = mkIndexedOp(p.d_kind, {p.d_name}, args);
     kind = p.d_kind;
     args.insert(args.begin(), iop);
-  }
-  else if (p.d_kind == CONSTANT)
-  {
-    Trace("parser") << "mkCanonicalConst " << p.d_name << " "
-                    << p.d_expr.getSort() << " " << args << std::endl;
-    if (p.d_name=="INPUT_VARIABLE")
-    {
-      if (args.size()==1 && args[0].isStringValue())
-      {
-        std::wstring ws = args[0].getStringValue();
-        std::string s(ws.begin(), ws.end());
-        Term ret = d_solver->getOrMkConst(p.d_expr.getSort(), s);
-        return ret;
-      }
-    }
-    parseError("Unexpected syntax for const");
   }
   else if (p.d_kind != NULL_TERM)
   {

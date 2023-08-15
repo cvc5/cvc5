@@ -225,10 +225,10 @@ class CVC5_EXPORT SymManager
   void setGlobalDeclarations(bool flag);
   /** Get global declarations flag. */
   bool getGlobalDeclarations() const;
-  /** Set X to the value flag. */
-  void setX(bool flag);
-  /** Get X flag. */
-  bool getX() const;
+  /** Set fresh declarations to the value flag. */
+  void setFreshDeclarations(bool flag);
+  /** Get fresh declarations flag. */
+  bool getFreshDeclarations() const;
   /**
    * Set the last abduct or interpolant to synthesize had the given name. This
    * is required since e.g. get-abduct-next must know the name of the
@@ -268,7 +268,7 @@ class CVC5_EXPORT SymManager
   bool d_globalDeclarations;
   /**
    */
-  bool d_x;
+  bool d_freshDeclarations;
   /** Whether the logic has been forced with --force-logic. */
   bool d_logicIsForced;
   /** The logic. */
