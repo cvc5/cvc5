@@ -34,11 +34,11 @@ $PYTHONBIN -m venv ./$ENVDIR
 source ./$ENVDIR/bin/activate
 
 # install packages
-python -m pip install -q --upgrade pip setuptools auditwheel
-python -m pip install -q Cython pytest tomli scikit-build flex pyparsing 
+pip install -q --upgrade pip setuptools auditwheel
+pip install -q Cython pytest tomli scikit-build flex pyparsing 
 if [ "$(uname)" == "Darwin" ]; then
     # Mac version of auditwheel
-    python -m pip install -q delocate
+    pip install -q delocate
 fi
 
 # configure cvc5
