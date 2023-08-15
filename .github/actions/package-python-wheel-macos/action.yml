@@ -19,7 +19,7 @@ runs:
         MACOSX_DEPLOYMENT_TARGET: 10.13
       run: |
         echo "::group::Build macOS wheel for ${{ inputs.python-version }}"
-        ./contrib/packaging_python/mk_clean_wheel.sh ${{ steps.setup-python.outputs.python-path }} "production --auto-download -DCMAKE_FIND_FRAMEWORK=NEVER"
+        ./contrib/packaging_python/mk_clean_wheel.sh ${{ steps.setup-python.outputs.python-path }} "production --auto-download"
 
         ls *.whl
         echo "::endgroup::"
