@@ -33,6 +33,8 @@ ENVDIR=env$PYVERSION
 $PYTHONBIN -m venv ./$ENVDIR
 source ./$ENVDIR/bin/activate
 
+export CMAKE_PREFIX_PATH=./$ENVDIR/bin:$CMAKE_PREFIX_PATH
+
 # install packages
 pip install -q --upgrade pip setuptools auditwheel
 pip install -q Cython pytest tomli scikit-build flex pyparsing 
