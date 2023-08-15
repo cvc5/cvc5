@@ -30,7 +30,7 @@ namespace cvc5 {
 namespace parser {
 
 class Command;
-class SymbolManager;
+class SymManager;
 class Lexer;
 
 /**
@@ -41,7 +41,7 @@ class Lexer;
 class Parser : public ParserStateCallback
 {
  public:
-  Parser(Solver* solver, SymbolManager* sm);
+  Parser(Solver* solver, SymManager* sm);
   virtual ~Parser() {}
   /**
    * Set the logic
@@ -89,8 +89,8 @@ class Parser : public ParserStateCallback
 
   /** make flex parser from language string */
   static std::unique_ptr<Parser> mkParser(const std::string& lang,
-                                                  Solver* solver,
-                                                  SymbolManager* sm);
+                                          Solver* solver,
+                                          SymManager* sm);
 
  protected:
   /** Initialize input */
@@ -109,7 +109,7 @@ class Parser : public ParserStateCallback
   /** Solver */
   Solver* d_solver;
   /** Symbol manager */
-  SymbolManager* d_sm;
+  SymManager* d_sm;
   /** The lexer we are using */
   Lexer* d_lex;
   /** The flex input */

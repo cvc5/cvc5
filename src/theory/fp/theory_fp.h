@@ -92,8 +92,6 @@ class TheoryFp : public Theory
 
   void notifySharedTerm(TNode n) override;
 
-  Node getValue(TNode node);
-
   /** General utility. */
   void registerTerm(TNode node);
   bool isRegistered(TNode node);
