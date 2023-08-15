@@ -941,6 +941,23 @@ class SolverTest
   }
 
   @Test
+  void mkConstFresh()
+  {
+    Sort boolSort = d_solver.getBooleanSort();
+    Sort intSort = d_solver.getIntegerSort();
+    Term t1 = d_solver.mkConst(boolSort, "b");
+    Term t2 = d_solver.mkConst(boolSort, "b", false);
+    Term t3 = d_solver.mkConst(boolSort, "b", false);
+    assertFalse(t1==t2);
+    assertFalse(t1==t3);
+    assertTrue(t2==t3);
+    Term t4 = d_solver.mkConst(boolSort, "c", false);
+    assertFalse(t2==t4);
+    Term t5 = d_solver.mkConst(intSort, "b", false);
+    assertFalse(t2==t5);
+  }
+
+  @Test
   void mkConstArray()
   {
     Sort intSort = d_solver.getIntegerSort();
