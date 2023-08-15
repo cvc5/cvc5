@@ -1343,7 +1343,7 @@ public class Solver implements IPointer
    * @param symbol The name of the constant.
    * @param fresh If true, then this method always returns a new Term.
    * If false, then this method will always return the same Term
-   * for the given sort and symbol.
+   * for each call with the given sort and symbol.
    * @return The first-order constant.
    */
   public Term mkConst(Sort sort, String symbol, boolean fresh)

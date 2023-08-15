@@ -1613,7 +1613,7 @@ cdef class Solver:
         term.cterm = self.csolver.mkCardinalityConstraint(sort.csort, index)
         return term
 
-    def mkConst(self, Sort sort, symbol=None):
+    def mkConst(self, Sort sort, symbol=None, fresh=None):
         """
             Create (first-order) constant (0-arity function symbol).
 
@@ -1627,14 +1627,22 @@ cdef class Solver:
             :param sort: The sort of the constant.
             :param symbol: The name of the constant. If None, a default symbol
                            is used.
+            :param fresh: If true, then this method always returns a new Term.
+                          If false, then this method will always return the same
+                          Term for each call with the given sort and symbol.
             :return: The first-order constant.
         """
         cdef Term term = Term(self)
         if symbol is None:
             term.cterm = self.csolver.mkConst(sort.csort)
         else:
-            term.cterm = self.csolver.mkConst(sort.csort,
-                                            (<str?> symbol).encode())
+            if fresh is None:
+                term.cterm = self.csolver.mkConst(sort.csort,
+                                                (<str?> symbol).encode())
+            else:
+                term.cterm = self.csolver.mkConst(sort.csort,
+                                                  (<str?> symbol).encode(),
+                                                  <bint> fresh)
         return term
 
     def mkVar(self, Sort sort, symbol=None):

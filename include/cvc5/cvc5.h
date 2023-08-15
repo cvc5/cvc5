@@ -3845,7 +3845,7 @@ class CVC5_EXPORT Solver
    * @param symbol The name of the constant (optional when fresh=true).
    * @param fresh If true, then this method always returns a new Term.
    * If false, then this method will always return the same Term
-   * for the given sort and symbol.
+   * for each call with the given sort and symbol.
    * @return The constant.
    */
   Term mkConst(const Sort& sort,
