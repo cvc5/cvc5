@@ -22,11 +22,11 @@ import sysconfig
 args = [
 	'-DBUILD_BINDINGS_PYTHON_VERSION:STRING=' + sysconfig.get_python_version(),
 	'-DPython_INCLUDE_DIR:PATH=' +
-			sysconfig.get_path("include"),
+			sysconfig.get_path("scripts"),
 	'-DPython_LIBRARY:FILEPATH=' +
 			sysconfig.get_path("platlib"),
 	'-DPYTHON_INCLUDE_DIR:PATH=' +
-			sysconfig.get_path("include"),
+			sysconfig.get_path("scripts"),
 	'-DPYTHON_LIBRARY:FILEPATH=' +
 			sysconfig.get_path("platlib"),
 ]
