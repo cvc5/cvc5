@@ -948,13 +948,13 @@ class SolverTest
     Term t1 = d_solver.mkConst(boolSort, "b", true);
     Term t2 = d_solver.mkConst(boolSort, "b", false);
     Term t3 = d_solver.mkConst(boolSort, "b", false);
-    assertFalse(t1==t2);
-    assertFalse(t1==t3);
-    assertTrue(t2==t3);
+    assertNotEquals(t1, t2);
+    assertNotEquals(t1, t3);
+    assertEquals(t2, t3);
     Term t4 = d_solver.mkConst(boolSort, "c", false);
-    assertFalse(t2==t4);
+    assertNotEquals(t2, t4);
     Term t5 = d_solver.mkConst(intSort, "b", false);
-    assertFalse(t2==t5);
+    assertNotEquals(t2, t5);
   }
 
   @Test
