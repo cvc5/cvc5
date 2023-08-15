@@ -593,12 +593,7 @@ bool NodeManager::isSortKindAbstractable(Kind k)
 
 TypeNode NodeManager::mkAbstractType(Kind k)
 {
-  if (!isSortKindAbstractable(k))
-  {
-    std::stringstream ss;
-    ss << "Cannot construct abstract type for kind " << k;
-    throw Exception(ss.str());
-  }
+  Assert(isSortKindAbstractable(k));
   if (k == kind::ARRAY_TYPE)
   {
     // ?Array -> (Array ? ?)

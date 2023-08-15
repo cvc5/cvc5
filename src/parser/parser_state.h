@@ -25,10 +25,10 @@
 #include <memory>
 #include <string>
 
-#include "parser/api/cpp/symbol_manager.h"
 #include "parser/parse_op.h"
 #include "parser/parser_exception.h"
 #include "parser/parser_utils.h"
+#include "parser/sym_manager.h"
 #include "parser/symbol_table.h"
 
 namespace cvc5 {
@@ -75,7 +75,7 @@ class CVC5_EXPORT ParserState
    */
   ParserState(ParserStateCallback* psc,
               Solver* solver,
-              SymbolManager* sm,
+              SymManager* sm,
               bool strictMode = false);
 
   virtual ~ParserState();
@@ -477,7 +477,7 @@ class CVC5_EXPORT ParserState
   virtual void reset();
 
   /** Return the symbol manager used by this parser. */
-  SymbolManager* getSymbolManager();
+  SymManager* getSymbolManager();
 
   //------------------------ operator overloading
   /** is this function overloaded? */
@@ -531,7 +531,7 @@ class CVC5_EXPORT ParserState
    * Reference to the symbol manager, which manages the symbol table used by
    * this parser.
    */
-  SymbolManager* d_symman;
+  SymManager* d_symman;
 
   /**
    * This current symbol table used by this parser, from symbol manager.

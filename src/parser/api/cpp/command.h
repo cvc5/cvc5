@@ -33,13 +33,21 @@
 #include "options/language.h"
 
 namespace cvc5 {
+
+namespace main {
+class CommandExecutor;
+}
+
 namespace parser {
 
 class CommandStatus;
 class SymbolManager;
+class SymManager;
 
 class CVC5_EXPORT Command
 {
+  friend class main::CommandExecutor;
+
  public:
   Command();
   Command(const Command& cmd);
@@ -47,15 +55,12 @@ class CVC5_EXPORT Command
   virtual ~Command();
 
   /**
-   * Invoke the command on the solver and symbol manager sm.
+   * Invoke the command on the solver and symbol manager sm, prints the result
+   * to output stream out.
    */
-  virtual void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) = 0;
-  /**
-   * Same as above, and prints the result to output stream out.
-   */
-  virtual void invoke(cvc5::Solver* solver,
-                      parser::SymbolManager* sm,
-                      std::ostream& out);
+  void invoke(cvc5::Solver* solver,
+              parser::SymbolManager* sm,
+              std::ostream& out);
 
   virtual void toStream(std::ostream& out) const = 0;
 
@@ -63,14 +68,6 @@ class CVC5_EXPORT Command
 
   virtual std::string getCommandName() const = 0;
 
-  /**
-   * If false, instruct this Command not to print a success message.
-   */
-  void setMuted(bool muted) { d_muted = muted; }
-  /**
-   * Determine whether this Command will print a success message.
-   */
-  bool isMuted() { return d_muted; }
   /**
    * Either the command hasn't run yet, or it completed successfully
    * (CommandSuccess, not CommandUnsupported or CommandFailure).
@@ -88,9 +85,7 @@ class CVC5_EXPORT Command
    */
   bool interrupted() const;
 
-  /** Get the command status (it's NULL if we haven't run yet). */
-  const CommandStatus* getCommandStatus() const { return d_commandStatus; }
-
+ protected:
   /**
    * This field contains a command status if the command has been
    * invoked, or NULL if it has not.  This field is either a
@@ -100,25 +95,16 @@ class CVC5_EXPORT Command
    * case of a successful command.
    */
   const CommandStatus* d_commandStatus;
-
-  /**
-   * True if this command is "muted"---i.e., don't print "success" on
-   * successful execution.
-   */
-  bool d_muted;
-
-  /**
-   * Reset the given solver in-place (keep the object at the same memory
-   * location).
-   */
-  static void resetSolver(cvc5::Solver* solver);
-
- protected:
   /**
    * Print the result of running the command. This method is only called if the
    * command ran successfully.
    */
   virtual void printResult(cvc5::Solver* solver, std::ostream& out) const;
+  /**
+   * Reset the given solver in-place (keep the object at the same memory
+   * location).
+   */
+  static void resetSolver(cvc5::Solver* solver);
 
   // These methods rely on Command being a friend of classes in the API.
   // Subclasses of command should use these methods for conversions,
@@ -135,6 +121,16 @@ class CVC5_EXPORT Command
       const std::vector<cvc5::Sort>& sorts);
   /** Helper to convert a Grammar to an internal internal::TypeNode */
   static internal::TypeNode grammarToTypeNode(cvc5::Grammar* grammar);
+  /**
+   * Invoke the command on the solver and symbol manager sm.
+   */
+  virtual void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) = 0;
+  /**
+   * Same as above, and prints the result to output stream out.
+   */
+  virtual void invokeInternal(cvc5::Solver* solver,
+                              parser::SymManager* sm,
+                              std::ostream& out);
 }; /* class Command */
 
 std::ostream& operator<<(std::ostream&, const Command&) CVC5_EXPORT;
