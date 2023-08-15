@@ -3843,8 +3843,8 @@ class CVC5_EXPORT Solver
    *
    * @param sort The sort of the constant.
    * @param symbol The name of the constant (optional when fresh=true).
-   * @param fresh If true, then this method always returns a new constant.
-   * If false, then this method will always return the same constant
+   * @param fresh If true, then this method always returns a new Term.
+   * If false, then this method will always return the same Term
    * for the given sort and symbol.
    * @return The constant.
    */
@@ -3861,6 +3861,7 @@ class CVC5_EXPORT Solver
    */
   Term mkVar(const Sort& sort,
              const std::optional<std::string>& symbol = std::nullopt) const;
+
   /* .................................................................... */
   /* Create datatype constructor declarations                             */
   /* .................................................................... */

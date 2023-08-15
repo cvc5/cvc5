@@ -422,11 +422,6 @@ class SkolemManager
    */
   static Node getUnpurifiedForm(Node k);
 
-  /**
-   * Get the skolem function id for str, if it exists.
-   */
-  SkolemFunId stringToSkolemFunId(const std::string& str);
-
  private:
   /** Cache of skolem functions for mkSkolemFunction above. */
   std::map<std::tuple<SkolemFunId, TypeNode, Node>, Node> d_skolemFuns;
@@ -436,8 +431,6 @@ class SkolemManager
    * Mapping from witness terms to proof generators.
    */
   std::map<Node, ProofGenerator*> d_gens;
-  /** Mapping for strings to skolem fun identifiers, for stringToSkolemFunId. */
-  std::map<std::string, SkolemFunId> d_strToId;
 
   /**
    * A counter used to produce unique skolem names.

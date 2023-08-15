@@ -839,6 +839,10 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       {
         d_state.getSymbolManager()->setGlobalDeclarations(ss == "true");
       }
+      else if (key == "fresh-declarations")
+      {
+        d_state.getSymbolManager()->setFreshDeclarations(ss == "true");
+      }
     }
     break;
     // (simplify <term>)
