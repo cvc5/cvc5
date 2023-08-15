@@ -24,7 +24,7 @@ runs:
         echo "::endgroup::"
 
         OPTS="production --auto-download"
-        for version in cp37 cp38 cp39 cp310 cp311 pp37 pp38 pp39 pp310
+        for version in cp38 cp39 cp310 cp311 pp38 pp39 pp310
         do
           echo "::group::Build extension for python $version"
           docker run --rm \
@@ -35,12 +35,6 @@ runs:
         done
 
         ls *.whl
-
-    - name: Build wheels for macOS
-      if: runner.os == 'macOS'
-      uses: ./.github/actions/package-python-wheel-macos
-      with:
-        python-version: '3.7'
 
     - name: Build wheels for macOS
       if: runner.os == 'macOS'
@@ -65,12 +59,6 @@ runs:
       uses: ./.github/actions/package-python-wheel-macos
       with:
         python-version: '3.11'
-
-    - name: Build wheels for macOS
-      if: runner.os == 'macOS'
-      uses: ./.github/actions/package-python-wheel-macos
-      with:
-        python-version: 'pypy-3.7'
         
     - name: Build wheels for macOS
       if: runner.os == 'macOS'
