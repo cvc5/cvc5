@@ -41,11 +41,17 @@ if [ "$(uname)" == "Darwin" ]; then
     pip install -q delocate
 fi
 
+$PYTHONBIN -m pip install -q --upgrade pip setuptools auditwheel
+$PYTHONBIN -m pip install -q Cython pytest tomli scikit-build flex pyparsing 
+if [ "$(uname)" == "Darwin" ]; then
+    # Mac version of auditwheel
+    $PYTHONBIN -m pip install -q delocate
+fi
+
 # configure cvc5
 echo "Configuring"
 rm -rf build_wheel/
-./configure.sh $CONFIG --python-bindings --name=build_wheel -DPython_FIND_VIRTUALENV=ONLY
-# python contrib/packaging_python/mk_build_dir.py $CONFIG --python-bindings --name=build_wheel -DPython_FIND_VIRTUALENV=ONLY
+python contrib/packaging_python/mk_build_dir.py $CONFIG --python-bindings --name=build_wheel
 
 # building wheel
 echo "Building pycvc5 wheel"
