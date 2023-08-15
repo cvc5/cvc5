@@ -60,7 +60,7 @@ class CVC5_EXPORT Command
   /**
    * Invoke the command on the solver and symbol manager sm, prints the result
    * to output stream out.
-   * 
+   *
    * @param solver The solver to invoke the command on.
    * @param sm The symbol manager to invoke the command on.
    * @param out The output stream to write the result of the command on.
@@ -76,7 +76,7 @@ class CVC5_EXPORT Command
 
   /**
    * Get the name for this command, e.g. "assert".
-   * 
+   *
    * @return The name of this command.
    */
   virtual std::string getCommandName() const = 0;
@@ -84,7 +84,7 @@ class CVC5_EXPORT Command
   /**
    * Either the command hasn't run yet, or it completed successfully
    * (CommandSuccess, not CommandUnsupported or CommandFailure).
-   * 
+   *
    * @return Whether the command was successfully invoked.
    */
   bool ok() const;
@@ -92,14 +92,14 @@ class CVC5_EXPORT Command
   /**
    * The command completed in a failure state (CommandFailure, not
    * CommandSuccess or CommandUnsupported).
-   * 
+   *
    * @return Whether the command failed.
    */
   bool fail() const;
 
   /**
    * The command was ran but was interrupted due to resource limiting.
-   * 
+   *
    * @return Whether the command was interrupted.
    */
   bool interrupted() const;
