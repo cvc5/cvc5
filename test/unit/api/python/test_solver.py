@@ -947,15 +947,15 @@ def test_mk_const(solver):
 def test_mk_fresh_const(solver):
     boolSort = solver.getBooleanSort()
     intSort = solver.getIntegerSort()
-    t1 = solver.mkConst(boolSort, "b")
-    t2 = solver.mkConst(boolSort, "b", false)
-    t3 = solver.mkConst(boolSort, "b", false)
+    t1 = solver.mkConst(boolSort, "b", True)
+    t2 = solver.mkConst(boolSort, "b", False)
+    t3 = solver.mkConst(boolSort, "b", False)
     assert t1!=t2
     assert t1!=t3
     assert t2==t3
-    t4 = solver.mkConst(boolSort, "c", false)
+    t4 = solver.mkConst(boolSort, "c", False)
     assert t2!=t4
-    t5 = solver.mkConst(intSort, "b", false)
+    t5 = solver.mkConst(intSort, "b", False)
     assert t2!=t5
 
 def test_mk_const_array(solver):

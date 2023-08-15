@@ -945,7 +945,7 @@ class SolverTest
   {
     Sort boolSort = d_solver.getBooleanSort();
     Sort intSort = d_solver.getIntegerSort();
-    Term t1 = d_solver.mkConst(boolSort, "b");
+    Term t1 = d_solver.mkConst(boolSort, "b", true);
     Term t2 = d_solver.mkConst(boolSort, "b", false);
     Term t3 = d_solver.mkConst(boolSort, "b", false);
     assertFalse(t1==t2);

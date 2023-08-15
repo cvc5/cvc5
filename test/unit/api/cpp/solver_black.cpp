@@ -1068,7 +1068,7 @@ TEST_F(TestApiBlackSolver, mkConstFresh)
 {
   Sort boolSort = d_solver.getBooleanSort();
   Sort intSort = d_solver.getIntegerSort();
-  Term t1 = d_solver.mkConst(boolSort, std::string("b"));
+  Term t1 = d_solver.mkConst(boolSort, std::string("b"), true);
   Term t2 = d_solver.mkConst(boolSort, std::string("b"), false);
   Term t3 = d_solver.mkConst(boolSort, std::string("b"), false);
   ASSERT_FALSE(t1==t2);
