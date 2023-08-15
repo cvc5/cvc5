@@ -44,7 +44,7 @@ fi
 # configure cvc5
 echo "Configuring"
 rm -rf build_wheel/
-./configure $CONFIG --python-bindings --name=build_wheel -DPython_ROOT_DIR:PATH=./$ENVDIR
+./configure.sh $CONFIG --python-bindings --name=build_wheel -DPython_ROOT_DIR:PATH=./$ENVDIR
 # python contrib/packaging_python/mk_build_dir.py $CONFIG --python-bindings --name=build_wheel
 
 # building wheel
