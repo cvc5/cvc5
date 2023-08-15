@@ -34,17 +34,17 @@ $PYTHONBIN -m venv ./$ENVDIR
 source ./$ENVDIR/bin/activate
 
 # install packages
-$PYTHONBIN -m pip install -q --upgrade pip setuptools auditwheel
-$PYTHONBIN -m pip install -q Cython pytest tomli scikit-build flex pyparsing 
+pip install -q --upgrade pip setuptools auditwheel
+pip install -q Cython pytest tomli scikit-build flex pyparsing 
 if [ "$(uname)" == "Darwin" ]; then
     # Mac version of auditwheel
-    $PYTHONBIN -m pip install -q delocate
+    pip install -q delocate
 fi
 
 # configure cvc5
 echo "Configuring"
 rm -rf build_wheel/
-python contrib/packaging_python/mk_build_dir.py $CONFIG --python-bindings --name=build_wheel
+python contrib/packaging_python/mk_build_dir.py $CONFIG --python-bindings --name=build_wheel -DPython_FIND_VIRTUALENV=ONLY
 
 # building wheel
 echo "Building pycvc5 wheel"
