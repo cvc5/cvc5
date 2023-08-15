@@ -1,4 +1,4 @@
-; COMMAND-LINE: --global-declarations
+; COMMAND-LINE: --global-declarations -i
 ; EXPECT: sat
 (set-logic ALL)
 (push)
