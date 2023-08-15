@@ -1330,7 +1330,29 @@ public class Solver implements IPointer
   }
 
   private native long mkConst(long pointer, long sortPointer);
+  /**
+   * Create a free constant.
+   *
+   * SMT-LIB:
+   * {@code
+   *   ( declare-const <symbol> <sort> )
+   *   ( declare-fun <symbol> ( ) <sort> )
+   * }
+   *
+   * @param sort The sort of the constant.
+   * @param symbol The name of the constant.
+   * @param fresh If true, then this method always returns a new Term.
+   * If false, then this method will always return the same Term
+   * for the given sort and symbol.
+   * @return The first-order constant.
+   */
+  public Term mkConst(Sort sort, String symbol, boolean fresh)
+  {
+    long termPointer = mkConst(pointer, sort.getPointer(), symbol, fresh);
+    return new Term(termPointer);
+  }
 
+  private native long mkConst(long pointer, long sortPointer, String symbol, boolean fresh);
   /**
    * Create a bound variable to be used in a binder (i.e., a quantifier, a
    * lambda, or a witness binder).
