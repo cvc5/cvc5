@@ -981,7 +981,7 @@ void DeclareFunctionCommand::invokeInternal(cvc5::Solver* solver,
                                             SymManager* sm)
 {
   Term fun;
-  if (sm->getGlobalDeclarations())
+  if (sm->getX())
   {
     fun = solver->getOrMkConst(d_sort, d_symbol);
   }

@@ -1395,13 +1395,17 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
   {
     Trace("parser") << "mkCanonicalConst " << p.d_name << " "
                     << p.d_expr.getSort() << " " << args << std::endl;
-    if (!args.empty())
+    if (p.d_name=="INPUT_VARIABLE")
     {
-      parseError("Expected no arguments for const");
+      if (args.size()==1 && args[0].isStringValue())
+      {
+        std::wstring ws = args[0].getStringValue();
+        std::string s(ws.begin(), ws.end());
+        Term ret = d_solver->getOrMkConst(p.d_expr.getSort(), s);
+        return ret;
+      }
     }
-    Term ret = d_solver->getOrMkConst(p.d_expr.getSort(), p.d_name);
-    Trace("parser") << "Returned " << ret << std::endl;
-    return ret;
+    parseError("Unexpected syntax for const");
   }
   else if (p.d_kind != NULL_TERM)
   {

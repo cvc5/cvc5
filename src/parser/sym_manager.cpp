@@ -498,6 +498,15 @@ void SymManager::setGlobalDeclarations(bool flag)
 
 bool SymManager::getGlobalDeclarations() const { return d_globalDeclarations; }
 
+void SymManager::setX(bool flag)
+{
+  d_x = flag;
+}
+bool SymManager::getX() const
+{
+  return d_x;
+}
+  
 void SymManager::setLastSynthName(const std::string& name)
 {
   d_implementation->setLastSynthName(name);
