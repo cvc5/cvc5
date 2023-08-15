@@ -53,6 +53,11 @@ void InputParser::initialize()
   {
     d_sm->get()->setGlobalDeclarations(info.boolValue());
   }
+  info = d_solver->getOptionInfo("fresh-declarations");
+  if (info.setByUser)
+  {
+    d_sm->get()->setFreshDeclarations(info.boolValue());
+  }
   // notice that we don't create the parser object until the input is set.
 }
 

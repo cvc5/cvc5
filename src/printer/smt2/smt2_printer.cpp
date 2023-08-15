@@ -589,7 +589,7 @@ void Smt2Printer::toStream(std::ostream& out,
         case SkolemFunId::INPUT_VARIABLE:
         {
           Assert(cacheVal.getNumChildren() == 2);
-          // just print out its name
+          // just print out its given name
           std::string name = cacheVal[0].getConst<String>().toString();
           out << cvc5::internal::quoteSymbol(name);
           return;
