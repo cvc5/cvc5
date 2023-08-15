@@ -24,11 +24,11 @@ args = [
 	'-DPython_INCLUDE_DIR:PATH=' +
 			sysconfig.get_path("include"),
 	'-DPython_LIBRARY:FILEPATH=' +
-			sysconfig.get_path("libdir"),
+			sysconfig.get_path("platlib"),
 	'-DPYTHON_INCLUDE_DIR:PATH=' +
 			sysconfig.get_path("include"),
 	'-DPYTHON_LIBRARY:FILEPATH=' +
-			sysconfig.get_path("libdir"),
+			sysconfig.get_path("platlib"),
 ]
 
 subprocess.check_call(['./configure.sh', *sys.argv[1:], *args])
