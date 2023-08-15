@@ -17,20 +17,18 @@
 
 import subprocess
 import sys
+import sysconfig
 
-from skbuild.cmaker import CMaker
-
-python_version = CMaker.get_python_version()
 args = [
-	'-DBUILD_BINDINGS_PYTHON_VERSION:STRING=' + python_version,
+	'-DBUILD_BINDINGS_PYTHON_VERSION:STRING=' + sysconfig.get_python_version(),
 	'-DPython_INCLUDE_DIR:PATH=' +
-			CMaker.get_python_include_dir(python_version),
+			sysconfig.get_path("include"),
 	'-DPython_LIBRARY:FILEPATH=' +
-			CMaker.get_python_library(python_version),
+			sysconfig.get_path("libdir"),
 	'-DPYTHON_INCLUDE_DIR:PATH=' +
-			CMaker.get_python_include_dir(python_version),
+			sysconfig.get_path("include"),
 	'-DPYTHON_LIBRARY:FILEPATH=' +
-			CMaker.get_python_library(python_version),
+			sysconfig.get_path("libdir"),
 ]
 
 subprocess.check_call(['./configure.sh', *sys.argv[1:], *args])

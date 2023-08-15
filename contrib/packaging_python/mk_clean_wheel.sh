@@ -41,13 +41,6 @@ if [ "$(uname)" == "Darwin" ]; then
     pip install -q delocate
 fi
 
-$PYTHONBIN -m pip install -q --upgrade pip setuptools auditwheel
-$PYTHONBIN -m pip install -q Cython pytest tomli scikit-build flex pyparsing 
-if [ "$(uname)" == "Darwin" ]; then
-    # Mac version of auditwheel
-    $PYTHONBIN -m pip install -q delocate
-fi
-
 # configure cvc5
 echo "Configuring"
 rm -rf build_wheel/
