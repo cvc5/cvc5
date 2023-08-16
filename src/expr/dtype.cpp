@@ -662,14 +662,20 @@ Node DType::mkGroundTermInternal(TypeNode t, bool isValue) const
   }
   std::vector<TypeNode> processing;
   Node groundTerm = computeGroundTerm(t, processing, isValue);
-  if (!groundTerm.isNull())
+  if (groundTerm.isNull() && !isValue)
   {
-    // we found a ground-term-constructing constructor!
-    cache[t] = groundTerm;
-    Trace("datatypes-init")
-        << "constructed: " << getName() << " => " << groundTerm << std::endl;
+    // If ground term is null, we are not well-founded, should be a codatatype.
+    // In this case, similar to uninterpreted sorts, we construct an arbitrary
+    // skolem.
+    Assert (isCodatatype());
+    SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+    groundTerm = sm->mkDummySkolem(
+        "groundTerm", t, "a ground term created for codatatype " + t.toString());
   }
-  // if ground term is null, we are not well-founded
+  // we found a ground-term-constructing constructor!
+  cache[t] = groundTerm;
+  Trace("datatypes-init")
+      << "constructed: " << getName() << " => " << groundTerm << std::endl;
   Trace("datatypes-init") << "DType::mkGroundTerm for " << t
                           << ", isValue=" << isValue << " returns "
                           << groundTerm << std::endl;
