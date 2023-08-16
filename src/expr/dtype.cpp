@@ -667,7 +667,6 @@ Node DType::mkGroundTermInternal(TypeNode t, bool isValue) const
     // If ground term is null, we are not well-founded, should be a codatatype.
     // In this case, similar to uninterpreted sorts, we construct an arbitrary
     // skolem.
-    Assert(isCodatatype());
     SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
     groundTerm = sm->mkDummySkolem(
         "groundTerm",
