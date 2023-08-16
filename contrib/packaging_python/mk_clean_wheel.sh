@@ -29,13 +29,19 @@ PYVERSION=$($PYTHONBIN -c "import sys; print(sys.implementation.name + sys.versi
 
 # setup and activate venv
 echo "Making venv with $PYTHONBIN"
-ENVDIR=env$PYVERSION
-$PYTHONBIN -m venv ./$ENVDIR
-source ./$ENVDIR/bin/activate
+ENVDIR=./env$PYVERSION
+$PYTHONBIN -m venv $ENVDIR
+source $ENVDIR/bin/activate
+
+echo "Cmake version:"
+cmake --version
+
+echo "venv: $ENVDIR"
+ls $ENVDIR
 
 # install packages
-pip install -q --upgrade pip setuptools auditwheel
-pip install -q Cython pytest tomli scikit-build flex pyparsing 
+pip install --upgrade pip setuptools auditwheel
+pip install Cython pytest tomli scikit-build flex pyparsing 
 if [ "$(uname)" == "Darwin" ]; then
     # Mac version of auditwheel
     pip install -q delocate
@@ -44,8 +50,7 @@ fi
 # configure cvc5
 echo "Configuring"
 rm -rf build_wheel/
-./configure.sh $CONFIG --python-bindings --name=build_wheel -DPython_ROOT_DIR:PATH=./$ENVDIR
-# python contrib/packaging_python/mk_build_dir.py $CONFIG --python-bindings --name=build_wheel
+./configure.sh $CONFIG --python-bindings --name=build_wheel -DPython_ROOT_DIR=$EVNDIR -DPython_FIND_STRATEGY=LOCATION -DPython_FIND_REGISTRY=NEVER -DPython_FIND_FRAMEWORK=NEVER -DPython_FIND_VIRTUALENV=ONLY
 
 # building wheel
 echo "Building pycvc5 wheel"

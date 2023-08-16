@@ -30,8 +30,7 @@ runs:
           docker run --rm \
             -v `pwd`:/home/pycvc5 \
             pycvc5-manylinux2014 \
-            ./configure.sh $OPTS --python-bindings --name=build_wheel -DPython_ROOT_DIR:PATH=/opt/python/${version}*/
-            # ./contrib/packaging_python/mk_clean_wheel.sh /opt/python/${version}*/bin/python "$OPTS"
+            ./contrib/packaging_python/mk_clean_wheel.sh /opt/python/${version}*/bin/python "$OPTS"
           echo "::endgroup::"
         done
 
