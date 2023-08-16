@@ -162,7 +162,7 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal)
     // of the original name.
     if (id == SkolemFunId::INPUT_VARIABLE)
     {
-      k = mkSkolemNode(VARIABLE, cacheVal[0].getConst<String>().toString(), tn);
+      k = mkSkolemNode(VARIABLE, cacheVal[0].getConst<String>().toString(), tn, SKOLEM_EXACT_NAME);
     }
     else
     {
