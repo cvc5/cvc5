@@ -1071,13 +1071,13 @@ TEST_F(TestApiBlackSolver, mkConstFresh)
   Term t1 = d_solver.mkConst(boolSort, std::string("b"), true);
   Term t2 = d_solver.mkConst(boolSort, std::string("b"), false);
   Term t3 = d_solver.mkConst(boolSort, std::string("b"), false);
-  ASSERT_FALSE(t1==t2);
-  ASSERT_FALSE(t1==t3);
-  ASSERT_TRUE(t2==t3);
+  ASSERT_FALSE(t1 == t2);
+  ASSERT_FALSE(t1 == t3);
+  ASSERT_TRUE(t2 == t3);
   Term t4 = d_solver.mkConst(boolSort, std::string("c"), false);
-  ASSERT_FALSE(t2==t4);
+  ASSERT_FALSE(t2 == t4);
   Term t5 = d_solver.mkConst(intSort, std::string("b"), false);
-  ASSERT_FALSE(t2==t5);
+  ASSERT_FALSE(t2 == t5);
 }
 
 TEST_F(TestApiBlackSolver, mkConstArray)

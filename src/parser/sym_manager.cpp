@@ -499,15 +499,9 @@ void SymManager::setGlobalDeclarations(bool flag)
 
 bool SymManager::getGlobalDeclarations() const { return d_globalDeclarations; }
 
-void SymManager::setFreshDeclarations(bool flag)
-{
-  d_freshDeclarations = flag;
-}
-bool SymManager::getFreshDeclarations() const
-{
-  return d_freshDeclarations;
-}
-  
+void SymManager::setFreshDeclarations(bool flag) { d_freshDeclarations = flag; }
+bool SymManager::getFreshDeclarations() const { return d_freshDeclarations; }
+
 void SymManager::setLastSynthName(const std::string& name)
 {
   d_implementation->setLastSynthName(name);

@@ -1477,8 +1477,12 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkConst__JJ(
  * Signature: (JJLjava/lang/String;Z)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_Solver_mkConst__JJLjava_lang_String_2Z(
-    JNIEnv* env, jobject, jlong pointer, jlong sortPointer, jstring jSymbol, jboolean fresh)
+Java_io_github_cvc5_Solver_mkConst__JJLjava_lang_String_2Z(JNIEnv* env,
+                                                           jobject,
+                                                           jlong pointer,
+                                                           jlong sortPointer,
+                                                           jstring jSymbol,
+                                                           jboolean fresh)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);

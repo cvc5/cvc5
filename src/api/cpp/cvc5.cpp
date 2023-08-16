@@ -6166,7 +6166,8 @@ Term Solver::mkConst(const Sort& sort,
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(sort);
-  CVC5_API_CHECK(fresh || symbol) << "Expected a symbol when constructing a (non-fresh) constant";
+  CVC5_API_CHECK(fresh || symbol)
+      << "Expected a symbol when constructing a (non-fresh) constant";
   //////// all checks before this line
   internal::Node res;
   if (symbol)

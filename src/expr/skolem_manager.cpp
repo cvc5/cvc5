@@ -160,7 +160,7 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal)
     Node k;
     // For now, INPUT_VARIABLE is a special case that constructs a variable
     // of the original name.
-    if (id==SkolemFunId::INPUT_VARIABLE)
+    if (id == SkolemFunId::INPUT_VARIABLE)
     {
       k = mkSkolemNode(VARIABLE, cacheVal[0].getConst<String>().toString(), tn);
     }
