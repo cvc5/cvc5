@@ -447,9 +447,9 @@ class SkolemManager
    * call a public method from SkolemManager for allocating a skolem in a
    * proper way, or otherwise use SkolemManager::mkDummySkolem.
    */
-  Node mkSkolemNode(const std::string& prefix,
+  Node mkSkolemNode(Kind k,
+                    const std::string& prefix,
                     const TypeNode& type,
-                    const std::string& comment = "",
                     int flags = SKOLEM_DEFAULT);
 };
 
