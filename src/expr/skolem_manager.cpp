@@ -22,6 +22,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/node_manager_attributes.h"
 #include "util/rational.h"
+#include "util/string.h"
 
 using namespace cvc5::internal::kind;
 
