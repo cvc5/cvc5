@@ -2267,7 +2267,7 @@ def test_find_synth(solver):
     f = solver.synthFun("f", [], solver.getBooleanSort(), g)
 
     # should enumerate based on the grammar of the function to synthesize above
-    t = solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM)
+    t = solver.findSynth(FindSynthTarget.ENUM)
     assert not t.isNull() and t.getSort().isBoolean()
 
 
@@ -2283,7 +2283,7 @@ def test_find_synth2(solver):
     g.addRule(start, falsen)
 
     # should enumerate true/false
-    t = solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM, g)
+    t = solver.findSynth(FindSynthTarget.ENUM, g)
     assert not t.isNull() and t.getSort().isBoolean()
     t = solver.findSynthNext()
     assert not t.isNull() and t.getSort().isBoolean()
