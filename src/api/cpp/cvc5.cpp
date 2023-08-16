@@ -6180,9 +6180,11 @@ Term Solver::mkConst(const Sort& sort,
     {
       // to construct a variable in a canonical way, we use the skolem
       // manager, where SkolemFunId::INPUT_VARIABLE identifies that the
-      // variable is unique
+      // variable is unique.
       std::vector<internal::Node> cnodes;
       cnodes.push_back(d_nm->mkConst(internal::String(*symbol, false)));
+      // Since we index only on Node, we must construct use mkGroundTerm
+      // to construct a canonical node for the type.
       cnodes.push_back(d_nm->mkGroundTerm(*sort.d_type));
       internal::SkolemManager* sm = d_nm->getSkolemManager();
       res = sm->mkSkolemFunction(
