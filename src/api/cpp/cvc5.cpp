@@ -6183,9 +6183,11 @@ Term Solver::mkConst(const Sort& sort,
       // variable is unique.
       std::vector<internal::Node> cnodes;
       cnodes.push_back(d_nm->mkConst(internal::String(*symbol, false)));
-      // Since we index only on Node, we must construct use mkGroundTerm
+      // Since we index only on Node, we must construct use mkGroundValue
       // to construct a canonical node for the type.
-      cnodes.push_back(d_nm->mkGroundTerm(*sort.d_type));
+      internal::Node gt = d_nm->mkGroundValue(*sort.d_type);
+      Trace("ajr-temp") << "Ground value " << sort << " is " << gt << std::endl;
+      cnodes.push_back(gt);
       internal::SkolemManager* sm = d_nm->getSkolemManager();
       res = sm->mkSkolemFunction(
           internal::SkolemFunId::INPUT_VARIABLE, *sort.d_type, cnodes);
