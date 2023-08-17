@@ -695,11 +695,16 @@ Node DatatypesRewriter::collectRef(Node n,
           return Node::null();
         }
         Assert(sk.size() == rf_pending.size());
+        TypeNode tns = sk[rf_pending.size() - 1 - index].getType();
+        // not valid if there is a type mismatch
+        if (tns!=n.getType())
+        {
+          return Node::null();
+        }
         Node r = rf_pending[rf_pending.size() - 1 - index];
         if (r.isNull())
         {
-          r = NodeManager::currentNM()->mkBoundVar(
-              sk[rf_pending.size() - 1 - index].getType());
+          r = NodeManager::currentNM()->mkBoundVar(tns);
           rf_pending[rf_pending.size() - 1 - index] = r;
         }
         return r;

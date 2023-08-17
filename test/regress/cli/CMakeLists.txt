@@ -552,6 +552,7 @@ set(regress_0_tests
   regress0/datatypes/bug604.smt2
   regress0/datatypes/bug625.smt2
   regress0/datatypes/canExp-dtPendingMerge.smt2
+  regress0/datatypes/cdt-enum-type-mismatch.smt2
   regress0/datatypes/cdt-model-cade15.smt2
   regress0/datatypes/cdt-non-canon-stream.smt2
   regress0/datatypes/coda_simp_model.smt2
