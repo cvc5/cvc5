@@ -227,7 +227,7 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
      // find the "zero" term via mkGroundTerm
      Trace("dt-enum-debug") << "make ground term..." << std::endl;
      Trace("dt-enum-debug") << "done : " << d_zeroTerm << std::endl;
-     Assert(d_zeroTerm.getKind() == kind::APPLY_CONSTRUCTOR);
+     Assert(d_zeroTerm.isNull() || d_zeroTerm.getKind() == kind::APPLY_CONSTRUCTOR) << "Unexpected zero term in datatype enumeration " << d_zeroTerm;
      d_has_debruijn = 0;
    }
    Trace("dt-enum") << "zero term : " << d_zeroTerm << std::endl;
