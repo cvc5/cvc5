@@ -74,6 +74,7 @@ Node FindSynthSolver::findSynthNext()
       {
         std::ostream& out = options().base.out;
         out << "(" << d_fst << " " << ret << ")" << std::endl;
+        ret = Node::null();
       }
       else
       {
