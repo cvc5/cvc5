@@ -1346,6 +1346,10 @@ def test_get_real_algebraic_number(solver):
     assert lb.isRealValue()
     ub = vx.getRealAlgebraicNumberUpperBound()
     assert ub.isRealValue()
+    # cannot call with non-variable
+    yc = solver.mkConst(realsort, "y")
+    with pytest.raises(RuntimeError):
+      vx.getRealAlgebraicNumberDefiningPolynomial(yc)
 
 def test_term_scoped_to_string(solver):
     intsort = solver.getIntegerSort()

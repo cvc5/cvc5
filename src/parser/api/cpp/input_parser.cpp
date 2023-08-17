@@ -18,6 +18,8 @@
 #include "base/check.h"
 #include "base/output.h"
 #include "parser/api/cpp/command.h"
+#include "parser/api/cpp/symbol_manager.h"
+#include "parser/sym_manager.h"
 #include "theory/logic_info.h"
 
 namespace cvc5 {
@@ -44,7 +46,7 @@ void InputParser::initialize()
   if (info.setByUser)
   {
     internal::LogicInfo tmp(info.stringValue());
-    d_sm->setLogic(tmp.getLogicString(), true);
+    d_sm->get()->setLogic(tmp.getLogicString(), true);
   }
   // notice that we don't create the parser object until the input is set.
 }
@@ -56,7 +58,7 @@ SymbolManager* InputParser::getSymbolManager() { return d_sm; }
 void InputParser::setLogic(const std::string& name)
 {
   Assert(d_fparser != nullptr);
-  d_sm->setLogic(name);
+  d_sm->get()->setLogic(name);
   d_fparser->setLogic(name);
 }
 
@@ -79,7 +81,7 @@ void InputParser::setFileInput(const std::string& lang,
 {
   Trace("parser") << "setFileInput(" << lang << ", " << filename << ")"
                   << std::endl;
-  d_fparser = Parser::mkParser(lang, d_solver, d_sm);
+  d_fparser = Parser::mkParser(lang, d_solver, d_sm->get());
   d_fparser->setFileInput(filename);
 }
 
@@ -89,7 +91,7 @@ void InputParser::setStreamInput(const std::string& lang,
 {
   Trace("parser") << "setStreamInput(" << lang << ", ..., " << name << ")"
                   << std::endl;
-  d_fparser = Parser::mkParser(lang, d_solver, d_sm);
+  d_fparser = Parser::mkParser(lang, d_solver, d_sm->get());
   d_fparser->setStreamInput(input, name);
 }
 
@@ -101,7 +103,7 @@ void InputParser::setIncrementalStringInput(const std::string& lang,
   d_istringLang = lang;
   d_istringName = name;
   // initialize the parser
-  d_fparser = Parser::mkParser(lang, d_solver, d_sm);
+  d_fparser = Parser::mkParser(lang, d_solver, d_sm->d_sm.get());
 }
 void InputParser::appendIncrementalStringInput(const std::string& input)
 {

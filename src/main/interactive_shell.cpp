@@ -47,6 +47,8 @@
 #include "parser/api/cpp/command.h"
 #include "parser/api/cpp/input_parser.h"
 #include "parser/api/cpp/symbol_manager.h"
+#include "parser/commands.h"
+#include "parser/sym_manager.h"
 #include "theory/logic_info.h"
 
 using namespace std;
@@ -84,19 +86,15 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
                                    bool isInteractive)
     : d_cexec(cexec),
       d_solver(cexec->getSolver()),
-      d_symman(cexec->getSymbolManager()),
+      d_symman(cexec->getSymbolManager()->get()),
       d_in(in),
       d_out(out),
       d_isInteractive(isInteractive),
       d_quit(false)
 {
-  if (d_solver->getOptionInfo("force-logic").setByUser)
-  {
-    LogicInfo tmp(d_solver->getOption("force-logic"));
-    d_symman->setLogic(tmp.getLogicString(), true);
-  }
   /* Create parser with bogus input. */
-  d_parser.reset(new cvc5::parser::InputParser(d_solver, d_symman));
+  d_parser.reset(
+      new cvc5::parser::InputParser(d_solver, cexec->getSymbolManager()));
   // initialize for incremental string input
   d_parser->setIncrementalStringInput(d_solver->getOption("input-language"),
                                       INPUT_FILENAME);

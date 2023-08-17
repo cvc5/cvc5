@@ -37,7 +37,7 @@ namespace parser {
 
 ParserState::ParserState(ParserStateCallback* psc,
                          Solver* solver,
-                         SymbolManager* sm,
+                         SymManager* sm,
                          bool strictMode)
     : d_solver(solver),
       d_psc(psc),
@@ -644,7 +644,7 @@ void ParserState::popScope() { d_symman->popScope(); }
 
 void ParserState::reset() {}
 
-SymbolManager* ParserState::getSymbolManager() { return d_symman; }
+SymManager* ParserState::getSymbolManager() { return d_symman; }
 
 std::string ParserState::stripQuotes(const std::string& s)
 {
