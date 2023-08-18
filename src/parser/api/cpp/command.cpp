@@ -504,7 +504,7 @@ cvc5::Sort DeclareSygusVarCommand::getSort() const { return d_sort; }
 void DeclareSygusVarCommand::invokeInternal(cvc5::Solver* solver,
                                             SymManager* sm)
 {
-  Term var = solver->declareSygusVar(d_id, d_sort);
+  Term var = solver->declareSygusVar(d_symbol, d_sort);
   if (!bindToTerm(sm, var, true))
   {
     return;
@@ -520,7 +520,7 @@ std::string DeclareSygusVarCommand::getCommandName() const
 void DeclareSygusVarCommand::toStream(std::ostream& out) const
 {
   internal::Printer::getPrinter(out)->toStreamCmdDeclareVar(
-      out, d_id, sortToTypeNode(d_sort));
+      out, d_symbol, sortToTypeNode(d_sort));
 }
 
 /* -------------------------------------------------------------------------- */
