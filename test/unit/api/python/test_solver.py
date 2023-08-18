@@ -944,18 +944,18 @@ def test_mk_const(solver):
     slv = cvc5.Solver()
     slv.mkConst(boolSort)
 
-def test_mk_fresh_const(solver):
+def test_declare_fun_fresh(solver):
     boolSort = solver.getBooleanSort()
     intSort = solver.getIntegerSort()
-    t1 = solver.mkConst(boolSort, "b", True)
-    t2 = solver.mkConst(boolSort, "b", False)
-    t3 = solver.mkConst(boolSort, "b", False)
+    t1 = solver.declareFun("b", [], boolSort, True)
+    t2 = solver.declareFun("b", [], boolSort, False)
+    t3 = solver.declareFun("b", [], boolSort, False)
     assert t1!=t2
     assert t1!=t3
     assert t2==t3
-    t4 = solver.mkConst(boolSort, "c", False)
+    t4 = solver.declareFun("c", [], boolSort, False)
     assert t2!=t4
-    t5 = solver.mkConst(intSort, "b", False)
+    t5 = solver.declareFun("b", [], intSort, False)
     assert t2!=t5
 
 def test_mk_const_array(solver):
