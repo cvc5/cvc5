@@ -1074,9 +1074,9 @@ TEST_F(TestApiBlackSolver, declareFunFresh)
   ASSERT_FALSE(t1 == t2);
   ASSERT_FALSE(t1 == t3);
   ASSERT_TRUE(t2 == t3);
-  Term t4 = d_solver.mkConst(std::string("c"), {}, boolSort, false);
+  Term t4 = d_solver.declareFun(std::string("c"), {}, boolSort, false);
   ASSERT_FALSE(t2 == t4);
-  Term t5 = d_solver.mkConst(std::string("b"), {}, intSort, false);
+  Term t5 = d_solver.declareFun(std::string("b"), {}, intSort, false);
   ASSERT_FALSE(t2 == t5);
 }
 
