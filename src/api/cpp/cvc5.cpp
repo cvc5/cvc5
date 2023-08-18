@@ -6544,7 +6544,8 @@ Term Solver::declareFun(const std::string& symbol,
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_DOMAIN_SORTS(sorts);
   CVC5_API_SOLVER_CHECK_SORT(sort);
-  CVC5_API_CHECK(sorts.empty() || !sort.isFunction()) << "non-function sort as codomain sort";
+  CVC5_API_CHECK(sorts.empty() || !sort.isFunction())
+      << "non-function sort as codomain sort";
   //////// all checks before this line
 
   internal::TypeNode type = *sort.d_type;
