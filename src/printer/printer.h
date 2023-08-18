@@ -174,7 +174,7 @@ class CVC5_EXPORT Printer
 
   /** Print declare-var command */
   virtual void toStreamCmdDeclareVar(std::ostream& out,
-                                     Node var,
+                                     const std::string& id,
                                      TypeNode type) const;
 
   /** Print synth-fun command */

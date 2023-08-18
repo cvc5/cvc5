@@ -128,7 +128,7 @@ class Smt2Printer : public cvc5::internal::Printer
 
   /** Print declare-var command */
   void toStreamCmdDeclareVar(std::ostream& out,
-                             Node var,
+                             const std::string& id,
                              TypeNode type) const override;
 
   /** Print synth-fun command */

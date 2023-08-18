@@ -339,7 +339,7 @@ void Printer::toStreamCmdQuery(std::ostream& out, Node n) const
 }
 
 void Printer::toStreamCmdDeclareVar(std::ostream& out,
-                                    Node var,
+                                    const std::string& id,
                                     TypeNode type) const
 {
   printUnknownCommand(out, "declare-var");

@@ -2089,10 +2089,10 @@ void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
 }
 
 void Smt2Printer::toStreamCmdDeclareVar(std::ostream& out,
-                                        Node var,
+                                        const std::string& id,
                                         TypeNode type) const
 {
-  out << "(declare-var " << var << ' ' << type << ')' << std::endl;
+  out << "(declare-var " << cvc5::internal::quoteSymbol(id) << ' ' << type << ')' << std::endl;
 }
 
 void Smt2Printer::toStreamCmdConstraint(std::ostream& out, Node n) const

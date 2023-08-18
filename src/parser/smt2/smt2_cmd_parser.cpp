@@ -366,8 +366,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
       d_state.checkUserSymbol(name);
       Sort t = d_tparser.parseSort();
-      Term var = d_state.getSolver()->declareSygusVar(name, t);
-      cmd.reset(new DeclareSygusVarCommand(name, var, t));
+      cmd.reset(new DeclareSygusVarCommand(name, t));
     }
     break;
     // (define-const <symbol> <sort> <term>)
