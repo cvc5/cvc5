@@ -289,8 +289,6 @@ class PropEngine : protected EnvObj
    */
   bool properExplanation(TNode node, TNode expl) const;
 
-  /** Get the associated CNF stream. */
-  CnfStream* getCnfStream();
   /** Retrieve this modules proof CNF stream. */
   ProofCnfStream* getProofCnfStream();
 
@@ -425,7 +423,7 @@ class PropEngine : protected EnvObj
   struct Statistics
   {
     Statistics(StatisticsRegistry& sr);
-    /** Number of atoms */
+    /** Number of atoms allocated when asserting the input formula */
     IntStat d_numInputAtoms;
   };
   /** Statistics */
