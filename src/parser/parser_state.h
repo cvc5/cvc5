@@ -353,8 +353,8 @@ class CVC5_EXPORT ParserState
    * flattenVars.
    */
   Sort flattenFunctionType(std::vector<Sort>& sorts,
-                          Sort range,
-                          std::vector<Term>& flattenVars);
+                           Sort range,
+                           std::vector<Term>& flattenVars);
 
   /** flatten function type
    *

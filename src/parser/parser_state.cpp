@@ -365,8 +365,8 @@ std::vector<Sort> ParserState::mkMutualDatatypeTypes(
 }
 
 Sort ParserState::flattenFunctionType(std::vector<Sort>& sorts,
-                                     Sort range,
-                                     std::vector<Term>& flattenVars)
+                                      Sort range,
+                                      std::vector<Term>& flattenVars)
 {
   if (range.isFunction())
   {
@@ -389,7 +389,8 @@ Sort ParserState::flattenFunctionType(std::vector<Sort>& sorts, Sort range)
 {
   if (TraceIsOn("parser"))
   {
-    Trace("parser") << "flattenFunctionType: range " << range << " and domains ";
+    Trace("parser") << "flattenFunctionType: range " << range
+                    << " and domains ";
     for (Sort t : sorts)
     {
       Trace("parser") << " " << t;

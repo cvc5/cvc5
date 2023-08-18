@@ -186,10 +186,11 @@ class CVC5_EXPORT DeclarePoolCommand : public DeclarationDefinitionCommand
 class CVC5_EXPORT DeclareOracleFunCommand : public Command
 {
  public:
-  DeclareOracleFunCommand(const std::string& id, 
-                                             const std::vector<Sort>& argSorts, Sort sort);
   DeclareOracleFunCommand(const std::string& id,
-                                             const std::vector<Sort>& argSorts,
+                          const std::vector<Sort>& argSorts,
+                          Sort sort);
+  DeclareOracleFunCommand(const std::string& id,
+                          const std::vector<Sort>& argSorts,
                           Sort sort,
                           const std::string& binName);
   const std::string& getIdentifier() const;

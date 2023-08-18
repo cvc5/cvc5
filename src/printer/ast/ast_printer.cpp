@@ -242,10 +242,11 @@ void AstPrinter::toStreamCmdQuit(std::ostream& out) const
   out << "Quit()" << std::endl;
 }
 
-void AstPrinter::toStreamCmdDeclareFunction(std::ostream& out,
-                                            const std::string& id,
-                                            const std::vector<TypeNode>& argTypes,
-                                            TypeNode type) const
+void AstPrinter::toStreamCmdDeclareFunction(
+    std::ostream& out,
+    const std::string& id,
+    const std::vector<TypeNode>& argTypes,
+    TypeNode type) const
 {
   out << "Declare(" << id << ",";
   copy(argTypes.begin(), argTypes.end(), ostream_iterator<TypeNode>(out, ", "));
