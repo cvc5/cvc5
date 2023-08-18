@@ -291,9 +291,8 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Term mkFloatingPoint(uint32_t exp, uint32_t sig, const Term& val) except +
         Term mkFloatingPoint(const Term& arg0, const Term& arg1, const Term& arg2) except +
         Term mkCardinalityConstraint(Sort sort, int32_t index) except +
-        Term mkConst(Sort sort, const string& symbol, bint fresh) except +
-        # default value for symbol defined in cpp/cvc5.h
         Term mkConst(Sort sort, const string& symbol) except +
+        # default value for symbol defined in cpp/cvc5.h
         Term mkConst(Sort sort) except +
         Term mkVar(Sort sort, const string& symbol) except +
         DatatypeConstructorDecl mkDatatypeConstructorDecl(const string& name) except +
@@ -310,6 +309,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Sort declareDatatype(const string& symbol, const vector[DatatypeConstructorDecl]& ctors)
         Term declareFun(const string& symbol, Sort sort) except +
         Term declareFun(const string& symbol, const vector[Sort]& sorts, Sort sort) except +
+        Term declareFun(const string& symbol, const vector[Sort]& sorts, Sort sort, bint fresh) except +
         Sort declareSort(const string& symbol, uint32_t arity) except +
         Term defineFun(const string& symbol, const vector[Term]& bound_vars,
                        Sort sort, Term term, bint glbl) except +

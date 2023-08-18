@@ -3843,14 +3843,10 @@ class CVC5_EXPORT Solver
    *
    * @param sort The sort of the constant.
    * @param symbol The name of the constant (optional when fresh=true).
-   * @param fresh If true, then this method always returns a new Term.
-   * If false, then this method will always return the same Term
-   * for each call with the given sort and symbol.
    * @return The constant.
    */
   Term mkConst(const Sort& sort,
-               const std::optional<std::string>& symbol = std::nullopt,
-               bool fresh = true) const;
+               const std::optional<std::string>& symbol = std::nullopt) const;
 
   /**
    * Create a bound variable to be used in a binder (i.e., a quantifier, a
@@ -4013,11 +4009,15 @@ class CVC5_EXPORT Solver
    * @param symbol The name of the function.
    * @param sorts The sorts of the parameters to this function.
    * @param sort The sort of the return value of this function.
+   * @param fresh If true, then this method always returns a new Term.
+   * If false, then this method will always return the same Term
+   * for each call with the given sorts and symbol.
    * @return The function.
    */
   Term declareFun(const std::string& symbol,
                   const std::vector<Sort>& sorts,
-                  const Sort& sort) const;
+                  const Sort& sort,
+                  bool fresh = true) const;
 
   /**
    * Declare uninterpreted sort.

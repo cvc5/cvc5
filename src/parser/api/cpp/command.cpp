@@ -982,7 +982,7 @@ void DeclareFunctionCommand::invokeInternal(cvc5::Solver* solver,
 {
   // determine if this will be a fresh declaration
   bool fresh = sm->getFreshDeclarations();
-  Term fun = solver->mkConst(d_sort, d_symbol, fresh);
+  Term fun = solver->declareFun(d_symbol, {}, d_sort, fresh);
   if (!bindToTerm(sm, fun, true))
   {
     return;

@@ -1064,19 +1064,19 @@ TEST_F(TestApiBlackSolver, mkConst)
   ASSERT_NO_THROW(slv.mkConst(boolSort));
 }
 
-TEST_F(TestApiBlackSolver, mkConstFresh)
+TEST_F(TestApiBlackSolver, declareFunFresh)
 {
   Sort boolSort = d_solver.getBooleanSort();
   Sort intSort = d_solver.getIntegerSort();
-  Term t1 = d_solver.mkConst(boolSort, std::string("b"), true);
-  Term t2 = d_solver.mkConst(boolSort, std::string("b"), false);
-  Term t3 = d_solver.mkConst(boolSort, std::string("b"), false);
+  Term t1 = d_solver.declareFun(std::string("b"), {}, boolSort, true);
+  Term t2 = d_solver.declareFun(std::string("b"), {}, boolSort, false);
+  Term t3 = d_solver.declareFun(std::string("b"), {}, boolSort, false);
   ASSERT_FALSE(t1 == t2);
   ASSERT_FALSE(t1 == t3);
   ASSERT_TRUE(t2 == t3);
-  Term t4 = d_solver.mkConst(boolSort, std::string("c"), false);
+  Term t4 = d_solver.mkConst(std::string("c"), {}, boolSort, false);
   ASSERT_FALSE(t2 == t4);
-  Term t5 = d_solver.mkConst(intSort, std::string("b"), false);
+  Term t5 = d_solver.mkConst(std::string("b"), {}, intSort, false);
   ASSERT_FALSE(t2 == t5);
 }
 

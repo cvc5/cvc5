@@ -1613,7 +1613,7 @@ cdef class Solver:
         term.cterm = self.csolver.mkCardinalityConstraint(sort.csort, index)
         return term
 
-    def mkConst(self, Sort sort, symbol=None, fresh=None):
+    def mkConst(self, Sort sort, symbol=None):
         """
             Create (first-order) constant (0-arity function symbol).
 
@@ -1627,22 +1627,14 @@ cdef class Solver:
             :param sort: The sort of the constant.
             :param symbol: The name of the constant. If None, a default symbol
                            is used.
-            :param fresh: If true, then this method always returns a new Term.
-                          If false, then this method will always return the same
-                          Term for each call with the given sort and symbol.
             :return: The first-order constant.
         """
         cdef Term term = Term(self)
         if symbol is None:
             term.cterm = self.csolver.mkConst(sort.csort)
         else:
-            if fresh is None:
-                term.cterm = self.csolver.mkConst(sort.csort,
-                                                (<str?> symbol).encode())
-            else:
-                term.cterm = self.csolver.mkConst(sort.csort,
-                                                  (<str?> symbol).encode(),
-                                                  <bint> fresh)
+            term.cterm = self.csolver.mkConst(sort.csort,
+                                            (<str?> symbol).encode())
         return term
 
     def mkVar(self, Sort sort, symbol=None):
@@ -2064,7 +2056,7 @@ cdef class Solver:
         sort.csort = self.csolver.declareDatatype(symbol.encode(), v)
         return sort
 
-    def declareFun(self, str symbol, list sorts, Sort sort):
+    def declareFun(self, str symbol, list sorts, Sort sort, fresh=None):
         """
             Declare n-ary function symbol.
 
@@ -2077,15 +2069,25 @@ cdef class Solver:
             :param symbol: The name of the function.
             :param sorts: The sorts of the parameters to this function.
             :param sort: The sort of the return value of this function.
+            :param fresh: If true, then this method always returns a new Term.
+                          If false, then this method will always return the
+                          same Term for each call with the given sorts and
+                          symbol.
             :return: The function.
         """
         cdef Term term = Term(self)
         cdef vector[c_Sort] v
         for s in sorts:
             v.push_back((<Sort?> s).csort)
-        term.cterm = self.csolver.declareFun(symbol.encode(),
-                                             <const vector[c_Sort]&> v,
-                                             sort.csort)
+        if fresh is None:
+            term.cterm = self.csolver.declareFun(symbol.encode(),
+                                                <const vector[c_Sort]&> v,
+                                                sort.csort)
+        else:
+            term.cterm = self.csolver.declareFun(symbol.encode(),
+                                                <const vector[c_Sort]&> v,
+                                                sort.csort,
+                                                <bint> fresh)
         return term
 
     def declareSort(self, str symbol, int arity):

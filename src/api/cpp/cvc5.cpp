@@ -6161,41 +6161,13 @@ Term Solver::mkCardinalityConstraint(const Sort& sort, uint32_t upperBound) cons
 /* -------------------------------------------------------------------------- */
 
 Term Solver::mkConst(const Sort& sort,
-                     const std::optional<std::string>& symbol,
-                     bool fresh) const
+                     const std::optional<std::string>& symbol) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(sort);
-  CVC5_API_CHECK(fresh || symbol)
-      << "Expected a symbol when constructing a (non-fresh) constant";
   //////// all checks before this line
-  internal::Node res;
-  if (symbol)
-  {
-    if (fresh)
-    {
-      res = d_nm->mkVar(*symbol, *sort.d_type);
-    }
-    else
-    {
-      // to construct a variable in a canonical way, we use the skolem
-      // manager, where SkolemFunId::INPUT_VARIABLE identifies that the
-      // variable is unique.
-      std::vector<internal::Node> cnodes;
-      cnodes.push_back(d_nm->mkConst(internal::String(*symbol, false)));
-      // Since we index only on Node, we must construct use mkGroundValue
-      // to construct a canonical node for the type.
-      internal::Node gt = d_nm->mkGroundValue(*sort.d_type);
-      cnodes.push_back(gt);
-      internal::SkolemManager* sm = d_nm->getSkolemManager();
-      res = sm->mkSkolemFunction(
-          internal::SkolemFunId::INPUT_VARIABLE, *sort.d_type, cnodes);
-    }
-  }
-  else
-  {
-    res = d_nm->mkVar(*sort.d_type);
-  }
+  internal::Node res =
+      symbol ? d_nm->mkVar(*symbol, *sort.d_type) : d_nm->mkVar(*sort.d_type);
   (void)res.getType(true); /* kick off type checking */
   increment_vars_consts_stats(sort, false);
   return Term(d_nm, res);
@@ -6566,11 +6538,13 @@ Sort Solver::declareDatatype(
 
 Term Solver::declareFun(const std::string& symbol,
                         const std::vector<Sort>& sorts,
-                        const Sort& sort) const
+                        const Sort& sort,
+                        bool fresh) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_DOMAIN_SORTS(sorts);
-  CVC5_API_SOLVER_CHECK_CODOMAIN_SORT(sort);
+  CVC5_API_SOLVER_CHECK_SORT(sort);
+  CVC5_API_CHECK(sorts.empty() || !sort.isFunction()) << "non-function sort as codomain sort";
   //////// all checks before this line
 
   internal::TypeNode type = *sort.d_type;
@@ -6579,7 +6553,27 @@ Term Solver::declareFun(const std::string& symbol,
     std::vector<internal::TypeNode> types = Sort::sortVectorToTypeNodes(sorts);
     type = d_nm->mkFunctionType(types, type);
   }
-  return Term(d_nm, d_nm->mkVar(symbol, type));
+  internal::Node res;
+  if (fresh)
+  {
+    res = d_nm->mkVar(symbol, type);
+  }
+  else
+  {
+    // to construct a variable in a canonical way, we use the skolem
+    // manager, where SkolemFunId::INPUT_VARIABLE identifies that the
+    // variable is unique.
+    std::vector<internal::Node> cnodes;
+    cnodes.push_back(d_nm->mkConst(internal::String(symbol, false)));
+    // Since we index only on Node, we must construct use mkGroundValue
+    // to construct a canonical node for the type.
+    internal::Node gt = d_nm->mkGroundValue(type);
+    cnodes.push_back(gt);
+    internal::SkolemManager* sm = d_nm->getSkolemManager();
+    res = sm->mkSkolemFunction(
+        internal::SkolemFunId::INPUT_VARIABLE, type, cnodes);
+  }
+  return Term(d_nm, res);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
