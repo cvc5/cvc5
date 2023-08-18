@@ -6186,7 +6186,6 @@ Term Solver::mkConst(const Sort& sort,
       // Since we index only on Node, we must construct use mkGroundValue
       // to construct a canonical node for the type.
       internal::Node gt = d_nm->mkGroundValue(*sort.d_type);
-      Trace("ajr-temp") << "Ground value " << sort << " is " << gt << std::endl;
       cnodes.push_back(gt);
       internal::SkolemManager* sm = d_nm->getSkolemManager();
       res = sm->mkSkolemFunction(
