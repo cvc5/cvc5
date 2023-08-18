@@ -364,7 +364,7 @@ std::vector<Sort> ParserState::mkMutualDatatypeTypes(
   }
 }
 
-Sort ParserState::mkFlatFunctionType(std::vector<Sort>& sorts,
+Sort ParserState::flattenFunctionType(std::vector<Sort>& sorts,
                                      Sort range,
                                      std::vector<Term>& flattenVars)
 {
@@ -382,23 +382,14 @@ Sort ParserState::mkFlatFunctionType(std::vector<Sort>& sorts,
     }
     range = range.getFunctionCodomainSort();
   }
-  if (sorts.empty())
-  {
-    return range;
-  }
-  return d_solver->mkFunctionSort(sorts, range);
+  return range;
 }
 
-Sort ParserState::mkFlatFunctionType(std::vector<Sort>& sorts, Sort range)
+Sort ParserState::flattenFunctionType(std::vector<Sort>& sorts, Sort range)
 {
-  if (sorts.empty())
-  {
-    // no difference
-    return range;
-  }
   if (TraceIsOn("parser"))
   {
-    Trace("parser") << "mkFlatFunctionType: range " << range << " and domains ";
+    Trace("parser") << "flattenFunctionType: range " << range << " and domains ";
     for (Sort t : sorts)
     {
       Trace("parser") << " " << t;
@@ -411,7 +402,16 @@ Sort ParserState::mkFlatFunctionType(std::vector<Sort>& sorts, Sort range)
     sorts.insert(sorts.end(), domainTypes.begin(), domainTypes.end());
     range = range.getFunctionCodomainSort();
   }
-  return d_solver->mkFunctionSort(sorts, range);
+  return range;
+}
+Sort ParserState::mkFlatFunctionType(std::vector<Sort>& sorts, Sort range)
+{
+  Sort newRange = flattenFunctionType(sorts, range);
+  if (!sorts.empty())
+  {
+    return d_solver->mkFunctionSort(sorts, newRange);
+  }
+  return newRange;
 }
 
 Term ParserState::mkHoApply(Term expr, const std::vector<Term>& args)

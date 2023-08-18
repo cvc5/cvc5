@@ -207,6 +207,7 @@ void Printer::toStreamCmdPop(std::ostream& out, uint32_t nscopes) const
 
 void Printer::toStreamCmdDeclareFunction(std::ostream& out,
                                          const std::string& id,
+                                         const std::vector<TypeNode>& argTypes,
                                          TypeNode type) const
 {
   printUnknownCommand(out, "declare-fun");
@@ -219,7 +220,14 @@ void Printer::toStreamCmdDeclareFunction(std::ostream& out, const Node& v) const
   // assigned names.
   std::stringstream ss;
   toStream(ss, v);
-  toStreamCmdDeclareFunction(out, ss.str(), v.getType());
+  TypeNode vt = v.getType();
+  std::vector<TypeNode> argTypes;
+  if (vt.isFunction())
+  {
+    argTypes = vt.getArgTypes();
+    vt = vt.getRangeType();
+  }
+  toStreamCmdDeclareFunction(out, ss.str(), argTypes, vt);
 }
 
 void Printer::toStreamCmdDeclarePool(std::ostream& out,
@@ -232,6 +240,7 @@ void Printer::toStreamCmdDeclarePool(std::ostream& out,
 
 void Printer::toStreamCmdDeclareOracleFun(std::ostream& out,
                                           const std::string& id,
+                                          const std::vector<TypeNode>& argTypes,
                                           TypeNode type,
                                           const std::string& binName) const
 {

@@ -149,12 +149,14 @@ class CVC5_EXPORT DeclarationDefinitionCommand : public Command
 class CVC5_EXPORT DeclareFunctionCommand : public DeclarationDefinitionCommand
 {
  protected:
+  std::vector<Sort> d_argSorts;
   cvc5::Sort d_sort;
 
  public:
   DeclareFunctionCommand(const std::string& id,
+                         const std::vector<Sort>& argSorts,
                          cvc5::Sort sort);
-  cvc5::Term getFunction() const;
+  std::vector<Sort> getArgSorts() const;
   cvc5::Sort getSort() const;
 
   void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
@@ -184,11 +186,14 @@ class CVC5_EXPORT DeclarePoolCommand : public DeclarationDefinitionCommand
 class CVC5_EXPORT DeclareOracleFunCommand : public Command
 {
  public:
-  DeclareOracleFunCommand(const std::string& id, Sort sort);
+  DeclareOracleFunCommand(const std::string& id, 
+                                             const std::vector<Sort>& argSorts, Sort sort);
   DeclareOracleFunCommand(const std::string& id,
+                                             const std::vector<Sort>& argSorts,
                           Sort sort,
                           const std::string& binName);
   const std::string& getIdentifier() const;
+  std::vector<Sort> getArgSorts() const;
   Sort getSort() const;
   const std::string& getBinaryName() const;
 
@@ -199,7 +204,9 @@ class CVC5_EXPORT DeclareOracleFunCommand : public Command
  protected:
   /** The identifier */
   std::string d_id;
-  /** The (possibly function) sort */
+  /** Argument sorts */
+  std::vector<Sort> d_argSorts;
+  /** The return sort */
   Sort d_sort;
   /** The binary name, or "" if none is provided */
   std::string d_binName;

@@ -1385,20 +1385,15 @@ std::string Smt2Printer::smtKindStringOf(const Node& n)
   return smtKindString(k);
 }
 
-void Smt2Printer::toStreamDeclareType(std::ostream& out, TypeNode tn) const
+void Smt2Printer::toStreamDeclareType(std::ostream& out, const std::vector<TypeNode>& argTypes, TypeNode tn) const
 {
   out << "(";
-  if (tn.isFunction())
+  if (!argTypes.empty())
   {
-    const vector<TypeNode> argTypes = tn.getArgTypes();
-    if (argTypes.size() > 0)
-    {
-      copy(argTypes.begin(),
-           argTypes.end() - 1,
-           ostream_iterator<TypeNode>(out, " "));
-      out << argTypes.back();
-    }
-    tn = tn.getRangeType();
+    copy(argTypes.begin(),
+          argTypes.end() - 1,
+          ostream_iterator<TypeNode>(out, " "));
+    out << argTypes.back();
   }
   out << ") " << tn;
 }
@@ -1616,20 +1611,22 @@ void Smt2Printer::toStreamCmdQuit(std::ostream& out) const
 
 void Smt2Printer::toStreamCmdDeclareFunction(std::ostream& out,
                                              const std::string& id,
+                                             const std::vector<TypeNode>& argTypes,
                                              TypeNode type) const
 {
   out << "(declare-fun " << cvc5::internal::quoteSymbol(id) << " ";
-  toStreamDeclareType(out, type);
+  toStreamDeclareType(out, argTypes, type);
   out << ')' << std::endl;
 }
 
 void Smt2Printer::toStreamCmdDeclareOracleFun(std::ostream& out,
                                               const std::string& id,
+                                             const std::vector<TypeNode>& argTypes,
                                               TypeNode type,
                                               const std::string& binName) const
 {
   out << "(declare-oracle-fun " << cvc5::internal::quoteSymbol(id) << " ";
-  toStreamDeclareType(out, type);
+  toStreamDeclareType(out, argTypes, type);
   out << " " << binName << ")" << std::endl;
 }
 

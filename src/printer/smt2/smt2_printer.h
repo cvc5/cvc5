@@ -79,11 +79,13 @@ class Smt2Printer : public cvc5::internal::Printer
   /** Print declare-fun command */
   void toStreamCmdDeclareFunction(std::ostream& out,
                                   const std::string& id,
+                                  const std::vector<TypeNode>& argTypes,
                                   TypeNode type) const override;
 
   /** Print declare-oracle-fun command */
   void toStreamCmdDeclareOracleFun(std::ostream& out,
                                    const std::string& id,
+                                   const std::vector<TypeNode>& argTypes,
                                    TypeNode type,
                                    const std::string& binName) const override;
 
@@ -306,7 +308,7 @@ class Smt2Printer : public cvc5::internal::Printer
    * `() T` if the type T is not a function, or `(T1 ... Tn) Tr` if T is
    * a function type with argument types T1 ... Tn and return Tr.
    */
-  void toStreamDeclareType(std::ostream& out, TypeNode tn) const;
+  void toStreamDeclareType(std::ostream& out, const std::vector<TypeNode>& argTypes, TypeNode tn) const;
   /** To stream type node, which ensures tn is printed in smt2 format */
   void toStreamType(std::ostream& out, TypeNode tn) const;
   /** To stream datatype */
