@@ -69,7 +69,7 @@ class AstPrinter : public cvc5::internal::Printer
 
   /** Print declare-sort command */
   void toStreamCmdDeclareType(std::ostream& out,
-                                  const std::string& id,
+                              const std::string& id,
                               size_t arity) const override;
 
   /** Print define-sort command */

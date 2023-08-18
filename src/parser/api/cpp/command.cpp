@@ -1109,8 +1109,7 @@ void DeclareOracleFunCommand::toStream(std::ostream& out) const
 /* class DeclareSortCommand                                                   */
 /* -------------------------------------------------------------------------- */
 
-DeclareSortCommand::DeclareSortCommand(const std::string& id,
-                                       size_t arity)
+DeclareSortCommand::DeclareSortCommand(const std::string& id, size_t arity)
     : DeclarationDefinitionCommand(id), d_arity(arity)
 {
 }

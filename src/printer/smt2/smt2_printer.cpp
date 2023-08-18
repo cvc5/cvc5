@@ -1743,7 +1743,8 @@ void Smt2Printer::toStreamCmdDeclareType(std::ostream& out,
                                          const std::string& id,
                                          size_t arity) const
 {
-  out << "(declare-sort " << cvc5::internal::quoteSymbol(id) << " " << arity << ")" << std::endl;
+  out << "(declare-sort " << cvc5::internal::quoteSymbol(id) << " " << arity
+      << ")" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdDefineType(std::ostream& out,

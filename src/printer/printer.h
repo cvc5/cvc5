@@ -129,8 +129,8 @@ class CVC5_EXPORT Printer
 
   /** Print declare-sort command */
   virtual void toStreamCmdDeclareType(std::ostream& out,
-                                         const std::string& id,
-                                         size_t arity) const;
+                                      const std::string& id,
+                                      size_t arity) const;
   /** Variant of above that takes the type */
   void toStreamCmdDeclareType(std::ostream& out, TypeNode type) const;
 
