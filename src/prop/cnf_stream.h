@@ -309,7 +309,7 @@ class CnfStream : protected EnvObj
   struct Statistics
   {
     Statistics(StatisticsRegistry& sr, const std::string& name);
-    TimerStat d_cnfConversionTime;  
+    TimerStat d_cnfConversionTime;
     /** Number of atoms */
     IntStat d_numAtoms;
   };

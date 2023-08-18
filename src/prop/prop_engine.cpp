@@ -176,8 +176,8 @@ void PropEngine::assertInputFormulas(
     assertInternal(node, false, false, true);
   }
   int64_t natomsPost = d_cnfStream->d_stats.d_numAtoms.get();
-  Assert (natomsPost>=natomsPre);
-  d_stats.d_numInputAtoms += (natomsPost-natomsPre);
+  Assert(natomsPost >= natomsPre);
+  d_stats.d_numInputAtoms += (natomsPost - natomsPre);
 }
 
 void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
