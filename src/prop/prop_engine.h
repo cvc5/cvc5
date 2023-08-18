@@ -32,6 +32,7 @@
 #include "theory/output_channel.h"
 #include "theory/skolem_lemma.h"
 #include "util/result.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5::internal {
 
@@ -420,6 +421,15 @@ class PropEngine : protected EnvObj
    * cores are enabled.
    */
   context::CDList<Node> d_assumptions;
+  /** Statistics */
+  struct Statistics
+  {
+    Statistics(StatisticsRegistry& sr);
+    /** Number of atoms */
+    IntStat d_numInputAtoms;
+  };
+  /** Statistics */
+  Statistics d_stats;
 };
 
 }  // namespace prop
