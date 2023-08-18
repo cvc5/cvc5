@@ -1110,22 +1110,21 @@ void DeclareOracleFunCommand::toStream(std::ostream& out) const
 /* -------------------------------------------------------------------------- */
 
 DeclareSortCommand::DeclareSortCommand(const std::string& id,
-                                       size_t arity,
-                                       cvc5::Sort sort)
-    : DeclarationDefinitionCommand(id), d_arity(arity), d_sort(sort)
+                                       size_t arity)
+    : DeclarationDefinitionCommand(id), d_arity(arity)
 {
 }
 
 size_t DeclareSortCommand::getArity() const { return d_arity; }
-cvc5::Sort DeclareSortCommand::getSort() const { return d_sort; }
 void DeclareSortCommand::invokeInternal(cvc5::Solver* solver, SymManager* sm)
 {
-  sm->bindType(d_symbol, std::vector<Sort>(d_arity), d_sort);
+  Sort sort = solver->declareSort(d_symbol, d_arity);
+  sm->bindType(d_symbol, std::vector<Sort>(d_arity), sort);
   // mark that it will be printed in the model, if it is an uninterpreted
   // sort (arity 0)
   if (d_arity == 0)
   {
-    sm->addModelDeclarationSort(d_sort);
+    sm->addModelDeclarationSort(sort);
   }
   d_commandStatus = CommandSuccess::instance();
 }
@@ -1138,7 +1137,7 @@ std::string DeclareSortCommand::getCommandName() const
 void DeclareSortCommand::toStream(std::ostream& out) const
 {
   internal::Printer::getPrinter(out)->toStreamCmdDeclareType(
-      out, sortToTypeNode(d_sort));
+      out, d_symbol, d_arity);
 }
 
 /* -------------------------------------------------------------------------- */

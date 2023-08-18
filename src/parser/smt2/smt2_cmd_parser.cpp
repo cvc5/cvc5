@@ -346,17 +346,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       size_t arity = d_tparser.parseIntegerNumeral();
       Trace("parser") << "declare sort: '" << name << "' arity=" << arity
                       << std::endl;
-      if (arity == 0)
-      {
-        Sort type = d_state.getSolver()->mkUninterpretedSort(name);
-        cmd.reset(new DeclareSortCommand(name, 0, type));
-      }
-      else
-      {
-        Sort type = d_state.getSolver()->mkUninterpretedSortConstructorSort(
-            arity, name);
-        cmd.reset(new DeclareSortCommand(name, arity, type));
-      }
+      cmd.reset(new DeclareSortCommand(name, arity));
     }
     break;
     // (declare-var <symbol> <sort>)
