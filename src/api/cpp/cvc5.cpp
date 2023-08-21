@@ -5043,12 +5043,9 @@ std::ostream& operator<<(std::ostream& out, const Statistics& stats)
 /* Proof                                                                      */
 /* -------------------------------------------------------------------------- */
 
-Proof::Proof() : d_nm(internal::NodeManager::currentNM()) {}
+Proof::Proof() {}
 
-Proof::Proof(const std::shared_ptr<internal::ProofNode> p)
-    : d_nm(internal::NodeManager::currentNM()), d_proof_node(p)
-{
-}
+Proof::Proof(const std::shared_ptr<internal::ProofNode> p) : d_proof_node(p) {}
 
 Proof::~Proof()
 {
@@ -5069,7 +5066,8 @@ Term Proof::getResult() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return Term(d_nm, this->getProofNode()->getResult());
+  internal::NodeManager* nm = internal::NodeManager::currentNM();
+  return Term(nm, this->getProofNode()->getResult());
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5094,11 +5092,12 @@ const std::vector<Term> Proof::getArguments() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
+  internal::NodeManager* nm = internal::NodeManager::currentNM();
   std::vector<Term> args;
   const std::vector<internal::Node> node_args = d_proof_node->getArguments();
   for (size_t i = 0, asize = node_args.size(); i < asize; i++)
   {
-    args.push_back(Term(d_nm, node_args[i]));
+    args.push_back(Term(nm, node_args[i]));
   }
   return args;
   ////////

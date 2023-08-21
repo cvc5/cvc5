@@ -3376,9 +3376,6 @@ class CVC5_EXPORT Proof
   /** @return The internal proof node wrapped by this proof object. */
   const std::shared_ptr<internal::ProofNode>& getProofNode(void) const;
 
-  /** Node manager this proof belongs to. */
-  internal::NodeManager* d_nm;
-
   /** The internal proof node wrapped by this proof object. */
   std::shared_ptr<internal::ProofNode> d_proof_node;
 };
