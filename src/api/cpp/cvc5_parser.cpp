@@ -13,18 +13,97 @@
  * The interface for parsing an input with a parser.
  */
 
-#include "parser/api/cpp/input_parser.h"
+#include <cvc5/cvc5_parser.h>
 
 #include "base/check.h"
 #include "base/output.h"
-#include "parser/api/cpp/command.h"
-#include "parser/api/cpp/symbol_manager.h"
 #include "parser/parser.h"
 #include "parser/sym_manager.h"
 #include "theory/logic_info.h"
 
 namespace cvc5 {
 namespace parser {
+
+SymbolManager::SymbolManager(cvc5::Solver* s) { d_sm.reset(new SymManager(s)); }
+
+SymbolManager::~SymbolManager() {}
+
+SymManager* SymbolManager::get() { return d_sm.get(); }
+
+Command::Command() : d_commandStatus(nullptr) {}
+
+Command::Command(const Command& cmd)
+{
+  d_commandStatus =
+      (cmd.d_commandStatus == NULL) ? NULL : &cmd.d_commandStatus->clone();
+}
+
+Command::~Command()
+{
+  if (d_commandStatus != NULL && d_commandStatus != CommandSuccess::instance())
+  {
+    delete d_commandStatus;
+  }
+}
+
+bool Command::ok() const
+{
+  // either we haven't run the command yet, or it ran successfully
+  return d_commandStatus == NULL
+         || dynamic_cast<const CommandSuccess*>(d_commandStatus) != NULL;
+}
+
+bool Command::fail() const
+{
+  return d_commandStatus != NULL
+         && dynamic_cast<const CommandFailure*>(d_commandStatus) != NULL;
+}
+
+bool Command::interrupted() const
+{
+  return d_commandStatus != NULL
+         && dynamic_cast<const CommandInterrupted*>(d_commandStatus) != NULL;
+}
+
+void Command::invoke(cvc5::Solver* solver,
+                     parser::SymbolManager* sm,
+                     std::ostream& out)
+{
+  invokeInternal(solver, sm->get(), out);
+}
+void Command::invokeInternal(cvc5::Solver* solver,
+                             parser::SymManager* sm,
+                             std::ostream& out)
+{
+  invokeInternal(solver, sm);
+  if (!ok())
+  {
+    out << *d_commandStatus;
+  }
+  else
+  {
+    printResult(solver, out);
+  }
+  // always flush the output
+  out << std::flush;
+}
+
+std::string Command::toString() const
+{
+  std::stringstream ss;
+  toStream(ss);
+  return ss.str();
+}
+
+void Command::printResult(cvc5::Solver* solver, std::ostream& out) const
+{
+  if (!ok()
+      || (d_commandStatus != nullptr
+          && solver->getOption("print-success") == "true"))
+  {
+    out << *d_commandStatus;
+  }
+}
 
 InputParser::InputParser(Solver* solver, SymbolManager* sm)
     : d_solver(solver), d_allocSm(nullptr), d_sm(sm)
