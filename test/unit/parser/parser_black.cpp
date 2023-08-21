@@ -22,9 +22,8 @@
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/options.h"
-#include "test.h"
 #include "parser/parser_exception.h"
-
+#include "test.h"
 
 using namespace cvc5::parser;
 

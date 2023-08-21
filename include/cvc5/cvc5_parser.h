@@ -23,11 +23,11 @@
 #include <memory>
 
 namespace cvc5 {
-  
+
 namespace main {
 class CommandExecutor;
 }
-  
+
 namespace internal {
 class InteractiveShell;
 }
@@ -62,13 +62,13 @@ class CVC5_EXPORT SymbolManager
  public:
   SymbolManager(cvc5::Solver* s);
   ~SymbolManager();
+
  private:
   /** Get the underlying implementation */
   SymManager* get();
   /** The implementation of the symbol manager */
   std::shared_ptr<SymManager> d_sm;
 };
-
 
 /**
  * Encapsulation of a command.
@@ -79,6 +79,7 @@ class CVC5_EXPORT SymbolManager
 class CVC5_EXPORT Command
 {
   friend class main::CommandExecutor;
+
  public:
   Command();
   Command(const Command& cmd);

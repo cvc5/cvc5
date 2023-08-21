@@ -22,13 +22,14 @@
 #ifndef CVC5__PARSER__COMMANDS_H
 #define CVC5__PARSER__COMMANDS_H
 
+#include <cvc5/cvc5_parser.h>
+
 #include <iosfwd>
 #include <sstream>
 #include <string>
 #include <vector>
 
 #include "options/language.h"
-#include <cvc5/cvc5_parser.h>
 
 namespace cvc5 {
 

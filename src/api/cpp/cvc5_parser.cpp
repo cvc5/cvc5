@@ -17,10 +17,10 @@
 
 #include "base/check.h"
 #include "base/output.h"
+#include "parser/command_status.h"
+#include "parser/commands.h"
 #include "parser/parser.h"
 #include "parser/sym_manager.h"
-#include "parser/commands.h"
-#include "parser/command_status.h"
 #include "theory/logic_info.h"
 
 namespace cvc5 {

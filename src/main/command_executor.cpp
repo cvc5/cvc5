@@ -19,17 +19,18 @@
 #  include <sys/resource.h>
 #endif /* ! __WIN32__ */
 
+#include <cvc5/cvc5_parser.h>
+
 #include <iomanip>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
 
-#include "main/main.h"
-#include <cvc5/cvc5_parser.h>
-#include "smt/solver_engine.h"
 #include "base/output.h"
+#include "main/main.h"
 #include "parser/commands.h"
+#include "smt/solver_engine.h"
 
 using namespace cvc5::parser;
 

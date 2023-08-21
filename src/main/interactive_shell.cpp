@@ -40,11 +40,11 @@
 #endif   /* HAVE_LIBEDITLINE */
 
 #include <cvc5/cvc5.h>
+#include <cvc5/cvc5_parser.h>
 
 #include "base/check.h"
 #include "base/output.h"
 #include "main/command_executor.h"
-#include <cvc5/cvc5_parser.h>
 #include "parser/commands.h"
 #include "parser/parser_exception.h"
 #include "parser/sym_manager.h"

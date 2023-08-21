@@ -451,10 +451,7 @@ SynthFunCommand::SynthFunCommand(const std::string& id,
                                  const std::vector<cvc5::Term>& vars,
                                  cvc5::Sort sort,
                                  cvc5::Grammar* g)
-    : DeclarationDefinitionCommand(id),
-      d_vars(vars),
-      d_sort(sort),
-      d_grammar(g)
+    : DeclarationDefinitionCommand(id), d_vars(vars), d_sort(sort), d_grammar(g)
 {
 }
 
@@ -932,9 +929,7 @@ void DeclareFunctionCommand::toStream(std::ostream& out) const
 DeclarePoolCommand::DeclarePoolCommand(const std::string& id,
                                        cvc5::Sort sort,
                                        const std::vector<cvc5::Term>& initValue)
-    : DeclarationDefinitionCommand(id),
-      d_sort(sort),
-      d_initValue(initValue)
+    : DeclarationDefinitionCommand(id), d_sort(sort), d_initValue(initValue)
 {
 }
 
