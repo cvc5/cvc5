@@ -19,11 +19,11 @@
 
 #include "base/check.h"
 #include "base/output.h"
+#include "expr/node_manager.h"
 #include "parser/command_status.h"
 #include "parser/parser.h"
 #include "parser/sym_manager.h"
 #include "theory/logic_info.h"
-#include "expr/node_manager.h"
 
 namespace cvc5 {
 namespace parser {
@@ -46,13 +46,15 @@ Command::Command() : d_commandStatus(nullptr) {}
 
 Command::Command(const Command& cmd)
 {
-  d_commandStatus =
-      (cmd.d_commandStatus == nullptr) ? nullptr : &cmd.d_commandStatus->clone();
+  d_commandStatus = (cmd.d_commandStatus == nullptr)
+                        ? nullptr
+                        : &cmd.d_commandStatus->clone();
 }
 
 Command::~Command()
 {
-  if (d_commandStatus != nullptr && d_commandStatus != CommandSuccess::instance())
+  if (d_commandStatus != nullptr
+      && d_commandStatus != CommandSuccess::instance())
   {
     delete d_commandStatus;
   }
