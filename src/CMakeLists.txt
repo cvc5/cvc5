@@ -17,7 +17,6 @@
 libcvc5_add_sources(
   api/cpp/cvc5.cpp
   api/cpp/cvc5_checks.h
-  api/cpp/cvc5_parser.cpp
   api/cpp/cvc5_types.cpp
   decision/assertion_list.cpp
   decision/assertion_list.h
