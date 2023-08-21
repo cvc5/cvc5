@@ -2070,9 +2070,9 @@ cdef class Solver:
             :param sorts: The sorts of the parameters to this function.
             :param sort: The sort of the return value of this function.
             :param fresh: If true, then this method always returns a new Term.
-                          If false, then this method will always return the
+                          Otherwise, this method will always return the
                           same Term for each call with the given sorts and
-                          symbol.
+                          symbol where fresh is false.
             :return: The function.
         """
         cdef Term term = Term(self)
