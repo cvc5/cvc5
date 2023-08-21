@@ -2056,7 +2056,7 @@ cdef class Solver:
         sort.csort = self.csolver.declareDatatype(symbol.encode(), v)
         return sort
 
-    def declareFun(self, str symbol, list sorts, Sort sort, fresh=None):
+    def declareFun(self, str symbol, list sorts, Sort sort, fresh=True):
         """
             Declare n-ary function symbol.
 
@@ -2079,15 +2079,10 @@ cdef class Solver:
         cdef vector[c_Sort] v
         for s in sorts:
             v.push_back((<Sort?> s).csort)
-        if fresh is None:
-            term.cterm = self.csolver.declareFun(symbol.encode(),
-                                                <const vector[c_Sort]&> v,
-                                                sort.csort)
-        else:
-            term.cterm = self.csolver.declareFun(symbol.encode(),
-                                                <const vector[c_Sort]&> v,
-                                                sort.csort,
-                                                <bint> fresh)
+        term.cterm = self.csolver.declareFun(symbol.encode(),
+                                            <const vector[c_Sort]&> v,
+                                            sort.csort,
+                                            <bint> fresh)
         return term
 
     def declareSort(self, str symbol, int arity):
