@@ -16,6 +16,7 @@
 #include "parser/smt2/smt2_parser.h"
 
 #include "base/output.h"
+#include "parser/commands.h"
 
 namespace cvc5 {
 namespace parser {

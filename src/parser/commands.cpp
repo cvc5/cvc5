@@ -33,7 +33,6 @@
 #include "options/printer_options.h"
 #include "options/smt_options.h"
 #include "parser/command_status.h"
-#include "parser/commands.h"
 #include "parser/sym_manager.h"
 #include "printer/printer.h"
 #include "proof/unsat_core.h"

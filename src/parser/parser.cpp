@@ -20,6 +20,7 @@
 #include "parser/lexer.h"
 #include "parser/parser_exception.h"
 #include "parser/smt2/smt2_parser.h"
+#include "parser/commands.h"
 
 namespace cvc5 {
 namespace parser {
