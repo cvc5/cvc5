@@ -2559,11 +2559,11 @@ void CoreSolver::checkNormalFormsDeq()
   for (const Node& eq : d_rlvDeq)
   {
     Assert(!d_state.isInConflict());
-    // If using the sequence update solver, we always apply extensionality.
+    // If using sequences, we always apply extensionality.
     // This is required for model soundness currently, although we could
     // investigate determining cases where the disequality is already
     // satisfied (for optimization).
-    if (options().strings.stringsDeqExt
+    if (eq[0].getType().isSequence() || options().strings.stringsDeqExt
         || options().strings.seqArray != options::SeqArrayMode::NONE)
     {
       processDeqExtensionality(eq[0], eq[1]);

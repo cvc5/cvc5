@@ -30,8 +30,6 @@
 #include <string>
 #include <vector>
 
-#include "options/language.h"
-
 namespace cvc5 {
 
 namespace main {
@@ -44,10 +42,15 @@ class CommandStatus;
 class SymbolManager;
 class SymManager;
 
+/**
+ * Encapsulation of a command.
+ *
+ * Commands are constructed by the input parser and can be invoked on
+ * the solver and symbol manager.
+ */
 class CVC5_EXPORT Command
 {
   friend class main::CommandExecutor;
-
  public:
   Command();
   Command(const Command& cmd);
@@ -57,35 +60,52 @@ class CVC5_EXPORT Command
   /**
    * Invoke the command on the solver and symbol manager sm, prints the result
    * to output stream out.
+   *
+   * @param solver The solver to invoke the command on.
+   * @param sm The symbol manager to invoke the command on.
+   * @param out The output stream to write the result of the command on.
    */
   void invoke(cvc5::Solver* solver,
               parser::SymbolManager* sm,
               std::ostream& out);
 
-  virtual void toStream(std::ostream& out) const = 0;
-
+  /**
+   * @return A string representation of this result.
+   */
   std::string toString() const;
 
+  /**
+   * Get the name for this command, e.g. "assert".
+   *
+   * @return The name of this command.
+   */
   virtual std::string getCommandName() const = 0;
 
   /**
    * Either the command hasn't run yet, or it completed successfully
    * (CommandSuccess, not CommandUnsupported or CommandFailure).
+   *
+   * @return Whether the command was successfully invoked.
    */
   bool ok() const;
 
   /**
    * The command completed in a failure state (CommandFailure, not
    * CommandSuccess or CommandUnsupported).
+   *
+   * @return Whether the command failed.
    */
   bool fail() const;
 
   /**
    * The command was ran but was interrupted due to resource limiting.
+   *
+   * @return Whether the command was interrupted.
    */
   bool interrupted() const;
 
  protected:
+  virtual void toStream(std::ostream& out) const = 0;
   /**
    * This field contains a command status if the command has been
    * invoked, or NULL if it has not.  This field is either a

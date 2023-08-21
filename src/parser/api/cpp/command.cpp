@@ -81,7 +81,7 @@ const CommandInterrupted* CommandInterrupted::s_instance =
 
 std::ostream& operator<<(std::ostream& out, const Command& c)
 {
-  c.toStream(out);
+  out << c.toString();
   return out;
 }
 
