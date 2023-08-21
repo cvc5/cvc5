@@ -47,12 +47,12 @@ Command::Command() : d_commandStatus(nullptr) {}
 Command::Command(const Command& cmd)
 {
   d_commandStatus =
-      (cmd.d_commandStatus == NULL) ? NULL : &cmd.d_commandStatus->clone();
+      (cmd.d_commandStatus == nullptr) ? nullptr : &cmd.d_commandStatus->clone();
 }
 
 Command::~Command()
 {
-  if (d_commandStatus != NULL && d_commandStatus != CommandSuccess::instance())
+  if (d_commandStatus != nullptr && d_commandStatus != CommandSuccess::instance())
   {
     delete d_commandStatus;
   }
@@ -61,20 +61,20 @@ Command::~Command()
 bool Command::ok() const
 {
   // either we haven't run the command yet, or it ran successfully
-  return d_commandStatus == NULL
-         || dynamic_cast<const CommandSuccess*>(d_commandStatus) != NULL;
+  return d_commandStatus == nullptr
+         || dynamic_cast<const CommandSuccess*>(d_commandStatus) != nullptr;
 }
 
 bool Command::fail() const
 {
-  return d_commandStatus != NULL
-         && dynamic_cast<const CommandFailure*>(d_commandStatus) != NULL;
+  return d_commandStatus != nullptr
+         && dynamic_cast<const CommandFailure*>(d_commandStatus) != nullptr;
 }
 
 bool Command::interrupted() const
 {
-  return d_commandStatus != NULL
-         && dynamic_cast<const CommandInterrupted*>(d_commandStatus) != NULL;
+  return d_commandStatus != nullptr
+         && dynamic_cast<const CommandInterrupted*>(d_commandStatus) != nullptr;
 }
 
 void Command::invoke(cvc5::Solver* solver,
@@ -167,7 +167,7 @@ std::ostream& operator<<(std::ostream& out, const Command& c)
 
 std::ostream& operator<<(std::ostream& out, const Command* c)
 {
-  if (c == NULL)
+  if (c == nullptr)
   {
     out << "null";
   }
