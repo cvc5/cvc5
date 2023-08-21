@@ -28,6 +28,7 @@
 set(libcvc5parser_src_files
   commands.cpp
   commands.h
+  command_status.cpp
   command_status.h
   input.cpp
   input.h

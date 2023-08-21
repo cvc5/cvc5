@@ -15,22 +15,32 @@
 
 #include <cvc5/cvc5_parser.h>
 
+#include <iostream>
+
 #include "base/check.h"
 #include "base/output.h"
 #include "parser/command_status.h"
-#include "parser/commands.h"
 #include "parser/parser.h"
 #include "parser/sym_manager.h"
 #include "theory/logic_info.h"
+#include "expr/node_manager.h"
 
 namespace cvc5 {
 namespace parser {
+
+/* -------------------------------------------------------------------------- */
+/* SymbolManager                                                              */
+/* -------------------------------------------------------------------------- */
 
 SymbolManager::SymbolManager(cvc5::Solver* s) { d_sm.reset(new SymManager(s)); }
 
 SymbolManager::~SymbolManager() {}
 
 SymManager* SymbolManager::get() { return d_sm.get(); }
+
+/* -------------------------------------------------------------------------- */
+/* Command                                                                    */
+/* -------------------------------------------------------------------------- */
 
 Command::Command() : d_commandStatus(nullptr) {}
 
@@ -106,6 +116,71 @@ void Command::printResult(cvc5::Solver* solver, std::ostream& out) const
     out << *d_commandStatus;
   }
 }
+
+void Command::resetSolver(cvc5::Solver* solver)
+{
+  std::unique_ptr<internal::Options> opts =
+      std::make_unique<internal::Options>();
+  opts->copyValues(*solver->d_originalOptions);
+  // This reconstructs a new solver object at the same memory location as the
+  // current one. Note that this command does not own the solver object!
+  // It may be safer to instead make the ResetCommand a special case in the
+  // CommandExecutor such that this reconstruction can be done within the
+  // CommandExecutor, who actually owns the solver.
+  solver->~Solver();
+  new (solver) cvc5::Solver(std::move(opts));
+}
+
+internal::Node Command::termToNode(const cvc5::Term& term)
+{
+  return term.getNode();
+}
+
+std::vector<internal::Node> Command::termVectorToNodes(
+    const std::vector<cvc5::Term>& terms)
+{
+  return cvc5::Term::termVectorToNodes(terms);
+}
+
+internal::TypeNode Command::sortToTypeNode(const cvc5::Sort& sort)
+{
+  return sort.getTypeNode();
+}
+
+std::vector<internal::TypeNode> Command::sortVectorToTypeNodes(
+    const std::vector<cvc5::Sort>& sorts)
+{
+  return cvc5::Sort::sortVectorToTypeNodes(sorts);
+}
+
+internal::TypeNode Command::grammarToTypeNode(cvc5::Grammar* grammar)
+{
+  return grammar == nullptr ? internal::TypeNode::null()
+                            : sortToTypeNode(grammar->resolve());
+}
+
+std::ostream& operator<<(std::ostream& out, const Command& c)
+{
+  out << c.toString();
+  return out;
+}
+
+std::ostream& operator<<(std::ostream& out, const Command* c)
+{
+  if (c == NULL)
+  {
+    out << "null";
+  }
+  else
+  {
+    out << *c;
+  }
+  return out;
+}
+
+/* -------------------------------------------------------------------------- */
+/* InputParser                                                                */
+/* -------------------------------------------------------------------------- */
 
 InputParser::InputParser(Solver* solver, SymbolManager* sm)
     : d_solver(solver), d_allocSm(nullptr), d_sm(sm)
