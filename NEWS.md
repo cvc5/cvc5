@@ -19,9 +19,9 @@ This file contains a summary of important user-visible changes.
   * API: New API function `Solver::findSynth` which takes an identifier
     specifying a target term to synthesize and (optionally) a grammar. This
     method can be used to directly enumerate terms in a provided grammar
-    (`FIND_SYNTH_TARGET_ENUM`), or as a way of finding other terms of interest,
+    (`FindSynthTarget::ENUM`), or as a way of finding other terms of interest,
     e.g. a rewrite rule that is applicable to the current set of assertions
-    (`FIND_SYNTH_TARGET_REWRITE_INPUT`).
+    (`FindSynthTarget::REWRITE_INPUT`).
   * API: New API function `Solver::findSynthNext` which gets the next term
     in the enumeration.
   * SMT-LIB: New commands `find-synth` and `find-synth-next` which invoke the
