@@ -28,7 +28,7 @@
 #include <vector>
 
 #include "options/language.h"
-#include "parser/api/cpp/command.h"
+#include <cvc5/cvc5_parser.h>
 
 namespace cvc5 {
 

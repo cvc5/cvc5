@@ -26,7 +26,7 @@
 #include <vector>
 
 #include "main/main.h"
-#include "parser/api/cpp/command.h"
+#include <cvc5/cvc5_parser.h>
 #include "smt/solver_engine.h"
 #include "base/output.h"
 #include "parser/commands.h"

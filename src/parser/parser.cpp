@@ -17,7 +17,6 @@
 
 #include "base/check.h"
 #include "base/output.h"
-#include "parser/api/cpp/command.h"
 #include "parser/lexer.h"
 #include "parser/parser_exception.h"
 #include "parser/smt2/smt2_parser.h"
