@@ -58,6 +58,8 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::ECHO_TOK: o << "ECHO_TOK"; break;
     case Token::EXIT_TOK: o << "EXIT_TOK"; break;
     case Token::FIELD_LITERAL: o << "FIELD_LITERAL"; break;
+    case Token::FIND_SYNTH_TOK: o << "FIND_SYNTH_TOK"; break;
+    case Token::FIND_SYNTH_NEXT_TOK: o << "FIND_SYNTH_NEXT_TOK"; break;
     case Token::GET_ABDUCT_NEXT_TOK: o << "GET_ABDUCT_NEXT_TOK"; break;
     case Token::GET_ABDUCT_TOK: o << "GET_ABDUCT_TOK"; break;
     case Token::GET_ASSERTIONS_TOK: o << "GET_ASSERTIONS_TOK"; break;

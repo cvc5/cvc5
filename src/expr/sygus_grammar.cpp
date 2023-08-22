@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Abdalrhman Mohamed
+ *   Abdalrhman Mohamed, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -17,6 +17,7 @@
 
 #include <sstream>
 
+#include "expr/dtype.h"
 #include "expr/skolem_manager.h"
 #include "printer/printer.h"
 #include "printer/smt2/smt2_printer.h"
@@ -27,44 +28,17 @@ SygusGrammar::SygusGrammar(const std::vector<Node>& sygusVars,
                            const std::vector<Node>& ntSyms)
     : d_sygusVars(sygusVars), d_ntSyms(ntSyms)
 {
-  NodeManager* nm = NodeManager::currentNM();
   for (const Node& ntSym : ntSyms)
   {
-    std::vector<Node> emptyVec;
-    d_rules.emplace(ntSym, emptyVec);
-    d_sdts.emplace(ntSym, SygusDatatype(ntSym.getName()));
-    d_ntsToUnres.emplace(ntSym, nm->mkUnresolvedDatatypeSort(ntSym.getName()));
+    d_rules.emplace(ntSym, std::vector<Node>{});
   }
-}
-
-bool isId(const Node& n)
-{
-  return n.getKind() == kind::LAMBDA && n[0].getNumChildren() == 1
-         && n[0][0] == n[1];
 }
 
 void SygusGrammar::addRule(const Node& ntSym, const Node& rule)
 {
-  Assert(d_sdts.find(ntSym) != d_sdts.cend());
+  Assert(d_rules.find(ntSym) != d_rules.cend());
   Assert(rule.getType().isInstanceOf(ntSym.getType()));
   d_rules[ntSym].push_back(rule);
-}
-
-void SygusGrammar::addRuleInternal(const Node& ntSym, const Node& rule)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  std::vector<Node> args;
-  std::vector<TypeNode> cargs;
-  Node op = purifySygusGNode(rule, args, cargs);
-  std::stringstream ss;
-  ss << op.getKind();
-  if (!args.empty())
-  {
-    Node lbvl = nm->mkNode(kind::BOUND_VAR_LIST, args);
-    op = nm->mkNode(kind::LAMBDA, lbvl, op);
-  }
-  // assign identity rules a weight of 0.
-  d_sdts.at(ntSym).addConstructor(op, ss.str(), cargs, isId(op) ? 0 : -1);
 }
 
 void SygusGrammar::addRules(const Node& ntSym, const std::vector<Node>& rules)
@@ -77,7 +51,7 @@ void SygusGrammar::addRules(const Node& ntSym, const std::vector<Node>& rules)
 
 void SygusGrammar::addAnyConstant(const Node& ntSym, const TypeNode& tn)
 {
-  Assert(d_sdts.find(ntSym) != d_sdts.cend());
+  Assert(d_rules.find(ntSym) != d_rules.cend());
   Assert(tn.isInstanceOf(ntSym.getType()));
   SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
   Node anyConst = sm->mkSkolemFunction(SkolemFunId::SYGUS_ANY_CONSTANT, tn);
@@ -86,8 +60,8 @@ void SygusGrammar::addAnyConstant(const Node& ntSym, const TypeNode& tn)
 
 void SygusGrammar::addAnyVariable(const Node& ntSym)
 {
-  Assert(d_sdts.find(ntSym) != d_sdts.cend());
-  // each variable of appropriate type becomes a sygus constructor in sdt.
+  Assert(d_rules.find(ntSym) != d_rules.cend());
+  // each variable of appropriate type becomes a rule.
   for (const Node& v : d_sygusVars)
   {
     if (v.getType().isInstanceOf(ntSym.getType()))
@@ -108,54 +82,160 @@ void SygusGrammar::removeRule(const Node& ntSym, const Node& rule)
   itr->second.erase(it);
 }
 
+/**
+ * Purify SyGuS grammar node.
+ *
+ * This returns a node where all occurrences of non-terminal symbols (those in
+ * the domain of \p ntsToUnres) are replaced by fresh variables. For each
+ * variable replaced in this way, we add the fresh variable it is replaced with
+ * to \p args, and the unresolved types corresponding to the non-terminal symbol
+ * to \p cargs (constructor args). In other words, \p args contains the free
+ * variables in the node returned by this method (which should be bound by a
+ * lambda), and \p cargs contains the types of the arguments of the sygus
+ * constructor.
+ *
+ * @param n The node to purify.
+ * @param args The free variables in the node returned by this method.
+ * @param cargs The types of the arguments of the sygus constructor.
+ * @param ntsToUnres Mapping from non-terminals to their unresolved types.
+ * @return The purfied node.
+ */
+Node purifySygusGNode(const Node& n,
+                      std::vector<Node>& args,
+                      std::vector<TypeNode>& cargs,
+                      const std::unordered_map<Node, TypeNode>& ntsToUnres)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  std::unordered_map<Node, TypeNode>::const_iterator itn = ntsToUnres.find(n);
+  if (itn != ntsToUnres.cend())
+  {
+    Node ret = nm->mkBoundVar(n.getType());
+    args.push_back(ret);
+    cargs.push_back(itn->second);
+    return ret;
+  }
+  std::vector<Node> pchildren;
+  bool childChanged = false;
+  for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
+  {
+    Node ptermc = purifySygusGNode(n[i], args, cargs, ntsToUnres);
+    pchildren.push_back(ptermc);
+    childChanged = childChanged || ptermc != n[i];
+  }
+  if (!childChanged)
+  {
+    return n;
+  }
+  internal::Node nret;
+  if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
+  {
+    // it's an indexed operator so we should provide the op
+    internal::NodeBuilder nb(n.getKind());
+    nb << n.getOperator();
+    nb.append(pchildren);
+    nret = nb.constructNode();
+  }
+  else
+  {
+    nret = nm->mkNode(n.getKind(), pchildren);
+  }
+  return nret;
+}
+
+bool isId(const Node& n)
+{
+  return n.getKind() == kind::LAMBDA && n[0].getNumChildren() == 1
+         && n[0][0] == n[1];
+}
+
+/**
+ * Add \p rule to the set of constructors of \p dt.
+ *
+ * @param dt The datatype to which the rule is added.
+ * @param rule The rule to add.
+ * @param ntsToUnres Mapping from non-terminals to their unresolved types.
+ */
+void addSygusConstructor(DType& dt,
+                         const Node& rule,
+                         const std::unordered_map<Node, TypeNode>& ntsToUnres)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  std::stringstream ss;
+  if (rule.getKind() == kind::SKOLEM
+      && sm->getId(rule) == SkolemFunId::SYGUS_ANY_CONSTANT)
+  {
+    ss << dt.getName() << "_any_constant";
+    dt.addSygusConstructor(rule, ss.str(), {rule.getType()}, 0);
+  }
+  else
+  {
+    std::vector<Node> args;
+    std::vector<TypeNode> cargs;
+    Node op = purifySygusGNode(rule, args, cargs, ntsToUnres);
+    ss << op.getKind();
+    if (!args.empty())
+    {
+      Node lbvl = nm->mkNode(kind::BOUND_VAR_LIST, args);
+      op = nm->mkNode(kind::LAMBDA, lbvl, op);
+    }
+    // assign identity rules a weight of 0.
+    dt.addSygusConstructor(op, ss.str(), cargs, isId(op) ? 0 : -1);
+  }
+}
+
 TypeNode SygusGrammar::resolve(bool allowAny)
 {
   if (!isResolved())
   {
     NodeManager* nm = NodeManager::currentNM();
     SkolemManager* sm = nm->getSkolemManager();
-    // Set of non-terminals that can be arbitrary constants.
-    std::unordered_set<Node> allowConsts;
-    // push the rules into the sygus datatypes
-    for (const std::pair<const Node, std::vector<Node>>& g : d_rules)
-    {
-      for (const Node& r : g.second)
-      {
-        if (r.getKind() == kind::SKOLEM
-            && sm->getId(r) == SkolemFunId::SYGUS_ANY_CONSTANT)
-        {
-          allowConsts.insert(g.first);
-          d_sdts.at(g.first).addAnyConstantConstructor(r.getType());
-        }
-        else
-        {
-          addRuleInternal(g.first, r);
-        }
-      }
-    }
     Node bvl;
     if (!d_sygusVars.empty())
     {
       bvl = nm->mkNode(kind::BOUND_VAR_LIST, d_sygusVars);
     }
-    std::vector<DType> datatypes;
+    std::unordered_map<Node, TypeNode> ntsToUnres;
     for (const Node& ntSym : d_ntSyms)
     {
-      bool allowConst = allowConsts.find(ntSym) != allowConsts.cend();
-      d_sdts.at(ntSym).initializeDatatype(
-          ntSym.getType(), bvl, allowConst || allowAny, allowAny);
-      datatypes.push_back(d_sdts.at(ntSym).getDatatype());
+      // make the unresolved type, used for referencing the final version of
+      // the ntSym's datatype
+      ntsToUnres.emplace(ntSym, nm->mkUnresolvedDatatypeSort(ntSym.getName()));
     }
-    d_datatype = nm->mkMutualDatatypeTypes(datatypes)[0];
+    // Set of non-terminals that can be arbitrary constants.
+    std::unordered_set<Node> allowConsts;
+    // push the rules into the sygus datatypes
+    std::vector<DType> dts;
+    for (const Node& ntSym : d_ntSyms)
+    {
+      // make the datatype, which encodes terms generated by this non-terminal
+      DType dt(ntSym.getName());
+
+      for (const Node& rule : d_rules[ntSym])
+      {
+        if (rule.getKind() == kind::SKOLEM
+            && sm->getId(rule) == SkolemFunId::SYGUS_ANY_CONSTANT)
+        {
+          allowConsts.insert(ntSym);
+        }
+        addSygusConstructor(dt, rule, ntsToUnres);
+      }
+      bool allowConst = allowConsts.find(ntSym) != allowConsts.end();
+      dt.setSygus(ntSym.getType(), bvl, allowConst || allowAny, allowAny);
+      // We can be in a case where the only rule specified was (Variable T)
+      // and there are no variables of type T, in which case this is a bogus
+      // grammar. This results in the error below.
+      Assert(dt.getNumConstructors() != 0) << "Grouped rule listing for " << dt
+                                           << " produced an empty rule list";
+      dts.push_back(dt);
+    }
+    d_datatype = nm->mkMutualDatatypeTypes(dts)[0];
   }
   // return the first datatype
   return d_datatype;
 }
 
-bool SygusGrammar::isResolved()
-{
-  return !d_datatype.isNull();
-}
+bool SygusGrammar::isResolved() { return !d_datatype.isNull(); }
 
 const std::vector<Node>& SygusGrammar::getSygusVars() const
 {
@@ -178,47 +258,6 @@ std::string SygusGrammar::toString() const
   // clone this grammar before printing it to avoid freezing it.
   return printer::smt2::Smt2Printer::sygusGrammarString(
       SygusGrammar(*this).resolve());
-}
-
-Node SygusGrammar::purifySygusGNode(const Node& n,
-                                    std::vector<Node>& args,
-                                    std::vector<TypeNode>& cargs) const
-{
-  NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<Node, TypeNode>::const_iterator itn = d_ntsToUnres.find(n);
-  if (itn != d_ntsToUnres.cend())
-  {
-    Node ret = nm->mkBoundVar(n.getType());
-    args.push_back(ret);
-    cargs.push_back(itn->second);
-    return ret;
-  }
-  std::vector<Node> pchildren;
-  bool childChanged = false;
-  for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
-  {
-    Node ptermc = purifySygusGNode(n[i], args, cargs);
-    pchildren.push_back(ptermc);
-    childChanged = childChanged || ptermc != n[i];
-  }
-  if (!childChanged)
-  {
-    return n;
-  }
-  internal::Node nret;
-  if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
-  {
-    // it's an indexed operator so we should provide the op
-    internal::NodeBuilder nb(n.getKind());
-    nb << n.getOperator();
-    nb.append(pchildren);
-    nret = nb.constructNode();
-  }
-  else
-  {
-    nret = nm->mkNode(n.getKind(), pchildren);
-  }
-  return nret;
 }
 
 }  // namespace cvc5::internal

@@ -26,11 +26,9 @@
 #include "options/options.h"
 #include "parser/api/cpp/command.h"
 #include "parser/api/cpp/symbol_manager.h"
-#include "parser/parser_builder.h"
 #include "test.h"
 
 using namespace cvc5::parser;
-using namespace cvc5::internal::parser;
 
 namespace cvc5::internal {
 namespace test {

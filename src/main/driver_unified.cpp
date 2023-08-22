@@ -76,6 +76,11 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
     printUsage(progName, dopts.out());
     exit(1);
   }
+  else if (solver->getOptionInfo("help-regular").boolValue())
+  {
+    printUsage(progName, dopts.out(), true);
+    exit(1);
+  }
   for (const auto& name : {"show-config",
                            "copyright",
                            "show-trace-tags",
@@ -131,9 +136,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
       size_t len = filenameStr.size();
       if(len >= 5 && !strcmp(".smt2", filename + len - 5)) {
         solver->setOption("input-language", "smt2");
-      } else if((len >= 2 && !strcmp(".p", filename + len - 2))
-                || (len >= 5 && !strcmp(".tptp", filename + len - 5))) {
-        solver->setOption("input-language", "tptp");
       } else if((len >= 3 && !strcmp(".sy", filename + len - 3))
                 || (len >= 3 && !strcmp(".sl", filename + len - 3))) {
         // version 2 sygus is the default

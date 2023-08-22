@@ -29,6 +29,7 @@
 #include "parser/api/cpp/command.h"
 #include "smt/solver_engine.h"
 #include "base/output.h"
+#include "parser/commands.h"
 
 using namespace cvc5::parser;
 
