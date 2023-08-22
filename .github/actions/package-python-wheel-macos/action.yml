@@ -6,7 +6,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/setup-python@v4
+    - uses: actions/setup-python@v2
       if: runner.os == 'macOS'
       with:
         python-version: ${{ inputs.python-version }}

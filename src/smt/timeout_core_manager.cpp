@@ -57,6 +57,12 @@ std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
   d_syms.clear();
   initializePreprocessedAssertions(ppAsserts, ppSkolemMap);
 
+  // trivial case: empty assertions
+  if (d_ppAsserts.empty())
+  {
+    return std::pair<Result, std::vector<Node>>(Result(Result::SAT), {});
+  }
+
   std::vector<Node> nextAssertions;
   Result result;
   bool checkAgain = true;

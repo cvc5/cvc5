@@ -24,12 +24,12 @@
 #include <memory>
 
 #include "parser/api/cpp/command.h"
-#include "parser/parser.h"
 
 namespace cvc5 {
 namespace parser {
 
 class Command;
+class Parser;
 class SymbolManager;
 
 /**
@@ -133,7 +133,7 @@ class CVC5_EXPORT InputParser
   /** Incremental string name */
   std::string d_istringName;
   /** The parser */
-  std::unique_ptr<Parser> d_fparser;
+  std::shared_ptr<Parser> d_fparser;
 };
 
 }  // namespace parser
