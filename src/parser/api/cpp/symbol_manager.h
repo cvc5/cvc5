@@ -58,6 +58,7 @@ class CVC5_EXPORT SymbolManager
  public:
   SymbolManager(cvc5::Solver* s);
   ~SymbolManager();
+
  private:
   /** Get the underlying implementation */
   SymManager* get();
