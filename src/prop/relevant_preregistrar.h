@@ -215,6 +215,8 @@ class RelevantPreregistrar : protected EnvObj
    */
   void updateJustify(std::vector<std::pair<TNode, SatValue>>& justifyQueue,
                      std::vector<TNode>& toVisit);
+  /** Return true if Boolean term n is a theory atom */
+  static bool isAtomPreregister(TNode n);
   /** get RlvInfo */
   RlvInfo* getInfo(TNode n);
   /** mk RlvInfo */

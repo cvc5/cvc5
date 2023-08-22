@@ -116,8 +116,8 @@ bool RelevantPreregistrar::notifyAsserted(TNode n,
   updateRelevant(toVisit, toPreregister);
 
   // we are notified about Boolean variables, but these should not be asserted
-  // to the theory engine unless their kind is BOOLEAN_TERM_VARIABLE.
-  return !natom.isVar() || natom.getKind() == BOOLEAN_TERM_VARIABLE;
+  // to the theory engine unless they are from purification
+  return isAtomPreregister(natom);
 }
 
 void RelevantPreregistrar::setRelevant(TNode n,
@@ -354,14 +354,7 @@ SatValue RelevantPreregistrar::updateRelevantNext(
     Trace("prereg-rlv") << "...preregister theory literal " << n << std::endl;
     // theory literals are added to the preregister queue
     toVisit.pop_back();
-    bool isTheoryAtom = true;
-    if (n.isVar())
-    {
-      SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-      // only preregister variables corresponding to Boolean purification
-      isTheoryAtom = (sm->getId(node) == SkolemFunId::PURIFY);
-    }
-    if (isTheoryAtom)
+    if (isAtomPreregister(n))
     {
       toPreregister.push_back(n);
     }
@@ -529,6 +522,17 @@ RlvInfo* RelevantPreregistrar::getOrMkInfo(TNode n)
 SatValue RelevantPreregistrar::relevantUnion(SatValue r1, SatValue r2)
 {
   return r1 == r2 ? r1 : SAT_VALUE_UNKNOWN;
+}
+
+bool RelevantPreregistrar::isAtomPreregister(TNode n)
+{
+  if (!n.isVar())
+  {
+    // non-variable theory atom
+    return true;
+  }
+  // only preregister variables corresponding to Boolean purification
+  return (sm->getId(node) == SkolemFunId::PURIFY);
 }
 
 }  // namespace prop
