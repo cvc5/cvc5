@@ -1825,7 +1825,7 @@ void Smt2Printer::toStreamCmdGetProof(std::ostream& out,
                                       modes::ProofComponent c) const
 {
   out << "(get-proof";
-  if (c != modes::PROOF_COMPONENT_FULL)
+  if (c != modes::ProofComponent::FULL)
   {
     out << " :" << c;
   }
@@ -1856,7 +1856,7 @@ void Smt2Printer::toStreamCmdGetLearnedLiterals(std::ostream& out,
                                                 modes::LearnedLitType t) const
 {
   out << "(get-learned-literals";
-  if (t != modes::LEARNED_LIT_INPUT)
+  if (t != modes::LearnedLitType::INPUT)
   {
     out << " :" << t;
   }

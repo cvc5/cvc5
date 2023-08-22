@@ -2085,7 +2085,7 @@ public class Solver implements IPointer
    *
    * @param c The component of the proof to return
    * @return A string representing the proof. This is equivalent to getProof
-   * when c is PROOF_COMPONENT_FULL.
+   * when c is FULL.
    */
   public String getProof(ProofComponent c)
   {

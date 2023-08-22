@@ -628,7 +628,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
     {
       // optional keyword
       tok = d_lex.peekToken();
-      modes::LearnedLitType llt = modes::LEARNED_LIT_INPUT;
+      modes::LearnedLitType llt = modes::LearnedLitType::INPUT;
       if (tok == Token::KEYWORD)
       {
         std::string key = d_tparser.parseKeyword();
@@ -657,7 +657,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
     {
       // optional keyword
       tok = d_lex.peekToken();
-      modes::ProofComponent pc = modes::PROOF_COMPONENT_FULL;
+      modes::ProofComponent pc = modes::ProofComponent::FULL;
       if (tok == Token::KEYWORD)
       {
         std::string key = d_tparser.parseKeyword();

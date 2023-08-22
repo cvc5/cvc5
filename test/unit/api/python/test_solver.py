@@ -1456,9 +1456,9 @@ def test_get_unsat_core_and_proof(solver):
     assert solver.checkSat().isUnsat()
 
     unsat_core = solver.getUnsatCore()
-    
+
     solver.getProof()
-    solver.getProof(ProofComponent.PROOF_COMPONENT_SAT)
+    solver.getProof(ProofComponent.SAT)
 
     solver.resetAssertions()
     for t in unsat_core:
@@ -1473,7 +1473,7 @@ def test_learned_literals(solver):
         solver.getLearnedLiterals()
     solver.checkSat()
     solver.getLearnedLiterals()
-    solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_PREPROCESS)
+    solver.getLearnedLiterals(LearnedLitType.PREPROCESS)
 
 def test_learned_literals2(solver):
     solver.setOption("produce-learned-literals", "true")
@@ -1490,7 +1490,7 @@ def test_learned_literals2(solver):
     solver.assertFormula(f0)
     solver.assertFormula(f1)
     solver.checkSat()
-    solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_INPUT)
+    solver.getLearnedLiterals(LearnedLitType.INPUT)
 
 def test_get_timeout_core_unsat(solver):
   solver.setOption("timeout-core-timeout", "100")
@@ -1829,7 +1829,10 @@ def test_get_statistics(solver):
     solver.assertFormula(f1)
     solver.checkSat()
     s = solver.getStatistics()
-    assert s['cvc5::TERM'] == {'defaulted': False, 'internal': False, 'value': {'GEQ': 3, 'OR': 1}}
+    assert s['cvc5::TERM'] == {
+            'defaulted': False,
+            'internal': False,
+            'value': {'Kind::GEQ': 3, 'Kind::OR': 1}}
     assert s.get(True, False) != {}
 
 def test_set_info(solver):
@@ -2277,7 +2280,7 @@ def test_find_synth(solver):
     f = solver.synthFun("f", [], solver.getBooleanSort(), g)
 
     # should enumerate based on the grammar of the function to synthesize above
-    t = solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM)
+    t = solver.findSynth(FindSynthTarget.ENUM)
     assert not t.isNull() and t.getSort().isBoolean()
 
 
@@ -2293,7 +2296,7 @@ def test_find_synth2(solver):
     g.addRule(start, falsen)
 
     # should enumerate true/false
-    t = solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM, g)
+    t = solver.findSynth(FindSynthTarget.ENUM, g)
     assert not t.isNull() and t.getSort().isBoolean()
     t = solver.findSynthNext()
     assert not t.isNull() and t.getSort().isBoolean()

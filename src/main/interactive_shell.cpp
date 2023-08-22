@@ -48,6 +48,7 @@
 #include "parser/api/cpp/input_parser.h"
 #include "parser/api/cpp/symbol_manager.h"
 #include "parser/commands.h"
+#include "parser/parser_exception.h"
 #include "parser/sym_manager.h"
 #include "theory/logic_info.h"
 
@@ -144,7 +145,7 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
 #else  /* HAVE_LIBEDITLINE */
   d_usingEditline = false;
 #endif /* HAVE_LIBEDITLINE */
-}/* InteractiveShell::InteractiveShell() */
+} /* InteractiveShell::InteractiveShell() */
 
 InteractiveShell::~InteractiveShell() {
 #if HAVE_LIBEDITLINE

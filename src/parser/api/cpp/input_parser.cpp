@@ -19,6 +19,7 @@
 #include "base/output.h"
 #include "parser/api/cpp/command.h"
 #include "parser/api/cpp/symbol_manager.h"
+#include "parser/parser.h"
 #include "parser/sym_manager.h"
 #include "theory/logic_info.h"
 
