@@ -186,6 +186,7 @@ SatLiteral CnfStream::newLiteral(TNode node,
     {
       Trace("cnf") << d_name << "::newLiteral: new var\n";
       lit = SatLiteral(d_satSolver->newVar(isTheoryAtom, canEliminate));
+      d_stats.d_numAtoms++;
     }
     d_nodeToLiteralMap.insert(node, lit);
     d_nodeToLiteralMap.insert(node.notNode(), ~lit);
@@ -772,7 +773,8 @@ void CnfStream::convertAndAssert(TNode node, bool negated)
 CnfStream::Statistics::Statistics(StatisticsRegistry& sr,
                                   const std::string& name)
     : d_cnfConversionTime(
-        sr.registerTimer(name + "::CnfStream::cnfConversionTime"))
+        sr.registerTimer(name + "::CnfStream::cnfConversionTime")),
+      d_numAtoms(sr.registerInt(name + "::CnfStream::numAtoms"))
 {
 }
 

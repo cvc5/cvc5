@@ -118,6 +118,7 @@ runs:
         echo "::group::Install software for documentation"
         sudo apt-get install -y doxygen python3-docutils python3-jinja2
         python3 -m pip install --user \
+          sphinx==7.1.2 \
           sphinxcontrib-bibtex sphinx-tabs sphinx-rtd-theme breathe \
           sphinxcontrib-programoutput
         echo "::endgroup::"

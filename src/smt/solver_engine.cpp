@@ -812,7 +812,11 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore()
   std::pair<Result, std::vector<Node>> ret =
       tcm.getTimeoutCore(passerts, ppSkolemMap);
   // convert the preprocessed assertions to input assertions
-  std::vector<Node> core = convertPreprocessedToInput(ret.second, true);
+  std::vector<Node> core;
+  if (!ret.second.empty())
+  {
+    core = convertPreprocessedToInput(ret.second, true);
+  }
   endCall();
   return std::pair<Result, std::vector<Node>>(ret.first, core);
 }
