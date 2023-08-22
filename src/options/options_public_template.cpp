@@ -228,7 +228,11 @@ OptionInfo getInfo(const Options& opts, const std::string& name)
   // clang-format off
   ${getinfo_impl}$
   // clang-format on
-  return OptionInfo{"", {}, false, OptionInfo::VoidInfo{}};
+  return OptionInfo{"",
+                    {},
+                    false,
+                    OptionInfo::Category::UNDOCUMENTED,
+                    OptionInfo::VoidInfo{}};
 }
 
 #undef DO_SEMANTIC_CHECKS_BY_DEFAULT
