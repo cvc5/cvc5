@@ -354,7 +354,14 @@ SatValue RelevantPreregistrar::updateRelevantNext(
     Trace("prereg-rlv") << "...preregister theory literal " << n << std::endl;
     // theory literals are added to the preregister queue
     toVisit.pop_back();
-    if (!n.isVar() || nk == BOOLEAN_TERM_VARIABLE)
+    bool isTheoryAtom = true;
+    if (n.isVar())
+    {
+      SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+      // only preregister variables corresponding to Boolean purification
+      isTheoryAtom = (sm->getId(node) == SkolemFunId::PURIFY);
+    }
+    if (isTheoryAtom)
     {
       toPreregister.push_back(n);
     }
