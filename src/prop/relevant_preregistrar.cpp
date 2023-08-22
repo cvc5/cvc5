@@ -16,6 +16,7 @@
 #include "prop/relevant_preregistrar.h"
 
 #include "options/prop_options.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5::internal::kind;
 
@@ -532,7 +533,8 @@ bool RelevantPreregistrar::isAtomPreregister(TNode n)
     return true;
   }
   // only preregister variables corresponding to Boolean purification
-  return (sm->getId(node) == SkolemFunId::PURIFY);
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  return (sm->getId(n) == SkolemFunId::PURIFY);
 }
 
 }  // namespace prop
