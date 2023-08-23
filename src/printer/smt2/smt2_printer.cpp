@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed, Morgan Deters
+ *   Andrew Reynolds, Morgan Deters, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
@@ -34,7 +34,6 @@
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
-#include "expr/sygus_datatype.h"
 #include "options/io_utils.h"
 #include "options/language.h"
 #include "printer/let_binding.h"
@@ -1468,7 +1467,7 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
   out << "; cardinality of " << tn << " is " << elements.size() << endl;
   if (modelUninterpPrint == options::ModelUninterpPrintMode::DeclSortAndFun)
   {
-    toStreamCmdDeclareType(out, tn);
+    Printer::toStreamCmdDeclareType(out, tn);
   }
   // print the representatives
   for (const Node& trn : elements)
@@ -1741,13 +1740,11 @@ void Smt2Printer::toStreamSortedVarList(std::ostream& out,
 }
 
 void Smt2Printer::toStreamCmdDeclareType(std::ostream& out,
-                                         TypeNode type) const
+                                         const std::string& id,
+                                         size_t arity) const
 {
-  Assert(type.isUninterpretedSort() || type.isUninterpretedSortConstructor());
-  size_t arity = type.isUninterpretedSortConstructor()
-                     ? type.getUninterpretedSortConstructorArity()
-                     : 0;
-  out << "(declare-sort " << type << " " << arity << ")" << std::endl;
+  out << "(declare-sort " << cvc5::internal::quoteSymbol(id) << " " << arity
+      << ")" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdDefineType(std::ostream& out,
@@ -1825,7 +1822,7 @@ void Smt2Printer::toStreamCmdGetProof(std::ostream& out,
                                       modes::ProofComponent c) const
 {
   out << "(get-proof";
-  if (c != modes::PROOF_COMPONENT_FULL)
+  if (c != modes::ProofComponent::FULL)
   {
     out << " :" << c;
   }
@@ -1856,7 +1853,7 @@ void Smt2Printer::toStreamCmdGetLearnedLiterals(std::ostream& out,
                                                 modes::LearnedLitType t) const
 {
   out << "(get-learned-literals";
-  if (t != modes::LEARNED_LIT_INPUT)
+  if (t != modes::LearnedLitType::INPUT)
   {
     out << " :" << t;
   }
@@ -2070,21 +2067,16 @@ std::string Smt2Printer::sygusGrammarString(const TypeNode& t)
 }
 
 void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
-                                      Node f,
+                                      const std::string& id,
                                       const std::vector<Node>& vars,
-                                      bool isInv,
+                                      TypeNode rangeType,
                                       TypeNode sygusType) const
 {
-  out << '(' << (isInv ? "synth-inv " : "synth-fun ") << f << ' ';
+  out << "(synth-fun " << cvc5::internal::quoteSymbol(id) << ' ';
   // print variable list
   toStreamSortedVarList(out, vars);
-  // if not invariant-to-synthesize, print return type
-  if (!isInv)
-  {
-    TypeNode ftn = f.getType();
-    TypeNode range = ftn.isFunction() ? ftn.getRangeType() : ftn;
-    out << ' ' << range;
-  }
+  // print return type
+  out << ' ' << rangeType;
   out << '\n';
   // print grammar, if any
   if (!sygusType.isNull())
@@ -2095,10 +2087,11 @@ void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
 }
 
 void Smt2Printer::toStreamCmdDeclareVar(std::ostream& out,
-                                        Node var,
+                                        const std::string& id,
                                         TypeNode type) const
 {
-  out << "(declare-var " << var << ' ' << type << ')' << std::endl;
+  out << "(declare-var " << cvc5::internal::quoteSymbol(id) << ' ' << type
+      << ')' << std::endl;
 }
 
 void Smt2Printer::toStreamCmdConstraint(std::ostream& out, Node n) const
@@ -2126,6 +2119,24 @@ void Smt2Printer::toStreamCmdCheckSynth(std::ostream& out) const
 void Smt2Printer::toStreamCmdCheckSynthNext(std::ostream& out) const
 {
   out << "(check-synth-next)" << std::endl;
+}
+
+void Smt2Printer::toStreamCmdFindSynth(std::ostream& out,
+                                       modes::FindSynthTarget fst,
+                                       TypeNode sygusType) const
+{
+  out << "(find-synth :" << fst;
+  // print grammar, if any
+  if (!sygusType.isNull())
+  {
+    out << " " << sygusGrammarString(sygusType);
+  }
+  out << ")" << std::endl;
+}
+
+void Smt2Printer::toStreamCmdFindSynthNext(std::ostream& out) const
+{
+  out << "(find-synth-next)" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetInterpol(std::ostream& out,

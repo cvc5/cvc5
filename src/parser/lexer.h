@@ -24,7 +24,7 @@
 #include <vector>
 
 #include "base/check.h"
-#include "parser/flex_input.h"
+#include "parser/input.h"
 #include "parser/tokens.h"
 
 namespace cvc5 {
@@ -50,23 +50,20 @@ std::ostream& operator<<(std::ostream& o, const Span& l);
 #define INPUT_BUFFER_SIZE 32768
 
 /**
- * A Flex lexer. This class inherits from yyFlexLexer, which is generated
- * by Flex's C++ code generation.
- *
- * Custom lexers (e.g. for smt2) override the yylex method of the base
- * class.
+ * The base lexer class. The main methods to override are initialize and
+ * nextTokenInternal.
  */
-class FlexLexer
+class Lexer
 {
  public:
-  FlexLexer();
-  virtual ~FlexLexer() {}
+  Lexer();
+  virtual ~Lexer() {}
   /**
    * Initialize the lexer to generate tokens from stream input.
    * @param input The input stream
    * @param inputName The name for debugging
    */
-  virtual void initialize(FlexInput* input, const std::string& inputName);
+  virtual void initialize(Input* input, const std::string& inputName);
   /**
    * String corresponding to the last token (old top of stack). This is only
    * valid if no tokens are currently peeked.
@@ -97,7 +94,7 @@ class FlexLexer
   /** Compute the next token by reading from the stream */
   virtual Token nextTokenInternal() = 0;
   /** Get the next character */
-  char readNextChar()
+  int32_t readNextChar()
   {
     if (d_bufferPos < d_bufferEnd)
     {
@@ -126,9 +123,9 @@ class FlexLexer
     return d_ch;
   }
   /** Get the next character */
-  char nextChar()
+  int32_t nextChar()
   {
-    char res;
+    int32_t res;
     if (d_peekedChar)
     {
       res = d_chPeeked;
@@ -150,7 +147,7 @@ class FlexLexer
     return res;
   }
   /** Save character */
-  void saveChar(char ch)
+  void saveChar(int32_t ch)
   {
     Assert(!d_peekedChar);
     d_peekedChar = true;
@@ -195,11 +192,11 @@ class FlexLexer
   /** The size of characters in the current buffer */
   size_t d_bufferEnd;
   /** The current character we read. */
-  char d_ch;
+  int32_t d_ch;
   /** True if we have a saved character that has not been consumed yet. */
   bool d_peekedChar;
   /** The saved character. */
-  char d_chPeeked;
+  int32_t d_chPeeked;
 };
 
 }  // namespace parser

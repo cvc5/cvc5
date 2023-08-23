@@ -831,37 +831,25 @@ void TheorySetsPrivate::checkMapDown()
       exp.push_back(pair.second);
       d_state.addEqualityToExp(B, term, exp);
       Node y = pair.first;
-      if (y.getKind() == APPLY_UF && y.getOperator() == f)
-      {
-        // special case
-        // (=>
-        //   (set.member (f x) (set.map f A))
-        //   (set.member x A))
-        Node x = y[0];
-        Node memberA = nm->mkNode(SET_MEMBER, x, A);
-        d_im.assertInference(memberA, InferenceId::SETS_MAP_DOWN_POSITIVE, exp);
-      }
-      else
-      {
-        // general case
-        // (=>
-        //   (and
-        //     (set.member y B)
-        //     (= B (set.map f A)))
-        //   (and
-        //     (set.member x A)
-        //     (= (f x) y))
-        // )
-        Node x = sm->mkSkolemFunction(
-            SkolemFunId::SETS_MAP_DOWN_ELEMENT, elementType, {term, y});
 
-        d_state.registerMapSkolemElement(term, x);
-        Node memberA = nm->mkNode(kind::SET_MEMBER, x, A);
-        Node f_x = nm->mkNode(APPLY_UF, f, x);
-        Node equal = f_x.eqNode(y);
-        Node fact = memberA.andNode(equal);
-        d_im.assertInference(fact, InferenceId::SETS_MAP_DOWN_POSITIVE, exp);
-      }
+      // general case
+      // (=>
+      //   (and
+      //     (set.member y B)
+      //     (= B (set.map f A)))
+      //   (and
+      //     (set.member x A)
+      //     (= (f x) y))
+      // )
+      Node x = sm->mkSkolemFunction(
+          SkolemFunId::SETS_MAP_DOWN_ELEMENT, elementType, {term, y});
+
+      d_state.registerMapSkolemElement(term, x);
+      Node memberA = nm->mkNode(kind::SET_MEMBER, x, A);
+      Node f_x = nm->mkNode(APPLY_UF, f, x);
+      Node equal = f_x.eqNode(y);
+      Node fact = memberA.andNode(equal);
+      d_im.assertInference(fact, InferenceId::SETS_MAP_DOWN_POSITIVE, exp);
       if (d_state.isInConflict())
       {
         return;
@@ -1741,12 +1729,7 @@ TrustNode TheorySetsPrivate::expandChooseOperator(
 
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  // the skolem will occur in a term context, thus we give it Boolean
-  // term variable kind immediately.
-  SkolemManager::SkolemFlags flags = node.getType().isBoolean()
-                                         ? SkolemManager::SKOLEM_BOOL_TERM_VAR
-                                         : SkolemManager::SKOLEM_DEFAULT;
-  Node x = sm->mkPurifySkolem(node, flags);
+  Node x = sm->mkPurifySkolem(node);
   Node A = node[0];
   TypeNode setType = A.getType();
   ensureFirstClassSetType(setType);

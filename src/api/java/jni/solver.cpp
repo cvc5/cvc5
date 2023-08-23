@@ -2672,52 +2672,6 @@ Java_io_github_cvc5_Solver_synthFun__JLjava_lang_String_2_3JJJ(
 
 /*
  * Class:     io_github_cvc5_Solver
- * Method:    synthInv
- * Signature: (JLjava/lang/String;[J)J
- */
-JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_Solver_synthInv__JLjava_lang_String_2_3J(
-    JNIEnv* env, jobject, jlong pointer, jstring jSymbol, jlongArray jVars)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = reinterpret_cast<Solver*>(pointer);
-  const char* s = env->GetStringUTFChars(jSymbol, nullptr);
-  std::string cSymbol(s);
-  std::vector<Term> vars = getObjectsFromPointers<Term>(env, jVars);
-  Term* retPointer = new Term(solver->synthInv(cSymbol, vars));
-  env->ReleaseStringUTFChars(jSymbol, s);
-  return reinterpret_cast<jlong>(retPointer);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Solver
- * Method:    synthInv
- * Signature: (JLjava/lang/String;[JJ)J
- */
-JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_Solver_synthInv__JLjava_lang_String_2_3JJ(
-    JNIEnv* env,
-    jobject,
-    jlong pointer,
-    jstring jSymbol,
-    jlongArray jVars,
-    jlong grammarPointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = reinterpret_cast<Solver*>(pointer);
-  Grammar* grammar = reinterpret_cast<Grammar*>(grammarPointer);
-  const char* s = env->GetStringUTFChars(jSymbol, nullptr);
-  std::string cSymbol(s);
-  std::vector<Term> vars = getObjectsFromPointers<Term>(env, jVars);
-  Term* retPointer = new Term(solver->synthInv(cSymbol, vars, *grammar));
-  env->ReleaseStringUTFChars(jSymbol, s);
-  return reinterpret_cast<jlong>(retPointer);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Solver
  * Method:    addSygusConstraint
  * Signature: (JJ)V
  */
@@ -2865,6 +2819,57 @@ JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getSynthSolutions(
   jlongArray ret = getPointersFromObjects<Term>(env, solutions);
   return ret;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    findSynth
+ * Signature: (JI)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_findSynth__JI(JNIEnv* env,
+                                                                 jobject,
+                                                                 jlong pointer,
+                                                                 jint fstvalue)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  modes::FindSynthTarget fst = static_cast<modes::FindSynthTarget>(fstvalue);
+  Term* retPointer = new Term(solver->findSynth(fst));
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    findSynth
+ * Signature: (JIJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_findSynth__JIJ(
+    JNIEnv* env, jobject, jlong pointer, jint fstvalue, jlong grammarPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  modes::FindSynthTarget fst = static_cast<modes::FindSynthTarget>(fstvalue);
+  Grammar* grammar = reinterpret_cast<Grammar*>(grammarPointer);
+  Term* retPointer = new Term(solver->findSynth(fst, *grammar));
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    findSynthNext
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_findSynthNext(JNIEnv* env,
+                                                                 jobject,
+                                                                 jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  Term* retPointer = new Term(solver->findSynthNext());
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andres Noetzli, Andrew Reynolds
+ *   Gereon Kremer, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
@@ -30,6 +30,8 @@
 #include "base/exception.h"
 #include "base/output.h"
 #include "main/command_executor.h"
+#include "parser/commands.h"
+#include "parser/command_status.h"
 
 using namespace cvc5::parser;
 

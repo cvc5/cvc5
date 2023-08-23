@@ -15,8 +15,8 @@
 
 #include "cvc5parser_private.h"
 
-#ifndef CVC5__PARSER__SMT2__SMT2_LEXER_NEW_H
-#define CVC5__PARSER__SMT2__SMT2_LEXER_NEW_H
+#ifndef CVC5__PARSER__SMT2__SMT2_LEXER_H
+#define CVC5__PARSER__SMT2__SMT2_LEXER_H
 
 #include <array>
 #include <cstdlib>
@@ -25,7 +25,7 @@
 #include <vector>
 
 #include "base/check.h"
-#include "parser/flex_lexer.h"
+#include "parser/lexer.h"
 #include "parser/tokens.h"
 
 namespace cvc5 {
@@ -38,10 +38,10 @@ namespace parser {
  * Partially based on
  * https://github.com/bitwuzla/bitwuzla/blob/dev/src/parser/smt2/lexer.h
  */
-class Smt2LexerNew : public FlexLexer
+class Smt2Lexer : public Lexer
 {
  public:
-  Smt2LexerNew(bool isStrict, bool isSygus);
+  Smt2Lexer(bool isStrict, bool isSygus);
   const char* tokenStr() const override;
   /** Are we in strict mode? */
   bool isStrict() const;
@@ -60,10 +60,10 @@ class Smt2LexerNew : public FlexLexer
    */
   Token computeNextToken();
   /** Push a character to the stored token */
-  void pushToToken(char ch)
+  void pushToToken(int32_t ch)
   {
     Assert(ch != EOF);
-    d_token.push_back(ch);
+    d_token.push_back(static_cast<char>(ch));
   }
   //----------- Utilities for parsing the current character stream
   enum class CharacterClass
@@ -79,15 +79,15 @@ class Smt2LexerNew : public FlexLexer
   /** The set of non-letter/non-digit characters that may occur in keywords. */
   inline static const std::string s_extraSymbolChars = "+-/*=%?!.$_~&^<>@";
   /** parse <c>, return false if <c> is not ch. */
-  bool parseLiteralChar(char ch);
+  bool parseLiteralChar(int32_t ch);
   /** parse <c>, return false if <c> is not from cc */
   bool parseChar(CharacterClass cc);
-  /** parse <c>+ from cc, return false if the next char is not from cc. */
+  /** parse <c>+ from cc, return false if the next int32_t is not from cc. */
   bool parseNonEmptyCharList(CharacterClass cc);
   /** parse <c>* from cc. */
   void parseCharList(CharacterClass cc);
   /** Return true if ch is in character class cc */
-  bool isCharacterClass(char ch, CharacterClass cc) const
+  bool isCharacterClass(int32_t ch, CharacterClass cc) const
   {
     return d_charClass[static_cast<uint8_t>(ch)] & static_cast<uint8_t>(cc);
   }

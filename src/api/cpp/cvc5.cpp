@@ -69,6 +69,7 @@
 #include "smt/model.h"
 #include "smt/smt_mode.h"
 #include "smt/solver_engine.h"
+#include "theory/arith/nl/poly_conversion.h"
 #include "theory/datatypes/project_op.h"
 #include "theory/logic_info.h"
 #include "theory/theory_model.h"
@@ -114,314 +115,330 @@ struct APIStatistics
 /* Mapping from external (API) kind to internal kind. */
 const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
     s_kinds{
-        KIND_ENUM(INTERNAL_KIND, internal::Kind::UNDEFINED_KIND),
-        KIND_ENUM(UNDEFINED_KIND, internal::Kind::UNDEFINED_KIND),
-        KIND_ENUM(NULL_TERM, internal::Kind::NULL_EXPR),
+        KIND_ENUM(Kind::INTERNAL_KIND, internal::Kind::UNDEFINED_KIND),
+        KIND_ENUM(Kind::UNDEFINED_KIND, internal::Kind::UNDEFINED_KIND),
+        KIND_ENUM(Kind::NULL_TERM, internal::Kind::NULL_EXPR),
         /* Builtin ---------------------------------------------------------- */
-        KIND_ENUM(UNINTERPRETED_SORT_VALUE,
+        KIND_ENUM(Kind::UNINTERPRETED_SORT_VALUE,
                   internal::Kind::UNINTERPRETED_SORT_VALUE),
-        KIND_ENUM(EQUAL, internal::Kind::EQUAL),
-        KIND_ENUM(DISTINCT, internal::Kind::DISTINCT),
-        KIND_ENUM(CONSTANT, internal::Kind::VARIABLE),
-        KIND_ENUM(VARIABLE, internal::Kind::BOUND_VARIABLE),
-        KIND_ENUM(SEXPR, internal::Kind::SEXPR),
-        KIND_ENUM(LAMBDA, internal::Kind::LAMBDA),
-        KIND_ENUM(WITNESS, internal::Kind::WITNESS),
+        KIND_ENUM(Kind::EQUAL, internal::Kind::EQUAL),
+        KIND_ENUM(Kind::DISTINCT, internal::Kind::DISTINCT),
+        KIND_ENUM(Kind::CONSTANT, internal::Kind::VARIABLE),
+        KIND_ENUM(Kind::VARIABLE, internal::Kind::BOUND_VARIABLE),
+        KIND_ENUM(Kind::SEXPR, internal::Kind::SEXPR),
+        KIND_ENUM(Kind::LAMBDA, internal::Kind::LAMBDA),
+        KIND_ENUM(Kind::WITNESS, internal::Kind::WITNESS),
         /* Boolean ---------------------------------------------------------- */
-        KIND_ENUM(CONST_BOOLEAN, internal::Kind::CONST_BOOLEAN),
-        KIND_ENUM(NOT, internal::Kind::NOT),
-        KIND_ENUM(AND, internal::Kind::AND),
-        KIND_ENUM(IMPLIES, internal::Kind::IMPLIES),
-        KIND_ENUM(OR, internal::Kind::OR),
-        KIND_ENUM(XOR, internal::Kind::XOR),
-        KIND_ENUM(ITE, internal::Kind::ITE),
+        KIND_ENUM(Kind::CONST_BOOLEAN, internal::Kind::CONST_BOOLEAN),
+        KIND_ENUM(Kind::NOT, internal::Kind::NOT),
+        KIND_ENUM(Kind::AND, internal::Kind::AND),
+        KIND_ENUM(Kind::IMPLIES, internal::Kind::IMPLIES),
+        KIND_ENUM(Kind::OR, internal::Kind::OR),
+        KIND_ENUM(Kind::XOR, internal::Kind::XOR),
+        KIND_ENUM(Kind::ITE, internal::Kind::ITE),
         /* UF --------------------------------------------------------------- */
-        KIND_ENUM(APPLY_UF, internal::Kind::APPLY_UF),
-        KIND_ENUM(CARDINALITY_CONSTRAINT,
+        KIND_ENUM(Kind::APPLY_UF, internal::Kind::APPLY_UF),
+        KIND_ENUM(Kind::CARDINALITY_CONSTRAINT,
                   internal::Kind::CARDINALITY_CONSTRAINT),
-        KIND_ENUM(HO_APPLY, internal::Kind::HO_APPLY),
+        KIND_ENUM(Kind::HO_APPLY, internal::Kind::HO_APPLY),
         /* Arithmetic ------------------------------------------------------- */
-        KIND_ENUM(ADD, internal::Kind::ADD),
-        KIND_ENUM(MULT, internal::Kind::MULT),
-        KIND_ENUM(IAND, internal::Kind::IAND),
-        KIND_ENUM(POW2, internal::Kind::POW2),
-        KIND_ENUM(SUB, internal::Kind::SUB),
-        KIND_ENUM(NEG, internal::Kind::NEG),
-        KIND_ENUM(DIVISION, internal::Kind::DIVISION),
-        KIND_ENUM(INTS_DIVISION, internal::Kind::INTS_DIVISION),
-        KIND_ENUM(INTS_MODULUS, internal::Kind::INTS_MODULUS),
-        KIND_ENUM(ABS, internal::Kind::ABS),
-        KIND_ENUM(DIVISIBLE, internal::Kind::DIVISIBLE),
-        KIND_ENUM(POW, internal::Kind::POW),
-        KIND_ENUM(EXPONENTIAL, internal::Kind::EXPONENTIAL),
-        KIND_ENUM(SINE, internal::Kind::SINE),
-        KIND_ENUM(COSINE, internal::Kind::COSINE),
-        KIND_ENUM(TANGENT, internal::Kind::TANGENT),
-        KIND_ENUM(COSECANT, internal::Kind::COSECANT),
-        KIND_ENUM(SECANT, internal::Kind::SECANT),
-        KIND_ENUM(COTANGENT, internal::Kind::COTANGENT),
-        KIND_ENUM(ARCSINE, internal::Kind::ARCSINE),
-        KIND_ENUM(ARCCOSINE, internal::Kind::ARCCOSINE),
-        KIND_ENUM(ARCTANGENT, internal::Kind::ARCTANGENT),
-        KIND_ENUM(ARCCOSECANT, internal::Kind::ARCCOSECANT),
-        KIND_ENUM(ARCSECANT, internal::Kind::ARCSECANT),
-        KIND_ENUM(ARCCOTANGENT, internal::Kind::ARCCOTANGENT),
-        KIND_ENUM(SQRT, internal::Kind::SQRT),
-        KIND_ENUM(CONST_RATIONAL, internal::Kind::CONST_RATIONAL),
-        KIND_ENUM(CONST_INTEGER, internal::Kind::CONST_INTEGER),
-        KIND_ENUM(LT, internal::Kind::LT),
-        KIND_ENUM(LEQ, internal::Kind::LEQ),
-        KIND_ENUM(GT, internal::Kind::GT),
-        KIND_ENUM(GEQ, internal::Kind::GEQ),
-        KIND_ENUM(IS_INTEGER, internal::Kind::IS_INTEGER),
-        KIND_ENUM(TO_INTEGER, internal::Kind::TO_INTEGER),
-        KIND_ENUM(TO_REAL, internal::Kind::TO_REAL),
-        KIND_ENUM(PI, internal::Kind::PI),
+        KIND_ENUM(Kind::ADD, internal::Kind::ADD),
+        KIND_ENUM(Kind::MULT, internal::Kind::MULT),
+        KIND_ENUM(Kind::IAND, internal::Kind::IAND),
+        KIND_ENUM(Kind::POW2, internal::Kind::POW2),
+        KIND_ENUM(Kind::SUB, internal::Kind::SUB),
+        KIND_ENUM(Kind::NEG, internal::Kind::NEG),
+        KIND_ENUM(Kind::DIVISION, internal::Kind::DIVISION),
+        KIND_ENUM(Kind::INTS_DIVISION, internal::Kind::INTS_DIVISION),
+        KIND_ENUM(Kind::INTS_MODULUS, internal::Kind::INTS_MODULUS),
+        KIND_ENUM(Kind::ABS, internal::Kind::ABS),
+        KIND_ENUM(Kind::DIVISIBLE, internal::Kind::DIVISIBLE),
+        KIND_ENUM(Kind::POW, internal::Kind::POW),
+        KIND_ENUM(Kind::EXPONENTIAL, internal::Kind::EXPONENTIAL),
+        KIND_ENUM(Kind::SINE, internal::Kind::SINE),
+        KIND_ENUM(Kind::COSINE, internal::Kind::COSINE),
+        KIND_ENUM(Kind::TANGENT, internal::Kind::TANGENT),
+        KIND_ENUM(Kind::COSECANT, internal::Kind::COSECANT),
+        KIND_ENUM(Kind::SECANT, internal::Kind::SECANT),
+        KIND_ENUM(Kind::COTANGENT, internal::Kind::COTANGENT),
+        KIND_ENUM(Kind::ARCSINE, internal::Kind::ARCSINE),
+        KIND_ENUM(Kind::ARCCOSINE, internal::Kind::ARCCOSINE),
+        KIND_ENUM(Kind::ARCTANGENT, internal::Kind::ARCTANGENT),
+        KIND_ENUM(Kind::ARCCOSECANT, internal::Kind::ARCCOSECANT),
+        KIND_ENUM(Kind::ARCSECANT, internal::Kind::ARCSECANT),
+        KIND_ENUM(Kind::ARCCOTANGENT, internal::Kind::ARCCOTANGENT),
+        KIND_ENUM(Kind::SQRT, internal::Kind::SQRT),
+        KIND_ENUM(Kind::CONST_RATIONAL, internal::Kind::CONST_RATIONAL),
+        KIND_ENUM(Kind::CONST_INTEGER, internal::Kind::CONST_INTEGER),
+        KIND_ENUM(Kind::LT, internal::Kind::LT),
+        KIND_ENUM(Kind::LEQ, internal::Kind::LEQ),
+        KIND_ENUM(Kind::GT, internal::Kind::GT),
+        KIND_ENUM(Kind::GEQ, internal::Kind::GEQ),
+        KIND_ENUM(Kind::IS_INTEGER, internal::Kind::IS_INTEGER),
+        KIND_ENUM(Kind::TO_INTEGER, internal::Kind::TO_INTEGER),
+        KIND_ENUM(Kind::TO_REAL, internal::Kind::TO_REAL),
+        KIND_ENUM(Kind::PI, internal::Kind::PI),
         /* BV --------------------------------------------------------------- */
-        KIND_ENUM(CONST_BITVECTOR, internal::Kind::CONST_BITVECTOR),
-        KIND_ENUM(BITVECTOR_CONCAT, internal::Kind::BITVECTOR_CONCAT),
-        KIND_ENUM(BITVECTOR_AND, internal::Kind::BITVECTOR_AND),
-        KIND_ENUM(BITVECTOR_OR, internal::Kind::BITVECTOR_OR),
-        KIND_ENUM(BITVECTOR_XOR, internal::Kind::BITVECTOR_XOR),
-        KIND_ENUM(BITVECTOR_NOT, internal::Kind::BITVECTOR_NOT),
-        KIND_ENUM(BITVECTOR_NAND, internal::Kind::BITVECTOR_NAND),
-        KIND_ENUM(BITVECTOR_NOR, internal::Kind::BITVECTOR_NOR),
-        KIND_ENUM(BITVECTOR_XNOR, internal::Kind::BITVECTOR_XNOR),
-        KIND_ENUM(BITVECTOR_COMP, internal::Kind::BITVECTOR_COMP),
-        KIND_ENUM(BITVECTOR_MULT, internal::Kind::BITVECTOR_MULT),
-        KIND_ENUM(BITVECTOR_ADD, internal::Kind::BITVECTOR_ADD),
-        KIND_ENUM(BITVECTOR_SUB, internal::Kind::BITVECTOR_SUB),
-        KIND_ENUM(BITVECTOR_NEG, internal::Kind::BITVECTOR_NEG),
-        KIND_ENUM(BITVECTOR_UDIV, internal::Kind::BITVECTOR_UDIV),
-        KIND_ENUM(BITVECTOR_UREM, internal::Kind::BITVECTOR_UREM),
-        KIND_ENUM(BITVECTOR_SDIV, internal::Kind::BITVECTOR_SDIV),
-        KIND_ENUM(BITVECTOR_SREM, internal::Kind::BITVECTOR_SREM),
-        KIND_ENUM(BITVECTOR_SMOD, internal::Kind::BITVECTOR_SMOD),
-        KIND_ENUM(BITVECTOR_SHL, internal::Kind::BITVECTOR_SHL),
-        KIND_ENUM(BITVECTOR_LSHR, internal::Kind::BITVECTOR_LSHR),
-        KIND_ENUM(BITVECTOR_ASHR, internal::Kind::BITVECTOR_ASHR),
-        KIND_ENUM(BITVECTOR_ULT, internal::Kind::BITVECTOR_ULT),
-        KIND_ENUM(BITVECTOR_ULE, internal::Kind::BITVECTOR_ULE),
-        KIND_ENUM(BITVECTOR_UGT, internal::Kind::BITVECTOR_UGT),
-        KIND_ENUM(BITVECTOR_UGE, internal::Kind::BITVECTOR_UGE),
-        KIND_ENUM(BITVECTOR_SLT, internal::Kind::BITVECTOR_SLT),
-        KIND_ENUM(BITVECTOR_SLE, internal::Kind::BITVECTOR_SLE),
-        KIND_ENUM(BITVECTOR_SGT, internal::Kind::BITVECTOR_SGT),
-        KIND_ENUM(BITVECTOR_SGE, internal::Kind::BITVECTOR_SGE),
-        KIND_ENUM(BITVECTOR_ULTBV, internal::Kind::BITVECTOR_ULTBV),
-        KIND_ENUM(BITVECTOR_SLTBV, internal::Kind::BITVECTOR_SLTBV),
-        KIND_ENUM(BITVECTOR_UADDO, internal::Kind::BITVECTOR_UADDO),
-        KIND_ENUM(BITVECTOR_SADDO, internal::Kind::BITVECTOR_SADDO),
-        KIND_ENUM(BITVECTOR_UMULO, internal::Kind::BITVECTOR_UMULO),
-        KIND_ENUM(BITVECTOR_SMULO, internal::Kind::BITVECTOR_SMULO),
-        KIND_ENUM(BITVECTOR_USUBO, internal::Kind::BITVECTOR_USUBO),
-        KIND_ENUM(BITVECTOR_SSUBO, internal::Kind::BITVECTOR_SSUBO),
-        KIND_ENUM(BITVECTOR_SDIVO, internal::Kind::BITVECTOR_SDIVO),
-        KIND_ENUM(BITVECTOR_ITE, internal::Kind::BITVECTOR_ITE),
-        KIND_ENUM(BITVECTOR_REDOR, internal::Kind::BITVECTOR_REDOR),
-        KIND_ENUM(BITVECTOR_REDAND, internal::Kind::BITVECTOR_REDAND),
-        KIND_ENUM(BITVECTOR_EXTRACT, internal::Kind::BITVECTOR_EXTRACT),
-        KIND_ENUM(BITVECTOR_REPEAT, internal::Kind::BITVECTOR_REPEAT),
-        KIND_ENUM(BITVECTOR_ZERO_EXTEND, internal::Kind::BITVECTOR_ZERO_EXTEND),
-        KIND_ENUM(BITVECTOR_SIGN_EXTEND, internal::Kind::BITVECTOR_SIGN_EXTEND),
-        KIND_ENUM(BITVECTOR_ROTATE_LEFT, internal::Kind::BITVECTOR_ROTATE_LEFT),
-        KIND_ENUM(BITVECTOR_ROTATE_RIGHT,
+        KIND_ENUM(Kind::CONST_BITVECTOR, internal::Kind::CONST_BITVECTOR),
+        KIND_ENUM(Kind::BITVECTOR_CONCAT, internal::Kind::BITVECTOR_CONCAT),
+        KIND_ENUM(Kind::BITVECTOR_AND, internal::Kind::BITVECTOR_AND),
+        KIND_ENUM(Kind::BITVECTOR_OR, internal::Kind::BITVECTOR_OR),
+        KIND_ENUM(Kind::BITVECTOR_XOR, internal::Kind::BITVECTOR_XOR),
+        KIND_ENUM(Kind::BITVECTOR_NOT, internal::Kind::BITVECTOR_NOT),
+        KIND_ENUM(Kind::BITVECTOR_NAND, internal::Kind::BITVECTOR_NAND),
+        KIND_ENUM(Kind::BITVECTOR_NOR, internal::Kind::BITVECTOR_NOR),
+        KIND_ENUM(Kind::BITVECTOR_XNOR, internal::Kind::BITVECTOR_XNOR),
+        KIND_ENUM(Kind::BITVECTOR_COMP, internal::Kind::BITVECTOR_COMP),
+        KIND_ENUM(Kind::BITVECTOR_MULT, internal::Kind::BITVECTOR_MULT),
+        KIND_ENUM(Kind::BITVECTOR_ADD, internal::Kind::BITVECTOR_ADD),
+        KIND_ENUM(Kind::BITVECTOR_SUB, internal::Kind::BITVECTOR_SUB),
+        KIND_ENUM(Kind::BITVECTOR_NEG, internal::Kind::BITVECTOR_NEG),
+        KIND_ENUM(Kind::BITVECTOR_UDIV, internal::Kind::BITVECTOR_UDIV),
+        KIND_ENUM(Kind::BITVECTOR_UREM, internal::Kind::BITVECTOR_UREM),
+        KIND_ENUM(Kind::BITVECTOR_SDIV, internal::Kind::BITVECTOR_SDIV),
+        KIND_ENUM(Kind::BITVECTOR_SREM, internal::Kind::BITVECTOR_SREM),
+        KIND_ENUM(Kind::BITVECTOR_SMOD, internal::Kind::BITVECTOR_SMOD),
+        KIND_ENUM(Kind::BITVECTOR_SHL, internal::Kind::BITVECTOR_SHL),
+        KIND_ENUM(Kind::BITVECTOR_LSHR, internal::Kind::BITVECTOR_LSHR),
+        KIND_ENUM(Kind::BITVECTOR_ASHR, internal::Kind::BITVECTOR_ASHR),
+        KIND_ENUM(Kind::BITVECTOR_ULT, internal::Kind::BITVECTOR_ULT),
+        KIND_ENUM(Kind::BITVECTOR_ULE, internal::Kind::BITVECTOR_ULE),
+        KIND_ENUM(Kind::BITVECTOR_UGT, internal::Kind::BITVECTOR_UGT),
+        KIND_ENUM(Kind::BITVECTOR_UGE, internal::Kind::BITVECTOR_UGE),
+        KIND_ENUM(Kind::BITVECTOR_SLT, internal::Kind::BITVECTOR_SLT),
+        KIND_ENUM(Kind::BITVECTOR_SLE, internal::Kind::BITVECTOR_SLE),
+        KIND_ENUM(Kind::BITVECTOR_SGT, internal::Kind::BITVECTOR_SGT),
+        KIND_ENUM(Kind::BITVECTOR_SGE, internal::Kind::BITVECTOR_SGE),
+        KIND_ENUM(Kind::BITVECTOR_ULTBV, internal::Kind::BITVECTOR_ULTBV),
+        KIND_ENUM(Kind::BITVECTOR_SLTBV, internal::Kind::BITVECTOR_SLTBV),
+        KIND_ENUM(Kind::BITVECTOR_UADDO, internal::Kind::BITVECTOR_UADDO),
+        KIND_ENUM(Kind::BITVECTOR_SADDO, internal::Kind::BITVECTOR_SADDO),
+        KIND_ENUM(Kind::BITVECTOR_UMULO, internal::Kind::BITVECTOR_UMULO),
+        KIND_ENUM(Kind::BITVECTOR_SMULO, internal::Kind::BITVECTOR_SMULO),
+        KIND_ENUM(Kind::BITVECTOR_USUBO, internal::Kind::BITVECTOR_USUBO),
+        KIND_ENUM(Kind::BITVECTOR_SSUBO, internal::Kind::BITVECTOR_SSUBO),
+        KIND_ENUM(Kind::BITVECTOR_SDIVO, internal::Kind::BITVECTOR_SDIVO),
+        KIND_ENUM(Kind::BITVECTOR_ITE, internal::Kind::BITVECTOR_ITE),
+        KIND_ENUM(Kind::BITVECTOR_REDOR, internal::Kind::BITVECTOR_REDOR),
+        KIND_ENUM(Kind::BITVECTOR_REDAND, internal::Kind::BITVECTOR_REDAND),
+        KIND_ENUM(Kind::BITVECTOR_EXTRACT, internal::Kind::BITVECTOR_EXTRACT),
+        KIND_ENUM(Kind::BITVECTOR_REPEAT, internal::Kind::BITVECTOR_REPEAT),
+        KIND_ENUM(Kind::BITVECTOR_ZERO_EXTEND,
+                  internal::Kind::BITVECTOR_ZERO_EXTEND),
+        KIND_ENUM(Kind::BITVECTOR_SIGN_EXTEND,
+                  internal::Kind::BITVECTOR_SIGN_EXTEND),
+        KIND_ENUM(Kind::BITVECTOR_ROTATE_LEFT,
+                  internal::Kind::BITVECTOR_ROTATE_LEFT),
+        KIND_ENUM(Kind::BITVECTOR_ROTATE_RIGHT,
                   internal::Kind::BITVECTOR_ROTATE_RIGHT),
-        KIND_ENUM(INT_TO_BITVECTOR, internal::Kind::INT_TO_BITVECTOR),
-        KIND_ENUM(BITVECTOR_TO_NAT, internal::Kind::BITVECTOR_TO_NAT),
+        KIND_ENUM(Kind::INT_TO_BITVECTOR, internal::Kind::INT_TO_BITVECTOR),
+        KIND_ENUM(Kind::BITVECTOR_TO_NAT, internal::Kind::BITVECTOR_TO_NAT),
         /* Finite Fields --------------------------------------------------- */
-        KIND_ENUM(CONST_FINITE_FIELD, internal::Kind::CONST_FINITE_FIELD),
-        KIND_ENUM(FINITE_FIELD_MULT, internal::Kind::FINITE_FIELD_MULT),
-        KIND_ENUM(FINITE_FIELD_ADD, internal::Kind::FINITE_FIELD_ADD),
-        KIND_ENUM(FINITE_FIELD_NEG, internal::Kind::FINITE_FIELD_NEG),
+        KIND_ENUM(Kind::CONST_FINITE_FIELD, internal::Kind::CONST_FINITE_FIELD),
+        KIND_ENUM(Kind::FINITE_FIELD_MULT, internal::Kind::FINITE_FIELD_MULT),
+        KIND_ENUM(Kind::FINITE_FIELD_ADD, internal::Kind::FINITE_FIELD_ADD),
+        KIND_ENUM(Kind::FINITE_FIELD_NEG, internal::Kind::FINITE_FIELD_NEG),
         /* FP --------------------------------------------------------------- */
-        KIND_ENUM(CONST_FLOATINGPOINT, internal::Kind::CONST_FLOATINGPOINT),
-        KIND_ENUM(CONST_ROUNDINGMODE, internal::Kind::CONST_ROUNDINGMODE),
-        KIND_ENUM(FLOATINGPOINT_FP, internal::Kind::FLOATINGPOINT_FP),
-        KIND_ENUM(FLOATINGPOINT_EQ, internal::Kind::FLOATINGPOINT_EQ),
-        KIND_ENUM(FLOATINGPOINT_ABS, internal::Kind::FLOATINGPOINT_ABS),
-        KIND_ENUM(FLOATINGPOINT_NEG, internal::Kind::FLOATINGPOINT_NEG),
-        KIND_ENUM(FLOATINGPOINT_ADD, internal::Kind::FLOATINGPOINT_ADD),
-        KIND_ENUM(FLOATINGPOINT_SUB, internal::Kind::FLOATINGPOINT_SUB),
-        KIND_ENUM(FLOATINGPOINT_MULT, internal::Kind::FLOATINGPOINT_MULT),
-        KIND_ENUM(FLOATINGPOINT_DIV, internal::Kind::FLOATINGPOINT_DIV),
-        KIND_ENUM(FLOATINGPOINT_FMA, internal::Kind::FLOATINGPOINT_FMA),
-        KIND_ENUM(FLOATINGPOINT_SQRT, internal::Kind::FLOATINGPOINT_SQRT),
-        KIND_ENUM(FLOATINGPOINT_REM, internal::Kind::FLOATINGPOINT_REM),
-        KIND_ENUM(FLOATINGPOINT_RTI, internal::Kind::FLOATINGPOINT_RTI),
-        KIND_ENUM(FLOATINGPOINT_MIN, internal::Kind::FLOATINGPOINT_MIN),
-        KIND_ENUM(FLOATINGPOINT_MAX, internal::Kind::FLOATINGPOINT_MAX),
-        KIND_ENUM(FLOATINGPOINT_LEQ, internal::Kind::FLOATINGPOINT_LEQ),
-        KIND_ENUM(FLOATINGPOINT_LT, internal::Kind::FLOATINGPOINT_LT),
-        KIND_ENUM(FLOATINGPOINT_GEQ, internal::Kind::FLOATINGPOINT_GEQ),
-        KIND_ENUM(FLOATINGPOINT_GT, internal::Kind::FLOATINGPOINT_GT),
-        KIND_ENUM(FLOATINGPOINT_IS_NORMAL,
+        KIND_ENUM(Kind::CONST_FLOATINGPOINT,
+                  internal::Kind::CONST_FLOATINGPOINT),
+        KIND_ENUM(Kind::CONST_ROUNDINGMODE, internal::Kind::CONST_ROUNDINGMODE),
+        KIND_ENUM(Kind::FLOATINGPOINT_FP, internal::Kind::FLOATINGPOINT_FP),
+        KIND_ENUM(Kind::FLOATINGPOINT_EQ, internal::Kind::FLOATINGPOINT_EQ),
+        KIND_ENUM(Kind::FLOATINGPOINT_ABS, internal::Kind::FLOATINGPOINT_ABS),
+        KIND_ENUM(Kind::FLOATINGPOINT_NEG, internal::Kind::FLOATINGPOINT_NEG),
+        KIND_ENUM(Kind::FLOATINGPOINT_ADD, internal::Kind::FLOATINGPOINT_ADD),
+        KIND_ENUM(Kind::FLOATINGPOINT_SUB, internal::Kind::FLOATINGPOINT_SUB),
+        KIND_ENUM(Kind::FLOATINGPOINT_MULT, internal::Kind::FLOATINGPOINT_MULT),
+        KIND_ENUM(Kind::FLOATINGPOINT_DIV, internal::Kind::FLOATINGPOINT_DIV),
+        KIND_ENUM(Kind::FLOATINGPOINT_FMA, internal::Kind::FLOATINGPOINT_FMA),
+        KIND_ENUM(Kind::FLOATINGPOINT_SQRT, internal::Kind::FLOATINGPOINT_SQRT),
+        KIND_ENUM(Kind::FLOATINGPOINT_REM, internal::Kind::FLOATINGPOINT_REM),
+        KIND_ENUM(Kind::FLOATINGPOINT_RTI, internal::Kind::FLOATINGPOINT_RTI),
+        KIND_ENUM(Kind::FLOATINGPOINT_MIN, internal::Kind::FLOATINGPOINT_MIN),
+        KIND_ENUM(Kind::FLOATINGPOINT_MAX, internal::Kind::FLOATINGPOINT_MAX),
+        KIND_ENUM(Kind::FLOATINGPOINT_LEQ, internal::Kind::FLOATINGPOINT_LEQ),
+        KIND_ENUM(Kind::FLOATINGPOINT_LT, internal::Kind::FLOATINGPOINT_LT),
+        KIND_ENUM(Kind::FLOATINGPOINT_GEQ, internal::Kind::FLOATINGPOINT_GEQ),
+        KIND_ENUM(Kind::FLOATINGPOINT_GT, internal::Kind::FLOATINGPOINT_GT),
+        KIND_ENUM(Kind::FLOATINGPOINT_IS_NORMAL,
                   internal::Kind::FLOATINGPOINT_IS_NORMAL),
-        KIND_ENUM(FLOATINGPOINT_IS_SUBNORMAL,
+        KIND_ENUM(Kind::FLOATINGPOINT_IS_SUBNORMAL,
                   internal::Kind::FLOATINGPOINT_IS_SUBNORMAL),
-        KIND_ENUM(FLOATINGPOINT_IS_ZERO, internal::Kind::FLOATINGPOINT_IS_ZERO),
-        KIND_ENUM(FLOATINGPOINT_IS_INF, internal::Kind::FLOATINGPOINT_IS_INF),
-        KIND_ENUM(FLOATINGPOINT_IS_NAN, internal::Kind::FLOATINGPOINT_IS_NAN),
-        KIND_ENUM(FLOATINGPOINT_IS_NEG, internal::Kind::FLOATINGPOINT_IS_NEG),
-        KIND_ENUM(FLOATINGPOINT_IS_POS, internal::Kind::FLOATINGPOINT_IS_POS),
-        KIND_ENUM(FLOATINGPOINT_TO_FP_FROM_FP,
+        KIND_ENUM(Kind::FLOATINGPOINT_IS_ZERO,
+                  internal::Kind::FLOATINGPOINT_IS_ZERO),
+        KIND_ENUM(Kind::FLOATINGPOINT_IS_INF,
+                  internal::Kind::FLOATINGPOINT_IS_INF),
+        KIND_ENUM(Kind::FLOATINGPOINT_IS_NAN,
+                  internal::Kind::FLOATINGPOINT_IS_NAN),
+        KIND_ENUM(Kind::FLOATINGPOINT_IS_NEG,
+                  internal::Kind::FLOATINGPOINT_IS_NEG),
+        KIND_ENUM(Kind::FLOATINGPOINT_IS_POS,
+                  internal::Kind::FLOATINGPOINT_IS_POS),
+        KIND_ENUM(Kind::FLOATINGPOINT_TO_FP_FROM_FP,
                   internal::Kind::FLOATINGPOINT_TO_FP_FROM_FP),
-        KIND_ENUM(FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
+        KIND_ENUM(Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
                   internal::Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV),
-        KIND_ENUM(FLOATINGPOINT_TO_FP_FROM_REAL,
+        KIND_ENUM(Kind::FLOATINGPOINT_TO_FP_FROM_REAL,
                   internal::Kind::FLOATINGPOINT_TO_FP_FROM_REAL),
-        KIND_ENUM(FLOATINGPOINT_TO_FP_FROM_SBV,
+        KIND_ENUM(Kind::FLOATINGPOINT_TO_FP_FROM_SBV,
                   internal::Kind::FLOATINGPOINT_TO_FP_FROM_SBV),
-        KIND_ENUM(FLOATINGPOINT_TO_FP_FROM_UBV,
+        KIND_ENUM(Kind::FLOATINGPOINT_TO_FP_FROM_UBV,
                   internal::Kind::FLOATINGPOINT_TO_FP_FROM_UBV),
-        KIND_ENUM(FLOATINGPOINT_TO_UBV, internal::Kind::FLOATINGPOINT_TO_UBV),
-        KIND_ENUM(FLOATINGPOINT_TO_SBV, internal::Kind::FLOATINGPOINT_TO_SBV),
-        KIND_ENUM(FLOATINGPOINT_TO_REAL, internal::Kind::FLOATINGPOINT_TO_REAL),
+        KIND_ENUM(Kind::FLOATINGPOINT_TO_UBV,
+                  internal::Kind::FLOATINGPOINT_TO_UBV),
+        KIND_ENUM(Kind::FLOATINGPOINT_TO_SBV,
+                  internal::Kind::FLOATINGPOINT_TO_SBV),
+        KIND_ENUM(Kind::FLOATINGPOINT_TO_REAL,
+                  internal::Kind::FLOATINGPOINT_TO_REAL),
         /* Arrays ----------------------------------------------------------- */
-        KIND_ENUM(SELECT, internal::Kind::SELECT),
-        KIND_ENUM(STORE, internal::Kind::STORE),
-        KIND_ENUM(CONST_ARRAY, internal::Kind::STORE_ALL),
-        KIND_ENUM(EQ_RANGE, internal::Kind::EQ_RANGE),
+        KIND_ENUM(Kind::SELECT, internal::Kind::SELECT),
+        KIND_ENUM(Kind::STORE, internal::Kind::STORE),
+        KIND_ENUM(Kind::CONST_ARRAY, internal::Kind::STORE_ALL),
+        KIND_ENUM(Kind::EQ_RANGE, internal::Kind::EQ_RANGE),
         /* Datatypes -------------------------------------------------------- */
-        KIND_ENUM(APPLY_SELECTOR, internal::Kind::APPLY_SELECTOR),
-        KIND_ENUM(APPLY_CONSTRUCTOR, internal::Kind::APPLY_CONSTRUCTOR),
-        KIND_ENUM(APPLY_TESTER, internal::Kind::APPLY_TESTER),
-        KIND_ENUM(APPLY_UPDATER, internal::Kind::APPLY_UPDATER),
-        KIND_ENUM(MATCH, internal::Kind::MATCH),
-        KIND_ENUM(MATCH_CASE, internal::Kind::MATCH_CASE),
-        KIND_ENUM(MATCH_BIND_CASE, internal::Kind::MATCH_BIND_CASE),
-        KIND_ENUM(TUPLE_PROJECT, internal::Kind::TUPLE_PROJECT),
+        KIND_ENUM(Kind::APPLY_SELECTOR, internal::Kind::APPLY_SELECTOR),
+        KIND_ENUM(Kind::APPLY_CONSTRUCTOR, internal::Kind::APPLY_CONSTRUCTOR),
+        KIND_ENUM(Kind::APPLY_TESTER, internal::Kind::APPLY_TESTER),
+        KIND_ENUM(Kind::APPLY_UPDATER, internal::Kind::APPLY_UPDATER),
+        KIND_ENUM(Kind::MATCH, internal::Kind::MATCH),
+        KIND_ENUM(Kind::MATCH_CASE, internal::Kind::MATCH_CASE),
+        KIND_ENUM(Kind::MATCH_BIND_CASE, internal::Kind::MATCH_BIND_CASE),
+        KIND_ENUM(Kind::TUPLE_PROJECT, internal::Kind::TUPLE_PROJECT),
         /* Separation Logic ------------------------------------------------- */
-        KIND_ENUM(SEP_NIL, internal::Kind::SEP_NIL),
-        KIND_ENUM(SEP_EMP, internal::Kind::SEP_EMP),
-        KIND_ENUM(SEP_PTO, internal::Kind::SEP_PTO),
-        KIND_ENUM(SEP_STAR, internal::Kind::SEP_STAR),
-        KIND_ENUM(SEP_WAND, internal::Kind::SEP_WAND),
+        KIND_ENUM(Kind::SEP_NIL, internal::Kind::SEP_NIL),
+        KIND_ENUM(Kind::SEP_EMP, internal::Kind::SEP_EMP),
+        KIND_ENUM(Kind::SEP_PTO, internal::Kind::SEP_PTO),
+        KIND_ENUM(Kind::SEP_STAR, internal::Kind::SEP_STAR),
+        KIND_ENUM(Kind::SEP_WAND, internal::Kind::SEP_WAND),
         /* Sets ------------------------------------------------------------- */
-        KIND_ENUM(SET_EMPTY, internal::Kind::SET_EMPTY),
-        KIND_ENUM(SET_UNION, internal::Kind::SET_UNION),
-        KIND_ENUM(SET_INTER, internal::Kind::SET_INTER),
-        KIND_ENUM(SET_MINUS, internal::Kind::SET_MINUS),
-        KIND_ENUM(SET_SUBSET, internal::Kind::SET_SUBSET),
-        KIND_ENUM(SET_MEMBER, internal::Kind::SET_MEMBER),
-        KIND_ENUM(SET_SINGLETON, internal::Kind::SET_SINGLETON),
-        KIND_ENUM(SET_INSERT, internal::Kind::SET_INSERT),
-        KIND_ENUM(SET_CARD, internal::Kind::SET_CARD),
-        KIND_ENUM(SET_COMPLEMENT, internal::Kind::SET_COMPLEMENT),
-        KIND_ENUM(SET_UNIVERSE, internal::Kind::SET_UNIVERSE),
-        KIND_ENUM(SET_COMPREHENSION, internal::Kind::SET_COMPREHENSION),
-        KIND_ENUM(SET_CHOOSE, internal::Kind::SET_CHOOSE),
-        KIND_ENUM(SET_IS_SINGLETON, internal::Kind::SET_IS_SINGLETON),
-        KIND_ENUM(SET_MAP, internal::Kind::SET_MAP),
-        KIND_ENUM(SET_FILTER, internal::Kind::SET_FILTER),
-        KIND_ENUM(SET_FOLD, internal::Kind::SET_FOLD),
+        KIND_ENUM(Kind::SET_EMPTY, internal::Kind::SET_EMPTY),
+        KIND_ENUM(Kind::SET_UNION, internal::Kind::SET_UNION),
+        KIND_ENUM(Kind::SET_INTER, internal::Kind::SET_INTER),
+        KIND_ENUM(Kind::SET_MINUS, internal::Kind::SET_MINUS),
+        KIND_ENUM(Kind::SET_SUBSET, internal::Kind::SET_SUBSET),
+        KIND_ENUM(Kind::SET_MEMBER, internal::Kind::SET_MEMBER),
+        KIND_ENUM(Kind::SET_SINGLETON, internal::Kind::SET_SINGLETON),
+        KIND_ENUM(Kind::SET_INSERT, internal::Kind::SET_INSERT),
+        KIND_ENUM(Kind::SET_CARD, internal::Kind::SET_CARD),
+        KIND_ENUM(Kind::SET_COMPLEMENT, internal::Kind::SET_COMPLEMENT),
+        KIND_ENUM(Kind::SET_UNIVERSE, internal::Kind::SET_UNIVERSE),
+        KIND_ENUM(Kind::SET_COMPREHENSION, internal::Kind::SET_COMPREHENSION),
+        KIND_ENUM(Kind::SET_CHOOSE, internal::Kind::SET_CHOOSE),
+        KIND_ENUM(Kind::SET_IS_SINGLETON, internal::Kind::SET_IS_SINGLETON),
+        KIND_ENUM(Kind::SET_MAP, internal::Kind::SET_MAP),
+        KIND_ENUM(Kind::SET_FILTER, internal::Kind::SET_FILTER),
+        KIND_ENUM(Kind::SET_FOLD, internal::Kind::SET_FOLD),
         /* Relations -------------------------------------------------------- */
-        KIND_ENUM(RELATION_JOIN, internal::Kind::RELATION_JOIN),
-        KIND_ENUM(RELATION_PRODUCT, internal::Kind::RELATION_PRODUCT),
-        KIND_ENUM(RELATION_TRANSPOSE, internal::Kind::RELATION_TRANSPOSE),
-        KIND_ENUM(RELATION_TCLOSURE, internal::Kind::RELATION_TCLOSURE),
-        KIND_ENUM(RELATION_JOIN_IMAGE, internal::Kind::RELATION_JOIN_IMAGE),
-        KIND_ENUM(RELATION_IDEN, internal::Kind::RELATION_IDEN),
-        KIND_ENUM(RELATION_GROUP, internal::Kind::RELATION_GROUP),
-        KIND_ENUM(RELATION_AGGREGATE, internal::Kind::RELATION_AGGREGATE),
-        KIND_ENUM(RELATION_PROJECT, internal::Kind::RELATION_PROJECT),
+        KIND_ENUM(Kind::RELATION_JOIN, internal::Kind::RELATION_JOIN),
+        KIND_ENUM(Kind::RELATION_PRODUCT, internal::Kind::RELATION_PRODUCT),
+        KIND_ENUM(Kind::RELATION_TRANSPOSE, internal::Kind::RELATION_TRANSPOSE),
+        KIND_ENUM(Kind::RELATION_TCLOSURE, internal::Kind::RELATION_TCLOSURE),
+        KIND_ENUM(Kind::RELATION_JOIN_IMAGE,
+                  internal::Kind::RELATION_JOIN_IMAGE),
+        KIND_ENUM(Kind::RELATION_IDEN, internal::Kind::RELATION_IDEN),
+        KIND_ENUM(Kind::RELATION_GROUP, internal::Kind::RELATION_GROUP),
+        KIND_ENUM(Kind::RELATION_AGGREGATE, internal::Kind::RELATION_AGGREGATE),
+        KIND_ENUM(Kind::RELATION_PROJECT, internal::Kind::RELATION_PROJECT),
         /* Bags ------------------------------------------------------------- */
-        KIND_ENUM(BAG_UNION_MAX, internal::Kind::BAG_UNION_MAX),
-        KIND_ENUM(BAG_UNION_DISJOINT, internal::Kind::BAG_UNION_DISJOINT),
-        KIND_ENUM(BAG_INTER_MIN, internal::Kind::BAG_INTER_MIN),
-        KIND_ENUM(BAG_DIFFERENCE_SUBTRACT,
+        KIND_ENUM(Kind::BAG_UNION_MAX, internal::Kind::BAG_UNION_MAX),
+        KIND_ENUM(Kind::BAG_UNION_DISJOINT, internal::Kind::BAG_UNION_DISJOINT),
+        KIND_ENUM(Kind::BAG_INTER_MIN, internal::Kind::BAG_INTER_MIN),
+        KIND_ENUM(Kind::BAG_DIFFERENCE_SUBTRACT,
                   internal::Kind::BAG_DIFFERENCE_SUBTRACT),
-        KIND_ENUM(BAG_DIFFERENCE_REMOVE, internal::Kind::BAG_DIFFERENCE_REMOVE),
-        KIND_ENUM(BAG_SUBBAG, internal::Kind::BAG_SUBBAG),
-        KIND_ENUM(BAG_COUNT, internal::Kind::BAG_COUNT),
-        KIND_ENUM(BAG_MEMBER, internal::Kind::BAG_MEMBER),
-        KIND_ENUM(BAG_DUPLICATE_REMOVAL, internal::Kind::BAG_DUPLICATE_REMOVAL),
-        KIND_ENUM(BAG_MAKE, internal::Kind::BAG_MAKE),
-        KIND_ENUM(BAG_EMPTY, internal::Kind::BAG_EMPTY),
-        KIND_ENUM(BAG_CARD, internal::Kind::BAG_CARD),
-        KIND_ENUM(BAG_CHOOSE, internal::Kind::BAG_CHOOSE),
-        KIND_ENUM(BAG_IS_SINGLETON, internal::Kind::BAG_IS_SINGLETON),
-        KIND_ENUM(BAG_FROM_SET, internal::Kind::BAG_FROM_SET),
-        KIND_ENUM(BAG_TO_SET, internal::Kind::BAG_TO_SET),
-        KIND_ENUM(BAG_MAP, internal::Kind::BAG_MAP),
-        KIND_ENUM(BAG_FILTER, internal::Kind::BAG_FILTER),
-        KIND_ENUM(BAG_FOLD, internal::Kind::BAG_FOLD),
-        KIND_ENUM(BAG_PARTITION, internal::Kind::BAG_PARTITION),
-        KIND_ENUM(TABLE_PRODUCT, internal::Kind::TABLE_PRODUCT),
-        KIND_ENUM(TABLE_PROJECT, internal::Kind::TABLE_PROJECT),
-        KIND_ENUM(TABLE_AGGREGATE, internal::Kind::TABLE_AGGREGATE),
-        KIND_ENUM(TABLE_JOIN, internal::Kind::TABLE_JOIN),
-        KIND_ENUM(TABLE_GROUP, internal::Kind::TABLE_GROUP),
+        KIND_ENUM(Kind::BAG_DIFFERENCE_REMOVE,
+                  internal::Kind::BAG_DIFFERENCE_REMOVE),
+        KIND_ENUM(Kind::BAG_SUBBAG, internal::Kind::BAG_SUBBAG),
+        KIND_ENUM(Kind::BAG_COUNT, internal::Kind::BAG_COUNT),
+        KIND_ENUM(Kind::BAG_MEMBER, internal::Kind::BAG_MEMBER),
+        KIND_ENUM(Kind::BAG_DUPLICATE_REMOVAL,
+                  internal::Kind::BAG_DUPLICATE_REMOVAL),
+        KIND_ENUM(Kind::BAG_MAKE, internal::Kind::BAG_MAKE),
+        KIND_ENUM(Kind::BAG_EMPTY, internal::Kind::BAG_EMPTY),
+        KIND_ENUM(Kind::BAG_CARD, internal::Kind::BAG_CARD),
+        KIND_ENUM(Kind::BAG_CHOOSE, internal::Kind::BAG_CHOOSE),
+        KIND_ENUM(Kind::BAG_IS_SINGLETON, internal::Kind::BAG_IS_SINGLETON),
+        KIND_ENUM(Kind::BAG_FROM_SET, internal::Kind::BAG_FROM_SET),
+        KIND_ENUM(Kind::BAG_TO_SET, internal::Kind::BAG_TO_SET),
+        KIND_ENUM(Kind::BAG_MAP, internal::Kind::BAG_MAP),
+        KIND_ENUM(Kind::BAG_FILTER, internal::Kind::BAG_FILTER),
+        KIND_ENUM(Kind::BAG_FOLD, internal::Kind::BAG_FOLD),
+        KIND_ENUM(Kind::BAG_PARTITION, internal::Kind::BAG_PARTITION),
+        KIND_ENUM(Kind::TABLE_PRODUCT, internal::Kind::TABLE_PRODUCT),
+        KIND_ENUM(Kind::TABLE_PROJECT, internal::Kind::TABLE_PROJECT),
+        KIND_ENUM(Kind::TABLE_AGGREGATE, internal::Kind::TABLE_AGGREGATE),
+        KIND_ENUM(Kind::TABLE_JOIN, internal::Kind::TABLE_JOIN),
+        KIND_ENUM(Kind::TABLE_GROUP, internal::Kind::TABLE_GROUP),
         /* Strings ---------------------------------------------------------- */
-        KIND_ENUM(STRING_CONCAT, internal::Kind::STRING_CONCAT),
-        KIND_ENUM(STRING_IN_REGEXP, internal::Kind::STRING_IN_REGEXP),
-        KIND_ENUM(STRING_LENGTH, internal::Kind::STRING_LENGTH),
-        KIND_ENUM(STRING_SUBSTR, internal::Kind::STRING_SUBSTR),
-        KIND_ENUM(STRING_UPDATE, internal::Kind::STRING_UPDATE),
-        KIND_ENUM(STRING_CHARAT, internal::Kind::STRING_CHARAT),
-        KIND_ENUM(STRING_CONTAINS, internal::Kind::STRING_CONTAINS),
-        KIND_ENUM(STRING_INDEXOF, internal::Kind::STRING_INDEXOF),
-        KIND_ENUM(STRING_INDEXOF_RE, internal::Kind::STRING_INDEXOF_RE),
-        KIND_ENUM(STRING_REPLACE, internal::Kind::STRING_REPLACE),
-        KIND_ENUM(STRING_REPLACE_ALL, internal::Kind::STRING_REPLACE_ALL),
-        KIND_ENUM(STRING_REPLACE_RE, internal::Kind::STRING_REPLACE_RE),
-        KIND_ENUM(STRING_REPLACE_RE_ALL, internal::Kind::STRING_REPLACE_RE_ALL),
-        KIND_ENUM(STRING_TO_LOWER, internal::Kind::STRING_TO_LOWER),
-        KIND_ENUM(STRING_TO_UPPER, internal::Kind::STRING_TO_UPPER),
-        KIND_ENUM(STRING_REV, internal::Kind::STRING_REV),
-        KIND_ENUM(STRING_FROM_CODE, internal::Kind::STRING_FROM_CODE),
-        KIND_ENUM(STRING_TO_CODE, internal::Kind::STRING_TO_CODE),
-        KIND_ENUM(STRING_LT, internal::Kind::STRING_LT),
-        KIND_ENUM(STRING_LEQ, internal::Kind::STRING_LEQ),
-        KIND_ENUM(STRING_PREFIX, internal::Kind::STRING_PREFIX),
-        KIND_ENUM(STRING_SUFFIX, internal::Kind::STRING_SUFFIX),
-        KIND_ENUM(STRING_IS_DIGIT, internal::Kind::STRING_IS_DIGIT),
-        KIND_ENUM(STRING_FROM_INT, internal::Kind::STRING_ITOS),
-        KIND_ENUM(STRING_TO_INT, internal::Kind::STRING_STOI),
-        KIND_ENUM(CONST_STRING, internal::Kind::CONST_STRING),
-        KIND_ENUM(STRING_TO_REGEXP, internal::Kind::STRING_TO_REGEXP),
-        KIND_ENUM(REGEXP_CONCAT, internal::Kind::REGEXP_CONCAT),
-        KIND_ENUM(REGEXP_UNION, internal::Kind::REGEXP_UNION),
-        KIND_ENUM(REGEXP_INTER, internal::Kind::REGEXP_INTER),
-        KIND_ENUM(REGEXP_DIFF, internal::Kind::REGEXP_DIFF),
-        KIND_ENUM(REGEXP_STAR, internal::Kind::REGEXP_STAR),
-        KIND_ENUM(REGEXP_PLUS, internal::Kind::REGEXP_PLUS),
-        KIND_ENUM(REGEXP_OPT, internal::Kind::REGEXP_OPT),
-        KIND_ENUM(REGEXP_RANGE, internal::Kind::REGEXP_RANGE),
-        KIND_ENUM(REGEXP_REPEAT, internal::Kind::REGEXP_REPEAT),
-        KIND_ENUM(REGEXP_LOOP, internal::Kind::REGEXP_LOOP),
-        KIND_ENUM(REGEXP_NONE, internal::Kind::REGEXP_NONE),
-        KIND_ENUM(REGEXP_ALL, internal::Kind::REGEXP_ALL),
-        KIND_ENUM(REGEXP_ALLCHAR, internal::Kind::REGEXP_ALLCHAR),
-        KIND_ENUM(REGEXP_COMPLEMENT, internal::Kind::REGEXP_COMPLEMENT),
+        KIND_ENUM(Kind::STRING_CONCAT, internal::Kind::STRING_CONCAT),
+        KIND_ENUM(Kind::STRING_IN_REGEXP, internal::Kind::STRING_IN_REGEXP),
+        KIND_ENUM(Kind::STRING_LENGTH, internal::Kind::STRING_LENGTH),
+        KIND_ENUM(Kind::STRING_SUBSTR, internal::Kind::STRING_SUBSTR),
+        KIND_ENUM(Kind::STRING_UPDATE, internal::Kind::STRING_UPDATE),
+        KIND_ENUM(Kind::STRING_CHARAT, internal::Kind::STRING_CHARAT),
+        KIND_ENUM(Kind::STRING_CONTAINS, internal::Kind::STRING_CONTAINS),
+        KIND_ENUM(Kind::STRING_INDEXOF, internal::Kind::STRING_INDEXOF),
+        KIND_ENUM(Kind::STRING_INDEXOF_RE, internal::Kind::STRING_INDEXOF_RE),
+        KIND_ENUM(Kind::STRING_REPLACE, internal::Kind::STRING_REPLACE),
+        KIND_ENUM(Kind::STRING_REPLACE_ALL, internal::Kind::STRING_REPLACE_ALL),
+        KIND_ENUM(Kind::STRING_REPLACE_RE, internal::Kind::STRING_REPLACE_RE),
+        KIND_ENUM(Kind::STRING_REPLACE_RE_ALL,
+                  internal::Kind::STRING_REPLACE_RE_ALL),
+        KIND_ENUM(Kind::STRING_TO_LOWER, internal::Kind::STRING_TO_LOWER),
+        KIND_ENUM(Kind::STRING_TO_UPPER, internal::Kind::STRING_TO_UPPER),
+        KIND_ENUM(Kind::STRING_REV, internal::Kind::STRING_REV),
+        KIND_ENUM(Kind::STRING_FROM_CODE, internal::Kind::STRING_FROM_CODE),
+        KIND_ENUM(Kind::STRING_TO_CODE, internal::Kind::STRING_TO_CODE),
+        KIND_ENUM(Kind::STRING_LT, internal::Kind::STRING_LT),
+        KIND_ENUM(Kind::STRING_LEQ, internal::Kind::STRING_LEQ),
+        KIND_ENUM(Kind::STRING_PREFIX, internal::Kind::STRING_PREFIX),
+        KIND_ENUM(Kind::STRING_SUFFIX, internal::Kind::STRING_SUFFIX),
+        KIND_ENUM(Kind::STRING_IS_DIGIT, internal::Kind::STRING_IS_DIGIT),
+        KIND_ENUM(Kind::STRING_FROM_INT, internal::Kind::STRING_ITOS),
+        KIND_ENUM(Kind::STRING_TO_INT, internal::Kind::STRING_STOI),
+        KIND_ENUM(Kind::CONST_STRING, internal::Kind::CONST_STRING),
+        KIND_ENUM(Kind::STRING_TO_REGEXP, internal::Kind::STRING_TO_REGEXP),
+        KIND_ENUM(Kind::REGEXP_CONCAT, internal::Kind::REGEXP_CONCAT),
+        KIND_ENUM(Kind::REGEXP_UNION, internal::Kind::REGEXP_UNION),
+        KIND_ENUM(Kind::REGEXP_INTER, internal::Kind::REGEXP_INTER),
+        KIND_ENUM(Kind::REGEXP_DIFF, internal::Kind::REGEXP_DIFF),
+        KIND_ENUM(Kind::REGEXP_STAR, internal::Kind::REGEXP_STAR),
+        KIND_ENUM(Kind::REGEXP_PLUS, internal::Kind::REGEXP_PLUS),
+        KIND_ENUM(Kind::REGEXP_OPT, internal::Kind::REGEXP_OPT),
+        KIND_ENUM(Kind::REGEXP_RANGE, internal::Kind::REGEXP_RANGE),
+        KIND_ENUM(Kind::REGEXP_REPEAT, internal::Kind::REGEXP_REPEAT),
+        KIND_ENUM(Kind::REGEXP_LOOP, internal::Kind::REGEXP_LOOP),
+        KIND_ENUM(Kind::REGEXP_NONE, internal::Kind::REGEXP_NONE),
+        KIND_ENUM(Kind::REGEXP_ALL, internal::Kind::REGEXP_ALL),
+        KIND_ENUM(Kind::REGEXP_ALLCHAR, internal::Kind::REGEXP_ALLCHAR),
+        KIND_ENUM(Kind::REGEXP_COMPLEMENT, internal::Kind::REGEXP_COMPLEMENT),
         // maps to the same kind as the string versions
-        KIND_ENUM(SEQ_CONCAT, internal::Kind::STRING_CONCAT),
-        KIND_ENUM(SEQ_LENGTH, internal::Kind::STRING_LENGTH),
-        KIND_ENUM(SEQ_EXTRACT, internal::Kind::STRING_SUBSTR),
-        KIND_ENUM(SEQ_UPDATE, internal::Kind::STRING_UPDATE),
-        KIND_ENUM(SEQ_AT, internal::Kind::STRING_CHARAT),
-        KIND_ENUM(SEQ_CONTAINS, internal::Kind::STRING_CONTAINS),
-        KIND_ENUM(SEQ_INDEXOF, internal::Kind::STRING_INDEXOF),
-        KIND_ENUM(SEQ_REPLACE, internal::Kind::STRING_REPLACE),
-        KIND_ENUM(SEQ_REPLACE_ALL, internal::Kind::STRING_REPLACE_ALL),
-        KIND_ENUM(SEQ_REV, internal::Kind::STRING_REV),
-        KIND_ENUM(SEQ_PREFIX, internal::Kind::STRING_PREFIX),
-        KIND_ENUM(SEQ_SUFFIX, internal::Kind::STRING_SUFFIX),
-        KIND_ENUM(CONST_SEQUENCE, internal::Kind::CONST_SEQUENCE),
-        KIND_ENUM(SEQ_UNIT, internal::Kind::SEQ_UNIT),
-        KIND_ENUM(SEQ_NTH, internal::Kind::SEQ_NTH),
+        KIND_ENUM(Kind::SEQ_CONCAT, internal::Kind::STRING_CONCAT),
+        KIND_ENUM(Kind::SEQ_LENGTH, internal::Kind::STRING_LENGTH),
+        KIND_ENUM(Kind::SEQ_EXTRACT, internal::Kind::STRING_SUBSTR),
+        KIND_ENUM(Kind::SEQ_UPDATE, internal::Kind::STRING_UPDATE),
+        KIND_ENUM(Kind::SEQ_AT, internal::Kind::STRING_CHARAT),
+        KIND_ENUM(Kind::SEQ_CONTAINS, internal::Kind::STRING_CONTAINS),
+        KIND_ENUM(Kind::SEQ_INDEXOF, internal::Kind::STRING_INDEXOF),
+        KIND_ENUM(Kind::SEQ_REPLACE, internal::Kind::STRING_REPLACE),
+        KIND_ENUM(Kind::SEQ_REPLACE_ALL, internal::Kind::STRING_REPLACE_ALL),
+        KIND_ENUM(Kind::SEQ_REV, internal::Kind::STRING_REV),
+        KIND_ENUM(Kind::SEQ_PREFIX, internal::Kind::STRING_PREFIX),
+        KIND_ENUM(Kind::SEQ_SUFFIX, internal::Kind::STRING_SUFFIX),
+        KIND_ENUM(Kind::CONST_SEQUENCE, internal::Kind::CONST_SEQUENCE),
+        KIND_ENUM(Kind::SEQ_UNIT, internal::Kind::SEQ_UNIT),
+        KIND_ENUM(Kind::SEQ_NTH, internal::Kind::SEQ_NTH),
         /* Quantifiers ------------------------------------------------------ */
-        KIND_ENUM(FORALL, internal::Kind::FORALL),
-        KIND_ENUM(EXISTS, internal::Kind::EXISTS),
-        KIND_ENUM(VARIABLE_LIST, internal::Kind::BOUND_VAR_LIST),
-        KIND_ENUM(INST_PATTERN, internal::Kind::INST_PATTERN),
-        KIND_ENUM(INST_NO_PATTERN, internal::Kind::INST_NO_PATTERN),
-        KIND_ENUM(INST_POOL, internal::Kind::INST_POOL),
-        KIND_ENUM(INST_ADD_TO_POOL, internal::Kind::INST_ADD_TO_POOL),
-        KIND_ENUM(SKOLEM_ADD_TO_POOL, internal::Kind::SKOLEM_ADD_TO_POOL),
-        KIND_ENUM(INST_ATTRIBUTE, internal::Kind::INST_ATTRIBUTE),
-        KIND_ENUM(INST_PATTERN_LIST, internal::Kind::INST_PATTERN_LIST),
-        KIND_ENUM(LAST_KIND, internal::Kind::LAST_KIND),
+        KIND_ENUM(Kind::FORALL, internal::Kind::FORALL),
+        KIND_ENUM(Kind::EXISTS, internal::Kind::EXISTS),
+        KIND_ENUM(Kind::VARIABLE_LIST, internal::Kind::BOUND_VAR_LIST),
+        KIND_ENUM(Kind::INST_PATTERN, internal::Kind::INST_PATTERN),
+        KIND_ENUM(Kind::INST_NO_PATTERN, internal::Kind::INST_NO_PATTERN),
+        KIND_ENUM(Kind::INST_POOL, internal::Kind::INST_POOL),
+        KIND_ENUM(Kind::INST_ADD_TO_POOL, internal::Kind::INST_ADD_TO_POOL),
+        KIND_ENUM(Kind::SKOLEM_ADD_TO_POOL, internal::Kind::SKOLEM_ADD_TO_POOL),
+        KIND_ENUM(Kind::INST_ATTRIBUTE, internal::Kind::INST_ATTRIBUTE),
+        KIND_ENUM(Kind::INST_PATTERN_LIST, internal::Kind::INST_PATTERN_LIST),
+        KIND_ENUM(Kind::LAST_KIND, internal::Kind::LAST_KIND),
     };
 
 /* -------------------------------------------------------------------------- */
@@ -437,32 +454,38 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
 const static std::unordered_map<SortKind,
                                 std::pair<internal::Kind, std::string>>
     s_sort_kinds{
-        SORT_KIND_ENUM(INTERNAL_SORT_KIND, internal::Kind::UNDEFINED_KIND),
-        SORT_KIND_ENUM(UNDEFINED_SORT_KIND, internal::Kind::UNDEFINED_KIND),
-        SORT_KIND_ENUM(NULL_SORT, internal::Kind::NULL_EXPR),
+        SORT_KIND_ENUM(SortKind::INTERNAL_SORT_KIND,
+                       internal::Kind::UNDEFINED_KIND),
+        SORT_KIND_ENUM(SortKind::UNDEFINED_SORT_KIND,
+                       internal::Kind::UNDEFINED_KIND),
+        SORT_KIND_ENUM(SortKind::NULL_SORT, internal::Kind::NULL_EXPR),
         /* Sorts ------------------------------------------------------------ */
         // Note that many entries in this map (e.g. for type constants) are
         // given only for completeness and are not used since we don't
         // construct sorts based on SortKind.
-        SORT_KIND_ENUM(ABSTRACT_SORT, internal::Kind::ABSTRACT_TYPE),
-        SORT_KIND_ENUM(ARRAY_SORT, internal::Kind::ARRAY_TYPE),
-        SORT_KIND_ENUM(BAG_SORT, internal::Kind::BAG_TYPE),
-        SORT_KIND_ENUM(BITVECTOR_SORT, internal::Kind::BITVECTOR_TYPE),
-        SORT_KIND_ENUM(BOOLEAN_SORT, internal::Kind::TYPE_CONSTANT),
-        SORT_KIND_ENUM(DATATYPE_SORT, internal::Kind::DATATYPE_TYPE),
-        SORT_KIND_ENUM(FINITE_FIELD_SORT, internal::Kind::FINITE_FIELD_TYPE),
-        SORT_KIND_ENUM(FLOATINGPOINT_SORT, internal::Kind::FLOATINGPOINT_TYPE),
-        SORT_KIND_ENUM(FUNCTION_SORT, internal::Kind::FUNCTION_TYPE),
-        SORT_KIND_ENUM(INTEGER_SORT, internal::Kind::TYPE_CONSTANT),
-        SORT_KIND_ENUM(REAL_SORT, internal::Kind::TYPE_CONSTANT),
-        SORT_KIND_ENUM(REGLAN_SORT, internal::Kind::TYPE_CONSTANT),
-        SORT_KIND_ENUM(ROUNDINGMODE_SORT, internal::Kind::TYPE_CONSTANT),
-        SORT_KIND_ENUM(SEQUENCE_SORT, internal::Kind::SEQUENCE_TYPE),
-        SORT_KIND_ENUM(SET_SORT, internal::Kind::SET_TYPE),
-        SORT_KIND_ENUM(STRING_SORT, internal::Kind::TYPE_CONSTANT),
-        SORT_KIND_ENUM(TUPLE_SORT, internal::Kind::TUPLE_TYPE),
-        SORT_KIND_ENUM(UNINTERPRETED_SORT, internal::Kind::SORT_TYPE),
-        SORT_KIND_ENUM(LAST_SORT_KIND, internal::Kind::LAST_KIND),
+        SORT_KIND_ENUM(SortKind::ABSTRACT_SORT, internal::Kind::ABSTRACT_TYPE),
+        SORT_KIND_ENUM(SortKind::ARRAY_SORT, internal::Kind::ARRAY_TYPE),
+        SORT_KIND_ENUM(SortKind::BAG_SORT, internal::Kind::BAG_TYPE),
+        SORT_KIND_ENUM(SortKind::BITVECTOR_SORT,
+                       internal::Kind::BITVECTOR_TYPE),
+        SORT_KIND_ENUM(SortKind::BOOLEAN_SORT, internal::Kind::TYPE_CONSTANT),
+        SORT_KIND_ENUM(SortKind::DATATYPE_SORT, internal::Kind::DATATYPE_TYPE),
+        SORT_KIND_ENUM(SortKind::FINITE_FIELD_SORT,
+                       internal::Kind::FINITE_FIELD_TYPE),
+        SORT_KIND_ENUM(SortKind::FLOATINGPOINT_SORT,
+                       internal::Kind::FLOATINGPOINT_TYPE),
+        SORT_KIND_ENUM(SortKind::FUNCTION_SORT, internal::Kind::FUNCTION_TYPE),
+        SORT_KIND_ENUM(SortKind::INTEGER_SORT, internal::Kind::TYPE_CONSTANT),
+        SORT_KIND_ENUM(SortKind::REAL_SORT, internal::Kind::TYPE_CONSTANT),
+        SORT_KIND_ENUM(SortKind::REGLAN_SORT, internal::Kind::TYPE_CONSTANT),
+        SORT_KIND_ENUM(SortKind::ROUNDINGMODE_SORT,
+                       internal::Kind::TYPE_CONSTANT),
+        SORT_KIND_ENUM(SortKind::SEQUENCE_SORT, internal::Kind::SEQUENCE_TYPE),
+        SORT_KIND_ENUM(SortKind::SET_SORT, internal::Kind::SET_TYPE),
+        SORT_KIND_ENUM(SortKind::STRING_SORT, internal::Kind::TYPE_CONSTANT),
+        SORT_KIND_ENUM(SortKind::TUPLE_SORT, internal::Kind::TUPLE_TYPE),
+        SORT_KIND_ENUM(SortKind::UNINTERPRETED_SORT, internal::Kind::SORT_TYPE),
+        SORT_KIND_ENUM(SortKind::LAST_SORT_KIND, internal::Kind::LAST_KIND),
     };
 
 /* Mapping from internal kind to external (API) kind. */
@@ -470,408 +493,412 @@ const static std::unordered_map<internal::Kind,
                                 Kind,
                                 internal::kind::KindHashFunction>
     s_kinds_internal{
-        {internal::Kind::UNDEFINED_KIND, UNDEFINED_KIND},
-        {internal::Kind::NULL_EXPR, NULL_TERM},
+        {internal::Kind::UNDEFINED_KIND, Kind::UNDEFINED_KIND},
+        {internal::Kind::NULL_EXPR, Kind::NULL_TERM},
         /* Builtin --------------------------------------------------------- */
-        {internal::Kind::UNINTERPRETED_SORT_VALUE, UNINTERPRETED_SORT_VALUE},
-        {internal::Kind::EQUAL, EQUAL},
-        {internal::Kind::DISTINCT, DISTINCT},
-        {internal::Kind::VARIABLE, CONSTANT},
-        {internal::Kind::BOUND_VARIABLE, VARIABLE},
-        {internal::Kind::SEXPR, SEXPR},
-        {internal::Kind::LAMBDA, LAMBDA},
-        {internal::Kind::WITNESS, WITNESS},
+        {internal::Kind::UNINTERPRETED_SORT_VALUE,
+         Kind::UNINTERPRETED_SORT_VALUE},
+        {internal::Kind::EQUAL, Kind::EQUAL},
+        {internal::Kind::DISTINCT, Kind::DISTINCT},
+        {internal::Kind::VARIABLE, Kind::CONSTANT},
+        {internal::Kind::BOUND_VARIABLE, Kind::VARIABLE},
+        {internal::Kind::SEXPR, Kind::SEXPR},
+        {internal::Kind::LAMBDA, Kind::LAMBDA},
+        {internal::Kind::WITNESS, Kind::WITNESS},
         /* Boolean --------------------------------------------------------- */
-        {internal::Kind::CONST_BOOLEAN, CONST_BOOLEAN},
-        {internal::Kind::NOT, NOT},
-        {internal::Kind::AND, AND},
-        {internal::Kind::IMPLIES, IMPLIES},
-        {internal::Kind::OR, OR},
-        {internal::Kind::XOR, XOR},
-        {internal::Kind::ITE, ITE},
+        {internal::Kind::CONST_BOOLEAN, Kind::CONST_BOOLEAN},
+        {internal::Kind::NOT, Kind::NOT},
+        {internal::Kind::AND, Kind::AND},
+        {internal::Kind::IMPLIES, Kind::IMPLIES},
+        {internal::Kind::OR, Kind::OR},
+        {internal::Kind::XOR, Kind::XOR},
+        {internal::Kind::ITE, Kind::ITE},
         /* UF -------------------------------------------------------------- */
-        {internal::Kind::APPLY_UF, APPLY_UF},
-        {internal::Kind::CARDINALITY_CONSTRAINT, CARDINALITY_CONSTRAINT},
-        {internal::Kind::HO_APPLY, HO_APPLY},
+        {internal::Kind::APPLY_UF, Kind::APPLY_UF},
+        {internal::Kind::CARDINALITY_CONSTRAINT, Kind::CARDINALITY_CONSTRAINT},
+        {internal::Kind::HO_APPLY, Kind::HO_APPLY},
         /* Arithmetic ------------------------------------------------------ */
-        {internal::Kind::ADD, ADD},
-        {internal::Kind::MULT, MULT},
-        {internal::Kind::IAND, IAND},
-        {internal::Kind::POW2, POW2},
-        {internal::Kind::SUB, SUB},
-        {internal::Kind::NEG, NEG},
-        {internal::Kind::DIVISION, DIVISION},
-        {internal::Kind::DIVISION_TOTAL, INTERNAL_KIND},
-        {internal::Kind::INTS_DIVISION, INTS_DIVISION},
-        {internal::Kind::INTS_DIVISION_TOTAL, INTERNAL_KIND},
-        {internal::Kind::INTS_MODULUS, INTS_MODULUS},
-        {internal::Kind::INTS_MODULUS_TOTAL, INTERNAL_KIND},
-        {internal::Kind::ABS, ABS},
-        {internal::Kind::DIVISIBLE, DIVISIBLE},
-        {internal::Kind::POW, POW},
-        {internal::Kind::EXPONENTIAL, EXPONENTIAL},
-        {internal::Kind::SINE, SINE},
-        {internal::Kind::COSINE, COSINE},
-        {internal::Kind::TANGENT, TANGENT},
-        {internal::Kind::COSECANT, COSECANT},
-        {internal::Kind::SECANT, SECANT},
-        {internal::Kind::COTANGENT, COTANGENT},
-        {internal::Kind::ARCSINE, ARCSINE},
-        {internal::Kind::ARCCOSINE, ARCCOSINE},
-        {internal::Kind::ARCTANGENT, ARCTANGENT},
-        {internal::Kind::ARCCOSECANT, ARCCOSECANT},
-        {internal::Kind::ARCSECANT, ARCSECANT},
-        {internal::Kind::ARCCOTANGENT, ARCCOTANGENT},
-        {internal::Kind::SQRT, SQRT},
-        {internal::Kind::DIVISIBLE_OP, DIVISIBLE},
-        {internal::Kind::CONST_RATIONAL, CONST_RATIONAL},
-        {internal::Kind::CONST_INTEGER, CONST_INTEGER},
-        {internal::Kind::LT, LT},
-        {internal::Kind::LEQ, LEQ},
-        {internal::Kind::GT, GT},
-        {internal::Kind::GEQ, GEQ},
-        {internal::Kind::IS_INTEGER, IS_INTEGER},
-        {internal::Kind::TO_INTEGER, TO_INTEGER},
-        {internal::Kind::TO_REAL, TO_REAL},
-        {internal::Kind::PI, PI},
-        {internal::Kind::IAND_OP, IAND},
+        {internal::Kind::ADD, Kind::ADD},
+        {internal::Kind::MULT, Kind::MULT},
+        {internal::Kind::IAND, Kind::IAND},
+        {internal::Kind::POW2, Kind::POW2},
+        {internal::Kind::SUB, Kind::SUB},
+        {internal::Kind::NEG, Kind::NEG},
+        {internal::Kind::DIVISION, Kind::DIVISION},
+        {internal::Kind::DIVISION_TOTAL, Kind::INTERNAL_KIND},
+        {internal::Kind::INTS_DIVISION, Kind::INTS_DIVISION},
+        {internal::Kind::INTS_DIVISION_TOTAL, Kind::INTERNAL_KIND},
+        {internal::Kind::INTS_MODULUS, Kind::INTS_MODULUS},
+        {internal::Kind::INTS_MODULUS_TOTAL, Kind::INTERNAL_KIND},
+        {internal::Kind::ABS, Kind::ABS},
+        {internal::Kind::DIVISIBLE, Kind::DIVISIBLE},
+        {internal::Kind::POW, Kind::POW},
+        {internal::Kind::EXPONENTIAL, Kind::EXPONENTIAL},
+        {internal::Kind::SINE, Kind::SINE},
+        {internal::Kind::COSINE, Kind::COSINE},
+        {internal::Kind::TANGENT, Kind::TANGENT},
+        {internal::Kind::COSECANT, Kind::COSECANT},
+        {internal::Kind::SECANT, Kind::SECANT},
+        {internal::Kind::COTANGENT, Kind::COTANGENT},
+        {internal::Kind::ARCSINE, Kind::ARCSINE},
+        {internal::Kind::ARCCOSINE, Kind::ARCCOSINE},
+        {internal::Kind::ARCTANGENT, Kind::ARCTANGENT},
+        {internal::Kind::ARCCOSECANT, Kind::ARCCOSECANT},
+        {internal::Kind::ARCSECANT, Kind::ARCSECANT},
+        {internal::Kind::ARCCOTANGENT, Kind::ARCCOTANGENT},
+        {internal::Kind::SQRT, Kind::SQRT},
+        {internal::Kind::DIVISIBLE_OP, Kind::DIVISIBLE},
+        {internal::Kind::CONST_RATIONAL, Kind::CONST_RATIONAL},
+        {internal::Kind::CONST_INTEGER, Kind::CONST_INTEGER},
+        {internal::Kind::LT, Kind::LT},
+        {internal::Kind::LEQ, Kind::LEQ},
+        {internal::Kind::GT, Kind::GT},
+        {internal::Kind::GEQ, Kind::GEQ},
+        {internal::Kind::IS_INTEGER, Kind::IS_INTEGER},
+        {internal::Kind::TO_INTEGER, Kind::TO_INTEGER},
+        {internal::Kind::TO_REAL, Kind::TO_REAL},
+        {internal::Kind::PI, Kind::PI},
+        {internal::Kind::IAND_OP, Kind::IAND},
         /* BV -------------------------------------------------------------- */
-        {internal::Kind::CONST_BITVECTOR, CONST_BITVECTOR},
-        {internal::Kind::BITVECTOR_CONCAT, BITVECTOR_CONCAT},
-        {internal::Kind::BITVECTOR_AND, BITVECTOR_AND},
-        {internal::Kind::BITVECTOR_OR, BITVECTOR_OR},
-        {internal::Kind::BITVECTOR_XOR, BITVECTOR_XOR},
-        {internal::Kind::BITVECTOR_NOT, BITVECTOR_NOT},
-        {internal::Kind::BITVECTOR_NAND, BITVECTOR_NAND},
-        {internal::Kind::BITVECTOR_NOR, BITVECTOR_NOR},
-        {internal::Kind::BITVECTOR_XNOR, BITVECTOR_XNOR},
-        {internal::Kind::BITVECTOR_COMP, BITVECTOR_COMP},
-        {internal::Kind::BITVECTOR_MULT, BITVECTOR_MULT},
-        {internal::Kind::BITVECTOR_ADD, BITVECTOR_ADD},
-        {internal::Kind::BITVECTOR_SUB, BITVECTOR_SUB},
-        {internal::Kind::BITVECTOR_NEG, BITVECTOR_NEG},
-        {internal::Kind::BITVECTOR_UDIV, BITVECTOR_UDIV},
-        {internal::Kind::BITVECTOR_UREM, BITVECTOR_UREM},
-        {internal::Kind::BITVECTOR_SDIV, BITVECTOR_SDIV},
-        {internal::Kind::BITVECTOR_SREM, BITVECTOR_SREM},
-        {internal::Kind::BITVECTOR_SMOD, BITVECTOR_SMOD},
-        {internal::Kind::BITVECTOR_SHL, BITVECTOR_SHL},
-        {internal::Kind::BITVECTOR_LSHR, BITVECTOR_LSHR},
-        {internal::Kind::BITVECTOR_ASHR, BITVECTOR_ASHR},
-        {internal::Kind::BITVECTOR_ULT, BITVECTOR_ULT},
-        {internal::Kind::BITVECTOR_ULE, BITVECTOR_ULE},
-        {internal::Kind::BITVECTOR_UGT, BITVECTOR_UGT},
-        {internal::Kind::BITVECTOR_UGE, BITVECTOR_UGE},
-        {internal::Kind::BITVECTOR_SLT, BITVECTOR_SLT},
-        {internal::Kind::BITVECTOR_SLE, BITVECTOR_SLE},
-        {internal::Kind::BITVECTOR_SGT, BITVECTOR_SGT},
-        {internal::Kind::BITVECTOR_SGE, BITVECTOR_SGE},
-        {internal::Kind::BITVECTOR_ULTBV, BITVECTOR_ULTBV},
-        {internal::Kind::BITVECTOR_SLTBV, BITVECTOR_SLTBV},
-        {internal::Kind::BITVECTOR_UADDO, BITVECTOR_UADDO},
-        {internal::Kind::BITVECTOR_SADDO, BITVECTOR_SADDO},
-        {internal::Kind::BITVECTOR_UMULO, BITVECTOR_UMULO},
-        {internal::Kind::BITVECTOR_SMULO, BITVECTOR_SMULO},
-        {internal::Kind::BITVECTOR_USUBO, BITVECTOR_USUBO},
-        {internal::Kind::BITVECTOR_SSUBO, BITVECTOR_SSUBO},
-        {internal::Kind::BITVECTOR_SDIVO, BITVECTOR_SDIVO},
-        {internal::Kind::BITVECTOR_ITE, BITVECTOR_ITE},
-        {internal::Kind::BITVECTOR_REDOR, BITVECTOR_REDOR},
-        {internal::Kind::BITVECTOR_REDAND, BITVECTOR_REDAND},
-        {internal::Kind::BITVECTOR_EXTRACT_OP, BITVECTOR_EXTRACT},
-        {internal::Kind::BITVECTOR_REPEAT_OP, BITVECTOR_REPEAT},
-        {internal::Kind::BITVECTOR_ZERO_EXTEND_OP, BITVECTOR_ZERO_EXTEND},
-        {internal::Kind::BITVECTOR_SIGN_EXTEND_OP, BITVECTOR_SIGN_EXTEND},
-        {internal::Kind::BITVECTOR_ROTATE_LEFT_OP, BITVECTOR_ROTATE_LEFT},
-        {internal::Kind::BITVECTOR_ROTATE_RIGHT_OP, BITVECTOR_ROTATE_RIGHT},
-        {internal::Kind::BITVECTOR_EXTRACT, BITVECTOR_EXTRACT},
-        {internal::Kind::BITVECTOR_REPEAT, BITVECTOR_REPEAT},
-        {internal::Kind::BITVECTOR_ZERO_EXTEND, BITVECTOR_ZERO_EXTEND},
-        {internal::Kind::BITVECTOR_SIGN_EXTEND, BITVECTOR_SIGN_EXTEND},
-        {internal::Kind::BITVECTOR_ROTATE_LEFT, BITVECTOR_ROTATE_LEFT},
-        {internal::Kind::BITVECTOR_ROTATE_RIGHT, BITVECTOR_ROTATE_RIGHT},
-        {internal::Kind::INT_TO_BITVECTOR_OP, INT_TO_BITVECTOR},
-        {internal::Kind::INT_TO_BITVECTOR, INT_TO_BITVECTOR},
-        {internal::Kind::BITVECTOR_TO_NAT, BITVECTOR_TO_NAT},
+        {internal::Kind::CONST_BITVECTOR, Kind::CONST_BITVECTOR},
+        {internal::Kind::BITVECTOR_CONCAT, Kind::BITVECTOR_CONCAT},
+        {internal::Kind::BITVECTOR_AND, Kind::BITVECTOR_AND},
+        {internal::Kind::BITVECTOR_OR, Kind::BITVECTOR_OR},
+        {internal::Kind::BITVECTOR_XOR, Kind::BITVECTOR_XOR},
+        {internal::Kind::BITVECTOR_NOT, Kind::BITVECTOR_NOT},
+        {internal::Kind::BITVECTOR_NAND, Kind::BITVECTOR_NAND},
+        {internal::Kind::BITVECTOR_NOR, Kind::BITVECTOR_NOR},
+        {internal::Kind::BITVECTOR_XNOR, Kind::BITVECTOR_XNOR},
+        {internal::Kind::BITVECTOR_COMP, Kind::BITVECTOR_COMP},
+        {internal::Kind::BITVECTOR_MULT, Kind::BITVECTOR_MULT},
+        {internal::Kind::BITVECTOR_ADD, Kind::BITVECTOR_ADD},
+        {internal::Kind::BITVECTOR_SUB, Kind::BITVECTOR_SUB},
+        {internal::Kind::BITVECTOR_NEG, Kind::BITVECTOR_NEG},
+        {internal::Kind::BITVECTOR_UDIV, Kind::BITVECTOR_UDIV},
+        {internal::Kind::BITVECTOR_UREM, Kind::BITVECTOR_UREM},
+        {internal::Kind::BITVECTOR_SDIV, Kind::BITVECTOR_SDIV},
+        {internal::Kind::BITVECTOR_SREM, Kind::BITVECTOR_SREM},
+        {internal::Kind::BITVECTOR_SMOD, Kind::BITVECTOR_SMOD},
+        {internal::Kind::BITVECTOR_SHL, Kind::BITVECTOR_SHL},
+        {internal::Kind::BITVECTOR_LSHR, Kind::BITVECTOR_LSHR},
+        {internal::Kind::BITVECTOR_ASHR, Kind::BITVECTOR_ASHR},
+        {internal::Kind::BITVECTOR_ULT, Kind::BITVECTOR_ULT},
+        {internal::Kind::BITVECTOR_ULE, Kind::BITVECTOR_ULE},
+        {internal::Kind::BITVECTOR_UGT, Kind::BITVECTOR_UGT},
+        {internal::Kind::BITVECTOR_UGE, Kind::BITVECTOR_UGE},
+        {internal::Kind::BITVECTOR_SLT, Kind::BITVECTOR_SLT},
+        {internal::Kind::BITVECTOR_SLE, Kind::BITVECTOR_SLE},
+        {internal::Kind::BITVECTOR_SGT, Kind::BITVECTOR_SGT},
+        {internal::Kind::BITVECTOR_SGE, Kind::BITVECTOR_SGE},
+        {internal::Kind::BITVECTOR_ULTBV, Kind::BITVECTOR_ULTBV},
+        {internal::Kind::BITVECTOR_SLTBV, Kind::BITVECTOR_SLTBV},
+        {internal::Kind::BITVECTOR_UADDO, Kind::BITVECTOR_UADDO},
+        {internal::Kind::BITVECTOR_SADDO, Kind::BITVECTOR_SADDO},
+        {internal::Kind::BITVECTOR_UMULO, Kind::BITVECTOR_UMULO},
+        {internal::Kind::BITVECTOR_SMULO, Kind::BITVECTOR_SMULO},
+        {internal::Kind::BITVECTOR_USUBO, Kind::BITVECTOR_USUBO},
+        {internal::Kind::BITVECTOR_SSUBO, Kind::BITVECTOR_SSUBO},
+        {internal::Kind::BITVECTOR_SDIVO, Kind::BITVECTOR_SDIVO},
+        {internal::Kind::BITVECTOR_ITE, Kind::BITVECTOR_ITE},
+        {internal::Kind::BITVECTOR_REDOR, Kind::BITVECTOR_REDOR},
+        {internal::Kind::BITVECTOR_REDAND, Kind::BITVECTOR_REDAND},
+        {internal::Kind::BITVECTOR_EXTRACT_OP, Kind::BITVECTOR_EXTRACT},
+        {internal::Kind::BITVECTOR_REPEAT_OP, Kind::BITVECTOR_REPEAT},
+        {internal::Kind::BITVECTOR_ZERO_EXTEND_OP, Kind::BITVECTOR_ZERO_EXTEND},
+        {internal::Kind::BITVECTOR_SIGN_EXTEND_OP, Kind::BITVECTOR_SIGN_EXTEND},
+        {internal::Kind::BITVECTOR_ROTATE_LEFT_OP, Kind::BITVECTOR_ROTATE_LEFT},
+        {internal::Kind::BITVECTOR_ROTATE_RIGHT_OP,
+         Kind::BITVECTOR_ROTATE_RIGHT},
+        {internal::Kind::BITVECTOR_EXTRACT, Kind::BITVECTOR_EXTRACT},
+        {internal::Kind::BITVECTOR_REPEAT, Kind::BITVECTOR_REPEAT},
+        {internal::Kind::BITVECTOR_ZERO_EXTEND, Kind::BITVECTOR_ZERO_EXTEND},
+        {internal::Kind::BITVECTOR_SIGN_EXTEND, Kind::BITVECTOR_SIGN_EXTEND},
+        {internal::Kind::BITVECTOR_ROTATE_LEFT, Kind::BITVECTOR_ROTATE_LEFT},
+        {internal::Kind::BITVECTOR_ROTATE_RIGHT, Kind::BITVECTOR_ROTATE_RIGHT},
+        {internal::Kind::INT_TO_BITVECTOR_OP, Kind::INT_TO_BITVECTOR},
+        {internal::Kind::INT_TO_BITVECTOR, Kind::INT_TO_BITVECTOR},
+        {internal::Kind::BITVECTOR_TO_NAT, Kind::BITVECTOR_TO_NAT},
         /* Finite Fields --------------------------------------------------- */
-        {internal::Kind::CONST_FINITE_FIELD, CONST_FINITE_FIELD},
-        {internal::Kind::FINITE_FIELD_MULT, FINITE_FIELD_MULT},
-        {internal::Kind::FINITE_FIELD_ADD, FINITE_FIELD_ADD},
-        {internal::Kind::FINITE_FIELD_NEG, FINITE_FIELD_NEG},
+        {internal::Kind::CONST_FINITE_FIELD, Kind::CONST_FINITE_FIELD},
+        {internal::Kind::FINITE_FIELD_MULT, Kind::FINITE_FIELD_MULT},
+        {internal::Kind::FINITE_FIELD_ADD, Kind::FINITE_FIELD_ADD},
+        {internal::Kind::FINITE_FIELD_NEG, Kind::FINITE_FIELD_NEG},
         /* FP -------------------------------------------------------------- */
-        {internal::Kind::CONST_FLOATINGPOINT, CONST_FLOATINGPOINT},
-        {internal::Kind::CONST_ROUNDINGMODE, CONST_ROUNDINGMODE},
-        {internal::Kind::FLOATINGPOINT_FP, FLOATINGPOINT_FP},
-        {internal::Kind::FLOATINGPOINT_EQ, FLOATINGPOINT_EQ},
-        {internal::Kind::FLOATINGPOINT_ABS, FLOATINGPOINT_ABS},
-        {internal::Kind::FLOATINGPOINT_NEG, FLOATINGPOINT_NEG},
-        {internal::Kind::FLOATINGPOINT_ADD, FLOATINGPOINT_ADD},
-        {internal::Kind::FLOATINGPOINT_SUB, FLOATINGPOINT_SUB},
-        {internal::Kind::FLOATINGPOINT_MULT, FLOATINGPOINT_MULT},
-        {internal::Kind::FLOATINGPOINT_DIV, FLOATINGPOINT_DIV},
-        {internal::Kind::FLOATINGPOINT_FMA, FLOATINGPOINT_FMA},
-        {internal::Kind::FLOATINGPOINT_SQRT, FLOATINGPOINT_SQRT},
-        {internal::Kind::FLOATINGPOINT_REM, FLOATINGPOINT_REM},
-        {internal::Kind::FLOATINGPOINT_RTI, FLOATINGPOINT_RTI},
-        {internal::Kind::FLOATINGPOINT_MIN, FLOATINGPOINT_MIN},
-        {internal::Kind::FLOATINGPOINT_MAX, FLOATINGPOINT_MAX},
-        {internal::Kind::FLOATINGPOINT_LEQ, FLOATINGPOINT_LEQ},
-        {internal::Kind::FLOATINGPOINT_LT, FLOATINGPOINT_LT},
-        {internal::Kind::FLOATINGPOINT_GEQ, FLOATINGPOINT_GEQ},
-        {internal::Kind::FLOATINGPOINT_GT, FLOATINGPOINT_GT},
-        {internal::Kind::FLOATINGPOINT_IS_NORMAL, FLOATINGPOINT_IS_NORMAL},
+        {internal::Kind::CONST_FLOATINGPOINT, Kind::CONST_FLOATINGPOINT},
+        {internal::Kind::CONST_ROUNDINGMODE, Kind::CONST_ROUNDINGMODE},
+        {internal::Kind::FLOATINGPOINT_FP, Kind::FLOATINGPOINT_FP},
+        {internal::Kind::FLOATINGPOINT_EQ, Kind::FLOATINGPOINT_EQ},
+        {internal::Kind::FLOATINGPOINT_ABS, Kind::FLOATINGPOINT_ABS},
+        {internal::Kind::FLOATINGPOINT_NEG, Kind::FLOATINGPOINT_NEG},
+        {internal::Kind::FLOATINGPOINT_ADD, Kind::FLOATINGPOINT_ADD},
+        {internal::Kind::FLOATINGPOINT_SUB, Kind::FLOATINGPOINT_SUB},
+        {internal::Kind::FLOATINGPOINT_MULT, Kind::FLOATINGPOINT_MULT},
+        {internal::Kind::FLOATINGPOINT_DIV, Kind::FLOATINGPOINT_DIV},
+        {internal::Kind::FLOATINGPOINT_FMA, Kind::FLOATINGPOINT_FMA},
+        {internal::Kind::FLOATINGPOINT_SQRT, Kind::FLOATINGPOINT_SQRT},
+        {internal::Kind::FLOATINGPOINT_REM, Kind::FLOATINGPOINT_REM},
+        {internal::Kind::FLOATINGPOINT_RTI, Kind::FLOATINGPOINT_RTI},
+        {internal::Kind::FLOATINGPOINT_MIN, Kind::FLOATINGPOINT_MIN},
+        {internal::Kind::FLOATINGPOINT_MAX, Kind::FLOATINGPOINT_MAX},
+        {internal::Kind::FLOATINGPOINT_LEQ, Kind::FLOATINGPOINT_LEQ},
+        {internal::Kind::FLOATINGPOINT_LT, Kind::FLOATINGPOINT_LT},
+        {internal::Kind::FLOATINGPOINT_GEQ, Kind::FLOATINGPOINT_GEQ},
+        {internal::Kind::FLOATINGPOINT_GT, Kind::FLOATINGPOINT_GT},
+        {internal::Kind::FLOATINGPOINT_IS_NORMAL,
+         Kind::FLOATINGPOINT_IS_NORMAL},
         {internal::Kind::FLOATINGPOINT_IS_SUBNORMAL,
-         FLOATINGPOINT_IS_SUBNORMAL},
-        {internal::Kind::FLOATINGPOINT_IS_ZERO, FLOATINGPOINT_IS_ZERO},
-        {internal::Kind::FLOATINGPOINT_IS_INF, FLOATINGPOINT_IS_INF},
-        {internal::Kind::FLOATINGPOINT_IS_NAN, FLOATINGPOINT_IS_NAN},
-        {internal::Kind::FLOATINGPOINT_IS_NEG, FLOATINGPOINT_IS_NEG},
-        {internal::Kind::FLOATINGPOINT_IS_POS, FLOATINGPOINT_IS_POS},
+         Kind::FLOATINGPOINT_IS_SUBNORMAL},
+        {internal::Kind::FLOATINGPOINT_IS_ZERO, Kind::FLOATINGPOINT_IS_ZERO},
+        {internal::Kind::FLOATINGPOINT_IS_INF, Kind::FLOATINGPOINT_IS_INF},
+        {internal::Kind::FLOATINGPOINT_IS_NAN, Kind::FLOATINGPOINT_IS_NAN},
+        {internal::Kind::FLOATINGPOINT_IS_NEG, Kind::FLOATINGPOINT_IS_NEG},
+        {internal::Kind::FLOATINGPOINT_IS_POS, Kind::FLOATINGPOINT_IS_POS},
         {internal::Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV_OP,
-         FLOATINGPOINT_TO_FP_FROM_IEEE_BV},
+         Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV},
         {internal::Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
-         FLOATINGPOINT_TO_FP_FROM_IEEE_BV},
+         Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV},
         {internal::Kind::FLOATINGPOINT_TO_FP_FROM_FP_OP,
-         FLOATINGPOINT_TO_FP_FROM_FP},
+         Kind::FLOATINGPOINT_TO_FP_FROM_FP},
         {internal::Kind::FLOATINGPOINT_TO_FP_FROM_FP,
-         FLOATINGPOINT_TO_FP_FROM_FP},
+         Kind::FLOATINGPOINT_TO_FP_FROM_FP},
         {internal::Kind::FLOATINGPOINT_TO_FP_FROM_REAL_OP,
-         FLOATINGPOINT_TO_FP_FROM_REAL},
+         Kind::FLOATINGPOINT_TO_FP_FROM_REAL},
         {internal::Kind::FLOATINGPOINT_TO_FP_FROM_REAL,
-         FLOATINGPOINT_TO_FP_FROM_REAL},
+         Kind::FLOATINGPOINT_TO_FP_FROM_REAL},
         {internal::Kind::FLOATINGPOINT_TO_FP_FROM_SBV_OP,
-         FLOATINGPOINT_TO_FP_FROM_SBV},
+         Kind::FLOATINGPOINT_TO_FP_FROM_SBV},
         {internal::Kind::FLOATINGPOINT_TO_FP_FROM_SBV,
-         FLOATINGPOINT_TO_FP_FROM_SBV},
+         Kind::FLOATINGPOINT_TO_FP_FROM_SBV},
         {internal::Kind::FLOATINGPOINT_TO_FP_FROM_UBV_OP,
-         FLOATINGPOINT_TO_FP_FROM_UBV},
+         Kind::FLOATINGPOINT_TO_FP_FROM_UBV},
         {internal::Kind::FLOATINGPOINT_TO_FP_FROM_UBV,
-         FLOATINGPOINT_TO_FP_FROM_UBV},
-        {internal::Kind::FLOATINGPOINT_TO_UBV_OP, FLOATINGPOINT_TO_UBV},
-        {internal::Kind::FLOATINGPOINT_TO_UBV, FLOATINGPOINT_TO_UBV},
-        {internal::Kind::FLOATINGPOINT_TO_UBV_TOTAL_OP, INTERNAL_KIND},
-        {internal::Kind::FLOATINGPOINT_TO_UBV_TOTAL, INTERNAL_KIND},
-        {internal::Kind::FLOATINGPOINT_TO_SBV_OP, FLOATINGPOINT_TO_SBV},
-        {internal::Kind::FLOATINGPOINT_TO_SBV, FLOATINGPOINT_TO_SBV},
-        {internal::Kind::FLOATINGPOINT_TO_SBV_TOTAL_OP, INTERNAL_KIND},
-        {internal::Kind::FLOATINGPOINT_TO_SBV_TOTAL, INTERNAL_KIND},
-        {internal::Kind::FLOATINGPOINT_TO_REAL, FLOATINGPOINT_TO_REAL},
-        {internal::Kind::FLOATINGPOINT_TO_REAL_TOTAL, INTERNAL_KIND},
+         Kind::FLOATINGPOINT_TO_FP_FROM_UBV},
+        {internal::Kind::FLOATINGPOINT_TO_UBV_OP, Kind::FLOATINGPOINT_TO_UBV},
+        {internal::Kind::FLOATINGPOINT_TO_UBV, Kind::FLOATINGPOINT_TO_UBV},
+        {internal::Kind::FLOATINGPOINT_TO_UBV_TOTAL_OP, Kind::INTERNAL_KIND},
+        {internal::Kind::FLOATINGPOINT_TO_UBV_TOTAL, Kind::INTERNAL_KIND},
+        {internal::Kind::FLOATINGPOINT_TO_SBV_OP, Kind::FLOATINGPOINT_TO_SBV},
+        {internal::Kind::FLOATINGPOINT_TO_SBV, Kind::FLOATINGPOINT_TO_SBV},
+        {internal::Kind::FLOATINGPOINT_TO_SBV_TOTAL_OP, Kind::INTERNAL_KIND},
+        {internal::Kind::FLOATINGPOINT_TO_SBV_TOTAL, Kind::INTERNAL_KIND},
+        {internal::Kind::FLOATINGPOINT_TO_REAL, Kind::FLOATINGPOINT_TO_REAL},
+        {internal::Kind::FLOATINGPOINT_TO_REAL_TOTAL, Kind::INTERNAL_KIND},
         /* Arrays ---------------------------------------------------------- */
-        {internal::Kind::SELECT, SELECT},
-        {internal::Kind::STORE, STORE},
-        {internal::Kind::STORE_ALL, CONST_ARRAY},
+        {internal::Kind::SELECT, Kind::SELECT},
+        {internal::Kind::STORE, Kind::STORE},
+        {internal::Kind::STORE_ALL, Kind::CONST_ARRAY},
         /* Datatypes ------------------------------------------------------- */
-        {internal::Kind::APPLY_SELECTOR, APPLY_SELECTOR},
-        {internal::Kind::APPLY_CONSTRUCTOR, APPLY_CONSTRUCTOR},
-        {internal::Kind::APPLY_TESTER, APPLY_TESTER},
-        {internal::Kind::APPLY_UPDATER, APPLY_UPDATER},
-        {internal::Kind::MATCH, MATCH},
-        {internal::Kind::MATCH_CASE, MATCH_CASE},
-        {internal::Kind::MATCH_BIND_CASE, MATCH_BIND_CASE},
-        {internal::Kind::TUPLE_PROJECT, TUPLE_PROJECT},
-        {internal::Kind::TUPLE_PROJECT_OP, TUPLE_PROJECT},
+        {internal::Kind::APPLY_SELECTOR, Kind::APPLY_SELECTOR},
+        {internal::Kind::APPLY_CONSTRUCTOR, Kind::APPLY_CONSTRUCTOR},
+        {internal::Kind::APPLY_TESTER, Kind::APPLY_TESTER},
+        {internal::Kind::APPLY_UPDATER, Kind::APPLY_UPDATER},
+        {internal::Kind::MATCH, Kind::MATCH},
+        {internal::Kind::MATCH_CASE, Kind::MATCH_CASE},
+        {internal::Kind::MATCH_BIND_CASE, Kind::MATCH_BIND_CASE},
+        {internal::Kind::TUPLE_PROJECT, Kind::TUPLE_PROJECT},
+        {internal::Kind::TUPLE_PROJECT_OP, Kind::TUPLE_PROJECT},
         /* Separation Logic ------------------------------------------------ */
-        {internal::Kind::SEP_NIL, SEP_NIL},
-        {internal::Kind::SEP_EMP, SEP_EMP},
-        {internal::Kind::SEP_PTO, SEP_PTO},
-        {internal::Kind::SEP_STAR, SEP_STAR},
-        {internal::Kind::SEP_WAND, SEP_WAND},
+        {internal::Kind::SEP_NIL, Kind::SEP_NIL},
+        {internal::Kind::SEP_EMP, Kind::SEP_EMP},
+        {internal::Kind::SEP_PTO, Kind::SEP_PTO},
+        {internal::Kind::SEP_STAR, Kind::SEP_STAR},
+        {internal::Kind::SEP_WAND, Kind::SEP_WAND},
         /* Sets ------------------------------------------------------------ */
-        {internal::Kind::SET_EMPTY, SET_EMPTY},
-        {internal::Kind::SET_UNION, SET_UNION},
-        {internal::Kind::SET_INTER, SET_INTER},
-        {internal::Kind::SET_MINUS, SET_MINUS},
-        {internal::Kind::SET_SUBSET, SET_SUBSET},
-        {internal::Kind::SET_MEMBER, SET_MEMBER},
-        {internal::Kind::SET_SINGLETON, SET_SINGLETON},
-        {internal::Kind::SET_INSERT, SET_INSERT},
-        {internal::Kind::SET_CARD, SET_CARD},
-        {internal::Kind::SET_COMPLEMENT, SET_COMPLEMENT},
-        {internal::Kind::SET_UNIVERSE, SET_UNIVERSE},
-        {internal::Kind::SET_COMPREHENSION, SET_COMPREHENSION},
-        {internal::Kind::SET_CHOOSE, SET_CHOOSE},
-        {internal::Kind::SET_IS_SINGLETON, SET_IS_SINGLETON},
-        {internal::Kind::SET_MAP, SET_MAP},
-        {internal::Kind::SET_FILTER, SET_FILTER},
-        {internal::Kind::SET_FOLD, SET_FOLD},
+        {internal::Kind::SET_EMPTY, Kind::SET_EMPTY},
+        {internal::Kind::SET_UNION, Kind::SET_UNION},
+        {internal::Kind::SET_INTER, Kind::SET_INTER},
+        {internal::Kind::SET_MINUS, Kind::SET_MINUS},
+        {internal::Kind::SET_SUBSET, Kind::SET_SUBSET},
+        {internal::Kind::SET_MEMBER, Kind::SET_MEMBER},
+        {internal::Kind::SET_SINGLETON, Kind::SET_SINGLETON},
+        {internal::Kind::SET_INSERT, Kind::SET_INSERT},
+        {internal::Kind::SET_CARD, Kind::SET_CARD},
+        {internal::Kind::SET_COMPLEMENT, Kind::SET_COMPLEMENT},
+        {internal::Kind::SET_UNIVERSE, Kind::SET_UNIVERSE},
+        {internal::Kind::SET_COMPREHENSION, Kind::SET_COMPREHENSION},
+        {internal::Kind::SET_CHOOSE, Kind::SET_CHOOSE},
+        {internal::Kind::SET_IS_SINGLETON, Kind::SET_IS_SINGLETON},
+        {internal::Kind::SET_MAP, Kind::SET_MAP},
+        {internal::Kind::SET_FILTER, Kind::SET_FILTER},
+        {internal::Kind::SET_FOLD, Kind::SET_FOLD},
         /* Relations ------------------------------------------------------- */
-        {internal::Kind::RELATION_JOIN, RELATION_JOIN},
-        {internal::Kind::RELATION_PRODUCT, RELATION_PRODUCT},
-        {internal::Kind::RELATION_TRANSPOSE, RELATION_TRANSPOSE},
-        {internal::Kind::RELATION_TCLOSURE, RELATION_TCLOSURE},
-        {internal::Kind::RELATION_JOIN_IMAGE, RELATION_JOIN_IMAGE},
-        {internal::Kind::RELATION_IDEN, RELATION_IDEN},
-        {internal::Kind::RELATION_GROUP, RELATION_GROUP},
-        {internal::Kind::RELATION_AGGREGATE_OP, RELATION_AGGREGATE},
-        {internal::Kind::RELATION_AGGREGATE, RELATION_AGGREGATE},
-        {internal::Kind::RELATION_PROJECT_OP, RELATION_PROJECT},
-        {internal::Kind::RELATION_PROJECT, RELATION_PROJECT},
+        {internal::Kind::RELATION_JOIN, Kind::RELATION_JOIN},
+        {internal::Kind::RELATION_PRODUCT, Kind::RELATION_PRODUCT},
+        {internal::Kind::RELATION_TRANSPOSE, Kind::RELATION_TRANSPOSE},
+        {internal::Kind::RELATION_TCLOSURE, Kind::RELATION_TCLOSURE},
+        {internal::Kind::RELATION_JOIN_IMAGE, Kind::RELATION_JOIN_IMAGE},
+        {internal::Kind::RELATION_IDEN, Kind::RELATION_IDEN},
+        {internal::Kind::RELATION_GROUP, Kind::RELATION_GROUP},
+        {internal::Kind::RELATION_AGGREGATE_OP, Kind::RELATION_AGGREGATE},
+        {internal::Kind::RELATION_AGGREGATE, Kind::RELATION_AGGREGATE},
+        {internal::Kind::RELATION_PROJECT_OP, Kind::RELATION_PROJECT},
+        {internal::Kind::RELATION_PROJECT, Kind::RELATION_PROJECT},
         /* Bags ------------------------------------------------------------ */
-        {internal::Kind::BAG_UNION_MAX, BAG_UNION_MAX},
-        {internal::Kind::BAG_UNION_DISJOINT, BAG_UNION_DISJOINT},
-        {internal::Kind::BAG_INTER_MIN, BAG_INTER_MIN},
-        {internal::Kind::BAG_DIFFERENCE_SUBTRACT, BAG_DIFFERENCE_SUBTRACT},
-        {internal::Kind::BAG_DIFFERENCE_REMOVE, BAG_DIFFERENCE_REMOVE},
-        {internal::Kind::BAG_SUBBAG, BAG_SUBBAG},
-        {internal::Kind::BAG_COUNT, BAG_COUNT},
-        {internal::Kind::BAG_MEMBER, BAG_MEMBER},
-        {internal::Kind::BAG_DUPLICATE_REMOVAL, BAG_DUPLICATE_REMOVAL},
-        {internal::Kind::BAG_MAKE, BAG_MAKE},
-        {internal::Kind::BAG_EMPTY, BAG_EMPTY},
-        {internal::Kind::BAG_CARD, BAG_CARD},
-        {internal::Kind::BAG_CHOOSE, BAG_CHOOSE},
-        {internal::Kind::BAG_IS_SINGLETON, BAG_IS_SINGLETON},
-        {internal::Kind::BAG_FROM_SET, BAG_FROM_SET},
-        {internal::Kind::BAG_TO_SET, BAG_TO_SET},
-        {internal::Kind::BAG_MAP, BAG_MAP},
-        {internal::Kind::BAG_FILTER, BAG_FILTER},
-        {internal::Kind::BAG_FOLD, BAG_FOLD},
-        {internal::Kind::BAG_PARTITION, BAG_PARTITION},
-        {internal::Kind::TABLE_PRODUCT, TABLE_PRODUCT},
-        {internal::Kind::TABLE_PROJECT, TABLE_PROJECT},
-        {internal::Kind::TABLE_PROJECT_OP, TABLE_PROJECT},
-        {internal::Kind::TABLE_AGGREGATE_OP, TABLE_AGGREGATE},
-        {internal::Kind::TABLE_AGGREGATE, TABLE_AGGREGATE},
-        {internal::Kind::TABLE_JOIN_OP, TABLE_JOIN},
-        {internal::Kind::TABLE_JOIN, TABLE_JOIN},
-        {internal::Kind::TABLE_GROUP_OP, TABLE_GROUP},
-        {internal::Kind::TABLE_GROUP, TABLE_GROUP},
+        {internal::Kind::BAG_UNION_MAX, Kind::BAG_UNION_MAX},
+        {internal::Kind::BAG_UNION_DISJOINT, Kind::BAG_UNION_DISJOINT},
+        {internal::Kind::BAG_INTER_MIN, Kind::BAG_INTER_MIN},
+        {internal::Kind::BAG_DIFFERENCE_SUBTRACT,
+         Kind::BAG_DIFFERENCE_SUBTRACT},
+        {internal::Kind::BAG_DIFFERENCE_REMOVE, Kind::BAG_DIFFERENCE_REMOVE},
+        {internal::Kind::BAG_SUBBAG, Kind::BAG_SUBBAG},
+        {internal::Kind::BAG_COUNT, Kind::BAG_COUNT},
+        {internal::Kind::BAG_MEMBER, Kind::BAG_MEMBER},
+        {internal::Kind::BAG_DUPLICATE_REMOVAL, Kind::BAG_DUPLICATE_REMOVAL},
+        {internal::Kind::BAG_MAKE, Kind::BAG_MAKE},
+        {internal::Kind::BAG_EMPTY, Kind::BAG_EMPTY},
+        {internal::Kind::BAG_CARD, Kind::BAG_CARD},
+        {internal::Kind::BAG_CHOOSE, Kind::BAG_CHOOSE},
+        {internal::Kind::BAG_IS_SINGLETON, Kind::BAG_IS_SINGLETON},
+        {internal::Kind::BAG_FROM_SET, Kind::BAG_FROM_SET},
+        {internal::Kind::BAG_TO_SET, Kind::BAG_TO_SET},
+        {internal::Kind::BAG_MAP, Kind::BAG_MAP},
+        {internal::Kind::BAG_FILTER, Kind::BAG_FILTER},
+        {internal::Kind::BAG_FOLD, Kind::BAG_FOLD},
+        {internal::Kind::BAG_PARTITION, Kind::BAG_PARTITION},
+        {internal::Kind::TABLE_PRODUCT, Kind::TABLE_PRODUCT},
+        {internal::Kind::TABLE_PROJECT, Kind::TABLE_PROJECT},
+        {internal::Kind::TABLE_PROJECT_OP, Kind::TABLE_PROJECT},
+        {internal::Kind::TABLE_AGGREGATE_OP, Kind::TABLE_AGGREGATE},
+        {internal::Kind::TABLE_AGGREGATE, Kind::TABLE_AGGREGATE},
+        {internal::Kind::TABLE_JOIN_OP, Kind::TABLE_JOIN},
+        {internal::Kind::TABLE_JOIN, Kind::TABLE_JOIN},
+        {internal::Kind::TABLE_GROUP_OP, Kind::TABLE_GROUP},
+        {internal::Kind::TABLE_GROUP, Kind::TABLE_GROUP},
         /* Strings --------------------------------------------------------- */
-        {internal::Kind::STRING_CONCAT, STRING_CONCAT},
-        {internal::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},
-        {internal::Kind::STRING_LENGTH, STRING_LENGTH},
-        {internal::Kind::STRING_SUBSTR, STRING_SUBSTR},
-        {internal::Kind::STRING_UPDATE, STRING_UPDATE},
-        {internal::Kind::STRING_CHARAT, STRING_CHARAT},
-        {internal::Kind::STRING_CONTAINS, STRING_CONTAINS},
-        {internal::Kind::STRING_INDEXOF, STRING_INDEXOF},
-        {internal::Kind::STRING_INDEXOF_RE, STRING_INDEXOF_RE},
-        {internal::Kind::STRING_REPLACE, STRING_REPLACE},
-        {internal::Kind::STRING_REPLACE_ALL, STRING_REPLACE_ALL},
-        {internal::Kind::STRING_REPLACE_RE, STRING_REPLACE_RE},
-        {internal::Kind::STRING_REPLACE_RE_ALL, STRING_REPLACE_RE_ALL},
-        {internal::Kind::STRING_TO_LOWER, STRING_TO_LOWER},
-        {internal::Kind::STRING_TO_UPPER, STRING_TO_UPPER},
-        {internal::Kind::STRING_REV, STRING_REV},
-        {internal::Kind::STRING_FROM_CODE, STRING_FROM_CODE},
-        {internal::Kind::STRING_TO_CODE, STRING_TO_CODE},
-        {internal::Kind::STRING_LT, STRING_LT},
-        {internal::Kind::STRING_LEQ, STRING_LEQ},
-        {internal::Kind::STRING_PREFIX, STRING_PREFIX},
-        {internal::Kind::STRING_SUFFIX, STRING_SUFFIX},
-        {internal::Kind::STRING_IS_DIGIT, STRING_IS_DIGIT},
-        {internal::Kind::STRING_ITOS, STRING_FROM_INT},
-        {internal::Kind::STRING_STOI, STRING_TO_INT},
-        {internal::Kind::CONST_STRING, CONST_STRING},
-        {internal::Kind::STRING_TO_REGEXP, STRING_TO_REGEXP},
-        {internal::Kind::REGEXP_CONCAT, REGEXP_CONCAT},
-        {internal::Kind::REGEXP_UNION, REGEXP_UNION},
-        {internal::Kind::REGEXP_INTER, REGEXP_INTER},
-        {internal::Kind::REGEXP_DIFF, REGEXP_DIFF},
-        {internal::Kind::REGEXP_STAR, REGEXP_STAR},
-        {internal::Kind::REGEXP_PLUS, REGEXP_PLUS},
-        {internal::Kind::REGEXP_OPT, REGEXP_OPT},
-        {internal::Kind::REGEXP_RANGE, REGEXP_RANGE},
-        {internal::Kind::REGEXP_REPEAT, REGEXP_REPEAT},
-        {internal::Kind::REGEXP_REPEAT_OP, REGEXP_REPEAT},
-        {internal::Kind::REGEXP_LOOP, REGEXP_LOOP},
-        {internal::Kind::REGEXP_LOOP_OP, REGEXP_LOOP},
-        {internal::Kind::REGEXP_NONE, REGEXP_NONE},
-        {internal::Kind::REGEXP_ALL, REGEXP_ALL},
-        {internal::Kind::REGEXP_ALLCHAR, REGEXP_ALLCHAR},
-        {internal::Kind::REGEXP_COMPLEMENT, REGEXP_COMPLEMENT},
-        {internal::Kind::CONST_SEQUENCE, CONST_SEQUENCE},
-        {internal::Kind::SEQ_UNIT, SEQ_UNIT},
-        {internal::Kind::SEQ_NTH, SEQ_NTH},
+        {internal::Kind::STRING_CONCAT, Kind::STRING_CONCAT},
+        {internal::Kind::STRING_IN_REGEXP, Kind::STRING_IN_REGEXP},
+        {internal::Kind::STRING_LENGTH, Kind::STRING_LENGTH},
+        {internal::Kind::STRING_SUBSTR, Kind::STRING_SUBSTR},
+        {internal::Kind::STRING_UPDATE, Kind::STRING_UPDATE},
+        {internal::Kind::STRING_CHARAT, Kind::STRING_CHARAT},
+        {internal::Kind::STRING_CONTAINS, Kind::STRING_CONTAINS},
+        {internal::Kind::STRING_INDEXOF, Kind::STRING_INDEXOF},
+        {internal::Kind::STRING_INDEXOF_RE, Kind::STRING_INDEXOF_RE},
+        {internal::Kind::STRING_REPLACE, Kind::STRING_REPLACE},
+        {internal::Kind::STRING_REPLACE_ALL, Kind::STRING_REPLACE_ALL},
+        {internal::Kind::STRING_REPLACE_RE, Kind::STRING_REPLACE_RE},
+        {internal::Kind::STRING_REPLACE_RE_ALL, Kind::STRING_REPLACE_RE_ALL},
+        {internal::Kind::STRING_TO_LOWER, Kind::STRING_TO_LOWER},
+        {internal::Kind::STRING_TO_UPPER, Kind::STRING_TO_UPPER},
+        {internal::Kind::STRING_REV, Kind::STRING_REV},
+        {internal::Kind::STRING_FROM_CODE, Kind::STRING_FROM_CODE},
+        {internal::Kind::STRING_TO_CODE, Kind::STRING_TO_CODE},
+        {internal::Kind::STRING_LT, Kind::STRING_LT},
+        {internal::Kind::STRING_LEQ, Kind::STRING_LEQ},
+        {internal::Kind::STRING_PREFIX, Kind::STRING_PREFIX},
+        {internal::Kind::STRING_SUFFIX, Kind::STRING_SUFFIX},
+        {internal::Kind::STRING_IS_DIGIT, Kind::STRING_IS_DIGIT},
+        {internal::Kind::STRING_ITOS, Kind::STRING_FROM_INT},
+        {internal::Kind::STRING_STOI, Kind::STRING_TO_INT},
+        {internal::Kind::CONST_STRING, Kind::CONST_STRING},
+        {internal::Kind::STRING_TO_REGEXP, Kind::STRING_TO_REGEXP},
+        {internal::Kind::REGEXP_CONCAT, Kind::REGEXP_CONCAT},
+        {internal::Kind::REGEXP_UNION, Kind::REGEXP_UNION},
+        {internal::Kind::REGEXP_INTER, Kind::REGEXP_INTER},
+        {internal::Kind::REGEXP_DIFF, Kind::REGEXP_DIFF},
+        {internal::Kind::REGEXP_STAR, Kind::REGEXP_STAR},
+        {internal::Kind::REGEXP_PLUS, Kind::REGEXP_PLUS},
+        {internal::Kind::REGEXP_OPT, Kind::REGEXP_OPT},
+        {internal::Kind::REGEXP_RANGE, Kind::REGEXP_RANGE},
+        {internal::Kind::REGEXP_REPEAT, Kind::REGEXP_REPEAT},
+        {internal::Kind::REGEXP_REPEAT_OP, Kind::REGEXP_REPEAT},
+        {internal::Kind::REGEXP_LOOP, Kind::REGEXP_LOOP},
+        {internal::Kind::REGEXP_LOOP_OP, Kind::REGEXP_LOOP},
+        {internal::Kind::REGEXP_NONE, Kind::REGEXP_NONE},
+        {internal::Kind::REGEXP_ALL, Kind::REGEXP_ALL},
+        {internal::Kind::REGEXP_ALLCHAR, Kind::REGEXP_ALLCHAR},
+        {internal::Kind::REGEXP_COMPLEMENT, Kind::REGEXP_COMPLEMENT},
+        {internal::Kind::CONST_SEQUENCE, Kind::CONST_SEQUENCE},
+        {internal::Kind::SEQ_UNIT, Kind::SEQ_UNIT},
+        {internal::Kind::SEQ_NTH, Kind::SEQ_NTH},
         /* Quantifiers ----------------------------------------------------- */
-        {internal::Kind::FORALL, FORALL},
-        {internal::Kind::EXISTS, EXISTS},
-        {internal::Kind::BOUND_VAR_LIST, VARIABLE_LIST},
-        {internal::Kind::INST_PATTERN, INST_PATTERN},
-        {internal::Kind::INST_NO_PATTERN, INST_NO_PATTERN},
-        {internal::Kind::INST_POOL, INST_POOL},
-        {internal::Kind::INST_ADD_TO_POOL, INST_ADD_TO_POOL},
-        {internal::Kind::SKOLEM_ADD_TO_POOL, SKOLEM_ADD_TO_POOL},
-        {internal::Kind::INST_ATTRIBUTE, INST_ATTRIBUTE},
-        {internal::Kind::INST_PATTERN_LIST, INST_PATTERN_LIST},
+        {internal::Kind::FORALL, Kind::FORALL},
+        {internal::Kind::EXISTS, Kind::EXISTS},
+        {internal::Kind::BOUND_VAR_LIST, Kind::VARIABLE_LIST},
+        {internal::Kind::INST_PATTERN, Kind::INST_PATTERN},
+        {internal::Kind::INST_NO_PATTERN, Kind::INST_NO_PATTERN},
+        {internal::Kind::INST_POOL, Kind::INST_POOL},
+        {internal::Kind::INST_ADD_TO_POOL, Kind::INST_ADD_TO_POOL},
+        {internal::Kind::SKOLEM_ADD_TO_POOL, Kind::SKOLEM_ADD_TO_POOL},
+        {internal::Kind::INST_ATTRIBUTE, Kind::INST_ATTRIBUTE},
+        {internal::Kind::INST_PATTERN_LIST, Kind::INST_PATTERN_LIST},
         /* ----------------------------------------------------------------- */
-        {internal::Kind::LAST_KIND, LAST_KIND},
+        {internal::Kind::LAST_KIND, Kind::LAST_KIND},
     };
 
 /* Mapping from internal kind to external (API) sort kind. */
 const static std::
     unordered_map<internal::Kind, SortKind, internal::kind::KindHashFunction>
         s_sort_kinds_internal{
-            {internal::Kind::UNDEFINED_KIND, UNDEFINED_SORT_KIND},
-            {internal::Kind::NULL_EXPR, NULL_SORT},
-            {internal::Kind::ABSTRACT_TYPE, ABSTRACT_SORT},
-            {internal::Kind::ARRAY_TYPE, ARRAY_SORT},
-            {internal::Kind::BAG_TYPE, BAG_SORT},
-            {internal::Kind::BITVECTOR_TYPE, BITVECTOR_SORT},
-            {internal::Kind::DATATYPE_TYPE, DATATYPE_SORT},
-            {internal::Kind::FINITE_FIELD_TYPE, FINITE_FIELD_SORT},
-            {internal::Kind::FLOATINGPOINT_TYPE, FLOATINGPOINT_SORT},
-            {internal::Kind::FUNCTION_TYPE, FUNCTION_SORT},
-            {internal::Kind::SEQUENCE_TYPE, SEQUENCE_SORT},
-            {internal::Kind::SET_TYPE, SET_SORT},
-            {internal::Kind::TUPLE_TYPE, TUPLE_SORT},
+            {internal::Kind::UNDEFINED_KIND, SortKind::UNDEFINED_SORT_KIND},
+            {internal::Kind::NULL_EXPR, SortKind::NULL_SORT},
+            {internal::Kind::ABSTRACT_TYPE, SortKind::ABSTRACT_SORT},
+            {internal::Kind::ARRAY_TYPE, SortKind::ARRAY_SORT},
+            {internal::Kind::BAG_TYPE, SortKind::BAG_SORT},
+            {internal::Kind::BITVECTOR_TYPE, SortKind::BITVECTOR_SORT},
+            {internal::Kind::DATATYPE_TYPE, SortKind::DATATYPE_SORT},
+            {internal::Kind::FINITE_FIELD_TYPE, SortKind::FINITE_FIELD_SORT},
+            {internal::Kind::FLOATINGPOINT_TYPE, SortKind::FLOATINGPOINT_SORT},
+            {internal::Kind::FUNCTION_TYPE, SortKind::FUNCTION_SORT},
+            {internal::Kind::SEQUENCE_TYPE, SortKind::SEQUENCE_SORT},
+            {internal::Kind::SET_TYPE, SortKind::SET_SORT},
+            {internal::Kind::TUPLE_TYPE, SortKind::TUPLE_SORT},
         };
 
 /* Set of kinds for indexed operators */
 const static std::unordered_set<Kind> s_indexed_kinds(
-    {DIVISIBLE,
-     IAND,
-     BITVECTOR_REPEAT,
-     BITVECTOR_ZERO_EXTEND,
-     BITVECTOR_SIGN_EXTEND,
-     BITVECTOR_ROTATE_LEFT,
-     BITVECTOR_ROTATE_RIGHT,
-     INT_TO_BITVECTOR,
-     FLOATINGPOINT_TO_UBV,
-     FLOATINGPOINT_TO_SBV,
-     BITVECTOR_EXTRACT,
-     FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
-     FLOATINGPOINT_TO_FP_FROM_FP,
-     FLOATINGPOINT_TO_FP_FROM_REAL,
-     FLOATINGPOINT_TO_FP_FROM_SBV,
-     FLOATINGPOINT_TO_FP_FROM_UBV});
+    {Kind::DIVISIBLE,
+     Kind::IAND,
+     Kind::BITVECTOR_REPEAT,
+     Kind::BITVECTOR_ZERO_EXTEND,
+     Kind::BITVECTOR_SIGN_EXTEND,
+     Kind::BITVECTOR_ROTATE_LEFT,
+     Kind::BITVECTOR_ROTATE_RIGHT,
+     Kind::INT_TO_BITVECTOR,
+     Kind::FLOATINGPOINT_TO_UBV,
+     Kind::FLOATINGPOINT_TO_SBV,
+     Kind::BITVECTOR_EXTRACT,
+     Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
+     Kind::FLOATINGPOINT_TO_FP_FROM_FP,
+     Kind::FLOATINGPOINT_TO_FP_FROM_REAL,
+     Kind::FLOATINGPOINT_TO_FP_FROM_SBV,
+     Kind::FLOATINGPOINT_TO_FP_FROM_UBV});
 
 /**
  * Mapping from external (API) kind to the corresponding internal operator kind.
  */
 const static std::unordered_map<Kind, internal::Kind> s_op_kinds{
-    {BITVECTOR_EXTRACT, internal::Kind::BITVECTOR_EXTRACT_OP},
-    {BITVECTOR_REPEAT, internal::Kind::BITVECTOR_REPEAT_OP},
-    {BITVECTOR_ROTATE_LEFT, internal::Kind::BITVECTOR_ROTATE_LEFT_OP},
-    {BITVECTOR_ROTATE_RIGHT, internal::Kind::BITVECTOR_ROTATE_RIGHT_OP},
-    {BITVECTOR_SIGN_EXTEND, internal::Kind::BITVECTOR_SIGN_EXTEND_OP},
-    {BITVECTOR_ZERO_EXTEND, internal::Kind::BITVECTOR_ZERO_EXTEND_OP},
-    {DIVISIBLE, internal::Kind::DIVISIBLE_OP},
-    {FLOATINGPOINT_TO_SBV, internal::Kind::FLOATINGPOINT_TO_SBV_OP},
-    {FLOATINGPOINT_TO_UBV, internal::Kind::FLOATINGPOINT_TO_UBV_OP},
-    {FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
+    {Kind::BITVECTOR_EXTRACT, internal::Kind::BITVECTOR_EXTRACT_OP},
+    {Kind::BITVECTOR_REPEAT, internal::Kind::BITVECTOR_REPEAT_OP},
+    {Kind::BITVECTOR_ROTATE_LEFT, internal::Kind::BITVECTOR_ROTATE_LEFT_OP},
+    {Kind::BITVECTOR_ROTATE_RIGHT, internal::Kind::BITVECTOR_ROTATE_RIGHT_OP},
+    {Kind::BITVECTOR_SIGN_EXTEND, internal::Kind::BITVECTOR_SIGN_EXTEND_OP},
+    {Kind::BITVECTOR_ZERO_EXTEND, internal::Kind::BITVECTOR_ZERO_EXTEND_OP},
+    {Kind::DIVISIBLE, internal::Kind::DIVISIBLE_OP},
+    {Kind::FLOATINGPOINT_TO_SBV, internal::Kind::FLOATINGPOINT_TO_SBV_OP},
+    {Kind::FLOATINGPOINT_TO_UBV, internal::Kind::FLOATINGPOINT_TO_UBV_OP},
+    {Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
      internal::Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV_OP},
-    {FLOATINGPOINT_TO_FP_FROM_FP,
+    {Kind::FLOATINGPOINT_TO_FP_FROM_FP,
      internal::Kind::FLOATINGPOINT_TO_FP_FROM_FP_OP},
-    {FLOATINGPOINT_TO_FP_FROM_REAL,
+    {Kind::FLOATINGPOINT_TO_FP_FROM_REAL,
      internal::Kind::FLOATINGPOINT_TO_FP_FROM_REAL_OP},
-    {FLOATINGPOINT_TO_FP_FROM_SBV,
+    {Kind::FLOATINGPOINT_TO_FP_FROM_SBV,
      internal::Kind::FLOATINGPOINT_TO_FP_FROM_SBV_OP},
-    {FLOATINGPOINT_TO_FP_FROM_UBV,
+    {Kind::FLOATINGPOINT_TO_FP_FROM_UBV,
      internal::Kind::FLOATINGPOINT_TO_FP_FROM_UBV_OP},
-    {IAND, internal::Kind::IAND_OP},
-    {INT_TO_BITVECTOR, internal::Kind::INT_TO_BITVECTOR_OP},
-    {REGEXP_REPEAT, internal::Kind::REGEXP_REPEAT_OP},
-    {REGEXP_LOOP, internal::Kind::REGEXP_LOOP_OP},
-    {TUPLE_PROJECT, internal::Kind::TUPLE_PROJECT_OP},
-    {RELATION_AGGREGATE, internal::Kind::RELATION_AGGREGATE_OP},
-    {RELATION_GROUP, internal::Kind::RELATION_GROUP_OP},
-    {RELATION_PROJECT, internal::Kind::RELATION_PROJECT_OP},
-    {TABLE_PROJECT, internal::Kind::TABLE_PROJECT_OP},
-    {TABLE_AGGREGATE, internal::Kind::TABLE_AGGREGATE_OP},
-    {TABLE_JOIN, internal::Kind::TABLE_JOIN_OP},
-    {TABLE_GROUP, internal::Kind::TABLE_GROUP_OP},
+    {Kind::IAND, internal::Kind::IAND_OP},
+    {Kind::INT_TO_BITVECTOR, internal::Kind::INT_TO_BITVECTOR_OP},
+    {Kind::REGEXP_REPEAT, internal::Kind::REGEXP_REPEAT_OP},
+    {Kind::REGEXP_LOOP, internal::Kind::REGEXP_LOOP_OP},
+    {Kind::TUPLE_PROJECT, internal::Kind::TUPLE_PROJECT_OP},
+    {Kind::RELATION_AGGREGATE, internal::Kind::RELATION_AGGREGATE_OP},
+    {Kind::RELATION_GROUP, internal::Kind::RELATION_GROUP_OP},
+    {Kind::RELATION_PROJECT, internal::Kind::RELATION_PROJECT_OP},
+    {Kind::TABLE_PROJECT, internal::Kind::TABLE_PROJECT_OP},
+    {Kind::TABLE_AGGREGATE, internal::Kind::TABLE_AGGREGATE_OP},
+    {Kind::TABLE_JOIN, internal::Kind::TABLE_JOIN_OP},
+    {Kind::TABLE_GROUP, internal::Kind::TABLE_GROUP_OP},
 };
 
 /* -------------------------------------------------------------------------- */
@@ -880,28 +907,30 @@ const static std::unordered_map<Kind, internal::Kind> s_op_kinds{
 
 const static std::unordered_map<RoundingMode, cvc5::internal::RoundingMode>
     s_rmodes{
-        {ROUND_NEAREST_TIES_TO_EVEN,
+        {RoundingMode::ROUND_NEAREST_TIES_TO_EVEN,
          cvc5::internal::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN},
-        {ROUND_TOWARD_POSITIVE,
+        {RoundingMode::ROUND_TOWARD_POSITIVE,
          cvc5::internal::RoundingMode::ROUND_TOWARD_POSITIVE},
-        {ROUND_TOWARD_NEGATIVE,
+        {RoundingMode::ROUND_TOWARD_NEGATIVE,
          cvc5::internal::RoundingMode::ROUND_TOWARD_NEGATIVE},
-        {ROUND_TOWARD_ZERO, cvc5::internal::RoundingMode::ROUND_TOWARD_ZERO},
-        {ROUND_NEAREST_TIES_TO_AWAY,
+        {RoundingMode::ROUND_TOWARD_ZERO,
+         cvc5::internal::RoundingMode::ROUND_TOWARD_ZERO},
+        {RoundingMode::ROUND_NEAREST_TIES_TO_AWAY,
          cvc5::internal::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY},
     };
 
 const static std::unordered_map<cvc5::internal::RoundingMode, RoundingMode>
     s_rmodes_internal{
         {cvc5::internal::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN,
-         ROUND_NEAREST_TIES_TO_EVEN},
+         RoundingMode::ROUND_NEAREST_TIES_TO_EVEN},
         {cvc5::internal::RoundingMode::ROUND_TOWARD_POSITIVE,
-         ROUND_TOWARD_POSITIVE},
+         RoundingMode::ROUND_TOWARD_POSITIVE},
         {cvc5::internal::RoundingMode::ROUND_TOWARD_NEGATIVE,
-         ROUND_TOWARD_NEGATIVE},
-        {cvc5::internal::RoundingMode::ROUND_TOWARD_ZERO, ROUND_TOWARD_ZERO},
+         RoundingMode::ROUND_TOWARD_NEGATIVE},
+        {cvc5::internal::RoundingMode::ROUND_TOWARD_ZERO,
+         RoundingMode::ROUND_TOWARD_ZERO},
         {cvc5::internal::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY,
-         ROUND_NEAREST_TIES_TO_AWAY},
+         RoundingMode::ROUND_NEAREST_TIES_TO_AWAY},
     };
 
 /* -------------------------------------------------------------------------- */
@@ -1007,7 +1036,7 @@ cvc5::Kind intToExtKind(internal::Kind k)
   auto it = s_kinds_internal.find(k);
   if (it == s_kinds_internal.end())
   {
-    return INTERNAL_KIND;
+    return Kind::INTERNAL_KIND;
   }
   return it->second;
 }
@@ -1018,7 +1047,7 @@ SortKind intToExtSortKind(internal::Kind k)
   auto it = s_sort_kinds_internal.find(k);
   if (it == s_sort_kinds_internal.end())
   {
-    return INTERNAL_SORT_KIND;
+    return SortKind::INTERNAL_SORT_KIND;
   }
   return it->second;
 }
@@ -1048,7 +1077,10 @@ internal::Kind extToIntSortKind(SortKind k)
 }
 
 /** Return true if given kind is a defined external kind. */
-bool isDefinedKind(Kind k) { return k > UNDEFINED_KIND && k < LAST_KIND; }
+bool isDefinedKind(Kind k)
+{
+  return k > Kind::UNDEFINED_KIND && k < Kind::LAST_KIND;
+}
 
 /**
  * Return true if the internal kind is one where the API term structure
@@ -1338,13 +1370,15 @@ SortKind Sort::getKind() const
   {
     switch (d_type->getConst<internal::TypeConstant>())
     {
-      case internal::BOOLEAN_TYPE: return BOOLEAN_SORT; break;
-      case internal::REAL_TYPE: return REAL_SORT; break;
-      case internal::INTEGER_TYPE: return INTEGER_SORT; break;
-      case internal::STRING_TYPE: return STRING_SORT; break;
-      case internal::REGEXP_TYPE: return REGLAN_SORT; break;
-      case internal::ROUNDINGMODE_TYPE: return ROUNDINGMODE_SORT; break;
-      default: return INTERNAL_SORT_KIND; break;
+      case internal::BOOLEAN_TYPE: return SortKind::BOOLEAN_SORT; break;
+      case internal::REAL_TYPE: return SortKind::REAL_SORT; break;
+      case internal::INTEGER_TYPE: return SortKind::INTEGER_SORT; break;
+      case internal::STRING_TYPE: return SortKind::STRING_SORT; break;
+      case internal::REGEXP_TYPE: return SortKind::REGLAN_SORT; break;
+      case internal::ROUNDINGMODE_TYPE:
+        return SortKind::ROUNDINGMODE_SORT;
+        break;
+      default: return SortKind::INTERNAL_SORT_KIND; break;
     }
   }
   // otherwise we rely on the mapping
@@ -2049,7 +2083,7 @@ bool Sort::isNullHelper() const { return d_type->isNull(); }
 
 Op::Op()
     : d_nm(internal::NodeManager::currentNM()),
-      d_kind(NULL_TERM),
+      d_kind(Kind::NULL_TERM),
       d_node(new internal::Node())
 {
 }
@@ -2099,7 +2133,7 @@ bool Op::operator!=(const Op& t) const
 
 Kind Op::getKind() const
 {
-  CVC5_API_CHECK(d_kind != NULL_TERM) << "Expecting a non-null Kind";
+  CVC5_API_CHECK(d_kind != Kind::NULL_TERM) << "Expecting a non-null Kind";
   //////// all checks before this line
   return d_kind;
 }
@@ -2143,32 +2177,32 @@ size_t Op::getNumIndicesHelper() const
   size_t size = 0;
   switch (k)
   {
-    case DIVISIBLE: size = 1; break;
-    case BITVECTOR_REPEAT: size = 1; break;
-    case BITVECTOR_ZERO_EXTEND: size = 1; break;
-    case BITVECTOR_SIGN_EXTEND: size = 1; break;
-    case BITVECTOR_ROTATE_LEFT: size = 1; break;
-    case BITVECTOR_ROTATE_RIGHT: size = 1; break;
-    case INT_TO_BITVECTOR: size = 1; break;
-    case IAND: size = 1; break;
-    case FLOATINGPOINT_TO_UBV: size = 1; break;
-    case FLOATINGPOINT_TO_SBV: size = 1; break;
-    case REGEXP_REPEAT: size = 1; break;
-    case BITVECTOR_EXTRACT: size = 2; break;
-    case FLOATINGPOINT_TO_FP_FROM_IEEE_BV: size = 2; break;
-    case FLOATINGPOINT_TO_FP_FROM_FP: size = 2; break;
-    case FLOATINGPOINT_TO_FP_FROM_REAL: size = 2; break;
-    case FLOATINGPOINT_TO_FP_FROM_SBV: size = 2; break;
-    case FLOATINGPOINT_TO_FP_FROM_UBV: size = 2; break;
-    case REGEXP_LOOP: size = 2; break;
-    case TUPLE_PROJECT:
-    case RELATION_AGGREGATE:
-    case RELATION_GROUP:
-    case RELATION_PROJECT:
-    case TABLE_AGGREGATE:
-    case TABLE_GROUP:
-    case TABLE_JOIN:
-    case TABLE_PROJECT:
+    case Kind::DIVISIBLE: size = 1; break;
+    case Kind::BITVECTOR_REPEAT: size = 1; break;
+    case Kind::BITVECTOR_ZERO_EXTEND: size = 1; break;
+    case Kind::BITVECTOR_SIGN_EXTEND: size = 1; break;
+    case Kind::BITVECTOR_ROTATE_LEFT: size = 1; break;
+    case Kind::BITVECTOR_ROTATE_RIGHT: size = 1; break;
+    case Kind::INT_TO_BITVECTOR: size = 1; break;
+    case Kind::IAND: size = 1; break;
+    case Kind::FLOATINGPOINT_TO_UBV: size = 1; break;
+    case Kind::FLOATINGPOINT_TO_SBV: size = 1; break;
+    case Kind::REGEXP_REPEAT: size = 1; break;
+    case Kind::BITVECTOR_EXTRACT: size = 2; break;
+    case Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV: size = 2; break;
+    case Kind::FLOATINGPOINT_TO_FP_FROM_FP: size = 2; break;
+    case Kind::FLOATINGPOINT_TO_FP_FROM_REAL: size = 2; break;
+    case Kind::FLOATINGPOINT_TO_FP_FROM_SBV: size = 2; break;
+    case Kind::FLOATINGPOINT_TO_FP_FROM_UBV: size = 2; break;
+    case Kind::REGEXP_LOOP: size = 2; break;
+    case Kind::TUPLE_PROJECT:
+    case Kind::RELATION_AGGREGATE:
+    case Kind::RELATION_GROUP:
+    case Kind::RELATION_PROJECT:
+    case Kind::TABLE_AGGREGATE:
+    case Kind::TABLE_GROUP:
+    case Kind::TABLE_JOIN:
+    case Kind::TABLE_PROJECT:
     {
       size = d_node->getConst<internal::ProjectOp>().getIndices().size();
       break;
@@ -2194,7 +2228,7 @@ Term Op::getIndexHelper(size_t index) const
   Term t;
   switch (k)
   {
-    case DIVISIBLE:
+    case Kind::DIVISIBLE:
     {
       t = Solver::mkRationalValHelper(
           d_nm,
@@ -2202,7 +2236,7 @@ Term Op::getIndexHelper(size_t index) const
           true);
       break;
     }
-    case BITVECTOR_REPEAT:
+    case Kind::BITVECTOR_REPEAT:
     {
       t = Solver::mkRationalValHelper(
           d_nm,
@@ -2210,7 +2244,7 @@ Term Op::getIndexHelper(size_t index) const
           true);
       break;
     }
-    case BITVECTOR_ZERO_EXTEND:
+    case Kind::BITVECTOR_ZERO_EXTEND:
     {
       t = Solver::mkRationalValHelper(
           d_nm,
@@ -2218,7 +2252,7 @@ Term Op::getIndexHelper(size_t index) const
           true);
       break;
     }
-    case BITVECTOR_SIGN_EXTEND:
+    case Kind::BITVECTOR_SIGN_EXTEND:
     {
       t = Solver::mkRationalValHelper(
           d_nm,
@@ -2226,7 +2260,7 @@ Term Op::getIndexHelper(size_t index) const
           true);
       break;
     }
-    case BITVECTOR_ROTATE_LEFT:
+    case Kind::BITVECTOR_ROTATE_LEFT:
     {
       t = Solver::mkRationalValHelper(
           d_nm,
@@ -2234,7 +2268,7 @@ Term Op::getIndexHelper(size_t index) const
           true);
       break;
     }
-    case BITVECTOR_ROTATE_RIGHT:
+    case Kind::BITVECTOR_ROTATE_RIGHT:
     {
       t = Solver::mkRationalValHelper(
           d_nm,
@@ -2243,19 +2277,19 @@ Term Op::getIndexHelper(size_t index) const
           true);
       break;
     }
-    case INT_TO_BITVECTOR:
+    case Kind::INT_TO_BITVECTOR:
     {
       t = Solver::mkRationalValHelper(
           d_nm, d_node->getConst<internal::IntToBitVector>().d_size, true);
       break;
     }
-    case IAND:
+    case Kind::IAND:
     {
       t = Solver::mkRationalValHelper(
           d_nm, d_node->getConst<internal::IntAnd>().d_size, true);
       break;
     }
-    case FLOATINGPOINT_TO_UBV:
+    case Kind::FLOATINGPOINT_TO_UBV:
     {
       t = Solver::mkRationalValHelper(
           d_nm,
@@ -2263,7 +2297,7 @@ Term Op::getIndexHelper(size_t index) const
           true);
       break;
     }
-    case FLOATINGPOINT_TO_SBV:
+    case Kind::FLOATINGPOINT_TO_SBV:
     {
       t = Solver::mkRationalValHelper(
           d_nm,
@@ -2271,7 +2305,7 @@ Term Op::getIndexHelper(size_t index) const
           true);
       break;
     }
-    case REGEXP_REPEAT:
+    case Kind::REGEXP_REPEAT:
     {
       t = Solver::mkRationalValHelper(
           d_nm,
@@ -2279,7 +2313,7 @@ Term Op::getIndexHelper(size_t index) const
           true);
       break;
     }
-    case BITVECTOR_EXTRACT:
+    case Kind::BITVECTOR_EXTRACT:
     {
       internal::BitVectorExtract ext =
           d_node->getConst<internal::BitVectorExtract>();
@@ -2287,7 +2321,7 @@ Term Op::getIndexHelper(size_t index) const
                      : Solver::mkRationalValHelper(d_nm, ext.d_low, true);
       break;
     }
-    case FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
+    case Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
     {
       internal::FloatingPointToFPIEEEBitVector ext =
           d_node->getConst<internal::FloatingPointToFPIEEEBitVector>();
@@ -2298,7 +2332,7 @@ Term Op::getIndexHelper(size_t index) const
                          d_nm, ext.getSize().significandWidth(), true);
       break;
     }
-    case FLOATINGPOINT_TO_FP_FROM_FP:
+    case Kind::FLOATINGPOINT_TO_FP_FROM_FP:
     {
       internal::FloatingPointToFPFloatingPoint ext =
           d_node->getConst<internal::FloatingPointToFPFloatingPoint>();
@@ -2308,7 +2342,7 @@ Term Op::getIndexHelper(size_t index) const
                          d_nm, ext.getSize().significandWidth(), true);
       break;
     }
-    case FLOATINGPOINT_TO_FP_FROM_REAL:
+    case Kind::FLOATINGPOINT_TO_FP_FROM_REAL:
     {
       internal::FloatingPointToFPReal ext =
           d_node->getConst<internal::FloatingPointToFPReal>();
@@ -2319,7 +2353,7 @@ Term Op::getIndexHelper(size_t index) const
                          d_nm, ext.getSize().significandWidth(), true);
       break;
     }
-    case FLOATINGPOINT_TO_FP_FROM_SBV:
+    case Kind::FLOATINGPOINT_TO_FP_FROM_SBV:
     {
       internal::FloatingPointToFPSignedBitVector ext =
           d_node->getConst<internal::FloatingPointToFPSignedBitVector>();
@@ -2329,7 +2363,7 @@ Term Op::getIndexHelper(size_t index) const
                          d_nm, ext.getSize().significandWidth(), true);
       break;
     }
-    case FLOATINGPOINT_TO_FP_FROM_UBV:
+    case Kind::FLOATINGPOINT_TO_FP_FROM_UBV:
     {
       internal::FloatingPointToFPUnsignedBitVector ext =
           d_node->getConst<internal::FloatingPointToFPUnsignedBitVector>();
@@ -2339,7 +2373,7 @@ Term Op::getIndexHelper(size_t index) const
                          d_nm, ext.getSize().significandWidth(), true);
       break;
     }
-    case REGEXP_LOOP:
+    case Kind::REGEXP_LOOP:
     {
       internal::RegExpLoop ext = d_node->getConst<internal::RegExpLoop>();
       t = index == 0
@@ -2348,14 +2382,14 @@ Term Op::getIndexHelper(size_t index) const
 
       break;
     }
-    case TUPLE_PROJECT:
-    case RELATION_AGGREGATE:
-    case RELATION_GROUP:
-    case RELATION_PROJECT:
-    case TABLE_AGGREGATE:
-    case TABLE_GROUP:
-    case TABLE_JOIN:
-    case TABLE_PROJECT:
+    case Kind::TUPLE_PROJECT:
+    case Kind::RELATION_AGGREGATE:
+    case Kind::RELATION_GROUP:
+    case Kind::RELATION_PROJECT:
+    case Kind::TABLE_AGGREGATE:
+    case Kind::TABLE_GROUP:
+    case Kind::TABLE_JOIN:
+    case Kind::TABLE_PROJECT:
     {
       const std::vector<uint32_t>& projectionIndices =
           d_node->getConst<internal::ProjectOp>().getIndices();
@@ -2408,7 +2442,7 @@ std::ostream& operator<<(std::ostream& out, const Op& t)
 
 bool Op::isNullHelper() const
 {
-  return (d_node->isNull() && (d_kind == NULL_TERM));
+  return (d_node->isNull() && (d_kind == Kind::NULL_TERM));
 }
 
 bool Op::isIndexedHelper() const { return !d_node->isNull(); }
@@ -3561,6 +3595,97 @@ std::pair<Sort, uint32_t> Term::getCardinalityConstraint() const
   CVC5_API_TRY_CATCH_END;
 }
 
+bool Term::isRealAlgebraicNumber() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_node->getKind() == internal::Kind::REAL_ALGEBRAIC_NUMBER;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Term::getRealAlgebraicNumberDefiningPolynomial(const Term& v) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_ARG_CHECK_EXPECTED(
+      d_node->getKind() == internal::Kind::REAL_ALGEBRAIC_NUMBER, *d_node)
+      << "Term to be a real algebraic number when calling "
+         "getRealAlgebraicNumberDefiningPolynomial()";
+  CVC5_API_ARG_CHECK_EXPECTED(
+      v.getKind() == Kind::VARIABLE, v)
+      << "Expected a variable as argument when calling "
+         "getRealAlgebraicNumberDefiningPolynomial()";
+#ifndef CVC5_POLY_IMP
+  throw CVC5ApiException(
+      "Expected libpoly enabled build when calling "
+      "getRealAlgebraicNumberDefiningPolynomial");
+#endif
+  //////// all checks before this line
+#ifdef CVC5_POLY_IMP
+  const internal::RealAlgebraicNumber& ran =
+      d_node->getOperator().getConst<internal::RealAlgebraicNumber>();
+  return Term(d_nm,
+              internal::PolyConverter::ran_to_defining_polynomial(
+                  ran, *v.d_node.get()));
+#else
+  return Term();
+#endif
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Term::getRealAlgebraicNumberLowerBound() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_ARG_CHECK_EXPECTED(
+      d_node->getKind() == internal::Kind::REAL_ALGEBRAIC_NUMBER, *d_node)
+      << "Term to be a real algebraic number when calling "
+         "getRealAlgebraicNumberDefiningPolynomial()";
+#ifndef CVC5_POLY_IMP
+  throw CVC5ApiException(
+      "Expected libpoly enabled build when calling "
+      "getRealAlgebraicNumberLowerBound");
+#endif
+  //////// all checks before this line
+#ifdef CVC5_POLY_IMP
+  const internal::RealAlgebraicNumber& ran =
+      d_node->getOperator().getConst<internal::RealAlgebraicNumber>();
+  return Term(d_nm, internal::PolyConverter::ran_to_lower(ran));
+#else
+  return Term();
+#endif
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Term::getRealAlgebraicNumberUpperBound() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_ARG_CHECK_EXPECTED(
+      d_node->getKind() == internal::Kind::REAL_ALGEBRAIC_NUMBER, *d_node)
+      << "Term to be a real algebraic number when calling "
+         "getRealAlgebraicNumberDefiningPolynomial()";
+#ifndef CVC5_POLY_IMP
+  throw CVC5ApiException(
+      "Expected libpoly enabled build when calling "
+      "getRealAlgebraicNumberUpperBound");
+#endif
+  //////// all checks before this line
+#ifdef CVC5_POLY_IMP
+  const internal::RealAlgebraicNumber& ran =
+      d_node->getOperator().getConst<internal::RealAlgebraicNumber>();
+  return Term(d_nm, internal::PolyConverter::ran_to_upper(ran));
+#else
+  return Term();
+#endif
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 std::ostream& operator<<(std::ostream& out, const Term& t)
 {
   // Note that this ignores the options::ioutils properties of `out`.
@@ -3624,18 +3749,18 @@ Kind Term::getKindHelper() const
   {
     switch (d_node->getKind())
     {
-      case internal::Kind::STRING_CONCAT: return SEQ_CONCAT;
-      case internal::Kind::STRING_LENGTH: return SEQ_LENGTH;
-      case internal::Kind::STRING_SUBSTR: return SEQ_EXTRACT;
-      case internal::Kind::STRING_UPDATE: return SEQ_UPDATE;
-      case internal::Kind::STRING_CHARAT: return SEQ_AT;
-      case internal::Kind::STRING_CONTAINS: return SEQ_CONTAINS;
-      case internal::Kind::STRING_INDEXOF: return SEQ_INDEXOF;
-      case internal::Kind::STRING_REPLACE: return SEQ_REPLACE;
-      case internal::Kind::STRING_REPLACE_ALL: return SEQ_REPLACE_ALL;
-      case internal::Kind::STRING_REV: return SEQ_REV;
-      case internal::Kind::STRING_PREFIX: return SEQ_PREFIX;
-      case internal::Kind::STRING_SUFFIX: return SEQ_SUFFIX;
+      case internal::Kind::STRING_CONCAT: return Kind::SEQ_CONCAT;
+      case internal::Kind::STRING_LENGTH: return Kind::SEQ_LENGTH;
+      case internal::Kind::STRING_SUBSTR: return Kind::SEQ_EXTRACT;
+      case internal::Kind::STRING_UPDATE: return Kind::SEQ_UPDATE;
+      case internal::Kind::STRING_CHARAT: return Kind::SEQ_AT;
+      case internal::Kind::STRING_CONTAINS: return Kind::SEQ_CONTAINS;
+      case internal::Kind::STRING_INDEXOF: return Kind::SEQ_INDEXOF;
+      case internal::Kind::STRING_REPLACE: return Kind::SEQ_REPLACE;
+      case internal::Kind::STRING_REPLACE_ALL: return Kind::SEQ_REPLACE_ALL;
+      case internal::Kind::STRING_REV: return Kind::SEQ_REV;
+      case internal::Kind::STRING_PREFIX: return Kind::SEQ_PREFIX;
+      case internal::Kind::STRING_SUFFIX: return Kind::SEQ_SUFFIX;
       default:
         // fall through to conversion below
         break;
@@ -4564,7 +4689,7 @@ void Grammar::addRule(const Term& ntSymbol, const Term& rule)
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_sg->isResolved())
       << "Grammar cannot be modified after passing "
-         "it as an argument to synthFun/synthInv";
+         "it as an argument to synthFun";
   CVC5_API_CHECK_TERM(ntSymbol);
   CVC5_API_CHECK_TERM(rule);
   CVC5_API_ARG_CHECK_EXPECTED(contains(d_sg->getNtSyms(), *ntSymbol.d_node),
@@ -4574,7 +4699,7 @@ void Grammar::addRule(const Term& ntSymbol, const Term& rule)
   CVC5_API_CHECK(ntSymbol.d_node->getType().isInstanceOf(rule.d_node->getType()))
       << "Expected ntSymbol and rule to have the same sort";
   CVC5_API_ARG_CHECK_EXPECTED(!containsFreeVariables(rule), rule)
-      << "a term whose free variables are limited to synthFun/synthInv "
+      << "a term whose free variables are limited to synthFun "
          "parameters and non-terminal symbols of the grammar";
   //////// all checks before this line
   d_sg->addRule(*ntSymbol.d_node, *rule.d_node);
@@ -4587,7 +4712,7 @@ void Grammar::addRules(const Term& ntSymbol, const std::vector<Term>& rules)
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_sg->isResolved())
       << "Grammar cannot be modified after passing "
-         "it as an argument to synthFun/synthInv";
+         "it as an argument to synthFun";
   CVC5_API_CHECK_TERM(ntSymbol);
   CVC5_API_CHECK_TERMS_WITH_SORT(rules, ntSymbol.getSort());
   CVC5_API_ARG_CHECK_EXPECTED(contains(d_sg->getNtSyms(), *ntSymbol.d_node),
@@ -4598,7 +4723,7 @@ void Grammar::addRules(const Term& ntSymbol, const std::vector<Term>& rules)
   {
     CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(
         !containsFreeVariables(rules[i]), rules[i], rules, i)
-        << "a term whose free variables are limited to synthFun/synthInv "
+        << "a term whose free variables are limited to synthFun "
            "parameters and non-terminal symbols of the grammar";
   }
   //////// all checks before this line
@@ -4612,7 +4737,7 @@ void Grammar::addAnyConstant(const Term& ntSymbol)
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_sg->isResolved())
       << "Grammar cannot be modified after passing "
-         "it as an argument to synthFun/synthInv";
+         "it as an argument to synthFun";
   CVC5_API_CHECK_TERM(ntSymbol);
   CVC5_API_ARG_CHECK_EXPECTED(contains(d_sg->getNtSyms(), *ntSymbol.d_node),
                               ntSymbol)
@@ -4629,7 +4754,7 @@ void Grammar::addAnyVariable(const Term& ntSymbol)
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_sg->isResolved())
       << "Grammar cannot be modified after passing "
-         "it as an argument to synthFun/synthInv";
+         "it as an argument to synthFun";
   CVC5_API_CHECK_TERM(ntSymbol);
   CVC5_API_ARG_CHECK_EXPECTED(contains(d_sg->getNtSyms(), *ntSymbol.d_node),
                               ntSymbol)
@@ -5076,26 +5201,27 @@ Sort Solver::mkTupleSortHelper(const std::vector<Sort>& sorts) const
 
 Term Solver::mkTermFromKind(Kind kind) const
 {
-  CVC5_API_KIND_CHECK_EXPECTED(kind == PI || kind == REGEXP_NONE
-                                   || kind == REGEXP_ALL
-                                   || kind == REGEXP_ALLCHAR || kind == SEP_EMP,
-                               kind)
+  CVC5_API_KIND_CHECK_EXPECTED(
+      kind == Kind::PI || kind == Kind::REGEXP_NONE || kind == Kind::REGEXP_ALL
+          || kind == Kind::REGEXP_ALLCHAR || kind == Kind::SEP_EMP,
+      kind)
       << "PI, REGEXP_NONE, REGEXP_ALL, REGEXP_ALLCHAR or SEP_EMP";
   //////// all checks before this line
   internal::Node res;
   internal::Kind k = extToIntKind(kind);
-  if (kind == REGEXP_NONE || kind == REGEXP_ALL || kind == REGEXP_ALLCHAR)
+  if (kind == Kind::REGEXP_NONE || kind == Kind::REGEXP_ALL
+      || kind == Kind::REGEXP_ALLCHAR)
   {
     Assert(isDefinedIntKind(k));
     res = d_nm->mkNode(k, std::vector<internal::Node>());
   }
-  else if (kind == SEP_EMP)
+  else if (kind == Kind::SEP_EMP)
   {
     res = d_nm->mkNullaryOperator(d_nm->booleanType(), k);
   }
   else
   {
-    Assert(kind == PI);
+    Assert(kind == Kind::PI);
     res = d_nm->mkNullaryOperator(d_nm->realType(), k);
   }
   (void)res.getType(true); /* kick off type checking */
@@ -5116,22 +5242,25 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
   internal::Node res;
   if (echildren.size() > 2)
   {
-    if (kind == INTS_DIVISION || kind == XOR || kind == SUB || kind == DIVISION
-        || kind == HO_APPLY || kind == REGEXP_DIFF || kind == SET_UNION
-        || kind == SET_INTER || kind == SET_MINUS || kind == BAG_INTER_MIN
-        || kind == BAG_UNION_MAX || kind == BAG_UNION_DISJOINT
-        || kind == BAG_DIFFERENCE_REMOVE || kind == BAG_DIFFERENCE_SUBTRACT)
+    if (kind == Kind::INTS_DIVISION || kind == Kind::XOR || kind == Kind::SUB
+        || kind == Kind::DIVISION || kind == Kind::HO_APPLY
+        || kind == Kind::REGEXP_DIFF || kind == Kind::SET_UNION
+        || kind == Kind::SET_INTER || kind == Kind::SET_MINUS
+        || kind == Kind::BAG_INTER_MIN || kind == Kind::BAG_UNION_MAX
+        || kind == Kind::BAG_UNION_DISJOINT
+        || kind == Kind::BAG_DIFFERENCE_REMOVE
+        || kind == Kind::BAG_DIFFERENCE_SUBTRACT)
     {
       // left-associative, but cvc5 internally only supports 2 args
       res = d_nm->mkLeftAssociative(k, echildren);
     }
-    else if (kind == IMPLIES)
+    else if (kind == Kind::IMPLIES)
     {
       // right-associative, but cvc5 internally only supports 2 args
       res = d_nm->mkRightAssociative(k, echildren);
     }
-    else if (kind == EQUAL || kind == LT || kind == GT || kind == LEQ
-             || kind == GEQ)
+    else if (kind == Kind::EQUAL || kind == Kind::LT || kind == Kind::GT
+             || kind == Kind::LEQ || kind == Kind::GEQ)
     {
       // "chainable", but cvc5 internally only supports 2 args
       res = d_nm->mkChain(k, echildren);
@@ -5581,8 +5710,10 @@ Sort Solver::mkSequenceSort(const Sort& elemSort) const
 Sort Solver::mkAbstractSort(SortKind k) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
   internal::Kind ik = extToIntSortKind(k);
+  CVC5_API_CHECK(d_nm->isSortKindAbstractable(ik))
+      << "Cannot construct abstract type for kind " << k;
+  //////// all checks before this line
   return Sort(d_nm, d_nm->mkAbstractType(ik));
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -6175,7 +6306,7 @@ Term Solver::mkTuple(const std::vector<Term>& terms) const
   }
   internal::TypeNode tn = d_nm->mkTupleType(typeNodes);
   internal::DType dt = tn.getDType();
-  internal::NodeBuilder nb(extToIntKind(APPLY_CONSTRUCTOR));
+  internal::NodeBuilder nb(extToIntKind(Kind::APPLY_CONSTRUCTOR));
   nb << dt[0].getConstructor();
   nb.append(args);
   internal::Node res = nb.constructNode();
@@ -6198,100 +6329,100 @@ Op Solver::mkOp(Kind kind, const std::vector<uint32_t>& args) const
   Op res;
   switch (kind)
   {
-    case BITVECTOR_EXTRACT:
+    case Kind::BITVECTOR_EXTRACT:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
       res = mkOpHelper(kind, internal::BitVectorExtract(args[0], args[1]));
       break;
-    case BITVECTOR_REPEAT:
+    case Kind::BITVECTOR_REPEAT:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
       res = mkOpHelper(kind, internal::BitVectorRepeat(args[0]));
       break;
-    case BITVECTOR_ROTATE_LEFT:
+    case Kind::BITVECTOR_ROTATE_LEFT:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
       res = mkOpHelper(kind, internal::BitVectorRotateLeft(args[0]));
       break;
-    case BITVECTOR_ROTATE_RIGHT:
+    case Kind::BITVECTOR_ROTATE_RIGHT:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
       res = mkOpHelper(kind, internal::BitVectorRotateRight(args[0]));
       break;
-    case BITVECTOR_SIGN_EXTEND:
+    case Kind::BITVECTOR_SIGN_EXTEND:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
       res = mkOpHelper(kind, internal::BitVectorSignExtend(args[0]));
       break;
-    case BITVECTOR_ZERO_EXTEND:
+    case Kind::BITVECTOR_ZERO_EXTEND:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
       res = mkOpHelper(kind, internal::BitVectorZeroExtend(args[0]));
       break;
-    case DIVISIBLE:
+    case Kind::DIVISIBLE:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
       res = mkOpHelper(kind, internal::Divisible(args[0]));
       break;
-    case FLOATINGPOINT_TO_SBV:
+    case Kind::FLOATINGPOINT_TO_SBV:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
       res = mkOpHelper(kind, internal::FloatingPointToSBV(args[0]));
       break;
-    case FLOATINGPOINT_TO_UBV:
+    case Kind::FLOATINGPOINT_TO_UBV:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
       res = mkOpHelper(kind, internal::FloatingPointToUBV(args[0]));
       break;
-    case FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
+    case Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
       CVC5_API_CHECK_OP_INDEX(args[0] > 1, args, 0) << "a value > 1";
       CVC5_API_CHECK_OP_INDEX(args[1] > 1, args, 1) << "a value > 1";
       res = mkOpHelper(
           kind, internal::FloatingPointToFPIEEEBitVector(args[0], args[1]));
       break;
-    case FLOATINGPOINT_TO_FP_FROM_FP:
+    case Kind::FLOATINGPOINT_TO_FP_FROM_FP:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
       CVC5_API_CHECK_OP_INDEX(args[0] > 1, args, 0) << "a value > 1";
       CVC5_API_CHECK_OP_INDEX(args[1] > 1, args, 1) << "a value > 1";
       res = mkOpHelper(
           kind, internal::FloatingPointToFPFloatingPoint(args[0], args[1]));
       break;
-    case FLOATINGPOINT_TO_FP_FROM_REAL:
+    case Kind::FLOATINGPOINT_TO_FP_FROM_REAL:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
       CVC5_API_CHECK_OP_INDEX(args[0] > 1, args, 0) << "a value > 1";
       CVC5_API_CHECK_OP_INDEX(args[1] > 1, args, 1) << "a value > 1";
       res = mkOpHelper(kind, internal::FloatingPointToFPReal(args[0], args[1]));
       break;
-    case FLOATINGPOINT_TO_FP_FROM_SBV:
+    case Kind::FLOATINGPOINT_TO_FP_FROM_SBV:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
       CVC5_API_CHECK_OP_INDEX(args[0] > 1, args, 0) << "a value > 1";
       CVC5_API_CHECK_OP_INDEX(args[1] > 1, args, 1) << "a value > 1";
       res = mkOpHelper(
           kind, internal::FloatingPointToFPSignedBitVector(args[0], args[1]));
       break;
-    case FLOATINGPOINT_TO_FP_FROM_UBV:
+    case Kind::FLOATINGPOINT_TO_FP_FROM_UBV:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
       CVC5_API_CHECK_OP_INDEX(args[0] > 1, args, 0) << "a value > 1";
       CVC5_API_CHECK_OP_INDEX(args[1] > 1, args, 1) << "a value > 1";
       res = mkOpHelper(
           kind, internal::FloatingPointToFPUnsignedBitVector(args[0], args[1]));
       break;
-    case IAND:
+    case Kind::IAND:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
       res = mkOpHelper(kind, internal::IntAnd(args[0]));
       break;
-    case INT_TO_BITVECTOR:
+    case Kind::INT_TO_BITVECTOR:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
       res = mkOpHelper(kind, internal::IntToBitVector(args[0]));
       break;
-    case REGEXP_REPEAT:
+    case Kind::REGEXP_REPEAT:
       CVC5_API_OP_CHECK_ARITY(nargs, 1, kind);
       res = mkOpHelper(kind, internal::RegExpRepeat(args[0]));
       break;
-    case REGEXP_LOOP:
+    case Kind::REGEXP_LOOP:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
       res = mkOpHelper(kind, internal::RegExpLoop(args[0], args[1]));
       break;
-    case TUPLE_PROJECT:
-    case RELATION_AGGREGATE:
-    case RELATION_GROUP:
-    case RELATION_PROJECT:
-    case TABLE_AGGREGATE:
-    case TABLE_GROUP:
-    case TABLE_JOIN:
-    case TABLE_PROJECT:
+    case Kind::TUPLE_PROJECT:
+    case Kind::RELATION_AGGREGATE:
+    case Kind::RELATION_GROUP:
+    case Kind::RELATION_PROJECT:
+    case Kind::TABLE_AGGREGATE:
+    case Kind::TABLE_GROUP:
+    case Kind::TABLE_JOIN:
+    case Kind::TABLE_PROJECT:
     {
       res = mkOpHelper(kind, internal::ProjectOp(args));
       break;
@@ -6324,7 +6455,7 @@ Op Solver::mkOp(Kind kind, const std::string& arg) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_KIND_CHECK(kind);
-  CVC5_API_KIND_CHECK_EXPECTED((kind == DIVISIBLE), kind) << "DIVISIBLE";
+  CVC5_API_KIND_CHECK_EXPECTED((kind == Kind::DIVISIBLE), kind) << "DIVISIBLE";
   //////// all checks before this line
   Op res;
   /* CLN and GMP handle this case differently, CLN interprets it as 0, GMP
@@ -7099,7 +7230,7 @@ bool Solver::isModelCoreSymbol(const Term& v) const
       << "Cannot check if model core symbol unless after a SAT or UNKNOWN "
          "response.";
   CVC5_API_SOLVER_CHECK_TERM(v);
-  CVC5_API_RECOVERABLE_CHECK(v.getKind() == CONSTANT)
+  CVC5_API_RECOVERABLE_CHECK(v.getKind() == Kind::CONSTANT)
       << "Expecting a free constant as argument to isModelCoreSymbol.";
   //////// all checks before this line
   return d_slv->isModelCoreSymbol(v.getNode());
@@ -7126,7 +7257,7 @@ std::string Solver::getModel(const std::vector<Sort>& sorts,
   CVC5_API_SOLVER_CHECK_TERMS(vars);
   for (const Term& v : vars)
   {
-    CVC5_API_RECOVERABLE_CHECK(v.getKind() == CONSTANT)
+    CVC5_API_RECOVERABLE_CHECK(v.getKind() == Kind::CONSTANT)
         << "Expecting a free constant as argument to getModel.";
   }
   //////// all checks before this line
@@ -7573,35 +7704,6 @@ Term Solver::synthFun(const std::string& symbol,
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::synthInv(const std::string& symbol,
-                      const std::vector<Term>& boundVars) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_BOUND_VARS(boundVars);
-  CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
-      << "Cannot call synthInv unless sygus is enabled (use --sygus)";
-  //////// all checks before this line
-  return synthFunHelper(
-      symbol, boundVars, Sort(d_nm, d_nm->booleanType()), true);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Solver::synthInv(const std::string& symbol,
-                      const std::vector<Term>& boundVars,
-                      Grammar& grammar) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_BOUND_VARS(boundVars);
-  CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
-      << "Cannot call synthInv unless sygus is enabled (use --sygus)";
-  //////// all checks before this line
-  return synthFunHelper(
-      symbol, boundVars, Sort(d_nm, d_nm->booleanType()), true, &grammar);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 void Solver::addSygusConstraint(const Term& term) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -7776,6 +7878,33 @@ std::vector<Term> Solver::getSynthSolutions(
   }
 
   return synthSolution;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Solver::findSynth(modes::FindSynthTarget fst) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return Term(d_nm, d_slv->findSynth(fst, internal::TypeNode::null()));
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Solver::findSynth(modes::FindSynthTarget fst, Grammar& grammar) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return Term(d_nm, d_slv->findSynth(fst, *grammar.resolve().d_type));
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Solver::findSynthNext() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return Term(d_nm, d_slv->findSynthNext());
   ////////
   CVC5_API_TRY_CATCH_END;
 }

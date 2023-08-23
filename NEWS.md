@@ -2,6 +2,8 @@ This file contains a summary of important user-visible changes.
 
 **New Features**
 
+- API: C++ enums are now enum classes
+- Removed support for the ANTLR parser and parsing for the TPTP language.
 - API: New API function
        `Solver::mkFloatingPoint(const Term& sign, const Term& exp, const Term& sig)`,
        returns a floating-point value from the three IEEE-754 bit-vector value
@@ -9,15 +11,34 @@ This file contains a summary of important user-visible changes.
 - API: Simplified the `Solver::mkTuple` method. The sorts of the elements no longer
        need to be provided.
 - Support for timeout cores
-  - API: New API function `Solver::getTimeoutCore()` when applicable
+  * API: New API function `Solver::getTimeoutCore()` when applicable
     returns a subset of the current assertions that cause the solver to timeout
     without a provided timeout (option `--timeout-core-timeout`).
-  - SMT-LIB: New command `(get-timeout-core)` which invokes the above method.
+  * SMT-LIB: New command `(get-timeout-core)` which invokes the above method.
+- Support for new interfaces to the SyGuS solver.
+  * API: New API function `Solver::findSynth` which takes an identifier
+    specifying a target term to synthesize and (optionally) a grammar. This
+    method can be used to directly enumerate terms in a provided grammar
+    (`FindSynthTarget::ENUM`), or as a way of finding other terms of interest,
+    e.g. a rewrite rule that is applicable to the current set of assertions
+    (`FindSynthTarget::REWRITE_INPUT`).
+  * API: New API function `Solver::findSynthNext` which gets the next term
+    in the enumeration.
+  * SMT-LIB: New commands `find-synth` and `find-synth-next` which invoke the
+    above methods.
 - API: The option `--print-unsat-cores-full` has been renamed to
        `--print-cores-full`. Setting this option to true will print all
        assertions in the unsat core, regardless of whether they are named. This
        option also impacts how timeout cores are printed.
-- Removed support for the ANTLR parser and parsing for the TPTP language.
+- API: Added support for querying the values of real algebraic numbers in the
+       API. In particular, the methods `Term::isRealAlgebraicNumber()`,
+       `Term::getRealAlgebraicNumberDefiningPolynomial()`,
+       `Term::getRealAlgebraicNumberLowerBound()`, and
+       `Term::getRealAlgebraicNumberUpperBound()` may now be used to query
+       the contents of terms corresponding to real algebraic numbers.
+- API: Removed API support for the deprecated SyGuS 2.0 command
+       `Solver::synthInv`. This method is equivalent to `Solver::synthFun`
+       with a Boolean range sort.
 
 cvc5 1.0.5
 ==========

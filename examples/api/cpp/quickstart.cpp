@@ -80,17 +80,17 @@ int main()
   Term one = solver.mkReal(1);
 
   // Next, we construct the term x + y
-  Term xPlusY = solver.mkTerm(ADD, {x, y});
+  Term xPlusY = solver.mkTerm(Kind::ADD, {x, y});
 
   // Now we can define the constraints.
   // They use the operators +, <=, and <.
   // In the API, these are denoted by ADD, LEQ, and LT.
   // A list of available operators is available in:
   // src/api/cpp/cvc5_kind.h
-  Term constraint1 = solver.mkTerm(LT, {zero, x});
-  Term constraint2 = solver.mkTerm(LT, {zero, y});
-  Term constraint3 = solver.mkTerm(LT, {xPlusY, one});
-  Term constraint4 = solver.mkTerm(LEQ, {x, y});
+  Term constraint1 = solver.mkTerm(Kind::LT, {zero, x});
+  Term constraint2 = solver.mkTerm(Kind::LT, {zero, y});
+  Term constraint3 = solver.mkTerm(Kind::LT, {xPlusY, one});
+  Term constraint4 = solver.mkTerm(Kind::LEQ, {x, y});
 
   // Now we assert the constraints to the solver.
   solver.assertFormula(constraint1);
@@ -121,7 +121,7 @@ int main()
   // It is also possible to get values for compound terms,
   // even if those did not appear in the original formula.
   //! [docs-cpp-quickstart-10 start]
-  Term xMinusY = solver.mkTerm(SUB, {x, y});
+  Term xMinusY = solver.mkTerm(Kind::SUB, {x, y});
   Term xMinusYVal = solver.getValue(xMinusY);
   //! [docs-cpp-quickstart-10 end]
 
@@ -183,11 +183,11 @@ int main()
   // This time, we inline the construction of terms
   // to the assertion command.
   //! [docs-cpp-quickstart-15 start]
-  solver.assertFormula(solver.mkTerm(LT, {solver.mkInteger(0), a}));
-  solver.assertFormula(solver.mkTerm(LT, {solver.mkInteger(0), b}));
-  solver.assertFormula(
-      solver.mkTerm(LT, {solver.mkTerm(ADD, {a, b}), solver.mkInteger(1)}));
-  solver.assertFormula(solver.mkTerm(LEQ, {a, b}));
+  solver.assertFormula(solver.mkTerm(Kind::LT, {solver.mkInteger(0), a}));
+  solver.assertFormula(solver.mkTerm(Kind::LT, {solver.mkInteger(0), b}));
+  solver.assertFormula(solver.mkTerm(
+      Kind::LT, {solver.mkTerm(Kind::ADD, {a, b}), solver.mkInteger(1)}));
+  solver.assertFormula(solver.mkTerm(Kind::LEQ, {a, b}));
   //! [docs-cpp-quickstart-15 end]
 
   // We check whether the revised assertion is satisfiable.

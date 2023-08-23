@@ -39,25 +39,6 @@ add_custom_command(
 )
 add_custom_target(generate-java-kinds DEPENDS ${JAVA_KIND_FILE})
 
-# Generate SortKind.java
-set(JAVA_SORT_KIND_FILE
-  "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/SortKind.java"
-)
-add_custom_command(
-  OUTPUT
-    ${JAVA_SORT_KIND_FILE}
-  COMMAND
-    "${Python_EXECUTABLE}"
-    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_sort_kind.h"
-    --java-api-path "${CMAKE_CURRENT_BINARY_DIR}/io/github/"
-  DEPENDS
-    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
-    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_sort_kind.h"
-)
-add_custom_target(generate-java-sort-kinds DEPENDS ${JAVA_SORT_KIND_FILE})
-
 set(JAVA_TYPES_FILES
   "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/modes/BlockModelsMode.java"
   "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/modes/LearnedLitType.java"
@@ -147,7 +128,7 @@ add_custom_command(
 )
 
 add_custom_target(generate-jni-headers DEPENDS ${JNI_HEADERS})
-add_dependencies(generate-jni-headers generate-java-kinds generate-java-sort-kinds generate-java-types)
+add_dependencies(generate-jni-headers generate-java-kinds generate-java-types)
 
 # find jni package
 find_package(JNI REQUIRED)

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
@@ -44,7 +44,7 @@ bool RewriteVerifier::checkEquivalent(Node bv, Node bvr, std::ostream* out)
   {
     return true;
   }
-  if (d_sampler == nullptr)
+  if (d_sampler == nullptr || d_sampler->getNumSamplePoints() == 0)
   {
     Assert(false) << "Expected a sampler to test rewrites";
     return true;

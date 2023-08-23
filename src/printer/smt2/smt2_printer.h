@@ -94,7 +94,9 @@ class Smt2Printer : public cvc5::internal::Printer
                                       const std::vector<Node>& initValue) const override;
 
   /** Print declare-sort command */
-  void toStreamCmdDeclareType(std::ostream& out, TypeNode type) const override;
+  void toStreamCmdDeclareType(std::ostream& out,
+                              const std::string& id,
+                              size_t arity) const override;
 
   /** Print define-sort command */
   void toStreamCmdDefineType(std::ostream& out,
@@ -128,15 +130,16 @@ class Smt2Printer : public cvc5::internal::Printer
 
   /** Print declare-var command */
   void toStreamCmdDeclareVar(std::ostream& out,
-                             Node var,
+                             const std::string& id,
                              TypeNode type) const override;
 
   /** Print synth-fun command */
-  void toStreamCmdSynthFun(std::ostream& out,
-                           Node f,
-                           const std::vector<Node>& vars,
-                           bool isInv,
-                           TypeNode sygusType) const override;
+  void toStreamCmdSynthFun(
+      std::ostream& out,
+      const std::string& id,
+      const std::vector<Node>& vars,
+      TypeNode rangeType,
+      TypeNode sygusType) const override;
 
   /** Print constraint command */
   void toStreamCmdConstraint(std::ostream& out, Node n) const override;
@@ -156,6 +159,14 @@ class Smt2Printer : public cvc5::internal::Printer
 
   /** Print check-synth-next command */
   void toStreamCmdCheckSynthNext(std::ostream& out) const override;
+
+  /** Print find-synth command */
+  void toStreamCmdFindSynth(std::ostream& out,
+                            modes::FindSynthTarget fst,
+                            TypeNode sygusType) const override;
+
+  /** Print find-synth-next command */
+  void toStreamCmdFindSynthNext(std::ostream& out) const override;
 
   /** Print simplify command */
   void toStreamCmdSimplify(std::ostream& out, Node nodes) const override;

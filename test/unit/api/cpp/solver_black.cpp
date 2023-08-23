@@ -81,8 +81,8 @@ TEST_F(TestApiBlackSolver, pow2Large1)
   ctors.back().addSelector("_x112", s7);
   Sort s11 = d_solver.declareDatatype("_x107", ctors);
   Term t82 = d_solver.mkConst(s11, "_x114");
-  Term t180 = d_solver.mkTerm(POW2, {t10});
-  Term t258 = d_solver.mkTerm(GEQ, {t74, t180});
+  Term t180 = d_solver.mkTerm(Kind::POW2, {t10});
+  Term t258 = d_solver.mkTerm(Kind::GEQ, {t74, t180});
   d_solver.assertFormula(t258);
   ASSERT_THROW(d_solver.simplify(t82), CVC5ApiException);
 }
@@ -102,8 +102,9 @@ TEST_F(TestApiBlackSolver, pow2Large3)
   // Based on https://github.com/cvc5/cvc5-projects/issues/339
   Sort s4 = d_solver.getIntegerSort();
   Term t203 = d_solver.mkInteger("6135470354240554220207");
-  Term t262 = d_solver.mkTerm(POW2, {t203});
-  Term t536 = d_solver.mkTerm(d_solver.mkOp(INT_TO_BITVECTOR, {49}), {t262});
+  Term t262 = d_solver.mkTerm(Kind::POW2, {t203});
+  Term t536 =
+      d_solver.mkTerm(d_solver.mkOp(Kind::INT_TO_BITVECTOR, {49}), {t262});
   ASSERT_THROW(d_solver.simplify(t536), CVC5ApiException);
 }
 
@@ -126,7 +127,8 @@ TEST_F(TestApiBlackSolver, recoverableException)
 
 TEST_F(TestApiBlackSolver, supportsFloatingPoint)
 {
-  ASSERT_NO_THROW(d_solver.mkRoundingMode(ROUND_NEAREST_TIES_TO_EVEN));
+  ASSERT_NO_THROW(
+      d_solver.mkRoundingMode(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN));
 }
 
 TEST_F(TestApiBlackSolver, getBooleanSort)
@@ -278,7 +280,7 @@ TEST_F(TestApiBlackSolver, mkDatatypeSorts)
   Sort isort1 = dt_sorts[1].instantiate({d_solver.getBooleanSort()});
   Term t1 = d_solver.mkConst(isort1, "t");
   Term t0 = d_solver.mkTerm(
-      APPLY_SELECTOR,
+      Kind::APPLY_SELECTOR,
       {t1.getSort().getDatatype().getSelector("s1").getTerm(), t1});
   ASSERT_EQ(dt_sorts[0].instantiate({d_solver.getBooleanSort()}), t0.getSort());
 
@@ -393,11 +395,12 @@ TEST_F(TestApiBlackSolver, mkSequenceSort)
 
 TEST_F(TestApiBlackSolver, mkAbstractSort)
 {
-  ASSERT_NO_THROW(d_solver.mkAbstractSort(ARRAY_SORT));
-  ASSERT_NO_THROW(d_solver.mkAbstractSort(BITVECTOR_SORT));
-  ASSERT_NO_THROW(d_solver.mkAbstractSort(TUPLE_SORT));
-  ASSERT_NO_THROW(d_solver.mkAbstractSort(SET_SORT));
-  ASSERT_THROW(d_solver.mkAbstractSort(BOOLEAN_SORT), CVC5ApiException);
+  ASSERT_NO_THROW(d_solver.mkAbstractSort(SortKind::ARRAY_SORT));
+  ASSERT_NO_THROW(d_solver.mkAbstractSort(SortKind::BITVECTOR_SORT));
+  ASSERT_NO_THROW(d_solver.mkAbstractSort(SortKind::TUPLE_SORT));
+  ASSERT_NO_THROW(d_solver.mkAbstractSort(SortKind::SET_SORT));
+  ASSERT_THROW(d_solver.mkAbstractSort(SortKind::BOOLEAN_SORT),
+               CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, mkUninterpretedSort)
@@ -665,19 +668,20 @@ TEST_F(TestApiBlackSolver, mkFloatingPointPosZero)
 TEST_F(TestApiBlackSolver, mkOp)
 {
   // mkOp(Kind kind, const std::string& arg)
-  ASSERT_NO_THROW(d_solver.mkOp(DIVISIBLE, "2147483648"));
-  ASSERT_THROW(d_solver.mkOp(BITVECTOR_EXTRACT, "asdf"), CVC5ApiException);
+  ASSERT_NO_THROW(d_solver.mkOp(Kind::DIVISIBLE, "2147483648"));
+  ASSERT_THROW(d_solver.mkOp(Kind::BITVECTOR_EXTRACT, "asdf"),
+               CVC5ApiException);
 
   // mkOp(Kind kind, std::vector<uint32_t> args)
-  ASSERT_NO_THROW(d_solver.mkOp(DIVISIBLE, {1}));
-  ASSERT_NO_THROW(d_solver.mkOp(BITVECTOR_ROTATE_LEFT, {1}));
-  ASSERT_NO_THROW(d_solver.mkOp(BITVECTOR_ROTATE_RIGHT, {1}));
-  ASSERT_THROW(d_solver.mkOp(BITVECTOR_EXTRACT, {1}), CVC5ApiException);
+  ASSERT_NO_THROW(d_solver.mkOp(Kind::DIVISIBLE, {1}));
+  ASSERT_NO_THROW(d_solver.mkOp(Kind::BITVECTOR_ROTATE_LEFT, {1}));
+  ASSERT_NO_THROW(d_solver.mkOp(Kind::BITVECTOR_ROTATE_RIGHT, {1}));
+  ASSERT_THROW(d_solver.mkOp(Kind::BITVECTOR_EXTRACT, {1}), CVC5ApiException);
 
-  ASSERT_NO_THROW(d_solver.mkOp(BITVECTOR_EXTRACT, {1, 1}));
-  ASSERT_THROW(d_solver.mkOp(DIVISIBLE, {1, 2}), CVC5ApiException);
+  ASSERT_NO_THROW(d_solver.mkOp(Kind::BITVECTOR_EXTRACT, {1, 1}));
+  ASSERT_THROW(d_solver.mkOp(Kind::DIVISIBLE, {1, 2}), CVC5ApiException);
 
-  ASSERT_NO_THROW(d_solver.mkOp(TUPLE_PROJECT, {1, 2, 2}));
+  ASSERT_NO_THROW(d_solver.mkOp(Kind::TUPLE_PROJECT, {1, 2, 2}));
 }
 
 TEST_F(TestApiBlackSolver, mkPi) { ASSERT_NO_THROW(d_solver.mkPi()); }
@@ -778,7 +782,7 @@ TEST_F(TestApiBlackSolver, mkRegexpAll)
   Sort strSort = d_solver.getStringSort();
   Term s = d_solver.mkConst(strSort, "s");
   ASSERT_NO_THROW(
-      d_solver.mkTerm(STRING_IN_REGEXP, {s, d_solver.mkRegexpAll()}));
+      d_solver.mkTerm(Kind::STRING_IN_REGEXP, {s, d_solver.mkRegexpAll()}));
 }
 
 TEST_F(TestApiBlackSolver, mkRegexpAllchar)
@@ -786,7 +790,7 @@ TEST_F(TestApiBlackSolver, mkRegexpAllchar)
   Sort strSort = d_solver.getStringSort();
   Term s = d_solver.mkConst(strSort, "s");
   ASSERT_NO_THROW(
-      d_solver.mkTerm(STRING_IN_REGEXP, {s, d_solver.mkRegexpAllchar()}));
+      d_solver.mkTerm(Kind::STRING_IN_REGEXP, {s, d_solver.mkRegexpAllchar()}));
 }
 
 TEST_F(TestApiBlackSolver, mkRegexpNone)
@@ -794,7 +798,7 @@ TEST_F(TestApiBlackSolver, mkRegexpNone)
   Sort strSort = d_solver.getStringSort();
   Term s = d_solver.mkConst(strSort, "s");
   ASSERT_NO_THROW(
-      d_solver.mkTerm(STRING_IN_REGEXP, {s, d_solver.mkRegexpNone()}));
+      d_solver.mkTerm(Kind::STRING_IN_REGEXP, {s, d_solver.mkRegexpNone()}));
 }
 
 TEST_F(TestApiBlackSolver, mkSepEmp) { ASSERT_NO_THROW(d_solver.mkSepEmp()); }
@@ -833,99 +837,107 @@ TEST_F(TestApiBlackSolver, mkTerm)
   Solver slv;
 
   // mkTerm(Kind kind) const
-  ASSERT_NO_THROW(d_solver.mkTerm(PI));
-  ASSERT_NO_THROW(d_solver.mkTerm(PI, {v6}));
-  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(PI)));
-  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(PI), {v6}));
-  ASSERT_NO_THROW(d_solver.mkTerm(REGEXP_NONE));
-  ASSERT_NO_THROW(d_solver.mkTerm(REGEXP_NONE, {v6}));
-  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(REGEXP_NONE)));
-  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(REGEXP_NONE), {v6}));
-  ASSERT_NO_THROW(d_solver.mkTerm(REGEXP_ALLCHAR));
-  ASSERT_NO_THROW(d_solver.mkTerm(REGEXP_ALLCHAR, {v6}));
-  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(REGEXP_ALLCHAR)));
-  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(REGEXP_ALLCHAR), {v6}));
-  ASSERT_NO_THROW(d_solver.mkTerm(SEP_EMP));
-  ASSERT_NO_THROW(d_solver.mkTerm(SEP_EMP, {v6}));
-  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(SEP_EMP)));
-  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(SEP_EMP), {v6}));
-  ASSERT_THROW(d_solver.mkTerm(CONST_BITVECTOR), CVC5ApiException);
+  ASSERT_NO_THROW(d_solver.mkTerm(Kind::PI));
+  ASSERT_NO_THROW(d_solver.mkTerm(Kind::PI, {v6}));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(Kind::PI)));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(Kind::PI), {v6}));
+  ASSERT_NO_THROW(d_solver.mkTerm(Kind::REGEXP_NONE));
+  ASSERT_NO_THROW(d_solver.mkTerm(Kind::REGEXP_NONE, {v6}));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(Kind::REGEXP_NONE)));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(Kind::REGEXP_NONE), {v6}));
+  ASSERT_NO_THROW(d_solver.mkTerm(Kind::REGEXP_ALLCHAR));
+  ASSERT_NO_THROW(d_solver.mkTerm(Kind::REGEXP_ALLCHAR, {v6}));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(Kind::REGEXP_ALLCHAR)));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(Kind::REGEXP_ALLCHAR), {v6}));
+  ASSERT_NO_THROW(d_solver.mkTerm(Kind::SEP_EMP));
+  ASSERT_NO_THROW(d_solver.mkTerm(Kind::SEP_EMP, {v6}));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(Kind::SEP_EMP)));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(Kind::SEP_EMP), {v6}));
+  ASSERT_THROW(d_solver.mkTerm(Kind::CONST_BITVECTOR), CVC5ApiException);
 
   // mkTerm(Kind kind, Term child) const
-  ASSERT_NO_THROW(d_solver.mkTerm(NOT, {d_solver.mkTrue()}));
-  ASSERT_NO_THROW(
-      d_solver.mkTerm(BAG_MAKE, {d_solver.mkTrue(), d_solver.mkInteger(1)}));
-  ASSERT_THROW(d_solver.mkTerm(NOT, {Term()}), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkTerm(NOT, {a}), CVC5ApiException);
-  ASSERT_NO_THROW(slv.mkTerm(NOT, {d_solver.mkTrue()}));
+  ASSERT_NO_THROW(d_solver.mkTerm(Kind::NOT, {d_solver.mkTrue()}));
+  ASSERT_NO_THROW(d_solver.mkTerm(Kind::BAG_MAKE,
+                                  {d_solver.mkTrue(), d_solver.mkInteger(1)}));
+  ASSERT_THROW(d_solver.mkTerm(Kind::NOT, {Term()}), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkTerm(Kind::NOT, {a}), CVC5ApiException);
+  ASSERT_NO_THROW(slv.mkTerm(Kind::NOT, {d_solver.mkTrue()}));
 
   // mkTerm(Kind kind, Term child1, Term child2) const
-  ASSERT_NO_THROW(d_solver.mkTerm(EQUAL, {a, b}));
-  ASSERT_THROW(d_solver.mkTerm(EQUAL, {Term(), b}), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkTerm(EQUAL, {a, Term()}), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkTerm(EQUAL, {a, d_solver.mkTrue()}),
+  ASSERT_NO_THROW(d_solver.mkTerm(Kind::EQUAL, {a, b}));
+  ASSERT_THROW(d_solver.mkTerm(Kind::EQUAL, {Term(), b}), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkTerm(Kind::EQUAL, {a, Term()}), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkTerm(Kind::EQUAL, {a, d_solver.mkTrue()}),
                CVC5ApiException);
-  ASSERT_NO_THROW(slv.mkTerm(EQUAL, {a, b}));
+  ASSERT_NO_THROW(slv.mkTerm(Kind::EQUAL, {a, b}));
 
   // mkTerm(Kind kind, Term child1, Term child2, Term child3) const
   ASSERT_NO_THROW(d_solver.mkTerm(
-      ITE, {d_solver.mkTrue(), d_solver.mkTrue(), d_solver.mkTrue()}));
-  ASSERT_THROW(
-      d_solver.mkTerm(ITE, {Term(), d_solver.mkTrue(), d_solver.mkTrue()}),
-      CVC5ApiException);
-  ASSERT_THROW(
-      d_solver.mkTerm(ITE, {d_solver.mkTrue(), Term(), d_solver.mkTrue()}),
-      CVC5ApiException);
-  ASSERT_THROW(
-      d_solver.mkTerm(ITE, {d_solver.mkTrue(), d_solver.mkTrue(), Term()}),
-      CVC5ApiException);
-  ASSERT_THROW(d_solver.mkTerm(ITE, {d_solver.mkTrue(), d_solver.mkTrue(), b}),
+      Kind::ITE, {d_solver.mkTrue(), d_solver.mkTrue(), d_solver.mkTrue()}));
+  ASSERT_THROW(d_solver.mkTerm(Kind::ITE,
+                               {Term(), d_solver.mkTrue(), d_solver.mkTrue()}),
                CVC5ApiException);
+  ASSERT_THROW(d_solver.mkTerm(Kind::ITE,
+                               {d_solver.mkTrue(), Term(), d_solver.mkTrue()}),
+               CVC5ApiException);
+  ASSERT_THROW(d_solver.mkTerm(Kind::ITE,
+                               {d_solver.mkTrue(), d_solver.mkTrue(), Term()}),
+               CVC5ApiException);
+  ASSERT_THROW(
+      d_solver.mkTerm(Kind::ITE, {d_solver.mkTrue(), d_solver.mkTrue(), b}),
+      CVC5ApiException);
   ASSERT_NO_THROW(slv.mkTerm(
-      ITE, {d_solver.mkTrue(), d_solver.mkTrue(), d_solver.mkTrue()}));
+      Kind::ITE, {d_solver.mkTrue(), d_solver.mkTrue(), d_solver.mkTrue()}));
 
   // mkTerm(Kind kind, const std::vector<Term>& children) const
-  ASSERT_NO_THROW(d_solver.mkTerm(EQUAL, {v1}));
-  ASSERT_THROW(d_solver.mkTerm(EQUAL, {v2}), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkTerm(EQUAL, {v3}), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkTerm(DISTINCT, {v6}), CVC5ApiException);
+  ASSERT_NO_THROW(d_solver.mkTerm(Kind::EQUAL, {v1}));
+  ASSERT_THROW(d_solver.mkTerm(Kind::EQUAL, {v2}), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkTerm(Kind::EQUAL, {v3}), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkTerm(Kind::DISTINCT, {v6}), CVC5ApiException);
 
   // Test cases that are nary via the API but have arity = 2 internally
   Sort s_bool = d_solver.getBooleanSort();
   Term t_bool = d_solver.mkConst(s_bool, "t_bool");
-  ASSERT_NO_THROW(d_solver.mkTerm(IMPLIES, {t_bool, t_bool, t_bool}));
+  ASSERT_NO_THROW(d_solver.mkTerm(Kind::IMPLIES, {t_bool, t_bool, t_bool}));
   ASSERT_NO_THROW(
-      d_solver.mkTerm(d_solver.mkOp(IMPLIES), {t_bool, t_bool, t_bool}));
-  ASSERT_NO_THROW(d_solver.mkTerm(XOR, {t_bool, t_bool, t_bool}));
+      d_solver.mkTerm(d_solver.mkOp(Kind::IMPLIES), {t_bool, t_bool, t_bool}));
+  ASSERT_NO_THROW(d_solver.mkTerm(Kind::XOR, {t_bool, t_bool, t_bool}));
   ASSERT_NO_THROW(
-      d_solver.mkTerm(d_solver.mkOp(XOR), {t_bool, t_bool, t_bool}));
+      d_solver.mkTerm(d_solver.mkOp(Kind::XOR), {t_bool, t_bool, t_bool}));
   Term t_int = d_solver.mkConst(d_solver.getIntegerSort(), "t_int");
-  ASSERT_NO_THROW(d_solver.mkTerm(DIVISION, {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(Kind::DIVISION, {t_int, t_int, t_int}));
   ASSERT_NO_THROW(
-      d_solver.mkTerm(d_solver.mkOp(DIVISION), {t_int, t_int, t_int}));
-  ASSERT_NO_THROW(d_solver.mkTerm(INTS_DIVISION, {t_int, t_int, t_int}));
+      d_solver.mkTerm(d_solver.mkOp(Kind::DIVISION), {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(Kind::INTS_DIVISION, {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(Kind::INTS_DIVISION),
+                                  {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(Kind::SUB, {t_int, t_int, t_int}));
   ASSERT_NO_THROW(
-      d_solver.mkTerm(d_solver.mkOp(INTS_DIVISION), {t_int, t_int, t_int}));
-  ASSERT_NO_THROW(d_solver.mkTerm(SUB, {t_int, t_int, t_int}));
-  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(SUB), {t_int, t_int, t_int}));
-  ASSERT_NO_THROW(d_solver.mkTerm(EQUAL, {t_int, t_int, t_int}));
-  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(EQUAL), {t_int, t_int, t_int}));
-  ASSERT_NO_THROW(d_solver.mkTerm(LT, {t_int, t_int, t_int}));
-  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(LT), {t_int, t_int, t_int}));
-  ASSERT_NO_THROW(d_solver.mkTerm(GT, {t_int, t_int, t_int}));
-  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(GT), {t_int, t_int, t_int}));
-  ASSERT_NO_THROW(d_solver.mkTerm(LEQ, {t_int, t_int, t_int}));
-  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(LEQ), {t_int, t_int, t_int}));
-  ASSERT_NO_THROW(d_solver.mkTerm(GEQ, {t_int, t_int, t_int}));
-  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(GEQ), {t_int, t_int, t_int}));
+      d_solver.mkTerm(d_solver.mkOp(Kind::SUB), {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(Kind::EQUAL, {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(d_solver.mkOp(Kind::EQUAL), {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(Kind::LT, {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(d_solver.mkOp(Kind::LT), {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(Kind::GT, {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(d_solver.mkOp(Kind::GT), {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(Kind::LEQ, {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(d_solver.mkOp(Kind::LEQ), {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(Kind::GEQ, {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(d_solver.mkOp(Kind::GEQ), {t_int, t_int, t_int}));
   Term t_reg = d_solver.mkConst(d_solver.getRegExpSort(), "t_reg");
-  ASSERT_NO_THROW(d_solver.mkTerm(REGEXP_DIFF, {t_reg, t_reg, t_reg}));
+  ASSERT_NO_THROW(d_solver.mkTerm(Kind::REGEXP_DIFF, {t_reg, t_reg, t_reg}));
   ASSERT_NO_THROW(
-      d_solver.mkTerm(d_solver.mkOp(REGEXP_DIFF), {t_reg, t_reg, t_reg}));
+      d_solver.mkTerm(d_solver.mkOp(Kind::REGEXP_DIFF), {t_reg, t_reg, t_reg}));
   Term t_fun = d_solver.mkConst(
       d_solver.mkFunctionSort({s_bool, s_bool, s_bool}, s_bool));
-  ASSERT_NO_THROW(d_solver.mkTerm(HO_APPLY, {t_fun, t_bool, t_bool, t_bool}));
-  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(HO_APPLY),
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(Kind::HO_APPLY, {t_fun, t_bool, t_bool, t_bool}));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(Kind::HO_APPLY),
                                   {t_fun, t_bool, t_bool, t_bool}));
 }
 
@@ -941,8 +953,8 @@ TEST_F(TestApiBlackSolver, mkTermFromOp)
   Solver slv;
 
   // simple operator terms
-  Op opterm1 = d_solver.mkOp(BITVECTOR_EXTRACT, {2, 1});
-  Op opterm2 = d_solver.mkOp(DIVISIBLE, {1});
+  Op opterm1 = d_solver.mkOp(Kind::BITVECTOR_EXTRACT, {2, 1});
+  Op opterm2 = d_solver.mkOp(Kind::DIVISIBLE, {1});
 
   // list datatype
   Sort sort = d_solver.mkParamSort("T");
@@ -966,34 +978,37 @@ TEST_F(TestApiBlackSolver, mkTermFromOp)
   Term tailTerm = list["cons"]["tail"].getTerm();
 
   // mkTerm(Op op, Term term) const
-  ASSERT_NO_THROW(d_solver.mkTerm(APPLY_CONSTRUCTOR, {nilTerm}));
-  ASSERT_THROW(d_solver.mkTerm(APPLY_SELECTOR, {nilTerm}), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkTerm(APPLY_SELECTOR, {consTerm}), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkTerm(APPLY_CONSTRUCTOR, {consTerm}),
+  ASSERT_NO_THROW(d_solver.mkTerm(Kind::APPLY_CONSTRUCTOR, {nilTerm}));
+  ASSERT_THROW(d_solver.mkTerm(Kind::APPLY_SELECTOR, {nilTerm}),
+               CVC5ApiException);
+  ASSERT_THROW(d_solver.mkTerm(Kind::APPLY_SELECTOR, {consTerm}),
+               CVC5ApiException);
+  ASSERT_THROW(d_solver.mkTerm(Kind::APPLY_CONSTRUCTOR, {consTerm}),
                CVC5ApiException);
   ASSERT_THROW(d_solver.mkTerm(opterm1), CVC5ApiException);
-  ASSERT_THROW(d_solver.mkTerm(APPLY_SELECTOR, {headTerm}), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkTerm(Kind::APPLY_SELECTOR, {headTerm}),
+               CVC5ApiException);
   ASSERT_THROW(d_solver.mkTerm(opterm1), CVC5ApiException);
-  ASSERT_NO_THROW(slv.mkTerm(APPLY_CONSTRUCTOR, {nilTerm}));
+  ASSERT_NO_THROW(slv.mkTerm(Kind::APPLY_CONSTRUCTOR, {nilTerm}));
 
   // mkTerm(Op op, Term child) const
   ASSERT_NO_THROW(d_solver.mkTerm(opterm1, {a}));
   ASSERT_NO_THROW(d_solver.mkTerm(opterm2, {d_solver.mkInteger(1)}));
-  ASSERT_NO_THROW(d_solver.mkTerm(APPLY_SELECTOR, {headTerm, c}));
-  ASSERT_NO_THROW(d_solver.mkTerm(APPLY_SELECTOR, {tailTerm, c}));
+  ASSERT_NO_THROW(d_solver.mkTerm(Kind::APPLY_SELECTOR, {headTerm, c}));
+  ASSERT_NO_THROW(d_solver.mkTerm(Kind::APPLY_SELECTOR, {tailTerm, c}));
   ASSERT_THROW(d_solver.mkTerm(opterm2, {a}), CVC5ApiException);
   ASSERT_THROW(d_solver.mkTerm(opterm1, {Term()}), CVC5ApiException);
-  ASSERT_THROW(
-      d_solver.mkTerm(APPLY_CONSTRUCTOR, {consTerm, d_solver.mkInteger(0)}),
-      CVC5ApiException);
+  ASSERT_THROW(d_solver.mkTerm(Kind::APPLY_CONSTRUCTOR,
+                               {consTerm, d_solver.mkInteger(0)}),
+               CVC5ApiException);
   ASSERT_NO_THROW(slv.mkTerm(opterm1, {a}));
 
   // mkTerm(Op op, Term child1, Term child2) const
   ASSERT_NO_THROW(
-      d_solver.mkTerm(APPLY_CONSTRUCTOR,
+      d_solver.mkTerm(Kind::APPLY_CONSTRUCTOR,
                       {consTerm,
                        d_solver.mkInteger(0),
-                       d_solver.mkTerm(APPLY_CONSTRUCTOR, {nilTerm})}));
+                       d_solver.mkTerm(Kind::APPLY_CONSTRUCTOR, {nilTerm})}));
   ASSERT_THROW(
       d_solver.mkTerm(opterm2, {d_solver.mkInteger(1), d_solver.mkInteger(2)}),
       CVC5ApiException);
@@ -1002,10 +1017,11 @@ TEST_F(TestApiBlackSolver, mkTermFromOp)
                CVC5ApiException);
   ASSERT_THROW(d_solver.mkTerm(opterm2, {Term(), d_solver.mkInteger(1)}),
                CVC5ApiException);
-  ASSERT_NO_THROW(slv.mkTerm(APPLY_CONSTRUCTOR,
-                             {consTerm,
-                              d_solver.mkInteger(0),
-                              d_solver.mkTerm(APPLY_CONSTRUCTOR, {nilTerm})}));
+  ASSERT_NO_THROW(
+      slv.mkTerm(Kind::APPLY_CONSTRUCTOR,
+                 {consTerm,
+                  d_solver.mkInteger(0),
+                  d_solver.mkTerm(Kind::APPLY_CONSTRUCTOR, {nilTerm})}));
 
   // mkTerm(Op op, Term child1, Term child2, Term child3) const
   ASSERT_THROW(d_solver.mkTerm(opterm1, {a, b, a}), CVC5ApiException);
@@ -1201,12 +1217,14 @@ TEST_F(TestApiBlackSolver, defineFunGlobal)
 
   // (assert (or (not f) (not (g true))))
   d_solver.assertFormula(d_solver.mkTerm(
-      OR, {f.notTerm(), d_solver.mkTerm(APPLY_UF, {g, bTrue}).notTerm()}));
+      Kind::OR,
+      {f.notTerm(), d_solver.mkTerm(Kind::APPLY_UF, {g, bTrue}).notTerm()}));
   ASSERT_TRUE(d_solver.checkSat().isUnsat());
   d_solver.resetAssertions();
   // (assert (or (not f) (not (g true))))
   d_solver.assertFormula(d_solver.mkTerm(
-      OR, {f.notTerm(), d_solver.mkTerm(APPLY_UF, {g, bTrue}).notTerm()}));
+      Kind::OR,
+      {f.notTerm(), d_solver.mkTerm(Kind::APPLY_UF, {g, bTrue}).notTerm()}));
   ASSERT_TRUE(d_solver.checkSat().isUnsat());
 }
 
@@ -1286,12 +1304,14 @@ TEST_F(TestApiBlackSolver, defineFunRecGlobal)
 
   // (assert (or (not f) (not (g true))))
   d_solver.assertFormula(d_solver.mkTerm(
-      OR, {f.notTerm(), d_solver.mkTerm(APPLY_UF, {g, bTrue}).notTerm()}));
+      Kind::OR,
+      {f.notTerm(), d_solver.mkTerm(Kind::APPLY_UF, {g, bTrue}).notTerm()}));
   ASSERT_TRUE(d_solver.checkSat().isUnsat());
   d_solver.pop();
   // (assert (or (not f) (not (g true))))
   d_solver.assertFormula(d_solver.mkTerm(
-      OR, {f.notTerm(), d_solver.mkTerm(APPLY_UF, {g, bTrue}).notTerm()}));
+      Kind::OR,
+      {f.notTerm(), d_solver.mkTerm(Kind::APPLY_UF, {g, bTrue}).notTerm()}));
   ASSERT_TRUE(d_solver.checkSat().isUnsat());
 }
 
@@ -1386,11 +1406,13 @@ TEST_F(TestApiBlackSolver, defineFunsRecGlobal)
   d_solver.defineFunsRec({gSym}, {{b}}, {b}, true);
 
   // (assert (not (g true)))
-  d_solver.assertFormula(d_solver.mkTerm(APPLY_UF, {gSym, bTrue}).notTerm());
+  d_solver.assertFormula(
+      d_solver.mkTerm(Kind::APPLY_UF, {gSym, bTrue}).notTerm());
   ASSERT_TRUE(d_solver.checkSat().isUnsat());
   d_solver.pop();
   // (assert (not (g true)))
-  d_solver.assertFormula(d_solver.mkTerm(APPLY_UF, {gSym, bTrue}).notTerm());
+  d_solver.assertFormula(
+      d_solver.mkTerm(Kind::APPLY_UF, {gSym, bTrue}).notTerm());
   ASSERT_TRUE(d_solver.checkSat().isUnsat());
 }
 
@@ -1401,7 +1423,7 @@ TEST_F(TestApiBlackSolver, uFIteration)
   Term x = d_solver.mkConst(intSort, "x");
   Term y = d_solver.mkConst(intSort, "y");
   Term f = d_solver.mkConst(funSort, "f");
-  Term fxy = d_solver.mkTerm(APPLY_UF, {f, x, y});
+  Term fxy = d_solver.mkTerm(Kind::APPLY_UF, {f, x, y});
 
   // Expecting the uninterpreted function to be one of the children
   Term expected_children[3] = {f, x, y};
@@ -1442,9 +1464,9 @@ TEST_F(TestApiBlackSolver, getAbduct)
   Term y = d_solver.mkConst(intSort, "y");
 
   // Assumptions for abduction: x > 0
-  d_solver.assertFormula(d_solver.mkTerm(GT, {x, zero}));
+  d_solver.assertFormula(d_solver.mkTerm(Kind::GT, {x, zero}));
   // Conjecture for abduction: y > 0
-  Term conj = d_solver.mkTerm(GT, {y, zero});
+  Term conj = d_solver.mkTerm(Kind::GT, {y, zero});
   // Call the abduction api, while the resulting abduct is the output
   Term output = d_solver.getAbduct(conj);
   // We expect the resulting output to be a boolean formula
@@ -1456,7 +1478,7 @@ TEST_F(TestApiBlackSolver, getAbduct)
   Term start = d_solver.mkVar(boolean);
   Term output2;
   Grammar g = d_solver.mkGrammar({}, {start});
-  Term conj2 = d_solver.mkTerm(GT, {x, zero});
+  Term conj2 = d_solver.mkTerm(Kind::GT, {x, zero});
   ASSERT_NO_THROW(g.addRule(start, truen));
   // Call the abduction api, while the resulting abduct is the output
   output2 = d_solver.getAbduct(conj2, g);
@@ -1473,9 +1495,9 @@ TEST_F(TestApiBlackSolver, getAbduct2)
   Term x = d_solver.mkConst(intSort, "x");
   Term y = d_solver.mkConst(intSort, "y");
   // Assumptions for abduction: x > 0
-  d_solver.assertFormula(d_solver.mkTerm(GT, {x, zero}));
+  d_solver.assertFormula(d_solver.mkTerm(Kind::GT, {x, zero}));
   // Conjecture for abduction: y > 0
-  Term conj = d_solver.mkTerm(GT, {y, zero});
+  Term conj = d_solver.mkTerm(Kind::GT, {y, zero});
   // Fails due to option not set
   ASSERT_THROW(d_solver.getAbduct(conj), CVC5ApiException);
 }
@@ -1492,9 +1514,9 @@ TEST_F(TestApiBlackSolver, getAbductNext)
   Term y = d_solver.mkConst(intSort, "y");
 
   // Assumptions for abduction: x > 0
-  d_solver.assertFormula(d_solver.mkTerm(GT, {x, zero}));
+  d_solver.assertFormula(d_solver.mkTerm(Kind::GT, {x, zero}));
   // Conjecture for abduction: y > 0
-  Term conj = d_solver.mkTerm(GT, {y, zero});
+  Term conj = d_solver.mkTerm(Kind::GT, {y, zero});
   // Call the abduction api, while the resulting abduct is the output
   Term output = d_solver.getAbduct(conj);
   Term output2 = d_solver.getAbductNext();
@@ -1516,13 +1538,13 @@ TEST_F(TestApiBlackSolver, getInterpolant)
 
   // Assumptions for interpolation: x + y > 0 /\ x < 0
   d_solver.assertFormula(
-      d_solver.mkTerm(GT, {d_solver.mkTerm(ADD, {x, y}), zero}));
-  d_solver.assertFormula(d_solver.mkTerm(LT, {x, zero}));
+      d_solver.mkTerm(Kind::GT, {d_solver.mkTerm(Kind::ADD, {x, y}), zero}));
+  d_solver.assertFormula(d_solver.mkTerm(Kind::LT, {x, zero}));
   // Conjecture for interpolation: y + z > 0 \/ z < 0
   Term conj = d_solver.mkTerm(
-      OR,
-      {d_solver.mkTerm(GT, {d_solver.mkTerm(ADD, {y, z}), zero}),
-       d_solver.mkTerm(LT, {z, zero})});
+      Kind::OR,
+      {d_solver.mkTerm(Kind::GT, {d_solver.mkTerm(Kind::ADD, {y, z}), zero}),
+       d_solver.mkTerm(Kind::LT, {z, zero})});
   // Call the interpolation api, while the resulting interpolant is the output
   Term output = d_solver.getInterpolant(conj);
   // We expect the resulting output to be a boolean formula
@@ -1533,7 +1555,7 @@ TEST_F(TestApiBlackSolver, getInterpolant)
   Term truen = d_solver.mkBoolean(true);
   Term start = d_solver.mkVar(boolean);
   Grammar g = d_solver.mkGrammar({}, {start});
-  Term conj2 = d_solver.mkTerm(EQUAL, {zero, zero});
+  Term conj2 = d_solver.mkTerm(Kind::EQUAL, {zero, zero});
   ASSERT_NO_THROW(g.addRule(start, truen));
   // Call the interpolation api, while the resulting interpolant is the output
   Term output2 = d_solver.getInterpolant(conj2, g);
@@ -1554,13 +1576,13 @@ TEST_F(TestApiBlackSolver, getInterpolantNext)
   Term z = d_solver.mkConst(intSort, "z");
   // Assumptions for interpolation: x + y > 0 /\ x < 0
   d_solver.assertFormula(
-      d_solver.mkTerm(GT, {d_solver.mkTerm(ADD, {x, y}), zero}));
-  d_solver.assertFormula(d_solver.mkTerm(LT, {x, zero}));
+      d_solver.mkTerm(Kind::GT, {d_solver.mkTerm(Kind::ADD, {x, y}), zero}));
+  d_solver.assertFormula(d_solver.mkTerm(Kind::LT, {x, zero}));
   // Conjecture for interpolation: y + z > 0 \/ z < 0
   Term conj = d_solver.mkTerm(
-      OR,
-      {d_solver.mkTerm(GT, {d_solver.mkTerm(ADD, {y, z}), zero}),
-       d_solver.mkTerm(LT, {z, zero})});
+      Kind::OR,
+      {d_solver.mkTerm(Kind::GT, {d_solver.mkTerm(Kind::ADD, {y, z}), zero}),
+       d_solver.mkTerm(Kind::LT, {z, zero})});
   Term output = d_solver.getInterpolant(conj);
   Term output2 = d_solver.getInterpolantNext();
 
@@ -1588,7 +1610,7 @@ TEST_F(TestApiBlackSolver, getOp)
 {
   Sort bv32 = d_solver.mkBitVectorSort(32);
   Term a = d_solver.mkConst(bv32, "a");
-  Op ext = d_solver.mkOp(BITVECTOR_EXTRACT, {2, 1});
+  Op ext = d_solver.mkOp(Kind::BITVECTOR_EXTRACT, {2, 1});
   Term exta = d_solver.mkTerm(ext, {a});
 
   ASSERT_FALSE(a.hasOp());
@@ -1611,10 +1633,10 @@ TEST_F(TestApiBlackSolver, getOp)
   Term nilTerm = consList.getConstructor("nil").getTerm();
   Term headTerm = consList["cons"].getSelector("head").getTerm();
 
-  Term listnil = d_solver.mkTerm(APPLY_CONSTRUCTOR, {nilTerm});
-  Term listcons1 = d_solver.mkTerm(APPLY_CONSTRUCTOR,
+  Term listnil = d_solver.mkTerm(Kind::APPLY_CONSTRUCTOR, {nilTerm});
+  Term listcons1 = d_solver.mkTerm(Kind::APPLY_CONSTRUCTOR,
                                    {consTerm, d_solver.mkInteger(1), listnil});
-  Term listhead = d_solver.mkTerm(APPLY_SELECTOR, {headTerm, listcons1});
+  Term listhead = d_solver.mkTerm(Kind::APPLY_SELECTOR, {headTerm, listcons1});
 
   ASSERT_TRUE(listnil.hasOp());
   ASSERT_TRUE(listcons1.hasOp());
@@ -1902,14 +1924,14 @@ TEST_F(TestApiBlackSolver, getUnsatCoreAndProof)
   Term p = d_solver.mkConst(intPredSort, "p");
   Term zero = d_solver.mkInteger(0);
   Term one = d_solver.mkInteger(1);
-  Term f_x = d_solver.mkTerm(APPLY_UF, {f, x});
-  Term f_y = d_solver.mkTerm(APPLY_UF, {f, y});
-  Term sum = d_solver.mkTerm(ADD, {f_x, f_y});
-  Term p_0 = d_solver.mkTerm(APPLY_UF, {p, zero});
-  Term p_f_y = d_solver.mkTerm(APPLY_UF, {p, f_y});
-  d_solver.assertFormula(d_solver.mkTerm(GT, {zero, f_x}));
-  d_solver.assertFormula(d_solver.mkTerm(GT, {zero, f_y}));
-  d_solver.assertFormula(d_solver.mkTerm(GT, {sum, one}));
+  Term f_x = d_solver.mkTerm(Kind::APPLY_UF, {f, x});
+  Term f_y = d_solver.mkTerm(Kind::APPLY_UF, {f, y});
+  Term sum = d_solver.mkTerm(Kind::ADD, {f_x, f_y});
+  Term p_0 = d_solver.mkTerm(Kind::APPLY_UF, {p, zero});
+  Term p_f_y = d_solver.mkTerm(Kind::APPLY_UF, {p, f_y});
+  d_solver.assertFormula(d_solver.mkTerm(Kind::GT, {zero, f_x}));
+  d_solver.assertFormula(d_solver.mkTerm(Kind::GT, {zero, f_y}));
+  d_solver.assertFormula(d_solver.mkTerm(Kind::GT, {sum, one}));
   d_solver.assertFormula(p_0);
   d_solver.assertFormula(p_f_y.notTerm());
   ASSERT_TRUE(d_solver.checkSat().isUnsat());
@@ -1918,7 +1940,7 @@ TEST_F(TestApiBlackSolver, getUnsatCoreAndProof)
   ASSERT_FALSE(uc.empty());
 
   ASSERT_NO_THROW(d_solver.getProof());
-  ASSERT_NO_THROW(d_solver.getProof(modes::PROOF_COMPONENT_SAT));
+  ASSERT_NO_THROW(d_solver.getProof(modes::ProofComponent::SAT));
 
   d_solver.resetAssertions();
   for (const auto& t : uc)
@@ -1953,8 +1975,8 @@ TEST_F(TestApiBlackSolver, getDifficulty3)
   Term x = d_solver.mkConst(intSort, "x");
   Term zero = d_solver.mkInteger(0);
   Term ten = d_solver.mkInteger(10);
-  Term f0 = d_solver.mkTerm(GEQ, {x, ten});
-  Term f1 = d_solver.mkTerm(GEQ, {zero, x});
+  Term f0 = d_solver.mkTerm(Kind::GEQ, {x, ten});
+  Term f1 = d_solver.mkTerm(Kind::GEQ, {zero, x});
   d_solver.assertFormula(f0);
   d_solver.assertFormula(f1);
   d_solver.checkSat();
@@ -1964,7 +1986,7 @@ TEST_F(TestApiBlackSolver, getDifficulty3)
   for (const std::pair<const Term, Term>& t : dmap)
   {
     ASSERT_TRUE(t.first == f0 || t.first == f1);
-    ASSERT_TRUE(t.second.getKind() == CONST_INTEGER);
+    ASSERT_TRUE(t.second.getKind() == Kind::CONST_INTEGER);
   }
 }
 
@@ -1975,7 +1997,8 @@ TEST_F(TestApiBlackSolver, getLearnedLiterals)
   ASSERT_THROW(d_solver.getLearnedLiterals(), CVC5ApiException);
   d_solver.checkSat();
   ASSERT_NO_THROW(d_solver.getLearnedLiterals());
-  ASSERT_NO_THROW(d_solver.getLearnedLiterals(modes::LEARNED_LIT_PREPROCESS));
+  ASSERT_NO_THROW(
+      d_solver.getLearnedLiterals(modes::LearnedLitType::PREPROCESS));
 }
 
 TEST_F(TestApiBlackSolver, getLearnedLiterals2)
@@ -1986,9 +2009,10 @@ TEST_F(TestApiBlackSolver, getLearnedLiterals2)
   Term y = d_solver.mkConst(intSort, "y");
   Term zero = d_solver.mkInteger(0);
   Term ten = d_solver.mkInteger(10);
-  Term f0 = d_solver.mkTerm(GEQ, {x, ten});
-  Term f1 = d_solver.mkTerm(
-      OR, {d_solver.mkTerm(GEQ, {zero, x}), d_solver.mkTerm(GEQ, {y, zero})});
+  Term f0 = d_solver.mkTerm(Kind::GEQ, {x, ten});
+  Term f1 = d_solver.mkTerm(Kind::OR,
+                            {d_solver.mkTerm(Kind::GEQ, {zero, x}),
+                             d_solver.mkTerm(Kind::GEQ, {y, zero})});
   d_solver.assertFormula(f0);
   d_solver.assertFormula(f1);
   d_solver.checkSat();
@@ -2003,8 +2027,8 @@ TEST_F(TestApiBlackSolver, getTimeoutCoreUnsat)
   Term x = d_solver.mkConst(intSort, "x");
   Term tt = d_solver.mkBoolean(true);
   Term hard = d_solver.mkTerm(
-      EQUAL,
-      {d_solver.mkTerm(MULT, {x, x}),
+      Kind::EQUAL,
+      {d_solver.mkTerm(Kind::MULT, {x, x}),
        d_solver.mkInteger("501240912901901249014210220059591")});
   d_solver.assertFormula(tt);
   d_solver.assertFormula(hard);
@@ -2063,15 +2087,15 @@ TEST_F(TestApiBlackSolver, getValue3)
   Term p = d_solver.mkConst(intPredSort, "p");
   Term zero = d_solver.mkInteger(0);
   Term one = d_solver.mkInteger(1);
-  Term f_x = d_solver.mkTerm(APPLY_UF, {f, x});
-  Term f_y = d_solver.mkTerm(APPLY_UF, {f, y});
-  Term sum = d_solver.mkTerm(ADD, {f_x, f_y});
-  Term p_0 = d_solver.mkTerm(APPLY_UF, {p, zero});
-  Term p_f_y = d_solver.mkTerm(APPLY_UF, {p, f_y});
+  Term f_x = d_solver.mkTerm(Kind::APPLY_UF, {f, x});
+  Term f_y = d_solver.mkTerm(Kind::APPLY_UF, {f, y});
+  Term sum = d_solver.mkTerm(Kind::ADD, {f_x, f_y});
+  Term p_0 = d_solver.mkTerm(Kind::APPLY_UF, {p, zero});
+  Term p_f_y = d_solver.mkTerm(Kind::APPLY_UF, {p, f_y});
 
-  d_solver.assertFormula(d_solver.mkTerm(LEQ, {zero, f_x}));
-  d_solver.assertFormula(d_solver.mkTerm(LEQ, {zero, f_y}));
-  d_solver.assertFormula(d_solver.mkTerm(LEQ, {sum, one}));
+  d_solver.assertFormula(d_solver.mkTerm(Kind::LEQ, {zero, f_x}));
+  d_solver.assertFormula(d_solver.mkTerm(Kind::LEQ, {zero, f_y}));
+  d_solver.assertFormula(d_solver.mkTerm(Kind::LEQ, {sum, one}));
   d_solver.assertFormula(p_0.notTerm());
   d_solver.assertFormula(p_f_y);
   ASSERT_TRUE(d_solver.checkSat().isSat());
@@ -2101,7 +2125,7 @@ TEST_F(TestApiBlackSolver, getModelDomainElements)
   Term x = d_solver.mkConst(uSort, "x");
   Term y = d_solver.mkConst(uSort, "y");
   Term z = d_solver.mkConst(uSort, "z");
-  Term f = d_solver.mkTerm(DISTINCT, {x, y, z});
+  Term f = d_solver.mkTerm(Kind::DISTINCT, {x, y, z});
   d_solver.assertFormula(f);
   d_solver.checkSat();
   ASSERT_NO_THROW(d_solver.getModelDomainElements(uSort));
@@ -2116,9 +2140,9 @@ TEST_F(TestApiBlackSolver, getModelDomainElements2)
   Sort uSort = d_solver.mkUninterpretedSort("u");
   Term x = d_solver.mkVar(uSort, "x");
   Term y = d_solver.mkVar(uSort, "y");
-  Term eq = d_solver.mkTerm(EQUAL, {x, y});
-  Term bvl = d_solver.mkTerm(VARIABLE_LIST, {x, y});
-  Term f = d_solver.mkTerm(FORALL, {bvl, eq});
+  Term eq = d_solver.mkTerm(Kind::EQUAL, {x, y});
+  Term bvl = d_solver.mkTerm(Kind::VARIABLE_LIST, {x, y});
+  Term f = d_solver.mkTerm(Kind::FORALL, {bvl, eq});
   d_solver.assertFormula(f);
   d_solver.checkSat();
   ASSERT_NO_THROW(d_solver.getModelDomainElements(uSort));
@@ -2135,7 +2159,7 @@ TEST_F(TestApiBlackSolver, isModelCoreSymbol)
   Term y = d_solver.mkConst(uSort, "y");
   Term z = d_solver.mkConst(uSort, "z");
   Term zero = d_solver.mkInteger(0);
-  Term f = d_solver.mkTerm(NOT, {d_solver.mkTerm(EQUAL, {x, y})});
+  Term f = d_solver.mkTerm(Kind::NOT, {d_solver.mkTerm(Kind::EQUAL, {x, y})});
   d_solver.assertFormula(f);
   d_solver.checkSat();
   ASSERT_TRUE(d_solver.isModelCoreSymbol(x));
@@ -2151,7 +2175,7 @@ TEST_F(TestApiBlackSolver, getModel)
   Term x = d_solver.mkConst(uSort, "x");
   Term y = d_solver.mkConst(uSort, "y");
   Term z = d_solver.mkConst(uSort, "z");
-  Term f = d_solver.mkTerm(NOT, {d_solver.mkTerm(EQUAL, {x, y})});
+  Term f = d_solver.mkTerm(Kind::NOT, {d_solver.mkTerm(Kind::EQUAL, {x, y})});
   d_solver.assertFormula(f);
   d_solver.checkSat();
   std::vector<Sort> sorts;
@@ -2188,10 +2212,10 @@ TEST_F(TestApiBlackSolver, getModel3)
 TEST_F(TestApiBlackSolver, getQuantifierElimination)
 {
   Term x = d_solver.mkVar(d_solver.getBooleanSort(), "x");
-  Term forall =
-      d_solver.mkTerm(FORALL,
-                      {d_solver.mkTerm(VARIABLE_LIST, {x}),
-                       d_solver.mkTerm(OR, {x, d_solver.mkTerm(NOT, {x})})});
+  Term forall = d_solver.mkTerm(
+      Kind::FORALL,
+      {d_solver.mkTerm(Kind::VARIABLE_LIST, {x}),
+       d_solver.mkTerm(Kind::OR, {x, d_solver.mkTerm(Kind::NOT, {x})})});
   ASSERT_THROW(d_solver.getQuantifierElimination(Term()), CVC5ApiException);
   ASSERT_THROW(d_solver.getQuantifierElimination(Solver().mkBoolean(false)),
                CVC5ApiException);
@@ -2201,10 +2225,10 @@ TEST_F(TestApiBlackSolver, getQuantifierElimination)
 TEST_F(TestApiBlackSolver, getQuantifierEliminationDisjunct)
 {
   Term x = d_solver.mkVar(d_solver.getBooleanSort(), "x");
-  Term forall =
-      d_solver.mkTerm(FORALL,
-                      {d_solver.mkTerm(VARIABLE_LIST, {x}),
-                       d_solver.mkTerm(OR, {x, d_solver.mkTerm(NOT, {x})})});
+  Term forall = d_solver.mkTerm(
+      Kind::FORALL,
+      {d_solver.mkTerm(Kind::VARIABLE_LIST, {x}),
+       d_solver.mkTerm(Kind::OR, {x, d_solver.mkTerm(Kind::NOT, {x})})});
   ASSERT_THROW(d_solver.getQuantifierEliminationDisjunct(Term()),
                CVC5ApiException);
   ASSERT_THROW(
@@ -2455,12 +2479,13 @@ TEST_F(TestApiBlackSolver, getInstantiations)
   Sort boolSort = d_solver.getBooleanSort();
   Term p = d_solver.declareFun("p", {iSort}, boolSort);
   Term x = d_solver.mkVar(iSort, "x");
-  Term bvl = d_solver.mkTerm(VARIABLE_LIST, {x});
-  Term app = d_solver.mkTerm(APPLY_UF, {p, x});
-  Term q = d_solver.mkTerm(FORALL, {bvl, app});
+  Term bvl = d_solver.mkTerm(Kind::VARIABLE_LIST, {x});
+  Term app = d_solver.mkTerm(Kind::APPLY_UF, {p, x});
+  Term q = d_solver.mkTerm(Kind::FORALL, {bvl, app});
   d_solver.assertFormula(q);
   Term five = d_solver.mkInteger(5);
-  Term app2 = d_solver.mkTerm(NOT, {d_solver.mkTerm(APPLY_UF, {p, five})});
+  Term app2 =
+      d_solver.mkTerm(Kind::NOT, {d_solver.mkTerm(Kind::APPLY_UF, {p, five})});
   d_solver.assertFormula(app2);
   ASSERT_THROW(d_solver.getInstantiations(), CVC5ApiException);
   d_solver.checkSat();
@@ -2516,11 +2541,11 @@ TEST_F(TestApiBlackSolver, simplify)
   ASSERT_NO_THROW(d_solver.simplify(a));
   Term b = d_solver.mkConst(bvSort, "b");
   ASSERT_NO_THROW(d_solver.simplify(b));
-  Term x_eq_x = d_solver.mkTerm(EQUAL, {x, x});
+  Term x_eq_x = d_solver.mkTerm(Kind::EQUAL, {x, x});
   ASSERT_NO_THROW(d_solver.simplify(x_eq_x));
   ASSERT_NE(d_solver.mkTrue(), x_eq_x);
   ASSERT_EQ(d_solver.mkTrue(), d_solver.simplify(x_eq_x));
-  Term x_eq_b = d_solver.mkTerm(EQUAL, {x, b});
+  Term x_eq_b = d_solver.mkTerm(Kind::EQUAL, {x, b});
   ASSERT_NO_THROW(d_solver.simplify(x_eq_b));
   ASSERT_NE(d_solver.mkTrue(), x_eq_b);
   ASSERT_NE(d_solver.mkTrue(), d_solver.simplify(x_eq_b));
@@ -2529,25 +2554,26 @@ TEST_F(TestApiBlackSolver, simplify)
 
   Term i1 = d_solver.mkConst(d_solver.getIntegerSort(), "i1");
   ASSERT_NO_THROW(d_solver.simplify(i1));
-  Term i2 = d_solver.mkTerm(MULT, {i1, d_solver.mkInteger("23")});
+  Term i2 = d_solver.mkTerm(Kind::MULT, {i1, d_solver.mkInteger("23")});
   ASSERT_NO_THROW(d_solver.simplify(i2));
   ASSERT_NE(i1, i2);
   ASSERT_NE(i1, d_solver.simplify(i2));
-  Term i3 = d_solver.mkTerm(ADD, {i1, d_solver.mkInteger(0)});
+  Term i3 = d_solver.mkTerm(Kind::ADD, {i1, d_solver.mkInteger(0)});
   ASSERT_NO_THROW(d_solver.simplify(i3));
   ASSERT_NE(i1, i3);
   ASSERT_EQ(i1, d_solver.simplify(i3));
 
   Datatype consList = consListSort.getDatatype();
   Term dt1 = d_solver.mkTerm(
-      APPLY_CONSTRUCTOR,
+      Kind::APPLY_CONSTRUCTOR,
       {consList.getConstructor("cons").getTerm(),
        d_solver.mkInteger(0),
-       d_solver.mkTerm(APPLY_CONSTRUCTOR,
+       d_solver.mkTerm(Kind::APPLY_CONSTRUCTOR,
                        {consList.getConstructor("nil").getTerm()})});
   ASSERT_NO_THROW(d_solver.simplify(dt1));
-  Term dt2 = d_solver.mkTerm(
-      APPLY_SELECTOR, {consList["cons"].getSelector("head").getTerm(), dt1});
+  Term dt2 =
+      d_solver.mkTerm(Kind::APPLY_SELECTOR,
+                      {consList["cons"].getSelector("head").getTerm(), dt1});
   ASSERT_NO_THROW(d_solver.simplify(dt2));
 
   Term b1 = d_solver.mkVar(bvSort, "b1");
@@ -2598,7 +2624,7 @@ TEST_F(TestApiBlackSolver, checkSatAssuming1)
   Sort boolSort = d_solver.getBooleanSort();
   Term x = d_solver.mkConst(boolSort, "x");
   Term y = d_solver.mkConst(boolSort, "y");
-  Term z = d_solver.mkTerm(AND, {x, y});
+  Term z = d_solver.mkTerm(Kind::AND, {x, y});
   d_solver.setOption("incremental", "true");
   ASSERT_NO_THROW(d_solver.checkSatAssuming(d_solver.mkTrue()));
   ASSERT_THROW(d_solver.checkSatAssuming(Term()), CVC5ApiException);
@@ -2629,30 +2655,31 @@ TEST_F(TestApiBlackSolver, checkSatAssuming2)
   Term zero = d_solver.mkInteger(0);
   Term one = d_solver.mkInteger(1);
   // Terms
-  Term f_x = d_solver.mkTerm(APPLY_UF, {f, x});
-  Term f_y = d_solver.mkTerm(APPLY_UF, {f, y});
-  Term sum = d_solver.mkTerm(ADD, {f_x, f_y});
-  Term p_0 = d_solver.mkTerm(APPLY_UF, {p, zero});
-  Term p_f_y = d_solver.mkTerm(APPLY_UF, {p, f_y});
+  Term f_x = d_solver.mkTerm(Kind::APPLY_UF, {f, x});
+  Term f_y = d_solver.mkTerm(Kind::APPLY_UF, {f, y});
+  Term sum = d_solver.mkTerm(Kind::ADD, {f_x, f_y});
+  Term p_0 = d_solver.mkTerm(Kind::APPLY_UF, {p, zero});
+  Term p_f_y = d_solver.mkTerm(Kind::APPLY_UF, {p, f_y});
   // Assertions
-  Term assertions =
-      d_solver.mkTerm(AND,
-                      {
-                          d_solver.mkTerm(LEQ, {zero, f_x}),  // 0 <= f(x)
-                          d_solver.mkTerm(LEQ, {zero, f_y}),  // 0 <= f(y)
-                          d_solver.mkTerm(LEQ, {sum, one}),  // f(x) + f(y) <= 1
-                          p_0.notTerm(),                     // not p(0)
-                          p_f_y                              // p(f(y))
-                      });
+  Term assertions = d_solver.mkTerm(
+      Kind::AND,
+      {
+          d_solver.mkTerm(Kind::LEQ, {zero, f_x}),  // 0 <= f(x)
+          d_solver.mkTerm(Kind::LEQ, {zero, f_y}),  // 0 <= f(y)
+          d_solver.mkTerm(Kind::LEQ, {sum, one}),   // f(x) + f(y) <= 1
+          p_0.notTerm(),                            // not p(0)
+          p_f_y                                     // p(f(y))
+      });
 
   ASSERT_NO_THROW(d_solver.checkSatAssuming(d_solver.mkTrue()));
   d_solver.assertFormula(assertions);
-  ASSERT_NO_THROW(d_solver.checkSatAssuming(d_solver.mkTerm(DISTINCT, {x, y})));
+  ASSERT_NO_THROW(
+      d_solver.checkSatAssuming(d_solver.mkTerm(Kind::DISTINCT, {x, y})));
   ASSERT_NO_THROW(d_solver.checkSatAssuming(
-      {d_solver.mkFalse(), d_solver.mkTerm(DISTINCT, {x, y})}));
+      {d_solver.mkFalse(), d_solver.mkTerm(Kind::DISTINCT, {x, y})}));
   ASSERT_THROW(d_solver.checkSatAssuming(n), CVC5ApiException);
   ASSERT_THROW(
-      d_solver.checkSatAssuming({n, d_solver.mkTerm(DISTINCT, {x, y})}),
+      d_solver.checkSatAssuming({n, d_solver.mkTerm(Kind::DISTINCT, {x, y})}),
       CVC5ApiException);
   Solver slv;
   ASSERT_NO_THROW(slv.checkSatAssuming(d_solver.mkTrue()));
@@ -2682,10 +2709,10 @@ TEST_F(TestApiBlackSolver, resetAssertions)
   Sort bvSort = d_solver.mkBitVectorSort(4);
   Term one = d_solver.mkBitVector(4, 1);
   Term x = d_solver.mkConst(bvSort, "x");
-  Term ule = d_solver.mkTerm(BITVECTOR_ULE, {x, one});
-  Term srem = d_solver.mkTerm(BITVECTOR_SREM, {one, x});
+  Term ule = d_solver.mkTerm(Kind::BITVECTOR_ULE, {x, one});
+  Term srem = d_solver.mkTerm(Kind::BITVECTOR_SREM, {one, x});
   d_solver.push(4);
-  Term slt = d_solver.mkTerm(BITVECTOR_SLT, {srem, one});
+  Term slt = d_solver.mkTerm(Kind::BITVECTOR_SLT, {srem, one});
   d_solver.resetAssertions();
   d_solver.checkSatAssuming({slt, ule});
 }
@@ -2759,32 +2786,6 @@ TEST_F(TestApiBlackSolver, synthFun)
   ASSERT_NO_THROW(slv.synthFun("f1", {x2}, slv.getBooleanSort()));
   ASSERT_NO_THROW(slv.synthFun("", {}, d_solver.getBooleanSort()));
   ASSERT_NO_THROW(slv.synthFun("f1", {x}, d_solver.getBooleanSort()));
-}
-
-TEST_F(TestApiBlackSolver, synthInv)
-{
-  d_solver.setOption("sygus", "true");
-  Sort boolean = d_solver.getBooleanSort();
-  Sort integer = d_solver.getIntegerSort();
-
-  Term nullTerm;
-  Term x = d_solver.mkVar(boolean);
-
-  Term start1 = d_solver.mkVar(boolean);
-  Term start2 = d_solver.mkVar(integer);
-
-  Grammar g1 = d_solver.mkGrammar({x}, {start1});
-  g1.addRule(start1, d_solver.mkBoolean(false));
-
-  Grammar g2 = d_solver.mkGrammar({x}, {start2});
-  g2.addRule(start2, d_solver.mkInteger(0));
-
-  ASSERT_NO_THROW(d_solver.synthInv("", {}));
-  ASSERT_NO_THROW(d_solver.synthInv("i1", {x}));
-  ASSERT_NO_THROW(d_solver.synthInv("i2", {x}, g1));
-
-  ASSERT_THROW(d_solver.synthInv("i3", {nullTerm}), CVC5ApiException);
-  ASSERT_THROW(d_solver.synthInv("i4", {x}, g2), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, addSygusConstraint)
@@ -2999,13 +3000,49 @@ TEST_F(TestApiBlackSolver, checkSynthNext3)
   ASSERT_THROW(d_solver.checkSynthNext(), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, findSynth)
+{
+  d_solver.setOption("sygus", "true");
+  Sort boolean = d_solver.getBooleanSort();
+  Term start = d_solver.mkVar(boolean);
+  Grammar g = d_solver.mkGrammar({}, {start});
+  Term truen = d_solver.mkBoolean(true);
+  Term falsen = d_solver.mkBoolean(false);
+  g.addRule(start, truen);
+  g.addRule(start, falsen);
+  Term f = d_solver.synthFun("f", {}, d_solver.getBooleanSort(), g);
+
+  // should enumerate based on the grammar of the function to synthesize above
+  cvc5::Term t = d_solver.findSynth(modes::FindSynthTarget::ENUM);
+  ASSERT_TRUE(!t.isNull() && t.getSort().isBoolean());
+}
+
+TEST_F(TestApiBlackSolver, findSynth2)
+{
+  d_solver.setOption("sygus", "true");
+  d_solver.setOption("incremental", "true");
+  Sort boolean = d_solver.getBooleanSort();
+  Term start = d_solver.mkVar(boolean);
+  Grammar g = d_solver.mkGrammar({}, {start});
+  Term truen = d_solver.mkBoolean(true);
+  Term falsen = d_solver.mkBoolean(false);
+  g.addRule(start, truen);
+  g.addRule(start, falsen);
+
+  // should enumerate true/false
+  cvc5::Term t = d_solver.findSynth(modes::FindSynthTarget::ENUM, g);
+  ASSERT_TRUE(!t.isNull() && t.getSort().isBoolean());
+  t = d_solver.findSynthNext();
+  ASSERT_TRUE(!t.isNull() && t.getSort().isBoolean());
+}
+
 TEST_F(TestApiBlackSolver, tupleProject)
 {
   std::vector<Term> elements = {
       d_solver.mkBoolean(true),
       d_solver.mkInteger(3),
       d_solver.mkString("C"),
-      d_solver.mkTerm(SET_SINGLETON, {d_solver.mkString("Z")})};
+      d_solver.mkTerm(Kind::SET_SINGLETON, {d_solver.mkString("Z")})};
 
   Term tuple = d_solver.mkTuple(elements);
 
@@ -3017,22 +3054,24 @@ TEST_F(TestApiBlackSolver, tupleProject)
   std::vector<uint32_t> indices6 = {0, 4};
 
   ASSERT_NO_THROW(
-      d_solver.mkTerm(d_solver.mkOp(TUPLE_PROJECT, indices1), {tuple}));
+      d_solver.mkTerm(d_solver.mkOp(Kind::TUPLE_PROJECT, indices1), {tuple}));
   ASSERT_NO_THROW(
-      d_solver.mkTerm(d_solver.mkOp(TUPLE_PROJECT, indices2), {tuple}));
+      d_solver.mkTerm(d_solver.mkOp(Kind::TUPLE_PROJECT, indices2), {tuple}));
   ASSERT_NO_THROW(
-      d_solver.mkTerm(d_solver.mkOp(TUPLE_PROJECT, indices3), {tuple}));
+      d_solver.mkTerm(d_solver.mkOp(Kind::TUPLE_PROJECT, indices3), {tuple}));
   ASSERT_NO_THROW(
-      d_solver.mkTerm(d_solver.mkOp(TUPLE_PROJECT, indices4), {tuple}));
+      d_solver.mkTerm(d_solver.mkOp(Kind::TUPLE_PROJECT, indices4), {tuple}));
 
-  ASSERT_THROW(d_solver.mkTerm(d_solver.mkOp(TUPLE_PROJECT, indices5), {tuple}),
-               CVC5ApiException);
-  ASSERT_THROW(d_solver.mkTerm(d_solver.mkOp(TUPLE_PROJECT, indices6), {tuple}),
-               CVC5ApiException);
+  ASSERT_THROW(
+      d_solver.mkTerm(d_solver.mkOp(Kind::TUPLE_PROJECT, indices5), {tuple}),
+      CVC5ApiException);
+  ASSERT_THROW(
+      d_solver.mkTerm(d_solver.mkOp(Kind::TUPLE_PROJECT, indices6), {tuple}),
+      CVC5ApiException);
 
   std::vector<uint32_t> indices = {0, 3, 2, 0, 1, 2};
 
-  Op op = d_solver.mkOp(TUPLE_PROJECT, indices);
+  Op op = d_solver.mkOp(Kind::TUPLE_PROJECT, indices);
   Term projection = d_solver.mkTerm(op, {tuple});
 
   Datatype datatype = tuple.getSort().getDatatype();
@@ -3041,7 +3080,8 @@ TEST_F(TestApiBlackSolver, tupleProject)
   for (size_t i = 0; i < indices.size(); i++)
   {
     Term selectorTerm = constructor[indices[i]].getTerm();
-    Term selectedTerm = d_solver.mkTerm(APPLY_SELECTOR, {selectorTerm, tuple});
+    Term selectedTerm =
+        d_solver.mkTerm(Kind::APPLY_SELECTOR, {selectorTerm, tuple});
     Term simplifiedTerm = d_solver.simplify(selectedTerm);
     ASSERT_EQ(elements[indices[i]], simplifiedTerm);
   }
@@ -3072,9 +3112,9 @@ TEST_F(TestApiBlackSolver, issue7000)
   Term t7 = d_solver.mkConst(s3, "_x5");
   Term t37 = d_solver.mkConst(s2, "_x32");
   Term t59 = d_solver.mkConst(s2, "_x51");
-  Term t72 = d_solver.mkTerm(EQUAL, {t37, t59});
-  Term t74 = d_solver.mkTerm(GT, {t4, t7});
-  Term query = d_solver.mkTerm(AND, {t72, t74, t72, t72});
+  Term t72 = d_solver.mkTerm(Kind::EQUAL, {t37, t59});
+  Term t74 = d_solver.mkTerm(Kind::GT, {t4, t7});
+  Term query = d_solver.mkTerm(Kind::AND, {t72, t74, t72, t72});
   // throws logic exception since logic is not higher order by default
   ASSERT_THROW(d_solver.checkSatAssuming(query.notTerm()), CVC5ApiException);
 }
@@ -3088,8 +3128,8 @@ TEST_F(TestApiBlackSolver, issue5893)
   Term arr = d_solver.mkConst(arrsort, "arr");
   Term idx = d_solver.mkConst(bvsort4, "idx");
   Term ten = d_solver.mkBitVector(8, "10", 10);
-  Term sel = d_solver.mkTerm(SELECT, {arr, idx});
-  Term distinct = d_solver.mkTerm(DISTINCT, {sel, ten});
+  Term sel = d_solver.mkTerm(Kind::SELECT, {arr, idx});
+  Term distinct = d_solver.mkTerm(Kind::DISTINCT, {sel, ten});
   ASSERT_NO_FATAL_FAILURE(distinct.getOp());
 }
 
@@ -3114,14 +3154,14 @@ TEST_F(TestApiBlackSolver, proj_issue373)
   Sort s4 = d_solver.declareDatatype("_x86", {ctor13});
 
   Term t452 = d_solver.mkVar(s1, "_x281");
-  Term bvl = d_solver.mkTerm(d_solver.mkOp(VARIABLE_LIST), {t452});
+  Term bvl = d_solver.mkTerm(d_solver.mkOp(Kind::VARIABLE_LIST), {t452});
   Term acons = d_solver.mkTerm(
-      d_solver.mkOp(APPLY_CONSTRUCTOR),
+      d_solver.mkOp(Kind::APPLY_CONSTRUCTOR),
       {s4.getDatatype().getConstructor("_x115").getTerm(), t452});
   // type exception
-  ASSERT_THROW(
-      d_solver.mkTerm(d_solver.mkOp(APPLY_CONSTRUCTOR), {bvl, acons, t452}),
-      CVC5ApiException);
+  ASSERT_THROW(d_solver.mkTerm(d_solver.mkOp(Kind::APPLY_CONSTRUCTOR),
+                               {bvl, acons, t452}),
+               CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, proj_issue378)
@@ -3158,10 +3198,10 @@ TEST_F(TestApiBlackSolver, proj_issue378)
   Sort s7 = d_solver.mkDatatypeSort(dtdecl);
   Sort s9 = s7.instantiate({s2});
   Term t1507 =
-      d_solver.mkTerm(APPLY_CONSTRUCTOR,
+      d_solver.mkTerm(Kind::APPLY_CONSTRUCTOR,
                       {s9.getDatatype().getConstructor("_x184").getTerm(), t7});
   ASSERT_NO_THROW(d_solver.mkTerm(
-      APPLY_UPDATER,
+      Kind::APPLY_UPDATER,
       {s9.getDatatype().getConstructor("_x186").getSelector("_x185").getTerm(),
        t1507,
        t7}));
@@ -3185,7 +3225,7 @@ TEST_F(TestApiBlackSolver, proj_issue379)
   Sort s6 = s2.instantiate({bsort});
   Term t317 = d_solver.mkConst(bsort, "_x345");
   Term t843 = d_solver.mkConst(s6, "_x346");
-  Term t879 = d_solver.mkTerm(APPLY_UPDATER,
+  Term t879 = d_solver.mkTerm(Kind::APPLY_UPDATER,
                               {t843.getSort()
                                    .getDatatype()
                                    .getConstructor("_x8")
@@ -3217,7 +3257,7 @@ TEST_F(TestApiBlackSolver, proj_issue381)
   Sort s6 = s3.instantiate({s1});
   Term t26 = d_solver.mkConst(s6, "_x63");
   Term t5 = d_solver.mkTrue();
-  Term t187 = d_solver.mkTerm(APPLY_UPDATER,
+  Term t187 = d_solver.mkTerm(Kind::APPLY_UPDATER,
                               {t26.getSort()
                                    .getDatatype()
                                    .getConstructor("_x22")
@@ -3242,20 +3282,21 @@ TEST_F(TestApiBlackSolver, proj_issue382)
   Term t13 = d_solver.mkVar(s6, "_x58");
   Term t18 = d_solver.mkConst(s6, "_x63");
   Term t52 = d_solver.mkVar(s6, "_x70");
-  Term t53 = d_solver.mkTerm(MATCH_BIND_CASE,
-                             {d_solver.mkTerm(VARIABLE_LIST, {t52}), t52, t18});
+  Term t53 =
+      d_solver.mkTerm(Kind::MATCH_BIND_CASE,
+                      {d_solver.mkTerm(Kind::VARIABLE_LIST, {t52}), t52, t18});
   Term t73 = d_solver.mkVar(s1, "_x78");
   Term t81 = d_solver.mkTerm(
-      MATCH_BIND_CASE,
-      {d_solver.mkTerm(VARIABLE_LIST, {t73}),
+      Kind::MATCH_BIND_CASE,
+      {d_solver.mkTerm(Kind::VARIABLE_LIST, {t73}),
        d_solver.mkTerm(
-           APPLY_CONSTRUCTOR,
+           Kind::APPLY_CONSTRUCTOR,
            {s6.getDatatype().getConstructor("_x20").getInstantiatedTerm(s6),
             t73}),
        t18});
-  Term t82 = d_solver.mkTerm(MATCH, {t13, t53, t53, t53, t81});
+  Term t82 = d_solver.mkTerm(Kind::MATCH, {t13, t53, t53, t53, t81});
   Term t325 = d_solver.mkTerm(
-      APPLY_SELECTOR,
+      Kind::APPLY_SELECTOR,
       {t82.getSort().getDatatype().getSelector("_x19").getTerm(), t82});
   ASSERT_NO_THROW(d_solver.simplify(t325));
 }
@@ -3482,11 +3523,7 @@ TEST_F(TestApiBlackSolver, proj_issue422)
   Term t300 = slv.mkTerm(Kind::BITVECTOR_SLT, {t276, t276});
   Term t301 = slv.mkTerm(Kind::EQUAL, {t288, t300});
   slv.assertFormula({t301});
-  // should terminate with an exception indicating we are done enumerating
-  // rewrite rules.
-  // !!! temporary
-  // ASSERT_THROW(slv.findSynth(FindSynthTarget::REWRITE_RULE_INPUT),
-  // CVC5ApiException);
+  Term t = slv.findSynth(modes::FindSynthTarget::REWRITE_INPUT);
 }
 
 TEST_F(TestApiBlackSolver, proj_issue423)
@@ -3530,7 +3567,7 @@ TEST_F(TestApiBlackSolver, projIssue431)
                  .getConstructor("_cons64")
                  .getSelector("_sel62")
                  .getTerm();
-  Term t274 = slv.mkTerm(APPLY_SELECTOR, {sel, t47});
+  Term t274 = slv.mkTerm(Kind::APPLY_SELECTOR, {sel, t47});
   Term t488 = slv.mkTerm(Kind::APPLY_UF, {t31, t274});
   slv.assertFormula({t488});
   Term abduct;
@@ -3539,8 +3576,8 @@ TEST_F(TestApiBlackSolver, projIssue431)
 
 TEST_F(TestApiBlackSolver, projIssue337)
 {
-  Term t =
-      d_solver.mkTerm(SEQ_UNIT, {d_solver.mkReal("3416574625719121610379268")});
+  Term t = d_solver.mkTerm(Kind::SEQ_UNIT,
+                           {d_solver.mkReal("3416574625719121610379268")});
   Term tt = d_solver.simplify(t);
   ASSERT_EQ(t.getSort(), tt.getSort());
 }
@@ -3581,8 +3618,8 @@ TEST_F(TestApiBlackSolver, declareOracleFunUnsat)
       });
   Term three = d_solver.mkInteger(3);
   Term five = d_solver.mkInteger(5);
-  Term eq =
-      d_solver.mkTerm(EQUAL, {d_solver.mkTerm(APPLY_UF, {f, three}), five});
+  Term eq = d_solver.mkTerm(
+      Kind::EQUAL, {d_solver.mkTerm(Kind::APPLY_UF, {f, three}), five});
   d_solver.assertFormula(eq);
   // (f 3) = 5
   ASSERT_TRUE(d_solver.checkSat().isUnsat());
@@ -3604,11 +3641,12 @@ TEST_F(TestApiBlackSolver, declareOracleFunSat)
       });
   Term seven = d_solver.mkInteger(7);
   Term x = d_solver.mkConst(iSort, "x");
-  Term lb = d_solver.mkTerm(GEQ, {x, d_solver.mkInteger(0)});
+  Term lb = d_solver.mkTerm(Kind::GEQ, {x, d_solver.mkInteger(0)});
   d_solver.assertFormula(lb);
-  Term ub = d_solver.mkTerm(LEQ, {x, d_solver.mkInteger(100)});
+  Term ub = d_solver.mkTerm(Kind::LEQ, {x, d_solver.mkInteger(100)});
   d_solver.assertFormula(ub);
-  Term eq = d_solver.mkTerm(EQUAL, {d_solver.mkTerm(APPLY_UF, {f, x}), seven});
+  Term eq = d_solver.mkTerm(Kind::EQUAL,
+                            {d_solver.mkTerm(Kind::APPLY_UF, {f, x}), seven});
   d_solver.assertFormula(eq);
   // x >= 0 ^ x <= 100 ^ (f x) = 7
   ASSERT_TRUE(d_solver.checkSat().isSat());
@@ -3630,7 +3668,8 @@ TEST_F(TestApiBlackSolver, declareOracleFunSat2)
       });
   Term x = d_solver.mkConst(iSort, "x");
   Term y = d_solver.mkConst(iSort, "y");
-  Term neq = d_solver.mkTerm(NOT, {d_solver.mkTerm(APPLY_UF, {eq, x, y})});
+  Term neq =
+      d_solver.mkTerm(Kind::NOT, {d_solver.mkTerm(Kind::APPLY_UF, {eq, x, y})});
   d_solver.assertFormula(neq);
   // (not (eq x y))
   ASSERT_TRUE(d_solver.checkSat().isSat());
@@ -3684,7 +3723,7 @@ TEST_F(TestApiBlackSolver, multipleSolvers)
     s3.setLogic("ALL");
     s3.setOption("produce-models", "true");
     function2 = s3.declareFun("function3", {}, integerSort);
-    Term apply = s3.mkTerm(APPLY_UF, {definedFunction, zero});
+    Term apply = s3.mkTerm(Kind::APPLY_UF, {definedFunction, zero});
     s3.assertFormula(function2.eqTerm(apply));
     s3.checkSat();
     Term value3 = s3.getValue(function2);

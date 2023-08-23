@@ -288,7 +288,6 @@ struct SortSeqIndex
   {
     Assert(i.first.isConst() && i.first.getType().isInteger()
            && j.first.isConst() && j.first.getType().isInteger());
-    Assert(i.first != j.first);
     return i.first.getConst<Rational>() < j.first.getConst<Rational>();
   }
 };
