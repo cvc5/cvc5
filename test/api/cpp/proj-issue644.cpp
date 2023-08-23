@@ -25,12 +25,12 @@ int main(void)
   solver.setOption("produce-interpolants", "true");
   Sort s0 = solver.getRoundingModeSort();
   Term t1 = solver.mkConst(s0, "_x0");
-  Term t2 = solver.mkTerm(kind::SET_SINGLETON, {t1});
+  Term t2 = solver.mkTerm(Kind::SET_SINGLETON, {t1});
   Sort s3 = t2.getSort();
-  Op o4 = solver.mkOp(kind::SET_COMPLEMENT);
+  Op o4 = solver.mkOp(Kind::SET_COMPLEMENT);
   Term t5 = solver.mkTerm(o4, {t2});
-  Term t6 = solver.mkTerm(kind::SET_COMPLEMENT, {t5});
-  Op o7 = solver.mkOp(kind::SET_SUBSET);
+  Term t6 = solver.mkTerm(Kind::SET_COMPLEMENT, {t5});
+  Op o7 = solver.mkOp(Kind::SET_SUBSET);
   Term t8 = solver.mkTerm(o7, {t6, t5});
   Sort s9 = t8.getSort();
   solver.assertFormula(t8);
