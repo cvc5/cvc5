@@ -207,13 +207,10 @@ class CVC5_EXPORT DeclareSortCommand : public DeclarationDefinitionCommand
 {
  protected:
   size_t d_arity;
-  cvc5::Sort d_sort;
-
  public:
-  DeclareSortCommand(const std::string& id, size_t arity, cvc5::Sort sort);
+  DeclareSortCommand(const std::string& id, size_t arity);
 
   size_t getArity() const;
-  cvc5::Sort getSort() const;
 
   void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   std::string getCommandName() const override;
@@ -678,7 +675,7 @@ class CVC5_EXPORT BlockModelValuesCommand : public Command
 class CVC5_EXPORT GetProofCommand : public Command
 {
  public:
-  GetProofCommand(modes::ProofComponent c = modes::PROOF_COMPONENT_FULL);
+  GetProofCommand(modes::ProofComponent c = modes::ProofComponent::FULL);
 
   void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
 
