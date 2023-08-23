@@ -407,9 +407,10 @@ void CegisCoreConnective::Component::addRefinementPt(
     Node id, const std::vector<Node>& pt)
 {
   d_numRefPoints++;
-  bool res = d_refinementPt.addTerm(id, pt);
-  // this should always be a new point
-  AlwaysAssert(res);
+  d_refinementPt.addTerm(id, pt);
+  // Note that the above method returns false if pt is a duplicate of
+  // a previous point. This may happen if the candidate solutions we are testing
+  // involve partial functions.
 }
 void CegisCoreConnective::Component::addFalseCore(Node id,
                                                   const std::vector<Node>& u)
