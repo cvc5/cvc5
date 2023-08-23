@@ -494,19 +494,18 @@ void CheckSatAssumingCommand::toStream(std::ostream& out) const
 /* -------------------------------------------------------------------------- */
 
 DeclareSygusVarCommand::DeclareSygusVarCommand(const std::string& id,
-                                               cvc5::Term var,
                                                cvc5::Sort sort)
-    : DeclarationDefinitionCommand(id), d_var(var), d_sort(sort)
+    : DeclarationDefinitionCommand(id), d_sort(sort)
 {
 }
 
-cvc5::Term DeclareSygusVarCommand::getVar() const { return d_var; }
 cvc5::Sort DeclareSygusVarCommand::getSort() const { return d_sort; }
 
 void DeclareSygusVarCommand::invokeInternal(cvc5::Solver* solver,
                                             SymManager* sm)
 {
-  if (!bindToTerm(sm, d_var, true))
+  Term var = solver->declareSygusVar(d_symbol, d_sort);
+  if (!bindToTerm(sm, var, true))
   {
     return;
   }
@@ -521,7 +520,7 @@ std::string DeclareSygusVarCommand::getCommandName() const
 void DeclareSygusVarCommand::toStream(std::ostream& out) const
 {
   internal::Printer::getPrinter(out)->toStreamCmdDeclareVar(
-      out, termToNode(d_var), sortToTypeNode(d_sort));
+      out, d_symbol, sortToTypeNode(d_sort));
 }
 
 /* -------------------------------------------------------------------------- */
