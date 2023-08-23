@@ -861,9 +861,12 @@ void CoreSolver::getNormalForms(Node eqc,
   Trace("strings-process-debug") << "Get normal forms " << eqc << std::endl;
   eq::EqualityEngine* ee = d_state.getEqualityEngine();
   eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, ee );
+  const std::set<Node>& rlvSet = d_termReg.getRelevantTermSet();
   while( !eqc_i.isFinished() ){
     Node n = (*eqc_i);
-    if (!d_bsolver.isCongruent(n))
+    // this check should be in sync with the check in checkCycles to ensure
+    // we don't compute normal forms for irrelevant terms.
+    if (!d_bsolver.isCongruent(n) && rlvSet.find(n)!=rlvSet.end())
     {
       Kind nk = n.getKind();
       bool isCLike = utils::isConstantLike(n);
