@@ -588,17 +588,25 @@ Node CegisCoreConnective::evaluatePt(Node n,
   {
     NodeManager* nm = NodeManager::currentNM();
     bool expRes = nk == OR;
+    bool success = true;
     // split AND/OR
     for (const Node& nc : n)
     {
       Node enc = evaluatePt(nc, id, mvs);
-      Assert(enc.isConst());
+      if (!enc.isConst())
+      {
+        success = false;
+        break;
+      }
       if (enc.getConst<bool>() == expRes)
       {
         return nm->mkConst(expRes);
       }
     }
-    return nm->mkConst(!expRes);
+    if (success)
+    {
+      return nm->mkConst(!expRes);
+    }
   }
   std::unordered_map<Node, Node>& ec = d_eval_cache[n];
   if (!id.isNull())
