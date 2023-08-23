@@ -346,17 +346,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       size_t arity = d_tparser.parseIntegerNumeral();
       Trace("parser") << "declare sort: '" << name << "' arity=" << arity
                       << std::endl;
-      if (arity == 0)
-      {
-        Sort type = d_state.getSolver()->mkUninterpretedSort(name);
-        cmd.reset(new DeclareSortCommand(name, 0, type));
-      }
-      else
-      {
-        Sort type = d_state.getSolver()->mkUninterpretedSortConstructorSort(
-            arity, name);
-        cmd.reset(new DeclareSortCommand(name, arity, type));
-      }
+      cmd.reset(new DeclareSortCommand(name, arity));
     }
     break;
     // (declare-var <symbol> <sort>)
@@ -366,8 +356,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
       d_state.checkUserSymbol(name);
       Sort t = d_tparser.parseSort();
-      Term var = d_state.getSolver()->declareSygusVar(name, t);
-      cmd.reset(new DeclareSygusVarCommand(name, var, t));
+      cmd.reset(new DeclareSygusVarCommand(name, t));
     }
     break;
     // (define-const <symbol> <sort> <term>)
@@ -632,7 +621,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
     {
       // optional keyword
       tok = d_lex.peekToken();
-      modes::LearnedLitType llt = modes::LEARNED_LIT_INPUT;
+      modes::LearnedLitType llt = modes::LearnedLitType::INPUT;
       if (tok == Token::KEYWORD)
       {
         std::string key = d_tparser.parseKeyword();
@@ -661,7 +650,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
     {
       // optional keyword
       tok = d_lex.peekToken();
-      modes::ProofComponent pc = modes::PROOF_COMPONENT_FULL;
+      modes::ProofComponent pc = modes::ProofComponent::FULL;
       if (tok == Token::KEYWORD)
       {
         std::string key = d_tparser.parseKeyword();

@@ -76,10 +76,10 @@ std::vector<std::shared_ptr<ProofNode>> PropPfManager::getProofLeaves(
   Trace("sat-proof") << "PropPfManager::getProofLeaves: Getting " << pc
                      << " component proofs\n";
   std::vector<Node> fassumps;
-  Assert(pc == modes::PROOF_COMPONENT_THEORY_LEMMAS
-         || pc == modes::PROOF_COMPONENT_PREPROCESS);
+  Assert(pc == modes::ProofComponent::THEORY_LEMMAS
+         || pc == modes::ProofComponent::PREPROCESS);
   std::vector<std::shared_ptr<ProofNode>> pfs =
-      pc == modes::PROOF_COMPONENT_THEORY_LEMMAS
+      pc == modes::ProofComponent::THEORY_LEMMAS
           ? d_proofCnfStream->getLemmaClausesProofs()
           : d_proofCnfStream->getInputClausesProofs();
   std::shared_ptr<ProofNode> satPf = getProof(false);

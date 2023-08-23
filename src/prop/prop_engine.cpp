@@ -76,7 +76,8 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
       d_theoryLemmaPg(d_env, d_env.getUserContext(), "PropEngine::ThLemmaPg"),
       d_ppm(nullptr),
       d_interrupted(false),
-      d_assumptions(d_env.getUserContext())
+      d_assumptions(d_env.getUserContext()),
+      d_stats(statisticsRegistry())
 {
   Trace("prop") << "Constructing the PropEngine" << std::endl;
   context::UserContext* userContext = d_env.getUserContext();
@@ -168,11 +169,15 @@ void PropEngine::assertInputFormulas(
 {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   d_theoryProxy->notifyInputFormulas(assertions, skolemMap);
+  int64_t natomsPre = d_cnfStream->d_stats.d_numAtoms.get();
   for (const Node& node : assertions)
   {
     Trace("prop") << "assertFormula(" << node << ")" << std::endl;
     assertInternal(node, false, false, true);
   }
+  int64_t natomsPost = d_cnfStream->d_stats.d_numAtoms.get();
+  Assert(natomsPost >= natomsPre);
+  d_stats.d_numInputAtoms += (natomsPost - natomsPre);
 }
 
 void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
@@ -692,8 +697,6 @@ void PropEngine::checkProof(const context::CDList<Node>& assertions)
   return d_ppm->checkProof(assertions);
 }
 
-CnfStream* PropEngine::getCnfStream() { return d_theoryProxy->getCnfStream(); }
-
 ProofCnfStream* PropEngine::getProofCnfStream() { return d_pfCnfStream.get(); }
 
 std::shared_ptr<ProofNode> PropEngine::getProof(bool connectCnf)
@@ -751,6 +754,11 @@ std::vector<Node> PropEngine::getLearnedZeroLevelLiteralsForRestart() const
 modes::LearnedLitType PropEngine::getLiteralType(const Node& lit) const
 {
   return d_theoryProxy->getLiteralType(lit);
+}
+
+PropEngine::Statistics::Statistics(StatisticsRegistry& sr)
+    : d_numInputAtoms(sr.registerInt("prop::PropEngine::numInputAtoms"))
+{
 }
 
 }  // namespace prop

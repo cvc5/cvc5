@@ -464,7 +464,7 @@ modes::LearnedLitType TheoryProxy::getLiteralType(const Node& lit) const
   {
     return d_zll->computeLearnedLiteralType(lit);
   }
-  return modes::LEARNED_LIT_UNKNOWN;
+  return modes::LearnedLitType::UNKNOWN;
 }
 
 std::vector<Node> TheoryProxy::getLearnedZeroLevelLiteralsForRestart() const
