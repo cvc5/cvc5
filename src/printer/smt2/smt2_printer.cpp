@@ -1467,7 +1467,7 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
   out << "; cardinality of " << tn << " is " << elements.size() << endl;
   if (modelUninterpPrint == options::ModelUninterpPrintMode::DeclSortAndFun)
   {
-    toStreamCmdDeclareType(out, tn);
+    Printer::toStreamCmdDeclareType(out, tn);
   }
   // print the representatives
   for (const Node& trn : elements)
@@ -1740,13 +1740,11 @@ void Smt2Printer::toStreamSortedVarList(std::ostream& out,
 }
 
 void Smt2Printer::toStreamCmdDeclareType(std::ostream& out,
-                                         TypeNode type) const
+                                         const std::string& id,
+                                         size_t arity) const
 {
-  Assert(type.isUninterpretedSort() || type.isUninterpretedSortConstructor());
-  size_t arity = type.isUninterpretedSortConstructor()
-                     ? type.getUninterpretedSortConstructorArity()
-                     : 0;
-  out << "(declare-sort " << type << " " << arity << ")" << std::endl;
+  out << "(declare-sort " << cvc5::internal::quoteSymbol(id) << " " << arity
+      << ")" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdDefineType(std::ostream& out,
