@@ -41,7 +41,7 @@ PYCOMMENT = '#'
 
 ENUMS_PXD_TOP_TEMPLATE = \
 r"""cdef extern from "<{header}>" namespace "{namespace}":
-    cdef enum {enum}:
+    cdef enum class {enum} "{namespace}::{enum}":
 """
 
 ENUMS_PXI_TOP = \

@@ -25,7 +25,7 @@ std::ostream& operator<<(std::ostream& os, const ParseOp& p)
   {
     out << " :expr " << p.d_expr;
   }
-  if (p.d_kind != cvc5::NULL_TERM)
+  if (p.d_kind != cvc5::Kind::NULL_TERM)
   {
     out << " :kind " << p.d_kind;
   }

@@ -363,7 +363,7 @@ bool SymManager::bindMutualDatatypeTypes(
       // constructor.
       if (ctor.getNumSelectors() == 0)
       {
-        constructor = d_solver->mkTerm(APPLY_CONSTRUCTOR, {constructor});
+        constructor = d_solver->mkTerm(Kind::APPLY_CONSTRUCTOR, {constructor});
       }
       // always do overloading
       if (!bind(constructorName, constructor, true))
