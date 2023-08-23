@@ -53,7 +53,7 @@ bool CardSolver::isLeaf(const Node& bag)
   return (d_cardGraph.count(rep) == 0 || d_cardGraph[rep].empty());
 }
 
-std::set<Node> CardSolver::getChildren(Node bag)
+std::vector<Node> CardSolver::getChildren(Node bag)
 {
   Node rep = d_state.getRepresentative(bag);
   if (d_cardGraph[rep].empty())
@@ -155,9 +155,10 @@ void CardSolver::checkUnionMax(const std::pair<Node, Node>& pair, const Node& n)
 
 void CardSolver::addChildren(const Node& premise,
                              const Node& parent,
-                             const set<Node>& children)
+                             const vector<Node>& children)
 {
-  if (children.count(parent) > 0 && children.size() > 1)
+  if (std::find(children.begin(), children.end(), parent) != children.end()
+      && children.size() > 1)
   {
     // handle the case when the parent is among the children, which implies
     // other children are empty.
@@ -227,7 +228,7 @@ void CardSolver::addChildren(const Node& premise,
       // In this case we reduce the cardinality of the parent bag using
       // quantifiers. This is faster than reducing the cardinality of each
       // child.
-      const std::set<Node>& oldChildren = *d_cardGraph[parent].begin();
+      const std::vector<Node>& oldChildren = *d_cardGraph[parent].begin();
       d_cardGraph[parent].insert(children);
       Trace("bags-card") << "CardSolver::addChildren parent: " << parent
                          << std::endl;

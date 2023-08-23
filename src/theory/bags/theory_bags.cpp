@@ -429,7 +429,7 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
       }
       else
       {
-        std::set<Node> children = d_cardSolver.getChildren(n);
+        std::vector<Node> children = d_cardSolver.getChildren(n);
         Assert(!children.empty());
         constructedBag = nm->mkConst(EmptyBag(r.getType()));
         for (Node child : children)

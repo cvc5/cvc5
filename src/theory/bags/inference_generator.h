@@ -221,7 +221,7 @@ class InferenceGenerator
    */
   InferInfo cardUnionDisjoint(Node premise,
                               Node parent,
-                              const std::set<Node>& children);
+                              const std::vector<Node>& children);
 
   /**
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
