@@ -18,23 +18,23 @@
 using namespace cvc5;
 int main(void)
 {
-Solver solver;
-solver.setOption("incremental", "false");
-solver.setOption("sets-ext", "true");
-solver.setOption("check-interpolants", "true");
-solver.setOption("produce-interpolants", "true");
-Sort s0 = solver.getRoundingModeSort();
-Term t1 = solver.mkConst(s0, "_x0");
-Term t2 = solver.mkTerm(SET_SINGLETON, {t1});
-Sort s3 = t2.getSort();
-Op o4 = solver.mkOp(SET_COMPLEMENT);
-Term t5 = solver.mkTerm(o4, {t2});
-Term t6 = solver.mkTerm(SET_COMPLEMENT, {t5});
-Op o7 = solver.mkOp(SET_SUBSET);
-Term t8 = solver.mkTerm(o7, {t6, t5});
-Sort s9 = t8.getSort();
-solver.assertFormula(t8);
-Term t10 = solver.getInterpolant(t8);
+  Solver solver;
+  solver.setOption("incremental", "false");
+  solver.setOption("sets-ext", "true");
+  solver.setOption("check-interpolants", "true");
+  solver.setOption("produce-interpolants", "true");
+  Sort s0 = solver.getRoundingModeSort();
+  Term t1 = solver.mkConst(s0, "_x0");
+  Term t2 = solver.mkTerm(SET_SINGLETON, {t1});
+  Sort s3 = t2.getSort();
+  Op o4 = solver.mkOp(SET_COMPLEMENT);
+  Term t5 = solver.mkTerm(o4, {t2});
+  Term t6 = solver.mkTerm(SET_COMPLEMENT, {t5});
+  Op o7 = solver.mkOp(SET_SUBSET);
+  Term t8 = solver.mkTerm(o7, {t6, t5});
+  Sort s9 = t8.getSort();
+  solver.assertFormula(t8);
+  Term t10 = solver.getInterpolant(t8);
 
-return 0;
+  return 0;
 }
