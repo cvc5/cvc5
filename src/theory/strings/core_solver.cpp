@@ -539,8 +539,8 @@ Node CoreSolver::checkCycles( Node eqc, std::vector< Node >& curr, std::vector< 
     if (hasRlv)
     {
       Trace("strings-eqc") << "* add string eqc: " << eqc << std::endl;
-      //now we can add it to the list of equivalence classes
-      d_strings_eqc.push_back( eqc );
+      // now we can add it to the list of equivalence classes
+      d_strings_eqc.push_back(eqc);
     }
   }else{
     //already processed
@@ -863,7 +863,8 @@ void CoreSolver::getNormalForms(Node eqc,
   eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, ee );
   while( !eqc_i.isFinished() ){
     Node n = (*eqc_i);
-    if( !d_bsolver.isCongruent(n)){
+    if (!d_bsolver.isCongruent(n))
+    {
       Kind nk = n.getKind();
       bool isCLike = utils::isConstantLike(n);
       if (isCLike || nk == STRING_CONCAT)
