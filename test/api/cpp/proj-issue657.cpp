@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Test for project issue #587
+ * Test for project issue #657
  *
  */
 #include <cvc5/cvc5.h>
