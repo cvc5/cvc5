@@ -1,6 +1,5 @@
 (set-logic ALL)
 (set-info :status sat)
-(set-option :produce-models true)
 (set-option :sets-ext true)
 (declare-fun x () Int)
 (declare-fun y () (Set Int))
@@ -9,4 +8,3 @@
 (assert (P (set.singleton 0)))
 (assert (= (set.inter (as set.universe (Set Int)) (set.singleton 1)) (as set.empty (Set Int))))
 (check-sat)
-(get-model)
