@@ -210,11 +210,12 @@ class QuantifiersRewriter : public TheoryRewriter
                        bool marked = false);
   /** Compute if q is a standard quantified formula based on the options */
   static bool isStandard(const Node& q, const Options& opts);
-  /** 
+  /**
    * Compute if a quantified formula with the given attributes is standard
    * based on the options.
    */
   static bool isStandard(QAttributes& qa, const Options& opts);
+
  private:
   /**
    * Helper method for getVarElim, called when n has polarity pol in body.

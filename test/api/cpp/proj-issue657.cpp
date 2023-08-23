@@ -18,21 +18,21 @@
 using namespace cvc5;
 int main(void)
 {
-Solver solver;
-solver.setOption("incremental", "false");
-solver.setOption("produce-interpolants", "true");
-solver.setOption("prenex-quant", "norm");
-Sort s0 = solver.getStringSort();
-Term t1 = solver.mkVar(s0, "_x3");
-Op o2 = solver.mkOp(Kind::STRING_CONCAT);
-Term t3 = solver.mkTerm(o2, {t1, t1});
-Term t4 = t1.eqTerm(t3);
-Sort s5 = t4.getSort();
-Term t6 = solver.mkTerm(Kind::VARIABLE_LIST, {t1});
-Sort s7 = t6.getSort();
-Op o8 = solver.mkOp(Kind::EXISTS);
-Term t9 = solver.mkTerm(o8, {t6, t4});
-Term t10 = solver.getInterpolant(t9);
+  Solver solver;
+  solver.setOption("incremental", "false");
+  solver.setOption("produce-interpolants", "true");
+  solver.setOption("prenex-quant", "norm");
+  Sort s0 = solver.getStringSort();
+  Term t1 = solver.mkVar(s0, "_x3");
+  Op o2 = solver.mkOp(Kind::STRING_CONCAT);
+  Term t3 = solver.mkTerm(o2, {t1, t1});
+  Term t4 = t1.eqTerm(t3);
+  Sort s5 = t4.getSort();
+  Term t6 = solver.mkTerm(Kind::VARIABLE_LIST, {t1});
+  Sort s7 = t6.getSort();
+  Op o8 = solver.mkOp(Kind::EXISTS);
+  Term t9 = solver.mkTerm(o8, {t6, t4});
+  Term t10 = solver.getInterpolant(t9);
 
-return 0;
+  return 0;
 }
