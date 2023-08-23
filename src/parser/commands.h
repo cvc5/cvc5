@@ -174,7 +174,6 @@ class CVC5_EXPORT DeclarePoolCommand : public DeclarationDefinitionCommand
   DeclarePoolCommand(const std::string& id,
                      cvc5::Sort sort,
                      const std::vector<cvc5::Term>& initValue);
-  cvc5::Term getFunction() const;
   cvc5::Sort getSort() const;
   const std::vector<cvc5::Term>& getInitialValue() const;
 
@@ -217,13 +216,10 @@ class CVC5_EXPORT DeclareSortCommand : public DeclarationDefinitionCommand
 {
  protected:
   size_t d_arity;
-  cvc5::Sort d_sort;
-
  public:
-  DeclareSortCommand(const std::string& id, size_t arity, cvc5::Sort sort);
+  DeclareSortCommand(const std::string& id, size_t arity);
 
   size_t getArity() const;
-  cvc5::Sort getSort() const;
 
   void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
   std::string getCommandName() const override;
@@ -381,7 +377,6 @@ class CVC5_EXPORT DeclareSygusVarCommand : public DeclarationDefinitionCommand
 {
  public:
   DeclareSygusVarCommand(const std::string& id,
-                         cvc5::Term var,
                          cvc5::Sort sort);
   /** returns the declared variable */
   cvc5::Term getVar() const;
@@ -399,8 +394,6 @@ class CVC5_EXPORT DeclareSygusVarCommand : public DeclarationDefinitionCommand
   void toStream(std::ostream& out) const override;
 
  protected:
-  /** the declared variable */
-  cvc5::Term d_var;
   /** the declared variable's sort */
   cvc5::Sort d_sort;
 };

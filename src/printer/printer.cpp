@@ -248,9 +248,19 @@ void Printer::toStreamCmdDeclareOracleFun(std::ostream& out,
 }
 
 void Printer::toStreamCmdDeclareType(std::ostream& out,
-                                     TypeNode type) const
+                                     const std::string& id,
+                                     size_t arity) const
 {
   printUnknownCommand(out, "declare-sort");
+}
+
+void Printer::toStreamCmdDeclareType(std::ostream& out, TypeNode type) const
+{
+  Assert(type.isUninterpretedSort() || type.isUninterpretedSortConstructor());
+  size_t arity = type.isUninterpretedSortConstructor()
+                     ? type.getUninterpretedSortConstructorArity()
+                     : 0;
+  toStreamCmdDeclareType(out, type.getName(), arity);
 }
 
 void Printer::toStreamCmdDefineType(std::ostream& out,
@@ -348,7 +358,7 @@ void Printer::toStreamCmdQuery(std::ostream& out, Node n) const
 }
 
 void Printer::toStreamCmdDeclareVar(std::ostream& out,
-                                    Node var,
+                                    const std::string& id,
                                     TypeNode type) const
 {
   printUnknownCommand(out, "declare-var");
