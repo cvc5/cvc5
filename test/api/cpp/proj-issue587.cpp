@@ -27,18 +27,18 @@ int main(void)
   Sort s2 = solver.mkSetSort(s1);
   Term t3 = solver.mkEmptySet(s2);
   Term t4 = solver.mkConst(s1, "_x2");
-  Op o5 = solver.mkOp(SET_SINGLETON);
+  Op o5 = solver.mkOp(Kind::SET_SINGLETON);
   Term t6 = solver.mkTerm(o5, {t3});
   Sort s7 = t6.getSort();
-  Op o8 = solver.mkOp(SET_SINGLETON);
+  Op o8 = solver.mkOp(Kind::SET_SINGLETON);
   Term t9 = solver.mkTerm(o5, {t6});
   Sort s10 = t9.getSort();
-  Op o11 = solver.mkOp(SET_MINUS);
+  Op o11 = solver.mkOp(Kind::SET_MINUS);
   Term t12 = solver.mkTerm(o11, {t9, t9});
-  Op o13 = solver.mkOp(SET_IS_SINGLETON);
+  Op o13 = solver.mkOp(Kind::SET_IS_SINGLETON);
   Term t14 = solver.mkTerm(o13, {t12});
   solver.assertFormula(t14);
-  Op o15 = solver.mkOp(SET_MEMBER);
+  Op o15 = solver.mkOp(Kind::SET_MEMBER);
   Term t16 = solver.mkTerm(o15, {t14, t4});
   Term t17 = solver.getAbduct(t16);
 
