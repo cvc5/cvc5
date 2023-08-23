@@ -57,7 +57,7 @@ std::string sexprToString(cvc5::Term sexpr)
   }
 
   // if sexpr is not a spec constant, make sure it is an array of sub-sexprs
-  Assert(sexpr.getKind() == cvc5::SEXPR);
+  Assert(sexpr.getKind() == cvc5::Kind::SEXPR);
 
   std::stringstream ss;
   auto it = sexpr.begin();
@@ -81,7 +81,7 @@ const CommandInterrupted* CommandInterrupted::s_instance =
 
 std::ostream& operator<<(std::ostream& out, const Command& c)
 {
-  c.toStream(out);
+  out << c.toString();
   return out;
 }
 
@@ -728,7 +728,7 @@ void CheckSynthCommand::invokeInternal(cvc5::Solver* solver, SymManager* sm)
       {
         cvc5::Term sol = solver->getSynthSolution(f);
         std::vector<cvc5::Term> formals;
-        if (sol.getKind() == cvc5::LAMBDA)
+        if (sol.getKind() == cvc5::Kind::LAMBDA)
         {
           formals.insert(formals.end(), sol[0].begin(), sol[0].end());
           sol = sol[1];
@@ -1473,9 +1473,9 @@ void GetAssignmentCommand::invokeInternal(cvc5::Solver* solver, SymManager* sm)
       // Treat the expression name as a variable name as opposed to a string
       // constant to avoid printing double quotes around the name.
       cvc5::Term name = solver->mkVar(solver->getBooleanSort(), names[i]);
-      sexprs.push_back(solver->mkTerm(cvc5::SEXPR, {name, values[i]}));
+      sexprs.push_back(solver->mkTerm(cvc5::Kind::SEXPR, {name, values[i]}));
     }
-    d_result = solver->mkTerm(cvc5::SEXPR, sexprs);
+    d_result = solver->mkTerm(cvc5::Kind::SEXPR, sexprs);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (cvc5::CVC5ApiRecoverableException& e)
@@ -2190,7 +2190,8 @@ void GetTimeoutCoreCommand::printResult(cvc5::Solver* solver,
   cvc5::Result res = d_result.first;
   out << res << std::endl;
   if (res.isUnsat()
-      || (res.isUnknown() && res.getUnknownExplanation() == TIMEOUT))
+      || (res.isUnknown()
+          && res.getUnknownExplanation() == UnknownExplanation::TIMEOUT))
   {
     if (d_solver->getOption("print-cores-full") == "true")
     {
@@ -2410,7 +2411,7 @@ void GetInfoCommand::invokeInternal(cvc5::Solver* solver, SymManager* sm)
     Sort bt = solver->getBooleanSort();
     v.push_back(solver->mkVar(bt, ":" + d_flag));
     v.push_back(solver->mkVar(bt, solver->getInfo(d_flag)));
-    d_result = sexprToString(solver->mkTerm(cvc5::SEXPR, {v}));
+    d_result = sexprToString(solver->mkTerm(cvc5::Kind::SEXPR, {v}));
     d_commandStatus = CommandSuccess::instance();
   }
   catch (cvc5::CVC5ApiUnsupportedException&)

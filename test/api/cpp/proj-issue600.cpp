@@ -30,13 +30,13 @@ Term t3 = solver.mkVar(s2, "_x1");
 Term t4 = solver.mkConst(s2, "_x2");
 Term t5 = solver.mkVar(s0, "_x4");
 Term t6 = solver.mkVar(s1, "_x5");
-Term t7 = solver.mkTerm(SET_IS_SINGLETON, {t4});
+Term t7 = solver.mkTerm(Kind::SET_IS_SINGLETON, {t4});
 Sort s8 = t7.getSort();
-Term t9 = solver.mkTerm(VARIABLE_LIST, {t6, t5, t3});
+Term t9 = solver.mkTerm(Kind::VARIABLE_LIST, {t6, t5, t3});
 Sort s10 = t9.getSort();
-Term t11 = solver.mkTerm(SET_COMPREHENSION, {t9, t7, t7});
+Term t11 = solver.mkTerm(Kind::SET_COMPREHENSION, {t9, t7, t7});
 Sort s12 = t11.getSort();
-Term t13 = solver.mkTerm(SET_CHOOSE, {t11});
+Term t13 = solver.mkTerm(Kind::SET_CHOOSE, {t11});
 solver.assertFormula(t13);
 Term t14 = solver.getAbduct(t13);
 

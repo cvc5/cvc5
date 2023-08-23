@@ -101,7 +101,8 @@ class CommandExecutor
   void printStatisticsSafe(int fd) const;
 
   void flushOutputStreams();
-protected:
+
+ protected:
   /** Executes treating cmd as a singleton */
  virtual bool doCommandSingleton(cvc5::parser::Command* cmd);
 

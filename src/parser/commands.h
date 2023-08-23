@@ -683,7 +683,7 @@ class CVC5_EXPORT BlockModelValuesCommand : public Command
 class CVC5_EXPORT GetProofCommand : public Command
 {
  public:
-  GetProofCommand(modes::ProofComponent c = modes::PROOF_COMPONENT_FULL);
+  GetProofCommand(modes::ProofComponent c = modes::ProofComponent::FULL);
 
   void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) override;
 
