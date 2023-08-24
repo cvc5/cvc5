@@ -1869,7 +1869,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
 #if 0
     i_eq_j = i.eqNode(j);
 #endif
-    getOutputChannel().requirePhase(i_eq_j, true);
+    getOutputChannel().preferPhase(i_eq_j, true);
     d_decisionRequests.push(i_eq_j);
   }
 
