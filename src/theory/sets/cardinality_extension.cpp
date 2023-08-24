@@ -390,7 +390,6 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
     // should not have universe as children here, since this is either
     // rewritten, or eliminated via purification from the first argument of
     // set minus.
-    Assert(n[0].getKind() != SET_UNIVERSE && n[1].getKind() != SET_UNIVERSE);
     Trace("sets-debug") << "Build cardinality parents for " << n << "..."
                         << std::endl;
     std::vector<Node> sib;

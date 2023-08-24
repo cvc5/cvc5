@@ -2778,6 +2778,7 @@ set(regress_1_tests
   regress1/sets/set-map-test2.smt2
   regress1/sets/sharingbug.smt2
   regress1/sets/univ-set-uf-elim.smt2
+  regress1/sets/univ-semantics.smt2
   regress1/simplification_bug4.smt2
   regress1/sqrt2-sort-inf-unk.smt2
   regress1/strings/artemis-0512-nonterm.smt2
