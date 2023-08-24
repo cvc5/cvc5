@@ -43,11 +43,13 @@ using Record = std::vector<std::pair<std::string, TypeNode>>;
 class ResourceManager;
 class SkolemManager;
 class BoundVarManager;
+class SolverEngine;
 
 class DType;
 class Oracle;
 class Integer;
 class Rational;
+
 
 namespace expr {
 
@@ -68,6 +70,7 @@ class TypeChecker;
 class NodeManager
 {
   friend class cvc5::Solver;
+  friend class SolverEngine;
   friend class expr::NodeValue;
   friend class expr::TypeChecker;
   friend class SkolemManager;

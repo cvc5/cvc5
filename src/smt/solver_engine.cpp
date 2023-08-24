@@ -82,6 +82,7 @@
 #include "util/random.h"
 #include "util/rational.h"
 #include "util/resource_manager.h"
+#include "util/string.h"
 #include "util/sexpr.h"
 #include "util/statistics_registry.h"
 
@@ -515,11 +516,12 @@ Node SolverEngine::declareConst(const std::string& symbol,
                                 const TypeNode& tn,
                                 bool fresh)
 {
-  d_state.notifyDeclaration();
+  d_state->notifyDeclaration();
+  NodeManager* nm = NodeManager::currentNM();
   Node res;
   if (fresh)
   {
-    res = d_nm->mkVar(symbol, type);
+    res = nm->mkVar(symbol, tn);
   }
   else
   {
@@ -527,13 +529,13 @@ Node SolverEngine::declareConst(const std::string& symbol,
     // manager, where SkolemFunId::INPUT_VARIABLE identifies that the
     // variable is unique.
     std::vector<Node> cnodes;
-    cnodes.push_back(d_nm->mkConst(String(symbol, false)));
+    cnodes.push_back(nm->mkConst(String(symbol, false)));
     // Since we index only on Node, we must construct use mkGroundValue
-    // to construct a canonical node for the type.
-    Node gt = d_nm->mkGroundValue(type);
+    // to construct a canonical node for the tn.
+    Node gt = nm->mkGroundValue(tn);
     cnodes.push_back(gt);
-    SkolemManager* sm = d_nm->getSkolemManager();
-    res = sm->mkSkolemFunction(SkolemFunId::INPUT_VARIABLE, type, cnodes);
+    SkolemManager* sm = nm->getSkolemManager();
+    res = sm->mkSkolemFunction(SkolemFunId::INPUT_VARIABLE, tn, cnodes);
   }
   return res;
 }
@@ -542,12 +544,13 @@ TypeNode SolverEngine::declareSort(const std::string& symbol,
                                    uint32_t arity,
                                    bool fresh)
 {
-  d_state.notifyDeclaration();
+  d_state->notifyDeclaration();
+  NodeManager* nm = NodeManager::currentNM();
   if (arity == 0)
   {
-    return d_nm->mkSort(symbol);
+    return nm->mkSort(symbol);
   }
-  return d_nm->mkSortConstructor(symbol, arity);
+  return nm->mkSortConstructor(symbol, arity);
 }
 
 void SolverEngine::defineFunction(Node func,
