@@ -490,6 +490,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
       case InferStep::TRANS_TANGENT_PLANES:
         d_trSlv.checkTranscendentalTangentPlanes();
         break;
+      default: break;
     }
   }
 

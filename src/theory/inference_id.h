@@ -40,6 +40,7 @@ namespace theory {
  */
 enum class InferenceId
 {
+  NONE,
   // ---------------------------------- core
   // a conflict when two constants merge in the equality engine (of any theory)
   EQ_CONSTANT_MERGE,
