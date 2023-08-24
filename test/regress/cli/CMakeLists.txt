@@ -995,8 +995,10 @@ set(regress_0_tests
   regress0/parser/fp_value.smt2
   regress0/parser/force_logic_set_logic.smt2
   regress0/parser/force_logic_success.smt2
+  regress0/parser/fresh-declarations.smt2
   regress0/parser/get-model-sort-constructor.smt2
   regress0/parser/get-value-empty-err.smt2
+  regress0/parser/global-dec-cli.smt2
   regress0/parser/issue5163.smt2
   regress0/parser/issue6908-get-value-uc.smt2
   regress0/parser/issue7274.smt2
