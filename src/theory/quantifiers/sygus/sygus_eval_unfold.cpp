@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,7 +16,6 @@
 #include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 
 #include "expr/dtype_cons.h"
-#include "expr/sygus_datatype.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -272,8 +271,7 @@ Node SygusEvalUnfold::unfold(Node en,
     }
   }
   // if we are a symbolic constructor, unfolding returns the subterm itself
-  Node sop = dt[i].getSygusOp();
-  if (sop.getAttribute(SygusAnyConstAttribute()))
+  if (dt[i].isSygusAnyConstant())
   {
     Trace("sygus-eval-unfold-debug")
         << "...it is an any-constant constructor" << std::endl;
@@ -335,6 +333,7 @@ Node SygusEvalUnfold::unfold(Node en,
     pre[j] = argj;
   }
   Node ret = d_tds->mkGeneric(dt, i, pre);
+  Node sop = dt[i].getSygusOp();
   // apply the appropriate substitution to ret
   ret = datatypes::utils::applySygusArgs(dt, sop, ret, args);
   Trace("sygus-eval-unfold-debug")

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Gereon Kremer, Andrew Reynolds
+ *   Haniel Barbosa, Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -76,10 +76,10 @@ std::vector<std::shared_ptr<ProofNode>> PropPfManager::getProofLeaves(
   Trace("sat-proof") << "PropPfManager::getProofLeaves: Getting " << pc
                      << " component proofs\n";
   std::vector<Node> fassumps;
-  Assert(pc == modes::PROOF_COMPONENT_THEORY_LEMMAS
-         || pc == modes::PROOF_COMPONENT_PREPROCESS);
+  Assert(pc == modes::ProofComponent::THEORY_LEMMAS
+         || pc == modes::ProofComponent::PREPROCESS);
   std::vector<std::shared_ptr<ProofNode>> pfs =
-      pc == modes::PROOF_COMPONENT_THEORY_LEMMAS
+      pc == modes::ProofComponent::THEORY_LEMMAS
           ? d_proofCnfStream->getLemmaClausesProofs()
           : d_proofCnfStream->getInputClausesProofs();
   std::shared_ptr<ProofNode> satPf = getProof(false);

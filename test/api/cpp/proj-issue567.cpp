@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,9 +25,9 @@ int main(void)
   solver.setOption("preprocess-only", "true");
   Sort s0 = solver.mkFloatingPointSort(5, 11);
   Term t1 = solver.mkFloatingPointPosZero(5, 11);
-  Op o2 = solver.mkOp(FLOATINGPOINT_NEG);
+  Op o2 = solver.mkOp(Kind::FLOATINGPOINT_NEG);
   Term t3 = solver.mkTerm(o2, {t1});
-  Term t4 = solver.mkTerm(FLOATINGPOINT_IS_POS, {t3});
+  Term t4 = solver.mkTerm(Kind::FLOATINGPOINT_IS_POS, {t3});
   Sort s5 = t4.getSort();
   Term t6 = solver.getAbduct(t4);
 

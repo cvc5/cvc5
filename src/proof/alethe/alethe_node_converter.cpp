@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,24 +28,9 @@ Node AletheNodeConverter::postConvert(Node n)
   switch (k)
   {
     case kind::SKOLEM:
-    case kind::BOOLEAN_TERM_VARIABLE:
     {
       Trace("alethe-conv") << "AletheNodeConverter: handling skolem " << n
                            << "\n";
-      Node wi = SkolemManager::getOriginalForm(n);
-      Trace("alethe-conv") << "AletheNodeConverter: ..original: " << wi << "\n";
-      if (wi == n)
-      {
-        // if it is not a purification skolem, maybe it has a witness skolem
-        wi = SkolemManager::getWitnessForm(n);
-      }
-      // skolem with witness form, just convert that
-      if (!wi.isNull())
-      {
-        Trace("alethe-conv") << "AletheNodeConverter: ..skolem " << n
-                             << " has witness form " << wi << "\n";
-        return convert(wi);
-      }
       Unreachable() << "Fresh Skolems are not allowed\n";
     }
     case kind::FORALL:

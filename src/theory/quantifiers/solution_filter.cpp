@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -47,7 +47,7 @@ void SolutionFilterStrength::setLogicallyStrong(bool isStrong)
   d_isStrong = isStrong;
 }
 
-bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
+bool SolutionFilterStrength::addTerm(Node n, std::vector<Node>& filtered)
 {
   if (!n.getType().isBoolean())
   {
@@ -102,10 +102,7 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
       }
       else
       {
-        const Options& opts = d_env.getOptions();
-        std::ostream* smtOut = opts.base.out;
-        (*smtOut) << "; (filtered " << (d_isStrong ? s : s.negate()) << ")"
-                  << std::endl;
+        filtered.push_back(d_isStrong ? s : s.negate());
       }
     }
     d_curr_sols.clear();

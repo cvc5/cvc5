@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.cvc5.*;
 import io.github.cvc5.modes.BlockModelsMode;
+import io.github.cvc5.modes.FindSynthTarget;
 import io.github.cvc5.modes.LearnedLitType;
 import io.github.cvc5.modes.ProofComponent;
 import java.math.BigInteger;
@@ -900,35 +901,15 @@ class SolverTest
   @Test
   void mkTuple()
   {
-    assertDoesNotThrow(()
-                           -> d_solver.mkTuple(new Sort[] {d_solver.mkBitVectorSort(3)},
-                               new Term[] {d_solver.mkBitVector(3, "101", 2)}));
-    assertThrows(CVC5ApiException.class,
-        ()
-            -> d_solver.mkTuple(
-                new Sort[] {d_solver.getRealSort()}, new Term[] {d_solver.mkInteger("5")}));
+    assertDoesNotThrow(() -> d_solver.mkTuple(new Term[] {d_solver.mkBitVector(3, "101", 2)}));
+    assertDoesNotThrow(() -> d_solver.mkTuple(new Term[] {d_solver.mkInteger("5")}));
 
-    assertThrows(CVC5ApiException.class,
-        () -> d_solver.mkTuple(new Sort[] {}, new Term[] {d_solver.mkBitVector(3, "101", 2)}));
-
-    assertThrows(CVC5ApiException.class,
-        ()
-            -> d_solver.mkTuple(new Sort[] {d_solver.mkBitVectorSort(4)},
-                new Term[] {d_solver.mkBitVector(3, "101", 2)}));
-
-    assertThrows(CVC5ApiException.class,
-        ()
-            -> d_solver.mkTuple(
-                new Sort[] {d_solver.getIntegerSort()}, new Term[] {d_solver.mkReal("5.3")}));
+    assertDoesNotThrow(() -> d_solver.mkTuple(new Term[] {d_solver.mkReal("5.3")}));
 
     Solver slv = new Solver();
-    assertDoesNotThrow(()
-                           -> slv.mkTuple(new Sort[] {d_solver.mkBitVectorSort(3)},
-                               new Term[] {slv.mkBitVector(3, "101", 2)}));
+    assertDoesNotThrow(() -> slv.mkTuple(new Term[] {slv.mkBitVector(3, "101", 2)}));
 
-    assertDoesNotThrow(()
-                           -> slv.mkTuple(new Sort[] {slv.mkBitVectorSort(3)},
-                               new Term[] {d_solver.mkBitVector(3, "101", 2)}));
+    assertDoesNotThrow(() -> slv.mkTuple(new Term[] {d_solver.mkBitVector(3, "101", 2)}));
   }
 
   @Test
@@ -957,6 +938,23 @@ class SolverTest
 
     Solver slv = new Solver();
     assertDoesNotThrow(() -> slv.mkConst(boolSort));
+  }
+
+  @Test
+  void declareFunFresh()
+  {
+    Sort boolSort = d_solver.getBooleanSort();
+    Sort intSort = d_solver.getIntegerSort();
+    Term t1 = d_solver.declareFun("b", new Sort[] {}, boolSort, true);
+    Term t2 = d_solver.declareFun("b", new Sort[] {}, boolSort, false);
+    Term t3 = d_solver.declareFun("b", new Sort[] {}, boolSort, false);
+    assertNotEquals(t1, t2);
+    assertNotEquals(t1, t3);
+    assertEquals(t2, t3);
+    Term t4 = d_solver.declareFun("c", new Sort[] {}, boolSort, false);
+    assertNotEquals(t2, t4);
+    Term t5 = d_solver.declareFun("b", new Sort[] {}, intSort, false);
+    assertNotEquals(t2, t5);
   }
 
   @Test
@@ -1821,7 +1819,7 @@ class SolverTest
     Term[] unsat_core = d_solver.getUnsatCore();
 
     assertDoesNotThrow(() -> d_solver.getProof());
-    assertDoesNotThrow(() -> d_solver.getProof(ProofComponent.PROOF_COMPONENT_SAT));
+    assertDoesNotThrow(() -> d_solver.getProof(ProofComponent.SAT));
 
     d_solver.resetAssertions();
     for (Term t : unsat_core)
@@ -1881,7 +1879,7 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.getLearnedLiterals());
     d_solver.checkSat();
     assertDoesNotThrow(() -> d_solver.getLearnedLiterals());
-    assertDoesNotThrow(() -> d_solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_PREPROCESS));
+    assertDoesNotThrow(() -> d_solver.getLearnedLiterals(LearnedLitType.PREPROCESS));
   }
 
   @Test
@@ -1898,13 +1896,14 @@ class SolverTest
     d_solver.assertFormula(f0);
     d_solver.assertFormula(f1);
     d_solver.checkSat();
-    assertDoesNotThrow(() -> d_solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_INPUT));
+    assertDoesNotThrow(() -> d_solver.getLearnedLiterals(LearnedLitType.INPUT));
   }
 
   @Test
   void getTimeoutCoreUnsat() throws CVC5ApiException
   {
     d_solver.setOption("timeout-core-timeout", "100");
+    d_solver.setOption("produce-unsat-cores", "true");
     Sort intSort = d_solver.getIntegerSort();
     Term x = d_solver.mkConst(intSort, "x");
     Term tt = d_solver.mkBoolean(true);
@@ -1922,6 +1921,7 @@ class SolverTest
   @Test
   void getTimeoutCore() throws CVC5ApiException
   {
+    d_solver.setOption("produce-unsat-cores", "true");
     Term ff = d_solver.mkBoolean(false);
     Term tt = d_solver.mkBoolean(true);
     d_solver.assertFormula(tt);
@@ -2715,33 +2715,6 @@ class SolverTest
   }
 
   @Test
-  void synthInv() throws CVC5ApiException
-  {
-    d_solver.setOption("sygus", "true");
-    Sort bool = d_solver.getBooleanSort();
-    Sort integer = d_solver.getIntegerSort();
-
-    Term nullTerm = new Term();
-    Term x = d_solver.mkVar(bool);
-
-    Term start1 = d_solver.mkVar(bool);
-    Term start2 = d_solver.mkVar(integer);
-
-    Grammar g1 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
-    g1.addRule(start1, d_solver.mkBoolean(false));
-
-    Grammar g2 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start2});
-    g2.addRule(start2, d_solver.mkInteger(0));
-
-    assertDoesNotThrow(() -> d_solver.synthInv("", new Term[] {}));
-    assertDoesNotThrow(() -> d_solver.synthInv("i1", new Term[] {x}));
-    assertDoesNotThrow(() -> d_solver.synthInv("i2", new Term[] {x}, g1));
-
-    assertThrows(CVC5ApiException.class, () -> d_solver.synthInv("i3", new Term[] {nullTerm}));
-    assertThrows(CVC5ApiException.class, () -> d_solver.synthInv("i4", new Term[] {x}, g2));
-  }
-
-  @Test
   void addSygusConstraint() throws CVC5ApiException
   {
     d_solver.setOption("sygus", "true");
@@ -2959,18 +2932,52 @@ class SolverTest
   }
 
   @Test
+  void findSynth() throws CVC5ApiException
+  {
+    d_solver.setOption("sygus", "true");
+    Sort boolSort = d_solver.getBooleanSort();
+    Term start = d_solver.mkVar(boolSort);
+    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
+    Term truen = d_solver.mkBoolean(true);
+    Term falsen = d_solver.mkBoolean(false);
+    g.addRule(start, truen);
+    g.addRule(start, falsen);
+    Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort(), g);
+
+    // should enumerate based on the grammar of the function to synthesize above
+    Term t = d_solver.findSynth(FindSynthTarget.ENUM);
+    assertTrue(!t.isNull() && t.getSort().isBoolean());
+  }
+
+  @Test
+  void findSynth2() throws CVC5ApiException
+  {
+    d_solver.setOption("sygus", "true");
+    d_solver.setOption("incremental", "true");
+    Sort boolSort = d_solver.getBooleanSort();
+    Term start = d_solver.mkVar(boolSort);
+    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
+    Term truen = d_solver.mkBoolean(true);
+    Term falsen = d_solver.mkBoolean(false);
+    g.addRule(start, truen);
+    g.addRule(start, falsen);
+
+    // should enumerate true/false
+    Term t = d_solver.findSynth(FindSynthTarget.ENUM, g);
+    assertTrue(!t.isNull() && t.getSort().isBoolean());
+    t = d_solver.findSynthNext();
+    assertTrue(!t.isNull() && t.getSort().isBoolean());
+  }
+
+  @Test
   void tupleProject() throws CVC5ApiException
   {
-    Sort[] sorts = new Sort[] {d_solver.getBooleanSort(),
-        d_solver.getIntegerSort(),
-        d_solver.getStringSort(),
-        d_solver.mkSetSort(d_solver.getStringSort())};
     Term[] elements = new Term[] {d_solver.mkBoolean(true),
         d_solver.mkInteger(3),
         d_solver.mkString("C"),
         d_solver.mkTerm(SET_SINGLETON, d_solver.mkString("Z"))};
 
-    Term tuple = d_solver.mkTuple(sorts, elements);
+    Term tuple = d_solver.mkTuple(elements);
 
     int[] indices1 = new int[] {};
     int[] indices2 = new int[] {0};

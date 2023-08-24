@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,7 +19,6 @@
 #define CVC5__API__CVC5_H
 
 #include <cvc5/cvc5_kind.h>
-#include <cvc5/cvc5_sort_kind.h>
 #include <cvc5/cvc5_types.h>
 
 #include <functional>
@@ -58,6 +57,7 @@ class Options;
 class Random;
 class Rational;
 class Result;
+class SygusGrammar;
 class SynthResult;
 class StatisticsRegistry;
 }  // namespace internal
@@ -1739,6 +1739,28 @@ class CVC5_EXPORT Term
    */
   std::pair<Sort, uint32_t> getCardinalityConstraint() const;
 
+  /**
+   * @return True if the term is a real algebraic number.
+   */
+  bool isRealAlgebraicNumber() const;
+  /**
+   * @note Asserts isRealAlgebraicNumber().
+   * @param v The variable over which to express the polynomial.
+   * @return The defining polynomial for the real algebraic number, expressed in
+   * terms of the given variable.
+   */
+  Term getRealAlgebraicNumberDefiningPolynomial(const Term& v) const;
+  /**
+   * @note Asserts isRealAlgebraicNumber().
+   * @return The lower bound for the value of the real algebraic number.
+   */
+  Term getRealAlgebraicNumberLowerBound() const;
+  /**
+   * @note Asserts isRealAlgebraicNumber().
+   * @return The upper bound for the value of the real algebraic number.
+   */
+  Term getRealAlgebraicNumberUpperBound() const;
+
  protected:
   /**
    * The associated node manager.
@@ -1982,7 +2004,6 @@ class CVC5_EXPORT DatatypeDecl
 {
   friend class DatatypeConstructorArg;
   friend class Solver;
-  friend class Grammar;
 
  public:
   /** Constructor.  */
@@ -2806,6 +2827,11 @@ class CVC5_EXPORT Grammar
    */
   Grammar();
 
+  /**
+   * Destructor for bookeeping.
+   */
+  ~Grammar();
+
  private:
   /**
    * Constructor.
@@ -2823,63 +2849,8 @@ class CVC5_EXPORT Grammar
   Sort resolve();
 
   /**
-   * Adds a constructor to sygus datatype <dt> whose sygus operator is <term>.
-   *
-   * \p ntsToUnres contains a mapping from non-terminal symbols to the
-   * unresolved sorts they correspond to. This map indicates how the argument
-   * <term> should be interpreted (instances of symbols from the domain of
-   * \p ntsToUnres correspond to constructor arguments).
-   *
-   * The sygus operator that is actually added to <dt> corresponds to replacing
-   * each occurrence of non-terminal symbols from the domain of \p ntsToUnres
-   * with bound variables via purifySygusGTerm, and binding these variables
-   * via a lambda.
-   *
-   * @param dt The non-terminal's datatype to which a constructor is added.
-   * @param term The sygus operator of the constructor.
-   * @param ntsToUnres Mapping from non-terminals to their unresolved sorts.
-   */
-  void addSygusConstructorTerm(
-      DatatypeDecl& dt,
-      const Term& term,
-      const std::unordered_map<Term, Sort>& ntsToUnres) const;
-
-  /**
-   * Purify SyGuS grammar term.
-   *
-   * This returns a term where all occurrences of non-terminal symbols (those
-   * in the domain of \p ntsToUnres) are replaced by fresh variables. For
-   * each variable replaced in this way, we add the fresh variable it is
-   * replaced with to \p args, and the unresolved sorts corresponding to the
-   * non-terminal symbol to \p cargs (constructor args). In other words,
-   * \p args contains the free variables in the term returned by this method
-   * (which should be bound by a lambda), and \p cargs contains the sorts of
-   * the arguments of the sygus constructor.
-   *
-   * @param term The term to purify.
-   * @param args The free variables in the term returned by this method.
-   * @param cargs The sorts of the arguments of the sygus constructor.
-   * @param ntsToUnres Mapping from non-terminals to their unresolved sorts.
-   * @return The purfied term.
-   */
-  Term purifySygusGTerm(const Term& term,
-                        std::vector<Term>& args,
-                        std::vector<Sort>& cargs,
-                        const std::unordered_map<Term, Sort>& ntsToUnres) const;
-
-  /**
-   * This adds constructors to \p dt for sygus variables in \p d_sygusVars
-   * whose sort is argument \p sort. This method should be called when the
-   * sygus grammar term (Variable sort) is encountered.
-   *
-   * @param dt The non-terminal's datatype to which the constructors are added.
-   * @param sort The sort of the sygus variables to add.
-   */
-  void addSygusConstructorVariables(DatatypeDecl& dt, const Sort& sort) const;
-
-  /**
    * Check if \p rule contains variables that are neither parameters of
-   * the corresponding synthFun/synthInv nor non-terminals.
+   * the corresponding synthFun nor non-terminals.
    * @param rule The non-terminal allowed to be any constant.
    * @return True if \p rule contains free variables and false otherwise.
    */
@@ -2887,18 +2858,8 @@ class CVC5_EXPORT Grammar
 
   /** The node manager associated with this grammar. */
   internal::NodeManager* d_nm;
-  /** Input variables to the corresponding function/invariant to synthesize.*/
-  std::vector<Term> d_sygusVars;
-  /** The non-terminal symbols of this grammar. */
-  std::vector<Term> d_ntSyms;
-  /** The mapping from non-terminal symbols to their production terms. */
-  std::unordered_map<Term, std::vector<Term>> d_ntsToTerms;
-  /** The set of non-terminals that can be arbitrary constants. */
-  std::unordered_set<Term> d_allowConst;
-  /** The set of non-terminals that can be sygus variables. */
-  std::unordered_set<Term> d_allowVars;
-  /** Did we call resolve() before? */
-  bool d_isResolved;
+  /** The internal representation of this grammar. */
+  std::shared_ptr<internal::SygusGrammar> d_sg;
 };
 
 /**
@@ -3535,13 +3496,11 @@ class CVC5_EXPORT Solver
   Term mkTerm(const Op& op, const std::vector<Term>& children = {}) const;
 
   /**
-   * Create a tuple term, where terms have the provided sorts.
-   * @param sorts The sorts of the elements in the tuple.
+   * Create a tuple term.
    * @param terms The elements in the tuple.
    * @return The tuple Term.
    */
-  Term mkTuple(const std::vector<Sort>& sorts,
-               const std::vector<Term>& terms) const;
+  Term mkTuple(const std::vector<Term>& terms) const;
 
   /* .................................................................... */
   /* Create Operators                                                     */
@@ -3873,6 +3832,9 @@ class CVC5_EXPORT Solver
   /**
    * Create a free constant.
    *
+   * Note that the returned term is always fresh, even if the same arguments
+   * were provided on a previous call to mkConst.
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -3885,6 +3847,7 @@ class CVC5_EXPORT Solver
    * @param sort The sort of the constant.
    * @param symbol The name of the constant (optional).
    * @return The constant.
+   *
    */
   Term mkConst(const Sort& sort,
                const std::optional<std::string>& symbol = std::nullopt) const;
@@ -3892,6 +3855,10 @@ class CVC5_EXPORT Solver
   /**
    * Create a bound variable to be used in a binder (i.e., a quantifier, a
    * lambda, or a witness binder).
+   *
+   * Note that the returned term is always fresh, even if the same arguments
+   * were provided on a previous call to mkConst.
+   *
    * @param sort The sort of the variable.
    * @param symbol The name of the variable (optional).
    * @return The variable.
@@ -4050,11 +4017,15 @@ class CVC5_EXPORT Solver
    * @param symbol The name of the function.
    * @param sorts The sorts of the parameters to this function.
    * @param sort The sort of the return value of this function.
+   * @param fresh If true, then this method always returns a new Term.
+   * Otherwise, this method will always return the same Term
+   * for each call with the given sorts and symbol where fresh is false.
    * @return The function.
    */
   Term declareFun(const std::string& symbol,
                   const std::vector<Sort>& sorts,
-                  const Sort& sort) const;
+                  const Sort& sort,
+                  bool fresh = true) const;
 
   /**
    * Declare uninterpreted sort.
@@ -4357,10 +4328,10 @@ class CVC5_EXPORT Solver
    * @param c The component of the proof to return
    * @return A string representing the proof. This takes into account
    * :ref:`proof-format-mode <lbl-option-proof-format-mode>` when `c` is
-   * `PROOF_COMPONENT_FULL`.
+   * `ProofComponent::FULL`.
    */
   std::string getProof(
-      modes::ProofComponent c = modes::PROOF_COMPONENT_FULL) const;
+      modes::ProofComponent c = modes::ProofComponent::FULL) const;
 
   /**
    * Get a list of learned literals that are entailed by the current set of
@@ -4372,7 +4343,7 @@ class CVC5_EXPORT Solver
    * @return A list of literals that were learned at top-level.
    */
   std::vector<Term> getLearnedLiterals(
-      modes::LearnedLitType t = modes::LEARNED_LIT_INPUT) const;
+      modes::LearnedLitType t = modes::LearnedLitType::INPUT) const;
 
   /**
    * Get the value of the given term in the current model.
@@ -4981,44 +4952,6 @@ class CVC5_EXPORT Solver
                 Grammar& grammar) const;
 
   /**
-   * Synthesize invariant.
-   *
-   * SyGuS v2:
-   *
-   * \verbatim embed:rst:leading-asterisk
-   * .. code:: smtlib
-   *
-   *     (synth-inv <symbol> ( <boundVars>* ))
-   * \endverbatim
-   *
-   * @param symbol The name of the invariant.
-   * @param boundVars The parameters to this invariant.
-   * @return The invariant.
-   */
-  Term synthInv(const std::string& symbol,
-                const std::vector<Term>& boundVars) const;
-
-  /**
-   * Synthesize invariant following specified syntactic constraints.
-   *
-   * SyGuS v2:
-   *
-   * \verbatim embed:rst:leading-asterisk
-   * .. code:: smtlib
-   *
-   *     (synth-inv <symbol> ( <boundVars>* ) <grammar>)
-   * \endverbatim
-   *
-   * @param symbol The name of the invariant.
-   * @param boundVars The parameters to this invariant.
-   * @param grammar The syntactic constraints.
-   * @return The invariant.
-   */
-  Term synthInv(const std::string& symbol,
-                const std::vector<Term>& boundVars,
-                Grammar& grammar) const;
-
-  /**
    * Add a forumla to the set of Sygus constraints.
    *
    * SyGuS v2:
@@ -5139,6 +5072,66 @@ class CVC5_EXPORT Solver
   std::vector<Term> getSynthSolutions(const std::vector<Term>& terms) const;
 
   /**
+   * Find a target term of interest using sygus enumeration, with no provided
+   * grammar.
+   *
+   * The solver will infer which grammar to use in this call, which by default
+   * will be the grammars specified by the function(s)-to-synthesize in the
+   * current context.
+   *
+   * SyGuS v2:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (find-synth :target)
+   * \endverbatim
+   *
+   * @param fst The identifier specifying what kind of term to find
+   * @return The result of the find, which is the null term if this call failed.
+   *
+   * @warning This method is experimental and may change in future versions.
+   */
+  Term findSynth(modes::FindSynthTarget fst) const;
+  /**
+   * Find a target term of interest using sygus enumeration with a provided
+   * grammar.
+   *
+   * SyGuS v2:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (find-synth :target G)
+   * \endverbatim
+   *
+   * @param fst The identifier specifying what kind of term to find
+   * @param grammar The grammar for the term
+   * @return The result of the find, which is the null term if this call failed.
+   *
+   * @warning This method is experimental and may change in future versions.
+   */
+  Term findSynth(modes::FindSynthTarget fst, Grammar& grammar) const;
+  /**
+   * Try to find a next target term of interest using sygus enumeration. Must
+   * be called immediately after a successful call to find-synth or
+   * find-synth-next.
+   *
+   * SyGuS v2:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (find-synth-next)
+   * \endverbatim
+   *
+   * @return The result of the find, which is the null term if this call failed.
+   *
+   * @warning This method is experimental and may change in future versions.
+   */
+  Term findSynthNext() const;
+
+  /**
    * Get a snapshot of the current state of the statistic values of this
    * solver. The returned object is completely decoupled from the solver and
    * will not change when the solver is used again.
@@ -5153,7 +5146,7 @@ class CVC5_EXPORT Solver
   void printStatisticsSafe(int fd) const;
 
   /**
-   * Determione the output stream for the given tag is enabled. Tags can be
+   * Determines if the output stream for the given tag is enabled. Tags can be
    * enabled with the `output` option (and `-o <tag>` on the command line).
    * Raises an exception when an invalid tag is given.
    * @return True if the given tag is enabled.

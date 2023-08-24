@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,11 +21,9 @@
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
-#include "expr/sygus_datatype.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
-#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers/term_util.h"
 
@@ -112,11 +110,9 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
 
     Trace("sygus-abduct-debug")
         << "Make sygus grammar attribute..." << std::endl;
-    Node sym = nm->mkBoundVar("sfproxy_abduct", abdGTypeS);
     // Set the sygus grammar attribute to indicate that abdGTypeS encodes the
     // grammar for abd.
-    theory::SygusSynthGrammarAttribute ssg;
-    abd.setAttribute(ssg, sym);
+    SygusUtils::setSygusType(abd, abdGTypeS);
     Trace("sygus-abduct-debug") << "Finished setting up grammar." << std::endl;
 
     // use the bound variable list from the new substituted grammar type
@@ -142,7 +138,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
 
   Trace("sygus-abduct-debug") << "Set attributes..." << std::endl;
   // set the sygus bound variable list
-  abd.setAttribute(theory::SygusSynthFunVarListAttribute(), abvl);
+  SygusUtils::setSygusArgumentList(abd, abvl);
   Trace("sygus-abduct-debug") << "...finish" << std::endl;
 
   Trace("sygus-abduct-debug") << "Make conjecture body..." << std::endl;

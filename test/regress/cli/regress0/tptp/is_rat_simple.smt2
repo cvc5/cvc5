@@ -1,0 +1,6 @@
+(set-logic ALL)
+(set-info :status sat)
+(declare-sort $$unsorted 0)
+(assert (not (forall ((X Real)) (not (exists ((Q Int) (R Int)) (and (not (= R 0)) (= (to_real Q) (* X (to_real R)))))))))
+(set-info :filename is_rat_simple)
+(check-sat-assuming ( true ))

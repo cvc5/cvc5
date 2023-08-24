@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -54,13 +54,17 @@ Node QuantifiersPreprocess::computePrenexAgg(
     children.push_back(computePrenexAgg(n[1], visited));
     std::vector<Node> args;
     args.insert(args.end(), n[0].begin(), n[0].end());
-    // for each child, strip top level quant
-    for (unsigned i = 0; i < children.size(); i++)
+    // only combine if standard
+    if (QuantifiersRewriter::isStandard(n, options()))
     {
-      if (children[i].getKind() == FORALL)
+      // for each child, strip top level quant
+      for (unsigned i = 0; i < children.size(); i++)
       {
-        args.insert(args.end(), children[i][0].begin(), children[i][0].end());
-        children[i] = children[i][1];
+        if (children[i].getKind() == FORALL)
+        {
+          args.insert(args.end(), children[i][0].begin(), children[i][0].end());
+          children[i] = children[i][1];
+        }
       }
     }
     // keep the pattern
@@ -176,8 +180,8 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
       Node sub;
       std::vector<unsigned> sub_vars;
       // return skolemized body
-      ret =
-          Skolemize::mkSkolemizedBody(options(), n, nn, fvs, sk, sub, sub_vars);
+      ret = Skolemize::mkSkolemizedBodyInduction(
+          options(), n, nn, fvs, sk, sub, sub_vars);
     }
     visited[key] = ret;
     return ret;

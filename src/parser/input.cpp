@@ -1,72 +1,90 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Christopher L. Conway, Tim King, Andres Noetzli
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * A super-class for input language parsers
+ *  input class.
  */
-
-// This must be included first.
-#include "parser/antlr_input.h"
 
 #include "parser/input.h"
 
-#include "base/output.h"
-#include "parser/parser_exception.h"
+#include <fstream>
 
-using namespace std;
-using namespace cvc5;
-using namespace cvc5::parser;
+#include "parser/parser_exception.h"
 
 namespace cvc5 {
 namespace parser {
 
-const std::string InputStream::getName() const {
-  return d_name;
-}
-
-Input::Input(InputStream& inputStream) :
-    d_inputStream( &inputStream ) {
-}
-
-Input::~Input() {
-  delete d_inputStream;
-}
-
-InputStream *Input::getInputStream() {
-  return d_inputStream;
-}
-
-Input* Input::newFileInput(const std::string& lang, const std::string& filename)
+/** File input class */
+class FileInput : public Input
 {
-  AntlrInputStream* inputStream =
-      AntlrInputStream::newFileInputStream(filename);
-  return AntlrInput::newInput(lang, *inputStream);
+ public:
+  FileInput(const std::string& filename) : Input()
+  {
+    d_fs.open(filename, std::fstream::in);
+    if (!d_fs.is_open())
+    {
+      std::stringstream ss;
+      ss << "Couldn't open file: " << filename;
+      throw InputStreamException(ss.str());
+    }
+  }
+  std::istream* getStream() override { return &d_fs; }
+
+ private:
+  /** File stream */
+  std::ifstream d_fs;
+};
+
+/** Stream reference input class */
+class StreamInput : public Input
+{
+ public:
+  StreamInput(std::istream& input) : Input(), d_input(input) {}
+  std::istream* getStream() override { return &d_input; }
+  bool isInteractive() const override { return true; }
+
+ private:
+  /** Reference to stream */
+  std::istream& d_input;
+};
+
+/** String input class, which buffers to a std::stringstream */
+class StringInput : public Input
+{
+ public:
+  StringInput(const std::string& input) : Input() { d_input << input; }
+  std::istream* getStream() override { return &d_input; }
+
+ private:
+  /** Reference to stream */
+  std::stringstream d_input;
+};
+
+Input::Input() {}
+
+std::unique_ptr<Input> Input::mkFileInput(const std::string& filename)
+{
+  return std::unique_ptr<Input>(new FileInput(filename));
 }
 
-Input* Input::newStreamInput(const std::string& lang,
-                             std::istream& input,
-                             const std::string& name)
+std::unique_ptr<Input> Input::mkStreamInput(std::istream& input)
 {
-  AntlrInputStream* inputStream =
-      AntlrInputStream::newStreamInputStream(input, name);
-  return AntlrInput::newInput(lang, *inputStream);
+  return std::unique_ptr<Input>(new StreamInput(input));
 }
 
-Input* Input::newStringInput(const std::string& lang,
-                             const std::string& str,
-                             const std::string& name)
+std::unique_ptr<Input> Input::mkStringInput(const std::string& input)
 {
-  AntlrInputStream *inputStream = AntlrInputStream::newStringInputStream(str, name);
-  return AntlrInput::newInput(lang, *inputStream);
+  return std::unique_ptr<Input>(new StringInput(input));
 }
+bool Input::isInteractive() const { return false; }
 
 }  // namespace parser
 }  // namespace cvc5

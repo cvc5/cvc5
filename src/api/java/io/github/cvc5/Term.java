@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Andres Noetzli
+ *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -746,6 +746,53 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   }
 
   private native Pair<Long, BigInteger> getCardinalityConstraint(long pointer);
+
+  /**
+   * @return True if the term is a real algebraic number.
+   */
+  public boolean isRealAlgebraicNumber()
+  {
+    return isRealAlgebraicNumber(pointer);
+  }
+  private native boolean isRealAlgebraicNumber(long pointer);
+
+  /**
+   * Asserts isRealAlgebraicNumber().
+   * @param v The variable over which to express the polynomial.
+   * @return The defining polynomial for the real algebraic number, expressed in terms of the given
+   *     variable.
+   */
+  public Term getRealAlgebraicNumberDefiningPolynomial(Term v)
+  {
+    long termPointer = getRealAlgebraicNumberDefiningPolynomial(pointer, v.getPointer());
+    return new Term(termPointer);
+  }
+
+  private native long getRealAlgebraicNumberDefiningPolynomial(long pointer, long termPointer);
+
+  /**
+   * Asserts isRealAlgebraicNumber().
+   * @return The lower bound for the value of the real algebraic number.
+   */
+  public Term getRealAlgebraicNumberLowerBound()
+  {
+    long termPointer = getRealAlgebraicNumberLowerBound(pointer);
+    return new Term(termPointer);
+  }
+
+  private native long getRealAlgebraicNumberLowerBound(long pointer);
+
+  /**
+   * Asserts isRealAlgebraicNumber().
+   * @return The upper bound for the value of the real algebraic number.
+   */
+  public Term getRealAlgebraicNumberUpperBound()
+  {
+    long termPointer = getRealAlgebraicNumberUpperBound(pointer);
+    return new Term(termPointer);
+  }
+
+  private native long getRealAlgebraicNumberUpperBound(long pointer);
 
   public class ConstIterator implements Iterator<Term>
   {

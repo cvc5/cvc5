@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,14 +45,6 @@ CoveringsSolver::CoveringsSolver(Env& env, InferenceManager& im, NlModel& model)
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   d_ranVariable = sm->mkDummySkolem("__z", nm->realType(), "");
-#ifdef CVC5_POLY_IMP
-  if (env.isTheoryProofProducing())
-  {
-    ProofChecker* pc = env.getProofNodeManager()->getChecker();
-    // add checkers
-    d_proofChecker.registerTo(pc);
-  }
-#endif
 }
 
 CoveringsSolver::~CoveringsSolver() {}

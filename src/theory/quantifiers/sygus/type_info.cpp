@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,7 +18,6 @@
 #include "base/check.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "expr/sygus_datatype.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/sygus/type_node_id_trie.h"
@@ -153,7 +152,7 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
       d_arg_kind[i] = builtinKind;
     }
     // symbolic constructors
-    if (sop.getAttribute(SygusAnyConstAttribute()))
+    if (dt[i].isSygusAnyConstant())
     {
       d_sym_cons_any_constant = i;
       d_has_subterm_sym_cons = true;

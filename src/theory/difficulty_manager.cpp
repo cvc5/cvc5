@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -134,12 +134,14 @@ void DifficultyManager::notifyLemma(Node n, bool inFullEffortCheck)
   }
 }
 
+bool DifficultyManager::needsCandidateModel() const
+{
+  return options().smt.difficultyMode == options::DifficultyMode::MODEL_CHECK;
+}
+
 void DifficultyManager::notifyCandidateModel(TheoryModel* m)
 {
-  if (options().smt.difficultyMode != options::DifficultyMode::MODEL_CHECK)
-  {
-    return;
-  }
+  Assert(needsCandidateModel());
   Trace("diff-man") << "DifficultyManager::notifyCandidateModel, #input="
                     << d_input.size() << " #lemma=" << d_lemma.size()
                     << std::endl;

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,6 @@
 #include "options/expr_options.h"
 #include "options/language.h"
 #include "options/smt_options.h"
-#include "smt/abstract_values.h"
 #include "smt/env.h"
 #include "theory/trust_substitutions.h"
 #include "util/result.h"
@@ -34,9 +33,8 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace smt {
 
-Assertions::Assertions(Env& env, AbstractValues& absv)
+Assertions::Assertions(Env& env)
     : EnvObj(env),
-      d_absValues(absv),
       d_assertionList(userContext()),
       d_assertionListDefs(userContext()),
       d_globalDefineFunLemmasIndex(userContext(), 0)
@@ -65,10 +63,8 @@ void Assertions::setAssumptions(const std::vector<Node>& assumptions)
   d_assumptions.clear();
   d_assumptions = assumptions;
 
-  for (const Node& e : d_assumptions)
+  for (const Node& n : d_assumptions)
   {
-    // Substitute out any abstract values in ex.
-    Node n = d_absValues.substituteAbstractValues(e);
     // Ensure expr is type-checked at this point.
     ensureBoolean(n);
     addFormula(n, false, false);
@@ -164,7 +160,6 @@ void Assertions::addFormula(TNode n,
 
 void Assertions::addDefineFunDefinition(Node n, bool global)
 {
-  n = d_absValues.substituteAbstractValues(n);
   if (global)
   {
     // Global definitions are asserted at check-sat-time because we have to

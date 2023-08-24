@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -135,13 +135,7 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
 
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  // the skolem will occur in a term context, thus we give it Boolean
-  // term variable kind immediately.
-  SkolemManager::SkolemFlags flags = node.getType().isBoolean()
-                                         ? SkolemManager::SKOLEM_BOOL_TERM_VAR
-                                         : SkolemManager::SKOLEM_DEFAULT;
-  Node x = sm->mkPurifySkolem(
-      node, "bagChoose", "a variable used to eliminate bag choose", flags);
+  Node x = sm->mkPurifySkolem(node);
   Node A = node[0];
   TypeNode bagType = A.getType();
   TypeNode ufType = nm->mkFunctionType(bagType, bagType.getBagElementType());

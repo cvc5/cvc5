@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds
+ *   Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,15 +40,16 @@ class TestTheoryBlackBv : public TestApi
       Term x = d_solver.mkConst(d_solver.mkBitVectorSort(w), "x");
       Term y = d_solver.mkConst(d_solver.mkBitVectorSort(w), "y");
 
-      Op zext = d_solver.mkOp(BITVECTOR_ZERO_EXTEND, {w});
+      Op zext = d_solver.mkOp(cvc5::Kind::BITVECTOR_ZERO_EXTEND, {w});
       Term zx = d_solver.mkTerm(zext, {x});
       Term zy = d_solver.mkTerm(zext, {y});
       Term mul = d_solver.mkTerm(kind, {zx, zy});
-      Op ext = d_solver.mkOp(BITVECTOR_EXTRACT, {2 * w - 1, w});
+      Op ext = d_solver.mkOp(cvc5::Kind::BITVECTOR_EXTRACT, {2 * w - 1, w});
       Term lhs = d_solver.mkTerm(
-          DISTINCT, {d_solver.mkTerm(ext, {mul}), d_solver.mkBitVector(w)});
+          cvc5::Kind::DISTINCT,
+          {d_solver.mkTerm(ext, {mul}), d_solver.mkBitVector(w)});
       Term rhs = d_solver.mkTerm(kindo, {x, y});
-      Term eq = d_solver.mkTerm(DISTINCT, {lhs, rhs});
+      Term eq = d_solver.mkTerm(cvc5::Kind::DISTINCT, {lhs, rhs});
       d_solver.assertFormula(eq);
       ASSERT_TRUE(d_solver.checkSat().isUnsat());
       d_solver.pop();
@@ -65,26 +66,28 @@ class TestTheoryBlackBv : public TestApi
       Term x = d_solver.mkConst(d_solver.mkBitVectorSort(w), "x");
       Term y = d_solver.mkConst(d_solver.mkBitVectorSort(w), "y");
 
-      Op sext = d_solver.mkOp(BITVECTOR_SIGN_EXTEND, {w});
+      Op sext = d_solver.mkOp(cvc5::Kind::BITVECTOR_SIGN_EXTEND, {w});
       Term zx = d_solver.mkTerm(sext, {x});
       Term zy = d_solver.mkTerm(sext, {y});
       Term op = d_solver.mkTerm(kind, {zx, zy});
 
       Term max = d_solver.mkBitVector(
           2 * w, static_cast<uint32_t>(std::pow(2, w - 1)));
-      Term min = d_solver.mkTerm(BITVECTOR_NEG, {max});
+      Term min = d_solver.mkTerm(cvc5::Kind::BITVECTOR_NEG, {max});
 
-      Term lhs = d_solver.mkTerm(OR,
-                                 {d_solver.mkTerm(BITVECTOR_SLT, {op, min}),
-                                  d_solver.mkTerm(BITVECTOR_SGE, {op, max})});
-      if (kind == BITVECTOR_SDIV)
+      Term lhs = d_solver.mkTerm(
+          cvc5::Kind::OR,
+          {d_solver.mkTerm(cvc5::Kind::BITVECTOR_SLT, {op, min}),
+           d_solver.mkTerm(cvc5::Kind::BITVECTOR_SGE, {op, max})});
+      if (kind == cvc5::Kind::BITVECTOR_SDIV)
       {
-        lhs = d_solver.mkTerm(
-            AND,
-            {d_solver.mkTerm(DISTINCT, {y, d_solver.mkBitVector(w)}), lhs});
+        lhs = d_solver.mkTerm(cvc5::Kind::AND,
+                              {d_solver.mkTerm(cvc5::Kind::DISTINCT,
+                                               {y, d_solver.mkBitVector(w)}),
+                               lhs});
       }
       Term rhs = d_solver.mkTerm(kindo, {x, y});
-      Term eq = d_solver.mkTerm(DISTINCT, {lhs, rhs});
+      Term eq = d_solver.mkTerm(cvc5::Kind::DISTINCT, {lhs, rhs});
       d_solver.assertFormula(eq);
       if (d_solver.checkSat().isSat())
       {
@@ -103,37 +106,40 @@ class TestTheoryBlackBv : public TestApi
 
 TEST_F(TestTheoryBlackBv, uaddo)
 {
-  test_unsigned_overflow(BITVECTOR_ADD, BITVECTOR_UADDO);
+  test_unsigned_overflow(cvc5::Kind::BITVECTOR_ADD,
+                         cvc5::Kind::BITVECTOR_UADDO);
 }
 
 TEST_F(TestTheoryBlackBv, saddo)
 {
-  test_signed_overflow(BITVECTOR_ADD, BITVECTOR_SADDO);
+  test_signed_overflow(cvc5::Kind::BITVECTOR_ADD, cvc5::Kind::BITVECTOR_SADDO);
 }
 
 TEST_F(TestTheoryBlackBv, umulo)
 {
-  test_unsigned_overflow(BITVECTOR_MULT, BITVECTOR_UMULO);
+  test_unsigned_overflow(cvc5::Kind::BITVECTOR_MULT,
+                         cvc5::Kind::BITVECTOR_UMULO);
 }
 
 TEST_F(TestTheoryBlackBv, smulo)
 {
-  test_signed_overflow(BITVECTOR_MULT, BITVECTOR_SMULO);
+  test_signed_overflow(cvc5::Kind::BITVECTOR_MULT, cvc5::Kind::BITVECTOR_SMULO);
 }
 
 TEST_F(TestTheoryBlackBv, usubo)
 {
-  test_unsigned_overflow(BITVECTOR_SUB, BITVECTOR_USUBO);
+  test_unsigned_overflow(cvc5::Kind::BITVECTOR_SUB,
+                         cvc5::Kind::BITVECTOR_USUBO);
 }
 
 TEST_F(TestTheoryBlackBv, ssubo)
 {
-  test_signed_overflow(BITVECTOR_SUB, BITVECTOR_SSUBO);
+  test_signed_overflow(cvc5::Kind::BITVECTOR_SUB, cvc5::Kind::BITVECTOR_SSUBO);
 }
 
 TEST_F(TestTheoryBlackBv, sdivo)
 {
-  test_signed_overflow(BITVECTOR_SDIV, BITVECTOR_SDIVO);
+  test_signed_overflow(cvc5::Kind::BITVECTOR_SDIV, cvc5::Kind::BITVECTOR_SDIVO);
 }
 
 TEST_F(TestTheoryBlackBv, reg8361)
@@ -148,12 +154,12 @@ TEST_F(TestTheoryBlackBv, reg8361)
     bvs.push_back(slv.mkConst(bvSort));
   }
 
-  slv.assertFormula(slv.mkTerm(DISTINCT, bvs));
+  slv.assertFormula(slv.mkTerm(cvc5::Kind::DISTINCT, bvs));
   ASSERT_TRUE(slv.checkSat().isSat());
   slv.resetAssertions();
 
   bvs.push_back(slv.mkConst(bvSort));
-  slv.assertFormula(slv.mkTerm(DISTINCT, bvs));
+  slv.assertFormula(slv.mkTerm(cvc5::Kind::DISTINCT, bvs));
   ASSERT_TRUE(slv.checkSat().isUnsat());
 }
 }  // namespace test

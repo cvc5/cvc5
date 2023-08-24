@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,10 +25,9 @@ namespace cvc5 {
 namespace parser {
 
 /**
- * Definitions of tokens used in Flex parsers. This must be an `int` to match
- * Flex's auto-generated lexing code.
+ * Definitions of tokens used in parsers.
  */
-enum Token : int
+enum Token : uint32_t
 {
   EOF_TOK = 0,
   ALPHA,
@@ -51,8 +50,9 @@ enum Token : int
   DECLARE_DATATYPES_TOK,
   DECLARE_DATATYPE_TOK,
   DECLARE_FUN_TOK,
-  DECLARE_HEAP,
-  DECLARE_POOL,
+  DECLARE_HEAP_TOK,
+  DECLARE_ORACLE_FUN_TOK,
+  DECLARE_POOL_TOK,
   DECLARE_SORT_TOK,
   DECLARE_VAR_TOK,
   DEFINE_CONST_TOK,
@@ -63,6 +63,8 @@ enum Token : int
   ECHO_TOK,
   EXIT_TOK,
   FIELD_LITERAL,
+  FIND_SYNTH_TOK,
+  FIND_SYNTH_NEXT_TOK,
   GET_ABDUCT_NEXT_TOK,
   GET_ABDUCT_TOK,
   GET_ASSERTIONS_TOK,
@@ -104,8 +106,6 @@ enum Token : int
   SET_OPTION_TOK,
   SIMPLIFY_TOK,
   STRING_LITERAL,
-  SYGUS_CONSTANT_TOK,
-  SYGUS_VARIABLE_TOK,
   SYMBOL,
   SYNTH_FUN_TOK,
   SYNTH_INV_TOK,

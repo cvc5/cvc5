@@ -31,7 +31,6 @@ set(EXAMPLES_API_JAVA
    Statistics
    Strings
    SygusFun
-   SygusGrammar
    SygusInv
    Transcendentals
    UnsatCores

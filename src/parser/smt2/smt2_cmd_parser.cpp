@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,7 +17,7 @@
 
 #include "base/check.h"
 #include "base/output.h"
-#include "parser/api/cpp/command.h"
+#include "parser/commands.h"
 
 namespace cvc5 {
 namespace parser {
@@ -27,6 +27,89 @@ Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex,
                              Smt2TermParser& tparser)
     : d_lex(lex), d_state(state), d_tparser(tparser)
 {
+  // initialize the command tokens
+  d_table["assert"] = Token::ASSERT_TOK;
+  d_table["check-sat-assuming"] = Token::CHECK_SAT_ASSUMING_TOK;
+  d_table["check-sat"] = Token::CHECK_SAT_TOK;
+  d_table["declare-codatatypes"] = Token::DECLARE_CODATATYPES_TOK;
+  d_table["declare-codatatype"] = Token::DECLARE_CODATATYPE_TOK;
+  d_table["declare-const"] = Token::DECLARE_CONST_TOK;
+  d_table["declare-datatypes"] = Token::DECLARE_DATATYPES_TOK;
+  d_table["declare-datatype"] = Token::DECLARE_DATATYPE_TOK;
+  d_table["declare-fun"] = Token::DECLARE_FUN_TOK;
+  d_table["declare-sort"] = Token::DECLARE_SORT_TOK;
+  d_table["define-const"] = Token::DEFINE_CONST_TOK;
+  d_table["define-funs-rec"] = Token::DEFINE_FUNS_REC_TOK;
+  d_table["define-fun-rec"] = Token::DEFINE_FUN_REC_TOK;
+  d_table["define-fun"] = Token::DEFINE_FUN_TOK;
+  d_table["define-sort"] = Token::DEFINE_SORT_TOK;
+  d_table["echo"] = Token::ECHO_TOK;
+  d_table["exit"] = Token::EXIT_TOK;
+  d_table["get-assertions"] = Token::GET_ASSERTIONS_TOK;
+  d_table["get-assignment"] = Token::GET_ASSIGNMENT_TOK;
+  d_table["get-info"] = Token::GET_INFO_TOK;
+  d_table["get-model"] = Token::GET_MODEL_TOK;
+  d_table["get-option"] = Token::GET_OPTION_TOK;
+  d_table["get-proof"] = Token::GET_PROOF_TOK;
+  d_table["get-timeout-core"] = Token::GET_TIMEOUT_CORE_TOK;
+  d_table["get-unsat-assumptions"] = Token::GET_UNSAT_ASSUMPTIONS_TOK;
+  d_table["get-unsat-core"] = Token::GET_UNSAT_CORE_TOK;
+  d_table["get-value"] = Token::GET_VALUE_TOK;
+  d_table["pop"] = Token::POP_TOK;
+  d_table["push"] = Token::PUSH_TOK;
+  d_table["reset-assertions"] = Token::RESET_ASSERTIONS_TOK;
+  d_table["reset"] = Token::RESET_TOK;
+  d_table["set-info"] = Token::SET_INFO_TOK;
+  d_table["set-logic"] = Token::SET_LOGIC_TOK;
+  d_table["set-option"] = Token::SET_OPTION_TOK;
+  if (!d_lex.isStrict())
+  {
+    d_table["block-model"] = Token::BLOCK_MODEL_TOK;
+    d_table["block-model-values"] = Token::BLOCK_MODEL_VALUES_TOK;
+    d_table["declare-heap"] = Token::DECLARE_HEAP_TOK;
+    d_table["declare-oracle-fun"] = Token::DECLARE_ORACLE_FUN_TOK;
+    d_table["declare-pool"] = Token::DECLARE_POOL_TOK;
+    d_table["find-synth"] = Token::FIND_SYNTH_TOK;
+    d_table["find-synth-next"] = Token::FIND_SYNTH_NEXT_TOK;
+    d_table["get-abduct-next"] = Token::GET_ABDUCT_NEXT_TOK;
+    d_table["get-abduct"] = Token::GET_ABDUCT_TOK;
+    d_table["get-difficulty"] = Token::GET_DIFFICULTY_TOK;
+    d_table["get-interpolant-next"] = Token::GET_INTERPOL_NEXT_TOK;
+    d_table["get-interpolant"] = Token::GET_INTERPOL_TOK;
+    d_table["get-learned-literals"] = Token::GET_LEARNED_LITERALS_TOK;
+    d_table["get-qe-disjunct"] = Token::GET_QE_DISJUNCT_TOK;
+    d_table["get-qe"] = Token::GET_QE_TOK;
+    d_table["include"] = Token::INCLUDE_TOK;
+    d_table["simplify"] = Token::SIMPLIFY_TOK;
+  }
+  if (d_lex.isSygus())
+  {
+    d_table["assume"] = Token::ASSUME_TOK;
+    d_table["check-synth-next"] = Token::CHECK_SYNTH_NEXT_TOK;
+    d_table["check-synth"] = Token::CHECK_SYNTH_TOK;
+    d_table["constraint"] = Token::CONSTRAINT_TOK;
+    d_table["declare-var"] = Token::DECLARE_VAR_TOK;
+    d_table["inv-constraint"] = Token::INV_CONSTRAINT_TOK;
+    d_table["set-feature"] = Token::SET_FEATURE_TOK;
+    d_table["synth-fun"] = Token::SYNTH_FUN_TOK;
+    d_table["synth-inv"] = Token::SYNTH_INV_TOK;
+  }
+}
+
+Token Smt2CmdParser::nextCommandToken()
+{
+  Token tok = d_lex.nextToken();
+  // symbols as commands
+  if (tok == Token::SYMBOL)
+  {
+    std::string str(d_lex.tokenStr());
+    std::map<std::string, Token>::iterator it = d_table.find(str);
+    if (it != d_table.end())
+    {
+      return it->second;
+    }
+  }
+  return tok;
 }
 
 std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
@@ -37,7 +120,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
     return nullptr;
   }
   std::unique_ptr<Command> cmd;
-  Token tok = d_lex.nextToken();
+  Token tok = nextCommandToken();
   switch (tok)
   {
     // (assert <term>)
@@ -188,11 +271,11 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       }
       Sort t = d_tparser.parseSort();
       Trace("parser") << "declare fun: '" << name << "'" << std::endl;
-      if (!sorts.empty())
+      if (!sorts.empty() || t.isFunction())
       {
-        t = d_state.mkFlatFunctionType(sorts, t);
+        t = d_state.flattenFunctionType(sorts, t);
       }
-      if (t.isFunction())
+      if (!sorts.empty())
       {
         d_state.checkLogicAllowsFunctions();
       }
@@ -203,13 +286,12 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       }
       else
       {
-        Term func = d_state.getSolver()->mkConst(t, name);
-        cmd.reset(new DeclareFunctionCommand(name, func, t));
+        cmd.reset(new DeclareFunctionCommand(name, sorts, t));
       }
     }
     break;
     // (declare-heap (<sort> <sort>))
-    case Token::DECLARE_HEAP:
+    case Token::DECLARE_HEAP_TOK:
     {
       d_lex.eatToken(Token::LPAREN_TOK);
       Sort t = d_tparser.parseSort();
@@ -218,8 +300,32 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       d_lex.eatToken(Token::RPAREN_TOK);
     }
     break;
+    // (declare-oracle-fun <symbol> (<sort>∗) <sort> <symbol>)
+    case Token::DECLARE_ORACLE_FUN_TOK:
+    {
+      d_state.checkThatLogicIsSet();
+      std::string name = d_tparser.parseSymbol(CHECK_NONE, SYM_VARIABLE);
+      d_state.checkUserSymbol(name);
+      std::vector<Sort> sorts;
+      sorts = d_tparser.parseSortList();
+      Sort t = d_tparser.parseSort();
+      if (!sorts.empty())
+      {
+        t = d_state.flattenFunctionType(sorts, t);
+      }
+      tok = d_lex.peekToken();
+      std::string binName;
+      if (tok != Token::RPAREN_TOK)
+      {
+        binName = d_tparser.parseSymbol(CHECK_NONE, SYM_VARIABLE);
+      }
+      // not supported
+      d_state.warning("Oracles not supported via the text interface in this version");
+      cmd.reset(new EmptyCommand());
+    }
+    break;
     // (declare-pool <symbol> <sort> (<term>∗))
-    case Token::DECLARE_POOL:
+    case Token::DECLARE_POOL_TOK:
     {
       d_state.checkThatLogicIsSet();
       std::string name = d_tparser.parseSymbol(CHECK_NONE, SYM_VARIABLE);
@@ -227,8 +333,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       Sort t = d_tparser.parseSort();
       std::vector<Term> terms = d_tparser.parseTermList();
       Trace("parser") << "declare pool: '" << name << "'" << std::endl;
-      Term pool = d_state.getSolver()->declarePool(name, t, terms);
-      cmd.reset(new DeclarePoolCommand(name, pool, t, terms));
+      cmd.reset(new DeclarePoolCommand(name, t, terms));
     }
     break;
     // (declare-sort <symbol> <numeral>)
@@ -241,17 +346,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       size_t arity = d_tparser.parseIntegerNumeral();
       Trace("parser") << "declare sort: '" << name << "' arity=" << arity
                       << std::endl;
-      if (arity == 0)
-      {
-        Sort type = d_state.getSolver()->mkUninterpretedSort(name);
-        cmd.reset(new DeclareSortCommand(name, 0, type));
-      }
-      else
-      {
-        Sort type = d_state.getSolver()->mkUninterpretedSortConstructorSort(
-            arity, name);
-        cmd.reset(new DeclareSortCommand(name, arity, type));
-      }
+      cmd.reset(new DeclareSortCommand(name, arity));
     }
     break;
     // (declare-var <symbol> <sort>)
@@ -261,8 +356,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
       d_state.checkUserSymbol(name);
       Sort t = d_tparser.parseSort();
-      Term var = d_state.getSolver()->declareSygusVar(name, t);
-      cmd.reset(new DeclareSygusVarCommand(name, var, t));
+      cmd.reset(new DeclareSygusVarCommand(name, t));
     }
     break;
     // (define-const <symbol> <sort> <term>)
@@ -301,11 +395,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
         }
       }
       std::vector<Term> flattenVars;
-      t = d_state.mkFlatFunctionType(sorts, t, flattenVars);
-      if (t.isFunction())
-      {
-        t = t.getFunctionCodomainSort();
-      }
+      t = d_state.flattenFunctionType(sorts, t, flattenVars);
       if (sortedVarNames.size() > 0)
       {
         d_state.pushScope();
@@ -441,6 +531,22 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new QuitCommand());
     }
     break;
+    case Token::FIND_SYNTH_TOK:
+    {
+      d_state.checkThatLogicIsSet();
+      std::string key = d_tparser.parseKeyword();
+      modes::FindSynthTarget fst = d_state.getFindSynthTarget(key);
+      std::vector<Term> emptyVarList;
+      Grammar* g = d_tparser.parseGrammarOrNull(emptyVarList, "g_find-synth");
+      cmd.reset(new FindSynthCommand(fst, g));
+    }
+    break;
+    case Token::FIND_SYNTH_NEXT_TOK:
+    {
+      d_state.checkThatLogicIsSet();
+      cmd.reset(new FindSynthNextCommand);
+    }
+    break;
     // (get-abduct <symbol> <term> <grammar>?)
     case Token::GET_ABDUCT_TOK:
     {
@@ -511,7 +617,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
     {
       // optional keyword
       tok = d_lex.peekToken();
-      modes::LearnedLitType llt = modes::LEARNED_LIT_INPUT;
+      modes::LearnedLitType llt = modes::LearnedLitType::INPUT;
       if (tok == Token::KEYWORD)
       {
         std::string key = d_tparser.parseKeyword();
@@ -540,7 +646,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
     {
       // optional keyword
       tok = d_lex.peekToken();
-      modes::ProofComponent pc = modes::PROOF_COMPONENT_FULL;
+      modes::ProofComponent pc = modes::ProofComponent::FULL;
       if (tok == Token::KEYWORD)
       {
         std::string key = d_tparser.parseKeyword();
@@ -583,7 +689,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new GetUnsatCoreCommand);
     }
     break;
-    // (get-value (<term>*))
+    // (get-value (<term>+))
     case Token::GET_VALUE_TOK:
     {
       d_state.checkThatLogicIsSet();
@@ -591,6 +697,10 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       // values
       d_state.pushGetValueScope();
       std::vector<Term> terms = d_tparser.parseTermList();
+      if (terms.empty())
+      {
+        d_lex.parseError("Expected non-empty list of terms for get-value");
+      }
       cmd.reset(new GetValueCommand(terms));
       d_state.popScope();
     }
@@ -683,8 +793,12 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
     // (set-logic <symbol>)
     case Token::SET_LOGIC_TOK:
     {
+      SymManager* sm = d_state.getSymbolManager();
       std::string name = d_tparser.parseSymbol(CHECK_NONE, SYM_SORT);
-      cmd.reset(d_state.setLogic(name));
+      // replace the logic with the forced logic, if applicable.
+      std::string lname = sm->isLogicForced() ? sm->getLogic() : name;
+      d_state.setLogic(lname);
+      cmd.reset(new SetBenchmarkLogicCommand(lname));
     }
     break;
     // (set-option <option>)
@@ -709,6 +823,10 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       if (key == "global-declarations")
       {
         d_state.getSymbolManager()->setGlobalDeclarations(ss == "true");
+      }
+      else if (key == "fresh-declarations")
+      {
+        d_state.getSymbolManager()->setFreshDeclarations(ss == "true");
       }
     }
     break;
@@ -744,16 +862,8 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       Grammar* g = d_tparser.parseGrammarOrNull(sygusVars, name);
 
       Trace("parser-sygus") << "Define synth fun : " << name << std::endl;
-      Solver* slv = d_state.getSolver();
-      Term fun =
-          isInv ? (g == nullptr ? slv->synthInv(name, sygusVars)
-                                : slv->synthInv(name, sygusVars, *g))
-                : (g == nullptr ? slv->synthFun(name, sygusVars, range)
-                                : slv->synthFun(name, sygusVars, range, *g));
-
-      Trace("parser-sygus") << "...read synth fun " << name << std::endl;
       d_state.popScope();
-      cmd.reset(new SynthFunCommand(name, fun, sygusVars, range, isInv, g));
+      cmd.reset(new SynthFunCommand(name, sygusVars, range, g));
     }
     break;
     case Token::EOF_TOK:

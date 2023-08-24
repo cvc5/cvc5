@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -52,7 +52,8 @@ class OutputChannel;
 /** Reasons for why a term was marked reduced */
 enum class ExtReducedId
 {
-  UNKNOWN,
+  // the extended function is not marked reduced
+  NONE,
   // the extended function substitutes+rewrites to a constant
   SR_CONST,
   // the extended function was reduced by the callback
@@ -81,6 +82,8 @@ enum class ExtReducedId
   STRINGS_REGEXP_PDERIVATIVE,
   // reduction for seq.nth over seq.rev
   STRINGS_NTH_REV,
+  // the reason for the reduction is unknown
+  UNKNOWN,
 };
 /**
  * Converts an ext reduced identifier to a string.

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
+ *   Andrew Reynolds, Abdalrhman Mohamed, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -121,7 +121,7 @@ Node LfscNodeConverter::postConvert(Node n)
     // ignore internally generated symbols
     return n;
   }
-  else if (k == SKOLEM || k == BOOLEAN_TERM_VARIABLE)
+  else if (k == SKOLEM)
   {
     // constructors/selectors are represented by skolems, which are defined
     // symbols
@@ -132,20 +132,16 @@ Node LfscNodeConverter::postConvert(Node n)
       // to avoid type errors when constructing terms for postConvert
       return n;
     }
-    // skolems v print as their witness forms
-    // v is (skolem W) where W is the original or witness form of v
+    // skolems v print as their original forms
+    // v is (skolem W) where W is the original or original form of v
     Node wi = SkolemManager::getUnpurifiedForm(n);
-    if (wi == n)
-    {
-      // if it is not a purification skolem, maybe it is a witness skolem
-      wi = SkolemManager::getWitnessForm(n);
-    }
     if (!wi.isNull() && wi != n)
     {
-      Trace("lfsc-term-process-debug") << "...witness form " << wi << std::endl;
+      Trace("lfsc-term-process-debug")
+          << "...original form " << wi << std::endl;
       wi = convert(wi);
       Trace("lfsc-term-process-debug")
-          << "...converted witness for " << wi << std::endl;
+          << "...converted original for " << wi << std::endl;
       TypeNode ftype = nm->mkFunctionType(tn, tn);
       Node skolemOp = getSymbolInternal(k, ftype, "skolem");
       return mkApplyUf(skolemOp, {wi});
@@ -508,7 +504,10 @@ Node LfscNodeConverter::mkApplyUf(Node op, const std::vector<Node>& args) const
   }
   else
   {
+    // Note that dag threshold is disabled for printing operators.
     std::stringstream ss;
+    options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
+    options::ioutils::applyDagThresh(ss, 0);
     ss << op;
     Node opv = nm->mkRawSymbol(ss.str(), op.getType());
     aargs.push_back(opv);

@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mudathir Mohamed, Andres Noetzli, Gereon Kremer
+#   Mudathir Mohamed, Andres Noetzli, Andrew Reynolds
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -38,25 +38,6 @@ add_custom_command(
     "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_kind.h"
 )
 add_custom_target(generate-java-kinds DEPENDS ${JAVA_KIND_FILE})
-
-# Generate SortKind.java
-set(JAVA_SORT_KIND_FILE
-  "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/SortKind.java"
-)
-add_custom_command(
-  OUTPUT
-    ${JAVA_SORT_KIND_FILE}
-  COMMAND
-    "${Python_EXECUTABLE}"
-    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_sort_kind.h"
-    --java-api-path "${CMAKE_CURRENT_BINARY_DIR}/io/github/"
-  DEPENDS
-    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
-    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_sort_kind.h"
-)
-add_custom_target(generate-java-sort-kinds DEPENDS ${JAVA_SORT_KIND_FILE})
 
 set(JAVA_TYPES_FILES
   "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/modes/BlockModelsMode.java"
@@ -147,7 +128,7 @@ add_custom_command(
 )
 
 add_custom_target(generate-jni-headers DEPENDS ${JNI_HEADERS})
-add_dependencies(generate-jni-headers generate-java-kinds generate-java-sort-kinds generate-java-types)
+add_dependencies(generate-jni-headers generate-java-kinds generate-java-types)
 
 # find jni package
 find_package(JNI REQUIRED)

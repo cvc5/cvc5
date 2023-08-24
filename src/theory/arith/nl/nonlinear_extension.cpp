@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,6 @@
 
 #include "options/arith_options.h"
 #include "options/smt_options.h"
-#include "theory/arith/arith_state.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/bound_inference.h"
 #include "theory/arith/inference_manager.h"
@@ -38,17 +37,15 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-NonlinearExtension::NonlinearExtension(Env& env,
-                                       TheoryArith& containing,
-                                       ArithState& state)
+NonlinearExtension::NonlinearExtension(Env& env, TheoryArith& containing)
     : EnvObj(env),
       d_containing(containing),
-      d_astate(state),
+      d_astate(*containing.getTheoryState()),
       d_im(containing.getInferenceManager()),
       d_stats(statisticsRegistry()),
       d_hasNlTerms(false),
       d_checkCounter(0),
-      d_extTheoryCb(state.getEqualityEngine()),
+      d_extTheoryCb(d_astate.getEqualityEngine()),
       d_extTheory(env, d_extTheoryCb, d_im),
       d_model(env),
       d_trSlv(d_env, d_astate, d_im, d_model),
@@ -60,8 +57,8 @@ NonlinearExtension::NonlinearExtension(Env& env,
       d_tangentPlaneSlv(d_env, &d_extState),
       d_covSlv(d_env, d_im, d_model),
       d_icpSlv(d_env, d_im),
-      d_iandSlv(env, d_im, state, d_model),
-      d_pow2Slv(env, d_im, state, d_model)
+      d_iandSlv(env, d_im, d_model),
+      d_pow2Slv(env, d_im, d_model)
 {
   d_extTheory.addFunctionKind(kind::NONLINEAR_MULT);
   d_extTheory.addFunctionKind(kind::EXPONENTIAL);
@@ -70,12 +67,6 @@ NonlinearExtension::NonlinearExtension(Env& env,
   d_extTheory.addFunctionKind(kind::IAND);
   d_extTheory.addFunctionKind(kind::POW2);
   d_true = NodeManager::currentNM()->mkConst(true);
-
-  if (d_env.isTheoryProofProducing())
-  {
-    ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
-    d_proofChecker.registerTo(pc);
-  }
 }
 
 NonlinearExtension::~NonlinearExtension() {}
@@ -268,7 +259,7 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     return;
   }
   Trace("nl-ext") << "NonlinearExtension::interceptModel begin" << std::endl;
-  d_model.reset(d_containing.getValuation().getModel(), arithModel);
+  d_model.reset(arithModel);
   // run a last call effort check
   Trace("nl-ext") << "interceptModel: do model-based refinement" << std::endl;
   Result::Status res = modelBasedRefinement(termSet);
@@ -499,6 +490,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
       case InferStep::TRANS_TANGENT_PLANES:
         d_trSlv.checkTranscendentalTangentPlanes();
         break;
+      default: break;
     }
   }
 

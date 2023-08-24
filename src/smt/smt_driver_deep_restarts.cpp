@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,7 +46,7 @@ Result SmtDriverDeepRestarts::checkSatNext(preprocessing::AssertionPipeline& ap)
     // check again if there are any
     if (!d_zll.empty())
     {
-      return Result(Result::UNKNOWN, REQUIRES_CHECK_AGAIN);
+      return Result(Result::UNKNOWN, UnknownExplanation::REQUIRES_CHECK_AGAIN);
     }
   }
   return result;
@@ -72,15 +72,15 @@ void SmtDriverDeepRestarts::getNextAssertions(
   Trace("deep-restart") << "Have " << d_zll.size()
                         << " zero level learned literals" << std::endl;
   // Copy the preprocessed assertions and skolem map information directly
-  const std::vector<Node>& ppAssertions = d_smt.getPreprocessedAssertions();
+  const context::CDList<Node>& ppAssertions = d_smt.getPreprocessedAssertions();
   for (const Node& a : ppAssertions)
   {
     ap.push_back(a);
   }
   preprocessing::IteSkolemMap& ismr = ap.getIteSkolemMap();
-  const std::unordered_map<size_t, Node>& ppSkolemMap =
+  const context::CDHashMap<size_t, Node>& ppSkolemMap =
       d_smt.getPreprocessedSkolemMap();
-  for (const std::pair<const size_t, Node>& k : ppSkolemMap)
+  for (const auto& k : ppSkolemMap)
   {
     // carry the entire skolem map, which should align with the order of
     // assertions passed into the new assertions pipeline

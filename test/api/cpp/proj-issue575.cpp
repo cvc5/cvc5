@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -117,14 +117,14 @@ int main(void)
   Term t53 = solver.mkBitVector(16, "1011011010000101", 2);
   Term t54 = solver.mkFloatingPoint(5, 11, t53);
   Term t55 = solver.mkVar(s26, "_x62");
-  Term t56 = solver.mkTerm(EQUAL, {t52, t52, t52});
+  Term t56 = solver.mkTerm(Kind::EQUAL, {t52, t52, t52});
   Sort s57 = t56.getSort();
-  Op o58 = solver.mkOp(ADD);
+  Op o58 = solver.mkOp(Kind::ADD);
   Term t59 = solver.mkTerm(o58, {t47, t47});
-  Op o60 = solver.mkOp(NOT);
+  Op o60 = solver.mkOp(Kind::NOT);
   Term t61 = solver.mkTerm(o60, {t56});
-  Term t62 = solver.mkTerm(APPLY_UF, {t40, t51});
-  Term t63 = solver.mkTerm(LT, {t47, t47});
+  Term t62 = solver.mkTerm(Kind::APPLY_UF, {t40, t51});
+  Term t63 = solver.mkTerm(Kind::LT, {t47, t47});
   solver.assertFormula(t61);
   solver.checkSat();
   solver.blockModel(cvc5::modes::BlockModelsMode::LITERALS);

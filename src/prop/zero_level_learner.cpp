@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,21 +41,21 @@ ZeroLevelLearner::ZeroLevelLearner(Env& env, TheoryEngine* theoryEngine)
   options::DeepRestartMode lmode = options().smt.deepRestartMode;
   if (lmode != options::DeepRestartMode::NONE)
   {
-    d_learnedTypes.insert(modes::LEARNED_LIT_INPUT);
+    d_learnedTypes.insert(modes::LearnedLitType::INPUT);
     if (lmode == options::DeepRestartMode::ALL)
     {
-      d_learnedTypes.insert(modes::LEARNED_LIT_INTERNAL);
-      d_learnedTypes.insert(modes::LEARNED_LIT_SOLVABLE);
-      d_learnedTypes.insert(modes::LEARNED_LIT_CONSTANT_PROP);
+      d_learnedTypes.insert(modes::LearnedLitType::INTERNAL);
+      d_learnedTypes.insert(modes::LearnedLitType::SOLVABLE);
+      d_learnedTypes.insert(modes::LearnedLitType::CONSTANT_PROP);
     }
     else if (lmode == options::DeepRestartMode::INPUT_AND_SOLVABLE)
     {
-      d_learnedTypes.insert(modes::LEARNED_LIT_SOLVABLE);
+      d_learnedTypes.insert(modes::LearnedLitType::SOLVABLE);
     }
     else if (lmode == options::DeepRestartMode::INPUT_AND_PROP)
     {
-      d_learnedTypes.insert(modes::LEARNED_LIT_SOLVABLE);
-      d_learnedTypes.insert(modes::LEARNED_LIT_CONSTANT_PROP);
+      d_learnedTypes.insert(modes::LearnedLitType::SOLVABLE);
+      d_learnedTypes.insert(modes::LearnedLitType::CONSTANT_PROP);
     }
   }
 }
@@ -91,7 +91,7 @@ void ZeroLevelLearner::notifyTopLevelSubstitution(const Node& lhs,
 {
   // process as a preprocess solved learned literal.
   Node eq = lhs.eqNode(rhs);
-  processLearnedLiteral(eq, modes::LEARNED_LIT_PREPROCESS_SOLVED);
+  processLearnedLiteral(eq, modes::LearnedLitType::PREPROCESS_SOLVED);
 }
 
 void ZeroLevelLearner::notifyInputFormulas(const std::vector<Node>& assertions)
@@ -128,7 +128,7 @@ void ZeroLevelLearner::notifyInputFormulas(const std::vector<Node>& assertions)
     if (!lit.isConst() || !lit.getConst<bool>())
     {
       // output learned literals from preprocessing
-      processLearnedLiteral(lit, modes::LEARNED_LIT_PREPROCESS);
+      processLearnedLiteral(lit, modes::LearnedLitType::PREPROCESS);
       // also get its symbols
       expr::getSymbols(atom, inputSymbols, visitedWithinAtom);
     }
@@ -235,7 +235,7 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
   TNode aatom = lit.getKind() == kind::NOT ? lit[0] : lit;
   bool internal = d_ppnAtoms.find(aatom) == d_ppnAtoms.end();
   modes::LearnedLitType ltype =
-      internal ? modes::LEARNED_LIT_INTERNAL : modes::LEARNED_LIT_INPUT;
+      internal ? modes::LearnedLitType::INTERNAL : modes::LearnedLitType::INPUT;
   // compute if solvable
   if (internal)
   {
@@ -248,12 +248,12 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
         if (d_ppnSyms.find(v) != d_ppnSyms.end())
         {
           Trace("level-zero-assert") << "...solvable due to " << v << std::endl;
-          ltype = modes::LEARNED_LIT_SOLVABLE;
+          ltype = modes::LearnedLitType::SOLVABLE;
           break;
         }
       }
     }
-    if (ltype != modes::LEARNED_LIT_SOLVABLE)
+    if (ltype != modes::LearnedLitType::SOLVABLE)
     {
       // maybe a constant prop?
       if (lit.getKind() == kind::EQUAL)
@@ -263,7 +263,7 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
           if (lit[i].isConst()
               && d_ppnTerms.find(lit[1 - i]) != d_ppnTerms.end())
           {
-            ltype = modes::LEARNED_LIT_CONSTANT_PROP;
+            ltype = modes::LearnedLitType::CONSTANT_PROP;
             break;
           }
         }
@@ -292,17 +292,14 @@ void ZeroLevelLearner::processLearnedLiteral(const Node& lit,
     // are mapped back to their original form
     output(OutputTag::LEARNED_LITS)
         << "(learned-lit " << SkolemManager::getOriginalForm(lit);
-    if (ltype != modes::LEARNED_LIT_INPUT)
-    {
-      std::stringstream tss;
-      tss << ltype;
-      std::string ltstr = tss.str();
-      std::transform(
-          ltstr.begin(), ltstr.end(), ltstr.begin(), [](unsigned char c) {
-            return std::tolower(c);
-          });
-      output(OutputTag::LEARNED_LITS) << " :" << ltstr;
-    }
+    std::stringstream tss;
+    tss << ltype;
+    std::string ltstr = tss.str();
+    std::transform(
+        ltstr.begin(), ltstr.end(), ltstr.begin(), [](unsigned char c) {
+          return std::tolower(c);
+        });
+    output(OutputTag::LEARNED_LITS) << " :" << ltstr;
     output(OutputTag::LEARNED_LITS) << ")" << std::endl;
   }
 }

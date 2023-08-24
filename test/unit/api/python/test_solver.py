@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -15,7 +15,7 @@ import pytest
 import cvc5
 import sys
 
-from cvc5 import Kind, SortKind, BlockModelsMode, RoundingMode, LearnedLitType, ProofComponent
+from cvc5 import Kind, SortKind, BlockModelsMode, RoundingMode, LearnedLitType, ProofComponent, FindSynthTarget
 
 
 @pytest.fixture
@@ -910,23 +910,12 @@ def test_mk_true(solver):
 
 
 def test_mk_tuple(solver):
-    solver.mkTuple([solver.mkBitVectorSort(3)],
-                   [solver.mkBitVector(3, "101", 2)])
-    with pytest.raises(RuntimeError):
-      solver.mkTuple([solver.getRealSort()], [solver.mkInteger("5")])
-
-    with pytest.raises(RuntimeError):
-        solver.mkTuple([], [solver.mkBitVector(3, "101", 2)])
-    with pytest.raises(RuntimeError):
-        solver.mkTuple([solver.mkBitVectorSort(4)],
-                       [solver.mkBitVector(3, "101", 2)])
-    with pytest.raises(RuntimeError):
-        solver.mkTuple([solver.getIntegerSort()], [solver.mkReal("5.3")])
+    solver.mkTuple([solver.mkBitVector(3, "101", 2)])
+    solver.mkTuple([solver.mkInteger("5")])
+    solver.mkTuple([solver.mkReal("5.3")])
     slv = cvc5.Solver()
-    slv.mkTuple([solver.mkBitVectorSort(3)],
-                [slv.mkBitVector(3, "101", 2)])
-    slv.mkTuple([slv.mkBitVectorSort(3)],
-                [solver.mkBitVector(3, "101", 2)])
+    slv.mkTuple([slv.mkBitVector(3, "101", 2)])
+    slv.mkTuple([solver.mkBitVector(3, "101", 2)])
 
 
 def test_mk_universe_set(solver):
@@ -955,6 +944,19 @@ def test_mk_const(solver):
     slv = cvc5.Solver()
     slv.mkConst(boolSort)
 
+def test_declare_fun_fresh(solver):
+    boolSort = solver.getBooleanSort()
+    intSort = solver.getIntegerSort()
+    t1 = solver.declareFun("b", [], boolSort, True)
+    t2 = solver.declareFun("b", [], boolSort, False)
+    t3 = solver.declareFun("b", [], boolSort, False)
+    assert t1!=t2
+    assert t1!=t3
+    assert t2==t3
+    t4 = solver.declareFun("c", [], boolSort, False)
+    assert t2!=t4
+    t5 = solver.declareFun("b", [], intSort, False)
+    assert t2!=t5
 
 def test_mk_const_array(solver):
     intSort = solver.getIntegerSort()
@@ -1454,9 +1456,9 @@ def test_get_unsat_core_and_proof(solver):
     assert solver.checkSat().isUnsat()
 
     unsat_core = solver.getUnsatCore()
-    
+
     solver.getProof()
-    solver.getProof(ProofComponent.PROOF_COMPONENT_SAT)
+    solver.getProof(ProofComponent.SAT)
 
     solver.resetAssertions()
     for t in unsat_core:
@@ -1471,7 +1473,7 @@ def test_learned_literals(solver):
         solver.getLearnedLiterals()
     solver.checkSat()
     solver.getLearnedLiterals()
-    solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_PREPROCESS)
+    solver.getLearnedLiterals(LearnedLitType.PREPROCESS)
 
 def test_learned_literals2(solver):
     solver.setOption("produce-learned-literals", "true")
@@ -1488,10 +1490,11 @@ def test_learned_literals2(solver):
     solver.assertFormula(f0)
     solver.assertFormula(f1)
     solver.checkSat()
-    solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_INPUT)
+    solver.getLearnedLiterals(LearnedLitType.INPUT)
 
 def test_get_timeout_core_unsat(solver):
   solver.setOption("timeout-core-timeout", "100")
+  solver.setOption("produce-unsat-cores", "true")
   intSort = solver.getIntegerSort()
   x = solver.mkConst(intSort, "x")
   tt = solver.mkBoolean(True)
@@ -1506,6 +1509,7 @@ def test_get_timeout_core_unsat(solver):
   assert res[1][0] == hard
 
 def test_get_timeout_core(solver):
+  solver.setOption("produce-unsat-cores", "true")
   ff = solver.mkBoolean(False)
   tt = solver.mkBoolean(True)
   solver.assertFormula(tt)
@@ -1825,7 +1829,10 @@ def test_get_statistics(solver):
     solver.assertFormula(f1)
     solver.checkSat()
     s = solver.getStatistics()
-    assert s['cvc5::TERM'] == {'defaulted': False, 'internal': False, 'value': {'GEQ': 3, 'OR': 1}}
+    assert s['cvc5::TERM'] == {
+            'defaulted': False,
+            'internal': False,
+            'value': {'Kind::GEQ': 3, 'Kind::OR': 1}}
     assert s.get(True, False) != {}
 
 def test_set_info(solver):
@@ -2081,33 +2088,6 @@ def test_mk_sygus_grammar(solver):
     slv.mkGrammar([boolVar2], [intVar])
 
 
-def test_synth_inv(solver):
-    solver.setOption("sygus", "true")
-    boolean = solver.getBooleanSort()
-    integer = solver.getIntegerSort()
-
-    nullTerm = cvc5.Term(solver)
-    x = solver.mkVar(boolean)
-
-    start1 = solver.mkVar(boolean)
-    start2 = solver.mkVar(integer)
-
-    g1 = solver.mkGrammar([x], [start1])
-    g1.addRule(start1, solver.mkBoolean(False))
-
-    g2 = solver.mkGrammar([x], [start2])
-    g2.addRule(start2, solver.mkInteger(0))
-
-    solver.synthInv("", [])
-    solver.synthInv("i1", [x])
-    solver.synthInv("i2", [x], g1)
-
-    with pytest.raises(RuntimeError):
-        solver.synthInv("i3", [nullTerm])
-    with pytest.raises(RuntimeError):
-        solver.synthInv("i4", [x], g2)
-
-
 def test_add_sygus_constraint(solver):
     solver.setOption("sygus", "true")
     nullTerm = cvc5.Term(solver)
@@ -2287,6 +2267,40 @@ def test_check_synth_next3(solver):
     f = solver.synthFun("f", [], solver.getBooleanSort())
     with pytest.raises(RuntimeError):
         solver.checkSynthNext()
+
+def test_find_synth(solver):
+    solver.setOption("sygus", "true")
+    boolSort = solver.getBooleanSort()
+    start = solver.mkVar(boolSort)
+    g = solver.mkGrammar([], [start])
+    truen = solver.mkBoolean(True)
+    falsen = solver.mkBoolean(False)
+    g.addRule(start, truen)
+    g.addRule(start, falsen)
+    f = solver.synthFun("f", [], solver.getBooleanSort(), g)
+
+    # should enumerate based on the grammar of the function to synthesize above
+    t = solver.findSynth(FindSynthTarget.ENUM)
+    assert not t.isNull() and t.getSort().isBoolean()
+
+
+def test_find_synth2(solver):
+    solver.setOption("sygus", "true")
+    solver.setOption("incremental", "true")
+    boolSort = solver.getBooleanSort()
+    start = solver.mkVar(boolSort)
+    g = solver.mkGrammar([], [start])
+    truen = solver.mkBoolean(True)
+    falsen = solver.mkBoolean(False)
+    g.addRule(start, truen)
+    g.addRule(start, falsen)
+
+    # should enumerate true/false
+    t = solver.findSynth(FindSynthTarget.ENUM, g)
+    assert not t.isNull() and t.getSort().isBoolean()
+    t = solver.findSynthNext()
+    assert not t.isNull() and t.getSort().isBoolean()
+
 
 def test_get_abduct(solver):
     solver.setLogic("QF_LIA")
@@ -2682,7 +2696,6 @@ def test_mk_sygus_var(solver):
     with pytest.raises(RuntimeError):
         solver.declareSygusVar("", cvc5.Sort(solver))
     slv = cvc5.Solver()
-    solver.setOption("sygus", "true")
     with pytest.raises(RuntimeError):
         slv.declareSygusVar("", boolSort)
 
@@ -2724,17 +2737,13 @@ def test_synth_fun(solver):
 
 
 def test_tuple_project(solver):
-    sorts = [solver.getBooleanSort(),\
-                               solver.getIntegerSort(),\
-                               solver.getStringSort(),\
-                               solver.mkSetSort(solver.getStringSort())]
     elements = [\
         solver.mkBoolean(True), \
         solver.mkInteger(3),\
         solver.mkString("C"),\
         solver.mkTerm(Kind.SET_SINGLETON, solver.mkString("Z"))]
 
-    tuple = solver.mkTuple(sorts, elements)
+    tuple = solver.mkTuple(elements)
 
     indices1 = []
     indices2 = [0]

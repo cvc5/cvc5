@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Christopher L. Conway, Gereon Kremer
+ *   Gereon Kremer, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,6 +30,8 @@
 #include "base/exception.h"
 #include "base/output.h"
 #include "main/command_executor.h"
+#include "parser/commands.h"
+#include "parser/command_status.h"
 
 using namespace cvc5::parser;
 
@@ -290,6 +292,13 @@ class PortfolioProcessPool
     Assert(d_nextJob < d_jobs.size());
     Job& job = d_jobs[d_nextJob];
     Trace("portfolio") << "Starting " << job.d_config << std::endl;
+    if (d_ctx.solver().isOutputOn("portfolio"))
+    {
+      std::ostream& out = d_ctx.solver().getOutput("portfolio");
+      out << "(portfolio \"" << job.d_config.toOptionString() << "\"";
+      out << " :timeout " << job.d_config.d_timeout;
+      out << ")" << std::endl;
+    }
 
     // Set up pipes to capture output of worker
     job.d_errPipe.open();
@@ -387,6 +396,12 @@ class PortfolioProcessPool
         if (WEXITSTATUS(wstatus) == SolveStatus::STATUS_SOLVED)
         {
           Trace("portfolio") << "Successful!" << std::endl;
+          if (d_ctx.solver().isOutputOn("portfolio"))
+          {
+            std::ostream& out = d_ctx.solver().getOutput("portfolio");
+            out << "(portfolio-success \"" << job.d_config.toOptionString()
+                << "\")" << std::endl;
+          }
           job.d_errPipe.flushTo(std::cerr);
           job.d_outPipe.flushTo(std::cout);
           return true;
@@ -450,6 +465,37 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
   Warning() << "Can't run portfolio without <sys/wait.h>.";
   return ctx.solveContinuous(d_parser, false);
 #endif
+}
+
+std::string PortfolioConfig::toOptionString() const
+{
+  std::stringstream ss;
+  bool firstTime = true;
+  for (const std::pair<std::string, std::string>& o : d_options)
+  {
+    if (firstTime)
+    {
+      firstTime = false;
+    }
+    else
+    {
+      ss << " ";
+    }
+    ss << "--";
+    if (o.second == "true")
+    {
+      ss << o.first;
+    }
+    else if (o.second == "false")
+    {
+      ss << "no-" << o.first;
+    }
+    else
+    {
+      ss << o.first << "=" << o.second;
+    }
+  }
+  return ss.str();
 }
 
 std::ostream& operator<<(std::ostream& os, const PortfolioConfig& config)

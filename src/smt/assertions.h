@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -44,7 +44,7 @@ class Assertions : protected EnvObj
   typedef context::CDList<Node> AssertionList;
 
  public:
-  Assertions(Env& env, AbstractValues& absv);
+  Assertions(Env& env);
   ~Assertions();
   /** refresh
    *
@@ -124,8 +124,6 @@ class Assertions : protected EnvObj
   void addFormula(TNode n,
                   bool isFunDef,
                   bool maybeHasFv);
-  /** Reference to the abstract values utility */
-  AbstractValues& d_absValues;
   /**
    * The assertion list (before any conversion) for supporting getAssertions().
    */

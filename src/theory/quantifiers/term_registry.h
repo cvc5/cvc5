@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,6 +23,7 @@
 
 #include "context/cdhashset.h"
 #include "smt/env_obj.h"
+#include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/cegqi/vts_term_cache.h"
 #include "theory/quantifiers/entailment_check.h"
 #include "theory/quantifiers/ieval/inst_evaluator_manager.h"
@@ -111,6 +112,8 @@ class TermRegistry : protected EnvObj
   TermPools* getTermPools() const;
   /** get the virtual term substitution term cache utility */
   VtsTermCache* getVtsTermCache() const;
+  /** get the bv inverter utility */
+  BvInverter* getBvInverter() const;
   /** get the instantiation evaluator manager */
   ieval::InstEvaluatorManager* getInstEvaluatorManager() const;
   /**
@@ -151,6 +154,8 @@ class TermRegistry : protected EnvObj
   std::unique_ptr<VtsTermCache> d_vtsCache;
   /** the instantiation evaluator manager */
   std::unique_ptr<ieval::InstEvaluatorManager> d_ievalMan;
+  /** inversion utility for BV instantiation */
+  std::unique_ptr<BvInverter> d_bvInvert;
   /** extended model object */
   FirstOrderModel* d_qmodel;
 };
