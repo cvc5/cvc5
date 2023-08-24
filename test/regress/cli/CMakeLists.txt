@@ -2009,6 +2009,7 @@ set(regress_1_tests
   regress1/bags/intersection_min2.smt2
   regress1/bags/issue5759.smt2
   regress1/bags/issue_8959.smt2
+  regress1/bags/issue_9780.smt2
   regress1/bags/map1.smt2
   regress1/bags/map2.smt2
   regress1/bags/map3.smt2
@@ -2019,6 +2020,7 @@ set(regress_1_tests
   regress1/bags/murxla4.smt2
   regress1/bags/murxla5.smt2
   regress1/bags/murxla6.smt2
+  regress1/bags/murxla7.smt2
   regress1/bags/product1.smt2
   regress1/bags/product2.smt2
   regress1/bags/product3.smt2
