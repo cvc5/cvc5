@@ -818,9 +818,11 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
       // the current point
       mvs.clear();
       getModelFromSubsolver(*checkSol, d_vars, mvs);
-      // should evaluate to true
+      // should typically evaluate to true, although this may not be the case
+      // for partial functions
       Node ean = evaluatePt(an, Node::null(), mvs);
-      Assert(ean.isConst() && ean.getConst<bool>());
+      // should not evaluate to false
+      Assert(!ean.isConst() || ean.getConst<bool>());
       Trace("sygus-ccore") << "--- Add refinement point " << mvs << std::endl;
       // In terms of Variant #2, this is the line:
       //   "pts(B) += { v } where { x -> v } is a model for D ^ ~B".
