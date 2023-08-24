@@ -145,7 +145,7 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
 #else  /* HAVE_LIBEDITLINE */
   d_usingEditline = false;
 #endif /* HAVE_LIBEDITLINE */
-}/* InteractiveShell::InteractiveShell() */
+} /* InteractiveShell::InteractiveShell() */
 
 InteractiveShell::~InteractiveShell() {
 #if HAVE_LIBEDITLINE

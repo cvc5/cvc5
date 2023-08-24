@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Test for project issue #580
+ * Test for project issue #657
  *
  */
 #include <cvc5/cvc5.h>
@@ -20,18 +20,19 @@ int main(void)
 {
   Solver solver;
   solver.setOption("incremental", "false");
-  solver.setOption("produce-abducts", "true");
-  solver.setOption("sygus-grammar-cons", "any-term-concise");
-  Sort s0 = solver.getRealSort();
-  Sort s1 = solver.mkSequenceSort(s0);
-  Term t2 = solver.mkConst(s1, "_x0");
-  Term t3 = solver.mkTerm(Kind::SEQ_UNIT, {t2});
-  Sort s4 = t3.getSort();
-  Op o5 = solver.mkOp(Kind::SEQ_CONTAINS);
-  Term t6 = solver.mkTerm(o5, {t3, t3});
+  solver.setOption("produce-interpolants", "true");
+  solver.setOption("prenex-quant", "norm");
+  Sort s0 = solver.getStringSort();
+  Term t1 = solver.mkVar(s0, "_x3");
+  Op o2 = solver.mkOp(Kind::STRING_CONCAT);
+  Term t3 = solver.mkTerm(o2, {t1, t1});
+  Term t4 = t1.eqTerm(t3);
+  Sort s5 = t4.getSort();
+  Term t6 = solver.mkTerm(Kind::VARIABLE_LIST, {t1});
   Sort s7 = t6.getSort();
-  solver.assertFormula(t6);
-  Term t8 = solver.getAbduct(t6);
+  Op o8 = solver.mkOp(Kind::EXISTS);
+  Term t9 = solver.mkTerm(o8, {t6, t4});
+  Term t10 = solver.getInterpolant(t9);
 
   return 0;
 }

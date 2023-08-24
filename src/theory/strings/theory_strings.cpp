@@ -1275,29 +1275,45 @@ void TheoryStrings::runInferStep(InferStep s, Theory::Effort e, int effort)
   Trace("strings-process") << "..." << std::endl;
   switch (s)
   {
-    case CHECK_INIT: d_bsolver.checkInit(); break;
-    case CHECK_CONST_EQC: d_bsolver.checkConstantEquivalenceClasses(); break;
-    case CHECK_EXTF_EVAL: d_esolver.checkExtfEval(effort); break;
-    case CHECK_CYCLES: d_csolver.checkCycles(); break;
-    case CHECK_FLAT_FORMS: d_csolver.checkFlatForms(); break;
-    case CHECK_NORMAL_FORMS_EQ_PROP: d_csolver.checkNormalFormsEqProp(); break;
-    case CHECK_NORMAL_FORMS_EQ: d_csolver.checkNormalFormsEq(); break;
-    case CHECK_NORMAL_FORMS_DEQ: d_csolver.checkNormalFormsDeq(); break;
-    case CHECK_CODES: d_psolver.checkCodes(); break;
-    case CHECK_LENGTH_EQC: d_csolver.checkLengthsEqc(); break;
-    case CHECK_SEQUENCES_ARRAY_CONCAT: d_asolver.checkArrayConcat(); break;
-    case CHECK_SEQUENCES_ARRAY: d_asolver.checkArray(); break;
-    case CHECK_SEQUENCES_ARRAY_EAGER: d_asolver.checkArrayEager(); break;
-    case CHECK_REGISTER_TERMS_NF:
+    case InferStep::CHECK_INIT: d_bsolver.checkInit(); break;
+    case InferStep::CHECK_CONST_EQC:
+      d_bsolver.checkConstantEquivalenceClasses();
+      break;
+    case InferStep::CHECK_EXTF_EVAL: d_esolver.checkExtfEval(effort); break;
+    case InferStep::CHECK_CYCLES: d_csolver.checkCycles(); break;
+    case InferStep::CHECK_FLAT_FORMS: d_csolver.checkFlatForms(); break;
+    case InferStep::CHECK_NORMAL_FORMS_EQ_PROP:
+      d_csolver.checkNormalFormsEqProp();
+      break;
+    case InferStep::CHECK_NORMAL_FORMS_EQ:
+      d_csolver.checkNormalFormsEq();
+      break;
+    case InferStep::CHECK_NORMAL_FORMS_DEQ:
+      d_csolver.checkNormalFormsDeq();
+      break;
+    case InferStep::CHECK_CODES: d_psolver.checkCodes(); break;
+    case InferStep::CHECK_LENGTH_EQC: d_csolver.checkLengthsEqc(); break;
+    case InferStep::CHECK_SEQUENCES_ARRAY_CONCAT:
+      d_asolver.checkArrayConcat();
+      break;
+    case InferStep::CHECK_SEQUENCES_ARRAY: d_asolver.checkArray(); break;
+    case InferStep::CHECK_SEQUENCES_ARRAY_EAGER:
+      d_asolver.checkArrayEager();
+      break;
+    case InferStep::CHECK_REGISTER_TERMS_NF:
       d_csolver.checkRegisterTermsNormalForms();
       break;
-    case CHECK_EXTF_REDUCTION_EAGER:
+    case InferStep::CHECK_EXTF_REDUCTION_EAGER:
       d_esolver.checkExtfReductionsEager();
       break;
-    case CHECK_EXTF_REDUCTION: d_esolver.checkExtfReductions(e); break;
-    case CHECK_MEMBERSHIP_EAGER: d_rsolver.checkMembershipsEager(); break;
-    case CHECK_MEMBERSHIP: d_rsolver.checkMemberships(e); break;
-    case CHECK_CARDINALITY: d_bsolver.checkCardinality(); break;
+    case InferStep::CHECK_EXTF_REDUCTION:
+      d_esolver.checkExtfReductions(e);
+      break;
+    case InferStep::CHECK_MEMBERSHIP_EAGER:
+      d_rsolver.checkMembershipsEager();
+      break;
+    case InferStep::CHECK_MEMBERSHIP: d_rsolver.checkMemberships(e); break;
+    case InferStep::CHECK_CARDINALITY: d_bsolver.checkCardinality(); break;
     default: Unreachable(); break;
   }
   Trace("strings-process") << "Done " << s
@@ -1318,7 +1334,7 @@ void TheoryStrings::runStrategy(Theory::Effort e)
   {
     InferStep curr = it->first;
     int effort = it->second;
-    if (curr == BREAK)
+    if (curr == InferStep::BREAK)
     {
       // if we have a pending inference or lemma, we will process it
       if (d_im.hasProcessed())
