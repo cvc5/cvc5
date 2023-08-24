@@ -54,13 +54,17 @@ Node QuantifiersPreprocess::computePrenexAgg(
     children.push_back(computePrenexAgg(n[1], visited));
     std::vector<Node> args;
     args.insert(args.end(), n[0].begin(), n[0].end());
-    // for each child, strip top level quant
-    for (unsigned i = 0; i < children.size(); i++)
+    // only combine if standard
+    if (QuantifiersRewriter::isStandard(n, options()))
     {
-      if (children[i].getKind() == FORALL)
+      // for each child, strip top level quant
+      for (unsigned i = 0; i < children.size(); i++)
       {
-        args.insert(args.end(), children[i][0].begin(), children[i][0].end());
-        children[i] = children[i][1];
+        if (children[i].getKind() == FORALL)
+        {
+          args.insert(args.end(), children[i][0].begin(), children[i][0].end());
+          children[i] = children[i][1];
+        }
       }
     }
     // keep the pattern
