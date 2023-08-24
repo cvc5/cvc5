@@ -3832,6 +3832,9 @@ class CVC5_EXPORT Solver
   /**
    * Create a free constant.
    *
+   * Note that the returned term is always fresh, even if the same arguments
+   * were provided on a previous call to mkConst.
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -3844,6 +3847,7 @@ class CVC5_EXPORT Solver
    * @param sort The sort of the constant.
    * @param symbol The name of the constant (optional).
    * @return The constant.
+   *
    */
   Term mkConst(const Sort& sort,
                const std::optional<std::string>& symbol = std::nullopt) const;
@@ -3851,6 +3855,10 @@ class CVC5_EXPORT Solver
   /**
    * Create a bound variable to be used in a binder (i.e., a quantifier, a
    * lambda, or a witness binder).
+   *
+   * Note that the returned term is always fresh, even if the same arguments
+   * were provided on a previous call to mkConst.
+   *
    * @param sort The sort of the variable.
    * @param symbol The name of the variable (optional).
    * @return The variable.
@@ -4009,11 +4017,15 @@ class CVC5_EXPORT Solver
    * @param symbol The name of the function.
    * @param sorts The sorts of the parameters to this function.
    * @param sort The sort of the return value of this function.
+   * @param fresh If true, then this method always returns a new Term.
+   * Otherwise, this method will always return the same Term
+   * for each call with the given sorts and symbol where fresh is false.
    * @return The function.
    */
   Term declareFun(const std::string& symbol,
                   const std::vector<Sort>& sorts,
-                  const Sort& sort) const;
+                  const Sort& sort,
+                  bool fresh = true) const;
 
   /**
    * Declare uninterpreted sort.

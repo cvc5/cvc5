@@ -54,6 +54,7 @@
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
 #include "expr/sequence.h"
+#include "expr/skolem_manager.h"
 #include "expr/sygus_grammar.h"
 #include "expr/type_node.h"
 #include "options/base_options.h"
@@ -6574,7 +6575,8 @@ Sort Solver::declareDatatype(
 
 Term Solver::declareFun(const std::string& symbol,
                         const std::vector<Sort>& sorts,
-                        const Sort& sort) const
+                        const Sort& sort,
+                        bool fresh) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_DOMAIN_SORTS(sorts);
@@ -6587,7 +6589,27 @@ Term Solver::declareFun(const std::string& symbol,
     std::vector<internal::TypeNode> types = Sort::sortVectorToTypeNodes(sorts);
     type = d_nm->mkFunctionType(types, type);
   }
-  return Term(d_nm, d_nm->mkVar(symbol, type));
+  internal::Node res;
+  if (fresh)
+  {
+    res = d_nm->mkVar(symbol, type);
+  }
+  else
+  {
+    // to construct a variable in a canonical way, we use the skolem
+    // manager, where SkolemFunId::INPUT_VARIABLE identifies that the
+    // variable is unique.
+    std::vector<internal::Node> cnodes;
+    cnodes.push_back(d_nm->mkConst(internal::String(symbol, false)));
+    // Since we index only on Node, we must construct use mkGroundValue
+    // to construct a canonical node for the type.
+    internal::Node gt = d_nm->mkGroundValue(type);
+    cnodes.push_back(gt);
+    internal::SkolemManager* sm = d_nm->getSkolemManager();
+    res = sm->mkSkolemFunction(
+        internal::SkolemFunId::INPUT_VARIABLE, type, cnodes);
+  }
+  return Term(d_nm, res);
   ////////
   CVC5_API_TRY_CATCH_END;
 }

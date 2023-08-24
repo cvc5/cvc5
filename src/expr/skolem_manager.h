@@ -30,6 +30,8 @@ class ProofGenerator;
 enum class SkolemFunId
 {
   NONE,
+  /** input variable with a given name */
+  INPUT_VARIABLE,
   /** purification skolem for a term t */
   PURIFY,
   /** array diff to witness (not (= A B)) */
@@ -233,7 +235,8 @@ enum class SkolemFunId
   /** the "some" term, for instantiation evaluation */
   IEVAL_SOME,
   /** sygus "any constant" placeholder */
-  SYGUS_ANY_CONSTANT
+  SYGUS_ANY_CONSTANT,
+  UNKNOWN
 };
 /** Converts a skolem function name to a string. */
 const char* toString(SkolemFunId id);
@@ -444,9 +447,9 @@ class SkolemManager
    * call a public method from SkolemManager for allocating a skolem in a
    * proper way, or otherwise use SkolemManager::mkDummySkolem.
    */
-  Node mkSkolemNode(const std::string& prefix,
+  Node mkSkolemNode(Kind k,
+                    const std::string& prefix,
                     const TypeNode& type,
-                    const std::string& comment = "",
                     int flags = SKOLEM_DEFAULT);
 };
 
