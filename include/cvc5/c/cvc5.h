@@ -507,10 +507,11 @@ Cvc5Sort cvc5_sort_instantiate(Cvc5Sort sort, Cvc5Sort params[]);
  * see cvc5_sort_instantiate();
  *
  * @param sort The sort.
+ * @param size The size of the resulting array of sorts.
  * @return The sorts used to instantiate the sort parameters of a
  *         parametric sort
  */
-Cvc5Sort* cvc5_sort_get_instantiated_parameters(Cvc5Sort sort);
+Cvc5Sort* cvc5_sort_get_instantiated_parameters(Cvc5Sort sort, size_t* size);
 
 /**
  * Substitution of Sorts.
