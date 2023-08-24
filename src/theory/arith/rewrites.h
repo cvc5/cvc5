@@ -29,7 +29,9 @@ namespace arith {
  */
 enum class Rewrite : uint32_t
 {
+  // no rewrite
   NONE,
+
   // constant evaluation
   CONST_EVAL,
   // (mod x c) replaced by total (mod x c) if c != 0
@@ -65,7 +67,10 @@ enum class Rewrite : uint32_t
   // E.g. (<= (bv2nat x) N) -->
   //      (ite (>= N 2^w) true (ite (< N 0) false (bvule x ((_ int2bv w) N))
   // where N is a constant and w is the bitwidth of the type of x.
-  INEQ_BV_TO_NAT_ELIM
+  INEQ_BV_TO_NAT_ELIM,
+
+  // the rewrite was unspecified
+  UNKNOWN
 };
 
 /**

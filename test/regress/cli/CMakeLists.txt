@@ -2520,6 +2520,7 @@ set(regress_1_tests
   regress1/quantifiers/issue8881-rd-types.smt2
   regress1/quantifiers/issue9545-mini-agg.smt2
   regress1/quantifiers/issue993.smt2
+  regress1/quantifiers/issue9949.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lia-witness-div-pp.smt2
   regress1/quantifiers/lra-vts-inf.smt2
@@ -2771,6 +2772,8 @@ set(regress_1_tests
   regress1/sets/set_map_negative_members.smt2
   regress1/sets/set_map_positive_members.smt2
   regress1/sets/set_map_unsat1.smt2
+  regress1/sets/set-map-test.smt2
+  regress1/sets/set-map-test2.smt2
   regress1/sets/sharingbug.smt2
   regress1/sets/univ-set-uf-elim.smt2
   regress1/simplification_bug4.smt2

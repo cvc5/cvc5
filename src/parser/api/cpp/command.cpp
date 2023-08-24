@@ -494,19 +494,18 @@ void CheckSatAssumingCommand::toStream(std::ostream& out) const
 /* -------------------------------------------------------------------------- */
 
 DeclareSygusVarCommand::DeclareSygusVarCommand(const std::string& id,
-                                               cvc5::Term var,
                                                cvc5::Sort sort)
-    : DeclarationDefinitionCommand(id), d_var(var), d_sort(sort)
+    : DeclarationDefinitionCommand(id), d_sort(sort)
 {
 }
 
-cvc5::Term DeclareSygusVarCommand::getVar() const { return d_var; }
 cvc5::Sort DeclareSygusVarCommand::getSort() const { return d_sort; }
 
 void DeclareSygusVarCommand::invokeInternal(cvc5::Solver* solver,
                                             SymManager* sm)
 {
-  if (!bindToTerm(sm, d_var, true))
+  Term var = solver->declareSygusVar(d_symbol, d_sort);
+  if (!bindToTerm(sm, var, true))
   {
     return;
   }
@@ -521,7 +520,7 @@ std::string DeclareSygusVarCommand::getCommandName() const
 void DeclareSygusVarCommand::toStream(std::ostream& out) const
 {
   internal::Printer::getPrinter(out)->toStreamCmdDeclareVar(
-      out, termToNode(d_var), sortToTypeNode(d_sort));
+      out, d_symbol, sortToTypeNode(d_sort));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1109,23 +1108,21 @@ void DeclareOracleFunCommand::toStream(std::ostream& out) const
 /* class DeclareSortCommand                                                   */
 /* -------------------------------------------------------------------------- */
 
-DeclareSortCommand::DeclareSortCommand(const std::string& id,
-                                       size_t arity,
-                                       cvc5::Sort sort)
-    : DeclarationDefinitionCommand(id), d_arity(arity), d_sort(sort)
+DeclareSortCommand::DeclareSortCommand(const std::string& id, size_t arity)
+    : DeclarationDefinitionCommand(id), d_arity(arity)
 {
 }
 
 size_t DeclareSortCommand::getArity() const { return d_arity; }
-cvc5::Sort DeclareSortCommand::getSort() const { return d_sort; }
 void DeclareSortCommand::invokeInternal(cvc5::Solver* solver, SymManager* sm)
 {
-  sm->bindType(d_symbol, std::vector<Sort>(d_arity), d_sort);
+  Sort sort = solver->declareSort(d_symbol, d_arity);
+  sm->bindType(d_symbol, std::vector<Sort>(d_arity), sort);
   // mark that it will be printed in the model, if it is an uninterpreted
   // sort (arity 0)
   if (d_arity == 0)
   {
-    sm->addModelDeclarationSort(d_sort);
+    sm->addModelDeclarationSort(sort);
   }
   d_commandStatus = CommandSuccess::instance();
 }
@@ -1138,7 +1135,7 @@ std::string DeclareSortCommand::getCommandName() const
 void DeclareSortCommand::toStream(std::ostream& out) const
 {
   internal::Printer::getPrinter(out)->toStreamCmdDeclareType(
-      out, sortToTypeNode(d_sort));
+      out, d_symbol, d_arity);
 }
 
 /* -------------------------------------------------------------------------- */

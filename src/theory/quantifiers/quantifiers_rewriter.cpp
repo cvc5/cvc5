@@ -1937,6 +1937,21 @@ Node QuantifiersRewriter::computeAggressiveMiniscoping(std::vector<Node>& args,
   return mkForAll( args, body, qa );
 }
 
+bool QuantifiersRewriter::isStandard(const Node& q, const Options& opts)
+{
+  QAttributes qa;
+  QuantAttributes::computeQuantAttributes(q, qa);
+  return isStandard(qa, opts);
+}
+
+bool QuantifiersRewriter::isStandard(QAttributes& qa, const Options& opts)
+{
+  bool is_strict_trigger =
+      qa.d_hasPattern
+      && opts.quantifiers.userPatternsQuant == options::UserPatMode::STRICT;
+  return qa.isStandard() && !is_strict_trigger;
+}
+
 bool QuantifiersRewriter::doOperation(Node q,
                                       RewriteStep computeOption,
                                       QAttributes& qa) const
@@ -1944,7 +1959,7 @@ bool QuantifiersRewriter::doOperation(Node q,
   bool is_strict_trigger =
       qa.d_hasPattern
       && d_opts.quantifiers.userPatternsQuant == options::UserPatMode::STRICT;
-  bool is_std = qa.isStandard() && !is_strict_trigger;
+  bool is_std = isStandard(qa, d_opts);
   if (computeOption == COMPUTE_ELIM_SYMBOLS)
   {
     return true;
