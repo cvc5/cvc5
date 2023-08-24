@@ -511,7 +511,8 @@ Cvc5Sort cvc5_sort_instantiate(Cvc5Sort sort, Cvc5Sort params[]);
  * @return The sorts used to instantiate the sort parameters of a
  *         parametric sort
  */
-Cvc5Sort* cvc5_sort_get_instantiated_parameters(Cvc5Sort sort, size_t* size);
+const Cvc5Sort* cvc5_sort_get_instantiated_parameters(Cvc5Sort sort,
+                                                      size_t* size);
 
 /**
  * Substitution of Sorts.
@@ -571,7 +572,8 @@ size_t cvc5_sort_dt_constructor_get_arity(Cvc5Sort sort);
  * @param size The size of the resulting array of domain sorts.
  * @return The domain sorts of a datatype constructor sort.
  */
-Cvc5Sort* cvc5_sort_dt_constructor_get_domain(Cvc5Sort sort, size_t* size);
+const Cvc5Sort* cvc5_sort_dt_constructor_get_domain(Cvc5Sort sort,
+                                                    size_t* size);
 
 /**
  * Get the codomain sort of a datatype constructor sort.
@@ -627,9 +629,10 @@ size_t cvc5_sort_fun_get_arity(Cvc5Sort sort);
 /**
  * Get the domain of a given function sort.
  * @param sort The sort.
+ * @param size The size of the resulting array of domain sorts.
  * @return The domain sorts of a function sort.
  */
-Cvc5Sort* cvc5_sort_fun_get_domain(Cvc5Sort sort);
+const Cvc5Sort* cvc5_sort_fun_get_domain(Cvc5Sort sort, size_t* size);
 
 /**
  * Get the codomain of a given function sort.
@@ -759,9 +762,10 @@ size_t cvc5_sort_tuple_get_length(Cvc5Sort sort);
 /**
  * Get the element sorts of a tuple sort.
  * @param sort The sort.
+ * @param size The size of the resulting array of tuple element sorts.
  * @return The element sorts of a tuple sort.
  */
-Cvc5Sort* cvc5_sort_tuple_get_element_sorts(Cvc5Sort sort);
+const Cvc5Sort* cvc5_sort_tuple_get_element_sorts(Cvc5Sort sort, size_t* size);
 
 /**
  * Compute the hash value of a sort.
@@ -1224,10 +1228,10 @@ bool cvc5_term_is_tuple_value(Cvc5Term term);
  * Get a tuple value as an array of terms.
  * @note Asserts cvc5_term_is_tuple_value().
  * @param term The term.
- * @param rsize The size of the resulting array.
+ * @param size The size of the resulting array.
  * @return The representation of a tuple value as an array of terms.
  */
-const Cvc5Term* cvc5_term_get_tuple_value(Cvc5Term term, size_t* rsize);
+const Cvc5Term* cvc5_term_get_tuple_value(Cvc5Term term, size_t* size);
 
 /**
  * Determine if a given term is a floating-point rounding mode value.
@@ -1378,10 +1382,10 @@ bool cvc5_term_is_sequence_value(Cvc5Term term);
  * Get a sequence value as an array of terms.
  * @note Asserts cvc5_term_is_sequence_value().
  * @param term The term.
- * @param rsize The size of the resulting array.
+ * @param size The size of the resulting array.
  * @return The representation of a sequence value as a vector of terms.
  */
-const Cvc5Term* cvc5_term_get_sequence_value(Cvc5Term term, size_t* rsize);
+const Cvc5Term* cvc5_term_get_sequence_value(Cvc5Term term, size_t* size);
 
 /**
  * Determine if a given term is a cardinality constraint.
@@ -1751,9 +1755,10 @@ size_t cvc5_dt_get_num_constructors(const Cvc5Datatype* dt);
  * @note Asserts that this datatype is parametric.
  * @warning This function is experimental and may change in future versions.
  * @param dt The datatype.
+ * @param size The size of the resulting array.
  * @return The parameters of this datatype.
  */
-Cvc5Sort* cvc5_dt_get_parameters(const Cvc5Datatype* dt);
+const Cvc5Sort* cvc5_dt_get_parameters(const Cvc5Datatype* dt, size_t* size);
 
 /**
  * Determine if a given datatype is parametric.
@@ -1947,7 +1952,7 @@ Cvc5Sort cvc5_mk_fp_sort(Cvc5* cvc5, uint32_t exp, uint32_t sig);
 /**
  * Create a finite-field sort.
  * @param cvc5 The solver instance.
- * @param size the modulus of the field. Must be prime.
+ * @param size The modulus of the field. Must be prime.
  * @return The finite-field sort.
  */
 Cvc5Sort cvc5_mk_ff_sort(Cvc5* cvc5, const char* size);
@@ -1968,9 +1973,9 @@ Cvc5Sort cvc5_mk_dt_sort(Cvc5* cvc5, const DatatypeDecl& dtypedecl);
  * @param dtypedecls The datatype declarations from which the sort is created.
  * @return The datatype sorts.
  */
-Cvc5Sort* cvc5_mk_dt_sorts(Cvc5* cvc5,
-                           size_t size,
-                           const Cvc5DatatypeDecl* dtypedecls);
+const Cvc5Sort* cvc5_mk_dt_sorts(Cvc5* cvc5,
+                                 size_t size,
+                                 const Cvc5DatatypeDecl* dtypedecls);
 /**
  * Create function sort.
  * @param cvc5 The solver instance.
@@ -2872,10 +2877,10 @@ void cvc5_define_funs_rec(Cvc5* cvc5,
  * \endverbatim
  *
  * @param cvc5 The solver instance.
- * @param rsize The size of the resulting assertions array.
+ * @param size The size of the resulting assertions array.
  * @return The list of asserted formulas.
  */
-const Cvc5Term* cvc5_get_assertions(Cvc5* cvc5, size_t rsize);
+const Cvc5Term* cvc5_get_assertions(Cvc5* cvc5, size_t size);
 
 /**
  * Get info from the solver.
@@ -2914,10 +2919,10 @@ const char* getOption(Cvc5* cvc5, const char* option);
  * Get all option names that can be used with `cvc5_set_option()`,
  * `cvc5_get_option()` and `cvc5_get_option_info()`.
  * @param cvc5 The solver instance.
- * @param rsize The size of the resulting option names array.
+ * @param size The size of the resulting option names array.
  * @return All option names.
  */
-const char** getOptionNames(Cvc5* cvc5, size_t* rsize);
+const char** getOptionNames(Cvc5* cvc5, size_t* size);
 
 /**
  * Get the set of unsat ("failed") assumptions.
@@ -2934,10 +2939,10 @@ const char** getOptionNames(Cvc5* cvc5, size_t* rsize);
  * \endverbatim
  *
  * @param cvc5 The solver instance.
- * @param rsize The number of the resulting unsat assumptions.
+ * @param size The number of the resulting unsat assumptions.
  * @return The set of unsat assumptions.
  */
-const Cvc5Term* cvc5_get_unsat_assumptions(Cvc5* cvc5, size_t* rsize);
+const Cvc5Term* cvc5_get_unsat_assumptions(Cvc5* cvc5, size_t* size);
 
 /**
  * Get the unsatisfiable core.
@@ -2961,10 +2966,10 @@ const Cvc5Term* cvc5_get_unsat_assumptions(Cvc5* cvc5, size_t* rsize);
  * \endverbatim
  *
  * @param cvc5 The solver instance.
- * @param rsize The size of the resulting unsat core.
+ * @param size The size of the resulting unsat core.
  * @return A set of terms representing the unsatisfiable core.
  */
-const Cvc5Term* cvc5_get_unsat_core(Cvc5* cvc5, size_t* rsize);
+const Cvc5Term* cvc5_get_unsat_core(Cvc5* cvc5, size_t* size);
 
 /**
  * Get a difficulty estimate for an asserted formula. This function is
@@ -3013,12 +3018,10 @@ void cvc5_get_difficulty(Cvc5* cvc5, Cvc5Term* inputs, Cvc5Term* values);
  *
  * @param cvc5 The solver instance.
  * @param result The resulting result.
- * @param rsize The resulting size of the timeout core.
+ * @param size The resulting size of the timeout core.
  * @return The timeout core.
  */
-const Cvc5Term* cvc5_get_timeout_core(Cvc5* cvc5,
-                                      Result* result,
-                                      size_t* rsize);
+const Cvc5Term* cvc5_get_timeout_core(Cvc5* cvc5, Result* result, size_t* size);
 
 /**
  * Get a proof associated with the most recent call to checkSat.
@@ -3054,12 +3057,12 @@ const char* cvc5_get_proof(Cvc5* cvc5, Cvc5ProofComponent);
  *
  * @param cvc5 The solver instance.
  * @param t The type of learned literalsjto return
- * @param rsize The size of the resulting list of literals.
+ * @param size The size of the resulting list of literals.
  * @return A list of literals that were learned at top-level.
  */
-Cvc5Term* cvc5_get_learned_literals(Cvc5* cvc5,
-                                    Cvc5LearnedLitType,
-                                    size_t* rsize);
+const Cvc5Term* cvc5_get_learned_literals(Cvc5* cvc5,
+                                          Cvc5LearnedLitType,
+                                          size_t* size);
 
 /**
  * Get the value of the given term in the current model.
@@ -3094,7 +3097,7 @@ Cvc5Term cvc5_get_value(Cvc5* cvc5, Cvc5Term term);
  * @param terms The terms.
  * @return The values of the given terms.
  */
-Cvc5Term* cvc5_get_values(Cvc5* cvc5, size_t size, const Cvc5Term* terms);
+const Cvc5Term* cvc5_get_values(Cvc5* cvc5, size_t size, const Cvc5Term* terms);
 
 /**
  * Get the domain elements of uninterpreted sort s in the current model. The
@@ -3103,12 +3106,12 @@ Cvc5Term* cvc5_get_values(Cvc5* cvc5, size_t size, const Cvc5Term* terms);
  *
  * @param cvc5 The solver instance.
  * @param s The uninterpreted sort in question.
- * @param rsize The size of the resulting domain elements array.
+ * @param size The size of the resulting domain elements array.
  * @return The domain elements of s in the current model.
  */
-Cvc5Term* cvc5_get_model_domain_elements(Cvc5* cvc5,
-                                         Cvc5Sort* s,
-                                         size_t* rsize);
+const Cvc5Term* cvc5_get_model_domain_elements(Cvc5* cvc5,
+                                               Cvc5Sort* s,
+                                               size_t* size);
 
 /**
  * This returns false if the model value of free constant v was not essential
@@ -3744,10 +3747,10 @@ void cvc5_add_sygus_constraint(Cvc5* cvc5, Cvc5Term term);
  * Get the list of sygus constraints.
  *
  * @param cvc5 The solver instance.
- * @param rsize The size of the resulting list of sygus constraints.
+ * @param size The size of the resulting list of sygus constraints.
  * @return The list of sygus constraints.
  */
-const Cvc5Term* cvc5_get_sygus_constraints(Cvc5* cvc5);
+const Cvc5Term* cvc5_get_sygus_constraints(Cvc5* cvc5, size_t* size);
 
 /**
  * Add a forumla to the set of Sygus assumptions.
@@ -3769,10 +3772,10 @@ void cvc5_add_sygus_assume(Cvc5* cvc5, Cvc5Term term);
  * Get the list of sygus assumptions.
  *
  * @param cvc5 The solver instance.
- * @param rsize The size of the resulting list of sygus assumptions.
+ * @param size The size of the resulting list of sygus assumptions.
  * @return The list of sygus assumptions.
  */
-Cvc5Term* cvc5_get_sygus_assumptions(Cvc5* cvc5);
+const Cvc5Term* cvc5_get_sygus_assumptions(Cvc5* cvc5, size_t* size);
 
 /**
  * Add a set of Sygus constraints to the current state that correspond to an
@@ -3852,12 +3855,12 @@ Cvc5Term cvc5_get_synth_solution(Cvc5Term term);
  * called immediately after the solver answers unsat for sygus input.
  * @param cvc5 The solver instance.
  * @param terms The terms for which the synthesis solutions is queried.
- * @param rsize The size of the resulting solutions array.
+ * @param size The size of the resulting solutions array.
  * @return The synthesis solutions of the given terms.
  */
-Cvc5Term* cvc5_get_synth_solutions(Cvc5* cvc5,
-                                   const Cvc5Term* terms,
-                                   size_t* rsize);
+const Cvc5Term* cvc5_get_synth_solutions(Cvc5* cvc5,
+                                         const Cvc5Term* terms,
+                                         size_t* size);
 
 /**
  * Find a target term of interest using sygus enumeration, with no provided
