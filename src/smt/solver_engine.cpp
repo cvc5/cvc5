@@ -511,7 +511,9 @@ void SolverEngine::debugCheckFunctionBody(Node formula,
   }
 }
 
-Node SolverEngine::declareConst(const std::string& symbol, const TypeNode& tn, bool fresh)
+Node SolverEngine::declareConst(const std::string& symbol,
+                                const TypeNode& tn,
+                                bool fresh)
 {
   d_state.notifyDeclaration();
   Node res;
@@ -531,13 +533,14 @@ Node SolverEngine::declareConst(const std::string& symbol, const TypeNode& tn, b
     Node gt = d_nm->mkGroundValue(type);
     cnodes.push_back(gt);
     SkolemManager* sm = d_nm->getSkolemManager();
-    res = sm->mkSkolemFunction(
-        SkolemFunId::INPUT_VARIABLE, type, cnodes);
+    res = sm->mkSkolemFunction(SkolemFunId::INPUT_VARIABLE, type, cnodes);
   }
   return res;
 }
 
-TypeNode SolverEngine::declareSort(const std::string& symbol, uint32_t arity, bool fresh)
+TypeNode SolverEngine::declareSort(const std::string& symbol,
+                                   uint32_t arity,
+                                   bool fresh)
 {
   d_state.notifyDeclaration();
   if (arity == 0)
@@ -546,7 +549,7 @@ TypeNode SolverEngine::declareSort(const std::string& symbol, uint32_t arity, bo
   }
   return d_nm->mkSortConstructor(symbol, arity);
 }
-  
+
 void SolverEngine::defineFunction(Node func,
                                   const std::vector<Node>& formals,
                                   Node formula,

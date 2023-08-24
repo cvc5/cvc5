@@ -60,7 +60,7 @@ class SolverEngineState : protected EnvObj
    * options are finalized.
    */
   void notifyFullyInited();
-  /** 
+  /**
    * Notify there was a declaration
    */
   void notifyDeclaration();

@@ -6595,7 +6595,9 @@ Term Solver::declareFun(const std::string& symbol,
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort Solver::declareSort(const std::string& symbol, uint32_t arity, bool fresh) const
+Sort Solver::declareSort(const std::string& symbol,
+                         uint32_t arity,
+                         bool fresh) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line

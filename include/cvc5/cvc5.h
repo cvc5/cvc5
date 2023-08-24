@@ -4041,8 +4041,8 @@ class CVC5_EXPORT Solver
    * @note This corresponds to
    *       mkUninterpretedSort(const std::optional<std::string>&) const
    *       if arity = 0, and to
-   *       mkUninterpretedSortConstructorSort(size_t arity, const std::optional<std::string>&) const
-   *       if arity > 0.
+   *       mkUninterpretedSortConstructorSort(size_t arity, const
+   * std::optional<std::string>&) const if arity > 0.
    *
    * @param symbol The name of the sort.
    * @param arity The arity of the sort.
@@ -4051,8 +4051,9 @@ class CVC5_EXPORT Solver
    * for each call with the given arity and symbol where fresh is false.
    * @return The sort.
    */
-  Sort declareSort(const std::string& symbol, uint32_t arity,
-                  bool fresh = true) const;
+  Sort declareSort(const std::string& symbol,
+                   uint32_t arity,
+                   bool fresh = true) const;
 
   /**
    * Define n-ary function.
