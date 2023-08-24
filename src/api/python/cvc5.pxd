@@ -8,9 +8,8 @@ from libcpp.string cimport string
 from libcpp.vector cimport vector
 from libcpp.map cimport map
 from libcpp.pair cimport pair
-from cvc5kinds cimport Kind
-from cvc5sortkinds cimport SortKind
-from cvc5types cimport BlockModelsMode, LearnedLitType, ProofComponent, RoundingMode, UnknownExplanation
+from cvc5kinds cimport Kind, SortKind
+from cvc5types cimport BlockModelsMode, LearnedLitType, ProofComponent, RoundingMode, UnknownExplanation, FindSynthTarget
 
 
 cdef extern from "<iostream>" namespace "std":
@@ -252,6 +251,9 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         SynthResult checkSynthNext() except +
         Term getSynthSolution(Term t) except +
         vector[Term] getSynthSolutions(const vector[Term]& terms) except +
+        Term findSynth(FindSynthTarget fst) except +
+        Term findSynth(FindSynthTarget fst, Grammar grammar) except +
+        Term findSynthNext() except +
         # End of sygus related functions
 
         Term mkTrue() except +

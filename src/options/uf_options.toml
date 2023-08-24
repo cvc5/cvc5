@@ -6,7 +6,7 @@ name   = "Uninterpreted Functions Theory"
   category   = "expert"
   long       = "symmetry-breaker"
   type       = "bool"
-  default    = "true"
+  default    = "false"
   help       = "use UF symmetry breaker (Deharbe et al., CADE 2011)"
 
 [[option]]

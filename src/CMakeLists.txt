@@ -1259,7 +1259,9 @@ include_directories(. ${CMAKE_CURRENT_BINARY_DIR})
 #-----------------------------------------------------------------------------#
 # Take care of options
 
-check_python_module("toml")
+if (Python_VERSION VERSION_LESS "3.11.0")
+  check_python_module("tomli")
+endif()
 
 set(options_toml_files
   options/arith_options.toml

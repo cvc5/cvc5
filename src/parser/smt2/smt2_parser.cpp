@@ -22,7 +22,7 @@ namespace cvc5 {
 namespace parser {
 
 Smt2Parser::Smt2Parser(Solver* solver,
-                       SymbolManager* sm,
+                       SymManager* sm,
                        bool isStrict,
                        bool isSygus)
     : Parser(solver, sm),

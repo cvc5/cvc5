@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Alex Ozdemir, Aina Niemetz
+ *   Alex Ozdemir, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *

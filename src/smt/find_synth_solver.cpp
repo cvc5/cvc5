@@ -22,6 +22,7 @@
 #include "theory/quantifiers/rewrite_verifier.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus_sampler.h"
+#include "util/resource_manager.h"
 
 namespace cvc5::internal {
 namespace smt {
@@ -34,6 +35,7 @@ Node FindSynthSolver::findSynth(modes::FindSynthTarget fst,
   d_fst = fst;
   // initialize the synthesis finders
   d_sfinders.clear();
+  d_finished.clear();
   for (const TypeNode& gtn : gtns)
   {
     d_sfinders.emplace_back(new theory::quantifiers::SynthFinder(d_env));
@@ -47,42 +49,32 @@ Node FindSynthSolver::findSynthNext()
 {
   // cycle through each until one returns a solution
   Node ret;
-  std::vector<size_t> toErase;
-  while (!d_sfinders.empty())
+  ResourceManager* rm = resourceManager();
+  while (d_finished.size() < d_sfinders.size() && !rm->out())
   {
-    Assert(d_currIndex < d_sfinders.size());
-    for (size_t i = d_currIndex, nfinders = d_sfinders.size(); i < nfinders;
-         i++)
+    rm->spendResource(Resource::FindSynthStep);
+    if (d_currIndex == d_sfinders.size())
     {
-      theory::quantifiers::SynthFinder* curr = d_sfinders[i].get();
+      d_currIndex = 0;
+    }
+    if (d_finished.find(d_currIndex) == d_finished.end())
+    {
+      theory::quantifiers::SynthFinder* curr = d_sfinders[d_currIndex].get();
+      ret = curr->getCurrent();
       if (!curr->increment())
       {
-        toErase.push_back(i - toErase.size());
-        continue;
-      }
-      ret = curr->getCurrent();
-      if (!ret.isNull())
-      {
-        // found a return
-        d_currIndex = i - toErase.size();
-        break;
+        d_finished.insert(d_currIndex);
       }
     }
-    for (size_t i : toErase)
-    {
-      d_sfinders.erase(d_sfinders.begin() + i);
-    }
+    d_currIndex++;
     // if we terminated
     if (!ret.isNull())
     {
-      if (d_currIndex >= d_sfinders.size())
-      {
-        d_currIndex = 0;
-      }
       if (options().quantifiers.sygusStream)
       {
         std::ostream& out = options().base.out;
         out << "(" << d_fst << " " << ret << ")" << std::endl;
+        ret = Node::null();
       }
       else
       {

@@ -60,10 +60,10 @@ class Smt2Lexer : public Lexer
    */
   Token computeNextToken();
   /** Push a character to the stored token */
-  void pushToToken(char ch)
+  void pushToToken(int32_t ch)
   {
     Assert(ch != EOF);
-    d_token.push_back(ch);
+    d_token.push_back(static_cast<char>(ch));
   }
   //----------- Utilities for parsing the current character stream
   enum class CharacterClass
@@ -79,15 +79,15 @@ class Smt2Lexer : public Lexer
   /** The set of non-letter/non-digit characters that may occur in keywords. */
   inline static const std::string s_extraSymbolChars = "+-/*=%?!.$_~&^<>@";
   /** parse <c>, return false if <c> is not ch. */
-  bool parseLiteralChar(char ch);
+  bool parseLiteralChar(int32_t ch);
   /** parse <c>, return false if <c> is not from cc */
   bool parseChar(CharacterClass cc);
-  /** parse <c>+ from cc, return false if the next char is not from cc. */
+  /** parse <c>+ from cc, return false if the next int32_t is not from cc. */
   bool parseNonEmptyCharList(CharacterClass cc);
   /** parse <c>* from cc. */
   void parseCharList(CharacterClass cc);
   /** Return true if ch is in character class cc */
-  bool isCharacterClass(char ch, CharacterClass cc) const
+  bool isCharacterClass(int32_t ch, CharacterClass cc) const
   {
     return d_charClass[static_cast<uint8_t>(ch)] & static_cast<uint8_t>(cc);
   }

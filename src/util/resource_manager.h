@@ -89,6 +89,7 @@ enum class Resource
   SatConflictStep,
   SygusCheckStep,
   TheoryCheckStep,
+  FindSynthStep,
   Unknown
 };
 
