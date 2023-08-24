@@ -1,4 +1,5 @@
 (set-logic ALL)
+(set-info :status unsat)
 (declare-sort s 0)
 (declare-const x s)
 (assert
