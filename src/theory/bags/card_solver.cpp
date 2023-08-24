@@ -181,7 +181,12 @@ void CardSolver::addChildren(const Node& premise,
                        << std::endl;
     InferInfo i(&d_im, InferenceId::BAGS_CARD);
     i.d_premises.push_back(premise);
-    if (emptyBags.size() == 1)
+    if(emptyBags.empty())
+    {
+      // parent is empty since there are more than one child in bag.union_disjoint
+      i.d_conclusion = (parent.eqNode(empty));
+    }
+    else if (emptyBags.size() == 1)
     {
       i.d_conclusion = *emptyBags.begin();
     }
