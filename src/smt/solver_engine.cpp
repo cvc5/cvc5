@@ -511,6 +511,42 @@ void SolverEngine::debugCheckFunctionBody(Node formula,
   }
 }
 
+Node SolverEngine::declareConst(const std::string& symbol, const TypeNode& tn, bool fresh)
+{
+  d_state.notifyDeclaration();
+  Node res;
+  if (fresh)
+  {
+    res = d_nm->mkVar(symbol, type);
+  }
+  else
+  {
+    // to construct a variable in a canonical way, we use the skolem
+    // manager, where SkolemFunId::INPUT_VARIABLE identifies that the
+    // variable is unique.
+    std::vector<Node> cnodes;
+    cnodes.push_back(d_nm->mkConst(String(symbol, false)));
+    // Since we index only on Node, we must construct use mkGroundValue
+    // to construct a canonical node for the type.
+    Node gt = d_nm->mkGroundValue(type);
+    cnodes.push_back(gt);
+    SkolemManager* sm = d_nm->getSkolemManager();
+    res = sm->mkSkolemFunction(
+        SkolemFunId::INPUT_VARIABLE, type, cnodes);
+  }
+  return res;
+}
+
+TypeNode SolverEngine::declareSort(const std::string& symbol, uint32_t arity, bool fresh)
+{
+  d_state.notifyDeclaration();
+  if (arity == 0)
+  {
+    return d_nm->mkSort(symbol);
+  }
+  return d_nm->mkSortConstructor(symbol, arity);
+}
+  
 void SolverEngine::defineFunction(Node func,
                                   const std::vector<Node>& formals,
                                   Node formula,

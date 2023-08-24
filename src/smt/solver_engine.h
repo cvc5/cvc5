@@ -255,6 +255,10 @@ class CVC5_EXPORT SolverEngine
    */
   std::string getOption(const std::string& key) const;
 
+  /** */
+  Node declareConst(const std::string& symbol, const TypeNode& tn, bool fresh);
+  /** */
+  Node declareSort(const std::string& symbol, uint32_t arity, bool fresh);
   /**
    * Define function func in the current context to be:
    *   (lambda (formals) formula)
