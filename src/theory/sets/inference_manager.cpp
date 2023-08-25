@@ -181,7 +181,7 @@ void InferenceManager::split(Node n, InferenceId id, int reqPol)
   {
     Trace("sets-lemma") << "Sets::Require phase " << n << " " << (reqPol > 0)
                         << std::endl;
-    requirePhase(n, reqPol > 0);
+    preferPhase(n, reqPol > 0);
   }
 }
 
