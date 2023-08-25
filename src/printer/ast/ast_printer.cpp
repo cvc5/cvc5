@@ -265,9 +265,10 @@ void AstPrinter::toStreamCmdDefineFunction(std::ostream& out,
 }
 
 void AstPrinter::toStreamCmdDeclareType(std::ostream& out,
-                                        TypeNode type) const
+                                        const std::string& id,
+                                        size_t arity) const
 {
-  out << "DeclareType(" << type << ')' << std::endl;
+  out << "DeclareType(" << id << ", " << arity << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdDefineType(std::ostream& out,

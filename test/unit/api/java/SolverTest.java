@@ -1802,7 +1802,7 @@ class SolverTest
     Term[] unsat_core = d_solver.getUnsatCore();
 
     assertDoesNotThrow(() -> d_solver.getProof());
-    assertDoesNotThrow(() -> d_solver.getProof(ProofComponent.PROOF_COMPONENT_SAT));
+    assertDoesNotThrow(() -> d_solver.getProof(ProofComponent.SAT));
 
     d_solver.resetAssertions();
     for (Term t : unsat_core)
@@ -1862,7 +1862,7 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.getLearnedLiterals());
     d_solver.checkSat();
     assertDoesNotThrow(() -> d_solver.getLearnedLiterals());
-    assertDoesNotThrow(() -> d_solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_PREPROCESS));
+    assertDoesNotThrow(() -> d_solver.getLearnedLiterals(LearnedLitType.PREPROCESS));
   }
 
   @Test
@@ -1879,7 +1879,7 @@ class SolverTest
     d_solver.assertFormula(f0);
     d_solver.assertFormula(f1);
     d_solver.checkSat();
-    assertDoesNotThrow(() -> d_solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_INPUT));
+    assertDoesNotThrow(() -> d_solver.getLearnedLiterals(LearnedLitType.INPUT));
   }
 
   @Test
@@ -2928,7 +2928,7 @@ class SolverTest
     Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort(), g);
 
     // should enumerate based on the grammar of the function to synthesize above
-    Term t = d_solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM);
+    Term t = d_solver.findSynth(FindSynthTarget.ENUM);
     assertTrue(!t.isNull() && t.getSort().isBoolean());
   }
 
@@ -2946,7 +2946,7 @@ class SolverTest
     g.addRule(start, falsen);
 
     // should enumerate true/false
-    Term t = d_solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM, g);
+    Term t = d_solver.findSynth(FindSynthTarget.ENUM, g);
     assertTrue(!t.isNull() && t.getSort().isBoolean());
     t = d_solver.findSynthNext();
     assertTrue(!t.isNull() && t.getSort().isBoolean());

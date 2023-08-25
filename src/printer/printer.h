@@ -129,7 +129,10 @@ class CVC5_EXPORT Printer
 
   /** Print declare-sort command */
   virtual void toStreamCmdDeclareType(std::ostream& out,
-                                      TypeNode type) const;
+                                      const std::string& id,
+                                      size_t arity) const;
+  /** Variant of above that takes the type */
+  void toStreamCmdDeclareType(std::ostream& out, TypeNode type) const;
 
   /** Print define-sort command */
   virtual void toStreamCmdDefineType(std::ostream& out,
@@ -174,7 +177,7 @@ class CVC5_EXPORT Printer
 
   /** Print declare-var command */
   virtual void toStreamCmdDeclareVar(std::ostream& out,
-                                     Node var,
+                                     const std::string& id,
                                      TypeNode type) const;
 
   /** Print synth-fun command */

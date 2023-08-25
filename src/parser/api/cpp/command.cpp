@@ -57,7 +57,7 @@ std::string sexprToString(cvc5::Term sexpr)
   }
 
   // if sexpr is not a spec constant, make sure it is an array of sub-sexprs
-  Assert(sexpr.getKind() == cvc5::SEXPR);
+  Assert(sexpr.getKind() == cvc5::Kind::SEXPR);
 
   std::stringstream ss;
   auto it = sexpr.begin();
@@ -81,7 +81,7 @@ const CommandInterrupted* CommandInterrupted::s_instance =
 
 std::ostream& operator<<(std::ostream& out, const Command& c)
 {
-  c.toStream(out);
+  out << c.toString();
   return out;
 }
 
@@ -494,19 +494,18 @@ void CheckSatAssumingCommand::toStream(std::ostream& out) const
 /* -------------------------------------------------------------------------- */
 
 DeclareSygusVarCommand::DeclareSygusVarCommand(const std::string& id,
-                                               cvc5::Term var,
                                                cvc5::Sort sort)
-    : DeclarationDefinitionCommand(id), d_var(var), d_sort(sort)
+    : DeclarationDefinitionCommand(id), d_sort(sort)
 {
 }
 
-cvc5::Term DeclareSygusVarCommand::getVar() const { return d_var; }
 cvc5::Sort DeclareSygusVarCommand::getSort() const { return d_sort; }
 
 void DeclareSygusVarCommand::invokeInternal(cvc5::Solver* solver,
                                             SymManager* sm)
 {
-  if (!bindToTerm(sm, d_var, true))
+  Term var = solver->declareSygusVar(d_symbol, d_sort);
+  if (!bindToTerm(sm, var, true))
   {
     return;
   }
@@ -521,7 +520,7 @@ std::string DeclareSygusVarCommand::getCommandName() const
 void DeclareSygusVarCommand::toStream(std::ostream& out) const
 {
   internal::Printer::getPrinter(out)->toStreamCmdDeclareVar(
-      out, termToNode(d_var), sortToTypeNode(d_sort));
+      out, d_symbol, sortToTypeNode(d_sort));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -728,7 +727,7 @@ void CheckSynthCommand::invokeInternal(cvc5::Solver* solver, SymManager* sm)
       {
         cvc5::Term sol = solver->getSynthSolution(f);
         std::vector<cvc5::Term> formals;
-        if (sol.getKind() == cvc5::LAMBDA)
+        if (sol.getKind() == cvc5::Kind::LAMBDA)
         {
           formals.insert(formals.end(), sol[0].begin(), sol[0].end());
           sol = sol[1];
@@ -1109,23 +1108,21 @@ void DeclareOracleFunCommand::toStream(std::ostream& out) const
 /* class DeclareSortCommand                                                   */
 /* -------------------------------------------------------------------------- */
 
-DeclareSortCommand::DeclareSortCommand(const std::string& id,
-                                       size_t arity,
-                                       cvc5::Sort sort)
-    : DeclarationDefinitionCommand(id), d_arity(arity), d_sort(sort)
+DeclareSortCommand::DeclareSortCommand(const std::string& id, size_t arity)
+    : DeclarationDefinitionCommand(id), d_arity(arity)
 {
 }
 
 size_t DeclareSortCommand::getArity() const { return d_arity; }
-cvc5::Sort DeclareSortCommand::getSort() const { return d_sort; }
 void DeclareSortCommand::invokeInternal(cvc5::Solver* solver, SymManager* sm)
 {
-  sm->bindType(d_symbol, std::vector<Sort>(d_arity), d_sort);
+  Sort sort = solver->declareSort(d_symbol, d_arity);
+  sm->bindType(d_symbol, std::vector<Sort>(d_arity), sort);
   // mark that it will be printed in the model, if it is an uninterpreted
   // sort (arity 0)
   if (d_arity == 0)
   {
-    sm->addModelDeclarationSort(d_sort);
+    sm->addModelDeclarationSort(sort);
   }
   d_commandStatus = CommandSuccess::instance();
 }
@@ -1138,7 +1135,7 @@ std::string DeclareSortCommand::getCommandName() const
 void DeclareSortCommand::toStream(std::ostream& out) const
 {
   internal::Printer::getPrinter(out)->toStreamCmdDeclareType(
-      out, sortToTypeNode(d_sort));
+      out, d_symbol, d_arity);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1473,9 +1470,9 @@ void GetAssignmentCommand::invokeInternal(cvc5::Solver* solver, SymManager* sm)
       // Treat the expression name as a variable name as opposed to a string
       // constant to avoid printing double quotes around the name.
       cvc5::Term name = solver->mkVar(solver->getBooleanSort(), names[i]);
-      sexprs.push_back(solver->mkTerm(cvc5::SEXPR, {name, values[i]}));
+      sexprs.push_back(solver->mkTerm(cvc5::Kind::SEXPR, {name, values[i]}));
     }
-    d_result = solver->mkTerm(cvc5::SEXPR, sexprs);
+    d_result = solver->mkTerm(cvc5::Kind::SEXPR, sexprs);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (cvc5::CVC5ApiRecoverableException& e)
@@ -2190,7 +2187,8 @@ void GetTimeoutCoreCommand::printResult(cvc5::Solver* solver,
   cvc5::Result res = d_result.first;
   out << res << std::endl;
   if (res.isUnsat()
-      || (res.isUnknown() && res.getUnknownExplanation() == TIMEOUT))
+      || (res.isUnknown()
+          && res.getUnknownExplanation() == UnknownExplanation::TIMEOUT))
   {
     if (d_solver->getOption("print-cores-full") == "true")
     {
@@ -2410,7 +2408,7 @@ void GetInfoCommand::invokeInternal(cvc5::Solver* solver, SymManager* sm)
     Sort bt = solver->getBooleanSort();
     v.push_back(solver->mkVar(bt, ":" + d_flag));
     v.push_back(solver->mkVar(bt, solver->getInfo(d_flag)));
-    d_result = sexprToString(solver->mkTerm(cvc5::SEXPR, {v}));
+    d_result = sexprToString(solver->mkTerm(cvc5::Kind::SEXPR, {v}));
     d_commandStatus = CommandSuccess::instance();
   }
   catch (cvc5::CVC5ApiUnsupportedException&)

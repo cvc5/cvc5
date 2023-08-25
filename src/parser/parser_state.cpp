@@ -98,25 +98,25 @@ Kind ParserState::getKindForFunction(Term fun)
   Sort t = fun.getSort();
   if (t.isFunction())
   {
-    return APPLY_UF;
+    return Kind::APPLY_UF;
   }
   else if (t.isDatatypeConstructor())
   {
-    return APPLY_CONSTRUCTOR;
+    return Kind::APPLY_CONSTRUCTOR;
   }
   else if (t.isDatatypeSelector())
   {
-    return APPLY_SELECTOR;
+    return Kind::APPLY_SELECTOR;
   }
   else if (t.isDatatypeTester())
   {
-    return APPLY_TESTER;
+    return Kind::APPLY_TESTER;
   }
   else if (t.isDatatypeUpdater())
   {
-    return APPLY_UPDATER;
+    return Kind::APPLY_UPDATER;
   }
-  return UNDEFINED_KIND;
+  return Kind::UNDEFINED_KIND;
 }
 
 Sort ParserState::getSort(const std::string& name)
@@ -418,7 +418,7 @@ Term ParserState::mkHoApply(Term expr, const std::vector<Term>& args)
 {
   for (unsigned i = 0; i < args.size(); i++)
   {
-    expr = d_solver->mkTerm(HO_APPLY, {expr, args[i]});
+    expr = d_solver->mkTerm(Kind::HO_APPLY, {expr, args[i]});
   }
   return expr;
 }
@@ -426,15 +426,15 @@ Term ParserState::mkHoApply(Term expr, const std::vector<Term>& args)
 Term ParserState::applyTypeAscription(Term t, Sort s)
 {
   Kind k = t.getKind();
-  if (k == SET_EMPTY)
+  if (k == Kind::SET_EMPTY)
   {
     t = d_solver->mkEmptySet(s);
   }
-  else if (k == BAG_EMPTY)
+  else if (k == Kind::BAG_EMPTY)
   {
     t = d_solver->mkEmptyBag(s);
   }
-  else if (k == CONST_SEQUENCE)
+  else if (k == Kind::CONST_SEQUENCE)
   {
     if (!s.isSequence())
     {
@@ -450,20 +450,20 @@ Term ParserState::applyTypeAscription(Term t, Sort s)
     }
     t = d_solver->mkEmptySequence(s.getSequenceElementSort());
   }
-  else if (k == SET_UNIVERSE)
+  else if (k == Kind::SET_UNIVERSE)
   {
     t = d_solver->mkUniverseSet(s);
   }
-  else if (k == SEP_NIL)
+  else if (k == Kind::SEP_NIL)
   {
     t = d_solver->mkSepNil(s);
   }
-  else if (k == APPLY_CONSTRUCTOR)
+  else if (k == Kind::APPLY_CONSTRUCTOR)
   {
     std::vector<Term> children(t.begin(), t.end());
     // apply type ascription to the operator and reconstruct
     children[0] = applyTypeAscription(children[0], s);
-    t = d_solver->mkTerm(APPLY_CONSTRUCTOR, children);
+    t = d_solver->mkTerm(Kind::APPLY_CONSTRUCTOR, children);
   }
   // !!! temporary until datatypes are refactored in the new API
   Sort etype = t.getSort();
