@@ -1127,7 +1127,9 @@ DeclareSortCommand::DeclareSortCommand(const std::string& id, size_t arity)
 size_t DeclareSortCommand::getArity() const { return d_arity; }
 void DeclareSortCommand::invokeInternal(cvc5::Solver* solver, SymManager* sm)
 {
-  Sort sort = solver->declareSort(d_symbol, d_arity);
+  // determine if this will be a fresh declaration
+  bool fresh = sm->getFreshDeclarations();
+  Sort sort = solver->declareSort(d_symbol, d_arity, fresh);
   sm->bindType(d_symbol, std::vector<Sort>(d_arity), sort);
   // mark that it will be printed in the model, if it is an uninterpreted
   // sort (arity 0)

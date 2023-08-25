@@ -993,7 +993,7 @@ TypeNode NodeManager::mkSortConstructor(const std::string& name, size_t arity, b
   }
   return mkSortConstructorInternal(name, arity);
 }
-TypeNode mkSortConstructorInternal(const std::string& name, size_t arity)
+TypeNode NodeManager::mkSortConstructorInternal(const std::string& name, size_t arity)
 {
   NodeBuilder nb(this, kind::SORT_TYPE);
   TypeNode type = nb.constructTypeNode();
@@ -1047,12 +1047,12 @@ Node NodeManager::mkVar(const std::string& name, const TypeNode& type, bool fres
   // manager, where SkolemFunId::INPUT_VARIABLE identifies that the
   // variable is unique.
   std::vector<Node> cnodes;
-  cnodes.push_back(mkConst(String(symbol, false)));
+  cnodes.push_back(mkConst(String(name, false)));
   // Since we index only on Node, we must construct use mkGroundValue
   // to construct a canonical node for the tn.
-  Node gt = mkGroundValue(tn);
+  Node gt = mkGroundValue(type);
   cnodes.push_back(gt);
-  return d_skManager->mkSkolemFunction(SkolemFunId::INPUT_VARIABLE, tn, cnodes);
+  return d_skManager->mkSkolemFunction(SkolemFunId::INPUT_VARIABLE, type, cnodes);
 }
 
 Node NodeManager::mkBoundVar(const std::string& name, const TypeNode& type)
