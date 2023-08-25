@@ -1028,6 +1028,23 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.declareSort("s", 2));
     assertDoesNotThrow(() -> d_solver.declareSort("", 2));
   }
+  
+  @Test
+  void declareSortFresh()
+  {
+    Sort boolSort = d_solver.getBooleanSort();
+    Sort intSort = d_solver.getIntegerSort();
+    Term t1 = d_solver.declareSort("b", 0, true);
+    Term t2 = d_solver.declareSort("b", 0, false);
+    Term t3 = d_solver.declareSort("b", 0, false);
+    assertNotEquals(t1, t2);
+    assertNotEquals(t1, t3);
+    assertEquals(t2, t3);
+    Term t4 = d_solver.declareSort("c", 0, false);
+    assertNotEquals(t2, t4);
+    Term t5 = d_solver.declareSort("b", 1, false);
+    assertNotEquals(t2, t5);
+  }
 
   @Test
   void defineSort()

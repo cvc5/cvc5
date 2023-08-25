@@ -1174,6 +1174,20 @@ TEST_F(TestApiBlackSolver, declareSort)
   ASSERT_NO_THROW(d_solver.declareSort("", 2));
 }
 
+TEST_F(TestApiBlackSolver, declareSortFresh)
+{
+  Term t1 = d_solver.declareSort(std::string("b"), 0, true);
+  Term t2 = d_solver.declareSort(std::string("b"), 0, false);
+  Term t3 = d_solver.declareSort(std::string("b"), 0, false);
+  ASSERT_FALSE(t1 == t2);
+  ASSERT_FALSE(t1 == t3);
+  ASSERT_TRUE(t2 == t3);
+  Term t4 = d_solver.declareSort(std::string("c"), 0, false);
+  ASSERT_FALSE(t2 == t4);
+  Term t5 = d_solver.declareSort(std::string("b"), 1, false);
+  ASSERT_FALSE(t2 == t5);
+}
+
 TEST_F(TestApiBlackSolver, defineSort)
 {
   Sort sortVar0 = d_solver.mkParamSort("T0");

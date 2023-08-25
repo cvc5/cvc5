@@ -614,10 +614,9 @@ bool SymbolTable::Implementation::bindWithOverloading(const string& name,
   if (it != d_exprMap.end())
   {
     const Term& prev_bound_obj = (*it).second;
-    if (prev_bound_obj != obj)
-    {
-      return d_overload_trie.bind(name, prev_bound_obj, obj);
-    }
+    // bind here even if prev_bound_obj is obj (which can happen when
+    // --no-fresh-declarations), since we don't want repeated declare-fun.
+    return d_overload_trie.bind(name, prev_bound_obj, obj);
   }
   return true;
 }
