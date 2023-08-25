@@ -182,7 +182,7 @@ void TermRegistry::preRegisterTerm(TNode n)
   Kind k = n.getKind();
   if (k == STRING_IN_REGEXP)
   {
-    d_im->requirePhase(n, true);
+    d_im->preferPhase(n, true);
   }
   else if (k == STRING_TO_CODE)
   {
@@ -440,7 +440,7 @@ void TermRegistry::registerTermAtomic(Node n, LengthStatus s)
   }
   for (const std::pair<const Node, bool>& rp : reqPhase)
   {
-    d_im->requirePhase(rp.first, rp.second);
+    d_im->preferPhase(rp.first, rp.second);
   }
 }
 
@@ -527,7 +527,7 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
   if (!case_emptyr.isConst())
   {
     // prefer trying the empty case first
-    // notice that requirePhase must only be called on rewritten literals that
+    // notice that preferPhase must only be called on rewritten literals that
     // occur in the CNF stream.
     n_len_eq_z = rewrite(n_len_eq_z);
     Assert(!n_len_eq_z.isConst());
