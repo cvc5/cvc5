@@ -47,7 +47,15 @@ void InputParser::initialize()
   if (info.setByUser)
   {
     internal::LogicInfo tmp(info.stringValue());
-    d_sm->get()->setLogic(tmp.getLogicString(), true);
+    std::string logic = tmp.getLogicString();
+    // Setting the logic in the symbol manager for the first time
+    // corresponds to setting the logic in the solver.
+    SymManager * sm = d_sm->get();
+    if (!sm->isLogicSet())
+    {
+      d_solver->setLogic(logic);
+    }
+    sm->setLogic(logic, true);
   }
   info = d_solver->getOptionInfo("global-declarations");
   if (info.setByUser)
@@ -62,29 +70,33 @@ void InputParser::initialize()
   // notice that we don't create the parser object until the input is set.
 }
 
+void InputParser::initializeInternal()
+{
+  SymManager * sm = d_sm->get();
+  // If we have already set the logic in the symbol manager, set it in the
+  // parser, which impacts which symbols are created.
+  if (sm->isLogicSet())
+  {
+    d_parser->setLogic(sm->getLogic());
+  }
+}
+
 Solver* InputParser::getSolver() { return d_solver; }
 
 SymbolManager* InputParser::getSymbolManager() { return d_sm; }
 
-void InputParser::setLogic(const std::string& name)
-{
-  Assert(d_fparser != nullptr);
-  d_sm->get()->setLogic(name);
-  d_fparser->setLogic(name);
-}
-
 std::unique_ptr<Command> InputParser::nextCommand()
 {
-  Assert(d_fparser != nullptr);
+  Assert(d_parser != nullptr);
   Trace("parser") << "nextCommand()" << std::endl;
-  return d_fparser->nextCommand();
+  return d_parser->nextCommand();
 }
 
 Term InputParser::nextExpression()
 {
-  Assert(d_fparser != nullptr);
+  Assert(d_parser != nullptr);
   Trace("parser") << "nextExpression()" << std::endl;
-  return d_fparser->nextExpression();
+  return d_parser->nextExpression();
 }
 
 void InputParser::setFileInput(const std::string& lang,
@@ -92,8 +104,9 @@ void InputParser::setFileInput(const std::string& lang,
 {
   Trace("parser") << "setFileInput(" << lang << ", " << filename << ")"
                   << std::endl;
-  d_fparser = Parser::mkParser(lang, d_solver, d_sm->get());
-  d_fparser->setFileInput(filename);
+  d_parser = Parser::mkParser(lang, d_solver, d_sm->get());
+  initializeInternal();
+  d_parser->setFileInput(filename);
 }
 
 void InputParser::setStreamInput(const std::string& lang,
@@ -102,8 +115,9 @@ void InputParser::setStreamInput(const std::string& lang,
 {
   Trace("parser") << "setStreamInput(" << lang << ", ..., " << name << ")"
                   << std::endl;
-  d_fparser = Parser::mkParser(lang, d_solver, d_sm->get());
-  d_fparser->setStreamInput(input, name);
+  d_parser = Parser::mkParser(lang, d_solver, d_sm->get());
+  initializeInternal();
+  d_parser->setStreamInput(input, name);
 }
 
 void InputParser::setIncrementalStringInput(const std::string& lang,
@@ -114,18 +128,19 @@ void InputParser::setIncrementalStringInput(const std::string& lang,
   d_istringLang = lang;
   d_istringName = name;
   // initialize the parser
-  d_fparser = Parser::mkParser(lang, d_solver, d_sm->d_sm.get());
+  d_parser = Parser::mkParser(lang, d_solver, d_sm->d_sm.get());
+  initializeInternal();
 }
 void InputParser::appendIncrementalStringInput(const std::string& input)
 {
-  Assert(d_fparser != nullptr);
+  Assert(d_parser != nullptr);
   Trace("parser") << "appendIncrementalStringInput(...)" << std::endl;
-  d_fparser->setStringInput(input, d_istringName);
+  d_parser->setStringInput(input, d_istringName);
 }
 
 bool InputParser::done() const
 {
-  return d_fparser == nullptr || d_fparser->done();
+  return d_parser == nullptr || d_parser->done();
 }
 
 }  // namespace parser

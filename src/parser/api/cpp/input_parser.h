@@ -62,12 +62,6 @@ class CVC5_EXPORT InputParser
   Solver* getSolver();
   /** Get the underlying symbol manager of this input parser */
   SymbolManager* getSymbolManager();
-  /**
-   * Set the logic to use. This determines which builtin symbols are included.
-   *
-   * @param name The name of the logic.
-   */
-  void setLogic(const std::string& name);
   /** Set the input for the given file.
    *
    * @param lang the input language
@@ -122,6 +116,11 @@ class CVC5_EXPORT InputParser
  private:
   /** Initialize this input parser, called during construction */
   void initialize();
+  /**
+   * Initialize the internal parser, called immediately after d_parser
+   * is constructed.
+   */
+  void initializeInternal();
   /** Solver */
   Solver* d_solver;
   /** The allocated symbol manager */
@@ -133,7 +132,7 @@ class CVC5_EXPORT InputParser
   /** Incremental string name */
   std::string d_istringName;
   /** The parser */
-  std::shared_ptr<Parser> d_fparser;
+  std::shared_ptr<Parser> d_parser;
 };
 
 }  // namespace parser
