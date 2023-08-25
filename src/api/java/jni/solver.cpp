@@ -1718,7 +1718,8 @@ Java_io_github_cvc5_Solver_declareFun__JLjava_lang_String_2_3JJZ(
  * Method:    declareSort
  * Signature: (JLjava/lang/String;I)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_declareSort__JLjava_lang_String_2I(
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_Solver_declareSort__JLjava_lang_String_2I(
     JNIEnv* env, jobject, jlong pointer, jstring jSymbol, jint arity)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1735,15 +1736,20 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_declareSort__JLjava_lang_Stri
  * Method:    declareSort
  * Signature: (JLjava/lang/String;IZ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_declareSort__JLjava_lang_String_2IZ(
-    JNIEnv* env, jobject, jlong pointer, jstring jSymbol, jint arity,
-    jboolean fresh)
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_Solver_declareSort__JLjava_lang_String_2IZ(JNIEnv* env,
+                                                               jobject,
+                                                               jlong pointer,
+                                                               jstring jSymbol,
+                                                               jint arity,
+                                                               jboolean fresh)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   const char* s = env->GetStringUTFChars(jSymbol, nullptr);
   std::string cSymbol(s);
-  Sort* retPointer = new Sort(solver->declareSort(cSymbol, (uint32_t)arity, (bool)fresh));
+  Sort* retPointer =
+      new Sort(solver->declareSort(cSymbol, (uint32_t)arity, (bool)fresh));
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
