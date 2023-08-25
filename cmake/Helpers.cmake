@@ -257,5 +257,5 @@ function(check_python_module module)
 endfunction()
 
 macro(find_supported_python_version)
-  find_package(Python 3.11 EXACT COMPONENTS Interpreter REQUIRED)
+  find_package(Python COMPONENTS Interpreter REQUIRED)
 endmacro()
