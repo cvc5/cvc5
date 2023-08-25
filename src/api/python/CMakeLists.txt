@@ -25,7 +25,10 @@ check_python_module("setuptools")
 execute_process(
   COMMAND
     ${Python_EXECUTABLE} -c "from __future__ import print_function; \
-      import os; import skbuild; \
+      import os; import sys; \
+      sys.stdout = open(os.devnull, 'w'); \
+      import skbuild; \
+      sys.stdout = sys.__stdout__; \
       cmake_module_path=os.path.join(os.path.dirname(skbuild.__file__), \
         'resources', 'cmake'); print(cmake_module_path, end='')"
   OUTPUT_VARIABLE
