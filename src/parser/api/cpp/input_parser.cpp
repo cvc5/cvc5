@@ -50,7 +50,7 @@ void InputParser::initialize()
     std::string logic = tmp.getLogicString();
     // Setting the logic in the symbol manager for the first time
     // corresponds to setting the logic in the solver.
-    SymManager * sm = d_sm->get();
+    SymManager* sm = d_sm->get();
     if (!sm->isLogicSet())
     {
       d_solver->setLogic(logic);
@@ -72,7 +72,7 @@ void InputParser::initialize()
 
 void InputParser::initializeInternal()
 {
-  SymManager * sm = d_sm->get();
+  SymManager* sm = d_sm->get();
   // If we have already set the logic in the symbol manager, set it in the
   // parser, which impacts which symbols are created.
   if (sm->isLogicSet())
