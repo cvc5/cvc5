@@ -225,6 +225,10 @@ class CVC5_EXPORT SymManager
   void setGlobalDeclarations(bool flag);
   /** Get global declarations flag. */
   bool getGlobalDeclarations() const;
+  /** Set fresh declarations to the value flag. */
+  void setFreshDeclarations(bool flag);
+  /** Get fresh declarations flag. */
+  bool getFreshDeclarations() const;
   /**
    * Set the last abduct or interpolant to synthesize had the given name. This
    * is required since e.g. get-abduct-next must know the name of the
@@ -262,6 +266,11 @@ class CVC5_EXPORT SymManager
    * SMT-LIB option :global-declarations. By default, its value is false.
    */
   bool d_globalDeclarations;
+  /**
+   * Whether the fresh declarations option is enabled. By default, its value is
+   * true.
+   */
+  bool d_freshDeclarations;
   /** Whether the logic has been forced with --force-logic. */
   bool d_logicIsForced;
   /** The logic. */

@@ -65,6 +65,7 @@ class AstPrinter : public cvc5::internal::Printer
   /** Print declare-fun command */
   void toStreamCmdDeclareFunction(std::ostream& out,
                                   const std::string& id,
+                                  const std::vector<TypeNode>& argTypes,
                                   TypeNode type) const override;
 
   /** Print declare-sort command */
