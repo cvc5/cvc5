@@ -1028,7 +1028,7 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.declareSort("s", 2));
     assertDoesNotThrow(() -> d_solver.declareSort("", 2));
   }
-  
+
   @Test
   void declareSortFresh()
   {
