@@ -6589,7 +6589,9 @@ Term Solver::declareFun(const std::string& symbol,
     std::vector<internal::TypeNode> types = Sort::sortVectorToTypeNodes(sorts);
     type = d_nm->mkFunctionType(types, type);
   }
-  internal::Node res = d_slv->declareConst(symbol, type, fresh);
+  internal::Node res = d_nm->mkVar(symbol, type, fresh);
+  // notify the solver engine of the declaration
+  d_slv->declareConst(res);
   return Term(d_nm, res);
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -6601,7 +6603,9 @@ Sort Solver::declareSort(const std::string& symbol,
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  internal::TypeNode type = d_slv->declareSort(symbol, arity, fresh);
+  internal::TypeNode type = d_nm->mkSortConstructor(symbol, arity, fresh);
+  // notify the solver engine of the declaration
+  d_slv->declareSort(type);
   return Sort(d_nm, type);
   ////////
   CVC5_API_TRY_CATCH_END;

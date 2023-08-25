@@ -43,13 +43,11 @@ using Record = std::vector<std::pair<std::string, TypeNode>>;
 class ResourceManager;
 class SkolemManager;
 class BoundVarManager;
-class SolverEngine;
 
 class DType;
 class Oracle;
 class Integer;
 class Rational;
-
 
 namespace expr {
 
@@ -70,7 +68,6 @@ class TypeChecker;
 class NodeManager
 {
   friend class cvc5::Solver;
-  friend class SolverEngine;
   friend class expr::NodeValue;
   friend class expr::TypeChecker;
   friend class SkolemManager;
@@ -712,13 +709,13 @@ class NodeManager
   TypeNode mkSort();
 
   /** Make a new sort with the given name of arity 0. */
-  TypeNode mkSort(const std::string& name);
+  TypeNode mkSort(const std::string& name, bool fresh=true);
 
   /** Make a new sort by parameterizing the given sort constructor. */
   TypeNode mkSort(TypeNode constructor, const std::vector<TypeNode>& children);
 
   /** Make a new sort with the given name and arity. */
-  TypeNode mkSortConstructor(const std::string& name, size_t arity);
+  TypeNode mkSortConstructor(const std::string& name, size_t arity, bool fresh=true);
 
   /** Make an unresolved datatype sort */
   TypeNode mkUnresolvedDatatypeSort(const std::string& name, size_t arity = 0);
@@ -955,11 +952,14 @@ class NodeManager
    * submodule is the interface for constructing internal variables
    * (see expr/skolem_manager.h).
    */
-  Node mkVar(const std::string& name, const TypeNode& type);
+  Node mkVar(const std::string& name, const TypeNode& type, bool fresh=true);
 
   /** Create a variable with the given type. */
   Node mkVar(const TypeNode& type);
 
+  /** Make a new sort with the given name and arity. */
+  TypeNode mkSortConstructorInternal(const std::string& name, size_t arity);
+  
   /** The skolem manager */
   std::unique_ptr<SkolemManager> d_skManager;
   /** The bound variable manager */
@@ -1021,6 +1021,9 @@ class NodeManager
 
   /** A list of oracles owned by this node manager */
   std::vector<std::unique_ptr<Oracle>> d_oracles;
+  
+  /** A mapping for sorts allocated by mkSortConstructor where fresh is false */
+  std::map<std::pair<std::string, size_t>, TypeNode> d_nfreshSorts;
 
   TupleTypeCache d_tt_cache;
   RecTypeCache d_rt_cache;
