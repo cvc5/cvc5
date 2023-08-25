@@ -31,6 +31,15 @@ InputParser::InputParser(Solver* solver, SymbolManager* sm)
 {
   initialize();
 }
+InputParser::InputParser(Solver* solver, const std::string& logic)
+    : d_solver(solver),
+      d_allocSm(new SymbolManager(solver)),
+      d_sm(d_allocSm.get())
+{
+  // set the provided logic
+  d_sm->get()->setLogic(logic);
+  initialize();
+}
 
 InputParser::InputParser(Solver* solver)
     : d_solver(solver),

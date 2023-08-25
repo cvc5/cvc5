@@ -48,9 +48,17 @@ class CVC5_EXPORT InputParser
    *
    * @param solver The solver (e.g. for constructing terms and sorts)
    * @param sm The symbol manager, which contains a symbol table that maps
-   * symbols to terms and sorts.
+   * symbols to terms and sorts. We additionally use the logic that was
+   * assigned to this symbol manager, if applicable.
    */
   InputParser(Solver* solver, SymbolManager* sm);
+  /**
+   * Construct an input parser with asymbol manager with the given logic.
+   *
+   * @param solver The solver (e.g. for constructing terms and sorts)
+   * @param logic The logic to use.
+   */
+  InputParser(Solver* solver, const std::string& logic);
   /**
    * Construct an input parser with an initially empty symbol manager.
    *
