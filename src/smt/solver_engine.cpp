@@ -82,9 +82,9 @@
 #include "util/random.h"
 #include "util/rational.h"
 #include "util/resource_manager.h"
-#include "util/string.h"
 #include "util/sexpr.h"
 #include "util/statistics_registry.h"
+#include "util/string.h"
 
 // required for hacks related to old proofs for unsat cores
 #include "base/configuration.h"
@@ -512,10 +512,7 @@ void SolverEngine::debugCheckFunctionBody(Node formula,
   }
 }
 
-void SolverEngine::declareConst(const Node& c)
-{
-  d_state->notifyDeclaration();
-}
+void SolverEngine::declareConst(const Node& c) { d_state->notifyDeclaration(); }
 
 void SolverEngine::declareSort(const TypeNode& tn)
 {

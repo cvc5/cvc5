@@ -976,13 +976,16 @@ TypeNode NodeManager::mkSort(TypeNode constructor,
   return nb.constructTypeNode();
 }
 
-TypeNode NodeManager::mkSortConstructor(const std::string& name, size_t arity, bool fresh)
+TypeNode NodeManager::mkSortConstructor(const std::string& name,
+                                        size_t arity,
+                                        bool fresh)
 {
   if (!fresh)
   {
     std::pair<std::string, size_t> key(name, arity);
-    std::map<std::pair<std::string, size_t>, TypeNode>::iterator it = d_nfreshSorts.find(key);
-    if (it!=d_nfreshSorts.end())
+    std::map<std::pair<std::string, size_t>, TypeNode>::iterator it =
+        d_nfreshSorts.find(key);
+    if (it != d_nfreshSorts.end())
     {
       return it->second;
     }
@@ -993,12 +996,13 @@ TypeNode NodeManager::mkSortConstructor(const std::string& name, size_t arity, b
   }
   return mkSortConstructorInternal(name, arity);
 }
-TypeNode NodeManager::mkSortConstructorInternal(const std::string& name, size_t arity)
+TypeNode NodeManager::mkSortConstructorInternal(const std::string& name,
+                                                size_t arity)
 {
   NodeBuilder nb(this, kind::SORT_TYPE);
   TypeNode type = nb.constructTypeNode();
   setAttribute(type, expr::VarNameAttr(), name);
-  if (arity>0)
+  if (arity > 0)
   {
     setAttribute(type, expr::SortArityAttr(), arity);
   }
@@ -1033,7 +1037,9 @@ const Oracle& NodeManager::getOracleFor(const Node& n) const
   return *d_oracles[index];
 }
 
-Node NodeManager::mkVar(const std::string& name, const TypeNode& type, bool fresh)
+Node NodeManager::mkVar(const std::string& name,
+                        const TypeNode& type,
+                        bool fresh)
 {
   if (fresh)
   {
@@ -1052,7 +1058,8 @@ Node NodeManager::mkVar(const std::string& name, const TypeNode& type, bool fres
   // to construct a canonical node for the tn.
   Node gt = mkGroundValue(type);
   cnodes.push_back(gt);
-  return d_skManager->mkSkolemFunction(SkolemFunId::INPUT_VARIABLE, type, cnodes);
+  return d_skManager->mkSkolemFunction(
+      SkolemFunId::INPUT_VARIABLE, type, cnodes);
 }
 
 Node NodeManager::mkBoundVar(const std::string& name, const TypeNode& type)
