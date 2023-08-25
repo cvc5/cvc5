@@ -53,11 +53,9 @@ from enum import Enum
 
 class {enum}(Enum):
     """The {enum} enum"""
-    def __new__(cls, value, doc):
-        self = object.__new__(cls)
+    def __init__(self, value, doc):
         self._value_ = value
         self.__doc__ = doc
-        return self
 '''
 
 ENUMS_ATTR_TEMPLATE = r'''    {name}=c_{enum}.{cpp_name}, """{doc}"""
