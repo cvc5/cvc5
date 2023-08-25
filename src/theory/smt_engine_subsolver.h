@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -129,6 +129,20 @@ Result checkWithSubsolver(Node query,
 
 //--------------- utilities
 
+/**
+ * Assert formulas in core to subsolver.
+ *
+ * @param subsolver The subsolver to assert to
+ * @param core The formulas to assert
+ * @param defs The subset of core that are (recursive or ordinary) function
+ * definitions. Ordinary function definitions are sent to the subsolver via
+ * the defineFunction interface.
+ * @param removed The subset of core that should be excluded from consideration.
+ */
+void assertToSubsolver(SolverEngine& subsolver,
+                       const std::vector<Node>& core,
+                       const std::unordered_set<Node>& defs,
+                       const std::unordered_set<Node>& removed);
 /**
  * Assuming smt has just been called to check-sat and returned "SAT", this
  * method adds the model for d_vars to mvs.

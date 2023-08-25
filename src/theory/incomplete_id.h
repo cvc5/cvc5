@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Mudathir Mohamed, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,18 +24,28 @@ namespace cvc5::internal {
 namespace theory {
 
 /**
- * Reasons for incompleteness in cvc5.
+ * Reasons for answering "unknown" in cvc5.
+ *
+ * Note that this enumeration is used both for marking incomplete in a
+ * SAT context, and marking unsound in a user context, both of which may
+ * imply that we are "unknown".
  */
 enum class IncompleteId
 {
+  // there is no marked incompleteness
+  NONE,
   // the non-linear arithmetic solver was disabled
   ARITH_NL_DISABLED,
   // the non-linear arithmetic solver was incomplete
   ARITH_NL,
   // incomplete due to lack of a complete quantifiers strategy
   QUANTIFIERS,
-  // we failed to verify the correctness of a candidate solution in SyGuS
+  // (refutation unsound) we failed to verify the correctness of a candidate
+  // solution in SyGuS and blocked it to make progress
   QUANTIFIERS_SYGUS_NO_VERIFY,
+  // (refutation unsound) we are generalizing any-constants when blocking with
+  // smart enumeration
+  QUANTIFIERS_SYGUS_SMART_BLOCK_ANY_CONSTANT,
   // incomplete due to counterexample-guided instantiation not being complete
   QUANTIFIERS_CEGQI,
   // incomplete due to finite model finding not being complete
@@ -74,6 +84,7 @@ enum class IncompleteId
   // the prop layer stopped search
   STOP_SEARCH,
   //------------------- unknown
+  // the reason for the incompleteness is unknown
   UNKNOWN
 };
 

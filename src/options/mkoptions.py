@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ###############################################################################
 # Top contributors (to current version):
-#   Gereon Kremer, Mathias Preiner, Andres Noetzli
+#   Gereon Kremer, Mathias Preiner, Alex Ozdemir
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -50,7 +50,10 @@ import os
 import re
 import sys
 import textwrap
-import toml
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
 
 ### Allowed attributes for module/option
 
@@ -204,6 +207,9 @@ class Option(object):
     def __str__(self):
         return self.long_name if self.long_name else self.name
 
+    def enum_name(self):
+        return str(self).replace("-","_").upper()
+
 
 ################################################################################
 ################################################################################
@@ -272,9 +278,40 @@ def generate_holder_mem_copy(modules):
 def generate_public_includes(modules):
     """Generates the list of includes for options_public.cpp."""
     headers = set()
+    headers.add(format_include("<unordered_map>"))
     for _, option in all_options(modules):
         headers.update([format_include(x) for x in option.includes])
     return '\n'.join(headers)
+
+
+def generate_option_enum_and_table(modules):
+    """
+    Generate an enum class OptionEnum with one variant for each option.
+    Also, generate a map NAME_TO_ENUM from string names to enum variants.
+
+    This enum is used to branch (in C++) on an option string name.
+    First, you lookup the enum in the map.
+    Then, you switch-case on the enum, which generates a jump table.
+
+    When we measured, this was about 5x faster than a huge if-else chain.
+    It would probably be even faster with a better hash function.
+    """
+    res = []
+    res.append('enum class OptionEnum {')
+    for module, option in all_options(modules, True):
+        if not option.long:
+            continue
+        res.append('  {n},'.format(n=option.enum_name()))
+    res.append('};')
+    res.append('const std::unordered_map<std::string, OptionEnum> NAME_TO_ENUM = {')
+    for module, option in all_options(modules, True):
+        if not option.long:
+            continue
+        for name in option.names:
+            res.append('  {{ \"{}\", OptionEnum::{} }},'
+                       .format(name, option.enum_name()))
+    res.append('};')
+    return '\n    '.join(res)
 
 
 def generate_getnames_impl(modules):
@@ -289,10 +326,14 @@ def generate_getnames_impl(modules):
 def generate_get_impl(modules):
     """Generates the implementation for options::get()."""
     res = []
+    res.append('auto it = NAME_TO_ENUM.find(name);')
+    res.append('if (it == NAME_TO_ENUM.end()) {')
+    res.append('  throw OptionException(\"Unrecognized option key or setting: \" + name);')
+    res.append('}')
+    res.append('switch (it->second) {')
     for module, option in all_options(modules, True):
         if not option.name or not option.long:
             continue
-        cond = ' || '.join(['name == "{}"'.format(x) for x in option.names])
         ret = None
         if option.type == 'bool':
             ret = 'return options.{}.{} ? "true" : "false";'.format(
@@ -305,7 +346,12 @@ def generate_get_impl(modules):
         else:
             ret = '{{ std::stringstream s; s << options.{}.{}; return s.str(); }}'.format(
                 module.id, option.name)
-        res.append('if ({}) {}'.format(cond, ret))
+        res.append('  case OptionEnum::{}: {}'.format(option.enum_name(), ret))
+    res.append('  default:'.format(option.enum_name()))
+    res.append('  {')
+    res.append('    throw OptionException(\"Ungettable option key or setting: \" + name);')
+    res.append('  }')
+    res.append('}')
     return '\n    '.join(res)
 
 
@@ -341,34 +387,46 @@ def _set_predicates(module, option):
 def generate_set_impl(modules):
     """Generates the implementation for options::set()."""
     res = []
+    res.append('auto it = NAME_TO_ENUM.find(name);')
+    res.append('if (it == NAME_TO_ENUM.end()) {')
+    res.append('  throw OptionException(\"Unrecognized option key or setting: \" + name);')
+    res.append('}')
+    res.append('switch (it->second) {')
     for module, option in all_options(modules, True):
         if not option.long:
             continue
-        cond = ' || '.join(['name == "{}"'.format(x) for x in option.names])
-        if res:
-            res.append('}} else if ({}) {{'.format(cond))
-        else:
-            res.append('if ({}) {{'.format(cond))
-        res.append('  auto value = {};'.format(_set_handlers(option)))
+        res.append('  case OptionEnum::{}:'.format(option.enum_name()))
+        res.append('  {')
+        res.append('    auto value = {};'.format(_set_handlers(option)))
         for pred in _set_predicates(module, option):
-            res.append('  {}'.format(pred))
+            res.append('    {}'.format(pred))
         if option.name:
-            res.append('  opts.write{module}().{name} = value;'.format(
+            res.append('    opts.write{module}().{name} = value;'.format(
                 module=module.id_capitalized, name=option.name))
-            res.append('  opts.write{module}().{name}WasSetByUser = true;'.format(
+            res.append('    opts.write{module}().{name}WasSetByUser = true;'.format(
                 module=module.id_capitalized, name=option.name))
+        res.append('    break;')
+        res.append('  }')
+    res.append('}')
     return '\n    '.join(res)
 
+def cpp_category(category):
+    assert category
+    return f'OptionInfo::Category::{category.upper()}'
 
 def generate_getinfo_impl(modules):
     """Generates the implementation for options::getInfo()."""
     res = []
+    res.append('auto it = NAME_TO_ENUM.find(name);')
+    res.append('if (it == NAME_TO_ENUM.end()) {')
+    res.append('  throw OptionException(\"Unrecognized option key or setting: \" + name);')
+    res.append('}')
+    res.append('switch (it->second) {')
     for module, option in all_options(modules, True):
         if not option.long:
             continue
         constr = None
         fmt = {
-            'condition': ' || '.join(['name == "{}"'.format(x) for x in option.names]),
             'name': option.long_name,
             'alias': '',
             'type': option.type,
@@ -377,6 +435,7 @@ def generate_getinfo_impl(modules):
             'default': option.default if option.default else '{}()'.format(option.type),
             'minimum': option.minimum if option.minimum else '{}',
             'maximum': option.maximum if option.maximum else '{}',
+            'category': cpp_category(option.category)
         }
         if option.alias:
             fmt['alias'] = ', '.join(map(lambda s: '"{}"'.format(s), option.alias))
@@ -394,8 +453,10 @@ def generate_getinfo_impl(modules):
             constr = 'OptionInfo::ModeInfo{{"{default}", {value}, {{ {modes} }}}}'
         else:
             constr = 'OptionInfo::VoidInfo{{}}'
-        line = 'if ({condition}) return OptionInfo{{"{name}", {{{alias}}}, {setbyuser}, ' + constr + '}};'
+        res.append("  case OptionEnum::{}:".format(option.enum_name()))
+        line = '    return OptionInfo{{"{name}", {{{alias}}}, {setbyuser}, {category}, ' + constr + '}};'
         res.append(line.format(**fmt))
+    res.append("}")
     return '\n  '.join(res)
 
 
@@ -659,6 +720,7 @@ def _cli_help_wrap(help_msg, opts):
 def generate_cli_help(modules):
     """Generate the output for --help."""
     common = []
+    regular = []
     others = []
     for module in modules:
         if not module.options:
@@ -681,7 +743,9 @@ def generate_cli_help(modules):
                     common.extend(res)
                 else:
                     others.extend(res)
-    return '\n'.join(common), '\n'.join(others)
+                    if option.category == 'regular':
+                        regular.extend(res)
+    return '\n'.join(common), '\n'.join(others), '\n'.join(regular)
 
 
 ################################################################################
@@ -904,7 +968,7 @@ def codegen_module(module, dst_dir, tpls):
 def codegen_all_modules(modules, src_dir, build_dir, dst_dir, tpls):
     """Generate code for all option modules."""
     short, cmdline_opts, parseinternal = generate_parsing(modules)
-    help_common, help_others = generate_cli_help(modules)
+    help_common, help_others, help_regular = generate_cli_help(modules)
 
     if os.path.isdir('{}/docs/'.format(build_dir)):
         write_file('{}/docs/'.format(build_dir), 'options_generated.rst',
@@ -933,12 +997,14 @@ def codegen_all_modules(modules, src_dir, build_dir, dst_dir, tpls):
         # options/options_public.cpp
         'options_includes': generate_public_includes(modules),
         'getnames_impl': generate_getnames_impl(modules),
+        'option_enum_and_table': generate_option_enum_and_table(modules),
         'get_impl': generate_get_impl(modules),
         'set_impl': generate_set_impl(modules),
         'getinfo_impl': generate_getinfo_impl(modules),
         # main/options.cpp
         'help_common': help_common,
         'help_others': help_others,
+        'help_regular': help_regular,
         'cmdoptions_long': cmdline_opts,
         'cmdoptions_short': short,
         'parseinternal_impl': parseinternal,
@@ -1107,7 +1173,8 @@ def mkoptions_main():
     checker = Checker()
     modules = []
     for filename in filenames:
-        data = toml.load(filename)
+        with open(filename, "rb") as f:
+            data = tomllib.load(f)
         module = checker.check_module(data, filename)
         if 'option' in data:
             module.options = sorted(

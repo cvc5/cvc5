@@ -89,6 +89,15 @@ operator BITVECTOR_SLTBV 2 "bit-vector signed less than but returns bv of size 1
 operator BITVECTOR_REDAND 1 "bit-vector redand"
 operator BITVECTOR_REDOR 1 "bit-vector redor"
 
+## overflow kinds
+operator BITVECTOR_UADDO 2 "bit-vector unsigned addition overflow predicate"
+operator BITVECTOR_SADDO 2 "bit-vector signed addition overflow predicate"
+operator BITVECTOR_UMULO 2 "bit-vector unsigned multiplication overflow predicate"
+operator BITVECTOR_SMULO 2 "bit-vector signed multiplication overflow predicate"
+operator BITVECTOR_USUBO 2 "bit-vector unsigned subtraction overflow predicate"
+operator BITVECTOR_SSUBO 2 "bit-vector signed subtraction overflow predicate"
+operator BITVECTOR_SDIVO 2 "bit-vector signed division overflow predicate"
+
 ## if-then-else kind
 operator BITVECTOR_ITE 3 "same semantics as regular ITE, but condition is bv of size 1 instead of Boolean"
 
@@ -210,6 +219,15 @@ typerule BITVECTOR_ITE ::cvc5::internal::theory::bv::BitVectorITETypeRule
 ## reduction kinds
 typerule BITVECTOR_REDAND ::cvc5::internal::theory::bv::BitVectorRedTypeRule
 typerule BITVECTOR_REDOR ::cvc5::internal::theory::bv::BitVectorRedTypeRule
+
+## overflow kinds
+typerule BITVECTOR_UADDO ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
+typerule BITVECTOR_SADDO ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
+typerule BITVECTOR_UMULO ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
+typerule BITVECTOR_SMULO ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
+typerule BITVECTOR_USUBO ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
+typerule BITVECTOR_SSUBO ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
+typerule BITVECTOR_SDIVO ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
 
 ## internal kinds
 typerule BITVECTOR_ACKERMANNIZE_UDIV ::cvc5::internal::theory::bv::BitVectorAckermanizationUdivTypeRule

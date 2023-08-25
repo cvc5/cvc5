@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,9 +24,9 @@
 #include "proof/proof_node_manager.h"
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
-#include "theory/arith/arith_state.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/pp_rewrite_eq.h"
+#include "theory/theory_state.h"
 #include "util/rational.h"
 
 namespace cvc5::internal {
@@ -42,21 +42,24 @@ class BranchAndBound : protected EnvObj
 {
  public:
   BranchAndBound(Env& env,
-                 ArithState& s,
+                 TheoryState& s,
                  InferenceManager& im,
                  PreprocessRewriteEq& ppre);
   ~BranchAndBound() {}
   /**
    * Branch variable, called when integer var has given value
    * in the current model, returns a split to eliminate this model.
+   *
+   * @param var The variable to branch on
+   * @param value Its current model value
    */
-  TrustNode branchIntegerVariable(TNode var, Rational value);
+  std::vector<TrustNode> branchIntegerVariable(TNode var, Rational value);
 
  private:
   /** Are proofs enabled? */
   bool proofsEnabled() const;
   /** Reference to the state */
-  ArithState& d_astate;
+  TheoryState& d_astate;
   /** Reference to the inference manager */
   InferenceManager& d_im;
   /** Reference to the preprocess rewriter for equality */

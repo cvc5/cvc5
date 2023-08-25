@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,6 +21,7 @@
 #include "base/exception.h"
 #include "base/output.h"
 #include "expr/attribute.h"
+#include "expr/node_manager_attributes.h"
 #include "expr/type_checker.h"
 
 using namespace std;
@@ -108,6 +109,24 @@ bool NodeTemplate<ref_count>::isConst() const {
 
 template bool NodeTemplate<true>::isConst() const;
 template bool NodeTemplate<false>::isConst() const;
+
+template <bool ref_count>
+bool NodeTemplate<ref_count>::hasName() const
+{
+  return NodeManager::currentNM()->hasAttribute(*this, expr::VarNameAttr());
+}
+
+template bool NodeTemplate<true>::hasName() const;
+template bool NodeTemplate<false>::hasName() const;
+
+template <bool ref_count>
+std::string NodeTemplate<ref_count>::getName() const
+{
+  return NodeManager::currentNM()->getAttribute(*this, expr::VarNameAttr());
+}
+
+template std::string NodeTemplate<true>::getName() const;
+template std::string NodeTemplate<false>::getName() const;
 
 }  // namespace cvc5::internal
 

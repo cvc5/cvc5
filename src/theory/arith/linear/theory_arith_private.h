@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,7 +46,6 @@
 #include "theory/arith/linear/matrix.h"
 #include "theory/arith/linear/normal_form.h"
 #include "theory/arith/linear/partial_model.h"
-#include "theory/arith/proof_checker.h"
 #include "theory/arith/linear/soi_simplex.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/valuation.h"
@@ -100,8 +99,6 @@ class TheoryArithPrivate : protected EnvObj
   // For proofs
   /** Manages the proof nodes of this theory. */
   ProofNodeManager* d_pnm;
-  /** Checks the proof rules of this theory. */
-  ArithProofRuleChecker d_checker;
   /** Stores proposition(node)/proof pairs. */
   std::unique_ptr<EagerProofGenerator> d_pfGen;
 
@@ -480,8 +477,7 @@ private:
   /** Called when n is notified as being a shared term with TheoryArith. */
   void notifySharedTerm(TNode n);
 
-  Node getModelValue(TNode var);
-
+  Node getCandidateModelValue(TNode var);
 
   std::pair<bool, Node> entailmentCheck(TNode lit);
 
@@ -501,12 +497,10 @@ private:
    * any non-linear terms that were unhandled. Note that this class is not
    * responsible for handling non-linear arithmetic. If the owner of this
    * class does not handle non-linear arithmetic in another way, then
-   * setIncomplete should be called on the output channel of TheoryArith.
+   * setModelUnsound should be called on the output channel of TheoryArith.
    */
   bool foundNonlinear() const;
 
-  /** get the proof checker of this theory */
-  ArithProofRuleChecker* getProofChecker();
   /** get the congruence manager, if we are using one */
   ArithCongruenceManager* getCongruenceManager();
 
@@ -558,9 +552,9 @@ private:
   /**
    * Issues branches for non-auxiliary integer variables with non-integer assignments.
    * Returns a cut for a lemma.
-   * If there is an integer model, this returns Node::null().
+   * If there is an integer model, this returns the empty vector.
    */
-  TrustNode roundRobinBranch();
+  std::vector<TrustNode> roundRobinBranch();
 
   bool proofsEnabled() const { return d_pnm; }
 
@@ -717,7 +711,7 @@ private:
   /** Counts the number of fullCheck calls to arithmetic. */
   uint32_t d_fullCheckCounter;
   std::vector<ArithVar> cutAllBounded() const;
-  TrustNode branchIntegerVariable(ArithVar x) const;
+  std::vector<TrustNode> branchIntegerVariable(ArithVar x) const;
   void branchVector(const std::vector<ArithVar>& lemmas);
 
   context::CDO<unsigned> d_cutCount;

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Morgan Deters
+ *   Andrew Reynolds, Tim King, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,21 +25,33 @@ namespace cvc5::internal {
 namespace theory {
 
 EngineOutputChannel::Statistics::Statistics(StatisticsRegistry& sr,
-                                            theory::TheoryId theory)
-    : conflicts(sr.registerInt(getStatsPrefix(theory) + "conflicts")),
-      propagations(sr.registerInt(getStatsPrefix(theory) + "propagations")),
-      lemmas(sr.registerInt(getStatsPrefix(theory) + "lemmas")),
-      requirePhase(sr.registerInt(getStatsPrefix(theory) + "requirePhase")),
-      trustedConflicts(
-          sr.registerInt(getStatsPrefix(theory) + "trustedConflicts")),
-      trustedLemmas(sr.registerInt(getStatsPrefix(theory) + "trustedLemmas"))
+                                            const std::string& statPrefix)
+    : conflicts(sr.registerInt(statPrefix + "conflicts")),
+      propagations(sr.registerInt(statPrefix + "propagations")),
+      lemmas(sr.registerInt(statPrefix + "lemmas")),
+      preferPhase(sr.registerInt(statPrefix + "preferPhase")),
+      trustedConflicts(sr.registerInt(statPrefix + "trustedConflicts")),
+      trustedLemmas(sr.registerInt(statPrefix + "trustedLemmas"))
 {
 }
 
 EngineOutputChannel::EngineOutputChannel(StatisticsRegistry& sr,
                                          TheoryEngine* engine,
                                          theory::TheoryId theory)
-    : d_engine(engine), d_statistics(sr, theory), d_theory(theory)
+    : d_engine(engine),
+      d_name(toString(theory)),
+      d_statistics(sr, getStatsPrefix(theory)),
+      d_theory(theory)
+{
+}
+
+EngineOutputChannel::EngineOutputChannel(StatisticsRegistry& sr,
+                                         TheoryEngine* engine,
+                                         const std::string& name)
+    : d_engine(engine),
+      d_name(name),
+      d_statistics(sr, name + "::"),
+      d_theory(THEORY_NONE)
 {
 }
 
@@ -77,18 +89,24 @@ void EngineOutputChannel::conflict(TNode conflictNode)
   d_engine->conflict(tConf, d_theory);
 }
 
-void EngineOutputChannel::requirePhase(TNode n, bool phase)
+void EngineOutputChannel::preferPhase(TNode n, bool phase)
 {
-  Trace("theory") << "EngineOutputChannel::requirePhase(" << n << ", " << phase
+  Trace("theory") << "EngineOutputChannel::preferPhase(" << n << ", " << phase
                   << ")" << std::endl;
-  ++d_statistics.requirePhase;
-  d_engine->getPropEngine()->requirePhase(n, phase);
+  ++d_statistics.preferPhase;
+  d_engine->getPropEngine()->preferPhase(n, phase);
 }
 
-void EngineOutputChannel::setIncomplete(IncompleteId id)
+void EngineOutputChannel::setModelUnsound(IncompleteId id)
 {
-  Trace("theory") << "setIncomplete(" << id << ")" << std::endl;
-  d_engine->setIncomplete(d_theory, id);
+  Trace("theory") << "setModelUnsound(" << id << ")" << std::endl;
+  d_engine->setModelUnsound(d_theory, id);
+}
+
+void EngineOutputChannel::setRefutationUnsound(IncompleteId id)
+{
+  Trace("theory") << "setRefutationUnsound(" << id << ")" << std::endl;
+  d_engine->setRefutationUnsound(d_theory, id);
 }
 
 void EngineOutputChannel::spendResource(Resource r)

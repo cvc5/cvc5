@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -59,13 +59,18 @@ R"FOOBAR(Additional cvc5 options:
 ${help_others}$
 )FOOBAR";
 
+static const std::string regularOptionsDescription =
+R"FOOBAR(Regular cvc5 options:
+${help_regular}$
+)FOOBAR";
+
 static const std::string optionsFootnote = "\n\
 [*] Each of these options has a --no-OPTIONNAME variant, which reverses the\n\
     sense of the option.\n\
 ";
 // clang-format on
 
-void printUsage(const std::string& binary, std::ostream& os)
+void printUsage(const std::string& binary, std::ostream& os, bool printRegular)
 {
   os << "usage: " << binary << " [options] [input-file]" << std::endl
      << std::endl
@@ -75,9 +80,17 @@ void printUsage(const std::string& binary, std::ostream& os)
      << std::endl
      << "cvc5 options:" << std::endl
      << commonOptionsDescription << std::endl
-     << std::endl
-     << additionalOptionsDescription << std::endl
-     << optionsFootnote << std::endl;
+     << std::endl;
+
+  if (printRegular)
+  {
+    os << regularOptionsDescription << std::endl;
+  }
+  else
+  {
+    os << additionalOptionsDescription << std::endl;
+  }
+  os << optionsFootnote << std::endl;
 }
 
 /**

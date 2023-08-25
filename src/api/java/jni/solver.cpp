@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -13,7 +13,8 @@
  * The cvc5 Java API.
  */
 
-#include "api/cpp/cvc5.h"
+#include <cvc5/cvc5.h>
+
 #include "api_utilities.h"
 #include "io_github_cvc5_Solver.h"
 
@@ -46,22 +47,6 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_deletePointer(JNIEnv* env,
   }
   globalReferences.erase(pointer);
   delete (reinterpret_cast<Solver*>(pointer));
-}
-
-/*
- * Class:     io_github_cvc5_Solver
- * Method:    getNullSort
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getNullSort(JNIEnv* env,
-                                                               jobject,
-                                                               jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = reinterpret_cast<Solver*>(pointer);
-  Sort* sortPointer = new Sort(solver->getNullSort());
-  return reinterpret_cast<jlong>(sortPointer);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
@@ -191,6 +176,23 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkBitVectorSort(
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   Sort* sortPointer = new Sort(solver->mkBitVectorSort((uint32_t)size));
+  return reinterpret_cast<jlong>(sortPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    mkFiniteFieldSort
+ * Signature: (JLjava/lang/String)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkFiniteFieldSort(
+    JNIEnv* env, jobject, jlong pointer, jstring size)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  const char* cSize = env->GetStringUTFChars(size, nullptr);
+  Sort* sortPointer = new Sort(solver->mkFiniteFieldSort(std::string(cSize)));
+  env->ReleaseStringUTFChars(size, cSize);
   return reinterpret_cast<jlong>(sortPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
@@ -420,6 +422,24 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkSequenceSort(
   Sort* elemSort = reinterpret_cast<Sort*>(elemSortPointer);
   Sort* sortPointer = new Sort(solver->mkSequenceSort(*elemSort));
   return reinterpret_cast<jlong>(sortPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    mkAbstractSort
+ * Signature: (JI)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkAbstractSort(
+    JNIEnv* env, jobject, jlong pointer, jint kindValue)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  SortKind kind = (SortKind)kindValue;
+  Sort* sort = new Sort(solver->mkAbstractSort(kind));
+  return reinterpret_cast<jlong>(sort);
+
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -754,20 +774,18 @@ Java_io_github_cvc5_Solver_mkTerm__JJ_3J(JNIEnv* env,
 /*
  * Class:     io_github_cvc5_Solver
  * Method:    mkTuple
- * Signature: (J[J[J)J
+ * Signature: (J[J)J
  */
 JNIEXPORT jlong JNICALL
 Java_io_github_cvc5_Solver_mkTuple(JNIEnv* env,
                                    jobject,
                                    jlong pointer,
-                                   jlongArray sortPointers,
                                    jlongArray termPointers)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  std::vector<Sort> sorts = getObjectsFromPointers<Sort>(env, sortPointers);
   std::vector<Term> terms = getObjectsFromPointers<Term>(env, termPointers);
-  Term* retPointer = new Term(solver->mkTuple(sorts, terms));
+  Term* retPointer = new Term(solver->mkTuple(terms));
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
@@ -1229,6 +1247,25 @@ Java_io_github_cvc5_Solver_mkBitVector__JILjava_lang_String_2I(
 
 /*
  * Class:     io_github_cvc5_Solver
+ * Method:    mkFiniteFieldElem
+ * Signature: (JLjava/lang/String;J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkFiniteFieldElem(
+    JNIEnv* env, jobject, jlong pointer, jstring jS, jlong sortPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  Sort* sort = reinterpret_cast<Sort*>(sortPointer);
+  const char* s = env->GetStringUTFChars(jS, nullptr);
+  std::string cS(s);
+  Term* retPointer = new Term(solver->mkFiniteFieldElem(cS, *sort));
+  env->ReleaseStringUTFChars(jS, s);
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
  * Method:    mkConstArray
  * Signature: (JJJ)J
  */
@@ -1354,6 +1391,29 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkFloatingPoint(
   Term* val = reinterpret_cast<Term*>(valPointer);
   Term* retPointer =
       new Term(solver->mkFloatingPoint((uint32_t)exp, (uint32_t)sig, *val));
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    mkFloatingPoint
+ * Signature: (JJJJ)J
+ */
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_Solver_mkFloatingPointX(JNIEnv* env,
+                                            jobject,
+                                            jlong pointer,
+                                            jlong signPointer,
+                                            jlong expPointer,
+                                            jlong sigPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  Term* sign = reinterpret_cast<Term*>(signPointer);
+  Term* exp = reinterpret_cast<Term*>(expPointer);
+  Term* sig = reinterpret_cast<Term*>(sigPointer);
+  Term* retPointer = new Term(solver->mkFloatingPoint(*sign, *exp, *sig));
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
@@ -1604,12 +1664,14 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_declareDatatype(
  * Method:    declareFun
  * Signature: (JLjava/lang/String;[JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_declareFun(JNIEnv* env,
-                                                              jobject,
-                                                              jlong pointer,
-                                                              jstring jSymbol,
-                                                              jlongArray jSorts,
-                                                              jlong sortPointer)
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_Solver_declareFun__JLjava_lang_String_2_3JJ(
+    JNIEnv* env,
+    jobject,
+    jlong pointer,
+    jstring jSymbol,
+    jlongArray jSorts,
+    jlong sortPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
@@ -1618,6 +1680,34 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_declareFun(JNIEnv* env,
   std::string cSymbol(s);
   std::vector<Sort> sorts = getObjectsFromPointers<Sort>(env, jSorts);
   Term* retPointer = new Term(solver->declareFun(cSymbol, sorts, *sort));
+  env->ReleaseStringUTFChars(jSymbol, s);
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    declareFun
+ * Signature: (JLjava/lang/String;[JJZ)J
+ */
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_Solver_declareFun__JLjava_lang_String_2_3JJZ(
+    JNIEnv* env,
+    jobject,
+    jlong pointer,
+    jstring jSymbol,
+    jlongArray jSorts,
+    jlong sortPointer,
+    jboolean fresh)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  Sort* sort = reinterpret_cast<Sort*>(sortPointer);
+  const char* s = env->GetStringUTFChars(jSymbol, nullptr);
+  std::string cSymbol(s);
+  std::vector<Sort> sorts = getObjectsFromPointers<Sort>(env, jSorts);
+  Term* retPointer =
+      new Term(solver->declareFun(cSymbol, sorts, *sort, (bool)fresh));
   env->ReleaseStringUTFChars(jSymbol, s);
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
@@ -1967,6 +2057,35 @@ Java_io_github_cvc5_Solver_getDifficulty(JNIEnv* env, jobject, jlong pointer)
 
 /*
  * Class:     io_github_cvc5_Solver
+ * Method:    getTimeoutCore
+ * Signature: (J)Lio/github/cvc5/Pair;
+ */
+JNIEXPORT jobject JNICALL
+Java_io_github_cvc5_Solver_getTimeoutCore(JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  auto [result, terms] = solver->getTimeoutCore();
+  Result* resultPointer = new Result(result);
+  jlongArray a = getPointersFromObjects<Term>(env, terms);
+  
+  // Long r = new Long(resultPointer);
+  jclass longClass = env->FindClass("Ljava/lang/Long;");
+  jmethodID longConstructor = env->GetMethodID(longClass, "<init>", "(J)V");
+  jobject r = env->NewObject(longClass, longConstructor, resultPointer);
+
+  // Pair pair = new Pair<Long, long[]>(r, a);
+  jclass pairClass = env->FindClass("Lio/github/cvc5/Pair;");
+  jmethodID pairConstructor = env->GetMethodID(
+      pairClass, "<init>", "(Ljava/lang/Object;Ljava/lang/Object;)V");
+  jobject pair = env->NewObject(pairClass, pairConstructor, r, a);
+
+  return pair;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
  * Method:    getProof
  * Signature: (J)Ljava/lang/String;
  */
@@ -2203,7 +2322,7 @@ Java_io_github_cvc5_Solver_declarePool(JNIEnv* env,
  */
 JNIEXPORT jlong JNICALL
 Java_io_github_cvc5_Solver_declareOracleFun(JNIEnv* env,
-                                            jobject jSolver,
+                                            jobject,
                                             jlong pointer,
                                             jstring jSymbol,
                                             jlongArray sortPointers,
@@ -2211,8 +2330,6 @@ Java_io_github_cvc5_Solver_declareOracleFun(JNIEnv* env,
                                             jobject oracle)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  jobject solverReference = env->NewGlobalRef(jSolver);
-  globalReferences[pointer].push_back(solverReference);
   jobject oracleReference = env->NewGlobalRef(oracle);
   globalReferences[pointer].push_back(oracleReference);
   Solver* solver = reinterpret_cast<Solver*>(pointer);
@@ -2221,8 +2338,8 @@ Java_io_github_cvc5_Solver_declareOracleFun(JNIEnv* env,
   Sort* sort = reinterpret_cast<Sort*>(sortPointer);
   std::vector<Sort> sorts = getObjectsFromPointers<Sort>(env, sortPointers);
   std::function<Term(std::vector<Term>)> fn =
-      [env, solverReference, oracleReference](std::vector<Term> input) {
-        Term term = applyOracle(env, solverReference, oracleReference, input);
+      [env, oracleReference](std::vector<Term> input) {
+        Term term = applyOracle(env, oracleReference, input);
         return term;
       };
   Term* retPointer =
@@ -2585,52 +2702,6 @@ Java_io_github_cvc5_Solver_synthFun__JLjava_lang_String_2_3JJJ(
 
 /*
  * Class:     io_github_cvc5_Solver
- * Method:    synthInv
- * Signature: (JLjava/lang/String;[J)J
- */
-JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_Solver_synthInv__JLjava_lang_String_2_3J(
-    JNIEnv* env, jobject, jlong pointer, jstring jSymbol, jlongArray jVars)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = reinterpret_cast<Solver*>(pointer);
-  const char* s = env->GetStringUTFChars(jSymbol, nullptr);
-  std::string cSymbol(s);
-  std::vector<Term> vars = getObjectsFromPointers<Term>(env, jVars);
-  Term* retPointer = new Term(solver->synthInv(cSymbol, vars));
-  env->ReleaseStringUTFChars(jSymbol, s);
-  return reinterpret_cast<jlong>(retPointer);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Solver
- * Method:    synthInv
- * Signature: (JLjava/lang/String;[JJ)J
- */
-JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_Solver_synthInv__JLjava_lang_String_2_3JJ(
-    JNIEnv* env,
-    jobject,
-    jlong pointer,
-    jstring jSymbol,
-    jlongArray jVars,
-    jlong grammarPointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = reinterpret_cast<Solver*>(pointer);
-  Grammar* grammar = reinterpret_cast<Grammar*>(grammarPointer);
-  const char* s = env->GetStringUTFChars(jSymbol, nullptr);
-  std::string cSymbol(s);
-  std::vector<Term> vars = getObjectsFromPointers<Term>(env, jVars);
-  Term* retPointer = new Term(solver->synthInv(cSymbol, vars, *grammar));
-  env->ReleaseStringUTFChars(jSymbol, s);
-  return reinterpret_cast<jlong>(retPointer);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Solver
  * Method:    addSygusConstraint
  * Signature: (JJ)V
  */
@@ -2646,6 +2717,22 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_addSygusConstraint(
 
 /*
  * Class:     io_github_cvc5_Solver
+ * Method:    getSygusConstraints
+ * Signature: (J)[J
+ */
+JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getSygusConstraints(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  std::vector<Term> constraints = solver->getSygusConstraints();
+  jlongArray ret = getPointersFromObjects<Term>(env, constraints);
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
  * Method:    addSygusAssume
  * Signature: (JJ)V
  */
@@ -2657,6 +2744,22 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_addSygusAssume(
   Term* term = reinterpret_cast<Term*>(termPointer);
   solver->addSygusAssume(*term);
   CVC5_JAVA_API_TRY_CATCH_END(env);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    getSygusAssumptions
+ * Signature: (J)[J
+ */
+JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getSygusAssumptions(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  std::vector<Term> assumptions = solver->getSygusAssumptions();
+  jlongArray ret = getPointersFromObjects<Term>(env, assumptions);
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
 
 /*
@@ -2750,6 +2853,57 @@ JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getSynthSolutions(
 
 /*
  * Class:     io_github_cvc5_Solver
+ * Method:    findSynth
+ * Signature: (JI)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_findSynth__JI(JNIEnv* env,
+                                                                 jobject,
+                                                                 jlong pointer,
+                                                                 jint fstvalue)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  modes::FindSynthTarget fst = static_cast<modes::FindSynthTarget>(fstvalue);
+  Term* retPointer = new Term(solver->findSynth(fst));
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    findSynth
+ * Signature: (JIJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_findSynth__JIJ(
+    JNIEnv* env, jobject, jlong pointer, jint fstvalue, jlong grammarPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  modes::FindSynthTarget fst = static_cast<modes::FindSynthTarget>(fstvalue);
+  Grammar* grammar = reinterpret_cast<Grammar*>(grammarPointer);
+  Term* retPointer = new Term(solver->findSynth(fst, *grammar));
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    findSynthNext
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_findSynthNext(JNIEnv* env,
+                                                                 jobject,
+                                                                 jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  Term* retPointer = new Term(solver->findSynthNext());
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
  * Method:    getStatistics
  * Signature: (J)J
  */
@@ -2761,79 +2915,6 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getStatistics(JNIEnv* env,
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   Statistics* retPointer = new Statistics(solver->getStatistics());
   return reinterpret_cast<jlong>(retPointer);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Solver
- * Method:    getNullTerm
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getNullTerm(JNIEnv* env,
-                                                               jobject,
-                                                               jlong)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* ret = new Term();
-  return reinterpret_cast<jlong>(ret);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Solver
- * Method:    getNullResult
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getNullResult(JNIEnv* env,
-                                                                 jobject,
-                                                                 jlong)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Result* ret = new Result();
-  return reinterpret_cast<jlong>(ret);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Solver
- * Method:    getNullSynthResult
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_Solver_getNullSynthResult(JNIEnv* env, jobject, jlong)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  SynthResult* ret = new SynthResult();
-  return reinterpret_cast<jlong>(ret);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Solver
- * Method:    getNullOp
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getNullOp(JNIEnv* env,
-                                                             jobject,
-                                                             jlong)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Op* ret = new Op();
-  return reinterpret_cast<jlong>(ret);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Solver
- * Method:    getNullDatatypeDecl
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_Solver_getNullDatatypeDecl(JNIEnv* env, jobject, jlong)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  DatatypeDecl* ret = new DatatypeDecl();
-  return reinterpret_cast<jlong>(ret);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 

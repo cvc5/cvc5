@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Dejan Jovanovic, Tim King
+ *   Aina Niemetz, Andrew Reynolds, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,9 +21,14 @@ namespace cvc5::internal {
 namespace theory {
 namespace boolean {
 
+TypeNode BooleanTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->booleanType();
+}
 TypeNode BooleanTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
-                                      bool check)
+                                      bool check,
+                                      std::ostream* errOut)
 {
   TypeNode booleanType = nodeManager->booleanType();
   if (check)
@@ -44,7 +49,14 @@ TypeNode BooleanTypeRule::computeType(NodeManager* nodeManager,
   return booleanType;
 }
 
-TypeNode IteTypeRule::computeType(NodeManager* nodeManager, TNode n, bool check)
+TypeNode IteTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
+TypeNode IteTypeRule::computeType(NodeManager* nodeManager,
+                                  TNode n,
+                                  bool check,
+                                  std::ostream* errOut)
 {
   TypeNode thenType = n[1].getType(check);
   if (check)

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -52,7 +52,8 @@ class OutputChannel;
 /** Reasons for why a term was marked reduced */
 enum class ExtReducedId
 {
-  UNKNOWN,
+  // the extended function is not marked reduced
+  NONE,
   // the extended function substitutes+rewrites to a constant
   SR_CONST,
   // the extended function was reduced by the callback
@@ -65,8 +66,6 @@ enum class ExtReducedId
   STRINGS_SR_CONST,
   // a negative str.contains was reduced to a disequality
   STRINGS_NEG_CTN_DEQ,
-  // a positive str.contains was reduced to an equality
-  STRINGS_POS_CTN,
   // a str.contains was subsumed by another based on a decomposition
   STRINGS_CTN_DECOMPOSE,
   // reduced via an intersection inference
@@ -77,8 +76,14 @@ enum class ExtReducedId
   STRINGS_REGEXP_INCLUDE,
   // subsumed due to RE inclusion reasoning for negative memberships
   STRINGS_REGEXP_INCLUDE_NEG,
+  // satisfied due to normal form substitution into re memberships
+  STRINGS_REGEXP_RE_SYM_NF,
+  // satisfied due to partial derivative computation
+  STRINGS_REGEXP_PDERIVATIVE,
   // reduction for seq.nth over seq.rev
   STRINGS_NTH_REV,
+  // the reason for the reduction is unknown
+  UNKNOWN,
 };
 /**
  * Converts an ext reduced identifier to a string.
@@ -198,7 +203,7 @@ class ExtTheory : protected EnvObj
    * If satDep = false, then n remains inactive in the duration of this
    * user-context level
    */
-  void markReduced(Node n, ExtReducedId rid, bool satDep = true);
+  void markInactive(Node n, ExtReducedId rid, bool satDep = true);
   /** getSubstitutedTerms
    *
    *  input : effort, terms

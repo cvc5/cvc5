@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Dejan Jovanovic, Aina Niemetz
+ *   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -402,6 +402,13 @@ class CVC5_EXPORT TypeNode
    * @return the cardinality class
    */
   CardinalityClass getCardinalityClass();
+  /**
+   * Determine if the cardinality of this type is strictly less than `n`.
+   * We do not want to compute the precise cardinality for this for performance
+   * reasons, and will answer false if it is not less than or if we don't know.
+   * @return if the cardinality of this type is strictly less than `n`.
+   */
+  bool isCardinalityLessThan(size_t n);
 
   /** is closed enumerable type
    *
@@ -470,6 +477,12 @@ class CVC5_EXPORT TypeNode
   /** Is this a Sequence type? */
   bool isSequence() const;
 
+  /** Is this an abstract type? */
+  bool isAbstract() const;
+
+  /** Is this the fully abstract type? */
+  bool isFullyAbstract() const;
+
   /** Get the index type (for array types) */
   TypeNode getArrayIndexType() const;
 
@@ -496,6 +509,25 @@ class CVC5_EXPORT TypeNode
 
   /** Get the element type (for sequence types) */
   TypeNode getSequenceElementType() const;
+
+  /** Get the abstract kind (for abstract types) */
+  Kind getAbstractedKind() const;
+
+  /**
+   * Is maybe kind. Return true if an instance of this type may have kind k.
+   * This is true if the kind of this sort is k, or if it is a abstract type
+   * whose abstracted kind is k or ABSTRACT_TYPE (the fully abstract type).
+   *
+   * For example:
+   * isMaybeKind ? BITVECTOR_TYPE = true
+   * isMaybeKind ? SET_TYPE = true
+   * isMaybeKind ?Set SET_TYPE = true
+   * isMaybeKind (Set Int) SET_TYPE = true
+   * isMaybeKind (_ BitVec 4) SET_TYPE = false
+   * isMaybeKind ?BitVec SET_TYPE = false
+   */
+  bool isMaybeKind(Kind k) const;
+
   /**
    * Is this a function type?  Function-like things (e.g. datatype
    * selectors) that aren't actually functions are NOT considered
@@ -516,6 +548,38 @@ class CVC5_EXPORT TypeNode
    */
   bool isFunctionLike() const;
 
+  /**
+   * Is instance of, returns true if this type is equivalent to the
+   * leastUpperBound (see TypeNode::leastUpperBound) of itself and t.
+   */
+  bool isInstanceOf(const TypeNode& t) const;
+  /**
+   * Is comparable to type t, returns true if this type and t have a non-null
+   * leastUpperBound (see TypeNode::leastUpperBound).
+   */
+  bool isComparableTo(const TypeNode& t) const;
+  /**
+   * Least upper bound with type.
+   *
+   * We consider a partial order on types such that T1 <= T2 if T2 is an
+   * instance of T1.
+   *
+   * This returns the most specific type that is an instance
+   * of both this and t, or null if this type and t are incompatible.
+   *
+   * For example:
+   * ?BitVec <lub> ? = ?BitVec
+   * (Array ?BitVec Int) <lub> (Array (_ BitVec 4) ?) = (Array (_ BitVec 4) Int)
+   * (Array ? Int) <lub> (Array ? Real) = null.
+   */
+  TypeNode leastUpperBound(const TypeNode& t) const;
+  /**
+   * Greatest lower bound with type. The dual of leastUpperBound, for example:
+   * ?BitVec <glb> ? = ?
+   * (Array ?BitVec Int) <glb> (Array (_ BitVec 4) ?) = (Array ?BitVec ?)
+   * (Array ? Int) <glb> (Array ? Real) = null.
+   */
+  TypeNode greatestLowerBound(const TypeNode& t) const;
   /**
    * Get the argument types of a function, datatype constructor,
    * datatype selector, or datatype tester.
@@ -671,9 +735,16 @@ class CVC5_EXPORT TypeNode
 
   /** Is this an unresolved datatype? */
   bool isUnresolvedDatatype() const;
-
   /**
-   * Get name, for uninterpreted sorts and uninterpreted sort constructors.
+   * Has name? Return true if this node has an associated variable
+   * name (via the attribute expr::VarNameAttr). This is true for
+   * uninterpreted sorts and uninterpreted sort constructors.
+   */
+  bool hasName() const;
+  /**
+   * Get the name. Should only be called on nodes such that
+   * hasName() returns true. Returns the string value of the
+   * expr::VarNameAttr attribute for this node.
    */
   std::string getName() const;
 
@@ -685,20 +756,9 @@ class CVC5_EXPORT TypeNode
    */
   TypeNode getUninterpretedSortConstructor() const;
 
-private:
-
-  /**
-   * Indents the given stream a given amount of spaces.
-   *
-   * @param out the stream to indent
-   * @param indent the number of spaces
-   */
-  static void indent(std::ostream& out, int indent) {
-    for(int i = 0; i < indent; i++) {
-      out << ' ';
-    }
-  }
-
+ private:
+  /** Unify internal, for computing leastUpperBound and greatestLowerBound */
+  TypeNode unifyInternal(const TypeNode& t, bool isLub) const;
 };/* class TypeNode */
 
 /**

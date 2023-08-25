@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,7 +15,6 @@
 
 #include "theory/quantifiers/quantifiers_attributes.h"
 
-#include "expr/node_manager_attributes.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
@@ -279,8 +278,7 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
           // only set the name if there is a value
           if (q[2][i].getNumChildren() > 1)
           {
-            std::string name;
-            q[2][i][1].getAttribute(expr::VarNameAttr(), name);
+            std::string name = q[2][i][1].getName();
             Trace("quant-attr") << "Attribute : quantifier name : " << name
                                 << " for " << q << std::endl;
             // assign the name to a variable with the given name (to avoid

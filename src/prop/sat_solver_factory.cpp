@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Aina Niemetz, Gereon Kremer
+ *   Aina Niemetz, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,7 @@
 namespace cvc5::internal {
 namespace prop {
 
-MinisatSatSolver* SatSolverFactory::createCDCLTMinisat(
+CDCLTSatSolver* SatSolverFactory::createCDCLTMinisat(
     Env& env, StatisticsRegistry& registry)
 {
   return new MinisatSatSolver(env, registry);
@@ -43,6 +43,7 @@ SatSolver* SatSolverFactory::createCryptoMinisat(StatisticsRegistry& registry,
   return res;
 #else
   Unreachable() << "cvc5 was not compiled with Cryptominisat support.";
+  return nullptr;
 #endif
 }
 
@@ -65,6 +66,7 @@ SatSolver* SatSolverFactory::createKissat(StatisticsRegistry& registry,
   return res;
 #else
   Unreachable() << "cvc5 was not compiled with Kissat support.";
+  return nullptr;
 #endif
 }
 

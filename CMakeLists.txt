@@ -13,7 +13,7 @@
 # The build system configuration.
 ##
 
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.12)
 
 #-----------------------------------------------------------------------------#
 # Project configuration
@@ -51,6 +51,13 @@ if(POLICY CMP0135)
   # introduced in CMake 3.23 and is the recommended to make sure that
   # dependencies get rebuilt when the URL changes.
   cmake_policy(SET CMP0135 NEW)
+endif()
+
+if(POLICY CMP0079)
+  # Allows target_link_libraries() to use targets from other directories.
+  # This will prevent issues with INTERFACE_LINK_LIBRARIES, which allows
+  # cvc5 to be properly linked as a static library on other CMake projects.
+  cmake_policy(SET CMP0079 NEW)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -132,6 +139,29 @@ option(BUILD_DOCS "Build Api documentation")
 cvc5_option(STATIC_BINARY "Link against static system libraries \
 (enabled by default for static builds)")
 
+# Custom flags for WebAssembly compilation
+set(WASM_FLAGS "" CACHE STRING "Link flags for the WebAssembly binary generation")
+set(WASM "OFF" CACHE STRING "Use a specific extension for WebAssembly compilation")
+
+# Make sure no other available value will be assigned to this variable
+if(NOT(WASM STREQUAL "WASM" OR WASM STREQUAL "JS" OR WASM STREQUAL "HTML" OR WASM STREQUAL "OFF"))
+  message(FATAL_ERROR "${WASM} is not a valid wasm flag value.")
+endif()
+
+if(WASM STREQUAL "OFF")
+  set(WASM_FLAGS "")
+  set(CONFIGURE_CMD_WRAPPER "")
+# If it's a wasm compilation, but isn't using the right flags
+elseif(BUILD_SHARED_LIBS OR NOT(STATIC_BINARY) OR NOT(ENABLE_AUTO_DOWNLOAD))
+  message(FATAL_ERROR "Use --static, --static-binary and --auto-download flags for WebAssembly compilation. GMP will not compile with shared libraries.")
+else()
+  set(CONFIGURE_CMD_WRAPPER emconfigure)
+  set(TOOLCHAIN_PREFIX wasm64-unknown-emscripten)
+  string(TOLOWER ".${WASM}" WASM_EXTENSION)
+  set(CMAKE_EXECUTABLE_SUFFIX ${WASM_EXTENSION})
+  string(APPEND CMAKE_EXE_LINKER_FLAGS " ${WASM_FLAGS}")
+endif()
+
 #-----------------------------------------------------------------------------#
 # Internal cmake variables
 
@@ -195,35 +225,52 @@ add_check_c_cxx_flag("-Wshadow")
 # around crashing issues with our Windows build.
 add_check_cxx_flag("-fno-extern-tls-init")
 
-# Temporarily disable -Wclass-memaccess to suppress 'no trivial copy-assignment'
-# cdlist.h warnings. Remove when fixed.
+# Disable -Wclass-memaccess to suppress 'no trivial copy-assignment' in MiniSat
+# code.
 add_check_cxx_supression_flag("-Wno-class-memaccess")
 
 if (WIN32)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--stack,100000000")
-
-  # ANTLR uses pragmas that certain versions of MinGW does not support
-  add_check_c_cxx_flag("-Wno-error=unknown-pragmas")
 endif ()
 
 #-----------------------------------------------------------------------------#
-# Use ld.gold if available
+# Use ld.mold if available, otherwise use ld.gold if available
 
+set(USE_EXPLICIT_LINKER_FLAG FALSE)
 execute_process(COMMAND ${CMAKE_C_COMPILER}
-                -fuse-ld=gold
-                -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_VERSION)
-if ("${LD_VERSION}" MATCHES "GNU gold")
-  string(APPEND CMAKE_EXE_LINKER_FLAGS " -fuse-ld=gold")
-  string(APPEND CMAKE_SHARED_LINKER_FLAGS " -fuse-ld=gold")
-  string(APPEND CMAKE_MODULE_LINKER_FLAGS " -fuse-ld=gold")
-  message(STATUS "Using GNU gold linker.")
+                -fuse-ld=mold
+                -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_MOLD_VERSION)
+if ("${LD_MOLD_VERSION}" MATCHES "mold")
+  set(USE_EXPLICIT_LINKER_FLAG TRUE)
+  set(EXPLICIT_LINKER_FLAG " -fuse-ld=mold")
+  message(STATUS "Using mold linker.")
+else ()
+  execute_process(COMMAND ${CMAKE_C_COMPILER}
+                  -fuse-ld=gold
+                  -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_GOLD_VERSION)
+  if ("${LD_GOLD_VERSION}" MATCHES "GNU gold")
+    set(USE_EXPLICIT_LINKER_FLAG TRUE)
+    set(EXPLICIT_LINKER_FLAG " -fuse-ld=gold")
+    message(STATUS "Using GNU gold linker.")
+  endif ()
+endif ()
+if (USE_EXPLICIT_LINKER_FLAG)
+  string(APPEND CMAKE_EXE_LINKER_FLAGS ${EXPLICIT_LINKER_FLAG})
+  string(APPEND CMAKE_SHARED_LINKER_FLAGS ${EXPLICIT_LINKER_FLAG})
+  string(APPEND CMAKE_MODULE_LINKER_FLAGS ${EXPLICIT_LINKER_FLAG})
 endif ()
 
 #-----------------------------------------------------------------------------#
 # Use interprocedural optimization if requested
 
 if(ENABLE_IPO)
-  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+  check_ipo_supported(RESULT have_ipo_support)
+  if(have_ipo_support)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+  else()
+    message(STATUS "Interprocedural optimization not supported.")
+    set(ENABLE_IPO OFF)
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -298,7 +345,20 @@ else()
   endif()
 endif()
 
-find_package(PythonInterp 3 REQUIRED)
+if(DEFINED BUILD_BINDINGS_PYTHON_VERSION) 
+  find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Interpreter REQUIRED)
+else()
+  find_supported_python_version()
+endif()
+
+# Some cmake packages are not compatible with the newest version
+# of FindPython, introduced in cmake 3.12.
+# We define the symbols below to be backward compatible.
+# FindPython Interpreter sets Python_EXECUTABLE
+if(NOT DEFINED PYTHON_EXECUTABLE) 
+  set(PYTHON_EXECUTABLE "${Python_EXECUTABLE}")
+endif()
+
 find_package(GMP 6.1 REQUIRED)
 
 if(ENABLE_ASAN)
@@ -464,6 +524,13 @@ endif()
 #-----------------------------------------------------------------------------#
 # Add subdirectories
 
+# Include public headers
+include_directories(include)
+include_directories(${CMAKE_BINARY_DIR}/include)
+
+# Install public headers
+install(DIRECTORY include/cvc5 DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
 add_subdirectory(src)
 
 if(BUILD_BINDINGS_PYTHON AND NOT BUILD_SHARED_LIBS)
@@ -471,7 +538,7 @@ if(BUILD_BINDINGS_PYTHON AND NOT BUILD_SHARED_LIBS)
   set(BUILD_BINDINGS_PYTHON OFF)
 endif()
 if(BUILD_BINDINGS_PYTHON)
-  set(BUILD_BINDINGS_PYTHON_VERSION ${PYTHON_VERSION_MAJOR})
+  set(BUILD_BINDINGS_PYTHON_VERSION ${Python_VERSION})
   add_subdirectory(src/api/python)
 endif()
 

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Kshitij Bansal
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,10 +16,11 @@
 #ifndef CVC5__MAIN__COMMAND_EXECUTOR_H
 #define CVC5__MAIN__COMMAND_EXECUTOR_H
 
+#include <cvc5/cvc5.h>
+
 #include <iosfwd>
 #include <string>
 
-#include "api/cpp/cvc5.h"
 #include "parser/api/cpp/symbol_manager.h"
 
 namespace cvc5 {
@@ -51,6 +52,9 @@ class CommandExecutor
   std::unique_ptr<parser::SymbolManager> d_symman;
 
   cvc5::Result d_result;
+
+  /** Cache option value of parse-only option. */
+  bool d_parseOnly;
 
  public:
   CommandExecutor(std::unique_ptr<cvc5::Solver>& solver);
@@ -98,19 +102,19 @@ class CommandExecutor
 
   void flushOutputStreams();
 
-protected:
+ protected:
   /** Executes treating cmd as a singleton */
  virtual bool doCommandSingleton(cvc5::parser::Command* cmd);
 
 private:
   CommandExecutor();
 
+  bool solverInvoke(cvc5::Solver* solver,
+                    parser::SymbolManager* sm,
+                    parser::Command* cmd,
+                    std::ostream& out);
 }; /* class CommandExecutor */
 
-bool solverInvoke(cvc5::Solver* solver,
-                  parser::SymbolManager* sm,
-                  parser::Command* cmd,
-                  std::ostream& out);
 
 }  // namespace main
 }  // namespace cvc5

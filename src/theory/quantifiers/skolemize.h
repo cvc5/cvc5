@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -77,10 +77,10 @@ class Skolemize : protected EnvObj
    * lemmas are constructed once per user-context.
    */
   TrustNode process(Node q);
-  /** get skolem constants for quantified formula q */
-  bool getSkolemConstants(Node q, std::vector<Node>& skolems);
+  /** get the skolem constants */
+  static std::vector<Node> getSkolemConstants(const Node& q);
   /** get the i^th skolem constant for quantified formula q */
-  Node getSkolemConstant(Node q, unsigned i);
+  static Node getSkolemConstant(const Node& q, size_t i);
   /** make skolemized body
    *
    * This returns the skolemized body n of a
@@ -102,19 +102,21 @@ class Skolemize : protected EnvObj
    * has multiple induction variables. See page 5
    * of Reynolds et al., VMCAI 2015.
    */
-  static Node mkSkolemizedBody(const Options& opts,
-                               Node q,
-                               Node n,
-                               std::vector<TNode>& fvs,
-                               std::vector<Node>& sk,
-                               Node& sub,
-                               std::vector<unsigned>& sub_vars);
+  static Node mkSkolemizedBodyInduction(const Options& opts,
+                                        Node q,
+                                        Node n,
+                                        std::vector<TNode>& fvs,
+                                        std::vector<Node>& sk,
+                                        Node& sub,
+                                        std::vector<unsigned>& sub_vars);
+  /** get skolem constants for quantified formula q */
+  bool getSkolemConstantsInduction(Node q, std::vector<Node>& skolems);
   /** get the skolemized body for quantified formula q
    *
    * For example, if q is forall x. P( x ), this returns the formula P( k ) for
    * a fresh Skolem constant k.
    */
-  Node getSkolemizedBody(Node q);
+  Node getSkolemizedBodyInduction(Node q);
   /** is n a variable that we can apply inductive strenghtening to? */
   static bool isInductionTerm(const Options& opts, Node n);
   /**

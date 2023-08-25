@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andres Noetzli
+ *   Mudathir Mohamed, Karlheinz Friedberger, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,12 +40,12 @@ public class Utils
   /**
    * return sorts array from array of pointers
    */
-  public static Sort[] getSorts(Solver solver, long[] pointers)
+  public static Sort[] getSorts(long[] pointers)
   {
     Sort[] sorts = new Sort[pointers.length];
     for (int i = 0; i < pointers.length; i++)
     {
-      sorts[i] = new Sort(solver, pointers[i]);
+      sorts[i] = new Sort(pointers[i]);
     }
     return sorts;
   }
@@ -53,12 +53,12 @@ public class Utils
   /**
    * return terms array from array of pointers
    */
-  public static Term[] getTerms(Solver solver, long[] pointers)
+  public static Term[] getTerms(long[] pointers)
   {
     Term[] terms = new Term[pointers.length];
     for (int i = 0; i < pointers.length; i++)
     {
-      terms[i] = new Term(solver, pointers[i]);
+      terms[i] = new Term(pointers[i]);
     }
     return terms;
   }

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +25,6 @@
 #include <string>
 
 #include "base/exception.h"
-#include "cvc5_export.h"  // remove when Cvc language support is removed
 
 namespace cln
 {
@@ -36,7 +35,7 @@ namespace cvc5::internal {
 
 class Rational;
 
-class CVC5_EXPORT Integer
+class Integer
 {
   friend class cvc5::internal::Rational;
 
@@ -207,7 +206,7 @@ class CVC5_EXPORT Integer
    *
    * @param exp the exponent
    */
-  Integer pow(unsigned long int exp) const;
+  Integer pow(uint32_t exp) const;
 
   /** Return the greatest common divisor of this integer with another.  */
   Integer gcd(const Integer& y) const;

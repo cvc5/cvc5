@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,6 +19,7 @@
 #include <stack>
 
 #include "options/quantifiers_options.h"
+#include "theory/quantifiers/sygus/sygus_qe_preproc.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
@@ -516,6 +517,17 @@ SynthConjectureProcess::SynthConjectureProcess(Env& env) : EnvObj(env) {}
 SynthConjectureProcess::~SynthConjectureProcess() {}
 Node SynthConjectureProcess::preSimplify(Node q)
 {
+  // apply quantifier elimination if applicable, which eliminates variables
+  // from q for the purposes of coercing q to be single invocation.
+  if (options().quantifiers.sygusQePreproc)
+  {
+    SygusQePreproc sqp(d_env);
+    Node qq = sqp.preprocess(q);
+    if (!qq.isNull())
+    {
+      q = qq;
+    }
+  }
   Trace("sygus-process") << "Pre-simplify conjecture : " << q << std::endl;
   return q;
 }

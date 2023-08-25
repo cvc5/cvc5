@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -219,7 +219,8 @@ bool EagerSolver::addEndpointConst(EqcInfo* e, Node t, Node c, bool isSuf)
   Node conf = e->addEndpointConst(t, c, isSuf);
   if (!conf.isNull())
   {
-    d_state.setPendingMergeConflict(conf, InferenceId::STRINGS_PREFIX_CONFLICT);
+    d_state.setPendingMergeConflict(
+        conf, InferenceId::STRINGS_PREFIX_CONFLICT, isSuf);
     return true;
   }
   return false;

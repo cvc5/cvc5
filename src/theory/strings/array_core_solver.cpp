@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -50,13 +50,14 @@ ArrayCoreSolver::~ArrayCoreSolver() {}
 
 void ArrayCoreSolver::sendInference(const std::vector<Node>& exp,
                                     const Node& lem,
-                                    const InferenceId iid)
+                                    const InferenceId iid,
+                                    bool asLemma)
 {
   if (d_lem.find(lem) == d_lem.end())
   {
     d_lem.insert(lem);
     Trace("seq-update") << "- send lemma - " << lem << std::endl;
-    d_im.sendInference(exp, lem, iid);
+    d_im.sendInference(exp, lem, iid, false, asLemma);
   }
 }
 
@@ -120,7 +121,7 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
 
     // note that the term could rewrites to a skolem
     // get proxy variable for the update term as t
-    Node termProxy = d_termReg.getProxyVariableFor(n);
+    Node termProxy = d_termReg.ensureProxyVariableFor(n);
 
     if (d_registeredUpdates.find(n) == d_registeredUpdates.end())
     {
@@ -142,12 +143,13 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
       Node lem = nm->mkNode(EQUAL, left, right);
 
       std::vector<Node> exp;
-      d_im.addToExplanation(termProxy, n, exp);
-      d_im.sendInference(exp,
-                         lem,
-                         InferenceId::STRINGS_ARRAY_NTH_TERM_FROM_UPDATE,
-                         false,
-                         true);
+      // We don't have to add (termProxy = n) to the explanation, since this
+      // is always true and justified by definition. Also note that if lazy
+      // term registration is enabled, this equality may not (yet) hold in
+      // the equality engine, since termProxy may have been introduced in this
+      // call.
+      sendInference(
+          exp, lem, InferenceId::STRINGS_ARRAY_NTH_TERM_FROM_UPDATE, true);
 
       // x = update(s, n, t)
       // ------------------------
@@ -160,8 +162,7 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
                      n.eqNode(n[0]).negate(),
                      cond),
           n.eqNode(n[0]));
-      d_im.sendInference(
-          exp, lem, InferenceId::STRINGS_ARRAY_UPDATE_BOUND, false, true);
+      sendInference(exp, lem, InferenceId::STRINGS_ARRAY_UPDATE_BOUND, true);
     }
 
     Node rn = d_state.getRepresentative(n);
@@ -207,7 +208,8 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
           Assert(d_state.areEqual(r, n[0]));
           d_im.addToExplanation(r, n[0], exp);
         }
-        sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_UPDATE);
+        // rhs is ITE, send as lemma
+        sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_UPDATE, true);
       }
     }
   }
@@ -264,7 +266,7 @@ void ArrayCoreSolver::check(const std::vector<Node>& nthTerms,
       Node ret = nm->mkNode(SEQ_NTH, s, iRev);
       d_im.sendInference(
           {}, nexp, n.eqNode(ret), InferenceId::STRINGS_ARRAY_NTH_REV);
-      d_extt.markReduced(n, ExtReducedId::STRINGS_NTH_REV);
+      d_extt.markInactive(n, ExtReducedId::STRINGS_NTH_REV);
     }
   }
   checkNth(nthTerms);

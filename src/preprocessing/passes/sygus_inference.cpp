@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,6 @@
 #include "smt/solver_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_preprocess.h"
-#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
@@ -227,23 +226,8 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
     return false;
   }
 
-  // Ensure the type of all free functions is handled by the sygus grammar
-  // constructor utility.
-  bool typeSuccess = true;
-  for (const Node& f : free_functions)
-  {
-    TypeNode tn = f.getType();
-    if (!theory::quantifiers::CegGrammarConstructor::isHandledType(tn))
-    {
-      Trace("sygus-infer") << "...fail: unhandled type " << tn << std::endl;
-      typeSuccess = false;
-      break;
-    }
-  }
-  if (!typeSuccess)
-  {
-    return false;
-  }
+  // Note that we do not restrict based on the types of free functions here,
+  // i.e. we assume that all types are handled in sygus grammar construction.
 
   Assert(!processed_assertions.empty());
   // conjunction of the assertions

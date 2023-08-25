@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,10 +23,19 @@ import java.util.Map;
  */
 public class Result extends AbstractPointer
 {
-  // region construction and destruction
-  Result(Solver solver, long pointer)
+  /**
+   * Null result
+   */
+  public Result()
   {
-    super(solver, pointer);
+    super(getNullResult());
+  }
+
+  private static native long getNullResult();
+
+  Result(long pointer)
+  {
+    super(pointer);
   }
 
   protected native void deletePointer(long pointer);
@@ -35,8 +44,6 @@ public class Result extends AbstractPointer
   {
     return pointer;
   }
-
-  // endregion
 
   /**
    * @return True if Result is empty, i.e., a nullary Result, and not an actual

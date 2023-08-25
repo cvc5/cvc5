@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,6 @@
 #include "base/check.h"
 #include "expr/dtype_cons.h"
 #include "expr/skolem_manager.h"
-#include "expr/sygus_datatype.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
@@ -410,6 +409,8 @@ void TermDbSygus::registerEnumerator(Node e,
   std::vector<TypeNode> sf_types;
   eti.getSubfieldTypes(sf_types);
   bool sharedSel = options().datatypes.dtSharedSelectors;
+  // whether this enumerator relies on any-constant constructors
+  bool usingAnyConst = false;
   // for each type of subfield type of this enumerator
   for (unsigned i = 0, ntypes = sf_types.size(); i < ntypes; i++)
   {
@@ -419,17 +420,21 @@ void TermDbSygus::registerEnumerator(Node e,
     SygusTypeInfo& sti = getTypeInfo(stn);
     const DType& dt = stn.getDType();
     int anyC = sti.getAnyConstantConsNum();
-    for (unsigned j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
+    if (anyC != -1)
     {
-      bool isAnyC = static_cast<int>(j) == anyC;
-      if (anyC != -1 && !isAnyC)
+      usingAnyConst = true;
+      for (unsigned j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
       {
-        // if we are using the any constant constructor, do not use any
-        // concrete constant
-        Node c_op = sti.getConsNumConst(j);
-        if (!c_op.isNull())
+        bool isAnyC = static_cast<int>(j) == anyC;
+        if (!isAnyC)
         {
-          rm_indices.push_back(j);
+          // if we are using the any constant constructor, do not use any
+          // concrete constant
+          Node c_op = sti.getConsNumConst(j);
+          if (!c_op.isNull())
+          {
+            rm_indices.push_back(j);
+          }
         }
       }
     }
@@ -540,9 +545,21 @@ void TermDbSygus::registerEnumerator(Node e,
       isActiveGen = false;
     }
   }
+  // When we are using smart enumeration, we often do not consider model
+  // values for arguments of any-constant constructors (in sygus_explain.cpp),
+  // hence those blocking lemmas are refutation unsound. For simplicity, we
+  // mark unsound once and for all at the beginning, meaning we do not
+  // answer "infeasible" when using smart enuemration + any-constant
+  // constructors. Using --sygus-repair-const on the other hand avoids this
+  // incompleteness, which is checked here.
+  if (!isActiveGen && usingAnyConst && !options().quantifiers.sygusRepairConst)
+  {
+    Assert(d_qim != nullptr);
+    d_qim->setRefutationUnsound(
+        IncompleteId::QUANTIFIERS_SYGUS_SMART_BLOCK_ANY_CONSTANT);
+  }
   d_enum_active_gen[e] = isActiveGen;
   d_enum_basic[e] = isActiveGen && !isVarAgnostic;
-
   // We make an active guard if we will be explicitly blocking solutions for
   // the enumerator. This is the case if the role of the enumerator is to
   // populate a pool of terms, or (some cases) of when it is actively generated.
@@ -555,9 +572,35 @@ void TermDbSygus::registerEnumerator(Node e,
     ag = d_qstate.getValuation().ensureLiteral(ag);
     // must ensure that it is asserted as a literal before we begin solving
     Node lem = nm->mkNode(OR, ag, ag.negate());
-    d_qim->requirePhase(ag, true);
+    d_qim->preferPhase(ag, true);
     d_qim->lemma(lem, InferenceId::QUANTIFIERS_SYGUS_ENUM_ACTIVE_GUARD_SPLIT);
     d_enum_to_active_guard[e] = ag;
+  }
+  // for debugging
+  if (d_env.isOutputOn(OutputTag::SYGUS_ENUMERATOR))
+  {
+    d_env.output(OutputTag::SYGUS_ENUMERATOR) << "(sygus-enumerator";
+    if (!f.isNull())
+    {
+      Node ff;
+      SkolemFunId id;
+      SkolemManager* sm = nm->getSkolemManager();
+      sm->isSkolemFunction(f, id, ff);
+      Assert(id == SkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED);
+      d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :synth-fun " << ff;
+    }
+    d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :role " << erole;
+    std::stringstream ss;
+    if (isActiveGen)
+    {
+      ss << (d_enum_var_agnostic[e] ? "VAR_AGNOSTIC" : "FAST");
+    }
+    else
+    {
+      ss << "SMART";
+    }
+    d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :type " << ss.str();
+    d_env.output(OutputTag::SYGUS_ENUMERATOR) << ")" << std::endl;
   }
 }
 
@@ -845,9 +888,8 @@ bool TermDbSygus::isSymbolicConsApp(Node n) const
   const DType& dt = tn.getDType();
   Assert(dt.isSygus());
   unsigned cindex = datatypes::utils::indexOf(n.getOperator());
-  Node sygusOp = dt[cindex].getSygusOp();
   // it is symbolic if it represents "any constant"
-  return sygusOp.getAttribute(SygusAnyConstAttribute());
+  return dt[cindex].isSygusAnyConstant();
 }
 
 bool TermDbSygus::canConstructKind(TypeNode tn,

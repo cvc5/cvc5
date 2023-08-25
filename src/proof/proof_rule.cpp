@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,7 +33,9 @@ const char* toString(PfRule id)
     case PfRule::MACRO_SR_PRED_INTRO: return "MACRO_SR_PRED_INTRO";
     case PfRule::MACRO_SR_PRED_ELIM: return "MACRO_SR_PRED_ELIM";
     case PfRule::MACRO_SR_PRED_TRANSFORM: return "MACRO_SR_PRED_TRANSFORM";
+    case PfRule::ENCODE_PRED_TRANSFORM: return "ENCODE_PRED_TRANSFORM";
     case PfRule::ANNOTATION: return "ANNOTATION";
+    case PfRule::DSL_REWRITE: return "DSL_REWRITE";
     case PfRule::REMOVE_TERM_FORMULA_AXIOM: return "REMOVE_TERM_FORMULA_AXIOM";
     //================================================= Trusted rules
     case PfRule::THEORY_LEMMA: return "THEORY_LEMMA";
@@ -45,6 +47,7 @@ const char* toString(PfRule id)
     case PfRule::THEORY_EXPAND_DEF: return "THEORY_EXPAND_DEF";
     case PfRule::WITNESS_AXIOM: return "WITNESS_AXIOM";
     case PfRule::TRUST_REWRITE: return "TRUST_REWRITE";
+    case PfRule::TRUST_FLATTENING_REWRITE: return "TRUST_FLATTENING_REWRITE";
     case PfRule::TRUST_SUBS: return "TRUST_SUBS";
     case PfRule::TRUST_SUBS_MAP: return "TRUST_SUBS_MAP";
     case PfRule::TRUST_SUBS_EQ: return "TRUST_SUBS_EQ";
@@ -114,6 +117,7 @@ const char* toString(PfRule id)
     case PfRule::FALSE_ELIM: return "FALSE_ELIM";
     case PfRule::HO_APP_ENCODE: return "HO_APP_ENCODE";
     case PfRule::HO_CONG: return "HO_CONG";
+    case PfRule::BETA_REDUCE: return "BETA_REDUCE";
     //================================================= Array rules
     case PfRule::ARRAYS_READ_OVER_WRITE: return "ARRAYS_READ_OVER_WRITE";
     case PfRule::ARRAYS_READ_OVER_WRITE_CONTRA:

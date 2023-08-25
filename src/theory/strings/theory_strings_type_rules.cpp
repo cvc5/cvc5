@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Yoni Zohar
+ *   Andrew Reynolds, Aina Niemetz, Tianyi Liang
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,9 +25,14 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
+TypeNode StringConcatTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode StringConcatTypeRule::computeType(NodeManager* nodeManager,
                                            TNode n,
-                                           bool check)
+                                           bool check,
+                                           std::ostream* errOut)
 {
   TypeNode tret;
   for (const Node& nc : n)
@@ -58,9 +63,14 @@ TypeNode StringConcatTypeRule::computeType(NodeManager* nodeManager,
   return tret;
 }
 
+TypeNode StringSubstrTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode StringSubstrTypeRule::computeType(NodeManager* nodeManager,
                                            TNode n,
-                                           bool check)
+                                           bool check,
+                                           std::ostream* errOut)
 {
   TypeNode t = n[0].getType(check);
   if (check)
@@ -86,9 +96,14 @@ TypeNode StringSubstrTypeRule::computeType(NodeManager* nodeManager,
   return t;
 }
 
+TypeNode StringUpdateTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode StringUpdateTypeRule::computeType(NodeManager* nodeManager,
                                            TNode n,
-                                           bool check)
+                                           bool check,
+                                           std::ostream* errOut)
 {
   TypeNode t = n[0].getType(check);
   if (check)
@@ -114,9 +129,14 @@ TypeNode StringUpdateTypeRule::computeType(NodeManager* nodeManager,
   return t;
 }
 
+TypeNode StringAtTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode StringAtTypeRule::computeType(NodeManager* nodeManager,
                                        TNode n,
-                                       bool check)
+                                       bool check,
+                                       std::ostream* errOut)
 {
   TypeNode t = n[0].getType(check);
   if (check)
@@ -136,9 +156,14 @@ TypeNode StringAtTypeRule::computeType(NodeManager* nodeManager,
   return t;
 }
 
+TypeNode StringIndexOfTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->integerType();
+}
 TypeNode StringIndexOfTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
-                                            bool check)
+                                            bool check,
+                                            std::ostream* errOut)
 {
   if (check)
   {
@@ -166,9 +191,14 @@ TypeNode StringIndexOfTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
+TypeNode StringReplaceTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode StringReplaceTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
-                                            bool check)
+                                            bool check,
+                                            std::ostream* errOut)
 {
   TypeNode t = n[0].getType(check);
   if (check)
@@ -198,9 +228,14 @@ TypeNode StringReplaceTypeRule::computeType(NodeManager* nodeManager,
   return t;
 }
 
+TypeNode StringStrToBoolTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->booleanType();
+}
 TypeNode StringStrToBoolTypeRule::computeType(NodeManager* nodeManager,
                                               TNode n,
-                                              bool check)
+                                              bool check,
+                                              std::ostream* errOut)
 {
   if (check)
   {
@@ -215,9 +250,14 @@ TypeNode StringStrToBoolTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
+TypeNode StringStrToIntTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->integerType();
+}
 TypeNode StringStrToIntTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
-                                             bool check)
+                                             bool check,
+                                             std::ostream* errOut)
 {
   if (check)
   {
@@ -232,9 +272,14 @@ TypeNode StringStrToIntTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
+TypeNode StringStrToStrTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode StringStrToStrTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
-                                             bool check)
+                                             bool check,
+                                             std::ostream* errOut)
 {
   TypeNode t = n[0].getType(check);
   if (check)
@@ -249,9 +294,14 @@ TypeNode StringStrToStrTypeRule::computeType(NodeManager* nodeManager,
   return t;
 }
 
+TypeNode StringRelationTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->booleanType();
+}
 TypeNode StringRelationTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
-                                             bool check)
+                                             bool check,
+                                             std::ostream* errOut)
 {
   if (check)
   {
@@ -271,9 +321,14 @@ TypeNode StringRelationTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
+TypeNode RegExpRangeTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->regExpType();
+}
 TypeNode RegExpRangeTypeRule::computeType(NodeManager* nodeManager,
                                           TNode n,
-                                          bool check)
+                                          bool check,
+                                          std::ostream* errOut)
 {
   if (check)
   {
@@ -292,9 +347,14 @@ TypeNode RegExpRangeTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->regExpType();
 }
 
+TypeNode StringToRegExpTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->regExpType();
+}
 TypeNode StringToRegExpTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
-                                             bool check)
+                                             bool check,
+                                             std::ostream* errOut)
 {
   if (check)
   {
@@ -313,26 +373,41 @@ bool StringToRegExpTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
   return n[0].isConst();
 }
 
+TypeNode ConstSequenceTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode ConstSequenceTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
-                                            bool check)
+                                            bool check,
+                                            std::ostream* errOut)
 {
   Assert(n.getKind() == kind::CONST_SEQUENCE);
   return nodeManager->mkSequenceType(n.getConst<Sequence>().getType());
 }
 
+TypeNode SeqUnitTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode SeqUnitTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
-                                      bool check)
+                                      bool check,
+                                      std::ostream* errOut)
 {
   Assert(n.getKind() == kind::SEQ_UNIT);
   TypeNode argType = n[0].getType(check);
   return nodeManager->mkSequenceType(argType);
 }
 
+TypeNode SeqNthTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode SeqNthTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
-                                     bool check)
+                                     bool check,
+                                     std::ostream* errOut)
 {
   Assert(n.getKind() == kind::SEQ_NTH);
   TypeNode t = n[0].getType(check);

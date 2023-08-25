@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -76,10 +76,9 @@ void EqualityEngine::init() {
   Trace("equality") << "EqualityEdge::EqualityEngine(): edge_null = " << +null_edge << std::endl;
   Trace("equality") << "EqualityEdge::EqualityEngine(): trigger_null = " << +null_trigger << std::endl;
 
-  // If we are not at level zero when we initialize this equality engine, we
-  // may remove true/false from the equality engine when we pop to level zero,
-  // which leads to issues.
-  Assert(d_context->getLevel() == 0);
+  // Note that we previously checked whether the context level was zero here,
+  // to ensure that true/false could never be removed. However, this assertion
+  // restricts our ability to construct equality engines in nested contexts.
 
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
@@ -1088,7 +1087,10 @@ void EqualityEngine::buildEqConclusion(EqualityNodeId id1,
   if (!eq[0].isNull() && !eq[1].isNull())
   {
     eqp->d_node = eq[0].eqNode(eq[1]);
+    Trace("equality") << "buildEqConclusion: Built equality " << eqp->d_node << "\n";
+    return;
   }
+  Trace("equality") << "buildEqConclusion: Did not build equality\n";
 }
 
 void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
@@ -1273,7 +1275,8 @@ void EqualityEngine::explainPredicate(TNode p, bool polarity,
       getNodeId(p), polarity ? d_trueId : d_falseId, assertions, cache, eqp);
 }
 
-void EqualityEngine::explainLit(TNode lit, std::vector<TNode>& assumptions)
+void EqualityEngine::explainLit(TNode lit,
+                                std::vector<TNode>& assumptions) const
 {
   Trace("eq-exp") << "explainLit: " << lit << std::endl;
   Assert(lit.getKind() != kind::AND);
@@ -1312,7 +1315,7 @@ void EqualityEngine::explainLit(TNode lit, std::vector<TNode>& assumptions)
   }
 }
 
-Node EqualityEngine::mkExplainLit(TNode lit)
+Node EqualityEngine::mkExplainLit(TNode lit) const
 {
   Assert(lit.getKind() != kind::AND);
   std::vector<TNode> assumptions;
@@ -2336,32 +2339,6 @@ void EqualityEngine::storeApplicationLookup(FunctionApplication& funNormalized, 
     {
       enqueue(MergeCandidate(funId, d_falseId, MERGED_THROUGH_CONSTANTS, TNode::null()));
     }
-  }
-}
-
-void EqualityEngine::getUseListTerms(TNode t, std::set<TNode>& output) {
-  if (hasTerm(t)) {
-    // Get the equivalence class
-    EqualityNodeId classId = getEqualityNode(t).getFind();
-    // Go through the equivalence class and get where t is used in
-    EqualityNodeId currentId = classId;
-    do {
-      // Get the current node
-      EqualityNode& currentNode = getEqualityNode(currentId);
-      // Go through the use-list
-      UseListNodeId currentUseId = currentNode.getUseList();
-      while (currentUseId != null_uselist_id) {
-        // Get the node of the use list
-        UseListNode& useNode = d_useListNodes[currentUseId];
-        // Get the function application
-        EqualityNodeId funId = useNode.getApplicationId();
-        output.insert(d_nodes[funId]);
-        // Go to the next one in the use list
-        currentUseId = useNode.getNext();
-      }
-      // Move to the next node
-      currentId = currentNode.getNext();
-    } while (currentId != classId);
   }
 }
 

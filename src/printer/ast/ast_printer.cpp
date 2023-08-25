@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Abdalrhman Mohamed, Andrew Reynolds
+ *   Andrew Reynolds, Abdalrhman Mohamed, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,6 @@
 #include <typeinfo>
 #include <vector>
 
-#include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "expr/node_visitor.h"
 #include "options/io_utils.h"
 #include "options/language.h"  // for LANG_AST
@@ -62,10 +61,12 @@ void AstPrinter::toStream(std::ostream& out,
 
   // variable
   if(n.getMetaKind() == kind::metakind::VARIABLE) {
-    string s;
-    if(n.getAttribute(expr::VarNameAttr(), s)) {
-      out << s;
-    } else {
+    if (n.hasName())
+    {
+      out << n.getName();
+    }
+    else
+    {
       out << "var_" << n.getId();
     }
     return;
@@ -241,11 +242,15 @@ void AstPrinter::toStreamCmdQuit(std::ostream& out) const
   out << "Quit()" << std::endl;
 }
 
-void AstPrinter::toStreamCmdDeclareFunction(std::ostream& out,
-                                            const std::string& id,
-                                            TypeNode type) const
+void AstPrinter::toStreamCmdDeclareFunction(
+    std::ostream& out,
+    const std::string& id,
+    const std::vector<TypeNode>& argTypes,
+    TypeNode type) const
 {
-  out << "Declare(" << id << "," << type << ')' << std::endl;
+  out << "Declare(" << id << ",";
+  copy(argTypes.begin(), argTypes.end(), ostream_iterator<TypeNode>(out, ", "));
+  out << "," << type << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdDefineFunction(std::ostream& out,
@@ -264,9 +269,10 @@ void AstPrinter::toStreamCmdDefineFunction(std::ostream& out,
 }
 
 void AstPrinter::toStreamCmdDeclareType(std::ostream& out,
-                                        TypeNode type) const
+                                        const std::string& id,
+                                        size_t arity) const
 {
-  out << "DeclareType(" << type << ')' << std::endl;
+  out << "DeclareType(" << id << ", " << arity << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdDefineType(std::ostream& out,

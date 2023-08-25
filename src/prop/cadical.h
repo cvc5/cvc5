@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,9 +38,7 @@ class CadicalSolver : public SatSolver
 
   ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override;
 
-  SatVariable newVar(bool isTheoryAtom = false,
-                     bool preRegister = false,
-                     bool canErase = true) override;
+  SatVariable newVar(bool isTheoryAtom = false, bool canErase = true) override;
 
   SatVariable trueVar() override;
 
@@ -58,7 +56,7 @@ class CadicalSolver : public SatSolver
 
   SatValue modelValue(SatLiteral l) override;
 
-  unsigned getAssertionLevel() const override;
+  uint32_t getAssertionLevel() const override;
 
   bool ok() const override;
 

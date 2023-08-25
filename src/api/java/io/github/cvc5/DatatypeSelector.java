@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,9 +21,9 @@ package io.github.cvc5;
 public class DatatypeSelector extends AbstractPointer
 {
   // region construction and destruction
-  DatatypeSelector(Solver solver, long pointer)
+  DatatypeSelector(long pointer)
   {
-    super(solver, pointer);
+    super(pointer);
   }
 
   protected native void deletePointer(long pointer);
@@ -55,7 +55,7 @@ public class DatatypeSelector extends AbstractPointer
   public Term getTerm()
   {
     long termPointer = getTerm(pointer);
-    return new Term(solver, termPointer);
+    return new Term(termPointer);
   }
 
   private native long getTerm(long pointer);
@@ -72,7 +72,7 @@ public class DatatypeSelector extends AbstractPointer
   public Term getUpdaterTerm()
   {
     long termPointer = getUpdaterTerm(pointer);
-    return new Term(solver, termPointer);
+    return new Term(termPointer);
   }
 
   private native long getUpdaterTerm(long pointer);
@@ -81,7 +81,7 @@ public class DatatypeSelector extends AbstractPointer
   public Sort getCodomainSort()
   {
     long sortPointer = getCodomainSort(pointer);
-    return new Sort(solver, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long getCodomainSort(long pointer);

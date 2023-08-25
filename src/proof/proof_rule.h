@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -234,6 +234,41 @@ enum class PfRule : uint32_t
   MACRO_SR_PRED_TRANSFORM,
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Builtin theory -- Encode predicate transformation**
+   * .. math::
+   *   \inferrule{F \mid G}{G}
+   * 
+   * where :math:`F` and :math:`G` are equivalent up to their encoding in an
+   * external proof format. This is currently verified by
+   *   :math:`\texttt{RewriteDbNodeConverter::convert}(F) = 
+   * \texttt{RewriteDbNodeConverter::convert}(G)`.
+   * This rule can be treated as a no-op when appropriate in external proof
+   * formats.
+   * \endverbatim
+   */
+  ENCODE_PRED_TRANSFORM,
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Builtin theory -- DSL rewrite**
+   * .. math::
+   *   \inferrule{F_1 \dots F_n \mid id t_1 \dots t_n}{F}
+   * 
+   * where the DSL rewrite rule with the given identifier is
+   * :math:`\forall x_1 \dots x_n. (G_1 \wedge G_n) \Rightarrow G`
+   * where for :math:`i=1, \dots n`, we have that :math:`F_i = \sigma(G_i)`
+   * and :math:`F = \sigma(G)` where :math:`\sigma` is the substitution
+   * :math:`\{x_1\mapsto t_1,\dots,x_n\mapsto t_n\}`.
+   * 
+   * Notice that the application of the substitution takes into account the
+   * possible list semantics of variables :math:`x_1 \ldots x_n`. If
+   * :math:`x_i` is a variable with list semantics, then :math:`t_i` denotes a
+   * list of terms. The substitution (see expr::narySubstitute) replaces each
+   * :math:`x_i` with the list :math:`t_i` in its place.
+   * \endverbatim
+   */
+  DSL_REWRITE,
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Builtin theory -- Annotation**
    *
    * .. math::
@@ -366,6 +401,18 @@ enum class PfRule : uint32_t
    * that could not be replayed during proof postprocessing. \endverbatim
    */
   TRUST_REWRITE,
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Non-supported flattening rewrite **
+   *
+   * .. math::
+   *   \inferrule{- \mid F}{F}
+   *
+   * where :math:`F` is an equality `t = t'` where both `t` and `t'` are
+   * applications of associative operators but the rewriter does not support
+   * flattening them to the same normal form. \endverbatim
+   */
+  TRUST_FLATTENING_REWRITE,
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Trusted rules -- Non-replayable substitution**
@@ -1128,6 +1175,20 @@ enum class PfRule : uint32_t
    * \endverbatim
    */
   HO_CONG,
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Beta reduction**
+   *
+   * .. math::
+   *
+   *   \inferrule{\mid \lambda x_1\dots x_n.\> t, t_1,\dots,t_n}
+   *   {((\lambda x_1\dots x_n.\> t) t_1 \ldots t_n)=t\{x_1\mapsto t_1,\dots,x_n\mapsto t_n\}}
+   *
+   * The right hand side of the equality in the conclusion is computed using
+   * standard substitution (Node::substitute).
+   * \endverbatim
+   */
+  BETA_REDUCE,
 
   /**
    * \verbatim embed:rst:leading-asterisk

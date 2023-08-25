@@ -31,13 +31,12 @@ set(EXAMPLES_API_JAVA
    Statistics
    Strings
    SygusFun
-   SygusGrammar
    SygusInv
    Transcendentals
    UnsatCores
 )
 
-foreach(example ${EXAMPLES_API_JAVA})
+function(add_java_example example)
   add_jar(${example} ${example}.java
           INCLUDE_JARS "${CVC5_JAR}"
           OUTPUT_DIR "${CMAKE_BINARY_DIR}/bin/api/java")
@@ -53,4 +52,12 @@ foreach(example ${EXAMPLES_API_JAVA})
         ${example}
   )
   set_tests_properties(${EXAMPLE_TEST_NAME} PROPERTIES SKIP_RETURN_CODE 77)
+endfunction()
+
+foreach(example ${EXAMPLES_API_JAVA})
+  add_java_example(${example})
 endforeach()
+
+if(USE_COCOA)
+  add_java_example(FiniteField)
+endif()

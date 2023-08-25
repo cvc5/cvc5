@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Justin Xu
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -62,9 +62,9 @@ class Preprocessor : protected EnvObj
    * Process the assertions that have been asserted in argument as. Returns
    * true if no conflict was discovered while preprocessing them.
    *
-   * @param as The assertions.
+   * @param ap The assertions to preprocess
    */
-  bool process(Assertions& as);
+  bool process(preprocessing::AssertionPipeline& ap);
   /**
    * Clear learned literals from the Boolean propagator.
    */
@@ -87,16 +87,12 @@ class Preprocessor : protected EnvObj
   Node applySubstitutions(const Node& n);
   /** Same as above, for a list of assertions, updating in place */
   void applySubstitutions(std::vector<Node>& ns);
-  /**
-   * Enable proofs for this preprocessor. This must be called
-   * explicitly since we construct the preprocessor before we know
-   * whether proofs are enabled.
-   *
-   * @param pppg The preprocess proof generator of the proof manager.
-   */
-  void enableProofs(PreprocessProofGenerator* pppg);
+  /** Get the preprocess proof generator */
+  PreprocessProofGenerator* getPreprocessProofGenerator();
 
  private:
+  /** The preprocess proof generator. */
+  std::unique_ptr<PreprocessProofGenerator> d_pppg;
   /**
    * A circuit propagator for non-clausal propositional deduction.
    */

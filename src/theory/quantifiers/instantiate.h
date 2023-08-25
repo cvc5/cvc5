@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -301,6 +301,12 @@ class Instantiate : public QuantifiersUtil
   static Node ensureType(Node n, TypeNode tn);
 
  private:
+  /** Add instantiation internal */
+  bool addInstantiationInternal(Node q,
+                                std::vector<Node>& terms,
+                                InferenceId id,
+                                Node pfArg = Node::null(),
+                                bool doVts = false);
   /** record instantiation, return true if it was not a duplicate */
   bool recordInstantiationInternal(Node q, const std::vector<Node>& terms);
   /** Get or make the instantiation list for quantified formula q */

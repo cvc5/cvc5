@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,7 +19,6 @@
 #include "expr/dtype_cons.h"
 #include "expr/node_manager.h"
 #include "expr/skolem_manager.h"
-#include "expr/sygus_datatype.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
@@ -274,11 +273,15 @@ void SygusExtension::assertTesterInternal(int tindex, TNode n, Node exp)
           }
         }
       }
-      Assert(conflict.size() == (unsigned)d_currTermSize[a].get());
-      Assert(itsz->second->d_search_size_exp.find(ssz)
-             != itsz->second->d_search_size_exp.end());
-      conflict.push_back( itsz->second->d_search_size_exp[ssz] );
-      Node conf = NodeManager::currentNM()->mkNode( kind::AND, conflict );
+      // Notice that conflict.size() is typically equal to
+      // d_currTermSize[a].get(), except in cases where the size annotation is
+      // not equal to (0,1) for (nullary, non-nullary) constructors.
+      NodeManager* nm = NodeManager::currentNM();
+      // include the fairness literal for the current size, which is
+      // typically asserted in the current context.
+      Node fairLit = nm->mkNode(DT_SYGUS_BOUND, m, nm->mkConstInt(ssz));
+      conflict.push_back(fairLit);
+      Node conf = nm->mkNode(kind::AND, conflict);
       Trace("sygus-sb-fair") << "Conflict is : " << conf << std::endl;
       Node confn = conf.negate();
       d_im.lemma(confn, InferenceId::DATATYPES_SYGUS_FAIR_SIZE_CONFLICT);
@@ -585,7 +588,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
   // get the kind of the constructor operator
   Kind nk = ti.getConsNumKind(tindex);
   // is this the any-constant constructor?
-  bool isAnyConstant = sop.getAttribute(SygusAnyConstAttribute());
+  bool isAnyConstant = dt[tindex].isSygusAnyConstant();
 
   // conjunctive conclusion of lemma
   std::vector<Node> sbp_conj;
@@ -1116,28 +1119,6 @@ Node SygusExtension::registerSearchValue(Node a,
         }
       }
 
-      if (options().quantifiers.sygusRewVerify)
-      {
-        if (bv != bvr)
-        {
-          // add to the sampler database object
-          std::map<TypeNode, std::unique_ptr<quantifiers::SygusSampler>>& smap =
-              d_sampler[a];
-          std::map<TypeNode,
-                   std::unique_ptr<quantifiers::SygusSampler>>::iterator its =
-              smap.find(tn);
-          if (its == smap.end())
-          {
-            smap[tn].reset(new quantifiers::SygusSampler(d_env));
-            smap[tn]->initializeSygus(
-                d_tds, nv, options().quantifiers.sygusSamples, false);
-            its = d_sampler[a].find(tn);
-          }
-          // check equivalent
-          its->second->checkEquivalent(bv, bvr, *options().base.out);
-        }
-      }
-
       if( !bad_val_bvr.isNull() ){
         Node bad_val = nv;
         Node bad_val_o = scasv[bad_val_bvr];
@@ -1446,10 +1427,6 @@ void SygusExtension::notifySearchSize(TNode m, uint64_t s, Node exp)
   Assert(its != d_szinfo.end());
   if( its->second->d_search_size.find( s )==its->second->d_search_size.end() ){
     its->second->d_search_size[s] = true;
-    its->second->d_search_size_exp[s] = exp;
-    Assert(s == 0
-           || its->second->d_search_size.find(s - 1)
-                  != its->second->d_search_size.end());
     Trace("sygus-fair") << "SygusExtension:: now considering term measure : " << s << " for " << m << std::endl;
     Assert(s >= its->second->d_curr_search_size);
     while( s>its->second->d_curr_search_size ){

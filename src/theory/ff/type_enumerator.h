@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,7 @@
 #include "expr/kind.h"
 #include "expr/type_node.h"
 #include "theory/type_enumerator.h"
-#include "util/ff_val.h"
+#include "util/finite_field_value.h"
 #include "util/integer.h"
 
 namespace cvc5::internal {
@@ -49,8 +49,8 @@ class FiniteFieldEnumerator : public TypeEnumeratorBase<FiniteFieldEnumerator>
     {
       throw NoMoreValuesException(getType());
     }
-    return NodeManager::currentNM()->mkConst<FfVal>(
-        FfVal(d_currentInt, d_modulus));
+    return NodeManager::currentNM()->mkConst<FiniteFieldValue>(
+        FiniteFieldValue(d_currentInt, d_modulus));
   }
 
   FiniteFieldEnumerator& operator++() override

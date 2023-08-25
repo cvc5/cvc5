@@ -236,7 +236,7 @@ endmacro()
 function(check_python_module module)
   execute_process(
     COMMAND
-    ${PYTHON_EXECUTABLE} -c "import ${module}"
+    ${Python_EXECUTABLE} -c "import ${module}"
     RESULT_VARIABLE
       RET_MODULE_TEST
     ERROR_QUIET
@@ -249,9 +249,13 @@ function(check_python_module module)
   if(RET_MODULE_TEST)
     message(FATAL_ERROR
         "Could not find module ${module_name} for Python "
-        "version ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}. "
+        "version ${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}. "
         "Make sure to install ${module_name} for this Python version "
-        "via \n`${PYTHON_EXECUTABLE} -m pip install ${module_name}'.\n"
+        "via \n`${Python_EXECUTABLE} -m pip install ${module_name}'.\n"
         "Note: You need to have pip installed for this Python version.")
   endif()
 endfunction()
+
+macro(find_supported_python_version)
+  find_package(Python COMPONENTS Interpreter REQUIRED)
+endmacro()

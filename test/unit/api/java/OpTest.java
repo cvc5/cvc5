@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli, Mudathir Mohamed, Aina Niemetz
+ *   Andres Noetzli, Mudathir Mohamed, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,7 +39,7 @@ class OpTest
   @AfterEach
   void tearDown()
   {
-    d_solver.close();
+    Context.deletePointers();
   }
 
   @Test
@@ -53,7 +53,7 @@ class OpTest
   @Test
   void isNull() throws CVC5ApiException
   {
-    Op x = d_solver.getNullOp();
+    Op x = new Op();
     assertTrue(x.isNull());
     Op y = d_solver.mkOp(BITVECTOR_EXTRACT, 31, 1);
     assertFalse(y.isNull());

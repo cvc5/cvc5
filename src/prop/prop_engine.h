@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,8 @@
 #ifndef CVC5__PROP_ENGINE_H
 #define CVC5__PROP_ENGINE_H
 
-#include "api/cpp/cvc5_types.h"
+#include <cvc5/cvc5_types.h>
+
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "proof/proof.h"
@@ -31,6 +32,7 @@
 #include "theory/output_channel.h"
 #include "theory/skolem_lemma.h"
 #include "util/result.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5::internal {
 
@@ -45,7 +47,7 @@ class DecisionEngine;
 namespace prop {
 
 class CnfStream;
-class CDCLTSatSolverInterface;
+class CDCLTSatSolver;
 class ProofCnfStream;
 class PropPfManager;
 class TheoryProxy;
@@ -133,15 +135,22 @@ class PropEngine : protected EnvObj
   void assertLemma(TrustNode tlemma, theory::LemmaProperty p);
 
   /**
-   * If ever n is decided upon, it must be in the given phase.  This
-   * occurs *globally*, i.e., even if the literal is untranslated by
-   * user pop and retranslated, it keeps this phase.  The associated
-   * variable will _always_ be phase-locked.
+   * Configure the preferred phase of a decision variable. This occurs
+   * *globally*, i.e., even if the literal is untranslated by user pop and
+   * retranslated, it keeps this phase.
+   *
+   * @note This phase is always enforced when the SAT solver decides to make a
+   *       decision on this variable on its own. If a decision is injected into
+   *       the SAT solver via TheoryProxy::getNextDecisionRequest(), the
+   *       preferred phase will only be considered if the decision was derived
+   *       by the decision engine. It will be ignored if the decision was
+   *       derived from a theory (the phase enforced by the theory overrides
+   *       the preferred phase).
    *
    * @param n the node in question; must have an associated SAT literal
    * @param phase the phase to use
    */
-  void requirePhase(TNode n, bool phase);
+  void preferPhase(TNode n, bool phase);
 
   /**
    * Return whether the given literal is a SAT decision.  Either phase
@@ -169,20 +178,10 @@ class PropEngine : protected EnvObj
   std::vector<Node> getPropOrderHeap() const;
 
   /**
-   * Return SAT context level at which `lit` was decided on.
-   *
-   * @param lit: The node in question, must have an associated SAT literal.
-   * @return Decision level of the SAT variable of `lit` (phase is disregarded),
-   *         or -1 if `lit` has not been assigned yet.
+   * Return whether lit has a fixed SAT assignment (i.e., implied by input
+   * assertions).
    */
-  int32_t getDecisionLevel(Node lit) const;
-
-  /**
-   * Return the user-context level when `lit` was introduced..
-   *
-   * @return User-context level or -1 if not yet introduced.
-   */
-  int32_t getIntroLevel(Node lit) const;
+  bool isFixed(TNode lit) const;
 
   /**
    * Checks the current context for satisfiability.
@@ -264,7 +263,7 @@ class PropEngine : protected EnvObj
   /**
    * Get the assertion level of the SAT solver.
    */
-  unsigned getAssertionLevel() const;
+  uint32_t getAssertionLevel() const;
 
   /**
    * Return true if we are currently searching (either in this or
@@ -397,9 +396,6 @@ class PropEngine : protected EnvObj
   /** The theory engine we will be using */
   TheoryEngine* d_theoryEngine;
 
-  /** The decision engine we will be using */
-  std::unique_ptr<decision::DecisionEngine> d_decisionEngine;
-
   /** The skolem definition manager */
   std::unique_ptr<SkolemDefManager> d_skdm;
 
@@ -407,7 +403,7 @@ class PropEngine : protected EnvObj
   TheoryProxy* d_theoryProxy;
 
   /** The SAT solver proxy */
-  CDCLTSatSolverInterface* d_satSolver;
+  CDCLTSatSolver* d_satSolver;
 
   /** List of all of the assertions that need to be made */
   std::vector<Node> d_assertionList;
@@ -430,6 +426,15 @@ class PropEngine : protected EnvObj
    * cores are enabled.
    */
   context::CDList<Node> d_assumptions;
+  /** Statistics */
+  struct Statistics
+  {
+    Statistics(StatisticsRegistry& sr);
+    /** Number of atoms allocated when asserting the input formula */
+    IntStat d_numInputAtoms;
+  };
+  /** Statistics */
+  Statistics d_stats;
 };
 
 }  // namespace prop

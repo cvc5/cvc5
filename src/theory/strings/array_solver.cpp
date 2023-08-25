@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -227,6 +227,11 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
         }
         else
         {
+          if (d_state.areDisequal(t[1], d_zero))
+          {
+            // n is known to be disequal from zero, skip
+            return;
+          }
           Assert(k == SEQ_NTH);
           Node val;
           if (cIsConst)
@@ -387,6 +392,9 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
     {
       eq = t.eqNode(finalc);
     }
+    // Must rewrite the equality to ensure terms are in rewritten form. This
+    // is important since this inference may be processed as a fact.
+    eq = rewrite(eq);
     iid = checkInv ? InferenceId::STRINGS_ARRAY_UPDATE_CONCAT_INVERSE
                    : InferenceId::STRINGS_ARRAY_UPDATE_CONCAT;
   }

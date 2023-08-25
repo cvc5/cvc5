@@ -23,7 +23,7 @@ public class Statistics
 {
   public static void main(String[] args)
   {
-    try (Solver solver = new Solver())
+    Solver solver = new Solver();
     {
       // Get the statistics from the `Solver` and iterate over them. The
       // `Statistics` class implements the `Iterable<Pair<String, Stat>>` interface.

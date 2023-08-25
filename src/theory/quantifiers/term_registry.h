@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,6 +23,7 @@
 
 #include "context/cdhashset.h"
 #include "smt/env_obj.h"
+#include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/cegqi/vts_term_cache.h"
 #include "theory/quantifiers/entailment_check.h"
 #include "theory/quantifiers/ieval/inst_evaluator_manager.h"
@@ -73,14 +74,28 @@ class TermRegistry : protected EnvObj
    * one exists, or otherwise a fresh variable.
    */
   Node getTermForType(TypeNode tn);
+  /** Get terms for pool p, adds them to the vector terms. */
+  void getTermsForPool(Node p, std::vector<Node>& terms);
   /**
    * Declare pool p with initial value initValue.
    */
   void declarePool(Node p, const std::vector<Node>& initValue);
   /**
-   * Process instantiation
+   * Process instantiation, called when q is instantiated.
+   *
+   * @param q The quantified formula
+   * @param terms The terms it was instantiated with
+   * @param success Whether the instantiation was successfully added
    */
-  void processInstantiation(Node q, const std::vector<Node>& terms);
+  void processInstantiation(Node q,
+                            const std::vector<Node>& terms,
+                            bool success);
+  /**
+   * Process skolemization, called when q is skolemized.
+   *
+   * @param q The quantified formula
+   * @param skolems The skolem variables used for skolemizing q
+   */
   void processSkolemization(Node q, const std::vector<Node>& skolems);
 
   /** get term database */
@@ -97,6 +112,8 @@ class TermRegistry : protected EnvObj
   TermPools* getTermPools() const;
   /** get the virtual term substitution term cache utility */
   VtsTermCache* getVtsTermCache() const;
+  /** get the bv inverter utility */
+  BvInverter* getBvInverter() const;
   /** get the instantiation evaluator manager */
   ieval::InstEvaluatorManager* getInstEvaluatorManager() const;
   /**
@@ -137,6 +154,8 @@ class TermRegistry : protected EnvObj
   std::unique_ptr<VtsTermCache> d_vtsCache;
   /** the instantiation evaluator manager */
   std::unique_ptr<ieval::InstEvaluatorManager> d_ievalMan;
+  /** inversion utility for BV instantiation */
+  std::unique_ptr<BvInverter> d_bvInvert;
   /** extended model object */
   FirstOrderModel* d_qmodel;
 };

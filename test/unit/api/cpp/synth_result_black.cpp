@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -66,12 +66,10 @@ TEST_F(TestApiBlackSynthResult, isUnknown)
   Term boolTerm = d_solver.mkFalse();
   d_solver.addSygusConstraint(boolTerm);
   cvc5::SynthResult res = d_solver.checkSynth();
-  // currently isUnknown, could also return hasNoSolution when support for
-  // infeasibility of sygus conjectures is added.
   ASSERT_FALSE(res.isNull());
   ASSERT_FALSE(res.hasSolution());
-  ASSERT_FALSE(res.hasNoSolution());
-  ASSERT_TRUE(res.isUnknown());
+  ASSERT_TRUE(res.hasNoSolution());
+  ASSERT_FALSE(res.isUnknown());
 }
 
 }  // namespace test

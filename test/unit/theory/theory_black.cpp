@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andres Noetzli
+ *   Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,7 +39,7 @@ class TestTheoryBlack : public TestSmt
 
 TEST_F(TestTheoryBlack, array_const)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   TypeNode arrType = d_nodeManager->mkArrayType(d_nodeManager->integerType(),
                                                 d_nodeManager->integerType());
   Node zero = d_nodeManager->mkConstInt(Rational(0));

@@ -32,15 +32,14 @@ if(NOT SymFPU_FOUND_SYSTEM)
   include(ExternalProject)
   include(deps-helper)
 
-  set(SymFPU_COMMIT "8fbe139bf0071cbe0758d2f6690a546c69ff0053")
+  set(SymFPU_COMMIT "e6ac3af9c2c574498ea171c957425b407625448b")
+  set(SymFPU_CHECKSUM "6ffc9009d2d665e0908edee634aa03bbbfc11482")
 
   ExternalProject_Add(
     SymFPU-EP
     ${COMMON_EP_CONFIG}
-    URL https://github.com/martin-cs/symfpu/archive/${SymFPU_COMMIT}.tar.gz
-    URL_HASH SHA1=9e00045130b93e3c2a46ce73a1b5b6451340dc46
-    PATCH_COMMAND patch -p1 -d <SOURCE_DIR>
-          -i ${CMAKE_CURRENT_LIST_DIR}/deps-utils/SymFPU-patch-20201114.patch
+    URL https://github.com/cvc5/symfpu/archive/${SymFPU_COMMIT}.tar.gz
+    URL_HASH SHA1=${SymFPU_CHECKSUM}
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/core

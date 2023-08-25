@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -291,7 +291,7 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
     // are present
     if (hasFunctions)
     {
-      d_im.setIncomplete(IncompleteId::UF_HO_EXT_DISABLED);
+      d_im.setModelUnsound(IncompleteId::UF_HO_EXT_DISABLED);
     }
     return 0;
   }

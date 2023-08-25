@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,6 +17,8 @@
 
 #include <iostream>
 
+#include "base/check.h"
+
 namespace cvc5::internal {
 namespace theory {
 
@@ -24,11 +26,14 @@ const char* toString(IncompleteId i)
 {
   switch (i)
   {
+    case IncompleteId::NONE: return "NONE";
     case IncompleteId::ARITH_NL_DISABLED: return "ARITH_NL_DISABLED";
     case IncompleteId::ARITH_NL: return "ARITH_NL";
     case IncompleteId::QUANTIFIERS: return "QUANTIFIERS";
     case IncompleteId::QUANTIFIERS_SYGUS_NO_VERIFY:
       return "QUANTIFIERS_SYGUS_NO_VERIFY";
+    case IncompleteId::QUANTIFIERS_SYGUS_SMART_BLOCK_ANY_CONSTANT:
+      return "QUANTIFIERS_SYGUS_SMART_BLOCK_ANY_CONSTANT";
     case IncompleteId::QUANTIFIERS_CEGQI: return "QUANTIFIERS_CEGQI";
     case IncompleteId::QUANTIFIERS_FMF: return "QUANTIFIERS_FMF";
     case IncompleteId::QUANTIFIERS_RECORDED_INST:
@@ -50,7 +55,9 @@ const char* toString(IncompleteId i)
     case IncompleteId::UF_CARD_MODE: return "UF_CARD_MODE";
     case IncompleteId::STOP_SEARCH: return "STOP_SEARCH";
     case IncompleteId::UNKNOWN: return "UNKNOWN";
-    default: return "?IncompleteId?";
+    default:
+      Assert(false) << "No print for incomplete id " << static_cast<size_t>(i);
+      return "?IncompleteId?";
   }
 }
 

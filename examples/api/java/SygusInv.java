@@ -24,7 +24,7 @@ public class SygusInv
 {
   public static void main(String args[]) throws CVC5ApiException
   {
-    try (Solver slv = new Solver())
+    Solver slv = new Solver();
     {
       // required options
       slv.setOption("sygus", "true");
@@ -56,7 +56,7 @@ public class SygusInv
       Term post_f = slv.defineFun("post-f", new Term[] {x}, bool, slv.mkTerm(LEQ, x, ten));
 
       // declare the invariant-to-synthesize
-      Term inv_f = slv.synthInv("inv-f", new Term[] {x});
+      Term inv_f = slv.synthFun("inv-f", new Term[] {x}, bool);
 
       slv.addSygusInvConstraint(inv_f, pre_f, trans_f, post_f);
 

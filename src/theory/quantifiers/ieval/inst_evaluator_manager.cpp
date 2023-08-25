@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -52,7 +52,12 @@ InstEvaluator* InstEvaluatorManager::getEvaluator(Node q, TermEvaluatorMode tev)
     // no evaluation specified
     return nullptr;
   }
-  // NOTE: will guard here based on option setting
+  options::IevalMode mode = options().quantifiers.ievalMode;
+  if (options().quantifiers.ievalMode == options::IevalMode::OFF)
+  {
+    // not using instantiation evaluation, don't construct
+    return nullptr;
+  }
   QuantEvPair key(q, tev);
   std::map<QuantEvPair, std::unique_ptr<InstEvaluator> >::iterator it =
       d_evals.find(key);
@@ -63,8 +68,7 @@ InstEvaluator* InstEvaluatorManager::getEvaluator(Node q, TermEvaluatorMode tev)
   }
   // don't use canonization or trackAssignments, use generalized learning if
   // option specifies it
-  // NOTE: will be based on option setting
-  bool genLearning = false;
+  bool genLearning = mode == options::IevalMode::USE_LEARN;
   d_evals[key].reset(
       new InstEvaluator(d_env, d_qstate, d_tdb, tev, genLearning));
   InstEvaluator* ret = d_evals[key].get();

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
+ *   Andrew Reynolds, Haniel Barbosa, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,6 +37,7 @@ class RewriteDb;
 namespace smt {
 
 class Assertions;
+class SmtSolver;
 class PreprocessProofGenerator;
 class ProofPostprocess;
 
@@ -109,15 +110,17 @@ class PfManager : protected EnvObj
    * assumption is the "source" of an assertion.
    *
    * @param dmap Map estimating the difficulty of preprocessed assertions
-   * @param as The input assertions
+   * @param smt The SMT solver that owns the assertions and the preprocess
+   * proof generator.
    */
-  void translateDifficultyMap(std::map<Node, Node>& dmap, Assertions& as);
+  void translateDifficultyMap(std::map<Node, Node>& dmap, SmtSolver& smt);
 
   /**
    * Connect proof to assertions
    *
    * Replaces the free assumptions of pfn that correspond to preprocessed
-   * assertions in as with their corresponding proof of preprocessing.
+   * assertions maintained by smt with their corresponding proof of
+   * preprocessing, which is obtained from the preprocessor of smt.
    *
    * Throws an assertion failure if pg cannot provide a closed proof with
    * respect to assertions in as. Note this includes equalities of the form
@@ -126,7 +129,7 @@ class PfManager : protected EnvObj
    */
   std::shared_ptr<ProofNode> connectProofToAssertions(
       std::shared_ptr<ProofNode> pfn,
-      Assertions& as,
+      SmtSolver& smt,
       ProofScopeMode scopeMode = ProofScopeMode::UNIFIED);
   //--------------------------- access to utilities
   /** Get a pointer to the ProofChecker owned by this. */
@@ -135,8 +138,6 @@ class PfManager : protected EnvObj
   ProofNodeManager* getProofNodeManager() const;
   /** Get the rewrite database, containing definitions of rewrites from DSL. */
   rewriter::RewriteDb* getRewriteDatabase() const;
-  /** Get the proof generator for proofs of preprocessing. */
-  smt::PreprocessProofGenerator* getPreprocessProofGenerator() const;
   //--------------------------- end access to utilities
  private:
   /**
@@ -151,12 +152,12 @@ class PfManager : protected EnvObj
                                    std::vector<Node>& assertions);
   /** The false node */
   Node d_false;
+  /** The rewrite proof database. */
+  std::unique_ptr<rewriter::RewriteDb> d_rewriteDb;
   /** For the new proofs module */
   std::unique_ptr<ProofChecker> d_pchecker;
   /** A proof node manager based on the above checker */
   std::unique_ptr<ProofNodeManager> d_pnm;
-  /** The preprocess proof generator. */
-  std::unique_ptr<smt::PreprocessProofGenerator> d_pppg;
   /** The proof post-processor */
   std::unique_ptr<smt::ProofPostprocess> d_pfpp;
 }; /* class SolverEngine */

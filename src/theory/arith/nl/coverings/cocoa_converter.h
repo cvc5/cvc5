@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -114,9 +114,6 @@ class CoCoAConverter
   /** Helper method for the conversion of a CoCoA polynomial to libpoly */
   poly::Polynomial convertImpl(const CoCoA::RingElem& p,
                                poly::Integer& denominator) const;
-
-  /** Some global state that CoCoA needs to be around whenever it is used */
-  CoCoA::GlobalManager d_gm;
 
   /**
    * Maps libpoly variables to indets in CoCoA.

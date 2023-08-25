@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -21,18 +21,22 @@ libcvc5_add_sources(
   bin_heap.h
   bitvector.cpp
   bitvector.h
-  ff_val.cpp
-  ff_val.h
+  cocoa_globals.cpp
+  cocoa_globals.h
   bool.h
   cardinality.cpp
   cardinality.h
   cardinality_class.cpp
   cardinality_class.h
+  cocoa_globals.cpp
+  cocoa_globals.h
   dense_map.h
   didyoumean.cpp
   didyoumean.h
   divisible.cpp
   divisible.h
+  finite_field_value.cpp
+  finite_field_value.h
   floatingpoint.cpp
   floatingpoint.h
   floatingpoint_size.cpp

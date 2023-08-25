@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,6 +26,7 @@
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
 #include "theory/ee_setup_info.h"
+#include "theory/output_channel.h"
 #include "theory/theory_id.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
@@ -273,6 +274,8 @@ class SharedTermsDatabase : protected EnvObj, public context::ContextNotifyObj
   theory::eq::ProofEqEngine* d_pfee;
   /** The proof node manager */
   ProofNodeManager* d_pnm;
+  /** The output channel for propagations */
+  theory::OutputChannel& d_out;
 };
 
 }  // namespace cvc5::internal

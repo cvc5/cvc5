@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Tim King
+ *   Haniel Barbosa, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -61,6 +61,27 @@ void ProofCnfStream::addBlocked(std::shared_ptr<ProofNode> pfn)
 bool ProofCnfStream::isBlocked(std::shared_ptr<ProofNode> pfn)
 {
   return d_blocked.contains(pfn);
+}
+
+std::vector<Node> ProofCnfStream::getInputClauses()
+{
+  std::vector<Node> cls;
+  for (const Node& c : d_inputClauses)
+  {
+    cls.push_back(c);
+  }
+  return cls;
+}
+
+std::vector<Node> ProofCnfStream::getLemmaClauses()
+{
+  std::vector<Node> cls;
+  for (const Node& c : d_lemmaClauses)
+  {
+    cls.push_back(c);
+  }
+
+  return cls;
 }
 
 std::vector<std::shared_ptr<ProofNode>> ProofCnfStream::getInputClausesProofs()
@@ -675,7 +696,7 @@ void ProofCnfStream::convertPropagation(TrustNode trn)
   }
 }
 
-void ProofCnfStream::notifyCurrPropagationInsertedAtLevel(int explLevel)
+void ProofCnfStream::notifyCurrPropagationInsertedAtLevel(uint32_t explLevel)
 {
   Assert(explLevel < (userContext()->getLevel() - 1));
   Assert(!d_currPropagationProcessed.isNull());
@@ -691,8 +712,7 @@ void ProofCnfStream::notifyCurrPropagationInsertedAtLevel(int explLevel)
   // It's also necessary to copy the proof node, so we prevent unintended
   // updates to the saved proof. Not doing this may also lead to open proofs.
   std::shared_ptr<ProofNode> currPropagationProcPf =
-      d_env.getProofNodeManager()->clone(
-          d_proof.getProofFor(d_currPropagationProcessed));
+      d_proof.getProofFor(d_currPropagationProcessed)->clone();
   Assert(currPropagationProcPf->getRule() != PfRule::ASSUME);
   Trace("cnf-debug") << "\t..saved pf {" << currPropagationProcPf << "} "
                      << *currPropagationProcPf.get() << "\n";
@@ -709,7 +729,7 @@ void ProofCnfStream::notifyCurrPropagationInsertedAtLevel(int explLevel)
 }
 
 void ProofCnfStream::notifyClauseInsertedAtLevel(const SatClause& clause,
-                                                 int clLevel)
+                                                 uint32_t clLevel)
 {
   Trace("cnf") << "Need to save clause " << clause << " in level "
                << clLevel + 1 << " despite being currently in level "
@@ -719,7 +739,7 @@ void ProofCnfStream::notifyClauseInsertedAtLevel(const SatClause& clause,
   Assert(clLevel < (userContext()->getLevel() - 1));
   // As above, also justify eagerly.
   std::shared_ptr<ProofNode> clauseCnfPf =
-      d_env.getProofNodeManager()->clone(d_proof.getProofFor(clauseNode));
+      d_proof.getProofFor(clauseNode)->clone();
   Assert(clauseCnfPf->getRule() != PfRule::ASSUME);
   d_optClausesPfs[clLevel + 1].push_back(clauseCnfPf);
   // Notify SAT proof manager that the propagation (which is a SAT assumption)

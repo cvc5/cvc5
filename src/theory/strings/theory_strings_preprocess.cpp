@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1078,12 +1078,11 @@ Node StringsPreprocess::simplifyRec(Node t, std::vector<Node>& asserts)
 }
 Node StringsPreprocess::mkCodePointAtIndex(Node x, Node i)
 {
-  // we could use (SEQ_NTH, x, i) instead of
-  // (STRING_TO_CODE, (STRING_SUBSTR, x, i, 1))
+  // We use (SEQ_NTH, x, i) instead of
+  // (STRING_TO_CODE, (STRING_SUBSTR, x, i, 1)) here. The former may be
+  // converted to the latter during preprocessing based on our options.
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(
-      STRING_TO_CODE,
-      nm->mkNode(STRING_SUBSTR, x, i, nm->mkConstInt(Rational(1))));
+  return nm->mkNode(SEQ_NTH, x, i);
 }
 
 Node StringsPreprocess::processAssertion(Node n, std::vector<Node>& asserts)

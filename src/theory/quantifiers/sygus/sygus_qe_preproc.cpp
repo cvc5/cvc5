@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -134,12 +134,10 @@ Node SygusQePreproc::preprocess(Node q)
     Trace("cegqi-qep") << "Converted conjecture after QE : " << qeRes
                        << std::endl;
     qeRes = rewrite(qeRes);
-    Node nq = qeRes;
-    // must assert it is equivalent to the original
-    Node lem = q.eqNode(nq);
-    Trace("cegqi-lemma") << "Cegqi::Lemma : qe-preprocess : " << lem
+    // it is equivalent to the original
+    Trace("cegqi-lemma") << "Cegqi::Lemma : qe-preprocess : " << qeRes
                          << std::endl;
-    return lem;
+    return qeRes;
   }
   return Node::null();
 }

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,6 +24,7 @@
 #include "smt/env.h"
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/nl/poly_conversion.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
@@ -32,6 +33,16 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 namespace arith {
+
+/**
+ * A bound variable for the witness term used to eliminate real algebraic
+ * numbers.
+ */
+struct RealAlgebraicNumberVarAttributeId
+{
+};
+typedef expr::Attribute<RealAlgebraicNumberVarAttributeId, Node>
+    RealAlgebraicNumberVarAttribute;
 
 OperatorElim::OperatorElim(Env& env) : EagerProofGenerator(env) {}
 
@@ -93,8 +104,7 @@ Node OperatorElim::eliminateOperators(Node node,
       // -1 < toIntSkolem - node[0] <= 0
       // 0 <= node[0] - toIntSkolem < 1
       Node pterm = nm->mkNode(TO_INTEGER, node[0]);
-      Node v = sm->mkPurifySkolem(
-          pterm, "toInt", "a conversion of a Real term to its Integer part");
+      Node v = sm->mkPurifySkolem(pterm);
       Node one = nm->mkConstReal(Rational(1));
       Node zero = nm->mkConstReal(Rational(0));
       Node diff = nm->mkNode(SUB, node[0], v);
@@ -121,8 +131,7 @@ Node OperatorElim::eliminateOperators(Node node,
       Node rw = nm->mkNode(k, num, den);
       // we use the purification skolem for div
       Node pterm = nm->mkNode(INTS_DIVISION_TOTAL, node[0], node[1]);
-      Node v = sm->mkPurifySkolem(
-          pterm, "intDiv", "the result of an intdiv-by-k term");
+      Node v = sm->mkPurifySkolem(pterm);
       // make the corresponding lemma
       Node lem;
       Node leqNum = nm->mkNode(LEQ, nm->mkNode(MULT, den, v), num);
@@ -220,8 +229,7 @@ Node OperatorElim::eliminateOperators(Node node,
       }
       checkNonLinearLogic(node);
       Node rw = nm->mkNode(k, num, den);
-      Node v = sm->mkPurifySkolem(
-          rw, "nonlinearDiv", "the result of a non-linear div term");
+      Node v = sm->mkPurifySkolem(rw);
       Node lem = nm->mkNode(IMPLIES,
                             den.eqNode(mkZero(den.getType())).negate(),
                             mkEquality(nm->mkNode(MULT, den, v), num));
@@ -306,10 +314,7 @@ Node OperatorElim::eliminateOperators(Node node,
       }
       checkNonLinearLogic(node);
       // eliminate inverse functions here
-      Node var = sm->mkPurifySkolem(
-          node,
-          "tfk",
-          "Skolem to eliminate a non-standard transcendental function");
+      Node var = sm->mkPurifySkolem(node);
       Node lem;
       if (k == SQRT)
       {
@@ -389,6 +394,21 @@ Node OperatorElim::eliminateOperators(Node node,
       Assert(!lem.isNull());
       lems.push_back(mkSkolemLemma(lem, var));
       return var;
+    }
+    case REAL_ALGEBRAIC_NUMBER:
+    {
+      BoundVarManager* bvm = nm->getBoundVarManager();
+      Node v = bvm->mkBoundVar<RealAlgebraicNumberVarAttribute>(
+          node, "i", nm->realType());
+      Node w;
+#ifdef CVC5_POLY_IMP
+      w = PolyConverter::ran_to_node(
+          node.getOperator().getConst<RealAlgebraicNumber>(), v);
+#endif
+      // it should not be possible to define real algebraic numbers unless poly
+      // is enabled
+      Assert(!w.isNull());
+      return w;
     }
 
     default: break;

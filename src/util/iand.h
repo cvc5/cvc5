@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Yoni Zohar
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,9 +27,9 @@ namespace cvc5::internal {
 
 struct IntAnd
 {
-  unsigned d_size;
-  IntAnd(unsigned size) : d_size(size) {}
-  operator unsigned() const { return d_size; }
+  uint32_t d_size;
+  IntAnd(uint32_t size) : d_size(size) {}
+  operator uint32_t() const { return d_size; }
 }; /* struct IntAnd */
 
 /* -----------------------------------------------------------------------

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ *   Andrew Reynolds, Morgan Deters, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,10 +18,8 @@
 #include <stack>
 #include <utility>
 
-#include "expr/node_manager_attributes.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "smt/env.h"
-#include "smt/solver_engine.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "util/resource_manager.h"

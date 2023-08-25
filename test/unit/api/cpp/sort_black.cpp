@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Mathias Preiner
+ *   Aina Niemetz, Andrew Reynolds, Alex Ozdemir
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -63,6 +63,23 @@ TEST_F(TestApiBlackSort, operators_comparison)
   ASSERT_NO_THROW(d_solver.getIntegerSort() <= Sort());
   ASSERT_NO_THROW(d_solver.getIntegerSort() > Sort());
   ASSERT_NO_THROW(d_solver.getIntegerSort() >= Sort());
+}
+
+TEST_F(TestApiBlackSort, getKind)
+{
+  Sort b = d_solver.getBooleanSort();
+  ASSERT_EQ(b.getKind(), SortKind::BOOLEAN_SORT);
+  Sort dt_sort = create_datatype_sort();
+  ASSERT_EQ(dt_sort.getKind(), SortKind::DATATYPE_SORT);
+  Sort arr_sort =
+      d_solver.mkArraySort(d_solver.getRealSort(), d_solver.getIntegerSort());
+  ASSERT_EQ(arr_sort.getKind(), SortKind::ARRAY_SORT);
+  Sort fp_sort = d_solver.mkFloatingPointSort(8, 24);
+  ASSERT_EQ(fp_sort.getKind(), SortKind::FLOATINGPOINT_SORT);
+  Sort bv_sort = d_solver.mkBitVectorSort(8);
+  ASSERT_EQ(bv_sort.getKind(), SortKind::BITVECTOR_SORT);
+  Sort abs_sort = d_solver.mkAbstractSort(SortKind::BITVECTOR_SORT);
+  ASSERT_EQ(abs_sort.getKind(), SortKind::ABSTRACT_SORT);
 }
 
 TEST_F(TestApiBlackSort, hasGetSymbol)
@@ -133,6 +150,12 @@ TEST_F(TestApiBlackSort, isBitVector)
 {
   ASSERT_TRUE(d_solver.mkBitVectorSort(8).isBitVector());
   ASSERT_NO_THROW(Sort().isBitVector());
+}
+
+TEST_F(TestApiBlackSort, isFiniteField)
+{
+  ASSERT_TRUE(d_solver.mkFiniteFieldSort("7").isFiniteField());
+  ASSERT_NO_THROW(Sort().isFiniteField());
 }
 
 TEST_F(TestApiBlackSort, isFloatingPoint)
@@ -241,6 +264,16 @@ TEST_F(TestApiBlackSort, isSequence)
   Sort seq_sort = d_solver.mkSequenceSort(d_solver.getRealSort());
   ASSERT_TRUE(seq_sort.isSequence());
   ASSERT_NO_THROW(Sort().isSequence());
+}
+
+TEST_F(TestApiBlackSort, isAbstract)
+{
+  ASSERT_TRUE(d_solver.mkAbstractSort(SortKind::BITVECTOR_SORT).isAbstract());
+  // ?Array is syntax sugar for (Array ? ?), thus the constructed sort
+  // is an Array sort, not an abstract sort.
+  ASSERT_FALSE(d_solver.mkAbstractSort(SortKind::ARRAY_SORT).isAbstract());
+  ASSERT_TRUE(d_solver.mkAbstractSort(SortKind::ABSTRACT_SORT).isAbstract());
+  ASSERT_NO_THROW(Sort().isAbstract());
 }
 
 TEST_F(TestApiBlackSort, isUninterpreted)
@@ -486,6 +519,22 @@ TEST_F(TestApiBlackSort, getSequenceElementSort)
   ASSERT_THROW(bvSort.getSequenceElementSort(), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSort, getAbstractedKind)
+{
+  ASSERT_EQ(
+      d_solver.mkAbstractSort(SortKind::BITVECTOR_SORT).getAbstractedKind(),
+      SortKind::BITVECTOR_SORT);
+  // ?Array is syntax sugar for (Array ? ?), thus the constructed sort
+  // is an Array sort, not an abstract sort and its abstract kind cannot be
+  // extracted.
+  ASSERT_THROW(
+      d_solver.mkAbstractSort(SortKind::ARRAY_SORT).getAbstractedKind(),
+      CVC5ApiException);
+  ASSERT_EQ(
+      d_solver.mkAbstractSort(SortKind::ABSTRACT_SORT).getAbstractedKind(),
+      SortKind::ABSTRACT_SORT);
+}
+
 TEST_F(TestApiBlackSort, getSymbol)
 {
   Sort uSort = d_solver.mkUninterpretedSort("u");
@@ -516,6 +565,16 @@ TEST_F(TestApiBlackSort, getBitVectorSize)
   ASSERT_NO_THROW(bvSort.getBitVectorSize());
   Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
   ASSERT_THROW(setSort.getBitVectorSize(), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSort, getFiniteFieldSize)
+{
+  Sort ffSort = d_solver.mkFiniteFieldSort("31");
+  ASSERT_NO_THROW(ffSort.getFiniteFieldSize());
+  ASSERT_EQ(ffSort.getFiniteFieldSize(), "31");
+  ASSERT_THROW(Sort().getFiniteFieldSize(), CVC5ApiException);
+  Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
+  ASSERT_THROW(setSort.getFiniteFieldSize(), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSort, getFloatingPointExponentSize)

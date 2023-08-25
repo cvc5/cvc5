@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Dejan Jovanovic, Mathias Preiner
+ *   Andrew Reynolds, Dejan Jovanovic, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,6 +22,7 @@
 
 #include "base/check.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
@@ -150,13 +151,18 @@ TheoryId Theory::theoryOf(TNode node,
       // Constants, variables, 0-ary constructors
       if (node.isVar())
       {
-        if (node.getKind() == kind::BOOLEAN_TERM_VARIABLE)
+        tid = theoryOf(node.getType(), usortOwner);
+        if (theoryOf(node.getType(), usortOwner) == theory::THEORY_BOOL)
         {
-          tid = THEORY_UF;
-        }
-        else
-        {
-          tid = theoryOf(node.getType(), usortOwner);
+          SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+          // Boolean variables belong to UF if they are "purify" variables.
+          // Purify variables are considered theory literals and sent to the
+          // UF theory to ensure theory combination is run properly on functions
+          // having Boolean arguments.
+          if (sm->getId(node) == SkolemFunId::PURIFY)
+          {
+            tid = THEORY_UF;
+          }
         }
       }
       else if (node.getKind() == kind::EQUAL)
@@ -183,14 +189,15 @@ TheoryId Theory::theoryOf(TNode node,
         }
         else
         {
-          if (node.getKind() == kind::BOOLEAN_TERM_VARIABLE)
+          SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+          if (sm->getId(node) == SkolemFunId::PURIFY)
           {
-            // Boolean vars go to UF
+            // purify vars also go to UF
             tid = THEORY_UF;
           }
           else
           {
-            // Except for the Boolean ones
+            // Other Boolean variables are Bool
             tid = THEORY_BOOL;
           }
         }
@@ -310,11 +317,6 @@ void Theory::debugPrintFacts() const{
 bool Theory::isLegalElimination(TNode x, TNode val)
 {
   Assert(x.isVar());
-  if (x.getKind() == kind::BOOLEAN_TERM_VARIABLE
-      || val.getKind() == kind::BOOLEAN_TERM_VARIABLE)
-  {
-    return false;
-  }
   if (expr::hasSubterm(val, x))
   {
     return false;
@@ -378,14 +380,15 @@ void Theory::computeRelevantTerms(std::set<Node>& termSet)
 }
 
 void Theory::collectAssertedTerms(std::set<Node>& termSet,
-                                  bool includeShared) const
+                                  bool includeShared,
+                                  const std::set<Kind>& irrKinds) const
 {
   // Collect all terms appearing in assertions
   context::CDList<Assertion>::const_iterator assert_it = facts_begin(),
                                              assert_it_end = facts_end();
   for (; assert_it != assert_it_end; ++assert_it)
   {
-    collectTerms(*assert_it, termSet);
+    collectTerms(*assert_it, termSet, irrKinds);
   }
 
   if (includeShared)
@@ -395,15 +398,23 @@ void Theory::collectAssertedTerms(std::set<Node>& termSet,
                                            shared_it_end = shared_terms_end();
     for (; shared_it != shared_it_end; ++shared_it)
     {
-      collectTerms(*shared_it, termSet);
+      collectTerms(*shared_it, termSet, irrKinds);
     }
   }
 }
-
-void Theory::collectTerms(TNode n, std::set<Node>& termSet) const
+void Theory::collectAssertedTermsForModel(std::set<Node>& termSet,
+                                          bool includeShared) const
 {
+  // use the irrelevant model kinds from the theory state
   const std::set<Kind>& irrKinds =
       d_theoryState->getModel()->getIrrelevantKinds();
+  collectAssertedTerms(termSet, includeShared, irrKinds);
+}
+
+void Theory::collectTerms(TNode n,
+                          std::set<Node>& termSet,
+                          const std::set<Kind>& irrKinds) const
+{
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -447,14 +458,12 @@ Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
     // 1) x is a variable
     // 2) x is not in the term t
     // 3) x : T and t : S, then S <: T
-    if (in[0].isVar() && isLegalElimination(in[0], in[1])
-        && in[0].getKind() != kind::BOOLEAN_TERM_VARIABLE)
+    if (in[0].isVar() && isLegalElimination(in[0], in[1]))
     {
       outSubstitutions.addSubstitutionSolved(in[0], in[1], tin);
       return PP_ASSERT_STATUS_SOLVED;
     }
-    if (in[1].isVar() && isLegalElimination(in[1], in[0])
-        && in[1].getKind() != kind::BOOLEAN_TERM_VARIABLE)
+    if (in[1].isVar() && isLegalElimination(in[1], in[0]))
     {
       outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
       return PP_ASSERT_STATUS_SOLVED;
@@ -515,16 +524,31 @@ bool Theory::areCareDisequal(TNode x, TNode y)
   Assert(d_equalityEngine != nullptr);
   Assert(d_equalityEngine->hasTerm(x));
   Assert(d_equalityEngine->hasTerm(y));
+  Assert(x != y);
+  Assert(!x.isConst() || !y.isConst());
+  // first just check if they are disequal, which is sufficient for
+  // non-shared terms.
+  if (d_equalityEngine->areDisequal(x, y, false))
+  {
+    return true;
+  }
+  // if we aren't shared, we are not disequal
   if (!d_equalityEngine->isTriggerTerm(x, d_id)
       || !d_equalityEngine->isTriggerTerm(y, d_id))
   {
     return false;
   }
+  // otherwise use getEqualityStatus to ask the appropriate theory whether
+  // x and y are disequal.
   TNode x_shared = d_equalityEngine->getTriggerTermRepresentative(x, d_id);
   TNode y_shared = d_equalityEngine->getTriggerTermRepresentative(y, d_id);
   EqualityStatus eqStatus = d_valuation.getEqualityStatus(x_shared, y_shared);
-  return eqStatus == EQUALITY_FALSE_AND_PROPAGATED || eqStatus == EQUALITY_FALSE
-         || eqStatus == EQUALITY_FALSE_IN_MODEL;
+  if (eqStatus == EQUALITY_FALSE_AND_PROPAGATED || eqStatus == EQUALITY_FALSE
+      || eqStatus == EQUALITY_FALSE_IN_MODEL)
+  {
+    return true;
+  }
+  return false;
 }
 
 void Theory::getCareGraph(CareGraph* careGraph) {

@@ -1,9 +1,6 @@
 ; REQUIRES: no-competition
-; EXPECT: (error "Parse Error: non_well_founded_dt.smt2:11.77: Datatype sort _dt5 is not well-founded
-; EXPECT: 
-; EXPECT: ... (_sel33 Bool) (_sel34 _dt5) (_sel35 _dt5))))
-; EXPECT: ^
-; EXPECT: ")
+; SCRUBBER: grep -o "Datatype sort _dt5 is not well-founded"
+; EXPECT: Datatype sort _dt5 is not well-founded
 ; EXIT: 1
 ; DISABLE-TESTER: dump
 (set-option :global-declarations true)

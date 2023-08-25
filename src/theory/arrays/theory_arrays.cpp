@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -653,7 +653,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
   {
     // Add the trigger for equality
     // NOTE: note that if the equality is true or false already, it might not be added
-    d_equalityEngine->addTriggerPredicate(node);
+    d_state.addEqualityEngineTriggerPredicate(node);
     return;
   }
   // add to equality engine and the may equality engine
@@ -814,7 +814,7 @@ void TheoryArrays::preRegisterTerm(TNode node)
   // Note: do this here instead of in preRegisterTermInternal to prevent internal select
   // terms from being propagated out (as this results in an assertion failure).
   if (node.getKind() == kind::SELECT && node.getType().isBoolean()) {
-    d_equalityEngine->addTriggerPredicate(node);
+    d_state.addEqualityEngineTriggerPredicate(node);
   }
 }
 
@@ -980,7 +980,7 @@ void TheoryArrays::computeCareGraph()
       // Also, insert this read in the list at the proper index
 
       if (!x_shared.isConst()) {
-        x_shared = d_valuation.getModelValue(x_shared);
+        x_shared = d_valuation.getCandidateModelValue(x_shared);
       }
       if (!x_shared.isNull()) {
         CTNodeList* temp;
@@ -1869,7 +1869,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
 #if 0
     i_eq_j = i.eqNode(j);
 #endif
-    getOutputChannel().requirePhase(i_eq_j, true);
+    getOutputChannel().preferPhase(i_eq_j, true);
     d_decisionRequests.push(i_eq_j);
   }
 

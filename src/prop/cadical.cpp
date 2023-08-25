@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -93,7 +93,7 @@ class ResourceLimitTerminator : public CaDiCaL::Terminator
   bool terminate() override
   {
     d_resmgr.spendResource(Resource::BvSatStep);
-    return d_resmgr.outOfResources() || d_resmgr.outOfTime();
+    return d_resmgr.out();
   }
 
  private:
@@ -124,9 +124,7 @@ ClauseId CadicalSolver::addXorClause(SatClause& clause,
   Unreachable() << "CaDiCaL does not support adding XOR clauses.";
 }
 
-SatVariable CadicalSolver::newVar(bool isTheoryAtom,
-                                  bool preRegister,
-                                  bool canErase)
+SatVariable CadicalSolver::newVar(bool isTheoryAtom, bool canErase)
 {
   ++d_statistics.d_numVariables;
   return d_nextVarIdx++;
@@ -197,7 +195,7 @@ SatValue CadicalSolver::modelValue(SatLiteral l)
   return value(l);
 }
 
-unsigned CadicalSolver::getAssertionLevel() const
+uint32_t CadicalSolver::getAssertionLevel() const
 {
   Unreachable() << "CaDiCaL does not support assertion levels.";
 }

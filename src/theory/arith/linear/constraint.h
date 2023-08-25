@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -780,17 +780,16 @@ class Constraint {
   class ConstraintRuleCleanup
   {
    public:
-    inline void operator()(ConstraintRule* crp)
+    inline void operator()(ConstraintRule& crp)
     {
-      Assert(crp != NULL);
-      ConstraintP constraint = crp->d_constraint;
+      ConstraintP constraint = crp.d_constraint;
       Assert(constraint->d_crid != ConstraintRuleIdSentinel);
       constraint->d_crid = ConstraintRuleIdSentinel;
       if (constraint->isProofProducing())
       {
-        if (crp->d_farkasCoefficients != RationalVectorCPSentinel)
+        if (crp.d_farkasCoefficients != RationalVectorCPSentinel)
         {
-          delete crp->d_farkasCoefficients;
+          delete crp.d_farkasCoefficients;
         }
       }
     }
@@ -799,9 +798,8 @@ class Constraint {
   class CanBePropagatedCleanup
   {
    public:
-    inline void operator()(ConstraintP* p)
+    inline void operator()(ConstraintP& constraint)
     {
-      ConstraintP constraint = *p;
       Assert(constraint->d_canBePropagated);
       constraint->d_canBePropagated = false;
     }
@@ -810,9 +808,8 @@ class Constraint {
   class AssertionOrderCleanup
   {
    public:
-    inline void operator()(ConstraintP* p)
+    inline void operator()(ConstraintP& constraint)
     {
-      ConstraintP constraint = *p;
       Assert(constraint->assertedToTheTheory());
       constraint->d_assertionOrder = AssertionOrderSentinel;
       constraint->d_witness = TNode::null();
@@ -823,9 +820,8 @@ class Constraint {
   class SplitCleanup
   {
    public:
-    inline void operator()(ConstraintP* p)
+    inline void operator()(ConstraintP& constraint)
     {
-      ConstraintP constraint = *p;
       Assert(constraint->d_split);
       constraint->d_split = false;
     }

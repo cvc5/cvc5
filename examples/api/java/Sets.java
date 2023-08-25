@@ -21,7 +21,7 @@ public class Sets
 {
   public static void main(String args[]) throws CVC5ApiException
   {
-    try (Solver slv = new Solver())
+    Solver slv = new Solver();
     {
       // Optionally, set the logic. We need at least UF for equality predicate,
       // integers (LIA) and sets (FS).

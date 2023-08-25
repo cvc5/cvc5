@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,9 +18,10 @@
 #ifndef __CVC5__THEORY__MODEL_BLOCKER_H
 #define __CVC5__THEORY__MODEL_BLOCKER_H
 
+#include <cvc5/cvc5_types.h>
+
 #include <vector>
 
-#include "api/cpp/cvc5_types.h"
 #include "expr/node.h"
 #include "smt/env_obj.h"
 

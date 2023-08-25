@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,7 +18,6 @@
 
 #include "proof/unsat_core.h"
 #include "smt/env.h"
-#include "smt/solver_engine.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -161,6 +160,31 @@ Result checkWithSubsolver(Node query,
     }
   }
   return r;
+}
+
+void assertToSubsolver(SolverEngine& subsolver,
+                       const std::vector<Node>& core,
+                       const std::unordered_set<Node>& defs,
+                       const std::unordered_set<Node>& removed)
+{
+  for (const Node& f : core)
+  {
+    // check if it is excluded
+    if (removed.find(f) != removed.end())
+    {
+      continue;
+    }
+    // check if it is an ordinary function definition
+    if (defs.find(f) != defs.end())
+    {
+      if (f.getKind() == kind::EQUAL && f[0].isVar())
+      {
+        subsolver.defineFunction(f[0], f[1]);
+        continue;
+      }
+    }
+    subsolver.assertFormula(f);
+  }
 }
 
 void getModelFromSubsolver(SolverEngine& smt,

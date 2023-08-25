@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Andres Noetzli
+ *   Andrew Reynolds, Gereon Kremer, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,6 +40,7 @@ namespace theory {
  */
 enum class InferenceId
 {
+  NONE,
   // ---------------------------------- core
   // a conflict when two constants merge in the equality engine (of any theory)
   EQ_CONSTANT_MERGE,
@@ -172,7 +173,13 @@ enum class InferenceId
   ARITH_NL_ICP_CONFLICT,
   // propagation / contraction of variable bounds from icp
   ARITH_NL_ICP_PROPAGATION,
+  //-------------------- ff inference
   // ---------------------------------- end arith theory
+
+  // ---------------------------------- finite field theory
+  // a catch-all, for now
+  FF_LEMMA,
+  // ---------------------------------- end finite field theory
 
   // ---------------------------------- arrays theory
   ARRAYS_EXT,
@@ -349,6 +356,8 @@ enum class InferenceId
   QUANTIFIERS_INST_ENUM,
   // instantiations from pool instantiation
   QUANTIFIERS_INST_POOL,
+  // instantiations from pool instantiation (tuple semantics)
+  QUANTIFIERS_INST_POOL_TUPLE,
   //-------------------- bounded integers
   // a proxy lemma from bounded integers, used to control bounds on ground terms
   QUANTIFIERS_BINT_PROXY,
@@ -375,23 +384,33 @@ enum class InferenceId
   // For example, (= (f c) d) where (c, d) is an I/O pair obtained from calling
   // the oracle associated with oracle function f.
   QUANTIFIERS_ORACLE_INTERFACE,
+  // purification lemma to ensure oracle functions in substitutions are taken
+  // into account
+  QUANTIFIERS_ORACLE_PURIFY_SUBS,
   //-------------------- syntax-guided instantiation
   // a counterexample lemma
   QUANTIFIERS_SYQI_CEX,
   // evaluation unfolding for syntax-guided instantiation
   QUANTIFIERS_SYQI_EVAL_UNFOLD,
   //-------------------- sygus solver
-  // preprocessing a sygus conjecture based on quantifier elimination, of the
-  // form Q <=> Q_preprocessed
-  QUANTIFIERS_SYGUS_QE_PREPROC,
   // G or ~G where G is the active guard for a sygus enumerator
   QUANTIFIERS_SYGUS_ENUM_ACTIVE_GUARD_SPLIT,
-  // manual exclusion of a current solution
-  QUANTIFIERS_SYGUS_EXCLUDE_CURRENT,
+  // manual exclusion of a current solution for an actively generated enumerator
+  QUANTIFIERS_SYGUS_ACTIVE_GEN_EXCLUDE_CURRENT,
   // manual exclusion of a current solution for sygus-stream
   QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT,
+  // manual exclusion of a current solution for incremental sygus
+  QUANTIFIERS_SYGUS_INC_EXCLUDE_CURRENT,
+  // manual exclusion of a current solution for a failed side condition
+  QUANTIFIERS_SYGUS_SC_EXCLUDE_CURRENT,
+  // manual exclusion of a current solution for a failed verification
+  QUANTIFIERS_SYGUS_NO_VERIFY_EXCLUDE_CURRENT,
+  // manual exclusion of a current solution for a repeated counterexample
+  QUANTIFIERS_SYGUS_REPEAT_CEX_EXCLUDE_CURRENT,
   // ~Q where Q is a PBE conjecture with conflicting examples
   QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA,
+  // infeasible determined by single-invocation solver
+  QUANTIFIERS_SYGUS_SI_INFEASIBLE,
   // unif+pi symmetry breaking between multiple enumerators
   QUANTIFIERS_SYGUS_UNIF_PI_INTER_ENUM_SB,
   // unif+pi separation lemma
@@ -426,6 +445,10 @@ enum class InferenceId
   QUANTIFIERS_SYGUS_PBE_EXCLUDE,
   // a lemma generated while constructing a candidate solution for PBE
   QUANTIFIERS_SYGUS_PBE_CONSTRUCT_SOL,
+  // complete enumeration lemma
+  QUANTIFIERS_SYGUS_COMPLETE_ENUM,
+  // infeasible due to side condition (e.g. for abduction)
+  QUANTIFIERS_SYGUS_SC_INFEASIBLE,
   //-------------------- dynamic splitting
   // a dynamic split from quantifiers
   QUANTIFIERS_DSPLIT,
@@ -853,6 +876,8 @@ enum class InferenceId
   //-------------------- merge conflicts
   // prefix conflict
   STRINGS_PREFIX_CONFLICT,
+  // minimized prefix conflict
+  STRINGS_PREFIX_CONFLICT_MIN,
   // arithmetic bound conflict
   STRINGS_ARITH_BOUND_CONFLICT,
   //-------------------- other

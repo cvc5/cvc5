@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,6 +16,7 @@
 package io.github.cvc5;
 
 import io.github.cvc5.modes.BlockModelsMode;
+import io.github.cvc5.modes.FindSynthTarget;
 import io.github.cvc5.modes.LearnedLitType;
 import io.github.cvc5.modes.ProofComponent;
 import java.io.IOException;
@@ -24,8 +25,13 @@ import java.util.*;
 /**
  * A cvc5 solver.
  */
-public class Solver implements IPointer, AutoCloseable
+public class Solver implements IPointer
 {
+  static
+  {
+    Utils.loadLibraries();
+  }
+
   private long pointer;
 
   public long getPointer()
@@ -46,35 +52,8 @@ public class Solver implements IPointer, AutoCloseable
 
   private static native void deletePointer(long pointer);
 
-  // store pointers for terms, sorts, etc
-  List<AbstractPointer> abstractPointers = new ArrayList<>();
-
   // store IOracle objects
   List<IOracle> oracles = new ArrayList<>();
-
-  @Override
-  public void close()
-  {
-    // delete heap memory for terms, sorts, etc
-    for (int i = abstractPointers.size() - 1; i >= 0; i--)
-    {
-      abstractPointers.get(i).deletePointer();
-    }
-    // delete the heap memory for this solver
-    deletePointer();
-    // clear oracles
-    oracles.clear();
-  }
-
-  void addAbstractPointer(AbstractPointer abstractPointer)
-  {
-    abstractPointers.add(abstractPointer);
-  }
-
-  static
-  {
-    Utils.loadLibraries();
-  }
 
   /* .................................................................... */
   /* Constructors                                                         */
@@ -90,24 +69,12 @@ public class Solver implements IPointer, AutoCloseable
   /* .................................................................... */
 
   /**
-   * @return Sort null.
-   */
-
-  public Sort getNullSort()
-  {
-    long sortPointer = getNullSort(pointer);
-    return new Sort(this, sortPointer);
-  }
-
-  private native long getNullSort(long pointer);
-
-  /**
    * @return Sort Boolean.
    */
   public Sort getBooleanSort()
   {
     long sortPointer = getBooleanSort(pointer);
-    return new Sort(this, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long getBooleanSort(long pointer);
@@ -118,7 +85,7 @@ public class Solver implements IPointer, AutoCloseable
   public Sort getIntegerSort()
   {
     long sortPointer = getIntegerSort(pointer);
-    return new Sort(this, sortPointer);
+    return new Sort(sortPointer);
   }
 
   public native long getIntegerSort(long pointer);
@@ -128,7 +95,7 @@ public class Solver implements IPointer, AutoCloseable
   public Sort getRealSort()
   {
     long sortPointer = getRealSort(pointer);
-    return new Sort(this, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long getRealSort(long pointer);
@@ -138,7 +105,7 @@ public class Solver implements IPointer, AutoCloseable
   public Sort getRegExpSort()
   {
     long sortPointer = getRegExpSort(pointer);
-    return new Sort(this, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long getRegExpSort(long pointer);
@@ -149,7 +116,7 @@ public class Solver implements IPointer, AutoCloseable
   public Sort getRoundingModeSort() throws CVC5ApiException
   {
     long sortPointer = getRoundingModeSort(pointer);
-    return new Sort(this, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long getRoundingModeSort(long pointer) throws CVC5ApiException;
@@ -159,7 +126,7 @@ public class Solver implements IPointer, AutoCloseable
   public Sort getStringSort()
   {
     long sortPointer = getStringSort(pointer);
-    return new Sort(this, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long getStringSort(long solverPointer);
@@ -172,7 +139,7 @@ public class Solver implements IPointer, AutoCloseable
   public Sort mkArraySort(Sort indexSort, Sort elemSort)
   {
     long sortPointer = mkArraySort(pointer, indexSort.getPointer(), elemSort.getPointer());
-    return new Sort(this, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long mkArraySort(long pointer, long indexSortPointer, long elementSortPointer);
@@ -187,10 +154,24 @@ public class Solver implements IPointer, AutoCloseable
   {
     Utils.validateUnsigned(size, "size");
     long sortPointer = mkBitVectorSort(pointer, size);
-    return new Sort(this, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long mkBitVectorSort(long pointer, int size);
+
+  /**
+   * Create a finite field sort.
+   * @param size The size of the finite field sort.
+   * @return The finite field sort.
+   * @throws CVC5ApiException
+   */
+  public Sort mkFiniteFieldSort(String size) throws CVC5ApiException
+  {
+    long sortPointer = mkFiniteFieldSort(pointer, size);
+    return new Sort(sortPointer);
+  }
+
+  private native long mkFiniteFieldSort(long pointer, String size);
 
   /**
    * Create a floating-point sort.
@@ -203,7 +184,7 @@ public class Solver implements IPointer, AutoCloseable
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
     long sortPointer = mkFloatingPointSort(pointer, exp, sig);
-    return new Sort(this, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long mkFloatingPointSort(long solverPointer, int exp, int sig);
@@ -217,7 +198,7 @@ public class Solver implements IPointer, AutoCloseable
   public Sort mkDatatypeSort(DatatypeDecl dtypedecl) throws CVC5ApiException
   {
     long pointer = mkDatatypeSort(this.pointer, dtypedecl.getPointer());
-    return new Sort(this, pointer);
+    return new Sort(pointer);
   }
 
   private native long mkDatatypeSort(long pointer, long datatypeDeclPointer)
@@ -236,7 +217,7 @@ public class Solver implements IPointer, AutoCloseable
   {
     long[] declPointers = Utils.getPointers(dtypedecls);
     long[] sortPointers = mkDatatypeSorts(pointer, declPointers);
-    Sort[] sorts = Utils.getSorts(this, sortPointers);
+    Sort[] sorts = Utils.getSorts(sortPointers);
     return sorts;
   }
 
@@ -262,7 +243,7 @@ public class Solver implements IPointer, AutoCloseable
   public Sort mkFunctionSort(Sort[] sorts, Sort codomain)
   {
     long sortPointer = mkFunctionSort(pointer, Utils.getPointers(sorts), codomain.getPointer());
-    return new Sort(this, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long mkFunctionSort(long pointer, long[] sortPointers, long codomainPointer);
@@ -278,7 +259,7 @@ public class Solver implements IPointer, AutoCloseable
   public Sort mkParamSort(String symbol)
   {
     long sortPointer = mkParamSort(pointer, symbol);
-    return new Sort(this, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long mkParamSort(long pointer, String symbol);
@@ -293,7 +274,7 @@ public class Solver implements IPointer, AutoCloseable
   public Sort mkParamSort()
   {
     long sortPointer = mkParamSort(pointer);
-    return new Sort(this, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long mkParamSort(long pointer);
@@ -306,7 +287,7 @@ public class Solver implements IPointer, AutoCloseable
   public Sort mkPredicateSort(Sort[] sorts)
   {
     long sortPointer = mkPredicateSort(pointer, Utils.getPointers(sorts));
-    return new Sort(this, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long mkPredicateSort(long pointer, long[] sortPointers);
@@ -322,7 +303,7 @@ public class Solver implements IPointer, AutoCloseable
   public Sort mkRecordSort(Pair<String, Sort>[] fields)
   {
     long sortPointer = mkRecordSort(pointer, Utils.getPairs(fields));
-    return new Sort(this, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long mkRecordSort(long pointer, Pair<String, Long>[] fields);
@@ -335,7 +316,7 @@ public class Solver implements IPointer, AutoCloseable
   public Sort mkSetSort(Sort elemSort)
   {
     long sortPointer = mkSetSort(pointer, elemSort.getPointer());
-    return new Sort(this, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long mkSetSort(long pointer, long elemSortPointer);
@@ -347,7 +328,7 @@ public class Solver implements IPointer, AutoCloseable
   public Sort mkBagSort(Sort elemSort)
   {
     long sortPointer = mkBagSort(pointer, elemSort.getPointer());
-    return new Sort(this, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long mkBagSort(long pointer, long elemSortPointer);
@@ -360,10 +341,41 @@ public class Solver implements IPointer, AutoCloseable
   public Sort mkSequenceSort(Sort elemSort)
   {
     long sortPointer = mkSequenceSort(pointer, elemSort.getPointer());
-    return new Sort(this, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long mkSequenceSort(long pointer, long elemSortPointer);
+
+  /**
+   * Create an abstract sort. An abstract sort represents a sort for a given
+   * kind whose parameters and arguments are unspecified.
+   *
+   * The {@link SortKind} k must be the kind of a sort that can be abstracted, i.e., a sort
+   * that has indices or argument sorts. For example, {@link SortKind#ARRAY_SORT} and
+   *  {@link SortKind#BITVECTOR_SORT} can be passed as the {@link SortKind} k to this method, while
+   *  {@link SortKind#INTEGER_SORT} and  {@link SortKind#STRING_SORT} cannot.
+   *
+   * @api.note Providing the kind  {@link SortKind#ABSTRACT_SORT} as an argument to this method
+   * returns the (fully) unspecified sort, often denoted {@code ?}.
+   *
+   * @api.note Providing a kind {@code k} that has no indices and a fixed arity
+   * of argument sorts will return the sort of {@link SortKind} k whose arguments
+   * are the unspecified sort. For example, mkAbstractSort(ARRAY_SORT) will
+   * return the sort (ARRAY_SORT ? ?) instead of the abstract sort whose abstract
+   * kind is {@link SortKind#ABSTRACT_SORT}.
+   *
+   * @param kind The kind of the abstract sort
+   * @return The abstract sort.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   */
+  public Sort mkAbstractSort(SortKind kind)
+  {
+    long sortPointer = mkAbstractSort(pointer, kind.getValue());
+    return new Sort(sortPointer);
+  }
+
+  private native long mkAbstractSort(long pointer, int kindValue);
 
   /**
    * Create an uninterpreted sort.
@@ -373,7 +385,7 @@ public class Solver implements IPointer, AutoCloseable
   public Sort mkUninterpretedSort(String symbol)
   {
     long sortPointer = mkUninterpretedSort(pointer, symbol);
-    return new Sort(this, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long mkUninterpretedSort(long pointer, String symbol);
@@ -385,7 +397,7 @@ public class Solver implements IPointer, AutoCloseable
   public Sort mkUninterpretedSort()
   {
     long sortPointer = mkUninterpretedSort(pointer);
-    return new Sort(this, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long mkUninterpretedSort(long pointer);
@@ -405,7 +417,7 @@ public class Solver implements IPointer, AutoCloseable
   {
     Utils.validateUnsigned(arity, "arity");
     long sortPointer = mkUnresolvedDatatypeSort(pointer, symbol, arity);
-    return new Sort(this, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long mkUnresolvedDatatypeSort(long pointer, String symbol, int arity);
@@ -440,7 +452,7 @@ public class Solver implements IPointer, AutoCloseable
   {
     Utils.validateUnsigned(arity, "arity");
     long sortPointer = mkUninterpretedSortConstructorSort(pointer, arity, symbol);
-    return new Sort(this, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long mkUninterpretedSortConstructorSort(long pointer, int arity, String symbol);
@@ -459,7 +471,7 @@ public class Solver implements IPointer, AutoCloseable
   {
     Utils.validateUnsigned(arity, "arity");
     long sortPointer = mkUninterpretedSortConstructorSort(pointer, arity);
-    return new Sort(this, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long mkUninterpretedSortConstructorSort(long pointer, int arity);
@@ -473,7 +485,7 @@ public class Solver implements IPointer, AutoCloseable
   {
     long[] sortPointers = Utils.getPointers(sorts);
     long sortPointer = mkTupleSort(pointer, sortPointers);
-    return new Sort(this, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long mkTupleSort(long pointer, long[] sortPointers);
@@ -490,7 +502,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkTerm(Kind kind)
   {
     long termPointer = mkTerm(pointer, kind.getValue());
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkTerm(long pointer, int kindValue);
@@ -504,7 +516,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkTerm(Kind kind, Term child)
   {
     long termPointer = mkTerm(pointer, kind.getValue(), child.getPointer());
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkTerm(long pointer, int kindValue, long childPointer);
@@ -519,7 +531,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkTerm(Kind kind, Term child1, Term child2)
   {
     long termPointer = mkTerm(pointer, kind.getValue(), child1.getPointer(), child2.getPointer());
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkTerm(long pointer, int kindValue, long child1Pointer, long child2Pointer);
@@ -536,7 +548,7 @@ public class Solver implements IPointer, AutoCloseable
   {
     long termPointer = mkTerm(
         pointer, kind.getValue(), child1.getPointer(), child2.getPointer(), child3.getPointer());
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkTerm(
@@ -551,7 +563,7 @@ public class Solver implements IPointer, AutoCloseable
   {
     long[] childPointers = Utils.getPointers(children);
     long termPointer = mkTerm(pointer, kind.getValue(), childPointers);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkTerm(long pointer, int kindValue, long[] childrenPointers);
@@ -565,7 +577,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkTerm(Op op)
   {
     long termPointer = mkTerm(pointer, op.getPointer());
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkTerm(long pointer, long opPointer);
@@ -579,7 +591,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkTerm(Op op, Term child)
   {
     long termPointer = mkTerm(pointer, op.getPointer(), child.getPointer());
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkTerm(long pointer, long opPointer, long childPointer);
@@ -595,7 +607,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkTerm(Op op, Term child1, Term child2)
   {
     long termPointer = mkTerm(pointer, op.getPointer(), child1.getPointer(), child2.getPointer());
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkTerm(long pointer, long opPointer, long child1Pointer, long child2Pointer);
@@ -612,7 +624,7 @@ public class Solver implements IPointer, AutoCloseable
   {
     long termPointer =
         mkTerm(op.getPointer(), child1.getPointer(), child2.getPointer(), child3.getPointer());
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkTerm(
@@ -629,7 +641,7 @@ public class Solver implements IPointer, AutoCloseable
   {
     long[] childPointers = Utils.getPointers(children);
     long termPointer = mkTerm(pointer, op.getPointer(), childPointers);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkTerm(long pointer, long opPointer, long[] childrenPointers);
@@ -637,19 +649,17 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create a tuple term. Terms are automatically converted if sorts are
    * compatible.
-   * @param sorts The sorts of the elements in the tuple.
    * @param terms The elements in the tuple.
    * @return The tuple Term.
    */
-  public Term mkTuple(Sort[] sorts, Term[] terms)
+  public Term mkTuple(Term[] terms)
   {
-    long[] sortPointers = Utils.getPointers(sorts);
     long[] termPointers = Utils.getPointers(terms);
-    long termPointer = mkTuple(pointer, sortPointers, termPointers);
-    return new Term(this, termPointer);
+    long termPointer = mkTuple(pointer, termPointers);
+    return new Term(termPointer);
   }
 
-  private native long mkTuple(long pointer, long[] sortPointers, long[] termPointers);
+  private native long mkTuple(long pointer, long[] termPointers);
 
   /* .................................................................... */
   /* Create Operators                                                     */
@@ -668,7 +678,7 @@ public class Solver implements IPointer, AutoCloseable
   public Op mkOp(Kind kind)
   {
     long opPointer = mkOp(pointer, kind.getValue());
-    return new Op(this, opPointer);
+    return new Op(opPointer);
   }
 
   private native long mkOp(long pointer, int kindValue);
@@ -686,7 +696,7 @@ public class Solver implements IPointer, AutoCloseable
   public Op mkOp(Kind kind, String arg)
   {
     long opPointer = mkOp(pointer, kind.getValue(), arg);
-    return new Op(this, opPointer);
+    return new Op(opPointer);
   }
 
   private native long mkOp(long pointer, int kindValue, String arg);
@@ -716,7 +726,7 @@ public class Solver implements IPointer, AutoCloseable
   {
     Utils.validateUnsigned(arg, "arg");
     long opPointer = mkOp(pointer, kind.getValue(), arg);
-    return new Op(this, opPointer);
+    return new Op(opPointer);
   }
 
   private native long mkOp(long pointer, int kindValue, int arg);
@@ -742,7 +752,7 @@ public class Solver implements IPointer, AutoCloseable
     Utils.validateUnsigned(arg1, "arg1");
     Utils.validateUnsigned(arg2, "arg2");
     long opPointer = mkOp(pointer, kind.getValue(), arg1, arg2);
-    return new Op(this, opPointer);
+    return new Op(opPointer);
   }
 
   private native long mkOp(long pointer, int kindValue, int arg1, int arg2);
@@ -761,7 +771,7 @@ public class Solver implements IPointer, AutoCloseable
   {
     Utils.validateUnsigned(args, "args");
     long opPointer = mkOp(pointer, kind.getValue(), args);
-    return new Op(this, opPointer);
+    return new Op(opPointer);
   }
 
   private native long mkOp(long pointer, int kindValue, int[] args);
@@ -777,7 +787,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkTrue()
   {
     long termPointer = mkTrue(pointer);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkTrue(long pointer);
@@ -788,7 +798,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkFalse()
   {
     long termPointer = mkFalse(pointer);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkFalse(long pointer);
@@ -800,7 +810,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkBoolean(boolean val)
   {
     long termPointer = mkBoolean(pointer, val);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkBoolean(long pointer, boolean val);
@@ -811,7 +821,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkPi()
   {
     long termPointer = mkPi(pointer);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkPi(long pointer);
@@ -826,7 +836,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkInteger(String s) throws CVC5ApiException
   {
     long termPointer = mkInteger(pointer, s);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkInteger(long pointer, String s) throws CVC5ApiException;
@@ -839,7 +849,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkInteger(long val)
   {
     long termPointer = mkInteger(pointer, val);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkInteger(long pointer, long val);
@@ -854,7 +864,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkReal(String s) throws CVC5ApiException
   {
     long termPointer = mkReal(pointer, s);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkReal(long pointer, String s) throws CVC5ApiException;
@@ -866,7 +876,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkReal(long val)
   {
     long termPointer = mkRealValue(pointer, val);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkRealValue(long pointer, long val);
@@ -879,7 +889,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkReal(long num, long den)
   {
     long termPointer = mkReal(pointer, num, den);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkReal(long pointer, long num, long den);
@@ -891,7 +901,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkRegexpNone()
   {
     long termPointer = mkRegexpNone(pointer);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkRegexpNone(long pointer);
@@ -903,7 +913,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkRegexpAll()
   {
     long termPointer = mkRegexpAll(pointer);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkRegexpAll(long pointer);
@@ -915,7 +925,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkRegexpAllchar()
   {
     long termPointer = mkRegexpAllchar(pointer);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkRegexpAllchar(long pointer);
@@ -928,7 +938,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkEmptySet(Sort sort)
   {
     long termPointer = mkEmptySet(pointer, sort.getPointer());
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkEmptySet(long pointer, long sortPointer);
@@ -940,7 +950,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkEmptyBag(Sort sort)
   {
     long termPointer = mkEmptyBag(pointer, sort.getPointer());
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkEmptyBag(long pointer, long sortPointer);
@@ -955,7 +965,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkSepEmp()
   {
     long termPointer = mkSepEmp(pointer);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkSepEmp(long pointer);
@@ -971,7 +981,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkSepNil(Sort sort)
   {
     long termPointer = mkSepNil(pointer, sort.getPointer());
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkSepNil(long pointer, long sortPointer);
@@ -998,7 +1008,7 @@ public class Solver implements IPointer, AutoCloseable
   {
     // TODO: review unicode
     long termPointer = mkString(pointer, s, useEscSequences);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkString(long pointer, String s, boolean useEscSequences);
@@ -1014,7 +1024,7 @@ public class Solver implements IPointer, AutoCloseable
   {
     Utils.validateUnsigned(s, "s");
     long termPointer = mkString(pointer, s);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkString(long pointer, int[] s);
@@ -1027,7 +1037,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkEmptySequence(Sort sort)
   {
     long termPointer = mkEmptySequence(pointer, sort.getPointer());
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkEmptySequence(long pointer, long sortPointer);
@@ -1040,7 +1050,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkUniverseSet(Sort sort)
   {
     long termPointer = mkUniverseSet(pointer, sort.getPointer());
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkUniverseSet(long pointer, long sortPointer);
@@ -1070,7 +1080,7 @@ public class Solver implements IPointer, AutoCloseable
     Utils.validateUnsigned(size, "size");
     Utils.validateUnsigned(val, "val");
     long termPointer = mkBitVector(pointer, size, val);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkBitVector(long pointer, int size, long val);
@@ -1092,10 +1102,28 @@ public class Solver implements IPointer, AutoCloseable
     Utils.validateUnsigned(size, "size");
     Utils.validateUnsigned(base, "base");
     long termPointer = mkBitVector(pointer, size, s, base);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkBitVector(long pointer, int size, String s, int base);
+
+  /**
+   * Create a finite field constant in a given field and for a given value.
+   *
+   * @api.note The given value must fit into a the given finite field.
+   *
+   * @param val The value of the constant.
+   * @param sort The sort of the finite field.
+   * @return The finite field constant.
+   * @throws CVC5ApiException
+   */
+  public Term mkFiniteFieldElem(String val, Sort sort) throws CVC5ApiException
+  {
+    long termPointer = mkFiniteFieldElem(pointer, val, sort.getPointer());
+    return new Term(termPointer);
+  }
+
+  private native long mkFiniteFieldElem(long pointer, String val, long sortPointer);
 
   /**
    * Create a constant array with the provided constant value stored at
@@ -1108,7 +1136,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkConstArray(Sort sort, Term val)
   {
     long termPointer = mkConstArray(pointer, sort.getPointer(), val.getPointer());
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkConstArray(long pointer, long sortPointer, long valPointer);
@@ -1124,7 +1152,7 @@ public class Solver implements IPointer, AutoCloseable
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
     long termPointer = mkFloatingPointPosInf(pointer, exp, sig);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkFloatingPointPosInf(long pointer, int exp, int sig);
@@ -1140,7 +1168,7 @@ public class Solver implements IPointer, AutoCloseable
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
     long termPointer = mkFloatingPointNegInf(pointer, exp, sig);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkFloatingPointNegInf(long pointer, int exp, int sig);
@@ -1156,7 +1184,7 @@ public class Solver implements IPointer, AutoCloseable
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
     long termPointer = mkFloatingPointNaN(pointer, exp, sig);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkFloatingPointNaN(long pointer, int exp, int sig);
@@ -1173,7 +1201,7 @@ public class Solver implements IPointer, AutoCloseable
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
     long termPointer = mkFloatingPointPosZero(pointer, exp, sig);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkFloatingPointPosZero(long pointer, int exp, int sig);
@@ -1190,7 +1218,7 @@ public class Solver implements IPointer, AutoCloseable
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
     long termPointer = mkFloatingPointNegZero(pointer, exp, sig);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkFloatingPointNegZero(long pointer, int exp, int sig);
@@ -1202,16 +1230,18 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkRoundingMode(RoundingMode rm)
   {
     long termPointer = mkRoundingMode(pointer, rm.getValue());
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkRoundingMode(long pointer, int rm);
 
   /**
-   * Create a floating-point constant.
+   * Create a floating-point value from a bit-vector given in IEEE-754
+   * format.
    * @param exp Size of the exponent.
    * @param sig Size of the significand.
    * @param val Value of the floating-point constant as a bit-vector term.
+   * @return The floating-point value.
    * @throws CVC5ApiException
    */
   public Term mkFloatingPoint(int exp, int sig, Term val) throws CVC5ApiException
@@ -1219,10 +1249,29 @@ public class Solver implements IPointer, AutoCloseable
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
     long termPointer = mkFloatingPoint(pointer, exp, sig, val.getPointer());
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkFloatingPoint(long pointer, int exp, int sig, long valPointer);
+
+  /**
+   * Create a floating-point value from its three IEEE-754 bit-vector value
+   * components (sign bit, exponent, significand).
+   * @param sign The sign bit.
+   * @param exp  The bit-vector representing the exponent.
+   * @param sig The bit-vector representing the significand.
+   * @return The floating-point value.
+   * @throws CVC5ApiException
+   */
+  public Term mkFloatingPoint(Term sign, Term exp, Term sig) throws CVC5ApiException
+  {
+    long termPointer =
+        mkFloatingPointX(pointer, sign.getPointer(), exp.getPointer(), sig.getPointer());
+    return new Term(termPointer);
+  }
+
+  private native long mkFloatingPointX(
+      long pointer, long signPointer, long expPointer, long sigPointer);
 
   /**
    * Create a cardinality constraint for an uninterpreted sort.
@@ -1238,7 +1287,7 @@ public class Solver implements IPointer, AutoCloseable
   {
     Utils.validateUnsigned(upperBound, "upperBound");
     long termPointer = mkCardinalityConstraint(pointer, sort.getPointer(), upperBound);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkCardinalityConstraint(long pointer, long sortPointer, int upperBound);
@@ -1263,7 +1312,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkConst(Sort sort, String symbol)
   {
     long termPointer = mkConst(pointer, sort.getPointer(), symbol);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkConst(long pointer, long sortPointer, String symbol);
@@ -1277,7 +1326,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkConst(Sort sort)
   {
     long termPointer = mkConst(pointer, sort.getPointer());
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkConst(long pointer, long sortPointer);
@@ -1303,7 +1352,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term mkVar(Sort sort, String symbol)
   {
     long termPointer = mkVar(pointer, sort.getPointer(), symbol);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long mkVar(long pointer, long sortPointer, String symbol);
@@ -1320,7 +1369,7 @@ public class Solver implements IPointer, AutoCloseable
   public DatatypeConstructorDecl mkDatatypeConstructorDecl(String name)
   {
     long declPointer = mkDatatypeConstructorDecl(pointer, name);
-    return new DatatypeConstructorDecl(this, declPointer);
+    return new DatatypeConstructorDecl(declPointer);
   }
 
   private native long mkDatatypeConstructorDecl(long pointer, String name);
@@ -1348,7 +1397,7 @@ public class Solver implements IPointer, AutoCloseable
   public DatatypeDecl mkDatatypeDecl(String name, boolean isCoDatatype)
   {
     long declPointer = mkDatatypeDecl(pointer, name, isCoDatatype);
-    return new DatatypeDecl(this, declPointer);
+    return new DatatypeDecl(declPointer);
   }
 
   private native long mkDatatypeDecl(long pointer, String name, boolean isCoDatatype);
@@ -1383,7 +1432,7 @@ public class Solver implements IPointer, AutoCloseable
   {
     long[] paramPointers = Utils.getPointers(params);
     long declPointer = mkDatatypeDecl(pointer, name, paramPointers, isCoDatatype);
-    return new DatatypeDecl(this, declPointer);
+    return new DatatypeDecl(declPointer);
   }
 
   private native long mkDatatypeDecl(
@@ -1408,7 +1457,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term simplify(Term t)
   {
     long termPointer = simplify(pointer, t.getPointer());
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long simplify(long pointer, long termPointer);
@@ -1441,7 +1490,7 @@ public class Solver implements IPointer, AutoCloseable
   public Result checkSat()
   {
     long resultPointer = checkSat(pointer);
-    return new Result(this, resultPointer);
+    return new Result(resultPointer);
   }
 
   private native long checkSat(long pointer);
@@ -1459,7 +1508,7 @@ public class Solver implements IPointer, AutoCloseable
   public Result checkSatAssuming(Term assumption)
   {
     long resultPointer = checkSatAssuming(pointer, assumption.getPointer());
-    return new Result(this, resultPointer);
+    return new Result(resultPointer);
   }
 
   private native long checkSatAssuming(long pointer, long assumptionPointer);
@@ -1479,7 +1528,7 @@ public class Solver implements IPointer, AutoCloseable
   {
     long[] pointers = Utils.getPointers(assumptions);
     long resultPointer = checkSatAssuming(pointer, pointers);
-    return new Result(this, resultPointer);
+    return new Result(resultPointer);
   }
 
   private native long checkSatAssuming(long pointer, long[] assumptionPointers);
@@ -1500,7 +1549,7 @@ public class Solver implements IPointer, AutoCloseable
   {
     long[] pointers = Utils.getPointers(ctors);
     long sortPointer = declareDatatype(pointer, symbol, pointers);
-    return new Sort(this, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long declareDatatype(long pointer, String symbol, long[] declPointers);
@@ -1522,12 +1571,37 @@ public class Solver implements IPointer, AutoCloseable
   {
     long[] sortPointers = Utils.getPointers(sorts);
     long termPointer = declareFun(pointer, symbol, sortPointers, sort.getPointer());
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long declareFun(
       long pointer, String symbol, long[] sortPointers, long sortPointer);
 
+  /**
+   * Declare n-ary function symbol.
+   *
+   * SMT-LIB:
+   * {@code
+   *   ( declare-fun <symbol> ( <sort>* ) <sort> )
+   * }
+   *
+   * @param symbol The name of the function.
+   * @param sorts The sorts of the parameters to this function.
+   * @param sort The sort of the return value of this function.
+   * @param fresh If true, then this method always returns a new Term.
+   * Otherwise, this method will always return the same Term
+   * for each call with the given sorts and symbol where fresh is false.
+   * @return The function.
+   */
+  public Term declareFun(String symbol, Sort[] sorts, Sort sort, boolean fresh)
+  {
+    long[] sortPointers = Utils.getPointers(sorts);
+    long termPointer = declareFun(pointer, symbol, sortPointers, sort.getPointer(), fresh);
+    return new Term(termPointer);
+  }
+
+  private native long declareFun(
+      long pointer, String symbol, long[] sortPointers, long sortPointer, boolean fresh);
   /**
    * Declare uninterpreted sort.
    *
@@ -1548,7 +1622,7 @@ public class Solver implements IPointer, AutoCloseable
   {
     Utils.validateUnsigned(arity, "arity");
     long sortPointer = declareSort(pointer, symbol, arity);
-    return new Sort(this, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long declareSort(long pointer, String symbol, int arity);
@@ -1593,7 +1667,7 @@ public class Solver implements IPointer, AutoCloseable
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long termPointer =
         defineFun(pointer, symbol, boundVarPointers, sort.getPointer(), term.getPointer(), global);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long defineFun(long pointer,
@@ -1643,7 +1717,7 @@ public class Solver implements IPointer, AutoCloseable
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long termPointer = defineFunRec(
         pointer, symbol, boundVarPointers, sort.getPointer(), term.getPointer(), global);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long defineFunRec(long pointer,
@@ -1696,7 +1770,7 @@ public class Solver implements IPointer, AutoCloseable
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long termPointer =
         defineFunRec(pointer, fun.getPointer(), boundVarPointers, term.getPointer(), global);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long defineFunRec(
@@ -1768,7 +1842,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term[] getLearnedLiterals()
   {
     long[] retPointers = getLearnedLiterals(pointer);
-    return Utils.getTerms(this, retPointers);
+    return Utils.getTerms(retPointers);
   }
 
   private native long[] getLearnedLiterals(long pointer);
@@ -1789,7 +1863,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term[] getLearnedLiterals(LearnedLitType type)
   {
     long[] retPointers = getLearnedLiterals(pointer, type.getValue());
-    return Utils.getTerms(this, retPointers);
+    return Utils.getTerms(retPointers);
   }
 
   private native long[] getLearnedLiterals(long pointer, int type);
@@ -1807,7 +1881,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term[] getAssertions()
   {
     long[] retPointers = getAssertions(pointer);
-    return Utils.getTerms(this, retPointers);
+    return Utils.getTerms(retPointers);
   }
 
   private native long[] getAssertions(long pointer);
@@ -1865,7 +1939,7 @@ public class Solver implements IPointer, AutoCloseable
   public OptionInfo getOptionInfo(String option)
   {
     long optionPointer = getOptionInfo(pointer, option);
-    return new OptionInfo(this, optionPointer);
+    return new OptionInfo(optionPointer);
   }
 
   private native long getOptionInfo(long pointer, String option);
@@ -1885,7 +1959,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term[] getUnsatAssumptions()
   {
     long[] retPointers = getUnsatAssumptions(pointer);
-    return Utils.getTerms(this, retPointers);
+    return Utils.getTerms(retPointers);
   }
 
   private native long[] getUnsatAssumptions(long pointer);
@@ -1909,7 +1983,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term[] getUnsatCore()
   {
     long[] retPointers = getUnsatCore(pointer);
-    return Utils.getTerms(this, retPointers);
+    return Utils.getTerms(retPointers);
   }
 
   private native long[] getUnsatCore(long pointer);
@@ -1930,14 +2004,50 @@ public class Solver implements IPointer, AutoCloseable
     Map<Term, Term> ret = new HashMap<>();
     for (Map.Entry<Long, Long> entry : map.entrySet())
     {
-      Term key = new Term(this, entry.getKey());
-      Term value = new Term(this, entry.getValue());
+      Term key = new Term(entry.getKey());
+      Term value = new Term(entry.getValue());
       ret.put(key, value);
     }
     return ret;
   }
 
   private native Map<Long, Long> getDifficulty(long pointer);
+
+  /**
+   * Get a timeout core, which computes a subset of the current assertions that
+   * cause a timeout. Note it does not require being proceeded by a call to
+   * checkSat.
+   *
+   * SMT-LIB:
+   * {@code
+   * (get-timeout-core)
+   * }
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @return The result of the timeout core computation. This is a pair
+   * containing a result and a list of formulas. If the result is unknown
+   * and the reason is timeout, then the list of formulas correspond to a
+   * subset of the current assertions that cause a timeout in the specified
+   * time {@code timeout-core-timeout}.
+   * If the result is unsat, then the list of formulas correspond to an
+   * unsat core for the current assertions. Otherwise, the result is sat,
+   * indicating that the current assertions are satisfiable, and
+   * the list of formulas is empty.
+   *
+   * This method may make multiple checks for satisfiability internally, each
+   * limited by the timeout value given by {@code timeout-core-timeout}.
+   */
+  public Pair<Result, Term[]> getTimeoutCore()
+  {
+    Pair<Long, long[]> pair = getTimeoutCore(pointer);
+    Result result = new Result(pair.first);
+    Term[] terms = Utils.getTerms(pair.second);
+    Pair<Result, Term[]> ret = new Pair<>(result, terms);
+    return ret;
+  }
+
+  private native Pair<Long, long[]> getTimeoutCore(long pointer);
 
   /**
    * Get refutation proof for the most recent call to checkSat.
@@ -1975,7 +2085,7 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @param c The component of the proof to return
    * @return A string representing the proof. This is equivalent to getProof
-   * when c is PROOF_COMPONENT_FULL.
+   * when c is FULL.
    */
   public String getProof(ProofComponent c)
   {
@@ -1998,7 +2108,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term getValue(Term term)
   {
     long termPointer = getValue(pointer, term.getPointer());
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long getValue(long pointer, long termPointer);
@@ -2018,7 +2128,7 @@ public class Solver implements IPointer, AutoCloseable
   {
     long[] pointers = Utils.getPointers(terms);
     long[] retPointers = getValue(pointer, pointers);
-    return Utils.getTerms(this, retPointers);
+    return Utils.getTerms(retPointers);
   }
 
   private native long[] getValue(long pointer, long[] termPointers);
@@ -2035,7 +2145,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term[] getModelDomainElements(Sort s)
   {
     long[] pointers = getModelDomainElements(pointer, s.getPointer());
-    return Utils.getTerms(this, pointers);
+    return Utils.getTerms(pointers);
   }
 
   private native long[] getModelDomainElements(long pointer, long sortPointer);
@@ -2112,7 +2222,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term getQuantifierElimination(Term q)
   {
     long termPointer = getQuantifierElimination(pointer, q.getPointer());
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long getQuantifierElimination(long pointer, long qPointer);
@@ -2156,7 +2266,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term getQuantifierEliminationDisjunct(Term q)
   {
     long termPointer = getQuantifierEliminationDisjunct(pointer, q.getPointer());
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long getQuantifierEliminationDisjunct(long pointer, long qPointer);
@@ -2188,7 +2298,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term getValueSepHeap()
   {
     long termPointer = getValueSepHeap(pointer);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long getValueSepHeap(long pointer);
@@ -2203,7 +2313,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term getValueSepNil()
   {
     long termPointer = getValueSepNil(pointer);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long getValueSepNil(long pointer);
@@ -2226,7 +2336,7 @@ public class Solver implements IPointer, AutoCloseable
   {
     long[] termPointers = Utils.getPointers(initValue);
     long termPointer = declarePool(pointer, symbol, sort.getPointer(), termPointers);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long declarePool(
@@ -2262,7 +2372,7 @@ public class Solver implements IPointer, AutoCloseable
     oracles.add(oracle);
     long[] sortPointers = Utils.getPointers(sorts);
     long termPointer = declareOracleFun(pointer, symbol, sortPointers, sort.getPointer(), oracle);
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long declareOracleFun(
@@ -2324,7 +2434,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term getInterpolant(Term conj)
   {
     long interpolPtr = getInterpolant(pointer, conj.getPointer());
-    return new Term(this, interpolPtr);
+    return new Term(interpolPtr);
   }
 
   private native long getInterpolant(long pointer, long conjPointer);
@@ -2352,7 +2462,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term getInterpolant(Term conj, Grammar grammar)
   {
     long interpolPtr = getInterpolant(pointer, conj.getPointer(), grammar.getPointer());
-    return new Term(this, interpolPtr);
+    return new Term(interpolPtr);
   }
 
   private native long getInterpolant(long pointer, long conjPointer, long grammarPointer);
@@ -2384,7 +2494,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term getInterpolantNext()
   {
     long interpolPtr = getInterpolantNext(pointer);
-    return new Term(this, interpolPtr);
+    return new Term(interpolPtr);
   }
 
   private native long getInterpolantNext(long pointer);
@@ -2409,7 +2519,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term getAbduct(Term conj)
   {
     long abdPtr = getAbduct(pointer, conj.getPointer());
-    return new Term(this, abdPtr);
+    return new Term(abdPtr);
   }
 
   private native long getAbduct(long pointer, long conjPointer);
@@ -2435,7 +2545,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term getAbduct(Term conj, Grammar grammar)
   {
     long abdPtr = getAbduct(pointer, conj.getPointer(), grammar.getPointer());
-    return new Term(this, abdPtr);
+    return new Term(abdPtr);
   }
 
   private native long getAbduct(long pointer, long conjPointer, long grammarPointer);
@@ -2460,7 +2570,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term getAbductNext()
   {
     long abdPtr = getAbductNext(pointer);
-    return new Term(this, abdPtr);
+    return new Term(abdPtr);
   }
 
   private native long getAbductNext(long pointer);
@@ -2642,7 +2752,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term declareSygusVar(String symbol, Sort sort)
   {
     long termPointer = declareSygusVar(pointer, symbol, sort.getPointer());
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long declareSygusVar(long pointer, String symbol, long sortPointer);
@@ -2662,7 +2772,7 @@ public class Solver implements IPointer, AutoCloseable
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long[] ntSymbolPointers = Utils.getPointers(ntSymbols);
     long grammarPointer = mkGrammar(pointer, boundVarPointers, ntSymbolPointers);
-    return new Grammar(this, grammarPointer);
+    return new Grammar(grammarPointer);
   }
 
   private native long mkGrammar(long pointer, long[] boundVarPointers, long[] ntSymbolPointers);
@@ -2684,7 +2794,7 @@ public class Solver implements IPointer, AutoCloseable
   {
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long termPointer = synthFun(pointer, symbol, boundVarPointers, sort.getPointer());
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long synthFun(
@@ -2709,55 +2819,11 @@ public class Solver implements IPointer, AutoCloseable
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long termPointer =
         synthFun(pointer, symbol, boundVarPointers, sort.getPointer(), grammar.getPointer());
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long synthFun(
       long pointer, String symbol, long[] boundVarPointers, long sortPointer, long grammarPointer);
-
-  /**
-   * Synthesize invariant.
-   *
-   * SyGuS v2:
-   * {@code
-   *   ( synth-inv <symbol> ( <boundVars>* ) )
-   * }
-   *
-   * @param symbol The name of the invariant.
-   * @param boundVars The parameters to this invariant.
-   * @return The invariant.
-   */
-  public Term synthInv(String symbol, Term[] boundVars)
-  {
-    long[] boundVarPointers = Utils.getPointers(boundVars);
-    long termPointer = synthInv(pointer, symbol, boundVarPointers);
-    return new Term(this, termPointer);
-  }
-
-  private native long synthInv(long pointer, String symbol, long[] boundVarPointers);
-
-  /**
-   * Synthesize invariant following specified syntactic constraints.
-   *
-   * SyGuS v2:
-   * {@code
-   *   ( synth-inv <symbol> ( <boundVars>* ) <g> )
-   * }
-   *
-   * @param symbol The name of the invariant.
-   * @param boundVars The parameters to this invariant.
-   * @param grammar The syntactic constraints.
-   * @return The invariant.
-   */
-  public Term synthInv(String symbol, Term[] boundVars, Grammar grammar)
-  {
-    long[] boundVarPointers = Utils.getPointers(boundVars);
-    long termPointer = synthInv(pointer, symbol, boundVarPointers, grammar.getPointer());
-    return new Term(this, termPointer);
-  }
-
-  private native long synthInv(
-      long pointer, String symbol, long[] boundVarPointers, long grammarPointer);
 
   /**
    * Add a forumla to the set of Sygus constraints.
@@ -2777,6 +2843,19 @@ public class Solver implements IPointer, AutoCloseable
   private native void addSygusConstraint(long pointer, long termPointer);
 
   /**
+   * Get the list of sygus constraints.
+   *
+   * @return The list of sygus constraints.
+   */
+  public Term[] getSygusConstraints()
+  {
+    long[] retPointers = getSygusConstraints(pointer);
+    return Utils.getTerms(retPointers);
+  }
+
+  private native long[] getSygusConstraints(long pointer);
+
+  /**
    * Add a forumla to the set of Sygus assumptions.
    *
    * SyGuS v2:
@@ -2792,6 +2871,19 @@ public class Solver implements IPointer, AutoCloseable
   }
 
   private native void addSygusAssume(long pointer, long termPointer);
+
+  /**
+   * Get the list of sygus assumptions.
+   *
+   * @return The list of sygus assumptions.
+   */
+  public Term[] getSygusAssumptions()
+  {
+    long[] retPointers = getSygusAssumptions(pointer);
+    return Utils.getTerms(retPointers);
+  }
+
+  private native long[] getSygusAssumptions(long pointer);
 
   /**
    * Add a set of Sygus constraints to the current state that correspond to an
@@ -2834,7 +2926,7 @@ public class Solver implements IPointer, AutoCloseable
   public SynthResult checkSynth()
   {
     long resultPointer = checkSynth(pointer);
-    return new SynthResult(this, resultPointer);
+    return new SynthResult(resultPointer);
   }
 
   private native long checkSynth(long pointer);
@@ -2860,7 +2952,7 @@ public class Solver implements IPointer, AutoCloseable
   public SynthResult checkSynthNext()
   {
     long resultPointer = checkSynthNext(pointer);
-    return new SynthResult(this, resultPointer);
+    return new SynthResult(resultPointer);
   }
 
   private native long checkSynthNext(long pointer);
@@ -2877,7 +2969,7 @@ public class Solver implements IPointer, AutoCloseable
   public Term getSynthSolution(Term term)
   {
     long termPointer = getSynthSolution(pointer, term.getPointer());
-    return new Term(this, termPointer);
+    return new Term(termPointer);
   }
 
   private native long getSynthSolution(long pointer, long termPointer);
@@ -2895,10 +2987,79 @@ public class Solver implements IPointer, AutoCloseable
   {
     long[] termPointers = Utils.getPointers(terms);
     long[] retPointers = getSynthSolutions(pointer, termPointers);
-    return Utils.getTerms(this, retPointers);
+    return Utils.getTerms(retPointers);
   }
 
   private native long[] getSynthSolutions(long pointer, long[] termPointers);
+
+  /**
+   * Find a target term of interest using sygus enumeration, with no provided
+   * grammar.
+   *
+   * The solver will infer which grammar to use in this call, which by default
+   * will be the grammars specified by the function(s)-to-synthesize in the
+   * current context.
+   *
+   * SyGuS v2:
+   * {@code
+   *     (find-synth :target)
+   * }
+   *
+   * @param fst The identifier specifying what kind of term to find
+   * @return The result of the find, which is the null term if this call failed.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   */
+  public Term findSynth(FindSynthTarget fst)
+  {
+    long termPointer = findSynth(pointer, fst.getValue());
+    return new Term(termPointer);
+  }
+  private native long findSynth(long pointer, int fst);
+
+  /**
+   * Find a target term of interest using sygus enumeration with a provided
+   * grammar.
+   *
+   * SyGuS v2:
+   * {@code
+   *     (find-synth :target G)
+   * }
+   *
+   * @param fst The identifier specifying what kind of term to find
+   * @param grammar The grammar for the term
+   * @return The result of the find, which is the null term if this call failed.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   */
+  public Term findSynth(FindSynthTarget fst, Grammar grammar)
+  {
+    long termPointer = findSynth(pointer, fst.getValue(), grammar.getPointer());
+    return new Term(termPointer);
+  }
+  private native long findSynth(long pointer, int fst, long grammarPointer);
+
+  /**
+   * Try to find a next target term of interest using sygus enumeration. Must
+   * be called immediately after a successful call to find-synth or
+   * find-synth-next.
+   *
+   * SyGuS v2:
+   * {@code
+   *     (find-synth-next)
+   * }
+   *
+   * @return The result of the find, which is the null term if this call failed.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   */
+  public Term findSynthNext()
+  {
+    long termPointer = findSynthNext(pointer);
+    return new Term(termPointer);
+  }
+
+  private native long findSynthNext(long pointer);
 
   /**
    * Returns a snapshot of the current state of the statistic values of this
@@ -2908,65 +3069,10 @@ public class Solver implements IPointer, AutoCloseable
   public Statistics getStatistics()
   {
     long statisticsPointer = getStatistics(pointer);
-    return new Statistics(this, statisticsPointer);
+    return new Statistics(statisticsPointer);
   }
 
   private native long getStatistics(long pointer);
-
-  /**
-   * @return Null term.
-   */
-  public Term getNullTerm()
-  {
-    long termPointer = getNullTerm(pointer);
-    return new Term(this, termPointer);
-  }
-
-  private native long getNullTerm(long pointer);
-
-  /**
-   * @return Null result.
-   */
-  public Result getNullResult()
-  {
-    long resultPointer = getNullResult(pointer);
-    return new Result(this, resultPointer);
-  }
-
-  private native long getNullResult(long pointer);
-
-  /**
-   * @return Null synth result.
-   */
-  public SynthResult getNullSynthResult()
-  {
-    long resultPointer = getNullSynthResult(pointer);
-    return new SynthResult(this, resultPointer);
-  }
-
-  private native long getNullSynthResult(long pointer);
-
-  /**
-   * @return Null op.
-   */
-  public Op getNullOp()
-  {
-    long opPointer = getNullOp(pointer);
-    return new Op(this, opPointer);
-  }
-
-  private native long getNullOp(long pointer);
-
-  /**
-   * @return Null op.
-   */
-  public DatatypeDecl getNullDatatypeDecl()
-  {
-    long declPointer = getNullDatatypeDecl(pointer);
-    return new DatatypeDecl(this, declPointer);
-  }
-
-  private native long getNullDatatypeDecl(long pointer);
 
   /**
    * Get a string representation of the version of this solver.

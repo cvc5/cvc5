@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,12 +42,15 @@ class SmtDriverDeepRestarts : public SmtDriver
 {
  public:
   SmtDriverDeepRestarts(Env& env, SmtSolver& smt, ContextManager* ctx);
+  virtual ~SmtDriverDeepRestarts(){}
 
  protected:
-  Result checkSatNext() override;
-  void getNextAssertions(Assertions& as) override;
+  Result checkSatNext(preprocessing::AssertionPipeline& ap) override;
+  void getNextAssertions(preprocessing::AssertionPipeline& ap) override;
 
  private:
+  /** first time? */
+  bool d_firstTime;
   /** The current learned literals */
   std::vector<Node> d_zll;
   /** All learned literals, used for debugging */

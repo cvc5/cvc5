@@ -1,0 +1,101 @@
+diff --git a/include/CoCoA/TmpGPoly.H b/include/CoCoA/TmpGPoly.H
+index 4c4d51e..efe50f7 100644
+--- a/include/CoCoA/TmpGPoly.H
++++ b/include/CoCoA/TmpGPoly.H
+@@ -29,6 +29,7 @@
+ #include "CoCoA/TmpGTypes.H"
+ #include "CoCoA/utils.H"
+ 
++#include<functional>
+ #include<list>
+ // using std::list; // for GPolyList; GPolyPtrList;
+ #include<vector>
+@@ -46,6 +47,11 @@ enum ClearMarker {clear};
+ 
+ class GPoly;
+ 
++extern bool handlersEnabled;
++extern std::function<void(ConstRefRingElem p, ConstRefRingElem q, ConstRefRingElem s)> sPolyHandler;
++extern std::function<void(ConstRefRingElem p)> reductionStartHandler;
++extern std::function<void(ConstRefRingElem q)> reductionStepHandler;
++extern std::function<void(ConstRefRingElem r)> reductionEndHandler;
+ 
+ typedef std::list<GPoly> GPolyList;
+ 
+diff --git a/src/AlgebraicCore/PolyRing-content.C b/src/AlgebraicCore/PolyRing-content.C
+index c5d0a0a..36d6d2b 100644
+--- a/src/AlgebraicCore/PolyRing-content.C
++++ b/src/AlgebraicCore/PolyRing-content.C
+@@ -33,6 +33,7 @@
+ #include "CoCoA/convert.H"
+ #include "CoCoA/error.H"
+ #include "CoCoA/utils.H"  // for len
++#include "CoCoA/TmpGPoly.H"
+ 
+ 
+ #include <vector>
+@@ -128,7 +129,9 @@ namespace CoCoA
+   {
+     const PolyRing Rx = owner(f);
+     RingElem ans(Rx);
++    if (handlersEnabled) reductionStartHandler(f);
+     Rx->myMonic(raw(ans), raw(f));
++    if (handlersEnabled) reductionEndHandler(ans);
+     return ans;
+   }
+ 
+diff --git a/src/AlgebraicCore/SparsePolyOps-reduce.C b/src/AlgebraicCore/SparsePolyOps-reduce.C
+index b5b8b43..11687f0 100644
+--- a/src/AlgebraicCore/SparsePolyOps-reduce.C
++++ b/src/AlgebraicCore/SparsePolyOps-reduce.C
+@@ -134,6 +134,7 @@ degree HereForProfilingOnlyWDeg(ConstRefPPMonoidElem cofactor1)
+       v.myGRingInfo().myCheckForTimeout("ReduceActiveLM");
+       s->myUpdate(F, *g);
+       F->myReduce(poly(*g), NumTerms(*g));
++      if ( handlersEnabled ) reductionStepHandler(poly(*g));
+     }//while
+   }//ReduceActiveLM
+ 
+@@ -269,6 +270,7 @@ degree HereForProfilingOnlyWDeg(ConstRefPPMonoidElem cofactor1)
+   void GPoly::myReduce(const Reductors& theReductors)
+   {
+     if ( IsZero(*this) ) return;
++    if ( handlersEnabled ) reductionStartHandler(myPoly());
+     ReductionCog F = ChooseReductionCogGeobucket(myGRingInfo());
+     F->myAssignReset(myPolyValue, myNumTerms); // myPolyValue gets 0
+     reduce(F, mySugar, theReductors); // mySugar updated
+@@ -278,6 +280,7 @@ degree HereForProfilingOnlyWDeg(ConstRefPPMonoidElem cofactor1)
+     if ( !IsZero(*this) && !IsOne(myLCValue) ) // makes myPolyValue monic
+       if ( myGRingInfo().myCoeffRingType()==CoeffEncoding::Field )
+         myGRingInfo().myNewSPR()->myDivByCoeff(raw(myPolyValue), raw(myLCValue));
++    if ( handlersEnabled ) reductionEndHandler(myPoly());
+     // if CoeffEncoding::Field myRelease does NOT make poly monic
+     // if CoeffEncoding::FrFldOfGCDDomain myRelease makes poly content free
+   }
+diff --git a/src/AlgebraicCore/TmpGPoly.C b/src/AlgebraicCore/TmpGPoly.C
+index ea250d4..3447d86 100644
+--- a/src/AlgebraicCore/TmpGPoly.C
++++ b/src/AlgebraicCore/TmpGPoly.C
+@@ -47,6 +47,11 @@ using std::vector;
+ namespace CoCoA
+ {  
+ 
++  bool handlersEnabled = false;
++  std::function<void(ConstRefRingElem p, ConstRefRingElem q, ConstRefRingElem s)> sPolyHandler = nullptr;
++  std::function<void(ConstRefRingElem p)> reductionStartHandler = nullptr;
++  std::function<void(ConstRefRingElem q)> reductionStepHandler = nullptr;
++  std::function<void(ConstRefRingElem r)> reductionEndHandler = nullptr;
+ 
+   //---------class GPoly-------------------------------
+ 
+@@ -301,7 +306,10 @@ void GPoly::myUpdateLenLPPLCDegComp()
+     if (the_gp.IsInputPoly())
+       myPolyValue = poly(the_gp.myFirstGPoly());
+     else
++    {
+       myPolySetSPoly(the_gp.myFirstGPoly(), the_gp.mySecondGPoly());
++      if ( handlersEnabled ) sPolyHandler(the_gp.myFirstGPoly().myPoly(), the_gp.mySecondGPoly().myPoly(), myPoly());
++    }
+     myUpdateLenLPPLCDegComp();
+     myAge = the_age;
+     // MAX: do these things only if necessary.

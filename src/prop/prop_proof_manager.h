@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Aina Niemetz, Gereon Kremer
+ *   Haniel Barbosa, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,9 +18,10 @@
 #ifndef CVC5__PROP_PROOF_MANAGER_H
 #define CVC5__PROP_PROOF_MANAGER_H
 
-#include "api/cpp/cvc5_types.h"
+#include <cvc5/cvc5_types.h>
 
 #include "context/cdlist.h"
+#include "context/cdo.h"
 #include "proof/proof.h"
 #include "proof/proof_node_manager.h"
 #include "prop/proof_post_processor.h"
@@ -31,7 +32,7 @@ namespace cvc5::internal {
 
 namespace prop {
 
-class CDCLTSatSolverInterface;
+class CDCLTSatSolver;
 
 /**
  * This class is responsible for managing the proof output of PropEngine, both
@@ -45,7 +46,7 @@ class PropPfManager : protected EnvObj
  public:
   PropPfManager(Env& env,
                 context::UserContext* userContext,
-                CDCLTSatSolverInterface* satSolver,
+                CDCLTSatSolver* satSolver,
                 ProofCnfStream* cnfProof);
 
   /** Saves assertion for later checking whether refutation proof is closed.
@@ -92,12 +93,19 @@ class PropPfManager : protected EnvObj
   void checkProof(const context::CDList<Node>& assertions);
 
  private:
+  /** The proofs of this proof manager, which are saved once requested (note the
+   * cache is for both the request of the full proof (true) or not (false)).
+   *
+   * The proofs are kept in a (user)context-dependent manner because between
+   * satisfiability checks we should discard them.
+   */
+  context::CDHashMap<bool, std::shared_ptr<ProofNode>> d_propProofs;
   /** The proof post-processor */
   std::unique_ptr<prop::ProofPostprocess> d_pfpp;
   /**
    * The SAT solver of this prop engine, which should provide a refutation
    * proof when requested */
-  CDCLTSatSolverInterface* d_satSolver;
+  CDCLTSatSolver* d_satSolver;
   /** Assertions corresponding to the leaves of the prop engine's proof.
    *
    * These are kept in a context-dependent manner since the prop engine's proof

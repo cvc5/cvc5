@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Mathias Preiner, Andrew Reynolds
+ *   Gereon Kremer, Mathias Preiner, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,10 +43,12 @@ TEST_F(TestApiBlackUncovered, exception_getmessage)
 TEST_F(TestApiBlackUncovered, streaming_operators)
 {
   std::stringstream ss;
+  ss << cvc5::SortKind::ARRAY_SORT;
   ss << cvc5::UnknownExplanation::UNKNOWN_REASON;
   ss << cvc5::modes::BlockModelsMode::LITERALS;
-  ss << cvc5::modes::LearnedLitType::LEARNED_LIT_PREPROCESS;
-  ss << cvc5::modes::ProofComponent::PROOF_COMPONENT_FULL;
+  ss << cvc5::modes::LearnedLitType::PREPROCESS;
+  ss << cvc5::modes::ProofComponent::FULL;
+  ss << cvc5::modes::FindSynthTarget::ENUM;
   ss << cvc5::Result();
   ss << cvc5::Op();
   ss << cvc5::SynthResult();
@@ -226,17 +228,26 @@ TEST_F(TestApiBlackUncovered, Statistics)
     testing::internal::GetCapturedStdout();
 }
 
-TEST_F(TestApiBlackUncovered, DeclareOracleFun)
+// Copied from api/cpp/solver_black.cpp
+TEST_F(TestApiBlackUncovered, declareOracleFunUnsat)
 {
-  // oracle functions currently not supported in Python API due to restrictions
-  // on passing functionals
   d_solver.setOption("oracles", "true");
   Sort iSort = d_solver.getIntegerSort();
-  std::function<Term(const std::vector<Term>&)> fn =
-      [&](const std::vector<Term>& input) { return d_solver.mkInteger(0); };
-  Term f = d_solver.declareOracleFun("f", {iSort}, iSort, fn);
-  std::vector<Term> terms;
-  Term ret = fn(terms);
+  // f is the function implementing (lambda ((x Int)) (+ x 1))
+  Term f = d_solver.declareOracleFun(
+      "f", {iSort}, iSort, [&](const std::vector<Term>& input) {
+        if (input[0].isUInt32Value())
+        {
+          return d_solver.mkInteger(input[0].getUInt32Value() + 1);
+        }
+        return d_solver.mkInteger(0);
+      });
+  Term three = d_solver.mkInteger(3);
+  Term five = d_solver.mkInteger(5);
+  Term eq = d_solver.mkTerm(
+      Kind::EQUAL, {d_solver.mkTerm(Kind::APPLY_UF, {f, three}), five});
+  d_solver.assertFormula(eq);
+  d_solver.checkSat();
 }
 
 }  // namespace test

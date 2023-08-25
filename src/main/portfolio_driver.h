@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *   Gereon Kremer, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,13 +17,14 @@
 #ifndef CVC5__MAIN__PORTFOLIO_DRIVER_H
 #define CVC5__MAIN__PORTFOLIO_DRIVER_H
 
+#include <cvc5/cvc5.h>
+
 #include <optional>
 
-#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "main/command_executor.h"
 #include "parser/api/cpp/command.h"
-#include "parser/parser.h"
+#include "parser/api/cpp/input_parser.h"
 
 namespace cvc5::main {
 
@@ -50,7 +51,7 @@ struct ExecutionContext
    * has been parsed.
    * Returns true if the commands have been executed without being interrupted.
    */
-  bool solveContinuous(parser::Parser* parser, bool stopAtSetLogic);
+  bool solveContinuous(parser::InputParser* parser, bool stopAtSetLogic);
 
   /**
    * Execute the given commands.
@@ -60,7 +61,7 @@ struct ExecutionContext
 
   /** Parse the remaining input from d_parser into a vector of commands */
   std::vector<std::unique_ptr<cvc5::parser::Command>> parseCommands(
-      parser::Parser* parser);
+      parser::InputParser* parser);
 };
 
 /**
@@ -104,7 +105,8 @@ struct PortfolioConfig
       solver.setOption(o.first, o.second);
     }
   }
-
+  /** To option string */
+  std::string toOptionString() const;
   /** List of options as pair of name and value */
   std::vector<std::pair<std::string, std::string>> d_options;
   /** Timeout as part of the total timeout */
@@ -130,7 +132,7 @@ struct PortfolioStrategy
 class PortfolioDriver
 {
  public:
-  PortfolioDriver(std::unique_ptr<parser::Parser>& parser)
+  PortfolioDriver(std::unique_ptr<parser::InputParser>& parser)
       : d_parser(parser.get())
   {
   }
@@ -146,7 +148,7 @@ class PortfolioDriver
   PortfolioStrategy getStrategy(const std::string& logic);
 
   /** The parser we use to get the commands */
-  parser::Parser* d_parser;
+  parser::InputParser* d_parser;
 };
 
 }  // namespace cvc5::main

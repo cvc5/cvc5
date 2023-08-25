@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Gereon Kremer, Mathias Preiner
+ *   Tim King, Andres Noetzli, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -675,15 +675,17 @@ bool ArithVariables::inMaps(ArithVar x) const{
 ArithVariables::LowerBoundCleanUp::LowerBoundCleanUp(ArithVariables* pm)
   : d_pm(pm)
 {}
-void ArithVariables::LowerBoundCleanUp::operator()(AVCPair* p){
-  d_pm->popLowerBound(p);
+void ArithVariables::LowerBoundCleanUp::operator()(AVCPair& p)
+{
+  d_pm->popLowerBound(&p);
 }
 
 ArithVariables::UpperBoundCleanUp::UpperBoundCleanUp(ArithVariables* pm)
   : d_pm(pm)
 {}
-void ArithVariables::UpperBoundCleanUp::operator()(AVCPair* p){
-  d_pm->popUpperBound(p);
+void ArithVariables::UpperBoundCleanUp::operator()(AVCPair& p)
+{
+  d_pm->popUpperBound(&p);
 }
 
 }  // namespace arith

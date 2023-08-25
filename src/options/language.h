@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,10 +18,10 @@
 #ifndef CVC5__LANGUAGE_H
 #define CVC5__LANGUAGE_H
 
+#include <cvc5/cvc5_export.h>
+
 #include <ostream>
 #include <string>
-
-#include "cvc5_export.h"
 
 namespace cvc5::internal {
 
@@ -34,8 +34,6 @@ enum class Language
 
   /** The SMTLIB v2.6 language, with support for the strings standard */
   LANG_SMTLIB_V2_6 = 0,
-  /** The TPTP language */
-  LANG_TPTP,
   /** The SyGuS language version 2.0 */
   LANG_SYGUS_V2,
 

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -205,7 +205,7 @@ private:
     ArithVariables* d_pm;
   public:
     LowerBoundCleanUp(ArithVariables* pm);
-    void operator()(AVCPair* restore);
+    void operator()(AVCPair& restore);
   };
 
   class UpperBoundCleanUp {
@@ -213,7 +213,7 @@ private:
     ArithVariables* d_pm;
   public:
     UpperBoundCleanUp(ArithVariables* pm);
-    void operator()(AVCPair* restore);
+    void operator()(AVCPair& restore);
   };
 
   typedef context::CDList<AVCPair, LowerBoundCleanUp> LBReverts;

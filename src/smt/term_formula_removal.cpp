@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -271,6 +271,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
                                             TConvProofGenerator* pg)
 {
   NodeManager *nodeManager = NodeManager::currentNM();
+  SkolemManager* sm = nodeManager->getSkolemManager();
 
   TypeNode nodeType = node.getType();
   Node skolem;
@@ -298,11 +299,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
       Trace("rtf-proof-debug")
           << "RemoveTermFormulas::run: make ITE skolem" << std::endl;
       // Make the skolem to represent the ITE
-      SkolemManager* sm = nodeManager->getSkolemManager();
-      skolem = sm->mkPurifySkolem(
-          node,
-          "termITE",
-          "a variable introduced due to term-level ITE removal");
+      skolem = sm->mkPurifySkolem(node);
       d_skolem_cache.insert(node, skolem);
 
       // Notice that in very rare cases, two different terms may have the
@@ -357,11 +354,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
             << "RemoveTermFormulas::run: make WITNESS skolem" << std::endl;
         // Make the skolem to witness the choice, which notice is handled
         // as a special case within SkolemManager::mkPurifySkolem.
-        SkolemManager* sm = nodeManager->getSkolemManager();
-        skolem = sm->mkPurifySkolem(
-            node,
-            "witnessK",
-            "a skolem introduced due to term-level witness removal");
+        skolem = sm->mkPurifySkolem(node);
         d_skolem_cache.insert(node, skolem);
 
         Assert(node[0].getNumChildren() == 1);
@@ -394,29 +387,20 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
       }
     }
   }
-  else if (node.getKind() != kind::BOOLEAN_TERM_VARIABLE && nodeType.isBoolean()
-           && inTerm)
+  else if (nodeType.isBoolean() && inTerm
+           && sm->getId(node) != SkolemFunId::PURIFY)
   {
     // if a non-variable Boolean term within another term, replace it
     skolem = getSkolemForNode(node);
     if (skolem.isNull())
     {
       Trace("rtf-proof-debug")
-          << "RemoveTermFormulas::run: make BOOLEAN_TERM_VARIABLE skolem"
-          << std::endl;
+          << "RemoveTermFormulas::run: make Boolean skolem" << std::endl;
       // Make the skolem to represent the Boolean term
-      // Skolems introduced for Boolean formulas appearing in terms have a
-      // special kind (BOOLEAN_TERM_VARIABLE) that ensures they are handled
-      // properly in theory combination. We must use this kind here instead of a
-      // generic skolem. Notice that the name/comment are currently ignored
-      // within SkolemManager::mkPurifySkolem, since BOOLEAN_TERM_VARIABLE
-      // variables cannot be given names.
-      SkolemManager* sm = nodeManager->getSkolemManager();
-      skolem = sm->mkPurifySkolem(
-          node,
-          "btvK",
-          "a Boolean term variable introduced during term formula removal",
-          SkolemManager::SKOLEM_BOOL_TERM_VAR);
+      // Skolems introduced for Boolean formulas appearing in terms are
+      // purified here (SkolemFunId::PURIFY), which ensures they are handled
+      // properly in theory combination.
+      skolem = sm->mkPurifySkolem(node);
       d_skolem_cache.insert(node, skolem);
 
       // The new assertion

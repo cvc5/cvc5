@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,6 +20,8 @@
 
 #include <vector>
 
+#include "context/cdhashmap.h"
+#include "context/cdlist.h"
 #include "expr/node.h"
 #include "smt/assertions.h"
 #include "smt/env_obj.h"
@@ -63,9 +65,10 @@ struct SolverEngineStatistics;
  */
 class SmtSolver : protected EnvObj
 {
+  using NodeList = context::CDList<Node>;
+
  public:
   SmtSolver(Env& env,
-            AbstractValues& abs,
             SolverEngineStatistics& stats);
   ~SmtSolver();
   /**
@@ -81,44 +84,24 @@ class SmtSolver : protected EnvObj
    */
   void interrupt();
   /**
-   * Process the assertions that have been asserted in as. This moves the set of
-   * assertions that have been buffered into as, preprocesses them, pushes them
-   * into the SMT solver, and clears the buffer.
-   */
-  void processAssertions();
-  /**
    * Get the list of preprocessed assertions. Only valid if
    * trackPreprocessedAssertions is true.
    */
-  const std::vector<Node>& getPreprocessedAssertions() const;
+  const context::CDList<Node>& getPreprocessedAssertions() const;
   /**
    * Get the skolem map corresponding to the preprocessed assertions. Only valid
    * if trackPreprocessedAssertions is true.
    */
-  const std::unordered_map<size_t, Node>& getPreprocessedSkolemMap() const;
-  // --------------------------------------- callbacks from the context manager
+  const context::CDHashMap<size_t, Node>& getPreprocessedSkolemMap() const;
+  /** Performs a push on the underlying prop engine. */
+  void pushPropContext();
+  /** Performs a pop on the underlying prop engine. */
+  void popPropContext();
   /**
-   * Notify push pre, which is called just before the user context of the state
-   * pushes. This processes all pending assertions.
+   * Reset the prop engine trail and call the postsolve method of the
+   * underlying TheoryEngine.
    */
-  void notifyPushPre();
-  /**
-   * Notify push post, which is called just after the user context of the state
-   * pushes. This performs a push on the underlying prop engine.
-   */
-  void notifyPushPost();
-  /**
-   * Notify pop pre, which is called just before the user context of the state
-   * pops. This performs a pop on the underlying prop engine.
-   */
-  void notifyPopPre();
-  /**
-   * Notify post solve, which is called once per check-sat query. It is
-   * triggered when the first d_state.doPendingPops() is issued after the
-   * check-sat. This calls the postsolve method of the underlying TheoryEngine.
-   */
-  void notifyPostSolve();
-  // ----------------------------------- end callbacks from the context manager
+  void resetTrail();
   //------------------------------------------ access methods
   /** Get a pointer to the TheoryEngine owned by this solver. */
   TheoryEngine* getTheoryEngine();
@@ -135,13 +118,13 @@ class SmtSolver : protected EnvObj
    * Preprocess the assertions. This calls the preprocessor on the assertions
    * d_asserts and records d_ppAssertions / d_ppSkolemMap if necessary.
    */
-  void preprocess();
+  void preprocess(preprocessing::AssertionPipeline& ap);
   /**
    * Push the assertions to the prop engine. Assumes that the assertions
    * (d_asserts) have been preprocessed. This pushes the assertions
    * into the prop engine of this solver and subsequently clears d_asserts.
    */
-  void assertToInternal();
+  void assertToInternal(preprocessing::AssertionPipeline& ap);
   /**
    * Check satisfiability based on the current state of the prop engine.
    * This assumes we have pushed the necessary assertions to it. It post
@@ -155,7 +138,7 @@ class SmtSolver : protected EnvObj
   /** The preprocessor of this SMT solver */
   Preprocessor d_pp;
   /** Assertions manager */
-  smt::Assertions d_asserts;
+  Assertions d_asserts;
   /** Reference to the statistics of SolverEngine */
   SolverEngineStatistics& d_stats;
   /** The theory engine */
@@ -164,11 +147,9 @@ class SmtSolver : protected EnvObj
   std::unique_ptr<prop::PropEngine> d_propEngine;
   //------------------------------------------ Bookkeeping for deep restarts
   /** The exact list of preprocessed assertions we sent to the PropEngine */
-  std::vector<Node> d_ppAssertions;
+  NodeList d_ppAssertions;
   /** The skolem map associated with d_ppAssertions */
-  std::unordered_map<size_t, Node> d_ppSkolemMap;
-  /** All learned literals, used for debugging */
-  std::unordered_set<Node> d_allLearnedLits;
+  context::CDHashMap<size_t, Node> d_ppSkolemMap;
 };
 
 }  // namespace smt

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed, Andres Noetzli
+ *   Andrew Reynolds, Mudathir Mohamed, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,13 +35,13 @@ class SynthResultTest
   @AfterEach
   void tearDown()
   {
-    d_solver.close();
+    Context.deletePointers();
   }
 
   @Test
   void isNull()
   {
-    SynthResult res_null = d_solver.getNullSynthResult();
+    SynthResult res_null = new SynthResult();
     assertTrue(res_null.isNull());
     assertFalse(res_null.hasSolution());
     assertFalse(res_null.hasNoSolution());
@@ -66,7 +66,7 @@ class SynthResultTest
   @Test
   void hasNoSolution()
   {
-    SynthResult res_null = d_solver.getNullSynthResult();
+    SynthResult res_null = new SynthResult();
     assertFalse(res_null.hasSolution());
   }
 

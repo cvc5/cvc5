@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,6 +20,7 @@
 
 #include <iostream>
 #include <map>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -479,6 +480,23 @@ public:
    * (default: false)
    */
   TypeNode getType(bool check = false) const;
+  /**
+   * Same as getType, but does not throw a type execption if this term is
+   * not well-typed. Instead, this method will return the null type.
+   */
+  TypeNode getTypeOrNull(bool check = false) const;
+
+  /**
+   * Has name? Return true if this node has an associated variable
+   * name (via the attribute expr::VarNameAttr). This is true typically for
+   * user-created variables.
+   */
+  bool hasName() const;
+  /**
+   * Get the name. Returns the string value of the expr::VarNameAttr attribute
+   * for this node.
+   */
+  std::string getName() const;
 
   /**
    * Substitution of Nodes.
@@ -1216,7 +1234,21 @@ template <bool ref_count>
 TypeNode NodeTemplate<ref_count>::getType(bool check) const
 {
   assertTNodeNotExpired();
+  TypeNode tn = NodeManager::currentNM()->getType(*this, check);
+  if (tn.isNull())
+  {
+    // recompute with an error stream and throw a type exception
+    std::stringstream errOutTmp;
+    tn = NodeManager::currentNM()->getType(*this, check, &errOutTmp);
+    throw TypeCheckingExceptionPrivate(*this, errOutTmp.str());
+  }
+  return tn;
+}
 
+template <bool ref_count>
+TypeNode NodeTemplate<ref_count>::getTypeOrNull(bool check) const
+{
+  assertTNodeNotExpired();
   return NodeManager::currentNM()->getType(*this, check);
 }
 

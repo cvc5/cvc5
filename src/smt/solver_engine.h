@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,23 +18,20 @@
 #ifndef CVC5__SMT__SOLVER_ENGINE_H
 #define CVC5__SMT__SOLVER_ENGINE_H
 
+#include <cvc5/cvc5_export.h>
+
 #include <map>
 #include <memory>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "context/cdhashmap_forward.h"
-#include "cvc5_export.h"
 #include "options/options.h"
 #include "smt/smt_mode.h"
 #include "theory/logic_info.h"
 #include "util/result.h"
 #include "util/synth_result.h"
-
-namespace cvc5::context {
-class Context;
-class UserContext;
-}  // namespace cvc5::context
 
 namespace cvc5 {
 
@@ -49,7 +46,6 @@ typedef NodeTemplate<false> TNode;
 class TypeNode;
 
 class Env;
-class TheoryEngine;
 class UnsatCore;
 class StatisticsRegistry;
 class Printer;
@@ -58,18 +54,10 @@ struct InstantiationList;
 
 /* -------------------------------------------------------------------------- */
 
-namespace prop {
-class PropEngine;
-}  // namespace prop
-
-/* -------------------------------------------------------------------------- */
-
 namespace smt {
 /** Utilities */
 class ContextManager;
 class SolverEngineState;
-class AbstractValues;
-class Assertions;
 class ResourceOutListener;
 class CheckModels;
 /** Subsolvers */
@@ -79,6 +67,7 @@ class SygusSolver;
 class AbductionSolver;
 class InterpolationSolver;
 class QuantElimSolver;
+class FindSynthSolver;
 
 struct SolverEngineStatistics;
 class PfManager;
@@ -90,7 +79,6 @@ class UnsatCoreManager;
 
 namespace theory {
 class TheoryModel;
-class Rewriter;
 class QuantifiersEngine;
 }  // namespace theory
 
@@ -284,6 +272,8 @@ class CVC5_EXPORT SolverEngine
                       const std::vector<Node>& formals,
                       Node formula,
                       bool global = false);
+  /** Same as above, with lambda */
+  void defineFunction(Node func, Node lambda, bool global = false);
 
   /**
    * Define functions recursive
@@ -327,11 +317,6 @@ class CVC5_EXPORT SolverEngine
   void assertFormula(const Node& formula);
 
   /**
-   * Reduce an unsatisfiable core to make it minimal.
-   */
-  std::vector<Node> reduceUnsatCore(const std::vector<Node>& core);
-
-  /**
    * Assert a formula (if provided) to the current context and call
    * check().  Returns SAT, UNSAT, or UNKNOWN result.
    *
@@ -341,6 +326,21 @@ class CVC5_EXPORT SolverEngine
   Result checkSat(const Node& assumption);
   Result checkSat(const std::vector<Node>& assumptions);
 
+  /**
+   * Get a timeout core, which computes a subset of the current assertions that
+   * cause a timeout. Note it does not require being proceeded by a call to
+   * checkSat.
+   *
+   * @return The result of the timeout core computation. This is a pair
+   * containing a result and a list of formulas. If the result is unknown
+   * and the reason is timeout, then the list of formulas correspond to a
+   * subset of the current assertions that cause a timeout in the specified
+   * time. If the result is unsat, then the list of formulas correspond to an
+   * unsat core for the current assertions. Otherwise, the result is sat,
+   * indicating that the current assertions are satisfiable, and
+   * the list of formulas is empty.
+   */
+  std::pair<Result, std::vector<Node>> getTimeoutCore();
   /**
    * Returns a set of so-called "failed" assumptions.
    *
@@ -400,6 +400,12 @@ class CVC5_EXPORT SolverEngine
    */
   void assertSygusConstraint(Node n, bool isAssume = false);
 
+  /** @return sygus constraints .*/
+  std::vector<Node> getSygusConstraints();
+
+  /** @return sygus assumptions .*/
+  std::vector<Node> getSygusAssumptions();
+
   /**
    * Add an invariant constraint.
    *
@@ -436,6 +442,14 @@ class CVC5_EXPORT SolverEngine
    * @throw Exception
    */
   SynthResult checkSynth(bool isNext = false);
+  /**
+   * Find synth for the given target and grammar.
+   */
+  Node findSynth(modes::FindSynthTarget fst, const TypeNode& gtn);
+  /**
+   * Find synth for the given target and grammar.
+   */
+  Node findSynthNext();
 
   /*------------------------- end of sygus commands ------------------------*/
 
@@ -692,7 +706,7 @@ class CVC5_EXPORT SolverEngine
    * Only permitted if cvc5 was built with proof support and the proof option
    * is on.
    */
-  std::string getProof(modes::ProofComponent c = modes::PROOF_COMPONENT_FULL);
+  std::string getProof(modes::ProofComponent c = modes::ProofComponent::FULL);
 
   /**
    * Get the current set of assertions.  Only permitted if the
@@ -826,23 +840,9 @@ class CVC5_EXPORT SolverEngine
   Options& getOptions();
   const Options& getOptions() const;
 
-  /** Get a pointer to the UserContext owned by this SolverEngine. */
-  context::UserContext* getUserContext();
-
-  /** Get a pointer to the Context owned by this SolverEngine. */
-  context::Context* getContext();
-
-  /** Get a pointer to the TheoryEngine owned by this SolverEngine. */
-  TheoryEngine* getTheoryEngine();
-
-  /** Get a pointer to the PropEngine owned by this SolverEngine. */
-  prop::PropEngine* getPropEngine();
-
   /** Get the resource manager of this SMT engine */
   ResourceManager* getResourceManager() const;
 
-  /** Get a pointer to the Rewriter owned by this SolverEngine. */
-  theory::Rewriter* getRewriter();
   /**
    * Get substituted assertions.
    *
@@ -862,6 +862,24 @@ class CVC5_EXPORT SolverEngine
   SolverEngine(const SolverEngine&) = delete;
   SolverEngine& operator=(const SolverEngine&) = delete;
 
+  /**
+   * Begin call, which is called before any method that requires initializing
+   * this solver engine and make the state of the internal solver current.
+   *
+   * In particular, this ensures the solver is initialized, the pending pops
+   * on the context are processed, and optionally calls the resource manager
+   * to reset its limits (ResourceManager::beginCall).
+   *
+   * @param needsRLlimit If true, then beginCall() is called on the resource
+   * manager maintained by this class.
+   */
+  void beginCall(bool needsRLlimit = false);
+  /**
+   * End call. Should follow after a call to beginCall where needsRLlimit
+   * was true.
+   */
+  void endCall();
+
   /** Set solver instance that owns this SolverEngine. */
   void setSolver(cvc5::Solver* solver) { d_solver = solver; }
 
@@ -875,8 +893,11 @@ class CVC5_EXPORT SolverEngine
    * Internal method to get an unsatisfiable core (only if immediately preceded
    * by an UNSAT query). Only permitted if cvc5 was built with unsat-core
    * support and produce-unsat-cores is on. Does not dump the command.
+   *
+   * @param isInternal Whether this call was made internally (not by the user).
+   * This impacts whether the unsat core is post-processed.
    */
-  UnsatCore getUnsatCoreInternal();
+  UnsatCore getUnsatCoreInternal(bool isInternal = true);
 
   /** Internal version of assertFormula */
   void assertFormulaInternal(const Node& formula);
@@ -998,6 +1019,18 @@ class CVC5_EXPORT SolverEngine
   /** Vector version of above. */
   void ensureWellFormedTerms(const std::vector<Node>& ns,
                              const std::string& src) const;
+  /**
+   * Convert preprocessed assertions to the input formulas that imply them. In
+   * detail, this converts a set of preprocessed assertions to a set of input
+   * assertions based on the proof of preprocessing. It is used for unsat cores
+   * and timeout cores.
+   *
+   * @param ppa The preprocessed assertions to convert
+   * @param isInternal Used for debug printing unsat cores, i.e. when isInternal
+   * is false, we print debug information.
+   */
+  std::vector<Node> convertPreprocessedToInput(const std::vector<Node>& ppa,
+                                               bool isInternal);
   /* Members -------------------------------------------------------------- */
 
   /** Solver instance that owns this SolverEngine instance. */
@@ -1019,8 +1052,6 @@ class CVC5_EXPORT SolverEngine
    */
   std::unique_ptr<smt::ContextManager> d_ctxManager;
 
-  /** Abstract values */
-  std::unique_ptr<smt::AbstractValues> d_absValues;
   /** Resource out listener */
   std::unique_ptr<smt::ResourceOutListener> d_routListener;
 
@@ -1047,6 +1078,8 @@ class CVC5_EXPORT SolverEngine
 
   /** The solver for sygus queries */
   std::unique_ptr<smt::SygusSolver> d_sygusSolver;
+  /** The solver for find-synth queries */
+  std::unique_ptr<smt::FindSynthSolver> d_findSynthSolver;
 
   /** The solver for abduction queries */
   std::unique_ptr<smt::AbductionSolver> d_abductSolver;

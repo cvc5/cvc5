@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -112,50 +112,6 @@ Node mkAssocAnd(const std::vector<Node>& children)
     return nm->mkNode(kind::AND, newChildren);
   }
 }
-
-/* -------------------------------------------------------------------------- */
-
-namespace {
-
-/**
- * Ensures the assertions asserted after index 'before' now effectively come
- * before 'real_assertions_end'.
- */
-void compressBeforeRealAssertions(AssertionPipeline* assertionsToPreprocess,
-                                  size_t before)
-{
-  size_t cur_size = assertionsToPreprocess->size();
-  if (before >= cur_size || assertionsToPreprocess->getRealAssertionsEnd() <= 0
-      || assertionsToPreprocess->getRealAssertionsEnd() >= cur_size)
-  {
-    return;
-  }
-
-  // assertions
-  // original: [0 ... assertionsToPreprocess.getRealAssertionsEnd())
-  //  can be modified
-  // ites skolems [assertionsToPreprocess.getRealAssertionsEnd(), before)
-  //  cannot be moved
-  // added [before, cur_size)
-  //  can be modified
-  Assert(0 < assertionsToPreprocess->getRealAssertionsEnd());
-  Assert(assertionsToPreprocess->getRealAssertionsEnd() <= before);
-  Assert(before < cur_size);
-
-  std::vector<Node> intoConjunction;
-  for (size_t i = before; i < cur_size; ++i)
-  {
-    intoConjunction.push_back((*assertionsToPreprocess)[i]);
-  }
-  assertionsToPreprocess->resize(before);
-  size_t lastBeforeItes = assertionsToPreprocess->getRealAssertionsEnd() - 1;
-  intoConjunction.push_back((*assertionsToPreprocess)[lastBeforeItes]);
-  Node newLast = mkAssocAnd(intoConjunction);
-  assertionsToPreprocess->replace(lastBeforeItes, newLast);
-  Assert(assertionsToPreprocess->size() == before);
-}
-
-}  // namespace
 
 /* -------------------------------------------------------------------------- */
 
@@ -304,10 +260,6 @@ PreprocessingPassResult ITESimp::applyInternal(
     }
   }
   bool done = doneSimpITE(assertionsToPreprocess);
-  if (nasserts < assertionsToPreprocess->size())
-  {
-    compressBeforeRealAssertions(assertionsToPreprocess, nasserts);
-  }
   return done ? PreprocessingPassResult::NO_CONFLICT
               : PreprocessingPassResult::CONFLICT;
 }

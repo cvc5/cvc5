@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,6 +19,7 @@
 #include "expr/bound_var_manager.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "expr/elim_shadow_converter.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
@@ -33,6 +34,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/uf/theory_uf_rewriter.h"
 #include "util/rational.h"
 
 using namespace std;
@@ -57,11 +59,6 @@ namespace quantifiers {
  * formula with body F, and a is the rational corresponding to the argument
  * position of the variable, e.g. lit is ((_ is C) x) and x is
  * replaced by (C y1 ... yn), where the argument position of yi is i.
- * - QElimShadowAttribute: cached on (q, q', v), which is used to replace a
- * shadowed variable v, which is quantified by a subformula q' of quantified
- * formula q. Shadowed variables may be introduced when e.g. quantified formulas
- * appear on the right hand sides of substitutions in preprocessing. They are
- * eliminated by the rewriter.
  */
 struct QRewPrenexAttributeId
 {
@@ -75,10 +72,6 @@ struct QRewDtExpandAttributeId
 {
 };
 using QRewDtExpandAttribute = expr::Attribute<QRewDtExpandAttributeId, Node>;
-struct QElimShadowAttributeId
-{
-};
-using QElimShadowAttribute = expr::Attribute<QElimShadowAttributeId, Node>;
 
 std::ostream& operator<<(std::ostream& out, RewriteStep s)
 {
@@ -175,72 +168,104 @@ void QuantifiersRewriter::computeArgVec2(const std::vector<Node>& args,
   std::map< Node, bool > activeMap;
   std::map< Node, bool > visited;
   computeArgs( args, activeMap, n, visited );
-  if( !activeMap.empty() ){
-    //collect variables in inst pattern list only if we cannot eliminate quantifier
+  // Collect variables in inst pattern list only if we cannot eliminate
+  // quantifier, or if we have an add-to-pool annotation.
+  bool varComputePatList = !activeMap.empty();
+  for (const Node& ip : ipl)
+  {
+    Kind k = ip.getKind();
+    if (k == INST_ADD_TO_POOL || k == SKOLEM_ADD_TO_POOL)
+    {
+      varComputePatList = true;
+      break;
+    }
+  }
+  if (varComputePatList)
+  {
     computeArgs( args, activeMap, ipl, visited );
-    for( unsigned i=0; i<args.size(); i++ ){
-      if( activeMap.find( args[i] )!=activeMap.end() ){
-        activeArgs.push_back( args[i] );
+  }
+  if (!activeMap.empty())
+  {
+    for (const Node& a : args)
+    {
+      if (activeMap.find(a) != activeMap.end())
+      {
+        activeArgs.push_back(a);
       }
     }
   }
 }
 
 RewriteResponse QuantifiersRewriter::preRewrite(TNode in) {
-  if( in.getKind()==kind::EXISTS || in.getKind()==kind::FORALL ){
-    Trace("quantifiers-rewrite-debug") << "pre-rewriting " << in << std::endl;
-    std::vector< Node > args;
-    Node body = in;
-    bool doRewrite = false;
-    while( body.getNumChildren()==2 && body.getKind()==body[1].getKind() ){
-      for( unsigned i=0; i<body[0].getNumChildren(); i++ ){
-        args.push_back( body[0][i] );
-      }
-      body = body[1];
-      doRewrite = true;
-    }
-    if( doRewrite ){
-      std::vector< Node > children;
-      for( unsigned i=0; i<body[0].getNumChildren(); i++ ){
-        args.push_back( body[0][i] );
-      }      
-      children.push_back( NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST,args) );
-      children.push_back( body[1] );
-      if( body.getNumChildren()==3 ){
-        children.push_back( body[2] );
-      }
-      Node n = NodeManager::currentNM()->mkNode( in.getKind(), children );
-      if( in!=n ){
-        Trace("quantifiers-pre-rewrite") << "*** pre-rewrite " << in << std::endl;
-        Trace("quantifiers-pre-rewrite") << " to " << std::endl;
-        Trace("quantifiers-pre-rewrite") << n << std::endl;
-      }
-      return RewriteResponse(REWRITE_DONE, n);
-    }
-  }
   return RewriteResponse(REWRITE_DONE, in);
 }
 
-RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
+RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
+{
   Trace("quantifiers-rewrite-debug") << "post-rewriting " << in << std::endl;
   RewriteStatus status = REWRITE_DONE;
   Node ret = in;
   RewriteStep rew_op = COMPUTE_LAST;
-  //get the body
-  if( in.getKind()==EXISTS ){
-    std::vector< Node > children;
-    children.push_back( in[0] );
-    children.push_back( in[1].negate() );
-    if( in.getNumChildren()==3 ){
-      children.push_back( in[2] );
+  // get the body
+  if (in.getKind() == EXISTS)
+  {
+    std::vector<Node> children;
+    children.push_back(in[0]);
+    children.push_back(in[1].negate());
+    if (in.getNumChildren() == 3)
+    {
+      children.push_back(in[2]);
     }
-    ret = NodeManager::currentNM()->mkNode( FORALL, children );
+    ret = NodeManager::currentNM()->mkNode(FORALL, children);
     ret = ret.negate();
     status = REWRITE_AGAIN_FULL;
-  }else if( in.getKind()==FORALL ){
-    if( in[1].isConst() && in.getNumChildren()==2 ){
+  }
+  else if (in.getKind() == FORALL)
+  {
+    std::vector<Node> boundVars;
+    Node body = in;
+    bool combineQuantifiers = false;
+    bool continueCombine = false;
+    do
+    {
+      for (const Node& v : body[0])
+      {
+        if (std::find(boundVars.begin(), boundVars.end(), v)==boundVars.end())
+        {
+          boundVars.push_back(v);
+        }
+      }
+      if (body.getNumChildren() == 2 && body[1].getKind() == FORALL)
+      {
+        body = body[1];
+        continueCombine = true;
+        combineQuantifiers = true;
+      }
+      else
+      {
+        continueCombine = false;
+      }
+    }
+    while (continueCombine);
+    if (combineQuantifiers)
+    {
+      NodeManager* nm = NodeManager::currentNM();
+      std::vector<Node> children;
+      children.push_back(nm->mkNode(BOUND_VAR_LIST, boundVars));
+      children.push_back(body[1]);
+      if (body.getNumChildren() == 3)
+      {
+        children.push_back(body[2]);
+      }
+      ret = nm->mkNode(FORALL, children);
+      status = REWRITE_AGAIN_FULL;
+    }
+    else if (in[1].isConst() && in.getNumChildren() == 2)
+    {
       return RewriteResponse( status, in[1] );
-    }else{
+    }
+    else
+    {
       //compute attributes
       QAttributes qa;
       QuantAttributes::computeQuantAttributes( in, qa );
@@ -563,10 +588,8 @@ Node QuantifiersRewriter::computeProcessTerms2(
       {
         Trace("quantifiers-rewrite-unshadow")
             << "Found shadowed variable " << v << " in " << q << std::endl;
-        BoundVarManager* bvm = nm->getBoundVarManager();
         oldVars.push_back(v);
-        Node cacheVal = BoundVarManager::getCacheValue(q, body, v);
-        Node nv = bvm->mkBoundVar<QElimShadowAttribute>(cacheVal, v.getType());
+        Node nv = ElimShadowNodeConverter::getElimShadowVar(q, body, v);
         newVars.push_back(nv);
       }
     }
@@ -656,6 +679,16 @@ Node QuantifiersRewriter::computeProcessTerms2(
     for (int i = (iconds.size() - 1); i >= 0; i--)
     {
       ret = nm->mkNode(ITE, iconds[i], elements[i], ret);
+    }
+  }
+  else if (ret.getKind() == HO_APPLY && !ret.getType().isFunction())
+  {
+    // fully applied functions are converted to APPLY_UF here.
+    Node fullApp = uf::TheoryUfRewriter::getApplyUfForHoApply(ret);
+    // it may not be possible to convert e.g. if the head is not a variable
+    if (!fullApp.isNull())
+    {
+      ret = fullApp;
     }
   }
   cache[body] = ret;
@@ -1727,15 +1760,8 @@ Node QuantifiersRewriter::computeMiniscoping(Node q,
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> args(q[0].begin(), q[0].end());
   Node body = q[1];
-  if( body.getKind()==FORALL ){
-    //combine prenex
-    std::vector< Node > newArgs;
-    newArgs.insert(newArgs.end(), q[0].begin(), q[0].end());
-    for( unsigned i=0; i<body[0].getNumChildren(); i++ ){
-      newArgs.push_back( body[0][i] );
-    }
-    return mkForAll( newArgs, body[1], qa );
-  }else if( body.getKind()==AND ){
+  if (body.getKind() == AND)
+  {
     // aggressive miniscoping implies that structural miniscoping should
     // be applied first
     if (miniscopeConj)
@@ -1781,13 +1807,17 @@ Node QuantifiersRewriter::computeMiniscoping(Node q,
       Node retVal = t;
       return retVal;
     }
-  }else if( body.getKind()==OR ){
+  }
+  else if (body.getKind() == OR)
+  {
     if (miniscopeFv)
     {
       //splitting subsumes free variable miniscoping, apply it with higher priority
       return computeSplit( args, body, qa );
     }
-  }else if( body.getKind()==NOT ){
+  }
+  else if (body.getKind() == NOT)
+  {
     Assert(isLiteral(body[0]));
   }
   //remove variables that don't occur
@@ -1907,6 +1937,21 @@ Node QuantifiersRewriter::computeAggressiveMiniscoping(std::vector<Node>& args,
   return mkForAll( args, body, qa );
 }
 
+bool QuantifiersRewriter::isStandard(const Node& q, const Options& opts)
+{
+  QAttributes qa;
+  QuantAttributes::computeQuantAttributes(q, qa);
+  return isStandard(qa, opts);
+}
+
+bool QuantifiersRewriter::isStandard(QAttributes& qa, const Options& opts)
+{
+  bool is_strict_trigger =
+      qa.d_hasPattern
+      && opts.quantifiers.userPatternsQuant == options::UserPatMode::STRICT;
+  return qa.isStandard() && !is_strict_trigger;
+}
+
 bool QuantifiersRewriter::doOperation(Node q,
                                       RewriteStep computeOption,
                                       QAttributes& qa) const
@@ -1914,7 +1959,7 @@ bool QuantifiersRewriter::doOperation(Node q,
   bool is_strict_trigger =
       qa.d_hasPattern
       && d_opts.quantifiers.userPatternsQuant == options::UserPatMode::STRICT;
-  bool is_std = qa.isStandard() && !is_strict_trigger;
+  bool is_std = isStandard(qa, d_opts);
   if (computeOption == COMPUTE_ELIM_SYMBOLS)
   {
     return true;
@@ -1945,6 +1990,15 @@ bool QuantifiersRewriter::doOperation(Node q,
   }
   else if (computeOption == COMPUTE_PRENEX)
   {
+    // do not prenex to pull variables into those with user patterns
+    if (!d_opts.quantifiers.prenexQuantUser && qa.d_hasPattern)
+    {
+      return false;
+    }
+    if (qa.d_hasPool)
+    {
+      return false;
+    }
     return d_opts.quantifiers.prenexQuant != options::PrenexQuantMode::NONE
            && d_opts.quantifiers.miniscopeQuant
                   != options::MiniscopeQuantMode::AGG

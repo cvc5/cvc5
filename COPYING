@@ -1,4 +1,4 @@
-cvc5 is copyright (C) 2009-2021 by its authors and contributors (see the file
+cvc5 is copyright (C) 2009-2023 by its authors and contributors (see the file
 AUTHORS) and their institutional affiliations.  All rights reserved.
 
 The source code of cvc5 is open and available to students, researchers,
@@ -56,11 +56,6 @@ cvc5 incorporates MiniSat code (see src/prop/minisat and src/prop/bvminisat),
 excluded from the above copyright.  See src/prop/minisat/LICENSE and
 src/prop/bvminisat/LICENSE for copyright and licensing information.
 
-cvc5 incorporates code from ANTLR3 (http://www.antlr3.org/), the files
-src/parser/bounded_token_buffer.h, src/parser/bounded_token_buffer.cpp, and
-src/parser/antlr_input_imports.cpp are excluded from the above copyright.
-See licenses/antlr3-LICENSE for copyright and licensing information.
-
 cvc5 by default links against The GNU Multiple Precision (GMP) Arithmetic
 Library, which is licensed under GNU LGPL v3. See the file
 licenses/lgpl-3.0.txt for a copy of that license.  Note that according to the
@@ -69,7 +64,7 @@ GMP) may (and do) remain under the more permissive modified BSD license.
 
 The implementation of the floating point solver in cvc5 depends on symfpu
 (https://github.com/martin-cs/symfpu) written by Martin Brain.
-See https://raw.githubusercontent.com/martin-cs/symfpu/cvc5/LICENSE for
+See https://raw.githubusercontent.com/martin-cs/symfpu/CVC4/LICENSE for
 copyright and licensing information.
 
 cvc5 optionally links against the following libraries:

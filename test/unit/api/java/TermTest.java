@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andres Noetzli, Aina Niemetz
+ *   Mudathir Mohamed, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,7 +43,7 @@ class TermTest
   @AfterEach
   void tearDown()
   {
-    d_solver.close();
+    Context.deletePointers();
   }
 
   @Test
@@ -52,7 +52,7 @@ class TermTest
     Sort uSort = d_solver.mkUninterpretedSort("u");
     Term x = d_solver.mkVar(uSort, "x");
     Term y = d_solver.mkVar(uSort, "y");
-    Term z = d_solver.getNullTerm();
+    Term z = new Term();
 
     assertTrue(x == x);
     assertFalse(x != x);
@@ -65,7 +65,7 @@ class TermTest
   @Test
   void getId()
   {
-    Term n = d_solver.getNullTerm();
+    Term n = new Term();
     assertThrows(CVC5ApiException.class, () -> n.getId());
     Term x = d_solver.mkVar(d_solver.getIntegerSort(), "x");
     assertDoesNotThrow(() -> x.getId());
@@ -85,7 +85,7 @@ class TermTest
     Sort funSort1 = d_solver.mkFunctionSort(uSort, intSort);
     Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 
-    Term n = d_solver.getNullTerm();
+    Term n = new Term();
     assertThrows(CVC5ApiException.class, () -> n.getKind());
     Term x = d_solver.mkVar(uSort, "x");
     assertDoesNotThrow(() -> x.getKind());
@@ -128,7 +128,7 @@ class TermTest
     Sort funSort1 = d_solver.mkFunctionSort(bvSort, intSort);
     Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 
-    Term n = d_solver.getNullTerm();
+    Term n = new Term();
     assertThrows(CVC5ApiException.class, () -> n.getSort());
     Term x = d_solver.mkVar(bvSort, "x");
     assertDoesNotThrow(() -> x.getSort());
@@ -229,7 +229,7 @@ class TermTest
   @Test
   void hasGetSymbol() throws CVC5ApiException
   {
-    Term n = d_solver.getNullTerm();
+    Term n = new Term();
     Term t = d_solver.mkBoolean(true);
     Term c = d_solver.mkConst(d_solver.getBooleanSort(), "|\\|");
 
@@ -245,7 +245,7 @@ class TermTest
   @Test
   void isNull() throws CVC5ApiException
   {
-    Term x = d_solver.getNullTerm();
+    Term x = new Term();
     assertTrue(x.isNull());
     x = d_solver.mkVar(d_solver.mkBitVectorSort(4), "x");
     assertFalse(x.isNull());
@@ -260,7 +260,7 @@ class TermTest
     Sort funSort1 = d_solver.mkFunctionSort(bvSort, intSort);
     Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 
-    assertThrows(CVC5ApiException.class, () -> d_solver.getNullTerm().notTerm());
+    assertThrows(CVC5ApiException.class, () -> new Term().notTerm());
     Term b = d_solver.mkTrue();
     assertDoesNotThrow(() -> b.notTerm());
     Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
@@ -291,8 +291,8 @@ class TermTest
     Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 
     Term b = d_solver.mkTrue();
-    assertThrows(CVC5ApiException.class, () -> d_solver.getNullTerm().andTerm(b));
-    assertThrows(CVC5ApiException.class, () -> b.andTerm(d_solver.getNullTerm()));
+    assertThrows(CVC5ApiException.class, () -> new Term().andTerm(b));
+    assertThrows(CVC5ApiException.class, () -> b.andTerm(new Term()));
     assertDoesNotThrow(() -> b.andTerm(b));
     Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
     assertThrows(CVC5ApiException.class, () -> x.andTerm(b));
@@ -358,8 +358,8 @@ class TermTest
     Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 
     Term b = d_solver.mkTrue();
-    assertThrows(CVC5ApiException.class, () -> d_solver.getNullTerm().orTerm(b));
-    assertThrows(CVC5ApiException.class, () -> b.orTerm(d_solver.getNullTerm()));
+    assertThrows(CVC5ApiException.class, () -> new Term().orTerm(b));
+    assertThrows(CVC5ApiException.class, () -> b.orTerm(new Term()));
     assertDoesNotThrow(() -> b.orTerm(b));
     Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
     assertThrows(CVC5ApiException.class, () -> x.orTerm(b));
@@ -425,8 +425,8 @@ class TermTest
     Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 
     Term b = d_solver.mkTrue();
-    assertThrows(CVC5ApiException.class, () -> d_solver.getNullTerm().xorTerm(b));
-    assertThrows(CVC5ApiException.class, () -> b.xorTerm(d_solver.getNullTerm()));
+    assertThrows(CVC5ApiException.class, () -> new Term().xorTerm(b));
+    assertThrows(CVC5ApiException.class, () -> b.xorTerm(new Term()));
     assertDoesNotThrow(() -> b.xorTerm(b));
     Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
     assertThrows(CVC5ApiException.class, () -> x.xorTerm(b));
@@ -492,8 +492,8 @@ class TermTest
     Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 
     Term b = d_solver.mkTrue();
-    assertThrows(CVC5ApiException.class, () -> d_solver.getNullTerm().eqTerm(b));
-    assertThrows(CVC5ApiException.class, () -> b.eqTerm(d_solver.getNullTerm()));
+    assertThrows(CVC5ApiException.class, () -> new Term().eqTerm(b));
+    assertThrows(CVC5ApiException.class, () -> b.eqTerm(new Term()));
     assertDoesNotThrow(() -> b.eqTerm(b));
     Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
     assertThrows(CVC5ApiException.class, () -> x.eqTerm(b));
@@ -559,8 +559,8 @@ class TermTest
     Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 
     Term b = d_solver.mkTrue();
-    assertThrows(CVC5ApiException.class, () -> d_solver.getNullTerm().impTerm(b));
-    assertThrows(CVC5ApiException.class, () -> b.impTerm(d_solver.getNullTerm()));
+    assertThrows(CVC5ApiException.class, () -> new Term().impTerm(b));
+    assertThrows(CVC5ApiException.class, () -> b.impTerm(new Term()));
     assertDoesNotThrow(() -> b.impTerm(b));
     Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
     assertThrows(CVC5ApiException.class, () -> x.impTerm(b));
@@ -626,9 +626,9 @@ class TermTest
     Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 
     Term b = d_solver.mkTrue();
-    assertThrows(CVC5ApiException.class, () -> d_solver.getNullTerm().iteTerm(b, b));
-    assertThrows(CVC5ApiException.class, () -> b.iteTerm(d_solver.getNullTerm(), b));
-    assertThrows(CVC5ApiException.class, () -> b.iteTerm(b, d_solver.getNullTerm()));
+    assertThrows(CVC5ApiException.class, () -> new Term().iteTerm(b, b));
+    assertThrows(CVC5ApiException.class, () -> b.iteTerm(new Term(), b));
+    assertThrows(CVC5ApiException.class, () -> b.iteTerm(b, new Term()));
     assertDoesNotThrow(() -> b.iteTerm(b, b));
     Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
     assertDoesNotThrow(() -> b.iteTerm(x, x));
@@ -690,7 +690,7 @@ class TermTest
     Term t1 = d_solver.mkTerm(ADD, two, d_solver.mkInteger(3));
     assertEquals(t1.getChild(0), two);
     assertEquals(t1.getNumChildren(), 2);
-    Term tnull = d_solver.getNullTerm();
+    Term tnull = new Term();
     assertThrows(CVC5ApiException.class, () -> tnull.getNumChildren());
 
     // apply term f(2)
@@ -930,15 +930,11 @@ class TermTest
   @Test
   void getTuple()
   {
-    Sort s1 = d_solver.getIntegerSort();
-    Sort s2 = d_solver.getRealSort();
-    Sort s3 = d_solver.getStringSort();
-
     Term t1 = d_solver.mkInteger(15);
     Term t2 = d_solver.mkReal(17, 25);
     Term t3 = d_solver.mkString("abc");
 
-    Term tup = d_solver.mkTuple(new Sort[] {s1, s2, s3}, new Term[] {t1, t2, t3});
+    Term tup = d_solver.mkTuple(new Term[] {t1, t2, t3});
 
     assertTrue(tup.isTupleValue());
     assertEquals(Arrays.asList((new Term[] {t1, t2, t3})), Arrays.asList(tup.getTupleValue()));
@@ -1045,8 +1041,41 @@ class TermTest
     Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
     assertFalse(x.isCardinalityConstraint());
     assertThrows(CVC5ApiException.class, () -> x.getCardinalityConstraint());
-    Term nullt = d_solver.getNullTerm();
+    Term nullt = new Term();
     assertThrows(CVC5ApiException.class, () -> nullt.isCardinalityConstraint());
+  }
+
+  @Test
+  void getRealAlgebraicNumber() throws CVC5ApiException
+  {
+    d_solver.setOption("produce-models", "true");
+    d_solver.setLogic("QF_NRA");
+    Sort realsort = d_solver.getRealSort();
+    Term x = d_solver.mkConst(realsort, "x");
+    Term x2 = d_solver.mkTerm(MULT, x, x);
+    Term two = d_solver.mkReal(2, 1);
+    Term eq = d_solver.mkTerm(EQUAL, x2, two);
+    d_solver.assertFormula(eq);
+    // Note that check-sat should only return "sat" if libpoly is enabled.
+    // Otherwise, we do not test the following functionality.
+    if (d_solver.checkSat().isSat())
+    {
+      // We find a model for (x*x = 2), where x should be a real algebraic number.
+      // We assert that its defining polynomial is non-null and its lower and
+      // upper bounds are real.
+      Term vx = d_solver.getValue(x);
+      assertTrue(vx.isRealAlgebraicNumber());
+      Term y = d_solver.mkVar(realsort, "y");
+      Term poly = vx.getRealAlgebraicNumberDefiningPolynomial(y);
+      assertTrue(!poly.isNull());
+      Term lb = vx.getRealAlgebraicNumberLowerBound();
+      assertTrue(lb.isRealValue());
+      Term ub = vx.getRealAlgebraicNumberUpperBound();
+      assertTrue(ub.isRealValue());
+      // cannot call with non-variable
+      Term yc = d_solver.mkConst(realsort, "y");
+      assertThrows(CVC5ApiException.class, () ->vx.getRealAlgebraicNumberDefiningPolynomial(yc));
+    }
   }
 
   @Test
@@ -1086,7 +1115,7 @@ class TermTest
         () -> xpy.substitute(es.toArray(new Term[0]), rs.toArray(new Term[0])));
 
     // null cannot substitute
-    Term tnull = d_solver.getNullTerm();
+    Term tnull = new Term();
     assertThrows(CVC5ApiException.class, () -> tnull.substitute(one, x));
     assertThrows(CVC5ApiException.class, () -> xpx.substitute(tnull, x));
     assertThrows(CVC5ApiException.class, () -> xpx.substitute(x, tnull));

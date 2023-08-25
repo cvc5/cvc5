@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,6 +25,7 @@
 #include "context/cdo.h"
 #include "theory/fp/theory_fp_rewriter.h"
 #include "theory/theory.h"
+#include "theory/theory_eq_notify.h"
 #include "theory/theory_inference_manager.h"
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
@@ -72,57 +73,31 @@ class TheoryFp : public Theory
                      bool isInternal) override;
   //--------------------------------- end standard check
 
-  Node getModelValue(TNode var) override;
   bool collectModelInfo(TheoryModel* m,
                         const std::set<Node>& relevantTerms) override;
-  /**
-   * Collect model values in m based on the relevant terms given by
-   * relevantTerms.
-   */
   bool collectModelValues(TheoryModel* m,
-                          const std::set<Node>& relevantTerms) override;
+                          const std::set<Node>& termSet) override;
 
   std::string identify() const override { return "THEORY_FP"; }
 
   TrustNode explain(TNode n) override;
 
- protected:
+  Node getCandidateModelValue(TNode node) override;
+
+  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
+
+ private:
   using ConversionAbstractionMap = context::CDHashMap<TypeNode, Node>;
   using AbstractionMap = context::CDHashMap<Node, Node>;
 
-  /** Equality engine. */
-  class NotifyClass : public eq::EqualityEngineNotify {
-   protected:
-    TheoryFp& d_theorySolver;
-
-   public:
-    NotifyClass(TheoryFp& solver) : d_theorySolver(solver) {}
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override;
-    bool eqNotifyTriggerTermEquality(TheoryId tag,
-                                     TNode t1,
-                                     TNode t2,
-                                     bool value) override;
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override;
-    void eqNotifyNewClass(TNode t) override {}
-    void eqNotifyMerge(TNode t1, TNode t2) override {}
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
-  };
-  friend NotifyClass;
-
   void notifySharedTerm(TNode n) override;
-
-  NotifyClass d_notification;
 
   /** General utility. */
   void registerTerm(TNode node);
   bool isRegistered(TNode node);
 
-  context::CDHashSet<Node> d_registeredTerms;
-
   /** The word-blaster. Translates FP -> BV. */
   std::unique_ptr<FpWordBlaster> d_wordBlaster;
-
-  bool d_expansionRequested;
 
   void wordBlastAndEquateTerm(TNode node);
 
@@ -141,7 +116,10 @@ class TheoryFp : public Theory
 
   bool refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete);
 
- private:
+  /** The terms registered via registerTerm(). */
+  context::CDHashSet<Node> d_registeredTerms;
+
+  /** Map abstraction skolem to abstracted FP_TO_REAL/FP_FROM_REAL node. */
   AbstractionMap d_abstractionMap;  // abstract -> original
 
   /** The theory rewriter for this theory. */
@@ -150,8 +128,22 @@ class TheoryFp : public Theory
   TheoryState d_state;
   /** A (default) inference manager. */
   TheoryInferenceManager d_im;
+  /** The notify class for equality engine. */
+  TheoryEqNotifyClass d_notify;
+
   /** Cache of word-blasted facts. */
   context::CDHashSet<Node> d_wbFactsCache;
+
+  /** Flag indicating whether `d_modelCache` should be invalidated. */
+  context::CDO<bool> d_invalidateModelCache;
+
+  /**
+   * Cache for getValue() calls.
+   *
+   * Is cleared at the beginning of a getValue() call if the
+   * `d_invalidateModelCache` flag is set to true.
+   */
+  std::unordered_map<Node, Node> d_modelCache;
 
   /** True constant. */
   Node d_true;

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -117,13 +117,14 @@ class SetDefaults : protected EnvObj
    * modify the options to ensure that we are compatible with sygus.
    * The output stream reason is similar to above.
    */
-  bool incompatibleWithSygus(Options& opts, std::ostream& reason) const;
+  bool incompatibleWithSygus(const Options& opts, std::ostream& reason) const;
   /**
    * Check if incompatible with quantified formulas. Notice this method may
    * modify the options to ensure that we are compatible with quantified logics.
    * The output stream reason is similar to above.
    */
-  bool incompatibleWithQuantifiers(Options& opts, std::ostream& reason) const;
+  bool incompatibleWithQuantifiers(const Options& opts,
+                                   std::ostream& reason) const;
   /**
    * Check if incompatible with separation logic. Notice this method may
    * modify the options to ensure that we are compatible with separation logic.

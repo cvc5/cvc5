@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -216,6 +216,28 @@ Node ProofNodeToSExpr::getOrMkInferenceIdVariable(TNode n)
   return var;
 }
 
+Node ProofNodeToSExpr::getOrMkDslRewriteVariable(TNode n)
+{
+  rewriter::DslPfRule rid;
+  if (!rewriter::getDslPfRule(n, rid))
+  {
+    // just use self if we failed to get the node, throw a debug failure
+    Assert(false) << "Expected inference id node, got " << n;
+    return n;
+  }
+  std::map<rewriter::DslPfRule, Node>::iterator it = d_dslrMap.find(rid);
+  if (it != d_dslrMap.end())
+  {
+    return it->second;
+  }
+  std::stringstream ss;
+  ss << rid;
+  NodeManager* nm = NodeManager::currentNM();
+  Node var = nm->mkBoundVar(ss.str(), nm->sExprType());
+  d_dslrMap[rid] = var;
+  return var;
+}
+
 Node ProofNodeToSExpr::getOrMkNodeVariable(TNode n)
 {
   std::map<TNode, Node>::iterator it = d_nodeMap.find(n);
@@ -239,6 +261,7 @@ Node ProofNodeToSExpr::getArgument(Node arg, ArgFormat f)
     case ArgFormat::THEORY_ID: return getOrMkTheoryIdVariable(arg);
     case ArgFormat::METHOD_ID: return getOrMkMethodIdVariable(arg);
     case ArgFormat::INFERENCE_ID: return getOrMkInferenceIdVariable(arg);
+    case ArgFormat::DSL_REWRITE_ID: return getOrMkDslRewriteVariable(arg);
     case ArgFormat::NODE_VAR: return getOrMkNodeVariable(arg);
     default: return arg;
   }
@@ -285,6 +308,12 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
       else if (r == PfRule::THEORY_REWRITE && i == 2)
       {
         return ArgFormat::METHOD_ID;
+      }
+      break;
+    case PfRule::DSL_REWRITE:
+      if (i == 0)
+      {
+        return ArgFormat::DSL_REWRITE_ID;
       }
       break;
     case PfRule::INSTANTIATE:

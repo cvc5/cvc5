@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -104,6 +104,14 @@ class InferInfo : public TheoryInference
    * can be assumed for them.
    */
   std::map<LengthStatus, std::vector<Node> > d_skolems;
+  /**
+   * The pending phase requirements, see InferenceManager::sendPhaseRequirement.
+   */
+  std::map<Node, bool> d_pendingPhase;
+  /**
+   * The normal form pair that is cached as a result of this inference.
+   */
+  Node d_nfPair[2];
   /**  Is this infer info trivial? True if d_conc is true. */
   bool isTrivial() const;
   /**

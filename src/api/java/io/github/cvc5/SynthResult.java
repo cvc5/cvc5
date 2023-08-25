@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
+ *   Andrew Reynolds, Mudathir Mohamed, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,10 +27,19 @@ package io.github.cvc5;
  */
 public class SynthResult extends AbstractPointer
 {
-  // region construction and destruction
-  SynthResult(Solver solver, long pointer)
+  /**
+   * Null synthResult
+   */
+  public SynthResult()
   {
-    super(solver, pointer);
+    super(getNullSynthResult());
+  }
+
+  private static native long getNullSynthResult();
+
+  SynthResult(long pointer)
+  {
+    super(pointer);
   }
 
   protected native void deletePointer(long pointer);
@@ -39,8 +48,6 @@ public class SynthResult extends AbstractPointer
   {
     return pointer;
   }
-
-  // endregion
 
   /**
    * @return True if SynthResult is empty, i.e., a nullary SynthResult, and not

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -71,7 +71,7 @@ class TheorySets : public Theory
                           const std::set<Node>& termSet) override;
   void computeCareGraph() override;
   TrustNode explain(TNode) override;
-  Node getModelValue(TNode) override;
+  Node getCandidateModelValue(TNode) override;
   std::string identify() const override { return "THEORY_SETS"; }
   void preRegisterTerm(TNode node) override;
   /**

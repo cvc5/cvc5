@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,9 +22,9 @@ package io.github.cvc5;
 public class DatatypeConstructorDecl extends AbstractPointer
 {
   // region construction and destruction
-  DatatypeConstructorDecl(Solver solver, long pointer)
+  DatatypeConstructorDecl(long pointer)
   {
-    super(solver, pointer);
+    super(pointer);
   }
 
   protected native void deletePointer(long pointer);

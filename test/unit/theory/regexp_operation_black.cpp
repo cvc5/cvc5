@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli, Aina Niemetz, Andrew Reynolds
+ *   Aina Niemetz, Andres Noetzli, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -13,11 +13,12 @@
  * Unit tests for symbolic regular expression operations.
  */
 
+#include <cvc5/cvc5.h>
+
 #include <iostream>
 #include <memory>
 #include <vector>
 
-#include "api/cpp/cvc5.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "test_smt.h"
@@ -43,7 +44,7 @@ class TestTheoryBlackRegexpOperation : public TestSmt
 
   void includes(Node r1, Node r2)
   {
-    Rewriter* rr = d_slvEngine->getRewriter();
+    Rewriter* rr = d_slvEngine->getEnv().getRewriter();
     r1 = rr->rewrite(r1);
     r2 = rr->rewrite(r2);
     std::cout << r1 << " includes " << r2 << std::endl;
@@ -52,7 +53,7 @@ class TestTheoryBlackRegexpOperation : public TestSmt
 
   void doesNotInclude(Node r1, Node r2)
   {
-    Rewriter* rr = d_slvEngine->getRewriter();
+    Rewriter* rr = d_slvEngine->getEnv().getRewriter();
     r1 = rr->rewrite(r1);
     r2 = rr->rewrite(r2);
     std::cout << r1 << " does not include " << r2 << std::endl;
@@ -89,7 +90,7 @@ TEST_F(TestTheoryBlackRegexpOperation, basic)
 
 TEST_F(TestTheoryBlackRegexpOperation, star_wildcards)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   Node sigma = d_nodeManager->mkNode(REGEXP_ALLCHAR);
   Node sigmaStar = d_nodeManager->mkNode(REGEXP_STAR, sigma);
   Node a = d_nodeManager->mkNode(STRING_TO_REGEXP,

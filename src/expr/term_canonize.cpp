@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -60,7 +60,8 @@ bool TermCanonize::getTermOrder(Node a, Node b)
   {
     if (b.getKind() == BOUND_VARIABLE)
     {
-      return getIndexForFreeVariable(a) < getIndexForFreeVariable(b);
+      // just use builtin node comparison
+      return a < b;
     }
     return true;
   }
@@ -74,7 +75,7 @@ bool TermCanonize::getTermOrder(Node a, Node b)
     {
       if (a.getNumChildren() == b.getNumChildren())
       {
-        for (unsigned i = 0, size = a.getNumChildren(); i < size; i++)
+        for (size_t i = 0, size = a.getNumChildren(); i < size; i++)
         {
           if (a[i] != b[i])
           {
@@ -85,7 +86,7 @@ bool TermCanonize::getTermOrder(Node a, Node b)
       }
       else
       {
-        return aop.getNumChildren() < bop.getNumChildren();
+        return a.getNumChildren() < b.getNumChildren();
       }
     }
     else

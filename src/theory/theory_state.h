@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -64,6 +64,14 @@ class TheoryState : protected EnvObj
   virtual bool areDisequal(TNode a, TNode b) const;
   /** get list of members in the equivalence class of a */
   virtual void getEquivalenceClass(Node a, std::vector<Node>& eqc) const;
+  /**
+   * Add pred as a trigger predicate to the equality engine of the theory
+   * that owns this state. If the option prereg-check-sat-assert is true,
+   * this first checks whether pred has already been asserted. If so, then
+   * the trigger is not added. In this care, pred is added as a non-trigger
+   * term to the equality engine instead.
+   */
+  void addEqualityEngineTriggerPredicate(TNode pred);
   /** get equality engine */
   eq::EqualityEngine* getEqualityEngine() const;
   //-------------------------------------- end equality information

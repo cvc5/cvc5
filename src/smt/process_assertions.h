@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -71,12 +71,12 @@ class ProcessAssertions : protected EnvObj
    */
   void cleanup();
   /**
-   * Process the formulas in as. Returns true if there was no conflict when
+   * Process the formulas in ap. Returns true if there was no conflict when
    * processing the assertions.
    *
-   * @param as The assertions.
+   * @param ap The assertions to preprocess.
    */
-  bool apply(Assertions& as);
+  bool apply(preprocessing::AssertionPipeline& ap);
 
  private:
   /** Reference to the SMT stats */
@@ -105,19 +105,21 @@ class ProcessAssertions : protected EnvObj
    *
    * Returns false if the formula simplifies to "false"
    */
-  bool simplifyAssertions(Assertions& as);
+  bool simplifyAssertions(preprocessing::AssertionPipeline& ap);
   /**
    * Dump assertions. Print the current assertion list to the dump
    * assertions:`key` if it is enabled.
    */
-  void dumpAssertions(const std::string& key, Assertions& as);
+  void dumpAssertions(const std::string& key,
+                      const preprocessing::AssertionPipeline& ap);
   /**
    * Dump assertions to stream os using the print benchmark utility.
    */
-  void dumpAssertionsToStream(std::ostream& os, Assertions& as);
+  void dumpAssertionsToStream(std::ostream& os,
+                              const preprocessing::AssertionPipeline& ap);
   /** apply pass */
-  preprocessing::PreprocessingPassResult applyPass(const std::string& pass,
-                                                   Assertions& as);
+  preprocessing::PreprocessingPassResult applyPass(
+      const std::string& pass, preprocessing::AssertionPipeline& ap);
 };
 
 }  // namespace smt

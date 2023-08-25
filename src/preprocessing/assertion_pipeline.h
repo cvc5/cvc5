@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -61,15 +61,12 @@ class AssertionPipeline : protected EnvObj
    * Adds an assertion/assumption to be preprocessed.
    *
    * @param n The assertion/assumption
-   * @param isAssumption If true, records that \p n is an assumption. Note that
-   * all assumptions have to be added contiguously.
    * @param isInput If true, n is an input formula (an assumption in the main
    * body of the overall proof).
    * @param pg The proof generator who can provide a proof of n. The proof
    * generator is not required and is ignored if isInput is true.
    */
   void push_back(Node n,
-                 bool isAssumption = false,
                  bool isInput = false,
                  ProofGenerator* pg = nullptr);
   /** Same as above, with TrustNode */
@@ -102,16 +99,6 @@ class AssertionPipeline : protected EnvObj
 
   IteSkolemMap& getIteSkolemMap() { return d_iteSkolemMap; }
   const IteSkolemMap& getIteSkolemMap() const { return d_iteSkolemMap; }
-
-  size_t getRealAssertionsEnd() const { return d_realAssertionsEnd; }
-
-  /** @return The index of the first assumption */
-  size_t getAssumptionsStart() const { return d_assumptionsStart; }
-
-  /** @return The number of assumptions */
-  size_t getNumAssumptions() const { return d_numAssumptions; }
-
-  void updateRealAssertionsEnd() { d_realAssertionsEnd = d_nodes.size(); }
 
   /**
    * Returns true if substitutions must be stored as assertions. This is for

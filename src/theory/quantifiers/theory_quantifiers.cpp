@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -119,7 +119,9 @@ Theory::PPAssertStatus TheoryQuantifiers::ppAssert(
       // must be legal
       if (isLegalElimination(eq[0], eq[1]))
       {
-        outSubstitutions.addSubstitution(eq[0], eq[1]);
+        // add substitution solved, which ensures we track that eq depends on
+        // tin, which can impact unsat cores.
+        outSubstitutions.addSubstitutionSolved(eq[0], eq[1], tin);
         return Theory::PP_ASSERT_STATUS_SOLVED;
       }
     }

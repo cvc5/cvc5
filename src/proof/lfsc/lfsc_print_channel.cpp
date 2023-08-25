@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,6 +18,9 @@
 #include <sstream>
 
 #include "proof/lfsc/lfsc_util.h"
+#include "rewriter/rewrite_proof_rule.h"
+
+using namespace cvc5::internal::rewriter;
 
 namespace cvc5::internal {
 namespace proof {
@@ -62,15 +65,10 @@ void LfscPrintChannelOut::printCloseRule(size_t nparen)
   }
 }
 
-void LfscPrintChannelOut::printProofId(size_t id)
+void LfscPrintChannelOut::printId(size_t id, const std::string& prefix)
 {
   d_out << " ";
-  printProofId(d_out, id);
-}
-void LfscPrintChannelOut::printAssumeId(size_t id)
-{
-  d_out << " ";
-  printAssumeId(d_out, id);
+  printId(d_out, id, prefix);
 }
 
 void LfscPrintChannelOut::printEndLine() { d_out << std::endl; }
@@ -105,6 +103,20 @@ void LfscPrintChannelOut::printRule(std::ostream& out, const ProofNode* pn)
     out << getLfscRule(args[0]);
     return;
   }
+  else if (pn->getRule() == PfRule::DSL_REWRITE)
+  {
+    const std::vector<Node>& args = pn->getArguments();
+    DslPfRule di;
+    if (rewriter::getDslPfRule(args[0], di))
+    {
+      printDslProofRuleId(out, di);
+    }
+    else
+    {
+      Unreachable();
+    }
+    return;
+  }
   // Otherwise, convert to lower case
   std::stringstream ss;
   ss << pn->getRule();
@@ -116,19 +128,16 @@ void LfscPrintChannelOut::printRule(std::ostream& out, const ProofNode* pn)
   out << rname;
 }
 
-void LfscPrintChannelOut::printId(std::ostream& out, size_t id)
+void LfscPrintChannelOut::printId(std::ostream& out,
+                                  size_t id,
+                                  const std::string& prefix)
 {
-  out << "__t" << id;
+  out << prefix << id;
 }
 
-void LfscPrintChannelOut::printProofId(std::ostream& out, size_t id)
+void LfscPrintChannelOut::printDslProofRuleId(std::ostream& out, DslPfRule id)
 {
-  out << "__p" << id;
-}
-
-void LfscPrintChannelOut::printAssumeId(std::ostream& out, size_t id)
-{
-  out << "__a" << id;
+  out << "dsl." << id;
 }
 
 void LfscPrintChannelOut::cleanSymbols(std::string& s)
@@ -156,7 +165,25 @@ void LfscPrintChannelPre::printTrust(TNode res, PfRule src)
 
 void LfscPrintChannelPre::printOpenRule(const ProofNode* pn)
 {
+  // if its a DSL rule, remember it
+  if (pn->getRule() == PfRule::DSL_REWRITE)
+  {
+    Node idn = pn->getArguments()[0];
+    DslPfRule di;
+    if (rewriter::getDslPfRule(idn, di))
+    {
+      d_dprs.insert(di);
+    }
+    else
+    {
+      Unhandled();
+    }
+  }
+}
 
+const std::unordered_set<DslPfRule>& LfscPrintChannelPre::getDslRewrites() const
+{
+  return d_dprs;
 }
 
 }  // namespace proof

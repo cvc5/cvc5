@@ -25,7 +25,7 @@
 
 (assert (distinct x y z))
 
-(assert (= (set.card (union A (union B (union C D)))) 6))
+(assert (= (set.card (set.union A (set.union B (set.union C D)))) 6))
 
 (assert (= (set.card (as set.universe (Set Int))) 8))
 

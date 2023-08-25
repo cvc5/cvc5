@@ -16,6 +16,7 @@ input mechanisms.
     bitvectors_and_arrays
     extract
     datatypes
+    finite_field
     floatingpoint
     lineararith
     quickstart
@@ -25,5 +26,4 @@ input mechanisms.
     strings
     combination
     sygus-fun
-    sygus-grammar
     sygus-inv

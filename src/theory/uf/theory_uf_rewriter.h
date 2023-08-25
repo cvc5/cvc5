@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,16 +34,23 @@ namespace uf {
 class TheoryUfRewriter : public TheoryRewriter
 {
  public:
-  TheoryUfRewriter(bool isHigherOrder = false);
+  TheoryUfRewriter();
   /** post-rewrite */
   RewriteResponse postRewrite(TNode node) override;
   /** pre-rewrite */
   RewriteResponse preRewrite(TNode node) override;
   // conversion between HO_APPLY AND APPLY_UF
-  // converts an APPLY_UF to a curried HO_APPLY e.g. (f a b) becomes (@ (@ f a)
-  // b)
+  /**
+   * converts an APPLY_UF to a curried HO_APPLY e.g.
+   * (f a b) becomes (@ (@ f a) b).
+   */
   static Node getHoApplyForApplyUf(TNode n);
-  // converts a curried HO_APPLY into an APPLY_UF e.g. (@ (@ f a) b) becomes (f a b)
+  /**
+   * Converts a curried HO_APPLY into an APPLY_UF e.g.
+   * (@ (@ f a) b) becomes (f a b).
+   * Returns null if f cannot be used as an operator for APPLY_UF (see
+   * canUseAsApplyUfOperator).
+   */
   static Node getApplyUfForHoApply(TNode n);
   /**
    * Given a curried HO_APPLY term n, this method adds its arguments into args
@@ -70,8 +77,6 @@ class TheoryUfRewriter : public TheoryRewriter
   static RewriteResponse rewriteBVToNat(TNode node);
   /** rewrite int2bv */
   static RewriteResponse rewriteIntToBV(TNode node);
-  /** Is the logic higher-order? */
-  bool d_isHigherOrder;
 }; /* class TheoryUfRewriter */
 
 }  // namespace uf

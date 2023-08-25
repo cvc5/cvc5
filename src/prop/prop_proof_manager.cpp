@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Gereon Kremer, Andrew Reynolds
+ *   Haniel Barbosa, Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,9 +26,10 @@ namespace prop {
 
 PropPfManager::PropPfManager(Env& env,
                              context::UserContext* userContext,
-                             CDCLTSatSolverInterface* satSolver,
+                             CDCLTSatSolver* satSolver,
                              ProofCnfStream* cnfProof)
     : EnvObj(env),
+      d_propProofs(userContext),
       d_pfpp(new ProofPostprocess(env, cnfProof)),
       d_satSolver(satSolver),
       d_assertions(userContext),
@@ -75,10 +76,10 @@ std::vector<std::shared_ptr<ProofNode>> PropPfManager::getProofLeaves(
   Trace("sat-proof") << "PropPfManager::getProofLeaves: Getting " << pc
                      << " component proofs\n";
   std::vector<Node> fassumps;
-  Assert(pc == modes::PROOF_COMPONENT_THEORY_LEMMAS
-         || pc == modes::PROOF_COMPONENT_PREPROCESS);
+  Assert(pc == modes::ProofComponent::THEORY_LEMMAS
+         || pc == modes::ProofComponent::PREPROCESS);
   std::vector<std::shared_ptr<ProofNode>> pfs =
-      pc == modes::PROOF_COMPONENT_THEORY_LEMMAS
+      pc == modes::ProofComponent::THEORY_LEMMAS
           ? d_proofCnfStream->getLemmaClausesProofs()
           : d_proofCnfStream->getInputClausesProofs();
   std::shared_ptr<ProofNode> satPf = getProof(false);
@@ -98,6 +99,11 @@ std::vector<std::shared_ptr<ProofNode>> PropPfManager::getProofLeaves(
 
 std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
 {
+  auto it = d_propProofs.find(connectCnf);
+  if (it != d_propProofs.end())
+  {
+    return it->second;
+  }
   // retrieve the SAT solver's refutation proof
   Trace("sat-proof")
       << "PropPfManager::getProof: Getting resolution proof of false\n";
@@ -120,6 +126,7 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
   }
   if (!connectCnf)
   {
+    d_propProofs[connectCnf] = conflictProof;
     return conflictProof;
   }
   // connect it with CNF proof
@@ -142,6 +149,7 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
     Trace("sat-proof-debug")
         << "PropPfManager::getProof: proof is " << *conflictProof.get() << "\n";
   }
+  d_propProofs[connectCnf] = conflictProof;
   return conflictProof;
 }
 

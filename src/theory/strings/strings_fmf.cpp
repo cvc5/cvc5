@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,6 +15,7 @@
 
 #include "theory/strings/strings_fmf.h"
 
+#include "theory/trust_substitutions.h"
 #include "util/rational.h"
 
 using namespace std;
@@ -39,9 +40,15 @@ void StringsFmf::presolve()
       << "presolve: register decision strategy." << std::endl;
   const NodeSet& ivars = d_termReg.getInputVars();
   std::vector<Node> inputVars;
+  SubstitutionMap& tls = d_env.getTopLevelSubstitutions().get();
   for (NodeSet::const_iterator itr = ivars.begin(); itr != ivars.end(); ++itr)
   {
-    inputVars.push_back(*itr);
+    Node var = *itr;
+    // ensure we haven't solved for it?
+    if (var == tls.apply(var))
+    {
+      inputVars.push_back(var);
+    }
   }
   d_sslds->initialize(inputVars);
 }

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,7 +16,7 @@
 #include "theory/quantifiers/sygus/cegis_unif.h"
 
 #include "expr/skolem_manager.h"
-#include "expr/sygus_datatype.h"
+#include "expr/sygus_grammar.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -395,11 +395,10 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars, Node lem)
     }
   }
   // Make the refinement lemma and add it to lems. This lemma is guarded by the
-  // parent's guard, which has the semantics "this conjecture has a solution",
-  // hence this lemma states: if the parent conjecture has a solution, it
-  // satisfies the specification for the given concrete point.
+  // parent's conjecture, hence this lemma states: if the parent conjecture has
+  // a solution, it satisfies the specification for the given concrete point.
   Node rlem =
-      NodeManager::currentNM()->mkNode(OR, d_parent->getGuard().negate(), plem);
+      NodeManager::currentNM()->mkNode(OR, d_parent->getConjecture().negate(), plem);
   d_qim.addPendingLemma(rlem,
                         InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_REFINEMENT);
 }
@@ -470,25 +469,11 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
     if (d_virtual_enum.isNull())
     {
       // we construct the default integer grammar with no variables, e.g.:
-      //   A -> 1 | A+A
-      TypeNode intTn = nm->integerType();
-      // use a null variable list
-      Node bvl;
-      std::string veName("_virtual_enum_grammar");
-      SygusDatatype sdt(veName);
-      TypeNode u = nm->mkUnresolvedDatatypeSort(veName);
-      std::vector<TypeNode> cargsEmpty;
-      Node cr = nm->mkConstInt(Rational(1));
-      sdt.addConstructor(cr, "1", cargsEmpty);
-      std::vector<TypeNode> cargsPlus;
-      cargsPlus.push_back(u);
-      cargsPlus.push_back(u);
-      sdt.addConstructor(ADD, cargsPlus);
-      sdt.initializeDatatype(nm->integerType(), bvl, false, false);
-      std::vector<DType> datatypes;
-      datatypes.push_back(sdt.getDatatype());
-      std::vector<TypeNode> dtypes = nm->mkMutualDatatypeTypes(datatypes);
-      d_virtual_enum = sm->mkDummySkolem("_ve", dtypes[0]);
+      //   A -> 1 | A + A
+      Node a = nm->mkBoundVar("_virtual_enum_grammar", nm->integerType());
+      SygusGrammar g({}, {a});
+      g.addRules(a, {nm->mkConstInt(Rational(1)), nm->mkNode(ADD, a, a)});
+      d_virtual_enum = sm->mkDummySkolem("_ve", g.resolve());
       d_tds->registerEnumerator(
           d_virtual_enum, Node::null(), d_parent, ROLE_ENUM_CONSTRAINED);
     }

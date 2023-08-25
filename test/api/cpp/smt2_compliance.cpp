@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -13,15 +13,15 @@
  * A test of SMT-LIBv2 commands, checks for compliant output.
  */
 
+#include <cvc5/cvc5.h>
+
 #include <cassert>
 #include <iostream>
 #include <sstream>
 
-#include "api/cpp/cvc5.h"
 #include "parser/api/cpp/command.h"
-#include "parser/parser.h"
-#include "parser/parser_builder.h"
-#include "smt/solver_engine.h"
+#include "parser/api/cpp/input_parser.h"
+#include "parser/api/cpp/symbol_manager.h"
 
 using namespace cvc5;
 using namespace cvc5::internal;
@@ -42,7 +42,6 @@ int main()
   testGetInfo(solver.get(), ":status");
   testGetInfo(solver.get(), ":reason-unknown");
   testGetInfo(solver.get(), ":arbitrary-undefined-keyword");
-  testGetInfo(solver.get(), ":56");  // legal
   testGetInfo(solver.get(), ":<=");  // legal
   testGetInfo(solver.get(), ":->");  // legal
   testGetInfo(solver.get(), ":all-statistics");
@@ -54,16 +53,15 @@ void testGetInfo(cvc5::Solver* solver, const char* s)
 {
   std::unique_ptr<SymbolManager> symman(new SymbolManager(solver));
 
-  std::unique_ptr<Parser> p(ParserBuilder(solver, symman.get(), true).build());
-  p->setInput(Input::newStringInput(
-      "LANG_SMTLIB_V2_6", string("(get-info ") + s + ")", "<internal>"));
-  assert(p != NULL);
-  Command* c = p->nextCommand();
-  assert(c != NULL);
-  cout << c << endl;
-  stringstream ss;
+  InputParser p(solver, symman.get());
+  std::stringstream ssi;
+  ssi << "(get-info " << s << ")";
+  p.setStreamInput("LANG_SMTLIB_V2_6", ssi, "<internal>");
+  std::unique_ptr<Command> c = p.nextCommand();
+  assert(c != nullptr);
+  std::cout << c.get() << std::endl;
+  std::stringstream ss;
   c->invoke(solver, symman.get(), ss);
-  assert(p->nextCommand() == NULL);
-  delete c;
-  cout << ss.str() << endl << endl;
+  assert(p.nextCommand() == nullptr);
+  std::cout << ss.str() << std::endl << std::endl;
 }

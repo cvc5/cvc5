@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andres Noetzli
+ *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -687,7 +687,7 @@ TEST_F(TestTheoryWhiteBagsRewriter, to_set)
 
 TEST_F(TestTheoryWhiteBagsRewriter, map)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   TypeNode bagStringType =
       d_nodeManager->mkBagType(d_nodeManager->stringType());
   Node emptybagString = d_nodeManager->mkConst(EmptyBag(bagStringType));
@@ -740,7 +740,7 @@ TEST_F(TestTheoryWhiteBagsRewriter, map)
 
 TEST_F(TestTheoryWhiteBagsRewriter, fold)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   TypeNode bagIntegerType =
       d_nodeManager->mkBagType(d_nodeManager->integerType());
   Node emptybag = d_nodeManager->mkConst(EmptyBag(bagIntegerType));

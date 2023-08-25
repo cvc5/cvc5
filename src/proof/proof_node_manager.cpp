@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -344,62 +344,6 @@ Node ProofNodeManager::checkInternal(
 }
 
 ProofChecker* ProofNodeManager::getChecker() const { return d_checker; }
-
-std::shared_ptr<ProofNode> ProofNodeManager::clone(
-    std::shared_ptr<ProofNode> pn) const
-{
-  const ProofNode* orig = pn.get();
-  std::unordered_map<const ProofNode*, std::shared_ptr<ProofNode>> visited;
-  std::unordered_map<const ProofNode*, std::shared_ptr<ProofNode>>::iterator it;
-  std::vector<const ProofNode*> visit;
-  std::shared_ptr<ProofNode> cloned;
-  visit.push_back(orig);
-  const ProofNode* cur;
-  while (!visit.empty())
-  {
-    cur = visit.back();
-    it = visited.find(cur);
-    if (it == visited.end())
-    {
-      visited[cur] = nullptr;
-      const std::vector<std::shared_ptr<ProofNode>>& children =
-          cur->getChildren();
-      for (const std::shared_ptr<ProofNode>& cp : children)
-      {
-        visit.push_back(cp.get());
-      }
-      continue;
-    }
-    visit.pop_back();
-    if (it->second.get() == nullptr)
-    {
-      std::vector<std::shared_ptr<ProofNode>> cchildren;
-      const std::vector<std::shared_ptr<ProofNode>>& children =
-          cur->getChildren();
-      for (const std::shared_ptr<ProofNode>& cp : children)
-      {
-        it = visited.find(cp.get());
-        Assert(it != visited.end());
-        // if we encounter nullptr here, then this child is currently being
-        // traversed at a higher level, hence this corresponds to a cyclic
-        // proof.
-        if (it->second == nullptr)
-        {
-          Unreachable() << "Cyclic proof encountered when cloning a proof node";
-        }
-        cchildren.push_back(it->second);
-      }
-      cloned = std::make_shared<ProofNode>(
-          cur->getRule(), cchildren, cur->getArguments());
-      visited[cur] = cloned;
-      // we trust the above cloning does not change what is proven
-      cloned->d_proven = cur->d_proven;
-      cloned->d_provenChecked = cur->d_provenChecked;
-    }
-  }
-  Assert(visited.find(orig) != visited.end());
-  return visited[orig];
-}
 
 ProofNode* ProofNodeManager::cancelDoubleSymm(ProofNode* pn)
 {

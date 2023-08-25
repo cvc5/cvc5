@@ -54,6 +54,56 @@ The built binary ``cvc5.exe`` is located in ``<build_dir>/bin`` and the cvc5
 library can be found in ``<build_dir>/lib``.
 
 
+WebAssembly Compilation
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Compiling cvc5 to WebAssembly needs the Emscripten SDK (version 3.1.18 or 
+latter). Setting up emsdk can be done as follows:
+
+.. code:: bash
+
+  git clone https://github.com/emscripten-core/emsdk.git
+  cd emsdk
+  ./emsdk install <version>   # <version> = '3.1.18' is preferable, but 
+                              # <version> = 'latest' has high chance of working
+  ./emsdk activate <version>
+  source ./emsdk_env.sh   # Activate PATH and other environment variables in the
+                          # current terminal. Whenever Emscripten is going to be
+                          # used this command needs to be called before because 
+                          # emsdk doesn't insert the binaries paths directly in 
+                          # the system PATH variable.
+
+Refer to the `emscripten dependencies list <https://emscripten.org/docs/getting_started/downloads.html#platform-specific-notes>`_ 
+to ensure that all required dependencies are installed on the system.
+
+Then, in the cvc5 directory:
+
+.. code:: bash
+
+  ./configure.sh --static --static-binary --auto-download --wasm=<value> --wasm-flags='<emscripten flags>' <configure options...>
+
+  cd <build_dir>   # default is ./build
+  make             # use -jN for parallel build with N threads
+
+``--wasm`` can take three values: ``WASM`` (will generate the wasm file for cvc5), ``JS``
+(not only the wasm, but the .js glue code for web integration) and ``HTML`` (both
+the last two files and also an .html file which supports the run of the glue
+code).
+
+``--wasm-flags`` take a string wrapped by a single quote containing the
+`emscripten flags <https://github.com/emscripten-core/emscripten/blob/main/src/settings.js>`_,
+which modifies how the wasm and glue code are built and how they behave. An ``-s``
+should precede each flag.
+
+For example, to generate modularized glue code, use:
+
+.. code:: bash
+
+  ./configure.sh --static --static-binary --auto-download --wasm=JS --wasm-flags='-s MODULARIZE' --name=prod
+
+  cd prod
+  make            # use -jN for parallel build with N threads
+
 Build dependencies
 ------------------
 
@@ -68,21 +118,13 @@ versions; more recent versions should be compatible.
 - `GNU C and C++ (gcc and g++, >= 7) <https://gcc.gnu.org>`_
   or `Clang (>= 5) <https://clang.llvm.org>`_
 - `CMake >= 3.9 <https://cmake.org>`_
-- `Python >= 3.6 <https://www.python.org>`_
-  + module `toml <https://pypi.org/project/toml/>`_
+- `Python >= 3.6 and <= 3.10 <https://www.python.org>`_
+  + module `tomli <https://pypi.org/project/tomli/>`_
+  + module `pyparsing <https://pypi.org/project/pyparsing/>`_
 - `GMP v6.1 (GNU Multi-Precision arithmetic library) <https://gmplib.org>`_
-- `ANTLR 3.4 <http://www.antlr3.org/>`_
 - `CaDiCaL (SAT solver) <https://github.com/arminbiere/cadical>`_
 - `Java >= 1.6 <https://www.java.com>`_
 - `SymFPU <https://github.com/martin-cs/symfpu/tree/CVC4>`_
-
-
-ANTLR 3.4 parser generator
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-For most systems, the package manager no longer contains pre-packaged versions
-of ANTLR 3.4. With ``--auto-download``, cvc5 will automatically download and
-build ANTLR 3.4.
 
 
 CaDiCaL (SAT solver)
@@ -208,7 +250,7 @@ Dependencies for Language Bindings
 
 - Python
 
-  - `Cython <https://cython.org/>`_
+  - `Cython <https://cython.org/>`_ >= 3.0.0
   - `scikit-build <https://pypi.org/project/scikit-build/>`_
   - `pytest <https://docs.pytest.org/en/6.2.x/>`_
 

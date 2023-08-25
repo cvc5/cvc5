@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #--------------------------------------------------------------------------#
 
 set -e -o pipefail
@@ -24,6 +24,7 @@ General options;
   --gpl                    permit GPL dependencies, if available
   --arm64                  cross-compile for Linux ARM 64 bit
   --win64                  cross-compile for Windows 64 bit
+  --win64-native           natively compile for Windows 64 bit
   --ninja                  use Ninja build system
   --docs                   build Api documentation
 
@@ -68,6 +69,10 @@ Optional Path to Optional Packages:
 
 CMake Options (Advanced)
   -DVAR=VALUE              manually add CMake options
+
+Wasm Options
+  --wasm=VALUE             set compilation extension for WebAssembly <WASM, JS or HTML>
+  --wasm-flags='STR'       Emscripten flags used in the WebAssembly binary compilation
 
 EOF
   exit 0
@@ -128,11 +133,15 @@ ubsan=default
 unit_testing=default
 valgrind=default
 win64=default
+win64_native=default
 arm64=default
 werror=default
 ipo=default
 
 glpk_dir=default
+
+wasm=default
+wasm_flags=""
 
 #--------------------------------------------------------------------------#
 
@@ -210,6 +219,8 @@ do
 
     --win64) win64=ON;;
 
+    --win64-native) win64_native=ON;;
+
     --arm64) arm64=ON;;
 
     --ninja) ninja=ON;;
@@ -272,6 +283,12 @@ do
     --dep-path) die "missing argument to $1 (try -h)" ;;
     --dep-path=*) dep_path="${dep_path};${1##*=}" ;;
 
+    --wasm) wasm=WASM ;;
+    --wasm=*) wasm="${1##*=}" ;;
+
+    --wasm-flags) die "missing argument to $1 (try -h)" ;;
+    --wasm-flags=*) wasm_flags="${1#*=}" ;;
+
     -D*) cmake_opts="${cmake_opts} $1" ;;
 
     -*) die "invalid option '$1' (try -h)";;
@@ -323,6 +340,9 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_GPL=$gpl"
 [ $win64 != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-mingw64.cmake"
+# Because 'MSYS Makefiles' has a space in it, we set the variable vs. adding to 'cmake_opts'
+[ $win64_native != default ] \
+  && [ $ninja == default ] && export CMAKE_GENERATOR="MSYS Makefiles"
 [ $arm64 != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-aarch64.cmake"
 [ $ninja != default ] && cmake_opts="$cmake_opts -G Ninja"
@@ -370,8 +390,17 @@ fi
   && cmake_opts="$cmake_opts -DCMAKE_INSTALL_PREFIX=$install_prefix"
 [ -n "$program_prefix" ] \
   && cmake_opts="$cmake_opts -DPROGRAM_PREFIX=$program_prefix"
+[ "$wasm" != default ] \
+  && cmake_opts="$cmake_opts -DWASM=$wasm"
 
 root_dir=$(pwd)
+
+cmake_wrapper=
+cmake_opts=($cmake_opts)
+if [ "$wasm" == "WASM" ] || [ "$wasm" == "JS" ] || [ "$wasm" == "HTML" ] ; then
+  cmake_wrapper=emcmake
+  cmake_opts=(${cmake_opts[@]} -DWASM_FLAGS="${wasm_flags}")
+fi
 
 # The cmake toolchain can't be changed once it is configured in $build_dir.
 # Thus, remove $build_dir and create an empty directory.
@@ -383,5 +412,5 @@ cd "$build_dir"
 
 [ -e CMakeCache.txt ] && rm CMakeCache.txt
 build_dir_escaped=$(echo "$build_dir" | sed 's/\//\\\//g')
-cmake "$root_dir" $cmake_opts 2>&1 | \
+$cmake_wrapper cmake "$root_dir" "${cmake_opts[@]}" 2>&1 | \
   sed "s/^Now just/Now change to '$build_dir_escaped' and/"

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -339,7 +339,7 @@ bool Integer::isNegativeOne() const
   return mpz_cmp_si(d_value.get_mpz_t(), -1) == 0;
 }
 
-Integer Integer::pow(unsigned long int exp) const
+Integer Integer::pow(uint32_t exp) const
 {
   mpz_class result;
   mpz_pow_ui(result.get_mpz_t(), d_value.get_mpz_t(), exp);

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Tim King, Mathias Preiner
+ *   Morgan Deters, Tim King, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -165,7 +165,7 @@ Cardinality& Cardinality::operator^=(const Cardinality& c) {
         // don't bother, it's too large anyways
         d_card = s_largeFiniteCard;
       } else {
-        d_card = (d_card - 1).pow(c.d_card.getUnsignedLong() - 1) + 1;
+        d_card = (d_card - 1).pow(c.d_card.getUnsignedInt() - 1) + 1;
       }
     } catch (IllegalArgumentException&) {
       d_card = s_largeFiniteCard;

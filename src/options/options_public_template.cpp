@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer
+ *   Gereon Kremer, Alex Ozdemir
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,6 +30,12 @@ ${options_includes}$
 #include <cstring>
 #include <iostream>
 #include <limits>
+
+namespace {
+  // clang-format off
+  ${option_enum_and_table}$
+  // clang-format on
+}
 
 namespace cvc5::internal::options
 {
@@ -196,7 +202,7 @@ namespace cvc5::internal::options
   {
     Trace("options") << "Options::getOption(" << name << ")" << std::endl;
     // clang-format off
-  ${get_impl}$
+    ${get_impl}$
     // clang-format on
     throw OptionException("Unrecognized option key or setting: " + name);
   }
@@ -210,11 +216,6 @@ namespace cvc5::internal::options
     ${set_impl}$
     // clang-format on
   }
-  else
-  {
-    throw OptionException("Unrecognized option key or setting: " + name);
-  }
-}
 
 #if defined(CVC5_MUZZLED) || defined(CVC5_COMPETITION_MODE)
 #define DO_SEMANTIC_CHECKS_BY_DEFAULT false
@@ -227,7 +228,11 @@ OptionInfo getInfo(const Options& opts, const std::string& name)
   // clang-format off
   ${getinfo_impl}$
   // clang-format on
-  return OptionInfo{"", {}, false, OptionInfo::VoidInfo{}};
+  return OptionInfo{"",
+                    {},
+                    false,
+                    OptionInfo::Category::UNDOCUMENTED,
+                    OptionInfo::VoidInfo{}};
 }
 
 #undef DO_SEMANTIC_CHECKS_BY_DEFAULT

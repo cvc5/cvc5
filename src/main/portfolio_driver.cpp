@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Christopher L. Conway, Gereon Kremer
+ *   Gereon Kremer, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,17 +19,19 @@
 #include <unistd.h>
 #endif
 
+#include <cvc5/cvc5.h>
+
 #include <chrono>
 #include <cstdlib>
 #include <optional>
 #include <thread>
 
-#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "base/exception.h"
 #include "base/output.h"
 #include "main/command_executor.h"
-#include "parser/parser.h"
+#include "parser/commands.h"
+#include "parser/command_status.h"
 
 using namespace cvc5::parser;
 
@@ -41,7 +43,7 @@ enum SolveStatus : int
   STATUS_UNSOLVED = 1,
 };
 
-bool ExecutionContext::solveContinuous(parser::Parser* parser,
+bool ExecutionContext::solveContinuous(parser::InputParser* parser,
                                        bool stopAtSetLogic)
 {
   std::unique_ptr<Command> cmd;
@@ -55,7 +57,7 @@ bool ExecutionContext::solveContinuous(parser::Parser* parser,
       d_executor->reset();
       break;
     }
-    cmd.reset(parser->nextCommand());
+    cmd = parser->nextCommand();
     if (cmd == nullptr) break;
 
     status = d_executor->doCommand(cmd);
@@ -83,7 +85,7 @@ bool ExecutionContext::solveContinuous(parser::Parser* parser,
 }
 
 std::vector<std::unique_ptr<Command>> ExecutionContext::parseCommands(
-    parser::Parser* parser)
+    parser::InputParser* parser)
 {
   std::vector<std::unique_ptr<Command>> res;
   while (true)
@@ -239,7 +241,7 @@ class PortfolioProcessPool
   };
 
  public:
-  PortfolioProcessPool(ExecutionContext& ctx, parser::Parser* parser)
+  PortfolioProcessPool(ExecutionContext& ctx, parser::InputParser* parser)
       : d_ctx(ctx),
         d_parser(parser),
         d_maxJobs(ctx.solver().getOptionInfo("portfolio-jobs").uintValue()),
@@ -290,6 +292,13 @@ class PortfolioProcessPool
     Assert(d_nextJob < d_jobs.size());
     Job& job = d_jobs[d_nextJob];
     Trace("portfolio") << "Starting " << job.d_config << std::endl;
+    if (d_ctx.solver().isOutputOn("portfolio"))
+    {
+      std::ostream& out = d_ctx.solver().getOutput("portfolio");
+      out << "(portfolio \"" << job.d_config.toOptionString() << "\"";
+      out << " :timeout " << job.d_config.d_timeout;
+      out << ")" << std::endl;
+    }
 
     // Set up pipes to capture output of worker
     job.d_errPipe.open();
@@ -387,6 +396,12 @@ class PortfolioProcessPool
         if (WEXITSTATUS(wstatus) == SolveStatus::STATUS_SOLVED)
         {
           Trace("portfolio") << "Successful!" << std::endl;
+          if (d_ctx.solver().isOutputOn("portfolio"))
+          {
+            std::ostream& out = d_ctx.solver().getOutput("portfolio");
+            out << "(portfolio-success \"" << job.d_config.toOptionString()
+                << "\")" << std::endl;
+          }
           job.d_errPipe.flushTo(std::cerr);
           job.d_outPipe.flushTo(std::cout);
           return true;
@@ -397,7 +412,7 @@ class PortfolioProcessPool
   }
 
   ExecutionContext& d_ctx;
-  parser::Parser* d_parser;
+  parser::InputParser* d_parser;
   /** All jobs. */
   std::vector<Job> d_jobs;
   /** The id of the next job to be started within d_jobs */
@@ -450,6 +465,37 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
   Warning() << "Can't run portfolio without <sys/wait.h>.";
   return ctx.solveContinuous(d_parser, false);
 #endif
+}
+
+std::string PortfolioConfig::toOptionString() const
+{
+  std::stringstream ss;
+  bool firstTime = true;
+  for (const std::pair<std::string, std::string>& o : d_options)
+  {
+    if (firstTime)
+    {
+      firstTime = false;
+    }
+    else
+    {
+      ss << " ";
+    }
+    ss << "--";
+    if (o.second == "true")
+    {
+      ss << o.first;
+    }
+    else if (o.second == "false")
+    {
+      ss << "no-" << o.first;
+    }
+    else
+    {
+      ss << o.first << "=" << o.second;
+    }
+  }
+  return ss.str();
 }
 
 std::ostream& operator<<(std::ostream& os, const PortfolioConfig& config)

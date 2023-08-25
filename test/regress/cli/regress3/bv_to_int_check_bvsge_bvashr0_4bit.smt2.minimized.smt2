@@ -1,5 +1,5 @@
-; COMMAND-LINE:  --solve-bv-as-int=sum 
-; COMMAND-LINE:  --solve-bv-as-int=sum  --bv-to-int-use-pow2
+; COMMAND-LINE:  --solve-bv-as-int=sum -q
+; COMMAND-LINE:  --solve-bv-as-int=sum  --bv-to-int-use-pow2 -q
 ; EXPECT: sat
 (set-logic BV)
 (declare-fun s () (_ BitVec 3))

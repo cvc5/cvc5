@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -177,8 +177,8 @@ bool FirstOrderModel::initializeRepresentativesForType(TypeNode tn)
     // can we complete it?
     if (d_qreg.getQuantifiersBoundInference().mayComplete(tn))
     {
-      Trace("fm-debug") << "  do complete, since cardinality is small ("
-                        << tn.getCardinality() << ")..." << std::endl;
+      Trace("fm-debug") << "  do complete, since cardinality is small"
+                        << std::endl;
       rs->complete(tn);
       // must have succeeded
       Assert(rs->hasType(tn));

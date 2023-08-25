@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,11 +20,13 @@
 #include "expr/node.h"
 #include "theory/arith/arith_preprocess.h"
 #include "theory/arith/arith_rewriter.h"
-#include "theory/arith/arith_state.h"
+#include "theory/arith/arith_subs.h"
 #include "theory/arith/branch_and_bound.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/pp_rewrite_eq.h"
+#include "theory/arith/proof_checker.h"
 #include "theory/theory.h"
+#include "theory/theory_state.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -107,6 +109,7 @@ class TheoryArith : public Theory {
    * symbols.
    */
   TrustNode ppRewrite(TNode atom, std::vector<SkolemLemma>& lems) override;
+  TrustNode ppStaticRewrite(TNode atom) override;
   void ppStaticLearn(TNode in, NodeBuilder& learned) override;
 
   std::string identify() const override { return std::string("TheoryArith"); }
@@ -115,7 +118,7 @@ class TheoryArith : public Theory {
 
   void notifySharedTerm(TNode n) override;
 
-  Node getModelValue(TNode var) override;
+  Node getCandidateModelValue(TNode var) override;
 
   std::pair<bool, Node> entailmentCheck(TNode lit) override;
 
@@ -155,8 +158,8 @@ class TheoryArith : public Theory {
   eq::ProofEqEngine* getProofEqEngine();
   /** Timer for ppRewrite */
   TimerStat d_ppRewriteTimer;
-  /** The state object wrapping TheoryArithPrivate  */
-  ArithState d_astate;
+  /** The state object  */
+  TheoryState d_astate;
   /** The arith::InferenceManager. */
   InferenceManager d_im;
   /** The preprocess rewriter for equality */
@@ -192,10 +195,11 @@ class TheoryArith : public Theory {
   /** Component of the above that was ill-typed */
   std::map<Node, Node> d_arithModelCacheIllTyped;
   /** The above model cache, in substitution form. */
-  std::vector<TNode> d_arithModelCacheVars;
-  std::vector<TNode> d_arithModelCacheSubs;
+  ArithSubs d_arithModelCacheSubs;
   /** Is the above map computed? */
   bool d_arithModelCacheSet;
+  /** Checks the proof rules of this theory. */
+  ArithProofRuleChecker d_checker;
 
 };/* class TheoryArith */
 

@@ -1,3 +1,4 @@
+; COMMAND-LINE: -q
 ; EXPECT: sat
 (set-logic ALL)
 (declare-const x Bool)

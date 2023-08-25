@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer
+ *   Gereon Kremer, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,10 +23,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-std::optional<bool> isExpressionZero(Env& env,
-                                     Node expr,
-                                     const std::vector<TNode>& nodes,
-                                     const std::vector<TNode>& repls)
+std::optional<bool> isExpressionZero(Env& env, Node expr, const ArithSubs& subs)
 {
   // Substitute constants and rewrite
   expr = env.getRewriter()->rewrite(expr);
@@ -34,8 +31,9 @@ std::optional<bool> isExpressionZero(Env& env,
   {
     return expr.getConst<Rational>().isZero();
   }
-  expr =
-      expr.substitute(nodes.begin(), nodes.end(), repls.begin(), repls.end());
+  // we use an arithmetic substitution, which does not traverse into
+  // terms that do not belong to the core theory of arithmetic.
+  expr = subs.applyArith(expr);
   expr = env.getRewriter()->rewrite(expr);
   if (expr.isConst())
   {
@@ -43,7 +41,7 @@ std::optional<bool> isExpressionZero(Env& env,
   }
   if (expr.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
   {
-    return isZero(expr.getOperator().getConst<RealAlgebraicNumber>());
+    return expr.getOperator().getConst<RealAlgebraicNumber>().isZero();
   }
   return std::nullopt;
 }
