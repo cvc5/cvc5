@@ -2025,6 +2025,10 @@ set(regress_1_tests
   regress1/bags/product2.smt2
   regress1/bags/product3.smt2
   regress1/bags/proj-issue497.smt2
+  regress1/bags/proj-issue560.smt2
+  regress1/bags/proj-issue566.smt2
+  regress1/bags/proj-issue584.smt2
+  regress1/bags/proj-issue603.smt2
   regress1/bags/subbag1.smt2
   regress1/bags/subbag2.smt2
   regress1/bags/table_aggregate1.smt2
