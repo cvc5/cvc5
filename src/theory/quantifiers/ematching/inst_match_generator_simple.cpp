@@ -172,6 +172,10 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
         {
           continue;
         }
+        if (d_qstate.isInConflict())
+        {
+          break;
+        }
         addInstantiations(m, addedLemmas, argIndex + 1, &(tt.second));
         if (!wasSet)
         {
