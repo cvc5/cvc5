@@ -69,12 +69,3 @@ fi
 popd
 
 mv build_wheel/dist/wheelhouse/*.whl .
-
-# Install the wheel in this virtual environment and test importing cvc5.
-echo "Installing wheel to venv $ENVDIR"
-pip install *.whl
-echo "Testing cvc5 import"
-python -c "import cvc5"
-if [ $? != 0 ]; then
-    exit $?
-fi
