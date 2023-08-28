@@ -2937,6 +2937,7 @@ set(regress_1_tests
   regress1/strings/proj-issue331.smt2
   regress1/strings/proj-issue502-merge-type.smt2
   regress1/strings/proj-issue585-cbqi-t-cons.smt2
+  regress1/strings/proj-issue647.smt2
   regress1/strings/prop-engine-order.smt2
   regress1/strings/query4674.smt2
   regress1/strings/query8485.smt2
@@ -3143,6 +3144,7 @@ set(regress_1_tests
   regress1/sygus/proj-issue584-srr.smt2
   regress1/sygus/proj-issue590-srr.smt2
   regress1/sygus/proj-issue627-srr.smt2
+  regress1/sygus/proj-issue654-interpolant.smt2
   regress1/sygus/pLTL_5_trace.sy
   regress1/sygus/qe.sy
   regress1/sygus/qf_abv.smt2

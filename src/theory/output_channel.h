@@ -122,9 +122,9 @@ class OutputChannel {
   virtual void lemma(TNode n, LemmaProperty p = LemmaProperty::NONE) = 0;
 
   /**
-   * If a decision is made on n, it must be in the phase specified.
-   * Note that this is enforced *globally*, i.e., it is completely
-   * context-INdependent.  If you ever requirePhase() on a literal,
+   * If a decision is made on n that is not requested from a theory, it must be
+   * in the phase specified. Note that this is enforced *globally*, i.e., it is
+   * completely context-INdependent.  If you ever preferPhase() on a literal,
    * it is phase-locked forever and ever.  If it is to ever have the
    * other phase as its assignment, it will be because it has been
    * propagated that way (or it's a unit, at decision level 0).
@@ -133,7 +133,7 @@ class OutputChannel {
    * been pre-registered
    * @param phase - the phase to decide on n
    */
-  virtual void requirePhase(TNode n, bool phase) = 0;
+  virtual void preferPhase(TNode n, bool phase) = 0;
 
   /**
    * Notification from a theory that it realizes it is model unsound at

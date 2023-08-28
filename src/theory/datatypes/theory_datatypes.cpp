@@ -1684,7 +1684,7 @@ void TheoryDatatypes::checkSplit()
         nb << test << test.notNode();
         Node lemma = nb;
         d_im.lemma(lemma, InferenceId::DATATYPES_BINARY_SPLIT);
-        d_im.requirePhase(test, true);
+        d_im.preferPhase(test, true);
       }
       else
       {

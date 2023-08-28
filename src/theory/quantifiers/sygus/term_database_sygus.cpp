@@ -572,7 +572,7 @@ void TermDbSygus::registerEnumerator(Node e,
     ag = d_qstate.getValuation().ensureLiteral(ag);
     // must ensure that it is asserted as a literal before we begin solving
     Node lem = nm->mkNode(OR, ag, ag.negate());
-    d_qim->requirePhase(ag, true);
+    d_qim->preferPhase(ag, true);
     d_qim->lemma(lem, InferenceId::QUANTIFIERS_SYGUS_ENUM_ACTIVE_GUARD_SPLIT);
     d_enum_to_active_guard[e] = ag;
   }
