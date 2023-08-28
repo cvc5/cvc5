@@ -2027,6 +2027,7 @@ set(regress_1_tests
   regress1/bags/product2.smt2
   regress1/bags/product3.smt2
   regress1/bags/proj-issue497.smt2
+  regress1/bags/proj-issue507.smt2
   regress1/bags/proj-issue547.smt2
   regress1/bags/proj-issue566.smt2
   regress1/bags/proj-issue584.smt2
