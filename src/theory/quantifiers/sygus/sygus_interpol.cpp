@@ -49,12 +49,15 @@ void SygusInterpol::collectSymbols(const std::vector<Node>& axioms,
   }
   expr::getSymbols(conj, symSetConj);
   d_syms.insert(d_syms.end(), symSetAxioms.begin(), symSetAxioms.end());
-  d_syms.insert(d_syms.end(), symSetConj.begin(), symSetConj.end());
   for (const Node& elem : symSetConj)
   {
     if (symSetAxioms.find(elem) != symSetAxioms.end())
     {
       d_symSetShared.insert(elem);
+    }
+    else
+    {
+      d_syms.push_back(elem);
     }
   }
   Trace("sygus-interpol-debug")
@@ -186,9 +189,10 @@ TypeNode SygusInterpol::setSynthGrammar(const TypeNode& itpGType,
     // TODO(Ying Sheng) check if the vars in user-defined grammar, are
     // consistent with the shared vars
   }
-  else
+  else if (options().smt.interpolantsMode != options::InterpolantsMode::DEFAULT)
   {
-    // set default grammar
+    // set default grammar, unless in DEFAULT mode, in which case we will
+    // provide no grammar in this module.
     TypeNode btype = NodeManager::currentNM()->booleanType();
     SygusGrammar g =
         SygusGrammarCons::mkDefaultGrammar(options(), btype, d_ibvlShared);
@@ -204,7 +208,7 @@ TypeNode SygusInterpol::setSynthGrammar(const TypeNode& itpGType,
       {
         continue;
       }
-      const std::unordered_set<Node>& icons = include_cons[ntSym.getType()];
+      const std::unordered_set<Node>& icons = include_cons[stype];
       for (const Node& r : rules)
       {
         if (r.hasOperator() && icons.find(r.getOperator()) == icons.end())
