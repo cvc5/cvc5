@@ -47,7 +47,11 @@ class BasicRewriteRCons : protected EnvObj
    */
   bool prove(CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid);
 
-  // Like prove but only used as last resort
+  /**
+  There are theory rewrites which cannot be expressed in RARE rules. In this
+  case we need to use proof rules which are not written in RARE. It is only used
+  as a last resort method so this is executed only when other rules fail.
+   */
   bool postProve(CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid);
 
  private:

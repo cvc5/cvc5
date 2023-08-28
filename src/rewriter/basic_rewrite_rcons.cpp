@@ -71,9 +71,9 @@ bool BasicRewriteRCons::prove(
 bool BasicRewriteRCons::postProve(
     CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid)
 {
-  Node eq = a.eqNode(b);
   if (tid == theory::THEORY_BV)
   {
+    Node eq = a.eqNode(b);
 #define POST_PROVE_CASE(name) \
     if (tryRule(cdp, eq, PfRule::name, {eq[0]})) \
     { \
