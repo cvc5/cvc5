@@ -19,7 +19,22 @@
 #include <iosfwd>
 #include <cstdint>
 
+#if (!defined(CVC5_API_USE_C_ENUMS) && !defined(CVC5__API__CVC5_CPP_KIND_H)) \
+    || (defined(CVC5_API_USE_C_ENUMS) && !defined(CVC5__API__CVC5_C_KIND_H))
+
+#ifdef CVC5_API_USE_C_ENUMS
+#undef ENUM
+#define ENUM(name) Cvc5##name
+#else
+#include <cvc5/cvc5_export.h>
+
+#include <cstdint>
+#include <ostream>
 namespace cvc5 {
+#undef ENUM
+#define ENUM(name) class name
+#define EVALUE(name) name
+#endif
 
 /**
  * \internal
@@ -68,7 +83,7 @@ namespace cvc5 {
  * rules. These exist for convenience and can be replaced by their definition in post-processing.
  * \endverbatim
  */
-enum class ProofRule : uint32_t
+enum ENUM(ProofRule) : uint32_t
 {
   /**
    * \verbatim embed:rst:leading-asterisk
