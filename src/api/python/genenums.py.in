@@ -54,7 +54,7 @@ from enum import Enum
 class {enum}(Enum):
     """The {enum} enum"""
     def __init__(self, value, doc):
-        self._value_ = value
+        super().__init__(value)
         self.__doc__ = doc
 '''
 
