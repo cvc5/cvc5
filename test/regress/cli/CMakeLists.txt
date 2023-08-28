@@ -3151,6 +3151,7 @@ set(regress_1_tests
   regress1/sygus/proj-issue584-srr.smt2
   regress1/sygus/proj-issue590-srr.smt2
   regress1/sygus/proj-issue627-srr.smt2
+  regress1/sygus/proj-issue654-interpolant.smt2
   regress1/sygus/pLTL_5_trace.sy
   regress1/sygus/qe.sy
   regress1/sygus/qf_abv.smt2
