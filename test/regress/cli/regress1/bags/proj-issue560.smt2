@@ -1,7 +1,0 @@
-(set-logic ALL)
-(set-info :status sat)
-(set-option :debug-check-models true)
-(declare-sort u 0)
-(declare-const x (Bag u))
-(assert (<= (bag.card (bag.duplicate_removal x)) (seq.nth (seq.unit (bag.card x)) (bag.card x))))
-(check-sat)
