@@ -33,6 +33,8 @@ ENVDIR=env$PYVERSION
 $PYTHONBIN -m venv ./$ENVDIR
 source ./$ENVDIR/bin/activate
 
+PYINCLUDE=${python3 -c "import sysconfig; print(sysconfig.get_paths()['include']);"}
+
 # install packages
 pip install -q --upgrade pip setuptools auditwheel
 pip install -q Cython pytest tomli scikit-build flex pyparsing 
@@ -44,7 +46,10 @@ fi
 # configure cvc5
 echo "Configuring"
 rm -rf build_wheel/
-./configure.sh $CONFIG --python-bindings --name=build_wheel -DPython_FIND_VIRTUALENV=ONLY -DPYTHON_LIBRARY=$VIRTUAL_ENV/lib 
+
+
+
+./configure.sh $CONFIG --python-bindings --name=build_wheel -DPython_FIND_VIRTUALENV=ONLY -DPYTHON_LIBRARY=$VIRTUAL_ENV/lib -DPYTHON_INCLUDE_DIR=$PYINCLUDE
 
 # building wheel
 echo "Building pycvc5 wheel"
@@ -67,3 +72,12 @@ fi
 popd
 
 mv build_wheel/dist/wheelhouse/*.whl .
+
+# Install the wheel in this virtual environment and test importing cvc5.
+echo "Installing wheel to venv $ENVDIR"
+pip install *.whl
+echo "Testing cvc5 import"
+python -c "import cvc5"
+if [ $? != 0 ]; then
+    exit $?
+fi
