@@ -189,31 +189,24 @@
 
 (define-rule bv-uaddo-eliminate
   ((x ?BitVec) (y ?BitVec))
-  (bvuaddo x y)
-  (= (extract (bvsize x) (bvsize x)
-      (bvadd (concat (bv 0 1) x) (concat (bv 0 1) y)))
-    (bv 1 1)
-  ))
-(define-rule bv-saddo-eliminate
-  ((x ?BitVec) (y ?BitVec))
   (bvsaddo x y)
   (= (extract (- (bvsize x) 1) (- (bvsize x) 1)
       (bvadd (concat (bv 0 1) x) (concat (bv 0 1) y)))
     (bv 1 1)
   ))
-;(define-rule bv-saddo-eliminate
-;  ((x ?BitVec) (y ?BitVec))
-;  (def
-;    (n (bvsize x))
-;    (xS (extract (- n 1) (- n 1) x))
-;    (yS (extract (- n 1) (- n 1) y))
-;    (aS (extract (- n 1) (- n 1) (bvadd x y)))
-;  )
-;  (bvsaddo x y)
-;  (or
-;    (and (and (= xS (bv 0 1)) (= yS (bv 0 1))) (= aS (bv 1 1)))
-;    (and (and (= xS (bv 1 1)) (= yS (bv 1 1))) (= aS (bv 0 1)))
-;  ))
+(define-rule bv-saddo-eliminate
+  ((x ?BitVec) (y ?BitVec))
+  (def
+    (n (bvsize x))
+    (xS (extract (- n 1) (- n 1) x))
+    (yS (extract (- n 1) (- n 1) y))
+    (aS (extract (- n 1) (- n 1) (bvadd x y)))
+  )
+  (bvsaddo x y)
+  (or
+    (and (and (= xS (bv 0 1)) (= yS (bv 0 1))) (= aS (bv 1 1)))
+    (and (and (= xS (bv 1 1)) (= yS (bv 1 1))) (= aS (bv 0 1)))
+  ))
 (define-rule bv-sdivo-eliminate
   ((x ?BitVec) (y ?BitVec))
   (bvsdivo x y)
