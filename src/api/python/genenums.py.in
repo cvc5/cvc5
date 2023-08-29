@@ -47,18 +47,22 @@ r"""cdef extern from "<{header}>" namespace "{namespace}":
 ENUMS_PXI_TOP = \
 r'''# distutils: language = c++
 # distutils: extra_compile_args = -std=c++11
+# cython: bindings=False
 
 from {basename} cimport {enum} as c_{enum}
 from enum import Enum
 
-class {enum}(Enum):
-    """The {enum} enum"""
-    def __init__(self, value, doc):
+class DocEnum(Enum):
+    def __new__(cls, value, doc=None):
+        self = object.__new__(cls)
         self._value_ = value
-        self.__doc__ = doc
+        self.doc = __doc__
+        return self
+
+class {enum}(DocEnum):
 '''
 
-ENUMS_ATTR_TEMPLATE = r'''    {name}=c_{enum}.{cpp_name}, """{doc}"""
+ENUMS_ATTR_TEMPLATE = r'''    {name}=c_{enum}.{cpp_name},"""{doc}"""
 '''
 
 # list to enforce proper ordering
