@@ -45,7 +45,6 @@ fi
 # configure cvc5
 echo "Configuring"
 rm -rf build_wheel/
-
 ./configure.sh $CONFIG --python-bindings --name=build_wheel -DPython_FIND_VIRTUALENV=ONLY -DPYTHON_LIBRARY=$VIRTUAL_ENV/lib -DPYTHON_INCLUDE_DIR=$PYINCLUDE
 
 # building wheel
