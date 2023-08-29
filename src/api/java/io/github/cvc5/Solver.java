@@ -1616,9 +1616,8 @@ public class Solver implements IPointer
    * @param symbol The name of the sort.
    * @param arity The arity of the sort.
    * @return The sort.
-   * @throws CVC5ApiException
    */
-  public Sort declareSort(String symbol, int arity) throws CVC5ApiException
+  public Sort declareSort(String symbol, int arity)
   {
     Utils.validateUnsigned(arity, "arity");
     long sortPointer = declareSort(pointer, symbol, arity);
@@ -1644,9 +1643,8 @@ public class Solver implements IPointer
    * Otherwise, this method will always return the same Sort
    * for each call with the given arity and symbol where fresh is false.
    * @return The sort.
-   * @throws CVC5ApiException
    */
-  public Sort declareSort(String symbol, int arity, boolean fresh) throws CVC5ApiException
+  public Sort declareSort(String symbol, int arity, boolean fresh)
   {
     Utils.validateUnsigned(arity, "arity");
     long sortPointer = declareSort(pointer, symbol, arity, fresh);
