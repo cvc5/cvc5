@@ -306,40 +306,30 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
     bool stopSearch = false;
     bool requirePhase = false;
     SatLiteral lit = d_proxy->getNextDecisionRequest(requirePhase, stopSearch);
-    if (lit != undefSatLiteral)
+    // We found a partial model, let's check it.
+    if (stopSearch)
+    {
+      d_found_solution = cb_check_found_model({});
+      if (d_found_solution)
+      {
+        Trace("cadical::propagator") << "Found solution" << std::endl;
+        d_found_solution = d_proxy->isDecisionEngineDone();
+        if (!d_found_solution)
+        {
+          Trace("cadical::propagator")
+              << "Decision engine not done" << std::endl;
+          lit = d_proxy->getNextDecisionRequest(requirePhase, stopSearch);
+        }
+      }
+      else
+      {
+        Trace("cadical::propagator") << "No solution found yet" << std::endl;
+      }
+    }
+    if (!stopSearch && lit != undefSatLiteral)
     {
       Trace("cadical::propagator") << "cb::decide: " << lit << std::endl;
       return toCadicalLit(lit);
-    }
-    else
-    {
-      lit = d_proxy->getNextDecisionRequest(requirePhase, stopSearch);
-      // We found a partial model, let's check it.
-      if (stopSearch)
-      {
-        d_found_solution = cb_check_found_model({});
-        if (d_found_solution)
-        {
-          Trace("cadical::propagator") << "Found solution" << std::endl;
-          d_found_solution = d_proxy->isDecisionEngineDone();
-          if (!d_found_solution)
-          {
-            Trace("cadical::propagator")
-                << "Decision engine not done" << std::endl;
-            stopSearch = false;
-            lit = d_proxy->getNextDecisionRequest(requirePhase, stopSearch);
-          }
-        }
-        else
-        {
-          Trace("cadical::propagator") << "No solution found yet" << std::endl;
-        }
-      }
-      if (!stopSearch && lit != undefSatLiteral)
-      {
-        Trace("cadical::propagator") << "cb::decide: " << lit << std::endl;
-        return toCadicalLit(lit);
-      }
     }
     Trace("cadical::propagator") << "cb::decide: 0" << std::endl;
     return 0;
