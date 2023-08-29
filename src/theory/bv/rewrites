@@ -189,7 +189,7 @@
 
 (define-rule bv-uaddo-eliminate
   ((x ?BitVec) (y ?BitVec))
-  (bvsaddo x y)
+  (bvuaddo x y)
   (= (extract (- (bvsize x) 1) (- (bvsize x) 1)
       (bvadd (concat (bv 0 1) x) (concat (bv 0 1) y)))
     (bv 1 1)
