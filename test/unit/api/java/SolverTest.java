@@ -1030,7 +1030,7 @@ class SolverTest
   }
 
   @Test
-  void declareSortFresh()
+  void declareSortFresh() throws CVC5ApiException
   {
     Sort t1 = d_solver.declareSort("b", 0, true);
     Sort t2 = d_solver.declareSort("b", 0, false);
