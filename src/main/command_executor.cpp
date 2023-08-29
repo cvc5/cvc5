@@ -103,10 +103,10 @@ bool CommandExecutor::doCommand(Command* cmd)
 void CommandExecutor::reset()
 {
   printStatistics(d_solver->getDriverOptions().err());
-  CommandInternal::resetSolver(d_solver.get());
+  Cmd::resetSolver(d_solver.get());
 }
 
-bool CommandExecutor::doCommandSingleton(CommandInternal* cmd)
+bool CommandExecutor::doCommandSingleton(Cmd* cmd)
 {
   bool status = solverInvoke(
       d_solver.get(), d_symman->get(), cmd, d_solver->getDriverOptions().out());
@@ -137,7 +137,7 @@ bool CommandExecutor::doCommandSingleton(CommandInternal* cmd)
   if (status) {
     bool isResultUnsat = res.isUnsat();
     bool isResultSat = res.isSat();
-    std::vector<std::unique_ptr<CommandInternal> > getterCommands;
+    std::vector<std::unique_ptr<Cmd> > getterCommands;
     if (d_solver->getOptionInfo("dump-models").boolValue()
         && (isResultSat
             || (res.isUnknown()
@@ -190,7 +190,7 @@ bool CommandExecutor::doCommandSingleton(CommandInternal* cmd)
 
 bool CommandExecutor::solverInvoke(cvc5::Solver* solver,
                                    SymManager* sm,
-                                   CommandInternal* cmd,
+                                   Cmd* cmd,
                                    std::ostream& out)
 {
   // print output for -o raw-benchmark

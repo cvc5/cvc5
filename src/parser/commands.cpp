@@ -74,19 +74,19 @@ std::string sexprToString(cvc5::Term sexpr)
 }
 
 /* -------------------------------------------------------------------------- */
-/* CommandInternal                                                            */
+/* Cmd                                                                        */
 /* -------------------------------------------------------------------------- */
 
-CommandInternal::CommandInternal() : d_commandStatus(nullptr) {}
+Cmd::Cmd() : d_commandStatus(nullptr) {}
 
-CommandInternal::CommandInternal(const CommandInternal& cmd)
+Cmd::Cmd(const Cmd& cmd)
 {
   d_commandStatus = (cmd.d_commandStatus == nullptr)
                         ? nullptr
                         : &cmd.d_commandStatus->clone();
 }
 
-CommandInternal::~CommandInternal()
+Cmd::~Cmd()
 {
   if (d_commandStatus != nullptr
       && d_commandStatus != CommandSuccess::instance())
@@ -95,26 +95,26 @@ CommandInternal::~CommandInternal()
   }
 }
 
-bool CommandInternal::ok() const
+bool Cmd::ok() const
 {
   // either we haven't run the command yet, or it ran successfully
   return d_commandStatus == nullptr
          || dynamic_cast<const CommandSuccess*>(d_commandStatus) != nullptr;
 }
 
-bool CommandInternal::fail() const
+bool Cmd::fail() const
 {
   return d_commandStatus != nullptr
          && dynamic_cast<const CommandFailure*>(d_commandStatus) != nullptr;
 }
 
-bool CommandInternal::interrupted() const
+bool Cmd::interrupted() const
 {
   return d_commandStatus != nullptr
          && dynamic_cast<const CommandInterrupted*>(d_commandStatus) != nullptr;
 }
 
-void CommandInternal::invoke(cvc5::Solver* solver,
+void Cmd::invoke(cvc5::Solver* solver,
                              parser::SymManager* sm,
                              std::ostream& out)
 {
@@ -131,14 +131,14 @@ void CommandInternal::invoke(cvc5::Solver* solver,
   out << std::flush;
 }
 
-std::string CommandInternal::toString() const
+std::string Cmd::toString() const
 {
   std::stringstream ss;
   toStream(ss);
   return ss.str();
 }
 
-void CommandInternal::printResult(cvc5::Solver* solver, std::ostream& out) const
+void Cmd::printResult(cvc5::Solver* solver, std::ostream& out) const
 {
   if (!ok()
       || (d_commandStatus != nullptr
@@ -148,7 +148,7 @@ void CommandInternal::printResult(cvc5::Solver* solver, std::ostream& out) const
   }
 }
 
-void CommandInternal::resetSolver(cvc5::Solver* solver)
+void Cmd::resetSolver(cvc5::Solver* solver)
 {
   std::unique_ptr<internal::Options> opts =
       std::make_unique<internal::Options>();
@@ -162,41 +162,41 @@ void CommandInternal::resetSolver(cvc5::Solver* solver)
   new (solver) cvc5::Solver(std::move(opts));
 }
 
-internal::Node CommandInternal::termToNode(const cvc5::Term& term)
+internal::Node Cmd::termToNode(const cvc5::Term& term)
 {
   return term.getNode();
 }
 
-std::vector<internal::Node> CommandInternal::termVectorToNodes(
+std::vector<internal::Node> Cmd::termVectorToNodes(
     const std::vector<cvc5::Term>& terms)
 {
   return cvc5::Term::termVectorToNodes(terms);
 }
 
-internal::TypeNode CommandInternal::sortToTypeNode(const cvc5::Sort& sort)
+internal::TypeNode Cmd::sortToTypeNode(const cvc5::Sort& sort)
 {
   return sort.getTypeNode();
 }
 
-std::vector<internal::TypeNode> CommandInternal::sortVectorToTypeNodes(
+std::vector<internal::TypeNode> Cmd::sortVectorToTypeNodes(
     const std::vector<cvc5::Sort>& sorts)
 {
   return cvc5::Sort::sortVectorToTypeNodes(sorts);
 }
 
-internal::TypeNode CommandInternal::grammarToTypeNode(cvc5::Grammar* grammar)
+internal::TypeNode Cmd::grammarToTypeNode(cvc5::Grammar* grammar)
 {
   return grammar == nullptr ? internal::TypeNode::null()
                             : sortToTypeNode(grammar->resolve());
 }
 
-std::ostream& operator<<(std::ostream& out, const CommandInternal& c)
+std::ostream& operator<<(std::ostream& out, const Cmd& c)
 {
   out << c.toString();
   return out;
 }
 
-std::ostream& operator<<(std::ostream& out, const CommandInternal* c)
+std::ostream& operator<<(std::ostream& out, const Cmd* c)
 {
   if (c == nullptr)
   {

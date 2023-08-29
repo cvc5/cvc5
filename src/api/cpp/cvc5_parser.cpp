@@ -50,7 +50,7 @@ Command::Command(const Command& cmd)
   d_cmd = cmd.d_cmd;
 }
 
-Command::Command(std::shared_ptr<CommandInternal> cmd) : d_cmd(cmd){
+Command::Command(std::shared_ptr<Cmd> cmd) : d_cmd(cmd){
 
 }
 
@@ -154,7 +154,7 @@ std::unique_ptr<Command> InputParser::nextCommand()
 {
   Assert(d_fparser != nullptr);
   Trace("parser") << "nextCommand()" << std::endl;
-  std::shared_ptr<CommandInternal> cmd = d_fparser->nextCommand();
+  std::shared_ptr<Cmd> cmd = d_fparser->nextCommand();
   if (cmd==nullptr)
   {
     return nullptr;

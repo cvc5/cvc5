@@ -60,14 +60,14 @@ std::string sexprToString(cvc5::Term sexpr) CVC5_EXPORT;
  * Commands are constructed by the input parser and can be invoked on
  * the solver and symbol manager.
  */
-class CVC5_EXPORT CommandInternal
+class CVC5_EXPORT Cmd
 {
   friend class main::CommandExecutor;
  public:
-  CommandInternal();
-  CommandInternal(const CommandInternal& cmd);
+  Cmd();
+  Cmd(const Cmd& cmd);
 
-  virtual ~CommandInternal();
+  virtual ~Cmd();
 
 
   /**
@@ -159,7 +159,7 @@ class CVC5_EXPORT CommandInternal
  * EmptyCommands are the residue of a command after the parser handles
  * them (and there's nothing left to do).
  */
-class CVC5_EXPORT EmptyCommand : public CommandInternal
+class CVC5_EXPORT EmptyCommand : public Cmd
 {
  public:
   EmptyCommand(std::string name = "");
@@ -172,7 +172,7 @@ class CVC5_EXPORT EmptyCommand : public CommandInternal
   std::string d_name;
 }; /* class EmptyCommand */
 
-class CVC5_EXPORT EchoCommand : public CommandInternal
+class CVC5_EXPORT EchoCommand : public Cmd
 {
  public:
   EchoCommand(std::string output = "");
@@ -191,7 +191,7 @@ class CVC5_EXPORT EchoCommand : public CommandInternal
   std::string d_output;
 }; /* class EchoCommand */
 
-class CVC5_EXPORT AssertCommand : public CommandInternal
+class CVC5_EXPORT AssertCommand : public Cmd
 {
  protected:
   cvc5::Term d_term;
@@ -207,7 +207,7 @@ class CVC5_EXPORT AssertCommand : public CommandInternal
   void toStream(std::ostream& out) const override;
 }; /* class AssertCommand */
 
-class CVC5_EXPORT PushCommand : public CommandInternal
+class CVC5_EXPORT PushCommand : public Cmd
 {
  public:
   PushCommand(uint32_t nscopes);
@@ -220,7 +220,7 @@ class CVC5_EXPORT PushCommand : public CommandInternal
   uint32_t d_nscopes;
 }; /* class PushCommand */
 
-class CVC5_EXPORT PopCommand : public CommandInternal
+class CVC5_EXPORT PopCommand : public Cmd
 {
  public:
   PopCommand(uint32_t nscopes);
@@ -233,7 +233,7 @@ class CVC5_EXPORT PopCommand : public CommandInternal
   uint32_t d_nscopes;
 }; /* class PopCommand */
 
-class CVC5_EXPORT DeclarationDefinitionCommand : public CommandInternal
+class CVC5_EXPORT DeclarationDefinitionCommand : public Cmd
 {
  protected:
   std::string d_symbol;
@@ -284,7 +284,7 @@ class CVC5_EXPORT DeclarePoolCommand : public DeclarationDefinitionCommand
   void toStream(std::ostream& out) const override;
 }; /* class DeclarePoolCommand */
 
-class CVC5_EXPORT DeclareOracleFunCommand : public CommandInternal
+class CVC5_EXPORT DeclareOracleFunCommand : public Cmd
 {
  public:
   DeclareOracleFunCommand(const std::string& id, Sort sort);
@@ -375,7 +375,7 @@ class CVC5_EXPORT DefineFunctionCommand : public DeclarationDefinitionCommand
  * This command will assert a set of quantified formulas that specify
  * the (mutually recursive) function definitions provided to it.
  */
-class CVC5_EXPORT DefineFunctionRecCommand : public CommandInternal
+class CVC5_EXPORT DefineFunctionRecCommand : public Cmd
 {
  public:
   DefineFunctionRecCommand(cvc5::Term func,
@@ -408,7 +408,7 @@ class CVC5_EXPORT DefineFunctionRecCommand : public CommandInternal
  *   (declare-heap (T U))
  * where T is the location sort and U is the data sort.
  */
-class CVC5_EXPORT DeclareHeapCommand : public CommandInternal
+class CVC5_EXPORT DeclareHeapCommand : public Cmd
 {
  public:
   DeclareHeapCommand(cvc5::Sort locSort, cvc5::Sort dataSort);
@@ -429,7 +429,7 @@ class CVC5_EXPORT DeclareHeapCommand : public CommandInternal
  * The command when parsing check-sat.
  * This command will check satisfiability of the input formula.
  */
-class CVC5_EXPORT CheckSatCommand : public CommandInternal
+class CVC5_EXPORT CheckSatCommand : public Cmd
 {
  public:
   CheckSatCommand();
@@ -448,7 +448,7 @@ class CVC5_EXPORT CheckSatCommand : public CommandInternal
  * This command will assume a set of formulas and check satisfiability of the
  * input formula under these assumptions.
  */
-class CVC5_EXPORT CheckSatAssumingCommand : public CommandInternal
+class CVC5_EXPORT CheckSatAssumingCommand : public Cmd
 {
  public:
   CheckSatAssumingCommand(cvc5::Term term);
@@ -534,7 +534,7 @@ class CVC5_EXPORT SynthFunCommand : public DeclarationDefinitionCommand
 };
 
 /** Declares a sygus constraint */
-class CVC5_EXPORT SygusConstraintCommand : public CommandInternal
+class CVC5_EXPORT SygusConstraintCommand : public Cmd
 {
  public:
   SygusConstraintCommand(const cvc5::Term& t, bool isAssume = false);
@@ -568,7 +568,7 @@ class CVC5_EXPORT SygusConstraintCommand : public CommandInternal
  * than the precondition, not weaker than the postcondition and inductive
  * w.r.t. the transition relation.
  */
-class CVC5_EXPORT SygusInvConstraintCommand : public CommandInternal
+class CVC5_EXPORT SygusInvConstraintCommand : public Cmd
 {
  public:
   SygusInvConstraintCommand(const std::vector<cvc5::Term>& predicates);
@@ -598,7 +598,7 @@ class CVC5_EXPORT SygusInvConstraintCommand : public CommandInternal
 };
 
 /** Declares a synthesis conjecture */
-class CVC5_EXPORT CheckSynthCommand : public CommandInternal
+class CVC5_EXPORT CheckSynthCommand : public Cmd
 {
  public:
   CheckSynthCommand(bool isNext = false) : d_isNext(isNext){};
@@ -631,7 +631,7 @@ class CVC5_EXPORT CheckSynthCommand : public CommandInternal
 
 
 /** Find synth command */
-class CVC5_EXPORT FindSynthCommand : public CommandInternal
+class CVC5_EXPORT FindSynthCommand : public Cmd
 {
  public:
   FindSynthCommand(modes::FindSynthTarget fst, cvc5::Grammar* g)
@@ -658,7 +658,7 @@ class CVC5_EXPORT FindSynthCommand : public CommandInternal
 };
 
 /** Find synth next command */
-class CVC5_EXPORT FindSynthNextCommand : public CommandInternal
+class CVC5_EXPORT FindSynthNextCommand : public Cmd
 {
  public:
   FindSynthNextCommand(){};
@@ -682,7 +682,7 @@ class CVC5_EXPORT FindSynthNextCommand : public CommandInternal
 /* ------------------- sygus commands  ------------------ */
 
 // this is TRANSFORM in the CVC presentation language
-class CVC5_EXPORT SimplifyCommand : public CommandInternal
+class CVC5_EXPORT SimplifyCommand : public Cmd
 {
  protected:
   cvc5::Term d_term;
@@ -699,7 +699,7 @@ class CVC5_EXPORT SimplifyCommand : public CommandInternal
   void toStream(std::ostream& out) const override;
 }; /* class SimplifyCommand */
 
-class CVC5_EXPORT GetValueCommand : public CommandInternal
+class CVC5_EXPORT GetValueCommand : public Cmd
 {
  protected:
   std::vector<cvc5::Term> d_terms;
@@ -717,7 +717,7 @@ class CVC5_EXPORT GetValueCommand : public CommandInternal
   void toStream(std::ostream& out) const override;
 }; /* class GetValueCommand */
 
-class CVC5_EXPORT GetAssignmentCommand : public CommandInternal
+class CVC5_EXPORT GetAssignmentCommand : public Cmd
 {
  protected:
   cvc5::Term d_result;
@@ -732,7 +732,7 @@ class CVC5_EXPORT GetAssignmentCommand : public CommandInternal
   void toStream(std::ostream& out) const override;
 }; /* class GetAssignmentCommand */
 
-class CVC5_EXPORT GetModelCommand : public CommandInternal
+class CVC5_EXPORT GetModelCommand : public Cmd
 {
  public:
   GetModelCommand();
@@ -747,7 +747,7 @@ class CVC5_EXPORT GetModelCommand : public CommandInternal
 }; /* class GetModelCommand */
 
 /** The command to block models. */
-class CVC5_EXPORT BlockModelCommand : public CommandInternal
+class CVC5_EXPORT BlockModelCommand : public Cmd
 {
  public:
   BlockModelCommand(modes::BlockModelsMode mode);
@@ -762,7 +762,7 @@ class CVC5_EXPORT BlockModelCommand : public CommandInternal
 }; /* class BlockModelCommand */
 
 /** The command to block model values. */
-class CVC5_EXPORT BlockModelValuesCommand : public CommandInternal
+class CVC5_EXPORT BlockModelValuesCommand : public Cmd
 {
  public:
   BlockModelValuesCommand(const std::vector<cvc5::Term>& terms);
@@ -777,7 +777,7 @@ class CVC5_EXPORT BlockModelValuesCommand : public CommandInternal
   std::vector<cvc5::Term> d_terms;
 }; /* class BlockModelValuesCommand */
 
-class CVC5_EXPORT GetProofCommand : public CommandInternal
+class CVC5_EXPORT GetProofCommand : public Cmd
 {
  public:
   GetProofCommand(modes::ProofComponent c = modes::ProofComponent::FULL);
@@ -796,7 +796,7 @@ class CVC5_EXPORT GetProofCommand : public CommandInternal
   modes::ProofComponent d_component;
 }; /* class GetProofCommand */
 
-class CVC5_EXPORT GetInstantiationsCommand : public CommandInternal
+class CVC5_EXPORT GetInstantiationsCommand : public Cmd
 {
  public:
   GetInstantiationsCommand();
@@ -820,7 +820,7 @@ class CVC5_EXPORT GetInstantiationsCommand : public CommandInternal
  * find a predicate P, then the output response of this command is: (define-fun
  * s () Bool P)
  */
-class CVC5_EXPORT GetInterpolantCommand : public CommandInternal
+class CVC5_EXPORT GetInterpolantCommand : public Cmd
 {
  public:
   GetInterpolantCommand(const std::string& name, Term conj);
@@ -852,7 +852,7 @@ class CVC5_EXPORT GetInterpolantCommand : public CommandInternal
 }; /* class GetInterpolCommand */
 
 /** The command (get-interpolant-next) */
-class CVC5_EXPORT GetInterpolantNextCommand : public CommandInternal
+class CVC5_EXPORT GetInterpolantNextCommand : public Cmd
 {
  public:
   GetInterpolantNextCommand();
@@ -886,7 +886,7 @@ class CVC5_EXPORT GetInterpolantNextCommand : public CommandInternal
  * A grammar G can be optionally provided to indicate the syntactic restrictions
  * on the possible solutions returned.
  */
-class CVC5_EXPORT GetAbductCommand : public CommandInternal
+class CVC5_EXPORT GetAbductCommand : public Cmd
 {
  public:
   GetAbductCommand(const std::string& name, cvc5::Term conj);
@@ -919,7 +919,7 @@ class CVC5_EXPORT GetAbductCommand : public CommandInternal
 }; /* class GetAbductCommand */
 
 /** The command (get-abduct-next) */
-class CVC5_EXPORT GetAbductNextCommand : public CommandInternal
+class CVC5_EXPORT GetAbductNextCommand : public Cmd
 {
  public:
   GetAbductNextCommand();
@@ -940,7 +940,7 @@ class CVC5_EXPORT GetAbductNextCommand : public CommandInternal
   cvc5::Term d_result;
 };
 
-class CVC5_EXPORT GetQuantifierEliminationCommand : public CommandInternal
+class CVC5_EXPORT GetQuantifierEliminationCommand : public Cmd
 {
  protected:
   cvc5::Term d_term;
@@ -961,7 +961,7 @@ class CVC5_EXPORT GetQuantifierEliminationCommand : public CommandInternal
   void toStream(std::ostream& out) const override;
 }; /* class GetQuantifierEliminationCommand */
 
-class CVC5_EXPORT GetUnsatAssumptionsCommand : public CommandInternal
+class CVC5_EXPORT GetUnsatAssumptionsCommand : public Cmd
 {
  public:
   GetUnsatAssumptionsCommand();
@@ -975,7 +975,7 @@ class CVC5_EXPORT GetUnsatAssumptionsCommand : public CommandInternal
   std::vector<cvc5::Term> d_result;
 }; /* class GetUnsatAssumptionsCommand */
 
-class CVC5_EXPORT GetUnsatCoreCommand : public CommandInternal
+class CVC5_EXPORT GetUnsatCoreCommand : public Cmd
 {
  public:
   GetUnsatCoreCommand();
@@ -996,7 +996,7 @@ class CVC5_EXPORT GetUnsatCoreCommand : public CommandInternal
   std::vector<cvc5::Term> d_result;
 }; /* class GetUnsatCoreCommand */
 
-class CVC5_EXPORT GetDifficultyCommand : public CommandInternal
+class CVC5_EXPORT GetDifficultyCommand : public Cmd
 {
  public:
   GetDifficultyCommand();
@@ -1015,7 +1015,7 @@ class CVC5_EXPORT GetDifficultyCommand : public CommandInternal
   std::map<cvc5::Term, cvc5::Term> d_result;
 };
 
-class CVC5_EXPORT GetTimeoutCoreCommand : public CommandInternal
+class CVC5_EXPORT GetTimeoutCoreCommand : public Cmd
 {
  public:
   GetTimeoutCoreCommand();
@@ -1037,7 +1037,7 @@ class CVC5_EXPORT GetTimeoutCoreCommand : public CommandInternal
   std::pair<cvc5::Result, std::vector<cvc5::Term>> d_result;
 };
 
-class CVC5_EXPORT GetLearnedLiteralsCommand : public CommandInternal
+class CVC5_EXPORT GetLearnedLiteralsCommand : public Cmd
 {
  public:
   GetLearnedLiteralsCommand(modes::LearnedLitType t);
@@ -1056,7 +1056,7 @@ class CVC5_EXPORT GetLearnedLiteralsCommand : public CommandInternal
   modes::LearnedLitType d_type;
 };
 
-class CVC5_EXPORT GetAssertionsCommand : public CommandInternal
+class CVC5_EXPORT GetAssertionsCommand : public Cmd
 {
  protected:
   std::string d_result;
@@ -1071,7 +1071,7 @@ class CVC5_EXPORT GetAssertionsCommand : public CommandInternal
   void toStream(std::ostream& out) const override;
 }; /* class GetAssertionsCommand */
 
-class CVC5_EXPORT SetBenchmarkLogicCommand : public CommandInternal
+class CVC5_EXPORT SetBenchmarkLogicCommand : public Cmd
 {
  protected:
   std::string d_logic;
@@ -1085,7 +1085,7 @@ class CVC5_EXPORT SetBenchmarkLogicCommand : public CommandInternal
   void toStream(std::ostream& out) const override;
 }; /* class SetBenchmarkLogicCommand */
 
-class CVC5_EXPORT SetInfoCommand : public CommandInternal
+class CVC5_EXPORT SetInfoCommand : public Cmd
 {
  protected:
   std::string d_flag;
@@ -1102,7 +1102,7 @@ class CVC5_EXPORT SetInfoCommand : public CommandInternal
   void toStream(std::ostream& out) const override;
 }; /* class SetInfoCommand */
 
-class CVC5_EXPORT GetInfoCommand : public CommandInternal
+class CVC5_EXPORT GetInfoCommand : public Cmd
 {
  protected:
   std::string d_flag;
@@ -1120,7 +1120,7 @@ class CVC5_EXPORT GetInfoCommand : public CommandInternal
   void toStream(std::ostream& out) const override;
 }; /* class GetInfoCommand */
 
-class CVC5_EXPORT SetOptionCommand : public CommandInternal
+class CVC5_EXPORT SetOptionCommand : public Cmd
 {
  protected:
   std::string d_flag;
@@ -1137,7 +1137,7 @@ class CVC5_EXPORT SetOptionCommand : public CommandInternal
   void toStream(std::ostream& out) const override;
 }; /* class SetOptionCommand */
 
-class CVC5_EXPORT GetOptionCommand : public CommandInternal
+class CVC5_EXPORT GetOptionCommand : public Cmd
 {
  protected:
   std::string d_flag;
@@ -1155,7 +1155,7 @@ class CVC5_EXPORT GetOptionCommand : public CommandInternal
   void toStream(std::ostream& out) const override;
 }; /* class GetOptionCommand */
 
-class CVC5_EXPORT DatatypeDeclarationCommand : public CommandInternal
+class CVC5_EXPORT DatatypeDeclarationCommand : public Cmd
 {
  private:
   std::vector<cvc5::Sort> d_datatypes;
@@ -1170,7 +1170,7 @@ class CVC5_EXPORT DatatypeDeclarationCommand : public CommandInternal
   void toStream(std::ostream& out) const override;
 }; /* class DatatypeDeclarationCommand */
 
-class CVC5_EXPORT ResetCommand : public CommandInternal
+class CVC5_EXPORT ResetCommand : public Cmd
 {
  public:
   ResetCommand() {}
@@ -1179,7 +1179,7 @@ class CVC5_EXPORT ResetCommand : public CommandInternal
   void toStream(std::ostream& out) const override;
 }; /* class ResetCommand */
 
-class CVC5_EXPORT ResetAssertionsCommand : public CommandInternal
+class CVC5_EXPORT ResetAssertionsCommand : public Cmd
 {
  public:
   ResetAssertionsCommand() {}
@@ -1188,7 +1188,7 @@ class CVC5_EXPORT ResetAssertionsCommand : public CommandInternal
   void toStream(std::ostream& out) const override;
 }; /* class ResetAssertionsCommand */
 
-class CVC5_EXPORT QuitCommand : public CommandInternal
+class CVC5_EXPORT QuitCommand : public Cmd
 {
  public:
   QuitCommand() {}

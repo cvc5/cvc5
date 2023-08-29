@@ -35,7 +35,7 @@ class CommandExecutor;
 namespace parser {
 
 class Command;
-class CommandInternal;
+class Cmd;
 class InputParser;
 class Parser;
 class SymbolManager;
@@ -141,9 +141,9 @@ class CVC5_EXPORT Command
    * @param n The internal command that is to be wrapped by this command.
    * @return The Command.
    */
-  Command(std::shared_ptr<CommandInternal> cmd);
+  Command(std::shared_ptr<Cmd> cmd);
   /** The implementation of the symbol manager */
-  std::shared_ptr<CommandInternal> d_cmd;
+  std::shared_ptr<Cmd> d_cmd;
   
 }; /* class Command */
 

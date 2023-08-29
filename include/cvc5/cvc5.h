@@ -63,7 +63,7 @@ class StatisticsRegistry;
 }  // namespace internal
 
 namespace parser {
-class CommandInternal;
+class Cmd;
 }
 
 class Solver;
@@ -354,7 +354,7 @@ class Datatype;
  */
 class CVC5_EXPORT Sort
 {
-  friend class parser::CommandInternal;
+  friend class parser::Cmd;
   friend class DatatypeConstructor;
   friend class DatatypeConstructorDecl;
   friend class DatatypeSelector;
@@ -1106,7 +1106,7 @@ namespace cvc5 {
  */
 class CVC5_EXPORT Term
 {
-  friend class parser::CommandInternal;
+  friend class parser::Cmd;
   friend class Datatype;
   friend class DatatypeConstructor;
   friend class DatatypeSelector;
@@ -2786,7 +2786,7 @@ std::ostream& operator<<(std::ostream& out,
  */
 class CVC5_EXPORT Grammar
 {
-  friend class parser::CommandInternal;
+  friend class parser::Cmd;
   friend class Solver;
 
  public:
@@ -3238,7 +3238,7 @@ class CVC5_EXPORT Solver
   friend class DriverOptions;
   friend class Grammar;
   friend class Op;
-  friend class parser::CommandInternal;
+  friend class parser::Cmd;
   friend class main::CommandExecutor;
   friend class Sort;
   friend class Term;
