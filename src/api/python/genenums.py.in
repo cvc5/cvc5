@@ -61,7 +61,7 @@ class DocEnum(Enum):
 class {enum}(DocEnum):
 '''
 
-ENUMS_ATTR_TEMPLATE = r'''    {name}=c_{enum}.{cpp_name},"""{doc}"""
+ENUMS_ATTR_TEMPLATE = r'''    {name}=c_{enum}.{cpp_name}, """{doc}"""
 '''
 
 # list to enforce proper ordering
