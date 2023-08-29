@@ -22,6 +22,10 @@ check_python_module("setuptools")
 
 # Find cmake modules distributed with scikit-build
 # They are distributed under <scikit-build directory>/resources/cmake
+
+# This 'sys.stdout' hack is needed because importing skbuild prints to stdout
+# in some versions, and this stores the wrong value to OUTPUT_VARIABLE. 
+# Once scikit is removed, this whole command will be removed too.
 execute_process(
   COMMAND
     ${Python_EXECUTABLE} -c "from __future__ import print_function; \
