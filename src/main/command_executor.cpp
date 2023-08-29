@@ -97,7 +97,7 @@ bool CommandExecutor::doCommand(Command* cmd)
 {
   // formerly was guarded by verbosity > 2
   Trace("cmd-exec") << "Invoking: " << *cmd << std::endl;
-  return doCommandSingleton(cmd->d_cmd.get());
+  return doCommandSingleton(cmd->toCmd());
 }
 
 void CommandExecutor::reset()
