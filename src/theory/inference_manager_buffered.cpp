@@ -135,7 +135,7 @@ void InferenceManagerBuffered::doPendingPhaseRequirements()
   // process the pending require phase calls
   for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)
   {
-    requirePhase(prp.first, prp.second);
+    preferPhase(prp.first, prp.second);
   }
   d_pendingReqPhase.clear();
 }

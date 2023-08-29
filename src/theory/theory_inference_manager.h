@@ -359,9 +359,9 @@ class TheoryInferenceManager : protected EnvObj
   DecisionManager* getDecisionManager();
   /**
    * Set that literal n has SAT phase requirement pol, that is, it should be
-   * decided with polarity pol, for details see OutputChannel::requirePhase.
+   * decided with polarity pol, for details see OutputChannel::preferPhase.
    */
-  void requirePhase(TNode n, bool pol);
+  void preferPhase(TNode n, bool pol);
 
   /**
    * Forward to OutputChannel::spendResource() to spend resources.
