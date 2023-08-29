@@ -30,7 +30,7 @@ class InteractiveShell;
 namespace main {
 class CommandExecutor;
 class ExecutionContext;
-}
+}  // namespace main
 
 namespace parser {
 

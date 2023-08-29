@@ -68,10 +68,7 @@ std::string Command::toString() const { return d_cmd->toString(); }
 
 std::string Command::getCommandName() const { return d_cmd->getCommandName(); }
 
-Cmd* Command::toCmd()
-{
-  return d_cmd.get();
-}
+Cmd* Command::toCmd() { return d_cmd.get(); }
 
 std::ostream& operator<<(std::ostream& out, const Command& c)
 {

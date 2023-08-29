@@ -66,7 +66,7 @@ bool ExecutionContext::solveContinuous(parser::InputParser* parser,
       interrupted = true;
       break;
     }
-    Cmd * cc = cmd->toCmd();
+    Cmd* cc = cmd->toCmd();
     if (dynamic_cast<QuitCommand*>(cc) != nullptr)
     {
       break;
