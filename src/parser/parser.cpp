@@ -66,10 +66,10 @@ void Parser::unexpectedEOF(const std::string& msg)
   d_lex->parseError(msg, true);
 }
 
-std::unique_ptr<Command> Parser::nextCommand()
+std::unique_ptr<CommandInternal> Parser::nextCommand()
 {
   Trace("parser") << "nextCommand()" << std::endl;
-  std::unique_ptr<Command> cmd;
+  std::unique_ptr<CommandInternal> cmd;
   try
   {
     cmd = parseNextCommand();

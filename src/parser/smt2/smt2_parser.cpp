@@ -36,7 +36,7 @@ Smt2Parser::Smt2Parser(Solver* solver,
 
 void Smt2Parser::setLogic(const std::string& logic) { d_state.setLogic(logic); }
 
-std::unique_ptr<Command> Smt2Parser::parseNextCommand()
+std::unique_ptr<CommandInternal> Smt2Parser::parseNextCommand()
 {
   return d_cmdParser.parseNextCommand();
 }

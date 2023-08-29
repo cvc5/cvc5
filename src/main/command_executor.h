@@ -103,14 +103,14 @@ class CommandExecutor
 
  protected:
   /** Executes treating cmd as a singleton */
- virtual bool doCommandSingleton(cvc5::parser::Command* cmd);
+ virtual bool doCommandSingleton(parser::CommandInternal* cmd);
 
 private:
   CommandExecutor();
 
   bool solverInvoke(cvc5::Solver* solver,
-                    parser::SymbolManager* sm,
-                    parser::Command* cmd,
+                    parser::SymManager* sm,
+                    parser::CommandInternal* cmd,
                     std::ostream& out);
 }; /* class CommandExecutor */
 

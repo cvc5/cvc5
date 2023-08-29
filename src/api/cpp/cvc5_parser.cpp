@@ -21,6 +21,7 @@
 #include "base/output.h"
 #include "expr/node_manager.h"
 #include "parser/command_status.h"
+#include "parser/commands.h"
 #include "parser/parser.h"
 #include "parser/sym_manager.h"
 #include "theory/logic_info.h"
@@ -42,123 +43,51 @@ SymManager* SymbolManager::get() { return d_sm.get(); }
 /* Command                                                                    */
 /* -------------------------------------------------------------------------- */
 
-Command::Command() : d_commandStatus(nullptr) {}
+Command::Command() : d_cmd(nullptr) {}
 
 Command::Command(const Command& cmd)
 {
-  d_commandStatus = (cmd.d_commandStatus == nullptr)
-                        ? nullptr
-                        : &cmd.d_commandStatus->clone();
+  d_cmd = cmd.d_cmd;
+}
+
+Command::Command(std::shared_ptr<CommandInternal> cmd) : d_cmd(cmd){
+
 }
 
 Command::~Command()
 {
-  if (d_commandStatus != nullptr
-      && d_commandStatus != CommandSuccess::instance())
-  {
-    delete d_commandStatus;
-  }
 }
 
 bool Command::ok() const
 {
-  // either we haven't run the command yet, or it ran successfully
-  return d_commandStatus == nullptr
-         || dynamic_cast<const CommandSuccess*>(d_commandStatus) != nullptr;
+  return d_cmd->ok();
 }
 
 bool Command::fail() const
 {
-  return d_commandStatus != nullptr
-         && dynamic_cast<const CommandFailure*>(d_commandStatus) != nullptr;
+  return d_cmd->fail();
 }
 
 bool Command::interrupted() const
 {
-  return d_commandStatus != nullptr
-         && dynamic_cast<const CommandInterrupted*>(d_commandStatus) != nullptr;
+  return d_cmd->interrupted();
 }
 
 void Command::invoke(cvc5::Solver* solver,
                      parser::SymbolManager* sm,
                      std::ostream& out)
 {
-  invokeInternal(solver, sm->get(), out);
-}
-void Command::invokeInternal(cvc5::Solver* solver,
-                             parser::SymManager* sm,
-                             std::ostream& out)
-{
-  invokeInternal(solver, sm);
-  if (!ok())
-  {
-    out << *d_commandStatus;
-  }
-  else
-  {
-    printResult(solver, out);
-  }
-  // always flush the output
-  out << std::flush;
+  d_cmd->invoke(solver, sm->get(), out);
 }
 
 std::string Command::toString() const
 {
-  std::stringstream ss;
-  toStream(ss);
-  return ss.str();
+  return d_cmd->toString();
 }
 
-void Command::printResult(cvc5::Solver* solver, std::ostream& out) const
+std::string Command::getCommandName() const
 {
-  if (!ok()
-      || (d_commandStatus != nullptr
-          && solver->getOption("print-success") == "true"))
-  {
-    out << *d_commandStatus;
-  }
-}
-
-void Command::resetSolver(cvc5::Solver* solver)
-{
-  std::unique_ptr<internal::Options> opts =
-      std::make_unique<internal::Options>();
-  opts->copyValues(*solver->d_originalOptions);
-  // This reconstructs a new solver object at the same memory location as the
-  // current one. Note that this command does not own the solver object!
-  // It may be safer to instead make the ResetCommand a special case in the
-  // CommandExecutor such that this reconstruction can be done within the
-  // CommandExecutor, who actually owns the solver.
-  solver->~Solver();
-  new (solver) cvc5::Solver(std::move(opts));
-}
-
-internal::Node Command::termToNode(const cvc5::Term& term)
-{
-  return term.getNode();
-}
-
-std::vector<internal::Node> Command::termVectorToNodes(
-    const std::vector<cvc5::Term>& terms)
-{
-  return cvc5::Term::termVectorToNodes(terms);
-}
-
-internal::TypeNode Command::sortToTypeNode(const cvc5::Sort& sort)
-{
-  return sort.getTypeNode();
-}
-
-std::vector<internal::TypeNode> Command::sortVectorToTypeNodes(
-    const std::vector<cvc5::Sort>& sorts)
-{
-  return cvc5::Sort::sortVectorToTypeNodes(sorts);
-}
-
-internal::TypeNode Command::grammarToTypeNode(cvc5::Grammar* grammar)
-{
-  return grammar == nullptr ? internal::TypeNode::null()
-                            : sortToTypeNode(grammar->resolve());
+  return d_cmd->getCommandName();
 }
 
 std::ostream& operator<<(std::ostream& out, const Command& c)
@@ -225,7 +154,14 @@ std::unique_ptr<Command> InputParser::nextCommand()
 {
   Assert(d_fparser != nullptr);
   Trace("parser") << "nextCommand()" << std::endl;
-  return d_fparser->nextCommand();
+  std::shared_ptr<CommandInternal> cmd = d_fparser->nextCommand();
+  if (cmd==nullptr)
+  {
+    return nullptr;
+  }
+  std::unique_ptr<Command> cc;
+  cc.reset(new Command(cmd));
+  return cc;
 }
 
 Term InputParser::nextExpression()

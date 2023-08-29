@@ -24,17 +24,18 @@
 
 namespace cvc5 {
 
+namespace internal {
+class InteractiveShell;
+}
 namespace main {
 class CommandExecutor;
 }
 
-namespace internal {
-class InteractiveShell;
-}
 
 namespace parser {
 
 class Command;
+class CommandInternal;
 class InputParser;
 class Parser;
 class SymbolManager;
@@ -58,6 +59,7 @@ class CVC5_EXPORT SymbolManager
   friend class InputParser;
   friend class Command;
   friend class internal::InteractiveShell;
+  friend class main::CommandExecutor;
 
  public:
   SymbolManager(cvc5::Solver* s);
@@ -78,8 +80,8 @@ class CVC5_EXPORT SymbolManager
  */
 class CVC5_EXPORT Command
 {
+  friend class InputParser;
   friend class main::CommandExecutor;
-
  public:
   Command();
   Command(const Command& cmd);
@@ -108,7 +110,7 @@ class CVC5_EXPORT Command
    *
    * @return The name of this command.
    */
-  virtual std::string getCommandName() const = 0;
+  std::string getCommandName() const;
 
   /**
    * Either the command hasn't run yet, or it completed successfully
@@ -134,52 +136,15 @@ class CVC5_EXPORT Command
   bool interrupted() const;
 
  protected:
-  virtual void toStream(std::ostream& out) const = 0;
   /**
-   * This field contains a command status if the command has been
-   * invoked, or NULL if it has not.  This field is either a
-   * dynamically-allocated pointer, or it's a pointer to the singleton
-   * CommandSuccess instance.  Doing so is somewhat asymmetric, but
-   * it avoids the need to dynamically allocate memory in the common
-   * case of a successful command.
+   * Constructor.
+   * @param n The internal command that is to be wrapped by this command.
+   * @return The Command.
    */
-  const CommandStatus* d_commandStatus;
-  /**
-   * Print the result of running the command. This method is only called if the
-   * command ran successfully.
-   */
-  virtual void printResult(cvc5::Solver* solver, std::ostream& out) const;
-  /**
-   * Reset the given solver in-place (keep the object at the same memory
-   * location).
-   */
-  static void resetSolver(cvc5::Solver* solver);
-
-  // These methods rely on Command being a friend of classes in the API.
-  // Subclasses of command should use these methods for conversions,
-  // which is currently necessary for e.g. printing commands.
-  /** Helper to convert a Term to an internal internal::Node */
-  static internal::Node termToNode(const cvc5::Term& term);
-  /** Helper to convert a vector of Terms to internal Nodes. */
-  static std::vector<internal::Node> termVectorToNodes(
-      const std::vector<cvc5::Term>& terms);
-  /** Helper to convert a Sort to an internal internal::TypeNode */
-  static internal::TypeNode sortToTypeNode(const cvc5::Sort& sort);
-  /** Helper to convert a vector of Sorts to internal TypeNodes. */
-  static std::vector<internal::TypeNode> sortVectorToTypeNodes(
-      const std::vector<cvc5::Sort>& sorts);
-  /** Helper to convert a Grammar to an internal internal::TypeNode */
-  static internal::TypeNode grammarToTypeNode(cvc5::Grammar* grammar);
-  /**
-   * Invoke the command on the solver and symbol manager sm.
-   */
-  virtual void invokeInternal(cvc5::Solver* solver, parser::SymManager* sm) = 0;
-  /**
-   * Same as above, and prints the result to output stream out.
-   */
-  virtual void invokeInternal(cvc5::Solver* solver,
-                              parser::SymManager* sm,
-                              std::ostream& out);
+  Command(std::shared_ptr<CommandInternal> cmd);
+  /** The implementation of the symbol manager */
+  std::shared_ptr<CommandInternal> d_cmd;
+  
 }; /* class Command */
 
 std::ostream& operator<<(std::ostream&, const Command&) CVC5_EXPORT;

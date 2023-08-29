@@ -97,19 +97,19 @@ bool CommandExecutor::doCommand(Command* cmd)
 {
   // formerly was guarded by verbosity > 2
   Trace("cmd-exec") << "Invoking: " << *cmd << std::endl;
-  return doCommandSingleton(cmd);
+  return doCommandSingleton(cmd->d_cmd.get());
 }
 
 void CommandExecutor::reset()
 {
   printStatistics(d_solver->getDriverOptions().err());
-  Command::resetSolver(d_solver.get());
+  CommandInternal::resetSolver(d_solver.get());
 }
 
-bool CommandExecutor::doCommandSingleton(Command* cmd)
+bool CommandExecutor::doCommandSingleton(CommandInternal* cmd)
 {
   bool status = solverInvoke(
-      d_solver.get(), d_symman.get(), cmd, d_solver->getDriverOptions().out());
+      d_solver.get(), d_symman->get(), cmd, d_solver->getDriverOptions().out());
 
   cvc5::Result res;
   bool hasResult = false;
@@ -137,7 +137,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   if (status) {
     bool isResultUnsat = res.isUnsat();
     bool isResultSat = res.isSat();
-    std::vector<std::unique_ptr<Command> > getterCommands;
+    std::vector<std::unique_ptr<CommandInternal> > getterCommands;
     if (d_solver->getOptionInfo("dump-models").boolValue()
         && (isResultSat
             || (res.isUnknown()
@@ -189,14 +189,14 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
 }
 
 bool CommandExecutor::solverInvoke(cvc5::Solver* solver,
-                                   SymbolManager* sm,
-                                   Command* cmd,
+                                   SymManager* sm,
+                                   CommandInternal* cmd,
                                    std::ostream& out)
 {
   // print output for -o raw-benchmark
   if (solver->isOutputOn("raw-benchmark"))
   {
-    cmd->toStream(solver->getOutput("raw-benchmark"));
+    solver->getOutput("raw-benchmark") << cmd->toString();
   }
 
   // In parse-only mode, we do not invoke any of the commands except define-*
