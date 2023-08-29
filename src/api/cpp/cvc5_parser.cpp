@@ -45,33 +45,17 @@ SymManager* SymbolManager::get() { return d_sm.get(); }
 
 Command::Command() : d_cmd(nullptr) {}
 
-Command::Command(const Command& cmd)
-{
-  d_cmd = cmd.d_cmd;
-}
+Command::Command(const Command& cmd) { d_cmd = cmd.d_cmd; }
 
-Command::Command(std::shared_ptr<Cmd> cmd) : d_cmd(cmd){
+Command::Command(std::shared_ptr<Cmd> cmd) : d_cmd(cmd) {}
 
-}
+Command::~Command() {}
 
-Command::~Command()
-{
-}
+bool Command::ok() const { return d_cmd->ok(); }
 
-bool Command::ok() const
-{
-  return d_cmd->ok();
-}
+bool Command::fail() const { return d_cmd->fail(); }
 
-bool Command::fail() const
-{
-  return d_cmd->fail();
-}
-
-bool Command::interrupted() const
-{
-  return d_cmd->interrupted();
-}
+bool Command::interrupted() const { return d_cmd->interrupted(); }
 
 void Command::invoke(cvc5::Solver* solver,
                      parser::SymbolManager* sm,
@@ -80,15 +64,9 @@ void Command::invoke(cvc5::Solver* solver,
   d_cmd->invoke(solver, sm->get(), out);
 }
 
-std::string Command::toString() const
-{
-  return d_cmd->toString();
-}
+std::string Command::toString() const { return d_cmd->toString(); }
 
-std::string Command::getCommandName() const
-{
-  return d_cmd->getCommandName();
-}
+std::string Command::getCommandName() const { return d_cmd->getCommandName(); }
 
 std::ostream& operator<<(std::ostream& out, const Command& c)
 {
@@ -165,7 +143,7 @@ std::unique_ptr<Command> InputParser::nextCommand()
   Assert(d_fparser != nullptr);
   Trace("parser") << "nextCommand()" << std::endl;
   std::shared_ptr<Cmd> cmd = d_fparser->nextCommand();
-  if (cmd==nullptr)
+  if (cmd == nullptr)
   {
     return nullptr;
   }

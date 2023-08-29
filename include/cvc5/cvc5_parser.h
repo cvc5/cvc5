@@ -31,7 +31,6 @@ namespace main {
 class CommandExecutor;
 }
 
-
 namespace parser {
 
 class Command;
@@ -82,6 +81,7 @@ class CVC5_EXPORT Command
 {
   friend class InputParser;
   friend class main::CommandExecutor;
+
  public:
   Command();
   Command(const Command& cmd);
@@ -144,7 +144,7 @@ class CVC5_EXPORT Command
   Command(std::shared_ptr<Cmd> cmd);
   /** The implementation of the symbol manager */
   std::shared_ptr<Cmd> d_cmd;
-  
+
 }; /* class Command */
 
 std::ostream& operator<<(std::ostream&, const Command&) CVC5_EXPORT;

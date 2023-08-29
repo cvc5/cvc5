@@ -103,9 +103,9 @@ class CommandExecutor
 
  protected:
   /** Executes treating cmd as a singleton */
- virtual bool doCommandSingleton(parser::Cmd* cmd);
+  virtual bool doCommandSingleton(parser::Cmd* cmd);
 
-private:
+ private:
   CommandExecutor();
 
   bool solverInvoke(cvc5::Solver* solver,

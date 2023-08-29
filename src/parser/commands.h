@@ -63,12 +63,12 @@ std::string sexprToString(cvc5::Term sexpr) CVC5_EXPORT;
 class CVC5_EXPORT Cmd
 {
   friend class main::CommandExecutor;
+
  public:
   Cmd();
   Cmd(const Cmd& cmd);
 
   virtual ~Cmd();
-
 
   /**
    * Invoke the command on the solver and symbol manager sm.
@@ -78,8 +78,8 @@ class CVC5_EXPORT Cmd
    * Same as above, and prints the result to output stream out.
    */
   virtual void invoke(cvc5::Solver* solver,
-                              parser::SymManager* sm,
-                              std::ostream& out);
+                      parser::SymManager* sm,
+                      std::ostream& out);
 
   /**
    * @return A string representation of this result.
@@ -181,8 +181,8 @@ class CVC5_EXPORT EchoCommand : public Cmd
 
   void invoke(cvc5::Solver* solver, parser::SymManager* sm) override;
   void invoke(cvc5::Solver* solver,
-                      parser::SymManager* sm,
-                      std::ostream& out) override;
+              parser::SymManager* sm,
+              std::ostream& out) override;
 
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
@@ -246,8 +246,7 @@ class CVC5_EXPORT DeclarationDefinitionCommand : public Cmd
  public:
   DeclarationDefinitionCommand(const std::string& id);
 
-  void invoke(cvc5::Solver* solver,
-                      parser::SymManager* sm) override = 0;
+  void invoke(cvc5::Solver* solver, parser::SymManager* sm) override = 0;
   std::string getSymbol() const;
 }; /* class DeclarationDefinitionCommand */
 
