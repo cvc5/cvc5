@@ -1002,8 +1002,6 @@ def test_declare_sort(solver):
     solver.declareSort("", 2)
 
 def test_declare_sort_fresh(solver):
-    boolSort = solver.getBooleanSort()
-    intSort = solver.getIntegerSort()
     t1 = solver.declareSort("b", 0, True)
     t2 = solver.declareSort("b", 0, False)
     t3 = solver.declareSort("b", 0, False)

@@ -1176,15 +1176,15 @@ TEST_F(TestApiBlackSolver, declareSort)
 
 TEST_F(TestApiBlackSolver, declareSortFresh)
 {
-  Term t1 = d_solver.declareSort(std::string("b"), 0, true);
-  Term t2 = d_solver.declareSort(std::string("b"), 0, false);
-  Term t3 = d_solver.declareSort(std::string("b"), 0, false);
+  Sort t1 = d_solver.declareSort(std::string("b"), 0, true);
+  Sort t2 = d_solver.declareSort(std::string("b"), 0, false);
+  Sort t3 = d_solver.declareSort(std::string("b"), 0, false);
   ASSERT_FALSE(t1 == t2);
   ASSERT_FALSE(t1 == t3);
   ASSERT_TRUE(t2 == t3);
-  Term t4 = d_solver.declareSort(std::string("c"), 0, false);
+  Sort t4 = d_solver.declareSort(std::string("c"), 0, false);
   ASSERT_FALSE(t2 == t4);
-  Term t5 = d_solver.declareSort(std::string("b"), 1, false);
+  Sort t5 = d_solver.declareSort(std::string("b"), 1, false);
   ASSERT_FALSE(t2 == t5);
 }
 
