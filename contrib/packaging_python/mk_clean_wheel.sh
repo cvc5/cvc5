@@ -26,6 +26,9 @@
 PYTHONBIN=$1
 CONFIG="$2"
 PYVERSION=$($PYTHONBIN -c "import sys; print(sys.implementation.name + sys.version.split()[0])")
+
+# This is needed because of scikit, otherwise it will include files from another
+# python version installed in the system. 
 PYINCLUDE=$($PYTHONBIN -c "import sysconfig; print(sysconfig.get_paths()['include'])")
 
 # setup and activate venv
@@ -45,6 +48,10 @@ fi
 # configure cvc5
 echo "Configuring"
 rm -rf build_wheel/
+
+# This new command like is supposed to ensure that we use the python 
+# version from the virtual environment that is activated. 
+# Once we remove scikit, this will not be necessary.
 ./configure.sh $CONFIG --python-bindings --name=build_wheel -DPython_FIND_VIRTUALENV=ONLY -DPYTHON_LIBRARY=$VIRTUAL_ENV/lib -DPYTHON_INCLUDE_DIR=$PYINCLUDE
 
 # building wheel
