@@ -649,7 +649,12 @@ Term Smt2State::bindDefineFunRec(
 
   // make the flattened function type, add bound variables
   // to flattenVars if the defined function was given a function return type.
-  Sort ft = mkFlatFunctionType(sorts, t, flattenVars);
+  Sort ft = flattenFunctionType(sorts, t, flattenVars);
+
+  if (!sorts.empty())
+  {
+    ft = d_solver->mkFunctionSort(sorts, ft);
+  }
 
   // allow overloading
   return bindVar(fname, ft, true);

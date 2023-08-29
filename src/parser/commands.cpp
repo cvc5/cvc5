@@ -910,18 +910,23 @@ bool DeclarationDefinitionCommand::bindToTerm(SymManager* sm,
 /* class DeclareFunctionCommand                                               */
 /* -------------------------------------------------------------------------- */
 
-DeclareFunctionCommand::DeclareFunctionCommand(const std::string& id,
-                                               cvc5::Sort sort)
-    : DeclarationDefinitionCommand(id), d_sort(sort)
+DeclareFunctionCommand::DeclareFunctionCommand(
+    const std::string& id, const std::vector<Sort>& argSorts, cvc5::Sort sort)
+    : DeclarationDefinitionCommand(id), d_argSorts(argSorts), d_sort(sort)
 {
 }
-
+std::vector<Sort> DeclareFunctionCommand::getArgSorts() const
+{
+  return d_argSorts;
+}
 cvc5::Sort DeclareFunctionCommand::getSort() const { return d_sort; }
 
 void DeclareFunctionCommand::invoke(cvc5::Solver* solver,
                                             SymManager* sm)
 {
-  Term fun = solver->mkConst(d_sort, d_symbol);
+  // determine if this will be a fresh declaration
+  bool fresh = sm->getFreshDeclarations();
+  Term fun = solver->declareFun(d_symbol, d_argSorts, d_sort, fresh);
   if (!bindToTerm(sm, fun, true))
   {
     return;
@@ -944,7 +949,7 @@ void DeclareFunctionCommand::toStream(std::ostream& out) const
   // we require a namespace prefix. Using the function symbol name ensures
   // that e.g. `-o raw-benchmark` results in a valid benchmark.
   internal::Printer::getPrinter(out)->toStreamCmdDeclareFunction(
-      out, d_symbol, sortToTypeNode(d_sort));
+      out, d_symbol, sortVectorToTypeNodes(d_argSorts), sortToTypeNode(d_sort));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -992,15 +997,17 @@ void DeclarePoolCommand::toStream(std::ostream& out) const
 /* class DeclareOracleFunCommand */
 /* -------------------------------------------------------------------------- */
 
-DeclareOracleFunCommand::DeclareOracleFunCommand(const std::string& id,
-                                                 Sort sort)
-    : d_id(id), d_sort(sort), d_binName("")
+DeclareOracleFunCommand::DeclareOracleFunCommand(
+    const std::string& id, const std::vector<Sort>& argSorts, Sort sort)
+    : d_id(id), d_argSorts(argSorts), d_sort(sort), d_binName("")
 {
 }
-DeclareOracleFunCommand::DeclareOracleFunCommand(const std::string& id,
-                                                 Sort sort,
-                                                 const std::string& binName)
-    : d_id(id), d_sort(sort), d_binName(binName)
+DeclareOracleFunCommand::DeclareOracleFunCommand(
+    const std::string& id,
+    const std::vector<Sort>& argSorts,
+    Sort sort,
+    const std::string& binName)
+    : d_id(id), d_argSorts(argSorts), d_sort(sort), d_binName(binName)
 {
 }
 
@@ -1041,7 +1048,11 @@ std::string DeclareOracleFunCommand::getCommandName() const
 void DeclareOracleFunCommand::toStream(std::ostream& out) const
 {
   internal::Printer::getPrinter(out)->toStreamCmdDeclareOracleFun(
-      out, d_id, sortToTypeNode(d_sort), d_binName);
+      out,
+      d_id,
+      sortVectorToTypeNodes(d_argSorts),
+      sortToTypeNode(d_sort),
+      d_binName);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -1664,12 +1664,14 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_declareDatatype(
  * Method:    declareFun
  * Signature: (JLjava/lang/String;[JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_declareFun(JNIEnv* env,
-                                                              jobject,
-                                                              jlong pointer,
-                                                              jstring jSymbol,
-                                                              jlongArray jSorts,
-                                                              jlong sortPointer)
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_Solver_declareFun__JLjava_lang_String_2_3JJ(
+    JNIEnv* env,
+    jobject,
+    jlong pointer,
+    jstring jSymbol,
+    jlongArray jSorts,
+    jlong sortPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
@@ -1678,6 +1680,34 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_declareFun(JNIEnv* env,
   std::string cSymbol(s);
   std::vector<Sort> sorts = getObjectsFromPointers<Sort>(env, jSorts);
   Term* retPointer = new Term(solver->declareFun(cSymbol, sorts, *sort));
+  env->ReleaseStringUTFChars(jSymbol, s);
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    declareFun
+ * Signature: (JLjava/lang/String;[JJZ)J
+ */
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_Solver_declareFun__JLjava_lang_String_2_3JJZ(
+    JNIEnv* env,
+    jobject,
+    jlong pointer,
+    jstring jSymbol,
+    jlongArray jSorts,
+    jlong sortPointer,
+    jboolean fresh)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  Sort* sort = reinterpret_cast<Sort*>(sortPointer);
+  const char* s = env->GetStringUTFChars(jSymbol, nullptr);
+  std::string cSymbol(s);
+  std::vector<Sort> sorts = getObjectsFromPointers<Sort>(env, jSorts);
+  Term* retPointer =
+      new Term(solver->declareFun(cSymbol, sorts, *sort, (bool)fresh));
   env->ReleaseStringUTFChars(jSymbol, s);
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);

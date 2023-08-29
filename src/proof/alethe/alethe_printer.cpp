@@ -74,7 +74,12 @@ AletheProofPrinter::AletheProofPrinter(Env& env)
 
 void AletheProofPrinter::printTerm(std::ostream& out, TNode n)
 {
-  out << d_lbind.convert(n, "@p_");
+  std::stringstream ss;
+  options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
+  // We print lambda applications in non-curried manner
+  options::ioutils::applyFlattenHOChains(ss, true);
+  ss << d_lbind.convert(n, "@p_");
+  out << ss.str();
 }
 
 void AletheProofPrinter::print(std::ostream& out,

@@ -271,11 +271,11 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       }
       Sort t = d_tparser.parseSort();
       Trace("parser") << "declare fun: '" << name << "'" << std::endl;
-      if (!sorts.empty())
+      if (!sorts.empty() || t.isFunction())
       {
-        t = d_state.mkFlatFunctionType(sorts, t);
+        t = d_state.flattenFunctionType(sorts, t);
       }
-      if (t.isFunction())
+      if (!sorts.empty())
       {
         d_state.checkLogicAllowsFunctions();
       }
@@ -286,7 +286,7 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       }
       else
       {
-        cmd.reset(new DeclareFunctionCommand(name, t));
+        cmd.reset(new DeclareFunctionCommand(name, sorts, t));
       }
     }
     break;
@@ -311,7 +311,7 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       Sort t = d_tparser.parseSort();
       if (!sorts.empty())
       {
-        t = d_state.mkFlatFunctionType(sorts, t);
+        t = d_state.flattenFunctionType(sorts, t);
       }
       tok = d_lex.peekToken();
       std::string binName;
@@ -395,11 +395,7 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
         }
       }
       std::vector<Term> flattenVars;
-      t = d_state.mkFlatFunctionType(sorts, t, flattenVars);
-      if (t.isFunction())
-      {
-        t = t.getFunctionCodomainSort();
-      }
+      t = d_state.flattenFunctionType(sorts, t, flattenVars);
       if (sortedVarNames.size() > 0)
       {
         d_state.pushScope();
@@ -827,6 +823,10 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       if (key == "global-declarations")
       {
         d_state.getSymbolManager()->setGlobalDeclarations(ss == "true");
+      }
+      else if (key == "fresh-declarations")
+      {
+        d_state.getSymbolManager()->setFreshDeclarations(ss == "true");
       }
     }
     break;
