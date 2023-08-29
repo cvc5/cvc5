@@ -109,7 +109,7 @@ void CommandExecutor::reset()
 bool CommandExecutor::doCommandSingleton(Cmd* cmd)
 {
   bool status = solverInvoke(
-      d_solver.get(), d_symman->get(), cmd, d_solver->getDriverOptions().out());
+      d_solver.get(), d_symman->toSymManager(), cmd, d_solver->getDriverOptions().out());
 
   cvc5::Result res;
   bool hasResult = false;

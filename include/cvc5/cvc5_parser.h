@@ -29,6 +29,7 @@ class InteractiveShell;
 }
 namespace main {
 class CommandExecutor;
+class ExecutionContext;
 }
 
 namespace parser {
@@ -66,7 +67,7 @@ class CVC5_EXPORT SymbolManager
 
  private:
   /** Get the underlying implementation */
-  SymManager* get();
+  SymManager* toSymManager();
   /** The implementation of the symbol manager */
   std::shared_ptr<SymManager> d_sm;
 };
@@ -81,6 +82,7 @@ class CVC5_EXPORT Command
 {
   friend class InputParser;
   friend class main::CommandExecutor;
+  friend class main::ExecutionContext;
 
  public:
   Command();
@@ -142,6 +144,8 @@ class CVC5_EXPORT Command
    * @return The Command.
    */
   Command(std::shared_ptr<Cmd> cmd);
+  /** Return the internal representation */
+  Cmd* toCmd();
   /** The implementation of the symbol manager */
   std::shared_ptr<Cmd> d_cmd;
 
