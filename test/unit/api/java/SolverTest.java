@@ -1030,6 +1030,21 @@ class SolverTest
   }
 
   @Test
+  void declareSortFresh() throws CVC5ApiException
+  {
+    Sort t1 = d_solver.declareSort("b", 0, true);
+    Sort t2 = d_solver.declareSort("b", 0, false);
+    Sort t3 = d_solver.declareSort("b", 0, false);
+    assertNotEquals(t1, t2);
+    assertNotEquals(t1, t3);
+    assertEquals(t2, t3);
+    Sort t4 = d_solver.declareSort("c", 0, false);
+    assertNotEquals(t2, t4);
+    Sort t5 = d_solver.declareSort("b", 1, false);
+    assertNotEquals(t2, t5);
+  }
+
+  @Test
   void defineSort()
   {
     Sort sortVar0 = d_solver.mkParamSort("T0");

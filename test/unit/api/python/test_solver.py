@@ -1001,6 +1001,17 @@ def test_declare_sort(solver):
     solver.declareSort("s", 2)
     solver.declareSort("", 2)
 
+def test_declare_sort_fresh(solver):
+    t1 = solver.declareSort("b", 0, True)
+    t2 = solver.declareSort("b", 0, False)
+    t3 = solver.declareSort("b", 0, False)
+    assert t1!=t2
+    assert t1!=t3
+    assert t2==t3
+    t4 = solver.declareSort("c", 0, False)
+    assert t2!=t4
+    t5 = solver.declareSort("b", 1, False)
+    assert t2!=t5
 
 def test_define_fun(solver):
     bvSort = solver.mkBitVectorSort(32)

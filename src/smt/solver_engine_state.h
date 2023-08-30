@@ -61,6 +61,10 @@ class SolverEngineState : protected EnvObj
    */
   void notifyFullyInited();
   /**
+   * Notify there was a declaration
+   */
+  void notifyDeclaration();
+  /**
    * Notify that we are about to call check-sat. This call is made prior to
    * initializing the assertions.
    */
