@@ -77,7 +77,8 @@ bool BasicRewriteRCons::postProve(
 #define POST_PROVE_CASE(name) \
     if (tryRule(cdp, eq, PfRule::name, {eq[0]})) \
     { \
-      Trace("trewrite-rcons") << "..." #name << std::endl; \
+      Trace("trewrite-rcons") << "Reconstruct " << eq << " (from " << tid << ", " \
+                              << mid << ")"  << std::endl; \
       return true; \
     } \
     /* end of macro */
