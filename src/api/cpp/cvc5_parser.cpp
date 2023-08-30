@@ -13,18 +13,85 @@
  * The interface for parsing an input with a parser.
  */
 
-#include "parser/api/cpp/input_parser.h"
+#include <cvc5/cvc5_parser.h>
+
+#include <iostream>
 
 #include "base/check.h"
 #include "base/output.h"
-#include "parser/api/cpp/command.h"
-#include "parser/api/cpp/symbol_manager.h"
+#include "expr/node_manager.h"
+#include "parser/command_status.h"
+#include "parser/commands.h"
 #include "parser/parser.h"
 #include "parser/sym_manager.h"
 #include "theory/logic_info.h"
 
 namespace cvc5 {
 namespace parser {
+
+/* -------------------------------------------------------------------------- */
+/* SymbolManager                                                              */
+/* -------------------------------------------------------------------------- */
+
+SymbolManager::SymbolManager(cvc5::Solver* s) { d_sm.reset(new SymManager(s)); }
+
+SymbolManager::~SymbolManager() {}
+
+SymManager* SymbolManager::toSymManager() { return d_sm.get(); }
+
+/* -------------------------------------------------------------------------- */
+/* Command                                                                    */
+/* -------------------------------------------------------------------------- */
+
+Command::Command() : d_cmd(nullptr) {}
+
+Command::Command(const Command& cmd) { d_cmd = cmd.d_cmd; }
+
+Command::Command(std::shared_ptr<Cmd> cmd) : d_cmd(cmd) {}
+
+Command::~Command() {}
+
+bool Command::ok() const { return d_cmd->ok(); }
+
+bool Command::fail() const { return d_cmd->fail(); }
+
+bool Command::interrupted() const { return d_cmd->interrupted(); }
+
+void Command::invoke(cvc5::Solver* solver,
+                     parser::SymbolManager* sm,
+                     std::ostream& out)
+{
+  d_cmd->invoke(solver, sm->toSymManager(), out);
+}
+
+std::string Command::toString() const { return d_cmd->toString(); }
+
+std::string Command::getCommandName() const { return d_cmd->getCommandName(); }
+
+Cmd* Command::toCmd() { return d_cmd.get(); }
+
+std::ostream& operator<<(std::ostream& out, const Command& c)
+{
+  out << c.toString();
+  return out;
+}
+
+std::ostream& operator<<(std::ostream& out, const Command* c)
+{
+  if (c == nullptr)
+  {
+    out << "null";
+  }
+  else
+  {
+    out << *c;
+  }
+  return out;
+}
+
+/* -------------------------------------------------------------------------- */
+/* InputParser                                                                */
+/* -------------------------------------------------------------------------- */
 
 InputParser::InputParser(Solver* solver, SymbolManager* sm)
     : d_solver(solver), d_allocSm(nullptr), d_sm(sm)
@@ -47,17 +114,17 @@ void InputParser::initialize()
   if (info.setByUser)
   {
     internal::LogicInfo tmp(info.stringValue());
-    d_sm->get()->setLogic(tmp.getLogicString(), true);
+    d_sm->toSymManager()->setLogic(tmp.getLogicString(), true);
   }
   info = d_solver->getOptionInfo("global-declarations");
   if (info.setByUser)
   {
-    d_sm->get()->setGlobalDeclarations(info.boolValue());
+    d_sm->toSymManager()->setGlobalDeclarations(info.boolValue());
   }
   info = d_solver->getOptionInfo("fresh-declarations");
   if (info.setByUser)
   {
-    d_sm->get()->setFreshDeclarations(info.boolValue());
+    d_sm->toSymManager()->setFreshDeclarations(info.boolValue());
   }
   // notice that we don't create the parser object until the input is set.
 }
@@ -69,7 +136,7 @@ SymbolManager* InputParser::getSymbolManager() { return d_sm; }
 void InputParser::setLogic(const std::string& name)
 {
   Assert(d_fparser != nullptr);
-  d_sm->get()->setLogic(name);
+  d_sm->toSymManager()->setLogic(name);
   d_fparser->setLogic(name);
 }
 
@@ -77,7 +144,14 @@ std::unique_ptr<Command> InputParser::nextCommand()
 {
   Assert(d_fparser != nullptr);
   Trace("parser") << "nextCommand()" << std::endl;
-  return d_fparser->nextCommand();
+  std::shared_ptr<Cmd> cmd = d_fparser->nextCommand();
+  if (cmd == nullptr)
+  {
+    return nullptr;
+  }
+  std::unique_ptr<Command> cc;
+  cc.reset(new Command(cmd));
+  return cc;
 }
 
 Term InputParser::nextExpression()
@@ -92,7 +166,7 @@ void InputParser::setFileInput(const std::string& lang,
 {
   Trace("parser") << "setFileInput(" << lang << ", " << filename << ")"
                   << std::endl;
-  d_fparser = Parser::mkParser(lang, d_solver, d_sm->get());
+  d_fparser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());
   d_fparser->setFileInput(filename);
 }
 
@@ -102,7 +176,7 @@ void InputParser::setStreamInput(const std::string& lang,
 {
   Trace("parser") << "setStreamInput(" << lang << ", ..., " << name << ")"
                   << std::endl;
-  d_fparser = Parser::mkParser(lang, d_solver, d_sm->get());
+  d_fparser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());
   d_fparser->setStreamInput(input, name);
 }
 
@@ -114,7 +188,7 @@ void InputParser::setIncrementalStringInput(const std::string& lang,
   d_istringLang = lang;
   d_istringName = name;
   // initialize the parser
-  d_fparser = Parser::mkParser(lang, d_solver, d_sm->d_sm.get());
+  d_fparser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());
 }
 void InputParser::appendIncrementalStringInput(const std::string& input)
 {

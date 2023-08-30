@@ -39,7 +39,7 @@ class Smt2CmdParser
   /**
    * Parse and return the next command, or nullptr if we are at the end of file.
    */
-  std::unique_ptr<Command> parseNextCommand();
+  std::unique_ptr<Cmd> parseNextCommand();
 
  protected:
   /** Next command token */

@@ -26,14 +26,11 @@
  */
 
 #include <cvc5/cvc5.h>
+#include <cvc5/cvc5_parser.h>
 
 #include <cassert>
 #include <iostream>
 #include <string>
-
-#include "parser/api/cpp/command.h"
-#include "parser/api/cpp/input_parser.h"
-#include "parser/api/cpp/symbol_manager.h"
 
 #include "parser/parser_exception.h"
 

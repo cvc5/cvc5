@@ -40,13 +40,11 @@
 #endif   /* HAVE_LIBEDITLINE */
 
 #include <cvc5/cvc5.h>
+#include <cvc5/cvc5_parser.h>
 
 #include "base/check.h"
 #include "base/output.h"
 #include "main/command_executor.h"
-#include "parser/api/cpp/command.h"
-#include "parser/api/cpp/input_parser.h"
-#include "parser/api/cpp/symbol_manager.h"
 #include "parser/commands.h"
 #include "parser/parser_exception.h"
 #include "parser/sym_manager.h"
@@ -87,7 +85,7 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
                                    bool isInteractive)
     : d_cexec(cexec),
       d_solver(cexec->getSolver()),
-      d_symman(cexec->getSymbolManager()->get()),
+      d_symman(cexec->getSymbolManager()->toSymManager()),
       d_in(in),
       d_out(out),
       d_isInteractive(isInteractive),
