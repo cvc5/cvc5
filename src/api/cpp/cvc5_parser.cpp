@@ -109,7 +109,7 @@ InputParser::InputParser(Solver* solver)
 
 void InputParser::initialize()
 {
-  SymManager * sm = d_sm->toSymManager();
+  SymManager* sm = d_sm->toSymManager();
   // process the forced logic
   auto info = d_solver->getOptionInfo("force-logic");
   if (info.setByUser)
@@ -152,7 +152,7 @@ void InputParser::initializeInternal()
     {
       // both set, ensure they are the same
       std::string smLogic = sm->getLogic();
-      if (initLogic!=smLogic)
+      if (initLogic != smLogic)
       {
         // TODO: error
       }

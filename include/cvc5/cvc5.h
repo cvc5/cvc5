@@ -4986,16 +4986,16 @@ class CVC5_EXPORT Solver
 
   /**
    * Is logic set? Returns whether we called setLogic yet for this solver.
-   * 
+   *
    * @return whether we called setLogic yet for this solver.
    */
   bool isLogicSet() const;
-  
+
   /**
    * Get logic.
    *
    * @note Asserts isLogicSet().
-   * 
+   *
    * @return The logic used by the solver.
    */
   std::string getLogic() const;

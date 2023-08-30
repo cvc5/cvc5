@@ -306,10 +306,7 @@ void SolverEngine::setLogic(const std::string& s)
   }
 }
 
-bool SolverEngine::isLogicSet() const
-{
-  return d_userLogicSet;
-}
+bool SolverEngine::isLogicSet() const { return d_userLogicSet; }
 
 const LogicInfo& SolverEngine::getLogicInfo() const
 {
