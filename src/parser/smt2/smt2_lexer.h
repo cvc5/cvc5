@@ -75,9 +75,20 @@ class Smt2Lexer : public Lexer
     BIT = (1 << 3),
     SYMBOL_START = (1 << 4),
     SYMBOL = (1 << 5),
+    PRINTABLE = (1 << 6),
   };
   /** The set of non-letter/non-digit characters that may occur in keywords. */
   inline static const std::string s_extraSymbolChars = "+-/*=%?!.$_~&^<>@";
+    /** The set of legal printable characters. */
+  inline static const std::string s_printableAsciiChars =
+      "!\"#$%&'()*+,-./"
+      "0123456789"
+      ":;<=>?@"
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      "[\\]^_`"
+      "abcdefghijklmnopqrstuvwxyz"
+      "{|}~"
+      " \t\r\n";
   /** parse <c>, return false if <c> is not ch. */
   bool parseLiteralChar(int32_t ch);
   /** parse <c>, return false if <c> is not from cc */
