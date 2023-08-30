@@ -112,14 +112,14 @@ Token Smt2CmdParser::nextCommandToken()
   return tok;
 }
 
-std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
+std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
 {
   // if we are at the end of file, return the null command
   if (d_lex.eatTokenChoice(Token::EOF_TOK, Token::LPAREN_TOK))
   {
     return nullptr;
   }
-  std::unique_ptr<Command> cmd;
+  std::unique_ptr<Cmd> cmd;
   Token tok = nextCommandToken();
   switch (tok)
   {

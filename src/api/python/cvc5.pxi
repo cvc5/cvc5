@@ -2085,7 +2085,7 @@ cdef class Solver:
                                             <bint> fresh)
         return term
 
-    def declareSort(self, str symbol, int arity):
+    def declareSort(self, str symbol, int arity, fresh=True):
         """
             Declare uninterpreted sort.
 
@@ -2104,10 +2104,14 @@ cdef class Solver:
 
             :param symbol: The name of the sort.
             :param arity: The arity of the sort.
+            :param fresh: If true, then this method always returns a new Sort.
+                          Otherwise, this method will always return the same
+                          Sort for each call with the given arity and symbol
+                          where fresh is false.
             :return: The sort.
         """
         cdef Sort sort = Sort(self)
-        sort.csort = self.csolver.declareSort(symbol.encode(), arity)
+        sort.csort = self.csolver.declareSort(symbol.encode(), arity, <bint> fresh)
         return sort
 
     def defineFun(self, str symbol, list bound_vars, Sort sort, Term term, glbl=False):

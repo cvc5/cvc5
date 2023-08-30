@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Christopher L. Conway
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -13,24 +13,146 @@
  * The interface for parsing an input with a parser.
  */
 
-#include "cvc5parser_public.h"
+#include <cvc5/cvc5_export.h>
 
-#ifndef CVC5__PARSER__API__CPP__INPUT_PARSER_H
-#define CVC5__PARSER__API__CPP__INPUT_PARSER_H
+#ifndef CVC5__API__CVC5_PARSER_H
+#define CVC5__API__CVC5_PARSER_H
 
 #include <cvc5/cvc5.h>
-#include <cvc5/cvc5_export.h>
 
 #include <memory>
 
-#include "parser/api/cpp/command.h"
-
 namespace cvc5 {
+
+namespace internal {
+class InteractiveShell;
+}
+namespace main {
+class CommandExecutor;
+class ExecutionContext;
+}  // namespace main
+
 namespace parser {
 
 class Command;
+class Cmd;
+class InputParser;
 class Parser;
 class SymbolManager;
+class CommandStatus;
+class SymManager;
+
+/**
+ * Symbol manager. Internally, this class manages a symbol table and other
+ * meta-information pertaining to SMT2 file inputs (e.g. named assertions,
+ * declared functions, etc.).
+ *
+ * A symbol manager can be modified by invoking commands, see Command::invoke.
+ *
+ * A symbol manager can be provided when constructing an InputParser, in which
+ * case that InputParser has symbols of this symbol manager preloaded.
+ *
+ * The symbol manager's interface is otherwise not publicly available.
+ */
+class CVC5_EXPORT SymbolManager
+{
+  friend class InputParser;
+  friend class Command;
+  friend class internal::InteractiveShell;
+  friend class main::CommandExecutor;
+
+ public:
+  SymbolManager(cvc5::Solver* s);
+  ~SymbolManager();
+
+ private:
+  /** Get the underlying implementation */
+  SymManager* toSymManager();
+  /** The implementation of the symbol manager */
+  std::shared_ptr<SymManager> d_sm;
+};
+
+/**
+ * Encapsulation of a command.
+ *
+ * Commands are constructed by the input parser and can be invoked on
+ * the solver and symbol manager.
+ */
+class CVC5_EXPORT Command
+{
+  friend class InputParser;
+  friend class main::CommandExecutor;
+  friend class main::ExecutionContext;
+
+ public:
+  Command();
+  Command(const Command& cmd);
+
+  virtual ~Command();
+
+  /**
+   * Invoke the command on the solver and symbol manager sm, prints the result
+   * to output stream out.
+   *
+   * @param solver The solver to invoke the command on.
+   * @param sm The symbol manager to invoke the command on.
+   * @param out The output stream to write the result of the command on.
+   */
+  void invoke(cvc5::Solver* solver,
+              parser::SymbolManager* sm,
+              std::ostream& out);
+
+  /**
+   * @return A string representation of this result.
+   */
+  std::string toString() const;
+
+  /**
+   * Get the name for this command, e.g. "assert".
+   *
+   * @return The name of this command.
+   */
+  std::string getCommandName() const;
+
+  /**
+   * Either the command hasn't run yet, or it completed successfully
+   * (CommandSuccess, not CommandUnsupported or CommandFailure).
+   *
+   * @return Whether the command was successfully invoked.
+   */
+  bool ok() const;
+
+  /**
+   * The command completed in a failure state (CommandFailure, not
+   * CommandSuccess or CommandUnsupported).
+   *
+   * @return Whether the command failed.
+   */
+  bool fail() const;
+
+  /**
+   * The command was ran but was interrupted due to resource limiting.
+   *
+   * @return Whether the command was interrupted.
+   */
+  bool interrupted() const;
+
+ protected:
+  /**
+   * Constructor.
+   * @param n The internal command that is to be wrapped by this command.
+   * @return The Command.
+   */
+  Command(std::shared_ptr<Cmd> cmd);
+  /** Return the internal representation */
+  Cmd* toCmd();
+  /** The implementation of the symbol manager */
+  std::shared_ptr<Cmd> d_cmd;
+
+}; /* class Command */
+
+std::ostream& operator<<(std::ostream&, const Command&) CVC5_EXPORT;
+std::ostream& operator<<(std::ostream&, const Command*) CVC5_EXPORT;
 
 /**
  * This class is the main interface for retrieving commands and expressions

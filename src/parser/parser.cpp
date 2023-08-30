@@ -17,7 +17,7 @@
 
 #include "base/check.h"
 #include "base/output.h"
-#include "parser/api/cpp/command.h"
+#include "parser/commands.h"
 #include "parser/lexer.h"
 #include "parser/parser_exception.h"
 #include "parser/smt2/smt2_parser.h"
@@ -66,10 +66,10 @@ void Parser::unexpectedEOF(const std::string& msg)
   d_lex->parseError(msg, true);
 }
 
-std::unique_ptr<Command> Parser::nextCommand()
+std::unique_ptr<Cmd> Parser::nextCommand()
 {
   Trace("parser") << "nextCommand()" << std::endl;
-  std::unique_ptr<Command> cmd;
+  std::unique_ptr<Cmd> cmd;
   try
   {
     cmd = parseNextCommand();

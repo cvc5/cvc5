@@ -27,7 +27,7 @@
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/kind.h"
-#include "parser/api/cpp/command.h"
+#include "parser/commands.h"
 #include "parser/parser_exception.h"
 
 using namespace std;

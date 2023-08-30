@@ -12,10 +12,10 @@ This file contains a summary of important user-visible changes.
        need to be provided.
 - API: Added argument `fresh` to `Solver::declareFun` which distinguishes whether
        the solver should construct a new term or (when applicable) return a
-       term constructed with the same name and sort. The option
-       `--fresh-declarations` determines whether the parser constructs fresh
-       terms for each declaration (true by default, which matches the previous
-       behavior).
+       term constructed with the same name and sort. An analogous flag is added
+       to `Solver::declareSort`. The option `--fresh-declarations` determines
+       whether the parser constructs fresh terms and sorts for each declaration
+       (true by default, which matches the previous behavior).
 - Support for timeout cores
   * API: New API function `Solver::getTimeoutCore()` when applicable
     returns a subset of the current assertions that cause the solver to timeout
