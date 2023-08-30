@@ -121,7 +121,7 @@ void InputParser::initialize()
     {
       d_solver->setLogic(logic);
     }
-    // set the logic, marking as forced
+    // set the logic in the symbol manager, marking as forced
     sm->setLogic(logic, true);
   }
   info = d_solver->getOptionInfo("global-declarations");
@@ -154,17 +154,26 @@ void InputParser::initializeInternal()
       std::string smLogic = sm->getLogic();
       if (initLogic != smLogic)
       {
-        // TODO: error
+        std::stringstream ss;
+        ss << "Logic mismatch when initializing InputParser." << std::endl;
+        ss << "The solver's logic: " << initLogic << std::endl;
+        ss << "The symbol manager's logic: " << smLogic << std::endl;
+        throw CVC5ApiException(ss.str());
       }
     }
-    // otherwise, the symbol manager's logic will be initialized by the
-    // call to set logic in the parser below
+    else
+    {
+      // ensure the symbol manager's logic is set
+      sm->setLogic(initLogic);
+    }
   }
   else if (smLogicSet)
   {
     // solver logic not set, symbol manager set
     initParserLogic = true;
     initLogic = sm->getLogic();
+    // ensure the solver's logic is set
+    d_solver->setLogic(initLogic);
   }
   // If we have already set the logic in the symbol manager or the solver, set
   // it in the parser, which impacts which symbols are created.
