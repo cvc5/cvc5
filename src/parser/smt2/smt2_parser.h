@@ -51,7 +51,7 @@ class Smt2Parser : public Parser
    * or the forced logic if no logic is set prior to this point and a command
    * is read that requires initializing the logic.
    */
-  std::unique_ptr<Command> parseNextCommand() override;
+  std::unique_ptr<Cmd> parseNextCommand() override;
 
   /**
    * Parse and return the next expression. Requires setting the logic

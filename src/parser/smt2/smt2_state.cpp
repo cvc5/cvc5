@@ -687,7 +687,7 @@ void Smt2State::reset()
   d_lastNamedTerm = std::pair<Term, std::string>();
 }
 
-std::unique_ptr<Command> Smt2State::invConstraint(
+std::unique_ptr<Cmd> Smt2State::invConstraint(
     const std::vector<std::string>& names)
 {
   checkThatLogicIsSet();
@@ -714,7 +714,7 @@ std::unique_ptr<Command> Smt2State::invConstraint(
     terms.push_back(getVariable(name));
   }
 
-  return std::unique_ptr<Command>(new SygusInvConstraintCommand(terms));
+  return std::unique_ptr<Cmd>(new SygusInvConstraintCommand(terms));
 }
 
 void Smt2State::setLogic(std::string name)
@@ -1673,7 +1673,7 @@ bool Smt2State::isClosure(const std::string& name)
   return d_closureKindMap.find(name) != d_closureKindMap.end();
 }
 
-std::unique_ptr<Command> Smt2State::handlePush(std::optional<uint32_t> nscopes)
+std::unique_ptr<Cmd> Smt2State::handlePush(std::optional<uint32_t> nscopes)
 {
   checkThatLogicIsSet();
 
@@ -1695,7 +1695,7 @@ std::unique_ptr<Command> Smt2State::handlePush(std::optional<uint32_t> nscopes)
   return std::make_unique<PushCommand>(*nscopes);
 }
 
-std::unique_ptr<Command> Smt2State::handlePop(std::optional<uint32_t> nscopes)
+std::unique_ptr<Cmd> Smt2State::handlePop(std::optional<uint32_t> nscopes)
 {
   checkThatLogicIsSet();
 
