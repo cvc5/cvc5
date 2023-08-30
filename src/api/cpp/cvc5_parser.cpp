@@ -98,15 +98,6 @@ InputParser::InputParser(Solver* solver, SymbolManager* sm)
 {
   initialize();
 }
-InputParser::InputParser(Solver* solver, const std::string& logic)
-    : d_solver(solver),
-      d_allocSm(new SymbolManager(solver)),
-      d_sm(d_allocSm.get())
-{
-  // set the provided logic
-  d_sm->get()->setLogic(logic);
-  initialize();
-}
 
 InputParser::InputParser(Solver* solver)
     : d_solver(solver),
@@ -118,42 +109,68 @@ InputParser::InputParser(Solver* solver)
 
 void InputParser::initialize()
 {
+  SymManager * sm = d_sm->toSymManager();
   // process the forced logic
   auto info = d_solver->getOptionInfo("force-logic");
   if (info.setByUser)
   {
     internal::LogicInfo tmp(info.stringValue());
     std::string logic = tmp.getLogicString();
-    // Setting the logic in the symbol manager for the first time
-    // corresponds to setting the logic in the solver.
-    SymManager* sm = d_sm->get();
-    if (!sm->isLogicSet())
+    // set the logic in the solver if not done so already
+    if (!d_solver->isLogicSet())
     {
       d_solver->setLogic(logic);
     }
+    // set the logic, marking as forced
     sm->setLogic(logic, true);
   }
   info = d_solver->getOptionInfo("global-declarations");
   if (info.setByUser)
   {
-    d_sm->toSymManager()->setGlobalDeclarations(info.boolValue());
+    sm->setGlobalDeclarations(info.boolValue());
   }
   info = d_solver->getOptionInfo("fresh-declarations");
   if (info.setByUser)
   {
-    d_sm->toSymManager()->setFreshDeclarations(info.boolValue());
+    sm->setFreshDeclarations(info.boolValue());
   }
   // notice that we don't create the parser object until the input is set.
 }
 
 void InputParser::initializeInternal()
 {
-  SymManager* sm = d_sm->get();
-  // If we have already set the logic in the symbol manager, set it in the
-  // parser, which impacts which symbols are created.
-  if (sm->isLogicSet())
+  SymManager* sm = d_sm->toSymManager();
+  bool slvLogicSet = d_solver->isLogicSet();
+  bool smLogicSet = sm->isLogicSet();
+  bool initParserLogic = false;
+  std::string initLogic;
+  if (slvLogicSet)
   {
-    d_parser->setLogic(sm->getLogic());
+    initParserLogic = true;
+    initLogic = d_solver->getLogic();
+    if (smLogicSet)
+    {
+      // both set, ensure they are the same
+      std::string smLogic = sm->getLogic();
+      if (initLogic!=smLogic)
+      {
+        // TODO: error
+      }
+    }
+    // otherwise, the symbol manager's logic will be initialized by the
+    // call to set logic in the parser below
+  }
+  else if (smLogicSet)
+  {
+    // solver logic not set, symbol manager set
+    initParserLogic = true;
+    initLogic = sm->getLogic();
+  }
+  // If we have already set the logic in the symbol manager or the solver, set
+  // it in the parser, which impacts which symbols are created.
+  if (initParserLogic)
+  {
+    d_parser->setLogic(initLogic);
   }
 }
 
@@ -165,7 +182,7 @@ std::unique_ptr<Command> InputParser::nextCommand()
 {
   Assert(d_parser != nullptr);
   Trace("parser") << "nextCommand()" << std::endl;
-  std::shared_ptr<Cmd> cmd = d_fparser->nextCommand();
+  std::shared_ptr<Cmd> cmd = d_parser->nextCommand();
   if (cmd == nullptr)
   {
     return nullptr;
@@ -187,9 +204,9 @@ void InputParser::setFileInput(const std::string& lang,
 {
   Trace("parser") << "setFileInput(" << lang << ", " << filename << ")"
                   << std::endl;
-  d_fparser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());
+  d_parser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());
   initializeInternal();
-  d_fparser->setFileInput(filename);
+  d_parser->setFileInput(filename);
 }
 
 void InputParser::setStreamInput(const std::string& lang,
@@ -198,9 +215,9 @@ void InputParser::setStreamInput(const std::string& lang,
 {
   Trace("parser") << "setStreamInput(" << lang << ", ..., " << name << ")"
                   << std::endl;
-  d_fparser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());
+  d_parser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());
   initializeInternal();
-  d_fparser->setStreamInput(input, name);
+  d_parser->setStreamInput(input, name);
 }
 
 void InputParser::setIncrementalStringInput(const std::string& lang,
@@ -211,7 +228,7 @@ void InputParser::setIncrementalStringInput(const std::string& lang,
   d_istringLang = lang;
   d_istringName = name;
   // initialize the parser
-  d_fparser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());
+  d_parser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());
   initializeInternal();
 }
 void InputParser::appendIncrementalStringInput(const std::string& input)

@@ -795,6 +795,7 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
     {
       SymManager* sm = d_state.getSymbolManager();
       std::string name = d_tparser.parseSymbol(CHECK_NONE, SYM_SORT);
+      // If the logic was forced, we ignore all set-logic commands.
       if (!sm->isLogicForced())
       {
         d_state.setLogic(name);

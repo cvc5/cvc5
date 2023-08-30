@@ -7609,9 +7609,29 @@ void Solver::setLogic(const std::string& logic) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_slv->isFullyInited())
       << "Invalid call to 'setLogic', solver is already fully initialized";
-  internal::LogicInfo logic_info(logic);
   //////// all checks before this line
-  d_slv->setLogic(logic_info);
+  internal::LogicInfo linfo(logic);
+  d_slv->setLogic(linfo);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+bool Solver::isLogicSet() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_slv->isLogicSet();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::string Solver::getLogic() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(d_slv->isLogicSet())
+      << "Invalid call to 'getLogic', logic has not yet been set";
+  //////// all checks before this line
+  return d_slv->getUserLogicInfo().getLogicString();
   ////////
   CVC5_API_TRY_CATCH_END;
 }

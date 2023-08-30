@@ -175,13 +175,6 @@ class CVC5_EXPORT InputParser
    */
   InputParser(Solver* solver, SymbolManager* sm);
   /**
-   * Construct an input parser with asymbol manager with the given logic.
-   *
-   * @param solver The solver (e.g. for constructing terms and sorts)
-   * @param logic The logic to use.
-   */
-  InputParser(Solver* solver, const std::string& logic);
-  /**
    * Construct an input parser with an initially empty symbol manager.
    *
    * @param solver The solver (e.g. for constructing terms and sorts)
