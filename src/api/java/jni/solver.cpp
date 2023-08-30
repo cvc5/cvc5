@@ -2614,8 +2614,8 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_setLogic(JNIEnv* env,
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Solver_isLogicSet(JNIEnv* env,
-                                                                  jobject,
-                                                                  jlong pointer)
+                                                                 jobject,
+                                                                 jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);

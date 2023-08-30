@@ -2747,7 +2747,6 @@ public class Solver implements IPointer
 
   private native void setLogic(long pointer, String logic) throws CVC5ApiException;
 
-
   /**
    * Is logic set? Returns whether we called setLogic yet for this solver.
    *
@@ -2757,9 +2756,9 @@ public class Solver implements IPointer
   {
     return isLogicSet(pointer);
   }
-  
+
   private native boolean isLogicSet(long pointer);
-  
+
   /**
    * Get the logic set the solver.
    *
@@ -2773,7 +2772,7 @@ public class Solver implements IPointer
   }
 
   private native String getLogic(long pointer) throws CVC5ApiException;
-  
+
   /**
    * Set option.
    *
