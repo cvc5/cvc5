@@ -3614,8 +3614,7 @@ Term Term::getRealAlgebraicNumberDefiningPolynomial(const Term& v) const
       d_node->getKind() == internal::Kind::REAL_ALGEBRAIC_NUMBER, *d_node)
       << "Term to be a real algebraic number when calling "
          "getRealAlgebraicNumberDefiningPolynomial()";
-  CVC5_API_ARG_CHECK_EXPECTED(
-      v.getKind() == Kind::VARIABLE, v)
+  CVC5_API_ARG_CHECK_EXPECTED(v.getKind() == Kind::VARIABLE, v)
       << "Expected a variable as argument when calling "
          "getRealAlgebraicNumberDefiningPolynomial()";
 #ifndef CVC5_POLY_IMP
@@ -7776,10 +7775,10 @@ std::vector<Term> Solver::getSygusAssumptions() const
   CVC5_API_TRY_CATCH_END;
 }
 
-void Solver::addSygusInvConstraint(Term inv,
-                                   Term pre,
-                                   Term trans,
-                                   Term post) const
+void Solver::addSygusInvConstraint(const Term& inv,
+                                   const Term& pre,
+                                   const Term& trans,
+                                   const Term& post) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(inv);
@@ -7852,7 +7851,7 @@ SynthResult Solver::checkSynthNext() const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::getSynthSolution(Term term) const
+Term Solver::getSynthSolution(const Term& term) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(term);
