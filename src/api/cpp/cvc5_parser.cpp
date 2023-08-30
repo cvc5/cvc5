@@ -37,14 +37,8 @@ SymbolManager::SymbolManager(cvc5::Solver* s) { d_sm.reset(new SymManager(s)); }
 
 SymbolManager::~SymbolManager() {}
 
-bool SymbolManager::isLogicSet() const
-{
-  return d_sm->isLogicSet();
-}
-const std::string& SymbolManager::getLogic() const
-{
-  return d_sm->getLogic();
-}
+bool SymbolManager::isLogicSet() const { return d_sm->isLogicSet(); }
+const std::string& SymbolManager::getLogic() const { return d_sm->getLogic(); }
 
 SymManager* SymbolManager::toSymManager() { return d_sm.get(); }
 

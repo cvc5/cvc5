@@ -75,7 +75,7 @@ class CVC5_EXPORT SymbolManager
    * @return the logic used by this symbol manager
    */
   const std::string& getLogic() const;
-  
+
  private:
   /** Get the underlying implementation */
   SymManager* toSymManager();
@@ -178,15 +178,15 @@ std::ostream& operator<<(std::ostream&, const Command*) CVC5_EXPORT;
  * symbols are defined in the current context, based on the background logic
  * and user-defined symbols. If no symbol manager is provided, then the
  * input parser will construct (an initially empty) one.
- * 
+ *
  * If provided, the symbol manager must have a logic that is compatible
  * with the provided solver. That is, if both the solver and symbol
  * manager have their logics set (SymbolManager::isLogicSet and
  * Solver::isLogicSet), then their logics must be the same.
  *
- * If either the solver (resp. symbol manager) has its logic set, then
- * the symbol manager (resp. solver) is initialized with that logic, if
- * not already done so.
+ * Upon setting an input source, if either the solver (resp. symbol
+ * manager) has its logic set, then the symbol manager (resp. solver) is set to
+ * use that logic, if its logic is not already set.
  */
 class CVC5_EXPORT InputParser
 {
