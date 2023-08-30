@@ -230,6 +230,7 @@ Term OverloadedTypeTrie::getOverloadedFunctionForTypes(
 
 bool OverloadedTypeTrie::bind(const string& name, Term prev_bound_obj, Term obj)
 {
+  Assert(prev_bound_obj != obj);
   bool retprev = true;
   if (!isOverloadedFunction(prev_bound_obj))
   {
