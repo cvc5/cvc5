@@ -6588,40 +6588,24 @@ Term Solver::declareFun(const std::string& symbol,
     std::vector<internal::TypeNode> types = Sort::sortVectorToTypeNodes(sorts);
     type = d_nm->mkFunctionType(types, type);
   }
-  internal::Node res;
-  if (fresh)
-  {
-    res = d_nm->mkVar(symbol, type);
-  }
-  else
-  {
-    // to construct a variable in a canonical way, we use the skolem
-    // manager, where SkolemFunId::INPUT_VARIABLE identifies that the
-    // variable is unique.
-    std::vector<internal::Node> cnodes;
-    cnodes.push_back(d_nm->mkConst(internal::String(symbol, false)));
-    // Since we index only on Node, we must construct use mkGroundValue
-    // to construct a canonical node for the type.
-    internal::Node gt = d_nm->mkGroundValue(type);
-    cnodes.push_back(gt);
-    internal::SkolemManager* sm = d_nm->getSkolemManager();
-    res = sm->mkSkolemFunction(
-        internal::SkolemFunId::INPUT_VARIABLE, type, cnodes);
-  }
+  internal::Node res = d_nm->mkVar(symbol, type, fresh);
+  // notify the solver engine of the declaration
+  d_slv->declareConst(res);
   return Term(d_nm, res);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort Solver::declareSort(const std::string& symbol, uint32_t arity) const
+Sort Solver::declareSort(const std::string& symbol,
+                         uint32_t arity,
+                         bool fresh) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  if (arity == 0)
-  {
-    return Sort(d_nm, d_nm->mkSort(symbol));
-  }
-  return Sort(d_nm, d_nm->mkSortConstructor(symbol, arity));
+  internal::TypeNode type = d_nm->mkSortConstructor(symbol, arity, fresh);
+  // notify the solver engine of the declaration
+  d_slv->declareSort(type);
+  return Sort(d_nm, type);
   ////////
   CVC5_API_TRY_CATCH_END;
 }

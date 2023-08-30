@@ -307,9 +307,8 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Result checkSat() except +
         Result checkSatAssuming(const vector[Term]& assumptions) except +
         Sort declareDatatype(const string& symbol, const vector[DatatypeConstructorDecl]& ctors)
-        Term declareFun(const string& symbol, Sort sort) except +
         Term declareFun(const string& symbol, const vector[Sort]& sorts, Sort sort, bint fresh) except +
-        Sort declareSort(const string& symbol, uint32_t arity) except +
+        Sort declareSort(const string& symbol, uint32_t arity, bint fresh) except +
         Term defineFun(const string& symbol, const vector[Term]& bound_vars,
                        Sort sort, Term term, bint glbl) except +
         Term defineFunRec(const string& symbol, const vector[Term]& bound_vars,

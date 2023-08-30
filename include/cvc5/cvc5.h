@@ -4159,9 +4159,14 @@ class CVC5_EXPORT Solver
    *
    * @param symbol The name of the sort.
    * @param arity The arity of the sort.
+   * @param fresh If true, then this method always returns a new Sort.
+   * Otherwise, this method will always return the same Sort
+   * for each call with the given arity and symbol where fresh is false.
    * @return The sort.
    */
-  Sort declareSort(const std::string& symbol, uint32_t arity) const;
+  Sort declareSort(const std::string& symbol,
+                   uint32_t arity,
+                   bool fresh = true) const;
 
   /**
    * Define n-ary function.
