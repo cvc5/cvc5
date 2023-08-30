@@ -65,6 +65,17 @@ class CVC5_EXPORT SymbolManager
   SymbolManager(cvc5::Solver* s);
   ~SymbolManager();
 
+  /**
+   * @return true if the logic of this symbol manager has been set.
+   */
+  bool isLogicSet() const;
+  /**
+   * @note Asserts isLogicSet().
+   *
+   * @return the logic used by this symbol manager
+   */
+  const std::string& getLogic() const;
+  
  private:
   /** Get the underlying implementation */
   SymManager* toSymManager();
@@ -159,8 +170,23 @@ std::ostream& operator<<(std::ostream&, const Command*) CVC5_EXPORT;
  * from an input using a parser.
  *
  * After construction, it is expected that an input is first set via e.g.
- * setFileInput, setStreamInput, or setStringInput. Then, the methods
- * nextCommand and nextExpression can be invoked to parse the input.
+ * setFileInput, setStreamInput, or setIncrementalStringInput and
+ * appendIncrementalStringInput. Then, the methods nextCommand and
+ * nextExpression can be invoked to parse the input.
+ *
+ * The input parser interacts with a symbol manager, which determines which
+ * symbols are defined in the current context, based on the background logic
+ * and user-defined symbols. If no symbol manager is provided, then the
+ * input parser will construct (an initially empty) one.
+ * 
+ * If provided, the symbol manager must have a logic that is compatible
+ * with the provided solver. That is, if both the solver and symbol
+ * manager have their logics set (SymbolManager::isLogicSet and
+ * Solver::isLogicSet), then their logics must be the same.
+ *
+ * If either the solver (resp. symbol manager) has its logic set, then
+ * the symbol manager (resp. solver) is initialized with that logic, if
+ * not already done so.
  */
 class CVC5_EXPORT InputParser
 {
@@ -170,8 +196,8 @@ class CVC5_EXPORT InputParser
    *
    * @param solver The solver (e.g. for constructing terms and sorts)
    * @param sm The symbol manager, which contains a symbol table that maps
-   * symbols to terms and sorts. We additionally use the logic that was
-   * assigned to this symbol manager, if applicable.
+   * symbols to terms and sorts. Must have a logic that is compatible
+   * with the solver.
    */
   InputParser(Solver* solver, SymbolManager* sm);
   /**
