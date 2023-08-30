@@ -2732,7 +2732,7 @@ TEST_F(TestApiBlackSolver, isLogicSet)
 
 TEST_F(TestApiBlackSolver, getLogic)
 {
-  ASSERT_THROW(d_solver.getLogic());
+  ASSERT_THROW(d_solver.getLogic(), CVC5ApiException);
   ASSERT_NO_THROW(d_solver.setLogic("QF_BV"));
   ASSERT_EQ(d_solver.getLogic(), "QF_BV");
 }

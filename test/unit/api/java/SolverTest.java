@@ -2621,7 +2621,7 @@ class SolverTest
   void isLogicSet() throws CVC5ApiException
   {
     assertFalse(d_solver.isLogicSet());
-    assertThrows(CVC5ApiException.class, () -> d_solver.setLogic("QF_BV"));
+    assertDoesNotThrow(() -> d_solver.setLogic("QF_BV"));
     assertTrue(d_solver.isLogicSet());
   }
 
