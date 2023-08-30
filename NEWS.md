@@ -16,6 +16,8 @@ This file contains a summary of important user-visible changes.
        to `Solver::declareSort`. The option `--fresh-declarations` determines
        whether the parser constructs fresh terms and sorts for each declaration
        (true by default, which matches the previous behavior).
+- API: Add the ability to query the logic that has been set in the solver via
+       `Solver::isLogicSet` and `Solver::getLogic`.
 - Support for timeout cores
   * API: New API function `Solver::getTimeoutCore()` when applicable
     returns a subset of the current assertions that cause the solver to timeout
