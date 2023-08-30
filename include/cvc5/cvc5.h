@@ -4970,7 +4970,7 @@ class CVC5_EXPORT Solver
   void setInfo(const std::string& keyword, const std::string& value) const;
 
   /**
-   * Set logic. Can be set only once.
+   * Set logic.
    *
    * SMT-LIB:
    *
@@ -4992,7 +4992,7 @@ class CVC5_EXPORT Solver
   bool isLogicSet() const;
 
   /**
-   * Get logic.
+   * Get the logic set the solver.
    *
    * @note Asserts isLogicSet().
    *
