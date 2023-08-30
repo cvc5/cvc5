@@ -79,7 +79,7 @@ class Smt2Lexer : public Lexer
   };
   /** The set of non-letter/non-digit characters that may occur in keywords. */
   inline static const std::string s_extraSymbolChars = "+-/*=%?!.$_~&^<>@";
-    /** The set of legal printable characters. */
+  /** The set of legal printable characters. */
   inline static const std::string s_printableAsciiChars =
       "!\"#$%&'()*+,-./"
       "0123456789"
