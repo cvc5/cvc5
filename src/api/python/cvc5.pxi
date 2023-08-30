@@ -2852,7 +2852,7 @@ cdef class Solver:
    
             :return: The logic used by the solver.
         """
-        return self.csolver.getLogic()
+        return self.csolver.getLogic().decode()
 
     def setOption(self, str option, str value):
         """
