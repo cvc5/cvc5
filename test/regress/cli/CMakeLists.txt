@@ -1020,6 +1020,7 @@ set(regress_0_tests
   regress0/parser/issue9665.smt2
   regress0/parser/issue9675.smt2
   regress0/parser/issue9676.smt2
+  regress0/parser/issue9990-nprint-char.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
