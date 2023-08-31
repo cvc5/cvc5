@@ -60,6 +60,10 @@ Smt2Lexer::Smt2Lexer(bool isStrict, bool isSygus)
     d_charClass[ch] |= static_cast<uint32_t>(CharacterClass::SYMBOL_START);
     d_charClass[ch] |= static_cast<uint32_t>(CharacterClass::SYMBOL);
   }
+  for (int32_t ch : s_printableAsciiChars)
+  {
+    d_charClass[ch] |= static_cast<uint32_t>(CharacterClass::PRINTABLE);
+  }
   // whitespace
   d_charClass[' '] |= static_cast<uint32_t>(CharacterClass::WHITESPACE);
   d_charClass['\t'] |= static_cast<uint32_t>(CharacterClass::WHITESPACE);
@@ -181,6 +185,10 @@ Token Smt2Lexer::computeNextToken()
         if (ch == EOF)
         {
           return Token::UNTERMINATED_STRING_LITERAL;
+        }
+        else if (!isCharacterClass(ch, CharacterClass::PRINTABLE))
+        {
+          parseError("Non-printable character in string literal");
         }
         else if (ch == '"')
         {
