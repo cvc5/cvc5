@@ -108,6 +108,11 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
     AlwaysAssert(cdp->hasStep(eqi)) << eqi;
     Trace("rpc-debug") << "- finish ensure proof" << std::endl;
   }
+  if (!success && d_trrc.postProve(cdp, a, b, tid, mid))
+  {
+    Trace("rpc") << "...success (post-prove)" << std::endl;
+    return true;
+  }
   Trace("rpc") << "..." << (success ? "success" : "fail") << std::endl;
   return success;
 }

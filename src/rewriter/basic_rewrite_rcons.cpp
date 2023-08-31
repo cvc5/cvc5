@@ -19,6 +19,8 @@
 #include "proof/proof_checker.h"
 #include "smt/env.h"
 
+#include "theory/bv/theory_bv_rewrite_rules.h"
+
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
@@ -66,6 +68,36 @@ bool BasicRewriteRCons::prove(
   Trace("trewrite-rcons") << "...(fail)" << std::endl;
   return false;
 }
+bool BasicRewriteRCons::postProve(
+    CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid)
+{
+  if (tid == theory::THEORY_BV)
+  {
+    Node eq = a.eqNode(b);
+#define POST_PROVE_CASE(name) \
+    if (tryRule(cdp, eq, PfRule::name, {eq[0]})) \
+    { \
+      Trace("trewrite-rcons") << "Reconstruct " << eq << " (from " << tid << ", " \
+                              << mid << ")"  << std::endl; \
+      return true; \
+    } \
+    /* end of macro */
+
+    POST_PROVE_CASE(BV_UMULO_ELIMINATE)
+    POST_PROVE_CASE(BV_SMULO_ELIMINATE)
+    POST_PROVE_CASE(BV_FLATTEN_ASSOC_COMMUTE)
+    POST_PROVE_CASE(BV_FLATTEN_ASSOC_COMMUTE_NO_DUPLICATES)
+    POST_PROVE_CASE(BV_ADD_COMBINE_LIKE_TERMS)
+    POST_PROVE_CASE(BV_MULT_SIMPLIFY)
+    POST_PROVE_CASE(BV_SOLVE_EQ)
+    POST_PROVE_CASE(BV_BITWISE_EQ)
+    POST_PROVE_CASE(BV_BITWISE_SLICING)
+  }
+
+  Trace("trewrite-rcons") << "...(fail)" << std::endl;
+  return false;
+}
+
 
 bool BasicRewriteRCons::tryRule(CDProof* cdp,
                                 Node eq,
