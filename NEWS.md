@@ -2,7 +2,26 @@ This file contains a summary of important user-visible changes.
 
 **New Features**
 
+cvc5 1.0.8
+==========
+Note: This is a pre-release version for the upcoming version 1.1.0.
+
 - API: C++ enums are now enum classes
+- API: Added argument `fresh` to `Solver::declareFun` which distinguishes whether
+       the solver should construct a new term or (when applicable) return a
+       term constructed with the same name and sort. An analogous flag is added
+       to `Solver::declareSort`. The option `--fresh-declarations` determines
+       whether the parser constructs fresh terms and sorts for each declaration
+       (true by default, which matches the previous behavior).
+
+cvc5 1.0.7
+==========
+
+- Various bug fixes
+
+cvc5 1.0.6
+==========
+
 - Removed support for the ANTLR parser and parsing for the TPTP language.
 - API: New API function
        `Solver::mkFloatingPoint(const Term& sign, const Term& exp, const Term& sig)`,
@@ -10,12 +29,6 @@ This file contains a summary of important user-visible changes.
        components.
 - API: Simplified the `Solver::mkTuple` method. The sorts of the elements no longer
        need to be provided.
-- API: Added argument `fresh` to `Solver::declareFun` which distinguishes whether
-       the solver should construct a new term or (when applicable) return a
-       term constructed with the same name and sort. An analogous flag is added
-       to `Solver::declareSort`. The option `--fresh-declarations` determines
-       whether the parser constructs fresh terms and sorts for each declaration
-       (true by default, which matches the previous behavior).
 - Support for timeout cores
   * API: New API function `Solver::getTimeoutCore()` when applicable
     returns a subset of the current assertions that cause the solver to timeout
