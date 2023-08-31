@@ -70,7 +70,7 @@ class SetReduction
    * @return reduction term that uses map, fold, and group operators
    * as follows:
    * (set.map
-   *   (lambda ((B Table)) (set.fold f initial B))
+   *   (lambda ((B Relation)) (set.fold f initial B))
    *   ((_ rel.group n1 ... nk) A))
    */
   static Node reduceAggregateOperator(Node node);
