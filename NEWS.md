@@ -6,21 +6,18 @@ cvc5 1.0.8
 ==========
 Note: This is a pre-release version for the upcoming version 1.1.0.
 
-- API: Added argument `fresh` to `Solver::declareSort` analogous to
-  `Solver::declareFun`.The option `--fresh-declarations` determines whether the
-  parser constructs fresh sorts for each declaration (true by default, which
-  matches the previous behavior).
+- API: C++ enums are now enum classes
+- API: Added argument `fresh` to `Solver::declareFun` which distinguishes whether
+       the solver should construct a new term or (when applicable) return a
+       term constructed with the same name and sort. An analogous flag is added
+       to `Solver::declareSort`. The option `--fresh-declarations` determines
+       whether the parser constructs fresh terms and sorts for each declaration
+       (true by default, which matches the previous behavior).
 
 cvc5 1.0.7
 ==========
 
-- API: C++ enums are now enum classes
-- API: Added argument `fresh` to `Solver::declareFun` which distinguishes whether
-       the solver should construct a new term or (when applicable) return a
-       term constructed with the same name and sort. The option
-       `--fresh-declarations` determines whether the parser constructs fresh
-       terms for each declaration (true by default, which matches the
-       previous behavior).
+- Various bug fixes
 
 cvc5 1.0.6
 ==========
