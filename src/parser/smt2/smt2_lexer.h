@@ -36,7 +36,7 @@ namespace parser {
  * terms. It does not lex command tokens.
  *
  * Partially based on
- * https://github.com/bitwuzla/bitwuzla/blob/dev/src/parser/smt2/lexer.h
+ * https://github.com/bitwuzla/bitwuzla/blob/main/src/parser/smt2/lexer.h
  */
 class Smt2Lexer : public Lexer
 {
