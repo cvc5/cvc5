@@ -715,15 +715,30 @@ void Solver::resetTrail() { cancelUntil(0); }
 Lit Solver::pickBranchLit()
 {
     Lit nextLit;
+    bool stopSearch = false;
+    bool requirePhase = false;
 
     // Theory requests
-    nextLit =
-        MinisatSatSolver::toMinisatLit(d_proxy->getNextTheoryDecisionRequest());
-    while (nextLit != lit_Undef) {
-      if(value(var(nextLit)) == l_Undef) {
-        Trace("theoryDecision")
-            << "getNextTheoryDecisionRequest(): now deciding on " << nextLit
-            << std::endl;
+    nextLit = MinisatSatSolver::toMinisatLit(
+        d_proxy->getNextDecisionRequest(requirePhase, stopSearch));
+    if (stopSearch)
+    {
+      return lit_Undef;
+    }
+    while (nextLit != lit_Undef)
+    {
+      Var next = var(nextLit);
+      if (!requirePhase)
+      {
+        if (polarity[next] & 0x2)
+        {
+          nextLit = mkLit(next, polarity[next] & 0x1);
+        }
+      }
+      if (value(next) == l_Undef)
+      {
+        Trace("theoryDecision") << "getNextDecisionRequest(): now deciding on "
+                                << nextLit << std::endl;
         decisions++;
 
         // org-mode tracing -- theory decision
@@ -743,51 +758,19 @@ Lit Solver::pickBranchLit()
         }
 
         return nextLit;
-      } else {
+      }
+      else
+      {
         Trace("theoryDecision")
-            << "getNextTheoryDecisionRequest(): would decide on " << nextLit
+            << "getNextDecisionRequest(): would decide on " << nextLit
             << " but it already has an assignment" << std::endl;
       }
       nextLit = MinisatSatSolver::toMinisatLit(
-          d_proxy->getNextTheoryDecisionRequest());
-    }
-    Trace("theoryDecision")
-        << "getNextTheoryDecisionRequest(): decide on another literal"
-        << std::endl;
-
-    // DE requests
-    bool stopSearch = false;
-    nextLit = MinisatSatSolver::toMinisatLit(
-        d_proxy->getNextDecisionEngineRequest(stopSearch));
-    if(stopSearch) {
-      return lit_Undef;
-    }
-    if(nextLit != lit_Undef) {
-      Assert(value(var(nextLit)) == l_Undef)
-          << "literal to decide already has value";
-      decisions++;
-      Var next = var(nextLit);
-      if(polarity[next] & 0x2) {
-        nextLit = mkLit(next, polarity[next] & 0x1);
-      }
-
-      // org-mode tracing -- decision engine decision
-      if (TraceIsOn("dtview"))
+          d_proxy->getNextDecisionRequest(requirePhase, stopSearch));
+      if (stopSearch)
       {
-        dtviewDecisionHelper(
-            d_context->getLevel(),
-            d_proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit)),
-            "DE",
-            options().base.incrementalSolving);
+        return lit_Undef;
       }
-
-      if (TraceIsOn("dtview::prop"))
-      {
-        dtviewPropagationHeaderHelper(d_context->getLevel(),
-                                      options().base.incrementalSolving);
-      }
-
-      return nextLit;
     }
 
     Var next = var_Undef;

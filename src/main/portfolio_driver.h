@@ -18,13 +18,12 @@
 #define CVC5__MAIN__PORTFOLIO_DRIVER_H
 
 #include <cvc5/cvc5.h>
+#include <cvc5/cvc5_parser.h>
 
 #include <optional>
 
 #include "base/check.h"
 #include "main/command_executor.h"
-#include "parser/api/cpp/command.h"
-#include "parser/api/cpp/input_parser.h"
 
 namespace cvc5::main {
 
@@ -32,8 +31,10 @@ namespace cvc5::main {
  * Holds the command executor and provides a few convenience methods for parsing
  * and executing commands with the executor.
  */
-struct ExecutionContext
+
+class ExecutionContext
 {
+ public:
   /** The command executor used for solving */
   CommandExecutor* d_executor;
   /** The logic, if it has been set by a command */

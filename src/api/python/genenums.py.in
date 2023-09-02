@@ -51,13 +51,15 @@ r'''# distutils: language = c++
 from {basename} cimport {enum} as c_{enum}
 from enum import Enum
 
-class {enum}(Enum):
-    """The {enum} enum"""
-    def __new__(cls, value, doc):
+class DocEnum(Enum):
+    def __new__(cls, value, doc=None):
         self = object.__new__(cls)
         self._value_ = value
         self.__doc__ = doc
         return self
+
+class {enum}(DocEnum):
+    """The {enum} enum"""
 '''
 
 ENUMS_ATTR_TEMPLATE = r'''    {name}=c_{enum}.{cpp_name}, """{doc}"""

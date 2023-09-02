@@ -941,6 +941,23 @@ class SolverTest
   }
 
   @Test
+  void declareFunFresh()
+  {
+    Sort boolSort = d_solver.getBooleanSort();
+    Sort intSort = d_solver.getIntegerSort();
+    Term t1 = d_solver.declareFun("b", new Sort[] {}, boolSort, true);
+    Term t2 = d_solver.declareFun("b", new Sort[] {}, boolSort, false);
+    Term t3 = d_solver.declareFun("b", new Sort[] {}, boolSort, false);
+    assertNotEquals(t1, t2);
+    assertNotEquals(t1, t3);
+    assertEquals(t2, t3);
+    Term t4 = d_solver.declareFun("c", new Sort[] {}, boolSort, false);
+    assertNotEquals(t2, t4);
+    Term t5 = d_solver.declareFun("b", new Sort[] {}, intSort, false);
+    assertNotEquals(t2, t5);
+  }
+
+  @Test
   void mkConstArray()
   {
     Sort intSort = d_solver.getIntegerSort();
@@ -1010,6 +1027,21 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.declareSort("s", 0));
     assertDoesNotThrow(() -> d_solver.declareSort("s", 2));
     assertDoesNotThrow(() -> d_solver.declareSort("", 2));
+  }
+
+  @Test
+  void declareSortFresh() throws CVC5ApiException
+  {
+    Sort t1 = d_solver.declareSort("b", 0, true);
+    Sort t2 = d_solver.declareSort("b", 0, false);
+    Sort t3 = d_solver.declareSort("b", 0, false);
+    assertNotEquals(t1, t2);
+    assertNotEquals(t1, t3);
+    assertEquals(t2, t3);
+    Sort t4 = d_solver.declareSort("c", 0, false);
+    assertNotEquals(t2, t4);
+    Sort t5 = d_solver.declareSort("b", 1, false);
+    assertNotEquals(t2, t5);
   }
 
   @Test
