@@ -17,6 +17,7 @@
 
 #include <set>
 #include <stack>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -746,7 +747,7 @@ void TheoryFp::notifySharedTerm(TNode n)
   }
 }
 
-Node TheoryFp::getValue(TNode node)
+Node TheoryFp::getCandidateModelValue(TNode node)
 {
   if (d_invalidateModelCache.get())
   {
@@ -755,6 +756,7 @@ Node TheoryFp::getValue(TNode node)
   d_invalidateModelCache.set(false);
 
   std::vector<TNode> visit;
+  std::unordered_map<TNode, bool> visited;
 
   TNode cur;
   visit.push_back(node);
@@ -769,9 +771,16 @@ Node TheoryFp::getValue(TNode node)
       continue;
     }
 
+    auto vit = visited.find(cur);
+    if (vit != visited.end() && vit->second)
+    {
+      continue;
+    }
+
     if (cur.isConst())
     {
       d_modelCache[cur] = cur;
+      visited[cur] = true;
       continue;
     }
 
@@ -797,16 +806,17 @@ Node TheoryFp::getValue(TNode node)
         }
       }
       d_modelCache[cur] = value;
+      visited[cur] = true;
       continue;
     }
 
-    if (it == d_modelCache.end())
+    if (vit == visited.end())
     {
       visit.push_back(cur);
-      d_modelCache.emplace(cur, Node());
+      visited.emplace(cur, false);
       visit.insert(visit.end(), cur.begin(), cur.end());
     }
-    else if (it->second.isNull())
+    else if (!vit->second)
     {
       NodeBuilder nb(kind);
       if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
@@ -819,9 +829,11 @@ Node TheoryFp::getValue(TNode node)
       {
         iit = d_modelCache.find(child);
         Assert(iit != d_modelCache.end());
+        Assert(!iit->second.isNull());
         nb << iit->second;
       }
-      it->second = rewrite(nb.constructNode());
+      d_modelCache[cur] = rewrite(nb.constructNode());
+      vit->second = true;
     }
   } while (!visit.empty());
 
@@ -850,12 +862,10 @@ TrustNode TheoryFp::explain(TNode n)
   return TrustNode::mkTrustPropExp(n, exp, nullptr);
 }
 
-Node TheoryFp::getCandidateModelValue(TNode node) { return getValue(node); }
-
 EqualityStatus TheoryFp::getEqualityStatus(TNode a, TNode b)
 {
-  Node value_a = getValue(a);
-  Node value_b = getValue(b);
+  Node value_a = getCandidateModelValue(a);
+  Node value_b = getCandidateModelValue(b);
   if (value_a.isNull() || value_b.isNull())
   {
     return EqualityStatus::EQUALITY_UNKNOWN;

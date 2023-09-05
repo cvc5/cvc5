@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
@@ -56,7 +56,7 @@ namespace cvc5 {
  */
 struct ParseOp
 {
-  ParseOp(cvc5::Kind k = cvc5::NULL_TERM) : d_kind(k) {}
+  ParseOp(cvc5::Kind k = cvc5::Kind::NULL_TERM) : d_kind(k) {}
   /** The kind associated with the parsed operator, if it exists */
   cvc5::Kind d_kind;
   /** The name associated with the parsed operator, if it exists */

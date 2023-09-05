@@ -42,18 +42,18 @@ int main()
   // Empty sequence
   Term empty = slv.mkEmptySequence(slv.getIntegerSort());
   // Sequence concatenation: x.y.empty
-  Term concat = slv.mkTerm(SEQ_CONCAT, {x, y, empty});
+  Term concat = slv.mkTerm(Kind::SEQ_CONCAT, {x, y, empty});
   // Sequence length: |x.y.empty|
-  Term concat_len = slv.mkTerm(SEQ_LENGTH, {concat});
+  Term concat_len = slv.mkTerm(Kind::SEQ_LENGTH, {concat});
   // |x.y.empty| > 1
-  Term formula1 = slv.mkTerm(GT, {concat_len, slv.mkInteger(1)});
+  Term formula1 = slv.mkTerm(Kind::GT, {concat_len, slv.mkInteger(1)});
   // Sequence unit: seq(1)
-  Term unit = slv.mkTerm(SEQ_UNIT, {slv.mkInteger(1)});
+  Term unit = slv.mkTerm(Kind::SEQ_UNIT, {slv.mkInteger(1)});
   // x = seq(1)
-  Term formula2 = slv.mkTerm(EQUAL, {x, unit});
+  Term formula2 = slv.mkTerm(Kind::EQUAL, {x, unit});
 
   // Make a query
-  Term q = slv.mkTerm(AND, {formula1, formula2});
+  Term q = slv.mkTerm(Kind::AND, {formula1, formula2});
 
   // check sat
   Result result = slv.checkSatAssuming(q);

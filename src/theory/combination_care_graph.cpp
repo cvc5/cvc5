@@ -89,7 +89,7 @@ void CombinationCareGraph::combineTheories()
     // already have but it doesn't seem to make a big difference - need to
     // explore more -Clark
     Node e = d_valuation.ensureLiteral(equality);
-    propEngine->requirePhase(e, true);
+    propEngine->preferPhase(e, true);
   }
 }
 

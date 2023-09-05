@@ -23,6 +23,16 @@ name   = "Driver"
   help       = "full command line reference"
 
 [[option]]
+  name       = "helpRegular"
+  category   = "common"
+  long       = "help-regular"
+  short      = "H"
+  type       = "bool"
+  default    = "false"
+  alternate  = false
+  help       = "regular command line reference"
+
+[[option]]
   name       = "showConfiguration"
   category   = "common"
   long       = "show-config"
@@ -179,4 +189,4 @@ name   = "Driver"
   long       = "stdin-input-per-line"
   type       = "bool"
   default    = "true"
-  help       = "when piping from stdin, feed the input to the parser one line at a time. This avoids potential nontermination in the Flex lexer due to not enabling its interactive setting."
+  help       = "when piping from stdin, feed the input to the parser one line at a time."

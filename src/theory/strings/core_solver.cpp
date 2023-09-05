@@ -450,11 +450,17 @@ Node CoreSolver::checkCycles( Node eqc, std::vector< Node >& curr, std::vector< 
     eq::EqualityEngine* ee = d_state.getEqualityEngine();
     eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, ee );
     const std::set<Node>& rlvSet = d_termReg.getRelevantTermSet();
+    bool hasRlv = false;
     while( !eqc_i.isFinished() ) {
       Node n = (*eqc_i);
       ++eqc_i;
-      if (n.getKind() != kind::STRING_CONCAT || rlvSet.find(n) == rlvSet.end()
-          || d_bsolver.isCongruent(n))
+      if (rlvSet.find(n) == rlvSet.end())
+      {
+        // not relevant, skip
+        continue;
+      }
+      hasRlv = true;
+      if (n.getKind() != kind::STRING_CONCAT || d_bsolver.isCongruent(n))
       {
         continue;
       }
@@ -529,9 +535,13 @@ Node CoreSolver::checkCycles( Node eqc, std::vector< Node >& curr, std::vector< 
       }
     }
     curr.pop_back();
-    Trace("strings-eqc") << "* add string eqc: " << eqc << std::endl;
-    //now we can add it to the list of equivalence classes
-    d_strings_eqc.push_back( eqc );
+    // if there was at least one relevant term, we add to the list
+    if (hasRlv)
+    {
+      Trace("strings-eqc") << "* add string eqc: " << eqc << std::endl;
+      // now we can add it to the list of equivalence classes
+      d_strings_eqc.push_back(eqc);
+    }
   }else{
     //already processed
   }
@@ -851,9 +861,13 @@ void CoreSolver::getNormalForms(Node eqc,
   Trace("strings-process-debug") << "Get normal forms " << eqc << std::endl;
   eq::EqualityEngine* ee = d_state.getEqualityEngine();
   eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, ee );
+  const std::set<Node>& rlvSet = d_termReg.getRelevantTermSet();
   while( !eqc_i.isFinished() ){
     Node n = (*eqc_i);
-    if( !d_bsolver.isCongruent(n) ){
+    // this check should be in sync with the check in checkCycles to ensure
+    // we don't compute normal forms for irrelevant terms.
+    if (!d_bsolver.isCongruent(n) && rlvSet.find(n)!=rlvSet.end())
+    {
       Kind nk = n.getKind();
       bool isCLike = utils::isConstantLike(n);
       if (isCLike || nk == STRING_CONCAT)
@@ -2559,11 +2573,11 @@ void CoreSolver::checkNormalFormsDeq()
   for (const Node& eq : d_rlvDeq)
   {
     Assert(!d_state.isInConflict());
-    // If using the sequence update solver, we always apply extensionality.
+    // If using sequences, we always apply extensionality.
     // This is required for model soundness currently, although we could
     // investigate determining cases where the disequality is already
     // satisfied (for optimization).
-    if (options().strings.stringsDeqExt
+    if (eq[0].getType().isSequence() || options().strings.stringsDeqExt
         || options().strings.seqArray != options::SeqArrayMode::NONE)
     {
       processDeqExtensionality(eq[0], eq[1]);

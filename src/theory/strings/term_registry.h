@@ -138,7 +138,7 @@ class TermRegistry : protected EnvObj
    * If the status is LENGTH_SPLIT, we send a send a lemma of the form:
    *   ( n = "" ^ len( n ) = 0 ) OR len( n ) > 0
    * This method also ensures that, when applicable, the left branch is taken
-   * first via calls to requirePhase.
+   * first via calls to preferPhase.
    *
    * If the status is LENGTH_IGNORE, then no lemma is sent. This status is used
    * e.g. when the length of n is already implied by other constraints.

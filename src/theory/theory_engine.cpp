@@ -1353,9 +1353,9 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
       }
       continue;
     }else if( eqNormalized.getKind() != kind::EQUAL){
-      Assert(eqNormalized.getKind() == kind::BOOLEAN_TERM_VARIABLE
+      Assert(eqNormalized.getKind() == kind::SKOLEM
              || (eqNormalized.getKind() == kind::NOT
-                 && eqNormalized[0].getKind() == kind::BOOLEAN_TERM_VARIABLE));
+                 && eqNormalized[0].getKind() == kind::SKOLEM));
       // this happens for Boolean term equalities V = true that are rewritten to V, we should skip
       //  TODO : revisit this
       continue;

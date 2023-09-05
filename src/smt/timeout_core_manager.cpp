@@ -37,16 +37,31 @@ namespace cvc5::internal {
 namespace smt {
 
 TimeoutCoreManager::TimeoutCoreManager(Env& env)
-    : EnvObj(env), d_nextIndexToInclude(0)
+    : EnvObj(env), d_numAssertsNsk(0), d_nextIndexToInclude(0)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
 std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
-    const std::vector<Node>& ppAsserts)
+    const std::vector<Node>& ppAsserts,
+    const std::map<size_t, Node>& ppSkolemMap)
 {
-  initializePreprocessedAssertions(ppAsserts);
+  d_ppAsserts.clear();
+  d_skolemToAssert.clear();
+  d_modelValues.clear();
+  d_modelToAssert.clear();
+  d_unkModels.clear();
+  d_ainfo.clear();
+  d_asymbols.clear();
+  d_syms.clear();
+  initializePreprocessedAssertions(ppAsserts, ppSkolemMap);
+
+  // trivial case: empty assertions
+  if (d_ppAsserts.empty())
+  {
+    return std::pair<Result, std::vector<Node>>(Result(Result::SAT), {});
+  }
 
   std::vector<Node> nextAssertions;
   Result result;
@@ -60,7 +75,8 @@ std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
     result = checkSatNext(nextAssertions);
     // if we were asked to check again
     if (result.getStatus() != Result::UNKNOWN
-        || result.getUnknownExplanation() != REQUIRES_CHECK_AGAIN)
+        || result.getUnknownExplanation()
+               != UnknownExplanation::REQUIRES_CHECK_AGAIN)
     {
       checkAgain = false;
     }
@@ -69,10 +85,12 @@ std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
   std::vector<Node> toCore;
   for (std::pair<const size_t, AssertInfo>& a : d_ainfo)
   {
-    Assert(a.first < d_asserts.size());
+    Assert(a.first < d_ppAsserts.size());
     Trace("smt-to-core-asserts") << "...return #" << a.first << std::endl;
-    toCore.push_back(d_asserts[a.first]);
+    toCore.push_back(d_ppAsserts[a.first]);
   }
+  // include the skolem definitions
+  getActiveSkolemDefinitions(toCore);
   return std::pair<Result, std::vector<Node>>(result, toCore);
 }
 
@@ -165,10 +183,34 @@ void TimeoutCoreManager::getNextAssertions(std::vector<Node>& nextAsserts)
     d_asymbols.insert(syms.begin(), syms.end());
   }
 
+  // include the skolem definitions
+  getActiveSkolemDefinitions(nextAsserts);
+
   Trace("smt-to-core")
       << "...finished get next assertions, #current assertions = "
       << d_ainfo.size() << ", #free variables = " << d_asymbols.size()
-      << std::endl;
+      << ", #asserts and skolem defs=" << nextAsserts.size() << std::endl;
+}
+
+void TimeoutCoreManager::getActiveSkolemDefinitions(
+    std::vector<Node>& nextAsserts)
+{
+  if (!d_skolemToAssert.empty())
+  {
+    std::map<Node, Node>::const_iterator itk;
+    for (const Node& s : d_asymbols)
+    {
+      itk = d_skolemToAssert.find(s);
+      // avoid duplicates, as a skolem definition may have been added as an
+      // ordinary assertion
+      if (itk != d_skolemToAssert.end()
+          && std::find(nextAsserts.begin(), nextAsserts.end(), itk->second)
+                 == nextAsserts.end())
+      {
+        nextAsserts.push_back(itk->second);
+      }
+    }
+  }
 }
 
 Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions)
@@ -193,7 +235,7 @@ Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions)
   result = subSolver->checkSat();
   Trace("smt-to-core") << "checkSatNext: ...result is " << result << std::endl;
   if (result.getStatus() == Result::UNKNOWN
-      && result.getUnknownExplanation() == TIMEOUT)
+      && result.getUnknownExplanation() == UnknownExplanation::TIMEOUT)
   {
     if (isOutputOn(OutputTag::TIMEOUT_CORE_BENCHMARK))
     {
@@ -246,15 +288,16 @@ Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions)
 }
 
 void TimeoutCoreManager::initializePreprocessedAssertions(
-    const std::vector<Node>& ppAsserts)
+    const std::vector<Node>& ppAsserts,
+    const std::map<size_t, Node>& ppSkolemMap)
 {
-  d_ppAsserts.clear();
-
   Trace("smt-to-core") << "initializePreprocessedAssertions" << std::endl;
-  Trace("smt-to-core") << "# asserts = " << ppAsserts.size() << std::endl;
-  theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
-  for (const Node& pa : ppAsserts)
+  Trace("smt-to-core") << "#asserts = " << ppAsserts.size() << std::endl;
+  std::map<size_t, Node>::const_iterator itc;
+  std::vector<Node> skDefs;
+  for (size_t i = 0, nasserts = ppAsserts.size(); i < nasserts; i++)
   {
+    const Node& pa = ppAsserts[i];
     if (pa.isConst())
     {
       if (pa.getConst<bool>())
@@ -265,31 +308,34 @@ void TimeoutCoreManager::initializePreprocessedAssertions(
       else
       {
         // false assertion, we are done
-        d_asserts.clear();
         d_ppAsserts.clear();
-        d_asserts.push_back(pa);
         d_ppAsserts.push_back(pa);
         return;
       }
     }
-    // remember the unpreprocessed version
-    d_asserts.push_back(pa);
-    // apply top-level substitutions
-    Node pas = sm.apply(pa);
-    if (pas != pa)
-    {
-      d_ppAsserts.push_back(rewrite(pas));
-    }
-    else
+    itc = ppSkolemMap.find(i);
+    if (itc == ppSkolemMap.end())
     {
       d_ppAsserts.push_back(pa);
     }
+    else
+    {
+      d_skolemToAssert[itc->second] = pa;
+      skDefs.push_back(pa);
+    }
   }
+  // remember the size of the prefix of non-skolem definitions
+  d_numAssertsNsk = d_ppAsserts.size();
+  // now, append the skolem definitions to the end of the assertion list
+  d_ppAsserts.insert(d_ppAsserts.end(), skDefs.begin(), skDefs.end());
   Trace("smt-to-core") << "get symbols..." << std::endl;
   for (size_t i = 0, npasserts = d_ppAsserts.size(); i < npasserts; i++)
   {
     expr::getSymbols(d_ppAsserts[i], d_syms[i]);
   }
+  Trace("smt-to-core") << "after processing, #asserts = " << d_ppAsserts.size()
+                       << ", #skolem-defs = " << d_skolemToAssert.size()
+                       << std::endl;
 }
 
 bool TimeoutCoreManager::recordCurrentModel(bool& allAssertsSat,
@@ -329,13 +375,15 @@ bool TimeoutCoreManager::recordCurrentModel(bool& allAssertsSat,
       // a different one
       continue;
     }
-    if (indexScore == 3)
+    // 7 is the max value for indexScore as computed below
+    if (indexScore == 7 || (indexSet && i >= d_numAssertsNsk))
     {
-      // already max score
+      // already max score, or we found a normal assertion
       continue;
     }
     // prefer false over unknown, shared symbols over no shared symbols
-    size_t currScore = (isFalse ? 1 : 0) + (hasCurrentSharedSymbol(ii) ? 2 : 0);
+    size_t currScore = (isFalse ? 1 : 0) + (hasCurrentSharedSymbol(ii) ? 2 : 0)
+                       + (i >= d_numAssertsNsk ? 0 : 4);
     Trace("smt-to-core-debug") << "score " << currScore << std::endl;
     if (indexSet && indexScore >= currScore)
     {
