@@ -284,8 +284,8 @@ enum ENUM(ProofRule) : uint32_t
    * Notice that the application of the substitution takes into account the
    * possible list semantics of variables :math:`x_1 \ldots x_n`. If
    * :math:`x_i` is a variable with list semantics, then :math:`t_i` denotes a
-   * list of terms. The substitution (see expr::narySubstitute) replaces each
-   * :math:`x_i` with the list :math:`t_i` in its place.
+   * list of terms. The substitution implemented by expr::narySubstitute
+   * replaces each :math:`x_i` with the list :math:`t_i` in its place.
    * \endverbatim
    */
   EVALUE(DSL_REWRITE),
@@ -1207,7 +1207,7 @@ enum ENUM(ProofRule) : uint32_t
    *   {((\lambda x_1\dots x_n.\> t) t_1 \ldots t_n)=t\{x_1\mapsto t_1,\dots,x_n\mapsto t_n\}}
    *
    * The right hand side of the equality in the conclusion is computed using
-   * standard substitution (Node::substitute).
+   * standard substitution via Node::substitute.
    * \endverbatim
    */
   EVALUE(BETA_REDUCE),
