@@ -2102,7 +2102,11 @@ void GetDifficultyCommand::toStream(std::ostream& out) const
 /* -------------------------------------------------------------------------- */
 
 GetTimeoutCoreCommand::GetTimeoutCoreCommand()
-    : d_solver(nullptr), d_sm(nullptr)
+    : d_solver(nullptr), d_sm(nullptr), d_softConstraints(), d_hasSoftConstraints(false)
+{
+}
+GetTimeoutCoreCommand::GetTimeoutCoreCommand(const std::vector<Term>& softConstraints)
+    : d_solver(nullptr), d_sm(nullptr), d_softConstraints(softConstraints), d_hasSoftConstraints(true)
 {
 }
 void GetTimeoutCoreCommand::invoke(cvc5::Solver* solver, SymManager* sm)
@@ -2111,7 +2115,14 @@ void GetTimeoutCoreCommand::invoke(cvc5::Solver* solver, SymManager* sm)
   {
     d_sm = sm;
     d_solver = solver;
-    d_result = solver->getTimeoutCore();
+    if (d_hasSoftConstraints)
+    {
+      d_result = solver->getTimeoutCore(softConstraints);
+    }
+    else
+    {
+      d_result = sovler->getTimeoutCore();
+    }
     d_commandStatus = CommandSuccess::instance();
   }
   catch (cvc5::CVC5ApiRecoverableException& e)

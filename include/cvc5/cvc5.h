@@ -4427,6 +4427,24 @@ class CVC5_EXPORT Solver
   std::pair<Result, std::vector<Term>> getTimeoutCore() const;
 
   /**
+   * Get a timeout core, which computes a subset of the current assertions that
+   * cause a timeout. Note it does not require being proceeded by a call to
+   * checkSat.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-timeout-core (<assert>*))
+   * \endverbatim
+   *
+   * @warning This function is experimental and may change in future versions.
+   *
+   * @return The result of the timeout core computation.
+   */
+  std::pair<Result, std::vector<Term>> getTimeoutCore(const std::vector<Term>& softConstraints) const;
+  /**
    * Get a proof associated with the most recent call to checkSat.
    *
    * SMT-LIB:

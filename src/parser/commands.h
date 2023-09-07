@@ -1026,6 +1026,7 @@ class CVC5_EXPORT GetDifficultyCommand : public Cmd
 class CVC5_EXPORT GetTimeoutCoreCommand : public Cmd
 {
  public:
+  GetTimeoutCoreCommand(const std::vector<Term>& softConstraints);
   GetTimeoutCoreCommand();
   cvc5::Result getResult() const;
   const std::vector<cvc5::Term>& getTimeoutCore() const;
@@ -1041,6 +1042,10 @@ class CVC5_EXPORT GetTimeoutCoreCommand : public Cmd
   cvc5::Solver* d_solver;
   /** The symbol manager we were invoked with */
   parser::SymManager* d_sm;
+  /** Did we provide soft constraints */
+  bool d_hasSoftConstraints;
+  /** Soft constraints */
+  std::vector<Term> d_softConstraints;
   /** the result of the timeout core call */
   std::pair<cvc5::Result, std::vector<cvc5::Term>> d_result;
 };

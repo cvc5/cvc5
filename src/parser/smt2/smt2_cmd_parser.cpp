@@ -672,7 +672,28 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
     case Token::GET_TIMEOUT_CORE_TOK:
     {
       d_state.checkThatLogicIsSet();
-      cmd.reset(new GetTimeoutCoreCommand);
+      // read optional soft constraints
+      tok = d_lex.peekToken();
+      std::vector<Term> softConstraints;
+      if (tok==Token::LPAREN_TOK)
+      {
+        tok = d_lex.peekToken();
+        while (tok!=Token::RPAREN_TOK)
+        {
+          d_state.clearLastNamedTerm();
+          Term t = d_tparser.parseTerm();
+          std::pair<Term, std::string> namedTerm = d_state.lastNamedTerm();
+          if (namedTerm.first == t)
+          {
+            d_state.getSymbolManager()->setExpressionName(
+                namedTerm.first, namedTerm.second, true);
+          }
+          softConstraints.push_back(t);
+          tok = d_lex.peekToken();
+        }
+        d_lex.nextToken();
+      }
+      cmd.reset(new GetTimeoutCoreCommand(softConstraints));
     }
     break;
     // (get-unsat-assumptions)

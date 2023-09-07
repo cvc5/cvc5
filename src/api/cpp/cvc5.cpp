@@ -7098,7 +7098,6 @@ std::map<Term, Term> Solver::getDifficulty() const
   ////////
   CVC5_API_TRY_CATCH_END;
 }
-
 std::pair<Result, std::vector<Term>> Solver::getTimeoutCore() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -7109,6 +7108,24 @@ std::pair<Result, std::vector<Term>> Solver::getTimeoutCore() const
   std::vector<Term> res;
   std::pair<internal::Result, std::vector<internal::Node>> resi =
       d_slv->getTimeoutCore();
+  for (internal::Node& c : resi.second)
+  {
+    res.push_back(Term(d_nm, c));
+  }
+  return std::pair<Result, std::vector<Term>>(Result(resi.first), res);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+std::pair<Result, std::vector<Term>> Solver::getTimeoutCore(const std::vector<Term>& softConstraints) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceUnsatCores)
+      << "Cannot get timeout core unless unsat cores are enabled "
+         "(try --produce-unsat-cores)";
+  //////// all checks before this line
+  std::vector<Term> res;
+  std::pair<internal::Result, std::vector<internal::Node>> resi =
+      d_slv->getTimeoutCore(Term::termVectorToNodes(softConstraints));
   for (internal::Node& c : resi.second)
   {
     res.push_back(Term(d_nm, c));
