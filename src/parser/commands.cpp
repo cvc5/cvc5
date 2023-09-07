@@ -2102,10 +2102,7 @@ void GetDifficultyCommand::toStream(std::ostream& out) const
 /* -------------------------------------------------------------------------- */
 
 GetTimeoutCoreCommand::GetTimeoutCoreCommand()
-    : d_solver(nullptr),
-      d_sm(nullptr),
-      d_hasAssumptions(false),
-      d_assumptions()
+    : d_solver(nullptr), d_sm(nullptr), d_hasAssumptions(false), d_assumptions()
 {
 }
 GetTimeoutCoreCommand::GetTimeoutCoreCommand(

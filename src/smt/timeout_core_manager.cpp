@@ -61,8 +61,7 @@ std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
   d_asymbols.clear();
   d_syms.clear();
   d_globalInclude.clear();
-  initializeAssertions(
-      ppAsserts, ppSkolemMap, assumptions, hasAssumptions);
+  initializeAssertions(ppAsserts, ppSkolemMap, assumptions, hasAssumptions);
 
   std::vector<size_t> nextInclude;
   Result result;
@@ -319,13 +318,11 @@ void TimeoutCoreManager::initializeAssertions(
   Trace("smt-to-core") << "initializeAssertions" << std::endl;
   if (hasAssumptions)
   {
-    Trace("smt-to-core") << "#assumptions =" << assumptions
-                         << std::endl;
+    Trace("smt-to-core") << "#assumptions =" << assumptions << std::endl;
   }
   Trace("smt-to-core") << "#ppAsserts = " << ppAsserts.size() << std::endl;
   std::vector<Node> skDefs;
-  const std::vector<Node>& input =
-      hasAssumptions ? assumptions : ppAsserts;
+  const std::vector<Node>& input = hasAssumptions ? assumptions : ppAsserts;
   std::map<size_t, Node>::const_iterator itc;
   theory::TrustSubstitutionMap& tls = d_env.getTopLevelSubstitutions();
   for (size_t i = 0, nasserts = input.size(); i < nasserts; i++)

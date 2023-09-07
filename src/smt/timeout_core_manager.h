@@ -70,19 +70,20 @@ class TimeoutCoreManager : protected EnvObj
  public:
   TimeoutCoreManager(Env& env);
 
-  /** 
+  /**
    * Get timeout core for the current set of assertions stored in ppAsserts.
    *
    * Returns a pair containing a result and a list of formulas C. For details,
    * see Solver::getTimeoutCore.
-   * 
+   *
    * If hasAssumptions is true, the timeout core is a subset of formulas in
    * assumptions.
-   * 
+   *
    * Otherwise, the timeout core is a subset of formulas in ppAsserts.
-   * 
+   *
    * @param ppAsserts The preprocessed assertions
-   * @param ppSkolemMap Mapping from indices in ppAsserts to skolem it defined, if applicable.
+   * @param ppSkolemMap Mapping from indices in ppAsserts to skolem it defined,
+   * if applicable.
    * @param assumptions The assumptions
    * @param hasAssumptions Whether the user provided assumptions.
    */
@@ -136,10 +137,11 @@ class TimeoutCoreManager : protected EnvObj
    */
   std::vector<Node> d_ppAsserts;
   /**
-   * A vector of the same size as above that we should report as the timeout core.
+   * A vector of the same size as above that we should report as the timeout
+   * core.
    */
   std::vector<Node> d_ppAssertsOrig;
-  
+
   /** Number of non-skolem definitions, a prefix of d_ppAsserts */
   size_t d_numAssertsNsk;
   /**
