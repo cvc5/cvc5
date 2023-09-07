@@ -48,8 +48,8 @@ TimeoutCoreManager::TimeoutCoreManager(Env& env)
 std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
     const std::vector<Node>& ppAsserts,
     const std::map<size_t, Node>& ppSkolemMap,
-      const std::vector<Node>& softConstraints,
-      bool hasSoftConstraints)
+    const std::vector<Node>& softConstraints,
+    bool hasSoftConstraints)
 {
   d_ppAsserts.clear();
   d_skolemToAssert.clear();
@@ -60,7 +60,8 @@ std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
   d_asymbols.clear();
   d_syms.clear();
   d_globalInclude.clear();
-  initializeAssertions(ppAsserts, ppSkolemMap, softConstraints, hasSoftConstraints);
+  initializeAssertions(
+      ppAsserts, ppSkolemMap, softConstraints, hasSoftConstraints);
 
   std::vector<size_t> nextInclude;
   Result result;
@@ -229,7 +230,8 @@ void TimeoutCoreManager::getActiveDefinitions(std::vector<Node>& nextAsserts)
       }
     }
   }
-  nextAsserts.insert(nextAsserts.end(), d_globalInclude.begin(), d_globalInclude.end());
+  nextAsserts.insert(
+      nextAsserts.end(), d_globalInclude.begin(), d_globalInclude.end());
 }
 
 Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions,
@@ -310,13 +312,14 @@ Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions,
 void TimeoutCoreManager::initializeAssertions(
     const std::vector<Node>& ppAsserts,
     const std::map<size_t, Node>& ppSkolemMap,
-      const std::vector<Node>& softConstraints,
-      bool hasSoftConstraints)
+    const std::vector<Node>& softConstraints,
+    bool hasSoftConstraints)
 {
   Trace("smt-to-core") << "initializeAssertions" << std::endl;
   Trace("smt-to-core") << "#ppAsserts = " << ppAsserts.size() << std::endl;
   std::vector<Node> skDefs;
-  const std::vector<Node>& input = hasSoftConstraints ? softConstraints : ppAsserts;
+  const std::vector<Node>& input =
+      hasSoftConstraints ? softConstraints : ppAsserts;
   std::map<size_t, Node>::const_iterator itc;
   for (size_t i = 0, nasserts = input.size(); i < nasserts; i++)
   {
@@ -378,7 +381,8 @@ bool TimeoutCoreManager::recordCurrentModel(bool& allAssertsSat,
   allAssertsSat = true;
   size_t indexScore = 0;
   size_t nasserts = d_ppAsserts.size();
-  size_t startIndex = nasserts==0 ? 0 : Random::getRandom().pick(0, nasserts - 1);
+  size_t startIndex =
+      nasserts == 0 ? 0 : Random::getRandom().pick(0, nasserts - 1);
   currModel.resize(nasserts);
   bool hadFalseAssert = false;
   for (size_t i = 0; i < nasserts; i++)

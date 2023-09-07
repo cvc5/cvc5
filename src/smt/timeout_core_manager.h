@@ -18,10 +18,10 @@
 #ifndef CVC5__SMT__TIMEOUT_CORE_MANAGER_H
 #define CVC5__SMT__TIMEOUT_CORE_MANAGER_H
 
+#include "expr/subs.h"
 #include "smt/assertions.h"
 #include "smt/env_obj.h"
 #include "util/result.h"
-#include "expr/subs.h"
 
 namespace cvc5::internal {
 
@@ -91,8 +91,8 @@ class TimeoutCoreManager : protected EnvObj
   /** initialize assertions */
   void initializeAssertions(const std::vector<Node>& ppAsserts,
                             const std::map<size_t, Node>& ppSkolemMap,
-      const std::vector<Node>& softConstraints,
-      bool hasSoftConstraints);
+                            const std::vector<Node>& softConstraints,
+                            bool hasSoftConstraints);
   /** get next assertions */
   void getNextAssertions(const std::vector<size_t>& nextInclude,
                          std::vector<Node>& nextAssertions);

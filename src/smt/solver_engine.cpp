@@ -814,8 +814,8 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore(
   {
     ppSkolemMap[pk.first] = pk.second;
   }
-  std::pair<Result, std::vector<Node>> ret =
-      tcm.getTimeoutCore(passerts, ppSkolemMap, softConstraints, hasSoftConstraints);
+  std::pair<Result, std::vector<Node>> ret = tcm.getTimeoutCore(
+      passerts, ppSkolemMap, softConstraints, hasSoftConstraints);
   // convert the preprocessed assertions to input assertions
   std::vector<Node> core;
   if (!ret.second.empty())
