@@ -1,8 +1,8 @@
-; COMMAND-LINE: --timeout-core-timeout=200 --print-cores-full
+; COMMAND-LINE: --timeout-core-timeout=200
 ; REQUIRES: no-competition
 ; EXPECT: unknown
 ; EXPECT: (
-; EXPECT: A
+; EXPECT: tc-A
 ; EXPECT: )
 (set-logic ALL)
 (set-option :produce-unsat-cores true)
@@ -16,9 +16,9 @@
 ; making A true forces the equality to be asserted, making the problem hard
 (get-timeout-core
  (
-    (not B)
-    C
-    A
-    D
+    (! (not B) :named tc-B)
+    (! C :named tc-C)
+    (! A :named tc-A)
+    (! D :named tc-D)
  )
 )
