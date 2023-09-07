@@ -677,6 +677,7 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       std::vector<Term> softConstraints;
       if (tok == Token::LPAREN_TOK)
       {
+        d_lex.nextToken();
         tok = d_lex.peekToken();
         while (tok != Token::RPAREN_TOK)
         {

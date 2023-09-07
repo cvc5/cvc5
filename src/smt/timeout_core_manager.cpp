@@ -344,7 +344,11 @@ void TimeoutCoreManager::initializeAssertions(
         break;
       }
     }
-    if (!hasSoftConstraints)
+    if (hasSoftConstraints)
+    {
+      d_ppAsserts.push_back(pa);
+    }
+    else
     {
       itc = ppSkolemMap.find(i);
       if (itc == ppSkolemMap.end())

@@ -818,9 +818,17 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore(
       passerts, ppSkolemMap, softConstraints, hasSoftConstraints);
   // convert the preprocessed assertions to input assertions
   std::vector<Node> core;
-  if (!ret.second.empty())
+  if (!hasSoftConstraints)
   {
-    core = convertPreprocessedToInput(ret.second, true);
+    if (!ret.second.empty())
+    {
+      core = convertPreprocessedToInput(ret.second, true);
+    }
+  }
+  else
+  {
+    // not necessary to convert
+    core = ret.second;
   }
   endCall();
   return std::pair<Result, std::vector<Node>>(ret.first, core);
