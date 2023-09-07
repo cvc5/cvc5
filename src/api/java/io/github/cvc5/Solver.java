@@ -2078,9 +2078,9 @@ public class Solver implements IPointer
   private native Pair<Long, long[]> getTimeoutCore(long pointer);
 
   /**
-   * Get a timeout core, which computes a subset of the current assertions that
-   * cause a timeout. Note it does not require being proceeded by a call to
-   * checkSat.
+   * Get a timeout core, which computes a subset of the given assumptions that
+   * cause a timeout when added to the current assertions. Note it does not
+   * require being proceeded by a call to checkSat.
    *
    * SMT-LIB:
    * {@code
@@ -2089,20 +2089,21 @@ public class Solver implements IPointer
    *
    * @api.note This method is experimental and may change in future versions.
    *
+   * @param assumptions The formulas to assume.
    * @return The result of the timeout core computation. This is a pair
    * containing a result and a list of formulas. If the result is unknown
    * and the reason is timeout, then the list of formulas correspond to a
-   * subset of the current assertions that cause a timeout in the specified
-   * time {@code timeout-core-timeout}.
-   * If the result is unsat, then the list of formulas correspond to an
-   * unsat core for the current assertions. Otherwise, the result is sat,
-   * indicating that the current assertions are satisfiable, and
-   * the list of formulas is empty.
+   * subset of assumptions that cause a timeout when added to the current
+   * assertions in the specified time {@code timeout-core-timeout}.
+   * If the result is unsat, then the list of formulas plus the current
+   * assertions correspond to an unsat core for the current assertions.
+   * Otherwise, the result is sat, indicating that the given assumptions plus
+   * the current assertions are satisfiable, and the list of formulas is empty.
    *
    * This method may make multiple checks for satisfiability internally, each
    * limited by the timeout value given by {@code timeout-core-timeout}.
    */
-  public Pair<Result, Term[]> getTimeoutCore(Term[] scs)
+  public Pair<Result, Term[]> getTimeoutCore(Term[] assumptions)
   {
     long[] pointers = Utils.getPointers(assumptions);
     Pair<Long, long[]> pair = getTimeoutCore(pointer, pointers);
@@ -2112,7 +2113,7 @@ public class Solver implements IPointer
     return ret;
   }
 
-  private native Pair<Long, long[]> getTimeoutCore(long pointer, long[] scPointers);
+  private native Pair<Long, long[]> getTimeoutCore(long pointer, long[] assumptionPointers);
 
   /**
    * Get refutation proof for the most recent call to checkSat.

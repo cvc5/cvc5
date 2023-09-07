@@ -2114,12 +2114,12 @@ Java_io_github_cvc5_Solver_getTimeoutCore(JNIEnv* env, jobject, jlong pointer)
  * Signature: (J[J)J
  */
 JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getTimeoutCore__J_3J(
-    JNIEnv* env, jobject, jlong pointer, jlongArray scAssumptions)
+    JNIEnv* env, jobject, jlong pointer, jlongArray assumptions)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  std::vector<Term> scs = getObjectsFromPointers<Term>(env, scAssumptions);
-  auto [result, terms] = solver->getTimeoutCore(scs);
+  std::vector<Term> as = getObjectsFromPointers<Term>(env, assumptions);
+  auto [result, terms] = solver->getTimeoutCore(as);
   Result* resultPointer = new Result(result);
   jlongArray a = getPointersFromObjects<Term>(env, terms);
 

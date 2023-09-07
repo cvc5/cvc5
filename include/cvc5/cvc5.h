@@ -4427,9 +4427,9 @@ class CVC5_EXPORT Solver
   std::pair<Result, std::vector<Term>> getTimeoutCore() const;
 
   /**
-   * Get a timeout core, which computes a subset of the current assertions that
-   * cause a timeout. Note it does not require being proceeded by a call to
-   * checkSat.
+   * Get a timeout core, which computes a subset of the given assumptions that
+   * cause a timeout when added to the current assertions. Note it does not
+   * require being proceeded by a call to checkSat.
    *
    * SMT-LIB:
    *
@@ -4441,10 +4441,20 @@ class CVC5_EXPORT Solver
    *
    * @warning This function is experimental and may change in future versions.
    *
-   * @return The result of the timeout core computation.
+   * @param assumptions The formulas to assume.
+   * @return The result of the timeout core computation. This is a pair
+   * containing a result and a list of formulas. If the result is unknown
+   * and the reason is timeout, then the list of formulas correspond to a
+   * subset of assumptions that cause a timeout when added to the current
+   * assertions in the specified time
+   * :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+   * If the result is unsat, then the list of formulas plus the current
+   * assertions correspond to an unsat core for the current assertions.
+   * Otherwise, the result is sat, indicating that the given assumptions plus
+   * the current assertions are satisfiable, and the list of formulas is empty.
    */
   std::pair<Result, std::vector<Term>> getTimeoutCore(
-      const std::vector<Term>& softConstraints) const;
+      const std::vector<Term>& assumptions) const;
   /**
    * Get a proof associated with the most recent call to checkSat.
    *
