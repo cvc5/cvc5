@@ -692,8 +692,12 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
           tok = d_lex.peekToken();
         }
         d_lex.nextToken();
+        cmd.reset(new GetTimeoutCoreCommand(softConstraints));
       }
-      cmd.reset(new GetTimeoutCoreCommand(softConstraints));
+      else
+      {
+        cmd.reset(new GetTimeoutCoreCommand);
+      }
     }
     break;
     // (get-unsat-assumptions)
