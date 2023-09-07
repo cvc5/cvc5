@@ -170,6 +170,8 @@ void TimeoutCoreManager::getNextAssertions(
   }
   Trace("smt-to-core") << "Get next assertions..." << std::endl;
   bool removedAssertion = false;
+  // include each assertion, which may trigger other formulas to be removed
+  // from our active set (given by d_ainfo).
   for (size_t i : nextInclude)
   {
     includeAssertion(i, removedAssertion);
