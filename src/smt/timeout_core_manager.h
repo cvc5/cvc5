@@ -101,9 +101,9 @@ class TimeoutCoreManager : protected EnvObj
                             const std::map<size_t, Node>& ppSkolemMap,
                             const std::vector<Node>& assumptions,
                             bool hasAssumptions);
-  /** 
+  /**
    * Get next assertions
-   * 
+   *
    * @param nextInclude The indices of assertions to include. Note that
    * during this method, we may refine the current set of assertions we are
    * considering based on what is included.
@@ -113,7 +113,7 @@ class TimeoutCoreManager : protected EnvObj
    */
   void getNextAssertions(const std::vector<size_t>& nextInclude,
                          std::vector<Node>& nextAssertions);
-  /** 
+  /**
    * Check sat next
    * @param nextAssertions The assertions to check on this call
    * @param nextInclude The indices of assertions to add for the next call,
