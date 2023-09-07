@@ -5418,7 +5418,7 @@ class CVC5_EXPORT Solver
                       Grammar* grammar = nullptr) const;
 
   std::pair<Result, std::vector<Term>> getTimeoutCoreHelper(
-      const std::vector<Term>& softConstraints, bool hasSoftConstraints) const;
+      const std::vector<Term>& assumptions, bool hasAssumptions) const;
 
   /** Check whether string s is a valid decimal integer. */
   bool isValidInteger(const std::string& s) const;

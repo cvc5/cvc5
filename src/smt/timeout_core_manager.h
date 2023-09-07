@@ -70,20 +70,27 @@ class TimeoutCoreManager : protected EnvObj
  public:
   TimeoutCoreManager(Env& env);
 
-  /** get timeout core for the current set of assertions stored in ppAsserts.
+  /** 
+   * Get timeout core for the current set of assertions stored in ppAsserts.
    *
-   * Returns a pair containing a result and a list of formulas C. If the result
-   * is unknown and the reason is timeout, then the list C corresponds to
-   * a subset of the current assertions that cause a timeout in the specified
-   * by timeout-core-timeout. If the result is unsat, then C is an unsat core
-   * for the set of assertions. Otherwise, the list of formulas is empty and the
-   * result has the same guarantees as a response to checkSat.
+   * Returns a pair containing a result and a list of formulas C. For details,
+   * see Solver::getTimeoutCore.
+   * 
+   * If hasAssumptions is true, the timeout core is a subset of formulas in
+   * assumptions.
+   * 
+   * Otherwise, the timeout core is a subset of formulas in ppAsserts.
+   * 
+   * @param ppAsserts The preprocessed assertions
+   * @param ppSkolemMap Mapping from indices in ppAsserts to skolem it defined, if applicable.
+   * @param assumptions The assumptions
+   * @param hasAssumptions Whether the user provided assumptions.
    */
   std::pair<Result, std::vector<Node>> getTimeoutCore(
       const std::vector<Node>& ppAsserts,
       const std::map<size_t, Node>& ppSkolemMap,
-      const std::vector<Node>& softConstraints,
-      bool hasSoftConstraints);
+      const std::vector<Node>& assumptions,
+      bool hasAssumptions);
   /** Get the SMT solver */
   SolverEngine* getSubSolver();
 
@@ -91,8 +98,8 @@ class TimeoutCoreManager : protected EnvObj
   /** initialize assertions */
   void initializeAssertions(const std::vector<Node>& ppAsserts,
                             const std::map<size_t, Node>& ppSkolemMap,
-                            const std::vector<Node>& softConstraints,
-                            bool hasSoftConstraints);
+                            const std::vector<Node>& assumptions,
+                            bool hasAssumptions);
   /** get next assertions */
   void getNextAssertions(const std::vector<size_t>& nextInclude,
                          std::vector<Node>& nextAssertions);

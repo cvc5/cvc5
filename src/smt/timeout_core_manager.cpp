@@ -48,8 +48,8 @@ TimeoutCoreManager::TimeoutCoreManager(Env& env)
 std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
     const std::vector<Node>& ppAsserts,
     const std::map<size_t, Node>& ppSkolemMap,
-    const std::vector<Node>& softConstraints,
-    bool hasSoftConstraints)
+    const std::vector<Node>& assumptions,
+    bool hasAssumptions)
 {
   d_ppAsserts.clear();
   d_ppAssertsOrig.clear();
@@ -62,7 +62,7 @@ std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
   d_syms.clear();
   d_globalInclude.clear();
   initializeAssertions(
-      ppAsserts, ppSkolemMap, softConstraints, hasSoftConstraints);
+      ppAsserts, ppSkolemMap, assumptions, hasAssumptions);
 
   std::vector<size_t> nextInclude;
   Result result;
@@ -91,7 +91,7 @@ std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
     toCore.push_back(d_ppAssertsOrig[a.first]);
   }
   // include the skolem definitions
-  if (!hasSoftConstraints)
+  if (!hasAssumptions)
   {
     getActiveDefinitions(toCore);
   }
@@ -313,19 +313,19 @@ Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions,
 void TimeoutCoreManager::initializeAssertions(
     const std::vector<Node>& ppAsserts,
     const std::map<size_t, Node>& ppSkolemMap,
-    const std::vector<Node>& softConstraints,
-    bool hasSoftConstraints)
+    const std::vector<Node>& assumptions,
+    bool hasAssumptions)
 {
   Trace("smt-to-core") << "initializeAssertions" << std::endl;
-  if (hasSoftConstraints)
+  if (hasAssumptions)
   {
-    Trace("smt-to-core") << "#softConstraints =" << softConstraints
+    Trace("smt-to-core") << "#assumptions =" << assumptions
                          << std::endl;
   }
   Trace("smt-to-core") << "#ppAsserts = " << ppAsserts.size() << std::endl;
   std::vector<Node> skDefs;
   const std::vector<Node>& input =
-      hasSoftConstraints ? softConstraints : ppAsserts;
+      hasAssumptions ? assumptions : ppAsserts;
   std::map<size_t, Node>::const_iterator itc;
   theory::TrustSubstitutionMap& tls = d_env.getTopLevelSubstitutions();
   for (size_t i = 0, nasserts = input.size(); i < nasserts; i++)
@@ -348,7 +348,7 @@ void TimeoutCoreManager::initializeAssertions(
         break;
       }
     }
-    if (hasSoftConstraints)
+    if (hasAssumptions)
     {
       d_ppAsserts.push_back(par);
       d_ppAssertsOrig.push_back(pa);
@@ -368,7 +368,7 @@ void TimeoutCoreManager::initializeAssertions(
       }
     }
   }
-  if (hasSoftConstraints)
+  if (hasAssumptions)
   {
     d_globalInclude = ppAsserts;
   }

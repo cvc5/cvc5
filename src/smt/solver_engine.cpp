@@ -795,7 +795,7 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
 }
 
 std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore(
-    const std::vector<Node>& softConstraints, bool hasSoftConstraints)
+    const std::vector<Node>& assumptions, bool hasAssumptions)
 {
   Trace("smt") << "SolverEngine::getTimeoutCore()" << std::endl;
   beginCall(true);
@@ -815,10 +815,10 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore(
     ppSkolemMap[pk.first] = pk.second;
   }
   std::pair<Result, std::vector<Node>> ret = tcm.getTimeoutCore(
-      passerts, ppSkolemMap, softConstraints, hasSoftConstraints);
+      passerts, ppSkolemMap, assumptions, hasAssumptions);
   // convert the preprocessed assertions to input assertions
   std::vector<Node> core;
-  if (!hasSoftConstraints)
+  if (!hasAssumptions)
   {
     if (!ret.second.empty())
     {

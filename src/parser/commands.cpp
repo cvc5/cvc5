@@ -2104,16 +2104,16 @@ void GetDifficultyCommand::toStream(std::ostream& out) const
 GetTimeoutCoreCommand::GetTimeoutCoreCommand()
     : d_solver(nullptr),
       d_sm(nullptr),
-      d_hasSoftConstraints(false),
-      d_softConstraints()
+      d_hasAssumptions(false),
+      d_assumptions()
 {
 }
 GetTimeoutCoreCommand::GetTimeoutCoreCommand(
-    const std::vector<Term>& softConstraints)
+    const std::vector<Term>& assumptions)
     : d_solver(nullptr),
       d_sm(nullptr),
-      d_hasSoftConstraints(true),
-      d_softConstraints(softConstraints)
+      d_hasAssumptions(true),
+      d_assumptions(assumptions)
 {
 }
 void GetTimeoutCoreCommand::invoke(cvc5::Solver* solver, SymManager* sm)
@@ -2122,9 +2122,9 @@ void GetTimeoutCoreCommand::invoke(cvc5::Solver* solver, SymManager* sm)
   {
     d_sm = sm;
     d_solver = solver;
-    if (d_hasSoftConstraints)
+    if (d_hasAssumptions)
     {
-      d_result = solver->getTimeoutCore(d_softConstraints);
+      d_result = solver->getTimeoutCore(d_assumptions);
     }
     else
     {
