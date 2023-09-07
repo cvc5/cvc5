@@ -4443,7 +4443,8 @@ class CVC5_EXPORT Solver
    *
    * @return The result of the timeout core computation.
    */
-  std::pair<Result, std::vector<Term>> getTimeoutCore(const std::vector<Term>& softConstraints) const;
+  std::pair<Result, std::vector<Term>> getTimeoutCore(
+      const std::vector<Term>& softConstraints) const;
   /**
    * Get a proof associated with the most recent call to checkSat.
    *
@@ -5406,6 +5407,9 @@ class CVC5_EXPORT Solver
                       bool isInv = false,
                       Grammar* grammar = nullptr) const;
 
+std::pair<Result, std::vector<Term>> getTimeoutCoreHelper(
+    const std::vector<Term>& softConstraints, bool hasSoftConstraints) const;
+    
   /** Check whether string s is a valid decimal integer. */
   bool isValidInteger(const std::string& s) const;
 

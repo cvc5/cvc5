@@ -794,7 +794,7 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   return Result(r, filename);
 }
 
-std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore()
+std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore(const std::vector<Node>& softConstraints, bool hasSoftConstraints)
 {
   Trace("smt") << "SolverEngine::getTimeoutCore()" << std::endl;
   beginCall(true);

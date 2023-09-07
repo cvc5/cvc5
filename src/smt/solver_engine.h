@@ -349,7 +349,7 @@ class CVC5_EXPORT SolverEngine
    * indicating that the current assertions are satisfiable, and
    * the list of formulas is empty.
    */
-  std::pair<Result, std::vector<Node>> getTimeoutCore();
+  std::pair<Result, std::vector<Node>> getTimeoutCore(const std::vector<Node>& softConstraints, bool hasSoftConstraints);
   /**
    * Returns a set of so-called "failed" assumptions.
    *

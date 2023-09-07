@@ -675,10 +675,10 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       // read optional soft constraints
       tok = d_lex.peekToken();
       std::vector<Term> softConstraints;
-      if (tok==Token::LPAREN_TOK)
+      if (tok == Token::LPAREN_TOK)
       {
         tok = d_lex.peekToken();
-        while (tok!=Token::RPAREN_TOK)
+        while (tok != Token::RPAREN_TOK)
         {
           d_state.clearLastNamedTerm();
           Term t = d_tparser.parseTerm();
