@@ -12,6 +12,7 @@
  true
  )
 )
+(declare-const A Bool)
 (assert A)
 (get-timeout-core
  (

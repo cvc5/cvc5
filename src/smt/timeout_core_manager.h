@@ -124,10 +124,15 @@ class TimeoutCoreManager : protected EnvObj
   Node d_true;
   Node d_false;
   /**
-   * The preprocessed assertions, which we have run substitutions and
-   * rewriting on
+   * The preprocessed assertions which are candidates for the timeout core
+   * that we are working with.
    */
   std::vector<Node> d_ppAsserts;
+  /**
+   * A vector of the same size as above that we should report as the timeout core.
+   */
+  std::vector<Node> d_ppAssertsOrig;
+  
   /** Number of non-skolem definitions, a prefix of d_ppAsserts */
   size_t d_numAssertsNsk;
   /**

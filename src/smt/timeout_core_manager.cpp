@@ -52,6 +52,7 @@ std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
     bool hasSoftConstraints)
 {
   d_ppAsserts.clear();
+  d_ppAssertsOrig.clear();
   d_skolemToAssert.clear();
   d_modelValues.clear();
   d_modelToAssert.clear();
@@ -86,8 +87,8 @@ std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
   std::vector<Node> toCore;
   for (std::pair<const size_t, AssertInfo>& a : d_ainfo)
   {
-    Assert(a.first < d_ppAsserts.size());
-    toCore.push_back(d_ppAsserts[a.first]);
+    Assert(a.first < d_ppAssertsOrig.size());
+    toCore.push_back(d_ppAssertsOrig[a.first]);
   }
   // include the skolem definitions
   if (!hasSoftConstraints)
@@ -326,9 +327,11 @@ void TimeoutCoreManager::initializeAssertions(
   const std::vector<Node>& input =
       hasSoftConstraints ? softConstraints : ppAsserts;
   std::map<size_t, Node>::const_iterator itc;
+  theory::TrustSubstitutionMap& tls = d_env.getTopLevelSubstitutions();
   for (size_t i = 0, nasserts = input.size(); i < nasserts; i++)
   {
-    const Node& pa = input[i];
+    Node pa = input[i];
+    Node par = rewrite(tls.get().apply(pa));
     if (pa.isConst())
     {
       if (pa.getConst<bool>())
@@ -340,20 +343,23 @@ void TimeoutCoreManager::initializeAssertions(
       {
         // false assertion, we are done
         d_ppAsserts.clear();
-        d_ppAsserts.push_back(pa);
+        d_ppAsserts.push_back(par);
+        d_ppAssertsOrig.push_back(pa);
         break;
       }
     }
     if (hasSoftConstraints)
     {
-      d_ppAsserts.push_back(pa);
+      d_ppAsserts.push_back(par);
+      d_ppAssertsOrig.push_back(pa);
     }
     else
     {
       itc = ppSkolemMap.find(i);
       if (itc == ppSkolemMap.end())
       {
-        d_ppAsserts.push_back(pa);
+        d_ppAsserts.push_back(par);
+        d_ppAssertsOrig.push_back(pa);
       }
       else
       {
@@ -370,6 +376,7 @@ void TimeoutCoreManager::initializeAssertions(
   d_numAssertsNsk = d_ppAsserts.size();
   // now, append the skolem definitions to the end of the assertion list
   d_ppAsserts.insert(d_ppAsserts.end(), skDefs.begin(), skDefs.end());
+  d_ppAssertsOrig.insert(d_ppAssertsOrig.end(), skDefs.begin(), skDefs.end());
   Trace("smt-to-core") << "get symbols..." << std::endl;
   for (size_t i = 0, npasserts = d_ppAsserts.size(); i < npasserts; i++)
   {
