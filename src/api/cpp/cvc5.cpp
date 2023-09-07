@@ -7129,7 +7129,8 @@ std::pair<Result, std::vector<Term>> Solver::getTimeoutCoreHelper(
 {
   std::vector<Term> res;
   std::pair<internal::Result, std::vector<internal::Node>> resi =
-      d_slv->getTimeoutCore(Term::termVectorToNodes(softConstraints), hasSoftConstraints);
+      d_slv->getTimeoutCore(Term::termVectorToNodes(softConstraints),
+                            hasSoftConstraints);
   for (internal::Node& c : resi.second)
   {
     res.push_back(Term(d_nm, c));
