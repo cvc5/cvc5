@@ -2077,7 +2077,6 @@ public class Solver implements IPointer
 
   private native Pair<Long, long[]> getTimeoutCore(long pointer);
 
-
   /**
    * Get a timeout core, which computes a subset of the current assertions that
    * cause a timeout. Note it does not require being proceeded by a call to
@@ -2114,7 +2113,7 @@ public class Solver implements IPointer
   }
 
   private native Pair<Long, long[]> getTimeoutCore(long pointer, long[] scPointers);
-  
+
   /**
    * Get refutation proof for the most recent call to checkSat.
    *

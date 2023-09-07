@@ -318,7 +318,8 @@ void TimeoutCoreManager::initializeAssertions(
   Trace("smt-to-core") << "initializeAssertions" << std::endl;
   if (hasSoftConstraints)
   {
-    Trace("smt-to-core") << "#softConstraints =" << softConstraints << std::endl;
+    Trace("smt-to-core") << "#softConstraints =" << softConstraints
+                         << std::endl;
   }
   Trace("smt-to-core") << "#ppAsserts = " << ppAsserts.size() << std::endl;
   std::vector<Node> skDefs;

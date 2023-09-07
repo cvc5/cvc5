@@ -2108,7 +2108,6 @@ Java_io_github_cvc5_Solver_getTimeoutCore(JNIEnv* env, jobject, jlong pointer)
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
 
-
 /*
  * Class:     io_github_cvc5_Solver
  * Method:    getTimeoutCore
@@ -2119,12 +2118,11 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getTimeoutCore__J_3J(
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  std::vector<Term> scs =
-      getObjectsFromPointers<Term>(env, scAssumptions);
+  std::vector<Term> scs = getObjectsFromPointers<Term>(env, scAssumptions);
   auto [result, terms] = solver->getTimeoutCore(scs);
   Result* resultPointer = new Result(result);
   jlongArray a = getPointersFromObjects<Term>(env, terms);
-  
+
   // Long r = new Long(resultPointer);
   jclass longClass = env->FindClass("Ljava/lang/Long;");
   jmethodID longConstructor = env->GetMethodID(longClass, "<init>", "(J)V");
@@ -2139,7 +2137,6 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getTimeoutCore__J_3J(
   return pair;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
-
 
 /*
  * Class:     io_github_cvc5_Solver
