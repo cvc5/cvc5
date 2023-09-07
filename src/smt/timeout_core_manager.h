@@ -21,6 +21,7 @@
 #include "smt/assertions.h"
 #include "smt/env_obj.h"
 #include "util/result.h"
+#include "expr/subs.h"
 
 namespace cvc5::internal {
 
@@ -80,33 +81,45 @@ class TimeoutCoreManager : protected EnvObj
    */
   std::pair<Result, std::vector<Node>> getTimeoutCore(
       const std::vector<Node>& ppAsserts,
-      const std::map<size_t, Node>& ppSkolemMap);
+      const std::map<size_t, Node>& ppSkolemMap,
+      const std::vector<Node>& softConstraints,
+      bool hasSoftConstraints);
+  /** Get the SMT solver */
+  SolverEngine* getSubSolver();
 
  private:
   /** initialize assertions */
-  void initializePreprocessedAssertions(
-      const std::vector<Node>& ppAsserts,
-      const std::map<size_t, Node>& ppSkolemMap);
+  void initializeAssertions(const std::vector<Node>& ppAsserts,
+                            const std::map<size_t, Node>& ppSkolemMap,
+      const std::vector<Node>& softConstraints,
+      bool hasSoftConstraints);
   /** get next assertions */
-  void getNextAssertions(std::vector<Node>& nextAssertions);
+  void getNextAssertions(const std::vector<size_t>& nextInclude,
+                         std::vector<Node>& nextAssertions);
   /** check sat next */
-  Result checkSatNext(const std::vector<Node>& nextAssertions);
+  Result checkSatNext(const std::vector<Node>& nextAssertions,
+                      std::vector<size_t>& nextInclude);
   /**
-   * Record current model, return true if we set d_nextIndexToInclude,
-   * indicating that we want to include a new assertion
-   * (d_ppAsserts[d_nextIndexToInclude]).
+   * Record current model, return true if nextInclude is non-empty, which
+   * contains the list of indices of new assertions that we would like to
+   * add for the next check-sat call.
    *
    * @param allAssertsSat set to true if the current model satisfies all
    * assertions.
    */
   bool recordCurrentModel(bool& allAssertsSat,
-                          SolverEngine* subSolver = nullptr);
-  /** Does the i^th assertion have a current shared symbol (a free symbol in
-   * d_asymbols). */
+                          std::vector<size_t>& nextInclude);
+  /** Include the i^th assertion */
+  void includeAssertion(size_t index, bool& removedAssertion);
+  /**
+   * Does the i^th assertion have a current shared symbol (a free symbol in
+   * d_asymbols).
+   */
   bool hasCurrentSharedSymbol(size_t i) const;
-  /** Add skolem definitions */
-  void getActiveSkolemDefinitions(std::vector<Node>& nextAssertions);
-
+  /** Get active definitions */
+  void getActiveDefinitions(std::vector<Node>& nextAssertions);
+  /** Subsolver */
+  std::unique_ptr<SolverEngine> d_subSolver;
   /** Common nodes */
   Node d_true;
   Node d_false;
@@ -136,8 +149,6 @@ class TimeoutCoreManager : protected EnvObj
    * Mapping from indices in d_modelToAssert to index of the assertion that
    * covers them */
   std::unordered_map<size_t, size_t> d_modelToAssert;
-  /** The next index of an assertion to include */
-  size_t d_nextIndexToInclude;
   /** Information about an assertion. */
   class AssertInfo
   {
@@ -156,6 +167,8 @@ class TimeoutCoreManager : protected EnvObj
   std::unordered_set<Node> d_asymbols;
   /** Free symbols of each assertion */
   std::map<size_t, std::unordered_set<Node>> d_syms;
+  /** Globally included assertions */
+  std::vector<Node> d_globalInclude;
 };
 
 }  // namespace smt
