@@ -762,7 +762,7 @@ SatValue CadicalSolver::_solve(const std::vector<SatLiteral>& assumptions)
   res = toSatValue(d_solver->solve());
   if (d_propagator)
   {
-    Assert(res == SAT_VALUE_FALSE || d_propagator->done());
+    Assert(res != SAT_VALUE_TRUE || d_propagator->done());
     Trace("cadical::propagator") << "solve done: " << res << std::endl;
   }
   d_in_search = false;
