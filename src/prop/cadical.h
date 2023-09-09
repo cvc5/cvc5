@@ -140,8 +140,11 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
 
   unsigned d_nextVarIdx;
   bool d_inSatMode;
+  /** The variable representing true. */
   SatVariable d_true;
+  /** The variable representing false. */
   SatVariable d_false;
+  /** The current user assertion level. */
   uint32_t d_assertionLevel;
 
   struct Statistics
