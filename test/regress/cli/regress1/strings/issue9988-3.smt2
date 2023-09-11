@@ -1,3 +1,5 @@
+; COMMAND-LINE: --no-strings-lazy-pp
+; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)
 (declare-fun a () String)
