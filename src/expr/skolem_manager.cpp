@@ -56,17 +56,20 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED:
       return "QUANTIFIERS_SYNTH_FUN_EMBED";
     case SkolemFunId::STRINGS_NUM_OCCUR: return "STRINGS_NUM_OCCUR";
+    case SkolemFunId::STRINGS_NUM_OCCUR_RE: return "STRINGS_NUM_OCCUR_RE";
     case SkolemFunId::STRINGS_OCCUR_INDEX: return "STRINGS_OCCUR_INDEX";
+    case SkolemFunId::STRINGS_OCCUR_INDEX_RE: return "STRINGS_OCCUR_INDEX_RE";
     case SkolemFunId::STRINGS_OCCUR_LEN: return "STRINGS_OCCUR_LEN";
+    case SkolemFunId::STRINGS_OCCUR_LEN_RE: return "STRINGS_OCCUR_LEN_RE";
     case SkolemFunId::STRINGS_DEQ_DIFF: return "STRINGS_DEQ_DIFF";
     case SkolemFunId::STRINGS_REPLACE_ALL_RESULT:
       return "STRINGS_REPLACE_ALL_RESULT";
     case SkolemFunId::STRINGS_ITOS_RESULT: return "STRINGS_ITOS_RESULT";
     case SkolemFunId::STRINGS_STOI_RESULT: return "STRINGS_STOI_RESULT";
     case SkolemFunId::STRINGS_STOI_NON_DIGIT: return "STRINGS_STOI_NON_DIGIT";
-    case SkolemFunId::SK_FIRST_MATCH_PRE: return "SK_FIRST_MATCH_PRE";
-    case SkolemFunId::SK_FIRST_MATCH: return "SK_FIRST_MATCH";
-    case SkolemFunId::SK_FIRST_MATCH_POST: return "SK_FIRST_MATCH_POST";
+    case SkolemFunId::RE_FIRST_MATCH_PRE: return "RE_FIRST_MATCH_PRE";
+    case SkolemFunId::RE_FIRST_MATCH: return "RE_FIRST_MATCH";
+    case SkolemFunId::RE_FIRST_MATCH_POST: return "RE_FIRST_MATCH_POST";
     case SkolemFunId::RE_UNFOLD_POS_COMPONENT: return "RE_UNFOLD_POS_COMPONENT";
     case SkolemFunId::SEQ_MODEL_BASE_ELEMENT: return "SEQ_MODEL_BASE_ELEMENT";
     case SkolemFunId::BAGS_CARD_CARDINALITY: return "BAGS_CARD_CARDINALITY";
