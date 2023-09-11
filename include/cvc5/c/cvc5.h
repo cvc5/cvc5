@@ -529,10 +529,12 @@ Cvc5Sort cvc5_sort_substitute(Cvc5Sort sort, Cvc5Sort s, Cvc5Sort replacement);
  * @param sort The sort.
  * @param sorts The subsorts to be substituted within the given sort.
  * @param replacements The sort replacing the substituted subsorts.
+ * @param size The size of `sorts` and `replacements`.
  */
 Cvc5Sort cvc5_sort_substitute_sorts(Cvc5Sort sort,
-                                    Cvc5Sort sorts[],
-                                    Cvc5Sort replacements[]);
+                                    size_t size,
+                                    const Cvc5Sort* sorts,
+                                    const Cvc5Sort* replacements);
 
 /**
  * Get a string representation of a given sort.
@@ -876,16 +878,16 @@ Cvc5Term cvc5_term_substitute_term(Cvc5Term term,
  *       only once (it is not run until fixed point).
  *
  * @param term        The term.
+ * @param size         The size of `terms` and `replacements`.
  * @param terms        The terms to replace.
  * @param replacements The replacement terms.
- * @param size         The size of `terms` and `replacements`.
  * @return The result of simultaneously replacing `terms` with `replacements`
  *         in the given term.
  */
 Cvc5Term cvc5_term_substitute_terms(Cvc5Term term,
+                                    size_t size,
                                     const Cvc5Term* terms,
-                                    const Cvc5Term* replacements,
-                                    size_t size);
+                                    const Cvc5Term* replacements);
 
 /**
  * Determine if a given term has an operator.
@@ -2830,7 +2832,7 @@ void cvc5_define_funs_rec(Cvc5* cvc5,
  * @param size The size of the resulting assertions array.
  * @return The list of asserted formulas.
  */
-const Cvc5Term* cvc5_get_assertions(Cvc5* cvc5, size_t size);
+const Cvc5Term* cvc5_get_assertions(Cvc5* cvc5, size_t* size);
 
 /**
  * Get info from the solver.
@@ -2863,7 +2865,7 @@ const char* cvc5_get_info(Cvc5* cvc5, const char* flag);
  * @param option The option for which the value is queried.
  * @return A string representation of the option value.
  */
-const char* getOption(Cvc5* cvc5, const char* option);
+const char* cvc5_get_option(Cvc5* cvc5, const char* option);
 
 /**
  * Get all option names that can be used with `cvc5_set_option()`,
@@ -2872,7 +2874,7 @@ const char* getOption(Cvc5* cvc5, const char* option);
  * @param size The size of the resulting option names array.
  * @return All option names.
  */
-const char** getOptionNames(Cvc5* cvc5, size_t* size);
+const char** cvc5_get_option_names(Cvc5* cvc5, size_t* size);
 
 /**
  * Get the set of unsat ("failed") assumptions.
@@ -2932,10 +2934,11 @@ const Cvc5Term* cvc5_get_unsat_core(Cvc5* cvc5, size_t* size);
  * Unmentioned assertions can be assumed to have zero difficulty.
  *
  * @param cvc5 The solver instance.
+ * @param size The size of `inputs` and `values`.
  * @param inputs The resulting inputs that are mapped to the resulting `values`.
  * @param values The resulting real values.
  */
-void cvc5_get_difficulty(Cvc5* cvc5, Cvc5Term* inputs, Cvc5Term* values);
+void cvc5_get_difficulty(Cvc5* cvc5, size_t* size, Cvc5Term* inputs, Cvc5Term* values);
 
 /**
  * Get a timeout core, which computes a subset of the current assertions that
@@ -3060,7 +3063,7 @@ const Cvc5Term* cvc5_get_values(Cvc5* cvc5, size_t size, const Cvc5Term* terms);
  * @return The domain elements of s in the current model.
  */
 const Cvc5Term* cvc5_get_model_domain_elements(Cvc5* cvc5,
-                                               Cvc5Sort* s,
+                                               Cvc5Sort s,
                                                size_t* size);
 
 /**
