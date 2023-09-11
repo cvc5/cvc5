@@ -147,6 +147,8 @@ class HoElim : public PreprocessingPass
   TypeNode getUSort(TypeNode tn);
   /** cache of the above function */
   std::map<TypeNode, TypeNode> d_ftypeMap;
+  /** The sort constructor for sorts we introduce */
+  TypeNode d_hoElimSc;
 };
 
 }  // namespace passes
