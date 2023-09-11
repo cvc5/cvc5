@@ -143,6 +143,10 @@ libcvc5_add_sources(
   printer/printer.h
   printer/smt2/smt2_printer.cpp
   printer/smt2/smt2_printer.h
+  proof/alf/alf_print_channel.cpp
+  proof/alf/alf_print_channel.h
+  proof/alf/alf_proof_rule.cpp
+  proof/alf/alf_proof_rule.h
   proof/annotation_proof_generator.cpp
   proof/annotation_proof_generator.h
   proof/assumption_proof_generator.cpp
