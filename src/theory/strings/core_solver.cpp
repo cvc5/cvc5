@@ -1337,11 +1337,6 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
                            isRev,
                            true);
       }
-      else
-      {
-        Assert(nfiv.size() == nfjv.size());
-        index = nfiv.size() - rproc;
-      }
       break;
     }
     else if (x.isConst() && y.isConst())
