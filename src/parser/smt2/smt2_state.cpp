@@ -155,6 +155,7 @@ void Smt2State::addDatatypesOperators()
     // and defineVar here.
     addOperator(Kind::APPLY_CONSTRUCTOR, "tuple");
     defineVar("tuple", d_solver->mkTuple({}));
+    defineVar("tuple.unit", d_solver->mkTuple({}));
     addIndexedOperator(Kind::UNDEFINED_KIND, "tuple.select");
     addIndexedOperator(Kind::UNDEFINED_KIND, "tuple.update");
   }
@@ -824,6 +825,7 @@ void Smt2State::setLogic(std::string name)
   {
     const std::vector<Sort> types;
     defineType("Tuple", d_solver->mkTupleSort(types), true);
+    defineType("UnitTuple", d_solver->mkTupleSort(types), true);
     addDatatypesOperators();
   }
 
