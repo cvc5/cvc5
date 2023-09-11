@@ -36,7 +36,7 @@ namespace passes {
 HoElim::HoElim(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "ho-elim")
 {
-  d_hoElimSc = NodeManager::currentNM()->mkSortConstructor("ho-elim-sort", 1);
+  d_hoElimSc = NodeManager::currentNM()->mkSortConstructor("@ho-elim-sort", 1);
 }
 
 Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
