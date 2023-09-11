@@ -1337,6 +1337,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
                            isRev,
                            true);
       }
+      // otherwise the endpoint is equal and we break the loop here
       break;
     }
     else if (x.isConst() && y.isConst())
