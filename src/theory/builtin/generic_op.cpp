@@ -19,6 +19,7 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "util/bitvector.h"
 #include "util/floatingpoint.h"
@@ -56,13 +57,16 @@ bool GenericOp::isNumeralIndexedOperatorKind(Kind k)
   return k == REGEXP_LOOP || k == BITVECTOR_EXTRACT || k == BITVECTOR_REPEAT
          || k == BITVECTOR_ZERO_EXTEND || k == BITVECTOR_SIGN_EXTEND
          || k == BITVECTOR_ROTATE_LEFT || k == BITVECTOR_ROTATE_RIGHT
-         || k == INT_TO_BITVECTOR || k == IAND
+         || k == BITVECTOR_BITOF || k == INT_TO_BITVECTOR || k == IAND
          || k == FLOATINGPOINT_TO_FP_FROM_FP
          || k == FLOATINGPOINT_TO_FP_FROM_IEEE_BV
          || k == FLOATINGPOINT_TO_FP_FROM_SBV
-         || k == FLOATINGPOINT_TO_FP_FROM_REAL || k == FLOATINGPOINT_TO_SBV
+         || k == FLOATINGPOINT_TO_FP_FROM_REAL
+         || k == FLOATINGPOINT_TO_FP_FROM_UBV || k == FLOATINGPOINT_TO_SBV
          || k == FLOATINGPOINT_TO_UBV || k == FLOATINGPOINT_TO_SBV_TOTAL
-         || k == FLOATINGPOINT_TO_UBV_TOTAL;
+         || k == FLOATINGPOINT_TO_UBV_TOTAL || k == RELATION_AGGREGATE
+         || k == RELATION_PROJECT || k == RELATION_GROUP || k == TABLE_PROJECT
+         || k == TABLE_AGGREGATE || k == TABLE_JOIN || k == TABLE_GROUP;
 }
 
 bool GenericOp::isIndexedOperatorKind(Kind k)
@@ -111,6 +115,10 @@ std::vector<Node> GenericOp::getIndicesForOperator(Kind k, Node n)
       indices.push_back(nm->mkConstInt(
           Rational(n.getConst<BitVectorRotateRight>().d_rotateRightAmount)));
       break;
+    case BITVECTOR_BITOF:
+      indices.push_back(
+          nm->mkConstInt(Rational(n.getConst<BitVectorBitOf>().d_bitIndex)));
+      break;
     case INT_TO_BITVECTOR:
       indices.push_back(
           nm->mkConstInt(Rational(n.getConst<IntToBitVector>().d_size)));
@@ -142,6 +150,15 @@ std::vector<Node> GenericOp::getIndicesForOperator(Kind k, Node n)
       indices.push_back(nm->mkConstInt(fsbv.getSize().significandWidth()));
     }
     break;
+    case FLOATINGPOINT_TO_FP_FROM_UBV:
+    {
+      const FloatingPointToFPUnsignedBitVector& fubv =
+          n.getConst<FloatingPointToFPUnsignedBitVector>();
+      indices.push_back(nm->mkConstInt(fubv.getSize().exponentWidth()));
+      indices.push_back(nm->mkConstInt(fubv.getSize().significandWidth()));
+    }
+    break;
+
     case FLOATINGPOINT_TO_FP_FROM_REAL:
     {
       const FloatingPointToFPReal& fr = n.getConst<FloatingPointToFPReal>();
@@ -173,6 +190,22 @@ std::vector<Node> GenericOp::getIndicesForOperator(Kind k, Node n)
       const FloatingPointToUBVTotal& fubv =
           n.getConst<FloatingPointToUBVTotal>();
       indices.push_back(nm->mkConstInt(Rational(fubv)));
+    }
+    break;
+    case RELATION_AGGREGATE:
+    case RELATION_PROJECT:
+    case RELATION_GROUP:
+    case TABLE_PROJECT:
+    case TABLE_AGGREGATE:
+    case TABLE_JOIN:
+    case TABLE_GROUP:
+    {
+      const ProjectOp& p = n.getConst<ProjectOp>();
+      const std::vector<uint32_t>& pi = p.getIndices();
+      for (uint32_t i : pi)
+      {
+        indices.push_back(nm->mkConstInt(Rational(i)));
+      }
     }
     break;
     case APPLY_TESTER:
@@ -286,6 +319,14 @@ Node GenericOp::getOperatorForIndices(Kind k, const std::vector<Node>& indices)
       case FLOATINGPOINT_TO_UBV_TOTAL:
         Assert(numerals.size() == 1);
         return nm->mkConst(FloatingPointToUBVTotal(numerals[0]));
+      case RELATION_AGGREGATE:
+      case RELATION_PROJECT:
+      case RELATION_GROUP:
+      case TABLE_PROJECT:
+      case TABLE_AGGREGATE:
+      case TABLE_JOIN:
+      case TABLE_GROUP:
+        // return nm->mkConst(ProjectOp(numerals));
       default:
         Unhandled() << "GenericOp::getOperatorForIndices: unhandled kind " << k;
         break;
