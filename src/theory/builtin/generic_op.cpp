@@ -320,13 +320,19 @@ Node GenericOp::getOperatorForIndices(Kind k, const std::vector<Node>& indices)
         Assert(numerals.size() == 1);
         return nm->mkConst(FloatingPointToUBVTotal(numerals[0]));
       case RELATION_AGGREGATE:
+        return nm->mkConst(RELATION_AGGREGATE_OP, ProjectOp(numerals));
       case RELATION_PROJECT:
+        return nm->mkConst(RELATION_PROJECT_OP, ProjectOp(numerals));
       case RELATION_GROUP:
+        return nm->mkConst(RELATION_GROUP_OP, ProjectOp(numerals));
       case TABLE_PROJECT:
+        return nm->mkConst(TABLE_PROJECT_OP, ProjectOp(numerals));
       case TABLE_AGGREGATE:
+        return nm->mkConst(TABLE_AGGREGATE_OP, ProjectOp(numerals));
       case TABLE_JOIN:
+        return nm->mkConst(TABLE_JOIN_OP, ProjectOp(numerals));
       case TABLE_GROUP:
-        // return nm->mkConst(ProjectOp(numerals));
+        return nm->mkConst(TABLE_GROUP_OP, ProjectOp(numerals));
       default:
         Unhandled() << "GenericOp::getOperatorForIndices: unhandled kind " << k;
         break;
