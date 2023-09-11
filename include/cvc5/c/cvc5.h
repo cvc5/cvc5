@@ -3113,7 +3113,7 @@ const char* cvc5_get_model(Cvc5* cvc5,
                            size_t nsorts,
                            const Cvc5Sort* sorts,
                            size_t nconsts,
-                           const Cvc5Term* vars);
+                           const Cvc5Term* consts);
 
 /**
  * Do quantifier elimination.
