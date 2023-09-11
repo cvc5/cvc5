@@ -180,6 +180,7 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
   if (id == PfRule::HO_CONG)
   {
     Assert(children.size() > 0);
+    Assert(args.empty());
     std::vector<Node> lchildren;
     std::vector<Node> rchildren;
     for (size_t i = 0, nchild = children.size(); i < nchild; ++i)
