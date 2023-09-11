@@ -167,7 +167,7 @@ More details can be found in :cite:`MengRTB17`.
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
 | Unit Tuple           | ``tuple.unit``                               | ``Term t = solver.mkTuple({});``                                                   |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Tuple Selector       | ``((_ tuple_select i) t)``                   | ``Sort s = solver.mkTupleSort(sorts);``                                            |
+| Tuple Selector       | ``((_ tuple.select i) t)``                   | ``Sort s = solver.mkTupleSort(sorts);``                                            |
 |                      |                                              |                                                                                    |
 |                      |                                              | ``Datatype dt = s.getDatatype();``                                                 |
 |                      |                                              |                                                                                    |
