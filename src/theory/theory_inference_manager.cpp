@@ -606,10 +606,10 @@ DecisionManager* TheoryInferenceManager::getDecisionManager()
   return d_decManager;
 }
 
-void TheoryInferenceManager::requirePhase(TNode n, bool pol)
+void TheoryInferenceManager::preferPhase(TNode n, bool pol)
 {
   Node en = d_theoryState.getValuation().ensureLiteral(n);
-  return d_out.requirePhase(en, pol);
+  return d_out.preferPhase(en, pol);
 }
 
 void TheoryInferenceManager::spendResource(Resource r)

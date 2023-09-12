@@ -143,8 +143,6 @@ libcvc5_add_sources(
   printer/printer.h
   printer/smt2/smt2_printer.cpp
   printer/smt2/smt2_printer.h
-  printer/tptp/tptp_printer.cpp
-  printer/tptp/tptp_printer.h
   proof/annotation_proof_generator.cpp
   proof/annotation_proof_generator.h
   proof/assumption_proof_generator.cpp
@@ -297,6 +295,8 @@ libcvc5_add_sources(
   smt/env_obj.h
   smt/expand_definitions.cpp
   smt/expand_definitions.h
+  smt/find_synth_solver.cpp
+  smt/find_synth_solver.h
   smt/listeners.cpp
   smt/listeners.h
   smt/logic_exception.h
@@ -758,8 +758,12 @@ libcvc5_add_sources(
   theory/quantifiers/cegqi/ceg_dt_instantiator.h
   theory/quantifiers/cegqi/ceg_instantiator.cpp
   theory/quantifiers/cegqi/ceg_instantiator.h
+  theory/quantifiers/cegqi/ceg_utils.cpp
+  theory/quantifiers/cegqi/ceg_utils.h
   theory/quantifiers/cegqi/inst_strategy_cegqi.cpp
   theory/quantifiers/cegqi/inst_strategy_cegqi.h
+  theory/quantifiers/cegqi/instantiator.cpp
+  theory/quantifiers/cegqi/instantiator.h
   theory/quantifiers/cegqi/nested_qe.cpp
   theory/quantifiers/cegqi/nested_qe.h
   theory/quantifiers/cegqi/vts_term_cache.cpp
@@ -963,8 +967,8 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/sygus_eval_unfold.h
   theory/quantifiers/sygus/sygus_explain.cpp
   theory/quantifiers/sygus/sygus_explain.h
-  theory/quantifiers/sygus/sygus_grammar_cons.cpp
-  theory/quantifiers/sygus/sygus_grammar_cons.h
+  theory/quantifiers/sygus/sygus_grammar_cons_new.cpp
+  theory/quantifiers/sygus/sygus_grammar_cons_new.h
   theory/quantifiers/sygus/sygus_grammar_norm.cpp
   theory/quantifiers/sygus/sygus_grammar_norm.h
   theory/quantifiers/sygus/sygus_grammar_red.cpp
@@ -1003,6 +1007,8 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/synth_conjecture.h
   theory/quantifiers/sygus/synth_engine.cpp
   theory/quantifiers/sygus/synth_engine.h
+  theory/quantifiers/sygus/synth_finder.cpp
+  theory/quantifiers/sygus/synth_finder.h
   theory/quantifiers/sygus/synth_verify.cpp
   theory/quantifiers/sygus/synth_verify.h
   theory/quantifiers/sygus/template_infer.cpp
@@ -1253,7 +1259,9 @@ include_directories(. ${CMAKE_CURRENT_BINARY_DIR})
 #-----------------------------------------------------------------------------#
 # Take care of options
 
-check_python_module("toml")
+if (Python_VERSION VERSION_LESS "3.11.0")
+  check_python_module("tomli")
+endif()
 
 set(options_toml_files
   options/arith_options.toml

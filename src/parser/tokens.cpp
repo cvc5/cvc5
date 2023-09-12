@@ -45,8 +45,9 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::DECLARE_DATATYPES_TOK: o << "DECLARE_DATATYPES_TOK"; break;
     case Token::DECLARE_DATATYPE_TOK: o << "DECLARE_DATATYPE_TOK"; break;
     case Token::DECLARE_FUN_TOK: o << "DECLARE_FUN_TOK"; break;
-    case Token::DECLARE_HEAP: o << "DECLARE_HEAP"; break;
-    case Token::DECLARE_POOL: o << "DECLARE_POOL"; break;
+    case Token::DECLARE_HEAP_TOK: o << "DECLARE_HEAP_TOK"; break;
+    case Token::DECLARE_ORACLE_FUN_TOK: o << "DECLARE_ORACLE_FUN_TOK"; break;
+    case Token::DECLARE_POOL_TOK: o << "DECLARE_POOL_TOK"; break;
     case Token::DECLARE_SORT_TOK: o << "DECLARE_SORT_TOK"; break;
     case Token::DECLARE_VAR_TOK: o << "DECLARE_VAR_TOK"; break;
     case Token::DEFINE_CONST_TOK: o << "DEFINE_CONST_TOK"; break;
@@ -57,6 +58,8 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::ECHO_TOK: o << "ECHO_TOK"; break;
     case Token::EXIT_TOK: o << "EXIT_TOK"; break;
     case Token::FIELD_LITERAL: o << "FIELD_LITERAL"; break;
+    case Token::FIND_SYNTH_TOK: o << "FIND_SYNTH_TOK"; break;
+    case Token::FIND_SYNTH_NEXT_TOK: o << "FIND_SYNTH_NEXT_TOK"; break;
     case Token::GET_ABDUCT_NEXT_TOK: o << "GET_ABDUCT_NEXT_TOK"; break;
     case Token::GET_ABDUCT_TOK: o << "GET_ABDUCT_TOK"; break;
     case Token::GET_ASSERTIONS_TOK: o << "GET_ASSERTIONS_TOK"; break;

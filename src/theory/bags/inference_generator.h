@@ -221,7 +221,7 @@ class InferenceGenerator
    */
   InferInfo cardUnionDisjoint(Node premise,
                               Node parent,
-                              const std::set<Node>& children);
+                              const std::vector<Node>& children);
 
   /**
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
@@ -512,7 +512,7 @@ class InferenceGenerator
   /**
    * generate skolem variable for node n and add pending lemma for the equality
    */
-  Node registerAndAssertSkolemLemma(Node& n, const std::string& prefix);
+  Node registerAndAssertSkolemLemma(Node& n);
 
   NodeManager* d_nm;
   SkolemManager* d_sm;

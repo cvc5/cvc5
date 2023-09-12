@@ -34,6 +34,7 @@ const char* toString(ExtReducedId id)
 {
   switch (id)
   {
+    case ExtReducedId::NONE: return "NONE";
     case ExtReducedId::SR_CONST: return "SR_CONST";
     case ExtReducedId::REDUCTION: return "REDUCTION";
     case ExtReducedId::ARITH_SR_ZERO: return "ARITH_SR_ZERO";
@@ -51,7 +52,9 @@ const char* toString(ExtReducedId id)
       return "STRINGS_REGEXP_RE_SYM_NF";
     case ExtReducedId::STRINGS_REGEXP_PDERIVATIVE:
       return "STRINGS_REGEXP_PDERIVATIVE";
-    default: return "?ExtReducedId?";
+    case ExtReducedId::STRINGS_NTH_REV: return "STRINGS_NTH_REV";
+    case ExtReducedId::UNKNOWN: return "?";
+    default: Unreachable(); return "?ExtReducedId?";
   }
 }
 

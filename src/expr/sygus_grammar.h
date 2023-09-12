@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Abdalrhman Mohamed
+ *   Abdalrhman Mohamed, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -20,7 +20,6 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "expr/sygus_datatype.h"
 
 namespace cvc5::internal {
 
@@ -69,9 +68,17 @@ class SygusGrammar
   void addAnyVariable(const Node& ntSym);
 
   /**
+   * Remove \p rule from the set of rules corresponding to \p ntSym.
+   * @param ntSym The non-terminal from which the rule is removed.
+   * @param rule The rule to remove. This must be a rule that occurs
+   * in the list of rules for ntSym.
+   */
+  void removeRule(const Node& ntSym, const Node& rule);
+
+  /**
    * @return The resolved datatype of the Start symbol of the grammar.
    */
-  TypeNode resolve();
+  TypeNode resolve(bool allowAny = false);
 
   /**
    * @return whether or not this grammar is resolved.
@@ -88,11 +95,10 @@ class SygusGrammar
    */
   const std::vector<Node>& getNtSyms() const;
 
-  /** Get the number of constructors added to \p ntSym so far.
-   * @param ntSym The non-terminal to get the number of constructors for.
-   * @return The number of constructors added to \p ntSym so far.
+  /**
+   * @return The rules for non-terminal ntSym
    */
-  size_t getNumConstructors(Node ntSym) const;
+  const std::vector<Node>& getRulesFor(const Node& ntSym) const;
 
   /**
    * @return A string representation of this grammar.
@@ -100,37 +106,12 @@ class SygusGrammar
   std::string toString() const;
 
  private:
-  /**
-   * Purify SyGuS grammar node.
-   *
-   * This returns a node where all occurrences of non-terminal symbols (those
-   * in the domain of \p ntsToUnres) are replaced by fresh variables. For
-   * each variable replaced in this way, we add the fresh variable it is
-   * replaced with to \p args, and the unresolved types corresponding to the
-   * non-terminal symbol to \p cargs (constructor args). In other words,
-   * \p args contains the free variables in the node returned by this method
-   * (which should be bound by a lambda), and \p cargs contains the types of
-   * the arguments of the sygus constructor.
-   *
-   * @param n The node to purify.
-   * @param args The free variables in the node returned by this method.
-   * @param cargs The types of the arguments of the sygus constructor.
-   * @return The purfied node.
-   */
-  Node purifySygusGNode(const Node& n,
-                        std::vector<Node>& args,
-                        std::vector<TypeNode>& cargs) const;
-
   /** Input variables to the corresponding function/invariant to synthesize.*/
   std::vector<Node> d_sygusVars;
   /** The non-terminal symbols of this grammar. */
   std::vector<Node> d_ntSyms;
   /** Mapping from non-terminal symbols to their production rules. */
-  std::unordered_map<Node, SygusDatatype> d_sdts;
-  /** Set of non-terminals that can be arbitrary constants. */
-  std::unordered_set<Node> d_allowConst;
-  /** Mapping from non-terminals to their unresolved types. */
-  std::unordered_map<Node, TypeNode> d_ntsToUnres;
+  std::unordered_map<Node, std::vector<Node>> d_rules;
   /** The datatype type constructed by this grammar. */
   TypeNode d_datatype;
 };

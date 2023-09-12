@@ -140,77 +140,92 @@ bool NodeManager::isNAryKind(Kind k)
 
 TypeNode NodeManager::booleanType()
 {
-  return mkTypeConst<TypeConstant>(BOOLEAN_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 BOOLEAN_TYPE);
 }
 
 TypeNode NodeManager::integerType()
 {
-  return mkTypeConst<TypeConstant>(INTEGER_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 INTEGER_TYPE);
 }
 
 TypeNode NodeManager::realType()
 {
-  return mkTypeConst<TypeConstant>(REAL_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 REAL_TYPE);
 }
 
 TypeNode NodeManager::stringType()
 {
-  return mkTypeConst<TypeConstant>(STRING_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 STRING_TYPE);
 }
 
 TypeNode NodeManager::regExpType()
 {
-  return mkTypeConst<TypeConstant>(REGEXP_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 REGEXP_TYPE);
 }
 
 TypeNode NodeManager::roundingModeType()
 {
-  return mkTypeConst<TypeConstant>(ROUNDINGMODE_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 ROUNDINGMODE_TYPE);
 }
 
 TypeNode NodeManager::boundVarListType()
 {
-  return mkTypeConst<TypeConstant>(BOUND_VAR_LIST_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 BOUND_VAR_LIST_TYPE);
 }
 
 TypeNode NodeManager::instPatternType()
 {
-  return mkTypeConst<TypeConstant>(INST_PATTERN_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 INST_PATTERN_TYPE);
 }
 
 TypeNode NodeManager::instPatternListType()
 {
-  return mkTypeConst<TypeConstant>(INST_PATTERN_LIST_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 INST_PATTERN_LIST_TYPE);
 }
 
 TypeNode NodeManager::builtinOperatorType()
 {
-  return mkTypeConst<TypeConstant>(BUILTIN_OPERATOR_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 BUILTIN_OPERATOR_TYPE);
 }
 
 TypeNode NodeManager::mkBitVectorType(unsigned size)
 {
-  return mkTypeConst<BitVectorSize>(BitVectorSize(size));
+  return mkConstInternal<TypeNode, BitVectorSize>(kind::BITVECTOR_TYPE,
+                                                  BitVectorSize(size));
 }
 
 TypeNode NodeManager::mkFiniteFieldType(const Integer& modulus)
 {
-  return mkTypeConst<FfSize>(FfSize(modulus));
+  return mkConstInternal<TypeNode, FfSize>(kind::FINITE_FIELD_TYPE,
+                                           FfSize(modulus));
 }
 
 TypeNode NodeManager::sExprType()
 {
-  return mkTypeConst<TypeConstant>(SEXPR_TYPE);
+  return mkConstInternal<TypeNode, TypeConstant>(kind::TYPE_CONSTANT,
+                                                 SEXPR_TYPE);
 }
 
 TypeNode NodeManager::mkFloatingPointType(unsigned exp, unsigned sig)
 {
-  return mkTypeConst<FloatingPointSize>(FloatingPointSize(exp, sig));
+  return mkConstInternal<TypeNode, FloatingPointSize>(
+      kind::FLOATINGPOINT_TYPE, FloatingPointSize(exp, sig));
 }
 
 TypeNode NodeManager::mkFloatingPointType(FloatingPointSize fs)
 {
-  return mkTypeConst<FloatingPointSize>(fs);
+  return mkConstInternal<TypeNode, FloatingPointSize>(kind::FLOATINGPOINT_TYPE,
+                                                      fs);
 }
 
 NodeManager::~NodeManager()
@@ -240,9 +255,10 @@ NodeManager::~NodeManager()
   d_rt_cache.d_children.clear();
   d_rt_cache.d_data = dummy;
 
-  // clear the datatypes and oracles
+  // clear the datatypes, oracles and declared sorts
   d_dtypes.clear();
   d_oracles.clear();
+  d_nfreshSorts.clear();
 
   Assert(!d_attrManager->inGarbageCollection());
 
@@ -578,12 +594,7 @@ bool NodeManager::isSortKindAbstractable(Kind k)
 
 TypeNode NodeManager::mkAbstractType(Kind k)
 {
-  if (!isSortKindAbstractable(k))
-  {
-    std::stringstream ss;
-    ss << "Cannot construct abstract type for kind " << k;
-    throw Exception(ss.str());
-  }
+  Assert(isSortKindAbstractable(k));
   if (k == kind::ARRAY_TYPE)
   {
     // ?Array -> (Array ? ?)
@@ -608,7 +619,8 @@ TypeNode NodeManager::mkAbstractType(Kind k)
     TypeNode a = mkAbstractType(kind::ABSTRACT_TYPE);
     return mkSequenceType(a);
   }
-  return mkTypeConst<AbstractType>(AbstractType(k));
+  return mkConstInternal<TypeNode, AbstractType>(kind::ABSTRACT_TYPE,
+                                                 AbstractType(k));
 }
 
 TypeNode NodeManager::mkDatatypeType(DType& datatype)
@@ -940,12 +952,9 @@ TypeNode NodeManager::mkSort()
   return nb.constructTypeNode();
 }
 
-TypeNode NodeManager::mkSort(const std::string& name)
+TypeNode NodeManager::mkSort(const std::string& name, bool fresh)
 {
-  NodeBuilder nb(this, kind::SORT_TYPE);
-  TypeNode tn = nb.constructTypeNode();
-  setAttribute(tn, expr::VarNameAttr(), name);
-  return tn;
+  return mkSortConstructor(name, 0, fresh);
 }
 
 TypeNode NodeManager::mkSort(TypeNode constructor,
@@ -967,13 +976,36 @@ TypeNode NodeManager::mkSort(TypeNode constructor,
   return nb.constructTypeNode();
 }
 
-TypeNode NodeManager::mkSortConstructor(const std::string& name, size_t arity)
+TypeNode NodeManager::mkSortConstructor(const std::string& name,
+                                        size_t arity,
+                                        bool fresh)
 {
-  Assert(arity > 0);
+  if (!fresh)
+  {
+    std::pair<std::string, size_t> key(name, arity);
+    std::map<std::pair<std::string, size_t>, TypeNode>::iterator it =
+        d_nfreshSorts.find(key);
+    if (it != d_nfreshSorts.end())
+    {
+      return it->second;
+    }
+    // allocate a new one
+    TypeNode t = mkSortConstructorInternal(name, arity);
+    d_nfreshSorts[key] = t;
+    return t;
+  }
+  return mkSortConstructorInternal(name, arity);
+}
+TypeNode NodeManager::mkSortConstructorInternal(const std::string& name,
+                                                size_t arity)
+{
   NodeBuilder nb(this, kind::SORT_TYPE);
   TypeNode type = nb.constructTypeNode();
   setAttribute(type, expr::VarNameAttr(), name);
-  setAttribute(type, expr::SortArityAttr(), arity);
+  if (arity > 0)
+  {
+    setAttribute(type, expr::SortArityAttr(), arity);
+  }
   return type;
 }
 
@@ -1005,13 +1037,29 @@ const Oracle& NodeManager::getOracleFor(const Node& n) const
   return *d_oracles[index];
 }
 
-Node NodeManager::mkVar(const std::string& name, const TypeNode& type)
+Node NodeManager::mkVar(const std::string& name,
+                        const TypeNode& type,
+                        bool fresh)
 {
-  Node n = NodeBuilder(this, kind::VARIABLE);
-  setAttribute(n, TypeAttr(), type);
-  setAttribute(n, TypeCheckedAttr(), true);
-  setAttribute(n, expr::VarNameAttr(), name);
-  return n;
+  if (fresh)
+  {
+    Node n = NodeBuilder(this, kind::VARIABLE);
+    setAttribute(n, TypeAttr(), type);
+    setAttribute(n, TypeCheckedAttr(), true);
+    setAttribute(n, expr::VarNameAttr(), name);
+    return n;
+  }
+  // to construct a variable in a canonical way, we use the skolem
+  // manager, where SkolemFunId::INPUT_VARIABLE identifies that the
+  // variable is unique.
+  std::vector<Node> cnodes;
+  cnodes.push_back(mkConst(String(name, false)));
+  // Since we index only on Node, we must construct use mkGroundValue
+  // to construct a canonical node for the tn.
+  Node gt = mkGroundValue(type);
+  cnodes.push_back(gt);
+  return d_skManager->mkSkolemFunction(
+      SkolemFunId::INPUT_VARIABLE, type, cnodes);
 }
 
 Node NodeManager::mkBoundVar(const std::string& name, const TypeNode& type)
@@ -1223,6 +1271,7 @@ NodeClass NodeManager::mkConstInternal(Kind k, const T& val)
     && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Warray-bounds"
+#pragma GCC diagnostic ignored "-Wzero-length-bounds"
 #endif
 
   nvStack.d_children[0] = const_cast<expr::NodeValue*>(

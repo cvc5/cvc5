@@ -1058,7 +1058,7 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "sygus-core-connective"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "use unsat core analysis to construct Boolean connective to sygus conjectures"
 
 [[option]]
@@ -1155,6 +1155,14 @@ name   = "Quantifiers"
 [[option.mode.ANY_TERM_CONCISE]]
   name = "any-term-concise"
   help = "When applicable, use constructors corresponding to any symbolic term, favoring conciseness over generality. This option is equivalent to any-term but enables a polynomial grammar for arithmetic when not in a combined theory."
+
+[[option]]
+  name       = "sygusGrammarUseDisj"
+  category   = "expert"
+  long       = "sygus-grammar-use-disj"
+  type       = "bool"
+  default    = "true"
+  help       = "use disjunctions in internally generated grammars. this is set to false when solving abduction queries."
 
 [[option]]
   name       = "sygusInvTemplMode"

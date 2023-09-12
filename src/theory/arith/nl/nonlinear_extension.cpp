@@ -67,12 +67,6 @@ NonlinearExtension::NonlinearExtension(Env& env, TheoryArith& containing)
   d_extTheory.addFunctionKind(kind::IAND);
   d_extTheory.addFunctionKind(kind::POW2);
   d_true = NodeManager::currentNM()->mkConst(true);
-
-  if (d_env.isTheoryProofProducing())
-  {
-    ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
-    d_proofChecker.registerTo(pc);
-  }
 }
 
 NonlinearExtension::~NonlinearExtension() {}
@@ -496,6 +490,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
       case InferStep::TRANS_TANGENT_PLANES:
         d_trSlv.checkTranscendentalTangentPlanes();
         break;
+      default: break;
     }
   }
 

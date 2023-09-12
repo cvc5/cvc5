@@ -78,7 +78,8 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
         result = checkSatNext(d_ap);
         // if we were asked to check again
         if (result.getStatus() == Result::UNKNOWN
-            && result.getUnknownExplanation() == REQUIRES_CHECK_AGAIN)
+            && result.getUnknownExplanation()
+                   == UnknownExplanation::REQUIRES_CHECK_AGAIN)
         {
           // finish init to construct new theory/prop engine
           d_smt.finishInit();
