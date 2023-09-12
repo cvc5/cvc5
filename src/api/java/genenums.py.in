@@ -224,8 +224,12 @@ def format_comment(comment):
             i = i + 1
             continue
         if component == ":math:" or component == ".. math::":
-            comment += f"{{@code {components[i+1]}}}"
+            insert = components[i+1].replace(">", "&gt;").replace("<", "&lt;")
             i = i + 2
+            if component == ":math:":
+                comment += "\(" + insert + "\)"
+            else:
+                comment += "\[" + insert + "\]"
         else:
             for pattern, replacement in CPP_JAVA_MAPPING.items():
                 component = re.sub(pattern, replacement, component)
