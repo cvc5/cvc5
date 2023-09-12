@@ -409,8 +409,10 @@ class CoreSolver : protected EnvObj
    * pinfer: the set of possible inferences we add to.
    *
    * stype is the string-like type of the equivalence class we are processing.
+   *
+   * @return true if the normal forms are equal
    */
-  void processSimpleNEq(NormalForm& nfi,
+  bool processSimpleNEq(NormalForm& nfi,
                         NormalForm& nfj,
                         unsigned& index,
                         bool isRev,
