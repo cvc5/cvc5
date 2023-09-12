@@ -2286,8 +2286,9 @@ enum ENUM(ProofRule) : uint32_t
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Coverings -- Recursive interval**
    *
-   * See :cpp:enumerator:`ARITH_NL_COVERING_DIRECT
-   * <cvc5::ProofRule::ARITH_NL_COVERING_DIRECT>` for the necessary definitions.
+   * See
+   * :cpp:enumerator:`ARITH_NL_COVERING_DIRECT <cvc5::ProofRule::ARITH_NL_COVERING_DIRECT>`
+   * for the necessary definitions.
    *
    * .. math::
    *   \inferrule{\texttt{Cell}, \texttt{Covering} \mid -}{\bot}
