@@ -688,8 +688,12 @@ bool BaseSolver::isCardinalityOk(size_t typeCardSize,
   {
     return true;
   }
-  else if (typeCardSize == 1)
+  if (typeCardSize == 1)
   {
+    // For string-like types of cardinality 1, there is only a single
+    // element of any length, thus we return false and set lenNeed to zero.
+    // We will add a split in checkCardinalityType.
+    lenNeed = 0;
     return false;
   }
   lenNeed = 1;
