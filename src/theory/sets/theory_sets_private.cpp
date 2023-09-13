@@ -1611,31 +1611,6 @@ bool TheorySetsPrivate::isHigherOrderKind(Kind k)
   return k == SET_MAP || k == SET_FILTER || k == SET_FOLD;
 }
 
-Node TheorySetsPrivate::explain(TNode literal)
-{
-  Trace("sets") << "TheorySetsPrivate::explain(" << literal << ")" << std::endl;
-
-  bool polarity = literal.getKind() != kind::NOT;
-  TNode atom = polarity ? literal : literal[0];
-  std::vector<TNode> assumptions;
-
-  if (atom.getKind() == kind::EQUAL)
-  {
-    d_equalityEngine->explainEquality(atom[0], atom[1], polarity, assumptions);
-  }
-  else if (atom.getKind() == kind::SET_MEMBER)
-  {
-    d_equalityEngine->explainPredicate(atom, polarity, assumptions);
-  }
-  else
-  {
-    Trace("sets") << "unhandled: " << literal << "; (" << atom << ", "
-                  << polarity << "); kind" << atom.getKind() << std::endl;
-    Unhandled();
-  }
-  return NodeManager::currentNM()->mkAnd(assumptions);
-}
-
 void TheorySetsPrivate::preRegisterTerm(TNode node)
 {
   Trace("sets") << "TheorySetsPrivate::preRegisterTerm(" << node << ")"
