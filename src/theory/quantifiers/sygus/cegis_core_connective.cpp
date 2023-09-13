@@ -408,7 +408,7 @@ void CegisCoreConnective::Component::addRefinementPt(
 {
   d_numRefPoints++;
   d_refinementPt.addTerm(id, pt);
-  // Note that the above method returns false if pt is a duplicate of
+  // Note that addTerm returns false if pt is a duplicate of
   // a previous point. This may happen if the candidate solutions we are testing
   // involve partial functions.
 }
