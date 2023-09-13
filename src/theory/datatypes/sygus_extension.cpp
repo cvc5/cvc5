@@ -1594,22 +1594,18 @@ void SygusExtension::check()
       {
         isExc = false;
         //debugging : ensure fairness was properly handled
-        if (TraceIsOn("sygus-sb"))
+        if (options().datatypes.sygusFair == options::SygusFairMode::DT_SIZE)
         {
-          if (options().datatypes.sygusFair == options::SygusFairMode::DT_SIZE)
-          {
-            Node prog_sz =
-                NodeManager::currentNM()->mkNode(kind::DT_SIZE, prog);
-            Node prog_szv =
-                d_state.getValuation().getModel()->getValue(prog_sz);
-            Node progv_sz =
-                NodeManager::currentNM()->mkNode(kind::DT_SIZE, progv);
+          Node prog_sz = NodeManager::currentNM()->mkNode(kind::DT_SIZE, prog);
+          Node prog_szv = d_state.getValuation().getModel()->getValue(prog_sz);
+          Node progv_sz =
+              NodeManager::currentNM()->mkNode(kind::DT_SIZE, progv);
 
-            Trace("sygus-sb") << "  Mv[" << prog << "] = " << progv
-                              << ", size = " << prog_szv << std::endl;
-            AlwaysAssert(prog_szv.getConst<Rational>().getNumerator().toUnsignedInt()
-                <= getSearchSizeForAnchor(prog));
-          }
+          Trace("sygus-sb") << "  Mv[" << prog << "] = " << progv
+                            << ", size = " << prog_szv << std::endl;
+          AlwaysAssert(
+              prog_szv.getConst<Rational>().getNumerator().toUnsignedInt()
+              <= getSearchSizeForAnchor(prog));
         }
 
         // register the search value ( prog -> progv ), this may invoke symmetry
