@@ -1458,7 +1458,7 @@ cdef class Solver:
                     "Invalid second argument to mkBitVector '{}', "
                     "expected integer value".format(size))
             term.cterm = self.csolver.mkBitVector(
-                <uint32_t> size, <uint32_t> val)
+                <uint32_t> size, <const string&> str(val).encode(), 10)
         elif len(args) == 2:
             val = args[0]
             base = args[1]
