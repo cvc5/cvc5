@@ -1054,7 +1054,7 @@ int SortModel::addSplit(Region* r)
     {
       Trace("uf-ss-lemma") << "*** Split on " << s << std::endl;
       //tell the sat solver to explore the equals branch first
-      d_im.requirePhase(ss, true);
+      d_im.preferPhase(ss, true);
       ++( d_thss->d_statistics.d_split_lemmas );
     }
     return 1;
@@ -1540,7 +1540,7 @@ void CardinalityExtension::check(Theory::Effort level)
                     Node lem = NodeManager::currentNM()->mkNode( kind::OR, eq, eq.negate() );
                     Trace("uf-ss-lemma") << "*** Split (no-minimal) : " << lem << std::endl;
                     d_im.lemma(lem, InferenceId::UF_CARD_SPLIT);
-                    d_im.requirePhase(eq, true);
+                    d_im.preferPhase(eq, true);
                     type_proc[tn] = true;
                     break;
                   }

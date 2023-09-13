@@ -1578,6 +1578,31 @@ public class Solver implements IPointer
       long pointer, String symbol, long[] sortPointers, long sortPointer);
 
   /**
+   * Declare n-ary function symbol.
+   *
+   * SMT-LIB:
+   * {@code
+   *   ( declare-fun <symbol> ( <sort>* ) <sort> )
+   * }
+   *
+   * @param symbol The name of the function.
+   * @param sorts The sorts of the parameters to this function.
+   * @param sort The sort of the return value of this function.
+   * @param fresh If true, then this method always returns a new Term.
+   * Otherwise, this method will always return the same Term
+   * for each call with the given sorts and symbol where fresh is false.
+   * @return The function.
+   */
+  public Term declareFun(String symbol, Sort[] sorts, Sort sort, boolean fresh)
+  {
+    long[] sortPointers = Utils.getPointers(sorts);
+    long termPointer = declareFun(pointer, symbol, sortPointers, sort.getPointer(), fresh);
+    return new Term(termPointer);
+  }
+
+  private native long declareFun(
+      long pointer, String symbol, long[] sortPointers, long sortPointer, boolean fresh);
+  /**
    * Declare uninterpreted sort.
    *
    * SMT-LIB:
@@ -1601,6 +1626,34 @@ public class Solver implements IPointer
   }
 
   private native long declareSort(long pointer, String symbol, int arity);
+
+  /**
+   * Declare uninterpreted sort.
+   *
+   * SMT-LIB:
+   * {@code
+   *   ( declare-sort <symbol> <numeral> )
+   * }
+   *
+   * @api.note This corresponds to mkUninterpretedSort() const if arity = 0, and
+   *           to mkUninterpretedSortConstructorSort() const if arity &gt; 0.
+   *
+   * @param symbol The name of the sort.
+   * @param arity The arity of the sort.
+   * @param fresh If true, then this method always returns a new Sort.
+   * Otherwise, this method will always return the same Sort
+   * for each call with the given arity and symbol where fresh is false.
+   * @return The sort.
+   * @throws CVC5ApiException
+   */
+  public Sort declareSort(String symbol, int arity, boolean fresh) throws CVC5ApiException
+  {
+    Utils.validateUnsigned(arity, "arity");
+    long sortPointer = declareSort(pointer, symbol, arity, fresh);
+    return new Sort(sortPointer);
+  }
+
+  private native long declareSort(long pointer, String symbol, int arity, boolean fresh);
 
   /**
    * Define n-ary function in the current context.

@@ -313,6 +313,7 @@ SymManager::SymManager(cvc5::Solver* s)
     : d_solver(s),
       d_implementation(new SymManager::Implementation()),
       d_globalDeclarations(false),
+      d_freshDeclarations(true),
       d_logicIsForced(false),
       d_logic()
 {
@@ -497,6 +498,9 @@ void SymManager::setGlobalDeclarations(bool flag)
 }
 
 bool SymManager::getGlobalDeclarations() const { return d_globalDeclarations; }
+
+void SymManager::setFreshDeclarations(bool flag) { d_freshDeclarations = flag; }
+bool SymManager::getFreshDeclarations() const { return d_freshDeclarations; }
 
 void SymManager::setLastSynthName(const std::string& name)
 {

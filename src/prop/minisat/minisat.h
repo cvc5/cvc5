@@ -86,7 +86,7 @@ class MinisatSatSolver : public CDCLTSatSolver, protected EnvObj
 
   void resetTrail() override;
 
-  void requirePhase(SatLiteral lit) override;
+  void preferPhase(SatLiteral lit) override;
 
   bool isDecision(SatVariable decn) const override;
 

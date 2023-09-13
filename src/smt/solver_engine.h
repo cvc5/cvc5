@@ -256,6 +256,15 @@ class CVC5_EXPORT SolverEngine
   std::string getOption(const std::string& key) const;
 
   /**
+   * Notify that a declare-fun or declare-const was made for n. This only
+   * impacts the SMT mode.
+   */
+  void declareConst(const Node& n);
+  /**
+   * Notify that a declare-sort was made for tn. This only impacts the SMT mode.
+   */
+  void declareSort(const TypeNode& tn);
+  /**
    * Define function func in the current context to be:
    *   (lambda (formals) formula)
    * This adds func to the list of defined functions, which indicates that
@@ -918,6 +927,8 @@ class CVC5_EXPORT SolverEngine
   /**
    * Check that a generated Model (via getModel()) actually satisfies
    * all user assertions.
+   * @param hardFailure True have a failed model check should result in an
+   *                    InternalError rather than only issue a warning.
    */
   void checkModel(bool hardFailure = true);
 

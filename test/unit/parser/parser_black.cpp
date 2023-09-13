@@ -14,6 +14,7 @@
  */
 
 #include <cvc5/cvc5.h>
+#include <cvc5/cvc5_parser.h>
 
 #include <sstream>
 
@@ -21,12 +22,8 @@
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/options.h"
-#include "parser/api/cpp/command.h"
-#include "parser/api/cpp/input_parser.h"
-#include "parser/api/cpp/symbol_manager.h"
-#include "test.h"
 #include "parser/parser_exception.h"
-
+#include "test.h"
 
 using namespace cvc5::parser;
 
