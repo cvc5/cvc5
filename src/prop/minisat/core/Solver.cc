@@ -790,33 +790,15 @@ Lit Solver::pickBranchLit()
             next = order_heap.removeMin();
         }
 
-        if(!decision[next]) continue;
-        // Check with decision engine about relevancy
-        if (d_proxy->isDecisionRelevant(MinisatSatSolver::toSatVariable(next))
-            == false)
-        {
-          next = var_Undef;
-        }
+        if (!decision[next]) continue;
     }
 
     if(next == var_Undef) {
       return lit_Undef;
     } else {
       decisions++;
-      // Check with decision engine if it can tell polarity
-      lbool dec_pol = MinisatSatSolver::toMinisatlbool(
-          d_proxy->getDecisionPolarity(MinisatSatSolver::toSatVariable(next)));
-      Lit decisionLit;
-      if(dec_pol != l_Undef) {
-        Assert(dec_pol == l_True || dec_pol == l_False);
-        decisionLit = mkLit(next, (dec_pol == l_True));
-      }
-      else
-      {
-        // If it can't use internal heuristic to do that
-        decisionLit = mkLit(
-            next, rnd_pol ? drand(random_seed) < 0.5 : (polarity[next] & 0x1));
-      }
+      Lit decisionLit = mkLit(
+          next, rnd_pol ? drand(random_seed) < 0.5 : (polarity[next] & 0x1));
 
       // org-mode tracing -- decision engine decision
       if (TraceIsOn("dtview"))
