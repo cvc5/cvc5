@@ -167,11 +167,11 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   bool isDecisionEngineDone();
 
-  bool isDecisionRelevant(SatVariable var);
-
-  SatValue getDecisionPolarity(SatVariable var);
-
-  CnfStream* getCnfStream();
+  /**
+   * Get the associated CNF stream.
+   * @return The CNF stream.
+   */
+  CnfStream* getCnfStream() const;
 
   /**
    * Call the preprocessor on node, return trust node corresponding to the
