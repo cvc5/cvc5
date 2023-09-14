@@ -58,6 +58,17 @@ CDCLTSatSolver* SatSolverFactory::createCadical(Env& env,
   return res;
 }
 
+CDCLTSatSolver* SatSolverFactory::createCadicalCDCLT(
+    Env& env,
+    StatisticsRegistry& registry,
+    ResourceManager* resmgr,
+    const std::string& name)
+{
+  CadicalSolver* res = new CadicalSolver(env, registry, name);
+  res->setResourceLimit(resmgr);
+  return res;
+}
+
 SatSolver* SatSolverFactory::createKissat(StatisticsRegistry& registry,
                                           const std::string& name)
 {
