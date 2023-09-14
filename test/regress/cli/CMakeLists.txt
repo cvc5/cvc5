@@ -673,6 +673,7 @@ set(regress_0_tests
   regress0/ff/ff_xor_sound.smt2
   regress0/ff/ff_xor_unsound.smt2
   regress0/ff/ff_xor_unsound_model.smt2
+  regress0/ff/field_polys.smt2
   regress0/ff/multicheck.smt2
   regress0/ff/negneg.smt2
   regress0/ff/randcompile-sound-3i-5t-circ.smt2
