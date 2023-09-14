@@ -1,5 +1,5 @@
 ; REQUIRES: cocoa
-; EXPECT: sat
+; EXPECT: unsat
 ; COMMAND-LINE: --ff-field-polys
 ; COMMAND-LINE:
 (set-info :smt-lib-version 2.6)
