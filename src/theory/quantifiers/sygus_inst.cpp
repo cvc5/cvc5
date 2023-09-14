@@ -468,8 +468,9 @@ void SygusInst::registerQuantifier(Node q)
  */
 void SygusInst::preRegisterQuantifier(Node q)
 {
-  if (!shouldProcess(q))
+  if (d_ce_lemmas.find(q) == d_ce_lemmas.end())
   {
+    // did not allocate a cex lemma for this
     return;
   }
   Trace("sygus-inst") << "preRegister " << q << std::endl;
@@ -585,10 +586,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
 
 void SygusInst::addCeLemma(Node q)
 {
-  if (d_ce_lemmas.find(q) == d_ce_lemmas.end())
-  {
-    return;
-  }
+  Assert(d_ce_lemmas.find(q) != d_ce_lemmas.end());
 
   /* Already added in previous contexts. */
   if (d_ce_lemma_added.find(q) != d_ce_lemma_added.end()) return;
