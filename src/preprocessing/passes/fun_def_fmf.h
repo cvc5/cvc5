@@ -97,6 +97,8 @@ class FunDefFmf : public PreprocessingPass
   std::map<Node, std::vector<Node>> d_input_arg_inj;
   // (newly) defined functions
   std::vector<Node> d_funcs;
+  /** The sort constructor for sorts we introduce */
+  TypeNode d_fmfFunSc;
 };
 
 }  // namespace passes

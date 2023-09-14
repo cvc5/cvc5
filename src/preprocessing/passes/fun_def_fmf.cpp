@@ -40,6 +40,7 @@ FunDefFmf::FunDefFmf(PreprocessingPassContext* preprocContext)
       d_fmfRecFunctionsDefined(nullptr)
 {
   d_fmfRecFunctionsDefined = new (true) NodeList(userContext());
+  d_fmfFunSc = NodeManager::currentNM()->mkSortConstructor("@fmf-fun-sort", 1);
 }
 
 FunDefFmf::~FunDefFmf() { d_fmfRecFunctionsDefined->deleteSelf(); }
@@ -117,8 +118,16 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
 
         // create a sort S that represents the inputs of the function
         std::stringstream ss;
-        ss << "I_" << f;
+        ss << f;
+        // We make an uninterpreted sort whose name is the same as the
+        // function.
         TypeNode iType = nm->mkSort(ss.str());
+        // We then make the sort constructor applied to that type. For example,
+        // this be (@fmf-fun-sort f), where here f is an uninterpreted sort.
+        // This is done to have a clear name for this sort, and to support
+        // proof printing in ALF where @fmf-fun-sort is a type constructor
+        // parameterized by a function.
+        iType = nm->mkSort(d_fmfFunSc, {iType});
         AbsTypeFunDefAttribute atfda;
         iType.setAttribute(atfda, true);
         d_sorts[f] = iType;
