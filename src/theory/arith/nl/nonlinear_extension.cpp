@@ -257,10 +257,10 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
                       << std::endl;
       // note that even if the extended theory thinks there are no terms left
       // to reduce (nred.empty()), we still have to check with the non-linear
-      // extension, since the substitutions it uses come from the equality
-      // engine, which may disagree with the arithmetic model (arithModel),
-      // since the equality engine does congruence over extended operators,
-      // and the linear solver does not take this into account.
+      // extension, since the substitutions ExtTheory uses come from the
+      // equality engine, which may disagree with the arithmetic model
+      // (arithModel), since the equality engine does congruence over extended
+      // operators, and the linear solver does not take this into account.
     }
     else
     {
