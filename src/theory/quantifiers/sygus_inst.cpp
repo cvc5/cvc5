@@ -19,9 +19,9 @@
 #include <unordered_set>
 
 #include "expr/node_algorithm.h"
-#include "printer/smt2/smt2_printer.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
+#include "printer/smt2/smt2_printer.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -219,7 +219,7 @@ void SygusInst::reset_round(Theory::Effort e)
   for (uint32_t i = 0; i < nasserted; ++i)
   {
     Node q = model->getAssertedQuantifier(i);
-    if (d_ce_lits.find(q)==d_ce_lits.end())
+    if (d_ce_lits.find(q) == d_ce_lits.end())
     {
       // did not handle this quantified formula, skip
       continue;
@@ -450,7 +450,8 @@ void SygusInst::registerQuantifier(Node q)
 
     Trace("sygus-inst") << "Construct (default) datatype for " << var
                         << std::endl
-                        << printer::smt2::Smt2Printer::sygusGrammarString(tn)<< std::endl;
+                        << printer::smt2::Smt2Printer::sygusGrammarString(tn)
+                        << std::endl;
     // In the rare case that the sygus grammar is not well-founded, we abort.
     // This can happen, e.g. for datatypes whose only values involve
     // uninterpreted sort subfields.
