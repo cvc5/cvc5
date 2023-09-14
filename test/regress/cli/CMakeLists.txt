@@ -2243,6 +2243,7 @@ set(regress_1_tests
   regress1/nl/iand-big-gran.smt2
   regress1/nl/iand-native-2.smt2
   regress1/nl/iand-native-granularities.smt2
+  regress1/nl/issue10003-nl-ext-rr.smt2
   regress1/nl/issue3300-approx-sqrt-witness.smt2
   regress1/nl/issue3441.smt2
   regress1/nl/issue3617.smt2
