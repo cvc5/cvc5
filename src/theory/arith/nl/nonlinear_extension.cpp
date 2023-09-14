@@ -237,6 +237,14 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
                                          const std::set<Node>& termSet)
 {
   Trace("nl-ext") << "NonlinearExtension::checkFullEffort" << std::endl;
+  if (TraceIsOn("nl-arith-model"))
+  {
+    Trace("nl-arith-model") << "  arith model is:" << std::endl;
+    for (std::pair<const Node, Node>& m : arithModel)
+    {
+      Trace("nl-arith-model") << "  " << m.first << " -> " << m.second << ", rep " << d_astate.getRepresentative(m.first) << std::endl;
+    }
+  }
 
   if (options().arith.nlExtRewrites)
   {
@@ -245,6 +253,12 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     {
       Trace("nl-ext") << "...sent no lemmas, # extf to reduce = " << nred.size()
                       << std::endl;
+      // note that even if the extended theory thinks there are no terms left
+      // to reduce (nred.empty()), we still have to check with the non-linear
+      // extension, since the substitutions it uses come from the equality
+      // engine, which may disagree with the arithmetic model (arithModel),
+      // since the equality engine does congruence over extended operators,
+      // and the linear solver does not take this into account.
     }
     else
     {
