@@ -43,7 +43,7 @@ NonlinearExtension::NonlinearExtension(Env& env, TheoryArith& containing)
       d_astate(*containing.getTheoryState()),
       d_im(containing.getInferenceManager()),
       d_stats(statisticsRegistry()),
-      d_hasNlTerms(false),
+      d_hasNlTerms(context(), false),
       d_checkCounter(0),
       d_extTheoryCb(d_astate.getEqualityEngine()),
       d_extTheory(env, d_extTheoryCb, d_im),
@@ -75,7 +75,11 @@ void NonlinearExtension::preRegisterTerm(TNode n)
 {
   // register terms with extended theory, to find extended terms that can be
   // eliminated by context-depedendent simplification.
-  d_extTheory.registerTerm(n);
+  if (d_extTheory.hasFunctionKind(n.getKind()))
+  {
+    d_hasNlTerms = true;
+    d_extTheory.registerTerm(n);
+  }
 }
 
 void NonlinearExtension::processSideEffect(const NlLemma& se)
@@ -234,7 +238,6 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
 {
   Trace("nl-ext") << "NonlinearExtension::checkFullEffort" << std::endl;
 
-  d_hasNlTerms = true;
   if (options().arith.nlExtRewrites)
   {
     std::vector<Node> nred;
@@ -242,10 +245,6 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     {
       Trace("nl-ext") << "...sent no lemmas, # extf to reduce = " << nred.size()
                       << std::endl;
-      if (nred.empty())
-      {
-        d_hasNlTerms = false;
-      }
     }
     else
     {
