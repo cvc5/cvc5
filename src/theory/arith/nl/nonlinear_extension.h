@@ -113,7 +113,7 @@ class NonlinearExtension : EnvObj
                        const std::set<Node>& termSet);
 
   /** Does this class need a call to check(...) at last call effort? */
-  bool hasNlTerms() const { return d_hasNlTerms; }
+  bool hasNlTerms() const;
 
   /** Process side effect se */
   void processSideEffect(const NlLemma& se);
