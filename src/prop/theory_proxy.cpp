@@ -307,32 +307,44 @@ void TheoryProxy::enqueueTheoryLiteral(const SatLiteral& l) {
   d_queue.push(std::make_pair(literalNode, context()->getLevel() - 1));
 }
 
-SatLiteral TheoryProxy::getNextTheoryDecisionRequest() {
+SatLiteral TheoryProxy::getNextDecisionRequest(bool& requirePhase,
+                                               bool& stopSearch)
+{
+  Trace("theory-proxy") << "TheoryProxy: getNextDecisionRequest" << std::endl;
+  requirePhase = false;
+  stopSearch = false;
+  SatLiteral res = undefSatLiteral;
   TNode n = d_theoryEngine->getNextDecisionRequest();
-  return n.isNull() ? undefSatLiteral : d_cnfStream->getLiteral(n);
-}
-
-SatLiteral TheoryProxy::getNextDecisionEngineRequest(bool &stopSearch) {
-  Assert(d_decisionEngine != NULL);
-  Assert(stopSearch != true);
-  Trace("theory-proxy") << "TheoryProxy: getNextDecisionEngineRequest"
-                        << std::endl;
-  if (d_stopSearch.get())
+  if (!n.isNull())
   {
-    Trace("theory-proxy") << "...stopped search, finish" << std::endl;
-    stopSearch = true;
-    return undefSatLiteral;
-  }
-  SatLiteral ret = d_decisionEngine->getNext(stopSearch);
-  if(stopSearch) {
-    Trace("theory-proxy") << "  ***  Decision Engine stopped search *** "
-                          << std::endl;
+    requirePhase = true;
+    res = d_cnfStream->getLiteral(n);
   }
   else
   {
-    Trace("theory-proxy") << "...returned next decision" << std::endl;
+    Assert(d_decisionEngine != nullptr);
+    Assert(stopSearch != true);
+    requirePhase = false;
+    if (d_stopSearch.get())
+    {
+      Trace("theory-proxy") << "...stopped search, finish" << std::endl;
+      stopSearch = true;
+    }
+    else
+    {
+      res = d_decisionEngine->getNext(stopSearch);
+      if (stopSearch)
+      {
+        Trace("theory-proxy")
+            << "  ***  Decision Engine stopped search *** " << std::endl;
+      }
+      else
+      {
+        Trace("theory-proxy") << "...returned next decision" << std::endl;
+      }
+    }
   }
-  return ret;
+  return res;
 }
 
 bool TheoryProxy::theoryNeedCheck() const {
@@ -392,17 +404,11 @@ void TheoryProxy::spendResource(Resource r)
   d_theoryEngine->spendResource(r);
 }
 
-bool TheoryProxy::isDecisionRelevant(SatVariable var) { return true; }
-
 bool TheoryProxy::isDecisionEngineDone() {
   return d_decisionEngine->isDone() || d_stopSearch.get();
 }
 
-SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
-  return SAT_VALUE_UNKNOWN;
-}
-
-CnfStream* TheoryProxy::getCnfStream() { return d_cnfStream; }
+CnfStream* TheoryProxy::getCnfStream() const { return d_cnfStream; }
 
 TrustNode TheoryProxy::preprocessLemma(
     TrustNode trn, std::vector<theory::SkolemLemma>& newLemmas)
@@ -464,7 +470,7 @@ modes::LearnedLitType TheoryProxy::getLiteralType(const Node& lit) const
   {
     return d_zll->computeLearnedLiteralType(lit);
   }
-  return modes::LEARNED_LIT_UNKNOWN;
+  return modes::LearnedLitType::UNKNOWN;
 }
 
 std::vector<Node> TheoryProxy::getLearnedZeroLevelLiteralsForRestart() const

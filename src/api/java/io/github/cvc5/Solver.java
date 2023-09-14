@@ -16,6 +16,7 @@
 package io.github.cvc5;
 
 import io.github.cvc5.modes.BlockModelsMode;
+import io.github.cvc5.modes.FindSynthTarget;
 import io.github.cvc5.modes.LearnedLitType;
 import io.github.cvc5.modes.ProofComponent;
 import java.io.IOException;
@@ -1577,6 +1578,31 @@ public class Solver implements IPointer
       long pointer, String symbol, long[] sortPointers, long sortPointer);
 
   /**
+   * Declare n-ary function symbol.
+   *
+   * SMT-LIB:
+   * {@code
+   *   ( declare-fun <symbol> ( <sort>* ) <sort> )
+   * }
+   *
+   * @param symbol The name of the function.
+   * @param sorts The sorts of the parameters to this function.
+   * @param sort The sort of the return value of this function.
+   * @param fresh If true, then this method always returns a new Term.
+   * Otherwise, this method will always return the same Term
+   * for each call with the given sorts and symbol where fresh is false.
+   * @return The function.
+   */
+  public Term declareFun(String symbol, Sort[] sorts, Sort sort, boolean fresh)
+  {
+    long[] sortPointers = Utils.getPointers(sorts);
+    long termPointer = declareFun(pointer, symbol, sortPointers, sort.getPointer(), fresh);
+    return new Term(termPointer);
+  }
+
+  private native long declareFun(
+      long pointer, String symbol, long[] sortPointers, long sortPointer, boolean fresh);
+  /**
    * Declare uninterpreted sort.
    *
    * SMT-LIB:
@@ -1600,6 +1626,34 @@ public class Solver implements IPointer
   }
 
   private native long declareSort(long pointer, String symbol, int arity);
+
+  /**
+   * Declare uninterpreted sort.
+   *
+   * SMT-LIB:
+   * {@code
+   *   ( declare-sort <symbol> <numeral> )
+   * }
+   *
+   * @api.note This corresponds to mkUninterpretedSort() const if arity = 0, and
+   *           to mkUninterpretedSortConstructorSort() const if arity &gt; 0.
+   *
+   * @param symbol The name of the sort.
+   * @param arity The arity of the sort.
+   * @param fresh If true, then this method always returns a new Sort.
+   * Otherwise, this method will always return the same Sort
+   * for each call with the given arity and symbol where fresh is false.
+   * @return The sort.
+   * @throws CVC5ApiException
+   */
+  public Sort declareSort(String symbol, int arity, boolean fresh) throws CVC5ApiException
+  {
+    Utils.validateUnsigned(arity, "arity");
+    long sortPointer = declareSort(pointer, symbol, arity, fresh);
+    return new Sort(sortPointer);
+  }
+
+  private native long declareSort(long pointer, String symbol, int arity, boolean fresh);
 
   /**
    * Define n-ary function in the current context.
@@ -2059,7 +2113,7 @@ public class Solver implements IPointer
    *
    * @param c The component of the proof to return
    * @return A string representing the proof. This is equivalent to getProof
-   * when c is PROOF_COMPONENT_FULL.
+   * when c is FULL.
    */
   public String getProof(ProofComponent c)
   {
@@ -2800,50 +2854,6 @@ public class Solver implements IPointer
       long pointer, String symbol, long[] boundVarPointers, long sortPointer, long grammarPointer);
 
   /**
-   * Synthesize invariant.
-   *
-   * SyGuS v2:
-   * {@code
-   *   ( synth-inv <symbol> ( <boundVars>* ) )
-   * }
-   *
-   * @param symbol The name of the invariant.
-   * @param boundVars The parameters to this invariant.
-   * @return The invariant.
-   */
-  public Term synthInv(String symbol, Term[] boundVars)
-  {
-    long[] boundVarPointers = Utils.getPointers(boundVars);
-    long termPointer = synthInv(pointer, symbol, boundVarPointers);
-    return new Term(termPointer);
-  }
-
-  private native long synthInv(long pointer, String symbol, long[] boundVarPointers);
-
-  /**
-   * Synthesize invariant following specified syntactic constraints.
-   *
-   * SyGuS v2:
-   * {@code
-   *   ( synth-inv <symbol> ( <boundVars>* ) <g> )
-   * }
-   *
-   * @param symbol The name of the invariant.
-   * @param boundVars The parameters to this invariant.
-   * @param grammar The syntactic constraints.
-   * @return The invariant.
-   */
-  public Term synthInv(String symbol, Term[] boundVars, Grammar grammar)
-  {
-    long[] boundVarPointers = Utils.getPointers(boundVars);
-    long termPointer = synthInv(pointer, symbol, boundVarPointers, grammar.getPointer());
-    return new Term(termPointer);
-  }
-
-  private native long synthInv(
-      long pointer, String symbol, long[] boundVarPointers, long grammarPointer);
-
-  /**
    * Add a forumla to the set of Sygus constraints.
    *
    * SyGuS v2:
@@ -3009,6 +3019,75 @@ public class Solver implements IPointer
   }
 
   private native long[] getSynthSolutions(long pointer, long[] termPointers);
+
+  /**
+   * Find a target term of interest using sygus enumeration, with no provided
+   * grammar.
+   *
+   * The solver will infer which grammar to use in this call, which by default
+   * will be the grammars specified by the function(s)-to-synthesize in the
+   * current context.
+   *
+   * SyGuS v2:
+   * {@code
+   *     (find-synth :target)
+   * }
+   *
+   * @param fst The identifier specifying what kind of term to find
+   * @return The result of the find, which is the null term if this call failed.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   */
+  public Term findSynth(FindSynthTarget fst)
+  {
+    long termPointer = findSynth(pointer, fst.getValue());
+    return new Term(termPointer);
+  }
+  private native long findSynth(long pointer, int fst);
+
+  /**
+   * Find a target term of interest using sygus enumeration with a provided
+   * grammar.
+   *
+   * SyGuS v2:
+   * {@code
+   *     (find-synth :target G)
+   * }
+   *
+   * @param fst The identifier specifying what kind of term to find
+   * @param grammar The grammar for the term
+   * @return The result of the find, which is the null term if this call failed.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   */
+  public Term findSynth(FindSynthTarget fst, Grammar grammar)
+  {
+    long termPointer = findSynth(pointer, fst.getValue(), grammar.getPointer());
+    return new Term(termPointer);
+  }
+  private native long findSynth(long pointer, int fst, long grammarPointer);
+
+  /**
+   * Try to find a next target term of interest using sygus enumeration. Must
+   * be called immediately after a successful call to find-synth or
+   * find-synth-next.
+   *
+   * SyGuS v2:
+   * {@code
+   *     (find-synth-next)
+   * }
+   *
+   * @return The result of the find, which is the null term if this call failed.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   */
+  public Term findSynthNext()
+  {
+    long termPointer = findSynthNext(pointer);
+    return new Term(termPointer);
+  }
+
+  private native long findSynthNext(long pointer);
 
   /**
    * Returns a snapshot of the current state of the statistic values of this

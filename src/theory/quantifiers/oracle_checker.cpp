@@ -18,6 +18,7 @@
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "smt/env.h"
+#include "smt/logic_exception.h"
 #include "theory/rewriter.h"
 
 namespace cvc5::internal {
@@ -29,6 +30,8 @@ bool OracleChecker::checkConsistent(Node app,
                                     std::vector<Node>& lemmas)
 {
   Node result = evaluateApp(app);
+  Trace("oracle-calls") << "checkConsistent " << app << " == " << result
+                        << " vs " << val << std::endl;
   if (result != val)
   {
     lemmas.push_back(result.eqNode(app));
@@ -59,6 +62,15 @@ Node OracleChecker::evaluateApp(Node app)
     return app;
   }
   Node ret = retv[0];
+  ret = rewrite(ret);
+  if (ret.getType() != app.getType())
+  {
+    std::stringstream ss;
+    ss << "Evaluated an oracle call with an unexpected type: " << app << " = "
+       << ret << " whose type is " << ret.getType() << ", expected "
+       << app.getType();
+    throw LogicException(ss.str());
+  }
   Assert(!ret.isNull());
   return ret;
 }

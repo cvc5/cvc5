@@ -128,9 +128,20 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   void enqueueTheoryLiteral(const SatLiteral& l);
 
-  SatLiteral getNextTheoryDecisionRequest();
-
-  SatLiteral getNextDecisionEngineRequest(bool& stopSearch);
+  /**
+   * Get the next decision request.
+   *
+   * If `requirePhase` is true, the decision must be decided as is, in the
+   * given polarity. Else it should respect the polarity configured via
+   * PropEngine::requirePhase, if any.
+   *
+   * @param requirePhase True if the returned SatLiteral must be decided
+   *                     as-is, in its given polarity.
+   * @param stopSearch   True if the current search should be terminated. In
+   *                     this case, lit_Undef is returned.
+   * @return The next decision.
+   */
+  SatLiteral getNextDecisionRequest(bool& requirePhase, bool& stopSearch);
 
   bool theoryNeedCheck() const;
 
@@ -156,11 +167,11 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   bool isDecisionEngineDone();
 
-  bool isDecisionRelevant(SatVariable var);
-
-  SatValue getDecisionPolarity(SatVariable var);
-
-  CnfStream* getCnfStream();
+  /**
+   * Get the associated CNF stream.
+   * @return The CNF stream.
+   */
+  CnfStream* getCnfStream() const;
 
   /**
    * Call the preprocessor on node, return trust node corresponding to the

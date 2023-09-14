@@ -79,11 +79,14 @@ class TimeoutCoreManager : protected EnvObj
    * result has the same guarantees as a response to checkSat.
    */
   std::pair<Result, std::vector<Node>> getTimeoutCore(
-      const std::vector<Node>& ppAsserts);
+      const std::vector<Node>& ppAsserts,
+      const std::map<size_t, Node>& ppSkolemMap);
 
  private:
   /** initialize assertions */
-  void initializePreprocessedAssertions(const std::vector<Node>& ppAsserts);
+  void initializePreprocessedAssertions(
+      const std::vector<Node>& ppAsserts,
+      const std::map<size_t, Node>& ppSkolemMap);
   /** get next assertions */
   void getNextAssertions(std::vector<Node>& nextAssertions);
   /** check sat next */
@@ -101,16 +104,24 @@ class TimeoutCoreManager : protected EnvObj
   /** Does the i^th assertion have a current shared symbol (a free symbol in
    * d_asymbols). */
   bool hasCurrentSharedSymbol(size_t i) const;
+  /** Add skolem definitions */
+  void getActiveSkolemDefinitions(std::vector<Node>& nextAssertions);
+
   /** Common nodes */
   Node d_true;
   Node d_false;
-  /** The original assertions */
-  std::vector<Node> d_asserts;
   /**
    * The preprocessed assertions, which we have run substitutions and
    * rewriting on
    */
   std::vector<Node> d_ppAsserts;
+  /** Number of non-skolem definitions, a prefix of d_ppAsserts */
+  size_t d_numAssertsNsk;
+  /**
+   * Mapping from skolem variables to their skolem definitions included in
+   * the assertions.
+   */
+  std::map<Node, Node> d_skolemToAssert;
   /**
    * The cache of models, we store a model as the model value of each assertion
    * in d_ppAsserts.

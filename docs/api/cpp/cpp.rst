@@ -27,6 +27,7 @@ For most applications, the :cpp:class:`Solver <cvc5::Solver>` class is the main 
     roundingmode
     solver
     sort
+    sortkind
     statistics
     synthresult
     term
@@ -65,9 +66,18 @@ Class hierarchy
 
     * class :cpp:class:`const_iterator <cvc5::Term::const_iterator>`
 
-  * enum :ref:`api/cpp/kind:kind`
-  * enum :ref:`api/cpp/roundingmode:roundingmode`
-  * enum :ref:`api/cpp/unknownexplanation:unknownexplanation`
-  * modes enums :ref:`api/cpp/modes:modes`
+  * enum class :ref:`api/cpp/kind:kind`
+  * enum class :ref:`api/cpp/sortkind:sortkind`
+  * enum class :ref:`api/cpp/roundingmode:roundingmode`
+  * enum class :ref:`api/cpp/unknownexplanation:unknownexplanation`
+
+``namespace modes {``
+  * enum classes for :ref:`configuration modes<api/cpp/modes:modes>`
+
+    * enum class for :cpp:enum:`cvc5::modes::BlockModelsMode`
+    * enum class for :cpp:enum:`cvc5::modes::LearnedLitType`
+    * enum class for :cpp:enum:`cvc5::modes::ProofComponent`
+    * enum class for :cpp:enum:`cvc5::modes::FindSynthTarget`
+``}``
 
 ``}``
