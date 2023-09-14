@@ -242,7 +242,9 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     Trace("nl-arith-model") << "  arith model is:" << std::endl;
     for (std::pair<const Node, Node>& m : arithModel)
     {
-      Trace("nl-arith-model") << "  " << m.first << " -> " << m.second << ", rep " << d_astate.getRepresentative(m.first) << std::endl;
+      Trace("nl-arith-model")
+          << "  " << m.first << " -> " << m.second << ", rep "
+          << d_astate.getRepresentative(m.first) << std::endl;
     }
   }
 
