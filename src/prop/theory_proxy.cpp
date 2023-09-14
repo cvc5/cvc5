@@ -402,17 +402,11 @@ void TheoryProxy::spendResource(Resource r)
   d_theoryEngine->spendResource(r);
 }
 
-bool TheoryProxy::isDecisionRelevant(SatVariable var) { return true; }
-
 bool TheoryProxy::isDecisionEngineDone() {
   return d_decisionEngine->isDone() || d_stopSearch.get();
 }
 
-SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
-  return SAT_VALUE_UNKNOWN;
-}
-
-CnfStream* TheoryProxy::getCnfStream() { return d_cnfStream; }
+CnfStream* TheoryProxy::getCnfStream() const { return d_cnfStream; }
 
 TrustNode TheoryProxy::preprocessLemma(
     TrustNode trn, std::vector<theory::SkolemLemma>& newLemmas)
