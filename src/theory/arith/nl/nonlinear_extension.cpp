@@ -83,8 +83,6 @@ void NonlinearExtension::processSideEffect(const NlLemma& se)
   d_trSlv.processSideEffect(se);
 }
 
-bool NonlinearExtension::hasNlTerms() const { return d_extTheory.hasActiveTerm(); }
-
 void NonlinearExtension::computeRelevantAssertions(
     const std::vector<Node>& assertions, std::vector<Node>& keep)
 {
@@ -235,21 +233,8 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
                                          const std::set<Node>& termSet)
 {
   Trace("nl-ext") << "NonlinearExtension::checkFullEffort" << std::endl;
-  if (TraceIsOn("nl-arith-model"))
-  {
-    Trace("nl-arith-model") << "  arith model is:" << std::endl;
-    for (std::pair<const Node, Node>& m : arithModel)
-    {
-      Trace("nl-arith-model") << "  " << m.first << " -> " << m.second << ", rep " << d_astate.getRepresentative(m.first) << std::endl;
-    }
-  }
-  /*
-  for (std::pair<const Node, Node>& m : arithModel)
-  {
-    Node r = d_astate.getRepresentative(m.first);
-    AlwaysAssert(!r.isConst() || r==m.second);
-  }
-  */
+
+  d_hasNlTerms = true;
   if (options().arith.nlExtRewrites)
   {
     std::vector<Node> nred;
@@ -257,6 +242,10 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     {
       Trace("nl-ext") << "...sent no lemmas, # extf to reduce = " << nred.size()
                       << std::endl;
+      if (nred.empty())
+      {
+        d_hasNlTerms = false;
+      }
     }
     else
     {
