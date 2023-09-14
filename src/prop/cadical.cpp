@@ -391,7 +391,9 @@ std::vector<SatLiteral> CadicalSolver::getDecisions() const
 
 std::vector<Node> CadicalSolver::getOrderHeap() const { return {}; }
 
-std::shared_ptr<ProofNode> CDCLTgetProof() { return nullptr; }
+std::shared_ptr<ProofNode> CadicalSolver::getProof() { return nullptr; }
+
+SatProofManager* CadicalSolver::getProofManager() { return nullptr; }
 
 /* -------------------------------------------------------------------------- */
 }  // namespace prop
