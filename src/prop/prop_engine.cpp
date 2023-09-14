@@ -106,10 +106,8 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
                           satProofs ? pnm : nullptr);
   if (satProofs)
   {
-    d_pfCnfStream.reset(new ProofCnfStream(
-        env,
-        *d_cnfStream,
-        static_cast<MinisatSatSolver*>(d_satSolver)->getProofManager()));
+    d_pfCnfStream.reset(
+        new ProofCnfStream(env, *d_cnfStream, d_satSolver->getProofManager()));
     d_ppm.reset(
         new PropPfManager(env, userContext, d_satSolver, d_pfCnfStream.get()));
   }
@@ -125,9 +123,11 @@ void PropEngine::finishInit()
   // issue we track it directly here
   if (isProofEnabled())
   {
-    static_cast<MinisatSatSolver*>(d_satSolver)
-        ->getProofManager()
-        ->registerSatAssumptions({nm->mkConst(true)});
+    SatProofManager* spfm = d_satSolver->getProofManager();
+    if (spfm)
+    {
+      spfm->registerSatAssumptions({nm->mkConst(true)});
+    }
   }
   d_cnfStream->convertAndAssert(nm->mkConst(false).notNode(), false, false);
 }
