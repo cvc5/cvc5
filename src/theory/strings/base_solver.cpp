@@ -787,7 +787,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
     Node lr = lts[i];
     Trace("strings-card") << "Number of strings with length equal to " << lr
                           << " is " << cols[i].size() << std::endl;
-    size_t lenNeed;
+    size_t lenNeed = 0;
     if (isCardinalityOk(typeCardSize, lr, cols[i].size(), lenNeed))
     {
       // based on cardinality, we are ok
