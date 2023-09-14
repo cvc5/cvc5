@@ -1,6 +1,5 @@
 ; REQUIRES: cocoa
 ; EXPECT: sat
-; Tests the ff rewriter
 ; COMMAND-LINE: --ff-field-polys
 ; COMMAND-LINE:
 (set-info :smt-lib-version 2.6)
