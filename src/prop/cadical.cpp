@@ -740,6 +740,37 @@ void CadicalSolver::setResourceLimit(ResourceManager* resmgr)
   d_solver->connect_terminator(d_terminator.get());
 }
 
+SatValue CadicalSolver::_solve(const std::vector<SatLiteral>& assumptions)
+{
+  if (d_propagator)
+  {
+    Trace("cadical::propagator") << "solve start" << std::endl;
+  }
+  TimerStat::CodeTimer codeTimer(d_statistics.d_solveTime);
+  d_assumptions.clear();
+  SatValue res;
+  for (const SatLiteral& lit : assumptions)
+  {
+    if (d_propagator)
+    {
+      Trace("cadical::propagator") << "assume: " << lit << std::endl;
+    }
+    d_solver->assume(toCadicalLit(lit));
+    d_assumptions.push_back(lit);
+  }
+  d_in_search = true;
+  res = toSatValue(d_solver->solve());
+  if (d_propagator)
+  {
+    Assert(res == SAT_VALUE_FALSE || d_propagator->done());
+    Trace("cadical::propagator") << "solve done: " << res << std::endl;
+  }
+  d_in_search = false;
+  ++d_statistics.d_numSatCalls;
+  d_inSatMode = (res == SAT_VALUE_TRUE);
+  return res;
+}
+
 /* SatSolver Interface ------------------------------------------------------ */
 
 ClauseId CadicalSolver::addClause(SatClause& clause, bool removable)
@@ -791,15 +822,7 @@ SatVariable CadicalSolver::trueVar() { return d_true; }
 
 SatVariable CadicalSolver::falseVar() { return d_false; }
 
-SatValue CadicalSolver::solve()
-{
-  TimerStat::CodeTimer codeTimer(d_statistics.d_solveTime);
-  d_assumptions.clear();
-  SatValue res = toSatValue(d_solver->solve());
-  d_inSatMode = (res == SAT_VALUE_TRUE);
-  ++d_statistics.d_numSatCalls;
-  return res;
-}
+SatValue CadicalSolver::solve() { return _solve({}); }
 
 SatValue CadicalSolver::solve(long unsigned int&)
 {
@@ -808,17 +831,7 @@ SatValue CadicalSolver::solve(long unsigned int&)
 
 SatValue CadicalSolver::solve(const std::vector<SatLiteral>& assumptions)
 {
-  TimerStat::CodeTimer codeTimer(d_statistics.d_solveTime);
-  d_assumptions.clear();
-  for (const SatLiteral& lit : assumptions)
-  {
-    d_solver->assume(toCadicalLit(lit));
-    d_assumptions.push_back(lit);
-  }
-  SatValue res = toSatValue(d_solver->solve());
-  d_inSatMode = (res == SAT_VALUE_TRUE);
-  ++d_statistics.d_numSatCalls;
-  return res;
+  return _solve(assumptions);
 }
 
 bool CadicalSolver::setPropagateOnly()
