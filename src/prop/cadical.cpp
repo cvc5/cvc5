@@ -414,14 +414,23 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
    * Callback of the SAT solver to determine if we have a new clause to add.
    * @return True to indicate that we have clauses to add.
    */
-  bool cb_has_external_clause() override { return false; }
+  bool cb_has_external_clause() override { return !d_new_clauses.empty(); }
 
   /**
    * Callback of the SAT solver to add a new clause.
    * @note This is called consecutively until the full clause is processed.
+   * @note Clauses are terminated with 0 in d_new_clauses.
    * @return The next literal of the clause, 0 to terminate the clause.
    */
-  int cb_add_external_clause_lit() override { return 0; }
+  int cb_add_external_clause_lit() override
+  {
+    Assert(!d_new_clauses.empty());
+    CadicalLit lit = d_new_clauses.front();
+    d_new_clauses.erase(d_new_clauses.begin());
+    Trace("cadical::propagator")
+        << "external_clause: " << toSatLiteral(lit) << std::endl;
+    return lit;
+  }
 
   /**
    * Get the current trail of decisions.
