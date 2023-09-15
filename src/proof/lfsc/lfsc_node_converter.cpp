@@ -599,7 +599,7 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
     {
       // no need to convert type for tuples of size 0,
       // type as node is simple
-      tnn = getSymbolInternal(k, d_sortType, "Tuple");
+      tnn = getSymbolInternal(k, d_sortType, "UnitTuple");
     }
   }
   else if (tn.getNumChildren() == 0)

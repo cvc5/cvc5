@@ -2252,7 +2252,8 @@ enum ENUM(Kind) : int32_t
    *
    * - Arity: ``2``
    *
-   *   - ``1..2:`` Terms of floating-point Sort (sorts must match)
+   *   - ``1:`` Term of Sort RoundingMode
+   *   - ``2:`` Term of floating-point Sort
    *
    * - Create Term of this Kind with:
    *
