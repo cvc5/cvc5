@@ -289,9 +289,61 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
 
   /**
    * Callback of the SAT solver before making a new decision.
-   * @return The decision.
+   *
+   * Processes decision requests from the theory proxy.
+   *
+   * @note This may call cb_check_found_model() in case the decision engine
+   *       determines that we have a partial model, i.e., stopSearch is true.
+   *
+   * @return The next decision.
    */
-  int cb_decide() override { return 0; }
+  int cb_decide() override
+  {
+    if (d_found_solution)
+    {
+      return 0;
+    }
+    bool stopSearch = false;
+    bool requirePhase = false;
+    SatLiteral lit = d_proxy->getNextDecisionRequest(requirePhase, stopSearch);
+    if (lit != undefSatLiteral)
+    {
+      Trace("cadical::propagator") << "cb::decide: " << lit << std::endl;
+      return toCadicalLit(lit);
+    }
+    else
+    {
+      lit = d_proxy->getNextDecisionRequest(requirePhase, stopSearch);
+      // We found a partial model, let's check it.
+      if (stopSearch)
+      {
+        d_found_solution = cb_check_found_model({});
+        if (d_found_solution)
+        {
+          Trace("cadical::propagator") << "Found solution" << std::endl;
+          d_found_solution = d_proxy->isDecisionEngineDone();
+          if (!d_found_solution)
+          {
+            Trace("cadical::propagator")
+                << "Decision engine not done" << std::endl;
+            stopSearch = false;
+            lit = d_proxy->getNextDecisionRequest(requirePhase, stopSearch);
+          }
+        }
+        else
+        {
+          Trace("cadical::propagator") << "No solution found yet" << std::endl;
+        }
+      }
+      if (!stopSearch && lit != undefSatLiteral)
+      {
+        Trace("cadical::propagator") << "cb::decide: " << lit << std::endl;
+        return toCadicalLit(lit);
+      }
+    }
+    Trace("cadical::propagator") << "cb::decide: 0" << std::endl;
+    return 0;
+  }
 
   /**
    * Callback of the SAT solver after BCP.
