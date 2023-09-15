@@ -294,12 +294,33 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
   }
 
   /**
-   * Determine if a decision has been made on the given variable.
-   * @return True if the variable is a decision variable.
+   * Push user assertion level.
    */
-  bool is_decision(const SatVariable& var)
+  void user_push()
   {
-    return d_decision_vars.find(var) != d_decision_vars.end();
+    d_active_vars_control.push_back(d_active_vars.size());
+    Trace("cadical::propagator")
+        << "user push: " << d_active_vars_control.size() << std::endl;
+  }
+
+  void user_pop()
+  {
+    Trace("cadical::propagator")
+        << "user pop: " << d_active_vars_control.size() << std::endl;
+    size_t pop_to = d_active_vars_control.back();
+    d_active_vars_control.pop_back();
+
+    // Unregister popped variables so that CaDiCaL does not notify us anymore
+    // about assignments.
+    Assert(pop_to <= d_active_vars.size());
+    while (d_active_vars.size() > pop_to)
+    {
+      SatVariable var = d_active_vars.back();
+      d_active_vars.pop_back();
+      // d_solver.remove_observed_var(toCadicalVar(var));
+      d_var_info[var].is_active = false;
+      Trace("cadical::propagator") << "set inactive: " << var << std::endl;
+    }
   }
 
  private:
