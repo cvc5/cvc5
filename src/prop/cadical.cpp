@@ -254,6 +254,34 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
   }
 
  private:
+  /** Retrieve theory propagations and add them to the propagations list. */
+  void theory_propagate()
+  {
+    SatClause propagated_lits;
+    d_proxy->theoryPropagate(propagated_lits);
+    Trace("cadical::propagator")
+        << "new propagations: " << propagated_lits.size() << std::endl;
+
+    for (const auto& lit : propagated_lits)
+    {
+      Trace("cadical::propagator") << "new propagation: " << lit << std::endl;
+      d_propagations.push_back(lit);
+    }
+  }
+
+  /** Return next propagation. */
+  int next_propagation()
+  {
+    if (d_propagations.empty())
+    {
+      return 0;
+    }
+    SatLiteral next = d_propagations.front();
+    d_propagations.erase(d_propagations.begin());
+    Trace("cadical::propagator") << "propagate: " << next << std::endl;
+    return toCadicalLit(next);
+  }
+
   /** The associated theory proxy. */
   prop::TheoryProxy* d_proxy = nullptr;
 
@@ -306,6 +334,10 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
    * Note: May contain undefSatLiteral for unobserved decision variables.
    */
   std::vector<SatLiteral> d_decisions;
+
+  /** Used by cb_propagate() to return propagated literals. */
+  std::vector<SatLiteral> d_propagations;
+
   /**
    * The control stack for d_decisions, manages decision levels. Each element
    * of the vector stores the index of the start of the next decision level.
