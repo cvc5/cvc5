@@ -431,7 +431,7 @@ void CadicalSolver::preferPhase(SatLiteral lit) {}
 
 bool CadicalSolver::isDecision(SatVariable var) const
 {
-  return d_propagator->is_decision(var);
+  return d_solver->is_decision(toCadicalVar(var));
 }
 
 bool CadicalSolver::isFixed(SatVariable var) const
@@ -441,7 +441,15 @@ bool CadicalSolver::isFixed(SatVariable var) const
 
 std::vector<SatLiteral> CadicalSolver::getDecisions() const
 {
-  return d_propagator->get_decisions();
+  std::vector<SatLiteral> decisions;
+  for (SatLiteral lit : d_propagator->get_decisions())
+  {
+    if (lit != 0)
+    {
+      decisions.push_back(lit);
+    }
+  }
+  return decisions;
 }
 
 std::vector<Node> CadicalSolver::getOrderHeap() const { return {}; }
