@@ -347,9 +347,29 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
 
   /**
    * Callback of the SAT solver after BCP.
+   *
+   * Performs standard theory check and theory propagations.
+   *
+   * If we don't have any theory propagations queued in d_propagations, we
+   * perform an EFFORT_STANDARD check in combination with theory_propagate() to
+   * populate d_propagations.
+   *
    * @return The next theory propagation.
    */
-  int cb_propagate() override { return 0; }
+  int cb_propagate() override
+  {
+    if (d_found_solution)
+    {
+      return 0;
+    }
+    Trace("cadical::propagator") << "cb::propagate" << std::endl;
+    if (d_propagations.empty())
+    {
+      d_proxy->theoryCheck(theory::Theory::Effort::EFFORT_STANDARD);
+      theory_propagate();
+    }
+    return next_propagation();
+  }
 
   /**
    * Callback of the SAT solver asking for the explanation of a theory literal.
@@ -358,7 +378,37 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
    * @param propagated_lit The theory literal.
    * @return The next literal of the reason clause, 0 to terminate the clause.
    */
-  int cb_add_reason_clause_lit(int propagated_lit) override { return 0; }
+  int cb_add_reason_clause_lit(int propagated_lit) override
+  {
+    // Get reason for propagated_lit.
+    if (!d_processing_reason)
+    {
+      Assert(d_reason.empty());
+      SatLiteral slit = toSatLiteral(propagated_lit);
+      SatClause clause;
+      d_proxy->explainPropagation(slit, clause);
+      d_reason.insert(d_reason.end(), clause.begin(), clause.end());
+      d_processing_reason = true;
+      Trace("cadical::propagator")
+          << "cb::reason: " << slit << ", size: " << d_reason.size()
+          << std::endl;
+    }
+
+    // We are done processing the reason for propagated_lit.
+    if (d_reason.empty())
+    {
+      d_processing_reason = false;
+      return 0;
+    }
+
+    // Return next literal of the reason for propagated_lit.
+    Trace("cadical::propagator")
+        << "cb::reason: " << toSatLiteral(propagated_lit) << " "
+        << d_reason.front() << std::endl;
+    int lit = toCadicalLit(d_reason.front());
+    d_reason.erase(d_reason.begin());
+    return lit;
+  }
 
   /**
    * Callback of the SAT solver to determine if we have a new clause to add.
@@ -507,7 +557,11 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
     }
   }
 
-  /** Return next propagation. */
+  /**
+   * Get next propagation.
+   *
+   * @return Return next propagation queued in d_propagations.
+   */
   int next_propagation()
   {
     if (d_propagations.empty())
@@ -589,6 +643,14 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
    * cb_add_reason_clause_lit().
    */
   std::vector<CadicalLit> d_new_clauses;
+
+  /**
+   * Flag indicating whether cb_add_reason_clause_lit() is currently
+   * processing a reason.
+   */
+  bool d_processing_reason = false;
+  /** Reason storage to process current reason in cb_add_reason_clause_lit(). */
+  std::vector<SatLiteral> d_reason;
 
   bool d_found_solution = false;
 };
