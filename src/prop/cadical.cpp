@@ -439,6 +439,29 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
   const std::vector<SatLiteral>& get_decisions() const { return d_decisions; }
 
   /**
+   * Get the current assignment of lit.
+   *
+   * Note: This does not query d_solver->val() since this can only be queried
+   * if the SAT solver is in a SAT state, which is not the case during solving.
+   *
+   * @param lit SatLiteral to be queried.
+   * @return Current value of given literal on the trail.
+   */
+  SatValue value(SatLiteral lit) const
+  {
+    SatVariable var = lit.getSatVariable();
+    SatValue val = SAT_VALUE_UNKNOWN;
+    int32_t assign = d_var_info[var].assignment;
+    if (assign != 0)
+    {
+      val = toSatValueLit(lit.isNegated() ? -assign : assign);
+    }
+    Trace("cadical::propagator")
+        << "value: " << lit << ": " << val << std::endl;
+    return val;
+  }
+
+  /**
    * Adds a new clause to the propagator.
    *
    * The clause will not immediately added to the SAT solver, but instead
