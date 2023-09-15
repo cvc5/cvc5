@@ -116,6 +116,8 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
    */
   void setResourceLimit(ResourceManager* resmgr);
 
+  SatValue _solve(const std::vector<SatLiteral>& assumptions);
+
   /** The wrapped CaDiCaL instance. */
   std::unique_ptr<CaDiCaL::Solver> d_solver;
   /** The CaDiCaL terminator (for termination via resource manager). */
