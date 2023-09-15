@@ -153,29 +153,78 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
 
   /**
    * Notification from the SAT solver on backtrack to the given level.
+   *
+   * This will automatically backtrack decisions and assignments to the
+   * specified level. Fixed assignments that get backtracked will be
+   * re-assigned at `level` and the corresponding theory literals are
+   * re-enqueued in the theory proxy.
+   *
    * @param level The level the SAT solver backtracked to.
    */
   void notify_backtrack(size_t level) override
   {
-    Assert(d_proxy);
-    d_proxy->notifyBacktrack();
+    Trace("cadical::propagator") << "notif::backtrack: " << level << std::endl;
 
-    size_t cur_level = d_decisions_control.size();
-    Assert(cur_level > level);
-    for (; cur_level > level; --cur_level)
+    // CaDiCaL may notify us about backtracks of decisions that we were not
+    // notified about. We can safely ignore them.
+    if (d_decisions.size() <= level)
     {
-      size_t idx = d_decisions_control.back();
-      d_decisions_control.pop_back();
-      for (size_t i = 0, n = d_decisions.size() - idx; i < n; ++i)
-      {
-        SatLiteral slit = d_decisions.back();
-        d_decisions.pop_back();
-        auto it = d_decision_vars.find(slit.getSatVariable());
-        Assert(it != d_decision_vars.end());
-        d_decision_vars.erase(*it);
-      }
-      Assert(d_decisions.size() == idx);
+      Assert(d_decisions.size() == 0);
+      return;
     }
+    d_found_solution = false;
+
+    // Backtrack decisions
+    Assert(d_decisions.size() > level);
+    Assert(d_context.getLevel() > level);
+    for (size_t cur_level = d_decisions.size(); cur_level > level; --cur_level)
+    {
+      d_context.pop();
+      d_decisions.pop_back();
+    }
+
+    // Backtrack assignments, resend fixed theory literals that got backtracked
+    Assert(!d_assignment_control.empty());
+    size_t pop_to = d_assignment_control[level];
+    d_assignment_control.resize(level);
+
+    std::vector<SatLiteral> fixed;
+    while (pop_to < d_assignments.size())
+    {
+      SatLiteral lit = d_assignments.back();
+      d_assignments.pop_back();
+      SatVariable var = lit.getSatVariable();
+      auto& info = d_var_info[var];
+      if (info.is_fixed)
+      {
+        if (info.is_theory_atom)
+        {
+          Assert(info.is_active);
+          fixed.push_back(lit);
+        }
+      }
+      else
+      {
+        Trace("cadical::propagator") << "unassign: " << var << std::endl;
+        info.assignment = 0;
+      }
+    }
+
+    // Notify theory proxy about backtrack
+    d_proxy->notifyBacktrack();
+    // Clear the propgations since they are not valid anymore.
+    d_propagations.clear();
+
+    // Re-enqueue fixed theory literals that got removed. Re-enqueue in the
+    // order they got assigned in, i.e., reverse order on vector `fixed`.
+    for (auto it = fixed.rbegin(), end = fixed.rend(); it != end; ++it)
+    {
+      SatLiteral lit = *it;
+      Trace("cadical::propagator") << "re-enqueue: " << lit << std::endl;
+      d_proxy->enqueueTheoryLiteral(lit);
+      d_assignments.push_back(lit);
+    }
+    Trace("cadical::propagator") << "notif::backtrack end" << std::endl;
   }
 
   /**
