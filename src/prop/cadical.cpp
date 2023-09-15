@@ -140,10 +140,15 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
 
   /**
    * Notification from the SAT solver when it makes a decision.
+   * Pushes new SAT context level.
    */
   void notify_new_decision_level() override
   {
-    d_decisions_control.push_back(d_decisions.size());
+    d_context.push();
+    d_assignment_control.push_back(d_assignments.size());
+    d_decisions.emplace_back();
+    Trace("cadical::propagator")
+        << "notif::decision: new level " << d_decisions.size() << std::endl;
   }
 
   /**
