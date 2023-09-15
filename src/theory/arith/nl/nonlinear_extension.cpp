@@ -43,7 +43,7 @@ NonlinearExtension::NonlinearExtension(Env& env, TheoryArith& containing)
       d_astate(*containing.getTheoryState()),
       d_im(containing.getInferenceManager()),
       d_stats(statisticsRegistry()),
-      d_hasNlTerms(false),
+      d_hasNlTerms(context(), false),
       d_checkCounter(0),
       d_extTheoryCb(d_astate.getEqualityEngine()),
       d_extTheory(env, d_extTheoryCb, d_im),
@@ -75,7 +75,11 @@ void NonlinearExtension::preRegisterTerm(TNode n)
 {
   // register terms with extended theory, to find extended terms that can be
   // eliminated by context-depedendent simplification.
-  d_extTheory.registerTerm(n);
+  if (d_extTheory.hasFunctionKind(n.getKind()))
+  {
+    d_hasNlTerms = true;
+    d_extTheory.registerTerm(n);
+  }
 }
 
 void NonlinearExtension::processSideEffect(const NlLemma& se)
@@ -233,8 +237,17 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
                                          const std::set<Node>& termSet)
 {
   Trace("nl-ext") << "NonlinearExtension::checkFullEffort" << std::endl;
+  if (TraceIsOn("nl-arith-model"))
+  {
+    Trace("nl-arith-model") << "  arith model is:" << std::endl;
+    for (std::pair<const Node, Node>& m : arithModel)
+    {
+      Trace("nl-arith-model")
+          << "  " << m.first << " -> " << m.second << ", rep "
+          << d_astate.getRepresentative(m.first) << std::endl;
+    }
+  }
 
-  d_hasNlTerms = true;
   if (options().arith.nlExtRewrites)
   {
     std::vector<Node> nred;
@@ -242,10 +255,12 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     {
       Trace("nl-ext") << "...sent no lemmas, # extf to reduce = " << nred.size()
                       << std::endl;
-      if (nred.empty())
-      {
-        d_hasNlTerms = false;
-      }
+      // note that even if the extended theory thinks there are no terms left
+      // to reduce (nred.empty()), we still have to check with the non-linear
+      // extension, since the substitutions ExtTheory uses come from the
+      // equality engine, which may disagree with the arithmetic model
+      // (arithModel), since the equality engine does congruence over extended
+      // operators, and the linear solver does not take this into account.
     }
     else
     {
