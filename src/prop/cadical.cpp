@@ -573,6 +573,8 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
     }
   }
 
+  bool is_fixed(SatVariable var) const { return d_var_info[var].is_fixed; }
+
  private:
   /** Retrieve theory propagations and add them to the propagations list. */
   void theory_propagate()
@@ -663,14 +665,6 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
   std::vector<SatLiteral> d_propagations;
 
   /**
-   * The control stack for d_decisions, manages decision levels. Each element
-   * of the vector stores the index of the start of the next decision level.
-   * If empty, decision level is 0.
-   */
-  std::vector<size_t> d_decisions_control;
-  /** The set of decision variables. */
-  std::unordered_set<SatVariable> d_decision_vars;
-  /**
    * Used by add_clause() to buffer added clauses, which will be added via
    * cb_add_reason_clause_lit().
    */
@@ -697,6 +691,7 @@ CadicalSolver::CadicalSolver(Env& env,
       //       literals are represented as the negation of the index.
       d_nextVarIdx(1),
       d_inSatMode(false),
+      d_assertionLevel(0),
       d_statistics(registry, name)
 {
 }
@@ -705,6 +700,13 @@ void CadicalSolver::init()
 {
   d_true = newVar();
   d_false = newVar();
+
+  // walk and lucky phase do not use the external propagator, disable for now
+  if (d_propagator)
+  {
+    d_solver->set("walk", 0);
+    d_solver->set("lucky", 0);
+  }
 
   d_solver->set("quiet", 1);  // CaDiCaL is verbose by default
   d_solver->add(toCadicalVar(d_true));
@@ -853,22 +855,15 @@ void CadicalSolver::getUnsatAssumptions(std::vector<SatLiteral>& assumptions)
 
 void CadicalSolver::interrupt() { d_solver->terminate(); }
 
-SatValue CadicalSolver::value(SatLiteral l)
+SatValue CadicalSolver::value(SatLiteral l) { return d_propagator->value(l); }
+
+SatValue CadicalSolver::modelValue(SatLiteral l)
 {
   Assert(d_inSatMode);
   return toSatValueLit(d_solver->val(toCadicalLit(l)));
 }
 
-SatValue CadicalSolver::modelValue(SatLiteral l)
-{
-  Assert(d_inSatMode);
-  return value(l);
-}
-
-uint32_t CadicalSolver::getAssertionLevel() const
-{
-  Unreachable() << "CaDiCaL does not support assertion levels.";
-}
+uint32_t CadicalSolver::getAssertionLevel() const { return d_assertionLevel; }
 
 bool CadicalSolver::ok() const { return d_inSatMode; }
 
@@ -892,21 +887,35 @@ void CadicalSolver::initialize(context::Context* context,
   d_proxy = theoryProxy;
   d_propagator.reset(new CadicalPropagator(theoryProxy, context, *d_solver));
   d_solver->connect_external_propagator(d_propagator.get());
+
+  init();
 }
 
 void CadicalSolver::push()
 {
+  ++d_assertionLevel;
   d_context->push();  // SAT context for cvc5
+  d_propagator->user_push();
 }
 
 void CadicalSolver::pop()
 {
+  --d_assertionLevel;
   d_context->pop();  // SAT context for cvc5
+  d_propagator->user_pop();
 }
 
-void CadicalSolver::resetTrail() {}
+void CadicalSolver::resetTrail()
+{
+  // Reset SAT context to decision level 0
+  d_propagator->notify_backtrack(0);
+}
 
-void CadicalSolver::preferPhase(SatLiteral lit) {}
+void CadicalSolver::preferPhase(SatLiteral lit)
+{
+  Trace("cadical::propagator") << "phase: " << lit << std::endl;
+  d_solver->phase(toCadicalLit(lit));
+}
 
 bool CadicalSolver::isDecision(SatVariable var) const
 {
@@ -915,6 +924,10 @@ bool CadicalSolver::isDecision(SatVariable var) const
 
 bool CadicalSolver::isFixed(SatVariable var) const
 {
+  if (d_propagator)
+  {
+    return d_propagator->is_fixed(var);
+  }
   return d_solver->fixed(toCadicalVar(var));
 }
 
