@@ -61,7 +61,12 @@ CadicalVar toCadicalVar(SatVariable var) { return var; }
 class CadicalPropagator : public CaDiCaL::ExternalPropagator
 {
  public:
-  CadicalPropagator(prop::TheoryProxy* proxy) : d_proxy(proxy) {}
+  CadicalPropagator(prop::TheoryProxy* proxy,
+                    context::Context* context,
+                    CaDiCaL::Solver& solver)
+      : d_proxy(proxy), d_context(*context), d_solver(solver)
+  {
+  }
 
   /**
    * Notification from the SAT solver on assignment of a new literal.
@@ -176,7 +181,11 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
  private:
   /** The associated theory proxy. */
   prop::TheoryProxy* d_proxy = nullptr;
-  /** The current trail of decisions. */
+
+  /** The SAT context. */
+  context::Context& d_context;
+  CaDiCaL::Solver& d_solver;
+
   std::vector<SatLiteral> d_decisions;
   /**
    * The control stack for d_decisions, manages decision levels. Each element
@@ -357,7 +366,8 @@ void CadicalSolver::initialize(context::Context* context,
 {
   d_context = context;
   d_proxy = theoryProxy;
-  d_propagator.reset(new CadicalPropagator(theoryProxy));
+  d_propagator.reset(new CadicalPropagator(theoryProxy, context, *d_solver));
+  d_solver->connect_external_propagator(d_propagator.get());
 }
 
 void CadicalSolver::push()
