@@ -132,8 +132,7 @@ class TheoryProxy : protected EnvObj, public Registrar
    * Get the next decision request.
    *
    * This first queries the theory engine for a decision request. If the theory
-   * engine does not request a decision, the decision engine is queried, unless
-   * only theory decision requests are queried (`theoryOnly` is true).
+   * engine does not request a decision, the decision engine is queried.
    *
    * If `requirePhase` is true, the decision must be decided as is, in the
    * given polarity. Else it should respect the polarity configured via
