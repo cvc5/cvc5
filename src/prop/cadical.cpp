@@ -66,6 +66,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
                     CaDiCaL::Solver& solver)
       : d_proxy(proxy), d_context(*context), d_solver(solver)
   {
+    d_var_info.emplace_back();  // 0: Not used
   }
 
   /**
@@ -169,6 +170,22 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
    */
   const std::vector<SatLiteral>& get_decisions() const { return d_decisions; }
 
+  void add_new_var(const SatVariable& var, bool is_theory_atom, bool in_search)
+  {
+    Assert(d_var_info.size() == var);
+
+    // Boolean variables are not theory atoms, but may still occur in
+    // lemmas/conflicts sent to the SAT solver. Hence, we have to observe them
+    // since CaDiCaL expects all literals sent back to be observed.
+    d_solver.add_observed_var(toCadicalVar(var));
+    d_active_vars.push_back(var);
+    Trace("cadical::propagator")
+        << "new var: " << var << " (theoryAtom: " << is_theory_atom
+        << ", inSearch: " << in_search << ")" << std::endl;
+    auto& info = d_var_info.emplace_back();
+    info.is_theory_atom = is_theory_atom;
+  }
+
   /**
    * Determine if a decision has been made on the given variable.
    * @return True if the variable is a decision variable.
@@ -185,6 +202,30 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
   /** The SAT context. */
   context::Context& d_context;
   CaDiCaL::Solver& d_solver;
+
+  /** Struct to store information on variables. */
+  struct VarInfo
+  {
+    bool is_theory_atom = false;  // is variable a theory atom
+    bool is_fixed = false;       // has variable fixed assignment
+    bool is_active = true;       // is variable active
+    int32_t assignment = 0;      // current variable assignment
+  };
+  /** Maps SatVariable to corresponding info struct. */
+  std::vector<VarInfo> d_var_info;
+
+  /**
+   * Currently active variables, can get inactive on user pops.
+   * Dependent on user context.
+   */
+  std::vector<SatVariable> d_active_vars;
+  /**
+   * Control stack to mananage d_active_vars on user pop.
+   *
+   * Note: We do not use a User-context-dependent CDList here, since we neeed
+   *       to know which variables are popped and thus become inactive.
+   */
+  std::vector<size_t> d_active_vars_control;
 
   std::vector<SatLiteral> d_decisions;
   /**
@@ -273,6 +314,10 @@ ClauseId CadicalSolver::addXorClause(SatClause& clause,
 SatVariable CadicalSolver::newVar(bool isTheoryAtom, bool canErase)
 {
   ++d_statistics.d_numVariables;
+  if (d_propagator)
+  {
+    d_propagator->add_new_var(d_nextVarIdx, isTheoryAtom, d_in_search);
+  }
   return d_nextVarIdx++;
 }
 
