@@ -142,6 +142,7 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
   bool d_inSatMode;
   SatVariable d_true;
   SatVariable d_false;
+  uint32_t d_assertionLevel;
 
   struct Statistics
   {
