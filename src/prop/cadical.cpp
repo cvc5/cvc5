@@ -229,12 +229,62 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
 
   /**
    * Callback of the SAT solver on finding a full sat assignment.
+   *
+   * Checks whether current model is consistent with the theories, performs a
+   * full effort check and theory propgations.
+   *
    * @param model The full assignment.
    * @return true If the current model is not in conflict with the theories.
    */
   bool cb_check_found_model(const std::vector<int>& model) override
   {
-    return true;
+    Trace("cadical::propagator") << "cb::check_found_model" << std::endl;
+    bool recheck = false;
+
+    if (d_found_solution)
+    {
+      return true;
+    }
+
+    // CaDiCaL may backtrack while importing clauses, which can result in some
+    // clauses not being processed. Make sure to add all clauses before
+    // checking the model.
+    if (!d_new_clauses.empty())
+    {
+      return false;
+    }
+
+    do
+    {
+      Trace("cadical::propagator")
+          << "full check (recheck: " << recheck << ")" << std::endl;
+      d_proxy->theoryCheck(theory::Theory::Effort::EFFORT_FULL);
+      theory_propagate();
+      for (const SatLiteral& p : d_propagations)
+      {
+        Trace("cadical::propagator")
+            << "add propagation reason: " << p << std::endl;
+        SatClause clause;
+        d_proxy->explainPropagation(p, clause);
+        add_clause(clause);
+      }
+      d_propagations.clear();
+
+      if (!d_new_clauses.empty())
+      {
+        // Will again call cb_check_found_model() after clauses were added.
+        recheck = false;
+      }
+      else
+      {
+        recheck = d_proxy->theoryNeedCheck();
+      }
+    } while (recheck);
+
+    bool res = done();
+    Trace("cadical::propagator")
+        << "cb::check_found_model end: done: " << res << std::endl;
+    return res;
   }
 
   /**
@@ -277,6 +327,42 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
    */
   const std::vector<SatLiteral>& get_decisions() const { return d_decisions; }
 
+  /**
+   * Adds a new clause to the propagator.
+   *
+   * The clause will not immediately added to the SAT solver, but instead
+   * will be added through the `cb_add_external_clause_lit` callback.
+   *
+   * Note: Filters out clauses satisfied by fixed literals.
+   *
+   * @param clause The clause to add.
+   */
+  void add_clause(const SatClause& clause)
+  {
+    std::vector<CadicalLit> lits;
+    for (const SatLiteral& lit : clause)
+    {
+      SatVariable var = lit.getSatVariable();
+      const auto& info = d_var_info[var];
+      if (info.is_fixed)
+      {
+        int32_t val = lit.isNegated() ? -info.assignment : info.assignment;
+        Assert(val != 0);
+        if (val > 0)
+        {
+          // Clause satisfied by fixed literal, no clause added
+          return;
+        }
+      }
+      lits.push_back(toCadicalLit(lit));
+    }
+    if (!lits.empty())
+    {
+      d_new_clauses.insert(d_new_clauses.end(), lits.begin(), lits.end());
+      d_new_clauses.push_back(0);
+    }
+  }
+
   void add_new_var(const SatVariable& var, bool is_theory_atom, bool in_search)
   {
     Assert(d_var_info.size() == var);
@@ -291,6 +377,36 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
         << ", inSearch: " << in_search << ")" << std::endl;
     auto& info = d_var_info.emplace_back();
     info.is_theory_atom = is_theory_atom;
+  }
+
+  /**
+   * Checks whether the theory engine is done, no new clauses need to be added
+   * and the current model is consistent.
+   */
+  bool done() const
+  {
+    if (!d_new_clauses.empty())
+    {
+      Trace("cadical::propagator") << "not done: pending clauses" << std::endl;
+      return false;
+    }
+    if (d_proxy->theoryNeedCheck())
+    {
+      Trace("cadical::propagator")
+          << "not done: theory need check" << std::endl;
+      return false;
+    }
+    if (d_found_solution)
+    {
+      Trace("cadical::propagator")
+          << "done: found partial solution" << std::endl;
+    }
+    else
+    {
+      Trace("cadical::propagator")
+          << "done: full assignment consistent" << std::endl;
+    }
+    return true;
   }
 
   /**
@@ -416,6 +532,11 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
   std::vector<size_t> d_decisions_control;
   /** The set of decision variables. */
   std::unordered_set<SatVariable> d_decision_vars;
+  /**
+   * Used by add_clause() to buffer added clauses, which will be added via
+   * cb_add_reason_clause_lit().
+   */
+  std::vector<CadicalLit> d_new_clauses;
 
   bool d_found_solution = false;
 };
@@ -477,11 +598,28 @@ void CadicalSolver::setResourceLimit(ResourceManager* resmgr)
 
 ClauseId CadicalSolver::addClause(SatClause& clause, bool removable)
 {
-  for (const SatLiteral& lit : clause)
+  if (d_propagator && TraceIsOn("cadical::propagator"))
   {
-    d_solver->add(toCadicalLit(lit));
+    Trace("cadical::propagator") << "addClause (" << removable << "):";
+    for (const SatLiteral& lit : clause)
+    {
+      Trace("cadical::propagator") << " " << lit;
+    }
+    Trace("cadical::propagator") << " 0" << std::endl;
   }
-  d_solver->add(0);
+  // If we are currently in search, add clauses through the propagator.
+  if (d_in_search && d_propagator)
+  {
+    d_propagator->add_clause(clause);
+  }
+  else
+  {
+    for (const SatLiteral& lit : clause)
+    {
+      d_solver->add(toCadicalLit(lit));
+    }
+    d_solver->add(0);
+  }
   ++d_statistics.d_numClauses;
   return ClauseIdError;
 }
