@@ -125,16 +125,16 @@ void TheoryState::explainDisequal(TNode a, TNode b, std::vector<Node>& exp)
   }
   // otherwise, add equalities to the (disequal) values
   Node ar = getRepresentative(a);
-  if (ar!=a)
+  if (ar != a)
   {
     exp.push_back(a.eqNode(ar));
   }
   Node br = getRepresentative(b);
-  if (br!=b)
+  if (br != b)
   {
     exp.push_back(b.eqNode(br));
   }
-  Assert (ar!=br && ar.isConst() && br.isConst());
+  Assert(ar != br && ar.isConst() && br.isConst());
 }
 
 void TheoryState::getEquivalenceClass(Node a, std::vector<Node>& eqc) const
