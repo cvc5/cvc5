@@ -673,6 +673,7 @@ set(regress_0_tests
   regress0/ff/ff_xor_sound.smt2
   regress0/ff/ff_xor_unsound.smt2
   regress0/ff/ff_xor_unsound_model.smt2
+  regress0/ff/field_poly.smt2
   regress0/ff/multicheck.smt2
   regress0/ff/negneg.smt2
   regress0/ff/randcompile-sound-3i-5t-circ.smt2
@@ -2243,6 +2244,7 @@ set(regress_1_tests
   regress1/nl/iand-big-gran.smt2
   regress1/nl/iand-native-2.smt2
   regress1/nl/iand-native-granularities.smt2
+  regress1/nl/issue10003-nl-ext-rr.smt2
   regress1/nl/issue3300-approx-sqrt-witness.smt2
   regress1/nl/issue3441.smt2
   regress1/nl/issue3617.smt2
@@ -2533,6 +2535,7 @@ set(regress_1_tests
   regress1/quantifiers/issue9545-mini-agg.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/issue9949.smt2
+  regress1/quantifiers/issue9989-syqi-nwf.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lia-witness-div-pp.smt2
   regress1/quantifiers/lra-vts-inf.smt2
