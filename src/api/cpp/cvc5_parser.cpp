@@ -25,6 +25,7 @@
 #include "parser/parser.h"
 #include "parser/sym_manager.h"
 #include "theory/logic_info.h"
+#include "api/cpp/cvc5_checks.h"
 
 namespace cvc5 {
 namespace parser {
@@ -59,8 +60,6 @@ SymManager* SymbolManager::toSymManager() { return d_sm.get(); }
 /* -------------------------------------------------------------------------- */
 /* Command                                                                    */
 /* -------------------------------------------------------------------------- */
-
-Command::Command() : d_cmd(nullptr) {}
 
 Command::Command(const Command& cmd) { d_cmd = cmd.d_cmd; }
 

@@ -96,7 +96,6 @@ class CVC5_EXPORT Command
   friend class main::ExecutionContext;
 
  public:
-  Command();
   Command(const Command& cmd);
 
   virtual ~Command();
