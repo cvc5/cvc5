@@ -37,16 +37,16 @@ SymbolManager::SymbolManager(cvc5::Solver* s) { d_sm.reset(new SymManager(s)); }
 
 SymbolManager::~SymbolManager() {}
 
-bool SymbolManager::isLogicSet() const 
-{ 
+bool SymbolManager::isLogicSet() const
+{
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_sm->isLogicSet();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
-const std::string& SymbolManager::getLogic() const 
-{ 
+const std::string& SymbolManager::getLogic() const
+{
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_sm->getLogic();
@@ -68,8 +68,8 @@ Command::Command(std::shared_ptr<Cmd> cmd) : d_cmd(cmd) {}
 
 Command::~Command() {}
 
-bool Command::ok() const 
-{ 
+bool Command::ok() const
+{
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
@@ -78,17 +78,17 @@ bool Command::ok() const
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Command::fail() const 
-{ 
+bool Command::fail() const
+{
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  return d_cmd->fail(); 
+  return d_cmd->fail();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Command::interrupted() const 
+bool Command::interrupted() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
@@ -96,7 +96,6 @@ bool Command::interrupted() const
   return d_cmd->interrupted();
   ////////
   CVC5_API_TRY_CATCH_END;
-
 }
 
 void Command::invoke(cvc5::Solver* solver,
@@ -111,17 +110,18 @@ void Command::invoke(cvc5::Solver* solver,
   CVC5_API_TRY_CATCH_END;
 }
 
-std::string Command::toString() const 
-{ 
+std::string Command::toString() const
+{
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  return d_cmd->toString(); 
+  return d_cmd->toString();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-std::string Command::getCommandName() const { 
+std::string Command::getCommandName() const
+{
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
@@ -132,11 +132,8 @@ std::string Command::getCommandName() const {
 
 Cmd* Command::toCmd() { return d_cmd.get(); }
 
-bool Command::isNullHelper() const
-{
-  return d_cmd.get()==nullptr;
-}
-  
+bool Command::isNullHelper() const { return d_cmd.get() == nullptr; }
+
 std::ostream& operator<<(std::ostream& out, const Command& c)
 {
   out << c.toString();
