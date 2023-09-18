@@ -155,11 +155,15 @@ class CVC5_EXPORT Command
    * @return The Command.
    */
   Command(std::shared_ptr<Cmd> cmd);
+  /**
+   * Helper for isNull checks. This prevents calling an API function with
+   * CVC5_API_CHECK_NOT_NULL
+   */
+  bool isNullHelper() const;
   /** Return the internal representation */
   Cmd* toCmd();
   /** The implementation of the symbol manager */
   std::shared_ptr<Cmd> d_cmd;
-
 }; /* class Command */
 
 std::ostream& operator<<(std::ostream&, const Command&) CVC5_EXPORT;
