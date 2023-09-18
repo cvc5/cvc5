@@ -2723,6 +2723,20 @@ TEST_F(TestApiBlackSolver, setLogic)
   ASSERT_THROW(d_solver.setLogic("AUFLIRA"), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, isLogicSet)
+{
+  ASSERT_FALSE(d_solver.isLogicSet());
+  ASSERT_NO_THROW(d_solver.setLogic("QF_BV"));
+  ASSERT_TRUE(d_solver.isLogicSet());
+}
+
+TEST_F(TestApiBlackSolver, getLogic)
+{
+  ASSERT_THROW(d_solver.getLogic(), CVC5ApiException);
+  ASSERT_NO_THROW(d_solver.setLogic("QF_BV"));
+  ASSERT_EQ(d_solver.getLogic(), "QF_BV");
+}
+
 TEST_F(TestApiBlackSolver, setOption)
 {
   ASSERT_NO_THROW(d_solver.setOption("bv-sat-solver", "minisat"));
