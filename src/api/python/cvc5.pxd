@@ -345,6 +345,8 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         void resetAssertions() except +
         void setInfo(string& keyword, const string& value) except +
         void setLogic(const string& logic) except +
+        bint isLogicSet() except +
+        string getLogic() except +
         void setOption(const string& option, const string& value) except +
         Term getInterpolant(const Term& conj) except +
         Term getInterpolant(const Term& conj, Grammar& grammar) except +

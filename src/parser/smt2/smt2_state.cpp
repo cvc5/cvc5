@@ -1021,7 +1021,10 @@ void Smt2State::checkThatLogicIsSet()
       // important since we do not want to enqueue a set-logic command and
       // fully initialize the underlying SolverEngine in the meantime before the
       // command has a chance to execute, which would lead to an error.
-      d_solver->setLogic(d_logic.getLogicString());
+      std::string logic = d_logic.getLogicString();
+      d_solver->setLogic(logic);
+      // set the logic on the symbol manager as well, non-forced
+      sm->setLogic(logic);
     }
   }
 }
