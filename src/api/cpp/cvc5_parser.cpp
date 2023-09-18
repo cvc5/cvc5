@@ -276,7 +276,6 @@ SymbolManager* InputParser::getSymbolManager() { return d_sm; }
 
 std::unique_ptr<Command> InputParser::nextCommand()
 {
-  CVC5_API_TRY_CATCH_BEGIN;
   CVC5_PARSER_API_CHECK(d_parser != nullptr) << "Input to parser not initialized";
   //////// all checks before this line
   Trace("parser") << "nextCommand()" << std::endl;
@@ -288,8 +287,6 @@ std::unique_ptr<Command> InputParser::nextCommand()
   std::unique_ptr<Command> cc;
   cc.reset(new Command(cmd));
   return cc;
-  ////////
-  CVC5_API_TRY_CATCH_END;
 }
 
 Term InputParser::nextExpression()
