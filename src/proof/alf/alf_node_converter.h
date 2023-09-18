@@ -36,9 +36,9 @@ class AlfNodeConverter : public NodeConverter
  public:
   AlfNodeConverter();
   ~AlfNodeConverter() {}
-  /** convert at pre-order traversal */
+  /** Convert at pre-order traversal */
   Node preConvert(Node n) override;
-  /** convert at post-order traversal */
+  /** Convert at post-order traversal */
   Node postConvert(Node n) override;
   /**
    * Return the properly named operator for n of the form (f t1 ... tn), where
@@ -81,10 +81,16 @@ class AlfNodeConverter : public NodeConverter
    * passed as arguments to terms.
    */
   Node typeAsNode(TypeNode tni);
-  /** Number of children for closure */
-  size_t getNumChildrenForClosure(Kind k) const;
+  /**
+   * Number of children for closure that we should process. In particular,
+   * we ignore patterns for FORALL, so this method returns 2, indicating we
+   * should ignore the 3rd child of a FORALL if it exists. It returns 3 for
+   * SET_COMPREHENSION, and 2 otherwise.
+   */
+  size_t getNumChildrenToProcessForClosure(Kind k) const;
+
  private:
-  /** */
+  /** Make alf.nil for the given type. */
   Node mkNil(TypeNode tn);
   /**
    * Get the variable index for free variable fv, or assign a fresh index if it
@@ -94,13 +100,6 @@ class AlfNodeConverter : public NodeConverter
   /** Should we traverse n? */
   bool shouldTraverse(Node n) override;
   /**
-   * Make APPLY_UF, which ensures the operator op is a variable. If it is not,
-   * we create a dummy variable whose name is the result of printing op. This
-   * is to ensure proper smt2 printing, which does not permit operators to
-   * be higher-order terms.
-   */
-  Node mkApplyUf(Node op, const std::vector<Node>& args) const;
-  /**
    * Make skolem function, if k was constructed by a skolem function identifier
    * (in SkolemManager::mkSkolemFunction) that is supported in the ALF
    * signature.
@@ -108,11 +107,11 @@ class AlfNodeConverter : public NodeConverter
   Node maybeMkSkolemFun(Node k);
   /** Is k a kind that is printed as an indexed operator in ALF? */
   static bool isIndexedOperatorKind(Kind k);
-  /** get indices for printing the operator of n in the ALF format */
+  /** Get indices for printing the operator of n in the ALF format */
   static std::vector<Node> getOperatorIndices(Kind k, Node n);
-  /** the set of all internally generated symbols */
+  /** The set of all internally generated symbols */
   std::unordered_set<Node> d_symbols;
-  /** the type of ALF sorts, which can appear in terms */
+  /** The type of ALF sorts, which can appear in terms */
   TypeNode d_sortType;
   /** Used for getting unique index for uncategorized skolems */
   std::map<Node, size_t> d_constIndex;

@@ -38,9 +38,9 @@
 #include "util/finite_field_value.h"
 #include "util/floatingpoint.h"
 #include "util/iand.h"
+#include "util/indexed_root_predicate.h"
 #include "util/rational.h"
 #include "util/regexp.h"
-#include "util/indexed_root_predicate.h"
 #include "util/string.h"
 
 using namespace cvc5::internal::kind;
@@ -56,7 +56,7 @@ AlfNodeConverter::AlfNodeConverter()
 
 Node AlfNodeConverter::preConvert(Node n)
 {
-  // match is not supported in LFSC syntax, we eliminate it at pre-order
+  // match is not supported in ALF syntax, we eliminate it at pre-order
   // traversal, which avoids type-checking errors during conversion, since e.g.
   // match case nodes are required but cannot be preserved
   if (n.getKind() == MATCH)
@@ -194,7 +194,9 @@ Node AlfNodeConverter::postConvert(Node n)
     // notice that intentionally we drop annotations here
     std::vector<Node> args;
     args.push_back(vl);
-    args.insert(args.end(), n.begin()+1, n.begin()+getNumChildrenForClosure(k));
+    args.insert(args.end(),
+                n.begin() + 1,
+                n.begin() + getNumChildrenToProcessForClosure(k));
     return mkInternalApp(
         printer::smt2::Smt2Printer::smtKindString(k), args, tn);
   }
@@ -213,9 +215,9 @@ Node AlfNodeConverter::postConvert(Node n)
   }
   else if (k == SET_INSERT)
   {
-    std::vector<Node> iargs(n.begin(), n.begin()+n.getNumChildren()-1);
+    std::vector<Node> iargs(n.begin(), n.begin() + n.getNumChildren() - 1);
     Node list = mkList(iargs);
-    return mkInternalApp("set.insert", {list, n[n.getNumChildren()-1]}, tn);
+    return mkInternalApp("set.insert", {list, n[n.getNumChildren() - 1]}, tn);
   }
   else if (k == CONST_SEQUENCE)
   {
@@ -258,16 +260,16 @@ Node AlfNodeConverter::postConvert(Node n)
   else if (k == APPLY_TESTER || k == APPLY_UPDATER || k == NEG
            || k == DIVISION_TOTAL || k == INTS_DIVISION_TOTAL
            || k == INTS_MODULUS_TOTAL || k == APPLY_CONSTRUCTOR
-           || k == APPLY_SELECTOR)
+           || k == APPLY_SELECTOR || k == FLOATINGPOINT_TO_FP_FROM_IEEE_BV)
   {
     // kinds where the operator may be different
     Node opc = getOperatorOfTerm(n);
-    std::vector<Node> newArgs;
     if (n.getNumChildren() == 0)
     {
       return opc;
     }
-    else if (opc.getNumChildren() > 0)
+    std::vector<Node> newArgs;
+    if (opc.getNumChildren() > 0)
     {
       newArgs.insert(newArgs.end(), opc.begin(), opc.end());
       newArgs.insert(newArgs.end(), n.begin(), n.end());
@@ -276,68 +278,49 @@ Node AlfNodeConverter::postConvert(Node n)
       ss << opc;
       return mkInternalApp(ss.str(), newArgs, tn);
     }
+    newArgs.push_back(opc);
     newArgs.insert(newArgs.end(), n.begin(), n.end());
-    return mkApplyUf(opc, newArgs);
+    return nm->mkNode(APPLY_UF, newArgs);
   }
   else if (k == INDEXED_ROOT_PREDICATE)
   {
-    const IndexedRootPredicate& irp = n.getOperator().getConst<IndexedRootPredicate>();
+    const IndexedRootPredicate& irp =
+        n.getOperator().getConst<IndexedRootPredicate>();
     std::vector<Node> newArgs;
     newArgs.push_back(nm->mkConstInt(irp.d_index));
     newArgs.insert(newArgs.end(), n.begin(), n.end());
     return mkInternalApp("INDEXED_ROOT_PREDICATE", newArgs, tn);
   }
-  else if (k==FLOATINGPOINT_COMPONENT_NAN ||
-    k==FLOATINGPOINT_COMPONENT_INF ||
-    k==FLOATINGPOINT_COMPONENT_ZERO ||
-    k==FLOATINGPOINT_COMPONENT_SIGN ||
-    k==FLOATINGPOINT_COMPONENT_EXPONENT ||
-    k==FLOATINGPOINT_COMPONENT_SIGNIFICAND)
+  else if (k == FLOATINGPOINT_COMPONENT_NAN || k == FLOATINGPOINT_COMPONENT_INF
+           || k == FLOATINGPOINT_COMPONENT_ZERO
+           || k == FLOATINGPOINT_COMPONENT_SIGN
+           || k == FLOATINGPOINT_COMPONENT_EXPONENT
+           || k == FLOATINGPOINT_COMPONENT_SIGNIFICAND)
   {
     // dummy symbol, provide the return type
     Node tnn = typeAsNode(tn);
-    return mkInternalApp(printer::smt2::Smt2Printer::smtKindString(k), {tnn}, tn);
+    return mkInternalApp(
+        printer::smt2::Smt2Printer::smtKindString(k), {tnn}, tn);
   }
   else if (GenericOp::isIndexedOperatorKind(k))
   {
     // return app of?
     std::vector<Node> args =
         GenericOp::getIndicesForOperator(k, n.getOperator());
-    if (k==RELATION_GROUP || k == TABLE_GROUP)
+    if (k == RELATION_GROUP || k == TABLE_GROUP)
     {
       Node list = mkList(args);
       std::vector<Node> children;
       children.push_back(list);
       children.insert(children.end(), n.begin(), n.end());
-      return mkInternalApp(printer::smt2::Smt2Printer::smtKindString(k), children, tn);
+      return mkInternalApp(
+          printer::smt2::Smt2Printer::smtKindString(k), children, tn);
     }
     args.insert(args.end(), n.begin(), n.end());
     return mkInternalApp(
         printer::smt2::Smt2Printer::smtKindString(k), args, tn);
   }
   return n;
-}
-
-Node AlfNodeConverter::mkApplyUf(Node op, const std::vector<Node>& args) const
-{
-  NodeManager* nm = NodeManager::currentNM();
-  std::vector<Node> aargs;
-  if (op.isVar())
-  {
-    aargs.push_back(op);
-  }
-  else
-  {
-    // Note that dag threshold is disabled for printing operators.
-    std::stringstream ss;
-    options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
-    options::ioutils::applyDagThresh(ss, 0);
-    ss << op;
-    Node opv = nm->mkRawSymbol(ss.str(), op.getType());
-    aargs.push_back(opv);
-  }
-  aargs.insert(aargs.end(), args.begin(), args.end());
-  return nm->mkNode(APPLY_UF, aargs);
 }
 
 bool AlfNodeConverter::shouldTraverse(Node n)
@@ -436,9 +419,10 @@ Node AlfNodeConverter::typeAsNode(TypeNode tn)
   d_typeAsNode[tn] = ret;
   return ret;
 }
-size_t AlfNodeConverter::getNumChildrenForClosure(Kind k) const
+
+size_t AlfNodeConverter::getNumChildrenToProcessForClosure(Kind k) const
 {
-  return k==SET_COMPREHENSION ? 3 : 2;
+  return k == SET_COMPREHENSION ? 3 : 2;
 }
 
 Node AlfNodeConverter::mkNil(TypeNode tn)
@@ -456,7 +440,8 @@ Node AlfNodeConverter::getNullTerminator(Kind k, TypeNode tn)
     case kind::FLOATINGPOINT_LEQ:
     case kind::FLOATINGPOINT_GT:
     case kind::FLOATINGPOINT_GEQ:
-      // the above operators may take arbitrary number of arguments but are not marked as n-ary in ALF
+      // the above operators may take arbitrary number of arguments but are not
+      // marked as n-ary in ALF
       return Node::null();
     case kind::APPLY_CONSTRUCTOR:
       // tuple constructor is n-ary with unit tuple as null terminator
@@ -488,12 +473,7 @@ Node AlfNodeConverter::mkList(const std::vector<Node>& args)
   {
     return mkNil(tn);
   }
-  else if (args.size() == 1)
-  {
-    std::vector<Node> aargs(args.begin(), args.end());
-    aargs.push_back(mkNil(tn));
-    return mkInternalApp("@list", aargs, tn);
-  }
+  // singleton lists are handled due to (@list x) ---> (@list x alf.nil)
   return mkInternalApp("@list", args, tn);
 }
 
@@ -588,6 +568,12 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
         {
           opName << "update-" << dt[cindex][index].getSelector();
         }
+      }
+      else if (k == FLOATINGPOINT_TO_FP_FROM_IEEE_BV)
+      {
+        // this does not take a rounding mode, we change the smt2 syntax
+        // to distinguish this case.
+        opName << "to_fp_bv";
       }
       else
       {
