@@ -463,6 +463,12 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
           << "Process datatype " << sdts.back().getName() << "..." << std::endl;
       for (unsigned j = 0, ncons = dtc.getNumConstructors(); j < ncons; j++)
       {
+        // if the any constant constructor, we just carry it to the new datatype
+        if (dtc[j].isSygusAnyConstant())
+        {
+          sdts.back().addAnyConstantConstructor(dtc[j].getArgType(0));
+          continue;
+        }
         Node op = dtc[j].getSygusOp();
         // apply the substitution to the argument
         Node ops =
@@ -534,19 +540,6 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
     {
       const DType& dtj = datatypeTypes[j].getDType();
       Trace("dtsygus-gen-debug") << "#" << j << ": " << dtj << std::endl;
-      for (unsigned k = 0, ncons = dtj.getNumConstructors(); k < ncons; k++)
-      {
-        for (unsigned l = 0, nargs = dtj[k].getNumArgs(); l < nargs; l++)
-        {
-          if (!dtj[k].getArgType(l).isDatatype())
-          {
-            Trace("dtsygus-gen-debug")
-                << "Argument " << l << " of " << dtj[k]
-                << " is not datatype : " << dtj[k].getArgType(l) << std::endl;
-            AlwaysAssert(false);
-          }
-        }
-      }
     }
   }
   return sdtS;

@@ -325,6 +325,7 @@ def test_mk_tuple_sort(solver):
 def test_mk_bit_vector(solver):
     solver.mkBitVector(8, 2)
     solver.mkBitVector(32, 2)
+    solver.mkBitVector(64, 2**33)
 
     solver.mkBitVector(4, "1010", 2)
     solver.mkBitVector(8, "0101", 2)

@@ -688,8 +688,12 @@ bool BaseSolver::isCardinalityOk(size_t typeCardSize,
   {
     return true;
   }
-  else if (typeCardSize == 1)
+  if (typeCardSize == 1)
   {
+    // For string-like types of cardinality 1, there is only a single
+    // element of any length, thus we return false and set lenNeed to zero.
+    // We will add a split in checkCardinalityType.
+    lenNeed = 0;
     return false;
   }
   lenNeed = 1;
@@ -783,7 +787,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
     Node lr = lts[i];
     Trace("strings-card") << "Number of strings with length equal to " << lr
                           << " is " << cols[i].size() << std::endl;
-    size_t lenNeed;
+    size_t lenNeed = 0;
     if (isCardinalityOk(typeCardSize, lr, cols[i].size(), lenNeed))
     {
       // based on cardinality, we are ok

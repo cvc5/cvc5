@@ -76,8 +76,7 @@ void BagSolver::checkBasicOperations()
         case kind::BAG_DIFFERENCE_SUBTRACT: checkDifferenceSubtract(n); break;
         case kind::BAG_DIFFERENCE_REMOVE: checkDifferenceRemove(n); break;
         case kind::BAG_DUPLICATE_REMOVAL: checkDuplicateRemoval(n); break;
-        case kind::BAG_FILTER: checkFilter(n); break;
-        case kind::BAG_MAP: checkMap(n); break;
+        case kind::BAG_FILTER: checkFilter(n); break;        
         case kind::TABLE_PRODUCT: checkProduct(n); break;
         case kind::TABLE_JOIN: checkJoin(n); break;
         case kind::TABLE_GROUP: checkGroup(n); break;
@@ -96,6 +95,39 @@ void BagSolver::checkBasicOperations()
     }
   }
 }
+
+
+void BagSolver::checkQuantifiedOperations()
+{ 
+  for (const Node& bag : d_state.getBags())
+  {
+    // iterate through all bags terms in each equivalent class
+    eq::EqClassIterator it =
+        eq::EqClassIterator(bag, d_state.getEqualityEngine());
+    while (!it.isFinished())
+    {
+      Node n = (*it);
+      Kind k = n.getKind();
+      switch (k)
+      {        
+        case kind::BAG_MAP: checkMap(n); break;        
+        default: break;
+      }
+      it++;
+    }
+  }
+
+  // add non negative constraints for all multiplicities
+  for (const Node& n : d_state.getBags())
+  {
+    for (const Node& e : d_state.getElements(n))
+    {
+      checkNonNegativeCountTerms(n, d_state.getRepresentative(e));
+    }
+  }
+}
+
+
 
 set<Node> BagSolver::getElementsForBinaryOperator(const Node& n)
 {

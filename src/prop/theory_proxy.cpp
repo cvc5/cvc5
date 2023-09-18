@@ -311,10 +311,13 @@ SatLiteral TheoryProxy::getNextDecisionRequest(bool& requirePhase,
                                                bool& stopSearch)
 {
   Trace("theory-proxy") << "TheoryProxy: getNextDecisionRequest" << std::endl;
+  requirePhase = false;
+  stopSearch = false;
   SatLiteral res = undefSatLiteral;
   TNode n = d_theoryEngine->getNextDecisionRequest();
   if (!n.isNull())
   {
+    Trace("theory-proxy") << "... return next theory decision" << std::endl;
     requirePhase = true;
     res = d_cnfStream->getLiteral(n);
   }
@@ -325,7 +328,7 @@ SatLiteral TheoryProxy::getNextDecisionRequest(bool& requirePhase,
     requirePhase = false;
     if (d_stopSearch.get())
     {
-      Trace("theory-proxy") << "...stopped search, finish" << std::endl;
+      Trace("theory-proxy") << "...stop search, finished" << std::endl;
       stopSearch = true;
     }
     else
@@ -338,22 +341,22 @@ SatLiteral TheoryProxy::getNextDecisionRequest(bool& requirePhase,
       }
       else
       {
-        Trace("theory-proxy") << "...returned next decision" << std::endl;
+        Trace("theory-proxy") << "...return next decision" << std::endl;
       }
     }
   }
   return res;
 }
 
-bool TheoryProxy::theoryNeedCheck() const {
+bool TheoryProxy::theoryNeedCheck() const
+{
   if (d_stopSearch.get())
   {
     return false;
   }
   else if (d_activatedSkDefs)
   {
-    // a new skolem definition become active on the last call to theoryCheck,
-    // return true
+    // a new skolem definition became active on the last call to theoryCheck
     return true;
   }
   // otherwise ask the theory engine, which will return true if its output
@@ -402,17 +405,12 @@ void TheoryProxy::spendResource(Resource r)
   d_theoryEngine->spendResource(r);
 }
 
-bool TheoryProxy::isDecisionRelevant(SatVariable var) { return true; }
-
-bool TheoryProxy::isDecisionEngineDone() {
+bool TheoryProxy::isDecisionEngineDone()
+{
   return d_decisionEngine->isDone() || d_stopSearch.get();
 }
 
-SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
-  return SAT_VALUE_UNKNOWN;
-}
-
-CnfStream* TheoryProxy::getCnfStream() { return d_cnfStream; }
+CnfStream* TheoryProxy::getCnfStream() const { return d_cnfStream; }
 
 TrustNode TheoryProxy::preprocessLemma(
     TrustNode trn, std::vector<theory::SkolemLemma>& newLemmas)

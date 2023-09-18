@@ -1084,10 +1084,10 @@ class CVC5_EXPORT Op
 /**
  * Serialize an operator to given stream.
  * @param out The output stream.
- * @param t The operator to be serialized to the given output stream.
+ * @param op  The operator to be serialized to the given output stream.
  * @return The output stream.
  */
-std::ostream& operator<<(std::ostream& out, const Op& t) CVC5_EXPORT;
+std::ostream& operator<<(std::ostream& out, const Op& op) CVC5_EXPORT;
 
 }  // namespace cvc5
 
@@ -1098,7 +1098,7 @@ namespace std {
 template <>
 struct CVC5_EXPORT hash<cvc5::Op>
 {
-  size_t operator()(const cvc5::Op& t) const;
+  size_t operator()(const cvc5::Op& op) const;
 };
 }  // namespace std
 

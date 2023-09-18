@@ -2252,7 +2252,8 @@ enum ENUM(Kind) : int32_t
    *
    * - Arity: ``2``
    *
-   *   - ``1..2:`` Terms of floating-point Sort (sorts must match)
+   *   - ``1:`` Term of Sort RoundingMode
+   *   - ``2:`` Term of floating-point Sort
    *
    * - Create Term of this Kind with:
    *
@@ -2580,9 +2581,10 @@ enum ENUM(Kind) : int32_t
   /**
    * Conversion to unsigned bit-vector from floating-point.
    *
-   * - Arity: ``1``
+   * - Arity: ``2``
    *
-   *   - ``1:`` Term of floating-point Sort
+   *   - ``1:`` Term of Sort RoundingMode
+   *   - ``2:`` Term of floating-point Sort
    *
    * - Indices: ``1``
    *
@@ -2600,9 +2602,10 @@ enum ENUM(Kind) : int32_t
   /**
    * Conversion to signed bit-vector from floating-point.
    *
-   * - Arity: ``1``
+   * - Arity: ``2``
    *
-   *   - ``1:`` Term of floating-point Sort
+   *   - ``1:`` Term of Sort RoundingMode
+   *   - ``2:`` Term of floating-point Sort
    *
    * - Indices: ``1``
    *
