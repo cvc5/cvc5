@@ -17,6 +17,7 @@
 
 #include <iostream>
 
+#include "api/cpp/cvc5_checks.h"
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/node_manager.h"
@@ -25,7 +26,6 @@
 #include "parser/parser.h"
 #include "parser/sym_manager.h"
 #include "theory/logic_info.h"
-#include "api/cpp/cvc5_checks.h"
 
 namespace cvc5 {
 namespace parser {
@@ -35,10 +35,10 @@ namespace parser {
  * Throws a CVC5ApiException if 'cond' is false.
  */
 #define CVC5_PARSER_API_CHECK(cond) \
-  CVC5_PREDICT_TRUE(cond)    \
-  ? (void)0                  \
+  CVC5_PREDICT_TRUE(cond)           \
+  ? (void)0                         \
   : cvc5::internal::OstreamVoider() & CVC5ParserApiExceptionStream().ostream()
-  
+
 class CVC5ParserApiExceptionStream
 {
  public:
@@ -276,7 +276,8 @@ SymbolManager* InputParser::getSymbolManager() { return d_sm; }
 
 std::unique_ptr<Command> InputParser::nextCommand()
 {
-  CVC5_PARSER_API_CHECK(d_parser != nullptr) << "Input to parser not initialized";
+  CVC5_PARSER_API_CHECK(d_parser != nullptr)
+      << "Input to parser not initialized";
   //////// all checks before this line
   Trace("parser") << "nextCommand()" << std::endl;
   std::shared_ptr<Cmd> cmd = d_parser->nextCommand();
@@ -292,7 +293,8 @@ std::unique_ptr<Command> InputParser::nextCommand()
 Term InputParser::nextExpression()
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_PARSER_API_CHECK(d_parser != nullptr) << "Input to parser not initialized";
+  CVC5_PARSER_API_CHECK(d_parser != nullptr)
+      << "Input to parser not initialized";
   //////// all checks before this line
   Trace("parser") << "nextExpression()" << std::endl;
   return d_parser->nextExpression();
@@ -347,7 +349,8 @@ void InputParser::setIncrementalStringInput(const std::string& lang,
 void InputParser::appendIncrementalStringInput(const std::string& input)
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_PARSER_API_CHECK(d_parser != nullptr) << "Input to parser not initialized";
+  CVC5_PARSER_API_CHECK(d_parser != nullptr)
+      << "Input to parser not initialized";
   //////// all checks before this line
   Trace("parser") << "appendIncrementalStringInput(...)" << std::endl;
   d_parser->setStringInput(input, d_istringName);

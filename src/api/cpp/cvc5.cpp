@@ -35,8 +35,8 @@
 #include <cstring>
 #include <sstream>
 
-#include "base/check.h"
 #include "api/cpp/cvc5_checks.h"
+#include "base/check.h"
 #include "base/configuration.h"
 #include "expr/array_store_all.h"
 #include "expr/ascription_type.h"
