@@ -53,9 +53,7 @@ class CVC5ParserApiExceptionStream
       throw CVC5ApiException(d_stream.str());
     }
   }
-
   std::ostream& ostream() { return d_stream; }
-
  private:
   std::stringstream d_stream;
 };
@@ -154,8 +152,6 @@ std::string Command::getCommandName() const
 }
 
 Cmd* Command::toCmd() { return d_cmd.get(); }
-
-bool Command::isNullHelper() const { return d_cmd.get() == nullptr; }
 
 std::ostream& operator<<(std::ostream& out, const Command& c)
 {
