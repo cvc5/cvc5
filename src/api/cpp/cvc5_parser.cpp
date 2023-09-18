@@ -30,6 +30,36 @@
 namespace cvc5 {
 namespace parser {
 
+/**
+ * The base check macro.
+ * Throws a CVC5ApiException if 'cond' is false.
+ */
+#define CVC5_PARSER_API_CHECK(cond) \
+  CVC5_PREDICT_TRUE(cond)    \
+  ? (void)0                  \
+  : cvc5::internal::OstreamVoider() & CVC5ParserApiExceptionStream().ostream()
+  
+class CVC5ParserApiExceptionStream
+{
+ public:
+  CVC5ParserApiExceptionStream() {}
+  /* Note: This needs to be explicitly set to 'noexcept(false)' since it is
+   * a destructor that throws an exception and in C++11 all destructors
+   * default to noexcept(true) (else this triggers a call to std::terminate). */
+  ~CVC5ParserApiExceptionStream() noexcept(false)
+  {
+    if (std::uncaught_exceptions() == 0)
+    {
+      throw CVC5ApiException(d_stream.str());
+    }
+  }
+
+  std::ostream& ostream() { return d_stream; }
+
+ private:
+  std::stringstream d_stream;
+};
+
 /* -------------------------------------------------------------------------- */
 /* SymbolManager                                                              */
 /* -------------------------------------------------------------------------- */
@@ -70,7 +100,6 @@ Command::~Command() {}
 bool Command::ok() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
   return d_cmd->ok();
   ////////
@@ -80,7 +109,6 @@ bool Command::ok() const
 bool Command::fail() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
   return d_cmd->fail();
   ////////
@@ -90,7 +118,6 @@ bool Command::fail() const
 bool Command::interrupted() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
   return d_cmd->interrupted();
   ////////
@@ -102,7 +129,6 @@ void Command::invoke(cvc5::Solver* solver,
                      std::ostream& out)
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
   d_cmd->invoke(solver, sm->toSymManager(), out);
   ////////
@@ -112,7 +138,6 @@ void Command::invoke(cvc5::Solver* solver,
 std::string Command::toString() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
   return d_cmd->toString();
   ////////
@@ -122,7 +147,6 @@ std::string Command::toString() const
 std::string Command::getCommandName() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
   return d_cmd->getCommandName();
   ////////
@@ -253,7 +277,7 @@ SymbolManager* InputParser::getSymbolManager() { return d_sm; }
 std::unique_ptr<Command> InputParser::nextCommand()
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(d_parser != nullptr) << "Input to parser not initialized";
+  CVC5_PARSER_API_CHECK(d_parser != nullptr) << "Input to parser not initialized";
   //////// all checks before this line
   Trace("parser") << "nextCommand()" << std::endl;
   std::shared_ptr<Cmd> cmd = d_parser->nextCommand();
@@ -271,7 +295,7 @@ std::unique_ptr<Command> InputParser::nextCommand()
 Term InputParser::nextExpression()
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(d_parser != nullptr) << "Input to parser not initialized";
+  CVC5_PARSER_API_CHECK(d_parser != nullptr) << "Input to parser not initialized";
   //////// all checks before this line
   Trace("parser") << "nextExpression()" << std::endl;
   return d_parser->nextExpression();
@@ -326,7 +350,7 @@ void InputParser::setIncrementalStringInput(const std::string& lang,
 void InputParser::appendIncrementalStringInput(const std::string& input)
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(d_parser != nullptr) << "Input to parser not initialized";
+  CVC5_PARSER_API_CHECK(d_parser != nullptr) << "Input to parser not initialized";
   //////// all checks before this line
   Trace("parser") << "appendIncrementalStringInput(...)" << std::endl;
   d_parser->setStringInput(input, d_istringName);
