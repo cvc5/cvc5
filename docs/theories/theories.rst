@@ -31,6 +31,7 @@ Non-standard or extended theories
 
    bags
    datatypes
+   finite_field
    separation-logic
    sequences
    sets-and-relations

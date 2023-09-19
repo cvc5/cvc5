@@ -36,6 +36,7 @@ It does not (currently) support the following features of Z3Py:
     array
     bitvec
     dt
+    finite_field
     fp
     set
     quant
