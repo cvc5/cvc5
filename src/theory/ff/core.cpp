@@ -105,9 +105,9 @@ std::vector<size_t> Tracer::trace(const CoCoA::RingElem& i) const
     else
     {
       // no? enqueue its parents
-      AlwaysAssert(d_parents.count(t) > 0);
+      AlwaysAssert(d_parents.count(t) > 0) << "Unexplained polynomial " << t;
       const auto& blames = d_parents.at(t);
-      AlwaysAssert(blames.size() > 0);
+      AlwaysAssert(blames.size() > 0) << "Unexplained polynomial " << t;
       for (const auto& b : blames)
       {
         if (!visited.count(b))
