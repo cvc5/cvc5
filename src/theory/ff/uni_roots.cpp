@@ -74,17 +74,6 @@ CoCoA::RingElem powerMod(CoCoA::RingElem b, CoCoA::BigInt e, CoCoA::RingElem m)
   return acc;
 }
 
-// Compute a monic polynomial q(X) of minimal degree that has the same real root
-// set as f(X). Thus, q is a product of linear factors.
-//
-// That is, if f has unique factorization
-//
-//    (X - c1)^e1 * (X - c2)^e2 * ... * (X - ck)^ek * q1(X)^e{k+1} * ...
-//
-// where the qi are all super-linear and irreducible, then this function returns
-//
-//    (X - c1) * (X - c2) * ... * (X - ck)
-//
 CoCoA::RingElem distinctRootsPoly(CoCoA::RingElem f)
 {
   CoCoA::ring ring = CoCoA::owner(f);
