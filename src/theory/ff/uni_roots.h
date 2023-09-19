@@ -31,17 +31,9 @@ namespace theory {
 namespace ff {
 
 /**
- * Given a univariate f over a finite field, return the monic polynomial with
- * the same base-field roots as f, of minimal degree.
- *
- * Thus, the return is a polynomial with unique linear factors
- */
-CoCoA::RingElem distinctRootsPoly(CoCoA::RingElem f);
-
-/**
  * Given a univariate f over a finite field, return a list of roots in that field.
  *
- * The list is sorted.
+ * The list is sorted by string representation.
  */
 std::vector<CoCoA::RingElem> roots(CoCoA::RingElem f);
 

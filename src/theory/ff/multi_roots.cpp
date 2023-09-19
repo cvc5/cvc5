@@ -10,7 +10,9 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Multivariate root finding.
+ * Multivariate root finding. Implements "FindZero" from [OKTB23].
+ *
+ * [OKTB23]: https://doi.org/10.1007/978-3-031-37703-7_8
  */
 
 #ifdef CVC5_USE_COCOA
@@ -153,7 +155,7 @@ bool allVarsAssigned(const CoCoA::ideal& ideal)
          == (size_t)CoCoA::NumIndets(ideal->myRing());
 }
 
-std::unique_ptr<AssignmentEnumerator> brancher(const CoCoA::ideal& ideal)
+std::unique_ptr<AssignmentEnumerator> applyRule(const CoCoA::ideal& ideal)
 {
   CoCoA::ring polyRing = ideal->myRing();
   Assert(!isUnsat(ideal));
@@ -206,7 +208,7 @@ std::unique_ptr<AssignmentEnumerator> brancher(const CoCoA::ideal& ideal)
   }
 }
 
-std::vector<CoCoA::RingElem> commonRoot(const CoCoA::ideal& initialIdeal)
+std::vector<CoCoA::RingElem> findZero(const CoCoA::ideal& initialIdeal)
 {
   CoCoA::ring polyRing = initialIdeal->myRing();
   // We maintain two stacks:
@@ -215,6 +217,17 @@ std::vector<CoCoA::RingElem> commonRoot(const CoCoA::ideal& initialIdeal)
   //
   // If brancher B has the same index as ideal I, then B represents possible
   // expansions of ideal I (equivalently, restrictions of I's variety).
+  //
+  // NB: FindZero of [OKTB23] also takes a partial map M as input. GB(I)
+  // implicitly represents M: GB(I) contains a univariate linear polynomial
+  // Xi - k, if and only iff M[Xi] = k.
+  //
+  // NB: FindZero of [OKTB23] is recursive. That recursion is flattened here
+  // using the two stacks. The stack of ideals represents the input to
+  // recursive FindZero: GB(I). The stack of branchers represents the
+  // continuation context (which iteration of the for loop to return to).
+
+  // goal: find a zero for any ideal in the stack.
   std::vector<CoCoA::ideal> ideals{initialIdeal};
   if (TraceIsOn("ff::model::branch"))
   {
@@ -224,9 +237,12 @@ std::vector<CoCoA::RingElem> commonRoot(const CoCoA::ideal& initialIdeal)
       Trace("ff::model::branch") << " * " << p << std::endl;
     }
   }
+
   std::vector<std::unique_ptr<AssignmentEnumerator>> branchers{};
+  // while some ideal might have a zero.
   while (!ideals.empty())
   {
+    // choose one
     const auto& ideal = ideals.back();
     // If the ideal is UNSAT, drop it.
     if (isUnsat(ideal))
@@ -256,7 +272,7 @@ std::vector<CoCoA::RingElem> commonRoot(const CoCoA::ideal& initialIdeal)
     else if (ideals.size() > branchers.size())
     {
       Assert(ideals.size() == branchers.size() + 1);
-      branchers.push_back(brancher(ideal));
+      branchers.push_back(applyRule(ideal));
       Trace("ff::model::branch")
           << "brancher: " << branchers.back()->name() << std::endl;
       if (TraceIsOn("ff::model::branch"))
