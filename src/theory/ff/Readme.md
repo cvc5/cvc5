@@ -17,7 +17,7 @@ Here is a description of source files. When relevant, I give the part of
 * `core`: computes UNSAT cores; [OKTB23]'s IdealCalc (Fig. 4) and CoreFromTree (in Fig. 2)
 * `multi_roots`: model contruction; [OKTB23]'s FindZero (Fig. 5) and ApplyRule (Fig. 6)
 * `uni_roots`: univariate root-finding; [OKTB23]'s UnivariateZeros (in Fig. 6)
-* `theory_ff_rewriter`: term rewriting FF
+* `theory_ff_rewriter`: term rewriting for FF
 * `theory_ff_type_rules`: term type-checking for FF
 * `stats`: statistics
 * `type_enumerator`: enumerating values in a field
