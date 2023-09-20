@@ -356,15 +356,14 @@ InferInfo InferenceGenerator::cardBagMake(const std::pair<Node, Node>& pair,
   return inferInfo;
 }
 
-InferInfo InferenceGenerator::cardUnionDisjoint(Node premise,
-                                                Node parent,
-                                                const std::set<Node>& children)
+InferInfo InferenceGenerator::cardUnionDisjoint(
+    Node premise, Node parent, const std::vector<Node>& children)
 {
   Assert(premise.getType().isBoolean());
   Assert(!children.empty());
   InferInfo inferInfo(d_im, InferenceId::BAGS_CARD);
 
-  std::set<Node>::iterator it = children.begin();
+  std::vector<Node>::const_iterator it = children.cbegin();
   Node child = *it;
   d_state->registerBag(child);
   Node unionDisjoints = child;

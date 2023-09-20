@@ -1,5 +1,3 @@
-.. _theory_reference_sets:
-
 Theory Reference: Sets and Relations
 ====================================
 
@@ -161,9 +159,13 @@ More details can be found in :cite:`MengRTB17`.
 |                      |                                              |                                                                                    |
 |                      |                                              | ``Term t = solver.mkConst(s, "t");``                                               |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Tuple Constructor    | ``(tuple <Term_1>, ..., <Term_n>)``          | ``Term t = solver.mkTuple({<Sort_1>, ..., <Sort_n>}, {Term_1>, ..., <Term_n>});``  |
+| Tuple Constructor    | ``(tuple <Term_1>, ..., <Term_n>)``          | ``Term t = solver.mkTuple({Term_1>, ..., <Term_n>});``                             |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Tuple Selector       | ``((_ tuple_select i) t)``                   | ``Sort s = solver.mkTupleSort(sorts);``                                            |
+| Unit Tuple Sort      | ``UnitTuple``                                | ``Sort s = solver.mkTupleSort({});``                                               |
++----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
+| Unit Tuple           | ``tuple.unit``                               | ``Term t = solver.mkTuple({});``                                                   |
++----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
+| Tuple Selector       | ``((_ tuple.select i) t)``                   | ``Sort s = solver.mkTupleSort(sorts);``                                            |
 |                      |                                              |                                                                                    |
 |                      |                                              | ``Datatype dt = s.getDatatype();``                                                 |
 |                      |                                              |                                                                                    |

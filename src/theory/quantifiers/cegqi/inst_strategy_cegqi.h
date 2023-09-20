@@ -96,10 +96,6 @@ class InstStrategyCegqi : public QuantifiersModule
   std::string identify() const override { return std::string("Cegqi"); }
   /** get instantiator for quantifier */
   CegInstantiator* getInstantiator(Node q);
-  /** get the virtual term substitution term cache utility */
-  VtsTermCache* getVtsTermCache() const;
-  /** get the BV inverter utility */
-  BvInverter* getBvInverter() const;
   /** pre-register quantifier */
   void preRegisterQuantifier(Node q) override;
 
@@ -120,11 +116,6 @@ class InstStrategyCegqi : public QuantifiersModule
                                  bool doVts);
   /** get the instantiation rewriter object */
   InstantiationRewriter* getInstRewriter() const;
-
-  //------------------- interface for CegqiOutputInstStrategy
-  /** Instantiate the current quantified formula forall x. Q with x -> subs. */
-  bool doAddInstantiation(std::vector<Node>& subs);
-  //------------------- end interface for CegqiOutputInstStrategy
 
  protected:
   /** The instantiation rewriter object */
@@ -155,8 +146,6 @@ class InstStrategyCegqi : public QuantifiersModule
    * This object is responsible for finding instantiatons for q.
    */
   std::map<Node, std::unique_ptr<CegInstantiator>> d_cinst;
-  /** inversion utility for BV instantiation */
-  std::unique_ptr<BvInverter> d_bv_invert;
   /**
    * The decision strategy for each quantified formula q registered to this
    * class.

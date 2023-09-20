@@ -175,7 +175,7 @@ SatVariable CryptoMinisatSolver::falseVar() {
 }
 
 void CryptoMinisatSolver::markUnremovable(SatLiteral lit) {
-  // cryptominisat supports dynamically adding back variables (?)
+  // cryptominisat supports dynamically adding back variables
   // so this is a no-op
   return;
 }

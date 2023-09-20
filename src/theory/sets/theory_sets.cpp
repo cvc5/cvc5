@@ -122,8 +122,7 @@ void TheorySets::computeCareGraph() {
 
 TrustNode TheorySets::explain(TNode node)
 {
-  Node exp = d_internal->explain(node);
-  return TrustNode::mkTrustPropExp(node, exp, nullptr);
+  return d_im.explainLit(node);
 }
 
 Node TheorySets::getCandidateModelValue(TNode node) { return Node::null(); }

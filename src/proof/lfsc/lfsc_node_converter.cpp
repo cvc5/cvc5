@@ -121,7 +121,7 @@ Node LfscNodeConverter::postConvert(Node n)
     // ignore internally generated symbols
     return n;
   }
-  else if (k == SKOLEM || k == BOOLEAN_TERM_VARIABLE)
+  else if (k == SKOLEM)
   {
     // constructors/selectors are represented by skolems, which are defined
     // symbols
@@ -599,7 +599,7 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
     {
       // no need to convert type for tuples of size 0,
       // type as node is simple
-      tnn = getSymbolInternal(k, d_sortType, "Tuple");
+      tnn = getSymbolInternal(k, d_sortType, "UnitTuple");
     }
   }
   else if (tn.getNumChildren() == 0)

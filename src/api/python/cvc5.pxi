@@ -37,7 +37,7 @@ from cvc5 cimport wstring as c_wstring
 from cvc5 cimport tuple as c_tuple
 from cvc5 cimport get0, get1, get2
 from cvc5kinds cimport Kind as c_Kind
-from cvc5sortkinds cimport SortKind as c_SortKind
+from cvc5kinds cimport SortKind as c_SortKind
 from cvc5types cimport BlockModelsMode as c_BlockModelsMode
 from cvc5types cimport RoundingMode as c_RoundingMode
 from cvc5types cimport UnknownExplanation as c_UnknownExplanation
@@ -1458,7 +1458,7 @@ cdef class Solver:
                     "Invalid second argument to mkBitVector '{}', "
                     "expected integer value".format(size))
             term.cterm = self.csolver.mkBitVector(
-                <uint32_t> size, <uint32_t> val)
+                <uint32_t> size, <const string&> str(val).encode(), 10)
         elif len(args) == 2:
             val = args[0]
             base = args[1]
@@ -1968,34 +1968,49 @@ cdef class Solver:
             result.append(term)
         return result
 
-
-    def synthInv(self, symbol, bound_vars, Grammar grammar=None):
+    def findSynth(self, fst, Grammar grammar=None):
         """
-            Synthesize invariant.
+            Find a target term of interest using sygus enumeration with a
+            provided grammar.
 
             SyGuS v2:
 
             .. code-block:: smtlib
 
-                ( synth-inv <symbol> ( <boundVars>* ) <grammar> )
+                ( find-synth :target G)
 
-            :param symbol: The name of the invariant.
-            :param boundVars: The parameters to this invariant.
-            :param grammar: The syntactic constraints.
-            :return: The invariant.
+            :param fst: The identifier specifying what kind of term to find.
+            :param grammar: The grammar for the term.
+            :return: The result of the find, which is the null term if this
+                     call failed.
         """
         cdef Term term = Term(self)
-        cdef vector[c_Term] v
-        for bv in bound_vars:
-            v.push_back((<Term?> bv).cterm)
         if grammar is None:
-            term.cterm = self.csolver.synthInv(
-                    symbol.encode(), <const vector[c_Term]&> v)
+            term.cterm = self.csolver.findSynth(<c_FindSynthTarget> fst.value)
         else:
-            term.cterm = self.csolver.synthInv(
-                    symbol.encode(),
-                    <const vector[c_Term]&> v,
-                    grammar.cgrammar)
+            term.cterm = self.csolver.findSynth(<c_FindSynthTarget> fst.value,
+                                                grammar.cgrammar)
+        return term
+        
+    def findSynthNext(self):
+        """
+            Try to find a next solution for the synthesis conjecture
+            corresponding to the current list of functions-to-synthesize,
+            universal variables and constraints. Must be called immediately
+            after a successful call to check-synth or check-synth-next.
+            Requires incremental mode.
+
+            SyGuS v2:
+
+            .. code-block:: smtlib
+
+                ( find-synth-next )
+
+            :return: The result of the find, which is the null term if this
+                     call failed.
+        """
+        cdef Term term = Term(self)
+        term.cterm = self.csolver.findSynthNext()
         return term
 
     def checkSatAssuming(self, *assumptions):
@@ -2041,7 +2056,7 @@ cdef class Solver:
         sort.csort = self.csolver.declareDatatype(symbol.encode(), v)
         return sort
 
-    def declareFun(self, str symbol, list sorts, Sort sort):
+    def declareFun(self, str symbol, list sorts, Sort sort, fresh=True):
         """
             Declare n-ary function symbol.
 
@@ -2054,6 +2069,10 @@ cdef class Solver:
             :param symbol: The name of the function.
             :param sorts: The sorts of the parameters to this function.
             :param sort: The sort of the return value of this function.
+            :param fresh: If true, then this method always returns a new Term.
+                          Otherwise, this method will always return the
+                          same Term for each call with the given sorts and
+                          symbol where fresh is false.
             :return: The function.
         """
         cdef Term term = Term(self)
@@ -2061,11 +2080,12 @@ cdef class Solver:
         for s in sorts:
             v.push_back((<Sort?> s).csort)
         term.cterm = self.csolver.declareFun(symbol.encode(),
-                                             <const vector[c_Sort]&> v,
-                                             sort.csort)
+                                            <const vector[c_Sort]&> v,
+                                            sort.csort,
+                                            <bint> fresh)
         return term
 
-    def declareSort(self, str symbol, int arity):
+    def declareSort(self, str symbol, int arity, fresh=True):
         """
             Declare uninterpreted sort.
 
@@ -2084,10 +2104,14 @@ cdef class Solver:
 
             :param symbol: The name of the sort.
             :param arity: The arity of the sort.
+            :param fresh: If true, then this method always returns a new Sort.
+                          Otherwise, this method will always return the same
+                          Sort for each call with the given arity and symbol
+                          where fresh is false.
             :return: The sort.
         """
         cdef Sort sort = Sort(self)
-        sort.csort = self.csolver.declareSort(symbol.encode(), arity)
+        sort.csort = self.csolver.declareSort(symbol.encode(), arity, <bint> fresh)
         return sort
 
     def defineFun(self, str symbol, list bound_vars, Sort sort, Term term, glbl=False):
@@ -2200,7 +2224,7 @@ cdef class Solver:
 
         self.csolver.defineFunsRec(vf, vbv, vt, glb)
 
-    def getProof(self, c = ProofComponent.PROOF_COMPONENT_FULL):
+    def getProof(self, c = ProofComponent.FULL):
         """
             Get a proof associated with the most recent call to checkSat.
 
@@ -2217,11 +2241,11 @@ cdef class Solver:
                          versions.
             :param c: The component of the proof to return 
             :return: A string representing the proof. This takes into account
-            proof-format-mode when c is PROOF_COMPONENT_FULL.
+            proof-format-mode when c is FULL.
         """
         return self.csolver.getProof(<c_ProofComponent> c.value)
 
-    def getLearnedLiterals(self, type = LearnedLitType.LEARNED_LIT_INPUT):
+    def getLearnedLiterals(self, type = LearnedLitType.INPUT):
         """
             Get a list of literals that are entailed by the current set of assertions
 
@@ -2811,6 +2835,25 @@ cdef class Solver:
         """
         self.csolver.setLogic(logic.encode())
 
+    def isLogicSet(self):
+        """
+            Is logic set? Returns whether we called setLogic yet for this
+            solver.
+            
+            :return: whether we called setLogic yet for this solver.
+        """
+        return self.csolver.isLogicSet()
+        
+    def getLogic(self):
+        """
+            Get the logic set the solver.
+   
+            .. note:: Asserts isLogicSet().
+   
+            :return: The logic used by the solver.
+        """
+        return self.csolver.getLogic().decode()
+
     def setOption(self, str option, str value):
         """
             Set option.
@@ -2846,7 +2889,7 @@ cdef class Solver:
                         versions.
 
             :param conj: The conjecture term.
-            :param grammar: A grammar for the inteprolant.
+            :param grammar: A grammar for the interpolant.
             :return: The interpolant.
                      See :cpp:func:`cvc5::Solver::getInterpolant` for details.
         """
@@ -4112,6 +4155,8 @@ cdef class Term:
 
     def getCardinalityConstraint(self):
         """
+            .. note:: Asserts :py:meth:`isCardinalityConstraint()`.
+
             :return: The sort the cardinality constraint is for and its upper
                      bound.
 
@@ -4124,6 +4169,47 @@ cdef class Term:
         sort.csort = p.first
         return (sort, p.second)
 
+    def isRealAlgebraicNumber(self):
+        """
+            :return: True if the term is a real algebraic number.
+
+            .. warning:: This method is experimental and may change in future
+                         versions.
+        """
+        return self.cterm.isRealAlgebraicNumber()
+
+
+    def getRealAlgebraicNumberDefiningPolynomial(self, Term v):
+        """
+            .. note:: Asserts :py:meth:`isRealAlgebraicNumber()`.
+
+           :param v: The variable over which to express the polynomial
+           :return: The defining polynomial for the real algebraic number, expressed in
+                    terms of the given variable.
+        """
+        cdef Term term = Term(self.solver)
+        term.cterm = self.cterm.getRealAlgebraicNumberDefiningPolynomial(v.cterm)
+        return term
+
+    def getRealAlgebraicNumberLowerBound(self):
+        """
+            .. note:: Asserts :py:meth:`isRealAlgebraicNumber()`.
+
+	        :return: The lower bound for the value of the real algebraic number.
+        """
+        cdef Term term = Term(self.solver)
+        term.cterm = self.cterm.getRealAlgebraicNumberLowerBound()
+        return term
+
+    def getRealAlgebraicNumberUpperBound(self):
+        """
+            .. note:: Asserts :py:meth:`isRealAlgebraicNumber()`.
+
+	        :return: The upper bound for the value of the real algebraic number.
+        """
+        cdef Term term = Term(self.solver)
+        term.cterm = self.cterm.getRealAlgebraicNumberUpperBound()
+        return term
 
     def isUninterpretedSortValue(self):
         """
