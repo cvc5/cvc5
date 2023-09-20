@@ -80,10 +80,8 @@ void TheoryPreregistrar::notifySatLiteral(TNode n)
   }
 }
 
-void TheoryPreregistrar::notifyBacktrack(uint32_t nlevels)
+void TheoryPreregistrar::notifyBacktrack()
 {
-  (void)nlevels;
-
   uint32_t level = d_env.getContext()->getLevel();
   for (size_t i = 0, n = d_sat_literals.size(); i < n; ++i)
   {
