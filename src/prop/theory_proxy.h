@@ -157,11 +157,6 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** Get unsound id, valid when isRefutationUnsound is true. */
   theory::IncompleteId getRefutationUnsoundId() const;
 
-  /**
-   * Notifies of a new variable at a decision level.
-   */
-  void variableNotify(SatVariable var);
-
   TNode getNode(SatLiteral lit);
 
   void notifyRestart();
