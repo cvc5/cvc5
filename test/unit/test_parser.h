@@ -31,7 +31,6 @@ class TestParser : public TestApi
   void SetUp() override
   {
     TestApi::SetUp();
-    d_solver.setOption("parse-only", "true");
     d_symman.reset(new SymbolManager(&d_solver));
   }
 
