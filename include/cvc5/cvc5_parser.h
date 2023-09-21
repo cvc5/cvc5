@@ -205,9 +205,13 @@ class CVC5_EXPORT InputParser
    */
   InputParser(Solver* solver);
 
-  /** Get the underlying solver of this input parser */
+  /**
+   * @return the underlying solver of this input parser
+   */
   Solver* getSolver();
-  /** Get the underlying symbol manager of this input parser */
+  /**
+   * @return the underlying symbol manager of this input parser
+   */
   SymbolManager* getSymbolManager();
   /** Set the input for the given file.
    *

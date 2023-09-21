@@ -55,6 +55,7 @@ int main()
   ss2 << "(+ a b)" << std::endl;
   ss2 << "(+ c 10)" << std::endl;
   ss2 << "(>= 0 45)" << std::endl;
+  parser2.setStreamInput("LANG_SMTLIB_V2_6", ss2, "MyStream2");
 
   // parse terms until finished
   Term t;
