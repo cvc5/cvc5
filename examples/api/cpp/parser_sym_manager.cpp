@@ -39,7 +39,7 @@ int main()
 
   // parse commands until finished
   std::unique_ptr<Command> cmd;
-  while (cmd = d_parser->nextCommand())
+  while (cmd = parser.nextCommand())
   {
     std::cout << "Executing command " << *cmd.get() << ":" << std::endl;
     // invoke the command on the solver and the symbol manager, print the result to std::cout
@@ -60,7 +60,7 @@ int main()
   Term t;
   do
   {
-    t = d_parser->nextTerm();
+    t = parser2.nextTerm();
     std::cout << "Parsed term: " << t << std::endl;
   }while (!t.isNull());
   std::cout << "Finished parsing terms" << std::endl;

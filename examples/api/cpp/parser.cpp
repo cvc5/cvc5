@@ -45,7 +45,7 @@ int main()
 
   // parse commands until finished
   std::unique_ptr<Command> cmd;
-  while (cmd = d_parser->nextCommand())
+  while (cmd = parser.nextCommand())
   {
     std::cout << "Executing command " << *cmd.get() << ":" << std::endl;
     // invoke the command on the solver and the symbol manager, print the result to std::cout
