@@ -82,7 +82,7 @@ namespace cvc5 {
  * leaf in a proof; and (2) :cpp:enumerator:`SCOPE <cvc5::ProofRule::SCOPE>`, which
  * encloses a scope (a subproof) with a set of scoped assumptions. The core rules
  * additionally correspond to generic operations that are done internally on nodes,
- * e.g. calling Rewriter::rewrite.
+ * e.g., calling Rewriter::rewrite.
  *
  * Rules with prefix ``MACRO_`` are those that can be defined in terms of other
  * rules. These exist for convenience and can be replaced by their definition in post-processing.
