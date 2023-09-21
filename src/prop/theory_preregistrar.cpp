@@ -102,7 +102,7 @@ void TheoryPreregistrar::notifyBacktrack()
     // at a higher level than the current SAT context level. These literals
     // are popped from the SAT context on backtrack but remain in the SAT
     // solver, and thus must be reregistered.
-    Trace("prereg") << "reregister: " << n << std::endl;
+    Trace("prereg") << "reregister: " << node << std::endl;
     // Note: This call potentially adds to d_sat_literals, which we are
     //       currently iterating over. This is not an issue, though, since
     //       a) we access it by index and b) any literals added through this
