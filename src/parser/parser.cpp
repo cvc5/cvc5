@@ -89,15 +89,15 @@ std::unique_ptr<Cmd> Parser::nextCommand()
   return cmd;
 }
 
-Term Parser::nextExpression()
+Term Parser::nextTerm()
 {
-  Trace("parser") << "nextExpression()" << std::endl;
+  Trace("parser") << "nextTerm()" << std::endl;
   Term result;
   if (!d_done)
   {
     try
     {
-      result = parseNextExpression();
+      result = parseNextTerm();
       setDone(result.isNull());
     }
     catch (ParserException& e)
@@ -111,7 +111,7 @@ Term Parser::nextExpression()
       parseError(e.what());
     }
   }
-  Trace("parser") << "nextExpression() => " << result << std::endl;
+  Trace("parser") << "nextTerm() => " << result << std::endl;
   return result;
 }
 

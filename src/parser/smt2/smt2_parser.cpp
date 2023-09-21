@@ -41,7 +41,7 @@ std::unique_ptr<Cmd> Smt2Parser::parseNextCommand()
   return d_cmdParser.parseNextCommand();
 }
 
-Term Smt2Parser::parseNextExpression()
+Term Smt2Parser::parseNextTerm()
 {
   // check for EOF here and return null if so
   Token tok = d_slex.peekToken();

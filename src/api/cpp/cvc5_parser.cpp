@@ -286,13 +286,13 @@ std::unique_ptr<Command> InputParser::nextCommand()
   return cc;
 }
 
-Term InputParser::nextExpression()
+Term InputParser::nextTerm()
 {
   CVC5_PARSER_API_CHECK(d_parser != nullptr)
       << "Input to parser not initialized";
   //////// all checks before this line
-  Trace("parser") << "nextExpression()" << std::endl;
-  return d_parser->nextExpression();
+  Trace("parser") << "nextTerm()" << std::endl;
+  return d_parser->nextTerm();
 }
 
 void InputParser::setFileInput(const std::string& lang,

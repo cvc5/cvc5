@@ -54,10 +54,10 @@ class Smt2Parser : public Parser
   std::unique_ptr<Cmd> parseNextCommand() override;
 
   /**
-   * Parse and return the next expression. Requires setting the logic
+   * Parse and return the next term. Requires setting the logic
    * beforehand.
    */
-  Term parseNextExpression() override;
+  Term parseNextTerm() override;
   /** The lexer */
   Smt2Lexer d_slex;
   /** The state */
