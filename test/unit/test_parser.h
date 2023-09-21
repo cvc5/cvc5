@@ -12,9 +12,13 @@
  *
  * Common header for parser API unit test.
  */
+#ifndef CVC5__TEST__UNIT__TEST_PARSER_H
+#define CVC5__TEST__UNIT__TEST_PARSER_H
 
 #include <cvc5/cvc5.h>
 #include <cvc5/cvc5_parser.h>
+
+#include "test_api.h"
 
 using namespace cvc5::parser;
 
@@ -44,3 +48,5 @@ class TestParser : public TestApi
 
 }  // namespace test
 }  // namespace cvc5::internal
+
+#endif

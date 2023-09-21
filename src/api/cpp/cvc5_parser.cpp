@@ -77,6 +77,8 @@ bool SymbolManager::isLogicSet() const
 const std::string& SymbolManager::getLogic() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_PARSER_API_CHECK(d_sm->isLogicSet())
+      << "Invalid call to 'getLogic', logic has not yet been set";
   //////// all checks before this line
   return d_sm->getLogic();
   ////////

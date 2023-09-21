@@ -35,6 +35,15 @@ class TestInputParserBlack : public TestParser
  protected:
   TestInputParserBlack() {}
   virtual ~TestInputParserBlack() {}
+
+  std::unique_ptr<Command> parseLogicCommand(InputParser& p, const std::string& logic)
+  {
+    p.setIncrementalStringInput("LANG_SMTLIB_V2_6", "input_parser_black");
+    std::stringstream ss;
+    ss << "(set-logic " << logic << ")" << std::endl;
+    p.appendIncrementalStringInput(ss.str());
+    return p.nextCommand();
+  }
 };
 
 
@@ -51,11 +60,12 @@ TEST_F(TestInputParserBlack, getSymbolManager)
   ASSERT_NE(p.getSymbolManager(), nullptr);
 
   InputParser p2(&d_solver, d_symman.get());
-  ASSERT_EQ(p.getSymbolManager(), d_symman.get());
+  ASSERT_EQ(p2.getSymbolManager(), d_symman.get());
 }
 
 TEST_F(TestInputParserBlack, setStreamInput)
 {
+  InputParser p(&d_solver);
   std::stringstream ss;
   ss << "(set-logic QF_LIA)" << std::endl;
   ss << "(declare-fun a () Bool)" << std::endl;
@@ -71,6 +81,8 @@ TEST_F(TestInputParserBlack, setStreamInput)
 
 TEST_F(TestInputParserBlack, setAndAppendIncrementalStringInput)
 {
+  std::stringstream out;
+  InputParser p(&d_solver);
   p.setIncrementalStringInput("LANG_SMTLIB_V2_6", "input_parser_black");
   std::unique_ptr<Command> cmd;
   p.appendIncrementalStringInput("(set-logic ALL)");
@@ -89,6 +101,7 @@ TEST_F(TestInputParserBlack, setAndAppendIncrementalStringInput)
 
 TEST_F(TestInputParserBlack, nextCommand)
 {
+  InputParser p(&d_solver);
   ASSERT_THROW(p.nextCommand(), CVC5ApiException);
   std::stringstream ss;
   p.setStreamInput("LANG_SMTLIB_V2_6", ss, "input_parser_black");
@@ -97,6 +110,7 @@ TEST_F(TestInputParserBlack, nextCommand)
 
 TEST_F(TestInputParserBlack, nextTerm)
 {
+  InputParser p(&d_solver);
   ASSERT_THROW(p.nextTerm(), CVC5ApiException);
   std::stringstream ss;
   p.setStreamInput("LANG_SMTLIB_V2_6", ss, "input_parser_black");
@@ -106,6 +120,8 @@ TEST_F(TestInputParserBlack, nextTerm)
 
 TEST_F(TestInputParserBlack, nextTerm2)
 {
+  std::stringstream out;
+  InputParser p(&d_solver, d_symman.get());
   p.setIncrementalStringInput("LANG_SMTLIB_V2_6", "input_parser_black");
   // parse a declaration command
   p.appendIncrementalStringInput("(declare-fun a () Int)");
@@ -123,7 +139,44 @@ TEST_F(TestInputParserBlack, nextTerm2)
   ASSERT_EQ(t.getKind(), Kind::ADD);
   p.appendIncrementalStringInput("(+ b 1)");
   ASSERT_THROW(t = p.nextTerm(), ParserException);
+}
 
+TEST_F(TestInputParserBlack, multipleParsers)
+{
+  std::stringstream out;
+  InputParser p(&d_solver, d_symman.get());
+  // set a logic for the parser
+  std::unique_ptr<Command> cmd = parseLogicCommand(p, "QF_LIA");
+  ASSERT_NO_THROW(cmd->invoke(&d_solver, d_symman.get(), out));
+  ASSERT_EQ(d_solver.isLogicSet(), true);
+  ASSERT_EQ(d_solver.getLogic(), "QF_LIA");
+  ASSERT_EQ(d_symman->isLogicSet(), true);
+  ASSERT_EQ(d_symman->getLogic(), "QF_LIA");
+  // cannot set logic on solver now
+  //ASSERT_THROW(d_solver.setLogic("QF_LRA"), CVC5ApiException);
+
+  // possible to construct another parser with the same solver and symbol manager
+  InputParser p2(&d_solver, p.getSymbolManager());
+
+  // possible to construct another parser with a fresh solver
+  Solver s2;
+  InputParser p3(&s2, d_symman.get());
+  //cmd = parseLogicCommand(p3, "QF_LRA");
+  // logic is automatically set on the solver
+  //ASSERT_EQ(s2.isLogicSet(), true);
+  //ASSERT_EQ(s2.getLogic(), "QF_LIA");
+  // we cannot set the logic since it has already been set
+  //cmd->invoke(&s2, d_symman.get(), out);
+
+  // using a solver with the same logic is allowed
+  Solver s3;
+  s3.setLogic("QF_LIA");
+  InputParser p4(&s3, d_symman.get());
+
+  // using a solver with a different logic is not allowed
+  Solver s4;
+  s4.setLogic("QF_LRA");
+  InputParser p5(&s4, d_symman.get());
 }
 
 }  // namespace test
