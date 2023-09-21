@@ -132,9 +132,9 @@ class TestInputParserBlack : public TestInternal
     parser.setStreamInput(d_lang, ss, "parser_black");
 
     ASSERT_FALSE(parser.done());
-    cvc5::Term e = parser.nextExpression();
+    cvc5::Term e = parser.nextTerm();
     ASSERT_FALSE(e.isNull());
-    e = parser.nextExpression();
+    e = parser.nextTerm();
     ASSERT_TRUE(parser.done());
     ASSERT_TRUE(e.isNull());
   }
@@ -159,7 +159,7 @@ class TestInputParserBlack : public TestInternal
     ss << badExpr;
     parser.setStreamInput(d_lang, ss, "parser_black");
     ASSERT_FALSE(parser.done());
-    ASSERT_THROW(cvc5::Term e = parser.nextExpression();
+    ASSERT_THROW(cvc5::Term e = parser.nextTerm();
                  std::cout << std::endl
                            << "Bad expr succeeded." << std::endl
                            << "Input: <<" << badExpr << ">>" << std::endl
