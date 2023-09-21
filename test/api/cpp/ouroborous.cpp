@@ -102,9 +102,9 @@ std::string parse(std::string instr,
   std::stringstream ssi;
   ssi << instr;
   parser.setStreamInput(ilang, ss, "internal-buffer");
-  cvc5::Term e = parser.nextExpression();
+  cvc5::Term e = parser.nextTerm();
   std::string s = e.toString();
-  assert(parser.nextExpression().isNull());  // next expr should be null
+  assert(parser.nextTerm().isNull());  // next expr should be null
   return s;
 }
 

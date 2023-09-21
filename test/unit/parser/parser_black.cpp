@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Black box testing of cvc5::parser::InputParser for CVC and SMT-LIbv2 inputs.
+ * Black box testing of cvc5::parser::InputParser for SMT-LIbv2 inputs.
  */
 
 #include <cvc5/cvc5.h>
@@ -30,12 +30,12 @@ using namespace cvc5::parser;
 namespace cvc5::internal {
 namespace test {
 
-class TestInputParserBlack : public TestInternal
+class TestParserBlack : public TestInternal
 {
  protected:
-  TestInputParserBlack(const std::string& lang) : d_lang(lang) {}
+  TestParserBlack(const std::string& lang) : d_lang(lang) {}
 
-  virtual ~TestInputParserBlack() {}
+  virtual ~TestParserBlack() {}
 
   void SetUp() override
   {
@@ -174,17 +174,17 @@ class TestInputParserBlack : public TestInternal
 
 /* -------------------------------------------------------------------------- */
 
-class TestInputParserBlackSmt2InputParser
-    : public TestInputParserBlack
+class TestParserBlackSmt2InputParser
+    : public TestParserBlack
 {
  protected:
-  TestInputParserBlackSmt2InputParser()
-      : TestInputParserBlack("LANG_SMTLIB_V2_6")
+  TestParserBlackSmt2InputParser()
+      : TestParserBlack("LANG_SMTLIB_V2_6")
   {
   }
 };
 
-TEST_F(TestInputParserBlackSmt2InputParser, good_inputs)
+TEST_F(TestParserBlackSmt2InputParser, good_inputs)
 {
   tryGoodInput("");  // empty string is OK
   tryGoodInput("(set-logic QF_UF)");
@@ -211,7 +211,7 @@ TEST_F(TestInputParserBlackSmt2InputParser, good_inputs)
   tryGoodInput("; a comment\n(check-sat ; goodbye\n)");
 }
 
-TEST_F(TestInputParserBlackSmt2InputParser, bad_inputs)
+TEST_F(TestParserBlackSmt2InputParser, bad_inputs)
 {
   // competition builds don't do any checking
 #ifndef CVC5_COMPETITION_MODE
@@ -235,7 +235,7 @@ TEST_F(TestInputParserBlackSmt2InputParser, bad_inputs)
 #endif
 }
 
-TEST_F(TestInputParserBlackSmt2InputParser, good_exprs)
+TEST_F(TestParserBlackSmt2InputParser, good_exprs)
 {
   tryGoodExpr("(and a b)");
   tryGoodExpr("(or (and a b) c)");
@@ -251,7 +251,7 @@ TEST_F(TestInputParserBlackSmt2InputParser, good_exprs)
   tryGoodExpr("(* 5 1)");
 }
 
-TEST_F(TestInputParserBlackSmt2InputParser, bad_exprs)
+TEST_F(TestParserBlackSmt2InputParser, bad_exprs)
 {
 // competition builds don't do any checking
 #ifndef CVC5_COMPETITION_MODE
