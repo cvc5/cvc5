@@ -2052,6 +2052,16 @@ def test_set_logic(solver):
     with pytest.raises(RuntimeError):
         solver.setLogic("AUFLIRA")
 
+def test_is_logic_set(solver):
+    assert solver.isLogicSet() == False
+    solver.setLogic("QF_BV")
+    assert solver.isLogicSet() == True
+
+def test_get_logic(solver):
+    with pytest.raises(RuntimeError):
+        solver.getLogic()
+    solver.setLogic("QF_BV")
+    assert solver.getLogic() == "QF_BV"
 
 def test_set_option(solver):
     solver.setOption("bv-sat-solver", "minisat")

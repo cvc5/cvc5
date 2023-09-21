@@ -544,7 +544,8 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         d_state.addEqualityToExp(cpk, eqccSingleton, exps);
         if (d_state.areDisequal(n, emp_set))
         {
-          exps.push_back(n.eqNode(emp_set).negate());
+          // ensure we can explain the disequality
+          d_state.explainDisequal(n, emp_set, exps);
           eq_parent = true;
         }
         else

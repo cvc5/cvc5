@@ -4985,6 +4985,22 @@ class CVC5_EXPORT Solver
   void setLogic(const std::string& logic) const;
 
   /**
+   * Is logic set? Returns whether we called setLogic yet for this solver.
+   *
+   * @return whether we called setLogic yet for this solver.
+   */
+  bool isLogicSet() const;
+
+  /**
+   * Get the logic set the solver.
+   *
+   * @note Asserts isLogicSet().
+   *
+   * @return The logic used by the solver.
+   */
+  std::string getLogic() const;
+
+  /**
    * Set option.
    *
    * SMT-LIB:

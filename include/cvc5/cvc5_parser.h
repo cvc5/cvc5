@@ -65,6 +65,17 @@ class CVC5_EXPORT SymbolManager
   SymbolManager(cvc5::Solver* s);
   ~SymbolManager();
 
+  /**
+   * @return true if the logic of this symbol manager has been set.
+   */
+  bool isLogicSet() const;
+  /**
+   * @note Asserts isLogicSet().
+   *
+   * @return the logic used by this symbol manager
+   */
+  const std::string& getLogic() const;
+
  private:
   /** Get the underlying implementation */
   SymManager* toSymManager();
@@ -159,8 +170,23 @@ std::ostream& operator<<(std::ostream&, const Command*) CVC5_EXPORT;
  * from an input using a parser.
  *
  * After construction, it is expected that an input is first set via e.g.
- * setFileInput, setStreamInput, or setStringInput. Then, the methods
- * nextCommand and nextExpression can be invoked to parse the input.
+ * setFileInput, setStreamInput, or setIncrementalStringInput and
+ * appendIncrementalStringInput. Then, the methods nextCommand and
+ * nextExpression can be invoked to parse the input.
+ *
+ * The input parser interacts with a symbol manager, which determines which
+ * symbols are defined in the current context, based on the background logic
+ * and user-defined symbols. If no symbol manager is provided, then the
+ * input parser will construct (an initially empty) one.
+ *
+ * If provided, the symbol manager must have a logic that is compatible
+ * with the provided solver. That is, if both the solver and symbol
+ * manager have their logics set (SymbolManager::isLogicSet and
+ * Solver::isLogicSet), then their logics must be the same.
+ *
+ * Upon setting an input source, if either the solver (resp. symbol
+ * manager) has its logic set, then the symbol manager (resp. solver) is set to
+ * use that logic, if its logic is not already set.
  */
 class CVC5_EXPORT InputParser
 {
@@ -170,7 +196,8 @@ class CVC5_EXPORT InputParser
    *
    * @param solver The solver (e.g. for constructing terms and sorts)
    * @param sm The symbol manager, which contains a symbol table that maps
-   * symbols to terms and sorts.
+   * symbols to terms and sorts. Must have a logic that is compatible
+   * with the solver.
    */
   InputParser(Solver* solver, SymbolManager* sm);
   /**
@@ -184,12 +211,6 @@ class CVC5_EXPORT InputParser
   Solver* getSolver();
   /** Get the underlying symbol manager of this input parser */
   SymbolManager* getSymbolManager();
-  /**
-   * Set the logic to use. This determines which builtin symbols are included.
-   *
-   * @param name The name of the logic.
-   */
-  void setLogic(const std::string& name);
   /** Set the input for the given file.
    *
    * @param lang the input language
@@ -244,6 +265,11 @@ class CVC5_EXPORT InputParser
  private:
   /** Initialize this input parser, called during construction */
   void initialize();
+  /**
+   * Initialize the internal parser, called immediately after d_parser
+   * is constructed.
+   */
+  void initializeInternal();
   /** Solver */
   Solver* d_solver;
   /** The allocated symbol manager */
@@ -255,7 +281,7 @@ class CVC5_EXPORT InputParser
   /** Incremental string name */
   std::string d_istringName;
   /** The parser */
-  std::shared_ptr<Parser> d_fparser;
+  std::shared_ptr<Parser> d_parser;
 };
 
 }  // namespace parser

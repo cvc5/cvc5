@@ -167,10 +167,6 @@ void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
   d_prr->addAssertion(a, skolem, isLemma);
 }
 
-void TheoryProxy::variableNotify(SatVariable var) {
-  notifySatLiteral(getNode(SatLiteral(var)));
-}
-
 void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
   Trace("theory-proxy") << "TheoryProxy: check " << effort << std::endl;
   d_activatedSkDefs = false;
@@ -311,10 +307,13 @@ SatLiteral TheoryProxy::getNextDecisionRequest(bool& requirePhase,
                                                bool& stopSearch)
 {
   Trace("theory-proxy") << "TheoryProxy: getNextDecisionRequest" << std::endl;
+  requirePhase = false;
+  stopSearch = false;
   SatLiteral res = undefSatLiteral;
   TNode n = d_theoryEngine->getNextDecisionRequest();
   if (!n.isNull())
   {
+    Trace("theory-proxy") << "... return next theory decision" << std::endl;
     requirePhase = true;
     res = d_cnfStream->getLiteral(n);
   }
@@ -325,7 +324,7 @@ SatLiteral TheoryProxy::getNextDecisionRequest(bool& requirePhase,
     requirePhase = false;
     if (d_stopSearch.get())
     {
-      Trace("theory-proxy") << "...stopped search, finish" << std::endl;
+      Trace("theory-proxy") << "...stop search, finished" << std::endl;
       stopSearch = true;
     }
     else
@@ -338,22 +337,22 @@ SatLiteral TheoryProxy::getNextDecisionRequest(bool& requirePhase,
       }
       else
       {
-        Trace("theory-proxy") << "...returned next decision" << std::endl;
+        Trace("theory-proxy") << "...return next decision" << std::endl;
       }
     }
   }
   return res;
 }
 
-bool TheoryProxy::theoryNeedCheck() const {
+bool TheoryProxy::theoryNeedCheck() const
+{
   if (d_stopSearch.get())
   {
     return false;
   }
   else if (d_activatedSkDefs)
   {
-    // a new skolem definition become active on the last call to theoryCheck,
-    // return true
+    // a new skolem definition became active on the last call to theoryCheck
     return true;
   }
   // otherwise ask the theory engine, which will return true if its output
@@ -402,7 +401,8 @@ void TheoryProxy::spendResource(Resource r)
   d_theoryEngine->spendResource(r);
 }
 
-bool TheoryProxy::isDecisionEngineDone() {
+bool TheoryProxy::isDecisionEngineDone()
+{
   return d_decisionEngine->isDone() || d_stopSearch.get();
 }
 
@@ -446,10 +446,10 @@ void TheoryProxy::notifySatLiteral(Node n)
   d_prr->notifySatLiteral(n);
 }
 
-void TheoryProxy::notifyBacktrack(uint32_t nlevels)
+void TheoryProxy::notifyBacktrack()
 {
   // notify the preregistrar, which may trigger reregistrations
-  d_prr->notifyBacktrack(nlevels);
+  d_prr->notifyBacktrack();
 }
 
 std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals(

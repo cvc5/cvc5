@@ -131,6 +131,9 @@ class TheoryProxy : protected EnvObj, public Registrar
   /**
    * Get the next decision request.
    *
+   * This first queries the theory engine for a decision request. If the theory
+   * engine does not request a decision, the decision engine is queried.
+   *
    * If `requirePhase` is true, the decision must be decided as is, in the
    * given polarity. Else it should respect the polarity configured via
    * PropEngine::requirePhase, if any.
@@ -153,11 +156,6 @@ class TheoryProxy : protected EnvObj, public Registrar
   theory::IncompleteId getModelUnsoundId() const;
   /** Get unsound id, valid when isRefutationUnsound is true. */
   theory::IncompleteId getRefutationUnsoundId() const;
-
-  /**
-   * Notifies of a new variable at a decision level.
-   */
-  void variableNotify(SatVariable var);
 
   TNode getNode(SatLiteral lit);
 
@@ -205,10 +203,9 @@ class TheoryProxy : protected EnvObj, public Registrar
   void notifySatLiteral(Node n) override;
 
   /**
-   * Callback to notify that the SAT solver backtracked by the given number
-   * of levels.
+   * Callback to notify that the SAT solver backtracked.
    */
-  void notifyBacktrack(uint32_t nlevels);
+  void notifyBacktrack();
 
   /** Get the zero-level assertions */
   std::vector<Node> getLearnedZeroLevelLiterals(
