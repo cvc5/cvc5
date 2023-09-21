@@ -2,6 +2,16 @@ This file contains a summary of important user-visible changes.
 
 **New Features**
 
+cvc5 1.0.9
+==========
+
+- SMT-LIB: The syntax for 0-ary tuples has been changed for the purposes of
+           disambiguation. The new syntax for 0-ary tuple sort is `UnitTuple`
+           whose 0-ary constructor is `tuple.unit` (the previous syntax had
+           overloaded `Tuple` and `tuple`, with no arguments).
+- API: Add the ability to query the logic that has been set in the solver via
+       `Solver::isLogicSet` and `Solver::getLogic`.
+
 cvc5 1.0.8
 ==========
 Note: This is a pre-release version for the upcoming version 1.1.0.

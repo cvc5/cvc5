@@ -4613,8 +4613,8 @@ std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit)
   // l k r
   // diff : (l - r) k 0
   Trace("arith::entailCheck") << "TheoryArithPrivate::entailmentCheck(" << lit << ")"<< endl;
-  Kind k;
-  int primDir;
+  Kind k = UNDEFINED_KIND;
+  int primDir = 0;
   Rational lm, rm, dm;
   Node lp, rp, dp;
   DeltaRational sep;

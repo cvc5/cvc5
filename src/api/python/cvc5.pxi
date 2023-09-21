@@ -1458,7 +1458,7 @@ cdef class Solver:
                     "Invalid second argument to mkBitVector '{}', "
                     "expected integer value".format(size))
             term.cterm = self.csolver.mkBitVector(
-                <uint32_t> size, <uint32_t> val)
+                <uint32_t> size, <const string&> str(val).encode(), 10)
         elif len(args) == 2:
             val = args[0]
             base = args[1]
@@ -2834,6 +2834,25 @@ cdef class Solver:
             :param logic: The logic to set.
         """
         self.csolver.setLogic(logic.encode())
+
+    def isLogicSet(self):
+        """
+            Is logic set? Returns whether we called setLogic yet for this
+            solver.
+            
+            :return: whether we called setLogic yet for this solver.
+        """
+        return self.csolver.isLogicSet()
+        
+    def getLogic(self):
+        """
+            Get the logic set the solver.
+   
+            .. note:: Asserts isLogicSet().
+   
+            :return: The logic used by the solver.
+        """
+        return self.csolver.getLogic().decode()
 
     def setOption(self, str option, str value):
         """

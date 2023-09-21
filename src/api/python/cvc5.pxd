@@ -2,7 +2,6 @@
 from cython.operator cimport dereference as deref, preincrement as inc
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
 from libc.stddef cimport wchar_t
-from libcpp.map cimport map as c_map
 from libcpp.set cimport set
 from libcpp.string cimport string
 from libcpp.vector cimport vector
@@ -346,6 +345,8 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         void resetAssertions() except +
         void setInfo(string& keyword, const string& value) except +
         void setLogic(const string& logic) except +
+        bint isLogicSet() except +
+        string getLogic() except +
         void setOption(const string& option, const string& value) except +
         Term getInterpolant(const Term& conj) except +
         Term getInterpolant(const Term& conj, Grammar& grammar) except +
@@ -453,7 +454,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         bint isString() except +
         string getString() except +
         bint isHistogram() except +
-        c_map[string,uint64_t] getHistogram() except +
+        map[string,uint64_t] getHistogram() except +
 
     cdef cppclass Statistics:
         Statistics() except +
