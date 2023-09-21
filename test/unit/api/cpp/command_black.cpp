@@ -60,11 +60,7 @@ TEST_F(TestCommandBlack, invoke)
   ASSERT_NE(cmd, nullptr);
   cmd->invoke(&d_solver, d_symman.get(), out);
   // logic already set
-  /*
-  cmd = parseCommand("(set-logic QF_LRA)");
-  ASSERT_NE(cmd, nullptr);
-  ASSERT_THROW(cmd->invoke(&d_solver, d_symman.get(), out), CVC5ApiException);
-  */
+  ASSERT_THROW(parseCommand("(set-logic QF_LRA)"), ParserException);
 }
 
 TEST_F(TestCommandBlack, toString)

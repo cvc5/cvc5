@@ -153,7 +153,7 @@ TEST_F(TestInputParserBlack, multipleParsers)
   ASSERT_EQ(d_symman->isLogicSet(), true);
   ASSERT_EQ(d_symman->getLogic(), "QF_LIA");
   // cannot set logic on solver now
-  //ASSERT_THROW(d_solver.setLogic("QF_LRA"), CVC5ApiException);
+  ASSERT_THROW(d_solver.setLogic("QF_LRA"), CVC5ApiException);
 
   // possible to construct another parser with the same solver and symbol manager
   InputParser p2(&d_solver, p.getSymbolManager());
@@ -161,22 +161,24 @@ TEST_F(TestInputParserBlack, multipleParsers)
   // possible to construct another parser with a fresh solver
   Solver s2;
   InputParser p3(&s2, d_symman.get());
-  //cmd = parseLogicCommand(p3, "QF_LRA");
+  p3.setIncrementalStringInput("LANG_SMTLIB_V2_6", "input_parser_black");
   // logic is automatically set on the solver
-  //ASSERT_EQ(s2.isLogicSet(), true);
-  //ASSERT_EQ(s2.getLogic(), "QF_LIA");
+  ASSERT_EQ(s2.isLogicSet(), true);
+  ASSERT_EQ(s2.getLogic(), "QF_LIA");
   // we cannot set the logic since it has already been set
-  //cmd->invoke(&s2, d_symman.get(), out);
+  ASSERT_THROW(parseLogicCommand(p3, "QF_LRA"), ParserException);
 
   // using a solver with the same logic is allowed
   Solver s3;
   s3.setLogic("QF_LIA");
   InputParser p4(&s3, d_symman.get());
+  p4.setIncrementalStringInput("LANG_SMTLIB_V2_6", "input_parser_black");
 
   // using a solver with a different logic is not allowed
   Solver s4;
   s4.setLogic("QF_LRA");
   InputParser p5(&s4, d_symman.get());
+  ASSERT_THROW(p5.setIncrementalStringInput("LANG_SMTLIB_V2_6", "input_parser_black"), CVC5ApiException);
 }
 
 }  // namespace test

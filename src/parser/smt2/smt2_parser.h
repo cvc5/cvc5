@@ -30,7 +30,7 @@ namespace cvc5 {
 namespace parser {
 
 /**
- * -based smt2 parser. It maintains a lexer, a state, a term parser and a
+ * smt2 parser. It maintains a lexer, a state, a term parser and a
  * command parser. The latter two are used for parsing terms and commands. The
  * command parser depends on the term parser.
  */
