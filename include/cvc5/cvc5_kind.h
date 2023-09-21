@@ -5957,7 +5957,7 @@ struct CVC5_EXPORT hash<cvc5::SortKind>
 {
   /**
    * Hashes a SortKind to a size_t.
-   * @param The kind.
+   * @param kind The kind.
    * @return The hash value.
    */
   size_t operator()(cvc5::SortKind kind) const;
