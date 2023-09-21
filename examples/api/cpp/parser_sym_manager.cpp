@@ -34,7 +34,7 @@ int main()
   ss << "(set-logic QF_LIA)" << std::endl;
   ss << "(declare-fun a () Int)" << std::endl;
   ss << "(declare-fun b () Int)" << std::endl;
-  ss << "(declare-fun c () Int)" << std::endl;
+  ss << "(declare-fun c () Bool)" << std::endl;
   parser.setStreamInput("LANG_SMTLIB_V2_6", ss, "MyStream");
 
   // parse commands until finished
@@ -49,12 +49,14 @@ int main()
 
   // Note that sm now has a,b,c in its symbol table.
 
-  // Now, construct a new parser with the same symbol manager
+  // Now, construct a new parser with the same symbol manager. We will parse terms with it.
   InputParser parser2(&slv, &sm);
   std::stringstream ss2;
   ss2 << "(+ a b)" << std::endl;
-  ss2 << "(+ c 10)" << std::endl;
+  ss2 << "(- a 10)" << std::endl;
   ss2 << "(>= 0 45)" << std::endl;
+  ss2 << "(and c c)" << std::endl;
+  ss2 << "true" << std::endl;
   parser2.setStreamInput("LANG_SMTLIB_V2_6", ss2, "MyStream2");
 
   // parse terms until finished
