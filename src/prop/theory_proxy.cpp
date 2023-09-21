@@ -167,10 +167,6 @@ void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
   d_prr->addAssertion(a, skolem, isLemma);
 }
 
-void TheoryProxy::variableNotify(SatVariable var) {
-  notifySatLiteral(getNode(SatLiteral(var)));
-}
-
 void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
   Trace("theory-proxy") << "TheoryProxy: check " << effort << std::endl;
   d_activatedSkDefs = false;
