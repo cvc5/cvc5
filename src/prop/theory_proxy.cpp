@@ -446,10 +446,10 @@ void TheoryProxy::notifySatLiteral(Node n)
   d_prr->notifySatLiteral(n);
 }
 
-void TheoryProxy::notifyBacktrack(uint32_t nlevels)
+void TheoryProxy::notifyBacktrack()
 {
   // notify the preregistrar, which may trigger reregistrations
-  d_prr->notifyBacktrack(nlevels);
+  d_prr->notifyBacktrack();
 }
 
 std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals(
