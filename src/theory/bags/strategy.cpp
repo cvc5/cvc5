@@ -27,7 +27,9 @@ std::ostream& operator<<(std::ostream& out, InferStep s)
     case CHECK_INIT: out << "check_init"; break;
     case CHECK_BAG_MAKE: out << "check_bag_make"; break;
     case CHECK_BASIC_OPERATIONS: out << "CHECK_BASIC_OPERATIONS"; break;
-    case CHECK_QUANTIFIED_OPERATIONS: out << "CHECK_QUANTIFIED_OPERATIONS"; break;
+    case CHECK_QUANTIFIED_OPERATIONS:
+      out << "CHECK_QUANTIFIED_OPERATIONS";
+      break;
     case CHECK_CARDINALITY_CONSTRAINTS:
       out << "CHECK_CARDINALITY_CONSTRAINTS";
       break;

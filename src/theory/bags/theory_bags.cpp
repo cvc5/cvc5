@@ -215,10 +215,7 @@ void TheoryBags::collectBagsAndCountTerms()
   }
 }
 
-bool TheoryBags::needsCheckLastEffort()
-{
-  return true;
-}
+bool TheoryBags::needsCheckLastEffort() { return true; }
 
 void TheoryBags::postCheck(Effort effort)
 {
@@ -228,7 +225,7 @@ void TheoryBags::postCheck(Effort effort)
       && d_strat.hasStrategyEffort(effort))
   {
     Trace("bags::TheoryBags::postCheck") << "effort: " << effort << std::endl;
-    if (effort==Theory::EFFORT_LAST_CALL)
+    if (effort == Theory::EFFORT_LAST_CALL)
     {
       if (checkModelLastCall())
       {
@@ -285,29 +282,29 @@ void TheoryBags::postCheck(Effort effort)
 bool TheoryBags::checkModelLastCall()
 {
   std::vector<Node> assertions;
-  for (Theory::assertions_iterator it = facts_begin();
-       it != facts_end();
-       ++it)
+  for (Theory::assertions_iterator it = facts_begin(); it != facts_end(); ++it)
   {
     const Assertion& assertion = *it;
     Node lit = assertion.d_assertion;
     assertions.push_back(lit);
   }
   std::vector<Node> unsatAssertions;
-  Trace("bags-cm") << "Checking " << assertions.size() << " assertions..." << std::endl;
-  TheoryModel * m = d_valuation.getModel();
+  Trace("bags-cm") << "Checking " << assertions.size() << " assertions..."
+                   << std::endl;
+  TheoryModel* m = d_valuation.getModel();
   for (const Node& a : assertions)
   {
     Node av = m->getValue(a);
     Trace("bags-cm-debug") << "M[" << a << "] = " << av << std::endl;
-    if (av==d_true)
+    if (av == d_true)
     {
       continue;
     }
     Trace("bags-cm") << "** M[" << a << "] = " << av << std::endl;
     unsatAssertions.push_back(a);
   }
-  Trace("bags-cm") << "...not satisfied " << unsatAssertions.size() << " / " << assertions.size() << std::endl;
+  Trace("bags-cm") << "...not satisfied " << unsatAssertions.size() << " / "
+                   << assertions.size() << std::endl;
   return unsatAssertions.empty();
 }
 

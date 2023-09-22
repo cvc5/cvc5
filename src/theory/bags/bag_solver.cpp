@@ -104,9 +104,9 @@ void BagSolver::checkQuantifiedOperations()
       Node n = (*it);
       Kind k = n.getKind();
       switch (k)
-      {        
+      {
         case kind::BAG_DUPLICATE_REMOVAL: checkDuplicateRemoval(n); break;
-        case kind::BAG_FILTER: checkFilter(n); break;        
+        case kind::BAG_FILTER: checkFilter(n); break;
         case kind::TABLE_PRODUCT: checkProduct(n); break;
         case kind::TABLE_JOIN: checkJoin(n); break;
         case kind::TABLE_GROUP: checkGroup(n); break;
