@@ -2045,8 +2045,8 @@ Java_io_github_cvc5_Solver_getUnsatCore(JNIEnv* env, jobject, jlong pointer)
  * Method:    getUnsatCoreLemmas
  * Signature: (J)[J
  */
-JNIEXPORT jlongArray JNICALL
-Java_io_github_cvc5_Solver_getUnsatCoreLemmas(JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getUnsatCoreLemmas(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
@@ -2108,7 +2108,7 @@ Java_io_github_cvc5_Solver_getTimeoutCore(JNIEnv* env, jobject, jlong pointer)
   auto [result, terms] = solver->getTimeoutCore();
   Result* resultPointer = new Result(result);
   jlongArray a = getPointersFromObjects<Term>(env, terms);
-  
+
   // Long r = new Long(resultPointer);
   jclass longClass = env->FindClass("Ljava/lang/Long;");
   jmethodID longConstructor = env->GetMethodID(longClass, "<init>", "(J)V");
