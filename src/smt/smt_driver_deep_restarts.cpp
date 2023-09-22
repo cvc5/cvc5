@@ -46,7 +46,7 @@ Result SmtDriverDeepRestarts::checkSatNext(preprocessing::AssertionPipeline& ap)
     // check again if there are any
     if (!d_zll.empty())
     {
-      return Result(Result::UNKNOWN, REQUIRES_CHECK_AGAIN);
+      return Result(Result::UNKNOWN, UnknownExplanation::REQUIRES_CHECK_AGAIN);
     }
   }
   return result;

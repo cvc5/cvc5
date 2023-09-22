@@ -22,6 +22,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/node_manager_attributes.h"
 #include "util/rational.h"
+#include "util/string.h"
 
 using namespace cvc5::internal::kind;
 
@@ -41,6 +42,7 @@ const char* toString(SkolemFunId id)
 {
   switch (id)
   {
+    case SkolemFunId::INPUT_VARIABLE: return "INPUT_VARIABLE";
     case SkolemFunId::PURIFY: return "PURIFY";
     case SkolemFunId::ARRAY_DEQ_DIFF: return "ARRAY_DEQ_DIFF";
     case SkolemFunId::DIV_BY_ZERO: return "DIV_BY_ZERO";
@@ -156,12 +158,24 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal)
       d_skolemFuns.find(key);
   if (it == d_skolemFuns.end())
   {
-    // we use @ as a prefix, which follows the SMT-LIB standard indicating
-    // internal symbols starting with @ or . are reserved for internal use.
-    std::stringstream ss;
-    ss << "@" << id;
-    Node k = mkSkolemNode(
-        ss.str(), tn, "an internal skolem function", SKOLEM_DEFAULT);
+    Node k;
+    // For now, INPUT_VARIABLE is a special case that constructs a variable
+    // of the original name.
+    if (id == SkolemFunId::INPUT_VARIABLE)
+    {
+      k = mkSkolemNode(VARIABLE,
+                       cacheVal[0].getConst<String>().toString(),
+                       tn,
+                       SKOLEM_EXACT_NAME);
+    }
+    else
+    {
+      // we use @ as a prefix, which follows the SMT-LIB standard indicating
+      // internal symbols starting with @ or . are reserved for internal use.
+      std::stringstream ss;
+      ss << "@" << id;
+      k = mkSkolemNode(SKOLEM, ss.str(), tn);
+    }
     d_skolemFuns[key] = k;
     d_skolemFunMap[k] = key;
     Trace("sk-manager-skolem") << "mkSkolemFunction(" << id << ", " << cacheVal
@@ -217,7 +231,7 @@ Node SkolemManager::mkDummySkolem(const std::string& prefix,
                                   const std::string& comment,
                                   int flags)
 {
-  return mkSkolemNode(prefix, type, comment, flags);
+  return mkSkolemNode(SKOLEM, prefix, type, flags);
 }
 
 ProofGenerator* SkolemManager::getProofGenerator(Node t) const
@@ -347,13 +361,13 @@ Node SkolemManager::getUnpurifiedForm(Node k)
   return k;
 }
 
-Node SkolemManager::mkSkolemNode(const std::string& prefix,
+Node SkolemManager::mkSkolemNode(Kind k,
+                                 const std::string& prefix,
                                  const TypeNode& type,
-                                 const std::string& comment,
                                  int flags)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node n = NodeBuilder(nm, SKOLEM);
+  Node n = NodeBuilder(nm, k);
   if ((flags & SKOLEM_EXACT_NAME) == 0)
   {
     std::stringstream name;

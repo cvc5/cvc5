@@ -128,7 +128,7 @@ class DummyOutputChannel : public theory::OutputChannel
     push(LEMMA, n.getNode());
   }
 
-  void requirePhase(TNode, bool) override {}
+  void preferPhase(TNode, bool) override {}
   void setModelUnsound(theory::IncompleteId id) override {}
   void setRefutationUnsound(theory::IncompleteId id) override {}
 

@@ -43,6 +43,13 @@ void SolverEngineState::notifyExpectedStatus(const std::string& status)
   d_expectedStatus = Result(status, options().driver.filename);
   Assert(d_expectedStatus.getStatus() != Result::NONE);
 }
+
+void SolverEngineState::notifyDeclaration()
+{
+  // go to ASSERT
+  d_smtMode = SmtMode::ASSERT;
+}
+
 void SolverEngineState::notifyCheckSat()
 {
   // process the pending pops

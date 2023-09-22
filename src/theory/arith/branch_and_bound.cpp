@@ -78,7 +78,7 @@ std::vector<TrustNode> BranchAndBound::branchIntegerVariable(TNode var,
     }
     Node literal = d_astate.getValuation().ensureLiteral(eq);
     Trace("integers") << "eq: " << eq << "\nto: " << literal << std::endl;
-    d_im.requirePhase(literal, true);
+    d_im.preferPhase(literal, true);
     Node l = nm->mkNode(OR, literal, right);
     Trace("integers") << "l: " << l << std::endl;
     if (proofsEnabled())

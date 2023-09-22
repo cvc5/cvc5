@@ -130,13 +130,26 @@ class CDCLTSatSolver : public SatSolver
 
   virtual void pop() = 0;
 
-  /*
+  /**
    * Reset the decisions in the DPLL(T) SAT solver at the current assertion
    * level.
    */
   virtual void resetTrail() = 0;
 
-  virtual void requirePhase(SatLiteral lit) = 0;
+  /**
+   * Configure the preferred phase for a decision literal.
+   *
+   * @note This phase is always enforced when the SAT solver decides to make a
+   *       decision on this variable on its own. If a decision is injected into
+   *       the SAT solver via TheoryProxy::getNextDecisionRequest(), the
+   *       preferred phase will only be considered if the decision was derived
+   *       by the decision engine. It will be ignored if the decision was
+   *       derived from a theory (the phase enforced by the theory overrides
+   *       the preferred phase).
+   *
+   * @param lit The literal.
+   */
+  virtual void preferPhase(SatLiteral lit) = 0;
 
   virtual bool isDecision(SatVariable decn) const = 0;
 

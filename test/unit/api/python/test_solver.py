@@ -325,6 +325,7 @@ def test_mk_tuple_sort(solver):
 def test_mk_bit_vector(solver):
     solver.mkBitVector(8, 2)
     solver.mkBitVector(32, 2)
+    solver.mkBitVector(64, 2**33)
 
     solver.mkBitVector(4, "1010", 2)
     solver.mkBitVector(8, "0101", 2)
@@ -944,6 +945,19 @@ def test_mk_const(solver):
     slv = cvc5.Solver()
     slv.mkConst(boolSort)
 
+def test_declare_fun_fresh(solver):
+    boolSort = solver.getBooleanSort()
+    intSort = solver.getIntegerSort()
+    t1 = solver.declareFun("b", [], boolSort, True)
+    t2 = solver.declareFun("b", [], boolSort, False)
+    t3 = solver.declareFun("b", [], boolSort, False)
+    assert t1!=t2
+    assert t1!=t3
+    assert t2==t3
+    t4 = solver.declareFun("c", [], boolSort, False)
+    assert t2!=t4
+    t5 = solver.declareFun("b", [], intSort, False)
+    assert t2!=t5
 
 def test_mk_const_array(solver):
     intSort = solver.getIntegerSort()
@@ -988,6 +1002,17 @@ def test_declare_sort(solver):
     solver.declareSort("s", 2)
     solver.declareSort("", 2)
 
+def test_declare_sort_fresh(solver):
+    t1 = solver.declareSort("b", 0, True)
+    t2 = solver.declareSort("b", 0, False)
+    t3 = solver.declareSort("b", 0, False)
+    assert t1!=t2
+    assert t1!=t3
+    assert t2==t3
+    t4 = solver.declareSort("c", 0, False)
+    assert t2!=t4
+    t5 = solver.declareSort("b", 1, False)
+    assert t2!=t5
 
 def test_define_fun(solver):
     bvSort = solver.mkBitVectorSort(32)
@@ -1443,9 +1468,9 @@ def test_get_unsat_core_and_proof(solver):
     assert solver.checkSat().isUnsat()
 
     unsat_core = solver.getUnsatCore()
-    
+
     solver.getProof()
-    solver.getProof(ProofComponent.PROOF_COMPONENT_SAT)
+    solver.getProof(ProofComponent.SAT)
 
     solver.resetAssertions()
     for t in unsat_core:
@@ -1460,7 +1485,7 @@ def test_learned_literals(solver):
         solver.getLearnedLiterals()
     solver.checkSat()
     solver.getLearnedLiterals()
-    solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_PREPROCESS)
+    solver.getLearnedLiterals(LearnedLitType.PREPROCESS)
 
 def test_learned_literals2(solver):
     solver.setOption("produce-learned-literals", "true")
@@ -1477,7 +1502,7 @@ def test_learned_literals2(solver):
     solver.assertFormula(f0)
     solver.assertFormula(f1)
     solver.checkSat()
-    solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_INPUT)
+    solver.getLearnedLiterals(LearnedLitType.INPUT)
 
 def test_get_timeout_core_unsat(solver):
   solver.setOption("timeout-core-timeout", "100")
@@ -1816,7 +1841,10 @@ def test_get_statistics(solver):
     solver.assertFormula(f1)
     solver.checkSat()
     s = solver.getStatistics()
-    assert s['cvc5::TERM'] == {'defaulted': False, 'internal': False, 'value': {'GEQ': 3, 'OR': 1}}
+    assert s['cvc5::TERM'] == {
+            'defaulted': False,
+            'internal': False,
+            'value': {'Kind::GEQ': 3, 'Kind::OR': 1}}
     assert s.get(True, False) != {}
 
 def test_set_info(solver):
@@ -2024,6 +2052,16 @@ def test_set_logic(solver):
     with pytest.raises(RuntimeError):
         solver.setLogic("AUFLIRA")
 
+def test_is_logic_set(solver):
+    assert solver.isLogicSet() == False
+    solver.setLogic("QF_BV")
+    assert solver.isLogicSet() == True
+
+def test_get_logic(solver):
+    with pytest.raises(RuntimeError):
+        solver.getLogic()
+    solver.setLogic("QF_BV")
+    assert solver.getLogic() == "QF_BV"
 
 def test_set_option(solver):
     solver.setOption("bv-sat-solver", "minisat")
@@ -2264,7 +2302,7 @@ def test_find_synth(solver):
     f = solver.synthFun("f", [], solver.getBooleanSort(), g)
 
     # should enumerate based on the grammar of the function to synthesize above
-    t = solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM)
+    t = solver.findSynth(FindSynthTarget.ENUM)
     assert not t.isNull() and t.getSort().isBoolean()
 
 
@@ -2280,7 +2318,7 @@ def test_find_synth2(solver):
     g.addRule(start, falsen)
 
     # should enumerate true/false
-    t = solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM, g)
+    t = solver.findSynth(FindSynthTarget.ENUM, g)
     assert not t.isNull() and t.getSort().isBoolean()
     t = solver.findSynthNext()
     assert not t.isNull() and t.getSort().isBoolean()

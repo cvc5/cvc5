@@ -320,7 +320,7 @@ bool BVSolverBitblast::collectModelValues(TheoryModel* m,
     {
       Assert(d_cnfStream->hasLiteral(var));
       prop::SatLiteral bit = d_cnfStream->getLiteral(var);
-      prop::SatValue value = d_satSolver->value(bit);
+      prop::SatValue value = d_satSolver->modelValue(bit);
       Assert(value != prop::SAT_VALUE_UNKNOWN);
       if (!m->assertEquality(
               var, nm->mkConst(value == prop::SAT_VALUE_TRUE), true))
@@ -337,7 +337,7 @@ void BVSolverBitblast::initSatSolver()
 {
   switch (options().bv.bvSatSolver)
   {
-    case options::SatSolverMode::CRYPTOMINISAT:
+    case options::BvSatSolverMode::CRYPTOMINISAT:
       d_satSolver.reset(prop::SatSolverFactory::createCryptoMinisat(
           statisticsRegistry(),
           d_env.getResourceManager(),

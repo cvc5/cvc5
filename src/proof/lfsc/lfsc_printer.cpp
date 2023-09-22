@@ -383,10 +383,14 @@ void LfscPrinter::printTypeDefinition(
       if (tupleArityProcessed.find(arity) == tupleArityProcessed.end())
       {
         tupleArityProcessed.insert(arity);
-        os << "(declare Tuple";
         if (arity>0)
         {
+          os << "(declare Tuple";
           os << "_" << arity;
+        }
+        else
+        {
+          os << "(declare UnitTuple";
         }
         os << " ";
         std::stringstream tcparen;
