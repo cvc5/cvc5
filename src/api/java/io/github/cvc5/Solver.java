@@ -2039,7 +2039,7 @@ public class Solver implements IPointer
    * {@code
    * (get-unsat-core-lemmas)
    * }
-   * Requires to enable option {@code produce-unsat-core-lemmas}.
+   * Requires the SAT proof unsat core mode, so to enable option {@code unsat-core-mode=sat-proof}
    *
    * @api.note In contrast to SMT-LIB, cvc5's API does not distinguish between
    *           named and unnamed assertions when producing an unsatisfiable

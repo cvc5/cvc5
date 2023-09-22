@@ -414,7 +414,7 @@ cdef class DatatypeConstructorDecl:
 
     def addSelectorUnresolved(self, str name, str unresDatatypeName):
         """
-            Add datatype selector declaration whose codomain sort is an 
+            Add datatype selector declaration whose codomain sort is an
             unresolved datatype with the given name.
 
             :param name: The name of the datatype selector declaration to add.
@@ -1061,31 +1061,31 @@ cdef class Solver:
 
     def mkAbstractSort(self, k):
         """
-            Create an abstract sort. An abstract sort represents a sort for a 
+            Create an abstract sort. An abstract sort represents a sort for a
             given kind whose parameters and arguments are unspecified.
-            
-            The kind ``k`` must be the kind of a sort that can be abstracted, i.e., 
+
+            The kind ``k`` must be the kind of a sort that can be abstracted, i.e.,
             a sort that has indices or argument sorts. For example, ARRAY_SORT
             and :py:obj:`BITVECTOR_SORT <Kind.BITVECTOR_SORT>` can be
             passed as the kind ``k`` to this method, while
             :py:obj:`INTEGER_SORT <Kind.INTEGER_SORT>` and
             :py:obj:`STRING_SORT <Kind.STRING_SORT>` cannot.
-            
+
             .. note::
             Providing the kind :py:obj:`ABSTRACT_SORT <Kind.ABSTRACT_SORT>`
             as an argument to this method returns the (fully) unspecified sort,
             denoted ``?``.
-            
+
             .. note::
             Providing a kind ``k`` of sort that has no indices and a fixed arity of
             argument sorts will return the sort of kind ``k`` whose arguments are
             the unspecified sort. For example, ``mkAbstractSort(ARRAY_SORT)`` will
             return the sort ``(ARRAY_SORT ? ?)`` instead of the abstract sort whose
             abstract kind is py:obj:`ARRAY_SORT <Kind.ARRAY_SORT>`.
-            
+
             :param k: The kind of the abstract sort
             :return: The abstract sort.
-            
+
             .. warning:: This method is experimental and may change in future
                          versions.
         """
@@ -1291,7 +1291,7 @@ cdef class Solver:
     def mkReal(self, numerator, denominator=None):
         """
             Create a real constant from a numerator and an optional denominator.
-            
+
             First converts the arguments to a temporary string, either
             ``"<numerator>"`` or ``"<numerator>/<denominator>"``. This temporary
             string is forwarded to :cpp:func:`cvc5::Solver::mkReal()` and should
@@ -1991,7 +1991,7 @@ cdef class Solver:
             term.cterm = self.csolver.findSynth(<c_FindSynthTarget> fst.value,
                                                 grammar.cgrammar)
         return term
-        
+
     def findSynthNext(self):
         """
             Try to find a next solution for the synthesis conjecture
@@ -2239,7 +2239,7 @@ cdef class Solver:
 
             .. warning:: This method is experimental and may change in future
                          versions.
-            :param c: The component of the proof to return 
+            :param c: The component of the proof to return
             :return: A string representing the proof. This takes into account
             proof-format-mode when c is FULL.
         """
@@ -2468,12 +2468,8 @@ cdef class Solver:
 
                 (get-unsat-core-lemmas)
 
-            Requires to enable option
-            :ref:`produce-unsat-core-lemmas <lbl-option-produce-unsat-core-lemmas>`.
-
-            .. note::
-              This method requires computing unsat cores via the SAT proof, so other
-              modes of unsat core are overriden by it.
+            Requires the SAT proof unsat core mode, so to enable option
+            :ref:`unsat-core-mode=sat-proof <lbl-option-unsat-core-mode>`.
 
             :return: A set of terms representing the lemmas used to derive
             unsatisfiability.
@@ -2657,7 +2653,7 @@ cdef class Solver:
             Currently, the only logics supported by quantifier elimination
             are LRA and LIA.
 
-	        .. warning:: This method is experimental and may change in future
+          .. warning:: This method is experimental and may change in future
                          versions.
 
             :param q: A quantified formula of the form
@@ -3714,7 +3710,7 @@ cdef class Statistics:
         """
             Get all statistics as a dictionary. See :cpp:func:`cvc5::Statistics::begin()`
             for more information on which statistics are included based on the parameters.
-            
+
             :return: A dictionary with all available statistics.
         """
         cdef c_Statistics.iterator it = self.cstats.begin(internal, defaulted)
@@ -3832,7 +3828,7 @@ cdef class Term:
                     term_or_list_1 = [ x, z ], term_or_list_2 = [ g(z), w ]
 
                 results in the term ``f(g(z),y)``.
-	    """
+      """
         # The resulting term after substitution
         cdef Term term = Term(self.solver)
         # lists for substitutions
@@ -3899,9 +3895,9 @@ cdef class Term:
 
     def notTerm(self):
         """
-	        Boolean negation.
+          Boolean negation.
 
-	        :return: The Boolean negation of this term.
+          :return: The Boolean negation of this term.
         """
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.notTerm()
@@ -4222,7 +4218,7 @@ cdef class Term:
         """
             .. note:: Asserts :py:meth:`isRealAlgebraicNumber()`.
 
-	        :return: The lower bound for the value of the real algebraic number.
+          :return: The lower bound for the value of the real algebraic number.
         """
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.getRealAlgebraicNumberLowerBound()
@@ -4232,7 +4228,7 @@ cdef class Term:
         """
             .. note:: Asserts :py:meth:`isRealAlgebraicNumber()`.
 
-	        :return: The upper bound for the value of the real algebraic number.
+          :return: The upper bound for the value of the real algebraic number.
         """
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.getRealAlgebraicNumberUpperBound()
@@ -4398,5 +4394,3 @@ cdef class Term:
                 res[k] = v
 
             return res
-
-
