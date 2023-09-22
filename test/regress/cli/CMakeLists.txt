@@ -1158,6 +1158,11 @@ set(regress_0_tests
   regress0/proofs/trust-subs-eq-open.smt2
   regress0/proofs/unused-def1.smt2
   regress0/proofs/unused-def2.smt2
+  regress0/prop/cadical_bug1.smt2
+  regress0/prop/cadical_bug2.smt2
+  regress0/prop/cadical_bug3.smt2
+  regress0/prop/cadical_bug4.smt2
+  regress0/prop/cadical_bug5.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
   regress0/push-pop/boolean/fuzz_13.smt2
   regress0/push-pop/boolean/fuzz_14.smt2
