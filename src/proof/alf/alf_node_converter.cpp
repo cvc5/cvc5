@@ -143,25 +143,23 @@ Node AlfNodeConverter::postConvert(Node n)
     Rational r = n.getConst<Rational>();
     if (r.sgn() == -1)
     {
-      Node na = nm->mkConstInt(r.abs());
-      return mkInternalApp("alf.neg", {na}, tn);
+      // negative integers are printed as "-n"
+      std::stringstream ss;
+      ss << "-" << r.abs();
+      return mkInternalSymbol(ss.str(), tn);
     }
     return n;
   }
   else if (k == CONST_RATIONAL)
   {
     Rational r = n.getConst<Rational>();
-    // ensure rationals are printed properly here using alf syntax
-    // which computes the rational (alf.qdiv n d).
-    Node num = nm->mkConstInt(r.getNumerator().abs());
-    Node den = nm->mkConstInt(r.getDenominator());
-    Node ret = mkInternalApp("alf.qdiv", {num, den}, tn);
-    // negative (alf.neg .)
-    if (r.sgn() == -1)
-    {
-      ret = mkInternalApp("alf.neg", {ret}, tn);
-    }
-    return ret;
+    // ensure rationals are printed properly here using alf syntax,
+    // which is "n/d" or "-n/d".
+    Integer num = r.getNumerator().abs();
+    Integer den = r.getDenominator();
+    std::stringstream ss;
+    ss << (r.sgn() == -1 ? "-" : "") << num << "/" << den;
+    return mkInternalSymbol(ss.str(), tn);
   }
   else if (k == LAMBDA || k == WITNESS)
   {
