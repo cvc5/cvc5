@@ -69,6 +69,8 @@ class TheoryBags : public Theory
    */
   void collectBagsAndCountTerms();
 
+  /** Do we need a check call at last call effort? */
+  bool needsCheckLastEffort() override;
   //--------------------------------- standard check
   /** Post-check, called after the fact queue of the theory is processed. */
   void postCheck(Effort effort) override;
@@ -92,6 +94,8 @@ class TheoryBags : public Theory
   bool runInferStep(InferStep s, int effort);
 
  private:
+  /** Return true if all theory assertions are satisfied by the model */
+  bool checkModelLastCall();
   /** Functions to handle callbacks from equality engine */
   class NotifyClass : public TheoryEqNotifyClass
   {
@@ -112,7 +116,8 @@ class TheoryBags : public Theory
   /** expand the definition of the bag.choose operator */
   TrustNode expandChooseOperator(const Node& node,
                                  std::vector<SkolemLemma>& lems);
-
+  /** */
+  Node d_true;
   /** The state of the bags solver at full effort */
   SolverState d_state;
   /** The inference manager */

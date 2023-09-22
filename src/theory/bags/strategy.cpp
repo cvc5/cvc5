@@ -27,6 +27,7 @@ std::ostream& operator<<(std::ostream& out, InferStep s)
     case CHECK_INIT: out << "check_init"; break;
     case CHECK_BAG_MAKE: out << "check_bag_make"; break;
     case CHECK_BASIC_OPERATIONS: out << "CHECK_BASIC_OPERATIONS"; break;
+    case CHECK_QUANTIFIED_OPERATIONS: out << "CHECK_QUANTIFIED_OPERATIONS"; break;
     case CHECK_CARDINALITY_CONSTRAINTS:
       out << "CHECK_CARDINALITY_CONSTRAINTS";
       break;
@@ -89,9 +90,11 @@ void Strategy::initializeStrategy()
     addStrategyStep(CHECK_INIT);
     addStrategyStep(CHECK_BAG_MAKE);
     addStrategyStep(CHECK_BASIC_OPERATIONS);
+    step_end[Theory::EFFORT_FULL] = d_infer_steps.size() - 1;
+    step_begin[Theory::EFFORT_LAST_CALL] = d_infer_steps.size();
     addStrategyStep(CHECK_QUANTIFIED_OPERATIONS);
     addStrategyStep(CHECK_CARDINALITY_CONSTRAINTS);
-    step_end[Theory::EFFORT_FULL] = d_infer_steps.size() - 1;
+    step_end[Theory::EFFORT_LAST_CALL] = d_infer_steps.size() - 1;
 
     // set the beginning/ending ranges
     for (const std::pair<const Theory::Effort, unsigned>& it_begin : step_begin)
