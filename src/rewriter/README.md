@@ -26,7 +26,7 @@ parameter list. Variables appearing in the parameter list can match any
 expression of the same type.
 
 The two expressions in the body of `define-rule` indicate the *match* and
-*target* of the rewrites. The match and target use SMTLIB3 syntax.
+*target* of the rewrites. The match and target use SMT-LIB3 syntax.
 
 ``` lisp
 (define-rule substr-empty
@@ -85,7 +85,7 @@ evaluable at the time of rule application.
 
 This rule is applied on `(repeat 3 ...)` but not `(repeat 1 ...)`.
 
-Implicit assumptions (from SMTLIB3) are not required. An implicit assumption is
+Implicit assumptions (from SMT-LIB3) are not required. An implicit assumption is
 a condition that ensure the well-definedness of some expression. The condition
 that the number of repeats in `(repeat n x)` cannot be negative is one such
 example.
@@ -184,8 +184,8 @@ as constants. The rationale is that there used to be 3 reasons to use `:const`:
    not exist in RARE
 3. There are some conditional rules in `theory/bv` which only apply when the
    arguments satisfy a condition. In this case, we could match the required
-   argument using a `(bv v n)` term with variable bit width `n` instead of an
-   abstract bitvector term `(y ?BitVec)`. For example,
+   argument using a `(bv v n)` term with variable bit-width `n` instead of an
+   abstract bit-vector term `(y ?BitVec)`. For example,
 
 ``` lisp
 (define-cond-rule bv-udiv-pow2-1p
@@ -202,7 +202,7 @@ More information can be found in other works but beware of changes.
 
 See `mkrewrites.py` for the supported gradual types. Gradual types mean that the
 exact type does not have to be specified in the RARE rule. For example,
-`?BitVec` could indicate the bitvector type of an unknown width that will only
+`?BitVec` could indicate the bit-vector type of an unknown width that will only
 be instantiated during rule application.
 
 Example gradual type in `eq`
@@ -214,7 +214,7 @@ This matches two semantically equal terms `t` and rewrite the result to `true`
 regardless of typing.
 
 Gradual types lose information. For example, the information about the width of
-a bitvector is implicit albeit it can be recovered using `bvsize`. For example:
+a bit-vector is implicit albeit it can be recovered using `bvsize`. For example:
 
 ``` lisp
 (define-rule* bv-concat-flatten
@@ -226,5 +226,5 @@ a bitvector is implicit albeit it can be recovered using `bvsize`. For example:
   (concat xs s ys zs))
 ```
 
-In this case, the bit vectors in the list `xs`, `ys`, `zs` do not have to have
-the same bit width.
+In this case, the bit-vectors in the list `xs`, `ys`, `zs` do not have to have
+the same bit-width.
