@@ -155,7 +155,7 @@ void Smt2State::addDatatypesOperators()
     // (for the 0-ary tuple), and a operator, hence we call both addOperator
     // and defineVar here.
     addOperator(Kind::APPLY_CONSTRUCTOR, "tuple");
-    defineVar("tuple", d_solver->mkTuple({}));
+    defineVar("tuple.unit", d_solver->mkTuple({}));
     addIndexedOperator(Kind::UNDEFINED_KIND, "tuple.select");
     addIndexedOperator(Kind::UNDEFINED_KIND, "tuple.update");
   }
@@ -650,7 +650,12 @@ Term Smt2State::bindDefineFunRec(
 
   // make the flattened function type, add bound variables
   // to flattenVars if the defined function was given a function return type.
-  Sort ft = mkFlatFunctionType(sorts, t, flattenVars);
+  Sort ft = flattenFunctionType(sorts, t, flattenVars);
+
+  if (!sorts.empty())
+  {
+    ft = d_solver->mkFunctionSort(sorts, ft);
+  }
 
   // allow overloading
   return bindVar(fname, ft, true);
@@ -683,7 +688,7 @@ void Smt2State::reset()
   d_lastNamedTerm = std::pair<Term, std::string>();
 }
 
-std::unique_ptr<Command> Smt2State::invConstraint(
+std::unique_ptr<Cmd> Smt2State::invConstraint(
     const std::vector<std::string>& names)
 {
   checkThatLogicIsSet();
@@ -710,7 +715,7 @@ std::unique_ptr<Command> Smt2State::invConstraint(
     terms.push_back(getVariable(name));
   }
 
-  return std::unique_ptr<Command>(new SygusInvConstraintCommand(terms));
+  return std::unique_ptr<Cmd>(new SygusInvConstraintCommand(terms));
 }
 
 void Smt2State::setLogic(std::string name)
@@ -819,7 +824,7 @@ void Smt2State::setLogic(std::string name)
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_DATATYPES))
   {
     const std::vector<Sort> types;
-    defineType("Tuple", d_solver->mkTupleSort(types), true);
+    defineType("UnitTuple", d_solver->mkTupleSort(types), true);
     addDatatypesOperators();
   }
 
@@ -1034,7 +1039,10 @@ void Smt2State::checkThatLogicIsSet()
       // important since we do not want to enqueue a set-logic command and
       // fully initialize the underlying SolverEngine in the meantime before the
       // command has a chance to execute, which would lead to an error.
-      d_solver->setLogic(d_logic.getLogicString());
+      std::string logic = d_logic.getLogicString();
+      d_solver->setLogic(logic);
+      // set the logic on the symbol manager as well, non-forced
+      sm->setLogic(logic);
     }
   }
 }
@@ -1686,7 +1694,7 @@ bool Smt2State::isClosure(const std::string& name)
   return d_closureKindMap.find(name) != d_closureKindMap.end();
 }
 
-std::unique_ptr<Command> Smt2State::handlePush(std::optional<uint32_t> nscopes)
+std::unique_ptr<Cmd> Smt2State::handlePush(std::optional<uint32_t> nscopes)
 {
   checkThatLogicIsSet();
 
@@ -1708,7 +1716,7 @@ std::unique_ptr<Command> Smt2State::handlePush(std::optional<uint32_t> nscopes)
   return std::make_unique<PushCommand>(*nscopes);
 }
 
-std::unique_ptr<Command> Smt2State::handlePop(std::optional<uint32_t> nscopes)
+std::unique_ptr<Cmd> Smt2State::handlePop(std::optional<uint32_t> nscopes)
 {
   checkThatLogicIsSet();
 

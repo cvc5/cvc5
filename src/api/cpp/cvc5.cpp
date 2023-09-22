@@ -54,6 +54,7 @@
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
 #include "expr/sequence.h"
+#include "expr/skolem_manager.h"
 #include "expr/sygus_grammar.h"
 #include "expr/type_node.h"
 #include "options/base_options.h"
@@ -3613,8 +3614,7 @@ Term Term::getRealAlgebraicNumberDefiningPolynomial(const Term& v) const
       d_node->getKind() == internal::Kind::REAL_ALGEBRAIC_NUMBER, *d_node)
       << "Term to be a real algebraic number when calling "
          "getRealAlgebraicNumberDefiningPolynomial()";
-  CVC5_API_ARG_CHECK_EXPECTED(
-      v.getKind() == Kind::VARIABLE, v)
+  CVC5_API_ARG_CHECK_EXPECTED(v.getKind() == Kind::VARIABLE, v)
       << "Expected a variable as argument when calling "
          "getRealAlgebraicNumberDefiningPolynomial()";
 #ifndef CVC5_POLY_IMP
@@ -6574,7 +6574,8 @@ Sort Solver::declareDatatype(
 
 Term Solver::declareFun(const std::string& symbol,
                         const std::vector<Sort>& sorts,
-                        const Sort& sort) const
+                        const Sort& sort,
+                        bool fresh) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_DOMAIN_SORTS(sorts);
@@ -6587,20 +6588,24 @@ Term Solver::declareFun(const std::string& symbol,
     std::vector<internal::TypeNode> types = Sort::sortVectorToTypeNodes(sorts);
     type = d_nm->mkFunctionType(types, type);
   }
-  return Term(d_nm, d_nm->mkVar(symbol, type));
+  internal::Node res = d_nm->mkVar(symbol, type, fresh);
+  // notify the solver engine of the declaration
+  d_slv->declareConst(res);
+  return Term(d_nm, res);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-Sort Solver::declareSort(const std::string& symbol, uint32_t arity) const
+Sort Solver::declareSort(const std::string& symbol,
+                         uint32_t arity,
+                         bool fresh) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  if (arity == 0)
-  {
-    return Sort(d_nm, d_nm->mkSort(symbol));
-  }
-  return Sort(d_nm, d_nm->mkSortConstructor(symbol, arity));
+  internal::TypeNode type = d_nm->mkSortConstructor(symbol, arity, fresh);
+  // notify the solver engine of the declaration
+  d_slv->declareSort(type);
+  return Sort(d_nm, type);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -7604,9 +7609,29 @@ void Solver::setLogic(const std::string& logic) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_slv->isFullyInited())
       << "Invalid call to 'setLogic', solver is already fully initialized";
-  internal::LogicInfo logic_info(logic);
   //////// all checks before this line
-  d_slv->setLogic(logic_info);
+  internal::LogicInfo linfo(logic);
+  d_slv->setLogic(linfo);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+bool Solver::isLogicSet() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_slv->isLogicSet();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::string Solver::getLogic() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(d_slv->isLogicSet())
+      << "Invalid call to 'getLogic', logic has not yet been set";
+  //////// all checks before this line
+  return d_slv->getUserLogicInfo().getLogicString();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -7754,10 +7779,10 @@ std::vector<Term> Solver::getSygusAssumptions() const
   CVC5_API_TRY_CATCH_END;
 }
 
-void Solver::addSygusInvConstraint(Term inv,
-                                   Term pre,
-                                   Term trans,
-                                   Term post) const
+void Solver::addSygusInvConstraint(const Term& inv,
+                                   const Term& pre,
+                                   const Term& trans,
+                                   const Term& post) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(inv);
@@ -7830,7 +7855,7 @@ SynthResult Solver::checkSynthNext() const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::getSynthSolution(Term term) const
+Term Solver::getSynthSolution(const Term& term) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(term);

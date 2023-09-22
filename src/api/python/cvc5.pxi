@@ -1458,7 +1458,7 @@ cdef class Solver:
                     "Invalid second argument to mkBitVector '{}', "
                     "expected integer value".format(size))
             term.cterm = self.csolver.mkBitVector(
-                <uint32_t> size, <uint32_t> val)
+                <uint32_t> size, <const string&> str(val).encode(), 10)
         elif len(args) == 2:
             val = args[0]
             base = args[1]
@@ -2056,7 +2056,7 @@ cdef class Solver:
         sort.csort = self.csolver.declareDatatype(symbol.encode(), v)
         return sort
 
-    def declareFun(self, str symbol, list sorts, Sort sort):
+    def declareFun(self, str symbol, list sorts, Sort sort, fresh=True):
         """
             Declare n-ary function symbol.
 
@@ -2069,6 +2069,10 @@ cdef class Solver:
             :param symbol: The name of the function.
             :param sorts: The sorts of the parameters to this function.
             :param sort: The sort of the return value of this function.
+            :param fresh: If true, then this method always returns a new Term.
+                          Otherwise, this method will always return the
+                          same Term for each call with the given sorts and
+                          symbol where fresh is false.
             :return: The function.
         """
         cdef Term term = Term(self)
@@ -2076,11 +2080,12 @@ cdef class Solver:
         for s in sorts:
             v.push_back((<Sort?> s).csort)
         term.cterm = self.csolver.declareFun(symbol.encode(),
-                                             <const vector[c_Sort]&> v,
-                                             sort.csort)
+                                            <const vector[c_Sort]&> v,
+                                            sort.csort,
+                                            <bint> fresh)
         return term
 
-    def declareSort(self, str symbol, int arity):
+    def declareSort(self, str symbol, int arity, fresh=True):
         """
             Declare uninterpreted sort.
 
@@ -2099,10 +2104,14 @@ cdef class Solver:
 
             :param symbol: The name of the sort.
             :param arity: The arity of the sort.
+            :param fresh: If true, then this method always returns a new Sort.
+                          Otherwise, this method will always return the same
+                          Sort for each call with the given arity and symbol
+                          where fresh is false.
             :return: The sort.
         """
         cdef Sort sort = Sort(self)
-        sort.csort = self.csolver.declareSort(symbol.encode(), arity)
+        sort.csort = self.csolver.declareSort(symbol.encode(), arity, <bint> fresh)
         return sort
 
     def defineFun(self, str symbol, list bound_vars, Sort sort, Term term, glbl=False):
@@ -2825,6 +2834,25 @@ cdef class Solver:
             :param logic: The logic to set.
         """
         self.csolver.setLogic(logic.encode())
+
+    def isLogicSet(self):
+        """
+            Is logic set? Returns whether we called setLogic yet for this
+            solver.
+
+            :return: whether we called setLogic yet for this solver.
+        """
+        return self.csolver.isLogicSet()
+
+    def getLogic(self):
+        """
+            Get the logic set the solver.
+
+            .. note:: Asserts isLogicSet().
+
+            :return: The logic used by the solver.
+        """
+        return self.csolver.getLogic().decode()
 
     def setOption(self, str option, str value):
         """

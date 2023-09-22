@@ -1611,31 +1611,6 @@ bool TheorySetsPrivate::isHigherOrderKind(Kind k)
   return k == SET_MAP || k == SET_FILTER || k == SET_FOLD;
 }
 
-Node TheorySetsPrivate::explain(TNode literal)
-{
-  Trace("sets") << "TheorySetsPrivate::explain(" << literal << ")" << std::endl;
-
-  bool polarity = literal.getKind() != kind::NOT;
-  TNode atom = polarity ? literal : literal[0];
-  std::vector<TNode> assumptions;
-
-  if (atom.getKind() == kind::EQUAL)
-  {
-    d_equalityEngine->explainEquality(atom[0], atom[1], polarity, assumptions);
-  }
-  else if (atom.getKind() == kind::SET_MEMBER)
-  {
-    d_equalityEngine->explainPredicate(atom, polarity, assumptions);
-  }
-  else
-  {
-    Trace("sets") << "unhandled: " << literal << "; (" << atom << ", "
-                  << polarity << "); kind" << atom.getKind() << std::endl;
-    Unhandled();
-  }
-  return NodeManager::currentNM()->mkAnd(assumptions);
-}
-
 void TheorySetsPrivate::preRegisterTerm(TNode node)
 {
   Trace("sets") << "TheorySetsPrivate::preRegisterTerm(" << node << ")"
@@ -1688,30 +1663,6 @@ TrustNode TheorySetsPrivate::ppRewrite(Node node,
   {
     case kind::SET_CHOOSE: return expandChooseOperator(node, lems);
     case kind::SET_IS_SINGLETON: return expandIsSingletonOperator(node);
-    case kind::SET_MINUS:
-    {
-      if (node[0].getKind() == kind::SET_UNIVERSE)
-      {
-        // Due to complications involving the cardinality graph, we must purify
-        // universe from argument of set minus, so that
-        //   (set.minus set.universe x)
-        // is replaced by
-        //   (set.minus univ x)
-        // along with the lemma (= univ set.universe), where univ is the
-        // purification skolem for set.universe. We require this purification
-        // since the cardinality graph incorrectly thinks that
-        // rewrite( (set.inter set.universe x) ), which evaluates to x, is
-        // a sibling of (set.minus set.universe x).
-        NodeManager* nm = NodeManager::currentNM();
-        SkolemManager* sm = nm->getSkolemManager();
-        Node sk = sm->mkPurifySkolem(node[0]);
-        Node eq = sk.eqNode(node[0]);
-        lems.push_back(SkolemLemma(TrustNode::mkTrustLemma(eq), sk));
-        Node ret = nm->mkNode(kind::SET_MINUS, sk, node[1]);
-        return TrustNode::mkTrustRewrite(node, ret, nullptr);
-      }
-    }
-    break;
     default: break;
   }
   return TrustNode::null();

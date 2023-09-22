@@ -313,7 +313,9 @@ SymManager::SymManager(cvc5::Solver* s)
     : d_solver(s),
       d_implementation(new SymManager::Implementation()),
       d_globalDeclarations(false),
+      d_freshDeclarations(true),
       d_logicIsForced(false),
+      d_logicIsSet(false),
       d_logic()
 {
 }
@@ -498,6 +500,9 @@ void SymManager::setGlobalDeclarations(bool flag)
 
 bool SymManager::getGlobalDeclarations() const { return d_globalDeclarations; }
 
+void SymManager::setFreshDeclarations(bool flag) { d_freshDeclarations = flag; }
+bool SymManager::getFreshDeclarations() const { return d_freshDeclarations; }
+
 void SymManager::setLastSynthName(const std::string& name)
 {
   d_implementation->setLastSynthName(name);
@@ -527,8 +532,11 @@ void SymManager::setLogic(const std::string& logic, bool isForced)
     d_logicIsForced = isForced;
     d_logic = logic;
   }
+  d_logicIsSet = true;
 }
 bool SymManager::isLogicForced() const { return d_logicIsForced; }
+
+bool SymManager::isLogicSet() const { return d_logicIsSet; }
 
 const std::string& SymManager::getLogic() const { return d_logic; }
 

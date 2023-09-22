@@ -112,14 +112,14 @@ Token Smt2CmdParser::nextCommandToken()
   return tok;
 }
 
-std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
+std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
 {
   // if we are at the end of file, return the null command
   if (d_lex.eatTokenChoice(Token::EOF_TOK, Token::LPAREN_TOK))
   {
     return nullptr;
   }
-  std::unique_ptr<Command> cmd;
+  std::unique_ptr<Cmd> cmd;
   Token tok = nextCommandToken();
   switch (tok)
   {
@@ -271,11 +271,11 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       }
       Sort t = d_tparser.parseSort();
       Trace("parser") << "declare fun: '" << name << "'" << std::endl;
-      if (!sorts.empty())
+      if (!sorts.empty() || t.isFunction())
       {
-        t = d_state.mkFlatFunctionType(sorts, t);
+        t = d_state.flattenFunctionType(sorts, t);
       }
-      if (t.isFunction())
+      if (!sorts.empty())
       {
         d_state.checkLogicAllowsFunctions();
       }
@@ -286,7 +286,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       }
       else
       {
-        cmd.reset(new DeclareFunctionCommand(name, t));
+        cmd.reset(new DeclareFunctionCommand(name, sorts, t));
       }
     }
     break;
@@ -311,7 +311,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       Sort t = d_tparser.parseSort();
       if (!sorts.empty())
       {
-        t = d_state.mkFlatFunctionType(sorts, t);
+        t = d_state.flattenFunctionType(sorts, t);
       }
       tok = d_lex.peekToken();
       std::string binName;
@@ -395,11 +395,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
         }
       }
       std::vector<Term> flattenVars;
-      t = d_state.mkFlatFunctionType(sorts, t, flattenVars);
-      if (t.isFunction())
-      {
-        t = t.getFunctionCodomainSort();
-      }
+      t = d_state.flattenFunctionType(sorts, t, flattenVars);
       if (sortedVarNames.size() > 0)
       {
         d_state.pushScope();
@@ -799,10 +795,17 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
     {
       SymManager* sm = d_state.getSymbolManager();
       std::string name = d_tparser.parseSymbol(CHECK_NONE, SYM_SORT);
-      // replace the logic with the forced logic, if applicable.
-      std::string lname = sm->isLogicForced() ? sm->getLogic() : name;
-      d_state.setLogic(lname);
-      cmd.reset(new SetBenchmarkLogicCommand(lname));
+      // If the logic was forced, we ignore all set-logic commands.
+      if (!sm->isLogicForced())
+      {
+        d_state.setLogic(name);
+        cmd.reset(new SetBenchmarkLogicCommand(name));
+      }
+      else
+      {
+        // otherwise ignore the command
+        cmd.reset(new EmptyCommand());
+      }
     }
     break;
     // (set-option <option>)
@@ -827,6 +830,10 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       if (key == "global-declarations")
       {
         d_state.getSymbolManager()->setGlobalDeclarations(ss == "true");
+      }
+      else if (key == "fresh-declarations")
+      {
+        d_state.getSymbolManager()->setFreshDeclarations(ss == "true");
       }
     }
     break;

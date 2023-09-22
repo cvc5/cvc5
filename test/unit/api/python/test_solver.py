@@ -325,6 +325,7 @@ def test_mk_tuple_sort(solver):
 def test_mk_bit_vector(solver):
     solver.mkBitVector(8, 2)
     solver.mkBitVector(32, 2)
+    solver.mkBitVector(64, 2**33)
 
     solver.mkBitVector(4, "1010", 2)
     solver.mkBitVector(8, "0101", 2)
@@ -944,6 +945,19 @@ def test_mk_const(solver):
     slv = cvc5.Solver()
     slv.mkConst(boolSort)
 
+def test_declare_fun_fresh(solver):
+    boolSort = solver.getBooleanSort()
+    intSort = solver.getIntegerSort()
+    t1 = solver.declareFun("b", [], boolSort, True)
+    t2 = solver.declareFun("b", [], boolSort, False)
+    t3 = solver.declareFun("b", [], boolSort, False)
+    assert t1!=t2
+    assert t1!=t3
+    assert t2==t3
+    t4 = solver.declareFun("c", [], boolSort, False)
+    assert t2!=t4
+    t5 = solver.declareFun("b", [], intSort, False)
+    assert t2!=t5
 
 def test_mk_const_array(solver):
     intSort = solver.getIntegerSort()
@@ -988,6 +1002,17 @@ def test_declare_sort(solver):
     solver.declareSort("s", 2)
     solver.declareSort("", 2)
 
+def test_declare_sort_fresh(solver):
+    t1 = solver.declareSort("b", 0, True)
+    t2 = solver.declareSort("b", 0, False)
+    t3 = solver.declareSort("b", 0, False)
+    assert t1!=t2
+    assert t1!=t3
+    assert t2==t3
+    t4 = solver.declareSort("c", 0, False)
+    assert t2!=t4
+    t5 = solver.declareSort("b", 1, False)
+    assert t2!=t5
 
 def test_define_fun(solver):
     bvSort = solver.mkBitVectorSort(32)
@@ -2027,6 +2052,16 @@ def test_set_logic(solver):
     with pytest.raises(RuntimeError):
         solver.setLogic("AUFLIRA")
 
+def test_is_logic_set(solver):
+    assert solver.isLogicSet() == False
+    solver.setLogic("QF_BV")
+    assert solver.isLogicSet() == True
+
+def test_get_logic(solver):
+    with pytest.raises(RuntimeError):
+        solver.getLogic()
+    solver.setLogic("QF_BV")
+    assert solver.getLogic() == "QF_BV"
 
 def test_set_option(solver):
     solver.setOption("bv-sat-solver", "minisat")

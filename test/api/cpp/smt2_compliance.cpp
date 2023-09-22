@@ -14,14 +14,11 @@
  */
 
 #include <cvc5/cvc5.h>
+#include <cvc5/cvc5_parser.h>
 
 #include <cassert>
 #include <iostream>
 #include <sstream>
-
-#include "parser/api/cpp/command.h"
-#include "parser/api/cpp/input_parser.h"
-#include "parser/api/cpp/symbol_manager.h"
 
 using namespace cvc5;
 using namespace cvc5::internal;

@@ -538,7 +538,7 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     return;
   }
-  else if (k == kind::DATATYPE_TYPE)
+  else if (k == kind::DATATYPE_TYPE || k == kind::TUPLE_TYPE)
   {
     const DType& dt = NodeManager::currentNM()->getDTypeFor(n);
     if (dt.isTuple())
@@ -546,7 +546,7 @@ void Smt2Printer::toStream(std::ostream& out,
       unsigned int nargs = dt[0].getNumArgs();
       if (nargs == 0)
       {
-        out << "Tuple";
+        out << "UnitTuple";
       }
       else
       {
@@ -843,7 +843,14 @@ void Smt2Printer::toStream(std::ostream& out,
     if (dt.isTuple())
     {
       stillNeedToPrintParams = false;
-      out << "tuple" << ( dt[0].getNumArgs()==0 ? "" : " ");
+      if (dt[0].getNumArgs() == 0)
+      {
+        out << "tuple.unit";
+      }
+      else
+      {
+        out << "tuple ";
+      }
     }
     break;
   }
@@ -1176,6 +1183,10 @@ std::string Smt2Printer::smtKindString(Kind k)
     case kind::BITVECTOR_ROTATE_RIGHT: return "rotate_right";
     case kind::INT_TO_BITVECTOR: return "int2bv";
     case kind::BITVECTOR_BB_TERM: return "bbT";
+    case kind::BITVECTOR_BITOF: return "bitOf";
+    case kind::BITVECTOR_ITE: return "bvite";
+    case kind::BITVECTOR_ULTBV: return "bvultbv";
+    case kind::BITVECTOR_SLTBV: return "bvsltbv";
 
     case kind::BITVECTOR_SIZE: return "bvsize";
     case kind::CONST_BITVECTOR_SYMBOLIC: return "bv";
@@ -1188,6 +1199,8 @@ std::string Smt2Printer::smtKindString(Kind k)
     case kind::TUPLE_PROJECT: return "tuple.project";
 
     // set theory
+    case kind::SET_EMPTY: return "set.empty";
+    case kind::SET_UNIVERSE: return "set.universe";
     case kind::SET_UNION: return "set.union";
     case kind::SET_INTER: return "set.inter";
     case kind::SET_MINUS: return "set.minus";
@@ -1216,6 +1229,7 @@ std::string Smt2Printer::smtKindString(Kind k)
 
     // bag theory
     case kind::BAG_TYPE: return "Bag";
+    case kind::BAG_EMPTY: return "bag.empty";
     case kind::BAG_UNION_MAX: return "bag.union_max";
     case kind::BAG_UNION_DISJOINT: return "bag.union_disjoint";
     case kind::BAG_INTER_MIN: return "bag.inter_min";
@@ -1344,6 +1358,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case kind::SEP_PTO: return "pto";
     case kind::SEP_WAND: return "wand";
     case kind::SEP_EMP: return "sep.emp";
+    case kind::SEP_NIL: return "sep.nil";
 
     // quantifiers
     case kind::FORALL: return "forall";
@@ -1391,20 +1406,17 @@ std::string Smt2Printer::smtKindStringOf(const Node& n)
   return smtKindString(k);
 }
 
-void Smt2Printer::toStreamDeclareType(std::ostream& out, TypeNode tn) const
+void Smt2Printer::toStreamDeclareType(std::ostream& out,
+                                      const std::vector<TypeNode>& argTypes,
+                                      TypeNode tn) const
 {
   out << "(";
-  if (tn.isFunction())
+  if (!argTypes.empty())
   {
-    const vector<TypeNode> argTypes = tn.getArgTypes();
-    if (argTypes.size() > 0)
-    {
-      copy(argTypes.begin(),
-           argTypes.end() - 1,
-           ostream_iterator<TypeNode>(out, " "));
-      out << argTypes.back();
-    }
-    tn = tn.getRangeType();
+    copy(argTypes.begin(),
+         argTypes.end() - 1,
+         ostream_iterator<TypeNode>(out, " "));
+    out << argTypes.back();
   }
   out << ") " << tn;
 }
@@ -1620,22 +1632,26 @@ void Smt2Printer::toStreamCmdQuit(std::ostream& out) const
   out << "(exit)" << std::endl;
 }
 
-void Smt2Printer::toStreamCmdDeclareFunction(std::ostream& out,
-                                             const std::string& id,
-                                             TypeNode type) const
+void Smt2Printer::toStreamCmdDeclareFunction(
+    std::ostream& out,
+    const std::string& id,
+    const std::vector<TypeNode>& argTypes,
+    TypeNode type) const
 {
   out << "(declare-fun " << cvc5::internal::quoteSymbol(id) << " ";
-  toStreamDeclareType(out, type);
+  toStreamDeclareType(out, argTypes, type);
   out << ')' << std::endl;
 }
 
-void Smt2Printer::toStreamCmdDeclareOracleFun(std::ostream& out,
-                                              const std::string& id,
-                                              TypeNode type,
-                                              const std::string& binName) const
+void Smt2Printer::toStreamCmdDeclareOracleFun(
+    std::ostream& out,
+    const std::string& id,
+    const std::vector<TypeNode>& argTypes,
+    TypeNode type,
+    const std::string& binName) const
 {
   out << "(declare-oracle-fun " << cvc5::internal::quoteSymbol(id) << " ";
-  toStreamDeclareType(out, type);
+  toStreamDeclareType(out, argTypes, type);
   out << " " << binName << ")" << std::endl;
 }
 
