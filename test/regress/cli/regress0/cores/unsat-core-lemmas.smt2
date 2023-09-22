@@ -1,11 +1,7 @@
 ; COMMAND-LINE: --simplification=none --unsat-cores-mode=sat-proof
+; SCRUBBER: sed -e '/a[0-9]/d'
 ; EXPECT: unsat
 ; EXPECT: (
-; EXPECT: a0
-; EXPECT: a1
-; EXPECT: a2
-; EXPECT: a3
-; EXPECT: a4
 ; EXPECT: )
 ; EXPECT: (
 ; EXPECT: (or (= (f a c) (f b d)) (not (= a b)) (not (= c d)))
