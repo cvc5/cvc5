@@ -49,6 +49,7 @@ void AlfPrintChannelOut::printAssume(TNode n, size_t i, bool isPush)
   printNode(n);
   d_out << ")" << std::endl;
 }
+
 void AlfPrintChannelOut::printStep(const std::string& rname,
                                    TNode n,
                                    size_t i,
@@ -101,7 +102,7 @@ void AlfPrintChannelOut::printStep(const std::string& rname,
   d_out << ")" << std::endl;
 }
 
-void AlfPrintChannelOut::printTrust(PfRule r, TNode n, size_t i, TNode nc)
+void AlfPrintChannelOut::printTrustStep(PfRule r, TNode n, size_t i, TNode nc)
 {
   Assert(!nc.isNull());
   if (d_warnedRules.find(r) == d_warnedRules.end())
@@ -115,13 +116,11 @@ void AlfPrintChannelOut::printTrust(PfRule r, TNode n, size_t i, TNode nc)
 
 void AlfPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
 {
-  // due to use of special names in the node converter, we must clean symbols
   std::stringstream ss;
   options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
   Node nc = d_lbind.convert(n, d_termLetPrefix, true);
   nc.toStream(ss);
   std::string s = ss.str();
-  // cleanSymbols(s);
   out << s;
 }
 
@@ -163,7 +162,8 @@ void AlfPrintChannelPre::printStep(const std::string& rname,
     processInternal(a);
   }
 }
-void AlfPrintChannelPre::printTrust(PfRule r, TNode n, size_t i, TNode nc)
+
+void AlfPrintChannelPre::printTrustStep(PfRule r, TNode n, size_t i, TNode nc)
 {
   Assert(!nc.isNull());
   processInternal(nc);
