@@ -2839,17 +2839,17 @@ cdef class Solver:
         """
             Is logic set? Returns whether we called setLogic yet for this
             solver.
-            
+
             :return: whether we called setLogic yet for this solver.
         """
         return self.csolver.isLogicSet()
-        
+
     def getLogic(self):
         """
             Get the logic set the solver.
-   
+
             .. note:: Asserts isLogicSet().
-   
+
             :return: The logic used by the solver.
         """
         return self.csolver.getLogic().decode()

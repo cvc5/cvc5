@@ -69,6 +69,7 @@ public class Solver implements IPointer
   /* .................................................................... */
 
   /**
+   * Get the Boolean sort.
    * @return Sort Boolean.
    */
   public Sort getBooleanSort()
@@ -80,6 +81,7 @@ public class Solver implements IPointer
   private native long getBooleanSort(long pointer);
 
   /**
+   * Get the integer sort.
    * @return Sort Integer.
    */
   public Sort getIntegerSort()
@@ -90,6 +92,7 @@ public class Solver implements IPointer
 
   public native long getIntegerSort(long pointer);
   /**
+   * Get the real sort.
    * @return Sort Real.
    */
   public Sort getRealSort()
@@ -100,6 +103,7 @@ public class Solver implements IPointer
 
   private native long getRealSort(long pointer);
   /**
+   * Get the regular expression sort.
    * @return Sort RegExp.
    */
   public Sort getRegExpSort()
@@ -110,6 +114,7 @@ public class Solver implements IPointer
 
   private native long getRegExpSort(long pointer);
   /**
+   * Get the floating-point rounding mode sort.
    * @return Sort RoundingMode.
    * @throws CVC5ApiException
    */
@@ -120,7 +125,9 @@ public class Solver implements IPointer
   }
 
   private native long getRoundingModeSort(long pointer) throws CVC5ApiException;
+
   /**
+   * Get the string sort.
    * @return Sort String.
    */
   public Sort getStringSort()
@@ -177,6 +184,7 @@ public class Solver implements IPointer
    * Create a floating-point sort.
    * @param exp The bit-width of the exponent of the floating-point sort.
    * @param sig The bit-width of the significand of the floating-point sort.
+   * @return The floating-point sort.
    * @throws CVC5ApiException
    */
   public Sort mkFloatingPointSort(int exp, int sig) throws CVC5ApiException
@@ -674,6 +682,7 @@ public class Solver implements IPointer
    *          in mkTerm directly without creating an op first.
    *
    * @param kind The kind to wrap.
+   * @return The operator.
    */
   public Op mkOp(Kind kind)
   {
@@ -692,6 +701,7 @@ public class Solver implements IPointer
    * See enum {@link Kind} for a description of the parameters.
    * @param kind The kind of the operator.
    * @param arg The string argument to this operator.
+   * @return The operator.
    */
   public Op mkOp(Kind kind, String arg)
   {
@@ -720,6 +730,7 @@ public class Solver implements IPointer
    * See enum {@link Kind} for a description of the parameters.
    * @param kind The kind of the operator.
    * @param arg The unsigned int argument to this operator.
+   * @return The operator.
    * @throws CVC5ApiException
    */
   public Op mkOp(Kind kind, int arg) throws CVC5ApiException
@@ -745,6 +756,7 @@ public class Solver implements IPointer
    * @param kind The kind of the operator.
    * @param arg1 The first unsigned int argument to this operator.
    * @param arg2 The second unsigned int argument to this operator.
+   * @return The operator.
    * @throws CVC5ApiException
    */
   public Op mkOp(Kind kind, int arg1, int arg2) throws CVC5ApiException
@@ -765,6 +777,7 @@ public class Solver implements IPointer
    * See enum {@link Kind} for a description of the parameters.
    * @param kind The kind of the operator.
    * @param args The arguments (indices) of the operator.
+   * @return The operator.
    * @throws CVC5ApiException
    */
   public Op mkOp(Kind kind, int[] args) throws CVC5ApiException
@@ -804,8 +817,8 @@ public class Solver implements IPointer
   private native long mkFalse(long pointer);
   /**
    * Create a Boolean constant.
-   * @return The Boolean constant.
    * @param val The value of the constant.
+   * @return The Boolean constant.
    */
   public Term mkBoolean(boolean val)
   {
@@ -1059,6 +1072,7 @@ public class Solver implements IPointer
    * Create a bit-vector constant of given size and value = 0.
    * @param size The bit-width of the bit-vector sort.
    * @return The bit-vector constant.
+   * @throws CVC5ApiException
    */
   public Term mkBitVector(int size) throws CVC5ApiException
   {
@@ -1226,6 +1240,7 @@ public class Solver implements IPointer
   /**
    * Create a rounding mode constant.
    * @param rm The floating point rounding mode this constant represents.
+   * @return The rounding mode.
    */
   public Term mkRoundingMode(RoundingMode rm)
   {
@@ -1917,6 +1932,7 @@ public class Solver implements IPointer
   /**
    * Get info from the solver.
    * SMT-LIB: {@code ( get-info <info_flag> ) }
+   * @param flag The {@code get-info} flag.
    * @return The info.
    */
   public String getInfo(String flag)
@@ -1962,6 +1978,7 @@ public class Solver implements IPointer
    * Check the {@link OptionInfo} class for more details on which information
    * is available.
    *
+   * @param option The name of the option.
    * @return Information about the given option.
    */
   public OptionInfo getOptionInfo(String option)
@@ -2359,6 +2376,7 @@ public class Solver implements IPointer
    * @param symbol The name of the pool.
    * @param sort The sort of the elements of the pool.
    * @param initValue The initial value of the pool.
+   * @return The pool.
    */
   public Term declarePool(String symbol, Sort sort, Term[] initValue)
   {
@@ -2639,6 +2657,8 @@ public class Solver implements IPointer
    * Requires enabling option {@code produce-models}.
    *
    * @api.note This method is experimental and may change in future versions.
+   *
+   * @param terms The model values to block.
    */
   public void blockModelValues(Term[] terms)
   {
@@ -2649,10 +2669,12 @@ public class Solver implements IPointer
   private native void blockModelValues(long pointer, long[] termPointers);
 
   /**
-   * Return a string that contains information about all instantiations made by
+   * Get a string that contains information about all instantiations made by
    * the quantifiers module.
    *
    * @api.note This method is experimental and may change in future versions.
+   *
+   * @return The string representing the information about all instantiations.
    */
   public String getInstantiations()
   {
@@ -2765,6 +2787,7 @@ public class Solver implements IPointer
    * @api.note Asserts isLogicSet().
    *
    * @return The logic used by the solver.
+   * @throws CVC5ApiException
    */
   public String getLogic() throws CVC5ApiException
   {
@@ -3116,9 +3139,10 @@ public class Solver implements IPointer
   private native long findSynthNext(long pointer);
 
   /**
-   * Returns a snapshot of the current state of the statistic values of this
+   * Get a snapshot of the current state of the statistic values of this
    * solver. The returned object is completely decoupled from the solver and
    * will not change when the solver is used again.
+   * @return A snapshot of the current state of the statistic values.
    */
   public Statistics getStatistics()
   {
