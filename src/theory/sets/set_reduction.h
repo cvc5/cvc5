@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed
+ *   Mudathir Mohamed, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -70,7 +70,7 @@ class SetReduction
    * @return reduction term that uses map, fold, and group operators
    * as follows:
    * (set.map
-   *   (lambda ((B Table)) (set.fold f initial B))
+   *   (lambda ((B Relation)) (set.fold f initial B))
    *   ((_ rel.group n1 ... nk) A))
    */
   static Node reduceAggregateOperator(Node node);

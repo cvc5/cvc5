@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Amalee Wilson, Andrew Wu
+ *   Amalee Wilson, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -55,11 +55,6 @@ std::vector<Node> PartitionGenerator::collectLiterals(LiteralListType litType)
 {
   std::vector<Node> filteredLiterals;
   std::vector<Node> unfilteredLiterals;
-  
-  // Filter out the types of literals we don't want. 
-  // Make sure the literal does not have a boolean term or skolem in it.
-  const std::unordered_set<Kind, kind::KindHashFunction> kinds = {
-      kind::SKOLEM, kind::BOOLEAN_TERM_VARIABLE};
 
   switch (litType)
   {
@@ -75,8 +70,8 @@ std::vector<Node> PartitionGenerator::collectLiterals(LiteralListType litType)
     }
     case ZLL:
     {
-      unfilteredLiterals =
-          d_propEngine->getLearnedZeroLevelLiterals(modes::LEARNED_LIT_INPUT);
+      unfilteredLiterals = d_propEngine->getLearnedZeroLevelLiterals(
+          modes::LearnedLitType::INPUT);
       break;
     }
     default: return filteredLiterals;
@@ -93,10 +88,12 @@ std::vector<Node> PartitionGenerator::collectLiterals(LiteralListType litType)
       // of the not instead of the not itself.
       Node original = originalN.getKind() == kind::NOT ? originalN[0] : originalN;
 
-      if (expr::hasSubtermKinds(kinds, original)
+      // Filter out the types of literals we don't want.
+      // Make sure the literal does not have a skolem in it.
+      if (expr::hasSubtermKind(kind::SKOLEM, original)
           || !d_valuation->isSatLiteral(original)
           || Theory::theoryOf(original) == THEORY_BOOL || n.isConst()
-          || nType != modes::LEARNED_LIT_INPUT
+          || nType != modes::LearnedLitType::INPUT
           || !d_valuation->isDecision(original))
       {
         continue;
@@ -115,10 +112,9 @@ std::vector<Node> PartitionGenerator::collectLiterals(LiteralListType litType)
       // of the not instead of the not itself.
       Node original = originalN.getKind() == kind::NOT ? originalN[0] : originalN;
 
-      if (expr::hasSubtermKinds(kinds, original)
+      if (expr::hasSubtermKind(kind::SKOLEM, original)
           || !d_valuation->isSatLiteral(original)
-          || Theory::theoryOf(original) == THEORY_BOOL
-          || n.isConst())
+          || Theory::theoryOf(original) == THEORY_BOOL || n.isConst())
       {
         continue;
       }
@@ -220,8 +216,8 @@ Node PartitionGenerator::makeRevisedPartitions(bool strict, bool emitZLL)
   {
     if (emitZLL) 
     {
-      std::vector<Node> zllLiterals =
-          d_propEngine->getLearnedZeroLevelLiterals(modes::LEARNED_LIT_INPUT);
+      std::vector<Node> zllLiterals = d_propEngine->getLearnedZeroLevelLiterals(
+          modes::LearnedLitType::INPUT);
       std::vector<Node>* cubes = strict ? &d_strict_cubes : &d_cubes;
       
       for (const auto& c : *cubes)
@@ -242,8 +238,8 @@ Node PartitionGenerator::makeRevisedPartitions(bool strict, bool emitZLL)
     // Emit not(cube_one) and not(cube_two) and ... and not(cube_n-1)
     if (emitZLL) 
     {
-      std::vector<Node> zllLiterals =
-          d_propEngine->getLearnedZeroLevelLiterals(modes::LEARNED_LIT_INPUT);
+      std::vector<Node> zllLiterals = d_propEngine->getLearnedZeroLevelLiterals(
+          modes::LearnedLitType::INPUT);
       zllLiterals.push_back(lemma);
       Node zllLemma = NodeManager::currentNM()->mkAnd(zllLiterals);
       emitCube(zllLemma);

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
+ *   Andrew Reynolds, Haniel Barbosa, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -76,7 +76,8 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
       d_theoryLemmaPg(d_env, d_env.getUserContext(), "PropEngine::ThLemmaPg"),
       d_ppm(nullptr),
       d_interrupted(false),
-      d_assumptions(d_env.getUserContext())
+      d_assumptions(d_env.getUserContext()),
+      d_stats(statisticsRegistry())
 {
   Trace("prop") << "Constructing the PropEngine" << std::endl;
   context::UserContext* userContext = d_env.getUserContext();
@@ -168,11 +169,15 @@ void PropEngine::assertInputFormulas(
 {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   d_theoryProxy->notifyInputFormulas(assertions, skolemMap);
+  int64_t natomsPre = d_cnfStream->d_stats.d_numAtoms.get();
   for (const Node& node : assertions)
   {
     Trace("prop") << "assertFormula(" << node << ")" << std::endl;
     assertInternal(node, false, false, true);
   }
+  int64_t natomsPost = d_cnfStream->d_stats.d_numAtoms.get();
+  Assert(natomsPost >= natomsPre);
+  d_stats.d_numInputAtoms += (natomsPost - natomsPre);
 }
 
 void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
@@ -184,7 +189,7 @@ void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
   TrustNode tplemma = d_theoryProxy->preprocessLemma(tlemma, ppLemmas);
 
   // do final checks on the lemmas we are about to send
-  if (isProofEnabled()
+  if (d_env.isTheoryProofProducing()
       && options().proof.proofCheck == options::ProofCheckMode::EAGER)
   {
     Assert(tplemma.getGenerator() != nullptr);
@@ -329,12 +334,13 @@ void PropEngine::assertLemmasInternal(
   Trace("prop") << "Finish " << trn << std::endl;
 }
 
-void PropEngine::requirePhase(TNode n, bool phase) {
-  Trace("prop") << "requirePhase(" << n << ", " << phase << ")" << std::endl;
+void PropEngine::preferPhase(TNode n, bool phase)
+{
+  Trace("prop") << "preferPhase(" << n << ", " << phase << ")" << std::endl;
 
   Assert(n.getType().isBoolean());
   SatLiteral lit = d_cnfStream->getLiteral(n);
-  d_satSolver->requirePhase(phase ? lit : ~lit);
+  d_satSolver->preferPhase(phase ? lit : ~lit);
 }
 
 bool PropEngine::isDecision(Node lit) const {
@@ -409,14 +415,14 @@ Result PropEngine::checkSat() {
   ScopedBool scopedBool(d_inCheckSat);
   d_inCheckSat = true;
 
-  // Note this currently ignores conflicts (a dangerous practice).
-  d_theoryProxy->presolve();
-
   if (options().base.preprocessOnly)
   {
     outputIncompleteReason(UnknownExplanation::REQUIRES_FULL_CHECK);
     return Result(Result::UNKNOWN, UnknownExplanation::REQUIRES_FULL_CHECK);
   }
+
+  // Note this currently ignores conflicts (a dangerous practice).
+  d_theoryProxy->presolve();
 
   // Reset the interrupted flag
   d_interrupted = false;
@@ -436,6 +442,8 @@ Result PropEngine::checkSat() {
     }
     result = d_satSolver->solve(assumptions);
   }
+
+  d_theoryProxy->postsolve();
 
   if( result == SAT_VALUE_UNKNOWN ) {
     ResourceManager* rm = resourceManager();
@@ -690,8 +698,6 @@ void PropEngine::checkProof(const context::CDList<Node>& assertions)
   return d_ppm->checkProof(assertions);
 }
 
-CnfStream* PropEngine::getCnfStream() { return d_theoryProxy->getCnfStream(); }
-
 ProofCnfStream* PropEngine::getProofCnfStream() { return d_pfCnfStream.get(); }
 
 std::shared_ptr<ProofNode> PropEngine::getProof(bool connectCnf)
@@ -755,6 +761,11 @@ std::vector<Node> PropEngine::getLearnedZeroLevelLiteralsForRestart() const
 modes::LearnedLitType PropEngine::getLiteralType(const Node& lit) const
 {
   return d_theoryProxy->getLiteralType(lit);
+}
+
+PropEngine::Statistics::Statistics(StatisticsRegistry& sr)
+    : d_numInputAtoms(sr.registerInt("prop::PropEngine::numInputAtoms"))
+{
 }
 
 }  // namespace prop

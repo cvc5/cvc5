@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
+ *   Andrew Reynolds, Abdalrhman Mohamed, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -92,7 +92,7 @@ PfManager::PfManager(Env& env)
           != options::ProofGranularityMode::THEORY_REWRITE)
       {
         // this eliminates theory rewriting steps with finer-grained DSL rules
-        d_pfpp->setEliminateRule(PfRule::THEORY_REWRITE);
+        d_pfpp->setEliminateAllTrustedRules();
       }
     }
     // theory-specific lazy proof reconstruction
@@ -134,14 +134,14 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
     Trace("smt-proof-debug") << *pfn.get() << std::endl;
     Trace("smt-proof-debug") << "=====" << std::endl;
   }
+  std::vector<Node> assertions;
+  getAssertions(as, assertions);
 
   if (TraceIsOn("smt-proof"))
   {
     Trace("smt-proof")
         << "SolverEngine::connectProofToAssertions(): get free assumptions..."
         << std::endl;
-    std::vector<Node> assertions;
-    getAssertions(as, assertions);
     std::vector<Node> fassumps;
     expr::getFreeAssumptions(pfn.get(), fassumps);
     Trace("smt-proof") << "SolverEngine::connectProofToAssertions(): initial "
@@ -178,8 +178,6 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
     {
       Trace("smt-proof") << "SolverEngine::connectProofToAssertions(): make "
                             "unified scope...\n";
-      std::vector<Node> assertions;
-      getAssertions(as, assertions);
       return d_pnm->mkScope(
           pfn, assertions, true, options().proof.proofPruneInput);
     }
@@ -228,7 +226,7 @@ void PfManager::printProof(std::ostream& out,
   if (options().base.incrementalSolving
       && mode != options::ProofFormatMode::NONE)
   {
-    fp = d_pnm->clone(fp);
+    fp = fp->clone();
   }
 
   // according to the proof format, post process and print the proof node
@@ -252,17 +250,8 @@ void PfManager::printProof(std::ostream& out,
     proof::LfscNodeConverter ltp;
     proof::LfscProofPostprocess lpp(d_env, ltp);
     lpp.process(fp);
-    proof::LfscPrinter lp(d_env, ltp);
+    proof::LfscPrinter lp(d_env, ltp, d_rewriteDb.get());
     lp.print(out, fp.get());
-  }
-  else if (mode == options::ProofFormatMode::TPTP)
-  {
-    out << "% SZS output start Proof for " << options().driver.filename
-        << std::endl;
-    // TODO (proj #37) print in TPTP compliant format
-    out << *fp << std::endl;
-    out << "% SZS output end Proof for " << options().driver.filename
-        << std::endl;
   }
   else
   {
@@ -305,7 +294,14 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   Trace("difficulty-proc") << "Get final proof" << std::endl;
   std::shared_ptr<ProofNode> fpf = connectProofToAssertions(pf, smt);
   Trace("difficulty-debug") << "Final proof is " << *fpf.get() << std::endl;
-  Assert(fpf->getRule() == PfRule::SCOPE);
+  // We are typically a SCOPE here, although if we are not, then the proofs
+  // have no free assumptions. If this is the case, then the only difficulty
+  // was incremented on auxiliary lemmas added during preprocessing. Since
+  // there are no dependencies, then the difficulty map is empty.
+  if (fpf->getRule() != PfRule::SCOPE)
+  {
+    return;
+  }
   fpf = fpf->getChildren()[0];
   // analyze proof
   Assert(fpf->getRule() == PfRule::SAT_REFUTATION);

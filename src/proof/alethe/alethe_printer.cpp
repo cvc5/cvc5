@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Hanna Lachnitt
+ *   Hanna Lachnitt, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -74,7 +74,12 @@ AletheProofPrinter::AletheProofPrinter(Env& env)
 
 void AletheProofPrinter::printTerm(std::ostream& out, TNode n)
 {
-  out << d_lbind.convert(n, "@p_");
+  std::stringstream ss;
+  options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
+  // We print lambda applications in non-curried manner
+  options::ioutils::applyFlattenHOChains(ss, true);
+  ss << d_lbind.convert(n, "@p_");
+  out << ss.str();
 }
 
 void AletheProofPrinter::print(std::ostream& out,

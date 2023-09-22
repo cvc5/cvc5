@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,7 +22,9 @@
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/skolemize.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/smt_engine_subsolver.h"
+#include "theory/strings/theory_strings_utils.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -103,7 +105,7 @@ void InstStrategyMbqi::process(Node q)
   Subs skolems;
   for (const Node& v : q[0])
   {
-    Node k = sm->mkPurifySkolem(v, "mbk");
+    Node k = sm->mkPurifySkolem(v);
     skolems.add(v, k);
     // do not take its model value (which does not exist) in conversion below
     tmpConvertMap[k] = k;
@@ -229,6 +231,7 @@ void InstStrategyMbqi::process(Node q)
     Node mv = mbqiChecker->getValue(v);
     Assert(mvToFreshVar.find(mv) == mvToFreshVar.end());
     mvToFreshVar[mv] = v;
+    Trace("mbqi-debug") << "mvToFreshVar " << mv << " is " << v << std::endl;
   }
 
   // get the model values for skolems
@@ -272,7 +275,9 @@ void InstStrategyMbqi::process(Node q)
     // get a term that witnesses this variable
     Node ov = sm->getOriginalForm(v);
     Node mvt = rs->getTermForRepresentative(ov);
-    if (mvt.isNull())
+    // ensure that this term does not contain cex variables, in case CEQGI
+    // is combined with MBQI
+    if (mvt.isNull() || !TermUtil::getInstConstAttr(mvt).isNull())
     {
       Trace("mbqi") << "warning: failed to get term from value " << ov
                     << ", use arbitrary term in query" << std::endl;
@@ -331,16 +336,17 @@ Node InstStrategyMbqi::convertToQuery(
       {
         cmap[cur] = cur;
       }
-      else if (ck == UNINTERPRETED_SORT_VALUE || ck == REAL_ALGEBRAIC_NUMBER)
+      else if (ck == UNINTERPRETED_SORT_VALUE)
       {
         // return the fresh variable for this term
-        Node k = sm->mkPurifySkolem(cur, "mbk");
+        Node k = sm->mkPurifySkolem(cur);
         freshVarType[cur.getType()].insert(k);
         cmap[cur] = k;
         continue;
       }
-      else if (cur.isVar())
+      else if (ck == CONST_SEQUENCE || cur.isVar())
       {
+        // constant sequences and variables require two passes
         if (!cur.getType().isFirstClass())
         {
           // can be e.g. tester/constructor/selector
@@ -351,7 +357,15 @@ Node InstStrategyMbqi::convertToQuery(
           std::map<Node, Node>::iterator itm = modelValue.find(cur);
           if (itm == modelValue.end())
           {
-            Node mval = fm->getValue(cur);
+            Node mval;
+            if (ck == CONST_SEQUENCE)
+            {
+              mval = strings::utils::mkConcatForConstSequence(cur);
+            }
+            else
+            {
+              mval = fm->getValue(cur);
+            }
             Trace("mbqi-model") << "  M[" << cur << "] = " << mval << "\n";
             modelValue[cur] = mval;
             if (cur == mval)
@@ -449,7 +463,7 @@ Node InstStrategyMbqi::convertFromModel(
     if (processingChildren.find(cur) == processingChildren.end())
     {
       Kind ck = cur.getKind();
-      if (ck == UNINTERPRETED_SORT_VALUE || ck == REAL_ALGEBRAIC_NUMBER)
+      if (ck == UNINTERPRETED_SORT_VALUE)
       {
         // converting from query, find the variable that it is equal to
         std::map<Node, Node>::const_iterator itmv = mvToFreshVar.find(cur);
@@ -463,6 +477,12 @@ Node InstStrategyMbqi::convertFromModel(
           // failed to find equal, we fail
           return Node::null();
         }
+      }
+      else if (ck == CONST_SEQUENCE)
+      {
+        // must convert to concat of sequence units
+        Node cconv = strings::utils::mkConcatForConstSequence(cur);
+        cmap[cur] = convertFromModel(cconv, cmap, mvToFreshVar);
       }
       else if (cur.getNumChildren() == 0)
       {

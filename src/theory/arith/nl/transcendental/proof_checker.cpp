@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -145,7 +145,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Assert(children.empty());
     Assert(args.size() == 4);
     Assert(args[0].isConst() && args[0].getType().isInteger());
-    Assert(args[1].getType().isReal());
+    Assert(args[1].getType().isRealOrInt());
     Assert(args[2].isConst() && args[2].getType().isRealOrInt());
     Assert(args[3].isConst() && args[3].getType().isRealOrInt());
     std::uint64_t d =
@@ -171,7 +171,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Assert(children.empty());
     Assert(args.size() == 4);
     Assert(args[0].isConst() && args[0].getType().isInteger());
-    Assert(args[1].getType().isReal());
+    Assert(args[1].getType().isRealOrInt());
     Assert(args[2].isConst() && args[2].getType().isRealOrInt());
     Assert(args[3].isConst() && args[3].getType().isRealOrInt());
     std::uint64_t d =
@@ -198,7 +198,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Assert(args.size() == 3);
     Assert(args[0].isConst() && args[0].getType().isInteger());
     Assert(args[1].isConst() && args[1].getType().isRealOrInt());
-    Assert(args[2].getType().isReal());
+    Assert(args[2].getType().isRealOrInt());
     std::uint64_t d =
         args[0].getConst<Rational>().getNumerator().toUnsignedInt();
     Node c = args[1];
@@ -218,7 +218,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    Assert(args[0].getType().isReal());
+    Assert(args[0].getType().isRealOrInt());
     Node s = nm->mkNode(Kind::SINE, args[0]);
     return nm->mkNode(AND, nm->mkNode(LEQ, s, one), nm->mkNode(GEQ, s, mone));
   }
@@ -235,7 +235,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    Assert(args[0].getType().isReal());
+    Assert(args[0].getType().isRealOrInt());
     Node s1 = nm->mkNode(Kind::SINE, args[0]);
     Node s2 = nm->mkNode(Kind::SINE, nm->mkNode(Kind::MULT, mone, args[0]));
     return nm->mkNode(ADD, s1, s2).eqNode(zero);
@@ -244,7 +244,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    Assert(args[0].getType().isReal());
+    Assert(args[0].getType().isRealOrInt());
     Node s = nm->mkNode(Kind::SINE, args[0]);
     return nm->mkNode(
         AND,
@@ -258,7 +258,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    Assert(args[0].getType().isReal());
+    Assert(args[0].getType().isRealOrInt());
     Node s = nm->mkNode(Kind::SINE, args[0]);
     return nm->mkNode(
         AND,
@@ -274,9 +274,9 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Assert(children.empty());
     Assert(args.size() == 6);
     Assert(args[0].isConst() && args[0].getType().isInteger());
-    Assert(args[1].getType().isReal());
-    Assert(args[2].getType().isReal());
-    Assert(args[3].getType().isReal());
+    Assert(args[1].getType().isRealOrInt());
+    Assert(args[2].getType().isRealOrInt());
+    Assert(args[3].getType().isRealOrInt());
     Assert(args[4].isConst() && args[4].getType().isRealOrInt());
     Assert(args[5].isConst() && args[5].getType().isRealOrInt());
     std::uint64_t d =
@@ -304,9 +304,9 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Assert(children.empty());
     Assert(args.size() == 5);
     Assert(args[0].isConst() && args[0].getType().isInteger());
-    Assert(args[1].getType().isReal());
-    Assert(args[2].getType().isReal());
-    Assert(args[3].getType().isReal());
+    Assert(args[1].getType().isRealOrInt());
+    Assert(args[2].getType().isRealOrInt());
+    Assert(args[3].getType().isRealOrInt());
     std::uint64_t d =
         args[0].getConst<Rational>().getNumerator().toUnsignedInt();
     Node t = args[1];
@@ -327,9 +327,9 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Assert(children.empty());
     Assert(args.size() == 6);
     Assert(args[0].isConst() && args[0].getType().isInteger());
-    Assert(args[1].getType().isReal());
-    Assert(args[2].getType().isReal());
-    Assert(args[3].getType().isReal());
+    Assert(args[1].getType().isRealOrInt());
+    Assert(args[2].getType().isRealOrInt());
+    Assert(args[3].getType().isRealOrInt());
     Assert(args[4].isConst() && args[4].getType().isRealOrInt());
     Assert(args[5].isConst() && args[5].getType().isRealOrInt());
     std::uint64_t d =
@@ -357,9 +357,9 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Assert(children.empty());
     Assert(args.size() == 5);
     Assert(args[0].isConst() && args[0].getType().isInteger());
-    Assert(args[1].getType().isReal());
-    Assert(args[2].getType().isReal());
-    Assert(args[3].getType().isReal());
+    Assert(args[1].getType().isRealOrInt());
+    Assert(args[2].getType().isRealOrInt());
+    Assert(args[3].getType().isRealOrInt());
     std::uint64_t d =
         args[0].getConst<Rational>().getNumerator().toUnsignedInt();
     Node t = args[1];

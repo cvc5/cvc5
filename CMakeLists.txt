@@ -53,6 +53,13 @@ if(POLICY CMP0135)
   cmake_policy(SET CMP0135 NEW)
 endif()
 
+if(POLICY CMP0079)
+  # Allows target_link_libraries() to use targets from other directories.
+  # This will prevent issues with INTERFACE_LINK_LIBRARIES, which allows
+  # cvc5 to be properly linked as a static library on other CMake projects.
+  cmake_policy(SET CMP0079 NEW)
+endif()
+
 #-----------------------------------------------------------------------------#
 # Tell CMake where to find our dependencies
 
@@ -224,29 +231,46 @@ add_check_cxx_supression_flag("-Wno-class-memaccess")
 
 if (WIN32)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--stack,100000000")
-
-  # ANTLR uses pragmas that certain versions of MinGW does not support
-  add_check_c_cxx_flag("-Wno-error=unknown-pragmas")
 endif ()
 
 #-----------------------------------------------------------------------------#
-# Use ld.gold if available
+# Use ld.mold if available, otherwise use ld.gold if available
 
+set(USE_EXPLICIT_LINKER_FLAG FALSE)
 execute_process(COMMAND ${CMAKE_C_COMPILER}
-                -fuse-ld=gold
-                -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_VERSION)
-if ("${LD_VERSION}" MATCHES "GNU gold")
-  string(APPEND CMAKE_EXE_LINKER_FLAGS " -fuse-ld=gold")
-  string(APPEND CMAKE_SHARED_LINKER_FLAGS " -fuse-ld=gold")
-  string(APPEND CMAKE_MODULE_LINKER_FLAGS " -fuse-ld=gold")
-  message(STATUS "Using GNU gold linker.")
+                -fuse-ld=mold
+                -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_MOLD_VERSION)
+if ("${LD_MOLD_VERSION}" MATCHES "mold")
+  set(USE_EXPLICIT_LINKER_FLAG TRUE)
+  set(EXPLICIT_LINKER_FLAG " -fuse-ld=mold")
+  message(STATUS "Using mold linker.")
+else ()
+  execute_process(COMMAND ${CMAKE_C_COMPILER}
+                  -fuse-ld=gold
+                  -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_GOLD_VERSION)
+  if ("${LD_GOLD_VERSION}" MATCHES "GNU gold")
+    set(USE_EXPLICIT_LINKER_FLAG TRUE)
+    set(EXPLICIT_LINKER_FLAG " -fuse-ld=gold")
+    message(STATUS "Using GNU gold linker.")
+  endif ()
+endif ()
+if (USE_EXPLICIT_LINKER_FLAG)
+  string(APPEND CMAKE_EXE_LINKER_FLAGS ${EXPLICIT_LINKER_FLAG})
+  string(APPEND CMAKE_SHARED_LINKER_FLAGS ${EXPLICIT_LINKER_FLAG})
+  string(APPEND CMAKE_MODULE_LINKER_FLAGS ${EXPLICIT_LINKER_FLAG})
 endif ()
 
 #-----------------------------------------------------------------------------#
 # Use interprocedural optimization if requested
 
 if(ENABLE_IPO)
-  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+  check_ipo_supported(RESULT have_ipo_support)
+  if(have_ipo_support)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+  else()
+    message(STATUS "Interprocedural optimization not supported.")
+    set(ENABLE_IPO OFF)
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -330,14 +354,9 @@ endif()
 # Some cmake packages are not compatible with the newest version
 # of FindPython, introduced in cmake 3.12.
 # We define the symbols below to be backward compatible.
+# FindPython Interpreter sets Python_EXECUTABLE
 if(NOT DEFINED PYTHON_EXECUTABLE) 
   set(PYTHON_EXECUTABLE "${Python_EXECUTABLE}")
-endif()
-if (NOT DEFINED PYTHON_INCLUDE_DIRS) 
-  set(PYTHON_INCLUDE_DIRS "${Python_INCLUDE_DIRS}")
-endif()
-if (NOT DEFINED PYTHON_LIBRARIES) 
-  set(PYTHON_LIBRARIES "${Python_LIBRARIES}")
 endif()
 
 find_package(GMP 6.1 REQUIRED)

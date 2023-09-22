@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,7 +30,6 @@
 #include "smt/smt_solver.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
@@ -76,17 +75,14 @@ void SygusSolver::declareSynthFun(Node fn,
   {
     Node bvl = nm->mkNode(BOUND_VAR_LIST, vars);
     // use an attribute to mark its bound variable list
-    SygusSynthFunVarListAttribute ssfvla;
-    fn.setAttribute(ssfvla, bvl);
+    quantifiers::SygusUtils::setSygusArgumentList(fn, bvl);
   }
   // whether sygus type encodes syntax restrictions
   if (!sygusType.isNull() && sygusType.isDatatype()
       && sygusType.getDType().isSygus())
   {
-    Node sym = nm->mkBoundVar("sfproxy", sygusType);
     // use an attribute to mark its grammar
-    SygusSynthGrammarAttribute ssfga;
-    fn.setAttribute(ssfga, sym);
+    quantifiers::SygusUtils::setSygusType(fn, sygusType);
     // we must expand definitions for sygus operators in the block
     expandDefinitionsSygusDt(sygusType);
   }
@@ -358,6 +354,15 @@ bool SygusSolver::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
   return true;
 }
 
+bool SygusSolver::canTrustSynthesisResult(const Options& opts)
+{
+  if (opts.quantifiers.cegisSample == options::CegisSampleMode::TRUST)
+  {
+    return false;
+  }
+  return true;
+}
+
 void SygusSolver::checkSynthSolution(Assertions& as,
                                      const std::map<Node, Node>& sol_map)
 {
@@ -365,6 +370,13 @@ void SygusSolver::checkSynthSolution(Assertions& as,
   {
     verbose(1) << "SyGuS::checkSynthSolution: checking synthesis solution"
                << std::endl;
+  }
+  bool canTrustResult = canTrustSynthesisResult(options());
+  if (!canTrustResult)
+  {
+    warning() << "Running check-synth-sol is not guaranteed to pass with the "
+                 "current options."
+              << std::endl;
   }
   if (sol_map.empty())
   {
@@ -422,17 +434,30 @@ void SygusSolver::checkSynthSolution(Assertions& as,
       verbose(1) << "SyGuS::checkSynthSolution: result is " << r << std::endl;
     }
     Trace("check-synth-sol") << "Satsifiability check: " << r << "\n";
-    if (r.isUnknown())
+    if (r.getStatus() == Result::UNSAT)
     {
-      InternalError() << "SygusSolver::checkSynthSolution(): could not check "
-                         "solution, result "
-                         "unknown.";
+      continue;
     }
-    else if (r.getStatus() == Result::SAT)
+    std::stringstream ss;
+    bool hardFailure = canTrustResult;
+    if (r.getStatus() == Result::SAT)
     {
-      InternalError()
-          << "SygusSolver::checkSynthSolution(): produced solution leads to "
-             "satisfiable negated conjecture.";
+      ss << "SygusSolver::checkSynthSolution(): produced solution leads to "
+            "satisfiable negated conjecture.";
+    }
+    else
+    {
+      hardFailure = false;
+      ss << "SygusSolver::checkSynthSolution(): could not check "
+            "solution, result unknown.";
+    }
+    if (hardFailure)
+    {
+      InternalError() << ss.str();
+    }
+    else
+    {
+      warning() << ss.str() << std::endl;
     }
   }
 }
@@ -536,6 +561,17 @@ std::vector<Node> SygusSolver::listToVector(const NodeList& list)
     vec.push_back(n);
   }
   return vec;
+}
+
+std::vector<std::pair<Node, TypeNode>> SygusSolver::getSynthFunctions() const
+{
+  std::vector<std::pair<Node, TypeNode>> funs;
+  for (const Node& f : d_sygusFunSymbols)
+  {
+    TypeNode st = quantifiers::SygusUtils::getSygusType(f);
+    funs.emplace_back(f, st);
+  }
+  return funs;
 }
 
 }  // namespace smt

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Kshitij Bansal
+ *   Andrew Reynolds, Mudathir Mohamed, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -122,8 +122,7 @@ void TheorySets::computeCareGraph() {
 
 TrustNode TheorySets::explain(TNode node)
 {
-  Node exp = d_internal->explain(node);
-  return TrustNode::mkTrustPropExp(node, exp, nullptr);
+  return d_im.explainLit(node);
 }
 
 Node TheorySets::getCandidateModelValue(TNode node) { return Node::null(); }

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -135,7 +135,7 @@ void InferenceManagerBuffered::doPendingPhaseRequirements()
   // process the pending require phase calls
   for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)
   {
-    requirePhase(prp.first, prp.second);
+    preferPhase(prp.first, prp.second);
   }
   d_pendingReqPhase.clear();
 }

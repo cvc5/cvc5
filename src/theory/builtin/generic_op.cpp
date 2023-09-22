@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -203,7 +203,10 @@ bool convertToNumeralList(const std::vector<Node>& indices,
 {
   for (const Node& i : indices)
   {
-    Assert(i.getKind() == CONST_INTEGER);
+    if (i.getKind() != CONST_INTEGER)
+    {
+      return false;
+    }
     const Integer& ii = i.getConst<Rational>().getNumerator();
     if (!ii.fitsUnsignedInt())
     {
@@ -224,7 +227,7 @@ Node GenericOp::getOperatorForIndices(Kind k, const std::vector<Node>& indices)
     std::vector<uint32_t> numerals;
     if (!convertToNumeralList(indices, numerals))
     {
-      // failed to convert due to overflow on index
+      // failed to convert due to non-constant, or overflow on index
       return Node::null();
     }
     switch (k)
@@ -315,6 +318,33 @@ Node GenericOp::getOperatorForIndices(Kind k, const std::vector<Node>& indices)
     }
   }
   return Node::null();
+}
+
+Node GenericOp::getConcreteApp(const Node& app)
+{
+  Trace("generic-op") << "getConcreteApp " << app << std::endl;
+  Assert(app.getKind() == kind::APPLY_INDEXED_SYMBOLIC);
+  Kind okind = app.getOperator().getConst<GenericOp>().getKind();
+  // determine how many arguments should be passed to the end function. This is
+  // usually one, but we handle cases where it is >1.
+  size_t nargs = metakind::getMinArityForKind(okind);
+  std::vector<Node> indices(app.begin(), app.end() - nargs);
+  Node op = getOperatorForIndices(okind, indices);
+  // could have a bad index, in which case we don't rewrite
+  if (op.isNull())
+  {
+    return app;
+  }
+  std::vector<Node> args;
+  args.push_back(op);
+  args.insert(args.end(), app.end() - nargs, app.end());
+  Node ret = NodeManager::currentNM()->mkNode(okind, args);
+  // could be ill typed, in which case we don't rewrite
+  if (ret.getTypeOrNull(true).isNull())
+  {
+    return app;
+  }
+  return ret;
 }
 
 }  // namespace cvc5::internal

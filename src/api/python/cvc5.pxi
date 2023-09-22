@@ -37,7 +37,7 @@ from cvc5 cimport wstring as c_wstring
 from cvc5 cimport tuple as c_tuple
 from cvc5 cimport get0, get1, get2
 from cvc5kinds cimport Kind as c_Kind
-from cvc5sortkinds cimport SortKind as c_SortKind
+from cvc5kinds cimport SortKind as c_SortKind
 from cvc5types cimport BlockModelsMode as c_BlockModelsMode
 from cvc5types cimport RoundingMode as c_RoundingMode
 from cvc5types cimport UnknownExplanation as c_UnknownExplanation
@@ -1183,24 +1183,20 @@ cdef class Solver:
             term.cterm = self.csolver.mkTerm((<Op?> op).cop, v)
         return term
 
-    def mkTuple(self, sorts, terms):
+    def mkTuple(self, terms):
         """
             Create a tuple term. Terms are automatically converted if sorts are
             compatible.
 
-            :param sorts: The sorts of the elements in the tuple.
             :param terms: The elements in the tuple.
             :return: The tuple Term.
         """
-        cdef vector[c_Sort] csorts
         cdef vector[c_Term] cterms
 
-        for s in sorts:
-            csorts.push_back((<Sort?> s).csort)
         for s in terms:
             cterms.push_back((<Term?> s).cterm)
         cdef Term result = Term(self)
-        result.cterm = self.csolver.mkTuple(csorts, cterms)
+        result.cterm = self.csolver.mkTuple(cterms)
         return result
 
     def mkOp(self, k, *args):
@@ -1462,7 +1458,7 @@ cdef class Solver:
                     "Invalid second argument to mkBitVector '{}', "
                     "expected integer value".format(size))
             term.cterm = self.csolver.mkBitVector(
-                <uint32_t> size, <uint32_t> val)
+                <uint32_t> size, <const string&> str(val).encode(), 10)
         elif len(args) == 2:
             val = args[0]
             base = args[1]
@@ -1579,17 +1575,28 @@ cdef class Solver:
         term.cterm = self.csolver.mkRoundingMode(<c_RoundingMode> rm.value)
         return term
 
-    def mkFloatingPoint(self, int exp, int sig, Term val):
+    def mkFloatingPoint(self, arg0, arg1, Term arg2):
         """
-            Create a floating-point constant.
+            Create a floating-point value from a bit-vector given in IEEE-754
+            format, or from its three IEEE-754 bit-vector value components
+            (sign bit, exponent, significand). Arguments must be either given
+            as (int, int, Term) or (Term, Term, Term).
 
-            :param exp: Size of the exponent.
-            :param sig: Size of the significand.
-            :param val: Value of the floating-point constant as a bit-vector
-                        term.
+            :param arg0  The size of the exponent or the sign bit.
+            :param arg1  The size of the signifcand or the bit-vector
+                         representing the exponent.
+            :param arg2: The value of the floating-point constant as a
+                         bit-vector term or the bit-vector representing the
+                         significand.
+            :return The floating-point value.
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.mkFloatingPoint(exp, sig, val.cterm)
+        if isinstance(arg0, int):
+            term.cterm = self.csolver.mkFloatingPoint(
+                <int> arg0, <int> arg1, arg2.cterm)
+        else:
+            term.cterm = self.csolver.mkFloatingPoint(
+                (<Term> arg0).cterm, (<Term> arg1).cterm, arg2.cterm)
         return term
 
     def mkCardinalityConstraint(self, Sort sort, int index):
@@ -1961,34 +1968,49 @@ cdef class Solver:
             result.append(term)
         return result
 
-
-    def synthInv(self, symbol, bound_vars, Grammar grammar=None):
+    def findSynth(self, fst, Grammar grammar=None):
         """
-            Synthesize invariant.
+            Find a target term of interest using sygus enumeration with a
+            provided grammar.
 
             SyGuS v2:
 
             .. code-block:: smtlib
 
-                ( synth-inv <symbol> ( <boundVars>* ) <grammar> )
+                ( find-synth :target G)
 
-            :param symbol: The name of the invariant.
-            :param boundVars: The parameters to this invariant.
-            :param grammar: The syntactic constraints.
-            :return: The invariant.
+            :param fst: The identifier specifying what kind of term to find.
+            :param grammar: The grammar for the term.
+            :return: The result of the find, which is the null term if this
+                     call failed.
         """
         cdef Term term = Term(self)
-        cdef vector[c_Term] v
-        for bv in bound_vars:
-            v.push_back((<Term?> bv).cterm)
         if grammar is None:
-            term.cterm = self.csolver.synthInv(
-                    symbol.encode(), <const vector[c_Term]&> v)
+            term.cterm = self.csolver.findSynth(<c_FindSynthTarget> fst.value)
         else:
-            term.cterm = self.csolver.synthInv(
-                    symbol.encode(),
-                    <const vector[c_Term]&> v,
-                    grammar.cgrammar)
+            term.cterm = self.csolver.findSynth(<c_FindSynthTarget> fst.value,
+                                                grammar.cgrammar)
+        return term
+        
+    def findSynthNext(self):
+        """
+            Try to find a next solution for the synthesis conjecture
+            corresponding to the current list of functions-to-synthesize,
+            universal variables and constraints. Must be called immediately
+            after a successful call to check-synth or check-synth-next.
+            Requires incremental mode.
+
+            SyGuS v2:
+
+            .. code-block:: smtlib
+
+                ( find-synth-next )
+
+            :return: The result of the find, which is the null term if this
+                     call failed.
+        """
+        cdef Term term = Term(self)
+        term.cterm = self.csolver.findSynthNext()
         return term
 
     def checkSatAssuming(self, *assumptions):
@@ -2034,7 +2056,7 @@ cdef class Solver:
         sort.csort = self.csolver.declareDatatype(symbol.encode(), v)
         return sort
 
-    def declareFun(self, str symbol, list sorts, Sort sort):
+    def declareFun(self, str symbol, list sorts, Sort sort, fresh=True):
         """
             Declare n-ary function symbol.
 
@@ -2047,6 +2069,10 @@ cdef class Solver:
             :param symbol: The name of the function.
             :param sorts: The sorts of the parameters to this function.
             :param sort: The sort of the return value of this function.
+            :param fresh: If true, then this method always returns a new Term.
+                          Otherwise, this method will always return the
+                          same Term for each call with the given sorts and
+                          symbol where fresh is false.
             :return: The function.
         """
         cdef Term term = Term(self)
@@ -2054,11 +2080,12 @@ cdef class Solver:
         for s in sorts:
             v.push_back((<Sort?> s).csort)
         term.cterm = self.csolver.declareFun(symbol.encode(),
-                                             <const vector[c_Sort]&> v,
-                                             sort.csort)
+                                            <const vector[c_Sort]&> v,
+                                            sort.csort,
+                                            <bint> fresh)
         return term
 
-    def declareSort(self, str symbol, int arity):
+    def declareSort(self, str symbol, int arity, fresh=True):
         """
             Declare uninterpreted sort.
 
@@ -2077,10 +2104,14 @@ cdef class Solver:
 
             :param symbol: The name of the sort.
             :param arity: The arity of the sort.
+            :param fresh: If true, then this method always returns a new Sort.
+                          Otherwise, this method will always return the same
+                          Sort for each call with the given arity and symbol
+                          where fresh is false.
             :return: The sort.
         """
         cdef Sort sort = Sort(self)
-        sort.csort = self.csolver.declareSort(symbol.encode(), arity)
+        sort.csort = self.csolver.declareSort(symbol.encode(), arity, <bint> fresh)
         return sort
 
     def defineFun(self, str symbol, list bound_vars, Sort sort, Term term, glbl=False):
@@ -2193,7 +2224,7 @@ cdef class Solver:
 
         self.csolver.defineFunsRec(vf, vbv, vt, glb)
 
-    def getProof(self, c = ProofComponent.PROOF_COMPONENT_FULL):
+    def getProof(self, c = ProofComponent.FULL):
         """
             Get a proof associated with the most recent call to checkSat.
 
@@ -2210,11 +2241,11 @@ cdef class Solver:
                          versions.
             :param c: The component of the proof to return 
             :return: A string representing the proof. This takes into account
-            proof-format-mode when c is PROOF_COMPONENT_FULL.
+            proof-format-mode when c is FULL.
         """
         return self.csolver.getProof(<c_ProofComponent> c.value)
 
-    def getLearnedLiterals(self, type = LearnedLitType.LEARNED_LIT_INPUT):
+    def getLearnedLiterals(self, type = LearnedLitType.INPUT):
         """
             Get a list of literals that are entailed by the current set of assertions
 
@@ -2481,6 +2512,45 @@ cdef class Solver:
 
             diffi[termk] = termv
         return diffi
+
+    def getTimeoutCore(self):
+        """
+            Get a timeout core, which computes a subset of the current
+            assertions that cause a timeout. Note it does not require being
+            proceeded by a call to checkSat.
+
+            .. code-block:: smtlib
+
+                (get-timeout-core)
+
+            .. warning:: This method is experimental and may change in future
+                         versions.
+
+            :return: The result of the timeout core computation. This is a pair
+            containing a result and a list of formulas. If the result is unknown
+            and the reason is timeout, then the list of formulas correspond to a
+            subset of the current assertions that cause a timeout in the
+            specified time
+            :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+            If the result is unsat, then the list of formulas correspond to an
+            unsat core for the current assertions. Otherwise, the result is sat,
+            indicating that the current assertions are satisfiable, and
+            the list of formulas is empty.
+
+            This method may make multiple checks for satisfiability internally,
+            each limited by the timeout value given by
+            :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+        """
+        cdef pair[c_Result, vector[c_Term]] res
+        res = self.csolver.getTimeoutCore()
+        core = []
+        for a in res.second:
+            term = Term(self)
+            term.cterm = a
+            core.append(term)
+        cdef Result r = Result()
+        r.cr = res.first
+        return (r, core)
 
     def getValue(self, term_or_list):
         """
@@ -2792,6 +2862,25 @@ cdef class Solver:
         """
         self.csolver.setLogic(logic.encode())
 
+    def isLogicSet(self):
+        """
+            Is logic set? Returns whether we called setLogic yet for this
+            solver.
+
+            :return: whether we called setLogic yet for this solver.
+        """
+        return self.csolver.isLogicSet()
+
+    def getLogic(self):
+        """
+            Get the logic set the solver.
+
+            .. note:: Asserts isLogicSet().
+
+            :return: The logic used by the solver.
+        """
+        return self.csolver.getLogic().decode()
+
     def setOption(self, str option, str value):
         """
             Set option.
@@ -2827,7 +2916,7 @@ cdef class Solver:
                         versions.
 
             :param conj: The conjecture term.
-            :param grammar: A grammar for the inteprolant.
+            :param grammar: A grammar for the interpolant.
             :return: The interpolant.
                      See :cpp:func:`cvc5::Solver::getInterpolant` for details.
         """
@@ -4093,6 +4182,8 @@ cdef class Term:
 
     def getCardinalityConstraint(self):
         """
+            .. note:: Asserts :py:meth:`isCardinalityConstraint()`.
+
             :return: The sort the cardinality constraint is for and its upper
                      bound.
 
@@ -4105,6 +4196,47 @@ cdef class Term:
         sort.csort = p.first
         return (sort, p.second)
 
+    def isRealAlgebraicNumber(self):
+        """
+            :return: True if the term is a real algebraic number.
+
+            .. warning:: This method is experimental and may change in future
+                         versions.
+        """
+        return self.cterm.isRealAlgebraicNumber()
+
+
+    def getRealAlgebraicNumberDefiningPolynomial(self, Term v):
+        """
+            .. note:: Asserts :py:meth:`isRealAlgebraicNumber()`.
+
+           :param v: The variable over which to express the polynomial
+           :return: The defining polynomial for the real algebraic number, expressed in
+                    terms of the given variable.
+        """
+        cdef Term term = Term(self.solver)
+        term.cterm = self.cterm.getRealAlgebraicNumberDefiningPolynomial(v.cterm)
+        return term
+
+    def getRealAlgebraicNumberLowerBound(self):
+        """
+            .. note:: Asserts :py:meth:`isRealAlgebraicNumber()`.
+
+	        :return: The lower bound for the value of the real algebraic number.
+        """
+        cdef Term term = Term(self.solver)
+        term.cterm = self.cterm.getRealAlgebraicNumberLowerBound()
+        return term
+
+    def getRealAlgebraicNumberUpperBound(self):
+        """
+            .. note:: Asserts :py:meth:`isRealAlgebraicNumber()`.
+
+	        :return: The upper bound for the value of the real algebraic number.
+        """
+        cdef Term term = Term(self.solver)
+        term.cterm = self.cterm.getRealAlgebraicNumberUpperBound()
+        return term
 
     def isUninterpretedSortValue(self):
         """

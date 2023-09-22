@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -324,8 +324,7 @@ bool SygusRepairConst::isRepairable(Node n, bool useConstantsAsHoles)
   }
   Node op = n.getOperator();
   unsigned cindex = datatypes::utils::indexOf(op);
-  Node sygusOp = dt[cindex].getSygusOp();
-  if (sygusOp.getAttribute(SygusAnyConstAttribute()))
+  if (dt[cindex].isSygusAnyConstant())
   {
     // if it represents "any constant" then it is repairable
     return true;
@@ -336,7 +335,7 @@ bool SygusRepairConst::isRepairable(Node n, bool useConstantsAsHoles)
   }
   if (useConstantsAsHoles && dt.getSygusAllowConst())
   {
-    if (sygusOp.isConst())
+    if (dt[cindex].getSygusOp().isConst())
     {
       // if a constant, it is repairable
       return true;

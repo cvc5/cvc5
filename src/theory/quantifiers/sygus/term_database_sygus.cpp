@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,6 @@
 #include "base/check.h"
 #include "expr/dtype_cons.h"
 #include "expr/skolem_manager.h"
-#include "expr/sygus_datatype.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
@@ -561,7 +560,6 @@ void TermDbSygus::registerEnumerator(Node e,
   }
   d_enum_active_gen[e] = isActiveGen;
   d_enum_basic[e] = isActiveGen && !isVarAgnostic;
-
   // We make an active guard if we will be explicitly blocking solutions for
   // the enumerator. This is the case if the role of the enumerator is to
   // populate a pool of terms, or (some cases) of when it is actively generated.
@@ -574,9 +572,35 @@ void TermDbSygus::registerEnumerator(Node e,
     ag = d_qstate.getValuation().ensureLiteral(ag);
     // must ensure that it is asserted as a literal before we begin solving
     Node lem = nm->mkNode(OR, ag, ag.negate());
-    d_qim->requirePhase(ag, true);
+    d_qim->preferPhase(ag, true);
     d_qim->lemma(lem, InferenceId::QUANTIFIERS_SYGUS_ENUM_ACTIVE_GUARD_SPLIT);
     d_enum_to_active_guard[e] = ag;
+  }
+  // for debugging
+  if (d_env.isOutputOn(OutputTag::SYGUS_ENUMERATOR))
+  {
+    d_env.output(OutputTag::SYGUS_ENUMERATOR) << "(sygus-enumerator";
+    if (!f.isNull())
+    {
+      Node ff;
+      SkolemFunId id;
+      SkolemManager* sm = nm->getSkolemManager();
+      sm->isSkolemFunction(f, id, ff);
+      Assert(id == SkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED);
+      d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :synth-fun " << ff;
+    }
+    d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :role " << erole;
+    std::stringstream ss;
+    if (isActiveGen)
+    {
+      ss << (d_enum_var_agnostic[e] ? "VAR_AGNOSTIC" : "FAST");
+    }
+    else
+    {
+      ss << "SMART";
+    }
+    d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :type " << ss.str();
+    d_env.output(OutputTag::SYGUS_ENUMERATOR) << ")" << std::endl;
   }
 }
 
@@ -864,9 +888,8 @@ bool TermDbSygus::isSymbolicConsApp(Node n) const
   const DType& dt = tn.getDType();
   Assert(dt.isSygus());
   unsigned cindex = datatypes::utils::indexOf(n.getOperator());
-  Node sygusOp = dt[cindex].getSygusOp();
   // it is symbolic if it represents "any constant"
-  return sygusOp.getAttribute(SygusAnyConstAttribute());
+  return dt[cindex].isSygusAnyConstant();
 }
 
 bool TermDbSygus::canConstructKind(TypeNode tn,

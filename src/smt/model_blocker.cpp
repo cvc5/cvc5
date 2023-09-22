@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -114,12 +114,16 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
               // quantified formulas can be queried
               n = rewrite(n);
               Node vn = m->getValue(n);
-              Assert(vn.isConst());
-              if (vn.getConst<bool>() == cpol)
+              if (vn.isConst() && vn.getConst<bool>() == cpol)
               {
                 impl = cpol ? n : n.negate();
                 break;
               }
+            }
+            if (impl.isNull())
+            {
+              // unknown value, take self
+              visited[cur] = cur;
             }
           }
           else if (catom.getKind() == OR)
@@ -136,32 +140,52 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
         else if (catom.getKind() == ITE)
         {
           Node vcond = m->getValue(catom[0]);
-          Assert(vcond.isConst());
-          Node cond = catom[0];
-          Node branch;
-          if (vcond.getConst<bool>())
+          if (vcond.isConst())
           {
-            branch = catom[1];
+            Node cond = catom[0];
+            Node branch;
+            if (vcond.getConst<bool>())
+            {
+              branch = catom[1];
+            }
+            else
+            {
+              cond = cond.negate();
+              branch = catom[2];
+            }
+            impl = nm->mkNode(AND, cond, cpol ? branch : branch.negate());
           }
           else
           {
-            cond = cond.negate();
-            branch = catom[2];
+            // unknown value, take self
+            visited[cur] = cur;
           }
-          impl = nm->mkNode(AND, cond, cpol ? branch : branch.negate());
         }
         else if ((catom.getKind() == EQUAL && catom[0].getType().isBoolean())
                  || catom.getKind() == XOR)
         {
           // based on how the children evaluate in the model
           std::vector<Node> children;
+          bool success = true;
           for (const Node& cn : catom)
           {
             Node vn = m->getValue(cn);
-            Assert(vn.isConst());
+            if (!vn.isConst())
+            {
+              success = false;
+              break;
+            }
             children.push_back(vn.getConst<bool>() ? cn : cn.negate());
           }
-          impl = nm->mkNode(AND, children);
+          if (success)
+          {
+            impl = nm->mkNode(AND, children);
+          }
+          else
+          {
+            // unknown value, take self
+            visited[cur] = cur;
+          }
         }
         else
         {

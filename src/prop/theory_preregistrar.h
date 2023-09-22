@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -61,17 +61,16 @@ class TheoryPreregistrar : protected EnvObj
    */
   void notifySatLiteral(TNode n);
   /**
-   * Callback to notify that the SAT solver backtracked by the given number
-   * of levels.
-   * @param nlevels The number of levels the SAT solver backtracked.
+   * Callback to notify that the SAT solver backtracked.
    */
-  void notifyBacktrack(uint32_t nlevels);
+  void notifyBacktrack();
   /**
    * Notify that n is asserted from SAT solver, return true if we should
    * assert n to the theory engine.
    *
    * An example of when this method returns false is when n is a Boolean
-   * variable that does not have kind BOOLEAN_TERM_VARIABLE. Note we only
+   * variable that does not have skolem function id PURIFY (which marks that
+   * it requires sending to the theory). Note we only
    * call this method for such terms when the TRACK_AND_NOTIFY(_VAR) policy
    * is used in the CNF stream.
    */

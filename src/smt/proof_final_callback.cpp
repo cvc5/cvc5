@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,6 +20,7 @@
 #include "options/proof_options.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_manager.h"
+#include "rewriter/rewrite_proof_rule.h"
 #include "smt/env.h"
 #include "smt/set_defaults.h"
 #include "theory/builtin/proof_checker.h"
@@ -41,6 +42,9 @@ ProofFinalCallback::ProofFinalCallback(Env& env)
       d_annotationRuleIds(
           statisticsRegistry().registerHistogram<theory::InferenceId>(
               "finalProof::annotationRuleId")),
+      d_dslRuleCount(
+          statisticsRegistry().registerHistogram<rewriter::DslPfRule>(
+              "finalProof::dslRuleCount")),
       d_totalRuleCount(
           statisticsRegistry().registerInt("finalProof::totalRuleCount")),
       d_minPedanticLevel(
@@ -90,8 +94,18 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   // record stats for the rule
   d_ruleCount << r;
   ++d_totalRuleCount;
+  // if a DSL rewrite, take DSL stat
+  if (r == PfRule::DSL_REWRITE)
+  {
+    const std::vector<Node>& args = pn->getArguments();
+    rewriter::DslPfRule di;
+    if (rewriter::getDslPfRule(args[0], di))
+    {
+      d_dslRuleCount << di;
+    }
+  }
   // take stats on the instantiations in the proof
-  if (r == PfRule::INSTANTIATE)
+  else if (r == PfRule::INSTANTIATE)
   {
     Node q = pn->getChildren()[0]->getResult();
     const std::vector<Node>& args = pn->getArguments();

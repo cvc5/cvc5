@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,6 @@
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
-#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_reconstruct.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -72,7 +71,7 @@ void CegSingleInv::initialize(Node q)
   for (const Node& sf : q[0])
   {
     // get its argument list
-    SygusUtils::getSygusArgumentListForSynthFun(sf, progVars[sf]);
+    SygusUtils::getOrMkSygusArgumentList(sf, progVars[sf]);
   }
   // compute single invocation partition
   Node qq;
@@ -215,9 +214,10 @@ Result CegSingleInv::solve()
   // Mark the quantified formula with the quantifier elimination attribute to
   // ensure its structure is preserved in the query below.
   Node siq = d_single_inv;
+  Node n_attr;
   if (siq.getKind() == FORALL)
   {
-    Node n_attr = sm->mkDummySkolem(
+    n_attr = sm->mkDummySkolem(
         "qe_si",
         nm->booleanType(),
         "Auxiliary variable for qe attr for single invocation.");
@@ -247,20 +247,30 @@ Result CegSingleInv::solve()
           << std::endl;
     }
     // conjecture is infeasible or unknown
-    return res;
+    return r;
   }
   // now, get the instantiations
   std::vector<Node> qs;
   siSmt->getInstantiatedQuantifiedFormulas(qs);
-  Assert(qs.size() <= 1);
   // track the instantiations, as solution construction is based on this
   Trace("sygus-si") << "#instantiated quantified formulas=" << qs.size()
                     << std::endl;
   d_inst.clear();
   d_instConds.clear();
-  if (!qs.empty())
+  Node q;
+  // look for the quantified formula with the appropriate attribute that we
+  // marked above.
+  for (const Node& qss : qs)
   {
-    Node q = qs[0];
+    if (qss.getNumChildren() == 3 && qss[2] == n_attr)
+    {
+      q = qss;
+      break;
+    }
+  }
+  // if the quantified formula was instantiated in the query
+  if (!q.isNull())
+  {
     Assert(q.getKind() == FORALL);
     siSmt->getInstantiationTermVectors(q, d_inst);
     Trace("sygus-si") << "#instantiations of " << q << "=" << d_inst.size()
@@ -411,7 +421,7 @@ Node CegSingleInv::getSolutionFromInst(size_t index)
   s = extendedRewrite(s);
   Trace("csi-sol") << "Solution (post-simplification): " << s << std::endl;
   // wrap into lambda, as needed
-  return SygusUtils::wrapSolutionForSynthFun(prog, s);
+  return SygusUtils::wrapSolution(prog, s);
 }
 
 void CegSingleInv::setSolution()

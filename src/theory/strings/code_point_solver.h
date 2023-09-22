@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tianyi Liang, Andres Noetzli
+ *   Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,6 +25,7 @@ namespace theory {
 namespace strings {
 
 class BaseSolver;
+class CoreSolver;
 class InferenceManager;
 class TermRegistry;
 class SolverState;
@@ -40,7 +41,8 @@ class CodePointSolver : protected EnvObj
                   SolverState& s,
                   InferenceManager& im,
                   TermRegistry& tr,
-                  BaseSolver& bs);
+                  BaseSolver& bs,
+                  CoreSolver& cs);
   ~CodePointSolver() {}
   /** check codes
    *
@@ -62,6 +64,8 @@ class CodePointSolver : protected EnvObj
   TermRegistry& d_termReg;
   /** reference to the base solver, used for certain queries */
   BaseSolver& d_bsolver;
+  /** The core solver */
+  CoreSolver& d_csolver;
   /** Commonly used constants */
   Node d_negOne;
 };

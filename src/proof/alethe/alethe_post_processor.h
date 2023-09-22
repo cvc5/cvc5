@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Hanna Lachnitt, Haniel Barbosa
+ *   Hanna Lachnitt, Haniel Barbosa, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -138,6 +138,15 @@ class AletheProofPostprocessCallback : protected EnvObj,
                            const std::vector<Node>& children,
                            const std::vector<Node>& args,
                            CDProof& cdp);
+
+  /** Test whether resolution premise is wrongly derived as a non-singleton
+   * clause. Fix if needed.
+   *
+   * If the premise is used as a singleton but its proof concludes a
+   * non-singleton clause, a new proof of its derivation as a singleton is added
+   * to cdp.
+   */
+  bool maybeReplacePremiseProof(Node premise, CDProof* cdp);
 
   /** Nodes corresponding to the Boolean values. */
   Node d_true;

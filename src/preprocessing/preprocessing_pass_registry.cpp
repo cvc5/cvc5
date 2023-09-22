@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -55,7 +55,7 @@
 #include "preprocessing/passes/sygus_inference.h"
 #include "preprocessing/passes/synth_rew_rules.h"
 #include "preprocessing/passes/theory_preprocess.h"
-#include "preprocessing/passes/theory_rewrite_eq.h"
+#include "preprocessing/passes/static_rewrite.h"
 #include "preprocessing/passes/unconstrained_simplifier.h"
 #include "preprocessing/preprocessing_pass.h"
 
@@ -152,7 +152,7 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("bool-to-bv", callCtor<BoolToBV>);
   registerPassInfo("ho-elim", callCtor<HoElim>);
   registerPassInfo("fun-def-fmf", callCtor<FunDefFmf>);
-  registerPassInfo("theory-rewrite-eq", callCtor<TheoryRewriteEq>);
+  registerPassInfo("static-rewrite", callCtor<StaticRewrite>);
   registerPassInfo("strings-eager-pp", callCtor<StringsEagerPp>);
 }
 

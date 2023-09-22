@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -60,7 +60,7 @@ class EngineOutputChannel : public theory::OutputChannel
 
   void lemma(TNode lemma, LemmaProperty p = LemmaProperty::NONE) override;
 
-  void requirePhase(TNode n, bool phase) override;
+  void preferPhase(TNode n, bool phase) override;
 
   void setModelUnsound(IncompleteId id) override;
 
@@ -92,8 +92,8 @@ class EngineOutputChannel : public theory::OutputChannel
   {
    public:
     Statistics(StatisticsRegistry& sr, const std::string& statPrefix);
-    /** Number of calls to conflict, propagate, lemma, requirePhase */
-    IntStat conflicts, propagations, lemmas, requirePhase, trustedConflicts,
+    /** Number of calls to conflict, propagate, lemma, preferPhase */
+    IntStat conflicts, propagations, lemmas, preferPhase, trustedConflicts,
         trustedLemmas;
   };
   /** The theory engine we're communicating with. */

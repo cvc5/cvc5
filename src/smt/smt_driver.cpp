@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,6 +42,11 @@ SmtDriver::SmtDriver(Env& env, SmtSolver& smt, ContextManager* ctx)
 
 Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
 {
+  bool hasAssumptions = !assumptions.empty();
+  if (d_ctx)
+  {
+    d_ctx->notifyCheckSat(hasAssumptions);
+  }
   Assertions& as = d_smt.getAssertions();
   Result result;
   try
@@ -54,6 +59,7 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
     Trace("smt") << "SmtSolver::check()" << std::endl;
 
     ResourceManager* rm = d_env.getResourceManager();
+    // if we are already out of (cumulative) resources
     if (rm->out())
     {
       UnknownExplanation why = rm->outOfResources()
@@ -63,8 +69,6 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
     }
     else
     {
-      rm->beginCall();
-
       bool checkAgain = true;
       do
       {
@@ -74,7 +78,8 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
         result = checkSatNext(d_ap);
         // if we were asked to check again
         if (result.getStatus() == Result::UNKNOWN
-            && result.getUnknownExplanation() == REQUIRES_CHECK_AGAIN)
+            && result.getUnknownExplanation()
+                   == UnknownExplanation::REQUIRES_CHECK_AGAIN)
         {
           // finish init to construct new theory/prop engine
           d_smt.finishInit();
@@ -84,11 +89,6 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
           checkAgain = false;
         }
       } while (checkAgain);
-
-      rm->endCall();
-      Trace("limit") << "SmtSolver::check(): cumulative millis "
-                     << rm->getTimeUsage() << ", resources "
-                     << rm->getResourceUsage() << std::endl;
     }
   }
   catch (const LogicException& e)
@@ -108,7 +108,10 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
     d_smt.getPropEngine()->resetTrail();
     throw;
   }
-
+  if (d_ctx)
+  {
+    d_ctx->notifyCheckSatResult(hasAssumptions);
+  }
   return result;
 }
 
@@ -142,10 +145,12 @@ void SmtDriver::notifyPushPost() { d_smt.pushPropContext(); }
 
 void SmtDriver::notifyPopPre() { d_smt.popPropContext(); }
 
-void SmtDriver::notifyPostSolve() { d_smt.postsolve(); }
+void SmtDriver::notifyPostSolve() { d_smt.resetTrail(); }
 
-SmtDriverSingleCall::SmtDriverSingleCall(Env& env, SmtSolver& smt)
-    : SmtDriver(env, smt, nullptr), d_assertionListIndex(userContext(), 0)
+SmtDriverSingleCall::SmtDriverSingleCall(Env& env,
+                                         SmtSolver& smt,
+                                         ContextManager* ctx)
+    : SmtDriver(env, smt, ctx), d_assertionListIndex(userContext(), 0)
 {
 }
 

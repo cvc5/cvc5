@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -77,7 +77,7 @@ string Configuration::getVersionString() { return CVC5_FULL_VERSION; }
 
 std::string Configuration::copyright() {
   std::stringstream ss;
-  ss << "Copyright (c) 2009-2022 by the authors and their institutional\n"
+  ss << "Copyright (c) 2009-2023 by the authors and their institutional\n"
      << "affiliations listed at https://cvc5.github.io/people.html\n\n";
 
   if (Configuration::licenseIsGpl()) {
@@ -93,10 +93,6 @@ std::string Configuration::copyright() {
 
   ss << "THIS SOFTWARE IS PROVIDED AS-IS, WITHOUT ANY WARRANTIES.\n"
      << "USE AT YOUR OWN RISK.\n\n";
-
-  ss << "cvc5 incorporates code from ANTLR3 (http://www.antlr.org).\n"
-     << "See licenses/antlr3-LICENSE for copyright and licensing information."
-     << "\n\n";
 
   ss << "This version of cvc5 is linked against the following non-(L)GPL'ed\n"
      << "third party libraries.\n\n";
@@ -130,7 +126,7 @@ std::string Configuration::copyright() {
   }
 
   ss << "  SymFPU - The Symbolic Floating Point Unit\n"
-     << "  See https://github.com/martin-cs/symfpu/tree/cvc5 for copyright "
+     << "  See https://github.com/martin-cs/symfpu/tree/CVC4 for copyright "
      << "information.\n\n";
 
   if (Configuration::isBuiltWithGmp() || Configuration::isBuiltWithPoly())

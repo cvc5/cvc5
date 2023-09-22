@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Diego Della Rocca de Camargos, Vinícius Braga Freire
+ *   Vinícius Braga Freire, Haniel Barbosa, Diego Della Rocca de Camargos
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -495,7 +495,7 @@ void DotPrinter::ruleArguments(std::ostringstream& currentArguments,
     }
     else
     {
-      Kind k;
+      Kind k = kind::UNDEFINED_KIND;
       ProofRuleChecker::getKind(args[0], k);
       currentArguments << printer::smt2::Smt2Printer::smtKindString(k);
     }

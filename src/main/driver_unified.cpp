@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Morgan Deters, Mathias Preiner
+ *   Gereon Kremer, Andrew Reynolds, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -14,6 +14,7 @@
  */
 
 #include <cvc5/cvc5.h>
+#include <cvc5/cvc5_parser.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -35,8 +36,6 @@
 #include "main/portfolio_driver.h"
 #include "main/signal_handlers.h"
 #include "main/time_limit.h"
-#include "parser/api/cpp/command.h"
-#include "parser/api/cpp/input_parser.h"
 #include "smt/solver_engine.h"
 #include "util/result.h"
 
@@ -74,6 +73,11 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
   if (solver->getOptionInfo("help").boolValue())
   {
     printUsage(progName, dopts.out());
+    exit(1);
+  }
+  else if (solver->getOptionInfo("help-regular").boolValue())
+  {
+    printUsage(progName, dopts.out(), true);
     exit(1);
   }
   for (const auto& name : {"show-config",
@@ -131,9 +135,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
       size_t len = filenameStr.size();
       if(len >= 5 && !strcmp(".smt2", filename + len - 5)) {
         solver->setOption("input-language", "smt2");
-      } else if((len >= 2 && !strcmp(".p", filename + len - 2))
-                || (len >= 5 && !strcmp(".tptp", filename + len - 5))) {
-        solver->setOption("input-language", "tptp");
       } else if((len >= 3 && !strcmp(".sy", filename + len - 3))
                 || (len >= 3 && !strcmp(".sl", filename + len - 3))) {
         // version 2 sygus is the default

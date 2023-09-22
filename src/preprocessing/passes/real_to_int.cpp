@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -195,7 +195,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
         else if (n.isVar())
         {
           Node toIntN = nm->mkNode(kind::TO_INTEGER, n);
-          ret = sm->mkPurifySkolem(toIntN, "__realToIntInternal_var");
+          ret = sm->mkPurifySkolem(toIntN);
           Node retToReal = nm->mkNode(kind::TO_REAL, ret);
           var_eq.push_back(n.eqNode(retToReal));
           // add the substitution to the preprocessing context, which ensures

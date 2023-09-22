@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -440,13 +440,14 @@ bool EqProof::expandTransitivityForDisequalities(
   Trace("eqproof-conv")
       << "EqProof::expandTransitivityForDisequalities: now derive conclusion "
       << conclusion;
+  Node offendingNode = premises[offending];
   premises.clear();
-  premises.push_back(premises[offending]);
+  premises.push_back(offendingNode);
   if (inSubstCase)
   {
     Trace("eqproof-conv") << (substConclusionInReverseOrder ? " [inverted]"
                                                             : "")
-                          << " via subsitution from " << premises[offending]
+                          << " via subsitution from " << premises[0]
                           << " and (inverted subst) " << substPremises << "\n";
     //  By this point, for premise disequality (= (= t1 t2) false), we have
     //  potentially already built
@@ -469,7 +470,7 @@ bool EqProof::expandTransitivityForDisequalities(
     Node congConclusion = nm->mkNode(
         kind::EQUAL,
         nm->mkNode(kind::EQUAL, substPremises[0][0], substPremises[1][0]),
-        premises[offending][0]);
+        premises[0][0]);
     p->addStep(congConclusion,
                PfRule::CONG,
                substPremises,
@@ -664,11 +665,11 @@ bool EqProof::buildTransitivityChain(Node conclusion,
             << 1 + recursivePremises.size() << " of the original "
             << premises.size() << " premises\n"
             << pop;
+        Node premiseNode = correctlyOrdered
+                               ? premises[i]
+                               : premises[i][1].eqNode(premises[i][0]);
         premises.clear();
-        premises.insert(premises.begin(),
-                        correctlyOrdered
-                            ? premises[i]
-                            : premises[i][1].eqNode(premises[i][0]));
+        premises.push_back(premiseNode);
         premises.insert(
             premises.end(), recursivePremises.begin(), recursivePremises.end());
         return true;

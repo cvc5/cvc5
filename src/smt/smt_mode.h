@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -44,7 +44,9 @@ enum class SmtMode
   // immediately after a successful call to get-interpolant
   INTERPOL,
   // immediately after a successful call to check-synth or check-synth-next
-  SYNTH
+  SYNTH,
+  // immediately after a successful call to find-synth or find-synth-next
+  FIND_SYNTH
 };
 /**
  * Writes a SmtMode to a stream.

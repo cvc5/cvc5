@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,6 +28,7 @@ const char* toString(InferenceId i)
 {
   switch (i)
   {
+    case InferenceId::NONE: return "NONE";
     case InferenceId::EQ_CONSTANT_MERGE: return "EQ_CONSTANT_MERGE";
     case InferenceId::COMBINATION_SPLIT: return "COMBINATION_SPLIT";
     case InferenceId::EXTT_SIMPLIFY: return "EXTT_SIMPLIFY";
@@ -259,15 +260,25 @@ const char* toString(InferenceId i)
       return "QUANTIFIERS_CEGQI_VTS_LB_INF";
     case InferenceId::QUANTIFIERS_ORACLE_INTERFACE:
       return "QUANTIFIERS_ORACLE_INTERFACE";
+    case InferenceId::QUANTIFIERS_ORACLE_PURIFY_SUBS:
+      return "QUANTIFIERS_ORACLE_PURIFY_SUBS";
     case InferenceId::QUANTIFIERS_SYQI_CEX: return "QUANTIFIERS_SYQI_CEX";
     case InferenceId::QUANTIFIERS_SYQI_EVAL_UNFOLD:
       return "QUANTIFIERS_SYQI_EVAL_UNFOLD";
     case InferenceId::QUANTIFIERS_SYGUS_ENUM_ACTIVE_GUARD_SPLIT:
       return "QUANTIFIERS_SYGUS_ENUM_ACTIVE_GUARD_SPLIT";
-    case InferenceId::QUANTIFIERS_SYGUS_EXCLUDE_CURRENT:
-      return "QUANTIFIERS_SYGUS_EXCLUDE_CURRENT";
+    case InferenceId::QUANTIFIERS_SYGUS_ACTIVE_GEN_EXCLUDE_CURRENT:
+      return "QUANTIFIERS_SYGUS_ACTIVE_GEN_EXCLUDE_CURRENT";
     case InferenceId::QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT:
       return "QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT";
+    case InferenceId::QUANTIFIERS_SYGUS_INC_EXCLUDE_CURRENT:
+      return "QUANTIFIERS_SYGUS_INC_EXCLUDE_CURRENT";
+    case InferenceId::QUANTIFIERS_SYGUS_SC_EXCLUDE_CURRENT:
+      return "QUANTIFIERS_SYGUS_SC_EXCLUDE_CURRENT";
+    case InferenceId::QUANTIFIERS_SYGUS_NO_VERIFY_EXCLUDE_CURRENT:
+      return "QUANTIFIERS_SYGUS_NO_VERIFY_EXCLUDE_CURRENT";
+    case InferenceId::QUANTIFIERS_SYGUS_REPEAT_CEX_EXCLUDE_CURRENT:
+      return "QUANTIFIERS_SYGUS_REPEAT_CEX_EXCLUDE_CURRENT";
     case InferenceId::QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA:
       return "QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA";
     case InferenceId::QUANTIFIERS_SYGUS_SI_INFEASIBLE:
@@ -308,6 +319,8 @@ const char* toString(InferenceId i)
       return "QUANTIFIERS_SYGUS_PBE_CONSTRUCT_SOL";
     case InferenceId::QUANTIFIERS_SYGUS_COMPLETE_ENUM:
       return "QUANTIFIERS_SYGUS_COMPLETE_ENUM";
+    case InferenceId::QUANTIFIERS_SYGUS_SC_INFEASIBLE:
+      return "QUANTIFIERS_SYGUS_SC_INFEASIBLE";
     case InferenceId::QUANTIFIERS_DSPLIT: return "QUANTIFIERS_DSPLIT";
     case InferenceId::QUANTIFIERS_CONJ_GEN_SPLIT:
       return "QUANTIFIERS_CONJ_GEN_SPLIT";
@@ -532,8 +545,11 @@ const char* toString(InferenceId i)
     case InferenceId::UF_HO_LAMBDA_APP_REDUCE: return "HO_LAMBDA_APP_REDUCE";
     case InferenceId::UF_ARITH_BV_CONV_REDUCTION:
       return "UF_ARITH_BV_CONV_REDUCTION";
+    case InferenceId::UNKNOWN: return "?";
 
-    default: return "?";
+    default:
+      Assert(false) << "No print for inference id " << static_cast<size_t>(i);
+      return "?Unhandled";
   }
 }
 

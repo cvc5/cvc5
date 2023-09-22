@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -105,17 +105,8 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
         if (options().datatypes.sygusRewriter
             != options::SygusRewriterMode::NONE)
         {
-          std::ostream* out = nullptr;
-          if (options().quantifiers.sygusRewVerify)
-          {
-            d_samplerRrV.reset(new SygusSampler(d_env));
-            d_samplerRrV->initializeSygus(
-                d_tds, e, options().quantifiers.sygusSamples, false);
-            // use the default output for the output of sygusRewVerify
-            out = options().base.out;
-          }
-          d_secd = std::make_unique<SygusEnumeratorCallbackDefault>(
-              d_env, e, d_tds, &d_stats, d_eec.get(), d_samplerRrV.get(), out);
+          d_secd = std::make_unique<SygusEnumeratorCallback>(
+              d_env, d_tds, &d_stats, d_eec.get());
         }
         // if sygus repair const is enabled, we enumerate terms with free
         // variables as arguments to any-constant constructors
@@ -218,7 +209,7 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
       TermDbSygus::toStreamSygus("sygus-active-gen-debug", absE);
       Trace("sygus-active-gen-debug") << std::endl;
     }
-    d_qim.lemma(lem, InferenceId::QUANTIFIERS_SYGUS_EXCLUDE_CURRENT);
+    d_qim.lemma(lem, InferenceId::QUANTIFIERS_SYGUS_ACTIVE_GEN_EXCLUDE_CURRENT);
   }
   else
   {

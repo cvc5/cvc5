@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed
+ *   Mudathir Mohamed, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,9 +23,20 @@ namespace cvc5::internal {
 
 std::ostream& operator<<(std::ostream& out, const ProjectOp& op)
 {
-  for (const uint32_t& index : op.getIndices())
+  // should only be used for debugging, not in the smt2 printer.
+  const std::vector<uint32_t>& indices = op.getIndices();
+  if (indices.empty())
   {
-    out << " " << index;
+    out << "ProjectOp";
+  }
+  else
+  {
+    out << "(ProjectOp ";
+    for (const uint32_t& index : op.getIndices())
+    {
+      out << " " << index;
+    }
+    out << ")";
   }
   return out;
 }

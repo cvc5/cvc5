@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -72,8 +72,18 @@ Node TheoryArraysRewriter::normalizeConstant(TNode node)
   {
     return node;
   }
-  Node ret = normalizeConstant(node, node[1].getType().getCardinality());
-  Assert(ret.isConst());
+  Node ret;
+  TypeNode tn = node[1].getType();
+  CardinalityClass tcc = tn.getCardinalityClass();
+  if (tcc == CardinalityClass::FINITE || tcc == CardinalityClass::ONE)
+  {
+    ret = normalizeConstant(node, tn.getCardinality());
+  }
+  else
+  {
+    ret = normalizeConstant(node, Cardinality::INTEGERS);
+  }
+  Assert(ret.isConst()) << "Non-constant after normalization: " << ret;
   return ret;
 }
 

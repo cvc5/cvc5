@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,6 +33,7 @@ DifficultyManager::DifficultyManager(Env& env,
     : EnvObj(env),
       d_rlv(rlv),
       d_input(userContext()),
+      d_lemma(userContext()),
       d_val(val),
       d_dfmap(userContext())
 {
@@ -47,11 +48,19 @@ void DifficultyManager::notifyInputAssertions(
   }
 }
 
-void DifficultyManager::getDifficultyMap(std::map<Node, Node>& dmap)
+void DifficultyManager::getDifficultyMap(std::map<Node, Node>& dmap,
+                                         bool includeLemmas)
 {
   NodeManager* nm = NodeManager::currentNM();
   for (const std::pair<const Node, uint64_t> p : d_dfmap)
   {
+    if (!includeLemmas)
+    {
+      if (d_input.find(p.first) == d_input.end())
+      {
+        continue;
+      }
+    }
     dmap[p.first] = nm->mkConstInt(Rational(p.second));
   }
 }
@@ -68,7 +77,7 @@ uint64_t DifficultyManager::getCurrentDifficulty(const Node& n) const
 
 void DifficultyManager::notifyLemma(Node n, bool inFullEffortCheck)
 {
-  d_input.insert(n);
+  d_lemma.insert(n);
   // compute if we should consider the lemma
   bool considerLemma = false;
   if (options().smt.difficultyMode
@@ -125,27 +134,32 @@ void DifficultyManager::notifyLemma(Node n, bool inFullEffortCheck)
   }
 }
 
+bool DifficultyManager::needsCandidateModel() const
+{
+  return options().smt.difficultyMode == options::DifficultyMode::MODEL_CHECK;
+}
+
 void DifficultyManager::notifyCandidateModel(TheoryModel* m)
 {
-  if (options().smt.difficultyMode != options::DifficultyMode::MODEL_CHECK)
-  {
-    return;
-  }
+  Assert(needsCandidateModel());
   Trace("diff-man") << "DifficultyManager::notifyCandidateModel, #input="
-                    << d_input.size() << std::endl;
-  for (const Node& a : d_input)
+                    << d_input.size() << " #lemma=" << d_lemma.size()
+                    << std::endl;
+  for (size_t i = 0; i < 2; i++)
   {
-    // should have miniscoped the assertions upstream
-    Assert(a.getKind() != kind::AND);
-    // check if each input is satisfied
-    Node av = m->getValue(a);
-    if (av.isConst() && av.getConst<bool>())
+    NodeSet& ns = i == 0 ? d_input : d_lemma;
+    for (const Node& a : ns)
     {
-      continue;
+      // check if each input is satisfied
+      Node av = m->getValue(a);
+      if (av.isConst() && av.getConst<bool>())
+      {
+        continue;
+      }
+      Trace("diff-man") << "  not true: " << a << std::endl;
+      // not satisfied, increment counter
+      incrementDifficulty(a);
     }
-    Trace("diff-man") << "  not true: " << a << std::endl;
-    // not satisfied, increment counter
-    incrementDifficulty(a);
   }
   Trace("diff-man") << std::endl;
 }

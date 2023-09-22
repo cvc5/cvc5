@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -390,7 +390,6 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
     // should not have universe as children here, since this is either
     // rewritten, or eliminated via purification from the first argument of
     // set minus.
-    Assert(n[0].getKind() != SET_UNIVERSE && n[1].getKind() != SET_UNIVERSE);
     Trace("sets-debug") << "Build cardinality parents for " << n << "..."
                         << std::endl;
     std::vector<Node> sib;
@@ -545,7 +544,8 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         d_state.addEqualityToExp(cpk, eqccSingleton, exps);
         if (d_state.areDisequal(n, emp_set))
         {
-          exps.push_back(n.eqNode(emp_set).negate());
+          // ensure we can explain the disequality
+          d_state.explainDisequal(n, emp_set, exps);
           eq_parent = true;
         }
         else

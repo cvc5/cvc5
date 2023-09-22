@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Clark Barrett, Tim King
+ *   Clark Barrett, Morgan Deters, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -82,22 +82,6 @@ public:
   }
 
   /**
-   * Main constructor - uses default constructor for T to create the
-   * initial value of d_data.
-   *
-   * This version takes an argument that specifies whether this CDO<>
-   * was itself allocated in context memory.  If it was, it is linked
-   * with the current scope rather than scope 0.
-   *
-   * WARNING: Read the notes in src/context/context.h on "Gotchas when
-   * allocating contextual objects with non-standard allocators."
-   */
-  CDO(bool allocatedInCMM, Context* context) :
-    ContextObj(allocatedInCMM, context),
-    d_data(T()) {
-  }
-
-  /**
    * Constructor from object of type T.  Creates a ContextObj and sets the data
    * to the given data value.  Note that this value is only valid in the
    * current Scope.  If the Scope is popped, the value will revert to whatever
@@ -105,26 +89,6 @@ public:
    */
   CDO(Context* context, const T& data) :
     ContextObj(context),
-    d_data(T()) {
-    makeCurrent();
-    d_data = data;
-  }
-
-  /**
-   * Constructor from object of type T.  Creates a ContextObj and sets the data
-   * to the given data value.  Note that this value is only valid in the
-   * current Scope.  If the Scope is popped, the value will revert to whatever
-   * is assigned by the default constructor for T.
-   *
-   * This version takes an argument that specifies whether this CDO<>
-   * was itself allocated in context memory.  If it was, it is linked
-   * with the current scope rather than scope 0.
-   *
-   * WARNING: Read the notes in src/context/context.h on "Gotchas when
-   * allocating contextual objects with non-standard allocators."
-   */
-  CDO(bool allocatedInCMM, Context* context, const T& data) :
-    ContextObj(allocatedInCMM, context),
     d_data(T()) {
     makeCurrent();
     d_data = data;

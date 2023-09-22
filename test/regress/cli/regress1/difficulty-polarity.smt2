@@ -1,10 +1,16 @@
 ; COMMAND-LINE: --produce-difficulty
-; SCRUBBER: sed 's/.*//g'
+; SCRUBBER: sed 's/).*/)/g'
+; EXPECT: sat
+; EXPECT: (
+; EXPECT: ((distinct a b c)
+; EXPECT: ((=> (R a)
+; EXPECT: )
+
 ; EXIT: 0
 
 (set-logic ALL)
 (set-option :finite-model-find true)
-(set-option :mbqi none)
+(set-option :fmf-mbqi none)
 (set-option :produce-difficulty true)
 
 (declare-sort U 0)

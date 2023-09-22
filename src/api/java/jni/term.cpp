@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -995,6 +995,72 @@ JNIEXPORT jobject JNICALL Java_io_github_cvc5_Term_getCardinalityConstraint(
 
   return pair;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     io_github_cvc5_Term
+ * Method:    isRealAlgebraicNumber
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Term_isRealAlgebraicNumber(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jboolean>(current->isRealAlgebraicNumber());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
+
+/*
+ * Class:     io_github_cvc5_Term
+ * Method:    getRealAlgebraicNumberDefiningPolynomial
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_Term_getRealAlgebraicNumberDefiningPolynomial(
+    JNIEnv* env, jobject, jlong pointer, jlong termPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  Term* term = reinterpret_cast<Term*>(termPointer);
+  Term* ret =
+      new Term(current->getRealAlgebraicNumberDefiningPolynomial(*term));
+  return reinterpret_cast<jlong>(ret);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Term
+ * Method:    getRealAlgebraicNumberLowerBound
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_Term_getRealAlgebraicNumberLowerBound(JNIEnv* env,
+                                                          jobject,
+                                                          jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  Term* ret = new Term(current->getRealAlgebraicNumberLowerBound());
+  return reinterpret_cast<jlong>(ret);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Term
+ * Method:    getRealAlgebraicNumberUpperBound
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_Term_getRealAlgebraicNumberUpperBound(JNIEnv* env,
+                                                          jobject,
+                                                          jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  Term* ret = new Term(current->getRealAlgebraicNumberUpperBound());
+  return reinterpret_cast<jlong>(ret);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -606,10 +606,10 @@ DecisionManager* TheoryInferenceManager::getDecisionManager()
   return d_decManager;
 }
 
-void TheoryInferenceManager::requirePhase(TNode n, bool pol)
+void TheoryInferenceManager::preferPhase(TNode n, bool pol)
 {
   Node en = d_theoryState.getValuation().ensureLiteral(n);
-  return d_out.requirePhase(en, pol);
+  return d_out.preferPhase(en, pol);
 }
 
 void TheoryInferenceManager::spendResource(Resource r)

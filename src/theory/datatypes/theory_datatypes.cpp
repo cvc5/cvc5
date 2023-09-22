@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -345,13 +345,37 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
 
 TrustNode TheoryDatatypes::ppRewrite(TNode in, std::vector<SkolemLemma>& lems)
 {
-  Trace("tuprec") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
+  Trace("datatypes") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
+  // Eliminate DT_SIZE, which is only used for enforcing fairness in sygus.
+  // We only assume that DT_SIZE terms are greater than or equal to zero.
+  // Note that this ensures that spurious check-model failures are not
+  // generated.
+  if (in.getKind() == DT_SIZE)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
+    Node k = sm->mkPurifySkolem(in);
+    Node lem = nm->mkNode(LEQ, d_zero, k);
+    Trace("datatypes-infer")
+        << "DtInfer : size geq zero : " << lem << std::endl;
+    TrustNode tlem = TrustNode::mkTrustLemma(lem);
+    lems.emplace_back(tlem, k);
+    return TrustNode::mkTrustRewrite(in, k);
+  }
   // first, see if we need to expand definitions
   TrustNode texp = d_rewriter.expandDefinition(in);
   if (!texp.isNull())
   {
     return texp;
   }
+  // nothing to do
+  return TrustNode::null();
+}
+
+TrustNode TheoryDatatypes::ppStaticRewrite(TNode in)
+{
+  Trace("datatypes") << "TheoryDatatypes::ppStaticRewrite(" << in << ")"
+                     << endl;
   if( in.getKind()==EQUAL ){
     Node nn;
     std::vector< Node > rew;
@@ -368,8 +392,6 @@ TrustNode TheoryDatatypes::ppRewrite(TNode in, std::vector<SkolemLemma>& lems)
       return TrustNode::mkTrustRewrite(in, nn, nullptr);
     }
   }
-
-  // nothing to do
   return TrustNode::null();
 }
 
@@ -391,7 +413,7 @@ void TheoryDatatypes::eqNotifyNewClass(TNode n)
       d_functionTerms.push_back(n);
     }
   }
-  if (nk == APPLY_SELECTOR || nk == DT_SIZE || nk == DT_HEIGHT_BOUND)
+  if (nk == APPLY_SELECTOR || nk == DT_HEIGHT_BOUND)
   {
     d_functionTerms.push_back(n);
     // we must also record which selectors exist
@@ -619,7 +641,7 @@ Node TheoryDatatypes::getTermSkolemFor( Node n ) {
       NodeManager* nm = NodeManager::currentNM();
       SkolemManager* sm = nm->getSkolemManager();
       //add purification unit lemma ( k = n )
-      Node k = sm->mkPurifySkolem(n, "kdt");
+      Node k = sm->mkPurifySkolem(n);
       d_term_sk[n] = k;
       Node eq = k.eqNode( n );
       Trace("datatypes-infer") << "DtInfer : ref : " << eq << std::endl;
@@ -1121,14 +1143,7 @@ void TheoryDatatypes::registerInitialLemmas(Node n)
 
   NodeManager* nm = NodeManager::currentNM();
   Kind nk = n.getKind();
-  if (nk == DT_SIZE)
-  {
-    Node lem = nm->mkNode(LEQ, d_zero, n);
-    Trace("datatypes-infer")
-        << "DtInfer : size geq zero : " << lem << std::endl;
-    d_im.addPendingLemma(lem, InferenceId::DATATYPES_SIZE_POS);
-  }
-  else if (nk == DT_HEIGHT_BOUND && n[1].getConst<Rational>().isZero())
+  if (nk == DT_HEIGHT_BOUND && n[1].getConst<Rational>().isZero())
   {
     std::vector<Node> children;
     const DType& dt = n[0].getType().getDType();
@@ -1669,7 +1684,7 @@ void TheoryDatatypes::checkSplit()
         nb << test << test.notNode();
         Node lemma = nb;
         d_im.lemma(lemma, InferenceId::DATATYPES_BINARY_SPLIT);
-        d_im.requirePhase(test, true);
+        d_im.preferPhase(test, true);
       }
       else
       {

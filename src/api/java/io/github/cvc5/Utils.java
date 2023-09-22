@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andres Noetzli
+ *   Mudathir Mohamed, Karlheinz Friedberger, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +27,7 @@ public class Utils
   }
 
   /**
-   * load cvc5 jni library
+   * Load cvc5 jni library.
    */
   public static void loadLibraries()
   {
@@ -38,7 +38,8 @@ public class Utils
   }
 
   /**
-   * return sorts array from array of pointers
+   * @return Sorts array from array of Sort pointers.
+   * @param pointers The array of pointers.
    */
   public static Sort[] getSorts(long[] pointers)
   {
@@ -51,7 +52,8 @@ public class Utils
   }
 
   /**
-   * return terms array from array of pointers
+   * @return Terms array from array of Term pointers.
+   * @param pointers The array of pointers.
    */
   public static Term[] getTerms(long[] pointers)
   {
@@ -64,7 +66,8 @@ public class Utils
   }
 
   /**
-   * get pointers from one dimensional array
+   * @return Pointers from one dimensional array.
+   * @param objects The one dimensional array of pointers.
    */
   public static long[] getPointers(IPointer[] objects)
   {
@@ -77,7 +80,8 @@ public class Utils
   }
 
   /**
-   * get pointers from two dimensional matrix
+   * @return Pointers from two dimensional matrix.
+   * @param objects The two dimensional array of pointers.
    */
   public static long[][] getPointers(IPointer[][] objects)
   {
@@ -145,8 +149,9 @@ public class Utils
   }
 
   /**
-    Convert a rational string a/b to a pair of BigIntegers
-  */
+   * Convert a rational string a/b to a pair of BigIntegers
+   * @return The pair of big integers.
+   */
   public static Pair<BigInteger, BigInteger> getRational(String rational)
   {
     if (rational.contains("/"))
@@ -158,7 +163,8 @@ public class Utils
   }
 
   /**
-     Convert a pair of BigIntegers to a rational string a/b
+   * Convert a pair of BigIntegers to a rational string a/b
+   * @return The rational string.
    */
   public static String getRational(Pair<BigInteger, BigInteger> pair)
   {

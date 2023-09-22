@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,6 +16,8 @@
 #include "theory/arith/rewrites.h"
 
 #include <iostream>
+
+#include "base/check.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -41,7 +43,10 @@ const char* toString(Rewrite r)
     case Rewrite::INT_EXT_PI: return "INT_EXT_PI";
     case Rewrite::INT_EXT_TO_REAL: return "INT_EXT_TO_REAL";
     case Rewrite::INEQ_BV_TO_NAT_ELIM: return "INEQ_BV_TO_NAT_ELIM";
-    default: return "?";
+    case Rewrite::UNKNOWN: return "?";
+    default:
+      Assert(false) << "No print for rewrite " << static_cast<size_t>(r);
+      return "?unhandled";
   }
 }
 

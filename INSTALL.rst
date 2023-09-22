@@ -118,21 +118,13 @@ versions; more recent versions should be compatible.
 - `GNU C and C++ (gcc and g++, >= 7) <https://gcc.gnu.org>`_
   or `Clang (>= 5) <https://clang.llvm.org>`_
 - `CMake >= 3.9 <https://cmake.org>`_
-- `Python >= 3.6 <https://www.python.org>`_
-  + module `toml <https://pypi.org/project/toml/>`_
+- `Python >= 3.6 and <= 3.10 <https://www.python.org>`_
+  + module `tomli <https://pypi.org/project/tomli/>`_
+  + module `pyparsing <https://pypi.org/project/pyparsing/>`_
 - `GMP v6.1 (GNU Multi-Precision arithmetic library) <https://gmplib.org>`_
-- `ANTLR 3.4 <http://www.antlr3.org/>`_
 - `CaDiCaL (SAT solver) <https://github.com/arminbiere/cadical>`_
 - `Java >= 1.6 <https://www.java.com>`_
 - `SymFPU <https://github.com/martin-cs/symfpu/tree/CVC4>`_
-
-
-ANTLR 3.4 parser generator
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-For most systems, the package manager no longer contains pre-packaged versions
-of ANTLR 3.4. With ``--auto-download``, cvc5 will automatically download and
-build ANTLR 3.4.
 
 
 CaDiCaL (SAT solver)
@@ -258,7 +250,7 @@ Dependencies for Language Bindings
 
 - Python
 
-  - `Cython <https://cython.org/>`_
+  - `Cython <https://cython.org/>`_ >= 3.0.0
   - `scikit-build <https://pypi.org/project/scikit-build/>`_
   - `pytest <https://docs.pytest.org/en/6.2.x/>`_
 

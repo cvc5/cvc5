@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -359,9 +359,9 @@ class TheoryInferenceManager : protected EnvObj
   DecisionManager* getDecisionManager();
   /**
    * Set that literal n has SAT phase requirement pol, that is, it should be
-   * decided with polarity pol, for details see OutputChannel::requirePhase.
+   * decided with polarity pol, for details see OutputChannel::preferPhase.
    */
-  void requirePhase(TNode n, bool pol);
+  void preferPhase(TNode n, bool pol);
 
   /**
    * Forward to OutputChannel::spendResource() to spend resources.

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andres Noetzli, Mathias Preiner
+ *   Gereon Kremer, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -366,11 +366,6 @@ std::pair<poly::Polynomial, poly::SignCondition> as_poly_constraint(
   return {lhs, sc};
 }
 
-Node ran_to_node(const RealAlgebraicNumber& ran, const Node& ran_variable)
-{
-  return ran_to_node(ran.getValue(), ran_variable);
-}
-
 Node ran_to_node(const poly::AlgebraicNumber& an, const Node& ran_variable)
 {
   auto* nm = NodeManager::currentNM();
@@ -388,13 +383,16 @@ Node ran_to_node(const poly::AlgebraicNumber& an, const Node& ran_variable)
   Node upper = nm->mkConstReal(poly_utils::toRational(get_upper(di)));
 
   // Construct witness:
-  return nm->mkNode(Kind::AND,
-                    // poly(var) == 0
-                    nm->mkNode(Kind::EQUAL, poly, nm->mkConstReal(Rational(0))),
-                    // lower_bound < var
-                    nm->mkNode(Kind::LT, lower, ran_variable),
-                    // var < upper_bound
-                    nm->mkNode(Kind::LT, ran_variable, upper));
+  Node pred =
+      nm->mkNode(Kind::AND,
+                 // poly(var) == 0
+                 nm->mkNode(Kind::EQUAL, poly, nm->mkConstReal(Rational(0))),
+                 // lower_bound < var
+                 nm->mkNode(Kind::LT, lower, ran_variable),
+                 // var < upper_bound
+                 nm->mkNode(Kind::LT, ran_variable, upper));
+  return nm->mkNode(
+      kind::WITNESS, nm->mkNode(kind::BOUND_VAR_LIST, ran_variable), pred);
 }
 
 Node value_to_node(const poly::Value& v, const Node& ran_variable)
@@ -649,8 +647,10 @@ std::optional<Rational> get_upper_bound(const Node& n)
 /** Returns indices of appropriate parts of ran encoding.
  * Returns (poly equation ; lower bound ; upper bound)
  */
-std::tuple<Node, Rational, Rational> detect_ran_encoding(const Node& n)
+std::tuple<Node, Rational, Rational> detect_ran_encoding(const Node& w)
 {
+  Assert(w.getKind()==WITNESS) << "Invalid node structure.";
+  Node n = w[1];
   Assert(n.getKind() == Kind::AND) << "Invalid node structure.";
   Assert(n.getNumChildren() == 3) << "Invalid node structure.";
 
@@ -707,10 +707,6 @@ poly::AlgebraicNumber node_to_poly_ran(const Node& n, const Node& ran_variable)
   // Construct algebraic number
   return poly_utils::toPolyRanWithRefinement(
       std::move(pol), std::get<1>(encoding), std::get<2>(encoding));
-}
-RealAlgebraicNumber node_to_ran(const Node& n, const Node& ran_variable)
-{
-  return RealAlgebraicNumber(node_to_poly_ran(n, ran_variable));
 }
 
 poly::Value node_to_value(const Node& n, const Node& ran_variable)
@@ -810,6 +806,76 @@ poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
+
+Node PolyConverter::ran_to_node(const RealAlgebraicNumber& ran,
+                                const Node& ran_variable)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  // if the ran is represented by a poly, run the conversion routine
+  if (!ran.d_isRational)
+  {
+    return theory::arith::nl::ran_to_node(ran.getValue(), ran_variable);
+  }
+  // otherwise, just make the real from the rational value
+  return nm->mkConstReal(ran.getRationalValue());
+}
+
+Node PolyConverter::ran_to_defining_polynomial(const RealAlgebraicNumber& ran,
+                                               const Node& ran_variable)
+{
+  Node witness = ran_to_node(ran, ran_variable);
+  if (witness.getKind() == kind::WITNESS)
+  {
+    Assert(witness[1].getKind() == kind::AND
+           && witness[1].getNumChildren() == 3);
+    Assert(witness[1][0].getKind() == kind::EQUAL);
+    Assert(!witness[1][0][0].isConst());
+    return witness[1][0][0];
+  }
+  return Node::null();
+}
+
+Node PolyConverter::ran_to_lower(const RealAlgebraicNumber& ran)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node ran_variable = nm->mkBoundVar(nm->realType());
+  Node witness = ran_to_node(ran, ran_variable);
+  if (witness.getKind() == kind::WITNESS)
+  {
+    Assert(witness[1].getKind() == kind::AND
+           && witness[1].getNumChildren() == 3);
+    Assert(witness[1][1].getKind() == kind::LT);
+    Assert(witness[1][1][0].isConst());
+    return witness[1][1][0];
+  }
+  Assert(witness.isConst());
+  return witness;
+}
+
+Node PolyConverter::ran_to_upper(const RealAlgebraicNumber& ran)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node ran_variable = nm->mkBoundVar(nm->realType());
+  Node witness = ran_to_node(ran, ran_variable);
+  if (witness.getKind() == kind::WITNESS)
+  {
+    Assert(witness[1].getKind() == kind::AND
+           && witness[1].getNumChildren() == 3);
+    Assert(witness[1][2].getKind() == kind::LT);
+    Assert(witness[1][2][1].isConst());
+    return witness[1][2][1];
+  }
+  Assert(witness.isConst());
+  return witness;
+}
+
+RealAlgebraicNumber PolyConverter::node_to_ran(const Node& n,
+                                               const Node& ran_variable)
+{
+  return RealAlgebraicNumber(
+      theory::arith::nl::node_to_poly_ran(n, ran_variable));
+}
+
 }  // namespace cvc5::internal
 
 #endif

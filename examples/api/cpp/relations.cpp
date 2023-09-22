@@ -66,60 +66,63 @@ int main()
   Term ancestor = solver.mkConst(relationArity2, "ancestor");
   Term descendant = solver.mkConst(relationArity2, "descendant");
 
-  Term isEmpty1 = solver.mkTerm(EQUAL, {males, emptySetTerm});
-  Term isEmpty2 = solver.mkTerm(EQUAL, {females, emptySetTerm});
+  Term isEmpty1 = solver.mkTerm(Kind::EQUAL, {males, emptySetTerm});
+  Term isEmpty2 = solver.mkTerm(Kind::EQUAL, {females, emptySetTerm});
 
   // (assert (= people (as set.universe (Relation Person))))
-  Term peopleAreTheUniverse = solver.mkTerm(EQUAL, {people, universeSet});
+  Term peopleAreTheUniverse = solver.mkTerm(Kind::EQUAL, {people, universeSet});
   // (assert (not (= males (as set.empty (Relation Person)))))
-  Term maleSetIsNotEmpty = solver.mkTerm(NOT, {isEmpty1});
+  Term maleSetIsNotEmpty = solver.mkTerm(Kind::NOT, {isEmpty1});
   // (assert (not (= females (as set.empty (Relation Person)))))
-  Term femaleSetIsNotEmpty = solver.mkTerm(NOT, {isEmpty2});
+  Term femaleSetIsNotEmpty = solver.mkTerm(Kind::NOT, {isEmpty2});
 
   // (assert (= (set.inter males females)
   //            (as set.empty (Relation Person))))
-  Term malesFemalesIntersection = solver.mkTerm(SET_INTER, {males, females});
+  Term malesFemalesIntersection =
+      solver.mkTerm(Kind::SET_INTER, {males, females});
   Term malesAndFemalesAreDisjoint =
-      solver.mkTerm(EQUAL, {malesFemalesIntersection, emptySetTerm});
+      solver.mkTerm(Kind::EQUAL, {malesFemalesIntersection, emptySetTerm});
 
   // (assert (not (= father (as set.empty (Relation Person Person)))))
   // (assert (not (= mother (as set.empty (Relation Person Person)))))
-  Term isEmpty3 = solver.mkTerm(EQUAL, {father, emptyRelationTerm});
-  Term isEmpty4 = solver.mkTerm(EQUAL, {mother, emptyRelationTerm});
-  Term fatherIsNotEmpty = solver.mkTerm(NOT, {isEmpty3});
-  Term motherIsNotEmpty = solver.mkTerm(NOT, {isEmpty4});
+  Term isEmpty3 = solver.mkTerm(Kind::EQUAL, {father, emptyRelationTerm});
+  Term isEmpty4 = solver.mkTerm(Kind::EQUAL, {mother, emptyRelationTerm});
+  Term fatherIsNotEmpty = solver.mkTerm(Kind::NOT, {isEmpty3});
+  Term motherIsNotEmpty = solver.mkTerm(Kind::NOT, {isEmpty4});
 
   // fathers are males
   // (assert (set.subset (rel.join father people) males))
-  Term fathers = solver.mkTerm(RELATION_JOIN, {father, people});
-  Term fathersAreMales = solver.mkTerm(SET_SUBSET, {fathers, males});
+  Term fathers = solver.mkTerm(Kind::RELATION_JOIN, {father, people});
+  Term fathersAreMales = solver.mkTerm(Kind::SET_SUBSET, {fathers, males});
 
   // mothers are females
   // (assert (set.subset (rel.join mother people) females))
-  Term mothers = solver.mkTerm(RELATION_JOIN, {mother, people});
-  Term mothersAreFemales = solver.mkTerm(SET_SUBSET, {mothers, females});
+  Term mothers = solver.mkTerm(Kind::RELATION_JOIN, {mother, people});
+  Term mothersAreFemales = solver.mkTerm(Kind::SET_SUBSET, {mothers, females});
 
   // (assert (= parent (set.union father mother)))
-  Term unionFatherMother = solver.mkTerm(SET_UNION, {father, mother});
+  Term unionFatherMother = solver.mkTerm(Kind::SET_UNION, {father, mother});
   Term parentIsFatherOrMother =
-      solver.mkTerm(EQUAL, {parent, unionFatherMother});
+      solver.mkTerm(Kind::EQUAL, {parent, unionFatherMother});
 
   // (assert (= ancestor (rel.tclosure parent)))
-  Term transitiveClosure = solver.mkTerm(RELATION_TCLOSURE, {parent});
-  Term ancestorFormula = solver.mkTerm(EQUAL, {ancestor, transitiveClosure});
+  Term transitiveClosure = solver.mkTerm(Kind::RELATION_TCLOSURE, {parent});
+  Term ancestorFormula =
+      solver.mkTerm(Kind::EQUAL, {ancestor, transitiveClosure});
 
   // (assert (= descendant (rel.transpose descendant)))
-  Term transpose = solver.mkTerm(RELATION_TRANSPOSE, {ancestor});
-  Term descendantFormula = solver.mkTerm(EQUAL, {descendant, transpose});
+  Term transpose = solver.mkTerm(Kind::RELATION_TRANSPOSE, {ancestor});
+  Term descendantFormula = solver.mkTerm(Kind::EQUAL, {descendant, transpose});
 
   // (assert (forall ((x Person)) (not (set.member (tuple x x) ancestor))))
   Term x = solver.mkVar(personSort, "x");
-  Term xxTuple = solver.mkTuple({personSort, personSort}, {x, x});
-  Term member = solver.mkTerm(SET_MEMBER, {xxTuple, ancestor});
-  Term notMember = solver.mkTerm(NOT, {member});
+  Term xxTuple = solver.mkTuple({x, x});
+  Term member = solver.mkTerm(Kind::SET_MEMBER, {xxTuple, ancestor});
+  Term notMember = solver.mkTerm(Kind::NOT, {member});
 
-  Term quantifiedVariables = solver.mkTerm(VARIABLE_LIST, {x});
-  Term noSelfAncestor = solver.mkTerm(FORALL, {quantifiedVariables, notMember});
+  Term quantifiedVariables = solver.mkTerm(Kind::VARIABLE_LIST, {x});
+  Term noSelfAncestor =
+      solver.mkTerm(Kind::FORALL, {quantifiedVariables, notMember});
 
   // formulas
   solver.assertFormula(peopleAreTheUniverse);

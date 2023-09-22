@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -22,10 +22,17 @@ check_python_module("setuptools")
 
 # Find cmake modules distributed with scikit-build
 # They are distributed under <scikit-build directory>/resources/cmake
+
+# This 'sys.stdout' hack is needed because importing skbuild prints to stdout
+# in some versions, and this stores the wrong value to OUTPUT_VARIABLE. 
+# Once scikit is removed, this whole command will be removed too.
 execute_process(
   COMMAND
     ${Python_EXECUTABLE} -c "from __future__ import print_function; \
-      import os; import skbuild; \
+      import os; import sys; \
+      sys.stdout = open(os.devnull, 'w'); \
+      import skbuild; \
+      sys.stdout = sys.__stdout__; \
       cmake_module_path=os.path.join(os.path.dirname(skbuild.__file__), \
         'resources', 'cmake'); print(cmake_module_path, end='')"
   OUTPUT_VARIABLE
@@ -43,22 +50,19 @@ endif()
 # Required for Cython target below
 list(APPEND CMAKE_MODULE_PATH ${SKBUILD_CMAKE_MODULE_PATH})
 
-find_package(PythonExtensions REQUIRED)
-
 find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Development)
 # Some cmake packages are not compatible with the newest version
 # of FindPython, introduced in cmake 3.12.
 # We define the symbols below to be backward compatible.
-if(NOT DEFINED PYTHON_EXECUTABLE) 
-  set(PYTHON_EXECUTABLE "${Python_EXECUTABLE}")
-endif()
-if (NOT DEFINED PYTHON_INCLUDE_DIRS) 
+# FindPython Development sets Python_INCLUDE_DIRS and Python_LIBRARIES
+if (NOT DEFINED PYTHON_INCLUDE_DIRS)
   set(PYTHON_INCLUDE_DIRS "${Python_INCLUDE_DIRS}")
 endif()
-if (NOT DEFINED PYTHON_LIBRARIES) 
+if (NOT DEFINED PYTHON_LIBRARIES)
   set(PYTHON_LIBRARIES "${Python_LIBRARIES}")
 endif()
 
+find_package(PythonExtensions REQUIRED)
 find_package(Cython 0.29 REQUIRED)
 
 set(CYTHON_FLAGS "-X embedsignature=True")
@@ -85,26 +89,6 @@ add_custom_command(
 )
 add_custom_target(cvc5kinds DEPENDS ${GENERATED_KINDS_FILES})
 
-# Generate cvc5sortkinds.{pxd,pxi}
-set(GENERATED_SORT_KINDS_FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/cvc5sortkinds.pxd"
-  "${CMAKE_CURRENT_BINARY_DIR}/cvc5sortkinds.pxi"
-)
-add_custom_command(
-  OUTPUT
-    ${GENERATED_SORT_KINDS_FILES}
-  COMMAND
-    "${Python_EXECUTABLE}"
-    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_sort_kind.h"
-    --enums-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/cvc5sortkinds"
-  DEPENDS
-    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
-    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_sort_kind.h"
-)
-add_custom_target(cvc5sortkinds DEPENDS ${GENERATED_SORT_KINDS_FILES})
-
 set(GENERATED_TYPES_FILES
   "${CMAKE_CURRENT_BINARY_DIR}/cvc5types.pxd"
   "${CMAKE_CURRENT_BINARY_DIR}/cvc5types.pxi"
@@ -130,7 +114,7 @@ add_cython_target(cvc5_python_base CXX)
 add_library(cvc5_python_base
             MODULE
             cvc5_python_base)
-add_dependencies(cvc5_python_base cvc5kinds cvc5sortkinds cvc5types)
+add_dependencies(cvc5_python_base cvc5kinds cvc5types)
 
 target_include_directories(cvc5_python_base
   PRIVATE

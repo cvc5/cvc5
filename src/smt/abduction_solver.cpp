@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,12 +18,14 @@
 #include <sstream>
 
 #include "base/modal_exception.h"
+#include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
 #include "smt/set_defaults.h"
+#include "smt/sygus_solver.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_abduct.h"
-#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/smt_engine_subsolver.h"
 #include "theory/trust_substitutions.h"
 
@@ -69,6 +71,11 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
   Options subOptions;
   subOptions.copyValues(d_env.getOptions());
   subOptions.writeQuantifiers().sygus = true;
+  // by default, we don't want disjunctive terms (ITE, OR) in abducts
+  if (!d_env.getOptions().quantifiers.sygusGrammarUseDisjWasSetByUser)
+  {
+    subOptions.writeQuantifiers().sygusGrammarUseDisj = false;
+  }
   SetDefaults::disableChecking(subOptions);
   SubsolverSetupInfo ssi(d_env, subOptions);
   // we generate a new smt engine to do the abduction query
@@ -123,7 +130,8 @@ bool AbductionSolver::getAbductInternal(Node& abd)
         abd = abd[1];
       }
       // get the grammar type for the abduct
-      Node agdtbv = d_sssf.getAttribute(SygusSynthFunVarListAttribute());
+      Node agdtbv =
+          theory::quantifiers::SygusUtils::getOrMkSygusArgumentList(d_sssf);
       if(!agdtbv.isNull())
       {
         Assert(agdtbv.getKind() == kind::BOUND_VAR_LIST);
@@ -160,7 +168,13 @@ void AbductionSolver::checkAbduct(Node a)
   Assert(a.getType().isBoolean());
   Trace("check-abduct") << "SolverEngine::checkAbduct: get expanded assertions"
                         << std::endl;
-
+  bool canTrustResult = SygusSolver::canTrustSynthesisResult(options());
+  if (!canTrustResult)
+  {
+    warning() << "Running check-abducts is not guaranteed to pass with the "
+                 "current options."
+              << std::endl;
+  }
   std::vector<Node> asserts(d_axioms.begin(), d_axioms.end());
   asserts.push_back(a);
 
@@ -191,6 +205,7 @@ void AbductionSolver::checkAbduct(Node a)
                           << ": result is " << r << std::endl;
     std::stringstream serr;
     bool isError = false;
+    bool hardFailure = canTrustResult;
     if (j == 0)
     {
       if (r.getStatus() != Result::SAT)
@@ -198,8 +213,9 @@ void AbductionSolver::checkAbduct(Node a)
         isError = true;
         serr
             << "SolverEngine::checkAbduct(): produced solution cannot be shown "
-               "to be consisconsistenttent with assertions, result was "
+               "to be consistent with assertions, result was "
             << r;
+        hardFailure = r.isUnknown() ? false : hardFailure;
       }
       Trace("check-abduct")
           << "SolverEngine::checkAbduct: goal is " << d_abdConj << std::endl;
@@ -215,12 +231,20 @@ void AbductionSolver::checkAbduct(Node a)
         serr << "SolverEngine::checkAbduct(): negated goal cannot be shown "
                 "unsatisfiable with produced solution, result was "
              << r;
+        hardFailure = r.isUnknown() ? false : hardFailure;
       }
     }
     // did we get an unexpected result?
     if (isError)
     {
-      InternalError() << serr.str();
+      if (hardFailure)
+      {
+        InternalError() << serr.str();
+      }
+      else
+      {
+        warning() << serr.str() << std::endl;
+      }
     }
   }
 }
