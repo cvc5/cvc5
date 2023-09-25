@@ -23,7 +23,7 @@
 #include "proof/proof_checker.h"
 #include "smt/solver_engine.h"
 #include "test.h"
-#include "theory/engine_output_channel.h"
+#include "theory/output_channel.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_state.h"
