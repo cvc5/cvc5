@@ -18,11 +18,14 @@
 namespace cvc5::internal {
 namespace theory {
 
+size_t TheoryEngineModule::d_idCounter = 0;
 TheoryEngineModule::TheoryEngineModule(Env& env,
                                        TheoryEngine* engine,
                                        const std::string& name)
-    : EnvObj(env), d_out(statisticsRegistry(), engine, name)
+    : EnvObj(env), d_out(statisticsRegistry(), engine, name, d_idCounter)
 {
+    // increment the id counter so that the id of this module is unique
+    d_idCounter++;
 }
 
 void TheoryEngineModule::presolve() {}
@@ -42,6 +45,8 @@ void TheoryEngineModule::notifyLemma(TNode n,
 bool TheoryEngineModule::needsCandidateModel() { return false; }
 
 void TheoryEngineModule::notifyCandidateModel(TheoryModel* m) {}
+
+TheoryId TheoryEngineModule::getId() const { return d_out.getId(); }
 
 }  // namespace theory
 }  // namespace cvc5::internal

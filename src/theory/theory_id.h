@@ -50,6 +50,8 @@ enum TheoryId
 
   THEORY_LAST,
   THEORY_NONE
+  // Note theory engine modules use theory identifiers THEORY_NONE + n for n>0
+  // for the purposes of identifying the source of lemmas.
 };
 
 const TheoryId THEORY_FIRST = static_cast<TheoryId>(0);

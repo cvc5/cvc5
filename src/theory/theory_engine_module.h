@@ -76,14 +76,16 @@ class TheoryEngineModule : protected EnvObj
   virtual bool needsCandidateModel();
   /** Notify that m is a (candidate) model */
   virtual void notifyCandidateModel(TheoryModel* m);
-  /** Get name, for debugging and statistics. */
-  const std::string& getName();
-
+  /** Get the theory identifier */
+  TheoryId getId() const;
  protected:
   /** The output channel, for sending lemmas */
   OutputChannel d_out;
   /** The name */
   std::string d_name;
+ private:
+  /** Static allocator of theory module identifiers */
+  static size_t d_idCounter;
 };
 
 }  // namespace theory

@@ -55,7 +55,8 @@ class OutputChannel
   /** Constructor for use by non-theory */
   OutputChannel(StatisticsRegistry& sr,
                       TheoryEngine* engine,
-                      const std::string& name);
+                      const std::string& name,
+                size_t id);
   virtual ~OutputChannel(){}
 
   /**
@@ -148,7 +149,10 @@ class OutputChannel
   virtual void trustedLemma(TrustNode plem,
                     InferenceId id,
                     LemmaProperty p = LemmaProperty::NONE);
-
+  /**
+   * Get the theory identifier
+   */
+  TheoryId getId() const;
  protected:
   /**
    * Statistics for a particular theory.

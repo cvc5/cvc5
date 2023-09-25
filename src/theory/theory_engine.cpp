@@ -1442,7 +1442,11 @@ void TheoryEngine::lemma(TrustNode tlemma,
     // notify the modules of the lemma
     for (TheoryEngineModule* tem : d_modules)
     {
-      tem->notifyLemma(retLemma, id, p, skAsserts, sks);
+      // don't notify theory modules of their own lemmas
+      if (tem->getId()!=from)
+      {
+        tem->notifyLemma(retLemma, id, p, skAsserts, sks);
+      }
     }
   }
 
