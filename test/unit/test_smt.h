@@ -100,7 +100,7 @@ inline std::ostream& operator<<(std::ostream& out, OutputChannelCallType type)
   }
 }
 
-class DummyOutputChannel : public theory::EngineOutputChannel
+class DummyOutputChannel : public theory::OutputChannel
 {
  public:
   DummyOutputChannel() {}

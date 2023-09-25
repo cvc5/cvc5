@@ -28,7 +28,7 @@
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
 #include "theory/atom_requests.h"
-#include "theory/engine_output_channel.h"
+#include "theory/output_channel.h"
 #include "theory/interrupted.h"
 #include "theory/partition_generator.h"
 #include "theory/rewriter.h"
@@ -42,6 +42,7 @@
 #include "theory/valuation.h"
 #include "util/hash.h"
 #include "util/statistics_stats.h"
+#include "theory/inference_id.h"
 
 namespace cvc5::internal {
 
@@ -105,7 +106,7 @@ class TheoryEngine : protected EnvObj
 {
   /** Shared terms database can use the internals notify the theories */
   friend class SharedTermsDatabase;
-  friend class theory::EngineOutputChannel;
+  friend class theory::OutputChannel;
   friend class theory::CombinationEngine;
   friend class theory::SharedSolver;
 
@@ -130,7 +131,7 @@ class TheoryEngine : protected EnvObj
   {
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
     d_theoryOut[theoryId] =
-        new theory::EngineOutputChannel(statisticsRegistry(), this, theoryId);
+        new theory::OutputChannel(statisticsRegistry(), this, theoryId);
     d_theoryTable[theoryId] =
         new TheoryClass(d_env, *d_theoryOut[theoryId], theory::Valuation(this));
     getRewriter()->registerTheoryRewriter(
@@ -432,7 +433,7 @@ class TheoryEngine : protected EnvObj
    * @param id The inference identifier for the conflict.
    * @param theoryId The theory that sent the conflict
    */
-  void conflict(TrustNode conflict, InferenceId id, theory::TheoryId theoryId);
+  void conflict(TrustNode conflict, theory::InferenceId id, theory::TheoryId theoryId);
 
   /** set in conflict */
   void markInConflict();
@@ -510,7 +511,7 @@ class TheoryEngine : protected EnvObj
    * @param from The theory that sent the lemma.
    */
   void lemma(TrustNode node,
-             InferenceId id,
+             theory::InferenceId id,
              theory::LemmaProperty p,
              theory::TheoryId from = theory::THEORY_LAST);
 
@@ -554,7 +555,7 @@ class TheoryEngine : protected EnvObj
   /**
    * Output channels for individual theories.
    */
-  theory::EngineOutputChannel* d_theoryOut[theory::THEORY_LAST];
+  theory::OutputChannel* d_theoryOut[theory::THEORY_LAST];
 
   /**
    * Are we in conflict.

@@ -1046,7 +1046,7 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
         // special case, trust node has no proof generator
         TrustNode trnn = TrustNode::mkTrustConflict(normalizedLiteral);
         // Get the explanation (conflict will figure out where it came from)
-        conflict(trnn, toTheoryId);
+        conflict(trnn, InferenceId::CONFLICT_REWRITE_LIT, toTheoryId);
       } else {
         Unreachable();
       }
@@ -1276,7 +1276,7 @@ TrustNode TheoryEngine::getExplanation(TNode node)
   for (TheoryEngineModule* tem : d_modules)
   {
     tem->notifyLemma(
-        texplanation.getProven(), LemmaProperty::REMOVABLE, {}, {});
+        texplanation.getProven(), InferenceId::EXPLAINED_PROPAGATION, LemmaProperty::REMOVABLE, {}, {});
   }
   return texplanation;
 }
@@ -1392,8 +1392,8 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
 
 void TheoryEngine::lemma(TrustNode tlemma,
                          InferenceId id,
-                         theory::LemmaProperty p,
-                         theory::TheoryId from)
+                         LemmaProperty p,
+                         TheoryId from)
 {
   // For resource-limiting (also does a time check).
   // spendResource();
@@ -1442,7 +1442,7 @@ void TheoryEngine::lemma(TrustNode tlemma,
     // notify the modules of the lemma
     for (TheoryEngineModule* tem : d_modules)
     {
-      tem->notifyLemma(retLemma, p, skAsserts, sks);
+      tem->notifyLemma(retLemma, id, p, skAsserts, sks);
     }
   }
 
@@ -1567,7 +1567,7 @@ void TheoryEngine::conflict(TrustNode tconflict,
       tconf.debugCheckClosed(
           options(), "te-proof-debug", "TheoryEngine::conflict:sharing");
     }
-    lemma(tconf, LemmaProperty::REMOVABLE);
+    lemma(tconf, id, LemmaProperty::REMOVABLE);
   }
   else
   {

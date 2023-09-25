@@ -19,7 +19,7 @@
 #define CVC5__THEORY__THEORY_ENGINE_MODULE_H
 
 #include "expr/node.h"
-#include "theory/engine_output_channel.h"
+#include "theory/output_channel.h"
 #include "theory/theory.h"
 
 namespace cvc5::internal {
@@ -62,12 +62,14 @@ class TheoryEngineModule : protected EnvObj
    * Notify that a lemma was sent
    *
    * @param n The lemma, which has been theory preprocessed
+   * @param id The inference identifier of the lemma
    * @param p The property of the lemma
    * @param skAsserts The skolem assertions for the given lemma
    * @param sks The skolems for each assertion in skAsserts.
    */
   virtual void notifyLemma(TNode n,
-                           theory::LemmaProperty p,
+                           InferenceId id,
+                           LemmaProperty p,
                            const std::vector<Node>& skAsserts,
                            const std::vector<Node>& sks);
   /** Needs candidate model, return true if the method below requires calling */
@@ -79,7 +81,7 @@ class TheoryEngineModule : protected EnvObj
 
  protected:
   /** The output channel, for sending lemmas */
-  EngineOutputChannel d_out;
+  OutputChannel d_out;
   /** The name */
   std::string d_name;
 };

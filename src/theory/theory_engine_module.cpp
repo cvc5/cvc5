@@ -32,7 +32,8 @@ void TheoryEngineModule::check(Theory::Effort effort) {}
 void TheoryEngineModule::postCheck(Theory::Effort effort) {}
 
 void TheoryEngineModule::notifyLemma(TNode n,
-                                     theory::LemmaProperty p,
+                                     InferenceId id,
+                                     LemmaProperty p,
                                      const std::vector<Node>& skAsserts,
                                      const std::vector<Node>& sks)
 {

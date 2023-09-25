@@ -152,7 +152,7 @@ void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
   {
     tconf = annotateId(tconf, id, true);
   }
-  d_out.trustedConflict(tconf);
+  d_out.trustedConflict(tconf, id);
   ++d_numConflicts;
 }
 
@@ -292,11 +292,11 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
   if (d_apg != nullptr)
   {
     TrustNode tlema = annotateId(tlem, id);
-    d_out.trustedLemma(tlema, p);
+    d_out.trustedLemma(tlema, id, p);
   }
   else
   {
-    d_out.trustedLemma(tlem, p);
+    d_out.trustedLemma(tlem, id, p);
   }
   return true;
 }

@@ -688,8 +688,6 @@ libcvc5_add_sources(
   theory/ee_manager_distributed.cpp
   theory/ee_manager_distributed.h
   theory/ee_setup_info.h
-  theory/engine_output_channel.cpp
-  theory/engine_output_channel.h
   theory/evaluator.cpp
   theory/evaluator.h
   theory/ext_theory.cpp
@@ -732,6 +730,8 @@ libcvc5_add_sources(
   theory/inference_id_proof_annotator.h
   theory/inference_manager_buffered.cpp
   theory/inference_manager_buffered.h
+  theory/lemma_property.cpp
+  theory/lemma_property.h
   theory/logic_info.cpp
   theory/logic_info.h
   theory/model_manager.cpp
