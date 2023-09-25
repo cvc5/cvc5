@@ -24,8 +24,8 @@ TheoryEngineModule::TheoryEngineModule(Env& env,
                                        const std::string& name)
     : EnvObj(env), d_out(statisticsRegistry(), engine, name, d_idCounter)
 {
-    // increment the id counter so that the id of this module is unique
-    d_idCounter++;
+  // increment the id counter so that the id of this module is unique
+  d_idCounter++;
 }
 
 void TheoryEngineModule::presolve() {}

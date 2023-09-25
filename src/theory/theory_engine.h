@@ -28,8 +28,9 @@
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
 #include "theory/atom_requests.h"
-#include "theory/output_channel.h"
+#include "theory/inference_id.h"
 #include "theory/interrupted.h"
+#include "theory/output_channel.h"
 #include "theory/partition_generator.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
@@ -42,7 +43,6 @@
 #include "theory/valuation.h"
 #include "util/hash.h"
 #include "util/statistics_stats.h"
-#include "theory/inference_id.h"
 
 namespace cvc5::internal {
 
@@ -433,7 +433,9 @@ class TheoryEngine : protected EnvObj
    * @param id The inference identifier for the conflict.
    * @param theoryId The theory that sent the conflict
    */
-  void conflict(TrustNode conflict, theory::InferenceId id, theory::TheoryId theoryId);
+  void conflict(TrustNode conflict,
+                theory::InferenceId id,
+                theory::TheoryId theoryId);
 
   /** set in conflict */
   void markInConflict();

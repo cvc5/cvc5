@@ -25,7 +25,7 @@ namespace cvc5::internal {
 namespace theory {
 
 OutputChannel::Statistics::Statistics(StatisticsRegistry& sr,
-                                            const std::string& statPrefix)
+                                      const std::string& statPrefix)
     : conflicts(sr.registerInt(statPrefix + "conflicts")),
       propagations(sr.registerInt(statPrefix + "propagations")),
       lemmas(sr.registerInt(statPrefix + "lemmas")),
@@ -36,8 +36,8 @@ OutputChannel::Statistics::Statistics(StatisticsRegistry& sr,
 }
 
 OutputChannel::OutputChannel(StatisticsRegistry& sr,
-                                         TheoryEngine* engine,
-                                         theory::TheoryId theory)
+                             TheoryEngine* engine,
+                             theory::TheoryId theory)
     : d_engine(engine),
       d_name(toString(theory)),
       d_statistics(sr, getStatsPrefix(theory)),
@@ -46,13 +46,13 @@ OutputChannel::OutputChannel(StatisticsRegistry& sr,
 }
 
 OutputChannel::OutputChannel(StatisticsRegistry& sr,
-                                         TheoryEngine* engine,
-                                         const std::string& name,
+                             TheoryEngine* engine,
+                             const std::string& name,
                              size_t id)
     : d_engine(engine),
       d_name(name),
       d_statistics(sr, name + "::"),
-      d_theory(static_cast<TheoryId>(THEORY_NONE+id))
+      d_theory(static_cast<TheoryId>(THEORY_NONE + id))
 {
 }
 
@@ -72,8 +72,8 @@ void OutputChannel::lemma(TNode lemma, InferenceId id, LemmaProperty p)
 
 bool OutputChannel::propagate(TNode literal)
 {
-  Trace("theory::propagate") << "OutputChannel<" << d_theory
-                             << ">::propagate(" << literal << ")" << std::endl;
+  Trace("theory::propagate") << "OutputChannel<" << d_theory << ">::propagate("
+                             << literal << ")" << std::endl;
   ++d_statistics.propagations;
   d_engine->d_outputChannelUsed = true;
   return d_engine->propagate(literal, d_theory);
@@ -81,9 +81,8 @@ bool OutputChannel::propagate(TNode literal)
 
 void OutputChannel::conflict(TNode conflictNode, InferenceId id)
 {
-  Trace("theory::conflict")
-      << "OutputChannel<" << d_theory << ">::conflict(" << conflictNode
-      << ")" << std::endl;
+  Trace("theory::conflict") << "OutputChannel<" << d_theory << ">::conflict("
+                            << conflictNode << ")" << std::endl;
   ++d_statistics.conflicts;
   d_engine->d_outputChannelUsed = true;
   TrustNode tConf = TrustNode::mkTrustConflict(conflictNode);
@@ -92,8 +91,8 @@ void OutputChannel::conflict(TNode conflictNode, InferenceId id)
 
 void OutputChannel::preferPhase(TNode n, bool phase)
 {
-  Trace("theory") << "OutputChannel::preferPhase(" << n << ", " << phase
-                  << ")" << std::endl;
+  Trace("theory") << "OutputChannel::preferPhase(" << n << ", " << phase << ")"
+                  << std::endl;
   ++d_statistics.preferPhase;
   d_engine->getPropEngine()->preferPhase(n, phase);
 }
@@ -110,10 +109,7 @@ void OutputChannel::setRefutationUnsound(IncompleteId id)
   d_engine->setRefutationUnsound(d_theory, id);
 }
 
-void OutputChannel::spendResource(Resource r)
-{
-  d_engine->spendResource(r);
-}
+void OutputChannel::spendResource(Resource r) { d_engine->spendResource(r); }
 
 void OutputChannel::trustedConflict(TrustNode pconf, InferenceId id)
 {
@@ -131,11 +127,11 @@ void OutputChannel::trustedConflict(TrustNode pconf, InferenceId id)
 }
 
 void OutputChannel::trustedLemma(TrustNode plem,
-                                       InferenceId id,
-                                       LemmaProperty p)
+                                 InferenceId id,
+                                 LemmaProperty p)
 {
-  Trace("theory::lemma") << "OutputChannel<" << d_theory
-                         << ">::trustedLemma(" << plem << ")" << std::endl;
+  Trace("theory::lemma") << "OutputChannel<" << d_theory << ">::trustedLemma("
+                         << plem << ")" << std::endl;
   Assert(plem.getKind() == TrustNodeKind::LEMMA);
   if (plem.getGenerator() != nullptr)
   {
@@ -151,10 +147,7 @@ void OutputChannel::trustedLemma(TrustNode plem,
   d_engine->lemma(plem, id, p, d_theory);
 }
 
-TheoryId OutputChannel::getId() const
-{
-  return d_theory;
-}
+TheoryId OutputChannel::getId() const { return d_theory; }
 
 }  // namespace theory
 }  // namespace cvc5::internal

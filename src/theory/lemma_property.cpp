@@ -77,6 +77,5 @@ std::ostream& operator<<(std::ostream& out, LemmaProperty p)
   return out;
 }
 
-
 }  // namespace theory
 }  // namespace cvc5::internal

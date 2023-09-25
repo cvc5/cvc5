@@ -21,10 +21,10 @@
 #include "expr/node.h"
 #include "proof/trust_node.h"
 #include "theory/incomplete_id.h"
-#include "theory/lemma_property.h"
 #include "theory/inference_id.h"
-#include "util/resource_manager.h"
+#include "theory/lemma_property.h"
 #include "theory/theory_id.h"
+#include "util/resource_manager.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5::internal {
@@ -50,14 +50,14 @@ class OutputChannel
  public:
   /** Constructor for use by theory */
   OutputChannel(StatisticsRegistry& sr,
-                      TheoryEngine* engine,
-                      theory::TheoryId theory);
+                TheoryEngine* engine,
+                theory::TheoryId theory);
   /** Constructor for use by non-theory */
   OutputChannel(StatisticsRegistry& sr,
-                      TheoryEngine* engine,
-                      const std::string& name,
+                TheoryEngine* engine,
+                const std::string& name,
                 size_t id);
-  virtual ~OutputChannel(){}
+  virtual ~OutputChannel() {}
 
   /**
    * With safePoint(), the theory signals that it is at a safe point
@@ -93,8 +93,8 @@ class OutputChannel
    * @param p The properties of the lemma
    */
   virtual void lemma(TNode lemma,
-             InferenceId id,
-             LemmaProperty p = LemmaProperty::NONE);
+                     InferenceId id,
+                     LemmaProperty p = LemmaProperty::NONE);
   /**
    * If a decision is made on n that is not requested from a theory, it must be
    * in the phase specified. Note that this is enforced *globally*, i.e., it is
@@ -147,12 +147,13 @@ class OutputChannel
    * the same as calling OutputChannel::lemma on lem.
    */
   virtual void trustedLemma(TrustNode plem,
-                    InferenceId id,
-                    LemmaProperty p = LemmaProperty::NONE);
+                            InferenceId id,
+                            LemmaProperty p = LemmaProperty::NONE);
   /**
    * Get the theory identifier
    */
   TheoryId getId() const;
+
  protected:
   /**
    * Statistics for a particular theory.

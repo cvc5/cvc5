@@ -1275,8 +1275,11 @@ TrustNode TheoryEngine::getExplanation(TNode node)
   // notify the conflict as a lemma
   for (TheoryEngineModule* tem : d_modules)
   {
-    tem->notifyLemma(
-        texplanation.getProven(), InferenceId::EXPLAINED_PROPAGATION, LemmaProperty::REMOVABLE, {}, {});
+    tem->notifyLemma(texplanation.getProven(),
+                     InferenceId::EXPLAINED_PROPAGATION,
+                     LemmaProperty::REMOVABLE,
+                     {},
+                     {});
   }
   return texplanation;
 }
@@ -1443,7 +1446,7 @@ void TheoryEngine::lemma(TrustNode tlemma,
     for (TheoryEngineModule* tem : d_modules)
     {
       // don't notify theory modules of their own lemmas
-      if (tem->getId()!=from)
+      if (tem->getId() != from)
       {
         tem->notifyLemma(retLemma, id, p, skAsserts, sks);
       }

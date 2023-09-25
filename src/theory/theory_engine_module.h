@@ -78,11 +78,13 @@ class TheoryEngineModule : protected EnvObj
   virtual void notifyCandidateModel(TheoryModel* m);
   /** Get the theory identifier */
   TheoryId getId() const;
+
  protected:
   /** The output channel, for sending lemmas */
   OutputChannel d_out;
   /** The name */
   std::string d_name;
+
  private:
   /** Static allocator of theory module identifiers */
   static size_t d_idCounter;
