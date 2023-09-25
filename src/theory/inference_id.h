@@ -48,7 +48,7 @@ enum class InferenceId
   COMBINATION_SPLIT,
   // a conflict due to rewriting an asserted literal
   CONFLICT_REWRITE_LIT,
-  // an explained propagation
+  // an explained theory propagation
   EXPLAINED_PROPAGATION,
   // ---------------------------------- ext theory
   // a simplification from the extended theory utility
