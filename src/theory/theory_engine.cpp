@@ -1390,7 +1390,8 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
   }
 }
 
-void TheoryEngine::lemma(TrustNode tlemma,
+void TheoryEngine::lemma(TrustNode tlemma, 
+             InferenceId id,
                          theory::LemmaProperty p,
                          theory::TheoryId from)
 {
@@ -1460,13 +1461,14 @@ void TheoryEngine::markInConflict()
   d_inConflict = true;
 }
 
-void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
+void TheoryEngine::conflict(TrustNode tconflict, 
+             InferenceId id, TheoryId theoryId)
 {
   Assert(tconflict.getKind() == TrustNodeKind::CONFLICT);
 
   TNode conflict = tconflict.getNode();
   Trace("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", "
-                            << theoryId << ")" << endl;
+                            << id << ", " << theoryId << ")" << endl;
   Trace("te-proof-debug") << "Check closed conflict" << std::endl;
   // doesn't require proof generator, yet, since THEORY_LEMMA is added below
   tconflict.debugCheckClosed(
@@ -1571,7 +1573,7 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
     // When only one theory, the conflict should need no processing
     Assert(properConflict(conflict));
     // pass the trust node that was sent from the theory
-    lemma(tconflict, LemmaProperty::REMOVABLE, theoryId);
+    lemma(tconflict, id, LemmaProperty::REMOVABLE, theoryId);
   }
 }
 

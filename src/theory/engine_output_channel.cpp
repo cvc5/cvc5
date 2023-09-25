@@ -64,9 +64,10 @@ void EngineOutputChannel::safePoint(Resource r)
   }
 }
 
-void EngineOutputChannel::lemma(TNode lemma, LemmaProperty p)
+void EngineOutputChannel::lemma(TNode lemma,
+                    InferenceId id, LemmaProperty p)
 {
-  trustedLemma(TrustNode::mkTrustLemma(lemma), p);
+  trustedLemma(TrustNode::mkTrustLemma(lemma), id, p);
 }
 
 bool EngineOutputChannel::propagate(TNode literal)
@@ -78,7 +79,8 @@ bool EngineOutputChannel::propagate(TNode literal)
   return d_engine->propagate(literal, d_theory);
 }
 
-void EngineOutputChannel::conflict(TNode conflictNode)
+void EngineOutputChannel::conflict(TNode conflictNode,
+                    InferenceId id)
 {
   Trace("theory::conflict")
       << "EngineOutputChannel<" << d_theory << ">::conflict(" << conflictNode
@@ -86,7 +88,7 @@ void EngineOutputChannel::conflict(TNode conflictNode)
   ++d_statistics.conflicts;
   d_engine->d_outputChannelUsed = true;
   TrustNode tConf = TrustNode::mkTrustConflict(conflictNode);
-  d_engine->conflict(tConf, d_theory);
+  d_engine->conflict(tConf, id, d_theory);
 }
 
 void EngineOutputChannel::preferPhase(TNode n, bool phase)
@@ -114,7 +116,8 @@ void EngineOutputChannel::spendResource(Resource r)
   d_engine->spendResource(r);
 }
 
-void EngineOutputChannel::trustedConflict(TrustNode pconf)
+void EngineOutputChannel::trustedConflict(TrustNode pconf,
+                    InferenceId id)
 {
   Assert(pconf.getKind() == TrustNodeKind::CONFLICT);
   Trace("theory::conflict")
@@ -126,10 +129,11 @@ void EngineOutputChannel::trustedConflict(TrustNode pconf)
   }
   ++d_statistics.conflicts;
   d_engine->d_outputChannelUsed = true;
-  d_engine->conflict(pconf, d_theory);
+  d_engine->conflict(pconf, id, d_theory);
 }
 
-void EngineOutputChannel::trustedLemma(TrustNode plem, LemmaProperty p)
+void EngineOutputChannel::trustedLemma(TrustNode plem,
+                    InferenceId id, LemmaProperty p)
 {
   Trace("theory::lemma") << "EngineOutputChannel<" << d_theory
                          << ">::trustedLemma(" << plem << ")" << std::endl;
@@ -145,9 +149,7 @@ void EngineOutputChannel::trustedLemma(TrustNode plem, LemmaProperty p)
     d_engine->ensureLemmaAtoms(plem.getNode(), d_theory);
   }
   // now, call the normal interface for lemma
-  d_engine->lemma(plem,
-                  p,
-                  d_theory);
+  d_engine->lemma(plem, id, p, d_theory);
 }
 
 }  // namespace theory

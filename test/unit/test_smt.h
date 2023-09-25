@@ -23,7 +23,7 @@
 #include "proof/proof_checker.h"
 #include "smt/solver_engine.h"
 #include "test.h"
-#include "theory/output_channel.h"
+#include "theory/engine_output_channel.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_state.h"
@@ -100,16 +100,18 @@ inline std::ostream& operator<<(std::ostream& out, OutputChannelCallType type)
   }
 }
 
-class DummyOutputChannel : public theory::OutputChannel
+class DummyOutputChannel : public theory::EngineOutputChannel
 {
  public:
   DummyOutputChannel() {}
   ~DummyOutputChannel() override {}
 
   void safePoint(Resource r) override {}
-  void conflict(TNode n) override { push(CONFLICT, n); }
+  void conflict(TNode n, 
+             InferenceId id) override { push(CONFLICT, n); }
 
-  void trustedConflict(TrustNode n) override { push(CONFLICT, n.getNode()); }
+  void trustedConflict(TrustNode n, 
+             InferenceId id) override { push(CONFLICT, n.getNode()); }
 
   bool propagate(TNode n) override
   {
@@ -118,12 +120,14 @@ class DummyOutputChannel : public theory::OutputChannel
   }
 
   void lemma(TNode n,
+             InferenceId id,
              theory::LemmaProperty p = theory::LemmaProperty::NONE) override
   {
     push(LEMMA, n);
   }
 
-  void trustedLemma(TrustNode n, theory::LemmaProperty p) override
+  void trustedLemma(TrustNode n, 
+             InferenceId id,theory::LemmaProperty p) override
   {
     push(LEMMA, n.getNode());
   }

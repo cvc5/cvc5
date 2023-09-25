@@ -55,10 +55,12 @@ class EngineOutputChannel : public theory::OutputChannel
 
   void safePoint(Resource r) override;
 
-  void conflict(TNode conflictNode) override;
+  void conflict(TNode conflictNode,
+                    InferenceId id) override;
   bool propagate(TNode literal) override;
 
-  void lemma(TNode lemma, LemmaProperty p = LemmaProperty::NONE) override;
+  void lemma(TNode lemma,
+                    InferenceId id, LemmaProperty p = LemmaProperty::NONE) override;
 
   void preferPhase(TNode n, bool phase) override;
 
@@ -74,7 +76,8 @@ class EngineOutputChannel : public theory::OutputChannel
    * by the generator pfg. Apart from pfg, the interface for this method is
    * the same as calling OutputChannel::lemma on conf.
    */
-  void trustedConflict(TrustNode pconf) override;
+  void trustedConflict(TrustNode pconf,
+                    InferenceId id) override;
   /**
    * Let plem be the pair (Node lem, ProofGenerator * pfg).
    * Send lem on the output channel of this class whose proof can be generated
@@ -82,6 +85,7 @@ class EngineOutputChannel : public theory::OutputChannel
    * the same as calling OutputChannel::lemma on lem.
    */
   void trustedLemma(TrustNode plem,
+                    InferenceId id,
                     LemmaProperty p = LemmaProperty::NONE) override;
 
  protected:

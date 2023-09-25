@@ -429,9 +429,11 @@ class TheoryEngine : protected EnvObj
    *
    * @param conflict The trust node containing the conflict and its proof
    * generator (if it exists),
+   * @param id The inference identifier for the conflict.
    * @param theoryId The theory that sent the conflict
    */
-  void conflict(TrustNode conflict, theory::TheoryId theoryId);
+  void conflict(TrustNode conflict, 
+             InferenceId id, theory::TheoryId theoryId);
 
   /** set in conflict */
   void markInConflict();
@@ -502,12 +504,14 @@ class TheoryEngine : protected EnvObj
 
   /**
    * Adds a new lemma, returning its status.
-   * @param node the lemma
-   * @param p the properties of the lemma.
-   * @param atomsTo the theory that atoms of the lemma should be sent to
-   * @param from the theory that sent the lemma
+   * @param node The lemma
+   * @param id The inference identifier for the lemma
+   * @param p The properties of the lemma.
+   * @param atomsTo The theory that atoms of the lemma should be sent to
+   * @param from The theory that sent the lemma.
    */
-  void lemma(TrustNode node,
+  void lemma(TrustNode node, 
+             InferenceId id,
              theory::LemmaProperty p,
              theory::TheoryId from = theory::THEORY_LAST);
 
