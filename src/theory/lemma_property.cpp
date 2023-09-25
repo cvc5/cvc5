@@ -10,10 +10,12 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The theory output channel interface.
+ * The lemma property definition
  */
 
-#include "theory/output_channel.h"
+#include "theory/lemma_property.h"
+
+#include <ostream>
 
 namespace cvc5::internal {
 namespace theory {

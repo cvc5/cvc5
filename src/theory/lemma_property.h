@@ -10,13 +10,15 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The theory output channel interface.
+ * The lemma property definition.
  */
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__OUTPUT_CHANNEL_H
-#define CVC5__THEORY__OUTPUT_CHANNEL_H
+#ifndef CVC5__THEORY__LEMMA_PROPERTY_H
+#define CVC5__THEORY__LEMMA_PROPERTY_H
+
+#include <iosfwd>
 
 namespace cvc5::internal {
 namespace theory {
@@ -60,4 +62,4 @@ std::ostream& operator<<(std::ostream& out, LemmaProperty p);
 }  // namespace theory
 }  // namespace cvc5::internal
 
-#endif /* CVC5__THEORY__OUTPUT_CHANNEL_H */
+#endif /* CVC5__THEORY__LEMMA_PROPERTY_H */

@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__ENGINE_OUTPUT_CHANNEL_H
-#define CVC5__THEORY__ENGINE_OUTPUT_CHANNEL_H
+#ifndef CVC5__THEORY__OUTPUT_CHANNEL_H
+#define CVC5__THEORY__OUTPUT_CHANNEL_H
 
 #include "expr/node.h"
 #include "proof/trust_node.h"
@@ -48,6 +48,8 @@ class OutputChannel
   friend class internal::TheoryEngine;
 
  public:
+  /** Default constructor */
+  OutputChannel();
   /** Constructor for use by theory */
   OutputChannel(StatisticsRegistry& sr,
                 TheoryEngine* engine,
@@ -56,7 +58,7 @@ class OutputChannel
   OutputChannel(StatisticsRegistry& sr,
                 TheoryEngine* engine,
                 const std::string& name,
-                size_t id);
+                size_t id = 0);
   virtual ~OutputChannel() {}
 
   /**
@@ -161,6 +163,7 @@ class OutputChannel
   class Statistics
   {
    public:
+    Statistics();
     Statistics(StatisticsRegistry& sr, const std::string& statPrefix);
     /** Number of calls to conflict, propagate, lemma, preferPhase */
     IntStat conflicts, propagations, lemmas, preferPhase, trustedConflicts,
@@ -179,4 +182,4 @@ class OutputChannel
 }  // namespace theory
 }  // namespace cvc5::internal
 
-#endif /* CVC5__THEORY__ENGINE_OUTPUT_CHANNEL_H */
+#endif /* CVC5__THEORY__OUTPUT_CHANNEL_H */
