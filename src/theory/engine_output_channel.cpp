@@ -64,8 +64,7 @@ void EngineOutputChannel::safePoint(Resource r)
   }
 }
 
-void EngineOutputChannel::lemma(TNode lemma,
-                    InferenceId id, LemmaProperty p)
+void EngineOutputChannel::lemma(TNode lemma, InferenceId id, LemmaProperty p)
 {
   trustedLemma(TrustNode::mkTrustLemma(lemma), id, p);
 }
@@ -79,8 +78,7 @@ bool EngineOutputChannel::propagate(TNode literal)
   return d_engine->propagate(literal, d_theory);
 }
 
-void EngineOutputChannel::conflict(TNode conflictNode,
-                    InferenceId id)
+void EngineOutputChannel::conflict(TNode conflictNode, InferenceId id)
 {
   Trace("theory::conflict")
       << "EngineOutputChannel<" << d_theory << ">::conflict(" << conflictNode
@@ -116,8 +114,7 @@ void EngineOutputChannel::spendResource(Resource r)
   d_engine->spendResource(r);
 }
 
-void EngineOutputChannel::trustedConflict(TrustNode pconf,
-                    InferenceId id)
+void EngineOutputChannel::trustedConflict(TrustNode pconf, InferenceId id)
 {
   Assert(pconf.getKind() == TrustNodeKind::CONFLICT);
   Trace("theory::conflict")
@@ -133,7 +130,8 @@ void EngineOutputChannel::trustedConflict(TrustNode pconf,
 }
 
 void EngineOutputChannel::trustedLemma(TrustNode plem,
-                    InferenceId id, LemmaProperty p)
+                                       InferenceId id,
+                                       LemmaProperty p)
 {
   Trace("theory::lemma") << "EngineOutputChannel<" << d_theory
                          << ">::trustedLemma(" << plem << ")" << std::endl;

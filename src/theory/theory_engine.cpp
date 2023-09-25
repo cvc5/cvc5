@@ -1390,8 +1390,8 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
   }
 }
 
-void TheoryEngine::lemma(TrustNode tlemma, 
-             InferenceId id,
+void TheoryEngine::lemma(TrustNode tlemma,
+                         InferenceId id,
                          theory::LemmaProperty p,
                          theory::TheoryId from)
 {
@@ -1461,8 +1461,9 @@ void TheoryEngine::markInConflict()
   d_inConflict = true;
 }
 
-void TheoryEngine::conflict(TrustNode tconflict, 
-             InferenceId id, TheoryId theoryId)
+void TheoryEngine::conflict(TrustNode tconflict,
+                            InferenceId id,
+                            TheoryId theoryId)
 {
   Assert(tconflict.getKind() == TrustNodeKind::CONFLICT);
 

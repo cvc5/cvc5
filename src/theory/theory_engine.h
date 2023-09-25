@@ -432,8 +432,7 @@ class TheoryEngine : protected EnvObj
    * @param id The inference identifier for the conflict.
    * @param theoryId The theory that sent the conflict
    */
-  void conflict(TrustNode conflict, 
-             InferenceId id, theory::TheoryId theoryId);
+  void conflict(TrustNode conflict, InferenceId id, theory::TheoryId theoryId);
 
   /** set in conflict */
   void markInConflict();
@@ -510,7 +509,7 @@ class TheoryEngine : protected EnvObj
    * @param atomsTo The theory that atoms of the lemma should be sent to
    * @param from The theory that sent the lemma.
    */
-  void lemma(TrustNode node, 
+  void lemma(TrustNode node,
              InferenceId id,
              theory::LemmaProperty p,
              theory::TheoryId from = theory::THEORY_LAST);
