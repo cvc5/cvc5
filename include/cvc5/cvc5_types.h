@@ -467,8 +467,8 @@ const char* cvc5_find_synthesis_target_to_string(Cvc5FindSynthTarget target);
 #else
 /**
  * Serialize a FindSynthTarget to given stream.
- * @param out The output stream
- * @param targetThe synthesis find target.
+ * @param out    The output stream
+ * @param target The synthesis find target.
  * @return The output stream
  */
 std::ostream& operator<<(std::ostream& out, FindSynthTarget target) CVC5_EXPORT;

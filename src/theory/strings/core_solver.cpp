@@ -1139,7 +1139,10 @@ void CoreSolver::processNEqc(Node eqc,
       unsigned rindex = 0;
       nfi.reverse();
       nfj.reverse();
-      processSimpleNEq(nfi, nfj, rindex, true, 0, pinfer, stype);
+      if (processSimpleNEq(nfi, nfj, rindex, true, 0, pinfer, stype))
+      {
+        break;
+      }
       nfi.reverse();
       nfj.reverse();
       if (d_im.hasProcessed())
@@ -1150,7 +1153,10 @@ void CoreSolver::processNEqc(Node eqc,
       // rindex = 0;
 
       unsigned index = 0;
-      processSimpleNEq(nfi, nfj, index, false, rindex, pinfer, stype);
+      if (processSimpleNEq(nfi, nfj, index, false, rindex, pinfer, stype))
+      {
+        break;
+      }
       if (d_im.hasProcessed())
       {
         break;
@@ -1198,7 +1204,7 @@ void CoreSolver::processNEqc(Node eqc,
   }
 }
 
-void CoreSolver::processSimpleNEq(NormalForm& nfi,
+bool CoreSolver::processSimpleNEq(NormalForm& nfi,
                                   NormalForm& nfj,
                                   unsigned& index,
                                   bool isRev,
@@ -1219,7 +1225,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     if (lhsDone && rhsDone)
     {
       // We are done with both normal forms
-      break;
+      return true;
     }
     else if (lhsDone || rhsDone)
     {
@@ -1280,7 +1286,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       {
         // if both are constant, it's just a constant conflict
         d_im.sendInference(ant, d_false, InferenceId::STRINGS_N_CONST, isRev, true);
-        return;
+        return false;
       }
       // `x` and `y` have the same length. We infer that the two components
       // have to be the same.
@@ -1339,8 +1345,8 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       }
       else
       {
-        Assert(nfiv.size() == nfjv.size());
-        index = nfiv.size() - rproc;
+        // endpoints are equal, we have verified normal forms are equal
+        return true;
       }
       break;
     }
@@ -1688,6 +1694,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     pinfer.push_back(info);
     break;
   }
+  return false;
 }
 
 bool CoreSolver::detectLoop(NormalForm& nfi,

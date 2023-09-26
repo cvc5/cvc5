@@ -105,6 +105,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    *
    * @param index The index of the child term to return.
    * @return The child term with the given index.
+   * @throws CVC5ApiException
    */
   public Term getChild(int index) throws CVC5ApiException
   {
@@ -127,6 +128,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * @return The kind of this term.
+   * @throws CVC5ApiException
    */
   public Kind getKind() throws CVC5ApiException
   {
@@ -150,6 +152,8 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   /**
    * Replace {@code term} with {@code replacement} in this term.
    *
+   * @param term        The term to replace.
+   * @param replacement The term to replace it with.
    * @return The result of replacing {@code term} with {@code replacement} in
    *         this term.
    *
@@ -177,6 +181,8 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    * @api.note This replacement is applied during a pre-order traversal and
    *           only once (it is not run until fixed point).
    *
+   * @param terms        The terms to replace.
+   * @param replacements The replacement terms.
    * @return The result of simultaneously replacing {@code terms} with
    *         {@code replacements} in this term.
    */
@@ -494,6 +500,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    * Asserts isBitVectorValue().
    * @return The representation of a bit-vector value in bit string
    *         representation.
+   * @throws CVC5ApiException
    */
   public String getBitVectorValue() throws CVC5ApiException
   {
@@ -508,7 +515,10 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    *
    * @api.note Asserts {@code Term#isBitVectorValue()}.
    *
+   * @param base {@code 2} for binary, {@code 10} for decimal, and {@code 16}
+   *             for hexadecimal.
    * @return The string representation of a bit-vector value.
+   * @throws CVC5ApiException
    */
   public String getBitVectorValue(int base) throws CVC5ApiException
   {
@@ -534,6 +544,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    * @api.note Asserts {@code Term#isFiniteFieldValue()}.
    *
    * @return The string representation of a finite field value.
+   * @throws CVC5ApiException
    */
   public String getFiniteFieldValue() throws CVC5ApiException
   {
@@ -576,6 +587,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   /**
    * Asserts isRoundingModeValue().
    * @return The floating-point rounding mode value held by the term.
+   * @throws CVC5ApiException
    */
   public RoundingMode getRoundingModeValue() throws CVC5ApiException
   {
