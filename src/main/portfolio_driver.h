@@ -61,8 +61,7 @@ class ExecutionContext
   bool solveCommands(std::vector<cvc5::parser::Command>& cmds);
 
   /** Parse the remaining input from d_parser into a vector of commands */
-  std::vector<cvc5::parser::Command> parseCommands(
-      parser::InputParser* parser);
+  std::vector<cvc5::parser::Command> parseCommands(parser::InputParser* parser);
 };
 
 /**

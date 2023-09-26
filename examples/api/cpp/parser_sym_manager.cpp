@@ -10,7 +10,8 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A simple demonstration of using multiple parsers with the same symbol manager via C++ API.
+ * A simple demonstration of using multiple parsers with the same symbol manager
+ * via C++ API.
  */
 
 #include <cvc5/cvc5.h>
@@ -47,14 +48,16 @@ int main()
       break;
     }
     std::cout << "Executing command " << cmd << ":" << std::endl;
-    // invoke the command on the solver and the symbol manager, print the result to std::cout
+    // invoke the command on the solver and the symbol manager, print the result
+    // to std::cout
     cmd.invoke(&slv, &sm, std::cout);
   }
   std::cout << "Finished parsing commands" << std::endl;
 
   // Note that sm now has a,b,c in its symbol table.
 
-  // Now, construct a new parser with the same symbol manager. We will parse terms with it.
+  // Now, construct a new parser with the same symbol manager. We will parse
+  // terms with it.
   InputParser parser2(&slv, &sm);
   std::stringstream ss2;
   ss2 << "(+ a b)" << std::endl;
@@ -70,6 +73,6 @@ int main()
   {
     t = parser2.nextTerm();
     std::cout << "Parsed term: " << t << std::endl;
-  }while (!t.isNull());
+  } while (!t.isNull());
   std::cout << "Finished parsing terms" << std::endl;
 }

@@ -38,13 +38,9 @@ class TestParser : public TestApi
     d_symman.reset(new SymbolManager(&d_solver));
   }
 
-  void TearDown() override
-  {
-    d_symman.reset(nullptr);
-  }
+  void TearDown() override { d_symman.reset(nullptr); }
   std::unique_ptr<SymbolManager> d_symman;
 };
-
 
 }  // namespace test
 }  // namespace cvc5::internal

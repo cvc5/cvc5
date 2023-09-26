@@ -46,7 +46,6 @@ class TestInputParserBlack : public TestParser
   }
 };
 
-
 TEST_F(TestInputParserBlack, getSolver)
 {
   InputParser p(&d_solver);
@@ -123,7 +122,6 @@ TEST_F(TestInputParserBlack, nextTerm)
   ASSERT_EQ(p.nextTerm().isNull(), true);
 }
 
-
 TEST_F(TestInputParserBlack, nextTerm2)
 {
   std::stringstream out;
@@ -131,7 +129,7 @@ TEST_F(TestInputParserBlack, nextTerm2)
   p.setIncrementalStringInput("LANG_SMTLIB_V2_6", "input_parser_black");
   // parse a declaration command
   p.appendIncrementalStringInput("(declare-fun a () Int)");
-  Command  cmd = p.nextCommand();
+  Command cmd = p.nextCommand();
   ASSERT_NE(cmd.isNull(), true);
   ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
   // now parse some terms
@@ -161,7 +159,8 @@ TEST_F(TestInputParserBlack, multipleParsers)
   // cannot set logic on solver now
   ASSERT_THROW(d_solver.setLogic("QF_LRA"), CVC5ApiException);
 
-  // possible to construct another parser with the same solver and symbol manager
+  // possible to construct another parser with the same solver and symbol
+  // manager
   InputParser p2(&d_solver, p.getSymbolManager());
 
   // possible to construct another parser with a fresh solver
@@ -184,7 +183,9 @@ TEST_F(TestInputParserBlack, multipleParsers)
   Solver s4;
   s4.setLogic("QF_LRA");
   InputParser p5(&s4, d_symman.get());
-  ASSERT_THROW(p5.setIncrementalStringInput("LANG_SMTLIB_V2_6", "input_parser_black"), CVC5ApiException);
+  ASSERT_THROW(
+      p5.setIncrementalStringInput("LANG_SMTLIB_V2_6", "input_parser_black"),
+      CVC5ApiException);
 }
 
 }  // namespace test

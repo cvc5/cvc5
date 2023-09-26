@@ -53,7 +53,8 @@ int main()
       break;
     }
     std::cout << "Executing command " << *cmd.get() << ":" << std::endl;
-    // invoke the command on the solver and the symbol manager, print the result to std::cout
+    // invoke the command on the solver and the symbol manager, print the result
+    // to std::cout
     cmd.invoke(&slv, sm, std::cout);
   }
   std::cout << "Finished parsing commands" << std::endl;

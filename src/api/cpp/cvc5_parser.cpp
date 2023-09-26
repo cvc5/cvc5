@@ -54,6 +54,7 @@ class CVC5ParserApiExceptionStream
     }
   }
   std::ostream& ostream() { return d_stream; }
+
  private:
   std::stringstream d_stream;
 };
@@ -91,7 +92,7 @@ SymManager* SymbolManager::toSymManager() { return d_sm.get(); }
 /* Command                                                                    */
 /* -------------------------------------------------------------------------- */
 
-Command::Command(){}
+Command::Command() {}
 
 Command::Command(const Command& cmd) { d_cmd = cmd.d_cmd; }
 
@@ -103,7 +104,7 @@ bool Command::isNull() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return d_cmd==nullptr;
+  return d_cmd == nullptr;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -124,7 +125,7 @@ std::string Command::toString() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  if (d_cmd==nullptr)
+  if (d_cmd == nullptr)
   {
     return "null";
   }
@@ -136,7 +137,8 @@ std::string Command::toString() const
 std::string Command::getCommandName() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_PARSER_API_CHECK(d_cmd != nullptr) << "getCommandName called on a null command";
+  CVC5_PARSER_API_CHECK(d_cmd != nullptr)
+      << "getCommandName called on a null command";
   //////// all checks before this line
   return d_cmd->getCommandName();
   ////////

@@ -189,14 +189,10 @@ class TestParserBlack : public TestInternal
 
 /* -------------------------------------------------------------------------- */
 
-class TestParserBlackSmt2InputParser
-    : public TestParserBlack
+class TestParserBlackSmt2InputParser : public TestParserBlack
 {
  protected:
-  TestParserBlackSmt2InputParser()
-      : TestParserBlack("LANG_SMTLIB_V2_6")
-  {
-  }
+  TestParserBlackSmt2InputParser() : TestParserBlack("LANG_SMTLIB_V2_6") {}
 };
 
 TEST_F(TestParserBlackSmt2InputParser, good_inputs)

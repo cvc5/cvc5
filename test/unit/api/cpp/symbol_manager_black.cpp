@@ -63,6 +63,5 @@ TEST_F(TestSymbolManagerBlack, getLogic)
   ASSERT_EQ(d_symman->getLogic(), "QF_LIA");
 }
 
-
 }  // namespace test
 }  // namespace cvc5::internal

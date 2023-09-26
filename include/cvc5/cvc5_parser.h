@@ -237,7 +237,8 @@ class CVC5_EXPORT InputParser
    * or the forced logic if no logic is set prior to this point and a command
    * is read that requires initializing the logic.
    *
-   * @return The parsed command. This is the null command if no command was read.
+   * @return The parsed command. This is the null command if no command was
+   * read.
    */
   Command nextCommand();
 

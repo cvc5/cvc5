@@ -106,8 +106,7 @@ std::vector<Command> ExecutionContext::parseCommands(
   return res;
 }
 
-bool ExecutionContext::solveCommands(
-    std::vector<Command>& cmds)
+bool ExecutionContext::solveCommands(std::vector<Command>& cmds)
 {
   bool interrupted = false;
   bool status = true;

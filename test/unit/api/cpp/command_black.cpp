@@ -46,7 +46,6 @@ class TestCommandBlack : public TestParser
   }
 };
 
-
 TEST_F(TestCommandBlack, invoke)
 {
   std::stringstream out;
