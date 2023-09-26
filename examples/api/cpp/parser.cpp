@@ -44,24 +44,17 @@ int main()
   SymbolManager* sm = parser.getSymbolManager();
 
   // parse commands until finished
-  std::unique_ptr<Command> cmd;
-  while (cmd = parser.nextCommand())
+  Command cmd;
+  while (true)
   {
+    cmd = parser.nextCommand();
+    if (cmd.isNull())
+    {
+      break;
+    }
     std::cout << "Executing command " << *cmd.get() << ":" << std::endl;
     // invoke the command on the solver and the symbol manager, print the result to std::cout
-    cmd->invoke(&slv, sm, std::cout);
-    if (cmd->fail())
-    {
-      std::cout << "...the command failed" << std::endl;
-    }
-    else if (cmd->interrupted())
-    {
-      std::cout << "...the command was interrupted" << std::endl;
-    }
-    else if (cmd->ok())
-    {
-      std::cout << "...the command was successful" << std::endl;
-    }
+    cmd.invoke(&slv, sm, std::cout);
   }
   std::cout << "Finished parsing commands" << std::endl;
 }

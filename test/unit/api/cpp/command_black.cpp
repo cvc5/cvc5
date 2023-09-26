@@ -36,7 +36,7 @@ class TestCommandBlack : public TestParser
   TestCommandBlack() {}
   virtual ~TestCommandBlack() {}
 
-  std::unique_ptr<Command> parseCommand(const std::string& cmdStr)
+  Command parseCommand(const std::string& cmdStr)
   {
     std::stringstream ss;
     ss << cmdStr << std::endl;
@@ -50,55 +50,34 @@ class TestCommandBlack : public TestParser
 TEST_F(TestCommandBlack, invoke)
 {
   std::stringstream out;
-  std::unique_ptr<Command> cmd;
+  Command cmd;
   // set logic command can be executed
   cmd = parseCommand("(set-logic QF_LIA)");
-  ASSERT_NE(cmd, nullptr);
-  cmd->invoke(&d_solver, d_symman.get(), out);
+  ASSERT_NE(cmd.isNull(), true);
+  cmd.invoke(&d_solver, d_symman.get(), out);
   // get model not available
   cmd = parseCommand("(get-model)");
-  ASSERT_NE(cmd, nullptr);
-  cmd->invoke(&d_solver, d_symman.get(), out);
+  ASSERT_NE(cmd.isNull(), true);
+  cmd.invoke(&d_solver, d_symman.get(), out);
   // logic already set
   ASSERT_THROW(parseCommand("(set-logic QF_LRA)"), ParserException);
 }
 
 TEST_F(TestCommandBlack, toString)
 {
-  std::unique_ptr<Command> cmd;
+  Command cmd;
   cmd = parseCommand("(set-logic QF_LIA )");
-  ASSERT_NE(cmd, nullptr);
+  ASSERT_NE(cmd.isNull(), true);
   // note normalizes wrt whitespace
-  ASSERT_EQ(cmd->toString(), "(set-logic QF_LIA)\n");
+  ASSERT_EQ(cmd.toString(), "(set-logic QF_LIA)\n");
 }
 
 TEST_F(TestCommandBlack, getCommandName)
 {
-  std::unique_ptr<Command> cmd;
+  Command cmd;
   cmd = parseCommand("(get-model)");
-  ASSERT_NE(cmd, nullptr);
-  ASSERT_EQ(cmd->getCommandName(), "get-model");
-}
-
-TEST_F(TestCommandBlack, commandStatus)
-{
-  std::stringstream out;
-  std::unique_ptr<Command> cmd;
-
-  cmd = parseCommand("(set-logic QF_LIA)");
-  ASSERT_NE(cmd, nullptr);
-  ASSERT_EQ(cmd->ok(), true);
-  cmd->invoke(&d_solver, d_symman.get(), out);
-  ASSERT_EQ(cmd->ok(), true);
-  ASSERT_EQ(cmd->fail(), false);
-  ASSERT_EQ(cmd->interrupted(), false);
-
-  cmd = parseCommand("(get-model)");
-  ASSERT_NE(cmd, nullptr);
-  cmd->invoke(&d_solver, d_symman.get(), out);
-  ASSERT_EQ(cmd->ok(), false);
-  //ASSERT_EQ(cmd->fail(), true);
-  ASSERT_EQ(cmd->interrupted(), false);
+  ASSERT_NE(cmd.isNull(), true);
+  ASSERT_EQ(cmd.getCommandName(), "get-model");
 }
 
 }  // namespace test

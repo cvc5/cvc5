@@ -38,12 +38,17 @@ int main()
   parser.setStreamInput("LANG_SMTLIB_V2_6", ss, "MyStream");
 
   // parse commands until finished
-  std::unique_ptr<Command> cmd;
-  while (cmd = parser.nextCommand())
+  Command cmd;
+  while (true)
   {
-    std::cout << "Executing command " << *cmd.get() << ":" << std::endl;
+    cmd = parser.nextCommand();
+    if (cmd.isNull())
+    {
+      break;
+    }
+    std::cout << "Executing command " << cmd << ":" << std::endl;
     // invoke the command on the solver and the symbol manager, print the result to std::cout
-    cmd->invoke(&slv, &sm, std::cout);
+    cmd.invoke(&slv, &sm, std::cout);
   }
   std::cout << "Finished parsing commands" << std::endl;
 

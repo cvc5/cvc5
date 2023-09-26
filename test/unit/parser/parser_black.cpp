@@ -69,11 +69,16 @@ class TestParserBlack : public TestInternal
     ss << "(declare-fun y () u)" << std::endl;
     ss << "(declare-fun z () v)" << std::endl;
     parser.setStreamInput("LANG_SMTLIB_V2_6", ss, "parser_black");
-    std::unique_ptr<Command> cmd;
+    Command cmd;
     std::stringstream tmp;
-    while ((cmd = parser.nextCommand()) != nullptr)
+    while (true)
     {
-      cmd->invoke(d_solver.get(), d_symman.get(), tmp);
+      cmd = parser.nextCommand();
+      if (cmd.isNull())
+      {
+        break;
+      }
+      cmd.invoke(d_solver.get(), d_symman.get(), tmp);
     }
   }
 
@@ -86,12 +91,17 @@ class TestParserBlack : public TestInternal
     ss << goodInput;
     parser.setStreamInput("LANG_SMTLIB_V2_6", ss, "parser_black");
     ASSERT_FALSE(parser.done());
-    std::unique_ptr<Command> cmd;
+    Command cmd;
     std::stringstream tmp;
-    while ((cmd = parser.nextCommand()) != nullptr)
+    while (true)
     {
-      Trace("parser") << "Parsed command: " << (*cmd) << std::endl;
-      cmd->invoke(d_solver.get(), d_symman.get(), tmp);
+      cmd = parser.nextCommand();
+      if (cmd.isNull())
+      {
+        break;
+      }
+      Trace("parser") << "Parsed command: " << cmd << std::endl;
+      cmd.invoke(d_solver.get(), d_symman.get(), tmp);
     }
 
     ASSERT_TRUE(parser.done());
@@ -108,12 +118,17 @@ class TestParserBlack : public TestInternal
     parser.setStreamInput(d_lang, ss, "parser_black");
     ASSERT_THROW(
         {
-          std::unique_ptr<Command> cmd;
+          Command cmd;
           std::stringstream tmp;
-          while ((cmd = parser.nextCommand()) != NULL)
+          while (true)
           {
+            cmd = parser.nextCommand();
+            if (cmd.isNull())
+            {
+              break;
+            }
             Trace("parser") << "Parsed command: " << (*cmd) << std::endl;
-            cmd->invoke(d_solver.get(), d_symman.get(), tmp);
+            cmd.invoke(d_solver.get(), d_symman.get(), tmp);
           }
           std::cout << "\nBad input succeeded:\n" << badInput << std::endl;
         },

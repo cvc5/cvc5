@@ -93,9 +93,11 @@ class CVC5_EXPORT Command
 {
   friend class InputParser;
   friend class main::CommandExecutor;
+  friend class internal::InteractiveShell;
   friend class main::ExecutionContext;
 
  public:
+  Command();
   Command(const Command& cmd);
 
   virtual ~Command();
@@ -125,27 +127,9 @@ class CVC5_EXPORT Command
   std::string getCommandName() const;
 
   /**
-   * Either the command hasn't run yet, or it completed successfully
-   * (CommandSuccess, not CommandUnsupported or CommandFailure).
-   *
-   * @return Whether the command was successfully invoked.
+   * @return Whether this command is null.
    */
-  bool ok() const;
-
-  /**
-   * The command completed in a failure state (CommandFailure, not
-   * CommandSuccess or CommandUnsupported).
-   *
-   * @return Whether the command failed.
-   */
-  bool fail() const;
-
-  /**
-   * The command was ran but was interrupted due to resource limiting.
-   *
-   * @return Whether the command was interrupted.
-   */
-  bool interrupted() const;
+  bool isNull() const;
 
  protected:
   /**
@@ -252,8 +236,10 @@ class CVC5_EXPORT InputParser
    * Parse and return the next command. Will initialize the logic to "ALL"
    * or the forced logic if no logic is set prior to this point and a command
    * is read that requires initializing the logic.
+   *
+   * @return The parsed command. This is the null command if no command was read.
    */
-  std::unique_ptr<Command> nextCommand();
+  Command nextCommand();
 
   /**
    * Parse and return the next term. Requires setting the logic prior

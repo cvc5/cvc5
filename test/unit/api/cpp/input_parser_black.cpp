@@ -36,7 +36,7 @@ class TestInputParserBlack : public TestParser
   TestInputParserBlack() {}
   virtual ~TestInputParserBlack() {}
 
-  std::unique_ptr<Command> parseLogicCommand(InputParser& p, const std::string& logic)
+  Command parseLogicCommand(InputParser& p, const std::string& logic)
   {
     p.setIncrementalStringInput("LANG_SMTLIB_V2_6", "input_parser_black");
     std::stringstream ss;
@@ -71,11 +71,16 @@ TEST_F(TestInputParserBlack, setStreamInput)
   ss << "(declare-fun a () Bool)" << std::endl;
   ss << "(declare-fun b () Int)" << std::endl;
   p.setStreamInput("LANG_SMTLIB_V2_6", ss, "input_parser_black");
-  std::unique_ptr<Command> cmd;
+  Command cmd;
   std::stringstream out;
-  while ((cmd = p.nextCommand()) != nullptr)
+  while (true)
   {
-    ASSERT_NO_THROW(cmd->invoke(&d_solver, d_symman.get(), out));
+    cmd = p.nextCommand();
+    if (cmd.isNull())
+    {
+      break;
+    }
+    ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
   }
 }
 
@@ -84,19 +89,19 @@ TEST_F(TestInputParserBlack, setAndAppendIncrementalStringInput)
   std::stringstream out;
   InputParser p(&d_solver);
   p.setIncrementalStringInput("LANG_SMTLIB_V2_6", "input_parser_black");
-  std::unique_ptr<Command> cmd;
+  Command cmd;
   p.appendIncrementalStringInput("(set-logic ALL)");
   cmd = p.nextCommand();
-  ASSERT_NE(cmd.get(), nullptr);
-  ASSERT_NO_THROW(cmd->invoke(&d_solver, d_symman.get(), out));
+  ASSERT_NE(cmd.isNull(), true);
+  ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
   p.appendIncrementalStringInput("(declare-fun a () Bool)");
   cmd = p.nextCommand();
-  ASSERT_NE(cmd.get(), nullptr);
-  ASSERT_NO_THROW(cmd->invoke(&d_solver, d_symman.get(), out));
+  ASSERT_NE(cmd.isNull(), true);
+  ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
   p.appendIncrementalStringInput("(declare-fun b () Int)");
   cmd = p.nextCommand();
-  ASSERT_NE(cmd.get(), nullptr);
-  ASSERT_NO_THROW(cmd->invoke(&d_solver, d_symman.get(), out));
+  ASSERT_NE(cmd.isNull(), true);
+  ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
 }
 
 TEST_F(TestInputParserBlack, nextCommand)
@@ -105,7 +110,8 @@ TEST_F(TestInputParserBlack, nextCommand)
   ASSERT_THROW(p.nextCommand(), CVC5ApiException);
   std::stringstream ss;
   p.setStreamInput("LANG_SMTLIB_V2_6", ss, "input_parser_black");
-  ASSERT_EQ(p.nextCommand(), nullptr);
+  Command cmd = p.nextCommand();
+  ASSERT_EQ(cmd.isNull(), true);
 }
 
 TEST_F(TestInputParserBlack, nextTerm)
@@ -125,9 +131,9 @@ TEST_F(TestInputParserBlack, nextTerm2)
   p.setIncrementalStringInput("LANG_SMTLIB_V2_6", "input_parser_black");
   // parse a declaration command
   p.appendIncrementalStringInput("(declare-fun a () Int)");
-  std::unique_ptr<Command>  cmd = p.nextCommand();
-  ASSERT_NE(cmd.get(), nullptr);
-  ASSERT_NO_THROW(cmd->invoke(&d_solver, d_symman.get(), out));
+  Command  cmd = p.nextCommand();
+  ASSERT_NE(cmd.isNull(), true);
+  ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
   // now parse some terms
   Term t;
   p.appendIncrementalStringInput("45");
@@ -146,8 +152,8 @@ TEST_F(TestInputParserBlack, multipleParsers)
   std::stringstream out;
   InputParser p(&d_solver, d_symman.get());
   // set a logic for the parser
-  std::unique_ptr<Command> cmd = parseLogicCommand(p, "QF_LIA");
-  ASSERT_NO_THROW(cmd->invoke(&d_solver, d_symman.get(), out));
+  Command cmd = parseLogicCommand(p, "QF_LIA");
+  ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
   ASSERT_EQ(d_solver.isLogicSet(), true);
   ASSERT_EQ(d_solver.getLogic(), "QF_LIA");
   ASSERT_EQ(d_symman->isLogicSet(), true);

@@ -312,19 +312,24 @@ restart:
 
   /* There may be more than one command in the input. Build up a
      sequence. */
-  std::vector<std::unique_ptr<Command>> cmdSeq;
-  std::unique_ptr<Command> cmdp;
+  std::vector<Command> cmdSeq;
+  Command cmdp;
   // remember the scope level of the symbol manager, in case we hit an end of
   // line (when catching ParserEndOfFileException).
   size_t lastScopeLevel = d_symman->scopeLevel();
 
   try
   {
-    while ((cmdp = d_parser->nextCommand()))
+    while (true)
     {
-      Command* cmd = cmdp.get();
+      cmdp = d_parser->nextCommand();
+      if (cmdp.isNull())
+      {
+        break;
+      }
+      Cmd* cmd = cmdp.toCmd();
       // execute the command immediately
-      d_cexec->doCommand(cmd);
+      d_cexec->doCommand(&cmdp);
       if (cmd->interrupted())
       {
         d_quit = true;

@@ -91,35 +91,19 @@ SymManager* SymbolManager::toSymManager() { return d_sm.get(); }
 /* Command                                                                    */
 /* -------------------------------------------------------------------------- */
 
+Command::Command(){}
+
 Command::Command(const Command& cmd) { d_cmd = cmd.d_cmd; }
 
 Command::Command(std::shared_ptr<Cmd> cmd) : d_cmd(cmd) {}
 
 Command::~Command() {}
 
-bool Command::ok() const
+bool Command::isNull() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return d_cmd->ok();
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-bool Command::fail() const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
-  return d_cmd->fail();
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-bool Command::interrupted() const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
-  return d_cmd->interrupted();
+  return d_cmd==nullptr;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -129,6 +113,7 @@ void Command::invoke(cvc5::Solver* solver,
                      std::ostream& out)
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_PARSER_API_CHECK(d_cmd != nullptr) << "Invoking a null command";
   //////// all checks before this line
   d_cmd->invoke(solver, sm->toSymManager(), out);
   ////////
@@ -139,6 +124,10 @@ std::string Command::toString() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
+  if (d_cmd==nullptr)
+  {
+    return "null";
+  }
   return d_cmd->toString();
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -147,6 +136,7 @@ std::string Command::toString() const
 std::string Command::getCommandName() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_PARSER_API_CHECK(d_cmd != nullptr) << "getCommandName called on a null command";
   //////// all checks before this line
   return d_cmd->getCommandName();
   ////////
@@ -272,20 +262,14 @@ Solver* InputParser::getSolver() { return d_solver; }
 
 SymbolManager* InputParser::getSymbolManager() { return d_sm; }
 
-std::unique_ptr<Command> InputParser::nextCommand()
+Command InputParser::nextCommand()
 {
   CVC5_PARSER_API_CHECK(d_parser != nullptr)
       << "Input to parser not initialized";
   //////// all checks before this line
   Trace("parser") << "nextCommand()" << std::endl;
   std::shared_ptr<Cmd> cmd = d_parser->nextCommand();
-  if (cmd == nullptr)
-  {
-    return nullptr;
-  }
-  std::unique_ptr<Command> cc;
-  cc.reset(new Command(cmd));
-  return cc;
+  return Command(cmd);
 }
 
 Term InputParser::nextTerm()
