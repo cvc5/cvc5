@@ -13,6 +13,8 @@
  * The printer for LFSC proofs
  */
 
+#include <functional>
+
 #include "cvc5_private.h"
 
 #ifndef CVC4__PROOF__LFSC__LFSC_PRINTER_H
@@ -197,7 +199,7 @@ class LfscPrinter : protected EnvObj
   /** proof letified trust child prefix */
   std::string d_pletTrustChildPrefix;
   /** for debugging the open rules, the set of ProofRule we have warned about */
-  std::unordered_set<ProofRule, ProofRuleHashFunction> d_trustWarned;
+  std::unordered_set<ProofRule, std::hash<ProofRule>> d_trustWarned;
   /** Pointer to the rewrite database */
   rewriter::RewriteDb* d_rdb;
   /**

@@ -13,6 +13,8 @@
  * The module for processing proof nodes.
  */
 
+#include <functional>
+
 #include "cvc5_private.h"
 
 #ifndef CVC5__SMT__PROOF_POST_PROCESSOR_H
@@ -89,7 +91,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
   /** The witness form assumptions used in the proof */
   std::vector<Node> d_wfAssumptions;
   /** Kinds of proof rules we are eliminating */
-  std::unordered_set<ProofRule, ProofRuleHashFunction> d_elimRules;
+  std::unordered_set<ProofRule, std::hash<ProofRule>> d_elimRules;
   /** Whether we are trying to eliminate any trusted rule via the DSL */
   bool d_elimAllTrusted;
   /** Whether we post-process assumptions in scope. */

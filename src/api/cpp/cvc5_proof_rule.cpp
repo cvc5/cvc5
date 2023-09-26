@@ -218,10 +218,13 @@ std::ostream& operator<<(std::ostream& out, ProofRule id)
   out << toString(id);
   return out;
 }
+}  // namespace cvc5
 
-size_t ProofRuleHashFunction::operator()(ProofRule id) const
+namespace std {
+
+size_t hash<cvc5::ProofRule>::operator()(cvc5::ProofRule rule) const
 {
-  return static_cast<size_t>(id);
+  return static_cast<size_t>(rule);
 }
 
-}  // namespace cvc5
+}  // namespace std

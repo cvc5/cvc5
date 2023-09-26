@@ -2379,16 +2379,25 @@ const char* toString(ProofRule id);
  * @return The stream
  */
 std::ostream& operator<<(std::ostream& out, ProofRule id);
-
-/** Hash function for proof rules */
-struct ProofRuleHashFunction
-{
-  size_t operator()(ProofRule id) const;
-}; /* struct ProofRuleHashFunction */
-
 }  // namespace cvc5
-#endif
 
+namespace std {
+/**
+ * Hash function for ProofRules.
+ */
+template <>
+struct CVC5_EXPORT hash<cvc5::ProofRule>
+{
+  /**
+   * Hashes a ProofRule to a size_t.
+   * @param rule The proof rule.
+   * @return The hash value.
+   */
+  size_t operator()(cvc5::ProofRule rule) const;
+};
+}  // namespace std
+
+#endif
 #endif
 
 #ifdef CVC5_API_USE_C_ENUMS
