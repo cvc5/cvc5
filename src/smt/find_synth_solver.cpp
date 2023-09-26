@@ -22,6 +22,7 @@
 #include "theory/quantifiers/rewrite_verifier.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus_sampler.h"
+#include "util/resource_manager.h"
 
 namespace cvc5::internal {
 namespace smt {
@@ -48,8 +49,10 @@ Node FindSynthSolver::findSynthNext()
 {
   // cycle through each until one returns a solution
   Node ret;
-  while (d_finished.size() < d_sfinders.size())
+  ResourceManager* rm = resourceManager();
+  while (d_finished.size() < d_sfinders.size() && !rm->out())
   {
+    rm->spendResource(Resource::FindSynthStep);
     if (d_currIndex == d_sfinders.size())
     {
       d_currIndex = 0;
@@ -71,6 +74,7 @@ Node FindSynthSolver::findSynthNext()
       {
         std::ostream& out = options().base.out;
         out << "(" << d_fst << " " << ret << ")" << std::endl;
+        ret = Node::null();
       }
       else
       {

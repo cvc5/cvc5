@@ -407,9 +407,10 @@ void CegisCoreConnective::Component::addRefinementPt(
     Node id, const std::vector<Node>& pt)
 {
   d_numRefPoints++;
-  bool res = d_refinementPt.addTerm(id, pt);
-  // this should always be a new point
-  AlwaysAssert(res);
+  d_refinementPt.addTerm(id, pt);
+  // Note that addTerm returns false if pt is a duplicate of
+  // a previous point. This may happen if the candidate solutions we are testing
+  // involve partial functions.
 }
 void CegisCoreConnective::Component::addFalseCore(Node id,
                                                   const std::vector<Node>& u)
@@ -588,17 +589,25 @@ Node CegisCoreConnective::evaluatePt(Node n,
   {
     NodeManager* nm = NodeManager::currentNM();
     bool expRes = nk == OR;
+    bool success = true;
     // split AND/OR
     for (const Node& nc : n)
     {
       Node enc = evaluatePt(nc, id, mvs);
-      Assert(enc.isConst());
+      if (!enc.isConst())
+      {
+        success = false;
+        break;
+      }
       if (enc.getConst<bool>() == expRes)
       {
         return nm->mkConst(expRes);
       }
     }
-    return nm->mkConst(!expRes);
+    if (success)
+    {
+      return nm->mkConst(!expRes);
+    }
   }
   std::unordered_map<Node, Node>& ec = d_eval_cache[n];
   if (!id.isNull())
@@ -809,9 +818,11 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
       // the current point
       mvs.clear();
       getModelFromSubsolver(*checkSol, d_vars, mvs);
-      // should evaluate to true
+      // should typically evaluate to true, although this may not be the case
+      // for partial functions
       Node ean = evaluatePt(an, Node::null(), mvs);
-      Assert(ean.isConst() && ean.getConst<bool>());
+      // should not evaluate to false
+      Assert(!ean.isConst() || ean.getConst<bool>());
       Trace("sygus-ccore") << "--- Add refinement point " << mvs << std::endl;
       // In terms of Variant #2, this is the line:
       //   "pts(B) += { v } where { x -> v } is a model for D ^ ~B".

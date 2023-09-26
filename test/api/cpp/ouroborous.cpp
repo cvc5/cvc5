@@ -26,19 +26,17 @@
  */
 
 #include <cvc5/cvc5.h>
+#include <cvc5/cvc5_parser.h>
 
 #include <cassert>
 #include <iostream>
 #include <string>
 
-#include "parser/api/cpp/command.h"
-#include "parser/api/cpp/input_parser.h"
-#include "parser/api/cpp/symbol_manager.h"
+#include "parser/parser_exception.h"
 
 using namespace cvc5;
 using namespace cvc5::internal;
 using namespace cvc5::parser;
-using namespace cvc5::internal::language;
 
 int runTest();
 
@@ -118,13 +116,13 @@ std::string translate(std::string instr,
   assert(output_language == "smt2");
 
   std::cout << "==============================================" << std::endl
-            << "translating from " << Language::LANG_SMTLIB_V2_6 << " to "
-            << Language::LANG_SMTLIB_V2_6 << " this string:" << std::endl
+            << "translating from " << input_language << " to "
+            << output_language << " this string:" << std::endl
             << instr << std::endl;
   std::string outstr = parse(instr, input_language, output_language);
   std::cout << "got this:" << std::endl
             << outstr << std::endl
-            << "reparsing as " << Language::LANG_SMTLIB_V2_6 << std::endl;
+            << "reparsing as " << output_language << std::endl;
   std::string poutstr = parse(outstr, output_language, output_language);
   assert(outstr == poutstr);
   std::cout << "got same expressions " << outstr << " and " << poutstr
@@ -137,7 +135,7 @@ void runTestString(std::string instr, std::string instr_language)
 {
   std::cout << std::endl
             << "starting with: " << instr << std::endl
-            << "   in language " << Language::LANG_SMTLIB_V2_6 << std::endl;
+            << "   in language " << instr_language << std::endl;
   std::string smt2str = translate(instr, instr_language, "smt2");
   std::cout << "in SMT2      : " << smt2str << std::endl;
   std::string outstr = translate(smt2str, "smt2", "smt2");

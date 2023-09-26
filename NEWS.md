@@ -2,6 +2,36 @@ This file contains a summary of important user-visible changes.
 
 **New Features**
 
+cvc5 1.0.9
+==========
+
+- SMT-LIB: The syntax for 0-ary tuples has been changed for the purposes of
+           disambiguation. The new syntax for 0-ary tuple sort is `UnitTuple`
+           whose 0-ary constructor is `tuple.unit` (the previous syntax had
+           overloaded `Tuple` and `tuple`, with no arguments).
+- API: Add the ability to query the logic that has been set in the solver via
+       `Solver::isLogicSet` and `Solver::getLogic`.
+
+cvc5 1.0.8
+==========
+Note: This is a pre-release version for the upcoming version 1.1.0.
+
+- API: C++ enums are now enum classes
+- API: Added argument `fresh` to `Solver::declareFun` which distinguishes whether
+       the solver should construct a new term or (when applicable) return a
+       term constructed with the same name and sort. An analogous flag is added
+       to `Solver::declareSort`. The option `--fresh-declarations` determines
+       whether the parser constructs fresh terms and sorts for each declaration
+       (true by default, which matches the previous behavior).
+
+cvc5 1.0.7
+==========
+
+- Various bug fixes
+
+cvc5 1.0.6
+==========
+
 - Removed support for the ANTLR parser and parsing for the TPTP language.
 - API: New API function
        `Solver::mkFloatingPoint(const Term& sign, const Term& exp, const Term& sig)`,
@@ -10,20 +40,20 @@ This file contains a summary of important user-visible changes.
 - API: Simplified the `Solver::mkTuple` method. The sorts of the elements no longer
        need to be provided.
 - Support for timeout cores
-  - API: New API function `Solver::getTimeoutCore()` when applicable
+  * API: New API function `Solver::getTimeoutCore()` when applicable
     returns a subset of the current assertions that cause the solver to timeout
     without a provided timeout (option `--timeout-core-timeout`).
-  - SMT-LIB: New command `(get-timeout-core)` which invokes the above method.
+  * SMT-LIB: New command `(get-timeout-core)` which invokes the above method.
 - Support for new interfaces to the SyGuS solver.
-  - API: New API function `Solver::findSynth` which takes an identifier
+  * API: New API function `Solver::findSynth` which takes an identifier
     specifying a target term to synthesize and (optionally) a grammar. This
     method can be used to directly enumerate terms in a provided grammar
-    (`FIND_SYNTH_TARGET_ENUM`), or as a way of finding other terms of interest,
+    (`FindSynthTarget::ENUM`), or as a way of finding other terms of interest,
     e.g. a rewrite rule that is applicable to the current set of assertions
-    (`FIND_SYNTH_TARGET_REWRITE_INPUT`).
-  - API: New API function `Solver::findSynthNext` which gets the next term
+    (`FindSynthTarget::REWRITE_INPUT`).
+  * API: New API function `Solver::findSynthNext` which gets the next term
     in the enumeration.
-  - SMT-LIB: New commands `find-synth` and `find-synth-next` which invoke the
+  * SMT-LIB: New commands `find-synth` and `find-synth-next` which invoke the
     above methods.
 - API: The option `--print-unsat-cores-full` has been renamed to
        `--print-cores-full`. Setting this option to true will print all

@@ -255,9 +255,10 @@ NodeManager::~NodeManager()
   d_rt_cache.d_children.clear();
   d_rt_cache.d_data = dummy;
 
-  // clear the datatypes and oracles
+  // clear the datatypes, oracles and declared sorts
   d_dtypes.clear();
   d_oracles.clear();
+  d_nfreshSorts.clear();
 
   Assert(!d_attrManager->inGarbageCollection());
 
@@ -951,12 +952,9 @@ TypeNode NodeManager::mkSort()
   return nb.constructTypeNode();
 }
 
-TypeNode NodeManager::mkSort(const std::string& name)
+TypeNode NodeManager::mkSort(const std::string& name, bool fresh)
 {
-  NodeBuilder nb(this, kind::SORT_TYPE);
-  TypeNode tn = nb.constructTypeNode();
-  setAttribute(tn, expr::VarNameAttr(), name);
-  return tn;
+  return mkSortConstructor(name, 0, fresh);
 }
 
 TypeNode NodeManager::mkSort(TypeNode constructor,
@@ -978,13 +976,36 @@ TypeNode NodeManager::mkSort(TypeNode constructor,
   return nb.constructTypeNode();
 }
 
-TypeNode NodeManager::mkSortConstructor(const std::string& name, size_t arity)
+TypeNode NodeManager::mkSortConstructor(const std::string& name,
+                                        size_t arity,
+                                        bool fresh)
 {
-  Assert(arity > 0);
+  if (!fresh)
+  {
+    std::pair<std::string, size_t> key(name, arity);
+    std::map<std::pair<std::string, size_t>, TypeNode>::iterator it =
+        d_nfreshSorts.find(key);
+    if (it != d_nfreshSorts.end())
+    {
+      return it->second;
+    }
+    // allocate a new one
+    TypeNode t = mkSortConstructorInternal(name, arity);
+    d_nfreshSorts[key] = t;
+    return t;
+  }
+  return mkSortConstructorInternal(name, arity);
+}
+TypeNode NodeManager::mkSortConstructorInternal(const std::string& name,
+                                                size_t arity)
+{
   NodeBuilder nb(this, kind::SORT_TYPE);
   TypeNode type = nb.constructTypeNode();
   setAttribute(type, expr::VarNameAttr(), name);
-  setAttribute(type, expr::SortArityAttr(), arity);
+  if (arity > 0)
+  {
+    setAttribute(type, expr::SortArityAttr(), arity);
+  }
   return type;
 }
 
@@ -1016,13 +1037,29 @@ const Oracle& NodeManager::getOracleFor(const Node& n) const
   return *d_oracles[index];
 }
 
-Node NodeManager::mkVar(const std::string& name, const TypeNode& type)
+Node NodeManager::mkVar(const std::string& name,
+                        const TypeNode& type,
+                        bool fresh)
 {
-  Node n = NodeBuilder(this, kind::VARIABLE);
-  setAttribute(n, TypeAttr(), type);
-  setAttribute(n, TypeCheckedAttr(), true);
-  setAttribute(n, expr::VarNameAttr(), name);
-  return n;
+  if (fresh)
+  {
+    Node n = NodeBuilder(this, kind::VARIABLE);
+    setAttribute(n, TypeAttr(), type);
+    setAttribute(n, TypeCheckedAttr(), true);
+    setAttribute(n, expr::VarNameAttr(), name);
+    return n;
+  }
+  // to construct a variable in a canonical way, we use the skolem
+  // manager, where SkolemFunId::INPUT_VARIABLE identifies that the
+  // variable is unique.
+  std::vector<Node> cnodes;
+  cnodes.push_back(mkConst(String(name, false)));
+  // Since we index only on Node, we must construct use mkGroundValue
+  // to construct a canonical node for the tn.
+  Node gt = mkGroundValue(type);
+  cnodes.push_back(gt);
+  return d_skManager->mkSkolemFunction(
+      SkolemFunId::INPUT_VARIABLE, type, cnodes);
 }
 
 Node NodeManager::mkBoundVar(const std::string& name, const TypeNode& type)

@@ -207,6 +207,7 @@ void Printer::toStreamCmdPop(std::ostream& out, uint32_t nscopes) const
 
 void Printer::toStreamCmdDeclareFunction(std::ostream& out,
                                          const std::string& id,
+                                         const std::vector<TypeNode>& argTypes,
                                          TypeNode type) const
 {
   printUnknownCommand(out, "declare-fun");
@@ -219,7 +220,14 @@ void Printer::toStreamCmdDeclareFunction(std::ostream& out, const Node& v) const
   // assigned names.
   std::stringstream ss;
   toStream(ss, v);
-  toStreamCmdDeclareFunction(out, ss.str(), v.getType());
+  TypeNode vt = v.getType();
+  std::vector<TypeNode> argTypes;
+  if (vt.isFunction())
+  {
+    argTypes = vt.getArgTypes();
+    vt = vt.getRangeType();
+  }
+  toStreamCmdDeclareFunction(out, ss.str(), argTypes, vt);
 }
 
 void Printer::toStreamCmdDeclarePool(std::ostream& out,
@@ -232,6 +240,7 @@ void Printer::toStreamCmdDeclarePool(std::ostream& out,
 
 void Printer::toStreamCmdDeclareOracleFun(std::ostream& out,
                                           const std::string& id,
+                                          const std::vector<TypeNode>& argTypes,
                                           TypeNode type,
                                           const std::string& binName) const
 {
@@ -239,9 +248,19 @@ void Printer::toStreamCmdDeclareOracleFun(std::ostream& out,
 }
 
 void Printer::toStreamCmdDeclareType(std::ostream& out,
-                                     TypeNode type) const
+                                     const std::string& id,
+                                     size_t arity) const
 {
   printUnknownCommand(out, "declare-sort");
+}
+
+void Printer::toStreamCmdDeclareType(std::ostream& out, TypeNode type) const
+{
+  Assert(type.isUninterpretedSort() || type.isUninterpretedSortConstructor());
+  size_t arity = type.isUninterpretedSortConstructor()
+                     ? type.getUninterpretedSortConstructorArity()
+                     : 0;
+  toStreamCmdDeclareType(out, type.getName(), arity);
 }
 
 void Printer::toStreamCmdDefineType(std::ostream& out,
@@ -339,7 +358,7 @@ void Printer::toStreamCmdQuery(std::ostream& out, Node n) const
 }
 
 void Printer::toStreamCmdDeclareVar(std::ostream& out,
-                                    Node var,
+                                    const std::string& id,
                                     TypeNode type) const
 {
   printUnknownCommand(out, "declare-var");

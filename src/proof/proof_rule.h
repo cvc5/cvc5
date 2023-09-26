@@ -532,9 +532,9 @@ enum class PfRule : uint32_t
    * .. math::
    *   \inferrule{C_1 \mid -}{C_2}
    *
-   * where the set representations of :math:`C_1` and :math:`C_2` are the same
-   * and the number of literals in :math:`C_2` is smaller than that of
-   * :math:`C_1`. \endverbatim
+   * where :math:`C_2` is the clause :math:`C_1`, but every occurence of a literal
+   * after its first occurence is omitted.
+   * \endverbatim
    */
   FACTORING,
   /**
@@ -566,7 +566,7 @@ enum class PfRule : uint32_t
    *   :math:`pol`, as defined in
    *   :cpp:enumerator:`RESOLUTION <cvc5::internal::PfRule::RESOLUTION>`
    * - let :math:`C_1'` be equal, in its set representation, to :math:`C_1`,
-   * - for each :math:`i > 1`, let :math:`C_i'` be equal, it its set
+   * - for each :math:`i > 1`, let :math:`C_i'` be equal, in its set
    *   representation, to :math:`C_{i-1} \diamond{L_{i-1},\mathit{pol}_{i-1}}
    *   C_i'`
    *
@@ -1028,7 +1028,7 @@ enum class PfRule : uint32_t
    *
    * .. math::
    *   \inferrule{- \mid (\ite{C}{F_1}{F_2})}{(\ite{C}{F_1}{F_2}) \lor \neg C
-   *   \lor \not F_1}
+   *   \lor \neg F_1}
    *
    * \endverbatim
    */
@@ -1062,7 +1062,7 @@ enum class PfRule : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{-\mid t}{t = t)}
+   *   \inferrule{-\mid t}{t = t}
    * \endverbatim
    */
   REFL,

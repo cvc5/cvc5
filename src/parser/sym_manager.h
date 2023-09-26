@@ -225,6 +225,10 @@ class CVC5_EXPORT SymManager
   void setGlobalDeclarations(bool flag);
   /** Get global declarations flag. */
   bool getGlobalDeclarations() const;
+  /** Set fresh declarations to the value flag. */
+  void setFreshDeclarations(bool flag);
+  /** Get fresh declarations flag. */
+  bool getFreshDeclarations() const;
   /**
    * Set the last abduct or interpolant to synthesize had the given name. This
    * is required since e.g. get-abduct-next must know the name of the
@@ -248,6 +252,8 @@ class CVC5_EXPORT SymManager
   void setLogic(const std::string& logic, bool isForced = false);
   /** Have we called the above method with isForced=true? */
   bool isLogicForced() const;
+  /** Has the logic been set? */
+  bool isLogicSet() const;
   /** Get the last string in an above call */
   const std::string& getLogic() const;
 
@@ -262,8 +268,15 @@ class CVC5_EXPORT SymManager
    * SMT-LIB option :global-declarations. By default, its value is false.
    */
   bool d_globalDeclarations;
+  /**
+   * Whether the fresh declarations option is enabled. By default, its value is
+   * true.
+   */
+  bool d_freshDeclarations;
   /** Whether the logic has been forced with --force-logic. */
   bool d_logicIsForced;
+  /** Whether the logic has been set */
+  bool d_logicIsSet;
   /** The logic. */
   std::string d_logic;
 };

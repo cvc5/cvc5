@@ -17,11 +17,10 @@
 #define CVC5__MAIN__COMMAND_EXECUTOR_H
 
 #include <cvc5/cvc5.h>
+#include <cvc5/cvc5_parser.h>
 
 #include <iosfwd>
 #include <string>
-
-#include "parser/api/cpp/symbol_manager.h"
 
 namespace cvc5 {
 
@@ -101,16 +100,17 @@ class CommandExecutor
   void printStatisticsSafe(int fd) const;
 
   void flushOutputStreams();
-protected:
-  /** Executes treating cmd as a singleton */
- virtual bool doCommandSingleton(cvc5::parser::Command* cmd);
 
-private:
+ protected:
+  /** Executes treating cmd as a singleton */
+  virtual bool doCommandSingleton(parser::Cmd* cmd);
+
+ private:
   CommandExecutor();
 
   bool solverInvoke(cvc5::Solver* solver,
-                    parser::SymbolManager* sm,
-                    parser::Command* cmd,
+                    parser::SymManager* sm,
+                    parser::Cmd* cmd,
                     std::ostream& out);
 }; /* class CommandExecutor */
 
