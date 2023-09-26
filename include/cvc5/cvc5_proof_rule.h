@@ -85,7 +85,8 @@ namespace cvc5 {
  * e.g., calling Rewriter::rewrite.
  *
  * Rules with prefix ``MACRO_`` are those that can be defined in terms of other
- * rules. These exist for convenience and can be replaced by their definition in post-processing.
+ * rules. These exist for convenience and can be replaced by their definition
+ * in post-processing.
  * \endverbatim
  */
 enum ENUM(ProofRule) : uint32_t
@@ -2338,7 +2339,7 @@ enum ENUM(ProofRule) : uint32_t
 
 #ifdef CVC5_API_USE_C_ENUMS
 #ifndef DOXYGEN_SKIP
-typedef enum ENUM(Kind) ENUM(Kind);
+typedef enum ENUM(ProofRule) ENUM(ProofRule);
 #endif
 #endif
 
@@ -2349,7 +2350,7 @@ typedef enum ENUM(Kind) ENUM(Kind);
  * @param rule The proof rule.
  * @return The string representation.
  */
-const char* cvc5_proof_rule_to_string(Cvc5Kind kind);
+const char* cvc5_proof_rule_to_string(Cvc5ProofRule kind);
 
 /**
  * Hash function for Cvc5ProofRule.
