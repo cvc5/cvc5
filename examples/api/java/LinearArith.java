@@ -74,5 +74,6 @@ public class LinearArith
 
       System.out.println("Thus the maximum value of (y - x) is 2/3.");
     }
+    Context.deletePointers();
   }
 }

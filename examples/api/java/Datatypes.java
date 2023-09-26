@@ -179,5 +179,6 @@ public class Datatypes
       Sort consListSort2 = slv.declareDatatype("list2", ctors);
       test(slv, consListSort2);
     }
+    Context.deletePointers();
   }
 }

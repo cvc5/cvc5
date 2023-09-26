@@ -148,5 +148,6 @@ public class Relations
       System.out.println("descendant = " + solver.getValue(descendant));
       System.out.println("ancestor   = " + solver.getValue(ancestor));
     }
+    Context.deletePointers();
   }
 }

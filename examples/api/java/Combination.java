@@ -126,5 +126,6 @@ public class Combination
         }
       }
     }
+    Context.deletePointers();
   }
 }

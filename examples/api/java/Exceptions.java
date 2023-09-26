@@ -62,5 +62,6 @@ public class Exceptions
         System.out.println(e.toString());
       }
     }
+    Context.deletePointers();
   }
 }

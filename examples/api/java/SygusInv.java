@@ -71,5 +71,6 @@ public class SygusInv
         Utils.printSynthSolutions(terms, slv.getSynthSolutions(terms));
       }
     }
+    Context.deletePointers();
   }
 }

@@ -65,5 +65,6 @@ public class Sequences
         System.out.println("  y = " + slv.getValue(y));
       }
     }
+    Context.deletePointers();
   }
 }

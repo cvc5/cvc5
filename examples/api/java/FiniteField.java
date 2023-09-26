@@ -66,5 +66,6 @@ public class FiniteField
       r = slv.checkSat();
       System.out.println("is sat: " + r.isSat());
     }
+    Context.deletePointers();
   }
 }

@@ -108,5 +108,6 @@ public class Bags
         }
       }
     }
+    Context.deletePointers();
   }
 }

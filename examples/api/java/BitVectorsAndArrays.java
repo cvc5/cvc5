@@ -97,5 +97,6 @@ public class BitVectorsAndArrays
       System.out.println("  current_array = " + slv.getValue(current_array));
       System.out.println("  current_array[0] = " + slv.getValue(current_array0));
     }
+    Context.deletePointers();
   }
 }
