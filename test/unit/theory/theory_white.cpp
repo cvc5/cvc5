@@ -85,7 +85,8 @@ TEST_F(TestTheoryWhite, outputChannel)
 {
   Node n = d_atom0.orNode(d_atom1);
   d_outputChannel->lemma(n, theory::InferenceId::NONE);
-  d_outputChannel->lemma(d_atom0.orNode(d_atom0.notNode()), theory::InferenceId::NONE);
+  d_outputChannel->lemma(d_atom0.orNode(d_atom0.notNode()),
+                         theory::InferenceId::NONE);
   Node s = d_atom0.orNode(d_atom0.notNode());
   ASSERT_EQ(d_outputChannel->d_callHistory.size(), 2u);
   ASSERT_EQ(d_outputChannel->d_callHistory[0], std::make_pair(LEMMA, n));
