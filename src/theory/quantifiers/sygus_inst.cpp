@@ -26,7 +26,7 @@
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
-#include "theory/quantifiers/sygus/sygus_grammar_cons_new.h"
+#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
