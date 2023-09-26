@@ -107,9 +107,9 @@ class DummyOutputChannel : public theory::OutputChannel
   ~DummyOutputChannel() override {}
 
   void safePoint(Resource r) override {}
-  void conflict(TNode n, InferenceId id) override { push(CONFLICT, n); }
+  void conflict(TNode n, theory::InferenceId id) override { push(CONFLICT, n); }
 
-  void trustedConflict(TrustNode n, InferenceId id) override
+  void trustedConflict(TrustNode n, theory::InferenceId id) override
   {
     push(CONFLICT, n.getNode());
   }
@@ -121,14 +121,14 @@ class DummyOutputChannel : public theory::OutputChannel
   }
 
   void lemma(TNode n,
-             InferenceId id,
+             theory::InferenceId id,
              theory::LemmaProperty p = theory::LemmaProperty::NONE) override
   {
     push(LEMMA, n);
   }
 
   void trustedLemma(TrustNode n,
-                    InferenceId id,
+                    theory::InferenceId id,
                     theory::LemmaProperty p) override
   {
     push(LEMMA, n.getNode());
