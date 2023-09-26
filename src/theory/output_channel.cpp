@@ -24,7 +24,6 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 
-
 OutputChannel::Statistics::Statistics(StatisticsRegistry& sr,
                                       const std::string& statPrefix)
     : conflicts(sr.registerInt(statPrefix + "conflicts")),
