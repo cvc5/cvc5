@@ -13,215 +13,215 @@
  * Implementation of proof rule.
  */
 
-#include "proof/proof_rule.h"
+#include <cvc5/cvc5_proof_rule.h>
 
 #include <iostream>
 
-namespace cvc5::internal {
+namespace cvc5 {
 
-const char* toString(PfRule id)
+const char* toString(ProofRule id)
 {
   switch (id)
   {
     //================================================= Core rules
-    case PfRule::ASSUME: return "ASSUME";
-    case PfRule::SCOPE: return "SCOPE";
-    case PfRule::SUBS: return "SUBS";
-    case PfRule::REWRITE: return "REWRITE";
-    case PfRule::EVALUATE: return "EVALUATE";
-    case PfRule::MACRO_SR_EQ_INTRO: return "MACRO_SR_EQ_INTRO";
-    case PfRule::MACRO_SR_PRED_INTRO: return "MACRO_SR_PRED_INTRO";
-    case PfRule::MACRO_SR_PRED_ELIM: return "MACRO_SR_PRED_ELIM";
-    case PfRule::MACRO_SR_PRED_TRANSFORM: return "MACRO_SR_PRED_TRANSFORM";
-    case PfRule::ENCODE_PRED_TRANSFORM: return "ENCODE_PRED_TRANSFORM";
-    case PfRule::ANNOTATION: return "ANNOTATION";
-    case PfRule::DSL_REWRITE: return "DSL_REWRITE";
-    case PfRule::REMOVE_TERM_FORMULA_AXIOM: return "REMOVE_TERM_FORMULA_AXIOM";
+    case ProofRule::ASSUME: return "ASSUME";
+    case ProofRule::SCOPE: return "SCOPE";
+    case ProofRule::SUBS: return "SUBS";
+    case ProofRule::REWRITE: return "REWRITE";
+    case ProofRule::EVALUATE: return "EVALUATE";
+    case ProofRule::MACRO_SR_EQ_INTRO: return "MACRO_SR_EQ_INTRO";
+    case ProofRule::MACRO_SR_PRED_INTRO: return "MACRO_SR_PRED_INTRO";
+    case ProofRule::MACRO_SR_PRED_ELIM: return "MACRO_SR_PRED_ELIM";
+    case ProofRule::MACRO_SR_PRED_TRANSFORM: return "MACRO_SR_PRED_TRANSFORM";
+    case ProofRule::ENCODE_PRED_TRANSFORM: return "ENCODE_PRED_TRANSFORM";
+    case ProofRule::ANNOTATION: return "ANNOTATION";
+    case ProofRule::DSL_REWRITE: return "DSL_REWRITE";
+    case ProofRule::REMOVE_TERM_FORMULA_AXIOM: return "REMOVE_TERM_FORMULA_AXIOM";
     //================================================= Trusted rules
-    case PfRule::THEORY_LEMMA: return "THEORY_LEMMA";
-    case PfRule::THEORY_REWRITE: return "THEORY_REWRITE";
-    case PfRule::PREPROCESS: return "PREPROCESS";
-    case PfRule::PREPROCESS_LEMMA: return "PREPROCESS_LEMMA";
-    case PfRule::THEORY_PREPROCESS: return "THEORY_PREPROCESS";
-    case PfRule::THEORY_PREPROCESS_LEMMA: return "THEORY_PREPROCESS_LEMMA";
-    case PfRule::THEORY_EXPAND_DEF: return "THEORY_EXPAND_DEF";
-    case PfRule::WITNESS_AXIOM: return "WITNESS_AXIOM";
-    case PfRule::TRUST_REWRITE: return "TRUST_REWRITE";
-    case PfRule::TRUST_FLATTENING_REWRITE: return "TRUST_FLATTENING_REWRITE";
-    case PfRule::TRUST_SUBS: return "TRUST_SUBS";
-    case PfRule::TRUST_SUBS_MAP: return "TRUST_SUBS_MAP";
-    case PfRule::TRUST_SUBS_EQ: return "TRUST_SUBS_EQ";
-    case PfRule::THEORY_INFERENCE: return "THEORY_INFERENCE";
-    case PfRule::SAT_REFUTATION: return "SAT_REFUTATION";
+    case ProofRule::THEORY_LEMMA: return "THEORY_LEMMA";
+    case ProofRule::THEORY_REWRITE: return "THEORY_REWRITE";
+    case ProofRule::PREPROCESS: return "PREPROCESS";
+    case ProofRule::PREPROCESS_LEMMA: return "PREPROCESS_LEMMA";
+    case ProofRule::THEORY_PREPROCESS: return "THEORY_PREPROCESS";
+    case ProofRule::THEORY_PREPROCESS_LEMMA: return "THEORY_PREPROCESS_LEMMA";
+    case ProofRule::THEORY_EXPAND_DEF: return "THEORY_EXPAND_DEF";
+    case ProofRule::WITNESS_AXIOM: return "WITNESS_AXIOM";
+    case ProofRule::TRUST_REWRITE: return "TRUST_REWRITE";
+    case ProofRule::TRUST_FLATTENING_REWRITE: return "TRUST_FLATTENING_REWRITE";
+    case ProofRule::TRUST_SUBS: return "TRUST_SUBS";
+    case ProofRule::TRUST_SUBS_MAP: return "TRUST_SUBS_MAP";
+    case ProofRule::TRUST_SUBS_EQ: return "TRUST_SUBS_EQ";
+    case ProofRule::THEORY_INFERENCE: return "THEORY_INFERENCE";
+    case ProofRule::SAT_REFUTATION: return "SAT_REFUTATION";
     //================================================= Boolean rules
-    case PfRule::RESOLUTION: return "RESOLUTION";
-    case PfRule::CHAIN_RESOLUTION: return "CHAIN_RESOLUTION";
-    case PfRule::FACTORING: return "FACTORING";
-    case PfRule::REORDERING: return "REORDERING";
-    case PfRule::MACRO_RESOLUTION: return "MACRO_RESOLUTION";
-    case PfRule::MACRO_RESOLUTION_TRUST: return "MACRO_RESOLUTION_TRUST";
-    case PfRule::SPLIT: return "SPLIT";
-    case PfRule::EQ_RESOLVE: return "EQ_RESOLVE";
-    case PfRule::MODUS_PONENS: return "MODUS_PONENS";
-    case PfRule::NOT_NOT_ELIM: return "NOT_NOT_ELIM";
-    case PfRule::CONTRA: return "CONTRA";
-    case PfRule::AND_ELIM: return "AND_ELIM";
-    case PfRule::AND_INTRO: return "AND_INTRO";
-    case PfRule::NOT_OR_ELIM: return "NOT_OR_ELIM";
-    case PfRule::IMPLIES_ELIM: return "IMPLIES_ELIM";
-    case PfRule::NOT_IMPLIES_ELIM1: return "NOT_IMPLIES_ELIM1";
-    case PfRule::NOT_IMPLIES_ELIM2: return "NOT_IMPLIES_ELIM2";
-    case PfRule::EQUIV_ELIM1: return "EQUIV_ELIM1";
-    case PfRule::EQUIV_ELIM2: return "EQUIV_ELIM2";
-    case PfRule::NOT_EQUIV_ELIM1: return "NOT_EQUIV_ELIM1";
-    case PfRule::NOT_EQUIV_ELIM2: return "NOT_EQUIV_ELIM2";
-    case PfRule::XOR_ELIM1: return "XOR_ELIM1";
-    case PfRule::XOR_ELIM2: return "XOR_ELIM2";
-    case PfRule::NOT_XOR_ELIM1: return "NOT_XOR_ELIM1";
-    case PfRule::NOT_XOR_ELIM2: return "NOT_XOR_ELIM2";
-    case PfRule::ITE_ELIM1: return "ITE_ELIM1";
-    case PfRule::ITE_ELIM2: return "ITE_ELIM2";
-    case PfRule::NOT_ITE_ELIM1: return "NOT_ITE_ELIM1";
-    case PfRule::NOT_ITE_ELIM2: return "NOT_ITE_ELIM2";
-    case PfRule::NOT_AND: return "NOT_AND";
+    case ProofRule::RESOLUTION: return "RESOLUTION";
+    case ProofRule::CHAIN_RESOLUTION: return "CHAIN_RESOLUTION";
+    case ProofRule::FACTORING: return "FACTORING";
+    case ProofRule::REORDERING: return "REORDERING";
+    case ProofRule::MACRO_RESOLUTION: return "MACRO_RESOLUTION";
+    case ProofRule::MACRO_RESOLUTION_TRUST: return "MACRO_RESOLUTION_TRUST";
+    case ProofRule::SPLIT: return "SPLIT";
+    case ProofRule::EQ_RESOLVE: return "EQ_RESOLVE";
+    case ProofRule::MODUS_PONENS: return "MODUS_PONENS";
+    case ProofRule::NOT_NOT_ELIM: return "NOT_NOT_ELIM";
+    case ProofRule::CONTRA: return "CONTRA";
+    case ProofRule::AND_ELIM: return "AND_ELIM";
+    case ProofRule::AND_INTRO: return "AND_INTRO";
+    case ProofRule::NOT_OR_ELIM: return "NOT_OR_ELIM";
+    case ProofRule::IMPLIES_ELIM: return "IMPLIES_ELIM";
+    case ProofRule::NOT_IMPLIES_ELIM1: return "NOT_IMPLIES_ELIM1";
+    case ProofRule::NOT_IMPLIES_ELIM2: return "NOT_IMPLIES_ELIM2";
+    case ProofRule::EQUIV_ELIM1: return "EQUIV_ELIM1";
+    case ProofRule::EQUIV_ELIM2: return "EQUIV_ELIM2";
+    case ProofRule::NOT_EQUIV_ELIM1: return "NOT_EQUIV_ELIM1";
+    case ProofRule::NOT_EQUIV_ELIM2: return "NOT_EQUIV_ELIM2";
+    case ProofRule::XOR_ELIM1: return "XOR_ELIM1";
+    case ProofRule::XOR_ELIM2: return "XOR_ELIM2";
+    case ProofRule::NOT_XOR_ELIM1: return "NOT_XOR_ELIM1";
+    case ProofRule::NOT_XOR_ELIM2: return "NOT_XOR_ELIM2";
+    case ProofRule::ITE_ELIM1: return "ITE_ELIM1";
+    case ProofRule::ITE_ELIM2: return "ITE_ELIM2";
+    case ProofRule::NOT_ITE_ELIM1: return "NOT_ITE_ELIM1";
+    case ProofRule::NOT_ITE_ELIM2: return "NOT_ITE_ELIM2";
+    case ProofRule::NOT_AND: return "NOT_AND";
     //================================================= CNF rules
-    case PfRule::CNF_AND_POS: return "CNF_AND_POS";
-    case PfRule::CNF_AND_NEG: return "CNF_AND_NEG";
-    case PfRule::CNF_OR_POS: return "CNF_OR_POS";
-    case PfRule::CNF_OR_NEG: return "CNF_OR_NEG";
-    case PfRule::CNF_IMPLIES_POS: return "CNF_IMPLIES_POS";
-    case PfRule::CNF_IMPLIES_NEG1: return "CNF_IMPLIES_NEG1";
-    case PfRule::CNF_IMPLIES_NEG2: return "CNF_IMPLIES_NEG2";
-    case PfRule::CNF_EQUIV_POS1: return "CNF_EQUIV_POS1";
-    case PfRule::CNF_EQUIV_POS2: return "CNF_EQUIV_POS2";
-    case PfRule::CNF_EQUIV_NEG1: return "CNF_EQUIV_NEG1";
-    case PfRule::CNF_EQUIV_NEG2: return "CNF_EQUIV_NEG2";
-    case PfRule::CNF_XOR_POS1: return "CNF_XOR_POS1";
-    case PfRule::CNF_XOR_POS2: return "CNF_XOR_POS2";
-    case PfRule::CNF_XOR_NEG1: return "CNF_XOR_NEG1";
-    case PfRule::CNF_XOR_NEG2: return "CNF_XOR_NEG2";
-    case PfRule::CNF_ITE_POS1: return "CNF_ITE_POS1";
-    case PfRule::CNF_ITE_POS2: return "CNF_ITE_POS2";
-    case PfRule::CNF_ITE_POS3: return "CNF_ITE_POS3";
-    case PfRule::CNF_ITE_NEG1: return "CNF_ITE_NEG1";
-    case PfRule::CNF_ITE_NEG2: return "CNF_ITE_NEG2";
-    case PfRule::CNF_ITE_NEG3: return "CNF_ITE_NEG3";
+    case ProofRule::CNF_AND_POS: return "CNF_AND_POS";
+    case ProofRule::CNF_AND_NEG: return "CNF_AND_NEG";
+    case ProofRule::CNF_OR_POS: return "CNF_OR_POS";
+    case ProofRule::CNF_OR_NEG: return "CNF_OR_NEG";
+    case ProofRule::CNF_IMPLIES_POS: return "CNF_IMPLIES_POS";
+    case ProofRule::CNF_IMPLIES_NEG1: return "CNF_IMPLIES_NEG1";
+    case ProofRule::CNF_IMPLIES_NEG2: return "CNF_IMPLIES_NEG2";
+    case ProofRule::CNF_EQUIV_POS1: return "CNF_EQUIV_POS1";
+    case ProofRule::CNF_EQUIV_POS2: return "CNF_EQUIV_POS2";
+    case ProofRule::CNF_EQUIV_NEG1: return "CNF_EQUIV_NEG1";
+    case ProofRule::CNF_EQUIV_NEG2: return "CNF_EQUIV_NEG2";
+    case ProofRule::CNF_XOR_POS1: return "CNF_XOR_POS1";
+    case ProofRule::CNF_XOR_POS2: return "CNF_XOR_POS2";
+    case ProofRule::CNF_XOR_NEG1: return "CNF_XOR_NEG1";
+    case ProofRule::CNF_XOR_NEG2: return "CNF_XOR_NEG2";
+    case ProofRule::CNF_ITE_POS1: return "CNF_ITE_POS1";
+    case ProofRule::CNF_ITE_POS2: return "CNF_ITE_POS2";
+    case ProofRule::CNF_ITE_POS3: return "CNF_ITE_POS3";
+    case ProofRule::CNF_ITE_NEG1: return "CNF_ITE_NEG1";
+    case ProofRule::CNF_ITE_NEG2: return "CNF_ITE_NEG2";
+    case ProofRule::CNF_ITE_NEG3: return "CNF_ITE_NEG3";
     //================================================= Equality rules
-    case PfRule::REFL: return "REFL";
-    case PfRule::SYMM: return "SYMM";
-    case PfRule::TRANS: return "TRANS";
-    case PfRule::CONG: return "CONG";
-    case PfRule::TRUE_INTRO: return "TRUE_INTRO";
-    case PfRule::TRUE_ELIM: return "TRUE_ELIM";
-    case PfRule::FALSE_INTRO: return "FALSE_INTRO";
-    case PfRule::FALSE_ELIM: return "FALSE_ELIM";
-    case PfRule::HO_APP_ENCODE: return "HO_APP_ENCODE";
-    case PfRule::HO_CONG: return "HO_CONG";
-    case PfRule::BETA_REDUCE: return "BETA_REDUCE";
+    case ProofRule::REFL: return "REFL";
+    case ProofRule::SYMM: return "SYMM";
+    case ProofRule::TRANS: return "TRANS";
+    case ProofRule::CONG: return "CONG";
+    case ProofRule::TRUE_INTRO: return "TRUE_INTRO";
+    case ProofRule::TRUE_ELIM: return "TRUE_ELIM";
+    case ProofRule::FALSE_INTRO: return "FALSE_INTRO";
+    case ProofRule::FALSE_ELIM: return "FALSE_ELIM";
+    case ProofRule::HO_APP_ENCODE: return "HO_APP_ENCODE";
+    case ProofRule::HO_CONG: return "HO_CONG";
+    case ProofRule::BETA_REDUCE: return "BETA_REDUCE";
     //================================================= Array rules
-    case PfRule::ARRAYS_READ_OVER_WRITE: return "ARRAYS_READ_OVER_WRITE";
-    case PfRule::ARRAYS_READ_OVER_WRITE_CONTRA:
+    case ProofRule::ARRAYS_READ_OVER_WRITE: return "ARRAYS_READ_OVER_WRITE";
+    case ProofRule::ARRAYS_READ_OVER_WRITE_CONTRA:
       return "ARRAYS_READ_OVER_WRITE_CONTRA";
-    case PfRule::ARRAYS_READ_OVER_WRITE_1: return "ARRAYS_READ_OVER_WRITE_1";
-    case PfRule::ARRAYS_EXT: return "ARRAYS_EXT";
-    case PfRule::ARRAYS_EQ_RANGE_EXPAND: return "ARRAYS_EQ_RANGE_EXPAND";
+    case ProofRule::ARRAYS_READ_OVER_WRITE_1: return "ARRAYS_READ_OVER_WRITE_1";
+    case ProofRule::ARRAYS_EXT: return "ARRAYS_EXT";
+    case ProofRule::ARRAYS_EQ_RANGE_EXPAND: return "ARRAYS_EQ_RANGE_EXPAND";
     //================================================= Bit-Vector rules
-    case PfRule::BV_BITBLAST: return "BV_BITBLAST";
-    case PfRule::BV_BITBLAST_STEP: return "BV_BITBLAST_STEP";
-    case PfRule::BV_EAGER_ATOM: return "BV_EAGER_ATOM";
+    case ProofRule::BV_BITBLAST: return "BV_BITBLAST";
+    case ProofRule::BV_BITBLAST_STEP: return "BV_BITBLAST_STEP";
+    case ProofRule::BV_EAGER_ATOM: return "BV_EAGER_ATOM";
     //================================================= Datatype rules
-    case PfRule::DT_UNIF: return "DT_UNIF";
-    case PfRule::DT_INST: return "DT_INST";
-    case PfRule::DT_COLLAPSE: return "DT_COLLAPSE";
-    case PfRule::DT_SPLIT: return "DT_SPLIT";
-    case PfRule::DT_CLASH: return "DT_CLASH";
+    case ProofRule::DT_UNIF: return "DT_UNIF";
+    case ProofRule::DT_INST: return "DT_INST";
+    case ProofRule::DT_COLLAPSE: return "DT_COLLAPSE";
+    case ProofRule::DT_SPLIT: return "DT_SPLIT";
+    case ProofRule::DT_CLASH: return "DT_CLASH";
     //================================================= Quantifiers rules
-    case PfRule::SKOLEM_INTRO: return "SKOLEM_INTRO";
-    case PfRule::SKOLEMIZE: return "SKOLEMIZE";
-    case PfRule::INSTANTIATE: return "INSTANTIATE";
-    case PfRule::ALPHA_EQUIV: return "ALPHA_EQUIV";
-    case PfRule::QUANTIFIERS_PREPROCESS: return "QUANTIFIERS_PREPROCESS";
+    case ProofRule::SKOLEM_INTRO: return "SKOLEM_INTRO";
+    case ProofRule::SKOLEMIZE: return "SKOLEMIZE";
+    case ProofRule::INSTANTIATE: return "INSTANTIATE";
+    case ProofRule::ALPHA_EQUIV: return "ALPHA_EQUIV";
+    case ProofRule::QUANTIFIERS_PREPROCESS: return "QUANTIFIERS_PREPROCESS";
     //================================================= String rules
-    case PfRule::CONCAT_EQ: return "CONCAT_EQ";
-    case PfRule::CONCAT_UNIFY: return "CONCAT_UNIFY";
-    case PfRule::CONCAT_CONFLICT: return "CONCAT_CONFLICT";
-    case PfRule::CONCAT_SPLIT: return "CONCAT_SPLIT";
-    case PfRule::CONCAT_CSPLIT: return "CONCAT_CSPLIT";
-    case PfRule::CONCAT_LPROP: return "CONCAT_LPROP";
-    case PfRule::CONCAT_CPROP: return "CONCAT_CPROP";
-    case PfRule::STRING_DECOMPOSE: return "STRING_DECOMPOSE";
-    case PfRule::STRING_LENGTH_POS: return "STRING_LENGTH_POS";
-    case PfRule::STRING_LENGTH_NON_EMPTY: return "STRING_LENGTH_NON_EMPTY";
-    case PfRule::STRING_REDUCTION: return "STRING_REDUCTION";
-    case PfRule::STRING_EAGER_REDUCTION: return "STRING_EAGER_REDUCTION";
-    case PfRule::RE_INTER: return "RE_INTER";
-    case PfRule::RE_UNFOLD_POS: return "RE_UNFOLD_POS";
-    case PfRule::RE_UNFOLD_NEG: return "RE_UNFOLD_NEG";
-    case PfRule::RE_UNFOLD_NEG_CONCAT_FIXED:
+    case ProofRule::CONCAT_EQ: return "CONCAT_EQ";
+    case ProofRule::CONCAT_UNIFY: return "CONCAT_UNIFY";
+    case ProofRule::CONCAT_CONFLICT: return "CONCAT_CONFLICT";
+    case ProofRule::CONCAT_SPLIT: return "CONCAT_SPLIT";
+    case ProofRule::CONCAT_CSPLIT: return "CONCAT_CSPLIT";
+    case ProofRule::CONCAT_LPROP: return "CONCAT_LPROP";
+    case ProofRule::CONCAT_CPROP: return "CONCAT_CPROP";
+    case ProofRule::STRING_DECOMPOSE: return "STRING_DECOMPOSE";
+    case ProofRule::STRING_LENGTH_POS: return "STRING_LENGTH_POS";
+    case ProofRule::STRING_LENGTH_NON_EMPTY: return "STRING_LENGTH_NON_EMPTY";
+    case ProofRule::STRING_REDUCTION: return "STRING_REDUCTION";
+    case ProofRule::STRING_EAGER_REDUCTION: return "STRING_EAGER_REDUCTION";
+    case ProofRule::RE_INTER: return "RE_INTER";
+    case ProofRule::RE_UNFOLD_POS: return "RE_UNFOLD_POS";
+    case ProofRule::RE_UNFOLD_NEG: return "RE_UNFOLD_NEG";
+    case ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED:
       return "RE_UNFOLD_NEG_CONCAT_FIXED";
-    case PfRule::RE_ELIM: return "RE_ELIM";
-    case PfRule::STRING_CODE_INJ: return "STRING_CODE_INJ";
-    case PfRule::STRING_SEQ_UNIT_INJ: return "STRING_SEQ_UNIT_INJ";
-    case PfRule::STRING_INFERENCE: return "STRING_INFERENCE";
+    case ProofRule::RE_ELIM: return "RE_ELIM";
+    case ProofRule::STRING_CODE_INJ: return "STRING_CODE_INJ";
+    case ProofRule::STRING_SEQ_UNIT_INJ: return "STRING_SEQ_UNIT_INJ";
+    case ProofRule::STRING_INFERENCE: return "STRING_INFERENCE";
     //================================================= Arith rules
-    case PfRule::MACRO_ARITH_SCALE_SUM_UB: return "MACRO_ARITH_SCALE_SUM_UB";
-    case PfRule::ARITH_SUM_UB: return "ARITH_SUM_UB";
-    case PfRule::ARITH_TRICHOTOMY: return "ARITH_TRICHOTOMY";
-    case PfRule::INT_TIGHT_LB: return "INT_TIGHT_LB";
-    case PfRule::INT_TIGHT_UB: return "INT_TIGHT_UB";
-    case PfRule::ARITH_MULT_SIGN: return "ARITH_MULT_SIGN";
-    case PfRule::ARITH_MULT_POS: return "ARITH_MULT_POS";
-    case PfRule::ARITH_MULT_NEG: return "ARITH_MULT_NEG";
-    case PfRule::ARITH_MULT_TANGENT: return "ARITH_MULT_TANGENT";
-    case PfRule::ARITH_OP_ELIM_AXIOM: return "ARITH_OP_ELIM_AXIOM";
-    case PfRule::ARITH_POLY_NORM: return "ARITH_POLY_NORM";
-    case PfRule::ARITH_TRANS_PI: return "ARITH_TRANS_PI";
-    case PfRule::ARITH_TRANS_EXP_NEG: return "ARITH_TRANS_EXP_NEG";
-    case PfRule::ARITH_TRANS_EXP_POSITIVITY:
+    case ProofRule::MACRO_ARITH_SCALE_SUM_UB: return "MACRO_ARITH_SCALE_SUM_UB";
+    case ProofRule::ARITH_SUM_UB: return "ARITH_SUM_UB";
+    case ProofRule::ARITH_TRICHOTOMY: return "ARITH_TRICHOTOMY";
+    case ProofRule::INT_TIGHT_LB: return "INT_TIGHT_LB";
+    case ProofRule::INT_TIGHT_UB: return "INT_TIGHT_UB";
+    case ProofRule::ARITH_MULT_SIGN: return "ARITH_MULT_SIGN";
+    case ProofRule::ARITH_MULT_POS: return "ARITH_MULT_POS";
+    case ProofRule::ARITH_MULT_NEG: return "ARITH_MULT_NEG";
+    case ProofRule::ARITH_MULT_TANGENT: return "ARITH_MULT_TANGENT";
+    case ProofRule::ARITH_OP_ELIM_AXIOM: return "ARITH_OP_ELIM_AXIOM";
+    case ProofRule::ARITH_POLY_NORM: return "ARITH_POLY_NORM";
+    case ProofRule::ARITH_TRANS_PI: return "ARITH_TRANS_PI";
+    case ProofRule::ARITH_TRANS_EXP_NEG: return "ARITH_TRANS_EXP_NEG";
+    case ProofRule::ARITH_TRANS_EXP_POSITIVITY:
       return "ARITH_TRANS_EXP_POSITIVITY";
-    case PfRule::ARITH_TRANS_EXP_SUPER_LIN: return "ARITH_TRANS_EXP_SUPER_LIN";
-    case PfRule::ARITH_TRANS_EXP_ZERO: return "ARITH_TRANS_EXP_ZERO";
-    case PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG:
+    case ProofRule::ARITH_TRANS_EXP_SUPER_LIN: return "ARITH_TRANS_EXP_SUPER_LIN";
+    case ProofRule::ARITH_TRANS_EXP_ZERO: return "ARITH_TRANS_EXP_ZERO";
+    case ProofRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG:
       return "ARITH_TRANS_EXP_APPROX_ABOVE_NEG";
-    case PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS:
+    case ProofRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS:
       return "ARITH_TRANS_EXP_APPROX_ABOVE_POS";
-    case PfRule::ARITH_TRANS_EXP_APPROX_BELOW:
+    case ProofRule::ARITH_TRANS_EXP_APPROX_BELOW:
       return "ARITH_TRANS_EXP_APPROX_BELOW";
-    case PfRule::ARITH_TRANS_SINE_BOUNDS: return "ARITH_TRANS_SINE_BOUNDS";
-    case PfRule::ARITH_TRANS_SINE_SHIFT: return "ARITH_TRANS_SINE_SHIFT";
-    case PfRule::ARITH_TRANS_SINE_SYMMETRY: return "ARITH_TRANS_SINE_SYMMETRY";
-    case PfRule::ARITH_TRANS_SINE_TANGENT_ZERO:
+    case ProofRule::ARITH_TRANS_SINE_BOUNDS: return "ARITH_TRANS_SINE_BOUNDS";
+    case ProofRule::ARITH_TRANS_SINE_SHIFT: return "ARITH_TRANS_SINE_SHIFT";
+    case ProofRule::ARITH_TRANS_SINE_SYMMETRY: return "ARITH_TRANS_SINE_SYMMETRY";
+    case ProofRule::ARITH_TRANS_SINE_TANGENT_ZERO:
       return "ARITH_TRANS_SINE_TANGENT_ZERO";
-    case PfRule::ARITH_TRANS_SINE_TANGENT_PI:
+    case ProofRule::ARITH_TRANS_SINE_TANGENT_PI:
       return "ARITH_TRANS_SINE_TANGENT_PI";
-    case PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_NEG:
+    case ProofRule::ARITH_TRANS_SINE_APPROX_ABOVE_NEG:
       return "ARITH_TRANS_SINE_APPROX_ABOVE_NEG";
-    case PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_POS:
+    case ProofRule::ARITH_TRANS_SINE_APPROX_ABOVE_POS:
       return "ARITH_TRANS_SINE_APPROX_ABOVE_POS";
-    case PfRule::ARITH_TRANS_SINE_APPROX_BELOW_NEG:
+    case ProofRule::ARITH_TRANS_SINE_APPROX_BELOW_NEG:
       return "ARITH_TRANS_SINE_APPROX_BELOW_NEG";
-    case PfRule::ARITH_TRANS_SINE_APPROX_BELOW_POS:
+    case ProofRule::ARITH_TRANS_SINE_APPROX_BELOW_POS:
       return "ARITH_TRANS_SINE_APPROX_BELOW_POS";
-    case PfRule::ARITH_NL_COVERING_DIRECT: return "ARITH_NL_COVERING_DIRECT";
-    case PfRule::ARITH_NL_COVERING_RECURSIVE: return "ARITH_NL_COVERING_RECURSIVE";
+    case ProofRule::ARITH_NL_COVERING_DIRECT: return "ARITH_NL_COVERING_DIRECT";
+    case ProofRule::ARITH_NL_COVERING_RECURSIVE: return "ARITH_NL_COVERING_RECURSIVE";
     //================================================= External rules
-    case PfRule::LFSC_RULE: return "LFSC_RULE";
-    case PfRule::ALETHE_RULE: return "ALETHE_RULE";
+    case ProofRule::LFSC_RULE: return "LFSC_RULE";
+    case ProofRule::ALETHE_RULE: return "ALETHE_RULE";
     //================================================= Unknown rule
-    case PfRule::UNKNOWN: return "UNKNOWN";
+    case ProofRule::UNKNOWN: return "UNKNOWN";
     default: return "?";
   }
 }
 
-std::ostream& operator<<(std::ostream& out, PfRule id)
+std::ostream& operator<<(std::ostream& out, ProofRule id)
 {
   out << toString(id);
   return out;
 }
 
-size_t PfRuleHashFunction::operator()(PfRule id) const
+size_t ProofRuleHashFunction::operator()(ProofRule id) const
 {
   return static_cast<size_t>(id);
 }
 
-}  // namespace cvc5::internal
+}  // namespace cvc5

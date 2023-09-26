@@ -122,4 +122,4 @@ class ProofNodeToSExpr
 
 }  // namespace cvc5::internal
 
-#endif /* CVC5__PROOF__PROOF_RULE_H */
+#endif /* CVC5__PROOF__PROOF_NODE_TO_SEXPR_H */
