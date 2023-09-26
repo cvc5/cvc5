@@ -127,7 +127,7 @@ class ProofNodeUpdater : protected EnvObj
    *
    * (2) If doDebug=true, this enables checking when this is violated, which is
    * expensive in general. It is not recommended that this method is called
-   * with by default.
+   * with doDebug=true in production.
    */
   void setFreeAssumptions(const std::vector<Node>& freeAssumps, bool doDebug);
 
