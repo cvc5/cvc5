@@ -2025,7 +2025,7 @@ TEST_F(TestApiBlackSolver, getUnsatCoreLemmas2)
   d_solver.assertFormula(p_f_y.notTerm());
   ASSERT_TRUE(d_solver.checkSat().isUnsat());
 
-  ASSERT_NO_THROW(uc = d_solver.getUnsatCoreLemmas());
+  ASSERT_NO_THROW(d_solver.getUnsatCoreLemmas());
 }
 
 TEST_F(TestApiBlackSolver, getDifficulty)
