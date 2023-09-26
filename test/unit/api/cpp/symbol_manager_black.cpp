@@ -42,10 +42,10 @@ class TestSymbolManagerBlack : public TestParser
     ss << "(set-logic " << logic << ")" << std::endl;
     InputParser parser(&d_solver, d_symman.get());
     parser.setStreamInput("LANG_SMTLIB_V2_6", ss, "parser_black");
-    std::unique_ptr<Command> cmd = parser.nextCommand();
-    ASSERT_NE(cmd.get(), nullptr);
+    Command cmd = parser.nextCommand();
+    ASSERT_NE(cmd.isNull(), true);
     std::stringstream out;
-    cmd->invoke(&d_solver, d_symman.get(), out);
+    cmd.invoke(&d_solver, d_symman.get(), out);
   }
 };
 
