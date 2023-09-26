@@ -117,6 +117,7 @@ public class Op extends AbstractPointer
    * Get the index at position {@code i}.
    * @param i The position of the index to return.
    * @return The index at position {@code i}.
+   * @throws CVC5ApiException
    */
   public Term get(int i) throws CVC5ApiException
   {

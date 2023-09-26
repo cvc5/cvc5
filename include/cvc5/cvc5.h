@@ -2941,7 +2941,7 @@ class CVC5_EXPORT Grammar
  private:
   /**
    * Constructor.
-   * @param slv The solver that created this grammar.
+   * @param nm        The associated node manager.
    * @param sygusVars The input variables to synth-fun/synth-var.
    * @param ntSymbols The non-terminals of this grammar.
    */
@@ -4913,6 +4913,7 @@ class CVC5_EXPORT Solver
    * \endverbatim
    *
    * @warning This function is experimental and may change in future versions.
+   * @param terms The model values to block.
    */
   void blockModelValues(const std::vector<Term>& terms) const;
 
@@ -5309,7 +5310,7 @@ class CVC5_EXPORT Solver
   /**
    * Helper for mk-functions that call d_nm->mkConst().
    * @param nm The associated node manager.
-   * @pram t The value.
+   * @param t The value.
    */
   template <typename T>
   static Term mkValHelper(internal::NodeManager* nm, const T& t);
@@ -5319,9 +5320,9 @@ class CVC5_EXPORT Solver
    * @param r The value (either int or real).
    * @param isInt True to create an integer value.
    */
-  static Term mkRationalValHelper(internal::NodeManager*,
-                                  const internal::Rational&,
-                                  bool);
+  static Term mkRationalValHelper(internal::NodeManager* nm,
+                                  const internal::Rational& r,
+                                  bool isInt);
 
   /*
    * Constructs a solver with the given original options. This should only be
