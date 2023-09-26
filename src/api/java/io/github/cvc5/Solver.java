@@ -2041,11 +2041,7 @@ public class Solver implements IPointer
    * }
    * Requires the SAT proof unsat core mode, so to enable option {@code unsat-core-mode=sat-proof}
    *
-   * @api.note In contrast to SMT-LIB, cvc5's API does not distinguish between
-   *           named and unnamed assertions when producing an unsatisfiable
-   *           core. Additionally, the API allows this option to be called after
-   *           a check with assumptions. A subset of those assumptions may be
-   *           included in the unsatisfiable core returned by this method.
+   * @api.note This method is experimental and may change in future versions.
    *
    * @return A set of terms representing the lemmas used to derive
    * unsatisfiability.

@@ -2471,6 +2471,9 @@ cdef class Solver:
             Requires the SAT proof unsat core mode, so to enable option
             :ref:`unsat-core-mode=sat-proof <lbl-option-unsat-core-mode>`.
 
+            .. warning:: This method is experimental and may change in
+                         future versions.
+
             :return: A set of terms representing the lemmas used to derive
             unsatisfiability.
         """
