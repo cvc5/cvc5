@@ -7078,6 +7078,24 @@ std::vector<Term> Solver::getUnsatCore(void) const
   CVC5_API_TRY_CATCH_END;
 }
 
+std::vector<Term> Solver::getUnsatCoreLemmas(void) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceUnsatCores)
+      << "Cannot get unsat core lemmas unless explicitly enabled "
+         "(try --produce-unsat-cores)";
+  CVC5_API_RECOVERABLE_CHECK(d_slv->getSmtMode() == internal::SmtMode::UNSAT)
+      << "Cannot get unsat core unless in unsat mode.";
+  //////// all checks before this line
+  std::vector<internal::Node> lemmas = d_slv->getUnsatCoreLemmas();
+  /* Can not use
+   *   return std::vector<Term>(assertions.begin(), assertions.end());
+   * here since constructor is private */
+  return Term::nodeVectorToTerms(d_nm, lemmas);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 std::map<Term, Term> Solver::getDifficulty() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
