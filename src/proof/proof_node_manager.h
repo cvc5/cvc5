@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "proof/proof_rule.h"
+#include "cvc5/cvc5_proof_rule.h"
 
 namespace cvc5::internal {
 
@@ -80,7 +80,7 @@ class ProofNodeManager
    * conclusion is unknown.
    */
   std::shared_ptr<ProofNode> mkNode(
-      PfRule id,
+      ProofRule id,
       const std::vector<std::shared_ptr<ProofNode>>& children,
       const std::vector<Node>& args,
       Node expected = Node::null());
@@ -161,7 +161,7 @@ class ProofNodeManager
    * checker.
    */
   bool updateNode(ProofNode* pn,
-                  PfRule id,
+                  ProofRule id,
                   const std::vector<std::shared_ptr<ProofNode>>& children,
                   const std::vector<Node>& args);
   /**
@@ -204,7 +204,7 @@ class ProofNodeManager
    * The flag didCheck is set to true if the underlying proof checker was
    * invoked. This may be false if e.g. the proof checking mode is lazy.
    */
-  Node checkInternal(PfRule id,
+  Node checkInternal(ProofRule id,
                      const std::vector<std::shared_ptr<ProofNode>>& children,
                      const std::vector<Node>& args,
                      Node expected,
@@ -217,7 +217,7 @@ class ProofNodeManager
    */
   bool updateNodeInternal(
       ProofNode* pn,
-      PfRule id,
+      ProofRule id,
       const std::vector<std::shared_ptr<ProofNode>>& children,
       const std::vector<Node>& args,
       bool needsCheck);

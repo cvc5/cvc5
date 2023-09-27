@@ -41,10 +41,10 @@ std::shared_ptr<ProofNode> InferenceIdProofAnnotator::annotate(
     std::vector<Node> pfArgs;
     pfArgs.push_back(mkInferenceIdNode(it->second));
     std::shared_ptr<ProofNode> pa =
-        d_pnm->mkNode(PfRule::ANNOTATION, {p}, pfArgs);
+        d_pnm->mkNode(ProofRule::ANNOTATION, {p}, pfArgs);
     // for now, do a double annotation to make stats accurate
     std::shared_ptr<ProofNode> paf =
-        d_pnm->mkNode(PfRule::ANNOTATION, {pa}, {});
+        d_pnm->mkNode(ProofRule::ANNOTATION, {pa}, {});
     d_list.push_back(paf);
     return paf;
   }

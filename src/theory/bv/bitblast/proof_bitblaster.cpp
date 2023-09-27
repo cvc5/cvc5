@@ -104,7 +104,7 @@ void BBProof::bbAtom(TNode node)
           Node bbt = nm->mkNode(kind::BITVECTOR_BB_TERM, bits);
           d_bbMap.emplace(n, bbt);
           d_tcpg->addRewriteStep(
-              n, bbt, PfRule::BV_BITBLAST_STEP, {}, {n.eqNode(bbt)});
+              n, bbt, ProofRule::BV_BITBLAST_STEP, {}, {n.eqNode(bbt)});
         }
         else if (n.getType().isBitVector())
         {
@@ -124,7 +124,7 @@ void BBProof::bbAtom(TNode node)
             rbbt = reconstruct(n);
           }
           d_tcpg->addRewriteStep(
-              rbbt, bbt, PfRule::BV_BITBLAST_STEP, {}, {rbbt.eqNode(bbt)});
+              rbbt, bbt, ProofRule::BV_BITBLAST_STEP, {}, {rbbt.eqNode(bbt)});
         }
         else
         {
@@ -149,7 +149,7 @@ void BBProof::bbAtom(TNode node)
     Node rbbt = reconstruct(rwNode);
 
     d_tcpg->addRewriteStep(
-        rbbt, bbt, PfRule::BV_BITBLAST_STEP, {}, {rbbt.eqNode(bbt)});
+        rbbt, bbt, ProofRule::BV_BITBLAST_STEP, {}, {rbbt.eqNode(bbt)});
 
     d_bbpg->addBitblastStep(node, bbt, node.eqNode(result));
   }
