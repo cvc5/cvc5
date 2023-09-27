@@ -2064,9 +2064,8 @@ TEST_F(TestApiBlackSolver, getProofAndProofToString)
   ASSERT_NO_THROW(printedProof = d_solver.proofToString(proofs[0]));
   ASSERT_FALSE(printedProof.empty());
   ASSERT_NO_THROW(printedProof = d_solver.proofToString(
-                      proofs[0], modes::PROOF_FORMAT_ALETHE));
-
-  ASSERT_NO_THROW(proofs = d_solver.getProof(modes::PROOF_COMPONENT_SAT));
+                      proofs[0], modes::ProofFormat::ALETHE));
+  ASSERT_NO_THROW(proofs = d_solver.getProof(modes::ProofComponent::SAT));
   ASSERT_FALSE(printedProof.empty());
 }
 

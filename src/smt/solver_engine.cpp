@@ -1389,15 +1389,15 @@ void SolverEngine::printProof(std::ostream& out,
   options::ProofFormatMode mode = options::ProofFormatMode::NONE;
   switch (proofFormat)
   {
-    case modes::PROOF_FORMAT_DEFAULT:
+    case modes::ProofFormat::DEFAULT:
       mode = options().proof.proofFormatMode;
       break;
-    case modes::PROOF_FORMAT_NONE: mode = options::ProofFormatMode::NONE; break;
-    case modes::PROOF_FORMAT_DOT: mode = options::ProofFormatMode::DOT; break;
-    case modes::PROOF_FORMAT_ALETHE:
+    case modes::ProofFormat::NONE: mode = options::ProofFormatMode::NONE; break;
+    case modes::ProofFormat::DOT: mode = options::ProofFormatMode::DOT; break;
+    case modes::ProofFormat::ALETHE:
       mode = options::ProofFormatMode::ALETHE;
       break;
-    case modes::PROOF_FORMAT_LFSC: mode = options::ProofFormatMode::LFSC; break;
+    case modes::ProofFormat::LFSC: mode = options::ProofFormatMode::LFSC; break;
   }
 
   d_pfManager->printProof(out, fp, mode);

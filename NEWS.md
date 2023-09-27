@@ -4,7 +4,7 @@ This file contains a summary of important user-visible changes.
 
 - API: A new API for proofs is available.  The new `Proof` class represents
        a node of the proof tree.  The function
-       `Solver::getProof(modes::ProofComponent c = modes::PROOF_COMPONENT_FULL)`
+       `Solver::getProof(modes::ProofComponent c = modes::ProofComponent::FULL)`
        returns the root proof nodes of a proof component as a vector.  
        The function `Solver::proofToString(std::vector<Proof> proof,
        modes::ProofFormat format, modes::ProofComponent component)` can be used

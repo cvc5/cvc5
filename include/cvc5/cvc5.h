@@ -4534,13 +4534,13 @@ class CVC5_EXPORT Solver
    *
    * @param proof A proof, usually obtained from Solver::getProof().
    * @param format The proof format used to print the proof.  Must be
-   * `modes::PROOF_FORMAT_NONE` if the proof is from a component other than
-   * `modes::PROOF_COMPONENT_FULL`.
+   * `modes::ProofFormat::NONE` if the proof is from a component other than
+   * `modes::ProofComponent::FULL`.
    * @return The string representation of the proof in the given format.
    */
   std::string proofToString(
       Proof proof,
-      modes::ProofFormat format = modes::PROOF_FORMAT_DEFAULT) const;
+      modes::ProofFormat format = modes::ProofFormat::DEFAULT) const;
 
   /**
    * Get a list of learned literals that are entailed by the current set of

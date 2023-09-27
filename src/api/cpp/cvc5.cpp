@@ -7228,21 +7228,9 @@ std::vector<Proof> Solver::getProof(modes::ProofComponent c) const
   CVC5_API_TRY_CATCH_END;
 }
 
-/** Return true if given proof format is a defined proof format. */
-bool isProofFormat(modes::ProofFormat pf)
-{
-  return pf >= 0 && pf <= modes::PROOF_FORMAT_DEFAULT;
-}
-/** Return true if given proof component is a defined proof component. */
-bool isProofComponent(modes::ProofComponent pc)
-{
-  return pc >= 0 && pc <= modes::PROOF_COMPONENT_FULL;
-}
-
 std::string Solver::proofToString(Proof proof, modes::ProofFormat format) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(isProofFormat(format)) << "Invalid proof format.";
   //////// all checks before this line
   std::ostringstream ss;
   this->d_slv->printProof(ss, proof.getProofNode(), format);

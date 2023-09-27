@@ -89,6 +89,20 @@ std::ostream& operator<<(std::ostream& out, ProofComponent pc)
   return out;
 }
 
+std::ostream& operator<<(std::ostream& out, ProofFormat pc)
+{
+  switch (pc)
+  {
+    case ProofFormat::NONE: out << "none"; break;
+    case ProofFormat::DOT: out << "dot"; break;
+    case ProofFormat::LFSC: out << "lfsc"; break;
+    case ProofFormat::ALETHE: out << "alethe"; break;
+    case ProofFormat::DEFAULT: out << "default"; break;
+    default: out << "?";
+  }
+  return out;
+}
+
 std::ostream& operator<<(std::ostream& out, FindSynthTarget fst)
 {
   switch (fst)
