@@ -26,31 +26,31 @@ namespace uf {
 void UfProofRuleChecker::registerTo(ProofChecker* pc)
 {
   // add checkers
-  pc->registerChecker(PfRule::REFL, this);
-  pc->registerChecker(PfRule::SYMM, this);
-  pc->registerChecker(PfRule::TRANS, this);
-  pc->registerChecker(PfRule::CONG, this);
-  pc->registerChecker(PfRule::TRUE_INTRO, this);
-  pc->registerChecker(PfRule::TRUE_ELIM, this);
-  pc->registerChecker(PfRule::FALSE_INTRO, this);
-  pc->registerChecker(PfRule::FALSE_ELIM, this);
-  pc->registerChecker(PfRule::HO_CONG, this);
-  pc->registerChecker(PfRule::HO_APP_ENCODE, this);
-  pc->registerChecker(PfRule::BETA_REDUCE, this);
+  pc->registerChecker(ProofRule::REFL, this);
+  pc->registerChecker(ProofRule::SYMM, this);
+  pc->registerChecker(ProofRule::TRANS, this);
+  pc->registerChecker(ProofRule::CONG, this);
+  pc->registerChecker(ProofRule::TRUE_INTRO, this);
+  pc->registerChecker(ProofRule::TRUE_ELIM, this);
+  pc->registerChecker(ProofRule::FALSE_INTRO, this);
+  pc->registerChecker(ProofRule::FALSE_ELIM, this);
+  pc->registerChecker(ProofRule::HO_CONG, this);
+  pc->registerChecker(ProofRule::HO_APP_ENCODE, this);
+  pc->registerChecker(ProofRule::BETA_REDUCE, this);
 }
 
-Node UfProofRuleChecker::checkInternal(PfRule id,
+Node UfProofRuleChecker::checkInternal(ProofRule id,
                                        const std::vector<Node>& children,
                                        const std::vector<Node>& args)
 {
   // compute what was proven
-  if (id == PfRule::REFL)
+  if (id == ProofRule::REFL)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
     return args[0].eqNode(args[0]);
   }
-  else if (id == PfRule::SYMM)
+  else if (id == ProofRule::SYMM)
   {
     Assert(children.size() == 1);
     Assert(args.empty());
@@ -64,7 +64,7 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
     Node conc = eqp[1].eqNode(eqp[0]);
     return polarity ? conc : conc.notNode();
   }
-  else if (id == PfRule::TRANS)
+  else if (id == ProofRule::TRANS)
   {
     Assert(children.size() > 0);
     Assert(args.empty());
@@ -89,7 +89,7 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
     }
     return first.eqNode(curr);
   }
-  else if (id == PfRule::CONG)
+  else if (id == ProofRule::CONG)
   {
     Assert(children.size() > 0);
     Assert(args.size() >= 1 && args.size() <= 2);
@@ -137,14 +137,14 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
     Node r = nm->mkNode(k, rchildren);
     return l.eqNode(r);
   }
-  else if (id == PfRule::TRUE_INTRO)
+  else if (id == ProofRule::TRUE_INTRO)
   {
     Assert(children.size() == 1);
     Assert(args.empty());
     Node trueNode = NodeManager::currentNM()->mkConst(true);
     return children[0].eqNode(trueNode);
   }
-  else if (id == PfRule::TRUE_ELIM)
+  else if (id == ProofRule::TRUE_ELIM)
   {
     Assert(children.size() == 1);
     Assert(args.empty());
@@ -155,7 +155,7 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
     }
     return children[0][0];
   }
-  else if (id == PfRule::FALSE_INTRO)
+  else if (id == ProofRule::FALSE_INTRO)
   {
     Assert(children.size() == 1);
     Assert(args.empty());
@@ -166,7 +166,7 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
     Node falseNode = NodeManager::currentNM()->mkConst(false);
     return children[0][0].eqNode(falseNode);
   }
-  else if (id == PfRule::FALSE_ELIM)
+  else if (id == ProofRule::FALSE_ELIM)
   {
     Assert(children.size() == 1);
     Assert(args.empty());
@@ -177,7 +177,7 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
     }
     return children[0][0].notNode();
   }
-  if (id == PfRule::HO_CONG)
+  if (id == ProofRule::HO_CONG)
   {
     Assert(children.size() > 0);
     Assert(args.empty());
@@ -198,13 +198,13 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
     Node r = nm->mkNode(kind::APPLY_UF, rchildren);
     return l.eqNode(r);
   }
-  else if (id == PfRule::HO_APP_ENCODE)
+  else if (id == ProofRule::HO_APP_ENCODE)
   {
     Assert(args.size() == 1);
     Node ret = TheoryUfRewriter::getHoApplyForApplyUf(args[0]);
     return args[0].eqNode(ret);
   }
-  else if (id == PfRule::BETA_REDUCE)
+  else if (id == ProofRule::BETA_REDUCE)
   {
     Assert(args.size() >= 2);
     Node lambda = args[0];

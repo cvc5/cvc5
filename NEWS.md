@@ -2,6 +2,22 @@ This file contains a summary of important user-visible changes.
 
 **New Features**
 
+- CaDiCaL is now integrated via the IPASIR-UP interface as CDCL(T) SAT solver.
+  The CDCL(T) SAT solver can be configured via option `--sat-solver`. Currently,
+  MiniSat is still default. Note that CaDiCaL cannot be used as the CDCL(T) SAT
+  engine when proof production is enabled. In that case, option `--sat-solver`
+  will default back to MiniSat.
+
+cvc5 1.0.9
+==========
+
+- SMT-LIB: The syntax for 0-ary tuples has been changed for the purposes of
+           disambiguation. The new syntax for 0-ary tuple sort is `UnitTuple`
+           whose 0-ary constructor is `tuple.unit` (the previous syntax had
+           overloaded `Tuple` and `tuple`, with no arguments).
+- API: Add the ability to query the logic that has been set in the solver via
+       `Solver::isLogicSet` and `Solver::getLogic`.
+
 cvc5 1.0.8
 ==========
 Note: This is a pre-release version for the upcoming version 1.1.0.

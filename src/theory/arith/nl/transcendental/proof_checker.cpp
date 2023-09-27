@@ -61,27 +61,29 @@ Node mkSecant(TNode t, TNode l, TNode u, TNode evall, TNode evalu)
 
 void TranscendentalProofRuleChecker::registerTo(ProofChecker* pc)
 {
-  pc->registerChecker(PfRule::ARITH_TRANS_PI, this);
-  pc->registerChecker(PfRule::ARITH_TRANS_EXP_NEG, this);
-  pc->registerChecker(PfRule::ARITH_TRANS_EXP_POSITIVITY, this);
-  pc->registerChecker(PfRule::ARITH_TRANS_EXP_SUPER_LIN, this);
-  pc->registerChecker(PfRule::ARITH_TRANS_EXP_ZERO, this);
-  pc->registerChecker(PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS, this);
-  pc->registerChecker(PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG, this);
-  pc->registerChecker(PfRule::ARITH_TRANS_EXP_APPROX_BELOW, this);
-  pc->registerChecker(PfRule::ARITH_TRANS_SINE_BOUNDS, this);
-  pc->registerChecker(PfRule::ARITH_TRANS_SINE_SHIFT, this);
-  pc->registerChecker(PfRule::ARITH_TRANS_SINE_SYMMETRY, this);
-  pc->registerChecker(PfRule::ARITH_TRANS_SINE_TANGENT_ZERO, this);
-  pc->registerChecker(PfRule::ARITH_TRANS_SINE_TANGENT_PI, this);
-  pc->registerChecker(PfRule::ARITH_TRANS_SINE_APPROX_BELOW_POS, this);
-  pc->registerChecker(PfRule::ARITH_TRANS_SINE_APPROX_BELOW_NEG, this);
-  pc->registerChecker(PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_POS, this);
-  pc->registerChecker(PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_NEG, this);
+  pc->registerChecker(ProofRule::ARITH_TRANS_PI, this);
+  pc->registerChecker(ProofRule::ARITH_TRANS_EXP_NEG, this);
+  pc->registerChecker(ProofRule::ARITH_TRANS_EXP_POSITIVITY, this);
+  pc->registerChecker(ProofRule::ARITH_TRANS_EXP_SUPER_LIN, this);
+  pc->registerChecker(ProofRule::ARITH_TRANS_EXP_ZERO, this);
+  pc->registerChecker(ProofRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS, this);
+  pc->registerChecker(ProofRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG, this);
+  pc->registerChecker(ProofRule::ARITH_TRANS_EXP_APPROX_BELOW, this);
+  pc->registerChecker(ProofRule::ARITH_TRANS_SINE_BOUNDS, this);
+  pc->registerChecker(ProofRule::ARITH_TRANS_SINE_SHIFT, this);
+  pc->registerChecker(ProofRule::ARITH_TRANS_SINE_SYMMETRY, this);
+  pc->registerChecker(ProofRule::ARITH_TRANS_SINE_TANGENT_ZERO, this);
+  pc->registerChecker(ProofRule::ARITH_TRANS_SINE_TANGENT_PI, this);
+  pc->registerChecker(ProofRule::ARITH_TRANS_SINE_APPROX_BELOW_POS, this);
+  pc->registerChecker(ProofRule::ARITH_TRANS_SINE_APPROX_BELOW_NEG, this);
+  pc->registerChecker(ProofRule::ARITH_TRANS_SINE_APPROX_ABOVE_POS, this);
+  pc->registerChecker(ProofRule::ARITH_TRANS_SINE_APPROX_ABOVE_NEG, this);
 }
 
 Node TranscendentalProofRuleChecker::checkInternal(
-    PfRule id, const std::vector<Node>& children, const std::vector<Node>& args)
+    ProofRule id,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node zero = nm->mkConstInt(Rational(0));
@@ -100,14 +102,14 @@ Node TranscendentalProofRuleChecker::checkInternal(
   {
     Trace("nl-trans-checker") << "\t" << a << std::endl;
   }
-  if (id == PfRule::ARITH_TRANS_PI)
+  if (id == ProofRule::ARITH_TRANS_PI)
   {
     Assert(children.empty());
     Assert(args.size() == 2);
     return nm->mkAnd(std::vector<Node>{nm->mkNode(Kind::GEQ, pi, args[0]),
                                        nm->mkNode(Kind::LEQ, pi, args[1])});
   }
-  else if (id == PfRule::ARITH_TRANS_EXP_NEG)
+  else if (id == ProofRule::ARITH_TRANS_EXP_NEG)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
@@ -115,14 +117,14 @@ Node TranscendentalProofRuleChecker::checkInternal(
     return nm->mkNode(
         EQUAL, nm->mkNode(LT, args[0], zero), nm->mkNode(LT, e, one));
   }
-  else if (id == PfRule::ARITH_TRANS_EXP_POSITIVITY)
+  else if (id == ProofRule::ARITH_TRANS_EXP_POSITIVITY)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
     Node e = nm->mkNode(Kind::EXPONENTIAL, args[0]);
     return nm->mkNode(GT, e, zero);
   }
-  else if (id == PfRule::ARITH_TRANS_EXP_SUPER_LIN)
+  else if (id == ProofRule::ARITH_TRANS_EXP_SUPER_LIN)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
@@ -131,7 +133,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
                       nm->mkNode(LEQ, args[0], zero),
                       nm->mkNode(GT, e, nm->mkNode(ADD, args[0], one)));
   }
-  else if (id == PfRule::ARITH_TRANS_EXP_ZERO)
+  else if (id == ProofRule::ARITH_TRANS_EXP_ZERO)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
@@ -140,7 +142,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Node rone = nm->mkConstReal(Rational(1));
     return nm->mkNode(EQUAL, args[0].eqNode(rzero), e.eqNode(rone));
   }
-  else if (id == PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS)
+  else if (id == ProofRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS)
   {
     Assert(children.empty());
     Assert(args.size() == 4);
@@ -166,7 +168,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
         nm->mkNode(Kind::LEQ, nm->mkNode(Kind::EXPONENTIAL, t), evalsecant));
     return lem;
   }
-  else if (id == PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG)
+  else if (id == ProofRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG)
   {
     Assert(children.empty());
     Assert(args.size() == 4);
@@ -192,7 +194,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
         nm->mkNode(Kind::LEQ, nm->mkNode(Kind::EXPONENTIAL, t), evalsecant));
     return lem;
   }
-  else if (id == PfRule::ARITH_TRANS_EXP_APPROX_BELOW)
+  else if (id == ProofRule::ARITH_TRANS_EXP_APPROX_BELOW)
   {
     Assert(children.empty());
     Assert(args.size() == 3);
@@ -214,7 +216,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
         nm->mkNode(Kind::GEQ,
                    std::vector<Node>{nm->mkNode(Kind::EXPONENTIAL, t), evalt}));
   }
-  else if (id == PfRule::ARITH_TRANS_SINE_BOUNDS)
+  else if (id == ProofRule::ARITH_TRANS_SINE_BOUNDS)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
@@ -222,7 +224,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Node s = nm->mkNode(Kind::SINE, args[0]);
     return nm->mkNode(AND, nm->mkNode(LEQ, s, one), nm->mkNode(GEQ, s, mone));
   }
-  else if (id == PfRule::ARITH_TRANS_SINE_SHIFT)
+  else if (id == ProofRule::ARITH_TRANS_SINE_SHIFT)
   {
     Assert(children.empty());
     Assert(args.size() == 3);
@@ -231,7 +233,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
     const auto& s = args[2];
     return SineSolver::getPhaseShiftLemma(x, y, s);
   }
-  else if (id == PfRule::ARITH_TRANS_SINE_SYMMETRY)
+  else if (id == ProofRule::ARITH_TRANS_SINE_SYMMETRY)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
@@ -240,7 +242,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Node s2 = nm->mkNode(Kind::SINE, nm->mkNode(Kind::MULT, mone, args[0]));
     return nm->mkNode(ADD, s1, s2).eqNode(zero);
   }
-  else if (id == PfRule::ARITH_TRANS_SINE_TANGENT_ZERO)
+  else if (id == ProofRule::ARITH_TRANS_SINE_TANGENT_ZERO)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
@@ -254,7 +256,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
                    nm->mkNode(LT, args[0], zero),
                    nm->mkNode(GT, s, args[0])));
   }
-  else if (id == PfRule::ARITH_TRANS_SINE_TANGENT_PI)
+  else if (id == ProofRule::ARITH_TRANS_SINE_TANGENT_PI)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
@@ -269,7 +271,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
                    nm->mkNode(LT, args[0], pi),
                    nm->mkNode(LT, s, nm->mkNode(SUB, pi, args[0]))));
   }
-  else if (id == PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_NEG)
+  else if (id == ProofRule::ARITH_TRANS_SINE_APPROX_ABOVE_NEG)
   {
     Assert(children.empty());
     Assert(args.size() == 6);
@@ -299,7 +301,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
             Kind::LEQ, nm->mkNode(Kind::SINE, t), mkSecant(t, lb, ub, l, u)));
     return lem;
   }
-  else if (id == PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_POS)
+  else if (id == ProofRule::ARITH_TRANS_SINE_APPROX_ABOVE_POS)
   {
     Assert(children.empty());
     Assert(args.size() == 5);
@@ -322,7 +324,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
                       mkBounds(t, lb, ub),
                       nm->mkNode(Kind::LEQ, nm->mkNode(Kind::SINE, t), evalc));
   }
-  else if (id == PfRule::ARITH_TRANS_SINE_APPROX_BELOW_POS)
+  else if (id == ProofRule::ARITH_TRANS_SINE_APPROX_BELOW_POS)
   {
     Assert(children.empty());
     Assert(args.size() == 6);
@@ -352,7 +354,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
             Kind::GEQ, nm->mkNode(Kind::SINE, t), mkSecant(t, lb, ub, l, u)));
     return lem;
   }
-  else if (id == PfRule::ARITH_TRANS_SINE_APPROX_BELOW_NEG)
+  else if (id == ProofRule::ARITH_TRANS_SINE_APPROX_BELOW_NEG)
   {
     Assert(children.empty());
     Assert(args.size() == 5);

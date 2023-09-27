@@ -189,14 +189,15 @@ TrustNode TheoryPreprocessor::preprocessLemmaInternal(
   {
     Assert(d_lp != nullptr);
     // add the original proof to the lazy proof
-    d_lp->addLazyStep(
-        node.getProven(), node.getGenerator(), PfRule::THEORY_PREPROCESS_LEMMA);
+    d_lp->addLazyStep(node.getProven(),
+                      node.getGenerator(),
+                      ProofRule::THEORY_PREPROCESS_LEMMA);
     // only need to do anything if lemmap changed in a non-trivial way
     if (!CDProof::isSame(lemmap, lemma))
     {
       d_lp->addLazyStep(tplemma.getProven(),
                         tplemma.getGenerator(),
-                        PfRule::THEORY_PREPROCESS,
+                        ProofRule::THEORY_PREPROCESS,
                         true,
                         "TheoryEngine::lemma_pp");
       // ---------- from node -------------- from theory preprocess
@@ -206,7 +207,7 @@ TrustNode TheoryPreprocessor::preprocessLemmaInternal(
       std::vector<Node> pfChildren;
       pfChildren.push_back(lemma);
       pfChildren.push_back(tplemma.getProven());
-      d_lp->addStep(lemmap, PfRule::EQ_RESOLVE, pfChildren, {});
+      d_lp->addStep(lemmap, ProofRule::EQ_RESOLVE, pfChildren, {});
     }
   }
   return TrustNode::mkTrustLemma(lemmap, d_lp.get());
@@ -406,7 +407,8 @@ Node TheoryPreprocessor::rewriteWithProof(Node term,
     {
       Trace("tpp-debug") << "TheoryPreprocessor: addRewriteStep (rewriting) "
                          << term << " -> " << termr << std::endl;
-      pg->addRewriteStep(term, termr, PfRule::REWRITE, {}, {term}, isPre, tctx);
+      pg->addRewriteStep(
+          term, termr, ProofRule::REWRITE, {}, {term}, isPre, tctx);
     }
   }
   return termr;
@@ -484,7 +486,7 @@ void TheoryPreprocessor::registerTrustedRewrite(TrustNode trn,
         options(), "tpp-debug", "TheoryPreprocessor::preprocessWithProof");
     // always use term context hash 0 (default)
     pg->addRewriteStep(
-        term, termr, trn.getGenerator(), isPre, PfRule::ASSUME, true, tctx);
+        term, termr, trn.getGenerator(), isPre, ProofRule::ASSUME, true, tctx);
   }
   else
   {
@@ -493,7 +495,7 @@ void TheoryPreprocessor::registerTrustedRewrite(TrustNode trn,
     // small step trust
     pg->addRewriteStep(term,
                        termr,
-                       PfRule::THEORY_PREPROCESS,
+                       ProofRule::THEORY_PREPROCESS,
                        {},
                        {term.eqNode(termr)},
                        isPre,

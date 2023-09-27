@@ -2618,6 +2618,22 @@ class SolverTest
   }
 
   @Test
+  void isLogicSet() throws CVC5ApiException
+  {
+    assertFalse(d_solver.isLogicSet());
+    assertDoesNotThrow(() -> d_solver.setLogic("QF_BV"));
+    assertTrue(d_solver.isLogicSet());
+  }
+
+  @Test
+  void getLogic() throws CVC5ApiException
+  {
+    assertThrows(CVC5ApiException.class, () -> d_solver.getLogic());
+    assertDoesNotThrow(() -> d_solver.setLogic("QF_BV"));
+    assertEquals(d_solver.getLogic(), "QF_BV");
+  }
+
+  @Test
   void setOption() throws CVC5ApiException
   {
     assertDoesNotThrow(() -> d_solver.setOption("bv-sat-solver", "minisat"));
