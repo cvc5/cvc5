@@ -290,7 +290,7 @@ uint64_t DotPrinter::printInternal(
 
   d_ruleID++;
 
-  PfRule r = pn->getRule();
+  ProofRule r = pn->getRule();
 
   // Scopes trigger a traversal with a new local cache for proof nodes
   if (isSCOPE(r) && currentRuleID)
@@ -349,7 +349,7 @@ void DotPrinter::printProofNodeInfo(std::ostream& out, const ProofNode* pn)
   std::string astring = resultStr.str();
   out << sanitizeString(astring);
 
-  PfRule r = pn->getRule();
+  ProofRule r = pn->getRule();
   DotPrinter::ruleArguments(currentArguments, pn);
   astring = currentArguments.str();
   out << "|" << r << sanitizeString(astring) << "}\"";
@@ -363,7 +363,7 @@ void DotPrinter::printProofNodeInfo(std::ostream& out, const ProofNode* pn)
 ProofNodeClusterType DotPrinter::defineProofNodeType(const ProofNode* pn,
                                                      ProofNodeClusterType last)
 {
-  PfRule rule = pn->getRule();
+  ProofRule rule = pn->getRule();
   if (isSCOPE(rule))
   {
     d_scopesArgs.push_back(pn->getArguments());
@@ -444,48 +444,48 @@ inline bool DotPrinter::isInput(const ProofNode* pn)
   return true;
 }
 
-inline bool DotPrinter::isSat(const PfRule& rule)
+inline bool DotPrinter::isSat(const ProofRule& rule)
 {
-  return PfRule::CHAIN_RESOLUTION <= rule
-         && rule <= PfRule::MACRO_RESOLUTION_TRUST;
+  return ProofRule::CHAIN_RESOLUTION <= rule
+         && rule <= ProofRule::MACRO_RESOLUTION_TRUST;
 }
 
-inline bool DotPrinter::isCNF(const PfRule& rule)
+inline bool DotPrinter::isCNF(const ProofRule& rule)
 {
-  return PfRule::NOT_NOT_ELIM <= rule && rule <= PfRule::CNF_ITE_NEG3;
+  return ProofRule::NOT_NOT_ELIM <= rule && rule <= ProofRule::CNF_ITE_NEG3;
 }
 
-inline bool DotPrinter::isSCOPE(const PfRule& rule)
+inline bool DotPrinter::isSCOPE(const ProofRule& rule)
 {
-  return PfRule::SCOPE == rule;
+  return ProofRule::SCOPE == rule;
 }
 
-inline bool DotPrinter::isTheoryLemma(const PfRule& rule)
+inline bool DotPrinter::isTheoryLemma(const ProofRule& rule)
 {
-  return rule == PfRule::SCOPE || rule == PfRule::THEORY_LEMMA
-         || (PfRule::CNF_ITE_NEG3 < rule && rule < PfRule::LFSC_RULE);
+  return rule == ProofRule::SCOPE || rule == ProofRule::THEORY_LEMMA
+         || (ProofRule::CNF_ITE_NEG3 < rule && rule < ProofRule::LFSC_RULE);
 }
 
-inline bool DotPrinter::isASSUME(const PfRule& rule)
+inline bool DotPrinter::isASSUME(const ProofRule& rule)
 {
-  return PfRule::ASSUME == rule;
+  return ProofRule::ASSUME == rule;
 }
 
 void DotPrinter::ruleArguments(std::ostringstream& currentArguments,
                                const ProofNode* pn)
 {
   const std::vector<Node>& args = pn->getArguments();
-  PfRule r = pn->getRule();
+  ProofRule r = pn->getRule();
   // don't process arguments of rules whose conclusion is in the arguments
-  if (!args.size() || r == PfRule::ASSUME || r == PfRule::REORDERING
-      || r == PfRule::REFL)
+  if (!args.size() || r == ProofRule::ASSUME || r == ProofRule::REORDERING
+      || r == ProofRule::REFL)
   {
     return;
   }
   currentArguments << " :args [ ";
 
   // if cong, special process
-  if (r == PfRule::CONG)
+  if (r == ProofRule::CONG)
   {
     AlwaysAssert(args.size() == 1 || args.size() == 2);
     // if two arguments, ignore first and print second
@@ -501,7 +501,7 @@ void DotPrinter::ruleArguments(std::ostringstream& currentArguments,
     }
   }
   // if th_rw, likewise
-  else if (r == PfRule::THEORY_REWRITE)
+  else if (r == ProofRule::THEORY_REWRITE)
   {
     // print the second argument
     theory::TheoryId id;

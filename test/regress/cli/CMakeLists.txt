@@ -553,6 +553,7 @@ set(regress_0_tests
   regress0/datatypes/bug604.smt2
   regress0/datatypes/bug625.smt2
   regress0/datatypes/canExp-dtPendingMerge.smt2
+  regress0/datatypes/cdt-enum-type-mismatch.smt2
   regress0/datatypes/cdt-model-cade15.smt2
   regress0/datatypes/cdt-non-canon-stream.smt2
   regress0/datatypes/coda_simp_model.smt2
@@ -1158,6 +1159,11 @@ set(regress_0_tests
   regress0/proofs/trust-subs-eq-open.smt2
   regress0/proofs/unused-def1.smt2
   regress0/proofs/unused-def2.smt2
+  regress0/prop/cadical_bug1.smt2
+  regress0/prop/cadical_bug2.smt2
+  regress0/prop/cadical_bug3.smt2
+  regress0/prop/cadical_bug4.smt2
+  regress0/prop/cadical_bug5.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
   regress0/push-pop/boolean/fuzz_13.smt2
   regress0/push-pop/boolean/fuzz_14.smt2
@@ -2550,6 +2556,7 @@ set(regress_1_tests
   regress1/quantifiers/nra-interleave-inst.smt2
   regress1/quantifiers/opisavailable-12.smt2
   regress1/quantifiers/parametric-lists.smt2
+  regress1/quantifiers/pool-decidable-arrays-1.smt2
   regress1/quantifiers/pool-example.smt2
   regress1/quantifiers/pool-tuple.smt2
   regress1/quantifiers/prenex-scholl-smt08_RNDPRE_RNDPRE_4_6.smt2
@@ -2828,6 +2835,7 @@ set(regress_1_tests
   regress1/strings/instance3303-delta.smt2
   regress1/strings/instance6561-dd-concat-unify-char.smt2
   regress1/strings/instance7075-delta.smt2
+  regress1/strings/issue10058.smt2
   regress1/strings/issue1105.smt2
   regress1/strings/issue1684-regex.smt2
   regress1/strings/issue2060.smt2

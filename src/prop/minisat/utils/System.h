@@ -22,8 +22,11 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #define Minisat_System_h
 
 #if defined(__linux__)
+#include <features.h>
+#if defined(__GLIBC__)
 #include <fpu_control.h>
-#endif
+#endif // __GLIBC__
+#endif // __linux__
 
 #include "prop/minisat/mtl/IntTypes.h"
 

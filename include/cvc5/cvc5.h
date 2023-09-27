@@ -20,6 +20,7 @@
 
 #include <cvc5/cvc5_kind.h>
 #include <cvc5/cvc5_types.h>
+#include <cvc5/cvc5_proof_rule.h>
 
 #include <functional>
 #include <map>

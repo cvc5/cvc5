@@ -1371,7 +1371,7 @@ std::vector<Node> SolverEngine::convertPreprocessedToInput(
   std::vector<Node> core;
   CDProof cdp(*d_env);
   Node fnode = NodeManager::currentNM()->mkConst(false);
-  cdp.addStep(fnode, PfRule::SAT_REFUTATION, ppa, {});
+  cdp.addStep(fnode, ProofRule::SAT_REFUTATION, ppa, {});
   std::shared_ptr<ProofNode> pepf = cdp.getProofFor(fnode);
   Assert(pepf != nullptr);
   std::shared_ptr<ProofNode> pfn =

@@ -370,7 +370,7 @@ unsigned HoExtension::applyAppCompletion(TNode n)
     d_im.assertInternalFact(eq,
                             true,
                             InferenceId::UF_HO_APP_ENCODE,
-                            PfRule::HO_APP_ENCODE,
+                            ProofRule::HO_APP_ENCODE,
                             {},
                             {n});
     return 1;

@@ -172,9 +172,11 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
           {
             Node k_eq = kf.eqNode(sum);
             Node split = nm->mkNode(Kind::OR, lit, lit.notNode());
-            proof->addStep(split, PfRule::SPLIT, {}, {lit});
-            proof->addStep(
-                flem, PfRule::MACRO_SR_PRED_TRANSFORM, {split, k_eq}, {flem});
+            proof->addStep(split, ProofRule::SPLIT, {}, {lit});
+            proof->addStep(flem,
+                           ProofRule::MACRO_SR_PRED_TRANSFORM,
+                           {split, k_eq},
+                           {flem});
           }
           d_data->d_im.addPendingLemma(
               flem, InferenceId::ARITH_NL_FACTOR, proof);
@@ -205,7 +207,7 @@ Node FactoringCheck::getFactorSkolem(Node n, CDProof* proof)
   if (d_data->isProofEnabled())
   {
     Node k_eq = k.eqNode(n);
-    proof->addStep(k_eq, PfRule::MACRO_SR_PRED_INTRO, {}, {k_eq});
+    proof->addStep(k_eq, ProofRule::MACRO_SR_PRED_INTRO, {}, {k_eq});
   }
   return k;
 }

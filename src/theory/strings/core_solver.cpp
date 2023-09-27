@@ -725,7 +725,7 @@ Node CoreSolver::getNormalString(Node x, std::vector<Node>& nf_exp)
 
 Node CoreSolver::getConclusion(Node x,
                                Node y,
-                               PfRule rule,
+                               ProofRule rule,
                                bool isRev,
                                SkolemCache* skc,
                                std::vector<Node>& newSkolems)
@@ -734,7 +734,7 @@ Node CoreSolver::getConclusion(Node x,
                            << " " << rule << " " << isRev << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   Node conc;
-  if (rule == PfRule::CONCAT_SPLIT || rule == PfRule::CONCAT_LPROP)
+  if (rule == ProofRule::CONCAT_SPLIT || rule == ProofRule::CONCAT_LPROP)
   {
     // must compare so that we are agnostic to order of x/y
     Node ux = x < y ? x : y;
@@ -748,7 +748,7 @@ Node CoreSolver::getConclusion(Node x,
     Node eq1 = x.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk, y)
                               : nm->mkNode(STRING_CONCAT, y, sk));
 
-    if (rule == PfRule::CONCAT_LPROP)
+    if (rule == ProofRule::CONCAT_LPROP)
     {
       conc = eq1;
     }
@@ -768,7 +768,7 @@ Node CoreSolver::getConclusion(Node x,
         nm->mkNode(
             GT, nm->mkNode(STRING_LENGTH, sk), nm->mkConstInt(Rational(0))));
   }
-  else if (rule == PfRule::CONCAT_CSPLIT)
+  else if (rule == ProofRule::CONCAT_CSPLIT)
   {
     Assert(y.isConst());
     size_t yLen = Word::getLength(y);
@@ -782,7 +782,7 @@ Node CoreSolver::getConclusion(Node x,
     conc = x.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk, firstChar)
                           : nm->mkNode(STRING_CONCAT, firstChar, sk));
   }
-  else if (rule == PfRule::CONCAT_CPROP)
+  else if (rule == ProofRule::CONCAT_CPROP)
   {
     // expect (str.++ z d) and c
     Assert(x.getKind() == STRING_CONCAT && x.getNumChildren() == 2);
@@ -1139,12 +1139,13 @@ void CoreSolver::processNEqc(Node eqc,
       unsigned rindex = 0;
       nfi.reverse();
       nfj.reverse();
-      if (processSimpleNEq(nfi, nfj, rindex, true, 0, pinfer, stype))
+      bool ret = processSimpleNEq(nfi, nfj, rindex, true, 0, pinfer, stype);
+      nfi.reverse();
+      nfj.reverse();
+      if (ret)
       {
         break;
       }
-      nfi.reverse();
-      nfj.reverse();
       if (d_im.hasProcessed())
       {
         break;
@@ -1558,7 +1559,7 @@ bool CoreSolver::processSimpleNEq(NormalForm& nfi,
               nm->mkNode(STRING_CONCAT, isRev ? strb : nc, isRev ? nc : strb);
           std::vector<Node> newSkolems;
           iinfo.d_conc = getConclusion(
-              xcv, stra, PfRule::CONCAT_CPROP, isRev, skc, newSkolems);
+              xcv, stra, ProofRule::CONCAT_CPROP, isRev, skc, newSkolems);
           Assert(newSkolems.size() == 1);
           iinfo.d_skolems[LENGTH_SPLIT].push_back(newSkolems[0]);
           iinfo.setId(InferenceId::STRINGS_SSPLIT_CST_PROP);
@@ -1575,7 +1576,7 @@ bool CoreSolver::processSimpleNEq(NormalForm& nfi,
       SkolemCache* skc = d_termReg.getSkolemCache();
       std::vector<Node> newSkolems;
       iinfo.d_conc = getConclusion(
-          nc, nfcv[index], PfRule::CONCAT_CSPLIT, isRev, skc, newSkolems);
+          nc, nfcv[index], ProofRule::CONCAT_CSPLIT, isRev, skc, newSkolems);
       NormalForm::getExplanationForPrefixEq(
           nfi, nfj, index, index, iinfo.d_premises);
       iinfo.d_premises.push_back(expNonEmpty);
@@ -1672,20 +1673,20 @@ bool CoreSolver::processSimpleNEq(NormalForm& nfi,
     {
       iinfo.setId(InferenceId::STRINGS_SSPLIT_VAR);
       iinfo.d_conc =
-          getConclusion(x, y, PfRule::CONCAT_SPLIT, isRev, skc, newSkolems);
+          getConclusion(x, y, ProofRule::CONCAT_SPLIT, isRev, skc, newSkolems);
     }
     else if (lentTestSuccess == 0)
     {
       iinfo.setId(InferenceId::STRINGS_SSPLIT_VAR_PROP);
       iinfo.d_conc =
-          getConclusion(x, y, PfRule::CONCAT_LPROP, isRev, skc, newSkolems);
+          getConclusion(x, y, ProofRule::CONCAT_LPROP, isRev, skc, newSkolems);
     }
     else
     {
       Assert(lentTestSuccess == 1);
       iinfo.setId(InferenceId::STRINGS_SSPLIT_VAR_PROP);
       iinfo.d_conc =
-          getConclusion(y, x, PfRule::CONCAT_LPROP, isRev, skc, newSkolems);
+          getConclusion(y, x, ProofRule::CONCAT_LPROP, isRev, skc, newSkolems);
     }
     // add the length constraint(s) as the last antecedant
     Node lc = utils::mkAnd(lcVec);
