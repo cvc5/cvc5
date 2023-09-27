@@ -25,19 +25,19 @@ namespace datatypes {
 
 void DatatypesProofRuleChecker::registerTo(ProofChecker* pc)
 {
-  pc->registerChecker(PfRule::DT_UNIF, this);
-  pc->registerChecker(PfRule::DT_INST, this);
-  pc->registerChecker(PfRule::DT_COLLAPSE, this);
-  pc->registerChecker(PfRule::DT_SPLIT, this);
-  pc->registerChecker(PfRule::DT_CLASH, this);
+  pc->registerChecker(ProofRule::DT_UNIF, this);
+  pc->registerChecker(ProofRule::DT_INST, this);
+  pc->registerChecker(ProofRule::DT_COLLAPSE, this);
+  pc->registerChecker(ProofRule::DT_SPLIT, this);
+  pc->registerChecker(ProofRule::DT_CLASH, this);
 }
 
-Node DatatypesProofRuleChecker::checkInternal(PfRule id,
+Node DatatypesProofRuleChecker::checkInternal(ProofRule id,
                                               const std::vector<Node>& children,
                                               const std::vector<Node>& args)
 {
   NodeManager* nm = NodeManager::currentNM();
-  if (id == PfRule::DT_UNIF)
+  if (id == ProofRule::DT_UNIF)
   {
     Assert(children.size() == 1);
     Assert(args.size() == 1);
@@ -57,7 +57,7 @@ Node DatatypesProofRuleChecker::checkInternal(PfRule id,
     Assert(children[0][0].getNumChildren() == children[0][1].getNumChildren());
     return children[0][0][i].eqNode(children[0][1][i]);
   }
-  else if (id == PfRule::DT_INST)
+  else if (id == ProofRule::DT_INST)
   {
     Assert(children.empty());
     Assert(args.size() == 2);
@@ -77,7 +77,7 @@ Node DatatypesProofRuleChecker::checkInternal(PfRule id,
     Node ticons = utils::getInstCons(t, dt, i, d_sharedSel);
     return tester.eqNode(t.eqNode(ticons));
   }
-  else if (id == PfRule::DT_COLLAPSE)
+  else if (id == ProofRule::DT_COLLAPSE)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
@@ -96,7 +96,7 @@ Node DatatypesProofRuleChecker::checkInternal(PfRule id,
         selectorIndex < 0 ? nm->mkGroundTerm(t.getType()) : t[0][selectorIndex];
     return t.eqNode(r);
   }
-  else if (id == PfRule::DT_SPLIT)
+  else if (id == ProofRule::DT_SPLIT)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
@@ -108,7 +108,7 @@ Node DatatypesProofRuleChecker::checkInternal(PfRule id,
     const DType& dt = tn.getDType();
     return utils::mkSplit(args[0], dt);
   }
-  else if (id == PfRule::DT_CLASH)
+  else if (id == ProofRule::DT_CLASH)
   {
     Assert(children.size() == 2);
     Assert(args.empty());

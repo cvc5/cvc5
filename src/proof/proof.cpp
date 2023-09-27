@@ -50,7 +50,7 @@ std::shared_ptr<ProofNode> CDProof::getProofFor(Node fact)
   std::vector<std::shared_ptr<ProofNode>> passume;
   ProofNodeManager* pnm = getManager();
   std::shared_ptr<ProofNode> pfa =
-      pnm->mkNode(PfRule::ASSUME, passume, pargs, fact);
+      pnm->mkNode(ProofRule::ASSUME, passume, pargs, fact);
   d_nodes.insert(fact, pfa);
   return pfa;
 }
@@ -110,7 +110,7 @@ std::shared_ptr<ProofNode> CDProof::getProofSymm(Node fact)
       // if its not an assumption, make the connection
       Trace("cdproof") << "...update symm" << std::endl;
       // update pf
-      bool sret = pnm->updateNode(pf.get(), PfRule::SYMM, pschild, args);
+      bool sret = pnm->updateNode(pf.get(), ProofRule::SYMM, pschild, args);
       AlwaysAssert(sret);
     }
   }
@@ -124,7 +124,7 @@ std::shared_ptr<ProofNode> CDProof::getProofSymm(Node fact)
 }
 
 bool CDProof::addStep(Node expected,
-                      PfRule id,
+                      ProofRule id,
                       const std::vector<Node>& children,
                       const std::vector<Node>& args,
                       bool ensureChildren,
@@ -172,7 +172,7 @@ bool CDProof::addStep(Node expected,
       // otherwise, we initialize it as an assumption
       std::vector<Node> pcargs = {c};
       std::vector<std::shared_ptr<ProofNode>> pcassume;
-      pc = pnm->mkNode(PfRule::ASSUME, pcassume, pcargs, c);
+      pc = pnm->mkNode(ProofRule::ASSUME, pcassume, pcargs, c);
       // assumptions never fail to check
       Assert(pc != nullptr);
       d_nodes.insert(c, pc);
@@ -181,7 +181,7 @@ bool CDProof::addStep(Node expected,
   }
 
   // the user may have provided SYMM of an assumption
-  if (id == PfRule::SYMM)
+  if (id == ProofRule::SYMM)
   {
     Assert(pchildren.size() == 1);
     if (isAssumption(pchildren[0].get()))
@@ -297,7 +297,7 @@ bool CDProof::addProof(std::shared_ptr<ProofNode> pn,
     if (d_autoSymm)
     {
       std::vector<std::shared_ptr<ProofNode>> processed;
-      while (pn->getRule() == PfRule::SYMM)
+      while (pn->getRule() == ProofRule::SYMM)
       {
         pn = pn->getChildren()[0];
         if (std::find(processed.begin(), processed.end(), pn)
@@ -422,7 +422,7 @@ ProofNodeManager* CDProof::getManager() const
   return pnm;
 }
 
-bool CDProof::shouldOverwrite(ProofNode* pn, PfRule newId, CDPOverwrite opol)
+bool CDProof::shouldOverwrite(ProofNode* pn, ProofRule newId, CDPOverwrite opol)
 {
   Assert(pn != nullptr);
   // we overwrite only if opol is CDPOverwrite::ALWAYS, or if
@@ -430,33 +430,33 @@ bool CDProof::shouldOverwrite(ProofNode* pn, PfRule newId, CDPOverwrite opol)
   // provided proof pn was an assumption and the currently provided step is not
   return opol == CDPOverwrite::ALWAYS
          || (opol == CDPOverwrite::ASSUME_ONLY && isAssumption(pn)
-             && newId != PfRule::ASSUME);
+             && newId != ProofRule::ASSUME);
 }
 
 bool CDProof::isAssumption(ProofNode* pn)
 {
-  PfRule rule = pn->getRule();
-  if (rule == PfRule::ASSUME)
+  ProofRule rule = pn->getRule();
+  if (rule == ProofRule::ASSUME)
   {
     return true;
   }
-  else if (rule != PfRule::SYMM)
+  else if (rule != ProofRule::SYMM)
   {
     return false;
   }
   pn = ProofNodeManager::cancelDoubleSymm(pn);
   rule = pn->getRule();
-  if (rule == PfRule::ASSUME)
+  if (rule == ProofRule::ASSUME)
   {
     return true;
   }
-  else if (rule != PfRule::SYMM)
+  else if (rule != ProofRule::SYMM)
   {
     return false;
   }
   const std::vector<std::shared_ptr<ProofNode>>& pc = pn->getChildren();
   Assert(pc.size() == 1);
-  return pc[0]->getRule() == PfRule::ASSUME;
+  return pc[0]->getRule() == ProofRule::ASSUME;
 }
 
 bool CDProof::isSame(TNode f, TNode g)

@@ -13,6 +13,8 @@
  * The module for processing proof nodes.
  */
 
+#include <functional>
+
 #include "cvc5_private.h"
 
 #ifndef CVC5__SMT__PROOF_POST_PROCESSOR_H
@@ -36,7 +38,8 @@ namespace smt {
 
 /**
  * A callback class used by SolverEngine for post-processing proof nodes by
- * connecting proofs of preprocessing, and expanding macro PfRule applications.
+ * connecting proofs of preprocessing, and expanding macro ProofRule
+ * applications.
  */
 class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvObj
 {
@@ -59,7 +62,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
    * elimination include MACRO_*, SUBS and REWRITE. Otherwise, this method
    * has no effect.
    */
-  void setEliminateRule(PfRule rule);
+  void setEliminateRule(ProofRule rule);
   /** set eliminate all trusted rules via DSL */
   void setEliminateAllTrustedRules();
   /** Should proof pn be updated? */
@@ -68,7 +71,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
                     bool& continueUpdate) override;
   /** Update the proof rule application. */
   bool update(Node res,
-              PfRule id,
+              ProofRule id,
               const std::vector<Node>& children,
               const std::vector<Node>& args,
               CDProof* cdp,
@@ -88,7 +91,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
   /** The witness form assumptions used in the proof */
   std::vector<Node> d_wfAssumptions;
   /** Kinds of proof rules we are eliminating */
-  std::unordered_set<PfRule, PfRuleHashFunction> d_elimRules;
+  std::unordered_set<ProofRule, std::hash<ProofRule>> d_elimRules;
   /** Whether we are trying to eliminate any trusted rule via the DSL */
   bool d_elimAllTrusted;
   /** Whether we post-process assumptions in scope. */
@@ -98,7 +101,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
   std::map<Node, std::shared_ptr<ProofNode> > d_assumpToProof;
   //---------------------------------end reset at the begining of each update
   /** Return true if id is a proof rule that we should expand */
-  bool shouldExpand(PfRule id) const;
+  bool shouldExpand(ProofRule id) const;
   /**
    * Expand rules in the given application, add the expanded proof to cdp.
    * The set of rules we expand is configured by calls to setEliminateRule
@@ -111,7 +114,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
    * @param cdp The proof to add to
    * @return The conclusion of the rule, or null if this rule is not eliminated.
    */
-  Node expandMacros(PfRule id,
+  Node expandMacros(ProofRule id,
                     const std::vector<Node>& children,
                     const std::vector<Node>& args,
                     CDProof* cdp,
@@ -122,7 +125,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
    * as update apart from ignoring the continueUpdate flag.
    */
   bool updateInternal(Node res,
-                      PfRule id,
+                      ProofRule id,
                       const std::vector<Node>& children,
                       const std::vector<Node>& args,
                       CDProof* cdp);
@@ -174,7 +177,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
  * The proof postprocessor module. This postprocesses the final proof
  * produced by an SolverEngine. Its main two tasks are to:
  * (1) Connect proofs of preprocessing,
- * (2) Expand macro PfRule applications.
+ * (2) Expand macro ProofRule applications.
  */
 class ProofPostprocess : protected EnvObj
 {
@@ -196,7 +199,7 @@ class ProofPostprocess : protected EnvObj
    */
   void process(std::shared_ptr<ProofNode> pf, ProofGenerator* pppg);
   /** set eliminate rule */
-  void setEliminateRule(PfRule rule);
+  void setEliminateRule(ProofRule rule);
   /** set eliminate all trusted rules via DSL */
   void setEliminateAllTrustedRules();
   /**

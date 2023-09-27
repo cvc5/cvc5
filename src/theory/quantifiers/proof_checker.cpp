@@ -29,26 +29,28 @@ namespace quantifiers {
 void QuantifiersProofRuleChecker::registerTo(ProofChecker* pc)
 {
   // add checkers
-  pc->registerChecker(PfRule::SKOLEM_INTRO, this);
-  pc->registerChecker(PfRule::SKOLEMIZE, this);
-  pc->registerChecker(PfRule::INSTANTIATE, this);
-  pc->registerChecker(PfRule::ALPHA_EQUIV, this);
+  pc->registerChecker(ProofRule::SKOLEM_INTRO, this);
+  pc->registerChecker(ProofRule::SKOLEMIZE, this);
+  pc->registerChecker(ProofRule::INSTANTIATE, this);
+  pc->registerChecker(ProofRule::ALPHA_EQUIV, this);
   // trusted rules
-  pc->registerTrustedChecker(PfRule::QUANTIFIERS_PREPROCESS, this, 3);
+  pc->registerTrustedChecker(ProofRule::QUANTIFIERS_PREPROCESS, this, 3);
 }
 
 Node QuantifiersProofRuleChecker::checkInternal(
-    PfRule id, const std::vector<Node>& children, const std::vector<Node>& args)
+    ProofRule id,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args)
 {
   NodeManager* nm = NodeManager::currentNM();
-  if (id == PfRule::SKOLEM_INTRO)
+  if (id == ProofRule::SKOLEM_INTRO)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
     Node t = SkolemManager::getUnpurifiedForm(args[0]);
     return args[0].eqNode(t);
   }
-  else if (id == PfRule::SKOLEMIZE)
+  else if (id == ProofRule::SKOLEMIZE)
   {
     Assert(children.size() == 1);
     Assert(args.empty());
@@ -75,7 +77,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
         vars.begin(), vars.end(), skolems.begin(), skolems.end());
     return res;
   }
-  else if (id == PfRule::INSTANTIATE)
+  else if (id == ProofRule::INSTANTIATE)
   {
     Assert(children.size() == 1);
     // note we may have more arguments than just the term vector
@@ -96,7 +98,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
         body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
     return inst;
   }
-  else if (id == PfRule::ALPHA_EQUIV)
+  else if (id == ProofRule::ALPHA_EQUIV)
   {
     Assert(children.empty());
     if (args[0].getKind() != kind::FORALL)
@@ -131,7 +133,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
         vars.begin(), vars.end(), newVars.begin(), newVars.end());
     return args[0].eqNode(renamedBody);
   }
-  else if (id == PfRule::QUANTIFIERS_PREPROCESS)
+  else if (id == ProofRule::QUANTIFIERS_PREPROCESS)
   {
     Assert(!args.empty());
     Assert(args[0].getType().isBoolean());

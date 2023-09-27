@@ -63,7 +63,15 @@ void InstStrategyPool::registerQuantifier(Node q)
     {
       if (p.getKind() == INST_POOL)
       {
-        d_userPools[q].push_back(p);
+        if (hasTupleSemantics(q, p) || hasProductSemantics(q, p))
+        {
+          d_userPools[q].push_back(p);
+        }
+        else
+        {
+          Warning() << "Cannot find semantics of pool " << p << " in " << q
+                    << std::endl;
+        }
       }
     }
   }
@@ -209,6 +217,7 @@ bool InstStrategyPool::process(Node q, Node p, uint64_t& addedLemmas)
   {
     return processTuple(q, p, addedLemmas);
   }
+  Assert(hasProductSemantics(q, p));
   // otherwise, process standard
   Instantiate* ie = d_qim.getInstantiate();
   TermTupleEnumeratorEnv ttec;

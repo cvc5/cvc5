@@ -223,7 +223,7 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
     transEq.push_back(eq);
     // ---------- ALPHA_EQUIV
     // ret = sret
-    cdp.addStep(eq, PfRule::ALPHA_EQUIV, {}, pfArgs);
+    cdp.addStep(eq, ProofRule::ALPHA_EQUIV, {}, pfArgs);
     // if not syntactically equal, maybe it can be transformed
     bool success = false;
     if (sret == q)
@@ -245,7 +245,7 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
                      MethodId::SB_DEFAULT,
                      MethodId::SBA_SEQUENTIAL,
                      MethodId::RW_EXT_REWRITE);
-        cdp.addStep(eq2, PfRule::MACRO_SR_PRED_INTRO, {}, pfArgs2);
+        cdp.addStep(eq2, ProofRule::MACRO_SR_PRED_INTRO, {}, pfArgs2);
         success = true;
       }
     }
@@ -255,7 +255,7 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
       if (transEq.size() > 1)
       {
         // TRANS of ALPHA_EQ and MACRO_SR_PRED_INTRO steps from above
-        cdp.addStep(lem, PfRule::TRANS, transEq, {});
+        cdp.addStep(lem, ProofRule::TRANS, transEq, {});
       }
       std::shared_ptr<ProofNode> pn = cdp.getProofFor(lem);
       Trace("alpha-eq") << "Proof is " << *pn.get() << std::endl;
