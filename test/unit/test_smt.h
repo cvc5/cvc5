@@ -104,8 +104,11 @@ class DummyOutputChannel : public theory::OutputChannel
 {
  public:
   DummyOutputChannel(StatisticsRegistry& sr,
-                TheoryEngine* engine,
-                const std::string& name) : theory::OutputChannel(sr, engine, name){}
+                     TheoryEngine* engine,
+                     const std::string& name)
+      : theory::OutputChannel(sr, engine, name)
+  {
+  }
   ~DummyOutputChannel() override {}
 
   void safePoint(Resource r) override {}
