@@ -2,6 +2,10 @@ This file contains a summary of important user-visible changes.
 
 **New Features**
 
+- CaDiCaL is now integrated via the IPASIR-UP interface as CDCL(T) SAT solver.
+  The CDCL(T) SAT solver can be configured via option `--sat-solver`. Currently,
+  MiniSat is still default.
+
 cvc5 1.0.9
 ==========
 

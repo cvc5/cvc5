@@ -1139,12 +1139,13 @@ void CoreSolver::processNEqc(Node eqc,
       unsigned rindex = 0;
       nfi.reverse();
       nfj.reverse();
-      if (processSimpleNEq(nfi, nfj, rindex, true, 0, pinfer, stype))
+      bool ret = processSimpleNEq(nfi, nfj, rindex, true, 0, pinfer, stype);
+      nfi.reverse();
+      nfj.reverse();
+      if (ret)
       {
         break;
       }
-      nfi.reverse();
-      nfj.reverse();
       if (d_im.hasProcessed())
       {
         break;

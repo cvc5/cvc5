@@ -965,6 +965,30 @@ void Smt2Printer::toStream(std::ostream& out,
           annot << " :no-pattern ";
           toStream(annot, nc[0], toDepth, nullptr);
         }
+        else if (nck == kind::INST_POOL || nck == kind::INST_ADD_TO_POOL
+                 || nck == kind::SKOLEM_ADD_TO_POOL)
+        {
+          needsPrintAnnot = true;
+          switch (nck)
+          {
+            case kind::INST_POOL: annot << " :pool"; break;
+            case kind::INST_ADD_TO_POOL: annot << " :inst-add-to-pool"; break;
+            case kind::SKOLEM_ADD_TO_POOL:
+              annot << " :skolem-add-to-pool";
+              break;
+            default: break;
+          }
+          annot << " (";
+          for (size_t i = 0, nchild = nc.getNumChildren(); i < nchild; i++)
+          {
+            if (i > 0)
+            {
+              annot << " ";
+            }
+            toStream(annot, nc[i], toDepth, nullptr);
+          }
+          annot << ")";
+        }
         else if (nck == kind::INST_ATTRIBUTE)
         {
           // notice that INST_ATTRIBUTES either have an "internal" form,
