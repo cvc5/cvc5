@@ -27,7 +27,7 @@ ProofNodeUpdaterCallback::ProofNodeUpdaterCallback() {}
 ProofNodeUpdaterCallback::~ProofNodeUpdaterCallback() {}
 
 bool ProofNodeUpdaterCallback::update(Node res,
-                                      PfRule id,
+                                      ProofRule id,
                                       const std::vector<Node>& children,
                                       const std::vector<Node>& args,
                                       CDProof* cdp,
@@ -43,7 +43,7 @@ bool ProofNodeUpdaterCallback::shouldUpdatePost(std::shared_ptr<ProofNode> pn,
 }
 
 bool ProofNodeUpdaterCallback::updatePost(Node res,
-                                          PfRule id,
+                                          ProofRule id,
                                           const std::vector<Node>& children,
                                           const std::vector<Node>& args,
                                           CDProof* cdp)
@@ -158,7 +158,7 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
       // allows us to properly track the assumptions in scope, which is
       // important for example to merge or to determine updates based on free
       // assumptions.
-      if (cur->getRule() == PfRule::SCOPE)
+      if (cur->getRule() == ProofRule::SCOPE)
       {
         const std::vector<Node>& args = cur->getArguments();
         fa.insert(fa.end(), args.begin(), args.end());
@@ -184,7 +184,7 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
       traversing.pop_back();
       visited[cur] = true;
       // finalize the node
-      if (cur->getRule() == PfRule::SCOPE)
+      if (cur->getRule() == ProofRule::SCOPE)
       {
         const std::vector<Node>& args = cur->getArguments();
         Assert(fa.size() >= args.size());
@@ -201,7 +201,7 @@ bool ProofNodeUpdater::updateProofNode(std::shared_ptr<ProofNode> cur,
                                        bool& continueUpdate,
                                        bool preVisit)
 {
-  PfRule id = cur->getRule();
+  ProofRule id = cur->getRule();
   // use CDProof to open a scope for which the callback updates
   CDProof cpf(d_env, nullptr, "ProofNodeUpdater::CDProof", d_autoSym);
   const std::vector<std::shared_ptr<ProofNode>>& cc = cur->getChildren();

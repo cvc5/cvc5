@@ -49,7 +49,7 @@ ProofEqEngine::ProofEqEngine(Env& env, EqualityEngine& ee)
 }
 
 bool ProofEqEngine::assertFact(Node lit,
-                               PfRule id,
+                               ProofRule id,
                                const std::vector<Node>& exp,
                                const std::vector<Node>& args)
 {
@@ -82,7 +82,7 @@ bool ProofEqEngine::assertFact(Node lit,
 }
 
 bool ProofEqEngine::assertFact(Node lit,
-                               PfRule id,
+                               ProofRule id,
                                Node exp,
                                const std::vector<Node>& args)
 {
@@ -183,7 +183,7 @@ TrustNode ProofEqEngine::assertConflict(Node lit)
     std::vector<Node> exp;
     exp.push_back(lit);
     std::vector<Node> args;
-    if (!d_proof.addStep(d_false, PfRule::MACRO_SR_PRED_ELIM, exp, args))
+    if (!d_proof.addStep(d_false, ProofRule::MACRO_SR_PRED_ELIM, exp, args))
     {
       Assert(false) << "pfee::assertConflict: failed conflict step";
       return TrustNode::null();
@@ -193,7 +193,7 @@ TrustNode ProofEqEngine::assertConflict(Node lit)
       d_false, assumps, TrustNodeKind::CONFLICT, &d_proof);
 }
 
-TrustNode ProofEqEngine::assertConflict(PfRule id,
+TrustNode ProofEqEngine::assertConflict(ProofRule id,
                                         const std::vector<Node>& exp,
                                         const std::vector<Node>& args)
 {
@@ -213,7 +213,7 @@ TrustNode ProofEqEngine::assertConflict(const std::vector<Node>& exp,
 }
 
 TrustNode ProofEqEngine::assertLemma(Node conc,
-                                     PfRule id,
+                                     ProofRule id,
                                      const std::vector<Node>& exp,
                                      const std::vector<Node>& noExplain,
                                      const std::vector<Node>& args)

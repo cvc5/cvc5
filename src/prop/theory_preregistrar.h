@@ -61,11 +61,9 @@ class TheoryPreregistrar : protected EnvObj
    */
   void notifySatLiteral(TNode n);
   /**
-   * Callback to notify that the SAT solver backtracked by the given number
-   * of levels.
-   * @param nlevels The number of levels the SAT solver backtracked.
+   * Callback to notify that the SAT solver backtracked.
    */
-  void notifyBacktrack(uint32_t nlevels);
+  void notifyBacktrack();
   /**
    * Notify that n is asserted from SAT solver, return true if we should
    * assert n to the theory engine.

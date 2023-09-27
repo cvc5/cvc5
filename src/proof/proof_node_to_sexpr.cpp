@@ -74,8 +74,8 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn, bool printConclusion)
       traversing.pop_back();
       std::vector<Node> children;
       // add proof rule
-      PfRule r = cur->getRule();
-      children.push_back(getOrMkPfRuleVariable(r));
+      ProofRule r = cur->getRule();
+      children.push_back(getOrMkProofRuleVariable(r));
       if (printConclusion)
       {
         children.push_back(d_conclusionMarker);
@@ -115,9 +115,9 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn, bool printConclusion)
   return d_pnMap[pn];
 }
 
-Node ProofNodeToSExpr::getOrMkPfRuleVariable(PfRule r)
+Node ProofNodeToSExpr::getOrMkProofRuleVariable(ProofRule r)
 {
-  std::map<PfRule, Node>::iterator it = d_pfrMap.find(r);
+  std::map<ProofRule, Node>::iterator it = d_pfrMap.find(r);
   if (it != d_pfrMap.end())
   {
     return it->second;
@@ -218,14 +218,14 @@ Node ProofNodeToSExpr::getOrMkInferenceIdVariable(TNode n)
 
 Node ProofNodeToSExpr::getOrMkDslRewriteVariable(TNode n)
 {
-  rewriter::DslPfRule rid;
-  if (!rewriter::getDslPfRule(n, rid))
+  rewriter::DslProofRule rid;
+  if (!rewriter::getDslProofRule(n, rid))
   {
     // just use self if we failed to get the node, throw a debug failure
     Assert(false) << "Expected inference id node, got " << n;
     return n;
   }
-  std::map<rewriter::DslPfRule, Node>::iterator it = d_dslrMap.find(rid);
+  std::map<rewriter::DslProofRule, Node>::iterator it = d_dslrMap.find(rid);
   if (it != d_dslrMap.end())
   {
     return it->second;
@@ -270,10 +270,10 @@ Node ProofNodeToSExpr::getArgument(Node arg, ArgFormat f)
 ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
     const ProofNode* pn, size_t i)
 {
-  PfRule r = pn->getRule();
+  ProofRule r = pn->getRule();
   switch (r)
   {
-    case PfRule::CONG:
+    case ProofRule::CONG:
     {
       if (i == 0)
       {
@@ -288,35 +288,35 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
       }
     }
     break;
-    case PfRule::SUBS:
-    case PfRule::REWRITE:
-    case PfRule::MACRO_SR_EQ_INTRO:
-    case PfRule::MACRO_SR_PRED_INTRO:
-    case PfRule::MACRO_SR_PRED_TRANSFORM:
+    case ProofRule::SUBS:
+    case ProofRule::REWRITE:
+    case ProofRule::MACRO_SR_EQ_INTRO:
+    case ProofRule::MACRO_SR_PRED_INTRO:
+    case ProofRule::MACRO_SR_PRED_TRANSFORM:
       if (i > 0)
       {
         return ArgFormat::METHOD_ID;
       }
       break;
-    case PfRule::MACRO_SR_PRED_ELIM: return ArgFormat::METHOD_ID; break;
-    case PfRule::THEORY_LEMMA:
-    case PfRule::THEORY_REWRITE:
+    case ProofRule::MACRO_SR_PRED_ELIM: return ArgFormat::METHOD_ID; break;
+    case ProofRule::THEORY_LEMMA:
+    case ProofRule::THEORY_REWRITE:
       if (i == 1)
       {
         return ArgFormat::THEORY_ID;
       }
-      else if (r == PfRule::THEORY_REWRITE && i == 2)
+      else if (r == ProofRule::THEORY_REWRITE && i == 2)
       {
         return ArgFormat::METHOD_ID;
       }
       break;
-    case PfRule::DSL_REWRITE:
+    case ProofRule::DSL_REWRITE:
       if (i == 0)
       {
         return ArgFormat::DSL_REWRITE_ID;
       }
       break;
-    case PfRule::INSTANTIATE:
+    case ProofRule::INSTANTIATE:
     {
       Assert(!pn->getChildren().empty());
       Node q = pn->getChildren()[0]->getResult();
@@ -327,7 +327,7 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
       }
     }
     break;
-    case PfRule::ANNOTATION:
+    case ProofRule::ANNOTATION:
       if (i == 0)
       {
         return ArgFormat::INFERENCE_ID;

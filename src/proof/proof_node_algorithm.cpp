@@ -72,8 +72,8 @@ void getFreeAssumptionsMap(
     const std::vector<Node>& cargs = cur->getArguments();
     if (it == visited.end())
     {
-      PfRule id = cur->getRule();
-      if (id == PfRule::ASSUME)
+      ProofRule id = cur->getRule();
+      if (id == ProofRule::ASSUME)
       {
         visited[cur.get()] = true;
         Assert(cargs.size() == 1);
@@ -85,7 +85,7 @@ void getFreeAssumptionsMap(
       }
       else
       {
-        if (id == PfRule::SCOPE)
+        if (id == ProofRule::SCOPE)
         {
           // mark that its arguments are bound in the current scope
           for (const Node& a : cargs)
@@ -118,7 +118,7 @@ void getFreeAssumptionsMap(
       Assert(!traversing.empty());
       traversing.pop_back();
       visited[cur.get()] = true;
-      if (cur->getRule() == PfRule::SCOPE)
+      if (cur->getRule() == ProofRule::SCOPE)
       {
         // unbind its assumptions
         for (const Node& a : cargs)
@@ -163,8 +163,8 @@ bool containsAssumption(const ProofNode* pn,
     it = visited.find(cur);
     if (it == visited.end())
     {
-      PfRule r = cur->getRule();
-      if (r == PfRule::ASSUME)
+      ProofRule r = cur->getRule();
+      if (r == ProofRule::ASSUME)
       {
         visited[cur] = true;
         caMap[cur] = true;

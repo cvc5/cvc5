@@ -30,8 +30,11 @@
 namespace cvc5::internal {
 namespace smt {
 
-PreprocessProofGenerator::PreprocessProofGenerator(
-    Env& env, context::Context* c, std::string name, PfRule ra, PfRule rpp)
+PreprocessProofGenerator::PreprocessProofGenerator(Env& env,
+                                                   context::Context* c,
+                                                   std::string name,
+                                                   ProofRule ra,
+                                                   ProofRule rpp)
     : EnvObj(env),
       d_ctx(c ? c : &d_context),
       d_src(d_ctx),
@@ -183,7 +186,7 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
           {
             Node idr = mkMethodId(MethodId::RW_EXT_REWRITE);
             Trace("smt-pppg-debug") << "...add simple rewrite" << std::endl;
-            cdp.addStep(proven, PfRule::REWRITE, {}, {proven[0], idr});
+            cdp.addStep(proven, ProofRule::REWRITE, {}, {proven[0], idr});
             proofStepProcessed = true;
           }
         }
@@ -222,11 +225,11 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
     {
       Trace("smt-pppg") << "...apply trans to get " << fullRewrite << std::endl;
       std::reverse(transChildren.begin(), transChildren.end());
-      cdp.addStep(fullRewrite, PfRule::TRANS, transChildren, {});
+      cdp.addStep(fullRewrite, ProofRule::TRANS, transChildren, {});
     }
     Trace("smt-pppg") << "...eq_resolve to prove" << std::endl;
     // prove f
-    cdp.addStep(f, PfRule::EQ_RESOLVE, {curr, fullRewrite}, {});
+    cdp.addStep(f, ProofRule::EQ_RESOLVE, {curr, fullRewrite}, {});
     Trace("smt-pppg") << "...finished" << std::endl;
   }
 
@@ -249,7 +252,7 @@ LazyCDProof* PreprocessProofGenerator::allocateHelperProof()
 
 std::string PreprocessProofGenerator::identify() const { return d_name; }
 
-void PreprocessProofGenerator::checkEagerPedantic(PfRule r)
+void PreprocessProofGenerator::checkEagerPedantic(ProofRule r)
 {
   if (options().proof.proofCheck == options::ProofCheckMode::EAGER)
   {

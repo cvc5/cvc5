@@ -42,7 +42,7 @@ bool TheoryProofStepBuffer::applyEqIntro(Node src,
   bool added;
   Node expected = src.eqNode(tgt);
   Node res = tryStep(added,
-                     PfRule::MACRO_SR_EQ_INTRO,
+                     ProofRule::MACRO_SR_EQ_INTRO,
                      exp,
                      args,
                      useExpected ? expected : Node::null());
@@ -85,7 +85,7 @@ bool TheoryProofStepBuffer::applyPredTransform(Node src,
   children.insert(children.end(), exp.begin(), exp.end());
   args.push_back(tgt);
   addMethodIds(args, ids, ida, idr);
-  Node res = tryStep(PfRule::MACRO_SR_PRED_TRANSFORM,
+  Node res = tryStep(ProofRule::MACRO_SR_PRED_TRANSFORM,
                      children,
                      args,
                      useExpected ? tgt : Node::null());
@@ -109,8 +109,10 @@ bool TheoryProofStepBuffer::applyPredIntro(Node tgt,
   std::vector<Node> args;
   args.push_back(tgt);
   addMethodIds(args, ids, ida, idr);
-  Node res = tryStep(
-      PfRule::MACRO_SR_PRED_INTRO, exp, args, useExpected ? tgt : Node::null());
+  Node res = tryStep(ProofRule::MACRO_SR_PRED_INTRO,
+                     exp,
+                     args,
+                     useExpected ? tgt : Node::null());
   if (res.isNull())
   {
     return false;
@@ -131,7 +133,7 @@ Node TheoryProofStepBuffer::applyPredElim(Node src,
   std::vector<Node> args;
   addMethodIds(args, ids, ida, idr);
   bool added;
-  Node srcRew = tryStep(added, PfRule::MACRO_SR_PRED_ELIM, children, args);
+  Node srcRew = tryStep(added, ProofRule::MACRO_SR_PRED_ELIM, children, args);
   if (d_autoSym && added && CDProof::isSame(src, srcRew))
   {
     popStep();
@@ -158,7 +160,7 @@ Node TheoryProofStepBuffer::factorReorderElimDoubleNeg(Node n)
     {
       hasDoubleNeg = true;
       childrenEqs.push_back(children[i].eqNode(children[i][0][0]));
-      addStep(PfRule::MACRO_SR_PRED_INTRO,
+      addStep(ProofRule::MACRO_SR_PRED_INTRO,
               {},
               {childrenEqs.back()},
               childrenEqs.back());
@@ -168,7 +170,7 @@ Node TheoryProofStepBuffer::factorReorderElimDoubleNeg(Node n)
     else
     {
       childrenEqs.push_back(children[i].eqNode(children[i]));
-      addStep(PfRule::REFL, {}, {children[i]}, childrenEqs.back());
+      addStep(ProofRule::REFL, {}, {children[i]}, childrenEqs.back());
     }
   }
   if (hasDoubleNeg)
@@ -194,12 +196,12 @@ Node TheoryProofStepBuffer::factorReorderElimDoubleNeg(Node n)
     // pre-rewrite in the Boolean rewriter, will always hold under the
     // standard rewriter.
     Node congEq = oldn.eqNode(n);
-    addStep(PfRule::CONG,
+    addStep(ProofRule::CONG,
             childrenEqs,
             {ProofRuleChecker::mkKindNode(kind::OR)},
             congEq);
     // add an equality resolution step to derive normalize clause
-    addStep(PfRule::EQ_RESOLVE, {oldn, congEq}, {}, n);
+    addStep(ProofRule::EQ_RESOLVE, {oldn, congEq}, {}, n);
   }
   children.clear();
   // remove duplicates while keeping the order of children
@@ -222,7 +224,7 @@ Node TheoryProofStepBuffer::factorReorderElimDoubleNeg(Node n)
                         : children.size() == 1 ? children[0]
                                                : nm->mkNode(kind::OR, children);
     // don't overwrite what already has a proof step to avoid cycles
-    addStep(PfRule::FACTORING, {n}, {}, factored);
+    addStep(ProofRule::FACTORING, {n}, {}, factored);
     n = factored;
   }
   // nothing to order
@@ -237,7 +239,7 @@ Node TheoryProofStepBuffer::factorReorderElimDoubleNeg(Node n)
   if (ordered != n)
   {
     // don't overwrite what already has a proof step to avoid cycles
-    addStep(PfRule::REORDERING, {n}, {ordered}, ordered);
+    addStep(ProofRule::REORDERING, {n}, {ordered}, ordered);
   }
   return ordered;
 }
@@ -247,7 +249,7 @@ Node TheoryProofStepBuffer::elimDoubleNegLit(Node n)
   // eliminate double neg
   if (n.getKind() == kind::NOT && n[0].getKind() == kind::NOT)
   {
-    addStep(PfRule::NOT_NOT_ELIM, {n}, {}, n[0][0]);
+    addStep(ProofRule::NOT_NOT_ELIM, {n}, {}, n[0][0]);
     return n[0][0];
   }
   return n;

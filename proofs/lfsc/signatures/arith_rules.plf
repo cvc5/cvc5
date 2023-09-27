@@ -1,6 +1,6 @@
 ; depends: arith_programs.plf
 
-; Computes the conclusion of the PfRule::ARITH_SUM_UB rule.
+; Computes the conclusion of the ProofRule::ARITH_SUM_UB rule.
 ; Note that f2 is a a.+ application in n-ary form.
 (function sc_arith_sum_ub ((f1 term) (f2 term)) term
   (let r1 (sc_arith_get_rel f1)
@@ -20,7 +20,7 @@
   (! r (^ (sc_arith_sum_ub f1 f2) res)
     (holds res))))))))
 
-; Computes the conclusion of the PfRule::ARITH_MULT_POS rule.
+; Computes the conclusion of the ProofRule::ARITH_MULT_POS rule.
 (function sc_arith_mult_pos ((m term) (f term)) term
   (let r (sc_arith_get_rel f)
   (let lhs (sc_arith_get_lhs f)
@@ -35,7 +35,7 @@
   (! r (^ (sc_arith_mult_pos m f) res)
     (holds res))))))
 
-; Computes the conclusion of the PfRule::ARITH_MULT_NEG rule.
+; Computes the conclusion of the ProofRule::ARITH_MULT_NEG rule.
 (function sc_arith_mult_neg ((m term) (f term)) term
   (let r (sc_arith_get_rel f)
   (let lhs (sc_arith_get_lhs f)
@@ -50,7 +50,7 @@
   (! r (^ (sc_arith_mult_neg m f) res)
     (holds res))))))
 
-; Computes the conclusion of the PfRule::ARITH_TRICHOTOMY rule.
+; Computes the conclusion of the ProofRule::ARITH_TRICHOTOMY rule.
 (function sc_arith_trichotomy ((f1 term) (f2 term)) term
   (let r1 (sc_arith_get_rel_neg f1)
   (let a1 (sc_arith_get_atom f1)

@@ -1122,25 +1122,25 @@ TrustNode Constraint::split()
     auto nm = NodeManager::currentNM();
     auto nLeqPf = d_database->d_pnm->mkAssume(leqNode.negate());
     auto gtPf = d_database->d_pnm->mkNode(
-        PfRule::MACRO_SR_PRED_TRANSFORM, {nLeqPf}, {gtNode});
+        ProofRule::MACRO_SR_PRED_TRANSFORM, {nLeqPf}, {gtNode});
     auto nGeqPf = d_database->d_pnm->mkAssume(geqNode.negate());
     auto ltPf = d_database->d_pnm->mkNode(
-        PfRule::MACRO_SR_PRED_TRANSFORM, {nGeqPf}, {ltNode});
+        ProofRule::MACRO_SR_PRED_TRANSFORM, {nGeqPf}, {ltNode});
     auto sumPf =
-        d_database->d_pnm->mkNode(PfRule::MACRO_ARITH_SCALE_SUM_UB,
+        d_database->d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB,
                                   {gtPf, ltPf},
                                   {nm->mkConstRealOrInt(type, Rational(-1)),
                                    nm->mkConstRealOrInt(type, Rational(1))});
     auto botPf = d_database->d_pnm->mkNode(
-        PfRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
+        ProofRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
     std::vector<Node> a = {leqNode.negate(), geqNode.negate()};
     auto notAndNotPf = d_database->d_pnm->mkScope(botPf, a);
     // No need to ensure that the expected node aggrees with `a` because we are
     // not providing an expected node.
     auto orNotNotPf =
-        d_database->d_pnm->mkNode(PfRule::NOT_AND, {notAndNotPf}, {});
+        d_database->d_pnm->mkNode(ProofRule::NOT_AND, {notAndNotPf}, {});
     auto orPf = d_database->d_pnm->mkNode(
-        PfRule::MACRO_SR_PRED_TRANSFORM, {orNotNotPf}, {lemma});
+        ProofRule::MACRO_SR_PRED_TRANSFORM, {orNotNotPf}, {lemma});
     trustedLemma = d_database->d_pfGen->mkTrustNode(lemma, orPf);
   }
   else
@@ -1567,7 +1567,7 @@ TrustNode Constraint::externalExplainForPropagation(TNode lit) const
     if (getProofLiteral() != lit)
     {
       pfFromAssumptions = d_database->d_pnm->mkNode(
-          PfRule::MACRO_SR_PRED_TRANSFORM, {pfFromAssumptions}, {lit});
+          ProofRule::MACRO_SR_PRED_TRANSFORM, {pfFromAssumptions}, {lit});
     }
     auto pf = d_database->d_pnm->mkScope(pfFromAssumptions, assumptions);
     return d_database->d_pfGen->mkTrustedPropagation(
@@ -1591,7 +1591,7 @@ TrustNode Constraint::externalExplainConflict() const
   if (d_database->isProofEnabled())
   {
     auto pfNot2 = d_database->d_pnm->mkNode(
-        PfRule::MACRO_SR_PRED_TRANSFORM, {pf1}, {not2});
+        ProofRule::MACRO_SR_PRED_TRANSFORM, {pf1}, {not2});
     std::vector<Node> lits;
     if (n.getKind() == Kind::AND)
     {
@@ -1613,8 +1613,8 @@ TrustNode Constraint::externalExplainConflict() const
                                     getNegation()->getProofLiteral()};
     auto bot =
         not2.getKind() == Kind::NOT
-            ? d_database->d_pnm->mkNode(PfRule::CONTRA, {pf2, pfNot2}, {})
-            : d_database->d_pnm->mkNode(PfRule::CONTRA, {pfNot2, pf2}, {});
+            ? d_database->d_pnm->mkNode(ProofRule::CONTRA, {pf2, pfNot2}, {})
+            : d_database->d_pnm->mkNode(ProofRule::CONTRA, {pfNot2, pf2}, {});
     if (TraceIsOn("arith::pf::tree"))
     {
       Trace("arith::pf::tree") << *this << std::endl;
@@ -1718,7 +1718,7 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
       if (getWitness() != getProofLiteral())
       {
         pf = pnm->mkNode(
-            PfRule::MACRO_SR_PRED_TRANSFORM, {pf}, {getProofLiteral()});
+            ProofRule::MACRO_SR_PRED_TRANSFORM, {pf}, {getProofLiteral()});
       }
     }
   }
@@ -1730,7 +1730,7 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
     {
       std::shared_ptr<ProofNode> a = pnm->mkAssume(getLiteral());
       pf = pnm->mkNode(
-          PfRule::MACRO_SR_PRED_TRANSFORM, {a}, {getProofLiteral()});
+          ProofRule::MACRO_SR_PRED_TRANSFORM, {a}, {getProofLiteral()});
     }
     Assert(lit.getKind() != kind::AND);
     nb << lit;
@@ -1792,12 +1792,15 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
           }
 
           // Apply the scaled-sum rule.
-          std::shared_ptr<ProofNode> sumPf = pnm->mkNode(
-              PfRule::MACRO_ARITH_SCALE_SUM_UB, farkasChildren, farkasCoeffs);
+          std::shared_ptr<ProofNode> sumPf =
+              pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB,
+                          farkasChildren,
+                          farkasCoeffs);
 
           // Provable rewrite the result
-          auto botPf = pnm->mkNode(
-              PfRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
+          auto botPf = pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM,
+                                   {sumPf},
+                                   {nm->mkConst(false)});
 
           // Scope out the negated constraint, yielding a proof of the
           // constraint.
@@ -1808,7 +1811,7 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
           // because we are not providing an expected node.
           //
           // Prove that this is the literal (may need to clean a double-not)
-          pf = pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
+          pf = pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM,
                            {maybeDoubleNotPf},
                            {getProofLiteral()});
 
@@ -1819,12 +1822,12 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
           if (isUpperBound())
           {
             pf = pnm->mkNode(
-                PfRule::INT_TIGHT_UB, children, {}, getProofLiteral());
+                ProofRule::INT_TIGHT_UB, children, {}, getProofLiteral());
           }
           else if (isLowerBound())
           {
             pf = pnm->mkNode(
-                PfRule::INT_TIGHT_LB, children, {}, getProofLiteral());
+                ProofRule::INT_TIGHT_LB, children, {}, getProofLiteral());
           }
           else
           {
@@ -1836,7 +1839,7 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
         {
           Node t =
               builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_ARITH);
-          pf = pnm->mkNode(PfRule::THEORY_INFERENCE,
+          pf = pnm->mkNode(ProofRule::THEORY_INFERENCE,
                            children,
                            {getProofLiteral(), t},
                            getProofLiteral());
@@ -1844,7 +1847,7 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
         }
         case ArithProofType::TrichotomyAP:
         {
-          pf = pnm->mkNode(PfRule::ARITH_TRICHOTOMY,
+          pf = pnm->mkNode(ProofRule::ARITH_TRICHOTOMY,
                            children,
                            {getProofLiteral()},
                            getProofLiteral());
@@ -2076,17 +2079,17 @@ void ConstraintDatabase::proveOr(std::vector<TrustNode>& out,
     auto nm = NodeManager::currentNM();
     Node alit = a->getNegation()->getProofLiteral();
     TypeNode type = alit[0].getType();
-    auto pf_neg_la = d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
+    auto pf_neg_la = d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM,
                                    {d_pnm->mkAssume(la.negate())},
                                    {alit});
     Node blit = b->getNegation()->getProofLiteral();
-    auto pf_neg_lb = d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
+    auto pf_neg_lb = d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM,
                                    {d_pnm->mkAssume(lb.negate())},
                                    {blit});
     int sndSign = negateSecond ? -1 : 1;
     auto bot_pf = d_pnm->mkNode(
-        PfRule::MACRO_SR_PRED_TRANSFORM,
-        {d_pnm->mkNode(PfRule::MACRO_ARITH_SCALE_SUM_UB,
+        ProofRule::MACRO_SR_PRED_TRANSFORM,
+        {d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB,
                        {pf_neg_la, pf_neg_lb},
                        {nm->mkConstRealOrInt(type, Rational(-1 * sndSign)),
                         nm->mkConstRealOrInt(type, Rational(sndSign))})},
@@ -2098,8 +2101,8 @@ void ConstraintDatabase::proveOr(std::vector<TrustNode>& out,
     // No need to ensure that the expected node aggrees with `as` because we
     // are not providing an expected node.
     auto pf = d_pnm->mkNode(
-        PfRule::MACRO_SR_PRED_TRANSFORM,
-        {d_pnm->mkNode(PfRule::NOT_AND, {d_pnm->mkScope(bot_pf, as)}, {})},
+        ProofRule::MACRO_SR_PRED_TRANSFORM,
+        {d_pnm->mkNode(ProofRule::NOT_AND, {d_pnm->mkScope(bot_pf, as)}, {})},
         {orN});
     out.push_back(d_pfGen->mkTrustNode(orN, pf));
   }

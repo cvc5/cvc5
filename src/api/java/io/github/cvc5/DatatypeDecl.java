@@ -62,7 +62,10 @@ public class DatatypeDecl extends AbstractPointer
 
   private native void addConstructor(long pointer, long declPointer);
 
-  /** Get the number of constructors (so far) for this Datatype declaration. */
+  /**
+   * Get the number of constructors (so far) for this Datatype declaration.
+   * @return The number of constructors.
+   */
   public int getNumConstructors()
   {
     return getNumConstructors(pointer);
@@ -71,6 +74,7 @@ public class DatatypeDecl extends AbstractPointer
   private native int getNumConstructors(long pointer);
 
   /**
+   * Determine if this datatype declaration is parametric.
    * @return True if this DatatypeDecl is parametric.
    *
    * @api.note This method is experimental and may change in future versions.
