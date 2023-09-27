@@ -37,16 +37,15 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_Proof_deletePointer(JNIEnv* env,
 /*
  * Class:     io_github_cvc5_Proof
  * Method:    getRule
- * Signature: (J)Ljava/lang/String;
+ * Signature: (J)I;
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_Proof_getRule(JNIEnv* env,
-                                                            jobject,
-                                                            jlong pointer)
+JNIEXPORT jint JNICALL Java_io_github_cvc5_Proof_getRule(JNIEnv* env,
+                                                         jobject,
+                                                         jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Proof* current = reinterpret_cast<Proof*>(pointer);
-  std::string rule = current->getRule();
-  return env->NewStringUTF(rule.c_str());
+  return static_cast<jint>(current->getRule());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 

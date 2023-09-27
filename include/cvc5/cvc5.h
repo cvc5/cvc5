@@ -3345,7 +3345,7 @@ class CVC5_EXPORT Proof
 
  public:
   /** @return The proof rule used by the root step of the proof. */
-  std::string getRule() const;
+  ProofRule getRule() const;
 
   /** @return The conclusion of the root step of the proof. */
   Term getResult() const;

@@ -4440,7 +4440,7 @@ cdef class Proof:
         """
             :return: The proof rule used by the root step of the proof.
         """
-        return self.cproof.getRule()
+        return ProofRule(<int> self.cproof.getRule())
     
     def getResult(self):
         """

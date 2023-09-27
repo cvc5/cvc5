@@ -45,13 +45,17 @@ public class Proof implements IPointer
     return pointer;
   }
 
-  /** @return The proof rule used by the root step of the proof. */
-  public String getRule()
+  /**
+   * @return The proof rule used by the root step of the proof.
+   * @throws CVC5ApiException
+   */
+  public ProofRule getRule() throws CVC5ApiException
   {
-    return getRule(pointer);
+    int value = getRule(pointer);
+    return ProofRule.fromInt(value);
   }
 
-  private native String getRule(long pointer);
+  private native int getRule(long pointer);
 
   /** @return The conclusion of the root step of the proof. */
   public Term getResult()

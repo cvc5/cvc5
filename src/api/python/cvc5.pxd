@@ -9,6 +9,7 @@ from libcpp.map cimport map
 from libcpp.pair cimport pair
 from cvc5kinds cimport Kind, SortKind
 from cvc5types cimport BlockModelsMode, LearnedLitType, ProofComponent, ProofFormat, RoundingMode, UnknownExplanation, FindSynthTarget
+from cvc5proofrules cimport ProofRule
 
 
 cdef extern from "<iostream>" namespace "std":
@@ -553,7 +554,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         size_t operator()(const Term & t) except +
 
     cdef cppclass Proof:
-        string getRule() except +
+        ProofRule getRule() except +
         Term getResult() except +
         vector[Proof] getChildren() except +
         vector[Term] getArguments() except +

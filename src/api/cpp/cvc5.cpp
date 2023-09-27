@@ -66,7 +66,6 @@
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "proof/proof_node.h"
-#include "proof/proof_rule.h"
 #include "proof/unsat_core.h"
 #include "smt/env.h"
 #include "smt/model.h"
@@ -5053,11 +5052,11 @@ Proof::~Proof()
   d_proof_node.reset();
 }
 
-std::string Proof::getRule() const
+ProofRule Proof::getRule() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return toString(this->getProofNode()->getRule());
+  return this->getProofNode()->getRule();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
