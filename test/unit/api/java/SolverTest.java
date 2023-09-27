@@ -1847,6 +1847,47 @@ class SolverTest
   }
 
   @Test
+  void getUnsatCoreLemmas1()
+  {
+    d_solver.assertFormula(d_solver.mkFalse());
+    assertTrue(d_solver.checkSat().isUnsat());
+    assertThrows(CVC5ApiException.class, () -> d_solver.getUnsatCoreLemmas());
+  }
+
+  @Test
+  void getUnsatCoreLemmas2()
+  {
+    d_solver.setOption("produce-unsat-cores", "true");
+    d_solver.setOption("unsat-cores-mode", "sat-proof");
+
+    Sort uSort = d_solver.mkUninterpretedSort("u");
+    Sort intSort = d_solver.getIntegerSort();
+    Sort boolSort = d_solver.getBooleanSort();
+    Sort uToIntSort = d_solver.mkFunctionSort(uSort, intSort);
+    Sort intPredSort = d_solver.mkFunctionSort(intSort, boolSort);
+
+    Term x = d_solver.mkConst(uSort, "x");
+    Term y = d_solver.mkConst(uSort, "y");
+    Term f = d_solver.mkConst(uToIntSort, "f");
+    Term p = d_solver.mkConst(intPredSort, "p");
+    Term zero = d_solver.mkInteger(0);
+    Term one = d_solver.mkInteger(1);
+    Term f_x = d_solver.mkTerm(Kind.APPLY_UF, f, x);
+    Term f_y = d_solver.mkTerm(Kind.APPLY_UF, f, y);
+    Term sum = d_solver.mkTerm(Kind.ADD, f_x, f_y);
+    Term p_0 = d_solver.mkTerm(Kind.APPLY_UF, p, zero);
+    Term p_f_y = d_solver.mkTerm(APPLY_UF, p, f_y);
+    d_solver.assertFormula(d_solver.mkTerm(Kind.GT, zero, f_x));
+    d_solver.assertFormula(d_solver.mkTerm(Kind.GT, zero, f_y));
+    d_solver.assertFormula(d_solver.mkTerm(Kind.GT, sum, one));
+    d_solver.assertFormula(p_0);
+    d_solver.assertFormula(p_f_y.notTerm());
+    assertTrue(d_solver.checkSat().isUnsat());
+
+    d_solver.getUnsatCoreLemmas();
+  }
+
+  @Test
   void getDifficulty()
   {
     d_solver.setOption("produce-difficulty", "true");
