@@ -20,8 +20,6 @@
 
 import static io.github.cvc5.Kind.*;
 
-import java.math.RoundingMode;
-
 import io.github.cvc5.*;
 
 public class FloatingPointArith
