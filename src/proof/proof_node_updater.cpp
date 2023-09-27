@@ -107,7 +107,7 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
   std::unordered_set<Node> cfaAllowed;
   cfaAllowed.insert(fa.begin(), fa.end());
   std::shared_ptr<ProofNode> pft = pf;
-  while (pft->getRule() == PfRule::SCOPE)
+  while (pft->getRule() == ProofRule::SCOPE)
   {
     const std::vector<Node>& args = pft->getArguments();
     cfaAllowed.insert(args.begin(), args.end());
