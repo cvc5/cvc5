@@ -55,7 +55,7 @@ class AlfPrintChannel
   {
   }
   /** Print trust step */
-  virtual void printTrustStep(PfRule r, TNode n, size_t i, TNode conc) {}
+  virtual void printTrustStep(ProofRule r, TNode n, size_t i, TNode conc) {}
 };
 
 /** Prints the proof to output stream d_out */
@@ -74,7 +74,7 @@ class AlfPrintChannelOut : public AlfPrintChannel
                  const std::vector<Node>& premises,
                  const std::vector<Node>& args,
                  bool isPop = false) override;
-  void printTrustStep(PfRule r, TNode n, size_t i, TNode conc) override;
+  void printTrustStep(ProofRule r, TNode n, size_t i, TNode conc) override;
 
   /**
    * Print node to stream in the expected format of ALF.
@@ -93,10 +93,10 @@ class AlfPrintChannelOut : public AlfPrintChannel
   /** term prefix */
   std::string d_termLetPrefix;
   /**
-   * The set of PfRule that we have output a warning about, i.e. the rules
+   * The set of ProofRule that we have output a warning about, i.e. the rules
    * associated with trusted steps.
    */
-  std::unordered_set<PfRule> d_warnedRules;
+  std::unordered_set<ProofRule> d_warnedRules;
 };
 
 /**
@@ -116,7 +116,7 @@ class AlfPrintChannelPre : public AlfPrintChannel
                  const std::vector<Node>& premises,
                  const std::vector<Node>& args,
                  bool isPop = false) override;
-  void printTrustStep(PfRule r, TNode n, size_t i, TNode conc) override;
+  void printTrustStep(ProofRule r, TNode n, size_t i, TNode conc) override;
 
   /** Get variables we encountered in printing */
   const std::unordered_set<TNode>& getVariables() const;

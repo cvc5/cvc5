@@ -102,7 +102,7 @@ void AlfPrintChannelOut::printStep(const std::string& rname,
   d_out << ")" << std::endl;
 }
 
-void AlfPrintChannelOut::printTrustStep(PfRule r, TNode n, size_t i, TNode nc)
+void AlfPrintChannelOut::printTrustStep(ProofRule r, TNode n, size_t i, TNode nc)
 {
   Assert(!nc.isNull());
   if (d_warnedRules.find(r) == d_warnedRules.end())
@@ -163,7 +163,7 @@ void AlfPrintChannelPre::printStep(const std::string& rname,
   }
 }
 
-void AlfPrintChannelPre::printTrustStep(PfRule r, TNode n, size_t i, TNode nc)
+void AlfPrintChannelPre::printTrustStep(ProofRule r, TNode n, size_t i, TNode nc)
 {
   Assert(!nc.isNull());
   processInternal(nc);
