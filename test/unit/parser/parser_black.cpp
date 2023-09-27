@@ -127,7 +127,7 @@ class TestParserBlack : public TestInternal
             {
               break;
             }
-            Trace("parser") << "Parsed command: " << (*cmd) << std::endl;
+            Trace("parser") << "Parsed command: " << cmd << std::endl;
             cmd.invoke(d_solver.get(), d_symman.get(), tmp);
           }
           std::cout << "\nBad input succeeded:\n" << badInput << std::endl;
