@@ -25,7 +25,6 @@
 #include "expr/node.h"
 #include "proof/clause_id.h"
 #include "proof/proof_node_manager.h"
-#include "prop/sat_proof_manager.h"
 #include "prop/sat_solver_types.h"
 #include "util/statistics_stats.h"
 
@@ -33,6 +32,7 @@ namespace cvc5::internal {
 
 namespace prop {
 
+class SatProofManager;
 class TheoryProxy;
 
 class SatSolver {
