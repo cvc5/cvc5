@@ -235,15 +235,23 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
           boundVars.push_back(v);
         }
       }
+      continueCombine = false;
       if (body.getNumChildren() == 2 && body[1].getKind() == FORALL)
       {
-        body = body[1];
-        continueCombine = true;
-        combineQuantifiers = true;
-      }
-      else
-      {
-        continueCombine = false;
+        QAttributes qa;
+        QuantAttributes::computeQuantAttributes(body[1], qa);
+        // should never combine a quantified formula with a pool or
+        // non-standard quantified formula here.
+        // note that we technically should check
+        // doOperation(body[1], COMPUTE_PRENEX, qa) here, although this
+        // is too restrictive, as sometimes nested patterns should just be
+        // applied to the top level.
+        if (qa.isStandard() && !qa.d_hasPool)
+        {
+          body = body[1];
+          continueCombine = true;
+          combineQuantifiers = true;
+        }
       }
     }
     while (continueCombine);

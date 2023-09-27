@@ -18,7 +18,7 @@
 #include "options/smt_options.h"
 #include "printer/smt2/smt2_printer.h"
 #include "proof/proof_checker.h"
-#include "proof/proof_rule.h"
+#include "cvc5/cvc5_proof_rule.h"
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_evaluator.h"
 #include "theory/arith/arith_rewriter.h"

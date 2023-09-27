@@ -157,7 +157,7 @@ void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
 }
 
 void TheoryInferenceManager::conflictExp(InferenceId id,
-                                         PfRule pfr,
+                                         ProofRule pfr,
                                          const std::vector<Node>& exp,
                                          const std::vector<Node>& args)
 {
@@ -170,7 +170,7 @@ void TheoryInferenceManager::conflictExp(InferenceId id,
   }
 }
 
-TrustNode TheoryInferenceManager::mkConflictExp(PfRule id,
+TrustNode TheoryInferenceManager::mkConflictExp(ProofRule id,
                                                 const std::vector<Node>& exp,
                                                 const std::vector<Node>& args)
 {
@@ -303,7 +303,7 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
 
 bool TheoryInferenceManager::lemmaExp(Node conc,
                                       InferenceId id,
-                                      PfRule pfr,
+                                      ProofRule pfr,
                                       const std::vector<Node>& exp,
                                       const std::vector<Node>& noExplain,
                                       const std::vector<Node>& args,
@@ -316,7 +316,7 @@ bool TheoryInferenceManager::lemmaExp(Node conc,
 }
 
 TrustNode TheoryInferenceManager::mkLemmaExp(Node conc,
-                                             PfRule id,
+                                             ProofRule id,
                                              const std::vector<Node>& exp,
                                              const std::vector<Node>& noExplain,
                                              const std::vector<Node>& args)
@@ -383,17 +383,17 @@ bool TheoryInferenceManager::assertInternalFact(TNode atom,
                                                 TNode exp)
 {
   return processInternalFact(
-      atom, pol, id, PfRule::UNKNOWN, {exp}, {}, nullptr);
+      atom, pol, id, ProofRule::UNKNOWN, {exp}, {}, nullptr);
 }
 
 bool TheoryInferenceManager::assertInternalFact(TNode atom,
                                                 bool pol,
                                                 InferenceId id,
-                                                PfRule pfr,
+                                                ProofRule pfr,
                                                 const std::vector<Node>& exp,
                                                 const std::vector<Node>& args)
 {
-  Assert(pfr != PfRule::UNKNOWN);
+  Assert(pfr != ProofRule::UNKNOWN);
   return processInternalFact(atom, pol, id, pfr, exp, args, nullptr);
 }
 
@@ -403,13 +403,13 @@ bool TheoryInferenceManager::assertInternalFact(TNode atom,
                                                 const std::vector<Node>& exp,
                                                 ProofGenerator* pg)
 {
-  return processInternalFact(atom, pol, id, PfRule::ASSUME, exp, {}, pg);
+  return processInternalFact(atom, pol, id, ProofRule::ASSUME, exp, {}, pg);
 }
 
 bool TheoryInferenceManager::processInternalFact(TNode atom,
                                                  bool pol,
                                                  InferenceId iid,
-                                                 PfRule id,
+                                                 ProofRule id,
                                                  const std::vector<Node>& exp,
                                                  const std::vector<Node>& args,
                                                  ProofGenerator* pg)
@@ -492,7 +492,7 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
   }
   else
   {
-    Assert(id != PfRule::UNKNOWN);
+    Assert(id != ProofRule::UNKNOWN);
     Trace("infer-manager") << "...assert with proofs..." << std::endl;
     // Note that we reconstruct the original literal lit here, since both the
     // original literal is needed for bookkeeping proofs. It is possible to
@@ -595,7 +595,7 @@ TrustNode TheoryInferenceManager::annotateId(const TrustNode& trn,
     Node tidn =
         builtin::BuiltinProofRuleChecker::mkTheoryIdNode(d_theory.getId());
     trna = d_defaultPg->mkTrustNode(
-        trn.getNode(), PfRule::THEORY_LEMMA, {}, {lemma, tidn}, isConflict);
+        trn.getNode(), ProofRule::THEORY_LEMMA, {}, {lemma, tidn}, isConflict);
   }
   d_iipa->setAnnotation(lemma, id);
   return d_apg->transform(trna, d_iipa.get());

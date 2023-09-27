@@ -377,7 +377,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
             // has finished post-rewriting above
             tcpg->addRewriteStep(rewriteStackTop.d_node,
                                  cached,
-                                 PfRule::TRUST_REWRITE,
+                                 ProofRule::TRUST_REWRITE,
                                  {},
                                  {eq},
                                  false);
@@ -466,7 +466,7 @@ RewriteResponse Rewriter::processTrustRewriteResponse(
                                   : MethodId::RW_REWRITE_THEORY_POST);
       tcpg->addRewriteStep(proven[0],
                            proven[1],
-                           PfRule::THEORY_REWRITE,
+                           ProofRule::THEORY_REWRITE,
                            {},
                            {proven, tidn, rid},
                            isPre);

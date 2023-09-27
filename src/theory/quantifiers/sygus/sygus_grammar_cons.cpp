@@ -14,7 +14,7 @@
  * grammars that encode syntactic restrictions for SyGuS.
  */
 
-#include "theory/quantifiers/sygus/sygus_grammar_cons_new.h"
+#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 
 #include <sstream>
 

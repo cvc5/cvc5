@@ -116,16 +116,18 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
         if (conc.getKind() == EQUAL)
         {
           // normal case where we conclude an equality
-          cdp->addStep(conc, PfRule::DT_UNIF, {exp}, {narg});
+          cdp->addStep(conc, ProofRule::DT_UNIF, {exp}, {narg});
         }
         else
         {
           // must use true or false elim to prove the final
-          cdp->addStep(unifConc, PfRule::DT_UNIF, {exp}, {narg});
+          cdp->addStep(unifConc, ProofRule::DT_UNIF, {exp}, {narg});
           // may use symmetry
           Node eq = concAtom.eqNode(nm->mkConst(concPol));
-          cdp->addStep(
-              conc, concPol ? PfRule::TRUE_ELIM : PfRule::FALSE_ELIM, {eq}, {});
+          cdp->addStep(conc,
+                       concPol ? ProofRule::TRUE_ELIM : ProofRule::FALSE_ELIM,
+                       {eq},
+                       {});
         }
         success = true;
       }
@@ -142,8 +144,8 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
           Node t = exp[0];
           Node nn = nm->mkConstInt(Rational(n));
           Node eq = exp.eqNode(conc);
-          cdp->addStep(eq, PfRule::DT_INST, {}, {t, nn});
-          cdp->addStep(conc, PfRule::EQ_RESOLVE, {exp, eq}, {});
+          cdp->addStep(eq, ProofRule::DT_INST, {}, {t, nn});
+          cdp->addStep(conc, ProofRule::EQ_RESOLVE, {exp, eq}, {});
           success = true;
         }
       }
@@ -153,7 +155,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
     {
       Assert(expv.empty());
       Node t = conc.getKind() == OR ? conc[0][0] : conc[0];
-      cdp->addStep(conc, PfRule::DT_SPLIT, {}, {t});
+      cdp->addStep(conc, ProofRule::DT_SPLIT, {}, {t});
       success = true;
     }
     break;
@@ -187,14 +189,14 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
         // s(exp[0]) = r
         Node asn = ProofRuleChecker::mkKindNode(APPLY_SELECTOR);
         Node seq = sl.eqNode(sr);
-        cdp->addStep(seq, PfRule::CONG, {exp}, {asn, sop});
+        cdp->addStep(seq, ProofRule::CONG, {exp}, {asn, sop});
         Node sceq = sr.eqNode(concEq[1]);
-        cdp->addStep(sceq, PfRule::DT_COLLAPSE, {}, {sr});
-        cdp->addStep(sl.eqNode(concEq[1]), PfRule::TRANS, {seq, sceq}, {});
+        cdp->addStep(sceq, ProofRule::DT_COLLAPSE, {}, {sr});
+        cdp->addStep(sl.eqNode(concEq[1]), ProofRule::TRANS, {seq, sceq}, {});
         if (conc.getKind() != EQUAL)
         {
-          PfRule eid =
-              conc.getKind() == NOT ? PfRule::FALSE_ELIM : PfRule::TRUE_ELIM;
+          ProofRule eid = conc.getKind() == NOT ? ProofRule::FALSE_ELIM
+                                                : ProofRule::TRUE_ELIM;
           cdp->addStep(conc, eid, {concEq}, {});
         }
         success = true;
@@ -203,7 +205,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
     break;
     case InferenceId::DATATYPES_CLASH_CONFLICT:
     {
-      cdp->addStep(conc, PfRule::MACRO_SR_PRED_ELIM, {exp}, {});
+      cdp->addStep(conc, ProofRule::MACRO_SR_PRED_ELIM, {exp}, {});
       success = true;
     }
     break;
@@ -211,7 +213,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
     {
       // rewrites to false under substitution
       Node fn = nm->mkConst(false);
-      cdp->addStep(fn, PfRule::MACRO_SR_PRED_ELIM, expv, {});
+      cdp->addStep(fn, ProofRule::MACRO_SR_PRED_ELIM, expv, {});
       success = true;
     }
     break;
@@ -235,7 +237,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
             targs.push_back(expv[2]);
           }
           cdp->addStep(
-              tester1c, PfRule::MACRO_SR_PRED_TRANSFORM, targs, {tester1c});
+              tester1c, ProofRule::MACRO_SR_PRED_TRANSFORM, targs, {tester1c});
         }
         Node fn = nm->mkConst(false);
         // if pol is true, it is a conflict is-C1(x) ^ is-C2(x)
@@ -247,7 +249,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
         // ------------------- DT_CLASH
         // false
         cdp->addStep(fn,
-                     pol ? PfRule::DT_CLASH : PfRule::CONTRA,
+                     pol ? ProofRule::DT_CLASH : ProofRule::CONTRA,
                      {tester1, tester1c},
                      {});
         success = true;
@@ -256,7 +258,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
     break;
     case InferenceId::DATATYPES_PURIFY:
     {
-      cdp->addStep(conc, PfRule::MACRO_SR_PRED_INTRO, {}, {conc});
+      cdp->addStep(conc, ProofRule::MACRO_SR_PRED_INTRO, {}, {conc});
       success = true;
     }
     break;
@@ -275,7 +277,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
     // failed to reconstruct, add trust
     Trace("dt-ipc") << "...failed " << infer << std::endl;
     Node t = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_DATATYPES);
-    cdp->addStep(conc, PfRule::THEORY_INFERENCE, expv, {conc, t});
+    cdp->addStep(conc, ProofRule::THEORY_INFERENCE, expv, {conc, t});
   }
   else
   {

@@ -125,7 +125,7 @@ void Assertions::addFormula(TNode n,
       // A define-fun is an assumption in the overall proof, thus
       // we justify the substitution with ASSUME here.
       d_env.getTopLevelSubstitutions().addSubstitution(
-          n[0], n[1], PfRule::ASSUME, {}, {n});
+          n[0], n[1], ProofRule::ASSUME, {}, {n});
       return;
     }
   }
