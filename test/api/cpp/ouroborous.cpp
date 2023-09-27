@@ -96,7 +96,7 @@ std::string parse(std::string instr,
   Command c;
   while (true)
   {
-    c = p.nextCommand();
+    c = parser.nextCommand();
     if (c.isNull())
     {
       break;
