@@ -47,8 +47,8 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
   include(CheckSymbolExists)
   include(ExternalProject)
 
-  set(CaDiCaL_VERSION "rel-1.7.2")
-  set(CaDiCaL_CHECKSUM "6c144884fd04cf998fa3c353c9649a0a4d46578c")
+  set(CaDiCaL_VERSION "rel-1.7.4")
+  set(CaDiCaL_CHECKSUM "9cc70c65c80f40c0c13b57cb43ea2a6804cae4eb")
 
   # avoid configure script and instantiate the makefile manually the configure
   # scripts unnecessarily fails for cross compilation thus we do the bare
