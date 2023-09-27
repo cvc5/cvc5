@@ -482,7 +482,7 @@ SkolemLemma OperatorElim::mkSkolemLemma(Node lem, Node k)
   TrustNode tlem;
   if (d_env.isTheoryProofProducing())
   {
-    tlem = mkTrustNode(lem, PfRule::THEORY_PREPROCESS_LEMMA, {}, {lem});
+    tlem = mkTrustNode(lem, ProofRule::THEORY_PREPROCESS_LEMMA, {}, {lem});
   }
   else
   {

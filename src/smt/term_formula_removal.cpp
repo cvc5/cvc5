@@ -123,7 +123,7 @@ TrustNode RemoveTermFormulas::runLemma(
   // assertionPre                 assertionPre = newAssertion
   // ------------------------------------------------------- EQ_RESOLVE
   // newAssertion
-  d_lp->addStep(newAssertion, PfRule::EQ_RESOLVE, {assertionPre, naEq}, {});
+  d_lp->addStep(newAssertion, ProofRule::EQ_RESOLVE, {assertionPre, naEq}, {});
   return TrustNode::mkTrustLemma(newAssertion, d_lp.get());
 }
 
@@ -328,11 +328,11 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
         // Note that the MACRO_SR_PRED_INTRO step holds due to conversion
         // of skolem into its witness form, which is node.
         Node axiom = getAxiomFor(node);
-        d_lp->addStep(axiom, PfRule::REMOVE_TERM_FORMULA_AXIOM, {}, {node});
+        d_lp->addStep(axiom, ProofRule::REMOVE_TERM_FORMULA_AXIOM, {}, {node});
         Node eq = node.eqNode(skolem);
-        d_lp->addStep(eq, PfRule::MACRO_SR_PRED_INTRO, {}, {eq});
+        d_lp->addStep(eq, ProofRule::MACRO_SR_PRED_INTRO, {}, {eq});
         d_lp->addStep(newAssertion,
-                      PfRule::MACRO_SR_PRED_TRANSFORM,
+                      ProofRule::MACRO_SR_PRED_TRANSFORM,
                       {axiom, eq},
                       {newAssertion});
         newAssertionPg = d_lp.get();
@@ -378,10 +378,11 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
           ProofGenerator* expg = sm->getProofGenerator(existsAssertion);
           d_lp->addLazyStep(existsAssertion,
                             expg,
-                            PfRule::WITNESS_AXIOM,
+                            ProofRule::WITNESS_AXIOM,
                             true,
                             "RemoveTermFormulas::run:skolem_pf");
-          d_lp->addStep(newAssertion, PfRule::SKOLEMIZE, {existsAssertion}, {});
+          d_lp->addStep(
+              newAssertion, ProofRule::SKOLEMIZE, {existsAssertion}, {});
           newAssertionPg = d_lp.get();
         }
       }
@@ -426,7 +427,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
       // conversion proof generator.
       pg->addRewriteStep(node,
                          skolem,
-                         PfRule::MACRO_SR_PRED_INTRO,
+                         ProofRule::MACRO_SR_PRED_INTRO,
                          {},
                          {node.eqNode(skolem)},
                          true,
@@ -450,7 +451,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
           // ---------------- MACRO_SR_PRED_INTRO
           // newAssertion
           d_lp->addStep(
-              newAssertion, PfRule::MACRO_SR_PRED_INTRO, {}, {newAssertion});
+              newAssertion, ProofRule::MACRO_SR_PRED_INTRO, {}, {newAssertion});
         }
       }
       Trace("rtf-debug") << "*** term formula removal introduced " << skolem

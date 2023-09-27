@@ -144,7 +144,7 @@ std::string AletheProofPrinter::printInternal(
 
   // If the proof node is untranslated a problem might have occured during
   // postprocessing
-  if (args.size() < 3 || pfn->getRule() != PfRule::ALETHE_RULE)
+  if (args.size() < 3 || pfn->getRule() != ProofRule::ALETHE_RULE)
   {
     Trace("alethe-printer")
         << "... printing failed! Encountered untranslated Node. "

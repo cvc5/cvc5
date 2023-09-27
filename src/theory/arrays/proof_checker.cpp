@@ -26,19 +26,19 @@ namespace arrays {
 
 void ArraysProofRuleChecker::registerTo(ProofChecker* pc)
 {
-  pc->registerChecker(PfRule::ARRAYS_READ_OVER_WRITE, this);
-  pc->registerChecker(PfRule::ARRAYS_READ_OVER_WRITE_CONTRA, this);
-  pc->registerChecker(PfRule::ARRAYS_READ_OVER_WRITE_1, this);
-  pc->registerChecker(PfRule::ARRAYS_EXT, this);
-  pc->registerChecker(PfRule::ARRAYS_EQ_RANGE_EXPAND, this);
+  pc->registerChecker(ProofRule::ARRAYS_READ_OVER_WRITE, this);
+  pc->registerChecker(ProofRule::ARRAYS_READ_OVER_WRITE_CONTRA, this);
+  pc->registerChecker(ProofRule::ARRAYS_READ_OVER_WRITE_1, this);
+  pc->registerChecker(ProofRule::ARRAYS_EXT, this);
+  pc->registerChecker(ProofRule::ARRAYS_EQ_RANGE_EXPAND, this);
 }
 
-Node ArraysProofRuleChecker::checkInternal(PfRule id,
+Node ArraysProofRuleChecker::checkInternal(ProofRule id,
                                            const std::vector<Node>& children,
                                            const std::vector<Node>& args)
 {
   NodeManager* nm = NodeManager::currentNM();
-  if (id == PfRule::ARRAYS_READ_OVER_WRITE)
+  if (id == ProofRule::ARRAYS_READ_OVER_WRITE)
   {
     Assert(children.size() == 1);
     Assert(args.size() == 1);
@@ -56,7 +56,7 @@ Node ArraysProofRuleChecker::checkInternal(PfRule id,
     Node rhs = nm->mkNode(kind::SELECT, lhs[0][0], ideq[0][1]);
     return lhs.eqNode(rhs);
   }
-  else if (id == PfRule::ARRAYS_READ_OVER_WRITE_CONTRA)
+  else if (id == ProofRule::ARRAYS_READ_OVER_WRITE_CONTRA)
   {
     Assert(children.size() == 1);
     Assert(args.empty());
@@ -74,7 +74,7 @@ Node ArraysProofRuleChecker::checkInternal(PfRule id,
     }
     return lhs[1].eqNode(lhs[0][1]);
   }
-  if (id == PfRule::ARRAYS_READ_OVER_WRITE_1)
+  if (id == ProofRule::ARRAYS_READ_OVER_WRITE_1)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
@@ -87,7 +87,7 @@ Node ArraysProofRuleChecker::checkInternal(PfRule id,
     Node rhs = lhs[0][2];
     return lhs.eqNode(rhs);
   }
-  if (id == PfRule::ARRAYS_EXT)
+  if (id == ProofRule::ARRAYS_EXT)
   {
     Assert(children.size() == 1);
     Assert(args.empty());
@@ -104,7 +104,7 @@ Node ArraysProofRuleChecker::checkInternal(PfRule id,
     Node bs = nm->mkNode(kind::SELECT, b, k);
     return as.eqNode(bs).notNode();
   }
-  if (id == PfRule::ARRAYS_EQ_RANGE_EXPAND)
+  if (id == ProofRule::ARRAYS_EQ_RANGE_EXPAND)
   {
     Node expandedEqRange = TheoryArraysRewriter::expandEqRange(args[0]);
     return args[0].eqNode(expandedEqRange);

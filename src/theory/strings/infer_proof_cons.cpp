@@ -165,7 +165,7 @@ void InferProofCons::convert(InferenceId infer,
   for (const Node& ec : ps.d_children)
   {
     Trace("strings-ipc-debug") << "Explicit add " << ec << std::endl;
-    psb.addStep(PfRule::ASSUME, {}, {ec}, ec);
+    psb.addStep(ProofRule::ASSUME, {}, {ec}, ec);
   }
   NodeManager* nm = NodeManager::currentNM();
   Node nodeIsRev = nm->mkConst(isRev);
@@ -232,7 +232,7 @@ void InferProofCons::convert(InferenceId infer,
       {
         // use the predicate version?
         ps.d_args.push_back(conc);
-        ps.d_rule = PfRule::MACRO_SR_PRED_INTRO;
+        ps.d_rule = ProofRule::MACRO_SR_PRED_INTRO;
       }
     }
     break;
@@ -369,7 +369,7 @@ void InferProofCons::convert(InferenceId infer,
       childrenSRew.insert(childrenSRew.end(), pcsr.begin(), pcsr.end());
       // now, conclude the proper equality
       Node mainEqSRew =
-          psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, childrenSRew, {});
+          psb.tryStep(ProofRule::MACRO_SR_PRED_ELIM, childrenSRew, {});
       if (mainEqSRew == conc)
       {
         Trace("strings-ipc-core") << "...success after rewrite!" << std::endl;
@@ -383,7 +383,7 @@ void InferProofCons::convert(InferenceId infer,
       childrenCeq.push_back(mainEqSRew);
       std::vector<Node> argsCeq;
       argsCeq.push_back(nodeIsRev);
-      Node mainEqCeq = psb.tryStep(PfRule::CONCAT_EQ, childrenCeq, argsCeq);
+      Node mainEqCeq = psb.tryStep(ProofRule::CONCAT_EQ, childrenCeq, argsCeq);
       Trace("strings-ipc-core")
           << "Main equality after CONCAT_EQ " << mainEqCeq << std::endl;
       if (mainEqCeq.isNull() || mainEqCeq.getKind() != EQUAL)
@@ -439,13 +439,14 @@ void InferProofCons::convert(InferenceId infer,
           Assert(t0.isConst() && s0.isConst());
           // We introduce an explicit disequality for the constants
           Node deq = t0.eqNode(s0).notNode();
-          psb.addStep(PfRule::MACRO_SR_PRED_INTRO, {}, {deq}, deq);
+          psb.addStep(ProofRule::MACRO_SR_PRED_INTRO, {}, {deq}, deq);
           Assert(!deq.isNull());
           childrenC.push_back(deq);
         }
         std::vector<Node> argsC;
         argsC.push_back(nodeIsRev);
-        Node conflict = psb.tryStep(PfRule::CONCAT_CONFLICT, childrenC, argsC);
+        Node conflict =
+            psb.tryStep(ProofRule::CONCAT_CONFLICT, childrenC, argsC);
         if (conflict == conc)
         {
           useBuffer = true;
@@ -464,7 +465,7 @@ void InferProofCons::convert(InferenceId infer,
                      MethodId::SBA_SEQUENTIAL,
                      MethodId::RW_REWRITE_EQ_EXT);
         Node mainEqERew =
-            psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, {mainEqCeq}, argsERew);
+            psb.tryStep(ProofRule::MACRO_SR_PRED_ELIM, {mainEqCeq}, argsERew);
         if (mainEqERew == conc)
         {
           useBuffer = true;
@@ -498,7 +499,7 @@ void InferProofCons::convert(InferenceId infer,
           Assert(conc[0].isConst() == t0.isConst());
           Assert(conc[1].isConst() == s0.isConst());
         }
-        PfRule rule = PfRule::UNKNOWN;
+        ProofRule rule = ProofRule::UNKNOWN;
         // the form of the required length constraint expected by the proof
         Node lenReq;
         bool lenSuccess = false;
@@ -512,7 +513,7 @@ void InferProofCons::convert(InferenceId infer,
           lenReq = nm->mkNode(STRING_LENGTH, conc[0])
                        .eqNode(nm->mkNode(STRING_LENGTH, conc[1]));
           lenSuccess = convertLengthPf(lenReq, lenConstraint, psb);
-          rule = PfRule::CONCAT_UNIFY;
+          rule = ProofRule::CONCAT_UNIFY;
         }
         else if (infer == InferenceId::STRINGS_SSPLIT_VAR)
         {
@@ -521,7 +522,7 @@ void InferProofCons::convert(InferenceId infer,
                        .eqNode(nm->mkNode(STRING_LENGTH, s0))
                        .notNode();
           lenSuccess = convertLengthPf(lenReq, lenConstraint, psb);
-          rule = PfRule::CONCAT_SPLIT;
+          rule = ProofRule::CONCAT_SPLIT;
         }
         else if (infer == InferenceId::STRINGS_SSPLIT_CST)
         {
@@ -530,7 +531,7 @@ void InferProofCons::convert(InferenceId infer,
                        .eqNode(nm->mkConstInt(Rational(0)))
                        .notNode();
           lenSuccess = convertLengthPf(lenReq, lenConstraint, psb);
-          rule = PfRule::CONCAT_CSPLIT;
+          rule = ProofRule::CONCAT_CSPLIT;
         }
         else if (infer == InferenceId::STRINGS_SSPLIT_VAR_PROP)
         {
@@ -552,7 +553,7 @@ void InferProofCons::convert(InferenceId infer,
               std::swap(t0, s0);
             }
           }
-          rule = PfRule::CONCAT_LPROP;
+          rule = ProofRule::CONCAT_LPROP;
         }
         else if (infer == InferenceId::STRINGS_SSPLIT_CST_PROP)
         {
@@ -561,7 +562,7 @@ void InferProofCons::convert(InferenceId infer,
                        .eqNode(nm->mkConstInt(Rational(0)))
                        .notNode();
           lenSuccess = convertLengthPf(lenReq, lenConstraint, psb);
-          rule = PfRule::CONCAT_CPROP;
+          rule = ProofRule::CONCAT_CPROP;
         }
         if (!lenSuccess)
         {
@@ -575,11 +576,11 @@ void InferProofCons::convert(InferenceId infer,
           std::vector<Node> childrenSymm;
           childrenSymm.push_back(mainEqCeq);
           // note this explicit step may not be necessary
-          mainEqCeq = psb.tryStep(PfRule::SYMM, childrenSymm, {});
+          mainEqCeq = psb.tryStep(ProofRule::SYMM, childrenSymm, {});
           Trace("strings-ipc-core")
               << "Main equality after SYMM " << mainEqCeq << std::endl;
         }
-        if (rule != PfRule::UNKNOWN)
+        if (rule != ProofRule::UNKNOWN)
         {
           Trace("strings-ipc-core")
               << "Core rule length requirement is " << lenReq << std::endl;
@@ -640,7 +641,7 @@ void InferProofCons::convert(InferenceId infer,
           std::vector<Node> argsMain;
           argsMain.push_back(nodeIsRev);
           Node mainConc =
-              psb.tryStep(PfRule::STRING_DECOMPOSE, childrenMain, argsMain);
+              psb.tryStep(ProofRule::STRING_DECOMPOSE, childrenMain, argsMain);
           Trace("strings-ipc-deq")
               << "...main conclusion is " << mainConc << std::endl;
           useBuffer = (mainConc == conc);
@@ -673,7 +674,7 @@ void InferProofCons::convert(InferenceId infer,
       }
       else
       {
-        ps.d_rule = PfRule::SPLIT;
+        ps.d_rule = ProofRule::SPLIT;
         Assert(ps.d_children.empty());
         ps.d_args.push_back(conc[0]);
       }
@@ -696,7 +697,7 @@ void InferProofCons::convert(InferenceId infer,
         mem = psb.applyPredElim(mem, tcs);
         useBuffer = true;
       }
-      PfRule r = PfRule::UNKNOWN;
+      ProofRule r = ProofRule::UNKNOWN;
       if (mem.isNull())
       {
         // failed to eliminate above
@@ -705,11 +706,11 @@ void InferProofCons::convert(InferenceId infer,
       }
       else if (infer == InferenceId::STRINGS_RE_UNFOLD_POS)
       {
-        r = PfRule::RE_UNFOLD_POS;
+        r = ProofRule::RE_UNFOLD_POS;
       }
       else
       {
-        r = PfRule::RE_UNFOLD_NEG;
+        r = ProofRule::RE_UNFOLD_NEG;
         // it may be an optimized form of concat simplification
         Assert(mem.getKind() == NOT && mem[0].getKind() == STRING_IN_REGEXP);
         if (mem[0][1].getKind() == REGEXP_CONCAT)
@@ -720,7 +721,7 @@ void InferProofCons::convert(InferenceId infer,
           // version
           if (!reLen.isNull())
           {
-            r = PfRule::RE_UNFOLD_NEG_CONCAT_FIXED;
+            r = ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED;
           }
         }
       }
@@ -748,7 +749,7 @@ void InferProofCons::convert(InferenceId infer,
       Node atom = polarity ? ps.d_children[0] : ps.d_children[0][0];
       std::vector<Node> args;
       args.push_back(atom);
-      Node res = psb.tryStep(PfRule::STRING_EAGER_REDUCTION, {}, args);
+      Node res = psb.tryStep(ProofRule::STRING_EAGER_REDUCTION, {}, args);
       if (res.isNull())
       {
         break;
@@ -756,8 +757,10 @@ void InferProofCons::convert(InferenceId infer,
       // ite( contains(x,t), x = k1 ++ t ++ k2, x != t )
       std::vector<Node> tiChildren;
       tiChildren.push_back(ps.d_children[0]);
-      Node ctnt = psb.tryStep(
-          polarity ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO, tiChildren, {});
+      Node ctnt =
+          psb.tryStep(polarity ? ProofRule::TRUE_INTRO : ProofRule::FALSE_INTRO,
+                      tiChildren,
+                      {});
       if (ctnt.isNull() || ctnt.getKind() != EQUAL)
       {
         break;
@@ -794,7 +797,7 @@ void InferProofCons::convert(InferenceId infer,
       std::vector<Node> argsRed;
       // the left hand side of the last conjunct is the term we are reducing
       argsRed.push_back(mainEq[0]);
-      Node red = psb.tryStep(PfRule::STRING_REDUCTION, {}, argsRed);
+      Node red = psb.tryStep(ProofRule::STRING_REDUCTION, {}, argsRed);
       Trace("strings-ipc-red") << "Reduction : " << red << std::endl;
       if (!red.isNull())
       {
@@ -815,7 +818,7 @@ void InferProofCons::convert(InferenceId infer,
     // ========================== code injectivity
     case InferenceId::STRINGS_CODE_INJ:
     {
-      ps.d_rule = PfRule::STRING_CODE_INJ;
+      ps.d_rule = ProofRule::STRING_CODE_INJ;
       Assert(conc.getKind() == OR && conc.getNumChildren() == 3
              && conc[2].getKind() == EQUAL);
       ps.d_args.push_back(conc[2][0]);
@@ -825,7 +828,7 @@ void InferProofCons::convert(InferenceId infer,
     // ========================== unit injectivity
     case InferenceId::STRINGS_UNIT_INJ:
     {
-      ps.d_rule = PfRule::STRING_SEQ_UNIT_INJ;
+      ps.d_rule = ProofRule::STRING_SEQ_UNIT_INJ;
     }
     break;
     // ========================== prefix conflict
@@ -847,7 +850,7 @@ void InferProofCons::convert(InferenceId infer,
           std::vector<Node> children;
           children.push_back(e);
           std::vector<Node> args;
-          Node eunf = psb.tryStep(PfRule::RE_UNFOLD_POS, children, args);
+          Node eunf = psb.tryStep(ProofRule::RE_UNFOLD_POS, children, args);
           Trace("strings-ipc-prefix")
               << "--- " << e << " unfolds to " << eunf << std::endl;
           if (eunf.isNull())
@@ -861,7 +864,7 @@ void InferProofCons::convert(InferenceId infer,
             childrenAE.push_back(eunf);
             std::vector<Node> argsAE;
             argsAE.push_back(nm->mkConstInt(Rational(0)));
-            Node eunfAE = psb.tryStep(PfRule::AND_ELIM, childrenAE, argsAE);
+            Node eunfAE = psb.tryStep(ProofRule::AND_ELIM, childrenAE, argsAE);
             Trace("strings-ipc-prefix")
                 << "--- and elim to " << eunfAE << std::endl;
             if (eunfAE.isNull() || eunfAE.getKind() != EQUAL)
@@ -977,7 +980,7 @@ void InferProofCons::convert(InferenceId infer,
       {
         break;
       }
-      Node mem = psb.tryStep(PfRule::RE_INTER, reiChildren, {});
+      Node mem = psb.tryStep(ProofRule::RE_INTER, reiChildren, {});
       Trace("strings-ipc-re")
           << "Regular expression summary: " << mem << std::endl;
       // the conclusion is rewritable to the premises via rewriting?
@@ -1014,17 +1017,17 @@ void InferProofCons::convert(InferenceId infer,
 
   // now see if we would succeed with the checker-to-try
   bool success = false;
-  if (ps.d_rule != PfRule::UNKNOWN)
+  if (ps.d_rule != ProofRule::UNKNOWN)
   {
     Trace("strings-ipc") << "For " << infer << ", try proof rule " << ps.d_rule
                          << "...";
-    Assert(ps.d_rule != PfRule::UNKNOWN);
+    Assert(ps.d_rule != ProofRule::UNKNOWN);
     Node pconc = psb.tryStep(ps.d_rule, ps.d_children, ps.d_args);
     if (pconc.isNull() || pconc != conc)
     {
       Trace("strings-ipc") << "failed, pconc is " << pconc << " (expected "
                            << conc << ")" << std::endl;
-      ps.d_rule = PfRule::UNKNOWN;
+      ps.d_rule = ProofRule::UNKNOWN;
     }
     else
     {
@@ -1063,7 +1066,7 @@ void InferProofCons::convert(InferenceId infer,
     Node t = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_STRINGS);
     ps.d_args.push_back(t);
     // use the trust rule
-    ps.d_rule = PfRule::THEORY_INFERENCE;
+    ps.d_rule = ProofRule::THEORY_INFERENCE;
   }
   if (TraceIsOn("strings-ipc-debug"))
   {
@@ -1113,7 +1116,7 @@ bool InferProofCons::convertLengthPf(Node lenReq,
     std::vector<Node> children;
     children.push_back(le);
     std::vector<Node> args;
-    Node res = psb.tryStep(PfRule::STRING_LENGTH_NON_EMPTY, children, args);
+    Node res = psb.tryStep(ProofRule::STRING_LENGTH_NON_EMPTY, children, args);
     if (res == lenReq)
     {
       Trace("strings-ipc-len") << "...success by LENGTH_NON_EMPTY" << std::endl;
@@ -1143,7 +1146,7 @@ Node InferProofCons::convertTrans(Node eqa,
         std::vector<Node> children;
         children.push_back(eqaSym);
         children.push_back(eqbSym);
-        return psb.tryStep(PfRule::TRANS, children, {});
+        return psb.tryStep(ProofRule::TRANS, children, {});
       }
     }
   }
@@ -1178,7 +1181,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   {
     utils::flattenOp(AND, ec, exp);
   }
-  pf.addStep(fact, PfRule::STRING_INFERENCE, exp, args);
+  pf.addStep(fact, ProofRule::STRING_INFERENCE, exp, args);
   return pf.getProofFor(fact);
 }
 

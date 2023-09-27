@@ -149,7 +149,7 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
               {
                 proof = d_data->getProof();
                 proof->addStep(tlem,
-                               PfRule::ARITH_MULT_TANGENT,
+                               ProofRule::ARITH_MULT_TANGENT,
                                {},
                                {t,
                                 a,

@@ -132,7 +132,7 @@ bool BVSolverBitblastInternal::preNotifyFact(
     else
     {
       TrustNode tlem =
-          d_epg->mkTrustNode(lemma, PfRule::BV_EAGER_ATOM, {}, {fact});
+          d_epg->mkTrustNode(lemma, ProofRule::BV_EAGER_ATOM, {}, {fact});
       d_im.trustedLemma(tlem, InferenceId::BV_BITBLAST_INTERNAL_EAGER_LEMMA);
     }
 
