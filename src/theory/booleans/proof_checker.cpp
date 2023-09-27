@@ -105,7 +105,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       // which is the case if it's not an OR node or it is an OR node but it is
       // equal to the pivot
       std::vector<Node> lits;
-      if (children[i].getKind() == kind::OR && pivots[i] != children[i])
+      if (children[i].getKind() == Kind::OR && pivots[i] != children[i])
       {
         lits.insert(lits.end(), children[i].begin(), children[i].end());
       }
@@ -126,16 +126,15 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
         }
       }
     }
-    return disjuncts.empty()
-               ? nm->mkConst(false)
-               : disjuncts.size() == 1 ? disjuncts[0]
-                                       : nm->mkNode(kind::OR, disjuncts);
+    return disjuncts.empty()       ? nm->mkConst(false)
+           : disjuncts.size() == 1 ? disjuncts[0]
+                                   : nm->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::FACTORING)
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    if (children[0].getKind() != kind::OR)
+    if (children[0].getKind() != Kind::OR)
     {
       return Node::null();
     }
@@ -164,7 +163,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     Assert(children.size() == 1);
     Assert(args.size() == 1);
     std::unordered_set<Node> clauseSet1, clauseSet2;
-    if (children[0].getKind() == kind::OR)
+    if (children[0].getKind() == Kind::OR)
     {
       clauseSet1.insert(children[0].begin(), children[0].end());
     }
@@ -172,7 +171,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     {
       clauseSet1.insert(children[0]);
     }
-    if (args[0].getKind() == kind::OR)
+    if (args[0].getKind() == Kind::OR)
     {
       clauseSet2.insert(args[0].begin(), args[0].end());
     }
@@ -217,7 +216,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     // clause if the child itself is used as a resolution literal, i.e. if the
     // first child equal to the first pivot (which is args[1] or
     // args[1].notNote() depending on the polarity).
-    if (children[0].getKind() != kind::OR
+    if (children[0].getKind() != Kind::OR
         || (args[0] == trueNode && children[0] == args[1])
         || (args[0] == falseNode && children[0] == args[1].notNode()))
     {
@@ -247,7 +246,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       size_t childIndex = i / 2 + 1;
       // Get rhs clause. It's a singleton if not an OR node or if equal to
       // rhsElim
-      if (children[childIndex].getKind() != kind::OR
+      if (children[childIndex].getKind() != Kind::OR
           || children[childIndex] == rhsElim)
       {
         rhsClause.push_back(children[childIndex]);
@@ -340,7 +339,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       // child is in lhsElim or is equal to rhsElim (which means that the
       // negation of the child is in lhsElim).
       std::vector<Node> lits;
-      if (children[i].getKind() == kind::OR && !elim.count(children[i]))
+      if (children[i].getKind() == Kind::OR && !elim.count(children[i]))
       {
         lits.insert(lits.end(), children[i].begin(), children[i].end());
       }
@@ -388,7 +387,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     }
     // At this point, should amount to them differing only on order. So the
     // original result can't be a singleton clause
-    if (args[0].getKind() != kind::OR
+    if (args[0].getKind() != Kind::OR
         || clauseComputed.size() != args[0].getNumChildren())
     {
       return Node::null();
@@ -401,7 +400,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     Assert(children.empty());
     Assert(args.size() == 1);
     return NodeManager::currentNM()->mkNode(
-        kind::OR, args[0], args[0].notNode());
+        Kind::OR, args[0], args[0].notNode());
   }
   if (id == ProofRule::CONTRA)
   {
@@ -416,7 +415,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.size() == 2);
     Assert(args.empty());
-    if (children[1].getKind() != kind::EQUAL || children[0] != children[1][0])
+    if (children[1].getKind() != Kind::EQUAL || children[0] != children[1][0])
     {
       return Node::null();
     }
@@ -426,7 +425,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.size() == 2);
     Assert(args.empty());
-    if (children[1].getKind() != kind::IMPLIES || children[0] != children[1][0])
+    if (children[1].getKind() != Kind::IMPLIES || children[0] != children[1][0])
     {
       return Node::null();
     }
@@ -436,7 +435,8 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    if (children[0].getKind() != kind::NOT || children[0][0].getKind() != kind::NOT)
+    if (children[0].getKind() != Kind::NOT
+        || children[0][0].getKind() != Kind::NOT)
     {
       return Node::null();
     }
@@ -448,7 +448,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     Assert(children.size() == 1);
     Assert(args.size() == 1);
     uint32_t i;
-    if (children[0].getKind() != kind::AND || !getUInt32(args[0], i))
+    if (children[0].getKind() != Kind::AND || !getUInt32(args[0], i))
     {
       return Node::null();
     }
@@ -463,15 +463,15 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     Assert(children.size() >= 1);
     return children.size() == 1
                ? children[0]
-               : NodeManager::currentNM()->mkNode(kind::AND, children);
+               : NodeManager::currentNM()->mkNode(Kind::AND, children);
   }
   if (id == ProofRule::NOT_OR_ELIM)
   {
     Assert(children.size() == 1);
     Assert(args.size() == 1);
     uint32_t i;
-    if (children[0].getKind() != kind::NOT
-        || children[0][0].getKind() != kind::OR || !getUInt32(args[0], i))
+    if (children[0].getKind() != Kind::NOT
+        || children[0][0].getKind() != Kind::OR || !getUInt32(args[0], i))
     {
       return Node::null();
     }
@@ -485,19 +485,19 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    if (children[0].getKind() != kind::IMPLIES)
+    if (children[0].getKind() != Kind::IMPLIES)
     {
       return Node::null();
     }
     return NodeManager::currentNM()->mkNode(
-        kind::OR, children[0][0].notNode(), children[0][1]);
+        Kind::OR, children[0][0].notNode(), children[0][1]);
   }
   if (id == ProofRule::NOT_IMPLIES_ELIM1)
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    if (children[0].getKind() != kind::NOT
-        || children[0][0].getKind() != kind::IMPLIES)
+    if (children[0].getKind() != Kind::NOT
+        || children[0][0].getKind() != Kind::IMPLIES)
     {
       return Node::null();
     }
@@ -507,8 +507,8 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    if (children[0].getKind() != kind::NOT
-        || children[0][0].getKind() != kind::IMPLIES)
+    if (children[0].getKind() != Kind::NOT
+        || children[0][0].getKind() != Kind::IMPLIES)
     {
       return Node::null();
     }
@@ -518,147 +518,147 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    if (children[0].getKind() != kind::EQUAL)
+    if (children[0].getKind() != Kind::EQUAL)
     {
       return Node::null();
     }
     return NodeManager::currentNM()->mkNode(
-        kind::OR, children[0][0].notNode(), children[0][1]);
+        Kind::OR, children[0][0].notNode(), children[0][1]);
   }
   if (id == ProofRule::EQUIV_ELIM2)
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    if (children[0].getKind() != kind::EQUAL)
+    if (children[0].getKind() != Kind::EQUAL)
     {
       return Node::null();
     }
     return NodeManager::currentNM()->mkNode(
-        kind::OR, children[0][0], children[0][1].notNode());
+        Kind::OR, children[0][0], children[0][1].notNode());
   }
   if (id == ProofRule::NOT_EQUIV_ELIM1)
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    if (children[0].getKind() != kind::NOT
-        || children[0][0].getKind() != kind::EQUAL)
+    if (children[0].getKind() != Kind::NOT
+        || children[0][0].getKind() != Kind::EQUAL)
     {
       return Node::null();
     }
     return NodeManager::currentNM()->mkNode(
-        kind::OR, children[0][0][0], children[0][0][1]);
+        Kind::OR, children[0][0][0], children[0][0][1]);
   }
   if (id == ProofRule::NOT_EQUIV_ELIM2)
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    if (children[0].getKind() != kind::NOT
-        || children[0][0].getKind() != kind::EQUAL)
+    if (children[0].getKind() != Kind::NOT
+        || children[0][0].getKind() != Kind::EQUAL)
     {
       return Node::null();
     }
     return NodeManager::currentNM()->mkNode(
-        kind::OR, children[0][0][0].notNode(), children[0][0][1].notNode());
+        Kind::OR, children[0][0][0].notNode(), children[0][0][1].notNode());
   }
   if (id == ProofRule::XOR_ELIM1)
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    if (children[0].getKind() != kind::XOR)
+    if (children[0].getKind() != Kind::XOR)
     {
       return Node::null();
     }
     return NodeManager::currentNM()->mkNode(
-        kind::OR, children[0][0], children[0][1]);
+        Kind::OR, children[0][0], children[0][1]);
   }
   if (id == ProofRule::XOR_ELIM2)
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    if (children[0].getKind() != kind::XOR)
+    if (children[0].getKind() != Kind::XOR)
     {
       return Node::null();
     }
     return NodeManager::currentNM()->mkNode(
-        kind::OR, children[0][0].notNode(), children[0][1].notNode());
+        Kind::OR, children[0][0].notNode(), children[0][1].notNode());
   }
   if (id == ProofRule::NOT_XOR_ELIM1)
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    if (children[0].getKind() != kind::NOT
-        || children[0][0].getKind() != kind::XOR)
+    if (children[0].getKind() != Kind::NOT
+        || children[0][0].getKind() != Kind::XOR)
     {
       return Node::null();
     }
     return NodeManager::currentNM()->mkNode(
-        kind::OR, children[0][0][0], children[0][0][1].notNode());
+        Kind::OR, children[0][0][0], children[0][0][1].notNode());
   }
   if (id == ProofRule::NOT_XOR_ELIM2)
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    if (children[0].getKind() != kind::NOT
-        || children[0][0].getKind() != kind::XOR)
+    if (children[0].getKind() != Kind::NOT
+        || children[0][0].getKind() != Kind::XOR)
     {
       return Node::null();
     }
     return NodeManager::currentNM()->mkNode(
-        kind::OR, children[0][0][0].notNode(), children[0][0][1]);
+        Kind::OR, children[0][0][0].notNode(), children[0][0][1]);
   }
   if (id == ProofRule::ITE_ELIM1)
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    if (children[0].getKind() != kind::ITE)
+    if (children[0].getKind() != Kind::ITE)
     {
       return Node::null();
     }
     return NodeManager::currentNM()->mkNode(
-        kind::OR, children[0][0].notNode(), children[0][1]);
+        Kind::OR, children[0][0].notNode(), children[0][1]);
   }
   if (id == ProofRule::ITE_ELIM2)
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    if (children[0].getKind() != kind::ITE)
+    if (children[0].getKind() != Kind::ITE)
     {
       return Node::null();
     }
     return NodeManager::currentNM()->mkNode(
-        kind::OR, children[0][0], children[0][2]);
+        Kind::OR, children[0][0], children[0][2]);
   }
   if (id == ProofRule::NOT_ITE_ELIM1)
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    if (children[0].getKind() != kind::NOT
-        || children[0][0].getKind() != kind::ITE)
+    if (children[0].getKind() != Kind::NOT
+        || children[0][0].getKind() != Kind::ITE)
     {
       return Node::null();
     }
     return NodeManager::currentNM()->mkNode(
-        kind::OR, children[0][0][0].notNode(), children[0][0][1].notNode());
+        Kind::OR, children[0][0][0].notNode(), children[0][0][1].notNode());
   }
   if (id == ProofRule::NOT_ITE_ELIM2)
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    if (children[0].getKind() != kind::NOT
-        || children[0][0].getKind() != kind::ITE)
+    if (children[0].getKind() != Kind::NOT
+        || children[0][0].getKind() != Kind::ITE)
     {
       return Node::null();
     }
     return NodeManager::currentNM()->mkNode(
-        kind::OR, children[0][0][0], children[0][0][2].notNode());
+        Kind::OR, children[0][0][0], children[0][0][2].notNode());
   }
   // De Morgan
   if (id == ProofRule::NOT_AND)
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    if (children[0].getKind() != kind::NOT
-        || children[0][0].getKind() != kind::AND)
+    if (children[0].getKind() != Kind::NOT
+        || children[0][0].getKind() != Kind::AND)
     {
       return Node::null();
     }
@@ -668,7 +668,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     {
       disjuncts.push_back(children[0][0][i].notNode());
     }
-    return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
+    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
   }
   // valid clauses rules for Tseitin CNF transformation
   if (id == ProofRule::CNF_AND_POS)
@@ -676,7 +676,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     Assert(children.empty());
     Assert(args.size() == 2);
     uint32_t i;
-    if (args[0].getKind() != kind::AND || !getUInt32(args[1], i))
+    if (args[0].getKind() != Kind::AND || !getUInt32(args[1], i))
     {
       return Node::null();
     }
@@ -685,13 +685,13 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     return NodeManager::currentNM()->mkNode(
-        kind::OR, args[0].notNode(), args[0][i]);
+        Kind::OR, args[0].notNode(), args[0][i]);
   }
   if (id == ProofRule::CNF_AND_NEG)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    if (args[0].getKind() != kind::AND)
+    if (args[0].getKind() != Kind::AND)
     {
       return Node::null();
     }
@@ -700,13 +700,13 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     {
       disjuncts.push_back(args[0][i].notNode());
     }
-    return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
+    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_OR_POS)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    if (args[0].getKind() != kind::OR)
+    if (args[0].getKind() != Kind::OR)
     {
       return Node::null();
     }
@@ -715,14 +715,14 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     {
       disjuncts.push_back(args[0][i]);
     }
-    return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
+    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_OR_NEG)
   {
     Assert(children.empty());
     Assert(args.size() == 2);
     uint32_t i;
-    if (args[0].getKind() != kind::OR || !getUInt32(args[1], i))
+    if (args[0].getKind() != Kind::OR || !getUInt32(args[1], i))
     {
       return Node::null();
     }
@@ -731,202 +731,202 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     return NodeManager::currentNM()->mkNode(
-        kind::OR, args[0], args[0][i].notNode());
+        Kind::OR, args[0], args[0][i].notNode());
   }
   if (id == ProofRule::CNF_IMPLIES_POS)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    if (args[0].getKind() != kind::IMPLIES)
+    if (args[0].getKind() != Kind::IMPLIES)
     {
       return Node::null();
     }
     std::vector<Node> disjuncts{
         args[0].notNode(), args[0][0].notNode(), args[0][1]};
-    return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
+    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_IMPLIES_NEG1)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    if (args[0].getKind() != kind::IMPLIES)
+    if (args[0].getKind() != Kind::IMPLIES)
     {
       return Node::null();
     }
     std::vector<Node> disjuncts{args[0], args[0][0]};
-    return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
+    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_IMPLIES_NEG2)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    if (args[0].getKind() != kind::IMPLIES)
+    if (args[0].getKind() != Kind::IMPLIES)
     {
       return Node::null();
     }
     std::vector<Node> disjuncts{args[0], args[0][1].notNode()};
-    return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
+    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_EQUIV_POS1)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    if (args[0].getKind() != kind::EQUAL)
+    if (args[0].getKind() != Kind::EQUAL)
     {
       return Node::null();
     }
     std::vector<Node> disjuncts{
         args[0].notNode(), args[0][0].notNode(), args[0][1]};
-    return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
+    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_EQUIV_POS2)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    if (args[0].getKind() != kind::EQUAL)
+    if (args[0].getKind() != Kind::EQUAL)
     {
       return Node::null();
     }
     std::vector<Node> disjuncts{
         args[0].notNode(), args[0][0], args[0][1].notNode()};
-    return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
+    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_EQUIV_NEG1)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    if (args[0].getKind() != kind::EQUAL)
+    if (args[0].getKind() != Kind::EQUAL)
     {
       return Node::null();
     }
     std::vector<Node> disjuncts{args[0], args[0][0], args[0][1]};
-    return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
+    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_EQUIV_NEG2)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    if (args[0].getKind() != kind::EQUAL)
+    if (args[0].getKind() != Kind::EQUAL)
     {
       return Node::null();
     }
     std::vector<Node> disjuncts{
         args[0], args[0][0].notNode(), args[0][1].notNode()};
-    return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
+    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_XOR_POS1)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    if (args[0].getKind() != kind::XOR)
+    if (args[0].getKind() != Kind::XOR)
     {
       return Node::null();
     }
     std::vector<Node> disjuncts{args[0].notNode(), args[0][0], args[0][1]};
-    return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
+    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_XOR_POS2)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    if (args[0].getKind() != kind::XOR)
+    if (args[0].getKind() != Kind::XOR)
     {
       return Node::null();
     }
     std::vector<Node> disjuncts{
         args[0].notNode(), args[0][0].notNode(), args[0][1].notNode()};
-    return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
+    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_XOR_NEG1)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    if (args[0].getKind() != kind::XOR)
+    if (args[0].getKind() != Kind::XOR)
     {
       return Node::null();
     }
     std::vector<Node> disjuncts{args[0], args[0][0].notNode(), args[0][1]};
-    return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
+    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_XOR_NEG2)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    if (args[0].getKind() != kind::XOR)
+    if (args[0].getKind() != Kind::XOR)
     {
       return Node::null();
     }
     std::vector<Node> disjuncts{args[0], args[0][0], args[0][1].notNode()};
-    return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
+    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_ITE_POS1)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    if (args[0].getKind() != kind::ITE)
+    if (args[0].getKind() != Kind::ITE)
     {
       return Node::null();
     }
     std::vector<Node> disjuncts{
         args[0].notNode(), args[0][0].notNode(), args[0][1]};
-    return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
+    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_ITE_POS2)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    if (args[0].getKind() != kind::ITE)
+    if (args[0].getKind() != Kind::ITE)
     {
       return Node::null();
     }
     std::vector<Node> disjuncts{args[0].notNode(), args[0][0], args[0][2]};
-    return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
+    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_ITE_POS3)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    if (args[0].getKind() != kind::ITE)
+    if (args[0].getKind() != Kind::ITE)
     {
       return Node::null();
     }
     std::vector<Node> disjuncts{args[0].notNode(), args[0][1], args[0][2]};
-    return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
+    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_ITE_NEG1)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    if (args[0].getKind() != kind::ITE)
+    if (args[0].getKind() != Kind::ITE)
     {
       return Node::null();
     }
     std::vector<Node> disjuncts{
         args[0], args[0][0].notNode(), args[0][1].notNode()};
-    return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
+    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_ITE_NEG2)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    if (args[0].getKind() != kind::ITE)
+    if (args[0].getKind() != Kind::ITE)
     {
       return Node::null();
     }
     std::vector<Node> disjuncts{args[0], args[0][0], args[0][2].notNode()};
-    return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
+    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::CNF_ITE_NEG3)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    if (args[0].getKind() != kind::ITE)
+    if (args[0].getKind() != Kind::ITE)
     {
       return Node::null();
     }
     std::vector<Node> disjuncts{
         args[0], args[0][1].notNode(), args[0][2].notNode()};
-    return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
+    return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
   }
   if (id == ProofRule::SAT_REFUTATION)
   {

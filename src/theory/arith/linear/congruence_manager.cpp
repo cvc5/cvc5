@@ -42,7 +42,7 @@ std::vector<Node> andComponents(TNode an)
   {
     return {};
   }
-  else if (an.getKind() != AND)
+  else if (an.getKind() != Kind::AND)
   {
     return {an};
   }
@@ -307,7 +307,8 @@ bool ArithCongruenceManager::propagate(TNode x){
   Node rewritten = rewrite(x);
 
   //Need to still propagate this!
-  if(rewritten.getKind() == kind::CONST_BOOLEAN){
+  if (rewritten.getKind() == Kind::CONST_BOOLEAN)
+  {
     pushBack(x);
 
     if(rewritten.getConst<bool>()){
@@ -333,7 +334,7 @@ bool ArithCongruenceManager::propagate(TNode x){
     }
   }
 
-  Assert(rewritten.getKind() != kind::CONST_BOOLEAN);
+  Assert(rewritten.getKind() != Kind::CONST_BOOLEAN);
 
   ConstraintP c = d_constraintDatabase.lookup(rewritten);
   if(c == NullConstraint){
@@ -515,7 +516,7 @@ void ArithCongruenceManager::assertionToEqualityEngine(
   Assert(isWatchedVariable(s));
 
   TNode eq = d_watchedEqualities[s];
-  Assert(eq.getKind() == kind::EQUAL);
+  Assert(eq.getKind() == Kind::EQUAL);
 
   Node lit = isEquality ? Node(eq) : eq.notNode();
   Trace("arith-ee") << "Assert to Eq " << eq << ", pol " << isEquality

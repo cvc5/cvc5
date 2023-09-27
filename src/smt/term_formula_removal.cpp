@@ -280,7 +280,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
   ProofGenerator* newAssertionPg = nullptr;
   // Handle non-Boolean ITEs here. Boolean ones (within terms) are handled
   // in the "non-variable Boolean term within term" case below.
-  if (node.getKind() == kind::ITE && !nodeType.isBoolean())
+  if (node.getKind() == Kind::ITE && !nodeType.isBoolean())
   {
     if (!nodeType.isFirstClass())
     {
@@ -310,7 +310,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
 
       // The new assertion
       newAssertion = nodeManager->mkNode(
-          kind::ITE, node[0], skolem.eqNode(node[1]), skolem.eqNode(node[2]));
+          Kind::ITE, node[0], skolem.eqNode(node[1]), skolem.eqNode(node[2]));
 
       // we justify it internally
       if (isProofEnabled())
@@ -339,7 +339,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
       }
     }
   }
-  else if (node.getKind() == kind::WITNESS)
+  else if (node.getKind() == Kind::WITNESS)
   {
     // If a witness choice
     //   For details on this operator, see
@@ -370,7 +370,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
         if (isProofEnabled())
         {
           Node existsAssertion =
-              nodeManager->mkNode(kind::EXISTS, node[0], node[1]);
+              nodeManager->mkNode(Kind::EXISTS, node[0], node[1]);
           // -------------------- from skolem manager
           // (exists x. node[1])
           // -------------------- SKOLEMIZE
@@ -487,9 +487,9 @@ Node RemoveTermFormulas::getAxiomFor(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
-  if (k == kind::ITE)
+  if (k == Kind::ITE)
   {
-    return nm->mkNode(kind::ITE, n[0], n.eqNode(n[1]), n.eqNode(n[2]));
+    return nm->mkNode(Kind::ITE, n[0], n.eqNode(n[1]), n.eqNode(n[2]));
   }
   return Node::null();
 }

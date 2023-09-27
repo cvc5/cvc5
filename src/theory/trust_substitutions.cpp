@@ -175,7 +175,7 @@ Node TrustSubstitutionMap::apply(Node n, Rewriter* r)
 
 std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
 {
-  Assert(eq.getKind() == kind::EQUAL);
+  Assert(eq.getKind() == Kind::EQUAL);
   Node n = eq[0];
   Node ns = eq[1];
   // Easy case: if n is in the domain of the substitution, maybe it is already
@@ -277,7 +277,7 @@ Node TrustSubstitutionMap::getSubstitution(size_t index)
   }
   std::reverse(csubsChildren.begin(), csubsChildren.end());
   Node cs = NodeManager::currentNM()->mkAnd(csubsChildren);
-  if (cs.getKind() == kind::AND)
+  if (cs.getKind() == Kind::AND)
   {
     d_subsPg->addStep(cs, ProofRule::AND_INTRO, csubsChildren, {});
   }

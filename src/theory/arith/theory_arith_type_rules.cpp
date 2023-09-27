@@ -31,12 +31,12 @@ TypeNode ArithConstantTypeRule::computeType(NodeManager* nodeManager,
                                             std::ostream* errOut)
 {
   // we use different kinds for constant integers and reals
-  if (n.getKind() == kind::CONST_RATIONAL)
+  if (n.getKind() == Kind::CONST_RATIONAL)
   {
     // constant rationals are always real type, even if their value is integral
     return nodeManager->realType();
   }
-  Assert(n.getKind() == kind::CONST_INTEGER);
+  Assert(n.getKind() == Kind::CONST_INTEGER);
   // constant integers should always have integral value
   if (check)
   {
@@ -105,7 +105,7 @@ TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
         throw TypeCheckingExceptionPrivate(n,
                                            "expecting an arithmetic subterm");
       }
-      if (k == kind::TO_REAL && !childType.isInteger())
+      if (k == Kind::TO_REAL && !childType.isInteger())
       {
         throw TypeCheckingExceptionPrivate(n, "expecting an integer subterm");
       }
@@ -113,11 +113,11 @@ TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
   }
   switch (k)
   {
-    case kind::TO_REAL: return realType;
-    case kind::TO_INTEGER: return integerType;
+    case Kind::TO_REAL: return realType;
+    case Kind::TO_INTEGER: return integerType;
     default:
     {
-      bool isDivision = k == kind::DIVISION || k == kind::DIVISION_TOTAL;
+      bool isDivision = k == Kind::DIVISION || k == Kind::DIVISION_TOTAL;
       return (isInteger && !isDivision ? integerType : realType);
     }
   }
@@ -174,7 +174,7 @@ TypeNode IAndTypeRule::computeType(NodeManager* nodeManager,
                                    bool check,
                                    std::ostream* errOut)
 {
-  if (n.getKind() != kind::IAND)
+  if (n.getKind() != Kind::IAND)
   {
     InternalError() << "IAND typerule invoked for " << n << " instead of IAND kind";
   }
@@ -199,7 +199,7 @@ TypeNode Pow2TypeRule::computeType(NodeManager* nodeManager,
                                    bool check,
                                    std::ostream* errOut)
 {
-  if (n.getKind() != kind::POW2)
+  if (n.getKind() != Kind::POW2)
   {
     InternalError() << "POW2 typerule invoked for " << n << " instead of POW2 kind";
   }

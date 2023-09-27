@@ -31,8 +31,6 @@
 
 namespace cvc5::internal {
 
-using namespace kind;
-
 namespace test {
 
 class TestNodeBlackNodeBuilder : public TestNode
@@ -45,7 +43,7 @@ class TestNodeBlackNodeBuilder : public TestNode
       nb << d_nodeManager->mkConst(true);
     }
   }
-  Kind d_specKind = AND;
+  Kind d_specKind = Kind::AND;
 };
 
 /** Tests just constructors. No modification is done to the node. */
@@ -53,9 +51,9 @@ TEST_F(TestNodeBlackNodeBuilder, ctors)
 {
   /* Default size tests. */
   NodeBuilder def;
-  ASSERT_EQ(def.getKind(), UNDEFINED_KIND);
+  ASSERT_EQ(def.getKind(), Kind::UNDEFINED_KIND);
 #ifdef CVC5_ASSERTIONS
-  ASSERT_DEATH(def.getNumChildren(), "getKind\\(\\) != kind::UNDEFINED_KIND");
+  ASSERT_DEATH(def.getNumChildren(), "getKind\\(\\) != Kind::UNDEFINED_KIND");
 #endif
 
   NodeBuilder spec(d_specKind);
@@ -63,10 +61,10 @@ TEST_F(TestNodeBlackNodeBuilder, ctors)
   ASSERT_EQ(spec.getNumChildren(), 0u);
 
   NodeBuilder from_nm(d_nodeManager);
-  ASSERT_EQ(from_nm.getKind(), UNDEFINED_KIND);
+  ASSERT_EQ(from_nm.getKind(), Kind::UNDEFINED_KIND);
 #ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(from_nm.getNumChildren(),
-               "getKind\\(\\) != kind::UNDEFINED_KIND");
+               "getKind\\(\\) != Kind::UNDEFINED_KIND");
 #endif
 
   NodeBuilder from_nm_kind(d_nodeManager, d_specKind);
@@ -75,9 +73,9 @@ TEST_F(TestNodeBlackNodeBuilder, ctors)
 
   /* Copy constructors */
   NodeBuilder copy(def);
-  ASSERT_EQ(copy.getKind(), UNDEFINED_KIND);
+  ASSERT_EQ(copy.getKind(), Kind::UNDEFINED_KIND);
 #ifdef CVC5_ASSERTIONS
-  ASSERT_DEATH(copy.getNumChildren(), "getKind\\(\\) != kind::UNDEFINED_KIND");
+  ASSERT_DEATH(copy.getNumChildren(), "getKind\\(\\) != Kind::UNDEFINED_KIND");
 #endif
 }
 
@@ -89,24 +87,24 @@ TEST_F(TestNodeBlackNodeBuilder, dtor)
 TEST_F(TestNodeBlackNodeBuilder, getKind)
 {
   NodeBuilder noKind;
-  ASSERT_EQ(noKind.getKind(), UNDEFINED_KIND);
+  ASSERT_EQ(noKind.getKind(), Kind::UNDEFINED_KIND);
 
   Node x(d_skolemManager->mkDummySkolem("x", *d_intTypeNode));
   noKind << x << x;
-  ASSERT_EQ(noKind.getKind(), UNDEFINED_KIND);
+  ASSERT_EQ(noKind.getKind(), Kind::UNDEFINED_KIND);
 
-  noKind << ADD;
-  ASSERT_EQ(noKind.getKind(), ADD);
+  noKind << Kind::ADD;
+  ASSERT_EQ(noKind.getKind(), Kind::ADD);
 
   Node n = noKind;
 #ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(noKind.getKind(), "!isUsed\\(\\)");
 #endif
 
-  NodeBuilder spec(ADD);
-  ASSERT_EQ(spec.getKind(), ADD);
+  NodeBuilder spec(Kind::ADD);
+  ASSERT_EQ(spec.getKind(), Kind::ADD);
   spec << x << x;
-  ASSERT_EQ(spec.getKind(), ADD);
+  ASSERT_EQ(spec.getKind(), Kind::ADD);
 }
 
 TEST_F(TestNodeBlackNodeBuilder, getNumChildren)
@@ -115,10 +113,10 @@ TEST_F(TestNodeBlackNodeBuilder, getNumChildren)
 
   NodeBuilder nb;
 #ifdef CVC5_ASSERTIONS
-  ASSERT_DEATH(nb.getNumChildren(), "getKind\\(\\) != kind::UNDEFINED_KIND");
+  ASSERT_DEATH(nb.getNumChildren(), "getKind\\(\\) != Kind::UNDEFINED_KIND");
 #endif
 
-  nb << ADD << x << x;
+  nb << Kind::ADD << x << x;
   ASSERT_EQ(nb.getNumChildren(), 2u);
 
   nb << x << x;
@@ -126,10 +124,10 @@ TEST_F(TestNodeBlackNodeBuilder, getNumChildren)
 
   nb.clear();
 #ifdef CVC5_ASSERTIONS
-  ASSERT_DEATH(nb.getNumChildren(), "getKind\\(\\) != kind::UNDEFINED_KIND");
+  ASSERT_DEATH(nb.getNumChildren(), "getKind\\(\\) != Kind::UNDEFINED_KIND");
 #endif
 
-  nb.clear(ADD);
+  nb.clear(Kind::ADD);
   ASSERT_EQ(nb.getNumChildren(), 0u);
 
   nb << x << x << x;
@@ -139,7 +137,7 @@ TEST_F(TestNodeBlackNodeBuilder, getNumChildren)
   ASSERT_EQ(nb.getNumChildren(), 6u);
 
 #ifdef CVC5_ASSERTIONS
-  ASSERT_DEATH(nb << ADD, "getKind\\(\\) == kind::UNDEFINED_KIND");
+  ASSERT_DEATH(nb << Kind::ADD, "getKind\\(\\) == Kind::UNDEFINED_KIND");
   Node n = nb;
   ASSERT_DEATH(nb.getNumChildren(), "!isUsed\\(\\)");
 #endif
@@ -151,7 +149,7 @@ TEST_F(TestNodeBlackNodeBuilder, operator_square)
 
   Node i_0 = d_nodeManager->mkConst(false);
   Node i_2 = d_nodeManager->mkConst(true);
-  Node i_K = d_nodeManager->mkNode(NOT, i_0);
+  Node i_K = d_nodeManager->mkNode(Kind::NOT, i_0);
 
 #ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(arr[-1], "index out of range");
@@ -192,9 +190,9 @@ TEST_F(TestNodeBlackNodeBuilder, operator_square)
 TEST_F(TestNodeBlackNodeBuilder, clear)
 {
   NodeBuilder nb;
-  ASSERT_EQ(nb.getKind(), UNDEFINED_KIND);
+  ASSERT_EQ(nb.getKind(), Kind::UNDEFINED_KIND);
 #ifdef CVC5_ASSERTIONS
-  ASSERT_DEATH(nb.getNumChildren(), "getKind\\(\\) != kind::UNDEFINED_KIND");
+  ASSERT_DEATH(nb.getNumChildren(), "getKind\\(\\) != Kind::UNDEFINED_KIND");
 #endif
 
   nb << d_specKind;
@@ -203,9 +201,9 @@ TEST_F(TestNodeBlackNodeBuilder, clear)
   ASSERT_EQ(nb.getNumChildren(), K);
 
   nb.clear();
-  ASSERT_EQ(nb.getKind(), UNDEFINED_KIND);
+  ASSERT_EQ(nb.getKind(), Kind::UNDEFINED_KIND);
 #ifdef CVC5_ASSERTIONS
-  ASSERT_DEATH(nb.getNumChildren(), "getKind\\(\\) != kind::UNDEFINED_KIND");
+  ASSERT_DEATH(nb.getNumChildren(), "getKind\\(\\) != Kind::UNDEFINED_KIND");
 #endif
 
   nb << d_specKind;
@@ -219,9 +217,9 @@ TEST_F(TestNodeBlackNodeBuilder, clear)
 
   push_back(nb, K);
   nb.clear();
-  ASSERT_EQ(nb.getKind(), UNDEFINED_KIND);
+  ASSERT_EQ(nb.getKind(), Kind::UNDEFINED_KIND);
 #ifdef CVC5_ASSERTIONS
-  ASSERT_DEATH(nb.getNumChildren(), "getKind\\(\\) != kind::UNDEFINED_KIND");
+  ASSERT_DEATH(nb.getNumChildren(), "getKind\\(\\) != Kind::UNDEFINED_KIND");
 #endif
 }
 
@@ -229,7 +227,7 @@ TEST_F(TestNodeBlackNodeBuilder, operator_stream_insertion_kind)
 {
 #ifdef CVC5_ASSERTIONS
   NodeBuilder spec(d_specKind);
-  ASSERT_DEATH(spec << ADD, "can't redefine the Kind of a NodeBuilder");
+  ASSERT_DEATH(spec << Kind::ADD, "can't redefine the Kind of a NodeBuilder");
 #endif
 
   NodeBuilder noSpec;
@@ -243,16 +241,16 @@ TEST_F(TestNodeBlackNodeBuilder, operator_stream_insertion_kind)
 
   NodeBuilder nb(d_specKind);
   nb << d_nodeManager->mkConst(true) << d_nodeManager->mkConst(false);
-  nb.clear(ADD);
+  nb.clear(Kind::ADD);
 
 #ifdef CVC5_ASSERTIONS
   Node n;
   ASSERT_DEATH(n = nb, "Nodes with kind `\\+` must have at least 2 children");
-  nb.clear(ADD);
+  nb.clear(Kind::ADD);
 #endif
 
 #ifdef CVC5_ASSERTIONS
-  ASSERT_DEATH(nb << ADD, "can't redefine the Kind of a NodeBuilder");
+  ASSERT_DEATH(nb << Kind::ADD, "can't redefine the Kind of a NodeBuilder");
 #endif
 
   NodeBuilder testRef;
@@ -260,7 +258,7 @@ TEST_F(TestNodeBlackNodeBuilder, operator_stream_insertion_kind)
 
 #ifdef CVC5_ASSERTIONS
   NodeBuilder testTwo;
-  ASSERT_DEATH(testTwo << d_specKind << ADD,
+  ASSERT_DEATH(testTwo << d_specKind << Kind::ADD,
                "can't redefine the Kind of a NodeBuilder");
 #endif
 
@@ -302,22 +300,25 @@ TEST_F(TestNodeBlackNodeBuilder, append)
   Node x = d_skolemManager->mkDummySkolem("x", *d_boolTypeNode);
   Node y = d_skolemManager->mkDummySkolem("y", *d_boolTypeNode);
   Node z = d_skolemManager->mkDummySkolem("z", *d_boolTypeNode);
-  Node m = d_nodeManager->mkNode(AND, y, z, x);
-  Node n = d_nodeManager->mkNode(OR, d_nodeManager->mkNode(NOT, x), y, z);
-  Node o = d_nodeManager->mkNode(XOR, y, x);
+  Node m = d_nodeManager->mkNode(Kind::AND, y, z, x);
+  Node n = d_nodeManager->mkNode(
+      Kind::OR, d_nodeManager->mkNode(Kind::NOT, x), y, z);
+  Node o = d_nodeManager->mkNode(Kind::XOR, y, x);
 
   Node r = d_skolemManager->mkDummySkolem("r", *d_realTypeNode);
   Node s = d_skolemManager->mkDummySkolem("s", *d_realTypeNode);
   Node t = d_skolemManager->mkDummySkolem("t", *d_realTypeNode);
 
   Node p = d_nodeManager->mkNode(
-      EQUAL,
-      d_nodeManager->mkConst<Rational>(CONST_RATIONAL, 0),
-      d_nodeManager->mkNode(ADD, r, d_nodeManager->mkNode(NEG, s), t));
-  Node q = d_nodeManager->mkNode(AND, x, z, d_nodeManager->mkNode(NOT, y));
+      Kind::EQUAL,
+      d_nodeManager->mkConst<Rational>(Kind::CONST_RATIONAL, 0),
+      d_nodeManager->mkNode(
+          Kind::ADD, r, d_nodeManager->mkNode(Kind::NEG, s), t));
+  Node q = d_nodeManager->mkNode(
+      Kind::AND, x, z, d_nodeManager->mkNode(Kind::NOT, y));
 
 #ifdef CVC5_ASSERTIONS
-  ASSERT_DEATH(d_nodeManager->mkNode(XOR, y, x, x),
+  ASSERT_DEATH(d_nodeManager->mkNode(Kind::XOR, y, x, x),
                "Nodes with kind `xor` must have at most 2 children");
 #endif
 
@@ -396,7 +397,8 @@ TEST_F(TestNodeBlackNodeBuilder, leftist_building)
   Node d = d_skolemManager->mkDummySkolem("d", *d_realTypeNode);
   Node e = d_skolemManager->mkDummySkolem("e", *d_realTypeNode);
 
-  nb << a << NOT << b << c << OR << c << a << AND << d << e << ITE;
+  nb << a << Kind::NOT << b << c << Kind::OR << c << a << Kind::AND << d << e
+     << Kind::ITE;
 
   Node n = nb;
   ASSERT_EQ(n.getNumChildren(), 3u);
@@ -405,10 +407,10 @@ TEST_F(TestNodeBlackNodeBuilder, leftist_building)
   ASSERT_EQ(n[1].getType(), *d_realTypeNode);
   ASSERT_EQ(n[2].getType(), *d_realTypeNode);
 
-  Node nota = d_nodeManager->mkNode(NOT, a);
-  Node nota_or_b_or_c = d_nodeManager->mkNode(OR, nota, b, c);
-  Node n0 = d_nodeManager->mkNode(AND, nota_or_b_or_c, c, a);
-  Node nexpected = d_nodeManager->mkNode(ITE, n0, d, e);
+  Node nota = d_nodeManager->mkNode(Kind::NOT, a);
+  Node nota_or_b_or_c = d_nodeManager->mkNode(Kind::OR, nota, b, c);
+  Node n0 = d_nodeManager->mkNode(Kind::AND, nota_or_b_or_c, c, a);
+  Node nexpected = d_nodeManager->mkNode(Kind::ITE, n0, d, e);
 
   ASSERT_EQ(nexpected, n);
 }

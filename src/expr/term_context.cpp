@@ -67,9 +67,9 @@ bool RtfTermContext::hasNestedTermChildren(TNode t)
 {
   Kind k = t.getKind();
   // dont' worry about FORALL or EXISTS, these are part of inQuant.
-  return theory::kindToTheoryId(k) != theory::THEORY_BOOL && k != kind::EQUAL
-         && k != kind::SEP_STAR && k != kind::SEP_WAND && k != kind::SEP_LABEL
-         && k != kind::BITVECTOR_EAGER_ATOM;
+  return theory::kindToTheoryId(k) != theory::THEORY_BOOL && k != Kind::EQUAL
+         && k != Kind::SEP_STAR && k != Kind::SEP_WAND && k != Kind::SEP_LABEL
+         && k != Kind::BITVECTOR_EAGER_ATOM;
 }
 
 uint32_t InQuantTermContext::initialValue() const { return 0; }
@@ -100,21 +100,21 @@ uint32_t PolarityTermContext::computeValue(TNode t,
 {
   switch (t.getKind())
   {
-    case kind::AND:
-    case kind::OR:
-    case kind::SEP_STAR:
+    case Kind::AND:
+    case Kind::OR:
+    case Kind::SEP_STAR:
       // polarity preserved
       return tval;
-    case kind::IMPLIES:
+    case Kind::IMPLIES:
       // first child reverses, otherwise we preserve
       return index == 0 ? (tval == 0 ? 0 : (3 - tval)) : tval;
-    case kind::NOT:
+    case Kind::NOT:
       // polarity reversed
       return tval == 0 ? 0 : (3 - tval);
-    case kind::ITE:
+    case Kind::ITE:
       // head has no polarity, branches preserve
       return index == 0 ? 0 : tval;
-    case kind::FORALL:
+    case Kind::FORALL:
       // body preserves, others have no polarity.
       return index == 1 ? tval : 0;
     default:

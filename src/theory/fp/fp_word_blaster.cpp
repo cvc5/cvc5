@@ -63,55 +63,55 @@ using namespace cvc5::internal::theory::fp::symfpuSymbolic;
       }                                                                      \
       else                                                                   \
       {                                                                      \
-        if (l.getKind() == cvc5::internal::kind::BITVECTOR_ITE)              \
+        if (l.getKind() == cvc5::internal::Kind::BITVECTOR_ITE)              \
         {                                                                    \
           if (l[1] == r)                                                     \
           {                                                                  \
             return nm->mkNode(                                               \
-                cvc5::internal::kind::BITVECTOR_ITE,                         \
+                cvc5::internal::Kind::BITVECTOR_ITE,                         \
                 nm->mkNode(                                                  \
-                    cvc5::internal::kind::BITVECTOR_AND,                     \
+                    cvc5::internal::Kind::BITVECTOR_AND,                     \
                     cond,                                                    \
-                    nm->mkNode(cvc5::internal::kind::BITVECTOR_NOT, l[0])),  \
+                    nm->mkNode(cvc5::internal::Kind::BITVECTOR_NOT, l[0])),  \
                 l[2],                                                        \
                 r);                                                          \
           }                                                                  \
           else if (l[2] == r)                                                \
           {                                                                  \
             return nm->mkNode(                                               \
-                cvc5::internal::kind::BITVECTOR_ITE,                         \
-                nm->mkNode(cvc5::internal::kind::BITVECTOR_AND, cond, l[0]), \
+                cvc5::internal::Kind::BITVECTOR_ITE,                         \
+                nm->mkNode(cvc5::internal::Kind::BITVECTOR_AND, cond, l[0]), \
                 l[1],                                                        \
                 r);                                                          \
           }                                                                  \
         }                                                                    \
-        else if (r.getKind() == cvc5::internal::kind::BITVECTOR_ITE)         \
+        else if (r.getKind() == cvc5::internal::Kind::BITVECTOR_ITE)         \
         {                                                                    \
           if (r[1] == l)                                                     \
           {                                                                  \
             return nm->mkNode(                                               \
-                cvc5::internal::kind::BITVECTOR_ITE,                         \
+                cvc5::internal::Kind::BITVECTOR_ITE,                         \
                 nm->mkNode(                                                  \
-                    cvc5::internal::kind::BITVECTOR_AND,                     \
-                    nm->mkNode(cvc5::internal::kind::BITVECTOR_NOT, cond),   \
-                    nm->mkNode(cvc5::internal::kind::BITVECTOR_NOT, r[0])),  \
+                    cvc5::internal::Kind::BITVECTOR_AND,                     \
+                    nm->mkNode(cvc5::internal::Kind::BITVECTOR_NOT, cond),   \
+                    nm->mkNode(cvc5::internal::Kind::BITVECTOR_NOT, r[0])),  \
                 r[2],                                                        \
                 l);                                                          \
           }                                                                  \
           else if (r[2] == l)                                                \
           {                                                                  \
             return nm->mkNode(                                               \
-                cvc5::internal::kind::BITVECTOR_ITE,                         \
+                cvc5::internal::Kind::BITVECTOR_ITE,                         \
                 nm->mkNode(                                                  \
-                    cvc5::internal::kind::BITVECTOR_AND,                     \
-                    nm->mkNode(cvc5::internal::kind::BITVECTOR_NOT, cond),   \
+                    cvc5::internal::Kind::BITVECTOR_AND,                     \
+                    nm->mkNode(cvc5::internal::Kind::BITVECTOR_NOT, cond),   \
                     r[0]),                                                   \
                 r[1],                                                        \
                 l);                                                          \
           }                                                                  \
         }                                                                    \
       }                                                                      \
-      return T(nm->mkNode(cvc5::internal::kind::BITVECTOR_ITE, cond, l, r)); \
+      return T(nm->mkNode(cvc5::internal::Kind::BITVECTOR_ITE, cond, l, r)); \
     }                                                                        \
   }
 
@@ -205,35 +205,35 @@ symbolicProposition::symbolicProposition(const symbolicProposition& old)
 symbolicProposition symbolicProposition::operator!(void) const
 {
   return symbolicProposition(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_NOT, *this));
+      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_NOT, *this));
 }
 
 symbolicProposition symbolicProposition::operator&&(
     const symbolicProposition& op) const
 {
   return symbolicProposition(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_AND, *this, op));
+      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_AND, *this, op));
 }
 
 symbolicProposition symbolicProposition::operator||(
     const symbolicProposition& op) const
 {
   return symbolicProposition(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_OR, *this, op));
+      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_OR, *this, op));
 }
 
 symbolicProposition symbolicProposition::operator==(
     const symbolicProposition& op) const
 {
   return symbolicProposition(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_COMP, *this, op));
+      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_COMP, *this, op));
 }
 
 symbolicProposition symbolicProposition::operator^(
     const symbolicProposition& op) const
 {
   return symbolicProposition(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_XOR, *this, op));
+      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_XOR, *this, op));
 }
 
 bool symbolicRoundingMode::checkNodeType(const TNode n)
@@ -267,25 +267,25 @@ symbolicProposition symbolicRoundingMode::valid(void) const
 
   // Is there a better encoding of this?
   return symbolicProposition(nm->mkNode(
-      kind::BITVECTOR_AND,
+      Kind::BITVECTOR_AND,
       nm->mkNode(
-          kind::BITVECTOR_COMP,
-          nm->mkNode(kind::BITVECTOR_AND,
+          Kind::BITVECTOR_COMP,
+          nm->mkNode(Kind::BITVECTOR_AND,
                      *this,
-                     nm->mkNode(kind::BITVECTOR_SUB,
+                     nm->mkNode(Kind::BITVECTOR_SUB,
                                 *this,
                                 nm->mkConst(BitVector(
                                     SYMFPU_NUMBER_OF_ROUNDING_MODES, 1u)))),
           zero),
-      nm->mkNode(kind::BITVECTOR_NOT,
-                 nm->mkNode(kind::BITVECTOR_COMP, *this, zero))));
+      nm->mkNode(Kind::BITVECTOR_NOT,
+                 nm->mkNode(Kind::BITVECTOR_COMP, *this, zero))));
 }
 
 symbolicProposition symbolicRoundingMode::operator==(
     const symbolicRoundingMode& op) const
 {
   return symbolicProposition(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_COMP, *this, op));
+      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_COMP, *this, op));
 }
 
 template <bool isSigned>
@@ -293,7 +293,7 @@ Node symbolicBitVector<isSigned>::boolNodeToBV(Node node) const
 {
   Assert(node.getType().isBoolean());
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(kind::ITE,
+  return nm->mkNode(Kind::ITE,
                     node,
                     nm->mkConst(BitVector(1U, 1U)),
                     nm->mkConst(BitVector(1U, 0U)));
@@ -305,7 +305,7 @@ Node symbolicBitVector<isSigned>::BVToBoolNode(Node node) const
   Assert(node.getType().isBitVector());
   Assert(node.getType().getBitVectorSize() == 1);
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(kind::EQUAL, node, nm->mkConst(BitVector(1U, 1U)));
+  return nm->mkNode(Kind::EQUAL, node, nm->mkConst(BitVector(1U, 1U)));
 }
 
 template <bool isSigned>
@@ -398,7 +398,7 @@ symbolicBitVector<true> symbolicBitVector<true>::maxValue(const bwt& w)
 
   return symbolicBitVector<true>(
       cvc5::internal::NodeManager::currentNM()->mkNode(
-          cvc5::internal::kind::BITVECTOR_CONCAT, leadingZero, base));
+          cvc5::internal::Kind::BITVECTOR_CONCAT, leadingZero, base));
 }
 
 template <>
@@ -415,7 +415,7 @@ symbolicBitVector<true> symbolicBitVector<true>::minValue(const bwt& w)
 
   return symbolicBitVector<true>(
       cvc5::internal::NodeManager::currentNM()->mkNode(
-          cvc5::internal::kind::BITVECTOR_CONCAT, leadingOne, base));
+          cvc5::internal::Kind::BITVECTOR_CONCAT, leadingOne, base));
 }
 
 template <>
@@ -430,7 +430,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator<<(
     const symbolicBitVector<isSigned>& op) const
 {
   return symbolicBitVector<isSigned>(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_SHL, *this, op));
+      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_SHL, *this, op));
 }
 
 template <bool isSigned>
@@ -438,7 +438,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator>>(
     const symbolicBitVector<isSigned>& op) const
 {
   return symbolicBitVector<isSigned>(NodeManager::currentNM()->mkNode(
-      (isSigned) ? kind::BITVECTOR_ASHR : kind::BITVECTOR_LSHR, *this, op));
+      (isSigned) ? Kind::BITVECTOR_ASHR : Kind::BITVECTOR_LSHR, *this, op));
 }
 
 template <bool isSigned>
@@ -446,7 +446,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator|(
     const symbolicBitVector<isSigned>& op) const
 {
   return symbolicBitVector<isSigned>(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_OR, *this, op));
+      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_OR, *this, op));
 }
 
 template <bool isSigned>
@@ -454,7 +454,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator&(
     const symbolicBitVector<isSigned>& op) const
 {
   return symbolicBitVector<isSigned>(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_AND, *this, op));
+      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_AND, *this, op));
 }
 
 template <bool isSigned>
@@ -462,7 +462,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator+(
     const symbolicBitVector<isSigned>& op) const
 {
   return symbolicBitVector<isSigned>(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_ADD, *this, op));
+      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_ADD, *this, op));
 }
 
 template <bool isSigned>
@@ -470,7 +470,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator-(
     const symbolicBitVector<isSigned>& op) const
 {
   return symbolicBitVector<isSigned>(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_SUB, *this, op));
+      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_SUB, *this, op));
 }
 
 template <bool isSigned>
@@ -478,7 +478,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator*(
     const symbolicBitVector<isSigned>& op) const
 {
   return symbolicBitVector<isSigned>(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_MULT, *this, op));
+      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_MULT, *this, op));
 }
 
 template <bool isSigned>
@@ -486,7 +486,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator/(
     const symbolicBitVector<isSigned>& op) const
 {
   return symbolicBitVector<isSigned>(NodeManager::currentNM()->mkNode(
-      (isSigned) ? kind::BITVECTOR_SDIV : kind::BITVECTOR_UDIV, *this, op));
+      (isSigned) ? Kind::BITVECTOR_SDIV : Kind::BITVECTOR_UDIV, *this, op));
 }
 
 template <bool isSigned>
@@ -494,35 +494,35 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator%(
     const symbolicBitVector<isSigned>& op) const
 {
   return symbolicBitVector<isSigned>(NodeManager::currentNM()->mkNode(
-      (isSigned) ? kind::BITVECTOR_SREM : kind::BITVECTOR_UREM, *this, op));
+      (isSigned) ? Kind::BITVECTOR_SREM : Kind::BITVECTOR_UREM, *this, op));
 }
 
 template <bool isSigned>
 symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator-(void) const
 {
   return symbolicBitVector<isSigned>(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_NEG, *this));
+      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_NEG, *this));
 }
 
 template <bool isSigned>
 symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator~(void) const
 {
   return symbolicBitVector<isSigned>(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_NOT, *this));
+      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_NOT, *this));
 }
 
 template <bool isSigned>
 symbolicBitVector<isSigned> symbolicBitVector<isSigned>::increment() const
 {
   return symbolicBitVector<isSigned>(NodeManager::currentNM()->mkNode(
-      kind::BITVECTOR_ADD, *this, one(this->getWidth())));
+      Kind::BITVECTOR_ADD, *this, one(this->getWidth())));
 }
 
 template <bool isSigned>
 symbolicBitVector<isSigned> symbolicBitVector<isSigned>::decrement() const
 {
   return symbolicBitVector<isSigned>(NodeManager::currentNM()->mkNode(
-      kind::BITVECTOR_SUB, *this, one(this->getWidth())));
+      Kind::BITVECTOR_SUB, *this, one(this->getWidth())));
 }
 
 template <bool isSigned>
@@ -530,7 +530,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::signExtendRightShift(
     const symbolicBitVector<isSigned>& op) const
 {
   return symbolicBitVector<isSigned>(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_ASHR, *this, op));
+      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_ASHR, *this, op));
 }
 
 /*** Modular operations ***/
@@ -583,14 +583,14 @@ symbolicProposition symbolicBitVector<isSigned>::operator==(
     const symbolicBitVector<isSigned>& op) const
 {
   return symbolicProposition(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_COMP, *this, op));
+      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_COMP, *this, op));
 }
 
 template <bool isSigned>
 symbolicProposition symbolicBitVector<isSigned>::operator<=(
     const symbolicBitVector<isSigned>& op) const
 {
-  // Consider adding kind::BITVECTOR_SLEBV and BITVECTOR_ULEBV
+  // Consider adding Kind::BITVECTOR_SLEBV and BITVECTOR_ULEBV
   return (*this < op) || (*this == op);
 }
 
@@ -606,7 +606,7 @@ symbolicProposition symbolicBitVector<isSigned>::operator<(
     const symbolicBitVector<isSigned>& op) const
 {
   return symbolicProposition(NodeManager::currentNM()->mkNode(
-      (isSigned) ? kind::BITVECTOR_SLTBV : kind::BITVECTOR_ULTBV, *this, op));
+      (isSigned) ? Kind::BITVECTOR_SLTBV : Kind::BITVECTOR_ULTBV, *this, op));
 }
 
 template <bool isSigned>
@@ -614,7 +614,7 @@ symbolicProposition symbolicBitVector<isSigned>::operator>(
     const symbolicBitVector<isSigned>& op) const
 {
   return symbolicProposition(NodeManager::currentNM()->mkNode(
-      (isSigned) ? kind::BITVECTOR_SLTBV : kind::BITVECTOR_ULTBV, op, *this));
+      (isSigned) ? Kind::BITVECTOR_SLTBV : Kind::BITVECTOR_ULTBV, op, *this));
 }
 
 /*** Type conversion ***/
@@ -634,7 +634,7 @@ symbolicBitVector<false> symbolicBitVector<isSigned>::toUnsigned(void) const
 template <>
 symbolicBitVector<true> symbolicBitVector<true>::extend(bwt extension) const
 {
-  NodeBuilder construct(kind::BITVECTOR_SIGN_EXTEND);
+  NodeBuilder construct(Kind::BITVECTOR_SIGN_EXTEND);
   construct << NodeManager::currentNM()->mkConst<BitVectorSignExtend>(
       BitVectorSignExtend(extension))
             << *this;
@@ -645,7 +645,7 @@ symbolicBitVector<true> symbolicBitVector<true>::extend(bwt extension) const
 template <>
 symbolicBitVector<false> symbolicBitVector<false>::extend(bwt extension) const
 {
-  NodeBuilder construct(kind::BITVECTOR_ZERO_EXTEND);
+  NodeBuilder construct(Kind::BITVECTOR_ZERO_EXTEND);
   construct << NodeManager::currentNM()->mkConst<BitVectorZeroExtend>(
       BitVectorZeroExtend(extension))
             << *this;
@@ -659,7 +659,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::contract(
 {
   Assert(this->getWidth() > reduction);
 
-  NodeBuilder construct(kind::BITVECTOR_EXTRACT);
+  NodeBuilder construct(Kind::BITVECTOR_EXTRACT);
   construct << NodeManager::currentNM()->mkConst<BitVectorExtract>(
       BitVectorExtract((this->getWidth() - 1) - reduction, 0))
             << *this;
@@ -700,7 +700,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::append(
     const symbolicBitVector<isSigned>& op) const
 {
   return symbolicBitVector<isSigned>(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_CONCAT, *this, op));
+      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_CONCAT, *this, op));
 }
 
 // Inclusive of end points, thus if the same, extracts just one bit
@@ -710,7 +710,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::extract(
 {
   Assert(upper >= lower);
 
-  NodeBuilder construct(kind::BITVECTOR_EXTRACT);
+  NodeBuilder construct(Kind::BITVECTOR_EXTRACT);
   construct << NodeManager::currentNM()->mkConst<BitVectorExtract>(
       BitVectorExtract(upper, lower))
             << *this;
@@ -779,19 +779,19 @@ Node FpWordBlaster::rmToNode(const rm& r) const
   Node RTZ = traits::RTZ();
 
   Node value = nm->mkNode(
-      kind::ITE,
-      nm->mkNode(kind::EQUAL, transVar, RNE),
+      Kind::ITE,
+      nm->mkNode(Kind::EQUAL, transVar, RNE),
       nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN),
       nm->mkNode(
-          kind::ITE,
-          nm->mkNode(kind::EQUAL, transVar, RNA),
+          Kind::ITE,
+          nm->mkNode(Kind::EQUAL, transVar, RNA),
           nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_AWAY),
           nm->mkNode(
-              kind::ITE,
-              nm->mkNode(kind::EQUAL, transVar, RTP),
+              Kind::ITE,
+              nm->mkNode(Kind::EQUAL, transVar, RTP),
               nm->mkConst(RoundingMode::ROUND_TOWARD_POSITIVE),
-              nm->mkNode(kind::ITE,
-                         nm->mkNode(kind::EQUAL, transVar, RTN),
+              nm->mkNode(Kind::ITE,
+                         nm->mkNode(Kind::EQUAL, transVar, RTN),
                          nm->mkConst(RoundingMode::ROUND_TOWARD_NEGATIVE),
                          nm->mkConst(RoundingMode::ROUND_TOWARD_ZERO)))));
   return value;
@@ -801,7 +801,7 @@ Node FpWordBlaster::propToNode(const prop& p) const
 {
   NodeManager* nm = NodeManager::currentNM();
   Node value = nm->mkNode(
-      kind::EQUAL, p, nm->mkConst(cvc5::internal::BitVector(1U, 1U)));
+      Kind::EQUAL, p, nm->mkConst(cvc5::internal::BitVector(1U, 1U)));
   return value;
 }
 Node FpWordBlaster::ubvToNode(const ubv& u) const { return u; }
@@ -810,15 +810,15 @@ Node FpWordBlaster::sbvToNode(const sbv& s) const { return s; }
 FpWordBlaster::uf FpWordBlaster::buildComponents(TNode current)
 {
   Assert(Theory::isLeafOf(current, THEORY_FP)
-         || current.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_REAL);
+         || current.getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_REAL);
 
   NodeManager* nm = NodeManager::currentNM();
-  uf tmp(nm->mkNode(kind::FLOATINGPOINT_COMPONENT_NAN, current),
-         nm->mkNode(kind::FLOATINGPOINT_COMPONENT_INF, current),
-         nm->mkNode(kind::FLOATINGPOINT_COMPONENT_ZERO, current),
-         nm->mkNode(kind::FLOATINGPOINT_COMPONENT_SIGN, current),
-         nm->mkNode(kind::FLOATINGPOINT_COMPONENT_EXPONENT, current),
-         nm->mkNode(kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND, current));
+  uf tmp(nm->mkNode(Kind::FLOATINGPOINT_COMPONENT_NAN, current),
+         nm->mkNode(Kind::FLOATINGPOINT_COMPONENT_INF, current),
+         nm->mkNode(Kind::FLOATINGPOINT_COMPONENT_ZERO, current),
+         nm->mkNode(Kind::FLOATINGPOINT_COMPONENT_SIGN, current),
+         nm->mkNode(Kind::FLOATINGPOINT_COMPONENT_EXPONENT, current),
+         nm->mkNode(Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND, current));
 
   d_additionalAssertions.push_back(tmp.valid(fpt(current.getType())));
 
@@ -852,11 +852,11 @@ Node FpWordBlaster::wordBlast(TNode node)
 
     Kind kind = cur.getKind();
 
-    if (t.isReal() && kind != kind::FLOATINGPOINT_TO_REAL_TOTAL)
+    if (t.isReal() && kind != Kind::FLOATINGPOINT_TO_REAL_TOTAL)
     {
       // The only nodes with Real sort in Theory FP are of kind
-      // kind::FLOATINGPOINT_TO_REAL_TOTAL (kind::FLOATINGPOINT_TO_REAL is
-      // rewritten to kind::FLOATINGPOINT_TO_REAL_TOTAL).
+      // Kind::FLOATINGPOINT_TO_REAL_TOTAL (Kind::FLOATINGPOINT_TO_REAL is
+      // rewritten to Kind::FLOATINGPOINT_TO_REAL_TOTAL).
       // We don't need to do anything explicitly with them since they will be
       // treated as an uninterpreted function by the Real theory and we don't
       // need to bit-blast the float expression unless we need to say something
@@ -890,7 +890,7 @@ Node FpWordBlaster::wordBlast(TNode node)
       {
         /* ---- RoundingMode constants and variables -------------- */
         Assert(Theory::isLeafOf(cur, THEORY_FP));
-        if (kind == kind::CONST_ROUNDINGMODE)
+        if (kind == Kind::CONST_ROUNDINGMODE)
         {
           switch (cur.getConst<RoundingMode>())
           {
@@ -914,7 +914,7 @@ Node FpWordBlaster::wordBlast(TNode node)
         }
         else
         {
-          rm tmp(nm->mkNode(kind::ROUNDINGMODE_BITBLAST, cur));
+          rm tmp(nm->mkNode(Kind::ROUNDINGMODE_BITBLAST, cur));
           d_rmMap.insert(cur, tmp);
           d_additionalAssertions.push_back(tmp.valid());
         }
@@ -924,7 +924,7 @@ Node FpWordBlaster::wordBlast(TNode node)
         /* ---- FloatingPoint constants and variables ------------- */
         if (Theory::isLeafOf(cur, THEORY_FP))
         {
-          if (kind == kind::CONST_FLOATINGPOINT)
+          if (kind == Kind::CONST_FLOATINGPOINT)
           {
             d_fpMap.insert(
                 cur,
@@ -939,28 +939,28 @@ Node FpWordBlaster::wordBlast(TNode node)
         else
         {
           /* ---- FloatingPoint operators --------------------------- */
-          Assert(kind != kind::CONST_FLOATINGPOINT);
-          Assert(kind != kind::VARIABLE);
-          Assert(kind != kind::BOUND_VARIABLE && kind != kind::SKOLEM);
+          Assert(kind != Kind::CONST_FLOATINGPOINT);
+          Assert(kind != Kind::VARIABLE);
+          Assert(kind != Kind::BOUND_VARIABLE && kind != Kind::SKOLEM);
 
           switch (kind)
           {
             /* ---- Arithmetic operators ---- */
-            case kind::FLOATINGPOINT_ABS:
+            case Kind::FLOATINGPOINT_ABS:
               Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
               d_fpMap.insert(cur,
                              symfpu::absolute<traits>(
                                  fpt(t), (*d_fpMap.find(cur[0])).second));
               break;
 
-            case kind::FLOATINGPOINT_NEG:
+            case Kind::FLOATINGPOINT_NEG:
               Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
               d_fpMap.insert(cur,
                              symfpu::negate<traits>(
                                  fpt(t), (*d_fpMap.find(cur[0])).second));
               break;
 
-            case kind::FLOATINGPOINT_SQRT:
+            case Kind::FLOATINGPOINT_SQRT:
               Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
               Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
               d_fpMap.insert(
@@ -970,7 +970,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                        (*d_fpMap.find(cur[1])).second));
               break;
 
-            case kind::FLOATINGPOINT_RTI:
+            case Kind::FLOATINGPOINT_RTI:
               Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
               Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
               d_fpMap.insert(cur,
@@ -980,7 +980,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                  (*d_fpMap.find(cur[1])).second));
               break;
 
-            case kind::FLOATINGPOINT_REM:
+            case Kind::FLOATINGPOINT_REM:
               Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
               Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
               d_fpMap.insert(
@@ -990,7 +990,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                             (*d_fpMap.find(cur[1])).second));
               break;
 
-            case kind::FLOATINGPOINT_MAX_TOTAL:
+            case Kind::FLOATINGPOINT_MAX_TOTAL:
               Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
               Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
               Assert(cur[2].getType().isBitVector());
@@ -1001,7 +1001,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                                  prop(cur[2])));
               break;
 
-            case kind::FLOATINGPOINT_MIN_TOTAL:
+            case Kind::FLOATINGPOINT_MIN_TOTAL:
               Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
               Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
               Assert(cur[2].getType().isBitVector());
@@ -1012,7 +1012,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                                  prop(cur[2])));
               break;
 
-            case kind::FLOATINGPOINT_ADD:
+            case Kind::FLOATINGPOINT_ADD:
               Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
               Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
               Assert(d_fpMap.find(cur[2]) != d_fpMap.end());
@@ -1024,7 +1024,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                                  prop(true)));
               break;
 
-            case kind::FLOATINGPOINT_MULT:
+            case Kind::FLOATINGPOINT_MULT:
               Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
               Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
               Assert(d_fpMap.find(cur[2]) != d_fpMap.end());
@@ -1036,7 +1036,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                            (*d_fpMap.find(cur[2])).second));
               break;
 
-            case kind::FLOATINGPOINT_DIV:
+            case Kind::FLOATINGPOINT_DIV:
               Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
               Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
               Assert(d_fpMap.find(cur[2]) != d_fpMap.end());
@@ -1048,7 +1048,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                          (*d_fpMap.find(cur[2])).second));
               break;
 
-            case kind::FLOATINGPOINT_FMA:
+            case Kind::FLOATINGPOINT_FMA:
               Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
               Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
               Assert(d_fpMap.find(cur[2]) != d_fpMap.end());
@@ -1064,7 +1064,7 @@ Node FpWordBlaster::wordBlast(TNode node)
               break;
 
             /* ---- Conversions ---- */
-            case kind::FLOATINGPOINT_TO_FP_FROM_FP:
+            case Kind::FLOATINGPOINT_TO_FP_FROM_FP:
               Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
               Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
               d_fpMap.insert(cur,
@@ -1075,24 +1075,24 @@ Node FpWordBlaster::wordBlast(TNode node)
                                  (*d_fpMap.find(cur[1])).second));
               break;
 
-            case kind::FLOATINGPOINT_FP:
+            case Kind::FLOATINGPOINT_FP:
             {
               Assert(cur[0].getType().isBitVector());
               Assert(cur[1].getType().isBitVector());
               Assert(cur[2].getType().isBitVector());
 
               Node IEEEBV(
-                  nm->mkNode(kind::BITVECTOR_CONCAT, cur[0], cur[1], cur[2]));
+                  nm->mkNode(Kind::BITVECTOR_CONCAT, cur[0], cur[1], cur[2]));
               d_fpMap.insert(cur, symfpu::unpack<traits>(fpt(t), IEEEBV));
             }
             break;
 
-            case kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
+            case Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
               Assert(cur[0].getType().isBitVector());
               d_fpMap.insert(cur, symfpu::unpack<traits>(fpt(t), ubv(cur[0])));
               break;
 
-            case kind::FLOATINGPOINT_TO_FP_FROM_SBV:
+            case Kind::FLOATINGPOINT_TO_FP_FROM_SBV:
               Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
               d_fpMap.insert(
                   cur,
@@ -1100,7 +1100,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                       fpt(t), (*d_rmMap.find(cur[0])).second, sbv(cur[1])));
               break;
 
-            case kind::FLOATINGPOINT_TO_FP_FROM_UBV:
+            case Kind::FLOATINGPOINT_TO_FP_FROM_UBV:
               Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
               d_fpMap.insert(
                   cur,
@@ -1108,7 +1108,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                       fpt(t), (*d_rmMap.find(cur[0])).second, ubv(cur[1])));
               break;
 
-            case kind::FLOATINGPOINT_TO_FP_FROM_REAL:
+            case Kind::FLOATINGPOINT_TO_FP_FROM_REAL:
               d_fpMap.insert(cur, buildComponents(cur));
               // Rely on the real theory and theory combination
               // to handle the value
@@ -1123,7 +1123,7 @@ Node FpWordBlaster::wordBlast(TNode node)
         switch (kind)
         {
           /* ---- Comparisons --------------------------------------- */
-          case kind::EQUAL:
+          case Kind::EQUAL:
           {
             TypeNode childType(cur[0].getType());
 
@@ -1149,7 +1149,7 @@ Node FpWordBlaster::wordBlast(TNode node)
           }
           break;
 
-          case kind::FLOATINGPOINT_LEQ:
+          case Kind::FLOATINGPOINT_LEQ:
             Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
             Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
             d_boolMap.insert(cur,
@@ -1159,7 +1159,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                  (*d_fpMap.find(cur[1])).second));
             break;
 
-          case kind::FLOATINGPOINT_LT:
+          case Kind::FLOATINGPOINT_LT:
             Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
             Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
             d_boolMap.insert(
@@ -1170,7 +1170,7 @@ Node FpWordBlaster::wordBlast(TNode node)
             break;
 
           /* ---- Tester -------------------------------------------- */
-          case kind::FLOATINGPOINT_IS_NORMAL:
+          case Kind::FLOATINGPOINT_IS_NORMAL:
             Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
             d_boolMap.insert(
                 cur,
@@ -1178,7 +1178,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                          (*d_fpMap.find(cur[0])).second));
             break;
 
-          case kind::FLOATINGPOINT_IS_SUBNORMAL:
+          case Kind::FLOATINGPOINT_IS_SUBNORMAL:
             Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
             d_boolMap.insert(
                 cur,
@@ -1186,7 +1186,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                             (*d_fpMap.find(cur[0])).second));
             break;
 
-          case kind::FLOATINGPOINT_IS_ZERO:
+          case Kind::FLOATINGPOINT_IS_ZERO:
             Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
             d_boolMap.insert(
                 cur,
@@ -1194,7 +1194,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                        (*d_fpMap.find(cur[0])).second));
             break;
 
-          case kind::FLOATINGPOINT_IS_INF:
+          case Kind::FLOATINGPOINT_IS_INF:
             Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
             d_boolMap.insert(
                 cur,
@@ -1202,7 +1202,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                            (*d_fpMap.find(cur[0])).second));
             break;
 
-          case kind::FLOATINGPOINT_IS_NAN:
+          case Kind::FLOATINGPOINT_IS_NAN:
             Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
             d_boolMap.insert(
                 cur,
@@ -1210,7 +1210,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                       (*d_fpMap.find(cur[0])).second));
             break;
 
-          case kind::FLOATINGPOINT_IS_NEG:
+          case Kind::FLOATINGPOINT_IS_NEG:
             Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
             d_boolMap.insert(
                 cur,
@@ -1218,7 +1218,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                            (*d_fpMap.find(cur[0])).second));
             break;
 
-          case kind::FLOATINGPOINT_IS_POS:
+          case Kind::FLOATINGPOINT_IS_POS:
             Assert(d_fpMap.find(cur[0]) != d_fpMap.end());
             d_boolMap.insert(
                 cur,
@@ -1232,7 +1232,7 @@ Node FpWordBlaster::wordBlast(TNode node)
       else if (t.isBitVector())
       {
         /* ---- Conversions --------------------------------------- */
-        if (kind == kind::FLOATINGPOINT_TO_UBV_TOTAL)
+        if (kind == Kind::FLOATINGPOINT_TO_UBV_TOTAL)
         {
           Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
           Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
@@ -1246,7 +1246,7 @@ Node FpWordBlaster::wordBlast(TNode node)
                                                 info.d_bv_size,
                                                 ubv(cur[2])));
         }
-        else if (kind == kind::FLOATINGPOINT_TO_SBV_TOTAL)
+        else if (kind == Kind::FLOATINGPOINT_TO_SBV_TOTAL)
         {
           Assert(d_rmMap.find(cur[0]) != d_rmMap.end());
           Assert(d_fpMap.find(cur[1]) != d_fpMap.end());
@@ -1278,12 +1278,12 @@ Node FpWordBlaster::wordBlast(TNode node)
   }
   if (d_sbvMap.find(node) != d_sbvMap.end())
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_SBV_TOTAL);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_TO_SBV_TOTAL);
     return (*d_sbvMap.find(node)).second;
   }
   if (d_ubvMap.find(node) != d_ubvMap.end())
   {
-    Assert(node.getKind() == kind::FLOATINGPOINT_TO_UBV_TOTAL);
+    Assert(node.getKind() == Kind::FLOATINGPOINT_TO_UBV_TOTAL);
     return (*d_ubvMap.find(node)).second;
   }
   return node;
@@ -1291,10 +1291,10 @@ Node FpWordBlaster::wordBlast(TNode node)
 
 Node FpWordBlaster::getValue(Valuation& val, TNode var)
 {
-  Assert(var.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_SBV
-         || var.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_UBV
-         || var.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_REAL
-         || var.getKind() == kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV
+  Assert(var.getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_SBV
+         || var.getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_UBV
+         || var.getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_REAL
+         || var.getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV
          || Theory::isLeafOf(var, THEORY_FP));
 
   TypeNode t(var.getType());

@@ -64,16 +64,16 @@ void SolverState::registerGroupTerm(Node n)
 
 void SolverState::registerCardinalityTerm(Node n, Node skolem)
 {
-  Assert(n.getKind() == BAG_CARD);
+  Assert(n.getKind() == Kind::BAG_CARD);
   Assert(skolem.isVar());
   d_cardTerms[n] = skolem;
 }
 
 Node SolverState::getCardinalitySkolem(Node n)
 {
-  Assert(n.getKind() == BAG_CARD);
+  Assert(n.getKind() == Kind::BAG_CARD);
   Node bag = getRepresentative(n[0]);
-  Node cardTerm = d_nm->mkNode(BAG_CARD, bag);
+  Node cardTerm = d_nm->mkNode(Kind::BAG_CARD, bag);
   return d_cardTerms[cardTerm];
 }
 
@@ -116,7 +116,7 @@ void SolverState::collectDisequalBagTerms()
   while (!it.isFinished())
   {
     Node n = (*it);
-    if (n.getKind() == EQUAL && n[0].getType().isBag())
+    if (n.getKind() == Kind::EQUAL && n[0].getType().isBag())
     {
       Trace("bags-eqc") << "Disequal terms: " << n << std::endl;
       Node A = getRepresentative(n[0]);
@@ -139,7 +139,7 @@ const std::map<Node, Node>& SolverState::getDisequalBagTerms() { return d_deq; }
 
 void SolverState::registerPartElementSkolem(Node group, Node skolemElement)
 {
-  Assert(group.getKind() == TABLE_GROUP);
+  Assert(group.getKind() == Kind::TABLE_GROUP);
   Assert(skolemElement.getType() == group[0].getType().getBagElementType());
   d_partElementSkolems[group].get()->insert(skolemElement);
 }
@@ -147,7 +147,7 @@ void SolverState::registerPartElementSkolem(Node group, Node skolemElement)
 std::shared_ptr<context::CDHashSet<Node>> SolverState::getPartElementSkolems(
     Node n)
 {
-  Assert(n.getKind() == TABLE_GROUP);
+  Assert(n.getKind() == Kind::TABLE_GROUP);
   return d_partElementSkolems[n];
 }
 

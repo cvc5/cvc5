@@ -438,7 +438,7 @@ Node TheoryPreprocessor::preprocessWithProof(Node term,
   // preprocessing is applied to all formulas. This makes it so that e.g.
   // theory solvers do not need to specify whether they want their lemmas to
   // be theory-preprocessed or not.
-  if (term.getKind() == kind::EQUAL)
+  if (term.getKind() == Kind::EQUAL)
   {
     return term;
   }

@@ -36,7 +36,7 @@ void QuantRelevance::registerQuantifier(Node f)
 /** compute symbols */
 void QuantRelevance::computeSymbols(Node n, std::vector<Node>& syms)
 {
-  if (n.getKind() == APPLY_UF)
+  if (n.getKind() == Kind::APPLY_UF)
   {
     Node op = n.getOperator();
     if (std::find(syms.begin(), syms.end(), op) == syms.end())
@@ -44,7 +44,7 @@ void QuantRelevance::computeSymbols(Node n, std::vector<Node>& syms)
       syms.push_back(op);
     }
   }
-  if (n.getKind() != FORALL)
+  if (n.getKind() != Kind::FORALL)
   {
     for (int i = 0; i < (int)n.getNumChildren(); i++)
     {

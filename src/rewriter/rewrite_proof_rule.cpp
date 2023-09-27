@@ -100,7 +100,7 @@ Kind RewriteProofRule::getListContext(Node v) const
   {
     return it->second;
   }
-  return UNDEFINED_KIND;
+  return Kind::UNDEFINED_KIND;
 }
 bool RewriteProofRule::hasConditions() const { return !d_cond.empty(); }
 

@@ -98,9 +98,9 @@ void IntBlaster::addBitwiseConstraint(Node bitwiseConstraint,
 
 Node IntBlaster::mkRangeConstraint(Node newVar, uint32_t k)
 {
-  Node lower = d_nm->mkNode(kind::LEQ, d_zero, newVar);
-  Node upper = d_nm->mkNode(kind::LT, newVar, pow2(k));
-  Node result = d_nm->mkNode(kind::AND, lower, upper);
+  Node lower = d_nm->mkNode(Kind::LEQ, d_zero, newVar);
+  Node upper = d_nm->mkNode(Kind::LT, newVar, pow2(k));
+  Node result = d_nm->mkNode(Kind::AND, lower, upper);
   return rewrite(result);
 }
 
@@ -120,7 +120,7 @@ Node IntBlaster::pow2(uint32_t k)
 Node IntBlaster::modpow2(Node n, uint32_t exponent)
 {
   Node p2 = d_nm->mkConstInt(intpow2(exponent));
-  return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, n, p2);
+  return d_nm->mkNode(Kind::INTS_MODULUS_TOTAL, n, p2);
 }
 
 Node IntBlaster::makeBinary(Node n)
@@ -130,12 +130,12 @@ Node IntBlaster::makeBinary(Node n)
     return d_binarizeCache[n];
   }
   uint64_t numChildren = n.getNumChildren();
-  kind::Kind_t k = n.getKind();
+  Kind k = n.getKind();
   Node result = n;
   if ((numChildren > 2)
-      && (k == kind::BITVECTOR_ADD || k == kind::BITVECTOR_MULT
-          || k == kind::BITVECTOR_AND || k == kind::BITVECTOR_OR
-          || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_CONCAT))
+      && (k == Kind::BITVECTOR_ADD || k == Kind::BITVECTOR_MULT
+          || k == Kind::BITVECTOR_AND || k == Kind::BITVECTOR_OR
+          || k == Kind::BITVECTOR_XOR || k == Kind::BITVECTOR_CONCAT))
   {
     result = n[0];
     for (uint32_t i = 1; i < numChildren; i++)
@@ -181,7 +181,7 @@ Node IntBlaster::intBlast(Node n,
       }
       // If this is a UF applicatinon, we also add the function to
       // toVisit.
-      if (current.getKind() == kind::APPLY_UF)
+      if (current.getKind() == Kind::APPLY_UF)
       {
         toVisit.push_back(current.getOperator());
       }
@@ -215,7 +215,7 @@ Node IntBlaster::intBlast(Node n,
            * this list.
            */
           std::vector<Node> translated_children;
-          if (current.getKind() == kind::APPLY_UF)
+          if (current.getKind() == Kind::APPLY_UF)
           {
             Assert(d_intblastCache.find(current.getOperator())
                    != d_intblastCache.end());
@@ -251,24 +251,24 @@ Node IntBlaster::translateWithChildren(
 {
   // The translation of the original node is determined by the kind of
   // the node.
-  kind::Kind_t oldKind = original.getKind();
+  Kind oldKind = original.getKind();
   // Some BV operators were eliminated before this point.
-  Assert(oldKind != kind::BITVECTOR_SDIV);
-  Assert(oldKind != kind::BITVECTOR_SREM);
-  Assert(oldKind != kind::BITVECTOR_SMOD);
-  Assert(oldKind != kind::BITVECTOR_XNOR);
-  Assert(oldKind != kind::BITVECTOR_NOR);
-  Assert(oldKind != kind::BITVECTOR_NAND);
-  Assert(oldKind != kind::BITVECTOR_SUB);
-  Assert(oldKind != kind::BITVECTOR_REPEAT);
-  Assert(oldKind != kind::BITVECTOR_ROTATE_RIGHT);
-  Assert(oldKind != kind::BITVECTOR_ROTATE_LEFT);
-  Assert(oldKind != kind::BITVECTOR_SGT);
-  Assert(oldKind != kind::BITVECTOR_SLE);
-  Assert(oldKind != kind::BITVECTOR_SGE);
-  Assert(oldKind != kind::EXISTS);
+  Assert(oldKind != Kind::BITVECTOR_SDIV);
+  Assert(oldKind != Kind::BITVECTOR_SREM);
+  Assert(oldKind != Kind::BITVECTOR_SMOD);
+  Assert(oldKind != Kind::BITVECTOR_XNOR);
+  Assert(oldKind != Kind::BITVECTOR_NOR);
+  Assert(oldKind != Kind::BITVECTOR_NAND);
+  Assert(oldKind != Kind::BITVECTOR_SUB);
+  Assert(oldKind != Kind::BITVECTOR_REPEAT);
+  Assert(oldKind != Kind::BITVECTOR_ROTATE_RIGHT);
+  Assert(oldKind != Kind::BITVECTOR_ROTATE_LEFT);
+  Assert(oldKind != Kind::BITVECTOR_SGT);
+  Assert(oldKind != Kind::BITVECTOR_SLE);
+  Assert(oldKind != Kind::BITVECTOR_SGE);
+  Assert(oldKind != Kind::EXISTS);
   // BV division by zero was eliminated before this point.
-  Assert(oldKind != kind::BITVECTOR_UDIV
+  Assert(oldKind != Kind::BITVECTOR_UDIV
          || !(original[1].isConst()
               && original[1].getConst<BitVector>().getValue().isZero()));
 
@@ -289,7 +289,7 @@ Node IntBlaster::translateWithChildren(
   // Translate according to the kind of the original node.
   switch (oldKind)
   {
-    case kind::BITVECTOR_ADD:
+    case Kind::BITVECTOR_ADD:
     {
       Assert(original.getNumChildren() == 2);
       uint32_t bvsize = original[0].getType().getBitVectorSize();
@@ -297,61 +297,61 @@ Node IntBlaster::translateWithChildren(
           translated_children[0], translated_children[1], bvsize);
       break;
     }
-    case kind::BITVECTOR_MULT:
+    case Kind::BITVECTOR_MULT:
     {
       Assert(original.getNumChildren() == 2);
       uint32_t bvsize = original[0].getType().getBitVectorSize();
-      Node mult = d_nm->mkNode(kind::MULT, translated_children);
+      Node mult = d_nm->mkNode(Kind::MULT, translated_children);
       Node p2 = pow2(bvsize);
-      returnNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, mult, p2);
+      returnNode = d_nm->mkNode(Kind::INTS_MODULUS_TOTAL, mult, p2);
       break;
     }
-    case kind::BITVECTOR_UDIV:
+    case Kind::BITVECTOR_UDIV:
     {
       // we use an ITE for the case where the second operand is 0.
       uint32_t bvsize = original[0].getType().getBitVectorSize();
       Node pow2BvSize = pow2(bvsize);
       Node divNode =
-          d_nm->mkNode(kind::INTS_DIVISION_TOTAL, translated_children);
+          d_nm->mkNode(Kind::INTS_DIVISION_TOTAL, translated_children);
       returnNode = d_nm->mkNode(
-          kind::ITE,
-          d_nm->mkNode(kind::EQUAL, translated_children[1], d_zero),
-          d_nm->mkNode(kind::SUB, pow2BvSize, d_one),
+          Kind::ITE,
+          d_nm->mkNode(Kind::EQUAL, translated_children[1], d_zero),
+          d_nm->mkNode(Kind::SUB, pow2BvSize, d_one),
           divNode);
       break;
     }
-    case kind::BITVECTOR_UREM:
+    case Kind::BITVECTOR_UREM:
     {
       // we use an ITE for the case where the second operand is 0.
       Node modNode =
-          d_nm->mkNode(kind::INTS_MODULUS_TOTAL, translated_children);
+          d_nm->mkNode(Kind::INTS_MODULUS_TOTAL, translated_children);
       returnNode = d_nm->mkNode(
-          kind::ITE,
-          d_nm->mkNode(kind::EQUAL, translated_children[1], d_zero),
+          Kind::ITE,
+          d_nm->mkNode(Kind::EQUAL, translated_children[1], d_zero),
           translated_children[0],
           modNode);
       break;
     }
-    case kind::BITVECTOR_NOT:
+    case Kind::BITVECTOR_NOT:
     {
       uint32_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = createBVNotNode(translated_children[0], bvsize);
       break;
     }
-    case kind::BITVECTOR_NEG:
+    case Kind::BITVECTOR_NEG:
     {
       uint32_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = createBVNegNode(translated_children[0], bvsize);
       break;
     }
-    case kind::BITVECTOR_TO_NAT:
+    case Kind::BITVECTOR_TO_NAT:
     {
       // In this case, we already translated the child to integer.
       // The result is simply the translated child.
       returnNode = translated_children[0];
       break;
     }
-    case kind::INT_TO_BITVECTOR:
+    case Kind::INT_TO_BITVECTOR:
     {
       // In this case we take the original integer,
       // modulo 2 to the power of the bit-width
@@ -360,7 +360,7 @@ Node IntBlaster::translateWithChildren(
                   original.getOperator().getConst<IntToBitVector>().d_size);
       break;
     }
-    case kind::BITVECTOR_OR:
+    case Kind::BITVECTOR_OR:
     {
       Assert(translated_children.size() == 2);
       uint32_t bvsize = original[0].getType().getBitVectorSize();
@@ -368,7 +368,7 @@ Node IntBlaster::translateWithChildren(
           translated_children[0], translated_children[1], bvsize, lemmas);
       break;
     }
-    case kind::BITVECTOR_XOR:
+    case Kind::BITVECTOR_XOR:
     {
       Assert(translated_children.size() == 2);
       uint32_t bvsize = original[0].getType().getBitVectorSize();
@@ -381,7 +381,7 @@ Node IntBlaster::translateWithChildren(
       returnNode = createBVSubNode(bvor, bvand, bvsize);
       break;
     }
-    case kind::BITVECTOR_AND:
+    case Kind::BITVECTOR_AND:
     {
       Assert(translated_children.size() == 2);
       uint32_t bvsize = original[0].getType().getBitVectorSize();
@@ -389,19 +389,19 @@ Node IntBlaster::translateWithChildren(
           translated_children[0], translated_children[1], bvsize, lemmas);
       break;
     }
-    case kind::BITVECTOR_SHL:
+    case Kind::BITVECTOR_SHL:
     {
       uint32_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = createShiftNode(translated_children, bvsize, true);
       break;
     }
-    case kind::BITVECTOR_LSHR:
+    case Kind::BITVECTOR_LSHR:
     {
       uint32_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = createShiftNode(translated_children, bvsize, false);
       break;
     }
-    case kind::BITVECTOR_ASHR:
+    case Kind::BITVECTOR_ASHR:
     {
       /*  From SMT-LIB2:
        *  (bvashr s t) abbreviates
@@ -420,31 +420,31 @@ Node IntBlaster::translateWithChildren(
       uint32_t bvsize = original[0].getType().getBitVectorSize();
       Node signed_min = pow2(bvsize - 1);
       Node condition =
-          d_nm->mkNode(kind::LT, translated_children[0], signed_min);
+          d_nm->mkNode(Kind::LT, translated_children[0], signed_min);
       Node thenNode = createShiftNode(translated_children, bvsize, false);
       std::vector<Node> children = {
           createBVNotNode(translated_children[0], bvsize),
           translated_children[1]};
       Node elseNode =
           createBVNotNode(createShiftNode(children, bvsize, false), bvsize);
-      returnNode = d_nm->mkNode(kind::ITE, condition, thenNode, elseNode);
+      returnNode = d_nm->mkNode(Kind::ITE, condition, thenNode, elseNode);
       break;
     }
-    case kind::BITVECTOR_ITE:
+    case Kind::BITVECTOR_ITE:
     {
       // Lifted to a boolean ite.
-      Node cond = d_nm->mkNode(kind::EQUAL, translated_children[0], d_one);
+      Node cond = d_nm->mkNode(Kind::EQUAL, translated_children[0], d_one);
       returnNode = d_nm->mkNode(
-          kind::ITE, cond, translated_children[1], translated_children[2]);
+          Kind::ITE, cond, translated_children[1], translated_children[2]);
       break;
     }
-    case kind::BITVECTOR_ZERO_EXTEND:
+    case Kind::BITVECTOR_ZERO_EXTEND:
     {
       // zero extension does not change the integer translation.
       returnNode = translated_children[0];
       break;
     }
-    case kind::BITVECTOR_SIGN_EXTEND:
+    case Kind::BITVECTOR_SIGN_EXTEND:
     {
       uint32_t bvsize = original[0].getType().getBitVectorSize();
       returnNode =
@@ -453,18 +453,18 @@ Node IntBlaster::translateWithChildren(
                                bv::utils::getSignExtendAmount(original));
       break;
     }
-    case kind::BITVECTOR_CONCAT:
+    case Kind::BITVECTOR_CONCAT:
     {
       // (concat a b) translates to a*2^k+b, k being the bitwidth of b.
       uint32_t bvsizeRight = original[1].getType().getBitVectorSize();
       Node pow2BvSizeRight = pow2(bvsizeRight);
       Node a =
-          d_nm->mkNode(kind::MULT, translated_children[0], pow2BvSizeRight);
+          d_nm->mkNode(Kind::MULT, translated_children[0], pow2BvSizeRight);
       Node b = translated_children[1];
-      returnNode = d_nm->mkNode(kind::ADD, a, b);
+      returnNode = d_nm->mkNode(Kind::ADD, a, b);
       break;
     }
-    case kind::BITVECTOR_EXTRACT:
+    case Kind::BITVECTOR_EXTRACT:
     {
       // ((_ extract i j) a) is a / 2^j mod 2^{i-j+1}
       // original = a[i:j]
@@ -472,80 +472,79 @@ Node IntBlaster::translateWithChildren(
       uint32_t j = bv::utils::getExtractLow(original);
       Assert(i >= j);
       Node div = d_nm->mkNode(
-          kind::INTS_DIVISION_TOTAL, translated_children[0], pow2(j));
+          Kind::INTS_DIVISION_TOTAL, translated_children[0], pow2(j));
       returnNode = modpow2(div, i - j + 1);
       break;
     }
-    case kind::EQUAL:
+    case Kind::EQUAL:
     {
-      returnNode = d_nm->mkNode(kind::EQUAL, translated_children);
+      returnNode = d_nm->mkNode(Kind::EQUAL, translated_children);
       break;
     }
-    case kind::BITVECTOR_ULT:
+    case Kind::BITVECTOR_ULT:
     {
-      returnNode = d_nm->mkNode(kind::LT, translated_children);
+      returnNode = d_nm->mkNode(Kind::LT, translated_children);
       break;
     }
-    case kind::BITVECTOR_SLT:
+    case Kind::BITVECTOR_SLT:
     {
       uint32_t bvsize = original[0].getType().getBitVectorSize();
-      returnNode = d_nm->mkNode(kind::LT,
+      returnNode = d_nm->mkNode(Kind::LT,
                                 uts(translated_children[0], bvsize),
                                 uts(translated_children[1], bvsize));
       break;
     }
-    case kind::BITVECTOR_ULE:
+    case Kind::BITVECTOR_ULE:
     {
-      returnNode = d_nm->mkNode(kind::LEQ, translated_children);
+      returnNode = d_nm->mkNode(Kind::LEQ, translated_children);
       break;
     }
-    case kind::BITVECTOR_UGT:
+    case Kind::BITVECTOR_UGT:
     {
-      returnNode = d_nm->mkNode(kind::GT, translated_children);
+      returnNode = d_nm->mkNode(Kind::GT, translated_children);
       break;
     }
-    case kind::BITVECTOR_UGE:
+    case Kind::BITVECTOR_UGE:
     {
-      returnNode = d_nm->mkNode(kind::GEQ, translated_children);
+      returnNode = d_nm->mkNode(Kind::GEQ, translated_children);
       break;
     }
-    case kind::BITVECTOR_ULTBV:
+    case Kind::BITVECTOR_ULTBV:
     {
-      returnNode = d_nm->mkNode(kind::ITE,
-                                d_nm->mkNode(kind::LT, translated_children),
+      returnNode = d_nm->mkNode(Kind::ITE,
+                                d_nm->mkNode(Kind::LT, translated_children),
                                 d_one,
                                 d_zero);
       break;
     }
-    case kind::BITVECTOR_SLTBV:
+    case Kind::BITVECTOR_SLTBV:
     {
       uint32_t bvsize = original[0].getType().getBitVectorSize();
       returnNode =
-          d_nm->mkNode(kind::ITE,
-                       d_nm->mkNode(kind::LT,
+          d_nm->mkNode(Kind::ITE,
+                       d_nm->mkNode(Kind::LT,
                                     uts(translated_children[0], bvsize),
                                     uts(translated_children[1], bvsize)),
                        d_one,
                        d_zero);
       break;
     }
-    case kind::BITVECTOR_COMP:
+    case Kind::BITVECTOR_COMP:
     {
-      returnNode =
-          d_nm->mkNode(kind::ITE,
-                       d_nm->mkNode(kind::EQUAL,
-                                    translated_children[0],
-                                    translated_children[1]),
-                       d_one,
-                       d_zero);
+      returnNode = d_nm->mkNode(
+          Kind::ITE,
+          d_nm->mkNode(
+              Kind::EQUAL, translated_children[0], translated_children[1]),
+          d_one,
+          d_zero);
       break;
     }
-    case kind::ITE:
+    case Kind::ITE:
     {
       returnNode = d_nm->mkNode(oldKind, translated_children);
       break;
     }
-    case kind::APPLY_UF:
+    case Kind::APPLY_UF:
     {
       // The preprocessing pass does not support function applications
       // with bound variables.
@@ -556,7 +555,7 @@ Node IntBlaster::translateWithChildren(
       }
 
       // Insert the translated application term to the cache
-      returnNode = d_nm->mkNode(kind::APPLY_UF, translated_children);
+      returnNode = d_nm->mkNode(Kind::APPLY_UF, translated_children);
       // Add range constraints if necessary.
       // If the original range was a BV sort, the original application of
       // the function must be within the range determined by the
@@ -568,7 +567,7 @@ Node IntBlaster::translateWithChildren(
       }
       break;
     }
-    case kind::BOUND_VAR_LIST:
+    case Kind::BOUND_VAR_LIST:
     {
       returnNode = d_nm->mkNode(oldKind, translated_children);
       if (d_mode == options::SolveBVAsIntMode::BITWISE)
@@ -578,7 +577,7 @@ Node IntBlaster::translateWithChildren(
       }
       break;
     }
-    case kind::FORALL:
+    case Kind::FORALL:
     {
       returnNode = translateQuantifiedFormula(original);
       break;
@@ -616,10 +615,10 @@ Node IntBlaster::translateWithChildren(
 Node IntBlaster::uts(Node x, uint32_t bvsize)
 {
   Node powNode = pow2(bvsize - 1);
-  Node modNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, x, powNode);
+  Node modNode = d_nm->mkNode(Kind::INTS_MODULUS_TOTAL, x, powNode);
   Node two = d_nm->mkConstInt(Rational(2));
-  Node twoTimesNode = d_nm->mkNode(kind::MULT, two, modNode);
-  return d_nm->mkNode(kind::SUB, twoTimesNode, x);
+  Node twoTimesNode = d_nm->mkNode(Kind::MULT, two, modNode);
+  return d_nm->mkNode(Kind::SUB, twoTimesNode, x);
 }
 
 Node IntBlaster::createSignExtendNode(Node x, uint32_t bvsize, uint32_t amount)
@@ -661,13 +660,13 @@ Node IntBlaster::createSignExtendNode(Node x, uint32_t bvsize, uint32_t amount)
        * This holds when the integer value is smaller than
        * 100...0, which is 2^{bvsize-1}.
        */
-      Node condition = d_nm->mkNode(kind::LT, x, minSigned);
+      Node condition = d_nm->mkNode(Kind::LT, x, minSigned);
       Node thenResult = x;
       Node left = maxInt(amount);
-      Node mul = d_nm->mkNode(kind::MULT, left, pow2(bvsize));
-      Node sum = d_nm->mkNode(kind::ADD, mul, x);
+      Node mul = d_nm->mkNode(Kind::MULT, left, pow2(bvsize));
+      Node sum = d_nm->mkNode(Kind::ADD, mul, x);
       Node elseResult = sum;
-      Node ite = d_nm->mkNode(kind::ITE, condition, thenResult, elseResult);
+      Node ite = d_nm->mkNode(Kind::ITE, condition, thenResult, elseResult);
       returnNode = ite;
     }
   }
@@ -691,7 +690,7 @@ Node IntBlaster::translateNoChildren(Node original,
     if (original.getType().isBitVector())
     {
       // For bit-vector variables, we create fresh integer variables.
-      if (original.getKind() == kind::BOUND_VARIABLE)
+      if (original.getKind() == Kind::BOUND_VARIABLE)
       {
         // Range constraints for the bound integer variables are not added now.
         // they will be added once the quantifier itself is handled.
@@ -736,7 +735,7 @@ Node IntBlaster::translateNoChildren(Node original,
   else
   {
     // original is a constant (value) or an operator with no arguments (e.g., PI)
-    if (original.getKind() == kind::CONST_BITVECTOR)
+    if (original.getKind() == Kind::CONST_BITVECTOR)
     {
       // Bit-vector constants are transformed into their integer value.
       BitVector constant(original.getConst<BitVector>());
@@ -807,10 +806,10 @@ Node IntBlaster::translateFunctionSymbol(Node bvUF,
     i++;
   }
   // create the lambda expression, and add it to skolems
-  Node app = d_nm->mkNode(kind::APPLY_UF, achildren);
+  Node app = d_nm->mkNode(Kind::APPLY_UF, achildren);
   Node body = castToType(app, bvRange);
-  Node bvlist = d_nm->mkNode(kind::BOUND_VAR_LIST, args);
-  Node result = d_nm->mkNode(kind::LAMBDA, bvlist, body);
+  Node bvlist = d_nm->mkNode(Kind::BOUND_VAR_LIST, args);
+  Node result = d_nm->mkNode(Kind::LAMBDA, bvlist, body);
   if (skolems.find(bvUF) == skolems.end())
   {
     skolems[bvUF] = result;
@@ -864,7 +863,7 @@ Node IntBlaster::castToType(Node n, TypeNode tn)
   // casting bit-vectors to ingers
   Assert(n.getType().isBitVector());
   Assert(tn.isInteger());
-  return d_nm->mkNode(kind::BITVECTOR_TO_NAT, n);
+  return d_nm->mkNode(Kind::BITVECTOR_TO_NAT, n);
 }
 
 Node IntBlaster::reconstructNode(Node originalNode,
@@ -873,7 +872,7 @@ Node IntBlaster::reconstructNode(Node originalNode,
 {
   // first, we adjust the children of the node as needed.
   // re-construct the term with the adjusted children.
-  kind::Kind_t oldKind = originalNode.getKind();
+  Kind oldKind = originalNode.getKind();
   NodeBuilder builder(oldKind);
   if (originalNode.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
@@ -913,16 +912,16 @@ Node IntBlaster::createShiftNode(std::vector<Node> children,
   // have any ites
   if (options().smt.bvToIntUsePow2)
   {
-    Node pow2Node = d_nm->mkNode(kind::POW2, y);
+    Node pow2Node = d_nm->mkNode(Kind::POW2, y);
     if (isLeftShift)
     {
-      return d_nm->mkNode(kind::INTS_MODULUS_TOTAL,
-                          d_nm->mkNode(kind::MULT, x, pow2Node),
+      return d_nm->mkNode(Kind::INTS_MODULUS_TOTAL,
+                          d_nm->mkNode(Kind::MULT, x, pow2Node),
                           pow2(bvsize));
     }
     else
     {
-      return d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, pow2Node);
+      return d_nm->mkNode(Kind::INTS_DIVISION_TOTAL, x, pow2Node);
     }
   }
 
@@ -933,18 +932,18 @@ Node IntBlaster::createShiftNode(std::vector<Node> children,
   {
     if (isLeftShift)
     {
-      body = d_nm->mkNode(kind::INTS_MODULUS_TOTAL,
-                          d_nm->mkNode(kind::MULT, x, pow2(i)),
+      body = d_nm->mkNode(Kind::INTS_MODULUS_TOTAL,
+                          d_nm->mkNode(Kind::MULT, x, pow2(i)),
                           pow2(bvsize));
     }
     else
     {
-      body = d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, pow2(i));
+      body = d_nm->mkNode(Kind::INTS_DIVISION_TOTAL, x, pow2(i));
     }
     ite = d_nm->mkNode(
-        kind::ITE,
+        Kind::ITE,
         d_nm->mkNode(
-            kind::EQUAL, y, d_nm->mkConstInt(Rational(Integer(i), Integer(1)))),
+            Kind::EQUAL, y, d_nm->mkConstInt(Rational(Integer(i), Integer(1)))),
         body,
         ite);
   }
@@ -953,9 +952,9 @@ Node IntBlaster::createShiftNode(std::vector<Node> children,
 
 Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
 {
-  kind::Kind_t k = quantifiedNode.getKind();
+  Kind k = quantifiedNode.getKind();
   Node boundVarList = quantifiedNode[0];
-  Assert(boundVarList.getKind() == kind::BOUND_VAR_LIST);
+  Assert(boundVarList.getKind() == Kind::BOUND_VAR_LIST);
   // Since bit-vector variables are being translated to
   // integer variables, we need to substitute the new ones
   // for the old ones.
@@ -995,10 +994,10 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
   // For "exists", this is added conjunctively
   // For "forall", this is added to the left side of an implication.
   matrix = d_nm->mkNode(
-      k == kind::FORALL ? kind::IMPLIES : kind::AND, ranges, matrix);
+      k == Kind::FORALL ? Kind::IMPLIES : Kind::AND, ranges, matrix);
   // create the new quantified formula and return it.
-  Node newBoundVarsList = d_nm->mkNode(kind::BOUND_VAR_LIST, newBoundVars);
-  Node result = d_nm->mkNode(kind::FORALL, newBoundVarsList, matrix);
+  Node newBoundVarsList = d_nm->mkNode(Kind::BOUND_VAR_LIST, newBoundVars);
+  Node result = d_nm->mkNode(Kind::FORALL, newBoundVarsList, matrix);
   return result;
 }
 
@@ -1016,7 +1015,7 @@ Node IntBlaster::createBVAndNode(Node x,
   if (d_mode == options::SolveBVAsIntMode::IAND)
   {
     Node iAndOp = d_nm->mkConst(IntAnd(bvsize));
-    returnNode = d_nm->mkNode(kind::IAND, iAndOp, x, y);
+    returnNode = d_nm->mkNode(Kind::IAND, iAndOp, x, y);
   }
   else if (d_mode == options::SolveBVAsIntMode::BV)
   {
@@ -1025,9 +1024,9 @@ Node IntBlaster::createBVAndNode(Node x,
     Node bvx = d_nm->mkNode(intToBVOp, x);
     Node bvy = d_nm->mkNode(intToBVOp, y);
     // perform bvand on the bit-vectors
-    Node bvand = d_nm->mkNode(kind::BITVECTOR_AND, bvx, bvy);
+    Node bvand = d_nm->mkNode(Kind::BITVECTOR_AND, bvx, bvy);
     // translate the result to integers
-    returnNode = d_nm->mkNode(kind::BITVECTOR_TO_NAT, bvand);
+    returnNode = d_nm->mkNode(Kind::BITVECTOR_TO_NAT, bvand);
   }
   else if (d_mode == options::SolveBVAsIntMode::SUM)
   {
@@ -1040,7 +1039,7 @@ Node IntBlaster::createBVAndNode(Node x,
     // Enforce semantics over individual bits with iextract and ites
 
     Node iAndOp = d_nm->mkConst(IntAnd(bvsize));
-    Node iAnd = d_nm->mkNode(kind::IAND, iAndOp, x, y);
+    Node iAnd = d_nm->mkNode(Kind::IAND, iAndOp, x, y);
     // get a skolem so the IAND solver knows not to do work
     returnNode = d_nm->getSkolemManager()->mkPurifySkolem(iAnd);
     addRangeConstraint(returnNode, bvsize, lemmas);
@@ -1081,16 +1080,16 @@ Node IntBlaster::createBVOrNode(Node x,
 
 Node IntBlaster::createBVSubNode(Node x, Node y, uint32_t bvsize)
 {
-  Node minus = d_nm->mkNode(kind::SUB, x, y);
+  Node minus = d_nm->mkNode(Kind::SUB, x, y);
   Node p2 = pow2(bvsize);
-  return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, minus, p2);
+  return d_nm->mkNode(Kind::INTS_MODULUS_TOTAL, minus, p2);
 }
 
 Node IntBlaster::createBVAddNode(Node x, Node y, uint32_t bvsize)
 {
-  Node plus = d_nm->mkNode(kind::ADD, x, y);
+  Node plus = d_nm->mkNode(Kind::ADD, x, y);
   Node p2 = pow2(bvsize);
-  return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, plus, p2);
+  return d_nm->mkNode(Kind::INTS_MODULUS_TOTAL, plus, p2);
 }
 
 Node IntBlaster::createBVNegNode(Node n, uint32_t bvsize)
@@ -1103,7 +1102,7 @@ Node IntBlaster::createBVNegNode(Node n, uint32_t bvsize)
 
 Node IntBlaster::createBVNotNode(Node n, uint32_t bvsize)
 {
-  return d_nm->mkNode(kind::SUB, maxInt(bvsize), n);
+  return d_nm->mkNode(Kind::SUB, maxInt(bvsize), n);
 }
 
 }  // namespace cvc5::internal

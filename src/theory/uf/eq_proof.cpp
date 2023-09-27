@@ -121,12 +121,12 @@ bool EqProof::expandTransitivityForDisequalities(
   unsigned termPos = 2, offending = size;
   for (unsigned i = 0; i < size; ++i)
   {
-    Assert(premises[i].getKind() == kind::EQUAL);
+    Assert(premises[i].getKind() == Kind::EQUAL);
     for (unsigned j = 0; j < 2; ++j)
     {
-      if (premises[i][j].getKind() == kind::CONST_BOOLEAN
+      if (premises[i][j].getKind() == Kind::CONST_BOOLEAN
           && !premises[i][j].getConst<bool>()
-          && premises[i][1 - j].getKind() == kind::EQUAL)
+          && premises[i][1 - j].getKind() == Kind::EQUAL)
       {
         // there is only one offending equality
         Assert(offending == size);
@@ -165,8 +165,8 @@ bool EqProof::expandTransitivityForDisequalities(
   Node expansionConclusion;
   std::vector<Node> substPremises;
   bool inSubstCase = false, substConclusionInReverseOrder = false;
-  if ((conclusion[0].getKind() == kind::CONST_BOOLEAN)
-      != (conclusion[1].getKind() == kind::CONST_BOOLEAN))
+  if ((conclusion[0].getKind() == Kind::CONST_BOOLEAN)
+      != (conclusion[1].getKind() == Kind::CONST_BOOLEAN))
   {
     inSubstCase = true;
     // reorder offending premise if constant is the first argument
@@ -176,7 +176,7 @@ bool EqProof::expandTransitivityForDisequalities(
           premises[offending][1].eqNode(premises[offending][0]);
     }
     // reorder conclusion if constant is the first argument
-    conclusion = conclusion[1].getKind() == kind::CONST_BOOLEAN
+    conclusion = conclusion[1].getKind() == Kind::CONST_BOOLEAN
                      ? conclusion
                      : conclusion[1].eqNode(conclusion[0]);
     // equality term in premise disequality
@@ -380,8 +380,8 @@ bool EqProof::expandTransitivityForDisequalities(
   else
   {
     // In simple case the conclusion is always, modulo symmetry, false = true
-    Assert(conclusion[0].getKind() == kind::CONST_BOOLEAN
-           && conclusion[1].getKind() == kind::CONST_BOOLEAN);
+    Assert(conclusion[0].getKind() == Kind::CONST_BOOLEAN
+           && conclusion[1].getKind() == Kind::CONST_BOOLEAN);
     // The expansion conclusion is the same as the equality term in the
     // disequality, which is going to be justified by a transitivity step from
     // the expansion premises
@@ -474,13 +474,13 @@ bool EqProof::expandTransitivityForDisequalities(
     //
     // where note that the SYMM steps are implicitly added by CDProof.
     Node congConclusion = nm->mkNode(
-        kind::EQUAL,
-        nm->mkNode(kind::EQUAL, substPremises[0][0], substPremises[1][0]),
+        Kind::EQUAL,
+        nm->mkNode(Kind::EQUAL, substPremises[0][0], substPremises[1][0]),
         premises[0][0]);
     p->addStep(congConclusion,
                ProofRule::CONG,
                substPremises,
-               {ProofRuleChecker::mkKindNode(kind::EQUAL)},
+               {ProofRuleChecker::mkKindNode(Kind::EQUAL)},
                true);
     Trace("eqproof-conv") << "EqProof::expandTransitivityForDisequalities: via "
                              "congruence derived "
@@ -490,7 +490,7 @@ bool EqProof::expandTransitivityForDisequalities(
     Node transConclusion =
         !substConclusionInReverseOrder
             ? conclusion
-            : nm->mkNode(kind::EQUAL, congConclusion[0], conclusion[1]);
+            : nm->mkNode(Kind::EQUAL, congConclusion[0], conclusion[1]);
     // check to avoid cyclic proofs
     if (!assumptions.count(transConclusion))
     {
@@ -548,9 +548,9 @@ bool EqProof::expandTransitivityForTheoryDisequalities(
   unsigned termPos = -1;
   for (unsigned i = 0; i < 2; ++i)
   {
-    if (conclusion[i].getKind() == kind::CONST_BOOLEAN
+    if (conclusion[i].getKind() == Kind::CONST_BOOLEAN
         && !conclusion[i].getConst<bool>()
-        && conclusion[1 - i].getKind() == kind::EQUAL)
+        && conclusion[1 - i].getKind() == Kind::EQUAL)
     {
       termPos = i - 1;
       break;
@@ -594,7 +594,7 @@ bool EqProof::expandTransitivityForTheoryDisequalities(
   //   (= (= t1 t2) (= c1 c2))         (= (= c1 c2) false)
   //  --------------------------------------------------------------------- TR
   //                   (= (= t1 t2) false)
-  Node constApp = NodeManager::currentNM()->mkNode(kind::EQUAL, constChildren);
+  Node constApp = NodeManager::currentNM()->mkNode(Kind::EQUAL, constChildren);
   Node constEquality = constApp.eqNode(conclusion[1 - termPos]);
   Trace("eqproof-conv")
       << "EqProof::expandTransitivityForTheoryDisequalities: adding "
@@ -611,7 +611,7 @@ bool EqProof::expandTransitivityForTheoryDisequalities(
   p->addStep(congConclusion,
              ProofRule::CONG,
              {subChildren},
-             {ProofRuleChecker::mkKindNode(kind::EQUAL)},
+             {ProofRuleChecker::mkKindNode(Kind::EQUAL)},
              true);
   Trace("eqproof-conv") << "EqProof::expandTransitivityForDisequalities: via "
                            "congruence derived "
@@ -812,15 +812,15 @@ Node EqProof::addToProof(CDProof* p) const
   // which t is not true/false, it must be turned into t or (not t) with
   // TRUE/FALSE_ELIM.
   Node newConclusion = conclusion;
-  Assert(conclusion.getKind() == kind::EQUAL);
-  if ((conclusion[0].getKind() == kind::CONST_BOOLEAN)
-      != (conclusion[1].getKind() == kind::CONST_BOOLEAN))
+  Assert(conclusion.getKind() == Kind::EQUAL);
+  if ((conclusion[0].getKind() == Kind::CONST_BOOLEAN)
+      != (conclusion[1].getKind() == Kind::CONST_BOOLEAN))
   {
     Trace("eqproof-conv")
         << "EqProof::addToProof: process root for TRUE/FALSE_ELIM\n";
     // Index of constant in equality
     unsigned constIndex =
-        conclusion[0].getKind() == kind::CONST_BOOLEAN ? 0 : 1;
+        conclusion[0].getKind() == Kind::CONST_BOOLEAN ? 0 : 1;
     // The premise for the elimination rule must have the constant as the second
     // argument of the equality. If that's not the case, build it as such,
     // relying on an implicit SYMM step to be added to the proof when justifying
@@ -873,12 +873,12 @@ Node EqProof::addToProof(CDProof* p,
   if (d_id == MERGED_THROUGH_EQUALITY)
   {
     // Check that no (= true/false true/false) assumptions
-    if (Configuration::isDebugBuild() && d_node.getKind() == kind::EQUAL)
+    if (Configuration::isDebugBuild() && d_node.getKind() == Kind::EQUAL)
     {
       for (unsigned i = 0; i < 2; ++i)
       {
-        Assert(d_node[i].getKind() != kind::CONST_BOOLEAN
-               || d_node[1 - i].getKind() != kind::CONST_BOOLEAN)
+        Assert(d_node[i].getKind() != Kind::CONST_BOOLEAN
+               || d_node[1 - i].getKind() != Kind::CONST_BOOLEAN)
             << "EqProof::addToProof: fully boolean constant assumption "
             << d_node << " is disallowed\n";
       }
@@ -888,14 +888,14 @@ Node EqProof::addToProof(CDProof* p,
     //  ---------------- TRUE/FALSE_INTRO
     //  (= t true/false)
     // according to the value of the Boolean constant
-    if (d_node.getKind() == kind::EQUAL
-        && ((d_node[0].getKind() == kind::CONST_BOOLEAN)
-            != (d_node[1].getKind() == kind::CONST_BOOLEAN)))
+    if (d_node.getKind() == Kind::EQUAL
+        && ((d_node[0].getKind() == Kind::CONST_BOOLEAN)
+            != (d_node[1].getKind() == Kind::CONST_BOOLEAN)))
     {
       Trace("eqproof-conv")
           << "EqProof::addToProof: add an intro step for " << d_node << "\n";
       // Index of constant in equality
-      unsigned constIndex = d_node[0].getKind() == kind::CONST_BOOLEAN ? 0 : 1;
+      unsigned constIndex = d_node[0].getKind() == Kind::CONST_BOOLEAN ? 0 : 1;
       // The premise for the intro rule is either t or (not t), according to the
       // Boolean constant.
       Node introPremise;
@@ -906,7 +906,7 @@ Node EqProof::addToProof(CDProof* p,
         introPremise = d_node[1 - constIndex];
         // Track the new assumption. If it's an equality, also its symmetric
         assumptions.insert(introPremise);
-        if (introPremise.getKind() == kind::EQUAL)
+        if (introPremise.getKind() == Kind::EQUAL)
         {
           assumptions.insert(introPremise[1].eqNode(introPremise[0]));
         }
@@ -917,7 +917,7 @@ Node EqProof::addToProof(CDProof* p,
         introPremise = d_node[1 - constIndex].notNode();
         // Track the new assumption. If it's a disequality, also its symmetric
         assumptions.insert(introPremise);
-        if (introPremise[0].getKind() == kind::EQUAL)
+        if (introPremise[0].getKind() == Kind::EQUAL)
         {
           assumptions.insert(
               introPremise[0][1].eqNode(introPremise[0][0]).notNode());
@@ -943,12 +943,12 @@ Node EqProof::addToProof(CDProof* p,
     }
     // If non-equality predicate, turn into one via TRUE/FALSE intro
     Node conclusion = d_node;
-    if (d_node.getKind() != kind::EQUAL)
+    if (d_node.getKind() != Kind::EQUAL)
     {
       // Track original assumption
       assumptions.insert(d_node);
       ProofRule intro;
-      if (d_node.getKind() == kind::NOT)
+      if (d_node.getKind() == Kind::NOT)
       {
         intro = ProofRule::FALSE_INTRO;
         conclusion =
@@ -979,11 +979,11 @@ Node EqProof::addToProof(CDProof* p,
   // congruence steps are currently generated in the equality engine because of
   // the suboptimal handling of n-ary operators.
   if (d_id == MERGED_THROUGH_REFLEXIVITY
-      || (d_node.getKind() == kind::EQUAL && d_node[0] == d_node[1]))
+      || (d_node.getKind() == Kind::EQUAL && d_node[0] == d_node[1]))
   {
     Trace("eqproof-conv") << "EqProof::addToProof: refl step\n";
     Node conclusion =
-        d_node.getKind() == kind::EQUAL ? d_node : d_node.eqNode(d_node);
+        d_node.getKind() == Kind::EQUAL ? d_node : d_node.eqNode(d_node);
     p->addStep(conclusion, ProofRule::REFL, {}, {conclusion[0]});
     visited[d_node] = conclusion;
     return conclusion;
@@ -992,9 +992,9 @@ Node EqProof::addToProof(CDProof* p,
   if (d_id == MERGED_THROUGH_CONSTANTS)
   {
     Assert(!d_node.isNull()
-           && ((d_node.getKind() == kind::EQUAL && d_node[1].isConst())
-               || (d_node.getKind() == kind::NOT
-                   && d_node[0].getKind() == kind::EQUAL
+           && ((d_node.getKind() == Kind::EQUAL && d_node[1].isConst())
+               || (d_node.getKind() == Kind::NOT
+                   && d_node[0].getKind() == Kind::EQUAL
                    && d_node[0][0].isConst() && d_node[0][1].isConst())))
         << ". Conclusion " << d_node << " from " << d_id
         << " was expected to be (= (f t1 ... tn) c) or (not (= c1 c2))\n";
@@ -1061,7 +1061,7 @@ Node EqProof::addToProof(CDProof* p,
       Node constant;
       for (const Node& premise : premises)
       {
-        Assert(premise.getKind() == kind::EQUAL);
+        Assert(premise.getKind() == Kind::EQUAL);
         if (premise[0] == term)
         {
           Assert(premise[1].isConst());
@@ -1111,9 +1111,9 @@ Node EqProof::addToProof(CDProof* p,
   // Transtivity and disequality reasoning steps
   if (d_id == MERGED_THROUGH_TRANS)
   {
-    Assert(d_node.getKind() == kind::EQUAL
-           || (d_node.getKind() == kind::NOT
-               && d_node[0].getKind() == kind::EQUAL))
+    Assert(d_node.getKind() == Kind::EQUAL
+           || (d_node.getKind() == Kind::NOT
+               && d_node[0].getKind() == Kind::EQUAL))
         << "EqProof::addToProof: transitivity step conclusion " << d_node
         << " is not equality or negated equality\n";
     // If conclusion is (not (= t1 t2)) change it to (= (= t1 t2) false), which
@@ -1121,7 +1121,7 @@ Node EqProof::addToProof(CDProof* p,
     // step to revert this is only necessary when this is the root. That step is
     // done in the non-recursive caller of this function.
     Node conclusion =
-        d_node.getKind() != kind::NOT
+        d_node.getKind() != Kind::NOT
             ? d_node
             : d_node[0].eqNode(NodeManager::currentNM()->mkConst<bool>(false));
     // If the conclusion is an assumption, its derivation was spurious, so it
@@ -1211,7 +1211,7 @@ Node EqProof::addToProof(CDProof* p,
   // The processing below is mainly dedicated to flattening congruence steps
   // (since EqProof assumes currying) and to prossibly reconstructing the
   // conclusion in case it involves n-ary steps.
-  Assert(d_node.getKind() == kind::EQUAL)
+  Assert(d_node.getKind() == Kind::EQUAL)
       << "EqProof::addToProof: conclusion " << d_node << " is not equality\n";
   // The given conclusion is taken as ground truth. If the premises do not
   // align, for example with (= (f t1) (f t2)) but a premise being (= t2 t1), we
@@ -1337,7 +1337,7 @@ Node EqProof::addToProof(CDProof* p,
       newChildren2.insert(newChildren2.end(),
                           d_node[1].begin() + arityPrefix2,
                           d_node[1].end());
-      conclusion = nm->mkNode(kind::EQUAL,
+      conclusion = nm->mkNode(Kind::EQUAL,
                               nm->mkNode(k, newChildren1),
                               nm->mkNode(k, newChildren2));
       // update arity
@@ -1374,7 +1374,7 @@ Node EqProof::addToProof(CDProof* p,
         continue;
       }
       // HO case
-      Assert(k == kind::APPLY_UF) << "Congruence with different functions only "
+      Assert(k == Kind::APPLY_UF) << "Congruence with different functions only "
                                      "allowed for uninterpreted functions.\n";
       transConclusion =
           conclusion[0].getOperator().eqNode(conclusion[1].getOperator());

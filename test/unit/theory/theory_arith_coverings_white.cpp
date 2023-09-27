@@ -41,7 +41,6 @@
 namespace cvc5::internal::test {
 
 using namespace cvc5::internal;
-using namespace cvc5::internal::kind;
 using namespace cvc5::internal::theory;
 using namespace cvc5::internal::theory::arith;
 using namespace cvc5::internal::theory::arith::nl;

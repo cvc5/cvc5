@@ -104,10 +104,10 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn, bool printConclusion)
           Node av = getArgument(args[i], f);
           argsPrint.push_back(av);
         }
-        Node argsC = nm->mkNode(SEXPR, argsPrint);
+        Node argsC = nm->mkNode(Kind::SEXPR, argsPrint);
         children.push_back(argsC);
       }
-      d_pnMap[cur] = nm->mkNode(SEXPR, children);
+      d_pnMap[cur] = nm->mkNode(Kind::SEXPR, children);
     }
   } while (!visit.empty());
   Assert(d_pnMap.find(pn) != d_pnMap.end());
@@ -282,7 +282,7 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
       const std::vector<Node>& args = pn->getArguments();
       Assert(i < args.size());
       if (args[i].getNumChildren() == 0
-          && NodeManager::operatorToKind(args[i]) != UNDEFINED_KIND)
+          && NodeManager::operatorToKind(args[i]) != Kind::UNDEFINED_KIND)
       {
         return ArgFormat::NODE_VAR;
       }
@@ -320,7 +320,7 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
     {
       Assert(!pn->getChildren().empty());
       Node q = pn->getChildren()[0]->getResult();
-      Assert(q.getKind() == kind::FORALL);
+      Assert(q.getKind() == Kind::FORALL);
       if (i == q[0].getNumChildren())
       {
         return ArgFormat::INFERENCE_ID;

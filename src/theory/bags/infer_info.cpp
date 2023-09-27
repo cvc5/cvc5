@@ -41,7 +41,7 @@ Node InferInfo::getLemma() const
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> nodes;
   Node premises = nm->mkAnd(d_premises);
-  Node lemma = nm->mkNode(kind::IMPLIES, premises, d_conclusion);
+  Node lemma = nm->mkNode(Kind::IMPLIES, premises, d_conclusion);
   nodes.push_back(lemma);
   // send lemmas corresponding to the skolems introduced
   for (const auto& pair : d_skolems)
@@ -53,7 +53,7 @@ Node InferInfo::getLemma() const
   {
     return lemma;
   }
-  return nm->mkNode(kind::AND, nodes);
+  return nm->mkNode(Kind::AND, nodes);
 }
 
 bool InferInfo::isTrivial() const
@@ -72,8 +72,8 @@ bool InferInfo::isFact() const
 {
   Assert(!d_conclusion.isNull());
   TNode atom =
-      d_conclusion.getKind() == kind::NOT ? d_conclusion[0] : d_conclusion;
-  return !atom.isConst() && atom.getKind() != kind::OR;
+      d_conclusion.getKind() == Kind::NOT ? d_conclusion[0] : d_conclusion;
+  return !atom.isConst() && atom.getKind() != Kind::OR;
 }
 
 std::ostream& operator<<(std::ostream& out, const InferInfo& ii)
