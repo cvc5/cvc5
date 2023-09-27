@@ -160,7 +160,7 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
       allAssumptions.insert(allAssumptions.end(), lemmas.begin(), lemmas.end());
       for (const Node& a : allAssumptions)
       {
-        cdp.addStep(a, PfRule::ASSUME, {}, {a});
+        cdp.addStep(a, ProofRule::ASSUME, {}, {a});
       }
       // add the sat proof copying the proof nodes but not overwriting the
       // assumption clauses
