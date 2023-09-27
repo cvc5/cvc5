@@ -1159,5 +1159,11 @@ void ProofPostprocess::setEliminateAllTrustedRules()
   d_cb.setEliminateAllTrustedRules();
 }
 
+void ProofPostprocess::setAssertions(const std::vector<Node>& assertions,
+                                     bool doDebug)
+{
+  d_updater.setFreeAssumptions(assertions, doDebug);
+}
+
 }  // namespace smt
 }  // namespace cvc5::internal

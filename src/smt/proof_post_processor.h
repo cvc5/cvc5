@@ -202,6 +202,16 @@ class ProofPostprocess : protected EnvObj
   void setEliminateRule(ProofRule rule);
   /** set eliminate all trusted rules via DSL */
   void setEliminateAllTrustedRules();
+  /**
+   * Set assertions, which impacts which proofs can be merged during
+   * post-processing. In particular, any proof having only free
+   * assumptions in assertions can be used to replace another subproof
+   * of the same formula.
+   *
+   * If doDebug is true, then the assertions are furthermore used to
+   * debug whether the final proof is closed.
+   */
+  void setAssertions(const std::vector<Node>& assertions, bool doDebug);
 
  private:
   /** The post process callback */
