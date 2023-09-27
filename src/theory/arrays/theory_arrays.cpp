@@ -764,7 +764,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
                            true,
                            InferenceId::ARRAYS_READ_OVER_WRITE_1,
                            d_true,
-                           PfRule::ARRAYS_READ_OVER_WRITE_1);
+                           ProofRule::ARRAYS_READ_OVER_WRITE_1);
 
       d_infoMap.addStore(node, node);
       d_infoMap.addInStore(a, node);
@@ -1352,14 +1352,16 @@ void TheoryArrays::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
         Trace("pf::array") << "Asserting to the equality engine:" << std::endl
                            << "\teq = " << eq << std::endl
                            << "\treason = " << fact << std::endl;
-        d_im.assertInference(eq, false, InferenceId::ARRAYS_EXT, fact, PfRule::ARRAYS_EXT);
+        d_im.assertInference(
+            eq, false, InferenceId::ARRAYS_EXT, fact, ProofRule::ARRAYS_EXT);
         ++d_numProp;
       }
 
       // If this is the solution pass, generate the lemma. Otherwise, don't
       // generate it - as this is the lemma that we're reproving...
       Trace("arrays-lem") << "Arrays::addExtLemma " << lemma << "\n";
-      d_im.arrayLemma(eq.notNode(), InferenceId::ARRAYS_EXT, fact, PfRule::ARRAYS_EXT);
+      d_im.arrayLemma(
+          eq.notNode(), InferenceId::ARRAYS_EXT, fact, ProofRule::ARRAYS_EXT);
       ++d_numExt;
     }
     else
@@ -1656,7 +1658,7 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
                          true,
                          InferenceId::ARRAYS_CONST_ARRAY_DEFAULT,
                          d_true,
-                         PfRule::THEORY_INFERENCE);
+                         ProofRule::THEORY_INFERENCE);
   }
 
   const CTNodeList* stores = d_infoMap.getStores(a);
@@ -1806,8 +1808,11 @@ void TheoryArrays::propagateRowLemma(RowLemmaType lem)
       if (!bjExists) {
         preRegisterTermInternal(bj);
       }
-      d_im.assertInference(
-          aj_eq_bj, true, InferenceId::ARRAYS_READ_OVER_WRITE, reason, PfRule::ARRAYS_READ_OVER_WRITE);
+      d_im.assertInference(aj_eq_bj,
+                           true,
+                           InferenceId::ARRAYS_READ_OVER_WRITE,
+                           reason,
+                           ProofRule::ARRAYS_READ_OVER_WRITE);
       ++d_numProp;
       return;
     }
@@ -1819,8 +1824,11 @@ void TheoryArrays::propagateRowLemma(RowLemmaType lem)
       Node reason =
           (aj.isConst() && bj.isConst()) ? d_true : aj.eqNode(bj).notNode();
       Node j_eq_i = j.eqNode(i);
-      d_im.assertInference(
-          j_eq_i, true, InferenceId::ARRAYS_READ_OVER_WRITE_CONTRA, reason, PfRule::ARRAYS_READ_OVER_WRITE_CONTRA);
+      d_im.assertInference(j_eq_i,
+                           true,
+                           InferenceId::ARRAYS_READ_OVER_WRITE_CONTRA,
+                           reason,
+                           ProofRule::ARRAYS_READ_OVER_WRITE_CONTRA);
       ++d_numProp;
       return;
     }
@@ -1891,7 +1899,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
                            true,
                            InferenceId::ARRAYS_EQ_TAUTOLOGY,
                            d_true,
-                           PfRule::MACRO_SR_PRED_INTRO);
+                           ProofRule::MACRO_SR_PRED_INTRO);
     }
     Node bj2 = rewrite(bj);
     if (bj != bj2) {
@@ -1906,7 +1914,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
                            true,
                            InferenceId::ARRAYS_EQ_TAUTOLOGY,
                            d_true,
-                           PfRule::MACRO_SR_PRED_INTRO);
+                           ProofRule::MACRO_SR_PRED_INTRO);
     }
     if (aj2 == bj2) {
       return;
@@ -1928,7 +1936,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
                            true,
                            InferenceId::ARRAYS_EQ_TAUTOLOGY,
                            d_true,
-                           PfRule::MACRO_SR_PRED_INTRO);
+                           ProofRule::MACRO_SR_PRED_INTRO);
       return;
     }
 
@@ -1939,7 +1947,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
                            true,
                            InferenceId::ARRAYS_EQ_TAUTOLOGY,
                            d_true,
-                           PfRule::MACRO_SR_PRED_INTRO);
+                           ProofRule::MACRO_SR_PRED_INTRO);
       return;
     }
 
@@ -1948,8 +1956,10 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
     Trace("arrays-lem") << "Arrays::addRowLemma (1) adding " << lemma << "\n";
     d_RowAlreadyAdded.insert(lem);
     // use non-rewritten nodes
-    d_im.arrayLemma(
-        aj.eqNode(bj), InferenceId::ARRAYS_READ_OVER_WRITE, eq2.notNode(), PfRule::ARRAYS_READ_OVER_WRITE);
+    d_im.arrayLemma(aj.eqNode(bj),
+                    InferenceId::ARRAYS_READ_OVER_WRITE,
+                    eq2.notNode(),
+                    ProofRule::ARRAYS_READ_OVER_WRITE);
     ++d_numRow;
   }
   else {
@@ -2024,7 +2034,7 @@ bool TheoryArrays::dischargeLemmas()
                            true,
                            InferenceId::ARRAYS_EQ_TAUTOLOGY,
                            d_true,
-                           PfRule::MACRO_SR_PRED_INTRO);
+                           ProofRule::MACRO_SR_PRED_INTRO);
     }
     Node bj2 = rewrite(bj);
     if (bj != bj2) {
@@ -2039,7 +2049,7 @@ bool TheoryArrays::dischargeLemmas()
                            true,
                            InferenceId::ARRAYS_EQ_TAUTOLOGY,
                            d_true,
-                           PfRule::MACRO_SR_PRED_INTRO);
+                           ProofRule::MACRO_SR_PRED_INTRO);
     }
     if (aj2 == bj2) {
       continue;
@@ -2061,7 +2071,7 @@ bool TheoryArrays::dischargeLemmas()
                            true,
                            InferenceId::ARRAYS_EQ_TAUTOLOGY,
                            d_true,
-                           PfRule::MACRO_SR_PRED_INTRO);
+                           ProofRule::MACRO_SR_PRED_INTRO);
       continue;
     }
 
@@ -2072,7 +2082,7 @@ bool TheoryArrays::dischargeLemmas()
                            true,
                            InferenceId::ARRAYS_EQ_TAUTOLOGY,
                            d_true,
-                           PfRule::MACRO_SR_PRED_INTRO);
+                           ProofRule::MACRO_SR_PRED_INTRO);
       continue;
     }
 
@@ -2081,8 +2091,10 @@ bool TheoryArrays::dischargeLemmas()
     Trace("arrays-lem") << "Arrays::addRowLemma (2) adding " << lem << "\n";
     d_RowAlreadyAdded.insert(l);
     // use non-rewritten nodes, theory preprocessing will rewrite
-    d_im.arrayLemma(
-        aj.eqNode(bj), InferenceId::ARRAYS_READ_OVER_WRITE, eq2.notNode(), PfRule::ARRAYS_READ_OVER_WRITE);
+    d_im.arrayLemma(aj.eqNode(bj),
+                    InferenceId::ARRAYS_READ_OVER_WRITE,
+                    eq2.notNode(),
+                    ProofRule::ARRAYS_READ_OVER_WRITE);
     ++d_numRow;
     lemmasAdded = true;
     if (reduceSharing)

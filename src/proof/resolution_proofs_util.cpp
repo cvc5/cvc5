@@ -496,24 +496,26 @@ Node eliminateCrowdingLits(bool reorderPremises,
                            newArgs.begin() + (2 * end) + 1);
     Trace("crowding-lits") << "\tres children: " << childrenRes << "\n";
     Trace("crowding-lits") << "\tres args: " << childrenResArgs << "\n";
-    resPlaceHolder = pnm->getChecker()->checkDebug(PfRule::CHAIN_RESOLUTION,
+    resPlaceHolder = pnm->getChecker()->checkDebug(ProofRule::CHAIN_RESOLUTION,
                                                    childrenRes,
                                                    childrenResArgs,
                                                    Node::null(),
                                                    "");
     Trace("crowding-lits") << "resPlaceHorder: " << resPlaceHolder << "\n";
     Trace("crowding-lits") << "-------\n";
-    cdp->addStep(
-        resPlaceHolder, PfRule::CHAIN_RESOLUTION, childrenRes, childrenResArgs);
+    cdp->addStep(resPlaceHolder,
+                 ProofRule::CHAIN_RESOLUTION,
+                 childrenRes,
+                 childrenResArgs);
     // I need to add factoring if end < children.size(). Otherwise, this is
     // to be handled by the caller
     if (end < childrenSize - 1)
     {
       lastClause = pnm->getChecker()->checkDebug(
-          PfRule::FACTORING, {resPlaceHolder}, {}, Node::null(), "");
+          ProofRule::FACTORING, {resPlaceHolder}, {}, Node::null(), "");
       if (!lastClause.isNull())
       {
-        cdp->addStep(lastClause, PfRule::FACTORING, {resPlaceHolder}, {});
+        cdp->addStep(lastClause, ProofRule::FACTORING, {resPlaceHolder}, {});
         Trace("crowding-lits") << "Apply factoring.\n";
       }
       else

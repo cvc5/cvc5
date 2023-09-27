@@ -13,7 +13,7 @@
   ))
 
 ; Concludes the instantiation for the term of the outermost quantifier in the
-; rule PfRule::INSTANTIATE. We do not enforce type checking of term s
+; rule ProofRule::INSTANTIATE. We do not enforce type checking of term s
 ; currently, which should be of sort u.
 (declare instantiate (! body term
                      (! v mpz
@@ -25,7 +25,7 @@
                        (holds bodyi)))))))))
 
 ; Concludes the skolemization for the term of the outermost quantifier in the
-; rule PfRule::SKOLEMIZE.
+; rule ProofRule::SKOLEMIZE.
 (declare skolemize (! body term
                      (! v mpz
                      (! s sort

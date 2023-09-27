@@ -127,7 +127,7 @@ void TermRegistry::sendSimpleLemmaInternal(Node n, InferenceId id)
   if (d_epg.get() != nullptr)
   {
     TrustNode teq =
-        d_epg->mkTrustNode(n, PfRule::MACRO_SR_PRED_INTRO, {}, {n});
+        d_epg->mkTrustNode(n, ProofRule::MACRO_SR_PRED_INTRO, {}, {n});
     d_im.trustedLemma(teq, id);
   }
   else

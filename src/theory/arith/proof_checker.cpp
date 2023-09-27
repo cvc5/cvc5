@@ -34,15 +34,15 @@ ArithProofRuleChecker::ArithProofRuleChecker() {}
 
 void ArithProofRuleChecker::registerTo(ProofChecker* pc)
 {
-  pc->registerChecker(PfRule::MACRO_ARITH_SCALE_SUM_UB, this);
-  pc->registerChecker(PfRule::ARITH_SUM_UB, this);
-  pc->registerChecker(PfRule::ARITH_TRICHOTOMY, this);
-  pc->registerChecker(PfRule::INT_TIGHT_UB, this);
-  pc->registerChecker(PfRule::INT_TIGHT_LB, this);
-  pc->registerChecker(PfRule::ARITH_OP_ELIM_AXIOM, this);
-  pc->registerChecker(PfRule::ARITH_MULT_POS, this);
-  pc->registerChecker(PfRule::ARITH_MULT_NEG, this);
-  pc->registerChecker(PfRule::ARITH_POLY_NORM, this);
+  pc->registerChecker(ProofRule::MACRO_ARITH_SCALE_SUM_UB, this);
+  pc->registerChecker(ProofRule::ARITH_SUM_UB, this);
+  pc->registerChecker(ProofRule::ARITH_TRICHOTOMY, this);
+  pc->registerChecker(ProofRule::INT_TIGHT_UB, this);
+  pc->registerChecker(ProofRule::INT_TIGHT_LB, this);
+  pc->registerChecker(ProofRule::ARITH_OP_ELIM_AXIOM, this);
+  pc->registerChecker(ProofRule::ARITH_MULT_POS, this);
+  pc->registerChecker(ProofRule::ARITH_MULT_NEG, this);
+  pc->registerChecker(ProofRule::ARITH_POLY_NORM, this);
   // register the extended proof checkers
   d_extChecker.registerTo(pc);
   d_trChecker.registerTo(pc);
@@ -51,14 +51,14 @@ void ArithProofRuleChecker::registerTo(ProofChecker* pc)
 #endif
 }
 
-Node ArithProofRuleChecker::checkInternal(PfRule id,
+Node ArithProofRuleChecker::checkInternal(ProofRule id,
                                           const std::vector<Node>& children,
                                           const std::vector<Node>& args)
 {
   NodeManager* nm = NodeManager::currentNM();
   if (TraceIsOn("arith::pf::check"))
   {
-    Trace("arith::pf::check") << "Arith PfRule:" << id << std::endl;
+    Trace("arith::pf::check") << "Arith ProofRule:" << id << std::endl;
     Trace("arith::pf::check") << "  children: " << std::endl;
     for (const auto& c : children)
     {
@@ -72,7 +72,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
   }
   switch (id)
   {
-    case PfRule::ARITH_MULT_POS:
+    case ProofRule::ARITH_MULT_POS:
     {
       Assert(children.empty());
       Assert(args.size() == 2);
@@ -90,7 +90,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
                                    nm->mkNode(Kind::MULT, mult, lhs),
                                    nm->mkNode(Kind::MULT, mult, rhs)));
     }
-    case PfRule::ARITH_MULT_NEG:
+    case ProofRule::ARITH_MULT_NEG:
     {
       Assert(children.empty());
       Assert(args.size() == 2);
@@ -109,7 +109,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
                                    nm->mkNode(Kind::MULT, mult, lhs),
                                    nm->mkNode(Kind::MULT, mult, rhs)));
     }
-    case PfRule::ARITH_SUM_UB:
+    case ProofRule::ARITH_SUM_UB:
     {
       if (children.size() < 2)
       {
@@ -150,7 +150,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
                           rightSum.constructNode());
       return r;
     }
-    case PfRule::MACRO_ARITH_SCALE_SUM_UB:
+    case ProofRule::MACRO_ARITH_SCALE_SUM_UB:
     {
       //================================================= Arithmetic rules
       // ======== Adding Inequalities
@@ -259,7 +259,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
                           rightSum.constructNode());
       return r;
     }
-    case PfRule::INT_TIGHT_LB:
+    case ProofRule::INT_TIGHT_LB:
     {
       // Children: (P:(> i c))
       //         where i has integer type.
@@ -282,7 +282,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
         return nm->mkNode(kind::GEQ, children[0][0], rational);
       }
     }
-    case PfRule::INT_TIGHT_UB:
+    case ProofRule::INT_TIGHT_UB:
     {
       // ======== Tightening Strict Integer Upper Bounds
       // Children: (P:(< i c))
@@ -306,7 +306,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
         return nm->mkNode(kind::LEQ, children[0][0], rational);
       }
     }
-    case PfRule::ARITH_TRICHOTOMY:
+    case ProofRule::ARITH_TRICHOTOMY:
     {
       Node a = negateProofLiteral(children[0]);
       Node b = negateProofLiteral(children[1]);
@@ -345,13 +345,13 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
       }
       // Check that all have the same constant:
     }
-    case PfRule::ARITH_OP_ELIM_AXIOM:
+    case ProofRule::ARITH_OP_ELIM_AXIOM:
     {
       Assert(children.empty());
       Assert(args.size() == 1);
       return OperatorElim::getAxiomFor(args[0]);
     }
-    case PfRule::ARITH_POLY_NORM:
+    case ProofRule::ARITH_POLY_NORM:
     {
       Assert(children.empty());
       Assert(args.size() == 1);

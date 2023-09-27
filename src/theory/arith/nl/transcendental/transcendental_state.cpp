@@ -246,8 +246,10 @@ void TranscendentalState::getCurrentPiBounds()
     if (isProofEnabled())
     {
       proof = getProof();
-      proof->addStep(
-          pi_lem, PfRule::ARITH_TRANS_PI, {}, {d_pi_bound[0], d_pi_bound[1]});
+      proof->addStep(pi_lem,
+                     ProofRule::ARITH_TRANS_PI,
+                     {},
+                     {d_pi_bound[0], d_pi_bound[1]});
     }
     d_im.addPendingLemma(pi_lem, InferenceId::ARITH_NL_T_PI_BOUND, proof);
   }
@@ -361,14 +363,14 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
       if (csign == 1)
       {
         proof->addStep(lem,
-                       PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS,
+                       ProofRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS,
                        {},
                        {nm->mkConstInt(2 * actual_d), tf[0], lower, upper});
       }
       else
       {
         proof->addStep(lem,
-                       PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG,
+                       ProofRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG,
                        {},
                        {nm->mkConstInt(2 * actual_d), tf[0], lower, upper});
       }
@@ -379,7 +381,7 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
       {
         proof->addStep(
             lem,
-            PfRule::ARITH_TRANS_SINE_APPROX_BELOW_POS,
+            ProofRule::ARITH_TRANS_SINE_APPROX_BELOW_POS,
             {},
             {nm->mkConstInt(2 * actual_d), tf[0], lower, upper, lapprox, uapprox
 
@@ -388,7 +390,7 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
       else
       {
         proof->addStep(lem,
-                       PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_NEG,
+                       ProofRule::ARITH_TRANS_SINE_APPROX_ABOVE_NEG,
                        {},
                        {nm->mkConstInt(2 * actual_d),
                         tf[0],

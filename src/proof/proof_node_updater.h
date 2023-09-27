@@ -63,7 +63,7 @@ class ProofNodeUpdaterCallback
    * in a rewrite response.
    */
   virtual bool update(Node res,
-                      PfRule id,
+                      ProofRule id,
                       const std::vector<Node>& children,
                       const std::vector<Node>& args,
                       CDProof* cdp,
@@ -79,7 +79,7 @@ class ProofNodeUpdaterCallback
 
   /** As above, but at post-visit. */
   virtual bool updatePost(Node res,
-                          PfRule id,
+                          ProofRule id,
                           const std::vector<Node>& children,
                           const std::vector<Node>& args,
                           CDProof* cdp);

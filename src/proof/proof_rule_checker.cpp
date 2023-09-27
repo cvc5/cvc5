@@ -22,7 +22,7 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 
-Node ProofRuleChecker::check(PfRule id,
+Node ProofRuleChecker::check(ProofRule id,
                              const std::vector<Node>& children,
                              const std::vector<Node>& args)
 {

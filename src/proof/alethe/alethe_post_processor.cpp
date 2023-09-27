@@ -64,7 +64,7 @@ bool AletheProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                                   const std::vector<Node>& fa,
                                                   bool& continueUpdate)
 {
-  return pn->getRule() != PfRule::ALETHE_RULE;
+  return pn->getRule() != ProofRule::ALETHE_RULE;
 }
 
 bool AletheProofPostprocessCallback::shouldUpdatePost(
@@ -77,7 +77,7 @@ bool AletheProofPostprocessCallback::shouldUpdatePost(
 }
 
 bool AletheProofPostprocessCallback::update(Node res,
-                                            PfRule id,
+                                            ProofRule id,
                                             const std::vector<Node>& children,
                                             const std::vector<Node>& args,
                                             CDProof* cdp,
@@ -172,7 +172,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     //================================================= Core rules
     //======================== Assume and Scope
-    case PfRule::ASSUME:
+    case ProofRule::ASSUME:
     {
       return addAletheStep(AletheRule::ASSUME, res, res, children, {}, *cdp);
     }
@@ -244,7 +244,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     // *  the corresponding proof node is (not (and F1 ... Fn))
     // ** the corresponding proof node is (=> (and F1 ... Fn) F)
-    case PfRule::SCOPE:
+    case ProofRule::SCOPE:
     {
       bool success = true;
 
@@ -383,7 +383,7 @@ bool AletheProofPostprocessCallback::update(Node res,
 
       return success;
     }
-    case PfRule::THEORY_REWRITE:
+    case ProofRule::THEORY_REWRITE:
     {
       return addAletheStep(AletheRule::ALL_SIMPLIFY,
                            res,
@@ -432,8 +432,8 @@ bool AletheProofPostprocessCallback::update(Node res,
     //      (cl C)*
     //
     //  * the corresponding proof node is C
-    case PfRule::RESOLUTION:
-    case PfRule::CHAIN_RESOLUTION:
+    case ProofRule::RESOLUTION:
+    case ProofRule::CHAIN_RESOLUTION:
     {
       std::vector<Node> newArgs;
       // checker expects opposite order. We always keep the pivots because we
@@ -469,7 +469,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //   VC2*
     //
     // * the corresponding proof node is C2
-    case PfRule::FACTORING:
+    case ProofRule::FACTORING:
     {
       if (res.getKind() == kind::OR)
       {
@@ -491,7 +491,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     // ======== Reordering
     // This rule is translated according to the clauses pattern.
-    case PfRule::REORDERING:
+    case ProofRule::REORDERING:
     {
       return addAletheStepFromOr(
           AletheRule::REORDERING, res, children, {}, *cdp);
@@ -509,7 +509,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // VP2: (cl (not (not (not (not F)))) (not F))
     //
     // * the corresponding proof node is (or F (not F))
-    case PfRule::SPLIT:
+    case ProofRule::SPLIT:
     {
       Node vp1 = nm->mkNode(
           kind::SEXPR, d_cl, args[0].notNode().notNode().notNode(), args[0]);
@@ -572,7 +572,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // VP1: (cl (not (= F1 F2)) (not F1) F2)
     //
     // * the corresponding proof node is F2
-    case PfRule::EQ_RESOLVE:
+    case ProofRule::EQ_RESOLVE:
     {
       bool success = true;
       Node vp1 =
@@ -584,8 +584,8 @@ bool AletheProofPostprocessCallback::update(Node res,
       if (children[0].notNode() != children[1].notNode()
           && children[0].getKind() == kind::OR)
       {
-        PfRule pr = cdp->getProofFor(child1)->getRule();
-        if (pr != PfRule::ASSUME && pr != PfRule::EQ_RESOLVE)
+        ProofRule pr = cdp->getProofFor(child1)->getRule();
+        if (pr != ProofRule::ASSUME && pr != ProofRule::EQ_RESOLVE)
         {
           std::vector<Node> clauses{d_cl};
           clauses.insert(clauses.end(),
@@ -648,7 +648,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //                   (cl F2)*
     //
     // * the corresponding proof node is F2
-    case PfRule::MODUS_PONENS:
+    case ProofRule::MODUS_PONENS:
     {
       Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
 
@@ -673,7 +673,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //                            (cl F)*
     //
     // * the corresponding proof node is F
-    case PfRule::NOT_NOT_ELIM:
+    case ProofRule::NOT_NOT_ELIM:
     {
       Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
 
@@ -696,7 +696,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //   (cl)*
     //
     // * the corresponding proof node is false
-    case PfRule::CONTRA:
+    case ProofRule::CONTRA:
     {
       return addAletheStep(AletheRule::RESOLUTION,
                            res,
@@ -708,7 +708,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     // ======== And elimination
     // This rule is translated according to the singleton pattern.
-    case PfRule::AND_ELIM:
+    case ProofRule::AND_ELIM:
     {
       return addAletheStep(AletheRule::AND,
                            res,
@@ -730,7 +730,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // VP1:(cl (and F1 ... Fn) (not F1) ... (not Fn))
     //
     // * the corresponding proof node is (and F1 ... Fn)
-    case PfRule::AND_INTRO:
+    case ProofRule::AND_INTRO:
     {
       std::vector<Node> neg_Nodes = {d_cl, res};
       for (size_t i = 0, size = children.size(); i < size; i++)
@@ -760,7 +760,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     // ======== Not Or elimination
     // This rule is translated according to the singleton pattern.
-    case PfRule::NOT_OR_ELIM:
+    case ProofRule::NOT_OR_ELIM:
     {
       return addAletheStep(AletheRule::NOT_OR,
                            res,
@@ -771,13 +771,13 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     // ======== Implication elimination
     // This rule is translated according to the clause pattern.
-    case PfRule::IMPLIES_ELIM:
+    case ProofRule::IMPLIES_ELIM:
     {
       return addAletheStepFromOr(AletheRule::IMPLIES, res, children, {}, *cdp);
     }
     // ======== Not Implication elimination version 1
     // This rule is translated according to the singleton pattern.
-    case PfRule::NOT_IMPLIES_ELIM1:
+    case ProofRule::NOT_IMPLIES_ELIM1:
     {
       return addAletheStep(AletheRule::NOT_IMPLIES1,
                            res,
@@ -788,7 +788,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     // ======== Not Implication elimination version 2
     // This rule is translated according to the singleton pattern.
-    case PfRule::NOT_IMPLIES_ELIM2:
+    case ProofRule::NOT_IMPLIES_ELIM2:
     {
       return addAletheStep(AletheRule::NOT_IMPLIES2,
                            res,
@@ -799,146 +799,146 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     // ======== Various elimination rules
     // The following rules are all translated according to the clause pattern.
-    case PfRule::EQUIV_ELIM1:
+    case ProofRule::EQUIV_ELIM1:
     {
       return addAletheStepFromOr(AletheRule::EQUIV1, res, children, {}, *cdp);
     }
-    case PfRule::EQUIV_ELIM2:
+    case ProofRule::EQUIV_ELIM2:
     {
       return addAletheStepFromOr(AletheRule::EQUIV2, res, children, {}, *cdp);
     }
-    case PfRule::NOT_EQUIV_ELIM1:
+    case ProofRule::NOT_EQUIV_ELIM1:
     {
       return addAletheStepFromOr(
           AletheRule::NOT_EQUIV1, res, children, {}, *cdp);
     }
-    case PfRule::NOT_EQUIV_ELIM2:
+    case ProofRule::NOT_EQUIV_ELIM2:
     {
       return addAletheStepFromOr(
           AletheRule::NOT_EQUIV2, res, children, {}, *cdp);
     }
-    case PfRule::XOR_ELIM1:
+    case ProofRule::XOR_ELIM1:
     {
       return addAletheStepFromOr(AletheRule::XOR1, res, children, {}, *cdp);
     }
-    case PfRule::XOR_ELIM2:
+    case ProofRule::XOR_ELIM2:
     {
       return addAletheStepFromOr(AletheRule::XOR2, res, children, {}, *cdp);
     }
-    case PfRule::NOT_XOR_ELIM1:
+    case ProofRule::NOT_XOR_ELIM1:
     {
       return addAletheStepFromOr(AletheRule::NOT_XOR1, res, children, {}, *cdp);
     }
-    case PfRule::NOT_XOR_ELIM2:
+    case ProofRule::NOT_XOR_ELIM2:
     {
       return addAletheStepFromOr(AletheRule::NOT_XOR2, res, children, {}, *cdp);
     }
-    case PfRule::ITE_ELIM1:
+    case ProofRule::ITE_ELIM1:
     {
       return addAletheStepFromOr(AletheRule::ITE2, res, children, {}, *cdp);
     }
-    case PfRule::ITE_ELIM2:
+    case ProofRule::ITE_ELIM2:
     {
       return addAletheStepFromOr(AletheRule::ITE1, res, children, {}, *cdp);
     }
-    case PfRule::NOT_ITE_ELIM1:
+    case ProofRule::NOT_ITE_ELIM1:
     {
       return addAletheStepFromOr(AletheRule::NOT_ITE2, res, children, {}, *cdp);
     }
-    case PfRule::NOT_ITE_ELIM2:
+    case ProofRule::NOT_ITE_ELIM2:
     {
       return addAletheStepFromOr(AletheRule::NOT_ITE1, res, children, {}, *cdp);
     }
     //================================================= De Morgan rules
     // ======== Not And
     // This rule is translated according to the clause pattern.
-    case PfRule::NOT_AND:
+    case ProofRule::NOT_AND:
     {
       return addAletheStepFromOr(AletheRule::NOT_AND, res, children, {}, *cdp);
     }
 
     //================================================= CNF rules
     // The following rules are all translated according to the clause pattern.
-    case PfRule::CNF_AND_POS:
+    case ProofRule::CNF_AND_POS:
     {
       return addAletheStepFromOr(AletheRule::AND_POS, res, children, {}, *cdp);
     }
-    case PfRule::CNF_AND_NEG:
+    case ProofRule::CNF_AND_NEG:
     {
       return addAletheStepFromOr(AletheRule::AND_NEG, res, children, {}, *cdp);
     }
-    case PfRule::CNF_OR_POS:
+    case ProofRule::CNF_OR_POS:
     {
       return addAletheStepFromOr(AletheRule::OR_POS, res, children, {}, *cdp);
     }
-    case PfRule::CNF_OR_NEG:
+    case ProofRule::CNF_OR_NEG:
     {
       return addAletheStepFromOr(AletheRule::OR_NEG, res, children, {}, *cdp);
     }
-    case PfRule::CNF_IMPLIES_POS:
+    case ProofRule::CNF_IMPLIES_POS:
     {
       return addAletheStepFromOr(
           AletheRule::IMPLIES_POS, res, children, {}, *cdp);
     }
-    case PfRule::CNF_IMPLIES_NEG1:
+    case ProofRule::CNF_IMPLIES_NEG1:
     {
       return addAletheStepFromOr(
           AletheRule::IMPLIES_NEG1, res, children, {}, *cdp);
     }
-    case PfRule::CNF_IMPLIES_NEG2:
+    case ProofRule::CNF_IMPLIES_NEG2:
     {
       return addAletheStepFromOr(
           AletheRule::IMPLIES_NEG2, res, children, {}, *cdp);
     }
-    case PfRule::CNF_EQUIV_POS1:
+    case ProofRule::CNF_EQUIV_POS1:
     {
       return addAletheStepFromOr(
           AletheRule::EQUIV_POS2, res, children, {}, *cdp);
     }
-    case PfRule::CNF_EQUIV_POS2:
+    case ProofRule::CNF_EQUIV_POS2:
     {
       return addAletheStepFromOr(
           AletheRule::EQUIV_POS1, res, children, {}, *cdp);
     }
-    case PfRule::CNF_EQUIV_NEG1:
+    case ProofRule::CNF_EQUIV_NEG1:
     {
       return addAletheStepFromOr(
           AletheRule::EQUIV_NEG2, res, children, {}, *cdp);
     }
-    case PfRule::CNF_EQUIV_NEG2:
+    case ProofRule::CNF_EQUIV_NEG2:
     {
       return addAletheStepFromOr(
           AletheRule::EQUIV_NEG1, res, children, {}, *cdp);
     }
-    case PfRule::CNF_XOR_POS1:
+    case ProofRule::CNF_XOR_POS1:
     {
       return addAletheStepFromOr(AletheRule::XOR_POS1, res, children, {}, *cdp);
     }
-    case PfRule::CNF_XOR_POS2:
+    case ProofRule::CNF_XOR_POS2:
     {
       return addAletheStepFromOr(AletheRule::XOR_POS2, res, children, {}, *cdp);
     }
-    case PfRule::CNF_XOR_NEG1:
+    case ProofRule::CNF_XOR_NEG1:
     {
       return addAletheStepFromOr(AletheRule::XOR_NEG2, res, children, {}, *cdp);
     }
-    case PfRule::CNF_XOR_NEG2:
+    case ProofRule::CNF_XOR_NEG2:
     {
       return addAletheStepFromOr(AletheRule::XOR_NEG1, res, children, {}, *cdp);
     }
-    case PfRule::CNF_ITE_POS1:
+    case ProofRule::CNF_ITE_POS1:
     {
       return addAletheStepFromOr(AletheRule::ITE_POS2, res, children, {}, *cdp);
     }
-    case PfRule::CNF_ITE_POS2:
+    case ProofRule::CNF_ITE_POS2:
     {
       return addAletheStepFromOr(AletheRule::ITE_POS1, res, children, {}, *cdp);
     }
-    case PfRule::CNF_ITE_NEG1:
+    case ProofRule::CNF_ITE_NEG1:
     {
       return addAletheStepFromOr(AletheRule::ITE_NEG2, res, children, {}, *cdp);
     }
-    case PfRule::CNF_ITE_NEG2:
+    case ProofRule::CNF_ITE_NEG2:
     {
       return addAletheStepFromOr(AletheRule::ITE_NEG1, res, children, {}, *cdp);
     }
@@ -959,7 +959,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // VP4: (cl (not (ite C F1 F2)) (not (ite C F1 F2)) F1 F2)
     //
     // * the corresponding proof node is (or (not (ite C F1 F2)) F1 F2)
-    case PfRule::CNF_ITE_POS3:
+    case ProofRule::CNF_ITE_POS3:
     {
       Node vp1 = nm->mkNode(kind::SEXPR, {d_cl, res[0], args[0][0], res[2]});
       Node vp2 =
@@ -1000,7 +1000,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // VP4: (cl (ite C F1 F2) (ite C F1 F2) (not F1) (not F2))
     //
     // * the corresponding proof node is (or (ite C F1 F2) C (not F2))
-    case PfRule::CNF_ITE_NEG3:
+    case ProofRule::CNF_ITE_NEG3:
     {
       Node vp1 = nm->mkNode(kind::SEXPR, {d_cl, res[0], args[0][0], res[2]});
       Node vp2 =
@@ -1027,7 +1027,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //================================================= Equality rules
     // The following rules are all translated according to the singleton
     // pattern.
-    case PfRule::REFL:
+    case ProofRule::REFL:
     {
       return addAletheStep(AletheRule::REFL,
                            res,
@@ -1036,7 +1036,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
-    case PfRule::SYMM:
+    case ProofRule::SYMM:
     {
       return addAletheStep(
           res.getKind() == kind::NOT ? AletheRule::NOT_SYMM : AletheRule::SYMM,
@@ -1046,7 +1046,7 @@ bool AletheProofPostprocessCallback::update(Node res,
           {},
           *cdp);
     }
-    case PfRule::TRANS:
+    case ProofRule::TRANS:
     {
       return addAletheStep(AletheRule::TRANS,
                            res,
@@ -1083,7 +1083,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     // ** the corresponding proof node is (= (<kind> f? t1 ... tn) (<kind> f?
     // s1 ... sn))
-    case PfRule::CONG:
+    case ProofRule::CONG:
     {
       if (res[0].isClosure())
       {
@@ -1124,7 +1124,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //  (cl (= F true))*
     //
     // * the corresponding proof node is (= F true)
-    case PfRule::TRUE_INTRO:
+    case ProofRule::TRUE_INTRO:
     {
       Node vp1 = nm->mkNode(kind::SEXPR, d_cl, res.eqNode(children[0]));
       Node vp2 = nm->mkNode(kind::SEXPR, d_cl, res, children[0].notNode());
@@ -1149,7 +1149,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //  (cl F)*
     //
     // * the corresponding proof node is F
-    case PfRule::TRUE_ELIM:
+    case ProofRule::TRUE_ELIM:
     {
       Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0].eqNode(res));
       Node vp2 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
@@ -1181,7 +1181,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // VP4: (cl (= F false) F)
     //
     // * the corresponding proof node is (= F false)
-    case PfRule::FALSE_INTRO:
+    case ProofRule::FALSE_INTRO:
     {
       Node vp1 = nm->mkNode(kind::SEXPR, d_cl, res.eqNode(children[0]));
       Node vp2 = nm->mkNode(kind::SEXPR, d_cl, res, children[0].notNode());
@@ -1224,7 +1224,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // VP4: (cl (= F false) F)
     //
     // * the corresponding proof node is (not F)
-    case PfRule::FALSE_ELIM:
+    case ProofRule::FALSE_ELIM:
     {
       Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0].eqNode(res));
       Node vp2 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
@@ -1245,7 +1245,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // Since this rule just equates a term to its purification skolem, whose
     // conversion is the term itself, the converted conclusion is an equality
     // between the same terms.
-    case PfRule::SKOLEM_INTRO:
+    case ProofRule::SKOLEM_INTRO:
     {
       return addAletheStep(AletheRule::REFL,
                            res,
@@ -1258,7 +1258,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // For now this introduces a hole. The processing in the future should
     // generate corresponding Alethe steps for each particular axiom for term
     // removal (for example for the ITE case).
-    case PfRule::REMOVE_TERM_FORMULA_AXIOM:
+    case ProofRule::REMOVE_TERM_FORMULA_AXIOM:
     {
       return addAletheStep(AletheRule::HOLE,
                            res,
@@ -1308,7 +1308,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // ANCHOR_SKO_FORALL and the one concluding the desired equivalence is
     // followed by a congruence step to wrap the equality terms under a
     // negation, i.e., (not ...).
-    case PfRule::SKOLEMIZE:
+    case ProofRule::SKOLEMIZE:
     {
       AletheRule skoRule;
       bool isExists;
@@ -1406,7 +1406,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     // ------------------------ BV_BITBLAST_STEP_BV<KIND>
     //  (cl (= t bitblast(t)))
-    case PfRule::BV_BITBLAST_STEP:
+    case ProofRule::BV_BITBLAST_STEP:
     {
       Assert(s_bvKindToAletheRule.find(res[0].getKind())
              != s_bvKindToAletheRule.end())
@@ -1434,7 +1434,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // VP2: (cl (not (forall ((x1 T1) ... (xn Tn)) F)) F*sigma)
     //
     // ^ the corresponding proof node is F*sigma
-    case PfRule::INSTANTIATE:
+    case ProofRule::INSTANTIATE:
     {
       for (size_t i = 0, size = children[0][0].getNumChildren(); i < size; i++)
       {
@@ -1464,7 +1464,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //  (cl (>< t1 t2))*
     //
     // * the corresponding proof node is (>< t1 t2)
-    case PfRule::ARITH_SUM_UB:
+    case ProofRule::ARITH_SUM_UB:
     {
       // if the conclusion were an equality we'd need to phrase LA_GENERIC in
       // terms of disequalities, but ARITH_SUM_UB does not have equalities as
@@ -1497,12 +1497,12 @@ bool AletheProofPostprocessCallback::update(Node res,
                            *cdp);
     }
     // Direct translation
-    case PfRule::ARITH_MULT_POS:
-    case PfRule::ARITH_MULT_NEG:
+    case ProofRule::ARITH_MULT_POS:
+    case ProofRule::ARITH_MULT_NEG:
     {
       // We require the multiplicative factor to be a value
       Assert(args[0].isConst());
-      return addAletheStep(id == PfRule::ARITH_MULT_POS
+      return addAletheStep(id == ProofRule::ARITH_MULT_POS
                                ? AletheRule::LA_MULT_POS
                                : AletheRule::LA_MULT_NEG,
                            res,
@@ -1521,7 +1521,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // VP1: (cl (not (< i c)) (<= i greatestIntLessThan(c)))
     //
     // * the corresponding proof node is (<= i greatestIntLessThan(c))
-    case PfRule::INT_TIGHT_UB:
+    case ProofRule::INT_TIGHT_UB:
     {
       Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
       std::vector<Node> new_children = {vp1, children[0]};
@@ -1547,7 +1547,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // VP1: (cl (not (> i c)) (>= i leastIntGreaterThan(c)))
     //
     // * the corresponding proof node is (>= i leastIntGreaterThan(c))
-    case PfRule::INT_TIGHT_LB:
+    case ProofRule::INT_TIGHT_LB:
     {
       Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
       std::vector<Node> new_children = {vp1, children[0]};
@@ -1584,7 +1584,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //  (cl C)*
     //
     // * the corresponding proof node is C
-    case PfRule::ARITH_TRICHOTOMY:
+    case ProofRule::ARITH_TRICHOTOMY:
     {
       bool success = true;
       Node equal, lesser, greater;
@@ -1860,13 +1860,13 @@ bool AletheProofPostprocessCallback::maybeReplacePremiseProof(Node premise,
   // expected node (or t1' ... tn') from the original node (or t1 ... tn).
   NodeManager* nm = NodeManager::currentNM();
   Trace("alethe-proof") << "\n";
-  CVC5_UNUSED AletheRule premisePfRule =
+  CVC5_UNUSED AletheRule premiseProofRule =
       getAletheRule(premisePf->getArguments()[0]);
-  CVC5_UNUSED AletheRule premiseChildPfRule =
+  CVC5_UNUSED AletheRule premiseChildProofRule =
       getAletheRule(premisePf->getChildren()[0]->getArguments()[0]);
-  Assert((premisePfRule == AletheRule::CONTRACTION
-          || premisePfRule == AletheRule::REORDERING)
-         && premiseChildPfRule == AletheRule::OR);
+  Assert((premiseProofRule == AletheRule::CONTRACTION
+          || premiseProofRule == AletheRule::REORDERING)
+         && premiseChildProofRule == AletheRule::OR);
   // get great grand child
   std::shared_ptr<ProofNode> premiseChildPf =
       premisePf->getChildren()[0]->getChildren()[0];
@@ -1922,7 +1922,7 @@ bool AletheProofPostprocessCallback::maybeReplacePremiseProof(Node premise,
 // if they are already printed correctly.
 bool AletheProofPostprocessCallback::updatePost(
     Node res,
-    PfRule id,
+    ProofRule id,
     const std::vector<Node>& children,
     const std::vector<Node>& args,
     CDProof* cdp)
@@ -2083,7 +2083,7 @@ bool AletheProofPostprocessCallback::updatePost(
             << "... update alethe step in finalizer " << res << " "
             << newChildren << " / " << args << std::endl;
         cdp->addStep(res,
-                     PfRule::ALETHE_RULE,
+                     ProofRule::ALETHE_RULE,
                      newChildren,
                      d_resPivots
                          ? args
@@ -2148,7 +2148,7 @@ bool AletheProofPostprocessCallback::updatePost(
             << "Added OR step in finalizer to child " << childConclusion
             << " / " << newChild << std::endl;
         // update res step
-        cdp->addStep(res, PfRule::ALETHE_RULE, {newChild}, args);
+        cdp->addStep(res, ProofRule::ALETHE_RULE, {newChild}, args);
         return true;
       }
       Trace("alethe-proof") << "... no update\n";
@@ -2185,7 +2185,7 @@ bool AletheProofPostprocessCallback::updatePost(
 // This method also handles the case where the internal proof is "empty", i.e.,
 // it consists only of "false" as an assumption.
 bool AletheProofPostprocessCallback::finalStep(Node res,
-                                               PfRule id,
+                                               ProofRule id,
                                                std::vector<Node>& children,
                                                const std::vector<Node>& args,
                                                CDProof* cdp)
@@ -2195,7 +2195,7 @@ bool AletheProofPostprocessCallback::finalStep(Node res,
 
   // convert inner proof, i.e., children[0], if its conclusion is (cl false) or
   // if it's a false assumption
-  if (childPf->getRule() == PfRule::ALETHE_RULE
+  if (childPf->getRule() == ProofRule::ALETHE_RULE
       && ((childPf->getArguments()[2].getNumChildren() == 2
            && childPf->getArguments()[2][1] == d_false)
           || childPf->getArguments()[2] == d_false))
@@ -2217,14 +2217,14 @@ bool AletheProofPostprocessCallback::finalStep(Node res,
 
   // Sanitize original assumptions and create a placeholder proof step to hold
   // them.
-  Assert(id == PfRule::SCOPE);
+  Assert(id == ProofRule::SCOPE);
   std::vector<Node> sanitizedArgs{
       nm->mkConstInt(static_cast<uint32_t>(AletheRule::UNDEFINED)), res, res};
   for (const Node& arg : args)
   {
     sanitizedArgs.push_back(d_anc.convert(arg, false));
   }
-  return cdp->addStep(res, PfRule::ALETHE_RULE, children, sanitizedArgs);
+  return cdp->addStep(res, ProofRule::ALETHE_RULE, children, sanitizedArgs);
 }
 
 bool AletheProofPostprocessCallback::addAletheStep(
@@ -2246,7 +2246,7 @@ bool AletheProofPostprocessCallback::addAletheStep(
   Trace("alethe-proof") << "... add alethe step " << res << " / " << conclusion
                         << " " << rule << " " << children << " / " << newArgs
                         << std::endl;
-  return cdp.addStep(res, PfRule::ALETHE_RULE, children, newArgs);
+  return cdp.addStep(res, ProofRule::ALETHE_RULE, children, newArgs);
 }
 
 bool AletheProofPostprocessCallback::addAletheStepFromOr(
@@ -2275,8 +2275,8 @@ void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {
   // first two nodes are scopes for definitions and other assumptions. We
   // process only the internal proof node. And we merge these two scopes
-  Assert(pf->getRule() == PfRule::SCOPE
-         && pf->getChildren()[0]->getRule() == PfRule::SCOPE);
+  Assert(pf->getRule() == ProofRule::SCOPE
+         && pf->getChildren()[0]->getRule() == ProofRule::SCOPE);
   std::shared_ptr<ProofNode> definitionsScope = pf;
   std::shared_ptr<ProofNode> assumptionsScope = pf->getChildren()[0];
   std::shared_ptr<ProofNode> internalProof = assumptionsScope->getChildren()[0];
@@ -2299,7 +2299,7 @@ void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
               assumptionsScope->getArguments().begin(),
               assumptionsScope->getArguments().end());
   if (d_cb.finalStep(
-          definitionsScope->getResult(), PfRule::SCOPE, ccn, args, &cpf))
+          definitionsScope->getResult(), ProofRule::SCOPE, ccn, args, &cpf))
   {
     std::shared_ptr<ProofNode> npn =
         cpf.getProofFor(definitionsScope->getResult());

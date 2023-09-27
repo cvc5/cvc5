@@ -31,12 +31,12 @@ namespace theory {
  * related to normal forms in strings), where inferences that come first are
  * generally preferred.
  *
- * Notice that an inference is intentionally distinct from PfRule. An
- * inference captures *why* we performed a reasoning step, and a PfRule
+ * Notice that an inference is intentionally distinct from ProofRule. An
+ * inference captures *why* we performed a reasoning step, and a ProofRule
  * rule captures *what* reasoning step was used. For instance, the inference
- * LEN_SPLIT translates to PfRule::SPLIT. The use of stats on inferences allows
- * us to know that we performed N splits (PfRule::SPLIT) because we wanted
- * to split on lengths for string equalities (Inference::LEN_SPLIT).
+ * LEN_SPLIT translates to ProofRule::SPLIT. The use of stats on inferences
+ * allows us to know that we performed N splits (ProofRule::SPLIT) because we
+ * wanted to split on lengths for string equalities (Inference::LEN_SPLIT).
  */
 enum class InferenceId
 {
