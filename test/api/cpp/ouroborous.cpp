@@ -93,10 +93,16 @@ std::string parse(std::string instr,
   // we don't need to execute the commands, but we DO need to parse them to
   // get the declarations
   std::stringstream tmp;
-  while (std::unique_ptr<Command> c = parser.nextCommand())
+  Command c;
+  while (true)
   {
+    c = p.nextCommand();
+    if (c.isNull())
+    {
+      break;
+    }
     // invoke the command, which may bind symbols
-    c->invoke(&solver, &symman, tmp);
+    c.invoke(&solver, &symman, tmp);
   }
   assert(parser.done());  // parser should be done
   std::stringstream ssi;
