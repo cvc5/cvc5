@@ -17,15 +17,14 @@
 # libcvc5parser source files
 
 set(libcvc5parserapi_src_files
-  api/cpp/command.cpp
-  api/cpp/command.h
-  api/cpp/symbol_manager.cpp
-  api/cpp/symbol_manager.h
-  api/cpp/input_parser.cpp
-  api/cpp/input_parser.h
+  ../api/cpp/cvc5_parser.cpp
 )
 
 set(libcvc5parser_src_files
+  commands.cpp
+  commands.h
+  command_status.cpp
+  command_status.h
   input.cpp
   input.h
   lexer.cpp
@@ -51,6 +50,8 @@ set(libcvc5parser_src_files
   smt2/smt2_parser.h
   smt2/smt2_term_parser.cpp
   smt2/smt2_term_parser.h
+  sym_manager.cpp
+  sym_manager.h
   symbol_table.cpp
   symbol_table.h
   tokens.cpp
@@ -68,6 +69,7 @@ add_library(cvc5parserapi-objs OBJECT ${libcvc5parserapi_src_files})
 set_target_properties(cvc5parserapi-objs PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_compile_definitions(cvc5parserapi-objs PUBLIC -D__BUILDING_CVC5LIB -Dcvc5_obj_EXPORTS)
 
+add_dependencies(cvc5parser-objs gen-expr)
 add_dependencies(cvc5parserapi-objs cvc5parser-objs gen-expr)
 
 add_library(cvc5parser

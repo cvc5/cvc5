@@ -128,7 +128,7 @@ Node TermRegistry::getTermForType(TypeNode tn)
 
 void TermRegistry::getTermsForPool(Node p, std::vector<Node>& terms)
 {
-  if (p.getKind() == kind::SET_UNIVERSE)
+  if (p.getKind() == Kind::SET_UNIVERSE)
   {
     // get all ground terms of the given type
     TypeNode ptn = p.getType().getSetElementType();

@@ -14,6 +14,7 @@
  */
 
 #include <cvc5/cvc5.h>
+#include <cvc5/cvc5_parser.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -35,8 +36,6 @@
 #include "main/portfolio_driver.h"
 #include "main/signal_handlers.h"
 #include "main/time_limit.h"
-#include "parser/api/cpp/command.h"
-#include "parser/api/cpp/input_parser.h"
 #include "smt/solver_engine.h"
 #include "util/result.h"
 
@@ -74,6 +73,11 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
   if (solver->getOptionInfo("help").boolValue())
   {
     printUsage(progName, dopts.out());
+    exit(1);
+  }
+  else if (solver->getOptionInfo("help-regular").boolValue())
+  {
+    printUsage(progName, dopts.out(), true);
     exit(1);
   }
   for (const auto& name : {"show-config",

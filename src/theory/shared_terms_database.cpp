@@ -256,7 +256,7 @@ void SharedTermsDatabase::assertShared(TNode n, bool polarity, TNode reason)
       << "SharedTermsDatabase::assertShared(" << n << ", "
       << (polarity ? "true" : "false") << ", " << reason << ")" << endl;
   // Add it to the equality engine
-  if (n.getKind() == kind::EQUAL)
+  if (n.getKind() == Kind::EQUAL)
   {
     d_equalityEngine->assertEquality(n, polarity, reason);
   }
@@ -304,7 +304,7 @@ void SharedTermsDatabase::checkForConflict()
 
 bool SharedTermsDatabase::isKnown(TNode literal) const {
   Assert(d_equalityEngine != nullptr);
-  bool polarity = literal.getKind() != kind::NOT;
+  bool polarity = literal.getKind() != Kind::NOT;
   TNode equality = polarity ? literal : literal[0];
   if (polarity) {
     return d_equalityEngine->areEqual(equality[0], equality[1]);

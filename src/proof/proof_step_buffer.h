@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "proof/proof_rule.h"
+#include "cvc5/cvc5_proof_rule.h"
 
 namespace cvc5::internal {
 
@@ -37,11 +37,11 @@ class ProofStep
 {
  public:
   ProofStep();
-  ProofStep(PfRule r,
+  ProofStep(ProofRule r,
             const std::vector<Node>& children,
             const std::vector<Node>& args);
   /** The proof rule */
-  PfRule d_rule;
+  ProofRule d_rule;
   /** The proof children */
   std::vector<Node> d_children;
   /** The proof arguments */
@@ -80,13 +80,13 @@ class ProofStepBuffer
    * checking is set to none, this method will always successfully return
    * expected.
    */
-  Node tryStep(PfRule id,
+  Node tryStep(ProofRule id,
                const std::vector<Node>& children,
                const std::vector<Node>& args,
                Node expected = Node::null());
   /** Same as try step, but tracks whether a step was added */
   Node tryStep(bool& added,
-               PfRule id,
+               ProofRule id,
                const std::vector<Node>& children,
                const std::vector<Node>& args,
                Node expected = Node::null());
@@ -95,7 +95,7 @@ class ProofStepBuffer
    * @return true if a step was added. This may return false if e.g. expected
    * was a duplicate conclusion.
    */
-  bool addStep(PfRule id,
+  bool addStep(ProofRule id,
                const std::vector<Node>& children,
                const std::vector<Node>& args,
                Node expected);

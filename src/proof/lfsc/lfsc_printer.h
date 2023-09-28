@@ -13,6 +13,8 @@
  * The printer for LFSC proofs
  */
 
+#include <functional>
+
 #include "cvc5_private.h"
 
 #ifndef CVC4__PROOF__LFSC__LFSC_PRINTER_H
@@ -172,7 +174,7 @@ class LfscPrinter : protected EnvObj
                                 std::map<const ProofNode*, size_t>& pletMap);
   /** Print DSL rule */
   void printDslRule(std::ostream& out,
-                    rewriter::DslPfRule id,
+                    rewriter::DslProofRule id,
                     std::vector<Node>& format);
   //------------------------------ end printing proofs
   /** The term processor */
@@ -196,8 +198,8 @@ class LfscPrinter : protected EnvObj
   std::string d_pletPrefix;
   /** proof letified trust child prefix */
   std::string d_pletTrustChildPrefix;
-  /** for debugging the open rules, the set of PfRule we have warned about */
-  std::unordered_set<PfRule, PfRuleHashFunction> d_trustWarned;
+  /** for debugging the open rules, the set of ProofRule we have warned about */
+  std::unordered_set<ProofRule, std::hash<ProofRule>> d_trustWarned;
   /** Pointer to the rewrite database */
   rewriter::RewriteDb* d_rdb;
   /**
@@ -207,7 +209,7 @@ class LfscPrinter : protected EnvObj
    * Each rule is mapped to a list of terms, where Node::null signifies
    * positions of holes, non-null nodes are child proofs to print.
    */
-  std::map<rewriter::DslPfRule, std::vector<Node>> d_dslFormat;
+  std::map<rewriter::DslProofRule, std::vector<Node>> d_dslFormat;
 };
 
 }  // namespace proof

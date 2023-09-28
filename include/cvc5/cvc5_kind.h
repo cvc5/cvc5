@@ -10,22 +10,34 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The term kinds of the cvc5 C++ API.
+ * The term kinds of the cvc5 C++ and C APIs.
  */
 
-#include <cvc5/cvc5_export.h>
+#if (!defined(CVC5_API_USE_C_ENUMS) && !defined(CVC5__API__CVC5_CPP_KIND_H)) \
+    || (defined(CVC5_API_USE_C_ENUMS) && !defined(CVC5__API__CVC5_C_KIND_H))
 
-#ifndef CVC5__API__CVC5_KIND_H
-#define CVC5__API__CVC5_KIND_H
+#ifdef CVC5_API_USE_C_ENUMS
+#undef ENUM
+#define ENUM(name) Cvc5##name
+#else
+#include <cvc5/cvc5_export.h>
 
 #include <cstdint>
 #include <ostream>
-
 namespace cvc5 {
+#undef ENUM
+#define ENUM(name) class name
+#define EVALUE(name) name
+#endif
 
 /* -------------------------------------------------------------------------- */
 /* Kind                                                                       */
 /* -------------------------------------------------------------------------- */
+
+#ifdef CVC5_API_USE_C_ENUMS
+#undef EVALUE
+#define EVALUE(name) CVC5_KIND_##name
+#endif
 
 // clang-format off
 /**
@@ -41,7 +53,7 @@ namespace cvc5 {
  * of this type depends on the size of `cvc5::internal::Kind`
  * (`NodeValue::NBITS_KIND`, currently 10 bits, see expr/node_value.h).
  */
-enum Kind : int32_t
+enum ENUM(Kind) : int32_t
 {
   /**
    * Internal kind.
@@ -54,7 +66,7 @@ enum Kind : int32_t
    * .. note:: Should never be created via the API.
    * \endrst
    */
-  INTERNAL_KIND = -2,
+  EVALUE(INTERNAL_KIND = -2),
   /**
    * Undefined kind.
    *
@@ -62,7 +74,7 @@ enum Kind : int32_t
    * .. note:: Should never be exposed or created via the API.
    * \endrst
    */
-  UNDEFINED_KIND = -1,
+  EVALUE(UNDEFINED_KIND = -1),
   /**
    * Null kind.
    *
@@ -73,7 +85,7 @@ enum Kind : int32_t
    *           :cpp:func:`Term::Term()`.
    * \endrst
    */
-  NULL_TERM,
+  EVALUE(NULL_TERM),
 
   /* Builtin --------------------------------------------------------------- */
 
@@ -86,7 +98,7 @@ enum Kind : int32_t
    *           appear in assertions.
    * \endrst
    */
-  UNINTERPRETED_SORT_VALUE,
+  EVALUE(UNINTERPRETED_SORT_VALUE),
   /**
    * Equality, chainable.
    *
@@ -103,7 +115,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  EQUAL,
+  EVALUE(EQUAL),
   /**
    * Disequality.
    *
@@ -120,7 +132,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  DISTINCT,
+  EVALUE(DISTINCT),
   /**
    * Free constant symbol.
    *
@@ -134,7 +146,7 @@ enum Kind : int32_t
    *           :cpp:enumerator:`EXISTS`).
    * \endrst
    */
-  CONSTANT,
+  EVALUE(CONSTANT),
   /**
    * (Bound) variable.
    *
@@ -146,7 +158,7 @@ enum Kind : int32_t
    * .. note:: Only permitted in bindings and in lambda and quantifier bodies.
    * \endrst
    */
-  VARIABLE,
+  EVALUE(VARIABLE),
   /**
    * Symbolic expression.
    *
@@ -168,7 +180,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  SEXPR,
+  EVALUE(SEXPR),
   /**
    * Lambda expression.
    *
@@ -186,7 +198,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  LAMBDA,
+  EVALUE(LAMBDA),
   /**
    * Witness.
    *
@@ -253,7 +265,7 @@ enum Kind : int32_t
    *     true for any :math:`z`.
    * \endrst
    */
-  WITNESS,
+  EVALUE(WITNESS),
 
   /* Boolean --------------------------------------------------------------- */
 
@@ -266,7 +278,7 @@ enum Kind : int32_t
    *   - Solver::mkFalse() const
    *   - Solver::mkBoolean(bool) const
    */
-  CONST_BOOLEAN,
+  EVALUE(CONST_BOOLEAN),
   /**
    * Logical negation.
    *
@@ -283,7 +295,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  NOT,
+  EVALUE(NOT),
   /**
    * Logical conjunction.
    *
@@ -300,7 +312,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  AND,
+  EVALUE(AND),
   /**
    * Logical implication.
    *
@@ -317,7 +329,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  IMPLIES,
+  EVALUE(IMPLIES),
   /**
    * Logical disjunction.
    *
@@ -334,7 +346,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  OR,
+  EVALUE(OR),
   /**
    * Logical exclusive disjunction, left associative.
    *
@@ -351,7 +363,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  XOR,
+  EVALUE(XOR),
   /**
    * If-then-else.
    *
@@ -370,7 +382,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  ITE,
+  EVALUE(ITE),
 
   /* UF -------------------------------------------------------------------- */
 
@@ -391,7 +403,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  APPLY_UF,
+  EVALUE(APPLY_UF),
   /**
    * Cardinality constraint on uninterpreted sort.
    *
@@ -409,7 +421,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  CARDINALITY_CONSTRAINT,
+  EVALUE(CARDINALITY_CONSTRAINT),
   /**
    * Higher-order applicative encoding of function application, left
    * associative.
@@ -428,7 +440,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  HO_APPLY,
+  EVALUE(HO_APPLY),
 
   /* Arithmetic ------------------------------------------------------------ */
 
@@ -448,7 +460,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  ADD,
+  EVALUE(ADD),
   /**
    * Arithmetic multiplication.
    *
@@ -465,7 +477,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  MULT,
+  EVALUE(MULT),
   /**
    * Integer and.
    *
@@ -503,7 +515,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  IAND,
+  EVALUE(IAND),
   /**
    * Power of two.
    *
@@ -522,7 +534,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  POW2,
+  EVALUE(POW2),
   /**
    * Arithmetic subtraction, left associative.
    *
@@ -539,7 +551,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SUB,
+  EVALUE(SUB),
   /**
    * Arithmetic negation.
    *
@@ -556,7 +568,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  NEG,
+  EVALUE(NEG),
   /**
    * Real division, division by 0 undefined, left associative.
    *
@@ -573,7 +585,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  DIVISION,
+  EVALUE(DIVISION),
   /**
    * Integer division, division by 0 undefined, left associative.
    *
@@ -590,7 +602,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  INTS_DIVISION,
+  EVALUE(INTS_DIVISION),
   /**
    * Integer modulus, modulus by 0 undefined.
    *
@@ -608,7 +620,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  INTS_MODULUS,
+  EVALUE(INTS_MODULUS),
   /**
    * Absolute value.
    *
@@ -625,7 +637,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  ABS,
+  EVALUE(ABS),
   /**
    * Arithmetic power.
    *
@@ -642,7 +654,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  POW,
+  EVALUE(POW),
   /**
    * Exponential function.
    *
@@ -659,7 +671,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  EXPONENTIAL,
+  EVALUE(EXPONENTIAL),
   /**
    * Sine function.
    *
@@ -676,7 +688,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SINE,
+  EVALUE(SINE),
   /**
    * Cosine function.
    *
@@ -693,7 +705,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  COSINE,
+  EVALUE(COSINE),
   /**
    * Tangent function.
    *
@@ -710,7 +722,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  TANGENT,
+  EVALUE(TANGENT),
   /**
    * Cosecant function.
    *
@@ -727,7 +739,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  COSECANT,
+  EVALUE(COSECANT),
   /**
    * Secant function.
    *
@@ -744,7 +756,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SECANT,
+  EVALUE(SECANT),
   /**
    * Cotangent function.
    *
@@ -761,7 +773,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  COTANGENT,
+  EVALUE(COTANGENT),
   /**
    * Arc sine function.
    *
@@ -778,7 +790,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  ARCSINE,
+  EVALUE(ARCSINE),
   /**
    * Arc cosine function.
    *
@@ -795,7 +807,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  ARCCOSINE,
+  EVALUE(ARCCOSINE),
   /**
    * Arc tangent function.
    *
@@ -812,7 +824,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  ARCTANGENT,
+  EVALUE(ARCTANGENT),
   /**
    * Arc cosecant function.
    *
@@ -829,7 +841,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  ARCCOSECANT,
+  EVALUE(ARCCOSECANT),
   /**
    * Arc secant function.
    *
@@ -846,7 +858,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  ARCSECANT,
+  EVALUE(ARCSECANT),
   /**
    * Arc cotangent function.
    *
@@ -863,7 +875,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  ARCCOTANGENT,
+  EVALUE(ARCCOTANGENT),
   /**
    * Square root.
    *
@@ -880,7 +892,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SQRT,
+  EVALUE(SQRT),
   /**
    * \rst
    * Operator for the divisibility-by-:math:`k` predicate.
@@ -902,7 +914,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  DIVISIBLE,
+  EVALUE(DIVISIBLE),
   /**
    * Arbitrary-precision rational constant.
    *
@@ -912,7 +924,7 @@ enum Kind : int32_t
    *   - Solver::mkReal(int64_t) const
    *   - Solver::mkReal(int64_t, int64_t) const
    */
-  CONST_RATIONAL,
+  EVALUE(CONST_RATIONAL),
   /**
    * Arbitrary-precision integer constant.
    *
@@ -921,7 +933,7 @@ enum Kind : int32_t
    *   - Solver::mkInteger(const std::string&) const
    *   - Solver::mkInteger(int64_t) const
    */
-  CONST_INTEGER,
+  EVALUE(CONST_INTEGER),
   /**
    * Less than, chainable.
    *
@@ -938,7 +950,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  LT,
+  EVALUE(LT),
   /**
    * Less than or equal, chainable.
    *
@@ -955,7 +967,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  LEQ,
+  EVALUE(LEQ),
   /**
    * Greater than, chainable.
    *
@@ -972,7 +984,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  GT,
+  EVALUE(GT),
   /**
    * Greater than or equal, chainable.
    *
@@ -989,7 +1001,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  GEQ,
+  EVALUE(GEQ),
   /**
    * Is-integer predicate.
    *
@@ -1006,7 +1018,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  IS_INTEGER,
+  EVALUE(IS_INTEGER),
   /**
    * Convert Term of sort Int or Real to Int via the floor function.
    *
@@ -1023,7 +1035,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  TO_INTEGER,
+  EVALUE(TO_INTEGER),
   /**
    * Convert Term of Sort Int or Real to Real.
    *
@@ -1040,7 +1052,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  TO_REAL,
+  EVALUE(TO_REAL),
   /**
    * Pi constant.
    *
@@ -1054,7 +1066,7 @@ enum Kind : int32_t
    *            :cpp:func:`Term::isRealValue()` will return ``false``.
    * \endrst
    */
-  PI,
+  EVALUE(PI),
 
   /* BV -------------------------------------------------------------------- */
 
@@ -1066,7 +1078,7 @@ enum Kind : int32_t
    *   - Solver::mkBitVector(uint32_t, uint64_t) const
    *   - Solver::mkBitVector(uint32_t, const std::string&, uint32_t) const
    */
-  CONST_BITVECTOR,
+  EVALUE(CONST_BITVECTOR),
   /**
    * Concatenation of two or more bit-vectors.
    *
@@ -1083,7 +1095,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_CONCAT,
+  EVALUE(BITVECTOR_CONCAT),
   /**
    * Bit-wise and.
    *
@@ -1100,7 +1112,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_AND,
+  EVALUE(BITVECTOR_AND),
   /**
    * Bit-wise or.
    *
@@ -1117,7 +1129,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_OR,
+  EVALUE(BITVECTOR_OR),
   /**
    * Bit-wise xor.
    *
@@ -1134,7 +1146,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_XOR,
+  EVALUE(BITVECTOR_XOR),
   /**
    * Bit-wise negation.
    *
@@ -1151,7 +1163,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_NOT,
+  EVALUE(BITVECTOR_NOT),
   /**
    * Bit-wise nand.
    *
@@ -1168,7 +1180,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_NAND,
+  EVALUE(BITVECTOR_NAND),
   /**
    * Bit-wise nor.
    *
@@ -1185,7 +1197,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_NOR,
+  EVALUE(BITVECTOR_NOR),
   /**
    * Bit-wise xnor, left associative.
    *
@@ -1202,7 +1214,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_XNOR,
+  EVALUE(BITVECTOR_XNOR),
   /**
    * Equality comparison (returns bit-vector of size ``1``).
    *
@@ -1219,7 +1231,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_COMP,
+  EVALUE(BITVECTOR_COMP),
   /**
    * Multiplication of two or more bit-vectors.
    *
@@ -1236,7 +1248,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_MULT,
+  EVALUE(BITVECTOR_MULT),
   /**
    * Addition of two or more bit-vectors.
    *
@@ -1253,7 +1265,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_ADD,
+  EVALUE(BITVECTOR_ADD),
   /**
    * Subtraction of two bit-vectors.
    *
@@ -1270,7 +1282,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_SUB,
+  EVALUE(BITVECTOR_SUB),
   /**
    * Negation of a bit-vector (two's complement).
    *
@@ -1287,7 +1299,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_NEG,
+  EVALUE(BITVECTOR_NEG),
   /**
    * Unsigned bit-vector division.
    *
@@ -1306,7 +1318,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_UDIV,
+  EVALUE(BITVECTOR_UDIV),
   /**
    * Unsigned bit-vector remainder.
    *
@@ -1326,7 +1338,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_UREM,
+  EVALUE(BITVECTOR_UREM),
   /**
    * Signed bit-vector division.
    *
@@ -1347,7 +1359,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_SDIV,
+  EVALUE(BITVECTOR_SDIV),
   /**
    * Signed bit-vector remainder (sign follows dividend).
    *
@@ -1367,7 +1379,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_SREM,
+  EVALUE(BITVECTOR_SREM),
   /**
    * Signed bit-vector remainder (sign follows divisor).
    *
@@ -1387,7 +1399,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_SMOD,
+  EVALUE(BITVECTOR_SMOD),
   /**
    * Bit-vector shift left.
    *
@@ -1404,7 +1416,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_SHL,
+  EVALUE(BITVECTOR_SHL),
   /**
    * Bit-vector logical shift right.
    *
@@ -1421,7 +1433,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_LSHR,
+  EVALUE(BITVECTOR_LSHR),
   /**
    * Bit-vector arithmetic shift right.
    *
@@ -1438,7 +1450,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_ASHR,
+  EVALUE(BITVECTOR_ASHR),
   /**
    * Bit-vector unsigned less than.
    *
@@ -1455,7 +1467,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_ULT,
+  EVALUE(BITVECTOR_ULT),
   /**
    * Bit-vector unsigned less than or equal.
    *
@@ -1472,7 +1484,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_ULE,
+  EVALUE(BITVECTOR_ULE),
   /**
    * Bit-vector unsigned greater than.
    *
@@ -1489,7 +1501,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_UGT,
+  EVALUE(BITVECTOR_UGT),
   /**
    * Bit-vector unsigned greater than or equal.
    *
@@ -1506,7 +1518,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_UGE,
+  EVALUE(BITVECTOR_UGE),
   /**
    * Bit-vector signed less than.
    *
@@ -1523,7 +1535,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_SLT,
+  EVALUE(BITVECTOR_SLT),
   /**
    * Bit-vector signed less than or equal.
    *
@@ -1540,7 +1552,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_SLE,
+  EVALUE(BITVECTOR_SLE),
   /**
    * Bit-vector signed greater than.
    *
@@ -1557,7 +1569,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_SGT,
+  EVALUE(BITVECTOR_SGT),
   /**
    * Bit-vector signed greater than or equal.
    *
@@ -1574,7 +1586,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_SGE,
+  EVALUE(BITVECTOR_SGE),
   /**
    * Bit-vector unsigned less than returning a bit-vector of size 1.
    *
@@ -1591,7 +1603,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_ULTBV,
+  EVALUE(BITVECTOR_ULTBV),
   /**
    * Bit-vector signed less than returning a bit-vector of size ``1``.
    *
@@ -1608,7 +1620,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_SLTBV,
+  EVALUE(BITVECTOR_SLTBV),
   /**
    * Bit-vector if-then-else.
    *
@@ -1628,7 +1640,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_ITE,
+  EVALUE(BITVECTOR_ITE),
   /**
    * Bit-vector redor.
    *
@@ -1645,7 +1657,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_REDOR,
+  EVALUE(BITVECTOR_REDOR),
   /**
    * Bit-vector redand.
    *
@@ -1662,7 +1674,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_REDAND,
+  EVALUE(BITVECTOR_REDAND),
   /**
    * Unsigned addition overflow detection.
    *
@@ -1679,7 +1691,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_UADDO,
+  EVALUE(BITVECTOR_UADDO),
   /**
    * Signed addition overflow detection.
    *
@@ -1696,7 +1708,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_SADDO,
+  EVALUE(BITVECTOR_SADDO),
   /**
    * Unsigned multiplication overflow detection.
    *
@@ -1713,7 +1725,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_UMULO,
+  EVALUE(BITVECTOR_UMULO),
   /**
    * Signed multiplication overflow detection.
    *
@@ -1730,7 +1742,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_SMULO,
+  EVALUE(BITVECTOR_SMULO),
   /**
    * Unsigned subtraction overflow detection.
    *
@@ -1747,7 +1759,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_USUBO,
+  EVALUE(BITVECTOR_USUBO),
   /**
    * Signed subtraction overflow detection.
    *
@@ -1764,7 +1776,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_SSUBO,
+  EVALUE(BITVECTOR_SSUBO),
   /**
    * Signed division overflow detection.
    *
@@ -1781,7 +1793,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_SDIVO,
+  EVALUE(BITVECTOR_SDIVO),
   /**
    * Bit-vector extract.
    *
@@ -1802,7 +1814,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_EXTRACT,
+  EVALUE(BITVECTOR_EXTRACT),
   /**
    * Bit-vector repeat.
    *
@@ -1822,7 +1834,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_REPEAT,
+  EVALUE(BITVECTOR_REPEAT),
   /**
    * Bit-vector zero extension.
    *
@@ -1842,7 +1854,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_ZERO_EXTEND,
+  EVALUE(BITVECTOR_ZERO_EXTEND),
   /**
    * Bit-vector sign extension.
    *
@@ -1862,7 +1874,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_SIGN_EXTEND,
+  EVALUE(BITVECTOR_SIGN_EXTEND),
   /**
    * Bit-vector rotate left.
    *
@@ -1882,7 +1894,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_ROTATE_LEFT,
+  EVALUE(BITVECTOR_ROTATE_LEFT),
   /**
    * Bit-vector rotate right.
    *
@@ -1902,7 +1914,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_ROTATE_RIGHT,
+  EVALUE(BITVECTOR_ROTATE_RIGHT),
   /**
    * Conversion from Int to bit-vector.
    *
@@ -1922,7 +1934,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  INT_TO_BITVECTOR,
+  EVALUE(INT_TO_BITVECTOR),
   /**
    * Bit-vector conversion to (non-negative) integer.
    *
@@ -1939,7 +1951,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BITVECTOR_TO_NAT,
+  EVALUE(BITVECTOR_TO_NAT),
 
   /* Finite Fields --------------------------------------------------------- */
 
@@ -1950,7 +1962,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkFiniteFieldElem(const std::string&, const Sort&) const
    */
-  CONST_FINITE_FIELD,
+  EVALUE(CONST_FINITE_FIELD),
   /**
    * Negation of a finite field element (additive inverse).
    *
@@ -1967,7 +1979,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FINITE_FIELD_NEG,
+  EVALUE(FINITE_FIELD_NEG),
   /**
    * Addition of two or more finite field elements.
    *
@@ -1984,7 +1996,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FINITE_FIELD_ADD,
+  EVALUE(FINITE_FIELD_ADD),
   /**
    * Multiplication of two or more finite field elements.
    *
@@ -2001,7 +2013,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FINITE_FIELD_MULT,
+  EVALUE(FINITE_FIELD_MULT),
 
   /* FP -------------------------------------------------------------------- */
 
@@ -2013,7 +2025,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkFloatingPoint(uint32_t, uint32_t, Term) const
    */
-  CONST_FLOATINGPOINT,
+  EVALUE(CONST_FLOATINGPOINT),
   /**
    * RoundingMode constant.
    *
@@ -2021,7 +2033,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkRoundingMode(RoundingMode) const
    */
-  CONST_ROUNDINGMODE,
+  EVALUE(CONST_ROUNDINGMODE),
   /**
    * Create floating-point literal from bit-vector triple.
    *
@@ -2041,7 +2053,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_FP,
+  EVALUE(FLOATINGPOINT_FP),
   /**
    * Floating-point equality.
    *
@@ -2058,7 +2070,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_EQ,
+  EVALUE(FLOATINGPOINT_EQ),
   /**
    * Floating-point absolute value.
    *
@@ -2075,7 +2087,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_ABS,
+  EVALUE(FLOATINGPOINT_ABS),
   /**
    * Floating-point negation.
    *
@@ -2092,7 +2104,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_NEG,
+  EVALUE(FLOATINGPOINT_NEG),
   /**
    * Floating-point addition.
    *
@@ -2110,7 +2122,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_ADD,
+  EVALUE(FLOATINGPOINT_ADD),
   /**
    * Floating-point sutraction.
    *
@@ -2128,7 +2140,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_SUB,
+  EVALUE(FLOATINGPOINT_SUB),
   /**
    * Floating-point multiply.
    *
@@ -2146,7 +2158,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_MULT,
+  EVALUE(FLOATINGPOINT_MULT),
   /**
    * Floating-point division.
    *
@@ -2164,7 +2176,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_DIV,
+  EVALUE(FLOATINGPOINT_DIV),
   /**
    * Floating-point fused multiply and add.
    *
@@ -2182,7 +2194,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_FMA,
+  EVALUE(FLOATINGPOINT_FMA),
   /**
    * Floating-point square root.
    *
@@ -2200,7 +2212,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_SQRT,
+  EVALUE(FLOATINGPOINT_SQRT),
   /**
    * Floating-point remainder.
    *
@@ -2217,7 +2229,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_REM,
+  EVALUE(FLOATINGPOINT_REM),
   /**
    * Floating-point round to integral.
    *
@@ -2234,13 +2246,14 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_RTI,
+  EVALUE(FLOATINGPOINT_RTI),
   /**
    * Floating-point minimum.
    *
    * - Arity: ``2``
    *
-   *   - ``1..2:`` Terms of floating-point Sort (sorts must match)
+   *   - ``1:`` Term of Sort RoundingMode
+   *   - ``2:`` Term of floating-point Sort
    *
    * - Create Term of this Kind with:
    *
@@ -2251,7 +2264,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_MIN,
+  EVALUE(FLOATINGPOINT_MIN),
   /**
    * Floating-point maximum.
    *
@@ -2268,7 +2281,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_MAX,
+  EVALUE(FLOATINGPOINT_MAX),
   /**
    * Floating-point less than or equal.
    *
@@ -2285,7 +2298,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_LEQ,
+  EVALUE(FLOATINGPOINT_LEQ),
   /**
    * Floating-point less than.
    *
@@ -2302,7 +2315,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_LT,
+  EVALUE(FLOATINGPOINT_LT),
   /**
    * Floating-point greater than or equal.
    *
@@ -2319,7 +2332,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_GEQ,
+  EVALUE(FLOATINGPOINT_GEQ),
   /**
    * Floating-point greater than.
    *
@@ -2336,7 +2349,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_GT,
+  EVALUE(FLOATINGPOINT_GT),
   /**
    * Floating-point is normal tester.
    *
@@ -2353,7 +2366,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_IS_NORMAL,
+  EVALUE(FLOATINGPOINT_IS_NORMAL),
   /**
    * Floating-point is sub-normal tester.
    *
@@ -2370,7 +2383,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_IS_SUBNORMAL,
+  EVALUE(FLOATINGPOINT_IS_SUBNORMAL),
   /**
    * Floating-point is zero tester.
    *
@@ -2387,7 +2400,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_IS_ZERO,
+  EVALUE(FLOATINGPOINT_IS_ZERO),
   /**
    * Floating-point is infinite tester.
    *
@@ -2404,7 +2417,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_IS_INF,
+  EVALUE(FLOATINGPOINT_IS_INF),
   /**
    * Floating-point is NaN tester.
    *
@@ -2421,7 +2434,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_IS_NAN,
+  EVALUE(FLOATINGPOINT_IS_NAN),
   /**
    * Floating-point is negative tester.
    *
@@ -2438,7 +2451,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_IS_NEG,
+  EVALUE(FLOATINGPOINT_IS_NEG),
   /**
    * Floating-point is positive tester.
    *
@@ -2455,7 +2468,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_IS_POS,
+  EVALUE(FLOATINGPOINT_IS_POS),
   /**
    * Conversion to floating-point from IEEE-754 bit-vector.
    *
@@ -2476,7 +2489,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
+  EVALUE(FLOATINGPOINT_TO_FP_FROM_IEEE_BV),
   /**
    * Conversion to floating-point from floating-point.
    *
@@ -2498,7 +2511,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_TO_FP_FROM_FP,
+  EVALUE(FLOATINGPOINT_TO_FP_FROM_FP),
   /**
    * Conversion to floating-point from Real.
    *
@@ -2520,7 +2533,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_TO_FP_FROM_REAL,
+  EVALUE(FLOATINGPOINT_TO_FP_FROM_REAL),
   /**
    * Conversion to floating-point from signed bit-vector.
    *
@@ -2542,7 +2555,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_TO_FP_FROM_SBV,
+  EVALUE(FLOATINGPOINT_TO_FP_FROM_SBV),
   /**
    * Conversion to floating-point from unsigned bit-vector.
    *
@@ -2564,13 +2577,14 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_TO_FP_FROM_UBV,
+  EVALUE(FLOATINGPOINT_TO_FP_FROM_UBV),
   /**
    * Conversion to unsigned bit-vector from floating-point.
    *
-   * - Arity: ``1``
+   * - Arity: ``2``
    *
-   *   - ``1:`` Term of floating-point Sort
+   *   - ``1:`` Term of Sort RoundingMode
+   *   - ``2:`` Term of floating-point Sort
    *
    * - Indices: ``1``
    *
@@ -2584,13 +2598,14 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_TO_UBV,
+  EVALUE(FLOATINGPOINT_TO_UBV),
   /**
    * Conversion to signed bit-vector from floating-point.
    *
-   * - Arity: ``1``
+   * - Arity: ``2``
    *
-   *   - ``1:`` Term of floating-point Sort
+   *   - ``1:`` Term of Sort RoundingMode
+   *   - ``2:`` Term of floating-point Sort
    *
    * - Indices: ``1``
    *
@@ -2604,7 +2619,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_TO_SBV,
+  EVALUE(FLOATINGPOINT_TO_SBV),
   /**
    * Conversion to Real from floating-point.
    *
@@ -2621,7 +2636,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FLOATINGPOINT_TO_REAL,
+  EVALUE(FLOATINGPOINT_TO_REAL),
 
   /* Arrays ---------------------------------------------------------------- */
 
@@ -2642,7 +2657,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SELECT,
+  EVALUE(SELECT),
   /**
    * Array store.
    *
@@ -2661,7 +2676,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STORE,
+  EVALUE(STORE),
   /**
    * Constant array.
    *
@@ -2679,7 +2694,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  CONST_ARRAY,
+  EVALUE(CONST_ARRAY),
   /**
    * \rst
    * Equality over arrays :math:`a` and :math:`b` over a given range
@@ -2717,7 +2732,7 @@ enum Kind : int32_t
    *           :ref:`arrays-exp<lbl-option-arrays-exp>`.
    * \endrst
    */
-  EQ_RANGE,
+  EVALUE(EQ_RANGE),
 
   /* Datatypes ------------------------------------------------------------- */
 
@@ -2738,7 +2753,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  APPLY_CONSTRUCTOR,
+  EVALUE(APPLY_CONSTRUCTOR),
   /**
    * Datatype selector application.
    *
@@ -2760,7 +2775,7 @@ enum Kind : int32_t
    * .. note:: Undefined if misapplied.
    * \endrst
    */
-  APPLY_SELECTOR,
+  EVALUE(APPLY_SELECTOR),
   /**
    * Datatype tester application.
    *
@@ -2778,7 +2793,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  APPLY_TESTER,
+  EVALUE(APPLY_TESTER),
   /**
    * Datatype update application.
    *
@@ -2801,7 +2816,7 @@ enum Kind : int32_t
    * .. note:: Does not change the datatype argument if misapplied.
    * \endrst
    */
-  APPLY_UPDATER,
+  EVALUE(APPLY_UPDATER),
   /**
    * Match expression.
    *
@@ -2842,7 +2857,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  MATCH,
+  EVALUE(MATCH),
   /**
    * Match case for nullary constructors.
    *
@@ -2865,7 +2880,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  MATCH_CASE,
+  EVALUE(MATCH_CASE),
   /**
    * Match case with binders, for constructors with selectors and variable
    * patterns.
@@ -2897,7 +2912,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  MATCH_BIND_CASE,
+  EVALUE(MATCH_BIND_CASE),
   /**
    * Tuple projection.
    *
@@ -2933,7 +2948,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  TUPLE_PROJECT,
+  EVALUE(TUPLE_PROJECT),
 
   /* Separation Logic ------------------------------------------------------ */
 
@@ -2949,7 +2964,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  SEP_NIL,
+  EVALUE(SEP_NIL),
   /**
    * Separation logic empty heap.
    *
@@ -2962,7 +2977,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  SEP_EMP,
+  EVALUE(SEP_EMP),
   /**
    * Separation logic points-to relation.
    *
@@ -2985,7 +3000,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  SEP_PTO,
+  EVALUE(SEP_PTO),
   /**
    * Separation logic star.
    *
@@ -3008,7 +3023,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  SEP_STAR,
+  EVALUE(SEP_STAR),
   /**
    * Separation logic magic wand.
    *
@@ -3033,7 +3048,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  SEP_WAND,
+  EVALUE(SEP_WAND),
 
   /* Sets ------------------------------------------------------------------ */
 
@@ -3044,7 +3059,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkEmptySet(const Sort&) const
    */
-  SET_EMPTY,
+  EVALUE(SET_EMPTY),
   /**
    * Set union.
    *
@@ -3061,7 +3076,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SET_UNION,
+  EVALUE(SET_UNION),
   /**
    * Set intersection.
    *
@@ -3078,7 +3093,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SET_INTER,
+  EVALUE(SET_INTER),
   /**
    * Set subtraction.
    *
@@ -3095,7 +3110,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SET_MINUS,
+  EVALUE(SET_MINUS),
   /**
    * Subset predicate.
    *
@@ -3114,7 +3129,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SET_SUBSET,
+  EVALUE(SET_SUBSET),
   /**
    * Set membership predicate.
    *
@@ -3134,7 +3149,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SET_MEMBER,
+  EVALUE(SET_MEMBER),
   /**
    * Singleton set.
    *
@@ -3154,7 +3169,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SET_SINGLETON,
+  EVALUE(SET_SINGLETON),
   /**
    * The set obtained by inserting elements;
    *
@@ -3172,7 +3187,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SET_INSERT,
+  EVALUE(SET_INSERT),
   /**
    * Set cardinality.
    *
@@ -3189,7 +3204,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SET_CARD,
+  EVALUE(SET_CARD),
   /**
    * Set complement with respect to finite universe.
    *
@@ -3206,7 +3221,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SET_COMPLEMENT,
+  EVALUE(SET_COMPLEMENT),
   /**
    * Finite universe set.
    *
@@ -3222,7 +3237,7 @@ enum Kind : int32_t
    *           Term::isSetValue() will return ``false``.
    * \endrst
    */
-  SET_UNIVERSE,
+  EVALUE(SET_UNIVERSE),
   /**
    * Set comprehension
    *
@@ -3262,7 +3277,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  SET_COMPREHENSION,
+  EVALUE(SET_COMPREHENSION),
   /**
    * Set choose.
    *
@@ -3291,7 +3306,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  SET_CHOOSE,
+  EVALUE(SET_CHOOSE),
   /**
    * Set is singleton tester.
    *
@@ -3313,7 +3328,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  SET_IS_SINGLETON,
+  EVALUE(SET_IS_SINGLETON),
   /**
    * Set map.
    *
@@ -3343,7 +3358,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-   SET_MAP,
+   EVALUE(SET_MAP),
   /**
    * Set filter.
    *
@@ -3371,7 +3386,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-   SET_FILTER,
+   EVALUE(SET_FILTER),
    /**
    * Set fold.
    *
@@ -3397,7 +3412,8 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  SET_FOLD,
+  EVALUE(SET_FOLD),
+
   /* Relations ------------------------------------------------------------- */
 
   /**
@@ -3416,7 +3432,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  RELATION_JOIN,
+  EVALUE(RELATION_JOIN),
   /**
    * Relation cartesian product.
    *
@@ -3433,7 +3449,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  RELATION_PRODUCT,
+  EVALUE(RELATION_PRODUCT),
   /**
    * Relation transpose.
    *
@@ -3450,7 +3466,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  RELATION_TRANSPOSE,
+  EVALUE(RELATION_TRANSPOSE),
   /**
    * Relation transitive closure.
    *
@@ -3467,7 +3483,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  RELATION_TCLOSURE,
+  EVALUE(RELATION_TCLOSURE),
   /**
    * Relation join image.
    *
@@ -3489,7 +3505,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  RELATION_JOIN_IMAGE,
+  EVALUE(RELATION_JOIN_IMAGE),
   /**
    * Relation identity.
    *
@@ -3511,7 +3527,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  RELATION_IDEN,
+  EVALUE(RELATION_IDEN),
   /**
    * Relation group
    *
@@ -3542,7 +3558,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  RELATION_GROUP,
+  EVALUE(RELATION_GROUP),
   /**
    * \rst
    *
@@ -3579,7 +3595,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  RELATION_AGGREGATE,
+  EVALUE(RELATION_AGGREGATE),
   /**
    * Relation projection operator extends tuple projection operator to sets.
    *
@@ -3599,7 +3615,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  RELATION_PROJECT,
+  EVALUE(RELATION_PROJECT),
 
   /* Bags ------------------------------------------------------------------ */
 
@@ -3610,7 +3626,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkEmptyBag(const Sort&) const
    */
-  BAG_EMPTY,
+  EVALUE(BAG_EMPTY),
   /**
    * Bag max union.
    *
@@ -3627,7 +3643,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BAG_UNION_MAX,
+  EVALUE(BAG_UNION_MAX),
   /**
    * Bag disjoint union (sum).
    *
@@ -3644,7 +3660,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BAG_UNION_DISJOINT,
+  EVALUE(BAG_UNION_DISJOINT),
   /**
    * Bag intersection (min).
    *
@@ -3661,7 +3677,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BAG_INTER_MIN,
+  EVALUE(BAG_INTER_MIN),
   /**
    * Bag difference subtract.
    *
@@ -3680,7 +3696,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BAG_DIFFERENCE_SUBTRACT,
+  EVALUE(BAG_DIFFERENCE_SUBTRACT),
   /**
    * Bag difference remove.
    *
@@ -3699,7 +3715,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BAG_DIFFERENCE_REMOVE,
+  EVALUE(BAG_DIFFERENCE_REMOVE),
   /**
    * Bag inclusion predicate.
    *
@@ -3719,7 +3735,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BAG_SUBBAG,
+  EVALUE(BAG_SUBBAG),
   /**
    * Bag element multiplicity.
    *
@@ -3728,7 +3744,7 @@ enum Kind : int32_t
    *   - Solver::mkTerm(Kind, const Term&, const Term&) const
    *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
    */
-  BAG_COUNT,
+  EVALUE(BAG_COUNT),
   /**
    * Bag membership predicate.
    *
@@ -3746,7 +3762,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BAG_MEMBER,
+  EVALUE(BAG_MEMBER),
   /**
    * Bag duplicate removal.
    *
@@ -3771,7 +3787,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  BAG_DUPLICATE_REMOVAL,
+  EVALUE(BAG_DUPLICATE_REMOVAL),
   /**
    * Bag make.
    *
@@ -3791,7 +3807,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  BAG_MAKE,
+  EVALUE(BAG_MAKE),
   /**
    * Bag cardinality.
    *
@@ -3813,7 +3829,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  BAG_CARD,
+  EVALUE(BAG_CARD),
   /**
    * Bag choose.
    *
@@ -3844,7 +3860,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  BAG_CHOOSE,
+  EVALUE(BAG_CHOOSE),
   /**
    * Bag is singleton tester.
    *
@@ -3866,7 +3882,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  BAG_IS_SINGLETON,
+  EVALUE(BAG_IS_SINGLETON),
   /**
    * Conversion from set to bag.
    *
@@ -3888,7 +3904,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  BAG_FROM_SET,
+  EVALUE(BAG_FROM_SET),
   /**
    * Conversion from bag to set.
    *
@@ -3910,7 +3926,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  BAG_TO_SET,
+  EVALUE(BAG_TO_SET),
   /**
    * Bag map.
    *
@@ -3940,7 +3956,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  BAG_MAP,
+  EVALUE(BAG_MAP),
   /**
    * Bag filter.
    *
@@ -3968,7 +3984,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-   BAG_FILTER,
+   EVALUE(BAG_FILTER),
   /**
    * Bag fold.
    *
@@ -3994,7 +4010,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  BAG_FOLD,
+  EVALUE(BAG_FOLD),
   /**
    * Bag partition.
    *
@@ -4021,7 +4037,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  BAG_PARTITION,
+  EVALUE(BAG_PARTITION),
   /**
    * Table cross product.
    *
@@ -4043,7 +4059,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  TABLE_PRODUCT,
+  EVALUE(TABLE_PRODUCT),
   /**
    * Table projection operator extends tuple projection operator to tables.
    *
@@ -4063,7 +4079,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  TABLE_PROJECT,
+  EVALUE(TABLE_PROJECT),
   /**
    * \rst
    *
@@ -4100,7 +4116,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  TABLE_AGGREGATE,
+  EVALUE(TABLE_AGGREGATE),
   /**
    * \rst
    *  Table join operator has the form
@@ -4132,7 +4148,7 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  TABLE_JOIN,
+  EVALUE(TABLE_JOIN),
   /**
    * Table group
    *
@@ -4163,7 +4179,8 @@ enum Kind : int32_t
    *              future versions.
    * \endrst
    */
-  TABLE_GROUP,
+  EVALUE(TABLE_GROUP),
+
   /* Strings --------------------------------------------------------------- */
 
   /**
@@ -4182,7 +4199,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_CONCAT,
+  EVALUE(STRING_CONCAT),
   /**
    * String membership.
    *
@@ -4200,7 +4217,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_IN_REGEXP,
+  EVALUE(STRING_IN_REGEXP),
   /**
    * String length.
    *
@@ -4217,7 +4234,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_LENGTH,
+  EVALUE(STRING_LENGTH),
   /**
    * String substring.
    *
@@ -4243,7 +4260,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_SUBSTR,
+  EVALUE(STRING_SUBSTR),
   /**
    * String update.
    *
@@ -4269,7 +4286,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_UPDATE,
+  EVALUE(STRING_UPDATE),
   /**
    * String character at.
    *
@@ -4294,7 +4311,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_CHARAT,
+  EVALUE(STRING_CHARAT),
   /**
    * String contains.
    *
@@ -4317,7 +4334,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_CONTAINS,
+  EVALUE(STRING_CONTAINS),
   /**
    * String index-of.
    *
@@ -4343,7 +4360,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_INDEXOF,
+  EVALUE(STRING_INDEXOF),
   /**
    * String index-of regular expression match.
    *
@@ -4369,7 +4386,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_INDEXOF_RE,
+  EVALUE(STRING_INDEXOF_RE),
   /**
    * String replace.
    *
@@ -4394,7 +4411,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_REPLACE,
+  EVALUE(STRING_REPLACE),
   /**
    * String replace all.
    *
@@ -4419,7 +4436,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_REPLACE_ALL,
+  EVALUE(STRING_REPLACE_ALL),
   /**
    * String replace regular expression match.
    *
@@ -4444,7 +4461,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_REPLACE_RE,
+  EVALUE(STRING_REPLACE_RE),
   /**
    * String replace all regular expression matches.
    *
@@ -4469,7 +4486,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_REPLACE_RE_ALL,
+  EVALUE(STRING_REPLACE_RE_ALL),
   /**
    * String to lower case.
    *
@@ -4486,7 +4503,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_TO_LOWER,
+  EVALUE(STRING_TO_LOWER),
   /**
    * String to upper case.
    *
@@ -4503,7 +4520,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_TO_UPPER,
+  EVALUE(STRING_TO_UPPER),
   /**
    * String reverse.
    *
@@ -4520,7 +4537,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_REV,
+  EVALUE(STRING_REV),
   /**
    * String to code.
    *
@@ -4540,7 +4557,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_TO_CODE,
+  EVALUE(STRING_TO_CODE),
   /**
    * String from code.
    *
@@ -4561,7 +4578,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_FROM_CODE,
+  EVALUE(STRING_FROM_CODE),
   /**
    * String less than.
    *
@@ -4584,7 +4601,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_LT,
+  EVALUE(STRING_LT),
   /**
    * String less than or equal.
    *
@@ -4607,7 +4624,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_LEQ,
+  EVALUE(STRING_LEQ),
   /**
    * String prefix-of.
    *
@@ -4630,7 +4647,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_PREFIX,
+  EVALUE(STRING_PREFIX),
   /**
    * String suffix-of.
    *
@@ -4653,7 +4670,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_SUFFIX,
+  EVALUE(STRING_SUFFIX),
   /**
    * String is-digit.
    *
@@ -4673,7 +4690,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_IS_DIGIT,
+  EVALUE(STRING_IS_DIGIT),
   /**
    * Conversion from Int to String.
    *
@@ -4692,7 +4709,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_FROM_INT,
+  EVALUE(STRING_FROM_INT),
   /**
    * String to integer (total function).
    *
@@ -4712,7 +4729,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_TO_INT,
+  EVALUE(STRING_TO_INT),
   /**
    * Constant string.
    *
@@ -4721,7 +4738,7 @@ enum Kind : int32_t
    *   - Solver::mkString(const std::string&, bool) const
    *   - Solver::mkString(const std::wstring&) const
    */
-  CONST_STRING,
+  EVALUE(CONST_STRING),
   /**
    * Conversion from string to regexp.
    *
@@ -4738,7 +4755,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  STRING_TO_REGEXP,
+  EVALUE(STRING_TO_REGEXP),
   /**
    * Regular expression concatenation.
    *
@@ -4755,7 +4772,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  REGEXP_CONCAT,
+  EVALUE(REGEXP_CONCAT),
   /**
    * Regular expression union.
    *
@@ -4772,7 +4789,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  REGEXP_UNION,
+  EVALUE(REGEXP_UNION),
   /**
    * Regular expression intersection.
    *
@@ -4789,7 +4806,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  REGEXP_INTER,
+  EVALUE(REGEXP_INTER),
   /**
    * Regular expression difference.
    *
@@ -4806,7 +4823,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  REGEXP_DIFF,
+  EVALUE(REGEXP_DIFF),
   /**
    * Regular expression \*.
    *
@@ -4823,7 +4840,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  REGEXP_STAR,
+  EVALUE(REGEXP_STAR),
   /**
    * Regular expression +.
    *
@@ -4840,7 +4857,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  REGEXP_PLUS,
+  EVALUE(REGEXP_PLUS),
   /**
    * Regular expression ?.
    *
@@ -4857,7 +4874,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  REGEXP_OPT,
+  EVALUE(REGEXP_OPT),
   /**
    * Regular expression range.
    *
@@ -4875,7 +4892,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  REGEXP_RANGE,
+  EVALUE(REGEXP_RANGE),
   /**
    * Operator for regular expression repeat.
    *
@@ -4895,7 +4912,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  REGEXP_REPEAT,
+  EVALUE(REGEXP_REPEAT),
   /**
    * Regular expression loop.
    *
@@ -4920,7 +4937,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  REGEXP_LOOP,
+  EVALUE(REGEXP_LOOP),
   /**
    * Regular expression none.
    *
@@ -4928,7 +4945,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkRegexpNone() const
    */
-  REGEXP_NONE,
+  EVALUE(REGEXP_NONE),
   /**
    * Regular expression all.
    *
@@ -4936,7 +4953,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkRegexpAll() const
    */
-  REGEXP_ALL,
+  EVALUE(REGEXP_ALL),
   /**
    * Regular expression all characters.
    *
@@ -4944,7 +4961,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkRegexpAllchar() const
    */
-  REGEXP_ALLCHAR,
+  EVALUE(REGEXP_ALLCHAR),
   /**
    * Regular expression complement.
    *
@@ -4961,7 +4978,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  REGEXP_COMPLEMENT,
+  EVALUE(REGEXP_COMPLEMENT),
 
   /**
    * Sequence concat.
@@ -4979,7 +4996,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SEQ_CONCAT,
+  EVALUE(SEQ_CONCAT),
   /**
    * Sequence length.
    *
@@ -4996,7 +5013,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SEQ_LENGTH,
+  EVALUE(SEQ_LENGTH),
   /**
    * Sequence extract.
    *
@@ -5022,15 +5039,15 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SEQ_EXTRACT,
+  EVALUE(SEQ_EXTRACT),
   /**
    * Sequence update.
    *
    * \rst
    * Updates a sequence :math:`s` by replacing its context starting at an index
    * with string :math:`t`. If the start index is negative, the start index is
-   * greater than the length of the sequence, the result is :math:`s`. Otherwise,
-   * the length of the original sequence is preserved.
+   * greater than the length of the sequence, the result is :math:`s`.
+   * Otherwise, the length of the original sequence is preserved.
    *
    * - Arity: ``3``
    *
@@ -5048,7 +5065,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SEQ_UPDATE,
+  EVALUE(SEQ_UPDATE),
   /**
    * Sequence element at.
    *
@@ -5073,7 +5090,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SEQ_AT,
+  EVALUE(SEQ_AT),
   /**
    * Sequence contains.
    *
@@ -5096,7 +5113,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SEQ_CONTAINS,
+  EVALUE(SEQ_CONTAINS),
   /**
    * Sequence index-of.
    *
@@ -5122,7 +5139,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SEQ_INDEXOF,
+  EVALUE(SEQ_INDEXOF),
   /**
    * Sequence replace.
    *
@@ -5147,7 +5164,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SEQ_REPLACE,
+  EVALUE(SEQ_REPLACE),
   /**
    * Sequence replace all.
    *
@@ -5172,7 +5189,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SEQ_REPLACE_ALL,
+  EVALUE(SEQ_REPLACE_ALL),
   /**
    * Sequence reverse.
    *
@@ -5189,7 +5206,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SEQ_REV,
+  EVALUE(SEQ_REV),
   /**
    * Sequence prefix-of.
    *
@@ -5212,7 +5229,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SEQ_PREFIX,
+  EVALUE(SEQ_PREFIX),
   /**
    * Sequence suffix-of.
    *
@@ -5235,7 +5252,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SEQ_SUFFIX,
+  EVALUE(SEQ_SUFFIX),
   /**
    * Constant sequence.
    *
@@ -5253,7 +5270,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkEmptySequence(const Sort&) const
    */
-  CONST_SEQUENCE,
+  EVALUE(CONST_SEQUENCE),
   /**
    * Sequence unit.
    *
@@ -5272,7 +5289,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SEQ_UNIT,
+  EVALUE(SEQ_UNIT),
   /**
    * Sequence nth.
    *
@@ -5294,7 +5311,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  SEQ_NTH,
+  EVALUE(SEQ_NTH),
 
   /* Quantifiers ----------------------------------------------------------- */
 
@@ -5318,7 +5335,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  FORALL,
+  EVALUE(FORALL),
   /**
    * Existentially quantified formula.
    *
@@ -5339,7 +5356,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  EXISTS,
+  EVALUE(EXISTS),
   /**
    * Variable list.
    *
@@ -5360,7 +5377,7 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  VARIABLE_LIST,
+  EVALUE(VARIABLE_LIST),
   /**
    * Instantiation pattern.
    *
@@ -5385,7 +5402,7 @@ enum Kind : int32_t
    *           :cpp:enumerator:`INST_PATTERN_LIST`.
    * \endrst
    */
-  INST_PATTERN,
+  EVALUE(INST_PATTERN),
   /**
    * Instantiation no-pattern.
    *
@@ -5410,7 +5427,7 @@ enum Kind : int32_t
    *           :cpp:enumerator:`INST_PATTERN_LIST`.
    * \endrst
    */
-  INST_NO_PATTERN,
+  EVALUE(INST_NO_PATTERN),
   /**
    * Instantiation pool annotation.
    *
@@ -5471,7 +5488,7 @@ enum Kind : int32_t
    *           :cpp:enumerator:`INST_PATTERN_LIST`.
    * \endrst
    */
-  INST_POOL,
+  EVALUE(INST_POOL),
   /**
    * A instantantiation-add-to-pool annotation.
    *
@@ -5514,7 +5531,7 @@ enum Kind : int32_t
    *           :cpp:enumerator:`INST_PATTERN_LIST`.
    * \endrst
    */
-  INST_ADD_TO_POOL,
+  EVALUE(INST_ADD_TO_POOL),
   /**
    * A skolemization-add-to-pool annotation.
    *
@@ -5557,7 +5574,7 @@ enum Kind : int32_t
    *           :cpp:enumerator:`INST_PATTERN_LIST`.
    * \endrst
    */
-  SKOLEM_ADD_TO_POOL,
+  EVALUE(SKOLEM_ADD_TO_POOL),
   /**
    * Instantiation attribute.
    *
@@ -5583,7 +5600,7 @@ enum Kind : int32_t
    *           :cpp:enumerator:`INST_PATTERN_LIST`.
    * \endrst
    */
-  INST_ATTRIBUTE,
+  EVALUE(INST_ATTRIBUTE),
   /**
    * A list of instantiation patterns, attributes or annotations.
    *
@@ -5602,31 +5619,54 @@ enum Kind : int32_t
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
-  INST_PATTERN_LIST,
+  EVALUE(INST_PATTERN_LIST),
 
   /* ----------------------------------------------------------------------- */
   /** Marks the upper-bound of this enumeration. */
-  LAST_KIND
+  EVALUE(LAST_KIND)
 };
 // clang-format on
 
+#ifdef CVC5_API_USE_C_ENUMS
+#ifndef DOXYGEN_SKIP
+typedef enum ENUM(Kind) ENUM(Kind);
+#endif
+#endif
+
+#ifdef CVC5_API_USE_C_ENUMS
+/**
+ * Get a string representation of a Cvc5Kind.
+ * @param kind The kind.
+ * @return The string representation.
+ */
+const char* cvc5_kind_to_string(Cvc5Kind kind);
+#else
 /**
  * Get the string representation of a given kind.
- * @param k the kind
- * @return the string representation of kind k
+ * @param kind The kind
+ * @return The string representation.
  */
-std::string kindToString(Kind k) CVC5_EXPORT;
+std::string kindToString(Kind kind) CVC5_EXPORT;
 
 /**
  * Serialize a kind to given stream.
- * @param out the output stream
- * @param k the kind to be serialized to the given output stream
- * @return the output stream
+ * @param out  The output stream.
+ * @param kind The kind to be serialized to the given output stream.
+ * @return The output stream.
  */
-std::ostream& operator<<(std::ostream& out, Kind k) CVC5_EXPORT;
+std::ostream& operator<<(std::ostream& out, Kind kind) CVC5_EXPORT;
 
 }  // namespace cvc5
+#endif
 
+#ifdef CVC5_API_USE_C_ENUMS
+/**
+ * Hash function for Cvc5Kinds.
+ * @param kind The kind.
+ * @return The hash value.
+ */
+size_t cvc5_kind_hash(Cvc5Kind kind);
+#else
 namespace std {
 
 /**
@@ -5637,17 +5677,27 @@ struct CVC5_EXPORT hash<cvc5::Kind>
 {
   /**
    * Hashes a Kind to a size_t.
+   * @param kind The kind.
+   * @return The hash value.
    */
-  size_t operator()(cvc5::Kind k) const;
+  size_t operator()(cvc5::Kind kind) const;
 };
 
 }  // namespace std
+#endif
 
 /* -------------------------------------------------------------------------- */
 /* SortKind */
 /* -------------------------------------------------------------------------- */
 
+#ifdef CVC5_API_USE_C_ENUMS
+#undef EVALUE
+#define EVALUE(name) CVC5_SORTKIND_##name
+#endif
+
+#ifndef CVC5_API_USE_C_ENUMS
 namespace cvc5 {
+#endif
 
 // clang-format off
 /**
@@ -5663,7 +5713,7 @@ namespace cvc5 {
  * of this type depends on the size of `cvc5::internal::Kind`
  * (`NodeValue::NBITS_KIND`, currently 10 bits, see expr/node_value.h).
  */
-enum SortKind : int32_t
+enum ENUM(SortKind) : int32_t
 {
   /**
    * Internal kind.
@@ -5676,7 +5726,7 @@ enum SortKind : int32_t
    * .. note:: Should never be created via the API.
    * \endrst
    */
-  INTERNAL_SORT_KIND = -2,
+  EVALUE(INTERNAL_SORT_KIND = -2),
   /**
    * Undefined kind.
    *
@@ -5684,7 +5734,7 @@ enum SortKind : int32_t
    * .. note:: Should never be exposed or created via the API.
    * \endrst
    */
-  UNDEFINED_SORT_KIND = -1,
+  EVALUE(UNDEFINED_SORT_KIND = -1),
   /**
    * Null kind.
    *
@@ -5695,12 +5745,12 @@ enum SortKind : int32_t
    *           :cpp:func:`Sort::Sort()`.
    * \endrst
    */
-  NULL_SORT,
+  EVALUE(NULL_SORT),
 
   /* Sort Kinds ------------------------------------------------------------ */
   /**
    * An abstract sort.
-   * 
+   *
    * An abstract sort represents a sort whose parameters or argument sorts are
    * unspecified. For example, `mkAbstractSort(BITVECTOR_SORT)` returns a
    * sort that represents the sort of bit-vectors whose bit-width is
@@ -5710,7 +5760,7 @@ enum SortKind : int32_t
    *
    *   - Solver::mkAbstractSort(SortKind) const
    */
-  ABSTRACT_SORT,
+  EVALUE(ABSTRACT_SORT),
   /**
    * An array sort, whose argument sorts are the index and element sorts of the
    * array.
@@ -5719,7 +5769,7 @@ enum SortKind : int32_t
    *
    *   - Solver::mkArraySort(Sort, Sort) const
    */
-  ARRAY_SORT,
+  EVALUE(ARRAY_SORT),
   /**
    * A bag sort, whose argument sort is the element sort of the bag.
    *
@@ -5727,7 +5777,7 @@ enum SortKind : int32_t
    *
    *   - Solver::mkBagSort(Sort) const
    */
-  BAG_SORT,
+  EVALUE(BAG_SORT),
   /**
    * The Boolean sort.
    *
@@ -5735,7 +5785,7 @@ enum SortKind : int32_t
    *
    *   - Solver::getBooleanSort() const
    */
-  BOOLEAN_SORT,
+  EVALUE(BOOLEAN_SORT),
   /**
    * A bit-vector sort, parameterized by an integer denoting its bit-width.
    *
@@ -5743,7 +5793,7 @@ enum SortKind : int32_t
    *
    *   - Solver::mkBitVectorSort(uint32_t) const
    */
-  BITVECTOR_SORT,
+  EVALUE(BITVECTOR_SORT),
   /**
    * A datatype sort.
    *
@@ -5752,7 +5802,7 @@ enum SortKind : int32_t
    *   - Solver::mkDatatypeSort(DatatypeDecl)
    *   - Solver::mkDatatypeSorts(const std::vector<DatatypeDecl>&)
    */
-  DATATYPE_SORT,
+  EVALUE(DATATYPE_SORT),
   /**
    * A finite field sort, parameterized by a size.
    *
@@ -5760,7 +5810,7 @@ enum SortKind : int32_t
    *
    *   - Solver::mkFiniteFieldSort(const std::string&) const
    */
-  FINITE_FIELD_SORT,
+  EVALUE(FINITE_FIELD_SORT),
   /**
    * A floating-point sort, parameterized by two integers denoting its
    * exponent and significand bit-widths.
@@ -5769,7 +5819,7 @@ enum SortKind : int32_t
    *
    *   - Solver::mkFloatingPointSort(uint32_t, uint32_t) const
    */
-  FLOATINGPOINT_SORT,
+  EVALUE(FLOATINGPOINT_SORT),
   /**
    * A function sort with given domain sorts and codomain sort.
    *
@@ -5777,7 +5827,7 @@ enum SortKind : int32_t
    *
    *   - Solver::mkFunctionSort(const std::vector<Sort>&, Sort) const
    */
-  FUNCTION_SORT,
+  EVALUE(FUNCTION_SORT),
   /**
    * The integer sort.
    *
@@ -5785,7 +5835,7 @@ enum SortKind : int32_t
    *
    *   - Solver::getIntegerSort() const
    */
-  INTEGER_SORT,
+  EVALUE(INTEGER_SORT),
   /**
    * The real sort.
    *
@@ -5793,7 +5843,7 @@ enum SortKind : int32_t
    *
    *   - Solver::getRealSort() const
    */
-  REAL_SORT,
+  EVALUE(REAL_SORT),
   /**
    * The regular language sort.
    *
@@ -5801,7 +5851,7 @@ enum SortKind : int32_t
    *
    *   - Solver::getRegExpSort() const
    */
-  REGLAN_SORT,
+  EVALUE(REGLAN_SORT),
   /**
    * The rounding mode sort.
    *
@@ -5809,7 +5859,7 @@ enum SortKind : int32_t
    *
    *   - Solver::getRoundingModeSort() const
    */
-  ROUNDINGMODE_SORT,
+  EVALUE(ROUNDINGMODE_SORT),
   /**
    * A sequence sort, whose argument sort is the element sort of the sequence.
    *
@@ -5817,7 +5867,7 @@ enum SortKind : int32_t
    *
    *   - Solver::mkSequenceSort(Sort) const
    */
-  SEQUENCE_SORT,
+  EVALUE(SEQUENCE_SORT),
   /**
    * A set sort, whose argument sort is the element sort of the set.
    *
@@ -5825,7 +5875,7 @@ enum SortKind : int32_t
    *
    *   - Solver::mkSetSort(Sort) const
    */
-  SET_SORT,
+  EVALUE(SET_SORT),
   /**
    * The string sort.
    *
@@ -5833,7 +5883,7 @@ enum SortKind : int32_t
    *
    *   - Solver::getStringSort() const
    */
-  STRING_SORT,
+  EVALUE(STRING_SORT),
   /**
    * A tuple sort, whose argument sorts denote the sorts of the direct children
    * of the tuple.
@@ -5842,7 +5892,7 @@ enum SortKind : int32_t
    *
    *   - Solver::mkTupleSort(const std::vector<Sort>&) const
    */
-  TUPLE_SORT,
+  EVALUE(TUPLE_SORT),
   /**
    * An uninterpreted sort.
    *
@@ -5850,13 +5900,27 @@ enum SortKind : int32_t
    *
    *   - Solver::mkUninterpretedSort(const std::optional<std::string>&) const
    */
-  UNINTERPRETED_SORT,
+  EVALUE(UNINTERPRETED_SORT),
   /* ----------------------------------------------------------------------- */
   /** Marks the upper-bound of this enumeration. */
-  LAST_SORT_KIND
+  EVALUE(LAST_SORT_KIND)
 };
 // clang-format on
 
+#ifdef CVC5_API_USE_C_ENUMS
+#ifndef DOXYGEN_SKIP
+typedef enum ENUM(SortKind) ENUM(SortKind);
+#endif
+#endif
+
+#ifdef CVC5_API_USE_C_ENUMS
+/**
+ * Get a string representation of a Cvc5SortKind.
+ * @param kind The sort kind.
+ * @return The string representation.
+ */
+const char* cvc5_sort_kind_to_string(Cvc5SortKind kind);
+#else
 /**
  * Get the string representation of a given kind.
  * @param k the sort kind
@@ -5873,20 +5937,42 @@ std::string sortKindToString(SortKind k) CVC5_EXPORT;
 std::ostream& operator<<(std::ostream& out, SortKind k) CVC5_EXPORT;
 
 }  // namespace cvc5
+#endif
 
+#ifdef CVC5_API_USE_C_ENUMS
+/**
+ * Hash function for Cvc5SortKinds.
+ * @param kind The kind.
+ * @return The hash value.
+ */
+size_t cvc5_sort_kind_hash(Cvc5SortKind kind);
+#else
 namespace std {
 
 /**
- * Hash function for Kinds.
+ * Hash function for SortKinds.
  */
 template <>
 struct CVC5_EXPORT hash<cvc5::SortKind>
 {
   /**
    * Hashes a SortKind to a size_t.
+   * @param kind The kind.
+   * @return The hash value.
    */
-  size_t operator()(cvc5::SortKind k) const;
+  size_t operator()(cvc5::SortKind kind) const;
 };
 }  // namespace std
+#endif
 
+#endif
+
+#ifdef CVC5_API_USE_C_ENUMS
+#ifndef CVC5__API__CVC5_C_KIND_H
+#define CVC5__API__CVC5_C_KIND_H
+#endif
+#else
+#ifndef CVC5__API__CVC5_CPP_KIND_H
+#define CVC5__API__CVC5_CPP_KIND_H
+#endif
 #endif

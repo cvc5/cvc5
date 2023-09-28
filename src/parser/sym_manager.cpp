@@ -13,7 +13,7 @@
  * The symbol manager.
  */
 
-#include "parser/api/cpp/symbol_manager.h"
+#include "parser/sym_manager.h"
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
@@ -26,9 +26,9 @@ using namespace cvc5::internal::parser;
 
 namespace cvc5::parser {
 
-// ---------------------------------------------- SymbolManager::Implementation
+// ---------------------------------------------- SymManager::Implementation
 
-class SymbolManager::Implementation
+class SymManager::Implementation
 {
   using TermStringMap =
       CDHashMap<cvc5::Term, std::string, std::hash<cvc5::Term>>;
@@ -121,10 +121,10 @@ class SymbolManager::Implementation
   CDO<std::string> d_lastSynthName;
 };
 
-NamingResult SymbolManager::Implementation::setExpressionName(
+NamingResult SymManager::Implementation::setExpressionName(
     cvc5::Term t, const std::string& name, bool isAssertion)
 {
-  Trace("sym-manager") << "SymbolManager: set expression name: " << t << " -> "
+  Trace("sym-manager") << "SymManager: set expression name: " << t << " -> "
                        << name << ", isAssertion=" << isAssertion << std::endl;
   if (d_hasPushedScope.get())
   {
@@ -145,9 +145,9 @@ NamingResult SymbolManager::Implementation::setExpressionName(
   return NamingResult::SUCCESS;
 }
 
-bool SymbolManager::Implementation::getExpressionName(cvc5::Term t,
-                                                      std::string& name,
-                                                      bool isAssertion) const
+bool SymManager::Implementation::getExpressionName(cvc5::Term t,
+                                                   std::string& name,
+                                                   bool isAssertion) const
 {
   TermStringMap::const_iterator it = d_names.find(t);
   if (it == d_names.end())
@@ -166,7 +166,7 @@ bool SymbolManager::Implementation::getExpressionName(cvc5::Term t,
   return true;
 }
 
-void SymbolManager::Implementation::getExpressionNames(
+void SymManager::Implementation::getExpressionNames(
     const std::vector<cvc5::Term>& ts,
     std::vector<std::string>& names,
     bool areAssertions) const
@@ -182,7 +182,7 @@ void SymbolManager::Implementation::getExpressionNames(
 }
 
 std::map<cvc5::Term, std::string>
-SymbolManager::Implementation::getExpressionNames(bool areAssertions) const
+SymManager::Implementation::getExpressionNames(bool areAssertions) const
 {
   std::map<cvc5::Term, std::string> emap;
   for (TermStringMap::const_iterator it = d_names.begin(),
@@ -200,52 +200,50 @@ SymbolManager::Implementation::getExpressionNames(bool areAssertions) const
   return emap;
 }
 
-std::vector<cvc5::Sort> SymbolManager::Implementation::getModelDeclareSorts()
-    const
+std::vector<cvc5::Sort> SymManager::Implementation::getModelDeclareSorts() const
 {
   std::vector<cvc5::Sort> declareSorts(d_declareSorts.begin(),
                                        d_declareSorts.end());
   return declareSorts;
 }
 
-std::vector<cvc5::Term> SymbolManager::Implementation::getModelDeclareTerms()
-    const
+std::vector<cvc5::Term> SymManager::Implementation::getModelDeclareTerms() const
 {
   std::vector<cvc5::Term> declareTerms(d_declareTerms.begin(),
                                        d_declareTerms.end());
   return declareTerms;
 }
 
-std::vector<cvc5::Term>
-SymbolManager::Implementation::getFunctionsToSynthesize() const
+std::vector<cvc5::Term> SymManager::Implementation::getFunctionsToSynthesize()
+    const
 {
   return std::vector<cvc5::Term>(d_funToSynth.begin(), d_funToSynth.end());
 }
 
-void SymbolManager::Implementation::addModelDeclarationSort(cvc5::Sort s)
+void SymManager::Implementation::addModelDeclarationSort(cvc5::Sort s)
 {
-  Trace("sym-manager") << "SymbolManager: addModelDeclarationSort " << s
+  Trace("sym-manager") << "SymManager: addModelDeclarationSort " << s
                        << std::endl;
   d_declareSorts.push_back(s);
 }
 
-void SymbolManager::Implementation::addModelDeclarationTerm(cvc5::Term t)
+void SymManager::Implementation::addModelDeclarationTerm(cvc5::Term t)
 {
-  Trace("sym-manager") << "SymbolManager: addModelDeclarationTerm " << t
+  Trace("sym-manager") << "SymManager: addModelDeclarationTerm " << t
                        << std::endl;
   d_declareTerms.push_back(t);
 }
 
-void SymbolManager::Implementation::addFunctionToSynthesize(cvc5::Term f)
+void SymManager::Implementation::addFunctionToSynthesize(cvc5::Term f)
 {
-  Trace("sym-manager") << "SymbolManager: addFunctionToSynthesize " << f
+  Trace("sym-manager") << "SymManager: addFunctionToSynthesize " << f
                        << std::endl;
   d_funToSynth.push_back(f);
 }
 
-void SymbolManager::Implementation::pushScope(bool isUserContext)
+void SymManager::Implementation::pushScope(bool isUserContext)
 {
-  Trace("sym-manager") << "SymbolManager: pushScope, isUserContext = "
+  Trace("sym-manager") << "SymManager: pushScope, isUserContext = "
                        << isUserContext << std::endl;
   Assert(!d_hasPushedScope.get() || !isUserContext)
       << "cannot push a user context within a scope context";
@@ -257,9 +255,9 @@ void SymbolManager::Implementation::pushScope(bool isUserContext)
   d_symtabAllocated.pushScope();
 }
 
-void SymbolManager::Implementation::popScope()
+void SymManager::Implementation::popScope()
 {
-  Trace("sym-manager") << "SymbolManager: popScope" << std::endl;
+  Trace("sym-manager") << "SymManager: popScope" << std::endl;
   d_symtabAllocated.popScope();
   if (d_context.getLevel() == 0)
   {
@@ -270,24 +268,24 @@ void SymbolManager::Implementation::popScope()
       << "d_hasPushedScope is now " << d_hasPushedScope.get() << std::endl;
 }
 
-bool SymbolManager::Implementation::hasPushedScope() const
+bool SymManager::Implementation::hasPushedScope() const
 {
   return d_hasPushedScope.get();
 }
 
-void SymbolManager::Implementation::setLastSynthName(const std::string& name)
+void SymManager::Implementation::setLastSynthName(const std::string& name)
 {
   d_lastSynthName = name;
 }
 
-const std::string& SymbolManager::Implementation::getLastSynthName() const
+const std::string& SymManager::Implementation::getLastSynthName() const
 {
   return d_lastSynthName.get();
 }
 
-void SymbolManager::Implementation::reset()
+void SymManager::Implementation::reset()
 {
-  Trace("sym-manager") << "SymbolManager: reset" << std::endl;
+  Trace("sym-manager") << "SymManager: reset" << std::endl;
   // reset resets the symbol table even when global declarations are true
   d_symtabAllocated.reset();
   // clear names by popping to context level 0
@@ -299,9 +297,9 @@ void SymbolManager::Implementation::reset()
   d_context.push();
 }
 
-void SymbolManager::Implementation::resetAssertions()
+void SymManager::Implementation::resetAssertions()
 {
-  Trace("sym-manager") << "SymbolManager: resetAssertions" << std::endl;
+  Trace("sym-manager") << "SymManager: resetAssertions" << std::endl;
   // clear names by popping to context level 1
   while (d_context.getLevel() > 1)
   {
@@ -309,37 +307,37 @@ void SymbolManager::Implementation::resetAssertions()
   }
 }
 
-// ---------------------------------------------- SymbolManager
+// ---------------------------------------------- SymManager
 
-SymbolManager::SymbolManager(cvc5::Solver* s)
+SymManager::SymManager(cvc5::Solver* s)
     : d_solver(s),
-      d_implementation(new SymbolManager::Implementation()),
+      d_implementation(new SymManager::Implementation()),
       d_globalDeclarations(false),
+      d_freshDeclarations(true),
       d_logicIsForced(false),
+      d_logicIsSet(false),
       d_logic()
 {
 }
 
-SymbolManager::~SymbolManager() {}
+SymManager::~SymManager() {}
 
-SymbolTable* SymbolManager::getSymbolTable()
+SymbolTable* SymManager::getSymbolTable()
 {
   return &d_implementation->getSymbolTable();
 }
 
-bool SymbolManager::bind(const std::string& name,
-                         cvc5::Term obj,
-                         bool doOverload)
+bool SymManager::bind(const std::string& name, cvc5::Term obj, bool doOverload)
 {
   return d_implementation->getSymbolTable().bind(name, obj, doOverload);
 }
 
-void SymbolManager::bindType(const std::string& name, cvc5::Sort t)
+void SymManager::bindType(const std::string& name, cvc5::Sort t)
 {
   return d_implementation->getSymbolTable().bindType(name, t);
 }
 
-bool SymbolManager::bindMutualDatatypeTypes(
+bool SymManager::bindMutualDatatypeTypes(
     const std::vector<cvc5::Sort>& datatypes, bool bindTesters)
 {
   for (size_t i = 0, ntypes = datatypes.size(); i < ntypes; ++i)
@@ -367,7 +365,7 @@ bool SymbolManager::bindMutualDatatypeTypes(
       // constructor.
       if (ctor.getNumSelectors() == 0)
       {
-        constructor = d_solver->mkTerm(APPLY_CONSTRUCTOR, {constructor});
+        constructor = d_solver->mkTerm(Kind::APPLY_CONSTRUCTOR, {constructor});
       }
       // always do overloading
       if (!bind(constructorName, constructor, true))
@@ -403,74 +401,74 @@ bool SymbolManager::bindMutualDatatypeTypes(
   return true;
 }
 
-void SymbolManager::bindType(const std::string& name,
-                             const std::vector<cvc5::Sort>& params,
-                             cvc5::Sort t)
+void SymManager::bindType(const std::string& name,
+                          const std::vector<cvc5::Sort>& params,
+                          cvc5::Sort t)
 {
   return d_implementation->getSymbolTable().bindType(name, params, t);
 }
 
-NamingResult SymbolManager::setExpressionName(cvc5::Term t,
-                                              const std::string& name,
-                                              bool isAssertion)
+NamingResult SymManager::setExpressionName(cvc5::Term t,
+                                           const std::string& name,
+                                           bool isAssertion)
 {
   return d_implementation->setExpressionName(t, name, isAssertion);
 }
 
-bool SymbolManager::getExpressionName(cvc5::Term t,
-                                      std::string& name,
-                                      bool isAssertion) const
+bool SymManager::getExpressionName(cvc5::Term t,
+                                   std::string& name,
+                                   bool isAssertion) const
 {
   return d_implementation->getExpressionName(t, name, isAssertion);
 }
 
-void SymbolManager::getExpressionNames(const std::vector<cvc5::Term>& ts,
-                                       std::vector<std::string>& names,
-                                       bool areAssertions) const
+void SymManager::getExpressionNames(const std::vector<cvc5::Term>& ts,
+                                    std::vector<std::string>& names,
+                                    bool areAssertions) const
 {
   return d_implementation->getExpressionNames(ts, names, areAssertions);
 }
 
-std::map<cvc5::Term, std::string> SymbolManager::getExpressionNames(
+std::map<cvc5::Term, std::string> SymManager::getExpressionNames(
     bool areAssertions) const
 {
   return d_implementation->getExpressionNames(areAssertions);
 }
-std::vector<cvc5::Sort> SymbolManager::getModelDeclareSorts() const
+std::vector<cvc5::Sort> SymManager::getModelDeclareSorts() const
 {
   return d_implementation->getModelDeclareSorts();
 }
-std::vector<cvc5::Term> SymbolManager::getModelDeclareTerms() const
+std::vector<cvc5::Term> SymManager::getModelDeclareTerms() const
 {
   return d_implementation->getModelDeclareTerms();
 }
 
-std::vector<cvc5::Term> SymbolManager::getFunctionsToSynthesize() const
+std::vector<cvc5::Term> SymManager::getFunctionsToSynthesize() const
 {
   return d_implementation->getFunctionsToSynthesize();
 }
 
-void SymbolManager::addModelDeclarationSort(cvc5::Sort s)
+void SymManager::addModelDeclarationSort(cvc5::Sort s)
 {
   d_implementation->addModelDeclarationSort(s);
 }
 
-void SymbolManager::addModelDeclarationTerm(cvc5::Term t)
+void SymManager::addModelDeclarationTerm(cvc5::Term t)
 {
   d_implementation->addModelDeclarationTerm(t);
 }
 
-void SymbolManager::addFunctionToSynthesize(cvc5::Term f)
+void SymManager::addFunctionToSynthesize(cvc5::Term f)
 {
   d_implementation->addFunctionToSynthesize(f);
 }
 
-size_t SymbolManager::scopeLevel() const
+size_t SymManager::scopeLevel() const
 {
   return d_implementation->getSymbolTable().getLevel();
 }
 
-void SymbolManager::pushScope(bool isUserContext)
+void SymManager::pushScope(bool isUserContext)
 {
   // we do not push user contexts when global declarations is true. This
   // policy applies both to the symbol table and to the symbol manager.
@@ -481,7 +479,7 @@ void SymbolManager::pushScope(bool isUserContext)
   d_implementation->pushScope(isUserContext);
 }
 
-void SymbolManager::popScope()
+void SymManager::popScope()
 {
   // If global declarations is true, then if d_hasPushedScope is false, then
   // the pop corresponds to a user context, which we did not push. Note this
@@ -495,29 +493,29 @@ void SymbolManager::popScope()
   d_implementation->popScope();
 }
 
-void SymbolManager::setGlobalDeclarations(bool flag)
+void SymManager::setGlobalDeclarations(bool flag)
 {
   d_globalDeclarations = flag;
 }
 
-bool SymbolManager::getGlobalDeclarations() const
-{
-  return d_globalDeclarations;
-}
+bool SymManager::getGlobalDeclarations() const { return d_globalDeclarations; }
 
-void SymbolManager::setLastSynthName(const std::string& name)
+void SymManager::setFreshDeclarations(bool flag) { d_freshDeclarations = flag; }
+bool SymManager::getFreshDeclarations() const { return d_freshDeclarations; }
+
+void SymManager::setLastSynthName(const std::string& name)
 {
   d_implementation->setLastSynthName(name);
 }
 
-const std::string& SymbolManager::getLastSynthName() const
+const std::string& SymManager::getLastSynthName() const
 {
   return d_implementation->getLastSynthName();
 }
 
-void SymbolManager::reset() { d_implementation->reset(); }
+void SymManager::reset() { d_implementation->reset(); }
 
-void SymbolManager::resetAssertions()
+void SymManager::resetAssertions()
 {
   d_implementation->resetAssertions();
   if (!d_globalDeclarations)
@@ -526,7 +524,7 @@ void SymbolManager::resetAssertions()
   }
 }
 
-void SymbolManager::setLogic(const std::string& logic, bool isForced)
+void SymManager::setLogic(const std::string& logic, bool isForced)
 {
   // if already forced and this isn't forced, ignore
   if (!d_logicIsForced || isForced)
@@ -534,9 +532,12 @@ void SymbolManager::setLogic(const std::string& logic, bool isForced)
     d_logicIsForced = isForced;
     d_logic = logic;
   }
+  d_logicIsSet = true;
 }
-bool SymbolManager::isLogicForced() const { return d_logicIsForced; }
+bool SymManager::isLogicForced() const { return d_logicIsForced; }
 
-const std::string& SymbolManager::getLogic() const { return d_logic; }
+bool SymManager::isLogicSet() const { return d_logicIsSet; }
+
+const std::string& SymManager::getLogic() const { return d_logic; }
 
 }  // namespace cvc5::parser

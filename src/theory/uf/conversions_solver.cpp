@@ -79,11 +79,11 @@ void ConversionsSolver::checkReduction(Node n)
 
   Node lem;
   Kind k = n.getKind();
-  if (k == BITVECTOR_TO_NAT)
+  if (k == Kind::BITVECTOR_TO_NAT)
   {
     lem = arith::eliminateBv2Nat(n);
   }
-  else if (k == INT_TO_BITVECTOR)
+  else if (k == Kind::INT_TO_BITVECTOR)
   {
     lem = arith::eliminateInt2Bv(n);
   }

@@ -410,6 +410,9 @@ def generate_set_impl(modules):
     res.append('}')
     return '\n    '.join(res)
 
+def cpp_category(category):
+    assert category
+    return f'OptionInfo::Category::{category.upper()}'
 
 def generate_getinfo_impl(modules):
     """Generates the implementation for options::getInfo()."""
@@ -432,6 +435,7 @@ def generate_getinfo_impl(modules):
             'default': option.default if option.default else '{}()'.format(option.type),
             'minimum': option.minimum if option.minimum else '{}',
             'maximum': option.maximum if option.maximum else '{}',
+            'category': cpp_category(option.category)
         }
         if option.alias:
             fmt['alias'] = ', '.join(map(lambda s: '"{}"'.format(s), option.alias))
@@ -450,7 +454,7 @@ def generate_getinfo_impl(modules):
         else:
             constr = 'OptionInfo::VoidInfo{{}}'
         res.append("  case OptionEnum::{}:".format(option.enum_name()))
-        line = '    return OptionInfo{{"{name}", {{{alias}}}, {setbyuser}, ' + constr + '}};'
+        line = '    return OptionInfo{{"{name}", {{{alias}}}, {setbyuser}, {category}, ' + constr + '}};'
         res.append(line.format(**fmt))
     res.append("}")
     return '\n  '.join(res)
@@ -716,6 +720,7 @@ def _cli_help_wrap(help_msg, opts):
 def generate_cli_help(modules):
     """Generate the output for --help."""
     common = []
+    regular = []
     others = []
     for module in modules:
         if not module.options:
@@ -738,7 +743,9 @@ def generate_cli_help(modules):
                     common.extend(res)
                 else:
                     others.extend(res)
-    return '\n'.join(common), '\n'.join(others)
+                    if option.category == 'regular':
+                        regular.extend(res)
+    return '\n'.join(common), '\n'.join(others), '\n'.join(regular)
 
 
 ################################################################################
@@ -961,7 +968,7 @@ def codegen_module(module, dst_dir, tpls):
 def codegen_all_modules(modules, src_dir, build_dir, dst_dir, tpls):
     """Generate code for all option modules."""
     short, cmdline_opts, parseinternal = generate_parsing(modules)
-    help_common, help_others = generate_cli_help(modules)
+    help_common, help_others, help_regular = generate_cli_help(modules)
 
     if os.path.isdir('{}/docs/'.format(build_dir)):
         write_file('{}/docs/'.format(build_dir), 'options_generated.rst',
@@ -997,6 +1004,7 @@ def codegen_all_modules(modules, src_dir, build_dir, dst_dir, tpls):
         # main/options.cpp
         'help_common': help_common,
         'help_others': help_others,
+        'help_regular': help_regular,
         'cmdoptions_long': cmdline_opts,
         'cmdoptions_short': short,
         'parseinternal_impl': parseinternal,

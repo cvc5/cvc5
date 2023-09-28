@@ -28,7 +28,7 @@ class RewriteDb;
 /**
  * Identifiers for DSL proof rules
  */
-enum class DslPfRule : uint32_t
+enum class DslProofRule : uint32_t
 {
   FAIL = 0,
   REFL,
@@ -47,7 +47,7 @@ enum class DslPfRule : uint32_t
 };
 
 /** Is internal rule? */
-bool isInternalDslPfRule(DslPfRule drule);
+bool isInternalDslProofRule(DslProofRule drule);
 
 /**
  * The body of this method is auto-generated. This populates the provided
@@ -61,7 +61,7 @@ void addRules(RewriteDb& db);
  * @param drule The DSL proof rule
  * @return The name of the DSL proof rule
  */
-const char* toString(DslPfRule drule);
+const char* toString(DslProofRule drule);
 /**
  * Writes a DSL proof rule name to a stream.
  *
@@ -69,13 +69,13 @@ const char* toString(DslPfRule drule);
  * @param drule The DSL proof rule to write to the stream
  * @return The stream
  */
-std::ostream& operator<<(std::ostream& out, DslPfRule drule);
+std::ostream& operator<<(std::ostream& out, DslProofRule drule);
 
 /** Make node from DSL proof rule id */
-Node mkDslPfRuleNode(DslPfRule i);
+Node mkDslProofRuleNode(DslProofRule i);
 
 /** get a DSL proof rule identifier from a node, return false if we fail */
-bool getDslPfRule(TNode n, DslPfRule& i);
+bool getDslProofRule(TNode n, DslProofRule& i);
 
 }  // namespace rewriter
 }  // namespace cvc5::internal

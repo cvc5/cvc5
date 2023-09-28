@@ -1072,6 +1072,9 @@ class TermTest
       assertTrue(lb.isRealValue());
       Term ub = vx.getRealAlgebraicNumberUpperBound();
       assertTrue(ub.isRealValue());
+      // cannot call with non-variable
+      Term yc = d_solver.mkConst(realsort, "y");
+      assertThrows(CVC5ApiException.class, () ->vx.getRealAlgebraicNumberDefiningPolynomial(yc));
     }
   }
 

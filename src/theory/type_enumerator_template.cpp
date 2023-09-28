@@ -33,7 +33,7 @@ TypeEnumeratorInterface* TypeEnumerator::mkTypeEnumerator(
 {
   switch (type.getKind())
   {
-    case kind::TYPE_CONSTANT:
+    case Kind::TYPE_CONSTANT:
       switch (type.getConst<TypeConstant>())
       {
         // clang-format off

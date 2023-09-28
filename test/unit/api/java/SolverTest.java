@@ -941,6 +941,23 @@ class SolverTest
   }
 
   @Test
+  void declareFunFresh()
+  {
+    Sort boolSort = d_solver.getBooleanSort();
+    Sort intSort = d_solver.getIntegerSort();
+    Term t1 = d_solver.declareFun("b", new Sort[] {}, boolSort, true);
+    Term t2 = d_solver.declareFun("b", new Sort[] {}, boolSort, false);
+    Term t3 = d_solver.declareFun("b", new Sort[] {}, boolSort, false);
+    assertNotEquals(t1, t2);
+    assertNotEquals(t1, t3);
+    assertEquals(t2, t3);
+    Term t4 = d_solver.declareFun("c", new Sort[] {}, boolSort, false);
+    assertNotEquals(t2, t4);
+    Term t5 = d_solver.declareFun("b", new Sort[] {}, intSort, false);
+    assertNotEquals(t2, t5);
+  }
+
+  @Test
   void mkConstArray()
   {
     Sort intSort = d_solver.getIntegerSort();
@@ -1010,6 +1027,21 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.declareSort("s", 0));
     assertDoesNotThrow(() -> d_solver.declareSort("s", 2));
     assertDoesNotThrow(() -> d_solver.declareSort("", 2));
+  }
+
+  @Test
+  void declareSortFresh() throws CVC5ApiException
+  {
+    Sort t1 = d_solver.declareSort("b", 0, true);
+    Sort t2 = d_solver.declareSort("b", 0, false);
+    Sort t3 = d_solver.declareSort("b", 0, false);
+    assertNotEquals(t1, t2);
+    assertNotEquals(t1, t3);
+    assertEquals(t2, t3);
+    Sort t4 = d_solver.declareSort("c", 0, false);
+    assertNotEquals(t2, t4);
+    Sort t5 = d_solver.declareSort("b", 1, false);
+    assertNotEquals(t2, t5);
   }
 
   @Test
@@ -1802,7 +1834,7 @@ class SolverTest
     Term[] unsat_core = d_solver.getUnsatCore();
 
     assertDoesNotThrow(() -> d_solver.getProof());
-    assertDoesNotThrow(() -> d_solver.getProof(ProofComponent.PROOF_COMPONENT_SAT));
+    assertDoesNotThrow(() -> d_solver.getProof(ProofComponent.SAT));
 
     d_solver.resetAssertions();
     for (Term t : unsat_core)
@@ -1812,6 +1844,47 @@ class SolverTest
     Result res = d_solver.checkSat();
     assertTrue(res.isUnsat());
     assertDoesNotThrow(() -> d_solver.getProof());
+  }
+
+  @Test
+  void getUnsatCoreLemmas1()
+  {
+    d_solver.assertFormula(d_solver.mkFalse());
+    assertTrue(d_solver.checkSat().isUnsat());
+    assertThrows(CVC5ApiException.class, () -> d_solver.getUnsatCoreLemmas());
+  }
+
+  @Test
+  void getUnsatCoreLemmas2()
+  {
+    d_solver.setOption("produce-unsat-cores", "true");
+    d_solver.setOption("unsat-cores-mode", "sat-proof");
+
+    Sort uSort = d_solver.mkUninterpretedSort("u");
+    Sort intSort = d_solver.getIntegerSort();
+    Sort boolSort = d_solver.getBooleanSort();
+    Sort uToIntSort = d_solver.mkFunctionSort(uSort, intSort);
+    Sort intPredSort = d_solver.mkFunctionSort(intSort, boolSort);
+
+    Term x = d_solver.mkConst(uSort, "x");
+    Term y = d_solver.mkConst(uSort, "y");
+    Term f = d_solver.mkConst(uToIntSort, "f");
+    Term p = d_solver.mkConst(intPredSort, "p");
+    Term zero = d_solver.mkInteger(0);
+    Term one = d_solver.mkInteger(1);
+    Term f_x = d_solver.mkTerm(Kind.APPLY_UF, f, x);
+    Term f_y = d_solver.mkTerm(Kind.APPLY_UF, f, y);
+    Term sum = d_solver.mkTerm(Kind.ADD, f_x, f_y);
+    Term p_0 = d_solver.mkTerm(Kind.APPLY_UF, p, zero);
+    Term p_f_y = d_solver.mkTerm(APPLY_UF, p, f_y);
+    d_solver.assertFormula(d_solver.mkTerm(Kind.GT, zero, f_x));
+    d_solver.assertFormula(d_solver.mkTerm(Kind.GT, zero, f_y));
+    d_solver.assertFormula(d_solver.mkTerm(Kind.GT, sum, one));
+    d_solver.assertFormula(p_0);
+    d_solver.assertFormula(p_f_y.notTerm());
+    assertTrue(d_solver.checkSat().isUnsat());
+
+    d_solver.getUnsatCoreLemmas();
   }
 
   @Test
@@ -1862,7 +1935,7 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.getLearnedLiterals());
     d_solver.checkSat();
     assertDoesNotThrow(() -> d_solver.getLearnedLiterals());
-    assertDoesNotThrow(() -> d_solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_PREPROCESS));
+    assertDoesNotThrow(() -> d_solver.getLearnedLiterals(LearnedLitType.PREPROCESS));
   }
 
   @Test
@@ -1879,7 +1952,7 @@ class SolverTest
     d_solver.assertFormula(f0);
     d_solver.assertFormula(f1);
     d_solver.checkSat();
-    assertDoesNotThrow(() -> d_solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_INPUT));
+    assertDoesNotThrow(() -> d_solver.getLearnedLiterals(LearnedLitType.INPUT));
   }
 
   @Test
@@ -2586,6 +2659,22 @@ class SolverTest
   }
 
   @Test
+  void isLogicSet() throws CVC5ApiException
+  {
+    assertFalse(d_solver.isLogicSet());
+    assertDoesNotThrow(() -> d_solver.setLogic("QF_BV"));
+    assertTrue(d_solver.isLogicSet());
+  }
+
+  @Test
+  void getLogic() throws CVC5ApiException
+  {
+    assertThrows(CVC5ApiException.class, () -> d_solver.getLogic());
+    assertDoesNotThrow(() -> d_solver.setLogic("QF_BV"));
+    assertEquals(d_solver.getLogic(), "QF_BV");
+  }
+
+  @Test
   void setOption() throws CVC5ApiException
   {
     assertDoesNotThrow(() -> d_solver.setOption("bv-sat-solver", "minisat"));
@@ -2928,7 +3017,7 @@ class SolverTest
     Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort(), g);
 
     // should enumerate based on the grammar of the function to synthesize above
-    Term t = d_solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM);
+    Term t = d_solver.findSynth(FindSynthTarget.ENUM);
     assertTrue(!t.isNull() && t.getSort().isBoolean());
   }
 
@@ -2946,7 +3035,7 @@ class SolverTest
     g.addRule(start, falsen);
 
     // should enumerate true/false
-    Term t = d_solver.findSynth(FindSynthTarget.FIND_SYNTH_TARGET_ENUM, g);
+    Term t = d_solver.findSynth(FindSynthTarget.ENUM, g);
     assertTrue(!t.isNull() && t.getSort().isBoolean());
     t = d_solver.findSynthNext();
     assertTrue(!t.isNull() && t.getSort().isBoolean());

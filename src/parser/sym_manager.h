@@ -15,8 +15,8 @@
 
 #include "cvc5_public.h"
 
-#ifndef CVC5__PARSER__API__CPP__SYMBOL_MANAGER_H
-#define CVC5__PARSER__API__CPP__SYMBOL_MANAGER_H
+#ifndef CVC5__PARSER__SYM_MANAGER_H
+#define CVC5__PARSER__SYM_MANAGER_H
 
 #include <cvc5/cvc5.h>
 #include <cvc5/cvc5_export.h>
@@ -30,8 +30,10 @@ namespace cvc5 {
 namespace internal::parser {
 class SymbolTable;
 }
-
 namespace parser {
+
+class Command;
+
 /** Represents the result of a call to `setExpressionName()`. */
 enum class NamingResult
 {
@@ -47,17 +49,16 @@ enum class NamingResult
  * Symbol manager, which manages:
  * (1) The symbol table used by the parser,
  * (2) Information related to the (! ... :named s) feature in SMT-LIB version 2.
- *
- * Like SymbolTable, this class currently lives in src/expr/ since it uses
- * context-dependent data structures.
  */
-class CVC5_EXPORT SymbolManager
+class CVC5_EXPORT SymManager
 {
+  friend class cvc5::parser::Command;
+
  public:
-  SymbolManager(cvc5::Solver* s);
-  ~SymbolManager();
+  SymManager(cvc5::Solver* s);
+  ~SymManager();
   /** Get the underlying symbol table */
-  internal::parser::SymbolTable* getSymbolTable();
+  cvc5::internal::parser::SymbolTable* getSymbolTable();
 
   /**
    * Bind an expression to a name in the current scope level in the underlying
@@ -224,6 +225,10 @@ class CVC5_EXPORT SymbolManager
   void setGlobalDeclarations(bool flag);
   /** Get global declarations flag. */
   bool getGlobalDeclarations() const;
+  /** Set fresh declarations to the value flag. */
+  void setFreshDeclarations(bool flag);
+  /** Get fresh declarations flag. */
+  bool getFreshDeclarations() const;
   /**
    * Set the last abduct or interpolant to synthesize had the given name. This
    * is required since e.g. get-abduct-next must know the name of the
@@ -247,6 +252,8 @@ class CVC5_EXPORT SymbolManager
   void setLogic(const std::string& logic, bool isForced = false);
   /** Have we called the above method with isForced=true? */
   bool isLogicForced() const;
+  /** Has the logic been set? */
+  bool isLogicSet() const;
   /** Get the last string in an above call */
   const std::string& getLogic() const;
 
@@ -261,8 +268,15 @@ class CVC5_EXPORT SymbolManager
    * SMT-LIB option :global-declarations. By default, its value is false.
    */
   bool d_globalDeclarations;
+  /**
+   * Whether the fresh declarations option is enabled. By default, its value is
+   * true.
+   */
+  bool d_freshDeclarations;
   /** Whether the logic has been forced with --force-logic. */
   bool d_logicIsForced;
+  /** Whether the logic has been set */
+  bool d_logicIsSet;
   /** The logic. */
   std::string d_logic;
 };
@@ -270,4 +284,4 @@ class CVC5_EXPORT SymbolManager
 }  // namespace parser
 }  // namespace cvc5
 
-#endif /* CVC5__EXPR__SYMBOL_MANAGER_H */
+#endif /* CVC5__PARSER__SYM_MANAGER_H */

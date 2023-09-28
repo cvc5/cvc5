@@ -213,10 +213,10 @@ bool CegisUnif::getEnumValues(const std::vector<Node>& enums,
               Assert(prev_size <= curr_size);
               if (curr_size == prev_size)
               {
-                Node slem =
-                    nm->mkNode(
-                          AND, es[j - 1].eqNode(vs[j - 1]), es[j].eqNode(vs[j]))
-                        .negate();
+                Node slem = nm->mkNode(Kind::AND,
+                                       es[j - 1].eqNode(vs[j - 1]),
+                                       es[j].eqNode(vs[j]))
+                                .negate();
                 Trace("cegis-unif")
                     << "CegisUnif::lemma, inter-unif-enumerator "
                        "symmetry breaking lemma : "
@@ -272,7 +272,7 @@ void CegisUnif::setConditions(
           Node exp_exc = d_tds->getExplain()
                              ->getExplanationForEquality(eu, itv->second[0])
                              .negate();
-          Node lem = nm->mkNode(OR, g.negate(), exp_exc);
+          Node lem = nm->mkNode(Kind::OR, g.negate(), exp_exc);
           d_qim.addPendingLemma(
               lem, InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_COND_EXCLUDE);
         }
@@ -397,8 +397,8 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars, Node lem)
   // Make the refinement lemma and add it to lems. This lemma is guarded by the
   // parent's conjecture, hence this lemma states: if the parent conjecture has
   // a solution, it satisfies the specification for the given concrete point.
-  Node rlem =
-      NodeManager::currentNM()->mkNode(OR, d_parent->getConjecture().negate(), plem);
+  Node rlem = NodeManager::currentNM()->mkNode(
+      Kind::OR, d_parent->getConjecture().negate(), plem);
   d_qim.addPendingLemma(rlem,
                         InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_REFINEMENT);
 }
@@ -472,7 +472,7 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
       //   A -> 1 | A + A
       Node a = nm->mkBoundVar("_virtual_enum_grammar", nm->integerType());
       SygusGrammar g({}, {a});
-      g.addRules(a, {nm->mkConstInt(Rational(1)), nm->mkNode(ADD, a, a)});
+      g.addRules(a, {nm->mkConstInt(Rational(1)), nm->mkNode(Kind::ADD, a, a)});
       d_virtual_enum = sm->mkDummySkolem("_ve", g.resolve());
       d_tds->registerEnumerator(
           d_virtual_enum, Node::null(), d_parent, ROLE_ENUM_CONSTRAINED);
@@ -484,10 +484,10 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
     unsigned pow_two = Integer(new_size).isPow2();
     if (pow_two > 0)
     {
-      Node size_ve = nm->mkNode(DT_SIZE, d_virtual_enum);
+      Node size_ve = nm->mkNode(Kind::DT_SIZE, d_virtual_enum);
       Node fair_lemma =
-          nm->mkNode(GEQ, size_ve, nm->mkConstInt(Rational(pow_two - 1)));
-      fair_lemma = nm->mkNode(OR, newLit, fair_lemma);
+          nm->mkNode(Kind::GEQ, size_ve, nm->mkConstInt(Rational(pow_two - 1)));
+      fair_lemma = nm->mkNode(Kind::OR, newLit, fair_lemma);
       Trace("cegis-unif-enum-lemma")
           << "CegisUnifEnum::lemma, fairness size:" << fair_lemma << "\n";
       // this lemma relates the number of conditions we enumerate and the
@@ -541,8 +541,9 @@ void CegisUnifEnumDecisionStrategy::initialize(
         continue;
       }
       // collect lemmas for removing redundant ops for this candidate's type
-      Node d_sbt_lemma =
-          it->second.size() == 1 ? it->second[0] : nm->mkNode(AND, it->second);
+      Node d_sbt_lemma = it->second.size() == 1
+                             ? it->second[0]
+                             : nm->mkNode(Kind::AND, it->second);
       Trace("cegis-unif-enum-debug")
           << "...adding lemma template to remove redundant operators for " << sp
           << " --> lambda " << sp << ". " << d_sbt_lemma << "\n";
@@ -612,9 +613,9 @@ void CegisUnifEnumDecisionStrategy::setUpEnumerator(Node e,
   if (!si.d_enums[index].empty() && index == 0)
   {
     Node e_prev = si.d_enums[index].back();
-    Node size_e = nm->mkNode(DT_SIZE, e);
-    Node size_e_prev = nm->mkNode(DT_SIZE, e_prev);
-    Node sym_break = nm->mkNode(GEQ, size_e, size_e_prev);
+    Node size_e = nm->mkNode(Kind::DT_SIZE, e);
+    Node size_e_prev = nm->mkNode(Kind::DT_SIZE, e_prev);
+    Node sym_break = nm->mkNode(Kind::GEQ, size_e, size_e_prev);
     Trace("cegis-unif-enum-lemma")
         << "CegisUnifEnum::lemma, enum sym break:" << sym_break << "\n";
     d_qim.lemma(sym_break, InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_ENUM_SB);
@@ -670,7 +671,7 @@ void CegisUnifEnumDecisionStrategy::registerEvalPtAtSize(Node e,
   {
     disj.push_back(ei.eqNode(itc->second.d_enums[0][i]));
   }
-  Node lem = NodeManager::currentNM()->mkNode(OR, disj);
+  Node lem = NodeManager::currentNM()->mkNode(Kind::OR, disj);
   Trace("cegis-unif-enum-lemma")
       << "CegisUnifEnum::lemma, domain:" << lem << "\n";
   d_qim.lemma(lem, InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_DOMAIN);

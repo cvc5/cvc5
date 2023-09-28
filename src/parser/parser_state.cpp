@@ -27,7 +27,7 @@
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/kind.h"
-#include "parser/api/cpp/command.h"
+#include "parser/commands.h"
 #include "parser/parser_exception.h"
 
 using namespace std;
@@ -37,7 +37,7 @@ namespace parser {
 
 ParserState::ParserState(ParserStateCallback* psc,
                          Solver* solver,
-                         SymbolManager* sm,
+                         SymManager* sm,
                          bool strictMode)
     : d_solver(solver),
       d_psc(psc),
@@ -98,25 +98,25 @@ Kind ParserState::getKindForFunction(Term fun)
   Sort t = fun.getSort();
   if (t.isFunction())
   {
-    return APPLY_UF;
+    return Kind::APPLY_UF;
   }
   else if (t.isDatatypeConstructor())
   {
-    return APPLY_CONSTRUCTOR;
+    return Kind::APPLY_CONSTRUCTOR;
   }
   else if (t.isDatatypeSelector())
   {
-    return APPLY_SELECTOR;
+    return Kind::APPLY_SELECTOR;
   }
   else if (t.isDatatypeTester())
   {
-    return APPLY_TESTER;
+    return Kind::APPLY_TESTER;
   }
   else if (t.isDatatypeUpdater())
   {
-    return APPLY_UPDATER;
+    return Kind::APPLY_UPDATER;
   }
-  return UNDEFINED_KIND;
+  return Kind::UNDEFINED_KIND;
 }
 
 Sort ParserState::getSort(const std::string& name)
@@ -364,9 +364,9 @@ std::vector<Sort> ParserState::mkMutualDatatypeTypes(
   }
 }
 
-Sort ParserState::mkFlatFunctionType(std::vector<Sort>& sorts,
-                                     Sort range,
-                                     std::vector<Term>& flattenVars)
+Sort ParserState::flattenFunctionType(std::vector<Sort>& sorts,
+                                      Sort range,
+                                      std::vector<Term>& flattenVars)
 {
   if (range.isFunction())
   {
@@ -382,23 +382,15 @@ Sort ParserState::mkFlatFunctionType(std::vector<Sort>& sorts,
     }
     range = range.getFunctionCodomainSort();
   }
-  if (sorts.empty())
-  {
-    return range;
-  }
-  return d_solver->mkFunctionSort(sorts, range);
+  return range;
 }
 
-Sort ParserState::mkFlatFunctionType(std::vector<Sort>& sorts, Sort range)
+Sort ParserState::flattenFunctionType(std::vector<Sort>& sorts, Sort range)
 {
-  if (sorts.empty())
-  {
-    // no difference
-    return range;
-  }
   if (TraceIsOn("parser"))
   {
-    Trace("parser") << "mkFlatFunctionType: range " << range << " and domains ";
+    Trace("parser") << "flattenFunctionType: range " << range
+                    << " and domains ";
     for (Sort t : sorts)
     {
       Trace("parser") << " " << t;
@@ -411,14 +403,23 @@ Sort ParserState::mkFlatFunctionType(std::vector<Sort>& sorts, Sort range)
     sorts.insert(sorts.end(), domainTypes.begin(), domainTypes.end());
     range = range.getFunctionCodomainSort();
   }
-  return d_solver->mkFunctionSort(sorts, range);
+  return range;
+}
+Sort ParserState::mkFlatFunctionType(std::vector<Sort>& sorts, Sort range)
+{
+  Sort newRange = flattenFunctionType(sorts, range);
+  if (!sorts.empty())
+  {
+    return d_solver->mkFunctionSort(sorts, newRange);
+  }
+  return newRange;
 }
 
 Term ParserState::mkHoApply(Term expr, const std::vector<Term>& args)
 {
   for (unsigned i = 0; i < args.size(); i++)
   {
-    expr = d_solver->mkTerm(HO_APPLY, {expr, args[i]});
+    expr = d_solver->mkTerm(Kind::HO_APPLY, {expr, args[i]});
   }
   return expr;
 }
@@ -426,15 +427,15 @@ Term ParserState::mkHoApply(Term expr, const std::vector<Term>& args)
 Term ParserState::applyTypeAscription(Term t, Sort s)
 {
   Kind k = t.getKind();
-  if (k == SET_EMPTY)
+  if (k == Kind::SET_EMPTY)
   {
     t = d_solver->mkEmptySet(s);
   }
-  else if (k == BAG_EMPTY)
+  else if (k == Kind::BAG_EMPTY)
   {
     t = d_solver->mkEmptyBag(s);
   }
-  else if (k == CONST_SEQUENCE)
+  else if (k == Kind::CONST_SEQUENCE)
   {
     if (!s.isSequence())
     {
@@ -450,20 +451,20 @@ Term ParserState::applyTypeAscription(Term t, Sort s)
     }
     t = d_solver->mkEmptySequence(s.getSequenceElementSort());
   }
-  else if (k == SET_UNIVERSE)
+  else if (k == Kind::SET_UNIVERSE)
   {
     t = d_solver->mkUniverseSet(s);
   }
-  else if (k == SEP_NIL)
+  else if (k == Kind::SEP_NIL)
   {
     t = d_solver->mkSepNil(s);
   }
-  else if (k == APPLY_CONSTRUCTOR)
+  else if (k == Kind::APPLY_CONSTRUCTOR)
   {
     std::vector<Term> children(t.begin(), t.end());
     // apply type ascription to the operator and reconstruct
     children[0] = applyTypeAscription(children[0], s);
-    t = d_solver->mkTerm(APPLY_CONSTRUCTOR, children);
+    t = d_solver->mkTerm(Kind::APPLY_CONSTRUCTOR, children);
   }
   // !!! temporary until datatypes are refactored in the new API
   Sort etype = t.getSort();
@@ -644,7 +645,7 @@ void ParserState::popScope() { d_symman->popScope(); }
 
 void ParserState::reset() {}
 
-SymbolManager* ParserState::getSymbolManager() { return d_symman; }
+SymManager* ParserState::getSymbolManager() { return d_symman; }
 
 std::string ParserState::stripQuotes(const std::string& s)
 {

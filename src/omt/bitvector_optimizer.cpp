@@ -75,9 +75,9 @@ OptimizationResult OMTOptimizerBitVector::minimize(SolverEngine* optChecker,
   BitVector upperBound = bvValue;
 
   Kind LTOperator =
-      ((d_isSigned) ? (kind::BITVECTOR_SLT) : (kind::BITVECTOR_ULT));
+      ((d_isSigned) ? (Kind::BITVECTOR_SLT) : (Kind::BITVECTOR_ULT));
   Kind GEOperator =
-      ((d_isSigned) ? (kind::BITVECTOR_SGE) : (kind::BITVECTOR_UGE));
+      ((d_isSigned) ? (Kind::BITVECTOR_SGE) : (Kind::BITVECTOR_UGE));
 
   // the pivot value for binary search,
   // pivot = (lowerBound + upperBound) / 2
@@ -91,13 +91,13 @@ OptimizationResult OMTOptimizerBitVector::minimize(SolverEngine* optChecker,
     if (lowerBound == pivot)
     {
       optChecker->assertFormula(
-          nm->mkNode(kind::EQUAL, target, nm->mkConst(lowerBound)));
+          nm->mkNode(Kind::EQUAL, target, nm->mkConst(lowerBound)));
     }
     else
     {
       // lowerBound <= target < pivot
       optChecker->assertFormula(
-          nm->mkNode(kind::AND,
+          nm->mkNode(Kind::AND,
                      nm->mkNode(GEOperator, target, nm->mkConst(lowerBound)),
                      nm->mkNode(LTOperator, target, nm->mkConst(pivot))));
     }
@@ -165,9 +165,9 @@ OptimizationResult OMTOptimizerBitVector::maximize(SolverEngine* optChecker,
                                              : (BitVector::mkOnes(bvSize)));
 
   Kind LEOperator =
-      ((d_isSigned) ? (kind::BITVECTOR_SLE) : (kind::BITVECTOR_ULE));
+      ((d_isSigned) ? (Kind::BITVECTOR_SLE) : (Kind::BITVECTOR_ULE));
   Kind GTOperator =
-      ((d_isSigned) ? (kind::BITVECTOR_SGT) : (kind::BITVECTOR_UGT));
+      ((d_isSigned) ? (Kind::BITVECTOR_SGT) : (Kind::BITVECTOR_UGT));
 
   // the pivot value for binary search,
   // pivot = (lowerBound + upperBound) / 2
@@ -184,7 +184,7 @@ OptimizationResult OMTOptimizerBitVector::maximize(SolverEngine* optChecker,
     // covered
     // pivot < target <= upperBound
     optChecker->assertFormula(
-        nm->mkNode(kind::AND,
+        nm->mkNode(Kind::AND,
                    nm->mkNode(GTOperator, target, nm->mkConst(pivot)),
                    nm->mkNode(LEOperator, target, nm->mkConst(upperBound))));
     intermediateSatResult = optChecker->checkSat();

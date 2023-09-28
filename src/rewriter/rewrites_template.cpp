@@ -42,28 +42,28 @@ ${rules}$
   // clang-format on
 }
 
-bool isInternalDslPfRule(DslPfRule drule)
+bool isInternalDslProofRule(DslProofRule drule)
 {
-return drule == DslPfRule::FAIL || drule == DslPfRule::REFL
-       || drule == DslPfRule::EVAL || drule == DslPfRule::TRANS
-       || drule == DslPfRule::CONG || drule == DslPfRule::CONG_EVAL
-       || drule == DslPfRule::TRUE_ELIM || drule == DslPfRule::TRUE_INTRO
-       || drule == DslPfRule::ARITH_POLY_NORM;
+return drule == DslProofRule::FAIL || drule == DslProofRule::REFL
+       || drule == DslProofRule::EVAL || drule == DslProofRule::TRANS
+       || drule == DslProofRule::CONG || drule == DslProofRule::CONG_EVAL
+       || drule == DslProofRule::TRUE_ELIM || drule == DslProofRule::TRUE_INTRO
+       || drule == DslProofRule::ARITH_POLY_NORM;
 }
 
-const char* toString(DslPfRule drule)
+const char* toString(DslProofRule drule)
 {
   switch (drule)
   {
-    case DslPfRule::FAIL: return "FAIL";
-    case DslPfRule::REFL: return "REFL";
-    case DslPfRule::EVAL: return "EVAL";
-    case DslPfRule::TRANS: return "TRANS";
-    case DslPfRule::CONG: return "CONG";
-    case DslPfRule::CONG_EVAL: return "CONG_EVAL";
-    case DslPfRule::TRUE_ELIM: return "TRUE_ELIM";
-    case DslPfRule::TRUE_INTRO: return "TRUE_INTRO";
-    case DslPfRule::ARITH_POLY_NORM:
+    case DslProofRule::FAIL: return "FAIL";
+    case DslProofRule::REFL: return "REFL";
+    case DslProofRule::EVAL: return "EVAL";
+    case DslProofRule::TRANS: return "TRANS";
+    case DslProofRule::CONG: return "CONG";
+    case DslProofRule::CONG_EVAL: return "CONG_EVAL";
+    case DslProofRule::TRUE_ELIM: return "TRUE_ELIM";
+    case DslProofRule::TRUE_INTRO: return "TRUE_INTRO";
+    case DslProofRule::ARITH_POLY_NORM:
       return "ARITH_POLY_NORM";
       // clang-format off
 ${printer}$
@@ -72,26 +72,26 @@ ${printer}$
   }
 }
 
-std::ostream& operator<<(std::ostream& out, DslPfRule drule)
+std::ostream& operator<<(std::ostream& out, DslProofRule drule)
 {
   out << toString(drule);
   return out;
 }
 
-Node mkDslPfRuleNode(DslPfRule i)
+Node mkDslProofRuleNode(DslProofRule i)
 {
   return NodeManager::currentNM()->mkConstInt(
       Rational(static_cast<uint32_t>(i)));
 }
 
-bool getDslPfRule(TNode n, DslPfRule& i)
+bool getDslProofRule(TNode n, DslProofRule& i)
 {
   uint32_t index;
   if (!ProofRuleChecker::getUInt32(n, index))
   {
     return false;
   }
-  i = static_cast<DslPfRule>(index);
+  i = static_cast<DslProofRule>(index);
   return true;
 }
 

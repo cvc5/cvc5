@@ -16,13 +16,13 @@
 #include "parser/smt2/smt2_parser.h"
 
 #include "base/output.h"
-#include "parser/api/cpp/command.h"
+#include "parser/commands.h"
 
 namespace cvc5 {
 namespace parser {
 
 Smt2Parser::Smt2Parser(Solver* solver,
-                       SymbolManager* sm,
+                       SymManager* sm,
                        bool isStrict,
                        bool isSygus)
     : Parser(solver, sm),
@@ -36,7 +36,7 @@ Smt2Parser::Smt2Parser(Solver* solver,
 
 void Smt2Parser::setLogic(const std::string& logic) { d_state.setLogic(logic); }
 
-std::unique_ptr<Command> Smt2Parser::parseNextCommand()
+std::unique_ptr<Cmd> Smt2Parser::parseNextCommand()
 {
   return d_cmdParser.parseNextCommand();
 }

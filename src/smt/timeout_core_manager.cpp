@@ -47,7 +47,21 @@ std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
     const std::vector<Node>& ppAsserts,
     const std::map<size_t, Node>& ppSkolemMap)
 {
+  d_ppAsserts.clear();
+  d_skolemToAssert.clear();
+  d_modelValues.clear();
+  d_modelToAssert.clear();
+  d_unkModels.clear();
+  d_ainfo.clear();
+  d_asymbols.clear();
+  d_syms.clear();
   initializePreprocessedAssertions(ppAsserts, ppSkolemMap);
+
+  // trivial case: empty assertions
+  if (d_ppAsserts.empty())
+  {
+    return std::pair<Result, std::vector<Node>>(Result(Result::SAT), {});
+  }
 
   std::vector<Node> nextAssertions;
   Result result;
@@ -61,7 +75,8 @@ std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
     result = checkSatNext(nextAssertions);
     // if we were asked to check again
     if (result.getStatus() != Result::UNKNOWN
-        || result.getUnknownExplanation() != REQUIRES_CHECK_AGAIN)
+        || result.getUnknownExplanation()
+               != UnknownExplanation::REQUIRES_CHECK_AGAIN)
     {
       checkAgain = false;
     }
@@ -220,7 +235,7 @@ Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions)
   result = subSolver->checkSat();
   Trace("smt-to-core") << "checkSatNext: ...result is " << result << std::endl;
   if (result.getStatus() == Result::UNKNOWN
-      && result.getUnknownExplanation() == TIMEOUT)
+      && result.getUnknownExplanation() == UnknownExplanation::TIMEOUT)
   {
     if (isOutputOn(OutputTag::TIMEOUT_CORE_BENCHMARK))
     {
@@ -276,9 +291,6 @@ void TimeoutCoreManager::initializePreprocessedAssertions(
     const std::vector<Node>& ppAsserts,
     const std::map<size_t, Node>& ppSkolemMap)
 {
-  d_ppAsserts.clear();
-  d_skolemToAssert.clear();
-
   Trace("smt-to-core") << "initializePreprocessedAssertions" << std::endl;
   Trace("smt-to-core") << "#asserts = " << ppAsserts.size() << std::endl;
   std::map<size_t, Node>::const_iterator itc;

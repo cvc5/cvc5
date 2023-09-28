@@ -153,15 +153,12 @@ class CVC5_EXPORT SolverEngine
 
   /**
    * Set the logic of the script.
-   * @throw ModalException, LogicException
-   */
-  void setLogic(const char* logic);
-
-  /**
-   * Set the logic of the script.
    * @throw ModalException
    */
   void setLogic(const LogicInfo& logic);
+
+  /** Has the logic been set by a call to setLogic? */
+  bool isLogicSet() const;
 
   /** Get the logic information currently set. */
   const LogicInfo& getLogicInfo() const;
@@ -255,6 +252,15 @@ class CVC5_EXPORT SolverEngine
    */
   std::string getOption(const std::string& key) const;
 
+  /**
+   * Notify that a declare-fun or declare-const was made for n. This only
+   * impacts the SMT mode.
+   */
+  void declareConst(const Node& n);
+  /**
+   * Notify that a declare-sort was made for tn. This only impacts the SMT mode.
+   */
+  void declareSort(const TypeNode& tn);
   /**
    * Define function func in the current context to be:
    *   (lambda (formals) formula)
@@ -701,12 +707,16 @@ class CVC5_EXPORT SolverEngine
    */
   UnsatCore getUnsatCore();
 
+  /** Get the lemmas used to derive UNSAT. Only permitted if cvc5 was built with
+   * unsat cores support and produce-unsat-core-lemmas is on. */
+  std::vector<Node> getUnsatCoreLemmas();
+
   /**
    * Get a refutation proof (only if immediately preceded by an UNSAT query).
    * Only permitted if cvc5 was built with proof support and the proof option
    * is on.
    */
-  std::string getProof(modes::ProofComponent c = modes::PROOF_COMPONENT_FULL);
+  std::string getProof(modes::ProofComponent c = modes::ProofComponent::FULL);
 
   /**
    * Get the current set of assertions.  Only permitted if the
@@ -918,6 +928,8 @@ class CVC5_EXPORT SolverEngine
   /**
    * Check that a generated Model (via getModel()) actually satisfies
    * all user assertions.
+   * @param hardFailure True have a failed model check should result in an
+   *                    InternalError rather than only issue a warning.
    */
   void checkModel(bool hardFailure = true);
 
@@ -1093,6 +1105,8 @@ class CVC5_EXPORT SolverEngine
    * logic, lives in the Env class.
    */
   LogicInfo d_userLogic;
+  /** Has the above logic been initialized? */
+  bool d_userLogicSet;
 
   /** Whether this is an internal subsolver. */
   bool d_isInternalSubsolver;

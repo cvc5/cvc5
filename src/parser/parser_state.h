@@ -25,10 +25,10 @@
 #include <memory>
 #include <string>
 
-#include "parser/api/cpp/symbol_manager.h"
 #include "parser/parse_op.h"
 #include "parser/parser_exception.h"
 #include "parser/parser_utils.h"
+#include "parser/sym_manager.h"
 #include "parser/symbol_table.h"
 
 namespace cvc5 {
@@ -75,7 +75,7 @@ class CVC5_EXPORT ParserState
    */
   ParserState(ParserStateCallback* psc,
               Solver* solver,
-              SymbolManager* sm,
+              SymManager* sm,
               bool strictMode = false);
 
   virtual ~ParserState();
@@ -314,9 +314,9 @@ class CVC5_EXPORT ParserState
    */
   std::vector<Sort> mkMutualDatatypeTypes(std::vector<DatatypeDecl>& datatypes);
 
-  /** make flat function type
+  /** flatten function type
    *
-   * Returns the "flat" function type corresponding to the function taking
+   * Computes the "flat" function type corresponding to the function taking
    * argument types "sorts" and range type "range".  A flat function type is
    * one whose range is not a function. Notice that if sorts is empty and range
    * is not a function, then this function returns range itself.
@@ -327,14 +327,14 @@ class CVC5_EXPORT ParserState
    * flattenVars.
    *
    * For example:
-   * mkFlattenFunctionType( { Int, (-> Real Real) }, (-> Int Bool), {} ):
-   * - returns the the function type (-> Int (-> Real Real) Int Bool)
+   * flattenFunctionType( { Int, (-> Real Real) }, (-> Int Bool), {} ):
+   * - returns the the function type Bool
    * - updates sorts to { Int, (-> Real Real), Int },
    * - updates flattenVars to { x }, where x is bound variable of type Int.
    *
    * Notice that this method performs only one level of flattening, for example,
    * mkFlattenFunctionType({ Int, (-> Real Real) }, (-> Int (-> Int Bool)), {}):
-   * - returns the the function type (-> Int (-> Real Real) Int (-> Int Bool))
+   * - returns the the function type (-> Int Bool)
    * - updates sorts to { Int, (-> Real Real), Int },
    * - updates flattenVars to { x }, where x is bound variable of type Int.
    *
@@ -352,15 +352,22 @@ class CVC5_EXPORT ParserState
    * where @ is (higher-order) application. In this example, z is added to
    * flattenVars.
    */
-  Sort mkFlatFunctionType(std::vector<Sort>& sorts,
-                          Sort range,
-                          std::vector<Term>& flattenVars);
+  Sort flattenFunctionType(std::vector<Sort>& sorts,
+                           Sort range,
+                           std::vector<Term>& flattenVars);
 
-  /** make flat function type
+  /** flatten function type
    *
    * Same as above, but does not take argument flattenVars.
    * This is used when the arguments of the function are not important (for
-   * instance, if we are only using this type in a declare-fun).
+   * instance, if we are only using this type in a declare-fun). Also, in
+   * contrast to the above method, we flatten arbitrary nestings of function
+   * symbols in range.
+   */
+  Sort flattenFunctionType(std::vector<Sort>& sorts, Sort range);
+  /**
+   * Calls the above method and returns the (possibly) function type for
+   * the return range and updated vector sorts.
    */
   Sort mkFlatFunctionType(std::vector<Sort>& sorts, Sort range);
 
@@ -477,7 +484,7 @@ class CVC5_EXPORT ParserState
   virtual void reset();
 
   /** Return the symbol manager used by this parser. */
-  SymbolManager* getSymbolManager();
+  SymManager* getSymbolManager();
 
   //------------------------ operator overloading
   /** is this function overloaded? */
@@ -531,7 +538,7 @@ class CVC5_EXPORT ParserState
    * Reference to the symbol manager, which manages the symbol table used by
    * this parser.
    */
-  SymbolManager* d_symman;
+  SymManager* d_symman;
 
   /**
    * This current symbol table used by this parser, from symbol manager.
