@@ -41,7 +41,8 @@ class TestCommandBlack : public TestParser
     std::stringstream ss;
     ss << cmdStr << std::endl;
     InputParser parser(&d_solver, d_symman.get());
-    parser.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ss, "parser_black");
+    parser.setStreamInput(
+        modes::InputLanguage::SMT_LIB_2_6, ss, "parser_black");
     return parser.nextCommand();
   }
 };

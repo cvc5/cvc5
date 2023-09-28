@@ -41,7 +41,8 @@ class TestSymbolManagerBlack : public TestParser
     std::stringstream ss;
     ss << "(set-logic " << logic << ")" << std::endl;
     InputParser parser(&d_solver, d_symman.get());
-    parser.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ss, "parser_black");
+    parser.setStreamInput(
+        modes::InputLanguage::SMT_LIB_2_6, ss, "parser_black");
     Command cmd = parser.nextCommand();
     ASSERT_NE(cmd.isNull(), true);
     std::stringstream out;
