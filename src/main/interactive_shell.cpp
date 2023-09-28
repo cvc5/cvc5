@@ -104,7 +104,7 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
   {
     throw Exception("internal error: unhandled language " + langs);
   }
-    
+
   // initialize for incremental string input
   d_parser->setIncrementalStringInput(lang, INPUT_FILENAME);
 #if HAVE_LIBEDITLINE

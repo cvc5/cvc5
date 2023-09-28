@@ -122,7 +122,8 @@ std::unique_ptr<Parser> Parser::mkParser(modes::InputLanguage lang,
                                          SymManager* sm)
 {
   std::unique_ptr<Parser> parser;
-  if (lang == modes::InputLanguage::SMT_LIB_2_6 || lang == modes::InputLanguage::SYGUS_2_1)
+  if (lang == modes::InputLanguage::SMT_LIB_2_6
+      || lang == modes::InputLanguage::SYGUS_2_1)
   {
     bool isSygus = (lang == modes::InputLanguage::SYGUS_2_1);
     bool strictMode = solver->getOptionInfo("strict-parsing").boolValue();
