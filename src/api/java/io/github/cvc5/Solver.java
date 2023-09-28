@@ -32,7 +32,7 @@ public class Solver extends AbstractPointer
     Utils.loadLibraries();
   }
 
-  private static native long newSolver();  
+  private static native long newSolver();
 
   protected native void deletePointer(long pointer);
 
@@ -49,7 +49,7 @@ public class Solver extends AbstractPointer
   /* .................................................................... */
 
   public Solver()
-  {    
+  {
     super(Solver.newSolver());
   }
 
