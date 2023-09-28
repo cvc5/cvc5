@@ -46,8 +46,11 @@ std::unordered_map<Kind, AletheRule> s_bvKindToAletheRule = {
   {kind::BITVECTOR_MULT, AletheRule::BV_BITBLAST_STEP_BVMULT},
   {kind::BITVECTOR_CONCAT, AletheRule::BV_BITBLAST_STEP_CONCAT},
   {kind::CONST_BITVECTOR, AletheRule::BV_BITBLAST_STEP_CONST},
+  {kind::SKOLEM, AletheRule::BV_BITBLAST_STEP_CONST},
   {kind::BITVECTOR_EXTRACT, AletheRule::BV_BITBLAST_STEP_EXTRACT},
   {kind::EQUAL, AletheRule::BV_BITBLAST_STEP_BVEQUAL},
+  // TODO add support
+  {kind::BITVECTOR_UDIV, AletheRule::HOLE},
 };
 
 AletheProofPostprocessCallback::AletheProofPostprocessCallback(
@@ -1407,10 +1410,12 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       Assert(s_bvKindToAletheRule.find(res[0].getKind())
              != s_bvKindToAletheRule.end())
-          << "Bit-blasted kind not supported in Alethe post-processing.";
+          << "Bit-blasted kind " << res[0].getKind()
+          << " not supported in Alethe post-processing. Conclusion:\n"
+          << res;
       return addAletheStep(s_bvKindToAletheRule.at(res[0].getKind()),
                            res,
-                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           nm->mkNode(kind::SEXPR, d_cl, d_anc.convert(res)),
                            children,
                            {},
                            *cdp);
