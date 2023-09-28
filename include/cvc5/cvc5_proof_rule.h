@@ -2331,6 +2331,20 @@ enum ENUM(ProofRule) : uint32_t
    * \endverbatim
    */
   EVALUE(ALETHE_RULE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **External -- AletheLF**
+   *
+   * Place holder for AletheLF rules.
+   *
+   * .. math::
+   *   \inferrule{P_1, \dots, P_n\mid \texttt{id}, A_1,\dots, A_m}{Q}
+   *
+   * Note that the premises and arguments are arbitrary. It's expected that
+   * :math:`\texttt{id}` refer to a proof rule in the external AletheLF
+   * calculus. \endverbatim
+   */
+  EVALUE(ALF_RULE),
 
   //================================================= Unknown rule
   EVALUE(UNKNOWN),
