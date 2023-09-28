@@ -55,13 +55,14 @@ Node QuantifiersProofRuleChecker::checkInternal(
     Assert(children.size() == 1);
     Assert(args.empty());
     // can use either negated FORALL or EXISTS
-    if (children[0].getKind() != EXISTS
-        && (children[0].getKind() != NOT || children[0][0].getKind() != FORALL))
+    if (children[0].getKind() != Kind::EXISTS
+        && (children[0].getKind() != Kind::NOT
+            || children[0][0].getKind() != Kind::FORALL))
     {
       return Node::null();
     }
     Node exists;
-    if (children[0].getKind() == EXISTS)
+    if (children[0].getKind() == Kind::EXISTS)
     {
       exists = children[0];
     }
@@ -69,7 +70,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
     {
       std::vector<Node> echildren(children[0][0].begin(), children[0][0].end());
       echildren[1] = echildren[1].notNode();
-      exists = nm->mkNode(EXISTS, echildren);
+      exists = nm->mkNode(Kind::EXISTS, echildren);
     }
     std::vector<Node> vars(exists[0].begin(), exists[0].end());
     std::vector<Node> skolems = Skolemize::getSkolemConstants(exists);
@@ -81,7 +82,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
   {
     Assert(children.size() == 1);
     // note we may have more arguments than just the term vector
-    if (children[0].getKind() != FORALL
+    if (children[0].getKind() != Kind::FORALL
         || args.size() < children[0][0].getNumChildren())
     {
       return Node::null();
@@ -101,7 +102,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
   else if (id == ProofRule::ALPHA_EQUIV)
   {
     Assert(children.empty());
-    if (args[0].getKind() != kind::FORALL)
+    if (args[0].getKind() != Kind::FORALL)
     {
       return Node::null();
     }
@@ -112,14 +113,14 @@ Node QuantifiersProofRuleChecker::checkInternal(
     std::vector<Node> newVars;
     for (size_t i = 1, nargs = args.size(); i < nargs; i++)
     {
-      if (args[i].getKind() != kind::EQUAL)
+      if (args[i].getKind() != Kind::EQUAL)
       {
         return Node::null();
       }
       for (size_t j = 0; j < 2; j++)
       {
         Node v = args[i][j];
-        if (v.getKind() != kind::BOUND_VARIABLE
+        if (v.getKind() != Kind::BOUND_VARIABLE
             || allVars[j].find(v) != allVars[j].end())
         {
           return Node::null();

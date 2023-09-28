@@ -43,9 +43,9 @@ TermRegistry::TermRegistry(Env& env,
 Node TermRegistry::getProxy(Node n)
 {
   Kind nk = n.getKind();
-  if (nk != SET_EMPTY && nk != SET_SINGLETON && nk != SET_INTER
-      && nk != SET_MINUS && nk != SET_UNION && nk != SET_UNIVERSE
-      && nk != SET_MAP)
+  if (nk != Kind::SET_EMPTY && nk != Kind::SET_SINGLETON
+      && nk != Kind::SET_INTER && nk != Kind::SET_MINUS && nk != Kind::SET_UNION
+      && nk != Kind::SET_UNIVERSE && nk != Kind::SET_MAP)
   {
     return n;
   }
@@ -62,9 +62,9 @@ Node TermRegistry::getProxy(Node n)
   d_proxy_to_term[k] = n;
   Node eq = k.eqNode(n);
   sendSimpleLemmaInternal(eq, InferenceId::SETS_PROXY);
-  if (nk == SET_SINGLETON)
+  if (nk == Kind::SET_SINGLETON)
   {
-    Node slem = nm->mkNode(SET_MEMBER, n[0], k);
+    Node slem = nm->mkNode(Kind::SET_MEMBER, n[0], k);
     sendSimpleLemmaInternal(slem, InferenceId::SETS_PROXY_SINGLETON);
   }
   return k;
@@ -90,7 +90,7 @@ Node TermRegistry::getUnivSet(TypeNode tn)
     return it->second;
   }
   NodeManager* nm = NodeManager::currentNM();
-  Node n = nm->mkNullaryOperator(tn, SET_UNIVERSE);
+  Node n = nm->mkNullaryOperator(tn, Kind::SET_UNIVERSE);
   d_univset[tn] = n;
   return n;
 }

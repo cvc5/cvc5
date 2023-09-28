@@ -153,7 +153,7 @@ bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm) const
           if (foundChildren)
           {
             // we are matching the next list
-            next = nm->mkNode(SEXPR, currChildren);
+            next = nm->mkNode(Kind::SEXPR, currChildren);
           }
           else
           {

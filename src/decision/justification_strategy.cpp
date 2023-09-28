@@ -157,7 +157,7 @@ SatLiteral JustificationStrategy::getNextInternal(bool& stopSearch)
       lastChildVal = d_jcache.lookupValue(next.first);
       if (lastChildVal == SAT_VALUE_UNKNOWN)
       {
-        bool nextPol = next.first.getKind() != kind::NOT;
+        bool nextPol = next.first.getKind() != Kind::NOT;
         TNode nextAtom = nextPol ? next.first : next.first[0];
         if (expr::isTheoryAtom(nextAtom))
         {
@@ -225,13 +225,13 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   Assert(!jc.first.isNull());
   Assert(jc.second != SAT_VALUE_UNKNOWN);
   // extract the non-negated formula we are trying to justify
-  bool currPol = jc.first.getKind() != NOT;
+  bool currPol = jc.first.getKind() != Kind::NOT;
   TNode curr = currPol ? jc.first : jc.first[0];
   Kind ck = curr.getKind();
   // the current node should be a non-theory literal and not have double
   // negation, due to our invariants of what is pushed onto the stack
   Assert(!expr::isTheoryAtom(curr));
-  Assert(ck != NOT);
+  Assert(ck != Kind::NOT);
   // get the next child index to process
   size_t i = ji->getNextChildIndex();
   Trace("jh-debug") << "getNextJustifyNode " << curr << " / " << currPol
@@ -251,13 +251,13 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   // value which we want that child to be to make curr's value equal to
   // currDesiredVal.
   SatValue desiredVal = SAT_VALUE_UNKNOWN;
-  if (ck == AND || ck == OR)
+  if (ck == Kind::AND || ck == Kind::OR)
   {
     if (i == 0)
     {
       // See if a single child with currDesiredVal forces value, which is the
       // case if ck / currDesiredVal in { and / false, or / true }.
-      if ((ck == AND) == (currDesiredVal == SAT_VALUE_FALSE))
+      if ((ck == Kind::AND) == (currDesiredVal == SAT_VALUE_FALSE))
       {
         // lookahead to determine if already satisfied
         // we scan only once, when processing the first child
@@ -276,8 +276,8 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
       }
       desiredVal = currDesiredVal;
     }
-    else if ((ck == AND && lastChildVal == SAT_VALUE_FALSE)
-             || (ck == OR && lastChildVal == SAT_VALUE_TRUE)
+    else if ((ck == Kind::AND && lastChildVal == SAT_VALUE_FALSE)
+             || (ck == Kind::OR && lastChildVal == SAT_VALUE_TRUE)
              || i == curr.getNumChildren())
     {
       Trace("jh-debug") << "current is forcing child" << std::endl;
@@ -290,7 +290,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
       desiredVal = currDesiredVal;
     }
   }
-  else if (ck == IMPLIES)
+  else if (ck == Kind::IMPLIES)
   {
     if (i == 0)
     {
@@ -323,7 +323,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
       value = lastChildVal;
     }
   }
-  else if (ck == ITE)
+  else if (ck == Kind::ITE)
   {
     if (i == 0)
     {
@@ -365,7 +365,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
       value = lastChildVal;
     }
   }
-  else if (ck == XOR || ck == EQUAL)
+  else if (ck == Kind::XOR || ck == Kind::EQUAL)
   {
     Assert(curr[0].getType().isBoolean());
     if (i == 0)
@@ -385,7 +385,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
         // equal / false            ... LHS should have opposite value as RHS
         // xor   / true             ... LHS should have opposite value as RHS
         // xor   / false            ... LHS should have same value as RHS
-        desiredVal = ((ck == EQUAL) == (currDesiredVal == SAT_VALUE_TRUE))
+        desiredVal = ((ck == Kind::EQUAL) == (currDesiredVal == SAT_VALUE_TRUE))
                          ? val1
                          : invertValue(val1);
       }
@@ -395,7 +395,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
       Assert(lastChildVal != SAT_VALUE_UNKNOWN);
       // same as above, choosing a value for RHS based on the value of LHS,
       // which is stored in lastChildVal.
-      desiredVal = ((ck == EQUAL) == (currDesiredVal == SAT_VALUE_TRUE))
+      desiredVal = ((ck == Kind::EQUAL) == (currDesiredVal == SAT_VALUE_TRUE))
                        ? lastChildVal
                        : invertValue(lastChildVal);
     }
@@ -412,8 +412,8 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
       // true                  / xor   ... value of curr is false
       // false                 / equal ... value of curr is false
       // false                 / xor   ... value of curr is true
-      value = ((val0 == lastChildVal) == (ck == EQUAL)) ? SAT_VALUE_TRUE
-                                                        : SAT_VALUE_FALSE;
+      value = ((val0 == lastChildVal) == (ck == Kind::EQUAL)) ? SAT_VALUE_TRUE
+                                                              : SAT_VALUE_FALSE;
     }
   }
   else
@@ -497,15 +497,15 @@ void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
   while (index < toProcess.size())
   {
     TNode curr = toProcess[index];
-    bool pol = curr.getKind() != NOT;
+    bool pol = curr.getKind() != Kind::NOT;
     TNode currAtom = pol ? curr : curr[0];
     index++;
     Kind k = currAtom.getKind();
-    if (k == AND && pol)
+    if (k == Kind::AND && pol)
     {
       toProcess.insert(toProcess.begin() + index, curr.begin(), curr.end());
     }
-    else if (k == OR && !pol)
+    else if (k == Kind::OR && !pol)
     {
       std::vector<Node> negc;
       for (TNode c : currAtom)
@@ -608,7 +608,7 @@ bool JustificationStrategy::refreshCurrentAssertionFromList(bool useSkolemList)
 
 bool JustificationStrategy::isTheoryLiteral(TNode n)
 {
-  return expr::isTheoryAtom(n.getKind() == NOT ? n[0] : n);
+  return expr::isTheoryAtom(n.getKind() == Kind::NOT ? n[0] : n);
 }
 
 }  // namespace decision

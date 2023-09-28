@@ -114,24 +114,26 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Assert(children.empty());
     Assert(args.size() == 1);
     Node e = nm->mkNode(Kind::EXPONENTIAL, args[0]);
-    return nm->mkNode(
-        EQUAL, nm->mkNode(LT, args[0], zero), nm->mkNode(LT, e, one));
+    return nm->mkNode(Kind::EQUAL,
+                      nm->mkNode(Kind::LT, args[0], zero),
+                      nm->mkNode(Kind::LT, e, one));
   }
   else if (id == ProofRule::ARITH_TRANS_EXP_POSITIVITY)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
     Node e = nm->mkNode(Kind::EXPONENTIAL, args[0]);
-    return nm->mkNode(GT, e, zero);
+    return nm->mkNode(Kind::GT, e, zero);
   }
   else if (id == ProofRule::ARITH_TRANS_EXP_SUPER_LIN)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
     Node e = nm->mkNode(Kind::EXPONENTIAL, args[0]);
-    return nm->mkNode(OR,
-                      nm->mkNode(LEQ, args[0], zero),
-                      nm->mkNode(GT, e, nm->mkNode(ADD, args[0], one)));
+    return nm->mkNode(
+        Kind::OR,
+        nm->mkNode(Kind::LEQ, args[0], zero),
+        nm->mkNode(Kind::GT, e, nm->mkNode(Kind::ADD, args[0], one)));
   }
   else if (id == ProofRule::ARITH_TRANS_EXP_ZERO)
   {
@@ -140,7 +142,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Node e = nm->mkNode(Kind::EXPONENTIAL, args[0]);
     Node rzero = nm->mkConstRealOrInt(args[0].getType(), Rational(0));
     Node rone = nm->mkConstReal(Rational(1));
-    return nm->mkNode(EQUAL, args[0].eqNode(rzero), e.eqNode(rone));
+    return nm->mkNode(Kind::EQUAL, args[0].eqNode(rzero), e.eqNode(rone));
   }
   else if (id == ProofRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS)
   {
@@ -222,7 +224,9 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Assert(args.size() == 1);
     Assert(args[0].getType().isRealOrInt());
     Node s = nm->mkNode(Kind::SINE, args[0]);
-    return nm->mkNode(AND, nm->mkNode(LEQ, s, one), nm->mkNode(GEQ, s, mone));
+    return nm->mkNode(Kind::AND,
+                      nm->mkNode(Kind::LEQ, s, one),
+                      nm->mkNode(Kind::GEQ, s, mone));
   }
   else if (id == ProofRule::ARITH_TRANS_SINE_SHIFT)
   {
@@ -240,7 +244,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Assert(args[0].getType().isRealOrInt());
     Node s1 = nm->mkNode(Kind::SINE, args[0]);
     Node s2 = nm->mkNode(Kind::SINE, nm->mkNode(Kind::MULT, mone, args[0]));
-    return nm->mkNode(ADD, s1, s2).eqNode(zero);
+    return nm->mkNode(Kind::ADD, s1, s2).eqNode(zero);
   }
   else if (id == ProofRule::ARITH_TRANS_SINE_TANGENT_ZERO)
   {
@@ -248,13 +252,13 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Assert(args.size() == 1);
     Assert(args[0].getType().isRealOrInt());
     Node s = nm->mkNode(Kind::SINE, args[0]);
-    return nm->mkNode(
-        AND,
-        nm->mkNode(
-            IMPLIES, nm->mkNode(GT, args[0], zero), nm->mkNode(LT, s, args[0])),
-        nm->mkNode(IMPLIES,
-                   nm->mkNode(LT, args[0], zero),
-                   nm->mkNode(GT, s, args[0])));
+    return nm->mkNode(Kind::AND,
+                      nm->mkNode(Kind::IMPLIES,
+                                 nm->mkNode(Kind::GT, args[0], zero),
+                                 nm->mkNode(Kind::LT, s, args[0])),
+                      nm->mkNode(Kind::IMPLIES,
+                                 nm->mkNode(Kind::LT, args[0], zero),
+                                 nm->mkNode(Kind::GT, s, args[0])));
   }
   else if (id == ProofRule::ARITH_TRANS_SINE_TANGENT_PI)
   {
@@ -263,13 +267,15 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Assert(args[0].getType().isRealOrInt());
     Node s = nm->mkNode(Kind::SINE, args[0]);
     return nm->mkNode(
-        AND,
-        nm->mkNode(IMPLIES,
-                   nm->mkNode(GT, args[0], mpi),
-                   nm->mkNode(GT, s, nm->mkNode(SUB, mpi, args[0]))),
-        nm->mkNode(IMPLIES,
-                   nm->mkNode(LT, args[0], pi),
-                   nm->mkNode(LT, s, nm->mkNode(SUB, pi, args[0]))));
+        Kind::AND,
+        nm->mkNode(
+            Kind::IMPLIES,
+            nm->mkNode(Kind::GT, args[0], mpi),
+            nm->mkNode(Kind::GT, s, nm->mkNode(Kind::SUB, mpi, args[0]))),
+        nm->mkNode(
+            Kind::IMPLIES,
+            nm->mkNode(Kind::LT, args[0], pi),
+            nm->mkNode(Kind::LT, s, nm->mkNode(Kind::SUB, pi, args[0]))));
   }
   else if (id == ProofRule::ARITH_TRANS_SINE_APPROX_ABOVE_NEG)
   {

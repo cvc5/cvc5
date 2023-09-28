@@ -41,7 +41,7 @@ bool InferenceManager::assertInference(
   Trace("arrays-infer") << "TheoryArrays::assertInference: "
                         << (polarity ? Node(atom) : atom.notNode()) << " by "
                         << reason << "; " << id << std::endl;
-  Assert(atom.getKind() == EQUAL);
+  Assert(atom.getKind() == Kind::EQUAL);
   // if proofs are enabled, we determine which proof rule to add, otherwise
   // we simply assert the internal fact
   if (isProofEnabled())
@@ -73,7 +73,7 @@ bool InferenceManager::arrayLemma(
     return trustedLemma(tlem, id, p);
   }
   // send lemma without proofs
-  Node lem = nm->mkNode(IMPLIES, exp, conc);
+  Node lem = nm->mkNode(Kind::IMPLIES, exp, conc);
   return lemma(lem, id, p);
 }
 

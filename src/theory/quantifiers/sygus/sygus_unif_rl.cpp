@@ -98,7 +98,7 @@ Node SygusUnifRl::purifyLemma(Node n,
   // We retrive model value now because purified node may not have a value
   Node nv = n;
   // Whether application of a function-to-synthesize
-  bool fapp = (n.getKind() == DT_SYGUS_EVAL);
+  bool fapp = (n.getKind() == Kind::DT_SYGUS_EVAL);
   bool u_fapp = false;
   bool nu_fapp = false;
   if (fapp)
@@ -211,7 +211,7 @@ Node SygusUnifRl::purifyLemma(Node n,
       children[0] = new_f;
       Trace("sygus-unif-rl-purify-debug")
           << "Make sygus eval app " << children << std::endl;
-      np = nm->mkNode(DT_SYGUS_EVAL, children);
+      np = nm->mkNode(Kind::DT_SYGUS_EVAL, children);
       d_app_to_purified[nb] = np;
     }
     else
@@ -227,7 +227,7 @@ Node SygusUnifRl::purifyLemma(Node n,
   if (ensureConst && fapp)
   {
     model_guards.push_back(
-        NodeManager::currentNM()->mkNode(EQUAL, nv, nb).negate());
+        NodeManager::currentNM()->mkNode(Kind::EQUAL, nv, nb).negate());
     nb = nv;
     Trace("sygus-unif-rl-purify")
         << "PurifyLemma : adding model eq " << model_guards.back() << "\n";
@@ -261,7 +261,7 @@ Node SygusUnifRl::addRefLemma(Node lemma,
   if (!model_guards.empty())
   {
     model_guards.push_back(plem);
-    plem = NodeManager::currentNM()->mkNode(OR, model_guards);
+    plem = NodeManager::currentNM()->mkNode(Kind::OR, model_guards);
   }
   plem = rewrite(plem);
   Trace("sygus-unif-rl-purify") << "Purified lemma : " << plem << "\n";
@@ -864,7 +864,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
         AlwaysAssert(ith != d_unif->d_hd_to_pt.end());
         cechildren.insert(
             cechildren.end(), ith->second.begin(), ith->second.end());
-        Node cea = nm->mkNode(DT_SYGUS_EVAL, cechildren);
+        Node cea = nm->mkNode(Kind::DT_SYGUS_EVAL, cechildren);
         Trace("sygus-unif-sol-sym")
             << "Sep conflict app #" << r << " : " << cea << std::endl;
         std::vector<Node> tmpExp;
@@ -909,7 +909,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
   }
   if (exp_conflict)
   {
-    Node lemma = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
+    Node lemma = exp.size() == 1 ? exp[0] : nm->mkNode(Kind::AND, exp);
     lemma = lemma.negate();
     Trace("sygus-unif-sol") << "  ......conflict is " << lemma << std::endl;
     lemmas.push_back(lemma);
@@ -1001,7 +1001,7 @@ Node SygusUnifRl::DecisionTreeInfo::PointSeparator::extractSol(
       continue;
     }
     Assert(trie->d_children.size() == 2);
-    cache[cur] = nm->mkNode(APPLY_CONSTRUCTOR, children);
+    cache[cur] = nm->mkNode(Kind::APPLY_CONSTRUCTOR, children);
     Trace("sygus-unif-sol-debug")
         << "......build node "
         << d_dt->d_unif->d_tds->sygusToBuiltin(cache[cur], cache[cur].getType())

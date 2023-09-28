@@ -669,8 +669,8 @@ bool PropEngine::properExplanation(TNode node, TNode expl) const
 
   SatLiteral nodeLit = d_cnfStream->getLiteral(node);
 
-  for (TNode::kinded_iterator i = expl.begin(kind::AND),
-                              i_end = expl.end(kind::AND);
+  for (TNode::kinded_iterator i = expl.begin(Kind::AND),
+                              i_end = expl.end(Kind::AND);
        i != i_end;
        ++i)
   {

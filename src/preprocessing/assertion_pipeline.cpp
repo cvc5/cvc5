@@ -119,14 +119,14 @@ void AssertionPipeline::disableStoreSubstsInAsserts()
 void AssertionPipeline::addSubstitutionNode(Node n, ProofGenerator* pg)
 {
   Assert(d_storeSubstsInAsserts);
-  Assert(n.getKind() == kind::EQUAL);
+  Assert(n.getKind() == Kind::EQUAL);
   conjoin(d_substsIndex, n, pg);
 }
 
 void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node newConj = nm->mkNode(kind::AND, d_nodes[i], n);
+  Node newConj = nm->mkNode(Kind::AND, d_nodes[i], n);
   Node newConjr = rewrite(newConj);
   Trace("assert-pipeline") << "Assertions: conjoin " << n << " to "
                            << d_nodes[i] << std::endl;

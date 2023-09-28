@@ -143,7 +143,7 @@ Node TheoryProofStepBuffer::applyPredElim(Node src,
 
 Node TheoryProofStepBuffer::factorReorderElimDoubleNeg(Node n)
 {
-  if (n.getKind() != kind::OR)
+  if (n.getKind() != Kind::OR)
   {
     return elimDoubleNegLit(n);
   }
@@ -155,8 +155,8 @@ Node TheoryProofStepBuffer::factorReorderElimDoubleNeg(Node n)
   bool hasDoubleNeg = false;
   for (unsigned i = 0; i < children.size(); ++i)
   {
-    if (children[i].getKind() == kind::NOT
-        && children[i][0].getKind() == kind::NOT)
+    if (children[i].getKind() == Kind::NOT
+        && children[i][0].getKind() == Kind::NOT)
     {
       hasDoubleNeg = true;
       childrenEqs.push_back(children[i].eqNode(children[i][0][0]));
@@ -176,7 +176,7 @@ Node TheoryProofStepBuffer::factorReorderElimDoubleNeg(Node n)
   if (hasDoubleNeg)
   {
     Node oldn = n;
-    n = nm->mkNode(kind::OR, children);
+    n = nm->mkNode(Kind::OR, children);
     // Create a congruence step to justify replacement of each doubly negated
     // literal. This is done to avoid having to use MACRO_SR_PRED_TRANSFORM
     // from the old clause to the new one, which, under the standard rewriter,
@@ -198,7 +198,7 @@ Node TheoryProofStepBuffer::factorReorderElimDoubleNeg(Node n)
     Node congEq = oldn.eqNode(n);
     addStep(ProofRule::CONG,
             childrenEqs,
-            {ProofRuleChecker::mkKindNode(kind::OR)},
+            {ProofRuleChecker::mkKindNode(Kind::OR)},
             congEq);
     // add an equality resolution step to derive normalize clause
     addStep(ProofRule::EQ_RESOLVE, {oldn, congEq}, {}, n);
@@ -219,10 +219,9 @@ Node TheoryProofStepBuffer::factorReorderElimDoubleNeg(Node n)
   // if factoring changed
   if (children.size() < size)
   {
-    Node factored = children.empty()
-                        ? nm->mkConst<bool>(false)
-                        : children.size() == 1 ? children[0]
-                                               : nm->mkNode(kind::OR, children);
+    Node factored = children.empty()       ? nm->mkConst<bool>(false)
+                    : children.size() == 1 ? children[0]
+                                           : nm->mkNode(Kind::OR, children);
     // don't overwrite what already has a proof step to avoid cycles
     addStep(ProofRule::FACTORING, {n}, {}, factored);
     n = factored;
@@ -234,7 +233,7 @@ Node TheoryProofStepBuffer::factorReorderElimDoubleNeg(Node n)
   }
   // order
   std::sort(children.begin(), children.end());
-  Node ordered = nm->mkNode(kind::OR, children);
+  Node ordered = nm->mkNode(Kind::OR, children);
   // if ordering changed
   if (ordered != n)
   {
@@ -247,7 +246,7 @@ Node TheoryProofStepBuffer::factorReorderElimDoubleNeg(Node n)
 Node TheoryProofStepBuffer::elimDoubleNegLit(Node n)
 {
   // eliminate double neg
-  if (n.getKind() == kind::NOT && n[0].getKind() == kind::NOT)
+  if (n.getKind() == Kind::NOT && n[0].getKind() == Kind::NOT)
   {
     addStep(ProofRule::NOT_NOT_ELIM, {n}, {}, n[0][0]);
     return n[0][0];

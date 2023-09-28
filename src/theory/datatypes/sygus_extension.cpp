@@ -80,7 +80,7 @@ void SygusExtension::assertTester(int tindex, TNode n, Node exp)
       bool do_add = true;
       if (options().datatypes.sygusSymBreakLazy)
       {
-        if (n.getKind() == kind::APPLY_SELECTOR)
+        if (n.getKind() == Kind::APPLY_SELECTOR)
         {
           NodeSet::const_iterator it = d_active_terms.find( n[0] );
           if( it==d_active_terms.end() ){
@@ -116,7 +116,7 @@ void SygusExtension::assertTester(int tindex, TNode n, Node exp)
 
 void SygusExtension::assertFact(Node n, bool polarity)
 {
-  if (n.getKind() == kind::DT_SYGUS_BOUND)
+  if (n.getKind() == Kind::DT_SYGUS_BOUND)
   {
     Node m = n[0];
     Trace("sygus-fair") << "Have sygus bound : " << n << ", polarity=" << polarity << " on measure " << m << std::endl;
@@ -128,16 +128,19 @@ void SygusExtension::assertFact(Node n, bool polarity)
       Assert(its != d_szinfo.end());
       Node mt = its->second->getOrMkMeasureValue();
       //it relates the measure term to arithmetic
-      Node blem = n.eqNode( NodeManager::currentNM()->mkNode( kind::LEQ, mt, n[1] ) );
+      Node blem =
+          n.eqNode(NodeManager::currentNM()->mkNode(Kind::LEQ, mt, n[1]));
       d_im.lemma(blem, InferenceId::DATATYPES_SYGUS_FAIR_SIZE);
     }
     if( polarity ){
       uint64_t s = n[1].getConst<Rational>().getNumerator().toUnsignedInt();
       notifySearchSize(m, s, n);
     }
-  }else if( n.getKind() == kind::DT_HEIGHT_BOUND || n.getKind()==DT_SIZE_BOUND ){
-    //reduce to arithmetic TODO ?
-
+  }
+  else if (n.getKind() == Kind::DT_HEIGHT_BOUND
+           || n.getKind() == Kind::DT_SIZE_BOUND)
+  {
+    // reduce to arithmetic TODO ?
   }
 }
 
@@ -145,8 +148,8 @@ Node SygusExtension::getTermOrderPredicate( Node n1, Node n2 ) {
   NodeManager* nm = NodeManager::currentNM();
   std::vector< Node > comm_disj;
   // size of left is greater than or equal to the size of right
-  Node szGeq =
-      nm->mkNode(GEQ, nm->mkNode(DT_SIZE, n1), nm->mkNode(DT_SIZE, n2));
+  Node szGeq = nm->mkNode(
+      Kind::GEQ, nm->mkNode(Kind::DT_SIZE, n1), nm->mkNode(Kind::DT_SIZE, n2));
   return szGeq;
 }
 
@@ -158,7 +161,7 @@ void SygusExtension::registerTerm(Node n)
     unsigned d = 0;
     bool is_top_level = false;
     bool success = false;
-    if (n.getKind() == kind::APPLY_SELECTOR)
+    if (n.getKind() == Kind::APPLY_SELECTOR)
     {
       registerTerm(n[0]);
       std::unordered_map<Node, Node>::iterator it = d_term_to_anchor.find(n[0]);
@@ -201,7 +204,7 @@ bool SygusExtension::computeTopLevel( TypeNode tn, Node n ){
   if( n.getType()==tn ){
     return false;
   }
-  else if (n.getKind() == kind::APPLY_SELECTOR)
+  else if (n.getKind() == Kind::APPLY_SELECTOR)
   {
     return computeTopLevel( tn, n[0] );
   }
@@ -279,9 +282,9 @@ void SygusExtension::assertTesterInternal(int tindex, TNode n, Node exp)
       NodeManager* nm = NodeManager::currentNM();
       // include the fairness literal for the current size, which is
       // typically asserted in the current context.
-      Node fairLit = nm->mkNode(DT_SYGUS_BOUND, m, nm->mkConstInt(ssz));
+      Node fairLit = nm->mkNode(Kind::DT_SYGUS_BOUND, m, nm->mkConstInt(ssz));
       conflict.push_back(fairLit);
-      Node conf = nm->mkNode(kind::AND, conflict);
+      Node conf = nm->mkNode(Kind::AND, conflict);
       Trace("sygus-sb-fair") << "Conflict is : " << conf << std::endl;
       Node confn = conf.negate();
       d_im.lemma(confn, InferenceId::DATATYPES_SYGUS_FAIR_SIZE_CONFLICT);
@@ -365,7 +368,7 @@ void SygusExtension::assertTesterInternal(int tindex, TNode n, Node exp)
       }
       if (!rlv.isNull())
       {
-        sslem = nm->mkNode(OR, rlv, sslem);
+        sslem = nm->mkNode(Kind::OR, rlv, sslem);
       }
       d_im.lemma(sslem, sbl.second);
     }
@@ -379,7 +382,7 @@ void SygusExtension::assertTesterInternal(int tindex, TNode n, Node exp)
     Trace("sygus-sb-debug") << "Do lazy symmetry breaking...\n";
     for( unsigned j=0; j<dt[tindex].getNumArgs(); j++ ){
       Node sel = nm->mkNode(
-          APPLY_SELECTOR, getSelectorInternal(ntn, dt[tindex], j), n);
+          Kind::APPLY_SELECTOR, getSelectorInternal(ntn, dt[tindex], j), n);
       Trace("sygus-sb-debug2") << "  activate child sel : " << sel << std::endl;
       Assert(d_active_terms.find(sel) == d_active_terms.end());
       IntMap::const_iterator itt = d_testers.find( sel );
@@ -400,7 +403,7 @@ Node SygusExtension::getRelevancyCondition( Node n ) {
   std::map< Node, Node >::iterator itr = d_rlv_cond.find( n );
   if( itr==d_rlv_cond.end() ){
     Node cond;
-    if (n.getKind() == APPLY_SELECTOR)
+    if (n.getKind() == Kind::APPLY_SELECTOR)
     {
       TypeNode ntn = n[0].getType();
       const DType& dt = ntn.getDType();
@@ -422,8 +425,9 @@ Node SygusExtension::getRelevancyCondition( Node n ) {
         }
         Assert(!disj.empty());
         if( excl ){
-          cond = disj.size() == 1 ? disj[0] : NodeManager::currentNM()->mkNode(
-                                                  kind::AND, disj);
+          cond = disj.size() == 1
+                     ? disj[0]
+                     : NodeManager::currentNM()->mkNode(Kind::AND, disj);
         }
       }
       else
@@ -436,7 +440,7 @@ Node SygusExtension::getRelevancyCondition( Node n ) {
       if( cond.isNull() ){
         cond = c1;
       }else if( !c1.isNull() ){
-        cond = NodeManager::currentNM()->mkNode(kind::OR, cond, c1);
+        cond = NodeManager::currentNM()->mkNode(Kind::OR, cond, c1);
       }
     }
     Trace("sygus-sb-debug2") << "Relevancy condition for " << n << " is " << cond << std::endl;
@@ -483,11 +487,11 @@ Node SygusExtension::eliminateTraversalPredicates(Node n)
 
     if (it == visited.end())
     {
-      if (cur.getKind() == APPLY_UF)
+      if (cur.getKind() == Kind::APPLY_UF)
       {
         Assert(cur.getType().isBoolean());
         Assert(cur.getNumChildren() == 1
-               && (cur[0].isVar() || cur[0].getKind() == APPLY_SELECTOR));
+               && (cur[0].isVar() || cur[0].getKind() == Kind::APPLY_SELECTOR));
         ittb = d_traversal_bool.find(cur);
         Node ret;
         if (ittb == d_traversal_bool.end())
@@ -604,8 +608,8 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
   std::vector<Node> children;
   for (unsigned j = 0; j < dt_index_nargs; j++)
   {
-    Node sel =
-        nm->mkNode(APPLY_SELECTOR, getSelectorInternal(tn, dt[tindex], j), n);
+    Node sel = nm->mkNode(
+        Kind::APPLY_SELECTOR, getSelectorInternal(tn, dt[tindex], j), n);
     Assert(sel.getType().isDatatype());
     children.push_back(sel);
   }
@@ -617,9 +621,9 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
     if (options().datatypes.sygusFair == options::SygusFairMode::DT_SIZE
         && !isAnyConstant)
     {
-      Node szl = nm->mkNode(DT_SIZE, n);
+      Node szl = nm->mkNode(Kind::DT_SIZE, n);
       Node szr =
-          nm->mkNode(DT_SIZE,
+          nm->mkNode(Kind::DT_SIZE,
                      utils::getInstCons(
                          n, dt, tindex, options().datatypes.dtSharedSelectors));
       szr = rewrite(szr);
@@ -665,7 +669,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
           }
         }
         Node preParentOp = getTraversalPredicate(tn, var, true);
-        Node preParent = nm->mkNode(APPLY_UF, preParentOp, n);
+        Node preParent = nm->mkNode(Kind::APPLY_UF, preParentOp, n);
         Node prev = preParent;
         // for each child
         for (const Node& child : children)
@@ -673,14 +677,14 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
           TypeNode ctn = child.getType();
           // my pre is equal to the previous
           Node preCurrOp = getTraversalPredicate(ctn, var, true);
-          Node preCurr = nm->mkNode(APPLY_UF, preCurrOp, child);
+          Node preCurr = nm->mkNode(Kind::APPLY_UF, preCurrOp, child);
           // definition of pre, for each argument
           sbp_conj.push_back(preCurr.eqNode(prev));
           Node postCurrOp = getTraversalPredicate(ctn, var, false);
-          prev = nm->mkNode(APPLY_UF, postCurrOp, child);
+          prev = nm->mkNode(Kind::APPLY_UF, postCurrOp, child);
         }
         Node postParent = getTraversalPredicate(tn, var, false);
-        Node finish = nm->mkNode(APPLY_UF, postParent, n);
+        Node finish = nm->mkNode(Kind::APPLY_UF, postParent, n);
         // check if we are constructing the symmetry breaking predicate for the
         // variable in question. If so, is-{x_i}( z ) is true.
         int varCn = ti.getOpConsNum(var);
@@ -693,7 +697,8 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
           if (!predVar.isNull())
           {
             Node preParentPredVarOp = getTraversalPredicate(tn, predVar, true);
-            Node preParentPredVar = nm->mkNode(APPLY_UF, preParentPredVarOp, n);
+            Node preParentPredVar =
+                nm->mkNode(Kind::APPLY_UF, preParentPredVarOp, n);
             sbp_conj.push_back(preParentPredVar);
           }
         }
@@ -734,7 +739,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
     // depth 1 symmetry breaking : talks about direct children
     if (depth == 1)
     {
-      if (nk != UNDEFINED_KIND)
+      if (nk != Kind::UNDEFINED_KIND)
       {
         Trace("sygus-sb-simple-debug")
             << "  Equality reasoning about children..." << std::endl;
@@ -761,15 +766,15 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
           {
             // other cases of rewriting x k x -> x'
             Node req_const;
-            if (nk == GT || nk == LT || nk == XOR || nk == SUB
-                || nk == BITVECTOR_SUB || nk == BITVECTOR_XOR
-                || nk == BITVECTOR_UREM)
+            if (nk == Kind::GT || nk == Kind::LT || nk == Kind::XOR
+                || nk == Kind::SUB || nk == Kind::BITVECTOR_SUB
+                || nk == Kind::BITVECTOR_XOR || nk == Kind::BITVECTOR_UREM)
             {
               // must have the zero element
               req_const = quantifiers::TermUtil::mkTypeValue(tnb, 0);
             }
-            else if (nk == EQUAL || nk == LEQ || nk == GEQ
-                     || nk == BITVECTOR_XNOR)
+            else if (nk == Kind::EQUAL || nk == Kind::LEQ || nk == Kind::GEQ
+                     || nk == Kind::BITVECTOR_XNOR)
             {
               req_const = quantifiers::TermUtil::mkTypeMaxValue(tnb);
             }
@@ -788,12 +793,13 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
             deq_child[1].push_back(1);
           }
         }
-        if (nk == ITE || nk == STRING_REPLACE || nk == STRING_REPLACE_ALL)
+        if (nk == Kind::ITE || nk == Kind::STRING_REPLACE
+            || nk == Kind::STRING_REPLACE_ALL)
         {
           deq_child[0].push_back(1);
           deq_child[1].push_back(2);
         }
-        if (nk == STRING_REPLACE || nk == STRING_REPLACE_ALL)
+        if (nk == Kind::STRING_REPLACE || nk == Kind::STRING_REPLACE_ALL)
         {
           deq_child[0].push_back(0);
           deq_child[1].push_back(1);
@@ -857,7 +863,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
             {
               exp_const.push_back(tester);
             }
-            else if (nck != UNDEFINED_KIND)
+            else if (nck != Kind::UNDEFINED_KIND)
             {
               Trace("sygus-sb-simple-debug") << "  argument " << j << " " << k
                                              << " is : " << nck << std::endl;
@@ -903,7 +909,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
           else
           {
             Node ecn = exp_const.size() == 1 ? exp_const[0]
-                                             : nm->mkNode(OR, exp_const);
+                                             : nm->mkNode(Kind::OR, exp_const);
             exp_not_all_const.push_back(ecn.negate());
           }
         }
@@ -915,7 +921,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
           Assert(!exp_not_all_const.empty());
           Node expaan = exp_not_all_const.size() == 1
                             ? exp_not_all_const[0]
-                            : nm->mkNode(OR, exp_not_all_const);
+                            : nm->mkNode(Kind::OR, exp_not_all_const);
           Trace("sygus-sb-simple-debug")
               << "Ensure not all constant: " << expaan << std::endl;
           sbp_conj.push_back(expaan);
@@ -933,12 +939,12 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
           && children[0].getType() == tn && children[1].getType() == tn)
       {
         // chainable
-        Node child11 = nm->mkNode(APPLY_SELECTOR,
+        Node child11 = nm->mkNode(Kind::APPLY_SELECTOR,
                                   getSelectorInternal(tn, dt[tindex], 1),
                                   children[0]);
         Assert(child11.getType() == children[1].getType());
         Node order_pred_trans =
-            nm->mkNode(OR,
+            nm->mkNode(Kind::OR,
                        utils::mkTester(children[0], tindex, dt).negate(),
                        getTermOrderPredicate(child11, children[1]));
         sbp_conj.push_back(order_pred_trans);
@@ -950,12 +956,13 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
   if (!sbp_conj.empty())
   {
     sb_pred =
-        sbp_conj.size() == 1 ? sbp_conj[0] : nm->mkNode(kind::AND, sbp_conj);
+        sbp_conj.size() == 1 ? sbp_conj[0] : nm->mkNode(Kind::AND, sbp_conj);
     Trace("sygus-sb-simple")
         << "Simple predicate for " << tn << " index " << tindex << " (" << nk
         << ") at depth " << depth << " : " << std::endl;
     Trace("sygus-sb-simple") << "   " << sb_pred << std::endl;
-    sb_pred = nm->mkNode(OR, utils::mkTester(n, tindex, dt).negate(), sb_pred);
+    sb_pred =
+        nm->mkNode(Kind::OR, utils::mkTester(n, tindex, dt).negate(), sb_pred);
   }
   d_simple_sb_pred[e][tn][tindex][optHashVal][depth] = sb_pred;
   return sb_pred;
@@ -1010,7 +1017,7 @@ Node SygusExtension::registerSearchValue(Node a,
     // don't register non-sygus-datatype terms
     return n;
   }
-  Assert(nv.getKind() == APPLY_CONSTRUCTOR);
+  Assert(nv.getKind() == Kind::APPLY_CONSTRUCTOR);
   NodeManager* nm = NodeManager::currentNM();
   // we call the body of this function in a bottom-up fashion
   // this ensures that the "abstraction" of the model value is available
@@ -1021,8 +1028,8 @@ Node SygusExtension::registerSearchValue(Node a,
     bool childrenChanged = false;
     for (unsigned i = 0, nchild = nv.getNumChildren(); i < nchild; i++)
     {
-      Node sel =
-          nm->mkNode(APPLY_SELECTOR, getSelectorInternal(tn, dt[cindex], i), n);
+      Node sel = nm->mkNode(
+          Kind::APPLY_SELECTOR, getSelectorInternal(tn, dt[cindex], i), n);
       Node nvc = registerSearchValue(a,
                                      sel,
                                      nv[i],
@@ -1039,7 +1046,7 @@ Node SygusExtension::registerSearchValue(Node a,
     // reconstruct the value, which may be a skeleton
     if (childrenChanged)
     {
-      nv = nm->mkNode(APPLY_CONSTRUCTOR, rcons_children);
+      nv = nm->mkNode(Kind::APPLY_CONSTRUCTOR, rcons_children);
     }
   }
   if (!doSym)
@@ -1187,8 +1194,8 @@ void SygusExtension::registerSymBreakLemmaForValue(
   unsigned sz = utils::getSygusTermSize(val);
   std::vector<Node> exp;
   d_tds->getExplain()->getExplanationFor(x, val, exp, et, valr, var_count, sz);
-  Node lem =
-      exp.size() == 1 ? exp[0] : NodeManager::currentNM()->mkNode(AND, exp);
+  Node lem = exp.size() == 1 ? exp[0]
+                             : NodeManager::currentNM()->mkNode(Kind::AND, exp);
   lem = lem.negate();
   Trace("sygus-sb-exc") << "  ........exc lemma is " << lem << ", size = " << sz
                         << std::endl;
@@ -1227,7 +1234,7 @@ void SygusExtension::registerSymBreakLemma(TypeNode tn,
           Node rlv = getRelevancyCondition(t);
           if (!rlv.isNull())
           {
-            slem = nm->mkNode(OR, rlv, slem);
+            slem = nm->mkNode(Kind::OR, rlv, slem);
           }
           d_im.lemma(slem, InferenceId::DATATYPES_SYGUS_SYM_BREAK);
         }
@@ -1277,7 +1284,7 @@ void SygusExtension::addSymBreakLemmasFor(TypeNode tn,
           // add the relevancy condition for t
           if (!rlv.isNull())
           {
-            slem = nm->mkNode(OR, rlv, slem);
+            slem = nm->mkNode(Kind::OR, rlv, slem);
           }
           d_im.lemma(slem, InferenceId::DATATYPES_SYGUS_SYM_BREAK);
         }
@@ -1366,13 +1373,13 @@ void SygusExtension::registerSizeTerm(Node e)
     Node slem;
     if (options().datatypes.sygusFairMax)
     {
-      Node ds = nm->mkNode(DT_SIZE, e);
-      slem = nm->mkNode(LEQ, ds, d_szinfo[m]->getOrMkMeasureValue());
+      Node ds = nm->mkNode(Kind::DT_SIZE, e);
+      slem = nm->mkNode(Kind::LEQ, ds, d_szinfo[m]->getOrMkMeasureValue());
     }else{
       Node mt = d_szinfo[m]->getOrMkActiveMeasureValue();
       Node newMt = d_szinfo[m]->getOrMkActiveMeasureValue(true);
-      Node ds = nm->mkNode(DT_SIZE, e);
-      slem = mt.eqNode(nm->mkNode(ADD, newMt, ds));
+      Node ds = nm->mkNode(Kind::DT_SIZE, e);
+      slem = mt.eqNode(nm->mkNode(Kind::ADD, newMt, ds));
     }
     Trace("sygus-sb") << "...size lemma : " << slem << std::endl;
     d_im.lemma(slem, InferenceId::DATATYPES_SYGUS_MT_BOUND);
@@ -1391,14 +1398,15 @@ void SygusExtension::registerSizeTerm(Node e)
       if (eti.getNumSubclassVars(sc) > 1)
       {
         Node preRootOp = getTraversalPredicate(etn, v, true);
-        Node preRoot = nm->mkNode(APPLY_UF, preRootOp, e);
+        Node preRoot = nm->mkNode(Kind::APPLY_UF, preRootOp, e);
         constraints.push_back(preRoot.negate());
       }
     }
     if (!constraints.empty())
     {
-      Node preNoVar = constraints.size() == 1 ? constraints[0]
-                                              : nm->mkNode(AND, constraints);
+      Node preNoVar = constraints.size() == 1
+                          ? constraints[0]
+                          : nm->mkNode(Kind::AND, constraints);
       Node preNoVarProc = eliminateTraversalPredicates(preNoVar);
       Trace("sygus-sb") << "...variable order : " << preNoVarProc << std::endl;
       Trace("sygus-sb-tp") << "...variable order : " << preNoVarProc
@@ -1497,7 +1505,7 @@ void SygusExtension::incrementCurrentSearchSize(TNode m)
                   Node slem = lem.substitute(x, t, cache);
                   if (!rlv.isNull())
                   {
-                    slem = nm->mkNode(OR, rlv, slem);
+                    slem = nm->mkNode(Kind::OR, rlv, slem);
                   }
                   d_im.lemma(slem, InferenceId::DATATYPES_SYGUS_SYM_BREAK);
                 }
@@ -1596,10 +1604,10 @@ void SygusExtension::check()
         //debugging : ensure fairness was properly handled
         if (options().datatypes.sygusFair == options::SygusFairMode::DT_SIZE)
         {
-          Node prog_sz = NodeManager::currentNM()->mkNode(kind::DT_SIZE, prog);
+          Node prog_sz = NodeManager::currentNM()->mkNode(Kind::DT_SIZE, prog);
           Node prog_szv = d_state.getValuation().getModel()->getValue(prog_sz);
           Node progv_sz =
-              NodeManager::currentNM()->mkNode(kind::DT_SIZE, progv);
+              NodeManager::currentNM()->mkNode(Kind::DT_SIZE, progv);
 
           Trace("sygus-sb") << "  Mv[" << prog << "] = " << progv
                             << ", size = " << prog_szv << std::endl;
@@ -1664,7 +1672,7 @@ void SygusExtension::check()
 
 bool SygusExtension::checkValue(Node n, TNode vn, int ind)
 {
-  if (vn.getKind() != kind::APPLY_CONSTRUCTOR)
+  if (vn.getKind() != Kind::APPLY_CONSTRUCTOR)
   {
     // all datatype terms should be constant here
     Assert(!vn.getType().isDatatype());
@@ -1673,7 +1681,7 @@ bool SygusExtension::checkValue(Node n, TNode vn, int ind)
   NodeManager* nm = NodeManager::currentNM();
   if (TraceIsOn("sygus-sb-check-value"))
   {
-    Node prog_sz = nm->mkNode(DT_SIZE, n);
+    Node prog_sz = nm->mkNode(Kind::DT_SIZE, n);
     Node prog_szv = d_state.getValuation().getModel()->getValue(prog_sz);
     for( int i=0; i<ind; i++ ){
       Trace("sygus-sb-check-value") << "  ";
@@ -1711,8 +1719,8 @@ bool SygusExtension::checkValue(Node n, TNode vn, int ind)
     }
   }
   for( unsigned i=0; i<vn.getNumChildren(); i++ ){
-    Node sel =
-        nm->mkNode(APPLY_SELECTOR, getSelectorInternal(tn, dt[cindex], i), n);
+    Node sel = nm->mkNode(
+        Kind::APPLY_SELECTOR, getSelectorInternal(tn, dt[cindex], i), n);
     if (!checkValue(sel, vn[i], ind + 1))
     {
       return false;
@@ -1734,11 +1742,11 @@ Node SygusExtension::getCurrentTemplate( Node n, std::map< TypeNode, int >& var_
     children.push_back(dt[tindex].getConstructor());
     for( unsigned i=0; i<dt[tindex].getNumArgs(); i++ ){
       Node sel = NodeManager::currentNM()->mkNode(
-          APPLY_SELECTOR, getSelectorInternal(tn, dt[tindex], i), n);
+          Kind::APPLY_SELECTOR, getSelectorInternal(tn, dt[tindex], i), n);
       Node cc = getCurrentTemplate( sel, var_count );
       children.push_back( cc );
     }
-    return NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, children );
+    return NodeManager::currentNM()->mkNode(Kind::APPLY_CONSTRUCTOR, children);
   }else{
     return d_tds->getFreeVarInc( n.getType(), var_count );
   }
@@ -1761,7 +1769,7 @@ Node SygusExtension::SygusSizeDecisionStrategy::getOrMkMeasureValue()
     SkolemManager* sm = nm->getSkolemManager();
     d_measure_value = sm->mkDummySkolem("mt", nm->integerType());
     Node mtlem =
-        nm->mkNode(kind::GEQ, d_measure_value, nm->mkConstInt(Rational(0)));
+        nm->mkNode(Kind::GEQ, d_measure_value, nm->mkConstInt(Rational(0)));
     d_im.lemma(mtlem, InferenceId::DATATYPES_SYGUS_MT_POS);
   }
   return d_measure_value;
@@ -1775,7 +1783,7 @@ Node SygusExtension::SygusSizeDecisionStrategy::getOrMkActiveMeasureValue(
     NodeManager* nm = NodeManager::currentNM();
     SkolemManager* sm = nm->getSkolemManager();
     Node new_mt = sm->mkDummySkolem("mt", nm->integerType());
-    Node mtlem = nm->mkNode(kind::GEQ, new_mt, nm->mkConstInt(Rational(0)));
+    Node mtlem = nm->mkNode(Kind::GEQ, new_mt, nm->mkConstInt(Rational(0)));
     d_measure_value_active = new_mt;
     d_im.lemma(mtlem, InferenceId::DATATYPES_SYGUS_MT_POS);
   }
@@ -1804,7 +1812,7 @@ Node SygusExtension::SygusSizeDecisionStrategy::mkLiteral(unsigned s)
   NodeManager* nm = NodeManager::currentNM();
   Trace("sygus-engine") << "******* Sygus : allocate size literal " << s
                         << " for " << d_this << std::endl;
-  return nm->mkNode(DT_SYGUS_BOUND, d_this, nm->mkConstInt(Rational(s)));
+  return nm->mkNode(Kind::DT_SYGUS_BOUND, d_this, nm->mkConstInt(Rational(s)));
 }
 
 int SygusExtension::getGuardStatus( Node g ) {

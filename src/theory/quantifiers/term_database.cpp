@@ -188,11 +188,13 @@ Node TermDb::getMatchOperator(TNode n)
 {
   Kind k = n.getKind();
   //datatype operators may be parametric, always assume they are
-  if (k == SELECT || k == STORE || k == SET_UNION || k == SET_INTER
-      || k == SET_SUBSET || k == SET_MINUS || k == SET_MEMBER
-      || k == SET_SINGLETON || k == APPLY_SELECTOR || k == APPLY_TESTER
-      || k == SEP_PTO || k == HO_APPLY || k == SEQ_NTH || k == STRING_LENGTH
-      || k == BITVECTOR_TO_NAT || k == INT_TO_BITVECTOR)
+  if (k == Kind::SELECT || k == Kind::STORE || k == Kind::SET_UNION
+      || k == Kind::SET_INTER || k == Kind::SET_SUBSET || k == Kind::SET_MINUS
+      || k == Kind::SET_MEMBER || k == Kind::SET_SINGLETON
+      || k == Kind::APPLY_SELECTOR || k == Kind::APPLY_TESTER
+      || k == Kind::SEP_PTO || k == Kind::HO_APPLY || k == Kind::SEQ_NTH
+      || k == Kind::STRING_LENGTH || k == Kind::BITVECTOR_TO_NAT
+      || k == Kind::INT_TO_BITVECTOR)
   {
     //since it is parametric, use a particular one as op
     TypeNode tn = n[0].getType();
@@ -276,7 +278,7 @@ DbList* TermDb::getOrMkDbListForOp(TNode op)
   }
   std::shared_ptr<DbList> dl = std::make_shared<DbList>(d_termsContextUse);
   d_opMap.insert(op, dl);
-  Assert(op.getKind() != BOUND_VARIABLE);
+  Assert(op.getKind() != Kind::BOUND_VARIABLE);
   d_ops.push_back(op);
   return dl.get();
 }
@@ -402,7 +404,7 @@ void TermDb::computeUfTerms( TNode f ) {
         {
           if (at[k] != n[k])
           {
-            lits.push_back(nm->mkNode(EQUAL, at[k], n[k]).negate());
+            lits.push_back(nm->mkNode(Kind::EQUAL, at[k], n[k]).negate());
           }
         }
         Node lem = nm->mkOr(lits);
