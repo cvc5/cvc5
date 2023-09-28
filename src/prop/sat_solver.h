@@ -32,6 +32,7 @@ namespace cvc5::internal {
 
 namespace prop {
 
+class SatProofManager;
 class TheoryProxy;
 
 class SatSolver {
@@ -170,6 +171,9 @@ class CDCLTSatSolver : public SatSolver
   virtual std::vector<Node> getOrderHeap() const = 0;
 
   virtual std::shared_ptr<ProofNode> getProof() = 0;
+
+  /** This is temporary until SAT DRAT proofs are integrated. */
+  virtual SatProofManager* getProofManager() = 0;
 
 }; /* class CDCLTSatSolver */
 

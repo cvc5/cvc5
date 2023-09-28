@@ -100,9 +100,9 @@ TypeNode FloatingPointFPTypeRule::computeType(NodeManager* nodeManager,
   TypeNode exponentType = n[1].getTypeOrNull();
   TypeNode significandType = n[2].getTypeOrNull();
 
-  if (!signType.isMaybeKind(kind::BITVECTOR_TYPE)
-      || !exponentType.isMaybeKind(kind::BITVECTOR_TYPE)
-      || !significandType.isMaybeKind(kind::BITVECTOR_TYPE))
+  if (!signType.isMaybeKind(Kind::BITVECTOR_TYPE)
+      || !exponentType.isMaybeKind(Kind::BITVECTOR_TYPE)
+      || !significandType.isMaybeKind(Kind::BITVECTOR_TYPE))
   {
     if (errOut)
     {
@@ -113,7 +113,7 @@ TypeNode FloatingPointFPTypeRule::computeType(NodeManager* nodeManager,
   // if not concrete, we are abstract floating point
   if (!exponentType.isBitVector() || !significandType.isBitVector())
   {
-    return nodeManager->mkAbstractType(kind::FLOATINGPOINT_TYPE);
+    return nodeManager->mkAbstractType(Kind::FLOATINGPOINT_TYPE);
   }
   uint32_t exponentBits = exponentType.getBitVectorSize();
   uint32_t significandBits = significandType.getBitVectorSize();
@@ -169,7 +169,7 @@ TypeNode FloatingPointTestTypeRule::computeType(NodeManager* nodeManager,
   {
     TypeNode firstOperand = n[0].getTypeOrNull();
 
-    if (!firstOperand.isMaybeKind(kind::FLOATINGPOINT_TYPE))
+    if (!firstOperand.isMaybeKind(Kind::FLOATINGPOINT_TYPE))
     {
       if (errOut)
       {
@@ -211,7 +211,7 @@ TypeNode FloatingPointOperationTypeRule::computeType(NodeManager* nodeManager,
 
   if (check)
   {
-    if (!firstOperand.isMaybeKind(kind::FLOATINGPOINT_TYPE))
+    if (!firstOperand.isMaybeKind(Kind::FLOATINGPOINT_TYPE))
     {
       if (errOut)
       {
@@ -266,7 +266,7 @@ TypeNode FloatingPointRoundingOperationTypeRule::computeType(
 
   if (check)
   {
-    if (!firstOperand.isMaybeKind(kind::FLOATINGPOINT_TYPE))
+    if (!firstOperand.isMaybeKind(Kind::FLOATINGPOINT_TYPE))
     {
       if (errOut)
       {
@@ -308,7 +308,7 @@ TypeNode FloatingPointPartialOperationTypeRule::computeType(
 
   if (check)
   {
-    if (!firstOperand.isMaybeKind(kind::FLOATINGPOINT_TYPE))
+    if (!firstOperand.isMaybeKind(Kind::FLOATINGPOINT_TYPE))
     {
       if (errOut)
       {
@@ -334,7 +334,7 @@ TypeNode FloatingPointPartialOperationTypeRule::computeType(
 
     TypeNode UFValueType = n[children - 1].getTypeOrNull();
 
-    if (!UFValueType.isMaybeKind(kind::BITVECTOR_TYPE)
+    if (!UFValueType.isMaybeKind(Kind::BITVECTOR_TYPE)
         || (UFValueType.isBitVector() && UFValueType.getBitVectorSize() != 1))
     {
       if (errOut)
@@ -369,7 +369,7 @@ TypeNode FloatingPointToFPIEEEBitVectorTypeRule::computeType(
   {
     TypeNode operandType = n[0].getTypeOrNull();
 
-    if (!operandType.isMaybeKind(kind::BITVECTOR_TYPE))
+    if (!operandType.isMaybeKind(Kind::BITVECTOR_TYPE))
     {
       if (errOut)
       {
@@ -428,7 +428,7 @@ TypeNode FloatingPointToFPFloatingPointTypeRule::computeType(
 
     TypeNode operandType = n[1].getTypeOrNull();
 
-    if (!operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE))
+    if (!operandType.isMaybeKind(Kind::FLOATINGPOINT_TYPE))
     {
       if (errOut)
       {
@@ -521,7 +521,7 @@ TypeNode FloatingPointToFPSignedBitVectorTypeRule::computeType(
 
     TypeNode operandType = n[1].getTypeOrNull();
 
-    if (!(operandType.isMaybeKind(kind::BITVECTOR_TYPE)))
+    if (!(operandType.isMaybeKind(Kind::BITVECTOR_TYPE)))
     {
       if (errOut)
       {
@@ -567,7 +567,7 @@ TypeNode FloatingPointToFPUnsignedBitVectorTypeRule::computeType(
 
     TypeNode operandType = n[1].getTypeOrNull();
 
-    if (!(operandType.isMaybeKind(kind::BITVECTOR_TYPE)))
+    if (!(operandType.isMaybeKind(Kind::BITVECTOR_TYPE)))
     {
       if (errOut)
       {
@@ -612,7 +612,7 @@ TypeNode FloatingPointToUBVTypeRule::computeType(NodeManager* nodeManager,
 
     TypeNode operandType = n[1].getTypeOrNull();
 
-    if (!(operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE)))
+    if (!(operandType.isMaybeKind(Kind::FLOATINGPOINT_TYPE)))
     {
       if (errOut)
       {
@@ -657,7 +657,7 @@ TypeNode FloatingPointToSBVTypeRule::computeType(NodeManager* nodeManager,
 
     TypeNode operandType = n[1].getTypeOrNull();
 
-    if (!(operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE)))
+    if (!(operandType.isMaybeKind(Kind::FLOATINGPOINT_TYPE)))
     {
       if (errOut)
       {
@@ -705,7 +705,7 @@ TypeNode FloatingPointToUBVTotalTypeRule::computeType(NodeManager* nodeManager,
 
     TypeNode operandType = n[1].getTypeOrNull();
 
-    if (!(operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE)))
+    if (!(operandType.isMaybeKind(Kind::FLOATINGPOINT_TYPE)))
     {
       if (errOut)
       {
@@ -718,7 +718,7 @@ TypeNode FloatingPointToUBVTotalTypeRule::computeType(NodeManager* nodeManager,
 
     TypeNode defaultValueType = n[2].getTypeOrNull();
 
-    if (!(defaultValueType.isMaybeKind(kind::BITVECTOR_TYPE))
+    if (!(defaultValueType.isMaybeKind(Kind::BITVECTOR_TYPE))
         || !(defaultValueType.getBitVectorSize() == info))
     {
       if (errOut)
@@ -767,7 +767,7 @@ TypeNode FloatingPointToSBVTotalTypeRule::computeType(NodeManager* nodeManager,
 
     TypeNode operandType = n[1].getTypeOrNull();
 
-    if (!(operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE)))
+    if (!(operandType.isMaybeKind(Kind::FLOATINGPOINT_TYPE)))
     {
       if (errOut)
       {
@@ -780,7 +780,7 @@ TypeNode FloatingPointToSBVTotalTypeRule::computeType(NodeManager* nodeManager,
 
     TypeNode defaultValueType = n[2].getTypeOrNull();
 
-    if (!(defaultValueType.isMaybeKind(kind::BITVECTOR_TYPE))
+    if (!(defaultValueType.isMaybeKind(Kind::BITVECTOR_TYPE))
         || !(defaultValueType.getBitVectorSize() == info))
     {
       if (errOut)
@@ -812,7 +812,7 @@ TypeNode FloatingPointToRealTypeRule::computeType(NodeManager* nodeManager,
   {
     TypeNode operandType = n[0].getTypeOrNull();
 
-    if (!operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE))
+    if (!operandType.isMaybeKind(Kind::FLOATINGPOINT_TYPE))
     {
       if (errOut)
       {
@@ -843,7 +843,7 @@ TypeNode FloatingPointToRealTotalTypeRule::computeType(NodeManager* nodeManager,
   {
     TypeNode operandType = n[0].getTypeOrNull();
 
-    if (!operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE))
+    if (!operandType.isMaybeKind(Kind::FLOATINGPOINT_TYPE))
     {
       if (errOut)
       {
@@ -884,7 +884,7 @@ TypeNode FloatingPointComponentBit::computeType(NodeManager* nodeManager,
   {
     TypeNode operandType = n[0].getTypeOrNull();
 
-    if (!operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE))
+    if (!operandType.isMaybeKind(Kind::FLOATINGPOINT_TYPE))
     {
       if (errOut)
       {
@@ -895,7 +895,7 @@ TypeNode FloatingPointComponentBit::computeType(NodeManager* nodeManager,
       return TypeNode::null();
     }
     if (!(Theory::isLeafOf(n[0], THEORY_FP)
-          || n[0].getKind() == kind::FLOATINGPOINT_TO_FP_FROM_REAL))
+          || n[0].getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_REAL))
     {
       if (errOut)
       {
@@ -926,7 +926,7 @@ TypeNode FloatingPointComponentExponent::computeType(NodeManager* nodeManager,
 
   if (check)
   {
-    if (!operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE))
+    if (!operandType.isMaybeKind(Kind::FLOATINGPOINT_TYPE))
     {
       if (errOut)
       {
@@ -937,7 +937,7 @@ TypeNode FloatingPointComponentExponent::computeType(NodeManager* nodeManager,
       return TypeNode::null();
     }
     if (!(Theory::isLeafOf(n[0], THEORY_FP)
-          || n[0].getKind() == kind::FLOATINGPOINT_TO_FP_FROM_REAL))
+          || n[0].getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_REAL))
     {
       if (errOut)
       {
@@ -973,7 +973,7 @@ TypeNode FloatingPointComponentSignificand::computeType(
 
   if (check)
   {
-    if (!operandType.isMaybeKind(kind::FLOATINGPOINT_TYPE))
+    if (!operandType.isMaybeKind(Kind::FLOATINGPOINT_TYPE))
     {
       if (errOut)
       {
@@ -984,7 +984,7 @@ TypeNode FloatingPointComponentSignificand::computeType(
       return TypeNode::null();
     }
     if (!(Theory::isLeafOf(n[0], THEORY_FP)
-          || n[0].getKind() == kind::FLOATINGPOINT_TO_FP_FROM_REAL))
+          || n[0].getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_REAL))
     {
       if (errOut)
       {

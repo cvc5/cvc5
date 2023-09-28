@@ -27,7 +27,6 @@
 
 namespace cvc5::internal {
 
-using namespace kind;
 using namespace context;
 using namespace theory;
 
@@ -47,19 +46,19 @@ TEST_F(TestTheoryBlack, array_const)
   Node storeAll = d_nodeManager->mkConst(ArrayStoreAll(arrType, zero));
   ASSERT_TRUE(storeAll.isConst());
 
-  Node arr = d_nodeManager->mkNode(STORE, storeAll, zero, zero);
+  Node arr = d_nodeManager->mkNode(Kind::STORE, storeAll, zero, zero);
   ASSERT_FALSE(arr.isConst());
   arr = rr->rewrite(arr);
   ASSERT_TRUE(arr.isConst());
-  arr = d_nodeManager->mkNode(STORE, storeAll, zero, one);
+  arr = d_nodeManager->mkNode(Kind::STORE, storeAll, zero, one);
   ASSERT_TRUE(arr.isConst());
-  Node arr2 = d_nodeManager->mkNode(STORE, arr, one, zero);
+  Node arr2 = d_nodeManager->mkNode(Kind::STORE, arr, one, zero);
   arr2 = rr->rewrite(arr2);
   ASSERT_TRUE(arr2.isConst());
-  arr2 = d_nodeManager->mkNode(STORE, arr, one, one);
+  arr2 = d_nodeManager->mkNode(Kind::STORE, arr, one, one);
   arr2 = rr->rewrite(arr2);
   ASSERT_TRUE(arr2.isConst());
-  arr2 = d_nodeManager->mkNode(STORE, arr, zero, one);
+  arr2 = d_nodeManager->mkNode(Kind::STORE, arr, zero, one);
   arr2 = rr->rewrite(arr2);
   ASSERT_TRUE(arr2.isConst());
 
@@ -70,22 +69,22 @@ TEST_F(TestTheoryBlack, array_const)
   storeAll = d_nodeManager->mkConst(ArrayStoreAll(arrType, zero));
   ASSERT_TRUE(storeAll.isConst());
 
-  arr = d_nodeManager->mkNode(STORE, storeAll, zero, zero);
+  arr = d_nodeManager->mkNode(Kind::STORE, storeAll, zero, zero);
   ASSERT_FALSE(arr.isConst());
   arr = rr->rewrite(arr);
   ASSERT_TRUE(arr.isConst());
-  arr = d_nodeManager->mkNode(STORE, storeAll, zero, one);
+  arr = d_nodeManager->mkNode(Kind::STORE, storeAll, zero, one);
   arr = rr->rewrite(arr);
   ASSERT_TRUE(arr.isConst());
-  arr2 = d_nodeManager->mkNode(STORE, arr, one, zero);
+  arr2 = d_nodeManager->mkNode(Kind::STORE, arr, one, zero);
   ASSERT_FALSE(arr2.isConst());
   arr2 = rr->rewrite(arr2);
   ASSERT_TRUE(arr2.isConst());
-  arr2 = d_nodeManager->mkNode(STORE, arr, one, one);
+  arr2 = d_nodeManager->mkNode(Kind::STORE, arr, one, one);
   ASSERT_FALSE(arr2.isConst());
   arr2 = rr->rewrite(arr2);
   ASSERT_TRUE(arr2.isConst());
-  arr2 = d_nodeManager->mkNode(STORE, arr, zero, one);
+  arr2 = d_nodeManager->mkNode(Kind::STORE, arr, zero, one);
   ASSERT_FALSE(arr2.isConst());
   arr2 = rr->rewrite(arr2);
   ASSERT_TRUE(arr2.isConst());
@@ -99,33 +98,33 @@ TEST_F(TestTheoryBlack, array_const)
   storeAll = d_nodeManager->mkConst(ArrayStoreAll(arrType, one));
   ASSERT_TRUE(storeAll.isConst());
 
-  arr = d_nodeManager->mkNode(STORE, storeAll, zero, zero);
+  arr = d_nodeManager->mkNode(Kind::STORE, storeAll, zero, zero);
   ASSERT_TRUE(arr.isConst());
-  arr2 = d_nodeManager->mkNode(STORE, arr, one, zero);
+  arr2 = d_nodeManager->mkNode(Kind::STORE, arr, one, zero);
   ASSERT_FALSE(arr2.isConst());
   arr2 = rr->rewrite(arr2);
   ASSERT_TRUE(arr2.isConst());
 
-  arr = d_nodeManager->mkNode(STORE, storeAll, one, three);
+  arr = d_nodeManager->mkNode(Kind::STORE, storeAll, one, three);
   ASSERT_TRUE(arr.isConst());
-  arr2 = d_nodeManager->mkNode(STORE, arr, one, one);
+  arr2 = d_nodeManager->mkNode(Kind::STORE, arr, one, one);
   ASSERT_FALSE(arr2.isConst());
   arr2 = rr->rewrite(arr2);
   ASSERT_TRUE(arr2 == storeAll);
 
-  arr2 = d_nodeManager->mkNode(STORE, arr, zero, zero);
+  arr2 = d_nodeManager->mkNode(Kind::STORE, arr, zero, zero);
   ASSERT_FALSE(arr2.isConst());
   ASSERT_TRUE(rr->rewrite(arr2).isConst());
-  arr2 = d_nodeManager->mkNode(STORE, arr2, two, two);
+  arr2 = d_nodeManager->mkNode(Kind::STORE, arr2, two, two);
   ASSERT_FALSE(arr2.isConst());
   ASSERT_TRUE(rr->rewrite(arr2).isConst());
-  arr2 = d_nodeManager->mkNode(STORE, arr2, three, one);
+  arr2 = d_nodeManager->mkNode(Kind::STORE, arr2, three, one);
   ASSERT_FALSE(arr2.isConst());
   ASSERT_TRUE(rr->rewrite(arr2).isConst());
-  arr2 = d_nodeManager->mkNode(STORE, arr2, three, three);
+  arr2 = d_nodeManager->mkNode(Kind::STORE, arr2, three, three);
   ASSERT_FALSE(arr2.isConst());
   ASSERT_TRUE(rr->rewrite(arr2).isConst());
-  arr2 = d_nodeManager->mkNode(STORE, arr2, two, zero);
+  arr2 = d_nodeManager->mkNode(Kind::STORE, arr2, two, zero);
   ASSERT_FALSE(arr2.isConst());
   arr2 = rr->rewrite(arr2);
   ASSERT_TRUE(arr2.isConst());

@@ -35,26 +35,26 @@ namespace test {
 class TestTheoryWhiteyQuantifiersBvInstantiator : public TestSmt
 {
  protected:
-  Node mkNeg(TNode n) { return d_nodeManager->mkNode(kind::BITVECTOR_NEG, n); }
+  Node mkNeg(TNode n) { return d_nodeManager->mkNode(Kind::BITVECTOR_NEG, n); }
 
   Node mkMult(TNode a, TNode b)
   {
-    return d_nodeManager->mkNode(kind::BITVECTOR_MULT, a, b);
+    return d_nodeManager->mkNode(Kind::BITVECTOR_MULT, a, b);
   }
 
   Node mkMult(const std::vector<Node>& children)
   {
-    return d_nodeManager->mkNode(kind::BITVECTOR_MULT, children);
+    return d_nodeManager->mkNode(Kind::BITVECTOR_MULT, children);
   }
 
   Node mkPlus(TNode a, TNode b)
   {
-    return d_nodeManager->mkNode(kind::BITVECTOR_ADD, a, b);
+    return d_nodeManager->mkNode(Kind::BITVECTOR_ADD, a, b);
   }
 
   Node mkPlus(const std::vector<Node>& children)
   {
-    return d_nodeManager->mkNode(kind::BITVECTOR_ADD, children);
+    return d_nodeManager->mkNode(Kind::BITVECTOR_ADD, children);
   }
 };
 
@@ -136,7 +136,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvMult)
   Node norm_xa = util.normalizePvMult(x, {x, a}, contains_x);
   ASSERT_TRUE(contains_x[norm_xa]);
   ASSERT_TRUE(norm_xa.getAttribute(is_linear));
-  ASSERT_EQ(norm_xa.getKind(), kind::BITVECTOR_MULT);
+  ASSERT_EQ(norm_xa.getKind(), Kind::BITVECTOR_MULT);
   ASSERT_EQ(norm_xa.getNumChildren(), 2);
   ASSERT_EQ(norm_xa[0], x);
   ASSERT_EQ(norm_xa[1], a);
@@ -145,7 +145,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvMult)
   Node norm_ax = util.normalizePvMult(x, {a, x}, contains_x);
   ASSERT_TRUE(contains_x[norm_ax]);
   ASSERT_TRUE(norm_ax.getAttribute(is_linear));
-  ASSERT_EQ(norm_ax.getKind(), kind::BITVECTOR_MULT);
+  ASSERT_EQ(norm_ax.getKind(), Kind::BITVECTOR_MULT);
   ASSERT_EQ(norm_ax.getNumChildren(), 2);
   ASSERT_EQ(norm_ax[0], x);
   ASSERT_EQ(norm_ax[1], a);
@@ -154,7 +154,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvMult)
   Node norm_neg_ax = util.normalizePvMult(x, {a, neg_x}, contains_x);
   ASSERT_TRUE(contains_x[norm_neg_ax]);
   ASSERT_TRUE(norm_neg_ax.getAttribute(is_linear));
-  ASSERT_EQ(norm_neg_ax.getKind(), kind::BITVECTOR_MULT);
+  ASSERT_EQ(norm_neg_ax.getKind(), Kind::BITVECTOR_MULT);
   ASSERT_EQ(norm_neg_ax.getNumChildren(), 2);
   ASSERT_EQ(norm_neg_ax[0], x);
   ASSERT_EQ(norm_neg_ax[1], mkNeg(a));
@@ -171,7 +171,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvMult)
   Node norm_abcxd = util.normalizePvMult(x, {a, b, c, x, d}, contains_x);
   ASSERT_TRUE(contains_x[norm_abcxd]);
   ASSERT_TRUE(norm_abcxd.getAttribute(is_linear));
-  ASSERT_EQ(norm_abcxd.getKind(), kind::BITVECTOR_MULT);
+  ASSERT_EQ(norm_abcxd.getKind(), Kind::BITVECTOR_MULT);
   ASSERT_EQ(norm_abcxd.getNumChildren(), 2);
   ASSERT_EQ(norm_abcxd[0], x);
   ASSERT_EQ(norm_abcxd[1], rr->rewrite(mkMult({a, b, c, d})));
@@ -181,7 +181,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvMult)
       util.normalizePvMult(x, {a, b, c, neg_x, d}, contains_x);
   ASSERT_TRUE(contains_x[norm_neg_abcxd]);
   ASSERT_TRUE(norm_neg_abcxd.getAttribute(is_linear));
-  ASSERT_EQ(norm_neg_abcxd.getKind(), kind::BITVECTOR_MULT);
+  ASSERT_EQ(norm_neg_abcxd.getKind(), Kind::BITVECTOR_MULT);
   ASSERT_EQ(norm_neg_abcxd.getNumChildren(), 2);
   ASSERT_EQ(norm_neg_abcxd[0], x);
   ASSERT_TRUE(norm_neg_abcxd[1] == mkNeg(rr->rewrite(mkMult({a, b, c, d}))));
@@ -190,7 +190,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvMult)
   Node norm_bxa = util.normalizePvMult(x, {b, norm_ax}, contains_x);
   ASSERT_TRUE(contains_x[norm_bxa]);
   ASSERT_TRUE(norm_bxa.getAttribute(is_linear));
-  ASSERT_EQ(norm_bxa.getKind(), kind::BITVECTOR_MULT);
+  ASSERT_EQ(norm_bxa.getKind(), Kind::BITVECTOR_MULT);
   ASSERT_EQ(norm_bxa.getNumChildren(), 2);
   ASSERT_EQ(norm_bxa[0], x);
   ASSERT_EQ(norm_bxa[1], rr->rewrite(mkMult(b, a)));
@@ -201,7 +201,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvMult)
   Node norm_neg_bxa = util.normalizePvMult(x, {b, neg_norm_ax}, contains_x);
   ASSERT_TRUE(contains_x[norm_neg_bxa]);
   ASSERT_TRUE(norm_neg_bxa.getAttribute(is_linear));
-  ASSERT_EQ(norm_neg_bxa.getKind(), kind::BITVECTOR_MULT);
+  ASSERT_EQ(norm_neg_bxa.getKind(), Kind::BITVECTOR_MULT);
   ASSERT_EQ(norm_neg_bxa.getNumChildren(), 2);
   ASSERT_EQ(norm_neg_bxa[0], x);
   ASSERT_EQ(norm_neg_bxa[1], mkNeg(rr->rewrite(mkMult(b, a))));
@@ -240,7 +240,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvPlus)
   Node norm_xa = util.normalizePvPlus(x, {x, a}, contains_x);
   ASSERT_TRUE(contains_x[norm_xa]);
   ASSERT_TRUE(norm_xa.getAttribute(is_linear));
-  ASSERT_EQ(norm_xa.getKind(), kind::BITVECTOR_ADD);
+  ASSERT_EQ(norm_xa.getKind(), Kind::BITVECTOR_ADD);
   ASSERT_EQ(norm_xa.getNumChildren(), 2);
   ASSERT_EQ(norm_xa[0], x);
   ASSERT_EQ(norm_xa[1], a);
@@ -249,7 +249,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvPlus)
   Node norm_ax = util.normalizePvPlus(x, {a, x}, contains_x);
   ASSERT_TRUE(contains_x[norm_ax]);
   ASSERT_TRUE(norm_ax.getAttribute(is_linear));
-  ASSERT_EQ(norm_ax.getKind(), kind::BITVECTOR_ADD);
+  ASSERT_EQ(norm_ax.getKind(), Kind::BITVECTOR_ADD);
   ASSERT_EQ(norm_ax.getNumChildren(), 2);
   ASSERT_EQ(norm_ax[0], x);
   ASSERT_EQ(norm_ax[1], a);
@@ -258,9 +258,9 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvPlus)
   Node norm_neg_ax = util.normalizePvPlus(x, {a, neg_x}, contains_x);
   ASSERT_TRUE(contains_x[norm_neg_ax]);
   ASSERT_TRUE(norm_neg_ax.getAttribute(is_linear));
-  ASSERT_EQ(norm_neg_ax.getKind(), kind::BITVECTOR_ADD);
+  ASSERT_EQ(norm_neg_ax.getKind(), Kind::BITVECTOR_ADD);
   ASSERT_EQ(norm_neg_ax.getNumChildren(), 2);
-  ASSERT_EQ(norm_neg_ax[0].getKind(), kind::BITVECTOR_MULT);
+  ASSERT_EQ(norm_neg_ax[0].getKind(), Kind::BITVECTOR_MULT);
   ASSERT_EQ(norm_neg_ax[0].getNumChildren(), 2);
   ASSERT_TRUE(norm_neg_ax[0].getAttribute(is_linear));
   ASSERT_TRUE(contains_x[norm_neg_ax[0]]);
@@ -275,7 +275,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvPlus)
       contains_x);
   ASSERT_TRUE(contains_x[norm_xax]);
   ASSERT_TRUE(norm_xax.getAttribute(is_linear));
-  ASSERT_EQ(norm_xax.getKind(), kind::BITVECTOR_MULT);
+  ASSERT_EQ(norm_xax.getKind(), Kind::BITVECTOR_MULT);
   ASSERT_EQ(norm_xax.getNumChildren(), 2);
   ASSERT_EQ(norm_xax[0], x);
   ASSERT_EQ(norm_xax[1], rr->rewrite(mkPlus(mkNeg(one), mkNeg(a))));
@@ -284,7 +284,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvPlus)
   Node norm_abcxd = util.normalizePvPlus(x, {a, b, c, x, d}, contains_x);
   ASSERT_TRUE(contains_x[norm_abcxd]);
   ASSERT_TRUE(norm_abcxd.getAttribute(is_linear));
-  ASSERT_EQ(norm_abcxd.getKind(), kind::BITVECTOR_ADD);
+  ASSERT_EQ(norm_abcxd.getKind(), Kind::BITVECTOR_ADD);
   ASSERT_EQ(norm_abcxd.getNumChildren(), 2);
   ASSERT_EQ(norm_abcxd[0], x);
   ASSERT_EQ(norm_abcxd[1], rr->rewrite(mkPlus({a, b, c, d})));
@@ -294,9 +294,9 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvPlus)
       util.normalizePvPlus(x, {a, b, c, neg_x, d}, contains_x);
   ASSERT_TRUE(contains_x[norm_neg_abcxd]);
   ASSERT_TRUE(norm_neg_abcxd.getAttribute(is_linear));
-  ASSERT_EQ(norm_neg_abcxd.getKind(), kind::BITVECTOR_ADD);
+  ASSERT_EQ(norm_neg_abcxd.getKind(), Kind::BITVECTOR_ADD);
   ASSERT_EQ(norm_neg_abcxd.getNumChildren(), 2);
-  ASSERT_EQ(norm_neg_abcxd[0].getKind(), kind::BITVECTOR_MULT);
+  ASSERT_EQ(norm_neg_abcxd[0].getKind(), Kind::BITVECTOR_MULT);
   ASSERT_EQ(norm_neg_abcxd[0].getNumChildren(), 2);
   ASSERT_TRUE(norm_neg_abcxd[0].getAttribute(is_linear));
   ASSERT_TRUE(contains_x[norm_neg_abcxd[0]]);
@@ -308,7 +308,7 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvPlus)
   Node norm_bxa = util.normalizePvPlus(x, {b, norm_ax}, contains_x);
   ASSERT_TRUE(contains_x[norm_bxa]);
   ASSERT_TRUE(norm_bxa.getAttribute(is_linear));
-  ASSERT_EQ(norm_bxa.getKind(), kind::BITVECTOR_ADD);
+  ASSERT_EQ(norm_bxa.getKind(), Kind::BITVECTOR_ADD);
   ASSERT_EQ(norm_bxa.getNumChildren(), 2);
   ASSERT_EQ(norm_bxa[0], x);
   ASSERT_EQ(norm_bxa[1], rr->rewrite(mkPlus(b, a)));
@@ -319,9 +319,9 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvPlus)
   Node norm_neg_bxa = util.normalizePvPlus(x, {b, neg_norm_ax}, contains_x);
   ASSERT_TRUE(contains_x[norm_neg_bxa]);
   ASSERT_TRUE(norm_neg_bxa.getAttribute(is_linear));
-  ASSERT_EQ(norm_neg_bxa.getKind(), kind::BITVECTOR_ADD);
+  ASSERT_EQ(norm_neg_bxa.getKind(), Kind::BITVECTOR_ADD);
   ASSERT_EQ(norm_neg_bxa.getNumChildren(), 2);
-  ASSERT_EQ(norm_neg_abcxd[0].getKind(), kind::BITVECTOR_MULT);
+  ASSERT_EQ(norm_neg_abcxd[0].getKind(), Kind::BITVECTOR_MULT);
   ASSERT_EQ(norm_neg_abcxd[0].getNumChildren(), 2);
   ASSERT_TRUE(norm_neg_abcxd[0].getAttribute(is_linear));
   ASSERT_TRUE(contains_x[norm_neg_abcxd[0]]);
@@ -366,8 +366,8 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvEqual)
 
   /* x = -x -> x * 2 = 0 */
   Node norm_neg_xx = util.normalizePvEqual(x, {x, neg_x}, contains_x);
-  ASSERT_EQ(norm_neg_xx.getKind(), kind::EQUAL);
-  ASSERT_EQ(norm_neg_xx[0].getKind(), kind::BITVECTOR_MULT);
+  ASSERT_EQ(norm_neg_xx.getKind(), Kind::EQUAL);
+  ASSERT_EQ(norm_neg_xx[0].getKind(), Kind::BITVECTOR_MULT);
   ASSERT_EQ(norm_neg_xx[0].getNumChildren(), 2);
   ASSERT_TRUE(norm_neg_xx[0].getAttribute(is_linear));
   ASSERT_TRUE(contains_x[norm_neg_xx[0]]);
@@ -378,15 +378,15 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvEqual)
   /* a + x = x -> 0 = -a */
   Node norm_axx = util.normalizePvEqual(
       x, {util.normalizePvPlus(x, {a, x}, contains_x), x}, contains_x);
-  ASSERT_EQ(norm_axx.getKind(), kind::EQUAL);
+  ASSERT_EQ(norm_axx.getKind(), Kind::EQUAL);
   ASSERT_EQ(norm_axx[0], zero);
   ASSERT_EQ(norm_axx[1], mkNeg(a));
 
   /* a + -x = x -> x * -2 = a */
   Node norm_neg_axx = util.normalizePvEqual(
       x, {util.normalizePvPlus(x, {a, neg_x}, contains_x), x}, contains_x);
-  ASSERT_EQ(norm_neg_axx.getKind(), kind::EQUAL);
-  ASSERT_EQ(norm_neg_axx[0].getKind(), kind::BITVECTOR_MULT);
+  ASSERT_EQ(norm_neg_axx.getKind(), Kind::EQUAL);
+  ASSERT_EQ(norm_neg_axx[0].getKind(), Kind::BITVECTOR_MULT);
   ASSERT_EQ(norm_neg_axx[0].getNumChildren(), 2);
   ASSERT_TRUE(norm_neg_axx[0].getAttribute(is_linear));
   ASSERT_TRUE(contains_x[norm_neg_axx[0]]);
@@ -397,8 +397,8 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvEqual)
   /* a * x = x -> x * (a - 1) = 0 */
   Node norm_mult_axx = util.normalizePvEqual(
       x, {util.normalizePvMult(x, {a, x}, contains_x), x}, contains_x);
-  ASSERT_EQ(norm_mult_axx.getKind(), kind::EQUAL);
-  ASSERT_EQ(norm_mult_axx[0].getKind(), kind::BITVECTOR_MULT);
+  ASSERT_EQ(norm_mult_axx.getKind(), Kind::EQUAL);
+  ASSERT_EQ(norm_mult_axx[0].getKind(), Kind::BITVECTOR_MULT);
   ASSERT_EQ(norm_mult_axx[0].getNumChildren(), 2);
   ASSERT_TRUE(norm_mult_axx[0].getAttribute(is_linear));
   ASSERT_TRUE(contains_x[norm_mult_axx[0]]);
@@ -412,8 +412,8 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvEqual)
                             {util.normalizePvMult(x, {a, x}, contains_x),
                              util.normalizePvPlus(x, {b, x}, contains_x)},
                             contains_x);
-  ASSERT_EQ(norm_axxb.getKind(), kind::EQUAL);
-  ASSERT_EQ(norm_axxb[0].getKind(), kind::BITVECTOR_MULT);
+  ASSERT_EQ(norm_axxb.getKind(), Kind::EQUAL);
+  ASSERT_EQ(norm_axxb[0].getKind(), Kind::BITVECTOR_MULT);
   ASSERT_EQ(norm_axxb[0].getNumChildren(), 2);
   ASSERT_TRUE(norm_axxb[0].getAttribute(is_linear));
   ASSERT_TRUE(contains_x[norm_axxb[0]]);
@@ -428,8 +428,8 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvEqual)
            x, {util.normalizePvMult(x, {a, x}, contains_x), c}, contains_x),
        x},
       contains_x);
-  ASSERT_EQ(norm_axcx.getKind(), kind::EQUAL);
-  ASSERT_EQ(norm_axcx[0].getKind(), kind::BITVECTOR_MULT);
+  ASSERT_EQ(norm_axcx.getKind(), Kind::EQUAL);
+  ASSERT_EQ(norm_axcx[0].getKind(), Kind::BITVECTOR_MULT);
   ASSERT_EQ(norm_axcx[0].getNumChildren(), 2);
   ASSERT_TRUE(norm_axcx[0].getAttribute(is_linear));
   ASSERT_TRUE(contains_x[norm_axcx[0]]);
@@ -444,8 +444,8 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvEqual)
            x, {util.normalizePvMult(x, {a, x}, contains_x), c}, contains_x),
        util.normalizePvPlus(x, {b, x}, contains_x)},
       contains_x);
-  ASSERT_EQ(norm_axcxb.getKind(), kind::EQUAL);
-  ASSERT_EQ(norm_axcxb[0].getKind(), kind::BITVECTOR_MULT);
+  ASSERT_EQ(norm_axcxb.getKind(), Kind::EQUAL);
+  ASSERT_EQ(norm_axcxb[0].getKind(), Kind::BITVECTOR_MULT);
   ASSERT_EQ(norm_axcxb[0].getNumChildren(), 2);
   ASSERT_TRUE(norm_axcxb[0].getAttribute(is_linear));
   ASSERT_TRUE(contains_x[norm_axcxb[0]]);
@@ -459,8 +459,8 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvEqual)
       {mkNeg(util.normalizePvPlus(x, {a, neg_x}, contains_x)),
        util.normalizePvMult(x, {a, x}, contains_x)},
       contains_x);
-  ASSERT_EQ(norm_axax.getKind(), kind::EQUAL);
-  ASSERT_EQ(norm_axax[0].getKind(), kind::BITVECTOR_MULT);
+  ASSERT_EQ(norm_axax.getKind(), Kind::EQUAL);
+  ASSERT_EQ(norm_axax[0].getKind(), Kind::BITVECTOR_MULT);
   ASSERT_EQ(norm_axax[0].getNumChildren(), 2);
   ASSERT_TRUE(norm_axax[0].getAttribute(is_linear));
   ASSERT_TRUE(contains_x[norm_axax[0]]);

@@ -127,10 +127,10 @@ Node EqcInfo::mkMergeConflict(Node t, Node prev, bool isArith)
   for (unsigned i = 0; i < 2; i++)
   {
     Node tp = i == 0 ? t : prev;
-    if (tp.getKind() == STRING_IN_REGEXP)
+    if (tp.getKind() == Kind::STRING_IN_REGEXP)
     {
       ccs.push_back(tp);
-      r[i] = isArith ? nm->mkNode(STRING_LENGTH, tp[0]) : tp[0];
+      r[i] = isArith ? nm->mkNode(Kind::STRING_LENGTH, tp[0]) : tp[0];
     }
     else
     {

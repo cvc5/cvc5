@@ -137,6 +137,16 @@ bool hasFreeVariablesScope(TNode n, std::unordered_set<TNode>& scope);
  * @return true iff this node contains a free variable.
  */
 bool getVariables(TNode n, std::unordered_set<TNode>& vs);
+/**
+ * Get all variables in n.
+ * @param n The node under investigation
+ * @param vs The set which free variables are added to
+ * @param visited A cache of nodes we have already visited
+ * @return true iff this node contains a free variable.
+ */
+bool getVariables(TNode n,
+                  std::unordered_set<TNode>& vs,
+                  std::unordered_set<TNode>& visited);
 
 /**
  * For term n, this function collects the symbols that occur as a subterms

@@ -104,14 +104,14 @@ TEST_F(TestTheoryWhiteSetsTypeEnumerator, set_of_finite_dataype)
       datatype.getDType().getConstructors();
   SetEnumerator setEnumerator(d_nodeManager->mkSetType(datatype));
 
-  Node red =
-      d_nodeManager->mkNode(APPLY_CONSTRUCTOR, dtcons[0]->getConstructor());
+  Node red = d_nodeManager->mkNode(Kind::APPLY_CONSTRUCTOR,
+                                   dtcons[0]->getConstructor());
 
-  Node green =
-      d_nodeManager->mkNode(APPLY_CONSTRUCTOR, dtcons[1]->getConstructor());
+  Node green = d_nodeManager->mkNode(Kind::APPLY_CONSTRUCTOR,
+                                     dtcons[1]->getConstructor());
 
-  Node blue =
-      d_nodeManager->mkNode(APPLY_CONSTRUCTOR, dtcons[2]->getConstructor());
+  Node blue = d_nodeManager->mkNode(Kind::APPLY_CONSTRUCTOR,
+                                    dtcons[2]->getConstructor());
 
   std::vector<Node> elems;
   for (unsigned i = 0; i < 8; i++)

@@ -81,7 +81,8 @@ bool QuantAttributes::checkFunDef( Node q ) {
 bool QuantAttributes::checkFunDefAnnotation( Node ipl ) {
   if( !ipl.isNull() ){
     for( unsigned i=0; i<ipl.getNumChildren(); i++ ){
-      if( ipl[i].getKind()==INST_ATTRIBUTE ){
+      if (ipl[i].getKind() == Kind::INST_ATTRIBUTE)
+      {
         if( ipl[i][0].getAttribute(FunDefAttribute()) ){
           return true;
         }
@@ -93,11 +94,12 @@ bool QuantAttributes::checkFunDefAnnotation( Node ipl ) {
 
 Node QuantAttributes::getFunDefHead( Node q ) {
   //&& q[1].getKind()==EQUAL && q[1][0].getKind()==APPLY_UF &&
-  if( q.getKind()==FORALL && q.getNumChildren()==3 ){
+  if (q.getKind() == Kind::FORALL && q.getNumChildren() == 3)
+  {
     Node ipl = q[2];
     for (unsigned i = 0; i < ipl.getNumChildren(); i++)
     {
-      if (ipl[i].getKind() == INST_ATTRIBUTE
+      if (ipl[i].getKind() == Kind::INST_ATTRIBUTE
           && ipl[i][0].getAttribute(FunDefAttribute()))
       {
         return ipl[i][0];
@@ -109,7 +111,8 @@ Node QuantAttributes::getFunDefHead( Node q ) {
 Node QuantAttributes::getFunDefBody( Node q ) {
   Node h = getFunDefHead( q );
   if( !h.isNull() ){
-    if( q[1].getKind()==EQUAL ){
+    if (q[1].getKind() == Kind::EQUAL)
+    {
       if( q[1][0]==h ){
         return q[1][1];
       }else if( q[1][1]==h ){
@@ -122,17 +125,19 @@ Node QuantAttributes::getFunDefBody( Node q ) {
         if (ArithMSum::getMonomialSumLit(q[1], msum))
         {
           Node veq;
-          int res = ArithMSum::isolate(h, msum, veq, EQUAL);
+          int res = ArithMSum::isolate(h, msum, veq, Kind::EQUAL);
           if (res != 0)
           {
-            Assert(veq.getKind() == EQUAL);
+            Assert(veq.getKind() == Kind::EQUAL);
             return res == 1 ? veq[1] : veq[0];
           }
         }
       }
-    }else{
-      Node atom = q[1].getKind()==NOT ? q[1][0] : q[1];
-      bool pol = q[1].getKind()!=NOT;
+    }
+    else
+    {
+      Node atom = q[1].getKind() == Kind::NOT ? q[1][0] : q[1];
+      bool pol = q[1].getKind() != Kind::NOT;
       if( atom==h ){
         return NodeManager::currentNM()->mkConst( pol );
       }
@@ -142,13 +147,16 @@ Node QuantAttributes::getFunDefBody( Node q ) {
 }
 
 bool QuantAttributes::checkSygusConjecture( Node q ) {
-  return ( q.getKind()==FORALL && q.getNumChildren()==3 ) ? checkSygusConjectureAnnotation( q[2] ) : false;
+  return (q.getKind() == Kind::FORALL && q.getNumChildren() == 3)
+             ? checkSygusConjectureAnnotation(q[2])
+             : false;
 }
 
 bool QuantAttributes::checkSygusConjectureAnnotation( Node ipl ){
   if( !ipl.isNull() ){
     for( unsigned i=0; i<ipl.getNumChildren(); i++ ){
-      if( ipl[i].getKind()==INST_ATTRIBUTE ){
+      if (ipl[i].getKind() == Kind::INST_ATTRIBUTE)
+      {
         Node avar = ipl[i][0];
         if( avar.getAttribute(SygusAttribute()) ){
           return true;
@@ -162,7 +170,8 @@ bool QuantAttributes::checkSygusConjectureAnnotation( Node ipl ){
 bool QuantAttributes::checkQuantElimAnnotation( Node ipl ) {
   if( !ipl.isNull() ){
     for( unsigned i=0; i<ipl.getNumChildren(); i++ ){
-      if( ipl[i].getKind()==INST_ATTRIBUTE ){
+      if (ipl[i].getKind() == Kind::INST_ATTRIBUTE)
+      {
         Node avar = ipl[i][0];
         if( avar.getAttribute(QuantElimAttribute()) ){
           return true;
@@ -175,14 +184,15 @@ bool QuantAttributes::checkQuantElimAnnotation( Node ipl ) {
 
 bool QuantAttributes::hasPattern(Node q)
 {
-  Assert(q.getKind() == FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   if (q.getNumChildren() != 3)
   {
     return false;
   }
   for (const Node& qc : q[2])
   {
-    if (qc.getKind() == INST_PATTERN || qc.getKind() == INST_NO_PATTERN)
+    if (qc.getKind() == Kind::INST_PATTERN
+        || qc.getKind() == Kind::INST_NO_PATTERN)
     {
       return true;
     }
@@ -213,16 +223,16 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
       Kind k = q[2][i].getKind();
       Trace("quant-attr-debug")
           << "Check : " << q[2][i] << " " << k << std::endl;
-      if (k == INST_PATTERN || k == INST_NO_PATTERN)
+      if (k == Kind::INST_PATTERN || k == Kind::INST_NO_PATTERN)
       {
         qa.d_hasPattern = true;
       }
-      else if (k == INST_POOL || k == INST_ADD_TO_POOL
-               || k == SKOLEM_ADD_TO_POOL)
+      else if (k == Kind::INST_POOL || k == Kind::INST_ADD_TO_POOL
+               || k == Kind::SKOLEM_ADD_TO_POOL)
       {
         qa.d_hasPool = true;
       }
-      else if (k == INST_ATTRIBUTE)
+      else if (k == Kind::INST_ATTRIBUTE)
       {
         Node avar;
         // We support two use cases of INST_ATTRIBUTE:
@@ -232,7 +242,7 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
         // (INST_ATTRIBUTE v) where v has an internal attribute set on it.
         // We distinguish these two cases by checking the kind of the first
         // child.
-        if (q[2][i][0].getKind() == CONST_STRING)
+        if (q[2][i][0].getKind() == Kind::CONST_STRING)
         {
           // make a dummy variable to be used below
           avar = nm->mkBoundVar(nm->booleanType());
@@ -259,7 +269,7 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
           qa.d_sygus = true;
         }
         // oracles are specified by a distinguished variable kind
-        if (avar.getKind() == kind::ORACLE)
+        if (avar.getKind() == Kind::ORACLE)
         {
           qa.d_oracle = avar;
           Trace("quant-attr")
@@ -426,7 +436,7 @@ void QuantAttributes::setInstantiationLevelAttr(Node n, Node qn, uint64_t level)
   Trace("inst-level-debug2") << "IL : " << n << " " << qn << " " << level
                              << std::endl;
   // if not from the vector of terms we instantiatied
-  if (qn.getKind() != BOUND_VARIABLE && n != qn)
+  if (qn.getKind() != Kind::BOUND_VARIABLE && n != qn)
   {
     // if this is a new term, without an instantiation level
     if (!n.hasAttribute(InstLevelAttribute()))
@@ -466,8 +476,8 @@ Node mkNamedQuant(Kind k, Node bvl, Node body, const std::string& name)
   Node v = sm->mkDummySkolem(
       name, nm->booleanType(), "", SkolemManager::SKOLEM_EXACT_NAME);
   Node attr = nm->mkConst(String("qid"));
-  Node ip = nm->mkNode(INST_ATTRIBUTE, attr, v);
-  Node ipl = nm->mkNode(INST_PATTERN_LIST, ip);
+  Node ip = nm->mkNode(Kind::INST_ATTRIBUTE, attr, v);
+  Node ipl = nm->mkNode(Kind::INST_PATTERN_LIST, ip);
   return nm->mkNode(k, bvl, body, ipl);
 }
 

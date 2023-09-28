@@ -223,7 +223,7 @@ class CVC5_EXPORT NodeValue
 
   static inline Kind dKindToKind(uint32_t d)
   {
-    return (d == kindMask) ? kind::UNDEFINED_KIND : Kind(d);
+    return (d == kindMask) ? Kind::UNDEFINED_KIND : Kind(d);
   }
 
   std::string toString() const;
@@ -412,11 +412,12 @@ struct NodeValueIDEquality {
 
 std::ostream& operator<<(std::ostream& out, const NodeValue& nv);
 
-inline NodeValue::NodeValue(int) :
-  d_id(0),
-  d_rc(MAX_RC),
-  d_kind(kind::NULL_EXPR),
-  d_nchildren(0) {
+inline NodeValue::NodeValue(int)
+    : d_id(0),
+      d_rc(MAX_RC),
+      d_kind(static_cast<uint32_t>(Kind::NULL_EXPR)),
+      d_nchildren(0)
+{
 }
 
 inline void NodeValue::decrRefCounts() {

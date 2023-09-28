@@ -22,7 +22,6 @@
 
 namespace cvc5::internal {
 
-using namespace kind;
 using namespace expr;
 
 namespace test {
@@ -39,7 +38,7 @@ TEST_F(TestNodeWhiteNode, builder)
 {
   NodeBuilder b;
   ASSERT_TRUE(b.d_nv->getId() == 0);
-  ASSERT_TRUE(b.d_nv->getKind() == UNDEFINED_KIND);
+  ASSERT_TRUE(b.d_nv->getKind() == Kind::UNDEFINED_KIND);
   ASSERT_EQ(b.d_nv->d_nchildren, 0u);
   /* etc. */
 }
@@ -48,11 +47,11 @@ TEST_F(TestNodeWhiteNode, iterators)
 {
   Node x = d_nodeManager->mkVar("x", d_nodeManager->integerType());
   Node y = d_nodeManager->mkVar("y", d_nodeManager->integerType());
-  Node x_plus_y = d_nodeManager->mkNode(ADD, x, y);
+  Node x_plus_y = d_nodeManager->mkNode(Kind::ADD, x, y);
   Node two = d_nodeManager->mkConstInt(Rational(2));
-  Node x_times_2 = d_nodeManager->mkNode(MULT, x, two);
+  Node x_times_2 = d_nodeManager->mkNode(Kind::MULT, x, two);
 
-  Node n = d_nodeManager->mkNode(ADD, x_times_2, x_plus_y, y);
+  Node n = d_nodeManager->mkNode(Kind::ADD, x_times_2, x_plus_y, y);
 
   Node::iterator i;
 

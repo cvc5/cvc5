@@ -59,7 +59,7 @@ std::shared_ptr<ProofNode> TConvSeqProofGenerator::getSubsequenceProofFor(
     Node f, size_t start, size_t end)
 {
   Assert(end < d_tconvs.size());
-  if (f.getKind() != kind::EQUAL)
+  if (f.getKind() != Kind::EQUAL)
   {
     std::stringstream serr;
     serr << "TConvSeqProofGenerator::getProofFor: " << identify()

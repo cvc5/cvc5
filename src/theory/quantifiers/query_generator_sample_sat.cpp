@@ -38,7 +38,7 @@ QueryGeneratorSampleSat::QueryGeneratorSampleSat(Env& env, unsigned deqThresh)
 
 bool QueryGeneratorSampleSat::addTerm(Node n, std::vector<Node>& foundQueries)
 {
-  Node nn = n.getKind() == NOT ? n[0] : n;
+  Node nn = n.getKind() == Kind::NOT ? n[0] : n;
   if (d_terms.find(nn) != d_terms.end())
   {
     return false;
@@ -142,7 +142,7 @@ bool QueryGeneratorSampleSat::addTerm(Node n, std::vector<Node>& foundQueries)
       {
         rindex2 = rindex2 + 1;
       }
-      Node qy = nm->mkNode(AND, qsi[rindex], qsi[rindex2]);
+      Node qy = nm->mkNode(Kind::AND, qsi[rindex], qsi[rindex2]);
       checkQuery(qy, i, foundQueries);
     }
   }
