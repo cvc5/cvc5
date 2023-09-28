@@ -33,7 +33,7 @@ bool BooleanSimplification::push_back_associative_commute_recursive(
         return false;
       }
     }
-    else if (child.getKind() == kind::NOT && child[0].getKind() == notK)
+    else if (child.getKind() == Kind::NOT && child[0].getKind() == notK)
     {
       if (!push_back_associative_commute_recursive(
               child[0], buffer, notK, k, !negateNode))
@@ -47,8 +47,8 @@ bool BooleanSimplification::push_back_associative_commute_recursive(
       {
         if (child.isConst())
         {
-          if ((k == kind::AND && child.getConst<bool>())
-              || (k == kind::OR && !child.getConst<bool>()))
+          if ((k == Kind::AND && child.getConst<bool>())
+              || (k == Kind::OR && !child.getConst<bool>()))
           {
             buffer.clear();
             buffer.push_back(negate(child));
@@ -64,8 +64,8 @@ bool BooleanSimplification::push_back_associative_commute_recursive(
       {
         if (child.isConst())
         {
-          if ((k == kind::OR && child.getConst<bool>())
-              || (k == kind::AND && !child.getConst<bool>()))
+          if ((k == Kind::OR && child.getConst<bool>())
+              || (k == Kind::AND && !child.getConst<bool>()))
           {
             buffer.clear();
             buffer.push_back(child);

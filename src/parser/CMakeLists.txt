@@ -17,16 +17,13 @@
 # libcvc5parser source files
 
 set(libcvc5parserapi_src_files
-  api/cpp/command.cpp
-  api/cpp/command.h
-  api/cpp/symbol_manager.cpp
-  api/cpp/symbol_manager.h
-  api/cpp/input_parser.cpp
-  api/cpp/input_parser.h
+  ../api/cpp/cvc5_parser.cpp
 )
 
 set(libcvc5parser_src_files
+  commands.cpp
   commands.h
+  command_status.cpp
   command_status.h
   input.cpp
   input.h

@@ -78,9 +78,9 @@ void StringsFmf::StringSumLengthDecisionStrategy::initialize(
     std::vector<Node> sum;
     for (const Node& v : vars)
     {
-      sum.push_back(nm->mkNode(STRING_LENGTH, v));
+      sum.push_back(nm->mkNode(Kind::STRING_LENGTH, v));
     }
-    Node sumn = sum.size() == 1 ? sum[0] : nm->mkNode(ADD, sum);
+    Node sumn = sum.size() == 1 ? sum[0] : nm->mkNode(Kind::ADD, sum);
     d_inputVarLsum.set(sumn);
   }
 }
@@ -92,7 +92,8 @@ Node StringsFmf::StringSumLengthDecisionStrategy::mkLiteral(unsigned i)
     return Node::null();
   }
   NodeManager* nm = NodeManager::currentNM();
-  Node lit = nm->mkNode(LEQ, d_inputVarLsum.get(), nm->mkConstInt(Rational(i)));
+  Node lit =
+      nm->mkNode(Kind::LEQ, d_inputVarLsum.get(), nm->mkConstInt(Rational(i)));
   Trace("strings-fmf") << "StringsFMF::mkLiteral: " << lit << std::endl;
   return lit;
 }

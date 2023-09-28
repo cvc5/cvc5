@@ -31,7 +31,7 @@ namespace datatypes {
 /**
  * Converts between the datatype-specific (untrustworthy) DatatypesInference
  * class and information about how to construct a trustworthy proof step
- * (PfRule, children, args). It acts as a (lazy) proof generator where the
+ * (ProofRule, children, args). It acts as a (lazy) proof generator where the
  * former is registered via notifyFact and the latter is asked for in
  * getProofFor, typically by the proof equality engine.
  *

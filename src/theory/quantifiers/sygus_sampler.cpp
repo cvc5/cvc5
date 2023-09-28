@@ -581,13 +581,13 @@ Node SygusSampler::getRandomValue(TypeNode tn)
       }
       else
       {
-        ret = nm->mkNode(kind::ADD, sum);
+        ret = nm->mkNode(Kind::ADD, sum);
       }
 
       if (Random::getRandom().pickWithProb(0.5))
       {
         // negative
-        ret = nm->mkNode(kind::NEG, ret);
+        ret = nm->mkNode(Kind::NEG, ret);
       }
       ret = d_env.getRewriter()->rewrite(ret);
       Assert(ret.isConst());

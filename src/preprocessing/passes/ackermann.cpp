@@ -53,10 +53,10 @@ void addLemmaForPair(TNode args1,
 {
   Node args_eq;
 
-  if (args1.getKind() == kind::APPLY_UF)
+  if (args1.getKind() == Kind::APPLY_UF)
   {
     Assert(args1.getOperator() == func);
-    Assert(args2.getKind() == kind::APPLY_UF && args2.getOperator() == func);
+    Assert(args2.getKind() == Kind::APPLY_UF && args2.getOperator() == func);
     Assert(args1.getNumChildren() == args2.getNumChildren());
     Assert(args1.getNumChildren() >= 1);
 
@@ -64,11 +64,11 @@ void addLemmaForPair(TNode args1,
 
     for (unsigned i = 0, n = args1.getNumChildren(); i < n; ++i)
     {
-      eqs[i] = nm->mkNode(kind::EQUAL, args1[i], args2[i]);
+      eqs[i] = nm->mkNode(Kind::EQUAL, args1[i], args2[i]);
     }
     if (eqs.size() >= 2)
     {
-      args_eq = nm->mkNode(kind::AND, eqs);
+      args_eq = nm->mkNode(Kind::AND, eqs);
     }
     else
     {
@@ -77,17 +77,16 @@ void addLemmaForPair(TNode args1,
   }
   else
   {
-    Assert(args1.getKind() == kind::SELECT && args1.getOperator() == func);
-    Assert(args2.getKind() == kind::SELECT && args2.getOperator() == func);
+    Assert(args1.getKind() == Kind::SELECT && args1.getOperator() == func);
+    Assert(args2.getKind() == Kind::SELECT && args2.getOperator() == func);
     Assert(args1.getNumChildren() == 2);
     Assert(args2.getNumChildren() == 2);
     args_eq = nm->mkNode(Kind::AND,
-      nm->mkNode(kind::EQUAL, args1[0], args2[0]),
-      nm->mkNode(kind::EQUAL, args1[1], args2[1])
-    );
+                         nm->mkNode(Kind::EQUAL, args1[0], args2[0]),
+                         nm->mkNode(Kind::EQUAL, args1[1], args2[1]));
   }
-  Node func_eq = nm->mkNode(kind::EQUAL, args1, args2);
-  Node lemma = nm->mkNode(kind::IMPLIES, args_eq, func_eq);
+  Node func_eq = nm->mkNode(Kind::EQUAL, args1, args2);
+  Node lemma = nm->mkNode(Kind::IMPLIES, args_eq, func_eq);
   assertionsToPreprocess->push_back(lemma);
 }
 
@@ -165,7 +164,7 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
     if (seen.find(term) == seen.end())
     {
       TNode func;
-      if (term.getKind() == kind::APPLY_UF || term.getKind() == kind::SELECT)
+      if (term.getKind() == Kind::APPLY_UF || term.getKind() == Kind::SELECT)
       {
         storeFunctionAndAddLemmas(term.getOperator(),
                                   term,
@@ -177,7 +176,7 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
       }
       else
       {
-        AlwaysAssert(term.getKind() != kind::STORE)
+        AlwaysAssert(term.getKind() != Kind::STORE)
             << "Cannot use Ackermannization on formula with stores to arrays";
         /* add children to the vector, so that they are processed later */
         for (TNode n : term)

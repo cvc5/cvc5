@@ -28,6 +28,7 @@ const char* toString(InferenceId i)
 {
   switch (i)
   {
+    case InferenceId::NONE: return "NONE";
     case InferenceId::EQ_CONSTANT_MERGE: return "EQ_CONSTANT_MERGE";
     case InferenceId::COMBINATION_SPLIT: return "COMBINATION_SPLIT";
     case InferenceId::EXTT_SIMPLIFY: return "EXTT_SIMPLIFY";
@@ -544,8 +545,11 @@ const char* toString(InferenceId i)
     case InferenceId::UF_HO_LAMBDA_APP_REDUCE: return "HO_LAMBDA_APP_REDUCE";
     case InferenceId::UF_ARITH_BV_CONV_REDUCTION:
       return "UF_ARITH_BV_CONV_REDUCTION";
+    case InferenceId::UNKNOWN: return "?";
 
-    default: return "?";
+    default:
+      Assert(false) << "No print for inference id " << static_cast<size_t>(i);
+      return "?Unhandled";
   }
 }
 

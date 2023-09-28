@@ -96,7 +96,7 @@ void SygusEnumerator::initialize(Node e)
       slem = rewrite(slem);
       // break into conjuncts
       std::vector<Node> sblc;
-      if (slem.getKind() == AND)
+      if (slem.getKind() == Kind::AND)
       {
         for (const Node& slemc : slem)
         {
@@ -114,7 +114,7 @@ void SygusEnumerator::initialize(Node e)
         // if its a negation of a unit top-level tester, then this specifies
         // that we should not enumerate terms whose top symbol is that
         // constructor
-        if (sblemma.getKind() == NOT)
+        if (sblemma.getKind() == Kind::NOT)
         {
           Node a;
           int tst = datatypes::utils::isTester(sblemma[0], a);
@@ -676,7 +676,8 @@ Node SygusEnumerator::TermEnumMaster::getCurrent()
     // ensure all variables are unique
     childrenToShape(children);
   }
-  d_currTerm = NodeManager::currentNM()->mkNode(APPLY_CONSTRUCTOR, children);
+  d_currTerm =
+      NodeManager::currentNM()->mkNode(Kind::APPLY_CONSTRUCTOR, children);
   return d_currTerm;
 }
 

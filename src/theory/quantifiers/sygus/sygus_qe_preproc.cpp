@@ -31,7 +31,7 @@ SygusQePreproc::SygusQePreproc(Env& env) : EnvObj(env) {}
 Node SygusQePreproc::preprocess(Node q)
 {
   Node body = q[1];
-  if (body.getKind() == NOT && body[0].getKind() == FORALL)
+  if (body.getKind() == Kind::NOT && body[0].getKind() == Kind::FORALL)
   {
     body = body[0][1];
   }
@@ -112,8 +112,9 @@ Node SygusQePreproc::preprocess(Node q)
   Node conj_se_ngsi_subs = conj_se_ngsi.substitute(
       orig.begin(), orig.end(), subs.begin(), subs.end());
   Assert(!qe_vars.empty());
-  conj_se_ngsi_subs = nm->mkNode(
-      EXISTS, nm->mkNode(BOUND_VAR_LIST, qe_vars), conj_se_ngsi_subs.negate());
+  conj_se_ngsi_subs = nm->mkNode(Kind::EXISTS,
+                                 nm->mkNode(Kind::BOUND_VAR_LIST, qe_vars),
+                                 conj_se_ngsi_subs.negate());
 
   Trace("cegqi-qep") << "Run quantifier elimination on " << conj_se_ngsi_subs
                      << std::endl;
@@ -127,10 +128,11 @@ Node SygusQePreproc::preprocess(Node q)
         qeRes.substitute(subs.begin(), subs.end(), orig.begin(), orig.end());
     if (!nqe_vars.empty())
     {
-      qeRes = nm->mkNode(EXISTS, nm->mkNode(BOUND_VAR_LIST, nqe_vars), qeRes);
+      qeRes = nm->mkNode(
+          Kind::EXISTS, nm->mkNode(Kind::BOUND_VAR_LIST, nqe_vars), qeRes);
     }
     Assert(q.getNumChildren() == 3);
-    qeRes = nm->mkNode(FORALL, q[0], qeRes, q[2]);
+    qeRes = nm->mkNode(Kind::FORALL, q[0], qeRes, q[2]);
     Trace("cegqi-qep") << "Converted conjecture after QE : " << qeRes
                        << std::endl;
     qeRes = rewrite(qeRes);

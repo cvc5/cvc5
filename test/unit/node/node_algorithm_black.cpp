@@ -28,7 +28,6 @@
 namespace cvc5::internal {
 
 using namespace expr;
-using namespace kind;
 
 namespace test {
 
@@ -40,7 +39,7 @@ TEST_F(TestNodeBlackNodeAlgorithm, get_symbols1)
 {
   // The only symbol in ~x (x is a boolean varible) should be x
   Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->booleanType());
-  Node n = d_nodeManager->mkNode(NOT, x);
+  Node n = d_nodeManager->mkNode(Kind::NOT, x);
   std::unordered_set<Node> syms;
   getSymbols(n, syms);
   ASSERT_EQ(syms.size(), 1);
@@ -55,19 +54,19 @@ TEST_F(TestNodeBlackNodeAlgorithm, get_symbols2)
   // left conjunct
   Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->integerType());
   Node y = d_skolemManager->mkDummySkolem("y", d_nodeManager->integerType());
-  Node left = d_nodeManager->mkNode(EQUAL, x, y);
+  Node left = d_nodeManager->mkNode(Kind::EQUAL, x, y);
 
   // right conjunct
   Node var = d_nodeManager->mkBoundVar(*d_intTypeNode);
   std::vector<Node> vars;
   vars.push_back(var);
-  Node sum = d_nodeManager->mkNode(ADD, var, var);
-  Node qeq = d_nodeManager->mkNode(EQUAL, x, sum);
-  Node bvl = d_nodeManager->mkNode(BOUND_VAR_LIST, vars);
-  Node right = d_nodeManager->mkNode(EXISTS, bvl, qeq);
+  Node sum = d_nodeManager->mkNode(Kind::ADD, var, var);
+  Node qeq = d_nodeManager->mkNode(Kind::EQUAL, x, sum);
+  Node bvl = d_nodeManager->mkNode(Kind::BOUND_VAR_LIST, vars);
+  Node right = d_nodeManager->mkNode(Kind::EXISTS, bvl, qeq);
 
   // conjunction
-  Node res = d_nodeManager->mkNode(AND, left, right);
+  Node res = d_nodeManager->mkNode(Kind::AND, left, right);
 
   // symbols
   std::unordered_set<Node> syms;
@@ -88,17 +87,17 @@ TEST_F(TestNodeBlackNodeAlgorithm, get_operators_map)
 
   // create test formula
   Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->integerType());
-  Node plus = d_nodeManager->mkNode(ADD, x, x);
-  Node mul = d_nodeManager->mkNode(MULT, x, x);
-  Node eq1 = d_nodeManager->mkNode(EQUAL, plus, mul);
+  Node plus = d_nodeManager->mkNode(Kind::ADD, x, x);
+  Node mul = d_nodeManager->mkNode(Kind::MULT, x, x);
+  Node eq1 = d_nodeManager->mkNode(Kind::EQUAL, plus, mul);
 
   Node y =
       d_skolemManager->mkDummySkolem("y", d_nodeManager->mkBitVectorType(4));
   Node ext1 = theory::bv::utils::mkExtract(y, 1, 0);
   Node ext2 = theory::bv::utils::mkExtract(y, 3, 2);
-  Node eq2 = d_nodeManager->mkNode(EQUAL, ext1, ext2);
+  Node eq2 = d_nodeManager->mkNode(Kind::EQUAL, ext1, ext2);
 
-  Node formula = d_nodeManager->mkNode(AND, eq1, eq2);
+  Node formula = d_nodeManager->mkNode(Kind::AND, eq1, eq2);
 
   // call function
   expr::getOperatorsMap(formula, result);
@@ -112,16 +111,17 @@ TEST_F(TestNodeBlackNodeAlgorithm, get_operators_map)
 
   // in integers, we should only have plus and mult as operators
   ASSERT_EQ(result[*d_intTypeNode].size(), 2);
-  ASSERT_NE(result[*d_intTypeNode].find(d_nodeManager->operatorOf(ADD)),
+  ASSERT_NE(result[*d_intTypeNode].find(d_nodeManager->operatorOf(Kind::ADD)),
             result[*d_intTypeNode].end());
-  ASSERT_NE(result[*d_intTypeNode].find(d_nodeManager->operatorOf(MULT)),
+  ASSERT_NE(result[*d_intTypeNode].find(d_nodeManager->operatorOf(Kind::MULT)),
             result[*d_intTypeNode].end());
 
   // in booleans, we should only have "=" and "and" as an operator.
   ASSERT_EQ(result[*d_boolTypeNode].size(), 2);
-  ASSERT_NE(result[*d_boolTypeNode].find(d_nodeManager->operatorOf(EQUAL)),
-            result[*d_boolTypeNode].end());
-  ASSERT_NE(result[*d_boolTypeNode].find(d_nodeManager->operatorOf(AND)),
+  ASSERT_NE(
+      result[*d_boolTypeNode].find(d_nodeManager->operatorOf(Kind::EQUAL)),
+      result[*d_boolTypeNode].end());
+  ASSERT_NE(result[*d_boolTypeNode].find(d_nodeManager->operatorOf(Kind::AND)),
             result[*d_boolTypeNode].end());
 
   // in bv, we should only have "extract" as an operator.
@@ -146,14 +146,14 @@ TEST_F(TestNodeBlackNodeAlgorithm, match)
   Node x = d_nodeManager->mkBoundVar(integer);
   Node a = d_skolemManager->mkDummySkolem("a", integer);
 
-  Node n1 = d_nodeManager->mkNode(MULT, two, x);
+  Node n1 = d_nodeManager->mkNode(Kind::MULT, two, x);
   std::unordered_map<Node, Node> subs;
 
   // check reflexivity
   ASSERT_TRUE(match(n1, n1, subs));
   ASSERT_EQ(subs.size(), 0);
 
-  Node n2 = d_nodeManager->mkNode(MULT, two, a);
+  Node n2 = d_nodeManager->mkNode(Kind::MULT, two, a);
   subs.clear();
 
   // check instance
@@ -164,17 +164,17 @@ TEST_F(TestNodeBlackNodeAlgorithm, match)
   // should return false for flipped arguments (match is not symmetric)
   ASSERT_FALSE(match(n2, n1, subs));
 
-  n2 = d_nodeManager->mkNode(MULT, one, a);
+  n2 = d_nodeManager->mkNode(Kind::MULT, one, a);
 
   // should return false since n2 is not an instance of n1
   ASSERT_FALSE(match(n1, n2, subs));
 
-  n2 = d_nodeManager->mkNode(NONLINEAR_MULT, two, a);
+  n2 = d_nodeManager->mkNode(Kind::NONLINEAR_MULT, two, a);
 
   // should return false for similar operators
   ASSERT_FALSE(match(n1, n2, subs));
 
-  n2 = d_nodeManager->mkNode(MULT, two, a, one);
+  n2 = d_nodeManager->mkNode(Kind::MULT, two, a, one);
 
   // should return false for different number of arguments
   ASSERT_FALSE(match(n1, n2, subs));
@@ -185,13 +185,13 @@ TEST_F(TestNodeBlackNodeAlgorithm, match)
   // should return false for different types
   ASSERT_FALSE(match(n1, n2, subs));
 
-  n1 = d_nodeManager->mkNode(MULT, x, x);
-  n2 = d_nodeManager->mkNode(MULT, two, a);
+  n1 = d_nodeManager->mkNode(Kind::MULT, x, x);
+  n2 = d_nodeManager->mkNode(Kind::MULT, two, a);
 
   // should return false for contradictory substitutions
   ASSERT_FALSE(match(n1, n2, subs));
 
-  n2 = d_nodeManager->mkNode(MULT, a, a);
+  n2 = d_nodeManager->mkNode(Kind::MULT, a, a);
   subs.clear();
 
   // implementation: check if the cache works correctly

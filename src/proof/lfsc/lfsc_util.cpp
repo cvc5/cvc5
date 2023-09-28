@@ -77,11 +77,11 @@ Node mkLfscRuleNode(LfscRule r)
 
 bool LfscProofLetifyTraverseCallback::shouldTraverse(const ProofNode* pn)
 {
-  if (pn->getRule() == PfRule::SCOPE)
+  if (pn->getRule() == ProofRule::SCOPE)
   {
     return false;
   }
-  if (pn->getRule() != PfRule::LFSC_RULE)
+  if (pn->getRule() != ProofRule::LFSC_RULE)
   {
     return true;
   }

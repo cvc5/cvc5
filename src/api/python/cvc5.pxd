@@ -2,7 +2,6 @@
 from cython.operator cimport dereference as deref, preincrement as inc
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
 from libc.stddef cimport wchar_t
-from libcpp.map cimport map as c_map
 from libcpp.set cimport set
 from libcpp.string cimport string
 from libcpp.vector cimport vector
@@ -307,9 +306,8 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Result checkSat() except +
         Result checkSatAssuming(const vector[Term]& assumptions) except +
         Sort declareDatatype(const string& symbol, const vector[DatatypeConstructorDecl]& ctors)
-        Term declareFun(const string& symbol, Sort sort) except +
-        Term declareFun(const string& symbol, const vector[Sort]& sorts, Sort sort) except +
-        Sort declareSort(const string& symbol, uint32_t arity) except +
+        Term declareFun(const string& symbol, const vector[Sort]& sorts, Sort sort, bint fresh) except +
+        Sort declareSort(const string& symbol, uint32_t arity, bint fresh) except +
         Term defineFun(const string& symbol, const vector[Term]& bound_vars,
                        Sort sort, Term term, bint glbl) except +
         Term defineFunRec(const string& symbol, const vector[Term]& bound_vars,
@@ -327,6 +325,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         OptionInfo getOptionInfo(const string& option) except +
         vector[Term] getUnsatAssumptions() except +
         vector[Term] getUnsatCore() except +
+        vector[Term] getUnsatCoreLemmas() except +
         map[Term,Term] getDifficulty() except +
         pair[Result, vector[Term]] getTimeoutCore() except +
         Term getValue(Term term) except +
@@ -347,6 +346,8 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         void resetAssertions() except +
         void setInfo(string& keyword, const string& value) except +
         void setLogic(const string& logic) except +
+        bint isLogicSet() except +
+        string getLogic() except +
         void setOption(const string& option, const string& value) except +
         Term getInterpolant(const Term& conj) except +
         Term getInterpolant(const Term& conj, Grammar& grammar) except +
@@ -454,7 +455,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         bint isString() except +
         string getString() except +
         bint isHistogram() except +
-        c_map[string,uint64_t] getHistogram() except +
+        map[string,uint64_t] getHistogram() except +
 
     cdef cppclass Statistics:
         Statistics() except +

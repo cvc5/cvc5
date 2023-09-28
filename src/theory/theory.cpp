@@ -165,7 +165,7 @@ TheoryId Theory::theoryOf(TNode node,
           }
         }
       }
-      else if (node.getKind() == kind::EQUAL)
+      else if (node.getKind() == Kind::EQUAL)
       {
         // Equality is owned by the theory that owns the domain
         tid = theoryOf(node[0].getType(), usortOwner);
@@ -202,7 +202,7 @@ TheoryId Theory::theoryOf(TNode node,
           }
         }
       }
-      else if (node.getKind() == kind::EQUAL)
+      else if (node.getKind() == Kind::EQUAL)
       {  // Equality
         TNode l = node[0];
         TNode r = node[1];
@@ -434,7 +434,7 @@ void Theory::collectTerms(TNode n,
       termSet.insert(cur);
     }
     // traverse owned terms, don't go under quantifiers
-    if ((k == kind::NOT || k == kind::EQUAL || d_env.theoryOf(cur) == d_id)
+    if ((k == Kind::NOT || k == Kind::EQUAL || d_env.theoryOf(cur) == d_id)
         && !cur.isClosure())
     {
       visit.insert(visit.end(), cur.begin(), cur.end());
@@ -452,7 +452,7 @@ Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
 {
   Assert(tin.getKind() == TrustNodeKind::LEMMA);
   TNode in = tin.getNode();
-  if (in.getKind() == kind::EQUAL)
+  if (in.getKind() == Kind::EQUAL)
   {
     // (and (= x t) phi) can be replaced by phi[x/t] if
     // 1) x is a variable
@@ -624,7 +624,7 @@ void Theory::check(Effort level)
     TNode fact = assertion.d_assertion;
     Trace("theory-check") << "Theory::preNotifyFact " << fact << " " << d_id
                           << std::endl;
-    bool polarity = fact.getKind() != kind::NOT;
+    bool polarity = fact.getKind() != Kind::NOT;
     TNode atom = polarity ? fact : fact[0];
     // call the pre-notify method
     if (preNotifyFact(atom, polarity, fact, assertion.d_isPreregistered, false))
@@ -638,7 +638,7 @@ void Theory::check(Effort level)
     // for preNotifyFact
     Assert(d_equalityEngine != nullptr);
     // assert to the equality engine
-    if (atom.getKind() == kind::EQUAL)
+    if (atom.getKind() == Kind::EQUAL)
     {
       d_equalityEngine->assertEquality(atom, polarity, fact);
     }

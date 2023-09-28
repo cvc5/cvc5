@@ -211,7 +211,7 @@ class Smt2State : public ParserState
    *              transition relation.
    * @return The command that adds an invariant constraint
    */
-  std::unique_ptr<Command> invConstraint(const std::vector<std::string>& names);
+  std::unique_ptr<Cmd> invConstraint(const std::vector<std::string>& names);
 
   /**
    * Sets the logic for the current benchmark. Declares any logic and
@@ -411,13 +411,13 @@ class Smt2State : public ParserState
    *
    * @return An instance of `PushCommand`
    */
-  std::unique_ptr<Command> handlePush(std::optional<uint32_t> nscopes);
+  std::unique_ptr<Cmd> handlePush(std::optional<uint32_t> nscopes);
   /**
    * Handles a pop command.
    *
    * @return An instance of `PopCommand`
    */
-  std::unique_ptr<Command> handlePop(std::optional<uint32_t> nscopes);
+  std::unique_ptr<Cmd> handlePop(std::optional<uint32_t> nscopes);
 
  private:
   void addArithmeticOperators();

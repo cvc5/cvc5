@@ -84,6 +84,7 @@
 #include "util/resource_manager.h"
 #include "util/sexpr.h"
 #include "util/statistics_registry.h"
+#include "util/string.h"
 
 // required for hacks related to old proofs for unsat cores
 #include "base/configuration.h"
@@ -112,6 +113,7 @@ SolverEngine::SolverEngine(const Options* optr)
       d_abductSolver(nullptr),
       d_interpolSolver(nullptr),
       d_quantElimSolver(nullptr),
+      d_userLogicSet(false),
       d_isInternalSubsolver(false),
       d_stats(nullptr)
 {
@@ -288,6 +290,7 @@ void SolverEngine::setLogic(const LogicInfo& logic)
   }
   d_env->d_logic = logic;
   d_userLogic = logic;
+  d_userLogicSet = true;
   setLogicInternal();
 }
 
@@ -303,7 +306,7 @@ void SolverEngine::setLogic(const std::string& s)
   }
 }
 
-void SolverEngine::setLogic(const char* logic) { setLogic(string(logic)); }
+bool SolverEngine::isLogicSet() const { return d_userLogicSet; }
 
 const LogicInfo& SolverEngine::getLogicInfo() const
 {
@@ -458,7 +461,7 @@ void SolverEngine::debugCheckFormals(const std::vector<Node>& formals,
        i != formals.end();
        ++i)
   {
-    if ((*i).getKind() != kind::BOUND_VARIABLE)
+    if ((*i).getKind() != Kind::BOUND_VARIABLE)
     {
       stringstream ss;
       ss << "All formal arguments to defined functions must be "
@@ -511,6 +514,13 @@ void SolverEngine::debugCheckFunctionBody(Node formula,
   }
 }
 
+void SolverEngine::declareConst(const Node& c) { d_state->notifyDeclaration(); }
+
+void SolverEngine::declareSort(const TypeNode& tn)
+{
+  d_state->notifyDeclaration();
+}
+
 void SolverEngine::defineFunction(Node func,
                                   const std::vector<Node>& formals,
                                   Node formula,
@@ -528,7 +538,7 @@ void SolverEngine::defineFunction(Node func,
   {
     NodeManager* nm = NodeManager::currentNM();
     def = nm->mkNode(
-        kind::LAMBDA, nm->mkNode(kind::BOUND_VAR_LIST, formals), def);
+        Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, formals), def);
   }
   Node feq = func.eqNode(def);
   d_smtSolver->getAssertions().addDefineFunDefinition(feq, global);
@@ -588,19 +598,19 @@ void SolverEngine::defineFunctionsRec(
       std::vector<Node> children;
       children.push_back(funcs[i]);
       children.insert(children.end(), formals[i].begin(), formals[i].end());
-      func_app = nm->mkNode(kind::APPLY_UF, children);
+      func_app = nm->mkNode(Kind::APPLY_UF, children);
     }
-    Node lem = nm->mkNode(kind::EQUAL, func_app, formulas[i]);
+    Node lem = nm->mkNode(Kind::EQUAL, func_app, formulas[i]);
     if (!formals[i].empty())
     {
       // set the attribute to denote this is a function definition
-      Node aexpr = nm->mkNode(kind::INST_ATTRIBUTE, func_app);
-      aexpr = nm->mkNode(kind::INST_PATTERN_LIST, aexpr);
+      Node aexpr = nm->mkNode(Kind::INST_ATTRIBUTE, func_app);
+      aexpr = nm->mkNode(Kind::INST_PATTERN_LIST, aexpr);
       FunDefAttribute fda;
       func_app.setAttribute(fda, true);
       // make the quantified formula
-      Node boundVars = nm->mkNode(kind::BOUND_VAR_LIST, formals[i]);
-      lem = nm->mkNode(kind::FORALL, boundVars, lem, aexpr);
+      Node boundVars = nm->mkNode(Kind::BOUND_VAR_LIST, formals[i]);
+      lem = nm->mkNode(Kind::FORALL, boundVars, lem, aexpr);
     }
     // Assert the quantified formula. Notice we don't call assertFormula
     // directly, since we should call a private member method since we have
@@ -937,8 +947,8 @@ SynthResult SolverEngine::checkSynth(bool isNext)
 
 Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
 {
-  beginCall();
   Trace("smt") << "SolverEngine::findSynth " << fst << std::endl;
+  beginCall(true);
   // The grammar(s) we will use. This may be more than one if doing rewrite
   // rule synthesis from input or if no grammar is specified, indicating we
   // wish to use grammars for each function-to-synthesize.
@@ -952,7 +962,7 @@ Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
     gtnu.push_back(ggtn);
   }
   // if synthesizing rewrite rules from input, we infer the grammar here
-  if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_INPUT)
+  if (fst == modes::FindSynthTarget::REWRITE_INPUT)
   {
     if (!gtn.isNull())
     {
@@ -996,6 +1006,7 @@ Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
   }
   Node ret = d_findSynthSolver->findSynth(fst, gtnu);
   d_state->notifyFindSynth(!ret.isNull());
+  endCall();
   return ret;
 }
 
@@ -1050,7 +1061,7 @@ void SolverEngine::declareOracleFun(
     std::vector<Node> appc;
     appc.push_back(var);
     appc.insert(appc.end(), inputs.begin(), inputs.end());
-    app = nm->mkNode(kind::APPLY_UF, appc);
+    app = nm->mkNode(Kind::APPLY_UF, appc);
   }
   else
   {
@@ -1058,7 +1069,7 @@ void SolverEngine::declareOracleFun(
     app = var;
   }
   // makes equality assumption
-  Node assume = nm->mkNode(kind::EQUAL, app, outputs[0]);
+  Node assume = nm->mkNode(Kind::EQUAL, app, outputs[0]);
   // no constraints
   Node constraint = nm->mkConst(true);
   // make the oracle constant which carries the method implementation
@@ -1360,7 +1371,7 @@ std::vector<Node> SolverEngine::convertPreprocessedToInput(
   std::vector<Node> core;
   CDProof cdp(*d_env);
   Node fnode = NodeManager::currentNM()->mkConst(false);
-  cdp.addStep(fnode, PfRule::SAT_REFUTATION, ppa, {});
+  cdp.addStep(fnode, ProofRule::SAT_REFUTATION, ppa, {});
   std::shared_ptr<ProofNode> pepf = cdp.getProofFor(fnode);
   Assert(pepf != nullptr);
   std::shared_ptr<ProofNode> pfn =
@@ -1586,6 +1597,27 @@ UnsatCore SolverEngine::getUnsatCore()
   return getUnsatCoreInternal(false);
 }
 
+std::vector<Node> SolverEngine::getUnsatCoreLemmas()
+{
+  Trace("smt") << "SMT getUnsatCoreLemmas()" << std::endl;
+  finishInit();
+  if (!d_env->getOptions().smt.produceUnsatCores)
+  {
+    throw ModalException(
+        "Cannot get lemmas used to derive unsat when produce-unsat-cores is "
+        "off.");
+  }
+  if (d_state->getMode() != SmtMode::UNSAT)
+  {
+    throw RecoverableModalException(
+        "Cannot get lemmas used to derive unsat unless immediately preceded by "
+        "UNSAT response.");
+  }
+  PropEngine* pe = d_smtSolver->getPropEngine();
+  Assert(pe != nullptr);
+  return pe->getUnsatCoreLemmas();
+}
+
 void SolverEngine::getRelevantQuantTermVectors(
     std::map<Node, InstantiationList>& insts,
     std::map<Node, std::vector<Node>>& sks,
@@ -1609,9 +1641,10 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   {
     throw ModalException("Cannot get a proof when proof option is off.");
   }
-  // The component modes::PROOF_COMPONENT_PREPROCESS returns the proof of
-  // all preprocessed assertions. It does not require being in an unsat state.
-  if (c != modes::PROOF_COMPONENT_RAW_PREPROCESS
+  // The component modes::ProofComponent::PREPROCESS returns
+  // the proof of all preprocessed assertions. It does not require being in an
+  // unsat state.
+  if (c != modes::ProofComponent::RAW_PREPROCESS
       && d_state->getMode() != SmtMode::UNSAT)
   {
     throw RecoverableModalException(
@@ -1626,7 +1659,7 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   bool connectMkOuterScope = false;
   bool commentProves = true;
   options::ProofFormatMode mode = options::ProofFormatMode::NONE;
-  if (c == modes::PROOF_COMPONENT_RAW_PREPROCESS)
+  if (c == modes::ProofComponent::RAW_PREPROCESS)
   {
     // use all preprocessed assertions
     const context::CDList<Node>& assertions =
@@ -1640,20 +1673,20 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
       ps.push_back(pnm->mkAssume(a));
     }
   }
-  else if (c == modes::PROOF_COMPONENT_SAT)
+  else if (c == modes::ProofComponent::SAT)
   {
     ps.push_back(pe->getProof(false));
     // don't need to comment that it proves false
     commentProves = false;
   }
-  else if (c == modes::PROOF_COMPONENT_THEORY_LEMMAS
-           || c == modes::PROOF_COMPONENT_PREPROCESS)
+  else if (c == modes::ProofComponent::THEORY_LEMMAS
+           || c == modes::ProofComponent::PREPROCESS)
   {
     ps = pe->getProofLeaves(c);
     // connect to preprocess proofs for preprocess mode
-    connectToPreprocess = (c == modes::PROOF_COMPONENT_PREPROCESS);
+    connectToPreprocess = (c == modes::ProofComponent::PREPROCESS);
   }
-  else if (c == modes::PROOF_COMPONENT_FULL)
+  else if (c == modes::ProofComponent::FULL)
   {
     ps.push_back(pe->getProof(true));
     connectToPreprocess = true;

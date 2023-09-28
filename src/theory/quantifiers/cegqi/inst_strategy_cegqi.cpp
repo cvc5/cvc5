@@ -101,7 +101,8 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
     Node ceBody = d_qreg.getInstConstantBody(q);
     if( !ceBody.isNull() ){
       //add counterexample lemma
-      Node lem = NodeManager::currentNM()->mkNode( OR, ceLit.negate(), ceBody.negate() );
+      Node lem = NodeManager::currentNM()->mkNode(
+          Kind::OR, ceLit.negate(), ceBody.negate());
       //require any decision on cel to be phase=true
       d_qim.addPendingPhaseRequirement(ceLit, true);
       Trace("cegqi-debug") << "Require phase " << ceLit << " = true." << std::endl;
@@ -109,7 +110,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
       lem = rewrite(lem);
       Trace("cegqi-lemma") << "Counterexample lemma : " << lem << std::endl;
       registerCounterexampleLemma( q, lem );
-      
+
       //compute dependencies between quantified formulas
       std::vector<Node> ics;
       TermUtil::computeInstConstContains(q, ics);
@@ -139,7 +140,8 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
         // This lemma states that if the child is active, then the parent must
         // be asserted, in particular G => Q where G is the CEX literal for the
         // child and Q is the parent.
-        Node dep_lemma = nm->mkNode(IMPLIES, ceLit, nm->mkNode(AND, dep));
+        Node dep_lemma =
+            nm->mkNode(Kind::IMPLIES, ceLit, nm->mkNode(Kind::AND, dep));
         Trace("cegqi-lemma")
             << "Counterexample dependency lemma : " << dep_lemma << std::endl;
         d_qim.lemma(dep_lemma, InferenceId::QUANTIFIERS_CEGQI_CEX_DEP);
@@ -451,7 +453,7 @@ void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
       {
         d_freeDeltaLb = true;
         Node zero = nm->mkConstReal(Rational(0));
-        Node delta_lem = nm->mkNode(GT, delta, zero);
+        Node delta_lem = nm->mkNode(Kind::GT, delta, zero);
         d_qim.lemma(delta_lem, InferenceId::QUANTIFIERS_CEGQI_VTS_LB_DELTA);
       }
     }
@@ -462,13 +464,14 @@ void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
     if( d_check_vts_lemma_lc ){
       Trace("inst-alg") << "-> Minimize delta heuristic, for " << q << std::endl;
       d_check_vts_lemma_lc = false;
-      d_small_const = nm->mkNode(MULT, d_small_const, d_small_const_multiplier);
+      d_small_const =
+          nm->mkNode(Kind::MULT, d_small_const, d_small_const_multiplier);
       d_small_const = rewrite(d_small_const);
       //heuristic for now, until we know how to do nested quantification
       Node delta = vtc->getVtsDelta(true, false);
       if( !delta.isNull() ){
         Trace("quant-vts-debug") << "Delta lemma for " << d_small_const << std::endl;
-        Node delta_lem_ub = nm->mkNode(LT, delta, d_small_const);
+        Node delta_lem_ub = nm->mkNode(Kind::LT, delta, d_small_const);
         d_qim.lemma(delta_lem_ub, InferenceId::QUANTIFIERS_CEGQI_VTS_UB_DELTA);
       }
       std::vector< Node > inf;
@@ -478,7 +481,7 @@ void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
         Trace("quant-vts-debug")
             << "Infinity lemma for " << i << " " << d_small_const << std::endl;
         Node inf_lem_lb = nm->mkNode(
-            GT,
+            Kind::GT,
             i,
             nm->mkConstReal(Rational(1) / d_small_const.getConst<Rational>()));
         d_qim.lemma(inf_lem_lb, InferenceId::QUANTIFIERS_CEGQI_VTS_LB_INF);

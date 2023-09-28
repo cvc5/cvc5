@@ -101,17 +101,17 @@ void BBProof::bbAtom(TNode node)
           Bits bits;
           d_bb->makeVariable(n, bits);
 
-          Node bbt = nm->mkNode(kind::BITVECTOR_BB_TERM, bits);
+          Node bbt = nm->mkNode(Kind::BITVECTOR_BB_TERM, bits);
           d_bbMap.emplace(n, bbt);
           d_tcpg->addRewriteStep(
-              n, bbt, PfRule::BV_BITBLAST_STEP, {}, {n.eqNode(bbt)});
+              n, bbt, ProofRule::BV_BITBLAST_STEP, {}, {n.eqNode(bbt)});
         }
         else if (n.getType().isBitVector())
         {
           Bits bits;
           d_bb->bbTerm(n, bits);
 
-          Node bbt = nm->mkNode(kind::BITVECTOR_BB_TERM, bits);
+          Node bbt = nm->mkNode(Kind::BITVECTOR_BB_TERM, bits);
           Node rbbt;
           if (n.isConst())
           {
@@ -124,7 +124,7 @@ void BBProof::bbAtom(TNode node)
             rbbt = reconstruct(n);
           }
           d_tcpg->addRewriteStep(
-              rbbt, bbt, PfRule::BV_BITBLAST_STEP, {}, {rbbt.eqNode(bbt)});
+              rbbt, bbt, ProofRule::BV_BITBLAST_STEP, {}, {rbbt.eqNode(bbt)});
         }
         else
         {
@@ -141,15 +141,15 @@ void BBProof::bbAtom(TNode node)
     Node result = d_bb->getStoredBBAtom(node);
 
     // Retrieve bit-blasted `rwNode` without post-rewrite.
-    Node bbt = rwNode.getKind() == kind::CONST_BOOLEAN
-                       || rwNode.getKind() == kind::BITVECTOR_BITOF
+    Node bbt = rwNode.getKind() == Kind::CONST_BOOLEAN
+                       || rwNode.getKind() == Kind::BITVECTOR_BITOF
                    ? rwNode
                    : d_bb->applyAtomBBStrategy(rwNode);
 
     Node rbbt = reconstruct(rwNode);
 
     d_tcpg->addRewriteStep(
-        rbbt, bbt, PfRule::BV_BITBLAST_STEP, {}, {rbbt.eqNode(bbt)});
+        rbbt, bbt, ProofRule::BV_BITBLAST_STEP, {}, {rbbt.eqNode(bbt)});
 
     d_bbpg->addBitblastStep(node, bbt, node.eqNode(result));
   }

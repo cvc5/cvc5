@@ -258,7 +258,8 @@ void Def::simplify(FullModelChecker * mc, FirstOrderModelFmc * m) {
       for( unsigned j=0; j< cc.getNumChildren(); j++){
         nc.push_back(m->getStar(cc[j].getType()));
       }
-      cond[cond.size()-1] = NodeManager::currentNM()->mkNode( APPLY_UF, nc );
+      cond[cond.size() - 1] =
+          NodeManager::currentNM()->mkNode(Kind::APPLY_UF, nc);
       //re-add the entries
       for (unsigned i=0; i<cond.size(); i++) {
         addEntry(m, cond[i], value[i]);
@@ -484,7 +485,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
         }
         entry_children.push_back(ri);
       }
-      Node n = NodeManager::currentNM()->mkNode( APPLY_UF, children );
+      Node n = NodeManager::currentNM()->mkNode(Kind::APPLY_UF, children);
       Node nv = fm->getRepresentative( v );
       Trace("fmc-model-debug")
           << "Representative of " << v << " is " << nv << std::endl;
@@ -492,7 +493,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
         Trace("fmc-warn") << "Warning : model for " << op << " has non-constant value in model " << nv << std::endl;
       }
       Node en = hasNonStar ? n
-                           : NodeManager::currentNM()->mkNode(APPLY_UF,
+                           : NodeManager::currentNM()->mkNode(Kind::APPLY_UF,
                                                               entry_children);
       if( std::find(conds.begin(), conds.end(), n )==conds.end() ){
         Trace("fmc-model-debug") << "- add " << n << " -> " << nv << " (entry is " << en << ")" << std::endl;
@@ -950,16 +951,20 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
   if( n.hasAttribute(BoundIntLitAttribute()) ){
     Trace("fmc-debug") << "It is a bounding literal, polarity = " << n.getAttribute(BoundIntLitAttribute()) << std::endl;
     d.addEntry(fm, mkCondDefault(fm, f), n.getAttribute(BoundIntLitAttribute())==1 ? d_false : d_true );
-  }else if( n.getKind() == kind::BOUND_VARIABLE ){
+  }
+  else if (n.getKind() == Kind::BOUND_VARIABLE)
+  {
     Trace("fmc-debug") << "Add default entry..." << std::endl;
     d.addEntry(fm, mkCondDefault(fm, f), n);
   }
-  else if( n.getKind() == kind::NOT ){
+  else if (n.getKind() == Kind::NOT)
+  {
     //just do directly
     doCheck( fm, f, d, n[0] );
     doNegate( d );
   }
-  else if( n.getKind() == kind::FORALL ){
+  else if (n.getKind() == Kind::FORALL)
+  {
     d.addEntry(fm, mkCondDefault(fm, f), Node::null());
   }
   else if( n.getType().isArray() ){
@@ -994,12 +999,14 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
       Def dc;
       doCheck(fm, f, dc, n[i]);
       children.push_back(dc);
-      if( n[i].getKind() == kind::BOUND_VARIABLE ){
+      if (n[i].getKind() == Kind::BOUND_VARIABLE)
+      {
         var_ch.push_back(i);
       }
     }
 
-    if( n.getKind()==APPLY_UF ){
+    if (n.getKind() == Kind::APPLY_UF)
+    {
       Trace("fmc-debug") << "Do uninterpreted compose " << n << std::endl;
       //uninterpreted compose
       doUninterpretedCompose( fm, f, d, n.getOperator(), children );
@@ -1013,9 +1020,12 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
       std::vector< Node > val;
       doUninterpretedCompose(fm, f, d, children[0], children2, 0, cond, val );
       */
-    } else {
+    }
+    else
+    {
       if( !var_ch.empty() ){
-        if( n.getKind()==EQUAL && !n[0].getType().isBoolean() ){
+        if (n.getKind() == Kind::EQUAL && !n[0].getType().isBoolean())
+        {
           if( var_ch.size()==2 ){
             Trace("fmc-debug") << "Do variable equality " << n << std::endl;
             doVariableEquality( fm, f, d, n );
@@ -1023,7 +1033,9 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
             Trace("fmc-debug") << "Do variable relation " << n << std::endl;
             doVariableRelation( fm, f, d, var_ch[0]==0 ? children[1] : children[0], var_ch[0]==0 ? n[0] : n[1] );
           }
-        }else{
+        }
+        else
+        {
           Trace("fmc-warn") << "Don't know how to check " << n << std::endl;
           d.addEntry(fm, mkCondDefault(fm, f), Node::null());
         }
@@ -1191,7 +1203,8 @@ void FullModelChecker::doUninterpretedCompose2( FirstOrderModelFmc * fm, Node f,
     Node v = val[index];
     Trace("fmc-uf-process") << "Process " << v << std::endl;
     bool bind_var = false;
-    if( !v.isNull() && v.getKind()==kind::BOUND_VARIABLE ){
+    if (!v.isNull() && v.getKind() == Kind::BOUND_VARIABLE)
+    {
       int j = fm->getVariableId(f, v);
       Trace("fmc-uf-process") << v << " is variable #" << j << std::endl;
       if (!fm->isStar(cond[j + 1]))
@@ -1258,8 +1271,10 @@ void FullModelChecker::doInterpretedCompose( FirstOrderModelFmc * fm, Node f, De
           bool process = true;
           if (vtn.isBoolean()) {
             //short circuit
-            if( (n.getKind()==OR && dc[index].d_value[i]==d_true) ||
-                (n.getKind()==AND && dc[index].d_value[i]==d_false) ){
+            if ((n.getKind() == Kind::OR && dc[index].d_value[i] == d_true)
+                || (n.getKind() == Kind::AND
+                    && dc[index].d_value[i] == d_false))
+            {
               Node c = mkCond(new_cond);
               d.addEntry(fm, c, dc[index].d_value[i]);
               process = false;
@@ -1308,7 +1323,7 @@ bool FullModelChecker::doMeet( FirstOrderModelFmc * fm, std::vector< Node > & co
 
 Node FullModelChecker::mkCond(const std::vector<Node>& cond)
 {
-  return NodeManager::currentNM()->mkNode(APPLY_UF, cond);
+  return NodeManager::currentNM()->mkNode(Kind::APPLY_UF, cond);
 }
 
 Node FullModelChecker::mkCondDefault( FirstOrderModelFmc * fm, Node f) {
@@ -1336,13 +1351,16 @@ void FullModelChecker::mkCondVec( Node n, std::vector< Node > & cond ) {
 }
 
 Node FullModelChecker::evaluateInterpreted( Node n, std::vector< Node > & vals ) {
-  if( n.getKind()==EQUAL && !n[0].getType().isBoolean() ){
+  if (n.getKind() == Kind::EQUAL && !n[0].getType().isBoolean())
+  {
     if (!vals[0].isNull() && !vals[1].isNull()) {
       return vals[0]==vals[1] ? d_true : d_false;
     }else{
       return Node::null();
     }
-  }else if( n.getKind()==ITE ){
+  }
+  else if (n.getKind() == Kind::ITE)
+  {
     if( vals[0]==d_true ){
       return vals[1];
     }else if( vals[0]==d_false ){
@@ -1350,17 +1368,25 @@ Node FullModelChecker::evaluateInterpreted( Node n, std::vector< Node > & vals )
     }else{
       return vals[1]==vals[2] ? vals[1] : Node::null();
     }
-  }else if( n.getKind()==AND || n.getKind()==OR ){
+  }
+  else if (n.getKind() == Kind::AND || n.getKind() == Kind::OR)
+  {
     bool isNull = false;
     for (unsigned i=0; i<vals.size(); i++) {
-      if((vals[i]==d_true && n.getKind()==OR) || (vals[i]==d_false && n.getKind()==AND)) {
+      if ((vals[i] == d_true && n.getKind() == Kind::OR)
+          || (vals[i] == d_false && n.getKind() == Kind::AND))
+      {
         return vals[i];
-      }else if( vals[i].isNull() ){
+      }
+      else if (vals[i].isNull())
+      {
         isNull = true;
       }
     }
     return isNull ? Node::null() : vals[0];
-  }else{
+  }
+  else
+  {
     std::vector<Node> children;
     if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
       children.push_back( n.getOperator() );

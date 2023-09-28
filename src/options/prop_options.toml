@@ -2,6 +2,19 @@ id     = "PROP"
 name   = "SAT Layer"
 
 [[option]]
+  name       = "satSolver"
+  category   = "expert"
+  long       = "sat-solver=MODE"
+  type       = "SatSolverMode"
+  default    = "MINISAT"
+  help       = "choose which sat solver to use, see --sat-solver=help"
+  help_mode  = "CDCL(T) SAT solver backend."
+[[option.mode.MINISAT]]
+  name = "minisat"
+[[option.mode.CADICAL]]
+  name = "cadical"
+
+[[option]]
   name       = "satRandomFreq"
   alias      = ["random-frequency"]
   category   = "expert"
