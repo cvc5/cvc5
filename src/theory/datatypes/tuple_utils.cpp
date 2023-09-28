@@ -62,7 +62,7 @@ TypeNode TupleUtils::concatTupleTypes(TypeNode tupleType1, TypeNode tupleType2)
 
 Node TupleUtils::nthElementOfTuple(Node tuple, int n_th)
 {
-  if (tuple.getKind() == APPLY_CONSTRUCTOR)
+  if (tuple.getKind() == Kind::APPLY_CONSTRUCTOR)
   {
     return tuple[n_th];
   }
@@ -71,7 +71,7 @@ Node TupleUtils::nthElementOfTuple(Node tuple, int n_th)
   // note that shared selectors are irrelevant for datatypes with one
   // constructor, hence we pass false here
   return NodeManager::currentNM()->mkNode(
-      APPLY_SELECTOR, utils::getSelector(tn, dt[0], n_th, false), tuple);
+      Kind::APPLY_SELECTOR, utils::getSelector(tn, dt[0], n_th, false), tuple);
 }
 
 Node TupleUtils::getTupleProjection(const std::vector<uint32_t>& indices,
@@ -94,10 +94,10 @@ Node TupleUtils::getTupleProjection(const std::vector<uint32_t>& indices,
   for (uint32_t index : indices)
   {
     Node selector = constructor[index].getSelector();
-    Node element = nm->mkNode(kind::APPLY_SELECTOR, selector, tuple);
+    Node element = nm->mkNode(Kind::APPLY_SELECTOR, selector, tuple);
     elements.push_back(element);
   }
-  Node ret = nm->mkNode(kind::APPLY_CONSTRUCTOR, elements);
+  Node ret = nm->mkNode(Kind::APPLY_CONSTRUCTOR, elements);
   return ret;
 }
 
@@ -178,7 +178,7 @@ Node TupleUtils::constructTupleFromElements(TypeNode tupleType,
     tupleElements.push_back(elements[i]);
   }
   NodeManager* nm = NodeManager::currentNM();
-  Node tuple = nm->mkNode(APPLY_CONSTRUCTOR, tupleElements);
+  Node tuple = nm->mkNode(Kind::APPLY_CONSTRUCTOR, tupleElements);
   return tuple;
 }
 
@@ -195,7 +195,7 @@ Node TupleUtils::concatTuples(TypeNode tupleType, Node tuple1, Node tuple2)
 
   // construct the returned tuple
   NodeManager* nm = NodeManager::currentNM();
-  Node tuple = nm->mkNode(APPLY_CONSTRUCTOR, tupleElements);
+  Node tuple = nm->mkNode(Kind::APPLY_CONSTRUCTOR, tupleElements);
   return tuple;
 }
 
@@ -212,7 +212,7 @@ Node TupleUtils::reverseTuple(Node tuple)
   {
     elements.push_back(nthElementOfTuple(tuple, i));
   }
-  return NodeManager::currentNM()->mkNode(APPLY_CONSTRUCTOR, elements);
+  return NodeManager::currentNM()->mkNode(Kind::APPLY_CONSTRUCTOR, elements);
 }
 
 }  // namespace datatypes

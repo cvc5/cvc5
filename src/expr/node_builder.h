@@ -206,7 +206,7 @@ class NodeBuilder {
    * argument, if provided, or UNDEFINED_KIND.  In particular, the
    * associated NodeManager is not affected by clear().
    */
-  void clear(Kind k = kind::UNDEFINED_KIND);
+  void clear(Kind k = Kind::UNDEFINED_KIND);
 
   // "Stream" expression constructor syntax
 

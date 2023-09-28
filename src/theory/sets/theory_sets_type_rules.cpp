@@ -33,12 +33,12 @@ using namespace cvc5::internal::theory::datatypes;
 bool isMaybeRelation(const TypeNode& tn)
 {
   // if not a set type
-  if (!tn.isMaybeKind(kind::SET_TYPE))
+  if (!tn.isMaybeKind(Kind::SET_TYPE))
   {
     return false;
   }
   // if a concrete set type whose element type is not a tuple type
-  if (tn.isSet() && !tn[0].isMaybeKind(kind::TUPLE_TYPE))
+  if (tn.isSet() && !tn[0].isMaybeKind(Kind::TUPLE_TYPE))
   {
     return false;
   }
@@ -56,7 +56,7 @@ bool checkFunctionTypeFor(const Node& n,
   {
     elementType = setType.getSetElementType();
   }
-  if (!functionType.isMaybeKind(kind::FUNCTION_TYPE))
+  if (!functionType.isMaybeKind(Kind::FUNCTION_TYPE))
   {
     if (errOut)
     {
@@ -100,15 +100,15 @@ TypeNode SetsBinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
                                                  bool check,
                                                  std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::SET_UNION || n.getKind() == kind::SET_INTER
-         || n.getKind() == kind::SET_MINUS);
+  Assert(n.getKind() == Kind::SET_UNION || n.getKind() == Kind::SET_INTER
+         || n.getKind() == Kind::SET_MINUS);
   TypeNode setType = n[0].getTypeOrNull();
   TypeNode secondSetType = n[1].getTypeOrNull();
   TypeNode retType = setType.leastUpperBound(secondSetType);
   if (check)
   {
-    if (!setType.isMaybeKind(kind::SET_TYPE)
-        || !secondSetType.isMaybeKind(kind::SET_TYPE))
+    if (!setType.isMaybeKind(Kind::SET_TYPE)
+        || !secondSetType.isMaybeKind(Kind::SET_TYPE))
     {
       if (errOut)
       {
@@ -130,7 +130,7 @@ TypeNode SetsBinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
   // we are ?Set if both children are fully abstract
   if (retType.isFullyAbstract())
   {
-    return nodeManager->mkAbstractType(kind::SET_TYPE);
+    return nodeManager->mkAbstractType(Kind::SET_TYPE);
   }
   return retType;
 }
@@ -141,7 +141,7 @@ bool SetsBinaryOperatorTypeRule::computeIsConst(NodeManager* nodeManager,
   // only SET_UNION has a const rule in kinds.
   // SET_INTER and SET_MINUS are not used in the canonical representation
   // of sets and therefore they do not have const rules in kinds
-  Assert(n.getKind() == kind::SET_UNION);
+  Assert(n.getKind() == Kind::SET_UNION);
   return NormalForm::checkNormalConstant(n);
 }
 
@@ -154,13 +154,13 @@ TypeNode SubsetTypeRule::computeType(NodeManager* nodeManager,
                                      bool check,
                                      std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::SET_SUBSET);
+  Assert(n.getKind() == Kind::SET_SUBSET);
   TypeNode setType = n[0].getTypeOrNull();
   if (check)
   {
     TypeNode secondSetType = n[1].getTypeOrNull();
-    if (!setType.isMaybeKind(kind::SET_TYPE)
-        || !secondSetType.isMaybeKind(kind::SET_TYPE))
+    if (!setType.isMaybeKind(Kind::SET_TYPE)
+        || !secondSetType.isMaybeKind(Kind::SET_TYPE))
     {
       if (errOut)
       {
@@ -189,11 +189,11 @@ TypeNode MemberTypeRule::computeType(NodeManager* nodeManager,
                                      bool check,
                                      std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::SET_MEMBER);
+  Assert(n.getKind() == Kind::SET_MEMBER);
   TypeNode setType = n[1].getTypeOrNull();
   if (check)
   {
-    if (!setType.isMaybeKind(kind::SET_TYPE))
+    if (!setType.isMaybeKind(Kind::SET_TYPE))
     {
       if (errOut)
       {
@@ -226,14 +226,14 @@ TypeNode SingletonTypeRule::computeType(NodeManager* nodeManager,
                                         bool check,
                                         std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::SET_SINGLETON);
+  Assert(n.getKind() == Kind::SET_SINGLETON);
   TypeNode type1 = n[0].getTypeOrNull();
   return nodeManager->mkSetType(type1);
 }
 
 bool SingletonTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
 {
-  Assert(n.getKind() == kind::SET_SINGLETON);
+  Assert(n.getKind() == Kind::SET_SINGLETON);
   return n[0].isConst();
 }
 
@@ -246,7 +246,7 @@ TypeNode EmptySetTypeRule::computeType(NodeManager* nodeManager,
                                        bool check,
                                        std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::SET_EMPTY);
+  Assert(n.getKind() == Kind::SET_EMPTY);
   EmptySet emptySet = n.getConst<EmptySet>();
   return emptySet.getType();
 }
@@ -260,11 +260,11 @@ TypeNode CardTypeRule::computeType(NodeManager* nodeManager,
                                    bool check,
                                    std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::SET_CARD);
+  Assert(n.getKind() == Kind::SET_CARD);
   TypeNode setType = n[0].getTypeOrNull();
   if (check)
   {
-    if (!setType.isMaybeKind(kind::SET_TYPE))
+    if (!setType.isMaybeKind(Kind::SET_TYPE))
     {
       if (errOut)
       {
@@ -285,11 +285,11 @@ TypeNode ComplementTypeRule::computeType(NodeManager* nodeManager,
                                          bool check,
                                          std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::SET_COMPLEMENT);
+  Assert(n.getKind() == Kind::SET_COMPLEMENT);
   TypeNode setType = n[0].getTypeOrNull();
   if (check)
   {
-    if (!setType.isMaybeKind(kind::SET_TYPE))
+    if (!setType.isMaybeKind(Kind::SET_TYPE))
     {
       if (errOut)
       {
@@ -301,7 +301,7 @@ TypeNode ComplementTypeRule::computeType(NodeManager* nodeManager,
   // we are ?Set if argument is ?
   if (setType.isFullyAbstract())
   {
-    return nodeManager->mkAbstractType(kind::SET_TYPE);
+    return nodeManager->mkAbstractType(Kind::SET_TYPE);
   }
   return setType;
 }
@@ -315,14 +315,14 @@ TypeNode UniverseSetTypeRule::computeType(NodeManager* nodeManager,
                                           bool check,
                                           std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::SET_UNIVERSE);
+  Assert(n.getKind() == Kind::SET_UNIVERSE);
   // for nullary operators, we only computeType for check=true, since they are
   // given TypeAttr() on creation
   Assert(check);
   TypeNode setType = n.getTypeOrNull();
   if (check)
   {
-    if (!setType.isMaybeKind(kind::SET_TYPE))
+    if (!setType.isMaybeKind(Kind::SET_TYPE))
     {
       if (errOut)
       {
@@ -343,10 +343,10 @@ TypeNode ComprehensionTypeRule::computeType(NodeManager* nodeManager,
                                             bool check,
                                             std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::SET_COMPREHENSION);
+  Assert(n.getKind() == Kind::SET_COMPREHENSION);
   if (check)
   {
-    if (n[0].getKind() != kind::BOUND_VAR_LIST)
+    if (n[0].getKind() != Kind::BOUND_VAR_LIST)
     {
       if (errOut)
       {
@@ -377,11 +377,11 @@ TypeNode ChooseTypeRule::computeType(NodeManager* nodeManager,
                                      bool check,
                                      std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::SET_CHOOSE);
+  Assert(n.getKind() == Kind::SET_CHOOSE);
   TypeNode setType = n[0].getTypeOrNull();
   if (check)
   {
-    if (!setType.isMaybeKind(kind::SET_TYPE))
+    if (!setType.isMaybeKind(Kind::SET_TYPE))
     {
       if (errOut)
       {
@@ -393,7 +393,7 @@ TypeNode ChooseTypeRule::computeType(NodeManager* nodeManager,
   if (setType.isAbstract())
   {
     // don't know the element type, return the fully abstract type
-    return nodeManager->mkAbstractType(kind::ABSTRACT_TYPE);
+    return nodeManager->mkAbstractType(Kind::ABSTRACT_TYPE);
   }
   return setType.getSetElementType();
 }
@@ -407,11 +407,11 @@ TypeNode IsSingletonTypeRule::computeType(NodeManager* nodeManager,
                                           bool check,
                                           std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::SET_IS_SINGLETON);
+  Assert(n.getKind() == Kind::SET_IS_SINGLETON);
   TypeNode setType = n[0].getTypeOrNull();
   if (check)
   {
-    if (!setType.isMaybeKind(kind::SET_TYPE))
+    if (!setType.isMaybeKind(Kind::SET_TYPE))
     {
       if (errOut)
       {
@@ -433,13 +433,13 @@ TypeNode InsertTypeRule::computeType(NodeManager* nodeManager,
                                      bool check,
                                      std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::SET_INSERT);
+  Assert(n.getKind() == Kind::SET_INSERT);
   size_t numChildren = n.getNumChildren();
   Assert(numChildren >= 2);
   TypeNode setType = n[numChildren - 1].getTypeOrNull();
   if (check)
   {
-    if (!setType.isMaybeKind(kind::SET_TYPE))
+    if (!setType.isMaybeKind(Kind::SET_TYPE))
     {
       if (errOut)
       {
@@ -484,12 +484,12 @@ TypeNode SetMapTypeRule::computeType(NodeManager* nodeManager,
                                      bool check,
                                      std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::SET_MAP);
+  Assert(n.getKind() == Kind::SET_MAP);
   TypeNode functionType = n[0].getTypeOrNull();
   TypeNode setType = n[1].getTypeOrNull();
   if (check)
   {
-    if (!setType.isMaybeKind(kind::SET_TYPE))
+    if (!setType.isMaybeKind(Kind::SET_TYPE))
     {
       if (errOut)
       {
@@ -511,7 +511,7 @@ TypeNode SetMapTypeRule::computeType(NodeManager* nodeManager,
   else
   {
     // if an abstract function, the element type is fully abstract
-    rangeType = nodeManager->mkAbstractType(kind::ABSTRACT_TYPE);
+    rangeType = nodeManager->mkAbstractType(Kind::ABSTRACT_TYPE);
   }
   return nodeManager->mkSetType(rangeType);
 }
@@ -525,12 +525,12 @@ TypeNode SetFilterTypeRule::computeType(NodeManager* nodeManager,
                                         bool check,
                                         std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::SET_FILTER);
+  Assert(n.getKind() == Kind::SET_FILTER);
   TypeNode functionType = n[0].getTypeOrNull();
   TypeNode setType = n[1].getTypeOrNull();
   if (check)
   {
-    if (!setType.isMaybeKind(kind::SET_TYPE))
+    if (!setType.isMaybeKind(Kind::SET_TYPE))
     {
       if (errOut)
       {
@@ -568,7 +568,7 @@ TypeNode SetFoldTypeRule::computeType(NodeManager* nodeManager,
                                       bool check,
                                       std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::SET_FOLD);
+  Assert(n.getKind() == Kind::SET_FOLD);
   TypeNode functionType = n[0].getTypeOrNull();
   TypeNode setType = n[2].getTypeOrNull();
   if (check)
@@ -625,7 +625,7 @@ TypeNode SetFoldTypeRule::computeType(NodeManager* nodeManager,
   if (functionType.isAbstract())
   {
     // if an abstract function, the element type is fully abstract
-    return nodeManager->mkAbstractType(kind::ABSTRACT_TYPE);
+    return nodeManager->mkAbstractType(Kind::ABSTRACT_TYPE);
   }
   return functionType.getRangeType();
 }
@@ -639,8 +639,8 @@ TypeNode RelBinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
                                                 bool check,
                                                 std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::RELATION_PRODUCT
-         || n.getKind() == kind::RELATION_JOIN);
+  Assert(n.getKind() == Kind::RELATION_PRODUCT
+         || n.getKind() == Kind::RELATION_JOIN);
 
   TypeNode firstRelType = n[0].getTypeOrNull();
   TypeNode secondRelType = n[1].getTypeOrNull();
@@ -648,6 +648,7 @@ TypeNode RelBinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
   if (check)
   {
     if (!isMaybeRelation(firstRelType) || !isMaybeRelation(secondRelType))
+
     {
       if (errOut)
       {
@@ -664,7 +665,7 @@ TypeNode RelBinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
     std::vector<TypeNode> firstTupleTypes = firstRelType[0].getTupleTypes();
     std::vector<TypeNode> secondTupleTypes = secondRelType[0].getTupleTypes();
     // RELATION_JOIN is not allowed to apply on two unary sets
-    if (n.getKind() == kind::RELATION_JOIN)
+    if (n.getKind() == Kind::RELATION_JOIN)
     {
       if ((firstTupleTypes.size() == 1) && (secondTupleTypes.size() == 1))
       {
@@ -689,7 +690,7 @@ TypeNode RelBinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
                            secondTupleTypes.begin() + 1,
                            secondTupleTypes.end());
     }
-    else if (n.getKind() == kind::RELATION_PRODUCT)
+    else if (n.getKind() == Kind::RELATION_PRODUCT)
     {
       newTupleTypes.insert(
           newTupleTypes.end(), firstTupleTypes.begin(), firstTupleTypes.end());
@@ -704,7 +705,7 @@ TypeNode RelBinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
   {
     // otherwise, an abstract relation type
     resultType =
-        nodeManager->mkSetType(nodeManager->mkAbstractType(kind::TUPLE_TYPE));
+        nodeManager->mkSetType(nodeManager->mkAbstractType(Kind::TUPLE_TYPE));
   }
   return resultType;
 }
@@ -718,7 +719,7 @@ TypeNode RelTransposeTypeRule::computeType(NodeManager* nodeManager,
                                            bool check,
                                            std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::RELATION_TRANSPOSE);
+  Assert(n.getKind() == Kind::RELATION_TRANSPOSE);
   TypeNode setType = n[0].getTypeOrNull();
   if (check && !isMaybeRelation(setType))
   {
@@ -732,7 +733,7 @@ TypeNode RelTransposeTypeRule::computeType(NodeManager* nodeManager,
   if (setType.isAbstract())
   {
     return nodeManager->mkSetType(
-        nodeManager->mkAbstractType(kind::TUPLE_TYPE));
+        nodeManager->mkAbstractType(Kind::TUPLE_TYPE));
   }
   // otherwise, reverse the types
   std::vector<TypeNode> tupleTypes = setType[0].getTupleTypes();
@@ -749,7 +750,7 @@ TypeNode RelTransClosureTypeRule::computeType(NodeManager* nodeManager,
                                               bool check,
                                               std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::RELATION_TCLOSURE);
+  Assert(n.getKind() == Kind::RELATION_TCLOSURE);
   TypeNode setType = n[0].getTypeOrNull();
   if (check)
   {
@@ -787,7 +788,7 @@ TypeNode RelTransClosureTypeRule::computeType(NodeManager* nodeManager,
   if (setType.isFullyAbstract())
   {
     return nodeManager->mkSetType(
-        nodeManager->mkAbstractType(kind::TUPLE_TYPE));
+        nodeManager->mkAbstractType(Kind::TUPLE_TYPE));
   }
   return setType;
 }
@@ -801,7 +802,7 @@ TypeNode JoinImageTypeRule::computeType(NodeManager* nodeManager,
                                         bool check,
                                         std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::RELATION_JOIN_IMAGE);
+  Assert(n.getKind() == Kind::RELATION_JOIN_IMAGE);
 
   TypeNode firstRelType = n[0].getTypeOrNull();
 
@@ -817,7 +818,7 @@ TypeNode JoinImageTypeRule::computeType(NodeManager* nodeManager,
   {
     // abstract relation if the argument is not concreate
     return nodeManager->mkSetType(
-        nodeManager->mkAbstractType(kind::TUPLE_TYPE));
+        nodeManager->mkAbstractType(Kind::TUPLE_TYPE));
   }
   std::vector<TypeNode> tupleTypes = firstRelType[0].getTupleTypes();
   if (check)
@@ -864,7 +865,7 @@ TypeNode RelIdenTypeRule::computeType(NodeManager* nodeManager,
                                       bool check,
                                       std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::RELATION_IDEN);
+  Assert(n.getKind() == Kind::RELATION_IDEN);
   TypeNode setType = n[0].getTypeOrNull();
   if (check)
   {
@@ -892,7 +893,7 @@ TypeNode RelIdenTypeRule::computeType(NodeManager* nodeManager,
   if (!setType.isRelation())
   {
     return nodeManager->mkSetType(
-        nodeManager->mkAbstractType(kind::TUPLE_TYPE));
+        nodeManager->mkAbstractType(Kind::TUPLE_TYPE));
   }
   std::vector<TypeNode> tupleTypes = setType[0].getTupleTypes();
   tupleTypes.push_back(tupleTypes[0]);
@@ -908,8 +909,8 @@ TypeNode RelationGroupTypeRule::computeType(NodeManager* nm,
                                             bool check,
                                             std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::RELATION_GROUP && n.hasOperator()
-         && n.getOperator().getKind() == kind::RELATION_GROUP_OP);
+  Assert(n.getKind() == Kind::RELATION_GROUP && n.hasOperator()
+         && n.getOperator().getKind() == Kind::RELATION_GROUP_OP);
   ProjectOp op = n.getOperator().getConst<ProjectOp>();
   const std::vector<uint32_t>& indices = op.getIndices();
 
@@ -944,7 +945,7 @@ TypeNode RelationGroupTypeRule::computeType(NodeManager* nm,
   // that information before constructing the return type
   if (!setType.isRelation())
   {
-    setType = nm->mkSetType(nm->mkAbstractType(kind::TUPLE_TYPE));
+    setType = nm->mkSetType(nm->mkAbstractType(Kind::TUPLE_TYPE));
   }
   return nm->mkSetType(setType);
 }
@@ -958,8 +959,8 @@ TypeNode RelationAggregateTypeRule::computeType(NodeManager* nm,
                                                 bool check,
                                                 std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::RELATION_AGGREGATE && n.hasOperator()
-         && n.getOperator().getKind() == kind::RELATION_AGGREGATE_OP);
+  Assert(n.getKind() == Kind::RELATION_AGGREGATE && n.hasOperator()
+         && n.getOperator().getKind() == Kind::RELATION_AGGREGATE_OP);
   ProjectOp op = n.getOperator().getConst<ProjectOp>();
   const std::vector<uint32_t>& indices = op.getIndices();
 
@@ -991,7 +992,7 @@ TypeNode RelationAggregateTypeRule::computeType(NodeManager* nm,
         return TypeNode::null();
       }
     }
-    if (!functionType.isMaybeKind(kind::FUNCTION_TYPE))
+    if (!functionType.isMaybeKind(Kind::FUNCTION_TYPE))
     {
       if (errOut)
       {
@@ -1042,7 +1043,7 @@ TypeNode RelationAggregateTypeRule::computeType(NodeManager* nm,
   if (functionType.isAbstract())
   {
     // if an abstract function, return ?Set
-    return nm->mkSetType(nm->mkAbstractType(kind::ABSTRACT_TYPE));
+    return nm->mkSetType(nm->mkAbstractType(Kind::ABSTRACT_TYPE));
   }
   return nm->mkSetType(functionType.getRangeType());
 }
@@ -1056,8 +1057,8 @@ TypeNode RelationProjectTypeRule::computeType(NodeManager* nm,
                                               bool check,
                                               std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::RELATION_PROJECT && n.hasOperator()
-         && n.getOperator().getKind() == kind::RELATION_PROJECT_OP);
+  Assert(n.getKind() == Kind::RELATION_PROJECT && n.hasOperator()
+         && n.getOperator().getKind() == Kind::RELATION_PROJECT_OP);
   ProjectOp op = n.getOperator().getConst<ProjectOp>();
   const std::vector<uint32_t>& indices = op.getIndices();
   TypeNode setType = n[0].getTypeOrNull();
@@ -1097,7 +1098,7 @@ TypeNode RelationProjectTypeRule::computeType(NodeManager* nm,
   // abstract relation type if applied to abstract argument
   if (setType.isAbstract())
   {
-    return nm->mkSetType(nm->mkAbstractType(kind::TUPLE_TYPE));
+    return nm->mkSetType(nm->mkAbstractType(Kind::TUPLE_TYPE));
   }
   TypeNode tupleType = setType.getSetElementType();
   TypeNode retTupleType =
@@ -1107,7 +1108,7 @@ TypeNode RelationProjectTypeRule::computeType(NodeManager* nm,
 
 Cardinality SetsProperties::computeCardinality(TypeNode type)
 {
-  Assert(type.getKind() == kind::SET_TYPE);
+  Assert(type.getKind() == Kind::SET_TYPE);
   Cardinality elementCard = 2;
   elementCard ^= type[0].getCardinality();
   return elementCard;

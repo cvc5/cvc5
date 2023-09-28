@@ -137,6 +137,9 @@ jobs:
         continue-on-error: true
         run: |
           if [ "$ISRELEASE" = true ]; then
+            eval $(ssh-agent -s)
+            ssh-add - <<< "${{ secrets.CVC5_DOCS_RELEASE_TOKEN }}"
+
             cd target-releases/
 
             rm -f latest

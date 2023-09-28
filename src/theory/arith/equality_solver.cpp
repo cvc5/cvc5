@@ -48,17 +48,17 @@ void EqualitySolver::finishInit()
 {
   d_ee = d_astate.getEqualityEngine();
   // add the function kinds
-  d_ee->addFunctionKind(kind::NONLINEAR_MULT);
-  d_ee->addFunctionKind(kind::EXPONENTIAL);
-  d_ee->addFunctionKind(kind::SINE);
-  d_ee->addFunctionKind(kind::IAND);
-  d_ee->addFunctionKind(kind::POW2);
+  d_ee->addFunctionKind(Kind::NONLINEAR_MULT);
+  d_ee->addFunctionKind(Kind::EXPONENTIAL);
+  d_ee->addFunctionKind(Kind::SINE);
+  d_ee->addFunctionKind(Kind::IAND);
+  d_ee->addFunctionKind(Kind::POW2);
 }
 
 bool EqualitySolver::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
-  if (atom.getKind() != EQUAL)
+  if (atom.getKind() != Kind::EQUAL)
   {
     // finished processing, since not beneficial to add non-equality facts
     return true;

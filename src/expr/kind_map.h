@@ -45,11 +45,11 @@ class KindMap
   /** Convert kind to std::size_t and check bounds */
   static std::size_t fromKind(Kind k)
   {
-    AssertArgument(k >= Kind(0) && k < kind::LAST_KIND, k, "invalid kind");
+    AssertArgument(k >= Kind(0) && k < Kind::LAST_KIND, k, "invalid kind");
     return static_cast<std::size_t>(k);
   }
   /** The bitmap */
-  std::bitset<kind::LAST_KIND> d_bits;
+  std::bitset<static_cast<size_t>(Kind::LAST_KIND)> d_bits;
 };
 
 }  // namespace cvc5::internal

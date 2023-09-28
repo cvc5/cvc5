@@ -10,7 +10,7 @@
 ; of removing the first occurrence of l from  c1, and the first occurrence of the  negation of l from v2
 ; when pol is tt, or vice versa when pol is ff. Since the resolution may result
 ; in a singleton list, we run nary_elim as a last step, which ensures that
-; we conclude e.g. L and not (or L false), as done in PfRule::RESOLUTION.
+; we conclude e.g. L and not (or L false), as done in ProofRule::RESOLUTION.
 ; This side condition may fail if c1 or c2 does not contain l with the required
 ; polarity.
 (function sc_resolution ((c1 term) (c2 term) (pol flag) (l term)) term
@@ -61,11 +61,11 @@
 )
 
 ; Process scope side condition. This side condition is used for constructing the
-; proven formula for the two cases of PfRule::SCOPE. In particular, it takes:
+; proven formula for the two cases of ProofRule::SCOPE. In particular, it takes:
 ; - a term t which is expected to be an or-application
 ; - a term c which is expected to be a suffix of t.
 ; It may conclude an implication, or the negation of t, based on whether c
-; is false, according to the definition of PfRule::SCOPE.
+; is false, according to the definition of ProofRule::SCOPE.
 ; This side condition may fail if t and c do not have the above properties.
 (function sc_process_scope ((t term) (c term)) term
   (let premise (sc_not_and_rev (nary_truncate f_or t c false))
