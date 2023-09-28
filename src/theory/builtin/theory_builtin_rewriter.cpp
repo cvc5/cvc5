@@ -33,7 +33,7 @@ namespace builtin {
 
 Node TheoryBuiltinRewriter::blastDistinct(TNode in)
 {
-  Assert(in.getKind() == kind::DISTINCT);
+  Assert(in.getKind() == Kind::DISTINCT);
 
   NodeManager* nm = NodeManager::currentNM();
 
@@ -48,7 +48,7 @@ Node TheoryBuiltinRewriter::blastDistinct(TNode in)
   {
     // if this is the case exactly 1 != pair will be generated so the
     // AND is not required
-    return nm->mkNode(kind::NOT, nm->mkNode(kind::EQUAL, in[0], in[1]));
+    return nm->mkNode(Kind::NOT, nm->mkNode(Kind::EQUAL, in[0], in[1]));
   }
 
   // assume that in.getNumChildren() > 2 => diseqs.size() > 1
@@ -56,12 +56,12 @@ Node TheoryBuiltinRewriter::blastDistinct(TNode in)
   for(TNode::iterator i = in.begin(); i != in.end(); ++i) {
     TNode::iterator j = i;
     while(++j != in.end()) {
-      Node eq = nm->mkNode(kind::EQUAL, *i, *j);
-      Node neq = nm->mkNode(kind::NOT, eq);
+      Node eq = nm->mkNode(Kind::EQUAL, *i, *j);
+      Node neq = nm->mkNode(Kind::NOT, eq);
       diseqs.push_back(neq);
     }
   }
-  return nm->mkNode(kind::AND, diseqs);
+  return nm->mkNode(Kind::AND, diseqs);
 }
 
 RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
@@ -73,7 +73,7 @@ RewriteResponse TheoryBuiltinRewriter::doRewrite(TNode node)
 {
   switch (node.getKind())
   {
-    case kind::WITNESS:
+    case Kind::WITNESS:
     {
       // it is important to run this rewriting at prerewrite and postrewrite,
       // since e.g. arithmetic rewrites equalities in ways that may make an
@@ -82,9 +82,9 @@ RewriteResponse TheoryBuiltinRewriter::doRewrite(TNode node)
       Node rnode = rewriteWitness(node);
       return RewriteResponse(REWRITE_DONE, rnode);
     }
-    case kind::DISTINCT:
+    case Kind::DISTINCT:
       return RewriteResponse(REWRITE_DONE, blastDistinct(node));
-    case kind::APPLY_INDEXED_SYMBOLIC:
+    case Kind::APPLY_INDEXED_SYMBOLIC:
     {
       Node rnode = rewriteApplyIndexedSymbolic(node);
       if (rnode != node)
@@ -100,8 +100,8 @@ RewriteResponse TheoryBuiltinRewriter::doRewrite(TNode node)
 
 Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
 {
-  Assert(node.getKind() == kind::WITNESS);
-  if (node[1].getKind() == kind::EQUAL)
+  Assert(node.getKind() == Kind::WITNESS);
+  if (node[1].getKind() == Kind::EQUAL)
   {
     for (size_t i = 0; i < 2; i++)
     {
@@ -126,7 +126,7 @@ Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
     // (witness ((x Bool)) x) ---> true
     return NodeManager::currentNM()->mkConst(true);
   }
-  else if (node[1].getKind() == kind::NOT && node[1][0] == node[0][0])
+  else if (node[1].getKind() == Kind::NOT && node[1][0] == node[0][0])
   {
     // (witness ((x Bool)) (not x)) ---> false
     return NodeManager::currentNM()->mkConst(false);
@@ -137,7 +137,7 @@ Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
 
 Node TheoryBuiltinRewriter::rewriteApplyIndexedSymbolic(TNode node)
 {
-  Assert(node.getKind() == kind::APPLY_INDEXED_SYMBOLIC);
+  Assert(node.getKind() == Kind::APPLY_INDEXED_SYMBOLIC);
   Assert(node.getNumChildren() > 1);
   // if all arguments are constant, we return the non-symbolic version
   // of the operator, e.g. (extract 2 1 #b0000) ---> ((_ extract 2 1) #b0000)

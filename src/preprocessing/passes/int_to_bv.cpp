@@ -71,9 +71,9 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
       result = current;
     }
     else if (current.getNumChildren() > 2
-             && (current.getKind() == kind::ADD
-                 || current.getKind() == kind::MULT
-                 || current.getKind() == kind::NONLINEAR_MULT))
+             && (current.getKind() == Kind::ADD
+                 || current.getKind() == Kind::MULT
+                 || current.getKind() == Kind::NONLINEAR_MULT))
     {
       Assert(cache.find(current[0]) != cache.end());
       result = cache[current[0]];
@@ -152,33 +152,33 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
       {
         switch (newKind)
         {
-          case kind::ADD:
+          case Kind::ADD:
             Assert(children.size() == 2);
-            newKind = kind::BITVECTOR_ADD;
+            newKind = Kind::BITVECTOR_ADD;
             max = max + 1;
             break;
-          case kind::MULT:
-          case kind::NONLINEAR_MULT:
+          case Kind::MULT:
+          case Kind::NONLINEAR_MULT:
             Assert(children.size() == 2);
-            newKind = kind::BITVECTOR_MULT;
+            newKind = Kind::BITVECTOR_MULT;
             max = max * 2;
             break;
-          case kind::SUB:
+          case Kind::SUB:
             Assert(children.size() == 2);
-            newKind = kind::BITVECTOR_SUB;
+            newKind = Kind::BITVECTOR_SUB;
             max = max + 1;
             break;
-          case kind::NEG:
+          case Kind::NEG:
             Assert(children.size() == 1);
-            newKind = kind::BITVECTOR_NEG;
+            newKind = Kind::BITVECTOR_NEG;
             max = max + 1;
             break;
-          case kind::LT: newKind = kind::BITVECTOR_SLT; break;
-          case kind::LEQ: newKind = kind::BITVECTOR_SLE; break;
-          case kind::GT: newKind = kind::BITVECTOR_SGT; break;
-          case kind::GEQ: newKind = kind::BITVECTOR_SGE; break;
-          case kind::EQUAL:
-          case kind::ITE: break;
+          case Kind::LT: newKind = Kind::BITVECTOR_SLT; break;
+          case Kind::LEQ: newKind = Kind::BITVECTOR_SLE; break;
+          case Kind::GT: newKind = Kind::BITVECTOR_SGT; break;
+          case Kind::GEQ: newKind = Kind::BITVECTOR_SGE; break;
+          case Kind::EQUAL:
+          case Kind::ITE: break;
           default:
             if (childrenTypesChanged(current, cache)) {
               std::stringstream ss;
@@ -242,13 +242,13 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
            * where x refers to the bit-vector term `result`.
            */
           BitVector bvzero(size, Integer(0));
-          Node negResult = nm->mkNode(kind::BITVECTOR_TO_NAT,
-                                      nm->mkNode(kind::BITVECTOR_NEG, result));
+          Node negResult = nm->mkNode(Kind::BITVECTOR_TO_NAT,
+                                      nm->mkNode(Kind::BITVECTOR_NEG, result));
           Node bv2int = nm->mkNode(
-              kind::ITE,
-              nm->mkNode(kind::BITVECTOR_SLT, result, nm->mkConst(bvzero)),
-              nm->mkNode(kind::NEG, negResult),
-              nm->mkNode(kind::BITVECTOR_TO_NAT, result));
+              Kind::ITE,
+              nm->mkNode(Kind::BITVECTOR_SLT, result, nm->mkConst(bvzero)),
+              nm->mkNode(Kind::NEG, negResult),
+              nm->mkNode(Kind::BITVECTOR_TO_NAT, result));
           d_preprocContext->addSubstitution(current, bv2int);
         }
       }

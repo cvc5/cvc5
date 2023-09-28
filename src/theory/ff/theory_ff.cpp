@@ -140,7 +140,7 @@ bool TheoryFiniteFields::collectModelValues(TheoryModel* m,
 void TheoryFiniteFields::preRegisterWithEe(TNode node)
 {
   Assert(d_equalityEngine != nullptr);
-  if (node.getKind() == kind::EQUAL)
+  if (node.getKind() == Kind::EQUAL)
   {
     d_state.addEqualityEngineTriggerPredicate(node);
   }

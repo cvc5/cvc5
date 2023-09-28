@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "proof/proof_rule.h"
+#include "cvc5/cvc5_proof_rule.h"
 
 namespace cvc5::internal {
 
@@ -52,7 +52,7 @@ class ProofRuleChecker
    * @return The conclusion of the proof node, in Skolem form, if successful or
    * null if such a proof node is malformed.
    */
-  Node check(PfRule id,
+  Node check(ProofRule id,
              const std::vector<Node>& children,
              const std::vector<Node>& args);
 
@@ -80,7 +80,7 @@ class ProofRuleChecker
    * @return The conclusion of the proof node if successful or null if such a
    * proof node is malformed.
    */
-  virtual Node checkInternal(PfRule id,
+  virtual Node checkInternal(ProofRule id,
                              const std::vector<Node>& children,
                              const std::vector<Node>& args) = 0;
 };

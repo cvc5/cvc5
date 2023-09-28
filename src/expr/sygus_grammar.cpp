@@ -144,7 +144,7 @@ Node purifySygusGNode(const Node& n,
 
 bool isId(const Node& n)
 {
-  return n.getKind() == kind::LAMBDA && n[0].getNumChildren() == 1
+  return n.getKind() == Kind::LAMBDA && n[0].getNumChildren() == 1
          && n[0][0] == n[1];
 }
 
@@ -162,7 +162,7 @@ void addSygusConstructor(DType& dt,
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   std::stringstream ss;
-  if (rule.getKind() == kind::SKOLEM
+  if (rule.getKind() == Kind::SKOLEM
       && sm->getId(rule) == SkolemFunId::SYGUS_ANY_CONSTANT)
   {
     ss << dt.getName() << "_any_constant";
@@ -176,8 +176,8 @@ void addSygusConstructor(DType& dt,
     ss << op.getKind();
     if (!args.empty())
     {
-      Node lbvl = nm->mkNode(kind::BOUND_VAR_LIST, args);
-      op = nm->mkNode(kind::LAMBDA, lbvl, op);
+      Node lbvl = nm->mkNode(Kind::BOUND_VAR_LIST, args);
+      op = nm->mkNode(Kind::LAMBDA, lbvl, op);
     }
     // assign identity rules a weight of 0.
     dt.addSygusConstructor(op, ss.str(), cargs, isId(op) ? 0 : -1);
@@ -193,7 +193,7 @@ TypeNode SygusGrammar::resolve(bool allowAny)
     Node bvl;
     if (!d_sygusVars.empty())
     {
-      bvl = nm->mkNode(kind::BOUND_VAR_LIST, d_sygusVars);
+      bvl = nm->mkNode(Kind::BOUND_VAR_LIST, d_sygusVars);
     }
     std::unordered_map<Node, TypeNode> ntsToUnres;
     for (const Node& ntSym : d_ntSyms)
@@ -213,7 +213,7 @@ TypeNode SygusGrammar::resolve(bool allowAny)
 
       for (const Node& rule : d_rules[ntSym])
       {
-        if (rule.getKind() == kind::SKOLEM
+        if (rule.getKind() == Kind::SKOLEM
             && sm->getId(rule) == SkolemFunId::SYGUS_ANY_CONSTANT)
         {
           allowConsts.insert(ntSym);

@@ -78,12 +78,12 @@ Node RelsUtils::constructPair(Node rel, Node a, Node b)
 {
   const DType& dt = rel.getType().getSetElementType().getDType();
   return NodeManager::currentNM()->mkNode(
-      APPLY_CONSTRUCTOR, dt[0].getConstructor(), a, b);
+      Kind::APPLY_CONSTRUCTOR, dt[0].getConstructor(), a, b);
 }
 
 Node RelsUtils::evaluateGroup(TNode n)
 {
-  Assert(n.getKind() == RELATION_GROUP);
+  Assert(n.getKind() == Kind::RELATION_GROUP);
 
   NodeManager* nm = NodeManager::currentNM();
 
@@ -91,10 +91,10 @@ Node RelsUtils::evaluateGroup(TNode n)
   TypeNode setType = A.getType();
   TypeNode partitionType = n.getType();
 
-  if (A.getKind() == SET_EMPTY)
+  if (A.getKind() == Kind::SET_EMPTY)
   {
     // return a nonempty partition
-    return nm->mkNode(SET_SINGLETON, A);
+    return nm->mkNode(Kind::SET_SINGLETON, A);
   }
 
   std::vector<uint32_t> indices =
@@ -154,7 +154,7 @@ Node RelsUtils::evaluateGroup(TNode n)
 
 Node RelsUtils::evaluateRelationAggregate(TNode n)
 {
-  Assert(n.getKind() == RELATION_AGGREGATE);
+  Assert(n.getKind() == Kind::RELATION_AGGREGATE);
   if (!(n[1].isConst() && n[2].isConst()))
   {
     // we can't proceed further.

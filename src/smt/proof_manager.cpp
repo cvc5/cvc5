@@ -76,18 +76,18 @@ PfManager::PfManager(Env& env)
   if (options().proof.proofGranularityMode
       != options::ProofGranularityMode::MACRO)
   {
-    d_pfpp->setEliminateRule(PfRule::MACRO_SR_EQ_INTRO);
-    d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_INTRO);
-    d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_ELIM);
-    d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_TRANSFORM);
-    d_pfpp->setEliminateRule(PfRule::MACRO_RESOLUTION_TRUST);
-    d_pfpp->setEliminateRule(PfRule::MACRO_RESOLUTION);
-    d_pfpp->setEliminateRule(PfRule::MACRO_ARITH_SCALE_SUM_UB);
+    d_pfpp->setEliminateRule(ProofRule::MACRO_SR_EQ_INTRO);
+    d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_INTRO);
+    d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_ELIM);
+    d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_TRANSFORM);
+    d_pfpp->setEliminateRule(ProofRule::MACRO_RESOLUTION_TRUST);
+    d_pfpp->setEliminateRule(ProofRule::MACRO_RESOLUTION);
+    d_pfpp->setEliminateRule(ProofRule::MACRO_ARITH_SCALE_SUM_UB);
     if (options().proof.proofGranularityMode
         != options::ProofGranularityMode::REWRITE)
     {
-      d_pfpp->setEliminateRule(PfRule::SUBS);
-      d_pfpp->setEliminateRule(PfRule::REWRITE);
+      d_pfpp->setEliminateRule(ProofRule::SUBS);
+      d_pfpp->setEliminateRule(ProofRule::REWRITE);
       if (options().proof.proofGranularityMode
           != options::ProofGranularityMode::THEORY_REWRITE)
       {
@@ -96,8 +96,8 @@ PfManager::PfManager(Env& env)
       }
     }
     // theory-specific lazy proof reconstruction
-    d_pfpp->setEliminateRule(PfRule::STRING_INFERENCE);
-    d_pfpp->setEliminateRule(PfRule::BV_BITBLAST);
+    d_pfpp->setEliminateRule(ProofRule::STRING_INFERENCE);
+    d_pfpp->setEliminateRule(ProofRule::BV_BITBLAST);
   }
   d_false = NodeManager::currentNM()->mkConst(false);
 }
@@ -163,6 +163,13 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
   Trace("smt-proof")
       << "SolverEngine::connectProofToAssertions(): postprocess...\n";
   Assert(d_pfpp != nullptr);
+  // Note that in incremental mode, we cannot set assertions here, as it
+  // permits the postprocessor to merge subproofs at a higher user context
+  // level into proofs that are used in a lower user context level.
+  if (!options().base.incrementalSolving)
+  {
+    d_pfpp->setAssertions(assertions, false);
+  }
   d_pfpp->process(pfn, pppg);
 
   switch (scopeMode)
@@ -191,7 +198,7 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
       getAssertions(as, unifiedAssertions);
       Pf pf = d_pnm->mkScope(
           pfn, unifiedAssertions, true, options().proof.proofPruneInput);
-      Assert(pf->getRule() == PfRule::SCOPE);
+      Assert(pf->getRule() == ProofRule::SCOPE);
       // 2. Extract minimum unified assertions from the scope node.
       std::unordered_set<Node> minUnifiedAssertions;
       minUnifiedAssertions.insert(pf->getArguments().cbegin(),
@@ -208,8 +215,8 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
       // 4. Extract proof from unified scope and encapsulate it with split
       // scopes introducing minimized definitions and assertions.
       return d_pnm->mkNode(
-          PfRule::SCOPE,
-          {d_pnm->mkNode(PfRule::SCOPE, pf->getChildren(), minAssertions)},
+          ProofRule::SCOPE,
+          {d_pnm->mkNode(ProofRule::SCOPE, pf->getChildren(), minAssertions)},
           minDefinitions);
     }
     default: Unreachable();
@@ -246,7 +253,7 @@ void PfManager::printProof(std::ostream& out,
   }
   else if (mode == options::ProofFormatMode::LFSC)
   {
-    Assert(fp->getRule() == PfRule::SCOPE);
+    Assert(fp->getRule() == ProofRule::SCOPE);
     proof::LfscNodeConverter ltp;
     proof::LfscProofPostprocess lpp(d_env, ltp);
     lpp.process(fp);
@@ -289,7 +296,7 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   // as having a difficulty
   CDProof cdp(d_env);
   Node fnode = NodeManager::currentNM()->mkConst(false);
-  cdp.addStep(fnode, PfRule::SAT_REFUTATION, ppAsserts, {});
+  cdp.addStep(fnode, ProofRule::SAT_REFUTATION, ppAsserts, {});
   std::shared_ptr<ProofNode> pf = cdp.getProofFor(fnode);
   Trace("difficulty-proc") << "Get final proof" << std::endl;
   std::shared_ptr<ProofNode> fpf = connectProofToAssertions(pf, smt);
@@ -298,13 +305,13 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   // have no free assumptions. If this is the case, then the only difficulty
   // was incremented on auxiliary lemmas added during preprocessing. Since
   // there are no dependencies, then the difficulty map is empty.
-  if (fpf->getRule() != PfRule::SCOPE)
+  if (fpf->getRule() != ProofRule::SCOPE)
   {
     return;
   }
   fpf = fpf->getChildren()[0];
   // analyze proof
-  Assert(fpf->getRule() == PfRule::SAT_REFUTATION);
+  Assert(fpf->getRule() == ProofRule::SAT_REFUTATION);
   const std::vector<std::shared_ptr<ProofNode>>& children = fpf->getChildren();
   DifficultyPostprocessCallback dpc;
   ProofNodeUpdater dpnu(d_env, dpc);
@@ -358,7 +365,7 @@ void PfManager::getDefinitionsAndAssertions(Assertions& as,
   {
     // Keep treating (mutually) recursive functions as declarations +
     // assertions.
-    if (d.getKind() == kind::EQUAL)
+    if (d.getKind() == Kind::EQUAL)
     {
       definitions.push_back(d);
     }
