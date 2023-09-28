@@ -86,11 +86,11 @@ class BBRegistrar : public prop::Registrar
       return;
     }
     /* We are only interested in bit-vector atoms. */
-    if ((n.getKind() == kind::EQUAL && n[0].getType().isBitVector())
-        || n.getKind() == kind::BITVECTOR_ULT
-        || n.getKind() == kind::BITVECTOR_ULE
-        || n.getKind() == kind::BITVECTOR_SLT
-        || n.getKind() == kind::BITVECTOR_SLE)
+    if ((n.getKind() == Kind::EQUAL && n[0].getType().isBitVector())
+        || n.getKind() == Kind::BITVECTOR_ULT
+        || n.getKind() == Kind::BITVECTOR_ULE
+        || n.getKind() == Kind::BITVECTOR_SLT
+        || n.getKind() == Kind::BITVECTOR_SLE)
     {
       d_registeredAtoms.insert(n);
       d_bitblaster->bbAtom(n);
@@ -172,7 +172,7 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
     /* Bit-blast fact and cache literal. */
     if (d_factLiteralCache.find(fact) == d_factLiteralCache.end())
     {
-      if (fact.getKind() == kind::BITVECTOR_EAGER_ATOM)
+      if (fact.getKind() == Kind::BITVECTOR_EAGER_ATOM)
       {
         handleEagerAtom(fact, true);
       }
@@ -195,7 +195,7 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
     if (d_factLiteralCache.find(fact) == d_factLiteralCache.end())
     {
       prop::SatLiteral lit;
-      if (fact.getKind() == kind::BITVECTOR_EAGER_ATOM)
+      if (fact.getKind() == Kind::BITVECTOR_EAGER_ATOM)
       {
         handleEagerAtom(fact, false);
         lit = d_cnfStream->getLiteral(fact[0]);
@@ -320,7 +320,7 @@ bool BVSolverBitblast::collectModelValues(TheoryModel* m,
     {
       Assert(d_cnfStream->hasLiteral(var));
       prop::SatLiteral bit = d_cnfStream->getLiteral(var);
-      prop::SatValue value = d_satSolver->value(bit);
+      prop::SatValue value = d_satSolver->modelValue(bit);
       Assert(value != prop::SAT_VALUE_UNKNOWN);
       if (!m->assertEquality(
               var, nm->mkConst(value == prop::SAT_VALUE_TRUE), true))
@@ -337,7 +337,7 @@ void BVSolverBitblast::initSatSolver()
 {
   switch (options().bv.bvSatSolver)
   {
-    case options::SatSolverMode::CRYPTOMINISAT:
+    case options::BvSatSolverMode::CRYPTOMINISAT:
       d_satSolver.reset(prop::SatSolverFactory::createCryptoMinisat(
           statisticsRegistry(),
           d_env.getResourceManager(),
@@ -345,6 +345,7 @@ void BVSolverBitblast::initSatSolver()
       break;
     default:
       d_satSolver.reset(prop::SatSolverFactory::createCadical(
+          d_env,
           statisticsRegistry(),
           d_env.getResourceManager(),
           "theory::bv::BVSolverBitblast::"));
@@ -392,7 +393,7 @@ Node BVSolverBitblast::getValue(TNode node, bool initialize)
 
 void BVSolverBitblast::handleEagerAtom(TNode fact, bool assertFact)
 {
-  Assert(fact.getKind() == kind::BITVECTOR_EAGER_ATOM);
+  Assert(fact.getKind() == Kind::BITVECTOR_EAGER_ATOM);
 
   if (assertFact)
   {

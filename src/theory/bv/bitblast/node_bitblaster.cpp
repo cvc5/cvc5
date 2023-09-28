@@ -29,7 +29,7 @@ NodeBitblaster::NodeBitblaster(Env& env, TheoryState* s)
 
 void NodeBitblaster::bbAtom(TNode node)
 {
-  node = node.getKind() == kind::NOT ? node[0] : node;
+  node = node.getKind() == Kind::NOT ? node[0] : node;
 
   if (hasBBAtom(node))
   {
@@ -41,9 +41,10 @@ void NodeBitblaster::bbAtom(TNode node)
    */
   Node normalized = rewrite(node);
   Node atom_bb =
-      normalized.getKind() != kind::CONST_BOOLEAN
-              && normalized.getKind() != kind::BITVECTOR_BITOF
-          ? d_atomBBStrategies[normalized.getKind()](normalized, this)
+      normalized.getKind() != Kind::CONST_BOOLEAN
+              && normalized.getKind() != Kind::BITVECTOR_BITOF
+          ? d_atomBBStrategies[static_cast<uint32_t>(normalized.getKind())](
+              normalized, this)
           : normalized;
 
   storeBBAtom(node, rewrite(atom_bb));
@@ -61,7 +62,7 @@ void NodeBitblaster::storeBBTerm(TNode node, const Bits& bits)
 
 bool NodeBitblaster::hasBBAtom(TNode lit) const
 {
-  if (lit.getKind() == kind::NOT)
+  if (lit.getKind() == Kind::NOT)
   {
     lit = lit[0];
   }
@@ -88,7 +89,7 @@ void NodeBitblaster::bbTerm(TNode node, Bits& bits)
     getBBTerm(node, bits);
     return;
   }
-  d_termBBStrategies[node.getKind()](node, bits, this);
+  d_termBBStrategies[static_cast<uint32_t>(node.getKind())](node, bits, this);
   Assert(bits.size() == utils::getSize(node));
   storeBBTerm(node, bits);
 }
@@ -96,7 +97,7 @@ void NodeBitblaster::bbTerm(TNode node, Bits& bits)
 Node NodeBitblaster::getStoredBBAtom(TNode node)
 {
   bool negated = false;
-  if (node.getKind() == kind::NOT)
+  if (node.getKind() == Kind::NOT)
   {
     node = node[0];
     negated = true;
@@ -171,9 +172,9 @@ bool NodeBitblaster::isVariable(TNode node)
 
 Node NodeBitblaster::applyAtomBBStrategy(TNode node)
 {
-  Assert(node.getKind() != kind::CONST_BOOLEAN);
-  Assert(node.getKind() != kind::BITVECTOR_BITOF);
-  return d_atomBBStrategies[node.getKind()](node, this);
+  Assert(node.getKind() != Kind::CONST_BOOLEAN);
+  Assert(node.getKind() != Kind::BITVECTOR_BITOF);
+  return d_atomBBStrategies[static_cast<uint32_t>(node.getKind())](node, this);
 }
 
 }  // namespace bv

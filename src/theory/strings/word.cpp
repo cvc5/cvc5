@@ -46,19 +46,19 @@ Node Word::mkWordFlatten(const std::vector<Node>& xs)
   Assert(!xs.empty());
   NodeManager* nm = NodeManager::currentNM();
   Kind k = xs[0].getKind();
-  if (k == CONST_STRING)
+  if (k == Kind::CONST_STRING)
   {
     std::vector<unsigned> vec;
     for (TNode x : xs)
     {
-      Assert(x.getKind() == CONST_STRING);
+      Assert(x.getKind() == Kind::CONST_STRING);
       String sx = x.getConst<String>();
       const std::vector<unsigned>& vecc = sx.getVec();
       vec.insert(vec.end(), vecc.begin(), vecc.end());
     }
     return nm->mkConst(String(vec));
   }
-  else if (k == CONST_SEQUENCE)
+  else if (k == Kind::CONST_SEQUENCE)
   {
     std::vector<Node> seq;
     TypeNode tn = xs[0].getType();
@@ -79,11 +79,11 @@ Node Word::mkWordFlatten(const std::vector<Node>& xs)
 size_t Word::getLength(TNode x)
 {
   Kind k = x.getKind();
-  if (k == CONST_STRING)
+  if (k == Kind::CONST_STRING)
   {
     return x.getConst<String>().size();
   }
-  else if (k == CONST_SEQUENCE)
+  else if (k == Kind::CONST_SEQUENCE)
   {
     return x.getConst<Sequence>().size();
   }
@@ -96,7 +96,7 @@ std::vector<Node> Word::getChars(TNode x)
   Kind k = x.getKind();
   std::vector<Node> ret;
   NodeManager* nm = NodeManager::currentNM();
-  if (k == CONST_STRING)
+  if (k == Kind::CONST_STRING)
   {
     std::vector<unsigned> ccVec;
     const std::vector<unsigned>& cvec = x.getConst<String>().getVec();
@@ -109,7 +109,7 @@ std::vector<Node> Word::getChars(TNode x)
     }
     return ret;
   }
-  else if (k == CONST_SEQUENCE)
+  else if (k == Kind::CONST_SEQUENCE)
   {
     TypeNode t = x.getConst<Sequence>().getType();
     const Sequence& sx = x.getConst<Sequence>();
@@ -127,13 +127,13 @@ std::vector<Node> Word::getChars(TNode x)
 Node Word::getNth(TNode x, size_t n)
 {
   Kind k = x.getKind();
-  if (k == CONST_STRING)
+  if (k == Kind::CONST_STRING)
   {
     const std::vector<unsigned>& vec = x.getConst<String>().getVec();
     Assert(n < vec.size());
     return NodeManager::currentNM()->mkConstInt(vec[n]);
   }
-  else if (k == CONST_SEQUENCE)
+  else if (k == Kind::CONST_SEQUENCE)
   {
     const std::vector<Node>& vec = x.getConst<Sequence>().getVec();
     Assert(n < vec.size());
@@ -148,16 +148,16 @@ bool Word::isEmpty(TNode x) { return x.isConst() && getLength(x) == 0; }
 bool Word::strncmp(TNode x, TNode y, std::size_t n)
 {
   Kind k = x.getKind();
-  if (k == CONST_STRING)
+  if (k == Kind::CONST_STRING)
   {
-    Assert(y.getKind() == CONST_STRING);
+    Assert(y.getKind() == Kind::CONST_STRING);
     String sx = x.getConst<String>();
     String sy = y.getConst<String>();
     return sx.strncmp(sy, n);
   }
-  else if (k == CONST_SEQUENCE)
+  else if (k == Kind::CONST_SEQUENCE)
   {
-    Assert(y.getKind() == CONST_SEQUENCE);
+    Assert(y.getKind() == Kind::CONST_SEQUENCE);
     const Sequence& sx = x.getConst<Sequence>();
     const Sequence& sy = y.getConst<Sequence>();
     return sx.strncmp(sy, n);
@@ -169,16 +169,16 @@ bool Word::strncmp(TNode x, TNode y, std::size_t n)
 bool Word::rstrncmp(TNode x, TNode y, std::size_t n)
 {
   Kind k = x.getKind();
-  if (k == CONST_STRING)
+  if (k == Kind::CONST_STRING)
   {
-    Assert(y.getKind() == CONST_STRING);
+    Assert(y.getKind() == Kind::CONST_STRING);
     String sx = x.getConst<String>();
     String sy = y.getConst<String>();
     return sx.rstrncmp(sy, n);
   }
-  else if (k == CONST_SEQUENCE)
+  else if (k == Kind::CONST_SEQUENCE)
   {
-    Assert(y.getKind() == CONST_SEQUENCE);
+    Assert(y.getKind() == Kind::CONST_SEQUENCE);
     const Sequence& sx = x.getConst<Sequence>();
     const Sequence& sy = y.getConst<Sequence>();
     return sx.rstrncmp(sy, n);
@@ -190,16 +190,16 @@ bool Word::rstrncmp(TNode x, TNode y, std::size_t n)
 std::size_t Word::find(TNode x, TNode y, std::size_t start)
 {
   Kind k = x.getKind();
-  if (k == CONST_STRING)
+  if (k == Kind::CONST_STRING)
   {
-    Assert(y.getKind() == CONST_STRING);
+    Assert(y.getKind() == Kind::CONST_STRING);
     String sx = x.getConst<String>();
     String sy = y.getConst<String>();
     return sx.find(sy, start);
   }
-  else if (k == CONST_SEQUENCE)
+  else if (k == Kind::CONST_SEQUENCE)
   {
-    Assert(y.getKind() == CONST_SEQUENCE);
+    Assert(y.getKind() == Kind::CONST_SEQUENCE);
     const Sequence& sx = x.getConst<Sequence>();
     const Sequence& sy = y.getConst<Sequence>();
     return sx.find(sy, start);
@@ -211,16 +211,16 @@ std::size_t Word::find(TNode x, TNode y, std::size_t start)
 std::size_t Word::rfind(TNode x, TNode y, std::size_t start)
 {
   Kind k = x.getKind();
-  if (k == CONST_STRING)
+  if (k == Kind::CONST_STRING)
   {
-    Assert(y.getKind() == CONST_STRING);
+    Assert(y.getKind() == Kind::CONST_STRING);
     String sx = x.getConst<String>();
     String sy = y.getConst<String>();
     return sx.rfind(sy, start);
   }
-  else if (k == CONST_SEQUENCE)
+  else if (k == Kind::CONST_SEQUENCE)
   {
-    Assert(y.getKind() == CONST_SEQUENCE);
+    Assert(y.getKind() == Kind::CONST_SEQUENCE);
     const Sequence& sx = x.getConst<Sequence>();
     const Sequence& sy = y.getConst<Sequence>();
     return sx.rfind(sy, start);
@@ -232,16 +232,16 @@ std::size_t Word::rfind(TNode x, TNode y, std::size_t start)
 bool Word::hasPrefix(TNode x, TNode y)
 {
   Kind k = x.getKind();
-  if (k == CONST_STRING)
+  if (k == Kind::CONST_STRING)
   {
-    Assert(y.getKind() == CONST_STRING);
+    Assert(y.getKind() == Kind::CONST_STRING);
     String sx = x.getConst<String>();
     String sy = y.getConst<String>();
     return sx.hasPrefix(sy);
   }
-  else if (k == CONST_SEQUENCE)
+  else if (k == Kind::CONST_SEQUENCE)
   {
-    Assert(y.getKind() == CONST_SEQUENCE);
+    Assert(y.getKind() == Kind::CONST_SEQUENCE);
     const Sequence& sx = x.getConst<Sequence>();
     const Sequence& sy = y.getConst<Sequence>();
     return sx.hasPrefix(sy);
@@ -253,16 +253,16 @@ bool Word::hasPrefix(TNode x, TNode y)
 bool Word::hasSuffix(TNode x, TNode y)
 {
   Kind k = x.getKind();
-  if (k == CONST_STRING)
+  if (k == Kind::CONST_STRING)
   {
-    Assert(y.getKind() == CONST_STRING);
+    Assert(y.getKind() == Kind::CONST_STRING);
     String sx = x.getConst<String>();
     String sy = y.getConst<String>();
     return sx.hasSuffix(sy);
   }
-  else if (k == CONST_SEQUENCE)
+  else if (k == Kind::CONST_SEQUENCE)
   {
-    Assert(y.getKind() == CONST_SEQUENCE);
+    Assert(y.getKind() == Kind::CONST_SEQUENCE);
     const Sequence& sx = x.getConst<Sequence>();
     const Sequence& sy = y.getConst<Sequence>();
     return sx.hasSuffix(sy);
@@ -275,16 +275,16 @@ Node Word::update(TNode x, std::size_t i, TNode t)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = x.getKind();
-  if (k == CONST_STRING)
+  if (k == Kind::CONST_STRING)
   {
-    Assert(t.getKind() == CONST_STRING);
+    Assert(t.getKind() == Kind::CONST_STRING);
     String sx = x.getConst<String>();
     String st = t.getConst<String>();
     return nm->mkConst(String(sx.update(i, st)));
   }
-  else if (k == CONST_SEQUENCE)
+  else if (k == Kind::CONST_SEQUENCE)
   {
-    Assert(t.getKind() == CONST_SEQUENCE);
+    Assert(t.getKind() == Kind::CONST_SEQUENCE);
     const Sequence& sx = x.getConst<Sequence>();
     const Sequence& st = t.getConst<Sequence>();
     Sequence res = sx.update(i, st);
@@ -297,19 +297,19 @@ Node Word::replace(TNode x, TNode y, TNode t)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = x.getKind();
-  if (k == CONST_STRING)
+  if (k == Kind::CONST_STRING)
   {
-    Assert(y.getKind() == CONST_STRING);
-    Assert(t.getKind() == CONST_STRING);
+    Assert(y.getKind() == Kind::CONST_STRING);
+    Assert(t.getKind() == Kind::CONST_STRING);
     String sx = x.getConst<String>();
     String sy = y.getConst<String>();
     String st = t.getConst<String>();
     return nm->mkConst(String(sx.replace(sy, st)));
   }
-  else if (k == CONST_SEQUENCE)
+  else if (k == Kind::CONST_SEQUENCE)
   {
-    Assert(y.getKind() == CONST_SEQUENCE);
-    Assert(t.getKind() == CONST_SEQUENCE);
+    Assert(y.getKind() == Kind::CONST_SEQUENCE);
+    Assert(t.getKind() == Kind::CONST_SEQUENCE);
     const Sequence& sx = x.getConst<Sequence>();
     const Sequence& sy = y.getConst<Sequence>();
     const Sequence& st = t.getConst<Sequence>();
@@ -323,12 +323,12 @@ Node Word::substr(TNode x, std::size_t i)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = x.getKind();
-  if (k == CONST_STRING)
+  if (k == Kind::CONST_STRING)
   {
     String sx = x.getConst<String>();
     return nm->mkConst(String(sx.substr(i)));
   }
-  else if (k == CONST_SEQUENCE)
+  else if (k == Kind::CONST_SEQUENCE)
   {
     const Sequence& sx = x.getConst<Sequence>();
     Sequence res = sx.substr(i);
@@ -341,12 +341,12 @@ Node Word::substr(TNode x, std::size_t i, std::size_t j)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = x.getKind();
-  if (k == CONST_STRING)
+  if (k == Kind::CONST_STRING)
   {
     String sx = x.getConst<String>();
     return nm->mkConst(String(sx.substr(i, j)));
   }
-  else if (k == CONST_SEQUENCE)
+  else if (k == Kind::CONST_SEQUENCE)
   {
     const Sequence& sx = x.getConst<Sequence>();
     Sequence res = sx.substr(i, j);
@@ -362,12 +362,12 @@ Node Word::suffix(TNode x, std::size_t i)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = x.getKind();
-  if (k == CONST_STRING)
+  if (k == Kind::CONST_STRING)
   {
     String sx = x.getConst<String>();
     return nm->mkConst(String(sx.suffix(i)));
   }
-  else if (k == CONST_SEQUENCE)
+  else if (k == Kind::CONST_SEQUENCE)
   {
     const Sequence& sx = x.getConst<Sequence>();
     Sequence res = sx.suffix(i);
@@ -380,16 +380,16 @@ Node Word::suffix(TNode x, std::size_t i)
 bool Word::noOverlapWith(TNode x, TNode y)
 {
   Kind k = x.getKind();
-  if (k == CONST_STRING)
+  if (k == Kind::CONST_STRING)
   {
-    Assert(y.getKind() == CONST_STRING);
+    Assert(y.getKind() == Kind::CONST_STRING);
     String sx = x.getConst<String>();
     String sy = y.getConst<String>();
     return sx.noOverlapWith(sy);
   }
-  else if (k == CONST_SEQUENCE)
+  else if (k == Kind::CONST_SEQUENCE)
   {
-    Assert(y.getKind() == CONST_SEQUENCE);
+    Assert(y.getKind() == Kind::CONST_SEQUENCE);
     const Sequence& sx = x.getConst<Sequence>();
     const Sequence& sy = y.getConst<Sequence>();
     return sx.noOverlapWith(sy);
@@ -401,16 +401,16 @@ bool Word::noOverlapWith(TNode x, TNode y)
 std::size_t Word::overlap(TNode x, TNode y)
 {
   Kind k = x.getKind();
-  if (k == CONST_STRING)
+  if (k == Kind::CONST_STRING)
   {
-    Assert(y.getKind() == CONST_STRING);
+    Assert(y.getKind() == Kind::CONST_STRING);
     String sx = x.getConst<String>();
     String sy = y.getConst<String>();
     return sx.overlap(sy);
   }
-  else if (k == CONST_SEQUENCE)
+  else if (k == Kind::CONST_SEQUENCE)
   {
-    Assert(y.getKind() == CONST_SEQUENCE);
+    Assert(y.getKind() == Kind::CONST_SEQUENCE);
     const Sequence& sx = x.getConst<Sequence>();
     const Sequence& sy = y.getConst<Sequence>();
     return sx.overlap(sy);
@@ -422,16 +422,16 @@ std::size_t Word::overlap(TNode x, TNode y)
 std::size_t Word::roverlap(TNode x, TNode y)
 {
   Kind k = x.getKind();
-  if (k == CONST_STRING)
+  if (k == Kind::CONST_STRING)
   {
-    Assert(y.getKind() == CONST_STRING);
+    Assert(y.getKind() == Kind::CONST_STRING);
     String sx = x.getConst<String>();
     String sy = y.getConst<String>();
     return sx.roverlap(sy);
   }
-  else if (k == CONST_SEQUENCE)
+  else if (k == Kind::CONST_SEQUENCE)
   {
-    Assert(y.getKind() == CONST_SEQUENCE);
+    Assert(y.getKind() == Kind::CONST_SEQUENCE);
     const Sequence& sx = x.getConst<Sequence>();
     const Sequence& sy = y.getConst<Sequence>();
     return sx.roverlap(sy);
@@ -443,11 +443,11 @@ std::size_t Word::roverlap(TNode x, TNode y)
 bool Word::isRepeated(TNode x)
 {
   Kind k = x.getKind();
-  if (k == CONST_STRING)
+  if (k == Kind::CONST_STRING)
   {
     return x.getConst<String>().isRepeated();
   }
-  else if (k == CONST_SEQUENCE)
+  else if (k == Kind::CONST_SEQUENCE)
   {
     return x.getConst<Sequence>().isRepeated();
   }
@@ -484,14 +484,14 @@ Node Word::reverse(TNode x)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = x.getKind();
-  if (k == CONST_STRING)
+  if (k == Kind::CONST_STRING)
   {
     String sx = x.getConst<String>();
     std::vector<unsigned> nvec = sx.getVec();
     std::reverse(nvec.begin(), nvec.end());
     return nm->mkConst(String(nvec));
   }
-  else if (k == CONST_SEQUENCE)
+  else if (k == Kind::CONST_SEQUENCE)
   {
     const Sequence& sx = x.getConst<Sequence>();
     const std::vector<Node>& vecc = sx.getVec();

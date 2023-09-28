@@ -211,7 +211,7 @@
                 (f_str.indexof (sc_string_eager_reduction_indexof t112 t12 t2)))))))))
 )
 
-; A helper method for computing the conclusion of PfRule::RE_UNFOLD_POS.
+; A helper method for computing the conclusion of ProofRule::RE_UNFOLD_POS.
 ; For a regular expression (re.++ R1 ... Rn), this returns a pair of terms
 ; where the first term is a concatentation (str.++ t1 ... tn) and the second
 ; is a conjunction M of literals of the form (str.in_re ti Ri), such that

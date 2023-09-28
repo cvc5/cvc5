@@ -54,12 +54,12 @@ Node TCtxNode::getNodeHash() const { return computeNodeHash(d_node, d_val); }
 Node TCtxNode::computeNodeHash(Node n, uint32_t val)
 {
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(kind::SEXPR, n, nm->mkConstInt(Rational(val)));
+  return nm->mkNode(Kind::SEXPR, n, nm->mkConstInt(Rational(val)));
 }
 
 Node TCtxNode::decomposeNodeHash(Node h, uint32_t& val)
 {
-  if (h.getKind() != kind::SEXPR || h.getNumChildren() != 2)
+  if (h.getKind() != Kind::SEXPR || h.getNumChildren() != 2)
   {
     Assert(false) << "TermContext::decomposeNodeHash: unexpected node " << h;
     return Node::null();

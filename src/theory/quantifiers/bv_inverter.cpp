@@ -73,7 +73,7 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m)
   // solve_var and not introduce a Skolem this can happen when we ask for
   // the multiplicative inversion with bv1
   Node c;
-  if (new_cond.getKind() == EQUAL)
+  if (new_cond.getKind() == Kind::EQUAL)
   {
     for (unsigned i = 0; i < 2; i++)
     {
@@ -95,7 +95,7 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m)
     {
       Node x = m->getBoundVariable(tn);
       Node ccond = new_cond.substitute(solve_var, x);
-      c = nm->mkNode(kind::WITNESS, nm->mkNode(BOUND_VAR_LIST, x), ccond);
+      c = nm->mkNode(Kind::WITNESS, nm->mkNode(Kind::BOUND_VAR_LIST, x), ccond);
       Trace("cegqi-bv-skvinv")
           << "SKVINV : Make " << c << " for " << new_cond << std::endl;
     }
@@ -115,13 +115,15 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m)
 
 static bool isInvertible(Kind k, unsigned index)
 {
-  return k == NOT || k == EQUAL || k == BITVECTOR_ULT || k == BITVECTOR_SLT
-         || k == BITVECTOR_COMP || k == BITVECTOR_NOT || k == BITVECTOR_NEG
-         || k == BITVECTOR_CONCAT || k == BITVECTOR_SIGN_EXTEND
-         || k == BITVECTOR_ADD || k == BITVECTOR_MULT || k == BITVECTOR_UREM
-         || k == BITVECTOR_UDIV || k == BITVECTOR_AND || k == BITVECTOR_OR
-         || k == BITVECTOR_XOR || k == BITVECTOR_LSHR || k == BITVECTOR_ASHR
-         || k == BITVECTOR_SHL;
+  return k == Kind::NOT || k == Kind::EQUAL || k == Kind::BITVECTOR_ULT
+         || k == Kind::BITVECTOR_SLT || k == Kind::BITVECTOR_COMP
+         || k == Kind::BITVECTOR_NOT || k == Kind::BITVECTOR_NEG
+         || k == Kind::BITVECTOR_CONCAT || k == Kind::BITVECTOR_SIGN_EXTEND
+         || k == Kind::BITVECTOR_ADD || k == Kind::BITVECTOR_MULT
+         || k == Kind::BITVECTOR_UREM || k == Kind::BITVECTOR_UDIV
+         || k == Kind::BITVECTOR_AND || k == Kind::BITVECTOR_OR
+         || k == Kind::BITVECTOR_XOR || k == Kind::BITVECTOR_LSHR
+         || k == Kind::BITVECTOR_ASHR || k == Kind::BITVECTOR_SHL;
 }
 
 Node BvInverter::getPathToPv(Node lit,
@@ -246,7 +248,7 @@ Node BvInverter::solveBvLit(Node sv,
 
   /* Boolean layer ----------------------------------------------- */
 
-  if (k == NOT)
+  if (k == Kind::NOT)
   {
     pol = !pol;
     lit = lit[index];
@@ -257,17 +259,18 @@ Node BvInverter::solveBvLit(Node sv,
     litk = k = lit.getKind();
   }
 
-  Assert(k == EQUAL || k == BITVECTOR_ULT || k == BITVECTOR_SLT);
+  Assert(k == Kind::EQUAL || k == Kind::BITVECTOR_ULT
+         || k == Kind::BITVECTOR_SLT);
 
   Node sv_t = lit[index];
   Node t = lit[1 - index];
-  if (litk == BITVECTOR_ULT && index == 1)
+  if (litk == Kind::BITVECTOR_ULT && index == 1)
   {
-    litk = BITVECTOR_UGT;
+    litk = Kind::BITVECTOR_UGT;
   }
-  else if (litk == BITVECTOR_SLT && index == 1)
+  else if (litk == Kind::BITVECTOR_SLT && index == 1)
   {
-    litk = BITVECTOR_SGT;
+    litk = Kind::BITVECTOR_SGT;
   }
 
   /* Bit-vector layer -------------------------------------------- */
@@ -290,19 +293,20 @@ Node BvInverter::solveBvLit(Node sv,
     Node x = getSolveVariable(solve_tn);
     Node ic;
 
-    if (litk == EQUAL && (k == BITVECTOR_NOT || k == BITVECTOR_NEG))
+    if (litk == Kind::EQUAL
+        && (k == Kind::BITVECTOR_NOT || k == Kind::BITVECTOR_NEG))
     {
       t = nm->mkNode(k, t);
     }
-    else if (litk == EQUAL && k == BITVECTOR_ADD)
+    else if (litk == Kind::EQUAL && k == Kind::BITVECTOR_ADD)
     {
-      t = nm->mkNode(BITVECTOR_SUB, t, s);
+      t = nm->mkNode(Kind::BITVECTOR_SUB, t, s);
     }
-    else if (litk == EQUAL && k == BITVECTOR_XOR)
+    else if (litk == Kind::EQUAL && k == Kind::BITVECTOR_XOR)
     {
-      t = nm->mkNode(BITVECTOR_XOR, t, s);
+      t = nm->mkNode(Kind::BITVECTOR_XOR, t, s);
     }
-    else if (litk == EQUAL && k == BITVECTOR_MULT && s.isConst()
+    else if (litk == Kind::EQUAL && k == Kind::BITVECTOR_MULT && s.isConst()
              && bv::utils::getBit(s, 0))
     {
       unsigned w = bv::utils::getSize(s);
@@ -313,39 +317,39 @@ Node BvInverter::solveBvLit(Node sv,
       Integer inv_val = s_val.modInverse(mod_val);
       Trace("bv-invert-debug") << "Inverse : " << inv_val << std::endl;
       Node inv = bv::utils::mkConst(w, inv_val);
-      t = nm->mkNode(BITVECTOR_MULT, inv, t);
+      t = nm->mkNode(Kind::BITVECTOR_MULT, inv, t);
     }
-    else if (k == BITVECTOR_MULT)
+    else if (k == Kind::BITVECTOR_MULT)
     {
       ic = utils::getICBvMult(pol, litk, k, index, x, s, t);
     }
-    else if (k == BITVECTOR_SHL)
+    else if (k == Kind::BITVECTOR_SHL)
     {
       ic = utils::getICBvShl(pol, litk, k, index, x, s, t);
     }
-    else if (k == BITVECTOR_UREM)
+    else if (k == Kind::BITVECTOR_UREM)
     {
       ic = utils::getICBvUrem(pol, litk, k, index, x, s, t);
     }
-    else if (k == BITVECTOR_UDIV)
+    else if (k == Kind::BITVECTOR_UDIV)
     {
       ic = utils::getICBvUdiv(pol, litk, k, index, x, s, t);
     }
-    else if (k == BITVECTOR_AND || k == BITVECTOR_OR)
+    else if (k == Kind::BITVECTOR_AND || k == Kind::BITVECTOR_OR)
     {
       ic = utils::getICBvAndOr(pol, litk, k, index, x, s, t);
     }
-    else if (k == BITVECTOR_LSHR)
+    else if (k == Kind::BITVECTOR_LSHR)
     {
       ic = utils::getICBvLshr(pol, litk, k, index, x, s, t);
     }
-    else if (k == BITVECTOR_ASHR)
+    else if (k == Kind::BITVECTOR_ASHR)
     {
       ic = utils::getICBvAshr(pol, litk, k, index, x, s, t);
     }
-    else if (k == BITVECTOR_CONCAT)
+    else if (k == Kind::BITVECTOR_CONCAT)
     {
-      if (litk == EQUAL && d_opts.quantifiers.cegqiBvConcInv)
+      if (litk == Kind::EQUAL && d_opts.quantifiers.cegqiBvConcInv)
       {
         /* Compute inverse for s1 o x, x o s2, s1 o x o s2
          * (while disregarding that invertibility depends on si)
@@ -359,7 +363,7 @@ Node BvInverter::solveBvLit(Node sv,
         unsigned upper, lower;
         upper = bv::utils::getSize(t) - 1;
         lower = 0;
-        NodeBuilder nb(BITVECTOR_CONCAT);
+        NodeBuilder nb(Kind::BITVECTOR_CONCAT);
         for (unsigned i = 0; i < nchildren; i++)
         {
           if (i < index)
@@ -378,22 +382,22 @@ Node BvInverter::solveBvLit(Node sv,
         ic = utils::getICBvConcat(pol, litk, index, x, sv_t, t);
       }
     }
-    else if (k == BITVECTOR_SIGN_EXTEND)
+    else if (k == Kind::BITVECTOR_SIGN_EXTEND)
     {
       ic = utils::getICBvSext(pol, litk, index, x, sv_t, t);
     }
-    else if (litk == BITVECTOR_ULT || litk == BITVECTOR_UGT)
+    else if (litk == Kind::BITVECTOR_ULT || litk == Kind::BITVECTOR_UGT)
     {
       ic = utils::getICBvUltUgt(pol, litk, x, t);
     }
-    else if (litk == BITVECTOR_SLT || litk == BITVECTOR_SGT)
+    else if (litk == Kind::BITVECTOR_SLT || litk == Kind::BITVECTOR_SGT)
     {
       ic = utils::getICBvSltSgt(pol, litk, x, t);
     }
     else if (pol == false)
     {
-      Assert(litk == EQUAL);
-      ic = nm->mkNode(DISTINCT, x, t);
+      Assert(litk == Kind::EQUAL);
+      ic = nm->mkNode(Kind::DISTINCT, x, t);
       Trace("bv-invert") << "Add SC_" << litk << "(" << x << "): " << ic
                          << std::endl;
     }
@@ -410,7 +414,7 @@ Node BvInverter::solveBvLit(Node sv,
        * x <k> s <litk> t. When traversing down, this witness term determines
        * the value for x <k> s = (witness x0. ic => x0 <k> s <litk> t), i.e.,
        * from here on, the propagated literal is a positive equality. */
-      litk = EQUAL;
+      litk = Kind::EQUAL;
       pol = true;
       /* t = fresh skolem constant */
       t = getInversionNode(ic, solve_tn, m);
@@ -428,18 +432,18 @@ Node BvInverter::solveBvLit(Node sv,
   TypeNode solve_tn = sv.getType();
   Node x = getSolveVariable(solve_tn);
   Node ic;
-  if (litk == BITVECTOR_ULT || litk == BITVECTOR_UGT)
+  if (litk == Kind::BITVECTOR_ULT || litk == Kind::BITVECTOR_UGT)
   {
     ic = utils::getICBvUltUgt(pol, litk, x, t);
   }
-  else if (litk == BITVECTOR_SLT || litk == BITVECTOR_SGT)
+  else if (litk == Kind::BITVECTOR_SLT || litk == Kind::BITVECTOR_SGT)
   {
     ic = utils::getICBvSltSgt(pol, litk, x, t);
   }
   else if (pol == false)
   {
-    Assert(litk == EQUAL);
-    ic = nm->mkNode(DISTINCT, x, t);
+    Assert(litk == Kind::EQUAL);
+    ic = nm->mkNode(Kind::DISTINCT, x, t);
     Trace("bv-invert") << "Add SC_" << litk << "(" << x << "): " << ic
                        << std::endl;
   }

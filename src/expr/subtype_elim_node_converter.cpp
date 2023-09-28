@@ -30,11 +30,11 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
 {
   Kind k = n.getKind();
   bool convertToRealChildren = false;
-  if (k == ADD || k == MULT || k == NONLINEAR_MULT)
+  if (k == Kind::ADD || k == Kind::MULT || k == Kind::NONLINEAR_MULT)
   {
     convertToRealChildren = isRealTypeStrict(n.getType());
   }
-  else if (k == GEQ || k == GT || k == LEQ || k == LT)
+  else if (k == Kind::GEQ || k == Kind::GT || k == Kind::LEQ || k == Kind::LT)
   {
     convertToRealChildren =
         isRealTypeStrict(n[0].getType()) || isRealTypeStrict(n[1].getType());
@@ -56,7 +56,7 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
         else
         {
           // otherwise, use TO_REAL
-          children.push_back(nm->mkNode(TO_REAL, nc));
+          children.push_back(nm->mkNode(Kind::TO_REAL, nc));
         }
       }
       else

@@ -22,7 +22,7 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 
-Node ProofRuleChecker::check(PfRule id,
+Node ProofRuleChecker::check(ProofRule id,
                              const std::vector<Node>& children,
                              const std::vector<Node>& args)
 {
@@ -66,7 +66,7 @@ bool ProofRuleChecker::getKind(TNode n, Kind& k)
 
 Node ProofRuleChecker::mkKindNode(Kind k)
 {
-  if (k == UNDEFINED_KIND)
+  if (k == Kind::UNDEFINED_KIND)
   {
     // UNDEFINED_KIND is negative, hence return null to avoid cast
     return Node::null();

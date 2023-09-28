@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Dejan Jovanovic, Andrew Reynolds
+ *   Aina Niemetz, Andrew Reynolds, Dejan Jovanovic
  *
  * This file is part of the cvc5 project.
  *
@@ -28,7 +28,7 @@ namespace bv {
 
 Cardinality CardinalityComputer::computeCardinality(TypeNode type)
 {
-  Assert(type.getKind() == kind::BITVECTOR_TYPE);
+  Assert(type.getKind() == Kind::BITVECTOR_TYPE);
 
   uint32_t size = type.getConst<BitVectorSize>();
   if (size == 0)
@@ -337,7 +337,7 @@ TypeNode BitVectorExtendTypeRule::computeType(NodeManager* nodeManager,
   {
     throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");
   }
-  uint32_t extendAmount = n.getKind() == kind::BITVECTOR_SIGN_EXTEND
+  uint32_t extendAmount = n.getKind() == Kind::BITVECTOR_SIGN_EXTEND
                               ? n.getOperator().getConst<BitVectorSignExtend>()
                               : n.getOperator().getConst<BitVectorZeroExtend>();
   return nodeManager->mkBitVectorType(extendAmount + t.getBitVectorSize());

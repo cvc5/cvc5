@@ -89,10 +89,13 @@ Node FirstOrderModel::getInternalRepresentative(Node a, Node q, size_t index)
 }
 
 void FirstOrderModel::assertQuantifier( Node n ){
-  if( n.getKind()==FORALL ){
+  if (n.getKind() == Kind::FORALL)
+  {
     d_forall_asserts.push_back( n );
-  }else if( n.getKind()==NOT ){
-    Assert(n[0].getKind() == FORALL);
+  }
+  else if (n.getKind() == Kind::NOT)
+  {
+    Assert(n[0].getKind() == Kind::FORALL);
   }
 }
 
@@ -332,7 +335,7 @@ Node FirstOrderModel::getModelBasisOpTerm(Node op)
     else
     {
       d_model_basis_op_term[op] =
-          NodeManager::currentNM()->mkNode(APPLY_UF, children);
+          NodeManager::currentNM()->mkNode(Kind::APPLY_UF, children);
     }
   }
   return d_model_basis_op_term[op];
@@ -357,7 +360,7 @@ void FirstOrderModel::computeModelBasisArgAttribute(Node n)
   if (!n.hasAttribute(ModelBasisArgAttribute()))
   {
     // ensure that the model basis terms have been defined
-    if (n.getKind() == APPLY_UF)
+    if (n.getKind() == Kind::APPLY_UF)
     {
       getModelBasisOpTerm(n.getOperator());
     }

@@ -53,26 +53,26 @@ ExtfSolver::ExtfSolver(Env& env,
       d_extfInferCache(context()),
       d_reduced(userContext())
 {
-  d_extt.addFunctionKind(kind::STRING_SUBSTR);
-  d_extt.addFunctionKind(kind::STRING_UPDATE);
-  d_extt.addFunctionKind(kind::STRING_INDEXOF);
-  d_extt.addFunctionKind(kind::STRING_INDEXOF_RE);
-  d_extt.addFunctionKind(kind::STRING_ITOS);
-  d_extt.addFunctionKind(kind::STRING_STOI);
-  d_extt.addFunctionKind(kind::STRING_REPLACE);
-  d_extt.addFunctionKind(kind::STRING_REPLACE_ALL);
-  d_extt.addFunctionKind(kind::STRING_REPLACE_RE);
-  d_extt.addFunctionKind(kind::STRING_REPLACE_RE_ALL);
-  d_extt.addFunctionKind(kind::STRING_CONTAINS);
-  d_extt.addFunctionKind(kind::STRING_IN_REGEXP);
-  d_extt.addFunctionKind(kind::STRING_LEQ);
-  d_extt.addFunctionKind(kind::STRING_TO_CODE);
-  d_extt.addFunctionKind(kind::STRING_TO_LOWER);
-  d_extt.addFunctionKind(kind::STRING_TO_UPPER);
-  d_extt.addFunctionKind(kind::STRING_REV);
-  d_extt.addFunctionKind(kind::STRING_UNIT);
-  d_extt.addFunctionKind(kind::SEQ_UNIT);
-  d_extt.addFunctionKind(kind::SEQ_NTH);
+  d_extt.addFunctionKind(Kind::STRING_SUBSTR);
+  d_extt.addFunctionKind(Kind::STRING_UPDATE);
+  d_extt.addFunctionKind(Kind::STRING_INDEXOF);
+  d_extt.addFunctionKind(Kind::STRING_INDEXOF_RE);
+  d_extt.addFunctionKind(Kind::STRING_ITOS);
+  d_extt.addFunctionKind(Kind::STRING_STOI);
+  d_extt.addFunctionKind(Kind::STRING_REPLACE);
+  d_extt.addFunctionKind(Kind::STRING_REPLACE_ALL);
+  d_extt.addFunctionKind(Kind::STRING_REPLACE_RE);
+  d_extt.addFunctionKind(Kind::STRING_REPLACE_RE_ALL);
+  d_extt.addFunctionKind(Kind::STRING_CONTAINS);
+  d_extt.addFunctionKind(Kind::STRING_IN_REGEXP);
+  d_extt.addFunctionKind(Kind::STRING_LEQ);
+  d_extt.addFunctionKind(Kind::STRING_TO_CODE);
+  d_extt.addFunctionKind(Kind::STRING_TO_LOWER);
+  d_extt.addFunctionKind(Kind::STRING_TO_UPPER);
+  d_extt.addFunctionKind(Kind::STRING_REV);
+  d_extt.addFunctionKind(Kind::STRING_UNIT);
+  d_extt.addFunctionKind(Kind::SEQ_UNIT);
+  d_extt.addFunctionKind(Kind::SEQ_NTH);
 
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -101,19 +101,20 @@ bool ExtfSolver::shouldDoReduction(int effort, Node n, int pol)
   }
   Kind k = n.getKind();
   // determine if it is the right effort
-  if (k == STRING_SUBSTR || (k == STRING_CONTAINS && pol == 1))
+  if (k == Kind::STRING_SUBSTR || (k == Kind::STRING_CONTAINS && pol == 1))
   {
     // we reduce these semi-eagerly, at effort 1
     return (effort == 1);
   }
-  else if (k == STRING_CONTAINS && pol == -1)
+  else if (k == Kind::STRING_CONTAINS && pol == -1)
   {
     // negative contains reduces at level 2, or 3 if guessing model
     int reffort = options().strings.stringModelBasedReduction ? 3 : 2;
     return (effort == reffort);
   }
-  else if (k == SEQ_UNIT || k == STRING_UNIT || k == STRING_IN_REGEXP
-           || k == STRING_TO_CODE || (n.getType().isBoolean() && pol == 0))
+  else if (k == Kind::SEQ_UNIT || k == Kind::STRING_UNIT
+           || k == Kind::STRING_IN_REGEXP || k == Kind::STRING_TO_CODE
+           || (n.getType().isBoolean() && pol == 0))
   {
     // never necessary to reduce seq.unit. str.to_code or str.in_re here.
     // also, we do not reduce str.contains that are preregistered but not
@@ -122,12 +123,12 @@ bool ExtfSolver::shouldDoReduction(int effort, Node n, int pol)
   }
   else if (options().strings.seqArray != options::SeqArrayMode::NONE)
   {
-    if (k == SEQ_NTH)
+    if (k == Kind::SEQ_NTH)
     {
       // don't need to reduce seq.nth when sequence update solver is used
       return false;
     }
-    else if ((k == STRING_UPDATE || k == STRING_SUBSTR)
+    else if ((k == Kind::STRING_UPDATE || k == Kind::STRING_SUBSTR)
              && d_termReg.isHandledUpdateOrSubstr(n))
     {
       // don't need to reduce certain seq.update
@@ -145,7 +146,7 @@ void ExtfSolver::doReduction(Node n, int pol)
       << "doReduction " << n << ", pol " << pol << std::endl;
   // polarity : 1 true, -1 false, 0 neither
   Kind k = n.getKind();
-  if (k == STRING_CONTAINS && pol == -1)
+  if (k == Kind::STRING_CONTAINS && pol == -1)
   {
     Node x = n[0];
     Node s = n[1];
@@ -177,7 +178,7 @@ void ExtfSolver::doReduction(Node n, int pol)
   Node nn = pol == -1 ? n.notNode() : n;
   Trace("strings-process-debug")
       << "Process reduction for " << n << ", pol = " << pol << std::endl;
-  if (k == STRING_CONTAINS && pol == 1)
+  if (k == Kind::STRING_CONTAINS && pol == 1)
   {
     Node x = n[0];
     Node s = n[1];
@@ -185,7 +186,7 @@ void ExtfSolver::doReduction(Node n, int pol)
     SkolemCache* skc = d_termReg.getSkolemCache();
     Node eq = d_termReg.eagerReduce(n, skc, d_termReg.getAlphabetCardinality());
     Assert(!eq.isNull());
-    Assert(eq.getKind() == ITE && eq[0] == n);
+    Assert(eq.getKind() == Kind::ITE && eq[0] == n);
     eq = eq[1];
     std::vector<Node> expn;
     expn.push_back(n);
@@ -202,19 +203,21 @@ void ExtfSolver::doReduction(Node n, int pol)
   else
   {
     NodeManager* nm = NodeManager::currentNM();
-    Assert(k == STRING_SUBSTR || k == STRING_UPDATE || k == STRING_CONTAINS
-           || k == STRING_INDEXOF || k == STRING_INDEXOF_RE || k == STRING_ITOS
-           || k == STRING_STOI || k == STRING_REPLACE || k == STRING_REPLACE_ALL
-           || k == SEQ_NTH || k == STRING_REPLACE_RE
-           || k == STRING_REPLACE_RE_ALL || k == STRING_LEQ
-           || k == STRING_TO_LOWER || k == STRING_TO_UPPER || k == STRING_REV)
+    Assert(k == Kind::STRING_SUBSTR || k == Kind::STRING_UPDATE
+           || k == Kind::STRING_CONTAINS || k == Kind::STRING_INDEXOF
+           || k == Kind::STRING_INDEXOF_RE || k == Kind::STRING_ITOS
+           || k == Kind::STRING_STOI || k == Kind::STRING_REPLACE
+           || k == Kind::STRING_REPLACE_ALL || k == Kind::SEQ_NTH
+           || k == Kind::STRING_REPLACE_RE || k == Kind::STRING_REPLACE_RE_ALL
+           || k == Kind::STRING_LEQ || k == Kind::STRING_TO_LOWER
+           || k == Kind::STRING_TO_UPPER || k == Kind::STRING_REV)
         << "Unknown reduction: " << k;
     std::vector<Node> new_nodes;
     Node res = d_preproc.simplify(n, new_nodes);
     Assert(res != n);
     new_nodes.push_back(n.eqNode(res));
     Node nnlem =
-        new_nodes.size() == 1 ? new_nodes[0] : nm->mkNode(AND, new_nodes);
+        new_nodes.size() == 1 ? new_nodes[0] : nm->mkNode(Kind::AND, new_nodes);
     // in rare case where it rewrites to true, just record it is reduced
     if (rewrite(nnlem) == d_true)
     {
@@ -320,7 +323,7 @@ void ExtfSolver::checkExtfEval(int effort)
     std::vector<Node> exp;
     std::vector<Node> schildren;
     // seq.unit is parameterized
-    if (n.getMetaKind() == metakind::PARAMETERIZED)
+    if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
     {
       schildren.push_back(n.getOperator());
     }
@@ -558,12 +561,12 @@ void ExtfSolver::checkExtfInference(Node n,
   // with a node n,
   // this may need to be generalized if multiple inferences apply
 
-  if (nr.getKind() == STRING_CONTAINS)
+  if (nr.getKind() == Kind::STRING_CONTAINS)
   {
     Assert(in.d_const.isConst());
     bool pol = in.d_const.getConst<bool>();
-    if ((pol && nr[1].getKind() == STRING_CONCAT)
-        || (!pol && nr[0].getKind() == STRING_CONCAT))
+    if ((pol && nr[1].getKind() == Kind::STRING_CONCAT)
+        || (!pol && nr[0].getKind() == Kind::STRING_CONCAT))
     {
       // If str.contains( x, str.++( y1, ..., yn ) ),
       //   we may infer str.contains( x, y1 ), ..., str.contains( x, yn )
@@ -588,7 +591,7 @@ void ExtfSolver::checkExtfInference(Node n,
         for (const Node& nrc : nr[index])
         {
           children[index] = nrc;
-          Node conc = nm->mkNode(STRING_CONTAINS, children);
+          Node conc = nm->mkNode(Kind::STRING_CONTAINS, children);
           conc = rewrite(pol ? conc : conc.negate());
           // check if it already (does not) hold
           if (d_state.hasTerm(conc))
@@ -648,8 +651,8 @@ void ExtfSolver::checkExtfInference(Node n,
              i++)
         {
           Node onr = d_extfInfoTmp[nr[0]].d_ctn[opol][i];
-          Node concOrig =
-              nm->mkNode(STRING_CONTAINS, pol ? nr[1] : onr, pol ? onr : nr[1]);
+          Node concOrig = nm->mkNode(
+              Kind::STRING_CONTAINS, pol ? nr[1] : onr, pol ? onr : nr[1]);
           Node conc = rewrite(concOrig);
           // For termination concerns, we only do the inference if the contains
           // does not rewrite (and thus does not introduce new terms).
@@ -657,9 +660,9 @@ void ExtfSolver::checkExtfInference(Node n,
           {
             bool do_infer = false;
             conc = conc.negate();
-            bool pol2 = conc.getKind() != NOT;
+            bool pol2 = conc.getKind() != Kind::NOT;
             Node lit = pol2 ? conc : conc[0];
-            if (lit.getKind() == EQUAL)
+            if (lit.getKind() == Kind::EQUAL)
             {
               do_infer = pol2 ? !d_state.areEqual(lit[0], lit[1])
                               : !d_state.areDisequal(lit[0], lit[1]);
@@ -701,7 +704,7 @@ void ExtfSolver::checkExtfInference(Node n,
   Node inferEq = nr.eqNode(in.d_const);
   Node inferEqr = rewrite(inferEq);
   Node inferEqrr = inferEqr;
-  if (inferEqr.getKind() == EQUAL)
+  if (inferEqr.getKind() == Kind::EQUAL)
   {
     // try to use the extended rewriter for equalities
     inferEqrr = d_rewriter.rewriteEqualityExt(inferEqr);

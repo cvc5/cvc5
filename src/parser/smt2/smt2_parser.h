@@ -20,25 +20,25 @@
 
 #include <cvc5/cvc5.h>
 
-#include "parser/flex_parser.h"
-#include "parser/smt2/smt2.h"
+#include "parser/parser.h"
+#include "parser/smt2/smt2_state.h"
 #include "parser/smt2/smt2_cmd_parser.h"
-#include "parser/smt2/smt2_lexer_new.h"
+#include "parser/smt2/smt2_lexer.h"
 #include "parser/smt2/smt2_term_parser.h"
 
 namespace cvc5 {
 namespace parser {
 
 /**
- * Flex-based smt2 parser. It maintains a lexer, a state, a term parser and a
+ * -based smt2 parser. It maintains a lexer, a state, a term parser and a
  * command parser. The latter two are used for parsing terms and commands. The
  * command parser depends on the term parser.
  */
-class Smt2Parser : public FlexParser
+class Smt2Parser : public Parser
 {
  public:
   Smt2Parser(Solver* solver,
-             SymbolManager* sm,
+             SymManager* sm,
              bool isStrict = false,
              bool isSygus = false);
   virtual ~Smt2Parser() {}
@@ -51,7 +51,7 @@ class Smt2Parser : public FlexParser
    * or the forced logic if no logic is set prior to this point and a command
    * is read that requires initializing the logic.
    */
-  std::unique_ptr<Command> parseNextCommand() override;
+  std::unique_ptr<Cmd> parseNextCommand() override;
 
   /**
    * Parse and return the next expression. Requires setting the logic
@@ -59,7 +59,7 @@ class Smt2Parser : public FlexParser
    */
   Term parseNextExpression() override;
   /** The lexer */
-  Smt2LexerNew d_slex;
+  Smt2Lexer d_slex;
   /** The state */
   Smt2State d_state;
   /** Term parser */

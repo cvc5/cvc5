@@ -71,8 +71,8 @@ class PreprocessProofGenerator : protected EnvObj, public ProofGenerator
   PreprocessProofGenerator(Env& env,
                            context::Context* c = nullptr,
                            std::string name = "PreprocessProofGenerator",
-                           PfRule ra = PfRule::PREPROCESS_LEMMA,
-                           PfRule rpp = PfRule::PREPROCESS);
+                           ProofRule ra = ProofRule::PREPROCESS_LEMMA,
+                           ProofRule rpp = ProofRule::PREPROCESS);
   ~PreprocessProofGenerator() {}
   /**
    * Notify that n is an input (its proof is ASSUME).
@@ -112,7 +112,7 @@ class PreprocessProofGenerator : protected EnvObj, public ProofGenerator
    * Possibly check pedantic failure for null proof generator provided
    * to this class.
    */
-  void checkEagerPedantic(PfRule r);
+  void checkEagerPedantic(ProofRule r);
   /** A dummy context used by this class if none is provided */
   context::Context d_context;
   /** The context used here */
@@ -135,9 +135,9 @@ class PreprocessProofGenerator : protected EnvObj, public ProofGenerator
   /** Name for debugging */
   std::string d_name;
   /** The trust rule for new assertions with no provided proof generator */
-  PfRule d_ra;
+  ProofRule d_ra;
   /** The trust rule for rewrites with no provided proof generator */
-  PfRule d_rpp;
+  ProofRule d_rpp;
 };
 
 }  // namespace smt

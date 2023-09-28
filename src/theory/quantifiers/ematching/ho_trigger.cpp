@@ -111,7 +111,7 @@ void HigherOrderTrigger::collectHoVarApplyTerms(
       if (it == visited.end())
       {
         // do not look in nested quantifiers
-        if (cur.getKind() == FORALL)
+        if (cur.getKind() == Kind::FORALL)
         {
           visited[cur] = cur;
         }
@@ -153,28 +153,28 @@ void HigherOrderTrigger::collectHoVarApplyTerms(
         if (!withinApply[cur])
         {
           TNode op;
-          if (ret.getKind() == kind::APPLY_UF)
+          if (ret.getKind() == Kind::APPLY_UF)
           {
             // could be a fully applied function variable
             op = ret.getOperator();
           }
-          else if (ret.getKind() == kind::HO_APPLY)
+          else if (ret.getKind() == Kind::HO_APPLY)
           {
             op = ret;
-            while (op.getKind() == kind::HO_APPLY)
+            while (op.getKind() == Kind::HO_APPLY)
             {
               op = op[0];
             }
           }
           if (!op.isNull())
           {
-            if (op.getKind() == kind::INST_CONSTANT)
+            if (op.getKind() == Kind::INST_CONSTANT)
             {
               Assert(TermUtil::getInstConstAttr(ret) == q);
               Trace("ho-quant-trigger-debug")
                   << "Ho variable apply term : " << ret << " with head " << op
                   << std::endl;
-              if (ret.getKind() == kind::APPLY_UF)
+              if (ret.getKind() == Kind::APPLY_UF)
               {
                 Node prev = ret;
                 // for consistency, convert to HO_APPLY if fully applied
@@ -427,9 +427,9 @@ bool HigherOrderTrigger::sendInstantiationArg(std::vector<Node>& m,
       Trace("ho-unif-debug2")
           << "  make lambda from children: " << d_lchildren[vnum] << std::endl;
       Node body =
-          NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_lchildren[vnum]);
+          NodeManager::currentNM()->mkNode(Kind::APPLY_UF, d_lchildren[vnum]);
       Trace("ho-unif-debug2") << "  got " << body << std::endl;
-      Node lam = NodeManager::currentNM()->mkNode(kind::LAMBDA, lbvl, body);
+      Node lam = NodeManager::currentNM()->mkNode(Kind::LAMBDA, lbvl, body);
       m[vnum] = lam;
       Trace("ho-unif-debug2") << "  try " << vnum << " -> " << lam << std::endl;
     }
@@ -502,7 +502,7 @@ uint64_t HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
           if (d_ho_var_types.find(stn) != d_ho_var_types.end())
           {
             Node u = HoTermDb::getHoTypeMatchPredicate(tn);
-            Node au = nm->mkNode(kind::APPLY_UF, u, f);
+            Node au = nm->mkNode(Kind::APPLY_UF, u, f);
             if (d_qim.addPendingLemma(au,
                                       InferenceId::QUANTIFIERS_HO_MATCH_PRED))
             {

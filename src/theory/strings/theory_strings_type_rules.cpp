@@ -31,7 +31,7 @@ bool isMaybeStringLike(const TypeNode& tn)
   {
     return true;
   }
-  return tn.isMaybeKind(kind::SEQUENCE_TYPE);
+  return tn.isMaybeKind(Kind::SEQUENCE_TYPE);
 }
 
 bool isMaybeInteger(const TypeNode& tn)
@@ -457,7 +457,7 @@ TypeNode StringToRegExpTypeRule::computeType(NodeManager* nodeManager,
 
 bool StringToRegExpTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
 {
-  Assert(n.getKind() == kind::STRING_TO_REGEXP);
+  Assert(n.getKind() == Kind::STRING_TO_REGEXP);
   return n[0].isConst();
 }
 
@@ -470,7 +470,7 @@ TypeNode ConstSequenceTypeRule::computeType(NodeManager* nodeManager,
                                             bool check,
                                             std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::CONST_SEQUENCE);
+  Assert(n.getKind() == Kind::CONST_SEQUENCE);
   return nodeManager->mkSequenceType(n.getConst<Sequence>().getType());
 }
 
@@ -483,7 +483,7 @@ TypeNode SeqUnitTypeRule::computeType(NodeManager* nodeManager,
                                       bool check,
                                       std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::SEQ_UNIT);
+  Assert(n.getKind() == Kind::SEQ_UNIT);
   TypeNode argType = n[0].getTypeOrNull();
   return nodeManager->mkSequenceType(argType);
 }
@@ -497,7 +497,7 @@ TypeNode SeqNthTypeRule::computeType(NodeManager* nodeManager,
                                      bool check,
                                      std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::SEQ_NTH);
+  Assert(n.getKind() == Kind::SEQ_NTH);
   TypeNode t = n[0].getTypeOrNull();
   if (check && !isMaybeStringLike(t))
   {
@@ -522,7 +522,7 @@ TypeNode SeqNthTypeRule::computeType(NodeManager* nodeManager,
   if (t.isAbstract())
   {
     // if selecting from abstract, we don't know the type
-    return nodeManager->mkAbstractType(kind::ABSTRACT_TYPE);
+    return nodeManager->mkAbstractType(Kind::ABSTRACT_TYPE);
   }
   if (t.isSequence())
   {
@@ -534,7 +534,7 @@ TypeNode SeqNthTypeRule::computeType(NodeManager* nodeManager,
 
 Cardinality SequenceProperties::computeCardinality(TypeNode type)
 {
-  Assert(type.getKind() == kind::SEQUENCE_TYPE);
+  Assert(type.getKind() == Kind::SEQUENCE_TYPE);
   return Cardinality::INTEGERS;
 }
 /** A sequence is well-founded if its element type is */

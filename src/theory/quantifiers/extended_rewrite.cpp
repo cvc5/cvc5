@@ -117,17 +117,17 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
   if (d_aggr)
   {
     Node pre_new_ret;
-    if (ret.getKind() == IMPLIES)
+    if (ret.getKind() == Kind::IMPLIES)
     {
-      pre_new_ret = nm->mkNode(OR, ret[0].negate(), ret[1]);
+      pre_new_ret = nm->mkNode(Kind::OR, ret[0].negate(), ret[1]);
       debugExtendedRewrite(ret, pre_new_ret, "IMPLIES elim");
     }
-    else if (ret.getKind() == XOR)
+    else if (ret.getKind() == Kind::XOR)
     {
-      pre_new_ret = nm->mkNode(EQUAL, ret[0].negate(), ret[1]);
+      pre_new_ret = nm->mkNode(Kind::EQUAL, ret[0].negate(), ret[1]);
       debugExtendedRewrite(ret, pre_new_ret, "XOR elim");
     }
-    else if (ret.getKind() == NOT)
+    else if (ret.getKind() == Kind::NOT)
     {
       pre_new_ret = extendedRewriteNnf(ret);
       debugExtendedRewrite(ret, pre_new_ret, "NNF");
@@ -217,24 +217,25 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
   Node new_ret;
 
   //---------------------- theory-independent post-rewriting
-  if (ret.getKind() == ITE)
+  if (ret.getKind() == Kind::ITE)
   {
-    new_ret = extendedRewriteIte(ITE, ret);
+    new_ret = extendedRewriteIte(Kind::ITE, ret);
   }
-  else if (ret.getKind() == AND || ret.getKind() == OR)
+  else if (ret.getKind() == Kind::AND || ret.getKind() == Kind::OR)
   {
     new_ret = extendedRewriteAndOr(ret);
   }
-  else if (ret.getKind() == EQUAL)
+  else if (ret.getKind() == Kind::EQUAL)
   {
-    new_ret = extendedRewriteEqChain(EQUAL, AND, OR, NOT, ret);
+    new_ret = extendedRewriteEqChain(
+        Kind::EQUAL, Kind::AND, Kind::OR, Kind::NOT, ret);
     debugExtendedRewrite(ret, new_ret, "Bool eq-chain simplify");
   }
   Assert(new_ret.isNull() || new_ret != ret);
-  if (new_ret.isNull() && ret.getKind() != ITE)
+  if (new_ret.isNull() && ret.getKind() != Kind::ITE)
   {
     // simple ITE pulling
-    new_ret = extendedRewritePullIte(ITE, ret);
+    new_ret = extendedRewritePullIte(Kind::ITE, ret);
   }
   //----------------------end theory-independent post-rewriting
 
@@ -242,7 +243,7 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
   if (new_ret.isNull())
   {
     TheoryId tid;
-    if (ret.getKind() == ITE)
+    if (ret.getKind() == Kind::ITE)
     {
       tid = Theory::theoryOf(ret.getType());
     }
@@ -291,10 +292,10 @@ Node ExtendedRewriter::extendedRewriteAggr(Node n) const
   Node new_ret;
   Trace("q-ext-rewrite-debug2")
       << "Do aggressive rewrites on " << n << std::endl;
-  bool polarity = n.getKind() != NOT;
-  Node ret_atom = n.getKind() == NOT ? n[0] : n;
-  if ((ret_atom.getKind() == EQUAL && ret_atom[0].getType().isRealOrInt())
-      || ret_atom.getKind() == GEQ)
+  bool polarity = n.getKind() != Kind::NOT;
+  Node ret_atom = n.getKind() == Kind::NOT ? n[0] : n;
+  if ((ret_atom.getKind() == Kind::EQUAL && ret_atom[0].getType().isRealOrInt())
+      || ret_atom.getKind() == Kind::GEQ)
   {
     // ITE term removal in polynomials
     // e.g. ite( x=0, x, y ) = x+1 ---> ( x=0 ^ y = x+1 )
@@ -310,7 +311,7 @@ Node ExtendedRewriter::extendedRewriteAggr(Node n) const
         Node v = itm->first;
         Trace("q-ext-rewrite-debug2")
             << itm->first << " * " << itm->second << std::endl;
-        if (v.getKind() == ITE)
+        if (v.getKind() == Kind::ITE)
         {
           Node veq;
           int res = ArithMSum::isolate(v, msum, veq, ret_atom.getKind());
@@ -319,7 +320,7 @@ Node ExtendedRewriter::extendedRewriteAggr(Node n) const
             Trace("q-ext-rewrite-debug")
                 << "  have ITE relation, solved form : " << veq << std::endl;
             // try pulling ITE
-            new_ret = extendedRewritePullIte(ITE, veq);
+            new_ret = extendedRewritePullIte(Kind::ITE, veq);
             if (!new_ret.isNull())
             {
               if (!polarity)
@@ -357,18 +358,18 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full) const
   Trace("ext-rew-ite") << "Rewrite ITE : " << n << std::endl;
 
   Node flip_cond;
-  if (n[0].getKind() == NOT)
+  if (n[0].getKind() == Kind::NOT)
   {
     flip_cond = n[0][0];
   }
-  else if (n[0].getKind() == OR)
+  else if (n[0].getKind() == Kind::OR)
   {
     // a | b ---> ~( ~a & ~b )
     flip_cond = TermUtil::simpleNegate(n[0]);
   }
   if (!flip_cond.isNull())
   {
-    Node new_ret = nm->mkNode(ITE, flip_cond, n[2], n[1]);
+    Node new_ret = nm->mkNode(Kind::ITE, flip_cond, n[2], n[1]);
     // only print debug trace if full=true
     if (full)
     {
@@ -386,10 +387,10 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full) const
       {
         Node cond = i == 1 ? n[0] : n[0].negate();
         Node other = n[i == 1 ? 2 : 1];
-        Kind retk = AND;
+        Kind retk = Kind::AND;
         if (n[i].getConst<bool>())
         {
-          retk = OR;
+          retk = Kind::OR;
         }
         else
         {
@@ -412,15 +413,15 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full) const
   // get entailed equalities in the condition
   std::vector<Node> eq_conds;
   Kind ck = n[0].getKind();
-  if (ck == EQUAL)
+  if (ck == Kind::EQUAL)
   {
     eq_conds.push_back(n[0]);
   }
-  else if (ck == AND)
+  else if (ck == Kind::AND)
   {
     for (const Node& cn : n[0])
     {
-      if (cn.getKind() == EQUAL)
+      if (cn.getKind() == Kind::EQUAL)
       {
         eq_conds.push_back(cn);
       }
@@ -458,7 +459,7 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full) const
     // merging branches
     for (unsigned i = 1; i <= 2; i++)
     {
-      if (n[i].getKind() == ITE)
+      if (n[i].getKind() == Kind::ITE)
       {
         Node no = n[3 - i];
         for (unsigned j = 1; j <= 2; j++)
@@ -469,8 +470,8 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full) const
             // ite( C1, ite( C2, t1, t2 ), t1 ) ----> ite( C1 ^ ~C2, t2, t1 )
             Node nc1 = i == 2 ? n[0].negate() : n[0];
             Node nc2 = j == 1 ? n[i][0].negate() : n[i][0];
-            Node new_cond = nm->mkNode(AND, nc1, nc2);
-            new_ret = nm->mkNode(ITE, new_cond, n[i][3 - j], no);
+            Node new_cond = nm->mkNode(Kind::AND, nc1, nc2);
+            new_ret = nm->mkNode(Kind::ITE, new_cond, n[i][3 - j], no);
             ss_reason << "ITE merge branch";
             break;
           }
@@ -576,14 +577,14 @@ Node ExtendedRewriter::extendedRewriteAndOr(Node n) const
   // we allow substitutions to recurse over any kind, except WITNESS which is
   // managed by partialSubstitute.
   std::map<Kind, bool> bcp_kinds;
-  new_ret = extendedRewriteBcp(AND, OR, NOT, bcp_kinds, n);
+  new_ret = extendedRewriteBcp(Kind::AND, Kind::OR, Kind::NOT, bcp_kinds, n);
   if (!new_ret.isNull())
   {
     debugExtendedRewrite(n, new_ret, "Bool bcp");
     return new_ret;
   }
   // factoring
-  new_ret = extendedRewriteFactoring(AND, OR, NOT, n);
+  new_ret = extendedRewriteFactoring(Kind::AND, Kind::OR, Kind::NOT, n);
   if (!new_ret.isNull())
   {
     debugExtendedRewrite(n, new_ret, "Bool factoring");
@@ -591,14 +592,15 @@ Node ExtendedRewriter::extendedRewriteAndOr(Node n) const
   }
 
   // equality resolution
-  new_ret = extendedRewriteEqRes(AND, OR, EQUAL, NOT, bcp_kinds, n, false);
+  new_ret = extendedRewriteEqRes(
+      Kind::AND, Kind::OR, Kind::EQUAL, Kind::NOT, bcp_kinds, n, false);
   debugExtendedRewrite(n, new_ret, "Bool eq res");
   return new_ret;
 }
 
 Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n) const
 {
-  Assert(n.getKind() != ITE);
+  Assert(n.getKind() != Kind::ITE);
   if (n.isClosure())
   {
     // don't pull ITE out of quantifiers
@@ -647,7 +649,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n) const
       {
         // always pull variable or constant with binary (theory) predicate
         // e.g. P( x, ite( A, t1, t2 ) ) ---> ite( A, P( x, t1 ), P( x, t2 ) )
-        Node new_ret = nm->mkNode(ITE, n[i][0], ite_c[i][0], ite_c[i][1]);
+        Node new_ret = nm->mkNode(Kind::ITE, n[i][0], ite_c[i][0], ite_c[i][1]);
         debugExtendedRewrite(n, new_ret, "ITE pull var predicate");
         return new_ret;
       }
@@ -669,7 +671,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n) const
             new_children.push_back((j == 0) == pol ? n[i][0]
                                                     : n[i][0].negate());
             new_children.push_back(ite_c[i][1 - j]);
-            new_ret = nm->mkNode(pol ? OR : AND, new_children);
+            new_ret = nm->mkNode(pol ? Kind::OR : Kind::AND, new_children);
             debugExtendedRewrite(n, new_ret, "ITE Bool single elim");
           }
           else
@@ -691,7 +693,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n) const
       // now, simply pull the ITE and try ITE rewrites
       Node pull_ite = nm->mkNode(itek, nite[0], ip.second[0], ip.second[1]);
       pull_ite = d_rew.rewrite(pull_ite);
-      if (pull_ite.getKind() == ITE)
+      if (pull_ite.getKind() == Kind::ITE)
       {
         Node new_pull_ite = extendedRewriteIte(itek, pull_ite, false);
         if (!new_pull_ite.isNull())
@@ -719,32 +721,32 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n) const
 
 Node ExtendedRewriter::extendedRewriteNnf(Node ret) const
 {
-  Assert(ret.getKind() == NOT);
+  Assert(ret.getKind() == Kind::NOT);
 
   Kind nk = ret[0].getKind();
   bool neg_ch = false;
   bool neg_ch_1 = false;
-  if (nk == AND || nk == OR)
+  if (nk == Kind::AND || nk == Kind::OR)
   {
     neg_ch = true;
-    nk = nk == AND ? OR : AND;
+    nk = nk == Kind::AND ? Kind::OR : Kind::AND;
   }
-  else if (nk == IMPLIES)
-  {
-    neg_ch = true;
-    neg_ch_1 = true;
-    nk = AND;
-  }
-  else if (nk == ITE)
+  else if (nk == Kind::IMPLIES)
   {
     neg_ch = true;
     neg_ch_1 = true;
+    nk = Kind::AND;
   }
-  else if (nk == XOR)
+  else if (nk == Kind::ITE)
   {
-    nk = EQUAL;
+    neg_ch = true;
+    neg_ch_1 = true;
   }
-  else if (nk == EQUAL && ret[0][0].getType().isBoolean())
+  else if (nk == Kind::XOR)
+  {
+    nk = Kind::EQUAL;
+  }
+  else if (nk == Kind::EQUAL && ret[0][0].getType().isBoolean())
   {
     neg_ch_1 = true;
   }
@@ -1047,17 +1049,19 @@ Node ExtendedRewriter::extendedRewriteEqRes(Kind andk,
           // t != s ---> ~t = s
           if (lit[1].getKind() == notk && lit[0].getKind() != notk)
           {
-            eq = nm->mkNode(EQUAL, lit[0], TermUtil::mkNegate(notk, lit[1]));
+            eq = nm->mkNode(
+                Kind::EQUAL, lit[0], TermUtil::mkNegate(notk, lit[1]));
           }
           else
           {
-            eq = nm->mkNode(EQUAL, TermUtil::mkNegate(notk, lit[0]), lit[1]);
+            eq = nm->mkNode(
+                Kind::EQUAL, TermUtil::mkNegate(notk, lit[0]), lit[1]);
           }
         }
       }
       else
       {
-        eq = eqk == EQUAL ? lit : nm->mkNode(EQUAL, lit[0], lit[1]);
+        eq = eqk == Kind::EQUAL ? lit : nm->mkNode(Kind::EQUAL, lit[0], lit[1]);
       }
       if (!eq.isNull())
       {
@@ -1562,7 +1566,8 @@ Node ExtendedRewriter::partialSubstitute(
         // we disallow witness here, due to unsoundness when applying contextual
         // substitutions over witness terms (see #4620).
         Kind k = cur.getKind();
-        if (k != WITNESS && (rkinds.empty() || rkinds.find(k) != rkinds.end()))
+        if (k != Kind::WITNESS
+            && (rkinds.empty() || rkinds.find(k) != rkinds.end()))
         {
           visited[cur] = Node::null();
           visit.push_back(cur);
@@ -1620,14 +1625,14 @@ Node ExtendedRewriter::partialSubstitute(
 Node ExtendedRewriter::solveEquality(Node n) const
 {
   // TODO (#1706) : implement
-  Assert(n.getKind() == EQUAL);
+  Assert(n.getKind() == Kind::EQUAL);
 
   return Node::null();
 }
 
 bool ExtendedRewriter::inferSubstitution(Node n, Subs& subs, bool usePred) const
 {
-  if (n.getKind() == AND)
+  if (n.getKind() == Kind::AND)
   {
     bool ret = false;
     for (const Node& nc : n)
@@ -1637,7 +1642,7 @@ bool ExtendedRewriter::inferSubstitution(Node n, Subs& subs, bool usePred) const
     }
     return ret;
   }
-  if (n.getKind() == EQUAL)
+  if (n.getKind() == Kind::EQUAL)
   {
     // see if it can be put into form x = y
     Node slv_eq = solveEquality(n);
@@ -1684,7 +1689,7 @@ bool ExtendedRewriter::inferSubstitution(Node n, Subs& subs, bool usePred) const
   }
   if (usePred)
   {
-    bool negated = n.getKind() == NOT;
+    bool negated = n.getKind() == Kind::NOT;
     Node var = negated ? n[0] : n;
     Node s = NodeManager::currentNM()->mkConst(!negated);
     subs.add(var, s);
@@ -1699,18 +1704,18 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
       << "Extended rewrite strings : " << node << std::endl;
 
   Kind k = node.getKind();
-  if (k == EQUAL)
+  if (k == Kind::EQUAL)
   {
     strings::SequencesRewriter sr(&d_rew, nullptr);
     return sr.rewriteEqualityExt(node);
   }
-  else if (k == STRING_SUBSTR)
+  else if (k == Kind::STRING_SUBSTR)
   {
     NodeManager* nm = NodeManager::currentNM();
-    Node tot_len = d_rew.rewrite(nm->mkNode(STRING_LENGTH, node[0]));
+    Node tot_len = d_rew.rewrite(nm->mkNode(Kind::STRING_LENGTH, node[0]));
     strings::ArithEntail aent(&d_rew);
     // (str.substr s x y) --> "" if x < len(s) |= 0 >= y
-    Node n1_lt_tot_len = d_rew.rewrite(nm->mkNode(LT, node[1], tot_len));
+    Node n1_lt_tot_len = d_rew.rewrite(nm->mkNode(Kind::LT, node[1], tot_len));
     if (aent.checkWithAssumption(n1_lt_tot_len, d_intZero, node[2], false))
     {
       Node ret = strings::Word::mkEmptyWord(node.getType());
@@ -1719,7 +1724,7 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
     }
 
     // (str.substr s x y) --> "" if 0 < y |= x >= str.len(s)
-    Node non_zero_len = d_rew.rewrite(nm->mkNode(LT, d_intZero, node[2]));
+    Node non_zero_len = d_rew.rewrite(nm->mkNode(Kind::LT, d_intZero, node[2]));
     if (aent.checkWithAssumption(non_zero_len, node[1], tot_len, false))
     {
       Node ret = strings::Word::mkEmptyWord(node.getType());
@@ -1727,7 +1732,8 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
       return ret;
     }
     // (str.substr s x y) --> "" if x >= 0 |= 0 >= str.len(s)
-    Node geq_zero_start = d_rew.rewrite(nm->mkNode(GEQ, node[1], d_intZero));
+    Node geq_zero_start =
+        d_rew.rewrite(nm->mkNode(Kind::GEQ, node[1], d_intZero));
     if (aent.checkWithAssumption(geq_zero_start, d_intZero, tot_len, false))
     {
       Node ret = strings::Word::mkEmptyWord(node.getType());
@@ -1741,7 +1747,7 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
 
 Node ExtendedRewriter::extendedRewriteSets(const Node& node) const
 {
-  if (node.getKind() == SET_MINUS && node[1].getKind() == SET_MINUS
+  if (node.getKind() == Kind::SET_MINUS && node[1].getKind() == Kind::SET_MINUS
       && node[1][0] == node[0])
   {
     // Note this cannot be a rewrite rule or a ppRewrite, since it impacts the
@@ -1750,7 +1756,7 @@ Node ExtendedRewriter::extendedRewriteSets(const Node& node) const
     // and (set.minus A B), then we should not transform this to an intersection
     // term. (set.minus A (set.minus A B)) = (set.inter A B)
     NodeManager* nm = NodeManager::currentNM();
-    Node ret = nm->mkNode(SET_INTER, node[0], node[1][1]);
+    Node ret = nm->mkNode(Kind::SET_INTER, node[0], node[1][1]);
     debugExtendedRewrite(node, ret, "SET_MINUS_MINUS");
     return ret;
   }
