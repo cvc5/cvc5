@@ -15,8 +15,8 @@
 
 #include "prop/relevant_preregistrar.h"
 
-#include "options/prop_options.h"
 #include "expr/skolem_manager.h"
+#include "options/prop_options.h"
 
 using namespace cvc5::internal::kind;
 
@@ -175,7 +175,8 @@ bool shouldWatchAll(Kind nk, SatValue rval)
   // NOTE: this could be changed to return false when rval == SAT_VALUE_UNKNOWN,
   // which would lead to fewer preregistrations. However, experiments have
   // shown it is better to return true in this case.
-  return rval == SAT_VALUE_UNKNOWN || ((nk == Kind::AND) == (rval == SAT_VALUE_TRUE));
+  return rval == SAT_VALUE_UNKNOWN
+         || ((nk == Kind::AND) == (rval == SAT_VALUE_TRUE));
 }
 
 // NOTE: this method is responsible for popping from toVisit when applicable
