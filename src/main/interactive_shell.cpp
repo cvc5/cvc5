@@ -118,7 +118,7 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
 #endif /* EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP */
     ::using_history();
 
-    Assert (lang == modes::InputLanguage::SMT_LIB_2_6);
+    Assert(lang == modes::InputLanguage::SMT_LIB_2_6);
     d_historyFilename = string(getenv("HOME")) + "/.cvc5_history_smtlib2";
     commandsBegin = smt2_commands;
     commandsEnd =
