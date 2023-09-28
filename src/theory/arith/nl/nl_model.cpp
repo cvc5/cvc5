@@ -90,7 +90,7 @@ Node NlModel::computeModelValue(TNode n, bool isConcrete)
   {
     // we are interested in the exact value of PI, which cannot be computed.
     // hence, we return PI itself when asked for the concrete value.
-    if (n.getKind() == PI)
+    if (n.getKind() == Kind::PI)
     {
       ret = n;
     }
@@ -179,7 +179,7 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
   {
     Trace("nl-ext-cm-debug") << "- assertion: " << atom << std::endl;
     // see if it corresponds to a univariate polynomial equation of degree two
-    if (atom.getKind() == EQUAL)
+    if (atom.getKind() == Kind::EQUAL)
     {
       // we substitute inside of solve equality simple
       if (!solveEqualitySimple(atom, d, lemmas))
@@ -210,8 +210,9 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
         if (cur.getType().isRealOrInt() && !cur.isConst())
         {
           Kind k = cur.getKind();
-          if (k != MULT && k != ADD && k != NONLINEAR_MULT && k != TO_REAL
-              && !isTranscendentalKind(k) && k != IAND && k != POW2)
+          if (k != Kind::MULT && k != Kind::ADD && k != Kind::NONLINEAR_MULT
+              && k != Kind::TO_REAL && !isTranscendentalKind(k)
+              && k != Kind::IAND && k != Kind::POW2)
           {
             // if we have not set an approximate bound for it
             if (!hasAssignment(cur))
@@ -273,7 +274,7 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
 
 bool NlModel::addSubstitution(TNode v, TNode s)
 {
-  Assert(v.getKind() != TO_REAL);
+  Assert(v.getKind() != Kind::TO_REAL);
   Trace("nl-ext-model") << "* check model substitution : " << v << " -> " << s
                         << std::endl;
   Assert(getSubstitutedForm(s) == s)
@@ -388,7 +389,7 @@ bool NlModel::solveEqualitySimple(Node eq,
     }
   }
   Trace("nl-ext-cms") << "simple solve equality " << seq << "..." << std::endl;
-  Assert(seq.getKind() == EQUAL);
+  Assert(seq.getKind() == Kind::EQUAL);
   std::map<Node, Node> msum;
   if (!ArithMSum::getMonomialSumLit(seq, msum))
   {
@@ -416,7 +417,7 @@ bool NlModel::solveEqualitySimple(Node eq,
     {
       c = coeff;
     }
-    else if (v.getKind() == NONLINEAR_MULT)
+    else if (v.getKind() == Kind::NONLINEAR_MULT)
     {
       is_valid = false;
       Trace("nl-ext-cms-debug")
@@ -464,7 +465,7 @@ bool NlModel::solveEqualitySimple(Node eq,
       {
         Node slv;
         Node veqc;
-        if (ArithMSum::isolate(uv, msum, veqc, slv, EQUAL) != 0)
+        if (ArithMSum::isolate(uv, msum, veqc, slv, Kind::EQUAL) != 0)
         {
           Assert(!slv.isNull());
           // must rewrite here to be in substituted form
@@ -557,15 +558,15 @@ bool NlModel::simpleCheckModelLit(Node lit)
     return lit.getConst<bool>();
   }
   NodeManager* nm = NodeManager::currentNM();
-  bool pol = lit.getKind() != kind::NOT;
-  Node atom = lit.getKind() == kind::NOT ? lit[0] : lit;
+  bool pol = lit.getKind() != Kind::NOT;
+  Node atom = lit.getKind() == Kind::NOT ? lit[0] : lit;
 
-  if (atom.getKind() == EQUAL)
+  if (atom.getKind() == Kind::EQUAL)
   {
     // x = a is ( x >= a ^ x <= a )
     for (unsigned i = 0; i < 2; i++)
     {
-      Node lit2 = nm->mkNode(GEQ, atom[i], atom[1 - i]);
+      Node lit2 = nm->mkNode(Kind::GEQ, atom[i], atom[1 - i]);
       if (!pol)
       {
         lit2 = lit2.negate();
@@ -583,7 +584,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
     // polarity is false
     return pol;
   }
-  else if (atom.getKind() != GEQ)
+  else if (atom.getKind() != Kind::GEQ)
   {
     Trace("nl-ext-cms") << "  failed due to unknown literal." << std::endl;
     return false;
@@ -618,7 +619,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
         v_b[v] = m.second.isNull() ? d_one : m.second;
         vs.insert(v);
       }
-      else if (v.getKind() == NONLINEAR_MULT && v.getNumChildren() == 2
+      else if (v.getKind() == Kind::NONLINEAR_MULT && v.getNumChildren() == 2
                && v[0] == v[1] && v[0].isVar())
       {
         v_a[v[0]] = m.second.isNull() ? d_one : m.second;
@@ -631,10 +632,11 @@ bool NlModel::simpleCheckModelLit(Node lit)
     }
   }
   // solve the valid variables...
-  Node invalid_vsum = vs_invalid.empty() ? d_zero
-                                         : (vs_invalid.size() == 1
-                                                ? vs_invalid[0]
-                                                : nm->mkNode(ADD, vs_invalid));
+  Node invalid_vsum =
+      vs_invalid.empty()
+          ? d_zero
+          : (vs_invalid.size() == 1 ? vs_invalid[0]
+                                    : nm->mkNode(Kind::ADD, vs_invalid));
   // substitution to try
   ArithSubs qsub;
   for (const Node& v : vs)
@@ -651,13 +653,13 @@ bool NlModel::simpleCheckModelLit(Node lit)
         Assert(a.isConst());
         int asgn = a.getConst<Rational>().sgn();
         Assert(asgn != 0);
-        Node t = nm->mkNode(MULT, a, v, v);
+        Node t = nm->mkNode(Kind::MULT, a, v, v);
         Node b = d_zero;
         it = v_b.find(v);
         if (it != v_b.end())
         {
           b = it->second;
-          t = nm->mkNode(ADD, t, nm->mkNode(MULT, b, v));
+          t = nm->mkNode(Kind::ADD, t, nm->mkNode(Kind::MULT, b, v));
         }
         t = rewrite(t);
         Trace("nl-ext-cms-debug") << "Trying to find min/max for quadratic "
@@ -665,8 +667,9 @@ bool NlModel::simpleCheckModelLit(Node lit)
         Trace("nl-ext-cms-debug") << "    a = " << a << std::endl;
         Trace("nl-ext-cms-debug") << "    b = " << b << std::endl;
         // find maximal/minimal value on the interval
-        Node apex = nm->mkNode(
-            DIVISION, nm->mkNode(NEG, b), nm->mkNode(MULT, d_two, a));
+        Node apex = nm->mkNode(Kind::DIVISION,
+                               nm->mkNode(Kind::NEG, b),
+                               nm->mkNode(Kind::MULT, d_two, a));
         apex = rewrite(apex);
         Assert(apex.isConst());
         // for lower, upper, whether we are greater than the apex
@@ -675,7 +678,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
         for (unsigned r = 0; r < 2; r++)
         {
           boundn[r] = r == 0 ? bit->second.first : bit->second.second;
-          Node cmpn = nm->mkNode(GT, boundn[r], apex);
+          Node cmpn = nm->mkNode(Kind::GT, boundn[r], apex);
           cmpn = rewrite(cmpn);
           Assert(cmpn.isConst());
           cmp[r] = cmpn.getConst<bool>();
@@ -709,7 +712,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
               Node ts = qsub.applyArith(t);
               tcmpn[r] = rewrite(ts);
             }
-            Node tcmp = nm->mkNode(LT, tcmpn[0], tcmpn[1]);
+            Node tcmp = nm->mkNode(Kind::LT, tcmpn[0], tcmpn[1]);
             Trace("nl-ext-cms-debug")
                 << "  ...both sides of apex, compare " << tcmp << std::endl;
             tcmp = rewrite(tcmp);
@@ -781,7 +784,7 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
       // --- Collect variables and factors in v
       std::vector<Node> vars;
       std::vector<unsigned> factors;
-      if (v.getKind() == NONLINEAR_MULT)
+      if (v.getKind() == Kind::NONLINEAR_MULT)
       {
         unsigned last_start = 0;
         for (unsigned i = 0, nchildren = v.getNumChildren(); i < nchildren; i++)
@@ -963,7 +966,7 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
       {
         break;
       }
-      Node vbound = vbs.size() == 1 ? vbs[0] : nm->mkNode(MULT, vbs);
+      Node vbound = vbs.size() == 1 ? vbs[0] : nm->mkNode(Kind::MULT, vbs);
       sum_bound.push_back(ArithMSum::mkCoeffTerm(m.second, vbound));
     }
   }
@@ -972,7 +975,7 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
   Node bound;
   if (sum_bound.size() > 1)
   {
-    bound = nm->mkNode(kind::ADD, sum_bound);
+    bound = nm->mkNode(Kind::ADD, sum_bound);
   }
   else if (sum_bound.size() == 1)
   {
@@ -983,7 +986,7 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
     bound = d_zero;
   }
   // make the comparison
-  Node comp = nm->mkNode(kind::GEQ, bound, d_zero);
+  Node comp = nm->mkNode(Kind::GEQ, bound, d_zero);
   if (!pol)
   {
     comp = comp.negate();
@@ -1082,7 +1085,7 @@ void NlModel::getModelValueRepair(std::map<Node, Node>& arithModel)
   std::vector<Node> amErase;
   for (const std::pair<const Node, Node>& am : arithModel)
   {
-    if (am.first.getKind() == NONLINEAR_MULT)
+    if (am.first.getKind() == Kind::NONLINEAR_MULT)
     {
       amErase.push_back(am.first);
     }

@@ -26,7 +26,7 @@ NodeBuilder::NodeBuilder()
 {
   d_inlineNv.d_id = 0;
   d_inlineNv.d_rc = 0;
-  d_inlineNv.d_kind = expr::NodeValue::kindToDKind(kind::UNDEFINED_KIND);
+  d_inlineNv.d_kind = expr::NodeValue::kindToDKind(Kind::UNDEFINED_KIND);
   d_inlineNv.d_nchildren = 0;
 }
 
@@ -35,7 +35,7 @@ NodeBuilder::NodeBuilder(Kind k)
       d_nm(NodeManager::currentNM()),
       d_nvMaxChildren(default_nchild_thresh)
 {
-  Assert(k != kind::NULL_EXPR && k != kind::UNDEFINED_KIND)
+  Assert(k != Kind::NULL_EXPR && k != Kind::UNDEFINED_KIND)
       << "illegal Node-building kind";
 
   d_inlineNv.d_id = 1;  // have a kind already
@@ -49,14 +49,14 @@ NodeBuilder::NodeBuilder(NodeManager* nm)
 {
   d_inlineNv.d_id = 0;
   d_inlineNv.d_rc = 0;
-  d_inlineNv.d_kind = expr::NodeValue::kindToDKind(kind::UNDEFINED_KIND);
+  d_inlineNv.d_kind = expr::NodeValue::kindToDKind(Kind::UNDEFINED_KIND);
   d_inlineNv.d_nchildren = 0;
 }
 
 NodeBuilder::NodeBuilder(NodeManager* nm, Kind k)
     : d_nv(&d_inlineNv), d_nm(nm), d_nvMaxChildren(default_nchild_thresh)
 {
-  Assert(k != kind::NULL_EXPR && k != kind::UNDEFINED_KIND)
+  Assert(k != Kind::NULL_EXPR && k != Kind::UNDEFINED_KIND)
       << "illegal Node-building kind";
 
   d_inlineNv.d_id = 1;  // have a kind already
@@ -99,7 +99,7 @@ kind::MetaKind NodeBuilder::getMetaKind() const
 {
   Assert(!isUsed()) << "NodeBuilder is one-shot only; "
                        "attempt to access it after conversion";
-  Assert(getKind() != kind::UNDEFINED_KIND)
+  Assert(getKind() != Kind::UNDEFINED_KIND)
       << "The metakind of a NodeBuilder is undefined "
          "until a Kind is set";
   return d_nv->getMetaKind();
@@ -109,7 +109,7 @@ unsigned NodeBuilder::getNumChildren() const
 {
   Assert(!isUsed()) << "NodeBuilder is one-shot only; "
                        "attempt to access it after conversion";
-  Assert(getKind() != kind::UNDEFINED_KIND)
+  Assert(getKind() != Kind::UNDEFINED_KIND)
       << "The number of children of a NodeBuilder is undefined "
          "until a Kind is set";
   return d_nv->getNumChildren();
@@ -119,7 +119,7 @@ Node NodeBuilder::getOperator() const
 {
   Assert(!isUsed()) << "NodeBuilder is one-shot only; "
                        "attempt to access it after conversion";
-  Assert(getKind() != kind::UNDEFINED_KIND)
+  Assert(getKind() != Kind::UNDEFINED_KIND)
       << "NodeBuilder operator access is not permitted "
          "until a Kind is set";
   Assert(getMetaKind() == kind::metakind::PARAMETERIZED)
@@ -133,7 +133,7 @@ Node NodeBuilder::getChild(int i) const
 {
   Assert(!isUsed()) << "NodeBuilder is one-shot only; "
                        "attempt to access it after conversion";
-  Assert(getKind() != kind::UNDEFINED_KIND)
+  Assert(getKind() != Kind::UNDEFINED_KIND)
       << "NodeBuilder child access is not permitted "
          "until a Kind is set";
   Assert(i >= 0 && unsigned(i) < d_nv->getNumChildren())
@@ -145,7 +145,7 @@ Node NodeBuilder::operator[](int i) const { return getChild(i); }
 
 void NodeBuilder::clear(Kind k)
 {
-  Assert(k != kind::NULL_EXPR) << "illegal Node-building clear kind";
+  Assert(k != Kind::NULL_EXPR) << "illegal Node-building clear kind";
 
   if (CVC5_PREDICT_FALSE(nvIsAllocated()))
   {
@@ -169,26 +169,26 @@ void NodeBuilder::clear(Kind k)
   }
   d_inlineNv.d_nchildren = 0;
   // keep track of whether or not we hvae a kind already
-  d_inlineNv.d_id = (k == kind::UNDEFINED_KIND) ? 0 : 1;
+  d_inlineNv.d_id = (k == Kind::UNDEFINED_KIND) ? 0 : 1;
 }
 
 NodeBuilder& NodeBuilder::operator<<(const Kind& k)
 {
   Assert(!isUsed()) << "NodeBuilder is one-shot only; "
                        "attempt to access it after conversion";
-  Assert(getKind() == kind::UNDEFINED_KIND || d_nv->d_id == 0)
+  Assert(getKind() == Kind::UNDEFINED_KIND || d_nv->d_id == 0)
       << "can't redefine the Kind of a NodeBuilder";
   Assert(d_nv->d_id == 0)
       << "internal inconsistency with NodeBuilder: d_id != 0";
   AssertArgument(
-      k != kind::UNDEFINED_KIND && k != kind::NULL_EXPR && k < kind::LAST_KIND,
+      k != Kind::UNDEFINED_KIND && k != Kind::NULL_EXPR && k < Kind::LAST_KIND,
       k,
       "illegal node-building kind");
   // This test means: we didn't have a Kind at the beginning (on
   // NodeBuilder construction or at the last clear()), but we do
   // now.  That means we appended a Kind with operator<<(Kind),
   // which now (lazily) we'll collapse.
-  if (CVC5_PREDICT_FALSE(d_nv->d_id == 0 && getKind() != kind::UNDEFINED_KIND))
+  if (CVC5_PREDICT_FALSE(d_nv->d_id == 0 && getKind() != Kind::UNDEFINED_KIND))
   {
     Node n2 = operator Node();
     clear();
@@ -210,7 +210,7 @@ NodeBuilder& NodeBuilder::operator<<(TNode n)
   // NodeBuilder construction or at the last clear()), but we do
   // now.  That means we appended a Kind with operator<<(Kind),
   // which now (lazily) we'll collapse.
-  if (CVC5_PREDICT_FALSE(d_nv->d_id == 0 && getKind() != kind::UNDEFINED_KIND))
+  if (CVC5_PREDICT_FALSE(d_nv->d_id == 0 && getKind() != Kind::UNDEFINED_KIND))
   {
     Node n2 = operator Node();
     clear();
@@ -227,7 +227,7 @@ NodeBuilder& NodeBuilder::operator<<(TypeNode n)
   // NodeBuilder construction or at the last clear()), but we do
   // now.  That means we appended a Kind with operator<<(Kind),
   // which now (lazily) we'll collapse.
-  if (CVC5_PREDICT_FALSE(d_nv->d_id == 0 && getKind() != kind::UNDEFINED_KIND))
+  if (CVC5_PREDICT_FALSE(d_nv->d_id == 0 && getKind() != Kind::UNDEFINED_KIND))
   {
     Node n2 = operator Node();
     clear();
@@ -248,7 +248,7 @@ NodeBuilder& NodeBuilder::append(TNode n)
   Assert(!isUsed()) << "NodeBuilder is one-shot only; "
                        "attempt to access it after conversion";
   Assert(!n.isNull()) << "Cannot use NULL Node as a child of a Node";
-  if (n.getKind() == kind::BUILTIN)
+  if (n.getKind() == Kind::BUILTIN)
   {
     return *this << NodeManager::operatorToKind(n);
   }
@@ -382,7 +382,7 @@ expr::NodeValue* NodeBuilder::constructNV()
 {
   Assert(!isUsed()) << "NodeBuilder is one-shot only; "
                        "attempt to access it after conversion";
-  Assert(getKind() != kind::UNDEFINED_KIND)
+  Assert(getKind() != Kind::UNDEFINED_KIND)
       << "Can't make an expression of an undefined kind!";
 
   // NOTE: The comments in this function refer to the cases in the
@@ -689,7 +689,7 @@ void NodeBuilder::crop()
 NodeBuilder& NodeBuilder::collapseTo(Kind k)
 {
   AssertArgument(
-      k != kind::UNDEFINED_KIND && k != kind::NULL_EXPR && k < kind::LAST_KIND,
+      k != Kind::UNDEFINED_KIND && k != Kind::NULL_EXPR && k < Kind::LAST_KIND,
       k,
       "illegal collapsing kind");
 

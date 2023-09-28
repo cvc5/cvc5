@@ -511,7 +511,7 @@ class TermTupleEnumeratorPool : public TermTupleEnumeratorBase
       : TermTupleEnumeratorBase(quantifier, env),
         d_pool(pool)
   {
-    Assert(d_pool.getKind() == kind::INST_POOL);
+    Assert(d_pool.getKind() == Kind::INST_POOL);
   }
 
   virtual ~TermTupleEnumeratorPool() = default;

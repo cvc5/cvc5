@@ -57,7 +57,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
   std::vector<Node> expv;
   if (!exp.isNull() && !exp.isConst())
   {
-    if (exp.getKind() == AND)
+    if (exp.getKind() == Kind::AND)
     {
       for (const Node& ec : exp)
       {
@@ -76,19 +76,20 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
     case InferenceId::DATATYPES_UNIF:
     {
       Assert(expv.size() == 1);
-      Assert(exp.getKind() == EQUAL && exp[0].getKind() == APPLY_CONSTRUCTOR
-             && exp[1].getKind() == APPLY_CONSTRUCTOR
+      Assert(exp.getKind() == Kind::EQUAL
+             && exp[0].getKind() == Kind::APPLY_CONSTRUCTOR
+             && exp[1].getKind() == Kind::APPLY_CONSTRUCTOR
              && exp[0].getOperator() == exp[1].getOperator());
       Node narg;
       // we may be asked for a proof of (not P) coming from (= P false) or
       // (= false P), or similarly P from (= P true) or (= true P).
-      bool concPol = conc.getKind() != NOT;
+      bool concPol = conc.getKind() != Kind::NOT;
       Node concAtom = concPol ? conc : conc[0];
       Node unifConc = conc;
       for (size_t i = 0, nchild = exp[0].getNumChildren(); i < nchild; i++)
       {
         bool argSuccess = false;
-        if (conc.getKind() == EQUAL)
+        if (conc.getKind() == Kind::EQUAL)
         {
           argSuccess = (exp[0][i] == conc[0] && exp[1][i] == conc[1]);
         }
@@ -113,7 +114,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
       }
       if (!narg.isNull())
       {
-        if (conc.getKind() == EQUAL)
+        if (conc.getKind() == Kind::EQUAL)
         {
           // normal case where we conclude an equality
           cdp->addStep(conc, ProofRule::DT_UNIF, {exp}, {narg});
@@ -137,7 +138,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
     {
       if (expv.size() == 1)
       {
-        Assert(conc.getKind() == EQUAL);
+        Assert(conc.getKind() == Kind::EQUAL);
         int n = utils::isTester(exp);
         if (n >= 0)
         {
@@ -154,23 +155,23 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
     case InferenceId::DATATYPES_SPLIT:
     {
       Assert(expv.empty());
-      Node t = conc.getKind() == OR ? conc[0][0] : conc[0];
+      Node t = conc.getKind() == Kind::OR ? conc[0][0] : conc[0];
       cdp->addStep(conc, ProofRule::DT_SPLIT, {}, {t});
       success = true;
     }
     break;
     case InferenceId::DATATYPES_COLLAPSE_SEL:
     {
-      Assert(exp.getKind() == EQUAL);
+      Assert(exp.getKind() == Kind::EQUAL);
       Node concEq = conc;
       // might be a Boolean conclusion
-      if (conc.getKind() != EQUAL)
+      if (conc.getKind() != Kind::EQUAL)
       {
-        bool concPol = conc.getKind() != NOT;
+        bool concPol = conc.getKind() != Kind::NOT;
         Node concAtom = concPol ? conc : conc[0];
         concEq = concAtom.eqNode(nm->mkConst(concPol));
       }
-      if (concEq[0].getKind() != APPLY_SELECTOR)
+      if (concEq[0].getKind() != Kind::APPLY_SELECTOR)
       {
         // can happen for Boolean term variables, which are not currently
         // supported.
@@ -180,23 +181,23 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
       {
         Assert(exp[0].getType().isDatatype());
         Node sop = concEq[0].getOperator();
-        Node sl = nm->mkNode(APPLY_SELECTOR, sop, exp[0]);
-        Node sr = nm->mkNode(APPLY_SELECTOR, sop, exp[1]);
+        Node sl = nm->mkNode(Kind::APPLY_SELECTOR, sop, exp[0]);
+        Node sr = nm->mkNode(Kind::APPLY_SELECTOR, sop, exp[1]);
         // exp[0] = exp[1]
         // --------------------- CONG        ----------------- DT_COLLAPSE
         // s(exp[0]) = s(exp[1])             s(exp[1]) = r
         // --------------------------------------------------- TRANS
         // s(exp[0]) = r
-        Node asn = ProofRuleChecker::mkKindNode(APPLY_SELECTOR);
+        Node asn = ProofRuleChecker::mkKindNode(Kind::APPLY_SELECTOR);
         Node seq = sl.eqNode(sr);
         cdp->addStep(seq, ProofRule::CONG, {exp}, {asn, sop});
         Node sceq = sr.eqNode(concEq[1]);
         cdp->addStep(sceq, ProofRule::DT_COLLAPSE, {}, {sr});
         cdp->addStep(sl.eqNode(concEq[1]), ProofRule::TRANS, {seq, sceq}, {});
-        if (conc.getKind() != EQUAL)
+        if (conc.getKind() != Kind::EQUAL)
         {
-          ProofRule eid = conc.getKind() == NOT ? ProofRule::FALSE_ELIM
-                                                : ProofRule::TRUE_ELIM;
+          ProofRule eid = conc.getKind() == Kind::NOT ? ProofRule::FALSE_ELIM
+                                                      : ProofRule::TRUE_ELIM;
           cdp->addStep(conc, eid, {concEq}, {});
         }
         success = true;
@@ -221,13 +222,13 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
     {
       Assert(2 <= expv.size() && expv.size() <= 3);
       Node tester1 = expv[0];
-      bool pol = expv[1].getKind() != NOT;
+      bool pol = expv[1].getKind() != Kind::NOT;
       Node tester2 = pol ? expv[1] : expv[1][0];
-      if (tester1.getKind() == APPLY_TESTER
-          && tester2.getKind() == APPLY_TESTER)
+      if (tester1.getKind() == Kind::APPLY_TESTER
+          && tester2.getKind() == Kind::APPLY_TESTER)
       {
         Node tester1c =
-            nm->mkNode(APPLY_TESTER, tester2.getOperator(), expv[0][0]);
+            nm->mkNode(Kind::APPLY_TESTER, tester2.getOperator(), expv[0][0]);
         tester1c = pol ? tester1c : tester1c.notNode();
         if (tester1c != expv[1])
         {

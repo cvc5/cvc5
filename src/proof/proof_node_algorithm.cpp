@@ -137,7 +137,8 @@ void getFreeAssumptionsMap(
 }
 
 bool containsAssumption(const ProofNode* pn,
-                        std::unordered_map<const ProofNode*, bool>& caMap)
+                        std::unordered_map<const ProofNode*, bool>& caMap,
+                        const std::unordered_set<Node>& allowed)
 {
   std::unordered_map<const ProofNode*, bool> visited;
   std::unordered_map<const ProofNode*, bool>::iterator it;
@@ -166,9 +167,10 @@ bool containsAssumption(const ProofNode* pn,
       ProofRule r = cur->getRule();
       if (r == ProofRule::ASSUME)
       {
-        visited[cur] = true;
-        caMap[cur] = true;
-        foundAssumption = true;
+        bool ret = allowed.find(cur->getArguments()[0]) == allowed.end();
+        visited[cur] = ret;
+        caMap[cur] = ret;
+        foundAssumption = ret;
       }
       else if (!foundAssumption)
       {
@@ -194,11 +196,18 @@ bool containsAssumption(const ProofNode* pn,
   }
   return caMap[cur];
 }
+bool containsAssumption(const ProofNode* pn,
+                        std::unordered_map<const ProofNode*, bool>& caMap)
+{
+  std::unordered_set<Node> allowed;
+  return containsAssumption(pn, caMap, allowed);
+}
 
 bool containsAssumption(const ProofNode* pn)
 {
   std::unordered_map<const ProofNode*, bool> caMap;
-  return containsAssumption(pn, caMap);
+  std::unordered_set<Node> allowed;
+  return containsAssumption(pn, caMap, allowed);
 }
 
 bool containsSubproof(ProofNode* pn, ProofNode* pnc)

@@ -33,11 +33,11 @@ namespace {
 
 bool isBVAtom(TNode n)
 {
-  return (n.getKind() == kind::EQUAL && n[0].getType().isBitVector())
-         || n.getKind() == kind::BITVECTOR_ULT
-         || n.getKind() == kind::BITVECTOR_ULE
-         || n.getKind() == kind::BITVECTOR_SLT
-         || n.getKind() == kind::BITVECTOR_SLE;
+  return (n.getKind() == Kind::EQUAL && n[0].getType().isBitVector())
+         || n.getKind() == Kind::BITVECTOR_ULT
+         || n.getKind() == Kind::BITVECTOR_ULE
+         || n.getKind() == Kind::BITVECTOR_SLT
+         || n.getKind() == Kind::BITVECTOR_SLE;
 }
 
 /* Traverse Boolean nodes and collect BV atoms. */
@@ -86,7 +86,7 @@ void BVSolverBitblastInternal::addBBLemma(TNode fact)
   NodeManager* nm = NodeManager::currentNM();
 
   Node atom_bb = d_bitblaster->getStoredBBAtom(fact);
-  Node lemma = nm->mkNode(kind::EQUAL, fact, atom_bb);
+  Node lemma = nm->mkNode(Kind::EQUAL, fact, atom_bb);
 
   if (!d_env.isTheoryProofProducing())
   {
@@ -109,7 +109,7 @@ bool BVSolverBitblastInternal::needsEqualityEngine(EeSetupInfo& esi)
 bool BVSolverBitblastInternal::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
-  if (fact.getKind() == kind::NOT)
+  if (fact.getKind() == Kind::NOT)
   {
     fact = fact[0];
   }
@@ -118,12 +118,12 @@ bool BVSolverBitblastInternal::preNotifyFact(
   {
     addBBLemma(fact);
   }
-  else if (fact.getKind() == kind::BITVECTOR_EAGER_ATOM)
+  else if (fact.getKind() == Kind::BITVECTOR_EAGER_ATOM)
   {
     TNode n = fact[0];
 
     NodeManager* nm = NodeManager::currentNM();
-    Node lemma = nm->mkNode(kind::EQUAL, fact, n);
+    Node lemma = nm->mkNode(Kind::EQUAL, fact, n);
 
     if (!d_env.isTheoryProofProducing())
     {

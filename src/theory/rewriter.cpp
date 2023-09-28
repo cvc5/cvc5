@@ -33,7 +33,7 @@ namespace theory {
 // (type-based) theoryOfMode. We expand and simplify it here for the sake of
 // efficiency.
 static TheoryId theoryOf(TNode node) {
-  if (node.getKind() == kind::EQUAL)
+  if (node.getKind() == Kind::EQUAL)
   {
     // Equality is owned by the theory that owns the domain
     return Theory::theoryOf(node[0].getType());
@@ -133,7 +133,7 @@ void Rewriter::finishInit(Env& env)
 
 Node Rewriter::rewriteEqualityExt(TNode node)
 {
-  Assert(node.getKind() == kind::EQUAL);
+  Assert(node.getKind() == Kind::EQUAL);
   // note we don't force caching of this method currently
   return d_theoryRewriters[theoryOf(node)]->rewriteEqualityExt(node);
 }
@@ -154,7 +154,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
                          TConvProofGenerator* tcpg)
 {
 #ifdef CVC5_ASSERTIONS
-  bool isEquality = node.getKind() == kind::EQUAL
+  bool isEquality = node.getKind() == Kind::EQUAL
                     && !node[0].getType().isBoolean()
                     && !node[1].getType().isBoolean();
 
@@ -399,7 +399,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
 
     // If this is the last node, just return
     if (rewriteStack.size() == 1) {
-      Assert(!isEquality || rewriteStackTop.d_node.getKind() == kind::EQUAL
+      Assert(!isEquality || rewriteStackTop.d_node.getKind() == Kind::EQUAL
              || rewriteStackTop.d_node.isConst());
       Assert(rewriteStackTop.d_node.getType().isComparableTo(node.getType()))
           << "Rewriting " << node << " to " << rewriteStackTop.d_node

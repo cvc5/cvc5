@@ -564,7 +564,7 @@ void QuantifiersEngine::registerQuantifierInternal(Node f)
     Trace("quant") << " : " << f << std::endl;
     size_t prev_lemma_waiting = d_qim.numPendingLemmas();
     ++(d_qstate.getStats().d_num_quant);
-    Assert(f.getKind() == FORALL);
+    Assert(f.getKind() == Kind::FORALL);
     // register with utilities
     for (unsigned i = 0; i < d_util.size(); i++)
     {

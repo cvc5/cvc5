@@ -95,7 +95,7 @@ bool BuiltinProofRuleChecker::getSubstitutionForLit(Node exp,
 {
   if (ids == MethodId::SB_DEFAULT)
   {
-    if (exp.getKind() != EQUAL)
+    if (exp.getKind() != Kind::EQUAL)
     {
       return false;
     }
@@ -104,7 +104,7 @@ bool BuiltinProofRuleChecker::getSubstitutionForLit(Node exp,
   }
   else if (ids == MethodId::SB_LITERAL)
   {
-    bool polarity = exp.getKind() != NOT;
+    bool polarity = exp.getKind() != Kind::NOT;
     var = polarity ? exp : exp[0];
     subs = NodeManager::currentNM()->mkConst(polarity);
   }
@@ -131,7 +131,7 @@ bool BuiltinProofRuleChecker::getSubstitutionFor(Node exp,
 {
   TNode v;
   TNode s;
-  if (exp.getKind() == AND && ids == MethodId::SB_DEFAULT)
+  if (exp.getKind() == Kind::AND && ids == MethodId::SB_DEFAULT)
   {
     for (const Node& ec : exp)
     {
@@ -235,7 +235,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     {
       return ant.notNode();
     }
-    return nm->mkNode(IMPLIES, ant, children[0]);
+    return nm->mkNode(Kind::IMPLIES, ant, children[0]);
   }
   else if (id == ProofRule::SUBS)
   {

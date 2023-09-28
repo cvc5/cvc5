@@ -495,7 +495,7 @@ void DotPrinter::ruleArguments(std::ostringstream& currentArguments,
     }
     else
     {
-      Kind k = kind::UNDEFINED_KIND;
+      Kind k = Kind::UNDEFINED_KIND;
       ProofRuleChecker::getKind(args[0], k);
       currentArguments << printer::smt2::Smt2Printer::smtKindString(k);
     }

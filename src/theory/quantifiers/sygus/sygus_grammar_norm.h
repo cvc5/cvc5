@@ -158,8 +158,8 @@ class SygusGrammarNorm : protected EnvObj
     {
       std::vector<Node> vars = {NodeManager::currentNM()->mkBoundVar(tn)};
       Node n = NodeManager::currentNM()->mkNode(
-          kind::LAMBDA,
-          NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, vars),
+          Kind::LAMBDA,
+          NodeManager::currentNM()->mkNode(Kind::BOUND_VAR_LIST, vars),
           vars.back());
       d_tn_to_id[tn] = n;
       return n;

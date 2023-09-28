@@ -100,8 +100,8 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
 
     if (current.getNumChildren() == 0)
     {
-      if (current.getKind() == kind::VARIABLE
-          || current.getKind() == kind::SKOLEM)
+      if (current.getKind() == Kind::VARIABLE
+          || current.getKind() == Kind::SKOLEM)
       {
         d_unconstrained.insert(current);
       }
@@ -163,7 +163,7 @@ void UnconstrainedSimplifier::processUnconstrained()
       {
         // If-then-else operator - any two unconstrained children makes the
         // parent unconstrained
-        case kind::ITE:
+        case Kind::ITE:
         {
           Assert(parent[0] == current || parent[1] == current
                  || parent[2] == current);
@@ -252,7 +252,7 @@ void UnconstrainedSimplifier::processUnconstrained()
         // Comparisons that return a different type - assuming domains are
         // larger than 1, any unconstrained child makes parent unconstrained as
         // well
-        case kind::EQUAL:
+        case Kind::EQUAL:
         {
           // equality uses strict type rule
           Assert(parent[0].getType() == parent[1].getType());
@@ -278,11 +278,11 @@ void UnconstrainedSimplifier::processUnconstrained()
           }
           CVC5_FALLTHROUGH;
         }
-        case kind::BITVECTOR_COMP:
-        case kind::LT:
-        case kind::LEQ:
-        case kind::GT:
-        case kind::GEQ:
+        case Kind::BITVECTOR_COMP:
+        case Kind::LT:
+        case Kind::LEQ:
+        case Kind::GT:
+        case Kind::GEQ:
         {
           if (d_unconstrained.find(parent) == d_unconstrained.end()
               && !d_substitutions.hasSubstitution(parent))
@@ -305,10 +305,10 @@ void UnconstrainedSimplifier::processUnconstrained()
         }
 
         // Unary operators that propagate unconstrainedness
-        case kind::NOT:
-        case kind::BITVECTOR_NOT:
-        case kind::BITVECTOR_NEG:
-        case kind::NEG:
+        case Kind::NOT:
+        case Kind::BITVECTOR_NOT:
+        case Kind::BITVECTOR_NEG:
+        case Kind::NEG:
           ++d_numUnconstrainedElim;
           Assert(parent[0] == current);
           if (currentSub.isNull())
@@ -320,7 +320,7 @@ void UnconstrainedSimplifier::processUnconstrained()
 
         // Unary operators that propagate unconstrainedness and return a
         // different type
-        case kind::BITVECTOR_EXTRACT:
+        case Kind::BITVECTOR_EXTRACT:
           ++d_numUnconstrainedElim;
           Assert(parent[0] == current);
           if (currentSub.isNull())
@@ -333,13 +333,13 @@ void UnconstrainedSimplifier::processUnconstrained()
 
         // Operators returning same type requiring all children to be
         // unconstrained
-        case kind::AND:
-        case kind::OR:
-        case kind::IMPLIES:
-        case kind::BITVECTOR_AND:
-        case kind::BITVECTOR_OR:
-        case kind::BITVECTOR_NAND:
-        case kind::BITVECTOR_NOR:
+        case Kind::AND:
+        case Kind::OR:
+        case Kind::IMPLIES:
+        case Kind::BITVECTOR_AND:
+        case Kind::BITVECTOR_OR:
+        case Kind::BITVECTOR_NAND:
+        case Kind::BITVECTOR_NOR:
         {
           bool allUnconstrained = true;
           for (TNode child : parent)
@@ -358,14 +358,14 @@ void UnconstrainedSimplifier::processUnconstrained()
         break;
 
         // Require all children to be unconstrained and different
-        case kind::BITVECTOR_SHL:
-        case kind::BITVECTOR_LSHR:
-        case kind::BITVECTOR_ASHR:
-        case kind::BITVECTOR_UDIV:
-        case kind::BITVECTOR_UREM:
-        case kind::BITVECTOR_SDIV:
-        case kind::BITVECTOR_SREM:
-        case kind::BITVECTOR_SMOD:
+        case Kind::BITVECTOR_SHL:
+        case Kind::BITVECTOR_LSHR:
+        case Kind::BITVECTOR_ASHR:
+        case Kind::BITVECTOR_UDIV:
+        case Kind::BITVECTOR_UREM:
+        case Kind::BITVECTOR_SDIV:
+        case Kind::BITVECTOR_SREM:
+        case Kind::BITVECTOR_SMOD:
         {
           bool allUnconstrained = true;
           bool allDifferent = true;
@@ -398,7 +398,7 @@ void UnconstrainedSimplifier::processUnconstrained()
 
         // Requires all children to be unconstrained and different, and returns
         // a different type
-        case kind::BITVECTOR_CONCAT:
+        case Kind::BITVECTOR_CONCAT:
         {
           bool allUnconstrained = true;
           bool allDifferent = true;
@@ -445,23 +445,23 @@ void UnconstrainedSimplifier::processUnconstrained()
 
         // N-ary operators returning same type requiring at least one child to
         // be unconstrained
-        case kind::ADD:
-        case kind::SUB:
+        case Kind::ADD:
+        case Kind::SUB:
           if (current.getType().isInteger() && !parent.getType().isInteger())
           {
             break;
           }
           CVC5_FALLTHROUGH;
-        case kind::XOR:
-        case kind::BITVECTOR_XOR:
-        case kind::BITVECTOR_XNOR:
-        case kind::BITVECTOR_ADD:
-        case kind::BITVECTOR_SUB: checkParent = true; break;
+        case Kind::XOR:
+        case Kind::BITVECTOR_XOR:
+        case Kind::BITVECTOR_XNOR:
+        case Kind::BITVECTOR_ADD:
+        case Kind::BITVECTOR_SUB: checkParent = true; break;
 
         // Multiplication/division: must be non-integer and other operand must
         // be non-zero
-        case kind::MULT:
-        case kind::DIVISION:
+        case Kind::MULT:
+        case Kind::DIVISION:
         {
           Assert(parent.getNumChildren() == 2);
           TNode other;
@@ -481,9 +481,9 @@ void UnconstrainedSimplifier::processUnconstrained()
             {
               if (current.getType().isInteger() && other.getType().isInteger())
               {
-                Assert(parent.getKind() == kind::DIVISION
+                Assert(parent.getKind() == Kind::DIVISION
                        || parent.getType().isInteger());
-                if (parent.getKind() == kind::DIVISION)
+                if (parent.getKind() == Kind::DIVISION)
                 {
                   break;
                 }
@@ -504,7 +504,7 @@ void UnconstrainedSimplifier::processUnconstrained()
           {
             // if only the denominator of a division is unconstrained, can't
             // set it to 0 so the result is not unconstrained
-            if (parent.getKind() == kind::DIVISION && current == parent[1])
+            if (parent.getKind() == Kind::DIVISION && current == parent[1])
             {
               break;
             }
@@ -521,7 +521,7 @@ void UnconstrainedSimplifier::processUnconstrained()
               }
               else
               {
-                Assert(parent.getKind() == kind::MULT);
+                Assert(parent.getKind() == Kind::MULT);
                 Assert(parent.getType().isInteger());
               }
             }
@@ -547,7 +547,7 @@ void UnconstrainedSimplifier::processUnconstrained()
 
         // Bitvector MULT - current must only appear once in the children:
         // all other children must be unconstrained or odd
-        case kind::BITVECTOR_MULT:
+        case Kind::BITVECTOR_MULT:
         {
           bool found = false;
           bool done = false;
@@ -590,7 +590,7 @@ void UnconstrainedSimplifier::processUnconstrained()
 
         // Uninterpreted function - if domain is infinite, no quantifiers are
         // used, and any child is unconstrained, result is unconstrained
-        case kind::APPLY_UF:
+        case Kind::APPLY_UF:
           if (logicInfo().isQuantified()
               || !current.getType().getCardinality().isInfinite())
           {
@@ -616,7 +616,7 @@ void UnconstrainedSimplifier::processUnconstrained()
           break;
 
         // Array select - if array is unconstrained, so is result
-        case kind::SELECT:
+        case Kind::SELECT:
           if (parent[0] == current)
           {
             ++d_numUnconstrainedElim;
@@ -633,7 +633,7 @@ void UnconstrainedSimplifier::processUnconstrained()
 
         // Array store - if both store and value are unconstrained, so is
         // resulting store
-        case kind::STORE:
+        case Kind::STORE:
           if (((parent[0] == current
                 && d_unconstrained.find(parent[2]) != d_unconstrained.end())
                || (parent[2] == current
@@ -672,35 +672,35 @@ void UnconstrainedSimplifier::processUnconstrained()
         // Bit-vector comparisons: replace with new Boolean variable, but have
         // to also conjoin with a side condition as there is always one case
         // when the comparison is forced to be false
-        case kind::BITVECTOR_ULT:
-        case kind::BITVECTOR_UGE:
-        case kind::BITVECTOR_UGT:
-        case kind::BITVECTOR_ULE:
-        case kind::BITVECTOR_SLT:
-        case kind::BITVECTOR_SGE:
-        case kind::BITVECTOR_SGT:
-        case kind::BITVECTOR_SLE:
+        case Kind::BITVECTOR_ULT:
+        case Kind::BITVECTOR_UGE:
+        case Kind::BITVECTOR_UGT:
+        case Kind::BITVECTOR_ULE:
+        case Kind::BITVECTOR_SLT:
+        case Kind::BITVECTOR_SGE:
+        case Kind::BITVECTOR_SGT:
+        case Kind::BITVECTOR_SLE:
         {
           // Tuples over (signed, swap, strict).
           switch (parent.getKind())
           {
-            case kind::BITVECTOR_UGE: break;
-            case kind::BITVECTOR_ULT: strict = true; break;
-            case kind::BITVECTOR_ULE: swap = true; break;
-            case kind::BITVECTOR_UGT:
+            case Kind::BITVECTOR_UGE: break;
+            case Kind::BITVECTOR_ULT: strict = true; break;
+            case Kind::BITVECTOR_ULE: swap = true; break;
+            case Kind::BITVECTOR_UGT:
               swap = true;
               strict = true;
               break;
-            case kind::BITVECTOR_SGE: isSigned = true; break;
-            case kind::BITVECTOR_SLT:
+            case Kind::BITVECTOR_SGE: isSigned = true; break;
+            case Kind::BITVECTOR_SLT:
               isSigned = true;
               strict = true;
               break;
-            case kind::BITVECTOR_SLE:
+            case Kind::BITVECTOR_SLE:
               isSigned = true;
               swap = true;
               break;
-            case kind::BITVECTOR_SGT:
+            case Kind::BITVECTOR_SGT:
               isSigned = true;
               swap = true;
               strict = true;
@@ -770,11 +770,11 @@ void UnconstrainedSimplifier::processUnconstrained()
         }
 
         // Do nothing
-        case kind::BITVECTOR_SIGN_EXTEND:
-        case kind::BITVECTOR_ZERO_EXTEND:
-        case kind::BITVECTOR_REPEAT:
-        case kind::BITVECTOR_ROTATE_LEFT:
-        case kind::BITVECTOR_ROTATE_RIGHT:
+        case Kind::BITVECTOR_SIGN_EXTEND:
+        case Kind::BITVECTOR_ZERO_EXTEND:
+        case Kind::BITVECTOR_REPEAT:
+        case Kind::BITVECTOR_ROTATE_LEFT:
+        case Kind::BITVECTOR_ROTATE_RIGHT:
 
         default: break;
       }

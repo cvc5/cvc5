@@ -264,14 +264,14 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     return pf;
   }
   Node conc = pf->getResult();
-  exp = assumps.size() == 1 ? assumps[0] : nm->mkNode(AND, assumps);
+  exp = assumps.size() == 1 ? assumps[0] : nm->mkNode(Kind::AND, assumps);
   if (conc.isConst() && !conc.getConst<bool>())
   {
     minExpected = exp.notNode();
   }
   else
   {
-    minExpected = nm->mkNode(IMPLIES, exp, conc);
+    minExpected = nm->mkNode(Kind::IMPLIES, exp, conc);
   }
   return mkNode(ProofRule::SCOPE, {pf}, assumps, minExpected);
 }

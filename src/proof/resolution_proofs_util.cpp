@@ -113,7 +113,7 @@ Node eliminateCrowdingLits(bool reorderPremises,
       // crowding literal, so we only care about non-singleton OR nodes. We
       // check then against the kind and whether the whole OR node occurs as a
       // pivot of the respective resolution
-      if (newChildren[j - 1].getKind() != kind::OR)
+      if (newChildren[j - 1].getKind() != Kind::OR)
       {
         continue;
       }
@@ -203,8 +203,8 @@ Node eliminateCrowdingLits(bool reorderPremises,
       // Since this primise is an eliminator, if it's an OR it can only be a
       // singleton if the crowding literal is its negation.
       size_t maxSafeMove = childrenSize,
-             numLits = (newChildren[elim].getKind() != kind::OR
-                        || (crowdingLit.getKind() == kind::NOT
+             numLits = (newChildren[elim].getKind() != Kind::OR
+                        || (crowdingLit.getKind() == Kind::NOT
                             && crowdingLit[0] == newChildren[elim]))
                            ? 1
                            : newChildren[elim].getNumChildren();
@@ -576,7 +576,7 @@ bool isSingletonClause(TNode res,
                        const std::vector<Node>& children,
                        const std::vector<Node>& args)
 {
-  if (res.getKind() != kind::OR)
+  if (res.getKind() != Kind::OR)
   {
     return true;
   }
@@ -595,7 +595,7 @@ bool isSingletonClause(TNode res,
     // res, so we only care about non-singleton or nodes. We check then
     // against the kind and whether the whole or node occurs as a pivot of
     // the respective resolution
-    if (children[i - 1].getKind() != kind::OR)
+    if (children[i - 1].getKind() != Kind::OR)
     {
       continue;
     }

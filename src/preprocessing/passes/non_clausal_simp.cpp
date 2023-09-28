@@ -212,7 +212,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       default:
         TNode t;
         TNode c;
-        if (learnedLiteral.getKind() == kind::EQUAL
+        if (learnedLiteral.getKind() == Kind::EQUAL
             && (learnedLiteral[0].isConst() || learnedLiteral[1].isConst()))
         {
           // constant propagation
@@ -232,7 +232,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
           // From non-equalities, learn the Boolean equality. Notice that
           // the equality case above is strictly more powerful that this, since
           // e.g. (= t c) * { t -> c } also simplifies to true.
-          bool pol = learnedLiteral.getKind() != kind::NOT;
+          bool pol = learnedLiteral.getKind() != Kind::NOT;
           c = nm->mkConst(pol);
           t = pol ? learnedLiteral : learnedLiteral[0];
         }

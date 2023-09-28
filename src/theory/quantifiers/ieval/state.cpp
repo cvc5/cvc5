@@ -126,7 +126,7 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
     if (itr == d_registeredTerms.end())
     {
       d_registeredTerms.insert(cur);
-      if (cur.getKind() == BOUND_VARIABLE)
+      if (cur.getKind() == Kind::BOUND_VARIABLE)
       {
         // should be one of the free variables of the quantified formula
         Assert(std::find(vars.begin(), vars.end(), cur) != vars.end());
@@ -363,7 +363,7 @@ void State::notifyPatternEqGround(TNode p, TNode g)
     context::CDList<Node>& notifyList = it->second.d_parentNotify;
     for (TNode pp : notifyList)
     {
-      if (pp.getKind() == FORALL)
+      if (pp.getKind() == Kind::FORALL)
       {
         // if we have a quantified formula as a parent, notify is a special
         // method, which will test the constraints
@@ -389,7 +389,7 @@ void State::notifyPatternEqGround(TNode p, TNode g)
 
 void State::notifyQuant(TNode q, TNode p, TNode val)
 {
-  Assert(q.getKind() == FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   QuantInfo& qi = getQuantInfo(q);
   if (!qi.isActive())
   {

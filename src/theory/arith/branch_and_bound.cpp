@@ -58,15 +58,15 @@ std::vector<TrustNode> BranchAndBound::branchIntegerVariable(TNode var,
 
     // Prioritize trying a simple rounding of the real solution first,
     // it that fails, fall back on original branch and bound strategy.
-    Node ub = rewrite(nm->mkNode(LEQ, var, nm->mkConstInt(nearest - 1)));
+    Node ub = rewrite(nm->mkNode(Kind::LEQ, var, nm->mkConstInt(nearest - 1)));
     // The rewritten form should be a GEQ literal, otherwise the split returned
     // by this method will not have its intended effect
-    Assert(ub.getKind() == GEQ
-           || (ub.getKind() == NOT && ub[0].getKind() == GEQ));
-    Node ubatom = ub.getKind() == NOT ? ub[0] : ub;
-    Node lb = rewrite(nm->mkNode(GEQ, var, nm->mkConstInt(nearest + 1)));
-    Node right = nm->mkNode(OR, ub, lb);
-    Node rawEq = nm->mkNode(EQUAL, var, nm->mkConstInt(nearest));
+    Assert(ub.getKind() == Kind::GEQ
+           || (ub.getKind() == Kind::NOT && ub[0].getKind() == Kind::GEQ));
+    Node ubatom = ub.getKind() == Kind::NOT ? ub[0] : ub;
+    Node lb = rewrite(nm->mkNode(Kind::GEQ, var, nm->mkConstInt(nearest + 1)));
+    Node right = nm->mkNode(Kind::OR, ub, lb);
+    Node rawEq = nm->mkNode(Kind::EQUAL, var, nm->mkConstInt(nearest));
     Node eq = rewrite(rawEq);
     // Also preprocess it before we send it out. This is important since
     // arithmetic may prefer eliminating equalities.
@@ -79,13 +79,13 @@ std::vector<TrustNode> BranchAndBound::branchIntegerVariable(TNode var,
     Node literal = d_astate.getValuation().ensureLiteral(eq);
     Trace("integers") << "eq: " << eq << "\nto: " << literal << std::endl;
     d_im.preferPhase(literal, true);
-    Node l = nm->mkNode(OR, literal, right);
+    Node l = nm->mkNode(Kind::OR, literal, right);
     Trace("integers") << "l: " << l << std::endl;
     if (proofsEnabled())
     {
       ProofNodeManager* pnm = d_env.getProofNodeManager();
-      Node less = nm->mkNode(LT, var, nm->mkConstInt(nearest));
-      Node greater = nm->mkNode(GT, var, nm->mkConstInt(nearest));
+      Node less = nm->mkNode(Kind::LT, var, nm->mkConstInt(nearest));
+      Node greater = nm->mkNode(Kind::GT, var, nm->mkConstInt(nearest));
       // TODO (project #37): justify. Thread proofs through *ensureLiteral*.
       Trace("integers::pf") << "less: " << less << std::endl;
       Trace("integers::pf") << "greater: " << greater << std::endl;
@@ -124,20 +124,21 @@ std::vector<TrustNode> BranchAndBound::branchIntegerVariable(TNode var,
   }
   else
   {
-    Node ub = rewrite(nm->mkNode(LEQ, var, nm->mkConstInt(floor)));
+    Node ub = rewrite(nm->mkNode(Kind::LEQ, var, nm->mkConstInt(floor)));
     // Similar to above, the rewritten form should be a GEQ literal, otherwise
     // the split returned by this method will not have its intended effect
-    Assert(ub.getKind() == GEQ
-           || (ub.getKind() == NOT && ub[0].getKind() == GEQ));
+    Assert(ub.getKind() == Kind::GEQ
+           || (ub.getKind() == Kind::NOT && ub[0].getKind() == Kind::GEQ));
     Node lb = ub.notNode();
     if (proofsEnabled())
     {
       lems.push_back(d_pfGen->mkTrustNode(
-          nm->mkNode(OR, ub, lb), ProofRule::SPLIT, {}, {ub}));
+          nm->mkNode(Kind::OR, ub, lb), ProofRule::SPLIT, {}, {ub}));
     }
     else
     {
-      lems.push_back(TrustNode::mkTrustLemma(nm->mkNode(OR, ub, lb), nullptr));
+      lems.push_back(
+          TrustNode::mkTrustLemma(nm->mkNode(Kind::OR, ub, lb), nullptr));
     }
   }
   if (TraceIsOn("integers"))

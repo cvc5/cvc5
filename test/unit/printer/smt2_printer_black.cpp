@@ -48,7 +48,7 @@ TEST_F(TestPrinterBlackSmt2, regexp_repeat)
 {
   Node n = d_nodeManager->mkNode(
       d_nodeManager->mkConst(RegExpRepeat(5)),
-      d_nodeManager->mkNode(STRING_TO_REGEXP,
+      d_nodeManager->mkNode(Kind::STRING_TO_REGEXP,
                             d_nodeManager->mkConst(String("x"))));
   checkToString(n, "((_ re.^ 5) (str.to_re \"x\"))");
 }
@@ -57,7 +57,7 @@ TEST_F(TestPrinterBlackSmt2, regexp_loop)
 {
   Node n = d_nodeManager->mkNode(
       d_nodeManager->mkConst(RegExpLoop(1, 3)),
-      d_nodeManager->mkNode(STRING_TO_REGEXP,
+      d_nodeManager->mkNode(Kind::STRING_TO_REGEXP,
                             d_nodeManager->mkConst(String("x"))));
   checkToString(n, "((_ re.loop 1 3) (str.to_re \"x\"))");
 }
