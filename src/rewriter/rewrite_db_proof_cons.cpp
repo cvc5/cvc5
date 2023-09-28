@@ -130,7 +130,7 @@ DslProofRule RewriteDbProofCons::proveInternal(Node eqi)
   // Otherwise, call the get matches routine. This will call notifyMatch below
   // for each matching rewrite rule conclusion in the database
   // decrease the recursion depth
-  Assert(eqi.getKind() == EQUAL);
+  Assert(eqi.getKind() == Kind::EQUAL);
   // first, try congruence if possible, which does not count towards recursion
   // limit.
   DslProofRule retId = proveInternalViaStrategy(eqi);
@@ -140,7 +140,7 @@ DslProofRule RewriteDbProofCons::proveInternal(Node eqi)
 
 DslProofRule RewriteDbProofCons::proveInternalViaStrategy(Node eqi)
 {
-  Assert(eqi.getKind() == EQUAL);
+  Assert(eqi.getKind() == Kind::EQUAL);
   if (proveWithRule(DslProofRule::CONG, eqi, {}, {}, false, false, true))
   {
     Trace("rpc-debug2") << "...proved via congruence" << std::endl;
@@ -205,7 +205,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
                       << std::endl;
   Trace("rpc-debug2") << "notifyMatch: " << s << " from " << n << " via "
                       << vars << " -> " << subs << std::endl;
-  Assert(d_target.getKind() == EQUAL);
+  Assert(d_target.getKind() == Kind::EQUAL);
   Assert(s.getType().isComparableTo(n.getType()));
   Assert(vars.size() == subs.size());
   if (d_currFixedPointId != DslProofRule::FAIL)
@@ -264,7 +264,7 @@ bool RewriteDbProofCons::proveWithRule(DslProofRule id,
                                        bool doFixedPoint,
                                        bool doRecurse)
 {
-  Assert(!target.isNull() && target.getKind() == EQUAL);
+  Assert(!target.isNull() && target.getKind() == Kind::EQUAL);
   Trace("rpc-debug2") << "Check rule " << id << std::endl;
   std::vector<Node> vcs;
   Node transEq;
@@ -800,7 +800,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
         }
         for (const Node& eq : itd->second.d_vars)
         {
-          Assert(eq.getKind() == EQUAL);
+          Assert(eq.getKind() == Kind::EQUAL);
           lhsTgtc.push_back(eq[1]);
         }
         Node lhsTgt = nm->mkNode(cur[0].getKind(), lhsTgtc);
@@ -892,7 +892,7 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
       {
         // currently avoid accidental loops: arbitrarily bound to 1000
         continueFixedPoint = steps.size() <= 1000;
-        Assert(d_currFixedPointConc.getKind() == EQUAL);
+        Assert(d_currFixedPointConc.getKind() == Kind::EQUAL);
         steps.push_back(d_currFixedPointConc[1]);
         stepsSubs.emplace_back(d_currFixedPointSubs.begin(),
                                d_currFixedPointSubs.end());
