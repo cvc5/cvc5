@@ -19,6 +19,7 @@
 #define CVC5__API__CVC5_PARSER_H
 
 #include <cvc5/cvc5.h>
+#include <cvc5/cvc5_types.h>
 
 #include <memory>
 
@@ -199,10 +200,10 @@ class CVC5_EXPORT InputParser
   SymbolManager* getSymbolManager();
   /** Set the input for the given file.
    *
-   * @param lang the input language
+   * @param lang the input language (e.g. modes::InputLanguage::SMT_LIB_2_6)
    * @param filename the input filename
    */
-  void setFileInput(const std::string& lang, const std::string& filename);
+  void setFileInput(modes::InputLanguage lang, const std::string& filename);
 
   /** Set the input for the given stream.
    *
@@ -210,7 +211,7 @@ class CVC5_EXPORT InputParser
    * @param input the input stream
    * @param name the name of the stream, for use in error messages
    */
-  void setStreamInput(const std::string& lang,
+  void setStreamInput(modes::InputLanguage lang,
                       std::istream& input,
                       const std::string& name);
 
@@ -221,7 +222,7 @@ class CVC5_EXPORT InputParser
    * @param lang the input language
    * @param name the name of the stream, for use in error messages
    */
-  void setIncrementalStringInput(const std::string& lang,
+  void setIncrementalStringInput(modes::InputLanguage lang,
                                  const std::string& name);
   /**
    * Append string to the input being parsed by this parser. Should be
@@ -266,7 +267,7 @@ class CVC5_EXPORT InputParser
   /** Symbol manager */
   SymbolManager* d_sm;
   /** Incremental string input language */
-  std::string d_istringLang;
+  modes::InputLanguage d_istringLang;
   /** Incremental string name */
   std::string d_istringName;
   /** The parser */

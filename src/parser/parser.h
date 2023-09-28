@@ -88,7 +88,7 @@ class Parser : public ParserStateCallback
   void unexpectedEOF(const std::string& msg) override;
 
   /** make flex parser from language string */
-  static std::unique_ptr<Parser> mkParser(const std::string& lang,
+  static std::unique_ptr<Parser> mkParser(modes::InputLanguage lang,
                                           Solver* solver,
                                           SymManager* sm);
 

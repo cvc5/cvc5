@@ -94,9 +94,19 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
   /* Create parser with bogus input. */
   d_parser.reset(
       new cvc5::parser::InputParser(d_solver, cexec->getSymbolManager()));
+  std::string langs = d_solver->getOption("input-language");
+  modes::InputLanguage lang;
+  if (langs == "LANG_SMTLIB_V2_6")
+  {
+    lang = modes::InputLanguage::SMT_LIB_2_6;
+  }
+  else
+  {
+    throw Exception("internal error: unhandled language " + langs);
+  }
+    
   // initialize for incremental string input
-  d_parser->setIncrementalStringInput(d_solver->getOption("input-language"),
-                                      INPUT_FILENAME);
+  d_parser->setIncrementalStringInput(lang, INPUT_FILENAME);
 #if HAVE_LIBEDITLINE
   if (&d_in == &std::cin && isatty(fileno(stdin)))
   {
@@ -108,8 +118,7 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
 #endif /* EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP */
     ::using_history();
 
-    std::string lang = d_solver->getOption("input-language");
-    if (lang == "LANG_SMTLIB_V2_6")
+    if (lang == mode::InputLanguage::SMT_LIB_2_6)
     {
       d_historyFilename = string(getenv("HOME")) + "/.cvc5_history_smtlib2";
       commandsBegin = smt2_commands;

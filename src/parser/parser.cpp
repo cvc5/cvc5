@@ -117,14 +117,14 @@ Term Parser::nextTerm()
 
 bool Parser::done() const { return d_done; }
 
-std::unique_ptr<Parser> Parser::mkParser(const std::string& lang,
+std::unique_ptr<Parser> Parser::mkParser(modes::InputLanguage lang,
                                          Solver* solver,
                                          SymManager* sm)
 {
   std::unique_ptr<Parser> parser;
-  if (lang == "LANG_SYGUS_V2" || lang == "LANG_SMTLIB_V2_6")
+  if (lang == modes::InputLanguage::SMT_LIB_2_6 || lang == modes::InputLanguage::SYGUS_2_1)
   {
-    bool isSygus = (lang == "LANG_SYGUS_V2");
+    bool isSygus = (lang == modes::InputLanguage::SYGUS_2_1);
     bool strictMode = solver->getOptionInfo("strict-parsing").boolValue();
     parser.reset(new Smt2Parser(solver, sm, strictMode, isSygus));
   }

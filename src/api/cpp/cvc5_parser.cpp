@@ -283,7 +283,7 @@ Term InputParser::nextTerm()
   return d_parser->nextTerm();
 }
 
-void InputParser::setFileInput(const std::string& lang,
+void InputParser::setFileInput(modes::InputLanguage lang,
                                const std::string& filename)
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -297,7 +297,7 @@ void InputParser::setFileInput(const std::string& lang,
   CVC5_API_TRY_CATCH_END;
 }
 
-void InputParser::setStreamInput(const std::string& lang,
+void InputParser::setStreamInput(modes::InputLanguage lang,
                                  std::istream& input,
                                  const std::string& name)
 {
@@ -312,7 +312,7 @@ void InputParser::setStreamInput(const std::string& lang,
   CVC5_API_TRY_CATCH_END;
 }
 
-void InputParser::setIncrementalStringInput(const std::string& lang,
+void InputParser::setIncrementalStringInput(modes::InputLanguage lang,
                                             const std::string& name)
 {
   CVC5_API_TRY_CATCH_BEGIN;
