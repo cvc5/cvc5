@@ -257,7 +257,7 @@ StringEnumerator::StringEnumerator(TypeNode type, TypeEnumeratorProperties* tep)
               tep ? tep->getStringsAlphabetCard()
                   : utils::getDefaultAlphabetCardinality())
 {
-  Assert(type.getKind() == kind::TYPE_CONSTANT
+  Assert(type.getKind() == Kind::TYPE_CONSTANT
          && type.getConst<TypeConstant>() == STRING_TYPE);
 }
 

@@ -286,7 +286,7 @@ void EqualityEngine::addFunctionKind(Kind fun,
                                      bool extOperator)
 {
   d_congruenceKinds.set(fun);
-  if (fun != kind::EQUAL)
+  if (fun != Kind::EQUAL)
   {
     if (interpreted)
     {
@@ -334,7 +334,7 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
   EqualityNodeId result;
 
   Kind tk = t.getKind();
-  if (tk == kind::EQUAL)
+  if (tk == Kind::EQUAL)
   {
     addTermInternal(t[0]);
     addTermInternal(t[1]);
@@ -382,7 +382,7 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
     d_isConstant[result] = !isOperator && t.isConst();
   }
 
-  if (tk == kind::EQUAL)
+  if (tk == Kind::EQUAL)
   {
     // We set this here as this only applies to actual terms, not the
     // intermediate application terms
@@ -482,7 +482,7 @@ bool EqualityEngine::assertPredicate(TNode t,
                                      unsigned pid)
 {
   Trace("equality") << d_name << "::eq::addPredicate(" << t << "," << (polarity ? "true" : "false") << ")" << std::endl;
-  Assert(t.getKind() != kind::EQUAL) << "Use assertEquality instead";
+  Assert(t.getKind() != Kind::EQUAL) << "Use assertEquality instead";
   TNode b = polarity ? d_true : d_false;
   if (hasTerm(t) && areEqual(t, b))
   {
@@ -1024,8 +1024,8 @@ void EqualityEngine::buildEqConclusion(EqualityNodeId id1,
   // have the same congruence n-ary non-APPLY_* kind, since the internal nodes
   // may be full nodes.
   if ((d_isInternal[id1] || d_isInternal[id2])
-      && (k1 != k2 || k1 == kind::APPLY_UF || k1 == kind::APPLY_CONSTRUCTOR
-          || k1 == kind::APPLY_SELECTOR || k1 == kind::APPLY_TESTER
+      && (k1 != k2 || k1 == Kind::APPLY_UF || k1 == Kind::APPLY_CONSTRUCTOR
+          || k1 == Kind::APPLY_SELECTOR || k1 == Kind::APPLY_TESTER
           || !NodeManager::isNAryKind(k1)))
   {
     return;
@@ -1209,7 +1209,7 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
         Trace("pf::ee") << "Simplifying " << cnode << " from " << eqp->d_node
                         << std::endl;
         bool simpTrans = true;
-        if (cnode.getKind() == kind::EQUAL)
+        if (cnode.getKind() == Kind::EQUAL)
         {
           // It may be the case that we have a proof of x = c2 and we want to
           // conclude x != c1. If this is the case, below we construct:
@@ -1279,11 +1279,11 @@ void EqualityEngine::explainLit(TNode lit,
                                 std::vector<TNode>& assumptions) const
 {
   Trace("eq-exp") << "explainLit: " << lit << std::endl;
-  Assert(lit.getKind() != kind::AND);
-  bool polarity = lit.getKind() != kind::NOT;
+  Assert(lit.getKind() != Kind::AND);
+  bool polarity = lit.getKind() != Kind::NOT;
   TNode atom = polarity ? lit : lit[0];
   std::vector<TNode> tassumptions;
-  if (atom.getKind() == kind::EQUAL)
+  if (atom.getKind() == Kind::EQUAL)
   {
     Assert(hasTerm(atom[0]));
     Assert(hasTerm(atom[1]));
@@ -1317,7 +1317,7 @@ void EqualityEngine::explainLit(TNode lit,
 
 Node EqualityEngine::mkExplainLit(TNode lit) const
 {
-  Assert(lit.getKind() != kind::AND);
+  Assert(lit.getKind() != Kind::AND);
   std::vector<TNode> assumptions;
   explainLit(lit, assumptions);
   Node ret;
@@ -1331,7 +1331,7 @@ Node EqualityEngine::mkExplainLit(TNode lit) const
   }
   else
   {
-    ret = NodeManager::currentNM()->mkNode(kind::AND, assumptions);
+    ret = NodeManager::currentNM()->mkNode(Kind::AND, assumptions);
   }
   return ret;
 }
@@ -1421,7 +1421,7 @@ void EqualityEngine::getExplanation(
       }
       else
       {
-        Assert(d_nodes[t1Id].getKind() != kind::BUILTIN);
+        Assert(d_nodes[t1Id].getKind() != Kind::BUILTIN);
         eqp->d_node = d_nodes[t1Id].eqNode(d_nodes[t1Id]);
       }
     }
@@ -1544,7 +1544,7 @@ void EqualityEngine::getExplanation(
                 }
                 else
                 {
-                  Assert(k == kind::EQUAL)
+                  Assert(k == Kind::EQUAL)
                       << "not an internal node " << d_nodes[currentNode]
                       << " with non-congruence with " << k << "\n";
                 }
@@ -1720,7 +1720,7 @@ void EqualityEngine::getExplanation(
 }
 
 void EqualityEngine::addTriggerEquality(TNode eq) {
-  Assert(eq.getKind() == kind::EQUAL);
+  Assert(eq.getKind() == Kind::EQUAL);
 
   if (d_done) {
     return;
@@ -1756,8 +1756,8 @@ void EqualityEngine::addTriggerEquality(TNode eq) {
 }
 
 void EqualityEngine::addTriggerPredicate(TNode predicate) {
-  Assert(predicate.getKind() != kind::NOT);
-  if (predicate.getKind() == kind::EQUAL)
+  Assert(predicate.getKind() != Kind::NOT);
+  if (predicate.getKind() == Kind::EQUAL)
   {
     // equality is handled separately
     return addTriggerEquality(predicate);
@@ -2012,7 +2012,7 @@ void EqualityEngine::propagate() {
     {
       for (size_t trigger_i = 0, trigger_end = triggers.size(); trigger_i < trigger_end && !d_done; ++ trigger_i) {
         const TriggerInfo& triggerInfo = d_equalityTriggersOriginal[triggers[trigger_i]];
-        if (triggerInfo.d_trigger.getKind() == kind::EQUAL)
+        if (triggerInfo.d_trigger.getKind() == Kind::EQUAL)
         {
           // Special treatment for disequalities
           if (!triggerInfo.d_polarity)
@@ -2096,7 +2096,7 @@ std::string EqualityEngine::debugPrintEqc() const
     ss << "Eqc( " << eqc << " ) : { ";
     while (!eqc2_i.isFinished())
     {
-      if ((*eqc2_i) != eqc && (*eqc2_i).getKind() != kind::EQUAL)
+      if ((*eqc2_i) != eqc && (*eqc2_i).getKind() != Kind::EQUAL)
       {
         ss << (*eqc2_i) << " ";
       }

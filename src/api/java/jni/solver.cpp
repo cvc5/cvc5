@@ -2042,6 +2042,22 @@ Java_io_github_cvc5_Solver_getUnsatCore(JNIEnv* env, jobject, jlong pointer)
 
 /*
  * Class:     io_github_cvc5_Solver
+ * Method:    getUnsatCoreLemmas
+ * Signature: (J)[J
+ */
+JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getUnsatCoreLemmas(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  std::vector<Term> core = solver->getUnsatCoreLemmas();
+  jlongArray ret = getPointersFromObjects<Term>(env, core);
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
  * Method:    getDifficulty
  * Signature: (J)Ljava/util/Map;
  */
@@ -2092,7 +2108,7 @@ Java_io_github_cvc5_Solver_getTimeoutCore(JNIEnv* env, jobject, jlong pointer)
   auto [result, terms] = solver->getTimeoutCore();
   Result* resultPointer = new Result(result);
   jlongArray a = getPointersFromObjects<Term>(env, terms);
-  
+
   // Long r = new Long(resultPointer);
   jclass longClass = env->FindClass("Ljava/lang/Long;");
   jmethodID longConstructor = env->GetMethodID(longClass, "<init>", "(J)V");
@@ -2602,12 +2618,40 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_setLogic(JNIEnv* env,
                                                            jstring jLogic)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   const char* cLogic = env->GetStringUTFChars(jLogic, nullptr);
   solver->setLogic(std::string(cLogic));
-
   CVC5_JAVA_API_TRY_CATCH_END(env);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    isLogicSet
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Solver_isLogicSet(JNIEnv* env,
+                                                                 jobject,
+                                                                 jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  return static_cast<jboolean>(solver->isLogicSet());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    getLogic
+ * Signature: (J)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_getLogic(JNIEnv* env,
+                                                              jobject,
+                                                              jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  return env->NewStringUTF(solver->getLogic().c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*

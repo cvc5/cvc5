@@ -103,9 +103,9 @@ void TheoryDatatypes::finishInit()
 {
   Assert(d_equalityEngine != nullptr);
   // The kinds we are treating as function application in congruence
-  d_equalityEngine->addFunctionKind(kind::APPLY_CONSTRUCTOR);
-  d_equalityEngine->addFunctionKind(kind::APPLY_SELECTOR);
-  d_equalityEngine->addFunctionKind(kind::APPLY_TESTER);
+  d_equalityEngine->addFunctionKind(Kind::APPLY_CONSTRUCTOR);
+  d_equalityEngine->addFunctionKind(Kind::APPLY_SELECTOR);
+  d_equalityEngine->addFunctionKind(Kind::APPLY_TESTER);
   // We could but don't do congruence for DT_SIZE and DT_HEIGHT_BOUND here.
   // It also could make sense in practice to do congruence for APPLY_UF, but
   // this is not done.
@@ -118,13 +118,13 @@ void TheoryDatatypes::finishInit()
         getQuantifiersEngine()->getTermDatabaseSygus();
     d_sygusExtension.reset(new SygusExtension(d_env, d_state, d_im, tds));
     // do congruence on evaluation functions
-    d_equalityEngine->addFunctionKind(kind::DT_SYGUS_EVAL);
+    d_equalityEngine->addFunctionKind(Kind::DT_SYGUS_EVAL);
   }
   // testers are not relevant for model building
-  d_valuation.setIrrelevantKind(APPLY_TESTER);
-  d_valuation.setIrrelevantKind(DT_SYGUS_BOUND);
+  d_valuation.setIrrelevantKind(Kind::APPLY_TESTER);
+  d_valuation.setIrrelevantKind(Kind::DT_SYGUS_BOUND);
   // selectors don't always evaluate
-  d_valuation.setUnevaluatedKind(APPLY_SELECTOR);
+  d_valuation.setUnevaluatedKind(Kind::APPLY_SELECTOR);
 }
 
 TheoryDatatypes::EqcInfo* TheoryDatatypes::getOrMakeEqcInfo( TNode n, bool doMake ){
@@ -141,7 +141,8 @@ TheoryDatatypes::EqcInfo* TheoryDatatypes::getOrMakeEqcInfo( TNode n, bool doMak
         ei = new EqcInfo(context());
         d_eqc_info[n] = ei;
       }
-      if( n.getKind()==APPLY_CONSTRUCTOR ){
+      if (n.getKind() == Kind::APPLY_CONSTRUCTOR)
+      {
         ei->d_constructor = n;
       }
 
@@ -159,9 +160,12 @@ TheoryDatatypes::EqcInfo* TheoryDatatypes::getOrMakeEqcInfo( TNode n, bool doMak
 }
 
 TNode TheoryDatatypes::getEqcConstructor( TNode r ) {
-  if( r.getKind()==APPLY_CONSTRUCTOR ){
+  if (r.getKind() == Kind::APPLY_CONSTRUCTOR)
+  {
     return r;
-  }else{
+  }
+  else
+  {
     EqcInfo * ei = getOrMakeEqcInfo( r, false );
     if( ei && !ei->d_constructor.get().isNull() ){
       return ei->d_constructor.get();
@@ -323,22 +327,22 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
     }
   }
   switch (n.getKind()) {
-  case kind::EQUAL:
-  case kind::APPLY_TESTER:
-    // add predicate trigger for testers and equalities
-    // Get triggered for both equal and dis-equal
-    d_state.addEqualityEngineTriggerPredicate(n);
-    break;
-  default:
-    // do initial lemmas (e.g. for dt.size)
-    registerInitialLemmas(n);
-    // Function applications/predicates
-    d_equalityEngine->addTerm(n);
-    if (d_sygusExtension)
-    {
-      d_sygusExtension->preRegisterTerm(n);
-    }
-    break;
+    case Kind::EQUAL:
+    case Kind::APPLY_TESTER:
+      // add predicate trigger for testers and equalities
+      // Get triggered for both equal and dis-equal
+      d_state.addEqualityEngineTriggerPredicate(n);
+      break;
+    default:
+      // do initial lemmas (e.g. for dt.size)
+      registerInitialLemmas(n);
+      // Function applications/predicates
+      d_equalityEngine->addTerm(n);
+      if (d_sygusExtension)
+      {
+        d_sygusExtension->preRegisterTerm(n);
+      }
+      break;
   }
   d_im.process();
 }
@@ -350,12 +354,12 @@ TrustNode TheoryDatatypes::ppRewrite(TNode in, std::vector<SkolemLemma>& lems)
   // We only assume that DT_SIZE terms are greater than or equal to zero.
   // Note that this ensures that spurious check-model failures are not
   // generated.
-  if (in.getKind() == DT_SIZE)
+  if (in.getKind() == Kind::DT_SIZE)
   {
     NodeManager* nm = NodeManager::currentNM();
     SkolemManager* sm = nm->getSkolemManager();
     Node k = sm->mkPurifySkolem(in);
-    Node lem = nm->mkNode(LEQ, d_zero, k);
+    Node lem = nm->mkNode(Kind::LEQ, d_zero, k);
     Trace("datatypes-infer")
         << "DtInfer : size geq zero : " << lem << std::endl;
     TrustNode tlem = TrustNode::mkTrustLemma(lem);
@@ -376,7 +380,8 @@ TrustNode TheoryDatatypes::ppStaticRewrite(TNode in)
 {
   Trace("datatypes") << "TheoryDatatypes::ppStaticRewrite(" << in << ")"
                      << endl;
-  if( in.getKind()==EQUAL ){
+  if (in.getKind() == Kind::EQUAL)
+  {
     Node nn;
     std::vector< Node > rew;
     if (utils::checkClash(in[0], in[1], rew))
@@ -404,7 +409,7 @@ TrustNode TheoryDatatypes::explain(TNode literal)
 void TheoryDatatypes::eqNotifyNewClass(TNode n)
 {
   Kind nk = n.getKind();
-  if (nk == APPLY_CONSTRUCTOR)
+  if (nk == Kind::APPLY_CONSTRUCTOR)
   {
     Trace("datatypes") << "  Found constructor " << n << endl;
     getOrMakeEqcInfo(n, true);
@@ -413,7 +418,7 @@ void TheoryDatatypes::eqNotifyNewClass(TNode n)
       d_functionTerms.push_back(n);
     }
   }
-  if (nk == APPLY_SELECTOR || nk == DT_HEIGHT_BOUND)
+  if (nk == Kind::APPLY_SELECTOR || nk == Kind::DT_HEIGHT_BOUND)
   {
     d_functionTerms.push_back(n);
     // we must also record which selectors exist
@@ -580,7 +585,8 @@ Node TheoryDatatypes::getLabel( Node n ) {
   NodeUIntMap::iterator lbl_i = d_labels.find(n);
   if( lbl_i != d_labels.end() ){
     size_t n_lbl = (*lbl_i).second;
-    if( n_lbl>0 && d_labels_data[n][ n_lbl-1 ].getKind()!=kind::NOT ){
+    if (n_lbl > 0 && d_labels_data[n][n_lbl - 1].getKind() != Kind::NOT)
+    {
       return d_labels_data[n][ n_lbl-1 ];
     }
   }
@@ -626,7 +632,7 @@ void TheoryDatatypes::getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >
       size_t n_lbl = (*lbl_i).second;
       for (size_t i = 0; i < n_lbl; i++)
       {
-        Assert(d_labels_data[n][i].getKind() == NOT);
+        Assert(d_labels_data[n][i].getKind() == Kind::NOT);
         unsigned tindex = d_labels_tindex[n][i];
         pcons[ tindex ] = false;
       }
@@ -635,7 +641,8 @@ void TheoryDatatypes::getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >
 }
 
 Node TheoryDatatypes::getTermSkolemFor( Node n ) {
-  if( n.getKind()==APPLY_CONSTRUCTOR ){
+  if (n.getKind() == Kind::APPLY_CONSTRUCTOR)
+  {
     NodeMap::const_iterator it = d_term_sk.find( n );
     if( it==d_term_sk.end() ){
       NodeManager* nm = NodeManager::currentNM();
@@ -650,7 +657,9 @@ Node TheoryDatatypes::getTermSkolemFor( Node n ) {
     }else{
       return (*it).second;
     }
-  }else{
+  }
+  else
+  {
     return n;
   }
 }
@@ -660,8 +669,8 @@ void TheoryDatatypes::addTester(
 {
   Trace("datatypes-debug") << "Add tester : " << t << " to eqc(" << n << ")" << std::endl;
   Trace("datatypes-labels") << "Add tester " << t << " " << n << " " << eqc << std::endl;
-  bool tpolarity = t.getKind()!=NOT;
-  Assert((tpolarity ? t : t[0]).getKind() == APPLY_TESTER);
+  bool tpolarity = t.getKind() != Kind::NOT;
+  Assert((tpolarity ? t : t[0]).getKind() == Kind::APPLY_TESTER);
   Node j, jt;
   bool makeConflict = false;
   int prevTIndex = getLabelIndex(eqc, n);
@@ -697,7 +706,7 @@ void TheoryDatatypes::addTester(
     std::map< int, bool > neg_testers;
     for (size_t i = 0; i < n_lbl; i++)
     {
-      Assert(d_labels_data[n][i].getKind() == NOT);
+      Assert(d_labels_data[n][i].getKind() == Kind::NOT);
       unsigned jtindex = d_labels_tindex[n][i];
       if( jtindex==ttindex ){
         if( tpolarity ){  //we are in conflict
@@ -751,12 +760,12 @@ void TheoryDatatypes::addTester(
           Assert(testerIndex != -1);
           //we must explain why each term in the set of testers for this equivalence class is equal
           std::vector< Node > eq_terms;
-          NodeBuilder nb(kind::AND);
+          NodeBuilder nb(Kind::AND);
           for (unsigned i = 0; i < n_lbl; i++)
           {
             Node ti = d_labels_data[n][i];
             nb << ti;
-            Assert(ti.getKind() == NOT);
+            Assert(ti.getKind() == Kind::NOT);
             Node t_arg2 = d_labels_args[n][i];
             if( std::find( eq_terms.begin(), eq_terms.end(), t_arg2 )==eq_terms.end() ){
               eq_terms.push_back( t_arg2 );
@@ -801,7 +810,9 @@ void TheoryDatatypes::addSelector( Node s, EqcInfo* eqc, Node n, bool assertFact
     for (size_t j = 0; j < n_sel; j++)
     {
       Node ss = d_selector_apps_data[n][j];
-      if( s.getOperator()==ss.getOperator() && ( s.getKind()!=DT_HEIGHT_BOUND || s[1]==ss[1] ) ){
+      if (s.getOperator() == ss.getOperator()
+          && (s.getKind() != Kind::DT_HEIGHT_BOUND || s[1] == ss[1]))
+      {
         Trace("dt-collapse-sel") << "...redundant." << std::endl;
         return;
       }
@@ -833,7 +844,7 @@ void TheoryDatatypes::addConstructor( Node c, EqcInfo* eqc, Node n ){
     for (size_t i = 0; i < n_lbl; i++)
     {
       Node t = d_labels_data[n][i];
-      if (d_labels_data[n][i].getKind() == NOT)
+      if (d_labels_data[n][i].getKind() == Kind::NOT)
       {
         unsigned tindex = d_labels_tindex[n][i];
         if (tindex == constructorIndex)
@@ -864,12 +875,12 @@ void TheoryDatatypes::addConstructor( Node c, EqcInfo* eqc, Node n ){
 }
 
 void TheoryDatatypes::collapseSelector( Node s, Node c ) {
-  Assert(c.getKind() == APPLY_CONSTRUCTOR);
+  Assert(c.getKind() == Kind::APPLY_CONSTRUCTOR);
   Trace("dt-collapse-sel") << "collapse selector : " << s << " " << c << std::endl;
   Node r;
   bool wrong = false;
   Node eq_exp = s[0].eqNode(c);
-  if (s.getKind() == kind::APPLY_SELECTOR)
+  if (s.getKind() == Kind::APPLY_SELECTOR)
   {
     Node selector = s.getOperator();
     size_t constructorIndex = utils::indexOf(c.getOperator());
@@ -880,7 +891,7 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
         << "selector index is " << selectorIndex << std::endl;
     wrong = selectorIndex<0;
     r = NodeManager::currentNM()->mkNode(
-        kind::APPLY_SELECTOR, s.getOperator(), c);
+        Kind::APPLY_SELECTOR, s.getOperator(), c);
   }
   if( !r.isNull() ){
     Node rrs;
@@ -941,8 +952,8 @@ void TheoryDatatypes::computeCareGraph(){
     // type if a constructor, or the type of the argument (e.g. if a selector)
     // otherwise
     Node op = f1.getOperator();
-    TypeNode tn =
-        f1.getKind() == APPLY_CONSTRUCTOR ? f1.getType() : f1[0].getType();
+    TypeNode tn = f1.getKind() == Kind::APPLY_CONSTRUCTOR ? f1.getType()
+                                                          : f1[0].getType();
     std::vector< TNode > reps;
     bool has_trigger_arg = false;
     for( unsigned j=0; j<f1.getNumChildren(); j++ ){
@@ -1092,7 +1103,7 @@ Node TheoryDatatypes::getCodatatypesValue( Node n, std::map< Node, Node >& eqc_c
     if( !nc.isNull() ){
       vmap[n] = depth;
       Trace("dt-cmi-cdt-debug") << "    map " << n << " -> " << depth << std::endl;
-      Assert(nc.getKind() == APPLY_CONSTRUCTOR);
+      Assert(nc.getKind() == Kind::APPLY_CONSTRUCTOR);
       std::vector< Node > children;
       children.push_back( nc.getOperator() );
       for( unsigned i=0; i<nc.getNumChildren(); i++ ){
@@ -1101,7 +1112,7 @@ Node TheoryDatatypes::getCodatatypesValue( Node n, std::map< Node, Node >& eqc_c
         children.push_back( rv );
       }
       vmap.erase( n );
-      return nm->mkNode(APPLY_CONSTRUCTOR, children);
+      return nm->mkNode(Kind::APPLY_CONSTRUCTOR, children);
     }
   }
   return n;
@@ -1117,7 +1128,9 @@ Node TheoryDatatypes::getSingletonLemma( TypeNode tn, bool pol ) {
     if( pol ){
       Node v1 = nm->mkBoundVar(tn);
       Node v2 = nm->mkBoundVar(tn);
-      a = nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, v1, v2), v1.eqNode(v2));
+      a = nm->mkNode(Kind::FORALL,
+                     nm->mkNode(Kind::BOUND_VAR_LIST, v1, v2),
+                     v1.eqNode(v2));
     }else{
       Node v1 = sm->mkDummySkolem("k1", tn);
       Node v2 = sm->mkDummySkolem("k2", tn);
@@ -1143,7 +1156,7 @@ void TheoryDatatypes::registerInitialLemmas(Node n)
 
   NodeManager* nm = NodeManager::currentNM();
   Kind nk = n.getKind();
-  if (nk == DT_HEIGHT_BOUND && n[1].getConst<Rational>().isZero())
+  if (nk == Kind::DT_HEIGHT_BOUND && n[1].getConst<Rational>().isZero())
   {
     std::vector<Node> children;
     const DType& dt = n[0].getType().getDType();
@@ -1163,7 +1176,7 @@ void TheoryDatatypes::registerInitialLemmas(Node n)
     else
     {
       lem = n.eqNode(children.size() == 1 ? children[0]
-                                          : nm->mkNode(OR, children));
+                                          : nm->mkNode(Kind::OR, children));
     }
     Trace("datatypes-infer") << "DtInfer : zero height : " << lem << std::endl;
     d_im.addPendingLemma(lem, InferenceId::DATATYPES_HEIGHT_ZERO);
@@ -1172,7 +1185,8 @@ void TheoryDatatypes::registerInitialLemmas(Node n)
 
 Node TheoryDatatypes::getInstantiateCons(Node n, const DType& dt, int index)
 {
-  if( n.getKind()==APPLY_CONSTRUCTOR && n.getNumChildren()==0 ){
+  if (n.getKind() == Kind::APPLY_CONSTRUCTOR && n.getNumChildren() == 0)
+  {
     return n;
   }
   //add constructor to equivalence class
@@ -1365,7 +1379,8 @@ void TheoryDatatypes::separateBisimilar(
     }else{
       if( c.getType().isDatatype() ){
         Node ncons = getEqcConstructor( c );
-        if( ncons.getKind()==APPLY_CONSTRUCTOR ) {
+        if (ncons.getKind() == Kind::APPLY_CONSTRUCTOR)
+        {
           Node cc = ncons.getOperator();
           cn_cons[part[j]] = ncons;
           if (mkExp && c != ncons)
@@ -1374,7 +1389,9 @@ void TheoryDatatypes::separateBisimilar(
           }
           new_part[cc].push_back( part[j] );
           if( !mkExp ){ Trace("dt-cdt-debug") << "  - " << part[j] << " is datatype " << ncons << "." << std::endl; }
-        }else{
+        }
+        else
+        {
           new_part_c[c].push_back( part[j] );
           if( !mkExp ){ Trace("dt-cdt-debug") << "  - " << part[j] << " is unspecified datatype." << std::endl; }
         }
@@ -1484,7 +1501,7 @@ Node TheoryDatatypes::searchForCycle(TNode n,
     Trace("datatypes-cycle-check2") << "  visit : " << nn << std::endl;
     visited[nn] = true;
     TNode nncons = getEqcConstructor(nn);
-    if (nncons.getKind() == APPLY_CONSTRUCTOR)
+    if (nncons.getKind() == Kind::APPLY_CONSTRUCTOR)
     {
       for (unsigned i = 0; i < nncons.getNumChildren(); i++)
       {
@@ -1595,7 +1612,7 @@ void TheoryDatatypes::checkSplit()
             Node lemma =
                 assumptions.size() == 1
                     ? assumptions[0]
-                    : NodeManager::currentNM()->mkNode(OR, assumptions);
+                    : NodeManager::currentNM()->mkNode(Kind::OR, assumptions);
             Trace("dt-singleton") << "*************Singleton equality lemma "
                                   << lemma << std::endl;
             d_im.lemma(lemma, InferenceId::DATATYPES_REC_SINGLETON_EQ);
@@ -1680,7 +1697,7 @@ void TheoryDatatypes::checkSplit()
         Trace("dt-split") << "*************Split for possible constructor "
                           << dt[consIndex] << " for " << n << endl;
         test = rewrite(test);
-        NodeBuilder nb(kind::OR);
+        NodeBuilder nb(Kind::OR);
         nb << test << test.notNode();
         Node lemma = nb;
         d_im.lemma(lemma, InferenceId::DATATYPES_BINARY_SPLIT);
@@ -1816,7 +1833,8 @@ void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
     {
       TNode n = *eqc_i;
       ++eqc_i;
-      if (n.getKind() == APPLY_CONSTRUCTOR && termSet.find(n) != termSet.end())
+      if (n.getKind() == Kind::APPLY_CONSTRUCTOR
+          && termSet.find(n) != termSet.end())
       {
         // change the recorded constructor to be a relevant one
         ei->d_constructor = n;
@@ -1836,9 +1854,10 @@ void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
 std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit)
 {
   Trace("dt-entail") << "Check entailed : " << lit << std::endl;
-  Node atom = lit.getKind()==NOT ? lit[0] : lit;
-  bool pol = lit.getKind()!=NOT;
-  if( atom.getKind()==APPLY_TESTER ){
+  Node atom = lit.getKind() == Kind::NOT ? lit[0] : lit;
+  bool pol = lit.getKind() != Kind::NOT;
+  if (atom.getKind() == Kind::APPLY_TESTER)
+  {
     Node n = atom[0];
     if (d_equalityEngine->hasTerm(n))
     {

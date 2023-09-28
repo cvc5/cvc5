@@ -123,7 +123,7 @@ Node TrustNode::getLemmaProven(Node lem) { return lem; }
 
 Node TrustNode::getPropExpProven(TNode lit, Node exp)
 {
-  return NodeManager::currentNM()->mkNode(kind::IMPLIES, exp, lit);
+  return NodeManager::currentNM()->mkNode(Kind::IMPLIES, exp, lit);
 }
 
 Node TrustNode::getRewriteProven(TNode n, Node nr) { return n.eqNode(nr); }

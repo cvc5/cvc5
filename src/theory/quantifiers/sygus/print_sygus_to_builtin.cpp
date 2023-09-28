@@ -41,7 +41,7 @@ Node getPrintableSygusToBuiltin(Node n)
     if (it == visited.end())
     {
       // only recurse on constructors
-      if (cur.getKind() == kind::APPLY_CONSTRUCTOR)
+      if (cur.getKind() == Kind::APPLY_CONSTRUCTOR)
       {
         visited[cur] = Node::null();
         visit.push_back(cur);
@@ -58,7 +58,7 @@ Node getPrintableSygusToBuiltin(Node n)
     else if (it->second.isNull())
     {
       Node ret = cur;
-      Assert(cur.getKind() == kind::APPLY_CONSTRUCTOR);
+      Assert(cur.getKind() == Kind::APPLY_CONSTRUCTOR);
       const DType& dt = cur.getType().getDType();
       // only applies to sygus datatypes
       if (dt.isSygus())

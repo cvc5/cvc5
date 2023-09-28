@@ -42,7 +42,7 @@ bool OracleChecker::checkConsistent(Node app,
 
 Node OracleChecker::evaluateApp(Node app)
 {
-  Assert(app.getKind() == kind::APPLY_UF);
+  Assert(app.getKind() == Kind::APPLY_UF);
   Node f = app.getOperator();
   Assert(OracleCaller::isOracleFunction(f));
   // get oracle caller
@@ -85,7 +85,7 @@ Node OracleChecker::postConvert(Node n)
 {
   Trace("oracle-checker-debug") << "postConvert: " << n << std::endl;
   // if it is an oracle function applied to constant arguments
-  if (n.getKind() == kind::APPLY_UF
+  if (n.getKind() == Kind::APPLY_UF
       && OracleCaller::isOracleFunction(n.getOperator()))
   {
     bool allConst = true;
@@ -96,7 +96,7 @@ Node OracleChecker::postConvert(Node n)
         continue;
       }
       // special case: assume all closed lambdas are constants
-      if (nc.getKind() == kind::LAMBDA)
+      if (nc.getKind() == Kind::LAMBDA)
       {
         // if the lambda does not have a free variable (BOUND_VARIABLE)
         if (!expr::hasFreeVar(nc))

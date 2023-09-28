@@ -49,7 +49,7 @@ SygusSimpleSymBreak::SygusSimpleSymBreak(quantifiers::TermDbSygus* tds)
 class ReqTrie
 {
  public:
-  ReqTrie() : d_req_kind(UNDEFINED_KIND) {}
+  ReqTrie() : d_req_kind(Kind::UNDEFINED_KIND) {}
   /** the children of this node */
   std::map<unsigned, ReqTrie> d_children;
   /** the (builtin) kind required by this node */
@@ -61,7 +61,7 @@ class ReqTrie
   /** print this trie */
   void print(const char* c, int indent = 0)
   {
-    if (d_req_kind != UNDEFINED_KIND)
+    if (d_req_kind != Kind::UNDEFINED_KIND)
     {
       Trace(c) << d_req_kind << " ";
     }
@@ -113,7 +113,7 @@ class ReqTrie
         return false;
       }
     }
-    if (d_req_kind != UNDEFINED_KIND)
+    if (d_req_kind != Kind::UNDEFINED_KIND)
     {
       Trace("sygus-sb-debug")
           << "- check if " << tn << " has " << d_req_kind << std::endl;
@@ -148,7 +148,7 @@ class ReqTrie
   /** is this the empty (trivially satisfied) trie? */
   bool empty()
   {
-    return d_req_kind == UNDEFINED_KIND && d_req_const.isNull()
+    return d_req_kind == Kind::UNDEFINED_KIND && d_req_const.isNull()
            && d_req_type.isNull() && d_children.empty();
   }
 };
@@ -200,7 +200,8 @@ bool SygusSimpleSymBreak::considerArgKind(
   Assert(rt.empty());
 
   // construct rt by cases
-  if (pk == NOT || pk == BITVECTOR_NOT || pk == NEG || pk == BITVECTOR_NEG)
+  if (pk == Kind::NOT || pk == Kind::BITVECTOR_NOT || pk == Kind::NEG
+      || pk == Kind::BITVECTOR_NEG)
   {
     // negation normal form
     if (pk == k)
@@ -209,94 +210,94 @@ bool SygusSimpleSymBreak::considerArgKind(
     }
     else
     {
-      Kind reqk = UNDEFINED_KIND;      // required kind for all children
+      Kind reqk = Kind::UNDEFINED_KIND;  // required kind for all children
       std::map<unsigned, Kind> reqkc;  // required kind for some children
-      if (pk == NOT)
+      if (pk == Kind::NOT)
       {
-        if (k == AND)
+        if (k == Kind::AND)
         {
-          rt.d_req_kind = OR;
-          reqk = NOT;
+          rt.d_req_kind = Kind::OR;
+          reqk = Kind::NOT;
         }
-        else if (k == OR)
+        else if (k == Kind::OR)
         {
-          rt.d_req_kind = AND;
-          reqk = NOT;
+          rt.d_req_kind = Kind::AND;
+          reqk = Kind::NOT;
         }
-        else if (k == EQUAL)
+        else if (k == Kind::EQUAL)
         {
-          rt.d_req_kind = XOR;
+          rt.d_req_kind = Kind::XOR;
         }
-        else if (k == XOR)
+        else if (k == Kind::XOR)
         {
-          rt.d_req_kind = EQUAL;
+          rt.d_req_kind = Kind::EQUAL;
         }
-        else if (k == ITE)
+        else if (k == Kind::ITE)
         {
-          rt.d_req_kind = ITE;
-          reqkc[1] = NOT;
-          reqkc[2] = NOT;
+          rt.d_req_kind = Kind::ITE;
+          reqkc[1] = Kind::NOT;
+          reqkc[2] = Kind::NOT;
           rt.d_children[0].d_req_type = dt[c].getArgType(0);
         }
-        else if (k == LEQ || k == GT)
+        else if (k == Kind::LEQ || k == Kind::GT)
         {
           //  (not (~ x y)) ----->  (~ (+ y 1) x)
           rt.d_req_kind = k;
-          rt.d_children[0].d_req_kind = ADD;
+          rt.d_children[0].d_req_kind = Kind::ADD;
           rt.d_children[0].d_children[0].d_req_type = dt[c].getArgType(1);
           rt.d_children[0].d_children[1].d_req_const =
               NodeManager::currentNM()->mkConstInt(Rational(1));
           rt.d_children[1].d_req_type = dt[c].getArgType(0);
         }
-        else if (k == LT || k == GEQ)
+        else if (k == Kind::LT || k == Kind::GEQ)
         {
           //  (not (~ x y)) ----->  (~ y (+ x 1))
           rt.d_req_kind = k;
           rt.d_children[0].d_req_type = dt[c].getArgType(1);
-          rt.d_children[1].d_req_kind = ADD;
+          rt.d_children[1].d_req_kind = Kind::ADD;
           rt.d_children[1].d_children[0].d_req_type = dt[c].getArgType(0);
           rt.d_children[1].d_children[1].d_req_const =
               NodeManager::currentNM()->mkConstInt(Rational(1));
         }
       }
-      else if (pk == BITVECTOR_NOT)
+      else if (pk == Kind::BITVECTOR_NOT)
       {
-        if (k == BITVECTOR_AND)
+        if (k == Kind::BITVECTOR_AND)
         {
-          rt.d_req_kind = BITVECTOR_OR;
-          reqk = BITVECTOR_NOT;
+          rt.d_req_kind = Kind::BITVECTOR_OR;
+          reqk = Kind::BITVECTOR_NOT;
         }
-        else if (k == BITVECTOR_OR)
+        else if (k == Kind::BITVECTOR_OR)
         {
-          rt.d_req_kind = BITVECTOR_AND;
-          reqk = BITVECTOR_NOT;
+          rt.d_req_kind = Kind::BITVECTOR_AND;
+          reqk = Kind::BITVECTOR_NOT;
         }
-        else if (k == BITVECTOR_XNOR)
+        else if (k == Kind::BITVECTOR_XNOR)
         {
-          rt.d_req_kind = BITVECTOR_XOR;
+          rt.d_req_kind = Kind::BITVECTOR_XOR;
         }
-        else if (k == BITVECTOR_XOR)
+        else if (k == Kind::BITVECTOR_XOR)
         {
-          rt.d_req_kind = BITVECTOR_XNOR;
+          rt.d_req_kind = Kind::BITVECTOR_XNOR;
         }
       }
-      else if (pk == NEG)
+      else if (pk == Kind::NEG)
       {
-        if (k == ADD)
+        if (k == Kind::ADD)
         {
-          rt.d_req_kind = ADD;
-          reqk = NEG;
+          rt.d_req_kind = Kind::ADD;
+          reqk = Kind::NEG;
         }
       }
-      else if (pk == BITVECTOR_NEG)
+      else if (pk == Kind::BITVECTOR_NEG)
       {
-        if (k == ADD)
+        if (k == Kind::ADD)
         {
-          rt.d_req_kind = ADD;
-          reqk = BITVECTOR_NEG;
+          rt.d_req_kind = Kind::ADD;
+          reqk = Kind::BITVECTOR_NEG;
         }
       }
-      if (!rt.empty() && (reqk != UNDEFINED_KIND || !reqkc.empty()))
+      if (!rt.empty() && (reqk != Kind::UNDEFINED_KIND || !reqkc.empty()))
       {
         int pcr = pti.getKindConsNum(rt.d_req_kind);
         if (pcr != -1)
@@ -308,7 +309,7 @@ bool SygusSimpleSymBreak::considerArgKind(
             for (unsigned i = 0, nargs = pdt[pcr].getNumArgs(); i < nargs; i++)
             {
               Kind rk = reqk;
-              if (reqk == UNDEFINED_KIND)
+              if (reqk == Kind::UNDEFINED_KIND)
               {
                 std::map<unsigned, Kind>::iterator itr = reqkc.find(i);
                 if (itr != reqkc.end())
@@ -316,7 +317,7 @@ bool SygusSimpleSymBreak::considerArgKind(
                   rk = itr->second;
                 }
               }
-              if (rk != UNDEFINED_KIND)
+              if (rk != Kind::UNDEFINED_KIND)
               {
                 rt.d_children[i].d_req_kind = rk;
                 rt.d_children[i].d_children[0].d_req_type = dt[c].getArgType(i);
@@ -327,25 +328,27 @@ bool SygusSimpleSymBreak::considerArgKind(
       }
     }
   }
-  else if (k == SUB || k == BITVECTOR_SUB)
+  else if (k == Kind::SUB || k == Kind::BITVECTOR_SUB)
   {
-    if (pk == EQUAL || pk == SUB || pk == BITVECTOR_SUB || pk == LEQ || pk == LT
-        || pk == GEQ || pk == GT)
+    if (pk == Kind::EQUAL || pk == Kind::SUB || pk == Kind::BITVECTOR_SUB
+        || pk == Kind::LEQ || pk == Kind::LT || pk == Kind::GEQ
+        || pk == Kind::GT)
     {
       int oarg = arg == 0 ? 1 : 0;
       //  (~ x (- y z))  ---->  (~ (+ x z) y)
       //  (~ (- y z) x)  ---->  (~ y (+ x z))
       rt.d_req_kind = pk;
       rt.d_children[arg].d_req_type = dt[c].getArgType(0);
-      rt.d_children[oarg].d_req_kind = k == SUB ? ADD : BITVECTOR_ADD;
+      rt.d_children[oarg].d_req_kind =
+          k == Kind::SUB ? Kind::ADD : Kind::BITVECTOR_ADD;
       rt.d_children[oarg].d_children[0].d_req_type = pdt[pc].getArgType(oarg);
       rt.d_children[oarg].d_children[1].d_req_type = dt[c].getArgType(1);
     }
-    else if (pk == ADD || pk == BITVECTOR_ADD)
+    else if (pk == Kind::ADD || pk == Kind::BITVECTOR_ADD)
     {
       //  (+ x (- y z))  -----> (- (+ x y) z)
       //  (+ (- y z) x)  -----> (- (+ x y) z)
-      rt.d_req_kind = pk == ADD ? SUB : BITVECTOR_SUB;
+      rt.d_req_kind = pk == Kind::ADD ? Kind::SUB : Kind::BITVECTOR_SUB;
       int oarg = arg == 0 ? 1 : 0;
       rt.d_children[0].d_req_kind = pk;
       rt.d_children[0].d_children[0].d_req_type = pdt[pc].getArgType(oarg);
@@ -353,12 +356,12 @@ bool SygusSimpleSymBreak::considerArgKind(
       rt.d_children[1].d_req_type = dt[c].getArgType(1);
     }
   }
-  else if (k == ITE)
+  else if (k == Kind::ITE)
   {
-    if (pk != ITE)
+    if (pk != Kind::ITE)
     {
       //  (o X (ite y z w) X')  -----> (ite y (o X z X') (o X w X'))
-      rt.d_req_kind = ITE;
+      rt.d_req_kind = Kind::ITE;
       rt.d_children[0].d_req_type = dt[c].getArgType(0);
       unsigned n_args = pdt[pc].getNumArgs();
       for (unsigned r = 1; r <= 2; r++)
@@ -379,12 +382,12 @@ bool SygusSimpleSymBreak::considerArgKind(
       // this increases term size but is probably a good idea
     }
   }
-  else if (k == NOT)
+  else if (k == Kind::NOT)
   {
-    if (pk == ITE)
+    if (pk == Kind::ITE)
     {
       //  (ite (not y) z w)  -----> (ite y w z)
-      rt.d_req_kind = ITE;
+      rt.d_req_kind = Kind::ITE;
       rt.d_children[0].d_req_type = dt[c].getArgType(0);
       rt.d_children[1].d_req_type = pdt[pc].getArgType(2);
       rt.d_children[2].d_req_type = pdt[pc].getArgType(1);
@@ -516,14 +519,14 @@ bool SygusSimpleSymBreak::considerConst(
     Node max_c = quantifiers::TermUtil::mkTypeMaxValue(c.getType());
     Node zero_c = quantifiers::TermUtil::mkTypeValue(c.getType(), 0);
     Node one_c = quantifiers::TermUtil::mkTypeValue(c.getType(), 1);
-    if (pk == XOR || pk == BITVECTOR_XOR)
+    if (pk == Kind::XOR || pk == Kind::BITVECTOR_XOR)
     {
       if (c == max_c)
       {
-        rt.d_req_kind = pk == XOR ? NOT : BITVECTOR_NOT;
+        rt.d_req_kind = pk == Kind::XOR ? Kind::NOT : Kind::BITVECTOR_NOT;
       }
     }
-    else if (pk == ITE)
+    else if (pk == Kind::ITE)
     {
       if (arg == 0)
       {
@@ -537,11 +540,11 @@ bool SygusSimpleSymBreak::considerConst(
         }
       }
     }
-    else if (pk == STRING_SUBSTR)
+    else if (pk == Kind::STRING_SUBSTR)
     {
       if (c == one_c && arg == 2)
       {
-        rt.d_req_kind = STRING_CHARAT;
+        rt.d_req_kind = Kind::STRING_CHARAT;
         rt.d_children[0].d_req_type = pdt[pc].getArgType(0);
         rt.d_children[1].d_req_type = pdt[pc].getArgType(1);
       }

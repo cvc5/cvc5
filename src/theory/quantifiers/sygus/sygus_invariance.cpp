@@ -31,14 +31,15 @@ void EvalSygusInvarianceTest::init(Node conj, Node var, Node res)
 {
   d_terms.clear();
   // simple miniscope
-  if ((conj.getKind() == AND || conj.getKind() == OR) && res.isConst())
+  if ((conj.getKind() == Kind::AND || conj.getKind() == Kind::OR)
+      && res.isConst())
   {
     for (const Node& c : conj)
     {
       d_terms.push_back(c);
     }
     d_kind = conj.getKind();
-    d_is_conjunctive = res.getConst<bool>() == (d_kind == AND);
+    d_is_conjunctive = res.getConst<bool>() == (d_kind == Kind::AND);
   }
   else
   {
@@ -220,7 +221,7 @@ bool NegContainsSygusInvarianceTest::invariant(TermDbSygus* tds,
       Node nbvre = tds->evaluateBuiltin(tn, nbvr, d_ex[ii]);
       Node out = d_exo[ii];
       Node cont =
-          NodeManager::currentNM()->mkNode(kind::STRING_CONTAINS, out, nbvre);
+          NodeManager::currentNM()->mkNode(Kind::STRING_CONTAINS, out, nbvre);
       Trace("sygus-pbe-cterm-debug") << "Check: " << cont << std::endl;
       Node contr = d_rewriter->extendedRewrite(cont);
       if (!contr.isConst())

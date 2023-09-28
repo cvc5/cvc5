@@ -122,12 +122,13 @@ Node SkolemManager::mkPurifySkolem(Node t,
 {
   // We do not recursively compute the original form of t here
   Node k;
-  if (t.getKind() == WITNESS)
+  if (t.getKind() == Kind::WITNESS)
   {
     // The purification skolem for (witness ((x T)) P) is the same as
     // the skolem function (QUANTIFIERS_SKOLEMIZE (exists ((x T)) P) 0).
     NodeManager* nm = NodeManager::currentNM();
-    Node exists = nm->mkNode(EXISTS, std::vector<Node>(t.begin(), t.end()));
+    Node exists =
+        nm->mkNode(Kind::EXISTS, std::vector<Node>(t.begin(), t.end()));
     k = mkSkolemFunction(SkolemFunId::QUANTIFIERS_SKOLEMIZE,
                          t.getType(),
                          {exists, nm->mkConstInt(Rational(0))});
@@ -166,7 +167,7 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal)
     // of the original name.
     if (id == SkolemFunId::INPUT_VARIABLE)
     {
-      k = mkSkolemNode(VARIABLE,
+      k = mkSkolemNode(Kind::VARIABLE,
                        cacheVal[0].getConst<String>().toString(),
                        tn,
                        SKOLEM_EXACT_NAME);
@@ -177,7 +178,7 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal)
       // internal symbols starting with @ or . are reserved for internal use.
       std::stringstream ss;
       ss << "@" << id;
-      k = mkSkolemNode(SKOLEM, ss.str(), tn);
+      k = mkSkolemNode(Kind::SKOLEM, ss.str(), tn);
     }
     d_skolemFuns[key] = k;
     d_skolemFunMap[k] = key;
@@ -198,7 +199,7 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id,
   {
     cacheVal = cacheVals.size() == 1
                    ? cacheVals[0]
-                   : NodeManager::currentNM()->mkNode(SEXPR, cacheVals);
+                   : NodeManager::currentNM()->mkNode(Kind::SEXPR, cacheVals);
   }
   return mkSkolemFunction(id, tn, cacheVal);
 }
@@ -234,7 +235,7 @@ Node SkolemManager::mkDummySkolem(const std::string& prefix,
                                   const std::string& comment,
                                   int flags)
 {
-  return mkSkolemNode(SKOLEM, prefix, type, flags);
+  return mkSkolemNode(Kind::SKOLEM, prefix, type, flags);
 }
 
 ProofGenerator* SkolemManager::getProofGenerator(Node t) const

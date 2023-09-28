@@ -57,7 +57,7 @@ TypeNode FiniteFieldFixedFieldTypeRule::computeType(NodeManager* nodeManager,
   TypeNode t = (*it).getType(check);
   if (check)
   {
-    if (t.getKind() != kind::FINITE_FIELD_TYPE)
+    if (t.getKind() != Kind::FINITE_FIELD_TYPE)
     {
       throw TypeCheckingExceptionPrivate(n, "expecting finite-field terms");
     }

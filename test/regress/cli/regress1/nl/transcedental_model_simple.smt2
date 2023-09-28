@@ -1,4 +1,4 @@
-; COMMAND-LINE: --nl-rlv=always
+; COMMAND-LINE: --nl-rlv=always -q
 ; EXPECT: sat
 (set-logic QF_NRAT)
 (set-info :status sat)

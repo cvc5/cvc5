@@ -466,6 +466,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * @api.note This method is experimental and may change in future versions.
    *
    * @param params The list of sort parameters to instantiate with.
+   * @return The instantiated sort.
    */
   public Sort instantiate(Sort[] params)
   {
@@ -495,13 +496,15 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /**
    * Substitution of Sorts.
    *
-   * Note that this replacement is applied during a pre-order traversal and
+   * @api.note This replacement is applied during a pre-order traversal and
    * only once to the sort. It is not run until fix point.
    *
    * @api.note This method is experimental and may change in future versions.
    *
    * @param sort The subsort to be substituted within this sort.
    * @param replacement The sort replacing the substituted subsort.
+   * @return The sort yielded by substituting the replacement sort within the
+   *         given sort.
    */
   public Sort substitute(Sort sort, Sort replacement)
   {
@@ -527,6 +530,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    *
    * @param sorts The subsorts to be substituted within this sort.
    * @param replacements The sort replacing the substituted subsorts.
+   * @return The sorts yielded by substituting the replacement sort within the
+   *         given sorts.
    */
   public Sort substitute(Sort[] sorts, Sort[] replacements)
   {
