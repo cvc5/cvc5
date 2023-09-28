@@ -118,17 +118,11 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
 #endif /* EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP */
     ::using_history();
 
-    if (lang == mode::InputLanguage::SMT_LIB_2_6)
-    {
-      d_historyFilename = string(getenv("HOME")) + "/.cvc5_history_smtlib2";
-      commandsBegin = smt2_commands;
-      commandsEnd =
-          smt2_commands + sizeof(smt2_commands) / sizeof(*smt2_commands);
-    }
-    else
-    {
-      throw Exception("internal error: unhandled language " + lang);
-    }
+    Assert (lang == modes::InputLanguage::SMT_LIB_2_6);
+    d_historyFilename = string(getenv("HOME")) + "/.cvc5_history_smtlib2";
+    commandsBegin = smt2_commands;
+    commandsEnd =
+        smt2_commands + sizeof(smt2_commands) / sizeof(*smt2_commands);
     d_usingEditline = true;
     int err = ::read_history(d_historyFilename.c_str());
     ::stifle_history(s_historyLimit);
