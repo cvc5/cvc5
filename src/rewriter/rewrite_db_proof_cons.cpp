@@ -81,6 +81,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
     Node eqi = i==0 ? eq : d_rdnc.convert(eq);
     if (i==1 && eqi==eq)
     {
+      // converter didn't make a difference, don't try to prove again
       break;
     }
     if (!proveInternalBase(eqi, id))
@@ -114,11 +115,6 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
     {
       break;
     }
-  }
-  if (!success && d_trrc.postProve(cdp, a, b, tid, mid))
-  {
-    Trace("rpc") << "...success (post-prove)" << std::endl;
-    return true;
   }
   Trace("rpc") << "..." << (success ? "success" : "fail") << std::endl;
   return success;
