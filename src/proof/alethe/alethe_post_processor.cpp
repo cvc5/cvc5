@@ -2494,5 +2494,3 @@ void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 
 }  // namespace proof
 }  // namespace cvc5::internal
-
-}  // namespace cvc5::internal

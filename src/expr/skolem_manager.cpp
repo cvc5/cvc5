@@ -411,20 +411,3 @@ Node SkolemManager::mkSkolemNode(Kind k,
 }
 
 }  // namespace cvc5::internal
-
-  if ((flags & SKOLEM_EXACT_NAME) == 0)
-  {
-    std::stringstream name;
-    name << prefix << '_' << ++d_skolemCounter;
-    n.setAttribute(expr::VarNameAttr(), name.str());
-  }
-  else
-  {
-    n.setAttribute(expr::VarNameAttr(), prefix);
-  }
-  n.setAttribute(expr::TypeAttr(), type);
-  n.setAttribute(expr::TypeCheckedAttr(), true);
-  return n;
-}
-
-}  // namespace cvc5::internal
