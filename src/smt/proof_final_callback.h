@@ -50,7 +50,7 @@ class ProofFinalCallback : protected EnvObj, public ProofNodeUpdaterCallback
 
  private:
   /** Counts number of postprocessed proof nodes for each kind of proof rule */
-  HistogramStat<PfRule> d_ruleCount;
+  HistogramStat<ProofRule> d_ruleCount;
   /**
    * Counts number of postprocessed proof nodes of rule INSTANTIATE that were
    * marked with the given inference id.
@@ -63,7 +63,7 @@ class ProofFinalCallback : protected EnvObj, public ProofNodeUpdaterCallback
   HistogramStat<theory::InferenceId> d_annotationRuleIds;
   /** Counts number of postprocessed proof nodes for each kind of DSL proof rule
    */
-  HistogramStat<rewriter::DslPfRule> d_dslRuleCount;
+  HistogramStat<rewriter::DslProofRule> d_dslRuleCount;
   /** Total number of postprocessed rule applications */
   IntStat d_totalRuleCount;
   /** The minimum pedantic level of any rule encountered */

@@ -23,7 +23,6 @@
 
 namespace cvc5::internal {
 
-using namespace kind;
 using namespace theory;
 using namespace theory::strings;
 
@@ -49,14 +48,14 @@ TEST_F(TestTheoryWhiteStringsUtils, collect_empty_eqs)
   bool allEmptyEqs;
   std::unordered_set<Node> expected = {a, x};
 
-  std::tie(allEmptyEqs, emptyNodes) =
-      utils::collectEmptyEqs(d_nodeManager->mkNode(AND, emptyEqX, emptyEqA));
+  std::tie(allEmptyEqs, emptyNodes) = utils::collectEmptyEqs(
+      d_nodeManager->mkNode(Kind::AND, emptyEqX, emptyEqA));
   ASSERT_TRUE(allEmptyEqs);
   ASSERT_EQ(std::unordered_set<Node>(emptyNodes.begin(), emptyNodes.end()),
             expected);
 
   std::tie(allEmptyEqs, emptyNodes) = utils::collectEmptyEqs(
-      d_nodeManager->mkNode(AND, emptyEqX, xEqA, emptyEqA));
+      d_nodeManager->mkNode(Kind::AND, emptyEqX, xEqA, emptyEqA));
   ASSERT_FALSE(allEmptyEqs);
   ASSERT_EQ(std::unordered_set<Node>(emptyNodes.begin(), emptyNodes.end()),
             expected);

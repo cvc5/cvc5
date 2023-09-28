@@ -99,7 +99,7 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
     Node n = QuantAttributes::getFunDefHead(assertions[i]);
     if (!n.isNull())
     {
-      Assert(n.getKind() == APPLY_UF);
+      Assert(n.getKind() == Kind::APPLY_UF);
       Node f = n.getOperator();
 
       // check if already defined, if so, throw error
@@ -114,7 +114,7 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
       if (!bd.isNull())
       {
         d_funcs.push_back(f);
-        bd = nm->mkNode(EQUAL, n, bd);
+        bd = nm->mkNode(Kind::EQUAL, n, bd);
 
         // create a sort S that represents the inputs of the function
         std::stringstream ss;
@@ -146,13 +146,13 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
         // construct new quantifier forall S. F[f1(S)/x1....fn(S)/xn]
         std::vector<Node> children;
         Node bv = nm->mkBoundVar("?i", iType);
-        Node bvl = nm->mkNode(BOUND_VAR_LIST, bv);
+        Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, bv);
         std::vector<Node> subs;
         std::vector<Node> vars;
         for (size_t j = 0; j < nchildn; j++)
         {
           vars.push_back(n[j]);
-          subs.push_back(nm->mkNode(APPLY_UF, d_input_arg_inj[f][j], bv));
+          subs.push_back(nm->mkNode(Kind::APPLY_UF, d_input_arg_inj[f][j], bv));
         }
         bd = bd.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
         subs_head[i] =
@@ -161,7 +161,7 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
         Trace("fmf-fun-def")
             << "FMF fun def: FUNCTION : rewrite " << assertions[i] << std::endl;
         Trace("fmf-fun-def") << "  to " << std::endl;
-        Node new_q = nm->mkNode(FORALL, bvl, bd);
+        Node new_q = nm->mkNode(Kind::FORALL, bvl, bd);
         new_q = rewrite(new_q);
         assertionsToPreprocess->replace(i, new_q);
         Trace("fmf-fun-def") << "  " << assertions[i] << std::endl;
@@ -233,19 +233,19 @@ Node FunDefFmf::simplifyFormula(
   Node ret;
   Trace("fmf-fun-def-debug2") << "Simplify " << n << " " << pol << " " << hasPol
                               << " " << is_fun_def << std::endl;
-  if (n.getKind() == FORALL)
+  if (n.getKind() == Kind::FORALL)
   {
     Node c = simplifyFormula(
         n[1], pol, hasPol, constraints, hd, is_fun_def, visited, visited_cons);
     // append prenex to constraints
     for (unsigned i = 0; i < constraints.size(); i++)
     {
-      constraints[i] = nm->mkNode(FORALL, n[0], constraints[i]);
+      constraints[i] = nm->mkNode(Kind::FORALL, n[0], constraints[i]);
       constraints[i] = rewrite(constraints[i]);
     }
     if (c != n[1])
     {
-      ret = nm->mkNode(FORALL, n[0], c);
+      ret = nm->mkNode(Kind::FORALL, n[0], c);
     }
     else
     {
@@ -256,14 +256,14 @@ Node FunDefFmf::simplifyFormula(
   {
     Node nn = n;
     bool isBool = n.getType().isBoolean();
-    if (isBool && n.getKind() != APPLY_UF)
+    if (isBool && n.getKind() != Kind::APPLY_UF)
     {
       std::vector<Node> children;
       bool childChanged = false;
       // are we at a branch position (not all children are necessarily
       // relevant)?
-      bool branch_pos =
-          (n.getKind() == ITE || n.getKind() == OR || n.getKind() == AND);
+      bool branch_pos = (n.getKind() == Kind::ITE || n.getKind() == Kind::OR
+                         || n.getKind() == Kind::AND);
       std::vector<Node> branch_constraints;
       for (unsigned i = 0; i < n.getNumChildren(); i++)
       {
@@ -309,15 +309,16 @@ Node FunDefFmf::simplifyFormula(
         // minimize recursive constraints on recursively defined predicates if
         // we know one child forces the overall evaluation of this formula.
         Node branch_cond;
-        if (n.getKind() == ITE)
+        if (n.getKind() == Kind::ITE)
         {
           // always care about constraints on the head of the ITE, but only
           // care about one of the children depending on how it evaluates
-          branch_cond = nm->mkNode(
-              AND,
-              branch_constraints[0],
-              nm->mkNode(
-                  ITE, n[0], branch_constraints[1], branch_constraints[2]));
+          branch_cond = nm->mkNode(Kind::AND,
+                                   branch_constraints[0],
+                                   nm->mkNode(Kind::ITE,
+                                              n[0],
+                                              branch_constraints[1],
+                                              branch_constraints[2]));
         }
         else
         {
@@ -328,10 +329,11 @@ Node FunDefFmf::simplifyFormula(
             // if this child holds with forcing polarity (true child of OR or
             // false child of AND), then we only care about its associated
             // recursive conditions
-            branch_cond = nm->mkNode(ITE,
-                                     (n.getKind() == OR ? n[i] : n[i].negate()),
-                                     branch_constraints[i],
-                                     branch_cond);
+            branch_cond =
+                nm->mkNode(Kind::ITE,
+                           (n.getKind() == Kind::OR ? n[i] : n[i].negate()),
+                           branch_constraints[i],
+                           branch_cond);
           }
         }
         Trace("fmf-fun-def-debug2")
@@ -352,11 +354,11 @@ Node FunDefFmf::simplifyFormula(
       Node cons = nm->mkAnd(constraints);
       if (pol)
       {
-        ret = nm->mkNode(AND, nn, cons);
+        ret = nm->mkNode(Kind::AND, nn, cons);
       }
       else
       {
-        ret = nm->mkNode(OR, nn, cons.negate());
+        ret = nm->mkNode(Kind::OR, nn, cons.negate());
       }
       Trace("fmf-fun-def-debug2")
           << "Add constraint to obtain " << ret << std::endl;
@@ -373,7 +375,7 @@ Node FunDefFmf::simplifyFormula(
     // flatten to AND node for the purposes of caching
     if (constraints.size() > 1)
     {
-      cons = nm->mkNode(AND, constraints);
+      cons = nm->mkNode(Kind::AND, constraints);
       cons = rewrite(cons);
       constraints.clear();
       constraints.push_back(cons);
@@ -411,7 +413,7 @@ void FunDefFmf::getConstraints(Node n,
   visited[n] = Node::null();
   std::vector<Node> currConstraints;
   NodeManager* nm = NodeManager::currentNM();
-  if (n.getKind() == ITE)
+  if (n.getKind() == Kind::ITE)
   {
     // collect constraints for the condition
     getConstraints(n[0], currConstraints, visited);
@@ -425,7 +427,7 @@ void FunDefFmf::getConstraints(Node n,
     }
     if (!cs[0].isConst() || !cs[1].isConst())
     {
-      Node itec = nm->mkNode(ITE, n[0], cs[0], cs[1]);
+      Node itec = nm->mkNode(Kind::ITE, n[0], cs[0], cs[1]);
       currConstraints.push_back(itec);
       Trace("fmf-fun-def-debug")
           << "---> add constraint " << itec << " for " << n << std::endl;
@@ -433,7 +435,7 @@ void FunDefFmf::getConstraints(Node n,
   }
   else
   {
-    if (n.getKind() == APPLY_UF)
+    if (n.getKind() == Kind::APPLY_UF)
     {
       // check if f is defined, if so, we must enforce domain constraints for
       // this f-application
@@ -443,16 +445,16 @@ void FunDefFmf::getConstraints(Node n,
       {
         // create existential
         Node z = nm->mkBoundVar("?z", it->second);
-        Node bvl = nm->mkNode(BOUND_VAR_LIST, z);
+        Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, z);
         std::vector<Node> children;
         for (unsigned j = 0, size = n.getNumChildren(); j < size; j++)
         {
-          Node uz = nm->mkNode(APPLY_UF, d_input_arg_inj[f][j], z);
+          Node uz = nm->mkNode(Kind::APPLY_UF, d_input_arg_inj[f][j], z);
           children.push_back(uz.eqNode(n[j]));
         }
         Node bd = nm->mkAnd(children);
         bd = bd.negate();
-        Node ex = nm->mkNode(FORALL, bvl, bd);
+        Node ex = nm->mkNode(Kind::FORALL, bvl, bd);
         ex = ex.negate();
         currConstraints.push_back(ex);
         Trace("fmf-fun-def-debug")

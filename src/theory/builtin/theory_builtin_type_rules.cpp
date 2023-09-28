@@ -160,7 +160,7 @@ TypeNode WitnessTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode ApplyIndexedSymbolicTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return nm->mkAbstractType(kind::ABSTRACT_TYPE);
+  return nm->mkAbstractType(Kind::ABSTRACT_TYPE);
 }
 TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
                                                    TNode n,
@@ -169,7 +169,7 @@ TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
 {
   // Note that this could be more precise by case splitting on the kind
   // of indexed operator, but we don't do this for simplicity.
-  return nodeManager->mkAbstractType(kind::ABSTRACT_TYPE);
+  return nodeManager->mkAbstractType(Kind::ABSTRACT_TYPE);
 }
 /**
  * Attribute for caching the ground term for each type. Maps TypeNode to the

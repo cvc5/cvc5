@@ -92,7 +92,8 @@ Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
         Node nlambda = lam;
         if (!fvs.empty())
         {
-          nlambda = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, lvars), sbd);
+          nlambda = nm->mkNode(
+              Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, lvars), sbd);
           Trace("ho-elim-ll")
               << "...new lambda definition: " << nlambda << std::endl;
         }
@@ -107,7 +108,7 @@ Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
         {
           for (const Node& v : vars)
           {
-            nf = nm->mkNode(HO_APPLY, nf, v);
+            nf = nm->mkNode(Kind::HO_APPLY, nf, v);
           }
           Trace("ho-elim-ll") << "...partial application: " << nf << std::endl;
         }
@@ -177,7 +178,7 @@ Node HoElim::eliminateHo(Node n)
     {
       TypeNode tn = cur.getType();
       // lambdas are already eliminated by now
-      Assert(cur.getKind() != LAMBDA);
+      Assert(cur.getKind() != Kind::LAMBDA);
       if (tn.isFunction())
       {
         d_funTypes.insert(tn);
@@ -190,7 +191,7 @@ Node HoElim::eliminateHo(Node n)
           if (tn.isFunction())
           {
             TypeNode ut = getUSort(tn);
-            if (cur.getKind() == BOUND_VARIABLE)
+            if (cur.getKind() == Kind::BOUND_VARIABLE)
             {
               ret = nm->mkBoundVar(ut);
             }
@@ -208,7 +209,7 @@ Node HoElim::eliminateHo(Node n)
       else
       {
         d_visited[cur] = Node::null();
-        if (cur.getKind() == APPLY_UF && options().quantifiers.hoElim)
+        if (cur.getKind() == Kind::APPLY_UF && options().quantifiers.hoElim)
         {
           Node op = cur.getOperator();
           // convert apply uf with variable arguments eagerly to ho apply
@@ -280,7 +281,7 @@ Node HoElim::eliminateHo(Node n)
           children.insert(children.begin(), retOp);
         }
         // process ho apply
-        if (ret.getKind() == HO_APPLY && options().quantifiers.hoElim)
+        if (ret.getKind() == Kind::HO_APPLY && options().quantifiers.hoElim)
         {
           TypeNode tnr = ret.getType();
           tnr = getUSort(tnr);
@@ -290,7 +291,7 @@ Node HoElim::eliminateHo(Node n)
           hchildren.push_back(hoa);
           hchildren.push_back(children[0]);
           hchildren.push_back(children[1]);
-          ret = nm->mkNode(APPLY_UF, hchildren);
+          ret = nm->mkNode(Kind::APPLY_UF, hchildren);
         }
         else if (childChanged)
         {
@@ -353,12 +354,12 @@ PreprocessingPassResult HoElim::applyInternal(
 
         Node bd = lambda[1].substitute(
             vars.begin(), vars.end(), nvars.begin(), nvars.end());
-        Node bvl = nm->mkNode(BOUND_VAR_LIST, nvars);
+        Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, nvars);
 
         nvars.insert(nvars.begin(), l.first);
-        Node curr = nm->mkNode(APPLY_UF, nvars);
+        Node curr = nm->mkNode(Kind::APPLY_UF, nvars);
 
-        Node llfax = nm->mkNode(FORALL, bvl, curr.eqNode(bd));
+        Node llfax = nm->mkNode(Kind::FORALL, bvl, curr.eqNode(bd));
         Trace("ho-elim-ax") << "Lambda lifting axiom (pre-elim) " << llfax
                             << " for " << lambda << std::endl;
         Assert(!expr::hasFreeVar(llfax));
@@ -407,13 +408,14 @@ PreprocessingPassResult HoElim::applyInternal(
       Node x = nm->mkBoundVar("x", uf);
       Node y = nm->mkBoundVar("y", uf);
       Node z = nm->mkBoundVar("z", ut);
-      Node eq =
-          nm->mkNode(APPLY_UF, h, x, z).eqNode(nm->mkNode(APPLY_UF, h, y, z));
-      Node antec = nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, z), eq);
+      Node eq = nm->mkNode(Kind::APPLY_UF, h, x, z)
+                    .eqNode(nm->mkNode(Kind::APPLY_UF, h, y, z));
+      Node antec =
+          nm->mkNode(Kind::FORALL, nm->mkNode(Kind::BOUND_VAR_LIST, z), eq);
       Node conc = x.eqNode(y);
-      Node ax = nm->mkNode(FORALL,
-                           nm->mkNode(BOUND_VAR_LIST, x, y),
-                           nm->mkNode(OR, antec.negate(), conc));
+      Node ax = nm->mkNode(Kind::FORALL,
+                           nm->mkNode(Kind::BOUND_VAR_LIST, x, y),
+                           nm->mkNode(Kind::OR, antec.negate(), conc));
       axioms.push_back(ax);
       Trace("ho-elim-ax") << "...ext axiom : " << ax << std::endl;
       // Make the "store" axiom, which asserts for every function, there
@@ -426,18 +428,18 @@ PreprocessingPassResult HoElim::applyInternal(
         Node v = nm->mkBoundVar("v", uf);
         Node i = nm->mkBoundVar("i", ut);
         Node ii = nm->mkBoundVar("ii", ut);
-        Node huii = nm->mkNode(APPLY_UF, h, u, ii);
+        Node huii = nm->mkNode(Kind::APPLY_UF, h, u, ii);
         Node e = nm->mkBoundVar("e", huii.getType());
         Node store = nm->mkNode(
-            FORALL,
-            nm->mkNode(BOUND_VAR_LIST, u, e, i),
-            nm->mkNode(EXISTS,
-                       nm->mkNode(BOUND_VAR_LIST, v),
-                       nm->mkNode(FORALL,
-                                  nm->mkNode(BOUND_VAR_LIST, ii),
-                                  nm->mkNode(APPLY_UF, h, v, ii)
+            Kind::FORALL,
+            nm->mkNode(Kind::BOUND_VAR_LIST, u, e, i),
+            nm->mkNode(Kind::EXISTS,
+                       nm->mkNode(Kind::BOUND_VAR_LIST, v),
+                       nm->mkNode(Kind::FORALL,
+                                  nm->mkNode(Kind::BOUND_VAR_LIST, ii),
+                                  nm->mkNode(Kind::APPLY_UF, h, v, ii)
                                       .eqNode(nm->mkNode(
-                                          ITE, ii.eqNode(i), e, huii)))));
+                                          Kind::ITE, ii.eqNode(i), e, huii)))));
         axioms.push_back(store);
         Trace("ho-elim-ax") << "...store axiom : " << store << std::endl;
       }
@@ -449,18 +451,18 @@ PreprocessingPassResult HoElim::applyInternal(
       std::vector<TypeNode> argTypes = ftn.getArgTypes();
       Node i = nm->mkBoundVar("i", argTypes[0]);
       Node ii = nm->mkBoundVar("ii", argTypes[0]);
-      Node huii = nm->mkNode(HO_APPLY, u, ii);
+      Node huii = nm->mkNode(Kind::HO_APPLY, u, ii);
       Node e = nm->mkBoundVar("e", huii.getType());
       Node store = nm->mkNode(
-          FORALL,
-          nm->mkNode(BOUND_VAR_LIST, u, e, i),
-          nm->mkNode(
-              EXISTS,
-              nm->mkNode(BOUND_VAR_LIST, v),
-              nm->mkNode(FORALL,
-                         nm->mkNode(BOUND_VAR_LIST, ii),
-                         nm->mkNode(HO_APPLY, v, ii)
-                             .eqNode(nm->mkNode(ITE, ii.eqNode(i), e, huii)))));
+          Kind::FORALL,
+          nm->mkNode(Kind::BOUND_VAR_LIST, u, e, i),
+          nm->mkNode(Kind::EXISTS,
+                     nm->mkNode(Kind::BOUND_VAR_LIST, v),
+                     nm->mkNode(Kind::FORALL,
+                                nm->mkNode(Kind::BOUND_VAR_LIST, ii),
+                                nm->mkNode(Kind::HO_APPLY, v, ii)
+                                    .eqNode(nm->mkNode(
+                                        Kind::ITE, ii.eqNode(i), e, huii)))));
       axioms.push_back(store);
       Trace("ho-elim-ax") << "...store (ho_apply) axiom : " << store
                           << std::endl;

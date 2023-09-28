@@ -110,9 +110,9 @@ bool SingleInvocationPartition::inferArgTypes(Node n,
   if (visited.find(n) == visited.end())
   {
     visited[n] = true;
-    if (n.getKind() != FORALL)
+    if (n.getKind() != Kind::FORALL)
     {
-      if (n.getKind() == APPLY_UF)
+      if (n.getKind() == Kind::APPLY_UF)
       {
         for (unsigned i = 0; i < n.getNumChildren(); i++)
         {
@@ -265,7 +265,8 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
         for (unsigned j = 0; j < args.size(); j++)
         {
           Trace("si-prt") << args[j] << " ";
-          if (args[j].getKind() == BOUND_VARIABLE && !sb.contains(args[j]))
+          if (args[j].getKind() == Kind::BOUND_VARIABLE
+              && !sb.contains(args[j]))
           {
             sb.add(args[j], d_si_vars[j]);
           }
@@ -377,7 +378,7 @@ bool SingleInvocationPartition::collectConjuncts(Node n,
                                                  bool pol,
                                                  std::vector<Node>& conj)
 {
-  if ((!pol && n.getKind() == OR) || (pol && n.getKind() == AND))
+  if ((!pol && n.getKind() == Kind::OR) || (pol && n.getKind() == Kind::AND))
   {
     for (unsigned i = 0; i < n.getNumChildren(); i++)
     {
@@ -387,11 +388,11 @@ bool SingleInvocationPartition::collectConjuncts(Node n,
       }
     }
   }
-  else if (n.getKind() == NOT)
+  else if (n.getKind() == Kind::NOT)
   {
     return collectConjuncts(n[0], !pol, conj);
   }
-  else if (n.getKind() == FORALL)
+  else if (n.getKind() == Kind::FORALL)
   {
     return false;
   }
@@ -455,7 +456,7 @@ bool SingleInvocationPartition::processConjunct(Node n,
       }
       else
       {
-        if (n.getKind() == kind::APPLY_UF)
+        if (n.getKind() == Kind::APPLY_UF)
         {
           f = n.getOperator();
           success = true;
@@ -542,7 +543,7 @@ bool SingleInvocationPartition::isAntiSkolemizableType(Node f)
         Node t;
         if (children.size() > 1)
         {
-          t = NodeManager::currentNM()->mkNode(kind::APPLY_UF, children);
+          t = NodeManager::currentNM()->mkNode(Kind::APPLY_UF, children);
         }
         else
         {
@@ -578,7 +579,7 @@ Node SingleInvocationPartition::getConjunct(int index)
                                     : (d_conjuncts[index].size() == 1
                                            ? d_conjuncts[index][0]
                                            : NodeManager::currentNM()->mkNode(
-                                                 AND, d_conjuncts[index]));
+                                               Kind::AND, d_conjuncts[index]));
 }
 
 void SingleInvocationPartition::debugPrint(const char* c)
@@ -629,7 +630,7 @@ Node SingleInvocationPartition::getQuantSimplify(TNode n) const
   }
   std::vector<Node> bvs(fvs.begin(), fvs.end());
   NodeManager* nm = NodeManager::currentNM();
-  Node q = nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, bvs), n);
+  Node q = nm->mkNode(Kind::FORALL, nm->mkNode(Kind::BOUND_VAR_LIST, bvs), n);
   q = rewrite(q);
   return TermUtil::getRemoveQuantifiers(q);
 }

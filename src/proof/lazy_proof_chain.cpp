@@ -368,7 +368,7 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofForInternal(Node fact,
   std::shared_ptr<ProofNode> pfn = CDProof::getProofFor(fact);
   Assert(pfn != nullptr);
   // If concrete proof, save it, otherwise try generators.
-  if (pfn->getRule() != PfRule::ASSUME)
+  if (pfn->getRule() != ProofRule::ASSUME)
   {
     return pfn;
   }

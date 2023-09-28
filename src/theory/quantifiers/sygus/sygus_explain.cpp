@@ -147,7 +147,7 @@ void SygusExplain::getExplanationForEquality(Node n,
     // abstractions only, hence we disregard this field
     return;
   }
-  Assert(vn.getKind() == kind::APPLY_CONSTRUCTOR);
+  Assert(vn.getKind() == Kind::APPLY_CONSTRUCTOR);
   const DType& dt = tn.getDType();
   int i = datatypes::utils::indexOf(vn.getOperator());
   Node tst = datatypes::utils::mkTester(n, i, dt);
@@ -177,7 +177,7 @@ Node SygusExplain::getExplanationForEquality(Node n,
   getExplanationForEquality(n, vn, exp, cexc);
   Assert(!exp.empty());
   return exp.size() == 1 ? exp[0]
-                         : NodeManager::currentNM()->mkNode(kind::AND, exp);
+                         : NodeManager::currentNM()->mkNode(Kind::AND, exp);
 }
 
 // we have ( n = vn => eval( n ) = bvr ) ^ vn != vnr , returns exp such that exp
@@ -206,8 +206,8 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
     // constant constructors, since their explanation is not included here.
     return;
   }
-  Assert(vn.getKind() == APPLY_CONSTRUCTOR);
-  Assert(vnr.isNull() || vnr.getKind() == APPLY_CONSTRUCTOR);
+  Assert(vn.getKind() == Kind::APPLY_CONSTRUCTOR);
+  Assert(vnr.isNull() || vnr.getKind() == Kind::APPLY_CONSTRUCTOR);
   std::map<unsigned, bool> cexc;
   // for each child, 
   // check whether replacing that child by a fresh variable
@@ -218,7 +218,7 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
     Node x = d_tdb->getFreeVarInc(xtn, var_count);
     trb.replaceChild(i, x);
     Node nvn = trb.build();
-    Assert(nvn.getKind() == kind::APPLY_CONSTRUCTOR);
+    Assert(nvn.getKind() == Kind::APPLY_CONSTRUCTOR);
     if (et.is_invariant(d_tdb, nvn, x))
     {
       cexc[i] = true;
