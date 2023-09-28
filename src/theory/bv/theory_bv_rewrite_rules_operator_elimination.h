@@ -22,11 +22,29 @@
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "util/bitvector.h"
+#include "util/rational.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace bv {
+template <>
 
+inline bool RewriteRule<SizeEliminate>::applies(TNode node)
+{
+  // ensures argument has concrete bitvector type
+  return (node.getKind() == kind::BITVECTOR_SIZE
+          && node[0].getType().isBitVector());
+}
+
+template <>
+inline Node RewriteRule<SizeEliminate>::apply(TNode node)
+{
+  Trace("bv-rewrite") << "RewriteRule<SizeEliminate>(" << node << ")"
+                      << std::endl;
+  TNode a = node[0];
+  return NodeManager::currentNM()->mkConstInt(
+      Rational(utils::getSize(node[0])));
+}
 
 template <>
 inline bool RewriteRule<UgtEliminate>::applies(TNode node)

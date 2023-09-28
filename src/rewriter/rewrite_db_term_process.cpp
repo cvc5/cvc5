@@ -17,6 +17,11 @@
 
 #include "expr/attribute.h"
 #include "expr/nary_term_util.h"
+#include "theory/builtin/generic_op.h"
+#include "theory/bv/theory_bv_utils.h"
+#include "theory/strings/theory_strings_utils.h"
+#include "util/bitvector.h"
+#include "util/rational.h"
 #include "util/string.h"
 
 using namespace cvc5::internal::kind;
@@ -46,8 +51,42 @@ Node RewriteDbNodeConverter::postConvert(Node n)
     }
     return nm->mkNode(STRING_CONCAT, children);
   }
+  else if (k == CONST_SEQUENCE)
+  {
+    return theory::strings::utils::mkConcatForConstSequence(n);
+  }
+  else if (k == CONST_BITVECTOR)
+  {
+    // (_ bv N M) is (bv N M)
+    NodeManager* nm = NodeManager::currentNM();
+    std::vector<Node> children;
+    children.push_back(
+        nm->mkConstInt(Rational(n.getConst<BitVector>().toInteger())));
+    children.push_back(nm->mkConstInt(Rational(theory::bv::utils::getSize(n))));
+    return nm->mkNode(CONST_BITVECTOR_SYMBOLIC, children);
+  }
+  // convert indexed operators to symbolic
+  if (GenericOp::isIndexedOperatorKind(k))
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    std::vector<Node> indices =
+        GenericOp::getIndicesForOperator(k, n.getOperator());
+    indices.insert(indices.begin(), nm->mkConst(GenericOp(k)));
+    indices.insert(indices.end(), n.begin(), n.end());
+    return nm->mkNode(APPLY_INDEXED_SYMBOLIC, indices);
+  }
 
   return n;
+}
+
+bool RewriteDbNodeConverter::shouldTraverse(Node n)
+{
+  Kind k = n.getKind();
+  if (k == INST_PATTERN_LIST)
+  {
+    return false;
+  }
+  return true;
 }
 
 }  // namespace rewriter

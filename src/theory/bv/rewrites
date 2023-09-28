@@ -1,0 +1,1086 @@
+
+; -- Core Normalization Rules --
+
+(define-rule* bv-concat-flatten
+  ((xs ?BitVec :list)
+   (s ?BitVec)
+   (ys ?BitVec :list)
+   (zs ?BitVec :list))
+  (concat xs (concat s ys) zs)
+  (concat xs s ys zs))
+(define-cond-rule bv-concat-extract-merge
+  ((xs ?BitVec :list)
+   (s ?BitVec)
+   (ys ?BitVec :list)
+   (i Int) (j Int) (j1 Int) (k Int)
+  )
+  (= j1 (+ j 1))
+  (concat xs (extract k j1 s) (extract j i s) ys)
+  (concat xs (extract k i s) ys))
+
+; x[i..j][k..l] = x[i+k..i+l]
+(define-rule* bv-extract-extract
+  ((x ?BitVec) (i Int) (j Int) (k Int) (l Int))
+  (extract l k (extract j i x))
+  (extract (+ i l) (+ i k) x))
+(define-cond-rule bv-extract-whole
+  ((x ?BitVec) (n Int))
+  (>= n (- (bvsize x) 1))
+  (extract n 0 x)
+  x)
+; Case 1: (< j n) so the extract is self contained
+(define-cond-rule bv-extract-concat-1
+  ((x ?BitVec) (xs ?BitVec :list) (y ?BitVec)
+  (i Int) (j Int))
+  (<= j (bvsize x))
+  (extract j i (concat xs y x)) ; (concat ...) needs at least 2 children
+  (extract j i x))
+; Case 2: (< i n) but (>= j n), the extract crosses the boundary into the next one.
+; Note that we do not know the size of the element after x, so we leave it in (extract (concat ...)) form
+(define-cond-rule bv-extract-concat-2
+  ((x ?BitVec) (xs ?BitVec :list) (y ?BitVec)
+  (i Int) (j Int))
+  (and (< i (bvsize x)) (>= j (bvsize x)))
+  (extract j i (concat xs y x))
+  (concat
+    (extract (- j (bvsize x)) 0 (concat xs y))
+    (extract (- (bvsize x) 1) i x)))
+; Case 3: (>= i n) and (>= j n), extract elides x
+(define-cond-rule bv-extract-concat-3
+  ((x ?BitVec) (y ?BitVec) (xs ?BitVec :list) (i Int) (j Int))
+  (>= i (bvsize x))
+  (extract j i (concat xs y x))
+  (extract (- j (bvsize x)) (- i (bvsize x)) (concat xs y)))
+; Case 4: Elision from the higher portion
+(define-cond-rule bv-extract-concat-4
+  ((x ?BitVec) (y ?BitVec) (xs ?BitVec :list) (i Int) (j Int))
+  (< j (- (bvsize (concat x xs y)) (bvsize x)))
+  (extract j i (concat x xs y))
+  (extract j i (concat xs y)))
+
+; -- Operator Elimination Rules --
+
+(define-rule bv-ugt-eliminate
+  ((x ?BitVec) (y ?BitVec))
+  (bvugt x y)
+  (bvult y x))
+(define-rule bv-uge-eliminate
+  ((x ?BitVec) (y ?BitVec))
+  (bvuge x y)
+  (bvule y x))
+(define-rule bv-sgt-eliminate
+  ((x ?BitVec) (y ?BitVec))
+  (bvsgt x y)
+  (bvslt y x))
+(define-rule bv-sge-eliminate
+  ((x ?BitVec) (y ?BitVec))
+  (bvsge x y)
+  (bvsle y x))
+(define-rule bv-slt-eliminate
+  ((x ?BitVec) (y ?BitVec))
+  (def (pad (zero_extend (- (bvsize x) 1) (bv 1 1))))
+  (bvslt x y)
+  (bvult
+    (bvadd x pad)
+    (bvadd y pad)
+  ))
+(define-rule bv-sle-eliminate
+  ((x ?BitVec) (y ?BitVec))
+  (bvsle x y)
+  (not (bvslt y x)))
+
+(define-rule bv-redor-eliminate
+  ((x ?BitVec))
+  (bvredor x)
+  (bvnot (bvcomp x (bv 0 (bvsize x)))))
+(define-rule bv-redand-eliminate
+  ((x ?BitVec))
+  (bvredand x)
+  (bvcomp x (bvnot (bv 0 (bvsize x)))))
+
+(define-rule bv-ule-eliminate
+  ((x ?BitVec) (y ?BitVec))
+  (bvule x y)
+  (not (bvult y x)))
+(define-rule bv-comp-eliminate
+  ((x ?BitVec) (y ?BitVec))
+  (bvcomp x y)
+  (ite (= x y) (bv 1 1) (bv 0 1)))
+(define-cond-rule bv-repeat-eliminate-1
+  ((x ?BitVec) (n Int))
+  (> n 1)
+  (repeat n x)
+  (concat x (repeat (- n 1) x)))
+(define-rule bv-repeat-eliminate-2
+  ((x ?BitVec))
+  (repeat 1 x)
+  x)
+
+(define-cond-rule bv-rotate-left-eliminate-1
+  ((x ?BitVec) (amount Int))
+  (def (n (bvsize x)) (a (mod amount n)))
+  (not (= a 0))
+  (rotate_left amount x)
+  (concat
+    (extract (- n (+ 1 a)) 0 x)
+    (extract (- n 1) (- n a) x)))
+(define-cond-rule bv-rotate-left-eliminate-2
+  ((x ?BitVec) (amount Int))
+  (= (mod amount (bvsize x)) 0)
+  (rotate_left amount x)
+  x)
+(define-cond-rule bv-rotate-right-eliminate-1
+  ((x ?BitVec) (amount Int))
+  (def (n (bvsize x)) (a (mod amount n)))
+  (not (= a 0))
+  (rotate_right amount x)
+  (concat
+    (extract (- a 1) 0 x)
+    (extract (- n 1) a x)))
+(define-cond-rule bv-rotate-right-eliminate-2
+  ((x ?BitVec) (amount Int))
+  (= (mod amount (bvsize x)) 0)
+  (rotate_right amount x)
+  x)
+
+(define-rule bv-nand-eliminate
+  ((x ?BitVec) (y ?BitVec))
+  (bvnand x y)
+  (bvnot (bvand x y)))
+(define-rule bv-nor-eliminate
+  ((x ?BitVec) (y ?BitVec))
+  (bvnor x y)
+  (bvnot (bvor x y)))
+(define-rule bv-xnor-eliminate
+  ((x ?BitVec) (y ?BitVec))
+  (bvxnor x y)
+  (bvnot (bvxor x y)))
+
+(define-rule bv-sdiv-eliminate
+  ((x ?BitVec) (y ?BitVec))
+  (def
+    (n (bvsize x))
+    (xLt0 (= (extract (- n 1) (- n 1) x) (bv 1 1)))
+    (yLt0 (= (extract (- n 1) (- n 1) y) (bv 1 1)))
+    (rUdiv (bvudiv (ite xLt0 (bvneg x) x) (ite yLt0 (bvneg y) y)))
+  )
+  (bvsdiv x y)
+  (ite (xor xLt0 yLt0) (bvneg rUdiv) rUdiv))
+(define-rule bv-sdiv-eliminate-fewer-bitwise-ops
+  ((x ?BitVec) (y ?BitVec))
+  (def
+    (n (bvsize x))
+    (xLt0 (bvuge x (concat (bv 1 1) (bv 0 (- n 1)))))
+    (yLt0 (bvuge y (concat (bv 1 1) (bv 0 (- n 1)))))
+    (rUdiv (bvudiv (ite xLt0 (bvneg x) x) (ite yLt0 (bvneg y) y)))
+  )
+  (bvsdiv x y)
+  (ite (xor xLt0 yLt0) (bvneg rUdiv) rUdiv))
+
+(define-rule bv-zero-extend-eliminate
+  ((x ?BitVec) (n Int))
+  (zero_extend n x)
+  (concat (bv 0 n) x))
+(define-rule bv-sign-extend-eliminate
+  ((x ?BitVec) (n Int))
+  (def (s (bvsize x)))
+  (sign_extend n x)
+  (concat (repeat n (extract (- s 1) (- s 1) x)) x))
+
+(define-rule bv-uaddo-eliminate
+  ((x ?BitVec) (y ?BitVec))
+  (bvuaddo x y)
+  (= (extract (- (bvsize x) 1) (- (bvsize x) 1)
+      (bvadd (concat (bv 0 1) x) (concat (bv 0 1) y)))
+    (bv 1 1)
+  ))
+(define-rule bv-saddo-eliminate
+  ((x ?BitVec) (y ?BitVec))
+  (def
+    (n (bvsize x))
+    (xS (extract (- n 1) (- n 1) x))
+    (yS (extract (- n 1) (- n 1) y))
+    (aS (extract (- n 1) (- n 1) (bvadd x y)))
+  )
+  (bvsaddo x y)
+  (or
+    (and (and (= xS (bv 0 1)) (= yS (bv 0 1))) (= aS (bv 1 1)))
+    (and (and (= xS (bv 1 1)) (= yS (bv 1 1))) (= aS (bv 0 1)))
+  ))
+(define-rule bv-sdivo-eliminate
+  ((x ?BitVec) (y ?BitVec))
+  (bvsdivo x y)
+  (and
+    (= x (concat (bv 1 1) (bv 0 (- (bvsize x) 1))))
+    (= y (bvnot (bv 0 (bvsize y))))
+  ))
+(define-rule bv-smod-eliminate
+  ((x ?BitVec) (y ?BitVec))
+  (def
+    (n (bvsize x))
+    (xLt0 (= (extract (- n 1) (- n 1) x) (bv 1 1)))
+    (yLt0 (= (extract (- n 1) (- n 1) y) (bv 1 1)))
+    (xAbs (ite xLt0 (bvneg x) x))
+    (yAbs (ite yLt0 (bvneg y) y))
+    (u (bvurem xAbs yAbs))
+  )
+  (bvsmod x y)
+  (ite (= u (bv 0 n))
+    u
+    (ite (and (not xLt0) (not yLt0))
+      u
+      (ite (and xLt0 (not yLt0))
+        (bvadd (bvneg u) y)
+        (ite (and (not xLt0) yLt0)
+          (bvadd u y)
+          (bvneg u))))))
+(define-rule bv-smod-eliminate-fewer-bitwise-ops
+  ((x ?BitVec) (y ?BitVec))
+  (def
+    (n (bvsize x))
+    (xLt0 (bvuge x (concat (bv 1 1) (bv 0 (- n 1)))))
+    (yLt0 (bvuge y (concat (bv 1 1) (bv 0 (- n 1)))))
+    (xAbs (ite xLt0 (bvneg x) x))
+    (yAbs (ite yLt0 (bvneg y) y))
+    (u (bvurem xAbs yAbs))
+  )
+  (bvsmod x y)
+  (ite (= u (bv 0 n))
+    u
+    (ite (and (not xLt0) (not yLt0))
+      u
+      (ite (and xLt0 (not yLt0))
+        (bvadd (bvneg u) y)
+        (ite (and (not xLt0) yLt0)
+          (bvadd u y)
+          (bvneg u))))))
+
+(define-rule bv-srem-eliminate
+  ((x ?BitVec) (y ?BitVec))
+  (def
+    (n (bvsize x))
+    (xLt0 (extract (- n 1) (- n 1) x))
+    (yLt0 (extract (- n 1) (- n 1) y))
+    (xAbs (bvite xLt0 (bvneg x) x))
+    (yAbs (bvite yLt0 (bvneg y) y))
+    (u (bvurem xAbs yAbs))
+  )
+  (bvsrem x y)
+  (bvite xLt0 (bvneg u) u))
+(define-rule bv-srem-eliminate-fewer-bitwise-ops
+  ((x ?BitVec) (y ?BitVec))
+  (def
+    (n (bvsize x))
+    (xLt0 (bvuge x (concat (bv 1 1) (bv 0 (- n 1)))))
+    (yLt0 (bvuge y (concat (bv 1 1) (bv 0 (- n 1)))))
+    (xAbs (ite xLt0 (bvneg x) x))
+    (yAbs (ite yLt0 (bvneg y) y))
+    (u (bvurem xAbs yAbs))
+  )
+  (bvsrem x y)
+  (ite xLt0 (bvneg u) u))
+
+(define-rule bv-usubo-eliminate
+  ((x ?BitVec) (y ?BitVec))
+  (def
+    (n (bvsize x))
+    (s (bvsub (zero_extend 1 x) (zero_extend 1 y)))
+  )
+  (bvusubo x y)
+  (= (extract (- n 1) (- n 1) s) (bv 1 1)))
+; Overflow occurs when
+; 1. (N - P) = P
+; 2. (P - N) = N
+(define-rule bv-ssubo-eliminate
+  ((x ?BitVec) (y ?BitVec))
+  (def
+    (n (bvsize x))
+    (xLt0 (= (extract (- n 1) (- n 1) x) (bv 1 1)))
+    (yLt0 (= (extract (- n 1) (- n 1) y) (bv 1 1)))
+    (s (bvsub x y))
+    (sLt0 (= (extract (- n 1) (- n 1) s) (bv 1 1)))
+  )
+  (bvssubo x y)
+  (or
+    (and xLt0 (not yLt0) (not sLt0))
+    (and (not xLt0) yLt0 sLt0)))
+
+
+; -- Simplification Rules --
+
+(define-rule bv-ite-equal-children ((c (_ BitVec 1)) (x ?BitVec)) (bvite c x x) x)
+(define-rule bv-ite-const-children-1 (
+    (c (_ BitVec 1))
+  )
+  (bvite c (bv 0 1) (bv 1 1))
+  (bvnot c))
+(define-rule bv-ite-const-children-2 (
+    (c (_ BitVec 1))
+  )
+  (bvite c (bv 1 1) (bv 0 1))
+  c)
+(define-rule bv-ite-equal-cond-1 (
+    (c0 (_ BitVec 1))
+    (t0 ?BitVec)
+    (e0 ?BitVec)
+    (e1 ?BitVec)
+  )
+  (bvite c0 (bvite c0 t0 e0) e1)
+  (bvite c0 t0 e1))
+(define-rule bv-ite-equal-cond-2 (
+    (c0 (_ BitVec 1))
+    (t0 ?BitVec)
+    (t1 ?BitVec)
+    (e1 ?BitVec)
+  )
+  (bvite c0 t0 (bvite c0 t1 e1))
+  (bvite c0 t0 e1))
+(define-rule bv-ite-equal-cond-3 (
+    (c0 (_ BitVec 1))
+    (t0 ?BitVec)
+    (e0 ?BitVec)
+    (t1 ?BitVec)
+    (e1 ?BitVec)
+  )
+  (bvite c0 (bvite c0 t0 e0) (bvite c0 t1 e1))
+  (bvite c0 t0 e1))
+(define-rule bv-ite-merge-then-if (
+    (c0 (_ BitVec 1))
+    (c1 (_ BitVec 1))
+    (t1 ?BitVec)
+    (e1 ?BitVec)
+  )
+  (bvite c0 (bvite c1 t1 e1) t1)
+  (bvite (bvand c0 (bvnot c1)) e1 t1))
+(define-rule bv-ite-merge-else-if (
+    (c0 (_ BitVec 1))
+    (c1 (_ BitVec 1))
+    (t1 ?BitVec)
+    (e1 ?BitVec)
+  )
+  (bvite c0 (bvite c1 t1 e1) e1)
+  (bvite (bvand c0 c1) t1 e1))
+(define-rule bv-ite-merge-then-else (
+    (c0 (_ BitVec 1))
+    (c1 (_ BitVec 1))
+    (t0 ?BitVec)
+    (e1 ?BitVec)
+  )
+  (bvite c0 t0 (bvite c1 t0 e1))
+  (bvite (bvnor c0 c1) e1 t0))
+(define-rule bv-ite-merge-else-else (
+    (c0 (_ BitVec 1))
+    (c1 (_ BitVec 1))
+    (t1 ?BitVec)
+    (t0 ?BitVec)
+  )
+  (bvite c0 t0 (bvite c1 t1 t0))
+  (bvite (bvand (bvnot c0) c1) t1 t0))
+
+
+(define-rule bv-shl-by-const-0
+  ((x ?BitVec) (sz Int))
+  (bvshl x (bv 0 sz))
+  x)
+(define-cond-rule bv-shl-by-const-1
+  ((x ?BitVec) (amount Int) (sz Int))
+  (def (n (bvsize x)))
+  (< amount n)
+  (bvshl x (bv amount sz))
+  (concat (extract (- n (+ 1 amount)) 0 x) (bv 0 amount)))
+(define-cond-rule bv-shl-by-const-2
+  ((x ?BitVec) (amount Int) (sz Int))
+  (>= amount (bvsize x))
+  (bvshl x (bv amount sz))
+  (bv 0 (bvsize x)))
+(define-rule bv-lshr-by-const-0
+  ((x ?BitVec) (sz Int))
+  (bvlshr x (bv 0 sz))
+  x)
+(define-cond-rule bv-lshr-by-const-1
+  ((x ?BitVec) (amount Int) (sz Int))
+  (def (n (bvsize x)))
+  (< amount n)
+  (bvlshr x (bv amount sz))
+  (concat (bv 0 amount) (extract (- n 1) amount x)))
+(define-cond-rule bv-lshr-by-const-2
+  ((x ?BitVec) (amount Int) (sz Int))
+  (>= amount (bvsize x))
+  (bvlshr x (bv amount sz))
+  (bv 0 sz))
+(define-rule bv-ashr-by-const-0
+  ((x ?BitVec) (sz Int))
+  (bvashr x (bv 0 sz))
+  x)
+(define-cond-rule bv-ashr-by-const-1
+  ((x ?BitVec) (amount Int) (sz Int))
+  (def (n (bvsize x)))
+  (< amount n)
+  (bvashr x (bv amount sz))
+  (concat
+    (repeat amount (extract (- n 1) (- n 1) x))
+    (extract (- n 1) amount x)
+  ))
+(define-cond-rule bv-ashr-by-const-2
+  ((x ?BitVec) (amount Int) (sz Int))
+  (def (n (bvsize x)))
+  (>= amount (bvsize x))
+  (bvashr x (bv amount sz))
+  (repeat n (extract (- n 1) (- n 1) x)))
+
+; AndOrXorConcatPullUp
+(define-rule* bv-and-concat-pullup
+  ((x ?BitVec) (y ?BitVec)
+   (z ?BitVec) (ys ?BitVec :list))
+  (def
+    (nx (bvsize x))
+    (ny (bvsize y))
+  )
+  (bvand x (concat ys z y))
+  (concat
+    (bvand (extract (- nx 1) ny x) (concat ys z)) ; Recur on this
+    (bvand (extract (- ny 1) 0 x) y)
+  ))
+(define-rule* bv-or-concat-pullup
+  ((x ?BitVec) (y ?BitVec)
+   (z ?BitVec) (ys ?BitVec :list))
+  (def
+    (nx (bvsize x))
+    (ny (bvsize y))
+  )
+  (bvor x (concat ys z y))
+  (concat
+    (bvor (extract (- nx 1) ny x) (concat ys z)) ; Recur on this
+    (bvor (extract (- ny 1) 0 x) y)
+  ))
+(define-rule* bv-xor-concat-pullup
+  ((x ?BitVec) (y ?BitVec) (z ?BitVec) (ys ?BitVec :list))
+  (def
+    (nx (bvsize x))
+    (ny (bvsize y))
+  )
+  (bvxor x (concat ys z y))
+  (concat
+    (bvxor (extract (- nx 1) ny x) (concat ys z)) ; Recur on this
+    (bvxor (extract (- ny 1) 0 x) y)
+  ))
+
+
+(define-rule bv-bitwise-idemp-1 ((x ?BitVec)) (bvand x x) x)
+(define-rule bv-bitwise-idemp-2 ((x ?BitVec)) (bvor x x) x)
+
+(define-rule bv-and-zero ((x ?BitVec) (n Int))
+  (bvand x (bv 0 n))
+  (bv 0 n))
+(define-cond-rule bv-and-one ((x ?BitVec) (y ?BitVec))
+  (= y (bvnot (bv 0 (bvsize y))))
+  (bvand x y)
+  x)
+(define-cond-rule bv-or-one ((x ?BitVec) (y ?BitVec))
+  (= y (bvnot (bv 0 (bvsize y))))
+  (bvor x y)
+  (bvnot (bv 0 (bvsize y))))
+
+(define-rule bv-xor-duplicate ((x ?BitVec)) (bvxor x x) (bv 0 (bvsize x)))
+
+(define-cond-rule bv-xor-ones ((x ?BitVec) (y ?BitVec))
+  (= y (bvnot (bv 0 (bvsize y))))
+  (bvxor x y)
+  (bvnot x))
+(define-rule bv-xor-zero ((x ?BitVec) (n Int))
+  (bvxor x (bv 0 n))
+  x)
+
+(define-rule bv-bitwise-not-and ((x ?BitVec))
+  (bvand x (bvnot x))
+  (bv 0 (bvsize x)))
+(define-rule bv-bitwise-not-or ((x ?BitVec))
+  (bvor x (bvnot x))
+  (bvnot (bv 0 (bvsize x))))
+(define-rule bv-xor-not ((x ?BitVec) (y ?BitVec))
+  (bvxor (bvnot x) (bvnot y)) (bvxor x y))
+(define-rule bv-not-idemp ((x ?BitVec))
+  (bvnot (bvnot x)) x)
+
+(define-rule bv-ult-zero-1
+  ((x ?BitVec) (n Int))
+  (bvult (bv 0 n) x)
+  (not (= x (bv 0 n))))
+(define-rule bv-ult-zero-2
+  ((x ?BitVec) (n Int))
+  (bvult x (bv 0 n))
+  false)
+(define-rule bv-ult-self ((x ?BitVec)) (bvult x x) false)
+(define-rule bv-lt-self ((x ?BitVec)) (bvslt x x) false)
+(define-rule bv-ule-self ((x ?BitVec)) (bvule x x) true)
+(define-rule bv-ule-zero
+  ((x ?BitVec) (n Int))
+  (bvule x (bv 0 n))
+  (= x (bv 0 n)))
+(define-rule bv-zero-ule
+  ((x ?BitVec) (n Int))
+  (bvule (bv 0 n) x)
+  true)
+(define-rule bv-sle-self ((x ?BitVec)) (bvsle x x) true)
+
+(define-cond-rule bv-ule-max ((x ?BitVec) (y ?BitVec))
+  (= y (bvnot (bv 0 (bvsize y))))
+  (bvule x y) true)
+(define-rule bv-not-ult ((x ?BitVec) (y ?BitVec))
+  (not (bvult x y))
+  (bvule y x))
+(define-rule bv-not-ule ((x ?BitVec) (y ?BitVec))
+  (not (bvule x y))
+  (bvult y x))
+(define-rule bv-not-sle ((x ?BitVec) (y ?BitVec))
+  (not (bvsle x y))
+  (bvslt y x))
+
+(define-cond-rule bv-mult-pow2-1
+  ((xs ?BitVec :list) (ys ?BitVec :list) (z ?BitVec) (size Int) (n Int))
+  (def (exponent (int.log2 n)))
+  (int.ispow2 n)
+  (bvmul xs z (bv n size) ys)
+  (concat
+    (extract (- (- size exponent) 1) 0 (bvmul xs z ys))
+    (bv 0 exponent)))
+(define-cond-rule bv-mult-pow2-2
+  ((xs ?BitVec :list) (ys ?BitVec :list) (z ?BitVec) (size Int) (n Int))
+  (def (exponent (int.log2 (- n))))
+  (int.ispow2 (- n))
+  (bvmul xs z (bv n size) ys)
+  (concat
+    (extract (- (- size exponent) 1) 0 (bvneg (bvmul xs z ys)))
+    (bv 0 exponent)))
+(define-cond-rule bv-mult-pow2-2b
+  ((z ?BitVec) (size Int) (n Int))
+  (def (exponent (int.log2 (- n))))
+  (int.ispow2 (- n))
+  (bvmul z (bv n size))
+  (concat
+    (extract (- (- size exponent) 1) 0 (bvneg z))
+    (bv 0 exponent)))
+
+;(define-rule bv-mult-slice
+;  ((x ?BitVec) (y ?BitVec))
+;  (def
+;    (n (bvsize x))
+;    (xBot (extract (- (div n 2) 1) 0 x))
+;    (yBot (extract (- (div n 2) 1) 0 y))
+;    (xTop (extract (- n 1) (div n 2) x))
+;    (yTop (extract (- n 1) (div n 2) y))
+;    (z (bv 0 (div n 2)))
+;  )
+;  (bvmul x y)
+;  (bvadd
+;    (bvmul (concat z xBot) (concat z yBot))
+;    (concat (bvmul yTop xBot) z)
+;    (concat (bvmul xTop yBot) z)
+;  ))
+
+; If the bit-vectors multiplied have enough leading zeros,
+; we can determine that the top bits of the multiplication
+; are zero and not compute them. Only apply for large bitwidths
+; as this can interfere with other mult normalization rewrites such
+; as flattening.
+(define-cond-rule bv-extract-mult-leading-bit
+  (
+    (high Int) (low Int)
+    (x1i Int) (x1in Int) (x2 ?BitVec)
+    (y1i Int) (y1in Int) (y2 ?BitVec)
+  )
+  (def
+    (n (+ x1in (bvsize x2)))
+    (x0n (ite (= x1i 0) x1in (- x1in (int.log2 x1i))))
+    (y0n (ite (= y1i 0) y1in (- y1in (int.log2 y1i))))
+  )
+  (and (> n 64) (> (- (* 2 n) (+ x0n y0n)) low))
+  (extract high low (bvmul
+    (concat (bv x1i x1in) x2)
+    (concat (bv y1i y1in) y2)))
+  (bv 0 (+ 1 (- high low))))
+
+; (a udiv 2^k) ==> 0_k a[n-1: k]
+(define-cond-rule bv-udiv-pow2-1p
+  ((x ?BitVec) (v Int) (n Int))
+  (def (power (int.log2 v)))
+  (and (int.ispow2 v) (> v 1))
+  (bvudiv x (bv v n))
+  (concat (bv 0 power) (extract (- n 1) power x)))
+(define-cond-rule bv-udiv-pow2-1n
+  ((x ?BitVec) (v Int) (n Int))
+  (def (power (int.log2 (- v))))
+  (and (int.ispow2 (- v)) (< v (- 1)))
+  (bvudiv x (bv v n))
+  (bvneg (concat (bv 0 power) (extract (- n 1) power x))))
+(define-cond-rule bv-udiv-pow2-2p
+  ((x ?BitVec) (v Int) (n Int))
+  (= v 1)
+  (bvudiv x (bv v n))
+  x)
+(define-cond-rule bv-udiv-pow2-2n
+  ((x ?BitVec) (v Int) (n Int))
+  (= v (- 1))
+  (bvudiv x (bv v n))
+  (bvneg x))
+; (x udiv 0) = 111...1
+(define-rule bv-udiv-zero
+  ((x ?BitVec) (n Int))
+  (bvudiv x (bv 0 n))
+  (bvnot (bv 0 n)))
+; (x udiv 1) = x
+(define-rule bv-udiv-one ((x ?BitVec) (n Int))
+  (bvudiv x (bv 1 n))
+  x)
+; (x urem 2^k) = 0_(n-k) x[k-1:0]
+; The original version had power - 1, but I thought about it and it doesn't make sense to me, so I didn't put the -1 here.
+(define-cond-rule bv-urem-pow2-1
+  ((x ?BitVec) (v Int) (n Int))
+  (def (power (int.log2 v)))
+  (and (int.ispow2 v) (> v 1))
+  (bvurem x (bv v n))
+  (concat (bv 0 (- n power)) (extract (- power 1) 0 x)))
+(define-cond-rule bv-urem-pow2-2
+  ((x ?BitVec) (v Int) (n Int))
+  (def (power (int.log2 (- v))))
+  (and (int.ispow2 (- v)) (< v (- 1)))
+  (bvurem x (bv v n))
+  (concat (bv 0 (- n power)) (extract (- power 1) 0 x)))
+; (x urem 1) = 0
+(define-rule bv-urem-one-1
+  ((x ?BitVec) (n Int))
+  (bvurem x (bv 1 n))
+  (bv 0 n))
+(define-cond-rule bv-urem-one-2
+  ((x ?BitVec) (v Int) (n Int))
+  (= v (- 1))
+  (bvurem x (bv v n))
+  (bv 0 n))
+; (x urem x) = 0
+(define-rule bv-urem-self
+  ((x ?BitVec))
+  (bvurem x x)
+  (bv 0 (bvsize x)))
+; ShiftZero rule
+; (0_k >> a) = 0_k
+(define-rule bv-shl-zero
+  ((a ?BitVec) (n Int))
+  (bvshl (bv 0 n) a)
+  (bv 0 n))
+(define-rule bv-lshr-zero
+  ((a ?BitVec) (n Int))
+  (bvlshr (bv 0 n) a)
+  (bv 0 n))
+(define-rule bv-ashr-zero
+  ((a ?BitVec) (n Int))
+  (bvashr (bv 0 n) a)
+  (bv 0 n))
+
+; (bvugt (bvurem T x) x)
+;   ==>  (ite (= x 0_k) (bvugt T x) false)
+;   ==>  (and (=> (= x 0_k) (bvugt T x)) (=> (not (= x 0_k)) false))
+;   ==>  (and (=> (= x 0_k) (bvugt T x)) (= x 0_k))
+;   ==>  (and (bvugt T x) (= x 0_k))
+;   ==>  (and (bvugt T 0_k) (= x 0_k))
+(define-rule bv-ugt-urem
+  ((y ?BitVec) (x ?BitVec))
+  (bvugt (bvurem y x) x)
+  (and
+    (= x (bv 0 (bvsize x)))
+    (bvugt y (bv 0 (bvsize y)))
+  ))
+
+(define-rule bv-ult-one
+  ((x ?BitVec) (n Int))
+  (bvult x (bv 1 n))
+  (= x (bv 0 n)))
+(define-rule bv-slt-zero
+  ((x ?BitVec) (n Int))
+  (bvslt x (bv 0 n))
+  (= (extract (- n 1) (- n 1) x) (bv 1 1)))
+
+(define-rule bv-merge-sign-extend-1
+  ((x ?BitVec) (i Int) (j Int))
+  (sign_extend i (sign_extend j x))
+  (sign_extend (+ i j) x)
+  )
+(define-cond-rule bv-merge-sign-extend-2
+  ((x ?BitVec) (i Int) (j Int))
+  (> j 1)
+  (sign_extend i (zero_extend j x))
+  (zero_extend (+ i j) x)
+  )
+(define-rule bv-merge-sign-extend-3
+  ((x ?BitVec) (i Int))
+  (sign_extend i (zero_extend 0 x))
+  (sign_extend i x)
+  )
+(define-rule bv-sign-extend-eq-const-1
+  ((x ?BitVec) (m Int) (c Int) (nm Int))
+  (def
+    (n (bvsize x))
+    (clo (extract (- n 1) 0 (bv c nm)))
+    ; Combines the sign bit c[n-1] and the high part
+    (chi (extract (- nm 1) (- n 1) (bv c nm)))
+  )
+  (= (sign_extend m x) (bv c nm))
+  (and
+    (or (= chi (bv 0 (+ m 1))) (= chi (bvnot (bv 0 (+ m 1)))))
+    (= x clo)))
+(define-rule bv-sign-extend-eq-const-2
+  ((x ?BitVec) (m Int) (c Int) (nm Int))
+  (def
+    (n (bvsize x))
+    (clo (extract (- n 1) 0 (bv c nm)))
+    ; Combines the sign bit c[n-1] and the high part
+    (chi (extract (- nm 1) (- n 1) (bv c nm)))
+  )
+  (= (bv c nm) (sign_extend m x))
+  (and
+    (or (= chi (bv 0 (+ m 1))) (= chi (bvnot (bv 0 (+ m 1)))))
+    (= x clo)))
+(define-rule bv-zero-extend-eq-const-1
+  ((x ?BitVec) (m Int) (c Int) (nm Int))
+  (def
+    (n (bvsize x))
+    (clo (extract (- n 1) 0 (bv c nm)))
+    (chi (extract (- nm 1) (- n 1) (bv c nm)))
+  )
+  (= (zero_extend m x) (bv c nm))
+  (and
+    (= chi (bv 0 m))
+    (= x clo)))
+(define-rule bv-zero-extend-eq-const-2
+  ((x ?BitVec) (m Int) (c Int) (nm Int))
+  (def
+    (n (bvsize x))
+    (clo (extract (- n 1) 0 (bv c nm)))
+    (chi (extract (- nm 1) (- n 1) (bv c nm)))
+  )
+  (= (bv c nm) (zero_extend m x))
+  (and
+    (= chi (bv 0 m))
+    (= x clo)))
+(define-cond-rule bv-zero-extend-ult-const-1
+  ((x ?BitVec) (m Int) (c Int) (nm Int))
+  (def
+    (n (bvsize x))
+    (clo (extract (- n 1) 0 (bv c nm)))
+    (chi (extract (- nm 1) n (bv c nm)))
+  )
+  (= chi (bv 0 m))
+  (bvult (zero_extend m x) (bv c nm))
+  (bvult x clo))
+(define-cond-rule bv-zero-extend-ult-const-2
+  ((x ?BitVec) (m Int) (c Int) (nm Int))
+  (def
+    (n (bvsize x))
+    (clo (extract (- n 1) 0 (bv c nm)))
+    (chi (extract (- nm 1) n (bv c nm)))
+  )
+  (= chi (bv 0 m))
+  (bvult (bv c nm) (zero_extend m x))
+  (bvult clo x))
+(define-cond-rule bv-sign-extend-ult-const-1
+  ((x ?BitVec) (m Int) (c Int) (nm Int))
+  (def
+    (n (bvsize x))
+    (clo (extract (- n 1) 0 (bv c nm)))
+    (a (bvshl (bv 1 nm) (bv (- n 1) nm))) ; 1 << (n-1)
+    (b (bvshl (bvnot (bv 0 nm)) (bv (- n 1) nm))) ; ~0 << (n-1)
+  )
+  (or (bvule (bv c nm) a) (bvuge (bv c nm) b))
+  (bvult (sign_extend m x) (bv c nm))
+  (bvult x clo))
+(define-cond-rule bv-sign-extend-ult-const-2
+  ((x ?BitVec) (m Int) (c Int) (nm Int))
+  (def
+    (n (bvsize x))
+    (clo (extract (- n 1) 0 (bv c nm)))
+    (a (bvshl (bv 1 nm) (bv (- n 1) nm))) ; 1 << (n-1)
+    (b (bvshl (bvnot (bv 0 nm)) (bv (- n 1) nm))) ; ~0 << (n-1)
+  )
+  (and (bvult a (bv c nm)) (bvule (bv c nm) b))
+  (bvult (sign_extend m x) (bv c nm))
+  (= (extract (- n 1) (- n 1) x) (bv 0 1)))
+(define-cond-rule bv-sign-extend-ult-const-3
+  ((x ?BitVec) (m Int) (c Int) (nm Int))
+  (def
+    (n (bvsize x))
+    (clo (extract (- n 1) 0 (bv c nm)))
+    (a (bvshl (bv 1 nm) (bv (- n 1) nm))) ; 1 << (n-1)
+    (b (bvshl (bvnot (bv 0 nm)) (bv (- n 1) nm))) ; ~0 << (n-1)
+  )
+  (or (bvult (bv c nm) a) (bvuge (bv c nm) (bvnot a)))
+  (bvult (bv c nm) (sign_extend m x))
+  (bvult clo x))
+(define-cond-rule bv-sign-extend-ult-const-4
+  ((x ?BitVec) (m Int) (c Int) (nm Int))
+  (def
+    (n (bvsize x))
+    (clo (extract (- n 1) 0 (bv c nm)))
+    (a (bvshl (bv 1 nm) (bv (- n 1) nm))) ; 1 << (n-1)
+    (b (bvshl (bvnot (bv 0 nm)) (bv (- n 1) nm))) ; ~0 << (n-1)
+  )
+  (and (bvule (bvnot b) (bv c nm)) (bvule (bv c nm) (bvnot a)))
+  (bvult (bv c nm) (sign_extend m x))
+  (= (extract (- n 1) (- n 1) x) (bv 1 1)))
+
+
+; -- Normalization Rules --
+(define-rule bv-extract-bitwise-and
+  ((x ?BitVec) (y ?BitVec) (i Int) (j Int))
+  (extract j i (bvand x y))
+  (bvand (extract j i x) (extract j i y)))
+(define-rule bv-extract-bitwise-or
+  ((x ?BitVec) (y ?BitVec) (i Int) (j Int))
+  (extract j i (bvor x y))
+  (bvor (extract j i x) (extract j i y)))
+(define-rule bv-extract-bitwise-xor
+  ((x ?BitVec) (y ?BitVec) (i Int) (j Int))
+  (extract j i (bvxor x y))
+  (bvxor (extract j i x) (extract j i y)))
+(define-rule bv-extract-not
+  ((x ?BitVec) (i Int) (j Int))
+  (extract j i (bvnot x))
+  (bvnot (extract j i x)))
+(define-cond-rule bv-extract-sign-extend-1
+  ((x ?BitVec) (low Int) (high Int) (k Int))
+  (< high (bvsize x))
+  (extract high low (sign_extend k x))
+  (extract high low x))
+(define-cond-rule bv-extract-sign-extend-2
+  ((x ?BitVec) (low Int) (high Int) (k Int))
+  (def (n (bvsize x)))
+  (and (< low n) (>= high n))
+  (extract high low (sign_extend k x))
+  (sign_extend
+    (+ 1 (- high n))
+    (extract (- n 1) low x)))
+(define-cond-rule bv-extract-sign-extend-3
+  ((x ?BitVec) (low Int) (high Int) (k Int))
+  (def (n (bvsize x)))
+  (>= low n)
+  (extract high low (sign_extend k x))
+  (repeat (+ 1 (- high low)) (extract (- n 1) (- n 1) x)))
+
+(define-rule bv-neg-mult
+  ((xs ?BitVec) (ys ?BitVec) (n Int) (m Int))
+  (bvneg (bvmul xs (bv n m) ys))
+  (bvmul xs (bv (- n) m) ys))
+(define-rule* bv-neg-add
+  ((x ?BitVec) (y ?BitVec) (zs ?BitVec :list))
+  (bvneg (bvadd x y zs))
+  (bvneg (bvadd y zs))
+  (bvadd (bvneg x) _))
+
+(define-rule bv-mult-distrib-const-neg
+  ((x ?BitVec) (n Int) (m Int))
+  (bvmul (bvneg x) (bv n m))
+  (bvmul x (bv (- n) m)))
+(define-rule bv-mult-distrib-const-add
+  ((x ?BitVec) (y ?BitVec) (n Int) (m Int))
+  (bvmul (bvadd x y) (bv n m))
+  (bvadd
+    (bvmul x (bv n m))
+    (bvmul y (bv n m))
+  ))
+(define-rule bv-mult-distrib-const-sub
+  ((x ?BitVec) (y ?BitVec) (n Int) (m Int))
+  (bvmul (bvsub x y) (bv n m))
+  (bvsub
+    (bvmul x (bv n m))
+    (bvmul y (bv n m))
+  ))
+
+(define-rule bv-mult-distrib-1
+  ((x1 ?BitVec) (x2 ?BitVec) (y ?BitVec))
+  (bvmul (bvadd x1 x2) y)
+  (bvadd (bvmul x1 y) (bvmul x2 y)))
+(define-rule bv-mult-distrib-2
+  ((x1 ?BitVec) (x2 ?BitVec) (y ?BitVec))
+  (bvmul y (bvadd x1 x2))
+  (bvadd (bvmul y x1) (bvmul y x2)))
+(define-rule bv-not-xor
+  ((x ?BitVec) (xs ?BitVec :list))
+  (bvnot (bvxor x xs))
+  (bvxor (bvnot x) xs))
+
+(define-rule* bv-and-simplify-1
+  ((xs ?BitVec :list) (ys ?BitVec :list) (zs ?BitVec :list) (x ?BitVec))
+  (bvand xs x ys x zs)
+  (bvand xs x ys zs))
+(define-rule* bv-and-simplify-2
+  ((xs ?BitVec :list) (ys ?BitVec :list) (zs ?BitVec :list) (x ?BitVec))
+  (bvand xs x ys (bvnot x) zs)
+  (bv 0 (bvsize x)))
+
+(define-rule* bv-or-simplify-1
+  ((xs ?BitVec :list) (ys ?BitVec :list) (zs ?BitVec :list) (x ?BitVec))
+  (bvor xs x ys x zs)
+  (bvor xs x ys zs))
+(define-rule* bv-or-simplify-2
+  ((xs ?BitVec :list) (ys ?BitVec :list) (zs ?BitVec :list) (x ?BitVec))
+  (bvor xs x ys (bvnot x) zs)
+  (bvnot (bv 0 (bvsize x))))
+
+(define-rule* bv-xor-simplify-1
+  ((xs ?BitVec :list) (ys ?BitVec :list) (zs ?BitVec :list) (x ?BitVec))
+  (bvxor xs x ys x zs)
+  (bvxor xs ys zs))
+(define-rule* bv-xor-simplify-2
+  ((xs ?BitVec :list) (ys ?BitVec :list) (zs ?BitVec :list) (x ?BitVec))
+  (bvxor xs x ys (bvnot x) zs)
+  (bvnot (bvxor xs ys zs)))
+(define-rule* bv-xor-simplify-3
+  ((xs ?BitVec :list) (ys ?BitVec :list) (zs ?BitVec :list) (x ?BitVec))
+  (bvxor xs (bvnot x) ys x zs)
+  (bvnot (bvxor xs ys zs)))
+
+; -- Simplify Bitblasting --
+
+; Unused
+; -a1 - a2 - ... - an + ak + ..  ==> - (a1 + a2 + ... + an) + ak
+;(define-rule bv-bb-add-neg )
+
+; x < y + 1 <=> (not y < x) and y != 1...1
+(define-rule bv-ult-add-one
+  ((x ?BitVec) (y ?BitVec) (n Int))
+  (bvult x (bvadd y (bv 1 n)))
+  (and
+    (not (bvult y x))
+    (not (= y (bvnot (bv 0 n))))))
+(define-cond-rule bv-concat-to-mult
+  ((x ?BitVec) (i Int) (m Int))
+  (= (+ 1 i m) (bvsize x))
+  (concat (extract i 0 x) (bv 0 m))
+  (bvmul x (bvshl (bv 1 (bvsize x)) (bv m (bvsize x)))))
+
+; Currently bugged due to not being able to match n.
+(define-rule bv-mult-slt-mult-1
+  ((x ?BitVec) (t ?BitVec) (a ?BitVec) (n Int) (m Int))
+  (def
+    (tn (bvsize t))
+    (an (bvsize a))
+  )
+  (bvslt
+    (bvmul (sign_extend n (bvadd x t)) (sign_extend m a))
+    (bvmul (sign_extend n x) (sign_extend m a))
+  )
+  (and
+    (not (= t (bv 0 tn)))
+    (not (= a (bv 0 an)))
+    (= (bvslt (bvadd x t) x) (bvsgt a (bv 0 an)))))
+(define-rule bv-mult-slt-mult-2
+  ((x ?BitVec) (t ?BitVec) (a ?BitVec) (n Int) (m Int))
+  (def
+    (tn (bvsize t))
+    (an (bvsize a))
+  )
+  (bvslt
+    (bvmul (zero_extend n (bvadd x t)) (sign_extend m a))
+    (bvmul (zero_extend n x) (sign_extend m a))
+  )
+  (and
+    (not (= t (bv 0 tn)))
+    (not (= a (bv 0 an)))
+    (= (bvult (bvadd x t) x) (bvsgt a (bv 0 an)))))
+
+
+; -- Commutativity --
+(define-rule bv-commutative-and ((x ?BitVec) (y ?BitVec))
+  (bvand x y) (bvand y x))
+(define-rule bv-commutative-or ((x ?BitVec) (y ?BitVec))
+  (bvor x y) (bvor y x))
+(define-rule bv-commutative-xor ((x ?BitVec) (y ?BitVec))
+  (bvxor x y) (bvxor y x))
+(define-rule bv-commutative-mul ((x ?BitVec) (y ?BitVec))
+  (bvmul x y) (bvmul y x))
+
+
+; -- Hole filling rules --
+(define-rule bv-or-zero ((x ?BitVec) (n Int))
+  (bvor x (bv 0 n))
+  x)
+(define-rule bv-mul-one ((x ?BitVec) (n Int))
+  (bvmul x (bv 1 n))
+  x)
+(define-rule bv-mul-zero ((x ?BitVec) (n Int))
+  (bvmul x (bv 0 n))
+  (bv 0 n))
+(define-rule bv-add-zero ((x ?BitVec) (n Int))
+  (bvadd x (bv 0 n))
+  x)
+(define-rule bv-add-two ((x ?BitVec))
+  (bvadd x x)
+  (bvmul x (bv 2 (bvsize x))))
+
+
+(define-rule bv-zero-extend-eliminate-0
+  ((x ?BitVec))
+  (zero_extend 0 x)
+  x)
+(define-rule bv-sign-extend-eliminate-0
+  ((x ?BitVec))
+  (sign_extend 0 x)
+  x)
+(define-cond-rule bv-not-neq ((x ?BitVec))
+  (> (bvsize x) 0)
+  (= x (bvnot x))
+  false)
+
+(define-cond-rule bv-ult-ones ((x ?BitVec) (y ?BitVec))
+  (= y (bvnot (bv 0 (bvsize y))))
+  (bvult x y)
+  (distinct x y))
+
+; Collapse rules
+
+(define-rule* bv-or-flatten
+  ((xs ?BitVec :list)
+   (s ?BitVec)
+   (ys ?BitVec :list)
+   (zs ?BitVec :list))
+  (bvor xs (bvor s ys) zs)
+  (bvor xs s ys zs))
+(define-rule* bv-xor-flatten
+  ((xs ?BitVec :list)
+   (s ?BitVec)
+   (ys ?BitVec :list)
+   (zs ?BitVec :list))
+  (bvxor xs (bvxor s ys) zs)
+  (bvxor xs s ys zs))
+(define-rule* bv-and-flatten
+  ((xs ?BitVec :list)
+   (s ?BitVec)
+   (ys ?BitVec :list)
+   (zs ?BitVec :list))
+  (bvand xs (bvand s ys) zs)
+  (bvand xs s ys zs))
+(define-rule* bv-mul-flatten
+  ((xs ?BitVec :list)
+   (s ?BitVec)
+   (ys ?BitVec :list)
+   (zs ?BitVec :list))
+  (bvmul xs (bvmul s ys) zs)
+  (bvmul xs s ys zs))
+
+(define-rule* bv-concat-merge-const
+  ((xs ?BitVec :list)
+   (n1 Int) (w1 Int) (n2 Int) (w2 Int)
+   (zs ?BitVec :list))
+  (concat xs (bv n1 w1) (bv n2 w2) zs)
+  (concat xs (bv (+ (* n1 (int.pow2 w2)) n2) (+ w1 w2)) zs))
+
+; These rules should be subsumed by ARITH_POLY_NORM, but removing them increases the number of holes
+(define-rule bv-commutative-add ((x ?BitVec) (y ?BitVec))
+  (bvadd x y) (bvadd y x))
+(define-rule bv-neg-sub
+  ((x ?BitVec) (y ?BitVec))
+  (bvneg (bvsub x y))
+  (bvsub y x))
+(define-rule bv-neg-idemp ((x ?BitVec)) (bvneg (bvneg x)) x)
+(define-rule bv-sub-eliminate
+  ((x ?BitVec) (y ?BitVec))
+  (bvsub x y)
+  (bvadd x (bvneg y)))

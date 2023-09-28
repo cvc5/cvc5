@@ -204,6 +204,12 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
                       << std::endl;
   Kind k = node.getKind();
   bool isHol = logicInfo().isHigherOrder();
+  if (node.getType().isAbstract())
+  {
+    std::stringstream ss;
+    ss << "Cannot process term of abstract type " << node;
+    throw LogicException(ss.str());
+  }
   if (k == kind::HO_APPLY || node.getType().isFunction())
   {
     if (!isHol)

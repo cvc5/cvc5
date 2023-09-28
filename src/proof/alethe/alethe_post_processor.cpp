@@ -15,6 +15,8 @@
 
 #include "proof/alethe/alethe_post_processor.h"
 
+#include <sstream>
+
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "proof/alethe/alethe_proof_rule.h"
@@ -23,6 +25,7 @@
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "proof/resolution_proofs_util.h"
+#include "rewriter/rewrite_proof_rule.h"
 #include "smt/env.h"
 #include "theory/builtin/proof_checker.h"
 #include "util/rational.h"
@@ -35,7 +38,6 @@ namespace proof {
 
 std::unordered_map<Kind, AletheRule> s_bvKindToAletheRule = {
   {kind::BITVECTOR_ULT, AletheRule::BV_BITBLAST_STEP_BVULT},
-  {kind::VARIABLE, AletheRule::BV_BITBLAST_STEP_VAR},
   {kind::BITVECTOR_AND, AletheRule::BV_BITBLAST_STEP_BVAND},
   {kind::BITVECTOR_OR, AletheRule::BV_BITBLAST_STEP_BVOR},
   {kind::BITVECTOR_XOR, AletheRule::BV_BITBLAST_STEP_BVXOR},
@@ -46,7 +48,6 @@ std::unordered_map<Kind, AletheRule> s_bvKindToAletheRule = {
   {kind::BITVECTOR_MULT, AletheRule::BV_BITBLAST_STEP_BVMULT},
   {kind::BITVECTOR_CONCAT, AletheRule::BV_BITBLAST_STEP_CONCAT},
   {kind::CONST_BITVECTOR, AletheRule::BV_BITBLAST_STEP_CONST},
-  {kind::SKOLEM, AletheRule::BV_BITBLAST_STEP_CONST},
   {kind::BITVECTOR_EXTRACT, AletheRule::BV_BITBLAST_STEP_EXTRACT},
   {kind::EQUAL, AletheRule::BV_BITBLAST_STEP_BVEQUAL},
   // TODO add support
@@ -386,9 +387,109 @@ bool AletheProofPostprocessCallback::update(Node res,
 
       return success;
     }
+    case PfRule::DSL_REWRITE:
+    {
+      // get the name
+      rewriter::DslPfRule di;
+      Node rule;
+      if (rewriter::getDslPfRule(args[0], di))
+      {
+        std::stringstream ss;
+        ss << di;
+        rule = nm->mkBoundVar(ss.str(), nm->sExprType());
+      }
+      else
+      {
+        Unreachable();
+      }
+      new_args.push_back(rule);
+      for (int i = 1, size = args.size(); i < size; i++)
+      {
+        if (!args[i].isNull())
+        {
+          if (args[i].toString() == "")
+          {  // TODO: better way
+            new_args.push_back(nm->mkNode(
+                kind::SEXPR, nm->mkBoundVar("cvc5_nary_op", nm->sExprType())));
+          }
+          else if (args[i].getKind() == kind::SEXPR)
+          {
+            std::vector<Node> list_arg;
+            list_arg.push_back(nm->mkBoundVar("cvc5_nary_op", nm->sExprType()));
+            list_arg.insert(list_arg.end(),args[i].begin(), args[i].end());
+            new_args.push_back(nm->mkNode(kind::SEXPR,list_arg));
+          }
+          else
+          {
+            new_args.push_back(args[i]);
+          }
+        }
+      }
+      return addAletheStep(AletheRule::ALL_SIMPLIFY,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           new_args,
+                           *cdp);
+    }
+    case PfRule::EVALUATE:
+    {
+      return addAletheStep(AletheRule::ALL_SIMPLIFY,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {nm->mkBoundVar("evaluate", nm->sExprType())},
+                           *cdp);
+    }
     case PfRule::THEORY_REWRITE:
     {
       return addAletheStep(AletheRule::ALL_SIMPLIFY,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+    case PfRule::PREPROCESS:
+    case PfRule::THEORY_PREPROCESS:
+    {
+      return addAletheStep(AletheRule::ALL_SIMPLIFY,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+    case PfRule::THEORY_LEMMA:
+    {
+      // if we are in the arithmetic case, we rather add a LIA_GENERIC step
+      if (res.getKind() == kind::NOT && res[0].getKind() == kind::AND)
+      {
+        Trace("alethe-proof") << "... test each arg if ineq\n";
+        bool allIneqs = true;
+        for (const Node& arg : res[0])
+        {
+          Node toTest = arg.getKind() == kind::NOT ? arg[0] : arg;
+          Kind k = toTest.getKind();
+          if (k != kind::LT && k != kind::LEQ && k != kind::GT && k != kind::GEQ
+              && k != kind::EQUAL)
+          {
+            Trace("alethe-proof") << "... arg " << arg << " not ineq\n";
+            allIneqs = false;
+            break;
+          }
+        }
+        if (allIneqs)
+        {
+          return addAletheStep(AletheRule::LIA_GENERIC,
+                               res,
+                               nm->mkNode(kind::SEXPR, d_cl, res),
+                               children,
+                               {},
+                               *cdp);
+        }
+      }
+      return addAletheStep(AletheRule::HOLE,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
                            children,
@@ -1117,6 +1218,15 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
+    case PfRule::HO_CONG:
+    {
+      return addAletheStep(AletheRule::HO_CONG,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
     // ======== True intro
     //
     // ------------------------------- EQUIV_SIMPLIFY
@@ -1408,12 +1518,12 @@ bool AletheProofPostprocessCallback::update(Node res,
     //  (cl (= t bitblast(t)))
     case PfRule::BV_BITBLAST_STEP:
     {
-      Assert(s_bvKindToAletheRule.find(res[0].getKind())
-             != s_bvKindToAletheRule.end())
-          << "Bit-blasted kind " << res[0].getKind()
-          << " not supported in Alethe post-processing. Conclusion:\n"
-          << res;
-      return addAletheStep(s_bvKindToAletheRule.at(res[0].getKind()),
+      // if the term being bitblasted is a variable or a nonbv term, then this
+      // is a "bitblast var" step
+      auto it = s_bvKindToAletheRule.find(res[0].getKind());
+      return addAletheStep(it == s_bvKindToAletheRule.end()
+                               ? AletheRule::BV_BITBLAST_STEP_VAR
+                               : it->second,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, d_anc.convert(res)),
                            children,
@@ -1455,6 +1565,58 @@ bool AletheProofPostprocessCallback::update(Node res,
                               d_resPivots
                                   ? std::vector<Node>{children[0], d_false}
                                   : std::vector<Node>(),
+                              *cdp);
+    }
+    // ======== Alpha Equivalence
+    // See proof_rule.h for documentation on the ALPHA_EQUIV rule. This
+    // comment uses variable names as introduced there.
+    //
+    // Let F = (forall ((y1 A1) ... (yn An)) G) and F*sigma = (forall ((z1 A1)
+    // ... (zn An)) G*sigma)
+    //
+    //
+    // -----    ----- REFL  ----- REFL
+    //  VP1 .... VPn         VP
+    // -------------------------- BIND, ((:= (y1 A1) z1) ... (:= (yn An) zn))
+    //         (= F F*sigma)
+    //
+    // VPi: (cl (= yi zi))^
+    // VP: (cl (= G G*sigma))
+    //
+    // ^ the corresponding proof node is F*sigma
+    case PfRule::ALPHA_EQUIV:
+    {
+      // performance optimization
+      // If y1 ... yn are mapped to y1 ... yn it suffices to use a refl step
+      if (res[0].toString() == res[1].toString())
+      {
+        return addAletheStep(AletheRule::REFL,
+                             res,
+                             nm->mkNode(kind::SEXPR, d_cl, res),
+                             {},
+                             {},
+                             *cdp);
+      }
+
+      std::vector<Node> new_children;
+      bool success = true;
+      for (size_t i = 1, size = args.size(); i < size; i++)
+      {
+        Node vpi = nm->mkNode(kind::SEXPR, d_cl, args[i]);
+        new_children.push_back(vpi);
+        success&& addAletheStep(AletheRule::REFL, vpi, vpi, {}, {}, *cdp);
+      }
+      Node vp = nm->mkNode(
+          kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, res[0][1], res[1][1]));
+      success&& addAletheStep(AletheRule::REFL, vp, vp, {}, {}, *cdp);
+      new_children.push_back(vp);
+      new_args.insert(new_args.begin(), args.begin() + 1, args.end());
+      return success
+             && addAletheStep(AletheRule::ANCHOR_BIND,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              new_children,
+                              new_args,
                               *cdp);
     }
     //================================================= Arithmetic rules
@@ -1818,14 +1980,30 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     default:
     {
+      Trace("alethe-proof")
+          << "... rule not translated yet " << id << " / " << res << " "
+          << children << " " << args << std::endl;
+      std::stringstream ss;
+      ss << id;
+      Node newVar = nm->mkBoundVar(ss.str(), nm->sExprType());
+      std::vector<Node> newArgs{newVar};
+      newArgs.insert(newArgs.end(), args.begin(), args.end());
       return addAletheStep(AletheRule::HOLE,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
                            children,
-                           args,
+                           newArgs,
                            *cdp);
     }
+      Trace("alethe-proof")
+          << "... error translating rule " << id << " / " << res << " "
+          << children << " " << args << std::endl;
+      return false;
   }
+
+  Trace("alethe-proof") << "... error translating rule " << id << " / " << res
+                        << " " << children << " " << args << std::endl;
+  return false;
 }
 
 bool AletheProofPostprocessCallback::maybeReplacePremiseProof(Node premise,
@@ -2183,6 +2361,7 @@ bool AletheProofPostprocessCallback::updatePost(
 //
 // *  the corresponding proof node is ((false))
 // ** the corresponding proof node is (false)
+
 //
 // This method also handles the case where the internal proof is "empty", i.e.,
 // it consists only of "false" as an assumption.
@@ -2314,5 +2493,6 @@ void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 }
 
 }  // namespace proof
+}  // namespace cvc5::internal
 
 }  // namespace cvc5::internal

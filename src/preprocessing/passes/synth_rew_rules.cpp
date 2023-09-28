@@ -18,6 +18,7 @@
 
 #include <sstream>
 
+#include "expr/sygus_datatype.h"
 #include "expr/term_canonize.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"

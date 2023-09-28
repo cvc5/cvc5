@@ -199,6 +199,8 @@ class ProofPostprocess : protected EnvObj
   void setEliminateRule(PfRule rule);
   /** set eliminate all trusted rules via DSL */
   void setEliminateAllTrustedRules();
+  /** Set assertions (for debugging whether the final proof is closed) */
+  void setAssertions(const std::vector<Node>& assertions);
 
  private:
   /** The post process callback */

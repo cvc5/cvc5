@@ -1,0 +1,10 @@
+#!/bin/bash
+
+echo "Make regress-proof with stats, regression arguments=$@ ..."
+make regress-proof -j8 CVC5_REGRESSION_ARGS="--stats-internal $@" | tee temp.txt
+echo "=== Final rule counts:"
+getaggrhistogram temp.txt finalProof::ruleCount
+echo "=== Total:"
+getaggrstat temp.txt finalProof::totalRuleCount
+rm temp.txt
+

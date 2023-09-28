@@ -19,7 +19,6 @@
 #include "expr/dtype_cons.h"
 #include "expr/node_manager.h"
 #include "expr/skolem_manager.h"
-#include "expr/sygus_datatype.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
@@ -1597,19 +1596,16 @@ void SygusExtension::check()
         //debugging : ensure fairness was properly handled
         if (options().datatypes.sygusFair == options::SygusFairMode::DT_SIZE)
         {
-          Node prog_sz = NodeManager::currentNM()->mkNode( kind::DT_SIZE, prog );
+          Node prog_sz = NodeManager::currentNM()->mkNode(kind::DT_SIZE, prog);
           Node prog_szv = d_state.getValuation().getModel()->getValue(prog_sz);
-          Node progv_sz = NodeManager::currentNM()->mkNode( kind::DT_SIZE, progv );
-            
-          Trace("sygus-sb") << "  Mv[" << prog << "] = " << progv << ", size = " << prog_szv << std::endl;
-          if( prog_szv.getConst<Rational>().getNumerator().toUnsignedInt() > getSearchSizeForAnchor( prog ) ){
-            AlwaysAssert(false);
-            Node szlem = NodeManager::currentNM()->mkNode( kind::OR, prog.eqNode( progv ).negate(),
-                                                                     prog_sz.eqNode( progv_sz ) );
-            Trace("sygus-sb-warn") << "SygusSymBreak : WARNING : adding size correction : " << szlem << std::endl;
-            d_im.lemma(szlem, InferenceId::DATATYPES_SYGUS_SIZE_CORRECTION);
-            isExc = true;
-          }
+          Node progv_sz =
+              NodeManager::currentNM()->mkNode(kind::DT_SIZE, progv);
+
+          Trace("sygus-sb") << "  Mv[" << prog << "] = " << progv
+                            << ", size = " << prog_szv << std::endl;
+          AlwaysAssert(
+              prog_szv.getConst<Rational>().getNumerator().toUnsignedInt()
+              <= getSearchSizeForAnchor(prog));
         }
 
         // register the search value ( prog -> progv ), this may invoke symmetry

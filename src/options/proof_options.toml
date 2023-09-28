@@ -15,15 +15,15 @@ name   = "Proof"
 [[option.mode.DOT]]
   name       = "dot"
   help       = "Output DOT proof"
+[[option.mode.LEAN]]
+  name       = "lean"
+  help       = "Output Lean proof"
 [[option.mode.LFSC]]
   name       = "lfsc"
   help       = "Output LFSC proof"
 [[option.mode.ALETHE]]
   name       = "alethe"
   help       = "Output Alethe proof"
-[[option.mode.TPTP]]
-  name       = "tptp"
-  help       = "Output TPTP proof (work in progress)"
 
 [[option]]
   name       = "proofPrintConclusion"
@@ -64,6 +64,30 @@ name   = "Proof"
   help       = "do not check rule applications"
 
 [[option]]
+  name       = "checkProofsFail"
+  category   = "regular"
+  long       = "check-proofs-fail"
+  type       = "bool"
+  default    = "false"
+  help       = "always fail when the checkProof method is invoked (dummy option)"
+
+[[option]]
+  name       = "proofReq"
+  category   = "regular"
+  long       = "proof-req"
+  type       = "bool"
+  default    = "false"
+  help       = "always fail during setDefaults if proof is not enabled (dummy option)"
+
+[[option]]
+  name       = "proofUpdateDebug"
+  category   = "regular"
+  long       = "proof-update-debug"
+  type       = "bool"
+  default    = "false"
+  help       = "debug proof node updater"
+
+[[option]]
   name       = "proofPpMerge"
   category   = "expert"
   long       = "proof-pp-merge"
@@ -95,10 +119,18 @@ name   = "Proof"
 [[option]]
   name       = "proofRewriteRconsRecLimit"
   category   = "regular"
-  long       = "proof-rewrite-rcons-limit=N"
+  long       = "proof-rewrite-rcons-rec-limit=N"
   type       = "int64_t"
-  default    = "5"
+  default    = "15"
   help       = "the matching recursion limit for reconstructing proofs of theory rewrites"
+
+[[option]]
+  name       = "proofRewriteRconsStepLimit"
+  category   = "regular"
+  long       = "proof-rewrite-rcons-step-limit=N"
+  type       = "int64_t"
+  default    = "200"
+  help       = "the limit of steps considered for reconstructing proofs of theory rewrites"
 
 [[option]]
   name       = "proofAnnotate"
@@ -139,6 +171,14 @@ name   = "Proof"
   type       = "bool"
   default    = "false"
   help       = "Indicates if the dot proof will be printed as a DAG or as a tree"
+
+[[option]]
+  name       = "produceFinalProof"
+  category   = "regular"
+  long       = "produce-final-proof"
+  type       = "bool"
+  default    = "false"
+  help       = "produce final proof regardless of printing or checking it"
 
 [[option]]
   name       = "printDotClusters"

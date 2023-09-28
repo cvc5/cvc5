@@ -129,6 +129,15 @@ const char* toString(PfRule id)
     case PfRule::BV_BITBLAST: return "BV_BITBLAST";
     case PfRule::BV_BITBLAST_STEP: return "BV_BITBLAST_STEP";
     case PfRule::BV_EAGER_ATOM: return "BV_EAGER_ATOM";
+    case PfRule::BV_UMULO_ELIMINATE: return "BV_UMULO_ELIMINATE";
+    case PfRule::BV_SMULO_ELIMINATE: return "BV_SMULO_ELIMINATE";
+    case PfRule::BV_FLATTEN_ASSOC_COMMUTE: return "BV_FLATTEN_ASSOC_COMMUTE";
+    case PfRule::BV_FLATTEN_ASSOC_COMMUTE_NO_DUPLICATES: return "BV_FLATTEN_ASSOC_COMMUTE_NO_DUPLICATES";
+    case PfRule::BV_ADD_COMBINE_LIKE_TERMS: return "BV_ADD_COMBINE_LIKE_TERMS";
+    case PfRule::BV_MULT_SIMPLIFY: return "BV_MULT_SIMPLIFY";
+    case PfRule::BV_SOLVE_EQ: return "BV_SOLVE_EQ";
+    case PfRule::BV_BITWISE_EQ: return "BV_BITWISE_EQ";
+    case PfRule::BV_BITWISE_SLICING: return "BV_BITWISE_SLICING";
     //================================================= Datatype rules
     case PfRule::DT_UNIF: return "DT_UNIF";
     case PfRule::DT_INST: return "DT_INST";
@@ -140,6 +149,7 @@ const char* toString(PfRule id)
     case PfRule::SKOLEMIZE: return "SKOLEMIZE";
     case PfRule::INSTANTIATE: return "INSTANTIATE";
     case PfRule::ALPHA_EQUIV: return "ALPHA_EQUIV";
+    case PfRule::EXISTS_ELIM: return "EXISTS_ELIM";
     case PfRule::QUANTIFIERS_PREPROCESS: return "QUANTIFIERS_PREPROCESS";
     //================================================= String rules
     case PfRule::CONCAT_EQ: return "CONCAT_EQ";
@@ -206,6 +216,7 @@ const char* toString(PfRule id)
     case PfRule::ARITH_NL_COVERING_RECURSIVE: return "ARITH_NL_COVERING_RECURSIVE";
     //================================================= External rules
     case PfRule::LFSC_RULE: return "LFSC_RULE";
+    case PfRule::LEAN_RULE: return "LEAN_RULE";
     case PfRule::ALETHE_RULE: return "ALETHE_RULE";
     //================================================= Unknown rule
     case PfRule::UNKNOWN: return "UNKNOWN";

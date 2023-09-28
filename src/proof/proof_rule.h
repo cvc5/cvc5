@@ -80,8 +80,8 @@ enum class PfRule : uint32_t
    * open leaf in a proof that is not (yet) justified. An assume leaf is
    * analogous to a free variable in a term, where we say "F is a free
    * assumption in proof P" if it contains an application of F that is not
-   * bound by :cpp:enumerator:`SCOPE <cvc5::internal::PfRule::SCOPE>` (see below).
-   * \endverbatim
+   * bound by :cpp:enumerator:`SCOPE <cvc5::internal::PfRule::SCOPE>` (see
+   * below). \endverbatim
    */
   ASSUME,
   /**
@@ -95,10 +95,10 @@ enum class PfRule : uint32_t
    *   \dots F_n}{\neg (F_1 \land \dots \land F_n)}{if $F=\bot$}
    *
    * This rule has a dual purpose with :cpp:enumerator:`ASSUME
-   * <cvc5::internal::PfRule::ASSUME>`. It is a way to close assumptions in a proof. We
-   * require that :math:`F_1 \dots F_n` are free assumptions in P and say that
-   * :math:`F_1 \dots F_n` are not free in ``(SCOPE P)``. In other words, they
-   * are bound by this application. For example, the proof node:
+   * <cvc5::internal::PfRule::ASSUME>`. It is a way to close assumptions in a
+   * proof. We require that :math:`F_1 \dots F_n` are free assumptions in P and
+   * say that :math:`F_1 \dots F_n` are not free in ``(SCOPE P)``. In other
+   * words, they are bound by this application. For example, the proof node:
    * ``(SCOPE (ASSUME F) :args F)``
    * has the conclusion :math:`F \Rightarrow F` and has no free assumptions.
    * More generally, a proof with no free assumptions always concludes a valid
@@ -208,8 +208,8 @@ enum class PfRule : uint32_t
    * where :math:`ids` and :math:`idr` are method identifiers.
    *
    * We rewrite only on the Skolem form of :math:`F`, similar to
-   * :cpp:enumerator:`MACRO_SR_EQ_INTRO <cvc5::internal::PfRule::MACRO_SR_EQ_INTRO>`.
-   * \endverbatim
+   * :cpp:enumerator:`MACRO_SR_EQ_INTRO
+   * <cvc5::internal::PfRule::MACRO_SR_EQ_INTRO>`. \endverbatim
    */
   MACRO_SR_PRED_ELIM,
   /**
@@ -228,8 +228,8 @@ enum class PfRule : uint32_t
    * \texttt{Rewriter::rewrite}(\texttt{toOriginal}(G'))` where :math:`F'` and
    * :math:`G'` are the result of each side of the equation above. Here,
    * original forms are used in a similar manner to
-   * :cpp:enumerator:`MACRO_SR_PRED_INTRO <cvc5::internal::PfRule::MACRO_SR_PRED_INTRO>`
-   * above. \endverbatim
+   * :cpp:enumerator:`MACRO_SR_PRED_INTRO
+   * <cvc5::internal::PfRule::MACRO_SR_PRED_INTRO>` above. \endverbatim
    */
   MACRO_SR_PRED_TRANSFORM,
   /**
@@ -532,9 +532,9 @@ enum class PfRule : uint32_t
    * .. math::
    *   \inferrule{C_1 \mid -}{C_2}
    *
-   * where the set representations of :math:`C_1` and :math:`C_2` are the same
-   * and the number of literals in :math:`C_2` is smaller than that of
-   * :math:`C_1`. \endverbatim
+   * where :math:`C_2` is the clause :math:`C_1`, but every occurence of a literal
+   * after its first occurence is omitted.
+   * \endverbatim
    */
   FACTORING,
   /**
@@ -566,7 +566,7 @@ enum class PfRule : uint32_t
    *   :math:`pol`, as defined in
    *   :cpp:enumerator:`RESOLUTION <cvc5::internal::PfRule::RESOLUTION>`
    * - let :math:`C_1'` be equal, in its set representation, to :math:`C_1`,
-   * - for each :math:`i > 1`, let :math:`C_i'` be equal, it its set
+   * - for each :math:`i > 1`, let :math:`C_i'` be equal, in its set
    *   representation, to :math:`C_{i-1} \diamond{L_{i-1},\mathit{pol}_{i-1}}
    *   C_i'`
    *
@@ -580,8 +580,8 @@ enum class PfRule : uint32_t
    * **Boolean -- N-ary Resolution + Factoring + Reordering unchecked**
    *
    * Same as :cpp:enumerator:`MACRO_RESOLUTION
-   * <cvc5::internal::PfRule::MACRO_RESOLUTION>`, but not checked by the internal proof
-   * checker. \endverbatim
+   * <cvc5::internal::PfRule::MACRO_RESOLUTION>`, but not checked by the
+   * internal proof checker. \endverbatim
    */
   MACRO_RESOLUTION_TRUST,
 
@@ -882,8 +882,8 @@ enum class PfRule : uint32_t
    * **Boolean -- CNF -- Implies Positive**
    *
    * .. math::
-   *   \inferrule{- \mid F_1 \rightarrow F_2}{\neg(F_1 \rightarrow F_2) \lor \neg F_1
-   *   \lor F_2}
+   *   \inferrule{- \mid F_1 \rightarrow F_2}{\neg(F_1 \rightarrow F_2) \lor
+   * \neg F_1 \lor F_2}
    *
    * \endverbatim
    */
@@ -903,7 +903,8 @@ enum class PfRule : uint32_t
    * **Boolean -- CNF -- Implies Negative 2**
    *
    * .. math::
-   *   \inferrule{- \mid F_1 \rightarrow F_2}{(F_1 \rightarrow F_2) \lor \neg F_2}
+   *   \inferrule{- \mid F_1 \rightarrow F_2}{(F_1 \rightarrow F_2) \lor \neg
+   * F_2}
    *
    * \endverbatim
    */
@@ -1028,7 +1029,7 @@ enum class PfRule : uint32_t
    *
    * .. math::
    *   \inferrule{- \mid (\ite{C}{F_1}{F_2})}{(\ite{C}{F_1}{F_2}) \lor \neg C
-   *   \lor \not F_1}
+   *   \lor \neg F_1}
    *
    * \endverbatim
    */
@@ -1062,7 +1063,7 @@ enum class PfRule : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{-\mid t}{t = t)}
+   *   \inferrule{-\mid t}{t = t}
    * \endverbatim
    */
   REFL,
@@ -1155,7 +1156,8 @@ enum class PfRule : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{-\mid t}{t= \texttt{TheoryUfRewriter::getHoApplyForApplyUf}(t)}
+   *   \inferrule{-\mid t}{t=
+   * \texttt{TheoryUfRewriter::getHoApplyForApplyUf}(t)}
    *
    * For example, this rule concludes :math:`f(x,y) = @(@(f,x),y)`, where
    * :math:`@` isthe ``HO_APPLY`` kind.
@@ -1171,8 +1173,8 @@ enum class PfRule : uint32_t
    *   \inferrule{f=g, t_1=s_1,\dots,t_n=s_n\mid -}{f(t_1,\dots, t_n) =
    *   g(s_1,\dots, s_n)}
    *
-   * Notice that this rule is only used when the application kinds are ``APPLY_UF``.
-   * \endverbatim
+   * Notice that this rule is only used when the application kinds are
+   * ``APPLY_UF``. \endverbatim
    */
   HO_CONG,
   /**
@@ -1262,8 +1264,8 @@ enum class PfRule : uint32_t
    * where ``bitblast()`` represents the result of the bit-blasted term as a
    * bit-vector consisting of the output bits of the bit-blasted circuit
    * representation of the term. Terms are bit-blasted according to the
-   * strategies defined in ``theory/bv/bitblast/bitblast_strategies_template.h``.
-   * \endverbatim
+   * strategies defined in
+   * ``theory/bv/bitblast/bitblast_strategies_template.h``. \endverbatim
    */
   BV_BITBLAST,
   /**
@@ -1301,6 +1303,15 @@ enum class PfRule : uint32_t
    */
   BV_EAGER_ATOM,
 
+  BV_UMULO_ELIMINATE,
+  BV_SMULO_ELIMINATE,
+  BV_FLATTEN_ASSOC_COMMUTE,
+  BV_FLATTEN_ASSOC_COMMUTE_NO_DUPLICATES,
+  BV_ADD_COMBINE_LIKE_TERMS,
+  BV_MULT_SIMPLIFY,
+  BV_SOLVE_EQ,
+  BV_BITWISE_EQ,
+  BV_BITWISE_SLICING,
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- Unification**
@@ -1350,10 +1361,11 @@ enum class PfRule : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{-\mid t}{\mathit{is}_{C_1}(t)\vee\cdots\vee\mathit{is}_{C_n}(t)}
+   *   \inferrule{-\mid
+   * t}{\mathit{is}_{C_1}(t)\vee\cdots\vee\mathit{is}_{C_n}(t)}
    *
-   * where :math:`C_1,\dots,C_n` are all the constructors of the type of :math:`t`.
-   * \endverbatim
+   * where :math:`C_1,\dots,C_n` are all the constructors of the type of
+   * :math:`t`. \endverbatim
    */
   DT_SPLIT,
   /**
@@ -1412,11 +1424,10 @@ enum class PfRule : uint32_t
    *   {F\{x_1\mapsto t_1,\dots,x_n\mapsto t_n\}}
    *
    * The optional argument :math:`id` indicates the inference id that caused the
-   * instantiation. The term :math:`t` indicates an additional term (e.g. the trigger)
-   * associated with the instantiation, which depends on the id. If the id
-   * has prefix ``QUANTIFIERS_INST_E_MATCHING``, then :math:`t` is the trigger that
-   * generated the instantiation.
-   * \endverbatim
+   * instantiation. The term :math:`t` indicates an additional term (e.g. the
+   * trigger) associated with the instantiation, which depends on the id. If the
+   * id has prefix ``QUANTIFIERS_INST_E_MATCHING``, then :math:`t` is the
+   * trigger that generated the instantiation. \endverbatim
    */
   INSTANTIATE,
   /**
@@ -1436,6 +1447,18 @@ enum class PfRule : uint32_t
    * \endverbatim
    */
   ALPHA_EQUIV,
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Exists elimination**
+   *
+   * .. math::
+   *
+   *   \inferruleSC{-\mid \exists x_1\dots x_n.\> F}
+   *   {\exists x_1\dots x_n.\> F = \neg \forall x_1\dots x_n.\> \neg F}
+   *
+   * \endverbatim
+   */
+  EXISTS_ELIM,
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- (Trusted) quantifiers preprocessing**
@@ -1526,7 +1549,8 @@ enum class PfRule : uint32_t
    *
    * where :math:`r_t` is
    * :math:`\mathit{skolem}(\mathit{suf}(t_1,\mathit{len}(s_1)))` and
-   * :math:`r_s` is :math:`\mathit{skolem}(\mathit{suf}(s_1,\mathit{len}(t_1)))`.
+   * :math:`r_s` is
+   * :math:`\mathit{skolem}(\mathit{suf}(s_1,\mathit{len}(t_1)))`.
    *
    * .. math::
    *
@@ -1730,7 +1754,8 @@ enum class PfRule : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{t\not\in R\mid -}{\texttt{RegExpOpr::reduceRegExpNeg}(t\not\in R)}
+   *   \inferrule{t\not\in R\mid -}{\texttt{RegExpOpr::reduceRegExpNeg}(t\not\in
+   * R)}
    *
    * corresponding to the one-step unfolding of the premise.
    * \endverbatim
@@ -1773,9 +1798,8 @@ enum class PfRule : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{-\mid t,s}{\mathit{to\_code}(t) = -1 \vee \mathit{to\_code}(t) \neq
-   *   \mathit{to\_code}(s) \vee t\neq s}
-   * \endverbatim
+   *   \inferrule{-\mid t,s}{\mathit{to\_code}(t) = -1 \vee \mathit{to\_code}(t)
+   * \neq \mathit{to\_code}(s) \vee t\neq s} \endverbatim
    */
   STRING_CODE_INJ,
   /**
@@ -1841,8 +1865,8 @@ enum class PfRule : uint32_t
    * where :math:`P_i` has the form :math:`L_i \diamond_i R_i` and
    * :math:`\diamond_i \in \{<, \leq, =\}`. Furthermore :math:`\diamond = <` if
    * :math:`\diamond_i = <` for any :math:`i` and :math:`\diamond = \leq`
-   * otherwise, :math:`L = L_1 + \cdots + L_n` and :math:`R = R_1 + \cdots + R_n`.
-   * \endverbatim
+   * otherwise, :math:`L = L_1 + \cdots + L_n` and :math:`R = R_1 + \cdots +
+   * R_n`. \endverbatim
    */
   ARITH_SUM_UB,
   /**
@@ -1874,9 +1898,9 @@ enum class PfRule : uint32_t
    * .. math::
    *   \inferrule{A, B \mid C}{C}
    *
-   * where :math:`\neg A, \neg B, C` are :math:`x < c, x = c, x > c` in some order.
-   * Note that :math:`\neg` here denotes arithmetic negation, i.e., flipping :math:`\geq` to :math:`<` etc.
-   * \endverbatim
+   * where :math:`\neg A, \neg B, C` are :math:`x < c, x = c, x > c` in some
+   * order. Note that :math:`\neg` here denotes arithmetic negation, i.e.,
+   * flipping :math:`\geq` to :math:`<` etc. \endverbatim
    */
   ARITH_TRICHOTOMY,
   /**
@@ -1905,7 +1929,8 @@ enum class PfRule : uint32_t
    * **Arithmetic -- Sign inference**
    *
    * .. math::
-   *   \inferrule{- \mid f_1 \dots f_k, m}{(f_1 \land \dots \land f_k) \rightarrow m \diamond 0}
+   *   \inferrule{- \mid f_1 \dots f_k, m}{(f_1 \land \dots \land f_k)
+   * \rightarrow m \diamond 0}
    *
    * where :math:`f_1 \dots f_k` are variables compared to zero (less, greater
    * or not equal), :math:`m` is a monomial from these variables and
@@ -1921,7 +1946,8 @@ enum class PfRule : uint32_t
    * **Arithmetic -- Multiplication with positive factor**
    *
    * .. math::
-   *   \inferrule{- \mid m, l \diamond r}{(m > 0 \land l \diamond r) \rightarrow m \cdot l \diamond m \cdot r}
+   *   \inferrule{- \mid m, l \diamond r}{(m > 0 \land l \diamond r) \rightarrow
+   * m \cdot l \diamond m \cdot r}
    *
    * where :math:`\diamond` is a relation symbol.
    * \endverbatim
@@ -1932,7 +1958,8 @@ enum class PfRule : uint32_t
    * **Arithmetic -- Multiplication with negative factor**
    *
    * .. math::
-   *   \inferrule{- \mid m, l \diamond r}{(m < 0 \land l \diamond r) \rightarrow m \cdot l \diamond_{inv} m \cdot r}
+   *   \inferrule{- \mid m, l \diamond r}{(m < 0 \land l \diamond r) \rightarrow
+   * m \cdot l \diamond_{inv} m \cdot r}
    *
    * where :math:`\diamond` is a relation symbol and :math:`\diamond_{inv}` the
    * inverted relation symbol.
@@ -1944,14 +1971,19 @@ enum class PfRule : uint32_t
    * **Arithmetic -- Multiplication tangent plane**
    *
    * .. math::
-   *   \inferruleSC{- \mid t, x, y, a, b, \sigma}{(t \leq tplane) \leftrightarrow ((x \leq a \land y \geq b) \lor (x \geq a \land y \leq b))}{if $\sigma = -1$}
+   *   \inferruleSC{- \mid t, x, y, a, b, \sigma}{(t \leq tplane)
+   * \leftrightarrow ((x \leq a \land y \geq b) \lor (x \geq a \land y \leq
+   * b))}{if $\sigma = -1$}
    *
-   *   \inferruleSC{- \mid t, x, y, a, b, \sigma}{(t \geq tplane) \leftrightarrow ((x \leq a \land y \leq b) \lor (x \geq a \land y \geq b))}{if $\sigma = 1$}
+   *   \inferruleSC{- \mid t, x, y, a, b, \sigma}{(t \geq tplane)
+   * \leftrightarrow ((x \leq a \land y \leq b) \lor (x \geq a \land y \geq
+   * b))}{if $\sigma = 1$}
    *
    * where :math:`x,y` are real terms (variables or extended terms),
    * :math:`t = x \cdot y` (possibly under rewriting), :math:`a,b` are real
-   * constants, :math:`\sigma \in \{ 1, -1\}` and :math:`tplane := b \cdot x + a \cdot y - a \cdot b` is the tangent plane of :math:`x \cdot y` at :math:`(a,b)`.
-   * \endverbatim
+   * constants, :math:`\sigma \in \{ 1, -1\}` and :math:`tplane := b \cdot x + a
+   * \cdot y - a \cdot b` is the tangent plane of :math:`x \cdot y` at
+   * :math:`(a,b)`. \endverbatim
    */
   ARITH_MULT_TANGENT,
 
@@ -2063,7 +2095,8 @@ enum class PfRule : uint32_t
    * **Arithmetic -- Transcendentals -- Exp is approximated from below**
    *
    * .. math::
-   *   \inferrule{- \mid d,c,t}{t \geq c \rightarrow exp(t) \geq \texttt{maclaurin}(\exp, d, c)}
+   *   \inferrule{- \mid d,c,t}{t \geq c \rightarrow exp(t) \geq
+   * \texttt{maclaurin}(\exp, d, c)}
    *
    * where :math:`d` is an odd positive number, :math:`t` an arithmetic term and
    * :math:`\texttt{maclaurin}(\exp, d, c)` is the :math:`d`'th taylor
@@ -2265,7 +2298,8 @@ enum class PfRule : uint32_t
    * **Arithmetic -- Coverings -- Recursive interval**
    *
    * See :cpp:enumerator:`ARITH_NL_COVERING_DIRECT
-   * <cvc5::internal::PfRule::ARITH_NL_COVERING_DIRECT>` for the necessary definitions.
+   * <cvc5::internal::PfRule::ARITH_NL_COVERING_DIRECT>` for the necessary
+   * definitions.
    *
    * .. math::
    *   \inferrule{\texttt{Cell}, \texttt{Covering} \mid -}{\bot}
@@ -2307,6 +2341,16 @@ enum class PfRule : uint32_t
    * \endverbatim
    */
   ALETHE_RULE,
+  //================================================ Place holder for Lean rules
+  // ======== Lean rule
+  // Children: (P1 ... Pn)
+  // Arguments: (id, Q, A1, ..., Am)
+  // ---------------------
+  // Conclusion: (Q)
+  // The id argument is a LeanRule, as defined in proof/lean/lean_rules.h
+  // This allows us to specify which rule in the Lean calculus the current rule
+  // corresponds to.
+  LEAN_RULE,
 
   //================================================= Unknown rule
   UNKNOWN,

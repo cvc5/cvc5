@@ -1,0 +1,53 @@
+; Basic rules
+
+; Note that ? is used for rules that can be used where Int/Real are
+; interchangable. This is because Int and Real are not comparable in our
+; type system.
+
+(define-rule arith-plus-zero ((t ? :list) (s ? :list)) (+ t 0 s) (+ t s))
+
+(define-rule arith-mul-one ((t ? :list) (s ? :list)) (* t 1 s) (* t s))
+(define-rule arith-mul-zero ((t ? :list) (s ? :list)) (* t 0 s) 0)
+
+;(define-rule arith-div-one ((t ?)) (/ t 1) t)
+
+(define-rule arith-int-div-one ((t Int)) (div t 1) t)
+
+(define-rule arith-neg-neg-one ((t ?)) (* (- 1) (* (- 1) t)) t)
+
+; Eliminations
+(define-rule arith-elim-uminus ((t ?)) (- t) (* (- 1) t))
+(define-rule arith-elim-minus ((t ?) (s ?)) (- t s) (+ t (* (- 1) s)))
+(define-rule arith-elim-gt ((t ?) (s ?)) (> t s) (not (<= t s)))
+(define-rule arith-elim-lt ((t ?) (s ?)) (< t s) (not (>= t s)))
+(define-rule arith-elim-leq ((t ?) (s ?)) (<= t s) (>= s t))
+
+(define-rule arith-leq-norm ((t Int) (s Int)) (<= t s) (not (>= t (+ s 1))))
+
+(define-rule arith-geq-tighten ((t Int) (s Int)) (not (>= t s)) (>= s (+ t 1)))
+
+(define-rule arith-geq-norm ((t ?) (s ?)) (>= t s) (>= (- t s) 0))
+
+(define-rule arith-refl-leq ((t ?)) (<= t t) true)
+(define-rule arith-refl-lt ((t ?)) (< t t) false)
+(define-rule arith-refl-geq ((t ?)) (>= t t) true)
+(define-rule arith-refl-gt ((t ?)) (> t t) false)
+
+;(define-cond-rule arith-geq-contra ((t ?) (s ?)) (not (>= (- t s) 0)) (>= t s) false)
+;(define-cond-rule arith-eq-contra ((t ?) (s ?)) (not (= (- t s) 0)) (= t s) false)
+
+(define-rule* arith-plus-flatten ((xs ? :list) (w ?) (ys ? :list) (zs ? :list))
+  (+ xs (+ w ys) zs)
+  (+ xs w ys zs))
+
+(define-rule* arith-mult-flatten ((xs ? :list) (w ?) (ys ? :list) (zs ? :list))
+  (* xs (* w ys) zs)
+  (* xs w ys zs))
+
+(define-rule* arith-mult-dist ((x ?) (y ?) (z ?) (w ? :list))
+  (* x (+ y z w))
+  (+ (* x y) (* x (+ z w))))
+
+(define-rule* arith-plus-cancel1 ((t ? :list) (x ?) (s ? :list) (r ? :list)) (+ t x s (* (- 1) x) r) (+ t s r))
+(define-rule* arith-plus-cancel2 ((t ? :list) (x ?) (s ? :list) (r ? :list)) (+ t (* (- 1) x) s x r) (+ t s r))
+

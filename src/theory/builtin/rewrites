@@ -1,0 +1,12 @@
+
+; ITE
+
+(define-rule ite-true-cond ((x ?) (y ?)) (ite true x y) x)
+(define-rule ite-false-cond ((x ?) (y ?)) (ite false x y) y)
+(define-rule ite-not-cond ((c Bool) (x ?) (y ?)) (ite (not c) x y) (ite c y x))
+(define-rule ite-eq-branch ((c Bool) (x ?)) (ite c x x) x)
+
+(define-rule ite-then-lookahead ((c Bool) (x ?) (y ?) (z ?)) (ite c (ite c x y) z) (ite c x z))
+(define-rule ite-else-lookahead ((c Bool) (x ?) (y ?) (z ?)) (ite c x (ite c y z)) (ite c x z))
+(define-rule ite-then-neg-lookahead ((c Bool) (x ?) (y ?) (z ?)) (ite c (ite (not c) x y) z) (ite c y z))
+(define-rule ite-else-neg-lookahead ((c Bool) (x ?) (y ?) (z ?)) (ite c x (ite (not c) y z)) (ite c x y))

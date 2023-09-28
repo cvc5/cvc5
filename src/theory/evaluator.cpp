@@ -23,6 +23,7 @@
 #include "theory/theory.h"
 #include "theory/uf/function_const.h"
 #include "util/integer.h"
+#include "theory/strings/regexp_eval.h"
 
 using namespace cvc5::internal::kind;
 
@@ -290,10 +291,24 @@ EvalResult Evaluator::evalInternal(
           }
           ptrdiff_t pos = std::distance(args.begin(), it);
           currNodeVal = vals[pos];
+          needsReconstruct = false;
           // Don't need to rewrite since range of substitution should already
           // be normalized.
         }
-        else
+        else if (currNode.getKind() == kind::STRING_IN_REGEXP)
+        {
+          EvalResult& er = results[currNode[0]];
+          if (er.d_tag==EvalResult::STRING && strings::RegExpEval::canEvaluate(currNode[1]))
+          {
+            String res = er.d_str;
+            Trace("evaluator") << "Evaluator: evaluate regexp membership " << res
+                              << " in " << currNode[1] << std::endl;
+            bool resReEv = strings::RegExpEval::evaluate(res, currNode[1]);
+            currNodeVal = NodeManager::currentNM()->mkConst(resReEv);
+            needsReconstruct = false;
+          }
+        }
+        if (needsReconstruct)
         {
           // Reconstruct the node with a combination of the children that
           // successfully evaluated, and the children that did not.
@@ -305,15 +320,18 @@ EvalResult Evaluator::evalInternal(
             // if we are able to turn it into a valid EvalResult.
             currNodeVal = d_rr->rewrite(currNodeVal);
           }
+          needsReconstruct = false;
         }
-        needsReconstruct = false;
         Trace("evaluator") << "Evaluator: now after substitution + rewriting: "
                            << currNodeVal << std::endl;
-        if (currNodeVal.getNumChildren() > 0)
+        if (currNodeVal.getNumChildren() > 0
+            && currNodeVal.getKind() != BITVECTOR_SIZE)
         {
           // We may continue with a valid EvalResult at this point only if
           // we have no children. We must otherwise fail here since some of
           // our children may not have successful evaluations.
+          // bvsize is a rare exception to this, where the evaluation does
+          // not depend on the value of the argument.
           results[currNode] = EvalResult();
           evalAsNode[currNode] = currNodeVal;
           continue;
@@ -612,6 +630,18 @@ EvalResult Evaluator::evalInternal(
             processUnhandled(
                 currNode, currNodeVal, evalAsNode, results, needsReconstruct);
           }
+          break;
+        }
+        case kind::INTS_ISPOW2:
+        {
+          const Rational& x = results[currNode[0]].d_rat;
+          results[currNode] = EvalResult(x.getNumerator().isPow2());
+          break;
+        }
+        case kind::INTS_LOG2:
+        {
+          const Rational& x = results[currNode[0]].d_rat;
+          results[currNode] = EvalResult(Rational(x.getNumerator().length() - 1));
           break;
         }
         case kind::CONST_STRING:
@@ -1103,6 +1133,37 @@ EvalResult Evaluator::evalInternal(
           const uint32_t size =
               currNodeVal.getOperator().getConst<IntToBitVector>().d_size;
           results[currNode] = EvalResult(BitVector(size, i));
+          break;
+        }
+        case kind::CONST_BITVECTOR_SYMBOLIC:
+        {
+          Integer i = results[currNode[0]].d_rat.getNumerator();
+          Integer w = results[currNode[1]].d_rat.getNumerator();
+          if (w.fitsUnsignedInt())
+          {
+            Trace("evaluator") << currNode << " evalutes to "
+                               << BitVector(w.toUnsignedInt(), i) << std::endl;
+            results[currNode] = EvalResult(BitVector(w.toUnsignedInt(), i));
+          }
+          else
+          {
+            processUnhandled(
+                currNode, currNodeVal, evalAsNode, results, needsReconstruct);
+          }
+          break;
+        }
+        case kind::BITVECTOR_SIZE:
+        {
+          const TypeNode& tn = currNode[0].getType();
+          if (tn.isBitVector())
+          {
+            results[currNode] = EvalResult(Rational(tn.getBitVectorSize()));
+          }
+          else
+          {
+            processUnhandled(
+                currNode, currNodeVal, evalAsNode, results, needsReconstruct);
+          }
           break;
         }
         default:

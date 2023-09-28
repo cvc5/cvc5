@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Mathias Preiner, Clark Barrett
+ *   Andrew Reynolds, Aina Niemetz, Clark Barrett
  *
  * This file is part of the cvc5 project.
  *
@@ -163,7 +163,12 @@ bool ArrayStoreTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
     return false;
   }
 
-  TypeNode itype = index.getType();
+  TypeNode itype = index.getTypeOrNull();
+  // if the index is ill-typed, just return false
+  if (itype.isNull())
+  {
+    return false;
+  }
   CardinalityClass itcc = itype.getCardinalityClass();
 
   if (itcc != CardinalityClass::FINITE && itcc != CardinalityClass::ONE)
@@ -172,7 +177,7 @@ bool ArrayStoreTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
   }
 
   // Get the cardinality of the index type
-  Cardinality indexCard = itype.getCardinality();
+  Cardinality indexCard = index.getTypeOrNull().getCardinality();
 
   if (indexCard.isInfinite())
   {

@@ -322,8 +322,8 @@ Node buildRealEquality(Sum&& sum)
   lhs = ensureReal(lhs);
   Node rhs = collectSum(sum);
   rhs = ensureReal(rhs);
-  Assert(lhs.getType().isReal() && !lhs.getType().isInteger());
-  Assert(rhs.getType().isReal() && !rhs.getType().isInteger());
+  Assert(lhs.getType().isReal() || lhs.getType().isFullyAbstract());
+  Assert(rhs.getType().isReal() || rhs.getType().isFullyAbstract());
   return buildRelation(Kind::EQUAL, lhs, rhs);
 }
 

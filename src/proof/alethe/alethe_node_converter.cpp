@@ -29,7 +29,6 @@ Node AletheNodeConverter::postConvert(Node n)
   switch (k)
   {
     case kind::SKOLEM:
-    case kind::BOOLEAN_TERM_VARIABLE:
     {
       Trace("alethe-conv") << "AletheNodeConverter: handling skolem " << n
                            << "\n";

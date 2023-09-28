@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# $1 text file containing statistics output
+# $2 (substring of) the name of a (set of) normal stats
+# this script will aggregate the totals of that stat and print as a CSV
+
+cat $1 | grep $2 > temp-rc.txt
+sed -i $'s/[^[:print:]\t]//g' temp-rc.txt
+sed -i "s/\[92m+//g; s/\[93m//g; s/ = /,/g" temp-rc.txt
+#echo "=== Aggregated total for $2:"
+awk -F, '{a[$1]+=$2;}END{for(i in a)print i", "a[i];}' temp-rc.txt
+#echo "======================"
+rm temp-rc.txt

@@ -37,6 +37,7 @@
 #include <algorithm>
 
 #include "base/check.h"
+#include "expr/node_algorithm.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/fp/fp_word_blaster.h"
 #include "util/floatingpoint.h"
@@ -1362,18 +1363,24 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
    * implementation here can do nothing.
    */
 
-  RewriteResponse TheoryFpRewriter::preRewrite(TNode node) {
-    Trace("fp-rewrite") << "TheoryFpRewriter::preRewrite(): " << node << std::endl;
-    RewriteResponse res = d_preRewriteTable[node.getKind()](node, true);
-    if (res.d_node != node)
-    {
-      Trace("fp-rewrite") << "TheoryFpRewriter::preRewrite(): before " << node << std::endl;
-      Trace("fp-rewrite") << "TheoryFpRewriter::preRewrite(): after  "
-                          << res.d_node << std::endl;
-    }
-    return res;
+RewriteResponse TheoryFpRewriter::preRewrite(TNode node)
+{
+  if (expr::hasAbstractSubterm(node))
+  {
+    return RewriteResponse(REWRITE_DONE, node);
   }
-
+  Trace("fp-rewrite") << "TheoryFpRewriter::preRewrite(): " << node
+                      << std::endl;
+  RewriteResponse res = d_preRewriteTable[node.getKind()](node, true);
+  if (res.d_node != node)
+  {
+    Trace("fp-rewrite") << "TheoryFpRewriter::preRewrite(): before " << node
+                        << std::endl;
+    Trace("fp-rewrite") << "TheoryFpRewriter::preRewrite(): after  "
+                        << res.d_node << std::endl;
+  }
+  return res;
+}
 
   /**
    * Rewrite a node into the normal form for the theory of fp.
@@ -1398,6 +1405,10 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
    */
 
   RewriteResponse TheoryFpRewriter::postRewrite(TNode node) {
+    if (expr::hasAbstractSubterm(node))
+    {
+      return RewriteResponse(REWRITE_DONE, node);
+    }
     Trace("fp-rewrite") << "TheoryFpRewriter::postRewrite(): " << node << std::endl;
     RewriteResponse res = d_postRewriteTable[node.getKind()](node, false);
     if (res.d_node != node)

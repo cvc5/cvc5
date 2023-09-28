@@ -33,6 +33,7 @@ void QuantifiersProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::SKOLEMIZE, this);
   pc->registerChecker(PfRule::INSTANTIATE, this);
   pc->registerChecker(PfRule::ALPHA_EQUIV, this);
+  pc->registerChecker(PfRule::EXISTS_ELIM, this);
   // trusted rules
   pc->registerTrustedChecker(PfRule::QUANTIFIERS_PREPROCESS, this, 3);
 }
@@ -99,10 +100,6 @@ Node QuantifiersProofRuleChecker::checkInternal(
   else if (id == PfRule::ALPHA_EQUIV)
   {
     Assert(children.empty());
-    if (args[0].getKind() != kind::FORALL)
-    {
-      return Node::null();
-    }
     // arguments must be equalities that are bound variables that are
     // pairwise unique
     std::unordered_set<Node> allVars[2];
@@ -130,6 +127,22 @@ Node QuantifiersProofRuleChecker::checkInternal(
     Node renamedBody = args[0].substitute(
         vars.begin(), vars.end(), newVars.begin(), newVars.end());
     return args[0].eqNode(renamedBody);
+  }
+  else if (id == PfRule::EXISTS_ELIM)
+  {
+    Assert(children.empty());
+    if (args[0].getKind() != kind::EXISTS)
+    {
+      return Node::null();
+    }
+    std::vector<Node> forallChildren;
+    forallChildren.push_back(args[0][0]);
+    forallChildren.push_back(args[0][1].negate());
+    if (args[0].getNumChildren() == 3)
+    {
+      forallChildren.push_back(args[0][2]);
+    }
+    return args[0].eqNode(nm->mkNode(NOT, nm->mkNode(FORALL, forallChildren)));
   }
   else if (id == PfRule::QUANTIFIERS_PREPROCESS)
   {

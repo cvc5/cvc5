@@ -71,7 +71,7 @@ void Subs::add(const std::vector<Node>& vs)
 
 void Subs::add(const Node& v, const Node& s)
 {
-  Assert(s.isNull() || v.getType() == s.getType());
+  Assert(s.isNull() || v.getType().isComparableTo(s.getType()));
   d_vars.push_back(v);
   d_subs.push_back(s);
 }

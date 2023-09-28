@@ -73,6 +73,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   // external proof rules
   pc->registerChecker(PfRule::LFSC_RULE, this);
   pc->registerChecker(PfRule::ALETHE_RULE, this);
+  pc->registerChecker(PfRule::LEAN_RULE, this);
 
   d_rdb = pc->getRewriteDatabase();
 }
@@ -407,7 +408,8 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(args[0].getType().isBoolean());
     return args[0];
   }
-  else if (id == PfRule::LFSC_RULE || id == PfRule::ALETHE_RULE)
+  else if (id == PfRule::LFSC_RULE || id == PfRule::ALETHE_RULE
+           || id == PfRule::LEAN_RULE)
   {
     Assert(args.size() > 1);
     Assert(args[0].getType().isInteger());

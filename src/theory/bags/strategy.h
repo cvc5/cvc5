@@ -41,8 +41,10 @@ enum InferStep
   CHECK_INIT,
   // check bag operator
   CHECK_BAG_MAKE,
-  // check basic operations
+  // check basic operations without quantifiers
   CHECK_BASIC_OPERATIONS,
+  // check operations with quantifiers
+  CHECK_QUANTIFIED_OPERATIONS,
   // check cardinality constraints
   CHECK_CARDINALITY_CONSTRAINTS
 };

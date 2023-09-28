@@ -45,7 +45,7 @@ if(NOT Poly_FOUND_SYSTEM)
 
   include(ExternalProject)
 
-  set(Poly_VERSION "126147f1ceae9f771a68bad9cbc199cf96daec46")
+  set(Poly_VERSION "0.1.13")
 
   check_if_cross_compiling(CCWIN "Windows" "")
   if(CCWIN)
@@ -81,9 +81,9 @@ if(NOT Poly_FOUND_SYSTEM)
     if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
       set(POLY_BYPRODUCTS
         <INSTALL_DIR>/lib/libpoly.0${CMAKE_SHARED_LIBRARY_SUFFIX}
-        <INSTALL_DIR>/lib/libpoly.0.1.11${CMAKE_SHARED_LIBRARY_SUFFIX}
+        <INSTALL_DIR>/lib/libpoly.${Poly_VERSION}${CMAKE_SHARED_LIBRARY_SUFFIX}
         <INSTALL_DIR>/lib/libpolyxx.0${CMAKE_SHARED_LIBRARY_SUFFIX}
-        <INSTALL_DIR>/lib/libpolyxx.0.1.11${CMAKE_SHARED_LIBRARY_SUFFIX}
+        <INSTALL_DIR>/lib/libpolyxx.${Poly_VERSION}${CMAKE_SHARED_LIBRARY_SUFFIX}
         <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}
         <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
       )
@@ -100,9 +100,9 @@ if(NOT Poly_FOUND_SYSTEM)
     else()
       set(POLY_BYPRODUCTS
         <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}.0
-        <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}.0.1.11
+        <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}.${Poly_VERSION}
         <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}.0
-        <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}.0.1.11
+        <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}.${Poly_VERSION}
         <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}
         <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
       )
@@ -157,8 +157,8 @@ if(NOT Poly_FOUND_SYSTEM)
   ExternalProject_Add(
     Poly-EP
     ${COMMON_EP_CONFIG}
-    URL https://github.com/SRI-CSL/libpoly/archive/${Poly_VERSION}.tar.gz
-    URL_HASH SHA1=5ebbd00c8dc8b731b5382701a23c60607bcb2804
+    URL https://github.com/SRI-CSL/libpoly/archive/refs/tags/v${Poly_VERSION}.tar.gz
+    URL_HASH SHA1=981ff0081bed0d1e604000a3092e7af8881b7a5e
     PATCH_COMMAND
       sed -i.orig
       "s,add_subdirectory(test/polyxx),add_subdirectory(test/polyxx EXCLUDE_FROM_ALL),g"

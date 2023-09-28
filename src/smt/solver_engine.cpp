@@ -37,6 +37,7 @@
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
+#include "preprocessing/passes/synth_rew_rules.h"
 #include "printer/printer.h"
 #include "proof/unsat_core.h"
 #include "prop/prop_engine.h"
@@ -46,6 +47,7 @@
 #include "smt/context_manager.h"
 #include "smt/env.h"
 #include "smt/expand_definitions.h"
+#include "smt/find_synth_solver.h"
 #include "smt/interpolation_solver.h"
 #include "smt/listeners.h"
 #include "smt/logic_exception.h"
@@ -64,9 +66,15 @@
 #include "smt/sygus_solver.h"
 #include "smt/timeout_core_manager.h"
 #include "smt/unsat_core_manager.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
+#include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/instantiation_list.h"
 #include "theory/quantifiers/oracle_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/query_generator.h"
+#include "theory/quantifiers/rewrite_verifier.h"
+#include "theory/quantifiers/sygus/sygus_enumerator.h"
+#include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
@@ -76,6 +84,7 @@
 #include "util/resource_manager.h"
 #include "util/sexpr.h"
 #include "util/statistics_registry.h"
+#include "util/string.h"
 
 // required for hacks related to old proofs for unsat cores
 #include "base/configuration.h"
@@ -104,6 +113,7 @@ SolverEngine::SolverEngine(const Options* optr)
       d_abductSolver(nullptr),
       d_interpolSolver(nullptr),
       d_quantElimSolver(nullptr),
+      d_userLogicSet(false),
       d_isInternalSubsolver(false),
       d_stats(nullptr)
 {
@@ -280,6 +290,7 @@ void SolverEngine::setLogic(const LogicInfo& logic)
   }
   d_env->d_logic = logic;
   d_userLogic = logic;
+  d_userLogicSet = true;
   setLogicInternal();
 }
 
@@ -295,7 +306,7 @@ void SolverEngine::setLogic(const std::string& s)
   }
 }
 
-void SolverEngine::setLogic(const char* logic) { setLogic(string(logic)); }
+bool SolverEngine::isLogicSet() const { return d_userLogicSet; }
 
 const LogicInfo& SolverEngine::getLogicInfo() const
 {
@@ -501,6 +512,13 @@ void SolverEngine::debugCheckFunctionBody(Node formula,
       throw TypeCheckingExceptionPrivate(func, ss.str());
     }
   }
+}
+
+void SolverEngine::declareConst(const Node& c) { d_state->notifyDeclaration(); }
+
+void SolverEngine::declareSort(const TypeNode& tn)
+{
+  d_state->notifyDeclaration();
 }
 
 void SolverEngine::defineFunction(Node func,
@@ -758,6 +776,14 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
       checkProof();
     }
   }
+  else if (d_env->getOptions().proof.produceFinalProof
+           && r.getStatus() == Result::UNSAT)
+  {
+    PropEngine* pe = d_smtSolver->getPropEngine();
+    Assert(pe->getProof() != nullptr);
+    std::shared_ptr<ProofNode> pePfn = pe->getProof();
+    d_pfManager->connectProofToAssertions(pePfn, *d_smtSolver.get());
+  }
   // Check that UNSAT results generate an unsat core correctly.
   if (d_env->getOptions().smt.checkUnsatCores)
   {
@@ -794,9 +820,21 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore()
   {
     passerts.push_back(a);
   }
-  std::pair<Result, std::vector<Node>> ret = tcm.getTimeoutCore(passerts);
+  const context::CDHashMap<size_t, Node>& ppsm =
+      d_smtSolver->getPreprocessedSkolemMap();
+  std::map<size_t, Node> ppSkolemMap;
+  for (auto& pk : ppsm)
+  {
+    ppSkolemMap[pk.first] = pk.second;
+  }
+  std::pair<Result, std::vector<Node>> ret =
+      tcm.getTimeoutCore(passerts, ppSkolemMap);
   // convert the preprocessed assertions to input assertions
-  std::vector<Node> core = convertPreprocessedToInput(ret.second, true);
+  std::vector<Node> core;
+  if (!ret.second.empty())
+  {
+    core = convertPreprocessedToInput(ret.second, true);
+  }
   endCall();
   return std::pair<Result, std::vector<Node>>(ret.first, core);
 }
@@ -913,6 +951,85 @@ SynthResult SolverEngine::checkSynth(bool isNext)
   SynthResult r = d_sygusSolver->checkSynth(isNext);
   d_state->notifyCheckSynthResult(r);
   return r;
+}
+
+Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
+{
+  Trace("smt") << "SolverEngine::findSynth " << fst << std::endl;
+  beginCall(true);
+  // The grammar(s) we will use. This may be more than one if doing rewrite
+  // rule synthesis from input or if no grammar is specified, indicating we
+  // wish to use grammars for each function-to-synthesize.
+  std::vector<TypeNode> gtnu;
+  if (!gtn.isNull())
+  {
+    // Must generalize the free symbols in the grammar to variables. Otherwise,
+    // certain algorithms (e.g. sampling) will fail to treat the free symbols
+    // of the grammar as inputs to the term to find.
+    TypeNode ggtn = theory::datatypes::utils::generalizeSygusType(gtn);
+    gtnu.push_back(ggtn);
+  }
+  // if synthesizing rewrite rules from input, we infer the grammar here
+  if (fst == modes::FindSynthTarget::REWRITE_INPUT)
+  {
+    if (!gtn.isNull())
+    {
+      Warning() << "Ignoring grammar provided to find-synth :rewrite_input"
+                << std::endl;
+    }
+    uint64_t nvars = options().quantifiers.sygusRewSynthInputNVars;
+    std::vector<Node> asserts = getAssertionsInternal();
+    gtnu = preprocessing::passes::SynthRewRulesPass::getGrammarsFrom(asserts,
+                                                                     nvars);
+    if (gtnu.empty())
+    {
+      Warning() << "Could not find grammar in find-synth :rewrite_input"
+                << std::endl;
+      return Node::null();
+    }
+  }
+  if (d_sygusSolver != nullptr && gtnu.empty())
+  {
+    // if no type provided, and the sygus solver exists,
+    std::vector<std::pair<Node, TypeNode>> funs =
+        d_sygusSolver->getSynthFunctions();
+    for (const std::pair<Node, TypeNode>& f : funs)
+    {
+      if (!f.second.isNull())
+      {
+        gtnu.push_back(f.second);
+      }
+    }
+  }
+  if (gtnu.empty())
+  {
+    throw RecoverableModalException(
+        "No grammar available in call to find-synth. Either provide one or "
+        "ensure synth-fun has been called.");
+  }
+  // initialize find synthesis solver if not done so already
+  if (d_findSynthSolver == nullptr)
+  {
+    d_findSynthSolver.reset(new FindSynthSolver(*d_env.get()));
+  }
+  Node ret = d_findSynthSolver->findSynth(fst, gtnu);
+  d_state->notifyFindSynth(!ret.isNull());
+  endCall();
+  return ret;
+}
+
+Node SolverEngine::findSynthNext()
+{
+  beginCall();
+  if (d_state->getMode() != SmtMode::FIND_SYNTH)
+  {
+    throw RecoverableModalException(
+        "Cannot find-synth-next unless immediately preceded by a successful "
+        "call to find-synth(-next).");
+  }
+  Node ret = d_findSynthSolver->findSynthNext();
+  d_state->notifyFindSynth(!ret.isNull());
+  return ret;
 }
 
 /*
@@ -1346,6 +1463,12 @@ void SolverEngine::checkProof()
   }
   Assert(pe->getProof() != nullptr);
   std::shared_ptr<ProofNode> pePfn = pe->getProof();
+  // TEMPORARY for testing, this can be used to count how often checkProofs is
+  // called
+  if (d_env->getOptions().proof.checkProofsFail)
+  {
+    AlwaysAssert(false) << "Fail due to --check-proofs-fail";
+  }
   if (d_env->getOptions().smt.checkProofs)
   {
     // connect proof to assertions, which will fail if the proof is malformed
@@ -1511,9 +1634,10 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   {
     throw ModalException("Cannot get a proof when proof option is off.");
   }
-  // The component modes::PROOF_COMPONENT_PREPROCESS returns the proof of
-  // all preprocessed assertions. It does not require being in an unsat state.
-  if (c != modes::PROOF_COMPONENT_RAW_PREPROCESS
+  // The component modes::ProofComponent::PREPROCESS returns
+  // the proof of all preprocessed assertions. It does not require being in an
+  // unsat state.
+  if (c != modes::ProofComponent::RAW_PREPROCESS
       && d_state->getMode() != SmtMode::UNSAT)
   {
     throw RecoverableModalException(
@@ -1528,7 +1652,7 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   bool connectMkOuterScope = false;
   bool commentProves = true;
   options::ProofFormatMode mode = options::ProofFormatMode::NONE;
-  if (c == modes::PROOF_COMPONENT_RAW_PREPROCESS)
+  if (c == modes::ProofComponent::RAW_PREPROCESS)
   {
     // use all preprocessed assertions
     const context::CDList<Node>& assertions =
@@ -1542,20 +1666,20 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
       ps.push_back(pnm->mkAssume(a));
     }
   }
-  else if (c == modes::PROOF_COMPONENT_SAT)
+  else if (c == modes::ProofComponent::SAT)
   {
     ps.push_back(pe->getProof(false));
     // don't need to comment that it proves false
     commentProves = false;
   }
-  else if (c == modes::PROOF_COMPONENT_THEORY_LEMMAS
-           || c == modes::PROOF_COMPONENT_PREPROCESS)
+  else if (c == modes::ProofComponent::THEORY_LEMMAS
+           || c == modes::ProofComponent::PREPROCESS)
   {
     ps = pe->getProofLeaves(c);
     // connect to preprocess proofs for preprocess mode
-    connectToPreprocess = (c == modes::PROOF_COMPONENT_PREPROCESS);
+    connectToPreprocess = (c == modes::ProofComponent::PREPROCESS);
   }
-  else if (c == modes::PROOF_COMPONENT_FULL)
+  else if (c == modes::ProofComponent::FULL)
   {
     ps.push_back(pe->getProof(true));
     connectToPreprocess = true;

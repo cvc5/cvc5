@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <unordered_set>
 
+#include "expr/algorithm/flatten.h"
 #include "expr/node_value.h"
 #include "util/cardinality.h"
 
@@ -47,60 +48,45 @@ RewriteResponse TheoryBoolRewriter::postRewrite(TNode node) {
  */
 RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
 {
-  typedef std::unordered_set<TNode> node_set;
-
-  node_set visited;
+  // first flatten
+  Node nf = expr::algorithm::flatten(n);
+  if (nf != n)
+  {
+    return RewriteResponse(REWRITE_AGAIN, nf);
+  }
+  // then do duplicate elimination and trivial node finding
+  std::vector<TNode> childList;
+  std::unordered_set<TNode> visited;
   visited.insert(skipNode);
-
-  std::vector<TNode> toProcess;
-  toProcess.push_back(n);
-
-  Kind k = n.getKind();
-  typedef std::vector<TNode> ChildList;
-  ChildList childList;   //TNode should be fine, since 'n' is still there
-
-  for (unsigned i = 0; i < toProcess.size(); ++ i) {
-    TNode current = toProcess[i];
-    for(unsigned j = 0, j_end = current.getNumChildren(); j < j_end; ++ j) {
-      TNode child = current[j];
-      if(visited.find(child) != visited.end()) {
-        continue;
-      } else if(child == trivialNode) {
-        return RewriteResponse(REWRITE_DONE, trivialNode);
-      } else {
-        visited.insert(child);
-        if(child.getKind() == k)
-          toProcess.push_back(child);
-        else
-          childList.push_back(child);
-      }
-    }
-  }
-  if (childList.size() == 0) return RewriteResponse(REWRITE_DONE, skipNode);
-  if (childList.size() == 1) return RewriteResponse(REWRITE_AGAIN, childList[0]);
-
-  /* Trickery to stay under number of children possible in a node */
-  NodeManager* nodeManager = NodeManager::currentNM();
-  if (childList.size() < expr::NodeValue::MAX_CHILDREN)
+  bool hadDups = false;
+  for (TNode nn : n)
   {
-    Node retNode = nodeManager->mkNode(k, childList);
-    return RewriteResponse(REWRITE_DONE, retNode);
-  }
-  else
-  {
-    Assert(childList.size()
-           < static_cast<size_t>(expr::NodeValue::MAX_CHILDREN)
-                 * static_cast<size_t>(expr::NodeValue::MAX_CHILDREN));
-    NodeBuilder nb(k);
-    ChildList::iterator cur = childList.begin(), next, en = childList.end();
-    while (cur != en)
+    if (nn == trivialNode)
     {
-      next = min(cur + expr::NodeValue::MAX_CHILDREN, en);
-      nb << (nodeManager->mkNode(k, ChildList(cur, next)));
-      cur = next;
+      return RewriteResponse(REWRITE_DONE, trivialNode);
     }
-    return RewriteResponse(REWRITE_DONE, nb.constructNode());
+    if (visited.find(nn) != visited.end())
+    {
+      hadDups = true;
+      continue;
+    }
+    visited.insert(nn);
+    childList.push_back(nn);
   }
+  if (hadDups)
+  {
+    if (childList.empty())
+    {
+      return RewriteResponse(REWRITE_DONE, skipNode);
+    }
+    if (childList.size() == 1)
+    {
+      return RewriteResponse(REWRITE_AGAIN, childList[0]);
+    }
+    Node nn = NodeManager::currentNM()->mkNode(n.getKind(), childList);
+    return RewriteResponse(REWRITE_AGAIN, nn);
+  }
+  return RewriteResponse(REWRITE_DONE, n);
 }
 
 // Equality parity returns
@@ -368,9 +354,6 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
           << "TheoryBoolRewriter::preRewrite_ITE:  equalityParity n[1], n[2] "
           << parityTmp << " " << n << ": " << resp << std::endl;
       return RewriteResponse(REWRITE_AGAIN, resp);
-    // Curiously, this rewrite affects several benchmarks dramatically, including copy_array and some simple_startup - disable for now
-    // } else if (n[0].getKind() == kind::NOT) {
-    //   return RewriteResponse(REWRITE_AGAIN, n[0][0].iteNode(n[2], n[1]));
     } else if(!n[1].isConst() && (parityTmp = equalityParity(n[0], n[1])) != 0){
       // (parityTmp == 1) if n[0] == n[1]
       // otherwise, n[0] == not(n[1]) or not(n[0]) == n[1]

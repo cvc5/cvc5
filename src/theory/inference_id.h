@@ -40,6 +40,7 @@ namespace theory {
  */
 enum class InferenceId
 {
+  NONE,
   // ---------------------------------- core
   // a conflict when two constants merge in the equality engine (of any theory)
   EQ_CONSTANT_MERGE,
@@ -381,6 +382,9 @@ enum class InferenceId
   // For example, (= (f c) d) where (c, d) is an I/O pair obtained from calling
   // the oracle associated with oracle function f.
   QUANTIFIERS_ORACLE_INTERFACE,
+  // purification lemma to ensure oracle functions in substitutions are taken
+  // into account
+  QUANTIFIERS_ORACLE_PURIFY_SUBS,
   //-------------------- syntax-guided instantiation
   // a counterexample lemma
   QUANTIFIERS_SYQI_CEX,

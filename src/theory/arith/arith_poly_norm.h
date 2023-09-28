@@ -50,6 +50,8 @@ class PolyNorm
   void subtract(const PolyNorm& p);
   /** Multiply this polynomial by p */
   void multiply(const PolyNorm& p);
+  /** Modulus by constant c */
+  void mod(const Rational& c);
   /** Clear this polynomial */
   void clear();
   /** Return true if this polynomial is empty */
@@ -57,14 +59,29 @@ class PolyNorm
   /** Is this polynomial equal to polynomial p? */
   bool isEqual(const PolyNorm& p) const;
   /**
+   * Is this polynomial equal to polynomial p*c for some c? If so, return
+   * true and store in c.
+   */
+  bool isEqualMod(const PolyNorm& p, Rational& c) const;
+  /**
    * Make polynomial from real term n. This method normalizes applications
    * of operators ADD, SUB, NEG, MULT, and NONLINEAR_MULT only.
    */
   static PolyNorm mkPolyNorm(TNode n);
-  /** Do a and b normalize to the same polynomial? */
+  /**
+   * If a and b are real/int terms, do a and b normalize to the same polynomial?
+   * If a and b are real/int atoms, do they normalize to atoms over the same
+   * polynomial?
+   */
   static bool isArithPolyNorm(TNode a, TNode b);
+  /** Do a and b normalize to an atom over the same polynomial? */
+  static bool isArithPolyNormAtom(TNode a, TNode b);
 
  private:
+  /**
+   * Make the difference of two nodes a and b, independent of their type.
+   */
+  static PolyNorm mkDiff(TNode a, TNode b);
   /**
    * Given two terms that are variables in monomials, return the
    * variable for the monomial when they are multiplied.

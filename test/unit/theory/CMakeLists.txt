@@ -19,6 +19,8 @@ cvc5_add_unit_test_black(regexp_operation_black theory)
 cvc5_add_unit_test_black(theory_black theory)
 cvc5_add_unit_test_white(evaluator_white theory)
 cvc5_add_unit_test_white(logic_info_white theory)
+# FIXME: must be updated to google tests
+#cvc4_add_cxx_unit_test_white(rewriter_white theory)
 cvc5_add_unit_test_white(sequences_rewriter_white theory)
 cvc5_add_unit_test_white(strings_rewriter_white theory)
 cvc5_add_unit_test_white(theory_arith_pow2_white theory)

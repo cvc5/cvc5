@@ -22,6 +22,8 @@
 #include "proof/alethe/alethe_post_processor.h"
 #include "proof/alethe/alethe_printer.h"
 #include "proof/dot/dot_printer.h"
+#include "proof/lean/lean_post_processor.h"
+#include "proof/lean/lean_printer.h"
 #include "proof/lfsc/lfsc_post_processor.h"
 #include "proof/lfsc/lfsc_printer.h"
 #include "proof/proof_checker.h"
@@ -163,6 +165,7 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
   Trace("smt-proof")
       << "SolverEngine::connectProofToAssertions(): postprocess...\n";
   Assert(d_pfpp != nullptr);
+  d_pfpp->setAssertions(assertions);
   d_pfpp->process(pfn, pppg);
 
   switch (scopeMode)
@@ -235,6 +238,14 @@ void PfManager::printProof(std::ostream& out,
     proof::DotPrinter dotPrinter(d_env);
     dotPrinter.print(out, fp.get());
   }
+  else if (mode == options::ProofFormatMode::LEAN)
+  {
+    Assert(fp->getRule() == PfRule::SCOPE);
+    std::vector<Node> assertions = fp->getArguments();
+    proof::LeanProofPostprocess lpfpp(d_env);
+    lpfpp.process(fp);
+    proof::LeanPrinter::print(out, assertions, fp);
+  }
   else if (mode == options::ProofFormatMode::ALETHE)
   {
     proof::AletheNodeConverter anc;
@@ -252,15 +263,6 @@ void PfManager::printProof(std::ostream& out,
     lpp.process(fp);
     proof::LfscPrinter lp(d_env, ltp, d_rewriteDb.get());
     lp.print(out, fp.get());
-  }
-  else if (mode == options::ProofFormatMode::TPTP)
-  {
-    out << "% SZS output start Proof for " << options().driver.filename
-        << std::endl;
-    // TODO (proj #37) print in TPTP compliant format
-    out << *fp << std::endl;
-    out << "% SZS output end Proof for " << options().driver.filename
-        << std::endl;
   }
   else
   {

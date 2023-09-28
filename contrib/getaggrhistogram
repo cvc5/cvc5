@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# $1 text file containing statistics output
+# $2 name for a histogram stat (e.g. finalProof::ruleCount)
+# this script will aggregate the totals of that stat and print as a CSV
+
+cat $1 | grep $2 > temp-rc.txt
+sed -i $'s/[^[:print:]\t]//g' temp-rc.txt
+sed -i "s/\[92m+//g; s/\[93m//g; s/$2[^{]*{//g; s/,/\n/g; s/ //g; s/}//g; s/:/,/g" temp-rc.txt
+sed -i '/^$/d' temp-rc.txt
+awk -F, '{a[$1]+=$2;}END{for(i in a)print i", "a[i];}' temp-rc.txt | sort
+rm temp-rc.txt
