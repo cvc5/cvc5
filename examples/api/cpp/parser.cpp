@@ -38,7 +38,7 @@ int main()
   ss << "(declare-fun c () Int)" << std::endl;
   ss << "(assert (> a (+ b c)))" << std::endl;
   ss << "(check-sat)" << std::endl;
-  parser.setStreamInput("LANG_SMTLIB_V2_6", ss, "MyStream");
+  parser.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ss, "MyStream");
 
   // get the symbol manager of the parser, used when invoking commands below
   SymbolManager* sm = parser.getSymbolManager();

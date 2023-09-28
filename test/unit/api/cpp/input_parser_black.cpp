@@ -38,7 +38,7 @@ class TestInputParserBlack : public TestParser
 
   Command parseLogicCommand(InputParser& p, const std::string& logic)
   {
-    p.setIncrementalStringInput("LANG_SMTLIB_V2_6", "input_parser_black");
+    p.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6, "input_parser_black");
     std::stringstream ss;
     ss << "(set-logic " << logic << ")" << std::endl;
     p.appendIncrementalStringInput(ss.str());
@@ -69,7 +69,7 @@ TEST_F(TestInputParserBlack, setStreamInput)
   ss << "(set-logic QF_LIA)" << std::endl;
   ss << "(declare-fun a () Bool)" << std::endl;
   ss << "(declare-fun b () Int)" << std::endl;
-  p.setStreamInput("LANG_SMTLIB_V2_6", ss, "input_parser_black");
+  p.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ss, "input_parser_black");
   Command cmd;
   std::stringstream out;
   while (true)
@@ -87,7 +87,7 @@ TEST_F(TestInputParserBlack, setAndAppendIncrementalStringInput)
 {
   std::stringstream out;
   InputParser p(&d_solver);
-  p.setIncrementalStringInput("LANG_SMTLIB_V2_6", "input_parser_black");
+  p.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6, "input_parser_black");
   Command cmd;
   p.appendIncrementalStringInput("(set-logic ALL)");
   cmd = p.nextCommand();
@@ -108,7 +108,7 @@ TEST_F(TestInputParserBlack, nextCommand)
   InputParser p(&d_solver);
   ASSERT_THROW(p.nextCommand(), CVC5ApiException);
   std::stringstream ss;
-  p.setStreamInput("LANG_SMTLIB_V2_6", ss, "input_parser_black");
+  p.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ss, "input_parser_black");
   Command cmd = p.nextCommand();
   ASSERT_EQ(cmd.isNull(), true);
 }
@@ -118,7 +118,7 @@ TEST_F(TestInputParserBlack, nextTerm)
   InputParser p(&d_solver);
   ASSERT_THROW(p.nextTerm(), CVC5ApiException);
   std::stringstream ss;
-  p.setStreamInput("LANG_SMTLIB_V2_6", ss, "input_parser_black");
+  p.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ss, "input_parser_black");
   ASSERT_EQ(p.nextTerm().isNull(), true);
 }
 
@@ -126,7 +126,7 @@ TEST_F(TestInputParserBlack, nextTerm2)
 {
   std::stringstream out;
   InputParser p(&d_solver, d_symman.get());
-  p.setIncrementalStringInput("LANG_SMTLIB_V2_6", "input_parser_black");
+  p.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6, "input_parser_black");
   // parse a declaration command
   p.appendIncrementalStringInput("(declare-fun a () Int)");
   Command cmd = p.nextCommand();
@@ -166,7 +166,7 @@ TEST_F(TestInputParserBlack, multipleParsers)
   // possible to construct another parser with a fresh solver
   Solver s2;
   InputParser p3(&s2, d_symman.get());
-  p3.setIncrementalStringInput("LANG_SMTLIB_V2_6", "input_parser_black");
+  p3.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6, "input_parser_black");
   // logic is automatically set on the solver
   ASSERT_EQ(s2.isLogicSet(), true);
   ASSERT_EQ(s2.getLogic(), "QF_LIA");
@@ -177,14 +177,14 @@ TEST_F(TestInputParserBlack, multipleParsers)
   Solver s3;
   s3.setLogic("QF_LIA");
   InputParser p4(&s3, d_symman.get());
-  p4.setIncrementalStringInput("LANG_SMTLIB_V2_6", "input_parser_black");
+  p4.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6, "input_parser_black");
 
   // using a solver with a different logic is not allowed
   Solver s4;
   s4.setLogic("QF_LRA");
   InputParser p5(&s4, d_symman.get());
   ASSERT_THROW(
-      p5.setIncrementalStringInput("LANG_SMTLIB_V2_6", "input_parser_black"),
+      p5.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6, "input_parser_black"),
       CVC5ApiException);
 }
 

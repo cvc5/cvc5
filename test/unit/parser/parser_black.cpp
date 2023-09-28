@@ -68,7 +68,7 @@ class TestParserBlack : public TestInternal
     ss << "(declare-fun x () t)" << std::endl;
     ss << "(declare-fun y () u)" << std::endl;
     ss << "(declare-fun z () v)" << std::endl;
-    parser.setStreamInput("LANG_SMTLIB_V2_6", ss, "parser_black");
+    parser.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ss, "parser_black");
     Command cmd;
     std::stringstream tmp;
     while (true)
@@ -89,7 +89,7 @@ class TestParserBlack : public TestInternal
     InputParser parser(d_solver.get(), d_symman.get());
     std::stringstream ss;
     ss << goodInput;
-    parser.setStreamInput("LANG_SMTLIB_V2_6", ss, "parser_black");
+    parser.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ss, "parser_black");
     ASSERT_FALSE(parser.done());
     Command cmd;
     std::stringstream tmp;
@@ -192,7 +192,7 @@ class TestParserBlack : public TestInternal
 class TestParserBlackSmt2InputParser : public TestParserBlack
 {
  protected:
-  TestParserBlackSmt2InputParser() : TestParserBlack("LANG_SMTLIB_V2_6") {}
+  TestParserBlackSmt2InputParser() : TestParserBlack(modes::InputLanguage::SMT_LIB_2_6) {}
 };
 
 TEST_F(TestParserBlackSmt2InputParser, good_inputs)

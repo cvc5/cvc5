@@ -36,7 +36,7 @@ int main()
   ss << "(declare-fun a () Int)" << std::endl;
   ss << "(declare-fun b () Int)" << std::endl;
   ss << "(declare-fun c () Bool)" << std::endl;
-  parser.setStreamInput("LANG_SMTLIB_V2_6", ss, "MyStream");
+  parser.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ss, "MyStream");
 
   // parse commands until finished
   Command cmd;
@@ -65,7 +65,7 @@ int main()
   ss2 << "(>= 0 45)" << std::endl;
   ss2 << "(and c c)" << std::endl;
   ss2 << "true" << std::endl;
-  parser2.setStreamInput("LANG_SMTLIB_V2_6", ss2, "MyStream2");
+  parser2.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ss2, "MyStream2");
 
   // parse terms until finished
   Term t;

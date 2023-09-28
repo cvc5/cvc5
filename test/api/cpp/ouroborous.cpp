@@ -81,7 +81,7 @@ std::string parse(std::string instr,
   ";
 
   cvc5::Solver solver;
-  std::string ilang = "LANG_SMTLIB_V2_6";
+  modes::InputLanguage ilang = modes::InputLanguage::SMT_LIB_2_6;
 
   solver.setOption("input-language", input_language);
   solver.setOption("output-language", output_language);

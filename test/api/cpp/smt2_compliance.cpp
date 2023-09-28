@@ -53,7 +53,7 @@ void testGetInfo(cvc5::Solver* solver, const char* s)
   InputParser p(solver, symman.get());
   std::stringstream ssi;
   ssi << "(get-info " << s << ")";
-  p.setStreamInput("LANG_SMTLIB_V2_6", ssi, "<internal>");
+  p.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ssi, "<internal>");
   Command c = p.nextCommand();
   assert(!c.isNull());
   std::cout << c << std::endl;
