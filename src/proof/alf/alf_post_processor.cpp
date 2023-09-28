@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The post processor for the experimental Alf format.
+ * The post processor for the AletheLF format.
  */
 
 #include "proof/alf/alf_post_processor.h"

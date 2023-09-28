@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The post processor for the experimental Alf format.
+ * The post processor for the AletheLF format.
  */
 
 #include "cvc5_private.h"
