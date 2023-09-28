@@ -463,33 +463,31 @@ set(regress_0_tests
   regress0/bv/fuzz40.smtv1.smt2
   regress0/bv/fuzz41.smtv1.smt2
   # Added to fill holes in regression tests
-  regress0/bv/holes/and-flatten.smt2
-  regress0/bv/holes/and-zero.smt2
-  regress0/bv/holes/commutative-xor.smt2
-  regress0/bv/holes/commutative-add.smt2 # Subsumed by ARITH_POLY_NORM
-  regress0/bv/holes/comp-eliminate.smt2
-  regress0/bv/holes/concat-extract-merge.smt2
   regress0/bv/holes/concat-flatten.smt2
-  regress0/bv/holes/extract-concat.smt2
+  regress0/bv/holes/concat-extract-merge.smt2
   regress0/bv/holes/extract-extract.smt2
+  regress0/bv/holes/extract-concat.smt2
   regress0/bv/holes/extract-whole.smt2
-  regress0/bv/holes/mult-distrib-const-neg.smt2
-  regress0/bv/holes/not-neq.smt2
-  regress0/bv/holes/repeat-eliminate-1.smt2 # Calculation may be too complicated
-  regress0/bv/holes/repeat-eliminate-2.smt2
-  regress0/bv/holes/rotate-left-eliminate-1.smt2
-  regress0/bv/holes/sgt-eliminate.smt2
-  regress0/bv/holes/shl-by-const-1.smt2
-  regress0/bv/holes/udiv-zero.smt2
+
   regress0/bv/holes/uge-eliminate.smt2
   regress0/bv/holes/ugt-eliminate.smt2
-  regress0/bv/holes/ult-one.smt2
+  regress0/bv/holes/sgt-eliminate.smt2
+  regress0/bv/holes/slt-eliminate.smt2 # Roundabout method used
+
+  regress0/bv/holes/comp-eliminate.smt2
   regress0/bv/holes/sdiv-eliminate-fewer-bitwise-ops.smt2 # Timeout!
   regress0/bv/holes/zero-extend-eliminate.smt2
   regress0/bv/holes/sign-extend-eliminate.smt2 # Roundabout method used
-  regress0/bv/holes/slt-eliminate.smt2 # Roundabout method used
+  regress0/bv/holes/repeat-eliminate-1.smt2 # Calculation may be too complicated
+  regress0/bv/holes/repeat-eliminate-2.smt2
+  regress0/bv/holes/sub-eliminate.smt2 # Subsumed by ARITH_POLY_NORM
   regress0/bv/holes/redor-eliminate.smt2
   regress0/bv/holes/redand-eliminate.smt2
+  regress0/bv/holes/srem-eliminate.smt2
+  regress0/bv/holes/srem-eliminate-fewer-bitwise-ops.smt2
+  regress0/bv/holes/usubo-eliminate.smt2
+  regress0/bv/holes/ssubo-eliminate.smt2
+
   regress0/bv/holes/ite-equal-children.smt2
   regress0/bv/holes/ite-const-children-1.smt2
   regress0/bv/holes/ite-const-children-2.smt2
@@ -500,6 +498,27 @@ set(regress_0_tests
   regress0/bv/holes/ite-merge-else-if.smt2
   regress0/bv/holes/ite-merge-then-else.smt2 # Roundabout method used
   regress0/bv/holes/ite-merge-else-else.smt2
+
+  regress0/bv/holes/extract-mult-leading-bit.smt2
+  regress0/bv/holes/merge-sign-extend-2.smt2
+  regress0/bv/holes/merge-sign-extend-3.smt2
+  regress0/bv/holes/shl-by-const-1.smt2
+  regress0/bv/holes/shl-zero.smt2
+  regress0/bv/holes/slt-zero.smt2
+
+  regress0/bv/holes/udiv-pow2-1p.smt2
+  regress0/bv/holes/urem-pow2.smt2
+  regress0/bv/holes/urem-self.smt2
+  regress0/bv/holes/udiv-zero.smt2
+
+  regress0/bv/holes/and-flatten.smt2
+  regress0/bv/holes/and-zero.smt2
+  regress0/bv/holes/commutative-xor.smt2
+  regress0/bv/holes/commutative-add.smt2 # Subsumed by ARITH_POLY_NORM
+  regress0/bv/holes/mult-distrib-const-neg.smt2
+  regress0/bv/holes/not-neq.smt2
+  regress0/bv/holes/rotate-left-eliminate-1.smt2
+  regress0/bv/holes/ult-one.smt2
   regress0/bv/holes/lshr-by-const-1.smt2
   regress0/bv/holes/ashr-by-const-0.smt2
   regress0/bv/holes/ashr-by-const-1.smt2 # Could not find rule
@@ -510,7 +529,6 @@ set(regress_0_tests
   regress0/bv/holes/not-ule.smt2 # Roundabout method (constant size, so it should be ok)
   regress0/bv/holes/not-sle.smt2 # Roundabout method (constant size, so it should be ok)
   regress0/bv/holes/mult-pow2-2b.smt2 # Could not find rule
-  regress0/bv/holes/sub-eliminate.smt2 # Subsumed by ARITH_POLY_NORM
   regress0/bv/holes/neg-idemp.smt2     # Subsumed by ARITH_POLY_NORM
   regress0/bv/holes/not-xor.smt2     # Roundabout method
   regress0/bv/holes/and-simplify-1.smt2
@@ -519,6 +537,7 @@ set(regress_0_tests
   regress0/bv/holes/or-simplify-2.smt2
   regress0/bv/holes/xor-simplify-2.smt2
   regress0/bv/holes/xor-simplify-3.smt2
+
   regress0/bv/incorrect1.delta01.smtv1.smt2
   regress0/bv/inequality00.smt2
   regress0/bv/inequality01.smt2
