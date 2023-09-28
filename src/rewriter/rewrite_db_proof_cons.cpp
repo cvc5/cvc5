@@ -505,7 +505,7 @@ bool RewriteDbProofCons::proveWithRule(DslProofRule id,
 bool RewriteDbProofCons::proveInternalBase(Node eqi, DslProofRule& idb)
 {
   Trace("rpc-debug2") << "Prove internal base: " << eqi << std::endl;
-  Assert(eqi.getKind() == kind::EQUAL);
+  Assert(eqi.getKind() == Kind::EQUAL);
   // if we are currently trying to prove this, fail
   if (d_currProving.find(eqi) != d_currProving.end())
   {
@@ -663,7 +663,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
     visit.pop_back();
     it = visited.find(cur);
     itd = d_pcache.find(cur);
-    Assert(cur.getKind() == kind::EQUAL);
+    Assert(cur.getKind() == Kind::EQUAL);
     if (it == visited.end())
     {
       Trace("rpc-debug") << "Ensure proof for " << cur << std::endl;
@@ -689,7 +689,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
         {
           visited[cur] = true;
           // NOTE: this could just evaluate the equality itself
-          Assert(cur.getKind() == kind::EQUAL);
+          Assert(cur.getKind() == Kind::EQUAL);
           std::vector<Node> transc;
           for (unsigned i = 0; i < 2; i++)
           {
