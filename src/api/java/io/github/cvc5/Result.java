@@ -40,11 +40,6 @@ public class Result extends AbstractPointer
 
   protected native void deletePointer(long pointer);
 
-  public long getPointer()
-  {
-    return pointer;
-  }
-
   /**
    * @return True if Result is empty, i.e., a nullary Result, and not an actual
    * result returned from a checkSat() (and friends) query.

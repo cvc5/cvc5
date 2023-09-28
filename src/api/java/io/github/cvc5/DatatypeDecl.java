@@ -46,11 +46,6 @@ public class DatatypeDecl extends AbstractPointer
 
   protected native void deletePointer(long pointer);
 
-  public long getPointer()
-  {
-    return pointer;
-  }
-
   /**
    * Add datatype constructor declaration.
    * @param ctor The datatype constructor declaration to add.

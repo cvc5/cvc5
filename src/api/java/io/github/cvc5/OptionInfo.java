@@ -63,11 +63,6 @@ public class OptionInfo extends AbstractPointer
 
   protected native void deletePointer(long pointer);
 
-  public long getPointer()
-  {
-    return pointer;
-  }
-
   public String toString()
   {
     return toString(pointer);

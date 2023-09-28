@@ -16,8 +16,6 @@
 package io.github.cvc5;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Utils
 {

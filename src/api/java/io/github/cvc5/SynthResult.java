@@ -44,11 +44,6 @@ public class SynthResult extends AbstractPointer
 
   protected native void deletePointer(long pointer);
 
-  public long getPointer()
-  {
-    return pointer;
-  }
-
   /**
    * @return True if SynthResult is empty, i.e., a nullary SynthResult, and not
    * an actual result returned from a synthesis query.
