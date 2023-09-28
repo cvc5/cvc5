@@ -41,7 +41,7 @@ EmbeddingConverter::EmbeddingConverter(Env& env,
 
 bool EmbeddingConverter::hasSyntaxRestrictions(Node q)
 {
-  Assert(q.getKind() == FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   for (const Node& f : q[0])
   {
     TypeNode tn = SygusUtils::getSygusType(f);
@@ -244,7 +244,7 @@ Node EmbeddingConverter::process(Node q,
       subsfn_children.push_back(sf);
       subsfn_children.insert(
           subsfn_children.end(), schildren.begin(), schildren.end());
-      Node subsfn = nm->mkNode(kind::APPLY_UF, subsfn_children);
+      Node subsfn = nm->mkNode(Kind::APPLY_UF, subsfn_children);
       TNode subsf = subsfn;
       Trace("cegqi-debug") << "  substitute arg : " << templ_arg << " -> "
                            << subsf << std::endl;
@@ -252,8 +252,8 @@ Node EmbeddingConverter::process(Node q,
       // substitute lambda arguments
       templ = templ.substitute(
           schildren.begin(), schildren.end(), largs.begin(), largs.end());
-      Node subsn =
-          nm->mkNode(kind::LAMBDA, nm->mkNode(BOUND_VAR_LIST, largs), templ);
+      Node subsn = nm->mkNode(
+          Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, largs), templ);
       TNode var = sf;
       TNode subs = subsn;
       Trace("cegqi-debug") << "  substitute : " << var << " -> " << subs
@@ -270,7 +270,7 @@ Node EmbeddingConverter::process(Node q,
       d_is_syntax_restricted = true;
     }
   }
-  qchildren.push_back(nm->mkNode(kind::BOUND_VAR_LIST, ebvl));
+  qchildren.push_back(nm->mkNode(Kind::BOUND_VAR_LIST, ebvl));
   if (qbody_subs != q[1])
   {
     Trace("cegqi") << "...rewriting : " << qbody_subs << std::endl;
@@ -282,7 +282,7 @@ Node EmbeddingConverter::process(Node q,
   {
     qchildren.push_back(q[2]);
   }
-  return nm->mkNode(kind::FORALL, qchildren);
+  return nm->mkNode(Kind::FORALL, qchildren);
 }
 
 Node EmbeddingConverter::convertToEmbedding(Node n)
@@ -314,7 +314,7 @@ Node EmbeddingConverter::convertToEmbedding(Node n)
       // get the potential operator
       if (cur.getNumChildren() > 0)
       {
-        if (cur.getKind() == kind::APPLY_UF)
+        if (cur.getKind() == Kind::APPLY_UF)
         {
           op = cur.getOperator();
         }
@@ -355,7 +355,7 @@ Node EmbeddingConverter::convertToEmbedding(Node n)
         if (!cur.getType().isFunction())
         {
           // will make into an application of an evaluation function
-          ret = nm->mkNode(DT_SYGUS_EVAL, children);
+          ret = nm->mkNode(Kind::DT_SYGUS_EVAL, children);
         }
         else
         {
@@ -374,11 +374,12 @@ Node EmbeddingConverter::convertToEmbedding(Node n)
           {
             vs.push_back(nm->mkBoundVar(v.getType()));
           }
-          Node lvl = nm->mkNode(BOUND_VAR_LIST, vs);
+          Node lvl = nm->mkNode(Kind::BOUND_VAR_LIST, vs);
           std::vector<Node> eargs;
           eargs.push_back(ef);
           eargs.insert(eargs.end(), vs.begin(), vs.end());
-          ret = nm->mkNode(LAMBDA, lvl, nm->mkNode(DT_SYGUS_EVAL, eargs));
+          ret = nm->mkNode(
+              Kind::LAMBDA, lvl, nm->mkNode(Kind::DT_SYGUS_EVAL, eargs));
         }
       }
       else if (childChanged)

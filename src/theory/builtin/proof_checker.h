@@ -109,7 +109,7 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   void registerTo(ProofChecker* pc) override;
  protected:
   /** Return the conclusion of the given proof step, or null if it is invalid */
-  Node checkInternal(PfRule id,
+  Node checkInternal(ProofRule id,
                      const std::vector<Node>& children,
                      const std::vector<Node>& args) override;
 

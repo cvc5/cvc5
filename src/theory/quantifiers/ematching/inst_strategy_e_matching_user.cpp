@@ -119,7 +119,7 @@ InstStrategyStatus InstStrategyUserPatterns::process(Node q,
 
 void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
 {
-  Assert(pat.getKind() == INST_PATTERN);
+  Assert(pat.getKind() == Kind::INST_PATTERN);
   // add to generators
   std::vector<Node> nodes;
   const Options& opts = d_env.getOptions();

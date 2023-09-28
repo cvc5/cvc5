@@ -529,6 +529,7 @@ set(regress_0_tests
   regress0/cores/issue5908.smt2
   regress0/cores/issue8705-bool-ppassert.smt2
   regress0/cores/issue8822-arith-static-learn.smt2
+  regress0/cores/unsat-core-lemmas.smt2
   regress0/cvc-rerror-print.cvc.smt2
   regress0/cvc3-bug15.cvc.smt2
   regress0/cvc3.userdoc.01.cvc.smt2
@@ -2555,6 +2556,7 @@ set(regress_1_tests
   regress1/quantifiers/nra-interleave-inst.smt2
   regress1/quantifiers/opisavailable-12.smt2
   regress1/quantifiers/parametric-lists.smt2
+  regress1/quantifiers/pool-decidable-arrays-1.smt2
   regress1/quantifiers/pool-example.smt2
   regress1/quantifiers/pool-tuple.smt2
   regress1/quantifiers/prenex-scholl-smt08_RNDPRE_RNDPRE_4_6.smt2

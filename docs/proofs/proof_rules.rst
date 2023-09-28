@@ -1,5 +1,5 @@
 Proof rules
 ===========
 
-.. doxygenenum:: cvc5::internal::PfRule
+.. doxygenenum:: cvc5::ProofRule
     :project: cvc5

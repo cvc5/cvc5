@@ -31,10 +31,10 @@ class TestNodeBlackKind : public TestInternal
  protected:
   void SetUp() override
   {
-    d_undefined = UNDEFINED_KIND;
-    d_null = NULL_EXPR;
-    d_last = LAST_KIND;
-    d_beyond = ((int32_t)LAST_KIND) + 1;
+    d_undefined = Kind::UNDEFINED_KIND;
+    d_null = Kind::NULL_EXPR;
+    d_last = Kind::LAST_KIND;
+    d_beyond = ((int32_t)Kind::LAST_KIND) + 1;
     d_unknown = (Kind)d_beyond;
   }
 
@@ -56,8 +56,8 @@ class TestNodeBlackKind : public TestInternal
 
 TEST_F(TestNodeBlackKind, equality)
 {
-  ASSERT_EQ(d_undefined, UNDEFINED_KIND);
-  ASSERT_EQ(d_last, LAST_KIND);
+  ASSERT_EQ(d_undefined, Kind::UNDEFINED_KIND);
+  ASSERT_EQ(d_last, Kind::LAST_KIND);
 }
 
 TEST_F(TestNodeBlackKind, order)

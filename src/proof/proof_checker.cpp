@@ -26,7 +26,7 @@ namespace cvc5::internal {
 
 ProofCheckerStatistics::ProofCheckerStatistics(StatisticsRegistry& sr)
     : d_ruleChecks(
-        sr.registerHistogram<PfRule>("ProofCheckerStatistics::ruleChecks")),
+        sr.registerHistogram<ProofRule>("ProofCheckerStatistics::ruleChecks")),
       d_totalRuleChecks(
           sr.registerInt("ProofCheckerStatistics::totalRuleChecks"))
 {
@@ -52,13 +52,13 @@ Node ProofChecker::check(ProofNode* pn, Node expected)
 }
 
 Node ProofChecker::check(
-    PfRule id,
+    ProofRule id,
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args,
     Node expected)
 {
   // optimization: immediately return for ASSUME
-  if (id == PfRule::ASSUME)
+  if (id == ProofRule::ASSUME)
   {
     Assert(children.empty());
     Assert(args.size() == 1 && args[0].getType().isBoolean());
@@ -110,7 +110,7 @@ Node ProofChecker::check(
   return res;
 }
 
-Node ProofChecker::checkDebug(PfRule id,
+Node ProofChecker::checkDebug(ProofRule id,
                               const std::vector<Node>& cchildren,
                               const std::vector<Node>& args,
                               Node expected,
@@ -139,7 +139,7 @@ Node ProofChecker::checkDebug(PfRule id,
   return res;
 }
 
-Node ProofChecker::checkInternal(PfRule id,
+Node ProofChecker::checkInternal(ProofRule id,
                                  const std::vector<Node>& cchildren,
                                  const std::vector<Node>& args,
                                  Node expected,
@@ -147,7 +147,7 @@ Node ProofChecker::checkInternal(PfRule id,
                                  bool useTrustedChecker,
                                  bool enableOutput)
 {
-  std::map<PfRule, ProofRuleChecker*>::iterator it = d_checker.find(id);
+  std::map<ProofRule, ProofRuleChecker*>::iterator it = d_checker.find(id);
   if (it == d_checker.end())
   {
     // no checker for the rule
@@ -161,7 +161,7 @@ Node ProofChecker::checkInternal(PfRule id,
   {
     if (useTrustedChecker)
     {
-      out << "ProofChecker::check: trusting PfRule " << id << std::endl;
+      out << "ProofChecker::check: trusting ProofRule " << id << std::endl;
       // trusted checker
       return expected;
     }
@@ -189,7 +189,7 @@ Node ProofChecker::checkInternal(PfRule id,
       if (enableOutput)
       {
         out << "result does not match expected value." << std::endl
-            << "    PfRule: " << id << std::endl;
+            << "    ProofRule: " << id << std::endl;
         for (const Node& c : cchildren)
         {
           out << "     child: " << c << std::endl;
@@ -228,9 +228,9 @@ Node ProofChecker::checkInternal(PfRule id,
   return res;
 }
 
-void ProofChecker::registerChecker(PfRule id, ProofRuleChecker* psc)
+void ProofChecker::registerChecker(ProofRule id, ProofRuleChecker* psc)
 {
-  std::map<PfRule, ProofRuleChecker*>::iterator it = d_checker.find(id);
+  std::map<ProofRule, ProofRuleChecker*>::iterator it = d_checker.find(id);
   if (it != d_checker.end())
   {
     // checker is already provided
@@ -242,7 +242,7 @@ void ProofChecker::registerChecker(PfRule id, ProofRuleChecker* psc)
   d_checker[id] = psc;
 }
 
-void ProofChecker::registerTrustedChecker(PfRule id,
+void ProofChecker::registerTrustedChecker(ProofRule id,
                                           ProofRuleChecker* psc,
                                           uint32_t plevel)
 {
@@ -261,9 +261,10 @@ void ProofChecker::registerTrustedChecker(PfRule id,
   d_plevel[id] = plevel;
 }
 
-ProofRuleChecker* ProofChecker::getCheckerFor(PfRule id)
+ProofRuleChecker* ProofChecker::getCheckerFor(ProofRule id)
 {
-  std::map<PfRule, ProofRuleChecker*>::const_iterator it = d_checker.find(id);
+  std::map<ProofRule, ProofRuleChecker*>::const_iterator it =
+      d_checker.find(id);
   if (it == d_checker.end())
   {
     return nullptr;
@@ -273,9 +274,9 @@ ProofRuleChecker* ProofChecker::getCheckerFor(PfRule id)
 
 rewriter::RewriteDb* ProofChecker::getRewriteDatabase() { return d_rdb; }
 
-uint32_t ProofChecker::getPedanticLevel(PfRule id) const
+uint32_t ProofChecker::getPedanticLevel(ProofRule id) const
 {
-  std::map<PfRule, uint32_t>::const_iterator itp = d_plevel.find(id);
+  std::map<ProofRule, uint32_t>::const_iterator itp = d_plevel.find(id);
   if (itp != d_plevel.end())
   {
     return itp->second;
@@ -283,7 +284,7 @@ uint32_t ProofChecker::getPedanticLevel(PfRule id) const
   return 0;
 }
 
-bool ProofChecker::isPedanticFailure(PfRule id,
+bool ProofChecker::isPedanticFailure(ProofRule id,
                                      std::ostream& out,
                                      bool enableOutput) const
 {
@@ -291,7 +292,7 @@ bool ProofChecker::isPedanticFailure(PfRule id,
   {
     return false;
   }
-  std::map<PfRule, uint32_t>::const_iterator itp = d_plevel.find(id);
+  std::map<ProofRule, uint32_t>::const_iterator itp = d_plevel.find(id);
   if (itp != d_plevel.end())
   {
     if (itp->second <= d_pclevel)

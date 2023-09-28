@@ -125,7 +125,7 @@ bool TheoryPreregistrar::notifyAsserted(TNode n)
   }
   // otherwise, we always ensure it is preregistered now, which does nothing
   // if it is already preregistered
-  TNode natom = n.getKind() == kind::NOT ? n[0] : n;
+  TNode natom = n.getKind() == Kind::NOT ? n[0] : n;
   Trace("prereg") << "preregister (lazy): " << natom << std::endl;
   d_theoryEngine->preRegister(natom);
   return true;

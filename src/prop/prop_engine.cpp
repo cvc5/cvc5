@@ -250,7 +250,8 @@ void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
       && !trn.getGenerator())
   {
     Node actualNode = negated ? node.notNode() : node;
-    d_theoryLemmaPg.addStep(actualNode, PfRule::THEORY_LEMMA, {}, {actualNode});
+    d_theoryLemmaPg.addStep(
+        actualNode, ProofRule::THEORY_LEMMA, {}, {actualNode});
     trn = TrustNode::mkReplaceGenTrustNode(trn, &d_theoryLemmaPg);
   }
   assertInternal(node, negated, removable, false, trn.getGenerator());
@@ -668,8 +669,8 @@ bool PropEngine::properExplanation(TNode node, TNode expl) const
 
   SatLiteral nodeLit = d_cnfStream->getLiteral(node);
 
-  for (TNode::kinded_iterator i = expl.begin(kind::AND),
-                              i_end = expl.end(kind::AND);
+  for (TNode::kinded_iterator i = expl.begin(Kind::AND),
+                              i_end = expl.end(Kind::AND);
        i != i_end;
        ++i)
   {
@@ -745,10 +746,18 @@ void PropEngine::getUnsatCore(std::vector<Node>& core)
   else
   {
     Trace("unsat-core") << "PropEngine::getUnsatCore: via proof" << std::endl;
-    // otherwise, it is just the free assumptions of the proof
+    // otherwise, it is just the free assumptions of the proof. Note that we
+    // need to connect the SAT proof to the CNF proof becuase we need the
+    // preprocessed input as leaves, not the clauses derived from them.
     std::shared_ptr<ProofNode> pfn = getProof();
     expr::getFreeAssumptions(pfn.get(), core);
   }
+}
+
+std::vector<Node> PropEngine::getUnsatCoreLemmas()
+{
+  Assert(d_env.isSatProofProducing());
+  return d_ppm->getUnsatCoreLemmas();
 }
 
 std::vector<Node> PropEngine::getLearnedZeroLevelLiterals(

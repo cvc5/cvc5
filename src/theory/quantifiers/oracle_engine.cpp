@@ -181,7 +181,7 @@ void OracleEngine::check(Theory::Effort e, QEffort quant_e)
         arguments.push_back(fm->getValue(arg));
       }
       // call oracle
-      Node fappWithValues = nm->mkNode(APPLY_UF, arguments);
+      Node fappWithValues = nm->mkNode(Kind::APPLY_UF, arguments);
       Node predictedResponse = fm->getValue(fapp);
       if (!d_ochecker->checkConsistent(
               fappWithValues, predictedResponse, learnedLemmas))
@@ -253,7 +253,7 @@ void OracleEngine::checkOwnership(Node q)
           << "Unhandled oracle constraint " << q;
     }
     CVC5_UNUSED bool isOracleFun = false;
-    if (assume.getKind() == EQUAL)
+    if (assume.getKind() == Kind::EQUAL)
     {
       for (size_t i = 0; i < 2; i++)
       {
@@ -294,10 +294,10 @@ Node OracleEngine::mkOracleInterface(const std::vector<Node>& inputs,
 {
   Assert(!assume.isNull());
   Assert(!constraint.isNull());
-  Assert(oracleNode.getKind() == ORACLE);
+  Assert(oracleNode.getKind() == Kind::ORACLE);
   NodeManager* nm = NodeManager::currentNM();
-  Node ipl =
-      nm->mkNode(INST_PATTERN_LIST, nm->mkNode(INST_ATTRIBUTE, oracleNode));
+  Node ipl = nm->mkNode(Kind::INST_PATTERN_LIST,
+                        nm->mkNode(Kind::INST_ATTRIBUTE, oracleNode));
   std::vector<Node> vars;
   OracleInputVarAttribute oiva;
   for (Node v : inputs)
@@ -311,9 +311,9 @@ Node OracleEngine::mkOracleInterface(const std::vector<Node>& inputs,
     v.setAttribute(oova, true);
     vars.push_back(v);
   }
-  Node bvl = nm->mkNode(BOUND_VAR_LIST, vars);
-  Node body = nm->mkNode(ORACLE_FORMULA_GEN, assume, constraint);
-  return nm->mkNode(FORALL, bvl, body, ipl);
+  Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, vars);
+  Node body = nm->mkNode(Kind::ORACLE_FORMULA_GEN, assume, constraint);
+  return nm->mkNode(Kind::FORALL, bvl, body, ipl);
 }
 
 bool OracleEngine::getOracleInterface(Node q,
@@ -340,13 +340,13 @@ bool OracleEngine::getOracleInterface(Node q,
         outputs.push_back(v);
       }
     }
-    Assert(q[1].getKind() == ORACLE_FORMULA_GEN);
+    Assert(q[1].getKind() == Kind::ORACLE_FORMULA_GEN);
     assume = q[1][0];
     constraint = q[1][1];
     Assert(q.getNumChildren() == 3);
     Assert(q[2].getNumChildren() == 1);
     Assert(q[2][0].getNumChildren() == 1);
-    Assert(q[2][0][0].getKind() == ORACLE);
+    Assert(q[2][0][0].getKind() == Kind::ORACLE);
     oracleNode = q[2][0][0];
     return true;
   }

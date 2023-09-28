@@ -60,12 +60,12 @@ NonlinearExtension::NonlinearExtension(Env& env, TheoryArith& containing)
       d_iandSlv(env, d_im, d_model),
       d_pow2Slv(env, d_im, d_model)
 {
-  d_extTheory.addFunctionKind(kind::NONLINEAR_MULT);
-  d_extTheory.addFunctionKind(kind::EXPONENTIAL);
-  d_extTheory.addFunctionKind(kind::SINE);
-  d_extTheory.addFunctionKind(kind::PI);
-  d_extTheory.addFunctionKind(kind::IAND);
-  d_extTheory.addFunctionKind(kind::POW2);
+  d_extTheory.addFunctionKind(Kind::NONLINEAR_MULT);
+  d_extTheory.addFunctionKind(Kind::EXPONENTIAL);
+  d_extTheory.addFunctionKind(Kind::SINE);
+  d_extTheory.addFunctionKind(Kind::PI);
+  d_extTheory.addFunctionKind(Kind::IAND);
+  d_extTheory.addFunctionKind(Kind::POW2);
   d_true = NodeManager::currentNM()->mkConst(true);
 }
 
