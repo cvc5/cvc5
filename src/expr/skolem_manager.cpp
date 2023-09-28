@@ -22,6 +22,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/node_manager_attributes.h"
 #include "util/rational.h"
+#include "util/string.h"
 
 using namespace cvc5::internal::kind;
 
@@ -41,6 +42,7 @@ const char* toString(SkolemFunId id)
 {
   switch (id)
   {
+    case SkolemFunId::INPUT_VARIABLE: return "INPUT_VARIABLE";
     case SkolemFunId::PURIFY: return "PURIFY";
     case SkolemFunId::ARRAY_DEQ_DIFF: return "ARRAY_DEQ_DIFF";
     case SkolemFunId::DIV_BY_ZERO: return "DIV_BY_ZERO";
@@ -113,17 +115,17 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id)
 SkolemManager::SkolemManager() : d_skolemCounter(0) {}
 
 Node SkolemManager::mkPurifySkolem(Node t,
-                                   int flags,
                                    ProofGenerator* pg)
 {
   // We do not recursively compute the original form of t here
   Node k;
-  if (t.getKind() == WITNESS)
+  if (t.getKind() == Kind::WITNESS)
   {
     // The purification skolem for (witness ((x T)) P) is the same as
     // the skolem function (QUANTIFIERS_SKOLEMIZE (exists ((x T)) P) 0).
     NodeManager* nm = NodeManager::currentNM();
-    Node exists = nm->mkNode(EXISTS, std::vector<Node>(t.begin(), t.end()));
+    Node exists =
+        nm->mkNode(Kind::EXISTS, std::vector<Node>(t.begin(), t.end()));
     k = mkSkolemFunction(SkolemFunId::QUANTIFIERS_SKOLEMIZE,
                          t.getType(),
                          {exists, nm->mkConstInt(Rational(0))});
@@ -135,7 +137,7 @@ Node SkolemManager::mkPurifySkolem(Node t,
   }
   else
   {
-    k = mkSkolemFunction(SkolemFunId::PURIFY, t.getType(), {t}, flags);
+    k = mkSkolemFunction(SkolemFunId::PURIFY, t.getType(), {t});
     // shouldn't provide proof generators for other terms
     Assert(pg == nullptr);
   }
@@ -150,21 +152,31 @@ Node SkolemManager::mkPurifySkolem(Node t,
   return k;
 }
 
-Node SkolemManager::mkSkolemFunction(SkolemFunId id,
-                                     TypeNode tn,
-                                     Node cacheVal,
-                                     int flags)
+Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal)
 {
   std::tuple<SkolemFunId, TypeNode, Node> key(id, tn, cacheVal);
   std::map<std::tuple<SkolemFunId, TypeNode, Node>, Node>::iterator it =
       d_skolemFuns.find(key);
   if (it == d_skolemFuns.end())
   {
-    // we use @ as a prefix, which follows the SMT-LIB standard indicating
-    // internal symbols starting with @ or . are reserved for internal use.
-    std::stringstream ss;
-    ss << "@" << id;
-    Node k = mkSkolemNode(ss.str(), tn, "an internal skolem function", flags);
+    Node k;
+    // For now, INPUT_VARIABLE is a special case that constructs a variable
+    // of the original name.
+    if (id == SkolemFunId::INPUT_VARIABLE)
+    {
+      k = mkSkolemNode(Kind::VARIABLE,
+                       cacheVal[0].getConst<String>().toString(),
+                       tn,
+                       SKOLEM_EXACT_NAME);
+    }
+    else
+    {
+      // we use @ as a prefix, which follows the SMT-LIB standard indicating
+      // internal symbols starting with @ or . are reserved for internal use.
+      std::stringstream ss;
+      ss << "@" << id;
+      k = mkSkolemNode(Kind::SKOLEM, ss.str(), tn);
+    }
     d_skolemFuns[key] = k;
     d_skolemFunMap[k] = key;
     Trace("sk-manager-skolem") << "mkSkolemFunction(" << id << ", " << cacheVal
@@ -176,8 +188,7 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id,
 
 Node SkolemManager::mkSkolemFunction(SkolemFunId id,
                                      TypeNode tn,
-                                     const std::vector<Node>& cacheVals,
-                                     int flags)
+                                     const std::vector<Node>& cacheVals)
 {
   Node cacheVal;
   // use null node if cacheVals is empty
@@ -185,9 +196,9 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id,
   {
     cacheVal = cacheVals.size() == 1
                    ? cacheVals[0]
-                   : NodeManager::currentNM()->mkNode(SEXPR, cacheVals);
+                   : NodeManager::currentNM()->mkNode(Kind::SEXPR, cacheVals);
   }
-  return mkSkolemFunction(id, tn, cacheVal, flags);
+  return mkSkolemFunction(id, tn, cacheVal);
 }
 
 bool SkolemManager::isSkolemFunction(TNode k,
@@ -221,7 +232,7 @@ Node SkolemManager::mkDummySkolem(const std::string& prefix,
                                   const std::string& comment,
                                   int flags)
 {
-  return mkSkolemNode(prefix, type, comment, flags);
+  return mkSkolemNode(Kind::SKOLEM, prefix, type, flags);
 }
 
 ProofGenerator* SkolemManager::getProofGenerator(Node t) const
@@ -351,22 +362,13 @@ Node SkolemManager::getUnpurifiedForm(Node k)
   return k;
 }
 
-Node SkolemManager::mkSkolemNode(const std::string& prefix,
+Node SkolemManager::mkSkolemNode(Kind k,
+                                 const std::string& prefix,
                                  const TypeNode& type,
-                                 const std::string& comment,
                                  int flags)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node n;
-  if (flags & SKOLEM_BOOL_TERM_VAR)
-  {
-    Assert(type.isBoolean());
-    n = NodeBuilder(nm, BOOLEAN_TERM_VARIABLE);
-  }
-  else
-  {
-    n = NodeBuilder(nm, SKOLEM);
-  }
+  Node n = NodeBuilder(nm, k);
   if ((flags & SKOLEM_EXACT_NAME) == 0)
   {
     std::stringstream name;

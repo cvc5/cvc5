@@ -84,15 +84,21 @@ bool Valuation::isSatLiteral(TNode n) const {
 
 Node Valuation::getSatValue(TNode n) const {
   Assert(d_engine != nullptr);
-  if(n.getKind() == kind::NOT) {
+  if (n.getKind() == Kind::NOT)
+  {
     Node atomRes = d_engine->getPropEngine()->getValue(n[0]);
-    if(atomRes.getKind() == kind::CONST_BOOLEAN) {
+    if (atomRes.getKind() == Kind::CONST_BOOLEAN)
+    {
       return NodeManager::currentNM()->mkConst(!atomRes.getConst<bool>());
-    } else {
+    }
+    else
+    {
       Assert(atomRes.isNull());
       return atomRes;
     }
-  } else {
+  }
+  else
+  {
     return d_engine->getPropEngine()->getValue(n);
   }
 }

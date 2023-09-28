@@ -268,7 +268,7 @@ $2 ${class};"
 
 template <>
 ${class} const& NodeValue::getConst< ${class} >() const {
-  //AssertArgument(getKind() == ::cvc5::internal::kind::$1, *this,
+  //AssertArgument(getKind() == ::cvc5::internal::Kind::$1, *this,
   //               \"Improper kind for getConst<${class}>()\");
   // To support non-inlined CONSTANT-kinded NodeValues (those that are
   // \"constructed\" when initially checking them against the NodeManager
@@ -289,7 +289,7 @@ ${class} const& NodeValue::getConst< ${class} >() const {
 template<>
 Node NodeManager::mkConst<${class}>(const ${class}& val)
 {
-  return mkConstInternal<Node, ${class}>(::cvc5::internal::kind::$1, val);
+  return mkConstInternal<Node, ${class}>(::cvc5::internal::Kind::$1, val);
 }
 "
     metakind_mkConst="${metakind_mkConst}
@@ -314,21 +314,21 @@ Node NodeManager::mkConst(Kind k, const ${class}& val)
   fi
 
   metakind_compares="${metakind_compares}
-    case kind::$1:
-      return NodeValueConstCompare<kind::$1, ${class}, pool>::compare(nv1, nv2);
+    case Kind::$1:
+      return NodeValueConstCompare<Kind::$1, ${class}, pool>::compare(nv1, nv2);
 "
   metakind_constHashes="${metakind_constHashes}
-  case kind::$1:
+  case Kind::$1:
     return $4()(nv->getConst< ${class} >());
 "
   metakind_constPrinters="${metakind_constPrinters}
-  case kind::$1:
+  case Kind::$1:
     out << nv->getConst< ${class} >();
     break;
 "
   cname=`echo "${class}" | awk 'BEGIN {FS="::"} {print$NF}'`
   metakind_constDeleters="${metakind_constDeleters}
-  case kind::$1:
+  case Kind::$1:
     std::destroy_at(reinterpret_cast< ${class}* >(nv->d_children));
     break;
 "
@@ -347,7 +347,7 @@ function registerOperatorToKind {
   operatorKind=$1
   applyKind=$2
   metakind_operatorKinds="${metakind_operatorKinds}
-    case kind::$applyKind: return kind::$operatorKind;";
+    case Kind::$applyKind: return Kind::$operatorKind;";
 }
 
 function register_metakind {

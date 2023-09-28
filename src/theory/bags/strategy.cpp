@@ -89,6 +89,7 @@ void Strategy::initializeStrategy()
     addStrategyStep(CHECK_INIT);
     addStrategyStep(CHECK_BAG_MAKE);
     addStrategyStep(CHECK_BASIC_OPERATIONS);
+    addStrategyStep(CHECK_QUANTIFIED_OPERATIONS);
     addStrategyStep(CHECK_CARDINALITY_CONSTRAINTS);
     step_end[Theory::EFFORT_FULL] = d_infer_steps.size() - 1;
 

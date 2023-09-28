@@ -83,7 +83,7 @@ Node ArrayEnumerator::operator*()
   Node n = d_arrayConst;
   for (size_t i = 0, size = d_indexVec.size(); i < size; ++i)
   {
-    n = d_nm->mkNode(kind::STORE,
+    n = d_nm->mkNode(Kind::STORE,
                      n,
                      d_indexVec[d_indexVec.size() - 1 - i],
                      *(*(d_constituentVec[i])));

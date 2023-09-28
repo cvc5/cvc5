@@ -61,7 +61,7 @@ void IAndSolver::initLastCall(const std::vector<Node>& assertions,
   for (const Node& a : xts)
   {
     Kind ak = a.getKind();
-    if (ak != IAND)
+    if (ak != Kind::IAND)
     {
       // don't care about other terms
       continue;
@@ -91,23 +91,24 @@ void IAndSolver::checkInitialRefine()
       Node op = i.getOperator();
       uint32_t bsize = op.getConst<IntAnd>().d_size;
       Node twok = nm->mkConstInt(Rational(Integer(2).pow(bsize)));
-      Node arg0Mod = nm->mkNode(kind::INTS_MODULUS, i[0], twok);
-      Node arg1Mod = nm->mkNode(kind::INTS_MODULUS, i[1], twok);
+      Node arg0Mod = nm->mkNode(Kind::INTS_MODULUS, i[0], twok);
+      Node arg1Mod = nm->mkNode(Kind::INTS_MODULUS, i[1], twok);
       // initial refinement lemmas
       std::vector<Node> conj;
       // iand(x,y)=iand(y,x) is guaranteed by rewriting
       Assert(i[0] <= i[1]);
       // conj.push_back(i.eqNode(nm->mkNode(IAND, op, i[1], i[0])));
       // 0 <= iand(x,y) < 2^k
-      conj.push_back(nm->mkNode(LEQ, d_zero, i));
-      conj.push_back(nm->mkNode(LT, i, rewrite(d_iandUtils.twoToK(k))));
+      conj.push_back(nm->mkNode(Kind::LEQ, d_zero, i));
+      conj.push_back(nm->mkNode(Kind::LT, i, rewrite(d_iandUtils.twoToK(k))));
       // iand(x,y)<=mod(x, 2^k)
-      conj.push_back(nm->mkNode(LEQ, i, arg0Mod));
+      conj.push_back(nm->mkNode(Kind::LEQ, i, arg0Mod));
       // iand(x,y)<=mod(y, 2^k)
-      conj.push_back(nm->mkNode(LEQ, i, arg1Mod));
+      conj.push_back(nm->mkNode(Kind::LEQ, i, arg1Mod));
       // x=y => iand(x,y)=mod(x, 2^k)
-      conj.push_back(nm->mkNode(IMPLIES, i[0].eqNode(i[1]), i.eqNode(arg0Mod)));
-      Node lem = conj.size() == 1 ? conj[0] : nm->mkNode(AND, conj);
+      conj.push_back(
+          nm->mkNode(Kind::IMPLIES, i[0].eqNode(i[1]), i.eqNode(arg0Mod)));
+      Node lem = conj.size() == 1 ? conj[0] : nm->mkNode(Kind::AND, conj);
       Trace("iand-lemma") << "IAndSolver::Lemma: " << lem << " ; INIT_REFINE"
                           << std::endl;
       d_im.addPendingLemma(lem, InferenceId::ARITH_NL_IAND_INIT_REFINE);
@@ -197,7 +198,7 @@ Node IAndSolver::convertToBvK(unsigned k, Node n) const
   Assert(n.isConst() && n.getType().isInteger());
   NodeManager* nm = NodeManager::currentNM();
   Node iToBvOp = nm->mkConst(IntToBitVector(k));
-  Node bn = nm->mkNode(kind::INT_TO_BITVECTOR, iToBvOp, n);
+  Node bn = nm->mkNode(Kind::INT_TO_BITVECTOR, iToBvOp, n);
   return rewrite(bn);
 }
 
@@ -205,7 +206,7 @@ Node IAndSolver::mkIAnd(unsigned k, Node x, Node y) const
 {
   NodeManager* nm = NodeManager::currentNM();
   Node iAndOp = nm->mkConst(IntAnd(k));
-  Node ret = nm->mkNode(IAND, iAndOp, x, y);
+  Node ret = nm->mkNode(Kind::IAND, iAndOp, x, y);
   ret = rewrite(ret);
   return ret;
 }
@@ -220,7 +221,7 @@ Node IAndSolver::mkIOr(unsigned k, Node x, Node y) const
 Node IAndSolver::mkINot(unsigned k, Node x) const
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node ret = nm->mkNode(SUB, d_iandUtils.twoToKMinusOne(k), x);
+  Node ret = nm->mkNode(Kind::SUB, d_iandUtils.twoToKMinusOne(k), x);
   ret = rewrite(ret);
   return ret;
 }
@@ -228,7 +229,7 @@ Node IAndSolver::mkINot(unsigned k, Node x) const
 Node IAndSolver::valueBasedLemma(Node i)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Assert(i.getKind() == IAND);
+  Assert(i.getKind() == Kind::IAND);
   Node x = i[0];
   Node y = i[1];
 
@@ -236,29 +237,29 @@ Node IAndSolver::valueBasedLemma(Node i)
   Node twok = nm->mkConstInt(Rational(Integer(2).pow(bvsize)));
   Node valX = d_model.computeConcreteModelValue(x);
   Node valY = d_model.computeConcreteModelValue(y);
-  valX = nm->mkNode(kind::INTS_MODULUS, valX, twok);
-  valY = nm->mkNode(kind::INTS_MODULUS, valY, twok);
+  valX = nm->mkNode(Kind::INTS_MODULUS, valX, twok);
+  valY = nm->mkNode(Kind::INTS_MODULUS, valY, twok);
 
-  Node valC = nm->mkNode(IAND, i.getOperator(), valX, valY);
+  Node valC = nm->mkNode(Kind::IAND, i.getOperator(), valX, valY);
   valC = rewrite(valC);
 
-  Node xm = nm->mkNode(kind::INTS_MODULUS, x, twok);
-  Node ym = nm->mkNode(kind::INTS_MODULUS, y, twok);
+  Node xm = nm->mkNode(Kind::INTS_MODULUS, x, twok);
+  Node ym = nm->mkNode(Kind::INTS_MODULUS, y, twok);
 
   // (=>
   //   (and (= (mod x 2^n) (mod c1 2^n)) (= (mod y 2^n) (mod c2 2^n)))
   //   (= ((_ iand n) x y) rewrite(((_ iand n) (mod c1 2^n) (mod c2 2^n))))
   // Note we use mod above since it ensures the the set of possible literals
   // introduced is finite, since there are finitely many values mod 2^n.
-  Node lem = nm->mkNode(IMPLIES,
-                        nm->mkNode(AND, xm.eqNode(valX), ym.eqNode(valY)),
+  Node lem = nm->mkNode(Kind::IMPLIES,
+                        nm->mkNode(Kind::AND, xm.eqNode(valX), ym.eqNode(valY)),
                         i.eqNode(valC));
   return lem;
 }
 
 Node IAndSolver::sumBasedLemma(Node i)
 {
-  Assert(i.getKind() == IAND);
+  Assert(i.getKind() == Kind::IAND);
   Node x = i[0];
   Node y = i[1];
   uint32_t bvsize = i.getOperator().getConst<IntAnd>().d_size;
@@ -266,13 +267,13 @@ Node IAndSolver::sumBasedLemma(Node i)
   uint32_t granularity = static_cast<uint32_t>(options().smt.BVAndIntegerGranularity);
   NodeManager* nm = NodeManager::currentNM();
   Node lem = nm->mkNode(
-      EQUAL, i, d_iandUtils.createSumNode(x, y, bvsize, granularity));
+      Kind::EQUAL, i, d_iandUtils.createSumNode(x, y, bvsize, granularity));
   return lem;
 }
 
 Node IAndSolver::bitwiseLemma(Node i)
 {
-  Assert(i.getKind() == IAND);
+  Assert(i.getKind() == Kind::IAND);
   Node x = i[0];
   Node y = i[1];
 
@@ -311,7 +312,7 @@ Node IAndSolver::bitwiseLemma(Node i)
       bitIAnd = d_iandUtils.createBitwiseIAndNode(x, y, high_bit, j);
       // enforce bitwise equality
       lem = nm->mkNode(
-          AND,
+          Kind::AND,
           lem,
           rewrite(d_iandUtils.iextract(high_bit, j, i)).eqNode(bitIAnd));
     }

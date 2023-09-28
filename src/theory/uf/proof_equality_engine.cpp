@@ -49,15 +49,15 @@ ProofEqEngine::ProofEqEngine(Env& env, EqualityEngine& ee)
 }
 
 bool ProofEqEngine::assertFact(Node lit,
-                               PfRule id,
+                               ProofRule id,
                                const std::vector<Node>& exp,
                                const std::vector<Node>& args)
 {
   Trace("pfee") << "pfee::assertFact " << lit << " " << id << ", exp = " << exp
                 << ", args = " << args << std::endl;
 
-  Node atom = lit.getKind() == NOT ? lit[0] : lit;
-  bool polarity = lit.getKind() != NOT;
+  Node atom = lit.getKind() == Kind::NOT ? lit[0] : lit;
+  bool polarity = lit.getKind() != Kind::NOT;
   // register the step in the proof
   if (holds(atom, polarity))
   {
@@ -82,14 +82,14 @@ bool ProofEqEngine::assertFact(Node lit,
 }
 
 bool ProofEqEngine::assertFact(Node lit,
-                               PfRule id,
+                               ProofRule id,
                                Node exp,
                                const std::vector<Node>& args)
 {
   Trace("pfee") << "pfee::assertFact " << lit << " " << id << ", exp = " << exp
                 << ", args = " << args << std::endl;
-  Node atom = lit.getKind() == NOT ? lit[0] : lit;
-  bool polarity = lit.getKind() != NOT;
+  Node atom = lit.getKind() == Kind::NOT ? lit[0] : lit;
+  bool polarity = lit.getKind() != Kind::NOT;
   // register the step in the proof
   if (holds(atom, polarity))
   {
@@ -102,12 +102,12 @@ bool ProofEqEngine::assertFact(Node lit,
   // the responsibilty of the caller to ensure these do not occur.
   if (exp != d_true)
   {
-    if (exp.getKind() == AND)
+    if (exp.getKind() == Kind::AND)
     {
       for (const Node& expc : exp)
       {
         // should not have doubly nested AND
-        Assert(expc.getKind() != AND);
+        Assert(expc.getKind() != Kind::AND);
         expv.push_back(expc);
       }
     }
@@ -133,8 +133,8 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofStepBuffer& psb)
   Trace("pfee") << "pfee::assertFact " << lit << ", exp = " << exp
                 << " via buffer with " << psb.getNumSteps() << " steps"
                 << std::endl;
-  Node atom = lit.getKind() == NOT ? lit[0] : lit;
-  bool polarity = lit.getKind() != NOT;
+  Node atom = lit.getKind() == Kind::NOT ? lit[0] : lit;
+  bool polarity = lit.getKind() != Kind::NOT;
   if (holds(atom, polarity))
   {
     // we do not process this fact if it already holds
@@ -156,8 +156,8 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofGenerator* pg)
 {
   Trace("pfee") << "pfee::assertFact " << lit << ", exp = " << exp
                 << " via generator" << std::endl;
-  Node atom = lit.getKind() == NOT ? lit[0] : lit;
-  bool polarity = lit.getKind() != NOT;
+  Node atom = lit.getKind() == Kind::NOT ? lit[0] : lit;
+  bool polarity = lit.getKind() != Kind::NOT;
   if (holds(atom, polarity))
   {
     // we do not process this fact if it already holds
@@ -183,7 +183,7 @@ TrustNode ProofEqEngine::assertConflict(Node lit)
     std::vector<Node> exp;
     exp.push_back(lit);
     std::vector<Node> args;
-    if (!d_proof.addStep(d_false, PfRule::MACRO_SR_PRED_ELIM, exp, args))
+    if (!d_proof.addStep(d_false, ProofRule::MACRO_SR_PRED_ELIM, exp, args))
     {
       Assert(false) << "pfee::assertConflict: failed conflict step";
       return TrustNode::null();
@@ -193,7 +193,7 @@ TrustNode ProofEqEngine::assertConflict(Node lit)
       d_false, assumps, TrustNodeKind::CONFLICT, &d_proof);
 }
 
-TrustNode ProofEqEngine::assertConflict(PfRule id,
+TrustNode ProofEqEngine::assertConflict(ProofRule id,
                                         const std::vector<Node>& exp,
                                         const std::vector<Node>& args)
 {
@@ -213,7 +213,7 @@ TrustNode ProofEqEngine::assertConflict(const std::vector<Node>& exp,
 }
 
 TrustNode ProofEqEngine::assertLemma(Node conc,
-                                     PfRule id,
+                                     ProofRule id,
                                      const std::vector<Node>& exp,
                                      const std::vector<Node>& noExplain,
                                      const std::vector<Node>& args)
@@ -366,7 +366,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   // we first ensure the assumptions are flattened
   for (const TNode& a : assumps)
   {
-    if (a.getKind() == AND)
+    if (a.getKind() == Kind::AND)
     {
       scopeAssumps.insert(scopeAssumps.end(), a.begin(), a.end());
     }
@@ -402,10 +402,10 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
   }
   else
   {
-    formula =
-        exp == d_true
-            ? conc
-            : (conc == d_false ? exp.negate() : nm->mkNode(IMPLIES, exp, conc));
+    formula = exp == d_true
+                  ? conc
+                  : (conc == d_false ? exp.negate()
+                                     : nm->mkNode(Kind::IMPLIES, exp, conc));
   }
   Trace("pfee-proof") << "pfee::ensureProofForFact: formula is " << formula
                       << std::endl;
@@ -455,7 +455,7 @@ bool ProofEqEngine::assertFactInternal(TNode atom, bool polarity, TNode reason)
   Trace("pfee-debug") << "pfee::assertFactInternal: " << atom << " " << polarity
                       << " " << reason << std::endl;
   bool ret;
-  if (atom.getKind() == EQUAL)
+  if (atom.getKind() == Kind::EQUAL)
   {
     ret = d_ee.assertEquality(atom, polarity, reason);
   }
@@ -474,7 +474,7 @@ bool ProofEqEngine::assertFactInternal(TNode atom, bool polarity, TNode reason)
 
 bool ProofEqEngine::holds(TNode atom, bool polarity)
 {
-  if (atom.getKind() == EQUAL)
+  if (atom.getKind() == Kind::EQUAL)
   {
     if (!d_ee.hasTerm(atom[0]) || !d_ee.hasTerm(atom[1]))
     {
@@ -501,11 +501,11 @@ void ProofEqEngine::explainWithProof(Node lit,
   }
   std::shared_ptr<eq::EqProof> pf = std::make_shared<eq::EqProof>();
   Trace("pfee-proof") << "pfee::explainWithProof: " << lit << std::endl;
-  bool polarity = lit.getKind() != NOT;
+  bool polarity = lit.getKind() != Kind::NOT;
   TNode atom = polarity ? lit : lit[0];
-  Assert(atom.getKind() != AND);
+  Assert(atom.getKind() != Kind::AND);
   std::vector<TNode> tassumps;
-  if (atom.getKind() == EQUAL)
+  if (atom.getKind() == Kind::EQUAL)
   {
     if (atom[0] == atom[1])
     {

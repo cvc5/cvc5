@@ -43,7 +43,8 @@ void QuantPhaseReq::initialize( Node n, bool computeEq ){
   if( computeEq ){
     for( std::map< Node, bool >::iterator it = d_phase_reqs.begin(); it != d_phase_reqs.end(); ++it ){
       Trace("inst-engine-phase-req") << "   " << it->first << " -> " << it->second << std::endl;
-      if( it->first.getKind()==EQUAL ){
+      if (it->first.getKind() == Kind::EQUAL)
+      {
         if( quantifiers::TermUtil::hasInstConstAttr(it->first[0]) ){
           if( !quantifiers::TermUtil::hasInstConstAttr(it->first[1]) ){
             d_phase_reqs_equality_term[ it->first[0] ] = it->first[1];
@@ -63,20 +64,27 @@ void QuantPhaseReq::initialize( Node n, bool computeEq ){
 void QuantPhaseReq::computePhaseReqs( Node n, bool polarity, std::map< Node, int >& phaseReqs ){
   bool newReqPol = false;
   bool newPolarity;
-  if( n.getKind()==NOT ){
+  if (n.getKind() == Kind::NOT)
+  {
     newReqPol = true;
     newPolarity = !polarity;
-  }else if( n.getKind()==OR || n.getKind()==IMPLIES ){
+  }
+  else if (n.getKind() == Kind::OR || n.getKind() == Kind::IMPLIES)
+  {
     if( !polarity ){
       newReqPol = true;
       newPolarity = false;
     }
-  }else if( n.getKind()==AND ){
+  }
+  else if (n.getKind() == Kind::AND)
+  {
     if( polarity ){
       newReqPol = true;
       newPolarity = true;
     }
-  }else{
+  }
+  else
+  {
     int val = polarity ? 1 : -1;
     if( phaseReqs.find( n )==phaseReqs.end() ){
       phaseReqs[n] = val;
@@ -86,9 +94,12 @@ void QuantPhaseReq::computePhaseReqs( Node n, bool polarity, std::map< Node, int
   }
   if( newReqPol ){
     for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      if( n.getKind()==IMPLIES && i==0 ){
+      if (n.getKind() == Kind::IMPLIES && i == 0)
+      {
         computePhaseReqs( n[i], !newPolarity, phaseReqs );
-      }else{
+      }
+      else
+      {
         computePhaseReqs( n[i], newPolarity, phaseReqs );
       }
     }
@@ -98,22 +109,34 @@ void QuantPhaseReq::computePhaseReqs( Node n, bool polarity, std::map< Node, int
 void QuantPhaseReq::getPolarity(
     Node n, size_t child, bool hasPol, bool pol, bool& newHasPol, bool& newPol)
 {
-  if( n.getKind()==AND || n.getKind()==OR || n.getKind()==SEP_STAR ){
+  if (n.getKind() == Kind::AND || n.getKind() == Kind::OR
+      || n.getKind() == Kind::SEP_STAR)
+  {
     newHasPol = hasPol;
     newPol = pol;
-  }else if( n.getKind()==IMPLIES ){
+  }
+  else if (n.getKind() == Kind::IMPLIES)
+  {
     newHasPol = hasPol;
     newPol = child==0 ? !pol : pol;
-  }else if( n.getKind()==NOT ){
+  }
+  else if (n.getKind() == Kind::NOT)
+  {
     newHasPol = hasPol;
     newPol = !pol;
-  }else if( n.getKind()==ITE ){
+  }
+  else if (n.getKind() == Kind::ITE)
+  {
     newHasPol = (child!=0) && hasPol;
     newPol = pol;
-  }else if( n.getKind()==FORALL ){
+  }
+  else if (n.getKind() == Kind::FORALL)
+  {
     newHasPol = (child==1) && hasPol;
     newPol = pol;
-  }else{
+  }
+  else
+  {
     newHasPol = false;
     newPol = false;
   }
@@ -122,16 +145,24 @@ void QuantPhaseReq::getPolarity(
 void QuantPhaseReq::getEntailPolarity(
     Node n, size_t child, bool hasPol, bool pol, bool& newHasPol, bool& newPol)
 {
-  if( n.getKind()==AND || n.getKind()==OR || n.getKind()==SEP_STAR ){
-    newHasPol = hasPol && pol!=( n.getKind()==OR );
+  if (n.getKind() == Kind::AND || n.getKind() == Kind::OR
+      || n.getKind() == Kind::SEP_STAR)
+  {
+    newHasPol = hasPol && pol != (n.getKind() == Kind::OR);
     newPol = pol;
-  }else if( n.getKind()==IMPLIES ){
+  }
+  else if (n.getKind() == Kind::IMPLIES)
+  {
     newHasPol = hasPol && !pol;
     newPol = child==0 ? !pol : pol;
-  }else if( n.getKind()==NOT ){
+  }
+  else if (n.getKind() == Kind::NOT)
+  {
     newHasPol = hasPol;
     newPol = !pol;
-  }else{
+  }
+  else
+  {
     newHasPol = false;
     newPol = false;
   }

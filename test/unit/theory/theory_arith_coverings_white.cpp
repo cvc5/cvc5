@@ -41,7 +41,6 @@
 namespace cvc5::internal::test {
 
 using namespace cvc5::internal;
-using namespace cvc5::internal::kind;
 using namespace cvc5::internal::theory;
 using namespace cvc5::internal::theory::arith;
 using namespace cvc5::internal::theory::arith::nl;
@@ -475,7 +474,7 @@ TEST_F(TestTheoryWhiteArithCoverings, test_ran_conversion)
   RealAlgebraicNumber ran(
       std::vector<Rational>({-2, 0, 1}), Rational(1, 3), Rational(7, 3));
   {
-    Node x = make_real_variable("x");
+    Node x = nodeManager->mkBoundVar("x", nodeManager->realType());
     Node n = PolyConverter::ran_to_node(ran, x);
     RealAlgebraicNumber back = PolyConverter::node_to_ran(n, x);
     EXPECT_TRUE(ran == back);

@@ -31,6 +31,7 @@ std::ostream& operator<<(std::ostream& out, SmtMode m)
     case SmtMode::ABDUCT: out << "ABDUCT"; break;
     case SmtMode::INTERPOL: out << "INTERPOL"; break;
     case SmtMode::SYNTH: out << "SYNTH"; break;
+    case SmtMode::FIND_SYNTH: out << "FIND_SYNTH"; break;
     default: out << "SmtMode!Unknown"; break;
   }
   return out;

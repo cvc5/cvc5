@@ -253,7 +253,7 @@ Result OptimizationSolver::optimizeLexicographicIterative()
       case Result::SAT:
         // assert target[i] == value[i] and proceed
         d_optChecker->assertFormula(NodeManager::currentNM()->mkNode(
-            kind::EQUAL, d_objectives[i].getTarget(), d_results[i].getValue()));
+            Kind::EQUAL, d_objectives[i].getTarget(), d_results[i].getValue()));
         break;
       case Result::UNSAT:
         d_optChecker.reset();

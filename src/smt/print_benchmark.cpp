@@ -45,31 +45,27 @@ void PrintBenchmark::printAssertions(std::ostream& out,
   {
     // note that we must get all "component types" of a type, so that
     // e.g. U is printed as a sort declaration when we have type (Array U Int).
-    std::unordered_set<TypeNode> ctypes;
-    expr::getComponentTypes(st, ctypes);
-    for (const TypeNode& stc : ctypes)
+    // get all connected datatypes to this one
+    std::vector<TypeNode> connectedTypes;
+    getConnectedSubfieldTypes(st, connectedTypes, alreadyPrintedDeclSorts);
+    // now, separate into sorts and datatypes
+    std::vector<TypeNode> datatypeBlock;
+    for (const TypeNode& ctn : connectedTypes)
     {
-      // get all connected datatypes to this one
-      std::vector<TypeNode> connectedTypes;
-      getConnectedSubfieldTypes(stc, connectedTypes, alreadyPrintedDeclSorts);
-      // now, separate into sorts and datatypes
-      std::vector<TypeNode> datatypeBlock;
-      for (const TypeNode& ctn : connectedTypes)
+      if ((ctn.isUninterpretedSort() && ctn.getNumChildren() == 0)
+          || ctn.isUninterpretedSortConstructor())
       {
-        if (ctn.isUninterpretedSort())
-        {
-          d_printer->toStreamCmdDeclareType(out, ctn);
-        }
-        else if (ctn.isDatatype())
-        {
-          datatypeBlock.push_back(ctn);
-        }
+        d_printer->toStreamCmdDeclareType(out, ctn);
       }
-      // print the mutually recursive datatype block if necessary
-      if (!datatypeBlock.empty())
+      else if (ctn.isDatatype())
       {
-        d_printer->toStreamCmdDatatypeDeclaration(out, datatypeBlock);
+        datatypeBlock.push_back(ctn);
       }
+    }
+    // print the mutually recursive datatype block if necessary
+    if (!datatypeBlock.empty())
+    {
+      d_printer->toStreamCmdDatatypeDeclaration(out, datatypeBlock);
     }
   }
 
@@ -82,10 +78,13 @@ void PrintBenchmark::printAssertions(std::ostream& out,
   // first, record all the defined symbols
   for (const Node& a : defs)
   {
-    bool isRec;
+    bool isRec = false;
     Node defSym;
     Node defBody;
-    decomposeDefinition(a, isRec, defSym, defBody);
+    if (!decomposeDefinition(a, isRec, defSym, defBody))
+    {
+      continue;
+    }
     if (!defSym.isNull())
     {
       Assert(defMap.find(defSym) == defMap.end());
@@ -183,19 +182,34 @@ void PrintBenchmark::getConnectedSubfieldTypes(
     return;
   }
   processed.insert(tn);
-  if (tn.isUninterpretedSort())
+  if (tn.isParametricDatatype())
   {
-    connectedTypes.push_back(tn);
-  }
-  else if (tn.isDatatype())
-  {
-    connectedTypes.push_back(tn);
-    std::unordered_set<TypeNode> subfieldTypes =
-        tn.getDType().getSubfieldTypes();
-    for (const TypeNode& ctn : subfieldTypes)
+    const DType& dt = tn.getDType();
+    // ignore its parameters
+    for (size_t i = 0, nparams = dt.getNumParameters(); i < nparams; i++)
     {
-      getConnectedSubfieldTypes(ctn, connectedTypes, processed);
+      processed.insert(dt.getParameter(i));
     }
+    // we do not process the datatype here, instead we will traverse to the
+    // head of the parameteric datatype (tn[0]), which will subsequently
+    // process its subfield types.
+  }
+  else
+  {
+    connectedTypes.push_back(tn);
+    if (tn.isDatatype())
+    {
+      std::unordered_set<TypeNode> subfieldTypes =
+          tn.getDType().getSubfieldTypes();
+      for (const TypeNode& ctn : subfieldTypes)
+      {
+        getConnectedSubfieldTypes(ctn, connectedTypes, processed);
+      }
+    }
+  }
+  for (unsigned i = 0, nchild = tn.getNumChildren(); i < nchild; i++)
+  {
+    getConnectedSubfieldTypes(tn[i], connectedTypes, processed);
   }
 }
 
@@ -247,7 +261,7 @@ bool PrintBenchmark::decomposeDefinition(Node a,
                                          Node& sym,
                                          Node& body)
 {
-  if (a.getKind() == EQUAL && a[0].isVar())
+  if (a.getKind() == Kind::EQUAL && a[0].isVar())
   {
     // an ordinary define-fun
     isRecDef = false;
@@ -255,12 +269,12 @@ bool PrintBenchmark::decomposeDefinition(Node a,
     body = a[1];
     return true;
   }
-  else if (a.getKind() == FORALL && a[1].getKind() == EQUAL
-           && a[1][0].getKind() == APPLY_UF)
+  else if (a.getKind() == Kind::FORALL && a[1].getKind() == Kind::EQUAL
+           && a[1][0].getKind() == Kind::APPLY_UF)
   {
     isRecDef = true;
     sym = a[1][0].getOperator();
-    body = NodeManager::currentNM()->mkNode(LAMBDA, a[0], a[1][1]);
+    body = NodeManager::currentNM()->mkNode(Kind::LAMBDA, a[0], a[1][1]);
     return true;
   }
   else

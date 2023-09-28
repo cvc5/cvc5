@@ -128,7 +128,7 @@ class DummyOutputChannel : public theory::OutputChannel
     push(LEMMA, n.getNode());
   }
 
-  void requirePhase(TNode, bool) override {}
+  void preferPhase(TNode, bool) override {}
   void setModelUnsound(theory::IncompleteId id) override {}
   void setRefutationUnsound(theory::IncompleteId id) override {}
 
@@ -187,7 +187,7 @@ class DummyProofRuleChecker : public ProofRuleChecker
   void registerTo(ProofChecker* pc) override {}
 
  protected:
-  Node checkInternal(PfRule id,
+  Node checkInternal(ProofRule id,
                      const std::vector<Node>& children,
                      const std::vector<Node>& args) override
   {

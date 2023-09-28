@@ -67,12 +67,12 @@ Node SygusUtils::mkSygusConjecture(const std::vector<Node>& fs,
   SygusAttribute ca;
   Node sygusVar = sm->mkDummySkolem("sygus", nm->booleanType());
   sygusVar.setAttribute(ca, true);
-  std::vector<Node> ipls{nm->mkNode(INST_ATTRIBUTE, sygusVar)};
+  std::vector<Node> ipls{nm->mkNode(Kind::INST_ATTRIBUTE, sygusVar)};
   // insert the remaining instantiation attributes
   ipls.insert(ipls.end(), iattrs.begin(), iattrs.end());
-  Node ipl = nm->mkNode(INST_PATTERN_LIST, ipls);
-  Node bvl = nm->mkNode(BOUND_VAR_LIST, fs);
-  return nm->mkNode(FORALL, bvl, conj, ipl);
+  Node ipl = nm->mkNode(Kind::INST_PATTERN_LIST, ipls);
+  Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, fs);
+  return nm->mkNode(Kind::FORALL, bvl, conj, ipl);
 }
 
 Node SygusUtils::mkSygusConjecture(const std::vector<Node>& fs, Node conj)
@@ -97,7 +97,7 @@ Node SygusUtils::mkSygusConjecture(const std::vector<Node>& fs,
     Node eq = solvedf.getEquality(i);
     Node var = sm->mkDummySkolem("solved", nm->booleanType());
     var.setAttribute(ssa, eq);
-    Node ipv = nm->mkNode(INST_ATTRIBUTE, var);
+    Node ipv = nm->mkNode(Kind::INST_ATTRIBUTE, var);
     iattrs.push_back(ipv);
   }
   return mkSygusConjecture(fs, conj, iattrs);
@@ -108,15 +108,15 @@ void SygusUtils::decomposeSygusConjecture(Node q,
                                           std::vector<Node>& unsf,
                                           Subs& solvedf)
 {
-  Assert(q.getKind() == FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   Assert(q.getNumChildren() == 3);
   Node ipl = q[2];
-  Assert(ipl.getKind() == INST_PATTERN_LIST);
+  Assert(ipl.getKind() == Kind::INST_PATTERN_LIST);
   fs.insert(fs.end(), q[0].begin(), q[0].end());
   SygusSolutionAttribute ssa;
   for (const Node& ip : ipl)
   {
-    if (ip.getKind() == INST_ATTRIBUTE)
+    if (ip.getKind() == Kind::INST_ATTRIBUTE)
     {
       Node ipv = ip[0];
       // does it specify a sygus solution?
@@ -140,7 +140,7 @@ void SygusUtils::decomposeSygusConjecture(Node q,
 
 Node SygusUtils::decomposeSygusBody(Node conj, std::vector<Node>& vs)
 {
-  if (conj.getKind() == NOT && conj[0].getKind() == FORALL)
+  if (conj.getKind() == Kind::NOT && conj[0].getKind() == Kind::FORALL)
   {
     vs.insert(vs.end(), conj[0][0].begin(), conj[0][0].end());
     return conj[0][1].negate();
@@ -173,7 +173,7 @@ Node SygusUtils::getOrMkSygusArgumentList(Node f)
       ss << "arg" << j;
       bvs.push_back(nm->mkBoundVar(ss.str(), argTypes[j]));
     }
-    sfvl = nm->mkNode(BOUND_VAR_LIST, bvs);
+    sfvl = nm->mkNode(Kind::BOUND_VAR_LIST, bvs);
     f.setAttribute(SygusSynthFunVarListAttribute(), sfvl);
   }
   return sfvl;
@@ -193,7 +193,7 @@ Node SygusUtils::wrapSolution(Node f, Node sol)
   Node al = getOrMkSygusArgumentList(f);
   if (!al.isNull())
   {
-    sol = NodeManager::currentNM()->mkNode(LAMBDA, al, sol);
+    sol = NodeManager::currentNM()->mkNode(Kind::LAMBDA, al, sol);
   }
   Assert(!expr::hasFreeVar(sol));
   return sol;

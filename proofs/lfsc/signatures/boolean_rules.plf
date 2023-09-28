@@ -16,7 +16,7 @@
 
 (declare and_elim (! f1 term (! f2 term (! n mpz (! p (holds f1) (! r (^ (nary_extract f_and f1 n) f2)  (holds f2)))))))
 
-; And introduction. Since PfRule::AND_INTRO is n-ary, we require n applications
+; And introduction. Since ProofRule::AND_INTRO is n-ary, we require n applications
 ; of the following two rules. The proof (AND_INTRO P1 ... Pn) is translated to
 ; the LFSC proof: (and_intro2* _ _ P{n-1} (and_intro1 _ Pn)).
 (declare and_intro1 (! f term (! p (holds f) (holds (and f true)))))
@@ -47,6 +47,6 @@
 
 (declare not_and_rev (! c1 term (! c2 term (! p1 (holds c1) (! r (^ (sc_not_and_rev c1) c2) (holds (not c2)))))))
 
-; Process scope, which is used to translate PfRule::SCOPE. It runs the side
+; Process scope, which is used to translate ProofRule::SCOPE. It runs the side
 ; condition sc_process_scope on f to generate an equivalent formula g.
 (declare process_scope (! f term (! g term (! c term (! p1 (holds f) (! r (^ (sc_process_scope f c) g) (holds g)))))))
