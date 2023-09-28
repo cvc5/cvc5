@@ -40,6 +40,13 @@ ElimShadowNodeConverter::ElimShadowNodeConverter(const Node& q) : d_closure(q)
   d_vars.insert(d_vars.end(), q[0].begin(), q[0].end());
 }
 
+ElimShadowNodeConverter::ElimShadowNodeConverter(
+    const Node& n, const std::unordered_set<Node>& vars)
+{
+  d_closure = n;
+  d_vars.insert(d_vars.end(), vars.begin(), vars.end());
+}
+
 Node ElimShadowNodeConverter::postConvert(Node n)
 {
   if (!n.isClosure())

@@ -22,7 +22,6 @@
 namespace cvc5::internal {
 
 using namespace theory;
-using namespace kind;
 using namespace theory::bags;
 
 namespace test {
@@ -51,13 +50,13 @@ TEST_F(TestTheoryWhiteBagsTypeRule, count_operator)
 {
   std::vector<Node> elements = getNStrings(1);
   Node bag = d_nodeManager->mkNode(
-      BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(100)));
+      Kind::BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(100)));
 
-  Node count = d_nodeManager->mkNode(BAG_COUNT, elements[0], bag);
+  Node count = d_nodeManager->mkNode(Kind::BAG_COUNT, elements[0], bag);
   Node node = d_nodeManager->mkConstInt(Rational(10));
 
   // node of type Int is not compatible with bag of type (Bag String)
-  ASSERT_THROW(d_nodeManager->mkNode(BAG_COUNT, node, bag).getType(true),
+  ASSERT_THROW(d_nodeManager->mkNode(Kind::BAG_COUNT, node, bag).getType(true),
                TypeCheckingExceptionPrivate);
 }
 
@@ -65,9 +64,9 @@ TEST_F(TestTheoryWhiteBagsTypeRule, duplicate_removal_operator)
 {
   std::vector<Node> elements = getNStrings(1);
   Node bag = d_nodeManager->mkNode(
-      BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(10)));
-  ASSERT_NO_THROW(d_nodeManager->mkNode(BAG_DUPLICATE_REMOVAL, bag));
-  ASSERT_EQ(d_nodeManager->mkNode(BAG_DUPLICATE_REMOVAL, bag).getType(),
+      Kind::BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(10)));
+  ASSERT_NO_THROW(d_nodeManager->mkNode(Kind::BAG_DUPLICATE_REMOVAL, bag));
+  ASSERT_EQ(d_nodeManager->mkNode(Kind::BAG_DUPLICATE_REMOVAL, bag).getType(),
             bag.getType());
 }
 
@@ -75,11 +74,11 @@ TEST_F(TestTheoryWhiteBagsTypeRule, mkBag_operator)
 {
   std::vector<Node> elements = getNStrings(1);
   Node negative = d_nodeManager->mkNode(
-      BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(-1)));
+      Kind::BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(-1)));
   Node zero = d_nodeManager->mkNode(
-      BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(0)));
+      Kind::BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(0)));
   Node positive = d_nodeManager->mkNode(
-      BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(1)));
+      Kind::BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(1)));
 
   // only positive multiplicity are constants
   ASSERT_FALSE(BagMakeTypeRule::computeIsConst(d_nodeManager, negative));
@@ -90,36 +89,36 @@ TEST_F(TestTheoryWhiteBagsTypeRule, mkBag_operator)
 TEST_F(TestTheoryWhiteBagsTypeRule, from_set_operator)
 {
   std::vector<Node> elements = getNStrings(1);
-  Node set = d_nodeManager->mkNode(SET_SINGLETON, elements[0]);
-  ASSERT_NO_THROW(d_nodeManager->mkNode(BAG_FROM_SET, set));
-  ASSERT_TRUE(d_nodeManager->mkNode(BAG_FROM_SET, set).getType().isBag());
+  Node set = d_nodeManager->mkNode(Kind::SET_SINGLETON, elements[0]);
+  ASSERT_NO_THROW(d_nodeManager->mkNode(Kind::BAG_FROM_SET, set));
+  ASSERT_TRUE(d_nodeManager->mkNode(Kind::BAG_FROM_SET, set).getType().isBag());
 }
 
 TEST_F(TestTheoryWhiteBagsTypeRule, to_set_operator)
 {
   std::vector<Node> elements = getNStrings(1);
   Node bag = d_nodeManager->mkNode(
-      BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(10)));
-  ASSERT_NO_THROW(d_nodeManager->mkNode(BAG_TO_SET, bag));
-  ASSERT_TRUE(d_nodeManager->mkNode(BAG_TO_SET, bag).getType().isSet());
+      Kind::BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(10)));
+  ASSERT_NO_THROW(d_nodeManager->mkNode(Kind::BAG_TO_SET, bag));
+  ASSERT_TRUE(d_nodeManager->mkNode(Kind::BAG_TO_SET, bag).getType().isSet());
 }
 
 TEST_F(TestTheoryWhiteBagsTypeRule, map_operator)
 {
   std::vector<Node> elements = getNStrings(1);
   Node bag = d_nodeManager->mkNode(
-      BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(10)));
-  Node set = d_nodeManager->mkNode(SET_SINGLETON, elements[0]);
+      Kind::BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(10)));
+  Node set = d_nodeManager->mkNode(Kind::SET_SINGLETON, elements[0]);
 
   Node x1 = d_nodeManager->mkBoundVar("x", d_nodeManager->stringType());
-  Node length = d_nodeManager->mkNode(STRING_LENGTH, x1);
+  Node length = d_nodeManager->mkNode(Kind::STRING_LENGTH, x1);
   std::vector<Node> args1;
   args1.push_back(x1);
-  Node bound1 = d_nodeManager->mkNode(kind::BOUND_VAR_LIST, args1);
-  Node lambda1 = d_nodeManager->mkNode(LAMBDA, bound1, length);
+  Node bound1 = d_nodeManager->mkNode(Kind::BOUND_VAR_LIST, args1);
+  Node lambda1 = d_nodeManager->mkNode(Kind::LAMBDA, bound1, length);
 
-  ASSERT_NO_THROW(d_nodeManager->mkNode(BAG_MAP, lambda1, bag));
-  Node mappedBag = d_nodeManager->mkNode(BAG_MAP, lambda1, bag);
+  ASSERT_NO_THROW(d_nodeManager->mkNode(Kind::BAG_MAP, lambda1, bag));
+  Node mappedBag = d_nodeManager->mkNode(Kind::BAG_MAP, lambda1, bag);
   ASSERT_TRUE(mappedBag.getType().isBag());
   ASSERT_EQ(d_nodeManager->integerType(),
             mappedBag.getType().getBagElementType());
@@ -128,11 +127,11 @@ TEST_F(TestTheoryWhiteBagsTypeRule, map_operator)
   Node x2 = d_nodeManager->mkBoundVar("x", d_nodeManager->integerType());
   std::vector<Node> args2;
   args2.push_back(x2);
-  Node bound2 = d_nodeManager->mkNode(kind::BOUND_VAR_LIST, args2);
-  Node lambda2 = d_nodeManager->mkNode(LAMBDA, bound2, one);
-  ASSERT_THROW(d_nodeManager->mkNode(BAG_MAP, lambda2, bag).getType(true),
+  Node bound2 = d_nodeManager->mkNode(Kind::BOUND_VAR_LIST, args2);
+  Node lambda2 = d_nodeManager->mkNode(Kind::LAMBDA, bound2, one);
+  ASSERT_THROW(d_nodeManager->mkNode(Kind::BAG_MAP, lambda2, bag).getType(true),
                TypeCheckingExceptionPrivate);
-  ASSERT_THROW(d_nodeManager->mkNode(BAG_MAP, lambda2, set).getType(true),
+  ASSERT_THROW(d_nodeManager->mkNode(Kind::BAG_MAP, lambda2, set).getType(true),
                TypeCheckingExceptionPrivate);
 }
 

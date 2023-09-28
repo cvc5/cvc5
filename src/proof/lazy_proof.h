@@ -79,7 +79,7 @@ class LazyCDProof : public CDProof
    * @param pg The generator that can proof expected.
    * @param trustId If a null proof generator is provided, we add a step to
    * the proof that has trustId as the rule and expected as the sole argument.
-   * We do this only if trustId is not PfRule::ASSUME. This is primarily used
+   * We do this only if trustId is not ProofRule::ASSUME. This is primarily used
    * for identifying the kind of hole when a proof generator is not given.
    * @param isClosed Whether to expect that pg can provide a closed proof for
    * this fact.
@@ -90,7 +90,7 @@ class LazyCDProof : public CDProof
    */
   void addLazyStep(Node expected,
                    ProofGenerator* pg,
-                   PfRule trustId = PfRule::ASSUME,
+                   ProofRule trustId = ProofRule::ASSUME,
                    bool isClosed = false,
                    const char* ctx = "LazyCDProof::addLazyStep",
                    bool forceOverwrite = false);

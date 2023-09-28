@@ -93,11 +93,11 @@ Node ForeignTheoryRewriter::foreignRewrite(Node n)
 {
   // n is a rewritten node, and so GT, LT, LEQ
   // should have been eliminated
-  Assert(n.getKind() != kind::GT);
-  Assert(n.getKind() != kind::LT);
-  Assert(n.getKind() != kind::LEQ);
+  Assert(n.getKind() != Kind::GT);
+  Assert(n.getKind() != Kind::LT);
+  Assert(n.getKind() != Kind::LEQ);
   // apply rewrites according to the structure of n
-  if (n.getKind() == kind::GEQ)
+  if (n.getKind() == Kind::GEQ)
   {
     return rewriteStringsGeq(n);
   }
@@ -125,7 +125,7 @@ Node ForeignTheoryRewriter::reconstructNode(Node originalNode,
     return originalNode;
   }
   // re-build the node with the same kind and new children
-  kind::Kind_t k = originalNode.getKind();
+  Kind k = originalNode.getKind();
   NodeBuilder builder(k);
   // special case for parameterized nodes
   if (originalNode.getMetaKind() == kind::metakind::PARAMETERIZED)

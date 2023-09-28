@@ -27,7 +27,7 @@ FunctionEnumerator::FunctionEnumerator(TypeNode type,
     : TypeEnumeratorBase<FunctionEnumerator>(type),
       d_arrayEnum(FunctionConst::getArrayTypeForFunctionType(type), tep)
 {
-  Assert(type.getKind() == kind::FUNCTION_TYPE);
+  Assert(type.getKind() == Kind::FUNCTION_TYPE);
 }
 
 Node FunctionEnumerator::operator*()

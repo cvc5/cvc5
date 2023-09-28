@@ -59,7 +59,7 @@ typedef expr::Attribute<SecondIndexVarAttributeId, Node>
 
 Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
 {
-  Assert(node.getKind() == BAG_FOLD);
+  Assert(node.getKind() == Kind::BAG_FOLD);
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   Node f = node[0];
@@ -86,35 +86,36 @@ Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node i =
       bvm->mkBoundVar<FirstIndexVarAttribute>(node, "i", nm->integerType());
-  Node iList = nm->mkNode(BOUND_VAR_LIST, i);
-  Node iMinusOne = nm->mkNode(SUB, i, one);
-  Node uf_i = nm->mkNode(APPLY_UF, uf, i);
-  Node combine_0 = nm->mkNode(APPLY_UF, combine, zero);
-  Node combine_iMinusOne = nm->mkNode(APPLY_UF, combine, iMinusOne);
-  Node combine_i = nm->mkNode(APPLY_UF, combine, i);
-  Node combine_n = nm->mkNode(APPLY_UF, combine, n);
-  Node unionDisjoint_0 = nm->mkNode(APPLY_UF, unionDisjoint, zero);
-  Node unionDisjoint_iMinusOne = nm->mkNode(APPLY_UF, unionDisjoint, iMinusOne);
-  Node unionDisjoint_i = nm->mkNode(APPLY_UF, unionDisjoint, i);
-  Node unionDisjoint_n = nm->mkNode(APPLY_UF, unionDisjoint, n);
+  Node iList = nm->mkNode(Kind::BOUND_VAR_LIST, i);
+  Node iMinusOne = nm->mkNode(Kind::SUB, i, one);
+  Node uf_i = nm->mkNode(Kind::APPLY_UF, uf, i);
+  Node combine_0 = nm->mkNode(Kind::APPLY_UF, combine, zero);
+  Node combine_iMinusOne = nm->mkNode(Kind::APPLY_UF, combine, iMinusOne);
+  Node combine_i = nm->mkNode(Kind::APPLY_UF, combine, i);
+  Node combine_n = nm->mkNode(Kind::APPLY_UF, combine, n);
+  Node unionDisjoint_0 = nm->mkNode(Kind::APPLY_UF, unionDisjoint, zero);
+  Node unionDisjoint_iMinusOne =
+      nm->mkNode(Kind::APPLY_UF, unionDisjoint, iMinusOne);
+  Node unionDisjoint_i = nm->mkNode(Kind::APPLY_UF, unionDisjoint, i);
+  Node unionDisjoint_n = nm->mkNode(Kind::APPLY_UF, unionDisjoint, n);
   Node combine_0_equal = combine_0.eqNode(t);
   Node combine_i_equal =
-      combine_i.eqNode(nm->mkNode(APPLY_UF, f, uf_i, combine_iMinusOne));
+      combine_i.eqNode(nm->mkNode(Kind::APPLY_UF, f, uf_i, combine_iMinusOne));
   Node unionDisjoint_0_equal =
       unionDisjoint_0.eqNode(nm->mkConst(EmptyBag(bagType)));
-  Node singleton = nm->mkNode(BAG_MAKE, uf_i, one);
+  Node singleton = nm->mkNode(Kind::BAG_MAKE, uf_i, one);
 
   Node unionDisjoint_i_equal = unionDisjoint_i.eqNode(
-      nm->mkNode(BAG_UNION_DISJOINT, singleton, unionDisjoint_iMinusOne));
-  Node interval_i =
-      nm->mkNode(AND, nm->mkNode(GEQ, i, one), nm->mkNode(LEQ, i, n));
+      nm->mkNode(Kind::BAG_UNION_DISJOINT, singleton, unionDisjoint_iMinusOne));
+  Node interval_i = nm->mkNode(
+      Kind::AND, nm->mkNode(Kind::GEQ, i, one), nm->mkNode(Kind::LEQ, i, n));
 
   Node body_i =
-      nm->mkNode(IMPLIES,
+      nm->mkNode(Kind::IMPLIES,
                  interval_i,
-                 nm->mkNode(AND, combine_i_equal, unionDisjoint_i_equal));
+                 nm->mkNode(Kind::AND, combine_i_equal, unionDisjoint_i_equal));
   Node forAll_i = quantifiers::BoundedIntegers::mkBoundedForall(iList, body_i);
-  Node nonNegative = nm->mkNode(GEQ, n, zero);
+  Node nonNegative = nm->mkNode(Kind::GEQ, n, zero);
   Node unionDisjoint_n_equal = A.eqNode(unionDisjoint_n);
   asserts.push_back(forAll_i);
   asserts.push_back(combine_0_equal);
@@ -126,7 +127,7 @@ Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
 
 Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
 {
-  Assert(node.getKind() == BAG_CARD);
+  Assert(node.getKind() == Kind::BAG_CARD);
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   Node A = node[0];
@@ -152,47 +153,50 @@ Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
       bvm->mkBoundVar<FirstIndexVarAttribute>(node, "i", nm->integerType());
   Node j =
       bvm->mkBoundVar<SecondIndexVarAttribute>(node, "j", nm->integerType());
-  Node iList = nm->mkNode(BOUND_VAR_LIST, i);
-  Node jList = nm->mkNode(BOUND_VAR_LIST, j);
-  Node iMinusOne = nm->mkNode(SUB, i, one);
-  Node uf_i = nm->mkNode(APPLY_UF, uf, i);
-  Node uf_j = nm->mkNode(APPLY_UF, uf, j);
-  Node cardinality_0 = nm->mkNode(APPLY_UF, cardinality, zero);
-  Node cardinality_iMinusOne = nm->mkNode(APPLY_UF, cardinality, iMinusOne);
-  Node cardinality_i = nm->mkNode(APPLY_UF, cardinality, i);
-  Node cardinality_n = nm->mkNode(APPLY_UF, cardinality, n);
-  Node unionDisjoint_0 = nm->mkNode(APPLY_UF, unionDisjoint, zero);
-  Node unionDisjoint_iMinusOne = nm->mkNode(APPLY_UF, unionDisjoint, iMinusOne);
-  Node unionDisjoint_i = nm->mkNode(APPLY_UF, unionDisjoint, i);
-  Node unionDisjoint_n = nm->mkNode(APPLY_UF, unionDisjoint, n);
+  Node iList = nm->mkNode(Kind::BOUND_VAR_LIST, i);
+  Node jList = nm->mkNode(Kind::BOUND_VAR_LIST, j);
+  Node iMinusOne = nm->mkNode(Kind::SUB, i, one);
+  Node uf_i = nm->mkNode(Kind::APPLY_UF, uf, i);
+  Node uf_j = nm->mkNode(Kind::APPLY_UF, uf, j);
+  Node cardinality_0 = nm->mkNode(Kind::APPLY_UF, cardinality, zero);
+  Node cardinality_iMinusOne =
+      nm->mkNode(Kind::APPLY_UF, cardinality, iMinusOne);
+  Node cardinality_i = nm->mkNode(Kind::APPLY_UF, cardinality, i);
+  Node cardinality_n = nm->mkNode(Kind::APPLY_UF, cardinality, n);
+  Node unionDisjoint_0 = nm->mkNode(Kind::APPLY_UF, unionDisjoint, zero);
+  Node unionDisjoint_iMinusOne =
+      nm->mkNode(Kind::APPLY_UF, unionDisjoint, iMinusOne);
+  Node unionDisjoint_i = nm->mkNode(Kind::APPLY_UF, unionDisjoint, i);
+  Node unionDisjoint_n = nm->mkNode(Kind::APPLY_UF, unionDisjoint, n);
   Node cardinality_0_equal = cardinality_0.eqNode(zero);
-  Node uf_i_multiplicity = nm->mkNode(BAG_COUNT, uf_i, A);
+  Node uf_i_multiplicity = nm->mkNode(Kind::BAG_COUNT, uf_i, A);
   Node cardinality_i_equal = cardinality_i.eqNode(
-      nm->mkNode(ADD, uf_i_multiplicity, cardinality_iMinusOne));
+      nm->mkNode(Kind::ADD, uf_i_multiplicity, cardinality_iMinusOne));
   Node unionDisjoint_0_equal =
       unionDisjoint_0.eqNode(nm->mkConst(EmptyBag(bagType)));
-  Node bag = nm->mkNode(BAG_MAKE, uf_i, uf_i_multiplicity);
+  Node bag = nm->mkNode(Kind::BAG_MAKE, uf_i, uf_i_multiplicity);
 
   Node unionDisjoint_i_equal = unionDisjoint_i.eqNode(
-      nm->mkNode(BAG_UNION_DISJOINT, bag, unionDisjoint_iMinusOne));
+      nm->mkNode(Kind::BAG_UNION_DISJOINT, bag, unionDisjoint_iMinusOne));
   // 1 <= i <= n
-  Node interval_i =
-      nm->mkNode(AND, nm->mkNode(GEQ, i, one), nm->mkNode(LEQ, i, n));
+  Node interval_i = nm->mkNode(
+      Kind::AND, nm->mkNode(Kind::GEQ, i, one), nm->mkNode(Kind::LEQ, i, n));
 
   // i < j <= n
-  Node interval_j =
-      nm->mkNode(AND, nm->mkNode(LT, i, j), nm->mkNode(LEQ, j, n));
+  Node interval_j = nm->mkNode(
+      Kind::AND, nm->mkNode(Kind::LT, i, j), nm->mkNode(Kind::LEQ, j, n));
   // uf(i) != uf(j)
-  Node uf_i_equals_uf_j = nm->mkNode(EQUAL, uf_i, uf_j);
-  Node notEqual = nm->mkNode(EQUAL, uf_i, uf_j).negate();
-  Node body_j = nm->mkNode(OR, interval_j.negate(), notEqual);
+  Node uf_i_equals_uf_j = nm->mkNode(Kind::EQUAL, uf_i, uf_j);
+  Node notEqual = nm->mkNode(Kind::EQUAL, uf_i, uf_j).negate();
+  Node body_j = nm->mkNode(Kind::OR, interval_j.negate(), notEqual);
   Node forAll_j = quantifiers::BoundedIntegers::mkBoundedForall(jList, body_j);
   Node body_i = nm->mkNode(
-      IMPLIES,
+      Kind::IMPLIES,
       interval_i,
-      nm->mkNode(AND, cardinality_i_equal, unionDisjoint_i_equal, forAll_j));
+      nm->mkNode(
+          Kind::AND, cardinality_i_equal, unionDisjoint_i_equal, forAll_j));
   Node forAll_i = quantifiers::BoundedIntegers::mkBoundedForall(iList, body_i);
-  Node nonNegative = nm->mkNode(GEQ, n, zero);
+  Node nonNegative = nm->mkNode(Kind::GEQ, n, zero);
   Node unionDisjoint_n_equal = A.eqNode(unionDisjoint_n);
   asserts.push_back(forAll_i);
   asserts.push_back(cardinality_0_equal);
@@ -204,7 +208,7 @@ Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
 
 Node BagReduction::reduceAggregateOperator(Node node)
 {
-  Assert(node.getKind() == TABLE_AGGREGATE);
+  Assert(node.getKind() == Kind::TABLE_AGGREGATE);
   NodeManager* nm = NodeManager::currentNM();
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node function = node[0];
@@ -213,31 +217,32 @@ Node BagReduction::reduceAggregateOperator(Node node)
   Node A = node[2];
   ProjectOp op = node.getOperator().getConst<ProjectOp>();
 
-  Node groupOp = nm->mkConst(TABLE_GROUP_OP, op);
-  Node group = nm->mkNode(TABLE_GROUP, {groupOp, A});
+  Node groupOp = nm->mkConst(Kind::TABLE_GROUP_OP, op);
+  Node group = nm->mkNode(Kind::TABLE_GROUP, {groupOp, A});
 
   Node bag = bvm->mkBoundVar<FirstIndexVarAttribute>(
       group, "bag", nm->mkBagType(elementType));
-  Node foldList = nm->mkNode(BOUND_VAR_LIST, bag);
-  Node foldBody = nm->mkNode(BAG_FOLD, function, initialValue, bag);
+  Node foldList = nm->mkNode(Kind::BOUND_VAR_LIST, bag);
+  Node foldBody = nm->mkNode(Kind::BAG_FOLD, function, initialValue, bag);
 
-  Node fold = nm->mkNode(LAMBDA, foldList, foldBody);
-  Node map = nm->mkNode(BAG_MAP, fold, group);
+  Node fold = nm->mkNode(Kind::LAMBDA, foldList, foldBody);
+  Node map = nm->mkNode(Kind::BAG_MAP, fold, group);
   return map;
 }
 
 Node BagReduction::reduceProjectOperator(Node n)
 {
-  Assert(n.getKind() == TABLE_PROJECT);
+  Assert(n.getKind() == Kind::TABLE_PROJECT);
   NodeManager* nm = NodeManager::currentNM();
   Node A = n[0];
   TypeNode elementType = A.getType().getBagElementType();
   ProjectOp projectOp = n.getOperator().getConst<ProjectOp>();
-  Node op = nm->mkConst(TUPLE_PROJECT_OP, projectOp);
+  Node op = nm->mkConst(Kind::TUPLE_PROJECT_OP, projectOp);
   Node t = nm->mkBoundVar("t", elementType);
-  Node projection = nm->mkNode(TUPLE_PROJECT, op, t);
-  Node lambda = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, t), projection);
-  Node setMap = nm->mkNode(BAG_MAP, lambda, A);
+  Node projection = nm->mkNode(Kind::TUPLE_PROJECT, op, t);
+  Node lambda =
+      nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, t), projection);
+  Node setMap = nm->mkNode(Kind::BAG_MAP, lambda, A);
   return setMap;
 }
 

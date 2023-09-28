@@ -70,7 +70,7 @@ PreprocessingPassResult BoolToBV::applyInternal(
 void BoolToBV::updateCache(TNode n, TNode rebuilt)
 {
   // check more likely case first
-  if ((n.getKind() != kind::ITE) || !n[1].getType().isBitVector())
+  if ((n.getKind() != Kind::ITE) || !n[1].getType().isBitVector())
   {
     d_lowerCache[n] = rebuilt;
   }
@@ -83,7 +83,7 @@ void BoolToBV::updateCache(TNode n, TNode rebuilt)
 Node BoolToBV::fromCache(TNode n) const
 {
   // check more likely case first
-  if (n.getKind() != kind::ITE)
+  if (n.getKind() != Kind::ITE)
   {
     if (d_lowerCache.find(n) != d_lowerCache.end())
     {
@@ -134,7 +134,7 @@ Node BoolToBV::lowerAssertion(const TNode& assertion, bool allowIteIntroduction)
   {
     Assert(newAssertionType.getBitVectorSize() == 1);
     newAssertion = NodeManager::currentNM()->mkNode(
-        kind::EQUAL, newAssertion, bv::utils::mkOne(1));
+        Kind::EQUAL, newAssertion, bv::utils::mkOne(1));
     newAssertionType = newAssertion.getType();
   }
   Assert(newAssertionType.isBoolean());
@@ -185,7 +185,7 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
   Kind k = n.getKind();
 
   // easy case -- just replace boolean constant
-  if (k == kind::CONST_BOOLEAN)
+  if (k == Kind::CONST_BOOLEAN)
   {
     updateCache(n,
                 (n == bv::utils::mkTrue()) ? bv::utils::mkOne(1)
@@ -197,21 +197,21 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
   Kind new_kind = k;
   switch (k)
   {
-    case kind::EQUAL: new_kind = kind::BITVECTOR_COMP; break;
-    case kind::AND: new_kind = kind::BITVECTOR_AND; break;
-    case kind::OR: new_kind = kind::BITVECTOR_OR; break;
-    case kind::NOT: new_kind = kind::BITVECTOR_NOT; break;
-    case kind::XOR: new_kind = kind::BITVECTOR_XOR; break;
-    case kind::IMPLIES: new_kind = kind::BITVECTOR_OR; break;
-    case kind::ITE: new_kind = kind::BITVECTOR_ITE; break;
-    case kind::BITVECTOR_ULT: new_kind = kind::BITVECTOR_ULTBV; break;
-    case kind::BITVECTOR_SLT: new_kind = kind::BITVECTOR_SLTBV; break;
-    case kind::BITVECTOR_ULE:
-    case kind::BITVECTOR_UGT:
-    case kind::BITVECTOR_UGE:
-    case kind::BITVECTOR_SLE:
-    case kind::BITVECTOR_SGT:
-    case kind::BITVECTOR_SGE:
+    case Kind::EQUAL: new_kind = Kind::BITVECTOR_COMP; break;
+    case Kind::AND: new_kind = Kind::BITVECTOR_AND; break;
+    case Kind::OR: new_kind = Kind::BITVECTOR_OR; break;
+    case Kind::NOT: new_kind = Kind::BITVECTOR_NOT; break;
+    case Kind::XOR: new_kind = Kind::BITVECTOR_XOR; break;
+    case Kind::IMPLIES: new_kind = Kind::BITVECTOR_OR; break;
+    case Kind::ITE: new_kind = Kind::BITVECTOR_ITE; break;
+    case Kind::BITVECTOR_ULT: new_kind = Kind::BITVECTOR_ULTBV; break;
+    case Kind::BITVECTOR_SLT: new_kind = Kind::BITVECTOR_SLTBV; break;
+    case Kind::BITVECTOR_ULE:
+    case Kind::BITVECTOR_UGT:
+    case Kind::BITVECTOR_UGE:
+    case Kind::BITVECTOR_SLE:
+    case Kind::BITVECTOR_SGT:
+    case Kind::BITVECTOR_SGE:
       // Should have been removed by rewriting.
       Unreachable();
     default: break;
@@ -260,7 +260,7 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
     }
 
     updateCache(n,
-                nm->mkNode(kind::ITE,
+                nm->mkNode(Kind::ITE,
                            fromCache(n),
                            bv::utils::mkOne(1),
                            bv::utils::mkZero(1)));
@@ -286,7 +286,7 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
     // have been converted (even constants and variables) when forcing
     // with ITE introductions
     updateCache(
-        n, nm->mkNode(kind::ITE, n, bv::utils::mkOne(1), bv::utils::mkZero(1)));
+        n, nm->mkNode(Kind::ITE, n, bv::utils::mkOne(1), bv::utils::mkZero(1)));
     Trace("bool-to-bv") << "BoolToBV::visit forcing " << n
                         << " =>\n"
                         << fromCache(n) << std::endl;
@@ -322,7 +322,7 @@ Node BoolToBV::lowerIte(const TNode& node)
     // Look for ITEs and mark visited
     if (!ContainsKey(visited, n))
     {
-      if ((n.getKind() == kind::ITE) && n[1].getType().isBitVector())
+      if ((n.getKind() == Kind::ITE) && n[1].getType().isBitVector())
       {
         Trace("bool-to-bv") << "BoolToBV::lowerIte: adding " << n[0]
                             << " to set of ite conditions" << std::endl;
@@ -381,9 +381,9 @@ void BoolToBV::rebuildNode(const TNode& n, Kind new_kind)
     builder << n.getOperator();
   }
   // special case IMPLIES because needs to be rewritten
-  if ((k == kind::IMPLIES) && (new_kind != k))
+  if ((k == Kind::IMPLIES) && (new_kind != k))
   {
-    builder << nm->mkNode(kind::BITVECTOR_NOT, fromCache(n[0]));
+    builder << nm->mkNode(Kind::BITVECTOR_NOT, fromCache(n[0]));
     builder << fromCache(n[1]);
   }
   else

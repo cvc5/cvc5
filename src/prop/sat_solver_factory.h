@@ -35,13 +35,19 @@ class SatSolverFactory
   static CDCLTSatSolver* createCDCLTMinisat(Env& env,
                                             StatisticsRegistry& registry);
 
+  static CDCLTSatSolver* createCadical(Env& env,
+                                       StatisticsRegistry& registry,
+                                       ResourceManager* resmgr,
+                                       const std::string& name = "");
+
+  static CDCLTSatSolver* createCadicalCDCLT(Env& env,
+                                            StatisticsRegistry& registry,
+                                            ResourceManager* resmgr,
+                                            const std::string& name = "");
+
   static SatSolver* createCryptoMinisat(StatisticsRegistry& registry,
                                         ResourceManager* resmgr,
                                         const std::string& name = "");
-
-  static SatSolver* createCadical(StatisticsRegistry& registry,
-                                  ResourceManager* resmgr,
-                                  const std::string& name = "");
 
   static SatSolver* createKissat(StatisticsRegistry& registry,
                                  const std::string& name = "");

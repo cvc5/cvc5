@@ -31,7 +31,6 @@
 
 namespace cvc5::internal {
 
-using namespace kind;
 using namespace context;
 using namespace theory;
 

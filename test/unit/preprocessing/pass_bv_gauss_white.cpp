@@ -104,20 +104,20 @@ class TestPPWhiteBVGauss : public TestSmt
     d_nine32 = d_nodeManager->mkConst<BitVector>(BitVector(32, 9u));
     d_ten32 = d_nodeManager->mkConst<BitVector>(BitVector(32, 10u));
 
-    d_x_mul_one = d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_x, d_one);
-    d_x_mul_two = d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_x, d_two);
-    d_x_mul_four = d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_x, d_four);
-    d_y_mul_three = d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_y, d_three);
-    d_y_mul_one = d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_y, d_one);
-    d_y_mul_four = d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_y, d_four);
-    d_y_mul_five = d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_y, d_five);
-    d_y_mul_seven = d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_y, d_seven);
-    d_z_mul_one = d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_z, d_one);
-    d_z_mul_three = d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_z, d_three);
-    d_z_mul_five = d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_z, d_five);
-    d_z_mul_six = d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_z, d_six);
-    d_z_mul_twelve = d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_z, d_twelve);
-    d_z_mul_nine = d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_z, d_nine);
+    d_x_mul_one = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_x, d_one);
+    d_x_mul_two = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_x, d_two);
+    d_x_mul_four = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_x, d_four);
+    d_y_mul_three = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_y, d_three);
+    d_y_mul_one = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_y, d_one);
+    d_y_mul_four = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_y, d_four);
+    d_y_mul_five = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_y, d_five);
+    d_y_mul_seven = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_y, d_seven);
+    d_z_mul_one = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_z, d_one);
+    d_z_mul_three = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_z, d_three);
+    d_z_mul_five = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_z, d_five);
+    d_z_mul_six = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_z, d_six);
+    d_z_mul_twelve = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_z, d_twelve);
+    d_z_mul_nine = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_z, d_nine);
   }
 
   void print_matrix_dbg(std::vector<Integer>& rhs,
@@ -903,35 +903,35 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_unique1)
    * ------------------------------------------------------------------- */
 
   Node eq1 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD,
+              Kind::BITVECTOR_ADD,
               d_nodeManager->mkNode(
-                  kind::BITVECTOR_ADD, d_x_mul_one, d_y_mul_one),
+                  Kind::BITVECTOR_ADD, d_x_mul_one, d_y_mul_one),
               d_z_mul_one),
           d_p),
       d_five);
 
   Node eq2 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD,
+              Kind::BITVECTOR_ADD,
               d_nodeManager->mkNode(
-                  kind::BITVECTOR_ADD, d_x_mul_two, d_y_mul_three),
+                  Kind::BITVECTOR_ADD, d_x_mul_two, d_y_mul_three),
               d_z_mul_five),
           d_p),
       d_eight);
 
   Node eq3 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD, d_x_mul_four, d_z_mul_five),
+              Kind::BITVECTOR_ADD, d_x_mul_four, d_z_mul_five),
           d_p),
       d_two);
 
@@ -961,49 +961,49 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_unique2)
   Node p = d_nodeManager->mkNode(
       zextop6,
       bv::utils::mkConcat(bv::utils::mkZero(6),
-                          d_nodeManager->mkNode(kind::BITVECTOR_ADD,
+                          d_nodeManager->mkNode(Kind::BITVECTOR_ADD,
                                                 bv::utils::mkConst(20, 7),
                                                 bv::utils::mkConst(20, 4))));
 
   Node x_mul_one = d_nodeManager->mkNode(
-      kind::BITVECTOR_MULT,
-      d_nodeManager->mkNode(kind::BITVECTOR_SUB, d_five, d_four),
+      Kind::BITVECTOR_MULT,
+      d_nodeManager->mkNode(Kind::BITVECTOR_SUB, d_five, d_four),
       d_x);
   Node y_mul_one = d_nodeManager->mkNode(
-      kind::BITVECTOR_MULT,
-      d_nodeManager->mkNode(kind::BITVECTOR_UREM, d_one, d_five),
+      Kind::BITVECTOR_MULT,
+      d_nodeManager->mkNode(Kind::BITVECTOR_UREM, d_one, d_five),
       d_y);
   Node z_mul_one =
-      d_nodeManager->mkNode(kind::BITVECTOR_MULT, bv::utils::mkOne(32), d_z);
+      d_nodeManager->mkNode(Kind::BITVECTOR_MULT, bv::utils::mkOne(32), d_z);
 
   Node x_mul_two = d_nodeManager->mkNode(
-      kind::BITVECTOR_MULT,
+      Kind::BITVECTOR_MULT,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_SHL, bv::utils::mkOne(32), bv::utils::mkOne(32)),
+          Kind::BITVECTOR_SHL, bv::utils::mkOne(32), bv::utils::mkOne(32)),
       d_x);
   Node y_mul_three =
-      d_nodeManager->mkNode(kind::BITVECTOR_MULT,
-                            d_nodeManager->mkNode(kind::BITVECTOR_LSHR,
+      d_nodeManager->mkNode(Kind::BITVECTOR_MULT,
+                            d_nodeManager->mkNode(Kind::BITVECTOR_LSHR,
                                                   bv::utils::mkOnes(32),
                                                   bv::utils::mkConst(32, 30)),
                             d_y);
   Node z_mul_five = d_nodeManager->mkNode(
-      kind::BITVECTOR_MULT,
+      Kind::BITVECTOR_MULT,
       bv::utils::mkExtract(
           d_nodeManager->mkNode(
               zextop6,
-              d_nodeManager->mkNode(kind::BITVECTOR_ADD, d_three, d_two)),
+              d_nodeManager->mkNode(Kind::BITVECTOR_ADD, d_three, d_two)),
           31,
           0),
       d_z);
 
   Node x_mul_four = d_nodeManager->mkNode(
-      kind::BITVECTOR_MULT,
+      Kind::BITVECTOR_MULT,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UDIV,
+          Kind::BITVECTOR_UDIV,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD,
-              d_nodeManager->mkNode(kind::BITVECTOR_MULT,
+              Kind::BITVECTOR_ADD,
+              d_nodeManager->mkNode(Kind::BITVECTOR_MULT,
                                     bv::utils::mkConst(32, 4),
                                     bv::utils::mkConst(32, 5)),
               bv::utils::mkConst(32, 4)),
@@ -1011,33 +1011,33 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_unique2)
       d_x);
 
   Node eq1 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD,
-              d_nodeManager->mkNode(kind::BITVECTOR_ADD, x_mul_one, y_mul_one),
+              Kind::BITVECTOR_ADD,
+              d_nodeManager->mkNode(Kind::BITVECTOR_ADD, x_mul_one, y_mul_one),
               z_mul_one),
           p),
       d_five);
 
   Node eq2 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD,
+              Kind::BITVECTOR_ADD,
               d_nodeManager->mkNode(
-                  kind::BITVECTOR_ADD, x_mul_two, y_mul_three),
+                  Kind::BITVECTOR_ADD, x_mul_two, y_mul_three),
               z_mul_five),
           p),
       d_eight);
 
   Node eq3 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
-          d_nodeManager->mkNode(kind::BITVECTOR_ADD, x_mul_four, z_mul_five),
+          Kind::BITVECTOR_UREM,
+          d_nodeManager->mkNode(Kind::BITVECTOR_ADD, x_mul_four, z_mul_five),
           d_p),
       d_two);
 
@@ -1064,19 +1064,19 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial1a)
    * ------------------------------------------------------------------- */
 
   Node eq1 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
-          d_nodeManager->mkNode(kind::BITVECTOR_ADD, d_x_mul_one, d_z_mul_nine),
+          Kind::BITVECTOR_UREM,
+          d_nodeManager->mkNode(Kind::BITVECTOR_ADD, d_x_mul_one, d_z_mul_nine),
           d_p),
       d_seven);
 
   Node eq2 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD, d_y_mul_one, d_z_mul_three),
+              Kind::BITVECTOR_ADD, d_y_mul_one, d_z_mul_three),
           d_p),
       d_nine);
 
@@ -1086,48 +1086,48 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial1a)
   ASSERT_EQ(res.size(), 2);
 
   Node x1 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_seven32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_z, d_two32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_z, d_two32)),
       d_p);
   Node y1 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_nine32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_z, d_eight32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_z, d_eight32)),
       d_p);
 
   Node x2 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_two32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_y, d_three32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_y, d_three32)),
       d_p);
   Node z2 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_three32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_y, d_seven32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_y, d_seven32)),
       d_p);
 
   Node y3 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_three32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_x, d_four32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_x, d_four32)),
       d_p);
   Node z3 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_two32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_x, d_six32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_x, d_six32)),
       d_p);
 
   /* result depends on order of variables in matrix */
@@ -1189,18 +1189,18 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial1b)
    * ------------------------------------------------------------------- */
 
   Node eq1 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
-          d_nodeManager->mkNode(kind::BITVECTOR_ADD, d_x, d_z_mul_nine),
+          Kind::BITVECTOR_UREM,
+          d_nodeManager->mkNode(Kind::BITVECTOR_ADD, d_x, d_z_mul_nine),
           d_p),
       d_seven);
 
   Node eq2 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
-          d_nodeManager->mkNode(kind::BITVECTOR_ADD, d_y, d_z_mul_three),
+          Kind::BITVECTOR_UREM,
+          d_nodeManager->mkNode(Kind::BITVECTOR_ADD, d_y, d_z_mul_three),
           d_p),
       d_nine);
 
@@ -1210,48 +1210,48 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial1b)
   ASSERT_EQ(res.size(), 2);
 
   Node x1 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_seven32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_z, d_two32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_z, d_two32)),
       d_p);
   Node y1 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_nine32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_z, d_eight32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_z, d_eight32)),
       d_p);
 
   Node x2 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_two32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_y, d_three32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_y, d_three32)),
       d_p);
   Node z2 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_three32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_y, d_seven32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_y, d_seven32)),
       d_p);
 
   Node y3 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_three32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_x, d_four32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_x, d_four32)),
       d_p);
   Node z3 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_two32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_x, d_six32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_x, d_six32)),
       d_p);
 
   /* result depends on order of variables in matrix */
@@ -1313,17 +1313,17 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial2)
    * ------------------------------------------------------------------- */
 
   Node eq1 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD, d_x_mul_one, d_y_mul_three),
+              Kind::BITVECTOR_ADD, d_x_mul_one, d_y_mul_three),
           d_p),
       d_seven);
 
   Node eq2 = d_nodeManager->mkNode(
-      kind::EQUAL,
-      d_nodeManager->mkNode(kind::BITVECTOR_UREM, d_z_mul_one, d_p),
+      Kind::EQUAL,
+      d_nodeManager->mkNode(Kind::BITVECTOR_UREM, d_z_mul_one, d_p),
       d_nine);
 
   std::vector<Node> eqs = {eq1, eq2};
@@ -1332,18 +1332,18 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial2)
   ASSERT_EQ(res.size(), 2);
 
   Node x1 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_seven32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_y, d_eight32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_y, d_eight32)),
       d_p);
   Node y2 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_six32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_x, d_seven32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_x, d_seven32)),
       d_p);
 
   /* result depends on order of variables in matrix */
@@ -1402,24 +1402,24 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial3)
    * ------------------------------------------------------------------- */
 
   Node eq1 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD,
-              d_nodeManager->mkNode(kind::BITVECTOR_ADD, d_x_mul_one, d_y),
+              Kind::BITVECTOR_ADD,
+              d_nodeManager->mkNode(Kind::BITVECTOR_ADD, d_x_mul_one, d_y),
               d_z_mul_one),
           d_p),
       d_five);
 
   Node eq2 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD,
+              Kind::BITVECTOR_ADD,
               d_nodeManager->mkNode(
-                  kind::BITVECTOR_ADD, d_x_mul_two, d_y_mul_three),
+                  Kind::BITVECTOR_ADD, d_x_mul_two, d_y_mul_three),
               d_z_mul_five),
           d_p),
       d_eight);
@@ -1430,46 +1430,46 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial3)
   ASSERT_EQ(res.size(), 2);
 
   Node x1 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_seven32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_z, d_two32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_z, d_two32)),
       d_p);
   Node y1 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_nine32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_z, d_eight32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_z, d_eight32)),
       d_p);
   Node x2 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_two32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_y, d_three32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_y, d_three32)),
       d_p);
   Node z2 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_three32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_y, d_seven32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_y, d_seven32)),
       d_p);
   Node y3 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_three32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_x, d_four32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_x, d_four32)),
       d_p);
   Node z3 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_two32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_x, d_six32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_x, d_six32)),
       d_p);
 
   /* result depends on order of variables in matrix */
@@ -1532,37 +1532,37 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial4)
    * ------------------------------------------------------------------- */
 
   Node eq1 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD,
+              Kind::BITVECTOR_ADD,
               d_nodeManager->mkNode(
-                  kind::BITVECTOR_ADD, d_x_mul_two, d_y_mul_four),
+                  Kind::BITVECTOR_ADD, d_x_mul_two, d_y_mul_four),
               d_z_mul_six),
           d_p),
       d_eighteen);
 
   Node eq2 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD,
+              Kind::BITVECTOR_ADD,
               d_nodeManager->mkNode(
-                  kind::BITVECTOR_ADD, d_x_mul_four, d_y_mul_five),
+                  Kind::BITVECTOR_ADD, d_x_mul_four, d_y_mul_five),
               d_z_mul_six),
           d_p),
       d_twentyfour);
 
   Node eq3 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD,
+              Kind::BITVECTOR_ADD,
               d_nodeManager->mkNode(
-                  kind::BITVECTOR_ADD, d_x_mul_two, d_y_mul_seven),
+                  Kind::BITVECTOR_ADD, d_x_mul_two, d_y_mul_seven),
               d_z_mul_twelve),
           d_p),
       d_thirty);
@@ -1573,46 +1573,46 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial4)
   ASSERT_EQ(res.size(), 2);
 
   Node x1 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_one32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_z, d_one32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_z, d_one32)),
       d_p);
   Node y1 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_four32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_z, d_nine32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_z, d_nine32)),
       d_p);
   Node x2 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_three32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_y, d_five32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_y, d_five32)),
       d_p);
   Node z2 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_two32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_y, d_five32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_y, d_five32)),
       d_p);
   Node y3 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_six32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_x, d_nine32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_x, d_nine32)),
       d_p);
   Node z3 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_ten32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_x, d_one32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_x, d_one32)),
       d_p);
 
   /* result depends on order of variables in matrix */
@@ -1683,37 +1683,37 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial5)
    * ------------------------------------------------------------------- */
 
   Node eq1 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD,
+              Kind::BITVECTOR_ADD,
               d_nodeManager->mkNode(
-                  kind::BITVECTOR_ADD, d_x_mul_two, d_y_mul_four),
+                  Kind::BITVECTOR_ADD, d_x_mul_two, d_y_mul_four),
               d_z_mul_six),
           d_three),
       d_eighteen);
 
   Node eq2 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD,
+              Kind::BITVECTOR_ADD,
               d_nodeManager->mkNode(
-                  kind::BITVECTOR_ADD, d_x_mul_four, d_y_mul_five),
+                  Kind::BITVECTOR_ADD, d_x_mul_four, d_y_mul_five),
               d_z_mul_six),
           d_three),
       d_twentyfour);
 
   Node eq3 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD,
+              Kind::BITVECTOR_ADD,
               d_nodeManager->mkNode(
-                  kind::BITVECTOR_ADD, d_x_mul_two, d_y_mul_seven),
+                  Kind::BITVECTOR_ADD, d_x_mul_two, d_y_mul_seven),
               d_z_mul_twelve),
           d_three),
       d_thirty);
@@ -1724,12 +1724,12 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial5)
   ASSERT_EQ(res.size(), 1);
 
   Node x1 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
-      d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_y, d_one32),
+      Kind::BITVECTOR_UREM,
+      d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_y, d_one32),
       d_three);
   Node y2 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
-      d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_x, d_one32),
+      Kind::BITVECTOR_UREM,
+      d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_x, d_one32),
       d_three);
 
   /* result depends on order of variables in matrix */
@@ -1795,35 +1795,35 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial6)
    *  0 0 0 1   2        0 0 0 1   2
    * ------------------------------------------------------------------- */
 
-  Node y_mul_two = d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_y, d_two);
-  Node z_mul_two = d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_z, d_two);
+  Node y_mul_two = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_y, d_two);
+  Node z_mul_two = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_z, d_two);
   Node w = bv::utils::mkConcat(
       d_zero, d_nodeManager->mkVar("w", d_nodeManager->mkBitVectorType(16)));
-  Node w_mul_six = d_nodeManager->mkNode(kind::BITVECTOR_MULT, w, d_six);
-  Node w_mul_two = d_nodeManager->mkNode(kind::BITVECTOR_MULT, w, d_two);
+  Node w_mul_six = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, w, d_six);
+  Node w_mul_two = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, w, d_two);
 
   Node eq1 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD,
+              Kind::BITVECTOR_ADD,
               d_nodeManager->mkNode(
-                  kind::BITVECTOR_ADD, d_x_mul_one, y_mul_two),
+                  Kind::BITVECTOR_ADD, d_x_mul_one, y_mul_two),
               w_mul_six),
           d_p),
       d_two);
 
   Node eq2 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
-          d_nodeManager->mkNode(kind::BITVECTOR_ADD, z_mul_two, w_mul_two),
+          Kind::BITVECTOR_UREM,
+          d_nodeManager->mkNode(Kind::BITVECTOR_ADD, z_mul_two, w_mul_two),
           d_p),
       d_two);
 
   Node eq3 = d_nodeManager->mkNode(
-      kind::EQUAL, d_nodeManager->mkNode(kind::BITVECTOR_UREM, w, d_p), d_two);
+      Kind::EQUAL, d_nodeManager->mkNode(Kind::BITVECTOR_UREM, w, d_p), d_two);
 
   std::vector<Node> eqs = {eq1, eq2, eq3};
   ret = d_bv_gauss->gaussElimRewriteForUrem(eqs, res);
@@ -1831,21 +1831,21 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial6)
   ASSERT_EQ(res.size(), 3);
 
   Node x1 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_one32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_y, d_nine32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_y, d_nine32)),
       d_p);
   Node z1 = d_ten32;
   Node w1 = d_two32;
 
   Node y2 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_six32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_x, d_five32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_x, d_five32)),
       d_p);
   Node z2 = d_ten32;
   Node w2 = d_two32;
@@ -1900,24 +1900,24 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_with_expr_partial)
       bv::utils::mkConcat(
           zero, bv::utils::mkExtract(bv::utils::mkConcat(zero, zz), 7, 0)));
 
-  Node x_mul_one = d_nodeManager->mkNode(kind::BITVECTOR_MULT, x, d_one32);
-  Node nine_mul_z = d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_nine32, z);
-  Node one_mul_y = d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_one, y);
-  Node z_mul_three = d_nodeManager->mkNode(kind::BITVECTOR_MULT, z, d_three);
+  Node x_mul_one = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, x, d_one32);
+  Node nine_mul_z = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_nine32, z);
+  Node one_mul_y = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_one, y);
+  Node z_mul_three = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, z, d_three);
 
   Node eq1 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
-          d_nodeManager->mkNode(kind::BITVECTOR_ADD, x_mul_one, nine_mul_z),
+          Kind::BITVECTOR_UREM,
+          d_nodeManager->mkNode(Kind::BITVECTOR_ADD, x_mul_one, nine_mul_z),
           d_p),
       d_seven);
 
   Node eq2 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
-          d_nodeManager->mkNode(kind::BITVECTOR_ADD, one_mul_y, z_mul_three),
+          Kind::BITVECTOR_UREM,
+          d_nodeManager->mkNode(Kind::BITVECTOR_ADD, one_mul_y, z_mul_three),
           d_p),
       d_nine);
 
@@ -1931,48 +1931,48 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_with_expr_partial)
   z = rr->rewrite(z);
 
   Node x1 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_seven32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, z, d_two32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, z, d_two32)),
       d_p);
   Node y1 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_nine32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, z, d_eight32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, z, d_eight32)),
       d_p);
 
   Node x2 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_two32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, y, d_three32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, y, d_three32)),
       d_p);
   Node z2 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_three32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, y, d_seven32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, y, d_seven32)),
       d_p);
 
   Node y3 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_three32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, x, d_four32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, x, d_four32)),
       d_p);
   Node z3 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_two32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, x, d_six32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, x, d_six32)),
       d_p);
 
   /* result depends on order of variables in matrix */
@@ -2044,52 +2044,52 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_nary_partial)
       bv::utils::mkConcat(
           zero,
           bv::utils::mkExtract(
-              d_nodeManager->mkNode(kind::BITVECTOR_CONCAT, zero, xx), 7, 0)));
+              d_nodeManager->mkNode(Kind::BITVECTOR_CONCAT, zero, xx), 7, 0)));
   Node y = bv::utils::mkConcat(
       d_zero,
       bv::utils::mkConcat(
           zero,
           bv::utils::mkExtract(
-              d_nodeManager->mkNode(kind::BITVECTOR_CONCAT, zero, yy), 7, 0)));
+              d_nodeManager->mkNode(Kind::BITVECTOR_CONCAT, zero, yy), 7, 0)));
   Node z = bv::utils::mkConcat(
       d_zero,
       bv::utils::mkConcat(
           zero,
           bv::utils::mkExtract(
-              d_nodeManager->mkNode(kind::BITVECTOR_CONCAT, zero, zz), 7, 0)));
+              d_nodeManager->mkNode(Kind::BITVECTOR_CONCAT, zero, zz), 7, 0)));
 
-  NodeBuilder nbx(d_nodeManager, kind::BITVECTOR_MULT);
+  NodeBuilder nbx(d_nodeManager, Kind::BITVECTOR_MULT);
   nbx << d_x << d_one << x;
   Node x_mul_one_mul_xx = nbx.constructNode();
-  NodeBuilder nby(d_nodeManager, kind::BITVECTOR_MULT);
+  NodeBuilder nby(d_nodeManager, Kind::BITVECTOR_MULT);
   nby << d_y << y << d_one;
   Node y_mul_yy_mul_one = nby.constructNode();
-  NodeBuilder nbz(d_nodeManager, kind::BITVECTOR_MULT);
+  NodeBuilder nbz(d_nodeManager, Kind::BITVECTOR_MULT);
   nbz << d_three << d_z << z;
   Node three_mul_z_mul_zz = nbz.constructNode();
-  NodeBuilder nbz2(d_nodeManager, kind::BITVECTOR_MULT);
+  NodeBuilder nbz2(d_nodeManager, Kind::BITVECTOR_MULT);
   nbz2 << d_z << d_nine << z;
   Node z_mul_nine_mul_zz = nbz2.constructNode();
 
-  Node x_mul_xx = d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_x, x);
-  Node y_mul_yy = d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_y, y);
-  Node z_mul_zz = d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_z, z);
+  Node x_mul_xx = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_x, x);
+  Node y_mul_yy = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_y, y);
+  Node z_mul_zz = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_z, z);
 
   Node eq1 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD, x_mul_one_mul_xx, z_mul_nine_mul_zz),
+              Kind::BITVECTOR_ADD, x_mul_one_mul_xx, z_mul_nine_mul_zz),
           d_p),
       d_seven);
 
   Node eq2 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD, y_mul_yy_mul_one, three_mul_z_mul_zz),
+              Kind::BITVECTOR_ADD, y_mul_yy_mul_one, three_mul_z_mul_zz),
           d_p),
       d_nine);
 
@@ -2103,48 +2103,48 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_nary_partial)
   z_mul_zz = rr->rewrite(z_mul_zz);
 
   Node x1 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_seven32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, z_mul_zz, d_two32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, z_mul_zz, d_two32)),
       d_p);
   Node y1 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_nine32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, z_mul_zz, d_eight32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, z_mul_zz, d_eight32)),
       d_p);
 
   Node x2 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_two32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, y_mul_yy, d_three32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, y_mul_yy, d_three32)),
       d_p);
   Node z2 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_three32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, y_mul_yy, d_seven32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, y_mul_yy, d_seven32)),
       d_p);
 
   Node y3 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_three32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, x_mul_xx, d_four32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, x_mul_xx, d_four32)),
       d_p);
   Node z3 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
+      Kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_ADD,
+          Kind::BITVECTOR_ADD,
           d_two32,
-          d_nodeManager->mkNode(kind::BITVECTOR_MULT, x_mul_xx, d_six32)),
+          d_nodeManager->mkNode(Kind::BITVECTOR_MULT, x_mul_xx, d_six32)),
       d_p);
 
   /* result depends on order of variables in matrix */
@@ -2205,30 +2205,30 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_not_invalid1)
    * ------------------------------------------------------------------- */
 
   Node n1 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UDIV,
-      d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_three, d_x),
-      d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_two, d_y));
+      Kind::BITVECTOR_UDIV,
+      d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_three, d_x),
+      d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_two, d_y));
   Node n2 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM,
-      d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_two, d_x),
-      d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_five, d_y));
+      Kind::BITVECTOR_UREM,
+      d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_two, d_x),
+      d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_five, d_y));
 
   Node n3 = bv::utils::mkConcat(
       d_zero,
       bv::utils::mkExtract(
-          d_nodeManager->mkNode(kind::BITVECTOR_CONCAT, d_y, d_z), 15, 0));
+          d_nodeManager->mkNode(Kind::BITVECTOR_CONCAT, d_y, d_z), 15, 0));
 
   Node eq1 = d_nodeManager->mkNode(
-      kind::EQUAL,
-      d_nodeManager->mkNode(kind::BITVECTOR_UREM, n1, d_p),
+      Kind::EQUAL,
+      d_nodeManager->mkNode(Kind::BITVECTOR_UREM, n1, d_p),
       d_four);
 
   Node eq2 = d_nodeManager->mkNode(
-      kind::EQUAL, d_nodeManager->mkNode(kind::BITVECTOR_UREM, n2, d_p), d_two);
+      Kind::EQUAL, d_nodeManager->mkNode(Kind::BITVECTOR_UREM, n2, d_p), d_two);
 
   Node eq3 = d_nodeManager->mkNode(
-      kind::EQUAL,
-      d_nodeManager->mkNode(kind::BITVECTOR_UREM, n3, d_p),
+      Kind::EQUAL,
+      d_nodeManager->mkNode(Kind::BITVECTOR_UREM, n3, d_p),
       d_five);
 
   std::vector<Node> eqs = {eq1, eq2, eq3};
@@ -2262,35 +2262,35 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_not_invalid2)
   Node z = bv::utils::mkConcat(
       zero32, d_nodeManager->mkVar("z", d_nodeManager->mkBitVectorType(16)));
 
-  Node n1 = d_nodeManager->mkNode(kind::BITVECTOR_MULT, x, y);
+  Node n1 = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, x, y);
   Node n2 =
-      d_nodeManager->mkNode(kind::BITVECTOR_MULT,
-                            d_nodeManager->mkNode(kind::BITVECTOR_MULT, x, y),
+      d_nodeManager->mkNode(Kind::BITVECTOR_MULT,
+                            d_nodeManager->mkNode(Kind::BITVECTOR_MULT, x, y),
                             z);
   Node n3 = d_nodeManager->mkNode(
-      kind::BITVECTOR_ADD,
-      d_nodeManager->mkNode(kind::BITVECTOR_MULT,
-                            d_nodeManager->mkNode(kind::BITVECTOR_MULT, x, y),
+      Kind::BITVECTOR_ADD,
+      d_nodeManager->mkNode(Kind::BITVECTOR_MULT,
+                            d_nodeManager->mkNode(Kind::BITVECTOR_MULT, x, y),
                             bv::utils::mkConcat(d_zero, d_two)),
       d_nodeManager->mkNode(
-          kind::BITVECTOR_MULT, bv::utils::mkConcat(d_zero, d_two), z));
+          Kind::BITVECTOR_MULT, bv::utils::mkConcat(d_zero, d_two), z));
 
   Node eq1 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM, n1, bv::utils::mkConcat(d_zero, d_p)),
+          Kind::BITVECTOR_UREM, n1, bv::utils::mkConcat(d_zero, d_p)),
       bv::utils::mkConcat(d_zero, d_four));
 
   Node eq2 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM, n2, bv::utils::mkConcat(d_zero, d_p)),
+          Kind::BITVECTOR_UREM, n2, bv::utils::mkConcat(d_zero, d_p)),
       bv::utils::mkConcat(d_zero, d_two));
 
   Node eq3 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM, n3, bv::utils::mkConcat(d_zero, d_p)),
+          Kind::BITVECTOR_UREM, n3, bv::utils::mkConcat(d_zero, d_p)),
       bv::utils::mkConcat(d_zero, d_nine));
 
   std::vector<Node> eqs = {eq1, eq2, eq3};
@@ -2333,32 +2333,32 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_invalid)
   Node z = bv::utils::mkConcat(
       zero32, d_nodeManager->mkVar("z", d_nodeManager->mkBitVectorType(16)));
 
-  Node n1 = d_nodeManager->mkNode(kind::BITVECTOR_MULT, x, y);
+  Node n1 = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, x, y);
   Node n2 =
-      d_nodeManager->mkNode(kind::BITVECTOR_MULT,
-                            d_nodeManager->mkNode(kind::BITVECTOR_MULT, x, y),
+      d_nodeManager->mkNode(Kind::BITVECTOR_MULT,
+                            d_nodeManager->mkNode(Kind::BITVECTOR_MULT, x, y),
                             z);
   Node n3 =
-      d_nodeManager->mkNode(kind::BITVECTOR_MULT,
-                            d_nodeManager->mkNode(kind::BITVECTOR_MULT, x, y),
+      d_nodeManager->mkNode(Kind::BITVECTOR_MULT,
+                            d_nodeManager->mkNode(Kind::BITVECTOR_MULT, x, y),
                             bv::utils::mkConcat(d_zero, d_two));
 
   Node eq1 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM, n1, bv::utils::mkConcat(d_zero, d_p)),
+          Kind::BITVECTOR_UREM, n1, bv::utils::mkConcat(d_zero, d_p)),
       bv::utils::mkConcat(d_zero, d_four));
 
   Node eq2 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM, n2, bv::utils::mkConcat(d_zero, d_p)),
+          Kind::BITVECTOR_UREM, n2, bv::utils::mkConcat(d_zero, d_p)),
       bv::utils::mkConcat(d_zero, d_two));
 
   Node eq3 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM, n3, bv::utils::mkConcat(d_zero, d_p)),
+          Kind::BITVECTOR_UREM, n3, bv::utils::mkConcat(d_zero, d_p)),
       bv::utils::mkConcat(d_zero, d_nine));
 
   std::vector<Node> eqs = {eq1, eq2, eq3};
@@ -2377,40 +2377,40 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_unique1)
    * ------------------------------------------------------------------- */
 
   Node eq1 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD,
+              Kind::BITVECTOR_ADD,
               d_nodeManager->mkNode(
-                  kind::BITVECTOR_ADD, d_x_mul_one, d_y_mul_one),
+                  Kind::BITVECTOR_ADD, d_x_mul_one, d_y_mul_one),
               d_z_mul_one),
           d_p),
       d_five);
 
   Node eq2 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD,
+              Kind::BITVECTOR_ADD,
               d_nodeManager->mkNode(
-                  kind::BITVECTOR_ADD, d_x_mul_two, d_y_mul_three),
+                  Kind::BITVECTOR_ADD, d_x_mul_two, d_y_mul_three),
               d_z_mul_five),
           d_p),
       d_eight);
 
   Node eq3 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD, d_x_mul_four, d_z_mul_five),
+              Kind::BITVECTOR_ADD, d_x_mul_four, d_z_mul_five),
           d_p),
       d_two);
 
   Node a = d_nodeManager->mkNode(
-      kind::AND, d_nodeManager->mkNode(kind::AND, eq1, eq2), eq3);
+      Kind::AND, d_nodeManager->mkNode(Kind::AND, eq1, eq2), eq3);
 
   AssertionPipeline apipe(d_slvEngine->getEnv());
   apipe.push_back(a);
@@ -2419,11 +2419,11 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_unique1)
   PreprocessingPassResult pres = bgauss.applyInternal(&apipe);
   ASSERT_EQ(pres, PreprocessingPassResult::NO_CONFLICT);
   Node resx = d_nodeManager->mkNode(
-      kind::EQUAL, d_x, d_nodeManager->mkConst<BitVector>(BitVector(32, 3u)));
+      Kind::EQUAL, d_x, d_nodeManager->mkConst<BitVector>(BitVector(32, 3u)));
   Node resy = d_nodeManager->mkNode(
-      kind::EQUAL, d_y, d_nodeManager->mkConst<BitVector>(BitVector(32, 4u)));
+      Kind::EQUAL, d_y, d_nodeManager->mkConst<BitVector>(BitVector(32, 4u)));
   Node resz = d_nodeManager->mkNode(
-      kind::EQUAL, d_z, d_nodeManager->mkConst<BitVector>(BitVector(32, 9u)));
+      Kind::EQUAL, d_z, d_nodeManager->mkConst<BitVector>(BitVector(32, 9u)));
   ASSERT_EQ(apipe.size(), 4);
   ASSERT_NE(std::find(apipe.begin(), apipe.end(), resx), apipe.end());
   ASSERT_NE(std::find(apipe.begin(), apipe.end(), resy), apipe.end());
@@ -2446,58 +2446,58 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_unique2)
    * ------------------------------------------------------------------- */
 
   Node eq1 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD,
+              Kind::BITVECTOR_ADD,
               d_nodeManager->mkNode(
-                  kind::BITVECTOR_ADD, d_x_mul_one, d_y_mul_one),
+                  Kind::BITVECTOR_ADD, d_x_mul_one, d_y_mul_one),
               d_z_mul_one),
           d_p),
       d_five);
 
   Node eq2 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD,
+              Kind::BITVECTOR_ADD,
               d_nodeManager->mkNode(
-                  kind::BITVECTOR_ADD, d_x_mul_two, d_y_mul_three),
+                  Kind::BITVECTOR_ADD, d_x_mul_two, d_y_mul_three),
               d_z_mul_five),
           d_p),
       d_eight);
 
   Node eq3 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD, d_x_mul_four, d_z_mul_five),
+              Kind::BITVECTOR_ADD, d_x_mul_four, d_z_mul_five),
           d_p),
       d_two);
 
-  Node y_mul_six = d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_y, d_six);
+  Node y_mul_six = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_y, d_six);
 
   Node eq4 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
-          d_nodeManager->mkNode(kind::BITVECTOR_ADD, d_x_mul_two, y_mul_six),
+          Kind::BITVECTOR_UREM,
+          d_nodeManager->mkNode(Kind::BITVECTOR_ADD, d_x_mul_two, y_mul_six),
           d_seven),
       d_four);
 
   Node eq5 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
-          d_nodeManager->mkNode(kind::BITVECTOR_ADD, d_x_mul_four, y_mul_six),
+          Kind::BITVECTOR_UREM,
+          d_nodeManager->mkNode(Kind::BITVECTOR_ADD, d_x_mul_four, y_mul_six),
           d_seven),
       d_three);
 
   Node a = d_nodeManager->mkNode(
-      kind::AND, d_nodeManager->mkNode(kind::AND, eq1, eq2), eq3);
+      Kind::AND, d_nodeManager->mkNode(Kind::AND, eq1, eq2), eq3);
 
   AssertionPipeline apipe(d_slvEngine->getEnv());
   apipe.push_back(a);
@@ -2508,15 +2508,15 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_unique2)
   PreprocessingPassResult pres = bgauss.applyInternal(&apipe);
   ASSERT_EQ(pres, PreprocessingPassResult::NO_CONFLICT);
   Node resx1 = d_nodeManager->mkNode(
-      kind::EQUAL, d_x, d_nodeManager->mkConst<BitVector>(BitVector(32, 3u)));
+      Kind::EQUAL, d_x, d_nodeManager->mkConst<BitVector>(BitVector(32, 3u)));
   Node resx2 = d_nodeManager->mkNode(
-      kind::EQUAL, d_x, d_nodeManager->mkConst<BitVector>(BitVector(32, 3u)));
+      Kind::EQUAL, d_x, d_nodeManager->mkConst<BitVector>(BitVector(32, 3u)));
   Node resy1 = d_nodeManager->mkNode(
-      kind::EQUAL, d_y, d_nodeManager->mkConst<BitVector>(BitVector(32, 4u)));
+      Kind::EQUAL, d_y, d_nodeManager->mkConst<BitVector>(BitVector(32, 4u)));
   Node resy2 = d_nodeManager->mkNode(
-      kind::EQUAL, d_y, d_nodeManager->mkConst<BitVector>(BitVector(32, 2u)));
+      Kind::EQUAL, d_y, d_nodeManager->mkConst<BitVector>(BitVector(32, 2u)));
   Node resz = d_nodeManager->mkNode(
-      kind::EQUAL, d_z, d_nodeManager->mkConst<BitVector>(BitVector(32, 9u)));
+      Kind::EQUAL, d_z, d_nodeManager->mkConst<BitVector>(BitVector(32, 9u)));
   ASSERT_EQ(apipe.size(), 8);
   ASSERT_NE(std::find(apipe.begin(), apipe.end(), resx1), apipe.end());
   ASSERT_NE(std::find(apipe.begin(), apipe.end(), resx2), apipe.end());
@@ -2535,19 +2535,19 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_partial)
    * ------------------------------------------------------------------- */
 
   Node eq1 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
-          d_nodeManager->mkNode(kind::BITVECTOR_ADD, d_x_mul_one, d_z_mul_nine),
+          Kind::BITVECTOR_UREM,
+          d_nodeManager->mkNode(Kind::BITVECTOR_ADD, d_x_mul_one, d_z_mul_nine),
           d_p),
       d_seven);
 
   Node eq2 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD, d_y_mul_one, d_z_mul_three),
+              Kind::BITVECTOR_ADD, d_y_mul_one, d_z_mul_three),
           d_p),
       d_nine);
 
@@ -2561,66 +2561,66 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_partial)
   ASSERT_EQ(apipe.size(), 4);
 
   Node resx1 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_x,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD,
+              Kind::BITVECTOR_ADD,
               d_seven32,
-              d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_z, d_two32)),
+              d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_z, d_two32)),
           d_p));
   Node resy1 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_y,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD,
+              Kind::BITVECTOR_ADD,
               d_nine32,
-              d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_z, d_eight32)),
+              d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_z, d_eight32)),
           d_p));
 
   Node resx2 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_x,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD,
+              Kind::BITVECTOR_ADD,
               d_two32,
-              d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_y, d_three32)),
+              d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_y, d_three32)),
           d_p));
   Node resz2 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_z,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD,
+              Kind::BITVECTOR_ADD,
               d_three32,
-              d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_y, d_seven32)),
+              d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_y, d_seven32)),
           d_p));
 
   Node resy3 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_y,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD,
+              Kind::BITVECTOR_ADD,
               d_three32,
-              d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_x, d_four32)),
+              d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_x, d_four32)),
           d_p));
   Node resz3 = d_nodeManager->mkNode(
-      kind::EQUAL,
+      Kind::EQUAL,
       d_z,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UREM,
+          Kind::BITVECTOR_UREM,
           d_nodeManager->mkNode(
-              kind::BITVECTOR_ADD,
+              Kind::BITVECTOR_ADD,
               d_two32,
-              d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_x, d_six32)),
+              d_nodeManager->mkNode(Kind::BITVECTOR_MULT, d_x, d_six32)),
           d_p));
 
   bool fx1 = std::find(apipe.begin(), apipe.end(), resx1) != apipe.end();
@@ -2673,30 +2673,30 @@ TEST_F(TestPPWhiteBVGauss, get_min_bw1)
   Node zext48x8 = d_nodeManager->mkNode(zextop40, x8);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(zext48x8), 8);
 
-  Node mult1p = d_nodeManager->mkNode(kind::BITVECTOR_MULT, extp, extp);
+  Node mult1p = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, extp, extp);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(mult1p), 5);
-  Node mult1x = d_nodeManager->mkNode(kind::BITVECTOR_MULT, extx, extx);
+  Node mult1x = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, extx, extx);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(mult1x), 0);
 
-  Node mult2p = d_nodeManager->mkNode(kind::BITVECTOR_MULT, zext40p, zext40p);
+  Node mult2p = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, zext40p, zext40p);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(mult2p), 7);
-  Node mult2x = d_nodeManager->mkNode(kind::BITVECTOR_MULT, zext40x, zext40x);
+  Node mult2x = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, zext40x, zext40x);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(mult2x), 32);
 
-  NodeBuilder nbmult3p(kind::BITVECTOR_MULT);
+  NodeBuilder nbmult3p(Kind::BITVECTOR_MULT);
   nbmult3p << zext48p << zext48p << zext48p;
   Node mult3p = nbmult3p;
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(mult3p), 11);
-  NodeBuilder nbmult3x(kind::BITVECTOR_MULT);
+  NodeBuilder nbmult3x(Kind::BITVECTOR_MULT);
   nbmult3x << zext48x << zext48x << zext48x;
   Node mult3x = nbmult3x;
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(mult3x), 48);
 
-  NodeBuilder nbmult4p(kind::BITVECTOR_MULT);
+  NodeBuilder nbmult4p(Kind::BITVECTOR_MULT);
   nbmult4p << zext48p << zext48p8 << zext48p;
   Node mult4p = nbmult4p;
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(mult4p), 11);
-  NodeBuilder nbmult4x(kind::BITVECTOR_MULT);
+  NodeBuilder nbmult4x(Kind::BITVECTOR_MULT);
   nbmult4x << zext48x << zext48x8 << zext48x;
   Node mult4x = nbmult4x;
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(mult4x), 40);
@@ -2711,76 +2711,76 @@ TEST_F(TestPPWhiteBVGauss, get_min_bw1)
   Node concat2x = bv::utils::mkConcat(bv::utils::mkZero(16), zext48x);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(concat2x), 16);
 
-  Node udiv1p = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, zext48p, zext48p);
+  Node udiv1p = d_nodeManager->mkNode(Kind::BITVECTOR_UDIV, zext48p, zext48p);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(udiv1p), 1);
-  Node udiv1x = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, zext48x, zext48x);
+  Node udiv1x = d_nodeManager->mkNode(Kind::BITVECTOR_UDIV, zext48x, zext48x);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(udiv1x), 48);
 
-  Node udiv2p = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, zext48p, zext48p8);
+  Node udiv2p = d_nodeManager->mkNode(Kind::BITVECTOR_UDIV, zext48p, zext48p8);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(udiv2p), 1);
-  Node udiv2x = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, zext48x, zext48x8);
+  Node udiv2x = d_nodeManager->mkNode(Kind::BITVECTOR_UDIV, zext48x, zext48x8);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(udiv2x), 48);
 
-  Node urem1p = d_nodeManager->mkNode(kind::BITVECTOR_UREM, zext48p, zext48p);
+  Node urem1p = d_nodeManager->mkNode(Kind::BITVECTOR_UREM, zext48p, zext48p);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(urem1p), 1);
-  Node urem1x = d_nodeManager->mkNode(kind::BITVECTOR_UREM, zext48x, zext48x);
+  Node urem1x = d_nodeManager->mkNode(Kind::BITVECTOR_UREM, zext48x, zext48x);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(urem1x), 1);
 
-  Node urem2p = d_nodeManager->mkNode(kind::BITVECTOR_UREM, zext48p, zext48p8);
+  Node urem2p = d_nodeManager->mkNode(Kind::BITVECTOR_UREM, zext48p, zext48p8);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(urem2p), 1);
-  Node urem2x = d_nodeManager->mkNode(kind::BITVECTOR_UREM, zext48x, zext48x8);
+  Node urem2x = d_nodeManager->mkNode(Kind::BITVECTOR_UREM, zext48x, zext48x8);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(urem2x), 16);
 
-  Node urem3p = d_nodeManager->mkNode(kind::BITVECTOR_UREM, zext48p8, zext48p);
+  Node urem3p = d_nodeManager->mkNode(Kind::BITVECTOR_UREM, zext48p8, zext48p);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(urem3p), 1);
-  Node urem3x = d_nodeManager->mkNode(kind::BITVECTOR_UREM, zext48x8, zext48x);
+  Node urem3x = d_nodeManager->mkNode(Kind::BITVECTOR_UREM, zext48x8, zext48x);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(urem3x), 8);
 
-  Node add1p = d_nodeManager->mkNode(kind::BITVECTOR_ADD, extp, extp);
+  Node add1p = d_nodeManager->mkNode(Kind::BITVECTOR_ADD, extp, extp);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(add1p), 5);
-  Node add1x = d_nodeManager->mkNode(kind::BITVECTOR_ADD, extx, extx);
+  Node add1x = d_nodeManager->mkNode(Kind::BITVECTOR_ADD, extx, extx);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(add1x), 0);
 
-  Node add2p = d_nodeManager->mkNode(kind::BITVECTOR_ADD, zext40p, zext40p);
+  Node add2p = d_nodeManager->mkNode(Kind::BITVECTOR_ADD, zext40p, zext40p);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(add2p), 5);
-  Node add2x = d_nodeManager->mkNode(kind::BITVECTOR_ADD, zext40x, zext40x);
+  Node add2x = d_nodeManager->mkNode(Kind::BITVECTOR_ADD, zext40x, zext40x);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(add2x), 17);
 
-  Node add3p = d_nodeManager->mkNode(kind::BITVECTOR_ADD, zext48p8, zext48p);
+  Node add3p = d_nodeManager->mkNode(Kind::BITVECTOR_ADD, zext48p8, zext48p);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(add3p), 5);
-  Node add3x = d_nodeManager->mkNode(kind::BITVECTOR_ADD, zext48x8, zext48x);
+  Node add3x = d_nodeManager->mkNode(Kind::BITVECTOR_ADD, zext48x8, zext48x);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(add3x), 17);
 
-  NodeBuilder nbadd4p(kind::BITVECTOR_ADD);
+  NodeBuilder nbadd4p(Kind::BITVECTOR_ADD);
   nbadd4p << zext48p << zext48p << zext48p;
   Node add4p = nbadd4p;
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(add4p), 6);
-  NodeBuilder nbadd4x(kind::BITVECTOR_ADD);
+  NodeBuilder nbadd4x(Kind::BITVECTOR_ADD);
   nbadd4x << zext48x << zext48x << zext48x;
   Node add4x = nbadd4x;
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(add4x), 18);
 
-  NodeBuilder nbadd5p(kind::BITVECTOR_ADD);
+  NodeBuilder nbadd5p(Kind::BITVECTOR_ADD);
   nbadd5p << zext48p << zext48p8 << zext48p;
   Node add5p = nbadd5p;
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(add5p), 6);
-  NodeBuilder nbadd5x(kind::BITVECTOR_ADD);
+  NodeBuilder nbadd5x(Kind::BITVECTOR_ADD);
   nbadd5x << zext48x << zext48x8 << zext48x;
   Node add5x = nbadd5x;
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(add5x), 18);
 
-  NodeBuilder nbadd6p(kind::BITVECTOR_ADD);
+  NodeBuilder nbadd6p(Kind::BITVECTOR_ADD);
   nbadd6p << zext48p << zext48p << zext48p << zext48p;
   Node add6p = nbadd6p;
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(add6p), 6);
-  NodeBuilder nbadd6x(kind::BITVECTOR_ADD);
+  NodeBuilder nbadd6x(Kind::BITVECTOR_ADD);
   nbadd6x << zext48x << zext48x << zext48x << zext48x;
   Node add6x = nbadd6x;
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(add6x), 18);
 
-  Node not1p = d_nodeManager->mkNode(kind::BITVECTOR_NOT, zext40p);
+  Node not1p = d_nodeManager->mkNode(Kind::BITVECTOR_NOT, zext40p);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(not1p), 40);
-  Node not1x = d_nodeManager->mkNode(kind::BITVECTOR_NOT, zext40x);
+  Node not1x = d_nodeManager->mkNode(Kind::BITVECTOR_NOT, zext40x);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(not1x), 40);
 }
 
@@ -2808,11 +2808,11 @@ TEST_F(TestPPWhiteBVGauss, get_min_bw3a)
   Node z = d_nodeManager->mkVar("z", d_nodeManager->mkBitVectorType(16));
   Node zextop5 =
       d_nodeManager->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(5));
-  Node udiv1 = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, x, y);
+  Node udiv1 = d_nodeManager->mkNode(Kind::BITVECTOR_UDIV, x, y);
   Node zext1 = d_nodeManager->mkNode(zextop5, udiv1);
   Node ext1 = bv::utils::mkExtract(zext1, 4, 0);
   Node ext2 = bv::utils::mkExtract(z, 4, 0);
-  Node udiv2 = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, ext1, ext2);
+  Node udiv2 = d_nodeManager->mkNode(Kind::BITVECTOR_UDIV, ext1, ext2);
   Node zext2 = bv::utils::mkConcat(bv::utils::mkZero(5), udiv2);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(zext2), 5);
 }
@@ -2824,11 +2824,11 @@ TEST_F(TestPPWhiteBVGauss, get_min_bw3b)
    *             ((_ extract 4 0) z)))  */
   Node zextop5 =
       d_nodeManager->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(5));
-  Node udiv1 = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, d_x, d_y);
+  Node udiv1 = d_nodeManager->mkNode(Kind::BITVECTOR_UDIV, d_x, d_y);
   Node zext1 = d_nodeManager->mkNode(zextop5, udiv1);
   Node ext1 = bv::utils::mkExtract(zext1, 4, 0);
   Node ext2 = bv::utils::mkExtract(d_z, 4, 0);
-  Node udiv2 = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, ext1, ext2);
+  Node udiv2 = d_nodeManager->mkNode(Kind::BITVECTOR_UDIV, ext1, ext2);
   Node zext2 = bv::utils::mkConcat(bv::utils::mkZero(5), udiv2);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(zext2), 5);
 }
@@ -2850,20 +2850,20 @@ TEST_F(TestPPWhiteBVGauss, get_min_bw4a)
   Node zextop7 =
       d_nodeManager->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(7));
 
-  Node udiv1 = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, x, y);
+  Node udiv1 = d_nodeManager->mkNode(Kind::BITVECTOR_UDIV, x, y);
   Node zext1 = d_nodeManager->mkNode(zextop5, udiv1);
 
   Node ext1_1 = bv::utils::mkExtract(zext1, 4, 0);
   Node ext2_1 = bv::utils::mkExtract(z, 4, 0);
-  Node udiv2_1 = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, ext1_1, ext2_1);
+  Node udiv2_1 = d_nodeManager->mkNode(Kind::BITVECTOR_UDIV, ext1_1, ext2_1);
   Node zext2_1 = bv::utils::mkConcat(bv::utils::mkZero(5), udiv2_1);
 
   Node ext1_2 = bv::utils::mkExtract(zext1, 2, 0);
   Node ext2_2 = bv::utils::mkExtract(z, 2, 0);
-  Node udiv2_2 = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, ext1_2, ext2_2);
+  Node udiv2_2 = d_nodeManager->mkNode(Kind::BITVECTOR_UDIV, ext1_2, ext2_2);
   Node zext2_2 = d_nodeManager->mkNode(zextop7, udiv2_2);
 
-  Node plus = d_nodeManager->mkNode(kind::BITVECTOR_ADD, zext2_1, zext2_2);
+  Node plus = d_nodeManager->mkNode(Kind::BITVECTOR_ADD, zext2_1, zext2_2);
 
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(plus), 6);
 }
@@ -2882,20 +2882,20 @@ TEST_F(TestPPWhiteBVGauss, get_min_bw4b)
   Node zextop7 =
       d_nodeManager->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(7));
 
-  Node udiv1 = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, d_x, d_y);
+  Node udiv1 = d_nodeManager->mkNode(Kind::BITVECTOR_UDIV, d_x, d_y);
   Node zext1 = d_nodeManager->mkNode(zextop5, udiv1);
 
   Node ext1_1 = bv::utils::mkExtract(zext1, 4, 0);
   Node ext2_1 = bv::utils::mkExtract(d_z, 4, 0);
-  Node udiv2_1 = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, ext1_1, ext2_1);
+  Node udiv2_1 = d_nodeManager->mkNode(Kind::BITVECTOR_UDIV, ext1_1, ext2_1);
   Node zext2_1 = bv::utils::mkConcat(bv::utils::mkZero(5), udiv2_1);
 
   Node ext1_2 = bv::utils::mkExtract(zext1, 2, 0);
   Node ext2_2 = bv::utils::mkExtract(d_z, 2, 0);
-  Node udiv2_2 = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, ext1_2, ext2_2);
+  Node udiv2_2 = d_nodeManager->mkNode(Kind::BITVECTOR_UDIV, ext1_2, ext2_2);
   Node zext2_2 = d_nodeManager->mkNode(zextop7, udiv2_2);
 
-  Node plus = d_nodeManager->mkNode(kind::BITVECTOR_ADD, zext2_1, zext2_2);
+  Node plus = d_nodeManager->mkNode(Kind::BITVECTOR_ADD, zext2_1, zext2_2);
 
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(plus), 6);
 }
@@ -2967,41 +2967,41 @@ TEST_F(TestPPWhiteBVGauss, get_min_bw5a)
   Node s15 = bv::utils::mkConcat(bv::utils::mkZero(5), ext15s);
 
   Node plus1 = d_nodeManager->mkNode(
-      kind::BITVECTOR_ADD,
+      Kind::BITVECTOR_ADD,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_MULT, bv::utils::mkConst(13, 86), xx),
+          Kind::BITVECTOR_MULT, bv::utils::mkConst(13, 86), xx),
       d_nodeManager->mkNode(
-          kind::BITVECTOR_MULT, bv::utils::mkConst(13, 41), yy));
+          Kind::BITVECTOR_MULT, bv::utils::mkConst(13, 41), yy));
   Node plus2 = d_nodeManager->mkNode(
-      kind::BITVECTOR_ADD,
+      Kind::BITVECTOR_ADD,
       plus1,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_MULT, bv::utils::mkConst(13, 37), zz));
+          Kind::BITVECTOR_MULT, bv::utils::mkConst(13, 37), zz));
   Node plus3 = d_nodeManager->mkNode(
-      kind::BITVECTOR_ADD,
+      Kind::BITVECTOR_ADD,
       plus2,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_MULT, bv::utils::mkConst(13, 170), uu));
+          Kind::BITVECTOR_MULT, bv::utils::mkConst(13, 170), uu));
   Node plus4 = d_nodeManager->mkNode(
-      kind::BITVECTOR_ADD,
+      Kind::BITVECTOR_ADD,
       plus3,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_MULT, bv::utils::mkConst(13, 112), uu));
+          Kind::BITVECTOR_MULT, bv::utils::mkConst(13, 112), uu));
   Node plus5 = d_nodeManager->mkNode(
-      kind::BITVECTOR_ADD,
+      Kind::BITVECTOR_ADD,
       plus4,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_MULT, bv::utils::mkConst(13, 195), s15));
+          Kind::BITVECTOR_MULT, bv::utils::mkConst(13, 195), s15));
   Node plus6 = d_nodeManager->mkNode(
-      kind::BITVECTOR_ADD,
+      Kind::BITVECTOR_ADD,
       plus5,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_MULT, bv::utils::mkConst(13, 124), s7));
+          Kind::BITVECTOR_MULT, bv::utils::mkConst(13, 124), s7));
   Node plus7 = d_nodeManager->mkNode(
-      kind::BITVECTOR_ADD,
+      Kind::BITVECTOR_ADD,
       plus6,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_MULT, bv::utils::mkConst(13, 83), ww));
+          Kind::BITVECTOR_MULT, bv::utils::mkConst(13, 83), ww));
 
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(plus7), 0);
 }
@@ -3072,41 +3072,41 @@ TEST_F(TestPPWhiteBVGauss, get_min_bw5b)
   Node s15 = bv::utils::mkConcat(bv::utils::mkZero(12), ext15s);
 
   Node plus1 = d_nodeManager->mkNode(
-      kind::BITVECTOR_ADD,
+      Kind::BITVECTOR_ADD,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_MULT, bv::utils::mkConst(20, 86), xx),
+          Kind::BITVECTOR_MULT, bv::utils::mkConst(20, 86), xx),
       d_nodeManager->mkNode(
-          kind::BITVECTOR_MULT, bv::utils::mkConst(20, 41), yy));
+          Kind::BITVECTOR_MULT, bv::utils::mkConst(20, 41), yy));
   Node plus2 = d_nodeManager->mkNode(
-      kind::BITVECTOR_ADD,
+      Kind::BITVECTOR_ADD,
       plus1,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_MULT, bv::utils::mkConst(20, 37), zz));
+          Kind::BITVECTOR_MULT, bv::utils::mkConst(20, 37), zz));
   Node plus3 = d_nodeManager->mkNode(
-      kind::BITVECTOR_ADD,
+      Kind::BITVECTOR_ADD,
       plus2,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_MULT, bv::utils::mkConst(20, 170), uu));
+          Kind::BITVECTOR_MULT, bv::utils::mkConst(20, 170), uu));
   Node plus4 = d_nodeManager->mkNode(
-      kind::BITVECTOR_ADD,
+      Kind::BITVECTOR_ADD,
       plus3,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_MULT, bv::utils::mkConst(20, 112), uu));
+          Kind::BITVECTOR_MULT, bv::utils::mkConst(20, 112), uu));
   Node plus5 = d_nodeManager->mkNode(
-      kind::BITVECTOR_ADD,
+      Kind::BITVECTOR_ADD,
       plus4,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_MULT, bv::utils::mkConst(20, 195), s15));
+          Kind::BITVECTOR_MULT, bv::utils::mkConst(20, 195), s15));
   Node plus6 = d_nodeManager->mkNode(
-      kind::BITVECTOR_ADD,
+      Kind::BITVECTOR_ADD,
       plus5,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_MULT, bv::utils::mkConst(20, 124), s7));
+          Kind::BITVECTOR_MULT, bv::utils::mkConst(20, 124), s7));
   Node plus7 = d_nodeManager->mkNode(
-      kind::BITVECTOR_ADD,
+      Kind::BITVECTOR_ADD,
       plus6,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_MULT, bv::utils::mkConst(20, 83), ww));
+          Kind::BITVECTOR_MULT, bv::utils::mkConst(20, 83), ww));
 
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(plus7), 19);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(rr->rewrite(plus7)), 17);

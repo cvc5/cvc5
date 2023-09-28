@@ -35,7 +35,7 @@ Node mkGroundTerm(TypeNode typeNode)
   AssertArgument(!typeNode.isNull(), typeNode);
   switch (Kind k = typeNode.getKind())
   {
-    case TYPE_CONSTANT:
+    case Kind::TYPE_CONSTANT:
       return mkGroundTerm(typeNode.getConst<TypeConstant>());
       // clang-format off
 ${type_groundterms}

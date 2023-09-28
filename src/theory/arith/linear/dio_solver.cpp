@@ -108,7 +108,8 @@ Node DioSolver::nextPureSubstitution(){
   Polynomial p = sp.getPolynomial();
   Constant c = -sp.getConstant();
   Polynomial cancelV = p + Polynomial::mkPolynomial(v);
-  Node eq = NodeManager::currentNM()->mkNode(kind::EQUAL, v.getNode(), cancelV.getNode());
+  Node eq = NodeManager::currentNM()->mkNode(
+      Kind::EQUAL, v.getNode(), cancelV.getNode());
   return eq;
 }
 
@@ -129,7 +130,7 @@ bool DioSolver::debugEqualityInInputEquations(Node eq){
 void DioSolver::pushInputConstraint(const Comparison& eq, Node reason){
   Assert(!debugEqualityInInputEquations(reason));
   Assert(eq.debugIsIntegral());
-  Assert(eq.getNode().getKind() == kind::EQUAL);
+  Assert(eq.getNode().getKind() == Kind::EQUAL);
 
   SumPair sp = eq.toSumPair();
   if(sp.isNonlinear()){
@@ -187,7 +188,7 @@ Node DioSolver::proveIndex(TrailIndex i){
   const Polynomial& proof = d_trail[i].d_proof;
   Assert(!proof.isConstant());
 
-  NodeBuilder nb(kind::AND);
+  NodeBuilder nb(Kind::AND);
   for(Polynomial::iterator iter = proof.begin(), end = proof.end(); iter!= end; ++iter){
     Monomial m = (*iter);
     Assert(!m.isConstant());
@@ -196,12 +197,15 @@ Node DioSolver::proveIndex(TrailIndex i){
     Variable v = vl.getHead();
 
     Node input = proofVariableToReason(v);
-    if(input.getKind() == kind::AND){
+    if (input.getKind() == Kind::AND)
+    {
       for(Node::iterator input_iter = input.begin(), input_end = input.end(); input_iter != input_end; ++input_iter){
 	Node inputChild = *input_iter;
 	nb << inputChild;
       }
-    }else{
+    }
+    else
+    {
       nb << input;
     }
   }
@@ -666,7 +670,7 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::decomposeIndex(
   //We need to handle both cases seperately to ensure termination.
   Node qr = SumPair::computeQR(si, a.getValue().getNumerator());
 
-  Assert(qr.getKind() == kind::ADD);
+  Assert(qr.getKind() == Kind::ADD);
   Assert(qr.getNumChildren() == 2);
   SumPair q = SumPair::parseSumPair(qr[0]);
   SumPair r = SumPair::parseSumPair(qr[1]);

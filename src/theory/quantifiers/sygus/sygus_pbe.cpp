@@ -112,8 +112,9 @@ bool SygusPbe::initialize(Node conj,
           if (!itsl->second.empty())
           {
             TNode tsp = sp;
-            Node lem = itsl->second.size() == 1 ? itsl->second[0]
-                                                : nm->mkNode(AND, itsl->second);
+            Node lem = itsl->second.size() == 1
+                           ? itsl->second[0]
+                           : nm->mkNode(Kind::AND, itsl->second);
             if (tsp != te)
             {
               lem = lem.substitute(tsp, te);
@@ -128,7 +129,7 @@ bool SygusPbe::initialize(Node conj,
         Node ag = d_tds->getActiveGuardForEnumerator(e);
         Assert(!ag.isNull());
         disj.push_back(ag.negate());
-        Node lem = disj.size() == 1 ? disj[0] : nm->mkNode(OR, disj);
+        Node lem = disj.size() == 1 ? disj[0] : nm->mkNode(Kind::OR, disj);
         // Apply extended rewriting on the lemma. This helps utilities like
         // SygusEnumerator more easily recognize the shape of this lemma, e.g.
         // ( ~is-ite(x) or ( ~is-ite(x) ^ P ) ) --> ~is-ite(x).
@@ -237,7 +238,7 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
         Assert(!g.isNull());
         for (unsigned k = 0, size = enum_lems.size(); k < size; k++)
         {
-          Node lem = nm->mkNode(OR, g.negate(), enum_lems[k]);
+          Node lem = nm->mkNode(Kind::OR, g.negate(), enum_lems[k]);
           d_qim.addPendingLemma(lem,
                                 InferenceId::QUANTIFIERS_SYGUS_PBE_EXCLUDE);
         }

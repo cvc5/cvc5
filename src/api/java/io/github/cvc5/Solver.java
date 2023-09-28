@@ -16,6 +16,7 @@
 package io.github.cvc5;
 
 import io.github.cvc5.modes.BlockModelsMode;
+import io.github.cvc5.modes.FindSynthTarget;
 import io.github.cvc5.modes.LearnedLitType;
 import io.github.cvc5.modes.ProofComponent;
 import java.io.IOException;
@@ -68,6 +69,7 @@ public class Solver implements IPointer
   /* .................................................................... */
 
   /**
+   * Get the Boolean sort.
    * @return Sort Boolean.
    */
   public Sort getBooleanSort()
@@ -79,6 +81,7 @@ public class Solver implements IPointer
   private native long getBooleanSort(long pointer);
 
   /**
+   * Get the integer sort.
    * @return Sort Integer.
    */
   public Sort getIntegerSort()
@@ -89,6 +92,7 @@ public class Solver implements IPointer
 
   public native long getIntegerSort(long pointer);
   /**
+   * Get the real sort.
    * @return Sort Real.
    */
   public Sort getRealSort()
@@ -99,6 +103,7 @@ public class Solver implements IPointer
 
   private native long getRealSort(long pointer);
   /**
+   * Get the regular expression sort.
    * @return Sort RegExp.
    */
   public Sort getRegExpSort()
@@ -109,6 +114,7 @@ public class Solver implements IPointer
 
   private native long getRegExpSort(long pointer);
   /**
+   * Get the floating-point rounding mode sort.
    * @return Sort RoundingMode.
    * @throws CVC5ApiException
    */
@@ -119,7 +125,9 @@ public class Solver implements IPointer
   }
 
   private native long getRoundingModeSort(long pointer) throws CVC5ApiException;
+
   /**
+   * Get the string sort.
    * @return Sort String.
    */
   public Sort getStringSort()
@@ -176,6 +184,7 @@ public class Solver implements IPointer
    * Create a floating-point sort.
    * @param exp The bit-width of the exponent of the floating-point sort.
    * @param sig The bit-width of the significand of the floating-point sort.
+   * @return The floating-point sort.
    * @throws CVC5ApiException
    */
   public Sort mkFloatingPointSort(int exp, int sig) throws CVC5ApiException
@@ -673,6 +682,7 @@ public class Solver implements IPointer
    *          in mkTerm directly without creating an op first.
    *
    * @param kind The kind to wrap.
+   * @return The operator.
    */
   public Op mkOp(Kind kind)
   {
@@ -691,6 +701,7 @@ public class Solver implements IPointer
    * See enum {@link Kind} for a description of the parameters.
    * @param kind The kind of the operator.
    * @param arg The string argument to this operator.
+   * @return The operator.
    */
   public Op mkOp(Kind kind, String arg)
   {
@@ -719,6 +730,7 @@ public class Solver implements IPointer
    * See enum {@link Kind} for a description of the parameters.
    * @param kind The kind of the operator.
    * @param arg The unsigned int argument to this operator.
+   * @return The operator.
    * @throws CVC5ApiException
    */
   public Op mkOp(Kind kind, int arg) throws CVC5ApiException
@@ -744,6 +756,7 @@ public class Solver implements IPointer
    * @param kind The kind of the operator.
    * @param arg1 The first unsigned int argument to this operator.
    * @param arg2 The second unsigned int argument to this operator.
+   * @return The operator.
    * @throws CVC5ApiException
    */
   public Op mkOp(Kind kind, int arg1, int arg2) throws CVC5ApiException
@@ -764,6 +777,7 @@ public class Solver implements IPointer
    * See enum {@link Kind} for a description of the parameters.
    * @param kind The kind of the operator.
    * @param args The arguments (indices) of the operator.
+   * @return The operator.
    * @throws CVC5ApiException
    */
   public Op mkOp(Kind kind, int[] args) throws CVC5ApiException
@@ -803,8 +817,8 @@ public class Solver implements IPointer
   private native long mkFalse(long pointer);
   /**
    * Create a Boolean constant.
-   * @return The Boolean constant.
    * @param val The value of the constant.
+   * @return The Boolean constant.
    */
   public Term mkBoolean(boolean val)
   {
@@ -1058,6 +1072,7 @@ public class Solver implements IPointer
    * Create a bit-vector constant of given size and value = 0.
    * @param size The bit-width of the bit-vector sort.
    * @return The bit-vector constant.
+   * @throws CVC5ApiException
    */
   public Term mkBitVector(int size) throws CVC5ApiException
   {
@@ -1225,6 +1240,7 @@ public class Solver implements IPointer
   /**
    * Create a rounding mode constant.
    * @param rm The floating point rounding mode this constant represents.
+   * @return The rounding mode.
    */
   public Term mkRoundingMode(RoundingMode rm)
   {
@@ -1577,6 +1593,31 @@ public class Solver implements IPointer
       long pointer, String symbol, long[] sortPointers, long sortPointer);
 
   /**
+   * Declare n-ary function symbol.
+   *
+   * SMT-LIB:
+   * {@code
+   *   ( declare-fun <symbol> ( <sort>* ) <sort> )
+   * }
+   *
+   * @param symbol The name of the function.
+   * @param sorts The sorts of the parameters to this function.
+   * @param sort The sort of the return value of this function.
+   * @param fresh If true, then this method always returns a new Term.
+   * Otherwise, this method will always return the same Term
+   * for each call with the given sorts and symbol where fresh is false.
+   * @return The function.
+   */
+  public Term declareFun(String symbol, Sort[] sorts, Sort sort, boolean fresh)
+  {
+    long[] sortPointers = Utils.getPointers(sorts);
+    long termPointer = declareFun(pointer, symbol, sortPointers, sort.getPointer(), fresh);
+    return new Term(termPointer);
+  }
+
+  private native long declareFun(
+      long pointer, String symbol, long[] sortPointers, long sortPointer, boolean fresh);
+  /**
    * Declare uninterpreted sort.
    *
    * SMT-LIB:
@@ -1600,6 +1641,34 @@ public class Solver implements IPointer
   }
 
   private native long declareSort(long pointer, String symbol, int arity);
+
+  /**
+   * Declare uninterpreted sort.
+   *
+   * SMT-LIB:
+   * {@code
+   *   ( declare-sort <symbol> <numeral> )
+   * }
+   *
+   * @api.note This corresponds to mkUninterpretedSort() const if arity = 0, and
+   *           to mkUninterpretedSortConstructorSort() const if arity &gt; 0.
+   *
+   * @param symbol The name of the sort.
+   * @param arity The arity of the sort.
+   * @param fresh If true, then this method always returns a new Sort.
+   * Otherwise, this method will always return the same Sort
+   * for each call with the given arity and symbol where fresh is false.
+   * @return The sort.
+   * @throws CVC5ApiException
+   */
+  public Sort declareSort(String symbol, int arity, boolean fresh) throws CVC5ApiException
+  {
+    Utils.validateUnsigned(arity, "arity");
+    long sortPointer = declareSort(pointer, symbol, arity, fresh);
+    return new Sort(sortPointer);
+  }
+
+  private native long declareSort(long pointer, String symbol, int arity, boolean fresh);
 
   /**
    * Define n-ary function in the current context.
@@ -1863,6 +1932,7 @@ public class Solver implements IPointer
   /**
    * Get info from the solver.
    * SMT-LIB: {@code ( get-info <info_flag> ) }
+   * @param flag The {@code get-info} flag.
    * @return The info.
    */
   public String getInfo(String flag)
@@ -1908,6 +1978,7 @@ public class Solver implements IPointer
    * Check the {@link OptionInfo} class for more details on which information
    * is available.
    *
+   * @param option The name of the option.
    * @return Information about the given option.
    */
   public OptionInfo getOptionInfo(String option)
@@ -1961,6 +2032,27 @@ public class Solver implements IPointer
   }
 
   private native long[] getUnsatCore(long pointer);
+
+  /**
+   * Get the lemmas used to derive unsatisfiability.
+   * SMT-LIB:
+   * {@code
+   * (get-unsat-core-lemmas)
+   * }
+   * Requires the SAT proof unsat core mode, so to enable option {@code unsat-core-mode=sat-proof}
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @return A set of terms representing the lemmas used to derive
+   * unsatisfiability.
+   */
+  public Term[] getUnsatCoreLemmas()
+  {
+    long[] retPointers = getUnsatCoreLemmas(pointer);
+    return Utils.getTerms(retPointers);
+  }
+
+  private native long[] getUnsatCoreLemmas(long pointer);
 
   /**
    * Get a difficulty estimate for an asserted formula. This method is
@@ -2059,7 +2151,7 @@ public class Solver implements IPointer
    *
    * @param c The component of the proof to return
    * @return A string representing the proof. This is equivalent to getProof
-   * when c is PROOF_COMPONENT_FULL.
+   * when c is FULL.
    */
   public String getProof(ProofComponent c)
   {
@@ -2305,6 +2397,7 @@ public class Solver implements IPointer
    * @param symbol The name of the pool.
    * @param sort The sort of the elements of the pool.
    * @param initValue The initial value of the pool.
+   * @return The pool.
    */
   public Term declarePool(String symbol, Sort sort, Term[] initValue)
   {
@@ -2585,6 +2678,8 @@ public class Solver implements IPointer
    * Requires enabling option {@code produce-models}.
    *
    * @api.note This method is experimental and may change in future versions.
+   *
+   * @param terms The model values to block.
    */
   public void blockModelValues(Term[] terms)
   {
@@ -2595,10 +2690,12 @@ public class Solver implements IPointer
   private native void blockModelValues(long pointer, long[] termPointers);
 
   /**
-   * Return a string that contains information about all instantiations made by
+   * Get a string that contains information about all instantiations made by
    * the quantifiers module.
    *
    * @api.note This method is experimental and may change in future versions.
+   *
+   * @return The string representing the information about all instantiations.
    */
   public String getInstantiations()
   {
@@ -2692,6 +2789,33 @@ public class Solver implements IPointer
   }
 
   private native void setLogic(long pointer, String logic) throws CVC5ApiException;
+
+  /**
+   * Is logic set? Returns whether we called setLogic yet for this solver.
+   *
+   * @return whether we called setLogic yet for this solver.
+   */
+  public boolean isLogicSet()
+  {
+    return isLogicSet(pointer);
+  }
+
+  private native boolean isLogicSet(long pointer);
+
+  /**
+   * Get the logic set the solver.
+   *
+   * @api.note Asserts isLogicSet().
+   *
+   * @return The logic used by the solver.
+   * @throws CVC5ApiException
+   */
+  public String getLogic() throws CVC5ApiException
+  {
+    return getLogic(pointer);
+  }
+
+  private native String getLogic(long pointer) throws CVC5ApiException;
 
   /**
    * Set option.
@@ -2798,50 +2922,6 @@ public class Solver implements IPointer
 
   private native long synthFun(
       long pointer, String symbol, long[] boundVarPointers, long sortPointer, long grammarPointer);
-
-  /**
-   * Synthesize invariant.
-   *
-   * SyGuS v2:
-   * {@code
-   *   ( synth-inv <symbol> ( <boundVars>* ) )
-   * }
-   *
-   * @param symbol The name of the invariant.
-   * @param boundVars The parameters to this invariant.
-   * @return The invariant.
-   */
-  public Term synthInv(String symbol, Term[] boundVars)
-  {
-    long[] boundVarPointers = Utils.getPointers(boundVars);
-    long termPointer = synthInv(pointer, symbol, boundVarPointers);
-    return new Term(termPointer);
-  }
-
-  private native long synthInv(long pointer, String symbol, long[] boundVarPointers);
-
-  /**
-   * Synthesize invariant following specified syntactic constraints.
-   *
-   * SyGuS v2:
-   * {@code
-   *   ( synth-inv <symbol> ( <boundVars>* ) <g> )
-   * }
-   *
-   * @param symbol The name of the invariant.
-   * @param boundVars The parameters to this invariant.
-   * @param grammar The syntactic constraints.
-   * @return The invariant.
-   */
-  public Term synthInv(String symbol, Term[] boundVars, Grammar grammar)
-  {
-    long[] boundVarPointers = Utils.getPointers(boundVars);
-    long termPointer = synthInv(pointer, symbol, boundVarPointers, grammar.getPointer());
-    return new Term(termPointer);
-  }
-
-  private native long synthInv(
-      long pointer, String symbol, long[] boundVarPointers, long grammarPointer);
 
   /**
    * Add a forumla to the set of Sygus constraints.
@@ -3011,9 +3091,79 @@ public class Solver implements IPointer
   private native long[] getSynthSolutions(long pointer, long[] termPointers);
 
   /**
-   * Returns a snapshot of the current state of the statistic values of this
+   * Find a target term of interest using sygus enumeration, with no provided
+   * grammar.
+   *
+   * The solver will infer which grammar to use in this call, which by default
+   * will be the grammars specified by the function(s)-to-synthesize in the
+   * current context.
+   *
+   * SyGuS v2:
+   * {@code
+   *     (find-synth :target)
+   * }
+   *
+   * @param fst The identifier specifying what kind of term to find
+   * @return The result of the find, which is the null term if this call failed.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   */
+  public Term findSynth(FindSynthTarget fst)
+  {
+    long termPointer = findSynth(pointer, fst.getValue());
+    return new Term(termPointer);
+  }
+  private native long findSynth(long pointer, int fst);
+
+  /**
+   * Find a target term of interest using sygus enumeration with a provided
+   * grammar.
+   *
+   * SyGuS v2:
+   * {@code
+   *     (find-synth :target G)
+   * }
+   *
+   * @param fst The identifier specifying what kind of term to find
+   * @param grammar The grammar for the term
+   * @return The result of the find, which is the null term if this call failed.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   */
+  public Term findSynth(FindSynthTarget fst, Grammar grammar)
+  {
+    long termPointer = findSynth(pointer, fst.getValue(), grammar.getPointer());
+    return new Term(termPointer);
+  }
+  private native long findSynth(long pointer, int fst, long grammarPointer);
+
+  /**
+   * Try to find a next target term of interest using sygus enumeration. Must
+   * be called immediately after a successful call to find-synth or
+   * find-synth-next.
+   *
+   * SyGuS v2:
+   * {@code
+   *     (find-synth-next)
+   * }
+   *
+   * @return The result of the find, which is the null term if this call failed.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   */
+  public Term findSynthNext()
+  {
+    long termPointer = findSynthNext(pointer);
+    return new Term(termPointer);
+  }
+
+  private native long findSynthNext(long pointer);
+
+  /**
+   * Get a snapshot of the current state of the statistic values of this
    * solver. The returned object is completely decoupled from the solver and
    * will not change when the solver is used again.
+   * @return A snapshot of the current state of the statistic values.
    */
   public Statistics getStatistics()
   {

@@ -29,7 +29,7 @@ namespace proof {
 
 /**
  * LFSC rules. The enum below contains all rules that don't correspond to a
- * PfRule, e.g. congruence in LFSC does not have the same form as congruence
+ * ProofRule, e.g. congruence in LFSC does not have the same form as congruence
  * in the internal calculus.
  */
 enum class LfscRule : uint32_t
