@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andres Noetzli, Andrew Reynolds
+ *   Gereon Kremer, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
@@ -30,6 +30,8 @@
 #include "base/exception.h"
 #include "base/output.h"
 #include "main/command_executor.h"
+#include "parser/commands.h"
+#include "parser/command_status.h"
 
 using namespace cvc5::parser;
 
@@ -64,14 +66,14 @@ bool ExecutionContext::solveContinuous(parser::InputParser* parser,
       interrupted = true;
       break;
     }
-
-    if (dynamic_cast<QuitCommand*>(cmd.get()) != nullptr)
+    Cmd* cc = cmd->toCmd();
+    if (dynamic_cast<QuitCommand*>(cc) != nullptr)
     {
       break;
     }
     if (stopAtSetLogic)
     {
-      auto* slc = dynamic_cast<SetBenchmarkLogicCommand*>(cmd.get());
+      auto* slc = dynamic_cast<SetBenchmarkLogicCommand*>(cc);
       if (slc != nullptr)
       {
         d_logic = slc->getLogic();
@@ -91,7 +93,7 @@ std::vector<std::unique_ptr<Command>> ExecutionContext::parseCommands(
     std::unique_ptr<Command> cmd(parser->nextCommand());
     if (!cmd) break;
     res.emplace_back(std::move(cmd));
-    if (dynamic_cast<QuitCommand*>(res.back().get()) != nullptr)
+    if (dynamic_cast<QuitCommand*>(res.back()->toCmd()) != nullptr)
     {
       break;
     }

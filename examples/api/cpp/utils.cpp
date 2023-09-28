@@ -59,7 +59,7 @@ void printSynthSolutions(const std::vector<cvc5::Term>& terms,
   {
     std::vector<cvc5::Term> params;
     cvc5::Term body = sols[i];
-    if (sols[i].getKind() == cvc5::LAMBDA)
+    if (sols[i].getKind() == cvc5::Kind::LAMBDA)
     {
       params.insert(params.end(), sols[i][0].begin(), sols[i][0].end());
       body = sols[i][1];

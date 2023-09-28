@@ -26,7 +26,7 @@
 namespace cvc5::internal {
 namespace kind {
 
-enum Kind_t
+enum class Kind_t
 {
   UNDEFINED_KIND = -1, /**< undefined */
   NULL_EXPR,           /**< Null kind */
@@ -73,7 +73,10 @@ std::string kindToString(cvc5::internal::Kind k);
 
 struct KindHashFunction
 {
-  inline size_t operator()(cvc5::internal::Kind k) const { return k; }
+  inline size_t operator()(cvc5::internal::Kind k) const
+  {
+    return static_cast<size_t>(k);
+  }
 }; /* struct KindHashFunction */
 
 }  // namespace kind

@@ -62,7 +62,7 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
   Node aconj = quantifiers::SygusAbduct::mkAbductionConjecture(
       name, asserts, axioms, grammarType);
   // should be a quantified conjecture with one function-to-synthesize
-  Assert(aconj.getKind() == kind::FORALL && aconj[0].getNumChildren() == 1);
+  Assert(aconj.getKind() == Kind::FORALL && aconj[0].getNumChildren() == 1);
   // remember the abduct-to-synthesize
   d_sssf = aconj[0][0];
   Trace("sygus-abduct") << "SolverEngine::getAbduct: made conjecture : "
@@ -125,7 +125,7 @@ bool AbductionSolver::getAbductInternal(Node& abd)
       Trace("sygus-abduct") << "SolverEngine::getAbduct: solution is "
                             << its->second << std::endl;
       abd = its->second;
-      if (abd.getKind() == kind::LAMBDA)
+      if (abd.getKind() == Kind::LAMBDA)
       {
         abd = abd[1];
       }
@@ -134,7 +134,7 @@ bool AbductionSolver::getAbductInternal(Node& abd)
           theory::quantifiers::SygusUtils::getOrMkSygusArgumentList(d_sssf);
       if(!agdtbv.isNull())
       {
-        Assert(agdtbv.getKind() == kind::BOUND_VAR_LIST);
+        Assert(agdtbv.getKind() == Kind::BOUND_VAR_LIST);
         // convert back to original
         // must replace formal arguments of abd with the free variables in the
         // input problem that they correspond to.

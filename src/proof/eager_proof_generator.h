@@ -21,7 +21,7 @@
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "proof/proof_generator.h"
-#include "proof/proof_rule.h"
+#include "cvc5/cvc5_proof_rule.h"
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
 
@@ -133,7 +133,7 @@ class EagerProofGenerator : protected EnvObj, public ProofGenerator
    * a proof of (exp => conc), or of conc if exp is empty.
    */
   TrustNode mkTrustNode(Node conc,
-                        PfRule id,
+                        ProofRule id,
                         const std::vector<Node>& exp,
                         const std::vector<Node>& args,
                         bool isConflict = false);
@@ -173,7 +173,7 @@ class EagerProofGenerator : protected EnvObj, public ProofGenerator
    */
   TrustNode mkTrustedRewrite(Node a,
                              Node b,
-                             PfRule id,
+                             ProofRule id,
                              const std::vector<Node>& args);
   //--------------------------------------- common proofs
   /**

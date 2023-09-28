@@ -46,7 +46,7 @@ void SplitZeroCheck::check()
       if (d_data->isProofEnabled())
       {
         proof = d_data->getProof();
-        proof->addStep(lem, PfRule::SPLIT, {}, {eq});
+        proof->addStep(lem, ProofRule::SPLIT, {}, {eq});
       }
       d_data->d_im.addPendingPhaseRequirement(eq, true);
       d_data->d_im.addPendingLemma(

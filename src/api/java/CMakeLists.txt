@@ -39,24 +39,25 @@ add_custom_command(
 )
 add_custom_target(generate-java-kinds DEPENDS ${JAVA_KIND_FILE})
 
-# Generate SortKind.java
-set(JAVA_SORT_KIND_FILE
-  "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/SortKind.java"
+# Generate ProofRule.java
+set(JAVA_PROOF_RULE_FILE
+  "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/ProofRule.java"
 )
 add_custom_command(
   OUTPUT
-    ${JAVA_SORT_KIND_FILE}
+    ${JAVA_PROOF_RULE_FILE}
   COMMAND
     "${Python_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_sort_kind.h"
+    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_proof_rule.h"
     --java-api-path "${CMAKE_CURRENT_BINARY_DIR}/io/github/"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
     "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
-    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_sort_kind.h"
+    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_proof_rule.h"
 )
-add_custom_target(generate-java-sort-kinds DEPENDS ${JAVA_SORT_KIND_FILE})
+add_custom_target(generate-java-proofrules DEPENDS ${JAVA_PROOF_RULE_FILE})
+
 
 set(JAVA_TYPES_FILES
   "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/modes/BlockModelsMode.java"
@@ -147,7 +148,7 @@ add_custom_command(
 )
 
 add_custom_target(generate-jni-headers DEPENDS ${JNI_HEADERS})
-add_dependencies(generate-jni-headers generate-java-kinds generate-java-sort-kinds generate-java-types)
+add_dependencies(generate-jni-headers generate-java-kinds generate-java-types generate-java-proofrules)
 
 # find jni package
 find_package(JNI REQUIRED)

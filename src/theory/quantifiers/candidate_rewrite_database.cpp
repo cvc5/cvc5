@@ -169,7 +169,7 @@ Node CandidateRewriteDatabase::addOrGetTerm(Node sol,
             Node refv = v;
             // if a bound variable, map to the skolem we introduce before
             // looking up the model value
-            if (v.getKind() == BOUND_VARIABLE)
+            if (v.getKind() == Kind::BOUND_VARIABLE)
             {
               std::map<Node, Node>::iterator itf = d_fv_to_skolem.find(v);
               if (itf == d_fv_to_skolem.end())
@@ -185,7 +185,7 @@ Node CandidateRewriteDatabase::addOrGetTerm(Node sol,
             }
             if (val.isNull())
             {
-              Assert(!refv.isNull() && refv.getKind() != BOUND_VARIABLE);
+              Assert(!refv.isNull() && refv.getKind() != Kind::BOUND_VARIABLE);
               val = rrChecker->getValue(refv);
             }
             Trace("rr-check") << "  " << v << " -> " << val << std::endl;
