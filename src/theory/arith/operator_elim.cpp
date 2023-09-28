@@ -473,7 +473,8 @@ Node OperatorElim::getArithSkolemApp(Node n, SkolemFunId id)
     // ensure we can give a consistent type for the skolem function <id>,
     // independent of the option arithNoPartialFun.
     SkolemManager* sm = nm->getSkolemManager();
-    Node kapp = nm->mkNode(Kind::APPLY_UF, skolem, nm->mkConstRealOrInt(n.getType(), Rational(0)));
+    Node kapp = nm->mkNode(
+        Kind::APPLY_UF, skolem, nm->mkConstRealOrInt(n.getType(), Rational(0)));
     skolem = sm->mkPurifySkolem(kapp);
   }
   return skolem;
