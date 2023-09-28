@@ -97,7 +97,7 @@ bool RelevantPreregistrar::notifyAsserted(TNode n,
 {
   Trace("prereg-rlv") << "RelevantPreregistrar: notify asserted " << n
                       << std::endl;
-  bool pol = n.getKind() != kind::NOT;
+  bool pol = n.getKind() != Kind::NOT;
   TNode natom = pol ? n : n[0];
   // update relevant, which will ensure that natom is preregistered if not
   // already done so
@@ -124,7 +124,7 @@ bool RelevantPreregistrar::notifyAsserted(TNode n,
 void RelevantPreregistrar::setRelevant(TNode n,
                                        std::vector<TNode>& toPreregister)
 {
-  bool pol = n.getKind() != kind::NOT;
+  bool pol = n.getKind() != Kind::NOT;
   TNode nn = pol ? n : n[0];
   if (d_jcache.hasValue(nn))
   {
@@ -147,7 +147,7 @@ void RelevantPreregistrar::updateRelevant(std::vector<TNode>& toVisit,
   while (!toVisit.empty())
   {
     t = toVisit.back();
-    Assert(t.getKind() != NOT);
+    Assert(t.getKind() != Kind::NOT);
     // update relevant
     SatValue jval = updateRelevantNext(t, toPreregister, toVisit);
     // if we found it was justified
@@ -175,7 +175,7 @@ bool shouldWatchAll(Kind nk, SatValue rval)
   // NOTE: this could be changed to return false when rval == SAT_VALUE_UNKNOWN,
   // which would lead to fewer preregistrations. However, experiments have
   // shown it is better to return true in this case.
-  return rval == SAT_VALUE_UNKNOWN || ((nk == AND) == (rval == SAT_VALUE_TRUE));
+  return rval == SAT_VALUE_UNKNOWN || ((nk == Kind::AND) == (rval == SAT_VALUE_TRUE));
 }
 
 // NOTE: this method is responsible for popping from toVisit when applicable
@@ -183,7 +183,7 @@ SatValue RelevantPreregistrar::updateRelevantNext(
     TNode n, std::vector<TNode>& toPreregister, std::vector<TNode>& toVisit)
 {
   Trace("prereg-rlv-debug2") << "Update relevance on " << n << std::endl;
-  Assert(n.getKind() != NOT);
+  Assert(n.getKind() != Kind::NOT);
   RlvInfo* currInfo = getInfo(n);
   // we should have already been marked relevant
   Assert(currInfo != nullptr);
@@ -204,12 +204,12 @@ SatValue RelevantPreregistrar::updateRelevantNext(
       << "...relevance " << rval << ", childIndex " << cindex << ", iteration "
       << currInfo->d_iter << std::endl;
   Assert(cindex <= n.getNumChildren());
-  if (nk == AND || nk == OR || nk == IMPLIES)
+  if (nk == Kind::AND || nk == Kind::OR || nk == Kind::IMPLIES)
   {
     // the value that would imply our value
-    SatValue forceVal = (nk == AND) ? SAT_VALUE_FALSE : SAT_VALUE_TRUE;
+    SatValue forceVal = (nk == Kind::AND) ? SAT_VALUE_FALSE : SAT_VALUE_TRUE;
     // whether the current child is (implicitly) negated
-    bool invertChild = (nk == IMPLIES && cindex == 0);
+    bool invertChild = (nk == Kind::IMPLIES && cindex == 0);
     size_t iter = currInfo->d_iter;
     // check the status of the last child we looked at, if it exists
     if (cindex > 0)
@@ -268,7 +268,7 @@ SatValue RelevantPreregistrar::updateRelevantNext(
           // Otherwise, set the next child to relevant and add toVisit. We
           // will visit the current term again when we are finished.
           TNode nextChild = n[cindex];
-          if (nextChild.getKind() == NOT)
+          if (nextChild.getKind() == Kind::NOT)
           {
             nextChild = nextChild[0];
             invertChild = !invertChild;
@@ -283,8 +283,8 @@ SatValue RelevantPreregistrar::updateRelevantNext(
       }
     }
   }
-  else if (nk == ITE || (nk == EQUAL && n[0].getType().isBoolean())
-           || nk == XOR)
+  else if (nk == Kind::ITE || (nk == Kind::EQUAL && n[0].getType().isBoolean())
+           || nk == Kind::XOR)
   {
     Assert(cindex <= n.getNumChildren());
     if (cindex == 0)
@@ -311,7 +311,7 @@ SatValue RelevantPreregistrar::updateRelevantNext(
         // visit the relevant child
         size_t rcindex;
         SatValue rcval;
-        if (nk == ITE)
+        if (nk == Kind::ITE)
         {
           // take the relevant branch, whose relevance is equal to this
           rcindex = cval == SAT_VALUE_TRUE ? 2 : 3;
@@ -323,7 +323,7 @@ SatValue RelevantPreregistrar::updateRelevantNext(
           // the value of the left hand side.
           rcindex = 2;
           bool invertChild =
-              (cval == (nk == EQUAL ? SAT_VALUE_FALSE : SAT_VALUE_TRUE));
+              (cval == (nk == Kind::EQUAL ? SAT_VALUE_FALSE : SAT_VALUE_TRUE));
           rcval = invertChild ? invertValue(rval) : rval;
         }
         TNode nextChild = n[rcindex - 1];
@@ -333,7 +333,7 @@ SatValue RelevantPreregistrar::updateRelevantNext(
       else
       {
         toVisit.pop_back();
-        if (nk == ITE)
+        if (nk == Kind::ITE)
         {
           // the value of this is the value of the branch
           newJval = cval;
@@ -343,7 +343,7 @@ SatValue RelevantPreregistrar::updateRelevantNext(
           // look up the value of the first child and compute the result
           SatValue cval0 = d_jcache.lookupValue(n[0]);
           Assert(cval0 != SAT_VALUE_UNKNOWN);
-          newJval = (nk == XOR ? cval != cval0 : cval == cval0)
+          newJval = (nk == Kind::XOR ? cval != cval0 : cval == cval0)
                         ? SAT_VALUE_TRUE
                         : SAT_VALUE_FALSE;
         }
@@ -377,12 +377,12 @@ void RelevantPreregistrar::markRelevant(TNode n,
 {
   // NOTE: we could short cut if n is a theory literal, don't allocate cinfo?
   // however, adding to preregister has to be handled somewhere
-  if (n.getKind() == NOT)
+  if (n.getKind() == Kind::NOT)
   {
     n = n[0];
     val = invertValue(val);
   }
-  Assert(n.getKind() != NOT);
+  Assert(n.getKind() != Kind::NOT);
   // if we already have a value, don't bother
   if (d_jcache.hasValue(n))
   {
@@ -423,10 +423,10 @@ void RelevantPreregistrar::markWatchedParent(TNode child,
 {
   Trace("prereg-rlv-debug")
       << "Mark watched " << child << " with parent " << parent << std::endl;
-  bool ppol = (child.getKind() != NOT);
+  bool ppol = (child.getKind() != Kind::NOT);
   TNode childAtom = ppol ? child : child[0];
-  Assert(childAtom.getKind() != NOT);
-  Assert(parent.getKind() != NOT);
+  Assert(childAtom.getKind() != Kind::NOT);
+  Assert(parent.getKind() != Kind::NOT);
   RlvInfo* currInfo = getOrMkInfo(childAtom);
   // add to parent list
   currInfo->d_parentList.push_back(parent);
@@ -452,7 +452,7 @@ void RelevantPreregistrar::updateJustify(
     n = curr.first;
     val = curr.second;
     i++;
-    Assert(n.getKind() != NOT);
+    Assert(n.getKind() != Kind::NOT);
     RlvInfo* currInfo = getInfo(n);
     if (currInfo != nullptr)
     {
@@ -464,12 +464,12 @@ void RelevantPreregistrar::updateJustify(
         if (itj != pl.end())
         {
           Kind pk = p.getKind();
-          Assert(pk == AND || pk == OR || pk == IMPLIES);
+          Assert(pk == Kind::AND || pk == Kind::OR || pk == Kind::IMPLIES);
           // propagate justification upwards
           bool childVal =
               (val == (itj->second ? SAT_VALUE_TRUE : SAT_VALUE_FALSE));
           // does it force the value?
-          if ((pk == AND) != childVal)
+          if ((pk == Kind::AND) != childVal)
           {
             if (!d_jcache.hasValue(p))
             {
