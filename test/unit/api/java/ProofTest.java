@@ -16,6 +16,7 @@
 package tests;
 import static io.github.cvc5.Kind.*;
 import static io.github.cvc5.SortKind.*;
+import static io.github.cvc5.ProofRule.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.cvc5.*;
@@ -79,7 +80,7 @@ class ProofTest
   void getRule() throws CVC5ApiException
   {
     Proof proof = create_proof();
-    assertEquals("SCOPE", proof.getRule());
+    assertEquals(ProofRule.SCOPE, proof.getRule());
   }
 
   @Test

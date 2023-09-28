@@ -1511,11 +1511,11 @@ def test_get_unsat_core_and_proof_to_string(solver):
     assert len(proofs) > 0
     printedProof = solver.proofToString(proofs[0])
     assert len(printedProof) > 0
-    printedProof = solver.proofToString(proofs[0], ProofFormat.PROOF_FORMAT_ALETHE)
+    printedProof = solver.proofToString(proofs[0], ProofFormat.ALETHE)
     assert len(printedProof) > 0
     
-    proofs = solver.getProof(ProofComponent.PROOF_COMPONENT_SAT)
-    printedProof = solver.proofToString(proofs[0], ProofFormat.PROOF_FORMAT_DEFAULT)
+    proofs = solver.getProof(ProofComponent.SAT)
+    printedProof = solver.proofToString(proofs[0], ProofFormat.DEFAULT)
     assert len(printedProof) > 0
 
 def test_learned_literals(solver):

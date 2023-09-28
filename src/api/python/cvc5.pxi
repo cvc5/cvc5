@@ -2253,7 +2253,7 @@ cdef class Solver:
         return proofs
 
     def proofToString(self, proof,
-                      format = ProofFormat.PROOF_FORMAT_DEFAULT):
+                      format = ProofFormat.DEFAULT):
         """
             Prints proof into a string with a selected proof format mode.
             Other aspects of printing are taken from the solver options.

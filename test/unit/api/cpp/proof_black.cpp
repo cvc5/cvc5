@@ -41,14 +41,14 @@ class TestApiBlackProof : public TestApi
     Term p = d_solver.mkConst(intPredSort, "p");
     Term zero = d_solver.mkInteger(0);
     Term one = d_solver.mkInteger(1);
-    Term f_x = d_solver.mkTerm(APPLY_UF, {f, x});
-    Term f_y = d_solver.mkTerm(APPLY_UF, {f, y});
-    Term sum = d_solver.mkTerm(ADD, {f_x, f_y});
-    Term p_0 = d_solver.mkTerm(APPLY_UF, {p, zero});
-    Term p_f_y = d_solver.mkTerm(APPLY_UF, {p, f_y});
-    d_solver.assertFormula(d_solver.mkTerm(GT, {zero, f_x}));
-    d_solver.assertFormula(d_solver.mkTerm(GT, {zero, f_y}));
-    d_solver.assertFormula(d_solver.mkTerm(GT, {sum, one}));
+    Term f_x = d_solver.mkTerm(Kind::APPLY_UF, {f, x});
+    Term f_y = d_solver.mkTerm(Kind::APPLY_UF, {f, y});
+    Term sum = d_solver.mkTerm(Kind::ADD, {f_x, f_y});
+    Term p_0 = d_solver.mkTerm(Kind::APPLY_UF, {p, zero});
+    Term p_f_y = d_solver.mkTerm(Kind::APPLY_UF, {p, f_y});
+    d_solver.assertFormula(d_solver.mkTerm(Kind::GT, {zero, f_x}));
+    d_solver.assertFormula(d_solver.mkTerm(Kind::GT, {zero, f_y}));
+    d_solver.assertFormula(d_solver.mkTerm(Kind::GT, {sum, one}));
     d_solver.assertFormula(p_0);
     d_solver.assertFormula(p_f_y.notTerm());
     d_solver.checkSat();
@@ -60,7 +60,7 @@ class TestApiBlackProof : public TestApi
 TEST_F(TestApiBlackProof, getRule)
 {
   Proof proof = create_proof();
-  ASSERT_EQ(proof.getRule(), "SCOPE");
+  ASSERT_EQ(proof.getRule(), ProofRule::SCOPE);
 }
 
 TEST_F(TestApiBlackProof, getResult)

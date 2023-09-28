@@ -2129,7 +2129,7 @@ public class Solver implements IPointer
    * @api.note This method is experimental and may change in future versions.
    *
    * @return A vector of proof nodes. This is equivalent to getProof
-   * when c is PROOF_COMPONENT_FULL.
+   * when c is FULL.
    */
   public Proof[] getProof()
   {

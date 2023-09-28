@@ -1880,12 +1880,12 @@ class SolverTest
     assertNotEquals(0, proofs.length);
     String printedProof = d_solver.proofToString(proofs[0]);
     assertFalse(printedProof.isEmpty());
-    printedProof = d_solver.proofToString(proofs[0], ProofFormat.PROOF_FORMAT_ALETHE);
+    printedProof = d_solver.proofToString(proofs[0], ProofFormat.ALETHE);
     assertFalse(printedProof.isEmpty());
 
-    proofs = d_solver.getProof(ProofComponent.PROOF_COMPONENT_SAT);
+    proofs = d_solver.getProof(ProofComponent.SAT);
     assertNotEquals(0, proofs.length);
-    printedProof = d_solver.proofToString(proofs[0], ProofFormat.PROOF_FORMAT_DEFAULT);
+    printedProof = d_solver.proofToString(proofs[0], ProofFormat.DEFAULT);
     assertFalse(printedProof.isEmpty());
   }
 
