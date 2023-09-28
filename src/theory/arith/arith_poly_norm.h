@@ -29,7 +29,7 @@ namespace arith {
 
 /**
  * A utility class for polynomial normalization. This is used by the proof
- * rule PfRule::ARITH_POLY_NORM.
+ * rule ProofRule::ARITH_POLY_NORM.
  */
 class PolyNorm
 {

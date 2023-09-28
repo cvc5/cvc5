@@ -335,6 +335,11 @@ class PropEngine : protected EnvObj
    */
   void getUnsatCore(std::vector<Node>& core);
 
+  /**
+   * Retrieve the lemmas used to derive unsat.
+   */
+  std::vector<Node> getUnsatCoreLemmas();
+
   /** Get the zero-level assertions of the given type */
   std::vector<Node> getLearnedZeroLevelLiterals(
       modes::LearnedLitType ltype) const;

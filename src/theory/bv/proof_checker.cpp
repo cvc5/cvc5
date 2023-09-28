@@ -21,30 +21,30 @@ namespace bv {
 
 void BVProofRuleChecker::registerTo(ProofChecker* pc)
 {
-  pc->registerChecker(PfRule::BV_BITBLAST, this);
-  pc->registerChecker(PfRule::BV_BITBLAST_STEP, this);
-  pc->registerChecker(PfRule::BV_EAGER_ATOM, this);
+  pc->registerChecker(ProofRule::BV_BITBLAST, this);
+  pc->registerChecker(ProofRule::BV_BITBLAST_STEP, this);
+  pc->registerChecker(ProofRule::BV_EAGER_ATOM, this);
 }
 
-Node BVProofRuleChecker::checkInternal(PfRule id,
+Node BVProofRuleChecker::checkInternal(ProofRule id,
                                        const std::vector<Node>& children,
                                        const std::vector<Node>& args)
 {
-  if (id == PfRule::BV_BITBLAST)
+  if (id == ProofRule::BV_BITBLAST)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
     Assert(args[0].getKind() == kind::EQUAL);
     return args[0];
   }
-  else if (id == PfRule::BV_BITBLAST_STEP)
+  else if (id == ProofRule::BV_BITBLAST_STEP)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
     Assert(args[0].getKind() == kind::EQUAL);
     return args[0];
   }
-  else if (id == PfRule::BV_EAGER_ATOM)
+  else if (id == ProofRule::BV_EAGER_ATOM)
   {
     Assert(children.empty());
     Assert(args.size() == 1);

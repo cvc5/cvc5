@@ -6,7 +6,7 @@
                                  (! r (^ (sc_string_is_empty t) tt)
                                     (holds (not (= (str.len s) (int 0)))))))))
 
-; Computes the conclusion of the PfRule::CONCAT_EQ rule
+; Computes the conclusion of the ProofRule::CONCAT_EQ rule
 (function sc_concat_eq ((s term) (t term) (rev flag) (u sort)) term
   (match (sc_strip_prefix
            (sc_string_to_flat_form s rev u) 
@@ -25,7 +25,7 @@
                    (! r (^ (sc_concat_eq s t rev u) res) 
                       (holds res)))))))))
 
-; Helper method for PfRule::CONCAT_UNIFY. Returns ok if s or a prefix of its
+; Helper method for ProofRule::CONCAT_UNIFY. Returns ok if s or a prefix of its
 ; head is equal to s1, where the (suffix of the) head of the reverse of s is
 ; checked if rev is tt. Fails otherwise.
 (function sc_concat_head_or_self ((s term) (s1 term) (rev flag) (u sort)) Ok
@@ -49,7 +49,7 @@
 )
 
 ; Computes whether the heads of the premise (= s t) match s1 and t1 for the
-; PfRule::CONCAT_UNIFY rule
+; ProofRule::CONCAT_UNIFY rule
 (function sc_concat_unify ((s term) (t term) (s1 term) (t1 term) (rev flag) (u sort)) Ok
   (ifequal (sc_concat_head_or_self s s1 rev u) ok
     (ifequal (sc_concat_head_or_self t t1 rev u) ok
@@ -68,7 +68,7 @@
                       (! r (^ (sc_concat_unify s t s1 t1 rev u) ok)
                           (holds (= s1 t1))))))))))))
 
-; Computes the conclusion of the PfRule::CONCAT_CSPLIT rule
+; Computes the conclusion of the ProofRule::CONCAT_CSPLIT rule
 (function sc_concat_csplit ((thead term) (t term) (s term) (rev flag) (u sort)) term
   (match (sc_string_to_flat_form t rev u)
     ((apply t1 t2)
@@ -98,7 +98,7 @@
     (holds res)))))))))))
 
 ; Checks whether the conditions on the premise (= s t) is satisfied for the
-; PfRule::CONCAT_CONFLICT rule
+; ProofRule::CONCAT_CONFLICT rule
 (function sc_concat_conflict ((s term) (t term) (rev flag) (u sort)) Ok
   (match (sc_strip_prefix
            (sc_string_to_flat_form s rev u)
@@ -118,7 +118,7 @@
                          (! r (^ (sc_concat_conflict s t rev u) ok)
                             (holds false))))))))
 
-; For sequences, we use a variant of the PfRule::CONCAT_CONFLICT rule where the
+; For sequences, we use a variant of the ProofRule::CONCAT_CONFLICT rule where the
 ; justification for the clashing characters is given in the form of a
 ; disequality. This is due to the fact that check whether a term is value is
 ; not a simple syntactic check for some types.
@@ -163,7 +163,7 @@
 (declare string_eager_reduction (! r term (! t term (! s sort (! u (^ (sc_string_eager_reduction t s) r)
   (holds r))))))
 
-; Computes the conclusion of PfRule::RE_UNFOLD_POS
+; Computes the conclusion of ProofRule::RE_UNFOLD_POS
 (function sc_re_unfold_pos ((t term) (r term)) term
   (match r
     ((apply r1 r2)

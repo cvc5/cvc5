@@ -697,7 +697,7 @@ TrustNode TheoryArraysRewriter::expandDefinition(Node node)
     if (d_epg)
     {
       TrustNode tn = d_epg->mkTrustNode(node.eqNode(expandedEqRange),
-                                        PfRule::ARRAYS_EQ_RANGE_EXPAND,
+                                        ProofRule::ARRAYS_EQ_RANGE_EXPAND,
                                         {},
                                         {node});
       return TrustNode::mkTrustRewrite(node, expandedEqRange, d_epg.get());

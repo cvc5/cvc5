@@ -855,7 +855,7 @@ TrustNode TheoryEngine::ppRewrite(TNode term,
       Node proven = tskl.getProven();
       Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(tid);
       d_lazyProof->addStep(
-          proven, PfRule::THEORY_PREPROCESS_LEMMA, {}, {proven, tidn});
+          proven, ProofRule::THEORY_PREPROCESS_LEMMA, {}, {proven, tidn});
       skl.d_lemma = TrustNode::mkTrustLemma(proven, d_lazyProof.get());
     }
   }
@@ -1243,7 +1243,8 @@ TrustNode TheoryEngine::getExplanation(TNode node)
         Node proven = texplanation.getProven();
         TheoryId tid = theoryOf(atom)->getId();
         Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(tid);
-        d_lazyProof->addStep(proven, PfRule::THEORY_LEMMA, {}, {proven, tidn});
+        d_lazyProof->addStep(
+            proven, ProofRule::THEORY_LEMMA, {}, {proven, tidn});
         texplanation =
             TrustNode::mkTrustPropExp(node, explanation, d_lazyProof.get());
       }
@@ -1416,7 +1417,7 @@ void TheoryEngine::lemma(TrustNode tlemma,
       Assert(from != THEORY_LAST);
       // add theory lemma step to proof
       Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(from);
-      d_lazyProof->addStep(lemma, PfRule::THEORY_LEMMA, {}, {lemma, tidn});
+      d_lazyProof->addStep(lemma, ProofRule::THEORY_LEMMA, {}, {lemma, tidn});
       // update the trust node
       tlemma = TrustNode::mkTrustLemma(lemma, d_lazyProof.get());
     }
@@ -1512,7 +1513,7 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
         // add theory lemma step
         Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
         Node conf = tconflict.getProven();
-        d_lazyProof->addStep(conf, PfRule::THEORY_LEMMA, {}, {conf, tidn});
+        d_lazyProof->addStep(conf, ProofRule::THEORY_LEMMA, {}, {conf, tidn});
       }
       // store the explicit step, which should come from a different
       // generator, e.g. d_tepg.
@@ -1545,8 +1546,10 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
           // ~fullConflict
           children.push_back(conflict.notNode());
           args.push_back(mkMethodId(MethodId::SB_LITERAL));
-          d_lazyProof->addStep(
-              fullConflictNeg, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
+          d_lazyProof->addStep(fullConflictNeg,
+                               ProofRule::MACRO_SR_PRED_TRANSFORM,
+                               children,
+                               args);
         }
       }
     }
@@ -1671,7 +1674,7 @@ TrustNode TheoryEngine::getExplanation(
         std::vector<Node> args;
         args.push_back(toExplain.d_node);
         lcp->addStep(
-            toExplain.d_node, PfRule::MACRO_SR_PRED_INTRO, children, args);
+            toExplain.d_node, ProofRule::MACRO_SR_PRED_INTRO, children, args);
       }
       continue;
     }
@@ -1859,7 +1862,7 @@ TrustNode TheoryEngine::getExplanation(
           // tConc
           std::vector<Node> pfChildren;
           pfChildren.insert(pfChildren.end(), tConc.begin(), tConc.end());
-          lcp->addStep(tConc, PfRule::AND_INTRO, pfChildren, {});
+          lcp->addStep(tConc, ProofRule::AND_INTRO, pfChildren, {});
           Trace("te-proof-exp") << "...via AND_INTRO" << std::endl;
           continue;
         }
@@ -1868,7 +1871,8 @@ TrustNode TheoryEngine::getExplanation(
         // tExp
         // ---- MACRO_SR_PRED_TRANSFORM
         // tConc
-        lcp->addStep(tConc, PfRule::MACRO_SR_PRED_TRANSFORM, {tExp}, {tConc});
+        lcp->addStep(
+            tConc, ProofRule::MACRO_SR_PRED_TRANSFORM, {tExp}, {tConc});
         Trace("te-proof-exp") << "...via MACRO_SR_PRED_TRANSFORM" << std::endl;
         continue;
       }
@@ -1892,12 +1896,12 @@ TrustNode TheoryEngine::getExplanation(
         Trace("te-proof-exp") << "...via trust THEORY_LEMMA" << std::endl;
         // otherwise, trusted theory lemma
         Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(ttid);
-        lcp->addStep(proven, PfRule::THEORY_LEMMA, {}, {proven, tidn});
+        lcp->addStep(proven, ProofRule::THEORY_LEMMA, {}, {proven, tidn});
       }
       std::vector<Node> pfChildren;
       pfChildren.push_back(trn.getNode());
       pfChildren.push_back(proven);
-      lcp->addStep(tConc, PfRule::MODUS_PONENS, pfChildren, {});
+      lcp->addStep(tConc, ProofRule::MODUS_PONENS, pfChildren, {});
     }
     // If we don't have a step and the conclusion is not part of the
     // explanation (for unit T-conflicts), it must be by symmetry. We must do
@@ -1908,7 +1912,7 @@ TrustNode TheoryEngine::getExplanation(
       Node sconc = CDProof::getSymmFact(conclusion);
       if (!sconc.isNull())
       {
-        lcp->addStep(conclusion, PfRule::SYMM, {sconc}, {});
+        lcp->addStep(conclusion, ProofRule::SYMM, {sconc}, {});
       }
       else
       {
