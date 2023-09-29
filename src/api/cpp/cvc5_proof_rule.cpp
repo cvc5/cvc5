@@ -129,6 +129,16 @@ const char* toString(ProofRule id)
     case ProofRule::BV_BITBLAST: return "BV_BITBLAST";
     case ProofRule::BV_BITBLAST_STEP: return "BV_BITBLAST_STEP";
     case ProofRule::BV_EAGER_ATOM: return "BV_EAGER_ATOM";
+    //
+    case ProofRule::BV_UMULO_ELIMINATE: return "BV_UMULO_ELIMINATE";
+    case ProofRule::BV_SMULO_ELIMINATE: return "BV_SMULO_ELIMINATE";
+    case ProofRule::BV_FLATTEN_ASSOC_COMMUTE: return "BV_FLATTEN_ASSOC_COMMUTE";
+    case ProofRule::BV_FLATTEN_ASSOC_COMMUTE_NO_DUPLICATES: return "BV_FLATTEN_ASSOC_COMMUTE_NO_DUPLICATES";
+    case ProofRule::BV_ADD_COMBINE_LIKE_TERMS: return "BV_ADD_COMBINE_LIKE_TERMS";
+    case ProofRule::BV_MULT_SIMPLIFY: return "BV_MULT_SIMPLIFY";
+    case ProofRule::BV_SOLVE_EQ: return "BV_SOLVE_EQ";
+    case ProofRule::BV_BITWISE_EQ: return "BV_BITWISE_EQ";
+    case ProofRule::BV_BITWISE_SLICING: return "BV_BITWISE_SLICING";
     //================================================= Datatype rules
     case ProofRule::DT_UNIF: return "DT_UNIF";
     case ProofRule::DT_INST: return "DT_INST";
@@ -206,6 +216,7 @@ const char* toString(ProofRule id)
     case ProofRule::ARITH_NL_COVERING_DIRECT: return "ARITH_NL_COVERING_DIRECT";
     case ProofRule::ARITH_NL_COVERING_RECURSIVE: return "ARITH_NL_COVERING_RECURSIVE";
     //================================================= External rules
+    case ProofRule::LEAN_RULE: return "LEAN_RULE";
     case ProofRule::LFSC_RULE: return "LFSC_RULE";
     case ProofRule::ALETHE_RULE: return "ALETHE_RULE";
     //================================================= Unknown rule
