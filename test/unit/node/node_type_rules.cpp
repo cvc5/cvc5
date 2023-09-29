@@ -31,11 +31,6 @@ namespace test {
 class TestNodeTestRules : public TestNode
 {
  protected:
-  void SetUp() override
-  {
-    TestNode::SetUp();
-    d_slvEngine.reset(new SolverEngine);
-  }
   TypeNode getTypeConcat(const Node& a, const Node& b)
   {
     NodeManager * nm = NodeManager::currentNM();
