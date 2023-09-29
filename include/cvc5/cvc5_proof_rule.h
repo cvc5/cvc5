@@ -905,8 +905,8 @@ enum ENUM(ProofRule) : uint32_t
    * **Boolean -- CNF -- Implies Positive**
    *
    * .. math::
-   *   \inferrule{- \mid F_1 \rightarrow F_2}{\neg(F_1 \rightarrow F_2) \lor
-   * \neg F_1 \lor F_2}
+   *   \inferrule{- \mid F_1 \rightarrow F_2}{\neg(F_1 \rightarrow F_2) \lor \neg F_1
+   *   \lor F_2}
    *
    * \endverbatim
    */
@@ -926,8 +926,7 @@ enum ENUM(ProofRule) : uint32_t
    * **Boolean -- CNF -- Implies Negative 2**
    *
    * .. math::
-   *   \inferrule{- \mid F_1 \rightarrow F_2}{(F_1 \rightarrow F_2) \lor \neg
-   * F_2}
+   *   \inferrule{- \mid F_1 \rightarrow F_2}{(F_1 \rightarrow F_2) \lor \neg F_2}
    *
    * \endverbatim
    */
@@ -1179,8 +1178,7 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{-\mid t}{t=
-   * \texttt{TheoryUfRewriter::getHoApplyForApplyUf}(t)}
+   *   \inferrule{-\mid t}{t= \texttt{TheoryUfRewriter::getHoApplyForApplyUf}(t)}
    *
    * For example, this rule concludes :math:`f(x,y) = @(@(f,x),y)`, where
    * :math:`@` isthe ``HO_APPLY`` kind.
@@ -1196,8 +1194,8 @@ enum ENUM(ProofRule) : uint32_t
    *   \inferrule{f=g, t_1=s_1,\dots,t_n=s_n\mid -}{f(t_1,\dots, t_n) =
    *   g(s_1,\dots, s_n)}
    *
-   * Notice that this rule is only used when the application kinds are
-   * ``APPLY_UF``. \endverbatim
+   * Notice that this rule is only used when the application kinds are ``APPLY_UF``.
+   * \endverbatim
    */
   EVALUE(HO_CONG),
   /**
@@ -1287,8 +1285,8 @@ enum ENUM(ProofRule) : uint32_t
    * where ``bitblast()`` represents the result of the bit-blasted term as a
    * bit-vector consisting of the output bits of the bit-blasted circuit
    * representation of the term. Terms are bit-blasted according to the
-   * strategies defined in
-   * ``theory/bv/bitblast/bitblast_strategies_template.h``. \endverbatim
+   * strategies defined in ``theory/bv/bitblast/bitblast_strategies_template.h``.
+   * \endverbatim
    */
   EVALUE(BV_BITBLAST),
   /**
@@ -1335,6 +1333,7 @@ enum ENUM(ProofRule) : uint32_t
   EVALUE(BV_SOLVE_EQ),
   EVALUE(BV_BITWISE_EQ),
   EVALUE(BV_BITWISE_SLICING),
+
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- Unification**
@@ -1384,11 +1383,10 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{-\mid
-   * t}{\mathit{is}_{C_1}(t)\vee\cdots\vee\mathit{is}_{C_n}(t)}
+   *   \inferrule{-\mid t}{\mathit{is}_{C_1}(t)\vee\cdots\vee\mathit{is}_{C_n}(t)}
    *
-   * where :math:`C_1,\dots,C_n` are all the constructors of the type of
-   * :math:`t`. \endverbatim
+   * where :math:`C_1,\dots,C_n` are all the constructors of the type of :math:`t`.
+   * \endverbatim
    */
   EVALUE(DT_SPLIT),
   /**
@@ -1447,10 +1445,11 @@ enum ENUM(ProofRule) : uint32_t
    *   {F\{x_1\mapsto t_1,\dots,x_n\mapsto t_n\}}
    *
    * The optional argument :math:`id` indicates the inference id that caused the
-   * instantiation. The term :math:`t` indicates an additional term (e.g. the
-   * trigger) associated with the instantiation, which depends on the id. If the
-   * id has prefix ``QUANTIFIERS_INST_E_MATCHING``, then :math:`t` is the
-   * trigger that generated the instantiation. \endverbatim
+   * instantiation. The term :math:`t` indicates an additional term (e.g. the trigger)
+   * associated with the instantiation, which depends on the id. If the id
+   * has prefix ``QUANTIFIERS_INST_E_MATCHING``, then :math:`t` is the trigger that
+   * generated the instantiation.
+   * \endverbatim
    */
   EVALUE(INSTANTIATE),
   /**
@@ -1572,8 +1571,7 @@ enum ENUM(ProofRule) : uint32_t
    *
    * where :math:`r_t` is
    * :math:`\mathit{skolem}(\mathit{suf}(t_1,\mathit{len}(s_1)))` and
-   * :math:`r_s` is
-   * :math:`\mathit{skolem}(\mathit{suf}(s_1,\mathit{len}(t_1)))`.
+   * :math:`r_s` is :math:`\mathit{skolem}(\mathit{suf}(s_1,\mathit{len}(t_1)))`.
    *
    * .. math::
    *
@@ -1777,8 +1775,7 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{t\not\in R\mid -}{\texttt{RegExpOpr::reduceRegExpNeg}(t\not\in
-   * R)}
+   *   \inferrule{t\not\in R\mid -}{\texttt{RegExpOpr::reduceRegExpNeg}(t\not\in R)}
    *
    * corresponding to the one-step unfolding of the premise.
    * \endverbatim
@@ -1821,8 +1818,9 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{-\mid t,s}{\mathit{to\_code}(t) = -1 \vee \mathit{to\_code}(t)
-   * \neq \mathit{to\_code}(s) \vee t\neq s} \endverbatim
+   *   \inferrule{-\mid t,s}{\mathit{to\_code}(t) = -1 \vee \mathit{to\_code}(t) \neq
+   *   \mathit{to\_code}(s) \vee t\neq s}
+   * \endverbatim
    */
   EVALUE(STRING_CODE_INJ),
   /**
@@ -1888,8 +1886,8 @@ enum ENUM(ProofRule) : uint32_t
    * where :math:`P_i` has the form :math:`L_i \diamond_i R_i` and
    * :math:`\diamond_i \in \{<, \leq, =\}`. Furthermore :math:`\diamond = <` if
    * :math:`\diamond_i = <` for any :math:`i` and :math:`\diamond = \leq`
-   * otherwise, :math:`L = L_1 + \cdots + L_n` and :math:`R = R_1 + \cdots +
-   * R_n`. \endverbatim
+   * otherwise, :math:`L = L_1 + \cdots + L_n` and :math:`R = R_1 + \cdots + R_n`.
+   * \endverbatim
    */
   EVALUE(ARITH_SUM_UB),
   /**
@@ -1921,9 +1919,9 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *   \inferrule{A, B \mid C}{C}
    *
-   * where :math:`\neg A, \neg B, C` are :math:`x < c, x = c, x > c` in some
-   * order. Note that :math:`\neg` here denotes arithmetic negation, i.e.,
-   * flipping :math:`\geq` to :math:`<` etc. \endverbatim
+   * where :math:`\neg A, \neg B, C` are :math:`x < c, x = c, x > c` in some order.
+   * Note that :math:`\neg` here denotes arithmetic negation, i.e., flipping :math:`\geq` to :math:`<` etc.
+   * \endverbatim
    */
   EVALUE(ARITH_TRICHOTOMY),
   /**
@@ -1952,8 +1950,7 @@ enum ENUM(ProofRule) : uint32_t
    * **Arithmetic -- Sign inference**
    *
    * .. math::
-   *   \inferrule{- \mid f_1 \dots f_k, m}{(f_1 \land \dots \land f_k)
-   * \rightarrow m \diamond 0}
+   *   \inferrule{- \mid f_1 \dots f_k, m}{(f_1 \land \dots \land f_k) \rightarrow m \diamond 0}
    *
    * where :math:`f_1 \dots f_k` are variables compared to zero (less, greater
    * or not equal), :math:`m` is a monomial from these variables and
@@ -1969,8 +1966,7 @@ enum ENUM(ProofRule) : uint32_t
    * **Arithmetic -- Multiplication with positive factor**
    *
    * .. math::
-   *   \inferrule{- \mid m, l \diamond r}{(m > 0 \land l \diamond r) \rightarrow
-   * m \cdot l \diamond m \cdot r}
+   *   \inferrule{- \mid m, l \diamond r}{(m > 0 \land l \diamond r) \rightarrow m \cdot l \diamond m \cdot r}
    *
    * where :math:`\diamond` is a relation symbol.
    * \endverbatim
@@ -1981,8 +1977,7 @@ enum ENUM(ProofRule) : uint32_t
    * **Arithmetic -- Multiplication with negative factor**
    *
    * .. math::
-   *   \inferrule{- \mid m, l \diamond r}{(m < 0 \land l \diamond r) \rightarrow
-   * m \cdot l \diamond_{inv} m \cdot r}
+   *   \inferrule{- \mid m, l \diamond r}{(m < 0 \land l \diamond r) \rightarrow m \cdot l \diamond_{inv} m \cdot r}
    *
    * where :math:`\diamond` is a relation symbol and :math:`\diamond_{inv}` the
    * inverted relation symbol.
@@ -1994,19 +1989,14 @@ enum ENUM(ProofRule) : uint32_t
    * **Arithmetic -- Multiplication tangent plane**
    *
    * .. math::
-   *   \inferruleSC{- \mid t, x, y, a, b, \sigma}{(t \leq tplane)
-   * \leftrightarrow ((x \leq a \land y \geq b) \lor (x \geq a \land y \leq
-   * b))}{if $\sigma = -1$}
+   *   \inferruleSC{- \mid t, x, y, a, b, \sigma}{(t \leq tplane) \leftrightarrow ((x \leq a \land y \geq b) \lor (x \geq a \land y \leq b))}{if $\sigma = -1$}
    *
-   *   \inferruleSC{- \mid t, x, y, a, b, \sigma}{(t \geq tplane)
-   * \leftrightarrow ((x \leq a \land y \leq b) \lor (x \geq a \land y \geq
-   * b))}{if $\sigma = 1$}
+   *   \inferruleSC{- \mid t, x, y, a, b, \sigma}{(t \geq tplane) \leftrightarrow ((x \leq a \land y \leq b) \lor (x \geq a \land y \geq b))}{if $\sigma = 1$}
    *
    * where :math:`x,y` are real terms (variables or extended terms),
    * :math:`t = x \cdot y` (possibly under rewriting), :math:`a,b` are real
-   * constants, :math:`\sigma \in \{ 1, -1\}` and :math:`tplane := b \cdot x + a
-   * \cdot y - a \cdot b` is the tangent plane of :math:`x \cdot y` at
-   * :math:`(a,b)`. \endverbatim
+   * constants, :math:`\sigma \in \{ 1, -1\}` and :math:`tplane := b \cdot x + a \cdot y - a \cdot b` is the tangent plane of :math:`x \cdot y` at :math:`(a,b)`.
+   * \endverbatim
    */
   EVALUE(ARITH_MULT_TANGENT),
 
@@ -2118,8 +2108,7 @@ enum ENUM(ProofRule) : uint32_t
    * **Arithmetic -- Transcendentals -- Exp is approximated from below**
    *
    * .. math::
-   *   \inferrule{- \mid d,c,t}{t \geq c \rightarrow exp(t) \geq
-   * \texttt{maclaurin}(\exp, d, c)}
+   *   \inferrule{- \mid d,c,t}{t \geq c \rightarrow exp(t) \geq \texttt{maclaurin}(\exp, d, c)}
    *
    * where :math:`d` is an odd positive number, :math:`t` an arithmetic term and
    * :math:`\texttt{maclaurin}(\exp, d, c)` is the :math:`d`'th taylor
@@ -2364,15 +2353,21 @@ enum ENUM(ProofRule) : uint32_t
    * \endverbatim
    */
   EVALUE(ALETHE_RULE),
-  //================================================ Place holder for Lean rules
-  // ======== Lean rule
-  // Children: (P1 ... Pn)
-  // Arguments: (id, Q, A1, ..., Am)
-  // ---------------------
-  // Conclusion: (Q)
-  // The id argument is a LeanRule, as defined in proof/lean/lean_rules.h
-  // This allows us to specify which rule in the Lean calculus the current rule
-  // corresponds to.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **External -- Lean**
+   *
+   * Place holder for Lean rules.
+   *
+   * .. math::
+   *   \inferrule{P_1, \dots, P_n\mid \texttt{id}, Q, Q', A_1,\dots, A_m}{Q}
+   *
+   * Note that the premises and arguments are arbitrary. It's expected that
+   * :math:`\texttt{id}` refer to a proof rule in the external Lean calculus,
+   * and that :math:`Q'` be the representation of Q to be printed by the Lean
+   * printer.
+   * \endverbatim
+   */
   EVALUE(LEAN_RULE),
 
   //================================================= Unknown rule

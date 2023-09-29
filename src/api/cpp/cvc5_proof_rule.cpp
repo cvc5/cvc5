@@ -140,6 +140,7 @@ const char* toString(ProofRule id)
     case ProofRule::SKOLEMIZE: return "SKOLEMIZE";
     case ProofRule::INSTANTIATE: return "INSTANTIATE";
     case ProofRule::ALPHA_EQUIV: return "ALPHA_EQUIV";
+    case ProofRule::EXISTS_ELIM: return "EXISTS_ELIM";
     case ProofRule::QUANTIFIERS_PREPROCESS: return "QUANTIFIERS_PREPROCESS";
     //================================================= String rules
     case ProofRule::CONCAT_EQ: return "CONCAT_EQ";
