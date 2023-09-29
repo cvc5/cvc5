@@ -540,7 +540,8 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
       {
         lits.insert(lits.begin(), toCadicalLit(alit));
       }
-      // Buffer clause
+      // Do not immediately add clauses added during search. We have to buffer
+      // them and add them during the cb_add_reason_clause_lit callback.
       if (d_in_search)
       {
         d_new_clauses.insert(d_new_clauses.end(), lits.begin(), lits.end());
