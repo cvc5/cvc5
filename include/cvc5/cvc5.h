@@ -4476,7 +4476,7 @@ class CVC5_EXPORT Solver
    * Otherwise, the result is sat, indicating that the given assumptions plus
    * the current assertions are satisfiable, and the list of formulas is empty.
    */
-  std::pair<Result, std::vector<Term>> getTimeoutCore(
+  std::pair<Result, std::vector<Term>> getTimeoutCoreAssuming(
       const std::vector<Term>& assumptions) const;
   /**
    * Get a proof associated with the most recent call to checkSat.

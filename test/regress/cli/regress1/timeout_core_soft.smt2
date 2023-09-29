@@ -14,7 +14,7 @@
 (assert (=> (or A B) (= (* x x x) 564838384999)))
 (assert (=> D (> x 0)))
 ; making A true forces the equality to be asserted, making the problem hard
-(get-timeout-core
+(get-timeout-core-assuming
  (
     (! (not B) :named tc-B)
     (! C :named tc-C)

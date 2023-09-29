@@ -2551,7 +2551,7 @@ cdef class Solver:
         r.cr = res.first
         return (r, core)
 
-    def getTimeoutCore(self, *assumptions):
+    def getTimeoutCoreAssuming(self, *assumptions):
         """
             Get a timeout core, which computes a subset of the given assumptions
             that cause a timeout when added to the current assertions. Note it
@@ -2584,7 +2584,7 @@ cdef class Solver:
         for a in assumptions:
             v.push_back((<Term?> a).cterm)
         cdef pair[c_Result, vector[c_Term]] res
-        res = self.csolver.getTimeoutCore(v)
+        res = self.csolver.getTimeoutCoreAssuming(v)
         core = []
         for a in res.second:
             term = Term(self)

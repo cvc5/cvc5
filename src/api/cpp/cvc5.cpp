@@ -7129,7 +7129,7 @@ std::pair<Result, std::vector<Term>> Solver::getTimeoutCore() const
   CVC5_API_TRY_CATCH_END;
 }
 
-std::pair<Result, std::vector<Term>> Solver::getTimeoutCore(
+std::pair<Result, std::vector<Term>> Solver::getTimeoutCoreAssuming(
     const std::vector<Term>& assumptions) const
 {
   CVC5_API_TRY_CATCH_BEGIN;

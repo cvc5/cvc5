@@ -2128,6 +2128,18 @@ TEST_F(TestApiBlackSolver, getTimeoutCore)
   ASSERT_EQ(res.second[0], ff);
 }
 
+TEST_F(TestApiBlackSolver, getTimeoutCoreAssuming)
+{
+  d_solver.setOption("produce-unsat-cores", "true");
+  Term ff = d_solver.mkBoolean(false);
+  Term tt = d_solver.mkBoolean(true);
+  d_solver.assertFormula(tt);
+  std::pair<cvc5::Result, std::vector<Term>> res = d_solver.getTimeoutCoreAssuming({ff, tt});
+  ASSERT_TRUE(res.first.isUnsat());
+  ASSERT_TRUE(res.second.size() == 1);
+  ASSERT_EQ(res.second[0], ff);
+}
+
 TEST_F(TestApiBlackSolver, getValue1)
 {
   d_solver.setOption("produce-models", "false");

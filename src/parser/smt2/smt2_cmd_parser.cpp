@@ -52,6 +52,7 @@ Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex,
   d_table["get-option"] = Token::GET_OPTION_TOK;
   d_table["get-proof"] = Token::GET_PROOF_TOK;
   d_table["get-timeout-core"] = Token::GET_TIMEOUT_CORE_TOK;
+  d_table["get-timeout-core-assuming"] = Token::GET_TIMEOUT_CORE_ASSUMING_TOK;
   d_table["get-unsat-assumptions"] = Token::GET_UNSAT_ASSUMPTIONS_TOK;
   d_table["get-unsat-core"] = Token::GET_UNSAT_CORE_TOK;
   d_table["get-unsat-core-lemmas"] = Token::GET_UNSAT_CORE_LEMMAS_TOK;
@@ -673,33 +674,31 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
     case Token::GET_TIMEOUT_CORE_TOK:
     {
       d_state.checkThatLogicIsSet();
+      cmd.reset(new GetTimeoutCoreCommand);
+    }
+    break;
+    case Token::GET_TIMEOUT_CORE_ASSUMING_TOK:
+    {
+      d_state.checkThatLogicIsSet();
       // read optional soft constraints
+      d_lex.eatToken(Token::LPAREN_TOK);
+      std::vector<Term> assumptions;
       tok = d_lex.peekToken();
-      std::vector<Term> softConstraints;
-      if (tok == Token::LPAREN_TOK)
+      while (tok != Token::RPAREN_TOK)
       {
-        d_lex.nextToken();
-        tok = d_lex.peekToken();
-        while (tok != Token::RPAREN_TOK)
+        d_state.clearLastNamedTerm();
+        Term t = d_tparser.parseTerm();
+        std::pair<Term, std::string> namedTerm = d_state.lastNamedTerm();
+        if (namedTerm.first == t)
         {
-          d_state.clearLastNamedTerm();
-          Term t = d_tparser.parseTerm();
-          std::pair<Term, std::string> namedTerm = d_state.lastNamedTerm();
-          if (namedTerm.first == t)
-          {
-            d_state.getSymbolManager()->setExpressionName(
-                namedTerm.first, namedTerm.second, true);
-          }
-          softConstraints.push_back(t);
-          tok = d_lex.peekToken();
+          d_state.getSymbolManager()->setExpressionName(
+              namedTerm.first, namedTerm.second, true);
         }
-        d_lex.nextToken();
-        cmd.reset(new GetTimeoutCoreCommand(softConstraints));
+        assumptions.push_back(t);
+        tok = d_lex.peekToken();
       }
-      else
-      {
-        cmd.reset(new GetTimeoutCoreCommand);
-      }
+      d_lex.nextToken();
+      cmd.reset(new GetTimeoutCoreCommand(assumptions));
     }
     break;
     // (get-unsat-assumptions)

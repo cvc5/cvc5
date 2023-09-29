@@ -2163,7 +2163,7 @@ void GetTimeoutCoreCommand::invoke(cvc5::Solver* solver, SymManager* sm)
     d_solver = solver;
     if (d_hasAssumptions)
     {
-      d_result = solver->getTimeoutCore(d_assumptions);
+      d_result = solver->getTimeoutCoreAssuming(d_assumptions);
     }
     else
     {

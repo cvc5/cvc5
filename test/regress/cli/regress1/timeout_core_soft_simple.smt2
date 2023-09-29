@@ -7,14 +7,14 @@
 ; EXPECT: )
 (set-logic ALL)
 (set-option :produce-unsat-cores true)
-(get-timeout-core
+(get-timeout-core-assuming
  (
  true
  )
 )
 (declare-const A Bool)
 (assert A)
-(get-timeout-core
+(get-timeout-core-assuming
  (
  (not A)
  )

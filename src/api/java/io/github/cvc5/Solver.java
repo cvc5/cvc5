@@ -2141,17 +2141,17 @@ public class Solver implements IPointer
    * This method may make multiple checks for satisfiability internally, each
    * limited by the timeout value given by {@code timeout-core-timeout}.
    */
-  public Pair<Result, Term[]> getTimeoutCore(Term[] assumptions)
+  public Pair<Result, Term[]> getTimeoutCoreAssuming(Term[] assumptions)
   {
     long[] pointers = Utils.getPointers(assumptions);
-    Pair<Long, long[]> pair = getTimeoutCore(pointer, pointers);
+    Pair<Long, long[]> pair = getTimeoutCoreAssuming(pointer, pointers);
     Result result = new Result(pair.first);
     Term[] terms = Utils.getTerms(pair.second);
     Pair<Result, Term[]> ret = new Pair<>(result, terms);
     return ret;
   }
 
-  private native Pair<Long, long[]> getTimeoutCore(long pointer, long[] assumptionPointers);
+  private native Pair<Long, long[]> getTimeoutCoreAssuming(long pointer, long[] assumptionPointers);
 
   /**
    * Get refutation proof for the most recent call to checkSat.
