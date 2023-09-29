@@ -601,31 +601,13 @@
   (bv 0 (+ 1 (- high low))))
 
 ; (a udiv 2^k) ==> 0_k a[n-1: k]
-(define-cond-rule bv-udiv-pow2-1p
+(define-cond-rule bv-udiv-pow2-not-one
   ((x ?BitVec) (v Int) (n Int))
   (def (power (int.log2 v)))
   (and (int.ispow2 v) (> v 1))
   (bvudiv x (bv v n))
   (concat (bv 0 power) (extract (- n 1) power x)))
 
-; Removed because these rules cannot be ever used - `UdivPow2` mandates that the divisor is positive.
-;(define-cond-rule bv-udiv-pow2-1n
-;  ((x ?BitVec) (v Int) (n Int))
-;  (def (power (int.log2 (- v))))
-;  (and (int.ispow2 (- v)) (< v (- 1)))
-;  (bvudiv x (bv v n))
-;  (bvneg (concat (bv 0 power) (extract (- n 1) power x))))
-(define-cond-rule bv-udiv-pow2-2p
-  ((x ?BitVec) (v Int) (n Int))
-  (= v 1)
-  (bvudiv x (bv v n))
-  x)
-;(define-cond-rule bv-udiv-pow2-2n
-;  ((x ?BitVec) (v Int) (n Int))
-;  (= v (- 1))
-;  (bvudiv x (bv v n))
-;  (bvneg x))
-; (x udiv 0) = 111...1
 (define-rule bv-udiv-zero
   ((x ?BitVec) (n Int))
   (bvudiv x (bv 0 n))
@@ -636,31 +618,17 @@
   x)
 ; (x urem 2^k) = 0_(n-k) x[k-1:0]
 ; The original version had power - 1, but I thought about it and it doesn't make sense to me, so I didn't put the -1 here.
-(define-cond-rule bv-urem-pow2-1
+(define-cond-rule bv-urem-pow2-not-one
   ((x ?BitVec) (v Int) (n Int))
   (def (power (int.log2 v)))
   (and (int.ispow2 v) (> v 1))
   (bvurem x (bv v n))
   (concat (bv 0 (- n power)) (extract (- power 1) 0 x)))
 
-; Same as udiv-pow2, the negative case is redundant.
-;(define-cond-rule bv-urem-pow2-2
-;  ((x ?BitVec) (v Int) (n Int))
-;  (def (power (int.log2 (- v))))
-;  (and (int.ispow2 (- v)) (< v (- 1)))
-;  (bvurem x (bv v n))
-;  (concat (bv 0 (- n power)) (extract (- power 1) 0 x)))
-; (x urem 1) = 0
-(define-rule bv-urem-one-1
+(define-rule bv-urem-one
   ((x ?BitVec) (n Int))
   (bvurem x (bv 1 n))
   (bv 0 n))
-;(define-cond-rule bv-urem-one-2
-;  ((x ?BitVec) (v Int) (n Int))
-;  (= v (- 1))
-;  (bvurem x (bv v n))
-;  (bv 0 n))
-; (x urem x) = 0
 (define-rule bv-urem-self
   ((x ?BitVec))
   (bvurem x x)
