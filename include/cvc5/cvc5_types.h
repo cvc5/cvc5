@@ -504,7 +504,7 @@ typedef enum ENUM(InputLanguage) ENUM(InputLanguage);
 
 #ifdef CVC5_API_USE_C_ENUMS
 /**
- * Get a string representation of a Cvc5UnknownExplanation.
+ * Get a string representation of a Cvc5InputLanguage.
  * @param lang The input language.
  * @return The string representation.
  */

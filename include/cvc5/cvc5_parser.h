@@ -128,7 +128,7 @@ class CVC5_EXPORT Command
   std::string getCommandName() const;
 
   /**
-   * @return Whether this command is null.
+   * @return True if this command is null.
    */
   bool isNull() const;
 
@@ -191,11 +191,11 @@ class CVC5_EXPORT InputParser
   InputParser(Solver* solver);
 
   /**
-   * @return the underlying solver of this input parser
+   * @return The underlying solver of this input parser
    */
   Solver* getSolver();
   /**
-   * @return the underlying symbol manager of this input parser
+   * @return The underlying symbol manager of this input parser
    */
   SymbolManager* getSymbolManager();
   /** Set the input for the given file.
