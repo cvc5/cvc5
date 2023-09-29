@@ -1326,15 +1326,15 @@ enum ENUM(ProofRule) : uint32_t
    */
   EVALUE(BV_EAGER_ATOM),
 
-  BV_UMULO_ELIMINATE,
-  BV_SMULO_ELIMINATE,
-  BV_FLATTEN_ASSOC_COMMUTE,
-  BV_FLATTEN_ASSOC_COMMUTE_NO_DUPLICATES,
-  BV_ADD_COMBINE_LIKE_TERMS,
-  BV_MULT_SIMPLIFY,
-  BV_SOLVE_EQ,
-  BV_BITWISE_EQ,
-  BV_BITWISE_SLICING,
+  EVALUE(BV_UMULO_ELIMINATE),
+  EVALUE(BV_SMULO_ELIMINATE),
+  EVALUE(BV_FLATTEN_ASSOC_COMMUTE),
+  EVALUE(BV_FLATTEN_ASSOC_COMMUTE_NO_DUPLICATES),
+  EVALUE(BV_ADD_COMBINE_LIKE_TERMS),
+  EVALUE(BV_MULT_SIMPLIFY),
+  EVALUE(BV_SOLVE_EQ),
+  EVALUE(BV_BITWISE_EQ),
+  EVALUE(BV_BITWISE_SLICING),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- Unification**
@@ -1481,7 +1481,7 @@ enum ENUM(ProofRule) : uint32_t
    *
    * \endverbatim
    */
-  EXISTS_ELIM,
+  EVALUE(EXISTS_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- (Trusted) quantifiers preprocessing**
