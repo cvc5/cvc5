@@ -66,11 +66,6 @@ TypeNode StringConcatTypeRule::computeType(NodeManager* nodeManager,
     if (tret.isNull())
     {
       tret = t;
-      // optimization: break if string and not checking
-      if (!check && t.isString())
-      {
-        break;
-      }
       continue;
     }
     tret = tret.leastUpperBound(t);
