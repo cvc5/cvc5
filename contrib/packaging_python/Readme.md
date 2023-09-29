@@ -31,7 +31,7 @@ extended version of `manylinux2014` (see `manylinux2014/Dockerfile`), runs the `
 The `mk_clean_wheel.sh`:
 
 1. prepares the environment by creating and activating a proper python venv and installing some packages;
-2. configures cvc5 appropriately using the `mk_build_dir.py` script, which makes sure that the venv python version is used;
+2. configures cvc5 making sure that the venv python version is used;
 3. builds cvc5 and the python extension via the `mk_wheel.py` script;
 4. postprocesses the wheel (with `auditwheel`) and moves it out of the build folder.
 

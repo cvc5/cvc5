@@ -17,19 +17,14 @@
 #   contrib/packaging_python/mk_clean_wheel.sh /usr/bin/python3 "--cadical"
 #
 # The script first sets up a python venv with the given interpreter and installs
-# some requirements in this venv. It then uses the mk_build_dir.py script to
-# prepare a fresh build folder build_wheel/ and builds the wheel in there using
-# mk_wheel.py. The wheel is fixes (using auditwheel or delocate-wheel) and
-# copied out of the build folder.
+# some requirements in this venv. It then prepares a fresh build folder 
+# build_wheel/ and builds the wheel in there using mk_wheel.py. The wheel is 
+# fixes (using auditwheel or delocate-wheel) and copied out of the build folder.
 ##
 
 PYTHONBIN=$1
 CONFIG="$2"
 PYVERSION=$($PYTHONBIN -c "import sys; print(sys.implementation.name + sys.version.split()[0])")
-
-# This is needed because of scikit, otherwise it will include files from another
-# python version installed in the system. 
-PYINCLUDE=$($PYTHONBIN -c "import sysconfig; print(sysconfig.get_paths()['include'])")
 
 # setup and activate venv
 echo "Making venv with $PYTHONBIN"
@@ -49,10 +44,7 @@ fi
 echo "Configuring"
 rm -rf build_wheel/
 
-# This new command like is supposed to ensure that we use the python 
-# version from the virtual environment that is activated. 
-# Once we remove scikit, this will not be necessary.
-./configure.sh $CONFIG --python-bindings --name=build_wheel -DPython_FIND_VIRTUALENV=ONLY -DPYTHON_LIBRARY=$VIRTUAL_ENV/lib -DPYTHON_INCLUDE_DIR=$PYINCLUDE
+./configure.sh $CONFIG --python-bindings --name=build_wheel -DPython_FIND_VIRTUALENV=ONLY
 
 # building wheel
 echo "Building pycvc5 wheel"
