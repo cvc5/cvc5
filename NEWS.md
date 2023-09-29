@@ -7,6 +7,10 @@ This file contains a summary of important user-visible changes.
   MiniSat is still default. Note that CaDiCaL cannot be used as the CDCL(T) SAT
   engine when proof production is enabled. In that case, option `--sat-solver`
   will default back to MiniSat.
+- Added a variant of timeout cores that accepts a set of assumptions. This is
+  available via the API method `Solver::getTimeoutCoreAssuming` or the SMT-LIB
+  command `get-timeout-core-assuming`, which accept a list of formulas to
+  assume, while all current assertions are implicitly included in the core.
 
 cvc5 1.0.9
 ==========
