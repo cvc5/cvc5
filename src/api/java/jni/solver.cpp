@@ -2129,7 +2129,7 @@ Java_io_github_cvc5_Solver_getTimeoutCore(JNIEnv* env, jobject, jlong pointer)
  * Method:    getTimeoutCoreAssuming
  * Signature: (J[J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getTimeoutCoreAssuming(
+JNIEXPORT jobject JNICALL Java_io_github_cvc5_Solver_getTimeoutCoreAssuming(
     JNIEnv* env, jobject, jlong pointer, jlongArray assumptions)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
