@@ -591,10 +591,11 @@
   )
   (def
     (n (+ x1in (bvsize x2)))
-    (x0n (ite (= x1i 0) x1in (- x1in (int.log2 x1i))))
-    (y0n (ite (= y1i 0) y1in (- y1in (int.log2 y1i))))
+    ; length(n) = log2(n) + 1, so we subtract 1 to compensate
+    (x0n (ite (= x1i 0) x1in (- x1in 1 (int.log2 x1i))))
+    (y0n (ite (= y1i 0) y1in (- y1in 1 (int.log2 y1i))))
   )
-  (and (> n 64) (> (- (* 2 n) (+ x0n y0n)) low))
+  (and (> n 64) (<= (- (* 2 n) (+ x0n y0n)) low))
   (extract high low (bvmul
     (concat (bv x1i x1in) x2)
     (concat (bv y1i y1in) y2)))
