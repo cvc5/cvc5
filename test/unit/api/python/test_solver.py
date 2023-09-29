@@ -1537,7 +1537,7 @@ def test_get_timeout_core_assuming(solver):
   ff = solver.mkBoolean(False)
   tt = solver.mkBoolean(True)
   solver.assertFormula(tt)
-  res = solver.getTimeoutCoreAssuming([ff, tt])
+  res = solver.getTimeoutCoreAssuming(ff, tt)
   assert res[0].isUnsat()
   assert len(res[1]) == 1
   assert res[1][0] == ff
