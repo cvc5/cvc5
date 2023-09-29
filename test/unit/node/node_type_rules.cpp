@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 
+#include "test_node.h"
 #include "util/rational.h"
 #include "expr/type_node.h"
 #include "expr/node_manager.h"
