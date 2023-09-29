@@ -67,7 +67,7 @@ Node SatProofManager::getClauseNode(const Minisat::Clause& clause)
   }
   // order children by node id
   std::sort(clauseNodes.begin(), clauseNodes.end());
-  return NodeManager::currentNM()->mkNode(kind::OR, clauseNodes);
+  return NodeManager::currentNM()->mkNode(Kind::OR, clauseNodes);
 }
 
 void SatProofManager::startResChain(const Minisat::Clause& start)
@@ -86,7 +86,7 @@ void SatProofManager::addResolutionStep(Minisat::Lit lit, bool redundant)
   SatLiteral satLit = MinisatSatSolver::toSatLiteral(lit);
   Node litNode = d_cnfStream->getNodeCache()[satLit];
   bool negated = satLit.isNegated();
-  Assert(!negated || litNode.getKind() == kind::NOT);
+  Assert(!negated || litNode.getKind() == Kind::NOT);
   if (!redundant)
   {
     Trace("sat-proof") << "SatProofManager::addResolutionStep: {"
@@ -113,7 +113,7 @@ void SatProofManager::addResolutionStep(const Minisat::Clause& clause,
   SatLiteral satLit = MinisatSatSolver::toSatLiteral(lit);
   Node litNode = d_cnfStream->getNodeCache()[satLit];
   bool negated = satLit.isNegated();
-  Assert(!negated || litNode.getKind() == kind::NOT);
+  Assert(!negated || litNode.getKind() == Kind::NOT);
   Node clauseNode = getClauseNode(clause);
   // if lit is negative then the chain resolution construction will use it as a
   // pivot occurring as is in the second clause and the node under the
@@ -199,8 +199,8 @@ void SatProofManager::endResChain(Node conclusion,
     // special case for clause (or l1 ... ln) being a single literal
     // corresponding itself to a clause, which is indicated by the pivot being
     // of the form (not (or l1 ... ln))
-    if (clause.getKind() == kind::OR
-        && !(pivot.getKind() == kind::NOT && pivot[0].getKind() == kind::OR
+    if (clause.getKind() == Kind::OR
+        && !(pivot.getKind() == Kind::NOT && pivot[0].getKind() == Kind::OR
              && pivot[0] == clause))
     {
       for (unsigned j = 0, sizeJ = clause.getNumChildren(); j < sizeJ; ++j)
@@ -296,7 +296,7 @@ void SatProofManager::processRedundantLit(
     visited.insert(lit);
     Node litNode = d_cnfStream->getNodeCache()[lit];
     bool negated = lit.isNegated();
-    Assert(!negated || litNode.getKind() == kind::NOT);
+    Assert(!negated || litNode.getKind() == Kind::NOT);
 
     d_resLinks.emplace(d_resLinks.begin() + pos,
                        d_cnfStream->getNodeCache()[~lit],
@@ -344,7 +344,7 @@ void SatProofManager::processRedundantLit(
   // the explanation of its negation
   Node litNode = d_cnfStream->getNodeCache()[lit];
   bool negated = lit.isNegated();
-  Assert(!negated || litNode.getKind() == kind::NOT);
+  Assert(!negated || litNode.getKind() == Kind::NOT);
   d_resLinks.emplace(d_resLinks.begin() + pos,
                      clauseNode,
                      negated ? litNode[0] : litNode,
@@ -440,7 +440,7 @@ void SatProofManager::explainLit(SatLiteral lit,
     children.push_back(d_cnfStream->getNodeCache()[~currLit]);
     Node currLitNode = d_cnfStream->getNodeCache()[currLit];
     bool negated = currLit.isNegated();
-    Assert(!negated || currLitNode.getKind() == kind::NOT);
+    Assert(!negated || currLitNode.getKind() == Kind::NOT);
     // note this is the opposite of what is done in addResolutionStep. This is
     // because here the clause, which contains the literal being analyzed, is
     // the first clause rather than the second
@@ -524,7 +524,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
       else
       {
         Trace("sat-proof-debug2") << "SatProofManager::finalizeProof:";
-        Assert(link.first.getKind() == kind::OR) << link.first;
+        Assert(link.first.getKind() == Kind::OR) << link.first;
         for (const Node& n : link.first)
         {
           it = d_cnfStream->getTranslationCache().find(n);
@@ -564,7 +564,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
           continue;
         }
         // then it's a clause
-        Assert(fa.getKind() == kind::OR);
+        Assert(fa.getKind() == Kind::OR);
         for (const Node& n : fa)
         {
           it = d_cnfStream->getTranslationCache().find(n);
@@ -598,7 +598,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
     children.push_back(negatedLitNode);
     Node litNode = d_cnfStream->getNodeCache()[inConflict[i]];
     bool negated = inConflict[i].isNegated();
-    Assert(!negated || litNode.getKind() == kind::NOT);
+    Assert(!negated || litNode.getKind() == Kind::NOT);
     // note this is the opposite of what is done in addResolutionStep. This is
     // because here the clause, which contains the literal being analyzed, is
     // the first clause rather than the second
@@ -654,7 +654,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
         }
         // then it's a clause
         std::stringstream ss;
-        Assert(fa.getKind() == kind::OR);
+        Assert(fa.getKind() == Kind::OR);
         for (const Node& n : fa)
         {
           it = d_cnfStream->getTranslationCache().find(n);

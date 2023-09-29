@@ -168,7 +168,7 @@ void RelevantDomain::compute(){
           Trace("rel-dom") << "Dom( " << d.first << ", " << dd.first << " ) ";
         }
         Trace("rel-dom") << std::endl;
-        if (d.first.getKind() == FORALL)
+        if (d.first.getKind() == Kind::FORALL)
         {
           TypeNode expectedType = d.first[0][dd.first].getType();
           for (Node& t : r->d_terms)
@@ -180,7 +180,7 @@ void RelevantDomain::compute(){
               // correct this here.
               if (tt.isInteger() && expectedType.isReal())
               {
-                t = nm->mkNode(TO_REAL, t);
+                t = nm->mkNode(Kind::TO_REAL, t);
               }
               else
               {
@@ -197,7 +197,7 @@ void RelevantDomain::compute(){
 
 void RelevantDomain::computeRelevantDomain(Node q)
 {
-  Assert(q.getKind() == FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   Node n = d_qreg.getInstConstantBody(q);
   // we care about polarity in the traversal, so we use a polarity term context
   PolarityTermContext tc;
@@ -251,17 +251,23 @@ void RelevantDomain::computeRelevantDomainNode(Node q,
     for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
     {
       RDomain * rf = getRDomain( op, i );
-      if( n[i].getKind()==ITE ){
+      if (n[i].getKind() == Kind::ITE)
+      {
         for( unsigned j=1; j<=2; j++ ){
           computeRelevantDomainOpCh( rf, n[i][j] );
         }
-      }else{
+      }
+      else
+      {
         computeRelevantDomainOpCh( rf, n[i] );
       }
     }
   }
 
-  if( ( ( n.getKind()==EQUAL && !n[0].getType().isBoolean() ) || n.getKind()==GEQ ) && TermUtil::hasInstConstAttr( n ) ){
+  if (((n.getKind() == Kind::EQUAL && !n[0].getType().isBoolean())
+       || n.getKind() == Kind::GEQ)
+      && TermUtil::hasInstConstAttr(n))
+  {
     //compute the information for what this literal does
     computeRelevantDomainLit( q, hasPol, pol, n );
     RDomainLit& rdl = d_rel_dom_lit[hasPol][pol][n];
@@ -290,7 +296,8 @@ void RelevantDomain::computeRelevantDomainNode(Node q,
 }
 
 void RelevantDomain::computeRelevantDomainOpCh( RDomain * rf, Node n ) {
-  if( n.getKind()==INST_CONSTANT ){
+  if (n.getKind() == Kind::INST_CONSTANT)
+  {
     Node q = TermUtil::getInstConstAttr(n);
     //merge the RDomains
     size_t id = n.getAttribute(InstVarNumAttribute());
@@ -302,7 +309,9 @@ void RelevantDomain::computeRelevantDomainOpCh( RDomain * rf, Node n ) {
     if( rf!=rq ){
       rq->merge( rf );
     }
-  }else if( !TermUtil::hasInstConstAttr( n ) ){
+  }
+  else if (!TermUtil::hasInstConstAttr(n))
+  {
     Trace("rel-dom-debug") << "...add ground term to rel dom " << n << std::endl;
     //term to add
     rf->addTerm( n );
@@ -322,7 +331,7 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
   Assert(n.getNumChildren() == 2);
   for (size_t i = 0; i < 2; i++)
   {
-    if (n[i].getKind() == INST_CONSTANT)
+    if (n[i].getKind() == Kind::INST_CONSTANT)
     {
       // must get the quantified formula this belongs to, which may be
       // different from q
@@ -365,7 +374,7 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
       bool hasNonVar = false;
       for (std::pair<const Node, Node>& m : msum)
       {
-        if (!m.first.isNull() && m.first.getKind() == INST_CONSTANT
+        if (!m.first.isNull() && m.first.getKind() == Kind::INST_CONSTANT
             && TermUtil::getInstConstAttr(m.first) == q)
         {
           if (var.isNull())
@@ -451,19 +460,19 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
     // the positive occurence adds other terms
     if ((!hasPol || pol) && n[0].getType().isInteger())
     {
-      if (n.getKind() == EQUAL)
+      if (n.getKind() == Kind::EQUAL)
       {
         for (size_t i = 0; i < 2; i++)
         {
-          Node roff =
-              nm->mkNode(ADD, rAdd, nm->mkConstInt(Rational(i == 0 ? 1 : -1)));
+          Node roff = nm->mkNode(
+              Kind::ADD, rAdd, nm->mkConstInt(Rational(i == 0 ? 1 : -1)));
           rdl.d_val.push_back(roff);
         }
       }
-      else if (n.getKind() == GEQ)
+      else if (n.getKind() == Kind::GEQ)
       {
-        Node roff =
-            nm->mkNode(ADD, rAdd, nm->mkConstInt(Rational(varLhs ? 1 : -1)));
+        Node roff = nm->mkNode(
+            Kind::ADD, rAdd, nm->mkConstInt(Rational(varLhs ? 1 : -1)));
         rdl.d_val.push_back(roff);
       }
     }

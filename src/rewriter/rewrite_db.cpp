@@ -58,7 +58,7 @@ void RewriteDb::addRule(DslProofRule id,
   Node eq = a.eqNode(b);
   // we canonize left-to-right, hence we should traverse in the opposite
   // order, since we index based on conclusion, we make a dummy node here
-  Node tmp = nm->mkNode(IMPLIES, eq, cond);
+  Node tmp = nm->mkNode(Kind::IMPLIES, eq, cond);
 
   // must canonize
   Trace("rewrite-db") << "Add rule " << id << ": " << cond << " => " << a
@@ -69,12 +69,12 @@ void RewriteDb::addRule(DslProofRule id,
 
   Node condC = cr[1];
   std::vector<Node> conds;
-  if (condC.getKind() == AND)
+  if (condC.getKind() == Kind::AND)
   {
     for (const Node& c : condC)
     {
       // should flatten in proof inference listing
-      Assert(c.getKind() != AND);
+      Assert(c.getKind() != Kind::AND);
       conds.push_back(c);
     }
   }
@@ -91,11 +91,11 @@ void RewriteDb::addRule(DslProofRule id,
   // this means (not p) becomes (= p false), p becomes (= p true)
   for (size_t i = 0, nconds = conds.size(); i < nconds; i++)
   {
-    if (conds[i].getKind() == NOT)
+    if (conds[i].getKind() == Kind::NOT)
     {
       conds[i] = conds[i][0].eqNode(d_false);
     }
-    else if (conds[i].getKind() != EQUAL)
+    else if (conds[i].getKind() != Kind::EQUAL)
     {
       conds[i] = conds[i].eqNode(d_true);
     }
@@ -103,7 +103,7 @@ void RewriteDb::addRule(DslProofRule id,
   // register side conditions?
 
   Node eqC = cr[0];
-  Assert(eqC.getKind() == EQUAL);
+  Assert(eqC.getKind() == Kind::EQUAL);
 
   // add to discrimination tree
   Trace("proof-db-debug") << "Add (canonical) rule " << eqC << std::endl;

@@ -76,8 +76,8 @@ ConstraintRule::ConstraintRule(ConstraintP con,
 ConstraintType Constraint::constraintTypeOfComparison(const Comparison& cmp){
   Kind k = cmp.comparisonKind();
   switch(k){
-  case LT:
-  case LEQ:
+    case Kind::LT:
+    case Kind::LEQ:
     {
       Polynomial l = cmp.getLeft();
       if(l.leadingCoefficientIsPositive()){ // (< x c)
@@ -86,8 +86,8 @@ ConstraintType Constraint::constraintTypeOfComparison(const Comparison& cmp){
         return LowerBound; // (< (-x) c)
       }
     }
-  case GT:
-  case GEQ:
+    case Kind::GT:
+    case Kind::GEQ:
     {
       Polynomial l = cmp.getLeft();
       if(l.leadingCoefficientIsPositive()){
@@ -96,11 +96,9 @@ ConstraintType Constraint::constraintTypeOfComparison(const Comparison& cmp){
         return UpperBound; // (> (-x) c)
       }
     }
-  case EQUAL:
-    return Equality;
-  case DISTINCT:
-    return Disequality;
-  default: Unhandled() << k;
+    case Kind::EQUAL: return Equality;
+    case Kind::DISTINCT: return Disequality;
+    default: Unhandled() << k;
   }
 }
 
@@ -516,7 +514,7 @@ bool Constraint::isInternalAssumption() const {
 
 TrustNode Constraint::externalExplainByAssertions() const
 {
-  NodeBuilder nb(kind::AND);
+  NodeBuilder nb(Kind::AND);
   auto pfFromAssumptions = externalExplain(nb, AssertionOrderSentinel);
   Node exp = mkAndFromBuilder(nb);
   if (d_database->isProofEnabled())
@@ -656,12 +654,14 @@ bool Constraint::sanityChecking(Node n) const {
   Comparison cmp = Comparison::parseNormalForm(n);
   Kind k = cmp.comparisonKind();
   Polynomial pleft = cmp.normalizedVariablePart();
-  Assert(k == EQUAL || k == DISTINCT || pleft.leadingCoefficientIsPositive());
-  Assert(k != EQUAL
-         || Monomial::isMember(n[0].getKind() == TO_REAL ? n[0][0] : n[0]));
-  Assert(k != DISTINCT
-         || Monomial::isMember(n[0][0].getKind() == TO_REAL ? n[0][0][0]
-                                                            : n[0][0]));
+  Assert(k == Kind::EQUAL || k == Kind::DISTINCT
+         || pleft.leadingCoefficientIsPositive());
+  Assert(
+      k != Kind::EQUAL
+      || Monomial::isMember(n[0].getKind() == Kind::TO_REAL ? n[0][0] : n[0]));
+  Assert(k != Kind::DISTINCT
+         || Monomial::isMember(n[0][0].getKind() == Kind::TO_REAL ? n[0][0][0]
+                                                                  : n[0][0]));
 
   TNode left = pleft.getNode();
   DeltaRational right = cmp.normalizedDeltaRational();
@@ -686,11 +686,9 @@ bool Constraint::sanityChecking(Node n) const {
     case LowerBound:
     case UpperBound:
       //Be overapproximate
-      return k == GT || k == GEQ ||k == LT || k == LEQ;
-    case Equality:
-      return k == EQUAL;
-    case Disequality:
-      return k == DISTINCT;
+      return k == Kind::GT || k == Kind::GEQ || k == Kind::LT || k == Kind::LEQ;
+    case Equality: return k == Kind::EQUAL;
+    case Disequality: return k == Kind::DISTINCT;
     default:
       Unreachable();
     }
@@ -1103,16 +1101,16 @@ TrustNode Constraint::split()
   ConstraintP diseq = isEq ? d_negation : this;
 
   TNode eqNode = eq->getLiteral();
-  Assert(eqNode.getKind() == kind::EQUAL);
+  Assert(eqNode.getKind() == Kind::EQUAL);
   TNode lhs = eqNode[0];
   TNode rhs = eqNode[1];
 
-  Node leqNode = NodeBuilder(kind::LEQ) << lhs << rhs;
-  Node ltNode = NodeBuilder(kind::LT) << lhs << rhs;
-  Node gtNode = NodeBuilder(kind::GT) << lhs << rhs;
-  Node geqNode = NodeBuilder(kind::GEQ) << lhs << rhs;
+  Node leqNode = NodeBuilder(Kind::LEQ) << lhs << rhs;
+  Node ltNode = NodeBuilder(Kind::LT) << lhs << rhs;
+  Node gtNode = NodeBuilder(Kind::GT) << lhs << rhs;
+  Node geqNode = NodeBuilder(Kind::GEQ) << lhs << rhs;
 
-  Node lemma = NodeBuilder(OR) << leqNode << geqNode;
+  Node lemma = NodeBuilder(Kind::OR) << leqNode << geqNode;
 
   TrustNode trustedLemma;
   if (d_database->isProofEnabled())
@@ -1160,7 +1158,7 @@ bool ConstraintDatabase::hasLiteral(TNode literal) const {
 
 ConstraintP ConstraintDatabase::addLiteral(TNode literal){
   Assert(!hasLiteral(literal));
-  bool isNot = (literal.getKind() == NOT);
+  bool isNot = (literal.getKind() == Kind::NOT);
   Node atomNode = (isNot ? literal[0] : literal);
   Node negationNode  = atomNode.notNode();
 
@@ -1583,7 +1581,7 @@ TrustNode Constraint::externalExplainConflict() const
 {
   Trace("pf::arith::explain") << this << std::endl;
   Assert(inConflict());
-  NodeBuilder nb(kind::AND);
+  NodeBuilder nb(Kind::AND);
   auto pf1 = externalExplainByAssertions(nb);
   auto not2 = getNegation()->getProofLiteral().negate();
   auto pf2 = getNegation()->externalExplainByAssertions(nb);
@@ -1680,7 +1678,7 @@ void Constraint::assertionFringe(ConstraintCPVec& o, const ConstraintCPVec& i){
 }
 
 Node Constraint::externalExplain(const ConstraintCPVec& v, AssertionOrder order){
-  NodeBuilder nb(kind::AND);
+  NodeBuilder nb(Kind::AND);
   ConstraintCPVec::const_iterator i, end;
   for(i = v.begin(), end = v.end(); i != end; ++i){
     ConstraintCP v_i = *i;
@@ -1732,7 +1730,7 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
       pf = pnm->mkNode(
           ProofRule::MACRO_SR_PRED_TRANSFORM, {a}, {getProofLiteral()});
     }
-    Assert(lit.getKind() != kind::AND);
+    Assert(lit.getKind() != Kind::AND);
     nb << lit;
   }
   else
@@ -1868,14 +1866,14 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
 }
 
 Node Constraint::externalExplainByAssertions(ConstraintCP a, ConstraintCP b){
-  NodeBuilder nb(kind::AND);
+  NodeBuilder nb(Kind::AND);
   a->externalExplainByAssertions(nb);
   b->externalExplainByAssertions(nb);
   return nb;
 }
 
 Node Constraint::externalExplainByAssertions(ConstraintCP a, ConstraintCP b, ConstraintCP c){
-  NodeBuilder nb(kind::AND);
+  NodeBuilder nb(Kind::AND);
   a->externalExplainByAssertions(nb);
   b->externalExplainByAssertions(nb);
   c->externalExplainByAssertions(nb);
@@ -2119,7 +2117,7 @@ void ConstraintDatabase::implies(std::vector<TrustNode>& out,
   Node la = a->getLiteral();
   Node lb = b->getLiteral();
 
-  Node neg_la = (la.getKind() == kind::NOT)? la[0] : la.notNode();
+  Node neg_la = (la.getKind() == Kind::NOT) ? la[0] : la.notNode();
 
   Assert(lb != neg_la);
   Assert(b->getNegation()->getType() == ConstraintType::LowerBound

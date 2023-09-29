@@ -81,6 +81,9 @@ std::ostream& operator<<(std::ostream& o, Token t)
       o << "GET_UNSAT_ASSUMPTIONS_TOK";
       break;
     case Token::GET_UNSAT_CORE_TOK: o << "GET_UNSAT_CORE_TOK"; break;
+    case Token::GET_UNSAT_CORE_LEMMAS_TOK:
+      o << "GET_UNSAT_CORE_LEMMAS_TOK";
+      break;
     case Token::GET_VALUE_TOK: o << "GET_VALUE_TOK"; break;
     case Token::HEX_LITERAL: o << "HEX_LITERAL"; break;
     case Token::INCLUDE_TOK: o << "INCLUDE_TOK"; break;

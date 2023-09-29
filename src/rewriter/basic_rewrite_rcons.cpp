@@ -47,7 +47,8 @@ bool BasicRewriteRCons::prove(
     Trace("trewrite-rcons") << "...EVALUATE" << std::endl;
     return true;
   }
-  if (eq[0].getKind() == APPLY_UF && eq[0].getOperator().getKind() == LAMBDA)
+  if (eq[0].getKind() == Kind::APPLY_UF
+      && eq[0].getOperator().getKind() == Kind::LAMBDA)
   {
     std::vector<Node> args;
     args.push_back(eq[0].getOperator());

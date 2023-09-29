@@ -177,7 +177,7 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
       {
         Trace("smt-pppg-debug")
             << "...rewritten from " << proven[0] << std::endl;
-        Assert(proven.getKind() == kind::EQUAL);
+        Assert(proven.getKind() == Kind::EQUAL);
         if (!proofStepProcessed)
         {
           // maybe its just an (extended) rewrite?

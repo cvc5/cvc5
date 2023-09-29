@@ -100,8 +100,8 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     Node sop = dt[i].getSygusOp();
     Assert(!sop.isNull());
     Trace("sygus-db") << "  Operator #" << i << " : " << sop;
-    Kind builtinKind = UNDEFINED_KIND;
-    if (sop.getKind() == kind::BUILTIN)
+    Kind builtinKind = Kind::UNDEFINED_KIND;
+    if (sop.getKind() == Kind::BUILTIN)
     {
       builtinKind = NodeManager::operatorToKind(sop);
       Trace("sygus-db") << ", kind = " << builtinKind;
@@ -112,7 +112,7 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
       d_consts[sop] = i;
       d_arg_const[i] = sop;
     }
-    else if (sop.getKind() == LAMBDA)
+    else if (sop.getKind() == Kind::LAMBDA)
     {
       // do type checking
       Assert(sop[0].getNumChildren() == dt[i].getNumArgs());
@@ -139,14 +139,14 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
             if (sop[0][j] != sop[1][j])
             {
               // arguments not in order
-              builtinKind = UNDEFINED_KIND;
+              builtinKind = Kind::UNDEFINED_KIND;
               break;
             }
           }
         }
       }
     }
-    if (builtinKind != UNDEFINED_KIND)
+    if (builtinKind != Kind::UNDEFINED_KIND)
     {
       d_kinds[builtinKind] = i;
       d_arg_kind[i] = builtinKind;
@@ -176,7 +176,7 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
         << "Due to " << g << " of type " << gtn << std::endl;
     Trace("sygus-db") << "...done register Operator #" << i << std::endl;
     Kind gk = g.getKind();
-    if (gk == ITE)
+    if (gk == Kind::ITE)
     {
       // mark that this type has an ITE
       d_hasIte = true;
@@ -185,8 +185,9 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
         d_hasBoolConnective = true;
       }
     }
-    else if (gk == AND || gk == OR || gk == IMPLIES || gk == XOR
-             || (gk == EQUAL && g[0].getType().isBoolean()))
+    else if (gk == Kind::AND || gk == Kind::OR || gk == Kind::IMPLIES
+             || gk == Kind::XOR
+             || (gk == Kind::EQUAL && g[0].getType().isBoolean()))
     {
       d_hasBoolConnective = true;
     }
@@ -431,12 +432,12 @@ Kind SygusTypeInfo::getConsNumKind(unsigned i) const
   {
     return itk->second;
   }
-  return UNDEFINED_KIND;
+  return Kind::UNDEFINED_KIND;
 }
 
 bool SygusTypeInfo::isKindArg(unsigned i) const
 {
-  return getConsNumKind(i) != UNDEFINED_KIND;
+  return getConsNumKind(i) != Kind::UNDEFINED_KIND;
 }
 
 bool SygusTypeInfo::isConstArg(unsigned i) const

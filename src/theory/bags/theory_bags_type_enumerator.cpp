@@ -56,12 +56,12 @@ Node BagEnumerator::operator*()
 
 BagEnumerator& BagEnumerator::operator++()
 {
-  if (d_currentBag.getKind() == kind::BAG_EMPTY)
+  if (d_currentBag.getKind() == Kind::BAG_EMPTY)
   {
     // return (bag d_element 1)
     Node one = d_nodeManager->mkConstInt(Rational(1));
     TypeNode elementType = d_elementTypeEnumerator.getType();
-    Node singleton = d_nodeManager->mkNode(BAG_MAKE, d_element, one);
+    Node singleton = d_nodeManager->mkNode(Kind::BAG_MAKE, d_element, one);
     d_currentBag = singleton;
   }
   else

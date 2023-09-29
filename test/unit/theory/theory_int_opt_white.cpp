@@ -18,7 +18,6 @@
 #include "test_smt.h"
 #include "util/rational.h"
 
-using namespace cvc5::internal::kind;
 using namespace cvc5::internal::theory;
 using namespace cvc5::internal::smt;
 
@@ -50,8 +49,8 @@ TEST_F(TestTheoryWhiteIntOpt, max)
   // Objectives to be optimized max_cost is max objective
   Node max_cost = d_nodeManager->mkVar(*d_intType);
 
-  Node upb = d_nodeManager->mkNode(kind::GT, ub, max_cost);
-  Node lowb = d_nodeManager->mkNode(kind::GT, max_cost, lb);
+  Node upb = d_nodeManager->mkNode(Kind::GT, ub, max_cost);
+  Node lowb = d_nodeManager->mkNode(Kind::GT, max_cost, lb);
 
   /* Result of asserts is:
       0 < max_cost < 100
@@ -81,8 +80,8 @@ TEST_F(TestTheoryWhiteIntOpt, min)
   // Objectives to be optimized max_cost is max objective
   Node max_cost = d_nodeManager->mkVar(*d_intType);
 
-  Node upb = d_nodeManager->mkNode(kind::GT, ub, max_cost);
-  Node lowb = d_nodeManager->mkNode(kind::GT, max_cost, lb);
+  Node upb = d_nodeManager->mkNode(Kind::GT, ub, max_cost);
+  Node lowb = d_nodeManager->mkNode(Kind::GT, max_cost, lb);
 
   /* Result of asserts is:
       0 < max_cost < 100
@@ -112,8 +111,8 @@ TEST_F(TestTheoryWhiteIntOpt, result)
   // Objectives to be optimized max_cost is max objective
   Node max_cost = d_nodeManager->mkVar(*d_intType);
 
-  Node upb = d_nodeManager->mkNode(kind::GT, lb, max_cost);
-  Node lowb = d_nodeManager->mkNode(kind::GT, max_cost, ub);
+  Node upb = d_nodeManager->mkNode(Kind::GT, lb, max_cost);
+  Node lowb = d_nodeManager->mkNode(Kind::GT, max_cost, ub);
 
   /* Result of asserts is:
       0 > max_cost > 100
@@ -145,15 +144,15 @@ TEST_F(TestTheoryWhiteIntOpt, open_interval)
       0 < cost1 < 100
       110 < cost2
   */
-  d_slvEngine->assertFormula(d_nodeManager->mkNode(kind::LT, lb1, cost1));
-  d_slvEngine->assertFormula(d_nodeManager->mkNode(kind::LT, cost1, ub1));
+  d_slvEngine->assertFormula(d_nodeManager->mkNode(Kind::LT, lb1, cost1));
+  d_slvEngine->assertFormula(d_nodeManager->mkNode(Kind::LT, cost1, ub1));
 
-  d_slvEngine->assertFormula(d_nodeManager->mkNode(kind::LT, lb2, cost2));
+  d_slvEngine->assertFormula(d_nodeManager->mkNode(Kind::LT, lb2, cost2));
 
   /* Optimization objective:
       cost1 + cost2
   */
-  Node cost3 = d_nodeManager->mkNode(kind::ADD, cost1, cost2);
+  Node cost3 = d_nodeManager->mkNode(Kind::ADD, cost1, cost2);
 
   d_optslv->addObjective(cost3, OptimizationObjective::MINIMIZE);
 
