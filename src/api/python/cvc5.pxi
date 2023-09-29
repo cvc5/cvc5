@@ -2586,9 +2586,9 @@ cdef class Solver:
         cdef pair[c_Result, vector[c_Term]] res
         res = self.csolver.getTimeoutCoreAssuming(v)
         core = []
-        for a in res.second:
+        for ac in res.second:
             term = Term(self)
-            term.cterm = a
+            term.cterm = ac
             core.append(term)
         cdef Result r = Result()
         r.cr = res.first
