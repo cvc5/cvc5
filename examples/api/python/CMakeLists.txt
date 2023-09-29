@@ -65,7 +65,7 @@ function(create_python_example example)
   )
   set_tests_properties(${example_test} PROPERTIES
     LABELS "example"
-    ENVIRONMENT "PYTHONPATH=${PYTHON_MODULE_PATH}:${PYTHON_PLATLIB}:${CMAKE_SOURCE_DIR}/api/python"
+    ENVIRONMENT "PYTHONPATH=${PYTHON_MODULE_PATH}:${PYTHON_PLATLIB}:${CMAKE_SOURCE_DIR}/api/python")
 endfunction()
 
 foreach(example ${EXAMPLES_API_PYTHON})
