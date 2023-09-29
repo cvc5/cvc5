@@ -555,6 +555,12 @@ set(regress_0_tests
   regress0/bv/holes/mult-distrib-const-sub.smt2
   regress0/bv/holes/mult-distrib-1.smt2
   regress0/bv/holes/mult-distrib-2.smt2
+
+
+  regress0/bv/holes/ult-add-one.smt2
+  regress0/bv/holes/concat-to-mult.smt2
+  regress0/bv/holes/mult-slt-mult-1.smt2
+  regress0/bv/holes/mult-slt-mult-2.smt2
   regress0/bv/holes/commutative-add.smt2
   regress0/bv/holes/mul-one.smt2
   regress0/bv/holes/mul-zero.smt2
