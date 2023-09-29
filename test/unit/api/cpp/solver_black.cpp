@@ -2134,7 +2134,8 @@ TEST_F(TestApiBlackSolver, getTimeoutCoreAssuming)
   Term ff = d_solver.mkBoolean(false);
   Term tt = d_solver.mkBoolean(true);
   d_solver.assertFormula(tt);
-  std::pair<cvc5::Result, std::vector<Term>> res = d_solver.getTimeoutCoreAssuming({ff, tt});
+  std::pair<cvc5::Result, std::vector<Term>> res =
+      d_solver.getTimeoutCoreAssuming({ff, tt});
   ASSERT_TRUE(res.first.isUnsat());
   ASSERT_TRUE(res.second.size() == 1);
   ASSERT_EQ(res.second[0], ff);
