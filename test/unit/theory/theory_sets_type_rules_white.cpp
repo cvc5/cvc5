@@ -57,9 +57,9 @@ TEST_F(TestTheoryWhiteSetsTypeRuleInternal, singleton_node)
   Node intConstant = d_nodeManager->mkConstReal(Rational(1));
   Node realConstant = d_nodeManager->mkConstReal(Rational(1, 5));
   // (singleton (singleton_op Real) 1)
-  ASSERT_NO_THROW(d_nodeManager->mkNode(kind::SET_SINGLETON, intConstant));
+  ASSERT_NO_THROW(d_nodeManager->mkNode(Kind::SET_SINGLETON, intConstant));
 
-  Node n = d_nodeManager->mkNode(kind::SET_SINGLETON, intConstant);
+  Node n = d_nodeManager->mkNode(Kind::SET_SINGLETON, intConstant);
   // the type of (singleton (singleton_op Real) 1) is (Set Real)
   ASSERT_TRUE(n.getType()
               == d_nodeManager->mkSetType(d_nodeManager->realType()));

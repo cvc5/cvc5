@@ -235,7 +235,7 @@ bool ExtTheory::doInferencesInternal(int effort,
       {
         if (!nr.isNull() && n != nr)
         {
-          Node lem = NodeManager::currentNM()->mkNode(kind::EQUAL, n, nr);
+          Node lem = NodeManager::currentNM()->mkNode(Kind::EQUAL, n, nr);
           if (sendLemma(lem, InferenceId::EXTT_SIMPLIFY))
           {
             Trace("extt-lemma")
@@ -280,7 +280,7 @@ bool ExtTheory::doInferencesInternal(int effort,
               eei.push_back(e.negate());
             }
             eei.push_back(eq);
-            lem = nm->mkNode(kind::OR, eei);
+            lem = nm->mkNode(Kind::OR, eei);
           }
 
           Trace("extt-debug") << "ExtTheory::doInferences : infer : " << eq

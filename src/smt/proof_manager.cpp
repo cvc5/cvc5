@@ -365,7 +365,7 @@ void PfManager::getDefinitionsAndAssertions(Assertions& as,
   {
     // Keep treating (mutually) recursive functions as declarations +
     // assertions.
-    if (d.getKind() == kind::EQUAL)
+    if (d.getKind() == Kind::EQUAL)
     {
       definitions.push_back(d);
     }

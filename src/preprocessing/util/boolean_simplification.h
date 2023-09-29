@@ -72,10 +72,10 @@ class BooleanSimplification
   static Node simplifyConflict(Node andNode)
   {
     AssertArgument(!andNode.isNull(), andNode);
-    AssertArgument(andNode.getKind() == kind::AND, andNode);
+    AssertArgument(andNode.getKind() == Kind::AND, andNode);
 
     std::vector<Node> buffer;
-    push_back_associative_commute(andNode, buffer, kind::AND, kind::OR);
+    push_back_associative_commute(andNode, buffer, Kind::AND, Kind::OR);
 
     removeDuplicates(buffer);
 
@@ -84,7 +84,7 @@ class BooleanSimplification
       return buffer[0];
     }
 
-    NodeBuilder nb(kind::AND);
+    NodeBuilder nb(Kind::AND);
     nb.append(buffer);
     return nb;
   }
@@ -98,10 +98,10 @@ class BooleanSimplification
   static Node simplifyClause(Node orNode)
   {
     AssertArgument(!orNode.isNull(), orNode);
-    AssertArgument(orNode.getKind() == kind::OR, orNode);
+    AssertArgument(orNode.getKind() == Kind::OR, orNode);
 
     std::vector<Node> buffer;
-    push_back_associative_commute(orNode, buffer, kind::OR, kind::AND);
+    push_back_associative_commute(orNode, buffer, Kind::OR, Kind::AND);
 
     removeDuplicates(buffer);
 
@@ -111,7 +111,7 @@ class BooleanSimplification
       return buffer[0];
     }
 
-    NodeBuilder nb(kind::OR);
+    NodeBuilder nb(Kind::OR);
     nb.append(buffer);
     return nb;
   }
@@ -125,13 +125,13 @@ class BooleanSimplification
    */
   static Node simplifyHornClause(Node implication)
   {
-    AssertArgument(implication.getKind() == kind::IMPLIES, implication);
+    AssertArgument(implication.getKind() == Kind::IMPLIES, implication);
 
     TNode left = implication[0];
     TNode right = implication[1];
 
     Node notLeft = negate(left);
-    Node clause = NodeBuilder(kind::OR) << notLeft << right;
+    Node clause = NodeBuilder(Kind::OR) << notLeft << right;
 
     return simplifyClause(clause);
   }
@@ -142,14 +142,14 @@ class BooleanSimplification
    * children into it.  Also collapses negations of notK.  For example:
    *
    *   push_back_associative_commute( [OR [OR a b] [OR b c d] [NOT [AND e f]]],
-   *                                  buffer, kind::OR, kind::AND )
+   *                                  buffer, Kind::OR, Kind::AND )
    *   yields a "buffer" vector of [a b b c d e f]
    *
    * @param n the node to operate upon
    * @param buffer the output vector (must be empty on entry)
    * @param k the kind to collapse (should equal the kind of node n)
    * @param notK the "negation" of kind k (e.g. OR's negation is AND),
-   * or kind::UNDEFINED_KIND if none.
+   * or Kind::UNDEFINED_KIND if none.
    * @param negateChildren true if the children of the resulting node
    * (that is, the elements in buffer) should all be negated; you want
    * this if e.g. you're simplifying the (OR...) in (NOT (OR...)),
@@ -163,8 +163,8 @@ class BooleanSimplification
   {
     AssertArgument(buffer.empty(), buffer);
     AssertArgument(!n.isNull(), n);
-    AssertArgument(k != kind::UNDEFINED_KIND && k != kind::NULL_EXPR, k);
-    AssertArgument(notK != kind::NULL_EXPR, notK);
+    AssertArgument(k != Kind::UNDEFINED_KIND && k != Kind::NULL_EXPR, k);
+    AssertArgument(notK != Kind::NULL_EXPR, notK);
     AssertArgument(n.getKind() == k,
                    n,
                    "expected node to have kind %s",
@@ -177,7 +177,7 @@ class BooleanSimplification
     {
       // all the TRUEs for an AND (resp FALSEs for an OR) were simplified away
       buffer.push_back(
-          NodeManager::currentNM()->mkConst(k == kind::AND ? true : false));
+          NodeManager::currentNM()->mkConst(k == Kind::AND ? true : false));
     }
   } /* push_back_associative_commute() */
 
@@ -193,7 +193,7 @@ class BooleanSimplification
 
     bool polarity = true;
     TNode base = n;
-    while (base.getKind() == kind::NOT)
+    while (base.getKind() == Kind::NOT)
     {
       base = base[0];
       polarity = !polarity;
@@ -220,11 +220,11 @@ class BooleanSimplification
   {
     switch (n.getKind())
     {
-      case kind::AND: return simplifyConflict(n);
+      case Kind::AND: return simplifyConflict(n);
 
-      case kind::OR: return simplifyClause(n);
+      case Kind::OR: return simplifyClause(n);
 
-      case kind::IMPLIES: return simplifyHornClause(n);
+      case Kind::IMPLIES: return simplifyHornClause(n);
 
       default: return n;
     }

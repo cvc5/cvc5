@@ -85,7 +85,7 @@ Trigger::Trigger(Env& env,
     Node ns = d_qreg.substituteInstConstantsToBoundVariables(nt, q);
     extNodes.push_back(ns);
   }
-  d_trNode = NodeManager::currentNM()->mkNode(SEXPR, extNodes);
+  d_trNode = NodeManager::currentNM()->mkNode(Kind::SEXPR, extNodes);
   if (isOutputOn(OutputTag::TRIGGER))
   {
     QuantAttributes& qa = d_qreg.getQuantAttributes();
@@ -138,7 +138,7 @@ bool Trigger::isMultiTrigger() const { return d_nodes.size() > 1; }
 
 Node Trigger::getInstPattern() const
 {
-  return NodeManager::currentNM()->mkNode( INST_PATTERN, d_nodes );
+  return NodeManager::currentNM()->mkNode(Kind::INST_PATTERN, d_nodes);
 }
 
 uint64_t Trigger::addInstantiations()

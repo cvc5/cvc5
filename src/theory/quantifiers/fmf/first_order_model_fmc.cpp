@@ -66,11 +66,11 @@ void FirstOrderModelFmc::processInitialize(bool ispre)
 
 void FirstOrderModelFmc::processInitializeModelForTerm(Node n)
 {
-  if (n.getKind() == APPLY_UF)
+  if (n.getKind() == Kind::APPLY_UF)
   {
     // cannot be a bound variable
     Node op = n.getOperator();
-    if (op.getKind() != BOUND_VARIABLE)
+    if (op.getKind() != Kind::BOUND_VARIABLE)
     {
       if (d_models.find(op) == d_models.end())
       {
@@ -113,7 +113,7 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix)
     Node b = nm->mkBoundVar(ss.str(), type[i]);
     vars.push_back(b);
   }
-  Node boundVarList = nm->mkNode(BOUND_VAR_LIST, vars);
+  Node boundVarList = nm->mkNode(Kind::BOUND_VAR_LIST, vars);
   Node curr;
   Def* odef = d_models[op];
   for (size_t i = 0, ncond = odef->d_cond.size(); i < ncond; i++)
@@ -139,7 +139,7 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix)
         {
           Node c = getRepresentative(cond[j]);
           c = getRepresentative(c);
-          children.push_back(nm->mkNode(EQUAL, vars[j], c));
+          children.push_back(nm->mkNode(Kind::EQUAL, vars[j], c));
         }
       }
       Assert(!children.empty());
@@ -147,12 +147,12 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix)
 
       Trace("fmc-model-func")
           << "condition : " << cc << ", value : " << v << std::endl;
-      curr = nm->mkNode(ITE, cc, v, curr);
+      curr = nm->mkNode(Kind::ITE, cc, v, curr);
     }
   }
   Trace("fmc-model") << "Made " << curr << " for " << op << std::endl;
   curr = rewrite(curr);
-  return nm->mkNode(LAMBDA, boundVarList, curr);
+  return nm->mkNode(Kind::LAMBDA, boundVarList, curr);
 }
 
 }  // namespace fmcheck

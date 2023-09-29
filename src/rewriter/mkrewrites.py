@@ -83,7 +83,7 @@ def gen_kind(op):
         Op.REGEXP_NONE: 'REGEXP_NONE',
         Op.REGEXP_ALLCHAR: 'REGEXP_ALLCHAR',
     }
-    return op_to_kind[op]
+    return f'Kind::{op_to_kind[op]}'
 
 
 def gen_mk_skolem(name, sort):

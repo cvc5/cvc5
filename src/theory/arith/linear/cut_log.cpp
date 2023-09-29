@@ -105,7 +105,7 @@ CutInfo::CutInfo(CutInfoKlass kl, int eid, int o)
     : d_klass(kl),
       d_execOrd(eid),
       d_poolOrd(o),
-      d_cutType(kind::UNDEFINED_KIND),
+      d_cutType(Kind::UNDEFINED_KIND),
       d_cutRhs(),
       d_cutVec(),
       d_mAtCreation(-1),
@@ -155,7 +155,7 @@ Kind CutInfo::getKind() const{
 }
 
 void CutInfo::setKind(Kind k){
-  Assert(k == kind::LEQ || k == kind::GEQ);
+  Assert(k == Kind::LEQ || k == Kind::GEQ);
   d_cutType = k;
 }
 

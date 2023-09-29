@@ -89,7 +89,7 @@ AlphaEquivalenceDb::AlphaEquivalenceDb(context::Context* c,
 }
 Node AlphaEquivalenceDb::addTerm(Node q)
 {
-  Assert(q.getKind() == FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   Trace("aeq") << "Alpha equivalence : register " << q << std::endl;
   //construct canonical quantified formula
   Node t = d_tc->getCanonicalTerm(q[1], d_sortCommutativeOpChildren);
@@ -109,9 +109,9 @@ Node AlphaEquivalenceDb::addTermWithSubstitution(Node q,
   std::map<Node, TNode>& bm = d_bvmap[q];
   for (const std::pair<const TNode, Node>& b : visited)
   {
-    if (b.first.getKind() == BOUND_VARIABLE)
+    if (b.first.getKind() == Kind::BOUND_VARIABLE)
     {
-      Assert(b.second.getKind() == BOUND_VARIABLE);
+      Assert(b.second.getKind() == Kind::BOUND_VARIABLE);
       bm[b.second] = b.first;
     }
   }
@@ -173,7 +173,7 @@ AlphaEquivalence::AlphaEquivalence(Env& env)
 
 TrustNode AlphaEquivalence::reduceQuantifier(Node q)
 {
-  Assert(q.getKind() == FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   Node ret;
   std::vector<Node> vars;
   std::vector<Node> subs;

@@ -467,13 +467,14 @@ bool CDProof::isSame(TNode f, TNode g)
   }
   Kind fk = f.getKind();
   Kind gk = g.getKind();
-  if (fk == EQUAL && gk == EQUAL && f[0] == g[1] && f[1] == g[0])
+  if (fk == Kind::EQUAL && gk == Kind::EQUAL && f[0] == g[1] && f[1] == g[0])
   {
     // symmetric equality
     return true;
   }
-  if (fk == NOT && gk == NOT && f[0].getKind() == EQUAL
-      && g[0].getKind() == EQUAL && f[0][0] == g[0][1] && f[0][1] == g[0][0])
+  if (fk == Kind::NOT && gk == Kind::NOT && f[0].getKind() == Kind::EQUAL
+      && g[0].getKind() == Kind::EQUAL && f[0][0] == g[0][1]
+      && f[0][1] == g[0][0])
   {
     // symmetric disequality
     return true;
@@ -483,9 +484,9 @@ bool CDProof::isSame(TNode f, TNode g)
 
 Node CDProof::getSymmFact(TNode f)
 {
-  bool polarity = f.getKind() != NOT;
+  bool polarity = f.getKind() != Kind::NOT;
   TNode fatom = polarity ? f : f[0];
-  if (fatom.getKind() != EQUAL || fatom[0] == fatom[1])
+  if (fatom.getKind() != Kind::EQUAL || fatom[0] == fatom[1])
   {
     return Node::null();
   }
