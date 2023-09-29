@@ -21,6 +21,8 @@
 #include <vector>
 
 #include "util/rational.h"
+#include "expr/type_node.h"
+#include "expr/node_manager.h"
 
 namespace cvc5::internal {
 namespace test {
