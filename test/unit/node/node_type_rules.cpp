@@ -47,9 +47,10 @@ TEST_F(TestNodeTestRules, gradual_types)
   TypeNode intt = nm->integerType();
   TypeNode sit = nm->mkSequenceType(intt);
   
-  Node kat = nm->mkDummySkolem("kat", at);
-  Node kaseqt = nm->mkDummySkolem("kaseqt", aseqt);
-  Node ksit = nm->mkDummySkolem("ksit", sit);
+  SkolemManager * sm = nm->getSkolemManager();
+  Node kat = sm->mkDummySkolem("kat", at);
+  Node kaseqt = sm->mkDummySkolem("kaseqt", aseqt);
+  Node ksit = sm->mkDummySkolem("ksit", sit);
   Node one = nm->mkConstInt(Rational(1));
   
   TypeNode t1 = getTypeConcat(kat, kat);
