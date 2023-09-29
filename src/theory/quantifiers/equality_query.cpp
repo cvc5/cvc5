@@ -49,7 +49,7 @@ bool EqualityQuery::reset(Theory::Effort e)
 
 Node EqualityQuery::getInternalRepresentative(Node a, Node q, size_t index)
 {
-  Assert(q.isNull() || q.getKind() == FORALL);
+  Assert(q.isNull() || q.getKind() == Kind::FORALL);
   Node r = d_qstate.getRepresentative(a);
   if (options().quantifiers.finiteModelFind)
   {

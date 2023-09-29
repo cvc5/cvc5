@@ -95,7 +95,7 @@ class TheoryBVRewriter : public TheoryRewriter
 
   void initializeRewrites();
 
-  RewriteFunction d_rewriteTable[kind::LAST_KIND];
+  RewriteFunction d_rewriteTable[static_cast<uint32_t>(Kind::LAST_KIND)];
 }; /* class TheoryBVRewriter */
 
 }  // namespace bv

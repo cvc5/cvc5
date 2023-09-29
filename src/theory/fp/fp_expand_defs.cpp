@@ -35,9 +35,9 @@ FpExpandDefs::FpExpandDefs(context::UserContext* u)
 
 Node FpExpandDefs::minUF(Node node)
 {
-  Assert(node.getKind() == kind::FLOATINGPOINT_MIN);
+  Assert(node.getKind() == Kind::FLOATINGPOINT_MIN);
   TypeNode t(node.getType());
-  Assert(t.getKind() == kind::FLOATINGPOINT_TYPE);
+  Assert(t.getKind() == Kind::FLOATINGPOINT_TYPE);
 
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
@@ -58,7 +58,7 @@ Node FpExpandDefs::minUF(Node node)
   {
     fun = (*i).second;
   }
-  return nm->mkNode(kind::APPLY_UF,
+  return nm->mkNode(Kind::APPLY_UF,
                     fun,
                     node[1],
                     node[0]);  // Application reverses the order or arguments
@@ -66,9 +66,9 @@ Node FpExpandDefs::minUF(Node node)
 
 Node FpExpandDefs::maxUF(Node node)
 {
-  Assert(node.getKind() == kind::FLOATINGPOINT_MAX);
+  Assert(node.getKind() == Kind::FLOATINGPOINT_MAX);
   TypeNode t(node.getType());
-  Assert(t.getKind() == kind::FLOATINGPOINT_TYPE);
+  Assert(t.getKind() == Kind::FLOATINGPOINT_TYPE);
 
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
@@ -89,18 +89,18 @@ Node FpExpandDefs::maxUF(Node node)
   {
     fun = (*i).second;
   }
-  return nm->mkNode(kind::APPLY_UF, fun, node[1], node[0]);
+  return nm->mkNode(Kind::APPLY_UF, fun, node[1], node[0]);
 }
 
 Node FpExpandDefs::toUBVUF(Node node)
 {
-  Assert(node.getKind() == kind::FLOATINGPOINT_TO_UBV);
+  Assert(node.getKind() == Kind::FLOATINGPOINT_TO_UBV);
 
   TypeNode target(node.getType());
-  Assert(target.getKind() == kind::BITVECTOR_TYPE);
+  Assert(target.getKind() == Kind::BITVECTOR_TYPE);
 
   TypeNode source(node[1].getType());
-  Assert(source.getKind() == kind::FLOATINGPOINT_TYPE);
+  Assert(source.getKind() == Kind::FLOATINGPOINT_TYPE);
 
   std::pair<TypeNode, TypeNode> p(source, target);
   NodeManager* nm = NodeManager::currentNM();
@@ -122,18 +122,18 @@ Node FpExpandDefs::toUBVUF(Node node)
   {
     fun = (*i).second;
   }
-  return nm->mkNode(kind::APPLY_UF, fun, node[0], node[1]);
+  return nm->mkNode(Kind::APPLY_UF, fun, node[0], node[1]);
 }
 
 Node FpExpandDefs::toSBVUF(Node node)
 {
-  Assert(node.getKind() == kind::FLOATINGPOINT_TO_SBV);
+  Assert(node.getKind() == Kind::FLOATINGPOINT_TO_SBV);
 
   TypeNode target(node.getType());
-  Assert(target.getKind() == kind::BITVECTOR_TYPE);
+  Assert(target.getKind() == Kind::BITVECTOR_TYPE);
 
   TypeNode source(node[1].getType());
-  Assert(source.getKind() == kind::FLOATINGPOINT_TYPE);
+  Assert(source.getKind() == Kind::FLOATINGPOINT_TYPE);
 
   std::pair<TypeNode, TypeNode> p(source, target);
   NodeManager* nm = NodeManager::currentNM();
@@ -155,14 +155,14 @@ Node FpExpandDefs::toSBVUF(Node node)
   {
     fun = (*i).second;
   }
-  return nm->mkNode(kind::APPLY_UF, fun, node[0], node[1]);
+  return nm->mkNode(Kind::APPLY_UF, fun, node[0], node[1]);
 }
 
 Node FpExpandDefs::toRealUF(Node node)
 {
-  Assert(node.getKind() == kind::FLOATINGPOINT_TO_REAL);
+  Assert(node.getKind() == Kind::FLOATINGPOINT_TO_REAL);
   TypeNode t(node[0].getType());
-  Assert(t.getKind() == kind::FLOATINGPOINT_TYPE);
+  Assert(t.getKind() == Kind::FLOATINGPOINT_TYPE);
 
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
@@ -182,7 +182,7 @@ Node FpExpandDefs::toRealUF(Node node)
   {
     fun = (*i).second;
   }
-  return nm->mkNode(kind::APPLY_UF, fun, node[0]);
+  return nm->mkNode(Kind::APPLY_UF, fun, node[0]);
 }
 
 TrustNode FpExpandDefs::expandDefinition(Node node)
@@ -193,44 +193,44 @@ TrustNode FpExpandDefs::expandDefinition(Node node)
   Node res = node;
   Kind kind = node.getKind();
 
-  if (kind == kind::FLOATINGPOINT_MIN)
+  if (kind == Kind::FLOATINGPOINT_MIN)
   {
     res = NodeManager::currentNM()->mkNode(
-        kind::FLOATINGPOINT_MIN_TOTAL, node[0], node[1], minUF(node));
+        Kind::FLOATINGPOINT_MIN_TOTAL, node[0], node[1], minUF(node));
   }
-  else if (kind == kind::FLOATINGPOINT_MAX)
+  else if (kind == Kind::FLOATINGPOINT_MAX)
   {
     res = NodeManager::currentNM()->mkNode(
-        kind::FLOATINGPOINT_MAX_TOTAL, node[0], node[1], maxUF(node));
+        Kind::FLOATINGPOINT_MAX_TOTAL, node[0], node[1], maxUF(node));
   }
-  else if (kind == kind::FLOATINGPOINT_TO_UBV)
+  else if (kind == Kind::FLOATINGPOINT_TO_UBV)
   {
     FloatingPointToUBV info = node.getOperator().getConst<FloatingPointToUBV>();
     FloatingPointToUBVTotal newInfo(info);
 
     res =
-        NodeManager::currentNM()->mkNode(  // kind::FLOATINGPOINT_TO_UBV_TOTAL,
+        NodeManager::currentNM()->mkNode(  // Kind::FLOATINGPOINT_TO_UBV_TOTAL,
             NodeManager::currentNM()->mkConst(newInfo),
             node[0],
             node[1],
             toUBVUF(node));
   }
-  else if (kind == kind::FLOATINGPOINT_TO_SBV)
+  else if (kind == Kind::FLOATINGPOINT_TO_SBV)
   {
     FloatingPointToSBV info = node.getOperator().getConst<FloatingPointToSBV>();
     FloatingPointToSBVTotal newInfo(info);
 
     res =
-        NodeManager::currentNM()->mkNode(  // kind::FLOATINGPOINT_TO_SBV_TOTAL,
+        NodeManager::currentNM()->mkNode(  // Kind::FLOATINGPOINT_TO_SBV_TOTAL,
             NodeManager::currentNM()->mkConst(newInfo),
             node[0],
             node[1],
             toSBVUF(node));
   }
-  else if (kind == kind::FLOATINGPOINT_TO_REAL)
+  else if (kind == Kind::FLOATINGPOINT_TO_REAL)
   {
     res = NodeManager::currentNM()->mkNode(
-        kind::FLOATINGPOINT_TO_REAL_TOTAL, node[0], toRealUF(node));
+        Kind::FLOATINGPOINT_TO_REAL_TOTAL, node[0], toRealUF(node));
   }
 
   if (res != node)

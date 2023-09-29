@@ -289,7 +289,7 @@ void Printer::toStreamCmdDefineFunction(std::ostream& out,
   std::vector<Node> formals;
   Node body = lambda;
   TypeNode rangeType = v.getType();
-  if (body.getKind() == kind::LAMBDA)
+  if (body.getKind() == Kind::LAMBDA)
   {
     formals.insert(formals.end(), lambda[0].begin(), lambda[0].end());
     body = lambda[1];
@@ -319,7 +319,7 @@ void Printer::toStreamCmdDefineFunctionRec(
   {
     std::vector<Node> formalsVec;
     Node formula;
-    if (l.getKind() == kind::LAMBDA)
+    if (l.getKind() == Kind::LAMBDA)
     {
       formalsVec.insert(formalsVec.end(), l[0].begin(), l[0].end());
       formula = l[1];

@@ -42,7 +42,7 @@ Node applySygusArgs(const DType& dt,
   // optimization: if n is just a sygus bound variable, return immediately
   // by replacing with the proper argument, or returning unchanged if it is
   // a bound variable not corresponding to a formal argument.
-  if (n.getKind() == BOUND_VARIABLE)
+  if (n.getKind() == Kind::BOUND_VARIABLE)
   {
     if (n.hasAttribute(SygusVarNumAttribute()))
     {
@@ -85,7 +85,7 @@ Node applySygusArgs(const DType& dt,
   {
     return n;
   }
-  if (val.getKind() == BOUND_VARIABLE)
+  if (val.getKind() == Kind::BOUND_VARIABLE)
   {
     // single substitution case
     int vn = val.getAttribute(SygusVarNumAttribute());
@@ -104,10 +104,10 @@ Node applySygusArgs(const DType& dt,
 
 Kind getOperatorKindForSygusBuiltin(Node op)
 {
-  Assert(op.getKind() != BUILTIN);
-  if (op.getKind() == LAMBDA)
+  Assert(op.getKind() != Kind::BUILTIN);
+  if (op.getKind() == Kind::LAMBDA)
   {
-    return APPLY_UF;
+    return Kind::APPLY_UF;
   }
   return NodeManager::getKindForFunction(op);
 }
@@ -163,9 +163,9 @@ Node mkSygusTerm(const Node& op,
   std::vector<Node> schildren;
   // get the kind of the operator
   Kind ok = op.getKind();
-  if (ok != BUILTIN)
+  if (ok != Kind::BUILTIN)
   {
-    if (ok == LAMBDA && doBetaReduction)
+    if (ok == Kind::LAMBDA && doBetaReduction)
     {
       // Do immediate beta reduction. It suffices to use a normal substitution
       // since neither op nor children have quantifiers, since they are
@@ -184,7 +184,7 @@ Node mkSygusTerm(const Node& op,
   }
   schildren.insert(schildren.end(), children.begin(), children.end());
   Node ret;
-  if (ok == BUILTIN)
+  if (ok == Kind::BUILTIN)
   {
     ret = nm->mkNode(op, schildren);
     Trace("dt-sygus-util") << "...return (builtin) " << ret << std::endl;
@@ -193,17 +193,17 @@ Node mkSygusTerm(const Node& op,
   // get the kind used for applying op
   Kind otk = NodeManager::operatorToKind(op);
   Trace("dt-sygus-util") << "operator kind is " << otk << std::endl;
-  if (otk != UNDEFINED_KIND)
+  if (otk != Kind::UNDEFINED_KIND)
   {
     // If it is an APPLY_UF operator, we should have at least an operator and
     // a child.
-    Assert(otk != APPLY_UF || schildren.size() != 1);
+    Assert(otk != Kind::APPLY_UF || schildren.size() != 1);
     ret = nm->mkNode(otk, schildren);
     Trace("dt-sygus-util") << "...return (op) " << ret << std::endl;
     return ret;
   }
   Kind tok = getOperatorKindForSygusBuiltin(op);
-  if (schildren.size() == 1 && tok == UNDEFINED_KIND)
+  if (schildren.size() == 1 && tok == Kind::UNDEFINED_KIND)
   {
     ret = schildren[0];
   }
@@ -259,7 +259,7 @@ Node sygusToBuiltin(Node n, bool isExternal)
       // Notice this condition succeeds in roughly 99% of the executions of this
       // method (based on our coverage tests), hence the else if / else cases
       // below do not significantly impact performance.
-      if (cur.getKind() == APPLY_CONSTRUCTOR)
+      if (cur.getKind() == Kind::APPLY_CONSTRUCTOR)
       {
         if (!isExternal && cur.hasAttribute(SygusToBuiltinTermAttribute()))
         {
@@ -308,7 +308,7 @@ Node sygusToBuiltin(Node n, bool isExternal)
     else if (it->second.isNull())
     {
       Node ret = cur;
-      Assert(cur.getKind() == APPLY_CONSTRUCTOR);
+      Assert(cur.getKind() == Kind::APPLY_CONSTRUCTOR);
       const DType& dt = cur.getType().getDType();
       // Non sygus-datatype terms are also themselves. Notice we treat the
       // case of non-sygus datatypes this way since it avoids computing
@@ -417,13 +417,13 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
   }
   for (const Node& v : vars)
   {
-    if (v.getKind() == BOUND_VARIABLE)
+    if (v.getKind() == Kind::BOUND_VARIABLE)
     {
       formalVars.push_back(v);
     }
   }
   // make the sygus variable list for the formal argument list
-  Node abvl = nm->mkNode(BOUND_VAR_LIST, formalVars);
+  Node abvl = nm->mkNode(Kind::BOUND_VAR_LIST, formalVars);
   Trace("sygus-abduct-debug") << "...finish" << std::endl;
 
   // must convert all constructors to version with variables in "vars"
@@ -566,7 +566,7 @@ TypeNode generalizeSygusType(TypeNode sdt)
 
 unsigned getSygusTermSize(Node n)
 {
-  if (n.getKind() != APPLY_CONSTRUCTOR)
+  if (n.getKind() != Kind::APPLY_CONSTRUCTOR)
   {
     return 0;
   }

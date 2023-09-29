@@ -59,7 +59,10 @@ class BasicRewriteRCons : protected EnvObj
    * Try rule r, return true if eq could be proven by r with arguments args.
    * If this method returns true, a proof of eq was added to cdp.
    */
-  bool tryRule(CDProof* cdp, Node eq, PfRule r, const std::vector<Node>& args);
+  bool tryRule(CDProof* cdp,
+               Node eq,
+               ProofRule r,
+               const std::vector<Node>& args);
 };
 
 }  // namespace rewriter

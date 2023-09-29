@@ -178,7 +178,7 @@ TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
   if (cn == n)
   {
     // if it cannot be made concrete, it has abstract type
-    return nodeManager->mkAbstractType(kind::ABSTRACT_TYPE);
+    return nodeManager->mkAbstractType(Kind::ABSTRACT_TYPE);
   }
   // if we can make concrete, return its type
   return cn.getType();

@@ -40,27 +40,28 @@ bool BasicRewriteRCons::prove(
   if (eq[0] == eq[1])
   {
     Trace("trewrite-rcons") << "...REFL" << std::endl;
-    cdp->addStep(eq, PfRule::REFL, {}, {eq[0]});
+    cdp->addStep(eq, ProofRule::REFL, {}, {eq[0]});
     return true;
   }
   // first, check that maybe its just an evaluation step
-  if (tryRule(cdp, eq, PfRule::EVALUATE, {eq[0]}))
+  if (tryRule(cdp, eq, ProofRule::EVALUATE, {eq[0]}))
   {
     Trace("trewrite-rcons") << "...EVALUATE" << std::endl;
     return true;
   }
-  if (eq[0].getKind() == APPLY_UF && eq[0].getOperator().getKind() == LAMBDA)
+  if (eq[0].getKind() == Kind::APPLY_UF
+      && eq[0].getOperator().getKind() == Kind::LAMBDA)
   {
     std::vector<Node> args;
     args.push_back(eq[0].getOperator());
     args.insert(args.end(), eq[0].begin(), eq[0].end());
-    if (tryRule(cdp, eq, PfRule::BETA_REDUCE, args))
+    if (tryRule(cdp, eq, ProofRule::BETA_REDUCE, args))
     {
       Trace("trewrite-rcons") << "...BETA_REDUCE" << std::endl;
       return true;
     }
   }
-  if (tryRule(cdp, eq, PfRule::EXISTS_ELIM, {eq[0]}))
+  if (tryRule(cdp, eq, ProofRule::EXISTS_ELIM, {eq[0]}))
   {
     Trace("trewrite-rcons") << "...EXISTS_ELIM" << std::endl;
     return true;
@@ -75,7 +76,7 @@ bool BasicRewriteRCons::postProve(
   {
     Node eq = a.eqNode(b);
 #define POST_PROVE_CASE(name) \
-    if (tryRule(cdp, eq, PfRule::name, {eq[0]})) \
+    if (tryRule(cdp, eq, ProofRule::name, {eq[0]})) \
     { \
       Trace("trewrite-rcons") << "Reconstruct " << eq << " (from " << tid << ", " \
                               << mid << ")"  << std::endl; \
@@ -101,7 +102,7 @@ bool BasicRewriteRCons::postProve(
 
 bool BasicRewriteRCons::tryRule(CDProof* cdp,
                                 Node eq,
-                                PfRule r,
+                                ProofRule r,
                                 const std::vector<Node>& args)
 {
   Trace("trewrite-rcons-debug") << "Try " << r << std::endl;

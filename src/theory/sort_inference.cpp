@@ -231,7 +231,7 @@ void SortInference::getNewAssertions(std::vector<Node>& new_asserts)
     // add lemma enforcing introduced constants to be distinct
     if (consts.size() > 1)
     {
-      Node distinct_const = nm->mkNode(kind::DISTINCT, consts);
+      Node distinct_const = nm->mkNode(Kind::DISTINCT, consts);
       Trace("sort-inference-rewrite")
           << "Add the constant distinctness lemma: " << std::endl;
       Trace("sort-inference-rewrite") << "  " << distinct_const << std::endl;
@@ -374,7 +374,8 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound, std::map<
     //add to variable bindings
     bool use_new_visited = false;
     std::map< Node, int > new_visited;
-    if( n.getKind()==kind::FORALL || n.getKind()==kind::EXISTS ){
+    if (n.getKind() == Kind::FORALL || n.getKind() == Kind::EXISTS)
+    {
       if( d_var_types.find( n )!=d_var_types.end() ){
         return getIdForType( n.getType() );
       }else{
@@ -404,7 +405,8 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound, std::map<
     std::vector< int > child_types;
     for( size_t i=0; i<n.getNumChildren(); i++ ){
       bool processChild = true;
-      if( n.getKind()==kind::FORALL || n.getKind()==kind::EXISTS ){
+      if (n.getKind() == Kind::FORALL || n.getKind() == Kind::EXISTS)
+      {
         processChild = options().quantifiers.userPatternsQuant
                                == options::UserPatMode::IGNORE
                            ? i == 1
@@ -417,7 +419,8 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound, std::map<
     }
 
     //remove from variable bindings
-    if( n.getKind()==kind::FORALL || n.getKind()==kind::EXISTS ){
+    if (n.getKind() == Kind::FORALL || n.getKind() == Kind::EXISTS)
+    {
       //erase from variable bound
       for( size_t i=0; i<n[0].getNumChildren(); i++ ){
         var_bound.erase( n[0][i] );
@@ -428,7 +431,7 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound, std::map<
     int retType;
     // we only do this for non-finite types, as finite types have cardinality
     // restrictions.
-    if (n.getKind() == kind::EQUAL
+    if (n.getKind() == Kind::EQUAL
         && !isCardinalityClassFinite(n[0].getType().getCardinalityClass(),
                                      false))
     {
@@ -521,7 +524,8 @@ void SortInference::processMonotonic( Node n, bool pol, bool hasPol, std::map< N
   if( visited[n].find( pindex )==visited[n].end() ){
     visited[n][pindex] = true;
     Trace("sort-inference-debug") << "...Process monotonic " << pol << " " << hasPol << " " << n << std::endl;
-    if( n.getKind()==kind::FORALL ){
+    if (n.getKind() == Kind::FORALL)
+    {
       //only consider variables universally if it is possible this quantified formula is asserted positively
       if( !hasPol || pol ){
         for( unsigned i=0; i<n[0].getNumChildren(); i++ ){
@@ -535,7 +539,9 @@ void SortInference::processMonotonic( Node n, bool pol, bool hasPol, std::map< N
         }
       }
       return;
-    }else if( n.getKind()==kind::EQUAL ){
+    }
+    else if (n.getKind() == Kind::EQUAL)
+    {
       if( !hasPol || pol ){
         for( unsigned i=0; i<2; i++ ){
           if( var_bound.find( n[i] )!=var_bound.end() ){
@@ -619,7 +625,7 @@ Node SortInference::getNewSymbol( Node old, TypeNode tn ){
     }
     return d_const_map[tn][ old ];
   }
-  else if (old.getKind() == kind::BOUND_VARIABLE)
+  else if (old.getKind() == Kind::BOUND_VARIABLE)
   {
     std::stringstream ss;
     ss << "b_" << old;
@@ -647,7 +653,8 @@ Node SortInference::simplifyNode(
     std::vector< Node > children;
     std::map< Node, std::map< TypeNode, Node > > new_visited;
     bool use_new_visited = false;
-    if( n.getKind()==kind::FORALL || n.getKind()==kind::EXISTS ){
+    if (n.getKind() == Kind::FORALL || n.getKind() == Kind::EXISTS)
+    {
       //recreate based on types of variables
       std::vector< Node > new_children;
       for( size_t i=0; i<n[0].getNumChildren(); i++ ){
@@ -673,7 +680,8 @@ Node SortInference::simplifyNode(
     TypeNode tnnc;
     for( size_t i=0; i<n.getNumChildren(); i++ ){
       bool processChild = true;
-      if( n.getKind()==kind::FORALL || n.getKind()==kind::EXISTS ){
+      if (n.getKind() == Kind::FORALL || n.getKind() == Kind::EXISTS)
+      {
         processChild = options().quantifiers.userPatternsQuant
                                == options::UserPatMode::IGNORE
                            ? i == 1
@@ -686,7 +694,7 @@ Node SortInference::simplifyNode(
           tnnc = getOrCreateTypeForId( d_op_arg_types[op][i], n[i].getType() );
           Assert(!tnnc.isNull());
         }
-        else if (n.getKind() == kind::EQUAL
+        else if (n.getKind() == Kind::EQUAL
                  && !isCardinalityClassFinite(
                      n[0].getType().getCardinalityClass(), false)
                  && i == 0)
@@ -708,14 +716,17 @@ Node SortInference::simplifyNode(
 
     //remove from variable bindings
     Node ret;
-    if( n.getKind()==kind::FORALL || n.getKind()==kind::EXISTS ){
+    if (n.getKind() == Kind::FORALL || n.getKind() == Kind::EXISTS)
+    {
       //erase from variable bound
       for( size_t i=0; i<n[0].getNumChildren(); i++ ){
         Trace("sort-inference-debug2") << "Remove bound for " << n[0][i] << std::endl;
         var_bound.erase( n[0][i] );
       }
       ret = nm->mkNode(n.getKind(), children);
-    }else if( n.getKind()==kind::EQUAL ){
+    }
+    else if (n.getKind() == Kind::EQUAL)
+    {
       TypeNode tn1 = children[0].getType();
       TypeNode tn2 = children[1].getType();
       if (tn1 != tn2)
@@ -724,7 +735,7 @@ Node SortInference::simplifyNode(
         Trace("sort-inference-warn") << "  Types : " << children[0].getType() << " " << children[1].getType() << std::endl;
         Assert(false);
       }
-      ret = nm->mkNode(kind::EQUAL, children);
+      ret = nm->mkNode(Kind::EQUAL, children);
     }
     else if (isHandledApplyUf(n.getKind()))
     {
@@ -767,23 +778,31 @@ Node SortInference::simplifyNode(
           Assert(false);
         }
       }
-      ret = nm->mkNode(kind::APPLY_UF, children);
+      ret = nm->mkNode(Kind::APPLY_UF, children);
     }else{
       std::map< Node, Node >::iterator it = var_bound.find( n );
       if( it!=var_bound.end() ){
         ret = it->second;
-      }else if( n.getKind() == kind::VARIABLE || n.getKind() == kind::SKOLEM ){
+      }
+      else if (n.getKind() == Kind::VARIABLE || n.getKind() == Kind::SKOLEM)
+      {
         if( d_symbol_map.find( n )==d_symbol_map.end() ){
           TypeNode tn = getOrCreateTypeForId( d_op_return_types[n], n.getType() );
           d_symbol_map[n] = getNewSymbol( n, tn );
         }
         ret = d_symbol_map[n];
-      }else if( n.isConst() ){
+      }
+      else if (n.isConst())
+      {
         //type is determined by context
         ret = getNewSymbol( n, tnn );
-      }else if( childChanged ){
+      }
+      else if (childChanged)
+      {
         ret = nm->mkNode(n.getKind(), children);
-      }else{
+      }
+      else
+      {
         ret = n;
       }
     }
@@ -804,11 +823,11 @@ Node SortInference::mkInjection( TypeNode tn1, TypeNode tn2 ) {
   Node v1 = nm->mkBoundVar("?x", tn1);
   Node v2 = nm->mkBoundVar("?y", tn1);
   Node ret =
-      nm->mkNode(kind::FORALL,
-                 nm->mkNode(kind::BOUND_VAR_LIST, v1, v2),
-                 nm->mkNode(kind::OR,
-                            nm->mkNode(kind::APPLY_UF, f, v1)
-                                .eqNode(nm->mkNode(kind::APPLY_UF, f, v2))
+      nm->mkNode(Kind::FORALL,
+                 nm->mkNode(Kind::BOUND_VAR_LIST, v1, v2),
+                 nm->mkNode(Kind::OR,
+                            nm->mkNode(Kind::APPLY_UF, f, v1)
+                                .eqNode(nm->mkNode(Kind::APPLY_UF, f, v2))
                                 .negate(),
                             v1.eqNode(v2)));
   ret = rewrite(ret);
@@ -816,7 +835,7 @@ Node SortInference::mkInjection( TypeNode tn1, TypeNode tn2 ) {
 }
 
 int SortInference::getSortId( Node n ) {
-  Node op = n.getKind()==kind::APPLY_UF ? n.getOperator() : n;
+  Node op = n.getKind() == Kind::APPLY_UF ? n.getOperator() : n;
   if( d_op_return_types.find( op )!=d_op_return_types.end() ){
     return d_type_union_find.getRepresentative( d_op_return_types[op] );
   }else{
@@ -887,7 +906,7 @@ bool SortInference::isMonotonic(TypeNode tn) const
 
 bool SortInference::isHandledApplyUf(Kind k) const
 {
-  return k == APPLY_UF && !logicInfo().isHigherOrder();
+  return k == Kind::APPLY_UF && !logicInfo().isHigherOrder();
 }
 
 }  // namespace theory

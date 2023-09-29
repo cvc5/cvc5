@@ -33,7 +33,7 @@ Node RewriteDbNodeConverter::postConvert(Node n)
 {
   Kind k = n.getKind();
   TypeNode tn = n.getType();
-  if (k == CONST_STRING)
+  if (k == Kind::CONST_STRING)
   {
     NodeManager* nm = NodeManager::currentNM();
     // "ABC" is (str.++ "A" "B" "C")
@@ -49,13 +49,13 @@ Node RewriteDbNodeConverter::postConvert(Node n)
       tmp.push_back(c);
       children.push_back(nm->mkConst(String(tmp)));
     }
-    return nm->mkNode(STRING_CONCAT, children);
+    return nm->mkNode(Kind::STRING_CONCAT, children);
   }
-  else if (k == CONST_SEQUENCE)
+  else if (k == Kind::CONST_SEQUENCE)
   {
     return theory::strings::utils::mkConcatForConstSequence(n);
   }
-  else if (k == CONST_BITVECTOR)
+  else if (k == Kind::CONST_BITVECTOR)
   {
     // (_ bv N M) is (bv N M)
     NodeManager* nm = NodeManager::currentNM();
@@ -63,7 +63,7 @@ Node RewriteDbNodeConverter::postConvert(Node n)
     children.push_back(
         nm->mkConstInt(Rational(n.getConst<BitVector>().toInteger())));
     children.push_back(nm->mkConstInt(Rational(theory::bv::utils::getSize(n))));
-    return nm->mkNode(CONST_BITVECTOR_SYMBOLIC, children);
+    return nm->mkNode(Kind::CONST_BITVECTOR_SYMBOLIC, children);
   }
   // convert indexed operators to symbolic
   if (GenericOp::isIndexedOperatorKind(k))
@@ -73,7 +73,7 @@ Node RewriteDbNodeConverter::postConvert(Node n)
         GenericOp::getIndicesForOperator(k, n.getOperator());
     indices.insert(indices.begin(), nm->mkConst(GenericOp(k)));
     indices.insert(indices.end(), n.begin(), n.end());
-    return nm->mkNode(APPLY_INDEXED_SYMBOLIC, indices);
+    return nm->mkNode(Kind::APPLY_INDEXED_SYMBOLIC, indices);
   }
 
   return n;
@@ -82,7 +82,7 @@ Node RewriteDbNodeConverter::postConvert(Node n)
 bool RewriteDbNodeConverter::shouldTraverse(Node n)
 {
   Kind k = n.getKind();
-  if (k == INST_PATTERN_LIST)
+  if (k == Kind::INST_PATTERN_LIST)
   {
     return false;
   }

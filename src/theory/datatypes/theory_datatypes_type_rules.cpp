@@ -50,7 +50,7 @@ TypeNode DatatypeConstructorTypeRule::computeType(NodeManager* nodeManager,
                                                   bool check,
                                                   std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::APPLY_CONSTRUCTOR);
+  Assert(n.getKind() == Kind::APPLY_CONSTRUCTOR);
   TypeNode consType = n.getOperator().getTypeOrNull();
   // note that datatype constructors cannot be abstracted
   if (!consType.isDatatypeConstructor())
@@ -134,7 +134,7 @@ TypeNode DatatypeConstructorTypeRule::computeType(NodeManager* nodeManager,
 bool DatatypeConstructorTypeRule::computeIsConst(NodeManager* nodeManager,
                                                  TNode n)
 {
-  Assert(n.getKind() == kind::APPLY_CONSTRUCTOR);
+  Assert(n.getKind() == Kind::APPLY_CONSTRUCTOR);
   for (TNode::const_iterator i = n.begin(); i != n.end(); ++i)
   {
     if (!(*i).isConst())
@@ -154,7 +154,7 @@ TypeNode DatatypeSelectorTypeRule::computeType(NodeManager* nodeManager,
                                                bool check,
                                                std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::APPLY_SELECTOR);
+  Assert(n.getKind() == Kind::APPLY_SELECTOR);
   TypeNode selType = n.getOperator().getTypeOrNull();
   TypeNode t = selType[0];
   Assert(t.isDatatype());
@@ -230,7 +230,7 @@ TypeNode DatatypeTesterTypeRule::computeType(NodeManager* nodeManager,
                                              bool check,
                                              std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::APPLY_TESTER);
+  Assert(n.getKind() == Kind::APPLY_TESTER);
   if (check)
   {
     if (n.getNumChildren() != 1)
@@ -286,7 +286,7 @@ TypeNode DatatypeUpdateTypeRule::computeType(NodeManager* nodeManager,
                                              bool check,
                                              std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::APPLY_UPDATER);
+  Assert(n.getKind() == Kind::APPLY_UPDATER);
   TypeNode updType = n.getOperator().getTypeOrNull();
   Assert(updType.getNumChildren() == 2);
   if (check)
@@ -335,14 +335,14 @@ TypeNode DatatypeAscriptionTypeRule::computeType(NodeManager* nodeManager,
                                                  std::ostream* errOut)
 {
   Trace("typecheck-idt") << "typechecking ascription: " << n << std::endl;
-  Assert(n.getKind() == kind::APPLY_TYPE_ASCRIPTION);
+  Assert(n.getKind() == Kind::APPLY_TYPE_ASCRIPTION);
   TypeNode t = n.getOperator().getConst<AscriptionType>().getType();
   if (check)
   {
     TypeNode childType = n[0].getTypeOrNull();
 
     TypeMatcher m;
-    if (childType.getKind() == kind::CONSTRUCTOR_TYPE)
+    if (childType.getKind() == Kind::CONSTRUCTOR_TYPE)
     {
       m.addTypesFromDatatype(childType.getDatatypeConstructorRangeType());
     }
@@ -508,7 +508,7 @@ TypeNode MatchTypeRule::computeType(NodeManager* nodeManager,
                                     bool check,
                                     std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::MATCH);
+  Assert(n.getKind() == Kind::MATCH);
 
   TypeNode retType;
 
@@ -531,15 +531,15 @@ TypeNode MatchTypeRule::computeType(NodeManager* nodeManager,
     Node nc = n[i];
     Kind nck = nc.getKind();
     std::unordered_set<Node> bvs;
-    if (nck == kind::MATCH_BIND_CASE)
+    if (nck == Kind::MATCH_BIND_CASE)
     {
       for (const Node& v : nc[0])
       {
-        Assert(v.getKind() == kind::BOUND_VARIABLE);
+        Assert(v.getKind() == Kind::BOUND_VARIABLE);
         bvs.insert(v);
       }
     }
-    else if (nck != kind::MATCH_CASE)
+    else if (nck != Kind::MATCH_CASE)
     {
       if (errOut)
       {
@@ -548,7 +548,7 @@ TypeNode MatchTypeRule::computeType(NodeManager* nodeManager,
       return TypeNode::null();
     }
     // get the pattern type
-    uint32_t pindex = nck == kind::MATCH_CASE ? 0 : 1;
+    uint32_t pindex = nck == Kind::MATCH_CASE ? 0 : 1;
     TypeNode patType = nc[pindex].getTypeOrNull();
     // should be caught in the above call
     if (!patType.isDatatype())
@@ -560,7 +560,7 @@ TypeNode MatchTypeRule::computeType(NodeManager* nodeManager,
       return TypeNode::null();
     }
     Kind ncpk = nc[pindex].getKind();
-    if (ncpk == kind::APPLY_CONSTRUCTOR)
+    if (ncpk == Kind::APPLY_CONSTRUCTOR)
     {
       for (const Node& arg : nc[pindex])
       {
@@ -578,7 +578,7 @@ TypeNode MatchTypeRule::computeType(NodeManager* nodeManager,
       size_t ci = utils::indexOf(nc[pindex].getOperator());
       patIndices.insert(ci);
     }
-    else if (ncpk == kind::BOUND_VARIABLE)
+    else if (ncpk == Kind::BOUND_VARIABLE)
     {
       patHasVariable = true;
     }
@@ -637,7 +637,7 @@ TypeNode MatchCaseTypeRule::computeType(NodeManager* nodeManager,
                                         bool check,
                                         std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::MATCH_CASE);
+  Assert(n.getKind() == Kind::MATCH_CASE);
   if (check)
   {
     TypeNode patType = n[0].getTypeOrNull();
@@ -662,10 +662,10 @@ TypeNode MatchBindCaseTypeRule::computeType(NodeManager* nodeManager,
                                             bool check,
                                             std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::MATCH_BIND_CASE);
+  Assert(n.getKind() == Kind::MATCH_BIND_CASE);
   if (check)
   {
-    if (n[0].getKind() != kind::BOUND_VAR_LIST)
+    if (n[0].getKind() != Kind::BOUND_VAR_LIST)
     {
       if (errOut)
       {
@@ -696,8 +696,8 @@ TypeNode TupleProjectTypeRule::computeType(NodeManager* nm,
                                            bool check,
                                            std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::TUPLE_PROJECT && n.hasOperator()
-         && n.getOperator().getKind() == kind::TUPLE_PROJECT_OP);
+  Assert(n.getKind() == Kind::TUPLE_PROJECT && n.hasOperator()
+         && n.getOperator().getKind() == Kind::TUPLE_PROJECT_OP);
   ProjectOp op = n.getOperator().getConst<ProjectOp>();
   const std::vector<uint32_t>& indices = op.getIndices();
   if (check)
@@ -712,7 +712,7 @@ TypeNode TupleProjectTypeRule::computeType(NodeManager* nm,
       return TypeNode::null();
     }
     TypeNode tupleType = n[0].getTypeOrNull();
-    if (!tupleType.isMaybeKind(kind::TUPLE_TYPE))
+    if (!tupleType.isMaybeKind(Kind::TUPLE_TYPE))
     {
       if (errOut)
       {

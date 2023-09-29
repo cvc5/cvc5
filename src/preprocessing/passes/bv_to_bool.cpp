@@ -98,12 +98,12 @@ bool BVToBool::hasBoolCache(TNode term) const
 bool BVToBool::isConvertibleBvAtom(TNode node)
 {
   Kind kind = node.getKind();
-  return (kind == kind::EQUAL && node[0].getType().isBitVector()
+  return (kind == Kind::EQUAL && node[0].getType().isBitVector()
           && node[0].getType().getBitVectorSize() == 1
           && node[1].getType().isBitVector()
           && node[1].getType().getBitVectorSize() == 1
-          && node[0].getKind() != kind::BITVECTOR_EXTRACT
-          && node[1].getKind() != kind::BITVECTOR_EXTRACT);
+          && node[0].getKind() != Kind::BITVECTOR_EXTRACT
+          && node[1].getKind() != Kind::BITVECTOR_EXTRACT);
 }
 
 bool BVToBool::isConvertibleBvTerm(TNode node)
@@ -113,10 +113,10 @@ bool BVToBool::isConvertibleBvTerm(TNode node)
 
   Kind kind = node.getKind();
 
-  if (kind == kind::CONST_BITVECTOR || kind == kind::ITE
-      || kind == kind::BITVECTOR_AND || kind == kind::BITVECTOR_OR
-      || kind == kind::BITVECTOR_NOT || kind == kind::BITVECTOR_XOR
-      || kind == kind::BITVECTOR_COMP)
+  if (kind == Kind::CONST_BITVECTOR || kind == Kind::ITE
+      || kind == Kind::BITVECTOR_AND || kind == Kind::BITVECTOR_OR
+      || kind == Kind::BITVECTOR_NOT || kind == Kind::BITVECTOR_XOR
+      || kind == Kind::BITVECTOR_COMP)
   {
     return true;
   }
@@ -126,12 +126,12 @@ bool BVToBool::isConvertibleBvTerm(TNode node)
 
 Node BVToBool::convertBvAtom(TNode node)
 {
-  Assert(node.getType().isBoolean() && node.getKind() == kind::EQUAL);
+  Assert(node.getType().isBoolean() && node.getKind() == Kind::EQUAL);
   Assert(bv::utils::getSize(node[0]) == 1);
   Assert(bv::utils::getSize(node[1]) == 1);
   Node a = convertBvTerm(node[0]);
   Node b = convertBvTerm(node[1]);
-  Node result = NodeManager::currentNM()->mkNode(kind::EQUAL, a, b);
+  Node result = NodeManager::currentNM()->mkNode(Kind::EQUAL, a, b);
   Trace("bv-to-bool") << "BVToBool::convertBvAtom " << node << " => " << result
                       << "\n";
 
@@ -151,7 +151,7 @@ Node BVToBool::convertBvTerm(TNode node)
   if (!isConvertibleBvTerm(node))
   {
     ++(d_statistics.d_numTermsForcedLifted);
-    Node result = nm->mkNode(kind::EQUAL, node, d_one);
+    Node result = nm->mkNode(Kind::EQUAL, node, d_one);
     addToBoolCache(node, result);
     Trace("bv-to-bool") << "BVToBool::convertBvTerm " << node << " => "
                         << result << "\n";
@@ -160,7 +160,7 @@ Node BVToBool::convertBvTerm(TNode node)
 
   if (node.getNumChildren() == 0)
   {
-    Assert(node.getKind() == kind::CONST_BITVECTOR);
+    Assert(node.getKind() == Kind::CONST_BITVECTOR);
     Node result = node == d_one ? bv::utils::mkTrue() : bv::utils::mkFalse();
     // addToCache(node, result);
     Trace("bv-to-bool") << "BVToBool::convertBvTerm " << node << " => "
@@ -171,12 +171,12 @@ Node BVToBool::convertBvTerm(TNode node)
   ++(d_statistics.d_numTermsLifted);
 
   Kind kind = node.getKind();
-  if (kind == kind::ITE)
+  if (kind == Kind::ITE)
   {
     Node cond = liftNode(node[0]);
     Node true_branch = convertBvTerm(node[1]);
     Node false_branch = convertBvTerm(node[2]);
-    Node result = nm->mkNode(kind::ITE, cond, true_branch, false_branch);
+    Node result = nm->mkNode(Kind::ITE, cond, true_branch, false_branch);
     addToBoolCache(node, result);
     Trace("bv-to-bool") << "BVToBool::convertBvTerm " << node << " => "
                         << result << "\n";
@@ -186,23 +186,23 @@ Node BVToBool::convertBvTerm(TNode node)
   Kind new_kind;
   // special case for XOR as it has to be binary
   // while BITVECTOR_XOR can be n-ary
-  if (kind == kind::BITVECTOR_XOR)
+  if (kind == Kind::BITVECTOR_XOR)
   {
-    new_kind = kind::XOR;
+    new_kind = Kind::XOR;
     Node result = convertBvTerm(node[0]);
     for (unsigned i = 1; i < node.getNumChildren(); ++i)
     {
       Node converted = convertBvTerm(node[i]);
-      result = nm->mkNode(kind::XOR, result, converted);
+      result = nm->mkNode(Kind::XOR, result, converted);
     }
     Trace("bv-to-bool") << "BVToBool::convertBvTerm " << node << " => "
                         << result << "\n";
     return result;
   }
 
-  if (kind == kind::BITVECTOR_COMP)
+  if (kind == Kind::BITVECTOR_COMP)
   {
-    Node result = nm->mkNode(kind::EQUAL, node[0], node[1]);
+    Node result = nm->mkNode(Kind::EQUAL, node[0], node[1]);
     addToBoolCache(node, result);
     Trace("bv-to-bool") << "BVToBool::convertBvTerm " << node << " => "
                         << result << "\n";
@@ -211,9 +211,9 @@ Node BVToBool::convertBvTerm(TNode node)
 
   switch (kind)
   {
-    case kind::BITVECTOR_OR: new_kind = kind::OR; break;
-    case kind::BITVECTOR_AND: new_kind = kind::AND; break;
-    case kind::BITVECTOR_NOT: new_kind = kind::NOT; break;
+    case Kind::BITVECTOR_OR: new_kind = Kind::OR; break;
+    case Kind::BITVECTOR_AND: new_kind = Kind::AND; break;
+    case Kind::BITVECTOR_NOT: new_kind = Kind::NOT; break;
     default: Unhandled();
   }
 

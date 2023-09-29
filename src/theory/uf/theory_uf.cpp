@@ -89,7 +89,7 @@ bool TheoryUF::needsEqualityEngine(EeSetupInfo& esi)
 void TheoryUF::finishInit() {
   Assert(d_equalityEngine != nullptr);
   // combined cardinality constraints are not evaluated in getModelValue
-  d_valuation.setUnevaluatedKind(kind::COMBINED_CARDINALITY_CONSTRAINT);
+  d_valuation.setUnevaluatedKind(Kind::COMBINED_CARDINALITY_CONSTRAINT);
   // Initialize the cardinality constraints solver if the logic includes UF,
   // finite model finding is enabled, and it is not disabled by
   // the ufssMode option.
@@ -100,15 +100,15 @@ void TheoryUF::finishInit() {
   }
   // The kinds we are treating as function application in congruence
   bool isHo = logicInfo().isHigherOrder();
-  d_equalityEngine->addFunctionKind(kind::APPLY_UF, false, isHo);
+  d_equalityEngine->addFunctionKind(Kind::APPLY_UF, false, isHo);
   if (isHo)
   {
-    d_equalityEngine->addFunctionKind(kind::HO_APPLY);
+    d_equalityEngine->addFunctionKind(Kind::HO_APPLY);
     d_ho.reset(new HoExtension(d_env, d_state, d_im, *d_lambdaLift.get()));
   }
   // conversion kinds
-  d_equalityEngine->addFunctionKind(kind::INT_TO_BITVECTOR, true);
-  d_equalityEngine->addFunctionKind(kind::BITVECTOR_TO_NAT, true);
+  d_equalityEngine->addFunctionKind(Kind::INT_TO_BITVECTOR, true);
+  d_equalityEngine->addFunctionKind(Kind::BITVECTOR_TO_NAT, true);
 }
 
 //--------------------------------- standard check
@@ -160,7 +160,7 @@ void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
   }
   switch (atom.getKind())
   {
-    case kind::EQUAL:
+    case Kind::EQUAL:
     {
       if (logicInfo().isHigherOrder() && options().uf.ufHoExt)
       {
@@ -172,8 +172,8 @@ void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
       }
     }
     break;
-    case kind::CARDINALITY_CONSTRAINT:
-    case kind::COMBINED_CARDINALITY_CONSTRAINT:
+    case Kind::CARDINALITY_CONSTRAINT:
+    case Kind::COMBINED_CARDINALITY_CONSTRAINT:
     {
       if (d_thss == nullptr)
       {
@@ -210,12 +210,12 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
     ss << "Cannot process term of abstract type " << node;
     throw LogicException(ss.str());
   }
-  if (k == kind::HO_APPLY || node.getType().isFunction())
+  if (k == Kind::HO_APPLY || node.getType().isFunction())
   {
     if (!isHol)
     {
       std::stringstream ss;
-      if (k == kind::HO_APPLY)
+      if (k == Kind::HO_APPLY)
       {
         ss << "Partial function applications";
       }
@@ -228,7 +228,7 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
       throw LogicException(ss.str());
     }
   }
-  else if (k == kind::APPLY_UF)
+  else if (k == Kind::APPLY_UF)
   {
     if (!isHol && isHigherOrderType(node.getOperator().getType()))
     {
@@ -242,11 +242,11 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
       throw LogicException(ss.str());
     }
   }
-  else if ((k == kind::BITVECTOR_TO_NAT || k == kind::INT_TO_BITVECTOR)
+  else if ((k == Kind::BITVECTOR_TO_NAT || k == Kind::INT_TO_BITVECTOR)
            && options().uf.eagerArithBvConv)
   {
     // eliminate if option specifies to eliminate eagerly
-    Node ret = k == kind::BITVECTOR_TO_NAT ? arith::eliminateBv2Nat(node)
+    Node ret = k == Kind::BITVECTOR_TO_NAT ? arith::eliminateBv2Nat(node)
                                            : arith::eliminateInt2Bv(node);
     return TrustNode::mkTrustRewrite(node, ret);
   }
@@ -273,17 +273,17 @@ void TheoryUF::preRegisterTerm(TNode node)
   }
 
   // we always use APPLY_UF if not higher-order, HO_APPLY if higher-order
-  Assert(node.getKind() != kind::HO_APPLY || logicInfo().isHigherOrder());
+  Assert(node.getKind() != Kind::HO_APPLY || logicInfo().isHigherOrder());
 
   Kind k = node.getKind();
   switch (k)
   {
-    case kind::EQUAL:
+    case Kind::EQUAL:
       // Add the trigger for equality
       d_state.addEqualityEngineTriggerPredicate(node);
       break;
-    case kind::APPLY_UF:
-    case kind::HO_APPLY:
+    case Kind::APPLY_UF:
+    case Kind::HO_APPLY:
     {
       // Maybe it's a predicate
       if (node.getType().isBoolean())
@@ -299,8 +299,8 @@ void TheoryUF::preRegisterTerm(TNode node)
       d_functionsTerms.push_back(node);
     }
     break;
-    case kind::INT_TO_BITVECTOR:
-    case kind::BITVECTOR_TO_NAT:
+    case Kind::INT_TO_BITVECTOR:
+    case Kind::BITVECTOR_TO_NAT:
     {
       Assert(!options().uf.eagerArithBvConv);
       d_equalityEngine->addTerm(node);
@@ -314,11 +314,11 @@ void TheoryUF::preRegisterTerm(TNode node)
       d_csolver->preRegisterTerm(node);
     }
     break;
-    case kind::CARDINALITY_CONSTRAINT:
-    case kind::COMBINED_CARDINALITY_CONSTRAINT:
+    case Kind::CARDINALITY_CONSTRAINT:
+    case Kind::COMBINED_CARDINALITY_CONSTRAINT:
       // do nothing
       break;
-    case kind::UNINTERPRETED_SORT_VALUE:
+    case Kind::UNINTERPRETED_SORT_VALUE:
     {
       // Uninterpreted sort values should only appear in models, and should
       // never appear in constraints. They are unallowed to ever appear in
@@ -357,9 +357,9 @@ void TheoryUF::explain(TNode literal, Node& exp)
   Trace("uf") << "TheoryUF::explain(" << literal << ")" << std::endl;
   std::vector<TNode> assumptions;
   // Do the work
-  bool polarity = literal.getKind() != kind::NOT;
+  bool polarity = literal.getKind() != Kind::NOT;
   TNode atom = polarity ? literal : literal[0];
-  if (atom.getKind() == kind::EQUAL)
+  if (atom.getKind() == Kind::EQUAL)
   {
     d_equalityEngine->explainEquality(
         atom[0], atom[1], polarity, assumptions, nullptr);
@@ -457,13 +457,14 @@ void TheoryUF::ppStaticLearn(TNode n, NodeBuilder& learned)
                       << n << endl;
 
     // binary OR of binary ANDs of EQUALities
-    if(n.getKind() == kind::OR && n.getNumChildren() == 2 &&
-       n[0].getKind() == kind::AND && n[0].getNumChildren() == 2 &&
-       n[1].getKind() == kind::AND && n[1].getNumChildren() == 2 &&
-       (n[0][0].getKind() == kind::EQUAL) &&
-       (n[0][1].getKind() == kind::EQUAL) &&
-       (n[1][0].getKind() == kind::EQUAL) &&
-       (n[1][1].getKind() == kind::EQUAL)) {
+    if (n.getKind() == Kind::OR && n.getNumChildren() == 2
+        && n[0].getKind() == Kind::AND && n[0].getNumChildren() == 2
+        && n[1].getKind() == Kind::AND && n[1].getNumChildren() == 2
+        && (n[0][0].getKind() == Kind::EQUAL)
+        && (n[0][1].getKind() == Kind::EQUAL)
+        && (n[1][0].getKind() == Kind::EQUAL)
+        && (n[1][1].getKind() == Kind::EQUAL))
+    {
       // now we have (a = b && c = d) || (e = f && g = h)
 
       Trace("diamonds") << "has form of a diamond!" << endl;
@@ -629,7 +630,7 @@ void TheoryUF::computeCareGraph() {
       Trace("uf::sharing-terms")
           << "...add: " << app << " / " << reps << std::endl;
       Kind k = app.getKind();
-      if (k == kind::APPLY_UF)
+      if (k == Kind::APPLY_UF)
       {
         Node op = app.getOperator();
         index[op].addTerm(app, reps);
@@ -647,7 +648,7 @@ void TheoryUF::computeCareGraph() {
           Node curr = op;
           for (const Node& c : app)
           {
-            Node happ = nm->mkNode(kind::HO_APPLY, curr, c);
+            Node happ = nm->mkNode(Kind::HO_APPLY, curr, c);
             Assert(curr.getType().isFunction());
             typeIndex[curr.getType()].addTerm(happ, {curr, c});
             curr = happ;
@@ -655,7 +656,7 @@ void TheoryUF::computeCareGraph() {
           }
         }
       }
-      else if (k == kind::HO_APPLY || k == kind::BITVECTOR_TO_NAT)
+      else if (k == Kind::HO_APPLY || k == Kind::BITVECTOR_TO_NAT)
       {
         // add it to the typeIndex for the function type if HO_APPLY, or the
         // bitvector type if bv2nat. The latter ensures that we compute

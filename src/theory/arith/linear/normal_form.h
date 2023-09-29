@@ -51,7 +51,7 @@ namespace arith::linear {
  *
  * constant := n
  *   where
- *     n.getKind() == kind::CONST_RATIONAL
+ *     n.getKind() == Kind::CONST_RATIONAL
  *
  * var_list := variable | (* [variable])
  *   where
@@ -231,33 +231,33 @@ public:
    Kind k = n.getKind();
    switch (k)
    {
-     case kind::CONST_INTEGER:
-     case kind::CONST_RATIONAL: return false;
-     case kind::INTS_DIVISION:
-     case kind::INTS_MODULUS:
-     case kind::DIVISION:
-     case kind::INTS_DIVISION_TOTAL:
-     case kind::INTS_MODULUS_TOTAL:
-     case kind::DIVISION_TOTAL: return isDivMember(n);
-     case kind::IAND:
-     case kind::POW2:
-     case kind::EXPONENTIAL:
-     case kind::SINE:
-     case kind::COSINE:
-     case kind::TANGENT:
-     case kind::COSECANT:
-     case kind::SECANT:
-     case kind::COTANGENT:
-     case kind::ARCSINE:
-     case kind::ARCCOSINE:
-     case kind::ARCTANGENT:
-     case kind::ARCCOSECANT:
-     case kind::ARCSECANT:
-     case kind::ARCCOTANGENT:
-     case kind::SQRT:
-     case kind::PI: return areChildrenPolynomialMembers(n);
-     case kind::ABS:
-     case kind::TO_INTEGER:
+     case Kind::CONST_INTEGER:
+     case Kind::CONST_RATIONAL: return false;
+     case Kind::INTS_DIVISION:
+     case Kind::INTS_MODULUS:
+     case Kind::DIVISION:
+     case Kind::INTS_DIVISION_TOTAL:
+     case Kind::INTS_MODULUS_TOTAL:
+     case Kind::DIVISION_TOTAL: return isDivMember(n);
+     case Kind::IAND:
+     case Kind::POW2:
+     case Kind::EXPONENTIAL:
+     case Kind::SINE:
+     case Kind::COSINE:
+     case Kind::TANGENT:
+     case Kind::COSECANT:
+     case Kind::SECANT:
+     case Kind::COTANGENT:
+     case Kind::ARCSINE:
+     case Kind::ARCCOSINE:
+     case Kind::ARCTANGENT:
+     case Kind::ARCCOSECANT:
+     case Kind::ARCSECANT:
+     case Kind::ARCCOTANGENT:
+     case Kind::SQRT:
+     case Kind::PI: return areChildrenPolynomialMembers(n);
+     case Kind::ABS:
+     case Kind::TO_INTEGER:
        // Treat to_int as a variable; it is replaced in early preprocessing
        // by a variable.
        return true;
@@ -352,15 +352,15 @@ public:
  static bool isMember(Node n)
  {
    Kind k = n.getKind();
-   return k == kind::CONST_RATIONAL || k == kind::CONST_INTEGER;
+   return k == Kind::CONST_RATIONAL || k == Kind::CONST_INTEGER;
  }
 
  bool isNormalForm() { return isMember(getNode()); }
 
  static Constant mkConstant(Node n)
  {
-   Assert(n.getKind() == kind::CONST_RATIONAL
-          || n.getKind() == kind::CONST_INTEGER);
+   Assert(n.getKind() == Kind::CONST_RATIONAL
+          || n.getKind() == Kind::CONST_INTEGER);
    return Constant(n);
  }
 
@@ -458,7 +458,7 @@ private:
   static Node multList(const std::vector<Variable>& list) {
     Assert(list.size() >= 2);
 
-    return makeNode(kind::NONLINEAR_MULT, list.begin(), list.end());
+    return makeNode(Kind::NONLINEAR_MULT, list.begin(), list.end());
   }
 
   VarList() : NodeWrapper(Node::null()) {}
@@ -579,7 +579,7 @@ public:
 
   bool empty() const { return getNode().isNull(); }
   bool singleton() const {
-    return !empty() && getNode().getKind() != kind::NONLINEAR_MULT;
+    return !empty() && getNode().getKind() != Kind::NONLINEAR_MULT;
   }
 
   int size() const {
@@ -633,11 +633,12 @@ private:
     Assert(!c.isZero());
     Assert(!c.isOne());
     Assert(!vl.empty());
-    return NodeManager::currentNM()->mkNode(kind::MULT, c.getNode(), vl.getNode());
+    return NodeManager::currentNM()->mkNode(
+        Kind::MULT, c.getNode(), vl.getNode());
   }
 
   static bool multStructured(Node n) {
-    return n.getKind() == kind::MULT && n[0].isConst()
+    return n.getKind() == Kind::MULT && n[0].isConst()
            && n.getNumChildren() == 2;
   }
 
@@ -802,7 +803,7 @@ private:
   static Node makePlusNode(const std::vector<Monomial>& m) {
     Assert(m.size() >= 2);
 
-    return makeNode(kind::ADD, m.begin(), m.end());
+    return makeNode(Kind::ADD, m.begin(), m.end());
   }
 
   typedef expr::NodeSelfIterator internal_iterator;
@@ -911,7 +912,7 @@ public:
   static Polynomial parsePolynomial(Node n)
   {
     // required to remove TO_REAL here since equalities may require casts
-    n = n.getKind() == kind::TO_REAL ? n[0] : n;
+    n = n.getKind() == Kind::TO_REAL ? n[0] : n;
     return Polynomial(n);
   }
 
@@ -937,7 +938,7 @@ public:
     if(singleton()){
       return 1;
     }else{
-      Assert(getNode().getKind() == kind::ADD);
+      Assert(getNode().getKind() == Kind::ADD);
       return getNode().getNumChildren();
     }
   }
@@ -1094,7 +1095,7 @@ public:
   }
 
   uint32_t numMonomials() const {
-    if (getNode().getKind() == kind::ADD)
+    if (getNode().getKind() == Kind::ADD)
     {
       return getNode().getNumChildren();
     }
@@ -1156,7 +1157,7 @@ class SumPair : public NodeWrapper {
 private:
   static Node toNode(const Polynomial& p, const Constant& c){
     return NodeManager::currentNM()->mkNode(
-        kind::ADD, p.getNode(), c.getNode());
+        Kind::ADD, p.getNode(), c.getNode());
   }
 
   SumPair(TNode n) : NodeWrapper(n) { Assert(isNormalForm()); }
@@ -1175,7 +1176,7 @@ private:
   }
 
   static bool isMember(TNode n) {
-    if (n.getKind() == kind::ADD && n.getNumChildren() == 2)
+    if (n.getKind() == Kind::ADD && n.getNumChildren() == 2)
     {
       if(Constant::isMember(n[1])){
         if(Polynomial::isMember(n[0])){

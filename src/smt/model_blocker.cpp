@@ -50,13 +50,13 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
     {
       Node cur = tlAsserts[counter];
       counter++;
-      Node catom = cur.getKind() == NOT ? cur[0] : cur;
-      bool cpol = cur.getKind() != NOT;
-      if (catom.getKind() == NOT)
+      Node catom = cur.getKind() == Kind::NOT ? cur[0] : cur;
+      bool cpol = cur.getKind() != Kind::NOT;
+      if (catom.getKind() == Kind::NOT)
       {
         tlAsserts.push_back(catom[0]);
       }
-      else if (catom.getKind() == AND && cpol)
+      else if (catom.getKind() == Kind::AND && cpol)
       {
         tlAsserts.insert(tlAsserts.end(), catom.begin(), catom.end());
       }
@@ -74,7 +74,8 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
       return blockTriv;
     }
 
-    Node formula = asserts.size() > 1 ? nm->mkNode(AND, asserts) : asserts[0];
+    Node formula =
+        asserts.size() > 1 ? nm->mkNode(Kind::AND, asserts) : asserts[0];
     std::unordered_map<TNode, Node> visited;
     std::unordered_map<TNode, Node> implicant;
     std::unordered_map<TNode, Node>::iterator it;
@@ -92,20 +93,20 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
       if (it == visited.end())
       {
         visited[cur] = Node::null();
-        Node catom = cur.getKind() == NOT ? cur[0] : cur;
-        bool cpol = cur.getKind() != NOT;
+        Node catom = cur.getKind() == Kind::NOT ? cur[0] : cur;
+        bool cpol = cur.getKind() != Kind::NOT;
         // compute the implicant
         // impl is a formula that implies cur that is also satisfied by m
         Node impl;
-        if (catom.getKind() == NOT)
+        if (catom.getKind() == Kind::NOT)
         {
           // double negation
           impl = catom[0];
         }
-        else if (catom.getKind() == OR || catom.getKind() == AND)
+        else if (catom.getKind() == Kind::OR || catom.getKind() == Kind::AND)
         {
           // if disjunctive
-          if ((catom.getKind() == OR) == cpol)
+          if ((catom.getKind() == Kind::OR) == cpol)
           {
             // take the first literal that is satisfied
             for (Node n : catom)
@@ -126,7 +127,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
               visited[cur] = cur;
             }
           }
-          else if (catom.getKind() == OR)
+          else if (catom.getKind() == Kind::OR)
           {
             // one step NNF
             std::vector<Node> children;
@@ -134,10 +135,10 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
             {
               children.push_back(cn.negate());
             }
-            impl = nm->mkNode(AND, children);
+            impl = nm->mkNode(Kind::AND, children);
           }
         }
-        else if (catom.getKind() == ITE)
+        else if (catom.getKind() == Kind::ITE)
         {
           Node vcond = m->getValue(catom[0]);
           if (vcond.isConst())
@@ -153,7 +154,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
               cond = cond.negate();
               branch = catom[2];
             }
-            impl = nm->mkNode(AND, cond, cpol ? branch : branch.negate());
+            impl = nm->mkNode(Kind::AND, cond, cpol ? branch : branch.negate());
           }
           else
           {
@@ -161,8 +162,9 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
             visited[cur] = cur;
           }
         }
-        else if ((catom.getKind() == EQUAL && catom[0].getType().isBoolean())
-                 || catom.getKind() == XOR)
+        else if ((catom.getKind() == Kind::EQUAL
+                  && catom[0].getType().isBoolean())
+                 || catom.getKind() == Kind::XOR)
         {
           // based on how the children evaluate in the model
           std::vector<Node> children;
@@ -179,7 +181,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
           }
           if (success)
           {
-            impl = nm->mkNode(AND, children);
+            impl = nm->mkNode(Kind::AND, children);
           }
           else
           {
@@ -198,7 +200,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
           visit.push_back(cur);
           if (impl.isNull())
           {
-            Assert(cur.getKind() == AND);
+            Assert(cur.getKind() == Kind::AND);
             Trace("model-blocker-debug") << "...recurse" << std::endl;
             visit.insert(visit.end(), cur.begin(), cur.end());
           }
@@ -275,7 +277,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
           continue;
         }
         if (!logicInfo().isHigherOrder()
-            && s.getType().getKind() == kind::FUNCTION_TYPE)
+            && s.getType().getKind() == Kind::FUNCTION_TYPE)
         {
           // ignore functions if not higher-order
           continue;

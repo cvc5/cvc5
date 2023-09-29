@@ -59,7 +59,7 @@ TypeNode FiniteFieldFixedFieldTypeRule::computeType(NodeManager* nodeManager,
     TypeNode tc = nc.getType(check);
     if (check)
     {
-      if (!tc.isMaybeKind(kind::FINITE_FIELD_TYPE))
+      if (!tc.isMaybeKind(Kind::FINITE_FIELD_TYPE))
       {
         if (errOut)
         {
@@ -88,7 +88,7 @@ TypeNode FiniteFieldFixedFieldTypeRule::computeType(NodeManager* nodeManager,
   // field type
   if (t.isFullyAbstract())
   {
-    return nodeManager->mkAbstractType(kind::FINITE_FIELD_TYPE);
+    return nodeManager->mkAbstractType(Kind::FINITE_FIELD_TYPE);
   }
   return t;
 }

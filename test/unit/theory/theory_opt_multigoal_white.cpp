@@ -49,10 +49,10 @@ TEST_F(TestTheoryWhiteOptMultigoal, box)
 
   // 18 <= x
   d_slvEngine->assertFormula(d_nodeManager->mkNode(
-      kind::BITVECTOR_ULE, d_nodeManager->mkConst(BitVector(32u, 18u)), x));
+      Kind::BITVECTOR_ULE, d_nodeManager->mkConst(BitVector(32u, 18u)), x));
 
   // y <= x
-  d_slvEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, y, x));
+  d_slvEngine->assertFormula(d_nodeManager->mkNode(Kind::BITVECTOR_SLE, y, x));
 
   OptimizationSolver optSolver(d_slvEngine.get());
 
@@ -91,10 +91,10 @@ TEST_F(TestTheoryWhiteOptMultigoal, lex)
 
   // 18 <= x
   d_slvEngine->assertFormula(d_nodeManager->mkNode(
-      kind::BITVECTOR_ULE, d_nodeManager->mkConst(BitVector(32u, 18u)), x));
+      Kind::BITVECTOR_ULE, d_nodeManager->mkConst(BitVector(32u, 18u)), x));
 
   // y <= x
-  d_slvEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, y, x));
+  d_slvEngine->assertFormula(d_nodeManager->mkNode(Kind::BITVECTOR_SLE, y, x));
 
   OptimizationSolver optSolver(d_slvEngine.get());
 
@@ -135,29 +135,29 @@ TEST_F(TestTheoryWhiteOptMultigoal, pareto)
 
   std::vector<Node> stmts = {
       // (and (= a 1) (= b 1))
-      d_nodeManager->mkNode(kind::AND,
-                            d_nodeManager->mkNode(kind::EQUAL, a, bv1),
-                            d_nodeManager->mkNode(kind::EQUAL, b, bv1)),
+      d_nodeManager->mkNode(Kind::AND,
+                            d_nodeManager->mkNode(Kind::EQUAL, a, bv1),
+                            d_nodeManager->mkNode(Kind::EQUAL, b, bv1)),
       // (and (= a 2) (= b 1))
-      d_nodeManager->mkNode(kind::AND,
-                            d_nodeManager->mkNode(kind::EQUAL, a, bv2),
-                            d_nodeManager->mkNode(kind::EQUAL, b, bv1)),
+      d_nodeManager->mkNode(Kind::AND,
+                            d_nodeManager->mkNode(Kind::EQUAL, a, bv2),
+                            d_nodeManager->mkNode(Kind::EQUAL, b, bv1)),
       // (and (= a 1) (= b 2))
-      d_nodeManager->mkNode(kind::AND,
-                            d_nodeManager->mkNode(kind::EQUAL, a, bv1),
-                            d_nodeManager->mkNode(kind::EQUAL, b, bv2)),
+      d_nodeManager->mkNode(Kind::AND,
+                            d_nodeManager->mkNode(Kind::EQUAL, a, bv1),
+                            d_nodeManager->mkNode(Kind::EQUAL, b, bv2)),
       // (and (= a 2) (= b 2))
-      d_nodeManager->mkNode(kind::AND,
-                            d_nodeManager->mkNode(kind::EQUAL, a, bv2),
-                            d_nodeManager->mkNode(kind::EQUAL, b, bv2)),
+      d_nodeManager->mkNode(Kind::AND,
+                            d_nodeManager->mkNode(Kind::EQUAL, a, bv2),
+                            d_nodeManager->mkNode(Kind::EQUAL, b, bv2)),
       // (and (= a 3) (= b 1))
-      d_nodeManager->mkNode(kind::AND,
-                            d_nodeManager->mkNode(kind::EQUAL, a, bv3),
-                            d_nodeManager->mkNode(kind::EQUAL, b, bv1)),
+      d_nodeManager->mkNode(Kind::AND,
+                            d_nodeManager->mkNode(Kind::EQUAL, a, bv3),
+                            d_nodeManager->mkNode(Kind::EQUAL, b, bv1)),
       // (and (= a 1) (= b 3))
-      d_nodeManager->mkNode(kind::AND,
-                            d_nodeManager->mkNode(kind::EQUAL, a, bv1),
-                            d_nodeManager->mkNode(kind::EQUAL, b, bv3)),
+      d_nodeManager->mkNode(Kind::AND,
+                            d_nodeManager->mkNode(Kind::EQUAL, a, bv1),
+                            d_nodeManager->mkNode(Kind::EQUAL, b, bv3)),
   };
   /*
   (assert (or
@@ -244,10 +244,10 @@ TEST_F(TestTheoryWhiteOptMultigoal, pushpop)
 
   // 18 <= x
   d_slvEngine->assertFormula(d_nodeManager->mkNode(
-      kind::BITVECTOR_ULE, d_nodeManager->mkConst(BitVector(32u, 18u)), x));
+      Kind::BITVECTOR_ULE, d_nodeManager->mkConst(BitVector(32u, 18u)), x));
 
   // y <= x
-  d_slvEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, y, x));
+  d_slvEngine->assertFormula(d_nodeManager->mkNode(Kind::BITVECTOR_SLE, y, x));
 
   OptimizationSolver optSolver(d_slvEngine.get());
 

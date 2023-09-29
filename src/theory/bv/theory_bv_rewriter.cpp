@@ -45,7 +45,7 @@ RewriteResponse TheoryBVRewriter::postRewrite(TNode node) {
       return RewriteResponse(REWRITE_DONE, node);
     }
   }
-  RewriteResponse res = d_rewriteTable[node.getKind()](node, false);
+  RewriteResponse res = d_rewriteTable[static_cast<uint32_t>(node.getKind())](node, false);
   if (res.d_node != node)
   {
     Trace("bitvector-rewrite")
@@ -254,7 +254,7 @@ RewriteResponse TheoryBVRewriter::RewriteConcat(TNode node, bool prerewrite)
       // Merge the adjacent extracts on non-constants
       RewriteRule<ConcatExtractMerge>,
       // Remove extracts that have no effect
-      ApplyRuleToChildren<kind::BITVECTOR_CONCAT, ExtractWhole>,
+      ApplyRuleToChildren<Kind::BITVECTOR_CONCAT, ExtractWhole>,
       // Merge the adjacent extracts on constants
       RewriteRule<ConcatConstantMerge>>::apply(node);
 
@@ -721,62 +721,69 @@ RewriteResponse TheoryBVRewriter::UndefinedRewrite(TNode node, bool prerewrite) 
   Unimplemented();
 }
 
-void TheoryBVRewriter::initializeRewrites() {
-
-  for(unsigned i = 0; i < kind::LAST_KIND; ++i) {
+void TheoryBVRewriter::initializeRewrites()
+{
+  for (unsigned i = 0; i < static_cast<uint32_t>(Kind::LAST_KIND); ++i)
+  {
     d_rewriteTable[i] = IdentityRewrite; //UndefinedRewrite;
   }
 
-  d_rewriteTable [ kind::EQUAL ] = RewriteEqual;
-  d_rewriteTable[kind::BITVECTOR_BITOF] = RewriteBitOf;
-  d_rewriteTable [ kind::BITVECTOR_ULT ] = RewriteUlt;
-  d_rewriteTable [ kind::BITVECTOR_SLT ] = RewriteSlt;
-  d_rewriteTable [ kind::BITVECTOR_ULE ] = RewriteUle;
-  d_rewriteTable [ kind::BITVECTOR_SLE ] = RewriteSle;
-  d_rewriteTable [ kind::BITVECTOR_UGT ] = RewriteUgt;
-  d_rewriteTable [ kind::BITVECTOR_SGT ] = RewriteSgt;
-  d_rewriteTable [ kind::BITVECTOR_UGE ] = RewriteUge;
-  d_rewriteTable [ kind::BITVECTOR_SGE ] = RewriteSge;
-  d_rewriteTable [ kind::BITVECTOR_NOT ] = RewriteNot;
-  d_rewriteTable [ kind::BITVECTOR_CONCAT ] = RewriteConcat;
-  d_rewriteTable [ kind::BITVECTOR_AND ] = RewriteAnd;
-  d_rewriteTable [ kind::BITVECTOR_OR ] = RewriteOr;
-  d_rewriteTable [ kind::BITVECTOR_XOR] = RewriteXor;
-  d_rewriteTable [ kind::BITVECTOR_XNOR ] = RewriteXnor;
-  d_rewriteTable [ kind::BITVECTOR_NAND ] = RewriteNand;
-  d_rewriteTable [ kind::BITVECTOR_NOR ] = RewriteNor;
-  d_rewriteTable [ kind::BITVECTOR_COMP ] = RewriteComp;
-  d_rewriteTable[kind::BITVECTOR_MULT] = RewriteMult;
-  d_rewriteTable[kind::BITVECTOR_ADD] = RewriteAdd;
-  d_rewriteTable [ kind::BITVECTOR_SUB ] = RewriteSub;
-  d_rewriteTable [ kind::BITVECTOR_NEG ] = RewriteNeg;
-  d_rewriteTable [ kind::BITVECTOR_UDIV ] = RewriteUdiv;
-  d_rewriteTable [ kind::BITVECTOR_UREM ] = RewriteUrem;
-  d_rewriteTable [ kind::BITVECTOR_SMOD ] = RewriteSmod;
-  d_rewriteTable [ kind::BITVECTOR_SDIV ] = RewriteSdiv;
-  d_rewriteTable [ kind::BITVECTOR_SREM ] = RewriteSrem;
-  d_rewriteTable [ kind::BITVECTOR_SHL ] = RewriteShl;
-  d_rewriteTable [ kind::BITVECTOR_LSHR ] = RewriteLshr;
-  d_rewriteTable [ kind::BITVECTOR_ASHR ] = RewriteAshr;
-  d_rewriteTable [ kind::BITVECTOR_EXTRACT ] = RewriteExtract;
-  d_rewriteTable [ kind::BITVECTOR_REPEAT ] = RewriteRepeat;
-  d_rewriteTable [ kind::BITVECTOR_ZERO_EXTEND ] = RewriteZeroExtend;
-  d_rewriteTable [ kind::BITVECTOR_SIGN_EXTEND ] = RewriteSignExtend;
-  d_rewriteTable [ kind::BITVECTOR_ROTATE_RIGHT ] = RewriteRotateRight;
-  d_rewriteTable [ kind::BITVECTOR_ROTATE_LEFT ] = RewriteRotateLeft;
-  d_rewriteTable [ kind::BITVECTOR_REDOR ] = RewriteRedor;
-  d_rewriteTable [ kind::BITVECTOR_REDAND ] = RewriteRedand;
-  d_rewriteTable [ kind::BITVECTOR_ULTBV ] = RewriteUltBv;
-  d_rewriteTable [ kind::BITVECTOR_SLTBV ] = RewriteSltBv;
-  d_rewriteTable [ kind::BITVECTOR_ITE ] = RewriteITEBv;
-  d_rewriteTable[kind::BITVECTOR_UADDO] = RewriteUaddo;
-  d_rewriteTable[kind::BITVECTOR_SADDO] = RewriteSaddo;
-  d_rewriteTable[kind::BITVECTOR_UMULO] = RewriteUmulo;
-  d_rewriteTable[kind::BITVECTOR_SMULO] = RewriteSmulo;
-  d_rewriteTable[kind::BITVECTOR_USUBO] = RewriteUsubo;
-  d_rewriteTable[kind::BITVECTOR_SSUBO] = RewriteSsubo;
-  d_rewriteTable[kind::BITVECTOR_SDIVO] = RewriteSdivo;
-  d_rewriteTable[kind::BITVECTOR_EAGER_ATOM] = RewriteEagerAtom;
-  d_rewriteTable[kind::BITVECTOR_SIZE] = RewriteSize;
-  d_rewriteTable[kind::CONST_BITVECTOR_SYMBOLIC] = RewriteConstBvSym;
+  d_rewriteTable[static_cast<uint32_t>(Kind::EQUAL)] = RewriteEqual;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_BITOF)] = RewriteBitOf;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_ULT)] = RewriteUlt;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SLT)] = RewriteSlt;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_ULE)] = RewriteUle;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SLE)] = RewriteSle;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_UGT)] = RewriteUgt;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SGT)] = RewriteSgt;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_UGE)] = RewriteUge;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SGE)] = RewriteSge;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_NOT)] = RewriteNot;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_CONCAT)] = RewriteConcat;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_AND)] = RewriteAnd;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_OR)] = RewriteOr;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_XOR)] = RewriteXor;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_XNOR)] = RewriteXnor;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_NAND)] = RewriteNand;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_NOR)] = RewriteNor;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_COMP)] = RewriteComp;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_MULT)] = RewriteMult;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_ADD)] = RewriteAdd;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SUB)] = RewriteSub;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_NEG)] = RewriteNeg;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_UDIV)] = RewriteUdiv;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_UREM)] = RewriteUrem;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SMOD)] = RewriteSmod;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SDIV)] = RewriteSdiv;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SREM)] = RewriteSrem;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SHL)] = RewriteShl;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_LSHR)] = RewriteLshr;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_ASHR)] = RewriteAshr;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_EXTRACT)] =
+      RewriteExtract;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_REPEAT)] = RewriteRepeat;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_ZERO_EXTEND)] =
+      RewriteZeroExtend;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SIGN_EXTEND)] =
+      RewriteSignExtend;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_ROTATE_RIGHT)] =
+      RewriteRotateRight;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_ROTATE_LEFT)] =
+      RewriteRotateLeft;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_REDOR)] = RewriteRedor;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_REDAND)] = RewriteRedand;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_ULTBV)] = RewriteUltBv;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SLTBV)] = RewriteSltBv;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_ITE)] = RewriteITEBv;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_UADDO)] = RewriteUaddo;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SADDO)] = RewriteSaddo;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_UMULO)] = RewriteUmulo;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SMULO)] = RewriteSmulo;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_USUBO)] = RewriteUsubo;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SSUBO)] = RewriteSsubo;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SDIVO)] = RewriteSdivo;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_EAGER_ATOM)] =
+      RewriteEagerAtom;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SIZE)] = RewriteSize;
+  d_rewriteTable[static_cast<uint32_t>(Kind::CONST_BITVECTOR_SYMBOLIC)] = RewriteConstBvSym;
 }

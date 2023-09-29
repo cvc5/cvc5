@@ -29,22 +29,25 @@ namespace bv {
 
 template<> inline
 bool RewriteRule<ConcatFlatten>::applies(TNode node) {
-  return (node.getKind() == kind::BITVECTOR_CONCAT);
+  return (node.getKind() == Kind::BITVECTOR_CONCAT);
 }
 
 template<> inline
 Node RewriteRule<ConcatFlatten>::apply(TNode node) {
   Trace("bv-rewrite") << "RewriteRule<ConcatFlatten>(" << node << ")" << std::endl;
-  NodeBuilder result(kind::BITVECTOR_CONCAT);
+  NodeBuilder result(Kind::BITVECTOR_CONCAT);
   std::vector<Node> processing_stack;
   processing_stack.push_back(node);
   while (!processing_stack.empty()) {
     Node current = processing_stack.back();
     processing_stack.pop_back();
-    if (current.getKind() == kind::BITVECTOR_CONCAT) {
+    if (current.getKind() == Kind::BITVECTOR_CONCAT)
+    {
       for (int i = current.getNumChildren() - 1; i >= 0; i--)
         processing_stack.push_back(current[i]);
-    } else {
+    }
+    else
+    {
       result << current;
     }
   }
@@ -57,7 +60,7 @@ Node RewriteRule<ConcatFlatten>::apply(TNode node) {
 
 template<> inline
 bool RewriteRule<ConcatExtractMerge>::applies(TNode node) {
-  return (node.getKind() == kind::BITVECTOR_CONCAT);
+  return (node.getKind() == Kind::BITVECTOR_CONCAT);
 }
 
 template<> inline
@@ -76,7 +79,8 @@ Node RewriteRule<ConcatExtractMerge>::apply(TNode node) {
     // The next candidate for merging
     Node next = node[i];
     // If the current is not an extract we just go to the next
-    if (current.getKind() != kind::BITVECTOR_EXTRACT) {
+    if (current.getKind() != Kind::BITVECTOR_EXTRACT)
+    {
       mergedExtracts.push_back(current);
       current = next;
       continue;
@@ -89,7 +93,8 @@ Node RewriteRule<ConcatExtractMerge>::apply(TNode node) {
 
     // If the next one can be merged, try to merge
     bool merged = false;
-    if (next.getKind() == kind::BITVECTOR_EXTRACT && current[0] == next[0]) {
+    if (next.getKind() == Kind::BITVECTOR_EXTRACT && current[0] == next[0])
+    {
       // x[i : j] @ x[j - 1 : k] -> c x[i : k]
       unsigned nextHigh = utils::getExtractHigh(next);
       unsigned nextLow  = utils::getExtractLow(next);
@@ -120,7 +125,7 @@ Node RewriteRule<ConcatExtractMerge>::apply(TNode node) {
 
 template<> inline
 bool RewriteRule<ConcatConstantMerge>::applies(TNode node) {
-  return node.getKind() == kind::BITVECTOR_CONCAT;
+  return node.getKind() == Kind::BITVECTOR_CONCAT;
 }
 
 template<> inline
@@ -130,17 +135,23 @@ Node RewriteRule<ConcatConstantMerge>::apply(TNode node) {
 
   std::vector<Node> mergedConstants;
   for (unsigned i = 0, end = node.getNumChildren(); i < end;) {
-    if (node[i].getKind() != kind::CONST_BITVECTOR) {
+    if (node[i].getKind() != Kind::CONST_BITVECTOR)
+    {
       // If not a constant, just add it
       mergedConstants.push_back(node[i]);
       ++i;
-    } else {
+    }
+    else
+    {
       // Find the longest sequence of constants
       unsigned j = i + 1;
       while (j < end) {
-        if (node[j].getKind() != kind::CONST_BITVECTOR) {
+        if (node[j].getKind() != Kind::CONST_BITVECTOR)
+        {
           break;
-        } else {
+        }
+        else
+        {
           ++ j;
         }
       }
@@ -164,7 +175,7 @@ Node RewriteRule<ConcatConstantMerge>::apply(TNode node) {
 
 template<> inline
 bool RewriteRule<ExtractWhole>::applies(TNode node) {
-  if (node.getKind() != kind::BITVECTOR_EXTRACT) return false;
+  if (node.getKind() != Kind::BITVECTOR_EXTRACT) return false;
   unsigned length = utils::getSize(node[0]);
   unsigned extractHigh = utils::getExtractHigh(node);
   if (extractHigh != length - 1) return false;
@@ -183,8 +194,8 @@ Node RewriteRule<ExtractWhole>::apply(TNode node) {
 
 template<> inline
 bool RewriteRule<ExtractConstant>::applies(TNode node) {
-  if (node.getKind() != kind::BITVECTOR_EXTRACT) return false;
-  if (node[0].getKind() != kind::CONST_BITVECTOR) return false;
+  if (node.getKind() != Kind::BITVECTOR_EXTRACT) return false;
+  if (node[0].getKind() != Kind::CONST_BITVECTOR) return false;
   return true;
 }
 
@@ -201,8 +212,8 @@ Node RewriteRule<ExtractConstant>::apply(TNode node) {
 template<> inline
 bool RewriteRule<ExtractConcat>::applies(TNode node) {
   //Trace("bv-rewrite") << "RewriteRule<ExtractConcat>(" << node << ")" << std::endl;
-  if (node.getKind() != kind::BITVECTOR_EXTRACT) return false;
-  if (node[0].getKind() != kind::BITVECTOR_CONCAT) return false;
+  if (node.getKind() != Kind::BITVECTOR_EXTRACT) return false;
+  if (node[0].getKind() != Kind::BITVECTOR_CONCAT) return false;
   return true;
 }
 
@@ -236,8 +247,8 @@ Node RewriteRule<ExtractConcat>::apply(TNode node) {
 
 template<> inline
 bool RewriteRule<ExtractExtract>::applies(TNode node) {
-  if (node.getKind() != kind::BITVECTOR_EXTRACT) return false;
-  if (node[0].getKind() != kind::BITVECTOR_EXTRACT) return false;
+  if (node.getKind() != Kind::BITVECTOR_EXTRACT) return false;
+  if (node[0].getKind() != Kind::BITVECTOR_EXTRACT) return false;
   return true;
 }
 
@@ -252,7 +263,7 @@ Node RewriteRule<ExtractExtract>::apply(TNode node) {
   {
     j += utils::getExtractLow(child);
     child = child[0];
-  } while (child.getKind() == kind::BITVECTOR_EXTRACT);
+  } while (child.getKind() == Kind::BITVECTOR_EXTRACT);
 
   uint32_t k = utils::getExtractHigh(node);
   uint32_t l = utils::getExtractLow(node);
@@ -265,9 +276,9 @@ Node RewriteRule<ExtractExtract>::apply(TNode node) {
 template<> inline
 bool RewriteRule<FailEq>::applies(TNode node) {
   //Trace("bv-rewrite") << "RewriteRule<FailEq>(" << node << ")" << std::endl;
-  if (node.getKind() != kind::EQUAL) return false;
-  if (node[0].getKind() != kind::CONST_BITVECTOR) return false;
-  if (node[1].getKind() != kind::CONST_BITVECTOR) return false;
+  if (node.getKind() != Kind::EQUAL) return false;
+  if (node[0].getKind() != Kind::CONST_BITVECTOR) return false;
+  if (node[1].getKind() != Kind::CONST_BITVECTOR) return false;
   return node[0] != node[1];
 }
 
@@ -280,7 +291,7 @@ Node RewriteRule<FailEq>::apply(TNode node) {
 
 template<> inline
 bool RewriteRule<SimplifyEq>::applies(TNode node) {
-  if (node.getKind() != kind::EQUAL) return false;
+  if (node.getKind() != Kind::EQUAL) return false;
   return node[0] == node[1];
 }
 
@@ -294,7 +305,7 @@ Node RewriteRule<SimplifyEq>::apply(TNode node) {
 
 template<> inline
 bool RewriteRule<ReflexivityEq>::applies(TNode node) {
-  return (node.getKind() == kind::EQUAL && node[0] > node[1]);
+  return (node.getKind() == Kind::EQUAL && node[0] > node[1]);
 }
 
 template<> inline

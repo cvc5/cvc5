@@ -76,13 +76,13 @@ void PolyNorm::multiplyMonomial(TNode x, const Rational& c)
 void PolyNorm::mod(const Rational& c)
 {
   Assert(c.sgn() != 0);
-  Assert (c.isIntegral());
+  Assert(c.isIntegral());
   const Integer& ci = c.getNumerator();
   // multiply by constant
   for (std::pair<const Node, Rational>& m : d_polyNorm)
   {
     // c1*x*c2 = (c1*c2)*x
-    Assert (m.second.isIntegral());
+    Assert(m.second.isIntegral());
     m.second = Rational(m.second.getNumerator().euclidianDivideRemainder(ci));
   }
 }
@@ -198,7 +198,7 @@ Node PolyNorm::multMonoVar(TNode m1, TNode m2)
   }
   // use default sorting
   std::sort(vars.begin(), vars.end());
-  return NodeManager::currentNM()->mkNode(NONLINEAR_MULT, vars);
+  return NodeManager::currentNM()->mkNode(Kind::NONLINEAR_MULT, vars);
 }
 
 std::vector<TNode> PolyNorm::getMonoVars(TNode m)
@@ -208,8 +208,8 @@ std::vector<TNode> PolyNorm::getMonoVars(TNode m)
   if (!m.isNull())
   {
     Kind k = m.getKind();
-    Assert(k != CONST_RATIONAL && k != CONST_INTEGER);
-    if (k == MULT || k == NONLINEAR_MULT)
+    Assert(k != Kind::CONST_RATIONAL && k != Kind::CONST_INTEGER);
+    if (k == Kind::MULT || k == Kind::NONLINEAR_MULT)
     {
       vars.insert(vars.end(), m.begin(), m.end());
     }
@@ -237,21 +237,21 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
     Kind k = cur.getKind();
     if (it == visited.end())
     {
-      if (k == CONST_RATIONAL || k == CONST_INTEGER)
+      if (k == Kind::CONST_RATIONAL || k == Kind::CONST_INTEGER)
       {
         Rational r = cur.getConst<Rational>();
         visited[cur].addMonomial(null, r);
         visit.pop_back();
         continue;
       }
-      else if (k == CONST_BITVECTOR)
+      else if (k == Kind::CONST_BITVECTOR)
       {
         BitVector bv = cur.getConst<BitVector>();
         visited[cur].addMonomial(null, Rational(bv.getValue()));
         visit.pop_back();
         continue;
       }
-      else if (k == CONST_BITVECTOR_SYMBOLIC)
+      else if (k == Kind::CONST_BITVECTOR_SYMBOLIC)
       {
         // handle symbolic bv constants here as well
         if (cur[0].isConst() && cur[1].isConst()
@@ -266,10 +266,11 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
           continue;
         }
       }
-      else if (k == ADD || k == SUB || k == NEG || k == MULT
-               || k == NONLINEAR_MULT || k == TO_REAL || k == BITVECTOR_ADD
-               || k == BITVECTOR_SUB || k == BITVECTOR_NEG
-               || k == BITVECTOR_MULT)
+      else if (k == Kind::ADD || k == Kind::SUB || k == Kind::NEG
+               || k == Kind::MULT || k == Kind::NONLINEAR_MULT
+               || k == Kind::TO_REAL || k == Kind::BITVECTOR_ADD
+               || k == Kind::BITVECTOR_SUB || k == Kind::BITVECTOR_NEG
+               || k == Kind::BITVECTOR_MULT)
       {
         visited[cur] = PolyNorm();
         for (const Node& cn : cur)
@@ -289,28 +290,28 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
       PolyNorm& ret = visited[cur];
       switch (k)
       {
-        case ADD:
-        case SUB:
-        case NEG:
-        case MULT:
-        case NONLINEAR_MULT:
-        case TO_REAL:
-        case BITVECTOR_ADD:
-        case BITVECTOR_SUB:
-        case BITVECTOR_NEG:
-        case BITVECTOR_MULT:
+        case Kind::ADD:
+        case Kind::SUB:
+        case Kind::NEG:
+        case Kind::MULT:
+        case Kind::NONLINEAR_MULT:
+        case Kind::TO_REAL:
+        case Kind::BITVECTOR_ADD:
+        case Kind::BITVECTOR_SUB:
+        case Kind::BITVECTOR_NEG:
+        case Kind::BITVECTOR_MULT:
           for (size_t i = 0, nchild = cur.getNumChildren(); i < nchild; i++)
           {
             it = visited.find(cur[i]);
             Assert(it != visited.end());
-            if (((k == SUB || k == BITVECTOR_SUB) && i == 1) || k == NEG
-                || k == BITVECTOR_NEG)
+            if (((k == Kind::SUB || k == Kind::BITVECTOR_SUB) && i == 1) || k == Kind::NEG
+                || k == Kind::BITVECTOR_NEG)
             {
               ret.subtract(it->second);
             }
             else if (i > 0
-                     && (k == MULT || k == NONLINEAR_MULT
-                         || k == BITVECTOR_MULT))
+                     && (k == Kind::MULT || k == Kind::NONLINEAR_MULT
+                         || k == Kind::BITVECTOR_MULT))
             {
               ret.multiply(it->second);
             }
@@ -320,10 +321,10 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
             }
           }
           break;
-        case CONST_RATIONAL:
-        case CONST_INTEGER:
-        case CONST_BITVECTOR:
-        case CONST_BITVECTOR_SYMBOLIC:
+        case Kind::CONST_RATIONAL:
+        case Kind::CONST_INTEGER:
+        case Kind::CONST_BITVECTOR:
+        case Kind::CONST_BITVECTOR_SYMBOLIC:
           // ignore, this is the case of a repeated zero, since we check for
           // empty of the polynomial above.
           break;
@@ -337,7 +338,7 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
 
 bool PolyNorm::isArithPolyNorm(TNode a, TNode b)
 {
-  if (a==b)
+  if (a == b)
   {
     return true;
   }
@@ -364,7 +365,7 @@ bool PolyNorm::isArithPolyNormAtom(TNode a, TNode b)
   }
   // the type of nodes are considering
   TypeNode eqtn;
-  if (k == EQUAL)
+  if (k == Kind::EQUAL)
   {
     for (size_t i = 0; i < 2; i++)
     {
@@ -381,7 +382,7 @@ bool PolyNorm::isArithPolyNormAtom(TNode a, TNode b)
       }
     }
   }
-  else if (k == GEQ || k == LEQ || k == GT || k == LT)
+  else if (k == Kind::GEQ || k == Kind::LEQ || k == Kind::GT || k == Kind::LT)
   {
     // k is a handled binary relation, i.e. one that permits normalization
     // via subtracting the right side from the left.
@@ -395,7 +396,7 @@ bool PolyNorm::isArithPolyNormAtom(TNode a, TNode b)
   PolyNorm pa = PolyNorm::mkDiff(a[0], a[1]);
   PolyNorm pb = PolyNorm::mkDiff(b[0], b[1]);
   // if a non-arithmetic equality
-  if (k == EQUAL && !eqtn.isRealOrInt())
+  if (k == Kind::EQUAL && !eqtn.isRealOrInt())
   {
     if (eqtn.isBitVector())
     {
@@ -417,7 +418,7 @@ bool PolyNorm::isArithPolyNormAtom(TNode a, TNode b)
   }
   Assert(c.sgn() != 0);
   // if equal, can be negative. Notice this shortcuts symmetry of equality.
-  return k == EQUAL || c.sgn() == 1;
+  return k == Kind::EQUAL || c.sgn() == 1;
 }
 
 PolyNorm PolyNorm::mkDiff(TNode a, TNode b)

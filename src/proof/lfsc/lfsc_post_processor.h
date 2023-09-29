@@ -52,7 +52,7 @@ class LfscProofPostprocessCallback : protected EnvObj,
                     bool& continueUpdate) override;
   /** Update the proof rule application. */
   bool update(Node res,
-              PfRule id,
+              ProofRule id,
               const std::vector<Node>& children,
               const std::vector<Node>& args,
               CDProof* cdp,

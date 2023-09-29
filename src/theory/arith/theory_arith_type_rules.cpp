@@ -41,12 +41,12 @@ TypeNode ArithConstantTypeRule::computeType(NodeManager* nodeManager,
                                             std::ostream* errOut)
 {
   // we use different kinds for constant integers and reals
-  if (n.getKind() == kind::CONST_RATIONAL)
+  if (n.getKind() == Kind::CONST_RATIONAL)
   {
     // constant rationals are always real type, even if their value is integral
     return nodeManager->realType();
   }
-  Assert(n.getKind() == kind::CONST_INTEGER);
+  Assert(n.getKind() == Kind::CONST_INTEGER);
   // constant integers should always have integral value
   if (check)
   {
@@ -124,7 +124,7 @@ TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
         }
         return TypeNode::null();
       }
-      if (k == kind::TO_REAL && !childType.isInteger())
+      if (k == Kind::TO_REAL && !childType.isInteger())
       {
         if (errOut)
         {
@@ -136,17 +136,17 @@ TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
   }
   switch (k)
   {
-    case kind::TO_REAL:
-    case kind::DIVISION:
-    case kind::DIVISION_TOTAL: return realType;
-    case kind::TO_INTEGER: return integerType;
+    case Kind::TO_REAL:
+    case Kind::DIVISION:
+    case Kind::DIVISION_TOTAL: return realType;
+    case Kind::TO_INTEGER: return integerType;
     default:
     {
       if (isAbstract)
       {
         // fully abstract since Int and Real are incomparable
         // NOTE: could use an abstract real???
-        return nodeManager->mkAbstractType(kind::ABSTRACT_TYPE);
+        return nodeManager->mkAbstractType(Kind::ABSTRACT_TYPE);
       }
       return isInteger ? integerType : realType;
     }
@@ -210,7 +210,7 @@ TypeNode IAndTypeRule::computeType(NodeManager* nodeManager,
                                    bool check,
                                    std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::IAND)
+  Assert(n.getKind() == Kind::IAND)
       << "IAND typerule invoked for " << n << " instead of IAND kind";
   if (check)
   {
@@ -237,7 +237,7 @@ TypeNode Pow2TypeRule::computeType(NodeManager* nodeManager,
                                    bool check,
                                    std::ostream* errOut)
 {
-  if (n.getKind() != kind::POW2)
+  if (n.getKind() != Kind::POW2)
   {
     InternalError() << "POW2 typerule invoked for " << n << " instead of POW2 kind";
   }

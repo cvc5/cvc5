@@ -28,7 +28,7 @@ Node AletheNodeConverter::postConvert(Node n)
   Kind k = n.getKind();
   switch (k)
   {
-    case kind::SKOLEM:
+    case Kind::SKOLEM:
     {
       Trace("alethe-conv") << "AletheNodeConverter: handling skolem " << n
                            << "\n";
@@ -56,10 +56,10 @@ Node AletheNodeConverter::postConvert(Node n)
         Trace("alethe-conv")
             << ".. to build witness with index/quant: " << cacheVal[1] << " / "
             << cacheVal[0] << "\n";
-        Assert(cacheVal.getKind() == kind::SEXPR
+        Assert(cacheVal.getKind() == Kind::SEXPR
                && cacheVal.getNumChildren() == 2);
         Node quant = cacheVal[0];
-        Assert(quant.getKind() == kind::EXISTS);
+        Assert(quant.getKind() == Kind::EXISTS);
         uint32_t index;
         if (ProofRuleChecker::getUInt32(cacheVal[1], index))
         {
@@ -68,8 +68,8 @@ Node AletheNodeConverter::postConvert(Node n)
               index == quant[0].getNumChildren() - 1
                   ? quant[1]
                   : nm->mkNode(
-                      kind::EXISTS,
-                      nm->mkNode(kind::BOUND_VAR_LIST,
+                      Kind::EXISTS,
+                      nm->mkNode(Kind::BOUND_VAR_LIST,
                                  std::vector<Node>{quant[0].begin() + index + 1,
                                                    quant[0].end()}),
                       quant[1]);
@@ -92,8 +92,8 @@ Node AletheNodeConverter::postConvert(Node n)
                                    subs.end());
           }
           Node witness =
-              nm->mkNode(kind::WITNESS,
-                         nm->mkNode(kind::BOUND_VAR_LIST, quant[0][index]),
+              nm->mkNode(Kind::WITNESS,
+                         nm->mkNode(Kind::BOUND_VAR_LIST, quant[0][index]),
                          body);
           Trace("alethe-conv") << ".. witness: " << witness << "\n";
           return convert(witness);
@@ -101,14 +101,14 @@ Node AletheNodeConverter::postConvert(Node n)
       }
       Unreachable() << "Fresh Skolems are not allowed\n";
     }
-    case kind::FORALL:
+    case Kind::FORALL:
     {
       // remove patterns, if any
-      return n.getNumChildren() == 3 ? nm->mkNode(kind::FORALL, n[0], n[1]) : n;
+      return n.getNumChildren() == 3 ? nm->mkNode(Kind::FORALL, n[0], n[1]) : n;
     }
     // we must make it to be printed with "choice", so we create an operator
     // with that name and the correct type and do a function application
-    case kind::WITNESS:
+    case Kind::WITNESS:
     {
       std::vector<TypeNode> childrenTypes;
       for (const Node& c : n)
@@ -117,7 +117,7 @@ Node AletheNodeConverter::postConvert(Node n)
       }
       TypeNode fType = nm->mkFunctionType(childrenTypes, n.getType());
       Node choiceOp = mkInternalSymbol("choice", fType);
-      Node converted = nm->mkNode(kind::APPLY_UF, choiceOp, n[0], n[1]);
+      Node converted = nm->mkNode(Kind::APPLY_UF, choiceOp, n[0], n[1]);
       Trace("alethe-conv") << ".. converted to choice: " << converted << "\n";
       return converted;
     }

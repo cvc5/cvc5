@@ -94,9 +94,9 @@ class RewriteDbProofCons : protected EnvObj
   class ProvenInfo
   {
    public:
-    ProvenInfo() : d_id(DslPfRule::FAIL), d_failMaxDepth(0) {}
+    ProvenInfo() : d_id(DslProofRule::FAIL), d_failMaxDepth(0) {}
     /** The identifier of the proof rule, or fail if we failed */
-    DslPfRule d_id;
+    DslProofRule d_id;
     /** The substitution used, if successful */
     std::vector<Node> d_vars;
     std::vector<Node> d_subs;
@@ -108,26 +108,26 @@ class RewriteDbProofCons : protected EnvObj
     /**
      * Is internal rule? these rules store children (if any) in d_vars.
      */
-    bool isInternalRule() const { return isInternalDslPfRule(d_id); }
+    bool isInternalRule() const { return isInternalDslProofRule(d_id); }
   };
   /**
    * Prove internal, which is the main entry point for proven an equality eqi.
-   * Returns the proof rule that was used to prove eqi, or DslPfRule::FAIL
+   * Returns the proof rule that was used to prove eqi, or DslProofRule::FAIL
    * if we failed to prove.
    *
    * In detail, this runs a strategy of builtin tactics and otherwise consults
    * the rewrite rule database for the set of rewrite rules that match the
    * left hand side of eqi.
    *
-   * If this call is successul (i.e. the returned rule is not DslPfRule::FAIL),
+   * If this call is successul (i.e. the returned rule is not DslProofRule::FAIL),
    * the proven info for eqi is stored in d_pcache[eqi].
    *
    * Note this method depends on the current step and recursion limits
    * d_currRecLimit/d_currStepLimit.
    */
-  DslPfRule proveInternal(Node eqi);
+  DslProofRule proveInternal(Node eqi);
   /** Prove internal via strategy, a helper method for above. */
-  DslPfRule proveInternalViaStrategy(Node eqi);
+  DslProofRule proveInternalViaStrategy(Node eqi);
   /**
    * Prove internal base eqi via DSL rule id.
    *
@@ -135,9 +135,9 @@ class RewriteDbProofCons : protected EnvObj
    * recursion. If so, we store the rule used for eqi in its proven info
    * (d_pcache[eqi]). Notice that this method returns true if eqi is
    * proven or *disproven*, where in the latter case proven info has d_id
-   * DslPfRule::FAIL.
+   * DslProofRule::FAIL.
    */
-  bool proveInternalBase(Node eqi, DslPfRule& id);
+  bool proveInternalBase(Node eqi, DslProofRule& id);
   /**
    * Ensure proof for proven fact exists in cdp. This method is called on
    * equalities eqi after they have been successfully proven by this class.
@@ -182,7 +182,7 @@ class RewriteDbProofCons : protected EnvObj
    * @param doRecurse Whether we should attempt to prove the rule when premises
    * are required, by making a recursive call to proveInternal.
    */
-  bool proveWithRule(DslPfRule id,
+  bool proveWithRule(DslProofRule id,
                      Node target,
                      const std::vector<Node>& vars,
                      const std::vector<Node>& subs,
@@ -239,7 +239,7 @@ class RewriteDbProofCons : protected EnvObj
   /** current step recursion limit */
   uint32_t d_currStepLimit;
   /** current rule we are applying to fixed point */
-  DslPfRule d_currFixedPointId;
+  DslProofRule d_currFixedPointId;
   /** current substitution from fixed point */
   std::vector<Node> d_currFixedPointSubs;
   /** current conclusion from fixed point */

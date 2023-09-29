@@ -112,12 +112,12 @@ void ZeroLevelLearner::notifyInputFormulas(const std::vector<Node>& assertions)
   {
     TNode lit = toProcess[index];
     index++;
-    if (lit.getKind() == kind::AND)
+    if (lit.getKind() == Kind::AND)
     {
       toProcess.insert(toProcess.end(), lit.begin(), lit.end());
       continue;
     }
-    TNode atom = lit.getKind() == kind::NOT ? lit[0] : lit;
+    TNode atom = lit.getKind() == Kind::NOT ? lit[0] : lit;
     if (expr::isBooleanConnective(atom))
     {
       continue;
@@ -232,7 +232,7 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
     const Node& lit)
 {
   // literal was learned, determine its type
-  TNode aatom = lit.getKind() == kind::NOT ? lit[0] : lit;
+  TNode aatom = lit.getKind() == Kind::NOT ? lit[0] : lit;
   bool internal = d_ppnAtoms.find(aatom) == d_ppnAtoms.end();
   modes::LearnedLitType ltype =
       internal ? modes::LearnedLitType::INTERNAL : modes::LearnedLitType::INPUT;
@@ -256,7 +256,7 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
     if (ltype != modes::LearnedLitType::SOLVABLE)
     {
       // maybe a constant prop?
-      if (lit.getKind() == kind::EQUAL)
+      if (lit.getKind() == Kind::EQUAL)
       {
         for (size_t i = 0; i < 2; i++)
         {

@@ -33,7 +33,7 @@ TypeNode SepEmpTypeRule::computeType(NodeManager* nodeManager,
                                      bool check,
                                      std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::SEP_EMP);
+  Assert(n.getKind() == Kind::SEP_EMP);
   return nodeManager->booleanType();
 }
 
@@ -46,7 +46,7 @@ TypeNode SepPtoTypeRule::computeType(NodeManager* nodeManager,
                                      bool check,
                                      std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::SEP_PTO);
+  Assert(n.getKind() == Kind::SEP_PTO);
   return nodeManager->booleanType();
 }
 
@@ -60,7 +60,7 @@ TypeNode SepStarTypeRule::computeType(NodeManager* nodeManager,
                                       std::ostream* errOut)
 {
   TypeNode btype = nodeManager->booleanType();
-  Assert(n.getKind() == kind::SEP_STAR);
+  Assert(n.getKind() == Kind::SEP_STAR);
   if (check)
   {
     for (const Node& nc : n)
@@ -89,7 +89,7 @@ TypeNode SepWandTypeRule::computeType(NodeManager* nodeManager,
                                       std::ostream* errOut)
 {
   TypeNode btype = nodeManager->booleanType();
-  Assert(n.getKind() == kind::SEP_WAND);
+  Assert(n.getKind() == Kind::SEP_WAND);
   if (check)
   {
     for (const Node& nc : n)
@@ -118,7 +118,7 @@ TypeNode SepLabelTypeRule::computeType(NodeManager* nodeManager,
                                        std::ostream* errOut)
 {
   TypeNode btype = nodeManager->booleanType();
-  Assert(n.getKind() == kind::SEP_LABEL);
+  Assert(n.getKind() == Kind::SEP_LABEL);
   if (check)
   {
     TypeNode ctype = n[0].getTypeOrNull();
@@ -131,7 +131,7 @@ TypeNode SepLabelTypeRule::computeType(NodeManager* nodeManager,
       return TypeNode::null();
     }
     TypeNode stype = n[1].getTypeOrNull();
-    if (!stype.isMaybeKind(kind::SET_TYPE))
+    if (!stype.isMaybeKind(Kind::SET_TYPE))
     {
       if (errOut)
       {
@@ -152,7 +152,7 @@ TypeNode SepNilTypeRule::computeType(NodeManager* nodeManager,
                                      bool check,
                                      std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::SEP_NIL);
+  Assert(n.getKind() == Kind::SEP_NIL);
   Assert(check);
   TypeNode type = n.getTypeOrNull();
   return type;

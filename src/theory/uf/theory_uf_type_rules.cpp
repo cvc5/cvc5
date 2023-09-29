@@ -43,7 +43,7 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager,
   if (!fType.isFunction())
   {
     // if it is not even maybe a function type
-    if (!fType.isMaybeKind(kind::FUNCTION_TYPE))
+    if (!fType.isMaybeKind(Kind::FUNCTION_TYPE))
     {
       if (errOut)
       {
@@ -52,7 +52,7 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager,
       return TypeNode::null();
     }
     // otherwise, application of abstract function is always abstract
-    return nodeManager->mkAbstractType(kind::ABSTRACT_TYPE);
+    return nodeManager->mkAbstractType(Kind::ABSTRACT_TYPE);
   }
   if (check)
   {
@@ -157,12 +157,12 @@ TypeNode HoApplyTypeRule::computeType(NodeManager* nodeManager,
                                       bool check,
                                       std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::HO_APPLY);
+  Assert(n.getKind() == Kind::HO_APPLY);
   TypeNode fType = n[0].getTypeOrNull();
   if (!fType.isFunction())
   {
     // if it is not even maybe a function type
-    if (!fType.isMaybeKind(kind::FUNCTION_TYPE))
+    if (!fType.isMaybeKind(Kind::FUNCTION_TYPE))
     {
       if (errOut)
       {
@@ -171,7 +171,7 @@ TypeNode HoApplyTypeRule::computeType(NodeManager* nodeManager,
       return TypeNode::null();
     }
     // otherwise, application of abstract function is always abstract
-    return nodeManager->mkAbstractType(kind::ABSTRACT_TYPE);
+    return nodeManager->mkAbstractType(Kind::ABSTRACT_TYPE);
   }
   Assert(fType.getNumChildren() >= 2);
   if (check)
@@ -240,7 +240,7 @@ TypeNode FunctionArrayConstTypeRule::computeType(NodeManager* nodeManager,
                                                  bool check,
                                                  std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::FUNCTION_ARRAY_CONST);
+  Assert(n.getKind() == Kind::FUNCTION_ARRAY_CONST);
   const FunctionArrayConst& fc = n.getConst<FunctionArrayConst>();
   return fc.getType();
 }
@@ -250,7 +250,7 @@ Cardinality FunctionProperties::computeCardinality(TypeNode type)
   // Don't assert this; allow other theories to use this cardinality
   // computation.
   //
-  // Assert(type.getKind() == kind::FUNCTION_TYPE);
+  // Assert(type.getKind() == Kind::FUNCTION_TYPE);
 
   Cardinality argsCard(1);
   // get the largest cardinality of function arguments/return type
@@ -281,7 +281,7 @@ Node FunctionProperties::mkGroundTerm(TypeNode type)
   NodeManager* nm = NodeManager::currentNM();
   Node bvl = nm->getBoundVarListForFunctionType(type);
   Node ret = nm->mkGroundTerm(type.getRangeType());
-  return nm->mkNode(kind::LAMBDA, bvl, ret);
+  return nm->mkNode(Kind::LAMBDA, bvl, ret);
 }
 
 TypeNode IntToBitVectorOpTypeRule::preComputeType(NodeManager* nm, TNode n)
@@ -293,7 +293,7 @@ TypeNode IntToBitVectorOpTypeRule::computeType(NodeManager* nodeManager,
                                                bool check,
                                                std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::INT_TO_BITVECTOR_OP);
+  Assert(n.getKind() == Kind::INT_TO_BITVECTOR_OP);
   size_t bvSize = n.getConst<IntToBitVector>();
   if (bvSize == 0)
   {
@@ -308,7 +308,7 @@ TypeNode IntToBitVectorOpTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode BitVectorConversionTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  if (n.getKind() == kind::BITVECTOR_TO_NAT)
+  if (n.getKind() == Kind::BITVECTOR_TO_NAT)
   {
     return nm->integerType();
   }
@@ -320,9 +320,9 @@ TypeNode BitVectorConversionTypeRule::computeType(NodeManager* nodeManager,
                                                   bool check,
                                                   std::ostream* errOut)
 {
-  if (n.getKind() == kind::BITVECTOR_TO_NAT)
+  if (n.getKind() == Kind::BITVECTOR_TO_NAT)
   {
-    if (check && !n[0].getTypeOrNull().isMaybeKind(kind::BITVECTOR_TYPE))
+    if (check && !n[0].getTypeOrNull().isMaybeKind(Kind::BITVECTOR_TYPE))
     {
       if (errOut)
       {
@@ -332,7 +332,7 @@ TypeNode BitVectorConversionTypeRule::computeType(NodeManager* nodeManager,
     }
     return nodeManager->integerType();
   }
-  Assert(n.getKind() == kind::INT_TO_BITVECTOR);
+  Assert(n.getKind() == Kind::INT_TO_BITVECTOR);
   size_t bvSize = n.getOperator().getConst<IntToBitVector>();
   TypeNode tn = n[0].getTypeOrNull();
   if (check && !tn.isInteger() && !tn.isFullyAbstract())

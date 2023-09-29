@@ -85,7 +85,9 @@ int InstMatchGenerator::getActiveScore()
     unsigned ngt = tdb->getNumGroundTerms(f);
     Trace("trigger-active-sel-debug") << "Number of ground terms for " << f << " is " << ngt << std::endl;
     return ngt;
-  }else if( d_match_pattern.getKind()==INST_CONSTANT ){
+  }
+  else if (d_match_pattern.getKind() == Kind::INST_CONSTANT)
+  {
     TypeNode tn = d_match_pattern.getType();
     unsigned ngtt = tdb->getNumTypeGroundTerms(tn);
     Trace("trigger-active-sel-debug") << "Number of ground terms for " << tn << " is " << ngtt << std::endl;
@@ -104,22 +106,23 @@ void InstMatchGenerator::initialize(Node q,
   }
   Trace("inst-match-gen") << "Initialize, pattern term is " << d_pattern
                           << std::endl;
-  if (d_match_pattern.getKind() == NOT)
+  if (d_match_pattern.getKind() == Kind::NOT)
   {
-    Assert(d_pattern.getKind() == NOT);
+    Assert(d_pattern.getKind() == Kind::NOT);
     // we want to add the children of the NOT
     d_match_pattern = d_match_pattern[0];
   }
 
-  if (d_pattern.getKind() == NOT && d_match_pattern.getKind() == EQUAL
-      && d_match_pattern[0].getKind() == INST_CONSTANT
-      && d_match_pattern[1].getKind() == INST_CONSTANT)
+  if (d_pattern.getKind() == Kind::NOT
+      && d_match_pattern.getKind() == Kind::EQUAL
+      && d_match_pattern[0].getKind() == Kind::INST_CONSTANT
+      && d_match_pattern[1].getKind() == Kind::INST_CONSTANT)
   {
     // special case: disequalities between variables x != y will match ground
     // disequalities.
   }
-  else if (d_match_pattern.getKind() == EQUAL
-           || d_match_pattern.getKind() == GEQ)
+  else if (d_match_pattern.getKind() == Kind::EQUAL
+           || d_match_pattern.getKind() == Kind::GEQ)
   {
     // We are one of the following cases:
     //   f(x)~a, f(x)~y, x~a, x~y
@@ -136,13 +139,13 @@ void InstMatchGenerator::initialize(Node q,
       // relation.
       if (quantifiers::TermUtil::hasInstConstAttr(mp)
           && (!quantifiers::TermUtil::hasInstConstAttr(mpo)
-              || mpo.getKind() == INST_CONSTANT))
+              || mpo.getKind() == Kind::INST_CONSTANT))
       {
         if (i == 1)
         {
-          if (d_match_pattern.getKind() == GEQ)
+          if (d_match_pattern.getKind() == Kind::GEQ)
           {
-            d_pattern = NodeManager::currentNM()->mkNode(kind::GT, mp, mpo);
+            d_pattern = NodeManager::currentNM()->mkNode(Kind::GT, mp, mpo);
             d_pattern = d_pattern.negate();
           }
           else
@@ -166,7 +169,7 @@ void InstMatchGenerator::initialize(Node q,
 
   // now, collect children of d_match_pattern
   Kind mpk = d_match_pattern.getKind();
-  if (mpk == INST_CONSTANT)
+  if (mpk == Kind::INST_CONSTANT)
   {
     d_children_types.push_back(
         d_match_pattern.getAttribute(InstVarNumAttribute()));
@@ -179,7 +182,7 @@ void InstMatchGenerator::initialize(Node q,
       Node qa = quantifiers::TermUtil::getInstConstAttr(pat);
       if (!qa.isNull())
       {
-        if (pat.getKind() == INST_CONSTANT && qa == q)
+        if (pat.getKind() == Kind::INST_CONSTANT && qa == q)
         {
           d_children_types.push_back(pat.getAttribute(InstVarNumAttribute()));
         }
@@ -207,7 +210,7 @@ void InstMatchGenerator::initialize(Node q,
   }
 
   // create candidate generator
-  if (mpk == APPLY_SELECTOR)
+  if (mpk == Kind::APPLY_SELECTOR)
   {
     // candidates for apply selector are a union of correctly and incorrectly
     // applied selectors
@@ -216,7 +219,7 @@ void InstMatchGenerator::initialize(Node q,
   }
   else if (TriggerTermInfo::isAtomicTriggerKind(mpk))
   {
-    if (mpk == APPLY_CONSTRUCTOR)
+    if (mpk == Kind::APPLY_CONSTRUCTOR)
     {
       // 1-constructors have a trivial way of generating candidates in a
       // given equivalence class
@@ -236,16 +239,17 @@ void InstMatchGenerator::initialize(Node q,
       d_cg = cg;
       // if matching on disequality, inform the candidate generator not to
       // match on eqc
-      if (d_pattern.getKind() == NOT && d_pattern[0].getKind() == EQUAL)
+      if (d_pattern.getKind() == Kind::NOT
+          && d_pattern[0].getKind() == Kind::EQUAL)
       {
         cg->excludeEqc(d_eq_class_rel);
         d_eq_class_rel = Node::null();
       }
     }
   }
-  else if (mpk == INST_CONSTANT)
+  else if (mpk == Kind::INST_CONSTANT)
   {
-    if (d_pattern.getKind() == APPLY_SELECTOR)
+    if (d_pattern.getKind() == Kind::APPLY_SELECTOR)
     {
       Node selectorExpr = tdb->getMatchOperator(d_pattern);
       size_t selectorIndex = datatypes::utils::cindexOf(selectorExpr);
@@ -261,10 +265,10 @@ void InstMatchGenerator::initialize(Node q,
           new CandidateGeneratorQEAll(d_env, d_qstate, d_treg, d_match_pattern);
     }
   }
-  else if (mpk == EQUAL)
+  else if (mpk == Kind::EQUAL)
   {
     // we will be producing candidates via literal matching heuristics
-    if (d_pattern.getKind() == NOT)
+    if (d_pattern.getKind() == Kind::NOT)
     {
       // candidates will be all disequalities
       d_cg = new inst::CandidateGeneratorQELitDeq(
@@ -339,7 +343,7 @@ int InstMatchGenerator::getMatch(Node t, InstMatch& m)
   Trace("matching-debug2") << "Done setting immediate matches, success = "
                            << success << "." << std::endl;
   // for variable matching
-  if (d_match_pattern.getKind() == INST_CONSTANT)
+  if (d_match_pattern.getKind() == Kind::INST_CONSTANT)
   {
     bool addToPrev = m.get(d_children_types[0]).isNull();
     if (!m.set(d_children_types[0], t))
@@ -355,27 +359,28 @@ int InstMatchGenerator::getMatch(Node t, InstMatch& m)
     }
   }
   // for relational matching
-  if (!d_eq_class_rel.isNull() && d_eq_class_rel.getKind() == INST_CONSTANT)
+  if (!d_eq_class_rel.isNull()
+      && d_eq_class_rel.getKind() == Kind::INST_CONSTANT)
   {
     NodeManager* nm = NodeManager::currentNM();
     int v = d_eq_class_rel.getAttribute(InstVarNumAttribute());
     // also must fit match to equivalence class
-    bool pol = d_pattern.getKind() != NOT;
-    Node pat = d_pattern.getKind() == NOT ? d_pattern[0] : d_pattern;
+    bool pol = d_pattern.getKind() != Kind::NOT;
+    Node pat = d_pattern.getKind() == Kind::NOT ? d_pattern[0] : d_pattern;
     Node t_match;
     if (pol)
     {
-      if (pat.getKind() == GT)
+      if (pat.getKind() == Kind::GT)
       {
-        t_match =
-            nm->mkNode(SUB, t, nm->mkConstRealOrInt(t.getType(), Rational(1)));
+        t_match = nm->mkNode(
+            Kind::SUB, t, nm->mkConstRealOrInt(t.getType(), Rational(1)));
       }else{
         t_match = t;
       }
     }
     else
     {
-      if (pat.getKind() == EQUAL)
+      if (pat.getKind() == Kind::EQUAL)
       {
         TypeNode tn = t.getType();
         if (tn.isBoolean())
@@ -385,15 +390,16 @@ int InstMatchGenerator::getMatch(Node t, InstMatch& m)
         else
         {
           Assert(tn.isRealOrInt());
-          t_match = nm->mkNode(ADD, t, nm->mkConstRealOrInt(tn, Rational(1)));
+          t_match =
+              nm->mkNode(Kind::ADD, t, nm->mkConstRealOrInt(tn, Rational(1)));
         }
       }
-      else if (pat.getKind() == GEQ)
+      else if (pat.getKind() == Kind::GEQ)
       {
-        t_match =
-            nm->mkNode(ADD, t, nm->mkConstRealOrInt(t.getType(), Rational(1)));
+        t_match = nm->mkNode(
+            Kind::ADD, t, nm->mkConstRealOrInt(t.getType(), Rational(1)));
       }
-      else if (pat.getKind() == GT)
+      else if (pat.getKind() == Kind::GT)
       {
         t_match = t;
       }
@@ -479,9 +485,13 @@ bool InstMatchGenerator::reset(Node eqc)
   }
   eqc = d_qstate.getRepresentative(eqc);
   Trace("matching-debug2") << this << " reset " << eqc << "." << std::endl;
-  if( !d_eq_class_rel.isNull() && d_eq_class_rel.getKind()!=INST_CONSTANT ){
+  if (!d_eq_class_rel.isNull()
+      && d_eq_class_rel.getKind() != Kind::INST_CONSTANT)
+  {
     d_eq_class = d_eq_class_rel;
-  }else if( !eqc.isNull() ){
+  }
+  else if (!eqc.isNull())
+  {
     d_eq_class = eqc;
   }
   //we have a specific equivalence class in mind
@@ -655,7 +665,7 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Env& env,
                                                               Node n)
 {
   // maybe variable match generator
-  if (n.getKind() != INST_CONSTANT)
+  if (n.getKind() != Kind::INST_CONSTANT)
   {
     Trace("var-trigger-debug")
         << "Is " << n << " a variable trigger?" << std::endl;

@@ -77,17 +77,18 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
     for (const Node& l : learnedLits)
     {
       // maybe use the literal for bound inference?
-      bool pol = l.getKind()!=NOT;
+      bool pol = l.getKind() != Kind::NOT;
       TNode atom = pol ? l : l[0];
       Kind ak = atom.getKind();
-      Assert(ak != LT && ak != GT && ak != LEQ);
-      if ((ak == EQUAL && pol && atom[0].getType().isRealOrInt()) || ak == GEQ)
+      Assert(ak != Kind::LT && ak != Kind::GT && ak != Kind::LEQ);
+      if ((ak == Kind::EQUAL && pol && atom[0].getType().isRealOrInt())
+          || ak == Kind::GEQ)
       {
         // provide as < if negated >=
         Node atomu;
         if (!pol)
         {
-          atomu = nm->mkNode(LT, atom[0], atom[1]);
+          atomu = nm->mkNode(Kind::LT, atom[0], atom[1]);
           atomu = rewrite(atomu);
           originLit[atomu] = l;
         }
@@ -243,7 +244,8 @@ Node LearnedRewrite::rewriteLearned(Node nr,
   NodeManager* nm = NodeManager::currentNM();
   Trace("learned-rewrite-rr-debug") << "Rewrite " << nr << std::endl;
   Kind k = nr.getKind();
-  if (k == INTS_DIVISION || k == INTS_MODULUS || k == DIVISION)
+  if (k == Kind::INTS_DIVISION || k == Kind::INTS_MODULUS
+      || k == Kind::DIVISION)
   {
     // simpler if we know the divisor is non-zero
     Node num = nr[0];
@@ -273,7 +275,7 @@ Node LearnedRewrite::rewriteLearned(Node nr,
       {
         // maybe the disequality is in the learned literal set?
         Node deq =
-            nm->mkNode(EQUAL, den, nm->mkConstInt(Rational(0))).notNode();
+            nm->mkNode(Kind::EQUAL, den, nm->mkConstInt(Rational(0))).notNode();
         deq = rewrite(deq);
         if (std::find(learnedLits.begin(), learnedLits.end(), deq)
             != learnedLits.end())
@@ -291,9 +293,9 @@ Node LearnedRewrite::rewriteLearned(Node nr,
       Kind nk = k;
       switch (k)
       {
-        case INTS_DIVISION: nk = INTS_DIVISION_TOTAL; break;
-        case INTS_MODULUS: nk = INTS_MODULUS_TOTAL; break;
-        case DIVISION: nk = DIVISION_TOTAL; break;
+        case Kind::INTS_DIVISION: nk = Kind::INTS_DIVISION_TOTAL; break;
+        case Kind::INTS_MODULUS: nk = Kind::INTS_MODULUS_TOTAL; break;
+        case Kind::DIVISION: nk = Kind::DIVISION_TOTAL; break;
         default: Assert(false); break;
       }
       std::vector<Node> children;
@@ -305,7 +307,7 @@ Node LearnedRewrite::rewriteLearned(Node nr,
     }
   }
   // constant int mod elimination by bound inference
-  if (k == INTS_MODULUS_TOTAL)
+  if (k == Kind::INTS_MODULUS_TOTAL)
   {
     Node num = nr[0];
     Node den = nr[1];
@@ -332,7 +334,7 @@ Node LearnedRewrite::rewriteLearned(Node nr,
             // if the numerator is negative, then (mod x y) ---> (+ x (abs y))
             // otherwise, (mod x y) ---> x
             Node ret = bnuml.sgn() == -1 ? nm->mkNode(
-                           kind::ADD, nr[0], nm->mkNode(kind::ABS, nr[1]))
+                           Kind::ADD, nr[0], nm->mkNode(Kind::ABS, nr[1]))
                                          : nr[0];
             nr = returnRewriteLearned(nr, ret, LearnedRewriteId::INT_MOD_RANGE);
           }
@@ -341,7 +343,8 @@ Node LearnedRewrite::rewriteLearned(Node nr,
       // could also do num + k*den checks
     }
   }
-  else if (k == GEQ || (k == EQUAL && nr[0].getType().isRealOrInt()))
+  else if (k == Kind::GEQ
+           || (k == Kind::EQUAL && nr[0].getType().isRealOrInt()))
   {
     std::map<Node, Node> msum;
     if (ArithMSum::getMonomialSumLit(nr, msum))
@@ -410,11 +413,11 @@ Node LearnedRewrite::rewriteLearned(Node nr,
         if (lb.sgn() == 1)
         {
           // if positive lower bound, then GEQ is true, EQUAL is false
-          Node ret = nm->mkConst(k == GEQ);
+          Node ret = nm->mkConst(k == Kind::GEQ);
           nr = returnRewriteLearned(nr, ret, LearnedRewriteId::PRED_POS_LB);
           return nr;
         }
-        else if (lb.sgn() == 0 && k == GEQ)
+        else if (lb.sgn() == 0 && k == Kind::GEQ)
         {
           // zero lower bound, GEQ is true
           Node ret = nm->mkConst(true);

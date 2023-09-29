@@ -24,48 +24,48 @@ namespace bv {
 
 void BVProofRuleChecker::registerTo(ProofChecker* pc)
 {
-  pc->registerChecker(PfRule::BV_BITBLAST, this);
-  pc->registerChecker(PfRule::BV_BITBLAST_STEP, this);
-  pc->registerChecker(PfRule::BV_EAGER_ATOM, this);
-  pc->registerChecker(PfRule::BV_UMULO_ELIMINATE, this);
-  pc->registerChecker(PfRule::BV_SMULO_ELIMINATE, this);
-  pc->registerChecker(PfRule::BV_FLATTEN_ASSOC_COMMUTE, this);
-  pc->registerChecker(PfRule::BV_FLATTEN_ASSOC_COMMUTE_NO_DUPLICATES, this);
-  pc->registerChecker(PfRule::BV_ADD_COMBINE_LIKE_TERMS, this);
-  pc->registerChecker(PfRule::BV_MULT_SIMPLIFY, this);
-  pc->registerChecker(PfRule::BV_SOLVE_EQ, this);
-  pc->registerChecker(PfRule::BV_BITWISE_EQ, this);
-  pc->registerChecker(PfRule::BV_BITWISE_SLICING, this);
+  pc->registerChecker(ProofRule::BV_BITBLAST, this);
+  pc->registerChecker(ProofRule::BV_BITBLAST_STEP, this);
+  pc->registerChecker(ProofRule::BV_EAGER_ATOM, this);
+  pc->registerChecker(ProofRule::BV_UMULO_ELIMINATE, this);
+  pc->registerChecker(ProofRule::BV_SMULO_ELIMINATE, this);
+  pc->registerChecker(ProofRule::BV_FLATTEN_ASSOC_COMMUTE, this);
+  pc->registerChecker(ProofRule::BV_FLATTEN_ASSOC_COMMUTE_NO_DUPLICATES, this);
+  pc->registerChecker(ProofRule::BV_ADD_COMBINE_LIKE_TERMS, this);
+  pc->registerChecker(ProofRule::BV_MULT_SIMPLIFY, this);
+  pc->registerChecker(ProofRule::BV_SOLVE_EQ, this);
+  pc->registerChecker(ProofRule::BV_BITWISE_EQ, this);
+  pc->registerChecker(ProofRule::BV_BITWISE_SLICING, this);
 }
 
-Node BVProofRuleChecker::checkInternal(PfRule id,
+Node BVProofRuleChecker::checkInternal(ProofRule id,
                                        const std::vector<Node>& children,
                                        const std::vector<Node>& args)
 {
-  if (id == PfRule::BV_BITBLAST)
+  if (id == ProofRule::BV_BITBLAST)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    Assert(args[0].getKind() == kind::EQUAL);
+    Assert(args[0].getKind() == Kind::EQUAL);
     return args[0];
   }
-  else if (id == PfRule::BV_BITBLAST_STEP)
+  else if (id == ProofRule::BV_BITBLAST_STEP)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    Assert(args[0].getKind() == kind::EQUAL);
+    Assert(args[0].getKind() == Kind::EQUAL);
     return args[0];
   }
-  else if (id == PfRule::BV_EAGER_ATOM)
+  else if (id == ProofRule::BV_EAGER_ATOM)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    Assert(args[0].getKind() == kind::BITVECTOR_EAGER_ATOM);
+    Assert(args[0].getKind() == Kind::BITVECTOR_EAGER_ATOM);
     return args[0].eqNode(args[0][0]);
   }
 
 #define BV_PROOF_CASE(rule, name) \
-  else if (id == PfRule::rule && RewriteRule<name>::applies(args[0])) \
+  else if (id == ProofRule::rule && RewriteRule<name>::applies(args[0])) \
   { \
     Assert(children.empty()); \
     Assert(args.size() == 1); \

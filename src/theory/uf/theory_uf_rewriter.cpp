@@ -34,7 +34,7 @@ TheoryUfRewriter::TheoryUfRewriter() {}
 RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
 {
   Kind k = node.getKind();
-  if (k == kind::EQUAL)
+  if (k == Kind::EQUAL)
   {
     if (node[0] == node[1])
     {
@@ -53,7 +53,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       return RewriteResponse(REWRITE_DONE, newNode);
     }
   }
-  if (k == kind::APPLY_UF)
+  if (k == Kind::APPLY_UF)
   {
     Node lambda = FunctionConst::toLambda(node.getOperator());
     if (!lambda.isNull())
@@ -83,7 +83,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       return RewriteResponse(REWRITE_AGAIN_FULL, getHoApplyForApplyUf(node));
     }
   }
-  else if (k == kind::HO_APPLY)
+  else if (k == Kind::HO_APPLY)
   {
     Node lambda = FunctionConst::toLambda(node[0]);
     if (!lambda.isNull())
@@ -99,9 +99,9 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
         std::vector<Node> new_vars(lambda[0].begin() + 1, lambda[0].end());
         std::vector<Node> largs;
         largs.push_back(
-            NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, new_vars));
+            NodeManager::currentNM()->mkNode(Kind::BOUND_VAR_LIST, new_vars));
         largs.push_back(new_body);
-        new_body = NodeManager::currentNM()->mkNode(kind::LAMBDA, largs);
+        new_body = NodeManager::currentNM()->mkNode(Kind::LAMBDA, largs);
         Trace("uf-ho-beta")
             << "uf-ho-beta : ....new lambda : " << new_body << "\n";
       }
@@ -120,7 +120,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       return RewriteResponse(REWRITE_AGAIN_FULL, new_body);
     }
   }
-  else if (k == kind::LAMBDA)
+  else if (k == Kind::LAMBDA)
   {
     Node ret = rewriteLambda(node);
     if (ret != node)
@@ -128,11 +128,11 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
   }
-  else if (k == kind::BITVECTOR_TO_NAT)
+  else if (k == Kind::BITVECTOR_TO_NAT)
   {
     return rewriteBVToNat(node);
   }
-  else if (k == kind::INT_TO_BITVECTOR)
+  else if (k == Kind::INT_TO_BITVECTOR)
   {
     return rewriteIntToBV(node);
   }
@@ -141,7 +141,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
 
 RewriteResponse TheoryUfRewriter::preRewrite(TNode node)
 {
-  if (node.getKind() == kind::EQUAL)
+  if (node.getKind() == Kind::EQUAL)
   {
     if (node[0] == node[1])
     {
@@ -160,11 +160,11 @@ RewriteResponse TheoryUfRewriter::preRewrite(TNode node)
 
 Node TheoryUfRewriter::getHoApplyForApplyUf(TNode n)
 {
-  Assert(n.getKind() == kind::APPLY_UF);
+  Assert(n.getKind() == Kind::APPLY_UF);
   Node curr = n.getOperator();
   for (unsigned i = 0; i < n.getNumChildren(); i++)
   {
-    curr = NodeManager::currentNM()->mkNode(kind::HO_APPLY, curr, n[i]);
+    curr = NodeManager::currentNM()->mkNode(Kind::HO_APPLY, curr, n[i]);
   }
   return curr;
 }
@@ -175,7 +175,7 @@ Node TheoryUfRewriter::getApplyUfForHoApply(TNode n)
   // if operator is standard
   if (canUseAsApplyUfOperator(curr))
   {
-    return NodeManager::currentNM()->mkNode(kind::APPLY_UF, children);
+    return NodeManager::currentNM()->mkNode(Kind::APPLY_UF, children);
   }
   // cannot construct APPLY_UF if operator is partially applied or is not
   // standard
@@ -186,7 +186,7 @@ Node TheoryUfRewriter::decomposeHoApply(TNode n,
                                         bool opInArgs)
 {
   TNode curr = n;
-  while (curr.getKind() == kind::HO_APPLY)
+  while (curr.getKind() == Kind::HO_APPLY)
   {
     args.push_back(curr[1]);
     curr = curr[0];
@@ -202,7 +202,7 @@ bool TheoryUfRewriter::canUseAsApplyUfOperator(TNode n) { return n.isVar(); }
 
 Node TheoryUfRewriter::rewriteLambda(Node node)
 {
-  Assert(node.getKind() == kind::LAMBDA);
+  Assert(node.getKind() == Kind::LAMBDA);
   // The following code ensures that if node is equivalent to a constant
   // lambda, then we return the canonical representation for the lambda, which
   // in turn ensures that two constant lambdas are equivalent if and only
@@ -241,20 +241,20 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
 
 RewriteResponse TheoryUfRewriter::rewriteBVToNat(TNode node)
 {
-  Assert(node.getKind() == kind::BITVECTOR_TO_NAT);
+  Assert(node.getKind() == Kind::BITVECTOR_TO_NAT);
   NodeManager* nm = NodeManager::currentNM();
   if (node[0].isConst())
   {
     Node resultNode = nm->mkConstInt(node[0].getConst<BitVector>().toInteger());
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
   }
-  else if (node[0].getKind() == kind::INT_TO_BITVECTOR)
+  else if (node[0].getKind() == Kind::INT_TO_BITVECTOR)
   {
     // (bv2nat ((_ int2bv w) x)) ----> (mod x 2^w)
     const uint32_t size =
         node[0].getOperator().getConst<IntToBitVector>().d_size;
     Node sn = nm->mkConstInt(Rational(Integer(2).pow(size)));
-    Node resultNode = nm->mkNode(kind::INTS_MODULUS_TOTAL, node[0][0], sn);
+    Node resultNode = nm->mkNode(Kind::INTS_MODULUS_TOTAL, node[0][0], sn);
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
   }
   return RewriteResponse(REWRITE_DONE, node);
@@ -262,7 +262,7 @@ RewriteResponse TheoryUfRewriter::rewriteBVToNat(TNode node)
 
 RewriteResponse TheoryUfRewriter::rewriteIntToBV(TNode node)
 {
-  Assert(node.getKind() == kind::INT_TO_BITVECTOR);
+  Assert(node.getKind() == Kind::INT_TO_BITVECTOR);
   if (node[0].isConst())
   {
     NodeManager* nm = NodeManager::currentNM();
@@ -271,7 +271,7 @@ RewriteResponse TheoryUfRewriter::rewriteIntToBV(TNode node)
         BitVector(size, node[0].getConst<Rational>().getNumerator()));
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
   }
-  else if (node[0].getKind() == kind::BITVECTOR_TO_NAT)
+  else if (node[0].getKind() == Kind::BITVECTOR_TO_NAT)
   {
     TypeNode otype = node.getType();
     TypeNode itype = node[0][0].getType();
@@ -286,7 +286,7 @@ RewriteResponse TheoryUfRewriter::rewriteIntToBV(TNode node)
       // ((_ int2bv w) (bv2nat x)) ---> (concat (_ bv0 v) x)
       Node zero = bv::utils::mkZero(osize - isize);
       Node concat = NodeManager::currentNM()->mkNode(
-          kind::BITVECTOR_CONCAT, zero, node[0][0]);
+          Kind::BITVECTOR_CONCAT, zero, node[0][0]);
       return RewriteResponse(REWRITE_AGAIN_FULL, concat);
     }
     else

@@ -31,7 +31,7 @@ TypeNode QuantifierTypeRule::computeType(NodeManager* nodeManager,
                                          std::ostream* errOut)
 {
   Trace("typecheck-q") << "type check for fa " << n << std::endl;
-  Assert((n.getKind() == kind::FORALL || n.getKind() == kind::EXISTS)
+  Assert((n.getKind() == Kind::FORALL || n.getKind() == Kind::EXISTS)
          && n.getNumChildren() > 0);
   if (check)
   {
@@ -66,7 +66,7 @@ TypeNode QuantifierTypeRule::computeType(NodeManager* nodeManager,
       }
       for (const Node& p : n[2])
       {
-        if (p.getKind() != kind::INST_POOL)
+        if (p.getKind() != Kind::INST_POOL)
         {
           continue;
         }
@@ -97,12 +97,12 @@ TypeNode QuantifierBoundVarListTypeRule::computeType(NodeManager* nodeManager,
                                                      bool check,
                                                      std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BOUND_VAR_LIST);
+  Assert(n.getKind() == Kind::BOUND_VAR_LIST);
   if (check)
   {
     for (const Node& nc : n)
     {
-      if (nc.getKind() != kind::BOUND_VARIABLE)
+      if (nc.getKind() != Kind::BOUND_VARIABLE)
       {
         if (errOut)
         {
@@ -124,13 +124,13 @@ TypeNode QuantifierInstPatternTypeRule::computeType(NodeManager* nodeManager,
                                                     bool check,
                                                     std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::INST_PATTERN);
+  Assert(n.getKind() == Kind::INST_PATTERN);
   if (check)
   {
     TypeNode tn = n[0].getTypeOrNull();
     // this check catches the common mistake writing :pattern (f x) instead of
     // :pattern ((f x))
-    if (n[0].isVar() && n[0].getKind() != kind::BOUND_VARIABLE
+    if (n[0].isVar() && n[0].getKind() != Kind::BOUND_VARIABLE
         && tn.isFunction())
     {
       if (errOut)
@@ -155,19 +155,19 @@ TypeNode QuantifierAnnotationTypeRule::computeType(NodeManager* nodeManager,
   if (check)
   {
     Kind k = n.getKind();
-    if (k == kind::INST_ATTRIBUTE)
+    if (k == Kind::INST_ATTRIBUTE)
     {
       if (n.getNumChildren() > 1)
       {
         // first must be a keyword
-        if (n[0].getKind() != kind::CONST_STRING)
+        if (n[0].getKind() != Kind::CONST_STRING)
         {
           throw TypeCheckingExceptionPrivate(
               n[0], "Expecting a keyword at the head of INST_ATTRIBUTE.");
         }
       }
     }
-    else if (k == kind::INST_POOL)
+    else if (k == Kind::INST_POOL)
     {
       // arguments must have set types
       for (const Node& nn : n)
@@ -178,7 +178,7 @@ TypeNode QuantifierAnnotationTypeRule::computeType(NodeManager* nodeManager,
         }
       }
     }
-    else if (k == kind::INST_ADD_TO_POOL || k == kind::SKOLEM_ADD_TO_POOL)
+    else if (k == Kind::INST_ADD_TO_POOL || k == Kind::SKOLEM_ADD_TO_POOL)
     {
       TypeNode tn = n[0].getTypeOrNull();
       TypeNode tn1 = n[1].getTypeOrNull();
@@ -207,15 +207,15 @@ TypeNode QuantifierInstPatternListTypeRule::preComputeType(NodeManager* nm,
 TypeNode QuantifierInstPatternListTypeRule::computeType(
     NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::INST_PATTERN_LIST);
+  Assert(n.getKind() == Kind::INST_PATTERN_LIST);
   if (check)
   {
     for (const Node& nc : n)
     {
       Kind k = nc.getKind();
-      if (k != kind::INST_PATTERN && k != kind::INST_NO_PATTERN
-          && k != kind::INST_ATTRIBUTE && k != kind::INST_POOL
-          && k != kind::INST_ADD_TO_POOL && k != kind::SKOLEM_ADD_TO_POOL)
+      if (k != Kind::INST_PATTERN && k != Kind::INST_NO_PATTERN
+          && k != Kind::INST_ATTRIBUTE && k != Kind::INST_POOL
+          && k != Kind::INST_ADD_TO_POOL && k != Kind::SKOLEM_ADD_TO_POOL)
       {
         if (errOut)
         {
@@ -237,7 +237,7 @@ TypeNode QuantifierOracleFormulaGenTypeRule::preComputeType(NodeManager* nm,
 TypeNode QuantifierOracleFormulaGenTypeRule::computeType(
     NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::ORACLE_FORMULA_GEN);
+  Assert(n.getKind() == Kind::ORACLE_FORMULA_GEN);
   if (check)
   {
     if (!n[0].getTypeOrNull().isBoolean())

@@ -61,10 +61,10 @@ void LeanPrinter::printKind(std::ostream& s, Kind k)
 {
   switch (k)
   {
-    case kind::EQUAL: s << "mkEq"; break;
-    case kind::AND: s << "mkAnd"; break;
-    case kind::OR: s << "mkOr"; break;
-    case kind::NOT: s << "mkNot"; break;
+    case Kind::EQUAL: s << "mkEq"; break;
+    case Kind::AND: s << "mkAnd"; break;
+    case Kind::OR: s << "mkOr"; break;
+    case Kind::NOT: s << "mkNot"; break;
     default: s << "mkOther";
   }
 }
@@ -72,7 +72,7 @@ void LeanPrinter::printKind(std::ostream& s, Kind k)
 void LeanPrinter::printLeanString(std::ostream& s, Node n)
 {
   Kind k = n.getKind();
-  if (k == kind::VARIABLE)
+  if (k == Kind::VARIABLE)
   {
     s << n.toString();
   }
@@ -101,8 +101,8 @@ void LeanPrinter::printLeanType(std::ostream& s, Node n)
   Kind k = n.getKind();
   switch (k)
   {
-    case kind::VARIABLE: s << n.toString(); break;
-    case kind::AND:
+    case Kind::VARIABLE: s << n.toString(); break;
+    case Kind::AND:
     {
       printLeanType(s, n[0]);
       s << " -> ";
@@ -131,7 +131,7 @@ void LeanPrinter::printProof(std::ostream& out,
   // ProofNode tree
   const std::vector<Node>& args = pfn->getArguments();
   const std::vector<std::shared_ptr<ProofNode>>& children = pfn->getChildren();
-  Assert(pfn->getRule() == PfRule::LEAN_RULE)
+  Assert(pfn->getRule() == ProofRule::LEAN_RULE)
       << "Wrong proof node " << *pfn.get() << "\n";
   LeanRule id = getLeanRule(args[0]);
   if (id == LeanRule::SCOPE)

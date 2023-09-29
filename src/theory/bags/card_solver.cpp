@@ -70,7 +70,7 @@ void CardSolver::checkCardinalityGraph()
   {
     Trace("bags-card") << "CardSolver::checkCardinalityGraph cardTerm: " << pair
                        << std::endl;
-    Assert(pair.first.getKind() == BAG_CARD);
+    Assert(pair.first.getKind() == Kind::BAG_CARD);
     Assert(d_state.hasTerm(pair.first[0]));
     Node bag = d_state.getRepresentative(pair.first[0]);
     Trace("bags-card") << "CardSolver::checkCardinalityGraph bag rep: " << bag
@@ -84,17 +84,19 @@ void CardSolver::checkCardinalityGraph()
       Kind k = n.getKind();
       switch (k)
       {
-        case BAG_EMPTY: checkEmpty(pair, n); break;
-        case BAG_MAKE: checkBagMake(pair, n); break;
-        case BAG_UNION_DISJOINT:
+        case Kind::BAG_EMPTY: checkEmpty(pair, n); break;
+        case Kind::BAG_MAKE: checkBagMake(pair, n); break;
+        case Kind::BAG_UNION_DISJOINT:
         {
           checkUnionDisjoint(pair, n);
           break;
         }
-        case BAG_UNION_MAX: checkUnionMax(pair, n); break;
-        case BAG_INTER_MIN: checkIntersectionMin(pair, n); break;
-        case BAG_DIFFERENCE_SUBTRACT: checkDifferenceSubtract(pair, n); break;
-        case BAG_DIFFERENCE_REMOVE: checkDifferenceRemove(pair, n); break;
+        case Kind::BAG_UNION_MAX: checkUnionMax(pair, n); break;
+        case Kind::BAG_INTER_MIN: checkIntersectionMin(pair, n); break;
+        case Kind::BAG_DIFFERENCE_SUBTRACT:
+          checkDifferenceSubtract(pair, n);
+          break;
+        case Kind::BAG_DIFFERENCE_REMOVE: checkDifferenceRemove(pair, n); break;
         default: break;
       }
       if (d_im.hasSentLemma())
@@ -114,14 +116,14 @@ void CardSolver::checkCardinalityGraph()
 
 void CardSolver::checkEmpty(const std::pair<Node, Node>& pair, const Node& n)
 {
-  Assert(n.getKind() == BAG_EMPTY);
+  Assert(n.getKind() == Kind::BAG_EMPTY);
   InferInfo i = d_ig.cardEmpty(pair, n);
   d_im.lemmaTheoryInference(&i);
 }
 
 void CardSolver::checkBagMake(const std::pair<Node, Node>& pair, const Node& n)
 {
-  Assert(n.getKind() == BAG_MAKE);
+  Assert(n.getKind() == Kind::BAG_MAKE);
   InferInfo i = d_ig.cardBagMake(pair, n);
   d_im.lemmaTheoryInference(&i);
 }
@@ -129,7 +131,7 @@ void CardSolver::checkBagMake(const std::pair<Node, Node>& pair, const Node& n)
 void CardSolver::checkUnionDisjoint(const std::pair<Node, Node>& pair,
                                     const Node& n)
 {
-  Assert(n.getKind() == BAG_UNION_DISJOINT);
+  Assert(n.getKind() == Kind::BAG_UNION_DISJOINT);
   Node bag = d_state.getRepresentative(pair.first[0]);
   Node A = d_state.getRepresentative(n[0]);
   Node B = d_state.getRepresentative(n[1]);
@@ -138,15 +140,15 @@ void CardSolver::checkUnionDisjoint(const std::pair<Node, Node>& pair,
 
 void CardSolver::checkUnionMax(const std::pair<Node, Node>& pair, const Node& n)
 {
-  Assert(n.getKind() == BAG_UNION_MAX);
+  Assert(n.getKind() == Kind::BAG_UNION_MAX);
   Node bag = d_state.getRepresentative(pair.first[0]);
   Node A = d_state.getRepresentative(n[0]);
   Node B = d_state.getRepresentative(n[1]);
-  Node subtractAB = d_nm->mkNode(BAG_DIFFERENCE_SUBTRACT, A, B);
-  Node subtractBA = d_nm->mkNode(BAG_DIFFERENCE_SUBTRACT, B, A);
+  Node subtractAB = d_nm->mkNode(Kind::BAG_DIFFERENCE_SUBTRACT, A, B);
+  Node subtractBA = d_nm->mkNode(Kind::BAG_DIFFERENCE_SUBTRACT, B, A);
   // break the intersection symmetry using the node id
-  Node interAB = A <= B ? d_nm->mkNode(BAG_INTER_MIN, A, B)
-                        : d_nm->mkNode(BAG_INTER_MIN, B, A);
+  Node interAB = A <= B ? d_nm->mkNode(Kind::BAG_INTER_MIN, A, B)
+                        : d_nm->mkNode(Kind::BAG_INTER_MIN, B, A);
   Node subtractABRep = d_state.getRepresentative(subtractAB);
   Node subtractBARep = d_state.getRepresentative(subtractBA);
   Node interABRep = d_state.getRepresentative(interAB);
@@ -192,7 +194,7 @@ void CardSolver::addChildren(const Node& premise,
     }
     else
     {
-      i.d_conclusion = d_nm->mkNode(AND, emptyBags);
+      i.d_conclusion = d_nm->mkNode(Kind::AND, emptyBags);
     }
     Trace("bags-card") << "CardSolver::addChildren info: " << i << std::endl;
     d_im.lemmaTheoryInference(&i);
@@ -242,13 +244,13 @@ void CardSolver::addChildren(const Node& premise,
       Trace("bags-card") << "CardSolver::addChildren set2: " << children
                          << std::endl;
 
-      Node card = d_nm->mkNode(BAG_CARD, parent);
+      Node card = d_nm->mkNode(Kind::BAG_CARD, parent);
       std::vector<Node> asserts;
       Node reduced = BagReduction::reduceCardOperator(card, asserts);
       asserts.push_back(card.eqNode(reduced));
       InferInfo inferInfo(&d_im, InferenceId::BAGS_CARD);
       inferInfo.d_premises.push_back(premise);
-      inferInfo.d_conclusion = d_nm->mkNode(AND, asserts);
+      inferInfo.d_conclusion = d_nm->mkNode(Kind::AND, asserts);
       d_im.lemmaTheoryInference(&inferInfo);
     }
   }
@@ -257,15 +259,15 @@ void CardSolver::addChildren(const Node& premise,
 void CardSolver::checkIntersectionMin(const std::pair<Node, Node>& pair,
                                       const Node& n)
 {
-  Assert(n.getKind() == BAG_INTER_MIN);
+  Assert(n.getKind() == Kind::BAG_INTER_MIN);
   Node bag = d_state.getRepresentative(pair.first[0]);
   Node A = d_state.getRepresentative(n[0]);
   Node B = d_state.getRepresentative(n[1]);
-  Node subtractAB = d_nm->mkNode(BAG_DIFFERENCE_SUBTRACT, A, B);
-  Node subtractBA = d_nm->mkNode(BAG_DIFFERENCE_SUBTRACT, B, A);
+  Node subtractAB = d_nm->mkNode(Kind::BAG_DIFFERENCE_SUBTRACT, A, B);
+  Node subtractBA = d_nm->mkNode(Kind::BAG_DIFFERENCE_SUBTRACT, B, A);
   // break the intersection symmetry using the node id
-  Node interAB = A <= B ? d_nm->mkNode(BAG_INTER_MIN, A, B)
-                        : d_nm->mkNode(BAG_INTER_MIN, B, A);
+  Node interAB = A <= B ? d_nm->mkNode(Kind::BAG_INTER_MIN, A, B)
+                        : d_nm->mkNode(Kind::BAG_INTER_MIN, B, A);
   Node subtractABRep = d_state.getRepresentative(subtractAB);
   Node subtractBARep = d_state.getRepresentative(subtractBA);
   Node interABRep = d_state.getRepresentative(interAB);
@@ -276,13 +278,13 @@ void CardSolver::checkIntersectionMin(const std::pair<Node, Node>& pair,
 void CardSolver::checkDifferenceSubtract(const std::pair<Node, Node>& pair,
                                          const Node& n)
 {
-  Assert(n.getKind() == BAG_DIFFERENCE_SUBTRACT);
+  Assert(n.getKind() == Kind::BAG_DIFFERENCE_SUBTRACT);
   Node bag = d_state.getRepresentative(pair.first[0]);
   Node A = d_state.getRepresentative(n[0]);
   Node B = d_state.getRepresentative(n[1]);
   // break the intersection symmetry using the node id
-  Node interAB = A <= B ? d_nm->mkNode(BAG_INTER_MIN, A, B)
-                        : d_nm->mkNode(BAG_INTER_MIN, B, A);
+  Node interAB = A <= B ? d_nm->mkNode(Kind::BAG_INTER_MIN, A, B)
+                        : d_nm->mkNode(Kind::BAG_INTER_MIN, B, A);
   Node interABRep = d_state.getRepresentative(interAB);
   addChildren(bag.eqNode(n), A, {bag, interABRep});
 }
@@ -290,7 +292,7 @@ void CardSolver::checkDifferenceSubtract(const std::pair<Node, Node>& pair,
 void CardSolver::checkDifferenceRemove(const std::pair<Node, Node>& pair,
                                        const Node& n)
 {
-  Assert(n.getKind() == BAG_DIFFERENCE_REMOVE);
+  Assert(n.getKind() == Kind::BAG_DIFFERENCE_REMOVE);
   throw LogicException(
       "Cardinality for BAG_DIFFERENCE_REMOVE is not implemented yet");
 }
@@ -308,7 +310,7 @@ void CardSolver::checkLeafBag(const std::pair<Node, Node>& pair,
     {
       Trace("bags-card") << "pair: " << pairs[i] << std::endl;
       bags::InferInfo inferInfo(&d_im, InferenceId::BAGS_CARD);
-      Node leq = d_nm->mkNode(LEQ, pairs[i].second, pair.second);
+      Node leq = d_nm->mkNode(Kind::LEQ, pairs[i].second, pair.second);
       inferInfo.d_conclusion = leq;
       d_im.lemmaTheoryInference(&inferInfo);
       for (size_t j = i + 1; j < pairs.size(); j++)
@@ -321,7 +323,7 @@ void CardSolver::checkLeafBag(const std::pair<Node, Node>& pair,
           counts.push_back(pairs[k].second);
         }
         counts.push_back(pairs[j].second);
-        Node sum = d_nm->mkNode(ADD, counts);
+        Node sum = d_nm->mkNode(Kind::ADD, counts);
         Node premise;
         if (distinct.size() == 1)
         {
@@ -329,10 +331,10 @@ void CardSolver::checkLeafBag(const std::pair<Node, Node>& pair,
         }
         else
         {
-          premise = d_nm->mkNode(AND, distinct);
+          premise = d_nm->mkNode(Kind::AND, distinct);
         }
         bags::InferInfo sumInfo(&d_im, InferenceId::BAGS_CARD);
-        Node sumLEQ = d_nm->mkNode(LEQ, sum, pair.second);
+        Node sumLEQ = d_nm->mkNode(Kind::LEQ, sum, pair.second);
         sumInfo.d_conclusion = premise.negate().orNode(sumLEQ);
         d_im.lemmaTheoryInference(&sumInfo);
       }

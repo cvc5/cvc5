@@ -42,15 +42,15 @@ def gen_mk_skolem(name, sort):
     elif sort.base == BaseSort.String:
         sort_code = 'nm->stringType()'
     elif sort.base == BaseSort.AbsArray:
-        sort_code = 'nm->mkAbstractType(kind::ARRAY_TYPE)'
+        sort_code = 'nm->mkAbstractType(Kind::ARRAY_TYPE)'
     elif sort.base == BaseSort.AbsBitVec:
-        sort_code = 'nm->mkAbstractType(kind::BITVECTOR_TYPE)'
+        sort_code = 'nm->mkAbstractType(Kind::BITVECTOR_TYPE)'
     elif sort.base == BaseSort.AbsSeq:
-        sort_code = 'nm->mkAbstractType(kind::SEQUENCE_TYPE)'
+        sort_code = 'nm->mkAbstractType(Kind::SEQUENCE_TYPE)'
     elif sort.base == BaseSort.AbsSet:
-        sort_code = 'nm->mkAbstractType(kind::SET_TYPE)'
+        sort_code = 'nm->mkAbstractType(Kind::SET_TYPE)'
     elif sort.base == BaseSort.AbsAbs:
-        sort_code = 'nm->mkAbstractType(kind::ABSTRACT_TYPE)'
+        sort_code = 'nm->mkAbstractType(Kind::ABSTRACT_TYPE)'
     elif sort.base == BaseSort.BitVec:
         # This will result in a compilation error for variable BitVec sizes.
         sort_code = f'nm->mkBitVectorType({sort.children[0]})'
@@ -89,10 +89,10 @@ def gen_mk_node(defns, expr):
     elif isinstance(expr, App):
         args = ",".join(gen_mk_node(defns, child) for child in expr.children)
         if (expr.op == Op.EXTRACT or expr.op == Op.REPEAT or expr.op == Op.ZERO_EXTEND or expr.op == Op.SIGN_EXTEND or expr.op == Op.ROTATE_LEFT or expr.op == Op.ROTATE_RIGHT or expr.op == Op.INT_TO_BV):
-          args = f'nm->mkConst(GenericOp({gen_kind(expr.op)})),' + args
-          return f'nm->mkNode(APPLY_INDEXED_SYMBOLIC, {{ {args} }})'
+          args = f'nm->mkConst(GenericOp(Kind::{gen_kind(expr.op)})),' + args
+          return f'nm->mkNode(Kind::APPLY_INDEXED_SYMBOLIC, {{ {args} }})'
         else:
-          return f'nm->mkNode({gen_kind(expr.op)}, {{ {args} }})'
+          return f'nm->mkNode(Kind::{gen_kind(expr.op)}, {{ {args} }})'
     else:
         die(f'Cannot generate code for {expr}')
 
@@ -100,7 +100,7 @@ def gen_mk_node(defns, expr):
 def gen_rewrite_db_rule(defns, rule):
     fvs_list = ', '.join(bvar.name for bvar in rule.bvars)
     fixed_point_arg = gen_mk_node(defns, rule.rhs_context) if rule.rhs_context else 'Node::null()'
-    return f'db.addRule(DslPfRule::{rule.get_enum()}, {{ {fvs_list} }}, {gen_mk_node(defns, rule.lhs)}, {gen_mk_node(defns, rule.rhs)}, {gen_mk_node(defns, rule.cond)}, {fixed_point_arg});'
+    return f'db.addRule(DslProofRule::{rule.get_enum()}, {{ {fvs_list} }}, {gen_mk_node(defns, rule.lhs)}, {gen_mk_node(defns, rule.rhs)}, {gen_mk_node(defns, rule.cond)}, {fixed_point_arg});'
 
 
 class Rewrites:
@@ -268,7 +268,7 @@ def gen_rewrite_db(args):
             enum = rule.get_enum()
             ids.append(enum)
             printer_code.append(
-                f'case DslPfRule::{enum}: return "{rule.name}";')
+                f'case DslProofRule::{enum}: return "{rule.name}";')
 
         rules_code.append(
             block_tpl.format(filename=rewrite_file.filename,

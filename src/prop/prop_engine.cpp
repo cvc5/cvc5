@@ -27,6 +27,7 @@
 #include "options/main_options.h"
 #include "options/options.h"
 #include "options/proof_options.h"
+#include "options/prop_options.h"
 #include "options/smt_options.h"
 #include "proof/proof_node_algorithm.h"
 #include "prop/cnf_stream.h"
@@ -83,8 +84,17 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   context::UserContext* userContext = d_env.getUserContext();
   ProofNodeManager* pnm = d_env.getProofNodeManager();
 
-  d_satSolver =
-      SatSolverFactory::createCDCLTMinisat(d_env, statisticsRegistry());
+  if (options().prop.satSolver == options::SatSolverMode::MINISAT
+      || d_env.isSatProofProducing())
+  {
+    d_satSolver =
+        SatSolverFactory::createCDCLTMinisat(d_env, statisticsRegistry());
+  }
+  else
+  {
+    d_satSolver = SatSolverFactory::createCadicalCDCLT(
+        d_env, statisticsRegistry(), env.getResourceManager());
+  }
 
   // CNF stream and theory proxy required pointers to each other, make the
   // theory proxy first
@@ -106,10 +116,8 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
                           satProofs ? pnm : nullptr);
   if (satProofs)
   {
-    d_pfCnfStream.reset(new ProofCnfStream(
-        env,
-        *d_cnfStream,
-        static_cast<MinisatSatSolver*>(d_satSolver)->getProofManager()));
+    d_pfCnfStream.reset(
+        new ProofCnfStream(env, *d_cnfStream, d_satSolver->getProofManager()));
     d_ppm.reset(
         new PropPfManager(env, userContext, d_satSolver, d_pfCnfStream.get()));
   }
@@ -125,9 +133,11 @@ void PropEngine::finishInit()
   // issue we track it directly here
   if (isProofEnabled())
   {
-    static_cast<MinisatSatSolver*>(d_satSolver)
-        ->getProofManager()
-        ->registerSatAssumptions({nm->mkConst(true)});
+    SatProofManager* spfm = d_satSolver->getProofManager();
+    if (spfm)
+    {
+      spfm->registerSatAssumptions({nm->mkConst(true)});
+    }
   }
   d_cnfStream->convertAndAssert(nm->mkConst(false).notNode(), false, false);
 }
@@ -240,7 +250,8 @@ void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
       && !trn.getGenerator())
   {
     Node actualNode = negated ? node.notNode() : node;
-    d_theoryLemmaPg.addStep(actualNode, PfRule::THEORY_LEMMA, {}, {actualNode});
+    d_theoryLemmaPg.addStep(
+        actualNode, ProofRule::THEORY_LEMMA, {}, {actualNode});
     trn = TrustNode::mkReplaceGenTrustNode(trn, &d_theoryLemmaPg);
   }
   assertInternal(node, negated, removable, false, trn.getGenerator());
@@ -658,8 +669,8 @@ bool PropEngine::properExplanation(TNode node, TNode expl) const
 
   SatLiteral nodeLit = d_cnfStream->getLiteral(node);
 
-  for (TNode::kinded_iterator i = expl.begin(kind::AND),
-                              i_end = expl.end(kind::AND);
+  for (TNode::kinded_iterator i = expl.begin(Kind::AND),
+                              i_end = expl.end(Kind::AND);
        i != i_end;
        ++i)
   {
@@ -735,10 +746,18 @@ void PropEngine::getUnsatCore(std::vector<Node>& core)
   else
   {
     Trace("unsat-core") << "PropEngine::getUnsatCore: via proof" << std::endl;
-    // otherwise, it is just the free assumptions of the proof
+    // otherwise, it is just the free assumptions of the proof. Note that we
+    // need to connect the SAT proof to the CNF proof becuase we need the
+    // preprocessed input as leaves, not the clauses derived from them.
     std::shared_ptr<ProofNode> pfn = getProof();
     expr::getFreeAssumptions(pfn.get(), core);
   }
+}
+
+std::vector<Node> PropEngine::getUnsatCoreLemmas()
+{
+  Assert(d_env.isSatProofProducing());
+  return d_ppm->getUnsatCoreLemmas();
 }
 
 std::vector<Node> PropEngine::getLearnedZeroLevelLiterals(
