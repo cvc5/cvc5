@@ -71,11 +71,11 @@ bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
                                              Node conc,
                                              InferenceId infer)
 {
-  if (conc.getKind() == AND
-      || (conc.getKind() == NOT && conc[0].getKind() == OR))
+  if (conc.getKind() == Kind::AND
+      || (conc.getKind() == Kind::NOT && conc[0].getKind() == Kind::OR))
   {
-    Node conj = conc.getKind() == AND ? conc : conc[0];
-    bool pol = conc.getKind() == AND;
+    Node conj = conc.getKind() == Kind::AND ? conc : conc[0];
+    bool pol = conc.getKind() == Kind::AND;
     bool ret = true;
     for (const Node& cc : conj)
     {
@@ -84,9 +84,9 @@ bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
     }
     return ret;
   }
-  bool pol = conc.getKind() != NOT;
+  bool pol = conc.getKind() != Kind::NOT;
   Node lit = pol ? conc : conc[0];
-  if (lit.getKind() == EQUAL)
+  if (lit.getKind() == Kind::EQUAL)
   {
     for (unsigned i = 0; i < 2; i++)
     {
@@ -238,7 +238,7 @@ bool InferenceManager::sendSplit(Node a, Node b, InferenceId infer, bool preq)
   NodeManager* nm = NodeManager::currentNM();
   InferInfo iiSplit(infer);
   iiSplit.d_sim = this;
-  iiSplit.d_conc = nm->mkNode(OR, eq, nm->mkNode(NOT, eq));
+  iiSplit.d_conc = nm->mkNode(Kind::OR, eq, nm->mkNode(Kind::NOT, eq));
   addPendingPhaseRequirement(eq, preq);
   addPendingLemma(std::unique_ptr<InferInfo>(new InferInfo(iiSplit)));
   return true;
@@ -292,13 +292,13 @@ void InferenceManager::processConflict(const InferInfo& ii)
     size_t npremises = ii.d_premises.size();
     Node eq = ii.d_premises[npremises - 1];
     // if we included an equality, we will try to minimize its explanation
-    if (eq.getKind() == EQUAL)
+    if (eq.getKind() == Kind::EQUAL)
     {
       InferInfo iim(InferenceId::STRINGS_PREFIX_CONFLICT_MIN);
       Node pft[2] = {eq[0], eq[1]};
       for (size_t i = 0; i < (npremises - 1); i++)
       {
-        if (ii.d_premises[i].getKind() == STRING_IN_REGEXP)
+        if (ii.d_premises[i].getKind() == Kind::STRING_IN_REGEXP)
         {
           size_t eindex = ii.d_premises[i][0] == eq[0] ? 0 : 1;
           Assert(ii.d_premises[i][0] == eq[eindex]);
@@ -333,7 +333,7 @@ void InferenceManager::processConflict(const InferInfo& ii)
           if (!mexp.isNull())
           {
             // must flatten here
-            utils::flattenOp(AND, mexp, iim.d_premises);
+            utils::flattenOp(Kind::AND, mexp, iim.d_premises);
             iim.d_conc = ii.d_conc;
             processConflict(iim);
             return;
@@ -374,8 +374,8 @@ void InferenceManager::processFact(InferInfo& ii, ProofGenerator*& pg)
   // ensure facts are for rewritten terms
   if (Configuration::isAssertionBuild())
   {
-    Node atom = ii.d_conc.getKind()==NOT ? ii.d_conc[0] : ii.d_conc;
-    if (atom.getKind()==EQUAL)
+    Node atom = ii.d_conc.getKind() == Kind::NOT ? ii.d_conc[0] : ii.d_conc;
+    if (atom.getKind() == Kind::EQUAL)
     {
       Assert(rewrite(atom[0])==atom[0]);
       Assert(rewrite(atom[1])==atom[1]);
@@ -395,7 +395,7 @@ TrustNode InferenceManager::processLemma(InferInfo& ii, LemmaProperty& p)
   std::vector<Node> exp;
   for (const Node& ec : ii.d_premises)
   {
-    utils::flattenOp(AND, ec, exp);
+    utils::flattenOp(Kind::AND, ec, exp);
   }
   std::vector<Node> noExplain;
   if (!options().strings.stringRExplainLemmas)
@@ -409,7 +409,7 @@ TrustNode InferenceManager::processLemma(InferInfo& ii, LemmaProperty& p)
     // otherwise, the no-explain literals are those provided
     for (const Node& ecn : ii.d_noExplain)
     {
-      utils::flattenOp(AND, ecn, noExplain);
+      utils::flattenOp(Kind::AND, ecn, noExplain);
     }
   }
   // ensure that the proof generator is ready to explain the final conclusion
@@ -457,7 +457,7 @@ std::map<TNode, TNode> InferenceManager::getExplanationMap(
   std::map<TNode, TNode> emap;
   for (TNode e : assumptions)
   {
-    if (e.getKind() != EQUAL)
+    if (e.getKind() != Kind::EQUAL)
     {
       // skip non-equalities, which could be included if we internally
       // concluded an equality as a fact from a non-equality
@@ -529,7 +529,7 @@ Node InferenceManager::mkPrefixExplainMin(Node x,
       if (std::find(minAssumptions.begin(), minAssumptions.end(), ceq)
           == minAssumptions.end())
       {
-        Assert(ceq.getKind() == EQUAL);
+        Assert(ceq.getKind() == Kind::EQUAL);
         Assert(ceq[0] == c || ceq[1] == c);
         // add to explanation and look at the term it is equal to
         minAssumptions.push_back(ceq);
@@ -540,7 +540,7 @@ Node InferenceManager::mkPrefixExplainMin(Node x,
     }
     // we don't know what it is equal to
     // if it is a concatenation, try to recurse into children
-    if (c.getKind() == STRING_CONCAT)
+    if (c.getKind() == Kind::STRING_CONCAT)
     {
       for (size_t i = 0, nchild = c.getNumChildren(); i < nchild; i++)
       {

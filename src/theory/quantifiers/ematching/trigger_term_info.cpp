@@ -49,12 +49,15 @@ bool TriggerTermInfo::isAtomicTrigger(Node n)
 
 bool TriggerTermInfo::isAtomicTriggerKind(Kind k)
 {
-  return k == APPLY_UF || k == SELECT || k == STORE || k == APPLY_CONSTRUCTOR
-         || k == APPLY_SELECTOR || k == APPLY_TESTER || k == SET_UNION
-         || k == SET_INTER || k == SET_SUBSET || k == SET_MINUS
-         || k == SET_MEMBER || k == SET_SINGLETON || k == SEP_PTO
-         || k == BITVECTOR_TO_NAT || k == INT_TO_BITVECTOR || k == HO_APPLY
-         || k == STRING_LENGTH || k == SEQ_NTH;
+  return k == Kind::APPLY_UF || k == Kind::SELECT || k == Kind::STORE
+         || k == Kind::APPLY_CONSTRUCTOR || k == Kind::APPLY_SELECTOR
+         || k == Kind::APPLY_TESTER || k == Kind::SET_UNION
+         || k == Kind::SET_INTER || k == Kind::SET_SUBSET
+         || k == Kind::SET_MINUS || k == Kind::SET_MEMBER
+         || k == Kind::SET_SINGLETON || k == Kind::SEP_PTO
+         || k == Kind::BITVECTOR_TO_NAT || k == Kind::INT_TO_BITVECTOR
+         || k == Kind::HO_APPLY || k == Kind::STRING_LENGTH
+         || k == Kind::SEQ_NTH;
 }
 
 bool TriggerTermInfo::isRelationalTrigger(Node n)
@@ -64,7 +67,7 @@ bool TriggerTermInfo::isRelationalTrigger(Node n)
 
 bool TriggerTermInfo::isRelationalTriggerKind(Kind k)
 {
-  return k == EQUAL || k == GEQ;
+  return k == Kind::EQUAL || k == Kind::GEQ;
 }
 
 bool TriggerTermInfo::isUsableRelationTrigger(Node n)
@@ -80,9 +83,9 @@ bool TriggerTermInfo::isUsableRelationTrigger(Node n,
 {
   // relational triggers (not) (= (~ x t) true|false), where ~ in { =, >= }.
   hasPol = false;
-  pol = n.getKind() != NOT;
+  pol = n.getKind() != Kind::NOT;
   lit = pol ? n : n[0];
-  if (lit.getKind() == EQUAL && lit[1].getType().isBoolean()
+  if (lit.getKind() == Kind::EQUAL && lit[1].getType().isBoolean()
       && lit[1].isConst())
   {
     hasPol = true;
@@ -90,14 +93,14 @@ bool TriggerTermInfo::isUsableRelationTrigger(Node n,
     lit = lit[0];
   }
   // is it a relational trigger?
-  if ((lit.getKind() == EQUAL && lit[0].getType().isRealOrInt())
-      || lit.getKind() == GEQ)
+  if ((lit.getKind() == Kind::EQUAL && lit[0].getType().isRealOrInt())
+      || lit.getKind() == Kind::GEQ)
   {
     // if one side of the relation is a variable and the other side is a ground
     // term, we can treat this using the relational match generator
     for (size_t i = 0; i < 2; i++)
     {
-      if (lit[i].getKind() == INST_CONSTANT
+      if (lit[i].getKind() == Kind::INST_CONSTANT
           && !quantifiers::TermUtil::hasInstConstAttr(lit[1 - i]))
       {
         return true;
@@ -109,8 +112,8 @@ bool TriggerTermInfo::isUsableRelationTrigger(Node n,
 
 bool TriggerTermInfo::isSimpleTrigger(Node n)
 {
-  Node t = n.getKind() == NOT ? n[0] : n;
-  if (t.getKind() == EQUAL)
+  Node t = n.getKind() == Kind::NOT ? n[0] : n;
+  if (t.getKind() == Kind::EQUAL)
   {
     if (!quantifiers::TermUtil::hasInstConstAttr(t[1]))
     {
@@ -123,13 +126,13 @@ bool TriggerTermInfo::isSimpleTrigger(Node n)
   }
   for (const Node& tc : t)
   {
-    if (tc.getKind() != INST_CONSTANT
+    if (tc.getKind() != Kind::INST_CONSTANT
         && quantifiers::TermUtil::hasInstConstAttr(tc))
     {
       return false;
     }
   }
-  if (t.getKind() == HO_APPLY && t[0].getKind() == INST_CONSTANT)
+  if (t.getKind() == Kind::HO_APPLY && t[0].getKind() == Kind::INST_CONSTANT)
   {
     return false;
   }
@@ -138,7 +141,7 @@ bool TriggerTermInfo::isSimpleTrigger(Node n)
 
 int32_t TriggerTermInfo::getTriggerWeight(Node n)
 {
-  if (n.getKind() == APPLY_UF)
+  if (n.getKind() == Kind::APPLY_UF)
   {
     return 0;
   }

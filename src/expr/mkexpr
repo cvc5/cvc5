@@ -157,12 +157,12 @@ function typerule {
   lineno=${BASH_LINENO[0]}
   check_theory_seen
   typerules="${typerules}
-  case kind::$1:
+  case Kind::$1:
     typeNode = $2::computeType(nodeManager, n, check, errOut);
     break;
 "
   pretyperules="${pretyperules}
-  case kind::$1:
+  case Kind::$1:
     typeNode = $2::preComputeType(nodeManager, n);
     break;
 "
@@ -173,7 +173,7 @@ function construle {
   lineno=${BASH_LINENO[0]}
   check_theory_seen
   construles="${construles}
-  case kind::$1:
+  case Kind::$1:
     return $2::computeIsConst(nodeManager, n);
 "
 }
@@ -238,7 +238,7 @@ template <> $2 const & Expr::getConst< $2 >() const;
 "
   getConst_implementations="${getConst_implementations}
 template <> $2 const & Expr::getConst() const {
-Assert(getKind() == ::cvc5::internal::kind::$1) << \"Improper kind for getConst<$2>()\";
+Assert(getKind() == ::cvc5::internal::Kind::$1) << \"Improper kind for getConst<$2>()\";
   return d_node->getConst< $2 >();
 }
 "

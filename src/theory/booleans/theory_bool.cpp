@@ -43,20 +43,22 @@ Theory::PPAssertStatus TheoryBool::ppAssert(
 {
   Assert(tin.getKind() == TrustNodeKind::LEMMA);
   TNode in = tin.getNode();
-  if (in.getKind() == kind::CONST_BOOLEAN && !in.getConst<bool>()) {
+  if (in.getKind() == Kind::CONST_BOOLEAN && !in.getConst<bool>())
+  {
     // If we get a false literal, we're in conflict
     return PP_ASSERT_STATUS_CONFLICT;
   }
 
   // Add the substitution from the variable to its value
-  if (in.getKind() == kind::NOT) {
+  if (in.getKind() == Kind::NOT)
+  {
     if (in[0].isVar())
     {
       outSubstitutions.addSubstitutionSolved(
           in[0], NodeManager::currentNM()->mkConst<bool>(false), tin);
       return PP_ASSERT_STATUS_SOLVED;
     }
-    else if (in[0].getKind() == kind::EQUAL && in[0][0].getType().isBoolean())
+    else if (in[0].getKind() == Kind::EQUAL && in[0][0].getType().isBoolean())
     {
       TNode eq = in[0];
       if (eq[0].isVar() && isLegalElimination(eq[0], eq[1]))

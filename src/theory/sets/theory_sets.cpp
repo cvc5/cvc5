@@ -68,36 +68,36 @@ void TheorySets::finishInit()
 {
   Assert(d_equalityEngine != nullptr);
 
-  d_valuation.setUnevaluatedKind(SET_COMPREHENSION);
+  d_valuation.setUnevaluatedKind(Kind::SET_COMPREHENSION);
   // choice is used to eliminate witness
-  d_valuation.setUnevaluatedKind(WITNESS);
+  d_valuation.setUnevaluatedKind(Kind::WITNESS);
   // Universe set is not evaluated. This is moreover important for ensuring that
   // we do not eliminate terms whose value involves the universe set.
-  d_valuation.setUnevaluatedKind(SET_UNIVERSE);
+  d_valuation.setUnevaluatedKind(Kind::SET_UNIVERSE);
 
   // functions we are doing congruence over
-  d_equalityEngine->addFunctionKind(SET_SINGLETON);
-  d_equalityEngine->addFunctionKind(SET_UNION);
-  d_equalityEngine->addFunctionKind(SET_INTER);
-  d_equalityEngine->addFunctionKind(SET_MINUS);
-  d_equalityEngine->addFunctionKind(SET_MEMBER);
-  d_equalityEngine->addFunctionKind(SET_SUBSET);
+  d_equalityEngine->addFunctionKind(Kind::SET_SINGLETON);
+  d_equalityEngine->addFunctionKind(Kind::SET_UNION);
+  d_equalityEngine->addFunctionKind(Kind::SET_INTER);
+  d_equalityEngine->addFunctionKind(Kind::SET_MINUS);
+  d_equalityEngine->addFunctionKind(Kind::SET_MEMBER);
+  d_equalityEngine->addFunctionKind(Kind::SET_SUBSET);
   // relation operators
-  d_equalityEngine->addFunctionKind(RELATION_PRODUCT);
-  d_equalityEngine->addFunctionKind(RELATION_JOIN);
-  d_equalityEngine->addFunctionKind(RELATION_TRANSPOSE);
-  d_equalityEngine->addFunctionKind(RELATION_TCLOSURE);
-  d_equalityEngine->addFunctionKind(RELATION_JOIN_IMAGE);
-  d_equalityEngine->addFunctionKind(RELATION_IDEN);
-  d_equalityEngine->addFunctionKind(APPLY_CONSTRUCTOR);
+  d_equalityEngine->addFunctionKind(Kind::RELATION_PRODUCT);
+  d_equalityEngine->addFunctionKind(Kind::RELATION_JOIN);
+  d_equalityEngine->addFunctionKind(Kind::RELATION_TRANSPOSE);
+  d_equalityEngine->addFunctionKind(Kind::RELATION_TCLOSURE);
+  d_equalityEngine->addFunctionKind(Kind::RELATION_JOIN_IMAGE);
+  d_equalityEngine->addFunctionKind(Kind::RELATION_IDEN);
+  d_equalityEngine->addFunctionKind(Kind::APPLY_CONSTRUCTOR);
   // we do congruence over cardinality
-  d_equalityEngine->addFunctionKind(SET_CARD);
+  d_equalityEngine->addFunctionKind(Kind::SET_CARD);
 
   // finish initialization internally
   d_internal->finishInit();
 
   // memberships are not relevant for model building
-  d_valuation.setIrrelevantKind(SET_MEMBER);
+  d_valuation.setIrrelevantKind(Kind::SET_MEMBER);
 }
 
 void TheorySets::postCheck(Effort level) { d_internal->postCheck(level); }
@@ -135,8 +135,8 @@ void TheorySets::preRegisterTerm(TNode node)
 TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
 {
   Kind nk = n.getKind();
-  if (nk == SET_UNIVERSE || nk == SET_COMPLEMENT || nk == RELATION_JOIN_IMAGE
-      || nk == SET_COMPREHENSION)
+  if (nk == Kind::SET_UNIVERSE || nk == Kind::SET_COMPLEMENT
+      || nk == Kind::RELATION_JOIN_IMAGE || nk == Kind::SET_COMPREHENSION)
   {
     if (!options().sets.setsExt)
     {
@@ -146,7 +146,7 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
       throw LogicException(ss.str());
     }
   }
-  if (nk == SET_COMPREHENSION)
+  if (nk == Kind::SET_COMPREHENSION)
   {
     // set comprehension is an implicit quantifier, require it in the logic
     if (!logicInfo().isQuantified())
@@ -156,8 +156,8 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
       throw LogicException(ss.str());
     }
   }
-  if (nk == RELATION_AGGREGATE || nk == RELATION_PROJECT || nk == SET_MAP
-      || nk == SET_FOLD)
+  if (nk == Kind::RELATION_AGGREGATE || nk == Kind::RELATION_PROJECT
+      || nk == Kind::SET_MAP || nk == Kind::SET_FOLD)
   {
     // requires higher order
     if (!logicInfo().isHigherOrder())
@@ -169,21 +169,21 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
       throw LogicException(ss.str());
     }
   }
-  if (nk == SET_FOLD)
+  if (nk == Kind::SET_FOLD)
   {
     std::vector<Node> asserts;
     Node ret = SetReduction::reduceFoldOperator(n, asserts);
     NodeManager* nm = NodeManager::currentNM();
-    Node andNode = nm->mkNode(AND, asserts);
+    Node andNode = nm->mkNode(Kind::AND, asserts);
     d_im.lemma(andNode, InferenceId::SETS_FOLD);
     return TrustNode::mkTrustRewrite(n, ret, nullptr);
   }
-  if (nk == RELATION_AGGREGATE)
+  if (nk == Kind::RELATION_AGGREGATE)
   {
     Node ret = SetReduction::reduceAggregateOperator(n);
     return TrustNode::mkTrustRewrite(ret, ret, nullptr);
   }
-  if (nk == RELATION_PROJECT)
+  if (nk == Kind::RELATION_PROJECT)
   {
     Node ret = SetReduction::reduceProjectOperator(n);
     return TrustNode::mkTrustRewrite(ret, ret, nullptr);
@@ -199,7 +199,7 @@ Theory::PPAssertStatus TheorySets::ppAssert(
   Theory::PPAssertStatus status = Theory::PP_ASSERT_STATUS_UNSOLVED;
 
   // this is based off of Theory::ppAssert
-  if (in.getKind() == EQUAL)
+  if (in.getKind() == Kind::EQUAL)
   {
     if (in[0].isVar() && isLegalElimination(in[0], in[1]))
     {
@@ -244,7 +244,7 @@ void TheorySets::processCarePairArgs(TNode a, TNode b)
   // Suppose (set.member x S) = (set.member y S) = true and there are
   // no other members in S. We would get S = {x} if (= x y) is true.
   // Otherwise we would get S = {x, y}.
-  if (a.getKind() != SET_MEMBER && d_state.areEqual(a, b))
+  if (a.getKind() != Kind::SET_MEMBER && d_state.areEqual(a, b))
   {
     return;
   }

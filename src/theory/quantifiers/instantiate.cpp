@@ -115,7 +115,7 @@ bool Instantiate::addInstantiationInternal(
   // For resource-limiting (also does a time check).
   d_qim.safePoint(Resource::QuantifierStep);
   Assert(!d_qstate.isInConflict());
-  Assert(q.getKind() == FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   Assert(terms.size() == q[0].getNumChildren());
   if (TraceIsOn("inst-add-debug"))
   {
@@ -299,7 +299,7 @@ bool Instantiate::addInstantiationInternal(
   Trace("inst-assert") << "(assert " << body << ")" << std::endl;
 
   // construct the instantiation, and rewrite the lemma
-  Node lem = NodeManager::currentNM()->mkNode(kind::IMPLIES, q, body);
+  Node lem = NodeManager::currentNM()->mkNode(Kind::IMPLIES, q, body);
 
   // If proofs are enabled, construct the proof, which is of the form:
   // ... free assumption q ...
@@ -410,7 +410,7 @@ bool Instantiate::addInstantiationInternal(
 
 void Instantiate::processInstantiationRep(Node q, std::vector<Node>& terms)
 {
-  Assert(q.getKind() == FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   Assert(terms.size() == q[0].getNumChildren());
   for (size_t i = 0, size = terms.size(); i < size; i++)
   {
@@ -756,11 +756,11 @@ Node Instantiate::ensureType(Node n, TypeNode tn)
   }
   if (tn.isInteger())
   {
-    return NodeManager::currentNM()->mkNode(TO_INTEGER, n);
+    return NodeManager::currentNM()->mkNode(Kind::TO_INTEGER, n);
   }
   else if (tn.isReal())
   {
-    return NodeManager::currentNM()->mkNode(TO_REAL, n);
+    return NodeManager::currentNM()->mkNode(Kind::TO_REAL, n);
   }
   return Node::null();
 }

@@ -258,7 +258,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   Trace("prop-explain") << "explainPropagation() => " << theoryExplanation
                         << std::endl;
   explanation.push_back(l);
-  if (theoryExplanation.getKind() == kind::AND)
+  if (theoryExplanation.getKind() == Kind::AND)
   {
     for (const Node& n : theoryExplanation)
     {

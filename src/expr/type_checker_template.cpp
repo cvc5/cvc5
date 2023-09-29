@@ -34,15 +34,15 @@ TypeNode TypeChecker::preComputeType(NodeManager* nodeManager, TNode n)
   // Infer the type
   switch (n.getKind())
   {
-    case kind::VARIABLE:
-    case kind::SKOLEM:
-    case kind::BOUND_VARIABLE:
-    case kind::INST_CONSTANT:
-    case kind::RAW_SYMBOL:
+    case Kind::VARIABLE:
+    case Kind::SKOLEM:
+    case Kind::BOUND_VARIABLE:
+    case Kind::INST_CONSTANT:
+    case Kind::RAW_SYMBOL:
       // variable kinds have their type marked as an attribute upon construction
       typeNode = nodeManager->getAttribute(n, TypeAttr());
       break;
-    case kind::BUILTIN:
+    case Kind::BUILTIN:
       typeNode = nodeManager->builtinOperatorType();
       break;
 

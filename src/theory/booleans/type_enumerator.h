@@ -33,7 +33,7 @@ class BooleanEnumerator : public TypeEnumeratorBase<BooleanEnumerator> {
   BooleanEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<BooleanEnumerator>(type), d_value(FALSE)
   {
-    Assert(type.getKind() == kind::TYPE_CONSTANT
+    Assert(type.getKind() == Kind::TYPE_CONSTANT
            && type.getConst<TypeConstant>() == BOOLEAN_TYPE);
   }
 

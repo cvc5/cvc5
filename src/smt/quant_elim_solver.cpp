@@ -44,7 +44,7 @@ Node QuantElimSolver::getQuantifierElimination(Node q,
                                                bool isInternalSubsolver)
 {
   Trace("smt-qe") << "QuantElimSolver: get qe : " << q << std::endl;
-  if (q.getKind() != EXISTS && q.getKind() != FORALL)
+  if (q.getKind() != Kind::EXISTS && q.getKind() != Kind::FORALL)
   {
     throw ModalException(
         "Expecting a quantified formula as argument to get-qe.");
@@ -62,13 +62,13 @@ Node QuantElimSolver::getQuantifierElimination(Node q,
   Assert(te != nullptr);
   Node keyword =
       nm->mkConst(String(doFull ? "quant-elim" : "quant-elim-partial"));
-  Node n_attr = nm->mkNode(INST_ATTRIBUTE, keyword);
-  n_attr = nm->mkNode(INST_PATTERN_LIST, n_attr);
+  Node n_attr = nm->mkNode(Kind::INST_ATTRIBUTE, keyword);
+  n_attr = nm->mkNode(Kind::INST_PATTERN_LIST, n_attr);
   std::vector<Node> children;
   children.push_back(q[0]);
-  children.push_back(q.getKind() == EXISTS ? q[1] : q[1].negate());
+  children.push_back(q.getKind() == Kind::EXISTS ? q[1] : q[1].negate());
   children.push_back(n_attr);
-  Node ne = nm->mkNode(EXISTS, children);
+  Node ne = nm->mkNode(Kind::EXISTS, children);
   Trace("smt-qe-debug") << "Query for quantifier elimination : " << ne
                         << std::endl;
   Assert(ne.getNumChildren() == 3);
@@ -107,7 +107,7 @@ Node QuantElimSolver::getQuantifierElimination(Node q,
     Node ret;
     if (!topq.isNull())
     {
-      Assert(topq.getKind() == FORALL);
+      Assert(topq.getKind() == Kind::FORALL);
       Trace("smt-qe") << "Get qe based on preprocessed quantified formula "
                       << topq << std::endl;
       std::vector<Node> insts;
@@ -116,14 +116,14 @@ Node QuantElimSolver::getQuantifierElimination(Node q,
       // an internal subsolver (SolverEngine::isInternalSubsolver).
       ret = nm->mkAnd(insts);
       Trace("smt-qe") << "QuantElimSolver returned : " << ret << std::endl;
-      if (q.getKind() == EXISTS)
+      if (q.getKind() == Kind::EXISTS)
       {
         ret = rewrite(ret.negate());
       }
     }
     else
     {
-      ret = nm->mkConst(q.getKind() != EXISTS);
+      ret = nm->mkConst(q.getKind() != Kind::EXISTS);
     }
     // do extended rewrite to minimize the size of the formula aggressively
     ret = extendedRewrite(ret);
@@ -139,7 +139,7 @@ Node QuantElimSolver::getQuantifierElimination(Node q,
     return ret;
   }
   // otherwise, just true/false
-  return nm->mkConst(q.getKind() == EXISTS);
+  return nm->mkConst(q.getKind() == Kind::EXISTS);
 }
 
 }  // namespace smt

@@ -80,7 +80,7 @@ void getMaxGroundTerms(const Options& options,
 
     if (expr::hasBoundVar(cur) || cur.getType() != tn)
     {
-      if (!skip_quant || cur.getKind() != kind::FORALL)
+      if (!skip_quant || cur.getKind() != Kind::FORALL)
       {
         visit.insert(visit.end(), cur.begin(), cur.end());
       }
@@ -133,7 +133,7 @@ void getMinGroundTerms(const Options& options,
     if (it == cache.end())
     {
       cache.emplace(cur, std::make_pair(false, false));
-      if (!skip_quant || cur.getKind() != kind::FORALL)
+      if (!skip_quant || cur.getKind() != Kind::FORALL)
       {
         visit.push_back(cur);
         visit.insert(visit.end(), cur.begin(), cur.end());
@@ -299,8 +299,8 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
       }
       else
       {
-        lem = nm->mkNode(kind::IMPLIES,
-                         exp.size() == 1 ? exp[0] : nm->mkNode(kind::AND, exp),
+        lem = nm->mkNode(Kind::IMPLIES,
+                         exp.size() == 1 ? exp[0] : nm->mkNode(Kind::AND, exp),
                          dt_eval.eqNode(t));
       }
       eval_unfold_lemmas.push_back(lem);
@@ -311,7 +311,7 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
       if (!inst->addInstantiation(q,
                                   terms,
                                   InferenceId::QUANTIFIERS_INST_SYQI,
-                                  nm->mkNode(kind::SEXPR, values)))
+                                  nm->mkNode(Kind::SEXPR, values)))
       {
         sendEvalUnfoldLemmas(eval_unfold_lemmas);
       }
@@ -323,7 +323,7 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
         inst->addInstantiation(q,
                                terms,
                                InferenceId::QUANTIFIERS_INST_SYQI,
-                               nm->mkNode(kind::SEXPR, values));
+                               nm->mkNode(Kind::SEXPR, values));
       }
     }
     else
@@ -332,7 +332,7 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
       inst->addInstantiation(q,
                              terms,
                              InferenceId::QUANTIFIERS_INST_SYQI,
-                             nm->mkNode(kind::SEXPR, values));
+                             nm->mkNode(Kind::SEXPR, values));
       sendEvalUnfoldLemmas(eval_unfold_lemmas);
     }
   }
@@ -544,7 +544,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
     {
       args.insert(args.end(), svl.begin(), svl.end());
     }
-    Node eval = nm->mkNode(kind::DT_SYGUS_EVAL, args);
+    Node eval = nm->mkNode(Kind::DT_SYGUS_EVAL, args);
     // we use a Skolem constant here, instead of an application of an
     // evaluation function, since we are not using the builtin support
     // for evaluation functions. We use the DT_SYGUS_EVAL term so that the
@@ -579,7 +579,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
   /* Add counterexample lemma (lit => ~P[x_i/eval_i]) */
   Node body =
       q[1].substitute(q[0].begin(), q[0].end(), evals.begin(), evals.end());
-  Node lem = nm->mkNode(kind::OR, lit.negate(), body.negate());
+  Node lem = nm->mkNode(Kind::OR, lit.negate(), body.negate());
 
   d_ce_lemmas.emplace(std::make_pair(q, lem));
   Trace("sygus-inst") << "Register CE Lemma: " << lem << std::endl;
