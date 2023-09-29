@@ -3,11 +3,12 @@
 (set-logic QF_BV)
 (set-info :status unsat)
 
-; This should be unsat but it is sat. What is going on here?
 (declare-const x (_ BitVec 5))
 (declare-const y (_ BitVec 5))
+(declare-const z (_ BitVec 5))
+(declare-const w (_ BitVec 5))
 (assert (not (=
-	(bvusubo x y)
-  (= ((_ extract 5 5) (bvsub ((_ zero_extend 1) x) ((_ zero_extend 1) y))) #b1))))
+	(bvmul x (bvmul y z) w)
+	(bvmul x y z w))))
 (check-sat)
 (exit)

@@ -472,17 +472,17 @@ set(regress_0_tests
   regress0/bv/holes/uge-eliminate.smt2
   regress0/bv/holes/ugt-eliminate.smt2
   regress0/bv/holes/sgt-eliminate.smt2
-  regress0/bv/holes/slt-eliminate.smt2 # Roundabout method used
+  regress0/bv/holes/slt-eliminate.smt2 # O(exp) Roundabout method used
+  regress0/bv/holes/sub-eliminate.smt2 # O(1) ARITH_POLY_NORM
 
-  regress0/bv/holes/comp-eliminate.smt2
-  regress0/bv/holes/sdiv-eliminate-fewer-bitwise-ops.smt2 # Timeout!
+  regress0/bv/holes/comp-eliminate.smt2 # Redundant, does not test bv-comp-eliminate
+  regress0/bv/holes/repeat-eliminate-1.smt2 # O(1) roundabout
+  regress0/bv/holes/repeat-eliminate-2.smt2 # O(1) roundabout
   regress0/bv/holes/zero-extend-eliminate.smt2
   regress0/bv/holes/sign-extend-eliminate.smt2 # Roundabout method used
-  regress0/bv/holes/repeat-eliminate-1.smt2 # Calculation may be too complicated
-  regress0/bv/holes/repeat-eliminate-2.smt2
-  regress0/bv/holes/sub-eliminate.smt2 # Subsumed by ARITH_POLY_NORM
   regress0/bv/holes/redor-eliminate.smt2
   regress0/bv/holes/redand-eliminate.smt2
+  regress0/bv/holes/sdiv-eliminate-fewer-bitwise-ops.smt2 # O(n) roundabout
   regress0/bv/holes/srem-eliminate.smt2
   regress0/bv/holes/srem-eliminate-fewer-bitwise-ops.smt2
   regress0/bv/holes/usubo-eliminate.smt2
@@ -537,6 +537,30 @@ set(regress_0_tests
   regress0/bv/holes/or-simplify-2.smt2
   regress0/bv/holes/xor-simplify-2.smt2
   regress0/bv/holes/xor-simplify-3.smt2
+
+  regress0/bv/holes/zero-extend-eq-const-1.smt2
+  regress0/bv/holes/zero-extend-eq-const-2.smt2
+  regress0/bv/holes/zero-extend-ult-const-1.smt2
+  regress0/bv/holes/zero-extend-ult-const-2.smt2
+  regress0/bv/holes/sign-extend-ult-const-1.smt2
+  regress0/bv/holes/sign-extend-ult-const-3.smt2
+  regress0/bv/holes/extract-bitwise-and.smt2
+  regress0/bv/holes/extract-bitwise-or.smt2
+  regress0/bv/holes/extract-bitwise-xor.smt2
+  regress0/bv/holes/extract-sign-extend-3.smt2
+  regress0/bv/holes/neg-mult.smt2 # O(exp) roundabout
+  regress0/bv/holes/neg-sub.smt2
+  regress0/bv/holes/neg-add.smt2
+  regress0/bv/holes/mult-distrib-const-add.smt2
+  regress0/bv/holes/mult-distrib-const-sub.smt2
+  regress0/bv/holes/mult-distrib-1.smt2
+  regress0/bv/holes/mult-distrib-2.smt2
+  regress0/bv/holes/commutative-add.smt2
+  regress0/bv/holes/mul-one.smt2
+  regress0/bv/holes/mul-zero.smt2
+  regress0/bv/holes/add-zero.smt2
+  regress0/bv/holes/add-two.smt2
+  regress0/bv/holes/mul-flatten.smt2
 
   regress0/bv/incorrect1.delta01.smtv1.smt2
   regress0/bv/inequality00.smt2
