@@ -2001,6 +2001,7 @@ TEST_F(TestApiBlackSolver, getUnsatCoreLemmas2)
 {
   d_solver.setOption("incremental", "true");
   d_solver.setOption("produce-unsat-cores", "true");
+  d_solver.setOption("produce-proofs", "true");
 
   Sort uSort = d_solver.mkUninterpretedSort("u");
   Sort intSort = d_solver.getIntegerSort();
