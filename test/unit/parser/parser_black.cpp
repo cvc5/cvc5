@@ -33,7 +33,7 @@ namespace test {
 class TestParserBlack : public TestInternal
 {
  protected:
-  TestParserBlack(const std::string& lang) : d_lang(lang) {}
+  TestParserBlack(modes::InputLanguage lang) : d_lang(lang) {}
 
   virtual ~TestParserBlack() {}
 
@@ -184,7 +184,7 @@ class TestParserBlack : public TestInternal
                  , ParserException);
   }
 
-  std::string d_lang;
+  modes::InputLanguage d_lang;
   std::unique_ptr<cvc5::Solver> d_solver;
   std::unique_ptr<SymbolManager> d_symman;
 };
