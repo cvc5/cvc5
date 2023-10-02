@@ -20,7 +20,29 @@
 #ifndef CVC5__API__CHECKS_H
 #define CVC5__API__CHECKS_H
 
+#include "base/modal_exception.h"
+#include "options/option_exception.h"
+
 namespace cvc5 {
+
+#define CVC5_API_TRY_CATCH_BEGIN \
+  try                            \
+  {
+#define CVC5_API_TRY_CATCH_END                         \
+  }                                                    \
+  catch (const internal::OptionException& e)           \
+  {                                                    \
+    throw CVC5ApiOptionException(e.getMessage());      \
+  }                                                    \
+  catch (const internal::RecoverableModalException& e) \
+  {                                                    \
+    throw CVC5ApiRecoverableException(e.getMessage()); \
+  }                                                    \
+  catch (const internal::Exception& e)                 \
+  {                                                    \
+    throw CVC5ApiException(e.getMessage());            \
+  }                                                    \
+  catch (const std::invalid_argument& e) { throw CVC5ApiException(e.what()); }
 
 /* -------------------------------------------------------------------------- */
 /* Basic check macros.                                                        */
