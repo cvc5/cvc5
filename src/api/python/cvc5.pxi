@@ -909,7 +909,7 @@ cdef class Solver:
             Supports the following arguments:
 
             - ``Sort mkFiniteFieldSort(int size)``
-            - ``Sort mkFiniteFieldSort(string size, int base=10)``
+            - ``Sort mkFiniteFieldSort(string size, int base)``
 
             :param size: The size of the field. Must be a prime-power. 
                          An integer in the first form.
@@ -1511,7 +1511,7 @@ cdef class Solver:
             Supports the following arguments:
             
             - ``Term mkFiniteFieldElem(int value, Sort sort)``
-            - ``Term mkFiniteFieldElem(string value, Sort sort, int base=10)``
+            - ``Term mkFiniteFieldElem(string value, Sort sort, int base)``
 
             :return: A Term representing a finite field value.
             :param value: The value of the element's integer representation.
