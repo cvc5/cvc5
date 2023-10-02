@@ -494,7 +494,7 @@ Node TranscendentalState::getPurifiedForm(TNode n)
 
 bool TranscendentalState::isSimplePurify(TNode n)
 {
-  if (n.getKind() != kind::SINE)
+  if (n.getKind() != Kind::SINE)
   {
     return true;
   }

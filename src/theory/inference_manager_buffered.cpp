@@ -81,7 +81,7 @@ void InferenceManagerBuffered::addPendingFact(Node conc,
                                               ProofGenerator* pg)
 {
   // make a simple theory internal fact
-  Assert(conc.getKind() != AND && conc.getKind() != OR);
+  Assert(conc.getKind() != Kind::AND && conc.getKind() != Kind::OR);
   d_pendingFact.emplace_back(new SimpleTheoryInternalFact(id, conc, exp, pg));
 }
 
@@ -179,10 +179,10 @@ void InferenceManagerBuffered::assertInternalFactTheoryInference(
   ProofGenerator* pg = nullptr;
   Node lit = fact->processFact(exp, pg);
   Assert(!lit.isNull());
-  bool pol = lit.getKind() != NOT;
+  bool pol = lit.getKind() != Kind::NOT;
   TNode atom = pol ? lit : lit[0];
   // no double negation or conjunctive conclusions
-  Assert(atom.getKind() != NOT && atom.getKind() != AND);
+  Assert(atom.getKind() != Kind::NOT && atom.getKind() != Kind::AND);
   // assert the internal fact
   assertInternalFact(atom, pol, fact->getId(), exp, pg);
 }

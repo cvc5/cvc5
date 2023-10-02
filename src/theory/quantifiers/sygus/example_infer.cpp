@@ -100,7 +100,7 @@ bool ExampleInfer::collectExamples(
   Node neval;
   Node n_output;
   bool neval_is_evalapp = false;
-  if (n.getKind() == DT_SYGUS_EVAL)
+  if (n.getKind() == Kind::DT_SYGUS_EVAL)
   {
     neval = n;
     if (hasPol)
@@ -109,11 +109,11 @@ bool ExampleInfer::collectExamples(
     }
     neval_is_evalapp = true;
   }
-  else if (n.getKind() == EQUAL && hasPol && pol)
+  else if (n.getKind() == Kind::EQUAL && hasPol && pol)
   {
     for (unsigned r = 0; r < 2; r++)
     {
-      if (n[r].getKind() == DT_SYGUS_EVAL)
+      if (n[r].getKind() == Kind::DT_SYGUS_EVAL)
       {
         neval = n[r];
         if (n[1 - r].isConst())

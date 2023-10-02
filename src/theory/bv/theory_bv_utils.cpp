@@ -39,7 +39,7 @@ unsigned getSize(TNode node)
 
 const bool getBit(TNode node, unsigned i)
 {
-  Assert(i < getSize(node) && node.getKind() == kind::CONST_BITVECTOR);
+  Assert(i < getSize(node) && node.getKind() == Kind::CONST_BITVECTOR);
   return node.getConst<BitVector>().extract(i, i).getValue() == 1u;
 }
 
@@ -82,7 +82,7 @@ bool isOne(TNode node)
 
 unsigned isPow2Const(TNode node, bool& isNeg)
 {
-  if (node.getKind() != kind::CONST_BITVECTOR)
+  if (node.getKind() != Kind::CONST_BITVECTOR)
   {
     return false;
   }
@@ -121,27 +121,22 @@ bool isBvConstTerm(TNode node)
 bool isBVPredicate(TNode node)
 {
   Kind k = node.getKind();
-  if (k == kind::NOT)
+  if (k == Kind::NOT)
   {
     node = node[0];
     k = node.getKind();
   }
-  return k == kind::EQUAL
-         || k == kind::BITVECTOR_ULT
-         || k == kind::BITVECTOR_SLT
-         || k == kind::BITVECTOR_UGT
-         || k == kind::BITVECTOR_UGE
-         || k == kind::BITVECTOR_SGT
-         || k == kind::BITVECTOR_SGE
-         || k == kind::BITVECTOR_ULE
-         || k == kind::BITVECTOR_SLE
-         || k == kind::BITVECTOR_REDOR
-         || k == kind::BITVECTOR_REDAND;
+  return k == Kind::EQUAL || k == Kind::BITVECTOR_ULT
+         || k == Kind::BITVECTOR_SLT || k == Kind::BITVECTOR_UGT
+         || k == Kind::BITVECTOR_UGE || k == Kind::BITVECTOR_SGT
+         || k == Kind::BITVECTOR_SGE || k == Kind::BITVECTOR_ULE
+         || k == Kind::BITVECTOR_SLE || k == Kind::BITVECTOR_REDOR
+         || k == Kind::BITVECTOR_REDAND;
 }
 
 static bool isCoreEqTerm(bool iseq, TNode term, TNodeBoolMap& cache)
 {
-  TNode t = term.getKind() == kind::NOT ? term[0] : term;
+  TNode t = term.getKind() == Kind::NOT ? term[0] : term;
 
   std::vector<TNode> stack;
   std::unordered_map<TNode, bool> visited;
@@ -165,10 +160,9 @@ static bool isCoreEqTerm(bool iseq, TNode term, TNodeBoolMap& cache)
         == theory::THEORY_BV)
     {
       Kind k = n.getKind();
-      Assert(k != kind::CONST_BITVECTOR);
-      if (k != kind::EQUAL
-          && (iseq || k != kind::BITVECTOR_CONCAT)
-          && (iseq || k != kind::BITVECTOR_EXTRACT)
+      Assert(k != Kind::CONST_BITVECTOR);
+      if (k != Kind::EQUAL && (iseq || k != Kind::BITVECTOR_CONCAT)
+          && (iseq || k != Kind::BITVECTOR_EXTRACT)
           && n.getMetaKind() != kind::metakind::VARIABLE)
       {
         cache[n] = false;
@@ -213,8 +207,8 @@ bool isEqualityTerm(TNode term, TNodeBoolMap& cache)
 
 bool isBitblastAtom(Node lit)
 {
-  TNode atom = lit.getKind() == kind::NOT ? lit[0] : lit;
-  return atom.getKind() != kind::EQUAL || atom[0].getType().isBitVector();
+  TNode atom = lit.getKind() == Kind::NOT ? lit[0] : lit;
+  return atom.getKind() != Kind::EQUAL || atom[0].getType().isBitVector();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -292,8 +286,8 @@ Node mkVar(unsigned size)
 
 Node mkSortedNode(Kind kind, TNode child1, TNode child2)
 {
-  Assert(kind == kind::BITVECTOR_AND || kind == kind::BITVECTOR_OR
-         || kind == kind::BITVECTOR_XOR);
+  Assert(kind == Kind::BITVECTOR_AND || kind == Kind::BITVECTOR_OR
+         || kind == Kind::BITVECTOR_XOR);
 
   if (child1 < child2)
   {
@@ -307,8 +301,8 @@ Node mkSortedNode(Kind kind, TNode child1, TNode child2)
 
 Node mkSortedNode(Kind kind, std::vector<Node>& children)
 {
-  Assert(kind == kind::BITVECTOR_AND || kind == kind::BITVECTOR_OR
-         || kind == kind::BITVECTOR_XOR);
+  Assert(kind == Kind::BITVECTOR_AND || kind == Kind::BITVECTOR_OR
+         || kind == Kind::BITVECTOR_XOR);
   Assert(children.size() > 0);
   if (children.size() == 1)
   {
@@ -322,22 +316,22 @@ Node mkSortedNode(Kind kind, std::vector<Node>& children)
 
 Node mkNot(Node child)
 {
-  return NodeManager::currentNM()->mkNode(kind::NOT, child);
+  return NodeManager::currentNM()->mkNode(Kind::NOT, child);
 }
 
 Node mkAnd(TNode node1, TNode node2)
 {
-  return NodeManager::currentNM()->mkNode(kind::AND, node1, node2);
+  return NodeManager::currentNM()->mkNode(Kind::AND, node1, node2);
 }
 
 Node mkOr(TNode node1, TNode node2)
 {
-  return NodeManager::currentNM()->mkNode(kind::OR, node1, node2);
+  return NodeManager::currentNM()->mkNode(Kind::OR, node1, node2);
 }
 
 Node mkXor(TNode node1, TNode node2)
 {
-  return NodeManager::currentNM()->mkNode(kind::XOR, node1, node2);
+  return NodeManager::currentNM()->mkNode(Kind::XOR, node1, node2);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -370,13 +364,13 @@ Node mkBitOf(TNode node, unsigned index)
 
 Node mkConcat(TNode t1, TNode t2)
 {
-  return NodeManager::currentNM()->mkNode(kind::BITVECTOR_CONCAT, t1, t2);
+  return NodeManager::currentNM()->mkNode(Kind::BITVECTOR_CONCAT, t1, t2);
 }
 
 Node mkConcat(std::vector<Node>& children)
 {
   if (children.size() > 1)
-    return NodeManager::currentNM()->mkNode(kind::BITVECTOR_CONCAT, children);
+    return NodeManager::currentNM()->mkNode(Kind::BITVECTOR_CONCAT, children);
   else
     return children[0];
 }
@@ -388,7 +382,7 @@ Node mkConcat(TNode node, unsigned repeat)
   {
     return node;
   }
-  NodeBuilder result(kind::BITVECTOR_CONCAT);
+  NodeBuilder result(Kind::BITVECTOR_CONCAT);
   for (unsigned i = 0; i < repeat; ++i)
   {
     result << node;
@@ -402,13 +396,13 @@ Node mkConcat(TNode node, unsigned repeat)
 Node mkInc(TNode t)
 {
   return NodeManager::currentNM()->mkNode(
-      kind::BITVECTOR_ADD, t, mkOne(getSize(t)));
+      Kind::BITVECTOR_ADD, t, mkOne(getSize(t)));
 }
 
 Node mkDec(TNode t)
 {
   return NodeManager::currentNM()->mkNode(
-      kind::BITVECTOR_SUB, t, mkOne(getSize(t)));
+      Kind::BITVECTOR_SUB, t, mkOne(getSize(t)));
 }
 
 /* ------------------------------------------------------------------------- */
@@ -420,7 +414,7 @@ Node flattenAnd(std::vector<TNode>& queue)
   {
     TNode current = queue.back();
     queue.pop_back();
-    if (current.getKind() == kind::AND)
+    if (current.getKind() == Kind::AND)
     {
       for (const TNode& n : current)
       {

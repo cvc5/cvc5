@@ -42,7 +42,7 @@ PreprocessingPassResult BvEagerAtoms::applyInternal(
       // don't bother making true/false into atoms
       continue;
     }
-    Node eager_atom = nm->mkNode(kind::BITVECTOR_EAGER_ATOM, atom);
+    Node eager_atom = nm->mkNode(Kind::BITVECTOR_EAGER_ATOM, atom);
     assertionsToPreprocess->replace(i, eager_atom);
   }
   return PreprocessingPassResult::NO_CONFLICT;

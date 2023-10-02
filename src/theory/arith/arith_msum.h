@@ -119,7 +119,7 @@ class ArithMSum
    */
   static inline Node mkCoeffTerm(Node c, Node t)
   {
-    return c.isNull() ? t : NodeManager::currentNM()->mkNode(kind::MULT, c, t);
+    return c.isNull() ? t : NodeManager::currentNM()->mkNode(Kind::MULT, c, t);
   }
 
   /** isolate variable v in constraint ([msum] <k> 0)

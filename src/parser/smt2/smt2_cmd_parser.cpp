@@ -54,6 +54,7 @@ Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex,
   d_table["get-timeout-core"] = Token::GET_TIMEOUT_CORE_TOK;
   d_table["get-unsat-assumptions"] = Token::GET_UNSAT_ASSUMPTIONS_TOK;
   d_table["get-unsat-core"] = Token::GET_UNSAT_CORE_TOK;
+  d_table["get-unsat-core-lemmas"] = Token::GET_UNSAT_CORE_LEMMAS_TOK;
   d_table["get-value"] = Token::GET_VALUE_TOK;
   d_table["pop"] = Token::POP_TOK;
   d_table["push"] = Token::PUSH_TOK;
@@ -687,6 +688,13 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
     {
       d_state.checkThatLogicIsSet();
       cmd.reset(new GetUnsatCoreCommand);
+    }
+    break;
+    // (get-unsat-core-lemmas)
+    case Token::GET_UNSAT_CORE_LEMMAS_TOK:
+    {
+      d_state.checkThatLogicIsSet();
+      cmd.reset(new GetUnsatCoreLemmasCommand);
     }
     break;
     // (get-value (<term>+))

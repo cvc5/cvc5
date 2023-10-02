@@ -61,7 +61,7 @@ void InstStrategyPool::registerQuantifier(Node q)
     // add patterns
     for (const Node& p : subsPat)
     {
-      if (p.getKind() == INST_POOL)
+      if (p.getKind() == Kind::INST_POOL)
       {
         if (hasTupleSemantics(q, p) || hasProductSemantics(q, p))
         {
@@ -86,7 +86,7 @@ void InstStrategyPool::checkOwnership(Node q)
     // formula
     for (const Node& p : q[2])
     {
-      if (p.getKind() == INST_POOL)
+      if (p.getKind() == Kind::INST_POOL)
       {
         d_qreg.setOwner(q, this, 1);
         return;
@@ -97,8 +97,8 @@ void InstStrategyPool::checkOwnership(Node q)
 
 bool InstStrategyPool::hasProductSemantics(Node q, Node p)
 {
-  Assert(q.getKind() == EXISTS || q.getKind() == FORALL);
-  Assert(p.getKind() == INST_POOL);
+  Assert(q.getKind() == Kind::EXISTS || q.getKind() == Kind::FORALL);
+  Assert(p.getKind() == Kind::INST_POOL);
   size_t nchild = p.getNumChildren();
   if (nchild != q[0].getNumChildren())
   {
@@ -119,8 +119,8 @@ bool InstStrategyPool::hasProductSemantics(Node q, Node p)
 
 bool InstStrategyPool::hasTupleSemantics(Node q, Node p)
 {
-  Assert(q.getKind() == EXISTS || q.getKind() == FORALL);
-  Assert(p.getKind() == INST_POOL);
+  Assert(q.getKind() == Kind::EXISTS || q.getKind() == Kind::FORALL);
+  Assert(p.getKind() == Kind::INST_POOL);
   if (p.getNumChildren() != 1)
   {
     return false;
@@ -211,7 +211,7 @@ std::string InstStrategyPool::identify() const
 
 bool InstStrategyPool::process(Node q, Node p, uint64_t& addedLemmas)
 {
-  Assert(q.getKind() == FORALL && p.getKind() == INST_POOL);
+  Assert(q.getKind() == Kind::FORALL && p.getKind() == Kind::INST_POOL);
   // maybe has tuple semantics?
   if (hasTupleSemantics(q, p))
   {
@@ -270,7 +270,7 @@ bool InstStrategyPool::processTuple(Node q, Node p, uint64_t& addedLemmas)
     {
       return true;
     }
-    if (t.getKind() != APPLY_CONSTRUCTOR)
+    if (t.getKind() != Kind::APPLY_CONSTRUCTOR)
     {
       // a symbolic tuple is in the pool, we ignore it.
       continue;

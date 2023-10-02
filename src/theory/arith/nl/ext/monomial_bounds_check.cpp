@@ -299,7 +299,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
           // if we are making an equality below, we require making it
           // well-typed so that lhs/rhs have the same type. We use the
           // mkSameType utility to do this
-          if (type == kind::EQUAL)
+          if (type == Kind::EQUAL)
           {
             std::tie(lhsTgt, rhsTgt) = mkSameType(lhsTgt, rhsTgt);
           }

@@ -71,8 +71,8 @@ class TBitblaster
  protected:
   /// function tables for the various bitblasting strategies indexed by node
   /// kind
-  TermBBStrategy d_termBBStrategies[kind::LAST_KIND];
-  AtomBBStrategy d_atomBBStrategies[kind::LAST_KIND];
+  TermBBStrategy d_termBBStrategies[static_cast<uint32_t>(Kind::LAST_KIND)];
+  AtomBBStrategy d_atomBBStrategies[static_cast<uint32_t>(Kind::LAST_KIND)];
   virtual Node getModelFromSatSolver(TNode node, bool fullModel) = 0;
   virtual prop::SatSolver* getSatSolver() = 0;
 
@@ -106,61 +106,100 @@ class TBitblaster
 template <class T>
 void TBitblaster<T>::initAtomBBStrategies()
 {
-  for (int i = 0; i < kind::LAST_KIND; ++i)
+  for (uint32_t i = 0; i < static_cast<uint32_t>(Kind::LAST_KIND); ++i)
   {
     d_atomBBStrategies[i] = UndefinedAtomBBStrategy<T>;
   }
   /// setting default bb strategies for atoms
-  d_atomBBStrategies[kind::EQUAL] = DefaultEqBB<T>;
-  d_atomBBStrategies[kind::BITVECTOR_ULT] = DefaultUltBB<T>;
-  d_atomBBStrategies[kind::BITVECTOR_ULE] = DefaultUleBB<T>;
-  d_atomBBStrategies[kind::BITVECTOR_UGT] = DefaultUgtBB<T>;
-  d_atomBBStrategies[kind::BITVECTOR_UGE] = DefaultUgeBB<T>;
-  d_atomBBStrategies[kind::BITVECTOR_SLT] = DefaultSltBB<T>;
-  d_atomBBStrategies[kind::BITVECTOR_SLE] = DefaultSleBB<T>;
-  d_atomBBStrategies[kind::BITVECTOR_SGT] = DefaultSgtBB<T>;
-  d_atomBBStrategies[kind::BITVECTOR_SGE] = DefaultSgeBB<T>;
+  d_atomBBStrategies[static_cast<uint32_t>(Kind::EQUAL)] = DefaultEqBB<T>;
+  d_atomBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_ULT)] =
+      DefaultUltBB<T>;
+  d_atomBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_ULE)] =
+      DefaultUleBB<T>;
+  d_atomBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_UGT)] =
+      DefaultUgtBB<T>;
+  d_atomBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_UGE)] =
+      DefaultUgeBB<T>;
+  d_atomBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_SLT)] =
+      DefaultSltBB<T>;
+  d_atomBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_SLE)] =
+      DefaultSleBB<T>;
+  d_atomBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_SGT)] =
+      DefaultSgtBB<T>;
+  d_atomBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_SGE)] =
+      DefaultSgeBB<T>;
 }
 
 template <class T>
 void TBitblaster<T>::initTermBBStrategies()
 {
-  for (int i = 0; i < kind::LAST_KIND; ++i)
+  for (uint32_t i = 0; i < static_cast<uint32_t>(Kind::LAST_KIND); ++i)
   {
     d_termBBStrategies[i] = DefaultVarBB<T>;
   }
   /// setting default bb strategies for terms:
-  d_termBBStrategies[kind::CONST_BITVECTOR] = DefaultConstBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_NOT] = DefaultNotBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_CONCAT] = DefaultConcatBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_AND] = DefaultAndBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_OR] = DefaultOrBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_XOR] = DefaultXorBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_XNOR] = DefaultXnorBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_NAND] = DefaultNandBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_NOR] = DefaultNorBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_COMP] = DefaultCompBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_MULT] = DefaultMultBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_ADD] = DefaultAddBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_SUB] = DefaultSubBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_NEG] = DefaultNegBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_UDIV] = DefaultUdivBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_UREM] = DefaultUremBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_SDIV] = UndefinedTermBBStrategy<T>;
-  d_termBBStrategies[kind::BITVECTOR_SREM] = UndefinedTermBBStrategy<T>;
-  d_termBBStrategies[kind::BITVECTOR_SMOD] = UndefinedTermBBStrategy<T>;
-  d_termBBStrategies[kind::BITVECTOR_SHL] = DefaultShlBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_LSHR] = DefaultLshrBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_ASHR] = DefaultAshrBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_ULTBV] = DefaultUltbvBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_SLTBV] = DefaultSltbvBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_ITE] = DefaultIteBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_EXTRACT] = DefaultExtractBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_REPEAT] = DefaultRepeatBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_ZERO_EXTEND] = DefaultZeroExtendBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_SIGN_EXTEND] = DefaultSignExtendBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_ROTATE_RIGHT] = DefaultRotateRightBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_ROTATE_LEFT] = DefaultRotateLeftBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::CONST_BITVECTOR)] =
+      DefaultConstBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_NOT)] =
+      DefaultNotBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_CONCAT)] =
+      DefaultConcatBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_AND)] =
+      DefaultAndBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_OR)] =
+      DefaultOrBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_XOR)] =
+      DefaultXorBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_XNOR)] =
+      DefaultXnorBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_NAND)] =
+      DefaultNandBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_NOR)] =
+      DefaultNorBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_COMP)] =
+      DefaultCompBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_MULT)] =
+      DefaultMultBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_ADD)] =
+      DefaultAddBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_SUB)] =
+      DefaultSubBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_NEG)] =
+      DefaultNegBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_UDIV)] =
+      DefaultUdivBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_UREM)] =
+      DefaultUremBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_SDIV)] =
+      UndefinedTermBBStrategy<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_SREM)] =
+      UndefinedTermBBStrategy<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_SMOD)] =
+      UndefinedTermBBStrategy<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_SHL)] =
+      DefaultShlBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_LSHR)] =
+      DefaultLshrBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_ASHR)] =
+      DefaultAshrBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_ULTBV)] =
+      DefaultUltbvBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_SLTBV)] =
+      DefaultSltbvBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_ITE)] =
+      DefaultIteBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_EXTRACT)] =
+      DefaultExtractBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_REPEAT)] =
+      DefaultRepeatBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_ZERO_EXTEND)] =
+      DefaultZeroExtendBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_SIGN_EXTEND)] =
+      DefaultSignExtendBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_ROTATE_RIGHT)] =
+      DefaultRotateRightBB<T>;
+  d_termBBStrategies[static_cast<uint32_t>(Kind::BITVECTOR_ROTATE_LEFT)] =
+      DefaultRotateLeftBB<T>;
 }
 
 template <class T>

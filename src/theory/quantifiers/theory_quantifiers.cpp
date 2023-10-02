@@ -70,10 +70,10 @@ ProofRuleChecker* TheoryQuantifiers::getProofChecker() { return &d_checker; }
 void TheoryQuantifiers::finishInit()
 {
   // quantifiers are not evaluated in getModelValue
-  d_valuation.setUnevaluatedKind(EXISTS);
-  d_valuation.setUnevaluatedKind(FORALL);
+  d_valuation.setUnevaluatedKind(Kind::EXISTS);
+  d_valuation.setUnevaluatedKind(Kind::FORALL);
   // witness is used in several instantiation strategies
-  d_valuation.setUnevaluatedKind(WITNESS);
+  d_valuation.setUnevaluatedKind(Kind::WITNESS);
 }
 
 bool TheoryQuantifiers::needsEqualityEngine(EeSetupInfo& esi)
@@ -85,7 +85,7 @@ bool TheoryQuantifiers::needsEqualityEngine(EeSetupInfo& esi)
 
 void TheoryQuantifiers::preRegisterTerm(TNode n)
 {
-  if (n.getKind() != FORALL)
+  if (n.getKind() != Kind::FORALL)
   {
     return;
   }
@@ -141,7 +141,7 @@ bool TheoryQuantifiers::collectModelValues(TheoryModel* m,
                                            const std::set<Node>& termSet)
 {
   for(assertions_iterator i = facts_begin(); i != facts_end(); ++i) {
-    if ((*i).d_assertion.getKind() == NOT)
+    if ((*i).d_assertion.getKind() == Kind::NOT)
     {
       Trace("quantifiers::collectModelInfo")
           << "got quant FALSE: " << (*i).d_assertion[0] << std::endl;
@@ -173,7 +173,7 @@ bool TheoryQuantifiers::preNotifyFact(
     TNode atom, bool polarity, TNode fact, bool isPrereg, bool isInternal)
 {
   Kind k = atom.getKind();
-  if (k == FORALL)
+  if (k == Kind::FORALL)
   {
     getQuantifiersEngine()->assertQuantifier(atom, polarity);
   }
