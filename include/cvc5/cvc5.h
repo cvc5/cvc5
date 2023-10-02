@@ -3842,23 +3842,11 @@ class CVC5_EXPORT Solver
 
   /**
    * Create a finite field constant in a given field from a given string
-   *
-   * If size is the field size, the constant needs not be in the range [0,size).
-   * If it is outside this range, it will be reduced modulo size before being
-   * constructed.
-   *
-   * @param value The string representation of the constant.
-   * @param sort The field sort.
-   *
-   */
-
-  /**
-   * Create a finite field constant in a given field from a given string
    * of base n.
    *
    * @param value The string representation of the constant.
-   * @param base The base of the string representation. Default is 10.
    * @param sort The field sort.
+   * @param base The base of the string representation. Default is 10.
    *
    * If `size` is the field size, the constant needs not be in the range [0,size).
    * If it is outside this range, it will be reduced modulo size before being
