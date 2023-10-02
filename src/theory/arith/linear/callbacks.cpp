@@ -30,7 +30,7 @@ SetupLiteralCallBack::SetupLiteralCallBack(TheoryArithPrivate& ta)
   : d_arith(ta)
 {}
 void SetupLiteralCallBack::operator()(TNode lit){
-  TNode atom = (lit.getKind() == kind::NOT) ? lit[0] : lit;
+  TNode atom = (lit.getKind() == Kind::NOT) ? lit[0] : lit;
   if(!d_arith.isSetup(atom)){
     d_arith.setupAtom(atom);
   }

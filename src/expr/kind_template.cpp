@@ -31,12 +31,13 @@ const char* toString(cvc5::internal::Kind k)
   switch (k)
   {
     /* special cases */
-    case UNDEFINED_KIND: return "UNDEFINED_KIND";
-    case NULL_EXPR: return "NULL";
+    case Kind::UNDEFINED_KIND: return "UNDEFINED_KIND";
+    case Kind::NULL_EXPR:
+      return "NULL";
       // clang-format off
     ${kind_printers}
       // clang-format on
-    case LAST_KIND: return "LAST_KIND";
+    case Kind::LAST_KIND: return "LAST_KIND";
     default: return "?";
   }
 }
@@ -54,13 +55,12 @@ std::ostream& operator<<(std::ostream& out, cvc5::internal::Kind k)
 bool isAssociative(cvc5::internal::Kind k)
 {
   switch(k) {
-  case kind::AND:
-  case kind::OR:
-  case kind::MULT:
-  case kind::ADD: return true;
+    case Kind::AND:
+    case Kind::OR:
+    case Kind::MULT:
+    case Kind::ADD: return true;
 
-  default:
-    return false;
+    default: return false;
   }
 }
 
@@ -89,13 +89,13 @@ TheoryId kindToTheoryId(cvc5::internal::Kind k)
 {
   switch (k)
   {
-    case kind::UNDEFINED_KIND:
-    case kind::NULL_EXPR:
+    case Kind::UNDEFINED_KIND:
+    case Kind::NULL_EXPR:
       break;
       // clang-format off
 ${kind_to_theory_id}
       // clang-format on
-    case kind::LAST_KIND: break;
+    case Kind::LAST_KIND: break;
   }
   throw IllegalArgumentException("", "k", __PRETTY_FUNCTION__, "bad kind");
 }

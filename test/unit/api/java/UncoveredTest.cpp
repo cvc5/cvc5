@@ -98,6 +98,7 @@ TEST_F(TestApiBlackUncovered, streaming_operators)
   ss << cvc5::modes::LearnedLitType::PREPROCESS;
   ss << cvc5::modes::ProofComponent::FULL;
   ss << cvc5::modes::FindSynthTarget::ENUM;
+  ss << cvc5::ProofRule::ASSUME;
   ss << cvc5::Result();
   ss << cvc5::Op();
   ss << cvc5::SynthResult();

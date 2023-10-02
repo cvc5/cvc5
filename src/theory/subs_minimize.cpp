@@ -40,7 +40,7 @@ bool SubstitutionMinimize::find(Node t,
 
 void getConjuncts(Node n, std::vector<Node>& conj)
 {
-  if (n.getKind() == AND)
+  if (n.getKind() == Kind::AND)
   {
     for (const Node& nc : n)
     {
@@ -124,7 +124,7 @@ bool SubstitutionMinimize::findWithImplied(Node t,
       getConjuncts(tcsr, tcsrConj);
       for (const Node& tcc : tcsrConj)
       {
-        if (tcc.getKind() == EQUAL)
+        if (tcc.getKind() == Kind::EQUAL)
         {
           for (unsigned r = 0; r < 2; r++)
           {
@@ -212,7 +212,7 @@ bool SubstitutionMinimize::findInternal(Node n,
       {
         value[cur] = Node::null();
         visit.push_back(cur);
-        if (cur.getKind() == APPLY_UF)
+        if (cur.getKind() == Kind::APPLY_UF)
         {
           visit.push_back(cur.getOperator());
         }
@@ -228,7 +228,7 @@ bool SubstitutionMinimize::findInternal(Node n,
         NodeBuilder nb(cur.getKind());
         if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
         {
-          if (cur.getKind() == APPLY_UF)
+          if (cur.getKind() == Kind::APPLY_UF)
           {
             children.push_back(cur.getOperator());
           }
@@ -294,7 +294,7 @@ bool SubstitutionMinimize::findInternal(Node n,
         // must include
         rlvFv.insert(cur);
       }
-      else if (cur.getKind() == ITE)
+      else if (cur.getKind() == Kind::ITE)
       {
         // only recurse on relevant branch
         Node bval = value[cur[0]];
@@ -313,13 +313,13 @@ bool SubstitutionMinimize::findInternal(Node n,
         bool alreadyJustified = false;
 
         // if the operator is an apply uf, check its value
-        if (cur.getKind() == APPLY_UF)
+        if (cur.getKind() == Kind::APPLY_UF)
         {
           Node op = cur.getOperator();
           it = value.find(op);
           Assert(it != value.end());
           TNode vop = it->second;
-          if (vop.getKind() == LAMBDA)
+          if (vop.getKind() == Kind::LAMBDA)
           {
             visit.push_back(op);
             // do iterative partial evaluation on the body of the lambda
@@ -378,7 +378,7 @@ bool SubstitutionMinimize::findInternal(Node n,
         if (!alreadyJustified)
         {
           // must recurse on all arguments, including operator
-          if (cur.getKind() == APPLY_UF)
+          if (cur.getKind() == Kind::APPLY_UF)
           {
             visit.push_back(cur.getOperator());
           }
@@ -415,23 +415,23 @@ bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
   {
     return false;
   }
-  if (k == AND)
+  if (k == Kind::AND)
   {
     return !n.getConst<bool>();
   }
-  else if (k == OR)
+  else if (k == Kind::OR)
   {
     return n.getConst<bool>();
   }
-  else if (k == IMPLIES)
+  else if (k == Kind::IMPLIES)
   {
     return arg == (n.getConst<bool>() ? 1 : 0);
   }
-  if (k == MULT
+  if (k == Kind::MULT
       || (arg == 0
-          && (k == DIVISION_TOTAL || k == INTS_DIVISION_TOTAL
-              || k == INTS_MODULUS_TOTAL))
-      || (arg == 2 && k == STRING_SUBSTR))
+          && (k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
+              || k == Kind::INTS_MODULUS_TOTAL))
+      || (arg == 2 && k == Kind::STRING_SUBSTR))
   {
     // zero
     if (n.getConst<Rational>().sgn() == 0)
@@ -439,18 +439,18 @@ bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
       return true;
     }
   }
-  if (k == BITVECTOR_AND || k == BITVECTOR_MULT || k == BITVECTOR_UDIV
-      || k == BITVECTOR_UREM
+  if (k == Kind::BITVECTOR_AND || k == Kind::BITVECTOR_MULT
+      || k == Kind::BITVECTOR_UDIV || k == Kind::BITVECTOR_UREM
       || (arg == 0
-          && (k == BITVECTOR_SHL || k == BITVECTOR_LSHR
-              || k == BITVECTOR_ASHR)))
+          && (k == Kind::BITVECTOR_SHL || k == Kind::BITVECTOR_LSHR
+              || k == Kind::BITVECTOR_ASHR)))
   {
     if (bv::utils::isZero(n))
     {
       return true;
     }
   }
-  if (k == BITVECTOR_OR)
+  if (k == Kind::BITVECTOR_OR)
   {
     // bit-vector ones
     if (bv::utils::isOnes(n))
@@ -459,7 +459,8 @@ bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
     }
   }
 
-  if ((arg == 1 && k == STRING_CONTAINS) || (arg == 0 && k == STRING_SUBSTR))
+  if ((arg == 1 && k == Kind::STRING_CONTAINS)
+      || (arg == 0 && k == Kind::STRING_SUBSTR))
   {
     // empty string
     if (strings::Word::getLength(n) == 0)
@@ -467,7 +468,8 @@ bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
       return true;
     }
   }
-  if ((arg != 0 && k == STRING_SUBSTR) || (arg == 2 && k == STRING_INDEXOF))
+  if ((arg != 0 && k == Kind::STRING_SUBSTR)
+      || (arg == 2 && k == Kind::STRING_INDEXOF))
   {
     // negative integer
     if (n.getConst<Rational>().sgn() < 0)

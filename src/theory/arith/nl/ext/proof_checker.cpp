@@ -28,11 +28,11 @@ namespace nl {
 
 void ExtProofRuleChecker::registerTo(ProofChecker* pc)
 {
-  pc->registerChecker(PfRule::ARITH_MULT_SIGN, this);
-  pc->registerChecker(PfRule::ARITH_MULT_TANGENT, this);
+  pc->registerChecker(ProofRule::ARITH_MULT_SIGN, this);
+  pc->registerChecker(ProofRule::ARITH_MULT_TANGENT, this);
 }
 
-Node ExtProofRuleChecker::checkInternal(PfRule id,
+Node ExtProofRuleChecker::checkInternal(ProofRule id,
                                         const std::vector<Node>& children,
                                         const std::vector<Node>& args)
 {
@@ -42,7 +42,7 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
   {
     Trace("nl-ext-checker") << "\t" << c << std::endl;
   }
-  if (id == PfRule::ARITH_MULT_SIGN)
+  if (id == ProofRule::ARITH_MULT_SIGN)
   {
     Assert(children.empty());
     Assert(args.size() > 1);
@@ -114,7 +114,7 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
       default: Assert(false); return Node();
     }
   }
-  else if (id == PfRule::ARITH_MULT_TANGENT)
+  else if (id == ProofRule::ARITH_MULT_TANGENT)
   {
     Assert(children.empty());
     Assert(args.size() == 6);

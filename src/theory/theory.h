@@ -301,7 +301,7 @@ class Theory : protected EnvObj
                                   TheoryId usortOwner = theory::THEORY_UF)
   {
     TheoryId id;
-    if (typeNode.getKind() == kind::TYPE_CONSTANT)
+    if (typeNode.getKind() == Kind::TYPE_CONSTANT)
     {
       id = typeConstantToTheoryId(typeNode.getConst<TypeConstant>());
     }

@@ -75,7 +75,7 @@ void CegSingleInv::initialize(Node q)
   }
   // compute single invocation partition
   Node qq;
-  if (q[1].getKind() == NOT && q[1][0].getKind() == FORALL)
+  if (q[1].getKind() == Kind::NOT && q[1][0].getKind() == Kind::FORALL)
   {
     qq = q[1][0][1];
   }
@@ -150,9 +150,9 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
   d_sip->getFunctionVariables(func_vars);
   if (!func_vars.empty())
   {
-    Node pbvl = nm->mkNode(BOUND_VAR_LIST, func_vars);
+    Node pbvl = nm->mkNode(Kind::BOUND_VAR_LIST, func_vars);
     // make the single invocation conjecture
-    d_single_inv = nm->mkNode(FORALL, pbvl, d_single_inv);
+    d_single_inv = nm->mkNode(Kind::FORALL, pbvl, d_single_inv);
   }
   // now, introduce the skolems
   std::vector<Node> sivars;
@@ -171,7 +171,7 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
                     << std::endl;
   // check whether we can handle this quantified formula
   CegHandledStatus status = CEG_HANDLED;
-  if (d_single_inv.getKind() == FORALL)
+  if (d_single_inv.getKind() == Kind::FORALL)
   {
     // if the conjecture is trivially solvable, set the solution
     if (solveTrivial(d_single_inv))
@@ -215,7 +215,7 @@ Result CegSingleInv::solve()
   // ensure its structure is preserved in the query below.
   Node siq = d_single_inv;
   Node n_attr;
-  if (siq.getKind() == FORALL)
+  if (siq.getKind() == Kind::FORALL)
   {
     n_attr = sm->mkDummySkolem(
         "qe_si",
@@ -223,9 +223,9 @@ Result CegSingleInv::solve()
         "Auxiliary variable for qe attr for single invocation.");
     QuantElimAttribute qea;
     n_attr.setAttribute(qea, true);
-    n_attr = nm->mkNode(INST_ATTRIBUTE, n_attr);
-    n_attr = nm->mkNode(INST_PATTERN_LIST, n_attr);
-    siq = nm->mkNode(FORALL, siq[0], siq[1], n_attr);
+    n_attr = nm->mkNode(Kind::INST_ATTRIBUTE, n_attr);
+    n_attr = nm->mkNode(Kind::INST_PATTERN_LIST, n_attr);
+    siq = nm->mkNode(Kind::FORALL, siq[0], siq[1], n_attr);
   }
   // solve the single invocation conjecture using a fresh copy of SMT engine
   std::unique_ptr<SolverEngine> siSmt;
@@ -271,7 +271,7 @@ Result CegSingleInv::solve()
   // if the quantified formula was instantiated in the query
   if (!q.isNull())
   {
-    Assert(q.getKind() == FORALL);
+    Assert(q.getKind() == Kind::FORALL);
     siSmt->getInstantiationTermVectors(q, d_inst);
     Trace("sygus-si") << "#instantiations of " << q << "=" << d_inst.size()
                       << std::endl;
@@ -335,7 +335,7 @@ Node CegSingleInv::getSolution(size_t sol_index,
   Trace("csi-sol") << "...get solution from vector" << std::endl;
 
   Node s = d_solutions[sol_index];
-  Node sol = s.getKind() == LAMBDA ? s[1] : s;
+  Node sol = s.getKind() == Kind::LAMBDA ? s[1] : s;
   // must substitute to be proper variables
   const DType& dt = stn.getDType();
   Node varList = dt.getSygusVarList();
@@ -352,8 +352,8 @@ Node CegSingleInv::getSolution(size_t sol_index,
   sol = sol.substitute(
       vars.begin(), vars.end(), sygusVars.begin(), sygusVars.end());
   sol = reconstructToSyntax(sol, stn, reconstructed, rconsSygus);
-  return !sol.isNull() && s.getKind() == LAMBDA
-             ? NodeManager::currentNM()->mkNode(LAMBDA, s[0], sol)
+  return !sol.isNull() && s.getKind() == Kind::LAMBDA
+             ? NodeManager::currentNM()->mkNode(Kind::LAMBDA, s[0], sol)
              : sol;
 }
 
@@ -413,7 +413,7 @@ Node CegSingleInv::getSolutionFromInst(size_t index)
       unsigned uindex = indices[j];
       Node cond = d_instConds[uindex];
       cond = TermUtil::simpleNegate(cond);
-      s = nm->mkNode(ITE, cond, d_inst[uindex][sol_index], s);
+      s = nm->mkNode(Kind::ITE, cond, d_inst[uindex][sol_index], s);
     }
   }
   //simplify the solution using the extended rewriter
@@ -511,7 +511,7 @@ bool CegSingleInv::solveTrivial(Node q)
 {
   Assert(!d_isSolved);
   Assert(d_inst.empty());
-  Assert(q.getKind() == FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   // If the conjecture is forall x1...xn. ~(x1 = t1 ^ ... xn = tn), it is
   // trivially solvable.
   std::vector<Node> args(q[0].begin(), q[0].end());

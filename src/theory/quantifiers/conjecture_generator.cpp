@@ -104,9 +104,8 @@ ConjectureGenerator::ConjectureGenerator(Env& env,
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
-  d_uequalityEngine.addFunctionKind( kind::APPLY_UF );
-  d_uequalityEngine.addFunctionKind( kind::APPLY_CONSTRUCTOR );
-
+  d_uequalityEngine.addFunctionKind(Kind::APPLY_UF);
+  d_uequalityEngine.addFunctionKind(Kind::APPLY_CONSTRUCTOR);
 }
 
 ConjectureGenerator::~ConjectureGenerator()
@@ -320,7 +319,8 @@ Node ConjectureGenerator::getFreeVar( TypeNode tn, unsigned i ) {
 bool ConjectureGenerator::isHandledTerm( TNode n ){
   return getTermDatabase()->isTermActive(n)
          && inst::TriggerTermInfo::isAtomicTrigger(n)
-         && (n.getKind() != APPLY_UF || n.getOperator().getKind() != SKOLEM);
+         && (n.getKind() != Kind::APPLY_UF
+             || n.getOperator().getKind() != Kind::SKOLEM);
 }
 
 Node ConjectureGenerator::getGroundEqc( TNode r ) {
@@ -474,7 +474,10 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
           eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
           while( !eqc_i.isFinished() ){
             TNode n = (*eqc_i);
-            if( getTermDatabase()->hasTermCurrent( n ) && getTermDatabase()->isTermActive( n ) && ( n.getKind()!=EQUAL || isFalse ) ){
+            if (getTermDatabase()->hasTermCurrent(n)
+                && getTermDatabase()->isTermActive(n)
+                && (n.getKind() != Kind::EQUAL || isFalse))
+            {
               if( firstTime ){
                 Trace("sg-gen-eqc") << "e" << d_em[r] << " : { " << std::endl;
                 firstTime = false;
@@ -543,7 +546,8 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
         Node q = m->getAssertedQuantifier( i );
         Trace("thm-db-debug") << "Is " << q << " a relevant theorem?" << std::endl;
         Node conjEq;
-        if( q[1].getKind()==EQUAL ){
+        if (q[1].getKind() == Kind::EQUAL)
+        {
           bool isSubsume = false;
           bool inEe = false;
           for( unsigned r=0; r<2; r++ ){
@@ -938,8 +942,10 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
               }
               Node rsg;
               if( !bvs.empty() ){
-                Node bvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, bvs );
-                rsg = NodeManager::currentNM()->mkNode( FORALL, bvl, lhs.eqNode( rhs ) );
+                Node bvl =
+                    NodeManager::currentNM()->mkNode(Kind::BOUND_VAR_LIST, bvs);
+                rsg = NodeManager::currentNM()->mkNode(
+                    Kind::FORALL, bvl, lhs.eqNode(rhs));
               }else{
                 rsg = lhs.eqNode( rhs );
               }
@@ -948,7 +954,8 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
               d_eq_conjectures[lhs].push_back( rhs );
               d_eq_conjectures[rhs].push_back( lhs );
 
-              Node lem = NodeManager::currentNM()->mkNode( OR, rsg.negate(), rsg );
+              Node lem =
+                  NodeManager::currentNM()->mkNode(Kind::OR, rsg.negate(), rsg);
               d_qim.addPendingLemma(lem,
                                     InferenceId::QUANTIFIERS_CONJ_GEN_SPLIT);
               d_qim.addPendingPhaseRequirement(rsg, false);
@@ -1009,7 +1016,8 @@ unsigned ConjectureGenerator::collectFunctions( TNode opat, TNode pat, std::map<
     Assert(pat.getNumChildren() == 0);
     funcs[pat]++;
     //for variables
-    if( pat.getKind()==BOUND_VARIABLE ){
+    if (pat.getKind() == Kind::BOUND_VARIABLE)
+    {
       if( funcs[pat]>1 ){
         //duplicate variable
         d_pattern_var_duplicate[opat]++;
@@ -1034,7 +1042,9 @@ unsigned ConjectureGenerator::collectFunctions( TNode opat, TNode pat, std::map<
           mxvn[tn] = vn;
         }
       }
-    }else{
+    }
+    else
+    {
       d_pattern_is_relevant[opat] = false;
     }
     return 1;
@@ -1062,7 +1072,8 @@ void ConjectureGenerator::registerPattern( Node pat, TypeNode tpat ) {
 }
 
 bool ConjectureGenerator::isGeneralization( TNode patg, TNode pat, std::map< TNode, TNode >& subs ) {
-  if( patg.getKind()==BOUND_VARIABLE ){
+  if (patg.getKind() == Kind::BOUND_VARIABLE)
+  {
     std::map< TNode, TNode >::iterator it = subs.find( patg );
     if( it!=subs.end() ){
       return it->second==pat;
@@ -1070,7 +1081,9 @@ bool ConjectureGenerator::isGeneralization( TNode patg, TNode pat, std::map< TNo
       subs[patg] = pat;
       return true;
     }
-  }else{
+  }
+  else
+  {
     Assert(patg.hasOperator());
     if( !pat.hasOperator() || patg.getOperator()!=pat.getOperator() ){
       return false;
@@ -1087,14 +1100,17 @@ bool ConjectureGenerator::isGeneralization( TNode patg, TNode pat, std::map< TNo
 }
 
 int ConjectureGenerator::calculateGeneralizationDepth( TNode n, std::vector< TNode >& fv ) {
-  if( n.getKind()==BOUND_VARIABLE ){
+  if (n.getKind() == Kind::BOUND_VARIABLE)
+  {
     if( std::find( fv.begin(), fv.end(), n )==fv.end() ){
       fv.push_back( n );
       return 0;
     }else{
       return 1;
     }
-  }else{
+  }
+  else
+  {
     int depth = 1;
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       depth += calculateGeneralizationDepth( n[i], fv );
@@ -1196,7 +1212,8 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
               children.push_back( nn );
             }
             children.push_back( lc );
-            Node nenum = NodeManager::currentNM()->mkNode(APPLY_UF, children);
+            Node nenum =
+                NodeManager::currentNM()->mkNode(Kind::APPLY_UF, children);
             Trace("sg-gt-enum")
                 << "Ground term enumerate : " << nenum << std::endl;
             terms.push_back(nenum);
@@ -1231,7 +1248,8 @@ void ConjectureGenerator::getEnumeratePredUfTerm( Node n, unsigned num, std::vec
   getEnumerateUfTerm( n, num, uf_terms );
   Node p = getPredicateForType( n.getType() );
   for( unsigned i=0; i<uf_terms.size(); i++ ){
-    terms.push_back( NodeManager::currentNM()->mkNode( APPLY_UF, p, uf_terms[i] ) );
+    terms.push_back(
+        NodeManager::currentNM()->mkNode(Kind::APPLY_UF, p, uf_terms[i]));
   }
 }
 
@@ -1281,7 +1299,8 @@ int ConjectureGenerator::considerCandidateConjecture( TNode lhs, TNode rhs ) {
     Trace("sg-cconj-debug") << "  -> trivial." << std::endl;
     return -1;
   }
-  if (lhs.getKind() == APPLY_CONSTRUCTOR && rhs.getKind() == APPLY_CONSTRUCTOR)
+  if (lhs.getKind() == Kind::APPLY_CONSTRUCTOR
+      && rhs.getKind() == Kind::APPLY_CONSTRUCTOR)
   {
     Trace("sg-cconj-debug")
         << "  -> irrelevant by syntactic analysis." << std::endl;
@@ -1859,12 +1878,13 @@ void TermGenEnv::collectSignatureInformation() {
     {
       Node nn = dbl->d_list[0];
       Trace("sg-rel-sig-debug") << "Check in signature : " << nn << std::endl;
-      if (d_cg->isHandledTerm(nn) && nn.getKind() != APPLY_SELECTOR
+      if (d_cg->isHandledTerm(nn) && nn.getKind() != Kind::APPLY_SELECTOR
           && !nn.getType().isBoolean())
       {
         bool do_enum = true;
         //check if we have enumerated ground terms
-        if( nn.getKind()==APPLY_UF ){
+        if (nn.getKind() == Kind::APPLY_UF)
+        {
           Trace("sg-rel-sig-debug") << "Check enumeration..." << std::endl;
           if( !d_cg->hasEnumeratedUf( nn ) ){
             do_enum = false;
@@ -2124,8 +2144,10 @@ bool TermGenEnv::isRelevantFunc( Node f ) {
 }
 
 bool TermGenEnv::isRelevantTerm( Node t ) {
-  if( t.getKind()!=BOUND_VARIABLE ){
-    if( t.getKind()!=EQUAL ){
+  if (t.getKind() != Kind::BOUND_VARIABLE)
+  {
+    if (t.getKind() != Kind::EQUAL)
+    {
       if( t.hasOperator() ){
         TNode op = t.getOperator();
         if( !isRelevantFunc( op ) ){
@@ -2211,7 +2233,7 @@ void TheoremIndex::addTheoremNode( TNode curr, std::vector< TNode >& lhs_v, std:
     lhs_arg.push_back( 0 );
     d_children[curr.getOperator()].addTheorem( lhs_v, lhs_arg, rhs );
   }else{
-    Assert(curr.getKind() == kind::BOUND_VARIABLE);
+    Assert(curr.getKind() == Kind::BOUND_VARIABLE);
     TypeNode tn = curr.getType();
     Assert(d_var[tn].isNull() || d_var[tn] == curr);
     d_var[tn] = curr;

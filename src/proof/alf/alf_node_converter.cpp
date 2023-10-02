@@ -59,7 +59,7 @@ Node AlfNodeConverter::preConvert(Node n)
   // match is not supported in ALF syntax, we eliminate it at pre-order
   // traversal, which avoids type-checking errors during conversion, since e.g.
   // match case nodes are required but cannot be preserved
-  if (n.getKind() == MATCH)
+  if (n.getKind() == Kind::MATCH)
   {
     return theory::datatypes::DatatypesRewriter::expandMatch(n);
   }
@@ -71,16 +71,16 @@ Node AlfNodeConverter::postConvert(Node n)
   NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
   // we eliminate MATCH at preConvert above
-  Assert(k != MATCH);
+  Assert(k != Kind::MATCH);
   Trace("alf-term-process-debug")
       << "postConvert " << n << " " << k << std::endl;
-  if (k == ASCRIPTION_TYPE || k == RAW_SYMBOL)
+  if (k == Kind::ASCRIPTION_TYPE || k == Kind::RAW_SYMBOL)
   {
     // dummy node, return it
     return n;
   }
   TypeNode tn = n.getType();
-  if (k == SKOLEM)
+  if (k == Kind::SKOLEM)
   {
     // constructors/selectors are represented by skolems, which are defined
     // symbols
@@ -105,7 +105,7 @@ Node AlfNodeConverter::postConvert(Node n)
     Node tc = typeAsNode(tn);
     return mkInternalApp("const", {index, tc}, tn);
   }
-  else if (k == BOUND_VARIABLE)
+  else if (k == Kind::BOUND_VARIABLE)
   {
     // note: we always distinguish variables, to ensure they do not have
     // names that are overloaded with user names
@@ -118,12 +118,12 @@ Node AlfNodeConverter::postConvert(Node n)
     ssn << "alf." << index << "." << sname;
     return NodeManager::currentNM()->mkBoundVar(ssn.str(), tn);
   }
-  else if (k == VARIABLE)
+  else if (k == Kind::VARIABLE)
   {
     // note that we do not handle overloading here
     return n;
   }
-  else if (k == APPLY_UF)
+  else if (k == Kind::APPLY_UF)
   {
     // must ensure we print higher-order function applications with "_"
     if (!n.getOperator().isVar())
@@ -134,11 +134,11 @@ Node AlfNodeConverter::postConvert(Node n)
       return mkInternalApp("_", args, tn);
     }
   }
-  else if (k == HO_APPLY)
+  else if (k == Kind::HO_APPLY)
   {
     return mkInternalApp("_", {n[0], n[1]}, tn);
   }
-  else if (k == CONST_INTEGER)
+  else if (k == Kind::CONST_INTEGER)
   {
     Rational r = n.getConst<Rational>();
     if (r.sgn() == -1)
@@ -150,7 +150,7 @@ Node AlfNodeConverter::postConvert(Node n)
     }
     return n;
   }
-  else if (k == CONST_RATIONAL)
+  else if (k == Kind::CONST_RATIONAL)
   {
     Rational r = n.getConst<Rational>();
     // ensure rationals are printed properly here using alf syntax,
@@ -161,7 +161,7 @@ Node AlfNodeConverter::postConvert(Node n)
     ss << (r.sgn() == -1 ? "-" : "") << num << "/" << den;
     return mkInternalSymbol(ss.str(), tn);
   }
-  else if (k == LAMBDA || k == WITNESS)
+  else if (k == Kind::LAMBDA || k == Kind::WITNESS)
   {
     // e.g. (lambda ((x1 T1) ... (xn Tk)) P) is
     // (lambda x1 (lambda x2 ... (lambda xn P)))
@@ -198,26 +198,26 @@ Node AlfNodeConverter::postConvert(Node n)
     return mkInternalApp(
         printer::smt2::Smt2Printer::smtKindString(k), args, tn);
   }
-  else if (k == STORE_ALL)
+  else if (k == Kind::STORE_ALL)
   {
     Node t = typeAsNode(tn);
     ArrayStoreAll storeAll = n.getConst<ArrayStoreAll>();
     Node val = convert(storeAll.getValue());
     return mkInternalApp("store_all", {t, val}, tn);
   }
-  else if (k == SET_EMPTY || k == SET_UNIVERSE || k == BAG_EMPTY
-           || k == SEP_NIL)
+  else if (k == Kind::SET_EMPTY || k == Kind::SET_UNIVERSE
+           || k == Kind::BAG_EMPTY || k == Kind::SEP_NIL)
   {
     Node t = typeAsNode(tn);
     return mkInternalApp(printer::smt2::Smt2Printer::smtKindString(k), {t}, tn);
   }
-  else if (k == SET_INSERT)
+  else if (k == Kind::SET_INSERT)
   {
     std::vector<Node> iargs(n.begin(), n.begin() + n.getNumChildren() - 1);
     Node list = mkList(iargs);
     return mkInternalApp("set.insert", {list, n[n.getNumChildren() - 1]}, tn);
   }
-  else if (k == CONST_SEQUENCE)
+  else if (k == Kind::CONST_SEQUENCE)
   {
     if (n.getConst<Sequence>().empty())
     {
@@ -228,21 +228,21 @@ Node AlfNodeConverter::postConvert(Node n)
     Node cc = theory::strings::utils::mkConcatForConstSequence(n);
     return convert(cc);
   }
-  else if (k == CONST_FINITE_FIELD)
+  else if (k == Kind::CONST_FINITE_FIELD)
   {
     const FiniteFieldValue& ffv = n.getConst<FiniteFieldValue>();
     Node v = convert(nm->mkConstInt(ffv.getValue()));
     Node fs = convert(nm->mkConstInt(ffv.getFieldSize()));
     return mkInternalApp("ff.value", {fs, v}, tn);
   }
-  else if (k == FUNCTION_ARRAY_CONST)
+  else if (k == Kind::FUNCTION_ARRAY_CONST)
   {
     // must convert to lambda and then run the conversion
     Node lam = theory::uf::FunctionConst::toLambda(n);
     Assert(!lam.isNull());
     return convert(lam);
   }
-  else if (k == BITVECTOR_BB_TERM)
+  else if (k == Kind::BITVECTOR_BB_TERM)
   {
     Node curr = mkInternalSymbol("bvempty", nm->mkBitVectorType(0));
     for (size_t i = 0, nchildren = n.getNumChildren(); i < nchildren; i++)
@@ -255,10 +255,11 @@ Node AlfNodeConverter::postConvert(Node n)
     }
     return curr;
   }
-  else if (k == APPLY_TESTER || k == APPLY_UPDATER || k == NEG
-           || k == DIVISION_TOTAL || k == INTS_DIVISION_TOTAL
-           || k == INTS_MODULUS_TOTAL || k == APPLY_CONSTRUCTOR
-           || k == APPLY_SELECTOR || k == FLOATINGPOINT_TO_FP_FROM_IEEE_BV)
+  else if (k == Kind::APPLY_TESTER || k == Kind::APPLY_UPDATER || k == Kind::NEG
+           || k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
+           || k == Kind::INTS_MODULUS_TOTAL || k == Kind::APPLY_CONSTRUCTOR
+           || k == Kind::APPLY_SELECTOR
+           || k == Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV)
   {
     // kinds where the operator may be different
     Node opc = getOperatorOfTerm(n);
@@ -278,9 +279,9 @@ Node AlfNodeConverter::postConvert(Node n)
     }
     newArgs.push_back(opc);
     newArgs.insert(newArgs.end(), n.begin(), n.end());
-    return nm->mkNode(APPLY_UF, newArgs);
+    return nm->mkNode(Kind::APPLY_UF, newArgs);
   }
-  else if (k == INDEXED_ROOT_PREDICATE)
+  else if (k == Kind::INDEXED_ROOT_PREDICATE)
   {
     const IndexedRootPredicate& irp =
         n.getOperator().getConst<IndexedRootPredicate>();
@@ -289,11 +290,12 @@ Node AlfNodeConverter::postConvert(Node n)
     newArgs.insert(newArgs.end(), n.begin(), n.end());
     return mkInternalApp("INDEXED_ROOT_PREDICATE", newArgs, tn);
   }
-  else if (k == FLOATINGPOINT_COMPONENT_NAN || k == FLOATINGPOINT_COMPONENT_INF
-           || k == FLOATINGPOINT_COMPONENT_ZERO
-           || k == FLOATINGPOINT_COMPONENT_SIGN
-           || k == FLOATINGPOINT_COMPONENT_EXPONENT
-           || k == FLOATINGPOINT_COMPONENT_SIGNIFICAND)
+  else if (k == Kind::FLOATINGPOINT_COMPONENT_NAN
+           || k == Kind::FLOATINGPOINT_COMPONENT_INF
+           || k == Kind::FLOATINGPOINT_COMPONENT_ZERO
+           || k == Kind::FLOATINGPOINT_COMPONENT_SIGN
+           || k == Kind::FLOATINGPOINT_COMPONENT_EXPONENT
+           || k == Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND)
   {
     // dummy symbol, provide the return type
     Node tnn = typeAsNode(tn);
@@ -305,7 +307,7 @@ Node AlfNodeConverter::postConvert(Node n)
     // return app of?
     std::vector<Node> args =
         GenericOp::getIndicesForOperator(k, n.getOperator());
-    if (k == RELATION_GROUP || k == TABLE_GROUP)
+    if (k == Kind::RELATION_GROUP || k == Kind::TABLE_GROUP)
     {
       Node list = mkList(args);
       std::vector<Node> children;
@@ -325,12 +327,12 @@ bool AlfNodeConverter::shouldTraverse(Node n)
 {
   Kind k = n.getKind();
   // don't convert bound variable or instantiation pattern list directly
-  if (k == BOUND_VAR_LIST || k == INST_PATTERN_LIST)
+  if (k == Kind::BOUND_VAR_LIST || k == Kind::INST_PATTERN_LIST)
   {
     return false;
   }
   // should not traverse internal applications
-  if (k == APPLY_UF)
+  if (k == Kind::APPLY_UF)
   {
     if (d_symbols.find(n.getOperator()) != d_symbols.end())
     {
@@ -366,10 +368,10 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
       {
         // must provide the variable, not the index (for typing)
         Assert(cacheVal.getNumChildren() == 2);
-        Assert(cacheVal[0].getKind() == EXISTS);
+        Assert(cacheVal[0].getKind() == Kind::EXISTS);
         Node q = convert(cacheVal[0]);
         Node index = cacheVal[1];
-        Assert(index.getKind() == CONST_INTEGER);
+        Assert(index.getKind() == Kind::CONST_INTEGER);
         const Integer& i = index.getConst<Rational>().getNumerator();
         Assert(i.fitsUnsignedInt());
         size_t ii = i.getUnsignedInt();
@@ -378,7 +380,7 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
       }
       else
       {
-        if (cacheVal.getKind() == SEXPR)
+        if (cacheVal.getKind() == Kind::SEXPR)
         {
           for (const Node& cv : cacheVal)
           {
@@ -420,7 +422,7 @@ Node AlfNodeConverter::typeAsNode(TypeNode tn)
 
 size_t AlfNodeConverter::getNumChildrenToProcessForClosure(Kind k) const
 {
-  return k == SET_COMPREHENSION ? 3 : 2;
+  return k == Kind::SET_COMPREHENSION ? 3 : 2;
 }
 
 Node AlfNodeConverter::mkNil(TypeNode tn)
@@ -432,16 +434,16 @@ Node AlfNodeConverter::getNullTerminator(Kind k, TypeNode tn)
 {
   switch (k)
   {
-    case kind::APPLY_UF:
-    case kind::DISTINCT:
-    case kind::FLOATINGPOINT_LT:
-    case kind::FLOATINGPOINT_LEQ:
-    case kind::FLOATINGPOINT_GT:
-    case kind::FLOATINGPOINT_GEQ:
+    case Kind::APPLY_UF:
+    case Kind::DISTINCT:
+    case Kind::FLOATINGPOINT_LT:
+    case Kind::FLOATINGPOINT_LEQ:
+    case Kind::FLOATINGPOINT_GT:
+    case Kind::FLOATINGPOINT_GEQ:
       // the above operators may take arbitrary number of arguments but are not
       // marked as n-ary in ALF
       return Node::null();
-    case kind::APPLY_CONSTRUCTOR:
+    case Kind::APPLY_CONSTRUCTOR:
       // tuple constructor is n-ary with unit tuple as null terminator
       if (tn.isTuple())
       {
@@ -450,13 +452,13 @@ Node AlfNodeConverter::getNullTerminator(Kind k, TypeNode tn)
       }
       return Node::null();
       break;
-    case kind::OR: return NodeManager::currentNM()->mkConst(false);
-    case kind::AND: return NodeManager::currentNM()->mkConst(true);
-    case kind::ADD: return NodeManager::currentNM()->mkConstInt(Rational(0));
-    case kind::MULT:
-    case kind::NONLINEAR_MULT:
+    case Kind::OR: return NodeManager::currentNM()->mkConst(false);
+    case Kind::AND: return NodeManager::currentNM()->mkConst(true);
+    case Kind::ADD: return NodeManager::currentNM()->mkConstInt(Rational(0));
+    case Kind::MULT:
+    case Kind::NONLINEAR_MULT:
       return NodeManager::currentNM()->mkConstInt(Rational(1));
-    case kind::BITVECTOR_CONCAT:
+    case Kind::BITVECTOR_CONCAT:
       return mkInternalSymbol("bvempty",
                               NodeManager::currentNM()->mkBitVectorType(0));
     default: break;
@@ -505,7 +507,7 @@ Node AlfNodeConverter::mkInternalApp(const std::string& name,
     std::vector<Node> aargs;
     aargs.push_back(op);
     aargs.insert(aargs.end(), args.begin(), args.end());
-    return nm->mkNode(APPLY_UF, aargs);
+    return nm->mkNode(Kind::APPLY_UF, aargs);
   }
   return mkInternalSymbol(name, ret, useRawSym);
 }
@@ -537,7 +539,7 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
     Node ret;
     if (isIndexed)
     {
-      if (k == APPLY_TESTER)
+      if (k == Kind::APPLY_TESTER)
       {
         size_t cindex = DType::indexOf(op);
         const DType& dt = DType::datatypeOf(op);
@@ -551,7 +553,7 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
         }
         indices.clear();
       }
-      else if (k == APPLY_UPDATER)
+      else if (k == Kind::APPLY_UPDATER)
       {
         indices.clear();
         size_t index = DType::indexOf(op);
@@ -567,7 +569,7 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
           opName << "update-" << dt[cindex][index].getSelector();
         }
       }
-      else if (k == FLOATINGPOINT_TO_FP_FROM_IEEE_BV)
+      else if (k == Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV)
       {
         // this does not take a rounding mode, we change the smt2 syntax
         // to distinguish this case.
@@ -578,7 +580,7 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
         opName << printer::smt2::Smt2Printer::smtKindString(k);
       }
     }
-    else if (k == APPLY_CONSTRUCTOR)
+    else if (k == Kind::APPLY_CONSTRUCTOR)
     {
       unsigned index = DType::indexOf(op);
       const DType& dt = DType::datatypeOf(op);
@@ -599,7 +601,7 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
         opName << dt[index].getConstructor();
       }
     }
-    else if (k == APPLY_SELECTOR)
+    else if (k == Kind::APPLY_SELECTOR)
     {
       // maybe a shared selector
       ret = maybeMkSkolemFun(op);
@@ -628,13 +630,13 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
   // we only use binary operators
   else
   {
-    if (k == NEG)
+    if (k == Kind::NEG)
     {
       opName << "u";
     }
     opName << printer::smt2::Smt2Printer::smtKindString(k);
-    if (k == DIVISION_TOTAL || k == INTS_DIVISION_TOTAL
-        || k == INTS_MODULUS_TOTAL)
+    if (k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
+        || k == Kind::INTS_MODULUS_TOTAL)
     {
       opName << "_total";
     }

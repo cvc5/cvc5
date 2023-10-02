@@ -253,7 +253,7 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
       sktns.push_back(ttn);
       utchildren.push_back(kv);
     }
-    Node ut = nm->mkNode(APPLY_CONSTRUCTOR, utchildren);
+    Node ut = nm->mkNode(Kind::APPLY_CONSTRUCTOR, utchildren);
     std::vector<Node> echildren;
     echildren.push_back(ut);
     Node sbvl = dt.getSygusVarList();
@@ -261,7 +261,7 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
     {
       echildren.push_back(sbv);
     }
-    Node eut = nm->mkNode(DT_SYGUS_EVAL, echildren);
+    Node eut = nm->mkNode(Kind::DT_SYGUS_EVAL, echildren);
     Trace("sygus-unif-debug2") << "  Test evaluation of " << eut << "..."
                                << std::endl;
     eut = d_tds->rewriteNode(eut);
@@ -269,11 +269,11 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
     Trace("sygus-unif-debug2") << ", type : " << eut.getType() << std::endl;
 
     // candidate strategy
-    if (eut.getKind() == ITE)
+    if (eut.getKind() == Kind::ITE)
     {
       cop_to_strat[cop].push_back(strat_ITE);
     }
-    else if (eut.getKind() == STRING_CONCAT)
+    else if (eut.getKind() == Kind::STRING_CONCAT)
     {
       if (nrole != role_string_suffix)
       {
@@ -303,7 +303,7 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
         echildren[0] = sks[k];
         Trace("sygus-unif-debug2") << "...set eval dt to " << sks[k]
                                    << std::endl;
-        Node esk = nm->mkNode(DT_SYGUS_EVAL, echildren);
+        Node esk = nm->mkNode(Kind::DT_SYGUS_EVAL, echildren);
         vs.push_back(esk);
         Node tvar = sm->mkDummySkolem("templ", esk.getType());
         templ_var_index[tvar] = k;
@@ -615,7 +615,7 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
         }
         sol_templ_children.insert(sol_templ_children.begin(), cop);
         cons_strat->d_sol_templ =
-            nm->mkNode(APPLY_CONSTRUCTOR, sol_templ_children);
+            nm->mkNode(Kind::APPLY_CONSTRUCTOR, sol_templ_children);
         if (strat == strat_CONCAT_SUFFIX)
         {
           std::reverse(cons_strat->d_cenum.begin(), cons_strat->d_cenum.end());
@@ -812,8 +812,9 @@ void SygusUnifStrategy::staticLearnRedundantOps(
       const DType& dt = etn.getDType();
       Node op = dt[cindex].getSygusOp();
       TypeNode sygus_tn = dt.getSygusType();
-      if (op.getKind() == kind::BUILTIN
-          && NodeManager::operatorToKind(op) == ITE && sygus_tn.isBoolean()
+      if (op.getKind() == Kind::BUILTIN
+          && NodeManager::operatorToKind(op) == Kind::ITE
+          && sygus_tn.isBoolean()
           && (dt[cindex].getArgType(1) == dt[cindex].getArgType(2)))
       {
         unsigned ncons = dt.getNumConstructors(), indexT = ncons,
@@ -872,10 +873,11 @@ void SygusUnifStrategy::staticLearnRedundantOps(
         needs_cons_curr[j] = false;
         continue;
       }
-      if (op.getKind() == kind::BUILTIN)
+      if (op.getKind() == Kind::BUILTIN)
       {
         Kind kind = NodeManager::operatorToKind(op);
-        if (kind == NOT || kind == OR || kind == AND || kind == ITE)
+        if (kind == Kind::NOT || kind == Kind::OR || kind == Kind::AND
+            || kind == Kind::ITE)
         {
           // can eliminate if their argument types are simple loops to this type
           bool type_ok = true;

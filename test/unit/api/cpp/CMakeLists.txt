@@ -15,6 +15,7 @@
 cvc5_add_unit_test_black(datatype_api_black api/cpp)
 cvc5_add_unit_test_black(grammar_black api/cpp)
 cvc5_add_unit_test_black(api_kind_black api/cpp)
+cvc5_add_unit_test_black(api_proof_rule_black api/cpp)
 cvc5_add_unit_test_black(api_sort_kind_black api/cpp)
 cvc5_add_unit_test_black(op_black api/cpp)
 cvc5_add_unit_test_black(parametric_datatype_black api/cpp)

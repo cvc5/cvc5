@@ -37,7 +37,7 @@ void SharedSolverDistributed::setEqualityEngine(eq::EqualityEngine* ee)
 
 void SharedSolverDistributed::preRegisterSharedInternal(TNode t)
 {
-  if (t.getKind() == kind::EQUAL)
+  if (t.getKind() == Kind::EQUAL)
   {
     // When sharing is enabled, we propagate from the shared terms manager also
     d_sharedTerms.addEqualityToPropagate(t);

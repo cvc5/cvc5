@@ -70,7 +70,7 @@ void SolverState::registerEqc(TypeNode tn, Node r)
 void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
 {
   Kind nk = n.getKind();
-  if (nk == SET_MEMBER)
+  if (nk == Kind::SET_MEMBER)
   {
     if (r.isConst())
     {
@@ -88,7 +88,7 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
         if (d_members_index[s].find(x) == d_members_index[s].end())
         {
           d_members_index[s][x] = n;
-          d_op_list[SET_MEMBER].push_back(n);
+          d_op_list[Kind::SET_MEMBER].push_back(n);
         }
       }
       else
@@ -97,28 +97,29 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
       }
     }
   }
-  else if (nk == SET_SINGLETON || nk == SET_UNION || nk == SET_INTER
-           || nk == SET_MINUS || nk == SET_EMPTY || nk == SET_UNIVERSE)
+  else if (nk == Kind::SET_SINGLETON || nk == Kind::SET_UNION
+           || nk == Kind::SET_INTER || nk == Kind::SET_MINUS
+           || nk == Kind::SET_EMPTY || nk == Kind::SET_UNIVERSE)
   {
-    if (nk == SET_SINGLETON)
+    if (nk == Kind::SET_SINGLETON)
     {
       Node re = d_ee->getRepresentative(n[0]);
       if (d_singleton_index.find(re) == d_singleton_index.end())
       {
         d_singleton_index[re] = n;
         d_eqc_singleton[r] = n;
-        d_op_list[SET_SINGLETON].push_back(n);
+        d_op_list[Kind::SET_SINGLETON].push_back(n);
       }
       else
       {
         d_congruent[n] = d_singleton_index[re];
       }
     }
-    else if (nk == SET_EMPTY)
+    else if (nk == Kind::SET_EMPTY)
     {
       d_eqc_emptyset[tnn] = r;
     }
-    else if (nk == SET_UNIVERSE)
+    else if (nk == Kind::SET_UNIVERSE)
     {
       Assert(options().sets.setsExt);
       d_eqc_univset[tnn] = r;
@@ -144,11 +145,11 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
     d_nvar_sets[r].push_back(n);
     Trace("sets-debug2") << "Non-var-set[" << r << "] : " << n << std::endl;
   }
-  else if (nk == SET_FILTER)
+  else if (nk == Kind::SET_FILTER)
   {
     d_filterTerms.push_back(n);
   }
-  else if (nk == SET_MAP)
+  else if (nk == Kind::SET_MAP)
   {
     d_mapTerms.insert(n);
     if (d_mapSkolemElements.find(n) == d_mapSkolemElements.end())
@@ -158,14 +159,14 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
       d_mapSkolemElements[n] = set;
     }
   }
-  else if (nk == RELATION_GROUP)
+  else if (nk == Kind::RELATION_GROUP)
   {
     d_groupTerms.insert(n);
     std::shared_ptr<context::CDHashSet<Node>> set =
         std::make_shared<context::CDHashSet<Node>>(d_env.getUserContext());
     d_partElementSkolems[n] = set;
   }
-  else if (nk == SET_COMPREHENSION)
+  else if (nk == Kind::SET_COMPREHENSION)
   {
     d_compSets[r].push_back(n);
     d_allCompSets.push_back(n);
@@ -255,11 +256,11 @@ Node SolverState::getBinaryOpTerm(Kind k, Node r1, Node r2) const
 
 bool SolverState::isEntailed(Node n, bool polarity) const
 {
-  if (n.getKind() == NOT)
+  if (n.getKind() == Kind::NOT)
   {
     return isEntailed(n[0], !polarity);
   }
-  else if (n.getKind() == EQUAL)
+  else if (n.getKind() == Kind::EQUAL)
   {
     if (polarity)
     {
@@ -267,7 +268,7 @@ bool SolverState::isEntailed(Node n, bool polarity) const
     }
     return areDisequal(n[0], n[1]);
   }
-  else if (n.getKind() == SET_MEMBER)
+  else if (n.getKind() == Kind::SET_MEMBER)
   {
     if (areEqual(n, polarity ? d_true : d_false))
     {
@@ -283,9 +284,9 @@ bool SolverState::isEntailed(Node n, bool polarity) const
       }
     }
   }
-  else if (n.getKind() == AND || n.getKind() == OR)
+  else if (n.getKind() == Kind::AND || n.getKind() == Kind::OR)
   {
-    bool conj = (n.getKind() == AND) == polarity;
+    bool conj = (n.getKind() == Kind::AND) == polarity;
     for (const Node& nc : n)
     {
       bool isEnt = isEntailed(nc, polarity);
@@ -582,14 +583,14 @@ bool SolverState::merge(TNode t1,
   for (size_t i = 0, nmem2 = (*mem_i2).second; i < nmem2; i++)
   {
     Assert(i < d_members_data[t2].size()
-           && d_members_data[t2][i].getKind() == SET_MEMBER);
+           && d_members_data[t2][i].getKind() == Kind::SET_MEMBER);
     Node m2 = d_members_data[t2][i];
     // check if redundant
     bool add = true;
     for (size_t j = 0; j < n_members; j++)
     {
       Assert(j < d_members_data[t1].size()
-             && d_members_data[t1][j].getKind() == SET_MEMBER);
+             && d_members_data[t1][j].getKind() == Kind::SET_MEMBER);
       if (areEqual(m2[0], d_members_data[t1][j][0]))
       {
         add = false;
@@ -603,15 +604,15 @@ bool SolverState::merge(TNode t1,
       {
         NodeManager* nm = NodeManager::currentNM();
         Assert(areEqual(m2[1], cset));
-        Node exp = nm->mkNode(AND, m2[1].eqNode(cset), m2);
-        if (cset.getKind() == SET_SINGLETON)
+        Node exp = nm->mkNode(Kind::AND, m2[1].eqNode(cset), m2);
+        if (cset.getKind() == Kind::SET_SINGLETON)
         {
           if (cset[0] != m2[0])
           {
             Node eq = cset[0].eqNode(m2[0]);
             Trace("sets-prop") << "Propagate eq-mem eq inference : " << exp
                                << " => " << eq << std::endl;
-            Node fact = nm->mkNode(IMPLIES, exp, eq);
+            Node fact = nm->mkNode(Kind::IMPLIES, exp, eq);
             facts.push_back(fact);
           }
         }
@@ -642,15 +643,15 @@ bool SolverState::merge(TNode t1,
 
 void SolverState::registerMapSkolemElement(const Node& n, const Node& element)
 {
-  Assert(n.getKind() == kind::SET_MAP);
-  Assert(element.getKind() == SKOLEM
+  Assert(n.getKind() == Kind::SET_MAP);
+  Assert(element.getKind() == Kind::SKOLEM
          && element.getType() == n[1].getType().getSetElementType());
   d_mapSkolemElements[n].get()->insert(element);
 }
 
 void SolverState::registerPartElementSkolem(Node group, Node skolemElement)
 {
-  Assert(group.getKind() == RELATION_GROUP);
+  Assert(group.getKind() == Kind::RELATION_GROUP);
   Assert(skolemElement.getType() == group[0].getType().getSetElementType());
   d_partElementSkolems[group].get()->insert(skolemElement);
 }
@@ -658,7 +659,7 @@ void SolverState::registerPartElementSkolem(Node group, Node skolemElement)
 std::shared_ptr<context::CDHashSet<Node>> SolverState::getPartElementSkolems(
     Node n)
 {
-  Assert(n.getKind() == RELATION_GROUP);
+  Assert(n.getKind() == Kind::RELATION_GROUP);
   return d_partElementSkolems[n];
 }
 

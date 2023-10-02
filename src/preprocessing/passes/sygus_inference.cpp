@@ -99,7 +99,7 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
   while (index < assertions_proc.size())
   {
     Node ca = assertions_proc[index];
-    if (ca.getKind() == AND)
+    if (ca.getKind() == Kind::AND)
     {
       for (const Node& ai : ca)
       {
@@ -126,7 +126,7 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
     // rewrite
     pas = rewrite(pas);
     Trace("sygus-infer") << "assertion : " << pas << std::endl;
-    if (pas.getKind() == FORALL)
+    if (pas.getKind() == Kind::FORALL)
     {
       // preprocess the quantified formula
       TrustNode trn = qp.preprocess(pas);
@@ -136,7 +136,7 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
       }
       Trace("sygus-infer-debug") << "  ...preprocessed to " << pas << std::endl;
     }
-    if (pas.getKind() == FORALL)
+    if (pas.getKind() == Kind::FORALL)
     {
       // it must be a standard quantifier
       theory::quantifiers::QAttributes qa;
@@ -187,13 +187,13 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
       if (visited.find(cur) == visited.end())
       {
         visited.insert(cur);
-        if (cur.getKind() == APPLY_UF)
+        if (cur.getKind() == Kind::APPLY_UF)
         {
           Node op = cur.getOperator();
           // visit the operator, which might not be a variable
           visit.push_back(op);
         }
-        else if (cur.isVar() && cur.getKind() != BOUND_VARIABLE)
+        else if (cur.isVar() && cur.getKind() != Kind::BOUND_VARIABLE)
         {
           // We are either in the case of a free first-order constant or a
           // function in a higher-order context. We add to free_functions
@@ -239,7 +239,7 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
   }
   else
   {
-    body = nm->mkNode(AND, processed_assertions);
+    body = nm->mkNode(Kind::AND, processed_assertions);
   }
 
   // for each free function symbol, make a bound variable of the same type
@@ -265,8 +265,8 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
   body = body.negate();
   if (!qvars.empty())
   {
-    Node bvl = nm->mkNode(BOUND_VAR_LIST, qvars);
-    body = nm->mkNode(EXISTS, bvl, body);
+    Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, qvars);
+    body = nm->mkNode(Kind::EXISTS, bvl, body);
   }
 
   // sygus attribute to mark the conjecture as a sygus conjecture

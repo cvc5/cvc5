@@ -118,13 +118,13 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
     // use the bound variable list from the new substituted grammar type
     const DType& agtsd = abdGTypeS.getDType();
     abvl = agtsd.getSygusVarList();
-    Assert(!abvl.isNull() && abvl.getKind() == BOUND_VAR_LIST);
+    Assert(!abvl.isNull() && abvl.getKind() == Kind::BOUND_VAR_LIST);
   }
   else if (!varlist.empty())
   {
     // the bound variable list of the abduct-to-synthesize is determined by
     // the variable list above
-    abvl = nm->mkNode(BOUND_VAR_LIST, varlist);
+    abvl = nm->mkNode(Kind::BOUND_VAR_LIST, varlist);
     // We do not set a grammar type for abd (SygusSynthGrammarAttribute).
     // Its grammar will be constructed internally in the default way
   }
@@ -133,7 +133,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   std::vector<Node> achildren;
   achildren.push_back(abd);
   achildren.insert(achildren.end(), vars.begin(), vars.end());
-  Node abdApp = vars.empty() ? abd : nm->mkNode(APPLY_UF, achildren);
+  Node abdApp = vars.empty() ? abd : nm->mkNode(Kind::APPLY_UF, achildren);
   Trace("sygus-abduct-debug") << "...finish" << std::endl;
 
   Trace("sygus-abduct-debug") << "Set attributes..." << std::endl;
@@ -142,35 +142,37 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   Trace("sygus-abduct-debug") << "...finish" << std::endl;
 
   Trace("sygus-abduct-debug") << "Make conjecture body..." << std::endl;
-  Node input = asserts.size() == 1 ? asserts[0] : nm->mkNode(AND, asserts);
+  Node input =
+      asserts.size() == 1 ? asserts[0] : nm->mkNode(Kind::AND, asserts);
   input = input.substitute(syms.begin(), syms.end(), vars.begin(), vars.end());
   // A(x) => ~input( x )
-  input = nm->mkNode(OR, abdApp.negate(), input.negate());
+  input = nm->mkNode(Kind::OR, abdApp.negate(), input.negate());
   Trace("sygus-abduct-debug") << "...finish" << std::endl;
 
   Trace("sygus-abduct-debug") << "Make conjecture..." << std::endl;
   Node res = input.negate();
   if (!vars.empty())
   {
-    Node bvl = nm->mkNode(BOUND_VAR_LIST, vars);
+    Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, vars);
     // exists x. ~( A( x ) => ~input( x ) )
-    res = nm->mkNode(EXISTS, bvl, res);
+    res = nm->mkNode(Kind::EXISTS, bvl, res);
   }
   // sygus attribute
-  Node aconj = axioms.size() == 0
-                   ? nm->mkConst(true)
-                   : (axioms.size() == 1 ? axioms[0] : nm->mkNode(AND, axioms));
+  Node aconj =
+      axioms.size() == 0
+          ? nm->mkConst(true)
+          : (axioms.size() == 1 ? axioms[0] : nm->mkNode(Kind::AND, axioms));
   aconj = aconj.substitute(syms.begin(), syms.end(), vars.begin(), vars.end());
   Trace("sygus-abduct") << "---> Assumptions: " << aconj << std::endl;
-  Node sc = nm->mkNode(AND, aconj, abdApp);
+  Node sc = nm->mkNode(Kind::AND, aconj, abdApp);
   if (!vars.empty())
   {
-    Node vbvl = nm->mkNode(BOUND_VAR_LIST, vars);
-    sc = nm->mkNode(EXISTS, vbvl, sc);
+    Node vbvl = nm->mkNode(Kind::BOUND_VAR_LIST, vars);
+    sc = nm->mkNode(Kind::EXISTS, vbvl, sc);
   }
   Node sygusScVar = sm->mkDummySkolem("sygus_sc", nm->booleanType());
   sygusScVar.setAttribute(theory::SygusSideConditionAttribute(), sc);
-  Node instAttr = nm->mkNode(INST_ATTRIBUTE, sygusScVar);
+  Node instAttr = nm->mkNode(Kind::INST_ATTRIBUTE, sygusScVar);
   // build in the side condition
   //   exists x. A( x ) ^ input_axioms( x )
   // as an additional annotation on the sygus conjecture. In other words,

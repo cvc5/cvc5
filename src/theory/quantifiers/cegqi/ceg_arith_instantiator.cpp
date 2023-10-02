@@ -87,12 +87,12 @@ bool ArithInstantiator::processEquality(CegInstantiator* ci,
     if (!rhs_coeff.isNull())
     {
       Trace("cegqi-arith-debug") << "...mult lhs by " << rhs_coeff << std::endl;
-      eq_lhs = nm->mkNode(MULT, rhs_coeff, eq_lhs);
+      eq_lhs = nm->mkNode(Kind::MULT, rhs_coeff, eq_lhs);
     }
     if (!lhs_coeff.isNull())
     {
       Trace("cegqi-arith-debug") << "...mult rhs by " << lhs_coeff << std::endl;
-      eq_rhs = nm->mkNode(MULT, lhs_coeff, eq_rhs);
+      eq_rhs = nm->mkNode(Kind::MULT, lhs_coeff, eq_rhs);
     }
   }
   Node eq = arith::mkEquality(eq_lhs, eq_rhs);
@@ -129,10 +129,10 @@ Node ArithInstantiator::hasProcessAssertion(CegInstantiator* ci,
                                             Node lit,
                                             CegInstEffort effort)
 {
-  Node atom = lit.getKind() == NOT ? lit[0] : lit;
+  Node atom = lit.getKind() == Kind::NOT ? lit[0] : lit;
   // arithmetic inequalities and disequalities
-  if (atom.getKind() == GEQ
-      || (atom.getKind() == EQUAL && atom[0].getType().isRealOrInt()))
+  if (atom.getKind() == Kind::GEQ
+      || (atom.getKind() == Kind::EQUAL && atom[0].getType().isRealOrInt()))
   {
     return lit;
   }
@@ -148,11 +148,11 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
 {
   Trace("cegqi-arith-debug") << "Process assertion " << lit << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  Node atom = lit.getKind() == NOT ? lit[0] : lit;
-  bool pol = lit.getKind() != NOT;
+  Node atom = lit.getKind() == Kind::NOT ? lit[0] : lit;
+  bool pol = lit.getKind() != Kind::NOT;
   // arithmetic inequalities and disequalities
-  Assert(atom.getKind() == GEQ
-         || (atom.getKind() == EQUAL && atom[0].getType().isRealOrInt()));
+  Assert(atom.getKind() == Kind::GEQ
+         || (atom.getKind() == Kind::EQUAL && atom[0].getType().isRealOrInt()));
   // get model value for pv
   Node pv_value = ci->getModelValue(pv);
   // cannot contain infinity?
@@ -169,7 +169,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
   }
   // compute how many bounds we will consider
   unsigned rmax = 1;
-  if (atom.getKind() == EQUAL && pol)
+  if (atom.getKind() == Kind::EQUAL && pol)
   {
     rmax = 2;
   }
@@ -177,7 +177,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
   {
     CegTermType uires = ires;
     Node uval = val;
-    if (atom.getKind() == GEQ)
+    if (atom.getKind() == Kind::GEQ)
     {
       // push negation downwards
       if (!pol)
@@ -186,7 +186,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
         if (d_type.isInteger())
         {
           uval = nm->mkNode(
-              ADD,
+              Kind::ADD,
               val,
               nm->mkConstInt(Rational(isUpperBoundCTT(uires) ? 1 : -1)));
           uval = rewrite(uval);
@@ -239,16 +239,16 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
         // It also may be the case that cmp is non-constant, in the case
         // where lhs or rhs contains a transcendental function. We consider
         // the bound to be an upper bound in this case.
-        Node cmp = nm->mkNode(GEQ, lhs_value, rhs_value);
+        Node cmp = nm->mkNode(Kind::GEQ, lhs_value, rhs_value);
         cmp = rewrite(cmp);
         is_upper = !cmp.isConst() || !cmp.getConst<bool>();
       }
-      Assert(atom.getKind() == EQUAL && !pol);
+      Assert(atom.getKind() == Kind::EQUAL && !pol);
       if (d_type.isInteger())
       {
         uires = is_upper ? CEG_TT_LOWER : CEG_TT_UPPER;
         uval = nm->mkNode(
-            ADD,
+            Kind::ADD,
             val,
             nm->mkConstInt(Rational(isUpperBoundCTT(uires) ? 1 : -1)));
         uval = rewrite(uval);
@@ -277,7 +277,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
       }
       else
       {
-        vts_coeff_delta = nm->mkNode(ADD, vts_coeff_delta, delta_coeff);
+        vts_coeff_delta = nm->mkNode(Kind::ADD, vts_coeff_delta, delta_coeff);
         vts_coeff_delta = rewrite(vts_coeff_delta);
       }
     }
@@ -331,7 +331,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
         // could get rho value for infinity here
         if (rr == 0)
         {
-          val = nm->mkNode(NEG, val);
+          val = nm->mkNode(Kind::NEG, val);
           val = rewrite(val);
         }
         TermProperties pv_prop_no_bound;
@@ -420,10 +420,10 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
           {
             Assert(d_mbp_coeff[rr][j].isConst());
             value[t] = nm->mkNode(
-                MULT,
+                Kind::MULT,
                 nm->mkConstReal(Rational(1)
                                 / d_mbp_coeff[rr][j].getConst<Rational>()),
-                nm->mkNode(TO_REAL, value[t]));
+                nm->mkNode(Kind::TO_REAL, value[t]));
             value[t] = rewrite(value[t]);
           }
           // check if new best, if we have not already set it.
@@ -581,8 +581,8 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
       }
       else
       {
-        val = nm->mkNode(MULT,
-                         nm->mkNode(ADD, vals[0], vals[1]),
+        val = nm->mkNode(Kind::MULT,
+                         nm->mkNode(Kind::ADD, vals[0], vals[1]),
                          nm->mkConstReal(Rational(1) / Rational(2)));
         val = rewrite(val);
       }
@@ -591,12 +591,12 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
     {
       if (!vals[0].isNull())
       {
-        val = nm->mkNode(ADD, vals[0], d_one);
+        val = nm->mkNode(Kind::ADD, vals[0], d_one);
         val = rewrite(val);
       }
       else if (!vals[1].isNull())
       {
-        val = nm->mkNode(SUB, vals[1], d_one);
+        val = nm->mkNode(Kind::SUB, vals[1], d_one);
         val = rewrite(val);
       }
     }
@@ -701,7 +701,7 @@ bool ArithInstantiator::postProcessInstantiationForVariable(
     return false;
   }
   Node veq;
-  if (ArithMSum::isolate(sf.d_vars[index], msum, veq, EQUAL, true) == 0)
+  if (ArithMSum::isolate(sf.d_vars[index], msum, veq, Kind::EQUAL, true) == 0)
   {
     Trace("cegqi-arith-debug") << "...failed to isolate." << std::endl;
     return false;
@@ -719,7 +719,7 @@ bool ArithInstantiator::postProcessInstantiationForVariable(
   if (!veq_c.isNull())
   {
     NodeManager* nm = NodeManager::currentNM();
-    sf.d_subs[index] = nm->mkNode(INTS_DIVISION_TOTAL, veq[1], veq_c);
+    sf.d_subs[index] = nm->mkNode(Kind::INTS_DIVISION_TOTAL, veq[1], veq_c);
     Trace("cegqi-arith-debug")
         << "...bound type is : " << sf.d_props[index].d_type << std::endl;
     // intger division rounding up if from a lower bound
@@ -727,12 +727,13 @@ bool ArithInstantiator::postProcessInstantiationForVariable(
         && options().quantifiers.cegqiRoundUpLowerLia)
     {
       sf.d_subs[index] = nm->mkNode(
-          ADD,
+          Kind::ADD,
           sf.d_subs[index],
           nm->mkNode(
-              ITE,
-              nm->mkNode(
-                  EQUAL, nm->mkNode(INTS_MODULUS_TOTAL, veq[1], veq_c), d_zero),
+              Kind::ITE,
+              nm->mkNode(Kind::EQUAL,
+                         nm->mkNode(Kind::INTS_MODULUS_TOTAL, veq[1], veq_c),
+                         d_zero),
               d_zero,
               d_one));
     }
@@ -794,7 +795,7 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
             if (!pvtn.isInteger())
             {
               vts_coeff[t] = nm->mkNode(
-                  MULT,
+                  Kind::MULT,
                   nm->mkConstReal(Rational(-1)
                                   / itv->second.getConst<Rational>()),
                   vts_coeff[t]);
@@ -870,14 +871,15 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
         }
         else
         {
-          msum[it->first] = rewrite(nm->mkNode(MULT, it->second, rcoeff));
+          msum[it->first] = rewrite(nm->mkNode(Kind::MULT, it->second, rcoeff));
         }
       }
       if (!it->first.isNull() && !it->first.getType().isInteger())
       {
-        real_part.push_back(msum[it->first].isNull()
-                                ? it->first
-                                : nm->mkNode(MULT, msum[it->first], it->first));
+        real_part.push_back(
+            msum[it->first].isNull()
+                ? it->first
+                : nm->mkNode(Kind::MULT, msum[it->first], it->first));
       }
     }
     // remove delta
@@ -885,12 +887,13 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
     // multiply inf
     if (!vts_coeff[0].isNull())
     {
-      vts_coeff[0] = rewrite(nm->mkNode(MULT, rcoeff, vts_coeff[0]));
+      vts_coeff[0] = rewrite(nm->mkNode(Kind::MULT, rcoeff, vts_coeff[0]));
     }
-    Node realPart = real_part.empty()
-                        ? d_zero
-                        : (real_part.size() == 1 ? real_part[0]
-                                                 : nm->mkNode(ADD, real_part));
+    Node realPart =
+        real_part.empty()
+            ? d_zero
+            : (real_part.size() == 1 ? real_part[0]
+                                     : nm->mkNode(Kind::ADD, real_part));
     Assert(ci->isEligibleForInstantiation(realPart));
     // re-isolate
     Trace("cegqi-arith-debug") << "Re-isolate..." << std::endl;
@@ -906,9 +909,12 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
       int ires_use =
           (msum[pv].isNull() || msum[pv].getConst<Rational>().sgn() == 1) ? 1
                                                                           : -1;
-      val = nm->mkNode(TO_INTEGER, nm->mkNode(ires_use == -1 ? ADD : SUB,
-                       nm->mkNode(ires_use == -1 ? SUB : ADD, val, realPart),
-                       nm->mkNode(TO_INTEGER, realPart)));
+      val = nm->mkNode(
+          Kind::TO_INTEGER,
+          nm->mkNode(
+              ires_use == -1 ? Kind::ADD : Kind::SUB,
+              nm->mkNode(ires_use == -1 ? Kind::SUB : Kind::ADD, val, realPart),
+              nm->mkNode(Kind::TO_INTEGER, realPart)));
       Trace("cegqi-arith-debug")
           << "result (pre-rewrite) : " << val << std::endl;
       val = rewrite(val);
@@ -925,7 +931,7 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
   vts_coeff_delta = vts_coeff[1];
   if (!pv.getType().isInteger() && val.getType().isInteger())
   {
-    val = nm->mkNode(TO_REAL, val);
+    val = nm->mkNode(Kind::TO_REAL, val);
   }
   Assert(pv.getType() == val.getType());
   Trace("cegqi-arith-debug")
@@ -933,7 +939,7 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
       << val << ", vts = (" << vts_coeff_inf << ", " << vts_coeff_delta << ")"
       << std::endl;
   Assert(ires != 0);
-  if (atom.getKind() == EQUAL)
+  if (atom.getKind() == Kind::EQUAL)
   {
     return CEG_TT_EQUAL;
   }
@@ -963,7 +969,7 @@ Node ArithInstantiator::getModelBasedProjectionValue(CegInstantiator* ci,
   if (!c.isNull())
   {
     Assert(c.getType().isInteger());
-    ceValue = nm->mkNode(MULT, ceValue, c);
+    ceValue = nm->mkNode(Kind::MULT, ceValue, c);
     ceValue = rewrite(ceValue);
     if (new_theta.isNull())
     {
@@ -971,7 +977,7 @@ Node ArithInstantiator::getModelBasedProjectionValue(CegInstantiator* ci,
     }
     else
     {
-      new_theta = nm->mkNode(MULT, new_theta, c);
+      new_theta = nm->mkNode(Kind::MULT, new_theta, c);
       new_theta = rewrite(new_theta);
     }
     Trace("cegqi-arith-bound2") << "...c*e = " << ceValue << std::endl;
@@ -982,21 +988,21 @@ Node ArithInstantiator::getModelBasedProjectionValue(CegInstantiator* ci,
     Node rho;
     if (isLower)
     {
-      rho = nm->mkNode(SUB, ceValue, mt);
+      rho = nm->mkNode(Kind::SUB, ceValue, mt);
     }
     else
     {
-      rho = nm->mkNode(SUB, mt, ceValue);
+      rho = nm->mkNode(Kind::SUB, mt, ceValue);
     }
     rho = rewrite(rho);
     Trace("cegqi-arith-bound2")
         << "...rho = " << me << " - " << mt << " = " << rho << std::endl;
     Trace("cegqi-arith-bound2")
         << "..." << rho << " mod " << new_theta << " = ";
-    rho = nm->mkNode(INTS_MODULUS_TOTAL, rho, new_theta);
+    rho = nm->mkNode(Kind::INTS_MODULUS_TOTAL, rho, new_theta);
     rho = rewrite(rho);
     Trace("cegqi-arith-bound2") << rho << std::endl;
-    Kind rk = isLower ? ADD : SUB;
+    Kind rk = isLower ? Kind::ADD : Kind::SUB;
     val = nm->mkNode(rk, val, rho);
     val = rewrite(val);
     Trace("cegqi-arith-bound2") << "(after rho) : " << val << std::endl;
@@ -1013,15 +1019,16 @@ Node ArithInstantiator::mkVtsSum(const Node& val,
   if (!inf_coeff.isNull())
   {
     Assert(!d_vts_sym[0].isNull());
-    vval = nm->mkNode(ADD, vval, nm->mkNode(MULT, inf_coeff, d_vts_sym[0]));
+    vval = nm->mkNode(
+        Kind::ADD, vval, nm->mkNode(Kind::MULT, inf_coeff, d_vts_sym[0]));
   }
   if (!delta_coeff.isNull())
   {
     // create delta here if necessary
     vval = nm->mkNode(
-        ADD,
+        Kind::ADD,
         vval,
-        nm->mkNode(MULT, delta_coeff, d_vtc->getVtsDelta(false, true)));
+        nm->mkNode(Kind::MULT, delta_coeff, d_vtc->getVtsDelta(false, true)));
   }
   vval = rewrite(vval);
   return vval;
@@ -1030,8 +1037,8 @@ Node ArithInstantiator::mkVtsSum(const Node& val,
 Node ArithInstantiator::negate(const Node& t) const
 {
   NodeManager* nm = NodeManager::currentNM();
-  return rewrite(
-      nm->mkNode(MULT, nm->mkConstRealOrInt(t.getType(), Rational(-1)), t));
+  return rewrite(nm->mkNode(
+      Kind::MULT, nm->mkConstRealOrInt(t.getType(), Rational(-1)), t));
 }
 
 }  // namespace quantifiers

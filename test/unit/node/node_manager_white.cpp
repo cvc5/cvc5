@@ -23,7 +23,6 @@
 namespace cvc5::internal {
 
 using namespace cvc5::internal::expr;
-using namespace cvc5::internal::kind;
 
 namespace test {
 
@@ -66,8 +65,8 @@ TEST_F(TestNodeWhiteNodeManager, topological_sort)
   TypeNode boolType = d_nodeManager->booleanType();
   Node i = d_skolemManager->mkDummySkolem("i", boolType);
   Node j = d_skolemManager->mkDummySkolem("j", boolType);
-  Node n1 = d_nodeManager->mkNode(kind::AND, j, j);
-  Node n2 = d_nodeManager->mkNode(kind::AND, i, n1);
+  Node n1 = d_nodeManager->mkNode(Kind::AND, j, j);
+  Node n2 = d_nodeManager->mkNode(Kind::AND, i, n1);
 
   {
     std::vector<NodeValue*> roots = {n1.d_nv};
