@@ -35,7 +35,7 @@ class TestNodeTestRules : public TestNode
   {
     NodeManager * nm = NodeManager::currentNM();
     Node c = nm->mkNode(Kind::STRING_CONCAT, a, b);
-    return c.getTypeOrNull();
+    return c.getTypeOrNull(true);
   }
 };
 
