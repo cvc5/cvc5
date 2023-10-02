@@ -30,11 +30,6 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
 
   protected native void deletePointer(long pointer);
 
-  public long getPointer()
-  {
-    return pointer;
-  }
-
   // endregion
 
   /**
