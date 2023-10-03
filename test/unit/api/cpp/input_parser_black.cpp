@@ -76,6 +76,7 @@ TEST_F(TestInputParserBlack, setStreamInput)
   ss << "(declare-fun a () Bool)" << std::endl;
   ss << "(declare-fun b () Int)" << std::endl;
   p.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ss, "input_parser_black");
+  ASSERT_EQ(p.done(), false);
   Command cmd;
   std::stringstream out;
   while (true)
