@@ -17,7 +17,9 @@
 
 #include "proof/proof_ensure_closed.h"
 #include "proof/proof_node_algorithm.h"
+#include "proof/theory_proof_step_buffer.h"
 #include "prop/prop_proof_manager.h"
+#include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "smt/env.h"
 
@@ -25,15 +27,33 @@ namespace cvc5::internal {
 namespace prop {
 
 PropPfManager::PropPfManager(Env& env,
-                             context::UserContext* userContext,
                              CDCLTSatSolver* satSolver,
-                             ProofCnfStream* cnfProof)
+                             CnfStream& cnf)
     : EnvObj(env),
-      d_propProofs(userContext),
-      d_pfpp(new ProofPostprocess(env, cnfProof)),
+      d_propProofs(userContext()),
+      // Since the ProofCnfStream performs no equality reasoning, there is no
+      // need to automatically add symmetry steps. Note that it is *safer* to
+      // forbid this, since adding symmetry steps when proof nodes are being
+      // updated may inadvertently generate cyclic proofs.
+      //
+      // This can happen for example if the proof cnf stream has a generator for
+      // (= a b), whose proof depends on symmetry applied to (= b a). It does
+      // not have a generator for (= b a). However if asked for a proof of the
+      // fact (= b a) (after having expanded the proof of (= a b)), since it has
+      // no genarotor for (= b a), a proof (= b a) can be generated via symmetry
+      // on the proof of (= a b). As a result the assumption (= b a) would be
+      // assigned a proof with assumption (= b a). This breakes the invariant of
+      // the proof node manager of no cyclic proofs if the ASSUMPTION proof node
+      // of both the assumption (= b a) we are asking the proof for and the
+      // assumption (= b a) in the proof of (= a b) are the same.
+      d_proof(env, nullptr, userContext(), "ProofCnfStream::LazyCDProof", false),
+      d_pfpp(new ProofPostprocess(env, &d_proof)),
+      d_pfCnfStream(env, cnf, this),
       d_satSolver(satSolver),
-      d_assertions(userContext),
-      d_proofCnfStream(cnfProof)
+      d_assertions(userContext()),
+      d_cnfStream(cnf),
+      d_inputClauses(userContext()),
+      d_lemmaClauses(userContext())
 {
   // add trivial assumption. This is so that we can check the that the prop
   // engine's proof is closed, as the SAT solver's refutation proof may use True
@@ -42,6 +62,25 @@ PropPfManager::PropPfManager(Env& env,
   // literal), which leads to adding True as its explanation, since for creating
   // a learned clause we need at least two literals.
   d_assertions.push_back(NodeManager::currentNM()->mkConst(true));
+}
+
+void PropPfManager::ensureLiteral(TNode n)
+{
+  d_pfCnfStream.ensureLiteral(n);
+}
+
+void PropPfManager::convertAndAssert(TNode node,
+                      bool negated,
+                      bool removable,
+                      bool input,
+                      ProofGenerator* pg)
+{
+  d_pfCnfStream.convertAndAssert(node, negated, removable, input, pg);
+  // if input, register the assertion in the proof manager
+  if (input)
+  {
+    d_assertions.push_back(node);
+  }
 }
 
 void PropPfManager::registerAssertion(Node assertion)
@@ -53,7 +92,7 @@ void PropPfManager::checkProof(const context::CDList<Node>& assertions)
 {
   Trace("sat-proof") << "PropPfManager::checkProof: Checking if resolution "
                         "proof of false is closed\n";
-  std::shared_ptr<ProofNode> conflictProof = d_satSolver->getProof();
+  std::shared_ptr<ProofNode> conflictProof = getProof(false);
   Assert(conflictProof);
   // connect it with CNF proof
   d_pfpp->process(conflictProof);
@@ -73,7 +112,7 @@ void PropPfManager::checkProof(const context::CDList<Node>& assertions)
 std::vector<Node> PropPfManager::getUnsatCoreLemmas()
 {
   std::vector<Node> usedLemmas;
-  std::vector<Node> allLemmas = d_proofCnfStream->getLemmaClauses();
+  std::vector<Node> allLemmas = getLemmaClauses();
   std::shared_ptr<ProofNode> satPf = getProof(false);
   std::vector<Node> satLeaves;
   expr::getFreeAssumptions(satPf.get(), satLeaves);
@@ -97,8 +136,8 @@ std::vector<std::shared_ptr<ProofNode>> PropPfManager::getProofLeaves(
          || pc == modes::ProofComponent::PREPROCESS);
   std::vector<std::shared_ptr<ProofNode>> pfs =
       pc == modes::ProofComponent::THEORY_LEMMAS
-          ? d_proofCnfStream->getLemmaClausesProofs()
-          : d_proofCnfStream->getInputClausesProofs();
+          ? getLemmaClausesProofs()
+          : getInputClausesProofs();
   std::shared_ptr<ProofNode> satPf = getProof(false);
   std::vector<Node> satLeaves;
   expr::getFreeAssumptions(satPf.get(), satLeaves);
@@ -124,7 +163,78 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
   // retrieve the SAT solver's refutation proof
   Trace("sat-proof")
       << "PropPfManager::getProof: Getting resolution proof of false\n";
-  std::shared_ptr<ProofNode> conflictProof = d_satSolver->getProof();
+  std::shared_ptr<ProofNode> conflictProof;
+  ProofRule r;
+  std::vector<Node> args;
+  if (d_satSolver->hasExternalProof(r, args))
+  {
+    Assert(r == ProofRule::DRAT_REFUTATION);
+    std::vector<Node> clauses;
+    std::vector<Node> input = getInputClauses();
+    clauses.insert(clauses.end(), input.begin(), input.end());
+    Trace("cnf-input") << "#input=" << input.size() << std::endl;
+    std::vector<Node> lemmas = getLemmaClauses();
+    Trace("cnf-input") << "#lemmas=" << lemmas.size() << std::endl;
+    clauses.insert(clauses.end(), lemmas.begin(), lemmas.end());
+    std::stringstream dclauses;
+    SatVariable maxVar = 0;
+    // get the unsat core from cadical
+    std::vector<SatLiteral> unsatAssumptions;
+    d_satSolver->getUnsatAssumptions(unsatAssumptions);
+    for (const Node& i : clauses)
+    {
+      if (d_cnfStream.hasLiteral(i))
+      {
+        SatLiteral il = d_cnfStream.getLiteral(i);
+        if (std::find(unsatAssumptions.begin(), unsatAssumptions.end(), il)
+            == unsatAssumptions.end())
+        {
+          continue;
+        }
+      }
+      std::vector<Node> lits;
+      if (i.getKind() == Kind::OR)
+      {
+        lits.insert(lits.end(), i.begin(), i.end());
+      }
+      else
+      {
+        lits.push_back(i);
+      }
+      Trace("cnf-input") << "Print " << i << std::endl;
+      for (const Node& l : lits)
+      {
+        SatLiteral lit = d_cnfStream.getLiteral(l);
+        SatVariable v = lit.getSatVariable();
+        maxVar = v > maxVar ? v : maxVar;
+        dclauses << (lit.isNegated() ? "-" : "") << v << " ";
+      }
+      dclauses << "0" << std::endl;
+    }
+    std::fstream dout("drat-input.txt", std::ios::out);
+    dout << "p cnf " << maxVar << " " << clauses.size() << std::endl;
+    dout << dclauses.str();
+    dout.close();
+
+    /*
+    std::vector<Node> core;
+    std::vector<SatLiteral> unsat_assumptions;
+    d_satSolver->getUnsatAssumptions(unsat_assumptions);
+    for (const SatLiteral& lit : unsat_assumptions)
+    {
+      core.push_back(d_cnfStream.getNode(lit));
+    }
+    Trace("sat-proof") << "Core is " << core << std::endl;
+    */
+    CDProof cdp(d_env);
+    Node falsen = NodeManager::currentNM()->mkConst(false);
+    cdp.addStep(falsen, r, clauses, args);
+    conflictProof = cdp.getProofFor(falsen);
+  }
+  else
+  {
+    conflictProof = d_satSolver->getProof();
+  }
   Assert(conflictProof);
   if (TraceIsOn("sat-proof"))
   {
@@ -154,8 +264,8 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
     {
       CDProof cdp(d_env);
       // get the clauses added to the SAT solver and add them as assumptions
-      std::vector<Node> inputs = d_proofCnfStream->getInputClauses();
-      std::vector<Node> lemmas = d_proofCnfStream->getLemmaClauses();
+      std::vector<Node> inputs = getInputClauses();
+      std::vector<Node> lemmas = getLemmaClauses();
       std::vector<Node> allAssumptions{inputs.begin(), inputs.end()};
       allAssumptions.insert(allAssumptions.end(), lemmas.begin(), lemmas.end());
       for (const Node& a : allAssumptions)
@@ -192,6 +302,168 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
   }
   d_propProofs[connectCnf] = conflictProof;
   return conflictProof;
+}
+
+Node PropPfManager::normalizeAndRegister(TNode clauseNode, bool input, bool doNormalize)
+{
+  Node normClauseNode = clauseNode;
+  if (doNormalize)
+  {
+    TheoryProofStepBuffer psb;
+    normClauseNode = psb.factorReorderElimDoubleNeg(clauseNode);
+    const std::vector<std::pair<Node, ProofStep>>& steps = psb.getSteps();
+    for (const std::pair<Node, ProofStep>& step : steps)
+    {
+      d_proof.addStep(step.first, step.second);
+    }
+  }
+  if (TraceIsOn("cnf") && normClauseNode != clauseNode)
+  {
+    Trace("cnf") << push
+                 << "ProofCnfStream::normalizeAndRegister: steps to normalized "
+                 << normClauseNode << "\n"
+                 << pop;
+  }
+  Trace("cnf-input") << "New clause: " << normClauseNode << " " << input
+                     << std::endl;
+  if (input)
+  {
+    d_inputClauses.insert(normClauseNode);
+  }
+  else
+  {
+    d_lemmaClauses.insert(normClauseNode);
+  }
+  // FIXME
+  // register assumption?
+  //d_assumptions.insert(normClauseNode);
+  return normClauseNode;
+}
+
+LazyCDProof* PropPfManager::getProof()
+{
+  return &d_proof;
+}
+
+std::vector<Node> PropPfManager::getInputClauses()
+{
+  std::vector<Node> cls;
+  for (const Node& c : d_inputClauses)
+  {
+    cls.push_back(c);
+  }
+  return cls;
+}
+
+std::vector<Node> PropPfManager::getLemmaClauses()
+{
+  std::vector<Node> cls;
+  for (const Node& c : d_lemmaClauses)
+  {
+    cls.push_back(c);
+  }
+  return cls;
+}
+
+
+std::vector<std::shared_ptr<ProofNode>> PropPfManager::getInputClausesProofs()
+{
+  std::vector<std::shared_ptr<ProofNode>> pfs;
+  for (const Node& a : d_inputClauses)
+  {
+    pfs.push_back(d_proof.getProofFor(a));
+  }
+  return pfs;
+}
+
+std::vector<std::shared_ptr<ProofNode>> PropPfManager::getLemmaClausesProofs()
+{
+  std::vector<std::shared_ptr<ProofNode>> pfs;
+  for (const Node& a : d_lemmaClauses)
+  {
+    pfs.push_back(d_proof.getProofFor(a));
+  }
+  return pfs;
+}
+
+
+void PropPfManager::notifyExplainedPropagation(TrustNode trn)
+{
+  Node proven = trn.getProven();
+  Trace("cnf") << "ProofCnfStream::convertPropagation: proven explanation"
+               << proven << "\n";
+  // If we are not producing proofs in the theory engine there is no need to
+  // keep track in d_proof of the clausification. We still need however to let
+  // the SAT proof manager know that this clause is an assumption.
+  bool proofLogging = trn.getGenerator() != nullptr;
+  if (proofLogging)
+  {
+    Assert(trn.getGenerator()->getProofFor(proven)->isClosed());
+    Trace("cnf-steps") << proven << " by explainPropagation "
+                       << trn.identifyGenerator() << std::endl;
+    d_proof.addLazyStep(proven,
+                        trn.getGenerator(),
+                        ProofRule::ASSUME,
+                        true,
+                        "ProofCnfStream::convertPropagation");
+  }
+  // since the propagation is added directly to the SAT solver via theoryProxy,
+  // do the transformation of the lemma E1 ^ ... ^ En => P into CNF here
+  NodeManager* nm = NodeManager::currentNM();
+  Node clauseImpliesElim;
+  if (proofLogging)
+  {
+    clauseImpliesElim = nm->mkNode(Kind::OR, proven[0].notNode(), proven[1]);
+    Trace("cnf") << "ProofCnfStream::convertPropagation: adding "
+                 << ProofRule::IMPLIES_ELIM << " rule to conclude "
+                 << clauseImpliesElim << "\n";
+    d_proof.addStep(clauseImpliesElim, ProofRule::IMPLIES_ELIM, {proven}, {});
+  }
+  Node clauseExp;
+  // need to eliminate AND
+  if (proven[0].getKind() == Kind::AND)
+  {
+    std::vector<Node> disjunctsAndNeg{proven[0]};
+    std::vector<Node> disjunctsRes;
+    for (unsigned i = 0, size = proven[0].getNumChildren(); i < size; ++i)
+    {
+      disjunctsAndNeg.push_back(proven[0][i].notNode());
+      disjunctsRes.push_back(proven[0][i].notNode());
+    }
+    disjunctsRes.push_back(proven[1]);
+    clauseExp = nm->mkNode(Kind::OR, disjunctsRes);
+    if (proofLogging)
+    {
+      // add proof steps to convert into clause
+      Node clauseAndNeg = nm->mkNode(Kind::OR, disjunctsAndNeg);
+      d_proof.addStep(clauseAndNeg, ProofRule::CNF_AND_NEG, {}, {proven[0]});
+      d_proof.addStep(clauseExp,
+                      ProofRule::RESOLUTION,
+                      {clauseAndNeg, clauseImpliesElim},
+                      {nm->mkConst(true), proven[0]});
+    }
+  }
+  else
+  {
+    clauseExp = nm->mkNode(Kind::OR, proven[0].notNode(), proven[1]);
+  }
+  d_currPropagationProcessed = normalizeAndRegister(clauseExp, false);
+  // consume steps if clausification being recorded. If we are not logging it,
+  // we need to add the clause as a closed step to the proof so that the SAT
+  // proof does not have non-input formulas as assumptions. That clause is the
+  // result of normalizeAndRegister, stored in d_currPropagationProcessed
+  if (!proofLogging)
+  {
+    d_proof.addStep(d_currPropagationProcessed,
+                    ProofRule::THEORY_LEMMA,
+                    {},
+                    {d_currPropagationProcessed});
+  }
+}
+
+Node PropPfManager::getLastExplainedPropagation() const
+{
+  return d_currPropagationProcessed;
 }
 
 }  // namespace prop

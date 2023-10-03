@@ -133,6 +133,10 @@ class PropEngine : protected EnvObj
    * @param p the properties of the lemma
    */
   void assertLemma(TrustNode tlemma, theory::LemmaProperty p);
+  
+  /**
+   */
+  void notifyExplainedPropagation(TrustNode texp);
 
   /**
    * Configure the preferred phase of a decision variable. This occurs
@@ -296,9 +300,6 @@ class PropEngine : protected EnvObj
    */
   bool properExplanation(TNode node, TNode expl) const;
 
-  /** Retrieve this modules proof CNF stream. */
-  ProofCnfStream* getProofCnfStream();
-
   /** Checks that the proof is closed w.r.t. asserted formulas to this engine as
    * well as to the given assertions. */
   void checkProof(const context::CDList<Node>& assertions);
@@ -415,8 +416,6 @@ class PropEngine : protected EnvObj
 
   /** The CNF converter in use */
   CnfStream* d_cnfStream;
-  /** Proof-producing CNF converter */
-  std::unique_ptr<ProofCnfStream> d_pfCnfStream;
   /** A default proof generator for theory lemmas */
   CDProof d_theoryLemmaPg;
 

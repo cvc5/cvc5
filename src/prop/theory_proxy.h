@@ -106,23 +106,6 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** Get an explanation for literal `l` and save it on clause `explanation`. */
   void explainPropagation(SatLiteral l, SatClause& explanation);
-  /** Notify that current propagation inserted at lower level than current.
-   *
-   * This method should be called by the SAT solver when the explanation of the
-   * current propagation is added at lower level than the current user level.
-   * It'll trigger a call to the ProofCnfStream to notify it that the proof of
-   * this propagation should be saved in case it's needed after this user
-   * context is popped.
-   */
-  void notifyCurrPropagationInsertedAtLevel(int explLevel);
-  /** Notify that added clause was inserted at lower level than current.
-   *
-   * As above, but for clauses asserted into the SAT solver. This cannot be done
-   * in terms of "current added clause" because the clause added at a lower
-   * level could be for example a lemma derived at a prior moment whose
-   * assertion the SAT solver delayed.
-   */
-  void notifyClauseInsertedAtLevel(const SatClause& clause, int clLevel);
 
   void theoryPropagate(SatClause& output);
 

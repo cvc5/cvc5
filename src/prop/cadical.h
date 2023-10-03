@@ -22,6 +22,7 @@
 
 #include <cadical.hpp>
 
+#include "context/cdhashset.h"
 #include "prop/sat_solver.h"
 #include "smt/env_obj.h"
 
@@ -70,7 +71,7 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
   void initialize(context::Context* context,
                   prop::TheoryProxy* theoryProxy,
                   context::UserContext* userContext,
-                  ProofNodeManager* pnm) override;
+                  PropPfManager* ppm) override;
   void push() override;
 
   void pop() override;
@@ -89,7 +90,7 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
 
   std::shared_ptr<ProofNode> getProof() override;
 
-  SatProofManager* getProofManager() override;
+  bool hasExternalProof(ProofRule& r, std::vector<Node>& args) override;
 
  private:
   /**
@@ -136,12 +137,18 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
    */
   std::vector<SatLiteral> d_assumptions;
 
+  /** The proof file */
+  std::string d_pfFile;
+
   unsigned d_nextVarIdx;
+  context::CDHashSet<SatVariable> d_observedVars;
   bool d_inSatMode;
   /** The variable representing true. */
   SatVariable d_true;
   /** The variable representing false. */
   SatVariable d_false;
+  /** The current user assertion level. */
+  uint32_t d_assertionLevel;
 
   struct Statistics
   {

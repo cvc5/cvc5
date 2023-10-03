@@ -44,6 +44,7 @@ namespace cvc5::internal {
 namespace prop {
 class PropEngine;
 class TheoryProxy;
+class PropPfManager;
 }  // namespace prop
 }  // namespace cvc5::internal
 
@@ -123,7 +124,7 @@ public:
         cvc5::internal::prop::TheoryProxy* proxy,
         context::Context* context,
         context::UserContext* userContext,
-        ProofNodeManager* pnm,
+        prop::PropPfManager* ppm,
         bool enableIncremental = false);
  virtual ~Solver();
 

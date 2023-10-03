@@ -21,6 +21,7 @@
 #include "prop/theory_proxy.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
+#include "util/string.h"
 
 namespace cvc5::internal {
 namespace prop {
@@ -250,7 +251,6 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
     {
       return true;
     }
-
     // CaDiCaL may backtrack while importing clauses, which can result in some
     // clauses not being processed. Make sure to add all clauses before
     // checking the model.
@@ -929,9 +929,18 @@ CadicalSolver::CadicalSolver(Env& env,
       // Note: CaDiCaL variables start with index 1 rather than 0 since negated
       //       literals are represented as the negation of the index.
       d_nextVarIdx(1),
+      d_observedVars(env.getUserContext()),
       d_inSatMode(false),
+      d_assertionLevel(0),
       d_statistics(registry, name)
 {
+  if (env.isSatProofProducing())
+  {
+    d_pfFile = "drat-proof.txt";
+    d_solver->set("binary", 0);
+    d_solver->set("inprocessing", 0);
+    d_solver->trace_proof(d_pfFile.c_str());
+  }
 }
 
 void CadicalSolver::init()
@@ -1142,7 +1151,7 @@ CadicalSolver::Statistics::Statistics(StatisticsRegistry& registry,
 void CadicalSolver::initialize(context::Context* context,
                                prop::TheoryProxy* theoryProxy,
                                context::UserContext* userContext,
-                               ProofNodeManager* pnm)
+                               PropPfManager* ppm)
 {
   d_context = context;
   d_proxy = theoryProxy;
@@ -1212,9 +1221,26 @@ std::vector<SatLiteral> CadicalSolver::getDecisions() const
 
 std::vector<Node> CadicalSolver::getOrderHeap() const { return {}; }
 
-std::shared_ptr<ProofNode> CadicalSolver::getProof() { return nullptr; }
+std::shared_ptr<ProofNode> CadicalSolver::getProof()
+{
+  // TODO
+  return nullptr;
+}
 
-SatProofManager* CadicalSolver::getProofManager() { return nullptr; }
+bool CadicalSolver::hasExternalProof(ProofRule& r, std::vector<Node>& args)
+{
+  Assert(d_env.isSatProofProducing());
+  d_solver->flush_proof_trace();
+  NodeManager* nm = NodeManager::currentNM();
+  std::string dimacs("drat-input.txt");
+  // d_solver->write_dimacs(dimacs.c_str());
+  Node dfile = nm->mkConst(String(dimacs));
+  args.push_back(dfile);
+  Node pfile = nm->mkConst(String(d_pfFile));
+  args.push_back(pfile);
+  r = ProofRule::DRAT_REFUTATION;
+  return true;
+}
 
 /* -------------------------------------------------------------------------- */
 }  // namespace prop

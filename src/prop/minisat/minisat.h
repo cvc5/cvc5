@@ -51,7 +51,7 @@ class MinisatSatSolver : public CDCLTSatSolver, protected EnvObj
   void initialize(context::Context* context,
                   TheoryProxy* theoryProxy,
                   context::UserContext* userContext,
-                  ProofNodeManager* pnm) override;
+                  PropPfManager* ppm) override;
 
   ClauseId addClause(SatClause& clause, bool removable) override;
   ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override
@@ -104,11 +104,11 @@ class MinisatSatSolver : public CDCLTSatSolver, protected EnvObj
   /** Retrieve a pointer to the underlying solver. */
   Minisat::SimpSolver* getSolver() { return d_minisat; }
 
-  /** Retrieve the proof manager of this SAT solver. */
-  SatProofManager* getProofManager() override;
-
   /** Retrieve the refutation proof of this SAT solver. */
   std::shared_ptr<ProofNode> getProof() override;
+
+  /** Returns false */
+  bool hasExternalProof(ProofRule& r, std::vector<Node>& args) override;
 
  private:
 
@@ -142,6 +142,8 @@ class MinisatSatSolver : public CDCLTSatSolver, protected EnvObj
    void deinit();
   };/* class MinisatSatSolver::Statistics */
   Statistics d_statistics;
+  /** Current cache of a proof we constructed */
+  std::shared_ptr<ProofNode> d_pf;
 
 }; /* class MinisatSatSolver */
 

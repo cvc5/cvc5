@@ -253,7 +253,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   {
     Assert(options().smt.proofMode != options::ProofMode::FULL
            || tte.getGenerator());
-    d_propEngine->getProofCnfStream()->convertPropagation(tte);
+    d_propEngine->notifyExplainedPropagation(tte);
   }
   Trace("prop-explain") << "explainPropagation() => " << theoryExplanation
                         << std::endl;
@@ -280,19 +280,6 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
     }
     Trace("sat-proof") << ss.str() << "\n";
   }
-}
-
-void TheoryProxy::notifyCurrPropagationInsertedAtLevel(int explLevel)
-{
-  d_propEngine->getProofCnfStream()->notifyCurrPropagationInsertedAtLevel(
-      explLevel);
-}
-
-void TheoryProxy::notifyClauseInsertedAtLevel(const SatClause& clause,
-                                              int clLevel)
-{
-  d_propEngine->getProofCnfStream()->notifyClauseInsertedAtLevel(clause,
-                                                                 clLevel);
 }
 
 void TheoryProxy::enqueueTheoryLiteral(const SatLiteral& l) {

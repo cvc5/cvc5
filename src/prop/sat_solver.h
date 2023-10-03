@@ -24,7 +24,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "proof/clause_id.h"
-#include "proof/proof_node_manager.h"
+#include "prop/prop_proof_manager.h"
 #include "prop/sat_solver_types.h"
 #include "util/statistics_stats.h"
 
@@ -125,7 +125,7 @@ class CDCLTSatSolver : public SatSolver
   virtual void initialize(context::Context* context,
                           prop::TheoryProxy* theoryProxy,
                           context::UserContext* userContext,
-                          ProofNodeManager* pnm) = 0;
+                          PropPfManager* ppm) = 0;
 
   virtual void push() = 0;
 
@@ -161,6 +161,7 @@ class CDCLTSatSolver : public SatSolver
 
   /**
    * Return the current list of decisions made by the SAT solver.
+   * TODO: this should return a reference
    */
   virtual std::vector<SatLiteral> getDecisions() const = 0;
 
@@ -172,8 +173,12 @@ class CDCLTSatSolver : public SatSolver
 
   virtual std::shared_ptr<ProofNode> getProof() = 0;
 
-  /** This is temporary until SAT DRAT proofs are integrated. */
-  virtual SatProofManager* getProofManager() = 0;
+  /**
+   * If this SAT solver can produce an external proof, return the proof rule
+   * corresponding to that proof and populate the arguments. The children
+   * of the constructed proof node will be the unsat core.
+   */
+  virtual bool hasExternalProof(ProofRule& r, std::vector<Node>& args) = 0;
 
 }; /* class CDCLTSatSolver */
 
