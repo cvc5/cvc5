@@ -253,6 +253,9 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   {
     Assert(options().smt.proofMode != options::ProofMode::FULL
            || tte.getGenerator());
+    // notify the prop engine of the explanation, which is only relevant if
+    // we are proof producing for the purposes of storing the CNF of the
+    // explanation.
     d_propEngine->notifyExplainedPropagation(tte);
   }
   Trace("prop-explain") << "explainPropagation() => " << theoryExplanation

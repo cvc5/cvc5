@@ -270,6 +270,7 @@ class PropPfManager;
  * finalizeProof
  * getProof
  *
+ * This class is specific to Minisat.
  */
 class SatProofManager : protected EnvObj
 {
@@ -647,8 +648,6 @@ class SatProofManager : protected EnvObj
   /** Manager for optimized propagations and added clauses inserted at assertion
    * levels below the current user level. */
   OptimizedClausesManager d_optClausesManager;
-  /** The current propagation being processed via this class. */
-  Node d_currPropagationProcessed;
 }; /* class SatProofManager */
 
 }  // namespace prop
