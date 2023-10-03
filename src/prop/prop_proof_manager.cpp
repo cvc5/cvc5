@@ -317,8 +317,9 @@ void PropPfManager::notifyExplainedPropagation(TrustNode trn)
   // keep track in d_proof of the clausification. We still need however to let
   // the SAT proof manager know that this clause is an assumption.
   bool proofLogging = trn.getGenerator() != nullptr;
-  Trace("cnf") << "PropPfManager::notifyExplainedPropagation: proven explanation"
-               << proven << ", proofLogging=" << proofLogging << "\n";
+  Trace("cnf")
+      << "PropPfManager::notifyExplainedPropagation: proven explanation"
+      << proven << ", proofLogging=" << proofLogging << "\n";
   if (proofLogging)
   {
     Assert(trn.getGenerator()->getProofFor(proven)->isClosed());
@@ -377,10 +378,7 @@ void PropPfManager::notifyExplainedPropagation(TrustNode trn)
   // result of normalizeAndRegister, stored in d_currPropagationProcessed
   if (!proofLogging)
   {
-    d_proof.addStep(clauseExp,
-                    ProofRule::THEORY_LEMMA,
-                    {},
-                    {clauseExp});
+    d_proof.addStep(clauseExp, ProofRule::THEORY_LEMMA, {}, {clauseExp});
   }
 }
 

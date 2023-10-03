@@ -7063,7 +7063,8 @@ std::vector<Term> Solver::getUnsatCoreLemmas(void) const
   CVC5_API_CHECK(d_slv->getOptions().smt.produceUnsatCores)
       << "Cannot get unsat core lemmas unless explicitly enabled "
          "(try --produce-unsat-cores)";
-  CVC5_API_CHECK(d_slv->getOptions().smt.unsatCoresMode==internal::options::UnsatCoresMode::SAT_PROOF)
+  CVC5_API_CHECK(d_slv->getOptions().smt.unsatCoresMode
+                 == internal::options::UnsatCoresMode::SAT_PROOF)
       << "Cannot get unsat core lemmas unless SAT proofs are enabled";
   CVC5_API_RECOVERABLE_CHECK(d_slv->getSmtMode() == internal::SmtMode::UNSAT)
       << "Cannot get unsat core unless in unsat mode.";

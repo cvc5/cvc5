@@ -63,11 +63,8 @@ class ProofCnfStream : protected EnvObj
    * @param input whether the node is from the input
    * @param pg a proof generator for node
    */
-  void convertAndAssert(TNode node,
-                        bool negated,
-                        bool removable,
-                        bool input,
-                        ProofGenerator* pg);
+  void convertAndAssert(
+      TNode node, bool negated, bool removable, bool input, ProofGenerator* pg);
   /**
    * Ensure that the given node will have a designated SAT literal that is
    * definitionally equal to it.  The result of this function is that the Node
