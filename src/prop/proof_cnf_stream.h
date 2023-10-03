@@ -42,18 +42,10 @@ class PropPfManager;
  * that getting the proof of a clausified formula will also extend to its
  * registered proof generator.
  */
-class ProofCnfStream : protected EnvObj, public ProofGenerator
+class ProofCnfStream : protected EnvObj
 {
  public:
   ProofCnfStream(Env& env, CnfStream& cnfStream, PropPfManager* ppm);
-
-  /** Invokes getProofFor of the underlying LazyCDProof */
-  std::shared_ptr<ProofNode> getProofFor(Node f) override;
-  /** Whether there is a concrete step or a generator associated with f in the
-   * underlying LazyCDProof. */
-  bool hasProofFor(Node f) override;
-  /** identify */
-  std::string identify() const override;
   /**
    * Converts a formula into CNF into CNF and asserts the generated clauses into
    * the underlying SAT solver of d_cnfStream. Every transformation the formula

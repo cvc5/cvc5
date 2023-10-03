@@ -26,21 +26,9 @@ namespace prop {
 ProofCnfStream::ProofCnfStream(Env& env,
                                CnfStream& cnfStream,
                                PropPfManager* ppm)
-    : EnvObj(env), d_cnfStream(cnfStream), d_ppm(ppm), d_proof(ppm->getProof())
+    : EnvObj(env), d_cnfStream(cnfStream), d_ppm(ppm), d_proof(ppm->getCnfProof())
 {
 }
-
-std::shared_ptr<ProofNode> ProofCnfStream::getProofFor(Node f)
-{
-  return d_proof->getProofFor(f);
-}
-
-bool ProofCnfStream::hasProofFor(Node f)
-{
-  return d_proof->hasStep(f) || d_proof->hasGenerator(f);
-}
-
-std::string ProofCnfStream::identify() const { return "ProofCnfStream"; }
 
 void ProofCnfStream::convertAndAssert(TNode node,
                                       bool negated,

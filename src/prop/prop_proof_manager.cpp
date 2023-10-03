@@ -268,7 +268,7 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
   return normClauseNode;
 }
 
-LazyCDProof* PropPfManager::getProof() { return &d_proof; }
+LazyCDProof* PropPfManager::getCnfProof() { return &d_proof; }
 
 std::vector<Node> PropPfManager::getInputClauses()
 {

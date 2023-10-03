@@ -140,12 +140,19 @@ class PropPfManager : protected EnvObj
    * Clausifies the given propagation lemma *without* registering the resoluting
    * clause in the SAT solver, as this is handled internally by the SAT
    * solver. The clausification steps and the generator within the trust node
-   * are saved in d_proof if we are producing proofs in the theory engine. */
+   * are saved in d_proof if we are producing proofs in the theory engine.
+   */
   void notifyExplainedPropagation(TrustNode ttn);
-  /** */
+  /**
+   * Get the last explained propagation by the above method. This is required
+   * only for Minisat.
+   */
   Node getLastExplainedPropagation() const;
-  /** */
-  LazyCDProof* getProof();
+  /**
+   * Get the proof of CNFication of all clauses that have been sent to the SAT
+   * solver.
+   */
+  LazyCDProof* getCnfProof();
 
  private:
   /** Retrieve the proofs for clauses derived from the input */

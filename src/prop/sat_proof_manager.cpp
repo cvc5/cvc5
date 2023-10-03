@@ -45,7 +45,7 @@ SatProofManager::SatProofManager(Env& env,
       d_conflictLit(undefSatVariable),
       d_optResLevels(userContext()),
       d_optResManager(userContext(), &d_resChains, d_optResProofs),
-      d_optClausesManager(userContext(), ppm->getProof(), d_optClausesPfs)
+      d_optClausesManager(userContext(), ppm->getCnfProof(), d_optClausesPfs)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -837,7 +837,7 @@ void SatProofManager::notifyCurrPropagationInsertedAtLevel(uint32_t explLevel)
   Assert(explLevel < (userContext()->getLevel() - 1));
   Node currProp = d_ppm->getLastExplainedPropagation();
   Assert(!currProp.isNull());
-  LazyCDProof* pf = d_ppm->getProof();
+  LazyCDProof* pf = d_ppm->getCnfProof();
   Trace("cnf") << "Need to save curr propagation " << currProp
                << "'s proof in level " << explLevel + 1
                << " despite being currently in level "
@@ -867,7 +867,7 @@ void SatProofManager::notifyClauseInsertedAtLevel(const SatClause& clause,
   Trace("cnf") << "Need to save clause " << clause << " in level "
                << clLevel + 1 << " despite being currently in level "
                << userContext()->getLevel() << "\n";
-  LazyCDProof* pf = d_ppm->getProof();
+  LazyCDProof* pf = d_ppm->getCnfProof();
   Node clauseNode = getClauseNode(clause);
   Trace("cnf") << "Node equivalent: " << clauseNode << "\n";
   Assert(clLevel < (userContext()->getLevel() - 1));
