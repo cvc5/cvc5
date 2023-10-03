@@ -313,12 +313,12 @@ std::vector<std::shared_ptr<ProofNode>> PropPfManager::getLemmaClausesProofs()
 void PropPfManager::notifyExplainedPropagation(TrustNode trn)
 {
   Node proven = trn.getProven();
-  Trace("cnf") << "ProofCnfStream::convertPropagation: proven explanation"
-               << proven << "\n";
   // If we are not producing proofs in the theory engine there is no need to
   // keep track in d_proof of the clausification. We still need however to let
   // the SAT proof manager know that this clause is an assumption.
   bool proofLogging = trn.getGenerator() != nullptr;
+  Trace("cnf") << "PropPfManager::notifyExplainedPropagation: proven explanation"
+               << proven << ", proofLogging=" << proofLogging << "\n";
   if (proofLogging)
   {
     Assert(trn.getGenerator()->getProofFor(proven)->isClosed());
@@ -328,7 +328,7 @@ void PropPfManager::notifyExplainedPropagation(TrustNode trn)
                         trn.getGenerator(),
                         ProofRule::ASSUME,
                         true,
-                        "ProofCnfStream::convertPropagation");
+                        "PropPfManager::notifyExplainedPropagation");
   }
   // since the propagation is added directly to the SAT solver via theoryProxy,
   // do the transformation of the lemma E1 ^ ... ^ En => P into CNF here
@@ -337,7 +337,7 @@ void PropPfManager::notifyExplainedPropagation(TrustNode trn)
   if (proofLogging)
   {
     clauseImpliesElim = nm->mkNode(Kind::OR, proven[0].notNode(), proven[1]);
-    Trace("cnf") << "ProofCnfStream::convertPropagation: adding "
+    Trace("cnf") << "PropPfManager::notifyExplainedPropagation: adding "
                  << ProofRule::IMPLIES_ELIM << " rule to conclude "
                  << clauseImpliesElim << "\n";
     d_proof.addStep(clauseImpliesElim, ProofRule::IMPLIES_ELIM, {proven}, {});
@@ -377,10 +377,10 @@ void PropPfManager::notifyExplainedPropagation(TrustNode trn)
   // result of normalizeAndRegister, stored in d_currPropagationProcessed
   if (!proofLogging)
   {
-    d_proof.addStep(d_currPropagationProcessed,
+    d_proof.addStep(clauseExp,
                     ProofRule::THEORY_LEMMA,
                     {},
-                    {d_currPropagationProcessed});
+                    {clauseExp});
   }
 }
 
