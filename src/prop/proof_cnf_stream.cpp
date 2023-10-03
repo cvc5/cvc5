@@ -71,11 +71,6 @@ void ProofCnfStream::convertAndAssert(TNode node,
   d_input = false;
 }
 
-TNode ProofCnfStream::getNode(const SatLiteral& literal)
-{
-  return d_cnfStream.getNode(literal);
-}
-
 void ProofCnfStream::convertAndAssert(TNode node, bool negated)
 {
   Trace("cnf") << "ProofCnfStream::convertAndAssert(" << node

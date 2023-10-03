@@ -929,9 +929,7 @@ CadicalSolver::CadicalSolver(Env& env,
       // Note: CaDiCaL variables start with index 1 rather than 0 since negated
       //       literals are represented as the negation of the index.
       d_nextVarIdx(1),
-      d_observedVars(env.getUserContext()),
       d_inSatMode(false),
-      d_assertionLevel(0),
       d_statistics(registry, name)
 {
   if (env.isSatProofProducing())

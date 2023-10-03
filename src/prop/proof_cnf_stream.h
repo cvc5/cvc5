@@ -77,12 +77,6 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
                         bool input,
                         ProofGenerator* pg);
   /**
-   * Get the node that is represented by the given SatLiteral.
-   * @param literal the literal from the sat solver
-   * @return the actual node
-   */
-  TNode getNode(const SatLiteral& literal);
-  /**
    * Ensure that the given node will have a designated SAT literal that is
    * definitionally equal to it.  The result of this function is that the Node
    * can be queried via getSatValue(). Essentially, this is like a "convert-but-

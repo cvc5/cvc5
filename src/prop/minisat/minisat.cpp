@@ -25,7 +25,6 @@
 #include "proof/clause_id.h"
 #include "prop/minisat/simp/SimpSolver.h"
 #include "util/statistics_stats.h"
-#include "util/string.h"
 
 namespace cvc5::internal {
 namespace prop {

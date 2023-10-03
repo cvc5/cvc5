@@ -22,6 +22,7 @@
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "smt/env.h"
+#include "prop/sat_proof_manager.h"
 
 namespace cvc5::internal {
 namespace prop {
@@ -53,7 +54,8 @@ PropPfManager::PropPfManager(Env& env,
       d_assertions(userContext()),
       d_cnfStream(cnf),
       d_inputClauses(userContext()),
-      d_lemmaClauses(userContext())
+      d_lemmaClauses(userContext()),
+      d_satPm(nullptr)
 {
   // add trivial assumption. This is so that we can check the that the prop
   // engine's proof is closed, as the SAT solver's refutation proof may use True
@@ -263,9 +265,10 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode, bool input, bool doNo
   {
     d_lemmaClauses.insert(normClauseNode);
   }
-  // FIXME
-  // register assumption?
-  //d_assumptions.insert(normClauseNode);
+  if (d_satPm)
+  {
+    d_satPm->registerSatAssumptions({normClauseNode});
+  }
   return normClauseNode;
 }
 

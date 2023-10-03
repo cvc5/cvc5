@@ -245,45 +245,33 @@ void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
 void PropEngine::assertInternal(
     TNode node, bool negated, bool removable, bool input, ProofGenerator* pg)
 {
-  Trace("ajr-temp") << "assert " << isProofEnabled() << " "
-                    << options().smt.unsatCoresMode << " " << input
-                    << std::endl;
-  bool addAssumption = false;
-  if (isProofEnabled())
+  // Assert as (possibly) removable
+  if (options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS)
   {
-    if (input
-        && options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS)
+    if (input)
     {
-      // use the proof CNF stream to ensure the literal
-      d_ppm->ensureLiteral(node);
-      addAssumption = true;
+      d_cnfStream->ensureLiteral(node);
+      if (negated)
+      {
+        d_assumptions.push_back(node.notNode());
+      }
+      else
+      {
+        d_assumptions.push_back(node);
+      }
     }
     else
     {
-      d_ppm->convertAndAssert(node, negated, removable, input, pg);
+      d_cnfStream->convertAndAssert(node, removable, negated);
     }
   }
-  else if (input
-           && options().smt.unsatCoresMode
-                  == options::UnsatCoresMode::ASSUMPTIONS)
+  else if (isProofEnabled())
   {
-    d_cnfStream->ensureLiteral(node);
-    addAssumption = true;
+    d_ppm->convertAndAssert(node, negated, removable, input, pg);
   }
   else
   {
     d_cnfStream->convertAndAssert(node, removable, negated);
-  }
-  if (addAssumption)
-  {
-    if (negated)
-    {
-      d_assumptions.push_back(node.notNode());
-    }
-    else
-    {
-      d_assumptions.push_back(node);
-    }
   }
 }
 

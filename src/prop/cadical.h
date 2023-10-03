@@ -139,14 +139,11 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
   std::string d_pfFile;
 
   unsigned d_nextVarIdx;
-  context::CDHashSet<SatVariable> d_observedVars;
   bool d_inSatMode;
   /** The variable representing true. */
   SatVariable d_true;
   /** The variable representing false. */
   SatVariable d_false;
-  /** The current user assertion level. */
-  uint32_t d_assertionLevel;
 
   struct Statistics
   {
