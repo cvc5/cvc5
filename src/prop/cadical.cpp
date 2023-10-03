@@ -21,7 +21,6 @@
 #include "prop/theory_proxy.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
-#include "util/string.h"
 
 namespace cvc5::internal {
 namespace prop {
@@ -932,13 +931,6 @@ CadicalSolver::CadicalSolver(Env& env,
       d_inSatMode(false),
       d_statistics(registry, name)
 {
-  if (env.isSatProofProducing())
-  {
-    d_pfFile = "drat-proof.txt";
-    d_solver->set("binary", 0);
-    d_solver->set("inprocessing", 0);
-    d_solver->trace_proof(d_pfFile.c_str());
-  }
 }
 
 void CadicalSolver::init()
