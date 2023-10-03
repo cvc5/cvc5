@@ -83,7 +83,8 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   Trace("prop") << "Constructing the PropEngine" << std::endl;
   context::UserContext* userContext = d_env.getUserContext();
 
-  if (options().prop.satSolver == options::SatSolverMode::MINISAT)
+  if (options().prop.satSolver == options::SatSolverMode::MINISAT
+    || d_env.isSatProofProducing())
   {
     d_satSolver =
         SatSolverFactory::createCDCLTMinisat(d_env, statisticsRegistry());

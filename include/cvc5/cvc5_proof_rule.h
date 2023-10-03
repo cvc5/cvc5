@@ -494,17 +494,6 @@ enum ENUM(ProofRule) : uint32_t
    * SAT solver. \endverbatim
    */
   EVALUE(SAT_REFUTATION),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **DRAT Refutation**
-   *
-   * .. math::
-   *   \inferrule{F_1 \dots F_n \mid D, P}{\bot}
-   *
-   * where :math:`F_1 \dots F_n` correspond to the input clauses in the
-   * DIMACS file `D` and `P` is a DRAT proof. \endverbatim
-   */
-  EVALUE(DRAT_REFUTATION),
 
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -2342,20 +2331,6 @@ enum ENUM(ProofRule) : uint32_t
    * \endverbatim
    */
   EVALUE(ALETHE_RULE),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **External -- AletheLF**
-   *
-   * Place holder for AletheLF rules.
-   *
-   * .. math::
-   *   \inferrule{P_1, \dots, P_n\mid \texttt{id}, A_1,\dots, A_m}{Q}
-   *
-   * Note that the premises and arguments are arbitrary. It's expected that
-   * :math:`\texttt{id}` refer to a proof rule in the external AletheLF
-   * calculus. \endverbatim
-   */
-  EVALUE(ALF_RULE),
 
   //================================================= Unknown rule
   EVALUE(UNKNOWN),

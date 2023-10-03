@@ -53,7 +53,6 @@ const char* toString(ProofRule id)
     case ProofRule::TRUST_SUBS_EQ: return "TRUST_SUBS_EQ";
     case ProofRule::THEORY_INFERENCE: return "THEORY_INFERENCE";
     case ProofRule::SAT_REFUTATION: return "SAT_REFUTATION";
-    case ProofRule::DRAT_REFUTATION: return "DRAT_REFUTATION";
     //================================================= Boolean rules
     case ProofRule::RESOLUTION: return "RESOLUTION";
     case ProofRule::CHAIN_RESOLUTION: return "CHAIN_RESOLUTION";
@@ -208,7 +207,6 @@ const char* toString(ProofRule id)
     //================================================= External rules
     case ProofRule::LFSC_RULE: return "LFSC_RULE";
     case ProofRule::ALETHE_RULE: return "ALETHE_RULE";
-    case ProofRule::ALF_RULE: return "ALF_RULE";
     //================================================= Unknown rule
     case ProofRule::UNKNOWN: return "UNKNOWN";
     default: return "?";
