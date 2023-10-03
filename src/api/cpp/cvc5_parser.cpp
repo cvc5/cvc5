@@ -98,8 +98,6 @@ Command::Command(const Command& cmd) { d_cmd = cmd.d_cmd; }
 
 Command::Command(std::shared_ptr<Cmd> cmd) : d_cmd(cmd) {}
 
-Command::~Command() {}
-
 bool Command::isNull() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -150,19 +148,6 @@ Cmd* Command::toCmd() { return d_cmd.get(); }
 std::ostream& operator<<(std::ostream& out, const Command& c)
 {
   out << c.toString();
-  return out;
-}
-
-std::ostream& operator<<(std::ostream& out, const Command* c)
-{
-  if (c == nullptr)
-  {
-    out << "null";
-  }
-  else
-  {
-    out << *c;
-  }
   return out;
 }
 
