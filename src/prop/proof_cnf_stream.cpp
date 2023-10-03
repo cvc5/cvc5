@@ -26,7 +26,10 @@ namespace prop {
 ProofCnfStream::ProofCnfStream(Env& env,
                                CnfStream& cnfStream,
                                PropPfManager* ppm)
-    : EnvObj(env), d_cnfStream(cnfStream), d_ppm(ppm), d_proof(ppm->getCnfProof())
+    : EnvObj(env),
+      d_cnfStream(cnfStream),
+      d_ppm(ppm),
+      d_proof(ppm->getCnfProof())
 {
 }
 
