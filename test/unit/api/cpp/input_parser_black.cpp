@@ -65,7 +65,9 @@ TEST_F(TestInputParserBlack, getSymbolManager)
 
 TEST_F(TestInputParserBlack, setFileInput)
 {
-  ASSERT_THROW(p.setFileInput(modes::InputLanguage::SMT_LIB_2_6, "nonexistent.smt2"), CVC5ApiException);
+  ASSERT_THROW(
+      p.setFileInput(modes::InputLanguage::SMT_LIB_2_6, "nonexistent.smt2"),
+      CVC5ApiException);
 }
 
 TEST_F(TestInputParserBlack, setStreamInput)
