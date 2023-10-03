@@ -63,6 +63,11 @@ TEST_F(TestInputParserBlack, getSymbolManager)
   ASSERT_EQ(p2.getSymbolManager(), d_symman.get());
 }
 
+TEST_F(TestInputParserBlack, setFileInput)
+{
+  ASSERT_THROW(p.setFileInput(modes::InputLanguage::SMT_LIB_2_6, "nonexistent.smt2"), CVC5ApiException);
+}
+
 TEST_F(TestInputParserBlack, setStreamInput)
 {
   InputParser p(&d_solver);
@@ -82,6 +87,7 @@ TEST_F(TestInputParserBlack, setStreamInput)
     }
     ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
   }
+  ASSERT_EQ(p.done(), true);
 }
 
 TEST_F(TestInputParserBlack, setAndAppendIncrementalStringInput)
