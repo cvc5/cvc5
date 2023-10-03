@@ -1227,21 +1227,6 @@ std::shared_ptr<ProofNode> CadicalSolver::getProof()
   return nullptr;
 }
 
-bool CadicalSolver::hasExternalProof(ProofRule& r, std::vector<Node>& args)
-{
-  Assert(d_env.isSatProofProducing());
-  d_solver->flush_proof_trace();
-  NodeManager* nm = NodeManager::currentNM();
-  std::string dimacs("drat-input.txt");
-  // d_solver->write_dimacs(dimacs.c_str());
-  Node dfile = nm->mkConst(String(dimacs));
-  args.push_back(dfile);
-  Node pfile = nm->mkConst(String(d_pfFile));
-  args.push_back(pfile);
-  r = ProofRule::DRAT_REFUTATION;
-  return true;
-}
-
 /* -------------------------------------------------------------------------- */
 }  // namespace prop
 }  // namespace cvc5::internal

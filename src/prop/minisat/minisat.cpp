@@ -308,11 +308,6 @@ std::shared_ptr<ProofNode> MinisatSatSolver::getProof()
   return d_minisat->getProof();
 }
 
-bool MinisatSatSolver::hasExternalProof(ProofRule& r, std::vector<Node>& args)
-{
-  return false;
-}
-
 /** Incremental interface */
 
 uint32_t MinisatSatSolver::getAssertionLevel() const

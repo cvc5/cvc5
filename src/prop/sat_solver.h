@@ -173,13 +173,6 @@ class CDCLTSatSolver : public SatSolver
 
   virtual std::shared_ptr<ProofNode> getProof() = 0;
 
-  /**
-   * If this SAT solver can produce an external proof, return the proof rule
-   * corresponding to that proof and populate the arguments. The children
-   * of the constructed proof node will be the unsat core.
-   */
-  virtual bool hasExternalProof(ProofRule& r, std::vector<Node>& args) = 0;
-
 }; /* class CDCLTSatSolver */
 
 inline std::ostream& operator <<(std::ostream& out, prop::SatLiteral lit) {

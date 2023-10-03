@@ -163,78 +163,7 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
   // retrieve the SAT solver's refutation proof
   Trace("sat-proof")
       << "PropPfManager::getProof: Getting resolution proof of false\n";
-  std::shared_ptr<ProofNode> conflictProof;
-  ProofRule r;
-  std::vector<Node> args;
-  if (d_satSolver->hasExternalProof(r, args))
-  {
-    Assert(r == ProofRule::DRAT_REFUTATION);
-    std::vector<Node> clauses;
-    std::vector<Node> input = getInputClauses();
-    clauses.insert(clauses.end(), input.begin(), input.end());
-    Trace("cnf-input") << "#input=" << input.size() << std::endl;
-    std::vector<Node> lemmas = getLemmaClauses();
-    Trace("cnf-input") << "#lemmas=" << lemmas.size() << std::endl;
-    clauses.insert(clauses.end(), lemmas.begin(), lemmas.end());
-    std::stringstream dclauses;
-    SatVariable maxVar = 0;
-    // get the unsat core from cadical
-    std::vector<SatLiteral> unsatAssumptions;
-    d_satSolver->getUnsatAssumptions(unsatAssumptions);
-    for (const Node& i : clauses)
-    {
-      if (d_cnfStream.hasLiteral(i))
-      {
-        SatLiteral il = d_cnfStream.getLiteral(i);
-        if (std::find(unsatAssumptions.begin(), unsatAssumptions.end(), il)
-            == unsatAssumptions.end())
-        {
-          continue;
-        }
-      }
-      std::vector<Node> lits;
-      if (i.getKind() == Kind::OR)
-      {
-        lits.insert(lits.end(), i.begin(), i.end());
-      }
-      else
-      {
-        lits.push_back(i);
-      }
-      Trace("cnf-input") << "Print " << i << std::endl;
-      for (const Node& l : lits)
-      {
-        SatLiteral lit = d_cnfStream.getLiteral(l);
-        SatVariable v = lit.getSatVariable();
-        maxVar = v > maxVar ? v : maxVar;
-        dclauses << (lit.isNegated() ? "-" : "") << v << " ";
-      }
-      dclauses << "0" << std::endl;
-    }
-    std::fstream dout("drat-input.txt", std::ios::out);
-    dout << "p cnf " << maxVar << " " << clauses.size() << std::endl;
-    dout << dclauses.str();
-    dout.close();
-
-    /*
-    std::vector<Node> core;
-    std::vector<SatLiteral> unsat_assumptions;
-    d_satSolver->getUnsatAssumptions(unsat_assumptions);
-    for (const SatLiteral& lit : unsat_assumptions)
-    {
-      core.push_back(d_cnfStream.getNode(lit));
-    }
-    Trace("sat-proof") << "Core is " << core << std::endl;
-    */
-    CDProof cdp(d_env);
-    Node falsen = NodeManager::currentNM()->mkConst(false);
-    cdp.addStep(falsen, r, clauses, args);
-    conflictProof = cdp.getProofFor(falsen);
-  }
-  else
-  {
-    conflictProof = d_satSolver->getProof();
-  }
+  std::shared_ptr<ProofNode> conflictProof = d_satSolver->getProof();
   Assert(conflictProof);
   if (TraceIsOn("sat-proof"))
   {
