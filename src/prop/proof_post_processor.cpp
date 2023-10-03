@@ -15,8 +15,8 @@
 
 #include "prop/proof_post_processor.h"
 
-#include "theory/builtin/proof_checker.h"
 #include "proof/proof.h"
+#include "theory/builtin/proof_checker.h"
 
 namespace cvc5::internal {
 namespace prop {
@@ -33,8 +33,8 @@ bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                             const std::vector<Node>& fa,
                                             bool& continueUpdate)
 {
-  bool result = pn->getRule() == ProofRule::ASSUME
-                && d_pg->hasProofFor(pn->getResult());
+  bool result =
+      pn->getRule() == ProofRule::ASSUME && d_pg->hasProofFor(pn->getResult());
   if (TraceIsOn("prop-proof-pp") && !result
       && pn->getRule() == ProofRule::ASSUME)
   {

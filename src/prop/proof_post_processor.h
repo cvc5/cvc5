@@ -22,8 +22,8 @@
 #include <unordered_set>
 
 #include "context/cdhashset.h"
-#include "proof/proof_node_updater.h"
 #include "proof/proof_generator.h"
+#include "proof/proof_node_updater.h"
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {

@@ -30,9 +30,9 @@
 #include "options/prop_options.h"
 #include "options/smt_options.h"
 #include "proof/proof_node_algorithm.h"
-#include "prop/proof_cnf_stream.h"
 #include "prop/cnf_stream.h"
 #include "prop/minisat/minisat.h"
+#include "prop/proof_cnf_stream.h"
 #include "prop/prop_proof_manager.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
@@ -84,7 +84,7 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   context::UserContext* userContext = d_env.getUserContext();
 
   if (options().prop.satSolver == options::SatSolverMode::MINISAT
-    || d_env.isSatProofProducing())
+      || d_env.isSatProofProducing())
   {
     d_satSolver =
         SatSolverFactory::createCDCLTMinisat(d_env, statisticsRegistry());
@@ -110,14 +110,11 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   bool satProofs = d_env.isSatProofProducing();
   if (satProofs)
   {
-    d_ppm.reset(
-        new PropPfManager(env, d_satSolver, *d_cnfStream));
+    d_ppm.reset(new PropPfManager(env, d_satSolver, *d_cnfStream));
   }
   // connect SAT solver
-  d_satSolver->initialize(d_env.getContext(),
-                          d_theoryProxy,
-                          d_env.getUserContext(),
-                          d_ppm.get());
+  d_satSolver->initialize(
+      d_env.getContext(), d_theoryProxy, d_env.getUserContext(), d_ppm.get());
 }
 
 void PropEngine::finishInit()

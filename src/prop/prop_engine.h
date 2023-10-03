@@ -133,7 +133,7 @@ class PropEngine : protected EnvObj
    * @param p the properties of the lemma
    */
   void assertLemma(TrustNode tlemma, theory::LemmaProperty p);
-  
+
   /**
    */
   void notifyExplainedPropagation(TrustNode texp);

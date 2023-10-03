@@ -22,13 +22,13 @@
 #include "context/cdhashset.h"
 #include "expr/node.h"
 #include "proof/buffered_proof_generator.h"
-#include "proof/lazy_proof_chain.h"
 #include "proof/lazy_proof.h"
+#include "proof/lazy_proof_chain.h"
+#include "proof/trust_node.h"
 #include "prop/minisat/core/SolverTypes.h"
 #include "prop/opt_clauses_manager.h"
 #include "prop/sat_solver_types.h"
 #include "smt/env_obj.h"
-#include "proof/trust_node.h"
 
 namespace Minisat {
 class Solver;
@@ -274,7 +274,10 @@ class PropPfManager;
 class SatProofManager : protected EnvObj
 {
  public:
-  SatProofManager(Env& env, Minisat::Solver* solver, CnfStream* cnfStream, PropPfManager* ppm);
+  SatProofManager(Env& env,
+                  Minisat::Solver* solver,
+                  CnfStream* cnfStream,
+                  PropPfManager* ppm);
 
   /** Marks the start of a resolution chain.
    *
@@ -380,6 +383,7 @@ class SatProofManager : protected EnvObj
    * As above, the proof of this clause is saved in  d_optClausesPfs.
    */
   void notifyClauseInsertedAtLevel(const SatClause& clause, uint32_t clLevel);
+
  private:
   /** Ends resolution chain concluding clause
    *
@@ -552,7 +556,7 @@ class SatProofManager : protected EnvObj
    * method always has its children ordered.
    */
   Node getClauseNode(const SatClause& clause);
-  
+
   /** The SAT solver to which we are managing proofs */
   Minisat::Solver* d_solver;
   /** Pointer to the underlying cnf stream. */

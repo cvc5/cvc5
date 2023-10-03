@@ -24,11 +24,9 @@ namespace cvc5::internal {
 namespace prop {
 
 ProofCnfStream::ProofCnfStream(Env& env,
-                               CnfStream& cnfStream, PropPfManager* ppm)
-    : EnvObj(env),
-      d_cnfStream(cnfStream),
-      d_ppm(ppm),
-      d_proof(ppm->getProof())
+                               CnfStream& cnfStream,
+                               PropPfManager* ppm)
+    : EnvObj(env), d_cnfStream(cnfStream), d_ppm(ppm), d_proof(ppm->getProof())
 {
 }
 
@@ -62,10 +60,10 @@ void ProofCnfStream::convertAndAssert(TNode node,
                  << "\n";
     Node toJustify = negated ? node.notNode() : static_cast<Node>(node);
     d_proof->addLazyStep(toJustify,
-                        pg,
-                        ProofRule::ASSUME,
-                        true,
-                        "ProofCnfStream::convertAndAssert:cnf");
+                         pg,
+                         ProofRule::ASSUME,
+                         true,
+                         "ProofCnfStream::convertAndAssert:cnf");
   }
   convertAndAssert(node, negated);
   d_input = false;
@@ -88,7 +86,8 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
       // track double negation elimination
       if (negated)
       {
-        d_proof->addStep(node[0], ProofRule::NOT_NOT_ELIM, {node.notNode()}, {});
+        d_proof->addStep(
+            node[0], ProofRule::NOT_NOT_ELIM, {node.notNode()}, {});
         Trace("cnf")
             << "ProofCnfStream::convertAndAssert: NOT_NOT_ELIM added norm "
             << node[0] << "\n";

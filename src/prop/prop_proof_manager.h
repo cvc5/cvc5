@@ -24,8 +24,8 @@
 #include "context/cdo.h"
 #include "proof/lazy_proof.h"
 #include "proof/proof_node_manager.h"
-#include "prop/proof_post_processor.h"
 #include "prop/proof_cnf_stream.h"
+#include "prop/proof_post_processor.h"
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
@@ -45,10 +45,9 @@ class SatProofManager;
 class PropPfManager : protected EnvObj
 {
   friend class SatProofManager;
+
  public:
-  PropPfManager(Env& env,
-                CDCLTSatSolver* satSolver,
-                CnfStream& cnfProof);
+  PropPfManager(Env& env, CDCLTSatSolver* satSolver, CnfStream& cnfProof);
   /**
    * Ensure that the given node will have a designated SAT literal that is
    * definitionally equal to it.  The result of this function is that the Node
@@ -74,11 +73,8 @@ class PropPfManager : protected EnvObj
    * @param input whether the node is from the input
    * @param pg a proof generator for node
    */
-  void convertAndAssert(TNode node,
-                        bool negated,
-                        bool removable,
-                        bool input,
-                        ProofGenerator* pg);
+  void convertAndAssert(
+      TNode node, bool negated, bool removable, bool input, ProofGenerator* pg);
   /** Saves assertion for later checking whether refutation proof is closed.
    *
    * The assertions registered via this interface are preprocessed assertions
@@ -137,7 +133,9 @@ class PropPfManager : protected EnvObj
    * @param clauseNode The clause node to be normalized.
    * @return The normalized clause node.
    */
-  Node normalizeAndRegister(TNode clauseNode, bool input, bool doNormalize=true);
+  Node normalizeAndRegister(TNode clauseNode,
+                            bool input,
+                            bool doNormalize = true);
   /**
    * Clausifies the given propagation lemma *without* registering the resoluting
    * clause in the SAT solver, as this is handled internally by the SAT
@@ -148,6 +146,7 @@ class PropPfManager : protected EnvObj
   Node getLastExplainedPropagation() const;
   /** */
   LazyCDProof* getProof();
+
  private:
   /** Retrieve the proofs for clauses derived from the input */
   std::vector<std::shared_ptr<ProofNode>> getInputClausesProofs();

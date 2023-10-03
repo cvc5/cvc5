@@ -27,7 +27,7 @@ namespace prop {
 
 SatProofManager::SatProofManager(Env& env,
                                  Minisat::Solver* solver,
-                                 CnfStream* cnfStream, 
+                                 CnfStream* cnfStream,
                                  PropPfManager* ppm)
     : EnvObj(env),
       d_solver(solver),
@@ -862,7 +862,7 @@ void SatProofManager::notifyCurrPropagationInsertedAtLevel(uint32_t explLevel)
 }
 
 void SatProofManager::notifyClauseInsertedAtLevel(const SatClause& clause,
-                                                 uint32_t clLevel)
+                                                  uint32_t clLevel)
 {
   Trace("cnf") << "Need to save clause " << clause << " in level "
                << clLevel + 1 << " despite being currently in level "
@@ -872,8 +872,7 @@ void SatProofManager::notifyClauseInsertedAtLevel(const SatClause& clause,
   Trace("cnf") << "Node equivalent: " << clauseNode << "\n";
   Assert(clLevel < (userContext()->getLevel() - 1));
   // As above, also justify eagerly.
-  std::shared_ptr<ProofNode> clauseCnfPf =
-      pf->getProofFor(clauseNode)->clone();
+  std::shared_ptr<ProofNode> clauseCnfPf = pf->getProofFor(clauseNode)->clone();
   Assert(clauseCnfPf->getRule() != ProofRule::ASSUME);
   d_optClausesPfs[clLevel + 1].push_back(clauseCnfPf);
   // Notify SAT proof manager that the propagation (which is a SAT assumption)

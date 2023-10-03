@@ -210,7 +210,8 @@ Solver::Solver(Env& env,
 {
   if (ppm)
   {
-    d_pfManager.reset(new SatProofManager(env, this, proxy->getCnfStream(), ppm));
+    d_pfManager.reset(
+        new SatProofManager(env, this, proxy->getCnfStream(), ppm));
   }
 
   // Create the constant variables

@@ -18,11 +18,11 @@
 #include "proof/proof_ensure_closed.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/theory_proof_step_buffer.h"
-#include "prop/prop_proof_manager.h"
 #include "prop/cnf_stream.h"
+#include "prop/prop_proof_manager.h"
+#include "prop/sat_proof_manager.h"
 #include "prop/sat_solver.h"
 #include "smt/env.h"
-#include "prop/sat_proof_manager.h"
 
 namespace cvc5::internal {
 namespace prop {
@@ -47,7 +47,8 @@ PropPfManager::PropPfManager(Env& env,
       // the proof node manager of no cyclic proofs if the ASSUMPTION proof node
       // of both the assumption (= b a) we are asking the proof for and the
       // assumption (= b a) in the proof of (= a b) are the same.
-      d_proof(env, nullptr, userContext(), "ProofCnfStream::LazyCDProof", false),
+      d_proof(
+          env, nullptr, userContext(), "ProofCnfStream::LazyCDProof", false),
       d_pfpp(new ProofPostprocess(env, &d_proof)),
       d_pfCnfStream(env, cnf, this),
       d_satSolver(satSolver),
@@ -66,16 +67,10 @@ PropPfManager::PropPfManager(Env& env,
   d_assertions.push_back(NodeManager::currentNM()->mkConst(true));
 }
 
-void PropPfManager::ensureLiteral(TNode n)
-{
-  d_pfCnfStream.ensureLiteral(n);
-}
+void PropPfManager::ensureLiteral(TNode n) { d_pfCnfStream.ensureLiteral(n); }
 
-void PropPfManager::convertAndAssert(TNode node,
-                      bool negated,
-                      bool removable,
-                      bool input,
-                      ProofGenerator* pg)
+void PropPfManager::convertAndAssert(
+    TNode node, bool negated, bool removable, bool input, ProofGenerator* pg)
 {
   d_pfCnfStream.convertAndAssert(node, negated, removable, input, pg);
   // if input, register the assertion in the proof manager
@@ -137,9 +132,8 @@ std::vector<std::shared_ptr<ProofNode>> PropPfManager::getProofLeaves(
   Assert(pc == modes::ProofComponent::THEORY_LEMMAS
          || pc == modes::ProofComponent::PREPROCESS);
   std::vector<std::shared_ptr<ProofNode>> pfs =
-      pc == modes::ProofComponent::THEORY_LEMMAS
-          ? getLemmaClausesProofs()
-          : getInputClausesProofs();
+      pc == modes::ProofComponent::THEORY_LEMMAS ? getLemmaClausesProofs()
+                                                 : getInputClausesProofs();
   std::shared_ptr<ProofNode> satPf = getProof(false);
   std::vector<Node> satLeaves;
   expr::getFreeAssumptions(satPf.get(), satLeaves);
@@ -235,7 +229,9 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
   return conflictProof;
 }
 
-Node PropPfManager::normalizeAndRegister(TNode clauseNode, bool input, bool doNormalize)
+Node PropPfManager::normalizeAndRegister(TNode clauseNode,
+                                         bool input,
+                                         bool doNormalize)
 {
   Node normClauseNode = clauseNode;
   if (doNormalize)
@@ -272,10 +268,7 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode, bool input, bool doNo
   return normClauseNode;
 }
 
-LazyCDProof* PropPfManager::getProof()
-{
-  return &d_proof;
-}
+LazyCDProof* PropPfManager::getProof() { return &d_proof; }
 
 std::vector<Node> PropPfManager::getInputClauses()
 {
@@ -297,7 +290,6 @@ std::vector<Node> PropPfManager::getLemmaClauses()
   return cls;
 }
 
-
 std::vector<std::shared_ptr<ProofNode>> PropPfManager::getInputClausesProofs()
 {
   std::vector<std::shared_ptr<ProofNode>> pfs;
@@ -317,7 +309,6 @@ std::vector<std::shared_ptr<ProofNode>> PropPfManager::getLemmaClausesProofs()
   }
   return pfs;
 }
-
 
 void PropPfManager::notifyExplainedPropagation(TrustNode trn)
 {
