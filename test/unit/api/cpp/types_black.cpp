@@ -37,7 +37,7 @@ TEST_F(TestApiTypes, printEnum)
   ss << cvc5::modes::LearnedLitType::PREPROCESS;
   ss << cvc5::modes::ProofComponent::FULL;
   ss << cvc5::modes::FindSynthTarget::ENUM;
-  ss << cvc5::modes::InputLanguage::SMTLIB_2_6;
+  ss << cvc5::modes::InputLanguage::SMT_LIB_2_6;
 }
 
 }  // namespace test
