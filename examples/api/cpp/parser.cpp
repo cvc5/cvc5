@@ -59,7 +59,7 @@ int main()
     cmd.invoke(&slv, sm, std::cout);
   }
   std::cout << "Finished parsing commands" << std::endl;
-  
+
   // now, check sat with the solver
   Result r = slv.checkSat();
   std::cout << "expected: unsat" << std::endl;
