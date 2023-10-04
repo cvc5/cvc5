@@ -25,6 +25,7 @@ set(java_test_src_files
   ${CMAKE_CURRENT_SOURCE_DIR}/DatatypeTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/FiniteFieldTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/GrammarTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/InputParserTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/OpTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/ResultTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/SolverTest.java

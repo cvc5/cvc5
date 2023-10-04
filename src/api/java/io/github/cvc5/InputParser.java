@@ -15,6 +15,7 @@
 
 package io.github.cvc5;
 
+import io.github.cvc5.modes.InputLanguage;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -39,8 +40,8 @@ import java.util.Set;
  *
  * If provided, the symbol manager must have a logic that is compatible
  * with the provided solver. That is, if both the solver and symbol
- * manager have their logics set (SymbolManager::isLogicSet and
- * Solver::isLogicSet), then their logics must be the same.
+ * manager have their logics set (SymbolManager.isLogicSet and
+ * {@link Solver#isLogicSet()}, then their logics must be the same.
  *
  * Upon setting an input source, if either the solver (resp. symbol
  * manager) has its logic set, then the symbol manager (resp. solver) is set to
@@ -60,7 +61,7 @@ public class InputParser extends AbstractPointer
   {
     super(newInputParser(solver.getPointer(), sm.getPointer()));
   }
-  
+
   private static native long newInputParser(long solverPointer, long symbolManagerPointer);
 
   /**
@@ -78,7 +79,7 @@ public class InputParser extends AbstractPointer
   /**
    * @return The underlying solver of this input parser
    */
-  Solver getSolver()
+  public Solver getSolver()
   {
     return null;
   }
@@ -119,7 +120,7 @@ public class InputParser extends AbstractPointer
   /**
    * @return The underlying symbol manager of this input parser
    */
-  SymbolManager getSymbolManager()
+  public SymbolManager getSymbolManager()
   {
     return null;
   }
@@ -127,10 +128,10 @@ public class InputParser extends AbstractPointer
   /**
    * Set the input for the given file.
    *
-   * @param lang the input language (e.g. modes::InputLanguage::SMT_LIB_2_6)
+   * @param lang the input language (e.g. InputLanguage.SMT_LIB_2_6)
    * @param filename the input filename
    */
-  // void setFileInput(modes::InputLanguage lang, String filename) {}
+  public void setFileInput(InputLanguage lang, String filename) {}
 
   /**
    * Set that we will be feeding strings to this parser via
@@ -139,7 +140,7 @@ public class InputParser extends AbstractPointer
    * @param lang the input language
    * @param name the name of the stream, for use in error messages
    */
-  // void setIncrementalStringInput(modes::InputLanguage lang, String name);
+  public void setIncrementalStringInput(InputLanguage lang, String name) {}
 
   /**
    * Append string to the input being parsed by this parser. Should be
@@ -148,7 +149,7 @@ public class InputParser extends AbstractPointer
    *
    * @param input The input string
    */
-  void appendIncrementalStringInput(String input) {}
+  public void appendIncrementalStringInput(String input) {}
 
   /**
    * Parse and return the next command. Will initialize the logic to "ALL"
@@ -158,7 +159,7 @@ public class InputParser extends AbstractPointer
    * @return The parsed command. This is the null command if no command was
    *         read.
    */
-  Command nextCommand()
+  public Command nextCommand()
   {
     return null;
   }
@@ -167,13 +168,13 @@ public class InputParser extends AbstractPointer
    * Parse and return the next term. Requires setting the logic prior
    * to this point.
    */
-  Term nextTerm()
+  public Term nextTerm()
   {
     return null;
   }
 
   /** Is this parser done reading input? */
-  boolean done()
+  public boolean done()
   {
     return false;
   }
