@@ -1213,7 +1213,6 @@ std::vector<Node> CadicalSolver::getOrderHeap() const { return {}; }
 
 std::shared_ptr<ProofNode> CadicalSolver::getProof()
 {
-  // TODO
   return nullptr;
 }
 
