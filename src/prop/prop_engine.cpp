@@ -324,7 +324,7 @@ void PropEngine::assertLemmasInternal(
 
 void PropEngine::notifyExplainedPropagation(TrustNode texp)
 {
-  Assert (d_ppm!=nullptr);
+  Assert(d_ppm != nullptr);
   d_ppm->notifyExplainedPropagation(texp);
 }
 
