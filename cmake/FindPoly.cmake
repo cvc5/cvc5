@@ -19,8 +19,13 @@
 include(deps-helper)
 
 find_path(Poly_INCLUDE_DIR NAMES poly/poly.h)
-find_library(Poly_LIBRARIES NAMES poly)
-find_library(PolyXX_LIBRARIES NAMES polyxx)
+if(BUILD_SHARED_LIBS)
+  find_library(Poly_LIBRARIES NAMES poly)
+  find_library(PolyXX_LIBRARIES NAMES polyxx)
+else()
+  find_library(Poly_LIBRARIES NAMES libpicpoly.a)
+  find_library(PolyXX_LIBRARIES NAMES libpicpolyxx.a)
+endif()
 
 set(Poly_FOUND_SYSTEM FALSE)
 if(Poly_INCLUDE_DIR
