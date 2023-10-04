@@ -83,7 +83,7 @@ Node FunDefEvaluator::evaluateDefinitions(Node n) const
         Trace("fd-eval-debug") << "constant " << cur << std::endl;
         visited[cur] = cur;
       }
-      else if (cur.getKind() == ITE)
+      else if (cur.getKind() == Kind::ITE)
       {
         Trace("fd-eval-debug") << "ITE " << cur << std::endl;
         visited[cur] = Node::null();
@@ -113,11 +113,12 @@ Node FunDefEvaluator::evaluateDefinitions(Node n) const
         Kind ck = cur.getKind();
         // If a parameterized node that is not APPLY_UF (which is handled below,
         // we add it to the children vector.
-        if (ck != APPLY_UF && cur.getMetaKind() == metakind::PARAMETERIZED)
+        if (ck != Kind::APPLY_UF
+            && cur.getMetaKind() == metakind::PARAMETERIZED)
         {
           children.push_back(cur.getOperator());
         }
-        else if (ck == ITE)
+        else if (ck == Kind::ITE)
         {
           // get evaluation of condition
           it = visited.find(cur[0]);
@@ -155,7 +156,7 @@ Node FunDefEvaluator::evaluateDefinitions(Node n) const
           Trace("fd-eval-debug2") << "argument " << child++
                                   << " eval : " << it->second << std::endl;
         }
-        if (cur.getKind() == APPLY_UF)
+        if (cur.getKind() == Kind::APPLY_UF)
         {
           // need to evaluate it
           f = cur.getOperator();

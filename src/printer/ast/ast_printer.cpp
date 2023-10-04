@@ -54,7 +54,8 @@ void AstPrinter::toStream(std::ostream& out,
                           LetBinding* lbind) const
 {
   // null
-  if(n.getKind() == kind::NULL_EXPR) {
+  if (n.getKind() == Kind::NULL_EXPR)
+  {
     out << "null";
     return;
   }

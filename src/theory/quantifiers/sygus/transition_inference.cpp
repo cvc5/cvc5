@@ -57,7 +57,7 @@ Node DetTrace::DetTraceTrie::constructFormula(const std::vector<Node>& vars,
     if (index < vars.size() - 1)
     {
       Node conc = p.second.constructFormula(vars, index + 1);
-      disj.push_back(nm->mkNode(AND, eq, conc));
+      disj.push_back(nm->mkNode(Kind::AND, eq, conc));
     }
     else
     {
@@ -65,7 +65,7 @@ Node DetTrace::DetTraceTrie::constructFormula(const std::vector<Node>& vars,
     }
   }
   Assert(!disj.empty());
-  return disj.size() == 1 ? disj[0] : nm->mkNode(OR, disj);
+  return disj.size() == 1 ? disj[0] : nm->mkNode(Kind::OR, disj);
 }
 
 bool DetTrace::increment(Node loc, std::vector<Node>& vals)
@@ -130,9 +130,9 @@ void TransitionInference::getConstantSubstitution(
     {
       sn = d;
     }
-    bool slit_pol = sn.getKind() != NOT;
-    Node slit = sn.getKind() == NOT ? sn[0] : sn;
-    if (slit.getKind() == EQUAL && slit_pol == reqPol)
+    bool slit_pol = sn.getKind() != Kind::NOT;
+    Node slit = sn.getKind() == Kind::NOT ? sn[0] : sn;
+    if (slit.getKind() == Kind::EQUAL && slit_pol == reqPol)
     {
       // check if it is a variable equality
       TNode v;
@@ -161,7 +161,8 @@ void TransitionInference::getConstantSubstitution(
             {
               Node veq_c;
               Node val;
-              int ires = ArithMSum::isolate(m.first, msum, veq_c, val, EQUAL);
+              int ires =
+                  ArithMSum::isolate(m.first, msum, veq_c, val, Kind::EQUAL);
               if (ires != 0 && veq_c.isNull()
                   && !expr::hasSubterm(val, m.first))
               {
@@ -202,7 +203,7 @@ void TransitionInference::process(Node n)
   d_complete = true;
   d_trivial = true;
   std::vector<Node> n_check;
-  if (n.getKind() == AND)
+  if (n.getKind() == Kind::AND)
   {
     for (const Node& nc : n)
     {
@@ -314,7 +315,7 @@ void TransitionInference::process(Node n)
     }
     else
     {
-      res = nm->mkNode(OR, disjuncts);
+      res = nm->mkNode(Kind::OR, disjuncts);
     }
     if (expr::hasBoundVar(res))
     {
@@ -363,7 +364,7 @@ void TransitionInference::process(Node n)
     }
     else
     {
-      ret = nm->mkNode(AND, c.d_conjuncts);
+      ret = nm->mkNode(Kind::AND, c.d_conjuncts);
     }
     if (i == 0 || i == 1)
     {
@@ -382,7 +383,7 @@ void TransitionInference::getNormalizedSubstitution(
 {
   for (unsigned j = 0, nchild = curr.getNumChildren(); j < nchild; j++)
   {
-    if (curr[j].getKind() == BOUND_VARIABLE)
+    if (curr[j].getKind() == Kind::BOUND_VARIABLE)
     {
       // if the argument is a bound variable, add to the renaming
       vars.push_back(curr[j]);
@@ -411,13 +412,13 @@ bool TransitionInference::processDisjunct(
     return true;
   }
   visited[topLevel][n] = true;
-  bool childTopLevel = n.getKind() == OR && topLevel;
+  bool childTopLevel = n.getKind() == Kind::OR && topLevel;
   // if another part mentions UF or a free variable, then fail
-  bool lit_pol = n.getKind() != NOT;
-  Node lit = n.getKind() == NOT ? n[0] : n;
+  bool lit_pol = n.getKind() != Kind::NOT;
+  Node lit = n.getKind() == Kind::NOT ? n[0] : n;
   // is it an application of the function-to-synthesize? Yes if we haven't
   // encountered a function or if it matches the existing d_func.
-  if (lit.getKind() == APPLY_UF
+  if (lit.getKind() == Kind::APPLY_UF
       && (d_func.isNull() || lit.getOperator() == d_func))
   {
     Node op = lit.getOperator();

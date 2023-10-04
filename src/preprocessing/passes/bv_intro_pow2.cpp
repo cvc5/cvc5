@@ -54,12 +54,12 @@ PreprocessingPassResult BvIntroPow2::applyInternal(
 
 bool BvIntroPow2::isPowerOfTwo(TNode node)
 {
-  if (node.getKind() != kind::EQUAL)
+  if (node.getKind() != Kind::EQUAL)
   {
     return false;
   }
-  if (node[0].getKind() != kind::BITVECTOR_AND
-      && node[1].getKind() != kind::BITVECTOR_AND)
+  if (node[0].getKind() != Kind::BITVECTOR_AND
+      && node[1].getKind() != Kind::BITVECTOR_AND)
   {
     return false;
   }
@@ -74,7 +74,7 @@ bool BvIntroPow2::isPowerOfTwo(TNode node)
   TNode b = t[1];
   if (bv::utils::getSize(t) < 2) return false;
   Node diff =
-      rewrite(NodeManager::currentNM()->mkNode(kind::BITVECTOR_SUB, a, b));
+      rewrite(NodeManager::currentNM()->mkNode(Kind::BITVECTOR_SUB, a, b));
   return (diff.isConst()
           && (bv::utils::isOne(diff) || bv::utils::isOnes(diff)));
 }
@@ -86,13 +86,13 @@ Node BvIntroPow2::rewritePowerOfTwo(TNode node)
   TNode a = term[0];
   TNode b = term[1];
   uint32_t size = bv::utils::getSize(term);
-  Node diff = rewrite(nm->mkNode(kind::BITVECTOR_SUB, a, b));
+  Node diff = rewrite(nm->mkNode(Kind::BITVECTOR_SUB, a, b));
   Assert(diff.isConst());
   Node one = bv::utils::mkOne(size);
   TNode x = diff == one ? a : b;
   Node sk = bv::utils::mkVar(size);
-  Node sh = nm->mkNode(kind::BITVECTOR_SHL, one, sk);
-  Node x_eq_sh = nm->mkNode(kind::EQUAL, x, sh);
+  Node sh = nm->mkNode(Kind::BITVECTOR_SHL, one, sk);
+  Node x_eq_sh = nm->mkNode(Kind::EQUAL, x, sh);
   return x_eq_sh;
 }
 
@@ -108,7 +108,7 @@ Node BvIntroPow2::pow2Rewrite(Node node, std::unordered_map<Node, Node>& cache)
   Node res = Node::null();
   switch (node.getKind())
   {
-    case kind::AND:
+    case Kind::AND:
     {
       bool changed = false;
       std::vector<Node> children;
@@ -121,12 +121,12 @@ Node BvIntroPow2::pow2Rewrite(Node node, std::unordered_map<Node, Node>& cache)
       }
       if (changed)
       {
-        res = NodeManager::currentNM()->mkNode(kind::AND, children);
+        res = NodeManager::currentNM()->mkNode(Kind::AND, children);
       }
     }
     break;
 
-    case kind::EQUAL:
+    case Kind::EQUAL:
       if (node[0].getType().isBitVector() && isPowerOfTwo(node))
       {
         res = rewritePowerOfTwo(node);

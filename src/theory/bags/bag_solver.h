@@ -41,17 +41,19 @@ class BagSolver : protected EnvObj
   ~BagSolver();
 
   /**
-   * apply inference rules for basic bag operators without quantifiers:
-   * BAG_MAKE, BAG_UNION_DISJOINT, BAG_UNION_MAX, BAG_INTER_MIN,
-   * BAG_DIFFERENCE_SUBTRACT, BAG_DIFFERENCE_REMOVE, BAG_DUPLICATE_REMOVAL
+   * apply inference rules for basic bag operators that are basic:
+   * BAG_MAKE, BAG_UNION_DISJOINT, BAG_UNION_MAX, BAG_INTER_MIN
+   *
+   * Conceptually, this applies lemma schemas that are terminating.
    */
   void checkBasicOperations();
 
   /**
-   * apply inference rules for operators with quantifiers:
+   * apply inference rules for operators that are non-basic,
+   * BAG_DIFFERENCE_SUBTRACT, BAG_DIFFERENCE_REMOVE, BAG_DUPLICATE_REMOVAL,
    * BAG_MAP
    */
-  void checkQuantifiedOperations();
+  void checkNonBasicOperations();
 
   /**
    * apply inference rules for BAG_MAKE terms.

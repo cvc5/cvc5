@@ -41,11 +41,6 @@ public class Op extends AbstractPointer
 
   protected native void deletePointer(long pointer);
 
-  public long getPointer()
-  {
-    return pointer;
-  }
-
   /**
    * Syntactic equality operator.
    * @api.note Both operators must belong to the same solver object.

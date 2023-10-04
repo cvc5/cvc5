@@ -52,8 +52,8 @@ TEST_F(TestTheoryWhiteBVOpt, unsigned_min)
   Node b = d_nodeManager->mkConst(BitVector(32u, (unsigned)0xFFFFFFF1));
 
   // (unsigned)0x3FFFFFA1 <= x <= (unsigned)0xFFFFFFF1
-  d_slvEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_ULE, a, x));
-  d_slvEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_ULE, x, b));
+  d_slvEngine->assertFormula(d_nodeManager->mkNode(Kind::BITVECTOR_ULE, a, x));
+  d_slvEngine->assertFormula(d_nodeManager->mkNode(Kind::BITVECTOR_ULE, x, b));
 
   d_optslv->addObjective(x, OptimizationObjective::MINIMIZE, false);
 
@@ -73,8 +73,8 @@ TEST_F(TestTheoryWhiteBVOpt, signed_min)
   Node a = d_nodeManager->mkConst(BitVector(32u, (unsigned)0x80000000));
   Node b = d_nodeManager->mkConst(BitVector(32u, 2147483647u));
   // -2147483648 <= x <= 2147483647
-  d_slvEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, a, x));
-  d_slvEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, x, b));
+  d_slvEngine->assertFormula(d_nodeManager->mkNode(Kind::BITVECTOR_SLE, a, x));
+  d_slvEngine->assertFormula(d_nodeManager->mkNode(Kind::BITVECTOR_SLE, x, b));
 
   d_optslv->addObjective(x, OptimizationObjective::MINIMIZE, true);
 
@@ -100,8 +100,8 @@ TEST_F(TestTheoryWhiteBVOpt, unsigned_max)
   // If the gap is too large, it will have a performance issue!!!
   // Need binary search!
   // (unsigned)1 <= x <= (unsigned)2
-  d_slvEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_ULE, a, x));
-  d_slvEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_ULE, x, b));
+  d_slvEngine->assertFormula(d_nodeManager->mkNode(Kind::BITVECTOR_ULE, a, x));
+  d_slvEngine->assertFormula(d_nodeManager->mkNode(Kind::BITVECTOR_ULE, x, b));
 
   d_optslv->addObjective(x, OptimizationObjective::MAXIMIZE, false);
 
@@ -125,8 +125,8 @@ TEST_F(TestTheoryWhiteBVOpt, signed_max)
   Node b = d_nodeManager->mkConst(BitVector(32u, 10u));
 
   // -2147483648 <= x <= 10
-  d_slvEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, a, x));
-  d_slvEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, x, b));
+  d_slvEngine->assertFormula(d_nodeManager->mkNode(Kind::BITVECTOR_SLE, a, x));
+  d_slvEngine->assertFormula(d_nodeManager->mkNode(Kind::BITVECTOR_SLE, x, b));
 
   d_optslv->addObjective(x, OptimizationObjective::MAXIMIZE, true);
 
@@ -147,10 +147,10 @@ TEST_F(TestTheoryWhiteBVOpt, min_boundary)
 
   // x <= 18
   d_slvEngine->assertFormula(d_nodeManager->mkNode(
-      kind::BITVECTOR_ULE, d_nodeManager->mkConst(BitVector(32u, 18u)), x));
+      Kind::BITVECTOR_ULE, d_nodeManager->mkConst(BitVector(32u, 18u)), x));
   // this perturbs the solver to trigger some boundary bug
   // that existed previously
-  d_slvEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, y, x));
+  d_slvEngine->assertFormula(d_nodeManager->mkNode(Kind::BITVECTOR_SLE, y, x));
 
   d_optslv->addObjective(x, OptimizationObjective::MINIMIZE, false);
 

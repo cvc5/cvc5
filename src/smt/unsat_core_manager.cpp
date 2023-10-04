@@ -41,13 +41,13 @@ void UnsatCoreManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
 {
   Trace("unsat-core") << "UCManager::getUnsatCore: final proof: " << *pfn.get()
                       << "\n";
-  Assert(pfn->getRule() == PfRule::SCOPE);
+  Assert(pfn->getRule() == ProofRule::SCOPE);
   std::vector<Node> fassumps;
   expr::getFreeAssumptions(pfn->getChildren()[0].get(), fassumps);
   Trace("unsat-core") << "UCManager::getUnsatCore: free assumptions: "
                       << fassumps << "\n";
   const context::CDList<Node>& al = as.getAssertionList();
-  std::unordered_set<Node> coreSet;
+  std::set<Node> coreSet;
   for (const Node& a : al)
   {
     Trace("unsat-core") << "is assertion " << a << " there?\n";
@@ -112,8 +112,8 @@ void UnsatCoreManager::getRelevantQuantTermVectors(
     }
     visited[cur.get()] = true;
     const std::vector<std::shared_ptr<ProofNode>>& cs = cur->getChildren();
-    PfRule r = cur->getRule();
-    if (r == PfRule::INSTANTIATE)
+    ProofRule r = cur->getRule();
+    if (r == ProofRule::INSTANTIATE)
     {
       const std::vector<Node>& instTerms = cur->getArguments();
       Assert(cs.size() == 1);
@@ -142,17 +142,17 @@ void UnsatCoreManager::getRelevantQuantTermVectors(
         }
       }
     }
-    else if (r == PfRule::SKOLEMIZE)
+    else if (r == ProofRule::SKOLEMIZE)
     {
       Node q = cur->getChildren()[0]->getResult();
       Node exists;
-      if (q.getKind() == kind::NOT && q.getKind() == kind::FORALL)
+      if (q.getKind() == Kind::NOT && q.getKind() == Kind::FORALL)
       {
         std::vector<Node> echildren(q[0].begin(), q[0].end());
         echildren[1] = echildren[1].notNode();
-        exists = nm->mkNode(kind::EXISTS, echildren);
+        exists = nm->mkNode(Kind::EXISTS, echildren);
       }
-      else if (q.getKind() == kind::EXISTS)
+      else if (q.getKind() == Kind::EXISTS)
       {
         exists = q;
       }

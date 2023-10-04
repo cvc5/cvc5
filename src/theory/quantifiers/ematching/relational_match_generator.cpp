@@ -33,21 +33,22 @@ RelationalMatchGenerator::RelationalMatchGenerator(
       d_pol(pol),
       d_counter(0)
 {
-  Assert((rtrigger.getKind() == EQUAL && rtrigger[0].getType().isRealOrInt())
-         || rtrigger.getKind() == GEQ);
+  Assert(
+      (rtrigger.getKind() == Kind::EQUAL && rtrigger[0].getType().isRealOrInt())
+      || rtrigger.getKind() == Kind::GEQ);
   Trace("relational-match-gen")
       << "Relational trigger: " << rtrigger << ", hasPol/pol = " << hasPol
       << "/" << pol << std::endl;
   for (size_t i = 0; i < 2; i++)
   {
-    if (rtrigger[i].getKind() == INST_CONSTANT)
+    if (rtrigger[i].getKind() == Kind::INST_CONSTANT)
     {
       d_var = rtrigger[i];
       d_vindex = d_var.getAttribute(InstVarNumAttribute());
       d_rhs = rtrigger[1 - i];
       Assert(!quantifiers::TermUtil::hasInstConstAttr(d_rhs));
       Kind k = rtrigger.getKind();
-      d_rel = (i == 0 ? k : (k == GEQ ? LEQ : k));
+      d_rel = (i == 0 ? k : (k == Kind::GEQ ? Kind::LEQ : k));
       break;
     }
   }
@@ -92,10 +93,10 @@ int RelationalMatchGenerator::getNextMatch(InstMatch& m)
     s = rhs;
     if (!checkPol)
     {
-      s = nm->mkNode(
-          ADD,
-          s,
-          nm->mkConstRealOrInt(s.getType(), Rational(d_rel == GEQ ? -1 : 1)));
+      s = nm->mkNode(Kind::ADD,
+                     s,
+                     nm->mkConstRealOrInt(
+                         s.getType(), Rational(d_rel == Kind::GEQ ? -1 : 1)));
     }
     d_counter++;
     Trace("relational-match-gen")

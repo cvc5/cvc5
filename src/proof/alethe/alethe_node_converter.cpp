@@ -27,20 +27,20 @@ Node AletheNodeConverter::postConvert(Node n)
   Kind k = n.getKind();
   switch (k)
   {
-    case kind::SKOLEM:
+    case Kind::SKOLEM:
     {
       Trace("alethe-conv") << "AletheNodeConverter: handling skolem " << n
                            << "\n";
       Unreachable() << "Fresh Skolems are not allowed\n";
     }
-    case kind::FORALL:
+    case Kind::FORALL:
     {
       // remove patterns, if any
-      return n.getNumChildren() == 3 ? nm->mkNode(kind::FORALL, n[0], n[1]) : n;
+      return n.getNumChildren() == 3 ? nm->mkNode(Kind::FORALL, n[0], n[1]) : n;
     }
     // we must make it to be printed with "choice", so we create an operator
     // with that name and the correct type and do a function application
-    case kind::WITNESS:
+    case Kind::WITNESS:
     {
       std::vector<TypeNode> childrenTypes;
       for (const Node& c : n)
@@ -49,7 +49,7 @@ Node AletheNodeConverter::postConvert(Node n)
       }
       TypeNode fType = nm->mkFunctionType(childrenTypes, n.getType());
       Node choiceOp = mkInternalSymbol("choice", fType);
-      return nm->mkNode(kind::APPLY_UF, choiceOp, n[0], n[1]);
+      return nm->mkNode(Kind::APPLY_UF, choiceOp, n[0], n[1]);
     }
     default:
     {

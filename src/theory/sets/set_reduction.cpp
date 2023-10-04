@@ -58,7 +58,7 @@ typedef expr::Attribute<SecondIndexVarAttributeId, Node>
 
 Node SetReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
 {
-  Assert(node.getKind() == SET_FOLD);
+  Assert(node.getKind() == Kind::SET_FOLD);
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   Node f = node[0];
@@ -85,32 +85,34 @@ Node SetReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node i =
       bvm->mkBoundVar<FirstIndexVarAttribute>(node, "i", nm->integerType());
-  Node iList = nm->mkNode(BOUND_VAR_LIST, i);
-  Node iMinusOne = nm->mkNode(SUB, i, one);
-  Node uf_i = nm->mkNode(APPLY_UF, uf, i);
-  Node combine_0 = nm->mkNode(APPLY_UF, combine, zero);
-  Node combine_iMinusOne = nm->mkNode(APPLY_UF, combine, iMinusOne);
-  Node combine_i = nm->mkNode(APPLY_UF, combine, i);
-  Node combine_n = nm->mkNode(APPLY_UF, combine, n);
-  Node union_0 = nm->mkNode(APPLY_UF, unionNode, zero);
-  Node union_iMinusOne = nm->mkNode(APPLY_UF, unionNode, iMinusOne);
-  Node union_i = nm->mkNode(APPLY_UF, unionNode, i);
-  Node union_n = nm->mkNode(APPLY_UF, unionNode, n);
+  Node iList = nm->mkNode(Kind::BOUND_VAR_LIST, i);
+  Node iMinusOne = nm->mkNode(Kind::SUB, i, one);
+  Node uf_i = nm->mkNode(Kind::APPLY_UF, uf, i);
+  Node combine_0 = nm->mkNode(Kind::APPLY_UF, combine, zero);
+  Node combine_iMinusOne = nm->mkNode(Kind::APPLY_UF, combine, iMinusOne);
+  Node combine_i = nm->mkNode(Kind::APPLY_UF, combine, i);
+  Node combine_n = nm->mkNode(Kind::APPLY_UF, combine, n);
+  Node union_0 = nm->mkNode(Kind::APPLY_UF, unionNode, zero);
+  Node union_iMinusOne = nm->mkNode(Kind::APPLY_UF, unionNode, iMinusOne);
+  Node union_i = nm->mkNode(Kind::APPLY_UF, unionNode, i);
+  Node union_n = nm->mkNode(Kind::APPLY_UF, unionNode, n);
   Node combine_0_equal = combine_0.eqNode(t);
   Node combine_i_equal =
-      combine_i.eqNode(nm->mkNode(APPLY_UF, f, uf_i, combine_iMinusOne));
+      combine_i.eqNode(nm->mkNode(Kind::APPLY_UF, f, uf_i, combine_iMinusOne));
   Node union_0_equal = union_0.eqNode(nm->mkConst(EmptySet(setType)));
-  Node singleton = nm->mkNode(SET_SINGLETON, uf_i);
+  Node singleton = nm->mkNode(Kind::SET_SINGLETON, uf_i);
 
   Node union_i_equal =
-      union_i.eqNode(nm->mkNode(SET_UNION, singleton, union_iMinusOne));
-  Node interval_i =
-      nm->mkNode(AND, nm->mkNode(GEQ, i, one), nm->mkNode(LEQ, i, n));
+      union_i.eqNode(nm->mkNode(Kind::SET_UNION, singleton, union_iMinusOne));
+  Node interval_i = nm->mkNode(
+      Kind::AND, nm->mkNode(Kind::GEQ, i, one), nm->mkNode(Kind::LEQ, i, n));
 
-  Node body_i = nm->mkNode(
-      IMPLIES, interval_i, nm->mkNode(AND, combine_i_equal, union_i_equal));
+  Node body_i =
+      nm->mkNode(Kind::IMPLIES,
+                 interval_i,
+                 nm->mkNode(Kind::AND, combine_i_equal, union_i_equal));
   Node forAll_i = quantifiers::BoundedIntegers::mkBoundedForall(iList, body_i);
-  Node nonNegative = nm->mkNode(GEQ, n, zero);
+  Node nonNegative = nm->mkNode(Kind::GEQ, n, zero);
   Node union_n_equal = A.eqNode(union_n);
   asserts.push_back(forAll_i);
   asserts.push_back(combine_0_equal);
@@ -122,7 +124,7 @@ Node SetReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
 
 Node SetReduction::reduceAggregateOperator(Node node)
 {
-  Assert(node.getKind() == RELATION_AGGREGATE);
+  Assert(node.getKind() == Kind::RELATION_AGGREGATE);
   NodeManager* nm = NodeManager::currentNM();
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node function = node[0];
@@ -131,31 +133,32 @@ Node SetReduction::reduceAggregateOperator(Node node)
   Node A = node[2];
 
   ProjectOp op = node.getOperator().getConst<ProjectOp>();
-  Node groupOp = nm->mkConst(RELATION_GROUP_OP, op);
-  Node group = nm->mkNode(RELATION_GROUP, {groupOp, A});
+  Node groupOp = nm->mkConst(Kind::RELATION_GROUP_OP, op);
+  Node group = nm->mkNode(Kind::RELATION_GROUP, {groupOp, A});
 
   Node set = bvm->mkBoundVar<FirstIndexVarAttribute>(
       group, "set", nm->mkSetType(elementType));
-  Node foldList = nm->mkNode(BOUND_VAR_LIST, set);
-  Node foldBody = nm->mkNode(SET_FOLD, function, initialValue, set);
+  Node foldList = nm->mkNode(Kind::BOUND_VAR_LIST, set);
+  Node foldBody = nm->mkNode(Kind::SET_FOLD, function, initialValue, set);
 
-  Node fold = nm->mkNode(LAMBDA, foldList, foldBody);
-  Node map = nm->mkNode(SET_MAP, fold, group);
+  Node fold = nm->mkNode(Kind::LAMBDA, foldList, foldBody);
+  Node map = nm->mkNode(Kind::SET_MAP, fold, group);
   return map;
 }
 
 Node SetReduction::reduceProjectOperator(Node n)
 {
-  Assert(n.getKind() == RELATION_PROJECT);
+  Assert(n.getKind() == Kind::RELATION_PROJECT);
   NodeManager* nm = NodeManager::currentNM();
   Node A = n[0];
   TypeNode elementType = A.getType().getSetElementType();
   ProjectOp projectOp = n.getOperator().getConst<ProjectOp>();
-  Node op = nm->mkConst(TUPLE_PROJECT_OP, projectOp);
+  Node op = nm->mkConst(Kind::TUPLE_PROJECT_OP, projectOp);
   Node t = nm->mkBoundVar("t", elementType);
-  Node projection = nm->mkNode(TUPLE_PROJECT, op, t);
-  Node lambda = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, t), projection);
-  Node setMap = nm->mkNode(SET_MAP, lambda, A);
+  Node projection = nm->mkNode(Kind::TUPLE_PROJECT, op, t);
+  Node lambda =
+      nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, t), projection);
+  Node setMap = nm->mkNode(Kind::SET_MAP, lambda, A);
   return setMap;
 }
 
