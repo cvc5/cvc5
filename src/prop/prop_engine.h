@@ -135,6 +135,12 @@ class PropEngine : protected EnvObj
   void assertLemma(TrustNode tlemma, theory::LemmaProperty p);
 
   /**
+   * This is called when a theory propagation was explained with texp.
+   * In other words, texp corresponds to a formula that was added to the SAT solver.
+   * This method is only used for proofs. It stores the proof of the clause
+   * corresponding to texp in the proof CNF stream.
+   *
+   * @param texp The explained propagation.
    */
   void notifyExplainedPropagation(TrustNode texp);
 

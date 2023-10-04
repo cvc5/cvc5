@@ -562,7 +562,7 @@ class SatProofManager : protected EnvObj
   Minisat::Solver* d_solver;
   /** Pointer to the underlying cnf stream. */
   CnfStream* d_cnfStream;
-  /** The proof node manager */
+  /** The prop proof manager */
   PropPfManager* d_ppm;
   /** Resolution steps (links) accumulator for chain resolution.
    *

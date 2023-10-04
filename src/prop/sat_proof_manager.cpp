@@ -50,6 +50,7 @@ SatProofManager::SatProofManager(Env& env,
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
   d_optResManager.trackNodeHashSet(&d_assumptions, &d_assumptionLevels);
+  // temporary, to allow this class to be notified when new clauses are added
   ppm->d_satPm = this;
 }
 

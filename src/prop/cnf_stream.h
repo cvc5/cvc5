@@ -44,7 +44,6 @@ namespace prop {
 class ProofCnfStream;
 class PropEngine;
 class SatSolver;
-class PropPfManager;
 
 /** A policy for how literals for formulas are handled in cnf_stream */
 enum class FormulaLitPolicy : uint32_t

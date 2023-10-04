@@ -324,10 +324,8 @@ void PropEngine::assertLemmasInternal(
 
 void PropEngine::notifyExplainedPropagation(TrustNode texp)
 {
-  if (d_ppm)
-  {
-    d_ppm->notifyExplainedPropagation(texp);
-  }
+  Assert (d_ppm!=nullptr);
+  d_ppm->notifyExplainedPropagation(texp);
 }
 
 void PropEngine::preferPhase(TNode n, bool phase)
