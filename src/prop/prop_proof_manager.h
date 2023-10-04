@@ -194,7 +194,7 @@ class PropPfManager : protected EnvObj
   context::CDHashSet<Node> d_lemmaClauses;
   /** The current propagation being processed via this class. */
   Node d_currPropagationProcessed;
-  /** */
+  /** Temporary, pointer to SAT proof manager */
   SatProofManager* d_satPm;
 }; /* class PropPfManager */
 
