@@ -111,9 +111,10 @@
   (> n 1)
   (repeat n x)
   (concat x (repeat (- n 1) x)))
-(define-rule bv-repeat-eliminate-2
-  ((x ?BitVec))
-  (repeat 1 x)
+(define-cond-rule bv-repeat-eliminate-2
+  ((x ?BitVec) (n Int))
+  (= n 1)
+  (repeat n x)
   x)
 
 (define-cond-rule bv-rotate-left-eliminate-1
