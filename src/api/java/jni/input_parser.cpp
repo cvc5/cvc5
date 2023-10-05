@@ -59,9 +59,8 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_InputParser_newInputParser__J(
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_InputParser_deletePointer(JNIEnv* env,
-                                                                     jobject,
-                                                                     jlong pointer)
+JNIEXPORT void JNICALL Java_io_github_cvc5_InputParser_deletePointer(
+    JNIEnv* env, jobject, jlong pointer)
 {
   delete reinterpret_cast<InputParser*>(pointer);
 }
@@ -152,4 +151,19 @@ Java_io_github_cvc5_InputParser_appendIncrementalStringInput(JNIEnv* env,
   parser->appendIncrementalStringInput(sInput);
   env->ReleaseStringUTFChars(jInput, cInput);
   CVC5_JAVA_API_TRY_CATCH_END(env);
+}
+
+/*
+ * Class:     io_github_cvc5_InputParser
+ * Method:    nextCommand
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_InputParser_nextCommand(JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  InputParser* parser = reinterpret_cast<InputParser*>(pointer);
+  Command* command = new Command(parser->nextCommand());
+  return reinterpret_cast<jlong>(command);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

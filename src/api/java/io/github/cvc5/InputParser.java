@@ -148,8 +148,10 @@ public class InputParser extends AbstractPointer
    */
   public Command nextCommand()
   {
-    return null;
+    return new Command(nextCommand(pointer));
   }
+
+  private native long nextCommand(long pointer);
 
   /**
    * Parse and return the next term. Requires setting the logic prior

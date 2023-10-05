@@ -23,25 +23,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class InputParserTest
+class InputParserTest extends ParserTest
 {
-  private Solver d_solver;
-  private SymbolManager d_symman;
-
-  @BeforeEach
-  void setUp()
-  {
-    d_solver = new Solver();
-    d_solver.setOption("parse-only", "true");
-    d_symman = new SymbolManager(d_solver);
-  }
-
-  @AfterEach
-  void tearDown()
-  {
-    // Context.deletePointers();
-  }
-
   Command parseLogicCommand(InputParser p, String logic)
   {
     p.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "input_parser_black");

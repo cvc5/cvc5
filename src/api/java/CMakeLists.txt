@@ -173,8 +173,9 @@ message(STATUS "JAVA_AWT_INCLUDE_PATH: ${JAVA_AWT_INCLUDE_PATH}")
 add_library(cvc5jni
   jni/api_utilities.cpp
   jni/datatype.cpp
-  jni/datatype_constructor.cpp
+  jni/command.cpp
   jni/datatype_constructor_decl.cpp
+  jni/datatype_constructor.cpp  
   jni/datatype_decl.cpp
   jni/datatype_selector.cpp
   jni/grammar.cpp
