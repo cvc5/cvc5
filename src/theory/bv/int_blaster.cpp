@@ -1002,7 +1002,7 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
 
   // the body of the quantifier
   Node matrix = d_intblastCache[quantifiedNode[1]];
-  //   make the substitution
+  // make the substitution
   matrix = matrix.substitute(oldBoundVars.begin(),
                              oldBoundVars.end(),
                              newBoundVars.begin(),
