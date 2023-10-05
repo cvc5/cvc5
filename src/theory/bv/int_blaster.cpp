@@ -546,15 +546,16 @@ Node IntBlaster::translateWithChildren(
     }
     case Kind::APPLY_UF:
     {
-
-
-
       // Insert the translated application term to the cache
       returnNode = d_nm->mkNode(Kind::APPLY_UF, translated_children);
       // Add range constraints if necessary.
       // If the original range was a BV sort, the original application of
       // the function must be within the range determined by the
       // bitwidth.
+      // function applications that include bound variables
+      // are ignored at this stage.
+      // Their range constraints are added later under the
+      // appropriate quantifier.
       if (original.getType().isBitVector() && !expr::hasBoundVar(original))
       {
         addRangeConstraint(
@@ -955,7 +956,11 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
   // for the old ones.
   std::vector<Node> oldBoundVars;
   std::vector<Node> newBoundVars;
+
+  // range constraints for quantified variables and terms
   std::vector<Node> rangeConstraints;
+
+  // collect range constraints for quantified variables
   for (Node bv : quantifiedNode[0])
   {
     oldBoundVars.push_back(bv);
@@ -976,7 +981,8 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
     }
   }
 
-  // UF range constraints
+  // collect range constraints for UF applciations
+  // that involve quantified variables
   std::unordered_set<Node> applys;
   expr::getKindSubterms(quantifiedNode[1], Kind::APPLY_UF, true, applys);
   for (Node apply : applys) {
@@ -993,8 +999,7 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
 
   // the body of the quantifier
   Node matrix = d_intblastCache[quantifiedNode[1]];
-  // mapplys;
-  //   ake the substitution
+  //   make the substitution
   matrix = matrix.substitute(oldBoundVars.begin(),
                              oldBoundVars.end(),
                              newBoundVars.begin(),
