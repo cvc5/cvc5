@@ -207,7 +207,7 @@ add_jar(cvc5jar
   OUTPUT_NAME cvc5
 )
 
-add_dependencies(cvc5jar generate-java-kinds cvc5jni cvc5)
+add_dependencies(cvc5jar generate-java-kinds cvc5jni cvc5 cvc5parser)
 
 # install in the same directory of cvc5-targets
 install(TARGETS cvc5jni

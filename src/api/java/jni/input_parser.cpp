@@ -121,3 +121,20 @@ Java_io_github_cvc5_InputParser_setIncrementalStringInput(
   env->ReleaseStringUTFChars(jName, cName);
   CVC5_JAVA_API_TRY_CATCH_END(env);
 }
+
+/*
+ * Class:     io_github_cvc5_InputParser
+ * Method:    appendIncrementalStringInput
+ * Signature: (JLjava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_io_github_cvc5_InputParser_appendIncrementalStringInput
+  (JNIEnv * env, jobject, jlong pointer, jstring jInput)
+  {
+     CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  InputParser* parser = reinterpret_cast<InputParser*>(pointer);  
+  const char* cInput = env->GetStringUTFChars(jInput, nullptr);
+  std::string sInput(cInput);
+  parser->appendIncrementalStringInput(sInput);
+  env->ReleaseStringUTFChars(jInput, cInput);
+  CVC5_JAVA_API_TRY_CATCH_END(env);
+  }

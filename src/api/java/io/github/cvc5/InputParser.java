@@ -16,13 +16,6 @@
 package io.github.cvc5;
 
 import io.github.cvc5.modes.InputLanguage;
-import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Set;
 
 /**
  * This class is the main interface for retrieving commands and expressions
@@ -138,7 +131,12 @@ public class InputParser extends AbstractPointer
    *
    * @param input The input string
    */
-  public void appendIncrementalStringInput(String input) {}
+  public void appendIncrementalStringInput(String input) 
+  {
+    appendIncrementalStringInput(pointer, input);
+  }
+
+  private native void appendIncrementalStringInput(long pointer, String input);  
 
   /**
    * Parse and return the next command. Will initialize the logic to "ALL"
