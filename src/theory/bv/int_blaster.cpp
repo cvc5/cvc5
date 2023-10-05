@@ -546,13 +546,8 @@ Node IntBlaster::translateWithChildren(
     }
     case Kind::APPLY_UF:
     {
-      // The preprocessing pass does not support function applications
-      // with bound variables.
-      if (expr::hasBoundVar(original)) {
-          throw OptionException(
-              "bv-to-int does not support quantified variables under "
-              "uninterpreted functions");
-      }
+
+
 
       // Insert the translated application term to the cache
       returnNode = d_nm->mkNode(Kind::APPLY_UF, translated_children);
@@ -981,9 +976,25 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
     }
   }
 
+  // UF range constraints
+  std::unordered_set<Node> applys;
+  expr::getKindSubterms(quantifiedNode[1], Kind::APPLY_UF, true, applys);
+  for (Node apply : applys) {
+    Trace("int-blaster-debug") << "quantified uf application: " << apply << std::endl;
+    Node f = apply.getOperator();
+    Trace("int-blaster-debug") << "quantified uf symbol: " << f << std::endl;
+    TypeNode range = f.getType().getRangeType();
+    if (range.isBitVector()) {
+      unsigned bvsize = range.getBitVectorSize();
+      rangeConstraints.push_back(mkRangeConstraint(d_intblastCache[apply], bvsize));
+    }
+  }
+
+
   // the body of the quantifier
   Node matrix = d_intblastCache[quantifiedNode[1]];
-  // make the substitution
+  // mapplys;
+  //   ake the substitution
   matrix = matrix.substitute(oldBoundVars.begin(),
                              oldBoundVars.end(),
                              newBoundVars.begin(),
