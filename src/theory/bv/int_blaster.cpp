@@ -985,17 +985,20 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
   // that involve quantified variables
   std::unordered_set<Node> applys;
   expr::getKindSubterms(quantifiedNode[1], Kind::APPLY_UF, true, applys);
-  for (Node apply : applys) {
-    Trace("int-blaster-debug") << "quantified uf application: " << apply << std::endl;
+  for (Node apply : applys)
+  {
+    Trace("int-blaster-debug")
+        << "quantified uf application: " << apply << std::endl;
     Node f = apply.getOperator();
     Trace("int-blaster-debug") << "quantified uf symbol: " << f << std::endl;
     TypeNode range = f.getType().getRangeType();
-    if (range.isBitVector()) {
+    if (range.isBitVector())
+    {
       unsigned bvsize = range.getBitVectorSize();
-      rangeConstraints.push_back(mkRangeConstraint(d_intblastCache[apply], bvsize));
+      rangeConstraints.push_back(
+          mkRangeConstraint(d_intblastCache[apply], bvsize));
     }
   }
-
 
   // the body of the quantifier
   Node matrix = d_intblastCache[quantifiedNode[1]];
