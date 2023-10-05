@@ -17,6 +17,11 @@ package io.github.cvc5;
 
 public class SymbolManager extends AbstractPointer
 {
+  /**
+   * This is an internal constructor intended to be used only
+   * inside cvc5 package
+   * @param pointer the cpp pointer to symbol manager
+   */
   SymbolManager(long pointer)
   {
     super(pointer);
