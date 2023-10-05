@@ -56,6 +56,18 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_InputParser_newInputParser__J(
 
 /*
  * Class:     io_github_cvc5_InputParser
+ * Method:    deletePointer
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_io_github_cvc5_InputParser_deletePointer(JNIEnv* env,
+                                                                     jobject,
+                                                                     jlong pointer)
+{
+  delete reinterpret_cast<InputParser*>(pointer);
+}
+
+/*
+ * Class:     io_github_cvc5_InputParser
  * Method:    getSolver
  * Signature: (J)J
  */
@@ -127,14 +139,17 @@ Java_io_github_cvc5_InputParser_setIncrementalStringInput(
  * Method:    appendIncrementalStringInput
  * Signature: (JLjava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_InputParser_appendIncrementalStringInput
-  (JNIEnv * env, jobject, jlong pointer, jstring jInput)
-  {
-     CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  InputParser* parser = reinterpret_cast<InputParser*>(pointer);  
+JNIEXPORT void JNICALL
+Java_io_github_cvc5_InputParser_appendIncrementalStringInput(JNIEnv* env,
+                                                             jobject,
+                                                             jlong pointer,
+                                                             jstring jInput)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  InputParser* parser = reinterpret_cast<InputParser*>(pointer);
   const char* cInput = env->GetStringUTFChars(jInput, nullptr);
   std::string sInput(cInput);
   parser->appendIncrementalStringInput(sInput);
   env->ReleaseStringUTFChars(jInput, cInput);
   CVC5_JAVA_API_TRY_CATCH_END(env);
-  }
+}

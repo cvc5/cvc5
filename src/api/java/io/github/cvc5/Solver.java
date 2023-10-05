@@ -63,6 +63,21 @@ public class Solver extends AbstractPointer
     super(solverPointer);
   }
 
+  @Override
+  public boolean equals(Object s)
+  {
+    if (this == s)
+      return true;
+    if (s == null || getClass() != s.getClass())
+      return false;
+    Solver solver = (Solver) s;
+    if (this.pointer == solver.pointer)
+    {
+      return true;
+    }
+    return false;
+  }
+
   /* .................................................................... */
   /* Sorts Handling                                                       */
   /* .................................................................... */

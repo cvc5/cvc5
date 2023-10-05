@@ -186,6 +186,7 @@ add_library(cvc5jni
   jni/sort.cpp
   jni/stat.cpp
   jni/statistics.cpp
+  jni/symbol_manager.cpp
   jni/synth_result.cpp
   jni/term.cpp)
 

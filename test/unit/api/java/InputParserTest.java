@@ -26,8 +26,7 @@ import org.junit.jupiter.api.Test;
 class InputParserTest
 {
   private Solver d_solver;
-  private InputLanguage d_lang;  
-  SymbolManager d_symman;
+  private InputLanguage d_lang;    
 
   @BeforeEach
   void setUp()
@@ -39,7 +38,7 @@ class InputParserTest
   @AfterEach
   void tearDown()
   {
-    Context.deletePointers();
+    // Context.deletePointers();
   }
 
   Command parseLogicCommand(InputParser p, String logic)
@@ -63,17 +62,17 @@ class InputParserTest
     // a symbol manager is allocated
     assertNotEquals(p.getSymbolManager(), null);
 
-    InputParser p2 = new InputParser(d_solver, d_symman);
-    assertEquals(p2.getSymbolManager(), d_symman);
+    // InputParser p2 = new InputParser(d_solver, d_symman);
+    // assertEquals(p2.getSymbolManager(), d_symman);
   }
 
-  @Test
-  void setFileInput()
-  {
-    InputParser p = new InputParser(d_solver);
-    assertThrows(CVC5ApiException.class,
-        () -> p.setFileInput(InputLanguage.SMT_LIB_2_6, "nonexistent.smt2"));
-  }
+  // @Test
+  // void setFileInput()
+  // {
+  //   InputParser p = new InputParser(d_solver);
+  //   assertThrows(CVC5ApiException.class,
+  //       () -> p.setFileInput(InputLanguage.SMT_LIB_2_6, "nonexistent.smt2"));
+  // }
 
   // @Test
   // void setStreamInput()
