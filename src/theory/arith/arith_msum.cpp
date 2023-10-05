@@ -25,7 +25,7 @@ namespace theory {
 
 bool ArithMSum::getMonomial(Node n, Node& c, Node& v)
 {
-  if (n.getKind() == MULT && n.getNumChildren() == 2 && n[0].isConst())
+  if (n.getKind() == Kind::MULT && n.getNumChildren() == 2 && n[0].isConst())
   {
     c = n[0];
     v = n[1];
@@ -44,7 +44,8 @@ bool ArithMSum::getMonomial(Node n, std::map<Node, Node>& msum)
       return true;
     }
   }
-  else if (n.getKind() == MULT && n.getNumChildren() == 2 && n[0].isConst())
+  else if (n.getKind() == Kind::MULT && n.getNumChildren() == 2
+           && n[0].isConst())
   {
     if (msum.find(n[1]) == msum.end())
     {
@@ -65,7 +66,7 @@ bool ArithMSum::getMonomial(Node n, std::map<Node, Node>& msum)
 
 bool ArithMSum::getMonomialSum(Node n, std::map<Node, Node>& msum)
 {
-  if (n.getKind() == ADD)
+  if (n.getKind() == Kind::ADD)
   {
     for (Node nc : n)
     {
@@ -81,8 +82,8 @@ bool ArithMSum::getMonomialSum(Node n, std::map<Node, Node>& msum)
 
 bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
 {
-  if (lit.getKind() == GEQ
-      || (lit.getKind() == EQUAL && lit[0].getType().isRealOrInt()))
+  if (lit.getKind() == Kind::GEQ
+      || (lit.getKind() == Kind::EQUAL && lit[0].getType().isRealOrInt()))
   {
     if (getMonomialSum(lit[0], msum))
     {
@@ -148,7 +149,7 @@ Node ArithMSum::mkNode(const std::map<Node, Node>& msum)
     children.push_back(m);
   }
   return children.size() > 1
-             ? nm->mkNode(ADD, children)
+             ? nm->mkNode(Kind::ADD, children)
              : (children.size() == 1 ? children[0]
                                      : nm->mkConstInt(Rational(0)));
 }
@@ -186,7 +187,7 @@ int ArithMSum::isolate(
         }
       }
       val = children.size() > 1
-                ? nm->mkNode(ADD, children)
+                ? nm->mkNode(Kind::ADD, children)
                 : (children.size() == 1 ? children[0]
                                         : nm->mkConstInt(Rational(0)));
       if (!r.isOne() && !r.isNegativeOne())
@@ -198,13 +199,13 @@ int ArithMSum::isolate(
         else
         {
           val = nm->mkNode(
-              MULT, val, nm->mkConstReal(Rational(1) / r.abs()));
+              Kind::MULT, val, nm->mkConstReal(Rational(1) / r.abs()));
         }
       }
-      val = r.sgn() == 1
-                ? nm->mkNode(MULT, nm->mkConstRealOrInt(Rational(-1)), val)
-                : val;
-      return (r.sgn() == 1 || k == EQUAL) ? 1 : -1;
+      val = r.sgn() == 1 ? nm->mkNode(
+                Kind::MULT, nm->mkConstRealOrInt(Rational(-1)), val)
+                         : val;
+      return (r.sgn() == 1 || k == Kind::EQUAL) ? 1 : -1;
     }
   }
   return 0;
@@ -225,7 +226,7 @@ int ArithMSum::isolate(
     {
       if (doCoeff)
       {
-        vc = nm->mkNode(MULT, veq_c, vc);
+        vc = nm->mkNode(Kind::MULT, veq_c, vc);
       }
       else
       {
@@ -234,17 +235,17 @@ int ArithMSum::isolate(
     }
     bool inOrder = ires == 1;
     // ensure type is correct for equality
-    if (k == EQUAL)
+    if (k == Kind::EQUAL)
     {
       bool vci = vc.getType().isInteger();
       bool vi = val.getType().isInteger();
       if (!vci && vi)
       {
-        val = nm->mkNode(TO_REAL, val);
+        val = nm->mkNode(Kind::TO_REAL, val);
       }
       else if (vci && !vi)
       {
-        val = nm->mkNode(TO_INTEGER, val);
+        val = nm->mkNode(Kind::TO_INTEGER, val);
       }
       Assert(val.getType() == vc.getType())
           << val << " " << vc << " " << val.getType() << " " << vc.getType();
@@ -256,7 +257,7 @@ int ArithMSum::isolate(
 
 Node ArithMSum::solveEqualityFor(Node lit, Node v)
 {
-  Assert(lit.getKind() == EQUAL);
+  Assert(lit.getKind() == Kind::EQUAL);
   // first look directly at sides
   TypeNode tn = lit[0].getType();
   for (unsigned r = 0; r < 2; r++)
@@ -272,7 +273,7 @@ Node ArithMSum::solveEqualityFor(Node lit, Node v)
     if (ArithMSum::getMonomialSumLit(lit, msum))
     {
       Node val, veqc;
-      if (ArithMSum::isolate(v, msum, veqc, val, EQUAL) != 0)
+      if (ArithMSum::isolate(v, msum, veqc, val, Kind::EQUAL) != 0)
       {
         if (veqc.isNull())
         {

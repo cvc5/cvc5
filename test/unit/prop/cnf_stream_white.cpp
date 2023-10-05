@@ -149,7 +149,7 @@ TEST_F(TestPropWhiteCnfStream, and)
   Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
   Node c = d_nodeManager->mkVar(d_nodeManager->booleanType());
   d_cnfStream->convertAndAssert(
-      d_nodeManager->mkNode(kind::AND, a, b, c), false, false);
+      d_nodeManager->mkNode(Kind::AND, a, b, c), false, false);
   ASSERT_TRUE(d_satSolver->addClauseCalled());
 }
 
@@ -163,13 +163,13 @@ TEST_F(TestPropWhiteCnfStream, complex_expr)
   Node f = d_nodeManager->mkVar(d_nodeManager->booleanType());
   d_cnfStream->convertAndAssert(
       d_nodeManager->mkNode(
-          kind::IMPLIES,
-          d_nodeManager->mkNode(kind::AND, a, b),
+          Kind::IMPLIES,
+          d_nodeManager->mkNode(Kind::AND, a, b),
           d_nodeManager->mkNode(
-              kind::EQUAL,
-              d_nodeManager->mkNode(kind::OR, c, d),
-              d_nodeManager->mkNode(kind::NOT,
-                                    d_nodeManager->mkNode(kind::XOR, e, f)))),
+              Kind::EQUAL,
+              d_nodeManager->mkNode(Kind::OR, c, d),
+              d_nodeManager->mkNode(Kind::NOT,
+                                    d_nodeManager->mkNode(Kind::XOR, e, f)))),
       false,
       false);
   ASSERT_TRUE(d_satSolver->addClauseCalled());
@@ -192,7 +192,7 @@ TEST_F(TestPropWhiteCnfStream, iff)
   Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
   Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
   d_cnfStream->convertAndAssert(
-      d_nodeManager->mkNode(kind::EQUAL, a, b), false, false);
+      d_nodeManager->mkNode(Kind::EQUAL, a, b), false, false);
   ASSERT_TRUE(d_satSolver->addClauseCalled());
 }
 
@@ -201,7 +201,7 @@ TEST_F(TestPropWhiteCnfStream, implies)
   Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
   Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
   d_cnfStream->convertAndAssert(
-      d_nodeManager->mkNode(kind::IMPLIES, a, b), false, false);
+      d_nodeManager->mkNode(Kind::IMPLIES, a, b), false, false);
   ASSERT_TRUE(d_satSolver->addClauseCalled());
 }
 
@@ -209,7 +209,7 @@ TEST_F(TestPropWhiteCnfStream, not )
 {
   Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
   d_cnfStream->convertAndAssert(
-      d_nodeManager->mkNode(kind::NOT, a), false, false);
+      d_nodeManager->mkNode(Kind::NOT, a), false, false);
   ASSERT_TRUE(d_satSolver->addClauseCalled());
 }
 
@@ -219,7 +219,7 @@ TEST_F(TestPropWhiteCnfStream, or)
   Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
   Node c = d_nodeManager->mkVar(d_nodeManager->booleanType());
   d_cnfStream->convertAndAssert(
-      d_nodeManager->mkNode(kind::OR, a, b, c), false, false);
+      d_nodeManager->mkNode(Kind::OR, a, b, c), false, false);
   ASSERT_TRUE(d_satSolver->addClauseCalled());
 }
 
@@ -239,7 +239,7 @@ TEST_F(TestPropWhiteCnfStream, xor)
   Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
   Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
   d_cnfStream->convertAndAssert(
-      d_nodeManager->mkNode(kind::XOR, a, b), false, false);
+      d_nodeManager->mkNode(Kind::XOR, a, b), false, false);
   ASSERT_TRUE(d_satSolver->addClauseCalled());
 }
 
@@ -247,7 +247,7 @@ TEST_F(TestPropWhiteCnfStream, ensure_literal)
 {
   Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
   Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
-  Node a_and_b = d_nodeManager->mkNode(kind::AND, a, b);
+  Node a_and_b = d_nodeManager->mkNode(Kind::AND, a, b);
   d_cnfStream->ensureLiteral(a_and_b);
   // Clauses are necessary to "literal-ize" a_and_b
   ASSERT_TRUE(d_satSolver->addClauseCalled());

@@ -35,7 +35,7 @@ std::shared_ptr<ProofNode> BitblastProofGenerator::getProofFor(Node eq)
   /* Coarse-grained bit-blast step. */
   if (t.isNull())
   {
-    cdp.addStep(eq, PfRule::BV_BITBLAST, {}, {eq});
+    cdp.addStep(eq, ProofRule::BV_BITBLAST, {}, {eq});
   }
   else
   {
@@ -85,7 +85,7 @@ std::shared_ptr<ProofNode> BitblastProofGenerator::getProofFor(Node eq)
     // Record pre-rewrite of bit-vector atom.
     if (t != rwt)
     {
-      cdp.addStep(t.eqNode(rwt), PfRule::REWRITE, {}, {t});
+      cdp.addStep(t.eqNode(rwt), ProofRule::REWRITE, {}, {t});
       transSteps.push_back(t.eqNode(rwt));
     }
 
@@ -97,7 +97,7 @@ std::shared_ptr<ProofNode> BitblastProofGenerator::getProofFor(Node eq)
     Node rwbbt = rewrite(bbt);
     if (bbt != rwbbt)
     {
-      cdp.addStep(bbt.eqNode(rwbbt), PfRule::REWRITE, {}, {bbt});
+      cdp.addStep(bbt.eqNode(rwbbt), ProofRule::REWRITE, {}, {bbt});
       transSteps.push_back(bbt.eqNode(rwbbt));
     }
 
@@ -106,7 +106,7 @@ std::shared_ptr<ProofNode> BitblastProofGenerator::getProofFor(Node eq)
     // given by the conversion proof generator.
     if (transSteps.size() > 1)
     {
-      cdp.addStep(eq, PfRule::TRANS, transSteps, {});
+      cdp.addStep(eq, ProofRule::TRANS, transSteps, {});
     }
   }
 

@@ -32,9 +32,10 @@ bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                             const std::vector<Node>& fa,
                                             bool& continueUpdate)
 {
-  bool result = pn->getRule() == PfRule::ASSUME
+  bool result = pn->getRule() == ProofRule::ASSUME
                 && d_proofCnfStream->hasProofFor(pn->getResult());
-  if (TraceIsOn("prop-proof-pp") && !result && pn->getRule() == PfRule::ASSUME)
+  if (TraceIsOn("prop-proof-pp") && !result
+      && pn->getRule() == ProofRule::ASSUME)
   {
     Trace("prop-proof-pp") << "- Ignoring no-proof assumption "
                            << pn->getResult() << "\n";
@@ -49,7 +50,7 @@ bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
 }
 
 bool ProofPostprocessCallback::update(Node res,
-                                      PfRule id,
+                                      ProofRule id,
                                       const std::vector<Node>& children,
                                       const std::vector<Node>& args,
                                       CDProof* cdp,
@@ -58,7 +59,7 @@ bool ProofPostprocessCallback::update(Node res,
   Trace("prop-proof-pp") << "- Post process " << id << " " << res << " : "
                          << children << " / " << args << "\n"
                          << push;
-  Assert(id == PfRule::ASSUME);
+  Assert(id == ProofRule::ASSUME);
   // we cache based on the assumption node, not the proof node, since there
   // may be multiple occurrences of the same node.
   Node f = args[0];

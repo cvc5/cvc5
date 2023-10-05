@@ -249,7 +249,7 @@ void SubTheory::postCheck(Theory::Effort e)
                      Trace("ff::trans") << "Poly: " << poly << std::endl;
                      return poly;
                    });
-    Tracer tracer(generators);
+    size_t nNonFieldPolyGens = generators.size();
     if (options().ff.ffFieldPolys)
     {
       for (const auto& var : CoCoA::indets(polyRing))
@@ -261,6 +261,7 @@ void SubTheory::postCheck(Theory::Effort e)
         generators.push_back(CoCoA::power(var, size) - var);
       }
     }
+    Tracer tracer(generators);
     if (options().ff.ffTraceGb) tracer.setFunctionPointers();
     CoCoA::ideal ideal = CoCoA::ideal(generators);
     const auto basis = CoCoA::GBasis(ideal);
@@ -277,8 +278,12 @@ void SubTheory::postCheck(Theory::Effort e)
         Assert(d_conflict.empty());
         for (size_t i : coreIndices)
         {
-          Trace("ff::core") << "Core: " << d_facts[i] << std::endl;
-          d_conflict.push_back(d_facts[i]);
+          // omit field polys from core
+          if (i < nNonFieldPolyGens)
+          {
+            Trace("ff::core") << "Core: " << d_facts[i] << std::endl;
+            d_conflict.push_back(d_facts[i]);
+          }
         }
       }
       else

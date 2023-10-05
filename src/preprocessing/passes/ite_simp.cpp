@@ -45,15 +45,15 @@ Node mkAssocAnd(const std::vector<Node>& children)
   }
   else
   {
-    const uint32_t max = kind::metakind::getMaxArityForKind(kind::AND);
-    const uint32_t min = kind::metakind::getMinArityForKind(kind::AND);
+    const uint32_t max = kind::metakind::getMaxArityForKind(Kind::AND);
+    const uint32_t min = kind::metakind::getMinArityForKind(Kind::AND);
 
     Assert(min <= children.size());
 
     unsigned int numChildren = children.size();
     if (numChildren <= max)
     {
-      return nm->mkNode(kind::AND, children);
+      return nm->mkNode(Kind::AND, children);
     }
 
     typedef std::vector<Node>::const_iterator const_iterator;
@@ -71,7 +71,7 @@ Node mkAssocAnd(const std::vector<Node>& children)
       {
         subChildren.push_back(*it);
       }
-      Node subNode = nm->mkNode(kind::AND, subChildren);
+      Node subNode = nm->mkNode(Kind::AND, subChildren);
       newChildren.push_back(subNode);
       subChildren.clear();
     }
@@ -94,7 +94,7 @@ Node mkAssocAnd(const std::vector<Node>& children)
         {
           subChildren.push_back(*it);
         }
-        Node subNode = nm->mkNode(kind::AND, subChildren);
+        Node subNode = nm->mkNode(Kind::AND, subChildren);
         newChildren.push_back(subNode);
       }
     }
@@ -109,7 +109,7 @@ Node mkAssocAnd(const std::vector<Node>& children)
     AlwaysAssert(newChildren.size() >= min)
         << "Too few new children in mkAssociative";
 
-    return nm->mkNode(kind::AND, newChildren);
+    return nm->mkNode(Kind::AND, newChildren);
   }
 }
 

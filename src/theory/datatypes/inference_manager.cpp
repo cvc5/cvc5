@@ -112,7 +112,7 @@ TrustNode InferenceManager::processDtLemma(Node conc, Node exp, InferenceId id)
   Node lem;
   if (!exp.isNull() && !exp.isConst())
   {
-    lem = NodeManager::currentNM()->mkNode(kind::IMPLIES, exp, conc);
+    lem = NodeManager::currentNM()->mkNode(Kind::IMPLIES, exp, conc);
   }
   else
   {
@@ -150,7 +150,7 @@ Node InferenceManager::prepareDtInference(Node conc,
 {
   Trace("dt-lemma-debug") << "prepareDtInference : " << conc << " via " << exp
                           << " by " << id << std::endl;
-  if (conc.getKind() == EQUAL && conc[0].getType().isBoolean())
+  if (conc.getKind() == Kind::EQUAL && conc[0].getType().isBoolean())
   {
     // must turn (= conc false) into (not conc)
     conc = rewrite(conc);

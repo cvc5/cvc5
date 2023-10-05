@@ -54,25 +54,25 @@ void TheoryModel::finishInit(eq::EqualityEngine* ee)
   d_equalityEngine = ee;
   // The kinds we are treating as function application in congruence
   d_equalityEngine->addFunctionKind(
-      kind::APPLY_UF, false, logicInfo().isHigherOrder());
-  d_equalityEngine->addFunctionKind(kind::HO_APPLY);
-  d_equalityEngine->addFunctionKind(kind::SELECT);
-  // d_equalityEngine->addFunctionKind(kind::STORE);
-  d_equalityEngine->addFunctionKind(kind::APPLY_CONSTRUCTOR);
-  d_equalityEngine->addFunctionKind(kind::APPLY_SELECTOR);
-  d_equalityEngine->addFunctionKind(kind::APPLY_TESTER);
-  d_equalityEngine->addFunctionKind(kind::SEQ_NTH);
+      Kind::APPLY_UF, false, logicInfo().isHigherOrder());
+  d_equalityEngine->addFunctionKind(Kind::HO_APPLY);
+  d_equalityEngine->addFunctionKind(Kind::SELECT);
+  // d_equalityEngine->addFunctionKind(Kind::STORE);
+  d_equalityEngine->addFunctionKind(Kind::APPLY_CONSTRUCTOR);
+  d_equalityEngine->addFunctionKind(Kind::APPLY_SELECTOR);
+  d_equalityEngine->addFunctionKind(Kind::APPLY_TESTER);
+  d_equalityEngine->addFunctionKind(Kind::SEQ_NTH);
   // do not interpret APPLY_UF if we are not assigning function values
   if (!d_enableFuncModels)
   {
-    setSemiEvaluatedKind(kind::APPLY_UF);
+    setSemiEvaluatedKind(Kind::APPLY_UF);
   }
   // Equal and not terms are not relevant terms. In other words, asserted
   // equalities and negations of predicates (as terms) do not need to be sent
   // to the model. Regardless, theories should send information to the model
   // that ensures that all assertions are satisfied.
-  setIrrelevantKind(EQUAL);
-  setIrrelevantKind(NOT);
+  setIrrelevantKind(Kind::EQUAL);
+  setIrrelevantKind(Kind::NOT);
 }
 
 void TheoryModel::reset(){
@@ -138,19 +138,19 @@ Node TheoryModel::getValue(TNode n) const
   {
     return nn;
   }
-  if (nn.getKind() == kind::FUNCTION_ARRAY_CONST)
+  if (nn.getKind() == Kind::FUNCTION_ARRAY_CONST)
   {
     // return the lambda instead
     nn = uf::FunctionConst::toLambda(nn);
   }
-  if (nn.getKind() == kind::LAMBDA)
+  if (nn.getKind() == Kind::LAMBDA)
   {
     if (options().theory.condenseFunctionValues)
     {
       // normalize the body. Do not normalize the entire node, which
       // involves array normalization.
       NodeManager* nm = NodeManager::currentNM();
-      nn = nm->mkNode(kind::LAMBDA, nn[0], rewrite(nn[1]));
+      nn = nm->mkNode(Kind::LAMBDA, nn[0], rewrite(nn[1]));
     }
   }
   else
@@ -170,7 +170,7 @@ bool TheoryModel::isModelCoreSymbol(Node s) const
   {
     return true;
   }
-  Assert(s.isVar() && s.getKind() != BOUND_VARIABLE);
+  Assert(s.isVar() && s.getKind() != Kind::BOUND_VARIABLE);
   return d_model_core.find(s) != d_model_core.end();
 }
 
@@ -204,7 +204,7 @@ Node TheoryModel::getModelValue(TNode n) const
   Trace("model-getvalue-debug") << "Get model value " << n << " ... ";
   Trace("model-getvalue-debug") << d_equalityEngine->hasTerm(n) << std::endl;
   Kind nk = n.getKind();
-  if (n.isConst() || nk == BOUND_VARIABLE)
+  if (n.isConst() || nk == Kind::BOUND_VARIABLE)
   {
     d_modelCache[n] = n;
     return n;
@@ -224,7 +224,7 @@ Node TheoryModel::getModelValue(TNode n) const
     Trace("model-getvalue-debug")
         << "Get model value children " << n << std::endl;
     std::vector<Node> children;
-    if (n.getKind() == APPLY_UF)
+    if (n.getKind() == Kind::APPLY_UF)
     {
       Node op = getModelValue(n.getOperator());
       Trace("model-getvalue-debug") << "  operator : " << op << std::endl;
@@ -255,7 +255,7 @@ Node TheoryModel::getModelValue(TNode n) const
     ret = rewrite(ret);
     Trace("model-getvalue-debug") << "ret (post-rewrite): " << ret << std::endl;
     // special cases
-    if (ret.getKind() == kind::CARDINALITY_CONSTRAINT)
+    if (ret.getKind() == Kind::CARDINALITY_CONSTRAINT)
     {
       const CardinalityConstraint& cc =
           ret.getOperator().getConst<CardinalityConstraint>();
@@ -331,9 +331,9 @@ Node TheoryModel::getModelValue(TNode n) const
         {
           args.push_back(nm->mkBoundVar(argTypes[i]));
         }
-        Node boundVarList = nm->mkNode(kind::BOUND_VAR_LIST, args);
+        Node boundVarList = nm->mkNode(Kind::BOUND_VAR_LIST, args);
         TypeEnumerator te(t.getRangeType());
-        ret = nm->mkNode(kind::LAMBDA, boundVarList, *te);
+        ret = nm->mkNode(Kind::LAMBDA, boundVarList, *te);
       }
       else
       {
@@ -367,13 +367,16 @@ void TheoryModel::addTermInternal(TNode n)
   Assert(d_equalityEngine->hasTerm(n));
   Trace("model-builder-debug2") << "TheoryModel::addTerm : " << n << std::endl;
   //must collect UF terms
-  if (n.getKind()==APPLY_UF) {
+  if (n.getKind() == Kind::APPLY_UF)
+  {
     Node op = n.getOperator();
     if( std::find( d_uf_terms[ op ].begin(), d_uf_terms[ op ].end(), n )==d_uf_terms[ op ].end() ){
       d_uf_terms[ op ].push_back( n );
       Trace("model-builder-fun") << "Add apply term " << n << std::endl;
     }
-  }else if( n.getKind()==HO_APPLY ){
+  }
+  else if (n.getKind() == Kind::HO_APPLY)
+  {
     Node op = n[0];
     if( std::find( d_ho_uf_terms[ op ].begin(), d_ho_uf_terms[ op ].end(), n )==d_ho_uf_terms[ op ].end() ){
       d_ho_uf_terms[ op ].push_back( n );
@@ -417,10 +420,13 @@ bool TheoryModel::assertPredicate(TNode a, bool polarity)
       (a == d_false && (!polarity))) {
     return true;
   }
-  if (a.getKind() == EQUAL) {
+  if (a.getKind() == Kind::EQUAL)
+  {
     Trace("model-builder-assertions") << "(assert " << (polarity ? " " : "(not ") << a << (polarity ? ");" : "));") << endl;
     d_equalityEngine->assertEquality( a, polarity, Node::null() );
-  } else {
+  }
+  else
+  {
     Trace("model-builder-assertions") << "(assert " << (polarity ? "" : "(not ") << a << (polarity ? ");" : "));") << endl;
     d_equalityEngine->assertPredicate( a, polarity, Node::null() );
   }
@@ -719,7 +725,7 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
     Node n = it->first;
     Assert(!n.isNull());
     // lambdas do not need assignments
-    if (n.getKind() == LAMBDA)
+    if (n.getKind() == Kind::LAMBDA)
     {
       continue;
     }
@@ -793,8 +799,8 @@ bool TheoryModel::isBaseModelValue(TNode n) const
     return true;
   }
   Kind k = n.getKind();
-  if (k == kind::REAL_ALGEBRAIC_NUMBER || k == kind::LAMBDA
-      || k == kind::WITNESS)
+  if (k == Kind::REAL_ALGEBRAIC_NUMBER || k == Kind::LAMBDA
+      || k == Kind::WITNESS)
   {
     // we are a value if we are one of the above kinds
     return true;
@@ -842,7 +848,7 @@ bool TheoryModel::isValue(TNode n) const
         // since nullary operators are represented internal as variables.
         // All other non-constant terms with zero children are not values.
         finishedComputing = true;
-        currentReturn = (cur.getKind() == kind::PI);
+        currentReturn = (cur.getKind() == Kind::PI);
       }
       else if (rewrite(cur) != cur)
       {
@@ -862,7 +868,7 @@ bool TheoryModel::isValue(TNode n) const
       // APPLY_SELECTOR. All other operators are either builtin, or should be
       // considered constants, e.g. constructors.
       Kind k = cur.getKind();
-      bool hasOperator = k == kind::APPLY_UF || k == kind::APPLY_SELECTOR;
+      bool hasOperator = k == Kind::APPLY_UF || k == Kind::APPLY_SELECTOR;
       size_t nextChildIndex = v.second;
       if (hasOperator && nextChildIndex > 0)
       {

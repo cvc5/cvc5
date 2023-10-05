@@ -45,7 +45,7 @@ bool DatatypesInference::mustCommunicateFact(Node n, Node exp)
   // conclusion has kind LEQ (for datatypes size) or OR. Notice that
   // all equalities are kept internal, apart from those forced as lemmas
   // via instantiate.
-  if (n.getKind() == LEQ || n.getKind() == OR)
+  if (n.getKind() == Kind::LEQ || n.getKind() == Kind::OR)
   {
     Trace("dt-lemma-debug")
         << "Communicate " << n << " due to kind" << std::endl;

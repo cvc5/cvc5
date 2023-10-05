@@ -39,7 +39,6 @@ namespace cvc5::internal {
 using namespace theory;
 using namespace expr;
 using namespace cvc5::context;
-using namespace kind;
 using namespace theory::bv;
 
 namespace test {
@@ -79,8 +78,8 @@ TEST_F(TestTheoryWhiteEngine, rewriter_simple)
 
   // make the expression (ADD x y (MULT z 0))
   Node zero = d_nodeManager->mkConstInt(Rational("0"));
-  Node zTimesZero = d_nodeManager->mkNode(MULT, z, zero);
-  Node n = d_nodeManager->mkNode(ADD, x, y, zTimesZero);
+  Node zTimesZero = d_nodeManager->mkNode(Kind::MULT, z, zero);
+  Node n = d_nodeManager->mkNode(Kind::ADD, x, y, zTimesZero);
 
   Node nExpected = n;
   Node nOut;
@@ -113,23 +112,23 @@ TEST_F(TestTheoryWhiteEngine, rewriter_complex)
   Node one = d_nodeManager->mkConstInt(Rational("1"));
   Node two = d_nodeManager->mkConstInt(Rational("2"));
 
-  Node f1 = d_nodeManager->mkNode(APPLY_UF, f, one);
-  Node f2 = d_nodeManager->mkNode(APPLY_UF, f, two);
-  Node fx = d_nodeManager->mkNode(APPLY_UF, f, x);
-  Node ffx = d_nodeManager->mkNode(APPLY_UF, f, fx);
-  Node gy = d_nodeManager->mkNode(APPLY_UF, g, y);
-  Node z1eqz2 = d_nodeManager->mkNode(EQUAL, z1, z2);
-  Node f1eqf2 = d_nodeManager->mkNode(EQUAL, f1, f2);
-  Node ffxeqgy = d_nodeManager->mkNode(EQUAL, ffx, gy);
-  Node and1 = d_nodeManager->mkNode(AND, ffxeqgy, z1eqz2);
-  Node ffxeqf1 = d_nodeManager->mkNode(EQUAL, ffx, f1);
-  Node or1 = d_nodeManager->mkNode(OR, and1, ffxeqf1);
+  Node f1 = d_nodeManager->mkNode(Kind::APPLY_UF, f, one);
+  Node f2 = d_nodeManager->mkNode(Kind::APPLY_UF, f, two);
+  Node fx = d_nodeManager->mkNode(Kind::APPLY_UF, f, x);
+  Node ffx = d_nodeManager->mkNode(Kind::APPLY_UF, f, fx);
+  Node gy = d_nodeManager->mkNode(Kind::APPLY_UF, g, y);
+  Node z1eqz2 = d_nodeManager->mkNode(Kind::EQUAL, z1, z2);
+  Node f1eqf2 = d_nodeManager->mkNode(Kind::EQUAL, f1, f2);
+  Node ffxeqgy = d_nodeManager->mkNode(Kind::EQUAL, ffx, gy);
+  Node and1 = d_nodeManager->mkNode(Kind::AND, ffxeqgy, z1eqz2);
+  Node ffxeqf1 = d_nodeManager->mkNode(Kind::EQUAL, ffx, f1);
+  Node or1 = d_nodeManager->mkNode(Kind::OR, and1, ffxeqf1);
   // make the expression:
   // (IMPLIES (EQUAL (f 1) (f 2))
   //   (OR (AND (EQUAL (f (f x)) (g y))
   //            (EQUAL z1 z2))
   //       (EQUAL (f (f x)) (f 1))))
-  Node n = d_nodeManager->mkNode(IMPLIES, f1eqf2, or1);
+  Node n = d_nodeManager->mkNode(Kind::IMPLIES, f1eqf2, or1);
   Node nExpected = n;
   Node nOut;
 
@@ -150,25 +149,27 @@ TEST_F(TestTheoryWhiteEngine, rewrite_rules)
   Node z = d_nodeManager->mkVar("z", t);
 
   // (x - y) * z --> (x * z) - (y * z)
-  Node expr = d_nodeManager->mkNode(
-      BITVECTOR_MULT, d_nodeManager->mkNode(BITVECTOR_SUB, x, y), z);
+  Node expr =
+      d_nodeManager->mkNode(Kind::BITVECTOR_MULT,
+                            d_nodeManager->mkNode(Kind::BITVECTOR_SUB, x, y),
+                            z);
   Node result = expr;
   if (RewriteRule<MultDistrib>::applies(expr))
   {
     result = RewriteRule<MultDistrib>::apply(expr);
   }
   Node expected =
-      d_nodeManager->mkNode(BITVECTOR_SUB,
-                            d_nodeManager->mkNode(BITVECTOR_MULT, x, z),
-                            d_nodeManager->mkNode(BITVECTOR_MULT, y, z));
+      d_nodeManager->mkNode(Kind::BITVECTOR_SUB,
+                            d_nodeManager->mkNode(Kind::BITVECTOR_MULT, x, z),
+                            d_nodeManager->mkNode(Kind::BITVECTOR_MULT, y, z));
   ASSERT_EQ(result, expected);
 
   // Try to apply MultSlice to a multiplication of two and three different
   // variables, expect different results (x * y and x * y * z should not get
   // rewritten to the same term).
-  expr = d_nodeManager->mkNode(BITVECTOR_MULT, x, y, z);
+  expr = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, x, y, z);
   result = expr;
-  Node expr2 = d_nodeManager->mkNode(BITVECTOR_MULT, x, y);
+  Node expr2 = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, x, y);
   Node result2 = expr;
   if (RewriteRule<MultSlice>::applies(expr))
   {

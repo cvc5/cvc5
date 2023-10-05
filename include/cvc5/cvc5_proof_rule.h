@@ -13,15 +13,34 @@
  * Proof rule enumeration.
  */
 
-#include "cvc5_private.h"
-
-#ifndef CVC5__PROOF__PROOF_RULE_H
-#define CVC5__PROOF__PROOF_RULE_H
+#if (!defined(CVC5_API_USE_C_ENUMS)                 \
+     && !defined(CVC5__API__CVC5_CPP_PROOF_RULE_H)) \
+    || (defined(CVC5_API_USE_C_ENUMS)               \
+        && !defined(CVC5__API__CVC5_C_PROOF_RULE_H))
 
 #include <iosfwd>
+#include <cstdint>
 
-namespace cvc5::internal {
+#ifdef CVC5_API_USE_C_ENUMS
+#undef ENUM
+#define ENUM(name) Cvc5##name
+#else
+#include <cvc5/cvc5_export.h>
 
+#include <cstdint>
+#include <ostream>
+namespace cvc5 {
+#undef ENUM
+#define ENUM(name) class name
+#define EVALUE(name) name
+#endif
+
+#ifdef CVC5_API_USE_C_ENUMS
+#undef EVALUE
+#define EVALUE(name) CVC5_PROOF_RULE_##name
+#endif
+
+// clang-format off
 /**
  * \internal
  * This documentation is target for the online documentation that can
@@ -42,9 +61,12 @@ namespace cvc5::internal {
  *
  * where we call :math:`\varphi_i` its premises or children, :math:`t_i` its
  * arguments, :math:`\psi` its conclusion, and :math:`C` its side condition.
- * Alternatively, we can write the application of a proof rule as ``(RULENAME F1 ... Fn :args t1 ... tm)``, omitting the conclusion (since it can be uniquely determined from premises and arguments).
+ * Alternatively, we can write the application of a proof rule as 
+ * ``(RULENAME F1 ... Fn :args t1 ... tm)``, omitting the conclusion
+ * (since it can be uniquely determined from premises and arguments).
  * Note that premises are sometimes given as proofs, i.e., application of
- * proof rules, instead of formulas. This abuses the notation to see proof rule applications and their conclusions interchangeably.
+ * proof rules, instead of formulas. This abuses the notation to see proof
+ * rule applications and their conclusions interchangeably.
  *
  * Conceptually, the following proof rules form a calculus whose target
  * user is the Node-level theory solvers. This means that the rules below
@@ -52,21 +74,22 @@ namespace cvc5::internal {
  * objects like Rewriter::rewrite or Node::substitute. It is intended to be
  * translated or printed in other formats.
  *
- * The following PfRule values include core rules and those categorized by
+ * The following ProofRule values include core rules and those categorized by
  * theory, including the theory of equality.
  *
  * The "core rules" include two distinguished rules which have special status:
- * (1) :cpp:enumerator:`ASSUME <cvc5::internal::PfRule::ASSUME>`, which represents an open
- * leaf in a proof; and (2) :cpp:enumerator:`SCOPE <cvc5::internal::PfRule::SCOPE>`, which
- * encloses a scope (a subproof) with a set of scoped assumptions. The core rules additionally correspond to
- * generic operations that are done internally on nodes, e.g. calling
- * Rewriter::rewrite.
+ * (1) :cpp:enumerator:`ASSUME <cvc5::ProofRule::ASSUME>`, which represents an open
+ * leaf in a proof; and (2) :cpp:enumerator:`SCOPE <cvc5::ProofRule::SCOPE>`, which
+ * encloses a scope (a subproof) with a set of scoped assumptions. The core rules
+ * additionally correspond to generic operations that are done internally on nodes,
+ * e.g., calling Rewriter::rewrite.
  *
  * Rules with prefix ``MACRO_`` are those that can be defined in terms of other
- * rules. These exist for convenience and can be replaced by their definition in post-processing.
+ * rules. These exist for convenience and can be replaced by their definition
+ * in post-processing.
  * \endverbatim
  */
-enum class PfRule : uint32_t
+enum ENUM(ProofRule) : uint32_t
 {
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -80,10 +103,10 @@ enum class PfRule : uint32_t
    * open leaf in a proof that is not (yet) justified. An assume leaf is
    * analogous to a free variable in a term, where we say "F is a free
    * assumption in proof P" if it contains an application of F that is not
-   * bound by :cpp:enumerator:`SCOPE <cvc5::internal::PfRule::SCOPE>` (see below).
+   * bound by :cpp:enumerator:`SCOPE <cvc5::ProofRule::SCOPE>` (see below).
    * \endverbatim
    */
-  ASSUME,
+  EVALUE(ASSUME),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Scope (a binder for assumptions)**
@@ -95,7 +118,7 @@ enum class PfRule : uint32_t
    *   \dots F_n}{\neg (F_1 \land \dots \land F_n)}{if $F=\bot$}
    *
    * This rule has a dual purpose with :cpp:enumerator:`ASSUME
-   * <cvc5::internal::PfRule::ASSUME>`. It is a way to close assumptions in a proof. We
+   * <cvc5::ProofRule::ASSUME>`. It is a way to close assumptions in a proof. We
    * require that :math:`F_1 \dots F_n` are free assumptions in P and say that
    * :math:`F_1 \dots F_n` are not free in ``(SCOPE P)``. In other words, they
    * are bound by this application. For example, the proof node:
@@ -104,7 +127,7 @@ enum class PfRule : uint32_t
    * More generally, a proof with no free assumptions always concludes a valid
    * formula. \endverbatim
    */
-  SCOPE,
+  EVALUE(SCOPE),
 
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -122,7 +145,7 @@ enum class PfRule : uint32_t
    * are equalities of the form `(= x y)` and converted into substitutions
    * :math:`x\mapsto y`. \endverbatim
    */
-  SUBS,
+  EVALUE(SUBS),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Builtin theory -- Rewrite**
@@ -133,7 +156,7 @@ enum class PfRule : uint32_t
    * where :math:`idr` is a MethodId identifier, which determines the kind of
    * rewriter to apply, e.g. Rewriter::rewrite. \endverbatim
    */
-  REWRITE,
+  EVALUE(REWRITE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Builtin theory -- Evaluate**
@@ -144,7 +167,7 @@ enum class PfRule : uint32_t
    * Note this is equivalent to: ``(REWRITE t MethodId::RW_EVALUATE)``.
    * \endverbatim
    */
-  EVALUATE,
+  EVALUE(EVALUATE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Builtin theory -- Substitution + Rewriting equality introduction**
@@ -165,7 +188,7 @@ enum class PfRule : uint32_t
    * and rewriter respectively to be used. For details, see
    * :cvc5src:`theory/builtin/proof_checker.h`. \endverbatim
    */
-  MACRO_SR_EQ_INTRO,
+  EVALUE(MACRO_SR_EQ_INTRO),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Builtin theory -- Substitution + Rewriting predicate introduction**
@@ -195,7 +218,7 @@ enum class PfRule : uint32_t
    * of :math:`F` does not escape this rule.
    * \endverbatim
    */
-  MACRO_SR_PRED_INTRO,
+  EVALUE(MACRO_SR_PRED_INTRO),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Builtin theory -- Substitution + Rewriting predicate elimination**
@@ -208,10 +231,10 @@ enum class PfRule : uint32_t
    * where :math:`ids` and :math:`idr` are method identifiers.
    *
    * We rewrite only on the Skolem form of :math:`F`, similar to
-   * :cpp:enumerator:`MACRO_SR_EQ_INTRO <cvc5::internal::PfRule::MACRO_SR_EQ_INTRO>`.
+   * :cpp:enumerator:`MACRO_SR_EQ_INTRO <cvc5::ProofRule::MACRO_SR_EQ_INTRO>`.
    * \endverbatim
    */
-  MACRO_SR_PRED_ELIM,
+  EVALUE(MACRO_SR_PRED_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Builtin theory -- Substitution + Rewriting predicate elimination**
@@ -228,10 +251,10 @@ enum class PfRule : uint32_t
    * \texttt{Rewriter::rewrite}(\texttt{toOriginal}(G'))` where :math:`F'` and
    * :math:`G'` are the result of each side of the equation above. Here,
    * original forms are used in a similar manner to
-   * :cpp:enumerator:`MACRO_SR_PRED_INTRO <cvc5::internal::PfRule::MACRO_SR_PRED_INTRO>`
+   * :cpp:enumerator:`MACRO_SR_PRED_INTRO <cvc5::ProofRule::MACRO_SR_PRED_INTRO>`
    * above. \endverbatim
    */
-  MACRO_SR_PRED_TRANSFORM,
+  EVALUE(MACRO_SR_PRED_TRANSFORM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Builtin theory -- Encode predicate transformation**
@@ -246,7 +269,7 @@ enum class PfRule : uint32_t
    * formats.
    * \endverbatim
    */
-  ENCODE_PRED_TRANSFORM,
+  EVALUE(ENCODE_PRED_TRANSFORM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Builtin theory -- DSL rewrite**
@@ -262,11 +285,11 @@ enum class PfRule : uint32_t
    * Notice that the application of the substitution takes into account the
    * possible list semantics of variables :math:`x_1 \ldots x_n`. If
    * :math:`x_i` is a variable with list semantics, then :math:`t_i` denotes a
-   * list of terms. The substitution (see expr::narySubstitute) replaces each
-   * :math:`x_i` with the list :math:`t_i` in its place.
+   * list of terms. The substitution implemented by expr::narySubstitute
+   * replaces each :math:`x_i` with the list :math:`t_i` in its place.
    * \endverbatim
    */
-  DSL_REWRITE,
+  EVALUE(DSL_REWRITE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Builtin theory -- Annotation**
@@ -278,7 +301,7 @@ enum class PfRule : uint32_t
    * node, one example is where :math:`a_1` is a theory::InferenceId.
    * \endverbatim
    */
-  ANNOTATION,
+  EVALUE(ANNOTATION),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Processing rules -- Remove Term Formulas Axiom**
@@ -288,7 +311,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  REMOVE_TERM_FORMULA_AXIOM,
+  EVALUE(REMOVE_TERM_FORMULA_AXIOM),
 
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -302,7 +325,7 @@ enum class PfRule : uint32_t
    * placeholder if a theory did not provide a proof for a lemma or conflict.
    * \endverbatim
    */
-  THEORY_LEMMA,
+  EVALUE(THEORY_LEMMA),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Trusted rules -- Theory rewrite**
@@ -320,7 +343,7 @@ enum class PfRule : uint32_t
    * bound variables that are not guaranteed to be consistent on each call.
    * \endverbatim
    */
-  THEORY_REWRITE,
+  EVALUE(THEORY_REWRITE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Trusted rules -- Theory preprocessing**
@@ -331,7 +354,7 @@ enum class PfRule : uint32_t
    * where :math:`F` is an equality of the form :math:`t =
    * \texttt{Theory::ppRewrite}(t)` for some theory. \endverbatim
    */
-  THEORY_PREPROCESS,
+  EVALUE(THEORY_PREPROCESS),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Trusted rules -- Theory preprocessing**
@@ -343,7 +366,7 @@ enum class PfRule : uint32_t
    * the theory with identifier tid.
    * \endverbatim
    */
-  THEORY_PREPROCESS_LEMMA,
+  EVALUE(THEORY_PREPROCESS_LEMMA),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Trusted rules -- Preprocessing**
@@ -356,7 +379,7 @@ enum class PfRule : uint32_t
    * :math:`F` was added as a new assertion by some preprocessing pass.
    * \endverbatim
    */
-  PREPROCESS,
+  EVALUE(PREPROCESS),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Trusted rules -- Preprocessing new assertion**
@@ -367,7 +390,7 @@ enum class PfRule : uint32_t
    * where :math:`F` was added as a new assertion by some preprocessing pass.
    * \endverbatim
    */
-  PREPROCESS_LEMMA,
+  EVALUE(PREPROCESS_LEMMA),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Trusted rules -- Theory expand definitions**
@@ -378,7 +401,7 @@ enum class PfRule : uint32_t
    * where :math:`F` is an equality of the form :math:`t = t'` where :math:`t`
    * was replaced by :math:`t'` based on theory expand definitions. \endverbatim
    */
-  THEORY_EXPAND_DEF,
+  EVALUE(THEORY_EXPAND_DEF),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Trusted rules -- Witness term axiom**
@@ -389,7 +412,7 @@ enum class PfRule : uint32_t
    * where :math:`F` is an existential ``(exists ((x T)) (P x))`` used for
    * introducing a witness term ``(witness ((x T)) (P x))``. \endverbatim
    */
-  WITNESS_AXIOM,
+  EVALUE(WITNESS_AXIOM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Trusted rules -- Non-replayable rewriting**
@@ -400,7 +423,7 @@ enum class PfRule : uint32_t
    * where :math:`F` is an equality `t = t'` that holds by a form of rewriting
    * that could not be replayed during proof postprocessing. \endverbatim
    */
-  TRUST_REWRITE,
+  EVALUE(TRUST_REWRITE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Trusted rules -- Non-supported flattening rewrite **
@@ -412,7 +435,7 @@ enum class PfRule : uint32_t
    * applications of associative operators but the rewriter does not support
    * flattening them to the same normal form. \endverbatim
    */
-  TRUST_FLATTENING_REWRITE,
+  EVALUE(TRUST_FLATTENING_REWRITE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Trusted rules -- Non-replayable substitution**
@@ -424,7 +447,7 @@ enum class PfRule : uint32_t
    * substitution that could not be replayed during proof postprocessing.
    * \endverbatim
    */
-  TRUST_SUBS,
+  EVALUE(TRUST_SUBS),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Trusted rules -- Non-replayable substitution map**
@@ -437,7 +460,7 @@ enum class PfRule : uint32_t
    * inference may contain possibly multiple children corresponding to the
    * formulas used to derive the substitution. \endverbatim
    */
-  TRUST_SUBS_MAP,
+  EVALUE(TRUST_SUBS_MAP),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Trusted rules -- Solved equality**
@@ -448,7 +471,7 @@ enum class PfRule : uint32_t
    * where :math:`F` is a solved equality of the form :math:`x = t` derived as
    * the solved form of :math:`F'`. \endverbatim
    */
-  TRUST_SUBS_EQ,
+  EVALUE(TRUST_SUBS_EQ),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Theory-specific inference**
@@ -459,7 +482,7 @@ enum class PfRule : uint32_t
    * where :math:`F` is a fact derived by a theory-specific inference.
    * \endverbatim
    */
-  THEORY_INFERENCE,
+  EVALUE(THEORY_INFERENCE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **SAT Refutation for assumption-based unsat cores**
@@ -470,7 +493,7 @@ enum class PfRule : uint32_t
    * where :math:`F_1 \dots F_n` correspond to the unsat core determined by the
    * SAT solver. \endverbatim
    */
-  SAT_REFUTATION,
+  EVALUE(SAT_REFUTATION),
 
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -503,7 +526,7 @@ enum class PfRule : uint32_t
    * literal eliminated.
    * \endverbatim
    */
-  RESOLUTION,
+  EVALUE(RESOLUTION),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- N-ary Resolution**
@@ -524,7 +547,7 @@ enum class PfRule : uint32_t
    * The result of the chain resolution is :math:`C = C_n'`
    * \endverbatim
    */
-  CHAIN_RESOLUTION,
+  EVALUE(CHAIN_RESOLUTION),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- Factoring**
@@ -532,11 +555,11 @@ enum class PfRule : uint32_t
    * .. math::
    *   \inferrule{C_1 \mid -}{C_2}
    *
-   * where the set representations of :math:`C_1` and :math:`C_2` are the same
-   * and the number of literals in :math:`C_2` is smaller than that of
-   * :math:`C_1`. \endverbatim
+   * where :math:`C_2` is the clause :math:`C_1`, but every occurence of a literal
+   * after its first occurence is omitted.
+   * \endverbatim
    */
-  FACTORING,
+  EVALUE(FACTORING),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- Reordering**
@@ -549,7 +572,7 @@ enum class PfRule : uint32_t
    * number of literals in :math:`C_2` is the same of that of :math:`C_1`.
    * \endverbatim
    */
-  REORDERING,
+  EVALUE(REORDERING),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- N-ary Resolution + Factoring + Reordering**
@@ -560,13 +583,13 @@ enum class PfRule : uint32_t
    * where
    *
    * - let :math:`C_1 \dots C_n` be nodes viewed as clauses, as defined in
-   *   :cpp:enumerator:`RESOLUTION <cvc5::internal::PfRule::RESOLUTION>`
+   *   :cpp:enumerator:`RESOLUTION <cvc5::ProofRule::RESOLUTION>`
    * - let :math:`C_1 \diamond{L,\mathit{pol}} C_2` represent the resolution of
    *   :math:`C_1` with :math:`C_2` with pivot :math:`L` and polarity
    *   :math:`pol`, as defined in
-   *   :cpp:enumerator:`RESOLUTION <cvc5::internal::PfRule::RESOLUTION>`
+   *   :cpp:enumerator:`RESOLUTION <cvc5::ProofRule::RESOLUTION>`
    * - let :math:`C_1'` be equal, in its set representation, to :math:`C_1`,
-   * - for each :math:`i > 1`, let :math:`C_i'` be equal, it its set
+   * - for each :math:`i > 1`, let :math:`C_i'` be equal, in its set
    *   representation, to :math:`C_{i-1} \diamond{L_{i-1},\mathit{pol}_{i-1}}
    *   C_i'`
    *
@@ -574,16 +597,16 @@ enum class PfRule : uint32_t
    * representation, to :math:`C_n'`
    * \endverbatim
    */
-  MACRO_RESOLUTION,
+  EVALUE(MACRO_RESOLUTION),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- N-ary Resolution + Factoring + Reordering unchecked**
    *
    * Same as :cpp:enumerator:`MACRO_RESOLUTION
-   * <cvc5::internal::PfRule::MACRO_RESOLUTION>`, but not checked by the internal proof
+   * <cvc5::ProofRule::MACRO_RESOLUTION>`, but not checked by the internal proof
    * checker. \endverbatim
    */
-  MACRO_RESOLUTION_TRUST,
+  EVALUE(MACRO_RESOLUTION_TRUST),
 
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -594,7 +617,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  SPLIT,
+  EVALUE(SPLIT),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- Equality resolution**
@@ -603,11 +626,11 @@ enum class PfRule : uint32_t
    *   \inferrule{F_1, (F_1 = F_2) \mid -}{F_2}
    *
    * Note this can optionally be seen as a macro for
-   * :cpp:enumerator:`EQUIV_ELIM1 <cvc5::internal::PfRule::EQUIV_ELIM1>` +
-   * :cpp:enumerator:`RESOLUTION <cvc5::internal::PfRule::RESOLUTION>`.
+   * :cpp:enumerator:`EQUIV_ELIM1 <cvc5::ProofRule::EQUIV_ELIM1>` +
+   * :cpp:enumerator:`RESOLUTION <cvc5::ProofRule::RESOLUTION>`.
    * \endverbatim
    */
-  EQ_RESOLVE,
+  EVALUE(EQ_RESOLVE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- Modus Ponens**
@@ -616,11 +639,11 @@ enum class PfRule : uint32_t
    *   \inferrule{F_1, (F_1 \rightarrow F_2) \mid -}{F_2}
    *
    * Note this can optionally be seen as a macro for
-   * :cpp:enumerator:`IMPLIES_ELIM <cvc5::internal::PfRule::IMPLIES_ELIM>` +
-   * :cpp:enumerator:`RESOLUTION <cvc5::internal::PfRule::RESOLUTION>`.
+   * :cpp:enumerator:`IMPLIES_ELIM <cvc5::ProofRule::IMPLIES_ELIM>` +
+   * :cpp:enumerator:`RESOLUTION <cvc5::ProofRule::RESOLUTION>`.
    * \endverbatim
    */
-  MODUS_PONENS,
+  EVALUE(MODUS_PONENS),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- Double negation elimination**
@@ -630,7 +653,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  NOT_NOT_ELIM,
+  EVALUE(NOT_NOT_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- Contradiction**
@@ -640,7 +663,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  CONTRA,
+  EVALUE(CONTRA),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- And elimination**
@@ -650,7 +673,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  AND_ELIM,
+  EVALUE(AND_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- And introduction**
@@ -660,7 +683,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  AND_INTRO,
+  EVALUE(AND_INTRO),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- Not Or elimination**
@@ -670,7 +693,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  NOT_OR_ELIM,
+  EVALUE(NOT_OR_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- Implication elimination**
@@ -680,7 +703,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  IMPLIES_ELIM,
+  EVALUE(IMPLIES_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- Not Implication elimination version 1**
@@ -690,7 +713,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  NOT_IMPLIES_ELIM1,
+  EVALUE(NOT_IMPLIES_ELIM1),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- Not Implication elimination version 2**
@@ -700,7 +723,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  NOT_IMPLIES_ELIM2,
+  EVALUE(NOT_IMPLIES_ELIM2),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- Equivalence elimination version 1**
@@ -710,7 +733,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  EQUIV_ELIM1,
+  EVALUE(EQUIV_ELIM1),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- Equivalence elimination version 2**
@@ -720,7 +743,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  EQUIV_ELIM2,
+  EVALUE(EQUIV_ELIM2),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- Not Equivalence elimination version 1**
@@ -730,7 +753,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  NOT_EQUIV_ELIM1,
+  EVALUE(NOT_EQUIV_ELIM1),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- Not Equivalence elimination version 2**
@@ -740,7 +763,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  NOT_EQUIV_ELIM2,
+  EVALUE(NOT_EQUIV_ELIM2),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- XOR elimination version 1**
@@ -750,7 +773,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  XOR_ELIM1,
+  EVALUE(XOR_ELIM1),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- XOR elimination version 2**
@@ -760,7 +783,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  XOR_ELIM2,
+  EVALUE(XOR_ELIM2),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- Not XOR elimination version 1**
@@ -770,7 +793,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  NOT_XOR_ELIM1,
+  EVALUE(NOT_XOR_ELIM1),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- Not XOR elimination version 2**
@@ -780,7 +803,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  NOT_XOR_ELIM2,
+  EVALUE(NOT_XOR_ELIM2),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- ITE elimination version 1**
@@ -790,7 +813,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  ITE_ELIM1,
+  EVALUE(ITE_ELIM1),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- ITE elimination version 2**
@@ -800,7 +823,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  ITE_ELIM2,
+  EVALUE(ITE_ELIM2),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- Not ITE elimination version 1**
@@ -810,7 +833,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  NOT_ITE_ELIM1,
+  EVALUE(NOT_ITE_ELIM1),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- Not ITE elimination version 2**
@@ -820,7 +843,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  NOT_ITE_ELIM2,
+  EVALUE(NOT_ITE_ELIM2),
 
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -832,7 +855,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  NOT_AND,
+  EVALUE(NOT_AND),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- CNF -- And Positive**
@@ -843,7 +866,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  CNF_AND_POS,
+  EVALUE(CNF_AND_POS),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- CNF -- And Negative**
@@ -854,7 +877,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  CNF_AND_NEG,
+  EVALUE(CNF_AND_NEG),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- CNF -- Or Positive**
@@ -865,7 +888,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  CNF_OR_POS,
+  EVALUE(CNF_OR_POS),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- CNF -- Or Negative**
@@ -876,7 +899,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  CNF_OR_NEG,
+  EVALUE(CNF_OR_NEG),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- CNF -- Implies Positive**
@@ -887,7 +910,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  CNF_IMPLIES_POS,
+  EVALUE(CNF_IMPLIES_POS),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- CNF -- Implies Negative 1**
@@ -897,7 +920,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  CNF_IMPLIES_NEG1,
+  EVALUE(CNF_IMPLIES_NEG1),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- CNF -- Implies Negative 2**
@@ -907,7 +930,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  CNF_IMPLIES_NEG2,
+  EVALUE(CNF_IMPLIES_NEG2),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- CNF -- Equiv Positive 1**
@@ -917,7 +940,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  CNF_EQUIV_POS1,
+  EVALUE(CNF_EQUIV_POS1),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- CNF -- Equiv Positive 2**
@@ -927,7 +950,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  CNF_EQUIV_POS2,
+  EVALUE(CNF_EQUIV_POS2),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- CNF -- Equiv Negative 1**
@@ -937,7 +960,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  CNF_EQUIV_NEG1,
+  EVALUE(CNF_EQUIV_NEG1),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- CNF -- Equiv Negative 2**
@@ -947,7 +970,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  CNF_EQUIV_NEG2,
+  EVALUE(CNF_EQUIV_NEG2),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- CNF -- XOR Positive 1**
@@ -957,7 +980,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  CNF_XOR_POS1,
+  EVALUE(CNF_XOR_POS1),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- CNF -- XOR Positive 2**
@@ -968,7 +991,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  CNF_XOR_POS2,
+  EVALUE(CNF_XOR_POS2),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- CNF -- XOR Negative 1**
@@ -978,7 +1001,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  CNF_XOR_NEG1,
+  EVALUE(CNF_XOR_NEG1),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- CNF -- XOR Negative 2**
@@ -988,7 +1011,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  CNF_XOR_NEG2,
+  EVALUE(CNF_XOR_NEG2),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- CNF -- ITE Positive 1**
@@ -999,7 +1022,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  CNF_ITE_POS1,
+  EVALUE(CNF_ITE_POS1),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- CNF -- ITE Positive 2**
@@ -1010,7 +1033,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  CNF_ITE_POS2,
+  EVALUE(CNF_ITE_POS2),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- CNF -- ITE Positive 3**
@@ -1021,18 +1044,18 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  CNF_ITE_POS3,
+  EVALUE(CNF_ITE_POS3),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- CNF -- ITE Negative 1**
    *
    * .. math::
    *   \inferrule{- \mid (\ite{C}{F_1}{F_2})}{(\ite{C}{F_1}{F_2}) \lor \neg C
-   *   \lor \not F_1}
+   *   \lor \neg F_1}
    *
    * \endverbatim
    */
-  CNF_ITE_NEG1,
+  EVALUE(CNF_ITE_NEG1),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- CNF -- ITE Negative 2**
@@ -1043,7 +1066,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  CNF_ITE_NEG2,
+  EVALUE(CNF_ITE_NEG2),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- CNF -- ITE Negative 3**
@@ -1054,7 +1077,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  CNF_ITE_NEG3,
+  EVALUE(CNF_ITE_NEG3),
 
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -1062,10 +1085,10 @@ enum class PfRule : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{-\mid t}{t = t)}
+   *   \inferrule{-\mid t}{t = t}
    * \endverbatim
    */
-  REFL,
+  EVALUE(REFL),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Equality -- Symmetry**
@@ -1082,7 +1105,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  SYMM,
+  EVALUE(SYMM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Equality -- Transitivity**
@@ -1092,7 +1115,7 @@ enum class PfRule : uint32_t
    *   \inferrule{t_1=t_2,\dots,t_{n-1}=t_n\mid -}{t_1 = t_n}
    * \endverbatim
    */
-  TRANS,
+  EVALUE(TRANS),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Equality -- Congruence**
@@ -1108,7 +1131,7 @@ enum class PfRule : uint32_t
    * ``ProofRuleChecker::mkKindNode``.
    * \endverbatim
    */
-  CONG,
+  EVALUE(CONG),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Equality -- True intro**
@@ -1118,7 +1141,7 @@ enum class PfRule : uint32_t
    *   \inferrule{F\mid -}{F = \top}
    * \endverbatim
    */
-  TRUE_INTRO,
+  EVALUE(TRUE_INTRO),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Equality -- True elim**
@@ -1128,7 +1151,7 @@ enum class PfRule : uint32_t
    *   \inferrule{F=\top\mid -}{F}
    * \endverbatim
    */
-  TRUE_ELIM,
+  EVALUE(TRUE_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Equality -- False intro**
@@ -1138,7 +1161,7 @@ enum class PfRule : uint32_t
    *   \inferrule{\neg F\mid -}{F = \bot}
    * \endverbatim
    */
-  FALSE_INTRO,
+  EVALUE(FALSE_INTRO),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Equality -- False elim**
@@ -1148,7 +1171,7 @@ enum class PfRule : uint32_t
    *   \inferrule{F=\bot\mid -}{\neg F}
    * \endverbatim
    */
-  FALSE_ELIM,
+  EVALUE(FALSE_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Equality -- Higher-order application encoding**
@@ -1161,7 +1184,7 @@ enum class PfRule : uint32_t
    * :math:`@` isthe ``HO_APPLY`` kind.
    *  \endverbatim
    */
-  HO_APP_ENCODE,
+  EVALUE(HO_APP_ENCODE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Equality -- Higher-order congruence**
@@ -1174,7 +1197,7 @@ enum class PfRule : uint32_t
    * Notice that this rule is only used when the application kinds are ``APPLY_UF``.
    * \endverbatim
    */
-  HO_CONG,
+  EVALUE(HO_CONG),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Equality -- Beta reduction**
@@ -1185,10 +1208,10 @@ enum class PfRule : uint32_t
    *   {((\lambda x_1\dots x_n.\> t) t_1 \ldots t_n)=t\{x_1\mapsto t_1,\dots,x_n\mapsto t_n\}}
    *
    * The right hand side of the equality in the conclusion is computed using
-   * standard substitution (Node::substitute).
+   * standard substitution via Node::substitute.
    * \endverbatim
    */
-  BETA_REDUCE,
+  EVALUE(BETA_REDUCE),
 
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -1200,7 +1223,7 @@ enum class PfRule : uint32_t
    *   {\mathit{select}(\mathit{store}(a,i_1,e),i_2) = \mathit{select}(a,i_2)}
    * \endverbatim
    */
-  ARRAYS_READ_OVER_WRITE,
+  EVALUE(ARRAYS_READ_OVER_WRITE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arrays -- Read over write, contrapositive**
@@ -1211,7 +1234,7 @@ enum class PfRule : uint32_t
    *   \mathit{select}(a,i_1)\mid -}{i_1=i_2}
    * \endverbatim
    */
-  ARRAYS_READ_OVER_WRITE_CONTRA,
+  EVALUE(ARRAYS_READ_OVER_WRITE_CONTRA),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arrays -- Read over write 1**
@@ -1222,7 +1245,7 @@ enum class PfRule : uint32_t
    *   {\mathit{select}(\mathit{store}(a,i,e),i)=e}
    * \endverbatim
    */
-  ARRAYS_READ_OVER_WRITE_1,
+  EVALUE(ARRAYS_READ_OVER_WRITE_1),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arrays -- Arrays extensionality**
@@ -1236,7 +1259,7 @@ enum class PfRule : uint32_t
    * :math:`\texttt{arrays::SkolemCache::getExtIndexSkolem}(a\neq b)`.
    * \endverbatim
    */
-  ARRAYS_EXT,
+  EVALUE(ARRAYS_EXT),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arrays -- Expansion of array range equality**
@@ -1249,7 +1272,7 @@ enum class PfRule : uint32_t
    *   \mathit{select}(a,x)=\mathit{select}(b,x)}
    * \endverbatim
    */
-  ARRAYS_EQ_RANGE_EXPAND,
+  EVALUE(ARRAYS_EQ_RANGE_EXPAND),
 
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -1265,7 +1288,7 @@ enum class PfRule : uint32_t
    * strategies defined in ``theory/bv/bitblast/bitblast_strategies_template.h``.
    * \endverbatim
    */
-  BV_BITBLAST,
+  EVALUE(BV_BITBLAST),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Bit-vectors -- Bitblast bit-vector constant, variable, and terms**
@@ -1287,7 +1310,7 @@ enum class PfRule : uint32_t
    * where :math:`t` is :math:`k(t_1,\dots,t_n)`.
    * \endverbatim
    */
-  BV_BITBLAST_STEP,
+  EVALUE(BV_BITBLAST_STEP),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Bit-vectors -- Bit-vector eager atom**
@@ -1299,7 +1322,7 @@ enum class PfRule : uint32_t
    * where :math:`F` is of kind ``BITVECTOR_EAGER_ATOM``.
    * \endverbatim
    */
-  BV_EAGER_ATOM,
+  EVALUE(BV_EAGER_ATOM),
 
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -1312,7 +1335,7 @@ enum class PfRule : uint32_t
    * where :math:`C` is a constructor.
    * \endverbatim
    */
-  DT_UNIF,
+  EVALUE(DT_UNIF),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- Instantiation**
@@ -1326,7 +1349,7 @@ enum class PfRule : uint32_t
    * t, and :math:`\mathit{is}_C` is the discriminator (tester) for :math:`C`.
    * \endverbatim
    */
-  DT_INST,
+  EVALUE(DT_INST),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- Collapse**
@@ -1343,7 +1366,7 @@ enum class PfRule : uint32_t
    * ``mkGroundValue`` in this case.
    * \endverbatim
    */
-  DT_COLLAPSE,
+  EVALUE(DT_COLLAPSE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- Split**
@@ -1355,7 +1378,7 @@ enum class PfRule : uint32_t
    * where :math:`C_1,\dots,C_n` are all the constructors of the type of :math:`t`.
    * \endverbatim
    */
-  DT_SPLIT,
+  EVALUE(DT_SPLIT),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- Clash**
@@ -1367,7 +1390,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  DT_CLASH,
+  EVALUE(DT_CLASH),
 
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -1380,7 +1403,7 @@ enum class PfRule : uint32_t
    * where :math:`t` is the unpurified form of skolem :math:`k`.
    * \endverbatim
    */
-  SKOLEM_INTRO,
+  EVALUE(SKOLEM_INTRO),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Skolemization**
@@ -1401,7 +1424,7 @@ enum class PfRule : uint32_t
    * obtained by ``SkolemManager::getWitnessForm``.
    * \endverbatim
    */
-  SKOLEMIZE,
+  EVALUE(SKOLEMIZE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Instantiation**
@@ -1418,7 +1441,7 @@ enum class PfRule : uint32_t
    * generated the instantiation.
    * \endverbatim
    */
-  INSTANTIATE,
+  EVALUE(INSTANTIATE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Alpha equivalence**
@@ -1435,7 +1458,7 @@ enum class PfRule : uint32_t
    * quantifiers proof checker does not currently check that this is the case.
    * \endverbatim
    */
-  ALPHA_EQUIV,
+  EVALUE(ALPHA_EQUIV),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- (Trusted) quantifiers preprocessing**
@@ -1448,7 +1471,7 @@ enum class PfRule : uint32_t
    * \texttt{QuantifiersPreprocess::preprocess(t)}`.
    * \endverbatim
    */
-  QUANTIFIERS_PREPROCESS,
+  EVALUE(QUANTIFIERS_PREPROCESS),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Core rules -- Concatenation equality**
@@ -1472,7 +1495,7 @@ enum class PfRule : uint32_t
    * for constants such that ``Word::splitConstant`` returns non-null.
    * \endverbatim
    */
-  CONCAT_EQ,
+  EVALUE(CONCAT_EQ),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Core rules -- Concatenation unification**
@@ -1485,7 +1508,7 @@ enum class PfRule : uint32_t
    * where :math:`b` indicates if the direction is reversed.
    * \endverbatim
    */
-  CONCAT_UNIFY,
+  EVALUE(CONCAT_UNIFY),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Core rules -- Concatenation conflict**
@@ -1513,7 +1536,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  CONCAT_CONFLICT,
+  EVALUE(CONCAT_CONFLICT),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Core rules -- Concatenation split**
@@ -1545,7 +1568,7 @@ enum class PfRule : uint32_t
    * :math:`\mathit{pre}(x,n)` is shorthand for :math:`\mathit{substr}(x,0,n)`.
    * \endverbatim
    */
-  CONCAT_SPLIT,
+  EVALUE(CONCAT_SPLIT),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Core rules -- Concatenation split for constants**
@@ -1568,7 +1591,7 @@ enum class PfRule : uint32_t
    * :math:`\mathit{skolem}(\mathit{pre}(t_2,\mathit{len}(t_2) - 1))`.
    * \endverbatim
    */
-  CONCAT_CSPLIT,
+  EVALUE(CONCAT_CSPLIT),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Core rules -- Concatenation length propagation**
@@ -1593,7 +1616,7 @@ enum class PfRule : uint32_t
    * \mathit{len}(s_2)))`.
    * \endverbatim
    */
-  CONCAT_LPROP,
+  EVALUE(CONCAT_LPROP),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Core rules -- Concatenation constant propagation**
@@ -1630,7 +1653,7 @@ enum class PfRule : uint32_t
    * be contained in :math:`t_2`.
    * \endverbatim
    */
-  CONCAT_CPROP,
+  EVALUE(CONCAT_CPROP),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Core rules -- String decomposition**
@@ -1651,7 +1674,7 @@ enum class PfRule : uint32_t
    * :math:`w_2` is :math:`\mathit{skolem}(\mathit{suf}(t,n)`.
    * \endverbatim
    */
-  STRING_DECOMPOSE,
+  EVALUE(STRING_DECOMPOSE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Core rules -- Length positive**
@@ -1662,7 +1685,7 @@ enum class PfRule : uint32_t
    *   > 0}
    * \endverbatim
    */
-  STRING_LENGTH_POS,
+  EVALUE(STRING_LENGTH_POS),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Core rules -- Length non-empty**
@@ -1672,7 +1695,7 @@ enum class PfRule : uint32_t
    *   \inferrule{t\neq ''\mid -}{\mathit{len}(t) \neq 0}
    * \endverbatim
    */
-  STRING_LENGTH_NON_EMPTY,
+  EVALUE(STRING_LENGTH_NON_EMPTY),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Extended functions -- Reduction**
@@ -1689,7 +1712,7 @@ enum class PfRule : uint32_t
    * variables of :math:`t`.
    * \endverbatim
    */
-  STRING_REDUCTION,
+  EVALUE(STRING_REDUCTION),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Extended functions -- Eager reduction**
@@ -1701,7 +1724,7 @@ enum class PfRule : uint32_t
    * where :math:`R` is :math:`\texttt{strings::TermRegistry::eagerReduce}(t)`.
    * \endverbatim
    */
-  STRING_EAGER_REDUCTION,
+  EVALUE(STRING_EAGER_REDUCTION),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Regular expressions -- Intersection**
@@ -1711,7 +1734,7 @@ enum class PfRule : uint32_t
    *   \inferrule{t\in R_1,\,t\in R_2\mid -}{t\in \mathit{inter}(R_1,R_2)}
    * \endverbatim
    */
-  RE_INTER,
+  EVALUE(RE_INTER),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Regular expressions -- Positive Unfold**
@@ -1723,7 +1746,7 @@ enum class PfRule : uint32_t
    * corresponding to the one-step unfolding of the premise.
    * \endverbatim
    */
-  RE_UNFOLD_POS,
+  EVALUE(RE_UNFOLD_POS),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Regular expressions -- Negative Unfold**
@@ -1735,7 +1758,7 @@ enum class PfRule : uint32_t
    * corresponding to the one-step unfolding of the premise.
    * \endverbatim
    */
-  RE_UNFOLD_NEG,
+  EVALUE(RE_UNFOLD_NEG),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Regular expressions -- Unfold negative concatenation, fixed**
@@ -1751,7 +1774,7 @@ enum class PfRule : uint32_t
    * :math:`R`.
    * \endverbatim
    */
-  RE_UNFOLD_NEG_CONCAT_FIXED,
+  EVALUE(RE_UNFOLD_NEG_CONCAT_FIXED),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Regular expressions -- Elimination**
@@ -1766,7 +1789,7 @@ enum class PfRule : uint32_t
    * are performed for :math:`F`.
    * \endverbatim
    */
-  RE_ELIM,
+  EVALUE(RE_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Code points**
@@ -1777,7 +1800,7 @@ enum class PfRule : uint32_t
    *   \mathit{to\_code}(s) \vee t\neq s}
    * \endverbatim
    */
-  STRING_CODE_INJ,
+  EVALUE(STRING_CODE_INJ),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Sequence unit**
@@ -1790,7 +1813,7 @@ enum class PfRule : uint32_t
    * sequence of length one.
    * \endverbatim
    */
-  STRING_SEQ_UNIT_INJ,
+  EVALUE(STRING_SEQ_UNIT_INJ),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- (Trusted) String inference**
@@ -1803,7 +1826,7 @@ enum class PfRule : uint32_t
    * :math:`\texttt{strings::InferProofCons::convert}`.
    * \endverbatim
    */
-  STRING_INFERENCE,
+  EVALUE(STRING_INFERENCE),
 
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -1830,7 +1853,7 @@ enum class PfRule : uint32_t
    *
    * \endverbatim
    */
-  MACRO_ARITH_SCALE_SUM_UB,
+  EVALUE(MACRO_ARITH_SCALE_SUM_UB),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Sum upper bounds**
@@ -1844,7 +1867,7 @@ enum class PfRule : uint32_t
    * otherwise, :math:`L = L_1 + \cdots + L_n` and :math:`R = R_1 + \cdots + R_n`.
    * \endverbatim
    */
-  ARITH_SUM_UB,
+  EVALUE(ARITH_SUM_UB),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Tighten strict integer upper bounds**
@@ -1855,7 +1878,7 @@ enum class PfRule : uint32_t
    * where :math:`i` has integer type.
    * \endverbatim
    */
-  INT_TIGHT_UB,
+  EVALUE(INT_TIGHT_UB),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Tighten strict integer lower bounds**
@@ -1866,7 +1889,7 @@ enum class PfRule : uint32_t
    * where :math:`i` has integer type.
    * \endverbatim
    */
-  INT_TIGHT_LB,
+  EVALUE(INT_TIGHT_LB),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Trichotomy of the reals**
@@ -1878,7 +1901,7 @@ enum class PfRule : uint32_t
    * Note that :math:`\neg` here denotes arithmetic negation, i.e., flipping :math:`\geq` to :math:`<` etc.
    * \endverbatim
    */
-  ARITH_TRICHOTOMY,
+  EVALUE(ARITH_TRICHOTOMY),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Operator elimination**
@@ -1887,7 +1910,7 @@ enum class PfRule : uint32_t
    *   \inferrule{- \mid t}{\texttt{arith::OperatorElim::getAxiomFor(t)}}
    * \endverbatim
    */
-  ARITH_OP_ELIM_AXIOM,
+  EVALUE(ARITH_OP_ELIM_AXIOM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Polynomial normalization**
@@ -1898,7 +1921,7 @@ enum class PfRule : uint32_t
    * where :math:`\texttt{arith::PolyNorm::isArithPolyNorm(t, s)} = \top`.
    * \endverbatim
    */
-  ARITH_POLY_NORM,
+  EVALUE(ARITH_POLY_NORM),
 
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -1915,7 +1938,7 @@ enum class PfRule : uint32_t
    * in :math:`m` should be given as less or greater than zero.
    * \endverbatim
    */
-  ARITH_MULT_SIGN,
+  EVALUE(ARITH_MULT_SIGN),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Multiplication with positive factor**
@@ -1926,7 +1949,7 @@ enum class PfRule : uint32_t
    * where :math:`\diamond` is a relation symbol.
    * \endverbatim
    */
-  ARITH_MULT_POS,
+  EVALUE(ARITH_MULT_POS),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Multiplication with negative factor**
@@ -1938,7 +1961,7 @@ enum class PfRule : uint32_t
    * inverted relation symbol.
    * \endverbatim
    */
-  ARITH_MULT_NEG,
+  EVALUE(ARITH_MULT_NEG),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Multiplication tangent plane**
@@ -1953,7 +1976,7 @@ enum class PfRule : uint32_t
    * constants, :math:`\sigma \in \{ 1, -1\}` and :math:`tplane := b \cdot x + a \cdot y - a \cdot b` is the tangent plane of :math:`x \cdot y` at :math:`(a,b)`.
    * \endverbatim
    */
-  ARITH_MULT_TANGENT,
+  EVALUE(ARITH_MULT_TANGENT),
 
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -1966,7 +1989,7 @@ enum class PfRule : uint32_t
    * where :math:`l,u` are valid lower and upper bounds on :math:`\pi`.
    * \endverbatim
    */
-  ARITH_TRANS_PI,
+  EVALUE(ARITH_TRANS_PI),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Transcendentals -- Exp at negative values**
@@ -1975,7 +1998,7 @@ enum class PfRule : uint32_t
    *   \inferrule{- \mid t}{(t < 0) \leftrightarrow (\exp(t) < 1)}
    * \endverbatim
    */
-  ARITH_TRANS_EXP_NEG,
+  EVALUE(ARITH_TRANS_EXP_NEG),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Transcendentals -- Exp is always positive**
@@ -1984,7 +2007,7 @@ enum class PfRule : uint32_t
    *   \inferrule{- \mid t}{\exp(t) > 0}
    * \endverbatim
    */
-  ARITH_TRANS_EXP_POSITIVITY,
+  EVALUE(ARITH_TRANS_EXP_POSITIVITY),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Transcendentals -- Exp grows super-linearly for positive
@@ -1994,7 +2017,7 @@ enum class PfRule : uint32_t
    *   \inferrule{- \mid t}{t \leq 0 \lor \exp(t) > t+1}
    * \endverbatim
    */
-  ARITH_TRANS_EXP_SUPER_LIN,
+  EVALUE(ARITH_TRANS_EXP_SUPER_LIN),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Transcendentals -- Exp at zero**
@@ -2003,7 +2026,7 @@ enum class PfRule : uint32_t
    *   \inferrule{- \mid t}{(t=0) \leftrightarrow (\exp(t) = 1)}
    * \endverbatim
    */
-  ARITH_TRANS_EXP_ZERO,
+  EVALUE(ARITH_TRANS_EXP_ZERO),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Transcendentals -- Exp is approximated from above for
@@ -2027,7 +2050,7 @@ enum class PfRule : uint32_t
    * :math:`\exp(t` is below the secant of :math:`p` from :math:`l` to
    * :math:`u`. \endverbatim
    */
-  ARITH_TRANS_EXP_APPROX_ABOVE_NEG,
+  EVALUE(ARITH_TRANS_EXP_APPROX_ABOVE_NEG),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Transcendentals -- Exp is approximated from above for
@@ -2057,7 +2080,7 @@ enum class PfRule : uint32_t
    * :math:`\exp(t` is below the secant of :math:`p` from :math:`l` to
    * :math:`u`. \endverbatim
    */
-  ARITH_TRANS_EXP_APPROX_ABOVE_POS,
+  EVALUE(ARITH_TRANS_EXP_APPROX_ABOVE_POS),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Transcendentals -- Exp is approximated from below**
@@ -2075,7 +2098,7 @@ enum class PfRule : uint32_t
    *   \exp(x) = \sum_{n=0}^{\infty} \frac{x^n}{n!}
    * \endverbatim
    */
-  ARITH_TRANS_EXP_APPROX_BELOW,
+  EVALUE(ARITH_TRANS_EXP_APPROX_BELOW),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Transcendentals -- Sine is always between -1 and 1**
@@ -2084,7 +2107,7 @@ enum class PfRule : uint32_t
    *   \inferrule{- \mid t}{\sin(t) \leq 1 \land \sin(t) \geq -1}
    * \endverbatim
    */
-  ARITH_TRANS_SINE_BOUNDS,
+  EVALUE(ARITH_TRANS_SINE_BOUNDS),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Transcendentals -- Sine is shifted to -pi...pi**
@@ -2098,7 +2121,7 @@ enum class PfRule : uint32_t
    * new integer slolem that is the number of phases :math:`y` is shifted.
    * \endverbatim
    */
-  ARITH_TRANS_SINE_SHIFT,
+  EVALUE(ARITH_TRANS_SINE_SHIFT),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Transcendentals -- Sine is symmetric with respect to
@@ -2108,7 +2131,7 @@ enum class PfRule : uint32_t
    *   \inferrule{- \mid t}{\sin(t) - \sin(-t) = 0}
    * \endverbatim
    */
-  ARITH_TRANS_SINE_SYMMETRY,
+  EVALUE(ARITH_TRANS_SINE_SYMMETRY),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Transcendentals -- Sine is bounded by the tangent at zero**
@@ -2117,7 +2140,7 @@ enum class PfRule : uint32_t
    *   \inferrule{- \mid t}{(t > 0 \rightarrow \sin(t) < t) \land (t < 0
    *   \rightarrow \sin(t) > t)} \endverbatim
    */
-  ARITH_TRANS_SINE_TANGENT_ZERO,
+  EVALUE(ARITH_TRANS_SINE_TANGENT_ZERO),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Transcendentals -- Sine is bounded by the tangents at -pi
@@ -2127,7 +2150,7 @@ enum class PfRule : uint32_t
    *   \inferrule{- \mid t}{(t > -\pi \rightarrow \sin(t) > -\pi - t) \land (t <
    *   \pi \rightarrow \sin(t) < \pi - t)} \endverbatim
    */
-  ARITH_TRANS_SINE_TANGENT_PI,
+  EVALUE(ARITH_TRANS_SINE_TANGENT_PI),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Transcendentals -- Sine is approximated from above for
@@ -2153,7 +2176,7 @@ enum class PfRule : uint32_t
    * :math:`\sin(t)` is below the secant of :math:`p` from :math:`l` to
    * :math:`u`. \endverbatim
    */
-  ARITH_TRANS_SINE_APPROX_ABOVE_NEG,
+  EVALUE(ARITH_TRANS_SINE_APPROX_ABOVE_NEG),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Transcendentals -- Sine is approximated from above for
@@ -2172,7 +2195,7 @@ enum class PfRule : uint32_t
    * that :math:`\sin(t)` is the maximum of the sine function on
    * :math:`(lb,ub)`. \endverbatim
    */
-  ARITH_TRANS_SINE_APPROX_ABOVE_POS,
+  EVALUE(ARITH_TRANS_SINE_APPROX_ABOVE_POS),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Transcendentals -- Sine is approximated from below for
@@ -2191,7 +2214,7 @@ enum class PfRule : uint32_t
    * that :math:`\sin(t)` is the minimum of the sine function on
    * :math:`(lb,ub)`. \endverbatim
    */
-  ARITH_TRANS_SINE_APPROX_BELOW_NEG,
+  EVALUE(ARITH_TRANS_SINE_APPROX_BELOW_NEG),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Transcendentals -- Sine is approximated from below for
@@ -2217,7 +2240,7 @@ enum class PfRule : uint32_t
    * :math:`\sin(t)` is above the secant of :math:`p` from :math:`l` to
    * :math:`u`. \endverbatim
    */
-  ARITH_TRANS_SINE_APPROX_BELOW_POS,
+  EVALUE(ARITH_TRANS_SINE_APPROX_BELOW_POS),
 
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -2259,13 +2282,14 @@ enum class PfRule : uint32_t
    * algorithm, it means that :math:`x_i` can not be in the topmost interval of
    * the cell. \endverbatim
    */
-  ARITH_NL_COVERING_DIRECT,
+  EVALUE(ARITH_NL_COVERING_DIRECT),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Coverings -- Recursive interval**
    *
-   * See :cpp:enumerator:`ARITH_NL_COVERING_DIRECT
-   * <cvc5::internal::PfRule::ARITH_NL_COVERING_DIRECT>` for the necessary definitions.
+   * See
+   * :cpp:enumerator:`ARITH_NL_COVERING_DIRECT <cvc5::ProofRule::ARITH_NL_COVERING_DIRECT>`
+   * for the necessary definitions.
    *
    * .. math::
    *   \inferrule{\texttt{Cell}, \texttt{Covering} \mid -}{\bot}
@@ -2275,7 +2299,7 @@ enum class PfRule : uint32_t
    * no :math:`x_i` exists that extends the cell and satisfies all assumptions.
    * \endverbatim
    */
-  ARITH_NL_COVERING_RECURSIVE,
+  EVALUE(ARITH_NL_COVERING_RECURSIVE),
 
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -2290,7 +2314,7 @@ enum class PfRule : uint32_t
    * :math:`\texttt{id}` refer to a proof rule in the external LFSC calculus.
    * \endverbatim
    */
-  LFSC_RULE,
+  EVALUE(LFSC_RULE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **External -- Alethe**
@@ -2306,12 +2330,36 @@ enum class PfRule : uint32_t
    * printer.
    * \endverbatim
    */
-  ALETHE_RULE,
+  EVALUE(ALETHE_RULE),
 
   //================================================= Unknown rule
-  UNKNOWN,
+  EVALUE(UNKNOWN),
 };
+// clang-format on
 
+#ifdef CVC5_API_USE_C_ENUMS
+#ifndef DOXYGEN_SKIP
+typedef enum ENUM(ProofRule) ENUM(ProofRule);
+#endif
+#endif
+
+#ifdef CVC5_API_USE_C_ENUMS
+
+/**
+ * Get a string representation of a Cvc5ProofRule.
+ * @param rule The proof rule.
+ * @return The string representation.
+ */
+const char* cvc5_proof_rule_to_string(Cvc5ProofRule kind);
+
+/**
+ * Hash function for Cvc5ProofRule.
+ * @param rule The proof rule.
+ * @return The hash value.
+ */
+size_t cvc5_proof_rule_hash(Cvc5ProofRule rule);
+
+#else
 /**
  * Converts a proof rule to a string. Note: This function is also used in
  * `safe_print()`. Changing this function name or signature will result in
@@ -2321,7 +2369,7 @@ enum class PfRule : uint32_t
  * @param id The proof rule
  * @return The name of the proof rule
  */
-const char* toString(PfRule id);
+const char* toString(ProofRule id);
 
 /**
  * Writes a proof rule name to a stream.
@@ -2330,14 +2378,34 @@ const char* toString(PfRule id);
  * @param id The proof rule to write to the stream
  * @return The stream
  */
-std::ostream& operator<<(std::ostream& out, PfRule id);
+std::ostream& operator<<(std::ostream& out, ProofRule id);
+}  // namespace cvc5
 
-/** Hash function for proof rules */
-struct PfRuleHashFunction
+namespace std {
+/**
+ * Hash function for ProofRules.
+ */
+template <>
+struct CVC5_EXPORT hash<cvc5::ProofRule>
 {
-  size_t operator()(PfRule id) const;
-}; /* struct PfRuleHashFunction */
+  /**
+   * Hashes a ProofRule to a size_t.
+   * @param rule The proof rule.
+   * @return The hash value.
+   */
+  size_t operator()(cvc5::ProofRule rule) const;
+};
+}  // namespace std
 
-}  // namespace cvc5::internal
+#endif
+#endif
 
-#endif /* CVC5__PROOF__PROOF_RULE_H */
+#ifdef CVC5_API_USE_C_ENUMS
+#ifndef CVC5__API__CVC5_C_PROOF_RULE_H
+#define CVC5__API__CVC5_C_PROOF_RULE_H
+#endif
+#else
+#ifndef CVC5__API__CVC5_CPP_PROOF_RULE_H
+#define CVC5__API__CVC5_CPP_PROOF_RULE_H
+#endif
+#endif

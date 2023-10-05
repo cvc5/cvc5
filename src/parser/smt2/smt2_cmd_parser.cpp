@@ -54,6 +54,7 @@ Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex,
   d_table["get-timeout-core"] = Token::GET_TIMEOUT_CORE_TOK;
   d_table["get-unsat-assumptions"] = Token::GET_UNSAT_ASSUMPTIONS_TOK;
   d_table["get-unsat-core"] = Token::GET_UNSAT_CORE_TOK;
+  d_table["get-unsat-core-lemmas"] = Token::GET_UNSAT_CORE_LEMMAS_TOK;
   d_table["get-value"] = Token::GET_VALUE_TOK;
   d_table["pop"] = Token::POP_TOK;
   d_table["push"] = Token::PUSH_TOK;
@@ -689,6 +690,13 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       cmd.reset(new GetUnsatCoreCommand);
     }
     break;
+    // (get-unsat-core-lemmas)
+    case Token::GET_UNSAT_CORE_LEMMAS_TOK:
+    {
+      d_state.checkThatLogicIsSet();
+      cmd.reset(new GetUnsatCoreLemmasCommand);
+    }
+    break;
     // (get-value (<term>+))
     case Token::GET_VALUE_TOK:
     {
@@ -795,10 +803,17 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
     {
       SymManager* sm = d_state.getSymbolManager();
       std::string name = d_tparser.parseSymbol(CHECK_NONE, SYM_SORT);
-      // replace the logic with the forced logic, if applicable.
-      std::string lname = sm->isLogicForced() ? sm->getLogic() : name;
-      d_state.setLogic(lname);
-      cmd.reset(new SetBenchmarkLogicCommand(lname));
+      // If the logic was forced, we ignore all set-logic commands.
+      if (!sm->isLogicForced())
+      {
+        d_state.setLogic(name);
+        cmd.reset(new SetBenchmarkLogicCommand(name));
+      }
+      else
+      {
+        // otherwise ignore the command
+        cmd.reset(new EmptyCommand());
+      }
     }
     break;
     // (set-option <option>)

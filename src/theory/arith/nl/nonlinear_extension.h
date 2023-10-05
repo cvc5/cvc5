@@ -200,7 +200,7 @@ class NonlinearExtension : EnvObj
   /** The statistics class */
   NlStats d_stats;
   // needs last call effort
-  bool d_hasNlTerms;
+  context::CDO<bool> d_hasNlTerms;
   /**
    * The number of times we have the called main check method
    * (modelBasedRefinement). This counter is used for interleaving strategies.

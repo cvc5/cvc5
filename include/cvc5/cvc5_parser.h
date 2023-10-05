@@ -19,6 +19,7 @@
 #define CVC5__API__CVC5_PARSER_H
 
 #include <cvc5/cvc5.h>
+#include <cvc5/cvc5_types.h>
 
 #include <memory>
 
@@ -65,6 +66,17 @@ class CVC5_EXPORT SymbolManager
   SymbolManager(cvc5::Solver* s);
   ~SymbolManager();
 
+  /**
+   * @return true if the logic of this symbol manager has been set.
+   */
+  bool isLogicSet() const;
+  /**
+   * @note Asserts isLogicSet().
+   *
+   * @return the logic used by this symbol manager
+   */
+  const std::string& getLogic() const;
+
  private:
   /** Get the underlying implementation */
   SymManager* toSymManager();
@@ -82,13 +94,12 @@ class CVC5_EXPORT Command
 {
   friend class InputParser;
   friend class main::CommandExecutor;
+  friend class internal::InteractiveShell;
   friend class main::ExecutionContext;
 
  public:
   Command();
   Command(const Command& cmd);
-
-  virtual ~Command();
 
   /**
    * Invoke the command on the solver and symbol manager sm, prints the result
@@ -115,29 +126,11 @@ class CVC5_EXPORT Command
   std::string getCommandName() const;
 
   /**
-   * Either the command hasn't run yet, or it completed successfully
-   * (CommandSuccess, not CommandUnsupported or CommandFailure).
-   *
-   * @return Whether the command was successfully invoked.
+   * @return True if this command is null.
    */
-  bool ok() const;
+  bool isNull() const;
 
-  /**
-   * The command completed in a failure state (CommandFailure, not
-   * CommandSuccess or CommandUnsupported).
-   *
-   * @return Whether the command failed.
-   */
-  bool fail() const;
-
-  /**
-   * The command was ran but was interrupted due to resource limiting.
-   *
-   * @return Whether the command was interrupted.
-   */
-  bool interrupted() const;
-
- protected:
+ private:
   /**
    * Constructor.
    * @param n The internal command that is to be wrapped by this command.
@@ -148,19 +141,32 @@ class CVC5_EXPORT Command
   Cmd* toCmd();
   /** The implementation of the symbol manager */
   std::shared_ptr<Cmd> d_cmd;
-
 }; /* class Command */
 
 std::ostream& operator<<(std::ostream&, const Command&) CVC5_EXPORT;
-std::ostream& operator<<(std::ostream&, const Command*) CVC5_EXPORT;
 
 /**
  * This class is the main interface for retrieving commands and expressions
  * from an input using a parser.
  *
  * After construction, it is expected that an input is first set via e.g.
- * setFileInput, setStreamInput, or setStringInput. Then, the methods
- * nextCommand and nextExpression can be invoked to parse the input.
+ * setFileInput, setStreamInput, or setIncrementalStringInput and
+ * appendIncrementalStringInput. Then, the methods nextCommand and
+ * nextExpression can be invoked to parse the input.
+ *
+ * The input parser interacts with a symbol manager, which determines which
+ * symbols are defined in the current context, based on the background logic
+ * and user-defined symbols. If no symbol manager is provided, then the
+ * input parser will construct (an initially empty) one.
+ *
+ * If provided, the symbol manager must have a logic that is compatible
+ * with the provided solver. That is, if both the solver and symbol
+ * manager have their logics set (SymbolManager::isLogicSet and
+ * Solver::isLogicSet), then their logics must be the same.
+ *
+ * Upon setting an input source, if either the solver (resp. symbol
+ * manager) has its logic set, then the symbol manager (resp. solver) is set to
+ * use that logic, if its logic is not already set.
  */
 class CVC5_EXPORT InputParser
 {
@@ -170,7 +176,8 @@ class CVC5_EXPORT InputParser
    *
    * @param solver The solver (e.g. for constructing terms and sorts)
    * @param sm The symbol manager, which contains a symbol table that maps
-   * symbols to terms and sorts.
+   * symbols to terms and sorts. Must have a logic that is compatible
+   * with the solver.
    */
   InputParser(Solver* solver, SymbolManager* sm);
   /**
@@ -180,22 +187,20 @@ class CVC5_EXPORT InputParser
    */
   InputParser(Solver* solver);
 
-  /** Get the underlying solver of this input parser */
-  Solver* getSolver();
-  /** Get the underlying symbol manager of this input parser */
-  SymbolManager* getSymbolManager();
   /**
-   * Set the logic to use. This determines which builtin symbols are included.
-   *
-   * @param name The name of the logic.
+   * @return The underlying solver of this input parser
    */
-  void setLogic(const std::string& name);
+  Solver* getSolver();
+  /**
+   * @return The underlying symbol manager of this input parser
+   */
+  SymbolManager* getSymbolManager();
   /** Set the input for the given file.
    *
-   * @param lang the input language
+   * @param lang the input language (e.g. modes::InputLanguage::SMT_LIB_2_6)
    * @param filename the input filename
    */
-  void setFileInput(const std::string& lang, const std::string& filename);
+  void setFileInput(modes::InputLanguage lang, const std::string& filename);
 
   /** Set the input for the given stream.
    *
@@ -203,7 +208,7 @@ class CVC5_EXPORT InputParser
    * @param input the input stream
    * @param name the name of the stream, for use in error messages
    */
-  void setStreamInput(const std::string& lang,
+  void setStreamInput(modes::InputLanguage lang,
                       std::istream& input,
                       const std::string& name);
 
@@ -214,7 +219,7 @@ class CVC5_EXPORT InputParser
    * @param lang the input language
    * @param name the name of the stream, for use in error messages
    */
-  void setIncrementalStringInput(const std::string& lang,
+  void setIncrementalStringInput(modes::InputLanguage lang,
                                  const std::string& name);
   /**
    * Append string to the input being parsed by this parser. Should be
@@ -229,14 +234,17 @@ class CVC5_EXPORT InputParser
    * Parse and return the next command. Will initialize the logic to "ALL"
    * or the forced logic if no logic is set prior to this point and a command
    * is read that requires initializing the logic.
+   *
+   * @return The parsed command. This is the null command if no command was
+   * read.
    */
-  std::unique_ptr<Command> nextCommand();
+  Command nextCommand();
 
   /**
-   * Parse and return the next expression. Requires setting the logic prior
+   * Parse and return the next term. Requires setting the logic prior
    * to this point.
    */
-  Term nextExpression();
+  Term nextTerm();
 
   /** Is this parser done reading input? */
   bool done() const;
@@ -244,6 +252,11 @@ class CVC5_EXPORT InputParser
  private:
   /** Initialize this input parser, called during construction */
   void initialize();
+  /**
+   * Initialize the internal parser, called immediately after d_parser
+   * is constructed.
+   */
+  void initializeInternal();
   /** Solver */
   Solver* d_solver;
   /** The allocated symbol manager */
@@ -251,11 +264,11 @@ class CVC5_EXPORT InputParser
   /** Symbol manager */
   SymbolManager* d_sm;
   /** Incremental string input language */
-  std::string d_istringLang;
+  modes::InputLanguage d_istringLang;
   /** Incremental string name */
   std::string d_istringName;
   /** The parser */
-  std::shared_ptr<Parser> d_fparser;
+  std::shared_ptr<Parser> d_parser;
 };
 
 }  // namespace parser

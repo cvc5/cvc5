@@ -28,7 +28,7 @@ Node RewriteDbNodeConverter::postConvert(Node n)
 {
   Kind k = n.getKind();
   TypeNode tn = n.getType();
-  if (k == CONST_STRING)
+  if (k == Kind::CONST_STRING)
   {
     NodeManager* nm = NodeManager::currentNM();
     // "ABC" is (str.++ "A" "B" "C")
@@ -44,7 +44,7 @@ Node RewriteDbNodeConverter::postConvert(Node n)
       tmp.push_back(c);
       children.push_back(nm->mkConst(String(tmp)));
     }
-    return nm->mkNode(STRING_CONCAT, children);
+    return nm->mkNode(Kind::STRING_CONCAT, children);
   }
 
   return n;

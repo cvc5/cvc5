@@ -193,7 +193,7 @@ class CDProof : protected EnvObj, public ProofGenerator
    * is CDPOverwrite::ALWAYS (resp. CDPOverwrite::NEVER).
    */
   bool addStep(Node expected,
-               PfRule id,
+               ProofRule id,
                const std::vector<Node>& children,
                const std::vector<Node>& args,
                bool ensureChildren = false,
@@ -264,7 +264,9 @@ class CDProof : protected EnvObj, public ProofGenerator
    * Returns true if we should overwrite proof node pn with a step having id
    * newId, based on policy opol.
    */
-  static bool shouldOverwrite(ProofNode* pn, PfRule newId, CDPOverwrite opol);
+  static bool shouldOverwrite(ProofNode* pn,
+                              ProofRule newId,
+                              CDPOverwrite opol);
   /** Returns true if pn is an assumption. */
   static bool isAssumption(ProofNode* pn);
   /**

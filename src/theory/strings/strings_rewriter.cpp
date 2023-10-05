@@ -41,39 +41,39 @@ RewriteResponse StringsRewriter::postRewrite(TNode node)
 
   Node retNode = node;
   Kind nk = node.getKind();
-  if (nk == kind::STRING_LT)
+  if (nk == Kind::STRING_LT)
   {
     retNode = rewriteStringLt(node);
   }
-  else if (nk == kind::STRING_LEQ)
+  else if (nk == Kind::STRING_LEQ)
   {
     retNode = rewriteStringLeq(node);
   }
-  else if (nk == STRING_TO_LOWER || nk == STRING_TO_UPPER)
+  else if (nk == Kind::STRING_TO_LOWER || nk == Kind::STRING_TO_UPPER)
   {
     retNode = rewriteStrConvert(node);
   }
-  else if (nk == STRING_IS_DIGIT)
+  else if (nk == Kind::STRING_IS_DIGIT)
   {
     retNode = rewriteStringIsDigit(node);
   }
-  else if (nk == kind::STRING_ITOS)
+  else if (nk == Kind::STRING_ITOS)
   {
     retNode = rewriteIntToStr(node);
   }
-  else if (nk == kind::STRING_STOI)
+  else if (nk == Kind::STRING_STOI)
   {
     retNode = rewriteStrToInt(node);
   }
-  else if (nk == STRING_TO_CODE)
+  else if (nk == Kind::STRING_TO_CODE)
   {
     retNode = rewriteStringToCode(node);
   }
-  else if (nk == STRING_FROM_CODE)
+  else if (nk == Kind::STRING_FROM_CODE)
   {
     retNode = rewriteStringFromCode(node);
   }
-  else if (nk == STRING_UNIT)
+  else if (nk == Kind::STRING_UNIT)
   {
     retNode = rewriteStringUnit(node);
   }
@@ -96,7 +96,7 @@ RewriteResponse StringsRewriter::postRewrite(TNode node)
 
 Node StringsRewriter::rewriteStrToInt(Node node)
 {
-  Assert(node.getKind() == STRING_STOI);
+  Assert(node.getKind() == Kind::STRING_STOI);
   NodeManager* nm = NodeManager::currentNM();
   if (node[0].isConst())
   {
@@ -112,7 +112,7 @@ Node StringsRewriter::rewriteStrToInt(Node node)
     }
     return returnRewrite(node, ret, Rewrite::STOI_EVAL);
   }
-  else if (node[0].getKind() == STRING_CONCAT)
+  else if (node[0].getKind() == Kind::STRING_CONCAT)
   {
     for (TNode nc : node[0])
     {
@@ -132,7 +132,7 @@ Node StringsRewriter::rewriteStrToInt(Node node)
 
 Node StringsRewriter::rewriteIntToStr(Node node)
 {
-  Assert(node.getKind() == STRING_ITOS);
+  Assert(node.getKind() == Kind::STRING_ITOS);
   NodeManager* nm = NodeManager::currentNM();
   if (node[0].isConst())
   {
@@ -155,7 +155,7 @@ Node StringsRewriter::rewriteIntToStr(Node node)
 Node StringsRewriter::rewriteStrConvert(Node node)
 {
   Kind nk = node.getKind();
-  Assert(nk == STRING_TO_LOWER || nk == STRING_TO_UPPER);
+  Assert(nk == Kind::STRING_TO_LOWER || nk == Kind::STRING_TO_UPPER);
   NodeManager* nm = NodeManager::currentNM();
   if (node[0].isConst())
   {
@@ -166,14 +166,14 @@ Node StringsRewriter::rewriteStrConvert(Node node)
       // transform it
       // upper 65 ... 90
       // lower 97 ... 122
-      if (nk == STRING_TO_UPPER)
+      if (nk == Kind::STRING_TO_UPPER)
       {
         if (newChar >= 97 && newChar <= 122)
         {
           newChar = newChar - 32;
         }
       }
-      else if (nk == STRING_TO_LOWER)
+      else if (nk == Kind::STRING_TO_LOWER)
       {
         if (newChar >= 65 && newChar <= 90)
         {
@@ -185,9 +185,9 @@ Node StringsRewriter::rewriteStrConvert(Node node)
     Node retNode = nm->mkConst(String(nvec));
     return returnRewrite(node, retNode, Rewrite::STR_CONV_CONST);
   }
-  else if (node[0].getKind() == STRING_CONCAT)
+  else if (node[0].getKind() == Kind::STRING_CONCAT)
   {
-    NodeBuilder concatBuilder(STRING_CONCAT);
+    NodeBuilder concatBuilder(Kind::STRING_CONCAT);
     for (const Node& nc : node[0])
     {
       concatBuilder << nm->mkNode(nk, nc);
@@ -196,15 +196,15 @@ Node StringsRewriter::rewriteStrConvert(Node node)
     Node retNode = concatBuilder.constructNode();
     return returnRewrite(node, retNode, Rewrite::STR_CONV_MINSCOPE_CONCAT);
   }
-  else if (node[0].getKind() == STRING_TO_LOWER
-           || node[0].getKind() == STRING_TO_UPPER)
+  else if (node[0].getKind() == Kind::STRING_TO_LOWER
+           || node[0].getKind() == Kind::STRING_TO_UPPER)
   {
     // to_lower( to_lower( x ) ) --> to_lower( x )
     // to_lower( toupper( x ) ) --> to_lower( x )
     Node retNode = nm->mkNode(nk, node[0][0]);
     return returnRewrite(node, retNode, Rewrite::STR_CONV_IDEM);
   }
-  else if (node[0].getKind() == STRING_ITOS)
+  else if (node[0].getKind() == Kind::STRING_ITOS)
   {
     // to_lower( str.from.int( x ) ) --> str.from.int( x )
     return returnRewrite(node, node[0], Rewrite::STR_CONV_ITOS);
@@ -214,17 +214,18 @@ Node StringsRewriter::rewriteStrConvert(Node node)
 
 Node StringsRewriter::rewriteStringLt(Node n)
 {
-  Assert(n.getKind() == kind::STRING_LT);
+  Assert(n.getKind() == Kind::STRING_LT);
   NodeManager* nm = NodeManager::currentNM();
   // eliminate s < t ---> s != t AND s <= t
-  Node retNode = nm->mkNode(
-      AND, n[0].eqNode(n[1]).negate(), nm->mkNode(STRING_LEQ, n[0], n[1]));
+  Node retNode = nm->mkNode(Kind::AND,
+                            n[0].eqNode(n[1]).negate(),
+                            nm->mkNode(Kind::STRING_LEQ, n[0], n[1]));
   return returnRewrite(n, retNode, Rewrite::STR_LT_ELIM);
 }
 
 Node StringsRewriter::rewriteStringLeq(Node n)
 {
-  Assert(n.getKind() == kind::STRING_LEQ);
+  Assert(n.getKind() == Kind::STRING_LEQ);
   NodeManager* nm = NodeManager::currentNM();
   if (n[0] == n[1])
   {
@@ -274,7 +275,7 @@ Node StringsRewriter::rewriteStringLeq(Node n)
 
 Node StringsRewriter::rewriteStringFromCode(Node n)
 {
-  Assert(n.getKind() == kind::STRING_FROM_CODE);
+  Assert(n.getKind() == Kind::STRING_FROM_CODE);
   NodeManager* nm = NodeManager::currentNM();
 
   if (n[0].isConst())
@@ -297,7 +298,7 @@ Node StringsRewriter::rewriteStringFromCode(Node n)
 
 Node StringsRewriter::rewriteStringToCode(Node n)
 {
-  Assert(n.getKind() == kind::STRING_TO_CODE);
+  Assert(n.getKind() == Kind::STRING_TO_CODE);
   if (n[0].isConst())
   {
     NodeManager* nm = NodeManager::currentNM();
@@ -320,19 +321,20 @@ Node StringsRewriter::rewriteStringToCode(Node n)
 
 Node StringsRewriter::rewriteStringIsDigit(Node n)
 {
-  Assert(n.getKind() == kind::STRING_IS_DIGIT);
+  Assert(n.getKind() == Kind::STRING_IS_DIGIT);
   NodeManager* nm = NodeManager::currentNM();
   // eliminate str.is_digit(s) ----> 48 <= str.to_code(s) <= 57
-  Node t = nm->mkNode(STRING_TO_CODE, n[0]);
-  Node retNode = nm->mkNode(AND,
-                            nm->mkNode(LEQ, nm->mkConstInt(Rational(48)), t),
-                            nm->mkNode(LEQ, t, nm->mkConstInt(Rational(57))));
+  Node t = nm->mkNode(Kind::STRING_TO_CODE, n[0]);
+  Node retNode =
+      nm->mkNode(Kind::AND,
+                 nm->mkNode(Kind::LEQ, nm->mkConstInt(Rational(48)), t),
+                 nm->mkNode(Kind::LEQ, t, nm->mkConstInt(Rational(57))));
   return returnRewrite(n, retNode, Rewrite::IS_DIGIT_ELIM);
 }
 
 Node StringsRewriter::rewriteStringUnit(Node n)
 {
-  Assert(n.getKind() == STRING_UNIT);
+  Assert(n.getKind() == Kind::STRING_UNIT);
   NodeManager* nm = NodeManager::currentNM();
   if (n[0].isConst())
   {

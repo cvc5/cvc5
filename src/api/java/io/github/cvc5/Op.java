@@ -41,11 +41,6 @@ public class Op extends AbstractPointer
 
   protected native void deletePointer(long pointer);
 
-  public long getPointer()
-  {
-    return pointer;
-  }
-
   /**
    * Syntactic equality operator.
    * @api.note Both operators must belong to the same solver object.
@@ -117,6 +112,7 @@ public class Op extends AbstractPointer
    * Get the index at position {@code i}.
    * @param i The position of the index to return.
    * @return The index at position {@code i}.
+   * @throws CVC5ApiException
    */
   public Term get(int i) throws CVC5ApiException
   {

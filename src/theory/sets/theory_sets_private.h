@@ -349,8 +349,6 @@ class TheorySetsPrivate : protected EnvObj
 
   void computeCareGraph();
 
-  Node explain(TNode);
-
   void preRegisterTerm(TNode node);
 
   /** ppRewrite, which expands choose and is_singleton.  */

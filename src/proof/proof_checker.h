@@ -36,7 +36,7 @@ class ProofCheckerStatistics
  public:
   ProofCheckerStatistics(StatisticsRegistry& sr);
   /** Counts the number of checks for each kind of proof rule */
-  HistogramStat<PfRule> d_ruleChecks;
+  HistogramStat<ProofRule> d_ruleChecks;
   /** Total number of rule checks */
   IntStat d_totalRuleChecks;
 };
@@ -74,7 +74,7 @@ class ProofChecker
    * @return The conclusion of the proof node if successful or null if the
    * proof is malformed, or if no checker is available for id.
    */
-  Node check(PfRule id,
+  Node check(ProofRule id,
              const std::vector<std::shared_ptr<ProofNode>>& children,
              const std::vector<Node>& args,
              Node expected = Node::null());
@@ -93,37 +93,37 @@ class ProofChecker
    * @return The conclusion of the proof node if successful or null if the
    * proof is malformed, or if no checker is available for id.
    */
-  Node checkDebug(PfRule id,
+  Node checkDebug(ProofRule id,
                   const std::vector<Node>& cchildren,
                   const std::vector<Node>& args,
                   Node expected = Node::null(),
                   const char* traceTag = "");
   /** Indicate that psc is the checker for proof rule id */
-  void registerChecker(PfRule id, ProofRuleChecker* psc);
+  void registerChecker(ProofRule id, ProofRuleChecker* psc);
   /**
    * Indicate that id is a trusted rule with the given pedantic level, e.g.:
    *  0: (mandatory) always a failure to use the given id
    *  1: (major) failure on all (non-zero) pedantic levels
    * 10: (minor) failure only on pedantic levels >= 10.
    */
-  void registerTrustedChecker(PfRule id,
+  void registerTrustedChecker(ProofRule id,
                               ProofRuleChecker* psc,
                               uint32_t plevel = 10);
   /** get checker for */
-  ProofRuleChecker* getCheckerFor(PfRule id);
+  ProofRuleChecker* getCheckerFor(ProofRule id);
   /** get the rewrite database */
   rewriter::RewriteDb* getRewriteDatabase();
   /**
    * Get the pedantic level for id if it has been assigned a pedantic
    * level via registerTrustedChecker above, or zero otherwise.
    */
-  uint32_t getPedanticLevel(PfRule id) const;
+  uint32_t getPedanticLevel(ProofRule id) const;
 
   /**
    * Is pedantic failure? If so, we return true and write a debug message on the
    * output stream out if enableOutput is true.
    */
-  bool isPedanticFailure(PfRule id,
+  bool isPedanticFailure(ProofRule id,
                          std::ostream& out,
                          bool enableOutput = true) const;
 
@@ -131,9 +131,9 @@ class ProofChecker
   /** statistics class */
   ProofCheckerStatistics d_stats;
   /** Maps proof rules to their checker */
-  std::map<PfRule, ProofRuleChecker*> d_checker;
+  std::map<ProofRule, ProofRuleChecker*> d_checker;
   /** Maps proof trusted rules to their pedantic level */
-  std::map<PfRule, uint32_t> d_plevel;
+  std::map<ProofRule, uint32_t> d_plevel;
   /** The proof checking mode */
   options::ProofCheckMode d_pcMode;
   /** The pedantic level of this checker */
@@ -146,7 +146,7 @@ class ProofChecker
    * (nullptr in the range of the map d_checker) as failures if
    * useTrustedChecker = false.
    */
-  Node checkInternal(PfRule id,
+  Node checkInternal(ProofRule id,
                      const std::vector<Node>& cchildren,
                      const std::vector<Node>& args,
                      Node expected,

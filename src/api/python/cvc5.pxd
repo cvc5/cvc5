@@ -325,6 +325,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         OptionInfo getOptionInfo(const string& option) except +
         vector[Term] getUnsatAssumptions() except +
         vector[Term] getUnsatCore() except +
+        vector[Term] getUnsatCoreLemmas() except +
         map[Term,Term] getDifficulty() except +
         pair[Result, vector[Term]] getTimeoutCore() except +
         Term getValue(Term term) except +
@@ -345,6 +346,8 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         void resetAssertions() except +
         void setInfo(string& keyword, const string& value) except +
         void setLogic(const string& logic) except +
+        bint isLogicSet() except +
+        string getLogic() except +
         void setOption(const string& option, const string& value) except +
         Term getInterpolant(const Term& conj) except +
         Term getInterpolant(const Term& conj, Grammar& grammar) except +

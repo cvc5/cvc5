@@ -34,13 +34,13 @@ class TestNodeBlackKindMap : public TestInternal
 TEST_F(TestNodeBlackKindMap, simple)
 {
   KindMap map;
-  ASSERT_FALSE(map.test(AND));
-  map.set(AND);
-  ASSERT_TRUE(map.test(AND));
-  map.reset(AND);
-  ASSERT_FALSE(map.test(AND));
+  ASSERT_FALSE(map.test(Kind::AND));
+  map.set(Kind::AND);
+  ASSERT_TRUE(map.test(Kind::AND));
+  map.reset(Kind::AND);
+  ASSERT_FALSE(map.test(Kind::AND));
 #ifdef CVC5_ASSERTIONS
-  ASSERT_THROW(map.set(LAST_KIND), AssertArgumentException);
+  ASSERT_THROW(map.set(Kind::LAST_KIND), AssertArgumentException);
 #endif
 }
 

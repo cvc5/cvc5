@@ -113,6 +113,7 @@ SolverEngine::SolverEngine(const Options* optr)
       d_abductSolver(nullptr),
       d_interpolSolver(nullptr),
       d_quantElimSolver(nullptr),
+      d_userLogicSet(false),
       d_isInternalSubsolver(false),
       d_stats(nullptr)
 {
@@ -289,6 +290,7 @@ void SolverEngine::setLogic(const LogicInfo& logic)
   }
   d_env->d_logic = logic;
   d_userLogic = logic;
+  d_userLogicSet = true;
   setLogicInternal();
 }
 
@@ -304,7 +306,7 @@ void SolverEngine::setLogic(const std::string& s)
   }
 }
 
-void SolverEngine::setLogic(const char* logic) { setLogic(string(logic)); }
+bool SolverEngine::isLogicSet() const { return d_userLogicSet; }
 
 const LogicInfo& SolverEngine::getLogicInfo() const
 {
@@ -459,7 +461,7 @@ void SolverEngine::debugCheckFormals(const std::vector<Node>& formals,
        i != formals.end();
        ++i)
   {
-    if ((*i).getKind() != kind::BOUND_VARIABLE)
+    if ((*i).getKind() != Kind::BOUND_VARIABLE)
     {
       stringstream ss;
       ss << "All formal arguments to defined functions must be "
@@ -536,7 +538,7 @@ void SolverEngine::defineFunction(Node func,
   {
     NodeManager* nm = NodeManager::currentNM();
     def = nm->mkNode(
-        kind::LAMBDA, nm->mkNode(kind::BOUND_VAR_LIST, formals), def);
+        Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, formals), def);
   }
   Node feq = func.eqNode(def);
   d_smtSolver->getAssertions().addDefineFunDefinition(feq, global);
@@ -596,19 +598,19 @@ void SolverEngine::defineFunctionsRec(
       std::vector<Node> children;
       children.push_back(funcs[i]);
       children.insert(children.end(), formals[i].begin(), formals[i].end());
-      func_app = nm->mkNode(kind::APPLY_UF, children);
+      func_app = nm->mkNode(Kind::APPLY_UF, children);
     }
-    Node lem = nm->mkNode(kind::EQUAL, func_app, formulas[i]);
+    Node lem = nm->mkNode(Kind::EQUAL, func_app, formulas[i]);
     if (!formals[i].empty())
     {
       // set the attribute to denote this is a function definition
-      Node aexpr = nm->mkNode(kind::INST_ATTRIBUTE, func_app);
-      aexpr = nm->mkNode(kind::INST_PATTERN_LIST, aexpr);
+      Node aexpr = nm->mkNode(Kind::INST_ATTRIBUTE, func_app);
+      aexpr = nm->mkNode(Kind::INST_PATTERN_LIST, aexpr);
       FunDefAttribute fda;
       func_app.setAttribute(fda, true);
       // make the quantified formula
-      Node boundVars = nm->mkNode(kind::BOUND_VAR_LIST, formals[i]);
-      lem = nm->mkNode(kind::FORALL, boundVars, lem, aexpr);
+      Node boundVars = nm->mkNode(Kind::BOUND_VAR_LIST, formals[i]);
+      lem = nm->mkNode(Kind::FORALL, boundVars, lem, aexpr);
     }
     // Assert the quantified formula. Notice we don't call assertFormula
     // directly, since we should call a private member method since we have
@@ -1059,7 +1061,7 @@ void SolverEngine::declareOracleFun(
     std::vector<Node> appc;
     appc.push_back(var);
     appc.insert(appc.end(), inputs.begin(), inputs.end());
-    app = nm->mkNode(kind::APPLY_UF, appc);
+    app = nm->mkNode(Kind::APPLY_UF, appc);
   }
   else
   {
@@ -1067,7 +1069,7 @@ void SolverEngine::declareOracleFun(
     app = var;
   }
   // makes equality assumption
-  Node assume = nm->mkNode(kind::EQUAL, app, outputs[0]);
+  Node assume = nm->mkNode(Kind::EQUAL, app, outputs[0]);
   // no constraints
   Node constraint = nm->mkConst(true);
   // make the oracle constant which carries the method implementation
@@ -1369,7 +1371,7 @@ std::vector<Node> SolverEngine::convertPreprocessedToInput(
   std::vector<Node> core;
   CDProof cdp(*d_env);
   Node fnode = NodeManager::currentNM()->mkConst(false);
-  cdp.addStep(fnode, PfRule::SAT_REFUTATION, ppa, {});
+  cdp.addStep(fnode, ProofRule::SAT_REFUTATION, ppa, {});
   std::shared_ptr<ProofNode> pepf = cdp.getProofFor(fnode);
   Assert(pepf != nullptr);
   std::shared_ptr<ProofNode> pfn =
@@ -1593,6 +1595,27 @@ UnsatCore SolverEngine::getUnsatCore()
 {
   Trace("smt") << "SMT getUnsatCore()" << std::endl;
   return getUnsatCoreInternal(false);
+}
+
+std::vector<Node> SolverEngine::getUnsatCoreLemmas()
+{
+  Trace("smt") << "SMT getUnsatCoreLemmas()" << std::endl;
+  finishInit();
+  if (!d_env->getOptions().smt.produceUnsatCores)
+  {
+    throw ModalException(
+        "Cannot get lemmas used to derive unsat when produce-unsat-cores is "
+        "off.");
+  }
+  if (d_state->getMode() != SmtMode::UNSAT)
+  {
+    throw RecoverableModalException(
+        "Cannot get lemmas used to derive unsat unless immediately preceded by "
+        "UNSAT response.");
+  }
+  PropEngine* pe = d_smtSolver->getPropEngine();
+  Assert(pe != nullptr);
+  return pe->getUnsatCoreLemmas();
 }
 
 void SolverEngine::getRelevantQuantTermVectors(

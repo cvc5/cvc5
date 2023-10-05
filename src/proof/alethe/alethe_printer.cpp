@@ -49,8 +49,8 @@ bool LetUpdaterPfCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
     // We do not go *below* cl, since the clause itself cannot be shared (goes
     // against the Alethe specification). We assume that s-expressions with a
     // bound variable as first argument are all of the form (cl ...).
-    if (args[i].getKind() == kind::SEXPR
-        && args[i][0].getKind() == kind::BOUND_VARIABLE)
+    if (args[i].getKind() == Kind::SEXPR
+        && args[i][0].getKind() == Kind::BOUND_VARIABLE)
     {
       for (const auto& arg : args[i])
       {
@@ -144,7 +144,7 @@ std::string AletheProofPrinter::printInternal(
 
   // If the proof node is untranslated a problem might have occured during
   // postprocessing
-  if (args.size() < 3 || pfn->getRule() != PfRule::ALETHE_RULE)
+  if (args.size() < 3 || pfn->getRule() != ProofRule::ALETHE_RULE)
   {
     Trace("alethe-printer")
         << "... printing failed! Encountered untranslated Node. "
@@ -216,9 +216,9 @@ std::string AletheProofPrinter::printInternal(
       out << " :args (";
       for (size_t j = 3, size = args.size(); j < size; j++)
       {
-        Assert(args[j].getKind() == kind::EQUAL);
+        Assert(args[j].getKind() == Kind::EQUAL);
         // if the rhs is a variable, it must be declared first
-        if (args[j][1].getKind() == kind::BOUND_VARIABLE)
+        if (args[j][1].getKind() == Kind::BOUND_VARIABLE)
         {
           out << "(" << args[j][1] << " " << args[j][1].getType() << ") ";
         }

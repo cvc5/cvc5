@@ -78,10 +78,13 @@ void PrintBenchmark::printAssertions(std::ostream& out,
   // first, record all the defined symbols
   for (const Node& a : defs)
   {
-    bool isRec;
+    bool isRec = false;
     Node defSym;
     Node defBody;
-    decomposeDefinition(a, isRec, defSym, defBody);
+    if (!decomposeDefinition(a, isRec, defSym, defBody))
+    {
+      continue;
+    }
     if (!defSym.isNull())
     {
       Assert(defMap.find(defSym) == defMap.end());
@@ -258,7 +261,7 @@ bool PrintBenchmark::decomposeDefinition(Node a,
                                          Node& sym,
                                          Node& body)
 {
-  if (a.getKind() == EQUAL && a[0].isVar())
+  if (a.getKind() == Kind::EQUAL && a[0].isVar())
   {
     // an ordinary define-fun
     isRecDef = false;
@@ -266,12 +269,12 @@ bool PrintBenchmark::decomposeDefinition(Node a,
     body = a[1];
     return true;
   }
-  else if (a.getKind() == FORALL && a[1].getKind() == EQUAL
-           && a[1][0].getKind() == APPLY_UF)
+  else if (a.getKind() == Kind::FORALL && a[1].getKind() == Kind::EQUAL
+           && a[1][0].getKind() == Kind::APPLY_UF)
   {
     isRecDef = true;
     sym = a[1][0].getOperator();
-    body = NodeManager::currentNM()->mkNode(LAMBDA, a[0], a[1][1]);
+    body = NodeManager::currentNM()->mkNode(Kind::LAMBDA, a[0], a[1][1]);
     return true;
   }
   else

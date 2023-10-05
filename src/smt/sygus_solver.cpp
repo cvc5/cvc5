@@ -73,7 +73,7 @@ void SygusSolver::declareSynthFun(Node fn,
   d_sygusFunSymbols.push_back(fn);
   if (!vars.empty())
   {
-    Node bvl = nm->mkNode(BOUND_VAR_LIST, vars);
+    Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, vars);
     // use an attribute to mark its bound variable list
     quantifiers::SygusUtils::setSygusArgumentList(fn, bvl);
   }
@@ -166,23 +166,23 @@ void SygusSolver::assertSygusInvConstraint(Node inv,
     {
       children.insert(children.end(), vars.begin(), vars.end());
     }
-    terms[i] = nm->mkNode(APPLY_UF, children);
+    terms[i] = nm->mkNode(Kind::APPLY_UF, children);
     // make application of Inv on primed variables
     if (i == 0)
     {
       children.clear();
       children.push_back(op);
       children.insert(children.end(), primed_vars.begin(), primed_vars.end());
-      terms.push_back(nm->mkNode(APPLY_UF, children));
+      terms.push_back(nm->mkNode(Kind::APPLY_UF, children));
     }
   }
   // make constraints
   std::vector<Node> conj;
-  conj.push_back(nm->mkNode(IMPLIES, terms[1], terms[0]));
-  Node term0_and_2 = nm->mkNode(AND, terms[0], terms[2]);
-  conj.push_back(nm->mkNode(IMPLIES, term0_and_2, terms[4]));
-  conj.push_back(nm->mkNode(IMPLIES, terms[0], terms[3]));
-  Node constraint = nm->mkNode(AND, conj);
+  conj.push_back(nm->mkNode(Kind::IMPLIES, terms[1], terms[0]));
+  Node term0_and_2 = nm->mkNode(Kind::AND, terms[0], terms[2]);
+  conj.push_back(nm->mkNode(Kind::IMPLIES, term0_and_2, terms[4]));
+  conj.push_back(nm->mkNode(Kind::IMPLIES, terms[0], terms[3]));
+  Node constraint = nm->mkNode(Kind::AND, conj);
 
   d_sygusConstraints.push_back(constraint);
 
@@ -217,14 +217,15 @@ SynthResult SygusSolver::checkSynth(bool isNext)
     if (!d_sygusConstraints.empty() && !d_sygusAssumps.empty())
     {
       Node bodyAssump = nm->mkAnd(listToVector(d_sygusAssumps));
-      body = nm->mkNode(IMPLIES, bodyAssump, body);
+      body = nm->mkNode(Kind::IMPLIES, bodyAssump, body);
     }
     body = body.notNode();
     Trace("smt") << "...constructed sygus constraint " << body << std::endl;
     if (!d_sygusVars.empty())
     {
-      Node boundVars = nm->mkNode(BOUND_VAR_LIST, listToVector(d_sygusVars));
-      body = nm->mkNode(EXISTS, boundVars, body);
+      Node boundVars =
+          nm->mkNode(Kind::BOUND_VAR_LIST, listToVector(d_sygusVars));
+      body = nm->mkNode(Kind::EXISTS, boundVars, body);
       Trace("smt") << "...constructed exists " << body << std::endl;
     }
     if (!d_sygusFunSymbols.empty())
@@ -411,7 +412,7 @@ void SygusSolver::checkSynthSolution(Assertions& as,
     initializeSygusSubsolver(solChecker, as);
     solChecker->getOptions().writeSmt().checkSynthSol = false;
     solChecker->getOptions().writeQuantifiers().sygusRecFun = false;
-    Assert(conj.getKind() == FORALL);
+    Assert(conj.getKind() == Kind::FORALL);
     Node conjBody = conj[1];
     // we must apply substitutions here, since define-fun may contain the
     // function-to-synthesize, which needs to be substituted.
@@ -477,12 +478,12 @@ void SygusSolver::initializeSygusSubsolver(std::unique_ptr<SolverEngine>& se,
   for (const Node& def : alistDefs)
   {
     // only consider define-fun, represented as (= f (lambda ...)).
-    if (def.getKind() == EQUAL)
+    if (def.getKind() == Kind::EQUAL)
     {
       Assert(def[0].isVar());
       std::vector<Node> formals;
       Node dbody = def[1];
-      if (def[1].getKind() == LAMBDA)
+      if (def[1].getKind() == Kind::LAMBDA)
       {
         formals.insert(formals.end(), def[1][0].begin(), def[1][0].end());
         dbody = dbody[1];

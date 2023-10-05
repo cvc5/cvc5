@@ -24,7 +24,7 @@ namespace utils {
 
 Integer getCardinality(const TypeNode& type)
 {
-  Assert(type.getKind() == kind::FLOATINGPOINT_TYPE);
+  Assert(type.getKind() == Kind::FLOATINGPOINT_TYPE);
 
   FloatingPointSize fps = type.getConst<FloatingPointSize>();
 
