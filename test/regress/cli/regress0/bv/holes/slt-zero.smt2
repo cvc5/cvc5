@@ -5,8 +5,8 @@
 
 (declare-const x (_ BitVec 10))
 (assert (not (=
-	((_ repeat 5) x)
-	(concat x ((_ repeat 4) x))
+	(bvslt x #b0000000000)
+	(= ((_ extract 9 9) x) #b1)
 	)))
 (check-sat)
 (exit)

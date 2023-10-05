@@ -5,8 +5,7 @@
 
 (declare-const x (_ BitVec 10))
 (assert (not (=
-	((_ repeat 5) x)
-	(concat x ((_ repeat 4) x))
-	)))
+	((_ sign_extend 5) ((_ zero_extend 5) x))
+	((_ zero_extend 10) x))))
 (check-sat)
 (exit)
