@@ -74,15 +74,7 @@ public class InputParser extends AbstractPointer
     super(newInputParser(solver.getPointer()));
   }
 
-  private static native long newInputParser(long solverPointer);
-
-  /**
-   * @return The underlying solver of this input parser
-   */
-  public Solver getSolver()
-  {
-    return null;
-  }
+  private static native long newInputParser(long solverPointer); 
 
   protected native void deletePointer(long pointer);
 
@@ -93,45 +85,37 @@ public class InputParser extends AbstractPointer
   }
 
   /**
-   * Syntactic equality operator.
-   * Return true if both terms are syntactically identical.
-   * Both terms must belong to the same solver object.
-   *
-   * @param t The term to compare to for equality.
-   * @return True if the terms are equal.
+   * @return The underlying solver of this input parser
    */
-  @Override
-  public boolean equals(Object t)
+  public Solver getSolver()
   {
-    if (this == t)
-      return true;
-    if (t == null || getClass() != t.getClass())
-      return false;
-    Term term = (Term) t;
-    if (this.pointer == term.pointer)
-    {
-      return true;
-    }
-    return equals(pointer, term.getPointer());
+    return new Solver(getSolver(pointer));
   }
 
-  private native boolean equals(long pointer1, long pointer2);
+  private native long getSolver(long pointer);
 
   /**
    * @return The underlying symbol manager of this input parser
    */
   public SymbolManager getSymbolManager()
   {
-    return null;
+    return new SymbolManager(getSymbolManager(pointer));
   }
+
+  private native long getSymbolManager(long pointer);
 
   /**
    * Set the input for the given file.
    *
    * @param lang the input language (e.g. InputLanguage.SMT_LIB_2_6)
-   * @param filename the input filename
+   * @param fileName the input file name
    */
-  public void setFileInput(InputLanguage lang, String filename) {}
+  public void setFileInput(InputLanguage lang, String fileName) 
+  {
+    setFileInput(pointer, lang.getValue(), fileName);    
+  }
+
+  private native void setFileInput(long pointer, int langValue, String fileName);
 
   /**
    * Set that we will be feeding strings to this parser via
@@ -140,7 +124,12 @@ public class InputParser extends AbstractPointer
    * @param lang the input language
    * @param name the name of the stream, for use in error messages
    */
-  public void setIncrementalStringInput(InputLanguage lang, String name) {}
+  public void setIncrementalStringInput(InputLanguage lang, String name) 
+  {
+    setIncrementalStringInput(pointer, lang.getValue(), name);  
+  }
+
+  private native void setIncrementalStringInput(long pointer, int langValue, String name);  
 
   /**
    * Append string to the input being parsed by this parser. Should be

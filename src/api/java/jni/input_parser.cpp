@@ -53,3 +53,71 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_InputParser_newInputParser__J(
   return reinterpret_cast<jlong>(parser);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
+
+/*
+ * Class:     io_github_cvc5_InputParser
+ * Method:    getSolver
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_InputParser_getSolver(JNIEnv* env,
+                                                                  jobject,
+                                                                  jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  InputParser* parser = reinterpret_cast<InputParser*>(pointer);
+  Solver* solver = parser->getSolver();
+  return reinterpret_cast<jlong>(solver);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_InputParser
+ * Method:    getSymbolManager
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_InputParser_getSymbolManager(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  InputParser* parser = reinterpret_cast<InputParser*>(pointer);
+  SymbolManager* symbolManager = parser->getSymbolManager();
+  return reinterpret_cast<jlong>(symbolManager);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_InputParser
+ * Method:    setFileInput
+ * Signature: (JILjava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_io_github_cvc5_InputParser_setFileInput(
+    JNIEnv* env, jobject, jlong pointer, jint langValue, jstring jFileName)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  InputParser* parser = reinterpret_cast<InputParser*>(pointer);
+  modes::InputLanguage lang = static_cast<modes::InputLanguage>(langValue);
+  const char* cFileName = env->GetStringUTFChars(jFileName, nullptr);
+  std::string sFileName(cFileName);
+  parser->setFileInput(lang, sFileName);
+  env->ReleaseStringUTFChars(jFileName, cFileName);
+  CVC5_JAVA_API_TRY_CATCH_END(env);
+}
+
+/*
+ * Class:     io_github_cvc5_InputParser
+ * Method:    setIncrementalStringInput
+ * Signature: (JILjava/lang/String;)V
+ */
+JNIEXPORT void JNICALL
+Java_io_github_cvc5_InputParser_setIncrementalStringInput(
+    JNIEnv* env, jobject, jlong pointer, jint langValue, jstring jName)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  InputParser* parser = reinterpret_cast<InputParser*>(pointer);
+  modes::InputLanguage lang = static_cast<modes::InputLanguage>(langValue);
+  const char* cName = env->GetStringUTFChars(jName, nullptr);
+  std::string sName(cName);
+  parser->setIncrementalStringInput(lang, sName);
+  env->ReleaseStringUTFChars(jName, cName);
+  CVC5_JAVA_API_TRY_CATCH_END(env);
+}
