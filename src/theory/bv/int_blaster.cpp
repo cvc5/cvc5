@@ -555,7 +555,7 @@ Node IntBlaster::translateWithChildren(
       // If the original range was a BV sort, the original application of
       // the function must be within the range determined by the
       // bitwidth.
-      if (original.getType().isBitVector())
+      if (original.getType().isBitVector() && !expr::hasBoundVar(original))
       {
         addRangeConstraint(
             returnNode, original.getType().getBitVectorSize(), lemmas);
