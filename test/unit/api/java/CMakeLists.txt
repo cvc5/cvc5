@@ -27,9 +27,11 @@ set(java_test_src_files
   ${CMAKE_CURRENT_SOURCE_DIR}/GrammarTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/InputParserTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/OpTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/ParserTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/ResultTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/SolverTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/SortTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/SymbolManagerTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/SynthResultTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/TermTest.java
 )
@@ -73,6 +75,7 @@ cvc5_add_java_api_test(OpTest)
 cvc5_add_java_api_test(ResultTest)
 cvc5_add_java_api_test(SolverTest)
 cvc5_add_java_api_test(SortTest)
+cvc5_add_java_api_test(SymbolManagerTest)
 cvc5_add_java_api_test(SynthResultTest)
 cvc5_add_java_api_test(TermTest)
 
