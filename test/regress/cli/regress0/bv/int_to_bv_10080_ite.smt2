@@ -4,7 +4,6 @@
 (declare-const x Int)
 (declare-const y Int)
 (declare-const z Int)
-; (assert (not (= x 0)))
 (assert (> y 0))
 (assert (= z (ite (> x y) x (+ x y))))
 (check-sat)
