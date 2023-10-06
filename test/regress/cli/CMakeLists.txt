@@ -469,6 +469,7 @@ set(regress_0_tests
   regress0/bv/inequality03.smt2
   regress0/bv/inequality04.smt2
   regress0/bv/inequality05.smt2
+  regress0/bv/int_to_bv_10080_ite.smt2
   regress0/bv/int_to_bv_err_on_demand_1.smt2
   regress0/bv/int_to_bv_model.smt2
   regress0/bv/int_to_bv_model2.smt2

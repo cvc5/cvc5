@@ -47,6 +47,7 @@ using namespace cvc5::internal::theory;
 namespace {
 
 bool childrenTypesChanged(Node n, NodeMap& cache) {
+  Trace("int-to-bv-debug") << "childrenTypesChanged: " << n << std::endl;
   for (Node child : n) {
     TypeNode originalType = child.getType();
     TypeNode newType = cache[child].getType();
@@ -206,9 +207,12 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
           }
         }
       }
+      Trace("int-to-bv-debug") << "tn: " << tn << std::endl;
 
-      if (tn.isInteger() && newKind == current.getKind())
+      if (tn.isInteger() && newKind != Kind::ITE
+          && newKind == current.getKind())
       {
+        Trace("int-to-bv-debug") << "current: " << current << std::endl;
         std::stringstream ss;
         ss << "Cannot translate the operator " << current.getKind()
            << " to a bit-vector operator. Remove option `--solve-int-as-bv`.";
