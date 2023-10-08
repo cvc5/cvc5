@@ -181,7 +181,7 @@ Java_io_github_cvc5_InputParser_appendIncrementalStringInput(JNIEnv* env,
   env->ReleaseStringUTFChars(jInput, cInput);
   CVC5_JAVA_API_TRY_CATCH_END(env);
 }
-#include <iostream>
+
 /*
  * Class:     io_github_cvc5_InputParser
  * Method:    nextCommand
@@ -191,9 +191,8 @@ JNIEXPORT jlong JNICALL
 Java_io_github_cvc5_InputParser_nextCommand(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  InputParser* parser = reinterpret_cast<InputParser*>(pointer);  
+  InputParser* parser = reinterpret_cast<InputParser*>(pointer);
   Command* command = new Command(parser->nextCommand());
-  std::cout << "command: " << command->toString() << std::endl;
   return reinterpret_cast<jlong>(command);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
