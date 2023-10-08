@@ -36,9 +36,12 @@ public class Command extends AbstractPointer
    * @param sm The symbol manager to invoke the command on.
    * @param out The output stream to write the result of the command on.
    */
-  // public void invoke(Solver solver,
-  //             SymbolManager sm,
-  //             std::ostream& out);
+  public void invoke(Solver solver, SymbolManager symbolManager)
+  {
+    invoke(pointer, solver.getPointer(), symbolManager.getPointer());
+  }
+
+  private native void invoke(long pointer, long solverPointer, long symbolManagerPointer);
 
   /**
    * @return A string representation of this result.
@@ -59,6 +62,8 @@ public class Command extends AbstractPointer
    */
   public boolean isNull()
   {
-    return true;
+    return isNull(pointer);
   }
+
+  private native boolean isNull(long pointer);
 }

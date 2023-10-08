@@ -67,7 +67,7 @@ public class InputParser extends AbstractPointer
     super(newInputParser(solver.getPointer()));
   }
 
-  private static native long newInputParser(long solverPointer); 
+  private static native long newInputParser(long solverPointer);
 
   protected native void deletePointer(long pointer);
 
@@ -103,12 +103,26 @@ public class InputParser extends AbstractPointer
    * @param lang the input language (e.g. InputLanguage.SMT_LIB_2_6)
    * @param fileName the input file name
    */
-  public void setFileInput(InputLanguage lang, String fileName) 
+  public void setFileInput(InputLanguage lang, String fileName)
   {
-    setFileInput(pointer, lang.getValue(), fileName);    
+    setFileInput(pointer, lang.getValue(), fileName);
   }
 
   private native void setFileInput(long pointer, int langValue, String fileName);
+
+  /**
+   * Set the input for the given stream.
+   *
+   * @param lang the input language
+   * @param input the input stream
+   * @param name the name of the stream, for use in error messages
+   */
+  public void setStreamInput(InputLanguage lang, String input, String name)
+  {
+    setStreamInput(pointer, lang.getValue(), input, name);
+  }
+
+  private native void setStreamInput(long pointer, int langValue, String input, String name);
 
   /**
    * Set that we will be feeding strings to this parser via
@@ -117,12 +131,12 @@ public class InputParser extends AbstractPointer
    * @param lang the input language
    * @param name the name of the stream, for use in error messages
    */
-  public void setIncrementalStringInput(InputLanguage lang, String name) 
+  public void setIncrementalStringInput(InputLanguage lang, String name)
   {
-    setIncrementalStringInput(pointer, lang.getValue(), name);  
+    setIncrementalStringInput(pointer, lang.getValue(), name);
   }
 
-  private native void setIncrementalStringInput(long pointer, int langValue, String name);  
+  private native void setIncrementalStringInput(long pointer, int langValue, String name);
 
   /**
    * Append string to the input being parsed by this parser. Should be
@@ -131,12 +145,12 @@ public class InputParser extends AbstractPointer
    *
    * @param input The input string
    */
-  public void appendIncrementalStringInput(String input) 
+  public void appendIncrementalStringInput(String input)
   {
     appendIncrementalStringInput(pointer, input);
   }
 
-  private native void appendIncrementalStringInput(long pointer, String input);  
+  private native void appendIncrementalStringInput(long pointer, String input);
 
   /**
    * Parse and return the next command. Will initialize the logic to "ALL"

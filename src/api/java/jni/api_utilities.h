@@ -140,9 +140,11 @@ jobject getBooleanObject(JNIEnv* env, bool value);
 
 /**
  * a map from solver pointers to global references that need to be freed when
- * the java Solver.close method is called
+ * the java Solver.deletePointer method is called
  */
 inline std::map<jlong, std::vector<jobject> > globalReferences;
+
+inline std::stringstream ss;
 
 /**
  * @param env jni environment

@@ -116,6 +116,35 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_InputParser_setFileInput(
 
 /*
  * Class:     io_github_cvc5_InputParser
+ * Method:    setStreamInput
+ * Signature: (JILjava/lang/String;Ljava/lang/String;)V
+ */
+JNIEXPORT void JNICALL
+Java_io_github_cvc5_InputParser_setStreamInput(JNIEnv* env,
+                                               jobject,
+                                               jlong pointer,
+                                               jint langValue,
+                                               jstring jInput,
+                                               jstring jName)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  InputParser* parser = reinterpret_cast<InputParser*>(pointer);
+  modes::InputLanguage lang = static_cast<modes::InputLanguage>(langValue);
+  const char* cInput = env->GetStringUTFChars(jInput, nullptr);
+  const char* cName = env->GetStringUTFChars(jName, nullptr);
+  std::string sInput(cInput);
+  std::string sName(cName);
+  ss.str("");
+  ss.clear();
+  ss << sInput;
+  parser->setStreamInput(lang, ss, sName);
+  env->ReleaseStringUTFChars(jInput, cInput);
+  env->ReleaseStringUTFChars(jName, cName);
+  CVC5_JAVA_API_TRY_CATCH_END(env);
+}
+
+/*
+ * Class:     io_github_cvc5_InputParser
  * Method:    setIncrementalStringInput
  * Signature: (JILjava/lang/String;)V
  */
@@ -152,7 +181,7 @@ Java_io_github_cvc5_InputParser_appendIncrementalStringInput(JNIEnv* env,
   env->ReleaseStringUTFChars(jInput, cInput);
   CVC5_JAVA_API_TRY_CATCH_END(env);
 }
-
+#include <iostream>
 /*
  * Class:     io_github_cvc5_InputParser
  * Method:    nextCommand
@@ -162,8 +191,9 @@ JNIEXPORT jlong JNICALL
 Java_io_github_cvc5_InputParser_nextCommand(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  InputParser* parser = reinterpret_cast<InputParser*>(pointer);
+  InputParser* parser = reinterpret_cast<InputParser*>(pointer);  
   Command* command = new Command(parser->nextCommand());
+  std::cout << "command: " << command->toString() << std::endl;
   return reinterpret_cast<jlong>(command);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

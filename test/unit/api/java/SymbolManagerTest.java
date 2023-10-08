@@ -29,11 +29,12 @@ class SymbolManagerTest extends ParserTest
   {    
     String ss = "(set-logic " + logic + ")\n" ;
     InputParser parser = new InputParser(d_solver, d_symman);
-    //parser.setStreamInput(InputLanguage.SMT_LIB_2_6, ss, "parser_black");
+    parser.setStreamInput(InputLanguage.SMT_LIB_2_6, ss, "parser_black");
     Command cmd = parser.nextCommand();
+    System.out.println("cmd: " + cmd);
     assertNotEquals(cmd.isNull(), true);
     // std::stringstream out;
-    // cmd.invoke(d_solver, d_symman.get(), out);
+    cmd.invoke(d_solver, d_symman);
   }
 
   @Test

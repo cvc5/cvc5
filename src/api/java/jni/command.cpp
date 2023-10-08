@@ -34,6 +34,29 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_Command_deletePointer(JNIEnv*,
   delete reinterpret_cast<Command*>(pointer);
 }
 
+#include <iostream>
+
+/*
+ * Class:     io_github_cvc5_Command
+ * Method:    invoke
+ * Signature: (JJJ)V
+ */
+JNIEXPORT void JNICALL
+Java_io_github_cvc5_Command_invoke(JNIEnv* env,
+                                   jobject,
+                                   jlong pointer,
+                                   jlong solverPointer,
+                                   jlong symbolManagerPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Command* current = reinterpret_cast<Command*>(pointer);
+  Solver* solver = reinterpret_cast<Solver*>(solverPointer);
+  SymbolManager* symbolManager =
+      reinterpret_cast<SymbolManager*>(symbolManagerPointer);
+  current->invoke(solver, symbolManager, std::cout);
+  CVC5_JAVA_API_TRY_CATCH_END(env);
+}
+
 /*
  * Class:     io_github_cvc5_Command
  * Method:    toString
@@ -47,4 +70,19 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_Command_toString(JNIEnv* env,
   Command* current = reinterpret_cast<Command*>(pointer);
   return env->NewStringUTF(current->toString().c_str());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     io_github_cvc5_Command
+ * Method:    isNull
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Command_isNull(JNIEnv* env,
+                                                              jobject,
+                                                              jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Command* command = reinterpret_cast<Command*>(pointer);
+  return static_cast<jboolean>(command->isNull());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
