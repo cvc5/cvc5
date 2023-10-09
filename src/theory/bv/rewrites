@@ -593,8 +593,8 @@
   (def
     (n (+ x1in (bvsize x2)))
     ; length(n) = log2(n) + 1, so we subtract 1 to compensate
-    (x0n (ite (= x1i 0) x1in (- x1in 1 (int.log2 x1i))))
-    (y0n (ite (= y1i 0) y1in (- y1in 1 (int.log2 y1i))))
+    (x0n (ite (= x1i 0) x1in (- x1in (+ 1 (int.log2 x1i)))))
+    (y0n (ite (= y1i 0) y1in (- y1in (+ 1 (int.log2 y1i)))))
   )
   (and (> n 64) (<= (- (* 2 n) (+ x0n y0n)) low))
   (extract high low (bvmul
@@ -788,6 +788,7 @@
   (or (bvult (bv c nm) a) (bvuge (bv c nm) (bvnot a)))
   (bvult (bv c nm) (sign_extend m x))
   (bvult clo x))
+
 (define-cond-rule bv-sign-extend-ult-const-4
   ((x ?BitVec) (m Int) (c Int) (nm Int))
   (def

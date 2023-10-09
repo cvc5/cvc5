@@ -495,7 +495,7 @@ bool RewriteDbProofCons::proveWithRule(DslProofRule id,
 
 bool RewriteDbProofCons::proveInternalBase(Node eqi, DslProofRule& idb)
 {
-  Trace("rpc-debug2") << "Prove internal base: " << eqi << std::endl;
+  Trace("rpc-debug2") << "Prove internal base: " << eqi << "?" << std::endl;
   Assert(eqi.getKind() == Kind::EQUAL);
   // if we are currently trying to prove this, fail
   if (d_currProving.find(eqi) != d_currProving.end())
@@ -512,11 +512,13 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslProofRule& idb)
     {
       // proof exists, return
       idb = it->second.d_id;
+      Trace("rpc-debug2") << "...success, already exists" << std::endl;
       return true;
     }
     if (d_currRecLimit <= it->second.d_failMaxDepth)
     {
       idb = it->second.d_id;
+      Trace("rpc-debug2") << "...fail (at higher depth)" << std::endl;
       return true;
     }
     Trace("rpc-debug2") << "...fail (already fail)" << std::endl;
@@ -532,6 +534,7 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslProofRule& idb)
     ProvenInfo& pi = d_pcache[eqi];
     idb = DslProofRule::REFL;
     pi.d_id = idb;
+    Trace("rpc-debug2") << "...success, refl" << std::endl;
     return true;
   }
   // non-well-typed equalities cannot be proven
@@ -567,6 +570,7 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslProofRule& idb)
         idb = DslProofRule::FAIL;
         pi.d_failMaxDepth = 0;
         pi.d_id = idb;
+        Trace("rpc-debug2") << "...fail, ill-typed equality" << std::endl;
         return true;
       }
       Node eqr = rewrite(eq);
@@ -576,7 +580,7 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslProofRule& idb)
         if (!eqr.getConst<bool>())
         {
           ProvenInfo& pi = d_pcache[eqi];
-          Trace("rpc-debug2") << "Infeasible due to rewriting: " << eqi[0]
+          Trace("rpc-debug2") << "fail, infeasible due to rewriting: " << eqi[0]
                               << " == " << eqi[1] << std::endl;
           idb = DslProofRule::FAIL;
           pi.d_failMaxDepth = 0;
@@ -596,10 +600,12 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslProofRule& idb)
     // we can evaluate both sides, check to see if the values are the same
     if (ev[0] == ev[1])
     {
+      Trace("rpc-debug2") << "...success, eval" << std::endl;
       idb = DslProofRule::EVAL;
     }
     else
     {
+      Trace("rpc-debug2") << "...fail (eval " << ev[0] << " and " << ev[1] << ")" << std::endl;
       idb = DslProofRule::FAIL;
       // failure relies on nothing, depth is 0
       pi.d_failMaxDepth = 0;
@@ -631,6 +637,7 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslProofRule& idb)
     return true;
   }
   */
+  Trace("rpc-debug2") << "...undetermined" << std::endl;
   // otherwise, we fail to either prove or disprove the equality
   return false;
 }

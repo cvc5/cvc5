@@ -21,6 +21,7 @@
 #include "theory/rewriter.h"
 #include "theory/strings/regexp_eval.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/builtin/theory_builtin_rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/function_const.h"
 #include "util/integer.h"
@@ -340,6 +341,26 @@ EvalResult Evaluator::evalInternal(
         // Otherwise, we may be able to turn the overall result into an
         // valid EvalResult and continue. We fallthrough and continue with the
         // block of code below.
+      }
+      else if (currNodeVal.getKind()==Kind::APPLY_INDEXED_SYMBOLIC)
+      {
+        // We incorporate the rewrite that changes e.g. (extract 2 0 #b0000)
+        // to ((_ extract 2 0) #b0000). To do this, we reconstruct the
+        // application, invoke the rewrite step, ensure the rewritten term is
+        // processed, then set the result of the indexed symbolic term to that
+        // term.
+        currNodeVal = reconstruct(currNode, results, evalAsNode);
+        currNodeVal = builtin::TheoryBuiltinRewriter::rewriteApplyIndexedSymbolic(currNodeVal);
+        itr = results.find(currNodeVal);
+        if (itr == results.end())
+        {
+          // first compute the value of the rewritten form
+          queue.emplace_back(currNodeVal);
+          continue;
+        }
+        // now we are ready
+        results[currNode] = itr->second;
+        continue;
       }
 
       Trace("evaluator") << "Current node val : " << currNodeVal << std::endl;
