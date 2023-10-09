@@ -1131,7 +1131,7 @@ bool TheoryArrays::collectModelValues(TheoryModel* m,
         if (rep.isNull())
         {
           Assert(defaultValuesSet.getSet(valueType)->begin()
-                != defaultValuesSet.getSet(valueType)->end());
+                 != defaultValuesSet.getSet(valueType)->end());
           rep = *(defaultValuesSet.getSet(valueType)->begin());
         }
         Trace("arrays-models") << "New default value = " << rep << endl;
