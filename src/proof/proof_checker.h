@@ -124,8 +124,7 @@ class ProofChecker
    * output stream out if enableOutput is true.
    */
   bool isPedanticFailure(ProofRule id,
-                         std::ostream& out,
-                         bool enableOutput = true) const;
+                         std::ostream* out) const;
 
  private:
   /** statistics class */
@@ -150,9 +149,8 @@ class ProofChecker
                      const std::vector<Node>& cchildren,
                      const std::vector<Node>& args,
                      Node expected,
-                     std::stringstream& out,
-                     bool useTrustedChecker,
-                     bool enableOutput);
+                     std::stringstream* out,
+                     bool useTrustedChecker);
 };
 
 }  // namespace cvc5::internal
