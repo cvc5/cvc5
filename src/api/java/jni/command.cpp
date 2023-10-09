@@ -74,6 +74,20 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_Command_toString(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_Command
+ * Method:    getCommandName
+ * Signature: (J)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL
+Java_io_github_cvc5_Command_getCommandName(JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Command* command = reinterpret_cast<Command*>(pointer);
+  return env->NewStringUTF(command->getCommandName().c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Command
  * Method:    isNull
  * Signature: (J)Z
  */

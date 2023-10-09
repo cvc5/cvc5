@@ -55,8 +55,11 @@ public class Command extends AbstractPointer
    */
   public String getCommandName()
   {
-    return "";
+    return getCommandName(pointer);
   }
+
+  private native String getCommandName(long pointer);
+
   /**
    * @return True if this command is null.
    */

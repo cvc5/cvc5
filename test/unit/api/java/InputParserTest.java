@@ -151,7 +151,7 @@ class InputParserTest extends ParserTest
     });
 
     p.appendIncrementalStringInput("(+ b 1)");
-    assertThrows(CVC5ApiException.class, () -> { Term t = p.nextTerm(); });
+    assertThrows(CVC5ParserException.class, () -> { Term t = p.nextTerm(); });
   }
 
   @Test
@@ -180,7 +180,7 @@ class InputParserTest extends ParserTest
     assertEquals(s2.isLogicSet(), true);
     assertEquals(s2.getLogic(), "QF_LIA");
     // we cannot set the logic since it has already been set
-    assertThrows(CVC5ApiException.class, () -> parseLogicCommand(p3, "QF_LRA"));
+    assertThrows(CVC5ParserException.class, () -> parseLogicCommand(p3, "QF_LRA"));
 
     // using a solver with the same logic is allowed
     Solver s3 = new Solver();

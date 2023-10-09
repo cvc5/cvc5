@@ -95,6 +95,7 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/CVC5ApiException.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/CVC5ApiOptionException.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/CVC5ApiRecoverableException.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/CVC5ParserException.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Datatype.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/DatatypeConstructor.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/DatatypeConstructorDecl.java

@@ -22,6 +22,7 @@ get_filename_component(CVC5_JNI_PATH ${CVC5_JAR_PATH} DIRECTORY)
 
 # specify source files for junit tests
 set(java_test_src_files
+  ${CMAKE_CURRENT_SOURCE_DIR}/CommandTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/DatatypeTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/FiniteFieldTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/GrammarTest.java
@@ -68,6 +69,7 @@ endmacro()
 if(USE_COCOA)
   cvc5_add_java_api_test(FiniteFieldTest)
 endif()
+cvc5_add_java_api_test(CommandTest)
 cvc5_add_java_api_test(DatatypeTest)
 cvc5_add_java_api_test(GrammarTest)
 cvc5_add_java_api_test(InputParserTest)
