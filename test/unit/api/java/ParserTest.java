@@ -28,14 +28,13 @@ class ParserTest
   void setUp()
   {
     d_solver = new Solver();
-    d_solver.setOption("parse-only", "true");
-    d_solver.setOption("trace", "parser");
+    d_solver.setOption("parse-only", "true");   
     d_symman = new SymbolManager(d_solver);
   }
 
   @AfterEach
   void tearDown()
   {
-    // Context.deletePointers();
+    Context.deletePointers();
   }
 }
