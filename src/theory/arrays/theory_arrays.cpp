@@ -1107,6 +1107,7 @@ bool TheoryArrays::collectModelValues(TheoryModel* m,
 
   // Loop through all array equivalence classes that need a representative
   // computed
+  // The default values map for arrays not appearing in d_defValues.
   std::map<Node, Node> defMap;
   std::map<Node, Node>::iterator itd;
   for (size_t i = 0; i < arrays.size(); ++i)
@@ -1118,13 +1119,13 @@ bool TheoryArrays::collectModelValues(TheoryModel* m,
     // Compute default value for this array - there is one default value for
     // every mayEqual equivalence class
     TNode mayRep = d_mayEqualEqualityEngine.getRepresentative(nrep);
-    itd = defMap.find(mayRep);
     // If this mayEqual EC doesn't have a default value associated, get the next
     // available default value for the associated array element type
-    if (itd == defMap.end())
+    it = d_defValues.find(mayRep);
+    if (it == d_defValues.end())
     {
-      it = d_defValues.find(mayRep);
-      if (it == d_defValues.end())
+      itd = defMap.find(mayRep);
+      if (itd == defMap.end())
       {
         TypeNode valueType = nrep.getType().getArrayConstituentType();
         rep = defaultValuesSet.nextTypeEnum(valueType);
@@ -1135,16 +1136,16 @@ bool TheoryArrays::collectModelValues(TheoryModel* m,
           rep = *(defaultValuesSet.getSet(valueType)->begin());
         }
         Trace("arrays-models") << "New default value = " << rep << endl;
+        defMap[mayRep] = rep;
       }
       else
       {
-        rep = (*it).second;
+        rep = itd->second;
       }
-      defMap[mayRep] = rep;
     }
     else
     {
-      rep = itd->second;
+      rep = (*it).second;
     }
 
     // Build the STORE_ALL term with the default value
