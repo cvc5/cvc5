@@ -123,8 +123,7 @@ class ProofChecker
    * Is pedantic failure? If so, we return true and write a debug message on the
    * output stream out if enableOutput is true.
    */
-  bool isPedanticFailure(ProofRule id,
-                         std::ostream* out) const;
+  bool isPedanticFailure(ProofRule id, std::ostream* out) const;
 
  private:
   /** statistics class */
