@@ -39,7 +39,9 @@ PartitionGenerator::PartitionGenerator(Env& env,
       d_numPartitions(options().parallel.computePartitions),
       d_numChecks(0),
       d_betweenChecks(0),
-      d_numPartitionsSoFar(0)
+      d_numPartitionsSoFar(0),
+      d_createdAnyPartitions(false),
+      d_emittedAllPartitions(false)
 {
   d_valuation = std::make_unique<Valuation>(theoryEngine);
   d_propEngine = propEngine;
@@ -127,10 +129,11 @@ std::vector<Node> PartitionGenerator::collectLiterals(LiteralListType litType)
   return filteredLiterals;
 }
 
-void PartitionGenerator::emitCube(Node toEmit)
+void PartitionGenerator::emitPartition(Node toEmit)
 {
   *options().parallel.partitionsOut << toEmit << std::endl;
   ++d_numPartitionsSoFar;
+  d_createdAnyPartitions = true;
 }
 
 Node PartitionGenerator::blockPath(TNode toBlock)
@@ -142,8 +145,9 @@ Node PartitionGenerator::blockPath(TNode toBlock)
 }
 
 // Send lemma that is the negation of all previously asserted lemmas.
-Node PartitionGenerator::stopPartitioning() const
+Node PartitionGenerator::stopPartitioning()
 {
+  d_emittedAllPartitions = true;
   return NodeManager::currentNM()->mkConst(false);
 }
 
@@ -185,8 +189,8 @@ Node PartitionGenerator::makeRevisedPartitions(bool strict, bool emitZLL)
         toEmit.push_back(c.notNode());
       }
       toEmit.push_back(conj);
-      Node strict_cube = NodeManager::currentNM()->mkAnd(toEmit);
-      d_strict_cubes.push_back(strict_cube);
+      Node scatterPartition = NodeManager::currentNM()->mkAnd(toEmit);
+      d_scatterPartitions.push_back(scatterPartition);
 
       if (emitZLL)
       {
@@ -195,7 +199,7 @@ Node PartitionGenerator::makeRevisedPartitions(bool strict, bool emitZLL)
       }
       else 
       {
-        emitCube(strict_cube);
+        emitPartition(scatterPartition);
       }
     }
     else {
@@ -206,7 +210,7 @@ Node PartitionGenerator::makeRevisedPartitions(bool strict, bool emitZLL)
       }
       else 
       {
-        emitCube(conj);
+        emitPartition(conj);
       }
     }
     // Add to the list of cubes.
@@ -220,13 +224,13 @@ Node PartitionGenerator::makeRevisedPartitions(bool strict, bool emitZLL)
     {
       std::vector<Node> zllLiterals = d_propEngine->getLearnedZeroLevelLiterals(
           modes::LearnedLitType::INPUT);
-      std::vector<Node>* cubes = strict ? &d_strict_cubes : &d_cubes;
-      
+      std::vector<Node>* cubes = strict ? &d_scatterPartitions : &d_cubes;
+
       for (const auto& c : *cubes)
       {
         zllLiterals.push_back(c);
         Node lemma = NodeManager::currentNM()->mkAnd(zllLiterals);
-        emitCube(lemma);
+        emitPartition(lemma);
         zllLiterals.pop_back();
       }
     }
@@ -244,10 +248,10 @@ Node PartitionGenerator::makeRevisedPartitions(bool strict, bool emitZLL)
           modes::LearnedLitType::INPUT);
       zllLiterals.push_back(lemma);
       Node zllLemma = NodeManager::currentNM()->mkAnd(zllLiterals);
-      emitCube(zllLemma);
+      emitPartition(zllLemma);
     }
     else {
-      emitCube(lemma);
+      emitPartition(lemma);
     }
     return stopPartitioning();
   }
@@ -320,16 +324,70 @@ Node PartitionGenerator::makeFullTrailPartitions(LiteralListType litType,
       {
         std::vector<Node> zllLiterals = collectLiterals(ZLL);
         zllLiterals.push_back(conj);
-        Node zllConj = NodeManager::currentNM()->mkAnd(zllLiterals); 
-        emitCube(zllConj);
+        Node zllConj = NodeManager::currentNM()->mkAnd(zllLiterals);
+        emitPartition(zllConj);
       }
       else {
-        emitCube(conj);
+        emitPartition(conj);
       } 
     }
     return stopPartitioning();
   }
   return Node::null();
+}
+
+void PartitionGenerator::emitRemainingPartitions(bool solved)
+{
+  if (d_emittedAllPartitions)
+  {
+    return;
+  }
+
+  bool emitZLL = options().parallel.appendLearnedLiteralsToCubes;
+  std::vector<Node> zllLiterals;
+
+  if (emitZLL)
+  {
+    zllLiterals =
+        d_propEngine->getLearnedZeroLevelLiterals(modes::LearnedLitType::INPUT);
+  }
+
+  for (const auto& partition : d_scatterPartitions)
+  {
+    Node lemma = partition;
+
+    if (emitZLL)
+    {
+      zllLiterals.push_back(partition);
+      lemma = NodeManager::currentNM()->mkAnd(zllLiterals);
+      zllLiterals.pop_back();
+    }
+
+    emitPartition(lemma);
+  }
+
+  // If the problem has been solved, then there is no need to emit
+  // the final partition because it was solved by the partitioning solver.
+  // However, if the problem has not been solved by this solver, then
+  // we must emit the final partition.
+  if (!solved)
+  {
+    std::vector<Node> nots;
+    for (const Node& cube : d_cubes)
+    {
+      nots.push_back(cube.notNode());
+    }
+
+    Node finalPartition = NodeManager::currentNM()->mkAnd(nots);
+
+    if (emitZLL)
+    {
+      zllLiterals.push_back(finalPartition);
+      finalPartition = NodeManager::currentNM()->mkAnd(zllLiterals);
+    }
+
+    emitPartition(finalPartition);
+  }
 }
 
 void PartitionGenerator::check(Theory::Effort e)

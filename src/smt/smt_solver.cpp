@@ -17,6 +17,7 @@
 
 #include "options/base_options.h"
 #include "options/main_options.h"
+#include "options/parallel_options.h"
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "prop/prop_engine.h"
@@ -150,6 +151,17 @@ Result SmtSolver::checkSatInternal()
     }
     Trace("smt") << "SmtSolver::global negate returned " << result << std::endl;
   }
+
+  // Handle emitting pending partitions.
+  // This can be triggered by a scatter strategy that produces
+  // fewer than the requested number of partitions before solving
+  // the remainder of the problem.
+  if (options().parallel.computePartitions > 1
+      && result.getStatus() == Result::UNSAT)
+  {
+    d_theoryEngine->emitPendingPartitions();
+  }
+
   return result;
 }
 

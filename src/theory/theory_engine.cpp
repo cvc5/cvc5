@@ -2017,6 +2017,11 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
   }
 }
 
+void TheoryEngine::emitPendingPartitions()
+{
+  d_partitionGen->emitRemainingPartitions(/*solved=*/true);
+}
+
 std::pair<bool, Node> TheoryEngine::entailmentCheck(options::TheoryOfMode mode,
                                                     TNode lit)
 {

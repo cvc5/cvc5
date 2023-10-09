@@ -419,6 +419,11 @@ class TheoryEngine : protected EnvObj
    */
   void checkTheoryAssertionsWithModel(bool hardFailure);
 
+  /**
+   * Emit any pending partitions via the partition generator.
+   */
+  void emitPendingPartitions();
+
  private:
   typedef context::
       CDHashMap<NodeTheoryPair, NodeTheoryPair, NodeTheoryPairHashFunction>
