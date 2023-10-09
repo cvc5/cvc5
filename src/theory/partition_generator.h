@@ -77,7 +77,7 @@ class PartitionGenerator : public TheoryEngineModule
    * emitZLL is set to true, then zero-level learned literals will be appended
    * to the cubes.
    */
-  Node makeRevisedPartitions(bool strict, bool emitZLL);
+  Node makeRevisedPartitions(bool emitZLL);
 
   /**
    * Partition by taking a list of literals and emitting mutually exclusive
