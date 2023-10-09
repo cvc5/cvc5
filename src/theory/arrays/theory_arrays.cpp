@@ -1107,6 +1107,8 @@ bool TheoryArrays::collectModelValues(TheoryModel* m,
 
   // Loop through all array equivalence classes that need a representative
   // computed
+  std::map<Node, Node> defMap;
+  std::map<Node, Node>::iterator itd;
   for (size_t i = 0; i < arrays.size(); ++i)
   {
     TNode n = arrays[i];
@@ -1116,25 +1118,33 @@ bool TheoryArrays::collectModelValues(TheoryModel* m,
     // Compute default value for this array - there is one default value for
     // every mayEqual equivalence class
     TNode mayRep = d_mayEqualEqualityEngine.getRepresentative(nrep);
-    it = d_defValues.find(mayRep);
+    itd = defMap.find(mayRep);
     // If this mayEqual EC doesn't have a default value associated, get the next
     // available default value for the associated array element type
-    if (it == d_defValues.end())
+    if (itd == defMap.end())
     {
-      TypeNode valueType = nrep.getType().getArrayConstituentType();
-      rep = defaultValuesSet.nextTypeEnum(valueType);
-      if (rep.isNull())
+      it = d_defValues.find(mayRep);
+      if (it == d_defValues.end())
       {
-        Assert(defaultValuesSet.getSet(valueType)->begin()
-               != defaultValuesSet.getSet(valueType)->end());
-        rep = *(defaultValuesSet.getSet(valueType)->begin());
+        TypeNode valueType = nrep.getType().getArrayConstituentType();
+        rep = defaultValuesSet.nextTypeEnum(valueType);
+        if (rep.isNull())
+        {
+          Assert(defaultValuesSet.getSet(valueType)->begin()
+                != defaultValuesSet.getSet(valueType)->end());
+          rep = *(defaultValuesSet.getSet(valueType)->begin());
+        }
+        Trace("arrays-models") << "New default value = " << rep << endl;
       }
-      Trace("arrays-models") << "New default value = " << rep << endl;
-      d_defValues[mayRep] = rep;
+      else
+      {
+        rep = (*it).second;
+      }
+      defMap[mayRep] = rep;
     }
     else
     {
-      rep = (*it).second;
+      rep = itd->second;
     }
 
     // Build the STORE_ALL term with the default value
