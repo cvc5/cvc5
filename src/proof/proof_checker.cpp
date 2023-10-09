@@ -117,8 +117,10 @@ Node ProofChecker::checkDebug(ProofRule id,
                               Node expected,
                               const char* traceTag)
 {
-  if (!TraceIsOn(traceTag))
+  bool debugTrace = TraceIsOn(traceTag);
+  if (!debugTrace)
   {
+    // run without output stream
     return checkInternal(id, cchildren, args, expected, nullptr, false);
   }
   std::stringstream out;
