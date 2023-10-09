@@ -1107,7 +1107,8 @@ bool TheoryArrays::collectModelValues(TheoryModel* m,
 
   // Loop through all array equivalence classes that need a representative
   // computed
-  // The default values map for arrays not appearing in d_defValues.
+  // The default values map for arrays not appearing in d_defValues. This map
+  // is local to the current model.
   std::map<Node, Node> defMap;
   std::map<Node, Node>::iterator itd;
   for (size_t i = 0; i < arrays.size(); ++i)
