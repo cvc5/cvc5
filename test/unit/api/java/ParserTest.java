@@ -29,6 +29,7 @@ class ParserTest
   {
     d_solver = new Solver();
     d_solver.setOption("parse-only", "true");
+    d_solver.setOption("trace", "parser");
     d_symman = new SymbolManager(d_solver);
   }
 

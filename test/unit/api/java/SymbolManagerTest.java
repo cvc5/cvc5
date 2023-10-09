@@ -26,8 +26,8 @@ import org.junit.jupiter.api.Test;
 class SymbolManagerTest extends ParserTest
 {
   void parseAndSetLogic(String logic)
-  {    
-    String ss = "(set-logic " + logic + ")\n" ;
+  {
+    String ss = "(set-logic " + logic + ")\n";
     InputParser parser = new InputParser(d_solver, d_symman);
     parser.setStreamInput(InputLanguage.SMT_LIB_2_6, ss, "parser_black");
     Command cmd = parser.nextCommand();

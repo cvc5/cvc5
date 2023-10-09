@@ -173,12 +173,16 @@ public class InputParser extends AbstractPointer
    */
   public Term nextTerm()
   {
-    return null;
+    return new Term(nextTerm(pointer));
   }
+
+  private native long nextTerm(long pointer);
 
   /** Is this parser done reading input? */
   public boolean done()
   {
-    return false;
+    return done(pointer);
   }
+
+  private native boolean done(long pointer);
 }

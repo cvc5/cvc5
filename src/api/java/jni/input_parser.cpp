@@ -196,3 +196,34 @@ Java_io_github_cvc5_InputParser_nextCommand(JNIEnv* env, jobject, jlong pointer)
   return reinterpret_cast<jlong>(command);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
+
+/*
+ * Class:     io_github_cvc5_InputParser
+ * Method:    nextTerm
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_InputParser_nextTerm(JNIEnv* env,
+                                                                 jobject,
+                                                                 jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  InputParser* parser = reinterpret_cast<InputParser*>(pointer);
+  Term* term = new Term(parser->nextTerm());
+  return reinterpret_cast<jlong>(term);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_InputParser
+ * Method:    done
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_InputParser_done(JNIEnv* env,
+                                                                jobject,
+                                                                jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  InputParser* parser = reinterpret_cast<InputParser*>(pointer);
+  return static_cast<jboolean>(parser->done());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
