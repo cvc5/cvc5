@@ -127,20 +127,20 @@ Java_io_github_cvc5_InputParser_setStreamInput(JNIEnv* env,
                                                jstring jInput,
                                                jstring jName)
 {
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  InputParser* parser = reinterpret_cast<InputParser*>(pointer);
-  modes::InputLanguage lang = static_cast<modes::InputLanguage>(langValue);
-  const char* cInput = env->GetStringUTFChars(jInput, nullptr);
-  const char* cName = env->GetStringUTFChars(jName, nullptr);
-  std::string sInput(cInput);
-  std::string sName(cName);
-  ss.str("");
-  ss.clear();
-  ss << sInput;
-  parser->setStreamInput(lang, ss, sName);
-  env->ReleaseStringUTFChars(jInput, cInput);
-  env->ReleaseStringUTFChars(jName, cName);
-  CVC5_JAVA_API_TRY_CATCH_END(env);
+  // CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  // InputParser* parser = reinterpret_cast<InputParser*>(pointer);
+  // modes::InputLanguage lang = static_cast<modes::InputLanguage>(langValue);
+  // const char* cInput = env->GetStringUTFChars(jInput, nullptr);
+  // const char* cName = env->GetStringUTFChars(jName, nullptr);
+  // std::string sInput(cInput);
+  // std::string sName(cName);
+  // ss.str("");
+  // ss.clear();
+  // ss << sInput;
+  // parser->setStreamInput(lang, ss, sName);
+  // env->ReleaseStringUTFChars(jInput, cInput);
+  // env->ReleaseStringUTFChars(jName, cName);
+  // CVC5_JAVA_API_TRY_CATCH_END(env);
 }
 
 /*

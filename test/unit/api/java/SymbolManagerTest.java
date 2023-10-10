@@ -27,13 +27,11 @@ class SymbolManagerTest extends ParserTest
 {
   void parseAndSetLogic(String logic)
   {
-    String ss = "(set-logic " + logic + ")\n";
     InputParser parser = new InputParser(d_solver, d_symman);
-    parser.setStreamInput(InputLanguage.SMT_LIB_2_6, ss, "parser_black");
-    Command cmd = parser.nextCommand();
-    System.out.println("cmd: " + cmd);
-    assertNotEquals(cmd.isNull(), true);
-    // std::stringstream out;
+    parser.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "symbol_manager_test");
+    parser.appendIncrementalStringInput("(set-logic " + logic + ")\n");          
+    Command cmd = parser.nextCommand();    
+    assertNotEquals(cmd.isNull(), true);    
     cmd.invoke(d_solver, d_symman);
   }
 

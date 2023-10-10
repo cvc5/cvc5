@@ -144,8 +144,6 @@ jobject getBooleanObject(JNIEnv* env, bool value);
  */
 inline std::map<jlong, std::vector<jobject> > globalReferences;
 
-inline std::stringstream ss;
-
 /**
  * @param env jni environment
  * @param solverRef a global reference to java Solver object
