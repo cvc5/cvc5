@@ -1715,8 +1715,9 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
       // rewrite.
       if (getWitness() != getProofLiteral())
       {
+        Node plit = getProofLiteral();
         pf = pnm->mkNode(
-            ProofRule::MACRO_SR_PRED_TRANSFORM, {pf}, {getProofLiteral()});
+            ProofRule::MACRO_SR_PRED_TRANSFORM, {pf}, {plit}, plit);
       }
     }
   }
@@ -1727,8 +1728,9 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
     if (d_database->isProofEnabled())
     {
       std::shared_ptr<ProofNode> a = pnm->mkAssume(getLiteral());
+      Node plit = getProofLiteral();
       pf = pnm->mkNode(
-          ProofRule::MACRO_SR_PRED_TRANSFORM, {a}, {getProofLiteral()});
+          ProofRule::MACRO_SR_PRED_TRANSFORM, {a}, {plit}, plit);
     }
     Assert(lit.getKind() != Kind::AND);
     nb << lit;
@@ -1796,9 +1798,10 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
                           farkasCoeffs);
 
           // Provable rewrite the result
+          Node falsen = nm->mkConst(false);
           auto botPf = pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM,
                                    {sumPf},
-                                   {nm->mkConst(false)});
+                                   {falsen}, falsen);
 
           // Scope out the negated constraint, yielding a proof of the
           // constraint.
@@ -1809,9 +1812,10 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
           // because we are not providing an expected node.
           //
           // Prove that this is the literal (may need to clean a double-not)
+          Node plit2 = getProofLiteral();
           pf = pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM,
                            {maybeDoubleNotPf},
-                           {getProofLiteral()});
+                           {plit2}, plit2);
 
           break;
         }
