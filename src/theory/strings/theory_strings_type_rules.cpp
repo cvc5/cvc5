@@ -305,15 +305,26 @@ TypeNode StringStrToBoolTypeRule::computeType(NodeManager* nodeManager,
 {
   if (check)
   {
-    TypeNode t = n[0].getTypeOrNull();
-    if (!isMaybeStringLike(t))
+    TypeNode firstType;
+    for (const Node& nc : n)
     {
-      if (errOut)
+      TypeNode t = nc.getType(check);
+      if (!isMaybeStringLike(t))
       {
-        (*errOut) << "expecting a string-like term in argument of "
-                  << n.getKind();
+        std::stringstream ss;
+        ss << "expecting a string-like term in argument of " << n.getKind();
+        throw TypeCheckingExceptionPrivate(n, ss.str());
       }
-      return TypeNode::null();
+      if (firstType.isNull())
+      {
+        firstType = t;
+      }
+      else if (!t.isComparableTo(firstType))
+      {
+        std::stringstream ss;
+        ss << "expecting string terms of the same type in " << n.getKind();
+        throw TypeCheckingExceptionPrivate(n, ss.str());
+      }
     }
   }
   return nodeManager->booleanType();

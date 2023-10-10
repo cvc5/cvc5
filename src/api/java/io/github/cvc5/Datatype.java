@@ -31,11 +31,6 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
 
   protected native void deletePointer(long pointer);
 
-  public long getPointer()
-  {
-    return pointer;
-  }
-
   // endregion
 
   /**

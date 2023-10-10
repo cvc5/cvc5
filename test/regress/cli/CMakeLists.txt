@@ -1130,6 +1130,7 @@ set(regress_0_tests
   regress0/parser/issue9675.smt2
   regress0/parser/issue9676.smt2
   regress0/parser/issue9990-nprint-char.smt2
+  regress0/parser/issue10093.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
@@ -1274,6 +1275,8 @@ set(regress_0_tests
   regress0/prop/cadical_bug3.smt2
   regress0/prop/cadical_bug4.smt2
   regress0/prop/cadical_bug5.smt2
+  regress0/prop/cadical_bug6.smt2
+  regress0/prop/cadical_bug7.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
   regress0/push-pop/boolean/fuzz_13.smt2
   regress0/push-pop/boolean/fuzz_14.smt2

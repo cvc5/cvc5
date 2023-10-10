@@ -124,5 +124,6 @@ public class BitVectors
       System.out.println(" Expect sat. ");
       System.out.println(" cvc5: " + slv.checkSat());
     }
+    Context.deletePointers();
   }
 }
