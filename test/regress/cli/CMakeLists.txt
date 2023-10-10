@@ -538,6 +538,7 @@ set(regress_0_tests
   regress0/bv/holes/xor-simplify-2.smt2
   regress0/bv/holes/xor-simplify-3.smt2
 
+  regress0/bv/holes/ashr-zero.smt2
   regress0/bv/holes/zero-extend-eq-const-1.smt2
   regress0/bv/holes/zero-extend-eq-const-2.smt2
   regress0/bv/holes/zero-extend-ult-const-1.smt2
