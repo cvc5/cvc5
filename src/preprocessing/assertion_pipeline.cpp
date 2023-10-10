@@ -160,6 +160,7 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
       {
         // skip the AND_INTRO if the previous d_nodes[i] was true
         newConj = n;
+        newConjr = rewrite(n);
       }
       else
       {
