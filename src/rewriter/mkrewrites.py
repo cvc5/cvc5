@@ -173,7 +173,7 @@ def validate_rule(rule):
 
     # Perform type checking
     lhsHasConst = type_check(rule.lhs)
-    if lhsHasConst:
+    if os.getenv('CVC5_RARE_CHECK_CONST', None) is not None and lhsHasConst:
         print(f"Warning: Rule {rule.name} has constants in its match expression", file=sys.stderr)
     type_check(rule.rhs)
     type_check(rule.cond)
