@@ -24,9 +24,9 @@
   (extract l k (extract j i x))
   (extract (+ i l) (+ i k) x))
 (define-cond-rule bv-extract-whole
-  ((x ?BitVec) (n Int))
-  (>= n (- (bvsize x) 1))
-  (extract n 0 x)
+  ((x ?BitVec) (n Int) (c0 Int))
+  (and (>= n (- (bvsize x) 1)) (= c0 0))
+  (extract n c0 x)
   x)
 ; Case 1: (< j n) so the extract is self contained
 (define-cond-rule bv-extract-concat-1
@@ -310,15 +310,19 @@
 ; -- Simplification Rules --
 
 (define-rule bv-ite-equal-children ((c (_ BitVec 1)) (x ?BitVec)) (bvite c x x) x)
-(define-rule bv-ite-const-children-1 (
+(define-cond-rule bv-ite-const-children-1 (
     (c (_ BitVec 1))
+    (c0 (_ BitVec 1)) (c1 (_ BitVec 1))
   )
-  (bvite c (bv 0 1) (bv 1 1))
+  (and (= c0 (bv 0 1)) (= c1 (bv 1 1)))
+  (bvite c c0 c1)
   (bvnot c))
-(define-rule bv-ite-const-children-2 (
+(define-cond-rule bv-ite-const-children-2 (
     (c (_ BitVec 1))
+    (c0 (_ BitVec 1)) (c1 (_ BitVec 1))
   )
-  (bvite c (bv 1 1) (bv 0 1))
+  (and (= c0 (bv 0 1)) (= c1 (bv 1 1)))
+  (bvite c c1 c0)
   c)
 (define-rule bv-ite-equal-cond-1 (
     (c0 (_ BitVec 1))
