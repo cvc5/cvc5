@@ -499,6 +499,8 @@ set(regress_0_tests
   regress0/bv/holes/ite-merge-then-else.smt2 # Roundabout method used
   regress0/bv/holes/ite-merge-else-else.smt2
 
+  regress0/bv/holes/bitwise-not-or.smt2
+  regress0/bv/holes/xor-duplicate.smt2
   regress0/bv/holes/extract-mult-leading-bit.smt2
   regress0/bv/holes/merge-sign-extend-2.smt2
   regress0/bv/holes/merge-sign-extend-3.smt2
@@ -519,7 +521,11 @@ set(regress_0_tests
   regress0/bv/holes/not-neq.smt2
   regress0/bv/holes/rotate-left-eliminate-1.smt2
   regress0/bv/holes/ult-one.smt2
+  regress0/bv/holes/shl-by-const-0.smt2
+  regress0/bv/holes/shl-by-const-2.smt2
+  regress0/bv/holes/lshr-by-const-0.smt2
   regress0/bv/holes/lshr-by-const-1.smt2
+  regress0/bv/holes/lshr-by-const-2.smt2
   regress0/bv/holes/ashr-by-const-0.smt2
   regress0/bv/holes/ashr-by-const-1.smt2 # Could not find rule
   regress0/bv/holes/ashr-by-const-2.smt2 # Could not find rule?
