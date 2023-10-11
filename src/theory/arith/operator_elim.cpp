@@ -443,7 +443,7 @@ Node OperatorElim::getArithSkolem(SkolemFunId id)
     }
     Node skolem;
     SkolemManager* sm = nm->getSkolemManager();
-    // partial function: division
+    // introduce the skolem function
     skolem = sm->mkSkolemFunction(id, nm->mkFunctionType(tn, tn));
     // cache it
     d_arithSkolem[id] = skolem;
