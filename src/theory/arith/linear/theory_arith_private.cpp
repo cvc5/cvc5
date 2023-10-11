@@ -1408,22 +1408,23 @@ TrustNode TheoryArithPrivate::dioCutting()
 
       Pf pfNotLeq = d_pnm->mkAssume(leq.getNode().negate());
       Pf pfGt =
-          d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM, {pfNotLeq}, {gt});
+          d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM, {pfNotLeq}, {gt}, gt);
       Pf pfNotGeq = d_pnm->mkAssume(geq.getNode().negate());
       Pf pfLt =
-          d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM, {pfNotGeq}, {lt});
+          d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM, {pfNotGeq}, {lt}, lt);
       Pf pfSum = d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB,
                                {pfGt, pfLt},
                                {nm->mkConstReal(-1), nm->mkConstReal(1)});
+      Node falsen = nm->mkConst(false);
       Pf pfBot = d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM,
                                {pfSum},
-                               {nm->mkConst<bool>(false)});
+                               {falsen}, falsen);
       std::vector<Node> assumptions = {leq.getNode().negate(),
                                        geq.getNode().negate()};
       Pf pfNotAndNot = d_pnm->mkScope(pfBot, assumptions);
       Pf pfOr = d_pnm->mkNode(ProofRule::NOT_AND, {pfNotAndNot}, {});
       Pf pfRewritten = d_pnm->mkNode(
-          ProofRule::MACRO_SR_PRED_TRANSFORM, {pfOr}, {rewrittenLemma});
+          ProofRule::MACRO_SR_PRED_TRANSFORM, {pfOr}, {rewrittenLemma}, rewrittenLemma);
       return d_pfGen->mkTrustNode(rewrittenLemma, pfRewritten);
     }
     else
@@ -4503,7 +4504,8 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
         conflictPfs.push_back(
             d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM,
                           {d_pnm->mkAssume(implied->getLiteral().negate())},
-                          {pfLit}));
+                          {pfLit},
+                          pfLit));
         // Add the explaination proofs.
         for (const auto constraint : explain)
         {
@@ -4523,8 +4525,9 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
         auto sumPf = d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB,
                                    conflictPfs,
                                    farkasCoefficients);
+        Node falsen = nm->mkConst(false);
         auto botPf = d_pnm->mkNode(
-            ProofRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
+            ProofRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {falsen}, falsen);
 
         // Prove the conflict
         std::vector<Node> assumptions;
@@ -4538,7 +4541,7 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
         // Convert it to a clause
         auto orNotNotPf = d_pnm->mkNode(ProofRule::NOT_AND, {notAndNotPf}, {});
         clausePf = d_pnm->mkNode(
-            ProofRule::MACRO_SR_PRED_TRANSFORM, {orNotNotPf}, {clause});
+            ProofRule::MACRO_SR_PRED_TRANSFORM, {orNotNotPf}, {clause}, clause);
 
         // Output it
         TrustNode trustedClause = d_pfGen->mkTrustNode(clause, clausePf);

@@ -38,7 +38,6 @@
 #include "api/cpp/cvc5_checks.h"
 #include "base/check.h"
 #include "base/configuration.h"
-#include "base/modal_exception.h"
 #include "expr/array_store_all.h"
 #include "expr/ascription_type.h"
 #include "expr/cardinality_constraint.h"
@@ -60,7 +59,6 @@
 #include "options/base_options.h"
 #include "options/expr_options.h"
 #include "options/main_options.h"
-#include "options/option_exception.h"
 #include "options/options.h"
 #include "options/options_public.h"
 #include "options/quantifiers_options.h"
@@ -1002,25 +1000,6 @@ class CVC5ApiUnsupportedExceptionStream
  private:
   std::stringstream d_stream;
 };
-
-#define CVC5_API_TRY_CATCH_BEGIN \
-  try                            \
-  {
-#define CVC5_API_TRY_CATCH_END                         \
-  }                                                    \
-  catch (const internal::OptionException& e)           \
-  {                                                    \
-    throw CVC5ApiOptionException(e.getMessage());      \
-  }                                                    \
-  catch (const internal::RecoverableModalException& e) \
-  {                                                    \
-    throw CVC5ApiRecoverableException(e.getMessage()); \
-  }                                                    \
-  catch (const internal::Exception& e)                 \
-  {                                                    \
-    throw CVC5ApiException(e.getMessage());            \
-  }                                                    \
-  catch (const std::invalid_argument& e) { throw CVC5ApiException(e.what()); }
 
 }  // namespace
 
@@ -7625,6 +7604,8 @@ void Solver::setInfo(const std::string& keyword, const std::string& value) const
 void Solver::setLogic(const std::string& logic) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(!d_slv->isLogicSet())
+      << "Invalid call to 'setLogic', logic is already set";
   CVC5_API_CHECK(!d_slv->isFullyInited())
       << "Invalid call to 'setLogic', solver is already fully initialized";
   //////// all checks before this line

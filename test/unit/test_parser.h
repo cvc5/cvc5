@@ -10,35 +10,39 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Black box testing of the cvc5_types file of the C++ API.
+ * Common header for parser API unit test.
  */
+#ifndef CVC5__TEST__UNIT__TEST_PARSER_H
+#define CVC5__TEST__UNIT__TEST_PARSER_H
 
 #include <cvc5/cvc5.h>
+#include <cvc5/cvc5_parser.h>
 
-#include <algorithm>
+#include "test_api.h"
 
-#include "base/output.h"
-#include "gtest/gtest.h"
+using namespace cvc5::parser;
 
 namespace cvc5::internal {
-
 namespace test {
 
-class TestApiTypes : public ::testing::Test
+class TestParser : public TestApi
 {
-};
+ protected:
+  TestParser() {}
 
-TEST_F(TestApiTypes, printEnum)
-{
-  std::stringstream ss;
-  ss << cvc5::SortKind::ARRAY_SORT;
-  ss << cvc5::UnknownExplanation::UNKNOWN_REASON;
-  ss << cvc5::modes::BlockModelsMode::LITERALS;
-  ss << cvc5::modes::LearnedLitType::PREPROCESS;
-  ss << cvc5::modes::ProofComponent::FULL;
-  ss << cvc5::modes::FindSynthTarget::ENUM;
-  ss << cvc5::modes::InputLanguage::SMT_LIB_2_6;
-}
+  virtual ~TestParser() {}
+
+  void SetUp() override
+  {
+    TestApi::SetUp();
+    d_symman.reset(new SymbolManager(&d_solver));
+  }
+
+  void TearDown() override { d_symman.reset(nullptr); }
+  std::unique_ptr<SymbolManager> d_symman;
+};
 
 }  // namespace test
 }  // namespace cvc5::internal
+
+#endif
