@@ -467,6 +467,7 @@ set(regress_0_tests
   regress0/bv/holes/concat-extract-merge.smt2
   regress0/bv/holes/extract-extract.smt2
   regress0/bv/holes/extract-concat.smt2
+  regress0/bv/holes/extract-concat-4.smt2
   regress0/bv/holes/extract-whole.smt2
 
   regress0/bv/holes/uge-eliminate.smt2
@@ -483,6 +484,7 @@ set(regress_0_tests
   regress0/bv/holes/redor-eliminate.smt2
   regress0/bv/holes/redand-eliminate.smt2
   regress0/bv/holes/sdiv-eliminate-fewer-bitwise-ops.smt2 # O(n) roundabout
+  regress0/bv/holes/smod-eliminate-fewer-bitwise-ops.smt2
   regress0/bv/holes/srem-eliminate.smt2
   regress0/bv/holes/srem-eliminate-fewer-bitwise-ops.smt2
   regress0/bv/holes/usubo-eliminate.smt2
