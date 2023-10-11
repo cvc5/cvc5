@@ -166,7 +166,7 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
       LazyCDProof* lcp = d_pppg->allocateHelperProof();
       lcp->addLazyStep(n, pg, ProofRule::PREPROCESS);
       // if newConj was constructed by AND above, use AND_INTRO
-      if (newConj!=n)
+      if (newConj != n)
       {
         lcp->addLazyStep(d_nodes[i], d_pppg);
         lcp->addStep(newConj, ProofRule::AND_INTRO, {d_nodes[i], n}, {});
