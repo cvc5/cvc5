@@ -50,5 +50,6 @@ public class Extract
       System.out.println(" Expect UNSAT. ");
       System.out.println(" cvc5: " + slv.checkSatAssuming(eq2.notTerm()));
     }
+    Context.deletePointers();
   }
 }
