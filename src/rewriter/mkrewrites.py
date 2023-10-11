@@ -110,16 +110,21 @@ class Rewrites:
         self.rules = rules
 
 
-def type_check(expr):
-    for child in expr.children:
-        type_check(child)
+def type_check(expr) -> bool:
+    """
+    Returns true if a const subexpression exists
+    """
+    hasConst = any([type_check(child) for child in expr.children])
 
     if isinstance(expr, CBool):
         expr.sort = Sort(BaseSort.Bool, is_const=True)
+        hasConst = True
     elif isinstance(expr, CString):
         expr.sort = Sort(BaseSort.String, is_const=True)
+        hasConst = True
     elif isinstance(expr, CInt):
         expr.sort = Sort(BaseSort.Int, is_const=True)
+        hasConst = True
     elif isinstance(expr, App):
         sort = None
         if expr.op == Op.NEG:
@@ -131,6 +136,9 @@ def type_check(expr):
             sort.is_const = all(child.sort and child.sort.is_const
                                 for child in expr.children)
             expr.sort = sort
+            hasConst = sort.is_const
+
+    return hasConst
 
 
 def validate_rule(rule):
@@ -164,7 +172,9 @@ def validate_rule(rule):
         to_visit.extend(curr.children)
 
     # Perform type checking
-    type_check(rule.lhs)
+    lhsHasConst = type_check(rule.lhs)
+    if os.getenv('CVC5_RARE_CHECK_CONST', None) is not None and lhsHasConst:
+        print(f"Warning: Rule {rule.name} has constants in its match expression", file=sys.stderr)
     type_check(rule.rhs)
     type_check(rule.cond)
 

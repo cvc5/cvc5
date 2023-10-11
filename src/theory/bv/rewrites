@@ -1,4 +1,3 @@
-
 ; -- Core Normalization Rules --
 
 (define-rule* bv-concat-flatten
@@ -684,9 +683,10 @@
   (sign_extend i (zero_extend j x))
   (zero_extend (+ i j) x)
   )
-(define-rule bv-merge-sign-extend-3
-  ((x ?BitVec) (i Int))
-  (sign_extend i (zero_extend 0 x))
+(define-cond-rule bv-merge-sign-extend-3
+  ((x ?BitVec) (i Int) (n0 Int))
+  (= n0 0)
+  (sign_extend i (zero_extend n0 x))
   (sign_extend i x)
   )
 (define-rule bv-sign-extend-eq-const-1
@@ -919,16 +919,17 @@
 ;(define-rule bv-bb-add-neg )
 
 ; x < y + 1 <=> (not y < x) and y != 1...1
-(define-rule bv-ult-add-one
-  ((x ?BitVec) (y ?BitVec) (n Int))
-  (bvult x (bvadd y (bv 1 n)))
+(define-cond-rule bv-ult-add-one
+  ((x ?BitVec) (y ?BitVec) (c1 ?BitVec))
+  (= c1 (bv 1 (bvsize c1)))
+  (bvult x (bvadd y c1))
   (and
     (not (bvult y x))
-    (not (= y (bvnot (bv 0 n))))))
+    (not (= y (bvnot (bv 0 (bvsize y)))))))
 (define-cond-rule bv-concat-to-mult
-  ((x ?BitVec) (i Int) (m Int))
-  (= (+ 1 i m) (bvsize x))
-  (concat (extract i 0 x) (bv 0 m))
+  ((x ?BitVec) (i Int) (m Int) (n0 Int))
+  (and (= (+ 1 i m) (bvsize x)) (= n0 0))
+  (concat (extract i n0 x) (bv n0 m))
   (bvmul x (bvshl (bv 1 (bvsize x)) (bv m (bvsize x)))))
 
 ; Currently bugged due to not being able to match n.
@@ -977,14 +978,17 @@
 (define-rule bv-or-zero ((x ?BitVec) (n Int))
   (bvor x (bv 0 n))
   x)
-(define-rule bv-mul-one ((x ?BitVec) (n Int))
-  (bvmul x (bv 1 n))
+(define-cond-rule bv-mul-one ((x ?BitVec) (c1 ?BitVec))
+  (= c1 (bv 1 (bvsize c1)))
+  (bvmul x c1)
   x)
-(define-rule bv-mul-zero ((x ?BitVec) (n Int))
-  (bvmul x (bv 0 n))
-  (bv 0 n))
-(define-rule bv-add-zero ((x ?BitVec) (n Int))
-  (bvadd x (bv 0 n))
+(define-cond-rule bv-mul-zero ((x ?BitVec) (c0 ?BitVec))
+  (= c0 (bv 0 (bvsize c0)))
+  (bvmul x c0)
+  (bv 0 (bvsize x)))
+(define-cond-rule bv-add-zero ((x ?BitVec) (c0 ?BitVec))
+  (= c0 (bv 0 (bvsize c0)))
+  (bvadd x c0)
   x)
 (define-rule bv-add-two ((x ?BitVec))
   (bvadd x x)
