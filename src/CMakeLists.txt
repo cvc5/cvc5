@@ -146,6 +146,8 @@ libcvc5_add_sources(
   printer/smt2/smt2_printer.h
   proof/alf/alf_node_converter.cpp
   proof/alf/alf_node_converter.h
+  proof/alf/alf_post_processor.cpp
+  proof/alf/alf_post_processor.h
   proof/alf/alf_print_channel.cpp
   proof/alf/alf_print_channel.h
   proof/alf/alf_proof_rule.cpp
