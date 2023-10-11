@@ -39,11 +39,6 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   protected native void deletePointer(long pointer);
 
-  public long getPointer()
-  {
-    return pointer;
-  }
-
   // endregion
 
   /**

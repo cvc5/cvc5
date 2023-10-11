@@ -25,7 +25,7 @@ using namespace cvc5;
  * Method:    newSolver
  * Signature: ()J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_newSolver(JNIEnv*, jobject)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_newSolver(JNIEnv*, jclass)
 {
   Solver* solver = new Solver();
   return reinterpret_cast<jlong>(solver);
@@ -37,7 +37,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_newSolver(JNIEnv*, jobject)
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_deletePointer(JNIEnv* env,
-                                                                jclass,
+                                                                jobject,
                                                                 jlong pointer)
 {
   const std::vector<jobject>& refs = globalReferences[pointer];

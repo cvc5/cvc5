@@ -126,7 +126,16 @@ void AssertionPipeline::addSubstitutionNode(Node n, ProofGenerator* pg)
 void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node newConj = nm->mkNode(Kind::AND, d_nodes[i], n);
+  Node newConj;
+  if (d_nodes[i].isConst() && d_nodes[i].getConst<bool>())
+  {
+    // just take n itself if d_nodes[i] is true
+    newConj = n;
+  }
+  else
+  {
+    newConj = nm->mkNode(Kind::AND, d_nodes[i], n);
+  }
   Node newConjr = rewrite(newConj);
   Trace("assert-pipeline") << "Assertions: conjoin " << n << " to "
                            << d_nodes[i] << std::endl;
@@ -156,12 +165,8 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
       // allocate a fresh proof which will act as the proof generator
       LazyCDProof* lcp = d_pppg->allocateHelperProof();
       lcp->addLazyStep(n, pg, ProofRule::PREPROCESS);
-      if (d_nodes[i].isConst() && d_nodes[i].getConst<bool>())
-      {
-        // skip the AND_INTRO if the previous d_nodes[i] was true
-        newConj = n;
-      }
-      else
+      // if newConj was constructed by AND above, use AND_INTRO
+      if (newConj != n)
       {
         lcp->addLazyStep(d_nodes[i], d_pppg);
         lcp->addStep(newConj, ProofRule::AND_INTRO, {d_nodes[i], n}, {});
