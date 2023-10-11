@@ -72,7 +72,7 @@ bool AlfProofPostprocessCallback::addAlfStep(AlfRule rule,
   {
     newArgs.push_back(arg);
   }
-  Trace("alethels-proof") << "... add alf step " << conclusion << " " << rule
+  Trace("alf-proof") << "... add alf step " << conclusion << " " << rule
                           << " " << children << " / " << newArgs << std::endl;
   return cdp.addStep(conclusion, ProofRule::ALF_RULE, children, newArgs);
 }
@@ -104,10 +104,10 @@ bool AlfProofPostprocessCallback::update(Node res,
   {
     case ProofRule::SCOPE:
     {
-      // On the first two calls to update, the proof node is the outermost
-      // scopes of the proof. These scopes should not be printed in the LFSC
-      // proof. Instead, the LFSC proof printer will print the proper scopes
-      // around the proof, which e.g. involves an LFSC "check" command.
+      // On the first two calls to update, the proof nodes are the outermost
+      // scopes of the proof. These scopes should not be printed in the AletheLF
+      // proof. Instead, the AletheLF proof printer will print the proper scopes
+      // around the proof, which e.g. involves an AletheLF "check" command.
       if (d_numIgnoredScopes < 2)
       {
         d_numIgnoredScopes++;
@@ -160,7 +160,7 @@ bool AlfProofPostprocessCallback::update(Node res,
           cdp->addStep(varEq, ProofRule::REFL, {}, {lam1[0]});
           Node bodyEq = i + 1 == nvars ? children[1] : lam1[1].eqNode(lam2[1]);
           Node lamEq = lam1.eqNode(lam2);
-          Node conclusion = i == 0 ? res : lam1.eqNode(lam2);
+          Node conclusion = i == 0 ? res : lamEq;
           addAlfStep(AlfRule::CONG,
                      conclusion,
                      {varEq, bodyEq},
