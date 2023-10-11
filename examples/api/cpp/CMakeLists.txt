@@ -29,6 +29,8 @@ set(CVC5_EXAMPLES_API
   sets
   strings
   transcendentals
+  parser
+  parser_sym_manager
 )
 
 foreach(example ${CVC5_EXAMPLES_API})

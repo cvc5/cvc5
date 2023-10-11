@@ -474,6 +474,51 @@ const char* cvc5_find_synthesis_target_to_string(Cvc5FindSynthTarget target);
 std::ostream& operator<<(std::ostream& out, FindSynthTarget target) CVC5_EXPORT;
 #endif
 
+/* -------------------------------------------------------------------------- */
+/* InputLanguage                                                              */
+/* -------------------------------------------------------------------------- */
+
+#ifdef CVC5_API_USE_C_ENUMS
+#undef EVALUE
+#define EVALUE(name) CVC5_INPUT_LANG_##name
+#endif
+
+/**
+ * The different reasons for returning an "unknown" result.
+ */
+enum ENUM(InputLanguage)
+{
+  /** The SMT-LIB version 2.6 language */
+  EVALUE(SMT_LIB_2_6),
+  /** The SyGuS version 2.1 language. */
+  EVALUE(SYGUS_2_1),
+  /** No language given. */
+  EVALUE(UNKNOWN),
+};
+
+#ifdef CVC5_API_USE_C_ENUMS
+#ifndef DOXYGEN_SKIP
+typedef enum ENUM(InputLanguage) ENUM(InputLanguage);
+#endif
+#endif
+
+#ifdef CVC5_API_USE_C_ENUMS
+/**
+ * Get a string representation of a Cvc5InputLanguage.
+ * @param lang The input language.
+ * @return The string representation.
+ */
+const char* cvc5_input_language_to_string(Cvc5InputLanguage lang);
+#else
+/**
+ * Serialize an InputLanguage to given stream.
+ * @param out The output stream
+ * @param lang The language to be serialized to the given output stream
+ * @return The output stream
+ */
+std::ostream& operator<<(std::ostream& out, InputLanguage lang) CVC5_EXPORT;
+#endif
+
 }  // namespace cvc5::modes
 
 #endif
