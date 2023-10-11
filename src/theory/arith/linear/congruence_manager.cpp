@@ -287,9 +287,12 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
           ProofRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
       std::vector<Node> assumption = {isZero};
       pf = d_pnm->mkScope(botPf, assumption, false);
-      Trace("arith::cong::notzero") << "  new proof ";
-      pf->printDebug(Trace("arith::cong::notzero"));
-      Trace("arith::cong::notzero") << std::endl;
+      if (TraceIsOn("arith::cong::notzero"))
+      {
+        Trace("arith::cong::notzero") << "  new proof ";
+        pf->printDebug(Trace("arith::cong::notzero"));
+        Trace("arith::cong::notzero") << std::endl;
+      }
     }
     Assert(pf->getResult() == disEq);
   }
