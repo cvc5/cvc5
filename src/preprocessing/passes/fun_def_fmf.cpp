@@ -123,7 +123,7 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
         // function.
         TypeNode iType = nm->mkSort(ss.str());
         // We then make the sort constructor applied to that type. For example,
-        // this be (@fmf-fun-sort f), where here f is an uninterpreted sort.
+        // this is (@fmf-fun-sort f), where here f is an uninterpreted sort.
         // This is done to have a clear name for this sort, and to support
         // proof printing in ALF where @fmf-fun-sort is a type constructor
         // parameterized by a function.
