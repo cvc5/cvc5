@@ -222,7 +222,7 @@ function enumerator {
 "
   elif expr "$type_kinds" : '.* '"$1"' ' &>/dev/null; then
     mk_type_enumerator_cases="${mk_type_enumerator_cases}
-  case kind::$1:
+  case Kind::$1:
     return new $2(type, tep);
 "
   else

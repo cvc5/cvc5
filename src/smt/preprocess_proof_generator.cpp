@@ -38,7 +38,7 @@ PreprocessProofGenerator::PreprocessProofGenerator(Env& env,
     : EnvObj(env),
       d_ctx(c ? c : &d_context),
       d_src(d_ctx),
-      d_helperProofs(env, d_ctx),
+      d_helperProofs(env, d_ctx, "PreprocessHelper"),
       d_inputPf(env, c, "InputProof"),
       d_name(name),
       d_ra(ra),
@@ -177,7 +177,7 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
       {
         Trace("smt-pppg-debug")
             << "...rewritten from " << proven[0] << std::endl;
-        Assert(proven.getKind() == kind::EQUAL);
+        Assert(proven.getKind() == Kind::EQUAL);
         if (!proofStepProcessed)
         {
           // maybe its just an (extended) rewrite?
@@ -259,9 +259,10 @@ void PreprocessProofGenerator::checkEagerPedantic(ProofRule r)
     // catch a pedantic failure now, which otherwise would not be
     // triggered since we are doing lazy proof generation
     ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
-    std::stringstream serr;
-    if (pc->isPedanticFailure(r, serr))
+    if (pc->isPedanticFailure(r, nullptr))
     {
+      std::stringstream serr;
+      pc->isPedanticFailure(r, &serr);
       Unhandled() << "PreprocessProofGenerator::checkEagerPedantic: "
                   << serr.str();
     }

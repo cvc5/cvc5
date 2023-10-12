@@ -117,9 +117,9 @@ Node LambdaLift::getAssertionFor(TNode node)
     std::vector<Node> skolem_app_c;
     skolem_app_c.push_back(skolem);
     skolem_app_c.insert(skolem_app_c.end(), lambda[0].begin(), lambda[0].end());
-    Node skolem_app = nm->mkNode(APPLY_UF, skolem_app_c);
+    Node skolem_app = nm->mkNode(Kind::APPLY_UF, skolem_app_c);
     skolem_app_c[0] = lambda;
-    Node rhs = nm->mkNode(APPLY_UF, skolem_app_c);
+    Node rhs = nm->mkNode(Kind::APPLY_UF, skolem_app_c);
     // For the sake of proofs, we use
     // (= (k t1 ... tn) ((lambda (x1 ... xn) s) t1 ... tn)) here. This is instead of
     // (= (k t1 ... tn) s); the former is more accurate since
@@ -128,7 +128,7 @@ Node LambdaLift::getAssertionFor(TNode node)
     // necessarily syntactical equal to s.
     children.push_back(skolem_app.eqNode(rhs));
     // axiom defining skolem
-    assertion = nm->mkNode(FORALL, children);
+    assertion = nm->mkNode(Kind::FORALL, children);
 
     // Lambda lifting is trivial to justify, hence we don't set a proof
     // generator here. In particular, replacing the skolem introduced
@@ -146,7 +146,7 @@ Node LambdaLift::getSkolemFor(TNode node)
 {
   Node skolem;
   Kind k = node.getKind();
-  if (k == LAMBDA)
+  if (k == Kind::LAMBDA)
   {
     // if a lambda, return the purification variable for the node. We ignore
     // lambdas with free variables, which can occur beneath quantifiers
@@ -167,7 +167,7 @@ Node LambdaLift::getSkolemFor(TNode node)
 TrustNode LambdaLift::betaReduce(TNode node) const
 {
   Kind k = node.getKind();
-  if (k == APPLY_UF)
+  if (k == Kind::APPLY_UF)
   {
     Node op = node.getOperator();
     Node opl = getLambdaFor(op);
@@ -191,12 +191,12 @@ TrustNode LambdaLift::betaReduce(TNode node) const
 
 Node LambdaLift::betaReduce(TNode lam, const std::vector<Node>& args) const
 {
-  Assert(lam.getKind() == LAMBDA);
+  Assert(lam.getKind() == Kind::LAMBDA);
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> betaRed;
   betaRed.push_back(lam);
   betaRed.insert(betaRed.end(), args.begin(), args.end());
-  Node app = nm->mkNode(APPLY_UF, betaRed);
+  Node app = nm->mkNode(Kind::APPLY_UF, betaRed);
   app = rewrite(app);
   return app;
 }

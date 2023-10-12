@@ -38,7 +38,7 @@ WitnessFormGenerator::WitnessFormGenerator(Env& env)
 
 std::shared_ptr<ProofNode> WitnessFormGenerator::getProofFor(Node eq)
 {
-  if (eq.getKind() != kind::EQUAL)
+  if (eq.getKind() != Kind::EQUAL)
   {
     // expecting an equality
     return nullptr;

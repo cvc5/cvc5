@@ -59,15 +59,15 @@ ${type_constant_cardinalities}
 inline Cardinality getCardinality(TypeNode typeNode) {
   AssertArgument(!typeNode.isNull(), typeNode);
   switch(Kind k = typeNode.getKind()) {
-  case TYPE_CONSTANT:
-    return getCardinality(typeNode.getConst<TypeConstant>());
-    // clang-format off
+    case Kind::TYPE_CONSTANT:
+      return getCardinality(typeNode.getConst<TypeConstant>());
+      // clang-format off
 ${type_cardinalities}
-    // clang-format on
-  default:
-    InternalError() << "A theory kinds file did not provide a cardinality "
-                    << "or cardinality computer for type:\n"
-                    << typeNode << "\nof kind " << k;
+      // clang-format on
+    default:
+      InternalError() << "A theory kinds file did not provide a cardinality "
+                      << "or cardinality computer for type:\n"
+                      << typeNode << "\nof kind " << k;
   }
 }/* getCardinality(TypeNode) */
 
@@ -85,15 +85,16 @@ ${type_constant_wellfoundednesses}
 inline bool isWellFounded(TypeNode typeNode) {
   AssertArgument(!typeNode.isNull(), typeNode);
   switch(Kind k = typeNode.getKind()) {
-  case TYPE_CONSTANT:
-    return isWellFounded(typeNode.getConst<TypeConstant>());
-    // clang-format off
+    case Kind::TYPE_CONSTANT:
+      return isWellFounded(typeNode.getConst<TypeConstant>());
+      // clang-format off
 ${type_wellfoundednesses}
-    // clang-format on
-  default:
-    InternalError() << "A theory kinds file did not provide a well-foundedness "
-                    << "or well-foundedness computer for type:\n"
-                    << typeNode << "\nof kind " << k;
+      // clang-format on
+    default:
+      InternalError()
+          << "A theory kinds file did not provide a well-foundedness "
+          << "or well-foundedness computer for type:\n"
+          << typeNode << "\nof kind " << k;
   }
 }/* isWellFounded(TypeNode) */
 

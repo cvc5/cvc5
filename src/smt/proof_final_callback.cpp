@@ -76,7 +76,7 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
     if (!d_pedanticFailure)
     {
       Assert(d_pedanticFailureOut.str().empty());
-      if (pnm->getChecker()->isPedanticFailure(r, d_pedanticFailureOut))
+      if (pnm->getChecker()->isPedanticFailure(r, &d_pedanticFailureOut))
       {
         d_pedanticFailure = true;
       }
@@ -176,7 +176,7 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
         premises.push_back(pncc->getResult());
       }
       NodeManager* nm = NodeManager::currentNM();
-      Node query = nm->mkNode(IMPLIES, nm->mkAnd(premises), conc);
+      Node query = nm->mkNode(Kind::IMPLIES, nm->mkAnd(premises), conc);
       if (isOutputOn(OutputTag::TRUSTED_PROOF_STEPS))
       {
         output(OutputTag::TRUSTED_PROOF_STEPS)

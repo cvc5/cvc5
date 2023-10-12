@@ -55,7 +55,7 @@ bool DtInstantiator::processEqualTerms(CegInstantiator* ci,
   for (unsigned k = 0, size = eqc.size(); k < size; k++)
   {
     Node n = eqc[k];
-    if (n.getKind() == APPLY_CONSTRUCTOR)
+    if (n.getKind() == Kind::APPLY_CONSTRUCTOR)
     {
       Trace("cegqi-dt-debug")
           << "...try based on constructor term " << n << std::endl;
@@ -126,9 +126,9 @@ Node DtInstantiator::solve_dt(Node v, Node a, Node b, Node sa, Node sb)
   {
     ret = sa;
   }
-  else if (!a.isNull() && a.getKind() == APPLY_CONSTRUCTOR)
+  else if (!a.isNull() && a.getKind() == Kind::APPLY_CONSTRUCTOR)
   {
-    if (!b.isNull() && b.getKind() == APPLY_CONSTRUCTOR)
+    if (!b.isNull() && b.getKind() == Kind::APPLY_CONSTRUCTOR)
     {
       if (a.getOperator() == b.getOperator())
       {
@@ -159,7 +159,7 @@ Node DtInstantiator::solve_dt(Node v, Node a, Node b, Node sa, Node sb)
       }
     }
   }
-  else if (!b.isNull() && b.getKind() == APPLY_CONSTRUCTOR)
+  else if (!b.isNull() && b.getKind() == Kind::APPLY_CONSTRUCTOR)
   {
     // flip sides
     return solve_dt(v, b, a, sb, sa);

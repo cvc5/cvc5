@@ -53,21 +53,21 @@ class TestUtilBlackBooleanSimplification : public TestNode
         "h",
         d_nodeManager->mkFunctionType(d_nodeManager->booleanType(),
                                       d_nodeManager->booleanType()));
-    d_fa = d_nodeManager->mkNode(kind::APPLY_UF, d_f, d_a);
-    d_fb = d_nodeManager->mkNode(kind::APPLY_UF, d_f, d_b);
-    d_fc = d_nodeManager->mkNode(kind::APPLY_UF, d_f, d_c);
-    d_ga = d_nodeManager->mkNode(kind::APPLY_UF, d_g, d_a);
-    d_ha = d_nodeManager->mkNode(kind::APPLY_UF, d_h, d_a);
-    d_hc = d_nodeManager->mkNode(kind::APPLY_UF, d_h, d_c);
-    d_ffb = d_nodeManager->mkNode(kind::APPLY_UF, d_f, d_fb);
-    d_fhc = d_nodeManager->mkNode(kind::APPLY_UF, d_f, d_hc);
-    d_hfc = d_nodeManager->mkNode(kind::APPLY_UF, d_h, d_fc);
-    d_gfb = d_nodeManager->mkNode(kind::APPLY_UF, d_g, d_fb);
+    d_fa = d_nodeManager->mkNode(Kind::APPLY_UF, d_f, d_a);
+    d_fb = d_nodeManager->mkNode(Kind::APPLY_UF, d_f, d_b);
+    d_fc = d_nodeManager->mkNode(Kind::APPLY_UF, d_f, d_c);
+    d_ga = d_nodeManager->mkNode(Kind::APPLY_UF, d_g, d_a);
+    d_ha = d_nodeManager->mkNode(Kind::APPLY_UF, d_h, d_a);
+    d_hc = d_nodeManager->mkNode(Kind::APPLY_UF, d_h, d_c);
+    d_ffb = d_nodeManager->mkNode(Kind::APPLY_UF, d_f, d_fb);
+    d_fhc = d_nodeManager->mkNode(Kind::APPLY_UF, d_f, d_hc);
+    d_hfc = d_nodeManager->mkNode(Kind::APPLY_UF, d_h, d_fc);
+    d_gfb = d_nodeManager->mkNode(Kind::APPLY_UF, d_g, d_fb);
 
-    d_ac = d_nodeManager->mkNode(kind::EQUAL, d_a, d_c);
-    d_ffbd = d_nodeManager->mkNode(kind::EQUAL, d_ffb, d_d);
-    d_efhc = d_nodeManager->mkNode(kind::EQUAL, d_e, d_fhc);
-    d_dfa = d_nodeManager->mkNode(kind::EQUAL, d_d, d_fa);
+    d_ac = d_nodeManager->mkNode(Kind::EQUAL, d_a, d_c);
+    d_ffbd = d_nodeManager->mkNode(Kind::EQUAL, d_ffb, d_d);
+    d_efhc = d_nodeManager->mkNode(Kind::EQUAL, d_e, d_fhc);
+    d_dfa = d_nodeManager->mkNode(Kind::EQUAL, d_d, d_fa);
 
     // this test is designed for >= 10 removal threshold
     Assert(BooleanSimplification::DUPLICATE_REMOVAL_THRESHOLD >= 10);
@@ -116,7 +116,7 @@ TEST_F(TestUtilBlackBooleanSimplification, negate)
 {
   Node in, out;
 
-  in = d_nodeManager->mkNode(kind::NOT, d_a);
+  in = d_nodeManager->mkNode(Kind::NOT, d_a);
   out = d_a;
   test_nodes_equal(out, BooleanSimplification::negate(in));
   test_nodes_equal(in, BooleanSimplification::negate(out));
@@ -139,30 +139,30 @@ TEST_F(TestUtilBlackBooleanSimplification, simplifyClause)
   out = in;
   test_nodes_equal(out, BooleanSimplification::simplifyClause(in));
 
-  in = d_nodeManager->mkNode(kind::OR, d_a, d_d.andNode(d_b));
+  in = d_nodeManager->mkNode(Kind::OR, d_a, d_d.andNode(d_b));
   out = in;
   test_nodes_equal(out, BooleanSimplification::simplifyClause(in));
 
-  in = d_nodeManager->mkNode(kind::OR, d_a, d_d.orNode(d_b));
-  out = d_nodeManager->mkNode(kind::OR, d_a, d_d, d_b);
+  in = d_nodeManager->mkNode(Kind::OR, d_a, d_d.orNode(d_b));
+  out = d_nodeManager->mkNode(Kind::OR, d_a, d_d, d_b);
   test_nodes_equal(out, BooleanSimplification::simplifyClause(in));
 
   in = d_nodeManager->mkNode(
-      kind::OR,
+      Kind::OR,
       {d_fa, d_ga.orNode(d_c).notNode(), d_hfc, d_ac, d_d.andNode(d_b)});
-  out = NodeBuilder(kind::OR) << d_fa << d_ga.orNode(d_c).notNode() << d_hfc
+  out = NodeBuilder(Kind::OR) << d_fa << d_ga.orNode(d_c).notNode() << d_hfc
                               << d_ac << d_d.andNode(d_b);
   test_nodes_equal(out, BooleanSimplification::simplifyClause(in));
 
   in = d_nodeManager->mkNode(
-      kind::OR,
+      Kind::OR,
       {d_fa, d_ga.andNode(d_c).notNode(), d_hfc, d_ac, d_d.andNode(d_b)});
-  out = NodeBuilder(kind::OR) << d_fa << d_ga.notNode() << d_c.notNode()
+  out = NodeBuilder(Kind::OR) << d_fa << d_ga.notNode() << d_c.notNode()
                               << d_hfc << d_ac << d_d.andNode(d_b);
   test_nodes_equal(out, BooleanSimplification::simplifyClause(in));
 
 #ifdef CVC5_ASSERTIONS
-  in = d_nodeManager->mkNode(kind::AND, d_a, d_b);
+  in = d_nodeManager->mkNode(Kind::AND, d_a, d_b);
   ASSERT_THROW(BooleanSimplification::simplifyClause(in),
                AssertArgumentException);
 #endif
@@ -177,19 +177,19 @@ TEST_F(TestUtilBlackBooleanSimplification, simplifyHornClause)
   test_nodes_equal(out, BooleanSimplification::simplifyHornClause(in));
 
   in = d_a.notNode().impNode(d_ac.andNode(d_b));
-  out = d_nodeManager->mkNode(kind::OR, d_a, d_ac.andNode(d_b));
+  out = d_nodeManager->mkNode(Kind::OR, d_a, d_ac.andNode(d_b));
   test_nodes_equal(out, BooleanSimplification::simplifyHornClause(in));
 
   in = d_a.andNode(d_b).impNode(
-      d_nodeManager->mkNode(kind::AND,
+      d_nodeManager->mkNode(Kind::AND,
                             {d_fa,
                              d_ga.orNode(d_c).notNode(),
                              d_hfc.orNode(d_ac),
                              d_d.andNode(d_b)}));
-  out = d_nodeManager->mkNode(kind::OR,
+  out = d_nodeManager->mkNode(Kind::OR,
                               d_a.notNode(),
                               d_b.notNode(),
-                              d_nodeManager->mkNode(kind::AND,
+                              d_nodeManager->mkNode(Kind::AND,
                                                     {d_fa,
                                                      d_ga.orNode(d_c).notNode(),
                                                      d_hfc.orNode(d_ac),
@@ -197,18 +197,18 @@ TEST_F(TestUtilBlackBooleanSimplification, simplifyHornClause)
   test_nodes_equal(out, BooleanSimplification::simplifyHornClause(in));
 
   in = d_a.andNode(d_b).impNode(
-      d_nodeManager->mkNode(kind::OR,
+      d_nodeManager->mkNode(Kind::OR,
                             {d_fa,
                              d_ga.orNode(d_c).notNode(),
                              d_hfc.orNode(d_ac),
                              d_d.andNode(d_b).notNode()}));
-  out = NodeBuilder(kind::OR)
+  out = NodeBuilder(Kind::OR)
         << d_a.notNode() << d_b.notNode() << d_fa << d_ga.orNode(d_c).notNode()
         << d_hfc << d_ac << d_d.notNode();
   test_nodes_equal(out, BooleanSimplification::simplifyHornClause(in));
 
 #ifdef CVC5_ASSERTIONS
-  in = d_nodeManager->mkNode(kind::OR, d_a, d_b);
+  in = d_nodeManager->mkNode(Kind::OR, d_a, d_b);
   ASSERT_THROW(BooleanSimplification::simplifyHornClause(in),
                AssertArgumentException);
 #endif
@@ -222,22 +222,22 @@ TEST_F(TestUtilBlackBooleanSimplification, simplifyConflict)
   out = in;
   test_nodes_equal(out, BooleanSimplification::simplifyConflict(in));
 
-  in = d_nodeManager->mkNode(kind::AND, d_a, d_d.andNode(d_b));
-  out = d_nodeManager->mkNode(kind::AND, d_a, d_d, d_b);
+  in = d_nodeManager->mkNode(Kind::AND, d_a, d_d.andNode(d_b));
+  out = d_nodeManager->mkNode(Kind::AND, d_a, d_d, d_b);
   test_nodes_equal(out, BooleanSimplification::simplifyConflict(in));
 
-  in = d_nodeManager->mkNode(kind::AND,
+  in = d_nodeManager->mkNode(Kind::AND,
                              {d_fa,
                               d_ga.orNode(d_c).notNode(),
                               d_fa,
                               d_hfc.orNode(d_ac),
                               d_d.andNode(d_b)});
-  out = NodeBuilder(kind::AND) << d_fa << d_ga.notNode() << d_c.notNode()
+  out = NodeBuilder(Kind::AND) << d_fa << d_ga.notNode() << d_c.notNode()
                                << d_hfc.orNode(d_ac) << d_d << d_b;
   test_nodes_equal(out, BooleanSimplification::simplifyConflict(in));
 
 #ifdef CVC5_ASSERTIONS
-  in = d_nodeManager->mkNode(kind::OR, d_a, d_b);
+  in = d_nodeManager->mkNode(Kind::OR, d_a, d_b);
   ASSERT_THROW(BooleanSimplification::simplifyConflict(in),
                AssertArgumentException);
 #endif

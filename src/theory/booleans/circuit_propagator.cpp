@@ -68,11 +68,11 @@ void CircuitPropagator::initialize()
 void CircuitPropagator::assertTrue(TNode assertion)
 {
   Trace("circuit-prop") << "TRUE: " << assertion << std::endl;
-  if (assertion.getKind() == kind::CONST_BOOLEAN && !assertion.getConst<bool>())
+  if (assertion.getKind() == Kind::CONST_BOOLEAN && !assertion.getConst<bool>())
   {
     makeConflict(assertion);
   }
-  else if (assertion.getKind() == kind::AND)
+  else if (assertion.getKind() == Kind::AND)
   {
     ProofCircuitPropagatorBackward prover{
         d_env.getProofNodeManager(), assertion, true};
@@ -106,7 +106,7 @@ void CircuitPropagator::assignAndEnqueue(TNode n,
   Trace("circuit-prop") << "CircuitPropagator::assign(" << n << ", "
                         << (value ? "true" : "false") << ")" << std::endl;
 
-  if (n.getKind() == kind::CONST_BOOLEAN)
+  if (n.getKind() == Kind::CONST_BOOLEAN)
   {
     // Assigning a constant to the opposite value is dumb
     if (value != n.getConst<bool>())
@@ -245,7 +245,7 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment)
   // backward rules
   switch (parent.getKind())
   {
-    case kind::AND:
+    case Kind::AND:
       if (parentAssignment)
       {
         // AND = TRUE: forall children c, assign(c = TRUE)
@@ -269,7 +269,7 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment)
         }
       }
       break;
-    case kind::OR:
+    case Kind::OR:
       if (parentAssignment)
       {
         // OR = TRUE: if all children BUT ONE == FALSE, assign(c = TRUE)
@@ -293,12 +293,12 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment)
         }
       }
       break;
-    case kind::NOT:
+    case Kind::NOT:
       // NOT = b: assign(c = !b)
       assignAndEnqueue(
           parent[0], !parentAssignment, prover.Not(!parentAssignment, parent));
       break;
-    case kind::ITE:
+    case Kind::ITE:
       if (isAssignedTo(parent[0], true))
       {
         // ITE c x y = v: if c is assigned and TRUE, assign(x = v)
@@ -327,7 +327,7 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment)
         }
       }
       break;
-    case kind::EQUAL:
+    case Kind::EQUAL:
       Assert(parent[0].getType().isBoolean());
       if (parentAssignment)
       {
@@ -364,7 +364,7 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment)
         }
       }
       break;
-    case kind::IMPLIES:
+    case Kind::IMPLIES:
       if (parentAssignment)
       {
         if (isAssignedTo(parent[0], true))
@@ -385,7 +385,7 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment)
         assignAndEnqueue(parent[1], false, prover.impliesNegY());
       }
       break;
-    case kind::XOR:
+    case Kind::XOR:
       if (parentAssignment)
       {
         if (isAssigned(parent[0]))
@@ -458,7 +458,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
     // Forward rules
     switch (parent.getKind())
     {
-      case kind::AND:
+      case Kind::AND:
         if (childAssignment)
         {
           TNode::iterator holdout;
@@ -494,7 +494,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
           assignAndEnqueue(parent, false, prover.andOneFalse());
         }
         break;
-      case kind::OR:
+      case Kind::OR:
         if (childAssignment)
         {
           // OR ...(x=TRUE)...: assign(OR = TRUE)
@@ -529,13 +529,13 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
         }
         break;
 
-      case kind::NOT:
+      case Kind::NOT:
         // NOT (x=b): assign(NOT = !b)
         assignAndEnqueue(
             parent, !childAssignment, prover.Not(childAssignment, parent));
         break;
 
-      case kind::ITE:
+      case Kind::ITE:
         if (child == parent[0])
         {
           if (childAssignment)
@@ -579,7 +579,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
           }
         }
         break;
-      case kind::EQUAL:
+      case Kind::EQUAL:
         Assert(parent[0].getType().isBoolean());
         if (isAssigned(parent[0]) && isAssigned(parent[1]))
         {
@@ -632,7 +632,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
           }
         }
         break;
-      case kind::IMPLIES:
+      case Kind::IMPLIES:
         if (isAssigned(parent[0]) && isAssigned(parent[1]))
         {
           // IMPLIES (x=v1) (y=v2): assign(IMPLIES = (!v1 || v2))
@@ -661,7 +661,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
           // propagated all the children (in back-propagation).
         }
         break;
-      case kind::XOR:
+      case Kind::XOR:
         if (isAssigned(parent))
         {
           if (child == parent[0])
@@ -715,12 +715,12 @@ TrustNode CircuitPropagator::propagate()
 
     // Is this an atom
     bool atom = Theory::theoryOf(current) != THEORY_BOOL || current.isVar()
-                || (current.getKind() == kind::EQUAL
+                || (current.getKind() == Kind::EQUAL
                     && (current[0].isVar() && current[1].isVar()));
 
     // If an atom, add to the list for simplification
     if (atom
-        || (current.getKind() == kind::EQUAL
+        || (current.getKind() == Kind::EQUAL
             && (current[0].isVar() || current[1].isVar())))
     {
       Trace("circuit-prop")

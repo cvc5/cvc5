@@ -174,7 +174,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
 {
   Trace("tconv-pf-gen") << "TConvProofGenerator::getProofFor: " << identify()
                         << ": " << f << std::endl;
-  if (f.getKind() != EQUAL)
+  if (f.getKind() != Kind::EQUAL)
   {
     std::stringstream serr;
     serr << "TConvProofGenerator::getProofFor: " << identify()
@@ -198,7 +198,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
     if (conc != f)
     {
       bool debugTraceEnabled = TraceIsOn("tconv-pf-gen-debug");
-      Assert(conc.getKind() == EQUAL && conc[0] == f[0]);
+      Assert(conc.getKind() == Kind::EQUAL && conc[0] == f[0]);
       std::stringstream serr;
       serr << "TConvProofGenerator::getProofFor: " << toStringDebug()
            << ": failed, mismatch";
@@ -317,7 +317,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
     if (itc != d_cache.end())
     {
       Node res = itc->second->getResult();
-      Assert(res.getKind() == EQUAL);
+      Assert(res.getKind() == Kind::EQUAL);
       Assert(!res[1].isNull());
       visited[curHash] = res[1];
       pf.addProof(itc->second);
@@ -368,7 +368,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
       {
         visitctx->push(cur, curCVal);
         // visit operator if apply uf
-        if (d_rewriteOps && cur.getKind() == APPLY_UF)
+        if (d_rewriteOps && cur.getKind() == Kind::APPLY_UF)
         {
           visitctx->pushOp(cur, curCVal);
         }
@@ -378,7 +378,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
       {
         visit.push_back(cur);
         // visit operator if apply uf
-        if (d_rewriteOps && cur.getKind() == APPLY_UF)
+        if (d_rewriteOps && cur.getKind() == Kind::APPLY_UF)
         {
           visit.push_back(cur.getOperator());
         }
@@ -430,7 +430,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
         bool childChanged = false;
         std::vector<Node> children;
         Kind ck = cur.getKind();
-        if (d_rewriteOps && ck == APPLY_UF)
+        if (d_rewriteOps && ck == Kind::APPLY_UF)
         {
           // the operator of APPLY_UF is visited
           Node cop = cur.getOperator();
@@ -489,7 +489,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
           ProofRule congRule = ProofRule::CONG;
           std::vector<Node> pfChildren;
           std::vector<Node> pfArgs;
-          if (ck == APPLY_UF && children[0] != cur.getOperator())
+          if (ck == Kind::APPLY_UF && children[0] != cur.getOperator())
           {
             // use HO_CONG if the operator changed
             congRule = ProofRule::HO_CONG;

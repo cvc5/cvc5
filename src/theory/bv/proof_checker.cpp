@@ -34,21 +34,21 @@ Node BVProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    Assert(args[0].getKind() == kind::EQUAL);
+    Assert(args[0].getKind() == Kind::EQUAL);
     return args[0];
   }
   else if (id == ProofRule::BV_BITBLAST_STEP)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    Assert(args[0].getKind() == kind::EQUAL);
+    Assert(args[0].getKind() == Kind::EQUAL);
     return args[0];
   }
   else if (id == ProofRule::BV_EAGER_ATOM)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    Assert(args[0].getKind() == kind::BITVECTOR_EAGER_ATOM);
+    Assert(args[0].getKind() == Kind::BITVECTOR_EAGER_ATOM);
     return args[0].eqNode(args[0][0]);
   }
   // no rule

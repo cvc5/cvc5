@@ -34,7 +34,7 @@ RegExpEnumerator::RegExpEnumerator(const RegExpEnumerator& enumerator)
 Node RegExpEnumerator::operator*()
 {
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(kind::STRING_TO_REGEXP, *d_senum);
+  return nm->mkNode(Kind::STRING_TO_REGEXP, *d_senum);
 }
 
 RegExpEnumerator& RegExpEnumerator::operator++()

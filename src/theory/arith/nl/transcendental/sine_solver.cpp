@@ -68,7 +68,7 @@ void SineSolver::doReductions()
 {
   NodeManager* nm = NodeManager::currentNM();
   std::map<Kind, std::vector<Node> >::iterator it =
-      d_data->d_funcMap.find(kind::SINE);
+      d_data->d_funcMap.find(Kind::SINE);
   if (it == d_data->d_funcMap.end())
   {
     return;
@@ -94,9 +94,9 @@ void SineSolver::doReductions()
       if (mvs.getConst<Rational>() != -mv.getConst<Rational>())
       {
         Node lem =
-            nm->mkNode(kind::IMPLIES,
-                       tf[0].eqNode(nm->mkNode(kind::NEG, itv->second[0])),
-                       tf.eqNode(nm->mkNode(kind::NEG, itv->second)));
+            nm->mkNode(Kind::IMPLIES,
+                       tf[0].eqNode(nm->mkNode(Kind::NEG, itv->second[0])),
+                       tf.eqNode(nm->mkNode(Kind::NEG, itv->second)));
         d_data->d_im.addPendingLemma(
             lem, InferenceId::ARITH_NL_T_SINE_SYMM, nullptr);
       }
@@ -117,7 +117,7 @@ void SineSolver::doReductions()
           // the argument is a boundary point, we reduce it if not already done
           // so
           Node lem = nm->mkNode(
-              kind::IMPLIES, tf[0].eqNode(itv->second), tf.eqNode(mvs));
+              Kind::IMPLIES, tf[0].eqNode(itv->second), tf.eqNode(mvs));
           d_data->d_im.addPendingLemma(
               lem, InferenceId::ARITH_NL_T_SINE_BOUNDARY_REDUCE, nullptr);
         }
@@ -151,20 +151,22 @@ Node SineSolver::getPhaseShiftLemma(const Node& x, const Node& y, const Node& s)
   Node xr = (x.getType().isInteger() ? nm->mkNode(Kind::TO_REAL, x) : x);
   Node yr = (y.getType().isInteger() ? nm->mkNode(Kind::TO_REAL, y) : y);
   Node mone = nm->mkConstReal(Rational(-1));
-  Node pi = nm->mkNullaryOperator(nm->realType(), PI);
+  Node pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
   return nm->mkAnd(std::vector<Node>{
-      nm->mkNode(GEQ, y, nm->mkNode(MULT, mone, pi)),
-      nm->mkNode(LEQ, y, pi),
-      nm->mkNode(IS_INTEGER, s),
-      nm->mkNode(ITE,
+      nm->mkNode(Kind::GEQ, y, nm->mkNode(Kind::MULT, mone, pi)),
+      nm->mkNode(Kind::LEQ, y, pi),
+      nm->mkNode(Kind::IS_INTEGER, s),
+      nm->mkNode(Kind::ITE,
                  nm->mkAnd(std::vector<Node>{
-                     nm->mkNode(GEQ, x, nm->mkNode(MULT, mone, pi)),
-                     nm->mkNode(LEQ, x, pi),
+                     nm->mkNode(Kind::GEQ, x, nm->mkNode(Kind::MULT, mone, pi)),
+                     nm->mkNode(Kind::LEQ, x, pi),
                  }),
                  xr.eqNode(yr),
                  xr.eqNode(nm->mkNode(
-                     ADD, y, nm->mkNode(MULT, nm->mkConstReal(2), s, pi)))),
-      nm->mkNode(SINE, y).eqNode(nm->mkNode(SINE, x))});
+                     Kind::ADD,
+                     y,
+                     nm->mkNode(Kind::MULT, nm->mkConstReal(2), s, pi)))),
+      nm->mkNode(Kind::SINE, y).eqNode(nm->mkNode(Kind::SINE, x))});
 }
 
 void SineSolver::doPhaseShift(TNode a, TNode new_a)
@@ -613,7 +615,7 @@ std::pair<Node, Node> SineSolver::getSecantBounds(TNode e,
 
 bool SineSolver::hasExactModelValue(TNode n) const
 {
-  Assert(n.getKind() == SINE);
+  Assert(n.getKind() == Kind::SINE);
   Node mv = d_data->d_model.computeAbstractModelValue(n[0]);
   return d_mpointsSine.find(mv) != d_mpointsSine.end();
 }

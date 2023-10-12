@@ -146,13 +146,13 @@ void UnsatCoreManager::getRelevantQuantTermVectors(
     {
       Node q = cur->getChildren()[0]->getResult();
       Node exists;
-      if (q.getKind() == kind::NOT && q.getKind() == kind::FORALL)
+      if (q.getKind() == Kind::NOT && q.getKind() == Kind::FORALL)
       {
         std::vector<Node> echildren(q[0].begin(), q[0].end());
         echildren[1] = echildren[1].notNode();
-        exists = nm->mkNode(kind::EXISTS, echildren);
+        exists = nm->mkNode(Kind::EXISTS, echildren);
       }
-      else if (q.getKind() == kind::EXISTS)
+      else if (q.getKind() == Kind::EXISTS)
       {
         exists = q;
       }

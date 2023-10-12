@@ -54,9 +54,9 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    bool polarity = children[0].getKind() != NOT;
+    bool polarity = children[0].getKind() != Kind::NOT;
     Node eqp = polarity ? children[0] : children[0][0];
-    if (eqp.getKind() != EQUAL)
+    if (eqp.getKind() != Kind::EQUAL)
     {
       // not a (dis)equality
       return Node::null();
@@ -73,7 +73,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
     for (size_t i = 0, nchild = children.size(); i < nchild; i++)
     {
       Node eqp = children[i];
-      if (eqp.getKind() != EQUAL)
+      if (eqp.getKind() != Kind::EQUAL)
       {
         return Node::null();
       }
@@ -102,7 +102,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    if (k == kind::UNDEFINED_KIND)
+    if (k == Kind::UNDEFINED_KIND)
     {
       return Node::null();
     }
@@ -125,7 +125,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
     for (size_t i = 0, nchild = children.size(); i < nchild; i++)
     {
       Node eqp = children[i];
-      if (eqp.getKind() != EQUAL)
+      if (eqp.getKind() != Kind::EQUAL)
       {
         return Node::null();
       }
@@ -148,7 +148,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    if (children[0].getKind() != EQUAL || !children[0][1].isConst()
+    if (children[0].getKind() != Kind::EQUAL || !children[0][1].isConst()
         || !children[0][1].getConst<bool>())
     {
       return Node::null();
@@ -159,7 +159,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    if (children[0].getKind() != kind::NOT)
+    if (children[0].getKind() != Kind::NOT)
     {
       return Node::null();
     }
@@ -170,7 +170,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    if (children[0].getKind() != EQUAL || !children[0][1].isConst()
+    if (children[0].getKind() != Kind::EQUAL || !children[0][1].isConst()
         || children[0][1].getConst<bool>())
     {
       return Node::null();
@@ -186,7 +186,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
     for (size_t i = 0, nchild = children.size(); i < nchild; ++i)
     {
       Node eqp = children[i];
-      if (eqp.getKind() != EQUAL)
+      if (eqp.getKind() != Kind::EQUAL)
       {
         return Node::null();
       }
@@ -194,8 +194,8 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
       rchildren.push_back(eqp[1]);
     }
     NodeManager* nm = NodeManager::currentNM();
-    Node l = nm->mkNode(kind::APPLY_UF, lchildren);
-    Node r = nm->mkNode(kind::APPLY_UF, rchildren);
+    Node l = nm->mkNode(Kind::APPLY_UF, lchildren);
+    Node r = nm->mkNode(Kind::APPLY_UF, rchildren);
     return l.eqNode(r);
   }
   else if (id == ProofRule::HO_APP_ENCODE)
@@ -208,7 +208,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(args.size() >= 2);
     Node lambda = args[0];
-    if (lambda.getKind() != LAMBDA)
+    if (lambda.getKind() != Kind::LAMBDA)
     {
       return Node::null();
     }
@@ -222,7 +222,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
     std::vector<Node> appArgs;
     appArgs.push_back(lambda);
     appArgs.insert(appArgs.end(), subs.begin(), subs.end());
-    Node app = nm->mkNode(APPLY_UF, appArgs);
+    Node app = nm->mkNode(Kind::APPLY_UF, appArgs);
     Node ret = lambda[1].substitute(
         vars.begin(), vars.end(), subs.begin(), subs.end());
     return app.eqNode(ret);

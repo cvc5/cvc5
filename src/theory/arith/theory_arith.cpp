@@ -86,11 +86,11 @@ void TheoryArith::finishInit()
   if (logic.isTheoryEnabled(THEORY_ARITH) && logic.areTranscendentalsUsed())
   {
     // witness is used to eliminate square root
-    d_valuation.setUnevaluatedKind(kind::WITNESS);
+    d_valuation.setUnevaluatedKind(Kind::WITNESS);
     // we only need to add the operators that are not syntax sugar
-    d_valuation.setUnevaluatedKind(kind::EXPONENTIAL);
-    d_valuation.setUnevaluatedKind(kind::SINE);
-    d_valuation.setUnevaluatedKind(kind::PI);
+    d_valuation.setUnevaluatedKind(Kind::EXPONENTIAL);
+    d_valuation.setUnevaluatedKind(Kind::SINE);
+    d_valuation.setUnevaluatedKind(Kind::PI);
   }
   // only need to create nonlinear extension if non-linear logic
   if (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear())
@@ -115,7 +115,7 @@ void TheoryArith::preRegisterTerm(TNode n)
   // note that we don't throw an exception for non-linear multiplication in
   // linear logics, since this is caught in the linear solver with a more
   // informative error message
-  if (isTransKind || k == IAND || k == POW2)
+  if (isTransKind || k == Kind::IAND || k == Kind::POW2)
   {
     if (d_nonlinearExtension == nullptr)
     {
@@ -156,7 +156,7 @@ void TheoryArith::preRegisterTerm(TNode n)
 
 void TheoryArith::notifySharedTerm(TNode n)
 {
-  n = n.getKind() == kind::TO_REAL ? n[0] : n;
+  n = n.getKind() == Kind::TO_REAL ? n[0] : n;
   d_internal->notifySharedTerm(n);
 }
 
@@ -178,11 +178,11 @@ TrustNode TheoryArith::ppStaticRewrite(TNode atom)
 {
   Trace("arith::preprocess") << "arith::ppStaticRewrite() : " << atom << endl;
   Kind k = atom.getKind();
-  if (k == kind::EQUAL)
+  if (k == Kind::EQUAL)
   {
     return d_ppre.ppRewriteEq(atom);
   }
-  else if (k == kind::GEQ)
+  else if (k == Kind::GEQ)
   {
     // try to eliminate bv2nat from inequalities
     Node atomr = ArithRewriter::rewriteIneqToBv(atom);
@@ -396,7 +396,7 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     if (d_nonlinearExtension != nullptr)
     {
       Node eq = p.first.eqNode(p.second);
-      Node lem = NodeManager::currentNM()->mkNode(kind::OR, eq, eq.negate());
+      Node lem = NodeManager::currentNM()->mkNode(Kind::OR, eq, eq.negate());
       bool added = d_im.lemma(lem, InferenceId::ARITH_SPLIT_FOR_NL_MODEL);
       AlwaysAssert(added) << "The lemma was already in cache. Probably there is something wrong with theory combination...";
     }
@@ -444,7 +444,7 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
 
 Node TheoryArith::getCandidateModelValue(TNode var)
 {
-  var = var.getKind() == kind::TO_REAL ? var[0] : var;
+  var = var.getKind() == Kind::TO_REAL ? var[0] : var;
   std::map<Node, Node>::iterator it = d_arithModelCache.find(var);
   if (it != d_arithModelCache.end())
   {

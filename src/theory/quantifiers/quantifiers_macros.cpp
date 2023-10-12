@@ -39,15 +39,15 @@ QuantifiersMacros::QuantifiersMacros(Env& env, QuantifiersRegistry& qr)
 Node QuantifiersMacros::solve(Node lit, bool reqGround)
 {
   Trace("macros-debug") << "QuantifiersMacros::solve " << lit << std::endl;
-  if (lit.getKind() != FORALL)
+  if (lit.getKind() != Kind::FORALL)
   {
     return Node::null();
   }
   Node body = lit[1];
-  bool pol = body.getKind() != NOT;
+  bool pol = body.getKind() != Kind::NOT;
   Node n = pol ? body : body[0];
   NodeManager* nm = NodeManager::currentNM();
-  if (n.getKind() == APPLY_UF)
+  if (n.getKind() == Kind::APPLY_UF)
   {
     // predicate case
     if (isBoundVarApplyUf(n))
@@ -59,7 +59,7 @@ Node QuantifiersMacros::solve(Node lit, bool reqGround)
       return returnMacro(fdef, lit);
     }
   }
-  else if (pol && n.getKind() == EQUAL)
+  else if (pol && n.getKind() == Kind::EQUAL)
   {
     // literal case
     Trace("macros-debug") << "Check macro literal : " << n << std::endl;
@@ -143,7 +143,8 @@ bool QuantifiersMacros::containsBadOp(Node n, Node op, bool reqGround)
 
 bool QuantifiersMacros::preservesTriggerVariables(Node q, Node n)
 {
-  Assert(q.getKind() == FORALL) << "Expected quantified formula, got " << q;
+  Assert(q.getKind() == Kind::FORALL)
+      << "Expected quantified formula, got " << q;
   Node icn = d_qreg.substituteBoundVariablesToInstConstants(n, q);
   Trace("macros-debug2") << "Get free variables in " << icn << std::endl;
   std::vector<Node> var;
@@ -159,13 +160,13 @@ bool QuantifiersMacros::preservesTriggerVariables(Node q, Node n)
 
 bool QuantifiersMacros::isBoundVarApplyUf(Node n)
 {
-  Assert(n.getKind() == APPLY_UF);
+  Assert(n.getKind() == Kind::APPLY_UF);
   TypeNode tno = n.getOperator().getType();
   std::map<Node, bool> vars;
   // allow if a vector of unique variables of the same type as UF arguments
   for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
   {
-    if (n[i].getKind() != BOUND_VARIABLE)
+    if (n[i].getKind() != Kind::BOUND_VARIABLE)
     {
       return false;
     }
@@ -192,21 +193,21 @@ void QuantifiersMacros::getMacroCandidates(Node n,
   if (visited.find(n) == visited.end())
   {
     visited[n] = true;
-    if (n.getKind() == APPLY_UF)
+    if (n.getKind() == Kind::APPLY_UF)
     {
       if (isBoundVarApplyUf(n))
       {
         candidates.push_back(n);
       }
     }
-    else if (n.getKind() == ADD)
+    else if (n.getKind() == Kind::ADD)
     {
       for (size_t i = 0; i < n.getNumChildren(); i++)
       {
         getMacroCandidates(n[i], candidates, visited);
       }
     }
-    else if (n.getKind() == MULT)
+    else if (n.getKind() == Kind::MULT)
     {
       // if the LHS is a constant
       if (n.getNumChildren() == 2 && n[0].isConst())
@@ -214,7 +215,7 @@ void QuantifiersMacros::getMacroCandidates(Node n,
         getMacroCandidates(n[1], candidates, visited);
       }
     }
-    else if (n.getKind() == NOT)
+    else if (n.getKind() == Kind::NOT)
     {
       getMacroCandidates(n[0], candidates, visited);
     }
@@ -223,7 +224,7 @@ void QuantifiersMacros::getMacroCandidates(Node n,
 
 Node QuantifiersMacros::solveInEquality(Node n, Node lit)
 {
-  if (lit.getKind() == EQUAL)
+  if (lit.getKind() == Kind::EQUAL)
   {
     // return the opposite side of the equality if defined that way
     for (int i = 0; i < 2; i++)
@@ -232,7 +233,7 @@ Node QuantifiersMacros::solveInEquality(Node n, Node lit)
       {
         return lit[i == 0 ? 1 : 0];
       }
-      else if (lit[i].getKind() == NOT && lit[i][0] == n)
+      else if (lit[i].getKind() == Kind::NOT && lit[i][0] == n)
       {
         return lit[i == 0 ? 1 : 0].negate();
       }
@@ -242,7 +243,7 @@ Node QuantifiersMacros::solveInEquality(Node n, Node lit)
     {
       Node veq_c;
       Node val;
-      int res = ArithMSum::isolate(n, msum, veq_c, val, EQUAL);
+      int res = ArithMSum::isolate(n, msum, veq_c, val, Kind::EQUAL);
       if (res != 0 && veq_c.isNull())
       {
         return val;
@@ -255,7 +256,7 @@ Node QuantifiersMacros::solveInEquality(Node n, Node lit)
 
 Node QuantifiersMacros::solveEq(Node n, Node ndef)
 {
-  Assert(n.getKind() == APPLY_UF);
+  Assert(n.getKind() == Kind::APPLY_UF);
   NodeManager* nm = NodeManager::currentNM();
   Trace("macros-debug") << "Add macro eq for " << n << std::endl;
   Trace("macros-debug") << "  def: " << ndef << std::endl;
@@ -269,7 +270,8 @@ Node QuantifiersMacros::solveEq(Node n, Node ndef)
   }
   Node fdef =
       ndef.substitute(vars.begin(), vars.end(), fvars.begin(), fvars.end());
-  fdef = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, fvars), fdef);
+  fdef =
+      nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, fvars), fdef);
   // If the definition has a free variable, it is malformed. This can happen
   // if the right hand side of a macro definition contains a variable not
   // contained in the left hand side

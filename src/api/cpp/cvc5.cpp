@@ -38,7 +38,6 @@
 #include "api/cpp/cvc5_checks.h"
 #include "base/check.h"
 #include "base/configuration.h"
-#include "base/modal_exception.h"
 #include "expr/array_store_all.h"
 #include "expr/ascription_type.h"
 #include "expr/cardinality_constraint.h"
@@ -60,7 +59,6 @@
 #include "options/base_options.h"
 #include "options/expr_options.h"
 #include "options/main_options.h"
-#include "options/option_exception.h"
 #include "options/options.h"
 #include "options/options_public.h"
 #include "options/quantifiers_options.h"
@@ -1004,25 +1002,6 @@ class CVC5ApiUnsupportedExceptionStream
   std::stringstream d_stream;
 };
 
-#define CVC5_API_TRY_CATCH_BEGIN \
-  try                            \
-  {
-#define CVC5_API_TRY_CATCH_END                         \
-  }                                                    \
-  catch (const internal::OptionException& e)           \
-  {                                                    \
-    throw CVC5ApiOptionException(e.getMessage());      \
-  }                                                    \
-  catch (const internal::RecoverableModalException& e) \
-  {                                                    \
-    throw CVC5ApiRecoverableException(e.getMessage()); \
-  }                                                    \
-  catch (const internal::Exception& e)                 \
-  {                                                    \
-    throw CVC5ApiException(e.getMessage());            \
-  }                                                    \
-  catch (const std::invalid_argument& e) { throw CVC5ApiException(e.what()); }
-
 }  // namespace
 
 /* -------------------------------------------------------------------------- */
@@ -1368,7 +1347,7 @@ SortKind Sort::getKind() const
   internal::Kind tk = d_type->getKind();
   // Base types are type constants, which have to be special cased to return
   // the appropriate kind.
-  if (tk == internal::kind::TYPE_CONSTANT)
+  if (tk == internal::Kind::TYPE_CONSTANT)
   {
     switch (d_type->getConst<internal::TypeConstant>())
     {
@@ -5144,7 +5123,7 @@ void Solver::increment_vars_consts_stats(const Sort& sort, bool is_var) const
   if constexpr (internal::configuration::isStatisticsBuild())
   {
     const internal::TypeNode tn = sort.getTypeNode();
-    internal::TypeConstant tc = tn.getKind() == internal::kind::TYPE_CONSTANT
+    internal::TypeConstant tc = tn.getKind() == internal::Kind::TYPE_CONSTANT
                                     ? tn.getConst<internal::TypeConstant>()
                                     : internal::LAST_TYPE;
     if (is_var)
@@ -5870,7 +5849,7 @@ Term Solver::mkPi() const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   internal::Node res =
-      d_nm->mkNullaryOperator(d_nm->realType(), internal::kind::PI);
+      d_nm->mkNullaryOperator(d_nm->realType(), internal::Kind::PI);
   (void)res.getType(true); /* kick off type checking */
   return Term(d_nm, res);
   ////////
@@ -5939,7 +5918,7 @@ Term Solver::mkRegexpAll() const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   internal::Node res =
-      d_nm->mkNode(internal::kind::REGEXP_ALL, std::vector<internal::Node>());
+      d_nm->mkNode(internal::Kind::REGEXP_ALL, std::vector<internal::Node>());
   (void)res.getType(true); /* kick off type checking */
   return Term(d_nm, res);
   ////////
@@ -5951,7 +5930,7 @@ Term Solver::mkRegexpNone() const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   internal::Node res =
-      d_nm->mkNode(internal::kind::REGEXP_NONE, std::vector<internal::Node>());
+      d_nm->mkNode(internal::Kind::REGEXP_NONE, std::vector<internal::Node>());
   (void)res.getType(true); /* kick off type checking */
   return Term(d_nm, res);
   ////////
@@ -5962,7 +5941,7 @@ Term Solver::mkRegexpAllchar() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  internal::Node res = d_nm->mkNode(internal::kind::REGEXP_ALLCHAR,
+  internal::Node res = d_nm->mkNode(internal::Kind::REGEXP_ALLCHAR,
                                     std::vector<internal::Node>());
   (void)res.getType(true); /* kick off type checking */
   return Term(d_nm, res);
@@ -6012,7 +5991,7 @@ Term Solver::mkSepNil(const Sort& sort) const
   CVC5_API_SOLVER_CHECK_SORT(sort);
   //////// all checks before this line
   internal::Node res =
-      d_nm->mkNullaryOperator(*sort.d_type, internal::kind::SEP_NIL);
+      d_nm->mkNullaryOperator(*sort.d_type, internal::Kind::SEP_NIL);
   (void)res.getType(true); /* kick off type checking */
   return Term(d_nm, res);
   ////////
@@ -6056,7 +6035,7 @@ Term Solver::mkUniverseSet(const Sort& sort) const
   //////// all checks before this line
 
   internal::Node res = getNodeManager()->mkNullaryOperator(
-      *sort.d_type, internal::kind::SET_UNIVERSE);
+      *sort.d_type, internal::Kind::SET_UNIVERSE);
   // TODO(#2771): Reenable?
   // (void)res->getType(true); /* kick off type checking */
   return Term(d_nm, res);
@@ -7716,6 +7695,8 @@ void Solver::setInfo(const std::string& keyword, const std::string& value) const
 void Solver::setLogic(const std::string& logic) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(!d_slv->isLogicSet())
+      << "Invalid call to 'setLogic', logic is already set";
   CVC5_API_CHECK(!d_slv->isFullyInited())
       << "Invalid call to 'setLogic', solver is already fully initialized";
   //////// all checks before this line
