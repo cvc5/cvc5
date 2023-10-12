@@ -15,6 +15,7 @@
 
 #include <cvc5/cvc5.h>
 
+#include "api/java/jni/api_utilities.h"
 #include "api_utilities.h"
 #include "io_github_cvc5_Solver.h"
 
@@ -2127,34 +2128,66 @@ Java_io_github_cvc5_Solver_getTimeoutCore(JNIEnv* env, jobject, jlong pointer)
 /*
  * Class:     io_github_cvc5_Solver
  * Method:    getProof
- * Signature: (J)Ljava/lang/String;
+ * Signature: (J)[J
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_getProof__J(JNIEnv* env,
-                                                                 jobject,
-                                                                 jlong pointer)
+JNIEXPORT jlongArray JNICALL
+Java_io_github_cvc5_Solver_getProof__J(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  std::string proof = solver->getProof();
-  return env->NewStringUTF(proof.c_str());
+  std::vector<Proof> proofs = solver->getProof();
+  jlongArray ret = getPointersFromObjects<Proof>(env, proofs);
+  return ret;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
  * Class:     io_github_cvc5_Solver
  * Method:    getProof
- * Signature: (JI)Ljava/lang/String;
+ * Signature: (JI)[J;
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_getProof__JI(JNIEnv* env,
-                                                                  jobject,
-                                                                  jlong pointer,
-                                                                  jint pcvalue)
+JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getProof__JI(
+    JNIEnv* env, jobject, jlong pointer, jint pcvalue)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   modes::ProofComponent pc = static_cast<modes::ProofComponent>(pcvalue);
-  std::string proof = solver->getProof(pc);
-  return env->NewStringUTF(proof.c_str());
+  std::vector<Proof> proofs = solver->getProof(pc);
+  jlongArray ret = getPointersFromObjects<Proof>(env, proofs);
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    proofToString
+ * Signature: (JJ)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_proofToString__JJ(
+    JNIEnv* env, jobject, jlong pointer, jlong proofPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  Proof* proof = reinterpret_cast<Proof*>(proofPointer);
+  std::string proofStr = solver->proofToString(*proof);
+  return env->NewStringUTF(proofStr.c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    proofToString
+ * Signature: (JJI)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_proofToString__JJI(
+    JNIEnv* env, jobject, jlong pointer, jlong proofPointer, jint pfvalue)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  modes::ProofFormat pf = static_cast<modes::ProofFormat>(pfvalue);
+  Proof* proof = reinterpret_cast<Proof*>(proofPointer);
+  std::string proofStr = solver->proofToString(*proof, pf);
+  return env->NewStringUTF(proofStr.c_str());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
