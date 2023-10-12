@@ -78,7 +78,7 @@ class AlfPrinter : protected EnvObj
   void printStepPost(AlfPrintChannel* out, const ProofNode* pn);
   /**
    * Allocate (if necessary) the identifier for an assume-push step for pn and return the identifier.
-   * pn should be an application of ProofNode::SCOPE.
+   * pn should be an application of ProofNode::ALF_RULE with AlfRule::SCOPE.
    */
   size_t allocateAssumePushId(const ProofNode* pn);
   /**
@@ -90,6 +90,7 @@ class AlfPrinter : protected EnvObj
    * Allocate (if necessary) the identifier for step
    */
   size_t allocateProofId(const ProofNode* pn, bool& wasAlloc);
+  /** Mapping from proof identifiers X to nodes named @pX which represent premises */
   Node allocatePremise(size_t id);
   /** Print let list to output stream out */
   void printLetList(std::ostream& out, LetBinding& lbind);
@@ -109,8 +110,6 @@ class AlfPrinter : protected EnvObj
   TypeNode d_pfType;
   /** term prefix */
   std::string d_termLetPrefix;
-  /** Flatten */
-  bool d_proofFlatten;
   /** The false node */
   Node d_false;
 };
