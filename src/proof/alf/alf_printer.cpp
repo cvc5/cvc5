@@ -35,11 +35,8 @@ namespace cvc5::internal {
 
 namespace proof {
 
-AlfPrinter::AlfPrinter(Env& env,
-                       AlfNodeConverter& atp)
-    : EnvObj(env),
-      d_tproc(atp),
-      d_termLetPrefix("@t")
+AlfPrinter::AlfPrinter(Env& env, AlfNodeConverter& atp)
+    : EnvObj(env), d_tproc(atp), d_termLetPrefix("@t")
 {
   d_false = NodeManager::currentNM()->mkConst(false);
   d_pfType = NodeManager::currentNM()->mkSort("proofType");
@@ -503,7 +500,7 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
 
 void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
 {
-  Assert (pn->getRule()!=ProofRule::ASSUME);
+  Assert(pn->getRule() != ProofRule::ASSUME);
   // if we have yet to allocate a proof id, do it now
   bool wasAlloc = false;
   bool isPop = false;
@@ -582,7 +579,7 @@ size_t AlfPrinter::allocateAssumePushId(const ProofNode* pn)
   {
     return it->second;
   }
-  Assert (pn->getRule()==ProofRule::ALF_RULE);
+  Assert(pn->getRule() == ProofRule::ALF_RULE);
   // pn is a Alf SCOPE
   Node a = pn->getArguments()[2];
   bool wasAlloc = false;
