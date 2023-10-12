@@ -67,7 +67,8 @@ void EnumStreamPermutation::reset(Node value)
       {
         if (dt[i].getNumArgs() == 0 && dt[i].getSygusOp() == v)
         {
-          Node cons = nm->mkNode(APPLY_CONSTRUCTOR, dt[i].getConstructor());
+          Node cons =
+              nm->mkNode(Kind::APPLY_CONSTRUCTOR, dt[i].getConstructor());
           d_var_tn_cons[v][stn] = cons;
           cons_var[cons] = v;
         }
@@ -248,7 +249,7 @@ void EnumStreamPermutation::collectVars(Node n,
     }
     return;
   }
-  if (d_tds->sygusToBuiltin(n, n.getType()).getKind() == kind::BOUND_VARIABLE)
+  if (d_tds->sygusToBuiltin(n, n.getType()).getKind() == Kind::BOUND_VARIABLE)
   {
     if (std::find(vars.begin(), vars.end(), n) == vars.end())
     {
@@ -354,7 +355,7 @@ void EnumStreamSubstitution::initialize(TypeNode tn)
         if (dt[i].getNumArgs() == 0 && dt[i].getSygusOp() == v)
         {
           d_var_tn_cons[v][stn] =
-              nm->mkNode(APPLY_CONSTRUCTOR, dt[i].getConstructor());
+              nm->mkNode(Kind::APPLY_CONSTRUCTOR, dt[i].getConstructor());
         }
       }
     }

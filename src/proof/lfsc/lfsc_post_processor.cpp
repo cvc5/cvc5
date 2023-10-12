@@ -45,11 +45,11 @@ bool LfscProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                                 const std::vector<Node>& fa,
                                                 bool& continueUpdate)
 {
-  return pn->getRule() != PfRule::LFSC_RULE;
+  return pn->getRule() != ProofRule::LFSC_RULE;
 }
 
 bool LfscProofPostprocessCallback::update(Node res,
-                                          PfRule id,
+                                          ProofRule id,
                                           const std::vector<Node>& children,
                                           const std::vector<Node>& args,
                                           CDProof* cdp,
@@ -59,11 +59,11 @@ bool LfscProofPostprocessCallback::update(Node res,
                    << std::endl;
   Trace("lfsc-pp-debug") << "...proves " << res << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  Assert(id != PfRule::LFSC_RULE);
+  Assert(id != ProofRule::LFSC_RULE);
 
   switch (id)
   {
-    case PfRule::ASSUME:
+    case ProofRule::ASSUME:
     {
       if (d_defs.find(res) != d_defs.cend())
       {
@@ -73,7 +73,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       return false;
     }
     break;
-    case PfRule::SCOPE:
+    case ProofRule::SCOPE:
     {
       // On the first two calls to update, the proof node is the outermost
       // scopes of the proof. These scopes should not be printed in the LFSC
@@ -117,14 +117,14 @@ bool LfscProofPostprocessCallback::update(Node res,
         addLfscRule(cdp, fconc, {curr}, LfscRule::LAMBDA, {args[ii]});
         // we use a chained implication (=> F1 ... (=> Fn C)) which avoids
         // aliasing.
-        Node next = nm->mkNode(OR, args[ii].notNode(), curr);
+        Node next = nm->mkNode(Kind::OR, args[ii].notNode(), curr);
         addLfscRule(cdp, next, {fconc}, LfscRule::SCOPE, {args[ii]});
         curr = next;
       }
       // In LFSC, we have now proved:
       //  (or (not F1) (or (not F2) ... (or (not Fn) C) ... ))
       // We now must convert this to one of two cases
-      if (res.getKind() == NOT)
+      if (res.getKind() == Kind::NOT)
       {
         // we have C = false,
         // convert to (not (and F1 (and F2 ... (and Fn true) ... )))
@@ -140,7 +140,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       }
     }
     break;
-    case PfRule::CHAIN_RESOLUTION:
+    case ProofRule::CHAIN_RESOLUTION:
     {
       // turn into binary resolution
       Node cur = children[0];
@@ -148,14 +148,14 @@ bool LfscProofPostprocessCallback::update(Node res,
       {
         std::vector<Node> newChildren{cur, children[i]};
         std::vector<Node> newArgs{args[(i - 1) * 2], args[(i - 1) * 2 + 1]};
-        cur = d_pc->checkDebug(PfRule::RESOLUTION, newChildren, newArgs);
-        cdp->addStep(cur, PfRule::RESOLUTION, newChildren, newArgs);
+        cur = d_pc->checkDebug(ProofRule::RESOLUTION, newChildren, newArgs);
+        cdp->addStep(cur, ProofRule::RESOLUTION, newChildren, newArgs);
       }
     }
     break;
-    case PfRule::SYMM:
+    case ProofRule::SYMM:
     {
-      if (res.getKind() != NOT)
+      if (res.getKind() != Kind::NOT)
       {
         // no need to convert (positive) equality symmetry
         return false;
@@ -164,7 +164,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       addLfscRule(cdp, res, {children[0]}, LfscRule::NEG_SYMM, {});
     }
     break;
-    case PfRule::TRANS:
+    case ProofRule::TRANS:
     {
       if (children.size() <= 2)
       {
@@ -178,19 +178,19 @@ bool LfscProofPostprocessCallback::update(Node res,
       for (size_t i = 1, size = children.size(); i < size; i++)
       {
         std::vector<Node> newChildren{cur, children[i]};
-        cur = d_pc->checkDebug(PfRule::TRANS, newChildren, {});
+        cur = d_pc->checkDebug(ProofRule::TRANS, newChildren, {});
         if (processed.find(cur) != processed.end())
         {
           continue;
         }
         processed.insert(cur);
-        cdp->addStep(cur, PfRule::TRANS, newChildren, {});
+        cdp->addStep(cur, ProofRule::TRANS, newChildren, {});
       }
     }
     break;
-    case PfRule::CONG:
+    case ProofRule::CONG:
     {
-      Assert(res.getKind() == EQUAL);
+      Assert(res.getKind() == Kind::EQUAL);
       Assert(res[0].getOperator() == res[1].getOperator());
       Trace("lfsc-pp-cong") << "Processing congruence for " << res << " "
                             << res[0].getKind() << std::endl;
@@ -220,7 +220,7 @@ bool LfscProofPostprocessCallback::update(Node res,
           // avoids type errors in internal representation of LFSC terms.
           Node vop = d_tproc.getOperatorOfBoundVar(ii == 0 ? cop : pcop, v);
           Node vopEq = vop.eqNode(vop);
-          cdp->addStep(vopEq, PfRule::REFL, {}, {vop});
+          cdp->addStep(vopEq, ProofRule::REFL, {}, {vop});
           Node nextEq;
           if (i + 1 == nvars)
           {
@@ -229,8 +229,8 @@ bool LfscProofPostprocessCallback::update(Node res,
           }
           else
           {
-            curL = nm->mkNode(HO_APPLY, vop, curL);
-            curR = nm->mkNode(HO_APPLY, vop, curR);
+            curL = nm->mkNode(Kind::HO_APPLY, vop, curL);
+            curR = nm->mkNode(Kind::HO_APPLY, vop, curR);
             nextEq = curL.eqNode(curR);
           }
           addLfscRule(cdp, nextEq, {vopEq, currEq}, LfscRule::CONG, {});
@@ -239,7 +239,7 @@ bool LfscProofPostprocessCallback::update(Node res,
         return true;
       }
       Kind k = res[0].getKind();
-      if (k == HO_APPLY)
+      if (k == Kind::HO_APPLY)
       {
         // HO_APPLY congruence is a single application of LFSC congruence
         addLfscRule(cdp, res, children, LfscRule::CONG, {});
@@ -255,7 +255,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       Assert(!op.isNull());
       // initial base step is REFL
       Node opEq = op.eqNode(op);
-      cdp->addStep(opEq, PfRule::REFL, {}, {op});
+      cdp->addStep(opEq, ProofRule::REFL, {}, {op});
       size_t nchildren = children.size();
       Node nullTerm = d_tproc.getNullTerminator(k, res[0].getType());
       // Are we doing congruence of an n-ary operator? If so, notice that op
@@ -264,8 +264,8 @@ bool LfscProofPostprocessCallback::update(Node res,
       // or if we have a null terminator.
       // special case: constructors and apply uf are not treated as n-ary; these
       // symbols have function types that expect n arguments.
-      bool isNary = NodeManager::isNAryKind(k) && k != kind::APPLY_CONSTRUCTOR
-                    && k != kind::APPLY_UF;
+      bool isNary = NodeManager::isNAryKind(k) && k != Kind::APPLY_CONSTRUCTOR
+                    && k != Kind::APPLY_UF;
       if (isNary && (nchildren > 2 || !nullTerm.isNull()))
       {
         // get the null terminator for the kind, which may mean we are doing
@@ -277,7 +277,7 @@ bool LfscProofPostprocessCallback::update(Node res,
           currEq = nullTerm.eqNode(nullTerm);
           // if we have a null terminator, we do a final REFL step to add
           // the null terminator to both sides.
-          cdp->addStep(currEq, PfRule::REFL, {}, {nullTerm});
+          cdp->addStep(currEq, ProofRule::REFL, {}, {nullTerm});
         }
         else
         {
@@ -291,8 +291,8 @@ bool LfscProofPostprocessCallback::update(Node res,
           Node uop = op;
           // special case: applications of the following kinds in the chain may
           // have a different type, so remake the operator here.
-          if (k == kind::BITVECTOR_CONCAT || k == ADD || k == MULT
-              || k == NONLINEAR_MULT)
+          if (k == Kind::BITVECTOR_CONCAT || k == Kind::ADD || k == Kind::MULT
+              || k == Kind::NONLINEAR_MULT)
           {
             // we get the operator of the next argument concatenated with the
             // current accumulated remainder.
@@ -302,8 +302,8 @@ bool LfscProofPostprocessCallback::update(Node res,
           Trace("lfsc-pp-cong") << "Apply " << uop << " to " << children[ii][0]
                                 << " and " << children[ii][1] << std::endl;
           Node argAppEq =
-              nm->mkNode(HO_APPLY, uop, children[ii][0])
-                  .eqNode(nm->mkNode(HO_APPLY, uop, children[ii][1]));
+              nm->mkNode(Kind::HO_APPLY, uop, children[ii][0])
+                  .eqNode(nm->mkNode(Kind::HO_APPLY, uop, children[ii][1]));
           addLfscRule(cdp, argAppEq, {opEq, children[ii]}, LfscRule::CONG, {});
           // now, congruence to the current equality
           Node nextEq;
@@ -315,8 +315,9 @@ bool LfscProofPostprocessCallback::update(Node res,
           else
           {
             // otherwise continue to apply
-            nextEq = nm->mkNode(HO_APPLY, argAppEq[0], currEq[0])
-                         .eqNode(nm->mkNode(HO_APPLY, argAppEq[1], currEq[1]));
+            nextEq =
+                nm->mkNode(Kind::HO_APPLY, argAppEq[0], currEq[0])
+                    .eqNode(nm->mkNode(Kind::HO_APPLY, argAppEq[1], currEq[1]));
           }
           addLfscRule(cdp, nextEq, {argAppEq, currEq}, LfscRule::CONG, {});
           currEq = nextEq;
@@ -330,21 +331,21 @@ bool LfscProofPostprocessCallback::update(Node res,
       }
     }
     break;
-    case PfRule::HO_CONG:
+    case ProofRule::HO_CONG:
     {
       // converted to chain of CONG, with no base operator
       updateCong(res, children, cdp, Node::null());
     }
     break;
-    case PfRule::AND_INTRO:
+    case ProofRule::AND_INTRO:
     {
-      Node cur = d_tproc.getNullTerminator(AND);
+      Node cur = d_tproc.getNullTerminator(Kind::AND);
       size_t nchildren = children.size();
       for (size_t j = 0; j < nchildren; j++)
       {
         size_t jj = (nchildren - 1) - j;
         // conclude the final conclusion if we are finished
-        Node next = jj == 0 ? res : nm->mkNode(AND, children[jj], cur);
+        Node next = jj == 0 ? res : nm->mkNode(Kind::AND, children[jj], cur);
         if (j == 0)
         {
           addLfscRule(cdp, next, {children[jj]}, LfscRule::AND_INTRO1, {});
@@ -357,12 +358,12 @@ bool LfscProofPostprocessCallback::update(Node res,
       }
     }
     break;
-    case PfRule::ARITH_SUM_UB:
+    case ProofRule::ARITH_SUM_UB:
     {
       // proof of null terminator base 0 = 0
-      Node zero = d_tproc.getNullTerminator(ADD, res[0].getType());
+      Node zero = d_tproc.getNullTerminator(Kind::ADD, res[0].getType());
       Node cur = zero.eqNode(zero);
-      cdp->addStep(cur, PfRule::REFL, {}, {zero});
+      cdp->addStep(cur, ProofRule::REFL, {}, {zero});
       for (size_t i = 0, size = children.size(); i < size; i++)
       {
         size_t ii = (children.size() - 1) - i;
@@ -375,13 +376,13 @@ bool LfscProofPostprocessCallback::update(Node res,
         else
         {
           // rules build an n-ary chain of + on both sides
-          cur = d_pc->checkDebug(PfRule::ARITH_SUM_UB, newChildren, {});
+          cur = d_pc->checkDebug(ProofRule::ARITH_SUM_UB, newChildren, {});
           addLfscRule(cdp, cur, newChildren, LfscRule::ARITH_SUM_UB, {});
         }
       }
     }
     break;
-    case PfRule::CONCAT_CONFLICT:
+    case ProofRule::CONCAT_CONFLICT:
     {
       if (children.size() == 1)
       {
@@ -389,23 +390,23 @@ bool LfscProofPostprocessCallback::update(Node res,
         return false;
       }
       Assert(children.size() == 2);
-      Assert(children[0].getKind() == EQUAL);
+      Assert(children[0].getKind() == Kind::EQUAL);
       Assert(children[0][0].getType().isSequence());
       // must use the sequences version of the rule
       Node falsen = nm->mkConst(false);
       addLfscRule(cdp, falsen, children, LfscRule::CONCAT_CONFLICT_DEQ, args);
     }
     break;
-    case PfRule::INSTANTIATE:
+    case ProofRule::INSTANTIATE:
     {
       Node q = children[0];
-      Assert(q.getKind() == FORALL);
+      Assert(q.getKind() == Kind::FORALL);
       std::vector<Node> terms;
       std::vector<Node> qvars(q[0].begin(), q[0].end());
       Node conc = q;
       for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
       {
-        Assert(conc.getKind() == FORALL);
+        Assert(conc.getKind() == Kind::FORALL);
         Node prevConc = conc;
         if (i + 1 == nvars)
         {
@@ -419,24 +420,24 @@ bool LfscProofPostprocessCallback::update(Node res,
           std::vector<Node> qchildren;
           TNode v = qvars[i];
           TNode subs = args[i];
-          qchildren.push_back(nm->mkNode(BOUND_VAR_LIST, qvarsNew));
+          qchildren.push_back(nm->mkNode(Kind::BOUND_VAR_LIST, qvarsNew));
           qchildren.push_back(conc[1].substitute(v, subs));
-          conc = nm->mkNode(FORALL, qchildren);
+          conc = nm->mkNode(Kind::FORALL, qchildren);
         }
         addLfscRule(cdp, conc, {prevConc}, LfscRule::INSTANTIATE, {args[i]});
       }
     }
     break;
-    case PfRule::BETA_REDUCE:
+    case ProofRule::BETA_REDUCE:
     {
       // get the term to beta-reduce
-      Node termToReduce = nm->mkNode(APPLY_UF, args);
+      Node termToReduce = nm->mkNode(Kind::APPLY_UF, args);
       addLfscRule(cdp, res, {}, LfscRule::BETA_REDUCE, {termToReduce});
     }
     break;
     default: return false; break;
   }
-  AlwaysAssert(cdp->getProofFor(res)->getRule() != PfRule::ASSUME);
+  AlwaysAssert(cdp->getProofFor(res)->getRule() != ProofRule::ASSUME);
   return true;
 }
 
@@ -473,8 +474,8 @@ void LfscProofPostprocessCallback::updateCong(Node res,
     }
     else
     {
-      curL = nm->mkNode(HO_APPLY, curL, children[i][0]);
-      curR = nm->mkNode(HO_APPLY, curR, children[i][1]);
+      curL = nm->mkNode(Kind::HO_APPLY, curL, children[i][0]);
+      curR = nm->mkNode(Kind::HO_APPLY, curR, children[i][1]);
       nextEq = curL.eqNode(curR);
     }
     addLfscRule(cdp, nextEq, {currEq, children[i]}, LfscRule::CONG, {});
@@ -493,7 +494,7 @@ void LfscProofPostprocessCallback::addLfscRule(
   largs.push_back(mkLfscRuleNode(lr));
   largs.push_back(conc);
   largs.insert(largs.end(), args.begin(), args.end());
-  cdp->addStep(conc, PfRule::LFSC_RULE, children, largs);
+  cdp->addStep(conc, ProofRule::LFSC_RULE, children, largs);
 }
 
 Node LfscProofPostprocessCallback::mkChain(Kind k,

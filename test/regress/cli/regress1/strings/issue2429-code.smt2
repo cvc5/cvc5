@@ -1,3 +1,4 @@
+; COMMAND-LINE: -q
 (set-logic QF_SLIA)
 (set-option :strings-exp true)
 (set-option :produce-models true)

@@ -40,7 +40,7 @@ Node applySelector(const DTypeConstructor& dc,
                    const Node& n)
 {
   Node s = getSelector(n.getType(), dc, index, shareSel);
-  return NodeManager::currentNM()->mkNode(APPLY_SELECTOR, s, n);
+  return NodeManager::currentNM()->mkNode(Kind::APPLY_SELECTOR, s, n);
 }
 
 Node getInstCons(Node n, const DType& dt, size_t index, bool shareSel)
@@ -51,8 +51,8 @@ Node getInstCons(Node n, const DType& dt, size_t index, bool shareSel)
   TypeNode tn = n.getType();
   for (size_t i = 0, nargs = dt[index].getNumArgs(); i < nargs; i++)
   {
-    Node nc =
-        nm->mkNode(APPLY_SELECTOR, getSelector(tn, dt[index], i, shareSel), n);
+    Node nc = nm->mkNode(
+        Kind::APPLY_SELECTOR, getSelector(tn, dt[index], i, shareSel), n);
     children.push_back(nc);
   }
   Node n_ic = mkApplyCons(tn, dt, index, children);
@@ -79,12 +79,12 @@ Node mkApplyCons(TypeNode tn,
         << "Constructor is " << dt[index] << std::endl;
     cchildren[0] = dt[index].getInstantiatedConstructor(tn);
   }
-  return nm->mkNode(APPLY_CONSTRUCTOR, cchildren);
+  return nm->mkNode(Kind::APPLY_CONSTRUCTOR, cchildren);
 }
 
 int isTester(Node n, Node& a)
 {
-  if (n.getKind() == APPLY_TESTER)
+  if (n.getKind() == Kind::APPLY_TESTER)
   {
     a = n[0];
     return indexOf(n.getOperator());
@@ -94,7 +94,7 @@ int isTester(Node n, Node& a)
 
 int isTester(Node n)
 {
-  if (n.getKind() == APPLY_TESTER)
+  if (n.getKind() == Kind::APPLY_TESTER)
   {
     return indexOf(n.getOperator());
   }
@@ -110,10 +110,10 @@ const DType& datatypeOf(Node n)
   TypeNode t = n.getType();
   switch (t.getKind())
   {
-    case CONSTRUCTOR_TYPE: return t[t.getNumChildren() - 1].getDType();
-    case SELECTOR_TYPE:
-    case TESTER_TYPE:
-    case UPDATER_TYPE: return t[0].getDType();
+    case Kind::CONSTRUCTOR_TYPE: return t[t.getNumChildren() - 1].getDType();
+    case Kind::SELECTOR_TYPE:
+    case Kind::TESTER_TYPE:
+    case Kind::UPDATER_TYPE: return t[0].getDType();
     default:
       Unhandled() << "arg must be a datatype constructor, selector, or tester";
   }
@@ -121,7 +121,8 @@ const DType& datatypeOf(Node n)
 
 Node mkTester(Node n, int i, const DType& dt)
 {
-  return NodeManager::currentNM()->mkNode(APPLY_TESTER, dt[i].getTester(), n);
+  return NodeManager::currentNM()->mkNode(
+      Kind::APPLY_TESTER, dt[i].getTester(), n);
 }
 
 Node mkSplit(Node n, const DType& dt)
@@ -133,12 +134,12 @@ Node mkSplit(Node n, const DType& dt)
     splits.push_back(test);
   }
   NodeManager* nm = NodeManager::currentNM();
-  return splits.size() == 1 ? splits[0] : nm->mkNode(OR, splits);
+  return splits.size() == 1 ? splits[0] : nm->mkNode(Kind::OR, splits);
 }
 
 bool isNullaryApplyConstructor(Node n)
 {
-  Assert(n.getKind() == APPLY_CONSTRUCTOR);
+  Assert(n.getKind() == Kind::APPLY_CONSTRUCTOR);
   for (const Node& nc : n)
   {
     if (nc.getType().isDatatype())
@@ -165,7 +166,8 @@ bool checkClash(Node n1, Node n2, std::vector<Node>& rew)
 {
   Trace("datatypes-rewrite-debug")
       << "Check clash : " << n1 << " " << n2 << std::endl;
-  if (n1.getKind() == APPLY_CONSTRUCTOR && n2.getKind() == APPLY_CONSTRUCTOR)
+  if (n1.getKind() == Kind::APPLY_CONSTRUCTOR
+      && n2.getKind() == Kind::APPLY_CONSTRUCTOR)
   {
     if (n1.getOperator() != n2.getOperator())
     {
@@ -193,7 +195,7 @@ bool checkClash(Node n1, Node n2, std::vector<Node>& rew)
     }
     else
     {
-      Node eq = NodeManager::currentNM()->mkNode(EQUAL, n1, n2);
+      Node eq = NodeManager::currentNM()->mkNode(Kind::EQUAL, n1, n2);
       rew.push_back(eq);
     }
   }

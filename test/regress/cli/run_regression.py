@@ -533,6 +533,17 @@ def get_cvc5_features(cvc5_binary):
 
     return features, disabled_features
 
+def check_scrubber(scrubber_error, scrubber):
+    if len(scrubber_error) != 0:
+        print_error("The scrubber's error output is not empty")
+        print()
+        print("  Command: {}".format(scrubber))
+        print()
+        print("  Error output")
+        print("  " + "=" * 78)
+        print(scrubber_error)
+        print("  " + "=" * 78)
+        return EXIT_FAILURE
 
 def run_benchmark(benchmark_info):
     """Runs cvc5 on a benchmark with the given `benchmark_info`. It runs on the
@@ -556,20 +567,31 @@ def run_benchmark(benchmark_info):
     )
 
     # If a scrubber command has been specified then apply it to the output.
+    scrubber_error = ""
     if benchmark_info.scrubber:
-        output, _, _ = run_process(
+        output, scrubber_error, _ = run_process(
             benchmark_info.scrubber,
             benchmark_info.benchmark_dir,
             benchmark_info.timeout,
             output,
         )
+    # Make sure that the scrubber itself did not print anything to its error output
+    check_result =  check_scrubber(scrubber_error, benchmark_info.scrubber)
+    if check_result != None:
+      return check_result
+    
+    scrubber_error = ""
     if benchmark_info.error_scrubber:
-        error, _, _ = run_process(
+        error, scrubber_error, _ = run_process(
             benchmark_info.error_scrubber,
             benchmark_info.benchmark_dir,
             benchmark_info.timeout,
             error,
         )
+    # Make sure that the error scrubber itself did not print anything to its error output
+    check_result =  check_scrubber(scrubber_error, benchmark_info.error_scrubber)
+    if check_result != None:
+      return check_result
 
     # Popen in Python 3 returns a bytes object instead of a string for
     # stdout/stderr.

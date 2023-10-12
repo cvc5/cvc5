@@ -20,6 +20,7 @@
 
 #include <cvc5/cvc5_kind.h>
 #include <cvc5/cvc5_types.h>
+#include <cvc5/cvc5_proof_rule.h>
 
 #include <functional>
 #include <map>
@@ -1084,10 +1085,10 @@ class CVC5_EXPORT Op
 /**
  * Serialize an operator to given stream.
  * @param out The output stream.
- * @param t The operator to be serialized to the given output stream.
+ * @param op  The operator to be serialized to the given output stream.
  * @return The output stream.
  */
-std::ostream& operator<<(std::ostream& out, const Op& t) CVC5_EXPORT;
+std::ostream& operator<<(std::ostream& out, const Op& op) CVC5_EXPORT;
 
 }  // namespace cvc5
 
@@ -1098,7 +1099,7 @@ namespace std {
 template <>
 struct CVC5_EXPORT hash<cvc5::Op>
 {
-  size_t operator()(const cvc5::Op& t) const;
+  size_t operator()(const cvc5::Op& op) const;
 };
 }  // namespace std
 
@@ -2941,7 +2942,7 @@ class CVC5_EXPORT Grammar
  private:
   /**
    * Constructor.
-   * @param slv The solver that created this grammar.
+   * @param nm        The associated node manager.
    * @param sygusVars The input variables to synth-fun/synth-var.
    * @param ntSymbols The non-terminals of this grammar.
    */
@@ -4384,6 +4385,28 @@ class CVC5_EXPORT Solver
   std::vector<Term> getUnsatCore() const;
 
   /**
+   * Get the lemmas used to derive unsatisfiability.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-unsat-core-lemmas)
+   *
+   * Requires the SAT proof unsat core mode, so to enable option
+   * :ref:`unsat-core-mode=sat-proof <lbl-option-unsat-core-mode>`.
+   *
+   * \endverbatim
+   *
+   * @warning This function is experimental and may change in future versions.
+   *
+   * @return A set of terms representing the lemmas used to derive
+   * unsatisfiability.
+   */
+  std::vector<Term> getUnsatCoreLemmas() const;
+
+  /**
    * Get a difficulty estimate for an asserted formula. This function is
    * intended to be called immediately after any response to a checkSat.
    *
@@ -4913,6 +4936,7 @@ class CVC5_EXPORT Solver
    * \endverbatim
    *
    * @warning This function is experimental and may change in future versions.
+   * @param terms The model values to block.
    */
   void blockModelValues(const std::vector<Term>& terms) const;
 
@@ -4983,6 +5007,22 @@ class CVC5_EXPORT Solver
    * @param logic The logic to set.
    */
   void setLogic(const std::string& logic) const;
+
+  /**
+   * Is logic set? Returns whether we called setLogic yet for this solver.
+   *
+   * @return whether we called setLogic yet for this solver.
+   */
+  bool isLogicSet() const;
+
+  /**
+   * Get the logic set the solver.
+   *
+   * @note Asserts isLogicSet().
+   *
+   * @return The logic used by the solver.
+   */
+  std::string getLogic() const;
 
   /**
    * Set option.
@@ -5293,7 +5333,7 @@ class CVC5_EXPORT Solver
   /**
    * Helper for mk-functions that call d_nm->mkConst().
    * @param nm The associated node manager.
-   * @pram t The value.
+   * @param t The value.
    */
   template <typename T>
   static Term mkValHelper(internal::NodeManager* nm, const T& t);
@@ -5303,9 +5343,9 @@ class CVC5_EXPORT Solver
    * @param r The value (either int or real).
    * @param isInt True to create an integer value.
    */
-  static Term mkRationalValHelper(internal::NodeManager*,
-                                  const internal::Rational&,
-                                  bool);
+  static Term mkRationalValHelper(internal::NodeManager* nm,
+                                  const internal::Rational& r,
+                                  bool isInt);
 
   /*
    * Constructs a solver with the given original options. This should only be

@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "proof/proof_rule.h"
+#include "cvc5/cvc5_proof_rule.h"
 
 namespace cvc5::internal {
 
@@ -89,12 +89,12 @@ class ProofNode
   friend class ProofNodeManager;
 
  public:
-  ProofNode(PfRule id,
+  ProofNode(ProofRule id,
             const std::vector<std::shared_ptr<ProofNode>>& children,
             const std::vector<Node>& args);
   ~ProofNode() {}
   /** get the rule of this proof node */
-  PfRule getRule() const;
+  ProofRule getRule() const;
   /** Get children */
   const std::vector<std::shared_ptr<ProofNode>>& getChildren() const;
   /** Get arguments */
@@ -125,11 +125,11 @@ class ProofNode
    * Set value, called to overwrite the contents of this ProofNode with the
    * given arguments.
    */
-  void setValue(PfRule id,
+  void setValue(ProofRule id,
                 const std::vector<std::shared_ptr<ProofNode>>& children,
                 const std::vector<Node>& args);
   /** The proof rule */
-  PfRule d_rule;
+  ProofRule d_rule;
   /** The children of this proof node */
   std::vector<std::shared_ptr<ProofNode>> d_children;
   /** arguments of this node */

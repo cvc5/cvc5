@@ -92,7 +92,7 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
         // we don't touch such proofs.
         Trace("lazy-cdproof") << "...skip unowned proof" << std::endl;
       }
-      else if (cur->getRule() == PfRule::ASSUME)
+      else if (cur->getRule() == ProofRule::ASSUME)
       {
         bool isSym = false;
         ProofGenerator* pg = getGeneratorFor(cfact, isSym);
@@ -120,13 +120,13 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
 
             if (isSym)
             {
-              if (pgc->getRule() == PfRule::SYMM)
+              if (pgc->getRule() == ProofRule::SYMM)
               {
                 getManager()->updateNode(cur, pgc->getChildren()[0].get());
               }
               else
               {
-                getManager()->updateNode(cur, PfRule::SYMM, {pgc}, {});
+                getManager()->updateNode(cur, ProofRule::SYMM, {pgc}, {});
               }
             }
             else
@@ -165,7 +165,7 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
 
 void LazyCDProof::addLazyStep(Node expected,
                               ProofGenerator* pg,
-                              PfRule idNull,
+                              ProofRule idNull,
                               bool isClosed,
                               const char* ctx,
                               bool forceOverwrite)
@@ -173,7 +173,7 @@ void LazyCDProof::addLazyStep(Node expected,
   if (pg == nullptr)
   {
     // null generator, should have given a proof rule
-    if (idNull == PfRule::ASSUME)
+    if (idNull == ProofRule::ASSUME)
     {
       Unreachable() << "LazyCDProof::addLazyStep: " << identify()
                     << ": failed to provide proof generator for " << expected;

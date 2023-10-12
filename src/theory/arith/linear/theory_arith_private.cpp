@@ -41,7 +41,7 @@
 #include "preprocessing/util/ite_utilities.h"
 #include "proof/proof_generator.h"
 #include "proof/proof_node_manager.h"
-#include "proof/proof_rule.h"
+#include "cvc5/cvc5_proof_rule.h"
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_utilities.h"
@@ -952,8 +952,9 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
   Rational minConstant = 0;
   Node minMonomial;
   Node minVar;
-  if (in.getKind() == kind::EQUAL &&
-      Theory::theoryOf(in[0].getType()) == THEORY_ARITH) {
+  if (in.getKind() == Kind::EQUAL
+      && Theory::theoryOf(in[0].getType()) == THEORY_ARITH)
+  {
     Comparison cmp = Comparison::parseNormalForm(in);
 
     Polynomial left = cmp.getLeft();
@@ -981,7 +982,7 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
       Assert(elim == rewrite(elim));
       if (elim.getType().isInteger() && !minVar.getType().isInteger())
       {
-        elim = NodeManager::currentNM()->mkNode(kind::TO_REAL, elim);
+        elim = NodeManager::currentNM()->mkNode(Kind::TO_REAL, elim);
       }
       if (right.size() > options().arith.ppAssertMaxSubSize)
       {
@@ -1012,17 +1013,18 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
 
   // If a relation, remember the bound
   switch(in.getKind()) {
-  case kind::LEQ:
-  case kind::LT:
-  case kind::GEQ:
-  case kind::GT:
-    if (in[0].isVar()) {
-      d_learner.addBound(in);
-    }
-    break;
-  default:
-    // Do nothing
-    break;
+    case Kind::LEQ:
+    case Kind::LT:
+    case Kind::GEQ:
+    case Kind::GT:
+      if (in[0].isVar())
+      {
+        d_learner.addBound(in);
+      }
+      break;
+    default:
+      // Do nothing
+      break;
   }
 
   return Theory::PP_ASSERT_STATUS_UNSOLVED;
@@ -1101,9 +1103,9 @@ void TheoryArithPrivate::setupVariableList(const VarList& vl){
 
     markSetup(vlNode);
   }
-  else if (vlNode.getKind() == kind::EXPONENTIAL
-           || vlNode.getKind() == kind::SINE || vlNode.getKind() == kind::COSINE
-           || vlNode.getKind() == kind::TANGENT)
+  else if (vlNode.getKind() == Kind::EXPONENTIAL
+           || vlNode.getKind() == Kind::SINE || vlNode.getKind() == Kind::COSINE
+           || vlNode.getKind() == Kind::TANGENT)
   {
     d_foundNl = true;
   }
@@ -1142,7 +1144,7 @@ void TheoryArithPrivate::setupPolynomial(const Polynomial& poly) {
     }
   }
 
-  if (polyNode.getKind() == ADD)
+  if (polyNode.getKind() == Kind::ADD)
   {
     d_tableauSizeHasBeenModified = true;
 
@@ -1242,9 +1244,10 @@ void TheoryArithPrivate::releaseArithVar(ArithVar v){
 ArithVar TheoryArithPrivate::requestArithVar(TNode x, bool aux, bool internal){
   //TODO : The VarList trick is good enough?
   Kind xk = x.getKind();
-  Assert(isLeaf(x) || VarList::isMember(x) || xk == ADD || internal);
+  Assert(isLeaf(x) || VarList::isMember(x) || xk == Kind::ADD || internal);
   if (logicInfo().isLinear()
-      && (Variable::isDivMember(x) || xk == IAND || isTranscendentalKind(xk)))
+      && (Variable::isDivMember(x) || xk == Kind::IAND
+          || isTranscendentalKind(xk)))
   {
     stringstream ss;
     ss << "A non-linear fact was asserted to "
@@ -1334,7 +1337,7 @@ ArithVar TheoryArithPrivate::determineArithVar(TNode assertion) const{
 
 
 bool TheoryArithPrivate::canSafelyAvoidEqualitySetup(TNode equality){
-  Assert(equality.getKind() == EQUAL);
+  Assert(equality.getKind() == Kind::EQUAL);
   return d_partialModel.hasArithVar(equality[0]);
 }
 
@@ -1346,7 +1349,8 @@ Comparison TheoryArithPrivate::mkIntegerEqualityFromAssignment(ArithVar v){
 
   TNode var = d_partialModel.asNode(v);
   Polynomial varAsPolynomial = Polynomial::parsePolynomial(var);
-  return Comparison::mkComparison(EQUAL, varAsPolynomial, betaAsPolynomial);
+  return Comparison::mkComparison(
+      Kind::EQUAL, varAsPolynomial, betaAsPolynomial);
 }
 
 TrustNode TheoryArithPrivate::dioCutting()
@@ -1384,9 +1388,10 @@ TrustNode TheoryArithPrivate::dioCutting()
     Assert(c.isIntegral());
     Assert(gcd > 1);
     Assert(!gcd.divides(c.asConstant().getNumerator()));
-    Comparison leq = Comparison::mkComparison(LEQ, p, c);
-    Comparison geq = Comparison::mkComparison(GEQ, p, c);
-    Node lemma = NodeManager::currentNM()->mkNode(OR, leq.getNode(), geq.getNode());
+    Comparison leq = Comparison::mkComparison(Kind::LEQ, p, c);
+    Comparison geq = Comparison::mkComparison(Kind::GEQ, p, c);
+    Node lemma = NodeManager::currentNM()->mkNode(
+        Kind::OR, leq.getNode(), geq.getNode());
     Node rewrittenLemma = rewrite(lemma);
     Trace("arith::dio::ex") << "dioCutting found the plane: " << plane.getNode() << endl;
     Trace("arith::dio::ex") << "resulting in the cut: " << lemma << endl;
@@ -1397,27 +1402,29 @@ TrustNode TheoryArithPrivate::dioCutting()
     if (proofsEnabled())
     {
       NodeManager* nm = NodeManager::currentNM();
-      Node gt = nm->mkNode(kind::GT, p.getNode(), c.getNode());
-      Node lt = nm->mkNode(kind::LT, p.getNode(), c.getNode());
+      Node gt = nm->mkNode(Kind::GT, p.getNode(), c.getNode());
+      Node lt = nm->mkNode(Kind::LT, p.getNode(), c.getNode());
       TypeNode type = gt[0].getType();
 
       Pf pfNotLeq = d_pnm->mkAssume(leq.getNode().negate());
       Pf pfGt =
-          d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM, {pfNotLeq}, {gt});
+          d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM, {pfNotLeq}, {gt}, gt);
       Pf pfNotGeq = d_pnm->mkAssume(geq.getNode().negate());
       Pf pfLt =
-          d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM, {pfNotGeq}, {lt});
-      Pf pfSum = d_pnm->mkNode(PfRule::MACRO_ARITH_SCALE_SUM_UB,
+          d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM, {pfNotGeq}, {lt}, lt);
+      Pf pfSum = d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB,
                                {pfGt, pfLt},
                                {nm->mkConstReal(-1), nm->mkConstReal(1)});
-      Pf pfBot = d_pnm->mkNode(
-          PfRule::MACRO_SR_PRED_TRANSFORM, {pfSum}, {nm->mkConst<bool>(false)});
+      Node falsen = nm->mkConst(false);
+      Pf pfBot = d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM,
+                               {pfSum},
+                               {falsen}, falsen);
       std::vector<Node> assumptions = {leq.getNode().negate(),
                                        geq.getNode().negate()};
       Pf pfNotAndNot = d_pnm->mkScope(pfBot, assumptions);
-      Pf pfOr = d_pnm->mkNode(PfRule::NOT_AND, {pfNotAndNot}, {});
+      Pf pfOr = d_pnm->mkNode(ProofRule::NOT_AND, {pfNotAndNot}, {});
       Pf pfRewritten = d_pnm->mkNode(
-          PfRule::MACRO_SR_PRED_TRANSFORM, {pfOr}, {rewrittenLemma});
+          ProofRule::MACRO_SR_PRED_TRANSFORM, {pfOr}, {rewrittenLemma}, rewrittenLemma);
       return d_pfGen->mkTrustNode(rewrittenLemma, pfRewritten);
     }
     else
@@ -1458,7 +1465,7 @@ Node TheoryArithPrivate::callDioSolver(){
       Assert(!eq.getNode().getConst<bool>());
 
       //This should be handled by the normal form earlier in the case of equality
-      Assert(orig.getKind() != EQUAL);
+      Assert(orig.getKind() != Kind::EQUAL);
       return orig;
     }else{
       Trace("dio::push") << "dio::push " << v << " " << eq.getNode() << " with reason " << orig << endl;
@@ -1474,15 +1481,16 @@ ConstraintP TheoryArithPrivate::constraintFromFactQueue(TNode assertion)
   Kind simpleKind = Comparison::comparisonKind(assertion);
   ConstraintP constraint = d_constraintDatabase.lookup(assertion);
   if(constraint == NullConstraint){
-    Assert(simpleKind == EQUAL || simpleKind == DISTINCT);
-    bool isDistinct = simpleKind == DISTINCT;
-    Node eq = (simpleKind == DISTINCT) ? assertion[0] : assertion;
+    Assert(simpleKind == Kind::EQUAL || simpleKind == Kind::DISTINCT);
+    bool isDistinct = simpleKind == Kind::DISTINCT;
+    Node eq = (simpleKind == Kind::DISTINCT) ? assertion[0] : assertion;
     Assert(!isSetup(eq));
     Node reEq = rewrite(eq);
     Trace("arith::distinct::const") << "Assertion: " << assertion << std::endl;
     Trace("arith::distinct::const") << "Eq       : " << eq << std::endl;
     Trace("arith::distinct::const") << "reEq     : " << reEq << std::endl;
-    if(reEq.getKind() == CONST_BOOLEAN){
+    if (reEq.getKind() == Kind::CONST_BOOLEAN)
+    {
       if(reEq.getConst<bool>() == isDistinct){
         // if is (not true), or false
         Assert((reEq.getConst<bool>() && isDistinct)
@@ -1491,10 +1499,11 @@ ConstraintP TheoryArithPrivate::constraintFromFactQueue(TNode assertion)
         {
           Pf assume = d_pnm->mkAssume(assertion);
           std::vector<Node> assumptions = {assertion};
-          Pf pf = d_pnm->mkScope(d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
-                                               {d_pnm->mkAssume(assertion)},
-                                               {}),
-                                 assumptions);
+          Pf pf =
+              d_pnm->mkScope(d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM,
+                                           {d_pnm->mkAssume(assertion)},
+                                           {}),
+                             assumptions);
           raiseBlackBoxConflict(assertion, pf);
         }
         else
@@ -1504,7 +1513,7 @@ ConstraintP TheoryArithPrivate::constraintFromFactQueue(TNode assertion)
       }
       return NullConstraint;
     }
-    Assert(reEq.getKind() != CONST_BOOLEAN);
+    Assert(reEq.getKind() != Kind::CONST_BOOLEAN);
     if(!isSetup(reEq)){
       setupAtom(reEq);
     }
@@ -1678,13 +1687,11 @@ bool TheoryArithPrivate::hasIntegerModel()
 Node flattenAndSort(Node n){
   Kind k = n.getKind();
   switch(k){
-  case kind::OR:
-  case kind::AND:
-  case kind::ADD:
-  case kind::MULT:
-    break;
-  default:
-    return n;
+    case Kind::OR:
+    case Kind::AND:
+    case Kind::ADD:
+    case Kind::MULT: break;
+    default: return n;
   }
 
   std::vector<Node> out;
@@ -1942,7 +1949,7 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const D
                               << " " << rhs
                               << endl;
 
-  Assert(k == kind::LEQ || k == kind::GEQ);
+  Assert(k == Kind::LEQ || k == Kind::GEQ);
 
   NodeManager* nm = NodeManager::currentNM();
   Node comparison =
@@ -2028,7 +2035,7 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(
       }
       Rational fl(maybe_value.value().floor());
       pair<ConstraintP, ArithVar> p;
-      p = replayGetConstraint(d_lhsTmp, kind::LEQ, fl, true);
+      p = replayGetConstraint(d_lhsTmp, Kind::LEQ, fl, true);
       d_lhsTmp.purge();
       return p;
     }
@@ -2056,7 +2063,7 @@ Node toSumNode(const ArithVariables& vars, const DenseMap<Rational>& sum){
     if(!vars.hasNode(x)){ return Node::null(); }
     Node xNode = vars.asNode(x);
     const Rational& q = sum[x];
-    Node mult = nm->mkNode(kind::MULT, nm->mkConstReal(q), xNode);
+    Node mult = nm->mkNode(Kind::MULT, nm->mkConstReal(q), xNode);
     Trace("arith::toSumNode") << "toSumNode() " << x << " " << mult << endl;
     children.push_back(mult);
   }
@@ -2070,7 +2077,7 @@ Node toSumNode(const ArithVariables& vars, const DenseMap<Rational>& sum){
   {
     return children[0];
   }
-  return nm->mkNode(kind::ADD, children);
+  return nm->mkNode(Kind::ADD, children);
 }
 
 ConstraintCP TheoryArithPrivate::vectorToIntHoleConflict(const ConstraintCPVec& conflict){
@@ -2571,7 +2578,7 @@ Node TheoryArithPrivate::branchToNode(ApproximateSimplex* approx,
       Rational fl(maybe_value.value().floor());
       NodeManager* nm = NodeManager::currentNM();
       Node leq =
-          nm->mkNode(kind::LEQ, n, nm->mkConstRealOrInt(n.getType(), fl));
+          nm->mkNode(Kind::LEQ, n, nm->mkConstRealOrInt(n.getType(), fl));
       Node norm = rewrite(leq);
       return norm;
     }
@@ -2587,7 +2594,7 @@ Node TheoryArithPrivate::cutToLiteral(ApproximateSimplex* approx, const CutInfo&
   if(!sum.isNull()){
     NodeManager* nm = NodeManager::currentNM();
     Kind k = ci.getKind();
-    Assert(k == kind::LEQ || k == kind::GEQ);
+    Assert(k == Kind::LEQ || k == Kind::GEQ);
     Node rhs = nm->mkConstRealOrInt(sum.getType(), ci.getReconstruction().rhs);
     Node ineq = nm->mkNode(k, sum, rhs);
     return rewrite(ineq);
@@ -2639,7 +2646,7 @@ bool TheoryArithPrivate::replayLemmas(ApproximateSimplex* approx){
         Node branch = lit.orNode(lit.notNode());
         if (proofsEnabled())
         {
-          d_pfGen->mkTrustNode(branch, PfRule::SPLIT, {}, {lit});
+        d_pfGen->mkTrustNode(branch, ProofRule::SPLIT, {}, {lit});
         }
         else
         {
@@ -2904,7 +2911,7 @@ bool TheoryArithPrivate::solveRelaxationOrPanic(Theory::Effort effortLevel)
       std::vector<TrustNode> branches = branchIntegerVariable(canBranch);
       Assert(!branches.empty());
       TrustNode branch = branches.back();
-      Assert(branch.getNode().getKind() == kind::OR);
+      Assert(branch.getNode().getKind() == Kind::OR);
       Node rwbranch = rewrite(branch.getNode()[0]);
       if (!isSatLiteral(rwbranch))
       {
@@ -3020,39 +3027,39 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
 
 bool TheoryArithPrivate::hasFreshArithLiteral(Node n) const{
   switch(n.getKind()){
-  case kind::LEQ:
-  case kind::GEQ:
-  case kind::GT:
-  case kind::LT:
-    return !isSatLiteral(n);
-  case kind::EQUAL:
-    if (n[0].getType().isRealOrInt())
-    {
-      return !isSatLiteral(n);
-    }
-    else if (n[0].getType().isBoolean())
-    {
-      return hasFreshArithLiteral(n[0]) ||
-        hasFreshArithLiteral(n[1]);
-    }
-    else
-    {
-      return false;
-    }
-  case kind::IMPLIES:
-    // try the rhs first
-    return hasFreshArithLiteral(n[1]) ||
-      hasFreshArithLiteral(n[0]);
-  default:
-    if(n.getType().isBoolean()){
-      for(Node::iterator ni=n.begin(), nend=n.end(); ni!=nend; ++ni){
-        Node child = *ni;
-        if(hasFreshArithLiteral(child)){
-          return true;
+    case Kind::LEQ:
+    case Kind::GEQ:
+    case Kind::GT:
+    case Kind::LT: return !isSatLiteral(n);
+    case Kind::EQUAL:
+      if (n[0].getType().isRealOrInt())
+      {
+        return !isSatLiteral(n);
+      }
+      else if (n[0].getType().isBoolean())
+      {
+        return hasFreshArithLiteral(n[0]) || hasFreshArithLiteral(n[1]);
+      }
+      else
+      {
+        return false;
+      }
+    case Kind::IMPLIES:
+      // try the rhs first
+      return hasFreshArithLiteral(n[1]) || hasFreshArithLiteral(n[0]);
+    default:
+      if (n.getType().isBoolean())
+      {
+        for (Node::iterator ni = n.begin(), nend = n.end(); ni != nend; ++ni)
+        {
+          Node child = *ni;
+          if (hasFreshArithLiteral(child))
+          {
+            return true;
+          }
         }
       }
-    }
-    return false;
+      return false;
   }
 }
 
@@ -3707,28 +3714,28 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
           pfAntList.push_back(d_pnm->mkAssume(ants[i]));
         }
         Pf pfAnt = pfAntList.size() > 1
-                       ? d_pnm->mkNode(PfRule::AND_INTRO, pfAntList, {})
+                       ? d_pnm->mkNode(ProofRule::AND_INTRO, pfAntList, {})
                        : pfAntList[0];
         // Use modus ponens to get toProp (un rewritten)
         Pf pfConc = d_pnm->mkNode(
-            PfRule::MODUS_PONENS,
+            ProofRule::MODUS_PONENS,
             {pfAnt, exp.getGenerator()->getProofFor(exp.getProven())},
             {});
         // prove toProp (rewritten)
         Pf pfConcRewritten = d_pnm->mkNode(
-            PfRule::MACRO_SR_PRED_TRANSFORM, {pfConc}, {normalized});
+            ProofRule::MACRO_SR_PRED_TRANSFORM, {pfConc}, {normalized});
         Pf pfNotNormalized = d_pnm->mkAssume(notNormalized);
         // prove bottom from toProp and ~toProp
         Pf pfBot;
-        if (normalized.getKind() == kind::NOT)
+        if (normalized.getKind() == Kind::NOT)
         {
           pfBot = d_pnm->mkNode(
-              PfRule::CONTRA, {pfNotNormalized, pfConcRewritten}, {});
+              ProofRule::CONTRA, {pfNotNormalized, pfConcRewritten}, {});
         }
         else
         {
           pfBot = d_pnm->mkNode(
-              PfRule::CONTRA, {pfConcRewritten, pfNotNormalized}, {});
+              ProofRule::CONTRA, {pfConcRewritten, pfNotNormalized}, {});
         }
         // close scope
         Pf pfNotAnd = d_pnm->mkScope(pfBot, ants);
@@ -3758,10 +3765,10 @@ DeltaRational TheoryArithPrivate::getDeltaValue(TNode term) const
   }
 
   switch (Kind kind = term.getKind()) {
-    case kind::CONST_RATIONAL:
-    case kind::CONST_INTEGER: return term.getConst<Rational>();
+    case Kind::CONST_RATIONAL:
+    case Kind::CONST_INTEGER: return term.getConst<Rational>();
 
-    case kind::ADD:
+    case Kind::ADD:
     {  // 2+ args
       DeltaRational value(0);
       for (TNode::iterator i = term.begin(), iend = term.end(); i != iend;
@@ -3771,8 +3778,9 @@ DeltaRational TheoryArithPrivate::getDeltaValue(TNode term) const
       return value;
     }
 
-    case kind::NONLINEAR_MULT:
-    case kind::MULT: {  // 2+ args
+    case Kind::NONLINEAR_MULT:
+    case Kind::MULT:
+    {  // 2+ args
       Assert(!isSetup(term));
       DeltaRational value(1);
       for (TNode::iterator i = term.begin(), iend = term.end(); i != iend;
@@ -3781,34 +3789,41 @@ DeltaRational TheoryArithPrivate::getDeltaValue(TNode term) const
       }
       return value;
     }
-    case kind::SUB:
+    case Kind::SUB:
     {  // 2 args
       return getDeltaValue(term[0]) - getDeltaValue(term[1]);
     }
-    case kind::NEG:
+    case Kind::NEG:
     {  // 1 arg
       return (-getDeltaValue(term[0]));
     }
 
-    case kind::DIVISION: {  // 2 args
+    case Kind::DIVISION:
+    {  // 2 args
       Assert(!isSetup(term));
       return getDeltaValue(term[0]) / getDeltaValue(term[1]);
     }
-    case kind::DIVISION_TOTAL:
-    case kind::INTS_DIVISION_TOTAL:
-    case kind::INTS_MODULUS_TOTAL: {  // 2 args
+    case Kind::DIVISION_TOTAL:
+    case Kind::INTS_DIVISION_TOTAL:
+    case Kind::INTS_MODULUS_TOTAL:
+    {  // 2 args
       Assert(!isSetup(term));
       DeltaRational denominator = getDeltaValue(term[1]);
       if (denominator.isZero()) {
         return DeltaRational(0, 0);
       }
       DeltaRational numerator = getDeltaValue(term[0]);
-      if (kind == kind::DIVISION_TOTAL) {
+      if (kind == Kind::DIVISION_TOTAL)
+      {
         return numerator / denominator;
-      } else if (kind == kind::INTS_DIVISION_TOTAL) {
+      }
+      else if (kind == Kind::INTS_DIVISION_TOTAL)
+      {
         return Rational(numerator.euclidianDivideQuotient(denominator));
-      } else {
-        Assert(kind == kind::INTS_MODULUS_TOTAL);
+      }
+      else
+      {
+        Assert(kind == Kind::INTS_MODULUS_TOTAL);
         return Rational(numerator.euclidianDivideRemainder(denominator));
       }
     }
@@ -3836,7 +3851,7 @@ Rational TheoryArithPrivate::deltaValueForTotalOrder() const{
   for(; shared_iter != shared_end; ++shared_iter){
     Node sharedCurr = *shared_iter;
     sharedCurr =
-        sharedCurr.getKind() == kind::TO_REAL ? sharedCurr[0] : sharedCurr;
+        sharedCurr.getKind() == Kind::TO_REAL ? sharedCurr[0] : sharedCurr;
 
     // ModelException is fatal as this point. Don't catch!
     // DeltaRationalException is fatal as this point. Don't catch!
@@ -4392,12 +4407,13 @@ bool TheoryArithPrivate::tryToPropagate(RowIndex ridx, bool rowUp, ArithVar v, b
 }
 
 Node flattenImplication(Node imp){
-  NodeBuilder nb(kind::OR);
+  NodeBuilder nb(Kind::OR);
   std::unordered_set<Node> included;
   Node left = imp[0];
   Node right = imp[1];
 
-  if(left.getKind() == kind::AND){
+  if (left.getKind() == Kind::AND)
+  {
     for(Node::iterator i = left.begin(), iend = left.end(); i != iend; ++i) {
       if (!included.count((*i).negate()))
       {
@@ -4405,7 +4421,9 @@ Node flattenImplication(Node imp){
         included.insert((*i).negate());
       }
     }
-  }else{
+  }
+  else
+  {
     if (!included.count(left.negate()))
     {
       nb << left.negate();
@@ -4413,7 +4431,8 @@ Node flattenImplication(Node imp){
     }
   }
 
-  if(right.getKind() == kind::OR){
+  if (right.getKind() == Kind::OR)
+  {
     for(Node::iterator i = right.begin(), iend = right.end(); i != iend; ++i) {
       if (!included.count(*i))
       {
@@ -4421,7 +4440,9 @@ Node flattenImplication(Node imp){
         included.insert(*i);
       }
     }
-  }else{
+  }
+  else
+  {
     if (!included.count(right))
     {
       nb << right;
@@ -4481,9 +4502,10 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
         // Assume the negated getLiteral version of the implied constaint
         // then rewrite it into proof normal form.
         conflictPfs.push_back(
-            d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
+            d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM,
                           {d_pnm->mkAssume(implied->getLiteral().negate())},
-                          {pfLit}));
+                          {pfLit},
+                          pfLit));
         // Add the explaination proofs.
         for (const auto constraint : explain)
         {
@@ -4500,10 +4522,12 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
                        [nm](const Rational& r) { return nm->mkConstReal(r); });
 
         // Prove bottom.
-        auto sumPf = d_pnm->mkNode(
-            PfRule::MACRO_ARITH_SCALE_SUM_UB, conflictPfs, farkasCoefficients);
+        auto sumPf = d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB,
+                                   conflictPfs,
+                                   farkasCoefficients);
+        Node falsen = nm->mkConst(false);
         auto botPf = d_pnm->mkNode(
-            PfRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
+            ProofRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {falsen}, falsen);
 
         // Prove the conflict
         std::vector<Node> assumptions;
@@ -4515,9 +4539,9 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
         auto notAndNotPf = d_pnm->mkScope(botPf, assumptions);
 
         // Convert it to a clause
-        auto orNotNotPf = d_pnm->mkNode(PfRule::NOT_AND, {notAndNotPf}, {});
+        auto orNotNotPf = d_pnm->mkNode(ProofRule::NOT_AND, {notAndNotPf}, {});
         clausePf = d_pnm->mkNode(
-            PfRule::MACRO_SR_PRED_TRANSFORM, {orNotNotPf}, {clause});
+            ProofRule::MACRO_SR_PRED_TRANSFORM, {orNotNotPf}, {clause}, clause);
 
         // Output it
         TrustNode trustedClause = d_pfGen->mkTrustNode(clause, clausePf);
@@ -4607,14 +4631,14 @@ std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit)
   ArithEntailmentCheckParameters params;
   params.addLookupRowSumAlgorithms();
   ArithEntailmentCheckSideEffects out;
-  
+
   using namespace inferbounds;
 
   // l k r
   // diff : (l - r) k 0
   Trace("arith::entailCheck") << "TheoryArithPrivate::entailmentCheck(" << lit << ")"<< endl;
-  Kind k;
-  int primDir;
+  Kind k = Kind::UNDEFINED_KIND;
+  int primDir = 0;
   Rational lm, rm, dm;
   Node lp, rp, dp;
   DeltaRational sep;
@@ -4624,7 +4648,7 @@ std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit)
   if (dp.isConst())
   {
     Node eval = rewrite(lit);
-    Assert(eval.getKind() == kind::CONST_BOOLEAN);
+    Assert(eval.getKind() == Kind::CONST_BOOLEAN);
     // if true, true is an acceptable explaination
     // if false, the node is uninterpreted and eval can be forgotten
     return make_pair(eval.getConst<bool>(), eval);
@@ -4634,8 +4658,8 @@ std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit)
 
   int negPrim = -primDir;
 
-  int secDir = (k == EQUAL || k == DISTINCT) ? negPrim: 0;
-  int negSecDir = (k == EQUAL || k == DISTINCT) ? primDir: 0;
+  int secDir = (k == Kind::EQUAL || k == Kind::DISTINCT) ? negPrim : 0;
+  int negSecDir = (k == Kind::EQUAL || k == Kind::DISTINCT) ? primDir : 0;
 
   // primDir*[lm*( lp )] k primDir*[ [rm*( rp )] + sep ]
   // primDir*[lm*( lp ) - rm*( rp ) ] k primDir*sep
@@ -4716,87 +4740,102 @@ std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit)
     }
 
     switch(k){
-    case LEQ:
-      if(!bestPrimDiff.first.isNull()){
-        DeltaRational d = (bestPrimDiff.second * dm);
-        if((primDir > 0 && d <= sep) || (primDir < 0 && d >= sep) ){
-          Trace("arith::entailCheck") << "entailmentCheck found "
-                                      << primDir << "*" << dm << "*(" << dp<<")"
-                                      << " <= " << primDir << "*" << dm << "*" << bestPrimDiff.second
-                                      << " <= " << primDir << "*" << sep << endl
-                                      << " by " << bestPrimDiff.first << endl;
-          Assert(bestPrimDiff.second * (Rational(primDir) * dm)
-                 <= (sep * Rational(primDir)));
-          return make_pair(true, bestPrimDiff.first);
-        }
-      }
-      break;
-    case EQUAL:
-      if(!bestPrimDiff.first.isNull() && !bestSecDiff.first.isNull()){
-        // Is primDir [dm * dp] == primDir * sep entailed?
-        // Iff [dm * dp] == sep entailed?
-        // Iff dp == sep / dm entailed?
-        // Iff dp <= sep / dm and dp >= sep / dm entailed?
-
-        // primDir [dm * dp] <= primDir * dm * U
-        // secDir [dm * dp] <= secDir * dm * L
-
-        // Suppose primDir * dm > 0
-        // then secDir * dm < 0
-        //   dp >= (secDir * L) / secDir * dm
-        //   dp >= (primDir * L) / primDir * dm
-        //
-        //   dp <= U / dm
-        //   dp >= L / dm
-        //   dp == sep / dm entailed iff U == L == sep
-        // Suppose primDir * dm < 0
-        // then secDir * dm > 0
-        //   dp >= U / dm
-        //   dp <= L / dm
-        //   dp == sep / dm entailed iff U == L == sep
-        if(bestPrimDiff.second == bestSecDiff.second){
-          if(bestPrimDiff.second == sep){
-            return make_pair(true, (bestPrimDiff.first).andNode(bestSecDiff.first));
-          }
-        }
-      }
-      // intentionally fall through to DISTINCT case!
-      // entailments of negations are eager exit cases for EQUAL
-      CVC5_FALLTHROUGH;
-    case DISTINCT:
-      if(!bestPrimDiff.first.isNull()){
-        // primDir [dm * dp] <= primDir * dm * U < primDir * sep
-        if((primDir > 0 && (bestPrimDiff.second * dm  < sep)) ||
-           (primDir < 0 && (bestPrimDiff.second * dm  > sep))){
-          // entailment of negation
-          if(k == DISTINCT){
+      case Kind::LEQ:
+        if (!bestPrimDiff.first.isNull())
+        {
+          DeltaRational d = (bestPrimDiff.second * dm);
+          if ((primDir > 0 && d <= sep) || (primDir < 0 && d >= sep))
+          {
+            Trace("arith::entailCheck")
+                << "entailmentCheck found " << primDir << "*" << dm << "*("
+                << dp << ")"
+                << " <= " << primDir << "*" << dm << "*" << bestPrimDiff.second
+                << " <= " << primDir << "*" << sep << endl
+                << " by " << bestPrimDiff.first << endl;
+            Assert(bestPrimDiff.second * (Rational(primDir) * dm)
+                   <= (sep * Rational(primDir)));
             return make_pair(true, bestPrimDiff.first);
-          }else{
-            Assert(k == EQUAL);
-            return make_pair(false, Node::null());
           }
         }
-      }
-      if(!bestSecDiff.first.isNull()){
-        // If primDir [dm * dp] > primDir * sep, then this is not entailed.
-        // If primDir [dm * dp] >= primDir * dm * L > primDir * sep
-        // -primDir * dm * L < -primDir * sep
-        // secDir * dm * L < secDir * sep
-        if((secDir > 0 && (bestSecDiff.second * dm < sep)) ||
-           (secDir < 0 && (bestSecDiff.second * dm > sep))){
-          if(k == DISTINCT){
-            return make_pair(true, bestSecDiff.first);
-          }else{
-            Assert(k == EQUAL);
-            return make_pair(false, Node::null());
-          }
-        }
-      }
+        break;
+      case Kind::EQUAL:
+        if (!bestPrimDiff.first.isNull() && !bestSecDiff.first.isNull())
+        {
+          // Is primDir [dm * dp] == primDir * sep entailed?
+          // Iff [dm * dp] == sep entailed?
+          // Iff dp == sep / dm entailed?
+          // Iff dp <= sep / dm and dp >= sep / dm entailed?
 
-      break;
-    default:
-      Unreachable();
-      break;
+          // primDir [dm * dp] <= primDir * dm * U
+          // secDir [dm * dp] <= secDir * dm * L
+
+          // Suppose primDir * dm > 0
+          // then secDir * dm < 0
+          //   dp >= (secDir * L) / secDir * dm
+          //   dp >= (primDir * L) / primDir * dm
+          //
+          //   dp <= U / dm
+          //   dp >= L / dm
+          //   dp == sep / dm entailed iff U == L == sep
+          // Suppose primDir * dm < 0
+          // then secDir * dm > 0
+          //   dp >= U / dm
+          //   dp <= L / dm
+          //   dp == sep / dm entailed iff U == L == sep
+          if (bestPrimDiff.second == bestSecDiff.second)
+          {
+            if (bestPrimDiff.second == sep)
+            {
+              return make_pair(true,
+                               (bestPrimDiff.first).andNode(bestSecDiff.first));
+            }
+          }
+        }
+        // intentionally fall through to DISTINCT case!
+        // entailments of negations are eager exit cases for EQUAL
+        CVC5_FALLTHROUGH;
+      case Kind::DISTINCT:
+        if (!bestPrimDiff.first.isNull())
+        {
+          // primDir [dm * dp] <= primDir * dm * U < primDir * sep
+          if ((primDir > 0 && (bestPrimDiff.second * dm < sep))
+              || (primDir < 0 && (bestPrimDiff.second * dm > sep)))
+          {
+            // entailment of negation
+            if (k == Kind::DISTINCT)
+            {
+              return make_pair(true, bestPrimDiff.first);
+            }
+            else
+            {
+              Assert(k == Kind::EQUAL);
+              return make_pair(false, Node::null());
+            }
+          }
+        }
+        if (!bestSecDiff.first.isNull())
+        {
+          // If primDir [dm * dp] > primDir * sep, then this is not entailed.
+          // If primDir [dm * dp] >= primDir * dm * L > primDir * sep
+          // -primDir * dm * L < -primDir * sep
+          // secDir * dm * L < secDir * sep
+          if ((secDir > 0 && (bestSecDiff.second * dm < sep))
+              || (secDir < 0 && (bestSecDiff.second * dm > sep)))
+          {
+            if (k == Kind::DISTINCT)
+            {
+              return make_pair(true, bestSecDiff.first);
+            }
+            else
+            {
+              Assert(k == Kind::EQUAL);
+              return make_pair(false, Node::null());
+            }
+          }
+        }
+
+        break;
+      default: Unreachable(); break;
     }
   }
   return make_pair(false, Node::null());
@@ -4876,7 +4915,7 @@ void TheoryArithPrivate::setToMin(int sgn, std::pair<Node, DeltaRational>& min, 
  *   dir is either 1 or -1
  */
 bool TheoryArithPrivate::decomposeLiteral(Node lit, Kind& k, int& dir, Rational& lm,  Node& lp, Rational& rm, Node& rp, Rational& dm, Node& dp, DeltaRational& sep){
-  bool negated = (lit.getKind() == kind::NOT);
+  bool negated = (lit.getKind() == Kind::NOT);
   TNode atom = negated ? lit[0] : lit;
 
   TNode left = atom[0];
@@ -4890,7 +4929,7 @@ bool TheoryArithPrivate::decomposeLiteral(Node lit, Kind& k, int& dir, Rational&
   success = decomposeTerm(rewrite(right), rm, rp, rc);
   if(!success){ return false; }
 
-  Node diff = rewrite(NodeManager::currentNM()->mkNode(kind::SUB, left, right));
+  Node diff = rewrite(NodeManager::currentNM()->mkNode(Kind::SUB, left, right));
   Rational dc;
   success = decomposeTerm(diff, dm, dp, dc);
   // can occur in entailment tests involving ITE terms
@@ -4907,10 +4946,13 @@ bool TheoryArithPrivate::decomposeLiteral(Node lit, Kind& k, int& dir, Rational&
   Kind atomKind = atom.getKind();
   Kind normKind = negated ? negateKind(atomKind) : atomKind;
 
-  if(normKind == GEQ || normKind == GT){
+  if (normKind == Kind::GEQ || normKind == Kind::GT)
+  {
     dir = -1;
-    normKind = (normKind == GEQ) ? LEQ : LT;
-  }else{
+    normKind = (normKind == Kind::GEQ) ? Kind::LEQ : Kind::LT;
+  }
+  else
+  {
     dir = 1;
   }
 
@@ -4927,10 +4969,13 @@ bool TheoryArithPrivate::decomposeLiteral(Node lit, Kind& k, int& dir, Rational&
   Rational change = rc - lc;
   Assert(change == (-dc));
   // [dir*lm*( lp )] k [dir*rm*( rp ) + dir*(rc - lc)]
-  if(normKind == LT){
+  if (normKind == Kind::LT)
+  {
     sep = DeltaRational(change, Rational(-1));
-    k = LEQ;
-  }else{
+    k = Kind::LEQ;
+  }
+  else
+  {
     sep = DeltaRational(change);
     k = normKind;
   }
@@ -4975,14 +5020,14 @@ void TheoryArithPrivate::entailmentCheckBoundLookup(std::pair<Node, DeltaRationa
 void TheoryArithPrivate::entailmentCheckRowSum(std::pair<Node, DeltaRational>& tmp, int sgn, TNode tp) const {
   tmp.first = Node::null();
   if(sgn == 0){ return; }
-  if (tp.getKind() != ADD)
+  if (tp.getKind() != Kind::ADD)
   {
     return;
   }
   Assert(Polynomial::isMember(tp));
 
   tmp.second = DeltaRational(0);
-  NodeBuilder nb(kind::AND);
+  NodeBuilder nb(Kind::AND);
 
   Polynomial p = Polynomial::parsePolynomial(tp);
   for(Polynomial::iterator i = p.begin(), iend = p.end(); i != iend; ++i) {

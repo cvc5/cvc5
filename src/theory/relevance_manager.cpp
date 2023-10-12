@@ -60,7 +60,7 @@ void RelevanceManager::notifyPreprocessedAssertions(
   std::vector<Node> toProcess;
   for (const Node& a : assertions)
   {
-    if (d_miniscopeTopLevel && a.getKind() == AND)
+    if (d_miniscopeTopLevel && a.getKind() == Kind::AND)
     {
       // split top-level AND
       for (const Node& ac : a)
@@ -96,7 +96,7 @@ void RelevanceManager::addAssertionsInternal(std::vector<Node>& toProcess)
   while (i < toProcess.size())
   {
     Node a = toProcess[i];
-    if (d_miniscopeTopLevel && a.getKind() == AND)
+    if (d_miniscopeTopLevel && a.getKind() == Kind::AND)
     {
       // difficulty tracking disables miniscoping of AND
       Assert(d_dman == nullptr);
@@ -235,20 +235,20 @@ bool RelevanceManager::updateJustifyLastChild(const RlvPair& cur,
              d_ptctx.computeValue(cur.first, cur.second, index));
   Assert(d_jcache.find(cp) != d_jcache.end());
   int32_t lastChildJustify = d_jcache[cp];
-  if (k == NOT)
+  if (k == Kind::NOT)
   {
     d_jcache[cur] = -lastChildJustify;
   }
-  else if (k == IMPLIES || k == AND || k == OR)
+  else if (k == Kind::IMPLIES || k == Kind::AND || k == Kind::OR)
   {
     if (lastChildJustify != 0)
     {
       // See if we short circuited? The value for short circuiting is false if
       // we are AND or the first child of IMPLIES.
       if (lastChildJustify
-          == ((k == AND || (k == IMPLIES && index == 0)) ? -1 : 1))
+          == ((k == Kind::AND || (k == Kind::IMPLIES && index == 0)) ? -1 : 1))
       {
-        d_jcache[cur] = k == AND ? -1 : 1;
+        d_jcache[cur] = k == Kind::AND ? -1 : 1;
         return false;
       }
     }
@@ -257,7 +257,7 @@ bool RelevanceManager::updateJustifyLastChild(const RlvPair& cur,
     if (index + 1 == nchildren)
     {
       // finished all children, compute the overall value
-      int ret = k == AND ? 1 : -1;
+      int ret = k == Kind::AND ? 1 : -1;
       for (int cv : childrenJustify)
       {
         if (cv == 0)
@@ -279,7 +279,7 @@ bool RelevanceManager::updateJustifyLastChild(const RlvPair& cur,
     // all other cases, an unknown child implies we are unknown
     d_jcache[cur] = 0;
   }
-  else if (k == ITE)
+  else if (k == Kind::ITE)
   {
     if (index == 0)
     {
@@ -303,7 +303,7 @@ bool RelevanceManager::updateJustifyLastChild(const RlvPair& cur,
   }
   else
   {
-    Assert(k == XOR || k == EQUAL);
+    Assert(k == Kind::XOR || k == Kind::EQUAL);
     Assert(nchildren == 2);
     Assert(lastChildJustify != 0);
     if (index == 0)
@@ -317,8 +317,9 @@ bool RelevanceManager::updateJustifyLastChild(const RlvPair& cur,
       // both children known, compute value
       Assert(childrenJustify.size() == 1 && childrenJustify[0] != 0);
       d_jcache[cur] =
-          ((k == XOR ? -1 : 1) * lastChildJustify == childrenJustify[0]) ? 1
-                                                                         : -1;
+          ((k == Kind::XOR ? -1 : 1) * lastChildJustify == childrenJustify[0])
+              ? 1
+              : -1;
     }
   }
   return false;
@@ -436,7 +437,7 @@ bool RelevanceManager::isRelevant(TNode lit)
     return true;
   }
   // agnostic to negation
-  while (lit.getKind() == NOT)
+  while (lit.getKind() == Kind::NOT)
   {
     lit = lit[0];
   }
@@ -446,7 +447,7 @@ bool RelevanceManager::isRelevant(TNode lit)
 TNode RelevanceManager::getExplanationForRelevant(TNode lit)
 {
   // agnostic to negation
-  while (lit.getKind() == NOT)
+  while (lit.getKind() == Kind::NOT)
   {
     lit = lit[0];
   }

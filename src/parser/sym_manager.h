@@ -252,6 +252,8 @@ class CVC5_EXPORT SymManager
   void setLogic(const std::string& logic, bool isForced = false);
   /** Have we called the above method with isForced=true? */
   bool isLogicForced() const;
+  /** Has the logic been set? */
+  bool isLogicSet() const;
   /** Get the last string in an above call */
   const std::string& getLogic() const;
 
@@ -273,6 +275,8 @@ class CVC5_EXPORT SymManager
   bool d_freshDeclarations;
   /** Whether the logic has been forced with --force-logic. */
   bool d_logicIsForced;
+  /** Whether the logic has been set */
+  bool d_logicIsSet;
   /** The logic. */
   std::string d_logic;
 };

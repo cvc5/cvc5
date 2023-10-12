@@ -51,9 +51,9 @@ class TheoryFpRewriter : public TheoryRewriter
 
  protected:
   /** TODO: document (projects issue #265) */
-  RewriteFunction d_preRewriteTable[kind::LAST_KIND];
-  RewriteFunction d_postRewriteTable[kind::LAST_KIND];
-  RewriteFunction d_constantFoldTable[kind::LAST_KIND];
+  RewriteFunction d_preRewriteTable[static_cast<uint32_t>(Kind::LAST_KIND)];
+  RewriteFunction d_postRewriteTable[static_cast<uint32_t>(Kind::LAST_KIND)];
+  RewriteFunction d_constantFoldTable[static_cast<uint32_t>(Kind::LAST_KIND)];
   /** The expand definitions module. */
   FpExpandDefs d_fpExpDef;
 }; /* class TheoryFpRewriter */

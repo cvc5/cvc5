@@ -1,4 +1,4 @@
-; SCRUBBER: grep -v -E '(\(|\)|\:proves)'
+; SCRUBBER: grep -v -E '(\(|\)|:proves)'
 ; COMMAND-LINE: --simplification=none
 ; EXPECT: unsat
 ; DISABLE-TESTER: lfsc

@@ -90,8 +90,8 @@ void TheoryBV::finishInit()
 {
   // these kinds are semi-evaluated in getModelValue (applications of this
   // kind are treated as variables)
-  getValuation().setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UDIV);
-  getValuation().setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UREM);
+  getValuation().setSemiEvaluatedKind(Kind::BITVECTOR_ACKERMANNIZE_UDIV);
+  getValuation().setSemiEvaluatedKind(Kind::BITVECTOR_ACKERMANNIZE_UREM);
   d_internal->finishInit();
 
   eq::EqualityEngine* ee = getEqualityEngine();
@@ -99,36 +99,36 @@ void TheoryBV::finishInit()
   {
     bool eagerEval = options().bv.bvEagerEval;
     // The kinds we are treating as function application in congruence
-    ee->addFunctionKind(kind::BITVECTOR_CONCAT, eagerEval);
-    //    ee->addFunctionKind(kind::BITVECTOR_AND);
-    //    ee->addFunctionKind(kind::BITVECTOR_OR);
-    //    ee->addFunctionKind(kind::BITVECTOR_XOR);
-    //    ee->addFunctionKind(kind::BITVECTOR_NOT);
-    //    ee->addFunctionKind(kind::BITVECTOR_NAND);
-    //    ee->addFunctionKind(kind::BITVECTOR_NOR);
-    //    ee->addFunctionKind(kind::BITVECTOR_XNOR);
-    //    ee->addFunctionKind(kind::BITVECTOR_COMP);
-    ee->addFunctionKind(kind::BITVECTOR_MULT, eagerEval);
-    ee->addFunctionKind(kind::BITVECTOR_ADD, eagerEval);
-    ee->addFunctionKind(kind::BITVECTOR_EXTRACT, eagerEval);
-    //    ee->addFunctionKind(kind::BITVECTOR_SUB);
-    //    ee->addFunctionKind(kind::BITVECTOR_NEG);
-    //    ee->addFunctionKind(kind::BITVECTOR_UDIV);
-    //    ee->addFunctionKind(kind::BITVECTOR_UREM);
-    //    ee->addFunctionKind(kind::BITVECTOR_SDIV);
-    //    ee->addFunctionKind(kind::BITVECTOR_SREM);
-    //    ee->addFunctionKind(kind::BITVECTOR_SMOD);
-    //    ee->addFunctionKind(kind::BITVECTOR_SHL);
-    //    ee->addFunctionKind(kind::BITVECTOR_LSHR);
-    //    ee->addFunctionKind(kind::BITVECTOR_ASHR);
-    //    ee->addFunctionKind(kind::BITVECTOR_ULT);
-    //    ee->addFunctionKind(kind::BITVECTOR_ULE);
-    //    ee->addFunctionKind(kind::BITVECTOR_UGT);
-    //    ee->addFunctionKind(kind::BITVECTOR_UGE);
-    //    ee->addFunctionKind(kind::BITVECTOR_SLT);
-    //    ee->addFunctionKind(kind::BITVECTOR_SLE);
-    //    ee->addFunctionKind(kind::BITVECTOR_SGT);
-    //    ee->addFunctionKind(kind::BITVECTOR_SGE);
+    ee->addFunctionKind(Kind::BITVECTOR_CONCAT, eagerEval);
+    //    ee->addFunctionKind(Kind::BITVECTOR_AND);
+    //    ee->addFunctionKind(Kind::BITVECTOR_OR);
+    //    ee->addFunctionKind(Kind::BITVECTOR_XOR);
+    //    ee->addFunctionKind(Kind::BITVECTOR_NOT);
+    //    ee->addFunctionKind(Kind::BITVECTOR_NAND);
+    //    ee->addFunctionKind(Kind::BITVECTOR_NOR);
+    //    ee->addFunctionKind(Kind::BITVECTOR_XNOR);
+    //    ee->addFunctionKind(Kind::BITVECTOR_COMP);
+    ee->addFunctionKind(Kind::BITVECTOR_MULT, eagerEval);
+    ee->addFunctionKind(Kind::BITVECTOR_ADD, eagerEval);
+    ee->addFunctionKind(Kind::BITVECTOR_EXTRACT, eagerEval);
+    //    ee->addFunctionKind(Kind::BITVECTOR_SUB);
+    //    ee->addFunctionKind(Kind::BITVECTOR_NEG);
+    //    ee->addFunctionKind(Kind::BITVECTOR_UDIV);
+    //    ee->addFunctionKind(Kind::BITVECTOR_UREM);
+    //    ee->addFunctionKind(Kind::BITVECTOR_SDIV);
+    //    ee->addFunctionKind(Kind::BITVECTOR_SREM);
+    //    ee->addFunctionKind(Kind::BITVECTOR_SMOD);
+    //    ee->addFunctionKind(Kind::BITVECTOR_SHL);
+    //    ee->addFunctionKind(Kind::BITVECTOR_LSHR);
+    //    ee->addFunctionKind(Kind::BITVECTOR_ASHR);
+    //    ee->addFunctionKind(Kind::BITVECTOR_ULT);
+    //    ee->addFunctionKind(Kind::BITVECTOR_ULE);
+    //    ee->addFunctionKind(Kind::BITVECTOR_UGT);
+    //    ee->addFunctionKind(Kind::BITVECTOR_UGE);
+    //    ee->addFunctionKind(Kind::BITVECTOR_SLT);
+    //    ee->addFunctionKind(Kind::BITVECTOR_SLE);
+    //    ee->addFunctionKind(Kind::BITVECTOR_SGT);
+    //    ee->addFunctionKind(Kind::BITVECTOR_SGE);
   }
 }
 
@@ -139,7 +139,7 @@ void TheoryBV::preRegisterTerm(TNode node)
   eq::EqualityEngine* ee = getEqualityEngine();
   if (ee)
   {
-    if (node.getKind() == kind::EQUAL)
+    if (node.getKind() == Kind::EQUAL)
     {
       d_state.addEqualityEngineTriggerPredicate(node);
     }
@@ -190,7 +190,7 @@ Theory::PPAssertStatus TheoryBV::ppAssert(
     TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
   Kind k = tin.getNode().getKind();
-  if (k == kind::EQUAL)
+  if (k == Kind::EQUAL)
   {
     auto status = Theory::ppAssert(tin, outSubstitutions);
     if (status != Theory::PP_ASSERT_STATUS_UNSOLVED)
@@ -209,9 +209,8 @@ Theory::PPAssertStatus TheoryBV::ppAssert(
      * x = sk1::c::sk2  otherwise, where bw(sk1) = bw(x)-1-h and bw(sk2) = l
      */
     Node node = rewrite(tin.getNode());
-    if ((node[0].getKind() == kind::BITVECTOR_EXTRACT && node[1].isConst())
-        || (node[1].getKind() == kind::BITVECTOR_EXTRACT
-            && node[0].isConst()))
+    if ((node[0].getKind() == Kind::BITVECTOR_EXTRACT && node[1].isConst())
+        || (node[1].getKind() == Kind::BITVECTOR_EXTRACT && node[0].isConst()))
     {
       Node extract = node[0].isConst() ? node[1] : node[0];
       if (extract[0].isVar())
@@ -327,7 +326,7 @@ void TheoryBV::notifySharedTerm(TNode t)
 
 void TheoryBV::ppStaticLearn(TNode in, NodeBuilder& learned)
 {
-  if (in.getKind() == kind::EQUAL)
+  if (in.getKind() == Kind::EQUAL)
   {
     // Only useful in combination with --bv-intro-pow2 on
     // QF_BV/pspace/power2sum benchmarks.
@@ -337,16 +336,16 @@ void TheoryBV::ppStaticLearn(TNode in, NodeBuilder& learned)
     // (= (bvadd (bvshl 1 x) (bvshl 1 y)) (bvshl 1 z))
     //
     // and does case analysis on the sum of two power of twos.
-    if ((in[0].getKind() == kind::BITVECTOR_ADD
-         && in[1].getKind() == kind::BITVECTOR_SHL)
-        || (in[1].getKind() == kind::BITVECTOR_ADD
-            && in[0].getKind() == kind::BITVECTOR_SHL))
+    if ((in[0].getKind() == Kind::BITVECTOR_ADD
+         && in[1].getKind() == Kind::BITVECTOR_SHL)
+        || (in[1].getKind() == Kind::BITVECTOR_ADD
+            && in[0].getKind() == Kind::BITVECTOR_SHL))
     {
-      TNode p = in[0].getKind() == kind::BITVECTOR_ADD ? in[0] : in[1];
-      TNode s = in[0].getKind() == kind::BITVECTOR_ADD ? in[1] : in[0];
+      TNode p = in[0].getKind() == Kind::BITVECTOR_ADD ? in[0] : in[1];
+      TNode s = in[0].getKind() == Kind::BITVECTOR_ADD ? in[1] : in[0];
 
-      if (p.getNumChildren() == 2 && p[0].getKind() == kind::BITVECTOR_SHL
-          && p[1].getKind() == kind::BITVECTOR_SHL)
+      if (p.getNumChildren() == 2 && p[0].getKind() == Kind::BITVECTOR_SHL
+          && p[1].getKind() == Kind::BITVECTOR_SHL)
       {
         if (utils::isOne(s[0]) && utils::isOne(p[0][0])
             && utils::isOne(p[1][0]))
@@ -360,7 +359,7 @@ void TheoryBV::ppStaticLearn(TNode in, NodeBuilder& learned)
           Node b_eq_c = b.eqNode(c);
 
           Node dis = NodeManager::currentNM()->mkNode(
-              kind::OR, b_eq_0, c_eq_0, b_eq_c);
+              Kind::OR, b_eq_0, c_eq_0, b_eq_c);
           Node imp = in.impNode(dis);
           learned << imp;
         }

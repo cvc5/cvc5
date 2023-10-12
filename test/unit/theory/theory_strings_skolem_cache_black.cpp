@@ -21,7 +21,6 @@
 #include "util/rational.h"
 #include "util/string.h"
 
-using namespace cvc5::internal::kind;
 using namespace cvc5::internal::theory::strings;
 
 namespace cvc5::internal {
@@ -40,11 +39,11 @@ TEST_F(TestTheoryBlackStringsSkolemCache, mkSkolemCached)
   Node c = d_skolemManager->mkDummySkolem("c", d_nodeManager->stringType());
   Node d = d_skolemManager->mkDummySkolem("d", d_nodeManager->stringType());
   Node sa = d_nodeManager->mkNode(
-      kind::STRING_SUBSTR,
+      Kind::STRING_SUBSTR,
       a,
       zero,
-      d_nodeManager->mkNode(kind::STRING_INDEXOF, a, b, zero));
-  Node sc = d_nodeManager->mkNode(kind::STRING_SUBSTR, c, zero, n);
+      d_nodeManager->mkNode(Kind::STRING_INDEXOF, a, b, zero));
+  Node sc = d_nodeManager->mkNode(Kind::STRING_SUBSTR, c, zero, n);
 
   SkolemCache sk(nullptr);
 
