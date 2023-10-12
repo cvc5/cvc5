@@ -128,7 +128,6 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::INSTANTIATE:
     case ProofRule::SKOLEMIZE:
     case ProofRule::ENCODE_PRED_TRANSFORM:
-    case ProofRule::DSL_REWRITE:
     // alf rule is handled
     case ProofRule::ALF_RULE: return true;
     case ProofRule::STRING_REDUCTION:
@@ -227,15 +226,6 @@ std::string AlfPrinter::getRuleName(const ProofNode* pfn)
     case ProofRule::ALF_RULE:
       name = AlfRuleToString(getAlfRule(pfn->getArguments()[0]));
       break;
-    case ProofRule::DSL_REWRITE:
-    {
-      rewriter::DslProofRule dr;
-      rewriter::getDslProofRule(pfn->getArguments()[0], dr);
-      std::stringstream ss;
-      ss << "dsl." << dr;
-      return ss.str();
-    }
-    break;
     default: name = toString(pfn->getRule()); break;
   }
   std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) {
