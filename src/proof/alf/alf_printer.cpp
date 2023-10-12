@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Hans-Jörg Schurr
+ *   Andrew Reynolds, Hans-Jörg Schurr
  *
  * This file is part of the cvc5 project.
  *
@@ -36,18 +36,13 @@ namespace cvc5::internal {
 namespace proof {
 
 AlfPrinter::AlfPrinter(Env& env,
-                       AlfNodeConverter& atp,
-                       bool flatten,
-                       rewriter::RewriteDb* rdb)
+                       AlfNodeConverter& atp)
     : EnvObj(env),
       d_tproc(atp),
-      d_termLetPrefix("@t"),
-      d_proofFlatten(flatten),
-      d_ltproc(atp),
-      d_rdb(rdb)
+      d_termLetPrefix("@t")
 {
-  d_pfType = NodeManager::currentNM()->mkSort("proofType");
   d_false = NodeManager::currentNM()->mkConst(false);
+  d_pfType = NodeManager::currentNM()->mkSort("proofType");
 }
 
 bool AlfPrinter::isHandled(const ProofNode* pfn) const
@@ -135,7 +130,6 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::REMOVE_TERM_FORMULA_AXIOM:
     case ProofRule::INSTANTIATE:
     case ProofRule::SKOLEMIZE:
-    case ProofRule::DRAT_REFUTATION:
     case ProofRule::ENCODE_PRED_TRANSFORM:
     case ProofRule::DSL_REWRITE:
     // alf rule is handled
@@ -167,54 +161,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
       }
     }
     break;
-    case ProofRule::ANNOTATION:
-    case ProofRule::THEORY_EXPAND_DEF:
-    case ProofRule::WITNESS_AXIOM:
-    case ProofRule::HO_APP_ENCODE:
-    case ProofRule::BETA_REDUCE:
-    case ProofRule::ARRAYS_EQ_RANGE_EXPAND:
-    case ProofRule::BV_BITBLAST:
-    case ProofRule::BV_BITBLAST_STEP:
-    case ProofRule::BV_EAGER_ATOM:
-    case ProofRule::DT_UNIF:
-    case ProofRule::DT_INST:
-    case ProofRule::DT_COLLAPSE:
-    case ProofRule::DT_SPLIT:
-    case ProofRule::DT_CLASH:
-    case ProofRule::ALPHA_EQUIV:
-    case ProofRule::QUANTIFIERS_PREPROCESS:
-    case ProofRule::CONCAT_SPLIT:
-    case ProofRule::CONCAT_LPROP:
-    case ProofRule::CONCAT_CPROP:
-    case ProofRule::STRING_DECOMPOSE:
-    case ProofRule::RE_UNFOLD_NEG:
-    case ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED:
-    case ProofRule::RE_ELIM:
-    case ProofRule::STRING_CODE_INJ:
-    case ProofRule::STRING_SEQ_UNIT_INJ:
-    case ProofRule::ARITH_MULT_SIGN:
-    case ProofRule::ARITH_MULT_TANGENT:
-    case ProofRule::ARITH_OP_ELIM_AXIOM:
-    case ProofRule::ARITH_POLY_NORM:
-    case ProofRule::ARITH_TRANS_PI:
-    case ProofRule::ARITH_TRANS_EXP_NEG:
-    case ProofRule::ARITH_TRANS_EXP_POSITIVITY:
-    case ProofRule::ARITH_TRANS_EXP_SUPER_LIN:
-    case ProofRule::ARITH_TRANS_EXP_ZERO:
-    case ProofRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG:
-    case ProofRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS:
-    case ProofRule::ARITH_TRANS_EXP_APPROX_BELOW:
-    case ProofRule::ARITH_TRANS_SINE_BOUNDS:
-    case ProofRule::ARITH_TRANS_SINE_SHIFT:
-    case ProofRule::ARITH_TRANS_SINE_SYMMETRY:
-    case ProofRule::ARITH_TRANS_SINE_TANGENT_ZERO:
-    case ProofRule::ARITH_TRANS_SINE_TANGENT_PI:
-    case ProofRule::ARITH_TRANS_SINE_APPROX_ABOVE_NEG:
-    case ProofRule::ARITH_TRANS_SINE_APPROX_ABOVE_POS:
-    case ProofRule::ARITH_TRANS_SINE_APPROX_BELOW_NEG:
-    case ProofRule::ARITH_TRANS_SINE_APPROX_BELOW_POS:
-    case ProofRule::ARITH_NL_COVERING_DIRECT:
-    case ProofRule::ARITH_NL_COVERING_RECURSIVE:
+    // otherwise not handled
     default: break;
   }
   return false;
@@ -300,81 +247,6 @@ std::string AlfPrinter::getRuleName(const ProofNode* pfn)
   return name;
 }
 
-void AlfPrinter::printDslRule(std::ostream& out, rewriter::DslProofRule r)
-{
-  const rewriter::RewriteProofRule& rpr = d_rdb->getRule(r);
-  const std::vector<Node>& varList = rpr.getVarList();
-  const std::vector<Node>& uvarList = rpr.getUserVarList();
-  const std::vector<Node>& conds = rpr.getConditions();
-  Node conc = rpr.getConclusion(true);
-
-  Subs su;
-
-  out << "(declare-rule dsl." << r << " (";
-  for (size_t i = 0, nvars = uvarList.size(); i < nvars; i++)
-  {
-    if (i > 0)
-    {
-      out << " ";
-    }
-    const Node& uv = uvarList[i];
-    std::stringstream sss;
-    sss << uv;
-    Node uvi = d_tproc.mkInternalSymbol(sss.str(), uv.getType());
-    su.add(varList[i], uvi);
-    out << "(" << uv << " ";
-    TypeNode uvt = uv.getType();
-    if (uvt.getKind() == Kind::ABSTRACT_TYPE)
-    {
-      out << "?";
-    }
-    else
-    {
-      out << uv.getType();
-    }
-    if (expr::isListVar(uv))
-    {
-      expr::markListVar(uvi);
-      out << " :list";
-    }
-    out << ")";
-  }
-  out << ")" << std::endl;
-  if (!conds.empty())
-  {
-    out << "  :premises (";
-    bool firstTime = true;
-    for (const Node& c : conds)
-    {
-      if (firstTime)
-      {
-        firstTime = false;
-      }
-      else
-      {
-        out << " ";
-      }
-      out << d_tproc.convert(su.apply(c));
-    }
-    out << ")" << std::endl;
-  }
-  out << "  :args (";
-  for (size_t i = 0, nvars = uvarList.size(); i < nvars; i++)
-  {
-    if (i > 0)
-    {
-      out << " ";
-    }
-    out << uvarList[i];
-  }
-  out << ")" << std::endl;
-  Node sconc = d_tproc.convert(su.apply(conc));
-  Assert(sconc.getKind() == Kind::EQUAL);
-  out << "  :conclusion (= " << sconc[0] << " " << d_ltproc.convert(sconc[1])
-      << ")" << std::endl;
-  out << ")" << std::endl;
-}
-
 void AlfPrinter::printLetList(std::ostream& out, LetBinding& lbind)
 {
   std::vector<Node> letList;
@@ -429,11 +301,6 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
           outVars << "(declare-var " << v << " " << v.getType() << ")"
                   << std::endl;
         }
-      }
-      // [1] print DSL rules
-      for (rewriter::DslProofRule r : d_dprs)
-      {
-        printDslRule(out, r);
       }
       if (options().proof.alfPrintReference)
       {
@@ -491,17 +358,6 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
     }
     // [6] print proof body
     printProofInternal(aout, pnBody);
-  }
-  // if flattened, print the full proof as ident
-  if (!d_proofFlatten)
-  {
-    d_pfIdCounter++;
-    std::map<const ProofNode*, Node>::iterator it = d_pnodeMap.find(pnBody);
-    if (it != d_pnodeMap.end())
-    {
-      aprint.printStep(
-          "identity", pnBody->getResult(), d_pfIdCounter, {it->second}, {});
-    }
   }
 }
 
@@ -563,7 +419,7 @@ void AlfPrinter::printStepPre(AlfPrintChannel* out, const ProofNode* pn)
     if (ar == AlfRule::SCOPE)
     {
       Assert(pn->getArguments().size() == 3);
-      size_t aid = allocatePush(pn);
+      size_t aid = allocateAssumePushId(pn);
       Node a = d_tproc.convert(pn->getArguments()[2]);
       // print a push
       out->printAssume(a, aid, true);
@@ -634,37 +490,6 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
       args.push_back(ts);
       return;
     }
-    case ProofRule::DSL_REWRITE:
-    {
-      rewriter::DslProofRule dr;
-      if (!rewriter::getDslProofRule(pargs[0], dr))
-      {
-        Unhandled() << "Failed to get DSL proof rule";
-      }
-      const rewriter::RewriteProofRule& rpr = d_rdb->getRule(dr);
-      const std::vector<Node>& varList = rpr.getVarList();
-      Assert(varList.size() + 1 == pargs.size());
-      NodeManager* nm = NodeManager::currentNM();
-      for (size_t i = 0, nvars = varList.size(); i < nvars; i++)
-      {
-        Node v = varList[i];
-        Node pa = d_tproc.convert(pargs[i + 1]);
-        if (expr::isListVar(v))
-        {
-          std::vector<Node> children(pa.begin(), pa.end());
-          Kind k = rpr.getListContext(v);
-          Node t = children.empty() ? d_tproc.getNullTerminator(k, v.getType())
-                                    : nm->mkNode(k, children);
-          args.push_back(t);
-        }
-        else
-        {
-          args.push_back(pa);
-        }
-        Assert(args.back().getType() == v.getType());
-      }
-      return;
-    }
     default: break;
   }
   ProofNodeToSExpr pntse;
@@ -714,74 +539,7 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   }
   else if (handled)
   {
-    if (r == ProofRule::DSL_REWRITE)
-    {
-      const std::vector<Node> aargs = pn->getArguments();
-      // if its a DSL rule, remember it
-      Node idn = aargs[0];
-      rewriter::DslProofRule di;
-      if (rewriter::getDslProofRule(idn, di))
-      {
-        d_dprs.insert(di);
-      }
-      else
-      {
-        Unhandled();
-      }
-    }
     getArgsFromProofRule(pn, args);
-  }
-  // if not flattening proofs
-  if (!d_proofFlatten)
-  {
-    std::vector<Node> pargs;
-    std::string rname;
-    if (!handled)
-    {
-      rname = "trust";
-      pargs.push_back(conclusion);
-    }
-    else
-    {
-      rname = getRuleName(pn);
-      std::map<Node, size_t>::iterator ita;
-      std::map<const ProofNode*, Node>::iterator itp;
-      for (const std::shared_ptr<ProofNode>& c : children)
-      {
-        Node arg;
-        if (c->getRule() == ProofRule::ASSUME)
-        {
-          ita = d_passumeMap.find(c->getResult());
-          Assert(ita != d_passumeMap.end());
-          arg = allocatePremise(ita->second);
-        }
-        else
-        {
-          itp = d_pnodeMap.find(c.get());
-          Assert(itp != d_pnodeMap.end());
-          arg = itp->second;
-        }
-        pargs.push_back(arg);
-      }
-      if (isPop)
-      {
-        // we must manually print pops
-        size_t id = allocateProofId(pn, wasAlloc);
-        out->printStep(rname, conclusionPrint, id, pargs, args, isPop);
-        if (d_pnodeMap.find(pn) == d_pnodeMap.end())
-        {
-          d_pnodeMap[pn] = allocatePremise(id);
-        }
-        return;
-      }
-      pargs.insert(pargs.end(), args.begin(), args.end());
-    }
-    // otherwise just make the node
-    if (d_pnodeMap.find(pn) == d_pnodeMap.end())
-    {
-      d_pnodeMap[pn] = d_tproc.mkInternalApp(rname, pargs, d_pfType);
-    }
-    return;
   }
   size_t id = allocateProofId(pn, wasAlloc);
   // if we don't handle the rule, print trust
@@ -816,7 +574,7 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   out->printStep(rname, conclusionPrint, id, premises, args, isPop);
 }
 
-size_t AlfPrinter::allocatePush(const ProofNode* pn)
+size_t AlfPrinter::allocateAssumePushId(const ProofNode* pn)
 {
   std::map<const ProofNode*, size_t>::iterator it = d_ppushMap.find(pn);
   if (it != d_ppushMap.end())
@@ -827,12 +585,8 @@ size_t AlfPrinter::allocatePush(const ProofNode* pn)
   Node a = pn->getArguments()[2];
   bool wasAlloc = false;
   size_t aid = allocateAssumeId(a, wasAlloc);
-  // if we assigned an id to the assumption,
-  if (wasAlloc)
-  {
-    d_activeScopes.insert(pn);
-  }
-  else
+  // if we assigned an id to the assumption
+  if (!wasAlloc)
   {
     // otherwise we shadow, just use a dummy
     d_pfIdCounter++;
