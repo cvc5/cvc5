@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The printer for the experimental Alf format.
+ * The printer for the AletheLF format.
  */
 
 #include "proof/alf/alf_printer.h"

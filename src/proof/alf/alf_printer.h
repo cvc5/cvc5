@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The printer for the experimental AletheLF format.
+ * The printer for the AletheLF format.
  */
 #include <cstddef>
 #include <memory>
