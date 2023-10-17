@@ -722,7 +722,18 @@ bool TheoryEngine::presolve() {
   return false;
 }/* TheoryEngine::presolve() */
 
-void TheoryEngine::postsolve() {
+void TheoryEngine::postsolve(prop::SatValue result)
+{
+  // Handle emitting pending partitions.
+  // This can be triggered by a scatter strategy that produces
+  // fewer than the requested number of partitions before solving
+  // the remainder of the problem.
+  if (options().parallel.computePartitions > 1
+      && result != prop::SatValue::SAT_VALUE_TRUE)
+  {
+    d_partitionGen->emitRemainingPartitions(/*solved=*/true);
+  }
+
   // Reset the interrupt flag
   d_interrupted = false;
 }
@@ -2015,11 +2026,6 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
   {
     InternalError() << serror.str();
   }
-}
-
-void TheoryEngine::emitPendingPartitions()
-{
-  d_partitionGen->emitRemainingPartitions(/*solved=*/true);
 }
 
 std::pair<bool, Node> TheoryEngine::entailmentCheck(options::TheoryOfMode mode,

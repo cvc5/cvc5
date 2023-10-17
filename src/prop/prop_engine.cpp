@@ -454,7 +454,7 @@ Result PropEngine::checkSat() {
     result = d_satSolver->solve(assumptions);
   }
 
-  d_theoryProxy->postsolve();
+  d_theoryProxy->postsolve(result);
 
   if( result == SAT_VALUE_UNKNOWN ) {
     ResourceManager* rm = resourceManager();

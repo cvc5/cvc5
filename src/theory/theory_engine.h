@@ -26,6 +26,7 @@
 #include "expr/node.h"
 #include "options/theory_options.h"
 #include "proof/trust_node.h"
+#include "prop/sat_solver_types.h"
 #include "smt/env_obj.h"
 #include "theory/atom_requests.h"
 #include "theory/engine_output_channel.h"
@@ -278,7 +279,7 @@ class TheoryEngine : protected EnvObj
   /**
    * Resets the internal state.
    */
-  void postsolve();
+  void postsolve(prop::SatValue result);
 
   /**
    * Calls notifyRestart() on all active theories.
@@ -418,11 +419,6 @@ class TheoryEngine : protected EnvObj
    * This function is called from the smt engine's checkModel routine.
    */
   void checkTheoryAssertionsWithModel(bool hardFailure);
-
-  /**
-   * Emit any pending partitions via the partition generator.
-   */
-  void emitPendingPartitions();
 
  private:
   typedef context::
