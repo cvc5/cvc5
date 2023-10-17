@@ -985,7 +985,7 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
   // that involve quantified variables
   std::unordered_set<Node> applys;
   expr::getKindSubterms(quantifiedNode[1], Kind::APPLY_UF, true, applys);
-  for (Node apply : applys)
+  for (const Node& apply : applys)
   {
     Trace("int-blaster-debug")
         << "quantified uf application: " << apply << std::endl;
