@@ -150,7 +150,6 @@ Result SmtSolver::checkSatInternal()
     }
     Trace("smt") << "SmtSolver::global negate returned " << result << std::endl;
   }
-
   return result;
 }
 
