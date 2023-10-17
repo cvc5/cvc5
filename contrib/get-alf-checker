@@ -32,7 +32,7 @@ tar --strip 1 -xzf $BASE_DIR/tmp/alfc.tgz -C $ALFC_DIR
 pushd $ALFC_DIR
 mkdir -p build && cd build
 cmake -DCMAKE_INSTALL_PREFIX="$BASE_DIR" ..
-make
+make -j$(nproc)
 mkdir -p $BASE_DIR/bin
 cp ./src/alfc $BASE_DIR/bin/alfc
 popd

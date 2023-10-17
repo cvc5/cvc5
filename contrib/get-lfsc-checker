@@ -32,7 +32,7 @@ tar --strip 1 -xzf $BASE_DIR/tmp/lfsc.tgz -C $LFSC_DIR
 pushd $LFSC_DIR
 mkdir -p build && cd build
 cmake -DCMAKE_INSTALL_PREFIX="$BASE_DIR" ..
-make install
+make install -j$(nproc)
 popd
 
 ##### signatures
