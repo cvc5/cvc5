@@ -522,7 +522,6 @@ void Smt2Printer::toStream(std::ostream& out,
 
     return;
   }
-  
 
   Kind k = n.getKind();
   if (k == Kind::DATATYPE_TYPE || k == Kind::TUPLE_TYPE)
@@ -567,7 +566,8 @@ void Smt2Printer::toStream(std::ostream& out,
     {
       // abstract value
       std::string s = n.getName();
-      out << "(as " << cvc5::internal::quoteSymbol(s) << " " << n.getType() << ")";
+      out << "(as " << cvc5::internal::quoteSymbol(s) << " " << n.getType()
+          << ")";
       return;
     }
     // variable
@@ -609,9 +609,9 @@ void Smt2Printer::toStream(std::ostream& out,
       return;
     }
   }
-  else if (k==Kind::CONSTRUCTOR_TYPE)
+  else if (k == Kind::CONSTRUCTOR_TYPE)
   {
-    Node range = n[n.getNumChildren()-1];
+    Node range = n[n.getNumChildren() - 1];
     toStream(out, range, toDepth);
     return;
   }
@@ -622,7 +622,7 @@ void Smt2Printer::toStream(std::ostream& out,
   {
     out << '(';
   }
-  switch(k) 
+  switch (k)
   {
     // higher-order
     case Kind::HO_APPLY:
@@ -904,10 +904,10 @@ void Smt2Printer::toStream(std::ostream& out,
     out << ')';
     return;
   }
-  
+
   // kinds that don't print their operator
-  case Kind::APPLY_INDEXED_SYMBOLIC: // operator is printed as kind
-  case Kind::SEXPR: 
+  case Kind::APPLY_INDEXED_SYMBOLIC:  // operator is printed as kind
+  case Kind::SEXPR:
   case Kind::INSTANTIATED_SORT_TYPE:
   case Kind::PARAMETRIC_DATATYPE:
   case Kind::INST_PATTERN:
