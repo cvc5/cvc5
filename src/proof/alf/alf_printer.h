@@ -17,8 +17,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__ALF_PROOF_PRINTER_H
-#define CVC4__PROOF__ALF_PROOF_PRINTER_H
+#ifndef CVC5__PROOF__ALF_PROOF_PRINTER_H
+#define CVC5__PROOF__ALF_PROOF_PRINTER_H
 
 #include <iostream>
 
@@ -124,4 +124,4 @@ class AlfPrinter : protected EnvObj
 }  // namespace proof
 }  // namespace cvc5::internal
 
-#endif
+#endif /* CVC5__PROOF__ALF_PROOF_PRINTER_H */

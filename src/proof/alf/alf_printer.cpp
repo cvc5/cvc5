@@ -47,6 +47,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
   const std::vector<Node> pargs = pfn->getArguments();
   switch (pfn->getRule())
   {
+    // List of handled rules
     case ProofRule::REFL:
     case ProofRule::SYMM:
     case ProofRule::TRANS:
