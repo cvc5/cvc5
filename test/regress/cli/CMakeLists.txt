@@ -470,6 +470,7 @@ set(regress_0_tests
   regress0/bv/inequality03.smt2
   regress0/bv/inequality04.smt2
   regress0/bv/inequality05.smt2
+  regress0/bv/int_to_bv_10080_ite.smt2
   regress0/bv/int_to_bv_err_on_demand_1.smt2
   regress0/bv/int_to_bv_model.smt2
   regress0/bv/int_to_bv_model2.smt2
@@ -1025,6 +1026,7 @@ set(regress_0_tests
   regress0/parser/issue9675.smt2
   regress0/parser/issue9676.smt2
   regress0/parser/issue9990-nprint-char.smt2
+  regress0/parser/issue10093.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
@@ -2366,6 +2368,7 @@ set(regress_1_tests
   regress1/proofs/issue6625-unsat-core-proofs.smt2
   regress1/proofs/macro-res-exp-crowding-lit-inside-unit.smt2
   regress1/proofs/macro-res-exp-singleton-after-elimCrowd.smt2
+  regress1/proofs/open-pf-tr-conjoin.smt2
   regress1/proofs/qgu-fuzz-1-strings-pp.smt2
   regress1/proofs/qgu-fuzz-arrays-1-dd-te-auto.smt2
   regress1/proofs/quant-alpha-eq.smt2

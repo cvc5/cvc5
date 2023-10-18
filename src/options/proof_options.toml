@@ -168,3 +168,11 @@ name   = "Proof"
   type       = "bool"
   default    = "false"
   help       = "Flatten steps in the LFSC proof"
+
+[[option]]
+  name       = "alfPrintReference"
+  category   = "expert"
+  long       = "alf-print-reference"
+  type       = "bool"
+  default    = "false"
+  help       = "Print reference to original file instead of redeclaring"

@@ -2,6 +2,13 @@ This file contains a summary of important user-visible changes.
 
 **New Features**
 
+- API: A new API for proofs is available.  The new `Proof` class represents
+       a node of the proof tree.  The function
+       `Solver::getProof(modes::ProofComponent c = modes::ProofComponent::FULL)`
+       returns the root proof nodes of a proof component as a vector.  
+       The function `Solver::proofToString(std::vector<Proof> proof,
+       modes::ProofFormat format, modes::ProofComponent component)` can be used
+       to print proof components to a string with a specified proof format.
 - CaDiCaL is now integrated via the IPASIR-UP interface as CDCL(T) SAT solver.
   The CDCL(T) SAT solver can be configured via option `--sat-solver`. Currently,
   MiniSat is still default. Note that CaDiCaL cannot be used as the CDCL(T) SAT
