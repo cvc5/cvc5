@@ -187,8 +187,10 @@ void Smt2Printer::toStream(std::ostream& out,
 
   NodeManager* nm = NodeManager::currentNM();
   // constant
-  if(n.getMetaKind() == kind::metakind::CONSTANT) {
-    switch(n.getKind()) {
+  if (n.getMetaKind() == kind::metakind::CONSTANT)
+  {
+    switch (n.getKind())
+    {
       case Kind::TYPE_CONSTANT:
         switch (n.getConst<TypeConstant>())
         {
@@ -550,9 +552,7 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     return;
   }
-
-  // determine if we are printing out a type ascription
-  if (k == Kind::APPLY_TYPE_ASCRIPTION)
+  else if (k == Kind::APPLY_TYPE_ASCRIPTION)
   {
     TypeNode typeAsc = n.getOperator().getConst<AscriptionType>().getType();
     // use type ascription
@@ -561,16 +561,15 @@ void Smt2Printer::toStream(std::ostream& out,
     out << " " << typeAsc << ")";
     return;
   }
-
-  if (k == Kind::SKOLEM && nm->getSkolemManager()->isAbstractValue(n))
-  {
-    // abstract value
-    std::string s = n.getName();
-    out << "(as " << cvc5::internal::quoteSymbol(s) << " " << n.getType() << ")";
-    return;
-  }
   else if (n.isVar())
   {
+    if (k == Kind::SKOLEM && nm->getSkolemManager()->isAbstractValue(n))
+    {
+      // abstract value
+      std::string s = n.getName();
+      out << "(as " << cvc5::internal::quoteSymbol(s) << " " << n.getType() << ")";
+      return;
+    }
     // variable
     if (n.hasName())
     {
@@ -599,22 +598,32 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     return;
   }
-  if (k == Kind::APPLY_UF && !n.getOperator().isVar())
+  else if (k == Kind::APPLY_UF)
   {
-    // Must print as HO apply instead. This ensures un-beta-reduced function
-    // applications can be reparsed.
-    Node hoa = theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n);
-    toStream(out, hoa, toDepth);
+    if (!n.getOperator().isVar())
+    {
+      // Must print as HO apply instead. This ensures un-beta-reduced function
+      // applications can be reparsed.
+      Node hoa = theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n);
+      toStream(out, hoa, toDepth);
+      return;
+    }
+  }
+  else if (k==Kind::CONSTRUCTOR_TYPE)
+  {
+    Node range = n[n.getNumChildren()-1];
+    toStream(out, range, toDepth);
     return;
   }
 
   bool stillNeedToPrintParams = true;
   // operator
-  if (n.getNumChildren() != 0 && k != Kind::CONSTRUCTOR_TYPE)
+  if (n.getNumChildren() != 0)
   {
     out << '(';
   }
-  switch(k) {
+  switch(k) 
+  {
     // higher-order
     case Kind::HO_APPLY:
       if (!options::ioutils::getFlattenHOChains(out))
@@ -644,9 +653,6 @@ void Smt2Printer::toStream(std::ostream& out,
         out << ")";
       }
       return;
-    case Kind::APPLY_INDEXED_SYMBOLIC:
-      // operator is printed as kind
-      break;
 
     case Kind::MATCH:
       out << smtKindString(k) << " ";
@@ -743,12 +749,6 @@ void Smt2Printer::toStream(std::ostream& out,
         out << "tuple ";
       }
     }
-    break;
-  }
-  case Kind::CONSTRUCTOR_TYPE:
-  {
-    out << n[n.getNumChildren()-1];
-    return;
     break;
   }
   case Kind::APPLY_SELECTOR:
@@ -906,6 +906,7 @@ void Smt2Printer::toStream(std::ostream& out,
   }
   
   // kinds that don't print their operator
+  case Kind::APPLY_INDEXED_SYMBOLIC: // operator is printed as kind
   case Kind::SEXPR: 
   case Kind::INSTANTIATED_SORT_TYPE:
   case Kind::PARAMETRIC_DATATYPE:
@@ -936,7 +937,6 @@ void Smt2Printer::toStream(std::ostream& out,
       out << ' ';
     }
   }
-  stringstream parens;
 
   for(size_t i = 0, c = 1; i < n.getNumChildren(); ) {
     if(toDepth != 0) {
@@ -950,7 +950,7 @@ void Smt2Printer::toStream(std::ostream& out,
   }
   if (n.getNumChildren() != 0)
   {
-    out << parens.str() << ')';
+    out << ')';
   }
 }
 
