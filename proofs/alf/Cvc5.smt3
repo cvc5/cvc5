@@ -15,8 +15,6 @@
 (include "./rules/Quantifiers.smt3")
 (include "./theories/Datatypes.smt3")
 (include "./theories/SepLogic.smt3")
-; specific plugins
-(include "./rules/drat/Drat.smt3")
 
 ; extensions
 (declare-const fmf.card (-> Type Int Bool))
