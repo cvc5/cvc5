@@ -300,9 +300,8 @@ Node AlfNodeConverter::postConvert(Node n)
     // dummy symbol, provide the return type
     Node tnn = typeAsNode(tn);
     std::stringstream ss;
-    ss << "@fp." << printer::smt2::Smt2Printer::smtKindString(k); 
-    return mkInternalApp(
-        ss.str(), {tnn}, tn);
+    ss << "@fp." << printer::smt2::Smt2Printer::smtKindString(k);
+    return mkInternalApp(ss.str(), {tnn}, tn);
   }
   else if (GenericOp::isIndexedOperatorKind(k))
   {
