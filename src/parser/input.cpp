@@ -17,7 +17,7 @@
 
 #include <fstream>
 
-#include "parser/parser_exception.h"
+#include <cvc5/cvc5_parser.h>
 
 namespace cvc5 {
 namespace parser {
