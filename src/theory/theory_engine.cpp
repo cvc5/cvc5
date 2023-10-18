@@ -724,10 +724,10 @@ bool TheoryEngine::presolve() {
 
 void TheoryEngine::postsolve(prop::SatValue result)
 {
-  // Handle emitting pending partitions, if necessary.
-  if (options().parallel.computePartitions > 1)
+  // postsolve with the theory engine modules as well
+  for (TheoryEngineModule* tem : d_modules)
   {
-    d_partitionGen->postsolve(result);
+    tem->postsolve(result);
   }
 
   // Reset the interrupt flag
