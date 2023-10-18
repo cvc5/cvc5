@@ -317,7 +317,7 @@
 (program string_collect_acc ((U Type) (t U) (tail String :list))
   (U) (@Pair U U)
   (
-    ; TODO: sequences
+    ; sequence not handled yet
     ; Check if t is a word constant
     ((string_collect_acc (str.++ t tail))
       (alf.ite (string_check_length_one t)
