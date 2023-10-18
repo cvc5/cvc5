@@ -70,6 +70,9 @@ TEST_F(TestCommandBlack, toString)
   ASSERT_NE(cmd.isNull(), true);
   // note normalizes wrt whitespace
   ASSERT_EQ(cmd.toString(), "(set-logic QF_LIA)\n");
+  std::stringstream ss;
+  ss << cmd;
+  ASSERT_EQ(cmd.toString(), ss.str());
 }
 
 TEST_F(TestCommandBlack, getCommandName)

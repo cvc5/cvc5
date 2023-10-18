@@ -63,6 +63,14 @@ TEST_F(TestInputParserBlack, getSymbolManager)
   ASSERT_EQ(p2.getSymbolManager(), d_symman.get());
 }
 
+TEST_F(TestInputParserBlack, setFileInput)
+{
+  InputParser p(&d_solver);
+  ASSERT_THROW(
+      p.setFileInput(modes::InputLanguage::SMT_LIB_2_6, "nonexistent.smt2"),
+      CVC5ApiException);
+}
+
 TEST_F(TestInputParserBlack, setStreamInput)
 {
   InputParser p(&d_solver);
@@ -71,6 +79,7 @@ TEST_F(TestInputParserBlack, setStreamInput)
   ss << "(declare-fun a () Bool)" << std::endl;
   ss << "(declare-fun b () Int)" << std::endl;
   p.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ss, "input_parser_black");
+  ASSERT_EQ(p.done(), false);
   Command cmd;
   std::stringstream out;
   while (true)
@@ -82,6 +91,7 @@ TEST_F(TestInputParserBlack, setStreamInput)
     }
     ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
   }
+  ASSERT_EQ(p.done(), true);
 }
 
 TEST_F(TestInputParserBlack, setAndAppendIncrementalStringInput)

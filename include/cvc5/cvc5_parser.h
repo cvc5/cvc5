@@ -101,8 +101,6 @@ class CVC5_EXPORT Command
   Command();
   Command(const Command& cmd);
 
-  virtual ~Command();
-
   /**
    * Invoke the command on the solver and symbol manager sm, prints the result
    * to output stream out.
@@ -132,7 +130,7 @@ class CVC5_EXPORT Command
    */
   bool isNull() const;
 
- protected:
+ private:
   /**
    * Constructor.
    * @param n The internal command that is to be wrapped by this command.
@@ -146,7 +144,6 @@ class CVC5_EXPORT Command
 }; /* class Command */
 
 std::ostream& operator<<(std::ostream&, const Command&) CVC5_EXPORT;
-std::ostream& operator<<(std::ostream&, const Command*) CVC5_EXPORT;
 
 /**
  * This class is the main interface for retrieving commands and expressions

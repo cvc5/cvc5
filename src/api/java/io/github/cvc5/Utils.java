@@ -64,6 +64,19 @@ public class Utils
   }
 
   /**
+   * return proofs array from array of pointers
+   */
+  public static Proof[] getProofs(long[] pointers)
+  {
+    Proof[] proofs = new Proof[pointers.length];
+    for (int i = 0; i < pointers.length; i++)
+    {
+      proofs[i] = new Proof(pointers[i]);
+    }
+    return proofs;
+  }
+
+  /**
    * @return Pointers from one dimensional array.
    * @param objects The one dimensional array of pointers.
    */
