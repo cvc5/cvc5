@@ -295,6 +295,7 @@ set(regress_0_tests
   regress0/bv/bv_to_int_5293_2.smt2
   regress0/bv/bv_to_int_8412.smt2
   regress0/bv/bv_to_int_9071.smt2
+  regress0/bv/bv_to_int_9071_bv4.smt2
   regress0/bv/bv_to_int_9071_th_sym.smt2
   regress0/bv/bv_to_int_bvmul2.smt2
   regress0/bv/bv_to_int_bvuf_to_intuf.smt2
@@ -2067,6 +2068,8 @@ set(regress_1_tests
   regress1/bv/bench_38.delta.smt2
   regress1/bv/bug787.smt2
   regress1/bv/bug_extract_mult_leading_bit.smt2
+  regress1/bv/bv_to_int_10084.smt2
+  regress1/bv/bv_to_int_10084_forall.smt2
   regress1/bv/bv-int-collapse2-sat.smt2
   regress1/bv/bv-proof00.smtv1.smt2
   regress1/bv/bv2nat-ground.smt2
