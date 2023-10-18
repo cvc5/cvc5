@@ -1,5 +1,0 @@
-#!/bin/bash
-#grep -rl oldtext . | xargs sed -i 's/oldtext/newtext/g'
-
-cd src
-grep -rl  . | xargs sed -i 's/smt3/smt3/g'
