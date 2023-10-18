@@ -1375,10 +1375,33 @@ std::vector<Node> SolverEngine::convertPreprocessedToInput(
   std::shared_ptr<ProofNode> pepf = cdp.getProofFor(fnode);
   Assert(pepf != nullptr);
   std::shared_ptr<ProofNode> pfn =
-      d_pfManager->connectProofToAssertions(pepf, *d_smtSolver.get());
+      d_pfManager->connectProofToAssertions(pepf, *d_smtSolver.get(), ProofScopeMode::UNIFIED);
   d_ucManager->getUnsatCore(
       pfn, d_smtSolver->getAssertions(), core, isInternal);
   return core;
+}
+
+void SolverEngine::printProof(std::ostream& out,
+                              std::shared_ptr<ProofNode> fp,
+                              modes::ProofFormat proofFormat)
+{
+  // we print in the format based on the proof mode
+  options::ProofFormatMode mode = options::ProofFormatMode::NONE;
+  switch (proofFormat)
+  {
+    case modes::ProofFormat::DEFAULT:
+      mode = options().proof.proofFormatMode;
+      break;
+    case modes::ProofFormat::NONE: mode = options::ProofFormatMode::NONE; break;
+    case modes::ProofFormat::DOT: mode = options::ProofFormatMode::DOT; break;
+    case modes::ProofFormat::ALETHE:
+      mode = options::ProofFormatMode::ALETHE;
+      break;
+    case modes::ProofFormat::LFSC: mode = options::ProofFormatMode::LFSC; break;
+  }
+
+  d_pfManager->printProof(out, fp, mode);
+  out << std::endl;
 }
 
 std::vector<Node> SolverEngine::getSubstitutedAssertions()
@@ -1458,7 +1481,8 @@ void SolverEngine::checkProof()
   if (d_env->getOptions().smt.checkProofs)
   {
     // connect proof to assertions, which will fail if the proof is malformed
-    d_pfManager->connectProofToAssertions(pePfn, *d_smtSolver.get());
+    d_pfManager->connectProofToAssertions(
+        pePfn, *d_smtSolver.get(), ProofScopeMode::UNIFIED);
   }
 }
 
@@ -1634,7 +1658,8 @@ void SolverEngine::getRelevantQuantTermVectors(
   d_ucManager->getRelevantQuantTermVectors(pfn, insts, sks, getDebugInfo);
 }
 
-std::string SolverEngine::getProof(modes::ProofComponent c)
+std::vector<std::shared_ptr<ProofNode>> SolverEngine::getProof(
+    modes::ProofComponent c)
 {
   Trace("smt") << "SMT getProof()\n";
   if (!d_env->getOptions().smt.produceProofs)
@@ -1657,8 +1682,6 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   std::vector<std::shared_ptr<ProofNode>> ps;
   bool connectToPreprocess = false;
   bool connectMkOuterScope = false;
-  bool commentProves = true;
-  options::ProofFormatMode mode = options::ProofFormatMode::NONE;
   if (c == modes::ProofComponent::RAW_PREPROCESS)
   {
     // use all preprocessed assertions
@@ -1676,8 +1699,6 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   else if (c == modes::ProofComponent::SAT)
   {
     ps.push_back(pe->getProof(false));
-    // don't need to comment that it proves false
-    commentProves = false;
   }
   else if (c == modes::ProofComponent::THEORY_LEMMAS
            || c == modes::ProofComponent::PREPROCESS)
@@ -1691,10 +1712,6 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
     ps.push_back(pe->getProof(true));
     connectToPreprocess = true;
     connectMkOuterScope = true;
-    // don't need to comment that it proves false
-    commentProves = false;
-    // we print in the format based on the proof mode
-    mode = options().proof.proofFormatMode;
   }
   else
   {
@@ -1704,7 +1721,6 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   }
 
   Assert(d_pfManager);
-  std::ostringstream ss;
   // connect proofs to preprocessing, if specified
   if (connectToPreprocess)
   {
@@ -1718,30 +1734,15 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
           p, *d_smtSolver.get(), scopeMode);
     }
   }
-  // print all proofs
-  // we currently only print outermost parentheses if the format is NONE
-  if (mode == options::ProofFormatMode::NONE)
-  {
-    ss << "(" << std::endl;
-  }
-  for (std::shared_ptr<ProofNode>& p : ps)
-  {
-    if (commentProves)
-    {
-      ss << "(!" << std::endl;
-    }
-    d_pfManager->printProof(ss, p, mode);
-    ss << std::endl;
-    if (commentProves)
-    {
-      ss << ":proves " << p->getResult() << ")" << std::endl;
-    }
-  }
-  if (mode == options::ProofFormatMode::NONE)
-  {
-    ss << ")" << std::endl;
-  }
-  return ss.str();
+  return ps;
+}
+
+void SolverEngine::proofToString(std::ostream& out,
+                                 std::shared_ptr<ProofNode> fp)
+{
+  options::ProofFormatMode format_mode =
+      getOptions().proof.proofFormatMode;
+  d_pfManager->printProof(out, fp, format_mode);
 }
 
 void SolverEngine::printInstantiations(std::ostream& out)

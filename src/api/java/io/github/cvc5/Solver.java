@@ -19,6 +19,7 @@ import io.github.cvc5.modes.BlockModelsMode;
 import io.github.cvc5.modes.FindSynthTarget;
 import io.github.cvc5.modes.LearnedLitType;
 import io.github.cvc5.modes.ProofComponent;
+import io.github.cvc5.modes.ProofFormat;
 import java.io.IOException;
 import java.util.*;
 
@@ -2116,15 +2117,15 @@ public class Solver extends AbstractPointer
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @return A string representing the proof. This is impacted by the value of
-   * proof-format-mode.
+   * @return A vector of proof nodes. This is equivalent to getProof
+   * when c is FULL.
    */
-  public String getProof()
+  public Proof[] getProof()
   {
-    return getProof(pointer);
+    return Utils.getProofs(getProof(pointer));
   }
 
-  private native String getProof(long pointer);
+  private native long[] getProof(long pointer);
 
   /**
    * Get a proof associated with the most recent call to checkSat.
@@ -2139,15 +2140,49 @@ public class Solver extends AbstractPointer
    * @api.note This method is experimental and may change in future versions.
    *
    * @param c The component of the proof to return
-   * @return A string representing the proof. This is equivalent to getProof
-   * when c is FULL.
+   * @return A vector of proof nodes.
    */
-  public String getProof(ProofComponent c)
+  public Proof[] getProof(ProofComponent c)
   {
-    return getProof(pointer, c.getValue());
+    return Utils.getProofs(getProof(pointer, c.getValue()));
   }
 
-  private native String getProof(long pointer, int c);
+  private native long[] getProof(long pointer, int c);
+
+  /**
+   * Prints a proof into a string with a slected proof format mode.
+   * Other aspects of printing are taken from the solver options.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @param proof A proof.
+   * @return The proof printed in the current format.
+   */
+  public String proofToString(Proof proof)
+  {
+    return proofToString(pointer, proof.getPointer());
+  }
+
+  private native String proofToString(long pointer, long proofs);
+
+  /**
+   * Prints a proof into a string with a slected proof format mode.
+   * Other aspects of printing are taken from the solver options.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @param proof A proof.
+   * @param format The proof format used to print the proof. Must be
+   * `PROOF_FORMAT_NONE` if the proof is from a component other than
+   * `PROOF_COMPONENT_FULL`.
+   * @return The proof printed in the current format.
+   */
+  public String proofToString(Proof proof, ProofFormat format)
+  {
+    return proofToString(pointer, proof.getPointer(), format.getValue());
+  }
+
+  private native String proofToString(long pointer, long proofs, int format);
 
   /**
    * Get the value of the given term in the current model.
