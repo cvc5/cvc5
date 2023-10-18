@@ -54,6 +54,8 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_InputParser_newInputParser__J(
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
+#include <iostream>
+
 /*
  * Class:     io_github_cvc5_InputParser
  * Method:    deletePointer
@@ -62,6 +64,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_InputParser_newInputParser__J(
 JNIEXPORT void JNICALL Java_io_github_cvc5_InputParser_deletePointer(
     JNIEnv* env, jobject, jlong pointer)
 {
+  std::cout << "Deleting input parser pointer: " << pointer << std::endl;
   delete reinterpret_cast<InputParser*>(pointer);
 }
 

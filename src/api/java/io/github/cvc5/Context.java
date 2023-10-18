@@ -25,7 +25,10 @@ public class Context
 
   static void addAbstractPointer(AbstractPointer pointer)
   {
-    abstractPointers.add(pointer);
+    if (!abstractPointers.contains(pointer))
+    {
+      abstractPointers.add(pointer);
+    }
   }
 
   /**
@@ -35,8 +38,11 @@ public class Context
   {
     for (int i = abstractPointers.size() - 1; i >= 0; i--)
     {
+      System.out.println("deleting abstractPointer: " + abstractPointers.get(i).getPointer());
+      System.out.println("deleting instance: " + abstractPointers.get(i).getClass());
       abstractPointers.get(i).deletePointer();
     }
     abstractPointers.clear();
+    System.out.println("abstractPointers.size(): " + abstractPointers.size());
   }
 }

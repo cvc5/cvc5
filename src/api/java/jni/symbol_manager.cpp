@@ -37,6 +37,8 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_SymbolManager_newSymbolManager(
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
+#include <iostream>
+
 /*
  * Class:     io_github_cvc5_SymbolManager
  * Method:    deletePointer
@@ -45,6 +47,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_SymbolManager_newSymbolManager(
 JNIEXPORT void JNICALL Java_io_github_cvc5_SymbolManager_deletePointer(
     JNIEnv* env, jobject, jlong pointer)
 {
+  std::cout << "jni: Deleting symbol manager pointer: " << pointer << std::endl;
   delete reinterpret_cast<SymbolManager*>(pointer);
 }
 

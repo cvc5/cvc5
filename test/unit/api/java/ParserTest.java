@@ -18,23 +18,26 @@ package tests;
 import io.github.cvc5.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 class ParserTest
 {
   protected Solver d_solver;
-  protected SymbolManager d_symman;
+  protected SymbolManager d_symman;  
 
   @BeforeEach
-  void setUp()
+  void setUp(TestInfo testInfo)
   {
+    System.out.println("Setting up test" + testInfo.getDisplayName());
     d_solver = new Solver();
     d_solver.setOption("parse-only", "true");   
-    d_symman = new SymbolManager(d_solver);
+    d_symman = new SymbolManager(d_solver);    
   }
 
   @AfterEach
-  void tearDown()
+  void tearDown(TestInfo testInfo)
   {
-    //Context.deletePointers();
+    System.out.println("Tearing down test" + testInfo.getDisplayName());
+    Context.deletePointers();
   }
 }
