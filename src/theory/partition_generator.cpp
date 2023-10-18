@@ -393,5 +393,17 @@ void PartitionGenerator::check(Theory::Effort e)
   }
 }
 
+void PartitionGenerator::postsolve(prop::SatValue result)
+{
+  // Handle emitting pending partitions.
+  // This can be triggered by a scatter strategy that produces
+  // fewer than the requested number of partitions before solving
+  // the remainder of the problem.
+  if (result != prop::SatValue::SAT_VALUE_TRUE)
+  {
+    emitRemainingPartitions(/*solved=*/true);
+  }
+}
+
 }  // namespace theory
 }  // namespace cvc5::internal

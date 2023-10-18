@@ -41,9 +41,9 @@ class PartitionGenerator : public TheoryEngineModule
                      prop::PropEngine* propEngine);
 
   /**
-   * Emit any remaining partitions that were not emitted during solving.
+   * postsolve, emits remaining partitions.
    */
-  void emitRemainingPartitions(bool solved);
+  void postsolve(prop::SatValue result) override;
 
   /**
    * Make partitions for parallel solving. e communicates the effort at which
@@ -69,6 +69,11 @@ class PartitionGenerator : public TheoryEngineModule
    * the output file specified by --write-partitions-to. 
    */
   void emitPartition(Node toEmit);
+
+  /**
+   * Emit any remaining partitions that were not emitted during solving.
+   */
+  void emitRemainingPartitions(bool solved);
 
   /**
    * Partition using the "revised" strategy, which emits cubes such as C1, C2,

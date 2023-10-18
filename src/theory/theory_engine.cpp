@@ -724,14 +724,10 @@ bool TheoryEngine::presolve() {
 
 void TheoryEngine::postsolve(prop::SatValue result)
 {
-  // Handle emitting pending partitions.
-  // This can be triggered by a scatter strategy that produces
-  // fewer than the requested number of partitions before solving
-  // the remainder of the problem.
-  if (options().parallel.computePartitions > 1
-      && result != prop::SatValue::SAT_VALUE_TRUE)
+  // Handle emitting pending partitions, if necessary.
+  if (options().parallel.computePartitions > 1)
   {
-    d_partitionGen->emitRemainingPartitions(/*solved=*/true);
+    d_partitionGen->postsolve(result);
   }
 
   // Reset the interrupt flag
