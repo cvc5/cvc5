@@ -45,6 +45,7 @@
 #include "theory/datatypes/project_op.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/strings/theory_strings_utils.h"
 #include "theory/theory_model.h"
 #include "theory/uf/function_const.h"
 #include "theory/uf/theory_uf_rewriter.h"
@@ -316,30 +317,17 @@ void Smt2Printer::toStream(std::ostream& out,
     {
       const Sequence& sn = n.getConst<Sequence>();
       const std::vector<Node>& snvec = sn.getVec();
-      TypeNode type = n.getType();
-      TypeNode elemType = type.getSequenceElementType();
       if (snvec.empty())
       {
         out << "(as seq.empty ";
-        toStreamType(out, type);
-        out << ")";
-      }
-      else if (snvec.size() > 1)
-      {
-        out << "(seq.++";
-        for (const Node& snvc : snvec)
-        {
-          out << " (seq.unit ";
-          toStream(out, snvc, toDepth);
-          out << ")";
-        }
+        toStreamType(out, n.getType());
         out << ")";
       }
       else
       {
-        out << "(seq.unit ";
-        toStream(out, snvec[0], toDepth);
-        out << ")";
+        // prints as the corresponding concatentation of seq.unit
+        Node cc = theory::strings::utils::mkConcatForConstSequence(n);
+        toStream(out, cc, toDepth);
       }
       break;
     }
