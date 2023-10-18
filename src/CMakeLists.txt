@@ -150,6 +150,8 @@ libcvc5_add_sources(
   proof/alf/alf_post_processor.h
   proof/alf/alf_print_channel.cpp
   proof/alf/alf_print_channel.h
+  proof/alf/alf_printer.cpp
+  proof/alf/alf_printer.h
   proof/alf/alf_proof_rule.cpp
   proof/alf/alf_proof_rule.h
   proof/annotation_proof_generator.cpp
