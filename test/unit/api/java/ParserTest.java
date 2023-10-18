@@ -35,6 +35,6 @@ class ParserTest
   @AfterEach
   void tearDown()
   {
-    Context.deletePointers();
+    //Context.deletePointers();
   }
 }
