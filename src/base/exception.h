@@ -13,7 +13,7 @@
  * cvc5's exception base class and some associated utilities.
  */
 
-#include "cvc5_public.h"
+#include "include/cvc5_public.h"
 
 #ifndef CVC5__EXCEPTION_H
 #define CVC5__EXCEPTION_H

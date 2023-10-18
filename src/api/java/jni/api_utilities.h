@@ -16,6 +16,7 @@
 #ifndef CVC5__API_UTILITIES_H
 #define CVC5__API_UTILITIES_H
 #include <cvc5/cvc5.h>
+#include <cvc5/cvc5_parser.h>
 #include <jni.h>
 
 #include <string>
@@ -41,6 +42,12 @@
   catch (const CVC5ApiException& e)                                            \
   {                                                                            \
     jclass exceptionClass = env->FindClass("io/github/cvc5/CVC5ApiException"); \
+    env->ThrowNew(exceptionClass, e.what());                                   \
+  }                                                                            \
+  catch (const cvc5::parser::ParserException& e)                               \
+  {                                                                            \
+    jclass exceptionClass =                                                    \
+        env->FindClass("io/github/cvc5/CVC5ParserException");                  \
     env->ThrowNew(exceptionClass, e.what());                                   \
   }
 #define CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, returnValue) \

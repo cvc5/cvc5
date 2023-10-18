@@ -273,7 +273,6 @@ class CVC5_EXPORT InputParser
   std::shared_ptr<Parser> d_parser;
 };
 
-
 class CVC5_EXPORT ParserException : public internal::Exception
 {
  public:
@@ -303,10 +302,13 @@ class CVC5_EXPORT ParserException : public internal::Exception
 
   void toStream(std::ostream& os) const override
   {
-    if( d_line > 0 ) {
-      os <<  "Parse Error: " << d_filename << ":" << d_line << "."
-         << d_column << ": " << d_msg;
-    } else {
+    if (d_line > 0)
+    {
+      os << "Parse Error: " << d_filename << ":" << d_line << "." << d_column
+         << ": " << d_msg;
+    }
+    else
+    {
       os << "Parse Error: " << d_msg;
     }
   }
@@ -347,9 +349,8 @@ class ParserEndOfFileException : public ParserException
 class InputStreamException : public internal::Exception
 {
  public:
-  InputStreamException(const std::string& msg) : Exception(msg){}
+  InputStreamException(const std::string& msg) : Exception(msg) {}
 };
-
 
 }  // namespace parser
 }  // namespace cvc5
