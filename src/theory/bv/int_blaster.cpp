@@ -546,21 +546,17 @@ Node IntBlaster::translateWithChildren(
     }
     case Kind::APPLY_UF:
     {
-      // The preprocessing pass does not support function applications
-      // with bound variables.
-      if (expr::hasBoundVar(original)) {
-          throw OptionException(
-              "bv-to-int does not support quantified variables under "
-              "uninterpreted functions");
-      }
-
       // Insert the translated application term to the cache
       returnNode = d_nm->mkNode(Kind::APPLY_UF, translated_children);
       // Add range constraints if necessary.
       // If the original range was a BV sort, the original application of
       // the function must be within the range determined by the
       // bitwidth.
-      if (original.getType().isBitVector())
+      // function applications that include bound variables
+      // are ignored at this stage.
+      // Their range constraints are added later under the
+      // appropriate quantifier.
+      if (original.getType().isBitVector() && !expr::hasBoundVar(original))
       {
         addRangeConstraint(
             returnNode, original.getType().getBitVectorSize(), lemmas);
@@ -960,7 +956,11 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
   // for the old ones.
   std::vector<Node> oldBoundVars;
   std::vector<Node> newBoundVars;
+
+  // range constraints for quantified variables and terms
   std::vector<Node> rangeConstraints;
+
+  // collect range constraints for quantified variables
   for (Node bv : quantifiedNode[0])
   {
     oldBoundVars.push_back(bv);
@@ -978,6 +978,25 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
     {
       // variables that are not bit-vectors are not changed
       newBoundVars.push_back(bv);
+    }
+  }
+
+  // collect range constraints for UF applciations
+  // that involve quantified variables
+  std::unordered_set<Node> applys;
+  expr::getKindSubterms(quantifiedNode[1], Kind::APPLY_UF, true, applys);
+  for (const Node& apply : applys)
+  {
+    Trace("int-blaster-debug")
+        << "quantified uf application: " << apply << std::endl;
+    Node f = apply.getOperator();
+    Trace("int-blaster-debug") << "quantified uf symbol: " << f << std::endl;
+    TypeNode range = f.getType().getRangeType();
+    if (range.isBitVector())
+    {
+      unsigned bvsize = range.getBitVectorSize();
+      rangeConstraints.push_back(
+          mkRangeConstraint(d_intblastCache[apply], bvsize));
     }
   }
 
