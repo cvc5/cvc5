@@ -36,7 +36,7 @@
     )
 )
 
-; remove cons c xs
+; nary.remove cons c xs
 ; Removes the first occurrence of `c` from `xs`.
 (program nary.remove
     ((L Type) (cons (-> L L L)) (nil L) (c L) (y L) (xs L :list))
@@ -58,7 +58,7 @@
     )
 )
 
-; reverse cons nil xs
+; nary.reverse cons nil xs
 ; Reverses the list `xs`.
 (program nary.reverse
     ((L Type) (cons (-> L L L)) (nil L) (xs L :list))

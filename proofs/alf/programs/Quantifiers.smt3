@@ -11,6 +11,7 @@
   ((substitute x y z)             z)
   )
 )
+
 (program substitute_list ((T Type) (U Type) (F U) (x T) (xs @List :list) (t T) (ts @List :list))
   (@List @List U) U
   (

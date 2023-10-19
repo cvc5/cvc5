@@ -37,7 +37,7 @@
   :conclusion (mk_arith_sum_ub F)
 )
 
-; Computes the conclusion of the PfRule::ARITH_MULT_POS rule.
+; Computes the conclusion of the ProofRule::ARITH_MULT_POS rule.
 (program mk_arith_mult_pos ((T Type) (U Type) (S Type) (r (-> T U Bool)) (a T) (b U) (m S))
   (S Bool) Bool
   (
@@ -60,7 +60,8 @@
     ((arith_rel_inv >=) <=)
   )
 )
-; Computes the conclusion of the PfRule::ARITH_MULT_NEG rule.
+
+; Computes the conclusion of the ProofRule::ARITH_MULT_NEG rule.
 (program mk_arith_mult_neg ((T Type) (U Type) (S Type) (r (-> T U Bool)) (a T) (b U) (m S))
   (S Bool) Bool
   (
@@ -72,7 +73,6 @@
   :args (m F)
   :conclusion (=> (and (< m 0) F) (mk_arith_mult_neg m F))
 )
-
 
 (program arith_rel_trichotomy ((T Type) (U Type) (S Type))
   (T U) S
@@ -105,7 +105,7 @@
   )
 )
 
-; Computes the conclusion of the PfRule::ARITH_TRICHOTOMY rule.
+; Computes the conclusion of the ProofRule::ARITH_TRICHOTOMY rule.
 (program mk_arith_trichotomy ((T Type) (U Type) (S Type) (r1 (-> T U Bool)) (r2 (-> T U Bool)) (a T) (b U) (m S))
   (Bool S) Bool
   (

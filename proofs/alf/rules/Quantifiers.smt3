@@ -24,7 +24,8 @@
         (
           ((exists x G)       (substitute_list x (mk_skolems x F) G))
           ((not (forall x G)) (substitute_list x (mk_skolems x (exists x (not G))) (not G)))
-        )))
+        ))
+)
 
 (declare-rule skolem_intro ((T Type) (t T))
   :args ((skolem t))

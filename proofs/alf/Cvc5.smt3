@@ -116,4 +116,5 @@
 ; ProofRule::EVALUATE
 (declare-rule evaluate ((U Type) (t U))
   :args (t)
-  :conclusion (= t (run_evaluate t)))
+  :conclusion (= t (run_evaluate t))
+)
