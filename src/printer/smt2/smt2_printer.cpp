@@ -45,6 +45,7 @@
 #include "theory/datatypes/project_op.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/strings/theory_strings_utils.h"
 #include "theory/theory_model.h"
 #include "theory/uf/function_const.h"
 #include "theory/uf/theory_uf_rewriter.h"
@@ -187,8 +188,10 @@ void Smt2Printer::toStream(std::ostream& out,
 
   NodeManager* nm = NodeManager::currentNM();
   // constant
-  if(n.getMetaKind() == kind::metakind::CONSTANT) {
-    switch(n.getKind()) {
+  if (n.getMetaKind() == kind::metakind::CONSTANT)
+  {
+    switch (n.getKind())
+    {
       case Kind::TYPE_CONSTANT:
         switch (n.getConst<TypeConstant>())
         {
@@ -314,30 +317,17 @@ void Smt2Printer::toStream(std::ostream& out,
     {
       const Sequence& sn = n.getConst<Sequence>();
       const std::vector<Node>& snvec = sn.getVec();
-      TypeNode type = n.getType();
-      TypeNode elemType = type.getSequenceElementType();
       if (snvec.empty())
       {
         out << "(as seq.empty ";
-        toStreamType(out, type);
-        out << ")";
-      }
-      else if (snvec.size() > 1)
-      {
-        out << "(seq.++";
-        for (const Node& snvc : snvec)
-        {
-          out << " (seq.unit ";
-          toStream(out, snvc, toDepth);
-          out << ")";
-        }
+        toStreamType(out, n.getType());
         out << ")";
       }
       else
       {
-        out << "(seq.unit ";
-        toStream(out, snvec[0], toDepth);
-        out << ")";
+        // prints as the corresponding concatentation of seq.unit
+        Node cc = theory::strings::utils::mkConcatForConstSequence(n);
+        toStream(out, cc, toDepth);
       }
       break;
     }
@@ -522,26 +512,7 @@ void Smt2Printer::toStream(std::ostream& out,
   }
 
   Kind k = n.getKind();
-  if (k == Kind::SORT_TYPE)
-  {
-    if(n.getNumChildren() != 0) {
-      out << '(';
-    }
-    if (n.hasName())
-    {
-      std::string name = n.getName();
-      out << cvc5::internal::quoteSymbol(name);
-    }
-    if(n.getNumChildren() != 0) {
-      for(unsigned i = 0; i < n.getNumChildren(); ++i) {
-	      out << ' ';
-              toStream(out, n[i], toDepth);
-      }
-      out << ')';
-    }
-    return;
-  }
-  else if (k == Kind::DATATYPE_TYPE || k == Kind::TUPLE_TYPE)
+  if (k == Kind::DATATYPE_TYPE || k == Kind::TUPLE_TYPE)
   {
     const DType& dt = NodeManager::currentNM()->getDTypeFor(n);
     if (dt.isTuple())
@@ -568,9 +539,7 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     return;
   }
-
-  // determine if we are printing out a type ascription
-  if (k == Kind::APPLY_TYPE_ASCRIPTION)
+  else if (k == Kind::APPLY_TYPE_ASCRIPTION)
   {
     TypeNode typeAsc = n.getOperator().getConst<AscriptionType>().getType();
     // use type ascription
@@ -579,16 +548,16 @@ void Smt2Printer::toStream(std::ostream& out,
     out << " " << typeAsc << ")";
     return;
   }
-
-  if (k == Kind::SKOLEM && nm->getSkolemManager()->isAbstractValue(n))
-  {
-    // abstract value
-    std::string s = n.getName();
-    out << "(as " << cvc5::internal::quoteSymbol(s) << " " << n.getType() << ")";
-    return;
-  }
   else if (n.isVar())
   {
+    if (k == Kind::SKOLEM && nm->getSkolemManager()->isAbstractValue(n))
+    {
+      // abstract value
+      std::string s = n.getName();
+      out << "(as " << cvc5::internal::quoteSymbol(s) << " " << n.getType()
+          << ")";
+      return;
+    }
     // variable
     if (n.hasName())
     {
@@ -617,36 +586,32 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     return;
   }
-  if (k == Kind::APPLY_UF && !n.getOperator().isVar())
+  else if (k == Kind::APPLY_UF)
   {
-    // Must print as HO apply instead. This ensures un-beta-reduced function
-    // applications can be reparsed.
-    Node hoa = theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n);
-    toStream(out, hoa, toDepth);
+    if (!n.getOperator().isVar())
+    {
+      // Must print as HO apply instead. This ensures un-beta-reduced function
+      // applications can be reparsed.
+      Node hoa = theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n);
+      toStream(out, hoa, toDepth);
+      return;
+    }
+  }
+  else if (k == Kind::CONSTRUCTOR_TYPE)
+  {
+    Node range = n[n.getNumChildren() - 1];
+    toStream(out, range, toDepth);
     return;
   }
 
   bool stillNeedToPrintParams = true;
   // operator
-  if (n.getNumChildren() != 0 && k != Kind::CONSTRUCTOR_TYPE)
+  if (n.getNumChildren() != 0)
   {
     out << '(';
   }
-  switch(k) {
-    // builtin theory
-    case Kind::FUNCTION_TYPE:
-      out << "->";
-      for (Node nc : n)
-      {
-        out << " ";
-        toStream(out, nc, toDepth);
-      }
-      out << ")";
-      return;
-    case Kind::SEXPR: break;
-
-    // uf theory
-    case Kind::APPLY_UF: break;
+  switch (k)
+  {
     // higher-order
     case Kind::HO_APPLY:
       if (!options::ioutils::getFlattenHOChains(out))
@@ -676,9 +641,6 @@ void Smt2Printer::toStream(std::ostream& out,
         out << ")";
       }
       return;
-    case Kind::APPLY_INDEXED_SYMBOLIC:
-      // operator is printed as kind
-      break;
 
     case Kind::MATCH:
       out << smtKindString(k) << " ";
@@ -734,17 +696,6 @@ void Smt2Printer::toStream(std::ostream& out,
     }
       return;
 
-    // arith theory
-    case Kind::IAND:
-      out << "(_ iand " << n.getOperator().getConst<IntAnd>().d_size << ") ";
-      stillNeedToPrintParams = false;
-      break;
-
-    case Kind::DIVISIBLE:
-      toStream(out, n.getOperator(), toDepth, nullptr);
-      out << ' ';
-      stillNeedToPrintParams = false;
-      break;
     case Kind::REAL_ALGEBRAIC_NUMBER:
     {
       const RealAlgebraicNumber& ran = n.getOperator().getConst<RealAlgebraicNumber>();
@@ -759,87 +710,16 @@ void Smt2Printer::toStream(std::ostream& out,
       break;
     }
 
-  // string theory
-    case Kind::REGEXP_REPEAT:
-    case Kind::REGEXP_LOOP:
-    {
-      out << n.getOperator() << ' ';
-      stillNeedToPrintParams = false;
-      break;
-    }
-
-      // bv theory
-    case Kind::BITVECTOR_CONCAT:
-    case Kind::BITVECTOR_AND:
-    case Kind::BITVECTOR_OR:
-    case Kind::BITVECTOR_XOR:
-    case Kind::BITVECTOR_MULT:
-    case Kind::BITVECTOR_ADD:
-    {
-      out << smtKindString(k) << " ";
-    }
-  break;
-
-  case Kind::BITVECTOR_EXTRACT:
-  case Kind::BITVECTOR_REPEAT:
-  case Kind::BITVECTOR_ZERO_EXTEND:
-  case Kind::BITVECTOR_SIGN_EXTEND:
-  case Kind::BITVECTOR_ROTATE_LEFT:
-  case Kind::BITVECTOR_ROTATE_RIGHT:
-  case Kind::INT_TO_BITVECTOR:
-    toStream(out, n.getOperator(), toDepth, nullptr);
-    out << ' ';
-    stillNeedToPrintParams = false;
-    break;
   case Kind::BITVECTOR_BITOF:
     out << "(_ bitOf " << n.getOperator().getConst<BitVectorBitOf>().d_bitIndex
         << ") ";
     stillNeedToPrintParams = false;
     break;
 
-  // strings
-  case Kind::SEQ_UNIT:
-  {
-    out << smtKindString(k) << " ";
-    toStream(out, n[0], toDepth < 0 ? toDepth : toDepth - 1);
-    out << ")";
-    return;
-  }
-  break;
 
   // sets
-  case Kind::SET_SINGLETON:
-  {
-    out << smtKindString(k) << " ";
-    toStream(out, n[0], toDepth < 0 ? toDepth : toDepth - 1);
-    out << ")";
-    return;
-  }
-  break;
   case Kind::SET_UNIVERSE:
     out << "(as set.universe " << n.getType() << ")";
-    break;
-
-  // bags
-  case Kind::BAG_MAKE:
-  {
-    // print (bag (BAG_MAKE_OP Real) 1 3) as (bag 1.0 3)
-    out << smtKindString(k) << " ";
-    toStream(out, n[0], toDepth < 0 ? toDepth : toDepth - 1);
-    out << " " << n[1] << ")";
-    return;
-  }
-
-  // fp theory
-  case Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
-  case Kind::FLOATINGPOINT_TO_FP_FROM_FP:
-  case Kind::FLOATINGPOINT_TO_FP_FROM_REAL:
-  case Kind::FLOATINGPOINT_TO_FP_FROM_SBV:
-  case Kind::FLOATINGPOINT_TO_FP_FROM_UBV:
-  case Kind::FLOATINGPOINT_TO_UBV:
-  case Kind::FLOATINGPOINT_TO_SBV:
-    out << n.getOperator() << ' ';
-    stillNeedToPrintParams = false;
     break;
 
   case Kind::APPLY_CONSTRUCTOR:
@@ -857,26 +737,6 @@ void Smt2Printer::toStream(std::ostream& out,
         out << "tuple ";
       }
     }
-    break;
-  }
-  case Kind::TUPLE_PROJECT:
-  case Kind::TABLE_PROJECT:
-  case Kind::TABLE_AGGREGATE:
-  case Kind::TABLE_JOIN:
-  case Kind::TABLE_GROUP:
-  case Kind::RELATION_GROUP:
-  case Kind::RELATION_AGGREGATE:
-  case Kind::RELATION_PROJECT:
-  {
-    toStream(out, n.getOperator(), toDepth, nullptr);
-    out << ' ';
-    stillNeedToPrintParams = false;
-    break;
-  }
-  case Kind::CONSTRUCTOR_TYPE:
-  {
-    out << n[n.getNumChildren()-1];
-    return;
     break;
   }
   case Kind::APPLY_SELECTOR:
@@ -911,7 +771,6 @@ void Smt2Printer::toStream(std::ostream& out,
     size_t cindex = DType::cindexOf(op);
     if (dt.isTuple())
     {
-      stillNeedToPrintParams = false;
       out << "(_ tuple.update " << DType::indexOf(op) << ") ";
     }
     else
@@ -924,20 +783,9 @@ void Smt2Printer::toStream(std::ostream& out,
     }
   }
   break;
-  case Kind::INSTANTIATED_SORT_TYPE: break;
-  case Kind::PARAMETRIC_DATATYPE: break;
 
   // separation logic
   case Kind::SEP_NIL: out << "(as sep.nil " << n.getType() << ")"; break;
-
-  // cardinality constraints.
-  case Kind::CARDINALITY_CONSTRAINT:
-    out << "(_ fmf.card ";
-    out << n.getOperator().getConst<CardinalityConstraint>().getType();
-    out << " ";
-    out << n.getOperator().getConst<CardinalityConstraint>().getUpperBound();
-    out << ")";
-    return;
 
     // quantifiers
   case Kind::FORALL:
@@ -1044,15 +892,24 @@ void Smt2Printer::toStream(std::ostream& out,
     out << ')';
     return;
   }
+
+  // kinds that don't print their operator
+  case Kind::APPLY_INDEXED_SYMBOLIC:  // operator is printed as kind
+  case Kind::SEXPR:
+  case Kind::INSTANTIATED_SORT_TYPE:
+  case Kind::PARAMETRIC_DATATYPE:
   case Kind::INST_PATTERN:
   case Kind::INST_NO_PATTERN:
   case Kind::INST_PATTERN_LIST: break;
   default:
     // by default, print the kind using the smtKindString utility
-    out << smtKindString(k);
-    if (n.getNumChildren() > 0)
+    if (n.getMetaKind() != kind::metakind::PARAMETERIZED)
     {
-      out << " ";
+      out << smtKindString(k);
+      if (n.getNumChildren() > 0)
+      {
+        out << " ";
+      }
     }
     break;
   }
@@ -1068,7 +925,6 @@ void Smt2Printer::toStream(std::ostream& out,
       out << ' ';
     }
   }
-  stringstream parens;
 
   for(size_t i = 0, c = 1; i < n.getNumChildren(); ) {
     if(toDepth != 0) {
@@ -1082,7 +938,7 @@ void Smt2Printer::toStream(std::ostream& out,
   }
   if (n.getNumChildren() != 0)
   {
-    out << parens.str() << ')';
+    out << ')';
   }
 }
 
@@ -1090,6 +946,7 @@ std::string Smt2Printer::smtKindString(Kind k)
 {
   switch(k) {
     // builtin theory
+    case Kind::FUNCTION_TYPE: return "->";
     case Kind::EQUAL: return "=";
     case Kind::DISTINCT: return "distinct";
     case Kind::SEXPR: break;
