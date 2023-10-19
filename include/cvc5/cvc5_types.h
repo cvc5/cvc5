@@ -392,6 +392,54 @@ std::ostream& operator<<(std::ostream& out, ProofComponent pc) CVC5_EXPORT;
 #endif
 
 /* -------------------------------------------------------------------------- */
+/* ProofFormat                                                                */
+/* -------------------------------------------------------------------------- */
+
+#ifdef CVC5_API_USE_C_ENUMS
+#undef EVALUE
+#define EVALUE(name) CVC5_PROOF_FORMAT_##name
+#endif
+/**
+ * Proof format used for proof printing.
+ */
+enum ENUM(ProofFormat)
+{
+  /** Do not translate proof output. */
+  EVALUE(NONE),
+  /** Output DOT proof. */
+  EVALUE(DOT),
+  /** Output LFSC proof. */
+  EVALUE(LFSC),
+  /** Output Alethe proof. */
+  EVALUE(ALETHE),
+  /** Use the proof format mode set in the solver options. */
+  EVALUE(DEFAULT)
+};
+
+#ifdef CVC5_API_USE_C_ENUMS
+#ifndef DOXYGEN_SKIP
+typedef enum ENUM(ProofFormat) ENUM(ProofFormat);
+#endif
+#endif
+
+#ifdef CVC5_API_USE_C_ENUMS
+/**
+ * Get a string representation of a Cvc5ProofFormat.
+ * @param format The proof format.
+ * @return The string representation.
+ */
+const char* cvc5_proof_format_to_string(Cvc5ProofFormat format);
+#else
+/**
+ * Serialize a FindSynthTarget to given stream.
+ * @param out    The output stream
+ * @param format The proof format.
+ * @return The output stream
+ */
+std::ostream& operator<<(std::ostream& out, ProofFormat format) CVC5_EXPORT;
+#endif
+
+/* -------------------------------------------------------------------------- */
 /* FindSynthTarget                                                            */
 /* -------------------------------------------------------------------------- */
 
