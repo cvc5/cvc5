@@ -50,10 +50,10 @@ cat << EOF > $BASE_DIR/bin/alfc_gen_and_check.sh
 #!/usr/bin/env bash
 
 echo "=== Generate proof: \$@"
-$BASE_DIR/bin/alfc_gen.sh \$@ > alfc.proof.smt2
+$BASE_DIR/bin/alfc_gen.sh \$@ > alfc.proof.smt3
 
 echo "=== Check proof with ALFC"
-$BASE_DIR/bin/alfc_check.sh alfc.proof.smt2
+$BASE_DIR/bin/alfc_check.sh alfc.proof.smt3
 EOF
 chmod +x $BASE_DIR/bin/alfc_gen_and_check.sh
 
