@@ -12,7 +12,8 @@ This file contains a summary of important user-visible changes.
 - Support for the AletheLF (ALF) proof format. This format combines the
   strengths of the Alethe and LFSC proof formats, namely it borrows much of the
   syntax of Alethe, while being based on a logical framework like LFSC. This
-  proof format is planned to the default proof of cvc5 in future releases.
+  proof format is currently under development and is planned to the default
+  proof format used cvc5 in future releases.
   * API: The option `--proof-format=alf` can be used to print proofs in the
          AletheLF format.
   * The ALF proof checker (alfc) is available for download via the script
