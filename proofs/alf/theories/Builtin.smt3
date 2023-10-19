@@ -1,7 +1,6 @@
 (include "../programs/Utils.smt3")
 
-; Bool is builtin
-;(declare-type Bool ())
+; Note that the Bool sort is native to ALF
 
 (declare-const ite (-> (! Type :var A :implicit) Bool A A A))
 (declare-const not (-> Bool Bool))
@@ -26,9 +25,6 @@
 (declare-const lambda (-> (! Type :var A :implicit) (! Type :var B :implicit) A B (-> A B)))
 
 (declare-const distinct (-> (! Type :var A :implicit) A A Bool) :pairwise and)
-
-;;;;;;;;;;;;;;;;;;
-
 
 ; generic variables
 ; NOTE: does not check that U is a numeral

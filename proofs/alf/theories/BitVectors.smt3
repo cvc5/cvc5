@@ -1,10 +1,5 @@
 (include "../theories/Ints.smt3")
 
-;(declare-const BitVec
-;  (->
-;    (! Int :var w)
-;    (! Type :requires ((alf.is_neg w) false))))
-
 (declare-const BitVec (-> Int Type))
 (declare-consts <binary> (BitVec (alf.len alf.self)))
 

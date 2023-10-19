@@ -1,7 +1,7 @@
 (include "../theories/Strings.smt3")
 (include "../programs/Strings.smt3")
 
-;;;;;;;;;; Core
+;;-------------------- Core
 
 (declare-rule string_length_pos ((U Type) (s U))
   :args (U s)
@@ -110,7 +110,7 @@
               false)))))
 )
 
-;;;;;;;;;; Regular expressions
+;;-------------------- Regular expressions
 
 (declare-rule re_inter ((x String) (s RegLan) (t RegLan))
   :premises ((str.in_re x s) (str.in_re x t))
@@ -142,7 +142,7 @@
     ))
 )
 
-;;;;;;;;;; Extended functions 
+;;-------------------- Extended functions 
 
 (declare-rule string_reduction ((U Type) (s U))
   :args (U s)
