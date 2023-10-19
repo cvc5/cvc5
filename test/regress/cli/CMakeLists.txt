@@ -3625,6 +3625,7 @@ set(testers
   abduct
   dump
   dsl-proof
+  alf
 )
 
 foreach(tester ${testers})
@@ -3665,6 +3666,8 @@ macro(cvc5_add_regression_test level file)
     ${RUN_REGRESSION_ARGS}
     --lfsc-binary ${CMAKE_SOURCE_DIR}/deps/bin/lfscc
     --lfsc-sig-dir ${CMAKE_SOURCE_DIR}/proofs/lfsc/signatures
+    --alfc-binary ${CMAKE_SOURCE_DIR}/deps/bin/alfc
+    --alf-sig-dir ${CMAKE_SOURCE_DIR}/proofs/alf
     ${wrapper}
     ${path_to_cvc5}/cvc5${CMAKE_EXECUTABLE_SUFFIX}
     ${CMAKE_CURRENT_LIST_DIR}/${file})
