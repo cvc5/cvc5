@@ -673,7 +673,6 @@ def run_regression(
     lfsc_binary,
     lfsc_sigs,
     alfc_binary,
-    alf_sig,
     benchmark_path,
     timeout,
 ):
@@ -903,7 +902,6 @@ def main():
         lfsc_sigs = [os.path.join(lfsc_sig_dir, sig + ".plf")
                      for sig in lfsc_sigs]
     alf_sig_dir = os.path.abspath(g_args.alf_sig_dir)
-    alf_sig = os.path.join(alf_sig_dir, "Cvc5.smt2")
     return run_regression(
         testers,
         wrapper,
@@ -911,7 +909,6 @@ def main():
         lfsc_binary,
         lfsc_sigs,
         alfc_binary,
-        alf_sig,
         g_args.benchmark,
         timeout,
     )
