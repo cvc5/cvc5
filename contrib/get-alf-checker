@@ -25,7 +25,7 @@ mkdir -p $ALFC_DIR
 
 # download and unpack ALFC
 ALF_VERSION="0ce8d60f75b0bac5af12874a19cfedfced962af9"
-download "https://github.com/ajreynol/AletheLF-tc/archive/$ALF_VERSION.tar.gz" $BASE_DIR/tmp/alfc.tgz
+download "https://github.com/cvc5/alfc/archive/$ALF_VERSION.tar.gz" $BASE_DIR/tmp/alfc.tgz
 tar --strip 1 -xzf $BASE_DIR/tmp/alfc.tgz -C $ALFC_DIR
 
 # build and install ALFC

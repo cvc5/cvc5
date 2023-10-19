@@ -8,7 +8,6 @@
   :conclusion (substitute_list xs ts F))
 
 ; returns the list of skolems for F
-; TODO: this could be a fold
 (program mk_skolems ((x @List) (xs @List :list) (F Bool))
   (@List Bool) @List
   (
@@ -25,7 +24,8 @@
         (
           ((exists x G)       (substitute_list x (mk_skolems x F) G))
           ((not (forall x G)) (substitute_list x (mk_skolems x (exists x (not G))) (not G)))
-        )))
+        ))
+)
 
 (declare-rule skolem_intro ((T Type) (t T))
   :args ((skolem t))

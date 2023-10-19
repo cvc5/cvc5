@@ -33,7 +33,7 @@
    )
 )
 
-; this rule processes the result of n scopes into the conclusion expected by PfRule::SCOPE
+; this rule processes the result of n scopes into the conclusion expected by ProofRule::SCOPE
 (declare-rule process_scope
   ((C Bool) (F Bool))
   :premises (F)

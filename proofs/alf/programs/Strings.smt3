@@ -28,6 +28,7 @@
 )
 
 ;;-------------------- Skolem terms
+
 ; The following side conditions are used for computing terms that define
 ; Skolems, which are used in reductions. Notice that Skolem terms may use
 ; terms that are not in original form, meaning that the definitions of Skolems
@@ -57,14 +58,13 @@
 
 ;;-------------------- Utilities
 
-; Concatenation str.++ applications t1 and t2. Note this side condition requires
-; taking the sort u of t1 for constructing the empty string.
+; Concatenation str.++ applications t1 and t2.
 (program string_concat ((T Type) (t1 T) (t2 T))
   (T T) T
   (((string_concat t1 t2) (alf.concat str.++ t1 t2)))
 )
 
-; Return reverse of t if rev = tt, return t unchanged otherwise.
+; Return reverse of t if rev = true, return t unchanged otherwise.
 (define string_rev ((U Type :implicit) (rev Bool) (t U)) (alf.ite rev (nary.reverse str.++ alf.nil t) t))
 
 ;;-------------------- Reductions
@@ -177,7 +177,6 @@
   )
 )
 
-; `string_eager_reduction t U`
 ; Compute the eager reduction predicate of term t of type U.
 (program mk_string_eager_reduction ((U Type) (x U) (y U) (n Int) (m Int))
   (U Type) Bool
@@ -188,7 +187,6 @@
   )
 )
 
-; re_unfold_pos_concat t R
 ; A helper method for computing the conclusion of ProofRule::RE_UNFOLD_POS.
 ; For a regular expression (re.++ R1 ... Rn), re_unfold_pos_concat returns a pair of terms
 ; where the first term is a concatentation (str.++ t1 ... tn) and the second
@@ -223,8 +221,10 @@
     )
   )
 )
+
 (define-fun re_unfold_pos_concat ((t String) (r RegLan)) (@Pair String Bool)
-  (re_unfold_pos_concat_rec t r r 0))
+  (re_unfold_pos_concat_rec t r r 0)
+)
 
 ; Returns a formula corresponding to a conjunction saying that each of the
 ; elements of str.++ application t is empty. For example for
@@ -317,7 +317,7 @@
 (program string_collect_acc ((U Type) (t U) (tail String :list))
   (U) (@Pair U U)
   (
-    ; TODO: sequences
+    ; sequence not handled yet
     ; Check if t is a word constant
     ((string_collect_acc (str.++ t tail))
       (alf.ite (string_check_length_one t)
@@ -382,7 +382,8 @@
 ; (3) (optionally) reverse.
 (define string_to_flat_form ((U Type) (s U) (rev Bool))
   ; intro, flatten, reverse
-  (string_rev rev (string_flatten (nary.intro str.++ (mk_emptystr U) alf.nil s))))
+  (string_rev rev (string_flatten (nary.intro str.++ (mk_emptystr U) alf.nil s)))
+)
 
 ; Converts a term in "flat form" to a term that is in a form that corresponds
 ; to one in cvc5 rewritten form. This is the dual method to
@@ -392,4 +393,5 @@
 ; (3) eliminate n-ary form to its element if the term is a singleton list.
 (define string_from_flat_form ((U Type) (s U) (rev Bool))
   ; reverse, collect, elim
-  (nary.elim str.++ alf.nil (mk_emptystr U) (string_collect (string_rev rev s))))
+  (nary.elim str.++ alf.nil (mk_emptystr U) (string_collect (string_rev rev s)))
+)

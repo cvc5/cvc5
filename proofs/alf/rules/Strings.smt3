@@ -1,7 +1,7 @@
 (include "../theories/Strings.smt3")
 (include "../programs/Strings.smt3")
 
-;;;;;;;;;; Core
+;;-------------------- Core
 
 (declare-rule string_length_pos ((U Type) (s U))
   :args (U s)
@@ -30,19 +30,20 @@
           (string_from_flat_form U ts rev)))))
 )
 
-
 ; returns true if s1 is a prefix of s, taking into account flattening
 (define string_is_prefix ((U Type) (s U) (s1 U) (rev Bool))
   (let ((sf (string_to_flat_form U s rev)))
   (let ((sf1 (string_to_flat_form U s1 rev)))
-  (nary.is_prefix str.++ alf.nil sf1 sf))))
+  (nary.is_prefix str.++ alf.nil sf1 sf)))
+)
 
 ; ProofRule::CONCAT_UNIFY
 (declare-rule concat_unify ((U Type) (s U) (t U) (s1 U) (t1 U) (rev Bool))
   :premises ((= s t) (= (str.len s1) (str.len t1)))
   :args (U rev)
   :requires (((string_is_prefix U s s1 rev) true) ((string_is_prefix U t t1 rev) true))
-  :conclusion (= s1 t1))
+  :conclusion (= s1 t1)
+)
 
 ; ProofRule::CONCAT_CSPLIT
 (declare-rule concat_csplit ((U Type) (t U) (s U) (u U) (rev Bool))
@@ -91,6 +92,7 @@
               false)))))
     )
 )
+
 ; ProofRule::CONCAT_CONFLICT_DEQ, for sequences only
 (declare-rule concat_conflict_deq ((U Type) (s (Seq U)) (t (Seq U)) (x U) (y U) (rev Bool))
   :premises ((= s t) (not (= (seq.unit x) (seq.unit y))))
@@ -108,7 +110,7 @@
               false)))))
 )
 
-;;;;;;;;;; Regular expressions
+;;-------------------- Regular expressions
 
 (declare-rule re_inter ((x String) (s RegLan) (t RegLan))
   :premises ((str.in_re x s) (str.in_re x t))
@@ -137,9 +139,10 @@
             (re_unfold_pos_concat t r)
             (((@pair tk M)
                 (alf.from_list and (and (= t tk) M))))))
-    )))
+    ))
+)
 
-;;;;;;;;;; Extended functions 
+;;-------------------- Extended functions 
 
 (declare-rule string_reduction ((U Type) (s U))
   :args (U s)

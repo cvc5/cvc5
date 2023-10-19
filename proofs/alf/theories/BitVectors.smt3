@@ -1,10 +1,5 @@
 (include "../theories/Ints.smt3")
 
-;(declare-const BitVec
-;  (->
-;    (! Int :var w)
-;    (! Type :requires ((alf.is_neg w) false))))
-
 (declare-const BitVec (-> Int Type))
 (declare-consts <binary> (BitVec (alf.len alf.self)))
 
@@ -16,7 +11,8 @@
   (! Int :var m :implicit)
   (BitVec n)
   (BitVec m)
-  (BitVec (alf.add n m))) :right-assoc-nil bvempty)
+  (BitVec (alf.add n m))) :right-assoc-nil bvempty
+)
 
 (declare-const extract (->
   (! Int :var n :implicit)
@@ -228,7 +224,6 @@
         (BitVec m) (BitVec m) (BitVec 1))
 )
 
-
 (declare-const bitOf
     (-> (! Int :var m :implicit)
         Int (BitVec m) Bool))
@@ -274,16 +269,17 @@
     (-> (! Int :var m :implicit)
         (BitVec m) (BitVec m) (BitVec 1))
 )
+
 (declare-const bvsltbv
     (-> (! Int :var m :implicit)
         (BitVec m) (BitVec m) (BitVec 1))
 )
 
-
 (declare-const bvredand
     (-> (! Int :var m :implicit)
         (BitVec m) (BitVec 1))
 )
+
 (declare-const bvredor
     (-> (! Int :var m :implicit)
         (BitVec m) (BitVec 1))
@@ -293,15 +289,18 @@
   (! Int :var n :implicit)
   Bool
   (BitVec n)
-  (BitVec (alf.add 1 n))))
+  (BitVec (alf.add 1 n)))
+)
 
 (declare-const int2bv (->
   (! Int :var w)
-  Int (BitVec w)))
+  Int (BitVec w))
+)
 
 (declare-const bv2nat (->
   (! Int :var m :implicit)
-  (BitVec m) Int))
+  (BitVec m) Int)
+)
 
 (declare-const BITVECTOR_EAGER_ATOM (-> Bool Bool))
 

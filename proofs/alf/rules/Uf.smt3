@@ -101,7 +101,6 @@
     :conclusion (not F)
 )
 
-
 ; HO_CONG
 (program mk_ho_cong ((T Type) (U Type) (f1 (-> T U)) (f2 (-> T U)) (t1 U) (t2 U) (tail Bool :list))
     (U U Bool) Bool
@@ -123,4 +122,3 @@
 ; HO_APP_ENCODE
 
 ; BETA_REDUCE
-; TODO
