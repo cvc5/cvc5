@@ -687,14 +687,11 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
   else if (k == Kind::BOUND_VAR_LIST)
   {
     out << '(';
-    // the left parenthesis is already printed (before the switch)
     for (TNode::iterator i = n.begin(), iend = n.end(); i != iend;)
     {
       out << '(';
       toStream(out, *i, toDepth < 0 ? toDepth : toDepth - 1);
-      out << ' ';
-      out << (*i).getType();
-      out << ')';
+      out << ' ' << (*i).getType() << ')';
       if (++i != iend)
       {
         out << ' ';
