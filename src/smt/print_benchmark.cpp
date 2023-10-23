@@ -17,6 +17,7 @@
 
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
+#include "expr/node_converter.h"
 #include "printer/printer.h"
 
 using namespace cvc5::internal::kind;
@@ -24,9 +25,10 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace smt {
 
-void PrintBenchmark::printAssertions(std::ostream& out,
-                                     const std::vector<Node>& defs,
-                                     const std::vector<Node>& assertions)
+void PrintBenchmark::printDeclarationsFrom(std::ostream& outDecl,
+                                           std::ostream& outDef,
+                                           const std::vector<Node>& defs,
+                                           const std::vector<Node>& terms)
 {
   std::unordered_set<TypeNode> types;
   std::unordered_set<TNode> typeVisited;
@@ -34,7 +36,7 @@ void PrintBenchmark::printAssertions(std::ostream& out,
   {
     expr::getTypes(a, types, typeVisited);
   }
-  for (const Node& a : assertions)
+  for (const Node& a : terms)
   {
     Assert(!expr::hasFreeVar(a));
     expr::getTypes(a, types, typeVisited);
@@ -55,9 +57,14 @@ void PrintBenchmark::printAssertions(std::ostream& out,
       if ((ctn.isUninterpretedSort() && ctn.getNumChildren() == 0)
           || ctn.isUninterpretedSortConstructor())
       {
-        d_printer->toStreamCmdDeclareType(out, ctn);
+        TypeNode ctnp = ctn;
+        if (d_converter != nullptr)
+        {
+          ctnp = d_converter->convertType(ctnp);
+        }
+        d_printer->toStreamCmdDeclareType(outDecl, ctn);
       }
-      else if (ctn.isDatatype())
+      else if (ctn.isDatatype() && !ctn.isTuple())
       {
         datatypeBlock.push_back(ctn);
       }
@@ -65,7 +72,7 @@ void PrintBenchmark::printAssertions(std::ostream& out,
     // print the mutually recursive datatype block if necessary
     if (!datatypeBlock.empty())
     {
-      d_printer->toStreamCmdDatatypeDeclaration(out, datatypeBlock);
+      d_printer->toStreamCmdDatatypeDeclaration(outDecl, datatypeBlock);
     }
   }
 
@@ -106,14 +113,19 @@ void PrintBenchmark::printAssertions(std::ostream& out,
         s, recDefs, ordinaryDefs, syms, defMap, alreadyPrintedDef, visited);
     // print the declarations that are encountered for the first time in this
     // block
-    printDeclaredFuns(out, syms, alreadyPrintedDecl);
+    printDeclaredFuns(outDecl, syms, alreadyPrintedDecl);
     // print the ordinary definitions
     for (const Node& f : ordinaryDefs)
     {
       itd = defMap.find(f);
       Assert(itd != defMap.end());
       Assert(!itd->second.first);
-      d_printer->toStreamCmdDefineFunction(out, f, itd->second.second);
+      Node def = itd->second.second;
+      if (d_converter != nullptr)
+      {
+        def = d_converter->convert(def);
+      }
+      d_printer->toStreamCmdDefineFunction(outDef, f, def);
       // a definition is also a declaration
       alreadyPrintedDecl.insert(f);
     }
@@ -123,28 +135,44 @@ void PrintBenchmark::printAssertions(std::ostream& out,
       std::vector<Node> lambdas;
       for (const Node& f : recDefs)
       {
-        lambdas.push_back(defMap[f].second);
+        Node lam = defMap[f].second;
+        if (d_converter != nullptr)
+        {
+          lam = d_converter->convert(lam);
+        }
+        lambdas.push_back(lam);
         // a recursive definition is also a declaration
         alreadyPrintedDecl.insert(f);
       }
-      d_printer->toStreamCmdDefineFunctionRec(out, recDefs, lambdas);
+      d_printer->toStreamCmdDefineFunctionRec(outDef, recDefs, lambdas);
     }
   }
 
   // print the remaining declared symbols
   std::unordered_set<Node> syms;
-  for (const Node& a : assertions)
+  for (const Node& a : terms)
   {
     expr::getSymbols(a, syms, visited);
   }
-  printDeclaredFuns(out, syms, alreadyPrintedDecl);
-
+  printDeclaredFuns(outDecl, syms, alreadyPrintedDecl);
+}
+void PrintBenchmark::printAssertions(std::ostream& out,
+                                     const std::vector<Node>& defs,
+                                     const std::vector<Node>& assertions)
+{
+  printDeclarationsFrom(out, out, defs, assertions);
   // print the assertions
   for (const Node& a : assertions)
   {
-    d_printer->toStreamCmdAssert(out, a);
+    Node ap = a;
+    if (d_converter != nullptr)
+    {
+      ap = d_converter->convert(ap);
+    }
+    d_printer->toStreamCmdAssert(out, ap);
   }
 }
+
 void PrintBenchmark::printAssertions(std::ostream& out,
                                      const std::vector<Node>& assertions)
 {

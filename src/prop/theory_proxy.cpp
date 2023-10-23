@@ -101,7 +101,10 @@ void TheoryProxy::presolve()
   d_stopSearch = false;
 }
 
-void TheoryProxy::postsolve() { d_theoryEngine->postsolve(); }
+void TheoryProxy::postsolve(SatValue result)
+{
+  d_theoryEngine->postsolve(result);
+}
 
 void TheoryProxy::notifyTopLevelSubstitution(const Node& lhs,
                                              const Node& rhs) const

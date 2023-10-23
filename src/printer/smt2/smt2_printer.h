@@ -294,6 +294,21 @@ class Smt2Printer : public cvc5::internal::Printer
 
  private:
   /**
+   * Base print method.
+   *
+   * This prints n when n is atomic (metakind::CONSTANT or metakind::VARIABLE),
+   * or when we require a special method for printing n (i.e. for match terms
+   * or quantifiers).
+   *
+   * Otherwise, print the operator of n, followed by a space.
+   *
+   * Returns false if we need to print the children of n.
+   */
+  bool toStreamBase(std::ostream& out,
+                    TNode n,
+                    int toDepth,
+                    LetBinding* lbind = nullptr) const;
+  /**
    * The main printing method for nodes n.
    */
   void toStream(std::ostream& out,
