@@ -18,6 +18,7 @@
 #include "expr/node_algorithm.h"
 
 #include "expr/attribute.h"
+#include "expr/cardinality_constraint.h"
 #include "expr/dtype.h"
 
 namespace cvc5::internal {
@@ -642,6 +643,12 @@ void getTypes(TNode n,
     {
       visited.insert(cur);
       types.insert(cur.getType());
+      // special cases where the type is not part of the AST
+      if (cur.getKind() == Kind::CARDINALITY_CONSTRAINT)
+      {
+        types.insert(
+            cur.getOperator().getConst<CardinalityConstraint>().getType());
+      }
       visit.insert(visit.end(), cur.begin(), cur.end());
     }
   } while (!visit.empty());

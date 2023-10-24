@@ -295,6 +295,7 @@ set(regress_0_tests
   regress0/bv/bv_to_int_5293_2.smt2
   regress0/bv/bv_to_int_8412.smt2
   regress0/bv/bv_to_int_9071.smt2
+  regress0/bv/bv_to_int_9071_bv4.smt2
   regress0/bv/bv_to_int_9071_th_sym.smt2
   regress0/bv/bv_to_int_bvmul2.smt2
   regress0/bv/bv_to_int_bvuf_to_intuf.smt2
@@ -1925,6 +1926,7 @@ set(regress_1_tests
   regress1/abduction/issue6605-1.smt2
   regress1/abduction/issue9001-sample-fail.smt2
   regress1/abduction/multiple-get-abduct-uc.smt2
+  regress1/abduction/param-dt.smt2
   regress1/abduction/simple-incremental.smt2
   regress1/abduction/simple-incremental-push-pop.smt2
   regress1/abduction/sygus-abduct-ex1-grammar.smt2
@@ -2067,6 +2069,8 @@ set(regress_1_tests
   regress1/bv/bench_38.delta.smt2
   regress1/bv/bug787.smt2
   regress1/bv/bug_extract_mult_leading_bit.smt2
+  regress1/bv/bv_to_int_10084.smt2
+  regress1/bv/bv_to_int_10084_forall.smt2
   regress1/bv/bv-int-collapse2-sat.smt2
   regress1/bv/bv-proof00.smtv1.smt2
   regress1/bv/bv2nat-ground.smt2
@@ -3622,6 +3626,7 @@ set(testers
   abduct
   dump
   dsl-proof
+  alf
 )
 
 foreach(tester ${testers})
@@ -3662,6 +3667,8 @@ macro(cvc5_add_regression_test level file)
     ${RUN_REGRESSION_ARGS}
     --lfsc-binary ${CMAKE_SOURCE_DIR}/deps/bin/lfscc
     --lfsc-sig-dir ${CMAKE_SOURCE_DIR}/proofs/lfsc/signatures
+    --alfc-binary ${CMAKE_SOURCE_DIR}/deps/bin/alfc
+    --alf-sig-dir ${CMAKE_SOURCE_DIR}/proofs/alf
     ${wrapper}
     ${path_to_cvc5}/cvc5${CMAKE_EXECUTABLE_SUFFIX}
     ${CMAKE_CURRENT_LIST_DIR}/${file})

@@ -19,6 +19,7 @@
 #define CVC5__THEORY__THEORY_ENGINE_MODULE_H
 
 #include "expr/node.h"
+#include "prop/sat_solver_types.h"
 #include "theory/engine_output_channel.h"
 #include "theory/theory.h"
 
@@ -50,6 +51,10 @@ class TheoryEngineModule : protected EnvObj
    * presolve, called at the beginning of each check-sat.
    */
   virtual void presolve();
+  /**
+   * postsolve, called at the end of each check-sat.
+   */
+  virtual void postsolve(prop::SatValue result);
   /**
    * check, called at the beginning of a check in TheoryEngine.
    */

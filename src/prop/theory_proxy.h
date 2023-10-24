@@ -72,7 +72,7 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** Presolve, which calls presolve for the modules managed by this class */
   void presolve();
   /** Postsolve, which calls postsolve for the modules managed by this class */
-  void postsolve();
+  void postsolve(SatValue result);
 
   /**
    * Notify that lhs was substituted by rhs during preprocessing. This impacts
