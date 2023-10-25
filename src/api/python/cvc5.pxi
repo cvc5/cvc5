@@ -917,21 +917,21 @@ cdef class Solver:
             :param base: The base of the string representation (second form only).
         """
         cdef Sort sort = Sort(self)
-        
+
         if base == 10:
             if not isinstance(size, str) and not isinstance(size, int):
                 raise ValueError(
-                    "Invalid first argument to mkFiniteFieldSort '{}', "
+                    "Invalid first argument '{}' to mkFiniteFieldSort, "
                     "expected string or integer value".format(size))
         else:
             if not isinstance(size, str):
                 raise ValueError(
-                    "Invalid first argument to mkFiniteFieldSort '{}', "
+                    "Invalid first argument '{}' to mkFiniteFieldSort, "
                     "expected string value".format(size))
- 
+
         if not isinstance(base, int):
             raise ValueError(
-            "Invalid second argument to mkFiniteFieldSort '{}', "
+            "Invalid second argument '{}' to mkFiniteFieldSort, "
             "expected integer value".format(base))
         sort.csort = self.csolver.mkFiniteFieldSort(
             <const string&> str(size).encode(),
@@ -1509,7 +1509,7 @@ cdef class Solver:
             Create finite field value.
 
             Supports the following arguments:
-            
+
             - ``Term mkFiniteFieldElem(int value, Sort sort)``
             - ``Term mkFiniteFieldElem(string value, Sort sort, int base)``
 
@@ -1519,7 +1519,7 @@ cdef class Solver:
             :param base: The base of the string representation.
         """
         cdef Term term = Term(self)
-        
+
         if base == 10:
             if not isinstance(value, str) and not isinstance(value, int):
                 raise ValueError(

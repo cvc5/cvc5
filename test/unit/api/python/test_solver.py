@@ -97,7 +97,8 @@ def test_mk_finite_field_sort(solver):
     with pytest.raises(RuntimeError):
         solver.mkFiniteFieldSort(12)
 
-    with pytest.raises(RuntimeError):
+    solver.mkFiniteFieldSort("b", 16)
+    with pytest.raises(ValueError):
         solver.mkFiniteFieldSort(0xb, 16)
 
     solver.mkFiniteFieldSort("1100101",2)
@@ -106,7 +107,7 @@ def test_mk_finite_field_sort(solver):
     solver.mkFiniteFieldSort("791a", 11)
     solver.mkFiniteFieldSort("970f", 16)
     solver.mkFiniteFieldSort("8CC5", 16)
-    
+
     with pytest.raises(RuntimeError):
         solver.mkFiniteFieldSort("1100100",2)
     with pytest.raises(RuntimeError):
@@ -440,16 +441,20 @@ def test_mk_finite_field_elem(solver):
       solver.mkFiniteFieldElem("b", f)
 
   solver.mkFiniteFieldElem(10, f)
-  solver.mkFiniteFieldSort(0xa, f)
 
+  solver.mkFiniteFieldSort("b", 16)
   with pytest.raises(RuntimeError):
+      solver.mkFiniteFieldSort("a", 16)
+
+  solver.mkFiniteFieldElem("18", f, 16)
+  with pytest.raises(ValueError):
       solver.mkFiniteFieldElem(0x18, f, 16)
 
   assert solver.mkFiniteFieldElem(10, f) == solver.mkFiniteFieldElem("10", f)
 
   assert solver.mkFiniteFieldElem("-1", f) == solver.mkFiniteFieldElem("6", f)
   assert solver.mkFiniteFieldElem("1", f) == solver.mkFiniteFieldElem("8", f)
-  
+
   solver.mkFiniteFieldElem("0", f, 2)
   solver.mkFiniteFieldElem("101", f, 3)
   solver.mkFiniteFieldElem("-10", f, 7)

@@ -25,29 +25,24 @@ public class FiniteField
     {
       slv.setLogic("QF_FF"); // Set the logic
 
-      Sort f5 = slv.mkFiniteFieldSort("5");
+      Sort f5 = slv.mkFiniteFieldSort("5", 10);
       Term a = slv.mkConst(f5, "a");
       Term b = slv.mkConst(f5, "b");
-      Term z = slv.mkFiniteFieldElem("0", f5);
+      Term z = slv.mkFiniteFieldElem("0", f5, 10);
 
       System.out.println("is ff: " + f5.isFiniteField());
       System.out.println("ff size: " + f5.getFiniteFieldSize());
       System.out.println("is ff value: " + z.isFiniteFieldValue());
       System.out.println("ff value: " + z.getFiniteFieldValue());
 
-      Term inv =
-        slv.mkTerm(Kind.EQUAL,
-            slv.mkTerm(Kind.FINITE_FIELD_ADD,
+      Term inv = slv.mkTerm(Kind.EQUAL,
+          slv.mkTerm(Kind.FINITE_FIELD_ADD,
               slv.mkTerm(Kind.FINITE_FIELD_MULT, a, b),
-              slv.mkFiniteFieldElem("-1", f5)),
-            z);
+              slv.mkFiniteFieldElem("-1", f5, 10)),
+          z);
 
-      Term aIsTwo =
-        slv.mkTerm(Kind.EQUAL,
-            slv.mkTerm(Kind.FINITE_FIELD_ADD,
-              a,
-              slv.mkFiniteFieldElem("-2", f5)),
-            z);
+      Term aIsTwo = slv.mkTerm(
+          Kind.EQUAL, slv.mkTerm(Kind.FINITE_FIELD_ADD, a, slv.mkFiniteFieldElem("-2", f5, 10)), z);
 
       slv.assertFormula(inv);
       slv.assertFormula(aIsTwo);
@@ -55,12 +50,8 @@ public class FiniteField
       Result r = slv.checkSat();
       System.out.println("is sat: " + r.isSat());
 
-      Term bIsTwo =
-        slv.mkTerm(Kind.EQUAL,
-            slv.mkTerm(Kind.FINITE_FIELD_ADD,
-              b,
-              slv.mkFiniteFieldElem("-2", f5)),
-            z);
+      Term bIsTwo = slv.mkTerm(
+          Kind.EQUAL, slv.mkTerm(Kind.FINITE_FIELD_ADD, b, slv.mkFiniteFieldElem("-2", f5, 10)), z);
 
       slv.assertFormula(bIsTwo);
       r = slv.checkSat();
