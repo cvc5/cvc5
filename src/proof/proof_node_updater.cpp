@@ -128,7 +128,11 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
     if (it == visited.end())
     {
       // Check if there is a proof in resCache with the same result.
-      // Note that if this returns true, we update the contents of the current proof. Moreover, parents will replace the reference to this proof. Thus, replacing the contents of this proof is not (typically) necessary, but is done anyways in case there are any other references to this proof that are not handled by this loop.
+      // Note that if this returns true, we update the contents of the current
+      // proof. Moreover, parents will replace the reference to this proof.
+      // Thus, replacing the contents of this proof is not (typically)
+      // necessary, but is done anyways in case there are any other references
+      // to this proof that are not handled by this loop.
       if (checkMergeProof(cur, resCache, cfaMap))
       {
         visited[cur] = true;
@@ -189,8 +193,9 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
         fa.resize(fa.size() - args.size());
       }
       // maybe found a proof in the meantime, i.e. a subproof of the current
-      // proof with the same result. Same as above, updating the contents here is
-      // typically not necessary since references to this proof will be replaced.
+      // proof with the same result. Same as above, updating the contents here
+      // is typically not necessary since references to this proof will be
+      // replaced.
       if (checkMergeProof(cur, resCache, cfaMap))
       {
         visited[cur] = true;
@@ -292,8 +297,7 @@ void ProofNodeUpdater::runFinalize(
     // cache the result if we don't contain an assumption
     if (!expr::containsAssumption(cur.get(), cfaMap, cfaAllowed))
     {
-      Trace("pf-process-debug")
-          << "No assumption pf: " << res << std::endl;
+      Trace("pf-process-debug") << "No assumption pf: " << res << std::endl;
       // cache result if we are merging subproofs
       resCache[res] = cur;
       // go back and merge into the non-closed proofs of the same fact
@@ -315,7 +319,11 @@ void ProofNodeUpdater::runFinalize(
                                 << cfaAllowed.size() << std::endl;
       resCacheNcWaiting[res].push_back(cur);
     }
-    // Now, do update of children, that is, we replace children of the current proof with the representative child in the cache, if they are different. This is necessary to do here since we only locally update the contents of a proof when a duplicate is encountered. Updating the reference to a child is done here.
+    // Now, do update of children, that is, we replace children of the current
+    // proof with the representative child in the cache, if they are different.
+    // This is necessary to do here since we only locally update the contents of
+    // a proof when a duplicate is encountered. Updating the reference to a
+    // child is done here.
     std::map<Node, std::shared_ptr<ProofNode>>::iterator itr;
     const std::vector<std::shared_ptr<ProofNode>>& ccp = cur->getChildren();
     std::vector<std::shared_ptr<ProofNode>> newChildren;
@@ -324,7 +332,7 @@ void ProofNodeUpdater::runFinalize(
     {
       Node cpres = cp->getResult();
       itr = resCache.find(cpres);
-      if (itr!=resCache.end() && itr->second!=cp)
+      if (itr != resCache.end() && itr->second != cp)
       {
         newChildren.emplace_back(itr->second);
         childChanged = true;
@@ -337,7 +345,8 @@ void ProofNodeUpdater::runFinalize(
     if (childChanged)
     {
       ProofNodeManager* pnm = d_env.getProofNodeManager();
-      pnm->updateNode(cur.get(), cur->getRule(), newChildren, cur->getArguments());
+      pnm->updateNode(
+          cur.get(), cur->getRule(), newChildren, cur->getArguments());
     }
   }
   if (d_debugFreeAssumps)
