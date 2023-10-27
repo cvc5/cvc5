@@ -489,8 +489,8 @@ void TheoryArith::finalizeModelCache()
   for (const auto& [node, repl] : d_arithModelCache)
   {
     Assert(repl.getType().isRealOrInt());
-    // note that node may be an application of non-linear arithmetic, which will get
-    // applied as a substitution in getEqualityStatus.
+    // note that node may be an application of non-linear arithmetic, which will
+    // get applied as a substitution in getEqualityStatus.
     d_arithModelCacheSubs.add(node, repl);
   }
 }
