@@ -384,8 +384,8 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     {
       continue;
     }
-    AlwaysAssert(false) << "A model equality could not be asserted: " << p.first
-                        << " == " << p.second << std::endl;
+    Assert(false) << "A model equality could not be asserted: " << p.first
+                  << " == " << p.second << std::endl;
     // If we failed to assert an equality, it is likely due to theory
     // combination, namely the repaired model for non-linear changed
     // an equality status that was agreed upon by both (linear) arithmetic
@@ -489,9 +489,8 @@ void TheoryArith::finalizeModelCache()
   for (const auto& [node, repl] : d_arithModelCache)
   {
     Assert(repl.getType().isRealOrInt());
-    // we only keep the domain of the substitution that is for leafs of
-    // arithmetic; otherwise we are using the value of the abstraction of
-    // non-linear term from the linear solver, which can be incorrect.
+    // note that node may be an application of non-linear arithmetic, which will get
+    // applied as a substitution in getEqualityStatus.
     d_arithModelCacheSubs.add(node, repl);
   }
 }
