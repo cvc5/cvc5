@@ -552,8 +552,8 @@ EqualityStatus TheoryUF::getEqualityStatus(TNode a, TNode b) {
 
 bool TheoryUF::areCareDisequal(TNode x, TNode y)
 {
-  if (d_equalityEngine->hasTerm(x) && d_equalityEngine->hasTerm(y) &&
-    d_equalityEngine->areDisequal(x, y, false))
+  if (d_equalityEngine->hasTerm(x) && d_equalityEngine->hasTerm(y)
+      && d_equalityEngine->areDisequal(x, y, false))
   {
     return true;
   }

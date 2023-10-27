@@ -429,8 +429,8 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
   Trace("arith-eq-status") << "Evaluate under " << d_arithModelCacheSubs.d_vars << " / "
                  << d_arithModelCacheSubs.d_subs << std::endl;
   Node diff = NodeManager::currentNM()->mkNode(Kind::SUB, a, b);
-  // do not traverse non-linear multiplication here, since the value of multiplication
-  // may not be accurate
+  // do not traverse non-linear multiplication here, since the value of
+  // multiplication may not be accurate
   std::optional<bool> isZero =
       isExpressionZero(d_env, diff, d_arithModelCacheSubs, false);
   if (isZero)

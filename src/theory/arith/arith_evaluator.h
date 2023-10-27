@@ -40,7 +40,7 @@ namespace arith {
 std::optional<bool> isExpressionZero(Env& env,
                                      Node expr,
                                      const ArithSubs& subs,
-                                     bool traverseNlMult );
+                                     bool traverseNlMult);
 }
 }  // namespace theory
 }  // namespace cvc5::internal
