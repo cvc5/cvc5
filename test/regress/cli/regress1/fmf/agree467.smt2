@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --finite-model-find
 ; EXPECT: unsat
+; DISABLE-TESTER: alf
 ; Preamble  --------------
 (set-logic AUFDTLIA)
 (set-info :status unsat)

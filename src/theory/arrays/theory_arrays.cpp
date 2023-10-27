@@ -1107,6 +1107,10 @@ bool TheoryArrays::collectModelValues(TheoryModel* m,
 
   // Loop through all array equivalence classes that need a representative
   // computed
+  // The default values map for arrays not appearing in d_defValues. This map
+  // is local to the current model.
+  std::map<Node, Node> defMap;
+  std::map<Node, Node>::iterator itd;
   for (size_t i = 0; i < arrays.size(); ++i)
   {
     TNode n = arrays[i];
@@ -1116,21 +1120,29 @@ bool TheoryArrays::collectModelValues(TheoryModel* m,
     // Compute default value for this array - there is one default value for
     // every mayEqual equivalence class
     TNode mayRep = d_mayEqualEqualityEngine.getRepresentative(nrep);
-    it = d_defValues.find(mayRep);
     // If this mayEqual EC doesn't have a default value associated, get the next
     // available default value for the associated array element type
+    it = d_defValues.find(mayRep);
     if (it == d_defValues.end())
     {
-      TypeNode valueType = nrep.getType().getArrayConstituentType();
-      rep = defaultValuesSet.nextTypeEnum(valueType);
-      if (rep.isNull())
+      itd = defMap.find(mayRep);
+      if (itd == defMap.end())
       {
-        Assert(defaultValuesSet.getSet(valueType)->begin()
-               != defaultValuesSet.getSet(valueType)->end());
-        rep = *(defaultValuesSet.getSet(valueType)->begin());
+        TypeNode valueType = nrep.getType().getArrayConstituentType();
+        rep = defaultValuesSet.nextTypeEnum(valueType);
+        if (rep.isNull())
+        {
+          Assert(defaultValuesSet.getSet(valueType)->begin()
+                 != defaultValuesSet.getSet(valueType)->end());
+          rep = *(defaultValuesSet.getSet(valueType)->begin());
+        }
+        Trace("arrays-models") << "New default value = " << rep << endl;
+        defMap[mayRep] = rep;
       }
-      Trace("arrays-models") << "New default value = " << rep << endl;
-      d_defValues[mayRep] = rep;
+      else
+      {
+        rep = itd->second;
+      }
     }
     else
     {

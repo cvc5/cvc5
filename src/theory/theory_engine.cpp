@@ -722,7 +722,14 @@ bool TheoryEngine::presolve() {
   return false;
 }/* TheoryEngine::presolve() */
 
-void TheoryEngine::postsolve() {
+void TheoryEngine::postsolve(prop::SatValue result)
+{
+  // postsolve with the theory engine modules as well
+  for (TheoryEngineModule* tem : d_modules)
+  {
+    tem->postsolve(result);
+  }
+
   // Reset the interrupt flag
   d_interrupted = false;
 }

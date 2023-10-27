@@ -195,5 +195,6 @@ public class QuickStart
       }
       //! [docs-java-quickstart-15 end]
     }
+    Context.deletePointers();
   }
 }
