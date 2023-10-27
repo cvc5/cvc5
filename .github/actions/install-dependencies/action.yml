@@ -29,8 +29,8 @@ runs:
           libtinfo-dev \
           flex \
           libfl-dev \
-          flexc++
-        python3 -m pip install --user pexpect setuptools tomli
+          flexc++ \
+          python3-venv
         # Make ImageVersion accessible as env.image_version. Environment
         # variables of the runner are not automatically imported:
         #
@@ -76,7 +76,6 @@ runs:
           pkgconfig \
           flex \
           gnu-sed
-        python3 -m pip install --user pexpect setuptools tomli pyparsing
         # Make ImageVersion accessible as env.image_version. Environment
         # variables of the runner are not automatically imported:
         #
@@ -88,17 +87,27 @@ runs:
         echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
         echo "::endgroup::"
 
+    - name: Setup and Activate Python Environment
+      shell: bash
+      run: |
+        python3 -m venv cvc5-python-env
+        source cvc5-python-env/bin/activate
+        echo "PATH=$PATH" >> $GITHUB_ENV
+
+    - name: Install Python Dependencies
+      shell: bash
+      run: |
+        python3 -m pip install pexpect setuptools tomli pyparsing
+
     - name: Install software for Python bindings
       if: inputs.with-python-bindings == 'true'
       shell: bash
       run: |
         echo "::group::Install software for Python bindings"
         python3 -m pip install -q --upgrade pip
-        python3 -m pip install --user pytest scikit-build
+        python3 -m pip install pytest scikit-build
         python3 -m pytest --version
-        python3 -m pip install --user Cython==3.*
-        # Add binary path of user site-packages to PATH
-        echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
+        python3 -m pip install Cython==3.*
         echo "::endgroup::"
 
     - name: Install software for Python packaging
@@ -107,8 +116,8 @@ runs:
       run: |
         echo "::group::Install software for Python packaging"
         python3 -m pip install -q --upgrade pip
-        python3 -m pip install --user twine
-        python3 -m pip install --user -U urllib3 requests
+        python3 -m pip install twine
+        python3 -m pip install -U urllib3 requests
         echo "::endgroup::"
     
     - name: Install software for documentation
@@ -117,7 +126,7 @@ runs:
       run: |
         echo "::group::Install software for documentation"
         sudo apt-get install -y doxygen python3-docutils python3-jinja2
-        python3 -m pip install --user \
+        python3 -m pip install \
           sphinx==7.1.2 \
           sphinxcontrib-bibtex==2.5.0 sphinx-tabs==3.4.1 sphinx-rtd-theme==1.3.0 breathe==4.35.0 \
           sphinxcontrib-programoutput==0.17
