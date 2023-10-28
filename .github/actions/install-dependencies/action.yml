@@ -10,6 +10,9 @@ inputs:
   windows-build:
     default: false
     type: boolean
+  setup-venv:
+    defualt: false
+    type: boolean
 runs:
   using: composite
   steps:
@@ -88,6 +91,7 @@ runs:
         echo "::endgroup::"
 
     - name: Setup and Activate Python Environment
+      if: inputs.setup-venv == 'true'
       shell: bash
       run: |
         python3 -m venv cvc5-python-env

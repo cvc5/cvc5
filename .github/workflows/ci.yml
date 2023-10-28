@@ -96,6 +96,7 @@ jobs:
         with-documentation: ${{ matrix.build-documentation }}
         with-python-bindings: ${{ matrix.python-bindings }}
         windows-build: ${{ matrix.windows-build }}
+        setup-venv: true
 
     - name: Setup caches
       uses: ./.github/actions/setup-cache
