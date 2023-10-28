@@ -24,7 +24,7 @@ jobs:
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
           - name: macos:production
-            os: macos-latest
+            os: macos-13
             config: production --auto-download --editline
             # config: production --auto-download --python-bindings --editline
             cache-key: production
@@ -36,7 +36,7 @@ jobs:
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
  
           - name: macos:production-arm64
-            os: macos-latest
+            os: macos-13
             config: production --auto-download --editline --arm64
             # config: production --auto-download --python-bindings --editline --arm64
             cache-key: production-arm64
