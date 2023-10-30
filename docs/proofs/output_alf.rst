@@ -1,4 +1,4 @@
-Proof format: ALF
+Proof format: AletheLF
 ==================
 
 Using the flag :ref:`proof-format-mode=alf <lbl-option-proof-format-mode>`, cvc5 outputs proofs in the AletheLF (ALF) proof format.
