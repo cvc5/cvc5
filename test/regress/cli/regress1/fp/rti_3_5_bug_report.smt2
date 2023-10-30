@@ -1,4 +1,5 @@
 ; DISABLE-TESTER: lfsc
+; DISABLE-TESTER: alf
 ; COMMAND-LINE: --fp-exp
 ; EXPECT: unsat
 

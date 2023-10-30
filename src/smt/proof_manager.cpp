@@ -21,6 +21,8 @@
 #include "proof/alethe/alethe_node_converter.h"
 #include "proof/alethe/alethe_post_processor.h"
 #include "proof/alethe/alethe_printer.h"
+#include "proof/alf/alf_post_processor.h"
+#include "proof/alf/alf_printer.h"
 #include "proof/dot/dot_printer.h"
 #include "proof/lfsc/lfsc_post_processor.h"
 #include "proof/lfsc/lfsc_printer.h"
@@ -241,6 +243,15 @@ void PfManager::printProof(std::ostream& out,
   {
     proof::DotPrinter dotPrinter(d_env);
     dotPrinter.print(out, fp.get());
+  }
+  else if (mode == options::ProofFormatMode::ALF)
+  {
+    Assert(fp->getRule() == ProofRule::SCOPE);
+    proof::AlfNodeConverter atp;
+    proof::AlfProofPostprocess alfpp(d_env, atp);
+    alfpp.process(fp);
+    proof::AlfPrinter alfp(d_env, atp);
+    alfp.print(out, fp);
   }
   else if (mode == options::ProofFormatMode::ALETHE)
   {

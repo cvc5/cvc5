@@ -385,7 +385,7 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
       continue;
     }
     Assert(false) << "A model equality could not be asserted: " << p.first
-                        << " == " << p.second << std::endl;
+                  << " == " << p.second << std::endl;
     // If we failed to assert an equality, it is likely due to theory
     // combination, namely the repaired model for non-linear changed
     // an equality status that was agreed upon by both (linear) arithmetic
@@ -429,8 +429,11 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
   Trace("arith-eq-status") << "Evaluate under " << d_arithModelCacheSubs.d_vars << " / "
                  << d_arithModelCacheSubs.d_subs << std::endl;
   Node diff = NodeManager::currentNM()->mkNode(Kind::SUB, a, b);
+  // do not traverse non-linear multiplication here, since the value of
+  // multiplication in this method should consider the value of the
+  // non-linear multiplication term, and not its evaluation.
   std::optional<bool> isZero =
-      isExpressionZero(d_env, diff, d_arithModelCacheSubs);
+      isExpressionZero(d_env, diff, d_arithModelCacheSubs, false);
   if (isZero)
   {
     EqualityStatus es =
@@ -487,13 +490,9 @@ void TheoryArith::finalizeModelCache()
   for (const auto& [node, repl] : d_arithModelCache)
   {
     Assert(repl.getType().isRealOrInt());
-    // we only keep the domain of the substitution that is for leafs of
-    // arithmetic; otherwise we are using the value of the abstraction of
-    // non-linear term from the linear solver, which can be incorrect.
-    if (Theory::isLeafOf(node, TheoryId::THEORY_ARITH))
-    {
-      d_arithModelCacheSubs.add(node, repl);
-    }
+    // note that node may be an application of non-linear arithmetic, which will
+    // get applied as a substitution in getEqualityStatus.
+    d_arithModelCacheSubs.add(node, repl);
   }
 }
 

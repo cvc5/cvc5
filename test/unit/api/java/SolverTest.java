@@ -25,6 +25,7 @@ import io.github.cvc5.modes.BlockModelsMode;
 import io.github.cvc5.modes.FindSynthTarget;
 import io.github.cvc5.modes.LearnedLitType;
 import io.github.cvc5.modes.ProofComponent;
+import io.github.cvc5.modes.ProofFormat;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -1844,6 +1845,48 @@ class SolverTest
     Result res = d_solver.checkSat();
     assertTrue(res.isUnsat());
     assertDoesNotThrow(() -> d_solver.getProof());
+  }
+  
+  @Test
+  void getProofAndProofToString()
+  {
+    d_solver.setOption("produce-proofs", "true");
+
+    Sort uSort = d_solver.mkUninterpretedSort("u");
+    Sort intSort = d_solver.getIntegerSort();
+    Sort boolSort = d_solver.getBooleanSort();
+    Sort uToIntSort = d_solver.mkFunctionSort(uSort, intSort);
+    Sort intPredSort = d_solver.mkFunctionSort(intSort, boolSort);
+
+    Term x = d_solver.mkConst(uSort, "x");
+    Term y = d_solver.mkConst(uSort, "y");
+    Term f = d_solver.mkConst(uToIntSort, "f");
+    Term p = d_solver.mkConst(intPredSort, "p");
+    Term zero = d_solver.mkInteger(0);
+    Term one = d_solver.mkInteger(1);
+    Term f_x = d_solver.mkTerm(Kind.APPLY_UF, f, x);
+    Term f_y = d_solver.mkTerm(Kind.APPLY_UF, f, y);
+    Term sum = d_solver.mkTerm(Kind.ADD, f_x, f_y);
+    Term p_0 = d_solver.mkTerm(Kind.APPLY_UF, p, zero);
+    Term p_f_y = d_solver.mkTerm(APPLY_UF, p, f_y);
+    d_solver.assertFormula(d_solver.mkTerm(Kind.GT, zero, f_x));
+    d_solver.assertFormula(d_solver.mkTerm(Kind.GT, zero, f_y));
+    d_solver.assertFormula(d_solver.mkTerm(Kind.GT, sum, one));
+    d_solver.assertFormula(p_0);
+    d_solver.assertFormula(p_f_y.notTerm());
+    assertTrue(d_solver.checkSat().isUnsat());
+
+    Proof[] proofs = d_solver.getProof();
+    assertNotEquals(0, proofs.length);
+    String printedProof = d_solver.proofToString(proofs[0]);
+    assertFalse(printedProof.isEmpty());
+    printedProof = d_solver.proofToString(proofs[0], ProofFormat.ALETHE);
+    assertFalse(printedProof.isEmpty());
+
+    proofs = d_solver.getProof(ProofComponent.SAT);
+    assertNotEquals(0, proofs.length);
+    printedProof = d_solver.proofToString(proofs[0], ProofFormat.DEFAULT);
+    assertFalse(printedProof.isEmpty());
   }
 
   @Test
