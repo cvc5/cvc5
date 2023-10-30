@@ -389,7 +389,7 @@ void PartitionGenerator::check(Theory::Effort e)
   // send the lemma if it exists
   if (!lem.isNull())
   {
-    d_out.lemma(lem);
+    d_out.lemma(lem, InferenceId::PARTITION_GENERATOR_PARTITION);
   }
 }
 
