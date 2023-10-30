@@ -110,7 +110,6 @@ runs:
         echo "::group::Install software for Python bindings"
         python3 -m pip install -q --upgrade pip
         python3 -m pip install pytest scikit-build
-        python3 -m pytest --version
         python3 -m pip install Cython==3.*
         echo "::endgroup::"
 
