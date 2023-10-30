@@ -552,6 +552,12 @@ EqualityStatus TheoryUF::getEqualityStatus(TNode a, TNode b) {
 
 bool TheoryUF::areCareDisequal(TNode x, TNode y)
 {
+  // check for disequality first, as an optimization
+  if (d_equalityEngine->hasTerm(x) && d_equalityEngine->hasTerm(y)
+      && d_equalityEngine->areDisequal(x, y, false))
+  {
+    return true;
+  }
   if (d_equalityEngine->isTriggerTerm(x, THEORY_UF)
       && d_equalityEngine->isTriggerTerm(y, THEORY_UF))
   {
