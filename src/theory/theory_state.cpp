@@ -43,10 +43,9 @@ TNode TheoryState::getRepresentative(TNode t) const
 {
   Assert(d_ee != nullptr);
   if (d_ee->hasTerm(t))
-  {    
+  {
     return d_ee->getRepresentative(t);
-  }
-  std::cout << "false: getRepresentative: " << t << std::endl;
+  }  
   return t;
 }
 

@@ -82,9 +82,6 @@ EqClassIterator::EqClassIterator(Node eqc, const eq::EqualityEngine* ee)
 {
   Assert(d_ee->consistent());
   d_current = d_start = d_ee->getNodeId(eqc);
-  std::cout << "eqc: " << eqc << std::endl;
-  std::cout << "d_start: " << d_start << std::endl;
-  std::cout << "d_ee->getEqualityNode(d_start): " << d_ee->getEqualityNode(d_start).getFind() << std::endl;
   Assert(d_start == d_ee->getEqualityNode(d_start).getFind());
   Assert(!d_ee->d_isInternal[d_start]);
 }
