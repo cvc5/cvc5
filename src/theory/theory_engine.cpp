@@ -722,7 +722,14 @@ bool TheoryEngine::presolve() {
   return false;
 }/* TheoryEngine::presolve() */
 
-void TheoryEngine::postsolve() {
+void TheoryEngine::postsolve(prop::SatValue result)
+{
+  // postsolve with the theory engine modules as well
+  for (TheoryEngineModule* tem : d_modules)
+  {
+    tem->postsolve(result);
+  }
+
   // Reset the interrupt flag
   d_interrupted = false;
 }
@@ -1052,7 +1059,7 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
         // special case, trust node has no proof generator
         TrustNode trnn = TrustNode::mkTrustConflict(normalizedLiteral);
         // Get the explanation (conflict will figure out where it came from)
-        conflict(trnn, toTheoryId);
+        conflict(trnn, InferenceId::CONFLICT_REWRITE_LIT, toTheoryId);
       } else {
         Unreachable();
       }
@@ -1284,8 +1291,11 @@ TrustNode TheoryEngine::getExplanation(TNode node)
   // notify the conflict as a lemma
   for (TheoryEngineModule* tem : d_modules)
   {
-    tem->notifyLemma(
-        texplanation.getProven(), LemmaProperty::REMOVABLE, {}, {});
+    tem->notifyLemma(texplanation.getProven(),
+                     InferenceId::EXPLAINED_PROPAGATION,
+                     LemmaProperty::REMOVABLE,
+                     {},
+                     {});
   }
   return texplanation;
 }
@@ -1403,8 +1413,9 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
 }
 
 void TheoryEngine::lemma(TrustNode tlemma,
-                         theory::LemmaProperty p,
-                         theory::TheoryId from)
+                         InferenceId id,
+                         LemmaProperty p,
+                         TheoryId from)
 {
   // For resource-limiting (also does a time check).
   // spendResource();
@@ -1453,7 +1464,11 @@ void TheoryEngine::lemma(TrustNode tlemma,
     // notify the modules of the lemma
     for (TheoryEngineModule* tem : d_modules)
     {
-      tem->notifyLemma(retLemma, p, skAsserts, sks);
+      // don't notify theory modules of their own lemmas
+      if (tem->getId() != from)
+      {
+        tem->notifyLemma(retLemma, id, p, skAsserts, sks);
+      }
     }
   }
 
@@ -1472,13 +1487,15 @@ void TheoryEngine::markInConflict()
   d_inConflict = true;
 }
 
-void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
+void TheoryEngine::conflict(TrustNode tconflict,
+                            InferenceId id,
+                            TheoryId theoryId)
 {
   Assert(tconflict.getKind() == TrustNodeKind::CONFLICT);
 
   TNode conflict = tconflict.getNode();
   Trace("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", "
-                            << theoryId << ")" << endl;
+                            << id << ", " << theoryId << ")" << endl;
   Trace("te-proof-debug") << "Check closed conflict" << std::endl;
   // doesn't require proof generator, yet, since THEORY_LEMMA is added below
   tconflict.debugCheckClosed(
@@ -1578,14 +1595,14 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
       tconf.debugCheckClosed(
           options(), "te-proof-debug", "TheoryEngine::conflict:sharing");
     }
-    lemma(tconf, LemmaProperty::REMOVABLE);
+    lemma(tconf, id, LemmaProperty::REMOVABLE);
   }
   else
   {
     // When only one theory, the conflict should need no processing
     Assert(properConflict(conflict));
     // pass the trust node that was sent from the theory
-    lemma(tconflict, LemmaProperty::REMOVABLE, theoryId);
+    lemma(tconflict, id, LemmaProperty::REMOVABLE, theoryId);
   }
 }
 

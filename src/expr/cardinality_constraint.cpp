@@ -52,7 +52,7 @@ bool CardinalityConstraint::operator!=(const CardinalityConstraint& cc) const
 
 std::ostream& operator<<(std::ostream& out, const CardinalityConstraint& cc)
 {
-  return out << "fmf.card(" << cc.getType() << ", " << cc.getUpperBound()
+  return out << "(_ fmf.card " << cc.getType() << " " << cc.getUpperBound()
              << ')';
 }
 

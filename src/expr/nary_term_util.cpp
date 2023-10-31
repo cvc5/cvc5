@@ -133,7 +133,10 @@ Node getNullTerminator(Kind k, TypeNode tn)
       break;
     case Kind::STRING_CONCAT:
       // handles strings and sequences
-      nullTerm = theory::strings::Word::mkEmptyWord(tn);
+      if (tn.isStringLike())
+      {
+        nullTerm = theory::strings::Word::mkEmptyWord(tn);
+      }
       break;
     case Kind::REGEXP_CONCAT:
       // the language containing only the empty string

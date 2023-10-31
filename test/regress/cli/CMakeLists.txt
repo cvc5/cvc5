@@ -295,6 +295,7 @@ set(regress_0_tests
   regress0/bv/bv_to_int_5293_2.smt2
   regress0/bv/bv_to_int_8412.smt2
   regress0/bv/bv_to_int_9071.smt2
+  regress0/bv/bv_to_int_9071_bv4.smt2
   regress0/bv/bv_to_int_9071_th_sym.smt2
   regress0/bv/bv_to_int_bvmul2.smt2
   regress0/bv/bv_to_int_bvuf_to_intuf.smt2
@@ -469,6 +470,7 @@ set(regress_0_tests
   regress0/bv/inequality03.smt2
   regress0/bv/inequality04.smt2
   regress0/bv/inequality05.smt2
+  regress0/bv/int_to_bv_10080_ite.smt2
   regress0/bv/int_to_bv_err_on_demand_1.smt2
   regress0/bv/int_to_bv_model.smt2
   regress0/bv/int_to_bv_model2.smt2
@@ -1024,6 +1026,7 @@ set(regress_0_tests
   regress0/parser/issue9675.smt2
   regress0/parser/issue9676.smt2
   regress0/parser/issue9990-nprint-char.smt2
+  regress0/parser/issue10093.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
@@ -1923,6 +1926,7 @@ set(regress_1_tests
   regress1/abduction/issue6605-1.smt2
   regress1/abduction/issue9001-sample-fail.smt2
   regress1/abduction/multiple-get-abduct-uc.smt2
+  regress1/abduction/param-dt.smt2
   regress1/abduction/simple-incremental.smt2
   regress1/abduction/simple-incremental-push-pop.smt2
   regress1/abduction/sygus-abduct-ex1-grammar.smt2
@@ -2065,6 +2069,8 @@ set(regress_1_tests
   regress1/bv/bench_38.delta.smt2
   regress1/bv/bug787.smt2
   regress1/bv/bug_extract_mult_leading_bit.smt2
+  regress1/bv/bv_to_int_10084.smt2
+  regress1/bv/bv_to_int_10084_forall.smt2
   regress1/bv/bv-int-collapse2-sat.smt2
   regress1/bv/bv-proof00.smtv1.smt2
   regress1/bv/bv2nat-ground.smt2
@@ -2363,6 +2369,7 @@ set(regress_1_tests
   regress1/proofs/issue6625-unsat-core-proofs.smt2
   regress1/proofs/macro-res-exp-crowding-lit-inside-unit.smt2
   regress1/proofs/macro-res-exp-singleton-after-elimCrowd.smt2
+  regress1/proofs/open-pf-tr-conjoin.smt2
   regress1/proofs/qgu-fuzz-1-strings-pp.smt2
   regress1/proofs/qgu-fuzz-arrays-1-dd-te-auto.smt2
   regress1/proofs/quant-alpha-eq.smt2
@@ -3619,6 +3626,7 @@ set(testers
   abduct
   dump
   dsl-proof
+  alf
 )
 
 foreach(tester ${testers})
@@ -3659,6 +3667,8 @@ macro(cvc5_add_regression_test level file)
     ${RUN_REGRESSION_ARGS}
     --lfsc-binary ${CMAKE_SOURCE_DIR}/deps/bin/lfscc
     --lfsc-sig-dir ${CMAKE_SOURCE_DIR}/proofs/lfsc/signatures
+    --alfc-binary ${CMAKE_SOURCE_DIR}/deps/bin/alfc
+    --alf-sig-dir ${CMAKE_SOURCE_DIR}/proofs/alf
     ${wrapper}
     ${path_to_cvc5}/cvc5${CMAKE_EXECUTABLE_SUFFIX}
     ${CMAKE_CURRENT_LIST_DIR}/${file})

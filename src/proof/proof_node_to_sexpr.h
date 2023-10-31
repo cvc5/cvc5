@@ -53,7 +53,6 @@ class ProofNodeToSExpr
    */
   Node convertToSExpr(const ProofNode* pn, bool printConclusion = false);
 
- private:
   /** argument format, determines how to print an argument */
   enum class ArgFormat
   {
@@ -72,6 +71,12 @@ class ProofNodeToSExpr
     // print a variable whose name is the term (see getOrMkNodeVariable)
     NODE_VAR
   };
+  /** get argument format for proof node */
+  ArgFormat getArgumentFormat(const ProofNode* pn, size_t i);
+  /** get argument based on the provided format */
+  Node getArgument(Node arg, ArgFormat f);
+
+ private:
   /** map proof rules to a variable */
   std::map<ProofRule, Node> d_pfrMap;
   /** map kind to a variable displaying the kind they represent */
@@ -114,10 +119,6 @@ class ProofNodeToSExpr
    * print e.g. builtin operators as first-class terms in the SEXPR.
    */
   Node getOrMkNodeVariable(TNode n);
-  /** get argument based on the provided format */
-  Node getArgument(Node arg, ArgFormat f);
-  /** get argument format for proof node */
-  ArgFormat getArgumentFormat(const ProofNode* pn, size_t i);
 };
 
 }  // namespace cvc5::internal

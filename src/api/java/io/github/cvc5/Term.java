@@ -45,11 +45,6 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   protected native void deletePointer(long pointer);
 
-  public long getPointer()
-  {
-    return pointer;
-  }
-
   /**
    * Syntactic equality operator.
    * Return true if both terms are syntactically identical.
