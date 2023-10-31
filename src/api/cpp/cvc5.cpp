@@ -6622,7 +6622,7 @@ Term Solver::defineFun(const std::string& symbol,
   // the sort of the body must match the return sort
   CVC5_API_CHECK(term.d_node->getType() == *sort.d_type)
       << "Invalid sort of function body '" << term << "', expected '" << sort
-      << "'";
+      << "' found '" << term.d_node->getType() << "'";
 
   std::vector<Sort> domain_sorts;
   for (const auto& bv : bound_vars)

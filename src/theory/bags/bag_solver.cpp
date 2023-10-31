@@ -96,6 +96,7 @@ void BagSolver::checkQuantifiedOperations()
 { 
   for (const Node& bag : d_state.getBags())
   {
+    Assert(bag == d_state.getRepresentative(bag));
     // iterate through all bags terms in each equivalent class
     eq::EqClassIterator it =
         eq::EqClassIterator(bag, d_state.getEqualityEngine());

@@ -358,7 +358,11 @@ bool TheoryBags::runInferStep(InferStep s, int effort)
       break;
     }
     case CHECK_BASIC_OPERATIONS: d_solver.checkBasicOperations(); break;
-    case CHECK_QUANTIFIED_OPERATIONS: d_solver.checkQuantifiedOperations(); break;
+    case CHECK_QUANTIFIED_OPERATIONS: 
+    {
+      initialize();
+      d_solver.checkQuantifiedOperations(); break;
+    }
     case CHECK_CARDINALITY_CONSTRAINTS:
       d_cardSolver.checkCardinalityGraph();
       break;
@@ -494,7 +498,15 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
     processedBags[r] = constructedBag;
   }
 
-  Trace("bags-model") << "processedBags:  " << processedBags << std::endl;
+  if(TraceIsOn("bags-model"))
+  {
+    Trace("bags-model") << "processedBags:  "; 
+    for (const auto & b : processedBags)
+    { 
+      Trace("bags-model") << "[" << b.first << "," << std::endl
+                          << b.second << "], " << std::endl; 
+    }
+  }
   return true;
 }
 

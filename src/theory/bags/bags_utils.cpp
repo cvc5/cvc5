@@ -1042,12 +1042,12 @@ Node BagsUtils::evaluateGroup(TNode n)
     // each part in the partitions has multiplicity one
     parts[part] = Rational(1);
   }
-  if (parts.empty())
-  {
-    // add an empty part
-    Node emptyPart = nm->mkConst(EmptyBag(bagType));
-    parts[emptyPart] = Rational(1);
-  }
+  // if (parts.empty())
+  // {
+  //   // add an empty part
+  //   Node emptyPart = nm->mkConst(EmptyBag(bagType));
+  //   parts[emptyPart] = Rational(1);
+  // }
   Node ret = constructConstantBagFromElements(partitionType, parts);
   Trace("bags-group") << "ret: " << ret << std::endl;
   return ret;
