@@ -58,7 +58,7 @@ PartitionGenerator::PartitionGenerator(Env& env,
   }
 }
 
-/*TODO: FIXME
+/*TODO: see if this can be made more readable, e.g.
 if (d_lemmaMap.count(node) == 0) {
         d_lemmaMap[node] = 1;
         d_lemmaLiterals.insert(node);
