@@ -89,6 +89,27 @@ add_custom_command(
 )
 add_custom_target(cvc5kinds DEPENDS ${GENERATED_KINDS_FILES})
 
+# Generate cvc5proofrules.{pxd,pxi}
+set(GENERATED_PROOF_RULES_FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/cvc5proofrules.pxd"
+  "${CMAKE_CURRENT_BINARY_DIR}/cvc5proofrules.pxi"
+)
+add_custom_command(
+  OUTPUT
+    ${GENERATED_PROOF_RULES_FILES}
+  COMMAND
+    "${Python_EXECUTABLE}"
+    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
+    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_proof_rule.h"
+    --enums-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/cvc5proofrules"
+  DEPENDS
+    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
+    "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
+    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_proof_rule.h"
+)
+add_custom_target(cvc5proofrules DEPENDS ${GENERATED_PROOF_RULES_FILES})
+
+
 set(GENERATED_TYPES_FILES
   "${CMAKE_CURRENT_BINARY_DIR}/cvc5types.pxd"
   "${CMAKE_CURRENT_BINARY_DIR}/cvc5types.pxi"
@@ -114,7 +135,7 @@ add_cython_target(cvc5_python_base CXX)
 add_library(cvc5_python_base
             MODULE
             cvc5_python_base)
-add_dependencies(cvc5_python_base cvc5kinds cvc5types)
+add_dependencies(cvc5_python_base cvc5kinds cvc5types cvc5proofrules )
 
 target_include_directories(cvc5_python_base
   PRIVATE

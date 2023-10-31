@@ -62,11 +62,11 @@ Node LfscListScNodeConverter::postConvert(Node n)
       children.push_back(d_conv.convert(null));
       Node sop = mkOperatorFor("nary_elim", children, tn);
       children.insert(children.begin(), sop);
-      return nm->mkNode(kind::APPLY_UF, children);
+      return nm->mkNode(Kind::APPLY_UF, children);
     }
     return n;
   }
-  Assert(k == kind::APPLY_UF || k == kind::APPLY_CONSTRUCTOR
+  Assert(k == Kind::APPLY_UF || k == Kind::APPLY_CONSTRUCTOR
          || !NodeManager::isNAryKind(k) || n.getNumChildren() == 2)
       << "Cannot convert LFSC side condition for " << n;
   // note that after converting to binary form, variables should only appear
@@ -79,10 +79,10 @@ Node LfscListScNodeConverter::postConvert(Node n)
     // We are in converted form, but need to get the null terminator for the
     // original term. Hence, we convert the application back to original form
     // if we replaced with an APPLY_UF.
-    if (k == kind::APPLY_UF)
+    if (k == Kind::APPLY_UF)
     {
       k = d_conv.getBuiltinKindForInternalSymbol(n.getOperator());
-      Assert(k != kind::UNDEFINED_KIND);
+      Assert(k != Kind::UNDEFINED_KIND);
       // for uniformity, reconstruct in original form
       std::vector<Node> nchildren(n.begin(), n.end());
       n = nm->mkNode(k, nchildren);
@@ -105,7 +105,7 @@ Node LfscListScNodeConverter::postConvert(Node n)
     children.push_back(null);
     Node sop = mkOperatorFor("nary_concat", children, tn);
     children.insert(children.begin(), sop);
-    return nm->mkNode(kind::APPLY_UF, children);
+    return nm->mkNode(Kind::APPLY_UF, children);
   }
   return n;
 }

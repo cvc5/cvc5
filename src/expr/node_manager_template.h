@@ -1011,9 +1011,9 @@ class NodeManager
    * ADD, are APPLYs of a ADD operator to arguments.  This array
    * holds the set of operators for these things.  A ADD operator is
    * a Node with kind "BUILTIN", and if you call
-   * plusOperator->getConst<cvc5::internal::Kind>(), you get kind::ADD back.
+   * plusOperator->getConst<cvc5::internal::Kind>(), you get Kind::ADD back.
    */
-  Node d_operators[kind::LAST_KIND];
+  Node d_operators[static_cast<uint32_t>(Kind::LAST_KIND)];
 
   /** unique vars per (Kind,Type) */
   std::map<Kind, std::map<TypeNode, Node>> d_unique_vars;
@@ -1038,14 +1038,14 @@ inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
   Assert(!constituentType.isNull()) << "unexpected NULL constituent type";
   Trace("arrays") << "making array type " << indexType << " "
                   << constituentType << std::endl;
-  return mkTypeNode(kind::ARRAY_TYPE, indexType, constituentType);
+  return mkTypeNode(Kind::ARRAY_TYPE, indexType, constituentType);
 }
 
 inline TypeNode NodeManager::mkSetType(TypeNode elementType)
 {
   Assert(!elementType.isNull()) << "unexpected NULL element type";
   Trace("sets") << "making sets type " << elementType << std::endl;
-  return mkTypeNode(kind::SET_TYPE, elementType);
+  return mkTypeNode(Kind::SET_TYPE, elementType);
 }
 
 inline expr::NodeValue* NodeManager::poolLookup(expr::NodeValue* nv) const {
@@ -1120,7 +1120,7 @@ Node NodeManager::mkAnd(const std::vector<NodeTemplate<ref_count> >& children)
   {
     return children[0];
   }
-  return mkNode(kind::AND, children);
+  return mkNode(Kind::AND, children);
 }
 
 template <bool ref_count>
@@ -1134,13 +1134,14 @@ Node NodeManager::mkOr(const std::vector<NodeTemplate<ref_count> >& children)
   {
     return children[0];
   }
-  return mkNode(kind::OR, children);
+  return mkNode(Kind::OR, children);
 }
 
 // for operators
 inline Node NodeManager::mkNode(TNode opNode) {
   NodeBuilder nb(this, operatorToKind(opNode));
-  if(opNode.getKind() != kind::BUILTIN) {
+  if (opNode.getKind() != Kind::BUILTIN)
+  {
     nb << opNode;
   }
   return nb.constructNode();
@@ -1148,7 +1149,8 @@ inline Node NodeManager::mkNode(TNode opNode) {
 
 inline Node NodeManager::mkNode(TNode opNode, TNode child1) {
   NodeBuilder nb(this, operatorToKind(opNode));
-  if(opNode.getKind() != kind::BUILTIN) {
+  if (opNode.getKind() != Kind::BUILTIN)
+  {
     nb << opNode;
   }
   nb << child1;
@@ -1157,7 +1159,8 @@ inline Node NodeManager::mkNode(TNode opNode, TNode child1) {
 
 inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2) {
   NodeBuilder nb(this, operatorToKind(opNode));
-  if(opNode.getKind() != kind::BUILTIN) {
+  if (opNode.getKind() != Kind::BUILTIN)
+  {
     nb << opNode;
   }
   nb << child1 << child2;
@@ -1167,7 +1170,8 @@ inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2) {
 inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2,
                                 TNode child3) {
   NodeBuilder nb(this, operatorToKind(opNode));
-  if(opNode.getKind() != kind::BUILTIN) {
+  if (opNode.getKind() != Kind::BUILTIN)
+  {
     nb << opNode;
   }
   nb << child1 << child2 << child3;
@@ -1180,7 +1184,8 @@ inline Node NodeManager::mkNode(TNode opNode,
                                 const std::vector<NodeTemplate<ref_count> >&
                                 children) {
   NodeBuilder nb(this, operatorToKind(opNode));
-  if(opNode.getKind() != kind::BUILTIN) {
+  if (opNode.getKind() != Kind::BUILTIN)
+  {
     nb << opNode;
   }
   nb.append(children);

@@ -39,6 +39,7 @@
 #define CVC5__SAFE_PRINT_H
 
 #include <cvc5/cvc5_export.h>
+#include <time.h>
 #include <unistd.h>
 
 #include <cstring>

@@ -87,7 +87,7 @@ void Subs::add(const std::vector<Node>& vs, const std::vector<Node>& ss)
 
 void Subs::addEquality(Node eq)
 {
-  Assert(eq.getKind() == kind::EQUAL);
+  Assert(eq.getKind() == Kind::EQUAL);
   add(eq[0], eq[1]);
 }
 

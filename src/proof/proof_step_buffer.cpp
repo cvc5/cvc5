@@ -22,8 +22,8 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 
-ProofStep::ProofStep() : d_rule(PfRule::UNKNOWN) {}
-ProofStep::ProofStep(PfRule r,
+ProofStep::ProofStep() : d_rule(ProofRule::UNKNOWN) {}
+ProofStep::ProofStep(ProofRule r,
                      const std::vector<Node>& children,
                      const std::vector<Node>& args)
     : d_rule(r), d_children(children), d_args(args)
@@ -55,7 +55,7 @@ ProofStepBuffer::ProofStepBuffer(ProofChecker* pc,
 {
 }
 
-Node ProofStepBuffer::tryStep(PfRule id,
+Node ProofStepBuffer::tryStep(ProofRule id,
                               const std::vector<Node>& children,
                               const std::vector<Node>& args,
                               Node expected)
@@ -65,7 +65,7 @@ Node ProofStepBuffer::tryStep(PfRule id,
 }
 
 Node ProofStepBuffer::tryStep(bool& added,
-                              PfRule id,
+                              ProofRule id,
                               const std::vector<Node>& children,
                               const std::vector<Node>& args,
                               Node expected)
@@ -90,7 +90,7 @@ Node ProofStepBuffer::tryStep(bool& added,
   return res;
 }
 
-bool ProofStepBuffer::addStep(PfRule id,
+bool ProofStepBuffer::addStep(ProofRule id,
                               const std::vector<Node>& children,
                               const std::vector<Node>& args,
                               Node expected)

@@ -157,7 +157,7 @@ class TheorySep : public Theory {
       Trace("sep::propagate")
           << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", "
           << (value ? "true" : "false") << ")" << std::endl;
-      Assert(predicate.getKind() == kind::EQUAL);
+      Assert(predicate.getKind() == Kind::EQUAL);
       // Just forward to sep
       if (value)
       {

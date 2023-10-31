@@ -25,16 +25,23 @@ namespace theory {
 namespace sep {
 
 void TheorySepRewriter::getStarChildren( Node n, std::vector< Node >& s_children, std::vector< Node >& ns_children ){
-  Assert(n.getKind() == kind::SEP_STAR);
+  Assert(n.getKind() == Kind::SEP_STAR);
   Node tr = NodeManager::currentNM()->mkConst( true );
   for( unsigned i=0; i<n.getNumChildren(); i++ ){
-    if( n[i].getKind()==kind::SEP_EMP ){
+    if (n[i].getKind() == Kind::SEP_EMP)
+    {
       s_children.push_back( n[i] );
-    }else if( n[i].getKind()==kind::SEP_STAR ){
+    }
+    else if (n[i].getKind() == Kind::SEP_STAR)
+    {
       getStarChildren( n[i], s_children, ns_children );
-    }else if( n[i].getKind()==kind::SEP_PTO ){
+    }
+    else if (n[i].getKind() == Kind::SEP_PTO)
+    {
       s_children.push_back( n[i] );
-    }else{
+    }
+    else
+    {
       std::vector< Node > temp_s_children;
       getAndChildren( n[i], temp_s_children, ns_children );
       Node to_add;
@@ -45,13 +52,16 @@ void TheorySepRewriter::getStarChildren( Node n, std::vector< Node >& s_children
       }else if( temp_s_children.size()==1 ){
         to_add = temp_s_children[0];
       }else{
-        to_add = NodeManager::currentNM()->mkNode( kind::AND, temp_s_children );
+        to_add = NodeManager::currentNM()->mkNode(Kind::AND, temp_s_children);
       }
       if( !to_add.isNull() ){
         //flatten star
-        if( to_add.getKind()==kind::SEP_STAR ){
+        if (to_add.getKind() == Kind::SEP_STAR)
+        {
           getStarChildren( to_add, s_children, ns_children );
-        }else if( to_add.getKind()!=kind::SEP_EMP || s_children.empty() ){  //remove sep emp
+        }
+        else if (to_add.getKind() != Kind::SEP_EMP || s_children.empty())
+        {  // remove sep emp
           s_children.push_back( to_add );
         }
       }
@@ -60,11 +70,14 @@ void TheorySepRewriter::getStarChildren( Node n, std::vector< Node >& s_children
 }
 
 void TheorySepRewriter::getAndChildren( Node n, std::vector< Node >& s_children, std::vector< Node >& ns_children ) {
-  if( n.getKind()==kind::AND ){
+  if (n.getKind() == Kind::AND)
+  {
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       getAndChildren( n[i], s_children, ns_children );
     }
-  }else{
+  }
+  else
+  {
     std::map< Node, bool > visited;
     if( isSpatial( n, visited ) ){
       if( std::find( s_children.begin(), s_children.end(), n )==s_children.end() ){
@@ -83,9 +96,13 @@ void TheorySepRewriter::getAndChildren( Node n, std::vector< Node >& s_children,
 bool TheorySepRewriter::isSpatial( Node n, std::map< Node, bool >& visited ) {
   if( visited.find( n )==visited.end() ){
     visited[n] = true;
-    if( n.getKind()==kind::SEP_STAR || n.getKind()==kind::SEP_PTO || n.getKind()==kind::SEP_EMP || n.getKind()==kind::SEP_LABEL ){
+    if (n.getKind() == Kind::SEP_STAR || n.getKind() == Kind::SEP_PTO
+        || n.getKind() == Kind::SEP_EMP || n.getKind() == Kind::SEP_LABEL)
+    {
       return true;
-    }else if( n.getType().isBoolean() ){
+    }
+    else if (n.getType().isBoolean())
+    {
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
         if( isSpatial( n[i], visited ) ){
           return true;
@@ -100,7 +117,8 @@ RewriteResponse TheorySepRewriter::postRewrite(TNode node) {
   Trace("sep-postrewrite") << "Sep::postRewrite start " << node << std::endl;
   Node retNode = node;
   switch (node.getKind()) {
-    case kind::SEP_STAR: {
+    case Kind::SEP_STAR:
+    {
       //flatten
       std::vector< Node > s_children;
       std::vector< Node > ns_children;
@@ -110,7 +128,7 @@ RewriteResponse TheorySepRewriter::postRewrite(TNode node) {
         if( s_children.size()==1 ) {
           schild = s_children[0];
         }else{
-          schild = NodeManager::currentNM()->mkNode( kind::SEP_STAR, s_children );
+          schild = NodeManager::currentNM()->mkNode(Kind::SEP_STAR, s_children);
         }
         ns_children.push_back( schild );
       }
@@ -118,11 +136,12 @@ RewriteResponse TheorySepRewriter::postRewrite(TNode node) {
       if( ns_children.size()==1 ){
         retNode = ns_children[0];
       }else{
-        retNode = NodeManager::currentNM()->mkNode( kind::AND, ns_children );
+        retNode = NodeManager::currentNM()->mkNode(Kind::AND, ns_children);
       }
       break;
     }
-    case kind::EQUAL: {
+    case Kind::EQUAL:
+    {
       if(node[0] == node[1]) {
         return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
       }

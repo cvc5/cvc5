@@ -106,7 +106,7 @@ class EvalSygusInvarianceTest : public SygusInvarianceTest
  public:
   EvalSygusInvarianceTest(Rewriter* r)
       : SygusInvarianceTest(r),
-        d_kind(kind::UNDEFINED_KIND),
+        d_kind(Kind::UNDEFINED_KIND),
         d_is_conjunctive(false)
   {
   }

@@ -25,32 +25,21 @@ import java.util.*;
 /**
  * A cvc5 solver.
  */
-public class Solver implements IPointer
+public class Solver extends AbstractPointer
 {
   static
   {
     Utils.loadLibraries();
   }
 
-  private long pointer;
+  private static native long newSolver();
 
-  public long getPointer()
+  protected native void deletePointer(long pointer);
+
+  protected String toString(long pointer)
   {
-    return pointer;
+    throw new UnsupportedOperationException("Solver.toString() is not supported in the cpp api");
   }
-
-  private native long newSolver();
-
-  public void deletePointer()
-  {
-    if (pointer != 0)
-    {
-      deletePointer(pointer);
-    }
-    pointer = 0;
-  }
-
-  private static native void deletePointer(long pointer);
 
   // store IOracle objects
   List<IOracle> oracles = new ArrayList<>();
@@ -61,7 +50,7 @@ public class Solver implements IPointer
 
   public Solver()
   {
-    this.pointer = newSolver();
+    super(Solver.newSolver());
   }
 
   /* .................................................................... */
@@ -2032,6 +2021,27 @@ public class Solver implements IPointer
   }
 
   private native long[] getUnsatCore(long pointer);
+
+  /**
+   * Get the lemmas used to derive unsatisfiability.
+   * SMT-LIB:
+   * {@code
+   * (get-unsat-core-lemmas)
+   * }
+   * Requires the SAT proof unsat core mode, so to enable option {@code unsat-core-mode=sat-proof}
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @return A set of terms representing the lemmas used to derive
+   * unsatisfiability.
+   */
+  public Term[] getUnsatCoreLemmas()
+  {
+    long[] retPointers = getUnsatCoreLemmas(pointer);
+    return Utils.getTerms(retPointers);
+  }
+
+  private native long[] getUnsatCoreLemmas(long pointer);
 
   /**
    * Get a difficulty estimate for an asserted formula. This method is

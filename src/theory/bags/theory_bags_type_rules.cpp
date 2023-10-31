@@ -42,11 +42,11 @@ TypeNode BinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
                                              bool check,
                                              std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BAG_UNION_MAX
-         || n.getKind() == kind::BAG_UNION_DISJOINT
-         || n.getKind() == kind::BAG_INTER_MIN
-         || n.getKind() == kind::BAG_DIFFERENCE_SUBTRACT
-         || n.getKind() == kind::BAG_DIFFERENCE_REMOVE);
+  Assert(n.getKind() == Kind::BAG_UNION_MAX
+         || n.getKind() == Kind::BAG_UNION_DISJOINT
+         || n.getKind() == Kind::BAG_INTER_MIN
+         || n.getKind() == Kind::BAG_DIFFERENCE_SUBTRACT
+         || n.getKind() == Kind::BAG_DIFFERENCE_REMOVE);
   TypeNode bagType = n[0].getType(check);
   if (check)
   {
@@ -72,7 +72,7 @@ bool BinaryOperatorTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
 {
   // only UNION_DISJOINT has a const rule in kinds.
   // Other binary operators do not have const rules in kinds
-  Assert(n.getKind() == kind::BAG_UNION_DISJOINT);
+  Assert(n.getKind() == Kind::BAG_UNION_DISJOINT);
   return BagsUtils::isConstant(n);
 }
 
@@ -85,7 +85,7 @@ TypeNode SubBagTypeRule::computeType(NodeManager* nodeManager,
                                      bool check,
                                      std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BAG_SUBBAG);
+  Assert(n.getKind() == Kind::BAG_SUBBAG);
   TypeNode bagType = n[0].getType(check);
   if (check)
   {
@@ -112,7 +112,7 @@ TypeNode CountTypeRule::computeType(NodeManager* nodeManager,
                                     bool check,
                                     std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BAG_COUNT);
+  Assert(n.getKind() == Kind::BAG_COUNT);
   TypeNode bagType = n[1].getType(check);
   if (check)
   {
@@ -146,7 +146,7 @@ TypeNode MemberTypeRule::computeType(NodeManager* nodeManager,
                                      bool check,
                                      std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BAG_MEMBER);
+  Assert(n.getKind() == Kind::BAG_MEMBER);
   TypeNode bagType = n[1].getType(check);
   if (check)
   {
@@ -180,7 +180,7 @@ TypeNode DuplicateRemovalTypeRule::computeType(NodeManager* nodeManager,
                                                bool check,
                                                std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BAG_DUPLICATE_REMOVAL);
+  Assert(n.getKind() == Kind::BAG_DUPLICATE_REMOVAL);
   TypeNode bagType = n[0].getType(check);
   if (check)
   {
@@ -204,7 +204,7 @@ TypeNode BagMakeTypeRule::computeType(NodeManager* nm,
                                       bool check,
                                       std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BAG_MAKE);
+  Assert(n.getKind() == Kind::BAG_MAKE);
   TypeNode actualElementType = n[0].getType(check);
   if (check)
   {
@@ -229,7 +229,7 @@ TypeNode BagMakeTypeRule::computeType(NodeManager* nm,
 
 bool BagMakeTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
 {
-  Assert(n.getKind() == kind::BAG_MAKE);
+  Assert(n.getKind() == Kind::BAG_MAKE);
   // for a bag to be a constant, both the element and its multiplicity should
   // be constants, and the multiplicity should be > 0.
   return n[0].isConst() && n[1].isConst()
@@ -245,7 +245,7 @@ TypeNode IsSingletonTypeRule::computeType(NodeManager* nodeManager,
                                           bool check,
                                           std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BAG_IS_SINGLETON);
+  Assert(n.getKind() == Kind::BAG_IS_SINGLETON);
   TypeNode bagType = n[0].getType(check);
   if (check)
   {
@@ -267,7 +267,7 @@ TypeNode EmptyBagTypeRule::computeType(NodeManager* nodeManager,
                                        bool check,
                                        std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BAG_EMPTY);
+  Assert(n.getKind() == Kind::BAG_EMPTY);
   EmptyBag emptyBag = n.getConst<EmptyBag>();
   return emptyBag.getType();
 }
@@ -281,7 +281,7 @@ TypeNode CardTypeRule::computeType(NodeManager* nodeManager,
                                    bool check,
                                    std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BAG_CARD);
+  Assert(n.getKind() == Kind::BAG_CARD);
   TypeNode bagType = n[0].getType(check);
   if (check)
   {
@@ -303,7 +303,7 @@ TypeNode ChooseTypeRule::computeType(NodeManager* nodeManager,
                                      bool check,
                                      std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BAG_CHOOSE);
+  Assert(n.getKind() == Kind::BAG_CHOOSE);
   TypeNode bagType = n[0].getType(check);
   if (check)
   {
@@ -325,7 +325,7 @@ TypeNode FromSetTypeRule::computeType(NodeManager* nodeManager,
                                       bool check,
                                       std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BAG_FROM_SET);
+  Assert(n.getKind() == Kind::BAG_FROM_SET);
   TypeNode setType = n[0].getType(check);
   if (check)
   {
@@ -349,7 +349,7 @@ TypeNode ToSetTypeRule::computeType(NodeManager* nodeManager,
                                     bool check,
                                     std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BAG_TO_SET);
+  Assert(n.getKind() == Kind::BAG_TO_SET);
   TypeNode bagType = n[0].getType(check);
   if (check)
   {
@@ -373,7 +373,7 @@ TypeNode BagMapTypeRule::computeType(NodeManager* nodeManager,
                                      bool check,
                                      std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BAG_MAP);
+  Assert(n.getKind() == Kind::BAG_MAP);
   TypeNode functionType = n[0].getType(check);
   TypeNode bagType = n[1].getType(check);
   if (check)
@@ -420,7 +420,7 @@ TypeNode BagFilterTypeRule::computeType(NodeManager* nodeManager,
                                         bool check,
                                         std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BAG_FILTER);
+  Assert(n.getKind() == Kind::BAG_FILTER);
   TypeNode functionType = n[0].getType(check);
   TypeNode bagType = n[1].getType(check);
   if (check)
@@ -467,7 +467,7 @@ TypeNode BagFoldTypeRule::computeType(NodeManager* nodeManager,
                                       bool check,
                                       std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BAG_FOLD);
+  Assert(n.getKind() == Kind::BAG_FOLD);
   TypeNode functionType = n[0].getType(check);
   TypeNode initialValueType = n[1].getType(check);
   TypeNode bagType = n[2].getType(check);
@@ -523,7 +523,7 @@ TypeNode BagPartitionTypeRule::computeType(NodeManager* nodeManager,
                                            bool check,
                                            std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BAG_PARTITION);
+  Assert(n.getKind() == Kind::BAG_PARTITION);
   TypeNode functionType = n[0].getType(check);
   TypeNode bagType = n[1].getType(check);
   NodeManager* nm = NodeManager::currentNM();
@@ -572,7 +572,7 @@ TypeNode TableProductTypeRule::computeType(NodeManager* nodeManager,
                                            bool check,
                                            std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::TABLE_PRODUCT);
+  Assert(n.getKind() == Kind::TABLE_PRODUCT);
   Node A = n[0];
   Node B = n[1];
   TypeNode typeA = n[0].getType(check);
@@ -614,8 +614,8 @@ TypeNode TableProjectTypeRule::computeType(NodeManager* nm,
                                            bool check,
                                            std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::TABLE_PROJECT && n.hasOperator()
-         && n.getOperator().getKind() == kind::TABLE_PROJECT_OP);
+  Assert(n.getKind() == Kind::TABLE_PROJECT && n.hasOperator()
+         && n.getOperator().getKind() == Kind::TABLE_PROJECT_OP);
   ProjectOp op = n.getOperator().getConst<ProjectOp>();
   const std::vector<uint32_t>& indices = op.getIndices();
   TypeNode bagType = n[0].getType(check);
@@ -676,8 +676,8 @@ TypeNode TableAggregateTypeRule::computeType(NodeManager* nm,
                                              bool check,
                                              std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::TABLE_AGGREGATE && n.hasOperator()
-         && n.getOperator().getKind() == kind::TABLE_AGGREGATE_OP);
+  Assert(n.getKind() == Kind::TABLE_AGGREGATE && n.hasOperator()
+         && n.getOperator().getKind() == Kind::TABLE_AGGREGATE_OP);
   ProjectOp op = n.getOperator().getConst<ProjectOp>();
   const std::vector<uint32_t>& indices = op.getIndices();
 
@@ -747,8 +747,8 @@ TypeNode TableJoinTypeRule::computeType(NodeManager* nm,
                                         bool check,
                                         std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::TABLE_JOIN && n.hasOperator()
-         && n.getOperator().getKind() == kind::TABLE_JOIN_OP);
+  Assert(n.getKind() == Kind::TABLE_JOIN && n.hasOperator()
+         && n.getOperator().getKind() == Kind::TABLE_JOIN_OP);
   ProjectOp op = n.getOperator().getConst<ProjectOp>();
   const std::vector<uint32_t>& indices = op.getIndices();
   Node A = n[0];
@@ -821,8 +821,8 @@ TypeNode TableGroupTypeRule::computeType(NodeManager* nm,
                                          bool check,
                                          std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::TABLE_GROUP && n.hasOperator()
-         && n.getOperator().getKind() == kind::TABLE_GROUP_OP);
+  Assert(n.getKind() == Kind::TABLE_GROUP && n.hasOperator()
+         && n.getOperator().getKind() == Kind::TABLE_GROUP_OP);
   ProjectOp op = n.getOperator().getConst<ProjectOp>();
   const std::vector<uint32_t>& indices = op.getIndices();
 

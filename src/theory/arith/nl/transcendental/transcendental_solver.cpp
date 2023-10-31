@@ -219,7 +219,7 @@ void TranscendentalSolver::checkTranscendentalTangentPlanes()
        d_tstate.d_funcMap)
   {
     Kind k = tfs.first;
-    if (k == PI)
+    if (k == Kind::PI)
     {
       // We do not use Taylor approximation for PI currently.
       // This is because the convergence is extremely slow, and hence an
@@ -341,7 +341,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
                         << std::endl;
 
       Assert(v_pab.isConst());
-      Node comp = nm->mkNode(r == 0 ? LT : GT, v, v_pab);
+      Node comp = nm->mkNode(r == 0 ? Kind::LT : Kind::GT, v, v_pab);
       Trace("nl-trans") << "...compare : " << comp << std::endl;
       Node compr = rewrite(comp);
       Trace("nl-trans") << "...got : " << compr << std::endl;
@@ -410,7 +410,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
   }
   else if (is_secant)
   {
-    if (k == EXPONENTIAL)
+    if (k == Kind::EXPONENTIAL)
     {
       d_expSlv.doSecantLemmas(tf, poly_approx, c, poly_approx_c, d, actual_d);
     }
@@ -425,14 +425,14 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
 
 int TranscendentalSolver::regionToConcavity(Kind k, int region)
 {
-  if (k == EXPONENTIAL)
+  if (k == Kind::EXPONENTIAL)
   {
     if (region == 1)
     {
       return 1;
     }
   }
-  else if (k == SINE)
+  else if (k == Kind::SINE)
   {
     if (region == 1 || region == 2)
     {
@@ -461,7 +461,7 @@ void TranscendentalSolver::postProcessModel(std::map<Node, Node>& arithModel,
       continue;
     }
     // it might have an exact value, in which case there is nothing to do
-    if (k == SINE && d_sineSlv.hasExactModelValue(n))
+    if (k == Kind::SINE && d_sineSlv.hasExactModelValue(n))
     {
       continue;
     }
