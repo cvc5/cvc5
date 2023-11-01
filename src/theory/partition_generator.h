@@ -54,10 +54,14 @@ class PartitionGenerator : public TheoryEngineModule
    */
   void check(Theory::Effort e) override;
 
-  /**
-   * Add the literals from the toAdd Node to our list of literals from lemmas.
+  /** Notify lemma, adds the literals from the Node n to our list of literals
+   * from lemmas.
    */
-  void addLemmaAtoms(Node toAdd);
+  void notifyLemma(TNode n,
+                   InferenceId id,
+                   LemmaProperty p,
+                   const std::vector<Node>& skAsserts,
+                   const std::vector<Node>& sks) override;
 
  private:
   /* LiteralListType is used to specify where to pull literals from when calling

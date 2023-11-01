@@ -73,14 +73,18 @@ void PartitionGenerator::incrementOrInsertLemmaAtom(Node& node)
   }
 }
 
-void PartitionGenerator::addLemmaAtoms(Node toAdd)
+void PartitionGenerator::notifyLemma(TNode n,
+                                     InferenceId id,
+                                     LemmaProperty p,
+                                     const std::vector<Node>& skAsserts,
+                                     const std::vector<Node>& sks)
 {
   if (options().parallel.partitionStrategy == options::PartitionMode::LEMMA_CUBE
       || options().parallel.partitionStrategy
              == options::PartitionMode::LEMMA_SCATTER)
   {
     std::vector<Node> toVisit;
-    toVisit.push_back(toAdd);
+    toVisit.push_back(n);
 
     for (unsigned i = 0; i < toVisit.size(); ++i)
     {
@@ -359,10 +363,19 @@ Node PartitionGenerator::makeCubePartitions(LiteralListType litType,
     bool t = false;
 
     // numConsecutiveTF tracks how many times the node should be
-    // consectuively true or false in a column. For example, if numVar=3: x
-    // y z T T T T T F T F T T F F F T T F T F F F T F F F For the first
-    // column, numConsecutiveTF = 4, then 2 for the second column, and 1 for
-    // the third column.
+    // consectuively true or false in a column.
+    // For example, if numVar=3:
+    // x y z
+    // T T T
+    // T T F
+    // T F T
+    // T F F
+    // F T T
+    // F T F
+    // F F T
+    // F F F
+    // For the first column, numConsecutiveTF = 4, then 2 for the
+    //  second column, and 1 for the third column.
     size_t numConsecutiveTF = total / 2;
     for (Node n : literals)
     {
