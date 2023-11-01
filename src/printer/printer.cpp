@@ -22,11 +22,11 @@
 #include "options/language.h"
 #include "options/printer_options.h"
 #include "printer/ast/ast_printer.h"
+#include "printer/let_binding.h"
 #include "printer/smt2/smt2_printer.h"
 #include "proof/unsat_core.h"
 #include "smt/model.h"
 #include "theory/quantifiers/instantiation_list.h"
-#include "printer/let_binding.h"
 
 using namespace std;
 
@@ -55,10 +55,12 @@ unique_ptr<Printer> Printer::makePrinter(Language lang)
   }
 }
 
-void Printer::toStream(std::ostream& out, TNode n, const LetBinding* lbind) const
+void Printer::toStream(std::ostream& out,
+                       TNode n,
+                       const LetBinding* lbind) const
 {
   // no special implementation, just convert and print with default prefix
-  if (lbind!=nullptr)
+  if (lbind != nullptr)
   {
     Node nc = lbind->convert(n);
     toStream(out, nc);

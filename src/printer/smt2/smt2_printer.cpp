@@ -119,13 +119,13 @@ void Smt2Printer::toStream(std::ostream& out,
                            int toDepth,
                            size_t dag) const
 {
-  if(dag == 0) 
+  if (dag == 0)
   {
     toStream(out, n, nullptr, toDepth);
     return;
   }
   LetBinding lbind("_let_", dag + 1);
-  
+
   std::string cparen;
   std::vector<Node> letList;
   lbind.letify(n, letList);
@@ -145,14 +145,16 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     cparen = cparens.str();
   }
-  //Node nc = lbind.convert(n, "_let_");
-  // print the body, passing the lbind object
+  // Node nc = lbind.convert(n, "_let_");
+  //  print the body, passing the lbind object
   toStream(out, n, &lbind, toDepth);
   out << cparen;
   lbind.popScope();
 }
 
-void Smt2Printer::toStream(std::ostream& out, TNode n, const LetBinding* lbind) const
+void Smt2Printer::toStream(std::ostream& out,
+                           TNode n,
+                           const LetBinding* lbind) const
 {
   int toDepth = options::ioutils::getNodeDepth(out);
   toStream(out, n, lbind, toDepth);
@@ -781,7 +783,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
     {
       out << "(! ";
       annot << ")";
-    }  
+    }
     size_t dag = options::ioutils::getDagThresh(out);
     toStream(out, n[1], toDepth < 0 ? toDepth : toDepth - 1, dag);
     out << annot.str() << ")";
@@ -925,8 +927,8 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
 void Smt2Printer::toStream(std::ostream& out,
                            TNode n,
                            const LetBinding* lbind,
-                            int toDepth,
-                            bool lbindTop) const
+                           int toDepth,
+                           bool lbindTop) const
 {
   std::vector<std::tuple<TNode, size_t, int>> visit;
   TNode cur;
@@ -940,13 +942,13 @@ void Smt2Printer::toStream(std::ostream& out,
     cdepth = std::get<2>(visit.back());
     if (curChild == 0)
     {
-      if (lbind!=nullptr)
+      if (lbind != nullptr)
       {
         if (lbindTop)
         {
           // see if its letified
           uint32_t lid = lbind->getId(cur);
-          if (lid!=0)
+          if (lid != 0)
           {
             out << lbind->getPrefix() << lid;
             visit.pop_back();

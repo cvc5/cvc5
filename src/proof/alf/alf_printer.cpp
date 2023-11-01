@@ -35,11 +35,8 @@ namespace cvc5::internal {
 
 namespace proof {
 
-AlfPrinter::AlfPrinter(Env& env,
-                       AlfNodeConverter& atp)
-    : EnvObj(env),
-      d_tproc(atp),
-      d_termLetPrefix("@t")
+AlfPrinter::AlfPrinter(Env& env, AlfNodeConverter& atp)
+    : EnvObj(env), d_tproc(atp), d_termLetPrefix("@t")
 {
   d_pfType = NodeManager::currentNM()->mkSort("proofType");
   d_false = NodeManager::currentNM()->mkConst(false);
