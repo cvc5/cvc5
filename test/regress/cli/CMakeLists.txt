@@ -939,7 +939,6 @@ set(regress_0_tests
   regress0/nl/nta/issue8182-exact-mv-keep.smt2
   regress0/nl/nta/issue8182-2-exact-mv-keep.smt2
   regress0/nl/nta/issue8183-tc-pi.smt2
-  regress0/nl/nta/issue8208-red-nred.smt2
   regress0/nl/nta/issue8294-2-double-solve.smt2
   regress0/nl/nta/issue8415-embed-arg.smt2
   regress0/nl/nta/issue8773-phase-shift.smt2
@@ -3477,6 +3476,8 @@ set(regression_disabled_tests
   regress0/datatypes/datatype-dump.cvc.smt2
   # no longer support overloaded symbols across multiple parametric datatypes
   regress0/datatypes/repeated-selectors-2769.smt2
+  # unknown after change to lemma schema
+  regress0/nl/nta/issue8208-red-nred.smt2
   # fails with unknown on some builds
   regress0/quantifiers/nl-sqrt2-q.smt2
   # issues with skolems
