@@ -249,10 +249,9 @@ void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
   if (isProofEnabled() && !d_env.isTheoryProofProducing()
       && !trn.getGenerator())
   {
-    Node tid = mkTrustId(TrustId::THEORY_LEMMA);
     Node actualNode = negated ? node.notNode() : node;
-    d_theoryLemmaPg.addStep(
-        actualNode, ProofRule::TRUST, {}, {tid, actualNode});
+    d_theoryLemmaPg.addTrustedStep(
+        actualNode, TrustId::THEORY_LEMMA, {}, {});
     trn = TrustNode::mkReplaceGenTrustNode(trn, &d_theoryLemmaPg);
   }
   assertInternal(node, negated, removable, false, trn.getGenerator());

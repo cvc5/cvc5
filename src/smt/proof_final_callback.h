@@ -62,10 +62,12 @@ class ProofFinalCallback : protected EnvObj, public ProofNodeUpdaterCallback
    * marked with the given inference id.
    */
   HistogramStat<theory::InferenceId> d_annotationRuleIds;
-  /** Counts number of postprocessed proof nodes for each kind of DSL proof rule
+  /** 
+   * Counts number of postprocessed proof nodes for each kind of DSL proof rule
    */
   HistogramStat<rewriter::DslProofRule> d_dslRuleCount;
-  /** Counts number of postprocessed proof nodes for each kind of DSL proof rule
+  /** 
+   * Counts number of postprocessed proof nodes for each trusted step
    */
   HistogramStat<TrustId> d_trustIds;
   /** Total number of postprocessed rule applications */
