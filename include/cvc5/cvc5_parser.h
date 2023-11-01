@@ -270,6 +270,90 @@ class CVC5_EXPORT InputParser
   std::shared_ptr<Parser> d_parser;
 };
 
+class CVC5_EXPORT ParserException : public CVC5ApiException
+{
+ public:
+  // Constructors
+  ParserException() : CVC5ApiException(""), d_filename(), d_line(0), d_column(0)
+  {
+  }
+
+  ParserException(const std::string& msg)
+      : CVC5ApiException(msg), d_filename(), d_line(0), d_column(0)
+  {
+  }
+
+  ParserException(const char* msg)
+      : CVC5ApiException(msg), d_filename(), d_line(0), d_column(0)
+  {
+  }
+
+  ParserException(const std::string& msg,
+                  const std::string& filename,
+                  unsigned long line,
+                  unsigned long column)
+      : CVC5ApiException(msg),
+        d_filename(filename),
+        d_line(line),
+        d_column(column)
+  {
+  }
+
+  // Destructor
+  ~ParserException() override {}
+
+  void toStream(std::ostream& os) const override
+  {
+    if (d_line > 0)
+    {
+      os << "Parse Error: " << d_filename << ":" << d_line << "." << d_column
+         << ": " << getMessage();
+    }
+    else
+    {
+      os << "Parse Error: " << getMessage();
+    }
+  }
+
+  std::string getFilename() const { return d_filename; }
+
+  int getLine() const { return d_line; }
+
+  int getColumn() const { return d_column; }
+
+ protected:
+  std::string d_filename;
+  unsigned long d_line;
+  unsigned long d_column;
+}; /* class ParserException */
+
+class ParserEndOfFileException : public ParserException
+{
+ public:
+  // Constructors same as ParserException's
+
+  ParserEndOfFileException() : ParserException() {}
+
+  ParserEndOfFileException(const std::string& msg) : ParserException(msg) {}
+
+  ParserEndOfFileException(const char* msg) : ParserException(msg) {}
+
+  ParserEndOfFileException(const std::string& msg,
+                           const std::string& filename,
+                           unsigned long line,
+                           unsigned long column)
+      : ParserException(msg, filename, line, column)
+  {
+  }
+
+}; /* class ParserEndOfFileException */
+
+class InputStreamException : public CVC5ApiException
+{
+ public:
+  InputStreamException(const std::string& msg) : CVC5ApiException(msg) {}
+};
+
 }  // namespace parser
 }  // namespace cvc5
 
