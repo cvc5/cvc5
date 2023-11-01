@@ -43,13 +43,7 @@
   {                                                                            \
     jclass exceptionClass = env->FindClass("io/github/cvc5/CVC5ApiException"); \
     env->ThrowNew(exceptionClass, e.what());                                   \
-  }                                                                            
-  // catch (const cvc5::parser::ParserException& e)                               \
-  // {                                                                            \
-  //   jclass exceptionClass =                                                    \
-  //       env->FindClass("io/github/cvc5/CVC5ParserException");                  \
-  //   env->ThrowNew(exceptionClass, e.what());                                   \
-  // }
+  }
 #define CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, returnValue) \
   CVC5_JAVA_API_TRY_CATCH_END(env)                           \
   return returnValue;
