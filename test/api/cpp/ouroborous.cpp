@@ -32,8 +32,6 @@
 #include <iostream>
 #include <string>
 
-#include <cvc5/cvc5_parser.h>
-
 using namespace cvc5;
 using namespace cvc5::internal;
 using namespace cvc5::parser;
@@ -46,11 +44,11 @@ int main()
   {
     return runTest();
   }
-  catch (cvc5::CVC5ApiException& e)
+  catch (ParserException& e)
   {
     std::cerr << e.getMessage() << std::endl;
   }
-  catch (ParserException& e)
+  catch (cvc5::CVC5ApiException& e)
   {
     std::cerr << e.getMessage() << std::endl;
   }
@@ -70,8 +68,8 @@ std::string parse(std::string instr,
 
   std::string declarations;
 
-    declarations =
-        "\
+  declarations =
+      "\
   (declare-sort U 0)\n\
   (declare-fun f (U) U)\n\
   (declare-fun x () U)\n\
