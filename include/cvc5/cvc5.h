@@ -20,6 +20,7 @@
 
 #include <cvc5/cvc5_kind.h>
 #include <cvc5/cvc5_types.h>
+#include <cvc5/cvc5_proof_rule.h>
 
 #include <functional>
 #include <map>
@@ -53,6 +54,7 @@ class DTypeSelector;
 class NodeManager;
 class SolverEngine;
 class TypeNode;
+class ProofNode;
 class Options;
 class Random;
 class Rational;
@@ -1117,6 +1119,7 @@ class CVC5_EXPORT Term
   friend class Datatype;
   friend class DatatypeConstructor;
   friend class DatatypeSelector;
+  friend class Proof;
   friend class Solver;
   friend class Grammar;
   friend class SynthResult;
@@ -2941,7 +2944,7 @@ class CVC5_EXPORT Grammar
  private:
   /**
    * Constructor.
-   * @param slv The solver that created this grammar.
+   * @param nm        The associated node manager.
    * @param sygusVars The input variables to synth-fun/synth-var.
    * @param ntSymbols The non-terminals of this grammar.
    */
@@ -3328,6 +3331,56 @@ std::ostream& operator<<(std::ostream& out,
                          const Statistics& stats) CVC5_EXPORT;
 
 /* -------------------------------------------------------------------------- */
+/* Proof                                                                      */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A cvc5 proof.  Proofs are trees and every proof object corresponds to the
+ * root step of a proof.  The branches of the root step are the premises of
+ * the step.
+ */
+class CVC5_EXPORT Proof
+{
+  friend class Solver;
+
+ public:
+  /** @return The proof rule used by the root step of the proof. */
+  ProofRule getRule() const;
+
+  /** @return The conclusion of the root step of the proof. */
+  Term getResult() const;
+
+  /** @return The premises of the root step of the proof. */
+  const std::vector<Proof> getChildren() const;
+
+  /**
+   * @return The arguments of the root step of the proof as a vector of terms.
+   *         Some of those terms might be strings.
+   */
+  const std::vector<Term> getArguments() const;
+
+  /*
+   * Destructor.
+   */
+  ~Proof();
+
+  /**
+   * Nullary constructor. Needed for the Cython API.
+   */
+  Proof();
+
+ private:
+  /** Construct a proof by wrapping a ProofNode. */
+  Proof(const std::shared_ptr<internal::ProofNode> p);
+
+  /** @return The internal proof node wrapped by this proof object. */
+  const std::shared_ptr<internal::ProofNode>& getProofNode(void) const;
+
+  /** The internal proof node wrapped by this proof object. */
+  std::shared_ptr<internal::ProofNode> d_proof_node;
+};
+
+/* -------------------------------------------------------------------------- */
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
 
@@ -3345,6 +3398,7 @@ class CVC5_EXPORT Solver
   friend class Grammar;
   friend class Op;
   friend class parser::Cmd;
+  friend class Proof;
   friend class main::CommandExecutor;
   friend class Sort;
   friend class Term;
@@ -4384,6 +4438,28 @@ class CVC5_EXPORT Solver
   std::vector<Term> getUnsatCore() const;
 
   /**
+   * Get the lemmas used to derive unsatisfiability.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-unsat-core-lemmas)
+   *
+   * Requires the SAT proof unsat core mode, so to enable option
+   * :ref:`unsat-core-mode=sat-proof <lbl-option-unsat-core-mode>`.
+   *
+   * \endverbatim
+   *
+   * @warning This function is experimental and may change in future versions.
+   *
+   * @return A set of terms representing the lemmas used to derive
+   * unsatisfiability.
+   */
+  std::vector<Term> getUnsatCoreLemmas() const;
+
+  /**
    * Get a difficulty estimate for an asserted formula. This function is
    * intended to be called immediately after any response to a checkSat.
    *
@@ -4445,12 +4521,26 @@ class CVC5_EXPORT Solver
    * @warning This function is experimental and may change in future versions.
    *
    * @param c The component of the proof to return
-   * @return A string representing the proof. This takes into account
-   * :ref:`proof-format-mode <lbl-option-proof-format-mode>` when `c` is
-   * `ProofComponent::FULL`.
+   * @return A vector of proofs.
    */
-  std::string getProof(
+  std::vector<Proof> getProof(
       modes::ProofComponent c = modes::ProofComponent::FULL) const;
+
+  /**
+   * Prints a proof as a string in a selected proof format mode.
+   * Other aspects of printing are taken from the solver options.
+   *
+   * @warning This function is experimental and may change in future versions.
+   *
+   * @param proof A proof, usually obtained from Solver::getProof().
+   * @param format The proof format used to print the proof.  Must be
+   * `modes::ProofFormat::NONE` if the proof is from a component other than
+   * `modes::ProofComponent::FULL`.
+   * @return The string representation of the proof in the given format.
+   */
+  std::string proofToString(
+      Proof proof,
+      modes::ProofFormat format = modes::ProofFormat::DEFAULT) const;
 
   /**
    * Get a list of learned literals that are entailed by the current set of
@@ -4913,6 +5003,7 @@ class CVC5_EXPORT Solver
    * \endverbatim
    *
    * @warning This function is experimental and may change in future versions.
+   * @param terms The model values to block.
    */
   void blockModelValues(const std::vector<Term>& terms) const;
 
@@ -5309,7 +5400,7 @@ class CVC5_EXPORT Solver
   /**
    * Helper for mk-functions that call d_nm->mkConst().
    * @param nm The associated node manager.
-   * @pram t The value.
+   * @param t The value.
    */
   template <typename T>
   static Term mkValHelper(internal::NodeManager* nm, const T& t);
@@ -5319,9 +5410,9 @@ class CVC5_EXPORT Solver
    * @param r The value (either int or real).
    * @param isInt True to create an integer value.
    */
-  static Term mkRationalValHelper(internal::NodeManager*,
-                                  const internal::Rational&,
-                                  bool);
+  static Term mkRationalValHelper(internal::NodeManager* nm,
+                                  const internal::Rational& r,
+                                  bool isInt);
 
   /*
    * Constructs a solver with the given original options. This should only be

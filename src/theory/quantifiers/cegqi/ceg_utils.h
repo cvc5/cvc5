@@ -88,7 +88,7 @@ class TermProperties {
   Node getModifiedTerm(Node pv) const
   {
     if( !d_coeff.isNull() ){
-      return NodeManager::currentNM()->mkNode( kind::MULT, d_coeff, pv );
+      return NodeManager::currentNM()->mkNode(Kind::MULT, d_coeff, pv);
     }else{
       return pv;
     }

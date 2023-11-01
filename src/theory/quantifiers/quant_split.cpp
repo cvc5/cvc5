@@ -183,7 +183,7 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
         Node body = q[1].substitute(svar, ct);
         if (!bvs_cmb.empty())
         {
-          Node bvl = nm->mkNode(kind::BOUND_VAR_LIST, bvs_cmb);
+          Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, bvs_cmb);
           std::vector<Node> children;
           children.push_back(bvl);
           children.push_back(body);
@@ -192,13 +192,13 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
             Node ipls = q[2].substitute(svar, ct);
             children.push_back(ipls);
           }
-          body = nm->mkNode(kind::FORALL, children);
+          body = nm->mkNode(Kind::FORALL, children);
         }
         cons.push_back(body);
       }
-      Node conc = cons.size() == 1 ? cons[0] : nm->mkNode(kind::AND, cons);
+      Node conc = cons.size() == 1 ? cons[0] : nm->mkNode(Kind::AND, cons);
       disj.push_back(conc);
-      lemmas.push_back(disj.size() == 1 ? disj[0] : nm->mkNode(kind::OR, disj));
+      lemmas.push_back(disj.size() == 1 ? disj[0] : nm->mkNode(Kind::OR, disj));
     }
   }
 

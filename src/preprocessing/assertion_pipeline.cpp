@@ -119,14 +119,23 @@ void AssertionPipeline::disableStoreSubstsInAsserts()
 void AssertionPipeline::addSubstitutionNode(Node n, ProofGenerator* pg)
 {
   Assert(d_storeSubstsInAsserts);
-  Assert(n.getKind() == kind::EQUAL);
+  Assert(n.getKind() == Kind::EQUAL);
   conjoin(d_substsIndex, n, pg);
 }
 
 void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node newConj = nm->mkNode(kind::AND, d_nodes[i], n);
+  Node newConj;
+  if (d_nodes[i].isConst() && d_nodes[i].getConst<bool>())
+  {
+    // just take n itself if d_nodes[i] is true
+    newConj = n;
+  }
+  else
+  {
+    newConj = nm->mkNode(Kind::AND, d_nodes[i], n);
+  }
   Node newConjr = rewrite(newConj);
   Trace("assert-pipeline") << "Assertions: conjoin " << n << " to "
                            << d_nodes[i] << std::endl;
@@ -155,21 +164,19 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
       //   rewrite( d_nodes[i] ^ n )
       // allocate a fresh proof which will act as the proof generator
       LazyCDProof* lcp = d_pppg->allocateHelperProof();
-      lcp->addLazyStep(n, pg, PfRule::PREPROCESS);
-      if (d_nodes[i].isConst() && d_nodes[i].getConst<bool>())
-      {
-        // skip the AND_INTRO if the previous d_nodes[i] was true
-        newConj = n;
-      }
-      else
+      lcp->addLazyStep(n, pg, ProofRule::PREPROCESS);
+      // if newConj was constructed by AND above, use AND_INTRO
+      if (newConj != n)
       {
         lcp->addLazyStep(d_nodes[i], d_pppg);
-        lcp->addStep(newConj, PfRule::AND_INTRO, {d_nodes[i], n}, {});
+        lcp->addStep(newConj, ProofRule::AND_INTRO, {d_nodes[i], n}, {});
       }
       if (!CDProof::isSame(newConjr, newConj))
       {
-        lcp->addStep(
-            newConjr, PfRule::MACRO_SR_PRED_TRANSFORM, {newConj}, {newConjr});
+        lcp->addStep(newConjr,
+                     ProofRule::MACRO_SR_PRED_TRANSFORM,
+                     {newConj},
+                     {newConjr});
       }
       // Notice we have constructed a proof of a new assertion, where d_pppg
       // is referenced in the lazy proof above. If alternatively we had

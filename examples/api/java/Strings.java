@@ -89,5 +89,6 @@ public class Strings
         System.out.println("  s1.s2 = " + slv.getValue(s));
       }
     }
+    Context.deletePointers();
   }
 }

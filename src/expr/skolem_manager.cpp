@@ -56,17 +56,20 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED:
       return "QUANTIFIERS_SYNTH_FUN_EMBED";
     case SkolemFunId::STRINGS_NUM_OCCUR: return "STRINGS_NUM_OCCUR";
+    case SkolemFunId::STRINGS_NUM_OCCUR_RE: return "STRINGS_NUM_OCCUR_RE";
     case SkolemFunId::STRINGS_OCCUR_INDEX: return "STRINGS_OCCUR_INDEX";
+    case SkolemFunId::STRINGS_OCCUR_INDEX_RE: return "STRINGS_OCCUR_INDEX_RE";
     case SkolemFunId::STRINGS_OCCUR_LEN: return "STRINGS_OCCUR_LEN";
+    case SkolemFunId::STRINGS_OCCUR_LEN_RE: return "STRINGS_OCCUR_LEN_RE";
     case SkolemFunId::STRINGS_DEQ_DIFF: return "STRINGS_DEQ_DIFF";
     case SkolemFunId::STRINGS_REPLACE_ALL_RESULT:
       return "STRINGS_REPLACE_ALL_RESULT";
     case SkolemFunId::STRINGS_ITOS_RESULT: return "STRINGS_ITOS_RESULT";
     case SkolemFunId::STRINGS_STOI_RESULT: return "STRINGS_STOI_RESULT";
     case SkolemFunId::STRINGS_STOI_NON_DIGIT: return "STRINGS_STOI_NON_DIGIT";
-    case SkolemFunId::SK_FIRST_MATCH_PRE: return "SK_FIRST_MATCH_PRE";
-    case SkolemFunId::SK_FIRST_MATCH: return "SK_FIRST_MATCH";
-    case SkolemFunId::SK_FIRST_MATCH_POST: return "SK_FIRST_MATCH_POST";
+    case SkolemFunId::RE_FIRST_MATCH_PRE: return "RE_FIRST_MATCH_PRE";
+    case SkolemFunId::RE_FIRST_MATCH: return "RE_FIRST_MATCH";
+    case SkolemFunId::RE_FIRST_MATCH_POST: return "RE_FIRST_MATCH_POST";
     case SkolemFunId::RE_UNFOLD_POS_COMPONENT: return "RE_UNFOLD_POS_COMPONENT";
     case SkolemFunId::SEQ_MODEL_BASE_ELEMENT: return "SEQ_MODEL_BASE_ELEMENT";
     case SkolemFunId::BAGS_CARD_CARDINALITY: return "BAGS_CARD_CARDINALITY";
@@ -119,12 +122,13 @@ Node SkolemManager::mkPurifySkolem(Node t,
 {
   // We do not recursively compute the original form of t here
   Node k;
-  if (t.getKind() == WITNESS)
+  if (t.getKind() == Kind::WITNESS)
   {
     // The purification skolem for (witness ((x T)) P) is the same as
     // the skolem function (QUANTIFIERS_SKOLEMIZE (exists ((x T)) P) 0).
     NodeManager* nm = NodeManager::currentNM();
-    Node exists = nm->mkNode(EXISTS, std::vector<Node>(t.begin(), t.end()));
+    Node exists =
+        nm->mkNode(Kind::EXISTS, std::vector<Node>(t.begin(), t.end()));
     k = mkSkolemFunction(SkolemFunId::QUANTIFIERS_SKOLEMIZE,
                          t.getType(),
                          {exists, nm->mkConstInt(Rational(0))});
@@ -163,7 +167,7 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal)
     // of the original name.
     if (id == SkolemFunId::INPUT_VARIABLE)
     {
-      k = mkSkolemNode(VARIABLE,
+      k = mkSkolemNode(Kind::VARIABLE,
                        cacheVal[0].getConst<String>().toString(),
                        tn,
                        SKOLEM_EXACT_NAME);
@@ -174,7 +178,7 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal)
       // internal symbols starting with @ or . are reserved for internal use.
       std::stringstream ss;
       ss << "@" << id;
-      k = mkSkolemNode(SKOLEM, ss.str(), tn);
+      k = mkSkolemNode(Kind::SKOLEM, ss.str(), tn);
     }
     d_skolemFuns[key] = k;
     d_skolemFunMap[k] = key;
@@ -195,7 +199,7 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id,
   {
     cacheVal = cacheVals.size() == 1
                    ? cacheVals[0]
-                   : NodeManager::currentNM()->mkNode(SEXPR, cacheVals);
+                   : NodeManager::currentNM()->mkNode(Kind::SEXPR, cacheVals);
   }
   return mkSkolemFunction(id, tn, cacheVal);
 }
@@ -231,7 +235,7 @@ Node SkolemManager::mkDummySkolem(const std::string& prefix,
                                   const std::string& comment,
                                   int flags)
 {
-  return mkSkolemNode(SKOLEM, prefix, type, flags);
+  return mkSkolemNode(Kind::SKOLEM, prefix, type, flags);
 }
 
 ProofGenerator* SkolemManager::getProofGenerator(Node t) const

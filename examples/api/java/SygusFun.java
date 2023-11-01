@@ -104,5 +104,6 @@ public class SygusFun
         Utils.printSynthSolutions(terms, slv.getSynthSolutions(terms));
       }
     }
+    Context.deletePointers();
   }
 }

@@ -118,7 +118,7 @@ class PreprocessingPassContext : protected EnvObj
   /** Same as above, with proof id */
   void addSubstitution(const Node& lhs,
                        const Node& rhs,
-                       PfRule id,
+                       ProofRule id,
                        const std::vector<Node>& args);
   /** Add top level substitutions for a substitution map */
   void addSubstitutions(theory::TrustSubstitutionMap& tm);

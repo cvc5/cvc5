@@ -18,6 +18,7 @@ libcvc5_add_sources(
   api/cpp/cvc5.cpp
   api/cpp/cvc5_checks.h
   api/cpp/cvc5_types.cpp
+  api/cpp/cvc5_proof_rule.cpp
   decision/assertion_list.cpp
   decision/assertion_list.h
   decision/decision_engine.cpp
@@ -143,6 +144,16 @@ libcvc5_add_sources(
   printer/printer.h
   printer/smt2/smt2_printer.cpp
   printer/smt2/smt2_printer.h
+  proof/alf/alf_node_converter.cpp
+  proof/alf/alf_node_converter.h
+  proof/alf/alf_post_processor.cpp
+  proof/alf/alf_post_processor.h
+  proof/alf/alf_print_channel.cpp
+  proof/alf/alf_print_channel.h
+  proof/alf/alf_printer.cpp
+  proof/alf/alf_printer.h
+  proof/alf/alf_proof_rule.cpp
+  proof/alf/alf_proof_rule.h
   proof/annotation_proof_generator.cpp
   proof/annotation_proof_generator.h
   proof/assumption_proof_generator.cpp
@@ -200,8 +211,6 @@ libcvc5_add_sources(
   proof/proof_node_manager.h
   proof/proof_node_updater.cpp
   proof/proof_node_updater.h
-  proof/proof_rule.cpp
-  proof/proof_rule.h
   proof/proof_rule_checker.cpp
   proof/proof_rule_checker.h
   proof/proof_set.h
@@ -686,8 +695,6 @@ libcvc5_add_sources(
   theory/ee_manager_distributed.cpp
   theory/ee_manager_distributed.h
   theory/ee_setup_info.h
-  theory/engine_output_channel.cpp
-  theory/engine_output_channel.h
   theory/evaluator.cpp
   theory/evaluator.h
   theory/ext_theory.cpp
@@ -730,6 +737,8 @@ libcvc5_add_sources(
   theory/inference_id_proof_annotator.h
   theory/inference_manager_buffered.cpp
   theory/inference_manager_buffered.h
+  theory/lemma_property.cpp
+  theory/lemma_property.h
   theory/logic_info.cpp
   theory/logic_info.h
   theory/model_manager.cpp
@@ -967,8 +976,8 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/sygus_eval_unfold.h
   theory/quantifiers/sygus/sygus_explain.cpp
   theory/quantifiers/sygus/sygus_explain.h
-  theory/quantifiers/sygus/sygus_grammar_cons_new.cpp
-  theory/quantifiers/sygus/sygus_grammar_cons_new.h
+  theory/quantifiers/sygus/sygus_grammar_cons.cpp
+  theory/quantifiers/sygus/sygus_grammar_cons.h
   theory/quantifiers/sygus/sygus_grammar_norm.cpp
   theory/quantifiers/sygus/sygus_grammar_norm.h
   theory/quantifiers/sygus/sygus_grammar_red.cpp

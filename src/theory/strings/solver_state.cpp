@@ -85,7 +85,7 @@ Node SolverState::getLengthExp(Node t,
   // if we are minimizing explanations
   if (minExp)
   {
-    Node lt = NodeManager::currentNM()->mkNode(STRING_LENGTH, te);
+    Node lt = NodeManager::currentNM()->mkNode(Kind::STRING_LENGTH, te);
     lt = rewrite(lt);
     if (hasTerm(lt))
     {
@@ -111,7 +111,8 @@ Node SolverState::getLengthExp(Node t,
   {
     exp.push_back(te.eqNode(lengthTerm));
   }
-  return rewrite(NodeManager::currentNM()->mkNode(STRING_LENGTH, lengthTerm));
+  return rewrite(
+      NodeManager::currentNM()->mkNode(Kind::STRING_LENGTH, lengthTerm));
 }
 
 Node SolverState::getLength(Node t, std::vector<Node>& exp, bool minExp)
@@ -127,7 +128,7 @@ Node SolverState::explainNonEmpty(Node s)
   {
     return s.eqNode(emp).negate();
   }
-  Node sLen = NodeManager::currentNM()->mkNode(STRING_LENGTH, s);
+  Node sLen = NodeManager::currentNM()->mkNode(Kind::STRING_LENGTH, s);
   sLen = rewrite(sLen);
   if (areDisequal(sLen, d_zero))
   {
@@ -162,7 +163,7 @@ void SolverState::setPendingMergeConflict(Node conf, InferenceId id, bool rev)
   // if the explanation can be minimized
   iiPrefixConf.d_idRev = rev;
   iiPrefixConf.d_conc = d_false;
-  utils::flattenOp(AND, conf, iiPrefixConf.d_premises);
+  utils::flattenOp(Kind::AND, conf, iiPrefixConf.d_premises);
   setPendingConflict(iiPrefixConf);
 }
 

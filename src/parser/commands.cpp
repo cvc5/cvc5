@@ -1568,7 +1568,39 @@ void GetProofCommand::invoke(cvc5::Solver* solver, SymManager* sm)
 {
   try
   {
-    d_result = solver->getProof(d_component);
+    stringstream ss;
+    const vector<cvc5::Proof> ps = solver->getProof(d_component);
+
+    bool commentProves = !(d_component == modes::ProofComponent::SAT
+                           || d_component == modes::ProofComponent::FULL);
+    modes::ProofFormat format = modes::ProofFormat::DEFAULT;
+    // Ignore proof format, if the proof is not the full proof
+    if (d_component != modes::ProofComponent::FULL)
+    {
+      format = modes::ProofFormat::NONE;
+    }
+
+    if (format == modes::ProofFormat::NONE)
+    {
+      ss << "(" << std::endl;
+    }
+    for (Proof p : ps)
+    {
+      if (commentProves)
+      {
+        ss << "(!" << std::endl;
+      }
+      ss << solver->proofToString(p, format);
+      if (commentProves)
+      {
+        ss << ":proves " << p.getResult() << ")" << std::endl;
+      }
+    }
+    if (format == modes::ProofFormat::NONE)
+    {
+      ss << ")" << std::endl;
+    }
+    d_result = ss.str();
     d_commandStatus = CommandSuccess::instance();
   }
   catch (cvc5::CVC5ApiRecoverableException& e)
@@ -2031,6 +2063,48 @@ std::string GetUnsatCoreCommand::getCommandName() const
 }
 
 void GetUnsatCoreCommand::toStream(std::ostream& out) const
+{
+  internal::Printer::getPrinter(out)->toStreamCmdGetUnsatCore(out);
+}
+
+/* -------------------------------------------------------------------------- */
+/* class GetUnsatCoreLemmasCommand                                            */
+/* -------------------------------------------------------------------------- */
+
+GetUnsatCoreLemmasCommand::GetUnsatCoreLemmasCommand() : d_solver(nullptr) {}
+void GetUnsatCoreLemmasCommand::invoke(cvc5::Solver* solver, SymManager* sm)
+{
+  try
+  {
+    d_solver = solver;
+    d_result = solver->getUnsatCoreLemmas();
+
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (cvc5::CVC5ApiRecoverableException& e)
+  {
+    d_commandStatus = new CommandRecoverableFailure(e.what());
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+void GetUnsatCoreLemmasCommand::printResult(cvc5::Solver* solver,
+                                            std::ostream& out) const
+{
+  // use the assertions
+  internal::UnsatCore ucr(termVectorToNodes(d_result));
+  ucr.toStream(out);
+}
+
+std::string GetUnsatCoreLemmasCommand::getCommandName() const
+{
+  return "get-unsat-core-lemmas";
+}
+
+void GetUnsatCoreLemmasCommand::toStream(std::ostream& out) const
 {
   internal::Printer::getPrinter(out)->toStreamCmdGetUnsatCore(out);
 }

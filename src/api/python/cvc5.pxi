@@ -30,6 +30,8 @@ from cvc5 cimport Solver as c_Solver
 from cvc5 cimport Statistics as c_Statistics
 from cvc5 cimport Stat as c_Stat
 from cvc5 cimport Grammar as c_Grammar
+from cvc5 cimport Proof as c_Proof
+from cvc5 cimport Sort as c_Sort
 from cvc5 cimport Sort as c_Sort
 from cvc5 cimport Term as c_Term
 from cvc5 cimport hash as c_hash
@@ -41,6 +43,7 @@ from cvc5kinds cimport SortKind as c_SortKind
 from cvc5types cimport BlockModelsMode as c_BlockModelsMode
 from cvc5types cimport RoundingMode as c_RoundingMode
 from cvc5types cimport UnknownExplanation as c_UnknownExplanation
+from cvc5proofrules cimport ProofRule as c_ProofRule
 
 cdef extern from "Python.h":
     wchar_t* PyUnicode_AsWideCharString(object, Py_ssize_t *) except NULL
@@ -414,7 +417,7 @@ cdef class DatatypeConstructorDecl:
 
     def addSelectorUnresolved(self, str name, str unresDatatypeName):
         """
-            Add datatype selector declaration whose codomain sort is an 
+            Add datatype selector declaration whose codomain sort is an
             unresolved datatype with the given name.
 
             :param name: The name of the datatype selector declaration to add.
@@ -1061,31 +1064,31 @@ cdef class Solver:
 
     def mkAbstractSort(self, k):
         """
-            Create an abstract sort. An abstract sort represents a sort for a 
+            Create an abstract sort. An abstract sort represents a sort for a
             given kind whose parameters and arguments are unspecified.
-            
-            The kind ``k`` must be the kind of a sort that can be abstracted, i.e., 
+
+            The kind ``k`` must be the kind of a sort that can be abstracted, i.e.,
             a sort that has indices or argument sorts. For example, ARRAY_SORT
             and :py:obj:`BITVECTOR_SORT <Kind.BITVECTOR_SORT>` can be
             passed as the kind ``k`` to this method, while
             :py:obj:`INTEGER_SORT <Kind.INTEGER_SORT>` and
             :py:obj:`STRING_SORT <Kind.STRING_SORT>` cannot.
-            
+
             .. note::
             Providing the kind :py:obj:`ABSTRACT_SORT <Kind.ABSTRACT_SORT>`
             as an argument to this method returns the (fully) unspecified sort,
             denoted ``?``.
-            
+
             .. note::
             Providing a kind ``k`` of sort that has no indices and a fixed arity of
             argument sorts will return the sort of kind ``k`` whose arguments are
             the unspecified sort. For example, ``mkAbstractSort(ARRAY_SORT)`` will
             return the sort ``(ARRAY_SORT ? ?)`` instead of the abstract sort whose
             abstract kind is py:obj:`ARRAY_SORT <Kind.ARRAY_SORT>`.
-            
+
             :param k: The kind of the abstract sort
             :return: The abstract sort.
-            
+
             .. warning:: This method is experimental and may change in future
                          versions.
         """
@@ -1291,7 +1294,7 @@ cdef class Solver:
     def mkReal(self, numerator, denominator=None):
         """
             Create a real constant from a numerator and an optional denominator.
-            
+
             First converts the arguments to a temporary string, either
             ``"<numerator>"`` or ``"<numerator>/<denominator>"``. This temporary
             string is forwarded to :cpp:func:`cvc5::Solver::mkReal()` and should
@@ -1991,7 +1994,7 @@ cdef class Solver:
             term.cterm = self.csolver.findSynth(<c_FindSynthTarget> fst.value,
                                                 grammar.cgrammar)
         return term
-        
+
     def findSynthNext(self):
         """
             Try to find a next solution for the synthesis conjecture
@@ -2240,10 +2243,33 @@ cdef class Solver:
             .. warning:: This method is experimental and may change in future
                          versions.
             :param c: The component of the proof to return 
-            :return: A string representing the proof. This takes into account
-            proof-format-mode when c is FULL.
+            :return: A vector of proof nodes.
         """
-        return self.csolver.getProof(<c_ProofComponent> c.value)
+        proofs = []
+        for p in self.csolver.getProof(<c_ProofComponent> c.value):
+            proof = Proof(self)
+            proof.cproof = p
+            proofs.append(proof)
+        return proofs
+
+    def proofToString(self, proof,
+                      format = ProofFormat.DEFAULT):
+        """
+            Prints proof into a string with a selected proof format mode.
+            Other aspects of printing are taken from the solver options.
+
+            .. warning:: This method is experimental and may change in
+                         future versions.
+
+            :param proof: A proof, usually obtained from
+                          :py:meth:`getProof()`.
+            :param format: The proof format used to print the proof.  Must be
+                          "None" if the proof is not a full proof.
+
+            :return: The proof printed in the current format.
+        """
+        return self.csolver.proofToString((<Proof?> proof).cproof,
+                                         <c_ProofFormat> format.value)
 
     def getLearnedLiterals(self, type = LearnedLitType.INPUT):
         """
@@ -2458,6 +2484,32 @@ cdef class Solver:
             core.append(term)
         return core
 
+    def getUnsatCoreLemmas(self):
+        """
+            Get the lemmas used to derive unsatisfiability.
+
+            SMT-LIB:
+
+            .. code-block:: smtlib
+
+                (get-unsat-core-lemmas)
+
+            Requires the SAT proof unsat core mode, so to enable option
+            :ref:`unsat-core-mode=sat-proof <lbl-option-unsat-core-mode>`.
+
+            .. warning:: This method is experimental and may change in
+                         future versions.
+
+            :return: A set of terms representing the lemmas used to derive
+            unsatisfiability.
+        """
+        coreLemmas = []
+        for a in self.csolver.getUnsatCoreLemmas():
+            term = Term(self)
+            term.cterm = a
+            coreLemmas.append(term)
+        return coreLemmas
+
     def getDifficulty(self):
         """
             Get a difficulty estimate for an asserted formula. This method is
@@ -2630,7 +2682,7 @@ cdef class Solver:
             Currently, the only logics supported by quantifier elimination
             are LRA and LIA.
 
-	        .. warning:: This method is experimental and may change in future
+          .. warning:: This method is experimental and may change in future
                          versions.
 
             :param q: A quantified formula of the form
@@ -2839,17 +2891,17 @@ cdef class Solver:
         """
             Is logic set? Returns whether we called setLogic yet for this
             solver.
-            
+
             :return: whether we called setLogic yet for this solver.
         """
         return self.csolver.isLogicSet()
-        
+
     def getLogic(self):
         """
             Get the logic set the solver.
-   
+
             .. note:: Asserts isLogicSet().
-   
+
             :return: The logic used by the solver.
         """
         return self.csolver.getLogic().decode()
@@ -3687,7 +3739,7 @@ cdef class Statistics:
         """
             Get all statistics as a dictionary. See :cpp:func:`cvc5::Statistics::begin()`
             for more information on which statistics are included based on the parameters.
-            
+
             :return: A dictionary with all available statistics.
         """
         cdef c_Statistics.iterator it = self.cstats.begin(internal, defaulted)
@@ -3805,7 +3857,7 @@ cdef class Term:
                     term_or_list_1 = [ x, z ], term_or_list_2 = [ g(z), w ]
 
                 results in the term ``f(g(z),y)``.
-	    """
+      """
         # The resulting term after substitution
         cdef Term term = Term(self.solver)
         # lists for substitutions
@@ -3872,9 +3924,9 @@ cdef class Term:
 
     def notTerm(self):
         """
-	        Boolean negation.
+          Boolean negation.
 
-	        :return: The Boolean negation of this term.
+          :return: The Boolean negation of this term.
         """
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.notTerm()
@@ -4195,7 +4247,7 @@ cdef class Term:
         """
             .. note:: Asserts :py:meth:`isRealAlgebraicNumber()`.
 
-	        :return: The lower bound for the value of the real algebraic number.
+          :return: The lower bound for the value of the real algebraic number.
         """
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.getRealAlgebraicNumberLowerBound()
@@ -4205,7 +4257,7 @@ cdef class Term:
         """
             .. note:: Asserts :py:meth:`isRealAlgebraicNumber()`.
 
-	        :return: The upper bound for the value of the real algebraic number.
+          :return: The upper bound for the value of the real algebraic number.
         """
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.getRealAlgebraicNumberUpperBound()
@@ -4372,4 +4424,52 @@ cdef class Term:
 
             return res
 
+cdef class Proof:
+    """
+        A cvc5 proof.  Proofs are trees and every proof object corresponds to the
+        root step of a proof.  The branches of the root step are the premises of
+        the step.
 
+        Wrapper class for :cpp:class:`cvc5::Proof`.
+    """
+    cdef c_Proof cproof
+    cdef Solver solver
+    def __cinit__(self, Solver solver):
+        self.solver = solver
+
+    def getRule(self):
+        """
+            :return: The proof rule used by the root step of the proof.
+        """
+        return ProofRule(<int> self.cproof.getRule())
+    
+    def getResult(self):
+        """
+            :return: The conclusion of the root step of the proof.
+        """
+        term = Term(self.solver)
+        term.cterm = self.cproof.getResult()
+        return term
+    
+    def getChildren(self):
+        """
+            :return: The premises of the root step of the proof.
+        """
+        proofs = []
+        for p in self.cproof.getChildren():
+            proof = Proof(self.solver)
+            proof.cproof = p
+            proofs.append(proof)
+        return proofs
+
+    def getArguments(self):
+        """
+            :return: The arguments of the root step of the proof as a vector of terms.
+                    Some of those terms might be strings.
+        """
+        args = []
+        for a in self.cproof.getArguments():
+            term = Term(self.solver)
+            term.cterm = a
+            args.append(term)
+        return args

@@ -72,7 +72,7 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** Presolve, which calls presolve for the modules managed by this class */
   void presolve();
   /** Postsolve, which calls postsolve for the modules managed by this class */
-  void postsolve();
+  void postsolve(SatValue result);
 
   /**
    * Notify that lhs was substituted by rhs during preprocessing. This impacts
@@ -157,11 +157,6 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** Get unsound id, valid when isRefutationUnsound is true. */
   theory::IncompleteId getRefutationUnsoundId() const;
 
-  /**
-   * Notifies of a new variable at a decision level.
-   */
-  void variableNotify(SatVariable var);
-
   TNode getNode(SatLiteral lit);
 
   void notifyRestart();
@@ -208,10 +203,9 @@ class TheoryProxy : protected EnvObj, public Registrar
   void notifySatLiteral(Node n) override;
 
   /**
-   * Callback to notify that the SAT solver backtracked by the given number
-   * of levels.
+   * Callback to notify that the SAT solver backtracked.
    */
-  void notifyBacktrack(uint32_t nlevels);
+  void notifyBacktrack();
 
   /** Get the zero-level assertions */
   std::vector<Node> getLearnedZeroLevelLiterals(

@@ -47,7 +47,7 @@ class AletheProofPostprocessCallback : protected EnvObj,
    * rule and translating it into a proof node in terms of the Alethe rules.
    */
   bool update(Node res,
-              PfRule id,
+              ProofRule id,
               const std::vector<Node>& children,
               const std::vector<Node>& args,
               CDProof* cdp,
@@ -66,7 +66,7 @@ class AletheProofPostprocessCallback : protected EnvObj,
    * as (cl F1 ... Fn).
    */
   bool updatePost(Node res,
-                  PfRule id,
+                  ProofRule id,
                   const std::vector<Node>& children,
                   const std::vector<Node>& args,
                   CDProof* cdp) override;
@@ -83,7 +83,7 @@ class AletheProofPostprocessCallback : protected EnvObj,
    *
    */
   bool finalStep(Node res,
-                 PfRule id,
+                 ProofRule id,
                  std::vector<Node>& children,
                  const std::vector<Node>& args,
                  CDProof* cdp);

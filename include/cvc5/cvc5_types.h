@@ -392,6 +392,54 @@ std::ostream& operator<<(std::ostream& out, ProofComponent pc) CVC5_EXPORT;
 #endif
 
 /* -------------------------------------------------------------------------- */
+/* ProofFormat                                                                */
+/* -------------------------------------------------------------------------- */
+
+#ifdef CVC5_API_USE_C_ENUMS
+#undef EVALUE
+#define EVALUE(name) CVC5_PROOF_FORMAT_##name
+#endif
+/**
+ * Proof format used for proof printing.
+ */
+enum ENUM(ProofFormat)
+{
+  /** Do not translate proof output. */
+  EVALUE(NONE),
+  /** Output DOT proof. */
+  EVALUE(DOT),
+  /** Output LFSC proof. */
+  EVALUE(LFSC),
+  /** Output Alethe proof. */
+  EVALUE(ALETHE),
+  /** Use the proof format mode set in the solver options. */
+  EVALUE(DEFAULT)
+};
+
+#ifdef CVC5_API_USE_C_ENUMS
+#ifndef DOXYGEN_SKIP
+typedef enum ENUM(ProofFormat) ENUM(ProofFormat);
+#endif
+#endif
+
+#ifdef CVC5_API_USE_C_ENUMS
+/**
+ * Get a string representation of a Cvc5ProofFormat.
+ * @param format The proof format.
+ * @return The string representation.
+ */
+const char* cvc5_proof_format_to_string(Cvc5ProofFormat format);
+#else
+/**
+ * Serialize a FindSynthTarget to given stream.
+ * @param out    The output stream
+ * @param format The proof format.
+ * @return The output stream
+ */
+std::ostream& operator<<(std::ostream& out, ProofFormat format) CVC5_EXPORT;
+#endif
+
+/* -------------------------------------------------------------------------- */
 /* FindSynthTarget                                                            */
 /* -------------------------------------------------------------------------- */
 
@@ -467,11 +515,56 @@ const char* cvc5_find_synthesis_target_to_string(Cvc5FindSynthTarget target);
 #else
 /**
  * Serialize a FindSynthTarget to given stream.
- * @param out The output stream
- * @param targetThe synthesis find target.
+ * @param out    The output stream
+ * @param target The synthesis find target.
  * @return The output stream
  */
 std::ostream& operator<<(std::ostream& out, FindSynthTarget target) CVC5_EXPORT;
+#endif
+
+/* -------------------------------------------------------------------------- */
+/* InputLanguage                                                              */
+/* -------------------------------------------------------------------------- */
+
+#ifdef CVC5_API_USE_C_ENUMS
+#undef EVALUE
+#define EVALUE(name) CVC5_INPUT_LANG_##name
+#endif
+
+/**
+ * The different reasons for returning an "unknown" result.
+ */
+enum ENUM(InputLanguage)
+{
+  /** The SMT-LIB version 2.6 language */
+  EVALUE(SMT_LIB_2_6),
+  /** The SyGuS version 2.1 language. */
+  EVALUE(SYGUS_2_1),
+  /** No language given. */
+  EVALUE(UNKNOWN),
+};
+
+#ifdef CVC5_API_USE_C_ENUMS
+#ifndef DOXYGEN_SKIP
+typedef enum ENUM(InputLanguage) ENUM(InputLanguage);
+#endif
+#endif
+
+#ifdef CVC5_API_USE_C_ENUMS
+/**
+ * Get a string representation of a Cvc5InputLanguage.
+ * @param lang The input language.
+ * @return The string representation.
+ */
+const char* cvc5_input_language_to_string(Cvc5InputLanguage lang);
+#else
+/**
+ * Serialize an InputLanguage to given stream.
+ * @param out The output stream
+ * @param lang The language to be serialized to the given output stream
+ * @return The output stream
+ */
+std::ostream& operator<<(std::ostream& out, InputLanguage lang) CVC5_EXPORT;
 #endif
 
 }  // namespace cvc5::modes

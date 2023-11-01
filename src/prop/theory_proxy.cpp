@@ -101,7 +101,10 @@ void TheoryProxy::presolve()
   d_stopSearch = false;
 }
 
-void TheoryProxy::postsolve() { d_theoryEngine->postsolve(); }
+void TheoryProxy::postsolve(SatValue result)
+{
+  d_theoryEngine->postsolve(result);
+}
 
 void TheoryProxy::notifyTopLevelSubstitution(const Node& lhs,
                                              const Node& rhs) const
@@ -165,10 +168,6 @@ void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
   d_decisionEngine->addAssertion(a, skolem, isLemma);
   // notify the preregistrar
   d_prr->addAssertion(a, skolem, isLemma);
-}
-
-void TheoryProxy::variableNotify(SatVariable var) {
-  notifySatLiteral(getNode(SatLiteral(var)));
 }
 
 void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
@@ -262,7 +261,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   Trace("prop-explain") << "explainPropagation() => " << theoryExplanation
                         << std::endl;
   explanation.push_back(l);
-  if (theoryExplanation.getKind() == kind::AND)
+  if (theoryExplanation.getKind() == Kind::AND)
   {
     for (const Node& n : theoryExplanation)
     {
@@ -450,10 +449,10 @@ void TheoryProxy::notifySatLiteral(Node n)
   d_prr->notifySatLiteral(n);
 }
 
-void TheoryProxy::notifyBacktrack(uint32_t nlevels)
+void TheoryProxy::notifyBacktrack()
 {
   // notify the preregistrar, which may trigger reregistrations
-  d_prr->notifyBacktrack(nlevels);
+  d_prr->notifyBacktrack();
 }
 
 std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals(

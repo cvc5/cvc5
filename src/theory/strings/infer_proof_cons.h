@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 #include "proof/proof_checker.h"
-#include "proof/proof_rule.h"
+#include "cvc5/cvc5_proof_rule.h"
 #include "proof/theory_proof_step_buffer.h"
 #include "smt/env_obj.h"
 #include "theory/builtin/proof_checker.h"
@@ -37,7 +37,7 @@ namespace strings {
 /**
  * Converts between the strings-specific (untrustworthy) InferInfo class and
  * information about how to construct a trustworthy proof step
- * (PfRule, children, args). It acts as a (lazy) proof generator where the
+ * (ProofRule, children, args). It acts as a (lazy) proof generator where the
  * former is registered via notifyFact and the latter is asked for in
  * getProofFor, typically by the proof equality engine.
  *

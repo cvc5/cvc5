@@ -19,38 +19,28 @@ import io.github.cvc5.modes.BlockModelsMode;
 import io.github.cvc5.modes.FindSynthTarget;
 import io.github.cvc5.modes.LearnedLitType;
 import io.github.cvc5.modes.ProofComponent;
+import io.github.cvc5.modes.ProofFormat;
 import java.io.IOException;
 import java.util.*;
 
 /**
  * A cvc5 solver.
  */
-public class Solver implements IPointer
+public class Solver extends AbstractPointer
 {
   static
   {
     Utils.loadLibraries();
   }
 
-  private long pointer;
+  private static native long newSolver();
 
-  public long getPointer()
+  protected native void deletePointer(long pointer);
+
+  protected String toString(long pointer)
   {
-    return pointer;
+    throw new UnsupportedOperationException("Solver.toString() is not supported in the cpp api");
   }
-
-  private native long newSolver();
-
-  public void deletePointer()
-  {
-    if (pointer != 0)
-    {
-      deletePointer(pointer);
-    }
-    pointer = 0;
-  }
-
-  private static native void deletePointer(long pointer);
 
   // store IOracle objects
   List<IOracle> oracles = new ArrayList<>();
@@ -61,7 +51,7 @@ public class Solver implements IPointer
 
   public Solver()
   {
-    this.pointer = newSolver();
+    super(Solver.newSolver());
   }
 
   /* .................................................................... */
@@ -69,6 +59,7 @@ public class Solver implements IPointer
   /* .................................................................... */
 
   /**
+   * Get the Boolean sort.
    * @return Sort Boolean.
    */
   public Sort getBooleanSort()
@@ -80,6 +71,7 @@ public class Solver implements IPointer
   private native long getBooleanSort(long pointer);
 
   /**
+   * Get the integer sort.
    * @return Sort Integer.
    */
   public Sort getIntegerSort()
@@ -90,6 +82,7 @@ public class Solver implements IPointer
 
   public native long getIntegerSort(long pointer);
   /**
+   * Get the real sort.
    * @return Sort Real.
    */
   public Sort getRealSort()
@@ -100,6 +93,7 @@ public class Solver implements IPointer
 
   private native long getRealSort(long pointer);
   /**
+   * Get the regular expression sort.
    * @return Sort RegExp.
    */
   public Sort getRegExpSort()
@@ -110,6 +104,7 @@ public class Solver implements IPointer
 
   private native long getRegExpSort(long pointer);
   /**
+   * Get the floating-point rounding mode sort.
    * @return Sort RoundingMode.
    * @throws CVC5ApiException
    */
@@ -120,7 +115,9 @@ public class Solver implements IPointer
   }
 
   private native long getRoundingModeSort(long pointer) throws CVC5ApiException;
+
   /**
+   * Get the string sort.
    * @return Sort String.
    */
   public Sort getStringSort()
@@ -177,6 +174,7 @@ public class Solver implements IPointer
    * Create a floating-point sort.
    * @param exp The bit-width of the exponent of the floating-point sort.
    * @param sig The bit-width of the significand of the floating-point sort.
+   * @return The floating-point sort.
    * @throws CVC5ApiException
    */
   public Sort mkFloatingPointSort(int exp, int sig) throws CVC5ApiException
@@ -674,6 +672,7 @@ public class Solver implements IPointer
    *          in mkTerm directly without creating an op first.
    *
    * @param kind The kind to wrap.
+   * @return The operator.
    */
   public Op mkOp(Kind kind)
   {
@@ -692,6 +691,7 @@ public class Solver implements IPointer
    * See enum {@link Kind} for a description of the parameters.
    * @param kind The kind of the operator.
    * @param arg The string argument to this operator.
+   * @return The operator.
    */
   public Op mkOp(Kind kind, String arg)
   {
@@ -720,6 +720,7 @@ public class Solver implements IPointer
    * See enum {@link Kind} for a description of the parameters.
    * @param kind The kind of the operator.
    * @param arg The unsigned int argument to this operator.
+   * @return The operator.
    * @throws CVC5ApiException
    */
   public Op mkOp(Kind kind, int arg) throws CVC5ApiException
@@ -745,6 +746,7 @@ public class Solver implements IPointer
    * @param kind The kind of the operator.
    * @param arg1 The first unsigned int argument to this operator.
    * @param arg2 The second unsigned int argument to this operator.
+   * @return The operator.
    * @throws CVC5ApiException
    */
   public Op mkOp(Kind kind, int arg1, int arg2) throws CVC5ApiException
@@ -765,6 +767,7 @@ public class Solver implements IPointer
    * See enum {@link Kind} for a description of the parameters.
    * @param kind The kind of the operator.
    * @param args The arguments (indices) of the operator.
+   * @return The operator.
    * @throws CVC5ApiException
    */
   public Op mkOp(Kind kind, int[] args) throws CVC5ApiException
@@ -804,8 +807,8 @@ public class Solver implements IPointer
   private native long mkFalse(long pointer);
   /**
    * Create a Boolean constant.
-   * @return The Boolean constant.
    * @param val The value of the constant.
+   * @return The Boolean constant.
    */
   public Term mkBoolean(boolean val)
   {
@@ -1059,6 +1062,7 @@ public class Solver implements IPointer
    * Create a bit-vector constant of given size and value = 0.
    * @param size The bit-width of the bit-vector sort.
    * @return The bit-vector constant.
+   * @throws CVC5ApiException
    */
   public Term mkBitVector(int size) throws CVC5ApiException
   {
@@ -1226,6 +1230,7 @@ public class Solver implements IPointer
   /**
    * Create a rounding mode constant.
    * @param rm The floating point rounding mode this constant represents.
+   * @return The rounding mode.
    */
   public Term mkRoundingMode(RoundingMode rm)
   {
@@ -1917,6 +1922,7 @@ public class Solver implements IPointer
   /**
    * Get info from the solver.
    * SMT-LIB: {@code ( get-info <info_flag> ) }
+   * @param flag The {@code get-info} flag.
    * @return The info.
    */
   public String getInfo(String flag)
@@ -1962,6 +1968,7 @@ public class Solver implements IPointer
    * Check the {@link OptionInfo} class for more details on which information
    * is available.
    *
+   * @param option The name of the option.
    * @return Information about the given option.
    */
   public OptionInfo getOptionInfo(String option)
@@ -2015,6 +2022,27 @@ public class Solver implements IPointer
   }
 
   private native long[] getUnsatCore(long pointer);
+
+  /**
+   * Get the lemmas used to derive unsatisfiability.
+   * SMT-LIB:
+   * {@code
+   * (get-unsat-core-lemmas)
+   * }
+   * Requires the SAT proof unsat core mode, so to enable option {@code unsat-core-mode=sat-proof}
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @return A set of terms representing the lemmas used to derive
+   * unsatisfiability.
+   */
+  public Term[] getUnsatCoreLemmas()
+  {
+    long[] retPointers = getUnsatCoreLemmas(pointer);
+    return Utils.getTerms(retPointers);
+  }
+
+  private native long[] getUnsatCoreLemmas(long pointer);
 
   /**
    * Get a difficulty estimate for an asserted formula. This method is
@@ -2089,15 +2117,15 @@ public class Solver implements IPointer
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @return A string representing the proof. This is impacted by the value of
-   * proof-format-mode.
+   * @return A vector of proof nodes. This is equivalent to getProof
+   * when c is FULL.
    */
-  public String getProof()
+  public Proof[] getProof()
   {
-    return getProof(pointer);
+    return Utils.getProofs(getProof(pointer));
   }
 
-  private native String getProof(long pointer);
+  private native long[] getProof(long pointer);
 
   /**
    * Get a proof associated with the most recent call to checkSat.
@@ -2112,15 +2140,49 @@ public class Solver implements IPointer
    * @api.note This method is experimental and may change in future versions.
    *
    * @param c The component of the proof to return
-   * @return A string representing the proof. This is equivalent to getProof
-   * when c is FULL.
+   * @return A vector of proof nodes.
    */
-  public String getProof(ProofComponent c)
+  public Proof[] getProof(ProofComponent c)
   {
-    return getProof(pointer, c.getValue());
+    return Utils.getProofs(getProof(pointer, c.getValue()));
   }
 
-  private native String getProof(long pointer, int c);
+  private native long[] getProof(long pointer, int c);
+
+  /**
+   * Prints a proof into a string with a slected proof format mode.
+   * Other aspects of printing are taken from the solver options.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @param proof A proof.
+   * @return The proof printed in the current format.
+   */
+  public String proofToString(Proof proof)
+  {
+    return proofToString(pointer, proof.getPointer());
+  }
+
+  private native String proofToString(long pointer, long proofs);
+
+  /**
+   * Prints a proof into a string with a slected proof format mode.
+   * Other aspects of printing are taken from the solver options.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @param proof A proof.
+   * @param format The proof format used to print the proof. Must be
+   * `PROOF_FORMAT_NONE` if the proof is from a component other than
+   * `PROOF_COMPONENT_FULL`.
+   * @return The proof printed in the current format.
+   */
+  public String proofToString(Proof proof, ProofFormat format)
+  {
+    return proofToString(pointer, proof.getPointer(), format.getValue());
+  }
+
+  private native String proofToString(long pointer, long proofs, int format);
 
   /**
    * Get the value of the given term in the current model.
@@ -2359,6 +2421,7 @@ public class Solver implements IPointer
    * @param symbol The name of the pool.
    * @param sort The sort of the elements of the pool.
    * @param initValue The initial value of the pool.
+   * @return The pool.
    */
   public Term declarePool(String symbol, Sort sort, Term[] initValue)
   {
@@ -2639,6 +2702,8 @@ public class Solver implements IPointer
    * Requires enabling option {@code produce-models}.
    *
    * @api.note This method is experimental and may change in future versions.
+   *
+   * @param terms The model values to block.
    */
   public void blockModelValues(Term[] terms)
   {
@@ -2649,10 +2714,12 @@ public class Solver implements IPointer
   private native void blockModelValues(long pointer, long[] termPointers);
 
   /**
-   * Return a string that contains information about all instantiations made by
+   * Get a string that contains information about all instantiations made by
    * the quantifiers module.
    *
    * @api.note This method is experimental and may change in future versions.
+   *
+   * @return The string representing the information about all instantiations.
    */
   public String getInstantiations()
   {
@@ -2765,6 +2832,7 @@ public class Solver implements IPointer
    * @api.note Asserts isLogicSet().
    *
    * @return The logic used by the solver.
+   * @throws CVC5ApiException
    */
   public String getLogic() throws CVC5ApiException
   {
@@ -3116,9 +3184,10 @@ public class Solver implements IPointer
   private native long findSynthNext(long pointer);
 
   /**
-   * Returns a snapshot of the current state of the statistic values of this
+   * Get a snapshot of the current state of the statistic values of this
    * solver. The returned object is completely decoupled from the solver and
    * will not change when the solver is used again.
+   * @return A snapshot of the current state of the statistic values.
    */
   public Statistics getStatistics()
   {

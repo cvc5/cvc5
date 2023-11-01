@@ -46,11 +46,11 @@ class NormalForm {
     else
     {
       ElementsIterator it = elements.begin();
-      Node cur = nm->mkNode(kind::SET_SINGLETON, *it);
+      Node cur = nm->mkNode(Kind::SET_SINGLETON, *it);
       while (++it != elements.end())
       {
-        Node singleton = nm->mkNode(kind::SET_SINGLETON, *it);
-        cur = nm->mkNode(kind::SET_UNION, singleton, cur);
+        Node singleton = nm->mkNode(Kind::SET_SINGLETON, *it);
+        cur = nm->mkNode(Kind::SET_UNION, singleton, cur);
       }
       return cur;
     }
@@ -68,24 +68,24 @@ class NormalForm {
   static bool checkNormalConstant(TNode n) {
     Trace("sets-checknormal") << "[sets-checknormal] checkNormal " << n << " :"
                               << std::endl;
-    if (n.getKind() == kind::SET_EMPTY)
+    if (n.getKind() == Kind::SET_EMPTY)
     {
       return true;
     }
-    else if (n.getKind() == kind::SET_SINGLETON)
+    else if (n.getKind() == Kind::SET_SINGLETON)
     {
       return n[0].isConst();
     }
-    else if (n.getKind() == kind::SET_UNION)
+    else if (n.getKind() == Kind::SET_UNION)
     {
       // assuming (union {SmallestNodeID} ... (union {BiggerNodeId} ...
 
       Node orig = n;
       TNode prvs;
       // check intermediate nodes
-      while (n.getKind() == kind::SET_UNION)
+      while (n.getKind() == Kind::SET_UNION)
       {
-        if (n[0].getKind() != kind::SET_SINGLETON || !n[0][0].isConst())
+        if (n[0].getKind() != Kind::SET_SINGLETON || !n[0][0].isConst())
         {
           // not a constant
           Trace("sets-isconst") << "sets::isConst: " << orig << " not due to "
@@ -107,7 +107,7 @@ class NormalForm {
       }
 
       // check SmallestNodeID is smallest
-      if (n.getKind() != kind::SET_SINGLETON || !n[0].isConst())
+      if (n.getKind() != Kind::SET_SINGLETON || !n[0].isConst())
       {
         Trace("sets-isconst") << "sets::isConst: " << orig
                               << " not due to final " << n << std::endl;
@@ -137,17 +137,17 @@ class NormalForm {
   static std::set<Node> getElementsFromNormalConstant(TNode n) {
     Assert(n.isConst());
     std::set<Node> ret;
-    if (n.getKind() == kind::SET_EMPTY)
+    if (n.getKind() == Kind::SET_EMPTY)
     {
       return ret;
     }
-    while (n.getKind() == kind::SET_UNION)
+    while (n.getKind() == Kind::SET_UNION)
     {
-      Assert(n[0].getKind() == kind::SET_SINGLETON);
+      Assert(n[0].getKind() == Kind::SET_SINGLETON);
       ret.insert(ret.begin(), n[0][0]);
       n = n[1];
     }
-    Assert(n.getKind() == kind::SET_SINGLETON);
+    Assert(n.getKind() == Kind::SET_SINGLETON);
     ret.insert(n[0]);
     return ret;
   }

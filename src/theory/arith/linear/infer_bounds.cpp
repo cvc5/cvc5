@@ -157,11 +157,11 @@ Node InferBoundsResult::getLiteral() const{
   if(d_upperBound){
     // x <= q + c*delta
     Assert(getValue().infinitesimalSgn() <= 0);
-    k = boundIsRational() ? kind::LEQ : kind::LT;
+    k = boundIsRational() ? Kind::LEQ : Kind::LT;
   }else{
     // x >= q + c*delta
     Assert(getValue().infinitesimalSgn() >= 0);
-    k = boundIsRational() ? kind::GEQ : kind::GT;
+    k = boundIsRational() ? Kind::GEQ : Kind::GT;
   }
   return nm->mkNode(k, getTerm(), qnode);
 }

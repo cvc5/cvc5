@@ -39,6 +39,26 @@ add_custom_command(
 )
 add_custom_target(generate-java-kinds DEPENDS ${JAVA_KIND_FILE})
 
+# Generate ProofRule.java
+set(JAVA_PROOF_RULE_FILE
+  "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/ProofRule.java"
+)
+add_custom_command(
+  OUTPUT
+    ${JAVA_PROOF_RULE_FILE}
+  COMMAND
+    "${Python_EXECUTABLE}"
+    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
+    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_proof_rule.h"
+    --java-api-path "${CMAKE_CURRENT_BINARY_DIR}/io/github/"
+  DEPENDS
+    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
+    "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
+    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_proof_rule.h"
+)
+add_custom_target(generate-java-proofrules DEPENDS ${JAVA_PROOF_RULE_FILE})
+
+
 set(JAVA_TYPES_FILES
   "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/modes/BlockModelsMode.java"
   "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/modes/LearnedLitType.java"
@@ -82,6 +102,7 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Op.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/OptionInfo.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Pair.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Proof.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Result.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Solver.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Sort.java
@@ -105,6 +126,7 @@ set(JNI_HEADERS
   ${JNI_DIR}/io_github_cvc5_Grammar.h
   ${JNI_DIR}/io_github_cvc5_Op.h
   ${JNI_DIR}/io_github_cvc5_OptionInfo.h
+  ${JNI_DIR}/io_github_cvc5_Proof.h
   ${JNI_DIR}/io_github_cvc5_Result.h
   ${JNI_DIR}/io_github_cvc5_Solver.h
   ${JNI_DIR}/io_github_cvc5_Sort.h
@@ -128,7 +150,7 @@ add_custom_command(
 )
 
 add_custom_target(generate-jni-headers DEPENDS ${JNI_HEADERS})
-add_dependencies(generate-jni-headers generate-java-kinds generate-java-types)
+add_dependencies(generate-jni-headers generate-java-kinds generate-java-types generate-java-proofrules)
 
 # find jni package
 find_package(JNI REQUIRED)
@@ -152,6 +174,7 @@ add_library(cvc5jni
   jni/grammar.cpp
   jni/op.cpp
   jni/option_info.cpp
+  jni/proof.cpp
   jni/result.cpp
   jni/solver.cpp
   jni/sort.cpp

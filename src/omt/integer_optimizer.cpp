@@ -40,18 +40,18 @@ OptimizationResult OMTOptimizerInteger::optimize(SolverEngine* optChecker,
   }
   // node storing target > old_value (used in optimization loop)
   Node increment;
-  Kind incrementalOperator = kind::NULL_EXPR;
+  Kind incrementalOperator = Kind::NULL_EXPR;
   if (isMinimize)
   {
     // if objective is minimize,
     // then assert optimization_target < current_model_value
-    incrementalOperator = kind::LT;
+    incrementalOperator = Kind::LT;
   }
   else
   {
     // if objective is maximize,
     // then assert optimization_target > current_model_value
-    incrementalOperator = kind::GT;
+    incrementalOperator = Kind::GT;
   }
   Result lastSatResult = intermediateSatResult;
   // Workhorse of linear search:

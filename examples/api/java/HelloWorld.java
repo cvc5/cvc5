@@ -25,5 +25,6 @@ public class HelloWorld
 
       System.out.println(helloworld + " is " + slv.checkSatAssuming(helloworld));
     }
+    Context.deletePointers();
   }
 }

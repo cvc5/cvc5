@@ -295,6 +295,7 @@ set(regress_0_tests
   regress0/bv/bv_to_int_5293_2.smt2
   regress0/bv/bv_to_int_8412.smt2
   regress0/bv/bv_to_int_9071.smt2
+  regress0/bv/bv_to_int_9071_bv4.smt2
   regress0/bv/bv_to_int_9071_th_sym.smt2
   regress0/bv/bv_to_int_bvmul2.smt2
   regress0/bv/bv_to_int_bvuf_to_intuf.smt2
@@ -469,6 +470,7 @@ set(regress_0_tests
   regress0/bv/inequality03.smt2
   regress0/bv/inequality04.smt2
   regress0/bv/inequality05.smt2
+  regress0/bv/int_to_bv_10080_ite.smt2
   regress0/bv/int_to_bv_err_on_demand_1.smt2
   regress0/bv/int_to_bv_model.smt2
   regress0/bv/int_to_bv_model2.smt2
@@ -529,6 +531,7 @@ set(regress_0_tests
   regress0/cores/issue5908.smt2
   regress0/cores/issue8705-bool-ppassert.smt2
   regress0/cores/issue8822-arith-static-learn.smt2
+  regress0/cores/unsat-core-lemmas.smt2
   regress0/cvc-rerror-print.cvc.smt2
   regress0/cvc3-bug15.cvc.smt2
   regress0/cvc3.userdoc.01.cvc.smt2
@@ -552,6 +555,7 @@ set(regress_0_tests
   regress0/datatypes/bug604.smt2
   regress0/datatypes/bug625.smt2
   regress0/datatypes/canExp-dtPendingMerge.smt2
+  regress0/datatypes/cdt-enum-type-mismatch.smt2
   regress0/datatypes/cdt-model-cade15.smt2
   regress0/datatypes/cdt-non-canon-stream.smt2
   regress0/datatypes/coda_simp_model.smt2
@@ -1022,6 +1026,7 @@ set(regress_0_tests
   regress0/parser/issue9675.smt2
   regress0/parser/issue9676.smt2
   regress0/parser/issue9990-nprint-char.smt2
+  regress0/parser/issue10093.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
@@ -1157,6 +1162,13 @@ set(regress_0_tests
   regress0/proofs/trust-subs-eq-open.smt2
   regress0/proofs/unused-def1.smt2
   regress0/proofs/unused-def2.smt2
+  regress0/prop/cadical_bug1.smt2
+  regress0/prop/cadical_bug2.smt2
+  regress0/prop/cadical_bug3.smt2
+  regress0/prop/cadical_bug4.smt2
+  regress0/prop/cadical_bug5.smt2
+  regress0/prop/cadical_bug6.smt2
+  regress0/prop/cadical_bug7.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
   regress0/push-pop/boolean/fuzz_13.smt2
   regress0/push-pop/boolean/fuzz_14.smt2
@@ -1914,6 +1926,7 @@ set(regress_1_tests
   regress1/abduction/issue6605-1.smt2
   regress1/abduction/issue9001-sample-fail.smt2
   regress1/abduction/multiple-get-abduct-uc.smt2
+  regress1/abduction/param-dt.smt2
   regress1/abduction/simple-incremental.smt2
   regress1/abduction/simple-incremental-push-pop.smt2
   regress1/abduction/sygus-abduct-ex1-grammar.smt2
@@ -2056,6 +2069,8 @@ set(regress_1_tests
   regress1/bv/bench_38.delta.smt2
   regress1/bv/bug787.smt2
   regress1/bv/bug_extract_mult_leading_bit.smt2
+  regress1/bv/bv_to_int_10084.smt2
+  regress1/bv/bv_to_int_10084_forall.smt2
   regress1/bv/bv-int-collapse2-sat.smt2
   regress1/bv/bv-proof00.smtv1.smt2
   regress1/bv/bv2nat-ground.smt2
@@ -2354,6 +2369,7 @@ set(regress_1_tests
   regress1/proofs/issue6625-unsat-core-proofs.smt2
   regress1/proofs/macro-res-exp-crowding-lit-inside-unit.smt2
   regress1/proofs/macro-res-exp-singleton-after-elimCrowd.smt2
+  regress1/proofs/open-pf-tr-conjoin.smt2
   regress1/proofs/qgu-fuzz-1-strings-pp.smt2
   regress1/proofs/qgu-fuzz-arrays-1-dd-te-auto.smt2
   regress1/proofs/quant-alpha-eq.smt2
@@ -2549,6 +2565,7 @@ set(regress_1_tests
   regress1/quantifiers/nra-interleave-inst.smt2
   regress1/quantifiers/opisavailable-12.smt2
   regress1/quantifiers/parametric-lists.smt2
+  regress1/quantifiers/pool-decidable-arrays-1.smt2
   regress1/quantifiers/pool-example.smt2
   regress1/quantifiers/pool-tuple.smt2
   regress1/quantifiers/prenex-scholl-smt08_RNDPRE_RNDPRE_4_6.smt2
@@ -2827,6 +2844,7 @@ set(regress_1_tests
   regress1/strings/instance3303-delta.smt2
   regress1/strings/instance6561-dd-concat-unify-char.smt2
   regress1/strings/instance7075-delta.smt2
+  regress1/strings/issue10058.smt2
   regress1/strings/issue1105.smt2
   regress1/strings/issue1684-regex.smt2
   regress1/strings/issue2060.smt2
@@ -3608,6 +3626,7 @@ set(testers
   abduct
   dump
   dsl-proof
+  alf
 )
 
 foreach(tester ${testers})
@@ -3648,6 +3667,8 @@ macro(cvc5_add_regression_test level file)
     ${RUN_REGRESSION_ARGS}
     --lfsc-binary ${CMAKE_SOURCE_DIR}/deps/bin/lfscc
     --lfsc-sig-dir ${CMAKE_SOURCE_DIR}/proofs/lfsc/signatures
+    --alfc-binary ${CMAKE_SOURCE_DIR}/deps/bin/alfc
+    --alf-sig-dir ${CMAKE_SOURCE_DIR}/proofs/alf
     ${wrapper}
     ${path_to_cvc5}/cvc5${CMAKE_EXECUTABLE_SUFFIX}
     ${CMAKE_CURRENT_LIST_DIR}/${file})

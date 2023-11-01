@@ -680,8 +680,8 @@ bool Solver::satisfied(const Clause& c) const {
 void Solver::cancelUntil(int level) {
     Trace("minisat") << "minisat::cancelUntil(" << level << ")" << std::endl;
 
-    if (decisionLevel() > level){
-      uint32_t nlevels = trail_lim.size() - level;
+    if (decisionLevel() > level)
+    {
       // Pop the SMT context
       for (int l = trail_lim.size() - level; l > 0; --l)
       {
@@ -702,7 +702,7 @@ void Solver::cancelUntil(int level) {
         trail.shrink(trail.size() - trail_lim[level]);
         trail_lim.shrink(trail_lim.size() - level);
         flipped.shrink(flipped.size() - level);
-        d_proxy->notifyBacktrack(nlevels);
+        d_proxy->notifyBacktrack();
     }
 }
 
