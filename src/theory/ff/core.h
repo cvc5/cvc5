@@ -77,7 +77,9 @@ class Tracer
   void sPoly(CoCoA::ConstRefRingElem p,
              CoCoA::ConstRefRingElem q,
              CoCoA::ConstRefRingElem s);
+
   /** Tracing reduction p ->_q1 p1 ->_q2 p2 ->_q3 ... ->_qN -> r */
+
   /** Call this when we start reducing p. */
   void reductionStart(CoCoA::ConstRefRingElem p);
   /** Call this when there is a reduction on q. */
