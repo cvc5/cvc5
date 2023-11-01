@@ -25,8 +25,8 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
-#include "theory/builtin/proof_checker.h"
 #include "proof/trust_id.h"
+#include "theory/builtin/proof_checker.h"
 
 namespace cvc5::internal {
 namespace proof {
@@ -464,12 +464,12 @@ inline bool DotPrinter::isSCOPE(const ProofRule& rule)
 inline bool DotPrinter::isTheoryLemma(const ProofNode* pn)
 {
   ProofRule rule = pn->getRule();
-  if (rule==ProofRule::TRUST)
+  if (rule == ProofRule::TRUST)
   {
     TrustId tid;
     if (getTrustId(pn->getArguments()[0], tid))
     {
-      return tid==TrustId::THEORY_LEMMA;
+      return tid == TrustId::THEORY_LEMMA;
     }
   }
   return rule == ProofRule::SCOPE

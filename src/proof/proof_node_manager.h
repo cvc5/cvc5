@@ -20,8 +20,8 @@
 
 #include <vector>
 
-#include "expr/node.h"
 #include "cvc5/cvc5_proof_rule.h"
+#include "expr/node.h"
 #include "proof/trust_id.h"
 
 namespace cvc5::internal {

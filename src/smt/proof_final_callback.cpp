@@ -45,9 +45,8 @@ ProofFinalCallback::ProofFinalCallback(Env& env)
       d_dslRuleCount(
           statisticsRegistry().registerHistogram<rewriter::DslProofRule>(
               "finalProof::dslRuleCount")),
-      d_trustIds(
-          statisticsRegistry().registerHistogram<TrustId>(
-              "finalProof::trustCount")),
+      d_trustIds(statisticsRegistry().registerHistogram<TrustId>(
+          "finalProof::trustCount")),
       d_totalRuleCount(
           statisticsRegistry().registerInt("finalProof::totalRuleCount")),
       d_minPedanticLevel(

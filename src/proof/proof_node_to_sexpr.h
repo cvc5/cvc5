@@ -20,14 +20,14 @@
 
 #include <map>
 
+#include "cvc5/cvc5_proof_rule.h"
 #include "expr/kind.h"
 #include "expr/node.h"
 #include "proof/method_id.h"
-#include "cvc5/cvc5_proof_rule.h"
+#include "proof/trust_id.h"
 #include "rewriter/rewrites.h"
 #include "theory/inference_id.h"
 #include "theory/theory_id.h"
-#include "proof/trust_id.h"
 
 namespace cvc5::internal {
 

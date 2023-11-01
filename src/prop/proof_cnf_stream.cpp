@@ -693,10 +693,8 @@ void ProofCnfStream::convertPropagation(TrustNode trn)
   }
   else
   {
-    d_proof.addTrustedStep(d_currPropagationProcessed,
-                    TrustId::THEORY_LEMMA,
-                    {},
-                    {});
+    d_proof.addTrustedStep(
+        d_currPropagationProcessed, TrustId::THEORY_LEMMA, {}, {});
   }
 }
 

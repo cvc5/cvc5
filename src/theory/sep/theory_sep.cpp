@@ -24,7 +24,9 @@
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
 #include "options/smt_options.h"
+#include "proof/trust_id.h"
 #include "smt/logic_exception.h"
+#include "theory/builtin/proof_checker.h"
 #include "theory/decision_manager.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
@@ -34,8 +36,6 @@
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
 #include "util/cardinality.h"
-#include "theory/builtin/proof_checker.h"
-#include "proof/trust_id.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -1922,8 +1922,8 @@ void TheorySep::sendLemma( std::vector< Node >& ant, Node conc, InferenceId id, 
       }else{
         Trace("sep-lemma") << "Sep::Lemma: " << conc << " from " << ant
                            << " by " << id << std::endl;
-        TrustNode trn =
-            d_im.mkLemmaExp(conc, ProofRule::TRUST, ant, {}, {d_tiid, conc, d_tsid});
+        TrustNode trn = d_im.mkLemmaExp(
+            conc, ProofRule::TRUST, ant, {}, {d_tiid, conc, d_tsid});
         d_im.addPendingLemma(
             trn.getNode(), id, LemmaProperty::NONE, trn.getGenerator());
       }

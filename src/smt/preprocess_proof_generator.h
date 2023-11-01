@@ -23,8 +23,8 @@
 #include "proof/proof.h"
 #include "proof/proof_generator.h"
 #include "proof/proof_set.h"
-#include "proof/trust_node.h"
 #include "proof/trust_id.h"
+#include "proof/trust_node.h"
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {

@@ -381,9 +381,9 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     Assert(args.size() == 1);
     return RemoveTermFormulas::getAxiomFor(args[0]);
   }
-  else if (id==ProofRule::TRUST)
+  else if (id == ProofRule::TRUST)
   {
-    Assert (args.size()>=2);
+    Assert(args.size() >= 2);
     return args[1];
   }
   else if (id == ProofRule::THEORY_REWRITE)

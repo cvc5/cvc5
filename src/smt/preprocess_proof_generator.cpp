@@ -30,11 +30,8 @@
 namespace cvc5::internal {
 namespace smt {
 
-PreprocessProofGenerator::PreprocessProofGenerator(Env& env,
-                                                   context::Context* c,
-                                                   std::string name,
-                                                   TrustId ra,
-                                                   TrustId rpp)
+PreprocessProofGenerator::PreprocessProofGenerator(
+    Env& env, context::Context* c, std::string name, TrustId ra, TrustId rpp)
     : EnvObj(env),
       d_ctx(c ? c : &d_context),
       d_src(d_ctx),
@@ -211,8 +208,7 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
             << (tnk == TrustNodeKind::LEMMA ? d_ra : d_rpp) << std::endl;
         // add trusted step, the rule depends on the kind of trust node
         Node tid = mkTrustId(tnk == TrustNodeKind::LEMMA ? d_ra : d_rpp);
-        cdp.addStep(
-            proven, ProofRule::TRUST, {}, {tid, proven});
+        cdp.addStep(proven, ProofRule::TRUST, {}, {tid, proven});
       }
     }
   } while (success);
@@ -264,8 +260,8 @@ void PreprocessProofGenerator::checkEagerPedantic(TrustId r)
     {
       std::stringstream serr;
       pc->isPedanticFailure(ProofRule::TRUST, &serr);
-      Unhandled() << "PreprocessProofGenerator::checkEagerPedantic (" << r << "): "
-                  << serr.str();
+      Unhandled() << "PreprocessProofGenerator::checkEagerPedantic (" << r
+                  << "): " << serr.str();
     }
   }
 }

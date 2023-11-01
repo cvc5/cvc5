@@ -16,9 +16,9 @@
 #include "theory/sets/inference_manager.h"
 
 #include "options/sets_options.h"
-#include "theory/rewriter.h"
 #include "proof/trust_id.h"
 #include "theory/builtin/proof_checker.h"
+#include "theory/rewriter.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;

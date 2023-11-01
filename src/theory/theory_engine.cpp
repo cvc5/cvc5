@@ -1258,8 +1258,7 @@ TrustNode TheoryEngine::getExplanation(TNode node)
         Node proven = texplanation.getProven();
         TheoryId tid = theoryOf(atom)->getId();
         Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(tid);
-        d_lazyProof->addTrustedStep(
-            proven, TrustId::THEORY_LEMMA, {}, {tidn});
+        d_lazyProof->addTrustedStep(proven, TrustId::THEORY_LEMMA, {}, {tidn});
         texplanation =
             TrustNode::mkTrustPropExp(node, explanation, d_lazyProof.get());
       }

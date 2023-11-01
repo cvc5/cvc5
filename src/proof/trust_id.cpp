@@ -21,7 +21,7 @@
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
-  
+
 const char* toString(TrustId id)
 {
   switch (id)

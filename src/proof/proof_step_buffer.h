@@ -20,8 +20,8 @@
 
 #include <vector>
 
-#include "expr/node.h"
 #include "cvc5/cvc5_proof_rule.h"
+#include "expr/node.h"
 #include "proof/trust_id.h"
 
 namespace cvc5::internal {
@@ -102,9 +102,9 @@ class ProofStepBuffer
                Node expected);
   /** Add trusted step */
   bool addTrustedStep(TrustId id,
-               const std::vector<Node>& children,
-               const std::vector<Node>& args,
-               Node conc);
+                      const std::vector<Node>& children,
+                      const std::vector<Node>& args,
+                      Node conc);
   /** Multi-step version */
   void addSteps(ProofStepBuffer& psb);
   /** pop step */

@@ -36,7 +36,8 @@ enum class TrustId : uint32_t
   PREPROCESS,
   /** A lemma added during preprocessing without a proof */
   PREPROCESS_LEMMA,
-  /** A rewrite of the input formula made by a theory during preprocessing without a proof */
+  /** A rewrite of the input formula made by a theory during preprocessing
+     without a proof */
   THEORY_PREPROCESS,
   /** A lemma added during theory-preprocessing without a proof */
   THEORY_PREPROCESS_LEMMA,
@@ -50,7 +51,8 @@ enum class TrustId : uint32_t
   FLATTENING_REWRITE,
   /** A proof of an applied substitution that could not be reconstructed */
   SUBS_RCONS,
-  /** A proof of an applied substitution that could not be reconstructed during solving */
+  /** A proof of an applied substitution that could not be reconstructed during
+     solving */
   SUBS_MAP,
   /** A proof of a substitution x=t that could not be shown by rewrite */
   SUBS_EQ,

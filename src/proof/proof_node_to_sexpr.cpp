@@ -356,21 +356,21 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
       break;
     case ProofRule::TRUST:
     {
-      if (i==0)
+      if (i == 0)
       {
         return ArgFormat::TRUST_ID;
       }
-      else if (i==2)
+      else if (i == 2)
       {
         TrustId tid;
         getTrustId(pn->getArguments()[0], tid);
-        if (tid==TrustId::THEORY_LEMMA || tid==TrustId::THEORY_INFERENCE)
+        if (tid == TrustId::THEORY_LEMMA || tid == TrustId::THEORY_INFERENCE)
         {
           return ArgFormat::THEORY_ID;
         }
       }
     }
-      break;
+    break;
     default: break;
   }
   return ArgFormat::DEFAULT;

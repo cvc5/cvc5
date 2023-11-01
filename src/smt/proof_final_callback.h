@@ -23,10 +23,10 @@
 #include <unordered_set>
 
 #include "proof/proof_node_updater.h"
+#include "proof/trust_id.h"
 #include "rewriter/rewrites.h"
 #include "smt/env_obj.h"
 #include "theory/inference_id.h"
-#include "proof/trust_id.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5::internal {
@@ -62,11 +62,11 @@ class ProofFinalCallback : protected EnvObj, public ProofNodeUpdaterCallback
    * marked with the given inference id.
    */
   HistogramStat<theory::InferenceId> d_annotationRuleIds;
-  /** 
+  /**
    * Counts number of postprocessed proof nodes for each kind of DSL proof rule
    */
   HistogramStat<rewriter::DslProofRule> d_dslRuleCount;
-  /** 
+  /**
    * Counts number of postprocessed proof nodes for each trusted step
    */
   HistogramStat<TrustId> d_trustIds;
