@@ -63,8 +63,8 @@ public class InputParser extends AbstractPointer
    * @param solver The solver (e.g. for constructing terms and sorts)
    */
   public InputParser(Solver solver)
-  {    
-    // unlike cpp api, here we create a symbol manager first and then 
+  {
+    // unlike cpp api, here we create a symbol manager first and then
     // we call the corresponding constructor in cpp api
     super(newInputParser(solver.getPointer(), new SymbolManager(solver).getPointer()));
   }

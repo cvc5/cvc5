@@ -29,9 +29,9 @@ class SymbolManagerTest extends ParserTest
   {
     InputParser parser = new InputParser(d_solver, d_symman);
     parser.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "symbol_manager_test");
-    parser.appendIncrementalStringInput("(set-logic " + logic + ")\n");          
-    Command cmd = parser.nextCommand();    
-    assertNotEquals(cmd.isNull(), true);    
+    parser.appendIncrementalStringInput("(set-logic " + logic + ")\n");
+    Command cmd = parser.nextCommand();
+    assertNotEquals(cmd.isNull(), true);
     cmd.invoke(d_solver, d_symman);
   }
 

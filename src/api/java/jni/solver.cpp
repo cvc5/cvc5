@@ -37,12 +37,10 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_newSolver(JNIEnv*, jclass)
  * Method:    deletePointer
  * Signature: (J)V
  */
-#include <iostream>
 JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_deletePointer(JNIEnv* env,
                                                                 jobject,
                                                                 jlong pointer)
-{
-  std::cout << "Deleting solver pointer: " << pointer << std::endl;
+{  
   const std::vector<jobject>& refs = globalReferences[pointer];
   for (jobject ref : refs)
   {
