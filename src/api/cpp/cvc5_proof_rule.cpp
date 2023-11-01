@@ -27,7 +27,7 @@ const char* toString(ProofRule id)
     case ProofRule::ASSUME: return "ASSUME";
     case ProofRule::SCOPE: return "SCOPE";
     case ProofRule::SUBS: return "SUBS";
-    case ProofRule::REWRITE: return "REWRITE";
+    case ProofRule::MACRO_REWRITE: return "MACRO_REWRITE";
     case ProofRule::EVALUATE: return "EVALUATE";
     case ProofRule::MACRO_SR_EQ_INTRO: return "MACRO_SR_EQ_INTRO";
     case ProofRule::MACRO_SR_PRED_INTRO: return "MACRO_SR_PRED_INTRO";
@@ -126,7 +126,7 @@ const char* toString(ProofRule id)
     case ProofRule::ARRAYS_EXT: return "ARRAYS_EXT";
     case ProofRule::ARRAYS_EQ_RANGE_EXPAND: return "ARRAYS_EQ_RANGE_EXPAND";
     //================================================= Bit-Vector rules
-    case ProofRule::BV_BITBLAST: return "BV_BITBLAST";
+    case ProofRule::MACRO_BV_BITBLAST: return "MACRO_BV_BITBLAST";
     case ProofRule::BV_BITBLAST_STEP: return "BV_BITBLAST_STEP";
     case ProofRule::BV_EAGER_ATOM: return "BV_EAGER_ATOM";
     //================================================= Datatype rules
@@ -162,7 +162,7 @@ const char* toString(ProofRule id)
     case ProofRule::RE_ELIM: return "RE_ELIM";
     case ProofRule::STRING_CODE_INJ: return "STRING_CODE_INJ";
     case ProofRule::STRING_SEQ_UNIT_INJ: return "STRING_SEQ_UNIT_INJ";
-    case ProofRule::STRING_INFERENCE: return "STRING_INFERENCE";
+    case ProofRule::MACRO_STRING_INFERENCE: return "MACRO_STRING_INFERENCE";
     //================================================= Arith rules
     case ProofRule::MACRO_ARITH_SCALE_SUM_UB: return "MACRO_ARITH_SCALE_SUM_UB";
     case ProofRule::ARITH_SUM_UB: return "ARITH_SUM_UB";

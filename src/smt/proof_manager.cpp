@@ -89,7 +89,7 @@ PfManager::PfManager(Env& env)
         != options::ProofGranularityMode::REWRITE)
     {
       d_pfpp->setEliminateRule(ProofRule::SUBS);
-      d_pfpp->setEliminateRule(ProofRule::REWRITE);
+      d_pfpp->setEliminateRule(ProofRule::MACRO_REWRITE);
       if (options().proof.proofGranularityMode
           != options::ProofGranularityMode::THEORY_REWRITE)
       {
@@ -98,8 +98,8 @@ PfManager::PfManager(Env& env)
       }
     }
     // theory-specific lazy proof reconstruction
-    d_pfpp->setEliminateRule(ProofRule::STRING_INFERENCE);
-    d_pfpp->setEliminateRule(ProofRule::BV_BITBLAST);
+    d_pfpp->setEliminateRule(ProofRule::MACRO_STRING_INFERENCE);
+    d_pfpp->setEliminateRule(ProofRule::MACRO_BV_BITBLAST);
   }
   d_false = NodeManager::currentNM()->mkConst(false);
 }

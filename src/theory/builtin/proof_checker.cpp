@@ -50,7 +50,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::ENCODE_PRED_TRANSFORM, this);
   pc->registerChecker(ProofRule::DSL_REWRITE, this);
   // rules depending on the rewriter
-  pc->registerTrustedChecker(ProofRule::REWRITE, this, 4);
+  pc->registerTrustedChecker(ProofRule::MACRO_REWRITE, this, 4);
   pc->registerTrustedChecker(ProofRule::MACRO_SR_EQ_INTRO, this, 4);
   pc->registerTrustedChecker(ProofRule::MACRO_SR_PRED_INTRO, this, 4);
   pc->registerTrustedChecker(ProofRule::MACRO_SR_PRED_ELIM, this, 4);
@@ -264,7 +264,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     }
     return args[0].eqNode(res);
   }
-  else if (id == ProofRule::REWRITE)
+  else if (id == ProofRule::MACRO_REWRITE)
   {
     Assert(children.empty());
     Assert(1 <= args.size() && args.size() <= 2);

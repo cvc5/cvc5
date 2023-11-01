@@ -1184,7 +1184,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   {
     utils::flattenOp(Kind::AND, ec, exp);
   }
-  pf.addStep(fact, ProofRule::STRING_INFERENCE, exp, args);
+  pf.addStep(fact, ProofRule::MACRO_STRING_INFERENCE, exp, args);
   return pf.getProofFor(fact);
 }
 

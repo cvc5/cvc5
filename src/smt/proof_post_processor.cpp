@@ -262,10 +262,10 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     {
       Node eq = ts.eqNode(tr);
       // apply REWRITE proof rule
-      if (!updateInternal(eq, ProofRule::REWRITE, {}, rargs, cdp))
+      if (!updateInternal(eq, ProofRule::MACRO_REWRITE, {}, rargs, cdp))
       {
         // if not elimianted, add as step
-        cdp->addStep(eq, ProofRule::REWRITE, {}, rargs);
+        cdp->addStep(eq, ProofRule::MACRO_REWRITE, {}, rargs);
       }
       tchildren.push_back(eq);
     }
@@ -791,7 +791,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     }
     return eqq;
   }
-  else if (id == ProofRule::REWRITE)
+  else if (id == ProofRule::MACRO_REWRITE)
   {
     // get the kind of rewrite
     MethodId idr = MethodId::RW_REWRITE;
@@ -863,7 +863,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
           // will expand this as a default rewrite if needed
           Node eqd = retCurr.eqNode(retDef);
           Node mid = mkMethodId(midi);
-          cdp->addStep(eqd, ProofRule::REWRITE, {}, {retCurr, mid});
+          cdp->addStep(eqd, ProofRule::MACRO_REWRITE, {}, {retCurr, mid});
           transEq.push_back(eqd);
         }
         retCurr = retDef;
@@ -959,7 +959,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
                           << std::endl;
     return sumBounds;
   }
-  else if (id == ProofRule::STRING_INFERENCE)
+  else if (id == ProofRule::MACRO_STRING_INFERENCE)
   {
     // get the arguments
     Node conc;
@@ -976,7 +976,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       }
     }
   }
-  else if (id == ProofRule::BV_BITBLAST)
+  else if (id == ProofRule::MACRO_BV_BITBLAST)
   {
     bv::BBProof bb(d_env, nullptr, true);
     Node eq = args[0];
@@ -1024,9 +1024,6 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     }
     // otherwise no update
   }
-
-  // TRUST, PREPROCESS, THEORY_LEMMA, THEORY_PREPROCESS?
-
   return Node::null();
 }
 

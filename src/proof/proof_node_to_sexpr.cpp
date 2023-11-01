@@ -289,7 +289,7 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
     }
     break;
     case ProofRule::SUBS:
-    case ProofRule::REWRITE:
+    case ProofRule::MACRO_REWRITE:
     case ProofRule::MACRO_SR_EQ_INTRO:
     case ProofRule::MACRO_SR_PRED_INTRO:
     case ProofRule::MACRO_SR_PRED_TRANSFORM:

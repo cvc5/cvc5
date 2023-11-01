@@ -156,7 +156,7 @@ enum ENUM(ProofRule) : uint32_t
    * where :math:`idr` is a MethodId identifier, which determines the kind of
    * rewriter to apply, e.g. Rewriter::rewrite. \endverbatim
    */
-  EVALUE(REWRITE),
+  EVALUE(MACRO_REWRITE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Builtin theory -- Evaluate**
@@ -1276,7 +1276,7 @@ enum ENUM(ProofRule) : uint32_t
 
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Bit-vectors -- Bitblast**
+   * **Bit-vectors -- (Macro) Bitblast**
    *
    * .. math::
    *
@@ -1288,7 +1288,7 @@ enum ENUM(ProofRule) : uint32_t
    * strategies defined in ``theory/bv/bitblast/bitblast_strategies_template.h``.
    * \endverbatim
    */
-  EVALUE(BV_BITBLAST),
+  EVALUE(MACRO_BV_BITBLAST),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Bit-vectors -- Bitblast bit-vector constant, variable, and terms**
@@ -1816,7 +1816,7 @@ enum ENUM(ProofRule) : uint32_t
   EVALUE(STRING_SEQ_UNIT_INJ),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Strings -- (Trusted) String inference**
+   * **Strings -- (Macro) String inference**
    *
    * .. math::
    *
@@ -1826,7 +1826,7 @@ enum ENUM(ProofRule) : uint32_t
    * :math:`\texttt{strings::InferProofCons::convert}`.
    * \endverbatim
    */
-  EVALUE(STRING_INFERENCE),
+  EVALUE(MACRO_STRING_INFERENCE),
 
   /**
    * \verbatim embed:rst:leading-asterisk
