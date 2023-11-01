@@ -1451,6 +1451,12 @@ void TheoryEngine::lemma(TrustNode tlemma,
   // assert the lemma
   d_propEngine->assertLemma(tlemma, p);
 
+  // We have asserted this lemma, so we collect it in partition generator.
+  if (d_partitionGen != nullptr)
+  {
+    d_partitionGen->addLemmaAtoms(tlemma.getNode());
+  }
+
   // If specified, we must add this lemma to the set of those that need to be
   // justified, where note we pass all auxiliary lemmas in skAsserts as well,
   // since these by extension must be justified as well.
