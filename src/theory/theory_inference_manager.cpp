@@ -26,6 +26,7 @@
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
+#include "proof/trust_id.h"
 
 using namespace cvc5::internal::kind;
 
@@ -592,10 +593,11 @@ TrustNode TheoryInferenceManager::annotateId(const TrustNode& trn,
   // ensure we have a proof generator, make trusted theory lemma if not
   if (trn.getGenerator() == nullptr)
   {
+    Node tid = mkTrustId(TrustId::THEORY_LEMMA);
     Node tidn =
         builtin::BuiltinProofRuleChecker::mkTheoryIdNode(d_theory.getId());
     trna = d_defaultPg->mkTrustNode(
-        trn.getNode(), ProofRule::THEORY_LEMMA, {}, {lemma, tidn}, isConflict);
+        trn.getNode(), ProofRule::TRUST, {}, {tid, lemma, tidn}, isConflict);
   }
   d_iipa->setAnnotation(lemma, id);
   return d_apg->transform(trna, d_iipa.get());

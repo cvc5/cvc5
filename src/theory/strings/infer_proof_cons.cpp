@@ -1065,11 +1065,12 @@ void InferProofCons::convert(InferenceId infer,
     // untrustworthy conversion, the argument of THEORY_INFERENCE is its
     // conclusion
     ps.d_args.clear();
+    ps.d_args.push_back(mkTrustId(TrustId::THEORY_INFERENCE));
     ps.d_args.push_back(conc);
     Node t = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_STRINGS);
     ps.d_args.push_back(t);
     // use the trust rule
-    ps.d_rule = ProofRule::THEORY_INFERENCE;
+    ps.d_rule = ProofRule::TRUST;
   }
   if (TraceIsOn("strings-ipc-debug"))
   {

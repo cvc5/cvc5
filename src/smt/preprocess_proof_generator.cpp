@@ -33,8 +33,8 @@ namespace smt {
 PreprocessProofGenerator::PreprocessProofGenerator(Env& env,
                                                    context::Context* c,
                                                    std::string name,
-                                                   ProofRule ra,
-                                                   ProofRule rpp)
+                                                   TrustId ra,
+                                                   TrustId rpp)
     : EnvObj(env),
       d_ctx(c ? c : &d_context),
       d_src(d_ctx),
@@ -210,8 +210,9 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
             << "...justify missing step with "
             << (tnk == TrustNodeKind::LEMMA ? d_ra : d_rpp) << std::endl;
         // add trusted step, the rule depends on the kind of trust node
+        Node tid = mkTrustId(tnk == TrustNodeKind::LEMMA ? d_ra : d_rpp);
         cdp.addStep(
-            proven, tnk == TrustNodeKind::LEMMA ? d_ra : d_rpp, {}, {proven});
+            proven, ProofRule::TRUST, {}, {tid, proven});
       }
     }
   } while (success);
@@ -252,18 +253,18 @@ LazyCDProof* PreprocessProofGenerator::allocateHelperProof()
 
 std::string PreprocessProofGenerator::identify() const { return d_name; }
 
-void PreprocessProofGenerator::checkEagerPedantic(ProofRule r)
+void PreprocessProofGenerator::checkEagerPedantic(TrustId r)
 {
   if (options().proof.proofCheck == options::ProofCheckMode::EAGER)
   {
     // catch a pedantic failure now, which otherwise would not be
     // triggered since we are doing lazy proof generation
     ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
-    if (pc->isPedanticFailure(r, nullptr))
+    if (pc->isPedanticFailure(ProofRule::TRUST, nullptr))
     {
       std::stringstream serr;
-      pc->isPedanticFailure(r, &serr);
-      Unhandled() << "PreprocessProofGenerator::checkEagerPedantic: "
+      pc->isPedanticFailure(ProofRule::TRUST, &serr);
+      Unhandled() << "PreprocessProofGenerator::checkEagerPedantic (" << r << "): "
                   << serr.str();
     }
   }

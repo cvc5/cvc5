@@ -34,6 +34,8 @@
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
 #include "util/cardinality.h"
+#include "theory/builtin/proof_checker.h"
+#include "proof/trust_id.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -55,6 +57,8 @@ TheorySep::TheorySep(Env& env, OutputChannel& out, Valuation valuation)
 {
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
+  d_tiid = mkTrustId(TrustId::THEORY_INFERENCE);
+  d_tsid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_SEP);
 
   // indicate we are using the default theory state object
   d_theoryState = &d_state;
@@ -1914,12 +1918,12 @@ void TheorySep::sendLemma( std::vector< Node >& ant, Node conc, InferenceId id, 
       if( conc==d_false ){
         Trace("sep-lemma") << "Sep::Conflict: " << ant << " by " << id
                            << std::endl;
-        d_im.conflictExp(id, ProofRule::THEORY_INFERENCE, ant, {conc});
+        d_im.conflictExp(id, ProofRule::TRUST, ant, {d_tiid, conc, d_tsid});
       }else{
         Trace("sep-lemma") << "Sep::Lemma: " << conc << " from " << ant
                            << " by " << id << std::endl;
         TrustNode trn =
-            d_im.mkLemmaExp(conc, ProofRule::THEORY_INFERENCE, ant, {}, {conc});
+            d_im.mkLemmaExp(conc, ProofRule::TRUST, ant, {}, {d_tiid, conc, d_tsid});
         d_im.addPendingLemma(
             trn.getNode(), id, LemmaProperty::NONE, trn.getGenerator());
       }

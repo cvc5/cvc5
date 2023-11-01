@@ -45,6 +45,9 @@ ProofFinalCallback::ProofFinalCallback(Env& env)
       d_dslRuleCount(
           statisticsRegistry().registerHistogram<rewriter::DslProofRule>(
               "finalProof::dslRuleCount")),
+      d_trustIds(
+          statisticsRegistry().registerHistogram<TrustId>(
+              "finalProof::trustCount")),
       d_totalRuleCount(
           statisticsRegistry().registerInt("finalProof::totalRuleCount")),
       d_minPedanticLevel(
@@ -136,6 +139,17 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
             << "(assert " << pn->getResult() << ") ; " << id << std::endl;
       }
     }
+  }
+  else if (r == ProofRule::TRUST)
+  {
+    TrustId id;
+    Trace("final-pf-hole") << "hole TRUST";
+    if (getTrustId(pn->getArguments()[0], id))
+    {
+      d_trustIds << id;
+      Trace("final-pf-hole") << " " << id;
+    }
+    Trace("final-pf-hole") << ": " << pn->getResult() << std::endl;
   }
   // print for debugging
   if (TraceIsOn("final-pf-hole"))

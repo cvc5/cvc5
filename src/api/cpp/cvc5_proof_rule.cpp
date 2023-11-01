@@ -38,20 +38,8 @@ const char* toString(ProofRule id)
     case ProofRule::DSL_REWRITE: return "DSL_REWRITE";
     case ProofRule::REMOVE_TERM_FORMULA_AXIOM: return "REMOVE_TERM_FORMULA_AXIOM";
     //================================================= Trusted rules
-    case ProofRule::THEORY_LEMMA: return "THEORY_LEMMA";
+    case ProofRule::TRUST: return "TRUST";
     case ProofRule::THEORY_REWRITE: return "THEORY_REWRITE";
-    case ProofRule::PREPROCESS: return "PREPROCESS";
-    case ProofRule::PREPROCESS_LEMMA: return "PREPROCESS_LEMMA";
-    case ProofRule::THEORY_PREPROCESS: return "THEORY_PREPROCESS";
-    case ProofRule::THEORY_PREPROCESS_LEMMA: return "THEORY_PREPROCESS_LEMMA";
-    case ProofRule::THEORY_EXPAND_DEF: return "THEORY_EXPAND_DEF";
-    case ProofRule::WITNESS_AXIOM: return "WITNESS_AXIOM";
-    case ProofRule::TRUST_REWRITE: return "TRUST_REWRITE";
-    case ProofRule::TRUST_FLATTENING_REWRITE: return "TRUST_FLATTENING_REWRITE";
-    case ProofRule::TRUST_SUBS: return "TRUST_SUBS";
-    case ProofRule::TRUST_SUBS_MAP: return "TRUST_SUBS_MAP";
-    case ProofRule::TRUST_SUBS_EQ: return "TRUST_SUBS_EQ";
-    case ProofRule::THEORY_INFERENCE: return "THEORY_INFERENCE";
     case ProofRule::SAT_REFUTATION: return "SAT_REFUTATION";
     //================================================= Boolean rules
     case ProofRule::RESOLUTION: return "RESOLUTION";
@@ -140,7 +128,6 @@ const char* toString(ProofRule id)
     case ProofRule::SKOLEMIZE: return "SKOLEMIZE";
     case ProofRule::INSTANTIATE: return "INSTANTIATE";
     case ProofRule::ALPHA_EQUIV: return "ALPHA_EQUIV";
-    case ProofRule::QUANTIFIERS_PREPROCESS: return "QUANTIFIERS_PREPROCESS";
     //================================================= String rules
     case ProofRule::CONCAT_EQ: return "CONCAT_EQ";
     case ProofRule::CONCAT_UNIFY: return "CONCAT_UNIFY";
