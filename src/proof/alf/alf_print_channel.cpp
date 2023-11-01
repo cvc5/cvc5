@@ -118,15 +118,12 @@ void AlfPrintChannelOut::printTrustStep(ProofRule r, TNode n, size_t i, TNode nc
 void AlfPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
 {
   options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
-  options::ioutils::applyDagThresh(out, 0);
+  // use the toStream with custom letification method
   Printer::getPrinter(out)->toStream(out, n, &d_lbind);
-  // Node nc = d_lbind.convert(n, d_termLetPrefix, true);
-  // nc.toStream(out);
 }
 
 void AlfPrintChannelOut::printTypeNodeInternal(std::ostream& out, TypeNode tn)
 {
-  // due to use of special names in the node converter, we must clean symbols
   options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
   tn.toStream(out);
 }
