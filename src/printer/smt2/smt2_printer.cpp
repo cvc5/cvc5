@@ -145,8 +145,9 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     cparen = cparens.str();
   }
-  // Node nc = lbind.convert(n, "_let_");
-  //  print the body, passing the lbind object
+  // Print the body, passing the lbind object. Note that we don't convert
+  // n here, and instead rely on the printing method to lookup ids in the
+  // given let binding.
   toStream(out, n, &lbind, toDepth);
   out << cparen;
   lbind.popScope();
