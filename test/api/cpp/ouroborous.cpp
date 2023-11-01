@@ -32,7 +32,7 @@
 #include <iostream>
 #include <string>
 
-#include <cvc5/cvc5_parser.h>
+#include "parser/parser_exception.h"
 
 using namespace cvc5;
 using namespace cvc5::internal;
