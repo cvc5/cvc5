@@ -333,7 +333,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   case Kind::SET_IS_SINGLETON:
   {
     Kind nk = node[0].getKind();
-    if (nk== Kind::SET_EMPTY)
+    if (nk == Kind::SET_EMPTY)
     {
       return RewriteResponse(REWRITE_DONE,
                              NodeManager::currentNM()->mkConst(false));
