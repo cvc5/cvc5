@@ -33,8 +33,7 @@ public class Command extends AbstractPointer
    * to output stream out.
    *
    * @param solver The solver to invoke the command on.
-   * @param sm The symbol manager to invoke the command on.
-   * @param out The output stream to write the result of the command on.
+   * @param symbolManager The symbol manager to invoke the command on.   
    */
   public void invoke(Solver solver, SymbolManager symbolManager)
   {
