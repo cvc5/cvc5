@@ -29,8 +29,9 @@
 #include "prop/sat_solver_types.h"
 #include "smt/env_obj.h"
 #include "theory/atom_requests.h"
-#include "theory/engine_output_channel.h"
+#include "theory/inference_id.h"
 #include "theory/interrupted.h"
+#include "theory/output_channel.h"
 #include "theory/partition_generator.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
@@ -106,7 +107,7 @@ class TheoryEngine : protected EnvObj
 {
   /** Shared terms database can use the internals notify the theories */
   friend class SharedTermsDatabase;
-  friend class theory::EngineOutputChannel;
+  friend class theory::OutputChannel;
   friend class theory::CombinationEngine;
   friend class theory::SharedSolver;
 
@@ -131,7 +132,7 @@ class TheoryEngine : protected EnvObj
   {
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
     d_theoryOut[theoryId] =
-        new theory::EngineOutputChannel(statisticsRegistry(), this, theoryId);
+        new theory::OutputChannel(statisticsRegistry(), this, theoryId);
     d_theoryTable[theoryId] =
         new TheoryClass(d_env, *d_theoryOut[theoryId], theory::Valuation(this));
     getRewriter()->registerTheoryRewriter(
@@ -430,9 +431,12 @@ class TheoryEngine : protected EnvObj
    *
    * @param conflict The trust node containing the conflict and its proof
    * generator (if it exists),
+   * @param id The inference identifier for the conflict.
    * @param theoryId The theory that sent the conflict
    */
-  void conflict(TrustNode conflict, theory::TheoryId theoryId);
+  void conflict(TrustNode conflict,
+                theory::InferenceId id,
+                theory::TheoryId theoryId);
 
   /** set in conflict */
   void markInConflict();
@@ -503,12 +507,14 @@ class TheoryEngine : protected EnvObj
 
   /**
    * Adds a new lemma, returning its status.
-   * @param node the lemma
-   * @param p the properties of the lemma.
-   * @param atomsTo the theory that atoms of the lemma should be sent to
-   * @param from the theory that sent the lemma
+   * @param node The lemma
+   * @param id The inference identifier for the lemma
+   * @param p The properties of the lemma.
+   * @param atomsTo The theory that atoms of the lemma should be sent to
+   * @param from The theory that sent the lemma.
    */
   void lemma(TrustNode node,
+             theory::InferenceId id,
              theory::LemmaProperty p,
              theory::TheoryId from = theory::THEORY_LAST);
 
@@ -552,7 +558,7 @@ class TheoryEngine : protected EnvObj
   /**
    * Output channels for individual theories.
    */
-  theory::EngineOutputChannel* d_theoryOut[theory::THEORY_LAST];
+  theory::OutputChannel* d_theoryOut[theory::THEORY_LAST];
 
   /**
    * Are we in conflict.

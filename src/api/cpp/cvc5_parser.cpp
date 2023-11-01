@@ -94,8 +94,6 @@ SymManager* SymbolManager::toSymManager() { return d_sm.get(); }
 
 Command::Command() {}
 
-Command::Command(const Command& cmd) { d_cmd = cmd.d_cmd; }
-
 Command::Command(std::shared_ptr<Cmd> cmd) : d_cmd(cmd) {}
 
 bool Command::isNull() const

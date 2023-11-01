@@ -9,6 +9,15 @@ This file contains a summary of important user-visible changes.
        The function `Solver::proofToString(std::vector<Proof> proof,
        modes::ProofFormat format, modes::ProofComponent component)` can be used
        to print proof components to a string with a specified proof format.
+- Support for the AletheLF (ALF) proof format. This format combines the
+  strengths of the Alethe and LFSC proof formats, namely it borrows much of the
+  syntax of Alethe, while being based on a logical framework like LFSC. This
+  proof format is currently under development and is planned to the default
+  proof format used cvc5 in future releases.
+  * API: The option `--proof-format=alf` can be used to print proofs in the
+         AletheLF format.
+  * The ALF proof checker (alfc) is available for download via the script
+    `./contrib/get-alf-checker`.
 - CaDiCaL is now integrated via the IPASIR-UP interface as CDCL(T) SAT solver.
   The CDCL(T) SAT solver can be configured via option `--sat-solver`. Currently,
   MiniSat is still default. Note that CaDiCaL cannot be used as the CDCL(T) SAT
