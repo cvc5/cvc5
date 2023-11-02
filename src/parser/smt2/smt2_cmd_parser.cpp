@@ -699,7 +699,9 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       }
       if (assumptions.empty())
       {
-        d_lex.parseError("Expected non-empty list of assumptions for get-timeout-core-assuming");
+        d_lex.parseError(
+            "Expected non-empty list of assumptions for "
+            "get-timeout-core-assuming");
       }
       d_lex.nextToken();
       cmd.reset(new GetTimeoutCoreCommand(assumptions));

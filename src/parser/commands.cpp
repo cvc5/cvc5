@@ -2181,13 +2181,11 @@ GetTimeoutCoreCommand::GetTimeoutCoreCommand()
 }
 GetTimeoutCoreCommand::GetTimeoutCoreCommand(
     const std::vector<Term>& assumptions)
-    : d_solver(nullptr),
-      d_sm(nullptr),
-      d_assumptions(assumptions)
+    : d_solver(nullptr), d_sm(nullptr), d_assumptions(assumptions)
 {
   // providing an empty list of assumptions will make us call getTimeoutCore
   // below instead of getTimeoutCoreAssuming.
-  Assert (!d_assumptions.empty());
+  Assert(!d_assumptions.empty());
 }
 void GetTimeoutCoreCommand::invoke(cvc5::Solver* solver, SymManager* sm)
 {
