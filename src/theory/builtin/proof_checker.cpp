@@ -55,7 +55,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerTrustedChecker(ProofRule::MACRO_SR_PRED_INTRO, this, 4);
   pc->registerTrustedChecker(ProofRule::MACRO_SR_PRED_ELIM, this, 4);
   pc->registerTrustedChecker(ProofRule::MACRO_SR_PRED_TRANSFORM, this, 4);
-  pc->registerTrustedChecker(ProofRule::THEORY_REWRITE, this, 4);
+  pc->registerTrustedChecker(ProofRule::TRUST_THEORY_REWRITE, this, 4);
   // trusted rules
   pc->registerTrustedChecker(ProofRule::TRUST, this, 1);
   // external proof rules
@@ -386,7 +386,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     Assert(args.size() >= 2);
     return args[1];
   }
-  else if (id == ProofRule::THEORY_REWRITE)
+  else if (id == ProofRule::TRUST_THEORY_REWRITE)
   {
     // "trusted" rules
     Assert(!args.empty());

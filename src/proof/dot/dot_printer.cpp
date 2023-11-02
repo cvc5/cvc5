@@ -511,7 +511,7 @@ void DotPrinter::ruleArguments(std::ostringstream& currentArguments,
     }
   }
   // if th_rw, likewise
-  else if (r == ProofRule::THEORY_REWRITE)
+  else if (r == ProofRule::TRUST_THEORY_REWRITE)
   {
     // print the second argument
     theory::TheoryId id;

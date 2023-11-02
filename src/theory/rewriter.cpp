@@ -467,7 +467,7 @@ RewriteResponse Rewriter::processTrustRewriteResponse(
                                   : MethodId::RW_REWRITE_THEORY_POST);
       tcpg->addRewriteStep(proven[0],
                            proven[1],
-                           ProofRule::THEORY_REWRITE,
+                           ProofRule::TRUST_THEORY_REWRITE,
                            {},
                            {proven, tidn, rid},
                            isPre);

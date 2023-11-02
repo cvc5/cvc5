@@ -39,7 +39,7 @@ const char* toString(ProofRule id)
     case ProofRule::REMOVE_TERM_FORMULA_AXIOM: return "REMOVE_TERM_FORMULA_AXIOM";
     //================================================= Trusted rules
     case ProofRule::TRUST: return "TRUST";
-    case ProofRule::THEORY_REWRITE: return "THEORY_REWRITE";
+    case ProofRule::TRUST_THEORY_REWRITE: return "TRUST_THEORY_REWRITE";
     case ProofRule::SAT_REFUTATION: return "SAT_REFUTATION";
     //================================================= Boolean rules
     case ProofRule::RESOLUTION: return "RESOLUTION";

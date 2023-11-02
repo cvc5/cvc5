@@ -154,7 +154,7 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   if (TraceIsOn("final-pf-hole"))
   {
     // currently only track theory rewrites
-    if (r == ProofRule::THEORY_REWRITE)
+    if (r == ProofRule::TRUST_THEORY_REWRITE)
     {
       const std::vector<Node>& args = pn->getArguments();
       Node eq = args[0];

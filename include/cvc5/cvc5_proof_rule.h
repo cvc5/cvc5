@@ -344,7 +344,7 @@ enum ENUM(ProofRule) : uint32_t
    * bound variables that are not guaranteed to be consistent on each call.
    * \endverbatim
    */
-  EVALUE(THEORY_REWRITE),
+  EVALUE(TRUST_THEORY_REWRITE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **SAT Refutation for assumption-based unsat cores**

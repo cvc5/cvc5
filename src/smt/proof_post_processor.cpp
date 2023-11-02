@@ -817,10 +817,10 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
         // did not have a proof of rewriting, probably isExtEq is true
         if (isExtEq)
         {
-          // update to THEORY_REWRITE with idr
+          // update to TRUST_THEORY_REWRITE with idr
           Assert(args.size() >= 1);
           Node tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
-          cdp->addStep(eq, ProofRule::THEORY_REWRITE, {}, {eq, tid, args[1]});
+          cdp->addStep(eq, ProofRule::TRUST_THEORY_REWRITE, {}, {eq, tid, args[1]});
         }
         else
         {
@@ -885,7 +885,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
         // in this case, must be a non-standard rewrite kind
         Assert(args.size() >= 2);
         targs.push_back(args[1]);
-        Node eqpp = expandMacros(ProofRule::THEORY_REWRITE, {}, targs, cdp);
+        Node eqpp = expandMacros(ProofRule::TRUST_THEORY_REWRITE, {}, targs, cdp);
         transEq.push_back(eqp);
         if (eqpp.isNull())
         {
@@ -1003,7 +1003,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     TheoryId tid = THEORY_LAST;
     MethodId mid = MethodId::RW_REWRITE;
     // if theory rewrite, get diagnostic information
-    if (id == ProofRule::THEORY_REWRITE)
+    if (id == ProofRule::TRUST_THEORY_REWRITE)
     {
       builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
       getMethodId(args[2], mid);

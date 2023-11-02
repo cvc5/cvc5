@@ -321,7 +321,7 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
       }
       break;
     case ProofRule::MACRO_SR_PRED_ELIM: return ArgFormat::METHOD_ID; break;
-    case ProofRule::THEORY_REWRITE:
+    case ProofRule::TRUST_THEORY_REWRITE:
       if (i == 1)
       {
         return ArgFormat::THEORY_ID;
