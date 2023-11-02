@@ -7174,7 +7174,7 @@ std::pair<Result, std::vector<Term>> Solver::getTimeoutCore() const
       << "Cannot get timeout core unless unsat cores are enabled "
          "(try --produce-unsat-cores)";
   //////// all checks before this line
-  return getTimeoutCoreHelper({}, false);
+  return getTimeoutCoreHelper({});
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -7183,22 +7183,22 @@ std::pair<Result, std::vector<Term>> Solver::getTimeoutCoreAssuming(
     const std::vector<Term>& assumptions) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(!assumptions.empty()) << "Cannot get timeout core assuming an empty set of assumptions";
   CVC5_API_CHECK(d_slv->getOptions().smt.produceUnsatCores)
       << "Cannot get timeout core unless unsat cores are enabled "
          "(try --produce-unsat-cores)";
   //////// all checks before this line
-  return getTimeoutCoreHelper(assumptions, true);
+  return getTimeoutCoreHelper(assumptions);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
 std::pair<Result, std::vector<Term>> Solver::getTimeoutCoreHelper(
-    const std::vector<Term>& assumptions, bool hasAssumptions) const
+    const std::vector<Term>& assumptions) const
 {
   std::vector<Term> res;
   std::pair<internal::Result, std::vector<internal::Node>> resi =
-      d_slv->getTimeoutCore(Term::termVectorToNodes(assumptions),
-                            hasAssumptions);
+      d_slv->getTimeoutCore(Term::termVectorToNodes(assumptions));
   for (internal::Node& c : resi.second)
   {
     res.push_back(Term(d_nm, c));

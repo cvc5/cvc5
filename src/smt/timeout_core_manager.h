@@ -76,7 +76,7 @@ class TimeoutCoreManager : protected EnvObj
    * Returns a pair containing a result and a list of formulas C. For details,
    * see Solver::getTimeoutCore.
    *
-   * If hasAssumptions is true, the timeout core is a subset of formulas in
+   * If assumptions is non-empty, the timeout core is a subset of formulas in
    * assumptions.
    *
    * Otherwise, the timeout core is a subset of formulas in ppAsserts.
@@ -84,14 +84,12 @@ class TimeoutCoreManager : protected EnvObj
    * @param ppAsserts The preprocessed assertions
    * @param ppSkolemMap Mapping from indices in ppAsserts to skolem it defined,
    * if applicable.
-   * @param assumptions The assumptions
-   * @param hasAssumptions Whether the user provided assumptions.
+   * @param assumptions The assumptions, if non-empty
    */
   std::pair<Result, std::vector<Node>> getTimeoutCore(
       const std::vector<Node>& ppAsserts,
       const std::map<size_t, Node>& ppSkolemMap,
-      const std::vector<Node>& assumptions,
-      bool hasAssumptions);
+      const std::vector<Node>& assumptions);
   /** Get the SMT solver */
   SolverEngine* getSubSolver();
 
@@ -99,8 +97,7 @@ class TimeoutCoreManager : protected EnvObj
   /** initialize assertions */
   void initializeAssertions(const std::vector<Node>& ppAsserts,
                             const std::map<size_t, Node>& ppSkolemMap,
-                            const std::vector<Node>& assumptions,
-                            bool hasAssumptions);
+                            const std::vector<Node>& assumptions);
   /**
    * Get next assertions
    *

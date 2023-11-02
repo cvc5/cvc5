@@ -797,7 +797,7 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
 }
 
 std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore(
-    const std::vector<Node>& assumptions, bool hasAssumptions)
+    const std::vector<Node>& assumptions)
 {
   Trace("smt") << "SolverEngine::getTimeoutCore()" << std::endl;
   beginCall(true);
@@ -817,10 +817,10 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore(
     ppSkolemMap[pk.first] = pk.second;
   }
   std::pair<Result, std::vector<Node>> ret =
-      tcm.getTimeoutCore(passerts, ppSkolemMap, assumptions, hasAssumptions);
+      tcm.getTimeoutCore(passerts, ppSkolemMap, assumptions);
   // convert the preprocessed assertions to input assertions
   std::vector<Node> core;
-  if (!hasAssumptions)
+  if (assumptions.empty())
   {
     if (!ret.second.empty())
     {
@@ -829,7 +829,7 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore(
   }
   else
   {
-    // not necessary to convert
+    // not necessary to convert, since we computed the assumptions already
     core = ret.second;
   }
   endCall();

@@ -1061,8 +1061,6 @@ class CVC5_EXPORT GetTimeoutCoreCommand : public Cmd
   cvc5::Solver* d_solver;
   /** The symbol manager we were invoked with */
   parser::SymManager* d_sm;
-  /** Did we provide assumptions */
-  bool d_hasAssumptions;
   /** Assumptions */
   std::vector<Term> d_assumptions;
   /** the result of the timeout core call */

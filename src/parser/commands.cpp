@@ -2176,16 +2176,18 @@ void GetDifficultyCommand::toStream(std::ostream& out) const
 /* -------------------------------------------------------------------------- */
 
 GetTimeoutCoreCommand::GetTimeoutCoreCommand()
-    : d_solver(nullptr), d_sm(nullptr), d_hasAssumptions(false), d_assumptions()
+    : d_solver(nullptr), d_sm(nullptr), d_assumptions()
 {
 }
 GetTimeoutCoreCommand::GetTimeoutCoreCommand(
     const std::vector<Term>& assumptions)
     : d_solver(nullptr),
       d_sm(nullptr),
-      d_hasAssumptions(true),
       d_assumptions(assumptions)
 {
+  // providing an empty list of assumptions will make us call getTimeoutCore
+  // below instead of getTimeoutCoreAssuming.
+  Assert (!d_assumptions.empty());
 }
 void GetTimeoutCoreCommand::invoke(cvc5::Solver* solver, SymManager* sm)
 {
@@ -2193,7 +2195,7 @@ void GetTimeoutCoreCommand::invoke(cvc5::Solver* solver, SymManager* sm)
   {
     d_sm = sm;
     d_solver = solver;
-    if (d_hasAssumptions)
+    if (!d_assumptions.empty())
     {
       d_result = solver->getTimeoutCoreAssuming(d_assumptions);
     }

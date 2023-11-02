@@ -2046,6 +2046,13 @@ class SolverTest
   }
 
   @Test
+  void getTimeoutCoreAssumingEmpty() throws CVC5ApiException
+  {
+    d_solver.setOption("produce-unsat-cores", "true");
+    assertThrows(CVC5ApiException.class, () -> d_solver.getTimeoutCoreAssuming(new Term[] {}));
+  }
+
+  @Test
   void getValue1()
   {
     d_solver.setOption("produce-models", "false");

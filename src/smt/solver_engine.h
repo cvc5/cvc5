@@ -341,7 +341,7 @@ class CVC5_EXPORT SolverEngine
    * @return The result of the timeout core computation.
    */
   std::pair<Result, std::vector<Node>> getTimeoutCore(
-      const std::vector<Node>& assumptions, bool hasAssumptions);
+      const std::vector<Node>& assumptions);
   /**
    * Returns a set of so-called "failed" assumptions.
    *

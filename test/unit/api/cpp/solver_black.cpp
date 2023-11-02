@@ -2183,6 +2183,12 @@ TEST_F(TestApiBlackSolver, getTimeoutCoreAssuming)
   ASSERT_EQ(res.second[0], ff);
 }
 
+TEST_F(TestApiBlackSolver, getTimeoutCoreAssumingEmpty)
+{
+  d_solver.setOption("produce-unsat-cores", "true");
+  ASSERT_THROW(d_solver.getTimeoutCoreAssuming({}), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackSolver, getValue1)
 {
   d_solver.setOption("produce-models", "false");

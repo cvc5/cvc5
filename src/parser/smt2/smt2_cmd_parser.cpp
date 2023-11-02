@@ -697,6 +697,10 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
         assumptions.push_back(t);
         tok = d_lex.peekToken();
       }
+      if (assumptions.empty())
+      {
+        d_lex.parseError("Expected non-empty list of assumptions for get-timeout-core-assuming");
+      }
       d_lex.nextToken();
       cmd.reset(new GetTimeoutCoreCommand(assumptions));
     }

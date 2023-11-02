@@ -4517,7 +4517,7 @@ class CVC5_EXPORT Solver
    *
    * @warning This function is experimental and may change in future versions.
    *
-   * @param assumptions The formulas to assume.
+   * @param assumptions The (non-empty) set of formulas to assume.
    * @return The result of the timeout core computation. This is a pair
    * containing a result and a list of formulas. If the result is unknown
    * and the reason is timeout, then the list of formulas correspond to a
@@ -5523,9 +5523,9 @@ class CVC5_EXPORT Solver
                       const Sort& sort,
                       bool isInv = false,
                       Grammar* grammar = nullptr) const;
-
+  /** Helper for getting timeout cores */
   std::pair<Result, std::vector<Term>> getTimeoutCoreHelper(
-      const std::vector<Term>& assumptions, bool hasAssumptions) const;
+      const std::vector<Term>& assumptions) const;
 
   /** Check whether string s is a valid decimal integer. */
   bool isValidInteger(const std::string& s) const;

@@ -48,8 +48,7 @@ TimeoutCoreManager::TimeoutCoreManager(Env& env)
 std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
     const std::vector<Node>& ppAsserts,
     const std::map<size_t, Node>& ppSkolemMap,
-    const std::vector<Node>& assumptions,
-    bool hasAssumptions)
+    const std::vector<Node>& assumptions)
 {
   d_ppAsserts.clear();
   d_ppAssertsOrig.clear();
@@ -61,7 +60,7 @@ std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
   d_asymbols.clear();
   d_syms.clear();
   d_globalInclude.clear();
-  initializeAssertions(ppAsserts, ppSkolemMap, assumptions, hasAssumptions);
+  initializeAssertions(ppAsserts, ppSkolemMap, assumptions);
 
   std::vector<size_t> nextInclude;
   Result result;
@@ -90,13 +89,16 @@ std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
     toCore.push_back(d_ppAssertsOrig[a.first]);
   }
   // include the skolem definitions
-  if (!hasAssumptions)
+  if (assumptions.empty())
   {
     getActiveDefinitions(toCore);
   }
-  for (const Node& c : toCore)
+  if (TraceIsOn("to-core-result"))
   {
-    Trace("to-core-result") << "core: " << c << std::endl;
+    for (const Node& c : toCore)
+    {
+      Trace("to-core-result") << "core: " << c << std::endl;
+    }
   }
   return std::pair<Result, std::vector<Node>>(result, toCore);
 }
@@ -314,15 +316,18 @@ Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions,
 void TimeoutCoreManager::initializeAssertions(
     const std::vector<Node>& ppAsserts,
     const std::map<size_t, Node>& ppSkolemMap,
-    const std::vector<Node>& assumptions,
-    bool hasAssumptions)
+    const std::vector<Node>& assumptions)
 {
-  Trace("smt-to-core") << "initializeAssertions" << std::endl;
-  if (hasAssumptions)
+  bool hasAssumptions = !assumptions.empty();
+  if (TraceIsOn("smt-to-core"))
   {
-    Trace("smt-to-core") << "#assumptions =" << assumptions << std::endl;
+    Trace("smt-to-core") << "initializeAssertions" << std::endl;
+    if (hasAssumptions)
+    {
+      Trace("smt-to-core") << "#assumptions =" << assumptions << std::endl;
+    }
+    Trace("smt-to-core") << "#ppAsserts = " << ppAsserts.size() << std::endl;
   }
-  Trace("smt-to-core") << "#ppAsserts = " << ppAsserts.size() << std::endl;
   std::vector<Node> skDefs;
   const std::vector<Node>& input = hasAssumptions ? assumptions : ppAsserts;
   std::map<size_t, Node>::const_iterator itc;
