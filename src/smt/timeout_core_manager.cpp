@@ -200,7 +200,7 @@ void TimeoutCoreManager::getNextAssertions(
     // otherwise, add to current symbols
     for (size_t i : nextInclude)
     {
-      std::unordered_set<Node>& syms = d_syms[i];
+      const std::unordered_set<Node>& syms = d_syms[i];
       d_asymbols.insert(syms.begin(), syms.end());
     }
   }

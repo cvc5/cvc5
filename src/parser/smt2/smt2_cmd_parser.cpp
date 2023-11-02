@@ -680,7 +680,7 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
     case Token::GET_TIMEOUT_CORE_ASSUMING_TOK:
     {
       d_state.checkThatLogicIsSet();
-      // read optional soft constraints
+      // read optional assumptions
       d_lex.eatToken(Token::LPAREN_TOK);
       std::vector<Term> assumptions;
       tok = d_lex.peekToken();
