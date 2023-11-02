@@ -217,6 +217,8 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
 PreprocessingPassResult RealToInt::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
+  // this pass is refutation unsound, "unsat" will be "unknown"
+  assertionsToPreprocess->markRefutationUnsound();
   std::vector<Node> var_eq;
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {

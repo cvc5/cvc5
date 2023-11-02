@@ -294,6 +294,8 @@ IntToBV::IntToBV(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult IntToBV::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
+  // this pass is refutation unsound, "unsat" will be "unknown"
+  assertionsToPreprocess->markRefutationUnsound();
   NodeMap cache;
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {

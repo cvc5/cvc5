@@ -30,7 +30,10 @@ AssertionPipeline::AssertionPipeline(Env& env)
       d_storeSubstsInAsserts(false),
       d_substsIndex(0),
       d_pppg(nullptr),
-      d_conflict(false)
+      d_conflict(false),
+  d_isRefutationUnsound(false),
+  d_isModelUnsound(false),
+  d_isNegated(false)
 {
   d_false = NodeManager::currentNM()->mkConst(false);
 }
@@ -38,6 +41,9 @@ AssertionPipeline::AssertionPipeline(Env& env)
 void AssertionPipeline::clear()
 {
   d_conflict = false;
+  d_isRefutationUnsound = false;
+  d_isModelUnsound = false;
+  d_isNegated = false;
   d_nodes.clear();
   d_iteSkolemMap.clear();
 }
@@ -219,6 +225,21 @@ void AssertionPipeline::setConflict()
   d_conflict = true;
   d_nodes.clear();
   d_nodes.push_back(d_false);
+}
+
+void AssertionPipeline::markRefutationUnsound()
+{
+  d_isRefutationUnsound = true;
+}
+
+void AssertionPipeline::markModelUnsound()
+{
+  d_isModelUnsound = true;
+}
+
+void AssertionPipeline::markNegated()
+{
+  d_isNegated = true;
 }
 
 }  // namespace preprocessing

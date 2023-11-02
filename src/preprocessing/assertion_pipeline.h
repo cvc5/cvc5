@@ -147,6 +147,18 @@ class AssertionPipeline : protected EnvObj
   }
   /** Is in conflict? True if this pipeline contains the false assertion */
   bool isInConflict() const { return d_conflict; }
+  /** Is refutation unsound? */
+  bool isRefutationUnsound() const { return d_isRefutationUnsound; }
+  /** Is model unsound? */
+  bool isModelUnsound() const { return d_isModelUnsound; }
+  /** Is negated? */
+  bool isNegated() const { return d_isNegated; }
+  /** mark refutation unsound */
+  void markRefutationUnsound();
+  /** mark model unsound */
+  void markModelUnsound();
+  /** mark negated */
+  void markNegated();
   //------------------------------------ for proofs
   /**
    * Enable proofs for this assertions pipeline. This must be called
@@ -199,6 +211,12 @@ class AssertionPipeline : protected EnvObj
   smt::PreprocessProofGenerator* d_pppg;
   /** Are we in conflict? */
   bool d_conflict;
+  /** Is refutation unsound? */
+  bool d_isRefutationUnsound;
+  /** Is model unsound? */
+  bool d_isModelUnsound;
+  /** Is negated? */
+  bool d_isNegated;
 }; /* class AssertionPipeline */
 
 }  // namespace preprocessing
