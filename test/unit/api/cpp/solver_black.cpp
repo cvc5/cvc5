@@ -13,6 +13,8 @@
  * Black box testing of the Solver class of the  C++ API.
  */
 
+#include <gtest/gtest.h>
+
 #include <algorithm>
 #include <cmath>
 
@@ -2026,6 +2028,46 @@ TEST_F(TestApiBlackSolver, getUnsatCoreLemmas2)
   ASSERT_TRUE(d_solver.checkSat().isUnsat());
 
   ASSERT_NO_THROW(d_solver.getUnsatCoreLemmas());
+}
+  
+TEST_F(TestApiBlackSolver, getProofAndProofToString)
+{
+  d_solver.setOption("produce-proofs", "true");
+
+  Sort uSort = d_solver.mkUninterpretedSort("u");
+  Sort intSort = d_solver.getIntegerSort();
+  Sort boolSort = d_solver.getBooleanSort();
+  Sort uToIntSort = d_solver.mkFunctionSort({uSort}, intSort);
+  Sort intPredSort = d_solver.mkFunctionSort({intSort}, boolSort);
+  std::vector<Proof> proofs;
+
+  Term x = d_solver.mkConst(uSort, "x");
+  Term y = d_solver.mkConst(uSort, "y");
+  Term f = d_solver.mkConst(uToIntSort, "f");
+  Term p = d_solver.mkConst(intPredSort, "p");
+  Term zero = d_solver.mkInteger(0);
+  Term one = d_solver.mkInteger(1);
+  Term f_x = d_solver.mkTerm(Kind::APPLY_UF, {f, x});
+  Term f_y = d_solver.mkTerm(Kind::APPLY_UF, {f, y});
+  Term sum = d_solver.mkTerm(Kind::ADD, {f_x, f_y});
+  Term p_0 = d_solver.mkTerm(Kind::APPLY_UF, {p, zero});
+  Term p_f_y = d_solver.mkTerm(Kind::APPLY_UF, {p, f_y});
+  d_solver.assertFormula(d_solver.mkTerm(Kind::GT, {zero, f_x}));
+  d_solver.assertFormula(d_solver.mkTerm(Kind::GT, {zero, f_y}));
+  d_solver.assertFormula(d_solver.mkTerm(Kind::GT, {sum, one}));
+  d_solver.assertFormula(p_0);
+  d_solver.assertFormula(p_f_y.notTerm());
+  ASSERT_TRUE(d_solver.checkSat().isUnsat());
+
+  std::string printedProof;
+  ASSERT_NO_THROW(proofs = d_solver.getProof());
+  ASSERT_FALSE(proofs.empty());
+  ASSERT_NO_THROW(printedProof = d_solver.proofToString(proofs[0]));
+  ASSERT_FALSE(printedProof.empty());
+  ASSERT_NO_THROW(printedProof = d_solver.proofToString(
+                      proofs[0], modes::ProofFormat::ALETHE));
+  ASSERT_NO_THROW(proofs = d_solver.getProof(modes::ProofComponent::SAT));
+  ASSERT_FALSE(printedProof.empty());
 }
 
 TEST_F(TestApiBlackSolver, getDifficulty)

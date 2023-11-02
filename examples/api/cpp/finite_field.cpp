@@ -31,16 +31,17 @@ int main()
   Term b = solver.mkConst(f5, "b");
   Term z = solver.mkFiniteFieldElem("0", f5);
 
-  Term inv =
-      solver.mkTerm(EQUAL,
-                    {solver.mkTerm(FINITE_FIELD_ADD,
-                                   {solver.mkTerm(FINITE_FIELD_MULT, {a, b}),
-                                    solver.mkFiniteFieldElem("-1", f5)}),
-                     z});
-  Term aIsTwo = solver.mkTerm(
-      EQUAL,
-      {solver.mkTerm(FINITE_FIELD_ADD, {a, solver.mkFiniteFieldElem("-2", f5)}),
+  Term inv = solver.mkTerm(
+      Kind::EQUAL,
+      {solver.mkTerm(Kind::FINITE_FIELD_ADD,
+                     {solver.mkTerm(Kind::FINITE_FIELD_MULT, {a, b}),
+                      solver.mkFiniteFieldElem("-1", f5)}),
        z});
+  Term aIsTwo =
+      solver.mkTerm(Kind::EQUAL,
+                    {solver.mkTerm(Kind::FINITE_FIELD_ADD,
+                                   {a, solver.mkFiniteFieldElem("-2", f5)}),
+                     z});
   // ab - 1 = 0
   solver.assertFormula(inv);
   // a = 2
@@ -54,10 +55,11 @@ int main()
   cout << "b = " << solver.getValue(b) << endl;
 
   // b = 2
-  Term bIsTwo = solver.mkTerm(
-      EQUAL,
-      {solver.mkTerm(FINITE_FIELD_ADD, {b, solver.mkFiniteFieldElem("-2", f5)}),
-       z});
+  Term bIsTwo =
+      solver.mkTerm(Kind::EQUAL,
+                    {solver.mkTerm(Kind::FINITE_FIELD_ADD,
+                                   {b, solver.mkFiniteFieldElem("-2", f5)}),
+                     z});
 
   // should be UNSAT, 2*2 - 1 != 0
   solver.assertFormula(bIsTwo);

@@ -34,7 +34,10 @@ namespace preprocessing {
 namespace passes {
 
 HoElim::HoElim(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "ho-elim"){};
+    : PreprocessingPass(preprocContext, "ho-elim")
+{
+  d_hoElimSc = NodeManager::currentNM()->mkSortConstructor("@ho-elim-sort", 1);
+}
 
 Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
 {
@@ -545,9 +548,8 @@ TypeNode HoElim::getUSort(TypeNode tn)
     }
     else
     {
-      std::stringstream ss;
-      ss << "u_" << tn;
-      s = NodeManager::currentNM()->mkSort(ss.str());
+      // make the uninterpreted sort, given by (ho-elim-sort tn)
+      s = NodeManager::currentNM()->mkSort(d_hoElimSc, {tn});
     }
     d_ftypeMap[tn] = s;
     return s;
