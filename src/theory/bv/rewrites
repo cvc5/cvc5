@@ -618,7 +618,6 @@
   (bvudiv x (bv 1 n))
   x)
 ; (x urem 2^k) = 0_(n-k) x[k-1:0]
-; The original version had power - 1, but I thought about it and it doesn't make sense to me, so I didn't put the -1 here.
 (define-cond-rule bv-urem-pow2-not-one
   ((x ?BitVec) (v Int) (n Int))
   (def (power (int.log2 v)))
