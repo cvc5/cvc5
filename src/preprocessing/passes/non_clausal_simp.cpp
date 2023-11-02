@@ -331,6 +331,10 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     s.insert(assertion);
     Trace("non-clausal-simplify")
         << "non-clausal preprocessed: " << assertion << std::endl;
+    if (assertionsToPreprocess->isInConflict())
+    {
+      return PreprocessingPassResult::CONFLICT;
+    }
   }
 
   // If necessary, add as assertions if needed (when incremental). This is
