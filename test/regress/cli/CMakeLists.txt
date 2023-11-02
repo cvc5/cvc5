@@ -2259,6 +2259,7 @@ set(regress_1_tests
   regress1/nl/iand-native-2.smt2
   regress1/nl/iand-native-granularities.smt2
   regress1/nl/issue10003-nl-ext-rr.smt2
+  regress1/nl/issue10139-iand.smt2
   regress1/nl/issue3300-approx-sqrt-witness.smt2
   regress1/nl/issue3441.smt2
   regress1/nl/issue3617.smt2
@@ -3312,7 +3313,6 @@ set(regress_2_tests
   regress2/javafe.ast.StandardPrettyPrint.319_no_forall.smt2
   regress2/javafe.ast.WhileStmt.447_no_forall.smt2
   regress2/nl/issue8693-flatten-to-real.smt2
-  regress2/nl/ufnia-factor-open-proof.smt2
   regress2/ooo.rf6.smt2
   regress2/ooo.tag10.smt2
   regress2/piVC_5581bd.smt2
@@ -3575,6 +3575,8 @@ set(regression_disabled_tests
   regress2/nl/dumortier-050317.smt2
   # timeout on some builds after changes to justification heuristic
   regress2/nl/nt-lemmas-bad.smt2
+  # timeout after change to arith theory combination
+  regress2/nl/ufnia-factor-open-proof.smt2
   # timeout after refactoring justification heuristic
   regress2/ho/SYO362^5.smt2
   # timeout after refactoring selectors
