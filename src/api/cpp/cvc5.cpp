@@ -5025,13 +5025,7 @@ Proof::Proof() {}
 
 Proof::Proof(const std::shared_ptr<internal::ProofNode> p) : d_proof_node(p) {}
 
-Proof::~Proof()
-{
-  if (d_proof_node != nullptr)
-  {
-    d_proof_node.reset();
-  }
-}
+Proof::~Proof() {}
 
 ProofRule Proof::getRule() const
 {
