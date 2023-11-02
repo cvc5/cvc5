@@ -489,7 +489,7 @@ void TheoryArith::finalizeModelCache()
   // make into substitution
   for (const auto& [node, repl] : d_arithModelCache)
   {
-    Assert(repl.getType().isRealOrInt());    
+    Assert(repl.getType().isRealOrInt());
     // we only keep the domain of the substitution that is for leafs of
     // arithmetic; otherwise we are using the value of the abstraction of
     // non-linear term from the linear solver, which can be incorrect.
