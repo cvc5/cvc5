@@ -200,7 +200,9 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
       getAssertions(as, unifiedAssertions);
       Pf pf = d_pnm->mkScope(
           pfn, unifiedAssertions, true, options().proof.proofPruneInput);
-      Assert(pf->getRule() == ProofRule::SCOPE);
+      // if this is violated, there is unsoundness since we have shown
+      // false that does not depend on the input.
+      AlwaysAssert(pf->getRule() == ProofRule::SCOPE);
       // 2. Extract minimum unified assertions from the scope node.
       std::unordered_set<Node> minUnifiedAssertions;
       minUnifiedAssertions.insert(pf->getArguments().cbegin(),

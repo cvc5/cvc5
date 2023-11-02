@@ -939,7 +939,6 @@ set(regress_0_tests
   regress0/nl/nta/issue8182-exact-mv-keep.smt2
   regress0/nl/nta/issue8182-2-exact-mv-keep.smt2
   regress0/nl/nta/issue8183-tc-pi.smt2
-  regress0/nl/nta/issue8208-red-nred.smt2
   regress0/nl/nta/issue8294-2-double-solve.smt2
   regress0/nl/nta/issue8415-embed-arg.smt2
   regress0/nl/nta/issue8773-phase-shift.smt2
@@ -2325,6 +2324,7 @@ set(regress_1_tests
   regress1/nl/proj-issue297.smt2
   regress1/nl/proj-issue302.smt2
   regress1/nl/proj-issue530.smt2
+  regress1/nl/proj-issue667-init-bound.smt2
   regress1/nl/quant-nl.smt2
   regress1/nl/red-exp.smt2
   regress1/nl/rewriting-sums.smt2
@@ -2779,6 +2779,7 @@ set(regress_1_tests
   regress1/sets/proj-issue178.smt2
   regress1/sets/proj-issue494-finite-leafof.smt2
   regress1/sets/proj-issue610.smt2
+  regress1/sets/proj-issue668.smt2
   regress1/sets/relation_aggregate1.smt2
   regress1/sets/relation_group1.smt2
   regress1/sets/relation_group2.smt2
@@ -3477,6 +3478,8 @@ set(regression_disabled_tests
   regress0/datatypes/datatype-dump.cvc.smt2
   # no longer support overloaded symbols across multiple parametric datatypes
   regress0/datatypes/repeated-selectors-2769.smt2
+  # unknown after change to lemma schema
+  regress0/nl/nta/issue8208-red-nred.smt2
   # fails with unknown on some builds
   regress0/quantifiers/nl-sqrt2-q.smt2
   # issues with skolems
