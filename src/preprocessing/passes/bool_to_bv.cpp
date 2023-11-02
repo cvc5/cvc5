@@ -45,10 +45,11 @@ PreprocessingPassResult BoolToBV::applyInternal(
   d_preprocContext->spendResource(Resource::PreprocessStep);
 
   size_t size = assertionsToPreprocess->size();
-  Assert(d_boolToBVMode == options::BoolToBVMode::ALL || d_boolToBVMode == options::BoolToBVMode::ITE);
+  Assert(d_boolToBVMode == options::BoolToBVMode::ALL
+         || d_boolToBVMode == options::BoolToBVMode::ITE);
   for (size_t i = 0; i < size; ++i)
   {
-    Node newAssertion;  
+    Node newAssertion;
     if (d_boolToBVMode == options::BoolToBVMode::ALL)
     {
       newAssertion = lowerAssertion((*assertionsToPreprocess)[i], true);

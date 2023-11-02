@@ -33,7 +33,7 @@ Rewrite::Rewrite(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult Rewrite::applyInternal(
   AssertionPipeline* assertionsToPreprocess)
 {
-  for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i) 
+  for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     assertionsToPreprocess->replace(i, rewrite((*assertionsToPreprocess)[i]));
     if (assertionsToPreprocess->isInConflict())
