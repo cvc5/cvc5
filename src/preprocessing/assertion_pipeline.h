@@ -145,6 +145,8 @@ class AssertionPipeline : protected EnvObj
   {
     return d_storeSubstsInAsserts && i == d_substsIndex;
   }
+  /** Is in conflict? True if this pipeline contains the false assertion */
+  bool isInConflict() const { return d_conflict; }
   //------------------------------------ for proofs
   /**
    * Enable proofs for this assertions pipeline. This must be called
@@ -158,6 +160,11 @@ class AssertionPipeline : protected EnvObj
   bool isProofEnabled() const;
   //------------------------------------ end for proofs
  private:
+  /** Set that we are in conflict */
+  void setConflict();
+  /** The false node */
+  Node d_true;
+  Node d_false;
   /** The list of current assertions */
   std::vector<Node> d_nodes;
 
@@ -190,6 +197,8 @@ class AssertionPipeline : protected EnvObj
   size_t d_numAssumptions;
   /** The proof generator, if one is provided */
   smt::PreprocessProofGenerator* d_pppg;
+  /** Are we in conflict? */
+  bool d_conflict;
 }; /* class AssertionPipeline */
 
 }  // namespace preprocessing

@@ -29,12 +29,15 @@ AssertionPipeline::AssertionPipeline(Env& env)
     : EnvObj(env),
       d_storeSubstsInAsserts(false),
       d_substsIndex(0),
-      d_pppg(nullptr)
+      d_pppg(nullptr),
+      d_conflict(false)
 {
+  d_false = NodeManager::currentNM()->mkConst(false);
 }
 
 void AssertionPipeline::clear()
 {
+  d_conflict = false;
   d_nodes.clear();
   d_iteSkolemMap.clear();
 }
@@ -43,7 +46,14 @@ void AssertionPipeline::push_back(Node n,
                                   bool isInput,
                                   ProofGenerator* pgen)
 {
-  d_nodes.push_back(n);
+  if (n==d_false)
+  {
+    setConflict();
+  }
+  else
+  {
+    d_nodes.push_back(n);
+  }
   Trace("assert-pipeline") << "Assertions: ...new assertion " << n
                            << ", isInput=" << isInput << std::endl;
   if (isProofEnabled())
@@ -82,7 +92,14 @@ void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
   {
     d_pppg->notifyPreprocessed(d_nodes[i], n, pgen);
   }
-  d_nodes[i] = n;
+  if (n==d_false)
+  {
+    setConflict();
+  }
+  else
+  {
+    d_nodes[i] = n;
+  }
 }
 
 void AssertionPipeline::replaceTrusted(size_t i, TrustNode trn)
@@ -186,8 +203,22 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
       d_pppg->notifyNewAssert(newConjr, lcp);
     }
   }
-  d_nodes[i] = newConjr;
   Assert(rewrite(newConjr) == newConjr);
+  if (newConjr==d_false)
+  {
+    setConflict();
+  }
+  else
+  {
+    d_nodes[i] = newConjr;
+  }
+}
+
+void AssertionPipeline::setConflict()
+{
+  d_conflict = true;
+  d_nodes.clear();
+  d_nodes.push_back(d_false);
 }
 
 }  // namespace preprocessing
