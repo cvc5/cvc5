@@ -820,7 +820,8 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
           // update to TRUST_THEORY_REWRITE with idr
           Assert(args.size() >= 1);
           Node tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
-          cdp->addStep(eq, ProofRule::TRUST_THEORY_REWRITE, {}, {eq, tid, args[1]});
+          cdp->addStep(
+              eq, ProofRule::TRUST_THEORY_REWRITE, {}, {eq, tid, args[1]});
         }
         else
         {
@@ -885,7 +886,8 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
         // in this case, must be a non-standard rewrite kind
         Assert(args.size() >= 2);
         targs.push_back(args[1]);
-        Node eqpp = expandMacros(ProofRule::TRUST_THEORY_REWRITE, {}, targs, cdp);
+        Node eqpp =
+            expandMacros(ProofRule::TRUST_THEORY_REWRITE, {}, targs, cdp);
         transEq.push_back(eqp);
         if (eqpp.isNull())
         {
