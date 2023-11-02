@@ -174,7 +174,7 @@ class AssertionPipeline : protected EnvObj
  private:
   /** Set that we are in conflict */
   void markConflict();
-  /** The false node */
+  /** Boolean constants */
   Node d_true;
   Node d_false;
   /** The list of current assertions */

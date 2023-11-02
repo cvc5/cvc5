@@ -489,6 +489,7 @@ PreprocessingPassResult ProcessAssertions::applyPass(const std::string& pname,
 {
   dumpAssertions("assertions::pre-" + pname, ap);
   PreprocessingPassResult res;
+  // note we do not apply preprocessing passes if we are already in conflict
   if (!ap.isInConflict())
   {
     res = d_passes[pname]->apply(&ap);
