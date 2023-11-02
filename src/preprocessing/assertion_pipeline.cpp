@@ -88,7 +88,7 @@ void AssertionPipeline::pushBackTrusted(TrustNode trn)
 
 void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
 {
-  Assert (i<d_nodes.size());
+  Assert(i < d_nodes.size());
   if (n == d_nodes[i])
   {
     // no change, skip
@@ -112,7 +112,7 @@ void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
 
 void AssertionPipeline::replaceTrusted(size_t i, TrustNode trn)
 {
-  Assert (i<d_nodes.size());
+  Assert(i < d_nodes.size());
   if (trn.isNull())
   {
     // null trust node denotes no change, nothing to do
@@ -151,7 +151,7 @@ void AssertionPipeline::addSubstitutionNode(Node n, ProofGenerator* pg)
 
 void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
 {
-  Assert (i<d_nodes.size());
+  Assert(i < d_nodes.size());
   NodeManager* nm = NodeManager::currentNM();
   Node newConj;
   if (d_nodes[i].isConst() && d_nodes[i].getConst<bool>())
@@ -239,13 +239,14 @@ void AssertionPipeline::markRefutationUnsound()
 
 void AssertionPipeline::markModelUnsound() { d_isModelUnsound = true; }
 
-void AssertionPipeline::markNegated() 
+void AssertionPipeline::markNegated()
 {
   if (d_isRefutationUnsound || d_isModelUnsound)
   {
     // disallow unintuitive uses of global negation.
     std::stringstream ss;
-    ss << "Cannot negate the preprocessed assertions when already marked as refutation or model unsound.";
+    ss << "Cannot negate the preprocessed assertions when already marked as "
+          "refutation or model unsound.";
     throw LogicException(ss.str());
   }
   d_isNegated = true;
