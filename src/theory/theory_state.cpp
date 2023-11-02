@@ -45,7 +45,7 @@ TNode TheoryState::getRepresentative(TNode t) const
   if (d_ee->hasTerm(t))
   {
     return d_ee->getRepresentative(t);
-  }  
+  }
   return t;
 }
 
