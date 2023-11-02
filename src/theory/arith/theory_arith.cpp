@@ -490,9 +490,13 @@ void TheoryArith::finalizeModelCache()
   for (const auto& [node, repl] : d_arithModelCache)
   {
     Assert(repl.getType().isRealOrInt());
-    // note that node may be an application of non-linear arithmetic, which will
-    // get applied as a substitution in getEqualityStatus.
-    d_arithModelCacheSubs.add(node, repl);
+    // we only keep the domain of the substitution that is for leafs of
+    // arithmetic; otherwise we are using the value of the abstraction of
+    // non-linear term from the linear solver, which can be incorrect.
+    if (Theory::isLeafOf(node, TheoryId::THEORY_ARITH))
+    {
+      d_arithModelCacheSubs.add(node, repl);
+    }
   }
 }
 

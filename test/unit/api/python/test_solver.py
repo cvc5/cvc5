@@ -1571,6 +1571,21 @@ def test_get_timeout_core(solver):
   assert len(res[1]) == 1
   assert res[1][0] == ff
 
+def test_get_timeout_core_assuming(solver):
+  solver.setOption("produce-unsat-cores", "true")
+  ff = solver.mkBoolean(False)
+  tt = solver.mkBoolean(True)
+  solver.assertFormula(tt)
+  res = solver.getTimeoutCoreAssuming(ff, tt)
+  assert res[0].isUnsat()
+  assert len(res[1]) == 1
+  assert res[1][0] == ff
+  
+def test_get_timeout_core_assuming_empty(solver):
+  solver.setOption("produce-unsat-cores", "true")
+  with pytest.raises(RuntimeError):
+    res = solver.getTimeoutCoreAssuming()
+
 def test_get_value1(solver):
     solver.setOption("produce-models", "false")
     t = solver.mkTrue()

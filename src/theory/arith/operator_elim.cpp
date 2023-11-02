@@ -398,6 +398,8 @@ Node OperatorElim::eliminateOperators(Node node,
         {
           lem = nm->mkNode(Kind::IMPLIES, cond, lem);
         }
+        Trace("arith-op-elim")
+            << "Elimination lemma " << lem << " for " << node << std::endl;
       }
       Assert(!lem.isNull());
       lems.push_back(mkSkolemLemma(lem, var));

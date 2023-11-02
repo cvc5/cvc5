@@ -796,7 +796,8 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   return Result(r, filename);
 }
 
-std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore()
+std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore(
+    const std::vector<Node>& assumptions)
 {
   Trace("smt") << "SolverEngine::getTimeoutCore()" << std::endl;
   beginCall(true);
@@ -807,11 +808,7 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore()
   // get the preprocessed assertions
   const context::CDList<Node>& assertions =
       d_smtSolver->getPreprocessedAssertions();
-  std::vector<Node> passerts;
-  for (const Node& a : assertions)
-  {
-    passerts.push_back(a);
-  }
+  std::vector<Node> passerts(assertions.begin(), assertions.end());
   const context::CDHashMap<size_t, Node>& ppsm =
       d_smtSolver->getPreprocessedSkolemMap();
   std::map<size_t, Node> ppSkolemMap;
@@ -820,12 +817,20 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore()
     ppSkolemMap[pk.first] = pk.second;
   }
   std::pair<Result, std::vector<Node>> ret =
-      tcm.getTimeoutCore(passerts, ppSkolemMap);
+      tcm.getTimeoutCore(passerts, ppSkolemMap, assumptions);
   // convert the preprocessed assertions to input assertions
   std::vector<Node> core;
-  if (!ret.second.empty())
+  if (assumptions.empty())
   {
-    core = convertPreprocessedToInput(ret.second, true);
+    if (!ret.second.empty())
+    {
+      core = convertPreprocessedToInput(ret.second, true);
+    }
+  }
+  else
+  {
+    // not necessary to convert, since we computed the assumptions already
+    core = ret.second;
   }
   endCall();
   return std::pair<Result, std::vector<Node>>(ret.first, core);
