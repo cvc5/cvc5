@@ -19,6 +19,7 @@
 #include "expr/node_manager.h"
 #include "options/smt_options.h"
 #include "proof/lazy_proof.h"
+#include "smt/logic_exception.h"
 #include "smt/preprocess_proof_generator.h"
 #include "theory/builtin/proof_checker.h"
 
@@ -54,7 +55,7 @@ void AssertionPipeline::push_back(Node n,
 {
   if (n == d_false)
   {
-    setConflict();
+    markConflict();
   }
   else
   {
@@ -87,6 +88,7 @@ void AssertionPipeline::pushBackTrusted(TrustNode trn)
 
 void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
 {
+  Assert (i<d_nodes.size());
   if (n == d_nodes[i])
   {
     // no change, skip
@@ -100,7 +102,7 @@ void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
   }
   if (n == d_false)
   {
-    setConflict();
+    markConflict();
   }
   else
   {
@@ -110,6 +112,7 @@ void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
 
 void AssertionPipeline::replaceTrusted(size_t i, TrustNode trn)
 {
+  Assert (i<d_nodes.size());
   if (trn.isNull())
   {
     // null trust node denotes no change, nothing to do
@@ -148,6 +151,7 @@ void AssertionPipeline::addSubstitutionNode(Node n, ProofGenerator* pg)
 
 void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
 {
+  Assert (i<d_nodes.size());
   NodeManager* nm = NodeManager::currentNM();
   Node newConj;
   if (d_nodes[i].isConst() && d_nodes[i].getConst<bool>())
@@ -212,7 +216,7 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
   Assert(rewrite(newConjr) == newConjr);
   if (newConjr == d_false)
   {
-    setConflict();
+    markConflict();
   }
   else
   {
@@ -220,10 +224,11 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
   }
 }
 
-void AssertionPipeline::setConflict()
+void AssertionPipeline::markConflict()
 {
   d_conflict = true;
   d_nodes.clear();
+  d_iteSkolemMap.clear();
   d_nodes.push_back(d_false);
 }
 
@@ -234,7 +239,17 @@ void AssertionPipeline::markRefutationUnsound()
 
 void AssertionPipeline::markModelUnsound() { d_isModelUnsound = true; }
 
-void AssertionPipeline::markNegated() { d_isNegated = true; }
+void AssertionPipeline::markNegated() 
+{
+  if (d_isRefutationUnsound || d_isModelUnsound)
+  {
+    // disallow unintuitive uses of global negation.
+    std::stringstream ss;
+    ss << "Cannot negate the preprocessed assertions when already marked as refutation or model unsound.";
+    throw LogicException(ss.str());
+  }
+  d_isNegated = true;
+}
 
 }  // namespace preprocessing
 }  // namespace cvc5::internal

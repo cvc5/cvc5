@@ -179,8 +179,10 @@ Result SmtDriverSingleCall::checkSatNext(preprocessing::AssertionPipeline& ap)
     }
     else if (result.getStatus() == Result::SAT)
     {
-      // Only can answer unsat if the theory is satisfaction complete. This
-      // includes linear arithmetic and bitvectors, which are the primary
+      // Only can answer unsat if the theory is satisfaction complete. In
+      // other words, a "sat" result for a closed formula indicates that the
+      // formula is true in *all* models.
+      // This includes linear arithmetic and bitvectors, which are the primary
       // targets for the global negate option. Other logics are possible
       // here but not considered.
       LogicInfo logic = logicInfo();

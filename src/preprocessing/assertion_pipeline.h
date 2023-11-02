@@ -173,7 +173,7 @@ class AssertionPipeline : protected EnvObj
   //------------------------------------ end for proofs
  private:
   /** Set that we are in conflict */
-  void setConflict();
+  void markConflict();
   /** The false node */
   Node d_true;
   Node d_false;
