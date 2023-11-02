@@ -31,9 +31,9 @@ AssertionPipeline::AssertionPipeline(Env& env)
       d_substsIndex(0),
       d_pppg(nullptr),
       d_conflict(false),
-  d_isRefutationUnsound(false),
-  d_isModelUnsound(false),
-  d_isNegated(false)
+      d_isRefutationUnsound(false),
+      d_isModelUnsound(false),
+      d_isNegated(false)
 {
   d_false = NodeManager::currentNM()->mkConst(false);
 }
@@ -52,7 +52,7 @@ void AssertionPipeline::push_back(Node n,
                                   bool isInput,
                                   ProofGenerator* pgen)
 {
-  if (n==d_false)
+  if (n == d_false)
   {
     setConflict();
   }
@@ -98,7 +98,7 @@ void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
   {
     d_pppg->notifyPreprocessed(d_nodes[i], n, pgen);
   }
-  if (n==d_false)
+  if (n == d_false)
   {
     setConflict();
   }
@@ -210,7 +210,7 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
     }
   }
   Assert(rewrite(newConjr) == newConjr);
-  if (newConjr==d_false)
+  if (newConjr == d_false)
   {
     setConflict();
   }
@@ -232,15 +232,9 @@ void AssertionPipeline::markRefutationUnsound()
   d_isRefutationUnsound = true;
 }
 
-void AssertionPipeline::markModelUnsound()
-{
-  d_isModelUnsound = true;
-}
+void AssertionPipeline::markModelUnsound() { d_isModelUnsound = true; }
 
-void AssertionPipeline::markNegated()
-{
-  d_isNegated = true;
-}
+void AssertionPipeline::markNegated() { d_isNegated = true; }
 
 }  // namespace preprocessing
 }  // namespace cvc5::internal
