@@ -18,7 +18,7 @@
 import pytest
 import cvc5
 from cvc5 import Result
-from cvc5 import UnknownExplanation
+from cvc5 import Kind, UnknownExplanation
 
 
 @pytest.fixture
