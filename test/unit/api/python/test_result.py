@@ -81,6 +81,7 @@ def test_is_sat_unknown(solver):
     solver.assertFormula(solver.mkTerm(Kind.LT, x, solver.mkReal("1.0")))
     res = solver.checkSat()
     assert not res.isSat()
+    assert not res.isUnsat()
     assert res.isUnknown()
     ue = res.getUnknownExplanation()
     assert ue == UnknownExplanation.UNKNOWN_REASON
