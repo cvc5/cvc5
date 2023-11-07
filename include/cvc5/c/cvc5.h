@@ -51,10 +51,10 @@ typedef struct Cvc5SynthResult Cvc5SynthResult;
 /**
  * The sort of a cvc5 term.
  */
-typedef uint64_t Cvc5Sort;
+typedef struct cvc5_sort_t* Cvc5Sort;
 
 /** A cvc5 term. */
-typedef uint64_t Cvc5Term;
+typedef struct cvc5_term_t* Cvc5Term;
 
 /**
  * A cvc5 operator.
@@ -63,7 +63,7 @@ typedef uint64_t Cvc5Term;
  * with its required parameters, e.g., a Term of kind
  * #CVC5_KIND_BITVECTOR_EXTRACT.
  */
-typedef uint64_t Cvc5Op;
+typedef struct cvc5_op_t* Cvc5Op;
 
 /** A cvc5 datatype. */
 typedef struct Cvc5Datatype Cvc5Datatype;
