@@ -336,18 +336,12 @@ class CVC5_EXPORT SolverEngine
   /**
    * Get a timeout core, which computes a subset of the current assertions that
    * cause a timeout. Note it does not require being proceeded by a call to
-   * checkSat.
+   * checkSat. For details, see Solver::getTimeoutCore.
    *
-   * @return The result of the timeout core computation. This is a pair
-   * containing a result and a list of formulas. If the result is unknown
-   * and the reason is timeout, then the list of formulas correspond to a
-   * subset of the current assertions that cause a timeout in the specified
-   * time. If the result is unsat, then the list of formulas correspond to an
-   * unsat core for the current assertions. Otherwise, the result is sat,
-   * indicating that the current assertions are satisfiable, and
-   * the list of formulas is empty.
+   * @return The result of the timeout core computation.
    */
-  std::pair<Result, std::vector<Node>> getTimeoutCore();
+  std::pair<Result, std::vector<Node>> getTimeoutCore(
+      const std::vector<Node>& assumptions);
   /**
    * Returns a set of so-called "failed" assumptions.
    *
