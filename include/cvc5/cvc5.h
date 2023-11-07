@@ -4503,6 +4503,35 @@ class CVC5_EXPORT Solver
   std::pair<Result, std::vector<Term>> getTimeoutCore() const;
 
   /**
+   * Get a timeout core, which computes a subset of the given assumptions that
+   * cause a timeout when added to the current assertions. Note it does not
+   * require being proceeded by a call to checkSat.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-timeout-core (<assert>*))
+   * \endverbatim
+   *
+   * @warning This function is experimental and may change in future versions.
+   *
+   * @param assumptions The (non-empty) set of formulas to assume.
+   * @return The result of the timeout core computation. This is a pair
+   * containing a result and a list of formulas. If the result is unknown
+   * and the reason is timeout, then the list of formulas correspond to a
+   * subset of assumptions that cause a timeout when added to the current
+   * assertions in the specified time
+   * :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+   * If the result is unsat, then the list of formulas plus the current
+   * assertions correspond to an unsat core for the current assertions.
+   * Otherwise, the result is sat, indicating that the given assumptions plus
+   * the current assertions are satisfiable, and the list of formulas is empty.
+   */
+  std::pair<Result, std::vector<Term>> getTimeoutCoreAssuming(
+      const std::vector<Term>& assumptions) const;
+  /**
    * Get a proof associated with the most recent call to checkSat.
    *
    * SMT-LIB:
@@ -5494,6 +5523,9 @@ class CVC5_EXPORT Solver
                       const Sort& sort,
                       bool isInv = false,
                       Grammar* grammar = nullptr) const;
+  /** Helper for getting timeout cores */
+  std::pair<Result, std::vector<Term>> getTimeoutCoreHelper(
+      const std::vector<Term>& assumptions) const;
 
   /** Check whether string s is a valid decimal integer. */
   bool isValidInteger(const std::string& s) const;
