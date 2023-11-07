@@ -1,3 +1,4 @@
+; DISABLE-TESTER: alf
 (set-option :global-declarations true)
 (set-logic ALL)
 (set-info :status unsat)
@@ -6,6 +7,6 @@
 (declare-const _x53 Bool)
 (declare-const _x56 _x36)
 (declare-const _x58 _x0)
-(declare-datatype _x176 ( par ( _x178 ) ( (_x186 (_x185 _x178)) (_x184 (_x180 _x0)))) )
-(assert (let ((_let0 ((_ update _x185) (_x184 _x58) _x58)))(distinct _let0 _let0)))
+(declare-datatype D ( par ( A ) ( (c (s A)) (b (_x180 _x0)))) )
+(assert (let ((_let0 ((_ update s) ((as b (D Int)) _x58) _x58)))(distinct _let0 _let0)))
 (check-sat)

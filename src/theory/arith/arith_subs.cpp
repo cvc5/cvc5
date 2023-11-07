@@ -29,7 +29,7 @@ void ArithSubs::addArith(const Node& v, const Node& s)
   d_subs.push_back(s);
 }
 
-Node ArithSubs::applyArith(const Node& n) const
+Node ArithSubs::applyArith(const Node& n, bool traverseNlMult) const
 {
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node> visited;
@@ -59,7 +59,9 @@ Node ArithSubs::applyArith(const Node& n) const
         TheoryId ctid = theory::kindToTheoryId(ck);
         if ((ctid != THEORY_ARITH && ctid != THEORY_BOOL
              && ctid != THEORY_BUILTIN)
-            || isTranscendentalKind(ck))
+            || isTranscendentalKind(ck)
+            || (!traverseNlMult
+                && (ck == Kind::NONLINEAR_MULT || ck == Kind::IAND)))
         {
           // Do not traverse beneath applications that belong to another theory
           // besides (core) arithmetic. Notice that transcendental function

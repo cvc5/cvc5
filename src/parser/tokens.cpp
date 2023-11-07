@@ -77,6 +77,9 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::GET_QE_DISJUNCT_TOK: o << "GET_QE_DISJUNCT_TOK"; break;
     case Token::GET_QE_TOK: o << "GET_QE_TOK"; break;
     case Token::GET_TIMEOUT_CORE_TOK: o << "GET_TIMEOUT_CORE_TOK"; break;
+    case Token::GET_TIMEOUT_CORE_ASSUMING_TOK:
+      o << "GET_TIMEOUT_CORE_ASSUMING_TOK";
+      break;
     case Token::GET_UNSAT_ASSUMPTIONS_TOK:
       o << "GET_UNSAT_ASSUMPTIONS_TOK";
       break;

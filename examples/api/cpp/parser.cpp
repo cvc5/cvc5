@@ -37,7 +37,8 @@ int main()
   ss << "(declare-fun b () Int)" << std::endl;
   ss << "(declare-fun c () Int)" << std::endl;
   ss << "(assert (> a (+ b c)))" << std::endl;
-  ss << "(check-sat)" << std::endl;
+  ss << "(assert (< a b))" << std::endl;
+  ss << "(assert (> c 0))" << std::endl;
   parser.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ss, "MyStream");
 
   // get the symbol manager of the parser, used when invoking commands below
@@ -58,4 +59,9 @@ int main()
     cmd.invoke(&slv, sm, std::cout);
   }
   std::cout << "Finished parsing commands" << std::endl;
+
+  // now, check sat with the solver
+  Result r = slv.checkSat();
+  std::cout << "expected: unsat" << std::endl;
+  std::cout << "result: " << r << std::endl;
 }

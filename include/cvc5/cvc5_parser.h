@@ -99,7 +99,6 @@ class CVC5_EXPORT Command
 
  public:
   Command();
-  Command(const Command& cmd);
 
   /**
    * Invoke the command on the solver and symbol manager sm, prints the result
