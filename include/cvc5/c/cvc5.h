@@ -223,6 +223,22 @@ const char* cvc5_synth_result_to_string(const Cvc5SynthResult* result);
 /* -------------------------------------------------------------------------- */
 
 /**
+ * Compare two sorts for structural equality.
+ * @param a The first sort.
+ * @param b The second sort.
+ * @return True if the sorts are equal.
+ */
+bool cvc5_sort_is_equal(Cvc5Sort a, Cvc5Sort b);
+
+/**
+ * Compare two sorts for structural disequality.
+ * @param a The first sort.
+ * @param b The second sort.
+ * @return True if the sorts are not equal.
+ */
+bool cvc5_sort_is_disequal(Cvc5Sort a, Cvc5Sort b);
+
+/**
  * Get the kind of the given sort.
  * @param sort The sort.
  * @return The kind of the sort.
@@ -765,6 +781,24 @@ size_t cvc5_sort_hash(Cvc5Sort sort);
 /* -------------------------------------------------------------------------- */
 
 /**
+ * Compare two operators for syntactic equality.
+ *
+ * @param a The first operator.
+ * @param b The second operator.
+ * @return True if both operators are syntactically identical.
+ */
+bool cvc5_op_is_equal(Cvc5Op a, Cvc5Op b);
+
+/**
+ * Compare two operators for syntactic disequality.
+ *
+ * @param a The first operator.
+ * @param b The second operator.
+ * @return True if both operators are syntactically disequal.
+ */
+bool cvc5_op_is_disequal(Cvc5Op a, Cvc5Op b);
+
+/**
  * Get the kind of a given operator.
  * @param op The operator.
  * @return The kind of the operator.
@@ -810,6 +844,22 @@ size_t cvc5_op_hash(Cvc5Op op);
 /* -------------------------------------------------------------------------- */
 /* Cvc5Term                                                                   */
 /* -------------------------------------------------------------------------- */
+
+/**
+ * Compare two terms for syntactic equality.
+ * @param a The first term.
+ * @param b The second term.
+ * @return True if both term are syntactically identical.
+ */
+bool cvc5_term_is_equal(Cvc5Term a, Cvc5Term b);
+
+/**
+ * Compare two terms for syntactic disequality.
+ * @param a The first term.
+ * @param b The second term.
+ * @return True if both term are syntactically disequal.
+ */
+bool cvc5_term_is_disequal(Cvc5Term a, Cvc5Term b);
 
 /**
  * Get the number of children of a given term.
