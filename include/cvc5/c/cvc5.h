@@ -239,6 +239,15 @@ bool cvc5_sort_is_equal(Cvc5Sort a, Cvc5Sort b);
 bool cvc5_sort_is_disequal(Cvc5Sort a, Cvc5Sort b);
 
 /**
+ * Compare two sorts for ordering.
+ * @param a The first sort.
+ * @param b The second sort.
+ * @return An integer value indicating the ordering: 0 if both sorts are equal,
+ *         `-1` if `a < b`, and `1` if `b > a`.
+ */
+int64_t cvc5_sort_compare(Cvc5Sort a, Cvc5Sort b);
+
+/**
  * Get the kind of the given sort.
  * @param sort The sort.
  * @return The kind of the sort.
@@ -860,6 +869,15 @@ bool cvc5_term_is_equal(Cvc5Term a, Cvc5Term b);
  * @return True if both term are syntactically disequal.
  */
 bool cvc5_term_is_disequal(Cvc5Term a, Cvc5Term b);
+
+/**
+ * Compare two terms for ordering.
+ * @param a The first term.
+ * @param b The second term.
+ * @return An integer value indicating the ordering: 0 if both terms are equal,
+ *         `-1` if `a < b`, and `1` if `b > a`.
+ */
+int64_t cvc5_term_compare(Cvc5Term a, Cvc5Term b);
 
 /**
  * Get the number of children of a given term.
