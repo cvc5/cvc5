@@ -84,8 +84,8 @@ TEST_F(TestApiBlackResult, isUnknown)
   d_solver.setOption("solve-real-as-int", "true");
   Sort real_sort = d_solver.getRealSort();
   Term x = d_solver.mkConst(real_sort, "x");
-  d_solver.assertFormula(solver.mkTerm(Kind::LT, solver.mkReal("0.0"), x));
-  d_solver.assertFormula(solver.mkTerm(Kind::LT, x, solver.mkReal("1.0")));
+  d_solver.assertFormula(d_solver.mkTerm(Kind::LT, d_solver.mkReal("0.0"), x));
+  d_solver.assertFormula(d_solver.mkTerm(Kind::LT, x, d_solver.mkReal("1.0")));
   cvc5::Result res = d_solver.checkSat();
   ASSERT_FALSE(res.isSat());
   ASSERT_TRUE(res.isUnknown());
