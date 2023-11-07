@@ -307,6 +307,15 @@ bool TheoryBags::checkModelLastCall()
   }
   Trace("bags-cm") << "...not satisfied " << unsatAssertions.size() << " / "
                    << assertions.size() << std::endl;
+  for (TNode n : d_sharedTerms)
+  {
+    Node value = m->getValue(n);
+    Node rep = m->getRepresentative(n);
+    if (value != rep)
+    {
+      return false;
+    }
+  }
   return unsatAssertions.empty();
 }
 
@@ -360,7 +369,7 @@ bool TheoryBags::runInferStep(InferStep s, int effort)
       break;
     }
     case CHECK_BASIC_OPERATIONS: d_solver.checkBasicOperations(); break;
-    case CHECK_NONBASIC_OPERATIONS: 
+    case CHECK_NONBASIC_OPERATIONS:
     {
       initialize();
       d_solver.checkNonBasicOperations();
@@ -503,13 +512,13 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
     processedBags[r] = constructedBag;
   }
 
-  if(TraceIsOn("bags-model"))
+  if (TraceIsOn("bags-model"))
   {
-    Trace("bags-model") << "processedBags:  "; 
-    for (const auto & b : processedBags)
-    { 
+    Trace("bags-model") << "processedBags:  ";
+    for (const auto& b : processedBags)
+    {
       Trace("bags-model") << "[" << b.first << "," << std::endl
-                          << b.second << "], " << std::endl; 
+                          << b.second << "], " << std::endl;
     }
   }
   return true;
