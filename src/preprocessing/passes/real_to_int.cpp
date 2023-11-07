@@ -223,7 +223,9 @@ PreprocessingPassResult RealToInt::applyInternal(
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     assertionsToPreprocess->replace(
-        i, rewrite(realToIntInternal((*assertionsToPreprocess)[i], d_cache, var_eq)));
+        i,
+        rewrite(
+            realToIntInternal((*assertionsToPreprocess)[i], d_cache, var_eq)));
     if (assertionsToPreprocess->isInConflict())
     {
       return PreprocessingPassResult::CONFLICT;
