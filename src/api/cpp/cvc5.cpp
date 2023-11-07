@@ -5025,17 +5025,17 @@ Proof::Proof() {}
 
 Proof::Proof(const std::shared_ptr<internal::ProofNode> p) : d_proof_node(p) {}
 
-Proof::~Proof()
-{
-  Assert(d_proof_node != nullptr);
-  d_proof_node.reset();
-}
+Proof::~Proof() {}
 
 ProofRule Proof::getRule() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return this->getProofNode()->getRule();
+  if (d_proof_node != nullptr)
+  {
+    return this->getProofNode()->getRule();
+  }
+  return ProofRule::UNKNOWN;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5044,8 +5044,12 @@ Term Proof::getResult() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  internal::NodeManager* nm = internal::NodeManager::currentNM();
-  return Term(nm, this->getProofNode()->getResult());
+  if (d_proof_node != nullptr)
+  {
+    internal::NodeManager* nm = internal::NodeManager::currentNM();
+    return Term(nm, this->getProofNode()->getResult());
+  }
+  return Term();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5054,14 +5058,18 @@ const std::vector<Proof> Proof::getChildren() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  std::vector<Proof> children;
-  std::vector<std::shared_ptr<internal::ProofNode>> node_children =
-      d_proof_node->getChildren();
-  for (size_t i = 0, psize = node_children.size(); i < psize; i++)
+  if (d_proof_node != nullptr)
   {
-    children.push_back(Proof(node_children[i]));
+    std::vector<Proof> children;
+    std::vector<std::shared_ptr<internal::ProofNode>> node_children =
+        d_proof_node->getChildren();
+    for (size_t i = 0, psize = node_children.size(); i < psize; i++)
+    {
+      children.push_back(Proof(node_children[i]));
+    }
+    return children;
   }
-  return children;
+  return std::vector<Proof>();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5070,14 +5078,18 @@ const std::vector<Term> Proof::getArguments() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  internal::NodeManager* nm = internal::NodeManager::currentNM();
-  std::vector<Term> args;
-  const std::vector<internal::Node> node_args = d_proof_node->getArguments();
-  for (size_t i = 0, asize = node_args.size(); i < asize; i++)
+  if (d_proof_node != nullptr)
   {
-    args.push_back(Term(nm, node_args[i]));
+    internal::NodeManager* nm = internal::NodeManager::currentNM();
+    std::vector<Term> args;
+    const std::vector<internal::Node> node_args = d_proof_node->getArguments();
+    for (size_t i = 0, asize = node_args.size(); i < asize; i++)
+    {
+      args.push_back(Term(nm, node_args[i]));
+    }
+    return args;
   }
-  return args;
+  return std::vector<Term>();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
