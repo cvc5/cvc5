@@ -139,7 +139,8 @@ bool PartitionGenerator::isUnusable(Node n)
   }
 
   // Get non negated versions before testing for bool expr.
-  Node nonNegatedOriginal = originalN.getKind() == Kind::NOT ? n[0] : n;
+  Node nonNegatedOriginal =
+      originalN.getKind() == Kind::NOT ? originalN[0] : originalN;
 
   // Check if this is a boolean expression
   if (Theory::theoryOf(nonNegatedOriginal) == THEORY_BOOL)
