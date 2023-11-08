@@ -53,6 +53,10 @@ void AssertionPipeline::push_back(Node n,
                                   bool isInput,
                                   ProofGenerator* pgen)
 {
+  if (d_conflict)
+  {
+    return;
+  }
   if (n == d_false)
   {
     markConflict();

@@ -1095,6 +1095,11 @@ set(regress_0_tests
   regress0/preprocess/proj-issue305-circuit-prop-ite-d.smt2
   regress0/preprocess/proj-issue309-circuit-prop-ite.smt2
   regress0/preprocess/proj-issue332-circuit-prop-xor.smt2
+  regress0/preprocess/proj-issue679.smt2
+  regress0/preprocess/proj-issue678.smt2
+  regress0/preprocess/proj-issue681.smt2
+  regress0/preprocess/proj-issue684.smt2
+  regress0/preprocess/proj-issue683.smt2
   regress0/preprocess/real-as-int-unk.smt2
   regress0/print_define_fun_internal.smt2
   regress0/print_lambda.cvc.smt2
