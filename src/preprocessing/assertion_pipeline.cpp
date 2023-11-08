@@ -55,6 +55,8 @@ void AssertionPipeline::push_back(Node n,
 {
   if (d_conflict)
   {
+    // if we are already in conflict, we skip. This is required to handle the
+    // case where "false" was already seen as an input assertion.
     return;
   }
   if (n == d_false)
