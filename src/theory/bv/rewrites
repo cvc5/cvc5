@@ -77,7 +77,7 @@
   (bvsle y x))
 (define-rule bv-slt-eliminate
   ((x ?BitVec) (y ?BitVec))
-  (def (pad (zero_extend (- (bvsize x) 1) (bv 1 1))))
+  (def (pad (bvshl (bv 1 (bvsize x)) (bv (- (bvsize x) 1) (bvsize x)))))
   (bvslt x y)
   (bvult
     (bvadd x pad)
