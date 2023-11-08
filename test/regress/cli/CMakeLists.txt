@@ -1068,6 +1068,7 @@ set(regress_0_tests
   regress0/precedence/xor-assoc.cvc.smt2
   regress0/precedence/xor-or.cvc.smt2
   regress0/preprocess/circuit-prop.smt2
+  regress0/preprocess/issue10148.smt2
   regress0/preprocess/issue5729-rewritten-assertions.smt2
   regress0/preprocess/issue5943-non-clausal-simp.smt2
   regress0/preprocess/issue6754-tpp.smt2
