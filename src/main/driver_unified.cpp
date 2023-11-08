@@ -14,6 +14,7 @@
  */
 
 #include <cvc5/cvc5.h>
+#include <cvc5/cvc5_parser.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -35,8 +36,6 @@
 #include "main/portfolio_driver.h"
 #include "main/signal_handlers.h"
 #include "main/time_limit.h"
-#include "parser/api/cpp/command.h"
-#include "parser/api/cpp/input_parser.h"
 #include "smt/solver_engine.h"
 #include "util/result.h"
 
@@ -74,6 +73,11 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
   if (solver->getOptionInfo("help").boolValue())
   {
     printUsage(progName, dopts.out());
+    exit(1);
+  }
+  else if (solver->getOptionInfo("help-regular").boolValue())
+  {
+    printUsage(progName, dopts.out(), true);
     exit(1);
   }
   for (const auto& name : {"show-config",
@@ -121,7 +125,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
     filenameStr = std::move(filenames[0]);
   }
   const char* filename = filenameStr.c_str();
-
+  cvc5::modes::InputLanguage ilang;
   if (solver->getOption("input-language") == "LANG_AUTO")
   {
     if( inputFromStdin ) {
@@ -145,6 +149,11 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
     // option is the authority on whether sygus commands are currently
     // allowed in the API.
     solver->setOption("sygus", "true");
+    ilang = cvc5::modes::InputLanguage::SYGUS_2_1;
+  }
+  else
+  {
+    ilang = cvc5::modes::InputLanguage::SMT_LIB_2_6;
   }
 
   if (solver->getOption("output-language") == "LANG_AUTO")
@@ -221,12 +230,11 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
       std::unique_ptr<InputParser> parser(new InputParser(
           pExecutor->getSolver(), pExecutor->getSymbolManager()));
       if( inputFromStdin ) {
-        parser->setStreamInput(
-            solver->getOption("input-language"), cin, filename);
+        parser->setStreamInput(ilang, cin, filename);
       }
       else
       {
-        parser->setFileInput(solver->getOption("input-language"), filename);
+        parser->setFileInput(ilang, filename);
       }
 
       PortfolioDriver driver(parser);

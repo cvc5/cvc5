@@ -13,6 +13,7 @@
 
 import os
 import sys
+import datetime
 
 # add path to enable extensions
 sys.path.insert(0, '${CMAKE_CURRENT_SOURCE_DIR}/ext/')
@@ -29,7 +30,7 @@ if("${BUILD_BINDINGS_JAVA}" == "ON"):
 # -- Project information -----------------------------------------------------
 
 project = 'cvc5'
-copyright = '2022, the authors of cvc5'
+copyright = f'{datetime.date.today().year}, the authors of cvc5'
 author = 'The authors of cvc5'
 
 

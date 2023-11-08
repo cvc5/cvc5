@@ -31,7 +31,7 @@ Node BvInstantiatorUtil::getPvCoeff(TNode pv, TNode n) const
   bool neg = false;
   Node coeff;
 
-  if (n.getKind() == BITVECTOR_NEG)
+  if (n.getKind() == Kind::BITVECTOR_NEG)
   {
     neg = true;
     n = n[0];
@@ -42,7 +42,8 @@ Node BvInstantiatorUtil::getPvCoeff(TNode pv, TNode n) const
     coeff = bv::utils::mkOne(bv::utils::getSize(pv));
   }
   /* All multiplications are normalized to pv * (t1 * t2). */
-  else if (n.getKind() == BITVECTOR_MULT && n.getAttribute(BvLinearAttribute()))
+  else if (n.getKind() == Kind::BITVECTOR_MULT
+           && n.getAttribute(BvLinearAttribute()))
   {
     Assert(n.getNumChildren() == 2);
     Assert(n[0] == pv);
@@ -56,7 +57,7 @@ Node BvInstantiatorUtil::getPvCoeff(TNode pv, TNode n) const
   }
   Assert(!coeff.isNull());
 
-  if (neg) return NodeManager::currentNM()->mkNode(BITVECTOR_NEG, coeff);
+  if (neg) return NodeManager::currentNM()->mkNode(Kind::BITVECTOR_NEG, coeff);
   return coeff;
 }
 
@@ -68,7 +69,7 @@ Node BvInstantiatorUtil::normalizePvMult(
   bool neg, neg_coeff = false;
   bool found_pv = false;
   NodeManager* nm;
-  NodeBuilder nb(BITVECTOR_MULT);
+  NodeBuilder nb(Kind::BITVECTOR_MULT);
   BvLinearAttribute is_linear;
 
   nm = NodeManager::currentNM();
@@ -81,7 +82,7 @@ Node BvInstantiatorUtil::normalizePvMult(
     }
 
     neg = false;
-    if (nc.getKind() == BITVECTOR_NEG)
+    if (nc.getKind() == Kind::BITVECTOR_NEG)
     {
       neg = true;
       nc = nc[0];
@@ -93,7 +94,7 @@ Node BvInstantiatorUtil::normalizePvMult(
       neg_coeff = neg;
       continue;
     }
-    else if (!found_pv && nc.getKind() == BITVECTOR_MULT
+    else if (!found_pv && nc.getKind() == Kind::BITVECTOR_MULT
              && nc.getAttribute(is_linear))
     {
       Assert(nc.getNumChildren() == 2);
@@ -111,7 +112,7 @@ Node BvInstantiatorUtil::normalizePvMult(
   Node coeff = (nb.getNumChildren() == 1) ? nb[0] : nb.constructNode();
   if (neg_coeff)
   {
-    coeff = nm->mkNode(BITVECTOR_NEG, coeff);
+    coeff = nm->mkNode(Kind::BITVECTOR_NEG, coeff);
   }
   coeff = rewrite(coeff);
   unsigned size_coeff = bv::utils::getSize(coeff);
@@ -127,7 +128,7 @@ Node BvInstantiatorUtil::normalizePvMult(
     {
       return pv;
     }
-    result = nm->mkNode(BITVECTOR_MULT, pv, coeff);
+    result = nm->mkNode(Kind::BITVECTOR_MULT, pv, coeff);
     contains_pv[result] = true;
     result.setAttribute(is_linear, true);
   }
@@ -146,7 +147,7 @@ bool BvInstantiatorUtil::isLinearPlus(
   Assert(n.getNumChildren() == 2);
   if (n[0] != pv)
   {
-    Assert(n[0].getKind() == BITVECTOR_MULT);
+    Assert(n[0].getKind() == Kind::BITVECTOR_MULT);
     Assert(n[0].getNumChildren() == 2);
     Assert(n[0][0] == pv);
     Assert(!contains_pv[n[0][1]]);
@@ -164,8 +165,8 @@ Node BvInstantiatorUtil::normalizePvPlus(
     std::unordered_map<Node, bool>& contains_pv) const
 {
   NodeManager* nm;
-  NodeBuilder nb_c(BITVECTOR_ADD);
-  NodeBuilder nb_l(BITVECTOR_ADD);
+  NodeBuilder nb_c(Kind::BITVECTOR_ADD);
+  NodeBuilder nb_l(Kind::BITVECTOR_ADD);
   BvLinearAttribute is_linear;
   bool neg;
 
@@ -179,25 +180,25 @@ Node BvInstantiatorUtil::normalizePvPlus(
     }
 
     neg = false;
-    if (nc.getKind() == BITVECTOR_NEG)
+    if (nc.getKind() == Kind::BITVECTOR_NEG)
     {
       neg = true;
       nc = nc[0];
     }
 
     if (nc == pv
-        || (nc.getKind() == BITVECTOR_MULT && nc.getAttribute(is_linear)))
+        || (nc.getKind() == Kind::BITVECTOR_MULT && nc.getAttribute(is_linear)))
     {
       Node coeff = getPvCoeff(pv, nc);
       Assert(!coeff.isNull());
       if (neg)
       {
-        coeff = nm->mkNode(BITVECTOR_NEG, coeff);
+        coeff = nm->mkNode(Kind::BITVECTOR_NEG, coeff);
       }
       nb_c << coeff;
       continue;
     }
-    else if (nc.getKind() == BITVECTOR_ADD && nc.getAttribute(is_linear))
+    else if (nc.getKind() == Kind::BITVECTOR_ADD && nc.getAttribute(is_linear))
     {
       Assert(isLinearPlus(nc, pv, contains_pv));
       Node coeff = getPvCoeff(pv, nc[0]);
@@ -205,8 +206,8 @@ Node BvInstantiatorUtil::normalizePvPlus(
       Node leaf = nc[1];
       if (neg)
       {
-        coeff = nm->mkNode(BITVECTOR_NEG, coeff);
-        leaf = nm->mkNode(BITVECTOR_NEG, leaf);
+        coeff = nm->mkNode(Kind::BITVECTOR_NEG, coeff);
+        leaf = nm->mkNode(Kind::BITVECTOR_NEG, leaf);
       }
       nb_c << coeff;
       nb_l << leaf;
@@ -237,7 +238,7 @@ Node BvInstantiatorUtil::normalizePvPlus(
     }
     else
     {
-      result = nm->mkNode(BITVECTOR_ADD, pv_mult_coeffs, leafs);
+      result = nm->mkNode(Kind::BITVECTOR_ADD, pv_mult_coeffs, leafs);
       contains_pv[result] = true;
       result.setAttribute(is_linear, true);
     }
@@ -263,14 +264,14 @@ Node BvInstantiatorUtil::normalizePvEqual(
   {
     child = children[i];
     neg = false;
-    if (child.getKind() == BITVECTOR_NEG)
+    if (child.getKind() == Kind::BITVECTOR_NEG)
     {
       neg = true;
       child = child[0];
     }
     if (child.getAttribute(is_linear) || child == pv)
     {
-      if (child.getKind() == BITVECTOR_ADD)
+      if (child.getKind() == Kind::BITVECTOR_ADD)
       {
         Assert(isLinearPlus(child, pv, contains_pv));
         coeffs[i] = getPvCoeff(pv, child[0]);
@@ -278,7 +279,7 @@ Node BvInstantiatorUtil::normalizePvEqual(
       }
       else
       {
-        Assert(child.getKind() == BITVECTOR_MULT || child == pv);
+        Assert(child.getKind() == Kind::BITVECTOR_MULT || child == pv);
         coeffs[i] = getPvCoeff(pv, child);
       }
     }
@@ -286,11 +287,11 @@ Node BvInstantiatorUtil::normalizePvEqual(
     {
       if (!coeffs[i].isNull())
       {
-        coeffs[i] = nm->mkNode(BITVECTOR_NEG, coeffs[i]);
+        coeffs[i] = nm->mkNode(Kind::BITVECTOR_NEG, coeffs[i]);
       }
       if (!leafs[i].isNull())
       {
-        leafs[i] = nm->mkNode(BITVECTOR_NEG, leafs[i]);
+        leafs[i] = nm->mkNode(Kind::BITVECTOR_NEG, leafs[i]);
       }
     }
   }
@@ -300,7 +301,7 @@ Node BvInstantiatorUtil::normalizePvEqual(
     return Node::null();
   }
 
-  Node coeff = nm->mkNode(BITVECTOR_SUB, coeffs[0], coeffs[1]);
+  Node coeff = nm->mkNode(Kind::BITVECTOR_SUB, coeffs[0], coeffs[1]);
   coeff = rewrite(coeff);
   std::vector<Node> mult_children = {pv, coeff};
   Node lhs = normalizePvMult(pv, mult_children, contains_pv);
@@ -308,11 +309,11 @@ Node BvInstantiatorUtil::normalizePvEqual(
   Node rhs;
   if (!leafs[0].isNull() && !leafs[1].isNull())
   {
-    rhs = nm->mkNode(BITVECTOR_SUB, leafs[1], leafs[0]);
+    rhs = nm->mkNode(Kind::BITVECTOR_SUB, leafs[1], leafs[0]);
   }
   else if (!leafs[0].isNull())
   {
-    rhs = nm->mkNode(BITVECTOR_NEG, leafs[0]);
+    rhs = nm->mkNode(Kind::BITVECTOR_NEG, leafs[0]);
   }
   else if (!leafs[1].isNull())
   {

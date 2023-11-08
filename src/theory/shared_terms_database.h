@@ -88,7 +88,7 @@ class SharedTermsDatabase : protected EnvObj, public context::ContextNotifyObj
     EENotifyClass(SharedTermsDatabase& shared): d_sharedTerms(shared) {}
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
-      Assert(predicate.getKind() == kind::EQUAL);
+      Assert(predicate.getKind() == Kind::EQUAL);
       d_sharedTerms.propagateEquality(predicate, value);
       return true;
     }
@@ -242,8 +242,9 @@ class SharedTermsDatabase : protected EnvObj, public context::ContextNotifyObj
    * some theory.
    */
   bool isSharedEquality(TNode literal) const {
-    TNode atom = literal.getKind() == kind::NOT ? literal[0] : literal;
-    return atom.getKind() == kind::EQUAL && isShared(atom[0]) && isShared(atom[1]);
+    TNode atom = literal.getKind() == Kind::NOT ? literal[0] : literal;
+    return atom.getKind() == Kind::EQUAL && isShared(atom[0])
+           && isShared(atom[1]);
   }
 
   /**

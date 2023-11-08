@@ -63,10 +63,6 @@ me=$(basename "$0")
 template=$1; shift
 
 includes=
-getConst_instantiations=
-getConst_implementations=
-mkConst_instantiations=
-mkConst_implementations=
 exportConstant_cases=
 
 pretyperules=
@@ -157,12 +153,12 @@ function typerule {
   lineno=${BASH_LINENO[0]}
   check_theory_seen
   typerules="${typerules}
-  case kind::$1:
+  case Kind::$1:
     typeNode = $2::computeType(nodeManager, n, check, errOut);
     break;
 "
   pretyperules="${pretyperules}
-  case kind::$1:
+  case Kind::$1:
     typeNode = $2::preComputeType(nodeManager, n);
     break;
 "
@@ -173,7 +169,7 @@ function construle {
   lineno=${BASH_LINENO[0]}
   check_theory_seen
   construles="${construles}
-  case kind::$1:
+  case Kind::$1:
     return $2::computeIsConst(nodeManager, n);
 "
 }
@@ -225,23 +221,6 @@ function constant {
 #include \"$4\""
   fi
 
-  mkConst_instantiations="${mkConst_instantiations}
-template <> Expr ExprManager::mkConst($2 const& val);
-"
-  mkConst_implementations="${mkConst_implementations}
-template <> Expr ExprManager::mkConst($2 const& val) {
-  return Expr(this, new Node(d_nodeManager->mkConst< $2 >(val)));
-}
-"
-  getConst_instantiations="${getConst_instantiations}
-template <> $2 const & Expr::getConst< $2 >() const;
-"
-  getConst_implementations="${getConst_implementations}
-template <> $2 const & Expr::getConst() const {
-Assert(getKind() == ::cvc5::internal::kind::$1) << \"Improper kind for getConst<$2>()\";
-  return d_node->getConst< $2 >();
-}
-"
   exportConstant_cases="${exportConstant_cases}
   case $1: return to->mkConst(n.getConst< $2 >());"
 }
@@ -293,10 +272,6 @@ text=$(cat "$template")
 for var in \
     includes \
     template \
-    getConst_instantiations \
-    getConst_implementations \
-    mkConst_instantiations \
-    mkConst_implementations \
     exportConstant_cases \
     typechecker_includes \
     typerules \

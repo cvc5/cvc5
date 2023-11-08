@@ -17,7 +17,8 @@
 #ifndef CVC5_PRIVATE_H
 #define CVC5_PRIVATE_H
 
-#if !(defined(__BUILDING_CVC5LIB) || defined(__BUILDING_CVC5LIB_UNIT_TEST))
+#if !(defined(__BUILDING_CVC5LIB) || defined(__BUILDING_CVC5PARSERLIB) \
+      || defined(__BUILDING_CVC5LIB_UNIT_TEST))
 #  error A private cvc5 header was included when not building the library or private unit test code.
 #endif
 

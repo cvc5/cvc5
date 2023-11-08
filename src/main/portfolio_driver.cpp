@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andres Noetzli, Andrew Reynolds
+ *   Gereon Kremer, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
@@ -30,6 +30,8 @@
 #include "base/exception.h"
 #include "base/output.h"
 #include "main/command_executor.h"
+#include "parser/commands.h"
+#include "parser/command_status.h"
 
 using namespace cvc5::parser;
 
@@ -44,7 +46,7 @@ enum SolveStatus : int
 bool ExecutionContext::solveContinuous(parser::InputParser* parser,
                                        bool stopAtSetLogic)
 {
-  std::unique_ptr<Command> cmd;
+  Command cmd;
   bool interrupted = false;
   bool status = true;
   while (status)
@@ -56,22 +58,24 @@ bool ExecutionContext::solveContinuous(parser::InputParser* parser,
       break;
     }
     cmd = parser->nextCommand();
-    if (cmd == nullptr) break;
-
-    status = d_executor->doCommand(cmd);
-    if (cmd->interrupted() && status == 0)
+    if (cmd.isNull())
+    {
+      break;
+    }
+    status = d_executor->doCommand(&cmd);
+    Cmd* cc = cmd.toCmd();
+    if (cc->interrupted() && status == 0)
     {
       interrupted = true;
       break;
     }
-
-    if (dynamic_cast<QuitCommand*>(cmd.get()) != nullptr)
+    if (dynamic_cast<QuitCommand*>(cc) != nullptr)
     {
       break;
     }
     if (stopAtSetLogic)
     {
-      auto* slc = dynamic_cast<SetBenchmarkLogicCommand*>(cmd.get());
+      auto* slc = dynamic_cast<SetBenchmarkLogicCommand*>(cc);
       if (slc != nullptr)
       {
         d_logic = slc->getLogic();
@@ -82,16 +86,19 @@ bool ExecutionContext::solveContinuous(parser::InputParser* parser,
   return status;
 }
 
-std::vector<std::unique_ptr<Command>> ExecutionContext::parseCommands(
+std::vector<Command> ExecutionContext::parseCommands(
     parser::InputParser* parser)
 {
-  std::vector<std::unique_ptr<Command>> res;
+  std::vector<Command> res;
   while (true)
   {
-    std::unique_ptr<Command> cmd(parser->nextCommand());
-    if (!cmd) break;
-    res.emplace_back(std::move(cmd));
-    if (dynamic_cast<QuitCommand*>(res.back().get()) != nullptr)
+    Command cmd = parser->nextCommand();
+    if (cmd.isNull())
+    {
+      break;
+    }
+    res.emplace_back(cmd);
+    if (dynamic_cast<QuitCommand*>(cmd.toCmd()) != nullptr)
     {
       break;
     }
@@ -99,12 +106,11 @@ std::vector<std::unique_ptr<Command>> ExecutionContext::parseCommands(
   return res;
 }
 
-bool ExecutionContext::solveCommands(
-    std::vector<std::unique_ptr<Command>>& cmds)
+bool ExecutionContext::solveCommands(std::vector<Command>& cmds)
 {
   bool interrupted = false;
   bool status = true;
-  for (auto it = cmds.begin(); status && it != cmds.end(); ++it)
+  for (Command& cmd : cmds)
   {
     if (interrupted)
     {
@@ -113,16 +119,15 @@ bool ExecutionContext::solveCommands(
       break;
     }
 
-    Command* cmd = it->get();
-
-    status = d_executor->doCommand(cmd);
-    if (cmd->interrupted() && status == 0)
+    status = d_executor->doCommand(&cmd);
+    Cmd* cc = cmd.toCmd();
+    if (cc->interrupted() && status == 0)
     {
       interrupted = true;
       break;
     }
 
-    if (dynamic_cast<QuitCommand*>(cmd) != nullptr)
+    if (dynamic_cast<QuitCommand*>(cc) != nullptr)
     {
       break;
     }

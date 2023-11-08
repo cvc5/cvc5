@@ -233,11 +233,11 @@ void InstantiationEngine::registerQuantifier(Node q)
     // add patterns
     for (const Node& p : subsPat)
     {
-      if (p.getKind() == INST_PATTERN)
+      if (p.getKind() == Kind::INST_PATTERN)
       {
         addUserPattern(q, p);
       }
-      else if (p.getKind() == INST_NO_PATTERN)
+      else if (p.getKind() == Kind::INST_NO_PATTERN)
       {
         addUserNoPattern(q, p);
       }

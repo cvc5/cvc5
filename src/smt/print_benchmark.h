@@ -26,6 +26,7 @@
 namespace cvc5::internal {
 
 class Printer;
+class NodeConverter;
 
 namespace smt {
 
@@ -38,7 +39,22 @@ namespace smt {
 class PrintBenchmark
 {
  public:
-  PrintBenchmark(const Printer* p) : d_printer(p) {}
+  PrintBenchmark(const Printer* p, NodeConverter* c = nullptr)
+      : d_printer(p), d_converter(c)
+  {
+  }
+  /**
+   * Print the declarations and definitions from a set of definitions and terms.
+   *
+   * @param outDecl The output stream to print the declarations on
+   * @param outDef The output stream to print the definitions on.
+   * @param def The definitions to print.
+   * @param term The terms to print declarations and definitions from.
+   */
+  void printDeclarationsFrom(std::ostream& outDecl,
+                             std::ostream& outDef,
+                             const std::vector<Node>& defs,
+                             const std::vector<Node>& terms);
   /**
    * Print assertions. This prints a parsable set of commands on the output
    * stream out that defines (recursive) functions in defs, and asserts
@@ -129,6 +145,8 @@ class PrintBenchmark
    * individual commands.
    */
   const Printer* d_printer;
+  /** (Optional) node converter */
+  NodeConverter* d_converter;
 };
 
 }  // namespace smt

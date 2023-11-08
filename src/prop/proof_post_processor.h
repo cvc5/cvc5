@@ -68,7 +68,7 @@ class ProofPostprocessCallback : protected EnvObj,
    * for the same assumption (in the same scope).
    */
   bool update(Node res,
-              PfRule id,
+              ProofRule id,
               const std::vector<Node>& children,
               const std::vector<Node>& args,
               CDProof* cdp,

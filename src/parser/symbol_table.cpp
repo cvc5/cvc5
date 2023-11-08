@@ -614,6 +614,11 @@ bool SymbolTable::Implementation::bindWithOverloading(const string& name,
   if (it != d_exprMap.end())
   {
     const Term& prev_bound_obj = (*it).second;
+    // Only bind if the object is different. Note this means we don't
+    // catch errors due to repeated function symbols when using
+    // --no-fresh-declarations.
+    // Note this is currently necessary to avoid rebinding symbols in
+    // the symbol manager.
     if (prev_bound_obj != obj)
     {
       return d_overload_trie.bind(name, prev_bound_obj, obj);

@@ -40,13 +40,14 @@ ${defns}$
 ${rules}$
   // clang-format on
 }
-const char* toString(DslPfRule drule)
+const char* toString(DslProofRule drule)
 {
   switch (drule)
   {
-    case DslPfRule::FAIL: return "FAIL";
-    case DslPfRule::REFL: return "REFL";
-    case DslPfRule::EVAL: return "EVAL";
+    case DslProofRule::FAIL: return "FAIL";
+    case DslProofRule::REFL: return "REFL";
+    case DslProofRule::EVAL:
+      return "EVAL";
       // clang-format off
 ${printer}$
     default : Unreachable();
@@ -54,26 +55,26 @@ ${printer}$
   }
 }
 
-std::ostream& operator<<(std::ostream& out, DslPfRule drule)
+std::ostream& operator<<(std::ostream& out, DslProofRule drule)
 {
   out << toString(drule);
   return out;
 }
 
-Node mkDslPfRuleNode(DslPfRule i)
+Node mkDslProofRuleNode(DslProofRule i)
 {
   return NodeManager::currentNM()->mkConstInt(
       Rational(static_cast<uint32_t>(i)));
 }
 
-bool getDslPfRule(TNode n, DslPfRule& i)
+bool getDslProofRule(TNode n, DslProofRule& i)
 {
   uint32_t index;
   if (!ProofRuleChecker::getUInt32(n, index))
   {
     return false;
   }
-  i = static_cast<DslPfRule>(index);
+  i = static_cast<DslProofRule>(index);
   return true;
 }
 

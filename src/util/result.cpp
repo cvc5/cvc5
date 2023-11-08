@@ -28,12 +28,16 @@ using namespace std;
 namespace cvc5::internal {
 
 Result::Result()
-    : d_status(NONE), d_unknownExplanation(UNKNOWN_REASON), d_inputName("")
+    : d_status(NONE),
+      d_unknownExplanation(UnknownExplanation::UNKNOWN_REASON),
+      d_inputName("")
 {
 }
 
 Result::Result(Status s, std::string inputName)
-    : d_status(s), d_unknownExplanation(UNKNOWN_REASON), d_inputName(inputName)
+    : d_status(s),
+      d_unknownExplanation(UnknownExplanation::UNKNOWN_REASON),
+      d_inputName(inputName)
 {
   Assert(s != UNKNOWN)
       << "Must provide a reason for satisfiability being unknown";
@@ -51,7 +55,7 @@ Result::Result(Status s,
 
 Result::Result(const std::string& instr, std::string inputName)
     : d_status(NONE),
-      d_unknownExplanation(UNKNOWN_REASON),
+      d_unknownExplanation(UnknownExplanation::UNKNOWN_REASON),
       d_inputName(inputName)
 {
   std::string s = instr;
@@ -67,27 +71,27 @@ Result::Result(const std::string& instr, std::string inputName)
   else if (s == "incomplete")
   {
     d_status = UNKNOWN;
-    d_unknownExplanation = INCOMPLETE;
+    d_unknownExplanation = UnknownExplanation::INCOMPLETE;
   }
   else if (s == "timeout")
   {
     d_status = UNKNOWN;
-    d_unknownExplanation = TIMEOUT;
+    d_unknownExplanation = UnknownExplanation::TIMEOUT;
   }
   else if (s == "resourceout")
   {
     d_status = UNKNOWN;
-    d_unknownExplanation = RESOURCEOUT;
+    d_unknownExplanation = UnknownExplanation::RESOURCEOUT;
   }
   else if (s == "memout")
   {
     d_status = UNKNOWN;
-    d_unknownExplanation = MEMOUT;
+    d_unknownExplanation = UnknownExplanation::MEMOUT;
   }
   else if (s == "interrupted")
   {
     d_status = UNKNOWN;
-    d_unknownExplanation = INTERRUPTED;
+    d_unknownExplanation = UnknownExplanation::INTERRUPTED;
   }
   else if (s.size() >= 7 && s.compare(0, 7, "unknown") == 0)
   {

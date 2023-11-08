@@ -17,6 +17,8 @@
 
 #include <iostream>
 
+#include "base/check.h"
+
 namespace cvc5::internal {
 namespace theory {
 
@@ -24,6 +26,7 @@ const char* toString(IncompleteId i)
 {
   switch (i)
   {
+    case IncompleteId::NONE: return "NONE";
     case IncompleteId::ARITH_NL_DISABLED: return "ARITH_NL_DISABLED";
     case IncompleteId::ARITH_NL: return "ARITH_NL";
     case IncompleteId::QUANTIFIERS: return "QUANTIFIERS";
@@ -52,8 +55,9 @@ const char* toString(IncompleteId i)
     case IncompleteId::UF_CARD_MODE: return "UF_CARD_MODE";
     case IncompleteId::STOP_SEARCH: return "STOP_SEARCH";
     case IncompleteId::UNKNOWN: return "UNKNOWN";
-    case IncompleteId::NONE: return "NONE";
-    default: return "?IncompleteId?";
+    default:
+      Assert(false) << "No print for incomplete id " << static_cast<size_t>(i);
+      return "?IncompleteId?";
   }
 }
 

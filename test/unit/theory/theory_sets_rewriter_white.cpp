@@ -23,7 +23,6 @@
 namespace cvc5::internal {
 
 using namespace theory;
-using namespace kind;
 using namespace theory::sets;
 
 namespace test {
@@ -52,28 +51,28 @@ TEST_F(TestTheoryWhiteSetsRewriter, map)
   Node emptysetString =
       d_nodeManager->mkConst(EmptySet(d_nodeManager->mkSetType(stringType)));
   Node x = d_nodeManager->mkBoundVar("x", stringType);
-  Node bound = d_nodeManager->mkNode(kind::BOUND_VAR_LIST, x);
-  Node lambda = d_nodeManager->mkNode(LAMBDA, bound, one);
+  Node bound = d_nodeManager->mkNode(Kind::BOUND_VAR_LIST, x);
+  Node lambda = d_nodeManager->mkNode(Kind::LAMBDA, bound, one);
 
   // (set.map (lambda ((x U))  t) (as set.empty (Set String)) =
   // (as set.empty (Set Int))
-  Node n1 = d_nodeManager->mkNode(SET_MAP, lambda, emptysetString);
+  Node n1 = d_nodeManager->mkNode(Kind::SET_MAP, lambda, emptysetString);
   RewriteResponse response1 = d_rewriter->postRewrite(n1);
   ASSERT_TRUE(response1.d_node == emptysetInteger
               && response1.d_status == REWRITE_DONE);
 
   Node a = d_nodeManager->mkConst(String("a"));
   Node b = d_nodeManager->mkConst(String("b"));
-  Node A = d_nodeManager->mkNode(SET_SINGLETON, a);
-  Node B = d_nodeManager->mkNode(SET_SINGLETON, b);
-  Node unionAB = d_nodeManager->mkNode(SET_UNION, A, B);
+  Node A = d_nodeManager->mkNode(Kind::SET_SINGLETON, a);
+  Node B = d_nodeManager->mkNode(Kind::SET_SINGLETON, b);
+  Node unionAB = d_nodeManager->mkNode(Kind::SET_UNION, A, B);
 
   // (set.map
   //   (lambda ((x String)) 1)
   //   (set.union (set.singleton "a") (set.singleton "b"))) = (set.singleton 1))
-  Node n2 = d_nodeManager->mkNode(SET_MAP, lambda, unionAB);
+  Node n2 = d_nodeManager->mkNode(Kind::SET_MAP, lambda, unionAB);
   Node rewritten2 = rr->rewrite(n2);
-  Node bag = d_nodeManager->mkNode(SET_SINGLETON, one);
+  Node bag = d_nodeManager->mkNode(Kind::SET_SINGLETON, one);
   ASSERT_TRUE(rewritten2 == bag);
 
   //  - (set.map f (set.union K1 K2)) =
@@ -81,12 +80,12 @@ TEST_F(TestTheoryWhiteSetsRewriter, map)
   Node k1 = d_skolemManager->mkDummySkolem("K1", A.getType());
   Node k2 = d_skolemManager->mkDummySkolem("K2", A.getType());
   Node f = d_skolemManager->mkDummySkolem("f", lambda.getType());
-  Node unionK1K2 = d_nodeManager->mkNode(SET_UNION, k1, k2);
-  Node n3 = d_nodeManager->mkNode(SET_MAP, f, unionK1K2);
+  Node unionK1K2 = d_nodeManager->mkNode(Kind::SET_UNION, k1, k2);
+  Node n3 = d_nodeManager->mkNode(Kind::SET_MAP, f, unionK1K2);
   Node rewritten3 = rr->rewrite(n3);
-  Node mapK1 = d_nodeManager->mkNode(SET_MAP, f, k1);
-  Node mapK2 = d_nodeManager->mkNode(SET_MAP, f, k2);
-  Node unionMapK1K2 = d_nodeManager->mkNode(SET_UNION, mapK1, mapK2);
+  Node mapK1 = d_nodeManager->mkNode(Kind::SET_MAP, f, k1);
+  Node mapK2 = d_nodeManager->mkNode(Kind::SET_MAP, f, k2);
+  Node unionMapK1K2 = d_nodeManager->mkNode(Kind::SET_UNION, mapK1, mapK2);
   ASSERT_TRUE(rewritten3 == unionMapK1K2);
 }
 

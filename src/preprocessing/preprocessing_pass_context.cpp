@@ -93,7 +93,7 @@ void PreprocessingPassContext::addSubstitution(const Node& lhs,
 
 void PreprocessingPassContext::addSubstitution(const Node& lhs,
                                                const Node& rhs,
-                                               PfRule id,
+                                               ProofRule id,
                                                const std::vector<Node>& args)
 {
   d_propEngine->notifyTopLevelSubstitution(lhs, rhs);

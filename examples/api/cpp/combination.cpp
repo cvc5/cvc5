@@ -62,21 +62,21 @@ int main()
   Term one = slv.mkInteger(1);
 
   // Terms
-  Term f_x = slv.mkTerm(APPLY_UF, {f, x});
-  Term f_y = slv.mkTerm(APPLY_UF, {f, y});
-  Term sum = slv.mkTerm(ADD, {f_x, f_y});
-  Term p_0 = slv.mkTerm(APPLY_UF, {p, zero});
-  Term p_f_y = slv.mkTerm(APPLY_UF, {p, f_y});
+  Term f_x = slv.mkTerm(Kind::APPLY_UF, {f, x});
+  Term f_y = slv.mkTerm(Kind::APPLY_UF, {f, y});
+  Term sum = slv.mkTerm(Kind::ADD, {f_x, f_y});
+  Term p_0 = slv.mkTerm(Kind::APPLY_UF, {p, zero});
+  Term p_f_y = slv.mkTerm(Kind::APPLY_UF, {p, f_y});
 
   // Construct the assertions
   Term assertions =
-      slv.mkTerm(AND,
+      slv.mkTerm(Kind::AND,
                  {
-                     slv.mkTerm(LEQ, {zero, f_x}),  // 0 <= f(x)
-                     slv.mkTerm(LEQ, {zero, f_y}),  // 0 <= f(y)
-                     slv.mkTerm(LEQ, {sum, one}),   // f(x) + f(y) <= 1
-                     p_0.notTerm(),                 // not p(0)
-                     p_f_y                          // p(f(y))
+                     slv.mkTerm(Kind::LEQ, {zero, f_x}),  // 0 <= f(x)
+                     slv.mkTerm(Kind::LEQ, {zero, f_y}),  // 0 <= f(y)
+                     slv.mkTerm(Kind::LEQ, {sum, one}),   // f(x) + f(y) <= 1
+                     p_0.notTerm(),                       // not p(0)
+                     p_f_y                                // p(f(y))
                  });
   slv.assertFormula(assertions);
 
@@ -84,8 +84,8 @@ int main()
        << assertions << endl << endl;
 
   cout << "Prove x /= y is entailed. " << endl
-       << "cvc5: " << slv.checkSatAssuming(slv.mkTerm(EQUAL, {x, y})) << "."
-       << endl
+       << "cvc5: " << slv.checkSatAssuming(slv.mkTerm(Kind::EQUAL, {x, y}))
+       << "." << endl
        << endl;
 
   cout << "Call checkSat to show that the assertions are satisfiable. "

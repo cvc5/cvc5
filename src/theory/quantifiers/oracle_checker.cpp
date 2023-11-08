@@ -18,6 +18,7 @@
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "smt/env.h"
+#include "smt/logic_exception.h"
 #include "theory/rewriter.h"
 
 namespace cvc5::internal {
@@ -29,6 +30,8 @@ bool OracleChecker::checkConsistent(Node app,
                                     std::vector<Node>& lemmas)
 {
   Node result = evaluateApp(app);
+  Trace("oracle-calls") << "checkConsistent " << app << " == " << result
+                        << " vs " << val << std::endl;
   if (result != val)
   {
     lemmas.push_back(result.eqNode(app));
@@ -39,7 +42,7 @@ bool OracleChecker::checkConsistent(Node app,
 
 Node OracleChecker::evaluateApp(Node app)
 {
-  Assert(app.getKind() == kind::APPLY_UF);
+  Assert(app.getKind() == Kind::APPLY_UF);
   Node f = app.getOperator();
   Assert(OracleCaller::isOracleFunction(f));
   // get oracle caller
@@ -59,6 +62,15 @@ Node OracleChecker::evaluateApp(Node app)
     return app;
   }
   Node ret = retv[0];
+  ret = rewrite(ret);
+  if (ret.getType() != app.getType())
+  {
+    std::stringstream ss;
+    ss << "Evaluated an oracle call with an unexpected type: " << app << " = "
+       << ret << " whose type is " << ret.getType() << ", expected "
+       << app.getType();
+    throw LogicException(ss.str());
+  }
   Assert(!ret.isNull());
   return ret;
 }
@@ -73,7 +85,7 @@ Node OracleChecker::postConvert(Node n)
 {
   Trace("oracle-checker-debug") << "postConvert: " << n << std::endl;
   // if it is an oracle function applied to constant arguments
-  if (n.getKind() == kind::APPLY_UF
+  if (n.getKind() == Kind::APPLY_UF
       && OracleCaller::isOracleFunction(n.getOperator()))
   {
     bool allConst = true;
@@ -84,7 +96,7 @@ Node OracleChecker::postConvert(Node n)
         continue;
       }
       // special case: assume all closed lambdas are constants
-      if (nc.getKind() == kind::LAMBDA)
+      if (nc.getKind() == Kind::LAMBDA)
       {
         // if the lambda does not have a free variable (BOUND_VARIABLE)
         if (!expr::hasFreeVar(nc))

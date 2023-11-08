@@ -2,7 +2,7 @@
 (set-info :status sat)
 (declare-fun t () (Tuple String String String String))
 (declare-fun u () (Tuple String String))
-(declare-fun v () Tuple)
+(declare-fun v () UnitTuple)
 (declare-fun x () String)
 (assert (= t (tuple "a" "b" "c" "d")))
 (assert (= x ((_ tuple.select 0) t)))

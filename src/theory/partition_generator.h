@@ -41,6 +41,11 @@ class PartitionGenerator : public TheoryEngineModule
                      prop::PropEngine* propEngine);
 
   /**
+   * postsolve, emits remaining partitions.
+   */
+  void postsolve(prop::SatValue result) override;
+
+  /**
    * Make partitions for parallel solving. e communicates the effort at which
    * check was called. Returns a lemma blocking off the emitted cube from the
    * search.
@@ -63,7 +68,12 @@ class PartitionGenerator : public TheoryEngineModule
    * Increment d_numPartitionsSoFar and print the cube to 
    * the output file specified by --write-partitions-to. 
    */
-  void emitCube(Node toEmit);
+  void emitPartition(Node toEmit);
+
+  /**
+   * Emit any remaining partitions that were not emitted during solving.
+   */
+  void emitRemainingPartitions(bool solved);
 
   /**
    * Partition using the "revised" strategy, which emits cubes such as C1, C2,
@@ -72,7 +82,7 @@ class PartitionGenerator : public TheoryEngineModule
    * emitZLL is set to true, then zero-level learned literals will be appended
    * to the cubes.
    */
-  Node makeRevisedPartitions(bool strict, bool emitZLL);
+  Node makeRevisedPartitions(bool emitZLL);
 
   /**
    * Partition by taking a list of literals and emitting mutually exclusive
@@ -95,7 +105,7 @@ class PartitionGenerator : public TheoryEngineModule
   /**
    * Stop partitioning and return unsat.
    */
-  Node stopPartitioning() const;
+  Node stopPartitioning();
 
   /**
    * Get a list of literals.
@@ -153,15 +163,25 @@ std::vector<Node> d_assertedLemmas;
 std::vector<Node> d_cubes;
 
 /**
- * List of the strict cubes that have been created.
+ * List of the scatter partitions that have been created.
  */
-std::vector<Node> d_strict_cubes;
+std::vector<Node> d_scatterPartitions;
 
 /**
  * Minimum number of literals required in the list of decisions for cubes to
  * be made.
  */
 uint64_t d_conflictSize;
+
+/**
+ * Track whether any partitions have been emitted.
+ */
+bool d_createdAnyPartitions;
+
+/**
+ * Track whether all partitions have been emitted.
+ */
+bool d_emittedAllPartitions;
 };
 }  // namespace theory
 }  // namespace cvc5::internal

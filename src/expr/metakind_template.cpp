@@ -50,12 +50,12 @@ ${metakind_kinds}  // clang-format on
       metakind::INVALID  /* LAST_KIND */
   };                     /* metaKinds[] */
 
-  Assert(k >= kind::NULL_EXPR && k < kind::LAST_KIND);
+  Assert(k >= Kind::NULL_EXPR && k < Kind::LAST_KIND);
 
   // We've asserted that k >= NULL_EXPR (which is 0), but we still
   // handle the UNDEFINED_KIND (-1) case.  If we don't, the compiler
   // emits warnings for non-assertion builds, since the check isn't done.
-  return metaKinds[k + 1];
+  return metaKinds[static_cast<uint32_t>(k) + 1];
 } /* metaKindOf(k) */
 
 namespace metakind {
@@ -106,7 +106,7 @@ size_t NodeValueCompare::constHash(const cvc5::internal::expr::NodeValue* nv)
 {
   Assert(nv->getMetaKind() == kind::metakind::CONSTANT);
 
-  switch (nv->d_kind)
+  switch (static_cast<Kind>(nv->d_kind))
   {
 // clang-format off
     ${metakind_constHashes}
@@ -126,7 +126,7 @@ bool NodeValueCompare::compare(const cvc5::internal::expr::NodeValue* nv1,
 
   if (nv1->getMetaKind() == kind::metakind::CONSTANT)
   {
-    switch (nv1->d_kind)
+    switch (static_cast<Kind>(nv1->d_kind))
     {
 // clang-format off
 ${metakind_compares}
@@ -167,7 +167,7 @@ void nodeValueConstantToStream(std::ostream& out,
 {
   Assert(nv->getMetaKind() == kind::metakind::CONSTANT);
 
-  switch (nv->d_kind)
+  switch (static_cast<Kind>(nv->d_kind))
   {
 // clang-format off
 ${metakind_constPrinters}
@@ -198,7 +198,7 @@ void deleteNodeValueConstant(cvc5::internal::expr::NodeValue* nv)
 {
   Assert(nv->getMetaKind() == kind::metakind::CONSTANT);
 
-  switch (nv->d_kind)
+  switch (static_cast<Kind>(nv->d_kind))
   {
 // clang-format off
 ${metakind_constDeleters}
@@ -213,30 +213,30 @@ default:
 
 uint32_t getMinArityForKind(cvc5::internal::Kind k)
 {
-  static const unsigned lbs[] = {
-    0, /* NULL_EXPR */
-// clang-format off
+  static const uint32_t lbs[] = {
+      0, /* NULL_EXPR */
+         // clang-format off
 ${metakind_lbchildren}
-// clang-format on
+         // clang-format on
 
-    0 /* LAST_KIND */
+      0 /* LAST_KIND */
   };
 
-  return lbs[k];
+  return lbs[static_cast<uint32_t>(k)];
 }
 
 uint32_t getMaxArityForKind(cvc5::internal::Kind k)
 {
-  static const unsigned ubs[] = {
-    0, /* NULL_EXPR */
-// clang-format off
+  static const uint32_t ubs[] = {
+      0, /* NULL_EXPR */
+         // clang-format off
 ${metakind_ubchildren}
-// clang-format on
+         // clang-format on
 
-    0, /* LAST_KIND */
+      0, /* LAST_KIND */
   };
 
-  return ubs[k];
+  return ubs[static_cast<uint32_t>(k)];
 }
 
 }  // namespace metakind
@@ -248,10 +248,13 @@ ${metakind_ubchildren}
  */
 Kind operatorToKind(cvc5::internal::expr::NodeValue* nv)
 {
-  if(nv->getKind() == kind::BUILTIN) {
+  if (nv->getKind() == Kind::BUILTIN)
+  {
     return nv->getConst<Kind>();
-  } else if(nv->getKind() == kind::LAMBDA) {
-    return kind::APPLY_UF;
+  }
+  else if (nv->getKind() == Kind::LAMBDA)
+  {
+    return Kind::APPLY_UF;
   }
 
   switch (Kind k CVC5_UNUSED = nv->getKind())
@@ -260,7 +263,7 @@ Kind operatorToKind(cvc5::internal::expr::NodeValue* nv)
     ${metakind_operatorKinds}
 // clang-format on
 
-    default: return kind::UNDEFINED_KIND; /* LAST_KIND */
+    default: return Kind::UNDEFINED_KIND; /* LAST_KIND */
   };
 }
 

@@ -263,9 +263,10 @@ void OptionsHandler::setResourceWeight(const std::string& flag,
   d_options->writeBase().resourceWeightHolder.emplace_back(optarg);
 }
 
-void OptionsHandler::checkBvSatSolver(const std::string& flag, SatSolverMode m)
+void OptionsHandler::checkBvSatSolver(const std::string& flag,
+                                      BvSatSolverMode m)
 {
-  if (m == SatSolverMode::CRYPTOMINISAT
+  if (m == BvSatSolverMode::CRYPTOMINISAT
       && !Configuration::isBuiltWithCryptominisat())
   {
     std::stringstream ss;
@@ -275,7 +276,7 @@ void OptionsHandler::checkBvSatSolver(const std::string& flag, SatSolverMode m)
     throw OptionException(ss.str());
   }
 
-  if (m == SatSolverMode::KISSAT && !Configuration::isBuiltWithKissat())
+  if (m == BvSatSolverMode::KISSAT && !Configuration::isBuiltWithKissat())
   {
     std::stringstream ss;
     ss << "option `" << flag
@@ -285,24 +286,24 @@ void OptionsHandler::checkBvSatSolver(const std::string& flag, SatSolverMode m)
   }
 
   if (d_options->bv.bvSolver != options::BVSolver::BITBLAST
-      && (m == SatSolverMode::CRYPTOMINISAT || m == SatSolverMode::CADICAL
-          || m == SatSolverMode::KISSAT))
+      && (m == BvSatSolverMode::CRYPTOMINISAT || m == BvSatSolverMode::CADICAL
+          || m == BvSatSolverMode::KISSAT))
   {
     if (d_options->bv.bitblastMode == options::BitblastMode::LAZY
         && d_options->bv.bitblastModeWasSetByUser)
     {
       std::string sat_solver;
-      if (m == options::SatSolverMode::CADICAL)
+      if (m == options::BvSatSolverMode::CADICAL)
       {
         sat_solver = "CaDiCaL";
       }
-      else if (m == options::SatSolverMode::KISSAT)
+      else if (m == options::BvSatSolverMode::KISSAT)
       {
         sat_solver = "Kissat";
       }
       else
       {
-        Assert(m == options::SatSolverMode::CRYPTOMINISAT);
+        Assert(m == options::BvSatSolverMode::CRYPTOMINISAT);
         sat_solver = "CryptoMiniSat";
       }
       throw OptionException(sat_solver

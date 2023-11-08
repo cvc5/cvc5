@@ -15,3 +15,4 @@
 
 # Add unit tests.
 cvc5_add_unit_test_black(smt2_printer_black printer)
+cvc5_add_unit_test_black(print_enums printer)

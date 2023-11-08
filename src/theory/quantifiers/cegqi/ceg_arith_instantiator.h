@@ -20,7 +20,7 @@
 
 #include <vector>
 #include "expr/node.h"
-#include "theory/quantifiers/cegqi/ceg_instantiator.h"
+#include "theory/quantifiers/cegqi/instantiator.h"
 #include "theory/quantifiers/cegqi/vts_term_cache.h"
 
 namespace cvc5::internal {

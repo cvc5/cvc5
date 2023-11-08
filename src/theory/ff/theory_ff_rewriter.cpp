@@ -64,7 +64,7 @@ Node preRewriteFfNeg(TNode t)
   Assert(t.getKind() == Kind::FINITE_FIELD_NEG);
   NodeManager* const nm = NodeManager::currentNM();
   const Node negOne = nm->mkConst(FiniteFieldValue(Integer(-1), t.getType().getFfSize()));
-  return nm->mkNode(kind::FINITE_FIELD_MULT, negOne, t[0]);
+  return nm->mkNode(Kind::FINITE_FIELD_MULT, negOne, t[0]);
 }
 
 /** preRewrite addition */
@@ -204,7 +204,7 @@ Node postRewriteFfEq(TNode t)
   }
   else if (t[0] > t[1])
   {
-    return NodeManager::currentNM()->mkNode(kind::EQUAL, t[1], t[0]);
+    return NodeManager::currentNM()->mkNode(Kind::EQUAL, t[1], t[0]);
   }
   else
   {
@@ -219,12 +219,12 @@ RewriteResponse TheoryFiniteFieldsRewriter::postRewrite(TNode t)
   Trace("ff::rw::post") << "ff::postRewrite: " << t << std::endl;
   switch (t.getKind())
   {
-    case kind::FINITE_FIELD_NEG: return RewriteResponse(REWRITE_DONE, t);
-    case kind::FINITE_FIELD_ADD:
+    case Kind::FINITE_FIELD_NEG: return RewriteResponse(REWRITE_DONE, t);
+    case Kind::FINITE_FIELD_ADD:
       return RewriteResponse(REWRITE_DONE, postRewriteFfAdd(t));
-    case kind::FINITE_FIELD_MULT:
+    case Kind::FINITE_FIELD_MULT:
       return RewriteResponse(REWRITE_DONE, postRewriteFfMult(t));
-    case kind::EQUAL: return RewriteResponse(REWRITE_DONE, postRewriteFfEq(t));
+    case Kind::EQUAL: return RewriteResponse(REWRITE_DONE, postRewriteFfEq(t));
     default: return RewriteResponse(REWRITE_DONE, t);
   }
 }
@@ -234,13 +234,13 @@ RewriteResponse TheoryFiniteFieldsRewriter::preRewrite(TNode t)
   Trace("ff::rw::pre") << "ff::preRewrite: " << t << std::endl;
   switch (t.getKind())
   {
-    case kind::FINITE_FIELD_NEG:
+    case Kind::FINITE_FIELD_NEG:
       return RewriteResponse(REWRITE_DONE, preRewriteFfNeg(t));
-    case kind::FINITE_FIELD_ADD:
+    case Kind::FINITE_FIELD_ADD:
       return RewriteResponse(REWRITE_DONE, preRewriteFfAdd(t));
-    case kind::FINITE_FIELD_MULT:
+    case Kind::FINITE_FIELD_MULT:
       return RewriteResponse(REWRITE_DONE, preRewriteFfMult(t));
-    case kind::EQUAL: return RewriteResponse(REWRITE_DONE, t);
+    case Kind::EQUAL: return RewriteResponse(REWRITE_DONE, t);
     default: return RewriteResponse(REWRITE_DONE, t);
   }
 }

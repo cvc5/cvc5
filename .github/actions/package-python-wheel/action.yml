@@ -24,7 +24,7 @@ runs:
         echo "::endgroup::"
 
         OPTS="production --auto-download"
-        for version in cp36 cp37 cp38 cp39 cp310 pp37 pp38
+        for version in cp37 cp38 cp39 cp310 cp311 pp37 pp38 pp39 pp310
         do
           echo "::group::Build extension for python $version"
           docker run --rm \
@@ -36,12 +36,6 @@ runs:
 
         ls *.whl
       
-    - name: Build wheels for macOS
-      if: runner.os == 'macOS'
-      uses: ./.github/actions/package-python-wheel-macos
-      with:
-        python-version: '3.6'
-
     - name: Build wheels for macOS
       if: runner.os == 'macOS'
       uses: ./.github/actions/package-python-wheel-macos
@@ -70,6 +64,12 @@ runs:
       if: runner.os == 'macOS'
       uses: ./.github/actions/package-python-wheel-macos
       with:
+        python-version: '3.11'
+
+    - name: Build wheels for macOS
+      if: runner.os == 'macOS'
+      uses: ./.github/actions/package-python-wheel-macos
+      with:
         python-version: 'pypy-3.7'
         
     - name: Build wheels for macOS
@@ -77,6 +77,18 @@ runs:
       uses: ./.github/actions/package-python-wheel-macos
       with:
         python-version: 'pypy-3.8'
+
+    - name: Build wheels for macOS
+      if: runner.os == 'macOS'
+      uses: ./.github/actions/package-python-wheel-macos
+      with:
+        python-version: 'pypy-3.9'
+
+    - name: Build wheels for macOS
+      if: runner.os == 'macOS'
+      uses: ./.github/actions/package-python-wheel-macos
+      with:
+        python-version: 'pypy-3.10'
 
     - name: Upload wheels to pypi.org
       if: inputs.upload-to-pypi == 'true'
