@@ -228,7 +228,7 @@ bool d_emittedAllPartitions;
 /**
  * Track lemma literals that we have seen and their frequency.
  */
-std::unordered_map<Node, int> d_lemmaMap;
+std::unordered_map<Node, uint64_t> d_lemmaMap;
 
 /**
  * Track lemma literals we have seen.
