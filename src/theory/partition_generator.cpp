@@ -122,33 +122,27 @@ void PartitionGenerator::notifyLemma(TNode n,
 // complete.
 bool PartitionGenerator::isUnusable(Node n)
 {
-  const std::unordered_set<Kind, kind::KindHashFunction> skolemKinds = {
-      Kind::SKOLEM};
   const std::unordered_set<Kind, kind::KindHashFunction> unusableKinds = {
-      Kind::INST_CONSTANT};
+      Kind::INST_CONSTANT, Kind::SKOLEM};
 
   // Check if n is constant or contains unusable kinds.
-  if (n.isConst() || expr::hasSubtermKinds(unusableKinds, n))
+  if (n.isConst())
   {
     return true;
   }
 
   // Check if original has unusable kinds or contains skolems.
   Node originalN = SkolemManager::getOriginalForm(n);
-  if (expr::hasSubtermKinds(unusableKinds, originalN)
-      || expr::hasSubtermKinds(skolemKinds, originalN))
+  if (expr::hasSubtermKinds(unusableKinds, originalN))
   {
     return true;
   }
 
   // Get non negated versions before testing for bool expr.
-  Node nonNegatedN = n.getKind() == Kind::NOT ? n[0] : n;
-  Node nonNegatedOriginal =
-      originalN.getKind() == Kind::NOT ? originalN[0] : originalN;
+  Node nonNegatedOriginal = originalN.getKind() == Kind::NOT ? n[0] : n;
 
   // Check if this is a boolean expression
-  if (Theory::theoryOf(nonNegatedN) == THEORY_BOOL
-      || Theory::theoryOf(nonNegatedOriginal) == THEORY_BOOL)
+  if (Theory::theoryOf(nonNegatedOriginal) == THEORY_BOOL)
   {
     return true;
   }
@@ -364,6 +358,7 @@ Node PartitionGenerator::makeCubePartitions(LiteralListType litType,
 
     // numConsecutiveTF tracks how many times the node should be
     // consectuively true or false in a column.
+    // clang-format off
     // For example, if numVar=3:
     // x y z
     // T T T
@@ -374,6 +369,7 @@ Node PartitionGenerator::makeCubePartitions(LiteralListType litType,
     // F T F
     // F F T
     // F F F
+    // clang-format on
     // For the first column, numConsecutiveTF = 4, then 2 for the
     //  second column, and 1 for the third column.
     size_t numConsecutiveTF = total / 2;
