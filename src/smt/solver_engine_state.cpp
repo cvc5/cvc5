@@ -19,6 +19,7 @@
 #include "options/base_options.h"
 #include "options/main_options.h"
 #include "options/option_exception.h"
+#include "options/parallel_options.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
 
@@ -75,7 +76,8 @@ void SolverEngineState::notifyCheckSatResult(const Result& r)
   {
     // unknown results don't give an error
     if (!d_expectedStatus.isUnknown() && !d_status.isUnknown()
-        && d_status != d_expectedStatus)
+        && d_status != d_expectedStatus
+        && !options().parallel.computePartitionsWasSetByUser)
     {
       CVC5_FATAL() << "Expected result " << d_expectedStatus << " but got "
                    << d_status;
