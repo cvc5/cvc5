@@ -18,7 +18,7 @@
 import pytest
 import cvc5
 from cvc5 import Result
-from cvc5 import UnknownExplanation
+from cvc5 import Kind, UnknownExplanation
 
 
 @pytest.fixture
@@ -74,10 +74,11 @@ def test_is_unsat(solver):
 def test_is_sat_unknown(solver):
     solver.setLogic("QF_NIA")
     solver.setOption("incremental", "false")
-    solver.setOption("solve-int-as-bv", "32")
-    int_sort = solver.getIntegerSort()
-    x = solver.mkConst(int_sort, "x")
-    solver.assertFormula(x.eqTerm(x).notTerm())
+    solver.setOption("solve-real-as-int", "true")
+    real_sort = solver.getRealSort()
+    x = solver.mkConst(real_sort, "x")
+    solver.assertFormula(solver.mkTerm(Kind.LT, solver.mkReal("0.0"), x))
+    solver.assertFormula(solver.mkTerm(Kind.LT, x, solver.mkReal("1.0")))
     res = solver.checkSat()
     assert not res.isSat()
     assert res.isUnknown()
