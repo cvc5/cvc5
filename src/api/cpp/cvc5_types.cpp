@@ -64,17 +64,13 @@ std::ostream& operator<<(std::ostream& out, LearnedLitType ltype)
 {
   switch (ltype)
   {
-    case LearnedLitType::LEARNED_LIT_PREPROCESS_SOLVED:
-      out << "preprocess_solved";
-      break;
-    case LearnedLitType::LEARNED_LIT_PREPROCESS: out << "preprocess"; break;
-    case LearnedLitType::LEARNED_LIT_INPUT: out << "input"; break;
-    case LearnedLitType::LEARNED_LIT_SOLVABLE: out << "solvable"; break;
-    case LearnedLitType::LEARNED_LIT_CONSTANT_PROP:
-      out << "constant_prop";
-      break;
-    case LearnedLitType::LEARNED_LIT_INTERNAL: out << "internal"; break;
-    case LearnedLitType::LEARNED_LIT_UNKNOWN: out << "unknown"; break;
+    case LearnedLitType::PREPROCESS_SOLVED: out << "preprocess_solved"; break;
+    case LearnedLitType::PREPROCESS: out << "preprocess"; break;
+    case LearnedLitType::INPUT: out << "input"; break;
+    case LearnedLitType::SOLVABLE: out << "solvable"; break;
+    case LearnedLitType::CONSTANT_PROP: out << "constant_prop"; break;
+    case LearnedLitType::INTERNAL: out << "internal"; break;
+    case LearnedLitType::UNKNOWN: out << "unknown"; break;
     default: out << "?";
   }
   return out;
@@ -83,15 +79,25 @@ std::ostream& operator<<(std::ostream& out, ProofComponent pc)
 {
   switch (pc)
   {
-    case ProofComponent::PROOF_COMPONENT_RAW_PREPROCESS:
-      out << "raw_preprocess";
-      break;
-    case ProofComponent::PROOF_COMPONENT_PREPROCESS: out << "preprocess"; break;
-    case ProofComponent::PROOF_COMPONENT_SAT: out << "sat"; break;
-    case ProofComponent::PROOF_COMPONENT_THEORY_LEMMAS:
-      out << "theory_lemmas";
-      break;
-    case ProofComponent::PROOF_COMPONENT_FULL: out << "full"; break;
+    case ProofComponent::RAW_PREPROCESS: out << "raw_preprocess"; break;
+    case ProofComponent::PREPROCESS: out << "preprocess"; break;
+    case ProofComponent::SAT: out << "sat"; break;
+    case ProofComponent::THEORY_LEMMAS: out << "theory_lemmas"; break;
+    case ProofComponent::FULL: out << "full"; break;
+    default: out << "?";
+  }
+  return out;
+}
+
+std::ostream& operator<<(std::ostream& out, ProofFormat pc)
+{
+  switch (pc)
+  {
+    case ProofFormat::NONE: out << "none"; break;
+    case ProofFormat::DOT: out << "dot"; break;
+    case ProofFormat::LFSC: out << "lfsc"; break;
+    case ProofFormat::ALETHE: out << "alethe"; break;
+    case ProofFormat::DEFAULT: out << "default"; break;
     default: out << "?";
   }
   return out;
@@ -101,15 +107,23 @@ std::ostream& operator<<(std::ostream& out, FindSynthTarget fst)
 {
   switch (fst)
   {
-    case FindSynthTarget::FIND_SYNTH_TARGET_ENUM: out << "enum"; break;
-    case FindSynthTarget::FIND_SYNTH_TARGET_REWRITE: out << "rewrite"; break;
-    case FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_UNSOUND:
-      out << "rewrite_unsound";
-      break;
-    case FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_INPUT:
-      out << "rewrite_input";
-      break;
-    case FindSynthTarget::FIND_SYNTH_TARGET_QUERY: out << "query"; break;
+    case FindSynthTarget::ENUM: out << "enum"; break;
+    case FindSynthTarget::REWRITE: out << "rewrite"; break;
+    case FindSynthTarget::REWRITE_UNSOUND: out << "rewrite_unsound"; break;
+    case FindSynthTarget::REWRITE_INPUT: out << "rewrite_input"; break;
+    case FindSynthTarget::QUERY: out << "query"; break;
+    default: out << "?";
+  }
+  return out;
+}
+
+std::ostream& operator<<(std::ostream& out, InputLanguage lang)
+{
+  switch (lang)
+  {
+    case InputLanguage::SMT_LIB_2_6: out << "SMT_LIB_2_6"; break;
+    case InputLanguage::SYGUS_2_1: out << "SYGUS_2_1"; break;
+    case InputLanguage::UNKNOWN: out << "UNKNOWN"; break;
     default: out << "?";
   }
   return out;

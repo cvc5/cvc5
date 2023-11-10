@@ -56,9 +56,9 @@ class CardSolver : protected EnvObj
 
   /**
    * @param bag a node of a bag type
-   * @return a set of children for that bag in the cardinality graph
+   * @return a list of children for that bag in the cardinality graph
    */
-  std::set<Node> getChildren(Node bag);
+  std::vector<Node> getChildren(Node bag);
 
  private:
   /** apply inference rules for empty bags */
@@ -109,7 +109,7 @@ class CardSolver : protected EnvObj
    */
   void addChildren(const Node& premise,
                    const Node& parent,
-                   const std::set<Node>& children);
+                   const std::vector<Node>& children);
 
   /** The solver state object */
   SolverState& d_state;
@@ -120,8 +120,8 @@ class CardSolver : protected EnvObj
   NodeManager* d_nm;
 
   /**
-   * A map from bag representatives to sets of bag representatives with the
-   * invariant that each key is the disjoint union of each set in the value.
+   * A map from bag representatives to lists of bag representatives with the
+   * invariant that each key is the disjoint union of each list in the value.
    * Example:
    * C -> {{A, B}, {X,Y, Z}}
    * implies we have the following constraints in the current context.
@@ -129,7 +129,7 @@ class CardSolver : protected EnvObj
    * (= C (bag.union_disjoint X Y Z))
    * This map needs to cleared before each full effort check.
    */
-  std::map<Node, std::set<std::set<Node>>> d_cardGraph;
+  std::map<Node, std::set<std::vector<Node>>> d_cardGraph;
   /** Commonly used constants */
   Node d_true;
   Node d_false;

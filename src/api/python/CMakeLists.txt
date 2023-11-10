@@ -22,10 +22,17 @@ check_python_module("setuptools")
 
 # Find cmake modules distributed with scikit-build
 # They are distributed under <scikit-build directory>/resources/cmake
+
+# This 'sys.stdout' hack is needed because importing skbuild prints to stdout
+# in some versions, and this stores the wrong value to OUTPUT_VARIABLE. 
+# Once scikit is removed, this whole command will be removed too.
 execute_process(
   COMMAND
     ${Python_EXECUTABLE} -c "from __future__ import print_function; \
-      import os; import skbuild; \
+      import os; import sys; \
+      sys.stdout = open(os.devnull, 'w'); \
+      import skbuild; \
+      sys.stdout = sys.__stdout__; \
       cmake_module_path=os.path.join(os.path.dirname(skbuild.__file__), \
         'resources', 'cmake'); print(cmake_module_path, end='')"
   OUTPUT_VARIABLE
@@ -82,25 +89,26 @@ add_custom_command(
 )
 add_custom_target(cvc5kinds DEPENDS ${GENERATED_KINDS_FILES})
 
-# Generate cvc5sortkinds.{pxd,pxi}
-set(GENERATED_SORT_KINDS_FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/cvc5sortkinds.pxd"
-  "${CMAKE_CURRENT_BINARY_DIR}/cvc5sortkinds.pxi"
+# Generate cvc5proofrules.{pxd,pxi}
+set(GENERATED_PROOF_RULES_FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/cvc5proofrules.pxd"
+  "${CMAKE_CURRENT_BINARY_DIR}/cvc5proofrules.pxi"
 )
 add_custom_command(
   OUTPUT
-    ${GENERATED_SORT_KINDS_FILES}
+    ${GENERATED_PROOF_RULES_FILES}
   COMMAND
     "${Python_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_sort_kind.h"
-    --enums-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/cvc5sortkinds"
+    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_proof_rule.h"
+    --enums-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/cvc5proofrules"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
     "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
-    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_sort_kind.h"
+    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_proof_rule.h"
 )
-add_custom_target(cvc5sortkinds DEPENDS ${GENERATED_SORT_KINDS_FILES})
+add_custom_target(cvc5proofrules DEPENDS ${GENERATED_PROOF_RULES_FILES})
+
 
 set(GENERATED_TYPES_FILES
   "${CMAKE_CURRENT_BINARY_DIR}/cvc5types.pxd"
@@ -127,7 +135,7 @@ add_cython_target(cvc5_python_base CXX)
 add_library(cvc5_python_base
             MODULE
             cvc5_python_base)
-add_dependencies(cvc5_python_base cvc5kinds cvc5sortkinds cvc5types)
+add_dependencies(cvc5_python_base cvc5kinds cvc5types cvc5proofrules )
 
 target_include_directories(cvc5_python_base
   PRIVATE

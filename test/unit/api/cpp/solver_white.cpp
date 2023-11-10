@@ -40,15 +40,17 @@ TEST_F(TestApiWhiteSolver, getOp)
   Term consTerm = consList.getConstructor("cons").getTerm();
   Term headTerm = consList["cons"].getSelector("head").getTerm();
 
-  Term listnil = d_solver.mkTerm(APPLY_CONSTRUCTOR, {nilTerm});
-  Term listcons1 = d_solver.mkTerm(APPLY_CONSTRUCTOR,
+  Term listnil = d_solver.mkTerm(Kind::APPLY_CONSTRUCTOR, {nilTerm});
+  Term listcons1 = d_solver.mkTerm(Kind::APPLY_CONSTRUCTOR,
                                    {consTerm, d_solver.mkInteger(1), listnil});
-  Term listhead = d_solver.mkTerm(APPLY_SELECTOR, {headTerm, listcons1});
+  Term listhead = d_solver.mkTerm(Kind::APPLY_SELECTOR, {headTerm, listcons1});
 
-  ASSERT_EQ(listnil.getOp(), Op(d_solver.getNodeManager(), APPLY_CONSTRUCTOR));
+  ASSERT_EQ(listnil.getOp(),
+            Op(d_solver.getNodeManager(), Kind::APPLY_CONSTRUCTOR));
   ASSERT_EQ(listcons1.getOp(),
-            Op(d_solver.getNodeManager(), APPLY_CONSTRUCTOR));
-  ASSERT_EQ(listhead.getOp(), Op(d_solver.getNodeManager(), APPLY_SELECTOR));
+            Op(d_solver.getNodeManager(), Kind::APPLY_CONSTRUCTOR));
+  ASSERT_EQ(listhead.getOp(),
+            Op(d_solver.getNodeManager(), Kind::APPLY_SELECTOR));
 }
 
 }  // namespace test

@@ -1,4 +1,5 @@
 ; COMMAND-LINE: --full-saturate-quant
+; DISABLE-TESTER: alf
 (set-logic AUFLIA)
 (set-info :source | Assertion verification of simple set manipulation programs. |)
 (set-info :smt-lib-version 2.6)

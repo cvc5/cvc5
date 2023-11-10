@@ -28,9 +28,9 @@ int main(void)
   Term t2 = solver.mkInteger("4673842139166733208409");
   Term t3 =
       solver.mkInteger("651450683408549550470379592992505613867725244404");
-  Op o4 = solver.mkOp(SUB);
+  Op o4 = solver.mkOp(Kind::SUB);
   Term t5 = solver.mkTerm(o4, {t3, t1});
-  Term t6 = solver.mkTerm(GEQ, {t2, t5});
+  Term t6 = solver.mkTerm(Kind::GEQ, {t2, t5});
   Sort s7 = t6.getSort();
   Term t8 = solver.getInterpolant(t6);
 

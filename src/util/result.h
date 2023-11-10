@@ -87,11 +87,6 @@ class Result
   void toStreamSmt2(std::ostream& out) const;
 
   /**
-   * Write a Result out to a stream in the Tptp format
-   */
-  void toStreamTptp(std::ostream& out) const;
-
-  /**
    * Write a Result out to a stream.
    *
    * The default implementation writes a reasonable string in lowercase

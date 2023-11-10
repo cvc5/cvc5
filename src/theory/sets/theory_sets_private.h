@@ -111,7 +111,6 @@ class TheorySetsPrivate : protected EnvObj
   /**
    * Apply the following rules for map terms (set.map f A) where A has type
    * (Set T):
-   * - General case:
    *   (=>
    *     (set.member y (set.map f A))
    *     (and
@@ -119,12 +118,7 @@ class TheorySetsPrivate : protected EnvObj
    *       (set.member x A)
    *     )
    *   )
-   *   where x is a fresh skolem
-   * - Special case where we can avoid skolems
-   *   (=>
-   *     (set.member (f x) (set.map f A))
-   *     (set.member x A)
-   *   )
+   *   where x is a fresh skolem   
    */
   void checkMapDown();
   void checkGroups();
@@ -354,8 +348,6 @@ class TheorySetsPrivate : protected EnvObj
   bool collectModelValues(TheoryModel* m, const std::set<Node>& termSet);
 
   void computeCareGraph();
-
-  Node explain(TNode);
 
   void preRegisterTerm(TNode node);
 

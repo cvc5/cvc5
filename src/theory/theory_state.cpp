@@ -116,6 +116,27 @@ bool TheoryState::areDisequal(TNode a, TNode b) const
   return d_ee->areDisequal(a, b, false);
 }
 
+void TheoryState::explainDisequal(TNode a, TNode b, std::vector<Node>& exp)
+{
+  if (hasTerm(a) && hasTerm(b) && d_ee->areDisequal(a, b, true))
+  {
+    exp.push_back(a.eqNode(b).notNode());
+    return;
+  }
+  // otherwise, add equalities to the (disequal) values
+  Node ar = getRepresentative(a);
+  if (ar != a)
+  {
+    exp.push_back(a.eqNode(ar));
+  }
+  Node br = getRepresentative(b);
+  if (br != b)
+  {
+    exp.push_back(b.eqNode(br));
+  }
+  Assert(ar != br && ar.isConst() && br.isConst());
+}
+
 void TheoryState::getEquivalenceClass(Node a, std::vector<Node>& eqc) const
 {
   if (d_ee->hasTerm(a))

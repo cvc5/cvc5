@@ -77,7 +77,7 @@ TEST_F(TestUtilWhiteArrayStoreAll, const_error)
       "array store-all constants can only be created for array types");
   ASSERT_DEATH(ArrayStoreAll(d_nodeManager->integerType(),
                              d_nodeManager->mkNode(
-                                 kind::ADD,
+                                 Kind::ADD,
                                  d_nodeManager->mkConstInt(Rational(1)),
                                  d_nodeManager->mkConstInt(Rational(0)))),
                "array store-all constants can only be created for array types");

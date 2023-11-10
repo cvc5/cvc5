@@ -30,7 +30,7 @@ namespace strings {
 void NormalForm::init(Node base)
 {
   Assert(base.getType().isStringLike());
-  Assert(base.getKind() != STRING_CONCAT);
+  Assert(base.getKind() != Kind::STRING_CONCAT);
   d_base = base;
   d_nf.clear();
   d_isRev = false;

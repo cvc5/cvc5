@@ -113,6 +113,7 @@ class CVC5_EXPORT Printer
   /** Print declare-fun command */
   virtual void toStreamCmdDeclareFunction(std::ostream& out,
                                           const std::string& id,
+                                          const std::vector<TypeNode>& argTypes,
                                           TypeNode type) const;
   /** Variant of above for a pre-existing variable */
   void toStreamCmdDeclareFunction(std::ostream& out, const Node& v) const;
@@ -122,14 +123,19 @@ class CVC5_EXPORT Printer
                                       TypeNode type,
                                       const std::vector<Node>& initValue) const;
   /** Print declare-oracle-fun command */
-  virtual void toStreamCmdDeclareOracleFun(std::ostream& out,
-                                           const std::string& id,
-                                           TypeNode type,
-                                           const std::string& binName) const;
+  virtual void toStreamCmdDeclareOracleFun(
+      std::ostream& out,
+      const std::string& id,
+      const std::vector<TypeNode>& argTypes,
+      TypeNode type,
+      const std::string& binName) const;
 
   /** Print declare-sort command */
   virtual void toStreamCmdDeclareType(std::ostream& out,
-                                      TypeNode type) const;
+                                      const std::string& id,
+                                      size_t arity) const;
+  /** Variant of above that takes the type */
+  void toStreamCmdDeclareType(std::ostream& out, TypeNode type) const;
 
   /** Print define-sort command */
   virtual void toStreamCmdDefineType(std::ostream& out,
@@ -174,14 +180,14 @@ class CVC5_EXPORT Printer
 
   /** Print declare-var command */
   virtual void toStreamCmdDeclareVar(std::ostream& out,
-                                     Node var,
+                                     const std::string& id,
                                      TypeNode type) const;
 
   /** Print synth-fun command */
   virtual void toStreamCmdSynthFun(std::ostream& out,
-                                   Node f,
+                                   const std::string& id,
                                    const std::vector<Node>& vars,
-                                   bool isInv,
+                                   TypeNode rangeType,
                                    TypeNode sygusType) const;
 
   /** Print constraint command */
@@ -199,6 +205,14 @@ class CVC5_EXPORT Printer
 
   /** Print check-synth-next command */
   virtual void toStreamCmdCheckSynthNext(std::ostream& out) const;
+
+  /** Print find-synth command */
+  virtual void toStreamCmdFindSynth(std::ostream& out,
+                                    modes::FindSynthTarget fst,
+                                    TypeNode sygusType) const;
+
+  /** Print find-synth-next command */
+  virtual void toStreamCmdFindSynthNext(std::ostream& out) const;
 
   /** Print simplify command */
   virtual void toStreamCmdSimplify(std::ostream& out, Node n) const;

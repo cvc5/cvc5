@@ -60,6 +60,7 @@ runs:
       run: |
         if [[ "${{ steps.contrib-cache.outputs.cache-hit }}" == "true" ]]; then exit 0; fi
         ./contrib/get-lfsc-checker
+        ./contrib/get-alf-checker
 
     - name: Setup dependencies cache
       uses: actions/cache@v3

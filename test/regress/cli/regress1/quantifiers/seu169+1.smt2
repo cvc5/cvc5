@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --relational-triggers
 ; EXPECT: unsat
+; DISABLE-TESTER: alf
 (set-logic UF)
 (declare-sort $$unsorted 0)
 (declare-fun in ($$unsorted $$unsorted) Bool)

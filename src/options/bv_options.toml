@@ -5,7 +5,7 @@ name   = "Bitvector Theory"
   name       = "bvSatSolver"
   category   = "regular"
   long       = "bv-sat-solver=MODE"
-  type       = "SatSolverMode"
+  type       = "BvSatSolverMode"
   default    = "CADICAL"
   predicates = ["checkBvSatSolver"]
   help       = "choose which sat solver to use, see --bv-sat-solver=help"

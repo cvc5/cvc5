@@ -95,9 +95,12 @@ TEST_F(TestApiBlackUncovered, streaming_operators)
   ss << cvc5::SortKind::ARRAY_SORT;
   ss << cvc5::UnknownExplanation::UNKNOWN_REASON;
   ss << cvc5::modes::BlockModelsMode::LITERALS;
-  ss << cvc5::modes::LearnedLitType::LEARNED_LIT_PREPROCESS;
-  ss << cvc5::modes::ProofComponent::PROOF_COMPONENT_FULL;
-  ss << cvc5::modes::FindSynthTarget::FIND_SYNTH_TARGET_ENUM;
+  ss << cvc5::modes::LearnedLitType::PREPROCESS;
+  ss << cvc5::modes::ProofComponent::FULL;
+  ss << cvc5::modes::FindSynthTarget::ENUM;
+  ss << cvc5::modes::InputLanguage::SMT_LIB_2_6;
+  ss << cvc5::modes::ProofFormat::LFSC;
+  ss << cvc5::ProofRule::ASSUME;
   ss << cvc5::Result();
   ss << cvc5::Op();
   ss << cvc5::SynthResult();
@@ -199,6 +202,15 @@ TEST_F(TestApiBlackUncovered, Datatypes)
     ss << dc;
     ss << d.getSelector("head");
   }
+}
+
+TEST_F(TestApiBlackUncovered, Proof)
+{
+  Proof proof;
+  ASSERT_EQ(proof.getRule(), ProofRule::UNKNOWN);
+  ASSERT_TRUE(proof.getResult().isNull());
+  ASSERT_TRUE(proof.getChildren().empty());
+  ASSERT_TRUE(proof.getArguments().empty());
 }
 
 }  // namespace test

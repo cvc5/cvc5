@@ -56,11 +56,6 @@ cvc5 incorporates MiniSat code (see src/prop/minisat and src/prop/bvminisat),
 excluded from the above copyright.  See src/prop/minisat/LICENSE and
 src/prop/bvminisat/LICENSE for copyright and licensing information.
 
-cvc5 incorporates code from ANTLR3 (http://www.antlr3.org/), the files
-src/parser/bounded_token_buffer.h, src/parser/bounded_token_buffer.cpp, and
-src/parser/antlr_input_imports.cpp are excluded from the above copyright.
-See licenses/antlr3-LICENSE for copyright and licensing information.
-
 cvc5 by default links against The GNU Multiple Precision (GMP) Arithmetic
 Library, which is licensed under GNU LGPL v3. See the file
 licenses/lgpl-3.0.txt for a copy of that license.  Note that according to the

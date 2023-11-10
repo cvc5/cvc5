@@ -40,9 +40,9 @@ void SynthFinder::initialize(modes::FindSynthTarget fst, const TypeNode& gtn)
   d_fst = fst;
   d_fstu = fst;
   // rewrites from input use the same algorithm
-  if (d_fstu == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_INPUT)
+  if (d_fstu == modes::FindSynthTarget::REWRITE_INPUT)
   {
-    d_fstu = modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE;
+    d_fstu = modes::FindSynthTarget::REWRITE;
   }
 
   // clear the buffer
@@ -117,12 +117,12 @@ void SynthFinder::initializeInternal(modes::FindSynthTarget fst, const Node& e)
   // initialize the sampler if necessary
   bool needsSampler = false;
   size_t nsamples = options().quantifiers.sygusSamples;
-  if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE
-      || fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_UNSOUND)
+  if (fst == modes::FindSynthTarget::REWRITE
+      || fst == modes::FindSynthTarget::REWRITE_UNSOUND)
   {
     needsSampler = true;
   }
-  else if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_QUERY)
+  else if (fst == modes::FindSynthTarget::QUERY)
   {
     needsSampler = (qmode == options::SygusQueryGenMode::SAMPLE_SAT);
   }
@@ -135,18 +135,18 @@ void SynthFinder::initializeInternal(modes::FindSynthTarget fst, const Node& e)
 
   // initialize the sygus enumerator callback if necessary
   d_ecb = nullptr;
-  if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_UNSOUND)
+  if (fst == modes::FindSynthTarget::REWRITE_UNSOUND)
   {
     d_ecb.reset(new SygusEnumeratorCallbackNoSym(d_env));
   }
 
   // now, setup the handlers
-  if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_ENUM)
+  if (fst == modes::FindSynthTarget::ENUM)
   {
     d_eid.reset(new ExprMinerId(d_env));
     d_current = d_eid.get();
   }
-  else if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE)
+  else if (fst == modes::FindSynthTarget::REWRITE)
   {
     d_crd.reset(
         new CandidateRewriteDatabase(d_env,
@@ -156,12 +156,12 @@ void SynthFinder::initializeInternal(modes::FindSynthTarget fst, const Node& e)
                                      options().quantifiers.sygusRewSynthRec));
     d_current = d_crd.get();
   }
-  else if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_REWRITE_UNSOUND)
+  else if (fst == modes::FindSynthTarget::REWRITE_UNSOUND)
   {
     d_rrv.reset(new RewriteVerifier(d_env));
     d_current = d_rrv.get();
   }
-  else if (fst == modes::FindSynthTarget::FIND_SYNTH_TARGET_QUERY)
+  else if (fst == modes::FindSynthTarget::QUERY)
   {
     if (qmode == options::SygusQueryGenMode::SAMPLE_SAT)
     {

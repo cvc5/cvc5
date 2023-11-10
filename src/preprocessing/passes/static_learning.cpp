@@ -48,7 +48,7 @@ PreprocessingPassResult StaticLearning::applyInternal(
       continue;
     }
 
-    NodeBuilder learned(kind::AND);
+    NodeBuilder learned(Kind::AND);
     learned << n;
 
     /* Process all assertions in nested AND terms. */
@@ -85,7 +85,7 @@ void StaticLearning::flattenAnd(TNode node, std::vector<TNode>& children)
     }
     d_cache.insert(cur);
 
-    if (cur.getKind() == kind::AND)
+    if (cur.getKind() == Kind::AND)
     {
       visit.insert(visit.end(), cur.begin(), cur.end());
     }

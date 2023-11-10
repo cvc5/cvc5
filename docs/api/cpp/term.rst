@@ -21,10 +21,45 @@ provides factory functions for all other terms, e.g.,
 :cpp:func:`Solver::mkTerm() <cvc5::Solver::mkTerm()>` for generic terms and
 :code:`Solver::mk<Type>()` for constant values of a given type.
 
+----
+
+- class :cpp:class:`cvc5::Term`
+- :cpp:func:`std::ostream& cvc5::operator<< (std::ostream& out, const Term& t)`
+- :cpp:func:`std::ostream& cvc5::operator<< (std::ostream& out, const std::vector<Term>& vector)`
+- :cpp:func:`std::ostream& cvc5::operator<< (std::ostream& out, const std::set<Term>& set)`
+- :cpp:func:`std::ostream& cvc5::operator<< (std::ostream& out, const std::unordered_set<Term>& set)`
+- :cpp:func:`template<typename V> std::ostream& cvc5::operator<< (std::ostream& out, const std::map<Term, V>& map)`
+- :cpp:func:`template<typename V> std::ostream& cvc5::operator<< (std::ostream& out, const std::unordered_map<Term, V>& map)`
+- :cpp:struct:`std::hash\<cvc5::Term>`
+
+----
+
 .. doxygenclass:: cvc5::Term
     :project: cvc5
     :members:
     :undoc-members:
+
+----
+
+.. doxygenfunction:: cvc5::operator<<(std::ostream& out, const Term& t)
+    :project: cvc5
+
+.. doxygenfunction:: cvc5::operator<<(std::ostream& out, const std::vector<Term>& vector)
+    :project: cvc5
+
+.. doxygenfunction:: cvc5::operator<<(std::ostream& out, const std::set<Term>& set)
+    :project: cvc5
+
+.. doxygenfunction:: cvc5::operator<<(std::ostream& out, const std::unordered_set<Term>& set)
+    :project: cvc5
+
+.. doxygenfunction:: cvc5::operator<<(std::ostream& out, const std::map<Term, V>& map)
+    :project: cvc5
+
+.. doxygenfunction:: cvc5::operator<<(std::ostream& out, const std::unordered_map<Term, V>& map)
+    :project: cvc5
+
+----
 
 .. doxygenstruct:: std::hash< cvc5::Term >
     :project: std

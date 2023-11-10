@@ -1,6 +1,11 @@
 on: [push, pull_request]
 name: CI
 
+# Prevents github from relying on clones of homebrew-core or homebrew-cask.
+# https://github.com/orgs/Homebrew/discussions/4612
+env:
+    HOMEBREW_NO_INSTALL_FROM_API: ""
+
 jobs:
   build:
     strategy:
@@ -19,7 +24,7 @@ jobs:
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
           - name: macos:production
-            os: macos-11
+            os: macos-latest
             config: production --auto-download --editline
             # config: production --auto-download --python-bindings --editline
             cache-key: production
@@ -31,7 +36,7 @@ jobs:
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
  
           - name: macos:production-arm64
-            os: macos-12
+            os: macos-latest
             config: production --auto-download --editline --arm64
             # config: production --auto-download --python-bindings --editline --arm64
             cache-key: production-arm64

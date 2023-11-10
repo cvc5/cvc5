@@ -49,11 +49,11 @@ Node EntailmentCheck::evaluateTerm2(TNode n,
   Trace("term-db-eval") << "evaluate term : " << n << std::endl;
   Node ret = n;
   Kind k = n.getKind();
-  if (k == FORALL)
+  if (k == Kind::FORALL)
   {
     // do nothing
   }
-  else if (k == BOUND_VARIABLE)
+  else if (k == Kind::BOUND_VARIABLE)
   {
     std::map<TNode, TNode>::iterator it = subs.find(n);
     if (it != subs.end())
@@ -91,14 +91,14 @@ Node EntailmentCheck::evaluateTerm2(TNode n,
       else if (c == d_true || c == d_false)
       {
         // short-circuiting
-        if ((k == AND && c == d_false) || (k == OR && c == d_true))
+        if ((k == Kind::AND && c == d_false) || (k == Kind::OR && c == d_true))
         {
           ret = c;
           ret_set = true;
           reqHasTerm = false;
           break;
         }
-        else if (k == ITE && i == 0)
+        else if (k == Kind::ITE && i == 0)
         {
           ret = evaluateTerm2(n[c == d_true ? 1 : 2],
                               visited,
@@ -144,7 +144,7 @@ Node EntailmentCheck::evaluateTerm2(TNode n,
         }
         ret = NodeManager::currentNM()->mkNode(n.getKind(), args);
         ret = rewrite(ret);
-        if (ret.getKind() == EQUAL)
+        if (ret.getKind() == Kind::EQUAL)
         {
           if (d_qstate.areDisequal(ret[0], ret[1]))
           {
@@ -153,7 +153,7 @@ Node EntailmentCheck::evaluateTerm2(TNode n,
         }
         if (useEntailmentTests)
         {
-          if (ret.getKind() == EQUAL || ret.getKind() == GEQ)
+          if (ret.getKind() == Kind::EQUAL || ret.getKind() == Kind::GEQ)
           {
             Valuation& val = d_qstate.getValuation();
             for (unsigned j = 0; j < 2; j++)
@@ -176,8 +176,8 @@ Node EntailmentCheck::evaluateTerm2(TNode n,
   if (reqHasTerm && !ret.isNull())
   {
     Kind rk = ret.getKind();
-    if (rk != OR && rk != AND && rk != EQUAL && rk != ITE && rk != NOT
-        && rk != FORALL)
+    if (rk != Kind::OR && rk != Kind::AND && rk != Kind::EQUAL
+        && rk != Kind::ITE && rk != Kind::NOT && rk != Kind::FORALL)
     {
       if (!d_qstate.hasTerm(ret))
       {
@@ -201,7 +201,7 @@ TNode EntailmentCheck::getEntailedTerm2(TNode n,
     Trace("term-db-entail") << "...exists in ee, return rep " << std::endl;
     return n;
   }
-  else if (n.getKind() == BOUND_VARIABLE)
+  else if (n.getKind() == Kind::BOUND_VARIABLE)
   {
     std::map<TNode, TNode>::iterator it = subs.find(n);
     if (it != subs.end())
@@ -217,7 +217,7 @@ TNode EntailmentCheck::getEntailedTerm2(TNode n,
       return getEntailedTerm2(it->second, subs, subsRep);
     }
   }
-  else if (n.getKind() == ITE)
+  else if (n.getKind() == Kind::ITE)
   {
     for (uint32_t i = 0; i < 2; i++)
     {
@@ -298,7 +298,7 @@ bool EntailmentCheck::isEntailed2(TNode n,
                           << std::endl;
   Assert(n.getType().isBoolean());
   Kind k = n.getKind();
-  if (k == EQUAL && !n[0].getType().isBoolean())
+  if (k == Kind::EQUAL && !n[0].getType().isBoolean())
   {
     TNode n1 = n[0].isConst() ? n[0] : getEntailedTerm2(n[0], subs, subsRep);
     if (!n1.isNull())
@@ -315,13 +315,13 @@ bool EntailmentCheck::isEntailed2(TNode n,
       }
     }
   }
-  else if (k == NOT)
+  else if (k == Kind::NOT)
   {
     return isEntailed2(n[0], subs, subsRep, !pol);
   }
-  else if (k == OR || k == AND)
+  else if (k == Kind::OR || k == Kind::AND)
   {
-    bool simPol = (pol && k == OR) || (!pol && k == AND);
+    bool simPol = (pol && k == Kind::OR) || (!pol && k == Kind::AND);
     for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
     {
       if (isEntailed2(n[i], subs, subsRep, pol))
@@ -342,27 +342,27 @@ bool EntailmentCheck::isEntailed2(TNode n,
     return !simPol;
     // Boolean equality here
   }
-  else if (k == EQUAL || k == ITE)
+  else if (k == Kind::EQUAL || k == Kind::ITE)
   {
     Assert(n[0].getType().isBoolean());
     for (size_t i = 0; i < 2; i++)
     {
       if (isEntailed2(n[0], subs, subsRep, i == 0))
       {
-        size_t ch = (k == EQUAL || i == 0) ? 1 : 2;
-        bool reqPol = (k == ITE || i == 0) ? pol : !pol;
+        size_t ch = (k == Kind::EQUAL || i == 0) ? 1 : 2;
+        bool reqPol = (k == Kind::ITE || i == 0) ? pol : !pol;
         return isEntailed2(n[ch], subs, subsRep, reqPol);
       }
     }
   }
-  else if (k == FORALL)
+  else if (k == Kind::FORALL)
   {
     if (!pol)
     {
       return isEntailed2(n[1], subs, subsRep, pol);
     }
   }
-  else if (k == BOUND_VARIABLE || k == APPLY_UF)
+  else if (k == Kind::BOUND_VARIABLE || k == Kind::APPLY_UF)
   {
     // handles APPLY_UF, Boolean variable cases
     TNode n1 = getEntailedTerm2(n, subs, subsRep);

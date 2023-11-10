@@ -63,7 +63,7 @@ class ProofNodeUpdaterCallback
    * in a rewrite response.
    */
   virtual bool update(Node res,
-                      PfRule id,
+                      ProofRule id,
                       const std::vector<Node>& children,
                       const std::vector<Node>& args,
                       CDProof* cdp,
@@ -79,7 +79,7 @@ class ProofNodeUpdaterCallback
 
   /** As above, but at post-visit. */
   virtual bool updatePost(Node res,
-                          PfRule id,
+                          ProofRule id,
                           const std::vector<Node>& children,
                           const std::vector<Node>& args,
                           CDProof* cdp);
@@ -119,11 +119,17 @@ class ProofNodeUpdater : protected EnvObj
   /**
    * Set free assumptions to freeAssumps. This indicates that we expect
    * the proof we are processing to have free assumptions that are in
-   * freeAssumps. This enables checking when this is violated, which is
+   * freeAssumps. This impacts two things:
+   *
+   * (1) If mergeSubproofs is true, then proofs whose free assumptions are a
+   * subset of freeAssumps are considered candidates for merging, which may
+   * lead to better compression.
+   *
+   * (2) If doDebug=true, this enables checking when this is violated, which is
    * expensive in general. It is not recommended that this method is called
-   * by default.
+   * with doDebug=true in production.
    */
-  void setDebugFreeAssumptions(const std::vector<Node>& freeAssumps);
+  void setFreeAssumptions(const std::vector<Node>& freeAssumps, bool doDebug);
 
  private:
   /** The callback */
@@ -168,13 +174,32 @@ class ProofNodeUpdater : protected EnvObj
    * these map result formulas to proof nodes with/without assumptions. If we
    * are updating nodes at post visit time, then we run updateProofNode on it.
    *
+   * @param cur The proof node to finalize
+   * @param fa The current free assumptions in scope
+   * @param resCache The cache of proof nodes with no free assumptions
+   * @param resCacheNcWaiting The cache of proof nodes that have free
+   * assumptions
+   * @param cfaMap Mapping from proof nodes to whether they contain free
+   * assumptions
+   * @param cfaAllowed The free assumptions this proof is globally allowed to
+   * have.
    */
   void runFinalize(std::shared_ptr<ProofNode> cur,
                    const std::vector<Node>& fa,
                    std::map<Node, std::shared_ptr<ProofNode>>& resCache,
                    std::map<Node, std::vector<std::shared_ptr<ProofNode>>>&
                        resCacheNcWaiting,
-                   std::unordered_map<const ProofNode*, bool>& cfaMap);
+                   std::unordered_map<const ProofNode*, bool>& cfaMap,
+                   const std::unordered_set<Node>& cfaAllowed);
+  /**
+   * Check for merging. Returns true if the result of cur is already in the
+   * result cache (resCache). If so, we update the contents of cur to the
+   * contents of the given proof node and update the contents of cfaMap.
+   */
+  bool checkMergeProof(
+      std::shared_ptr<ProofNode>& cur,
+      const std::map<Node, std::shared_ptr<ProofNode>>& resCache,
+      std::unordered_map<const ProofNode*, bool>& cfaMap);
   /** Are we debugging free assumptions? */
   bool d_debugFreeAssumps;
   /** The initial free assumptions */

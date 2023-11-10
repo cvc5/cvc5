@@ -25,10 +25,10 @@ class TestApiWhiteOp : public TestApi
 
 TEST_F(TestApiWhiteOp, opFromKind)
 {
-  Op plus(d_solver.getNodeManager(), ADD);
+  Op plus(d_solver.getNodeManager(), Kind::ADD);
   ASSERT_FALSE(plus.isIndexed());
   ASSERT_EQ(0, plus.getNumIndices());
-  ASSERT_EQ(plus, d_solver.mkOp(ADD));
+  ASSERT_EQ(plus, d_solver.mkOp(Kind::ADD));
 }
 }  // namespace test
 }  // namespace cvc5::internal

@@ -29,6 +29,9 @@ namespace nl {
 /** The possible inference steps for the nonlinear extension */
 enum class InferStep
 {
+  /** Placeholder specifying no inference step */
+  NONE,
+
   /** Break if any lemma is pending */
   BREAK,
   /** Flush waiting lemmas to be pending */
@@ -88,6 +91,9 @@ enum class InferStep
   TRANS_MONOTONIC,
   /** Tangent planes from transcendental solver */
   TRANS_TANGENT_PLANES,
+
+  /** The inference step is unknown */
+  UNKNOWN
 };
 
 /** Streaming operator for InferStep */

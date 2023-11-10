@@ -1,0 +1,7 @@
+(set-logic ALL)
+(set-info :status sat)
+(declare-const x (Bag Bool))
+(declare-const x3 (Bag Bool))
+(assert (>= (bag.card x3) (mod (mod (bag.count false x) (bag.count false x)) (bag.card x3))))
+(assert ((_ divisible 969538557) (bag.count false (bag.union_max x x3))))
+(check-sat)

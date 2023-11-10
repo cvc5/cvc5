@@ -59,7 +59,7 @@ bool NestedQe::hasProcessed(Node q) const
 
 bool NestedQe::getNestedQuantification(Node q, std::unordered_set<Node>& nqs)
 {
-  expr::getKindSubterms(q[1], kind::FORALL, true, nqs);
+  expr::getKindSubterms(q[1], Kind::FORALL, true, nqs);
   return !nqs.empty();
 }
 
@@ -74,12 +74,12 @@ Node NestedQe::doNestedQe(Env& env, Node q, bool keepTopLevel)
   NodeManager* nm = NodeManager::currentNM();
   Node qOrig = q;
   bool inputExists = false;
-  if (q.getKind() == kind::EXISTS)
+  if (q.getKind() == Kind::EXISTS)
   {
-    q = nm->mkNode(kind::FORALL, q[0], q[1].negate());
+    q = nm->mkNode(Kind::FORALL, q[0], q[1].negate());
     inputExists = true;
   }
-  Assert(q.getKind() == kind::FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   std::unordered_set<Node> nqs;
   if (!getNestedQuantification(q, nqs))
   {
@@ -130,15 +130,15 @@ Node NestedQe::doNestedQe(Env& env, Node q, bool keepTopLevel)
   {
     qargs.push_back(q[2]);
   }
-  return nm->mkNode(inputExists ? kind::EXISTS : kind::FORALL, qargs);
+  return nm->mkNode(inputExists ? Kind::EXISTS : Kind::FORALL, qargs);
 }
 
 Node NestedQe::doQe(Env& env, Node q)
 {
-  Assert(q.getKind() == kind::FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   Trace("cegqi-nested-qe") << "  Apply qe to " << q << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  q = nm->mkNode(kind::EXISTS, q[0], q[1].negate());
+  q = nm->mkNode(Kind::EXISTS, q[0], q[1].negate());
   std::unique_ptr<SolverEngine> smt_qe;
   initializeSubsolver(smt_qe, env);
   Node qqe = smt_qe->getQuantifierElimination(q, true);

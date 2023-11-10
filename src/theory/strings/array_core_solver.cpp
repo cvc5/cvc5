@@ -64,7 +64,7 @@ void ArrayCoreSolver::sendInference(const std::vector<Node>& exp,
 void ArrayCoreSolver::checkNth(const std::vector<Node>& nthTerms)
 {
   NodeManager* nm = NodeManager::currentNM();
-  std::vector<Node> extractTerms = d_esolver.getActive(STRING_SUBSTR);
+  std::vector<Node> extractTerms = d_esolver.getActive(Kind::STRING_SUBSTR);
   for (const Node& n : extractTerms)
   {
     if (d_termReg.isHandledUpdateOrSubstr(n))
@@ -74,15 +74,16 @@ void ArrayCoreSolver::checkNth(const std::vector<Node>& nthTerms)
       // THEN (seq.extract A i l) = (seq.unit (seq.nth A i))
       // ELSE (seq.extract A i l) = empty
       std::vector<Node> exp;
-      Node cond1 = nm->mkNode(LEQ, nm->mkConstInt(Rational(0)), n[1]);
-      Node cond2 = nm->mkNode(LT, n[1], nm->mkNode(STRING_LENGTH, n[0]));
-      Node cond = nm->mkNode(AND, cond1, cond2);
+      Node cond1 = nm->mkNode(Kind::LEQ, nm->mkConstInt(Rational(0)), n[1]);
+      Node cond2 =
+          nm->mkNode(Kind::LT, n[1], nm->mkNode(Kind::STRING_LENGTH, n[0]));
+      Node cond = nm->mkNode(Kind::AND, cond1, cond2);
       TypeNode tn = n.getType();
-      Node nth = nm->mkNode(SEQ_NTH, n[0], n[1]);
+      Node nth = nm->mkNode(Kind::SEQ_NTH, n[0], n[1]);
       Node unit = utils::mkUnit(tn, nth);
-      Node body1 = nm->mkNode(EQUAL, n, unit);
-      Node body2 = nm->mkNode(EQUAL, n, Word::mkEmptyWord(n.getType()));
-      Node lem = nm->mkNode(ITE, cond, body1, body2);
+      Node body1 = nm->mkNode(Kind::EQUAL, n, unit);
+      Node body2 = nm->mkNode(Kind::EQUAL, n, Word::mkEmptyWord(n.getType()));
+      Node lem = nm->mkNode(Kind::ITE, cond, body1, body2);
       sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_EXTRACT);
     }
   }
@@ -132,15 +133,15 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
       // x = update(s, n, t)
       // ------------------------------------------------------------
       // nth(x, n) = ite(n in range(0, len(s)), nth(t, 0), nth(s, n))
-      Node left = nm->mkNode(SEQ_NTH, termProxy, n[1]);
-      Node cond =
-          nm->mkNode(AND,
-                     nm->mkNode(GEQ, n[1], nm->mkConstInt(Rational(0))),
-                     nm->mkNode(LT, n[1], nm->mkNode(STRING_LENGTH, n[0])));
-      Node body1 = nm->mkNode(SEQ_NTH, n[2], nm->mkConstInt(Rational(0)));
-      Node body2 = nm->mkNode(SEQ_NTH, n[0], n[1]);
-      Node right = nm->mkNode(ITE, cond, body1, body2);
-      Node lem = nm->mkNode(EQUAL, left, right);
+      Node left = nm->mkNode(Kind::SEQ_NTH, termProxy, n[1]);
+      Node cond = nm->mkNode(
+          Kind::AND,
+          nm->mkNode(Kind::GEQ, n[1], nm->mkConstInt(Rational(0))),
+          nm->mkNode(Kind::LT, n[1], nm->mkNode(Kind::STRING_LENGTH, n[0])));
+      Node body1 = nm->mkNode(Kind::SEQ_NTH, n[2], nm->mkConstInt(Rational(0)));
+      Node body2 = nm->mkNode(Kind::SEQ_NTH, n[0], n[1]);
+      Node right = nm->mkNode(Kind::ITE, cond, body1, body2);
+      Node lem = nm->mkNode(Kind::EQUAL, left, right);
 
       std::vector<Node> exp;
       // We don't have to add (termProxy = n) to the explanation, since this
@@ -156,11 +157,12 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
       // 0 <= n < len(t) and nth(s, n) != nth(update(s, n, t))  and x != s ||
       // x = s
       lem = nm->mkNode(
-          OR,
-          nm->mkNode(AND,
-                     left.eqNode(nm->mkNode(SEQ_NTH, n[0], n[1])).notNode(),
-                     n.eqNode(n[0]).negate(),
-                     cond),
+          Kind::OR,
+          nm->mkNode(
+              Kind::AND,
+              left.eqNode(nm->mkNode(Kind::SEQ_NTH, n[0], n[1])).notNode(),
+              n.eqNode(n[0]).negate(),
+              cond),
           n.eqNode(n[0]));
       sendInference(exp, lem, InferenceId::STRINGS_ARRAY_UPDATE_BOUND, true);
     }
@@ -185,16 +187,18 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
         //   ite(0 <= m < len(s),
         //     ite(n = m, nth(t, 0), nth(s, m)),
         //     nth(update(s, n, t), m))
-        Node nth = nm->mkNode(SEQ_NTH, termProxy, j);
-        Node nthInBounds =
-            nm->mkNode(AND,
-                       nm->mkNode(LEQ, nm->mkConstInt(0), j),
-                       nm->mkNode(LT, j, nm->mkNode(STRING_LENGTH, n[0])));
+        Node nth = nm->mkNode(Kind::SEQ_NTH, termProxy, j);
+        Node nthInBounds = nm->mkNode(
+            Kind::AND,
+            nm->mkNode(Kind::LEQ, nm->mkConstInt(0), j),
+            nm->mkNode(Kind::LT, j, nm->mkNode(Kind::STRING_LENGTH, n[0])));
         Node idxEq = i.eqNode(j);
-        Node updateVal = nm->mkNode(SEQ_NTH, n[2], nm->mkConstInt(0));
-        Node iteNthInBounds = nm->mkNode(
-            ITE, i.eqNode(j), updateVal, nm->mkNode(SEQ_NTH, n[0], j));
-        Node rhs = nm->mkNode(ITE, nthInBounds, iteNthInBounds, nth);
+        Node updateVal = nm->mkNode(Kind::SEQ_NTH, n[2], nm->mkConstInt(0));
+        Node iteNthInBounds = nm->mkNode(Kind::ITE,
+                                         i.eqNode(j),
+                                         updateVal,
+                                         nm->mkNode(Kind::SEQ_NTH, n[0], j));
+        Node rhs = nm->mkNode(Kind::ITE, nthInBounds, iteNthInBounds, nth);
         Node lem = nth.eqNode(rhs);
 
         std::vector<Node> exp;
@@ -249,21 +253,23 @@ void ArrayCoreSolver::check(const std::vector<Node>& nthTerms,
     d_writeModel[r][ri] = n;
     d_indexMap[r].insert(ri);
 
-    if (n[0].getKind() == STRING_REV)
+    if (n[0].getKind() == Kind::STRING_REV)
     {
       Node s = n[0][0];
       Node i = n[1];
-      Node sLen = nm->mkNode(STRING_LENGTH, s);
-      Node iRev = nm->mkNode(
-          SUB, sLen, nm->mkNode(ADD, i, nm->mkConstInt(Rational(1))));
+      Node sLen = nm->mkNode(Kind::STRING_LENGTH, s);
+      Node iRev =
+          nm->mkNode(Kind::SUB,
+                     sLen,
+                     nm->mkNode(Kind::ADD, i, nm->mkConstInt(Rational(1))));
 
       std::vector<Node> nexp;
-      nexp.push_back(nm->mkNode(LEQ, nm->mkConstInt(Rational(0)), i));
-      nexp.push_back(nm->mkNode(LT, i, sLen));
+      nexp.push_back(nm->mkNode(Kind::LEQ, nm->mkConstInt(Rational(0)), i));
+      nexp.push_back(nm->mkNode(Kind::LT, i, sLen));
 
       // 0 <= i ^ i < len(s) => seq.nth(seq.rev(s), i) = seq.nth(s, len(s) - i -
       // 1)
-      Node ret = nm->mkNode(SEQ_NTH, s, iRev);
+      Node ret = nm->mkNode(Kind::SEQ_NTH, s, iRev);
       d_im.sendInference(
           {}, nexp, n.eqNode(ret), InferenceId::STRINGS_ARRAY_NTH_REV);
       d_extt.markInactive(n, ExtReducedId::STRINGS_NTH_REV);

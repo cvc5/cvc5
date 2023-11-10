@@ -311,7 +311,7 @@ int MonomialCheck::compareSign(
         proof = d_data->getProof();
         std::vector<Node> args = exp;
         args.emplace_back(oa);
-        proof->addStep(lemma, PfRule::ARITH_MULT_SIGN, {}, args);
+        proof->addStep(lemma, ProofRule::ARITH_MULT_SIGN, {}, args);
       }
       d_data->d_im.addPendingLemma(lemma, InferenceId::ARITH_NL_SIGN, proof);
     }
@@ -337,8 +337,8 @@ int MonomialCheck::compareSign(
       if (d_data->isProofEnabled())
       {
         proof = d_data->getProof();
-        proof->addStep(conc, PfRule::MACRO_SR_PRED_INTRO, {prem}, {conc});
-        proof->addStep(lemma, PfRule::SCOPE, {conc}, {prem});
+        proof->addStep(conc, ProofRule::MACRO_SR_PRED_INTRO, {prem}, {conc});
+        proof->addStep(lemma, ProofRule::SCOPE, {conc}, {prem});
       }
       d_data->d_im.addPendingLemma(lemma, InferenceId::ARITH_NL_SIGN, proof);
     }

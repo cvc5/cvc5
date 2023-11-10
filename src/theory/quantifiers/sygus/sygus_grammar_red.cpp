@@ -17,7 +17,6 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "expr/sygus_datatype.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
@@ -59,7 +58,8 @@ void SygusRedundantCons::initialize(TermDbSygus* tds, TypeNode tn)
     d_gen_terms[i] = g;
     // is the operator a lambda of the form (lambda x1...xn. f(x1...xn))?
     bool lamInOrder = false;
-    if (sop.getKind() == LAMBDA && sop[0].getNumChildren() == sop[1].getNumChildren())
+    if (sop.getKind() == Kind::LAMBDA
+        && sop[0].getNumChildren() == sop[1].getNumChildren())
     {
       Assert(g.getNumChildren()==sop[0].getNumChildren());
       lamInOrder = true;

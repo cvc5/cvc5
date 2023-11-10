@@ -89,6 +89,7 @@ const char* toString(Resource r)
     case Resource::SatConflictStep: return "SatConflictStep";
     case Resource::SygusCheckStep: return "SygusCheckStep";
     case Resource::TheoryCheckStep: return "TheoryCheckStep";
+    case Resource::FindSynthStep: return "FindSynthStep";
     default: return "?Resource?";
   }
 }

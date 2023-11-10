@@ -19,7 +19,7 @@
 #define CVC5__THEORY__QUANTIFIERS__CEG_DT_INSTANTIATOR_H
 
 #include "expr/node.h"
-#include "theory/quantifiers/cegqi/ceg_instantiator.h"
+#include "theory/quantifiers/cegqi/instantiator.h"
 
 namespace cvc5::internal {
 namespace theory {

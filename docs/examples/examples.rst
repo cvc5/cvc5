@@ -26,5 +26,4 @@ input mechanisms.
     strings
     combination
     sygus-fun
-    sygus-grammar
     sygus-inv

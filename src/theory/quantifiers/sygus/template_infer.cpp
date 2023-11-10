@@ -31,7 +31,7 @@ SygusTemplateInfer::SygusTemplateInfer(Env& env) : EnvObj(env), d_ti(env) {}
 void SygusTemplateInfer::initialize(Node q)
 {
   Assert(d_quant.isNull());
-  Assert(q.getKind() == FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   d_quant = q;
   // We are processing without single invocation techniques, now check if
   // we should fix an invariant template (post-condition strengthening or
@@ -61,7 +61,7 @@ void SygusTemplateInfer::initialize(Node q)
   }
 
   Node qq;
-  if (q[1].getKind() == NOT && q[1][0].getKind() == FORALL)
+  if (q[1].getKind() == Kind::NOT && q[1][0].getKind() == Kind::FORALL)
   {
     qq = q[1][0][1];
   }
@@ -140,7 +140,7 @@ void SygusTemplateInfer::initialize(Node q)
                              << std::endl;
           Trace("cegqi-inv") << "   " << templ << std::endl;
           // this should be unnecessary
-          templ = nm->mkNode(AND, templ, d_templ_arg[prog]);
+          templ = nm->mkNode(Kind::AND, templ, d_templ_arg[prog]);
         }
       }
       else
@@ -155,12 +155,12 @@ void SygusTemplateInfer::initialize(Node q)
   {
     if (tmode == options::SygusInvTemplMode::PRE)
     {
-      templ = nm->mkNode(OR, d_trans_pre[prog], d_templ_arg[prog]);
+      templ = nm->mkNode(Kind::OR, d_trans_pre[prog], d_templ_arg[prog]);
     }
     else
     {
       Assert(tmode == options::SygusInvTemplMode::POST);
-      templ = nm->mkNode(AND, d_trans_post[prog], d_templ_arg[prog]);
+      templ = nm->mkNode(Kind::AND, d_trans_post[prog], d_templ_arg[prog]);
     }
   }
   Trace("cegqi-inv") << "       template (pre-substitution) : " << templ
