@@ -39,7 +39,7 @@
         env->FindClass("io/github/cvc5/CVC5ApiRecoverableException");          \
     env->ThrowNew(exceptionClass, e.what());                                   \
   }                                                                            \
-  catch (const parser::ParserException& e)                                             \
+  catch (const parser::ParserException& e)                                     \
   {                                                                            \
     jclass exceptionClass =                                                    \
         env->FindClass("io/github/cvc5/CVC5ParserException");                  \
