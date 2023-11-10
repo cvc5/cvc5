@@ -105,7 +105,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     // If in conflict, just return false
     Trace("non-clausal-simplify")
         << "conflict in non-clausal propagation" << std::endl;
-    assertionsToPreprocess->clear();
     assertionsToPreprocess->pushBackTrusted(conf);
     return PreprocessingPassResult::CONFLICT;
   }
@@ -171,7 +170,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         // If the learned literal simplifies to false, we're in conflict
         Trace("non-clausal-simplify")
             << "conflict with " << learned_literals[i].getNode() << std::endl;
-        assertionsToPreprocess->clear();
         Node n = nm->mkConst<bool>(false);
         assertionsToPreprocess->push_back(n, false, d_llpg.get());
         return PreprocessingPassResult::CONFLICT;
@@ -204,7 +202,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         // If in conflict, we return false
         Trace("non-clausal-simplify")
             << "conflict while solving " << learnedLiteral << std::endl;
-        assertionsToPreprocess->clear();
         Node n = nm->mkConst<bool>(false);
         assertionsToPreprocess->push_back(n);
         return PreprocessingPassResult::CONFLICT;
@@ -331,6 +328,10 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     s.insert(assertion);
     Trace("non-clausal-simplify")
         << "non-clausal preprocessed: " << assertion << std::endl;
+    if (assertionsToPreprocess->isInConflict())
+    {
+      return PreprocessingPassResult::CONFLICT;
+    }
   }
 
   // If necessary, add as assertions if needed (when incremental). This is
