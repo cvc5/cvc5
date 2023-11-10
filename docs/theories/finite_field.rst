@@ -8,48 +8,40 @@ Theory Reference: Finite Fields
 Semantics
 ^^^^^^^^^
 
-.. code-block::
+First, for integer :math:`x` and positive integer :math:`y`, define :math:`(x \bmod y)` as the unique integer :math:`r` such that :math:`y = qx + r` (where :math:`q` is an integer) and :math:`0 \le r < q`.
+NB: This is the remainder when so-called "floor division" is performed.
 
-  * First, for integer x and positive integer y, define x % y as the unique
-    integer r such that y = q*x + r (where q is an integer) and 0 <= r < q.
-    NB: This is the remainder when so-called "floor division" is performed.
+We interpret field sorts as prime fields and field terms as integers. In the following, let:
 
-  * (_ FiniteField p)
+* ``N`` be an integer numeral and :math:`N` be its integer
+* ``p`` be a prime numeral and :math:`p` be its prime
+* ``F`` be an SMT field sort (of order :math:`p`)
+* ``x`` and ``y`` be SMT field terms (of the same sort ``F``) with interpretations :math:`x` and :math:`y`
 
-    ⟦(_ FiniteField p)⟧ = the finite field or order p: the integers modulo p.
-
-  * (as ffN F)
-
-    ⟦(as ffN F)⟧ = the integer (N % p), where p is the order of F
-
-  * (ff.add x y)
-
-    ⟦(ff.add x y)⟧ = the integer ((⟦x⟧ + ⟦y⟧) % p), where x, y are in the same
-                     field of order p
-
-    NB: the ff.add operator is n-ary.
-
-  * (ff.mul x y)
-
-    ⟦(ff.mul x y)⟧ = the integer ((⟦x⟧ * ⟦y⟧) % p), where x, y are in the same
-                     field of order p
-
-    NB: the ff.mul operator is n-ary.
-
-  * (= x y)
-
-    ⟦(= x y)⟧ = the Boolean ⟦x⟧ = ⟦y⟧ are equal, when x, y are in the same field.
++-----------------------+--------------------------------------------+----------------------------------------------+
+| SMT construct         | Semantics                                  | Notes                                        |
++=======================+============================================+==============================================+
+| ``(_ FiniteField p)`` | the field of order :math:`p`               | represented as the integers modulo :math:`p` |
++-----------------------+--------------------------------------------+----------------------------------------------+
+| ``(as ffN F)``        | the integer :math:`(N \bmod p)`            |                                              |
++-----------------------+--------------------------------------------+----------------------------------------------+
+| ``(ff.add x y)``      | the integer :math:`((x + y) \bmod p)`      | NB: ``ff.add`` is an n-ary operator          |
++-----------------------+--------------------------------------------+----------------------------------------------+
+| ``(ff.mul x y)``      | the integer :math:`((x \times y) \bmod p)` | NB: ``ff.mul`` is an n-ary operator          |
++-----------------------+--------------------------------------------+----------------------------------------------+
+| ``(= x y)``           | the Boolean :math:`x = y`                  |                                              |
++-----------------------+--------------------------------------------+----------------------------------------------+
 
 
 Syntax
 ^^^^^^
 
 For the C++ API examples in the table below, we assume that we have created
-a ``cvc5::api::Solver solver`` object.
+a :cpp:class:`Solver <cvc5::Solver>` object ``solver``.
 
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
 |                      | SMT-LIB language                             | C++ API                                                            |
-+----------------------+----------------------------------------------+--------------------------------------------------------------------+
++======================+==============================================+====================================================================+
 | Logic String         | use `FF` for finite fields                   | use `FF` for finite fields                                         |
 |                      |                                              |                                                                    |
 |                      | ``(set-logic QF_FF)``                        | ``solver.setLogic("QF_FF");``                                      |
