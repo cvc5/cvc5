@@ -2,7 +2,7 @@ Theory Reference: Finite Fields
 ===============================
 
 .. note::
-  current, cvc5 only supports finite fields of prime order p.
+  Currently, cvc5 only supports finite fields of prime order p.
    Such a field is isomorphic to the integers modulo p.
 
 Semantics
