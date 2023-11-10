@@ -141,8 +141,6 @@ std::string Command::getCommandName() const
   CVC5_API_TRY_CATCH_END;
 }
 
-Cmd* Command::toCmd() { return d_cmd.get(); }
-
 std::ostream& operator<<(std::ostream& out, const Command& c)
 {
   out << c.toString();

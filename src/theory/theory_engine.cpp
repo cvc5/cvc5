@@ -1454,7 +1454,7 @@ void TheoryEngine::lemma(TrustNode tlemma,
   // If specified, we must add this lemma to the set of those that need to be
   // justified, where note we pass all auxiliary lemmas in skAsserts as well,
   // since these by extension must be justified as well.
-  if (d_relManager != nullptr)
+  if (!d_modules.empty())
   {
     std::vector<Node> skAsserts;
     std::vector<Node> sks;
