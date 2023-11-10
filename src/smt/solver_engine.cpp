@@ -2092,6 +2092,18 @@ void SolverEngine::printStatisticsDiff() const
 
 void SolverEngine::setOption(const std::string& key, const std::string& value)
 {
+  if (options().base.safeOptions && !d_isInternalSubsolver)
+  {
+    // verify its a regular option
+    options::OptionInfo oinfo = options::getInfo(getOptions(), key);
+    if (oinfo.category==options::OptionInfo::Category::EXPERT)
+    {
+      // option exception
+      std::stringstream ss;
+      ss << "expert option " << key << " cannot be set when safeOptions is true";
+      throw OptionException(ss.str());
+    }
+  }
   Trace("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
   options::set(getOptions(), key, value);
 }
