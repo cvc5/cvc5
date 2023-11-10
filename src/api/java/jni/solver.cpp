@@ -2127,6 +2127,36 @@ Java_io_github_cvc5_Solver_getTimeoutCore(JNIEnv* env, jobject, jlong pointer)
 
 /*
  * Class:     io_github_cvc5_Solver
+ * Method:    getTimeoutCoreAssuming
+ * Signature: (J[J)J
+ */
+JNIEXPORT jobject JNICALL Java_io_github_cvc5_Solver_getTimeoutCoreAssuming(
+    JNIEnv* env, jobject, jlong pointer, jlongArray assumptions)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  std::vector<Term> as = getObjectsFromPointers<Term>(env, assumptions);
+  auto [result, terms] = solver->getTimeoutCoreAssuming(as);
+  Result* resultPointer = new Result(result);
+  jlongArray a = getPointersFromObjects<Term>(env, terms);
+
+  // Long r = new Long(resultPointer);
+  jclass longClass = env->FindClass("Ljava/lang/Long;");
+  jmethodID longConstructor = env->GetMethodID(longClass, "<init>", "(J)V");
+  jobject r = env->NewObject(longClass, longConstructor, resultPointer);
+
+  // Pair pair = new Pair<Long, long[]>(r, a);
+  jclass pairClass = env->FindClass("Lio/github/cvc5/Pair;");
+  jmethodID pairConstructor = env->GetMethodID(
+      pairClass, "<init>", "(Ljava/lang/Object;Ljava/lang/Object;)V");
+  jobject pair = env->NewObject(pairClass, pairConstructor, r, a);
+
+  return pair;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
  * Method:    getProof
  * Signature: (J)[J
  */

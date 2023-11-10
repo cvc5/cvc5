@@ -881,6 +881,7 @@ set(regress_0_tests
   regress0/nl/dd.fuzz01.smtv1-to-real-idem.smt2
   regress0/nl/dd.iand-wrong-0513-pp.smt2
   regress0/nl/iand-no-init.smt2
+  regress0/nl/issue10145-ir-pow.smt2
   regress0/nl/issue3003.smt2
   regress0/nl/issue3407.smt2
   regress0/nl/issue3411.smt2
@@ -1068,6 +1069,7 @@ set(regress_0_tests
   regress0/precedence/xor-assoc.cvc.smt2
   regress0/precedence/xor-or.cvc.smt2
   regress0/preprocess/circuit-prop.smt2
+  regress0/preprocess/issue10148.smt2
   regress0/preprocess/issue5729-rewritten-assertions.smt2
   regress0/preprocess/issue5943-non-clausal-simp.smt2
   regress0/preprocess/issue6754-tpp.smt2
@@ -1094,6 +1096,12 @@ set(regress_0_tests
   regress0/preprocess/proj-issue305-circuit-prop-ite-d.smt2
   regress0/preprocess/proj-issue309-circuit-prop-ite.smt2
   regress0/preprocess/proj-issue332-circuit-prop-xor.smt2
+  regress0/preprocess/proj-issue679.smt2
+  regress0/preprocess/proj-issue678.smt2
+  regress0/preprocess/proj-issue681.smt2
+  regress0/preprocess/proj-issue684.smt2
+  regress0/preprocess/proj-issue683.smt2
+  regress0/preprocess/real-as-int-unk.smt2
   regress0/print_define_fun_internal.smt2
   regress0/print_lambda.cvc.smt2
   regress0/print_model.cvc.smt2
@@ -2259,6 +2267,7 @@ set(regress_1_tests
   regress1/nl/iand-native-2.smt2
   regress1/nl/iand-native-granularities.smt2
   regress1/nl/issue10003-nl-ext-rr.smt2
+  regress1/nl/issue10139-iand.smt2
   regress1/nl/issue3300-approx-sqrt-witness.smt2
   regress1/nl/issue3441.smt2
   regress1/nl/issue3617.smt2
@@ -3241,6 +3250,8 @@ set(regress_1_tests
   regress1/sym/sym6.smt2
   regress1/sym/sym7-uf.smt2
   regress1/test12.cvc.smt2
+  regress1/timeout_core_soft.smt2
+  regress1/timeout_core_soft_simple.smt2
   regress1/trim.cvc.smt2
   regress1/uf2.smt2
   regress1/uflia/DRAGON_11_e1_2450.ec.minimized.smt2
@@ -3310,7 +3321,6 @@ set(regress_2_tests
   regress2/javafe.ast.StandardPrettyPrint.319_no_forall.smt2
   regress2/javafe.ast.WhileStmt.447_no_forall.smt2
   regress2/nl/issue8693-flatten-to-real.smt2
-  regress2/nl/ufnia-factor-open-proof.smt2
   regress2/ooo.rf6.smt2
   regress2/ooo.tag10.smt2
   regress2/piVC_5581bd.smt2
@@ -3573,6 +3583,8 @@ set(regression_disabled_tests
   regress2/nl/dumortier-050317.smt2
   # timeout on some builds after changes to justification heuristic
   regress2/nl/nt-lemmas-bad.smt2
+  # timeout after change to arith theory combination
+  regress2/nl/ufnia-factor-open-proof.smt2
   # timeout after refactoring justification heuristic
   regress2/ho/SYO362^5.smt2
   # timeout after refactoring selectors

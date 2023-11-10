@@ -330,7 +330,7 @@ restart:
       {
         break;
       }
-      Cmd* cmd = cmdp.toCmd();
+      Cmd* cmd = cmdp.d_cmd.get();
       // execute the command immediately
       d_cexec->doCommand(&cmdp);
       if (cmd->interrupted())
