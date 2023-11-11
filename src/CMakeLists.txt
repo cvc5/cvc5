@@ -40,12 +40,6 @@ libcvc5_add_sources(
   lib/replacements.h
   lib/strtok_r.c
   lib/strtok_r.h
-  omt/bitvector_optimizer.cpp
-  omt/bitvector_optimizer.h
-  omt/integer_optimizer.cpp
-  omt/integer_optimizer.h
-  omt/omt_optimizer.cpp
-  omt/omt_optimizer.h
   options/language.cpp
   options/language.h
   options/managed_streams.cpp
@@ -317,8 +311,6 @@ libcvc5_add_sources(
   smt/model_core_builder.h
   smt/model_blocker.cpp
   smt/model_blocker.h
-  smt/optimization_solver.cpp
-  smt/optimization_solver.h
   smt/quant_elim_solver.cpp
   smt/quant_elim_solver.h
   smt/preprocessor.cpp
