@@ -29,7 +29,6 @@
 #include "expr/kind.h"
 #include "parser/commands.h"
 
-
 using namespace std;
 
 namespace cvc5 {

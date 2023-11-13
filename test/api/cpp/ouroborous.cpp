@@ -44,10 +44,6 @@ int main()
   {
     return runTest();
   }
-  catch (ParserException& e)
-  {
-    std::cerr << e.getMessage() << std::endl;
-  }
   catch (cvc5::CVC5ApiException& e)
   {
     std::cerr << e.getMessage() << std::endl;

@@ -58,30 +58,6 @@ class InputParserTest extends ParserTest
         () -> p.setFileInput(InputLanguage.SMT_LIB_2_6, "nonexistent.smt2"));
   }
 
-  // @Test
-  // void setStreamInput()
-  // {
-  //   InputParser p = new InputParser(d_solver);
-  //   std::stringstream ss;
-  //   ss << "(set-logic QF_LIA)" << std::endl;
-  //   ss << "(declare-fun a () Bool)" << std::endl;
-  //   ss << "(declare-fun b () Int)" << std::endl;
-  //   p.setStreamInput(InputLanguage.SMT_LIB_2_6, ss, "input_parser_black");
-  //   assertEquals(p.done(), false);
-  //   Command cmd;
-  //   std::stringstream out;
-  //   while (true)
-  //   {
-  //     cmd = p.nextCommand();
-  //     if (cmd.isNull())
-  //     {
-  //       break;
-  //     }
-  //     assertDoesNotThrow(() ->cmd.invoke(d_solver, d_symman));
-  //   }
-  //   assertEquals(p.done(), true);
-  // }
-
   @Test
   void setAndAppendIncrementalStringInput()
   {
