@@ -132,7 +132,8 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
       // proof. Moreover, parents will replace the reference to this proof.
       // Thus, replacing the contents of this proof is not (typically)
       // necessary, but is done anyways in case there are any other references
-      // to this proof that are not handled by this loop.
+      // to this proof that are not handled by this loop, that is, proof
+      // nodes having this as a child that are not subproofs of pf.
       if (checkMergeProof(cur, resCache, cfaMap))
       {
         visited[cur] = true;
