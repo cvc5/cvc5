@@ -34,54 +34,85 @@ PatternTermSelector::PatternTermSelector(const Options& opts,
                                          options::TriggerSelMode tstrt,
                                          const std::vector<Node>& exc,
                                          bool filterInst)
-    : d_opts(opts),
-      d_quant(q),
+    : d_quant(q),
       d_tstrt(tstrt),
       d_excluded(exc),
-      d_filterInst(filterInst)
+      d_filterInst(filterInst),
+      d_purifyTriggers(opts.quantifiers.purifyTriggers),
+      d_relTriggers(opts.quantifiers.relationalTriggers)
+{
+}
+
+PatternTermSelector::PatternTermSelector(Node q,
+                                         options::TriggerSelMode tstrt,
+                                         const std::vector<Node>& exc,
+                                         bool filterInst,
+                                         bool purifyTriggers,
+                                         bool relationalTriggers)
+    : d_quant(q),
+      d_tstrt(tstrt),
+      d_excluded(exc),
+      d_filterInst(filterInst),
+      d_purifyTriggers(purifyTriggers),
+      d_relTriggers(relationalTriggers)
 {
 }
 
 PatternTermSelector::~PatternTermSelector() {}
 
-bool PatternTermSelector::isUsable(const Options& opts, Node n, Node q)
+bool PatternTermSelector::isUsable(Node n, Node q) const
 {
-  if (quantifiers::TermUtil::getInstConstAttr(n) != q)
+  std::unordered_set<TNode> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
   {
-    return true;
-  }
-  if (TriggerTermInfo::isAtomicTrigger(n))
-  {
-    for (const Node& nc : n)
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) != visited.end())
     {
-      if (!isUsable(opts, nc, q))
+      continue;
+    }
+    visited.insert(cur);
+    if (quantifiers::TermUtil::getInstConstAttr(cur) != q)
+    {
+      continue;
+    }
+    if (TriggerTermInfo::isAtomicTrigger(cur))
+    {
+      visit.insert(visit.end(), cur.begin(), cur.end());
+      continue;
+    }
+    else if (cur.getKind() == Kind::INST_CONSTANT)
+    {
+      continue;
+    }
+    if (d_purifyTriggers)
+    {
+      Node x = getInversionVariable(cur);
+      if (!x.isNull())
       {
-        return false;
+        continue;
       }
     }
-    return true;
-  }
-  else if (n.getKind() == Kind::INST_CONSTANT)
-  {
-    return true;
-  }
-  if (opts.quantifiers.purifyTriggers)
-  {
-    Node x = getInversionVariable(n);
-    if (!x.isNull())
-    {
-      return true;
-    }
-  }
-  return false;
+    return false;
+  } while (!visit.empty());
+  return true;
 }
 
-Node PatternTermSelector::getIsUsableEq(const Options& opts, Node q, Node n)
+Node PatternTermSelector::getIsUsableEq(Node q, Node n) const
 {
   Assert(TriggerTermInfo::isRelationalTrigger(n));
+  // if not relational triggers, we should only consider this if we are of the
+  // form f(x) = c.
+  if (!d_relTriggers && n.getKind() != Kind::EQUAL)
+  {
+    return Node::null();
+  }
   for (size_t i = 0; i < 2; i++)
   {
-    if (isUsableEqTerms(opts, q, n[i], n[1 - i]))
+    if (isUsableEqTerms(q, n[i], n[1 - i]))
     {
       if (i == 1 && n.getKind() == Kind::EQUAL
           && !quantifiers::TermUtil::hasInstConstAttr(n[0]))
@@ -97,14 +128,11 @@ Node PatternTermSelector::getIsUsableEq(const Options& opts, Node q, Node n)
   return Node::null();
 }
 
-bool PatternTermSelector::isUsableEqTerms(const Options& opts,
-                                          Node q,
-                                          Node n1,
-                                          Node n2)
+bool PatternTermSelector::isUsableEqTerms(Node q, Node n1, Node n2) const
 {
   if (n1.getKind() == Kind::INST_CONSTANT)
   {
-    if (opts.quantifiers.relationalTriggers)
+    if (d_relTriggers)
     {
       Node q1 = quantifiers::TermUtil::getInstConstAttr(n1);
       if (q1 != q)
@@ -127,28 +155,26 @@ bool PatternTermSelector::isUsableEqTerms(const Options& opts,
       // when n1 and n2 are swapped
     }
   }
-  else if (isUsableAtomicTrigger(opts, n1, q))
+  else if (isUsableAtomicTrigger(n1, q))
   {
-    if (opts.quantifiers.relationalTriggers
-        && n2.getKind() == Kind::INST_CONSTANT
+    // only consider this form if we are doing relational triggers
+    if (d_relTriggers && n2.getKind() == Kind::INST_CONSTANT
         && quantifiers::TermUtil::getInstConstAttr(n2) == q
         && !expr::hasSubterm(n1, n2))
     {
-      // f(x) = y
+      // f(x) ~ y
       return true;
     }
     else if (!quantifiers::TermUtil::hasInstConstAttr(n2))
     {
-      // f(x) = c
+      // f(x) ~ c
       return true;
     }
   }
   return false;
 }
 
-Node PatternTermSelector::getIsUsableTrigger(const Options& opts,
-                                             Node n,
-                                             Node q)
+Node PatternTermSelector::getIsUsableTrigger(Node n, Node q) const
 {
   bool pol = true;
   Trace("trigger-debug") << "Is " << n << " a usable trigger?" << std::endl;
@@ -164,7 +190,7 @@ Node PatternTermSelector::getIsUsableTrigger(const Options& opts,
   }
   else if (TriggerTermInfo::isRelationalTrigger(n))
   {
-    Node rtr = getIsUsableEq(opts, q, n);
+    Node rtr = getIsUsableEq(q, n);
     if (rtr.isNull() && n[0].getType().isRealOrInt())
     {
       // try to solve relation
@@ -178,9 +204,9 @@ Node PatternTermSelector::getIsUsableTrigger(const Options& opts,
           {
             if (it->first.getKind() == Kind::INST_CONSTANT)
             {
-              trySolve = opts.quantifiers.relationalTriggers;
+              trySolve = d_relTriggers;
             }
-            else if (isUsableTrigger(opts, it->first, q))
+            else if (isUsableTrigger(it->first, q))
             {
               trySolve = true;
             }
@@ -192,7 +218,7 @@ Node PatternTermSelector::getIsUsableTrigger(const Options& opts,
             Node veq;
             if (ArithMSum::isolate(it->first, m, veq, n.getKind()) != 0)
             {
-              rtr = getIsUsableEq(opts, q, veq);
+              rtr = getIsUsableEq(q, veq);
             }
             // either all solves will succeed or all solves will fail
             break;
@@ -215,25 +241,23 @@ Node PatternTermSelector::getIsUsableTrigger(const Options& opts,
   Trace("trigger-debug") << n << " usable : "
                          << (quantifiers::TermUtil::getInstConstAttr(n) == q)
                          << " " << TriggerTermInfo::isAtomicTrigger(n) << " "
-                         << isUsable(opts, n, q) << std::endl;
-  if (isUsableAtomicTrigger(opts, n, q))
+                         << isUsable(n, q) << std::endl;
+  if (isUsableAtomicTrigger(n, q))
   {
     return pol ? n : nm->mkNode(Kind::EQUAL, n, nm->mkConst(true)).notNode();
   }
   return Node::null();
 }
 
-bool PatternTermSelector::isUsableAtomicTrigger(const Options& opts,
-                                                Node n,
-                                                Node q)
+bool PatternTermSelector::isUsableAtomicTrigger(Node n, Node q) const
 {
   return quantifiers::TermUtil::getInstConstAttr(n) == q
-         && TriggerTermInfo::isAtomicTrigger(n) && isUsable(opts, n, q);
+         && TriggerTermInfo::isAtomicTrigger(n) && isUsable(n, q);
 }
 
-bool PatternTermSelector::isUsableTrigger(const Options& opts, Node n, Node q)
+bool PatternTermSelector::isUsableTrigger(Node n, Node q) const
 {
-  Node nu = getIsUsableTrigger(opts, n, q);
+  Node nu = getIsUsableTrigger(n, q);
   return !nu.isNull();
 }
 
@@ -284,7 +308,7 @@ void PatternTermSelector::collectTermsInternal(
            && std::find(d_excluded.begin(), d_excluded.end(), n)
                   == d_excluded.end())
   {
-    nu = getIsUsableTrigger(d_opts, n, d_quant);
+    nu = getIsUsableTrigger(n, d_quant);
     if (!nu.isNull() && nu != n)
     {
       collectTermsInternal(
@@ -314,7 +338,7 @@ void PatternTermSelector::collectTermsInternal(
       }
     }
     Assert(reqEq.isNull() || !quantifiers::TermUtil::hasInstConstAttr(reqEq));
-    Assert(isUsableTrigger(d_opts, nu, d_quant));
+    Assert(isUsableTrigger(nu, d_quant));
     Trace("auto-gen-trigger-debug2")
         << "...add usable trigger : " << nu << std::endl;
     tinfo[nu].init(d_quant, nu, hasEPol ? (epol ? 1 : -1) : 0, reqEq);
@@ -481,7 +505,7 @@ void PatternTermSelector::collectInternal(
 int PatternTermSelector::isInstanceOf(Node n1,
                                       Node n2,
                                       const std::vector<Node>& fv1,
-                                      const std::vector<Node>& fv2)
+                                      const std::vector<Node>& fv2) const
 {
   Assert(n1 != n2);
   int status = 0;
@@ -569,7 +593,7 @@ int PatternTermSelector::isInstanceOf(Node n1,
   return status;
 }
 
-void PatternTermSelector::filterInstances(std::vector<Node>& nodes)
+void PatternTermSelector::filterInstances(std::vector<Node>& nodes) const
 {
   std::map<unsigned, std::vector<Node> > fvs;
   for (size_t i = 0, size = nodes.size(); i < size; i++)

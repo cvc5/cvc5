@@ -46,6 +46,10 @@ enum class InferenceId
   EQ_CONSTANT_MERGE,
   // a split from theory combination
   COMBINATION_SPLIT,
+  // a conflict due to rewriting an asserted literal
+  CONFLICT_REWRITE_LIT,
+  // an explained theory propagation
+  EXPLAINED_PROPAGATION,
   // ---------------------------------- ext theory
   // a simplification from the extended theory utility
   EXTT_SIMPLIFY,
@@ -955,6 +959,9 @@ enum class InferenceId
   UF_ARITH_BV_CONV_REDUCTION,
   //-------------------------------------- end uf theory
 
+  //-------------------------------------- lemma from modules
+  // From the partition generator
+  PARTITION_GENERATOR_PARTITION,
   //-------------------------------------- unknown
   UNKNOWN
 };

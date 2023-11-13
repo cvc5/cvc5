@@ -155,6 +155,10 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
       Trace("learned-rewrite-assert")
           << ".......................: " << e << std::endl;
       assertionsToPreprocess->replace(i, e);
+      if (assertionsToPreprocess->isInConflict())
+      {
+        return PreprocessingPassResult::CONFLICT;
+      }
     }
   }
   // Add the conjunction of learned literals back to assertions. Notice that

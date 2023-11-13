@@ -1291,7 +1291,7 @@ void TheoryArrays::postCheck(Effort level)
           // LSH FIXME: which kind of arrays lemma is this
           Trace("arrays-lem")
               << "Arrays::addExtLemma (weak-eq) " << lemma << "\n";
-          d_out->lemma(lemma, LemmaProperty::SEND_ATOMS);
+          d_out->lemma(lemma, InferenceId::NONE, LemmaProperty::SEND_ATOMS);
           d_readTableContext->pop();
           Trace("arrays") << spaces(context()->getLevel())
                           << "Arrays::check(): done" << endl;
