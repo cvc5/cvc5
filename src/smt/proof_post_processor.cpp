@@ -782,7 +782,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
             << eq << std::endl
             << eqq << std::endl
             << "from " << children << " applied to " << t << std::endl;
-        cdp->addTrustedStep(eqq, TrustId::SUBS_RCONS, children, {});
+        cdp->addTrustedStep(eqq, TrustId::SUBS_NO_ELABORATE, children, {});
       }
     }
     else
@@ -826,7 +826,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
         else
         {
           // this should never be applied
-          cdp->addTrustedStep(eq, TrustId::REWRITE_RCONS, {}, {});
+          cdp->addTrustedStep(eq, TrustId::REWRITE_NO_ELABORATE, {}, {});
         }
       }
       else

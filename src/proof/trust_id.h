@@ -45,12 +45,12 @@ enum class TrustId : uint32_t
   THEORY_EXPAND_DEF,
   /** An axiom for an introduced witness term without a corresponding proof */
   WITNESS_AXIOM,
-  /** A rewrite whose proof could not be reconstructed */
-  REWRITE_RCONS,
+  /** A rewrite whose proof could not be elaborated */
+  REWRITE_NO_ELABORATE,
   /** A flattening rewrite in an equality engine proof */
   FLATTENING_REWRITE,
-  /** A proof of an applied substitution that could not be reconstructed */
-  SUBS_RCONS,
+  /** A proof of an applied substitution that could not be no elaborate */
+  SUBS_NO_ELABORATE,
   /** A proof of an applied substitution that could not be reconstructed during
      solving */
   SUBS_MAP,
