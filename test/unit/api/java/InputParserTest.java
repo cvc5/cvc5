@@ -157,6 +157,8 @@ class InputParserTest extends ParserTest
     assertEquals(s2.getLogic(), "QF_LIA");
     // we cannot set the logic since it has already been set
     assertThrows(CVC5ParserException.class, () -> parseLogicCommand(p3, "QF_LRA"));
+    assertEquals(p3.done(), true);
+    
 
     // using a solver with the same logic is allowed
     Solver s3 = new Solver();

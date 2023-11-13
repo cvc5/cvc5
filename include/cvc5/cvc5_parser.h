@@ -268,6 +268,10 @@ class CVC5_EXPORT InputParser
   std::shared_ptr<Parser> d_parser;
 };
 
+/**
+ * Base class for all Parser exceptions.
+ * If thrown, API objects can still be used
+ */
 class CVC5_EXPORT ParserException : public CVC5ApiException
 {
  public:
@@ -325,6 +329,10 @@ class CVC5_EXPORT ParserException : public CVC5ApiException
   unsigned long d_column;
 }; /* class ParserException */
 
+/**
+ * An end of file exception.
+ * If thrown, API objects can still be used
+ */
 class ParserEndOfFileException : public ParserException
 {
  public:
@@ -346,6 +354,10 @@ class ParserEndOfFileException : public ParserException
 
 }; /* class ParserEndOfFileException */
 
+/**
+ * An input stream exception.
+ * If thrown, API objects can still be used
+ */
 class InputStreamException : public CVC5ApiException
 {
  public:
