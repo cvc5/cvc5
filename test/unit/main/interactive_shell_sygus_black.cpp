@@ -61,7 +61,7 @@ class TestMainBlackInteractiveShellSygus : public TestInternal
    * it's fewer than minIterations and more than maxIterations.  Note that an
    * empty string followed by EOF may be returned as an empty command, and
    * not NULL (subsequent calls to readAndExecCommands() should return NULL).
-   * E.g., "CHECKSAT;\n" may return two commands: the CHECKSAT, followed by an
+   * E.g., "synth-fun;\n" may return two commands: the synth-fun, followed by an
    * empty command, followed by NULL.
    */
   void countCommands(InteractiveShell& shell,
@@ -87,7 +87,7 @@ class TestMainBlackInteractiveShellSygus : public TestInternal
   std::unique_ptr<cvc5::Solver> d_solver;
 };
 
-TEST_F(TestMainBlackInteractiveShellSygus, assert_true)
+TEST_F(TestMainBlackInteractiveShellSygus, test_sygus)
 {
   *d_sin << "(synth-fun f (Int) Int)\n" << std::flush;
   InteractiveShell shell(d_cexec.get(), *d_sin, *d_sout);
