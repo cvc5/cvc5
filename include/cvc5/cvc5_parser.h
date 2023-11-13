@@ -276,52 +276,28 @@ class CVC5_EXPORT ParserException : public CVC5ApiException
 {
  public:
   // Constructors
-  ParserException() : CVC5ApiException(""), d_filename(), d_line(0), d_column(0)
-  {
-  }
+  ParserException();
 
-  ParserException(const std::string& msg)
-      : CVC5ApiException(msg), d_filename(), d_line(0), d_column(0)
-  {
-  }
+  ParserException(const std::string& msg);
 
-  ParserException(const char* msg)
-      : CVC5ApiException(msg), d_filename(), d_line(0), d_column(0)
-  {
-  }
+  ParserException(const char* msg);
 
   ParserException(const std::string& msg,
                   const std::string& filename,
                   unsigned long line,
-                  unsigned long column)
-      : CVC5ApiException(msg),
-        d_filename(filename),
-        d_line(line),
-        d_column(column)
-  {
-  }
+                  unsigned long column);
 
   // Destructor
-  ~ParserException() override {}
+  ~ParserException() override;
 
-  void toStream(std::ostream& os) const override
-  {
-    if (d_line > 0)
-    {
-      os << "Parse Error: " << d_filename << ":" << d_line << "." << d_column
-         << ": " << getMessage();
-    }
-    else
-    {
-      os << "Parse Error: " << getMessage();
-    }
-  }
+  void toStream(std::ostream& os) const override;
 
-  std::string getFilename() const { return d_filename; }
+  std::string getFilename() const;
 
-  int getLine() const { return d_line; }
-
-  int getColumn() const { return d_column; }
+  /** get the line number of the parsing error */
+  unsigned long getLine() const;
+  /** get the column number of the parsing error */
+  unsigned long getColumn() const;
 
  protected:
   std::string d_filename;
@@ -338,19 +314,16 @@ class ParserEndOfFileException : public ParserException
  public:
   // Constructors same as ParserException's
 
-  ParserEndOfFileException() : ParserException() {}
+  ParserEndOfFileException();
 
-  ParserEndOfFileException(const std::string& msg) : ParserException(msg) {}
+  ParserEndOfFileException(const std::string& msg);
 
-  ParserEndOfFileException(const char* msg) : ParserException(msg) {}
+  ParserEndOfFileException(const char* msg);
 
   ParserEndOfFileException(const std::string& msg,
                            const std::string& filename,
                            unsigned long line,
-                           unsigned long column)
-      : ParserException(msg, filename, line, column)
-  {
-  }
+                           unsigned long column);
 
 }; /* class ParserEndOfFileException */
 
@@ -361,7 +334,8 @@ class ParserEndOfFileException : public ParserException
 class InputStreamException : public CVC5ApiException
 {
  public:
-  InputStreamException(const std::string& msg) : CVC5ApiException(msg) {}
+  /** input stream exception constructor */
+  InputStreamException(const std::string& msg);
 };
 
 }  // namespace parser
