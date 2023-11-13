@@ -321,9 +321,9 @@ enum ENUM(ProofRule) : uint32_t
    *   \inferrule{F_1 \dots F_n \mid tid, F, ...}{F}
    *
    * where :math:`tid` is an identifier and :math:`F` is a formula. This rule
-   * is used when a formal justification of an inference step cannot provided.
-   * The formulas :math:`F_1 \dots F_n` may refer to a set of formulas that
-   * entail :math:`F`.
+   * is used when a formal justification of an inference step cannot be provided.
+   * The formulas :math:`F_1 \dots F_n` refer to a set of formulas that
+   * entail :math:`F`, which may or may not be provided.
    * \endverbatim
    */
   EVALUE(TRUST),
