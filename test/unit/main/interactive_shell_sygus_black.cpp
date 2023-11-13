@@ -61,8 +61,8 @@ class TestMainBlackInteractiveShellSygus : public TestInternal
    * it's fewer than minIterations and more than maxIterations.  Note that an
    * empty string followed by EOF may be returned as an empty command, and
    * not NULL (subsequent calls to readAndExecCommands() should return NULL).
-   * E.g., "synth-fun;\n" may return two commands: the synth-fun, followed by an
-   * empty command, followed by NULL.
+   * E.g., "(synth-fun f (Int) Int)\n" may return two commands: the synth-fun,
+   * followed by an empty command, followed by NULL.
    */
   void countCommands(InteractiveShell& shell,
                      uint32_t minIterations,
