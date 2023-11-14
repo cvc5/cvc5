@@ -2577,6 +2577,49 @@ cdef class Solver:
         r.cr = res.first
         return (r, core)
 
+    def getTimeoutCoreAssuming(self, *assumptions):
+        """
+            Get a timeout core, which computes a subset of the given assumptions
+            that cause a timeout when added to the current assertions. Note it
+            does not require being proceeded by a call to checkSat.
+
+            .. code-block:: smtlib
+
+                (get-timeout-core)
+
+            .. warning:: This method is experimental and may change in future
+                         versions.
+
+            :param assumptions: The formulas to assume.
+            :return: The result of the timeout core computation. This is a pair
+             containing a result and a list of formulas. If the result is unknown
+             and the reason is timeout, then the list of formulas correspond to a
+             subset of assumptions that cause a timeout when added to the current
+             assertions in the specified time
+            :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+             If the result is unsat, then the list of formulas plus the current
+             assertions correspond to an unsat core for the current assertions.
+             Otherwise, the result is sat, indicating that the given assumptions plus
+             the current assertions are satisfiable, and the list of formulas is empty.
+
+            This method may make multiple checks for satisfiability internally,
+            each limited by the timeout value given by
+            :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+        """
+        cdef vector[c_Term] v
+        for a in assumptions:
+            v.push_back((<Term?> a).cterm)
+        cdef pair[c_Result, vector[c_Term]] res
+        res = self.csolver.getTimeoutCoreAssuming(v)
+        core = []
+        for ac in res.second:
+            term = Term(self)
+            term.cterm = ac
+            core.append(term)
+        cdef Result r = Result()
+        r.cr = res.first
+        return (r, core)
+
     def getValue(self, term_or_list):
         """
             Get the value of the given term or list of terms in the current
