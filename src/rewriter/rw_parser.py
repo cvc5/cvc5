@@ -53,8 +53,8 @@ class SymbolTable:
         if name not in self.symbols and name not in self.defs:
             raise RuntimeError(f'Symbol {name} not declared')
             die(f'Symbol {name} not declared')
-        # Should not matter the order of defs and symbols since collisions are
-        # detected.
+        # Symbol collisions are checked, so symbol name shadowing is not
+        # possible here.
         if name in self.defs:
             return self.defs[name]
         else:
@@ -183,7 +183,9 @@ class Parser:
             lambda s, l, t: Sort(BaseSort.AbsSet, []))
         abs_abs_sort = pp.Keyword('?').setParseAction(
             lambda s, l, t: Sort(BaseSort.AbsAbs, []))
-        return bv_sort | int_sort | real_sort | bool_sort | string_sort | reglan_sort | abs_array_sort | abs_bv_sort | abs_seq_sort | abs_set_sort |abs_abs_sort
+        return bv_sort | int_sort | real_sort | bool_sort | string_sort | \
+            reglan_sort | abs_array_sort | abs_bv_sort | abs_seq_sort | \
+            abs_set_sort | abs_abs_sort
 
     def var_decl_action(self, name, sort, attrs):
         if attrs:

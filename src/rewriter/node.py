@@ -137,7 +137,6 @@ class Op(Enum):
     # Strings
     ###########################################################################
 
-    #CONST_STRING = (None, None)  # FIXME: This is completely unused. Delete?
     STRING_CONCAT = ('str.++', 'STRING_CONCAT')
     STRING_IN_REGEXP = ('str.in_re', 'STRING_IN_REGEXP')
     STRING_LENGTH = ('str.len', 'STRING_LENGTH')

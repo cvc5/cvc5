@@ -88,7 +88,10 @@ def gen_mk_node(defns, expr):
         return expr.name
     elif isinstance(expr, App):
         args = ",".join(gen_mk_node(defns, child) for child in expr.children)
-        if (expr.op == Op.EXTRACT or expr.op == Op.REPEAT or expr.op == Op.ZERO_EXTEND or expr.op == Op.SIGN_EXTEND or expr.op == Op.ROTATE_LEFT or expr.op == Op.ROTATE_RIGHT or expr.op == Op.INT_TO_BV):
+        if (expr.op == Op.EXTRACT or expr.op == Op.REPEAT or \
+            expr.op == Op.ZERO_EXTEND or expr.op == Op.SIGN_EXTEND or \
+            expr.op == Op.ROTATE_LEFT or expr.op == Op.ROTATE_RIGHT or \
+            expr.op == Op.INT_TO_BV):
           args = f'nm->mkConst(GenericOp(Kind::{gen_kind(expr.op)})),' + args
           return f'nm->mkNode(Kind::APPLY_INDEXED_SYMBOLIC, {{ {args} }})'
         else:
@@ -99,8 +102,11 @@ def gen_mk_node(defns, expr):
 
 def gen_rewrite_db_rule(defns, rule):
     fvs_list = ', '.join(bvar.name for bvar in rule.bvars)
-    fixed_point_arg = gen_mk_node(defns, rule.rhs_context) if rule.rhs_context else 'Node::null()'
-    return f'db.addRule(DslProofRule::{rule.get_enum()}, {{ {fvs_list} }}, {gen_mk_node(defns, rule.lhs)}, {gen_mk_node(defns, rule.rhs)}, {gen_mk_node(defns, rule.cond)}, {fixed_point_arg});'
+    fixed_point_arg = gen_mk_node(defns, rule.rhs_context) \
+        if rule.rhs_context else 'Node::null()'
+    return f'db.addRule(DslProofRule::{rule.get_enum()}, {{ {fvs_list} }}, ' \
+           f'{gen_mk_node(defns, rule.lhs)}, {gen_mk_node(defns, rule.rhs)}, '\
+           f'{gen_mk_node(defns, rule.cond)}, {fixed_point_arg});'
 
 
 class Rewrites:
