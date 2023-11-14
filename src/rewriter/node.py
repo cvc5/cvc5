@@ -126,7 +126,9 @@ class Op(Enum):
 
     EQ = ('=', 'EQUAL')
     ITE = ('ite', 'ITE')
-    LAMBDA = (None, 'LAMBDA')  # Special parser backdoor
+    # Lambda is not an operator. It exists here as a backdoor to simplify parser
+    # logic.
+    LAMBDA = (None, 'LAMBDA')
     BOUND_VARS = (None, 'BOUND_VAR_LIST')
     DISTINCT = ('distinct', 'DISTINCT')
 
