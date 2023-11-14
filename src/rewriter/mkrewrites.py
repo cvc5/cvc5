@@ -52,7 +52,8 @@ def gen_mk_skolem(name, sort):
     elif sort.base == BaseSort.AbsAbs:
         sort_code = 'nm->mkAbstractType(Kind::ABSTRACT_TYPE)'
     elif sort.base == BaseSort.BitVec:
-        assert len(sort.children) == 1, "BitVec parser generated an incorrect number of children"
+        assert len(sort.children) == 1, \
+            "BitVec parser generated an incorrect number of children"
         sort_code = f'nm->mkBitVectorType({sort.children[0]})'
     else:
         die(f'Cannot generate code for {sort}')
@@ -170,8 +171,8 @@ def validate_rule(rule):
             for child in curr.children:
                 if isinstance(child, Var) and child.sort.is_list:
                     if child in var_to_op and curr.op != var_to_op[child]:
-                        die(f'List variable {child.name} cannot be used in {curr.op} and {var_to_op[child]} simultaneously'
-                            )
+                        die(f'List variable {child.name} cannot be used in '
+                            f'{curr.op} and {var_to_op[child]} simultaneously')
                     var_to_op[child] = curr.op
         elif isinstance(curr, str):
             print(f"Unparsed string detected {curr}")
@@ -180,7 +181,8 @@ def validate_rule(rule):
     # Perform type checking
     lhsHasConst = type_check(rule.lhs)
     if os.getenv('CVC5_RARE_CHECK_CONST', None) is not None and lhsHasConst:
-        print(f"Warning: Rule {rule.name} has constants in its match expression", file=sys.stderr)
+        print(f"Warning: Rule {rule.name} has constants in its match expression",
+              file=sys.stderr)
     type_check(rule.rhs)
     type_check(rule.cond)
 
@@ -218,7 +220,8 @@ def preprocess_rule(rule, decls):
 
         to_visit.extend(curr.children)
 
-    rule.rhs_context = App(Op.LAMBDA, [App(Op.BOUND_VARS, [bvar]), result[rule.rhs_context]])
+    rule.rhs_context = App(Op.LAMBDA, [App(Op.BOUND_VARS, [bvar]),
+                                       result[rule.rhs_context]])
     type_check(rule.rhs_context)
 
 
