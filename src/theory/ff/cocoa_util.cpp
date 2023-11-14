@@ -13,6 +13,8 @@
  * CoCoA utilities
  */
 
+#ifdef CVC5_USE_COCOA
+
 #include "theory/ff/cocoa_util.h"
 
 // external includes
@@ -89,3 +91,5 @@ CoCoA::BigInt intToCocoa(const Integer& i)
 }  // namespace ff
 }  // namespace theory
 }  // namespace cvc5::internal
+
+#endif /* CVC5_USE_COCOA */
