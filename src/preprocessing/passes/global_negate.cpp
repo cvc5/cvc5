@@ -115,6 +115,10 @@ PreprocessingPassResult GlobalNegate::applyInternal(
     if (i == 0)
     {
       assertionsToPreprocess->replace(i, simplifiedNode);
+      if (assertionsToPreprocess->isInConflict())
+      {
+        return PreprocessingPassResult::CONFLICT;
+      }
     }
     else
     {
