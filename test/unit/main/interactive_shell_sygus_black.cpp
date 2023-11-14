@@ -85,7 +85,7 @@ class TestMainBlackInteractiveShellSygus : public TestInternal
 
 TEST_F(TestMainBlackInteractiveShellSygus, test_sygus)
 {
-  *d_sin << "(synth-fun f (Int) Int)\n" << std::flush;
+  *d_sin << "(synth-fun f (Int) Int)\n\n" << std::flush;
   InteractiveShell shell(d_cexec.get(), *d_sin, *d_sout);
   countCommands(shell, 1, 1);
 }
