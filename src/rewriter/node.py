@@ -246,7 +246,7 @@ class Sort(Node):
         ).__eq__(other)
 
     def __hash__(self):
-        return hash((self.base, self.is_list, tupe(self.children)))
+        return hash((self.base, self.is_list, tuple(self.children)))
 
     def __repr__(self):
         rep = ''
