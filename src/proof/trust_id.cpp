@@ -35,9 +35,9 @@ const char* toString(TrustId id)
     case TrustId::THEORY_PREPROCESS_LEMMA: return "THEORY_PREPROCESS_LEMMA";
     case TrustId::THEORY_EXPAND_DEF: return "THEORY_EXPAND_DEF";
     case TrustId::WITNESS_AXIOM: return "WITNESS_AXIOM";
-    case TrustId::REWRITE_RCONS: return "REWRITE_RCONS";
+    case TrustId::REWRITE_NO_ELABORATE: return "REWRITE_NO_ELABORATE";
     case TrustId::FLATTENING_REWRITE: return "FLATTENING_REWRITE";
-    case TrustId::SUBS_RCONS: return "SUBS_RCONS";
+    case TrustId::SUBS_NO_ELABORATE: return "SUBS_NO_ELABORATE";
     case TrustId::SUBS_MAP: return "SUBS_MAP";
     case TrustId::SUBS_EQ: return "SUBS_EQ";
     case TrustId::QUANTIFIERS_PREPROCESS: return "QUANTIFIERS_PREPROCESS";
