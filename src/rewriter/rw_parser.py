@@ -57,8 +57,7 @@ class SymbolTable:
         # possible here.
         if name in self.defs:
             return self.defs[name]
-        else:
-            return self.symbols[name]
+        return self.symbols[name]
 
     def pop(self):
         # TODO: Actual push/pop
