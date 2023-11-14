@@ -52,7 +52,7 @@ def gen_mk_skolem(name, sort):
     elif sort.base == BaseSort.AbsAbs:
         sort_code = 'nm->mkAbstractType(Kind::ABSTRACT_TYPE)'
     elif sort.base == BaseSort.BitVec:
-        # This will result in a compilation error for variable BitVec sizes.
+        assert len(sort.children) == 1, "BitVec parser generated an incorrect number of children"
         sort_code = f'nm->mkBitVectorType({sort.children[0]})'
     else:
         die(f'Cannot generate code for {sort}')

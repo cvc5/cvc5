@@ -235,6 +235,10 @@ class Sort(Node):
         self.is_list = is_list
         self.is_const = is_const
 
+        if base == BaseSort.BitVec and not self.children[0].isnumeric():
+            die("Non-numeric bitvector size is not supported: {self.children[0]}")
+
+
     def __eq__(self, other):
         return self.base == other.base and self.is_list == other.is_list and super(
         ).__eq__(other)
