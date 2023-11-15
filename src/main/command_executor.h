@@ -84,7 +84,14 @@ class CommandExecutor
   /** Store the current options as the original options */
   void storeOptionsAsOriginal();
 
-  /** Set option internal */
+  /**
+   * Set option internal. This method should be used to set options on the
+   * underlying solver that do not originate from the user. We do this to
+   * set expert or undocumented options that should not throw an exception
+   * e.g. when using --safe-options.
+   * @param key The option to set
+   * @param value The value to set
+   */
   void setOptionInternal(const std::string& key, const std::string& value);
 
   /**
