@@ -11,7 +11,7 @@ name   = "Expression"
 
 [[option]]
   name       = "wellFormedChecking"
-  category   = "expert"
+  category   = "common"
   long       = "wf-checking"
   type       = "bool"
   default    = "true"
