@@ -89,14 +89,11 @@ def gen_mk_node(defns, expr):
         return expr.name
     elif isinstance(expr, App):
         args = ",".join(gen_mk_node(defns, child) for child in expr.children)
-        if (expr.op == Op.EXTRACT or expr.op == Op.REPEAT or \
-            expr.op == Op.ZERO_EXTEND or expr.op == Op.SIGN_EXTEND or \
-            expr.op == Op.ROTATE_LEFT or expr.op == Op.ROTATE_RIGHT or \
-            expr.op == Op.INT_TO_BV):
+        if expr.op in {Op.EXTRACT, Op.REPEAT, Op.ZERO_EXTEND,  Op.SIGN_EXTEND,
+                       Op.ROTATE_LEFT, Op.ROTATE_RIGHT, Op.INT_TO_BV}:
           args = f'nm->mkConst(GenericOp(Kind::{gen_kind(expr.op)})),' + args
           return f'nm->mkNode(Kind::APPLY_INDEXED_SYMBOLIC, {{ {args} }})'
-        else:
-          return f'nm->mkNode(Kind::{gen_kind(expr.op)}, {{ {args} }})'
+        return f'nm->mkNode(Kind::{gen_kind(expr.op)}, {{ {args} }})'
     else:
         die(f'Cannot generate code for {expr}')
 

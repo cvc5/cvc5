@@ -55,7 +55,7 @@ replaced by its expression. `def` can be viewed as a special case of `let` which
 only exists in the outermost layer.
 
 All used variables in match and target must show up in the parameters list and
-`def` list, Variables in the parameter list must be covered by the variables in
+`def` list, variables in the parameter list must be covered by the variables in
 match. Any unmatched variable will lead to an error.
 
 ``` lisp

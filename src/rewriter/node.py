@@ -19,9 +19,13 @@ from enum import Enum, auto
 class Op(Enum):
 
     def __new__(cls, symbol, kind):
+        """
+        symbol: The name of the operator in RARE
+        kind: The name of the operator in CVC5
+        """
         entry = object.__new__(cls)
-        entry._value_ = kind  # Kind is unique, symbol is not (nulls)
-        entry.symbol = symbol  # set the value, and the extra attribute
+        entry._value_ = kind
+        entry.symbol = symbol
         entry.kind = kind
         return entry
 
@@ -238,7 +242,7 @@ class Sort(Node):
         self.is_const = is_const
 
         if base == BaseSort.BitVec and not self.children[0].isnumeric():
-            die("Non-numeric bitvector size is not supported: {self.children[0]}")
+            die("Non-numeric bit-vector size is not supported: {self.children[0]}")
 
 
     def __eq__(self, other):

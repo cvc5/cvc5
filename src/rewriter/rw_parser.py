@@ -43,7 +43,6 @@ class SymbolTable:
     def add_def(self, name, expr):
         if name in self.consts or name in self.symbols or name in self.defs:
             die(f'Definition {name} has already been declared')
-
         self.defs[name] = expr
 
     def get_symbol(self, name):
@@ -51,7 +50,6 @@ class SymbolTable:
             return self.consts[name]
 
         if name not in self.symbols and name not in self.defs:
-            raise RuntimeError(f'Symbol {name} not declared')
             die(f'Symbol {name} not declared')
         # Symbol collisions are checked, so symbol name shadowing is not
         # possible here.
@@ -205,7 +203,6 @@ class Parser:
         d = pp.Suppress((pp.Suppress('(') + self.symbol() + self.expr()
                          + pp.Suppress(')'))
                 .setParseAction(lambda s, l, t: self.def_decl_action(t[0], t[1])))
-        # The pp.Keyword is suppressed since otherwise it will go into the mkrewrite mechanism
         return pp.Optional(pp.Suppress('(') + pp.Suppress(pp.Keyword('def')) +
                            pp.ZeroOrMore(d) + pp.Suppress(')'))
 
