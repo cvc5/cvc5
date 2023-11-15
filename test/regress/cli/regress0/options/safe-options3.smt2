@@ -1,5 +1,5 @@
-; COMMAND-LINE: --safe-options
+; COMMAND-LINE: --safe-options --full-saturate-quant
 ; EXPECT: sat
-; DISABLE-TESTER: models
+; DISABLE-TESTER: model
 (set-logic ALL)
 (check-sat)
