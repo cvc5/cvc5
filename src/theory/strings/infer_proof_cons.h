@@ -45,8 +45,8 @@ namespace strings {
  * called when we need to construct a proof node from an InferInfo.
  *
  * This class uses lazy proof reconstruction. Namely, the getProofFor method
- * returns applications of the rule STRING_INFERENCE, which store the arguments
- * to the proof conversion routine "convert" below.
+ * returns applications of the rule MACRO_STRING_INFERENCE, which store the
+ * arguments to the proof conversion routine "convert" below.
  */
 class InferProofCons : protected EnvObj, public ProofGenerator
 {
@@ -83,8 +83,8 @@ class InferProofCons : protected EnvObj, public ProofGenerator
    * It should be the case that a call was made to notifyFact(ii) where
    * ii.d_conc is fact in this SAT context.
    *
-   * This returns the appropriate application of STRING_INFERENCE so that it
-   * can be reconstructed if necessary during proof post-processing.
+   * This returns the appropriate application of MACRO_STRING_INFERENCE so that
+   * it can be reconstructed if necessary during proof post-processing.
    */
   std::shared_ptr<ProofNode> getProofFor(Node fact) override;
   /** Identify this generator (for debugging, etc..) */
@@ -99,8 +99,8 @@ class InferProofCons : protected EnvObj, public ProofGenerator
                                    bool isRev,
                                    const std::vector<Node>& exp);
   /**
-   * Pack arguments of a STRING_INFERENCE rule application in args. This proof
-   * rule stores the arguments to the convert method of this class below.
+   * Pack arguments of a MACRO_STRING_INFERENCE rule application in args. This
+   * proof rule stores the arguments to the convert method of this class below.
    */
   static void packArgs(Node conc,
                        InferenceId infer,

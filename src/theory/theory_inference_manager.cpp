@@ -18,6 +18,7 @@
 #include "options/proof_options.h"
 #include "proof/annotation_proof_generator.h"
 #include "proof/eager_proof_generator.h"
+#include "proof/trust_id.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/inference_id_proof_annotator.h"
 #include "theory/output_channel.h"
@@ -592,10 +593,11 @@ TrustNode TheoryInferenceManager::annotateId(const TrustNode& trn,
   // ensure we have a proof generator, make trusted theory lemma if not
   if (trn.getGenerator() == nullptr)
   {
+    Node tid = mkTrustId(TrustId::THEORY_LEMMA);
     Node tidn =
         builtin::BuiltinProofRuleChecker::mkTheoryIdNode(d_theory.getId());
     trna = d_defaultPg->mkTrustNode(
-        trn.getNode(), ProofRule::THEORY_LEMMA, {}, {lemma, tidn}, isConflict);
+        trn.getNode(), ProofRule::TRUST, {}, {tid, lemma, tidn}, isConflict);
   }
   d_iipa->setAnnotation(lemma, id);
   return d_apg->transform(trna, d_iipa.get());

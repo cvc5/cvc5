@@ -378,7 +378,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
           ProofGenerator* expg = sm->getProofGenerator(existsAssertion);
           d_lp->addLazyStep(existsAssertion,
                             expg,
-                            ProofRule::WITNESS_AXIOM,
+                            TrustId::WITNESS_AXIOM,
                             true,
                             "RemoveTermFormulas::run:skolem_pf");
           d_lp->addStep(
