@@ -186,7 +186,9 @@ class CVC5_EXPORT SolverEngine
    * whether we enable checks e.g. when --safe-options is enabled.
    * @throw OptionException, ModalException
    */
-  void setOption(const std::string& key, const std::string& value, bool fromUser = false);
+  void setOption(const std::string& key,
+                 const std::string& value,
+                 bool fromUser = false);
 
   /** Set is internal subsolver.
    *

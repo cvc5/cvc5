@@ -158,7 +158,8 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
 
   if (solver->getOption("output-language") == "LANG_AUTO")
   {
-    pExecutor->setOptionInternal("output-language", solver->getOption("input-language"));
+    pExecutor->setOptionInternal("output-language",
+                                 solver->getOption("input-language"));
   }
   pExecutor->storeOptionsAsOriginal();
 
@@ -185,7 +186,8 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
       // set incremental if we are in interactive mode
       if (!solver->getOptionInfo("incremental").setByUser)
       {
-        pExecutor->setOptionInternal("incremental", isInteractive ? "true" : "false");
+        pExecutor->setOptionInternal("incremental",
+                                     isInteractive ? "true" : "false");
       }
       InteractiveShell shell(
           pExecutor.get(), dopts.in(), dopts.out(), isInteractive);

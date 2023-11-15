@@ -71,7 +71,8 @@ void CommandExecutor::storeOptionsAsOriginal()
   d_parseOnly = d_solver->getOptionInfo("parse-only").boolValue();
 }
 
-void CommandExecutor::setOptionInternal(const std::string& key, const std::string& value)
+void CommandExecutor::setOptionInternal(const std::string& key,
+                                        const std::string& value)
 {
   // set option, marked not from user.
   d_solver->d_slv->setOption(key, value, false);
