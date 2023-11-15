@@ -441,7 +441,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {nm->mkBoundVar("evaluate", nm->sExprType())},
                            *cdp);
     }
-    case ProofRule::THEORY_REWRITE:
+    case ProofRule::TRUST_THEORY_REWRITE:
     {
       return addAletheStep(AletheRule::ALL_SIMPLIFY,
                            res,
@@ -450,43 +450,38 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
-    case ProofRule::PREPROCESS:
-    case ProofRule::THEORY_PREPROCESS:
+    case ProofRule::TRUST:
     {
-      return addAletheStep(AletheRule::ALL_SIMPLIFY,
-                           res,
-                           nm->mkNode(Kind::SEXPR, d_cl, res),
-                           children,
-                           {},
-                           *cdp);
-    }
-    case ProofRule::THEORY_LEMMA:
-    {
-      // if we are in the arithmetic case, we rather add a LIA_GENERIC step
-      if (res.getKind() == Kind::NOT && res[0].getKind() == Kind::AND)
+
+      TrustId tid;
+      if (getTrustId(args[0], tid) && tid==TrustId::THEORY_LEMMA)
       {
-        Trace("alethe-proof") << "... test each arg if ineq\n";
-        bool allIneqs = true;
-        for (const Node& arg : res[0])
+        // if we are in the arithmetic case, we rather add a LIA_GENERIC step
+        if (res.getKind() == Kind::NOT && res[0].getKind() == Kind::AND)
         {
-          Node toTest = arg.getKind() == Kind::NOT ? arg[0] : arg;
-          Kind k = toTest.getKind();
-          if (k != Kind::LT && k != Kind::LEQ && k != Kind::GT && k != Kind::GEQ
-              && k != Kind::EQUAL)
+          Trace("alethe-proof") << "... test each arg if ineq\n";
+          bool allIneqs = true;
+          for (const Node& arg : res[0])
           {
-            Trace("alethe-proof") << "... arg " << arg << " not ineq\n";
-            allIneqs = false;
-            break;
+            Node toTest = arg.getKind() == Kind::NOT ? arg[0] : arg;
+            Kind k = toTest.getKind();
+            if (k != Kind::LT && k != Kind::LEQ && k != Kind::GT && k != Kind::GEQ
+                && k != Kind::EQUAL)
+            {
+              Trace("alethe-proof") << "... arg " << arg << " not ineq\n";
+              allIneqs = false;
+              break;
+            }
           }
-        }
-        if (allIneqs)
-        {
-          return addAletheStep(AletheRule::LIA_GENERIC,
-                               res,
-                               nm->mkNode(Kind::SEXPR, d_cl, res),
-                               children,
-                               {},
-                               *cdp);
+          if (allIneqs)
+          {
+            return addAletheStep(AletheRule::LIA_GENERIC,
+                                res,
+                                nm->mkNode(Kind::SEXPR, d_cl, res),
+                                children,
+                                {},
+                                *cdp);
+          }
         }
       }
       return addAletheStep(AletheRule::HOLE,

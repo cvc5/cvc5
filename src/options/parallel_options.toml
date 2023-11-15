@@ -10,12 +10,51 @@ name   = "Parallel"
   help       = "make n partitions. n <2 disables computing partitions entirely"
 
 [[option]]
+  name       = "partitionTimeLimit"
+  category   = "expert"
+  long       = "partition-tlimit=N"
+  type       = "uint64_t"
+  default    = "60"
+  help       = "time limit for partitioning in seconds"
+
+[[option]]
+  name       = "partitionStartTime"
+  category   = "expert"
+  long       = "partition-start-time=N"
+  type       = "uint64_t"
+  default    = "30"
+  help       = "time to start creating partitions in seconds"
+
+[[option]]
+  name       = "partitionTimeInterval"
+  category   = "expert"
+  long       = "partition-time-interval=N"
+  type       = "double"
+  default    = "1.0"
+  help       = "time to wait between scatter partitions"
+
+[[option]]
   name       = "checksBeforePartitioning"
   category   = "expert"
   long       = "checks-before-partition=N"
   type       = "uint64_t"
   default    = "1"
   help       = "number of standard or full effort checks until partitioning"
+
+[[option]]
+  name       = "partitionWhen"
+  category   = "expert"
+  long       = "partition-when=MODE"
+  type       = "PartitionWhenMode"
+  default    = "TLIMIT"
+  help       = "choose when to partition"
+  help_mode  = "PartitionWhen modes."
+[[option.mode.TLIMIT]]
+  name = "tlimit"
+  help = "Partition when the time limit is exceeded."
+[[option.mode.CLIMIT]]
+  name = "climit"
+  help = "Partition when number of checks is exceeded."
 
 [[option]]
   name       = "checksBetweenPartitions"
@@ -45,12 +84,21 @@ name   = "Parallel"
 [[option.mode.DECISION_SCATTER]]
   name = "decision-scatter"
   help = "For 4 partitions, creates partitions C1, !C1 & C2, !C1 & !C2 & C3, !C1 & !C2 & !C3, from decisions" 
-[[option.mode.DECISION_TRAIL]]
-  name = "decision-trail"
+[[option.mode.HEAP_SCATTER]]
+  name = "heap-scatter"
+  help = "For 4 partitions, creates partitions C1, !C1 & C2, !C1 & !C2 & C3, !C1 & !C2 & !C3, from heap"
+[[option.mode.LEMMA_SCATTER]]
+  name = "lemma-scatter"
+  help = "For 4 partitions, creates partitions C1, !C1 & C2, !C1 & !C2 & C3, !C1 & !C2 & !C3, from lemmas"
+[[option.mode.DECISION_CUBE]]
+  name = "decision-cube"
   help = "Creates mutually exclusive cubes from the decisions in the SAT solver."
-[[option.mode.HEAP_TRAIL]]
-  name = "heap-trail"
+[[option.mode.HEAP_CUBE]]
+  name = "heap-cube"
   help = "Creates mutually exclusive cubes from the order heap in the SAT solver."
+[[option.mode.LEMMA_CUBE]]
+  name = "lemma-cube"
+  help = "Creates mutually exclusive cubes from the lemmas sent to the SAT solver."
 
 [[option]]
   name       = "partitionCheck"
@@ -86,3 +134,10 @@ name   = "Parallel"
   default    = "false"
   help       = "emit learned literals with the cubes"
 
+[[option]]
+  name       = "randomPartitioning"
+  category   = "expert"
+  long       = "random-partitioning"
+  type       = "bool"
+  default    = "false"
+  help       = "create random partitions"

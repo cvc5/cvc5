@@ -44,7 +44,7 @@ class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
   TrustSubstitutionMap(Env& env,
                        context::Context* c,
                        std::string name = "TrustSubstitutionMap",
-                       ProofRule trustId = ProofRule::PREPROCESS_LEMMA,
+                       TrustId trustId = TrustId::PREPROCESS_LEMMA,
                        MethodId ids = MethodId::SB_DEFAULT);
   /** Gets a reference to the underlying substitution map */
   SubstitutionMap& get();
@@ -126,7 +126,7 @@ class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
    * The placeholder trusted ProofRule identifier for calls to addSubstitution
    * that are not given proof generators.
    */
-  ProofRule d_trustId;
+  TrustId d_trustId;
   /** The method id for which form of substitution to apply */
   MethodId d_ids;
   /**

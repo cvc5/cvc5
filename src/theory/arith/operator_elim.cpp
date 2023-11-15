@@ -398,6 +398,8 @@ Node OperatorElim::eliminateOperators(Node node,
         {
           lem = nm->mkNode(Kind::IMPLIES, cond, lem);
         }
+        Trace("arith-op-elim")
+            << "Elimination lemma " << lem << " for " << node << std::endl;
       }
       Assert(!lem.isNull());
       lems.push_back(mkSkolemLemma(lem, var));
@@ -491,7 +493,8 @@ SkolemLemma OperatorElim::mkSkolemLemma(Node lem, Node k)
   TrustNode tlem;
   if (d_env.isTheoryProofProducing())
   {
-    tlem = mkTrustNode(lem, ProofRule::THEORY_PREPROCESS_LEMMA, {}, {lem});
+    Node tid = mkTrustId(TrustId::THEORY_PREPROCESS_LEMMA);
+    tlem = mkTrustNode(lem, ProofRule::TRUST, {}, {tid, lem});
   }
   else
   {

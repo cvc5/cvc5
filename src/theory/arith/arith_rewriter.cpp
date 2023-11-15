@@ -342,7 +342,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
               {
                 ret = rewriter::ensureReal(ret);
               }
-              return RewriteResponse(REWRITE_AGAIN, ret);
+              return RewriteResponse(REWRITE_AGAIN_FULL, ret);
             }
           }
         }

@@ -94,8 +94,6 @@ SymManager* SymbolManager::toSymManager() { return d_sm.get(); }
 
 Command::Command() {}
 
-Command::Command(const Command& cmd) { d_cmd = cmd.d_cmd; }
-
 Command::Command(std::shared_ptr<Cmd> cmd) : d_cmd(cmd) {}
 
 bool Command::isNull() const
@@ -142,8 +140,6 @@ std::string Command::getCommandName() const
   ////////
   CVC5_API_TRY_CATCH_END;
 }
-
-Cmd* Command::toCmd() { return d_cmd.get(); }
 
 std::ostream& operator<<(std::ostream& out, const Command& c)
 {

@@ -99,7 +99,6 @@ class CVC5_EXPORT Command
 
  public:
   Command();
-  Command(const Command& cmd);
 
   /**
    * Invoke the command on the solver and symbol manager sm, prints the result
@@ -137,8 +136,6 @@ class CVC5_EXPORT Command
    * @return The Command.
    */
   Command(std::shared_ptr<Cmd> cmd);
-  /** Return the internal representation */
-  Cmd* toCmd();
   /** The implementation of the symbol manager */
   std::shared_ptr<Cmd> d_cmd;
 }; /* class Command */

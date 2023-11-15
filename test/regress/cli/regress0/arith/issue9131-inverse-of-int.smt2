@@ -1,4 +1,4 @@
-; COMMAND-LINE: -q
+; COMMAND-LINE: -q --nl-ext-split-zero
 
 ; This is a minimized version of the problem in the original issue. It
 ; triggered the same type checking exception before the fix (without triggering

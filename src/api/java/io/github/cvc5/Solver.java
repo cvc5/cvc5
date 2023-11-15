@@ -2106,6 +2106,44 @@ public class Solver extends AbstractPointer
   private native Pair<Long, long[]> getTimeoutCore(long pointer);
 
   /**
+   * Get a timeout core, which computes a subset of the given assumptions that
+   * cause a timeout when added to the current assertions. Note it does not
+   * require being proceeded by a call to checkSat.
+   *
+   * SMT-LIB:
+   * {@code
+   * (get-timeout-core)
+   * }
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @param assumptions The formulas to assume.
+   * @return The result of the timeout core computation. This is a pair
+   * containing a result and a list of formulas. If the result is unknown
+   * and the reason is timeout, then the list of formulas correspond to a
+   * subset of assumptions that cause a timeout when added to the current
+   * assertions in the specified time {@code timeout-core-timeout}.
+   * If the result is unsat, then the list of formulas plus the current
+   * assertions correspond to an unsat core for the current assertions.
+   * Otherwise, the result is sat, indicating that the given assumptions plus
+   * the current assertions are satisfiable, and the list of formulas is empty.
+   *
+   * This method may make multiple checks for satisfiability internally, each
+   * limited by the timeout value given by {@code timeout-core-timeout}.
+   */
+  public Pair<Result, Term[]> getTimeoutCoreAssuming(Term[] assumptions)
+  {
+    long[] pointers = Utils.getPointers(assumptions);
+    Pair<Long, long[]> pair = getTimeoutCoreAssuming(pointer, pointers);
+    Result result = new Result(pair.first);
+    Term[] terms = Utils.getTerms(pair.second);
+    Pair<Result, Term[]> ret = new Pair<>(result, terms);
+    return ret;
+  }
+
+  private native Pair<Long, long[]> getTimeoutCoreAssuming(long pointer, long[] assumptionPointers);
+
+  /**
    * Get refutation proof for the most recent call to checkSat.
    *
    * SMT-LIB:
