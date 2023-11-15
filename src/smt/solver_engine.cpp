@@ -2090,9 +2090,9 @@ void SolverEngine::printStatisticsDiff() const
   d_env->getStatisticsRegistry().storeSnapshot();
 }
 
-void SolverEngine::setOption(const std::string& key, const std::string& value)
+void SolverEngine::setOption(const std::string& key, const std::string& value, bool fromUser)
 {
-  if (options().base.safeOptions && !d_isInternalSubsolver)
+  if (fromUser && options().base.safeOptions)
   {
     // verify its a regular option
     options::OptionInfo oinfo = options::getInfo(getOptions(), key);

@@ -7785,7 +7785,8 @@ void Solver::setOption(const std::string& option,
         << "', solver is already fully initialized";
   }
   //////// all checks before this line
-  d_slv->setOption(option, value);
+  // mark that the option originated from the user here
+  d_slv->setOption(option, value, true);
   ////////
   CVC5_API_TRY_CATCH_END;
 }

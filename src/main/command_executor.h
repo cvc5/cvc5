@@ -83,6 +83,9 @@ class CommandExecutor
 
   /** Store the current options as the original options */
   void storeOptionsAsOriginal();
+  
+  /** Set option internal */
+  void setOptionInternal(const std::string& key, const std::string& value);
 
   /**
    * Prints statistics to an output stream.
