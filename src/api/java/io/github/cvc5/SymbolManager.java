@@ -19,8 +19,8 @@ public class SymbolManager extends AbstractPointer
 {
   /**
    * This is an internal constructor intended to be used only
-   * inside cvc5 package
-   * @param pointer the cpp pointer to symbol manager
+   * inside cvc5 package.
+   * @param pointer The cpp pointer to symbol manager.
    */
   SymbolManager(long pointer)
   {
@@ -61,7 +61,7 @@ public class SymbolManager extends AbstractPointer
   }
 
   /**
-   * @return true if the logic of this symbol manager has been set.
+   * @return True if the logic of this symbol manager has been set.
    */
   public boolean isLogicSet()
   {

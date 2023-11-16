@@ -60,7 +60,7 @@ public class InputParser extends AbstractPointer
   /**
    * Construct an input parser with an initially empty symbol manager.
    *
-   * @param solver The solver (e.g. for constructing terms and sorts)
+   * @param solver The solver (e.g. for constructing terms and sorts).
    */
   public InputParser(Solver solver)
   {
@@ -90,7 +90,7 @@ public class InputParser extends AbstractPointer
   private native long getSolver(long pointer);
 
   /**
-   * @return The underlying symbol manager of this input parser
+   * @return The underlying symbol manager of this input parser.
    */
   public SymbolManager getSymbolManager()
   {
@@ -102,8 +102,8 @@ public class InputParser extends AbstractPointer
   /**
    * Set the input for the given file.
    *
-   * @param lang the input language (e.g. InputLanguage.SMT_LIB_2_6)
-   * @param fileName the input file name
+   * @param lang the input language (e.g. InputLanguage.SMT_LIB_2_6).
+   * @param fileName the input file name.
    */
   public void setFileInput(InputLanguage lang, String fileName)
   {
@@ -116,8 +116,8 @@ public class InputParser extends AbstractPointer
    * Set that we will be feeding strings to this parser via
    * appendIncrementalStringInput below.
    *
-   * @param lang the input language
-   * @param name the name of the stream, for use in error messages
+   * @param lang The input language.
+   * @param name The name of the stream, for use in error messages.
    */
   public void setIncrementalStringInput(InputLanguage lang, String name)
   {
@@ -131,7 +131,7 @@ public class InputParser extends AbstractPointer
    * called after calling setIncrementalStringInput and only after the
    * previous string (if one was provided) is finished being parsed.
    *
-   * @param input The input string
+   * @param input The input string.
    */
   public void appendIncrementalStringInput(String input)
   {
@@ -166,7 +166,7 @@ public class InputParser extends AbstractPointer
 
   private native long nextTerm(long pointer);
 
-  /** Is this parser done reading input? */
+  /** @return True if this parser done reading input. */
   public boolean done()
   {
     return done(pointer);

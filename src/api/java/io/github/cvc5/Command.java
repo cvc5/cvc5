@@ -18,8 +18,8 @@ public class Command extends AbstractPointer
 {
   /**
    * This is an internal constructor intended to be used only
-   * inside cvc5 package
-   * @param pointer the cpp pointer to command
+   * inside cvc5 package.
+   * @param pointer The cpp pointer to command.
    */
   Command(long pointer)
   {
@@ -33,7 +33,7 @@ public class Command extends AbstractPointer
    * to output stream out.
    *
    * @param solver The solver to invoke the command on.
-   * @param symbolManager The symbol manager to invoke the command on.   
+   * @param symbolManager The symbol manager to invoke the command on.
    */
   public void invoke(Solver solver, SymbolManager symbolManager)
   {
