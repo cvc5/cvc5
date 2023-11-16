@@ -38,6 +38,7 @@ const char* toString(TrustRewriteId id)
     TRUST_REWRITE_ID_CASE(BV_SOLVE_EQ)
     TRUST_REWRITE_ID_CASE(BV_BITWISE_EQ)
     TRUST_REWRITE_ID_CASE(BV_BITWISE_SLICING)
+    default: return "TrustTheoryId::Unknown";
   };
 }
 
