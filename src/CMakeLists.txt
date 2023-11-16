@@ -409,6 +409,8 @@ libcvc5_add_sources(
   theory/arith/linear/fc_simplex.h
   theory/arith/linear/infer_bounds.cpp
   theory/arith/linear/infer_bounds.h
+  theory/arith/linear/linear_solver.cpp
+  theory/arith/linear/linear_solver.h
   theory/arith/linear/linear_equality.cpp
   theory/arith/linear/linear_equality.h
   theory/arith/linear/matrix.cpp

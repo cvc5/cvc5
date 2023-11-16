@@ -598,7 +598,7 @@ void TheoryUF::processCarePairArgs(TNode a, TNode b)
 }
 
 void TheoryUF::computeCareGraph() {
-  if (d_sharedTerms.empty())
+  if (d_state.getSharedTerms().empty())
   {
     return;
   }

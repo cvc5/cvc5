@@ -34,6 +34,7 @@ const char* toString(InferenceId i)
     case InferenceId::CONFLICT_REWRITE_LIT: return "CONFLICT_REWRITE_LIT";
     case InferenceId::EXPLAINED_PROPAGATION: return "EXPLAINED_PROPAGATION";
     case InferenceId::EXTT_SIMPLIFY: return "EXTT_SIMPLIFY";
+    case InferenceId::ARITH_REWRITE_EQ_NORM: return "ARITH_REWRITE_EQ_NORM";
     case InferenceId::ARITH_BLACK_BOX: return "ARITH_BLACK_BOX";
     case InferenceId::ARITH_CONF_EQ: return "ARITH_CONF_EQ";
     case InferenceId::ARITH_CONF_LOWER: return "ARITH_CONF_LOWER";
