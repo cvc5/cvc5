@@ -40,6 +40,7 @@ const char* toString(ProofRule id)
     //================================================= Trusted rules
     case ProofRule::TRUST: return "TRUST";
     case ProofRule::TRUST_THEORY_REWRITE: return "TRUST_THEORY_REWRITE";
+    case ProofRule::THEORY_REWRITE: return "THEORY_REWRITE";
     case ProofRule::SAT_REFUTATION: return "SAT_REFUTATION";
     //================================================= Boolean rules
     case ProofRule::RESOLUTION: return "RESOLUTION";
@@ -117,16 +118,6 @@ const char* toString(ProofRule id)
     case ProofRule::MACRO_BV_BITBLAST: return "MACRO_BV_BITBLAST";
     case ProofRule::BV_BITBLAST_STEP: return "BV_BITBLAST_STEP";
     case ProofRule::BV_EAGER_ATOM: return "BV_EAGER_ATOM";
-    //
-    case ProofRule::BV_UMULO_ELIMINATE: return "BV_UMULO_ELIMINATE";
-    case ProofRule::BV_SMULO_ELIMINATE: return "BV_SMULO_ELIMINATE";
-    case ProofRule::BV_FLATTEN_ASSOC_COMMUTE: return "BV_FLATTEN_ASSOC_COMMUTE";
-    case ProofRule::BV_FLATTEN_ASSOC_COMMUTE_NO_DUPLICATES: return "BV_FLATTEN_ASSOC_COMMUTE_NO_DUPLICATES";
-    case ProofRule::BV_ADD_COMBINE_LIKE_TERMS: return "BV_ADD_COMBINE_LIKE_TERMS";
-    case ProofRule::BV_MULT_SIMPLIFY: return "BV_MULT_SIMPLIFY";
-    case ProofRule::BV_SOLVE_EQ: return "BV_SOLVE_EQ";
-    case ProofRule::BV_BITWISE_EQ: return "BV_BITWISE_EQ";
-    case ProofRule::BV_BITWISE_SLICING: return "BV_BITWISE_SLICING";
     //================================================= Datatype rules
     case ProofRule::DT_UNIF: return "DT_UNIF";
     case ProofRule::DT_INST: return "DT_INST";

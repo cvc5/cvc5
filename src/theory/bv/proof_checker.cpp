@@ -17,6 +17,7 @@
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
 #include "theory/bv/theory_bv_rewrite_rules_normalization.h"
+#include "proof/trust_rewrite_id.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -27,15 +28,6 @@ void BVProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerTrustedChecker(ProofRule::MACRO_BV_BITBLAST, this, 2);
   pc->registerTrustedChecker(ProofRule::BV_BITBLAST_STEP, this, 2);
   pc->registerChecker(ProofRule::BV_EAGER_ATOM, this);
-  pc->registerChecker(ProofRule::BV_UMULO_ELIMINATE, this);
-  pc->registerChecker(ProofRule::BV_SMULO_ELIMINATE, this);
-  pc->registerChecker(ProofRule::BV_FLATTEN_ASSOC_COMMUTE, this);
-  pc->registerChecker(ProofRule::BV_FLATTEN_ASSOC_COMMUTE_NO_DUPLICATES, this);
-  pc->registerChecker(ProofRule::BV_ADD_COMBINE_LIKE_TERMS, this);
-  pc->registerChecker(ProofRule::BV_MULT_SIMPLIFY, this);
-  pc->registerChecker(ProofRule::BV_SOLVE_EQ, this);
-  pc->registerChecker(ProofRule::BV_BITWISE_EQ, this);
-  pc->registerChecker(ProofRule::BV_BITWISE_SLICING, this);
 }
 
 Node BVProofRuleChecker::checkInternal(ProofRule id,
@@ -63,26 +55,26 @@ Node BVProofRuleChecker::checkInternal(ProofRule id,
     Assert(args[0].getKind() == Kind::BITVECTOR_EAGER_ATOM);
     return args[0].eqNode(args[0][0]);
   }
-
+  else if (id == ProofRule::TRUST_THEORY_REWRITE)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    auto const& node = args[0];
 #define BV_PROOF_CASE(rule, name) \
-  else if (id == ProofRule::rule && RewriteRule<name>::applies(args[0])) \
-  { \
-    Assert(children.empty()); \
-    Assert(args.size() == 1); \
-    auto const& node = args[0]; \
-    return node.eqNode(RewriteRule<name>::run<false>(node)); \
-  } \
-  /* end macro */
-
-  BV_PROOF_CASE(BV_UMULO_ELIMINATE, UmuloEliminate)
-  BV_PROOF_CASE(BV_SMULO_ELIMINATE, SmuloEliminate)
-  BV_PROOF_CASE(BV_FLATTEN_ASSOC_COMMUTE, FlattenAssocCommut)
-  BV_PROOF_CASE(BV_FLATTEN_ASSOC_COMMUTE_NO_DUPLICATES, FlattenAssocCommutNoDuplicates)
-  BV_PROOF_CASE(BV_ADD_COMBINE_LIKE_TERMS, AddCombineLikeTerms)
-  BV_PROOF_CASE(BV_MULT_SIMPLIFY, MultSimplify)
-  BV_PROOF_CASE(BV_SOLVE_EQ, SolveEq)
-  BV_PROOF_CASE(BV_BITWISE_EQ, BitwiseEq)
-  BV_PROOF_CASE(BV_BITWISE_SLICING, BitwiseSlicing)
+    if (RewriteRule<name>::applies(args[0])) { \
+      return node.eqNode(RewriteRule<name>::run<false>(node)); \
+    } \
+    /* end of macro */
+    BV_PROOF_CASE(BV_UMULO_ELIMINATE, UmuloEliminate)
+    BV_PROOF_CASE(BV_SMULO_ELIMINATE, SmuloEliminate)
+    BV_PROOF_CASE(BV_FLATTEN_ASSOC_COMMUTE, FlattenAssocCommut)
+    BV_PROOF_CASE(BV_FLATTEN_ASSOC_COMMUTE_NO_DUPLICATES, FlattenAssocCommutNoDuplicates)
+    BV_PROOF_CASE(BV_ADD_COMBINE_LIKE_TERMS, AddCombineLikeTerms)
+    BV_PROOF_CASE(BV_MULT_SIMPLIFY, MultSimplify)
+    BV_PROOF_CASE(BV_SOLVE_EQ, SolveEq)
+    BV_PROOF_CASE(BV_BITWISE_EQ, BitwiseEq)
+    BV_PROOF_CASE(BV_BITWISE_SLICING, BitwiseSlicing)
+  }
 
   return Node::null();
 }

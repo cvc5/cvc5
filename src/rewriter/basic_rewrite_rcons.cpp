@@ -72,28 +72,13 @@ bool BasicRewriteRCons::prove(
 bool BasicRewriteRCons::postProve(
     CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid)
 {
-  if (tid == theory::THEORY_BV)
-  {
     Node eq = a.eqNode(b);
-#define POST_PROVE_CASE(name) \
-    if (tryRule(cdp, eq, ProofRule::name, {eq[0]})) \
-    { \
-      Trace("trewrite-rcons") << "Reconstruct " << eq << " (from " << tid << ", " \
-                              << mid << ")"  << std::endl; \
-      return true; \
-    } \
-    /* end of macro */
-
-    POST_PROVE_CASE(BV_UMULO_ELIMINATE)
-    POST_PROVE_CASE(BV_SMULO_ELIMINATE)
-    POST_PROVE_CASE(BV_FLATTEN_ASSOC_COMMUTE)
-    POST_PROVE_CASE(BV_FLATTEN_ASSOC_COMMUTE_NO_DUPLICATES)
-    POST_PROVE_CASE(BV_ADD_COMBINE_LIKE_TERMS)
-    POST_PROVE_CASE(BV_MULT_SIMPLIFY)
-    POST_PROVE_CASE(BV_SOLVE_EQ)
-    POST_PROVE_CASE(BV_BITWISE_EQ)
-    POST_PROVE_CASE(BV_BITWISE_SLICING)
-  }
+    if (tryRule(cdp, eq, ProofRule::THEORY_REWRITE, {eq[0]}))
+    {
+      Trace("trewrite-rcons") << "Reconstruct " << eq << " (from " << tid << ", "
+                              << mid << ")"  << std::endl;
+      return true;
+    }
 
   Trace("trewrite-rcons") << "...(fail)" << std::endl;
   return false;
