@@ -40,13 +40,13 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_newSolver(JNIEnv*, jclass)
 JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_deletePointer(JNIEnv* env,
                                                                 jobject,
                                                                 jlong pointer)
-{  
+{
   const std::vector<jobject>& refs = globalReferences[pointer];
   for (jobject ref : refs)
   {
     env->DeleteGlobalRef(ref);
   }
-  globalReferences.erase(pointer);  
+  globalReferences.erase(pointer);
   delete (reinterpret_cast<Solver*>(pointer));
 }
 
@@ -777,11 +777,8 @@ Java_io_github_cvc5_Solver_mkTerm__JJ_3J(JNIEnv* env,
  * Method:    mkTuple
  * Signature: (J[J)J
  */
-JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_Solver_mkTuple(JNIEnv* env,
-                                   jobject,
-                                   jlong pointer,
-                                   jlongArray termPointers)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkTuple(
+    JNIEnv* env, jobject, jlong pointer, jlongArray termPointers)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
