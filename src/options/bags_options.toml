@@ -1,0 +1,10 @@
+id     = "BAGS"
+name   = "Bags Theory"
+
+[[option]]
+name       = "bagEagerSolver"
+category   = "regular"
+long       = "bags-eager-solver"
+type       = "bool"
+default    = "true"
+help       = "use the eager solver for bags"

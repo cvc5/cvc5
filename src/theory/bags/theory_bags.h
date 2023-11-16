@@ -23,6 +23,7 @@
 #include "theory/bags/bags_rewriter.h"
 #include "theory/bags/bags_statistics.h"
 #include "theory/bags/card_solver.h"
+#include "theory/bags/eager_solver.h"
 #include "theory/bags/inference_generator.h"
 #include "theory/bags/inference_manager.h"
 #include "theory/bags/solver_state.h"
@@ -127,6 +128,8 @@ class TheoryBags : public Theory
   BagsRewriter d_rewriter;
   /** The term registry for this theory */
   TermRegistry d_termReg;
+  /** The eager solver */
+  std::unique_ptr<EagerSolver> d_eagerSolver;
   /** the main solver for bags */
   BagSolver d_solver;
 

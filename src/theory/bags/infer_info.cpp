@@ -36,6 +36,18 @@ TrustNode InferInfo::processLemma(LemmaProperty& p)
   return TrustNode::mkTrustLemma(lemma, nullptr);
 }
 
+bool InferInfo::assertInternalFact()
+{
+  Trace("bags::InferInfo::processFact") << (*this) << std::endl;
+
+  return d_im->assertInternalFact(d_conclusion,
+                                  true,
+                                  getId(),
+                                  PfRule::THEORY_INFERENCE,
+                                  d_premises,
+                                  {d_conclusion});
+}
+
 Node InferInfo::getLemma() const
 {
   NodeManager* nm = NodeManager::currentNM();

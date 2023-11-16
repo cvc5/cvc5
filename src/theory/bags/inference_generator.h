@@ -87,6 +87,16 @@ class InferenceGenerator
    */
   InferInfo bagMake(Node n, Node e);
   /**
+   * @param n1 is (bag x c) of type (Bag E), and c > 0 is a constant
+   * @param n2 is (bag y d) of type (Bag E), and d > 0 is a constant
+   * @return an inference that represents the following:
+   * (=>
+   *   (= (bag x c) (bag y d))
+   *   (and (= x y) (= c d)))
+   */
+  InferInfo mergeTwoBagMakeNodes(Node n1, Node n2);
+
+  /**
    * @param equality is (= A B) where A, B are bags of type (Bag E), and
    * (not (= A B)) is an assertion in the equality engine
    * @param witness a skolem node that witnesses the disequality

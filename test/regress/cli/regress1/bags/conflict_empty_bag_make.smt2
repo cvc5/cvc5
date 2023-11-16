@@ -1,0 +1,7 @@
+(set-logic ALL)
+(set-info :status unsat)
+(declare-fun A () (Bag Int))
+(declare-fun x () Int)
+(assert (= (bag x 1) A))
+(assert (= A (as bag.empty (Bag Int))))
+(check-sat)
