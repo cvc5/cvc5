@@ -69,7 +69,7 @@ public class SymbolManager extends AbstractPointer
   /**
    * @api.note Asserts isLogicSet().
    *
-   * @return the logic used by this symbol manager
+   * @return The logic used by this symbol manager.
    */
   public String getLogic()
   {
