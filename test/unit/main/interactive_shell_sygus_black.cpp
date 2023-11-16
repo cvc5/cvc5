@@ -58,7 +58,11 @@ class TestMainBlackInteractiveShellSygus : public TestInternal
 
   /**
    * Read up to maxIterations+1 from the shell and throw an assertion error if
-   * it's fewer than minIterations and more than maxIterations.
+   * it's fewer than minIterations and more than maxIterations. Note that an
+   * empty string followed by EOF may be returned as an empty command, and
+   * not nullptr (subsequent calls to readAndExecCommands() should return
+   * nullptr). E.g., "(synth-fun f (Int) Int)\n" may return two commands: the
+   * synth-fun, followed by an empty command, followed by nullptr.
    */
   void countCommands(InteractiveShell& shell,
                      uint32_t minIterations,
@@ -87,7 +91,7 @@ TEST_F(TestMainBlackInteractiveShellSygus, test_sygus)
 {
   *d_sin << "(synth-fun f (Int) Int)\n\n" << std::flush;
   InteractiveShell shell(d_cexec.get(), *d_sin, *d_sout);
-  countCommands(shell, 1, 1);
+  countCommands(shell, 1, 2);
 }
 
 }  // namespace test
