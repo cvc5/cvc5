@@ -46,6 +46,12 @@ TEST_F(TestBlackOptions, set)
                                     "version"};
   for (const auto& name : options::getNames())
   {
+    if (name=="safe-options")
+    {
+      // don't test safe-options here, since it will restrict the set of options
+      // that can be set afterwards.
+      continue;
+    }
     if (muted.count(name))
     {
       testing::internal::CaptureStdout();
