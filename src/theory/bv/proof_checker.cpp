@@ -55,7 +55,7 @@ Node BVProofRuleChecker::checkInternal(ProofRule id,
     Assert(args[0].getKind() == Kind::BITVECTOR_EAGER_ATOM);
     return args[0].eqNode(args[0][0]);
   }
-  else if (id == ProofRule::TRUST_THEORY_REWRITE)
+  else if (id == ProofRule::THEORY_REWRITE)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
