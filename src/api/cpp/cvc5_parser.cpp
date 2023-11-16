@@ -396,10 +396,5 @@ ParserEndOfFileException::ParserEndOfFileException(const std::string& msg,
 {
 }
 
-InputStreamException::InputStreamException(const std::string& msg)
-    : CVC5ApiException(msg)
-{
-}
-
 }  // namespace parser
 }  // namespace cvc5

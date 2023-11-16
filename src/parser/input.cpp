@@ -33,7 +33,7 @@ class FileInput : public Input
     {
       std::stringstream ss;
       ss << "Couldn't open file: " << filename;
-      throw InputStreamException(ss.str());
+      throw ParserException(ss.str());
     }
   }
   std::istream* getStream() override { return &d_fs; }
