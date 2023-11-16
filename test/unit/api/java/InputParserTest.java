@@ -54,7 +54,7 @@ class InputParserTest extends ParserTest
   void setFileInput()
   {
     InputParser p = new InputParser(d_solver);
-    assertThrows(CVC5ApiException.class,
+    assertThrows(CVC5ParserException.class,
         () -> p.setFileInput(InputLanguage.SMT_LIB_2_6, "nonexistent.smt2"));
   }
 
@@ -158,7 +158,6 @@ class InputParserTest extends ParserTest
     // we cannot set the logic since it has already been set
     assertThrows(CVC5ParserException.class, () -> parseLogicCommand(p3, "QF_LRA"));
     assertEquals(p3.done(), true);
-    
 
     // using a solver with the same logic is allowed
     Solver s3 = new Solver();
