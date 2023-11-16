@@ -17,7 +17,7 @@
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
 #include "theory/bv/theory_bv_rewrite_rules_normalization.h"
-#include "proof/trust_rewrite_id.h"
+#include "proof/theory_rewrite_id.h"
 
 namespace cvc5::internal {
 namespace theory {

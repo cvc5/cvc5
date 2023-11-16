@@ -220,10 +220,10 @@ libcvc5_add_sources(
   proof/trust_id.h
   proof/trust_node.cpp
   proof/trust_node.h
-  proof/trust_rewrite_id.cpp
-  proof/trust_rewrite_id.h
   proof/theory_proof_step_buffer.cpp
   proof/theory_proof_step_buffer.h
+  proof/theory_rewrite_id.cpp
+  proof/theory_rewrite_id.h
   proof/unsat_core.cpp
   proof/unsat_core.h
   proof/alethe/alethe_let_binding.cpp

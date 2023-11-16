@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__PROOF__TRUST_REWRITE_ID_H
-#define CVC5__PROOF__TRUST_REWRITE_ID_H
+#ifndef CVC5__PROOF__THEORY_REWRITE_ID_H
+#define CVC5__PROOF__THEORY_REWRITE_ID_H
 
 #include "expr/node.h"
 
@@ -25,7 +25,7 @@ namespace cvc5::internal {
 /**
  * Identifiers for trusted steps in proofs.
  */
-enum class TrustRewriteId : uint32_t
+enum class TheoryRewriteId : uint32_t
 {
   NONE,
   BV_UMULO_ELIMINATE,
@@ -40,14 +40,14 @@ enum class TrustRewriteId : uint32_t
 
 };
 /** Converts a trust rewrite id to a string. */
-const char* toString(TrustRewriteId id);
+const char* toString(TheoryRewriteId id);
 /** Write a trust rewrite id to out */
-std::ostream& operator<<(std::ostream& out, TrustRewriteId id);
+std::ostream& operator<<(std::ostream& out, TheoryRewriteId id);
 /** Make a trust rewrite id node */
-Node mkTrustRewriteId(TrustRewriteId id);
+Node mkTheoryRewriteId(TheoryRewriteId id);
 /** get a trust identifier from a node, return false if we fail */
-bool getTrustRewriteId(TNode n, TrustRewriteId& i);
+bool getTheoryRewriteId(TNode n, TheoryRewriteId& i);
 
 }  // namespace cvc5::internal
 
-#endif /* CVC5__PROOF__TRUST_REWRITE_ID_H */
+#endif /* CVC5__PROOF__THEORY_REWRITE_ID_H */
