@@ -24,6 +24,7 @@
 #include "expr/node.h"
 #include "proof/proof_generator.h"
 #include "proof/proof_step_buffer.h"
+#include "proof/trust_id.h"
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
@@ -198,6 +199,17 @@ class CDProof : protected EnvObj, public ProofGenerator
                const std::vector<Node>& args,
                bool ensureChildren = false,
                CDPOverwrite opolicy = CDPOverwrite::ASSUME_ONLY);
+  /**
+   * Version with trusted id. The arguments are optional additional arguments
+   * to the required arguments of ProofRule::TRUST. If none are provided, the
+   * trust id and the conclusion will be the arguments of the step.
+   */
+  bool addTrustedStep(Node expected,
+                      TrustId id,
+                      const std::vector<Node>& children,
+                      const std::vector<Node>& args,
+                      bool ensureChildren = false,
+                      CDPOverwrite opolicy = CDPOverwrite::ASSUME_ONLY);
   /** Version with ProofStep */
   bool addStep(Node expected,
                const ProofStep& step,
