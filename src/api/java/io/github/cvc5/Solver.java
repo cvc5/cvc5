@@ -68,9 +68,13 @@ public class Solver extends AbstractPointer
   public boolean equals(Object s)
   {
     if (this == s)
+    {
       return true;
+    }
     if (s == null || getClass() != s.getClass())
+    {
       return false;
+    }
     Solver solver = (Solver) s;
     if (this.pointer == solver.pointer)
     {

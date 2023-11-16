@@ -45,9 +45,13 @@ public class SymbolManager extends AbstractPointer
   public boolean equals(Object s)
   {
     if (this == s)
+    {
       return true;
+    }
     if (s == null || getClass() != s.getClass())
+    {
       return false;
+    }
     SymbolManager symbolManager = (SymbolManager) s;
     if (this.pointer == symbolManager.pointer)
     {
