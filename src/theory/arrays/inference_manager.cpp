@@ -16,6 +16,7 @@
 #include "theory/arrays/inference_manager.h"
 
 #include "options/smt_options.h"
+#include "proof/trust_id.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/theory.h"
 #include "theory/theory_state.h"
@@ -114,15 +115,16 @@ void InferenceManager::convert(ProofRule& id,
       break;
     case ProofRule::ARRAYS_EXT: children.push_back(exp); break;
     default:
-      if (id != ProofRule::THEORY_INFERENCE)
+      if (id != ProofRule::TRUST)
       {
         Assert(false) << "Unknown rule " << id << "\n";
       }
       children.push_back(exp);
+      args.push_back(mkTrustId(TrustId::THEORY_INFERENCE));
       args.push_back(conc);
       args.push_back(
           builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_ARRAYS));
-      id = ProofRule::THEORY_INFERENCE;
+      id = ProofRule::TRUST;
       break;
   }
 }

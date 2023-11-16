@@ -165,7 +165,7 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
 
 void LazyCDProof::addLazyStep(Node expected,
                               ProofGenerator* pg,
-                              ProofRule idNull,
+                              TrustId idNull,
                               bool isClosed,
                               const char* ctx,
                               bool forceOverwrite)
@@ -173,7 +173,7 @@ void LazyCDProof::addLazyStep(Node expected,
   if (pg == nullptr)
   {
     // null generator, should have given a proof rule
-    if (idNull == ProofRule::ASSUME)
+    if (idNull == TrustId::NONE)
     {
       Unreachable() << "LazyCDProof::addLazyStep: " << identify()
                     << ": failed to provide proof generator for " << expected;
@@ -181,7 +181,8 @@ void LazyCDProof::addLazyStep(Node expected,
     }
     Trace("lazy-cdproof") << "LazyCDProof::addLazyStep: " << expected
                           << " set (trusted) step " << idNull << "\n";
-    addStep(expected, idNull, {}, {expected});
+    Node tid = mkTrustId(idNull);
+    addStep(expected, ProofRule::TRUST, {}, {tid, expected});
     return;
   }
   Trace("lazy-cdproof") << "LazyCDProof::addLazyStep: " << expected

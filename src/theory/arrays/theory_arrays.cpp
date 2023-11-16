@@ -1291,7 +1291,7 @@ void TheoryArrays::postCheck(Effort level)
           // LSH FIXME: which kind of arrays lemma is this
           Trace("arrays-lem")
               << "Arrays::addExtLemma (weak-eq) " << lemma << "\n";
-          d_out->lemma(lemma, LemmaProperty::SEND_ATOMS);
+          d_out->lemma(lemma, InferenceId::NONE, LemmaProperty::SEND_ATOMS);
           d_readTableContext->pop();
           Trace("arrays") << spaces(context()->getLevel())
                           << "Arrays::check(): done" << endl;
@@ -1676,12 +1676,12 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
     {
       preRegisterTermInternal(selConst);
     }
-    // not currently supported in proofs, use THEORY_INFERENCE
+    // not currently supported in proofs, use TRUST
     d_im.assertInference(selConst.eqNode(defValue),
                          true,
                          InferenceId::ARRAYS_CONST_ARRAY_DEFAULT,
                          d_true,
-                         ProofRule::THEORY_INFERENCE);
+                         ProofRule::TRUST);
   }
 
   const CTNodeList* stores = d_infoMap.getStores(a);

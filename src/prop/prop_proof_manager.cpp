@@ -327,7 +327,7 @@ void PropPfManager::notifyExplainedPropagation(TrustNode trn)
                        << trn.identifyGenerator() << std::endl;
     d_proof.addLazyStep(proven,
                         trn.getGenerator(),
-                        ProofRule::ASSUME,
+                        TrustId::NONE,
                         true,
                         "PropPfManager::notifyExplainedPropagation");
   }
@@ -378,7 +378,7 @@ void PropPfManager::notifyExplainedPropagation(TrustNode trn)
   // result of normalizeAndRegister, stored in d_currPropagationProcessed
   if (!proofLogging)
   {
-    d_proof.addStep(clauseExp, ProofRule::THEORY_LEMMA, {}, {clauseExp});
+    d_proof.addTrustedStep(clauseExp, TrustId::THEORY_LEMMA, {}, {clauseExp});
   }
 }
 

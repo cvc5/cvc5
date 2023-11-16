@@ -58,6 +58,6 @@ foreach(example ${EXAMPLES_API_JAVA})
   add_java_example(${example})
 endforeach()
 
-if(USE_COCOA)
+if(CVC5_USE_COCOA)
   add_java_example(FiniteField)
 endif()

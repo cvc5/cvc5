@@ -194,7 +194,7 @@ class DotPrinter : protected EnvObj
    * @return The bool indicating whether the rule is for a theory lemma
    * range.
    */
-  inline bool isTheoryLemma(const ProofRule& rule);
+  inline bool isTheoryLemma(const ProofNode* pn);
 
   /** Verify if the rule is an ASSUME
    * @param rule The rule to be verified.

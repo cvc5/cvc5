@@ -52,7 +52,7 @@ void ProofCnfStream::convertAndAssert(TNode node,
     Node toJustify = negated ? node.notNode() : static_cast<Node>(node);
     d_proof->addLazyStep(toJustify,
                          pg,
-                         ProofRule::ASSUME,
+                         TrustId::NONE,
                          true,
                          "ProofCnfStream::convertAndAssert:cnf");
   }
