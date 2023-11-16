@@ -78,19 +78,6 @@ class Parser:
         special_chars = '=' + '_' + '+' + '-' + '<' + '>' + '*' + '.'
         return pp.Word(pp.alphas + special_chars, pp.alphanums + special_chars)
 
-    def mk_let(self, let):
-        body = let[-1]
-        for binding in reversed(let[0:-1]):
-            body = App(Op.LET, [binding[0], binding[1], body])
-        return body
-
-    def mk_case(self, cases):
-        if not isinstance(cases[-1], Fn) or cases[-1].op != Op.CASE:
-            cases[-1] = App(Op.CASE, [CBool(True), cases[-1]])
-        else:
-            cases.append(App(Op.CASE, [CBool(True), App(Op.FAIL, [])]))
-        return App(Op.COND, cases)
-
     def app_action(self, s, l, t):
         op = symbol_to_op[t[0]]
         if op == Op.SUB and len(t) == 2:
@@ -121,25 +108,7 @@ class Parser:
         app = (pp.Suppress('(') + self.symbol() + pp.OneOrMore(expr) +
                pp.Suppress(')')).setParseAction(self.app_action)
 
-        # let and cond are deprecated. These should be removed
-
-        # Let bindings
-        binding = (
-            pp.Suppress('(') + var + expr +
-            pp.Suppress(')')).setParseAction(lambda s, l, t: (t[0], t[1]))
-        let = (pp.Suppress('(') + pp.Keyword('let') + pp.Suppress('(') +
-               pp.OneOrMore(binding) + pp.Suppress(')') + expr +
-               pp.Suppress(')')).setParseAction(lambda s, l, t: mk_let(t[1:]))
-
-        # Conditionals
-        case = (pp.Suppress('(') + expr + expr + pp.Suppress(')')
-                ).setParseAction(lambda s, l, t: App(Op.CASE, [t[0], t[1]]))
-        cond = (
-            pp.Suppress('(') + pp.Keyword('cond') + pp.OneOrMore(case) +
-            pp.Optional(expr) +
-            pp.Suppress(')')).setParseAction(lambda s, l, t: mk_case(t[1:]))
-
-        options = bconst | iconst | strconst | cond | indexed_app | app | let | var
+        options = bconst | iconst | strconst | indexed_app | app | var
         if allow_comprehension:
             lambda_def = (pp.Suppress('(') + pp.Keyword('lambda') +
                           pp.Suppress('(') + self.symbol() + self.sort() +
