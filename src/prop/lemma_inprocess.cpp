@@ -32,6 +32,10 @@ LemmaInprocess::LemmaInprocess(Env& env, CnfStream* cs, ZeroLevelLearner& zll)
 }
 TrustNode LemmaInprocess::inprocessLemma(TrustNode& trn)
 {
+  if (trn.getKind()==TrustNodeKind::CONFLICT)
+  {
+    return trn;
+  }
   const Node& proven = trn.getProven();
   Trace("ajr-temp") << "Process" << std::endl;
   Node provenp = processInternal(proven);
