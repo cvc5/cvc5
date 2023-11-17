@@ -131,6 +131,10 @@ void ZeroLevelLearner::notifyInputFormulas(const std::vector<Node>& assertions)
     if (!lit.isConst() || !lit.getConst<bool>())
     {
       // output learned literals from preprocessing
+      if (d_trackSubs)
+      {
+        computeLearnedLiteralType(lit);
+      }
       processLearnedLiteral(lit, modes::LearnedLitType::PREPROCESS);
       // also get its symbols
       expr::getSymbols(atom, inputSymbols, visitedWithinAtom);
@@ -232,9 +236,11 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion, int32_t alevel)
 }
 
 modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
-    const Node& lit)
+    const Node& input)
 {
   // literal was learned, determine its type
+  // apply substitutions first
+  Node lit = d_tsmap.apply(input, d_env.getRewriter());
   TNode aatom = lit.getKind() == Kind::NOT ? lit[0] : lit;
   bool internal = d_ppnAtoms.find(aatom) == d_ppnAtoms.end();
   modes::LearnedLitType ltype =
@@ -256,6 +262,7 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
         }
         if (d_trackSubs)
         {
+          Trace("lemma-inprocess-subs") << "Add subs: " << v << " -> " << ss.d_subs[i] << std::endl;
           d_tsmap.addSubstitution(v, ss.d_subs[i]);
         }
       }
@@ -275,6 +282,7 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
             }
             if (d_trackSubs)
             {
+              Trace("lemma-inprocess-subs") << "Add cp: " << lit[1-i] << " -> " << lit[i] << std::endl;
               d_tcpmap.addSubstitution(lit[1 - i], lit[i]);
             }
             break;
