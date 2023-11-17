@@ -73,7 +73,7 @@ bool BasicRewriteRCons::postProve(
     CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid)
 {
     Node eq = a.eqNode(b);
-    if (tryRule(cdp, eq, ProofRule::THEORY_REWRITE, {eq[0]}))
+    if (theory::TheoryId::THEORY_BV == tid && tryRule(cdp, eq, ProofRule::THEORY_REWRITE, {eq[0]}))
     {
       Trace("trewrite-rcons") << "Reconstruct " << eq << " (from " << tid << ", "
                               << mid << ")"  << std::endl;
