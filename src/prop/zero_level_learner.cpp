@@ -262,7 +262,8 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
         }
         if (d_trackSubs)
         {
-          Trace("lemma-inprocess-subs") << "Add subs: " << v << " -> " << ss.d_subs[i] << std::endl;
+          Trace("lemma-inprocess-subs")
+              << "Add subs: " << v << " -> " << ss.d_subs[i] << std::endl;
           d_tsmap.addSubstitution(v, ss.d_subs[i]);
         }
       }
@@ -282,7 +283,8 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
             }
             if (d_trackSubs)
             {
-              Trace("lemma-inprocess-subs") << "Add cp: " << lit[1-i] << " -> " << lit[i] << std::endl;
+              Trace("lemma-inprocess-subs")
+                  << "Add cp: " << lit[1 - i] << " -> " << lit[i] << std::endl;
               d_tcpmap.addSubstitution(lit[1 - i], lit[i]);
             }
             break;

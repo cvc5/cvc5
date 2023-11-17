@@ -23,9 +23,9 @@
 #include "context/cdhashset.h"
 #include "context/cdo.h"
 #include "expr/node.h"
+#include "prop/cnf_stream.h"
 #include "smt/env_obj.h"
 #include "theory/trust_substitutions.h"
-#include "prop/cnf_stream.h"
 
 namespace cvc5::internal {
 
@@ -46,6 +46,7 @@ class LemmaInprocess : protected EnvObj
   ~LemmaInprocess() {}
   /** Inprocess lemma */
   TrustNode inprocessLemma(TrustNode& trn);
+
  private:
   /** Process internal */
   Node processInternal(const Node& lem);

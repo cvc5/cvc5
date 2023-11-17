@@ -15,21 +15,27 @@
 
 #include "prop/lemma_inprocess.h"
 
+#include "expr/node_algorithm.h"
 #include "prop/zero_level_learner.h"
 #include "smt/env.h"
-#include "expr/node_algorithm.h"
 
 namespace cvc5::internal {
 namespace prop {
 
-LemmaInprocess::LemmaInprocess(Env& env, CnfStream* cs, ZeroLevelLearner& zll) : EnvObj(env), d_cs(cs), d_tsmap(zll.getSubstitutions()), d_tcpmap(zll.getConstantPropagations()) {}
+LemmaInprocess::LemmaInprocess(Env& env, CnfStream* cs, ZeroLevelLearner& zll)
+    : EnvObj(env),
+      d_cs(cs),
+      d_tsmap(zll.getSubstitutions()),
+      d_tcpmap(zll.getConstantPropagations())
+{
+}
 TrustNode LemmaInprocess::inprocessLemma(TrustNode& trn)
 {
   const Node& proven = trn.getProven();
   Trace("ajr-temp") << "Process" << std::endl;
   Node provenp = processInternal(proven);
   Trace("ajr-temp") << "...finish" << std::endl;
-  if (provenp!=proven)
+  if (provenp != proven)
   {
     // TODO: proofs
     return TrustNode::mkTrustNode(trn.getKind(), provenp);
@@ -39,7 +45,7 @@ TrustNode LemmaInprocess::inprocessLemma(TrustNode& trn)
 
 Node LemmaInprocess::processInternal(const Node& lem)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
@@ -49,7 +55,7 @@ Node LemmaInprocess::processInternal(const Node& lem)
   {
     cur = visit.back();
     Trace("lemma-inprocess-visit") << "visit " << cur << std::endl;
-    Assert (cur.getType().isBoolean());
+    Assert(cur.getType().isBoolean());
     it = visited.find(cur);
     if (it == visited.end())
     {
@@ -64,10 +70,11 @@ Node LemmaInprocess::processInternal(const Node& lem)
         // literal case
         Node scur = d_tsmap.get().apply(cur, d_env.getRewriter());
         scur = d_tcpmap.get().apply(scur, d_env.getRewriter());
-        if (scur!=cur)
+        if (scur != cur)
         {
           scur = rewrite(scur);
-          Trace("lemma-inprocess-debug") << "Inprocess " << cur << " -> " << scur << std::endl;
+          Trace("lemma-inprocess-debug")
+              << "Inprocess " << cur << " -> " << scur << std::endl;
           if (scur.isConst() || d_cs->hasLiteral(scur))
           {
             bool prevLit = d_cs->hasLiteral(cur);
@@ -75,7 +82,9 @@ Node LemmaInprocess::processInternal(const Node& lem)
             {
               // inferred they are equivalent? maybe should send clause here?
             }
-            Trace("lemma-inprocess") << "Replace: " << cur << " -> " << scur << ", prevLit = " << d_cs->hasLiteral(cur) << std::endl;
+            Trace("lemma-inprocess")
+                << "Replace: " << cur << " -> " << scur
+                << ", prevLit = " << d_cs->hasLiteral(cur) << std::endl;
             visited[cur] = scur;
             continue;
           }
@@ -90,7 +99,7 @@ Node LemmaInprocess::processInternal(const Node& lem)
       Node ret = cur;
       bool childChanged = false;
       std::vector<Node> children;
-      for (const Node& cn : cur )
+      for (const Node& cn : cur)
       {
         it = visited.find(cn);
         Assert(it != visited.end());
@@ -113,4 +122,3 @@ Node LemmaInprocess::processInternal(const Node& lem)
 
 }  // namespace prop
 }  // namespace cvc5::internal
-
