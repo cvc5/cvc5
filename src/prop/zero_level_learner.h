@@ -71,9 +71,9 @@ class ZeroLevelLearner : protected EnvObj
   modes::LearnedLitType computeLearnedLiteralType(const Node& lit);
 
   /** Get inprocess substitution */
-  theory::TrustSubstitutionMap& getSubstitution();
+  theory::TrustSubstitutionMap& getSubstitutions();
   /** Get inprocess constant propagation */
-  theory::TrustSubstitutionMap& getConstantPropagation();
+  theory::TrustSubstitutionMap& getConstantPropagations();
  private:
   static void getAtoms(TNode a,
                        std::unordered_set<TNode>& visited,

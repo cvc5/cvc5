@@ -288,12 +288,12 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
   return ltype;
 }
 
-theory::TrustSubstitutionMap& ZeroLevelLearner::getSubstitution()
+theory::TrustSubstitutionMap& ZeroLevelLearner::getSubstitutions()
 {
   return d_tsmap;
 }
 
-theory::TrustSubstitutionMap& ZeroLevelLearner::getConstantPropagation()
+theory::TrustSubstitutionMap& ZeroLevelLearner::getConstantPropagations()
 {
   return d_tcpmap;
 }
