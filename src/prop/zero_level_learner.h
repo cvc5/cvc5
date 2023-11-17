@@ -26,6 +26,7 @@
 #include "expr/subs.h"
 #include "prop/learned_db.h"
 #include "smt/env_obj.h"
+#include "theory/trust_substitutions.h"
 
 namespace cvc5::internal {
 
@@ -69,6 +70,10 @@ class ZeroLevelLearner : protected EnvObj
   /** compute type for learned literal */
   modes::LearnedLitType computeLearnedLiteralType(const Node& lit);
 
+  /** Get inprocess substitution */
+  theory::TrustSubstitutionMap& getSubstitution();
+  /** Get inprocess constant propagation */
+  theory::TrustSubstitutionMap& getConstantPropagation();
  private:
   static void getAtoms(TNode a,
                        std::unordered_set<TNode>& visited,
@@ -109,6 +114,13 @@ class ZeroLevelLearner : protected EnvObj
   size_t d_deepRestartThreshold;
   /** learnable learned literal types (for deep restart), based on option */
   std::unordered_set<modes::LearnedLitType> d_learnedTypes;
+  /** Track substitutions? */
+  bool d_trackSubs;
+  /** Substitution */
+  theory::TrustSubstitutionMap d_tsmap;
+  /** Substitution */
+  theory::TrustSubstitutionMap d_tcpmap;
+
 }; /* class ZeroLevelLearner */
 
 }  // namespace prop

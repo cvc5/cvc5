@@ -108,3 +108,11 @@ name   = "SAT Layer"
 [[option.mode.LAZY]]
   name = "lazy"
   help = "Preregister literals when they are asserted by the SAT solver."
+
+[[option]]
+  name       = "lemmaInprocess"
+  category   = "expert"
+  long       = "lemma-inprocess"
+  type       = "bool"
+  default    = "false"
+  help       = "inprocess lemmas based on solved literals"

@@ -233,6 +233,11 @@ void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
 {
   Node node = trn.getNode();
   Trace("prop::lemmas") << "assertLemma(" << node << ")" << std::endl;
+  // inprocess
+  if (options().prop.inprocessLemma)
+  {
+    trn = d_theoryProxy->inprocessLemma(trn);
+  }
   if (isOutputOn(OutputTag::LEMMAS))
   {
     output(OutputTag::LEMMAS) << "(lemma ";

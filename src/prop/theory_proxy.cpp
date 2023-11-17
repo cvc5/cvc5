@@ -61,7 +61,8 @@ TheoryProxy::TheoryProxy(Env& env,
       options().smt.deepRestartMode != options::DeepRestartMode::NONE
       || isOutputOn(OutputTag::LEARNED_LITS)
       || options().smt.produceLearnedLiterals
-      || options().parallel.computePartitions > 0;
+      || options().parallel.computePartitions > 0
+      || options().prop.lemmaInprocess;
   if (trackZeroLevel)
   {
     d_zll = std::make_unique<ZeroLevelLearner>(env, theoryEngine);
@@ -91,6 +92,10 @@ void TheoryProxy::finishInit(CDCLTSatSolver* ss, CnfStream* cs)
   // compute if we need to track skolem definitions
   d_trackActiveSkDefs = d_decisionEngine->needsActiveSkolemDefs()
                         || d_prr->needsActiveSkolemDefs();
+  if (options().prop.lemmaInprocess)
+  {
+    d_lemip.reset(new LemmaInprocess(d_env, cs, *d_zll.get()));
+  }
   d_cnfStream = cs;
 }
 
@@ -481,6 +486,12 @@ std::vector<Node> TheoryProxy::getLearnedZeroLevelLiteralsForRestart() const
     return d_zll->getLearnedZeroLevelLiteralsForRestart();
   }
   return {};
+}
+
+TrustNode TheoryProxy::inprocessLemma(TrustNode& trn)
+{
+  Assert (d_lemip!=nullptr);
+  return d_lemip->inprocessLemma(trn);
 }
 
 }  // namespace prop

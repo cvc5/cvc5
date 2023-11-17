@@ -35,7 +35,9 @@ ZeroLevelLearner::ZeroLevelLearner(Env& env, TheoryEngine* theoryEngine)
       d_ppnAtoms(userContext()),
       d_ppnTerms(userContext()),
       d_ppnSyms(userContext()),
-      d_assertNoLearnCount(0)
+      d_assertNoLearnCount(0),
+      d_tsmap(env, userContext(), "ZllSubsMap"),
+      d_tcpmap(env, userContext(), "ZllConstPropMap")
 {
   // get the learned types
   options::DeepRestartMode lmode = options().smt.deepRestartMode;
@@ -58,6 +60,7 @@ ZeroLevelLearner::ZeroLevelLearner(Env& env, TheoryEngine* theoryEngine)
       d_learnedTypes.insert(modes::LearnedLitType::CONSTANT_PROP);
     }
   }
+  d_trackSubs = true;
 }
 
 ZeroLevelLearner::~ZeroLevelLearner() {}
@@ -243,13 +246,17 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
     if (getSolved(lit, ss))
     {
       // if we solved for any variable from input, we are SOLVABLE.
-      for (const Node& v : ss.d_vars)
+      for (size_t i=0, nvars = ss.d_vars.size(); i<nvars; i++)
       {
+        Node v = ss.d_vars[i];
         if (d_ppnSyms.find(v) != d_ppnSyms.end())
         {
           Trace("level-zero-assert") << "...solvable due to " << v << std::endl;
           ltype = modes::LearnedLitType::SOLVABLE;
-          break;
+        }
+        if (d_trackSubs)
+        {
+          d_tsmap.addSubstitution(v, ss.d_subs[i]);
         }
       }
     }
@@ -260,10 +267,16 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
       {
         for (size_t i = 0; i < 2; i++)
         {
-          if (lit[i].isConst()
-              && d_ppnTerms.find(lit[1 - i]) != d_ppnTerms.end())
+          if (lit[i].isConst())
           {
-            ltype = modes::LearnedLitType::CONSTANT_PROP;
+            if (d_ppnTerms.find(lit[1 - i]) != d_ppnTerms.end())
+            {
+              ltype = modes::LearnedLitType::CONSTANT_PROP;
+            }
+            if (d_trackSubs)
+            {
+              d_tcpmap.addSubstitution(lit[1-i], lit[i]);
+            }
             break;
           }
         }
@@ -273,6 +286,16 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
   Trace("level-zero-assert")
       << "Level zero assert: " << lit << ", type=" << ltype << std::endl;
   return ltype;
+}
+
+theory::TrustSubstitutionMap& ZeroLevelLearner::getSubstitution()
+{
+  return d_tsmap;
+}
+
+theory::TrustSubstitutionMap& ZeroLevelLearner::getConstantPropagation()
+{
+  return d_tcpmap;
 }
 
 void ZeroLevelLearner::processLearnedLiteral(const Node& lit,
