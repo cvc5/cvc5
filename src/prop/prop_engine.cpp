@@ -233,11 +233,6 @@ void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
 {
   Node node = trn.getNode();
   Trace("prop::lemmas") << "assertLemma(" << node << ")" << std::endl;
-  // inprocess
-  if (options().prop.lemmaInprocess)
-  {
-    trn = d_theoryProxy->inprocessLemma(trn);
-  }
   if (isOutputOn(OutputTag::LEMMAS))
   {
     output(OutputTag::LEMMAS) << "(lemma ";
@@ -318,6 +313,11 @@ void PropEngine::assertLemmasInternal(
   Trace("prop") << "Push to SAT..." << std::endl;
   if (!trn.isNull())
   {
+    // inprocess
+    if (options().prop.lemmaInprocess)
+    {
+      trn = d_theoryProxy->inprocessLemma(trn);
+    }
     assertTrustedLemmaInternal(trn, removable);
   }
   for (const theory::SkolemLemma& lem : ppLemmas)

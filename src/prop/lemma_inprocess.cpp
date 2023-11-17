@@ -26,7 +26,7 @@ LemmaInprocess::LemmaInprocess(Env& env, CnfStream* cs, ZeroLevelLearner& zll)
     : EnvObj(env),
       d_cs(cs),
       d_tsmap(zll.getSubstitutions()),
-      d_tcpmap(zll.getConstantPropagations())
+      d_tcpmap(zll.getConstantPropagations()), d_subsLitMap(userContext())
 {
 }
 TrustNode LemmaInprocess::inprocessLemma(TrustNode& trn)
@@ -37,6 +37,7 @@ TrustNode LemmaInprocess::inprocessLemma(TrustNode& trn)
   Trace("ajr-temp") << "...finish" << std::endl;
   if (provenp != proven)
   {
+    Trace("lemma-inprocess-lemma") << "Inprocess " << proven << " returns " << provenp << std::endl;
     // TODO: proofs
     return TrustNode::mkTrustNode(trn.getKind(), provenp);
   }
@@ -49,6 +50,7 @@ Node LemmaInprocess::processInternal(const Node& lem)
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
+  context::CDHashMap<Node, Node>::iterator its;
   TNode cur;
   visit.emplace_back(lem);
   do
@@ -68,26 +70,44 @@ Node LemmaInprocess::processInternal(const Node& lem)
       {
         visit.pop_back();
         // literal case
+        bool prevLit = d_cs->hasLiteral(cur);
         Node scur = d_tsmap.get().apply(cur, d_env.getRewriter());
         scur = d_tcpmap.get().apply(scur, d_env.getRewriter());
-        if (scur != cur)
+        its = d_subsLitMap.find(scur);
+        if (its!=d_subsLitMap.end())
         {
-          scur = rewrite(scur);
-          Trace("lemma-inprocess-debug")
-              << "Inprocess " << cur << " -> " << scur << std::endl;
-          if (scur.isConst() || d_cs->hasLiteral(scur))
+          if (cur!=its->second)
           {
-            bool prevLit = d_cs->hasLiteral(cur);
-            if (prevLit)
-            {
-              // inferred they are equivalent? maybe should send clause here?
-            }
             Trace("lemma-inprocess")
-                << "Replace: " << cur << " -> " << scur
-                << ", prevLit = " << d_cs->hasLiteral(cur) << std::endl;
-            visited[cur] = scur;
+                << "Replace (indirect): " << cur << " -> " << its->second << ", prevLit = " << prevLit << std::endl;
+            visited[cur] = its->second;
             continue;
           }
+        }
+        else
+        {
+          bool currLit = prevLit;
+          if (scur != cur)
+          {
+            currLit = d_cs->hasLiteral(scur);
+            scur = rewrite(scur);
+            Trace("lemma-inprocess-debug")
+                << "Inprocess " << cur << " -> " << scur << std::endl;
+            if (scur.isConst() || currLit || !prevLit)
+            {
+              if (prevLit)
+              {
+                // inferred they are equivalent? maybe should send clause here?
+              }
+              Trace("lemma-inprocess")
+                  << "Replace: " << cur << " -> " << scur
+                  << ", currLit = " << currLit << ", prevLit = " << prevLit << std::endl;
+              visited[cur] = scur;
+              d_subsLitMap[scur] = scur;
+              continue;
+            }
+          }
+          d_subsLitMap[cur] = cur;
         }
         visited[cur] = cur;
       }

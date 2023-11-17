@@ -56,6 +56,8 @@ class LemmaInprocess : protected EnvObj
   theory::TrustSubstitutionMap& d_tsmap;
   /** Substitution */
   theory::TrustSubstitutionMap& d_tcpmap;
+  /** */
+  context::CDHashMap<Node, Node> d_subsLitMap;
 };
 
 }  // namespace prop
