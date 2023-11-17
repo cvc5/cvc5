@@ -289,10 +289,10 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
             }
             break;
           }
-          else if (expr::hasSubterm(lit[1-i], lit[i]))
+          else if (expr::hasSubterm(lit[1 - i], lit[i]))
           {
-              Trace("lemma-inprocess-subs")
-                  << "Add cp subterm: " << lit[1 - i] << " -> " << lit[i] << std::endl;
+            Trace("lemma-inprocess-subs") << "Add cp subterm: " << lit[1 - i]
+                                          << " -> " << lit[i] << std::endl;
             d_tcpmap.addSubstitution(lit[1 - i], lit[i]);
             break;
           }

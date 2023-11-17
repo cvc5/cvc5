@@ -26,7 +26,8 @@ LemmaInprocess::LemmaInprocess(Env& env, CnfStream* cs, ZeroLevelLearner& zll)
     : EnvObj(env),
       d_cs(cs),
       d_tsmap(zll.getSubstitutions()),
-      d_tcpmap(zll.getConstantPropagations()), d_subsLitMap(userContext())
+      d_tcpmap(zll.getConstantPropagations()),
+      d_subsLitMap(userContext())
 {
 }
 TrustNode LemmaInprocess::inprocessLemma(TrustNode& trn)
@@ -37,7 +38,8 @@ TrustNode LemmaInprocess::inprocessLemma(TrustNode& trn)
   Trace("ajr-temp") << "...finish" << std::endl;
   if (provenp != proven)
   {
-    Trace("lemma-inprocess-lemma") << "Inprocess " << proven << " returns " << provenp << std::endl;
+    Trace("lemma-inprocess-lemma")
+        << "Inprocess " << proven << " returns " << provenp << std::endl;
     // TODO: proofs
     return TrustNode::mkTrustNode(trn.getKind(), provenp);
   }
@@ -74,12 +76,13 @@ Node LemmaInprocess::processInternal(const Node& lem)
         Node scur = d_tsmap.get().apply(cur, d_env.getRewriter());
         scur = d_tcpmap.get().apply(scur, d_env.getRewriter());
         its = d_subsLitMap.find(scur);
-        if (its!=d_subsLitMap.end())
+        if (its != d_subsLitMap.end())
         {
-          if (cur!=its->second)
+          if (cur != its->second)
           {
             Trace("lemma-inprocess")
-                << "Replace (indirect): " << cur << " -> " << its->second << ", prevLit = " << prevLit << std::endl;
+                << "Replace (indirect): " << cur << " -> " << its->second
+                << ", prevLit = " << prevLit << std::endl;
             visited[cur] = its->second;
             continue;
           }
@@ -101,7 +104,8 @@ Node LemmaInprocess::processInternal(const Node& lem)
               }
               Trace("lemma-inprocess")
                   << "Replace: " << cur << " -> " << scur
-                  << ", currLit = " << currLit << ", prevLit = " << prevLit << std::endl;
+                  << ", currLit = " << currLit << ", prevLit = " << prevLit
+                  << std::endl;
               visited[cur] = scur;
               d_subsLitMap[scur] = scur;
               continue;
