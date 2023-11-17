@@ -26,10 +26,10 @@
 #include "expr/node.h"
 #include "proof/trust_node.h"
 #include "prop/learned_db.h"
+#include "prop/lemma_inprocess.h"
 #include "prop/registrar.h"
 #include "prop/sat_solver_types.h"
 #include "prop/theory_preregistrar.h"
-#include "prop/lemma_inprocess.h"
 #include "smt/env_obj.h"
 #include "theory/incomplete_id.h"
 #include "theory/theory.h"
@@ -218,6 +218,7 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** Inprocess lemma */
   TrustNode inprocessLemma(TrustNode& trn);
+
  private:
   /** The prop engine we are using. */
   PropEngine* d_propEngine;

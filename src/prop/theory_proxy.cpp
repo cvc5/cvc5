@@ -490,7 +490,7 @@ std::vector<Node> TheoryProxy::getLearnedZeroLevelLiteralsForRestart() const
 
 TrustNode TheoryProxy::inprocessLemma(TrustNode& trn)
 {
-  Assert (d_lemip!=nullptr);
+  Assert(d_lemip != nullptr);
   return d_lemip->inprocessLemma(trn);
 }
 

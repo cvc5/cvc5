@@ -246,7 +246,7 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
     if (getSolved(lit, ss))
     {
       // if we solved for any variable from input, we are SOLVABLE.
-      for (size_t i=0, nvars = ss.d_vars.size(); i<nvars; i++)
+      for (size_t i = 0, nvars = ss.d_vars.size(); i < nvars; i++)
       {
         Node v = ss.d_vars[i];
         if (d_ppnSyms.find(v) != d_ppnSyms.end())
@@ -275,7 +275,7 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
             }
             if (d_trackSubs)
             {
-              d_tcpmap.addSubstitution(lit[1-i], lit[i]);
+              d_tcpmap.addSubstitution(lit[1 - i], lit[i]);
             }
             break;
           }

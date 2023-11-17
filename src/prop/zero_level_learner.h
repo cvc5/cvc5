@@ -74,6 +74,7 @@ class ZeroLevelLearner : protected EnvObj
   theory::TrustSubstitutionMap& getSubstitutions();
   /** Get inprocess constant propagation */
   theory::TrustSubstitutionMap& getConstantPropagations();
+
  private:
   static void getAtoms(TNode a,
                        std::unordered_set<TNode>& visited,
