@@ -32,7 +32,7 @@ LemmaInprocess::LemmaInprocess(Env& env, CnfStream* cs, ZeroLevelLearner& zll)
 }
 TrustNode LemmaInprocess::inprocessLemma(TrustNode& trn)
 {
-  if (trn.getKind()==TrustNodeKind::CONFLICT)
+  if (trn.getKind() == TrustNodeKind::CONFLICT)
   {
     return trn;
   }

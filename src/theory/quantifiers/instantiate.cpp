@@ -340,8 +340,8 @@ bool Instantiate::addInstantiationInternal(
   if (hasProof)
   {
     // use proof generator
-    addedLem =
-        d_qim.addPendingLemma(lem, id, LemmaProperty::INPROCESS, d_pfInst.get());
+    addedLem = d_qim.addPendingLemma(
+        lem, id, LemmaProperty::INPROCESS, d_pfInst.get());
   }
   else
   {

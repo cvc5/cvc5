@@ -299,7 +299,7 @@ void PropEngine::assertLemmasInternal(
     TrustNode trn,
     const std::vector<theory::SkolemLemma>& ppLemmas,
     bool removable,
-                                      bool inprocess)
+    bool inprocess)
 {
   if (!removable)
   {

@@ -390,7 +390,8 @@ class PropEngine : protected EnvObj
    */
   void assertLemmasInternal(TrustNode trn,
                             const std::vector<theory::SkolemLemma>& ppLemmas,
-                            bool removable, bool inprocess);
+                            bool removable,
+                            bool inprocess);
 
   /**
    * Indicates that the SAT solver is currently solving something and we should
