@@ -341,11 +341,11 @@ bool Instantiate::addInstantiationInternal(
   {
     // use proof generator
     addedLem =
-        d_qim.addPendingLemma(lem, id, LemmaProperty::NONE, d_pfInst.get());
+        d_qim.addPendingLemma(lem, id, LemmaProperty::INPROCESS, d_pfInst.get());
   }
   else
   {
-    addedLem = d_qim.addPendingLemma(lem, id);
+    addedLem = d_qim.addPendingLemma(lem, id, LemmaProperty::INPROCESS);
   }
 
   if (!addedLem)
