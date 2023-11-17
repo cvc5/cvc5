@@ -196,7 +196,8 @@ as constants. The rationale is that there used to be 3 reasons to use `:const`:
   (concat (bv 0 power) (extract (- n 1) power x)))
 ```
 
-More information can be found in other works but beware of changes.
+More information can be found in other works but beware of changes:
+* [FMCAD 22/Reconstructing Fine-Grained Proofs of Rewrites Using a Domain-Specific Language](https://ieeexplore.ieee.org/document/10026573)
 
 ### Gradual Types
 
