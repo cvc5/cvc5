@@ -116,3 +116,26 @@ name   = "SAT Layer"
   type       = "bool"
   default    = "false"
   help       = "inprocess lemmas based on solved literals"
+
+[[option]]
+  name       = "lemmaInprocessMode"
+  category   = "expert"
+  long       = "lemma-inprocess-mode=MODE"
+  type       = "LemmaInprocessMode"
+  default    = "FULL"
+  help       = "Modes for inprocessing lemmas."
+  help_mode  = "Modes for inprocessing lemmas."
+[[option.mode.FULL]]
+  name = "full"
+  help = "Full inprocessing."
+[[option.mode.LIGHT]]
+  name = "light"
+  help = "Light inprocessing."
+
+[[option]]
+  name       = "lemmaInprocessInferEqLit"
+  category   = "expert"
+  long       = "lemma-inprocess-infer-eq-lit"
+  type       = "bool"
+  default    = "false"
+  help       = "infer equivalent literals"

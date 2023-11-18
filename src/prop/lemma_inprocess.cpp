@@ -15,6 +15,7 @@
 
 #include "prop/lemma_inprocess.h"
 
+#include "options/prop_options.h"
 #include "expr/node_algorithm.h"
 #include "prop/zero_level_learner.h"
 #include "smt/env.h"
@@ -27,7 +28,8 @@ LemmaInprocess::LemmaInprocess(Env& env, CnfStream* cs, ZeroLevelLearner& zll)
       d_cs(cs),
       d_tsmap(zll.getSubstitutions()),
       d_tcpmap(zll.getConstantPropagations()),
-      d_subsLitMap(userContext())
+      d_subsLitMap(userContext()),
+      d_eqLitLemmas(userContext())
 {
 }
 TrustNode LemmaInprocess::inprocessLemma(TrustNode& trn)
@@ -37,9 +39,7 @@ TrustNode LemmaInprocess::inprocessLemma(TrustNode& trn)
     return trn;
   }
   const Node& proven = trn.getProven();
-  Trace("ajr-temp") << "Process" << std::endl;
   Node provenp = processInternal(proven);
-  Trace("ajr-temp") << "...finish" << std::endl;
   if (provenp != proven)
   {
     Trace("lemma-inprocess-lemma")
@@ -52,6 +52,7 @@ TrustNode LemmaInprocess::inprocessLemma(TrustNode& trn)
 
 Node LemmaInprocess::processInternal(const Node& lem)
 {
+  std::vector<Node> eqLitLemmas;
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
@@ -100,11 +101,24 @@ Node LemmaInprocess::processInternal(const Node& lem)
             scur = rewrite(scur);
             Trace("lemma-inprocess-debug")
                 << "Inprocess " << cur << " -> " << scur << std::endl;
-            if (scur.isConst() || currLit || !prevLit)
+            bool doReplace = false;
+            switch (options().prop.lemmaInprocessMode)
             {
-              if (prevLit)
+              case options::LemmaInprocessMode::FULL: doReplace = (scur.isConst() || currLit || !prevLit);break;
+              case options::LemmaInprocessMode::LIGHT: doReplace = (scur.isConst() || !prevLit);break;
+              default:break;
+            }
+            if (doReplace)
+            {
+              if (options().prop.lemmaInprocessInferEqLit && ((scur.isConst() || currLit) && prevLit))
               {
                 // inferred they are equivalent? maybe should send clause here?
+                Node eql = rewrite(scur.eqNode(cur));
+                if (d_eqLitLemmas.find(eql)==d_eqLitLemmas.end())
+                {
+                  d_eqLitLemmas.insert(eql);
+                  eqLitLemmas.emplace_back(eql);
+                }
               }
               Trace("lemma-inprocess")
                   << "Replace: " << cur << " -> " << scur
@@ -115,7 +129,7 @@ Node LemmaInprocess::processInternal(const Node& lem)
               continue;
             }
           }
-          d_subsLitMap[cur] = cur;
+          d_subsLitMap[scur] = cur;
         }
         visited[cur] = cur;
       }
@@ -145,7 +159,13 @@ Node LemmaInprocess::processInternal(const Node& lem)
   } while (!visit.empty());
   Assert(visited.find(lem) != visited.end());
   Assert(!visited.find(lem)->second.isNull());
-  return visited[lem];
+  Node ret = visited[lem];
+  if (eqLitLemmas.empty())
+  {
+    eqLitLemmas.emplace_back(ret);
+    return nm->mkAnd(eqLitLemmas);
+  }
+  return ret;
 }
 
 }  // namespace prop

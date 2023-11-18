@@ -58,6 +58,8 @@ class LemmaInprocess : protected EnvObj
   theory::TrustSubstitutionMap& d_tcpmap;
   /** */
   context::CDHashMap<Node, Node> d_subsLitMap;
+  /** Equivalent literal lemmas */
+  context::CDHashSet<Node> d_eqLitLemmas;
 };
 
 }  // namespace prop
