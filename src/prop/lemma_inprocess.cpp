@@ -105,7 +105,7 @@ Node LemmaInprocess::processInternal(const Node& lem)
             switch (options().prop.lemmaInprocessMode)
             {
               case options::LemmaInprocessMode::FULL: doReplace = (scur.isConst() || currLit || !prevLit);break;
-              case options::LemmaInprocessMode::LIGHT: doReplace = (scur.isConst() || !prevLit);break;
+              case options::LemmaInprocessMode::LIGHT: doReplace = (scur.isConst() || (currLit && !prevLit));break;
               default:break;
             }
             if (doReplace)

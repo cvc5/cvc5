@@ -133,6 +133,21 @@ name   = "SAT Layer"
   help = "Light inprocessing."
 
 [[option]]
+  name       = "lemmaInprocessSubsMode"
+  category   = "expert"
+  long       = "lemma-inprocess-subs=MODE"
+  type       = "LemmaInprocessSubsMode"
+  default    = "ALL"
+  help       = "Modes for substitutions for inprocessing lemmas."
+  help_mode  = "Modes for substitutions for inprocessing lemmas."
+[[option.mode.ALL]]
+  name = "all"
+  help = "All substitutions."
+[[option.mode.SIMPLE]]
+  name = "simple"
+  help = "Simple substitutions."
+
+[[option]]
   name       = "lemmaInprocessInferEqLit"
   category   = "expert"
   long       = "lemma-inprocess-infer-eq-lit"

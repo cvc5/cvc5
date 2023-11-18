@@ -19,6 +19,7 @@
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/smt_options.h"
+#include "options/prop_options.h"
 #include "smt/env.h"
 #include "theory/theory_engine.h"
 #include "theory/trust_substitutions.h"
@@ -262,9 +263,18 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
         }
         if (d_trackSubs)
         {
-          Trace("lemma-inprocess-subs")
-              << "Add subs: " << v << " -> " << ss.d_subs[i] << std::endl;
-          d_tsmap.addSubstitution(v, ss.d_subs[i]);
+          bool addSubs = true;
+          switch (options().prop.lemmaInprocessSubsMode)
+          {
+            case options::LemmaInprocessSubsMode::SIMPLE: addSubs = ss.d_subs[i].getNumChildren()==0; break;
+            default: break;
+          }
+          if (addSubs)
+          {
+            Trace("lemma-inprocess-subs")
+                << "Add subs: " << v << " -> " << ss.d_subs[i] << std::endl;
+            d_tsmap.addSubstitution(v, ss.d_subs[i]);
+          }
         }
       }
     }
