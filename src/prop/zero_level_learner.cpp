@@ -224,7 +224,7 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion, int32_t alevel)
   }
   if (TraceIsOn("level-zero-debug"))
   {
-    if (d_assertNoLearnCount > 0
+    if (d_assertNoLearnCount > 0 && d_deepRestartThreshold>0
         && d_assertNoLearnCount % d_deepRestartThreshold == 0)
     {
       Trace("level-zero-debug")
@@ -247,9 +247,10 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
   modes::LearnedLitType ltype =
       internal ? modes::LearnedLitType::INTERNAL : modes::LearnedLitType::INPUT;
   // compute if solvable
-  if (internal)
+  if (internal || d_trackSubs)
   {
     Subs ss;
+    bool processed = false;
     if (getSolved(lit, ss))
     {
       // if we solved for any variable from input, we are SOLVABLE.
@@ -259,7 +260,10 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
         if (d_ppnSyms.find(v) != d_ppnSyms.end())
         {
           Trace("level-zero-assert") << "...solvable due to " << v << std::endl;
-          ltype = modes::LearnedLitType::SOLVABLE;
+          if (ltype==modes::LearnedLitType::INTERNAL)
+          {
+            ltype = modes::LearnedLitType::SOLVABLE;
+          }
         }
         if (d_trackSubs)
         {
@@ -271,6 +275,7 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
           }
           if (addSubs)
           {
+            processed = true;
             Trace("lemma-inprocess-subs")
                 << "Add subs: " << v << " -> " << ss.d_subs[i] << std::endl;
             d_tsmap.addSubstitution(v, ss.d_subs[i]);
@@ -278,16 +283,16 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
         }
       }
     }
-    if (ltype != modes::LearnedLitType::SOLVABLE)
+    if ((d_trackSubs && !processed) || ltype != modes::LearnedLitType::SOLVABLE)
     {
       // maybe a constant prop?
       if (lit.getKind() == Kind::EQUAL)
       {
         for (size_t i = 0; i < 2; i++)
         {
-          if (lit[i].isConst())
+          if (lit[i].isConst())// || lit[i].getNumChildren()==0)
           {
-            if (d_ppnTerms.find(lit[1 - i]) != d_ppnTerms.end())
+            if (ltype == modes::LearnedLitType::INTERNAL && d_ppnTerms.find(lit[1 - i]) != d_ppnTerms.end())
             {
               ltype = modes::LearnedLitType::CONSTANT_PROP;
             }
@@ -296,17 +301,23 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
               Trace("lemma-inprocess-subs")
                   << "Add cp: " << lit[1 - i] << " -> " << lit[i] << std::endl;
               d_tcpmap.addSubstitution(lit[1 - i], lit[i]);
+              processed = true;
             }
             break;
           }
-          else if (expr::hasSubterm(lit[1 - i], lit[i]))
+          else if (d_trackSubs && expr::hasSubterm(lit[1 - i], lit[i]))
           {
             Trace("lemma-inprocess-subs") << "Add cp subterm: " << lit[1 - i]
                                           << " -> " << lit[i] << std::endl;
             d_tcpmap.addSubstitution(lit[1 - i], lit[i]);
+            processed = true;
             break;
           }
         }
+      }
+      if (!processed)
+      {
+        Trace("lemma-inprocess-subs-n") << "Unused unit learned: " << lit << std::endl;
       }
     }
   }

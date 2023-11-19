@@ -137,7 +137,7 @@ name   = "SAT Layer"
   category   = "expert"
   long       = "lemma-inprocess-subs=MODE"
   type       = "LemmaInprocessSubsMode"
-  default    = "ALL"
+  default    = "SIMPLE"
   help       = "Modes for substitutions for inprocessing lemmas."
   help_mode  = "Modes for substitutions for inprocessing lemmas."
 [[option.mode.ALL]]
