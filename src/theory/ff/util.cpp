@@ -16,7 +16,7 @@
 #include "theory/ff/util.h"
 
 // external includes
-#ifdef CVC5_USE_POLY
+#ifdef CVC5_USE_COCOA
 #include <CoCoA/QuotientRing.H>
 #endif /* CVC5_USE_COCOA */
 
