@@ -867,8 +867,8 @@ TrustNode TheoryEngine::ppRewrite(TNode term,
     {
       Node proven = tskl.getProven();
       Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(tid);
-      d_lazyProof->addStep(
-          proven, ProofRule::THEORY_PREPROCESS_LEMMA, {}, {proven, tidn});
+      d_lazyProof->addTrustedStep(
+          proven, TrustId::THEORY_PREPROCESS_LEMMA, {}, {tidn});
       skl.d_lemma = TrustNode::mkTrustLemma(proven, d_lazyProof.get());
     }
   }
@@ -1258,8 +1258,7 @@ TrustNode TheoryEngine::getExplanation(TNode node)
         Node proven = texplanation.getProven();
         TheoryId tid = theoryOf(atom)->getId();
         Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(tid);
-        d_lazyProof->addStep(
-            proven, ProofRule::THEORY_LEMMA, {}, {proven, tidn});
+        d_lazyProof->addTrustedStep(proven, TrustId::THEORY_LEMMA, {}, {tidn});
         texplanation =
             TrustNode::mkTrustPropExp(node, explanation, d_lazyProof.get());
       }
@@ -1439,7 +1438,7 @@ void TheoryEngine::lemma(TrustNode tlemma,
       Assert(from != THEORY_LAST);
       // add theory lemma step to proof
       Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(from);
-      d_lazyProof->addStep(lemma, ProofRule::THEORY_LEMMA, {}, {lemma, tidn});
+      d_lazyProof->addTrustedStep(lemma, TrustId::THEORY_LEMMA, {}, {tidn});
       // update the trust node
       tlemma = TrustNode::mkTrustLemma(lemma, d_lazyProof.get());
     }
@@ -1541,7 +1540,7 @@ void TheoryEngine::conflict(TrustNode tconflict,
         // add theory lemma step
         Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
         Node conf = tconflict.getProven();
-        d_lazyProof->addStep(conf, ProofRule::THEORY_LEMMA, {}, {conf, tidn});
+        d_lazyProof->addTrustedStep(conf, TrustId::THEORY_LEMMA, {}, {tidn});
       }
       // store the explicit step, which should come from a different
       // generator, e.g. d_tepg.
@@ -1924,7 +1923,7 @@ TrustNode TheoryEngine::getExplanation(
         Trace("te-proof-exp") << "...via trust THEORY_LEMMA" << std::endl;
         // otherwise, trusted theory lemma
         Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(ttid);
-        lcp->addStep(proven, ProofRule::THEORY_LEMMA, {}, {proven, tidn});
+        lcp->addTrustedStep(proven, TrustId::THEORY_LEMMA, {}, {tidn});
       }
       std::vector<Node> pfChildren;
       pfChildren.push_back(trn.getNode());

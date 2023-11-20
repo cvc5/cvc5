@@ -72,6 +72,8 @@ class InferProofCons : protected EnvObj, public ProofGenerator
   virtual std::string identify() const override;
 
  private:
+  /** Common constants */
+  Node d_tdid;
   /** convert
    *
    * This method is called when the theory of strings makes an inference

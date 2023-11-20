@@ -262,10 +262,10 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     {
       Node eq = ts.eqNode(tr);
       // apply REWRITE proof rule
-      if (!updateInternal(eq, ProofRule::REWRITE, {}, rargs, cdp))
+      if (!updateInternal(eq, ProofRule::MACRO_REWRITE, {}, rargs, cdp))
       {
         // if not elimianted, add as step
-        cdp->addStep(eq, ProofRule::REWRITE, {}, rargs);
+        cdp->addStep(eq, ProofRule::MACRO_REWRITE, {}, rargs);
       }
       tchildren.push_back(eq);
     }
@@ -782,7 +782,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
             << eq << std::endl
             << eqq << std::endl
             << "from " << children << " applied to " << t << std::endl;
-        cdp->addStep(eqq, ProofRule::TRUST_SUBS, children, {eqq});
+        cdp->addTrustedStep(eqq, TrustId::SUBS_NO_ELABORATE, children, {});
       }
     }
     else
@@ -791,7 +791,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     }
     return eqq;
   }
-  else if (id == ProofRule::REWRITE)
+  else if (id == ProofRule::MACRO_REWRITE)
   {
     // get the kind of rewrite
     MethodId idr = MethodId::RW_REWRITE;
@@ -817,15 +817,16 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
         // did not have a proof of rewriting, probably isExtEq is true
         if (isExtEq)
         {
-          // update to THEORY_REWRITE with idr
+          // update to TRUST_THEORY_REWRITE with idr
           Assert(args.size() >= 1);
           Node tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
-          cdp->addStep(eq, ProofRule::THEORY_REWRITE, {}, {eq, tid, args[1]});
+          cdp->addStep(
+              eq, ProofRule::TRUST_THEORY_REWRITE, {}, {eq, tid, args[1]});
         }
         else
         {
           // this should never be applied
-          cdp->addStep(eq, ProofRule::TRUST_REWRITE, {}, {eq});
+          cdp->addTrustedStep(eq, TrustId::REWRITE_NO_ELABORATE, {}, {});
         }
       }
       else
@@ -863,7 +864,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
           // will expand this as a default rewrite if needed
           Node eqd = retCurr.eqNode(retDef);
           Node mid = mkMethodId(midi);
-          cdp->addStep(eqd, ProofRule::REWRITE, {}, {retCurr, mid});
+          cdp->addStep(eqd, ProofRule::MACRO_REWRITE, {}, {retCurr, mid});
           transEq.push_back(eqd);
         }
         retCurr = retDef;
@@ -885,7 +886,8 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
         // in this case, must be a non-standard rewrite kind
         Assert(args.size() >= 2);
         targs.push_back(args[1]);
-        Node eqpp = expandMacros(ProofRule::THEORY_REWRITE, {}, targs, cdp);
+        Node eqpp =
+            expandMacros(ProofRule::TRUST_THEORY_REWRITE, {}, targs, cdp);
         transEq.push_back(eqp);
         if (eqpp.isNull())
         {
@@ -959,7 +961,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
                           << std::endl;
     return sumBounds;
   }
-  else if (id == ProofRule::STRING_INFERENCE)
+  else if (id == ProofRule::MACRO_STRING_INFERENCE)
   {
     // get the arguments
     Node conc;
@@ -976,7 +978,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       }
     }
   }
-  else if (id == ProofRule::BV_BITBLAST)
+  else if (id == ProofRule::MACRO_BV_BITBLAST)
   {
     bv::BBProof bb(d_env, nullptr, true);
     Node eq = args[0];
@@ -1003,7 +1005,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     TheoryId tid = THEORY_LAST;
     MethodId mid = MethodId::RW_REWRITE;
     // if theory rewrite, get diagnostic information
-    if (id == ProofRule::THEORY_REWRITE)
+    if (id == ProofRule::TRUST_THEORY_REWRITE)
     {
       builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
       getMethodId(args[2], mid);
@@ -1024,9 +1026,6 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     }
     // otherwise no update
   }
-
-  // TRUST, PREPROCESS, THEORY_LEMMA, THEORY_PREPROCESS?
-
   return Node::null();
 }
 
