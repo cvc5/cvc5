@@ -1998,6 +1998,19 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(FINITE_FIELD_ADD),
   /**
+   * Bitsum of two or more finite field elements: x + 2y + 4z + ...
+   *
+   * - Arity: ``n > 1``
+   *
+   *   - ``1..n:`` Terms of finite field Sort (sorts must match)
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   */
+  EVALUE(FINITE_FIELD_BITSUM),
+  /**
    * Multiplication of two or more finite field elements.
    *
    * - Arity: ``n > 1``
