@@ -61,6 +61,19 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
   return pn;
 }
 
+std::shared_ptr<ProofNode> ProofNodeManager::mkTrustedNode(
+    TrustId id,
+    const std::vector<std::shared_ptr<ProofNode>>& children,
+    const std::vector<Node>& args,
+    const Node& conc)
+{
+  std::vector<Node> sargs;
+  sargs.push_back(mkTrustId(id));
+  sargs.push_back(conc);
+  sargs.insert(sargs.end(), args.begin(), args.end());
+  return mkNode(ProofRule::TRUST, children, sargs);
+}
+
 std::shared_ptr<ProofNode> ProofNodeManager::mkAssume(Node fact)
 {
   Assert(!fact.isNull());

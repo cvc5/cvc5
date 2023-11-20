@@ -383,7 +383,7 @@ bool AletheProofPostprocessCallback::update(Node res,
 
       return success;
     }
-    case ProofRule::THEORY_REWRITE:
+    case ProofRule::TRUST_THEORY_REWRITE:
     {
       return addAletheStep(AletheRule::ALL_SIMPLIFY,
                            res,

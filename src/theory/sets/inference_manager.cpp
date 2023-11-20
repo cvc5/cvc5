@@ -16,6 +16,8 @@
 #include "theory/sets/inference_manager.h"
 
 #include "options/sets_options.h"
+#include "proof/trust_id.h"
+#include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
 
 using namespace std;
@@ -30,6 +32,8 @@ InferenceManager::InferenceManager(Env& env, Theory& t, SolverState& s)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
+  d_tid = mkTrustId(TrustId::THEORY_INFERENCE);
+  d_tsid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_SETS);
 }
 
 bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int inferType)
@@ -117,7 +121,7 @@ bool InferenceManager::assertSetsFact(Node atom,
 {
   Node conc = polarity ? atom : atom.notNode();
   return assertInternalFact(
-      atom, polarity, id, ProofRule::THEORY_INFERENCE, {exp}, {conc});
+      atom, polarity, id, ProofRule::TRUST, {exp}, {d_tid, conc, d_tsid});
 }
 
 void InferenceManager::assertInference(Node fact,
