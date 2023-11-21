@@ -1473,8 +1473,6 @@ void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
   {
     Node f = funcs_to_assign[k];
     Trace("model-builder") << "  Function #" << k << " is " << f << std::endl;
-    // std::map< Node, std::vector< Node > >::iterator itht =
-    // m->d_ho_uf_terms.find( f );
     if (!logicInfo().isHigherOrder())
     {
       Trace("model-builder") << "  Assign function value for " << f

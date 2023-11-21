@@ -604,20 +604,22 @@ void TheoryUF::processCarePairArgs(TNode a, TNode b)
     {
       TNode x = a[k];
       TNode y = b[k];
-      if (!d_equalityEngine->areEqual(x, y))
+      if (d_equalityEngine->hasTerm(x) && d_equalityEngine->hasTerm(y) && d_equalityEngine->areEqual(x, y))
       {
-        // Splitting on functions. This is required since conceptually the HO
-        // extension should be considered a separate entity with regards to
-        // theory combination (in particular, with the core UF solver). This is
-        // similar to how we handle sets of sets, where each set type is
-        // considered a separate entity.
-        if (x.getType().isFunction())
-        {
-          Assert(y.getType().isFunction());
-          Node lemma = x.eqNode(y);
-          lemma = nm->mkNode(Kind::OR, lemma, lemma.notNode());
-          d_im.lemma(lemma, InferenceId::UF_HO_CG_SPLIT);
-        }
+        continue;
+      }
+      // Splitting on functions. This is required since conceptually the HO
+      // extension should be considered a separate entity with regards to
+      // theory combination (in particular, with the core UF solver). This is
+      // similar to how we handle sets of sets, where each set type is
+      // considered a separate entity. The types below must be equal to handle
+      // polymorphic higher-order operators.
+      TypeNode xt = x.getType();
+      if (xt.isFunction() && xt==y.getType())
+      {
+        Node lemma = x.eqNode(y);
+        lemma = nm->mkNode(Kind::OR, lemma, lemma.notNode());
+        d_im.lemma(lemma, InferenceId::UF_HO_CG_SPLIT);
       }
     }
   }
