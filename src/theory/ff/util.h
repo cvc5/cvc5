@@ -45,19 +45,30 @@ enum class Result
   UNKNOWN,
 };
 
-/** A class associated with a specific field (for inheritting). */
+/**
+ * A class associated with a specific field (for inheritting).
+ *
+ * A FieldObj is constructed from an FfSize, and provides various helper
+ * functions for the field of that size.
+ * */
 class FieldObj
 {
  public:
   FieldObj(const FfSize& size);
-  /** create a sum (with as few as 0 elements) */
-  Node mkAdd(std::vector<Node>&& summands);
-  /** create a product (with as few as 0 elements) */
-  Node mkMul(std::vector<Node>&& factors);
+  /** create a sum (with as few as 0 elements); accepts Nodes or TNodes */
+  template <bool ref_count>
+  Node mkAdd(const std::vector<NodeTemplate<ref_count>>& summands);
+  /** create a product (with as few as 0 elements); accepts Nodes or TNodes */
+  template <bool ref_count>
+  Node mkMul(const std::vector<NodeTemplate<ref_count>>& summands);
+  /** the one constant in this field */
   const Node& one() { return d_one; }
+  /** the zero constant in this field */
   const Node& zero() { return d_zero; }
+  /** the size of this field */
   const FfSize& size() { return d_size; }
 #ifdef CVC5_USE_COCOA
+  /** the CoCoA ring of integers modulo this field's size */
   const CoCoA::ring& coeffRing() { return d_coeffRing; }
 #endif /* CVC5_USE_COCOA */
 

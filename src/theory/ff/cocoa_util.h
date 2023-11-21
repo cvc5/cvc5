@@ -39,7 +39,7 @@ namespace ff {
 
 /** Type definitions. */
 
-/** A polynomial. (note: C++/Cocoa doesn't distinguish this from Coeff) */
+/** A polynomial. (note: C++/Cocoa doesn't distinguish this from Scalar) */
 using Poly = CoCoA::RingElem;
 /** A coefficient. (note: C++/Cocoa doesn't distinguish this from Poly) */
 using Scalar = CoCoA::RingElem;
@@ -50,7 +50,12 @@ using PartialPoint = std::vector<std::optional<Scalar>>;
 /** An input (point/vector) to a polynomial */
 using Point = std::vector<Scalar>;
 
-/** partial evaluation of polynomials */
+/**
+ * partial evaluation of polynomials
+ *
+ * returns an empty std::optional when some variable in `poly` does not have a
+ * value in `values`
+ */
 std::optional<Scalar> cocoaEval(Poly poly, const PartialPoint& values);
 
 /** total evaluation of polynomials */

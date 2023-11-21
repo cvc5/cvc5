@@ -30,7 +30,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace ff {
 
-std::optional<Scalar> cocoaEval(Poly poly, const PartialPoint& inputs)
+std::optional<Scalar> cocoaEval(Poly poly, const PartialPoint& values)
 {
   CoCoA::ring coeffs = CoCoA::CoeffRing(CoCoA::owner(poly));
   Scalar out = CoCoA::zero(coeffs);
@@ -40,15 +40,15 @@ std::optional<Scalar> cocoaEval(Poly poly, const PartialPoint& inputs)
     Scalar term = CoCoA::coeff(it);
     std::vector<CoCoA::BigInt> exponents;
     CoCoA::BigExponents(exponents, CoCoA::PP(it));
-    for (size_t i = 0; i < exponents.size(); ++i)
+    for (size_t i = 0, n = exponents.size(); i < n; ++i)
     {
       if (!CoCoA::IsZero(exponents[i]))
       {
-        if (!inputs[i].has_value())
+        if (!values[i].has_value())
         {
           return {};
         }
-        term *= CoCoA::power(*inputs[i], exponents[i]);
+        term *= CoCoA::power(*values[i], exponents[i]);
       }
     }
     out += term;
@@ -56,7 +56,7 @@ std::optional<Scalar> cocoaEval(Poly poly, const PartialPoint& inputs)
   return {out};
 }
 
-Scalar cocoaEval(Poly poly, const Point& inputs)
+Scalar cocoaEval(Poly poly, const Point& values)
 {
   CoCoA::ring coeffs = CoCoA::CoeffRing(CoCoA::owner(poly));
   Scalar out = CoCoA::zero(coeffs);
@@ -66,11 +66,11 @@ Scalar cocoaEval(Poly poly, const Point& inputs)
     Scalar term = CoCoA::coeff(it);
     std::vector<CoCoA::BigInt> exponents;
     CoCoA::BigExponents(exponents, CoCoA::PP(it));
-    for (size_t i = 0; i < exponents.size(); ++i)
+    for (size_t i = 0, n = exponents.size(); i < n; ++i)
     {
       if (!CoCoA::IsZero(exponents[i]))
       {
-        term *= CoCoA::power(inputs[i], exponents[i]);
+        term *= CoCoA::power(values[i], exponents[i]);
       }
     }
     out += term;
