@@ -604,7 +604,7 @@ void TheoryUF::processCarePairArgs(TNode a, TNode b)
     {
       TNode x = a[k];
       TNode y = b[k];
-      if (d_equalityEngine->hasTerm(x) && d_equalityEngine->hasTerm(y) && d_equalityEngine->areEqual(x, y))
+      if (d_state.areEqual(x, y))
       {
         continue;
       }

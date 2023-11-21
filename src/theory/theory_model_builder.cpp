@@ -1359,8 +1359,7 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
       Node hnv = m->getRepresentative(hn);
       Trace("model-builder-debug2") << "      get rep val : " << hn
                                     << " returned " << hnv << std::endl;
-      Assert(hnv.isConst());
-      if (!apply_args.empty())
+      if (hnv.isConst() && !apply_args.empty())
       {
         // Convert to lambda, which is necessary if hnv is a function array
         // constant.
