@@ -242,9 +242,10 @@ void Def::simplify(FullModelChecker * mc, FirstOrderModelFmc * m) {
     if( !last_all_stars ){
       if (TraceIsOn("fmc-cover-simplify"))
       {
-        Trace("fmc-cover-simplify") << "Need to modify last entry to be all stars." << std::endl;
+        Trace("fmc-cover-simplify")
+            << "Need to modify last entry to be all stars." << std::endl;
         Trace("fmc-cover-simplify") << "Before: " << std::endl;
-        debugPrint("fmc-cover-simplify",Node::null(), mc);
+        debugPrint("fmc-cover-simplify", Node::null(), mc);
         Trace("fmc-cover-simplify") << std::endl;
       }
       std::vector< Node > cond;
@@ -272,7 +273,7 @@ void Def::simplify(FullModelChecker * mc, FirstOrderModelFmc * m) {
       if (TraceIsOn("fmc-cover-simplify"))
       {
         Trace("fmc-cover-simplify") << "After: " << std::endl;
-        debugPrint("fmc-cover-simplify",Node::null(), mc);
+        debugPrint("fmc-cover-simplify", Node::null(), mc);
         Trace("fmc-cover-simplify") << std::endl;
       }
     }
@@ -677,7 +678,8 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
     Assert(!mcond.empty());
     if (TraceIsOn("fmc"))
     {
-      Trace("fmc") << "Definition for quantifier " << f << " is : " << std::endl;
+      Trace("fmc") << "Definition for quantifier " << f
+                   << " is : " << std::endl;
       d_quant_models[f].debugPrint("fmc", Node::null(), this);
       Trace("fmc") << std::endl;
     }
@@ -883,7 +885,7 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc* fm,
   {
     Trace("fmc-exh") << "----Exhaustive instantiate based on " << c << " ";
     debugPrintCond("fmc-exh", c, true);
-    Trace("fmc-exh")<< std::endl;
+    Trace("fmc-exh") << std::endl;
   }
   QuantifiersBoundInference& qbi = d_qreg.getQuantifiersBoundInference();
   RepBoundFmcEntry rbfe(d_env, qbi, d_qstate, d_treg, f, c, d_fm.get());
@@ -1179,7 +1181,8 @@ void FullModelChecker::doUninterpretedCompose( FirstOrderModelFmc * fm, Node f, 
   if (TraceIsOn("fmc-uf-process"))
   {
     Trace("fmc-uf-process") << "process at " << index << std::endl;
-    for( unsigned i=1; i<cond.size(); i++) {
+    for (unsigned i = 1; i < cond.size(); i++)
+    {
       debugPrint("fmc-uf-process", cond[i], true);
       Trace("fmc-uf-process") << " ";
     }
@@ -1225,8 +1228,10 @@ void FullModelChecker::doUninterpretedCompose2( FirstOrderModelFmc * fm, Node f,
                                                 EntryTrie & curr ) {
   if (TraceIsOn("fmc-uf-process"))
   {
-    Trace("fmc-uf-process") << "compose " << index << " / " << val.size() << std::endl;
-    for( unsigned i=1; i<cond.size(); i++) {
+    Trace("fmc-uf-process")
+        << "compose " << index << " / " << val.size() << std::endl;
+    for (unsigned i = 1; i < cond.size(); i++)
+    {
       debugPrint("fmc-uf-process", cond[i], true);
       Trace("fmc-uf-process") << " ";
     }
@@ -1289,8 +1294,10 @@ void FullModelChecker::doInterpretedCompose( FirstOrderModelFmc * fm, Node f, De
                                              std::vector< Node > & cond, std::vector<Node> & val ) {
   if (TraceIsOn("fmc-if-process"))
   {
-    Trace("fmc-if-process") << "int compose " << index << " / " << dc.size() << std::endl;
-    for( unsigned i=1; i<cond.size(); i++) {
+    Trace("fmc-if-process")
+        << "int compose " << index << " / " << dc.size() << std::endl;
+    for (unsigned i = 1; i < cond.size(); i++)
+    {
       debugPrint("fmc-if-process", cond[i], true);
       Trace("fmc-if-process") << " ";
     }
