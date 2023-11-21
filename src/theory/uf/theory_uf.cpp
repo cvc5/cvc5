@@ -599,7 +599,7 @@ void TheoryUF::processCarePairArgs(TNode a, TNode b)
   // also split on functions
   if (logicInfo().isHigherOrder())
   {
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     for (size_t k = 0, nchild = a.getNumChildren(); k < nchild; ++k)
     {
       TNode x = a[k];
@@ -643,8 +643,10 @@ void TheoryUF::computeCareGraph() {
     for (const Node& j : app)
     {
       reps.push_back(d_equalityEngine->getRepresentative(j));
-      // if doing higher-order, higher-order arguments must all be considered as well
-      if (d_equalityEngine->isTriggerTerm(j, THEORY_UF) || (isHigherOrder && j.getType().isFunction()))
+      // if doing higher-order, higher-order arguments must all be considered as
+      // well
+      if (d_equalityEngine->isTriggerTerm(j, THEORY_UF)
+          || (isHigherOrder && j.getType().isFunction()))
       {
         has_trigger_arg = true;
       }

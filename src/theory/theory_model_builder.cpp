@@ -1351,8 +1351,8 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
       Assert(hn.getKind() == Kind::HO_APPLY);
       Assert(m->areEqual(hn[0], f));
       Node hni = m->getRepresentative(hn[1]);
-      Trace("model-builder-debug2") << "      get rep : " << hn[1]
-                                    << " returned " << hni << std::endl;
+      Trace("model-builder-debug2")
+          << "      get rep : " << hn[1] << " returned " << hni << std::endl;
       Assert(hni.getType() == args[0].getType());
       hni = rewrite(args[0].eqNode(hni));
       Node hnv = m->getRepresentative(hn);
