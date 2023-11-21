@@ -606,7 +606,11 @@ void TheoryUF::processCarePairArgs(TNode a, TNode b)
       TNode y = b[k];
       if (!d_equalityEngine->areEqual(x, y))
       {
-        // Splitting on functions. This is required since conceptually the HO extension should be considered a separate entity with regards to theory combination (in particular, with the core UF solver). This is similar to how we handle sets of sets, where each set type is considered a separate entity.
+        // Splitting on functions. This is required since conceptually the HO
+        // extension should be considered a separate entity with regards to
+        // theory combination (in particular, with the core UF solver). This is
+        // similar to how we handle sets of sets, where each set type is
+        // considered a separate entity.
         if (x.getType().isFunction())
         {
           Assert(y.getType().isFunction());
