@@ -130,8 +130,8 @@ class Op(Enum):
 
     EQ = ('=', 'EQUAL')
     ITE = ('ite', 'ITE')
-    # Lambda is not an operator. It exists here as a backdoor to simplify parser
-    # logic.
+    # Lambda is not an operator. It exists here as a backdoor to simplify
+    # parsing logic.
     LAMBDA = (None, 'LAMBDA')
     BOUND_VARS = (None, 'BOUND_VAR_LIST')
     DISTINCT = ('distinct', 'DISTINCT')
@@ -242,12 +242,13 @@ class Sort(Node):
         self.is_const = is_const
 
         if base == BaseSort.BitVec and not self.children[0].isnumeric():
-            die("Non-numeric bit-vector size is not supported: {self.children[0]}")
+            die("Non-numeric bit-vector size is not supported: "
+                f"{self.children[0]}")
 
 
     def __eq__(self, other):
-        return self.base == other.base and self.is_list == other.is_list and super(
-        ).__eq__(other)
+        return self.base == other.base and self.is_list == other.is_list and\
+            super().__eq__(other)
 
     def __hash__(self):
         return hash((self.base, self.is_list, tuple(self.children)))

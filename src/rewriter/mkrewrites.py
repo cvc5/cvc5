@@ -81,7 +81,8 @@ def gen_mk_node(defns, expr):
     if defns is not None and expr in defns:
         return defns[expr]
     elif expr.sort and expr.sort.is_const:
-        if isinstance(expr, CInt) or (isinstance(expr, App) and expr.op == Op.NEG):
+        if isinstance(expr, CInt) or \
+           (isinstance(expr, App) and expr.op == Op.NEG):
           return f'nm->mkConstRealOrInt({gen_mk_const(expr)})'
         else:
           return f'nm->mkConst({gen_mk_const(expr)})'
@@ -178,7 +179,7 @@ def validate_rule(rule):
     # Perform type checking
     lhsHasConst = type_check(rule.lhs)
     if os.getenv('CVC5_RARE_CHECK_CONST', None) is not None and lhsHasConst:
-        print(f"Warning: Rule {rule.name} has constants in its match expression",
+        print(f"Warning: Rule {rule.name} has constants in its match",
               file=sys.stderr)
     type_check(rule.rhs)
     type_check(rule.cond)
