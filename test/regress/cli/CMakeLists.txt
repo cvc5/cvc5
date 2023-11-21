@@ -769,6 +769,7 @@ set(regress_0_tests
   regress0/ho/cong.smt2
   regress0/ho/datatype-field-ho.smt2
   regress0/ho/dd.shadowing-defs.smt2
+  regress0/ho/dd.syo009.smt2
   regress0/ho/dd.syo372-finite-ho-ext.smt2
   regress0/ho/declare-fun-variants.smt2
   regress0/ho/def-fun-flatten.smt2

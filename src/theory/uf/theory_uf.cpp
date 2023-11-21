@@ -595,6 +595,28 @@ void TheoryUF::processCarePairArgs(TNode a, TNode b)
   }
   // otherwise, we add pairs for each of their arguments
   addCarePairArgs(a, b);
+
+  // also split on functions
+  if (logicInfo().isHigherOrder())
+  {
+    NodeManager * nm = NodeManager::currentNM();
+    for (size_t k = 0, nchild = a.getNumChildren(); k < nchild; ++k)
+    {
+      TNode x = a[k];
+      TNode y = b[k];
+      if (!d_equalityEngine->areEqual(x, y))
+      {
+        // splitting on sets (necessary for handling set of sets properly)
+        if (x.getType().isFunction())
+        {
+          Assert(y.getType().isFunction());
+          Node lemma = x.eqNode(y);
+          lemma = nm->mkNode(Kind::OR, lemma, lemma.notNode());
+          d_im.lemma(lemma, InferenceId::UF_HO_CG_SPLIT);
+        }
+      }
+    }
+  }
 }
 
 void TheoryUF::computeCareGraph() {
@@ -608,6 +630,7 @@ void TheoryUF::computeCareGraph() {
   // function type for the latter.
   Trace("uf::sharing") << "TheoryUf::computeCareGraph(): Build term indices..."
                        << std::endl;
+  bool isHigherOrder = logicInfo().isHigherOrder();
   // temporary keep set for higher-order indexing below
   std::vector<Node> keep;
   std::map<Node, TNodeTrie> index;
@@ -620,7 +643,8 @@ void TheoryUF::computeCareGraph() {
     for (const Node& j : app)
     {
       reps.push_back(d_equalityEngine->getRepresentative(j));
-      if (d_equalityEngine->isTriggerTerm(j, THEORY_UF))
+      // if doing higher-order, higher-order arguments must all be considered as well
+      if (d_equalityEngine->isTriggerTerm(j, THEORY_UF) || (isHigherOrder && j.getType().isFunction()))
       {
         has_trigger_arg = true;
       }
@@ -635,7 +659,7 @@ void TheoryUF::computeCareGraph() {
         Node op = app.getOperator();
         index[op].addTerm(app, reps);
         arity[op] = reps.size();
-        if (logicInfo().isHigherOrder() && d_equalityEngine->hasTerm(op))
+        if (isHigherOrder && d_equalityEngine->hasTerm(op))
         {
           // Since we use a lazy app-completion scheme for equating fully
           // and partially applied versions of terms, we must add all

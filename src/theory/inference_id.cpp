@@ -537,6 +537,7 @@ const char* toString(InferenceId i)
     case InferenceId::UF_CARD_SIMPLE_CONFLICT: return "UF_CARD_SIMPLE_CONFLICT";
     case InferenceId::UF_CARD_SPLIT: return "UF_CARD_SPLIT";
 
+    case InferenceId::UF_HO_CG_SPLIT: return "UF_HO_CG_SPLIT";
     case InferenceId::UF_HO_APP_ENCODE: return "UF_HO_APP_ENCODE";
     case InferenceId::UF_HO_APP_CONV_SKOLEM: return "UF_HO_APP_CONV_SKOLEM";
     case InferenceId::UF_HO_EXTENSIONALITY: return "UF_HO_EXTENSIONALITY";
