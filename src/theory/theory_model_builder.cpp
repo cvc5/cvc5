@@ -1317,6 +1317,7 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
   ss << "_arg_";
   Rewriter* r = condenseFuncValues ? d_env.getRewriter() : nullptr;
   Node val = ufmt.getFunctionValue(ss.str(), r);
+  Trace("model-builder-debug") << "...assign via function" << std::endl;
   m->assignFunctionDefinition(f, val);
   // ufmt.debugPrint( std::cout, m );
 }
@@ -1384,6 +1385,7 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
       Kind::LAMBDA,
       NodeManager::currentNM()->mkNode(Kind::BOUND_VAR_LIST, args),
       curr);
+  Trace("model-builder-debug") << "...assign via ho function" << std::endl;
   m->assignFunctionDefinition(f, val);
 }
 
