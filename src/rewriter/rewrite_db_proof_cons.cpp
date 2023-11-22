@@ -591,7 +591,7 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi, DslProofRule& idb)
           pi.d_id = idb;
           return true;
         }
-        // NOTE: if does not rewrite to true, it still could be true, hence we
+        // NOTE: if eqr does not rewrite to true, it still could be true, hence we
         // fail
       }
       evalSuccess = false;
@@ -676,7 +676,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
           // NOTE: this could just evaluate the equality itself
           Assert(cur.getKind() == Kind::EQUAL);
           std::vector<Node> transc;
-          for (unsigned i = 0; i < 2; i++)
+          for (size_t i = 0; i < 2; ++i)
           {
             Node curv = doEvaluate(cur[i]);
             if (curv == cur[i])
@@ -740,8 +740,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
             // get the conditions, store into premises of cur.
             if (!rpr.getObligations(vs, rsubs, ps))
             {
-              Assert(false);
-              // failed a side condition?
+              Assert(false) << "failed a side condition?";
               return false;
             }
             pfac.insert(pfac.end(), rsubs.begin(), rsubs.end());
@@ -755,7 +754,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
     {
       // Now, add the proof rule. We do this after its children proofs already
       // exist.
-      visited[cur] = true;
+      it->second = true;
       Assert(premises.find(cur) != premises.end());
       std::vector<Node>& ps = premises[cur];
       // get the conclusion
@@ -837,14 +836,12 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
 
 Node RewriteDbProofCons::doEvaluate(const Node& n)
 {
-  std::unordered_map<Node, Node>::iterator itv = d_evalCache.find(n);
-  if (itv != d_evalCache.end())
+  auto [itv, inserted] = d_evalCache.insert(n, Node());
+  if (inserted)
   {
-    return itv->second;
+    itv->second = d_eval.eval(n, {}, {});
   }
-  Node nev = d_eval.eval(n, {}, {});
-  d_evalCache[n] = nev;
-  return nev;
+  return itv->second;
 }
 
 Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
@@ -894,7 +891,7 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
     Node body = context[1];
     Node currConc = body;
     Node currContext = placeholder;
-    for (size_t i = 0, size = steps.size(); i < size; i++)
+    for (size_t i = 0, size = steps.size(); i < size; ++i)
     {
       const std::vector<Node>& stepSubs = stepsSubs[i];
       Node step = steps[i];
@@ -959,25 +956,24 @@ void RewriteDbProofCons::cacheProofSubPlaceholder(TNode context,
 
     if (curr == placeholder)
     {
-      while (parent[curr] != Node::null())
+      TNode currp;
+      while ((currp = parent[curr]) != Node::null())
       {
-        Node lhs = parent[curr].substitute(placeholder, source);
-        Node rhs = parent[curr].substitute(placeholder, target);
+        Node lhs = currp.substitute(placeholder, source);
+        Node rhs = currp.substitute(placeholder, target);
         congs.emplace_back(lhs.eqNode(rhs));
-        curr = parent[curr];
+        curr = currp;
       }
       break;
     }
 
     for (TNode n : curr)
     {
-      if (parent.find(n) != parent.end())
+      auto [it, inserted] = parent.emplace(n, curr);
+      if (inserted)
       {
-        continue;
+        toVisit.emplace_back(n);
       }
-
-      toVisit.emplace_back(n);
-      parent[n] = curr;
     }
   }
 

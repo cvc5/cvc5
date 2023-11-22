@@ -119,7 +119,7 @@ class RewriteDbProofCons : protected EnvObj
    * the rewrite rule database for the set of rewrite rules that match the
    * left hand side of eqi.
    *
-   * If this call is successul (i.e. the returned rule is not
+   * If this call is successful (i.e. the returned rule is not
    * DslProofRule::FAIL), the proven info for eqi is stored in d_pcache[eqi].
    *
    * Note this method depends on the current step and recursion limits
