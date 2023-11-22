@@ -657,19 +657,19 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
   {
     cur = visit.back();
     visit.pop_back();
-    it = visited.find(cur);
+    std::tie(it, inserted) = visited.emplace(cur, false);
     itd = d_pcache.find(cur);
     Assert(itd != d_pcache.end());
     ProvenInfo& pcur = itd->second;
     Assert(cur.getKind() == Kind::EQUAL);
-    if (it == visited.end())
+    if (inserted)
     {
       Trace("rpc-debug") << "Ensure proof for " << cur << std::endl;
       visit.push_back(cur);
       // may already have a proof rule from a previous call
       if (cdp->hasStep(cur))
       {
-        visited[cur] = true;
+        it->second = true;
         Trace("rpc-debug") << "...already proven" << std::endl;
       }
       else
@@ -678,13 +678,14 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
         Trace("rpc-debug") << "...proved via " << pcur.d_id << std::endl;
         if (pcur.d_id == DslProofRule::REFL)
         {
+          it->second = true;
           // trivial proof
           Assert(cur[0] == cur[1]);
           cdp->addStep(cur, ProofRule::REFL, {}, {cur[0]});
         }
         else if (pcur.d_id == DslProofRule::EVAL)
         {
-          visited[cur] = true;
+          it->second = true;
           // NOTE: this could just evaluate the equality itself
           Assert(cur.getKind() == Kind::EQUAL);
           std::vector<Node> transc;
@@ -709,7 +710,6 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
         }
         else
         {
-          visited[cur] = false;
           std::vector<Node>& ps = premises[cur];
           std::vector<Node>& pfac = pfArgs[cur];
           if (isInternalDslProofRule(pcur.d_id))
@@ -763,7 +763,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
     {
       // Now, add the proof rule. We do this after its children proofs already
       // exist.
-      visited[cur] = true;
+      it->second = true;
       Assert(premises.find(cur) != premises.end());
       std::vector<Node>& ps = premises[cur];
       // get the conclusion
