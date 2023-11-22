@@ -155,6 +155,10 @@ PreprocessingPassResult ForeignTheoryRewrite::applyInternal(
   {
     assertionsToPreprocess->replace(
         i, rewrite(d_ftr.simplify((*assertionsToPreprocess)[i])));
+    if (assertionsToPreprocess->isInConflict())
+    {
+      return PreprocessingPassResult::CONFLICT;
+    }
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }

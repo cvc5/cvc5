@@ -299,8 +299,9 @@ Node AlfNodeConverter::postConvert(Node n)
   {
     // dummy symbol, provide the return type
     Node tnn = typeAsNode(tn);
-    return mkInternalApp(
-        printer::smt2::Smt2Printer::smtKindString(k), {tnn}, tn);
+    std::stringstream ss;
+    ss << "@fp." << printer::smt2::Smt2Printer::smtKindString(k);
+    return mkInternalApp(ss.str(), {tnn}, tn);
   }
   else if (GenericOp::isIndexedOperatorKind(k))
   {
@@ -453,6 +454,7 @@ Node AlfNodeConverter::getNullTerminator(Kind k, TypeNode tn)
       return Node::null();
       break;
     case Kind::OR: return NodeManager::currentNM()->mkConst(false);
+    case Kind::SEP_STAR:
     case Kind::AND: return NodeManager::currentNM()->mkConst(true);
     case Kind::ADD: return NodeManager::currentNM()->mkConstInt(Rational(0));
     case Kind::MULT:

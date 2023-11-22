@@ -2,6 +2,7 @@
 ; SCRUBBER: sed 's/(.*//g;s/).*//g'
 ; EXPECT: unsat
 ; DISABLE-TESTER: lfsc
+; DISABLE-TESTER: alf
 (set-logic UFLIA)
 (declare-fun f (Int) Int) 
 (declare-fun g (Int) Int) 

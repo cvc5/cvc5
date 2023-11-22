@@ -40,12 +40,6 @@ libcvc5_add_sources(
   lib/replacements.h
   lib/strtok_r.c
   lib/strtok_r.h
-  omt/bitvector_optimizer.cpp
-  omt/bitvector_optimizer.h
-  omt/integer_optimizer.cpp
-  omt/integer_optimizer.h
-  omt/omt_optimizer.cpp
-  omt/omt_optimizer.h
   options/language.cpp
   options/language.h
   options/managed_streams.cpp
@@ -146,8 +140,12 @@ libcvc5_add_sources(
   printer/smt2/smt2_printer.h
   proof/alf/alf_node_converter.cpp
   proof/alf/alf_node_converter.h
+  proof/alf/alf_post_processor.cpp
+  proof/alf/alf_post_processor.h
   proof/alf/alf_print_channel.cpp
   proof/alf/alf_print_channel.h
+  proof/alf/alf_printer.cpp
+  proof/alf/alf_printer.h
   proof/alf/alf_proof_rule.cpp
   proof/alf/alf_proof_rule.h
   proof/annotation_proof_generator.cpp
@@ -214,6 +212,8 @@ libcvc5_add_sources(
   proof/proof_step_buffer.h
   proof/resolution_proofs_util.cpp
   proof/resolution_proofs_util.h
+  proof/trust_id.cpp
+  proof/trust_id.h
   proof/trust_node.cpp
   proof/trust_node.h
   proof/theory_proof_step_buffer.cpp
@@ -313,8 +313,6 @@ libcvc5_add_sources(
   smt/model_core_builder.h
   smt/model_blocker.cpp
   smt/model_blocker.h
-  smt/optimization_solver.cpp
-  smt/optimization_solver.h
   smt/quant_elim_solver.cpp
   smt/quant_elim_solver.h
   smt/preprocessor.cpp
@@ -691,8 +689,6 @@ libcvc5_add_sources(
   theory/ee_manager_distributed.cpp
   theory/ee_manager_distributed.h
   theory/ee_setup_info.h
-  theory/engine_output_channel.cpp
-  theory/engine_output_channel.h
   theory/evaluator.cpp
   theory/evaluator.h
   theory/ext_theory.cpp
@@ -735,6 +731,8 @@ libcvc5_add_sources(
   theory/inference_id_proof_annotator.h
   theory/inference_manager_buffered.cpp
   theory/inference_manager_buffered.h
+  theory/lemma_property.cpp
+  theory/lemma_property.h
   theory/logic_info.cpp
   theory/logic_info.h
   theory/model_manager.cpp

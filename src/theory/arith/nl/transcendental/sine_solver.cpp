@@ -291,16 +291,20 @@ void SineSolver::checkInitialRefine()
               lem, InferenceId::ARITH_NL_T_INIT_REFINE, proof);
         }
         {
-          Node lem =
-              nm->mkNode(Kind::AND,
-                         // sign
-                         nm->mkNode(Kind::EQUAL,
-                                    nm->mkNode(Kind::LT, t[0], d_data->d_zero),
-                                    nm->mkNode(Kind::LT, t, d_data->d_zero)),
-                         // zero val
-                         nm->mkNode(Kind::EQUAL,
-                                    nm->mkNode(Kind::GT, t[0], d_data->d_zero),
-                                    nm->mkNode(Kind::GT, t, d_data->d_zero)));
+          Node lem = nm->mkNode(
+              Kind::AND,
+              // (-pi < t < 0) <=> (sin(t)<0)
+              nm->mkNode(Kind::EQUAL,
+                         nm->mkNode(Kind::AND,
+                                    nm->mkNode(Kind::LT, d_neg_pi, t[0]),
+                                    nm->mkNode(Kind::LT, t[0], d_data->d_zero)),
+                         nm->mkNode(Kind::LT, t, d_data->d_zero)),
+              // (0 < t < pi) <=> (sin(t)>0)
+              nm->mkNode(Kind::EQUAL,
+                         nm->mkNode(Kind::AND,
+                                    nm->mkNode(Kind::GT, d_pi, t[0]),
+                                    nm->mkNode(Kind::GT, t[0], d_data->d_zero)),
+                         nm->mkNode(Kind::GT, t, d_data->d_zero)));
           d_data->d_im.addPendingLemma(lem,
                                        InferenceId::ARITH_NL_T_INIT_REFINE);
         }

@@ -38,6 +38,10 @@ PreprocessingPassResult ExtRewPre::applyInternal(
         extendedRewrite(
             (*assertionsToPreprocess)[i],
             options().smt.extRewPrep == options::ExtRewPrepMode::AGG));
+    if (assertionsToPreprocess->isInConflict())
+    {
+      return PreprocessingPassResult::CONFLICT;
+    }
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }

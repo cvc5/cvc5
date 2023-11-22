@@ -207,7 +207,12 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
         }
       }
 
-      if (tn.isInteger() && newKind == current.getKind())
+      // abort if the kind did not change and
+      // the original type was integer.
+      // The only exception is an ITE,
+      // in which case we continue.
+      if (tn.isInteger() && newKind != Kind::ITE
+          && newKind == current.getKind())
       {
         std::stringstream ss;
         ss << "Cannot translate the operator " << current.getKind()
@@ -289,6 +294,8 @@ IntToBV::IntToBV(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult IntToBV::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
+  // this pass is refutation unsound, "unsat" will be "unknown"
+  assertionsToPreprocess->markRefutationUnsound();
   NodeMap cache;
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {

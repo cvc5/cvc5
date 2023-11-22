@@ -83,7 +83,13 @@ Node SubstitutionMap::internalSubstitute(TNode t,
     if (find2 != d_substitutions.end()) {
       Node rhs = (*find2).second;
       Assert(rhs != current);
-      internalSubstitute(rhs, cache, tracker, stc);
+      find = cache.find(rhs);
+      if (find == cache.end())
+      {
+        // visit the RHS
+        toVisit.push_back((TNode)rhs);
+        continue;
+      }
       if (tracker == nullptr)
       {
         d_substitutions[current] = cache[rhs];
@@ -123,7 +129,13 @@ Node SubstitutionMap::internalSubstitute(TNode t,
           if (find2 != d_substitutions.end()) {
             Node rhs = (*find2).second;
             Assert(rhs != result);
-            internalSubstitute(rhs, cache, tracker, stc);
+            find = cache.find(rhs);
+            if (find == cache.end())
+            {
+              // visit the RHS
+              toVisit.push_back((TNode)rhs);
+              continue;
+            }
             d_substitutions[result] = cache[rhs];
             cache[result] = cache[rhs];
             if (tracker != nullptr)
