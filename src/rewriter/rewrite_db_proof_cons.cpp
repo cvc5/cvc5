@@ -50,16 +50,16 @@ RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
 }
 
 bool RewriteDbProofCons::prove(CDProof* cdp,
-                               Node a,
-                               Node b,
+                               const Node& a,
+                               const Node& b,
                                theory::TheoryId tid,
                                MethodId mid,
                                int64_t recLimit,
                                int64_t stepLimit)
 {
-  // clear the proof caches? use attributes instead?
+  // clear the proof caches
   d_pcache.clear();
-  // clear the evaluate cache?
+  // clear the evaluate cache
   d_evalCache.clear();
   Trace("rpc") << "RewriteDbProofCons::prove: " << a << " == " << b
                << std::endl;
@@ -120,7 +120,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
   return success;
 }
 
-DslProofRule RewriteDbProofCons::proveInternal(Node eqi)
+DslProofRule RewriteDbProofCons::proveInternal(const Node& eqi)
 {
   d_currProving.insert(eqi);
   ++d_statTotalAttempts;
@@ -138,7 +138,7 @@ DslProofRule RewriteDbProofCons::proveInternal(Node eqi)
   return retId;
 }
 
-DslProofRule RewriteDbProofCons::proveInternalViaStrategy(Node eqi)
+DslProofRule RewriteDbProofCons::proveInternalViaStrategy(const Node& eqi)
 {
   Assert(eqi.getKind() == Kind::EQUAL);
   if (proveWithRule(DslProofRule::CONG, eqi, {}, {}, false, false, true))
@@ -190,8 +190,8 @@ DslProofRule RewriteDbProofCons::proveInternalViaStrategy(Node eqi)
   return DslProofRule::FAIL;
 }
 
-bool RewriteDbProofCons::notifyMatch(Node s,
-                                     Node n,
+bool RewriteDbProofCons::notifyMatch(const Node& s,
+                                     const Node& n,
                                      std::vector<Node>& vars,
                                      std::vector<Node>& subs)
 {
@@ -257,7 +257,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
 }
 
 bool RewriteDbProofCons::proveWithRule(DslProofRule id,
-                                       Node target,
+                                       const Node& target,
                                        const std::vector<Node>& vars,
                                        const std::vector<Node>& subs,
                                        bool doInflectMatch,
@@ -502,7 +502,7 @@ bool RewriteDbProofCons::proveWithRule(DslProofRule id,
   return true;
 }
 
-bool RewriteDbProofCons::proveInternalBase(Node eqi, DslProofRule& idb)
+bool RewriteDbProofCons::proveInternalBase(const Node& eqi, DslProofRule& idb)
 {
   Trace("rpc-debug2") << "Prove internal base: " << eqi << std::endl;
   Assert(eqi.getKind() == Kind::EQUAL);
@@ -534,8 +534,7 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslProofRule& idb)
     // depth, but we are currently trying at a higher maximum depth.
     return false;
   }
-  // symmetry or reflexivity, applied potentially to non-Booleans?
-  // if (CDProof::isSame(eqi[0], eqi[1]))
+  // reflexivity, applied potentially to non-Booleans
   if (eqi[0] == eqi[1])
   {
     ProvenInfo& pi = d_pcache[eqi];
@@ -626,27 +625,13 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslProofRule& idb)
     pi.d_id = idb;
     return true;
   }
-  /*
-  // see if a != b is satisfiable
-  Node query = eqi.notNode();
-  if (d_qcache.addTerm(query))
-  {
-    Trace("rpc-debug2") << "Infeasible due to query cache: " << eqi[0]
-                        << " == " << eqi[1] << std::endl;
-    ProvenInfo& pi = d_pcache[eqi];
-    idb = DslProofRule::FAIL;
-    pi.d_failMaxDepth = 0;
-    pi.d_id = idb;
-    return true;
-  }
-  */
   // otherwise, we fail to either prove or disprove the equality
   return false;
 }
 
-bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
+bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
 {
-  // TODO: use single internal cdp to improve subproof sharing?
+  // note we could use single internal cdp to improve subproof sharing
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, bool> visited;
   std::unordered_map<TNode, std::vector<Node>> premises;
@@ -714,6 +699,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
         {
           visited[cur] = false;
           std::vector<Node>& ps = premises[cur];
+          std::vector<Node>& pfac = pfArgs[cur];
           if (isInternalDslProofRule(itd->second.d_id))
           {
             // premises are the steps, stored in d_vars
@@ -723,11 +709,11 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
             if (itd->second.d_id == DslProofRule::CONG
                 || itd->second.d_id == DslProofRule::CONG_EVAL)
             {
-              pfArgs[cur].push_back(
+              pfac.push_back(
                   ProofRuleChecker::mkKindNode(cur[0].getKind()));
               if (cur[0].getMetaKind() == kind::metakind::PARAMETERIZED)
               {
-                pfArgs[cur].push_back(cur[0].getOperator());
+                pfac.push_back(cur[0].getOperator());
               }
             }
           }
@@ -735,7 +721,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
           {
             const RewriteProofRule& rpr = d_db->getRule(itd->second.d_id);
             // add the DSL proof rule we used
-            pfArgs[cur].push_back(nm->mkConstInt(
+            pfac.push_back(nm->mkConstInt(
                 Rational(static_cast<uint32_t>(itd->second.d_id))));
             // compute premises based on the used substitution
             // build the substitution context
@@ -758,7 +744,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
               // failed a side condition?
               return false;
             }
-            pfArgs[cur].insert(pfArgs[cur].end(), rsubs.begin(), rsubs.end());
+            pfac.insert(pfac.end(), rsubs.begin(), rsubs.end());
           }
           // recurse on premises
           visit.insert(visit.end(), ps.begin(), ps.end());
@@ -849,7 +835,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
   return true;
 }
 
-Node RewriteDbProofCons::doEvaluate(Node n)
+Node RewriteDbProofCons::doEvaluate(const Node& n)
 {
   std::unordered_map<Node, Node>::iterator itv = d_evalCache.find(n);
   if (itv != d_evalCache.end())

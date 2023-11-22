@@ -58,8 +58,8 @@ class RewriteDbProofCons : protected EnvObj
    * @param stepLimit The step limit for this call.
    */
   bool prove(CDProof* cdp,
-             Node a,
-             Node b,
+             const Node& a,
+             const Node& b,
              theory::TheoryId tid,
              MethodId mid,
              int64_t recLimit,
@@ -104,7 +104,7 @@ class RewriteDbProofCons : protected EnvObj
      * The maximum depth tried for rules that have failed, where 0 indicates
      * that the formula is unprovable at any depth.
      */
-    uint32_t d_failMaxDepth;
+    uint64_t d_failMaxDepth;
     /**
      * Is internal rule? these rules store children (if any) in d_vars.
      */
@@ -125,9 +125,9 @@ class RewriteDbProofCons : protected EnvObj
    * Note this method depends on the current step and recursion limits
    * d_currRecLimit/d_currStepLimit.
    */
-  DslProofRule proveInternal(Node eqi);
+  DslProofRule proveInternal(const Node& eqi);
   /** Prove internal via strategy, a helper method for above. */
-  DslProofRule proveInternalViaStrategy(Node eqi);
+  DslProofRule proveInternalViaStrategy(const Node& eqi);
   /**
    * Prove internal base eqi via DSL rule id.
    *
@@ -137,7 +137,7 @@ class RewriteDbProofCons : protected EnvObj
    * proven or *disproven*, where in the latter case proven info has d_id
    * DslProofRule::FAIL.
    */
-  bool proveInternalBase(Node eqi, DslProofRule& id);
+  bool proveInternalBase(const Node& eqi, DslProofRule& id);
   /**
    * Ensure proof for proven fact exists in cdp. This method is called on
    * equalities eqi after they have been successfully proven by this class.
@@ -148,9 +148,9 @@ class RewriteDbProofCons : protected EnvObj
    * @param cdp The proof to add the proof of eqi to
    * @param eqi The proven equality
    */
-  bool ensureProofInternal(CDProof* cdp, Node eqi);
+  bool ensureProofInternal(CDProof* cdp, const Node& eqi);
   /** Return the evaluation of n, which uses local caching. */
-  Node doEvaluate(Node n);
+  Node doEvaluate(const Node& n);
   /**
    * A notification that s is equal to n * { vars -> subs }. In this context,
    * s is the current left hand side of a term we are trying to prove and n is
@@ -162,8 +162,8 @@ class RewriteDbProofCons : protected EnvObj
    * further matches, e.g. if we successfully show a rewrite rule suffices to
    * prove the current equality d_target.
    */
-  bool notifyMatch(Node s,
-                   Node n,
+  bool notifyMatch(const Node& s,
+                   const Node& n,
                    std::vector<Node>& vars,
                    std::vector<Node>& subs);
   /**
@@ -183,7 +183,7 @@ class RewriteDbProofCons : protected EnvObj
    * are required, by making a recursive call to proveInternal.
    */
   bool proveWithRule(DslProofRule id,
-                     Node target,
+                     const Node& target,
                      const std::vector<Node>& vars,
                      const std::vector<Node>& subs,
                      bool doTrans,
@@ -235,9 +235,9 @@ class RewriteDbProofCons : protected EnvObj
   /** current target equality to prove */
   Node d_target;
   /** current recursion limit */
-  uint32_t d_currRecLimit;
+  uint64_t d_currRecLimit;
   /** current step recursion limit */
-  uint32_t d_currStepLimit;
+  uint64_t d_currStepLimit;
   /** current rule we are applying to fixed point */
   DslProofRule d_currFixedPointId;
   /** current substitution from fixed point */
