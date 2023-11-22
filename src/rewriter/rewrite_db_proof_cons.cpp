@@ -82,7 +82,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
   {
     Node eqi = d_rdnc.convert(eq);
     // if converter didn't make a difference, don't try to prove again
-    if (eqi!=eq)
+    if (eqi != eq)
     {
       success = proveEq(cdp, eq, eqi, recLimit, stepLimit);
     }
@@ -93,9 +93,9 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
 
 bool RewriteDbProofCons::proveEq(CDProof* cdp,
                                  const Node& eq,
-             const Node& eqi,
-                               int64_t recLimit,
-                               int64_t stepLimit)
+                                 const Node& eqi,
+                                 int64_t recLimit,
+                                 int64_t stepLimit)
 {
   DslProofRule id;
   if (!proveInternalBase(eqi, id))

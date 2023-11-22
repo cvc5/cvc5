@@ -111,13 +111,14 @@ class RewriteDbProofCons : protected EnvObj
     bool isInternalRule() const { return isInternalDslProofRule(d_id); }
   };
   /**
-   * Prove and store the proof of eq with internal form eqi in cdp if possible, return true if successful.
+   * Prove and store the proof of eq with internal form eqi in cdp if possible,
+   * return true if successful.
    */
   bool proveEq(CDProof* cdp,
                const Node& eq,
-             const Node& eqi,
-                               int64_t recLimit,
-                               int64_t stepLimit);
+               const Node& eqi,
+               int64_t recLimit,
+               int64_t stepLimit);
   /**
    * Prove internal, which is the main entry point for proven an equality eqi.
    * Returns the proof rule that was used to prove eqi, or DslProofRule::FAIL
