@@ -836,7 +836,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
 
 Node RewriteDbProofCons::doEvaluate(const Node& n)
 {
-  auto [itv, inserted] = d_evalCache.insert(n, Node());
+  auto [itv, inserted] = d_evalCache.emplace(n, Node());
   if (inserted)
   {
     itv->second = d_eval.eval(n, {}, {});
