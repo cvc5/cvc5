@@ -1049,6 +1049,7 @@ std::string Smt2Printer::smtKindString(Kind k)
 
     // ff theory
     case Kind::FINITE_FIELD_ADD: return "ff.add";
+    case Kind::FINITE_FIELD_BITSUM: return "ff.bitsum";
     case Kind::FINITE_FIELD_MULT: return "ff.mul";
     case Kind::FINITE_FIELD_NEG: return "ff.neg";
 
