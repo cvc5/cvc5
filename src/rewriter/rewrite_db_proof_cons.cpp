@@ -507,7 +507,7 @@ bool RewriteDbProofCons::proveWithRule(DslProofRule id,
 
 bool RewriteDbProofCons::proveInternalBase(const Node& eqi, DslProofRule& idb)
 {
-  Trace("rpc-debug2") << "Prove internal base: " << eqi << std::endl;
+  Trace("rpc-debug2") << "Prove internal base: " << eqi << "?" << std::endl;
   Assert(eqi.getKind() == Kind::EQUAL);
   // if we are currently trying to prove this, fail
   if (d_currProving.find(eqi) != d_currProving.end())
@@ -524,11 +524,13 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi, DslProofRule& idb)
     {
       // proof exists, return
       idb = it->second.d_id;
+      Trace("rpc-debug2") << "...success, already exists" << std::endl;
       return true;
     }
     if (d_currRecLimit <= it->second.d_failMaxDepth)
     {
       idb = it->second.d_id;
+      Trace("rpc-debug2") << "...fail (at higher depth)" << std::endl;
       return true;
     }
     Trace("rpc-debug2") << "...fail (already fail)" << std::endl;
@@ -543,6 +545,7 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi, DslProofRule& idb)
     ProvenInfo& pi = d_pcache[eqi];
     idb = DslProofRule::REFL;
     pi.d_id = idb;
+    Trace("rpc-debug2") << "...success, refl" << std::endl;
     return true;
   }
   // non-well-typed equalities cannot be proven
@@ -578,6 +581,7 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi, DslProofRule& idb)
         idb = DslProofRule::FAIL;
         pi.d_failMaxDepth = 0;
         pi.d_id = idb;
+        Trace("rpc-debug2") << "...fail, ill-typed equality" << std::endl;
         return true;
       }
       Node eqr = rewrite(eq);
@@ -587,7 +591,7 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi, DslProofRule& idb)
         if (!eqr.getConst<bool>())
         {
           ProvenInfo& pi = d_pcache[eqi];
-          Trace("rpc-debug2") << "Infeasible due to rewriting: " << eqi[0]
+          Trace("rpc-debug2") << "fail, infeasible due to rewriting: " << eqi[0]
                               << " == " << eqi[1] << std::endl;
           idb = DslProofRule::FAIL;
           pi.d_failMaxDepth = 0;
@@ -607,10 +611,12 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi, DslProofRule& idb)
     // we can evaluate both sides, check to see if the values are the same
     if (ev[0] == ev[1])
     {
+      Trace("rpc-debug2") << "...success, eval" << std::endl;
       idb = DslProofRule::EVAL;
     }
     else
     {
+      Trace("rpc-debug2") << "...fail (eval " << ev[0] << " and " << ev[1] << ")" << std::endl;
       idb = DslProofRule::FAIL;
       // failure relies on nothing, depth is 0
       pi.d_failMaxDepth = 0;
@@ -640,6 +646,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
   std::unordered_map<TNode, std::vector<Node>> premises;
   std::unordered_map<TNode, std::vector<Node>> pfArgs;
   std::unordered_map<TNode, bool>::iterator it;
+  bool inserted;
   std::unordered_map<Node, ProvenInfo>::iterator itd;
   std::vector<Node>::iterator itv;
   std::vector<TNode> visit;
@@ -651,6 +658,8 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
     visit.pop_back();
     it = visited.find(cur);
     itd = d_pcache.find(cur);
+    Assert(itd != d_pcache.end());
+    ProvenInfo& pcur = itd->second;
     Assert(cur.getKind() == Kind::EQUAL);
     if (it == visited.end())
     {
@@ -664,16 +673,15 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
       }
       else
       {
-        Assert(itd != d_pcache.end());
-        Assert(itd->second.d_id != DslProofRule::FAIL);
-        Trace("rpc-debug") << "...proved via " << itd->second.d_id << std::endl;
-        if (itd->second.d_id == DslProofRule::REFL)
+        Assert(pcur.d_id != DslProofRule::FAIL);
+        Trace("rpc-debug") << "...proved via " << pcur.d_id << std::endl;
+        if (pcur.d_id == DslProofRule::REFL)
         {
           // trivial proof
           Assert(cur[0] == cur[1]);
           cdp->addStep(cur, ProofRule::REFL, {}, {cur[0]});
         }
-        else if (itd->second.d_id == DslProofRule::EVAL)
+        else if (pcur.d_id == DslProofRule::EVAL)
         {
           visited[cur] = true;
           // NOTE: this could just evaluate the equality itself
@@ -703,14 +711,14 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
           visited[cur] = false;
           std::vector<Node>& ps = premises[cur];
           std::vector<Node>& pfac = pfArgs[cur];
-          if (isInternalDslProofRule(itd->second.d_id))
+          if (isInternalDslProofRule(pcur.d_id))
           {
             // premises are the steps, stored in d_vars
             ps.insert(premises[cur].end(),
-                      itd->second.d_vars.begin(),
-                      itd->second.d_vars.end());
-            if (itd->second.d_id == DslProofRule::CONG
-                || itd->second.d_id == DslProofRule::CONG_EVAL)
+                      pcur.d_vars.begin(),
+                      pcur.d_vars.end());
+            if (pcur.d_id == DslProofRule::CONG
+                || pcur.d_id == DslProofRule::CONG_EVAL)
             {
               pfac.push_back(
                   ProofRuleChecker::mkKindNode(cur[0].getKind()));
@@ -722,23 +730,23 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
           }
           else
           {
-            const RewriteProofRule& rpr = d_db->getRule(itd->second.d_id);
+            const RewriteProofRule& rpr = d_db->getRule(pcur.d_id);
             // add the DSL proof rule we used
             pfac.push_back(nm->mkConstInt(
-                Rational(static_cast<uint32_t>(itd->second.d_id))));
+                Rational(static_cast<uint32_t>(pcur.d_id))));
             // compute premises based on the used substitution
             // build the substitution context
             const std::vector<Node>& vs = rpr.getVarList();
-            Assert(itd->second.d_vars.size() == vs.size());
+            Assert(pcur.d_vars.size() == vs.size());
             std::vector<Node> rsubs;
             // must order the variables to match order of rewrite rule
             for (const Node& v : vs)
             {
               itv = std::find(
-                  itd->second.d_vars.begin(), itd->second.d_vars.end(), v);
-              size_t d = std::distance(itd->second.d_vars.begin(), itv);
-              Assert(d < itd->second.d_subs.size());
-              rsubs.push_back(itd->second.d_subs[d]);
+                  pcur.d_vars.begin(), pcur.d_vars.end(), v);
+              size_t d = std::distance(pcur.d_vars.begin(), itv);
+              Assert(d < pcur.d_subs.size());
+              rsubs.push_back(pcur.d_subs[d]);
             }
             // get the conditions, store into premises of cur.
             if (!rpr.getObligations(vs, rsubs, ps))
@@ -757,21 +765,21 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
     {
       // Now, add the proof rule. We do this after its children proofs already
       // exist.
-      it->second = true;
+      visited[cur] = true;
       Assert(premises.find(cur) != premises.end());
       std::vector<Node>& ps = premises[cur];
       // get the conclusion
       Node conc;
-      if (itd->second.d_id == DslProofRule::TRANS)
+      if (pcur.d_id == DslProofRule::TRANS)
       {
         conc = ps[0][0].eqNode(ps.back()[1]);
         cdp->addStep(conc, ProofRule::TRANS, ps, {});
       }
-      else if (itd->second.d_id == DslProofRule::CONG)
+      else if (pcur.d_id == DslProofRule::CONG)
       {
         cdp->addStep(cur, ProofRule::CONG, ps, pfArgs[cur]);
       }
-      else if (itd->second.d_id == DslProofRule::CONG_EVAL)
+      else if (pcur.d_id == DslProofRule::CONG_EVAL)
       {
         // congruence + evaluation, given we are trying to prove
         //   (f t1 ... tn) == c
@@ -786,7 +794,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
         {
           lhsTgtc.push_back(cur[0].getOperator());
         }
-        for (const Node& eq : itd->second.d_vars)
+        for (const Node& eq : pcur.d_vars)
         {
           Assert(eq.getKind() == Kind::EQUAL);
           lhsTgtc.push_back(eq[1]);
@@ -806,24 +814,24 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
         }
         cdp->addStep(cur, ProofRule::TRANS, transChildren, {});
       }
-      else if (itd->second.d_id == DslProofRule::TRUE_ELIM)
+      else if (pcur.d_id == DslProofRule::TRUE_ELIM)
       {
         conc = ps[0][0];
         cdp->addStep(conc, ProofRule::TRUE_ELIM, ps, {});
       }
-      else if (itd->second.d_id == DslProofRule::TRUE_INTRO)
+      else if (pcur.d_id == DslProofRule::TRUE_INTRO)
       {
         conc = ps[0].eqNode(d_true);
         cdp->addStep(conc, ProofRule::TRUE_INTRO, ps, {});
       }
-      else if (itd->second.d_id == DslProofRule::ARITH_POLY_NORM)
+      else if (pcur.d_id == DslProofRule::ARITH_POLY_NORM)
       {
         cdp->addStep(cur, ProofRule::ARITH_POLY_NORM, {}, {cur});
       }
       else
       {
         Assert(pfArgs.find(cur) != pfArgs.end());
-        const RewriteProofRule& rpr = d_db->getRule(itd->second.d_id);
+        const RewriteProofRule& rpr = d_db->getRule(pcur.d_id);
         const std::vector<Node>& args = pfArgs[cur];
         std::vector<Node> subs(args.begin() + 1, args.end());
         conc = rpr.getConclusionFor(subs);
