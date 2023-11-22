@@ -79,10 +79,10 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
   Node eq = a.eqNode(b);
   bool success = false;
   // first try without the converter, then try with the converter
-  for (size_t i=0; i<2; i++)
+  for (size_t i = 0; i < 2; i++)
   {
-    Node eqi = i==0 ? eq : d_rdnc.convert(eq);
-    if (i==1 && eqi==eq)
+    Node eqi = i == 0 ? eq : d_rdnc.convert(eq);
+    if (i == 1 && eqi == eq)
     {
       // converter didn't make a difference, don't try to prove again
       break;
@@ -90,8 +90,8 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
     if (!proveInternalBase(eqi, id))
     {
       Trace("rpc-debug") << "- prove internal" << std::endl;
-      // add one to recursion limit, since it is decremented whenever we initiate
-      // the getMatches routine.
+      // add one to recursion limit, since it is decremented whenever we
+      // initiate the getMatches routine.
       d_currRecLimit = recLimit + 1;
       d_currStepLimit = stepLimit;
       // Otherwise, we call the main prove internal method, which recurisvely
@@ -598,8 +598,8 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi, DslProofRule& idb)
           pi.d_id = idb;
           return true;
         }
-        // NOTE: if eqr does not rewrite to true, it still could be true, hence we
-        // fail
+        // NOTE: if eqr does not rewrite to true, it still could be true, hence
+        // we fail
       }
       evalSuccess = false;
       break;
@@ -616,7 +616,8 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi, DslProofRule& idb)
     }
     else
     {
-      Trace("rpc-debug2") << "...fail (eval " << ev[0] << " and " << ev[1] << ")" << std::endl;
+      Trace("rpc-debug2") << "...fail (eval " << ev[0] << " and " << ev[1]
+                          << ")" << std::endl;
       idb = DslProofRule::FAIL;
       // failure relies on nothing, depth is 0
       pi.d_failMaxDepth = 0;
@@ -714,14 +715,12 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
           if (isInternalDslProofRule(pcur.d_id))
           {
             // premises are the steps, stored in d_vars
-            ps.insert(premises[cur].end(),
-                      pcur.d_vars.begin(),
-                      pcur.d_vars.end());
+            ps.insert(
+                premises[cur].end(), pcur.d_vars.begin(), pcur.d_vars.end());
             if (pcur.d_id == DslProofRule::CONG
                 || pcur.d_id == DslProofRule::CONG_EVAL)
             {
-              pfac.push_back(
-                  ProofRuleChecker::mkKindNode(cur[0].getKind()));
+              pfac.push_back(ProofRuleChecker::mkKindNode(cur[0].getKind()));
               if (cur[0].getMetaKind() == kind::metakind::PARAMETERIZED)
               {
                 pfac.push_back(cur[0].getOperator());
@@ -732,8 +731,8 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
           {
             const RewriteProofRule& rpr = d_db->getRule(pcur.d_id);
             // add the DSL proof rule we used
-            pfac.push_back(nm->mkConstInt(
-                Rational(static_cast<uint32_t>(pcur.d_id))));
+            pfac.push_back(
+                nm->mkConstInt(Rational(static_cast<uint32_t>(pcur.d_id))));
             // compute premises based on the used substitution
             // build the substitution context
             const std::vector<Node>& vs = rpr.getVarList();
@@ -742,8 +741,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
             // must order the variables to match order of rewrite rule
             for (const Node& v : vs)
             {
-              itv = std::find(
-                  pcur.d_vars.begin(), pcur.d_vars.end(), v);
+              itv = std::find(pcur.d_vars.begin(), pcur.d_vars.end(), v);
               size_t d = std::distance(pcur.d_vars.begin(), itv);
               Assert(d < pcur.d_subs.size());
               rsubs.push_back(pcur.d_subs[d]);
