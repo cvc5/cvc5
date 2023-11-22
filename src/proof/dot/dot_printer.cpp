@@ -25,6 +25,7 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
+#include "proof/trust_id.h"
 #include "theory/builtin/proof_checker.h"
 
 namespace cvc5::internal {
@@ -397,7 +398,7 @@ ProofNodeClusterType DotPrinter::defineProofNodeType(const ProofNode* pn,
       return ProofNodeClusterType::CNF;
     }
     // If the first rule after a CNF is in the TL range
-    if (isTheoryLemma(rule))
+    if (isTheoryLemma(pn))
     {
       return ProofNodeClusterType::THEORY_LEMMA;
     }
@@ -460,9 +461,18 @@ inline bool DotPrinter::isSCOPE(const ProofRule& rule)
   return ProofRule::SCOPE == rule;
 }
 
-inline bool DotPrinter::isTheoryLemma(const ProofRule& rule)
+inline bool DotPrinter::isTheoryLemma(const ProofNode* pn)
 {
-  return rule == ProofRule::SCOPE || rule == ProofRule::THEORY_LEMMA
+  ProofRule rule = pn->getRule();
+  if (rule == ProofRule::TRUST)
+  {
+    TrustId tid;
+    if (getTrustId(pn->getArguments()[0], tid))
+    {
+      return tid == TrustId::THEORY_LEMMA;
+    }
+  }
+  return rule == ProofRule::SCOPE
          || (ProofRule::CNF_ITE_NEG3 < rule && rule < ProofRule::LFSC_RULE);
 }
 
@@ -501,7 +511,7 @@ void DotPrinter::ruleArguments(std::ostringstream& currentArguments,
     }
   }
   // if th_rw, likewise
-  else if (r == ProofRule::THEORY_REWRITE)
+  else if (r == ProofRule::TRUST_THEORY_REWRITE)
   {
     // print the second argument
     theory::TheoryId id;

@@ -54,7 +54,7 @@ void StringProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::STRING_CODE_INJ, this);
   pc->registerChecker(ProofRule::STRING_SEQ_UNIT_INJ, this);
   // trusted rule
-  pc->registerTrustedChecker(ProofRule::STRING_INFERENCE, this, 2);
+  pc->registerTrustedChecker(ProofRule::MACRO_STRING_INFERENCE, this, 2);
 }
 
 Node StringProofRuleChecker::checkInternal(ProofRule id,
@@ -526,7 +526,7 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
     AlwaysAssert(t[0].getType() == t[1].getType());
     return t[0].eqNode(t[1]);
   }
-  else if (id == ProofRule::STRING_INFERENCE)
+  else if (id == ProofRule::MACRO_STRING_INFERENCE)
   {
     Assert(args.size() >= 3);
     return args[0];

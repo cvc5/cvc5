@@ -694,11 +694,11 @@ void SygusGrammarCons::collectTypes(const TypeNode& range,
   {
     return;
   }
+  types.insert(range);
   if (range.isDatatype())
   {
     // special case: datatypes we add itself and its subfield types, taking
     // into account parametric datatypes
-    types.insert(range);
     const DType& dt = range.getDType();
     for (size_t i = 0, size = dt.getNumConstructors(); i < size; ++i)
     {
@@ -717,11 +717,13 @@ void SygusGrammarCons::collectTypes(const TypeNode& range,
   {
     // special case: uninterpreted sorts (which include sorts constructed
     // from uninterpreted sort constructors), we only add the sort itself.
-    types.insert(range);
     return;
   }
   // otherwise, get the component types
-  expr::getComponentTypes(range, types);
+  for (unsigned i = 0, nchild = range.getNumChildren(); i < nchild; i++)
+  {
+    collectTypes(range[i], types);
+  }
   // add further types based on theory symbols
   if (range.isStringLike())
   {

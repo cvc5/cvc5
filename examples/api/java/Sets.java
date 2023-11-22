@@ -91,5 +91,6 @@ public class Sets
         }
       }
     }
+    Context.deletePointers();
   }
 }

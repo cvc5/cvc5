@@ -398,6 +398,8 @@ Node OperatorElim::eliminateOperators(Node node,
         {
           lem = nm->mkNode(Kind::IMPLIES, cond, lem);
         }
+        Trace("arith-op-elim")
+            << "Elimination lemma " << lem << " for " << node << std::endl;
       }
       Assert(!lem.isNull());
       lems.push_back(mkSkolemLemma(lem, var));
@@ -443,17 +445,8 @@ Node OperatorElim::getArithSkolem(SkolemFunId id)
     }
     Node skolem;
     SkolemManager* sm = nm->getSkolemManager();
-    if (usePartialFunction(id))
-    {
-      // partial function: division
-      skolem = sm->mkSkolemFunction(id, nm->mkFunctionType(tn, tn));
-    }
-    else
-    {
-      // partial function: division, where we treat the skolem function as
-      // a constant
-      skolem = sm->mkSkolemFunction(id, tn);
-    }
+    // introduce the skolem function
+    skolem = sm->mkSkolemFunction(id, nm->mkFunctionType(tn, tn));
     // cache it
     d_arithSkolem[id] = skolem;
     return skolem;
@@ -464,9 +457,9 @@ Node OperatorElim::getArithSkolem(SkolemFunId id)
 Node OperatorElim::getArithSkolemApp(Node n, SkolemFunId id)
 {
   Node skolem = getArithSkolem(id);
+  NodeManager* nm = NodeManager::currentNM();
   if (usePartialFunction(id))
   {
-    NodeManager* nm = NodeManager::currentNM();
     Assert(skolem.getType().isFunction()
            && skolem.getType().getNumChildren() == 2);
     TypeNode argType = skolem.getType()[0];
@@ -475,6 +468,16 @@ Node OperatorElim::getArithSkolemApp(Node n, SkolemFunId id)
       n = nm->mkNode(Kind::TO_REAL, n);
     }
     skolem = nm->mkNode(Kind::APPLY_UF, skolem, n);
+  }
+  else
+  {
+    // We return the purify skolem for (<id> 0). Note this is necessary to
+    // ensure we can give a consistent type for the skolem function <id>,
+    // independent of the option arithNoPartialFun.
+    SkolemManager* sm = nm->getSkolemManager();
+    Node kapp = nm->mkNode(
+        Kind::APPLY_UF, skolem, nm->mkConstRealOrInt(n.getType(), Rational(0)));
+    skolem = sm->mkPurifySkolem(kapp);
   }
   return skolem;
 }
@@ -490,7 +493,8 @@ SkolemLemma OperatorElim::mkSkolemLemma(Node lem, Node k)
   TrustNode tlem;
   if (d_env.isTheoryProofProducing())
   {
-    tlem = mkTrustNode(lem, ProofRule::THEORY_PREPROCESS_LEMMA, {}, {lem});
+    Node tid = mkTrustId(TrustId::THEORY_PREPROCESS_LEMMA);
+    tlem = mkTrustNode(lem, ProofRule::TRUST, {}, {tid, lem});
   }
   else
   {

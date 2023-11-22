@@ -540,7 +540,8 @@ std::unordered_set<TNode> RelevanceManager::getRelevantAssertions(bool& success)
 }
 
 void RelevanceManager::notifyLemma(TNode n,
-                                   theory::LemmaProperty p,
+                                   InferenceId id,
+                                   LemmaProperty p,
                                    const std::vector<Node>& skAsserts,
                                    const std::vector<Node>& sks)
 {

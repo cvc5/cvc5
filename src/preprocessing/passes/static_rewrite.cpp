@@ -41,6 +41,10 @@ PreprocessingPassResult StaticRewrite::applyInternal(
     {
       // replace based on the trust node
       assertions->replaceTrusted(i, trn);
+      if (assertions->isInConflict())
+      {
+        return PreprocessingPassResult::CONFLICT;
+      }
     }
   }
   return PreprocessingPassResult::NO_CONFLICT;

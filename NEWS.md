@@ -2,11 +2,36 @@ This file contains a summary of important user-visible changes.
 
 **New Features**
 
+- API: A new API for proofs is available.  The new `Proof` class represents
+       a node of the proof tree.  The function
+       `Solver::getProof(modes::ProofComponent c = modes::ProofComponent::FULL)`
+       returns the root proof nodes of a proof component as a vector.  
+       The function `Solver::proofToString(std::vector<Proof> proof,
+       modes::ProofFormat format, modes::ProofComponent component)` can be used
+       to print proof components to a string with a specified proof format.
+- Support for the AletheLF (ALF) proof format. This format combines the
+  strengths of the Alethe and LFSC proof formats, namely it borrows much of the
+  syntax of Alethe, while being based on a logical framework like LFSC. This
+  proof format is currently under development and is planned to the default
+  proof format used cvc5 in future releases.
+  * API: The option `--proof-format=alf` can be used to print proofs in the
+         AletheLF format.
+  * The ALF proof checker (alfc) is available for download via the script
+    `./contrib/get-alf-checker`.
 - CaDiCaL is now integrated via the IPASIR-UP interface as CDCL(T) SAT solver.
   The CDCL(T) SAT solver can be configured via option `--sat-solver`. Currently,
   MiniSat is still default. Note that CaDiCaL cannot be used as the CDCL(T) SAT
   engine when proof production is enabled. In that case, option `--sat-solver`
   will default back to MiniSat.
+- API: Added a variant of timeout cores that accepts a set of assumptions. This
+       is available via the API method `Solver::getTimeoutCoreAssuming` or the
+       SMT-LIB command `get-timeout-core-assuming`, which accept a list of
+       formulas to assume, while all current assertions are implicitly included
+       in the core.
+- API: Add new method `Solver::getUnsatCoreLemmas` which returns the set of
+       theory lemmas that were relevant to showing the last query was
+       unsatisfiable. This is also avialable via the SMT-LIB command
+       `get-unsat-core-lemmas`.
 
 cvc5 1.0.9
 ==========

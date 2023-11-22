@@ -63,6 +63,6 @@ foreach(example ${EXAMPLES_API_PYTHON})
   create_python_example(${example})
 endforeach()
 
-if(USE_COCOA)
+if(CVC5_USE_COCOA)
   create_python_example("finite_field")
 endif()

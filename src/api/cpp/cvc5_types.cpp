@@ -89,6 +89,20 @@ std::ostream& operator<<(std::ostream& out, ProofComponent pc)
   return out;
 }
 
+std::ostream& operator<<(std::ostream& out, ProofFormat pc)
+{
+  switch (pc)
+  {
+    case ProofFormat::NONE: out << "none"; break;
+    case ProofFormat::DOT: out << "dot"; break;
+    case ProofFormat::LFSC: out << "lfsc"; break;
+    case ProofFormat::ALETHE: out << "alethe"; break;
+    case ProofFormat::DEFAULT: out << "default"; break;
+    default: out << "?";
+  }
+  return out;
+}
+
 std::ostream& operator<<(std::ostream& out, FindSynthTarget fst)
 {
   switch (fst)
@@ -98,6 +112,18 @@ std::ostream& operator<<(std::ostream& out, FindSynthTarget fst)
     case FindSynthTarget::REWRITE_UNSOUND: out << "rewrite_unsound"; break;
     case FindSynthTarget::REWRITE_INPUT: out << "rewrite_input"; break;
     case FindSynthTarget::QUERY: out << "query"; break;
+    default: out << "?";
+  }
+  return out;
+}
+
+std::ostream& operator<<(std::ostream& out, InputLanguage lang)
+{
+  switch (lang)
+  {
+    case InputLanguage::SMT_LIB_2_6: out << "SMT_LIB_2_6"; break;
+    case InputLanguage::SYGUS_2_1: out << "SYGUS_2_1"; break;
+    case InputLanguage::UNKNOWN: out << "UNKNOWN"; break;
     default: out << "?";
   }
   return out;

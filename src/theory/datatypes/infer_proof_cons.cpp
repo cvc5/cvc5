@@ -32,6 +32,7 @@ namespace datatypes {
 InferProofCons::InferProofCons(Env& env, context::Context* c)
     : EnvObj(env), d_lazyFactMap(c == nullptr ? &d_context : c)
 {
+  d_tdid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_DATATYPES);
 }
 
 void InferProofCons::notifyFact(const std::shared_ptr<DatatypesInference>& di)
@@ -277,8 +278,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
   {
     // failed to reconstruct, add trust
     Trace("dt-ipc") << "...failed " << infer << std::endl;
-    Node t = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_DATATYPES);
-    cdp->addStep(conc, ProofRule::THEORY_INFERENCE, expv, {conc, t});
+    cdp->addTrustedStep(conc, TrustId::THEORY_INFERENCE, expv, {d_tdid});
   }
   else
   {

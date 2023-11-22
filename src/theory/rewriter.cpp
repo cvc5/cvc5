@@ -375,11 +375,12 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
             Node eq = rewriteStackTop.d_node.eqNode(cached);
             // we make this a post-rewrite, since we are processing a node that
             // has finished post-rewriting above
+            Node trrid = mkTrustId(TrustId::REWRITE_NO_ELABORATE);
             tcpg->addRewriteStep(rewriteStackTop.d_node,
                                  cached,
-                                 ProofRule::TRUST_REWRITE,
+                                 ProofRule::TRUST,
                                  {},
-                                 {eq},
+                                 {trrid, eq},
                                  false);
             // don't overwrite the cache, should be the same
             rewriteStackTop.d_node = cached;
@@ -466,7 +467,7 @@ RewriteResponse Rewriter::processTrustRewriteResponse(
                                   : MethodId::RW_REWRITE_THEORY_POST);
       tcpg->addRewriteStep(proven[0],
                            proven[1],
-                           ProofRule::THEORY_REWRITE,
+                           ProofRule::TRUST_THEORY_REWRITE,
                            {},
                            {proven, tidn, rid},
                            isPre);

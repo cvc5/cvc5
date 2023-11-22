@@ -94,13 +94,14 @@ Node ProofChecker::check(
   }
   Trace("pfcheck") << "      args: " << args << std::endl;
   Trace("pfcheck") << "  expected: " << expected << std::endl;
-  std::stringstream out;
   // we use trusted (null) checkers here, since we want the proof generation to
   // proceed without failing here. We always enable output since a failure
   // implies that we will exit with the error message below.
-  Node res = checkInternal(id, cchildren, args, expected, out, true, true);
+  Node res = checkInternal(id, cchildren, args, expected, nullptr, true);
   if (res.isNull())
   {
+    std::stringstream out;
+    checkInternal(id, cchildren, args, expected, &out, true);
     Trace("pfcheck") << "ProofChecker::check: failed" << std::endl;
     Unreachable() << "ProofChecker::check: failed, " << out.str() << std::endl;
     // it did not match the given expectation, fail
@@ -116,26 +117,27 @@ Node ProofChecker::checkDebug(ProofRule id,
                               Node expected,
                               const char* traceTag)
 {
+  bool debugTrace = TraceIsOn(traceTag);
+  if (!debugTrace)
+  {
+    // run without output stream
+    return checkInternal(id, cchildren, args, expected, nullptr, false);
+  }
   std::stringstream out;
-  bool traceEnabled = TraceIsOn(traceTag);
   // Since we are debugging, we want to treat trusted (null) checkers as
   // a failure. We only enable output if the trace is enabled for efficiency.
-  Node res =
-      checkInternal(id, cchildren, args, expected, out, false, traceEnabled);
-  if (traceEnabled)
+  Node res = checkInternal(id, cchildren, args, expected, &out, false);
+  Trace(traceTag) << "ProofChecker::checkDebug: " << id;
+  if (res.isNull())
   {
-    Trace(traceTag) << "ProofChecker::checkDebug: " << id;
-    if (res.isNull())
-    {
-      Trace(traceTag) << " failed, " << out.str() << std::endl;
-    }
-    else
-    {
-      Trace(traceTag) << " success" << std::endl;
-    }
-    Trace(traceTag) << "cchildren: " << cchildren << std::endl;
-    Trace(traceTag) << "     args: " << args << std::endl;
+    Trace(traceTag) << " failed, " << out.str() << std::endl;
   }
+  else
+  {
+    Trace(traceTag) << " success" << std::endl;
+  }
+  Trace(traceTag) << "cchildren: " << cchildren << std::endl;
+  Trace(traceTag) << "     args: " << args << std::endl;
   return res;
 }
 
@@ -143,17 +145,16 @@ Node ProofChecker::checkInternal(ProofRule id,
                                  const std::vector<Node>& cchildren,
                                  const std::vector<Node>& args,
                                  Node expected,
-                                 std::stringstream& out,
-                                 bool useTrustedChecker,
-                                 bool enableOutput)
+                                 std::stringstream* out,
+                                 bool useTrustedChecker)
 {
   std::map<ProofRule, ProofRuleChecker*>::iterator it = d_checker.find(id);
   if (it == d_checker.end())
   {
     // no checker for the rule
-    if (enableOutput)
+    if (out != nullptr)
     {
-      out << "no checker for rule " << id << std::endl;
+      (*out) << "no checker for rule " << id << std::endl;
     }
     return Node::null();
   }
@@ -161,15 +162,15 @@ Node ProofChecker::checkInternal(ProofRule id,
   {
     if (useTrustedChecker)
     {
-      out << "ProofChecker::check: trusting ProofRule " << id << std::endl;
+      (*out) << "ProofChecker::check: trusting ProofRule " << id << std::endl;
       // trusted checker
       return expected;
     }
     else
     {
-      if (enableOutput)
+      if (out != nullptr)
       {
-        out << "trusted checker for rule " << id << std::endl;
+        (*out) << "trusted checker for rule " << id << std::endl;
       }
       return Node::null();
     }
@@ -186,20 +187,20 @@ Node ProofChecker::checkInternal(ProofRule id,
     Node expectedw = expected;
     if (res != expectedw)
     {
-      if (enableOutput)
+      if (out != nullptr)
       {
-        out << "result does not match expected value." << std::endl
-            << "    ProofRule: " << id << std::endl;
+        (*out) << "result does not match expected value." << std::endl
+               << "    ProofRule: " << id << std::endl;
         for (const Node& c : cchildren)
         {
-          out << "     child: " << c << std::endl;
+          (*out) << "     child: " << c << std::endl;
         }
         for (const Node& a : args)
         {
-          out << "       arg: " << a << std::endl;
+          (*out) << "       arg: " << a << std::endl;
         }
-        out << "    result: " << res << std::endl
-            << "  expected: " << expected << std::endl;
+        (*out) << "    result: " << res << std::endl
+               << "  expected: " << expected << std::endl;
       }
       // it did not match the given expectation, fail
       return Node::null();
@@ -208,18 +209,20 @@ Node ProofChecker::checkInternal(ProofRule id,
   // fails if pedantic level is not met
   if (d_pcMode == options::ProofCheckMode::EAGER)
   {
-    std::stringstream serr;
-    if (isPedanticFailure(id, serr, enableOutput))
+    if (isPedanticFailure(id, nullptr))
     {
-      if (enableOutput)
+      if (out != nullptr)
       {
-        out << serr.str() << std::endl;
+        // recompute with output
+        std::stringstream serr;
+        isPedanticFailure(id, &serr);
+        (*out) << serr.str() << std::endl;
         if (TraceIsOn("proof-pedantic"))
         {
           Trace("proof-pedantic")
               << "Failed pedantic check for " << id << std::endl;
           Trace("proof-pedantic") << "Expected: " << expected << std::endl;
-          out << "Expected: " << expected << std::endl;
+          (*out) << "Expected: " << expected << std::endl;
         }
       }
       return Node::null();
@@ -284,9 +287,7 @@ uint32_t ProofChecker::getPedanticLevel(ProofRule id) const
   return 0;
 }
 
-bool ProofChecker::isPedanticFailure(ProofRule id,
-                                     std::ostream& out,
-                                     bool enableOutput) const
+bool ProofChecker::isPedanticFailure(ProofRule id, std::ostream* out) const
 {
   if (d_pclevel == 0)
   {
@@ -297,15 +298,15 @@ bool ProofChecker::isPedanticFailure(ProofRule id,
   {
     if (itp->second <= d_pclevel)
     {
-      if (enableOutput)
+      if (out != nullptr)
       {
-        out << "pedantic level for " << id << " not met (rule level is "
-            << itp->second << " which is at or below the pedantic level "
-            << d_pclevel << ")";
+        (*out) << "pedantic level for " << id << " not met (rule level is "
+               << itp->second << " which is at or below the pedantic level "
+               << d_pclevel << ")";
         bool pedanticTraceEnabled = TraceIsOn("proof-pedantic");
         if (!pedanticTraceEnabled)
         {
-          out << ", use -t proof-pedantic for details";
+          (*out) << ", use -t proof-pedantic for details";
         }
       }
       return true;
