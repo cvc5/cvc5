@@ -37,14 +37,6 @@ namespace ff {
 /** A finite field model */
 using FfModel = std::unordered_map<Node, FiniteFieldValue>;
 
-/** The result of a subsolver. */
-enum class Result
-{
-  SAT,
-  UNSAT,
-  UNKNOWN,
-};
-
 /**
  * A class associated with a specific field (for inheritting).
  *
