@@ -75,52 +75,57 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
   }
   ++d_statTotalInputs;
   Trace("rpc-debug") << "- convert to internal" << std::endl;
-  DslProofRule id;
+  // prove the equality
   Node eq = a.eqNode(b);
-  bool success = false;
-  // first try without the converter, then try with the converter
-  for (size_t i = 0; i < 2; i++)
+  bool success = proveEq(cdp, eq, eq, recLimit, stepLimit);
+  if (!success)
   {
-    Node eqi = i == 0 ? eq : d_rdnc.convert(eq);
-    if (i == 1 && eqi == eq)
+    Node eqi = d_rdnc.convert(eq);
+    // if converter didn't make a difference, don't try to prove again
+    if (eqi!=eq)
     {
-      // converter didn't make a difference, don't try to prove again
-      break;
-    }
-    if (!proveInternalBase(eqi, id))
-    {
-      Trace("rpc-debug") << "- prove internal" << std::endl;
-      // add one to recursion limit, since it is decremented whenever we
-      // initiate the getMatches routine.
-      d_currRecLimit = recLimit + 1;
-      d_currStepLimit = stepLimit;
-      // Otherwise, we call the main prove internal method, which recurisvely
-      // tries to find a matched conclusion whose conditions can be proven
-      id = proveInternal(eqi);
-      Trace("rpc-debug") << "- finished prove internal" << std::endl;
-    }
-    success = (id != DslProofRule::FAIL);
-    // if a proof was provided, fill it in
-    if (success && cdp != nullptr)
-    {
-      ++d_statTotalInputSuccess;
-      Trace("rpc-debug") << "- ensure proof" << std::endl;
-      // if it changed encoding, account for this
-      if (eq != eqi)
-      {
-        cdp->addStep(eq, ProofRule::ENCODE_PRED_TRANSFORM, {eqi}, {eq});
-      }
-      ensureProofInternal(cdp, eqi);
-      AlwaysAssert(cdp->hasStep(eqi)) << eqi;
-      Trace("rpc-debug") << "- finish ensure proof" << std::endl;
-    }
-    if (success)
-    {
-      break;
+      success = proveEq(cdp, eq, eqi, recLimit, stepLimit);
     }
   }
   Trace("rpc") << "..." << (success ? "success" : "fail") << std::endl;
   return success;
+}
+
+bool RewriteDbProofCons::proveEq(CDProof* cdp,
+                                 const Node& eq,
+             const Node& eqi,
+                               int64_t recLimit,
+                               int64_t stepLimit)
+{
+  DslProofRule id;
+  if (!proveInternalBase(eqi, id))
+  {
+    Trace("rpc-debug") << "- prove internal" << std::endl;
+    // add one to recursion limit, since it is decremented whenever we
+    // initiate the getMatches routine.
+    d_currRecLimit = recLimit + 1;
+    d_currStepLimit = stepLimit;
+    // Otherwise, we call the main prove internal method, which recurisvely
+    // tries to find a matched conclusion whose conditions can be proven
+    id = proveInternal(eqi);
+    Trace("rpc-debug") << "- finished prove internal" << std::endl;
+  }
+  // if a proof was provided, fill it in
+  if (id != DslProofRule::FAIL && cdp != nullptr)
+  {
+    ++d_statTotalInputSuccess;
+    Trace("rpc-debug") << "- ensure proof" << std::endl;
+    // if it changed encoding, account for this
+    if (eq != eqi)
+    {
+      cdp->addStep(eq, ProofRule::ENCODE_PRED_TRANSFORM, {eqi}, {eq});
+    }
+    ensureProofInternal(cdp, eqi);
+    AlwaysAssert(cdp->hasStep(eqi)) << eqi;
+    Trace("rpc-debug") << "- finish ensure proof" << std::endl;
+    return true;
+  }
+  return false;
 }
 
 DslProofRule RewriteDbProofCons::proveInternal(const Node& eqi)
@@ -988,7 +993,7 @@ void RewriteDbProofCons::cacheProofSubPlaceholder(TNode context,
 
   for (const Node& cong : congs)
   {
-    ProvenInfo cpi;
+    ProvenInfo& cpi = d_pcache[cong];
     cpi.d_id = DslProofRule::CONG;
     for (size_t i = 0, size = cong[0].getNumChildren(); i < size; i++)
     {
@@ -996,13 +1001,11 @@ void RewriteDbProofCons::cacheProofSubPlaceholder(TNode context,
       TNode rhs = cong[1][i];
       if (lhs == rhs)
       {
-        ProvenInfo pi;
+        ProvenInfo& pi = d_pcache[lhs.eqNode(rhs)];
         pi.d_id = DslProofRule::REFL;
-        d_pcache[lhs.eqNode(rhs)] = pi;
       }
       cpi.d_vars.emplace_back(lhs.eqNode(rhs));
     }
-    d_pcache[cong] = cpi;
   }
 }
 
