@@ -478,7 +478,7 @@ Node IntBlaster::translateWithChildren(
     }
     case Kind::BITVECTOR_BITOF:
     {
-      // ((_ extract i j) a) is a / 2^j mod 2^{i-j+1}
+      // ((_ bitof i) a) is a / 2^i mod 2
       // original = a[i:j]
       uint32_t i = original.getOperator().getConst<BitVectorBitOf>().d_bitIndex;
       Assert(i >= 0);
