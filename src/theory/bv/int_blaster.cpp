@@ -476,6 +476,41 @@ Node IntBlaster::translateWithChildren(
       returnNode = modpow2(div, i - j + 1);
       break;
     }
+    case Kind::BITVECTOR_BITOF:
+    {
+      // ((_ extract i j) a) is a / 2^j mod 2^{i-j+1}
+      // original = a[i:j]
+      uint32_t i = original.getOperator().getConst<BitVectorBitOf>().d_bitIndex;
+      Assert(i >= 0);
+      Node div = d_nm->mkNode(
+          Kind::INTS_DIVISION_TOTAL, translated_children[0], pow2(i));
+      Node mod = modpow2(div, 1);
+      Node test = d_nm->mkNode(Kind::EQUAL, mod, d_one);
+      returnNode = d_nm->mkNode(
+          Kind::ITE, test, d_nm->mkConst(true), d_nm->mkConst(false));
+      break;
+    }
+    case Kind::BITVECTOR_BB_TERM:
+    {
+      // (bbT x) --> x[0]*2^0 + ... + x[k-1]*2^{k-1}
+      uint32_t width = original.getNumChildren();
+      returnNode = d_nm->mkConstInt(Rational(0));
+      for (uint32_t i = 0; i < width; i++)
+      {
+        returnNode = d_nm->mkNode(
+            Kind::ADD,
+            returnNode,
+            d_nm->mkNode(Kind::MULT,
+                         pow2(2),
+                         d_nm->mkNode(Kind::ITE,
+                                      d_nm->mkNode(Kind::EQUAL,
+                                                   translated_children[i],
+                                                   d_nm->mkConst(true)),
+                                      d_one,
+                                      d_zero)));
+      }
+      break;
+    }
     case Kind::EQUAL:
     {
       returnNode = d_nm->mkNode(Kind::EQUAL, translated_children);
