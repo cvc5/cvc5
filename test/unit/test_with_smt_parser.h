@@ -29,7 +29,7 @@ namespace cvc5::internal {
 namespace test {
 
 /**
- * For writing tests that accesss and SMT-LIB parser.
+ * For writing tests that accesss an SMT-LIB parser.
  *
  * The parser is set to logic ALL.
  */
