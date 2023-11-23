@@ -351,6 +351,13 @@ EvalResult Evaluator::evalInternal(
         // term.
         currNodeVal = reconstruct(currNode, results, evalAsNode);
         currNodeVal = builtin::TheoryBuiltinRewriter::rewriteApplyIndexedSymbolic(currNodeVal);
+        // if we did not eliminate, then we fail to evaluate
+        if (currNodeVal.getKind()==Kind::APPLY_INDEXED_SYMBOLIC)
+        {
+          results[currNode] = EvalResult();
+          evalAsNode[currNode] = currNodeVal;
+          continue;
+        }
         itr = results.find(currNodeVal);
         if (itr == results.end())
         {
@@ -358,8 +365,17 @@ EvalResult Evaluator::evalInternal(
           queue.emplace_back(currNodeVal);
           continue;
         }
-        // now we are ready
-        results[currNode] = itr->second;
+        if (itr->second.d_tag == EvalResult::INVALID)
+        {
+          // failed to evaluate the converted node
+          results[currNode] = EvalResult();
+          evalAsNode[currNode] = currNodeVal;
+        }
+        else
+        {
+          // now we are ready
+          results[currNode] = itr->second;
+        }
         continue;
       }
 
