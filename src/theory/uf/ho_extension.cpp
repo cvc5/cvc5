@@ -276,6 +276,8 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
       hasFunctions = true;
       // if during collect model, must have an infinite type
       // if not during collect model, must have a finite type
+      // we consider the cardinality of tn's range type (as opposed to tn)
+      // since the model construction will enumerate values of this type.
       if (d_env.isFiniteType(tn.getRangeType()) != isCollectModel)
       {
         func_eqcs[tn].push_back(eqc);

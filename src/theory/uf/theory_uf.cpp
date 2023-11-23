@@ -613,7 +613,7 @@ void TheoryUF::processCarePairArgs(TNode a, TNode b)
       // theory combination (in particular, with the core UF solver). This is
       // similar to how we handle sets of sets, where each set type is
       // considered a separate entity. The types below must be equal to handle
-      // polymorphic higher-order operators.
+      // polymorphic operators taking higher-order arguments, e.g. set.map.
       TypeNode xt = x.getType();
       if (xt.isFunction() && xt==y.getType())
       {
