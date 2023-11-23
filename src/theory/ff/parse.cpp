@@ -11,6 +11,9 @@
  * ****************************************************************************
  *
  * parsing structured field terms
+ *
+ * NB: many functions in this file return an empty std::optional if parsing
+ * fails.
  */
 
 #include "theory/ff/parse.h"

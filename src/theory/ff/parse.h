@@ -10,7 +10,10 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * parsing structured field terms
+ * parsing structured field terms.
+ *
+ * NB: many functions in this file return an empty std::optional if parsing
+ * fails.
  */
 
 #include "cvc5_private.h"

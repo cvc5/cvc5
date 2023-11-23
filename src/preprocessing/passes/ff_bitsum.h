@@ -38,17 +38,6 @@ class FfBitsum : public PreprocessingPass
  protected:
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
-
- private:
-  /**
-   * Process a non-leaf.
-   */
-  Node nonLeaf(Node original, std::vector<Node>&& rwChildren);
-
-  /**
-   * Process a leaf.
-   */
-  Node leaf(Node original);
 };
 
 }  // namespace passes
