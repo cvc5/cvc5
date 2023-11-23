@@ -303,7 +303,6 @@ set(regress_0_tests
   regress0/bv/bv_to_int_elim_err.smt2
   regress0/bv/bv_to_int_issue_8413_1.smt2
   regress0/bv/bv_to_int_issue_8413_2.smt2
-  regress0/bv/bv_to_int_issue_9053.smt2
   regress0/bv/bv_to_int_int1.smt2
   regress0/bv/bv_to_int_proj_417.smt2
   regress0/bv/bv_to_int_zext.smt2
@@ -3297,6 +3296,7 @@ set(regress_2_tests
   regress2/bv_to_int_bvuf_to_intuf_smtlib.smt2
   regress2/bv_to_int_bvmul1.smt2
   regress2/bv_to_int_inc1.smt2
+  regress2/bv_to_int_issue_9053.smt2
   regress2/bv_to_int_mask_array_2.smt2
   regress2/bv_to_int_mask_array_3.smt2
   regress2/bv_to_int_shifts.smt2
