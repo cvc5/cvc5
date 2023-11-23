@@ -303,6 +303,7 @@ set(regress_0_tests
   regress0/bv/bv_to_int_elim_err.smt2
   regress0/bv/bv_to_int_issue_8413_1.smt2
   regress0/bv/bv_to_int_issue_8413_2.smt2
+  regress0/bv/bv_to_int_issue_9053.smt2
   regress0/bv/bv_to_int_int1.smt2
   regress0/bv/bv_to_int_proj_417.smt2
   regress0/bv/bv_to_int_zext.smt2
