@@ -24,7 +24,7 @@
 
 #include "expr/node.h"
 #include "expr/sygus_grammar.h"
-#include "options/options.h"
+#include "smt/env.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -46,7 +46,7 @@ class SygusGrammarCons
    * @param bvl The input variable list for the grammar (if it exists). If
    * provided, each variable in this list is added as a terminal rule.
    */
-  static TypeNode mkDefaultSygusType(const Options& opts,
+  static TypeNode mkDefaultSygusType(const Env& env,
                                      const TypeNode& range,
                                      const Node& bvl);
   /**
@@ -60,7 +60,7 @@ class SygusGrammarCons
    * @param bvl The input variable list for the grammar (if it exists).
    * @param trules The provided set of terminal rules.
    */
-  static TypeNode mkDefaultSygusType(const Options& opts,
+  static TypeNode mkDefaultSygusType(const Env& env,
                                      const TypeNode& range,
                                      const Node& bvl,
                                      const std::vector<Node>& trules);
@@ -75,7 +75,7 @@ class SygusGrammarCons
    * @param bvl The input variable list for the grammar (if it exists). If
    * provided, each variable in this list is added as a terminal rule.
    */
-  static SygusGrammar mkDefaultGrammar(const Options& opts,
+  static SygusGrammar mkDefaultGrammar(const Env& env,
                                        const TypeNode& range,
                                        const Node& bvl);
 
@@ -89,7 +89,7 @@ class SygusGrammarCons
    * @param bvl The input variable list for the grammar (if it exists).
    * @param trules The provided set of terminal rules.
    */
-  static SygusGrammar mkDefaultGrammar(const Options& opts,
+  static SygusGrammar mkDefaultGrammar(const Env& env,
                                        const TypeNode& range,
                                        const Node& bvl,
                                        const std::vector<Node>& trules);
@@ -115,7 +115,7 @@ class SygusGrammarCons
    * @param bvl The input variable list for the grammar (if it exists).
    * @param trules The provided set of terminal rules.
    */
-  static SygusGrammar mkEmptyGrammar(const Options& opts,
+  static SygusGrammar mkEmptyGrammar(const Env& env,
                                      const TypeNode& range,
                                      const Node& bvl,
                                      const std::vector<Node>& trules);
@@ -138,7 +138,7 @@ class SygusGrammarCons
    * that are constructed from symbols belonging to non-arithmetic theories.
    */
   static void addDefaultRulesTo(
-      const Options& opts,
+      const Env& env,
       SygusGrammar& g,
       const Node& ntSym,
       const std::map<TypeNode, std::vector<Node>>& typeToNtSym,
@@ -148,7 +148,7 @@ class SygusGrammarCons
    * ntSymBool is a Boolean non-terminal of g.
    */
   static void addDefaultPredicateRulesTo(
-      const Options& opts,
+      const Env& env,
       SygusGrammar& g,
       const Node& ntSym,
       const Node& ntSymBool,
