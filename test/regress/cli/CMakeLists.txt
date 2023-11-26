@@ -769,6 +769,8 @@ set(regress_0_tests
   regress0/ho/cong.smt2
   regress0/ho/datatype-field-ho.smt2
   regress0/ho/dd.shadowing-defs.smt2
+  regress0/ho/dd.syo009.smt2
+  regress0/ho/dd.syo372-finite-ho-ext.smt2
   regress0/ho/declare-fun-variants.smt2
   regress0/ho/def-fun-flatten.smt2
   regress0/ho/ext-finite-unsat.smt2
@@ -809,6 +811,7 @@ set(regress_0_tests
   regress0/ho/simple-conf-lazy-lambda-lift-app.smt2
   regress0/ho/simple-matching-partial.smt2
   regress0/ho/simple-matching.smt2
+  regress0/ho/SYO372.smt2
   regress0/ho/trans.smt2
   regress0/hung10_itesdk_output1.smt2
   regress0/hung13sdk_output1.smt2
