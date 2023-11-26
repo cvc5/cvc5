@@ -189,7 +189,8 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammar(const Env& env,
 
   // construct the non-terminals
   std::vector<Node> ntSyms;
-  options::SygusGrammarConsMode tsgcm = env.getOptions().quantifiers.sygusGrammarConsMode;
+  options::SygusGrammarConsMode tsgcm =
+      env.getOptions().quantifiers.sygusGrammarConsMode;
   for (const TypeNode& t : tvec)
   {
     std::stringstream ss;
@@ -241,7 +242,8 @@ void SygusGrammarCons::addDefaultRulesTo(
   TypeNode tn = ntSym.getType();
   std::vector<Node> prevRules = g.getRulesFor(ntSym);
   NodeManager* nm = NodeManager::currentNM();
-  options::SygusGrammarConsMode tsgcm = env.getOptions().quantifiers.sygusGrammarConsMode;
+  options::SygusGrammarConsMode tsgcm =
+      env.getOptions().quantifiers.sygusGrammarConsMode;
   // add constants
   if (stage == 0)
   {
@@ -672,7 +674,8 @@ void SygusGrammarCons::addDefaultRulesTo(
       // decision tree learning) and the grammar is non-trivial.
       considerIte = false;
       if (!prevRules.empty()
-          && env.getOptions().quantifiers.sygusUnifPi != options::SygusUnifPiMode::NONE)
+          && env.getOptions().quantifiers.sygusUnifPi
+                 != options::SygusUnifPiMode::NONE)
       {
         considerIte = true;
       }
