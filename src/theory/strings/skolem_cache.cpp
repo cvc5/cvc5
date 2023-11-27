@@ -303,10 +303,7 @@ Node SkolemCache::mkSkolemFun(SkolemFunId id, Node a, Node b)
   return mkSkolemFunTyped(id, TypeNode::null(), a, b);
 }
 
-Node SkolemCache::mkSkolemFunTyped(SkolemFunId id,
-                  TypeNode tn,
-                  Node a,
-                  Node b)
+Node SkolemCache::mkSkolemFunTyped(SkolemFunId id, TypeNode tn, Node a, Node b)
 {
   std::vector<Node> cacheVals;
   for (size_t i = 0; i < 2; i++)
