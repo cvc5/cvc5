@@ -457,6 +457,9 @@ class SkolemManager
                     const std::string& prefix,
                     const TypeNode& type,
                     int flags = SKOLEM_DEFAULT);
+  /** Get type for skolem */
+  TypeNode getTypeFor(SkolemFunId id,
+                        const std::vector<Node>& cacheVals);
 };
 
 }  // namespace cvc5::internal
