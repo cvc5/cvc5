@@ -160,9 +160,9 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal)
   std::vector<Node> cvals;
   if (!cacheVal.isNull())
   {
-    if (cacheVal.getKind()==Kind::SEXPR)
+    if (cacheVal.getKind() == Kind::SEXPR)
     {
-      cvals.insert(cvals.end(),cacheVal.begin(), cacheVal.end());
+      cvals.insert(cvals.end(), cacheVal.begin(), cacheVal.end());
     }
     else
     {
@@ -170,7 +170,8 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal)
     }
   }
   TypeNode ctn = getTypeFor(id, cvals);
-  AlwaysAssert(ctn.isNull() || ctn==tn) << "Bad " << id << " " << tn << " " << ctn;
+  AlwaysAssert(ctn.isNull() || ctn == tn)
+      << "Bad " << id << " " << tn << " " << ctn;
   std::tuple<SkolemFunId, TypeNode, Node> key(id, tn, cacheVal);
   std::map<std::tuple<SkolemFunId, TypeNode, Node>, Node>::iterator it =
       d_skolemFuns.find(key);
@@ -402,149 +403,145 @@ Node SkolemManager::mkSkolemNode(Kind k,
 }
 
 TypeNode SkolemManager::getTypeFor(SkolemFunId id,
-                      const std::vector<Node>& cacheVals)
+                                   const std::vector<Node>& cacheVals)
 {
   NodeManager* nm = NodeManager::currentNM();
-  switch(id)
+  switch (id)
   {
-  // Type(args[0]), i.e skolems that return same type as first argument
-  case SkolemFunId::PURIFY: 
-    Assert (cacheVals.size()>0);
-    return cacheVals[0].getType();
-    break;
-  // real -> real function
-  case SkolemFunId::DIV_BY_ZERO: 
-  case SkolemFunId::SQRT:
-  {
-    TypeNode rtype = nm->realType();
-    return nm->mkFunctionType(rtype, rtype);
-  }
-  // real skolems
-  case SkolemFunId::TRANSCENDENTAL_PURIFY_ARG:
-    return nm->realType();
-  // int -> int function
-  case SkolemFunId::INT_DIV_BY_ZERO: 
-  case SkolemFunId::MOD_BY_ZERO: 
-  case SkolemFunId::STRINGS_OCCUR_INDEX: 
-  case SkolemFunId::STRINGS_OCCUR_INDEX_RE: 
-  case SkolemFunId::STRINGS_OCCUR_LEN: 
-  case SkolemFunId::STRINGS_OCCUR_LEN_RE: 
-  case SkolemFunId::STRINGS_STOI_RESULT: 
-  case SkolemFunId::STRINGS_ITOS_RESULT: 
-  {
-    TypeNode itype = nm->integerType();
-    return nm->mkFunctionType(itype, itype);
-  }
-  // int -> Type(args[0])
-  case SkolemFunId::STRINGS_REPLACE_ALL_RESULT:
-  {
-    Assert (cacheVals.size()>0);
-    TypeNode itype = nm->integerType();
-    return nm->mkFunctionType(itype, cacheVals[0].getType());
-  }
-  // integer skolems
-  case SkolemFunId::STRINGS_NUM_OCCUR: 
-  case SkolemFunId::STRINGS_NUM_OCCUR_RE: 
-  case SkolemFunId::STRINGS_DEQ_DIFF: 
-  case SkolemFunId::STRINGS_STOI_NON_DIGIT: 
-    return nm->integerType();
-  // string skolems
-  case SkolemFunId::RE_FIRST_MATCH_PRE: 
-  case SkolemFunId::RE_FIRST_MATCH: 
-  case SkolemFunId::RE_FIRST_MATCH_POST: 
-  case SkolemFunId::RE_UNFOLD_POS_COMPONENT: 
-    return nm->stringType();
-  case SkolemFunId::ARRAY_DEQ_DIFF: 
-  {
-    Assert (cacheVals.size()==2);
-    TypeNode atype = cacheVals[0].getType();
-    Assert (atype.isArray());
-    return atype.getArrayIndexType();
-  }
-  case SkolemFunId::QUANTIFIERS_SKOLEMIZE: 
-  {
-    Assert (cacheVals.size()==2);
-    Node vi = cacheVals[1];
-    if (vi.getKind()==Kind::CONST_INTEGER
-        && vi.getConst<Rational>().sgn() >= 0
-        && vi.getConst<Rational>().getNumerator().fitsUnsignedInt())
+    // Type(args[0]), i.e skolems that return same type as first argument
+    case SkolemFunId::PURIFY:
+      Assert(cacheVals.size() > 0);
+      return cacheVals[0].getType();
+      break;
+    // real -> real function
+    case SkolemFunId::DIV_BY_ZERO:
+    case SkolemFunId::SQRT:
     {
-      uint32_t i = vi.getConst<Rational>().getNumerator().toUnsignedInt();
-      Assert (cacheVals[0].getKind()==Kind::FORALL && i<cacheVals[0][0].getNumChildren());
-      return cacheVals[0][0][i].getType();
+      TypeNode rtype = nm->realType();
+      return nm->mkFunctionType(rtype, rtype);
     }
-  }
+    // real skolems
+    case SkolemFunId::TRANSCENDENTAL_PURIFY_ARG: return nm->realType();
+    // int -> int function
+    case SkolemFunId::INT_DIV_BY_ZERO:
+    case SkolemFunId::MOD_BY_ZERO:
+    case SkolemFunId::STRINGS_OCCUR_INDEX:
+    case SkolemFunId::STRINGS_OCCUR_INDEX_RE:
+    case SkolemFunId::STRINGS_OCCUR_LEN:
+    case SkolemFunId::STRINGS_OCCUR_LEN_RE:
+    case SkolemFunId::STRINGS_STOI_RESULT:
+    case SkolemFunId::STRINGS_ITOS_RESULT:
+    {
+      TypeNode itype = nm->integerType();
+      return nm->mkFunctionType(itype, itype);
+    }
+    // int -> Type(args[0])
+    case SkolemFunId::STRINGS_REPLACE_ALL_RESULT:
+    {
+      Assert(cacheVals.size() > 0);
+      TypeNode itype = nm->integerType();
+      return nm->mkFunctionType(itype, cacheVals[0].getType());
+    }
+    // integer skolems
+    case SkolemFunId::STRINGS_NUM_OCCUR:
+    case SkolemFunId::STRINGS_NUM_OCCUR_RE:
+    case SkolemFunId::STRINGS_DEQ_DIFF:
+    case SkolemFunId::STRINGS_STOI_NON_DIGIT: return nm->integerType();
+    // string skolems
+    case SkolemFunId::RE_FIRST_MATCH_PRE:
+    case SkolemFunId::RE_FIRST_MATCH:
+    case SkolemFunId::RE_FIRST_MATCH_POST:
+    case SkolemFunId::RE_UNFOLD_POS_COMPONENT: return nm->stringType();
+    case SkolemFunId::ARRAY_DEQ_DIFF:
+    {
+      Assert(cacheVals.size() == 2);
+      TypeNode atype = cacheVals[0].getType();
+      Assert(atype.isArray());
+      return atype.getArrayIndexType();
+    }
+    case SkolemFunId::QUANTIFIERS_SKOLEMIZE:
+    {
+      Assert(cacheVals.size() == 2);
+      Node vi = cacheVals[1];
+      if (vi.getKind() == Kind::CONST_INTEGER
+          && vi.getConst<Rational>().sgn() >= 0
+          && vi.getConst<Rational>().getNumerator().fitsUnsignedInt())
+      {
+        uint32_t i = vi.getConst<Rational>().getNumerator().toUnsignedInt();
+        Assert(cacheVals[0].getKind() == Kind::FORALL
+               && i < cacheVals[0][0].getNumChildren());
+        return cacheVals[0][0][i].getType();
+      }
+    }
     break;
-  // skolems that return the bag element type
-  case SkolemFunId::BAGS_DEQ_DIFF: 
-  case SkolemFunId::TABLES_GROUP_PART:
-  case SkolemFunId::BAGS_CHOOSE: 
-  {
-    Assert (cacheVals.size()>0);
-    TypeNode btype = cacheVals[0].getType();
-    Assert (btype.isBag());
-    return btype.getBagElementType();
-  }
-  // skolems that return the bag element of bag element type
-  case SkolemFunId::TABLES_GROUP_PART_ELEMENT:
-  {
-    Assert (cacheVals.size()>0);
-    TypeNode btype = cacheVals[0].getType();
-    Assert (btype.isBag());
-    btype = btype.getBagElementType();
-    Assert (btype.isBag());
-    return btype.getBagElementType();
-  }
-  // skolems that return the set element type
-  case SkolemFunId::SETS_DEQ_DIFF: 
-  case SkolemFunId::RELATIONS_GROUP_PART: 
-  case SkolemFunId::SETS_CHOOSE: 
-  {
-    Assert (cacheVals.size()>0);
-    TypeNode stype = cacheVals[0].getType();
-    Assert (stype.isSet());
-    return stype.getSetElementType();
-  }
-  // skolems that return the set element of set element type
-  case SkolemFunId::RELATIONS_GROUP_PART_ELEMENT:
-  {
-    Assert (cacheVals.size()>0);
-    TypeNode stype = cacheVals[0].getType();
-    Assert (stype.isSet());
-    stype = stype.getSetElementType();
-    Assert (stype.isSet());
-    return stype.getSetElementType();
-  }
-    
-    
-  case SkolemFunId::SHARED_SELECTOR: 
-  case SkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED:
-  case SkolemFunId::SEQ_MODEL_BASE_ELEMENT: 
-  case SkolemFunId::BAGS_CARD_CARDINALITY: 
-  case SkolemFunId::BAGS_CARD_ELEMENTS: 
-  case SkolemFunId::BAGS_CARD_N: 
-  case SkolemFunId::BAGS_CARD_UNION_DISJOINT:
-    
-  case SkolemFunId::BAGS_FOLD_CARD: 
-  case SkolemFunId::BAGS_FOLD_COMBINE: 
-  case SkolemFunId::BAGS_FOLD_ELEMENTS: 
-  case SkolemFunId::BAGS_FOLD_UNION_DISJOINT: 
-  case SkolemFunId::BAGS_MAP_PREIMAGE: 
-  case SkolemFunId::BAGS_MAP_PREIMAGE_SIZE: 
-  case SkolemFunId::BAGS_MAP_PREIMAGE_INDEX: 
-  case SkolemFunId::BAGS_MAP_SUM: 
-    
-  case SkolemFunId::SETS_FOLD_CARD: 
-  case SkolemFunId::SETS_FOLD_COMBINE: 
-  case SkolemFunId::SETS_FOLD_ELEMENTS: 
-  case SkolemFunId::SETS_FOLD_UNION: 
-  case SkolemFunId::SETS_MAP_DOWN_ELEMENT: 
-  case SkolemFunId::HO_TYPE_MATCH_PRED:
-  default:
-    break;
+    // skolems that return the bag element type
+    case SkolemFunId::BAGS_DEQ_DIFF:
+    case SkolemFunId::TABLES_GROUP_PART:
+    case SkolemFunId::BAGS_CHOOSE:
+    {
+      Assert(cacheVals.size() > 0);
+      TypeNode btype = cacheVals[0].getType();
+      Assert(btype.isBag());
+      return btype.getBagElementType();
+    }
+    // skolems that return the bag element of bag element type
+    case SkolemFunId::TABLES_GROUP_PART_ELEMENT:
+    {
+      Assert(cacheVals.size() > 0);
+      TypeNode btype = cacheVals[0].getType();
+      Assert(btype.isBag());
+      btype = btype.getBagElementType();
+      Assert(btype.isBag());
+      return btype.getBagElementType();
+    }
+    // skolems that return the set element type
+    case SkolemFunId::SETS_DEQ_DIFF:
+    case SkolemFunId::RELATIONS_GROUP_PART:
+    case SkolemFunId::SETS_CHOOSE:
+    {
+      Assert(cacheVals.size() > 0);
+      TypeNode stype = cacheVals[0].getType();
+      Assert(stype.isSet());
+      return stype.getSetElementType();
+    }
+    // skolems that return the set element of set element type
+    case SkolemFunId::RELATIONS_GROUP_PART_ELEMENT:
+    {
+      Assert(cacheVals.size() > 0);
+      TypeNode stype = cacheVals[0].getType();
+      Assert(stype.isSet());
+      stype = stype.getSetElementType();
+      Assert(stype.isSet());
+      return stype.getSetElementType();
+    }
+
+    case SkolemFunId::SHARED_SELECTOR:
+    case SkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED:
+    case SkolemFunId::SEQ_MODEL_BASE_ELEMENT:
+    case SkolemFunId::BAGS_CARD_CARDINALITY:
+    case SkolemFunId::BAGS_CARD_ELEMENTS:
+    case SkolemFunId::BAGS_CARD_N:
+    case SkolemFunId::BAGS_CARD_UNION_DISJOINT:
+
+    case SkolemFunId::BAGS_FOLD_CARD:
+    case SkolemFunId::BAGS_FOLD_COMBINE:
+    case SkolemFunId::BAGS_FOLD_ELEMENTS:
+    case SkolemFunId::BAGS_FOLD_UNION_DISJOINT:
+    case SkolemFunId::BAGS_MAP_PREIMAGE:
+    case SkolemFunId::BAGS_MAP_PREIMAGE_SIZE:
+    case SkolemFunId::BAGS_MAP_PREIMAGE_INDEX:
+    case SkolemFunId::BAGS_MAP_SUM:
+
+    case SkolemFunId::SETS_FOLD_CARD:
+    case SkolemFunId::SETS_FOLD_COMBINE:
+    case SkolemFunId::SETS_FOLD_ELEMENTS:
+    case SkolemFunId::SETS_FOLD_UNION:
+    case SkolemFunId::SETS_MAP_DOWN_ELEMENT:
+    case SkolemFunId::HO_TYPE_MATCH_PRED:
+    default: break;
   }
   TypeNode ret;
   return ret;
 }
-  
+
 }  // namespace cvc5::internal
