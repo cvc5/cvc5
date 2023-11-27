@@ -93,7 +93,7 @@ void SygusSolver::declareSynthFun(Node fn,
 
 void SygusSolver::assertSygusConstraint(Node n, bool isAssume)
 {
-  if (n.getKind()==Kind::AND)
+  if (n.getKind() == Kind::AND)
   {
     // miniscope, to account for forall handling below
     for (const Node& nc : n)
@@ -102,7 +102,7 @@ void SygusSolver::assertSygusConstraint(Node n, bool isAssume)
     }
     return;
   }
-  else if (n.getKind()==Kind::FORALL)
+  else if (n.getKind() == Kind::FORALL)
   {
     // forall as constraint is equivalent to introducing its variables and
     // using a quantifier-free constraint.
