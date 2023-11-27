@@ -841,8 +841,8 @@ void TheorySetsPrivate::checkMapDown()
       //     (set.member x A)
       //     (= (f x) y))
       // )
-      Node x = sm->mkSkolemFunction(
-          SkolemFunId::SETS_MAP_DOWN_ELEMENT, {term, y});
+      Node x =
+          sm->mkSkolemFunction(SkolemFunId::SETS_MAP_DOWN_ELEMENT, {term, y});
 
       d_state.registerMapSkolemElement(term, x);
       Node memberA = nm->mkNode(Kind::SET_MEMBER, x, A);
@@ -1210,8 +1210,7 @@ Node TheorySetsPrivate::defineSkolemPartFunction(Node n)
   // declare an uninterpreted function part: T -> (Relation T)
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  Node part =
-      sm->mkSkolemFunction(SkolemFunId::RELATIONS_GROUP_PART, {n});
+  Node part = sm->mkSkolemFunction(SkolemFunId::RELATIONS_GROUP_PART, {n});
   return part;
 }
 
@@ -1265,8 +1264,7 @@ void TheorySetsPrivate::checkDisequalities()
     d_termProcessed.insert(deq);
     d_termProcessed.insert(deq[1].eqNode(deq[0]));
     Trace("sets") << "Process Disequality : " << deq.negate() << std::endl;
-    Node x = sm->mkSkolemFunction(
-        SkolemFunId::SETS_DEQ_DIFF, {deq[0], deq[1]});
+    Node x = sm->mkSkolemFunction(SkolemFunId::SETS_DEQ_DIFF, {deq[0], deq[1]});
     Node mem1 = nm->mkNode(Kind::SET_MEMBER, x, deq[0]);
     Node mem2 = nm->mkNode(Kind::SET_MEMBER, x, deq[1]);
     Node lem =

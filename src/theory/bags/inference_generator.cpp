@@ -417,13 +417,14 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
   // declare an uninterpreted function uf: Int -> T
   TypeNode domainType = f.getType().getArgTypes()[0];
   TypeNode ufType = d_nm->mkFunctionType(d_nm->integerType(), domainType);
-  Node uf =
-      d_sm->mkSkolemFunctionTyped(SkolemFunId::BAGS_MAP_PREIMAGE, ufType, {n, e});
+  Node uf = d_sm->mkSkolemFunctionTyped(
+      SkolemFunId::BAGS_MAP_PREIMAGE, ufType, {n, e});
 
   // declare uninterpreted function sum: Int -> Int
   TypeNode sumType =
       d_nm->mkFunctionType(d_nm->integerType(), d_nm->integerType());
-  Node sum = d_sm->mkSkolemFunctionTyped(SkolemFunId::BAGS_MAP_SUM, sumType, {n, e});
+  Node sum =
+      d_sm->mkSkolemFunctionTyped(SkolemFunId::BAGS_MAP_SUM, sumType, {n, e});
 
   // (= (sum 0) 0)
   Node sum_zero = d_nm->mkNode(Kind::APPLY_UF, sum, d_zero);
@@ -520,8 +521,8 @@ InferInfo InferenceGenerator::mapUp(
       d_nm->mkNode(Kind::EQUAL, d_nm->mkNode(Kind::APPLY_UF, f, x), y).negate();
 
   Node k = d_sm->mkSkolemFunctionTyped(SkolemFunId::BAGS_MAP_PREIMAGE_INDEX,
-                                  d_nm->integerType(),
-                                  {n, uf, preImageSize, y, x});
+                                       d_nm->integerType(),
+                                       {n, uf, preImageSize, y, x});
   Node inRange = d_nm->mkNode(Kind::AND,
                               d_nm->mkNode(Kind::GEQ, k, d_one),
                               d_nm->mkNode(Kind::LEQ, k, preImageSize));
@@ -835,8 +836,8 @@ InferInfo InferenceGenerator::groupPartCount(Node n, Node B, Node part)
   inferInfo.d_premises.push_back(A_notEmpty);
 
   Node x = d_sm->mkSkolemFunctionTyped(SkolemFunId::TABLES_GROUP_PART_ELEMENT,
-                                  bagType.getBagElementType(),
-                                  {n, B});
+                                       bagType.getBagElementType(),
+                                       {n, B});
   d_state->registerPartElementSkolem(n, x);
   Node part_x = d_nm->mkNode(Kind::APPLY_UF, part, x);
   part_x = registerAndAssertSkolemLemma(part_x);
@@ -949,8 +950,7 @@ Node InferenceGenerator::defineSkolemPartFunction(Node n)
   TypeNode elementType = tableType.getBagElementType();
 
   // declare an uninterpreted function part: T -> (Table T)
-  Node part =
-      d_sm->mkSkolemFunction(SkolemFunId::TABLES_GROUP_PART, {n});
+  Node part = d_sm->mkSkolemFunction(SkolemFunId::TABLES_GROUP_PART, {n});
   return part;
 }
 

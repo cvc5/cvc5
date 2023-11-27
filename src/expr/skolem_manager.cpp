@@ -169,18 +169,21 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id, Node cacheVal)
     }
   }
   TypeNode ctn = getTypeFor(id, cvals);
-  Assert (!ctn.isNull());
+  Assert(!ctn.isNull());
   return mkSkolemFunctionTyped(id, ctn, cacheVal);
 }
 
-Node SkolemManager::mkSkolemFunction(SkolemFunId id, const std::vector<Node>& cacheVals)
+Node SkolemManager::mkSkolemFunction(SkolemFunId id,
+                                     const std::vector<Node>& cacheVals)
 {
   TypeNode ctn = getTypeFor(id, cacheVals);
-  Assert (!ctn.isNull());
+  Assert(!ctn.isNull());
   return mkSkolemFunctionTyped(id, ctn, cacheVals);
 }
 
-Node SkolemManager::mkSkolemFunctionTyped(SkolemFunId id, TypeNode tn, Node cacheVal)
+Node SkolemManager::mkSkolemFunctionTyped(SkolemFunId id,
+                                          TypeNode tn,
+                                          Node cacheVal)
 {
   std::vector<Node> cvals;
   if (!cacheVal.isNull())
@@ -230,8 +233,8 @@ Node SkolemManager::mkSkolemFunctionTyped(SkolemFunId id, TypeNode tn, Node cach
 }
 
 Node SkolemManager::mkSkolemFunctionTyped(SkolemFunId id,
-                                     TypeNode tn,
-                                     const std::vector<Node>& cacheVals)
+                                          TypeNode tn,
+                                          const std::vector<Node>& cacheVals)
 {
   Node cacheVal;
   // use null node if cacheVals is empty
@@ -476,7 +479,7 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     case SkolemFunId::STRINGS_NUM_OCCUR:
     case SkolemFunId::STRINGS_NUM_OCCUR_RE:
     case SkolemFunId::STRINGS_DEQ_DIFF:
-    case SkolemFunId::STRINGS_STOI_NON_DIGIT: 
+    case SkolemFunId::STRINGS_STOI_NON_DIGIT:
     case SkolemFunId::BAGS_FOLD_CARD:
     case SkolemFunId::SETS_FOLD_CARD: return nm->integerType();
     // string skolems
@@ -578,7 +581,7 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     }
     case SkolemFunId::SETS_MAP_DOWN_ELEMENT:
     {
-      Assert (cacheVals.size()==2 && cacheVals[0].getKind()==Kind::SET_MAP);
+      Assert(cacheVals.size() == 2 && cacheVals[0].getKind() == Kind::SET_MAP);
       TypeNode stype = cacheVals[0][1].getType();
       Assert(stype.isSet());
       return stype.getSetElementType();
@@ -601,7 +604,7 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     case SkolemFunId::BAGS_FOLD_COMBINE:
     case SkolemFunId::SETS_FOLD_COMBINE:
     {
-      Assert(cacheVals.size()==3);
+      Assert(cacheVals.size() == 3);
       TypeNode itype = nm->integerType();
       return nm->mkFunctionType(itype, cacheVals[1].getType());
     }

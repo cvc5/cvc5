@@ -70,10 +70,10 @@ Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
   // skolem functions
   Node n = sm->mkSkolemFunction(SkolemFunId::BAGS_FOLD_CARD, A);
   Node uf = sm->mkSkolemFunction(SkolemFunId::BAGS_FOLD_ELEMENTS, A);
-  Node unionDisjoint = sm->mkSkolemFunction(
-      SkolemFunId::BAGS_FOLD_UNION_DISJOINT, A);
-  Node combine = sm->mkSkolemFunction(
-      SkolemFunId::BAGS_FOLD_COMBINE, {f, t, A});
+  Node unionDisjoint =
+      sm->mkSkolemFunction(SkolemFunId::BAGS_FOLD_UNION_DISJOINT, A);
+  Node combine =
+      sm->mkSkolemFunction(SkolemFunId::BAGS_FOLD_COMBINE, {f, t, A});
 
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node i =
@@ -134,7 +134,8 @@ Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
   TypeNode unionDisjointType = nm->mkFunctionType(integerType, bagType);
   // skolem functions
   Node n = sm->mkSkolemFunctionTyped(SkolemFunId::BAGS_CARD_N, integerType, A);
-  Node uf = sm->mkSkolemFunctionTyped(SkolemFunId::BAGS_CARD_ELEMENTS, ufType, A);
+  Node uf =
+      sm->mkSkolemFunctionTyped(SkolemFunId::BAGS_CARD_ELEMENTS, ufType, A);
   Node unionDisjoint = sm->mkSkolemFunctionTyped(
       SkolemFunId::BAGS_CARD_UNION_DISJOINT, unionDisjointType, A);
   Node cardinality = sm->mkSkolemFunctionTyped(

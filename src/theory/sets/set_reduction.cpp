@@ -69,10 +69,9 @@ Node SetReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
   // skolem functions
   Node n = sm->mkSkolemFunction(SkolemFunId::SETS_FOLD_CARD, A);
   Node uf = sm->mkSkolemFunction(SkolemFunId::SETS_FOLD_ELEMENTS, A);
-  Node unionNode =
-      sm->mkSkolemFunction(SkolemFunId::SETS_FOLD_UNION, A);
-  Node combine = sm->mkSkolemFunction(
-      SkolemFunId::SETS_FOLD_COMBINE, {f, t, A});
+  Node unionNode = sm->mkSkolemFunction(SkolemFunId::SETS_FOLD_UNION, A);
+  Node combine =
+      sm->mkSkolemFunction(SkolemFunId::SETS_FOLD_COMBINE, {f, t, A});
 
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node i =

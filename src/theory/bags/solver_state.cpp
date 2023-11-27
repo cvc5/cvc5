@@ -125,8 +125,7 @@ void SolverState::collectDisequalBagTerms()
       if (d_deq.find(equal) == d_deq.end())
       {
         SkolemManager* sm = d_nm->getSkolemManager();
-        Node skolem = sm->mkSkolemFunction(
-            SkolemFunId::BAGS_DEQ_DIFF, {A, B});
+        Node skolem = sm->mkSkolemFunction(SkolemFunId::BAGS_DEQ_DIFF, {A, B});
         d_deq[equal] = skolem;
       }
     }
