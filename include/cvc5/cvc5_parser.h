@@ -275,7 +275,7 @@ class CVC5_EXPORT InputParser
 class CVC5_EXPORT ParserException : public CVC5ApiException
 {
  public:
-  /** default constructor */
+  /** Default constructor */
   ParserException();
   /**
    * Construct with message from a string.
