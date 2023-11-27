@@ -468,7 +468,7 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
           && vi.getConst<Rational>().getNumerator().fitsUnsignedInt())
       {
         uint32_t i = vi.getConst<Rational>().getNumerator().toUnsignedInt();
-        Assert(cacheVals[0].getKind() == Kind::FORALL
+        Assert(cacheVals[0].getKind() == Kind::EXISTS
                && i < cacheVals[0][0].getNumChildren());
         return cacheVals[0][0][i].getType();
       }
@@ -476,13 +476,30 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     break;
     // skolems that return the bag element type
     case SkolemFunId::BAGS_DEQ_DIFF:
-    case SkolemFunId::TABLES_GROUP_PART:
-    case SkolemFunId::BAGS_CHOOSE:
     {
       Assert(cacheVals.size() > 0);
       TypeNode btype = cacheVals[0].getType();
       Assert(btype.isBag());
       return btype.getBagElementType();
+    }
+    // skolems that return bag to bag element type
+    /*
+    case SkolemFunId::BAGS_CHOOSE:
+    {
+      Assert(cacheVals.size() > 0);
+      TypeNode btype = cacheVals[0].getType();
+      Assert(btype.isBag());
+      return nm->mkFunctionType(btype, btype.getBagElementType());
+    }
+    */
+    case SkolemFunId::TABLES_GROUP_PART:
+    {
+      Assert(cacheVals.size() > 0);
+      TypeNode btype = cacheVals[0].getType();
+      Assert(btype.isBag());
+      btype = btype.getBagElementType();
+      Assert(btype.isBag());
+      return nm->mkFunctionType(btype.getBagElementType(), btype);
     }
     // skolems that return the bag element of bag element type
     case SkolemFunId::TABLES_GROUP_PART_ELEMENT:
@@ -496,13 +513,30 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     }
     // skolems that return the set element type
     case SkolemFunId::SETS_DEQ_DIFF:
-    case SkolemFunId::RELATIONS_GROUP_PART:
-    case SkolemFunId::SETS_CHOOSE:
     {
       Assert(cacheVals.size() > 0);
       TypeNode stype = cacheVals[0].getType();
       Assert(stype.isSet());
       return stype.getSetElementType();
+    }
+    // skolems that return the set to set element type
+    /*
+    case SkolemFunId::SETS_CHOOSE:
+    {
+      Assert(cacheVals.size() > 0);
+      TypeNode stype = cacheVals[0].getType();
+      Assert(stype.isSet());
+      return nm->mkFunctionType(stype, stype.getSetElementType());
+    }
+    */
+    case SkolemFunId::RELATIONS_GROUP_PART:
+    {
+      Assert(cacheVals.size() > 0);
+      TypeNode stype = cacheVals[0].getType();
+      Assert(stype.isSet());
+      stype = stype.getSetElementType();
+      Assert(stype.isSet());
+      return nm->mkFunctionType(stype.getSetElementType(), stype);
     }
     // skolems that return the set element of set element type
     case SkolemFunId::RELATIONS_GROUP_PART_ELEMENT:
@@ -537,7 +571,6 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     case SkolemFunId::SETS_FOLD_ELEMENTS:
     case SkolemFunId::SETS_FOLD_UNION:
     case SkolemFunId::SETS_MAP_DOWN_ELEMENT:
-    case SkolemFunId::HO_TYPE_MATCH_PRED:
     default: break;
   }
   TypeNode ret;
