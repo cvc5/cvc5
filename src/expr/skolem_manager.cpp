@@ -608,18 +608,6 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
       TypeNode itype = nm->integerType();
       return nm->mkFunctionType(itype, cacheVals[1].getType());
     }
-
-    case SkolemFunId::SHARED_SELECTOR:
-    case SkolemFunId::BAGS_CARD_CARDINALITY:
-    case SkolemFunId::BAGS_CARD_ELEMENTS:
-    case SkolemFunId::BAGS_CARD_N:
-    case SkolemFunId::BAGS_CARD_UNION_DISJOINT:
-
-    case SkolemFunId::BAGS_MAP_PREIMAGE:
-    case SkolemFunId::BAGS_MAP_PREIMAGE_SIZE:
-    case SkolemFunId::BAGS_MAP_PREIMAGE_INDEX:
-    case SkolemFunId::BAGS_MAP_SUM:
-
     default: break;
   }
   TypeNode ret;
