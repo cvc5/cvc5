@@ -37,8 +37,7 @@ ZeroLevelLearner::ZeroLevelLearner(Env& env, TheoryEngine* theoryEngine)
       d_ppnTerms(userContext()),
       d_ppnSyms(userContext()),
       d_assertNoLearnCount(0),
-      d_tsmap(env, userContext(), "ZllSubsMap"),
-      d_tcpmap(env, userContext(), "ZllConstPropMap")
+      d_tsmap(env, userContext(), "ZllSimplificationMap")
 {
   // get the learned types
   options::DeepRestartMode lmode = options().smt.deepRestartMode;
@@ -300,7 +299,7 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
             {
               Trace("lemma-inprocess-subs")
                   << "Add cp: " << lit[1 - i] << " -> " << lit[i] << std::endl;
-              d_tcpmap.addSubstitution(lit[1 - i], lit[i]);
+              d_tsmap.addSubstitution(lit[1 - i], lit[i]);
               processed = true;
             }
             break;
@@ -309,7 +308,7 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
           {
             Trace("lemma-inprocess-subs") << "Add cp subterm: " << lit[1 - i]
                                           << " -> " << lit[i] << std::endl;
-            d_tcpmap.addSubstitution(lit[1 - i], lit[i]);
+            d_tsmap.addSubstitution(lit[1 - i], lit[i]);
             processed = true;
             break;
           }
@@ -326,14 +325,9 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
   return ltype;
 }
 
-theory::TrustSubstitutionMap& ZeroLevelLearner::getSubstitutions()
+theory::TrustSubstitutionMap& ZeroLevelLearner::getSimplifications()
 {
   return d_tsmap;
-}
-
-theory::TrustSubstitutionMap& ZeroLevelLearner::getConstantPropagations()
-{
-  return d_tcpmap;
 }
 
 void ZeroLevelLearner::processLearnedLiteral(const Node& lit,

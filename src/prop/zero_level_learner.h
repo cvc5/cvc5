@@ -70,10 +70,12 @@ class ZeroLevelLearner : protected EnvObj
   /** compute type for learned literal */
   modes::LearnedLitType computeLearnedLiteralType(const Node& lit);
 
-  /** Get inprocess substitution */
-  theory::TrustSubstitutionMap& getSubstitutions();
-  /** Get inprocess constant propagation */
-  theory::TrustSubstitutionMap& getConstantPropagations();
+  /**
+   * Get inferred simplifications. This is a (term) substitution that can be
+   * applied to construct simpler terms that are equivalent based on
+   * literals learned at decision level zero.
+   */
+  theory::TrustSubstitutionMap& getSimplifications();
 
  private:
   static void getAtoms(TNode a,
@@ -117,10 +119,8 @@ class ZeroLevelLearner : protected EnvObj
   std::unordered_set<modes::LearnedLitType> d_learnedTypes;
   /** Track substitutions? */
   bool d_trackSubs;
-  /** Substitution */
+  /** Simplification map */
   theory::TrustSubstitutionMap d_tsmap;
-  /** Substitution */
-  theory::TrustSubstitutionMap d_tcpmap;
 
 }; /* class ZeroLevelLearner */
 

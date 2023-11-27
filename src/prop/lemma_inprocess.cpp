@@ -26,8 +26,7 @@ namespace prop {
 LemmaInprocess::LemmaInprocess(Env& env, CnfStream* cs, ZeroLevelLearner& zll)
     : EnvObj(env),
       d_cs(cs),
-      d_tsmap(zll.getSubstitutions()),
-      d_tcpmap(zll.getConstantPropagations()),
+      d_tsmap(zll.getSimplifications()),
       d_subsLitMap(userContext()),
       d_eqLitLemmas(userContext())
 {
@@ -79,7 +78,6 @@ Node LemmaInprocess::processInternal(const Node& lem)
         // literal case
         bool prevLit = d_cs->hasLiteral(cur);
         Node scur = d_tsmap.get().apply(cur, d_env.getRewriter());
-        scur = d_tcpmap.get().apply(scur, d_env.getRewriter());
         its = d_subsLitMap.find(scur);
         if (its != d_subsLitMap.end())
         {
