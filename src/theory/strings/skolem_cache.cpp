@@ -312,7 +312,15 @@ Node SkolemCache::mkSkolemFun(SkolemFunId id, TypeNode tn, Node a, Node b)
   }
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  Node k = sm->mkSkolemFunction(id, tn, cacheVals);
+  Node k;
+  if (tn.isNull())
+  {
+    k = sm->mkSkolemFunction(id, cacheVals);
+  }
+  else
+  {
+    k = sm->mkSkolemFunctionTyped(id, tn, cacheVals);
+  }
   d_allSkolems.insert(k);
   return k;
 }

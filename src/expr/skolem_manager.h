@@ -356,7 +356,6 @@ class SkolemManager
    * as well.
    *
    * @param id The identifier of the skolem function
-   * @param tn The type of the returned skolem function
    * @param cacheVal A cache value. The returned skolem function will be
    * unique to the pair (id, cacheVal). This value is required, for instance,
    * for skolem functions that are in fact families of skolem functions,
@@ -364,10 +363,16 @@ class SkolemManager
    * @return The skolem function.
    */
   Node mkSkolemFunction(SkolemFunId id,
-                        TypeNode tn,
                         Node cacheVal = Node::null());
   /** Same as above, with multiple cache values */
   Node mkSkolemFunction(SkolemFunId id,
+                        const std::vector<Node>& cacheVals);
+  /** Same as above, with explicit type */
+  Node mkSkolemFunctionTyped(SkolemFunId id,
+                        TypeNode tn,
+                        Node cacheVal = Node::null());
+  /** Same as above, with multiple cache values and explicit Type */
+  Node mkSkolemFunctionTyped(SkolemFunId id,
                         TypeNode tn,
                         const std::vector<Node>& cacheVals);
   /**

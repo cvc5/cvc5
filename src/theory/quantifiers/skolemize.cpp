@@ -124,7 +124,7 @@ Node Skolemize::getSkolemConstant(const Node& q, size_t i)
   Node r = nm->mkConstInt(Rational(i));
   std::vector<Node> cacheVals{q, r};
   return sm->mkSkolemFunction(
-      SkolemFunId::QUANTIFIERS_SKOLEMIZE, q[0][i].getType(), cacheVals);
+      SkolemFunId::QUANTIFIERS_SKOLEMIZE, cacheVals);
 }
 
 void Skolemize::getSelfSel(const DType& dt,
