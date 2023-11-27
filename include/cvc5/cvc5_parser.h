@@ -352,7 +352,7 @@ class ParserEndOfFileException : public ParserException
   /**
    * Construct with message from a string.
    * @param msg The error message.
-   * @param filename name of the file.
+   * @param filename The name of the file.
    * @param line The error line number.
    * @param column The error column number.
    */
