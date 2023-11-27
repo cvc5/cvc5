@@ -3299,6 +3299,7 @@ set(regress_2_tests
   regress2/bv_to_int_bvuf_to_intuf_smtlib.smt2
   regress2/bv_to_int_bvmul1.smt2
   regress2/bv_to_int_inc1.smt2
+  regress2/bv_to_int_issue_9053.smt2
   regress2/bv_to_int_mask_array_2.smt2
   regress2/bv_to_int_mask_array_3.smt2
   regress2/bv_to_int_shifts.smt2
