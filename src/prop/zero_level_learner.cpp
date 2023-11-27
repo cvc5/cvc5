@@ -18,8 +18,8 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
-#include "options/smt_options.h"
 #include "options/prop_options.h"
+#include "options/smt_options.h"
 #include "smt/env.h"
 #include "theory/theory_engine.h"
 #include "theory/trust_substitutions.h"
@@ -223,7 +223,7 @@ bool ZeroLevelLearner::notifyAsserted(TNode assertion, int32_t alevel)
   }
   if (TraceIsOn("level-zero-debug"))
   {
-    if (d_assertNoLearnCount > 0 && d_deepRestartThreshold>0
+    if (d_assertNoLearnCount > 0 && d_deepRestartThreshold > 0
         && d_assertNoLearnCount % d_deepRestartThreshold == 0)
     {
       Trace("level-zero-debug")
@@ -259,7 +259,7 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
         if (d_ppnSyms.find(v) != d_ppnSyms.end())
         {
           Trace("level-zero-assert") << "...solvable due to " << v << std::endl;
-          if (ltype==modes::LearnedLitType::INTERNAL)
+          if (ltype == modes::LearnedLitType::INTERNAL)
           {
             ltype = modes::LearnedLitType::SOLVABLE;
           }
@@ -269,7 +269,9 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
           bool addSubs = true;
           switch (options().prop.lemmaInprocessSubsMode)
           {
-            case options::LemmaInprocessSubsMode::SIMPLE: addSubs = ss.d_subs[i].getNumChildren()==0; break;
+            case options::LemmaInprocessSubsMode::SIMPLE:
+              addSubs = ss.d_subs[i].getNumChildren() == 0;
+              break;
             default: break;
           }
           if (addSubs)
@@ -289,9 +291,10 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
       {
         for (size_t i = 0; i < 2; i++)
         {
-          if (lit[i].isConst())// || lit[i].getNumChildren()==0)
+          if (lit[i].isConst())  // || lit[i].getNumChildren()==0)
           {
-            if (ltype == modes::LearnedLitType::INTERNAL && d_ppnTerms.find(lit[1 - i]) != d_ppnTerms.end())
+            if (ltype == modes::LearnedLitType::INTERNAL
+                && d_ppnTerms.find(lit[1 - i]) != d_ppnTerms.end())
             {
               ltype = modes::LearnedLitType::CONSTANT_PROP;
             }
@@ -316,7 +319,8 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
       }
       if (!processed)
       {
-        Trace("lemma-inprocess-subs-n") << "Unused unit learned: " << lit << std::endl;
+        Trace("lemma-inprocess-subs-n")
+            << "Unused unit learned: " << lit << std::endl;
       }
     }
   }

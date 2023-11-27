@@ -15,8 +15,8 @@
 
 #include "prop/lemma_inprocess.h"
 
-#include "options/prop_options.h"
 #include "expr/node_algorithm.h"
+#include "options/prop_options.h"
 #include "prop/zero_level_learner.h"
 #include "smt/env.h"
 
@@ -102,17 +102,22 @@ Node LemmaInprocess::processInternal(const Node& lem)
             bool doReplace = false;
             switch (options().prop.lemmaInprocessMode)
             {
-              case options::LemmaInprocessMode::FULL: doReplace = (scur.isConst() || currLit || !prevLit);break;
-              case options::LemmaInprocessMode::LIGHT: doReplace = (scur.isConst() || (currLit && !prevLit));break;
-              default:break;
+              case options::LemmaInprocessMode::FULL:
+                doReplace = (scur.isConst() || currLit || !prevLit);
+                break;
+              case options::LemmaInprocessMode::LIGHT:
+                doReplace = (scur.isConst() || (currLit && !prevLit));
+                break;
+              default: break;
             }
             if (doReplace)
             {
-              if (options().prop.lemmaInprocessInferEqLit && ((scur.isConst() || currLit) && prevLit))
+              if (options().prop.lemmaInprocessInferEqLit
+                  && ((scur.isConst() || currLit) && prevLit))
               {
                 // inferred they are equivalent? maybe should send clause here?
                 Node eql = rewrite(scur.eqNode(cur));
-                if (d_eqLitLemmas.find(eql)==d_eqLitLemmas.end())
+                if (d_eqLitLemmas.find(eql) == d_eqLitLemmas.end())
                 {
                   d_eqLitLemmas.insert(eql);
                   eqLitLemmas.emplace_back(eql);
