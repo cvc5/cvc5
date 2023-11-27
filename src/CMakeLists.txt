@@ -695,6 +695,8 @@ libcvc5_add_sources(
   theory/evaluator.h
   theory/ext_theory.cpp
   theory/ext_theory.h
+  theory/ff/cocoa_util.cpp
+  theory/ff/cocoa_util.h
   theory/ff/core.cpp
   theory/ff/core.h
   theory/ff/multi_roots.cpp
@@ -711,6 +713,8 @@ libcvc5_add_sources(
   theory/ff/theory_ff_type_rules.h
   theory/ff/uni_roots.cpp
   theory/ff/uni_roots.h
+  theory/ff/util.cpp
+  theory/ff/util.h
   theory/fp/fp_word_blaster.cpp
   theory/fp/fp_word_blaster.h
   theory/fp/fp_expand_defs.cpp
