@@ -185,21 +185,6 @@ Node SkolemManager::mkSkolemFunctionTyped(SkolemFunId id,
                                           TypeNode tn,
                                           Node cacheVal)
 {
-  std::vector<Node> cvals;
-  if (!cacheVal.isNull())
-  {
-    if (cacheVal.getKind() == Kind::SEXPR)
-    {
-      cvals.insert(cvals.end(), cacheVal.begin(), cacheVal.end());
-    }
-    else
-    {
-      cvals.push_back(cacheVal);
-    }
-  }
-  TypeNode ctn = getTypeFor(id, cvals);
-  AlwaysAssert(ctn.isNull() || ctn == tn)
-      << "Bad " << id << " " << tn << " " << ctn;
   std::tuple<SkolemFunId, TypeNode, Node> key(id, tn, cacheVal);
   std::map<std::tuple<SkolemFunId, TypeNode, Node>, Node>::iterator it =
       d_skolemFuns.find(key);
