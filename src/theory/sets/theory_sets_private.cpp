@@ -1689,8 +1689,10 @@ TrustNode TheorySetsPrivate::expandChooseOperator(
   TypeNode setType = A.getType();
   ensureFirstClassSetType(setType);
   TypeNode ufType = nm->mkFunctionType(setType, setType.getSetElementType());
+  // use canonical constant to ensure it can be typed
+  Node mkElem = nm->mkGroundValue(setType);
   // a Null node is used here to get a unique skolem function per set type
-  Node uf = sm->mkSkolemFunction(SkolemFunId::SETS_CHOOSE, ufType, Node());
+  Node uf = sm->mkSkolemFunction(SkolemFunId::SETS_CHOOSE, ufType, mkElem);
   Node ufA = NodeManager::currentNM()->mkNode(Kind::APPLY_UF, uf, A);
 
   Node equal = x.eqNode(ufA);

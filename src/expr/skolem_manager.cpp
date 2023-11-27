@@ -483,7 +483,6 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
       return btype.getBagElementType();
     }
     // skolems that return bag to bag element type
-    /*
     case SkolemFunId::BAGS_CHOOSE:
     {
       Assert(cacheVals.size() > 0);
@@ -491,7 +490,6 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
       Assert(btype.isBag());
       return nm->mkFunctionType(btype, btype.getBagElementType());
     }
-    */
     case SkolemFunId::TABLES_GROUP_PART:
     {
       Assert(cacheVals.size() > 0);
@@ -520,7 +518,6 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
       return stype.getSetElementType();
     }
     // skolems that return the set to set element type
-    /*
     case SkolemFunId::SETS_CHOOSE:
     {
       Assert(cacheVals.size() > 0);
@@ -528,7 +525,6 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
       Assert(stype.isSet());
       return nm->mkFunctionType(stype, stype.getSetElementType());
     }
-    */
     case SkolemFunId::RELATIONS_GROUP_PART:
     {
       Assert(cacheVals.size() > 0);
@@ -550,8 +546,6 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     }
 
     case SkolemFunId::SHARED_SELECTOR:
-    case SkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED:
-    case SkolemFunId::SEQ_MODEL_BASE_ELEMENT:
     case SkolemFunId::BAGS_CARD_CARDINALITY:
     case SkolemFunId::BAGS_CARD_ELEMENTS:
     case SkolemFunId::BAGS_CARD_N:
