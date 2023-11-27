@@ -172,13 +172,8 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammar(const Env& env,
   tvec.push_back(range);
   Trace("sygus-grammar-def")
       << "For " << range << ", trules=" << trules << ", consider types";
-  bool isHigherOrder = env.getLogicInfo().isHigherOrder();
   for (const TypeNode& t : types)
   {
-    if (t.isFunction() && !isHigherOrder)
-    {
-      continue;
-    }
     Trace("sygus-grammar-def") << " " << t;
     if (t != range)
     {
@@ -770,8 +765,9 @@ void SygusGrammarCons::addDefaultPredicateRulesTo(
                       == options::SygusGrammarConsMode::ANY_TERM_CONCISE);
   }
 
-  // add equality per type, if first class
-  if (tn.isFirstClass())
+  // Add equality per type, if first class. We omit function equality if not
+  // higher-order.
+  if (tn.isFirstClass() && (!tn.isFunction() || env.getLogicInfo().isHigherOrder()))
   {
     Trace("sygus-grammar-def") << "...add for EQUAL" << std::endl;
     if (realIntZeroArg)
