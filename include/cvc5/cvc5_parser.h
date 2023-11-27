@@ -317,7 +317,7 @@ class CVC5_EXPORT ParserException : public CVC5ApiException
    */
   unsigned long getLine() const;
   /**
-   * @return the column number of the parsing error.
+   * @return The column number of the parsing error.
    */
   unsigned long getColumn() const;
 
