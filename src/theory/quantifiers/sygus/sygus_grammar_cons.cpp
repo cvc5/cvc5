@@ -767,7 +767,8 @@ void SygusGrammarCons::addDefaultPredicateRulesTo(
 
   // Add equality per type, if first class. We omit function equality if not
   // higher-order.
-  if (tn.isFirstClass() && (!tn.isFunction() || env.getLogicInfo().isHigherOrder()))
+  if (tn.isFirstClass()
+      && (!tn.isFunction() || env.getLogicInfo().isHigherOrder()))
   {
     Trace("sygus-grammar-def") << "...add for EQUAL" << std::endl;
     if (realIntZeroArg)
