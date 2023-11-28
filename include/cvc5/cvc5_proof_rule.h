@@ -350,16 +350,11 @@ enum ENUM(ProofRule) : uint32_t
    * **Other theory rewrite rules**
    *
    * .. math::
-   *   \inferrule{- \mid F, tid, rid}{F}
+   *   \inferrule{- \mid F, trid}{F}
    *
    * where :math:`F` is an equality of the form :math:`t = t'` where :math:`t'`
-   * is obtained by applying a theory rewrite.
-   * identifier :math:`rid`, which is one of:
-   * ``RW_REWRITE_THEORY_PRE``, ``RW_REWRITE_THEORY_POST``,
-   * ``RW_REWRITE_EQ_EXT``. Notice that the checker for this rule does not
-   * replay the rewrite to ensure correctness, since theory rewriter methods are
-   * not static. For example, the quantifiers rewriter involves constructing new
-   * bound variables that are not guaranteed to be consistent on each call.
+   * is obtained by applying a theory rewrite of id `trid`. The result is
+   * checked by a theory proof checker.
    * \endverbatim
    */
   EVALUE(THEORY_REWRITE),

@@ -17,8 +17,8 @@
 #include "rewriter/basic_rewrite_rcons.h"
 
 #include "proof/proof_checker.h"
+#include "proof/theory_rewrite_id.h"
 #include "smt/env.h"
-
 #include "theory/bv/theory_bv_rewrite_rules.h"
 
 using namespace cvc5::internal::kind;
@@ -72,18 +72,37 @@ bool BasicRewriteRCons::prove(
 bool BasicRewriteRCons::postProve(
     CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid)
 {
-    Node eq = a.eqNode(b);
-    if (theory::TheoryId::THEORY_BV == tid && tryRule(cdp, eq, ProofRule::THEORY_REWRITE, {eq[0]}))
-    {
-      Trace("trewrite-rcons") << "Reconstruct " << eq << " (from " << tid << ", "
-                              << mid << ")"  << std::endl;
-      return true;
-    }
+  Node eq = a.eqNode(b);
+
+  if (theory::TheoryId::THEORY_BV == tid)
+  {
+#define TRY_THEORY_REWRITE(id) \
+    if (tryRule( \
+            cdp, \
+            eq, \
+            ProofRule::THEORY_REWRITE, \
+            {mkTheoryRewriteId(TheoryRewriteId::id), eq[0]})) \
+    { \
+      Trace("trewrite-rcons") << "Reconstruct " << eq << " (from " << tid \
+                              << ", " << mid << ")" << std::endl; \
+      return true; \
+    } \
+    /* end of macro */
+
+    TRY_THEORY_REWRITE(BV_UMULO_ELIMINATE)
+    TRY_THEORY_REWRITE(BV_SMULO_ELIMINATE)
+    TRY_THEORY_REWRITE(BV_FLATTEN_ASSOC_COMMUTE)
+    TRY_THEORY_REWRITE(BV_FLATTEN_ASSOC_COMMUTE_NO_DUPLICATES)
+    TRY_THEORY_REWRITE(BV_ADD_COMBINE_LIKE_TERMS)
+    TRY_THEORY_REWRITE(BV_MULT_SIMPLIFY)
+    TRY_THEORY_REWRITE(BV_SOLVE_EQ)
+    TRY_THEORY_REWRITE(BV_BITWISE_EQ)
+    TRY_THEORY_REWRITE(BV_BITWISE_SLICING)
+  }
 
   Trace("trewrite-rcons") << "...(fail)" << std::endl;
   return false;
 }
-
 
 bool BasicRewriteRCons::tryRule(CDProof* cdp,
                                 Node eq,
