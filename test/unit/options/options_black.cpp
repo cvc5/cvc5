@@ -24,6 +24,14 @@ namespace cvc5::internal {
 
 namespace test {
 
+template <class... Ts>
+struct overloaded : Ts...
+{
+  using Ts::operator()...;
+};
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
+
 class TestBlackOptions : public TestApi
 {
   void setOption(const std::string& name)
@@ -140,14 +148,6 @@ class TestBlackOptions : public TestApi
     }
   }
 };
-
-template <class... Ts>
-struct overloaded : Ts...
-{
-  using Ts::operator()...;
-};
-template <class... Ts>
-overloaded(Ts...) -> overloaded<Ts...>;
 
 TEST_F(TestBlackOptions, set)
 {
