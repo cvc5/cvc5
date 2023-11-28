@@ -171,7 +171,11 @@ class EqualityEngine : public context::ContextDynamicNotifyObj, protected EnvObj
   bool isTriggerTerm(TNode t, TheoryId theoryTag) const;
   //--------------------updates
   /** Adds a term to the term database. */
-  void addTerm(TNode t) { markNeedsRestore(); addTermInternal(t, false); }
+  void addTerm(TNode t)
+  {
+    markNeedsRestore();
+    addTermInternal(t, false);
+  }
   /**
    * Adds a predicate p with given polarity. The predicate asserted
    * should be in the congruence closure kinds (otherwise it's
