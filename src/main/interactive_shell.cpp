@@ -46,7 +46,7 @@
 #include "base/output.h"
 #include "main/command_executor.h"
 #include "parser/commands.h"
-#include "parser/parser_exception.h"
+#include <cvc5/cvc5_parser.h>
 #include "parser/sym_manager.h"
 #include "theory/logic_info.h"
 

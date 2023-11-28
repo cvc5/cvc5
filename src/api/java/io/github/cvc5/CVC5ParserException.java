@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andres Noetzli
+ *   Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
@@ -15,7 +15,10 @@
 
 package io.github.cvc5;
 
-interface IPointer
+public class CVC5ParserException extends Exception
 {
-  long getPointer();
+  public CVC5ParserException(String message)
+  {
+    super(message);
+  }
 }
