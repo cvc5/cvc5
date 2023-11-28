@@ -7029,28 +7029,33 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
   return std::visit(
       overloaded{
           [&info](const internal::options::OptionInfo::VoidInfo& vi) {
-            return OptionInfo{info.name,
-                              info.aliases,
-                              info.setByUser,
-                              info.category == internal::options::OptionInfo::Category::EXPERT,
-                              OptionInfo::VoidInfo{}};
+            return OptionInfo{
+                info.name,
+                info.aliases,
+                info.setByUser,
+                info.category
+                    == internal::options::OptionInfo::Category::EXPERT,
+                OptionInfo::VoidInfo{}};
           },
           [&info](const internal::options::OptionInfo::ValueInfo<bool>& vi) {
             return OptionInfo{
                 info.name,
                 info.aliases,
                 info.setByUser,
-                              info.category == internal::options::OptionInfo::Category::EXPERT,
+                info.category
+                    == internal::options::OptionInfo::Category::EXPERT,
                 OptionInfo::ValueInfo<bool>{vi.defaultValue, vi.currentValue}};
           },
           [&info](
               const internal::options::OptionInfo::ValueInfo<std::string>& vi) {
-            return OptionInfo{info.name,
-                              info.aliases,
-                              info.setByUser,
-                              info.category == internal::options::OptionInfo::Category::EXPERT,
-                              OptionInfo::ValueInfo<std::string>{
-                                  vi.defaultValue, vi.currentValue}};
+            return OptionInfo{
+                info.name,
+                info.aliases,
+                info.setByUser,
+                info.category
+                    == internal::options::OptionInfo::Category::EXPERT,
+                OptionInfo::ValueInfo<std::string>{vi.defaultValue,
+                                                   vi.currentValue}};
           },
           [&info](
               const internal::options::OptionInfo::NumberInfo<int64_t>& vi) {
@@ -7058,7 +7063,8 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.name,
                 info.aliases,
                 info.setByUser,
-                              info.category == internal::options::OptionInfo::Category::EXPERT,
+                info.category
+                    == internal::options::OptionInfo::Category::EXPERT,
                 OptionInfo::NumberInfo<int64_t>{
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
@@ -7068,7 +7074,8 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.name,
                 info.aliases,
                 info.setByUser,
-                              info.category == internal::options::OptionInfo::Category::EXPERT,
+                info.category
+                    == internal::options::OptionInfo::Category::EXPERT,
                 OptionInfo::NumberInfo<uint64_t>{
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
@@ -7077,17 +7084,20 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.name,
                 info.aliases,
                 info.setByUser,
-                              info.category == internal::options::OptionInfo::Category::EXPERT,
+                info.category
+                    == internal::options::OptionInfo::Category::EXPERT,
                 OptionInfo::NumberInfo<double>{
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
           [&info](const internal::options::OptionInfo::ModeInfo& vi) {
-            return OptionInfo{info.name,
-                              info.aliases,
-                              info.setByUser,
-                              info.category == internal::options::OptionInfo::Category::EXPERT,
-                              OptionInfo::ModeInfo{
-                                  vi.defaultValue, vi.currentValue, vi.modes}};
+            return OptionInfo{
+                info.name,
+                info.aliases,
+                info.setByUser,
+                info.category
+                    == internal::options::OptionInfo::Category::EXPERT,
+                OptionInfo::ModeInfo{
+                    vi.defaultValue, vi.currentValue, vi.modes}};
           },
       },
       info.valueInfo);

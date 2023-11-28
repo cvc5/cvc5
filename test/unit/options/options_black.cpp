@@ -28,7 +28,7 @@ class TestBlackOptions : public TestApi
 {
   void setOption(const std::string& name)
   {
-   auto info = d_solver.getOptionInfo(name);
+    auto info = d_solver.getOptionInfo(name);
 
     try
     {
@@ -159,7 +159,7 @@ TEST_F(TestBlackOptions, set)
                                     "version"};
   for (const auto& name : options::getNames())
   {
-    if (name=="safe-options")
+    if (name == "safe-options")
     {
       // don't test safe-options here, since it will restrict the set of options
       // that can be set afterwards.
@@ -176,8 +176,6 @@ TEST_F(TestBlackOptions, set)
     }
   }
 }
-
-
 
 TEST_F(TestBlackOptions, setSafe)
 {
