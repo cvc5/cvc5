@@ -62,7 +62,7 @@ class TestMainBlackInteractiveShell : public TestInternal
    * empty string followed by EOF may be returned as an empty command, and
    * not NULL (subsequent calls to readAndExecCommands() should return NULL).
    * E.g., "(check-sat)\n" may return two commands: the check-sat, followed by
-   * an empty command, followed by NULL.
+   * an empty command, followed by nullptr.
    */
   void countCommands(InteractiveShell& shell,
                      uint32_t minIterations,
