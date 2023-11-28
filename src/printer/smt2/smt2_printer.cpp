@@ -229,7 +229,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       out << "(_ BitVec " << n.getConst<BitVectorSize>().d_size << ")";
       break;
     case Kind::FINITE_FIELD_TYPE:
-      out << "(_ FiniteField " << n.getConst<FfSize>().d_size << ")";
+      out << "(_ FiniteField " << n.getConst<FfSize>().d_val << ")";
       break;
     case Kind::FLOATINGPOINT_TYPE:
       out << "(_ FloatingPoint "
@@ -1047,6 +1047,7 @@ std::string Smt2Printer::smtKindString(Kind k)
 
     // ff theory
     case Kind::FINITE_FIELD_ADD: return "ff.add";
+    case Kind::FINITE_FIELD_BITSUM: return "ff.bitsum";
     case Kind::FINITE_FIELD_MULT: return "ff.mul";
     case Kind::FINITE_FIELD_NEG: return "ff.neg";
 

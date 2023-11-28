@@ -38,11 +38,7 @@ namespace theory {
 namespace ff {
 
 SubTheory::SubTheory(Env& env, FfStatistics* stats, Integer modulus)
-    : EnvObj(env),
-      d_facts(context()),
-      d_stats(stats),
-      d_baseRing(CoCoA::NewZZmod(CoCoA::BigIntFromString(modulus.toString()))),
-      d_modulus(modulus)
+    : EnvObj(env), FieldObj(modulus), d_facts(context()), d_stats(stats)
 {
   AlwaysAssert(modulus.isProbablePrime()) << "non-prime fields are unsupported";
   // must be initialized before using CoCoA.
@@ -146,7 +142,7 @@ void SubTheory::postCheck(Theory::Effort e)
     }
 
     // our polynomial ring
-    CoCoA::PolyRing polyRing = CoCoA::NewPolyRing(d_baseRing, symbols);
+    CoCoA::PolyRing polyRing = CoCoA::NewPolyRing(coeffRing(), symbols);
     // map from nodes to the polynomials that represent them
     std::unordered_map<Node, CoCoA::RingElem> nodeToCocoa{};
     // map from the rings indeterminates (their indices) to the theory leaves
@@ -313,7 +309,7 @@ void SubTheory::postCheck(Theory::Effort e)
           std::ostringstream valStr;
           valStr << root[idxAndLeaf.first];
           Integer integer(valStr.str(), 10);
-          FiniteFieldValue literal(integer, d_modulus);
+          FiniteFieldValue literal(integer, size());
           Node value = nm->mkConst(literal);
           Trace("ff::model")
               << "Model: " << idxAndLeaf.second << " = " << value << std::endl;
