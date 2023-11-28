@@ -26,37 +26,9 @@ namespace test {
 
 class TestBlackOptions : public TestApi
 {
-};
-
-template <class... Ts>
-struct overloaded : Ts...
-{
-  using Ts::operator()...;
-};
-template <class... Ts>
-overloaded(Ts...) -> overloaded<Ts...>;
-
-TEST_F(TestBlackOptions, set)
-{
-  const std::set<std::string> muted{"copyright",
-                                    "help",
-                                    "show-config",
-                                    "show-debug-tags",
-                                    "show-trace-tags",
-                                    "version"};
-  for (const auto& name : options::getNames())
+  void setOption(const std::string& name)
   {
-    if (name=="safe-options")
-    {
-      // don't test safe-options here, since it will restrict the set of options
-      // that can be set afterwards.
-      continue;
-    }
-    if (muted.count(name))
-    {
-      testing::internal::CaptureStdout();
-    }
-    auto info = d_solver.getOptionInfo(name);
+   auto info = d_solver.getOptionInfo(name);
 
     try
     {
@@ -166,6 +138,70 @@ TEST_F(TestBlackOptions, set)
     catch (const CVC5ApiOptionException&)
     {
     }
+  }
+};
+
+template <class... Ts>
+struct overloaded : Ts...
+{
+  using Ts::operator()...;
+};
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
+
+TEST_F(TestBlackOptions, set)
+{
+  const std::set<std::string> muted{"copyright",
+                                    "help",
+                                    "show-config",
+                                    "show-debug-tags",
+                                    "show-trace-tags",
+                                    "version"};
+  for (const auto& name : options::getNames())
+  {
+    if (name=="safe-options")
+    {
+      // don't test safe-options here, since it will restrict the set of options
+      // that can be set afterwards.
+      continue;
+    }
+    if (muted.count(name))
+    {
+      testing::internal::CaptureStdout();
+    }
+    testSetOption(name);
+    if (muted.count(name))
+    {
+      testing::internal::GetCapturedStdout();
+    }
+  }
+}
+
+
+
+TEST_F(TestBlackOptions, setSafe)
+{
+  const std::set<std::string> muted{"copyright",
+                                    "help",
+                                    "show-config",
+                                    "show-debug-tags",
+                                    "show-trace-tags",
+                                    "version"};
+  // set safe options to true
+  d_solver.setOption("safe-options", true);
+  for (const auto& name : options::getNames())
+  {
+    if (muted.count(name))
+    {
+      testing::internal::CaptureStdout();
+    }
+    auto info = d_solver.getOptionInfo(name);
+    // skip if an expert option
+    if (info.isExpert)
+    {
+      continue;
+    }
+    testSetOption(name);
     if (muted.count(name))
     {
       testing::internal::GetCapturedStdout();
