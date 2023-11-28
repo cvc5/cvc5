@@ -58,12 +58,14 @@ Building cvc5 Java API
 `Package io.github.cvc5 <io/github/cvc5/package-summary.html>`_
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+  * class `Command <io/github/cvc5/Command.html>`_
   * class `Datatype <io/github/cvc5/Datatype.html>`_
   * class `DatatypeConstructor <io/github/cvc5/DatatypeConstructor.html>`_
   * class `DatatypeConstructorDecl <io/github/cvc5/DatatypeConstructorDecl.html>`_
   * class `DatatypeDecl <io/github/cvc5/DatatypeDecl.html>`_
   * class `DatatypeSelector <io/github/cvc5/DatatypeSelector.html>`_
   * class `Grammar <io/github/cvc5/Grammar.html>`_
+  * class `InputParser <io/github/cvc5/InputParser.html>`_
   * class `Op <io/github/cvc5/Op.html>`_
   * class `OptionInfo <io/github/cvc5/OptionInfo.html>`_
   * class `Pair<K,V> <io/github/cvc5/Pair.html>`_
@@ -72,6 +74,7 @@ Building cvc5 Java API
   * class `Sort <io/github/cvc5/Sort.html>`_
   * class `Stat <io/github/cvc5/Stat.html>`_
   * class `Statistics <io/github/cvc5/Statistics.html>`_
+  * class `SymbolManager <io/github/cvc5/SymbolManager.html>`_
   * class `SynthResult <io/github/cvc5/SynthResult.html>`_
   * class `Term <io/github/cvc5/Term.html>`_
   * class `Triplet<A,B,C> <io/github/cvc5/Triplet.html>`_
@@ -83,3 +86,14 @@ Building cvc5 Java API
   * exception `CVC5ApiException <io/github/cvc5/CVC5ApiException.html>`_
   * exception `CVC5ApiOptionException <io/github/cvc5/CVC5ApiOptionException.html>`_
   * exception `CVC5ApiRecoverableException <io/github/cvc5/CVC5ApiRecoverableException.html>`_
+
+
+
+`Package io.github.cvc5.modes <io/github/cvc5/modes/package-summary.html>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+  * enum `BlockModelsMode <io/github/cvc5/modes/BlockModelsMode.html>`_
+  * enum `FindSynthTarget <io/github/cvc5/modes/FindSynthTarget.html>`_
+  * enum `InputLanguage <io/github/cvc5/modes/InputLanguage.html>`_
+  * enum `LearnedLitType <io/github/cvc5/modes/LearnedLitType.html>`_
+  * enum `ProofComponent <io/github/cvc5/modes/ProofComponent.html>`_

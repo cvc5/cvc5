@@ -268,6 +268,101 @@ class CVC5_EXPORT InputParser
   std::shared_ptr<Parser> d_parser;
 };
 
+/**
+ * Base class for all Parser exceptions.
+ * If thrown, API objects can still be used
+ */
+class CVC5_EXPORT ParserException : public CVC5ApiException
+{
+ public:
+  /** Default constructor */
+  ParserException();
+  /**
+   * Construct with message from a string.
+   * @param msg The error message.
+   */
+  ParserException(const std::string& msg);
+  /**
+   * Construct with message from a C string.
+   * @param msg The error message.
+   */
+  ParserException(const char* msg);
+  /**
+   * Construct with message from a string.
+   * @param msg The error message.
+   * @param filename name of the file.
+   * @param line The error line number.
+   * @param column The error column number.
+   */
+  ParserException(const std::string& msg,
+                  const std::string& filename,
+                  unsigned long line,
+                  unsigned long column);
+
+  // Destructor
+  ~ParserException() override;
+  /**
+   * Print error to output stream.
+   * @param os The output stream to write the error on.
+   */
+  void toStream(std::ostream& os) const override;
+
+  /**
+   * @return The file name.
+   */
+  std::string getFilename() const;
+
+  /**
+   * @return The line number of the parsing error.
+   */
+  unsigned long getLine() const;
+  /**
+   * @return The column number of the parsing error.
+   */
+  unsigned long getColumn() const;
+
+ protected:
+  /** The file name of the parsing error. */
+  std::string d_filename;
+  /** The line number of the parsing error. */
+  unsigned long d_line;
+  /** The column number of the parsing error. */
+  unsigned long d_column;
+}; /* class ParserException */
+
+/**
+ * An end of file exception.
+ * If thrown, API objects can still be used
+ */
+class ParserEndOfFileException : public ParserException
+{
+ public:
+  /** default constructor */
+  ParserEndOfFileException();
+  /**
+   * Construct with message from a string.
+   * @param msg The error message.
+   */
+  ParserEndOfFileException(const std::string& msg);
+  /**
+   * Construct with message from a C string.
+   * @param msg The error message.
+   */
+  ParserEndOfFileException(const char* msg);
+  /**
+   * Construct with message from a string.
+   * @param msg The error message.
+   * @param filename The name of the file.
+   * @param line The error line number.
+   * @param column The error column number.
+   */
+  ParserEndOfFileException(const std::string& msg,
+                           const std::string& filename,
+                           unsigned long line,
+                           unsigned long column);
+
+}; /* class ParserEndOfFileException */
+
 }  // namespace parser
 }  // namespace cvc5
 
