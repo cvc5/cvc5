@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -51,6 +51,11 @@ TermRegistry::TermRegistry(Env& env,
   if (options().quantifiers.oracles)
   {
     d_ochecker.reset(new OracleChecker(env));
+  }
+  if (options().quantifiers.cegqiBv)
+  {
+    // if doing instantiation for BV, need the inverter class
+    d_bvInvert.reset(new BvInverter(options(), env.getRewriter()));
   }
   if (options().quantifiers.sygus || options().quantifiers.sygusInst)
   {
@@ -123,7 +128,7 @@ Node TermRegistry::getTermForType(TypeNode tn)
 
 void TermRegistry::getTermsForPool(Node p, std::vector<Node>& terms)
 {
-  if (p.getKind() == kind::SET_UNIVERSE)
+  if (p.getKind() == Kind::SET_UNIVERSE)
   {
     // get all ground terms of the given type
     TypeNode ptn = p.getType().getSetElementType();
@@ -181,6 +186,8 @@ TermEnumeration* TermRegistry::getTermEnumeration() const
 TermPools* TermRegistry::getTermPools() const { return d_termPools.get(); }
 
 VtsTermCache* TermRegistry::getVtsTermCache() const { return d_vtsCache.get(); }
+
+BvInverter* TermRegistry::getBvInverter() const { return d_bvInvert.get(); }
 
 ieval::InstEvaluatorManager* TermRegistry::getInstEvaluatorManager() const
 {

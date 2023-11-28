@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,12 +26,9 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace rewriter {
 
-RewriteProofRule::RewriteProofRule()
-    : d_id(DslPfRule::FAIL)
-{
-}
+RewriteProofRule::RewriteProofRule() : d_id(DslProofRule::FAIL) {}
 
-void RewriteProofRule::init(DslPfRule id,
+void RewriteProofRule::init(DslProofRule id,
                             const std::vector<Node>& userFvs,
                             const std::vector<Node>& fvs,
                             const std::vector<Node>& cond,
@@ -82,7 +79,7 @@ void RewriteProofRule::init(DslPfRule id,
   }
 }
 
-rewriter::DslPfRule RewriteProofRule::getId() const { return d_id; }
+rewriter::DslProofRule RewriteProofRule::getId() const { return d_id; }
 
 const char* RewriteProofRule::getName() const { return toString(d_id); }
 
@@ -103,7 +100,7 @@ Kind RewriteProofRule::getListContext(Node v) const
   {
     return it->second;
   }
-  return UNDEFINED_KIND;
+  return Kind::UNDEFINED_KIND;
 }
 bool RewriteProofRule::hasConditions() const { return !d_cond.empty(); }
 

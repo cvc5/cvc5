@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -147,6 +147,8 @@ class HoElim : public PreprocessingPass
   TypeNode getUSort(TypeNode tn);
   /** cache of the above function */
   std::map<TypeNode, TypeNode> d_ftypeMap;
+  /** The sort constructor for sorts we introduce */
+  TypeNode d_hoElimSc;
 };
 
 }  // namespace passes

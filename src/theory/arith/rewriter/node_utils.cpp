@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer
+ *   Gereon Kremer, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -81,7 +81,7 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity,
   return NodeManager::currentNM()->mkNode(Kind::NONLINEAR_MULT, monomial);
 }
 
-TNode removeToReal(TNode t) { return t.getKind() == kind::TO_REAL ? t[0] : t; }
+TNode removeToReal(TNode t) { return t.getKind() == Kind::TO_REAL ? t[0] : t; }
 
 Node maybeEnsureReal(TypeNode tn, TNode t)
 {
@@ -107,7 +107,7 @@ Node ensureReal(TNode t)
       return ret;
     }
     Trace("arith-rewriter-debug") << "maybeEnsureReal: " << t << std::endl;
-    return NodeManager::currentNM()->mkNode(kind::TO_REAL, t);
+    return NodeManager::currentNM()->mkNode(Kind::TO_REAL, t);
   }
   return t;
 }

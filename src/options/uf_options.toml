@@ -6,7 +6,7 @@ name   = "Uninterpreted Functions Theory"
   category   = "expert"
   long       = "symmetry-breaker"
   type       = "bool"
-  default    = "true"
+  default    = "false"
   help       = "use UF symmetry breaker (Deharbe et al., CADE 2011)"
 
 [[option]]
@@ -64,7 +64,7 @@ name   = "Uninterpreted Functions Theory"
   category   = "regular"
   long       = "uf-lazy-ll"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "do lambda lifting lazily"
 
 [[option]]

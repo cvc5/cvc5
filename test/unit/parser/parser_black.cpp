@@ -1,19 +1,20 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Christopher L. Conway, Gereon Kremer
+ *   Aina Niemetz, Christopher L. Conway, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * Black box testing of cvc5::parser::Parser for CVC and SMT-LIbv2 inputs.
+ * Black box testing of cvc5::parser::InputParser for SMT-LIbv2 inputs.
  */
 
 #include <cvc5/cvc5.h>
+#include <cvc5/cvc5_parser.h>
 
 #include <sstream>
 
@@ -21,24 +22,20 @@
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/options.h"
-#include "parser/api/cpp/command.h"
-#include "parser/api/cpp/symbol_manager.h"
-#include "parser/parser_builder.h"
-#include "parser/smt2/smt2_antlr.h"
+#include "parser/parser_exception.h"
 #include "test.h"
 
 using namespace cvc5::parser;
-using namespace cvc5::internal::parser;
 
 namespace cvc5::internal {
 namespace test {
 
-class TestParserBlackParser : public TestInternal
+class TestParserBlack : public TestInternal
 {
  protected:
-  TestParserBlackParser(const std::string& lang) : d_lang(lang) {}
+  TestParserBlack(modes::InputLanguage lang) : d_lang(lang) {}
 
-  virtual ~TestParserBlackParser() {}
+  virtual ~TestParserBlack() {}
 
   void SetUp() override
   {
@@ -55,64 +52,85 @@ class TestParserBlackParser : public TestInternal
   }
 
   /* Set up declaration context for expr inputs */
-  void setupContext(Parser& parser)
+  void setupContext(InputParser& parser)
   {
-    ParserState* ps = parser.getState();
-    /* a, b, c: BOOLEAN */
-    ps->bindVar("a", d_solver.get()->getBooleanSort());
-    ps->bindVar("b", d_solver.get()->getBooleanSort());
-    ps->bindVar("c", d_solver.get()->getBooleanSort());
-    /* t, u, v: TYPE */
-    cvc5::Sort t = ps->mkSort("t");
-    cvc5::Sort u = ps->mkSort("u");
-    cvc5::Sort v = ps->mkSort("v");
-    /* f : t->u; g: u->v; h: v->t; */
-    ps->bindVar("f", d_solver.get()->mkFunctionSort({t}, u));
-    ps->bindVar("g", d_solver.get()->mkFunctionSort({u}, v));
-    ps->bindVar("h", d_solver.get()->mkFunctionSort({v}, t));
-    /* x:t; y:u; z:v; */
-    ps->bindVar("x", t);
-    ps->bindVar("y", u);
-    ps->bindVar("z", v);
+    std::stringstream ss;
+    ss << "(set-logic ALL)" << std::endl;
+    ss << "(declare-fun a () Bool)" << std::endl;
+    ss << "(declare-fun b () Bool)" << std::endl;
+    ss << "(declare-fun c () Bool)" << std::endl;
+    ss << "(declare-sort t 0)" << std::endl;
+    ss << "(declare-sort u 0)" << std::endl;
+    ss << "(declare-sort v 0)" << std::endl;
+    ss << "(declare-fun f (t) u)" << std::endl;
+    ss << "(declare-fun g (u) v)" << std::endl;
+    ss << "(declare-fun h (v) t)" << std::endl;
+    ss << "(declare-fun x () t)" << std::endl;
+    ss << "(declare-fun y () u)" << std::endl;
+    ss << "(declare-fun z () v)" << std::endl;
+    parser.setStreamInput(
+        modes::InputLanguage::SMT_LIB_2_6, ss, "parser_black");
+    Command cmd;
+    std::stringstream tmp;
+    while (true)
+    {
+      cmd = parser.nextCommand();
+      if (cmd.isNull())
+      {
+        break;
+      }
+      cmd.invoke(d_solver.get(), d_symman.get(), tmp);
+    }
   }
 
   void tryGoodInput(const std::string goodInput)
   {
     d_solver.reset(new cvc5::Solver());
     d_symman.reset(new SymbolManager(d_solver.get()));
-    std::unique_ptr<Parser> parser(
-        ParserBuilder(d_solver.get(), d_symman.get(), true)
-            .withInputLanguage(d_lang)
-            .build());
-    parser->setInput(Input::newStringInput(d_lang, goodInput, "test"));
-    ASSERT_FALSE(parser->done());
-    std::unique_ptr<Command> cmd;
-    while ((cmd = parser->nextCommand()) != nullptr)
+    InputParser parser(d_solver.get(), d_symman.get());
+    std::stringstream ss;
+    ss << goodInput;
+    parser.setStreamInput(
+        modes::InputLanguage::SMT_LIB_2_6, ss, "parser_black");
+    ASSERT_FALSE(parser.done());
+    Command cmd;
+    std::stringstream tmp;
+    while (true)
     {
-      Trace("parser") << "Parsed command: " << (*cmd) << std::endl;
-      cmd->invoke(d_solver.get(), d_symman.get());
+      cmd = parser.nextCommand();
+      if (cmd.isNull())
+      {
+        break;
+      }
+      Trace("parser") << "Parsed command: " << cmd << std::endl;
+      cmd.invoke(d_solver.get(), d_symman.get(), tmp);
     }
 
-    ASSERT_TRUE(parser->done());
+    ASSERT_TRUE(parser.done());
   }
 
   void tryBadInput(const std::string badInput, bool strictMode = false)
   {
     d_solver.reset(new cvc5::Solver());
+    d_solver->setOption("strict-parsing", strictMode ? "true" : "false");
     d_symman.reset(new SymbolManager(d_solver.get()));
-    std::unique_ptr<Parser> parser(
-        ParserBuilder(d_solver.get(), d_symman.get(), true)
-            .withInputLanguage(d_lang)
-            .withStrictMode(strictMode)
-            .build());
-    parser->setInput(Input::newStringInput(d_lang, badInput, "test"));
+    InputParser parser(d_solver.get(), d_symman.get());
+    std::stringstream ss;
+    ss << badInput;
+    parser.setStreamInput(d_lang, ss, "parser_black");
     ASSERT_THROW(
         {
-          std::unique_ptr<Command> cmd;
-          while ((cmd = parser->nextCommand()) != NULL)
+          Command cmd;
+          std::stringstream tmp;
+          while (true)
           {
-            Trace("parser") << "Parsed command: " << (*cmd) << std::endl;
-            cmd->invoke(d_solver.get(), d_symman.get());
+            cmd = parser.nextCommand();
+            if (cmd.isNull())
+            {
+              break;
+            }
+            Trace("parser") << "Parsed command: " << cmd << std::endl;
+            cmd.invoke(d_solver.get(), d_symman.get(), tmp);
           }
           std::cout << "\nBad input succeeded:\n" << badInput << std::endl;
         },
@@ -121,26 +139,20 @@ class TestParserBlackParser : public TestInternal
 
   void tryGoodExpr(const std::string goodExpr)
   {
+    d_solver.reset(new cvc5::Solver());
     d_symman.reset(new SymbolManager(d_solver.get()));
-    std::unique_ptr<Parser> parser(
-        ParserBuilder(d_solver.get(), d_symman.get(), true)
-            .withInputLanguage(d_lang)
-            .build());
-    parser->setInput(Input::newStringInput(d_lang, goodExpr, "test"));
-    if (d_lang == "LANG_SMTLIB_V2_6")
-    {
-      /* Use QF_LIA to make multiplication ("*") available */
-      std::unique_ptr<Command> cmd(
-          static_cast<Smt2*>(parser.get())->getSmt2State()->setLogic("QF_LIA"));
-    }
+    InputParser parser(d_solver.get(), d_symman.get());
+    setupContext(parser);
 
-    ASSERT_FALSE(parser->done());
-    setupContext(*parser);
-    ASSERT_FALSE(parser->done());
-    cvc5::Term e = parser->nextExpression();
+    std::stringstream ss;
+    ss << goodExpr;
+    parser.setStreamInput(d_lang, ss, "parser_black");
+
+    ASSERT_FALSE(parser.done());
+    cvc5::Term e = parser.nextTerm();
     ASSERT_FALSE(e.isNull());
-    e = parser->nextExpression();
-    ASSERT_TRUE(parser->done());
+    e = parser.nextTerm();
+    ASSERT_TRUE(parser.done());
     ASSERT_TRUE(e.isNull());
   }
 
@@ -155,16 +167,16 @@ class TestParserBlackParser : public TestInternal
    */
   void tryBadExpr(const std::string badExpr, bool strictMode = false)
   {
+    d_solver.reset(new cvc5::Solver());
+    d_solver->setOption("strict-parsing", strictMode ? "true" : "false");
     d_symman.reset(new SymbolManager(d_solver.get()));
-    std::unique_ptr<Parser> parser(
-        ParserBuilder(d_solver.get(), d_symman.get(), true)
-            .withInputLanguage(d_lang)
-            .withStrictMode(strictMode)
-            .build());
-    parser->setInput(Input::newStringInput(d_lang, badExpr, "test"));
-    setupContext(*parser);
-    ASSERT_FALSE(parser->done());
-    ASSERT_THROW(cvc5::Term e = parser->nextExpression();
+    InputParser parser(d_solver.get(), d_symman.get());
+    setupContext(parser);
+    std::stringstream ss;
+    ss << badExpr;
+    parser.setStreamInput(d_lang, ss, "parser_black");
+    ASSERT_FALSE(parser.done());
+    ASSERT_THROW(cvc5::Term e = parser.nextTerm();
                  std::cout << std::endl
                            << "Bad expr succeeded." << std::endl
                            << "Input: <<" << badExpr << ">>" << std::endl
@@ -172,20 +184,23 @@ class TestParserBlackParser : public TestInternal
                  , ParserException);
   }
 
-  std::string d_lang;
+  modes::InputLanguage d_lang;
   std::unique_ptr<cvc5::Solver> d_solver;
   std::unique_ptr<SymbolManager> d_symman;
 };
 
 /* -------------------------------------------------------------------------- */
 
-class TestParserBlackSmt2Parser : public TestParserBlackParser
+class TestParserBlackSmt2InputParser : public TestParserBlack
 {
  protected:
-  TestParserBlackSmt2Parser() : TestParserBlackParser("LANG_SMTLIB_V2_6") {}
+  TestParserBlackSmt2InputParser()
+      : TestParserBlack(modes::InputLanguage::SMT_LIB_2_6)
+  {
+  }
 };
 
-TEST_F(TestParserBlackSmt2Parser, good_inputs)
+TEST_F(TestParserBlackSmt2InputParser, good_inputs)
 {
   tryGoodInput("");  // empty string is OK
   tryGoodInput("(set-logic QF_UF)");
@@ -212,7 +227,7 @@ TEST_F(TestParserBlackSmt2Parser, good_inputs)
   tryGoodInput("; a comment\n(check-sat ; goodbye\n)");
 }
 
-TEST_F(TestParserBlackSmt2Parser, bad_inputs)
+TEST_F(TestParserBlackSmt2InputParser, bad_inputs)
 {
   // competition builds don't do any checking
 #ifndef CVC5_COMPETITION_MODE
@@ -236,7 +251,7 @@ TEST_F(TestParserBlackSmt2Parser, bad_inputs)
 #endif
 }
 
-TEST_F(TestParserBlackSmt2Parser, good_exprs)
+TEST_F(TestParserBlackSmt2InputParser, good_exprs)
 {
   tryGoodExpr("(and a b)");
   tryGoodExpr("(or (and a b) c)");
@@ -252,7 +267,7 @@ TEST_F(TestParserBlackSmt2Parser, good_exprs)
   tryGoodExpr("(* 5 1)");
 }
 
-TEST_F(TestParserBlackSmt2Parser, bad_exprs)
+TEST_F(TestParserBlackSmt2InputParser, bad_exprs)
 {
 // competition builds don't do any checking
 #ifndef CVC5_COMPETITION_MODE

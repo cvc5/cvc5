@@ -7,11 +7,13 @@ the copyright and licensing of cvc5.
 The developers and authors of cvc5 are:
 
 Current:
+  Leni Aniva, Stanford University
   Haniel Barbosa, The University of Iowa, Universidade Federal de Minas Gerais
   Clark Barrett, New York University, Google, Stanford University
   Martin Brain, University of Oxford
+  Vinicius Camillo, Universidade Federal de Minas Gerais
   Gereon Kremer, Stanford University
-  Makai Mann, Stanford University
+  Hanna Lachnitt, Stanford University
   Abdalrhman Mohamed, The University of Iowa
   Mudathir Mohamed, The University of Iowa
   Aina Niemetz, Stanford University
@@ -21,6 +23,7 @@ Current:
   Andrew Reynolds, The University of Iowa, EPFL
   Ying Sheng, Stanford University
   Cesare Tinelli, The University of Iowa
+  Amalee Wilson, Stanford University
   Yoni Zohar, Stanford University
 
 Alumni:
@@ -32,6 +35,7 @@ Alumni:
   Ahmed Irfan, Stanford University
   Dejan Jovanovic, New York University, SRI International
   Guy Katz, New York University, Stanford University
+  Makai Mann, Stanford University
   Tim King, New York University, Universite Joseph Fourier, Google
   Tianyi Liang, The University of Iowa
   Paul Meng, The University of Iowa
@@ -44,6 +48,3 @@ Information about authors of previous CVC tools is included with their
 distributions.
 
 cvc5 contains MiniSAT code by Niklas Een and Niklas Sorensson.
-
-The cvc5 parser incorporates some code from ANTLR3, by Jim Idle, Temporal
-Wave LLC.

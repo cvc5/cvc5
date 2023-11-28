@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -114,6 +114,27 @@ bool TheoryState::areDisequal(TNode a, TNode b) const
   }
   // otherwise there may be an explicit disequality in the equality engine
   return d_ee->areDisequal(a, b, false);
+}
+
+void TheoryState::explainDisequal(TNode a, TNode b, std::vector<Node>& exp)
+{
+  if (hasTerm(a) && hasTerm(b) && d_ee->areDisequal(a, b, true))
+  {
+    exp.push_back(a.eqNode(b).notNode());
+    return;
+  }
+  // otherwise, add equalities to the (disequal) values
+  Node ar = getRepresentative(a);
+  if (ar != a)
+  {
+    exp.push_back(a.eqNode(ar));
+  }
+  Node br = getRepresentative(b);
+  if (br != b)
+  {
+    exp.push_back(b.eqNode(br));
+  }
+  Assert(ar != br && ar.isConst() && br.isConst());
 }
 
 void TheoryState::getEquivalenceClass(Node a, std::vector<Node>& eqc) const

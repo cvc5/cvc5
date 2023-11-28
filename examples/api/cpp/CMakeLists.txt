@@ -29,19 +29,20 @@ set(CVC5_EXAMPLES_API
   sets
   strings
   transcendentals
+  parser
+  parser_sym_manager
 )
 
 foreach(example ${CVC5_EXAMPLES_API})
   cvc5_add_example(${example} "" "api/cpp")
 endforeach()
 
-if(USE_COCOA)
+if(CVC5_USE_COCOA)
   cvc5_add_example(finite_field "" "api/cpp")
 endif()
 
 set(SYGUS_EXAMPLES_API
   sygus-fun
-  sygus-grammar
   sygus-inv
 )
 

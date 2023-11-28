@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -60,7 +60,7 @@ Node NlExtPurify::purifyNlTerms(TNode n,
   Node ret = n;
   if (n.getNumChildren() > 0)
   {
-    if (beneathMult && (n.getKind() == kind::ADD || n.getKind() == kind::SUB))
+    if (beneathMult && (n.getKind() == Kind::ADD || n.getKind() == Kind::SUB))
     {
       // don't do it if it rewrites to a constant
       Node nr = rewrite(n);
@@ -83,7 +83,7 @@ Node NlExtPurify::purifyNlTerms(TNode n,
     }
     else
     {
-      bool beneathMultNew = beneathMult || n.getKind() == kind::MULT;
+      bool beneathMultNew = beneathMult || n.getKind() == Kind::MULT;
       bool childChanged = false;
       std::vector<Node> children;
       for (unsigned i = 0, size = n.getNumChildren(); i < size; ++i)

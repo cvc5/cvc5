@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Andres Noetzli
+ *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,11 +28,11 @@ namespace nl {
 
 void ExtProofRuleChecker::registerTo(ProofChecker* pc)
 {
-  pc->registerChecker(PfRule::ARITH_MULT_SIGN, this);
-  pc->registerChecker(PfRule::ARITH_MULT_TANGENT, this);
+  pc->registerChecker(ProofRule::ARITH_MULT_SIGN, this);
+  pc->registerChecker(ProofRule::ARITH_MULT_TANGENT, this);
 }
 
-Node ExtProofRuleChecker::checkInternal(PfRule id,
+Node ExtProofRuleChecker::checkInternal(ProofRule id,
                                         const std::vector<Node>& children,
                                         const std::vector<Node>& args)
 {
@@ -42,7 +42,7 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
   {
     Trace("nl-ext-checker") << "\t" << c << std::endl;
   }
-  if (id == PfRule::ARITH_MULT_SIGN)
+  if (id == ProofRule::ARITH_MULT_SIGN)
   {
     Assert(children.empty());
     Assert(args.size() > 1);
@@ -114,7 +114,7 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
       default: Assert(false); return Node();
     }
   }
-  else if (id == PfRule::ARITH_MULT_TANGENT)
+  else if (id == ProofRule::ARITH_MULT_TANGENT)
   {
     Assert(children.empty());
     Assert(args.size() == 6);

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -83,7 +83,7 @@ Node ArrayEnumerator::operator*()
   Node n = d_arrayConst;
   for (size_t i = 0, size = d_indexVec.size(); i < size; ++i)
   {
-    n = d_nm->mkNode(kind::STORE,
+    n = d_nm->mkNode(Kind::STORE,
                      n,
                      d_indexVec[d_indexVec.size() - 1 - i],
                      *(*(d_constituentVec[i])));

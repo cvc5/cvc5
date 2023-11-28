@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -233,11 +233,11 @@ void InstantiationEngine::registerQuantifier(Node q)
     // add patterns
     for (const Node& p : subsPat)
     {
-      if (p.getKind() == INST_PATTERN)
+      if (p.getKind() == Kind::INST_PATTERN)
       {
         addUserPattern(q, p);
       }
-      else if (p.getKind() == INST_NO_PATTERN)
+      else if (p.getKind() == Kind::INST_NO_PATTERN)
       {
         addUserNoPattern(q, p);
       }

@@ -113,7 +113,7 @@ public class Relations
 
       // (assert (forall ((x Person)) (not (set.member (tuple x x) ancestor))))
       Term x = solver.mkVar(personSort, "x");
-      Term xxTuple = solver.mkTuple(new Sort[] {personSort, personSort}, new Term[] {x, x});
+      Term xxTuple = solver.mkTuple(new Term[] {x, x});
       Term member = solver.mkTerm(SET_MEMBER, xxTuple, ancestor);
       Term notMember = solver.mkTerm(NOT, member);
 
@@ -148,5 +148,6 @@ public class Relations
       System.out.println("descendant = " + solver.getValue(descendant));
       System.out.println("ancestor   = " + solver.getValue(ancestor));
     }
+    Context.deletePointers();
   }
 }

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,13 +26,13 @@ class TestApiBlackOp : public TestApi
 TEST_F(TestApiBlackOp, hash)
 {
   std::hash<cvc5::Op> h;
-  ASSERT_NO_THROW(h(d_solver.mkOp(BITVECTOR_EXTRACT, {31, 1})));
+  ASSERT_NO_THROW(h(d_solver.mkOp(Kind::BITVECTOR_EXTRACT, {31, 1})));
 }
 
 TEST_F(TestApiBlackOp, getKind)
 {
   Op x;
-  x = d_solver.mkOp(BITVECTOR_EXTRACT, {31, 1});
+  x = d_solver.mkOp(Kind::BITVECTOR_EXTRACT, {31, 1});
   ASSERT_NO_THROW(x.getKind());
 }
 
@@ -40,35 +40,35 @@ TEST_F(TestApiBlackOp, isNull)
 {
   Op x;
   ASSERT_TRUE(x.isNull());
-  Op y = d_solver.mkOp(BITVECTOR_EXTRACT, {31, 1});
+  Op y = d_solver.mkOp(Kind::BITVECTOR_EXTRACT, {31, 1});
   ASSERT_FALSE(y.isNull());
   ASSERT_NE(x, y);
 }
 
 TEST_F(TestApiBlackOp, opFromKind)
 {
-  ASSERT_NO_THROW(d_solver.mkOp(ADD));
-  ASSERT_THROW(d_solver.mkOp(BITVECTOR_EXTRACT), CVC5ApiException);
+  ASSERT_NO_THROW(d_solver.mkOp(Kind::ADD));
+  ASSERT_THROW(d_solver.mkOp(Kind::BITVECTOR_EXTRACT), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackOp, getNumIndices)
 {
   // Operators with 0 indices
-  Op plus = d_solver.mkOp(ADD);
+  Op plus = d_solver.mkOp(Kind::ADD);
 
   ASSERT_EQ(0, plus.getNumIndices());
 
   // Operators with 1 index
-  Op divisible = d_solver.mkOp(DIVISIBLE, {4});
-  Op bvRepeat = d_solver.mkOp(BITVECTOR_REPEAT, {5});
-  Op bvZeroExtend = d_solver.mkOp(BITVECTOR_ZERO_EXTEND, {6});
-  Op bvSignExtend = d_solver.mkOp(BITVECTOR_SIGN_EXTEND, {7});
-  Op bvRotateLeft = d_solver.mkOp(BITVECTOR_ROTATE_LEFT, {8});
-  Op bvRotateRight = d_solver.mkOp(BITVECTOR_ROTATE_RIGHT, {9});
-  Op intToBv = d_solver.mkOp(INT_TO_BITVECTOR, {10});
-  Op iand = d_solver.mkOp(IAND, {11});
-  Op fpToUbv = d_solver.mkOp(FLOATINGPOINT_TO_UBV, {12});
-  Op fpToSbv = d_solver.mkOp(FLOATINGPOINT_TO_SBV, {13});
+  Op divisible = d_solver.mkOp(Kind::DIVISIBLE, {4});
+  Op bvRepeat = d_solver.mkOp(Kind::BITVECTOR_REPEAT, {5});
+  Op bvZeroExtend = d_solver.mkOp(Kind::BITVECTOR_ZERO_EXTEND, {6});
+  Op bvSignExtend = d_solver.mkOp(Kind::BITVECTOR_SIGN_EXTEND, {7});
+  Op bvRotateLeft = d_solver.mkOp(Kind::BITVECTOR_ROTATE_LEFT, {8});
+  Op bvRotateRight = d_solver.mkOp(Kind::BITVECTOR_ROTATE_RIGHT, {9});
+  Op intToBv = d_solver.mkOp(Kind::INT_TO_BITVECTOR, {10});
+  Op iand = d_solver.mkOp(Kind::IAND, {11});
+  Op fpToUbv = d_solver.mkOp(Kind::FLOATINGPOINT_TO_UBV, {12});
+  Op fpToSbv = d_solver.mkOp(Kind::FLOATINGPOINT_TO_SBV, {13});
 
   ASSERT_EQ(1, divisible.getNumIndices());
   ASSERT_EQ(1, bvRepeat.getNumIndices());
@@ -82,13 +82,14 @@ TEST_F(TestApiBlackOp, getNumIndices)
   ASSERT_EQ(1, fpToSbv.getNumIndices());
 
   // Operators with 2 indices
-  Op bvExtract = d_solver.mkOp(BITVECTOR_EXTRACT, {1, 0});
-  Op toFpFromIeeeBv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_IEEE_BV, {3, 2});
-  Op toFpFromFp = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_FP, {5, 4});
-  Op toFpFromReal = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_REAL, {7, 6});
-  Op toFpFromSbv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_SBV, {9, 8});
-  Op toFpFromUbv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_UBV, {11, 10});
-  Op regexpLoop = d_solver.mkOp(REGEXP_LOOP, {15, 14});
+  Op bvExtract = d_solver.mkOp(Kind::BITVECTOR_EXTRACT, {1, 0});
+  Op toFpFromIeeeBv =
+      d_solver.mkOp(Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV, {3, 2});
+  Op toFpFromFp = d_solver.mkOp(Kind::FLOATINGPOINT_TO_FP_FROM_FP, {5, 4});
+  Op toFpFromReal = d_solver.mkOp(Kind::FLOATINGPOINT_TO_FP_FROM_REAL, {7, 6});
+  Op toFpFromSbv = d_solver.mkOp(Kind::FLOATINGPOINT_TO_FP_FROM_SBV, {9, 8});
+  Op toFpFromUbv = d_solver.mkOp(Kind::FLOATINGPOINT_TO_FP_FROM_UBV, {11, 10});
+  Op regexpLoop = d_solver.mkOp(Kind::REGEXP_LOOP, {15, 14});
 
   ASSERT_EQ(2, bvExtract.getNumIndices());
   ASSERT_EQ(2, toFpFromIeeeBv.getNumIndices());
@@ -100,35 +101,35 @@ TEST_F(TestApiBlackOp, getNumIndices)
 
   // Operators with n indices
   std::vector<uint32_t> indices = {0, 3, 2, 0, 1, 2};
-  Op tupleProject = d_solver.mkOp(TUPLE_PROJECT, indices);
+  Op tupleProject = d_solver.mkOp(Kind::TUPLE_PROJECT, indices);
   ASSERT_EQ(indices.size(), tupleProject.getNumIndices());
 
-  Op relationProject = d_solver.mkOp(RELATION_PROJECT, indices);
+  Op relationProject = d_solver.mkOp(Kind::RELATION_PROJECT, indices);
   ASSERT_EQ(indices.size(), relationProject.getNumIndices());
 
-  Op tableProject = d_solver.mkOp(TABLE_PROJECT, indices);
+  Op tableProject = d_solver.mkOp(Kind::TABLE_PROJECT, indices);
   ASSERT_EQ(indices.size(), tableProject.getNumIndices());
 }
 
 TEST_F(TestApiBlackOp, subscriptOperator)
 {
   // Operators with 0 indices
-  Op plus = d_solver.mkOp(ADD);
+  Op plus = d_solver.mkOp(Kind::ADD);
 
   ASSERT_THROW(plus[0], CVC5ApiException);
 
   // Operators with 1 index
-  Op divisible = d_solver.mkOp(DIVISIBLE, {4});
-  Op bvRepeat = d_solver.mkOp(BITVECTOR_REPEAT, {5});
-  Op bvZeroExtend = d_solver.mkOp(BITVECTOR_ZERO_EXTEND, {6});
-  Op bvSignExtend = d_solver.mkOp(BITVECTOR_SIGN_EXTEND, {7});
-  Op bvRotateLeft = d_solver.mkOp(BITVECTOR_ROTATE_LEFT, {8});
-  Op bvRotateRight = d_solver.mkOp(BITVECTOR_ROTATE_RIGHT, {9});
-  Op intToBv = d_solver.mkOp(INT_TO_BITVECTOR, {10});
-  Op iand = d_solver.mkOp(IAND, {11});
-  Op fpToUbv = d_solver.mkOp(FLOATINGPOINT_TO_UBV, {12});
-  Op fpToSbv = d_solver.mkOp(FLOATINGPOINT_TO_SBV, {13});
-  Op regexpRepeat = d_solver.mkOp(REGEXP_REPEAT, {14});
+  Op divisible = d_solver.mkOp(Kind::DIVISIBLE, {4});
+  Op bvRepeat = d_solver.mkOp(Kind::BITVECTOR_REPEAT, {5});
+  Op bvZeroExtend = d_solver.mkOp(Kind::BITVECTOR_ZERO_EXTEND, {6});
+  Op bvSignExtend = d_solver.mkOp(Kind::BITVECTOR_SIGN_EXTEND, {7});
+  Op bvRotateLeft = d_solver.mkOp(Kind::BITVECTOR_ROTATE_LEFT, {8});
+  Op bvRotateRight = d_solver.mkOp(Kind::BITVECTOR_ROTATE_RIGHT, {9});
+  Op intToBv = d_solver.mkOp(Kind::INT_TO_BITVECTOR, {10});
+  Op iand = d_solver.mkOp(Kind::IAND, {11});
+  Op fpToUbv = d_solver.mkOp(Kind::FLOATINGPOINT_TO_UBV, {12});
+  Op fpToSbv = d_solver.mkOp(Kind::FLOATINGPOINT_TO_SBV, {13});
+  Op regexpRepeat = d_solver.mkOp(Kind::REGEXP_REPEAT, {14});
 
   ASSERT_EQ(4, divisible[0].getUInt32Value());
   ASSERT_EQ(5, bvRepeat[0].getUInt32Value());
@@ -143,13 +144,14 @@ TEST_F(TestApiBlackOp, subscriptOperator)
   ASSERT_EQ(14, regexpRepeat[0].getUInt32Value());
 
   // Operators with 2 indices
-  Op bvExtract = d_solver.mkOp(BITVECTOR_EXTRACT, {1, 0});
-  Op toFpFromIeeeBv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_IEEE_BV, {3, 2});
-  Op toFpFromFp = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_FP, {5, 4});
-  Op toFpFromReal = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_REAL, {7, 6});
-  Op toFpFromSbv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_SBV, {9, 8});
-  Op toFpFromUbv = d_solver.mkOp(FLOATINGPOINT_TO_FP_FROM_UBV, {11, 10});
-  Op regexpLoop = d_solver.mkOp(REGEXP_LOOP, {15, 14});
+  Op bvExtract = d_solver.mkOp(Kind::BITVECTOR_EXTRACT, {1, 0});
+  Op toFpFromIeeeBv =
+      d_solver.mkOp(Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV, {3, 2});
+  Op toFpFromFp = d_solver.mkOp(Kind::FLOATINGPOINT_TO_FP_FROM_FP, {5, 4});
+  Op toFpFromReal = d_solver.mkOp(Kind::FLOATINGPOINT_TO_FP_FROM_REAL, {7, 6});
+  Op toFpFromSbv = d_solver.mkOp(Kind::FLOATINGPOINT_TO_FP_FROM_SBV, {9, 8});
+  Op toFpFromUbv = d_solver.mkOp(Kind::FLOATINGPOINT_TO_FP_FROM_UBV, {11, 10});
+  Op regexpLoop = d_solver.mkOp(Kind::REGEXP_LOOP, {15, 14});
 
   ASSERT_EQ(1, bvExtract[0].getUInt32Value());
   ASSERT_EQ(0, bvExtract[1].getUInt32Value());
@@ -168,7 +170,7 @@ TEST_F(TestApiBlackOp, subscriptOperator)
 
   // Operators with n indices
   std::vector<uint32_t> indices = {0, 3, 2, 0, 1, 2};
-  Op tupleProject = d_solver.mkOp(TUPLE_PROJECT, indices);
+  Op tupleProject = d_solver.mkOp(Kind::TUPLE_PROJECT, indices);
   for (size_t i = 0, size = tupleProject.getNumIndices(); i < size; i++)
   {
     ASSERT_EQ(indices[i], tupleProject[i].getUInt32Value());
@@ -177,7 +179,7 @@ TEST_F(TestApiBlackOp, subscriptOperator)
 
 TEST_F(TestApiBlackOp, opScopingToString)
 {
-  Op bitvector_repeat_ot = d_solver.mkOp(BITVECTOR_REPEAT, {5});
+  Op bitvector_repeat_ot = d_solver.mkOp(Kind::BITVECTOR_REPEAT, {5});
   std::string op_repr = bitvector_repeat_ot.toString();
   Solver solver2;
   ASSERT_EQ(bitvector_repeat_ot.toString(), op_repr);

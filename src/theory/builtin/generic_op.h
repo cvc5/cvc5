@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -52,6 +52,11 @@ class GenericOp
    * given vector.
    */
   static Node getOperatorForIndices(Kind k, const std::vector<Node>& indices);
+  /**
+   * Get the concrete term corresponding to the application of
+   * APPLY_INDEXED_SYMBOLIC. Requires all indices to be constant.
+   */
+  static Node getConcreteApp(const Node& app);
 
  private:
   GenericOp();

@@ -163,7 +163,7 @@ constant FLOATINGPOINT_TO_FP_FROM_IEEE_BV_OP \
     "::cvc5::internal::FloatingPointConvertSortHashFunction<0x1>" \
     "util/floatingpoint.h" \
     "operator for to_fp from bit vector"
-typerule FLOATINGPOINT_TO_FP_FROM_IEEE_BV_OP ::cvc5::internal::theory::fp::FloatingPointParametricOpTypeRule
+typerule FLOATINGPOINT_TO_FP_FROM_IEEE_BV_OP "SimpleTypeRule<RBuiltinOperator>"
 
 parameterized FLOATINGPOINT_TO_FP_FROM_IEEE_BV FLOATINGPOINT_TO_FP_FROM_IEEE_BV_OP 1 "convert an IEEE-754 bit vector to floating-point"
 typerule FLOATINGPOINT_TO_FP_FROM_IEEE_BV ::cvc5::internal::theory::fp::FloatingPointToFPIEEEBitVectorTypeRule
@@ -176,7 +176,7 @@ constant FLOATINGPOINT_TO_FP_FROM_FP_OP \
     "::cvc5::internal::FloatingPointConvertSortHashFunction<0x2>" \
     "util/floatingpoint.h" \
     "operator for to_fp from floating point"
-typerule FLOATINGPOINT_TO_FP_FROM_FP_OP ::cvc5::internal::theory::fp::FloatingPointParametricOpTypeRule
+typerule FLOATINGPOINT_TO_FP_FROM_FP_OP "SimpleTypeRule<RBuiltinOperator>"
 
 parameterized FLOATINGPOINT_TO_FP_FROM_FP FLOATINGPOINT_TO_FP_FROM_FP_OP 2 "convert between floating-point sorts"
 typerule FLOATINGPOINT_TO_FP_FROM_FP   ::cvc5::internal::theory::fp::FloatingPointToFPFloatingPointTypeRule
@@ -190,7 +190,7 @@ constant FLOATINGPOINT_TO_FP_FROM_REAL_OP \
     "::cvc5::internal::FloatingPointConvertSortHashFunction<0x4>" \
     "util/floatingpoint.h" \
     "operator for to_fp from real"
-typerule FLOATINGPOINT_TO_FP_FROM_REAL_OP ::cvc5::internal::theory::fp::FloatingPointParametricOpTypeRule
+typerule FLOATINGPOINT_TO_FP_FROM_REAL_OP "SimpleTypeRule<RBuiltinOperator>"
 
 parameterized FLOATINGPOINT_TO_FP_FROM_REAL FLOATINGPOINT_TO_FP_FROM_REAL_OP 2 "convert a real to floating-point"
 typerule FLOATINGPOINT_TO_FP_FROM_REAL   ::cvc5::internal::theory::fp::FloatingPointToFPRealTypeRule
@@ -203,7 +203,7 @@ constant FLOATINGPOINT_TO_FP_FROM_SBV_OP \
     "::cvc5::internal::FloatingPointConvertSortHashFunction<0x8>" \
     "util/floatingpoint.h" \
     "operator for to_fp from signed bit vector"
-typerule FLOATINGPOINT_TO_FP_FROM_SBV_OP ::cvc5::internal::theory::fp::FloatingPointParametricOpTypeRule
+typerule FLOATINGPOINT_TO_FP_FROM_SBV_OP "SimpleTypeRule<RBuiltinOperator>"
 
 parameterized FLOATINGPOINT_TO_FP_FROM_SBV FLOATINGPOINT_TO_FP_FROM_SBV_OP 2 "convert a signed bit vector to floating-point"
 typerule FLOATINGPOINT_TO_FP_FROM_SBV   ::cvc5::internal::theory::fp::FloatingPointToFPSignedBitVectorTypeRule
@@ -216,7 +216,7 @@ constant FLOATINGPOINT_TO_FP_FROM_UBV_OP \
     "::cvc5::internal::FloatingPointConvertSortHashFunction<0x10>" \
     "util/floatingpoint.h" \
     "operator for to_fp from unsigned bit vector"
-typerule FLOATINGPOINT_TO_FP_FROM_UBV_OP ::cvc5::internal::theory::fp::FloatingPointParametricOpTypeRule
+typerule FLOATINGPOINT_TO_FP_FROM_UBV_OP "SimpleTypeRule<RBuiltinOperator>"
 
 
 parameterized FLOATINGPOINT_TO_FP_FROM_UBV FLOATINGPOINT_TO_FP_FROM_UBV_OP 2 "convert an unsigned bit vector to floating-point"
@@ -230,7 +230,7 @@ constant FLOATINGPOINT_TO_UBV_OP \
     "::cvc5::internal::FloatingPointToBVHashFunction<0x1>" \
     "util/floatingpoint.h" \
     "operator for to_ubv"
-typerule FLOATINGPOINT_TO_UBV_OP ::cvc5::internal::theory::fp::FloatingPointParametricOpTypeRule
+typerule FLOATINGPOINT_TO_UBV_OP "SimpleTypeRule<RBuiltinOperator>"
 
 parameterized FLOATINGPOINT_TO_UBV FLOATINGPOINT_TO_UBV_OP 2 "convert a floating-point value to an unsigned bit vector"
 typerule FLOATINGPOINT_TO_UBV   ::cvc5::internal::theory::fp::FloatingPointToUBVTypeRule
@@ -242,7 +242,7 @@ constant FLOATINGPOINT_TO_UBV_TOTAL_OP \
     "::cvc5::internal::FloatingPointToBVHashFunction<0x4>" \
     "util/floatingpoint.h" \
     "operator for to_ubv_total"
-typerule FLOATINGPOINT_TO_UBV_TOTAL_OP ::cvc5::internal::theory::fp::FloatingPointParametricOpTypeRule
+typerule FLOATINGPOINT_TO_UBV_TOTAL_OP "SimpleTypeRule<RBuiltinOperator>"
 
 parameterized FLOATINGPOINT_TO_UBV_TOTAL FLOATINGPOINT_TO_UBV_TOTAL_OP 3 "convert a floating-point value to an unsigned bit vector (defined for all inputs)"
 typerule FLOATINGPOINT_TO_UBV_TOTAL   ::cvc5::internal::theory::fp::FloatingPointToUBVTotalTypeRule
@@ -255,7 +255,7 @@ constant FLOATINGPOINT_TO_SBV_OP \
     "::cvc5::internal::FloatingPointToBVHashFunction<0x2>" \
     "util/floatingpoint.h" \
     "operator for to_sbv"
-typerule FLOATINGPOINT_TO_SBV_OP ::cvc5::internal::theory::fp::FloatingPointParametricOpTypeRule
+typerule FLOATINGPOINT_TO_SBV_OP "SimpleTypeRule<RBuiltinOperator>"
 
 parameterized FLOATINGPOINT_TO_SBV FLOATINGPOINT_TO_SBV_OP 2 "convert a floating-point value to a signed bit vector"
 typerule FLOATINGPOINT_TO_SBV   ::cvc5::internal::theory::fp::FloatingPointToSBVTypeRule
@@ -267,7 +267,7 @@ constant FLOATINGPOINT_TO_SBV_TOTAL_OP \
     "::cvc5::internal::FloatingPointToBVHashFunction<0x8>" \
     "util/floatingpoint.h" \
     "operator for to_sbv_total"
-typerule FLOATINGPOINT_TO_SBV_TOTAL_OP ::cvc5::internal::theory::fp::FloatingPointParametricOpTypeRule
+typerule FLOATINGPOINT_TO_SBV_TOTAL_OP "SimpleTypeRule<RBuiltinOperator>"
 
 parameterized FLOATINGPOINT_TO_SBV_TOTAL FLOATINGPOINT_TO_SBV_TOTAL_OP 3 "convert a floating-point value to a signed bit vector (defined for all inputs)"
 typerule FLOATINGPOINT_TO_SBV_TOTAL   ::cvc5::internal::theory::fp::FloatingPointToSBVTotalTypeRule

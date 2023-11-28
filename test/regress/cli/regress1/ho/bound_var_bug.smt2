@@ -1,0 +1,10 @@
+; EXPECT: unknown
+(set-logic HO_ALL)
+(declare-sort $$unsorted 0)
+(declare-sort tptp.produc1516857811k_elem 0)
+(declare-sort tptp.var 0)
+(declare-fun tptp.transi803447880k_elem ((-> tptp.produc1516857811k_elem tptp.produc1516857811k_elem Bool) tptp.produc1516857811k_elem tptp.produc1516857811k_elem) Bool)
+(assert (forall ((R (-> tptp.produc1516857811k_elem tptp.produc1516857811k_elem Bool))) (let ((_let_1 (@ tptp.transi803447880k_elem R))) (= (@ tptp.transi803447880k_elem _let_1) _let_1))))
+(assert (= tptp.transi803447880k_elem (lambda ((R4 (-> tptp.produc1516857811k_elem tptp.produc1516857811k_elem Bool)) (__flatten_var_0 tptp.produc1516857811k_elem) (__flatten_var_1 tptp.produc1516857811k_elem)) (@ (@ (lambda ((A12 tptp.produc1516857811k_elem) (__flatten_var_0 tptp.produc1516857811k_elem)) (@ (lambda ((A23 tptp.produc1516857811k_elem)) (or (exists ((A5 tptp.produc1516857811k_elem)) (and (= A12 A5) (= A23 A5))) (exists ((A5 tptp.produc1516857811k_elem)) (exists ((B4 tptp.produc1516857811k_elem)) (exists ((C5 tptp.produc1516857811k_elem)) (and (= A12 A5) (and (= A23 C5) (and (@ (@ (@ tptp.transi803447880k_elem R4) A5) B4) (@ (@ R4 B4) C5))))))))) __flatten_var_0)) __flatten_var_0) __flatten_var_1))))
+(set-info :filename bound_var_bug)
+(check-sat)

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,8 +41,12 @@ class ArithSubs : public Subs
  public:
   /** Add v -> s to the substitution */
   void addArith(const Node& v, const Node& s);
-  /** Return the result of this substitution on n */
-  Node applyArith(const Node& n) const;
+  /**
+   * Return the result of this substitution on n.
+   * @param n The node to apply the substitution
+   * @param traverseNlMult Whether to traverse applications of NONLINEAR_MULT.
+   */
+  Node applyArith(const Node& n, bool traverseNlMult = true) const;
 };
 
 }  // namespace arith

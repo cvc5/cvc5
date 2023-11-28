@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Gereon Kremer
+ *   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,6 +26,7 @@
 #include "smt/env.h"
 #include "smt/print_benchmark.h"
 #include "smt/set_defaults.h"
+#include "theory/quantifiers/skolemize.h"
 #include "theory/smt_engine_subsolver.h"
 
 namespace cvc5::internal {
@@ -40,13 +41,13 @@ void UnsatCoreManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
 {
   Trace("unsat-core") << "UCManager::getUnsatCore: final proof: " << *pfn.get()
                       << "\n";
-  Assert(pfn->getRule() == PfRule::SCOPE);
+  Assert(pfn->getRule() == ProofRule::SCOPE);
   std::vector<Node> fassumps;
   expr::getFreeAssumptions(pfn->getChildren()[0].get(), fassumps);
   Trace("unsat-core") << "UCManager::getUnsatCore: free assumptions: "
                       << fassumps << "\n";
   const context::CDList<Node>& al = as.getAssertionList();
-  std::unordered_set<Node> coreSet;
+  std::set<Node> coreSet;
   for (const Node& a : al)
   {
     Trace("unsat-core") << "is assertion " << a << " there?\n";
@@ -111,8 +112,8 @@ void UnsatCoreManager::getRelevantQuantTermVectors(
     }
     visited[cur.get()] = true;
     const std::vector<std::shared_ptr<ProofNode>>& cs = cur->getChildren();
-    PfRule r = cur->getRule();
-    if (r == PfRule::INSTANTIATE)
+    ProofRule r = cur->getRule();
+    if (r == ProofRule::INSTANTIATE)
     {
       const std::vector<Node>& instTerms = cur->getArguments();
       Assert(cs.size() == 1);
@@ -141,26 +142,23 @@ void UnsatCoreManager::getRelevantQuantTermVectors(
         }
       }
     }
-    else if (r == PfRule::SKOLEMIZE)
+    else if (r == ProofRule::SKOLEMIZE)
     {
       Node q = cur->getChildren()[0]->getResult();
       Node exists;
-      if (q.getKind() == kind::NOT && q.getKind() == kind::FORALL)
+      if (q.getKind() == Kind::NOT && q.getKind() == Kind::FORALL)
       {
         std::vector<Node> echildren(q[0].begin(), q[0].end());
         echildren[1] = echildren[1].notNode();
-        exists = nm->mkNode(kind::EXISTS, echildren);
+        exists = nm->mkNode(Kind::EXISTS, echildren);
       }
-      else if (q.getKind() == kind::EXISTS)
+      else if (q.getKind() == Kind::EXISTS)
       {
         exists = q;
       }
       if (!exists.isNull())
       {
-        std::vector<Node> skolems;
-        SkolemManager* sm = nm->getSkolemManager();
-        Node res = sm->mkSkolemize(q, skolems, "k");
-        sks[q] = skolems;
+        sks[q] = theory::quantifiers::Skolemize::getSkolemConstants(exists);
       }
     }
     for (const std::shared_ptr<ProofNode>& cp : cs)

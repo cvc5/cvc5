@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,21 +38,22 @@ bool BasicRewriteRCons::prove(
   if (eq[0] == eq[1])
   {
     Trace("trewrite-rcons") << "...REFL" << std::endl;
-    cdp->addStep(eq, PfRule::REFL, {}, {eq[0]});
+    cdp->addStep(eq, ProofRule::REFL, {}, {eq[0]});
     return true;
   }
   // first, check that maybe its just an evaluation step
-  if (tryRule(cdp, eq, PfRule::EVALUATE, {eq[0]}))
+  if (tryRule(cdp, eq, ProofRule::EVALUATE, {eq[0]}))
   {
     Trace("trewrite-rcons") << "...EVALUATE" << std::endl;
     return true;
   }
-  if (eq[0].getKind() == APPLY_UF && eq[0].getOperator().getKind() == LAMBDA)
+  if (eq[0].getKind() == Kind::APPLY_UF
+      && eq[0].getOperator().getKind() == Kind::LAMBDA)
   {
     std::vector<Node> args;
     args.push_back(eq[0].getOperator());
     args.insert(args.end(), eq[0].begin(), eq[0].end());
-    if (tryRule(cdp, eq, PfRule::BETA_REDUCE, args))
+    if (tryRule(cdp, eq, ProofRule::BETA_REDUCE, args))
     {
       Trace("trewrite-rcons") << "...BETA_REDUCE" << std::endl;
       return true;
@@ -64,7 +65,7 @@ bool BasicRewriteRCons::prove(
 
 bool BasicRewriteRCons::tryRule(CDProof* cdp,
                                 Node eq,
-                                PfRule r,
+                                ProofRule r,
                                 const std::vector<Node>& args)
 {
   ProofChecker* pc = d_env.getProofNodeManager()->getChecker();

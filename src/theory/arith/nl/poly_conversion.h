@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Mathias Preiner, Aina Niemetz
+ *   Gereon Kremer, Mathias Preiner, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -163,11 +163,24 @@ class PolyConverter
   /**
    * Transforms a real algebraic number to a node suitable for putting it into a
    * model. The resulting node can be either a constant (suitable for
-   * addSubstitution) or a witness term (suitable for
-   * addWitness).
+   * addSubstitution) or a witness term (suitable for addWitness).
    */
   static Node ran_to_node(const RealAlgebraicNumber& ran,
                           const Node& ran_variable);
+  /**
+   * Get the defining polynomial for the given ran, expressed over variable
+   * ran_variable. Returns null if the defining polynomial does not exist.
+   */
+  static Node ran_to_defining_polynomial(const RealAlgebraicNumber& ran,
+                                         const Node& ran_variable);
+  /**
+   * Get the lower bound for the given ran, which is a constant real.
+   */
+  static Node ran_to_lower(const RealAlgebraicNumber& ran);
+  /**
+   * Get the upper bound for the given ran, which is a constant real.
+   */
+  static Node ran_to_upper(const RealAlgebraicNumber& ran);
 
   /** Transforms a node to a RealAlgebraicNumber by calling node_to_poly_ran. */
   static RealAlgebraicNumber node_to_ran(const Node& n,

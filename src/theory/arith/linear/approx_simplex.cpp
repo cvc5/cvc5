@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Gereon Kremer, Aina Niemetz, Andrew V. Teylu
+ *   Tim King, Andrew V. Teylu, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -63,7 +63,7 @@ struct VirtualBound {
 
   VirtualBound()
     : x(ARITHVAR_SENTINEL)
-    , k(kind::UNDEFINED_KIND)
+    , k(Kind::UNDEFINED_KIND)
     , d()
     , y(ARITHVAR_SENTINEL)
     , c(NullConstraint)
@@ -75,7 +75,7 @@ struct VirtualBound {
     , y(bounding)
     , c(orig)
   {
-    Assert(k == kind::LEQ || k == kind::GEQ);
+    Assert(k == Kind::LEQ || k == Kind::GEQ);
   }
 };
 
@@ -131,7 +131,7 @@ struct CutScratchPad {
     d_alpha.purge();
 
     d_cut.purge();
-    d_cutKind = kind::UNDEFINED_KIND;
+    d_cutKind = Kind::UNDEFINED_KIND;
     d_explanation.clear();
   }
 };
@@ -504,12 +504,12 @@ Kind glpk_type_to_kind(int glpk_cut_type)
 {
   switch (glpk_cut_type)
   {
-    case GLP_LO: return kind::GEQ;
-    case GLP_UP: return kind::LEQ;
-    case GLP_FX: return kind::EQUAL;
+    case GLP_LO: return Kind::GEQ;
+    case GLP_UP: return Kind::LEQ;
+    case GLP_FX: return Kind::EQUAL;
     case GLP_DB:
     case GLP_FR:
-    default: return kind::UNDEFINED_KIND;
+    default: return Kind::UNDEFINED_KIND;
   }
 }
 
@@ -1421,13 +1421,13 @@ static BranchCutInfo* branchCut(glp_tree *tree, int exec_ord, int br_var, double
     // down branch is infeasible
     // x <= floor(v) is infeasible
     // - so x >= ceiling(v) is implied
-    k = kind::GEQ;
+    k = Kind::GEQ;
     rhs = std::ceil(br_val);
   }else{
     // up branch is infeasible
     // x >= ceiling(v) is infeasible
     // - so x <= floor(v) is implied
-    k = kind::LEQ;
+    k = Kind::LEQ;
     rhs = std::floor(br_val);
   }
   BranchCutInfo* br_cut = new BranchCutInfo(exec_ord, br_var, k, rhs);
@@ -1973,7 +1973,7 @@ bool ApproxGLPK::attemptBranchCut(int nid, const BranchCutInfo& br_cut){
 
   Kind brKind = br_cut.getKind();
 
-  d_pad.d_failure = (brKind != kind::LEQ && brKind != kind::GEQ);
+  d_pad.d_failure = (brKind != Kind::LEQ && brKind != Kind::GEQ);
   if(d_pad.d_failure){ return true; }
 
   d_pad.d_cutKind = brKind;
@@ -1999,7 +1999,7 @@ bool ApproxGLPK::attemptBranchCut(int nid, const BranchCutInfo& br_cut){
 bool ApproxGLPK::attemptGmi(int nid, const GmiInfo& gmi){
   d_pad.clear();
 
-  d_pad.d_cutKind = kind::GEQ;
+  d_pad.d_cutKind = Kind::GEQ;
 
   int M = gmi.getMAtCreation();
   ArithVar b = _getArithVar(nid, M, gmi.basic);
@@ -2112,7 +2112,7 @@ bool ApproxGLPK::applyCMIRRule(int nid, const MirInfo& mir){
 bool ApproxGLPK::attemptMir(int nid, const MirInfo& mir){
   d_pad.clear();
 
-  d_pad.d_cutKind = kind::LEQ;
+  d_pad.d_cutKind = Kind::LEQ;
 
   // virtual bounds must be done before slacks
   d_pad.d_failure = loadVirtualBoundsIntoPad(nid, mir);
@@ -2283,7 +2283,7 @@ bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound
     return true;
   }
 
-  Kind rel = wantUb ? kind::LEQ : kind::GEQ;
+  Kind rel = wantUb ? Kind::LEQ : Kind::GEQ;
 
   tmp = VirtualBound(contVar, rel, d, iv, rcon);
   Trace("glpk::loadVB") << "loadVB() was successful" << std::endl;

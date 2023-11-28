@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,11 +35,6 @@ public class Stat extends AbstractPointer
   }
 
   protected native void deletePointer(long pointer);
-
-  public long getPointer()
-  {
-    return pointer;
-  }
 
   // endregion
 

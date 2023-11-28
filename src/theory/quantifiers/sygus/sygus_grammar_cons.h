@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Yoni Zohar, Mathias Preiner
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,250 +16,180 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_CONS_H
-#define CVC5__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_CONS_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_CONS_NEW_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_CONS_NEW_H
 
 #include <map>
 #include <vector>
 
-#include "expr/attribute.h"
 #include "expr/node.h"
-#include "expr/sygus_datatype.h"
-#include "options/quantifiers_options.h"
-#include "smt/env_obj.h"
+#include "expr/sygus_grammar.h"
+#include "options/options.h"
 
 namespace cvc5::internal {
 namespace theory {
-
-/**
- * Attribute for associating a function-to-synthesize with a first order
- * variable whose type is a sygus datatype type that encodes its grammar.
- */
-struct SygusSynthGrammarAttributeId
-{
-};
-typedef expr::Attribute<SygusSynthGrammarAttributeId, Node>
-    SygusSynthGrammarAttribute;
-
-/**
- * Attribute for associating a function-to-synthesize with its formal argument
- * list.
- */
-struct SygusSynthFunVarListAttributeId
-{
-};
-typedef expr::Attribute<SygusSynthFunVarListAttributeId, Node>
-    SygusSynthFunVarListAttribute;
-
 namespace quantifiers {
 
-class SynthConjecture;
-class TermDbSygus;
-
 /**
- * Utility for constructing datatypes that correspond to syntactic restrictions,
- * and applying the deep embedding from Section 4 of Reynolds et al CAV 2015.
+ * Utility for constructing datatypes that correspond to syntactic restrictions.
  */
-class CegGrammarConstructor : protected EnvObj
+class SygusGrammarCons
 {
-public:
- CegGrammarConstructor(Env& env, TermDbSygus* tds, SynthConjecture* p);
- ~CegGrammarConstructor() {}
- /** process
-  *
-  * This converts node q based on its deep embedding
-  * (Section 4 of Reynolds et al CAV 2015).
-  * The syntactic restrictions are associated with
-  * the functions-to-synthesize using the attribute
-  * SygusSynthGrammarAttribute.
-  * The arguments templates and template_args
-  * indicate templates for the function to synthesize,
-  * in particular the solution for the i^th function
-  * to synthesis must be of the form
-  *   templates[i]{ templates_arg[i] -> t }
-  * for some t if !templates[i].isNull().
-  */
- Node process(Node q,
-              const std::map<Node, Node>& templates,
-              const std::map<Node, Node>& templates_arg);
- /**
-  * Same as above, but we have already determined that the set of first-order
-  * datatype variables that will quantify the deep embedding conjecture are
-  * the vector ebvl.
-  */
- Node process(Node q,
-              const std::map<Node, Node>& templates,
-              const std::map<Node, Node>& templates_arg,
-              const std::vector<Node>& ebvl);
-
- /** Is the syntax restricted? */
- bool isSyntaxRestricted() { return d_is_syntax_restricted; }
-
- /**
-  * Make the default sygus datatype type corresponding to builtin type range
-  * arguments:
-  *   - bvl: the set of free variables to include in the grammar
-  *   - fun: used for naming
-  *   - extra_cons: a set of extra constant symbols to include in the grammar,
-  *     regardless of their inclusion in the default grammar.
-  *   - exclude_cons: used to exclude operators from the grammar,
-  *   - term_irrelevant: a set of terms that should not be included in the
-  *      grammar.
-  *   - include_cons: a set of operators such that if this set is not empty,
-  *     its elements that are in the default grammar (and only them)
-  *     will be included.
-  */
- static TypeNode mkSygusDefaultType(
-     const Options& opts,
-     TypeNode range,
-     Node bvl,
-     const std::string& fun,
-     std::map<TypeNode, std::unordered_set<Node>>& extra_cons,
-     std::map<TypeNode, std::unordered_set<Node>>& exclude_cons,
-     std::map<TypeNode, std::unordered_set<Node>>& include_cons,
-     std::unordered_set<Node>& term_irrelevant);
-
- /**
-  * Make the default sygus datatype type corresponding to builtin type range.
-  */
- static TypeNode mkSygusDefaultType(const Options& opts,
-                                    TypeNode range,
-                                    Node bvl,
-                                    const std::string& fun)
- {
-   std::map<TypeNode, std::unordered_set<Node>> extra_cons;
-   std::map<TypeNode, std::unordered_set<Node>> exclude_cons;
-   std::map<TypeNode, std::unordered_set<Node>> include_cons;
-   std::unordered_set<Node> term_irrelevant;
-   return mkSygusDefaultType(opts,
-                             range,
-                             bvl,
-                             fun,
-                             extra_cons,
-                             exclude_cons,
-                             include_cons,
-                             term_irrelevant);
-  }
-
-  /** make the sygus datatype type that encodes the solution space (lambda
-  * templ_arg. templ[templ_arg]) where templ_arg
-  * has syntactic restrictions encoded by sygus type templ_arg_sygus_type
-  *   bvl is the set of free variables to include in the grammar
-  *   fun is for naming
-  */
-  static TypeNode mkSygusTemplateType( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl, const std::string& fun );
+ public:
   /**
-   * Returns true iff there are syntax restrictions on the
-   * functions-to-synthesize of sygus conjecture q.
+   * Make the type corresponding to the default sygus grammar type returning
+   * range with bound variables bvl.
+   *
+   * @param opts The options, which impact grammar construction
+   * @param range The type of terms generated by the start symbol of the
+   * grammar.
+   * @param bvl The input variable list for the grammar (if it exists). If
+   * provided, each variable in this list is added as a terminal rule.
    */
-  static bool hasSyntaxRestrictions(Node q);
+  static TypeNode mkDefaultSygusType(const Options& opts,
+                                     const TypeNode& range,
+                                     const Node& bvl);
+  /**
+   * Make the type corresponding to the default sygus grammar type returning
+   * range with bound variables bvl, with a custom set of initial terminal
+   * rules.
+   *
+   * @param opts The options, which impact grammar construction
+   * @param range The type of terms generated by the start symbol of the
+   * grammar.
+   * @param bvl The input variable list for the grammar (if it exists).
+   * @param trules The provided set of terminal rules.
+   */
+  static TypeNode mkDefaultSygusType(const Options& opts,
+                                     const TypeNode& range,
+                                     const Node& bvl,
+                                     const std::vector<Node>& trules);
+
+  /**
+   * Make the default sygus grammar type returning range with bound variables
+   * bvl.
+   *
+   * @param opts The options, which impact grammar construction
+   * @param range The type of terms generated by the start symbol of the
+   * grammar.
+   * @param bvl The input variable list for the grammar (if it exists). If
+   * provided, each variable in this list is added as a terminal rule.
+   */
+  static SygusGrammar mkDefaultGrammar(const Options& opts,
+                                       const TypeNode& range,
+                                       const Node& bvl);
+
+  /**
+   * Make the default sygus grammar type returning range with bound variables
+   * bvl, with a custom set of initial terminal rules.
+   *
+   * @param opts The options, which impact grammar construction
+   * @param range The type of terms generated by the start symbol of the
+   * grammar.
+   * @param bvl The input variable list for the grammar (if it exists).
+   * @param trules The provided set of terminal rules.
+   */
+  static SygusGrammar mkDefaultGrammar(const Options& opts,
+                                       const TypeNode& range,
+                                       const Node& bvl,
+                                       const std::vector<Node>& trules);
+
   /**
    * Make the builtin constants for type "type" that should be included in a
    * sygus grammar, add them to vector ops.
+   * 
+   * @param type The type to add constants for
+   * @param op The vector to add the constants to
    */
-  static void mkSygusConstantsForType(TypeNode type, std::vector<Node>& ops);
-  /** Is it possible to construct a default grammar for type t? */
-  static bool isHandledType(TypeNode t);
-  /**
-   * Convert node n based on deep embedding, see Section 4 of Reynolds et al
-   * CAV 2015.
-   *
-   * This returns the result of converting n to its deep embedding based on
-   * the mapping from functions to datatype variables, stored in
-   * d_synth_fun_vars. This method should be called only after calling process
-   * above.
-   */
-  Node convertToEmbedding(Node n);
+  static void mkSygusConstantsForType(const TypeNode& type,
+                                      std::vector<Node>& ops);
 
  private:
-  /** The sygus term database we are using */
-  TermDbSygus* d_tds;
-  /** parent conjecture
-  * This contains global information about the synthesis conjecture.
-  */
-  SynthConjecture* d_parent;
   /**
-   * Maps each synthesis function to its corresponding (first-order) sygus
-   * datatype variable. This map is initialized by the process methods.
+   * Make the default sygus grammar type returning range with bound variables
+   * bvl, with a custom set of initial terminal rules.
+   *
+   * @param opts The options, which impact grammar construction
+   * @param range The type of terms generated by the start symbol of the
+   * grammar.
+   * @param bvl The input variable list for the grammar (if it exists).
+   * @param trules The provided set of terminal rules.
    */
-  std::map<Node, Node> d_synth_fun_vars;
-  /** is the syntax restricted? */
-  bool d_is_syntax_restricted;
-  /** collect terms */
-  void collectTerms(Node n,
-                    std::map<TypeNode, std::unordered_set<Node>>& consts);
-  //---------------- grammar construction
-  /** A class for generating sygus datatypes */
-  class SygusDatatypeGenerator
-  {
-   public:
-    SygusDatatypeGenerator(const std::string& name);
-    ~SygusDatatypeGenerator() {}
-    /**
-     * Possibly add a constructor to d_sdt, based on the criteria mentioned
-     * in this class below. For details see expr/sygus_datatype.h.
-     */
-    void addConstructor(Node op,
-                        const std::string& name,
-                        const std::vector<TypeNode>& consTypes,
-                        int weight = -1);
-    /**
-     * Possibly add a constructor to d_sdt, based on the criteria mentioned
-     * in this class below.
-     */
-    void addConstructor(Kind k,
-                        const std::vector<TypeNode>& consTypes,
-                        int weight = -1);
-    /** Should we include constructor with operator op? */
-    bool shouldInclude(Node op) const;
-    /** The constructors that should be excluded. */
-    std::unordered_set<Node> d_exclude_cons;
-    /**
-     * If this set is non-empty, then only include variables and constructors
-     * from it.
-     */
-    std::unordered_set<Node> d_include_cons;
-    /** The sygus datatype we are generating. */
-    SygusDatatype d_sdt;
-  };
-
-  // helper for mkSygusDefaultGrammar (makes unresolved type for mutually recursive datatype construction)
-  static TypeNode mkUnresolvedType(const std::string& name);
-  // collect the list of types that depend on type range
-  static void collectSygusGrammarTypesFor(TypeNode range,
-                                          std::vector<TypeNode>& types);
-  /** helper function for function mkSygusDefaultType
-  * Collects a set of mutually recursive datatypes "datatypes" corresponding to
-  * encoding type "range" to SyGuS.
-  */
-  static void mkSygusDefaultGrammar(
-      TypeNode range,
-      Node bvl,
-      const std::string& fun,
-      std::map<TypeNode, std::unordered_set<Node>>& extra_cons,
-      std::map<TypeNode, std::unordered_set<Node>>& exclude_cons,
-      const std::map<TypeNode, std::unordered_set<Node>>& include_cons,
-      std::unordered_set<Node>& term_irrelevant,
-      std::vector<SygusDatatypeGenerator>& sdts,
-      options::SygusGrammarConsMode sgcm);
-
-  // helper function for mkSygusTemplateType
-  static TypeNode mkSygusTemplateTypeRec(Node templ,
-                                         Node templ_arg,
-                                         TypeNode templ_arg_sygus_type,
-                                         Node bvl,
-                                         const std::string& fun,
-                                         unsigned& tcount);
-
+  static SygusGrammar mkEmptyGrammar(const Options& opts,
+                                     const TypeNode& range,
+                                     const Node& bvl,
+                                     const std::vector<Node>& trules);
   /**
-   * Given a kind k, create a lambda operator with the given builtin input type
-   * and an extra zero argument of that same type.  For example, for k = LEQ and
-   * bArgType = Int, the operator will be lambda x : Int. x + 0.  Currently the
-   * supported input types are Real (thus also Int) and BitVector.
+   * This adds to types the types we should consider in the sygus grammar
+   * for the type range. This is the component types of range plus other
+   * auxiliary types for defining operators in its theory.
    */
-  static Node createLambdaWithZeroArg(Kind k,
-                                      TypeNode bArgType);
-  //---------------- end grammar construction
+  static void collectTypes(const TypeNode& range,
+                           std::unordered_set<TypeNode>& types);
+  /**
+   * Adds the default rules for non-terminal ntSym to g, where ntSym is a
+   * non-terminal of g. This may additionally add rules to other non-terminals
+   * of g, e.g. based on theory symbols that have types different from ntSym,
+   * e.g. array select.
+   *
+   * This is done in stages (based on the argument stage). In the first
+   * stage, we add all basic rules. In the second stage, we consider rules
+   * that depend on rules added in previous stages, e.g. monomials for operators
+   * that are constructed from symbols belonging to non-arithmetic theories.
+   */
+  static void addDefaultRulesTo(
+      const Options& opts,
+      SygusGrammar& g,
+      const Node& ntSym,
+      const std::map<TypeNode, std::vector<Node>>& typeToNtSym,
+      size_t stage);
+  /**
+   * Adds the default predicate rules for non-terminal ntSymBool to g, where
+   * ntSymBool is a Boolean non-terminal of g.
+   */
+  static void addDefaultPredicateRulesTo(
+      const Options& opts,
+      SygusGrammar& g,
+      const Node& ntSym,
+      const Node& ntSymBool,
+      const std::map<TypeNode, std::vector<Node>>& typeToNtSym);
+  /**
+   * Computes a mapping from types to the non-terminals in g with that
+   * type.
+   */
+  static std::map<TypeNode, std::vector<Node>> getTypeToNtSymMap(
+      const SygusGrammar& g);
+  /**
+   * Adds a rule for a term whose operator is kind k and has argument types
+   * given by args. The canonical non-terminals for each type is given by
+   * typeToNtSym.
+   *
+   * This method returns true if a rule was added to g. This may fail if there
+   * is no non-terminal for a type in args or for the return type of the
+   * constructed term.
+   */
+  static bool addRuleTo(
+      SygusGrammar& g,
+      const std::map<TypeNode, std::vector<Node>>& typeToNtSym,
+      Kind k,
+      const std::vector<TypeNode>& args);
+  /**
+   * Similar to the above method.
+   *
+   * Adds a rule for a term whose operator is kind k and operator op and has
+   * argument types given by args. The non-terminals for each type is
+   * given by typeToNtSym.
+   *
+   * This method returns true if a rule was added to g. This may fail if there
+   * is no non-terminal for a type in args or for the return type of the
+   * constructed term.
+   */
+  static bool addRuleTo(
+      SygusGrammar& g,
+      const std::map<TypeNode, std::vector<Node>>& typeToNtSym,
+      Kind k,
+      const Node& op,
+      const std::vector<TypeNode>& args);
 };
 
 }  // namespace quantifiers

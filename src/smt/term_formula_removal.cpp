@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -123,7 +123,7 @@ TrustNode RemoveTermFormulas::runLemma(
   // assertionPre                 assertionPre = newAssertion
   // ------------------------------------------------------- EQ_RESOLVE
   // newAssertion
-  d_lp->addStep(newAssertion, PfRule::EQ_RESOLVE, {assertionPre, naEq}, {});
+  d_lp->addStep(newAssertion, ProofRule::EQ_RESOLVE, {assertionPre, naEq}, {});
   return TrustNode::mkTrustLemma(newAssertion, d_lp.get());
 }
 
@@ -271,6 +271,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
                                             TConvProofGenerator* pg)
 {
   NodeManager *nodeManager = NodeManager::currentNM();
+  SkolemManager* sm = nodeManager->getSkolemManager();
 
   TypeNode nodeType = node.getType();
   Node skolem;
@@ -279,7 +280,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
   ProofGenerator* newAssertionPg = nullptr;
   // Handle non-Boolean ITEs here. Boolean ones (within terms) are handled
   // in the "non-variable Boolean term within term" case below.
-  if (node.getKind() == kind::ITE && !nodeType.isBoolean())
+  if (node.getKind() == Kind::ITE && !nodeType.isBoolean())
   {
     if (!nodeType.isFirstClass())
     {
@@ -298,11 +299,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
       Trace("rtf-proof-debug")
           << "RemoveTermFormulas::run: make ITE skolem" << std::endl;
       // Make the skolem to represent the ITE
-      SkolemManager* sm = nodeManager->getSkolemManager();
-      skolem = sm->mkPurifySkolem(
-          node,
-          "termITE",
-          "a variable introduced due to term-level ITE removal");
+      skolem = sm->mkPurifySkolem(node);
       d_skolem_cache.insert(node, skolem);
 
       // Notice that in very rare cases, two different terms may have the
@@ -313,7 +310,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
 
       // The new assertion
       newAssertion = nodeManager->mkNode(
-          kind::ITE, node[0], skolem.eqNode(node[1]), skolem.eqNode(node[2]));
+          Kind::ITE, node[0], skolem.eqNode(node[1]), skolem.eqNode(node[2]));
 
       // we justify it internally
       if (isProofEnabled())
@@ -331,18 +328,18 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
         // Note that the MACRO_SR_PRED_INTRO step holds due to conversion
         // of skolem into its witness form, which is node.
         Node axiom = getAxiomFor(node);
-        d_lp->addStep(axiom, PfRule::REMOVE_TERM_FORMULA_AXIOM, {}, {node});
+        d_lp->addStep(axiom, ProofRule::REMOVE_TERM_FORMULA_AXIOM, {}, {node});
         Node eq = node.eqNode(skolem);
-        d_lp->addStep(eq, PfRule::MACRO_SR_PRED_INTRO, {}, {eq});
+        d_lp->addStep(eq, ProofRule::MACRO_SR_PRED_INTRO, {}, {eq});
         d_lp->addStep(newAssertion,
-                      PfRule::MACRO_SR_PRED_TRANSFORM,
+                      ProofRule::MACRO_SR_PRED_TRANSFORM,
                       {axiom, eq},
                       {newAssertion});
         newAssertionPg = d_lp.get();
       }
     }
   }
-  else if (node.getKind() == kind::WITNESS)
+  else if (node.getKind() == Kind::WITNESS)
   {
     // If a witness choice
     //   For details on this operator, see
@@ -357,11 +354,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
             << "RemoveTermFormulas::run: make WITNESS skolem" << std::endl;
         // Make the skolem to witness the choice, which notice is handled
         // as a special case within SkolemManager::mkPurifySkolem.
-        SkolemManager* sm = nodeManager->getSkolemManager();
-        skolem = sm->mkPurifySkolem(
-            node,
-            "witnessK",
-            "a skolem introduced due to term-level witness removal");
+        skolem = sm->mkPurifySkolem(node);
         d_skolem_cache.insert(node, skolem);
 
         Assert(node[0].getNumChildren() == 1);
@@ -377,7 +370,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
         if (isProofEnabled())
         {
           Node existsAssertion =
-              nodeManager->mkNode(kind::EXISTS, node[0], node[1]);
+              nodeManager->mkNode(Kind::EXISTS, node[0], node[1]);
           // -------------------- from skolem manager
           // (exists x. node[1])
           // -------------------- SKOLEMIZE
@@ -385,38 +378,30 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
           ProofGenerator* expg = sm->getProofGenerator(existsAssertion);
           d_lp->addLazyStep(existsAssertion,
                             expg,
-                            PfRule::WITNESS_AXIOM,
+                            TrustId::WITNESS_AXIOM,
                             true,
                             "RemoveTermFormulas::run:skolem_pf");
-          d_lp->addStep(newAssertion, PfRule::SKOLEMIZE, {existsAssertion}, {});
+          d_lp->addStep(
+              newAssertion, ProofRule::SKOLEMIZE, {existsAssertion}, {});
           newAssertionPg = d_lp.get();
         }
       }
     }
   }
-  else if (node.getKind() != kind::BOOLEAN_TERM_VARIABLE && nodeType.isBoolean()
-           && inTerm)
+  else if (nodeType.isBoolean() && inTerm
+           && sm->getId(node) != SkolemFunId::PURIFY)
   {
     // if a non-variable Boolean term within another term, replace it
     skolem = getSkolemForNode(node);
     if (skolem.isNull())
     {
       Trace("rtf-proof-debug")
-          << "RemoveTermFormulas::run: make BOOLEAN_TERM_VARIABLE skolem"
-          << std::endl;
+          << "RemoveTermFormulas::run: make Boolean skolem" << std::endl;
       // Make the skolem to represent the Boolean term
-      // Skolems introduced for Boolean formulas appearing in terms have a
-      // special kind (BOOLEAN_TERM_VARIABLE) that ensures they are handled
-      // properly in theory combination. We must use this kind here instead of a
-      // generic skolem. Notice that the name/comment are currently ignored
-      // within SkolemManager::mkPurifySkolem, since BOOLEAN_TERM_VARIABLE
-      // variables cannot be given names.
-      SkolemManager* sm = nodeManager->getSkolemManager();
-      skolem = sm->mkPurifySkolem(
-          node,
-          "btvK",
-          "a Boolean term variable introduced during term formula removal",
-          SkolemManager::SKOLEM_BOOL_TERM_VAR);
+      // Skolems introduced for Boolean formulas appearing in terms are
+      // purified here (SkolemFunId::PURIFY), which ensures they are handled
+      // properly in theory combination.
+      skolem = sm->mkPurifySkolem(node);
       d_skolem_cache.insert(node, skolem);
 
       // The new assertion
@@ -442,7 +427,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
       // conversion proof generator.
       pg->addRewriteStep(node,
                          skolem,
-                         PfRule::MACRO_SR_PRED_INTRO,
+                         ProofRule::MACRO_SR_PRED_INTRO,
                          {},
                          {node.eqNode(skolem)},
                          true,
@@ -466,7 +451,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
           // ---------------- MACRO_SR_PRED_INTRO
           // newAssertion
           d_lp->addStep(
-              newAssertion, PfRule::MACRO_SR_PRED_INTRO, {}, {newAssertion});
+              newAssertion, ProofRule::MACRO_SR_PRED_INTRO, {}, {newAssertion});
         }
       }
       Trace("rtf-debug") << "*** term formula removal introduced " << skolem
@@ -502,9 +487,9 @@ Node RemoveTermFormulas::getAxiomFor(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
-  if (k == kind::ITE)
+  if (k == Kind::ITE)
   {
-    return nm->mkNode(kind::ITE, n[0], n.eqNode(n[1]), n.eqNode(n[2]));
+    return nm->mkNode(Kind::ITE, n[0], n.eqNode(n[1]), n.eqNode(n[2]));
   }
   return Node::null();
 }

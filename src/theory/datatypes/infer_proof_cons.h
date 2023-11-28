@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,7 +31,7 @@ namespace datatypes {
 /**
  * Converts between the datatype-specific (untrustworthy) DatatypesInference
  * class and information about how to construct a trustworthy proof step
- * (PfRule, children, args). It acts as a (lazy) proof generator where the
+ * (ProofRule, children, args). It acts as a (lazy) proof generator where the
  * former is registered via notifyFact and the latter is asked for in
  * getProofFor, typically by the proof equality engine.
  *
@@ -72,6 +72,8 @@ class InferProofCons : protected EnvObj, public ProofGenerator
   virtual std::string identify() const override;
 
  private:
+  /** Common constants */
+  Node d_tdid;
   /** convert
    *
    * This method is called when the theory of strings makes an inference

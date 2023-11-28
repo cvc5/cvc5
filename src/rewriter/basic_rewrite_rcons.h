@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -52,7 +52,10 @@ class BasicRewriteRCons : protected EnvObj
    * Try rule r, return true if eq could be proven by r with arguments args.
    * If this method returns true, a proof of eq was added to cdp.
    */
-  bool tryRule(CDProof* cdp, Node eq, PfRule r, const std::vector<Node>& args);
+  bool tryRule(CDProof* cdp,
+               Node eq,
+               ProofRule r,
+               const std::vector<Node>& args);
 };
 
 }  // namespace rewriter

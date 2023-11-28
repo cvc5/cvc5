@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -71,7 +71,7 @@ void Subs::add(const std::vector<Node>& vs)
 
 void Subs::add(const Node& v, const Node& s)
 {
-  Assert(s.isNull() || v.getType() == s.getType());
+  Assert(s.isNull() || v.getType().isComparableTo(s.getType()));
   d_vars.push_back(v);
   d_subs.push_back(s);
 }
@@ -87,7 +87,7 @@ void Subs::add(const std::vector<Node>& vs, const std::vector<Node>& ss)
 
 void Subs::addEquality(Node eq)
 {
-  Assert(eq.getKind() == kind::EQUAL);
+  Assert(eq.getKind() == Kind::EQUAL);
   add(eq[0], eq[1]);
 }
 

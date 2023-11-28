@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,9 +30,9 @@ class TermContext;
 /** A policy for how rewrite steps are applied in TConvProofGenerator */
 enum class TConvPolicy : uint32_t
 {
-  // steps are applied to fix-point, common use case is PfRule::REWRITE
+  // steps are applied to fix-point, common use case is ProofRule::REWRITE
   FIXPOINT,
-  // steps are applied once at pre-rewrite, common use case is PfRule::SUBS
+  // steps are applied once at pre-rewrite, common use case is ProofRule::SUBS
   ONCE,
 };
 /** Writes a term conversion policy name to a stream. */
@@ -97,15 +97,15 @@ std::ostream& operator<<(std::ostream& out, TConvCachePolicy tcpol);
  *
  * For example, RtfTermContext uses hash value 2 to indicate we are in a "term
  * position". Say the user of this class calls:
- *   addRewriteStep( (and A B), BOOLEAN_TERM_VARIABLE_1, pg, true, 2)
- * This indicates that (and A B) should rewrite to BOOLEAN_TERM_VARIABLE_1 if
+ *   addRewriteStep( (and A B), @PURIFY_1, pg, true, 2)
+ * This indicates that (and A B) should rewrite to @PURIFY_1 if
  * (and A B) occurs in a term position, where pg is a proof generator that can
  * provide a closed proof of:
- *   (= (and A B) BOOLEAN_TERM_VARIABLE_1)
+ *   (= (and A B) @PURIFY_1)
  * Subsequently, this class may respond to a call to getProofFor on:
  *   (=
  *     (or (and A B) (P (and A B)))
- *     (or (and A B) (P BOOLEAN_TERM_VARIABLE_1)))
+ *     (or (and A B) (P @PURIFY_1)))
  * where P is a predicate Bool -> Bool. The proof returned by this class
  * involves congruence and pg's proof of the equivalence above. In particular,
  * assuming its proof of the equivalence is P1, this proof is:
@@ -158,7 +158,7 @@ class TConvProofGenerator : protected EnvObj, public ProofGenerator
                       Node s,
                       ProofGenerator* pg,
                       bool isPre = false,
-                      PfRule trustId = PfRule::ASSUME,
+                      TrustId trustId = TrustId::NONE,
                       bool isClosed = false,
                       uint32_t tctx = 0);
   /** Same as above, for a single step */
@@ -167,7 +167,7 @@ class TConvProofGenerator : protected EnvObj, public ProofGenerator
   /** Same as above, with explicit arguments */
   void addRewriteStep(Node t,
                       Node s,
-                      PfRule id,
+                      ProofRule id,
                       const std::vector<Node>& children,
                       const std::vector<Node>& args,
                       bool isPre = false,

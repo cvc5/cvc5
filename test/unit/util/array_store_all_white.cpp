@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andres Noetzli, Mathias Preiner
+ *   Aina Niemetz, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -77,7 +77,7 @@ TEST_F(TestUtilWhiteArrayStoreAll, const_error)
       "array store-all constants can only be created for array types");
   ASSERT_DEATH(ArrayStoreAll(d_nodeManager->integerType(),
                              d_nodeManager->mkNode(
-                                 kind::ADD,
+                                 Kind::ADD,
                                  d_nodeManager->mkConstInt(Rational(1)),
                                  d_nodeManager->mkConstInt(Rational(0)))),
                "array store-all constants can only be created for array types");

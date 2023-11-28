@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Andres Noetzli
+ *   Andrew Reynolds, Gereon Kremer, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,20 +31,25 @@ namespace theory {
  * related to normal forms in strings), where inferences that come first are
  * generally preferred.
  *
- * Notice that an inference is intentionally distinct from PfRule. An
- * inference captures *why* we performed a reasoning step, and a PfRule
+ * Notice that an inference is intentionally distinct from ProofRule. An
+ * inference captures *why* we performed a reasoning step, and a ProofRule
  * rule captures *what* reasoning step was used. For instance, the inference
- * LEN_SPLIT translates to PfRule::SPLIT. The use of stats on inferences allows
- * us to know that we performed N splits (PfRule::SPLIT) because we wanted
- * to split on lengths for string equalities (Inference::LEN_SPLIT).
+ * LEN_SPLIT translates to ProofRule::SPLIT. The use of stats on inferences
+ * allows us to know that we performed N splits (ProofRule::SPLIT) because we
+ * wanted to split on lengths for string equalities (Inference::LEN_SPLIT).
  */
 enum class InferenceId
 {
+  NONE,
   // ---------------------------------- core
   // a conflict when two constants merge in the equality engine (of any theory)
   EQ_CONSTANT_MERGE,
   // a split from theory combination
   COMBINATION_SPLIT,
+  // a conflict due to rewriting an asserted literal
+  CONFLICT_REWRITE_LIT,
+  // an explained theory propagation
+  EXPLAINED_PROPAGATION,
   // ---------------------------------- ext theory
   // a simplification from the extended theory utility
   EXTT_SIMPLIFY,
@@ -381,6 +386,9 @@ enum class InferenceId
   // For example, (= (f c) d) where (c, d) is an I/O pair obtained from calling
   // the oracle associated with oracle function f.
   QUANTIFIERS_ORACLE_INTERFACE,
+  // purification lemma to ensure oracle functions in substitutions are taken
+  // into account
+  QUANTIFIERS_ORACLE_PURIFY_SUBS,
   //-------------------- syntax-guided instantiation
   // a counterexample lemma
   QUANTIFIERS_SYQI_CEX,
@@ -389,10 +397,18 @@ enum class InferenceId
   //-------------------- sygus solver
   // G or ~G where G is the active guard for a sygus enumerator
   QUANTIFIERS_SYGUS_ENUM_ACTIVE_GUARD_SPLIT,
-  // manual exclusion of a current solution
-  QUANTIFIERS_SYGUS_EXCLUDE_CURRENT,
+  // manual exclusion of a current solution for an actively generated enumerator
+  QUANTIFIERS_SYGUS_ACTIVE_GEN_EXCLUDE_CURRENT,
   // manual exclusion of a current solution for sygus-stream
   QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT,
+  // manual exclusion of a current solution for incremental sygus
+  QUANTIFIERS_SYGUS_INC_EXCLUDE_CURRENT,
+  // manual exclusion of a current solution for a failed side condition
+  QUANTIFIERS_SYGUS_SC_EXCLUDE_CURRENT,
+  // manual exclusion of a current solution for a failed verification
+  QUANTIFIERS_SYGUS_NO_VERIFY_EXCLUDE_CURRENT,
+  // manual exclusion of a current solution for a repeated counterexample
+  QUANTIFIERS_SYGUS_REPEAT_CEX_EXCLUDE_CURRENT,
   // ~Q where Q is a PBE conjecture with conflicting examples
   QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA,
   // infeasible determined by single-invocation solver
@@ -902,6 +918,8 @@ enum class InferenceId
   UF_CARD_SPLIT,
   //-------------------- end cardinality extension to UF
   //-------------------- HO extension to UF
+  // A care graph split due to HO
+  UF_HO_CG_SPLIT,
   // Encodes an n-ary application as a chain of binary HO_APPLY applications
   //   (= (f t1 ... tn) (@ (@ ... (@ f t1) ...) tn))
   UF_HO_APP_ENCODE,
@@ -943,6 +961,9 @@ enum class InferenceId
   UF_ARITH_BV_CONV_REDUCTION,
   //-------------------------------------- end uf theory
 
+  //-------------------------------------- lemma from modules
+  // From the partition generator
+  PARTITION_GENERATOR_PARTITION,
   //-------------------------------------- unknown
   UNKNOWN
 };

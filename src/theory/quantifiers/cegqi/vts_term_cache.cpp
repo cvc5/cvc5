@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -127,8 +127,8 @@ Node VtsTermCache::substituteVtsFreeTerms(Node n)
 Node VtsTermCache::rewriteVtsSymbols(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
-  if (((n.getKind() == EQUAL && n[0].getType().isRealOrInt())
-       || n.getKind() == GEQ))
+  if (((n.getKind() == Kind::EQUAL && n[0].getType().isRealOrInt())
+       || n.getKind() == Kind::GEQ))
   {
     Trace("quant-vts-debug") << "VTS : process " << n << std::endl;
     Node rew_vts_inf;
@@ -208,12 +208,12 @@ Node VtsTermCache::rewriteVtsSymbols(Node n)
           {
             if (!rew_vts_inf.isNull())
             {
-              nlit = nm->mkConst(n.getKind() == GEQ && res == 1);
+              nlit = nm->mkConst(n.getKind() == Kind::GEQ && res == 1);
             }
             else
             {
               Assert(iso_n[res == 1 ? 0 : 1] == d_vts_delta);
-              if (n.getKind() == EQUAL)
+              if (n.getKind() == Kind::EQUAL)
               {
                 nlit = nm->mkConst(false);
               }
@@ -222,11 +222,11 @@ Node VtsTermCache::rewriteVtsSymbols(Node n)
                 Node zero = nm->mkConstRealOrInt(slv.getType(), Rational(0));
                 if (res == 1)
                 {
-                  nlit = nm->mkNode(GEQ, zero, slv);
+                  nlit = nm->mkNode(Kind::GEQ, zero, slv);
                 }
                 else
                 {
-                  nlit = nm->mkNode(GT, slv, zero);
+                  nlit = nm->mkNode(Kind::GT, slv, zero);
                 }
               }
             }
@@ -248,7 +248,7 @@ Node VtsTermCache::rewriteVtsSymbols(Node n)
     }
     return n;
   }
-  else if (n.getKind() == FORALL)
+  else if (n.getKind() == Kind::FORALL)
   {
     // cannot traverse beneath quantifiers
     return substituteVtsFreeTerms(n);

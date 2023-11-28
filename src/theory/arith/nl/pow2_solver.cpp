@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yoni Zohar, Andres Noetzli, Andrew Reynolds
+ *   Yoni Zohar, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,7 +19,6 @@
 #include "options/smt_options.h"
 #include "preprocessing/passes/bv_to_int.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/arith/arith_state.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_model.h"
@@ -35,7 +34,6 @@ namespace nl {
 
 Pow2Solver::Pow2Solver(Env& env,
                        InferenceManager& im,
-                       ArithState& state,
                        NlModel& model)
     : EnvObj(env), d_im(im), d_model(model), d_initRefine(userContext())
 {
@@ -58,7 +56,7 @@ void Pow2Solver::initLastCall(const std::vector<Node>& assertions,
   for (const Node& a : xts)
   {
     Kind ak = a.getKind();
-    if (ak != POW2)
+    if (ak != Kind::POW2)
     {
       // don't care about other terms
       continue;
@@ -83,9 +81,9 @@ void Pow2Solver::checkInitialRefine()
     // initial refinement lemmas
     std::vector<Node> conj;
     // x>=0 -> x < pow2(x)
-    Node xgeq0 = nm->mkNode(LEQ, d_zero, i[0]);
-    Node xltpow2x = nm->mkNode(LT, i[0], i);
-    conj.push_back(nm->mkNode(IMPLIES, xgeq0, xltpow2x));
+    Node xgeq0 = nm->mkNode(Kind::LEQ, d_zero, i[0]);
+    Node xltpow2x = nm->mkNode(Kind::LT, i[0], i);
+    conj.push_back(nm->mkNode(Kind::IMPLIES, xgeq0, xltpow2x));
     Node lem = nm->mkAnd(conj);
     Trace("pow2-lemma") << "Pow2Solver::Lemma: " << lem << " ; INIT_REFINE"
                         << std::endl;
@@ -147,9 +145,9 @@ void Pow2Solver::checkFullRefine()
 
       if (x < y && pow2x >= pow2y)
       {
-        Node assumption = nm->mkNode(LEQ, n[0], m[0]);
-        Node conclusion = nm->mkNode(LEQ, n, m);
-        Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
+        Node assumption = nm->mkNode(Kind::LEQ, n[0], m[0]);
+        Node conclusion = nm->mkNode(Kind::LEQ, n, m);
+        Node lem = nm->mkNode(Kind::IMPLIES, assumption, conclusion);
         d_im.addPendingLemma(
             lem, InferenceId::ARITH_NL_POW2_MONOTONE_REFINE, nullptr, true);
         }
@@ -158,9 +156,9 @@ void Pow2Solver::checkFullRefine()
     // triviality lemmas: pow2(x) = 0 whenever x < 0
     if (x < 0 && pow2x != 0)
     {
-      Node assumption = nm->mkNode(LT, n[0], d_zero);
-      Node conclusion = nm->mkNode(EQUAL, n, mkZero(n.getType()));
-      Node lem = nm->mkNode(IMPLIES, assumption, conclusion);
+      Node assumption = nm->mkNode(Kind::LT, n[0], d_zero);
+      Node conclusion = nm->mkNode(Kind::EQUAL, n, mkZero(n.getType()));
+      Node lem = nm->mkNode(Kind::IMPLIES, assumption, conclusion);
       d_im.addPendingLemma(
           lem, InferenceId::ARITH_NL_POW2_TRIVIAL_CASE_REFINE, nullptr, true);
     }
@@ -181,16 +179,16 @@ void Pow2Solver::checkFullRefine()
 
 Node Pow2Solver::valueBasedLemma(Node i)
 {
-  Assert(i.getKind() == POW2);
+  Assert(i.getKind() == Kind::POW2);
   Node x = i[0];
 
   Node valX = d_model.computeConcreteModelValue(x);
 
   NodeManager* nm = NodeManager::currentNM();
-  Node valC = nm->mkNode(POW2, valX);
+  Node valC = nm->mkNode(Kind::POW2, valX);
   valC = rewrite(valC);
 
-  return nm->mkNode(IMPLIES, x.eqNode(valX), i.eqNode(valC));
+  return nm->mkNode(Kind::IMPLIES, x.eqNode(valX), i.eqNode(valC));
 }
 
 }  // namespace nl

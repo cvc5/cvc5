@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -119,10 +119,11 @@ InstStrategyStatus InstStrategyUserPatterns::process(Node q,
 
 void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
 {
-  Assert(pat.getKind() == INST_PATTERN);
+  Assert(pat.getKind() == Kind::INST_PATTERN);
   // add to generators
   std::vector<Node> nodes;
-  const Options& opts = d_env.getOptions();
+  PatternTermSelector pts(options(), q, options::TriggerSelMode::ALL);
+  // for each pattern in the list
   for (const Node& p : pat)
   {
     if (std::find(nodes.begin(), nodes.end(), p) != nodes.end())
@@ -130,11 +131,13 @@ void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
       // skip duplicate pattern term
       continue;
     }
-    Node pat_use = PatternTermSelector::getIsUsableTrigger(opts, p, q);
+    // check if usable
+    Node pat_use = pts.getIsUsableTrigger(p, q);
     if (pat_use.isNull())
     {
       Trace("trigger-warn") << "User-provided trigger is not usable : " << pat
                             << " because of " << p << std::endl;
+      // this may be part of a multi-pattern, where we terminate now
       return;
     }
     nodes.push_back(pat_use);

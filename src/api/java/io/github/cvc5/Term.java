@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Andres Noetzli
+ *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -44,11 +44,6 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   }
 
   protected native void deletePointer(long pointer);
-
-  public long getPointer()
-  {
-    return pointer;
-  }
 
   /**
    * Syntactic equality operator.
@@ -105,6 +100,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    *
    * @param index The index of the child term to return.
    * @return The child term with the given index.
+   * @throws CVC5ApiException
    */
   public Term getChild(int index) throws CVC5ApiException
   {
@@ -127,6 +123,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * @return The kind of this term.
+   * @throws CVC5ApiException
    */
   public Kind getKind() throws CVC5ApiException
   {
@@ -150,6 +147,8 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   /**
    * Replace {@code term} with {@code replacement} in this term.
    *
+   * @param term        The term to replace.
+   * @param replacement The term to replace it with.
    * @return The result of replacing {@code term} with {@code replacement} in
    *         this term.
    *
@@ -177,6 +176,8 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    * @api.note This replacement is applied during a pre-order traversal and
    *           only once (it is not run until fixed point).
    *
+   * @param terms        The terms to replace.
+   * @param replacements The replacement terms.
    * @return The result of simultaneously replacing {@code terms} with
    *         {@code replacements} in this term.
    */
@@ -494,6 +495,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    * Asserts isBitVectorValue().
    * @return The representation of a bit-vector value in bit string
    *         representation.
+   * @throws CVC5ApiException
    */
   public String getBitVectorValue() throws CVC5ApiException
   {
@@ -508,7 +510,10 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    *
    * @api.note Asserts {@code Term#isBitVectorValue()}.
    *
+   * @param base {@code 2} for binary, {@code 10} for decimal, and {@code 16}
+   *             for hexadecimal.
    * @return The string representation of a bit-vector value.
+   * @throws CVC5ApiException
    */
   public String getBitVectorValue(int base) throws CVC5ApiException
   {
@@ -534,6 +539,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    * @api.note Asserts {@code Term#isFiniteFieldValue()}.
    *
    * @return The string representation of a finite field value.
+   * @throws CVC5ApiException
    */
   public String getFiniteFieldValue() throws CVC5ApiException
   {
@@ -576,6 +582,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   /**
    * Asserts isRoundingModeValue().
    * @return The floating-point rounding mode value held by the term.
+   * @throws CVC5ApiException
    */
   public RoundingMode getRoundingModeValue() throws CVC5ApiException
   {
@@ -746,6 +753,53 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   }
 
   private native Pair<Long, BigInteger> getCardinalityConstraint(long pointer);
+
+  /**
+   * @return True if the term is a real algebraic number.
+   */
+  public boolean isRealAlgebraicNumber()
+  {
+    return isRealAlgebraicNumber(pointer);
+  }
+  private native boolean isRealAlgebraicNumber(long pointer);
+
+  /**
+   * Asserts isRealAlgebraicNumber().
+   * @param v The variable over which to express the polynomial.
+   * @return The defining polynomial for the real algebraic number, expressed in terms of the given
+   *     variable.
+   */
+  public Term getRealAlgebraicNumberDefiningPolynomial(Term v)
+  {
+    long termPointer = getRealAlgebraicNumberDefiningPolynomial(pointer, v.getPointer());
+    return new Term(termPointer);
+  }
+
+  private native long getRealAlgebraicNumberDefiningPolynomial(long pointer, long termPointer);
+
+  /**
+   * Asserts isRealAlgebraicNumber().
+   * @return The lower bound for the value of the real algebraic number.
+   */
+  public Term getRealAlgebraicNumberLowerBound()
+  {
+    long termPointer = getRealAlgebraicNumberLowerBound(pointer);
+    return new Term(termPointer);
+  }
+
+  private native long getRealAlgebraicNumberLowerBound(long pointer);
+
+  /**
+   * Asserts isRealAlgebraicNumber().
+   * @return The upper bound for the value of the real algebraic number.
+   */
+  public Term getRealAlgebraicNumberUpperBound()
+  {
+    long termPointer = getRealAlgebraicNumberUpperBound(pointer);
+    return new Term(termPointer);
+  }
+
+  private native long getRealAlgebraicNumberUpperBound(long pointer);
 
   public class ConstIterator implements Iterator<Term>
   {

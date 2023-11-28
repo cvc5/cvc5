@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -595,17 +595,6 @@ class CVC5_EXPORT ContextObj
    * explicitly define it.
    */
   ContextObj(Context* context);
-
-  /**
-   * Create a new ContextObj.  This constructor takes an argument that
-   * specifies whether this ContextObj is itself allocated in context
-   * memory.  If it is, it's invalid below the current scope level, so
-   * we don't put it in scope 0.
-   *
-   * WARNING: Read the notes above on "Gotchas when allocating
-   * contextual objects with non-standard allocators."
-   */
-  ContextObj(bool allocatedInCMM, Context* context);
 
   /**
    * Destructor does nothing: subclass must explicitly call destroy() instead.

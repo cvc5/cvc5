@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,6 +30,7 @@
 #include "expr/node.h"
 #include "smt/env_obj.h"
 #include "theory/ff/stats.h"
+#include "theory/ff/util.h"
 #include "theory/theory.h"
 #include "util/integer.h"
 
@@ -49,7 +50,7 @@ namespace ff {
  *
  * For now, our implementation assumes that the finite field has prime order.
  */
-class SubTheory : protected EnvObj
+class SubTheory : protected EnvObj, public FieldObj
 {
  public:
   /**
@@ -118,19 +119,6 @@ class SubTheory : protected EnvObj
    * Statistics shared among all finite-field sub-theories.
    */
   FfStatistics* d_stats;
-  /**
-   * The base field of the multivariate polynomial ring.
-   *
-   * That is, the field that the polynomial coefficients live in/the
-   * finite-field constants live in.
-   *
-   * For now, we assume this is a prime-order finite-field.
-   */
-  CoCoA::ring d_baseRing;
-  /**
-   * The prime modulus for the base field.
-   */
-  Integer d_modulus;
 };
 
 }  // namespace ff

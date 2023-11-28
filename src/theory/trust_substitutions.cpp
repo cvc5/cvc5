@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +24,7 @@ namespace theory {
 TrustSubstitutionMap::TrustSubstitutionMap(Env& env,
                                            context::Context* c,
                                            std::string name,
-                                           PfRule trustId,
+                                           TrustId trustId,
                                            MethodId ids)
     : EnvObj(env),
       d_ctx(c),
@@ -67,7 +67,7 @@ void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, ProofGenerator* pg)
 
 void TrustSubstitutionMap::addSubstitution(TNode x,
                                            TNode t,
-                                           PfRule id,
+                                           ProofRule id,
                                            const std::vector<Node>& children,
                                            const std::vector<Node>& args)
 {
@@ -114,7 +114,7 @@ ProofGenerator* TrustSubstitutionMap::addSubstitutionSolved(TNode x,
     // failed to rewrite, we add a trust step which assumes eq is provable
     // from proven, and proceed as normal.
     Trace("trust-subs") << "...failed to rewrite " << proven << std::endl;
-    d_tspb->addStep(PfRule::TRUST_SUBS_EQ, {proven}, {eq}, eq);
+    d_tspb->addTrustedStep(TrustId::SUBS_EQ, {proven}, {}, eq);
   }
   Trace("trust-subs") << "...successful rewrite" << std::endl;
   solvePg->addSteps(*d_tspb.get());
@@ -175,7 +175,7 @@ Node TrustSubstitutionMap::apply(Node n, Rewriter* r)
 
 std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
 {
-  Assert(eq.getKind() == kind::EQUAL);
+  Assert(eq.getKind() == Kind::EQUAL);
   Node n = eq[0];
   Node ns = eq[1];
   // Easy case: if n is in the domain of the substitution, maybe it is already
@@ -232,7 +232,7 @@ std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
                             true))
   {
     // if we fail for any reason, we must use a trusted step instead
-    d_tspb->addStep(PfRule::TRUST_SUBS_MAP, pfChildren, {eq}, eq);
+    d_tspb->addTrustedStep(TrustId::SUBS_MAP, pfChildren, {}, eq);
   }
   Trace("trust-subs-pf") << "...made steps" << std::endl;
   // -------        ------- from external proof generators
@@ -277,9 +277,9 @@ Node TrustSubstitutionMap::getSubstitution(size_t index)
   }
   std::reverse(csubsChildren.begin(), csubsChildren.end());
   Node cs = NodeManager::currentNM()->mkAnd(csubsChildren);
-  if (cs.getKind() == kind::AND)
+  if (cs.getKind() == Kind::AND)
   {
-    d_subsPg->addStep(cs, PfRule::AND_INTRO, csubsChildren, {});
+    d_subsPg->addStep(cs, ProofRule::AND_INTRO, csubsChildren, {});
   }
   return cs;
 }

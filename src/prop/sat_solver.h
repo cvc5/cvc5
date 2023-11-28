@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,6 +32,7 @@ namespace cvc5::internal {
 
 namespace prop {
 
+class SatProofManager;
 class TheoryProxy;
 
 class SatSolver {
@@ -130,13 +131,26 @@ class CDCLTSatSolver : public SatSolver
 
   virtual void pop() = 0;
 
-  /*
+  /**
    * Reset the decisions in the DPLL(T) SAT solver at the current assertion
    * level.
    */
   virtual void resetTrail() = 0;
 
-  virtual void requirePhase(SatLiteral lit) = 0;
+  /**
+   * Configure the preferred phase for a decision literal.
+   *
+   * @note This phase is always enforced when the SAT solver decides to make a
+   *       decision on this variable on its own. If a decision is injected into
+   *       the SAT solver via TheoryProxy::getNextDecisionRequest(), the
+   *       preferred phase will only be considered if the decision was derived
+   *       by the decision engine. It will be ignored if the decision was
+   *       derived from a theory (the phase enforced by the theory overrides
+   *       the preferred phase).
+   *
+   * @param lit The literal.
+   */
+  virtual void preferPhase(SatLiteral lit) = 0;
 
   virtual bool isDecision(SatVariable decn) const = 0;
 
@@ -157,6 +171,9 @@ class CDCLTSatSolver : public SatSolver
   virtual std::vector<Node> getOrderHeap() const = 0;
 
   virtual std::shared_ptr<ProofNode> getProof() = 0;
+
+  /** This is temporary until SAT DRAT proofs are integrated. */
+  virtual SatProofManager* getProofManager() = 0;
 
 }; /* class CDCLTSatSolver */
 

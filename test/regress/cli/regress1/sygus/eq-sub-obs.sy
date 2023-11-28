@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sygus-si=all  --sygus-out=status
+; COMMAND-LINE: --sygus-si=all --sygus-si-rcons-p=1 --sygus-out=status
 ; EXPECT: feasible
 
 ; This regression tests the behavior of the reconstruction algorithm when the

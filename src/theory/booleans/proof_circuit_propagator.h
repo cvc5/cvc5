@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,7 @@
 #include <memory>
 
 #include "expr/node.h"
-#include "proof/proof_rule.h"
+#include "cvc5/cvc5_proof_rule.h"
 
 namespace cvc5::internal {
 
@@ -93,7 +93,7 @@ class ProofCircuitPropagator
 
   /** Construct proof using the given rule, children and args */
   std::shared_ptr<ProofNode> mkProof(
-      PfRule rule,
+      ProofRule rule,
       const std::vector<std::shared_ptr<ProofNode>>& children,
       const std::vector<Node>& args = {});
   /**

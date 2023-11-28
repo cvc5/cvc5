@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -511,7 +511,7 @@ class TermTupleEnumeratorPool : public TermTupleEnumeratorBase
       : TermTupleEnumeratorBase(quantifier, env),
         d_pool(pool)
   {
-    Assert(d_pool.getKind() == kind::INST_POOL);
+    Assert(d_pool.getKind() == Kind::INST_POOL);
   }
 
   virtual ~TermTupleEnumeratorPool() = default;

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,6 +20,7 @@
 
 #include <iostream>
 #include <map>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -425,10 +426,10 @@ public:
    */
   inline bool isClosure() const {
     assertTNodeNotExpired();
-    return getKind() == kind::LAMBDA || getKind() == kind::FORALL
-           || getKind() == kind::EXISTS || getKind() == kind::WITNESS
-           || getKind() == kind::SET_COMPREHENSION
-           || getKind() == kind::MATCH_BIND_CASE;
+    return getKind() == Kind::LAMBDA || getKind() == Kind::FORALL
+           || getKind() == Kind::EXISTS || getKind() == Kind::WITNESS
+           || getKind() == Kind::SET_COMPREHENSION
+           || getKind() == Kind::MATCH_BIND_CASE;
   }
 
   /**
@@ -479,6 +480,11 @@ public:
    * (default: false)
    */
   TypeNode getType(bool check = false) const;
+  /**
+   * Same as getType, but does not throw a type execption if this term is
+   * not well-typed. Instead, this method will return the null type.
+   */
+  TypeNode getTypeOrNull(bool check = false) const;
 
   /**
    * Has name? Return true if this node has an associated variable
@@ -1130,19 +1136,21 @@ template <bool ref_count2>
 NodeTemplate<true>
 NodeTemplate<ref_count>::eqNode(const NodeTemplate<ref_count2>& right) const {
   assertTNodeNotExpired();
-  return NodeManager::currentNM()->mkNode(kind::EQUAL, *this, right);
+  return NodeManager::currentNM()->mkNode(Kind::EQUAL, *this, right);
 }
 
 template <bool ref_count>
 NodeTemplate<true> NodeTemplate<ref_count>::notNode() const {
   assertTNodeNotExpired();
-  return NodeManager::currentNM()->mkNode(kind::NOT, *this);
+  return NodeManager::currentNM()->mkNode(Kind::NOT, *this);
 }
 
 template <bool ref_count>
 NodeTemplate<true> NodeTemplate<ref_count>::negate() const {
   assertTNodeNotExpired();
-  return (getKind() == kind::NOT) ? NodeTemplate<true>(d_nv->getChild(0)) : NodeManager::currentNM()->mkNode(kind::NOT, *this);
+  return (getKind() == Kind::NOT)
+             ? NodeTemplate<true>(d_nv->getChild(0))
+             : NodeManager::currentNM()->mkNode(Kind::NOT, *this);
 }
 
 template <bool ref_count>
@@ -1150,7 +1158,7 @@ template <bool ref_count2>
 NodeTemplate<true>
 NodeTemplate<ref_count>::andNode(const NodeTemplate<ref_count2>& right) const {
   assertTNodeNotExpired();
-  return NodeManager::currentNM()->mkNode(kind::AND, *this, right);
+  return NodeManager::currentNM()->mkNode(Kind::AND, *this, right);
 }
 
 template <bool ref_count>
@@ -1158,7 +1166,7 @@ template <bool ref_count2>
 NodeTemplate<true>
 NodeTemplate<ref_count>::orNode(const NodeTemplate<ref_count2>& right) const {
   assertTNodeNotExpired();
-  return NodeManager::currentNM()->mkNode(kind::OR, *this, right);
+  return NodeManager::currentNM()->mkNode(Kind::OR, *this, right);
 }
 
 template <bool ref_count>
@@ -1167,7 +1175,7 @@ NodeTemplate<true>
 NodeTemplate<ref_count>::iteNode(const NodeTemplate<ref_count2>& thenpart,
                                  const NodeTemplate<ref_count3>& elsepart) const {
   assertTNodeNotExpired();
-  return NodeManager::currentNM()->mkNode(kind::ITE, *this, thenpart, elsepart);
+  return NodeManager::currentNM()->mkNode(Kind::ITE, *this, thenpart, elsepart);
 }
 
 template <bool ref_count>
@@ -1175,7 +1183,7 @@ template <bool ref_count2>
 NodeTemplate<true>
 NodeTemplate<ref_count>::impNode(const NodeTemplate<ref_count2>& right) const {
   assertTNodeNotExpired();
-  return NodeManager::currentNM()->mkNode(kind::IMPLIES, *this, right);
+  return NodeManager::currentNM()->mkNode(Kind::IMPLIES, *this, right);
 }
 
 template <bool ref_count>
@@ -1183,7 +1191,7 @@ template <bool ref_count2>
 NodeTemplate<true>
 NodeTemplate<ref_count>::xorNode(const NodeTemplate<ref_count2>& right) const {
   assertTNodeNotExpired();
-  return NodeManager::currentNM()->mkNode(kind::XOR, *this, right);
+  return NodeManager::currentNM()->mkNode(Kind::XOR, *this, right);
 }
 
 template <bool ref_count>
@@ -1228,7 +1236,21 @@ template <bool ref_count>
 TypeNode NodeTemplate<ref_count>::getType(bool check) const
 {
   assertTNodeNotExpired();
+  TypeNode tn = NodeManager::currentNM()->getType(*this, check);
+  if (tn.isNull())
+  {
+    // recompute with an error stream and throw a type exception
+    std::stringstream errOutTmp;
+    tn = NodeManager::currentNM()->getType(*this, check, &errOutTmp);
+    throw TypeCheckingExceptionPrivate(*this, errOutTmp.str());
+  }
+  return tn;
+}
 
+template <bool ref_count>
+TypeNode NodeTemplate<ref_count>::getTypeOrNull(bool check) const
+{
+  assertTNodeNotExpired();
   return NodeManager::currentNM()->getType(*this, check);
 }
 

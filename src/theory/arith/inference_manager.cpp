@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,7 +16,6 @@
 #include "theory/arith/inference_manager.h"
 
 #include "options/arith_options.h"
-#include "theory/arith/arith_state.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/rewriter.h"
 
@@ -24,10 +23,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-InferenceManager::InferenceManager(Env& env,
-                                   TheoryArith& ta,
-                                   ArithState& astate)
-    : InferenceManagerBuffered(env, ta, astate, "theory::arith::"),
+InferenceManager::InferenceManager(Env& env, TheoryArith& ta, TheoryState& s)
+    : InferenceManagerBuffered(env, ta, s, "theory::arith::"),
       // currently must track propagated literals if using the equality solver
       d_trackPropLits(options().arith.arithEqSolver),
       d_propLits(context())

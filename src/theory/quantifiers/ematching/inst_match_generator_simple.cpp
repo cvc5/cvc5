@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,7 +35,7 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple(Env& env,
                                                    Node pat)
     : IMGenerator(env, tparent), d_quant(q), d_match_pattern(pat)
 {
-  if (d_match_pattern.getKind() == NOT)
+  if (d_match_pattern.getKind() == Kind::NOT)
   {
     d_match_pattern = d_match_pattern[0];
     d_pol = false;
@@ -44,7 +44,7 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple(Env& env,
   {
     d_pol = true;
   }
-  if (d_match_pattern.getKind() == EQUAL)
+  if (d_match_pattern.getKind() == Kind::EQUAL)
   {
     d_eqc = d_match_pattern[1];
     d_match_pattern = d_match_pattern[0];
@@ -53,7 +53,7 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple(Env& env,
   Assert(TriggerTermInfo::isSimpleTrigger(d_match_pattern));
   for (size_t i = 0, nchild = d_match_pattern.getNumChildren(); i < nchild; i++)
   {
-    if (d_match_pattern[i].getKind() == INST_CONSTANT)
+    if (d_match_pattern[i].getKind() == Kind::INST_CONSTANT)
     {
       if (!options().quantifiers.cegqi
           || TermUtil::getInstConstAttr(d_match_pattern[i]) == q)
@@ -157,7 +157,7 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
     }
     return;
   }
-  if (d_match_pattern[argIndex].getKind() == INST_CONSTANT)
+  if (d_match_pattern[argIndex].getKind() == Kind::INST_CONSTANT)
   {
     int v = d_var_num[argIndex];
     if (v != -1)
@@ -171,6 +171,10 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
         if (!m.set(v, t))
         {
           continue;
+        }
+        if (d_qstate.isInConflict())
+        {
+          break;
         }
         addInstantiations(m, addedLemmas, argIndex + 1, &(tt.second));
         if (!wasSet)

@@ -23,7 +23,9 @@ Thanks to:
 - Thomas Hunger for some important patches to CVC4's SWIG interfaces in March
   2014.
 
-- Andrew V. Jones for several fixes in 2019 and 2020.
+- Andrew V. Jones (now Teylu) for several fixes, refactoring the GLPK-based
+  approximating Simplex solver, and working towards a native Windows build
+  since 2019.
 
 - Mark Laws for fixes in the test suite for Windows in 2017.
 
@@ -45,11 +47,6 @@ Thanks to:
 - Piotr Troja for several fixes in 2019.
 
 - Arjun Viswanathan for improvements in the CVC and the SMT2 parser.
-
-- Amalee Wilson for a modification of our branch-and-bound method in the linear
-  integer solver to generate ternary clauses instead of binary clauses in 2020.
-  The new method is inspired by the Unit-Cube Tests of Bromberger and Weidenbach
-  at IJCAR'2016.
 
 - Fabian Wolff in 2016 for fixing several spelling mistakes.
 

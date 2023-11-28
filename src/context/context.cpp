@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -250,23 +250,6 @@ ContextObj::ContextObj(Context* pContext) :
 
   Trace("context") << "create new ContextObj(" << this << " inCMM=false)" << std::endl;
   d_pScope = pContext->getBottomScope();
-  d_pScope->addToChain(this);
-}
-
-
-ContextObj::ContextObj(bool allocatedInCMM, Context* pContext) :
-  d_pScope(NULL),
-  d_pContextObjRestore(NULL),
-  d_pContextObjNext(NULL),
-  d_ppContextObjPrev(NULL) {
-  Assert(pContext != NULL) << "NULL context pointer";
-
-  Trace("context") << "create new ContextObj(" << this << " inCMM=" << allocatedInCMM << ")" << std::endl;
-  if(allocatedInCMM) {
-    d_pScope = pContext->getTopScope();
-  } else {
-    d_pScope = pContext->getBottomScope();
-  }
   d_pScope->addToChain(this);
 }
 

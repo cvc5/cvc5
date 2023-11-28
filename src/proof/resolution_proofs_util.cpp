@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa
+ *   Haniel Barbosa, Hanna Lachnitt, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -113,7 +113,7 @@ Node eliminateCrowdingLits(bool reorderPremises,
       // crowding literal, so we only care about non-singleton OR nodes. We
       // check then against the kind and whether the whole OR node occurs as a
       // pivot of the respective resolution
-      if (newChildren[j - 1].getKind() != kind::OR)
+      if (newChildren[j - 1].getKind() != Kind::OR)
       {
         continue;
       }
@@ -203,8 +203,8 @@ Node eliminateCrowdingLits(bool reorderPremises,
       // Since this primise is an eliminator, if it's an OR it can only be a
       // singleton if the crowding literal is its negation.
       size_t maxSafeMove = childrenSize,
-             numLits = (newChildren[elim].getKind() != kind::OR
-                        || (crowdingLit.getKind() == kind::NOT
+             numLits = (newChildren[elim].getKind() != Kind::OR
+                        || (crowdingLit.getKind() == Kind::NOT
                             && crowdingLit[0] == newChildren[elim]))
                            ? 1
                            : newChildren[elim].getNumChildren();
@@ -496,24 +496,26 @@ Node eliminateCrowdingLits(bool reorderPremises,
                            newArgs.begin() + (2 * end) + 1);
     Trace("crowding-lits") << "\tres children: " << childrenRes << "\n";
     Trace("crowding-lits") << "\tres args: " << childrenResArgs << "\n";
-    resPlaceHolder = pnm->getChecker()->checkDebug(PfRule::CHAIN_RESOLUTION,
+    resPlaceHolder = pnm->getChecker()->checkDebug(ProofRule::CHAIN_RESOLUTION,
                                                    childrenRes,
                                                    childrenResArgs,
                                                    Node::null(),
                                                    "");
     Trace("crowding-lits") << "resPlaceHorder: " << resPlaceHolder << "\n";
     Trace("crowding-lits") << "-------\n";
-    cdp->addStep(
-        resPlaceHolder, PfRule::CHAIN_RESOLUTION, childrenRes, childrenResArgs);
+    cdp->addStep(resPlaceHolder,
+                 ProofRule::CHAIN_RESOLUTION,
+                 childrenRes,
+                 childrenResArgs);
     // I need to add factoring if end < children.size(). Otherwise, this is
     // to be handled by the caller
     if (end < childrenSize - 1)
     {
       lastClause = pnm->getChecker()->checkDebug(
-          PfRule::FACTORING, {resPlaceHolder}, {}, Node::null(), "");
+          ProofRule::FACTORING, {resPlaceHolder}, {}, Node::null(), "");
       if (!lastClause.isNull())
       {
-        cdp->addStep(lastClause, PfRule::FACTORING, {resPlaceHolder}, {});
+        cdp->addStep(lastClause, ProofRule::FACTORING, {resPlaceHolder}, {});
         Trace("crowding-lits") << "Apply factoring.\n";
       }
       else
@@ -574,7 +576,7 @@ bool isSingletonClause(TNode res,
                        const std::vector<Node>& children,
                        const std::vector<Node>& args)
 {
-  if (res.getKind() != kind::OR)
+  if (res.getKind() != Kind::OR)
   {
     return true;
   }
@@ -593,7 +595,7 @@ bool isSingletonClause(TNode res,
     // res, so we only care about non-singleton or nodes. We check then
     // against the kind and whether the whole or node occurs as a pivot of
     // the respective resolution
-    if (children[i - 1].getKind() != kind::OR)
+    if (children[i - 1].getKind() != Kind::OR)
     {
       continue;
     }

@@ -34,14 +34,14 @@ int main()
   // Helper terms
   Term two = slv.mkReal(2);
   Term pi = slv.mkPi();
-  Term twopi = slv.mkTerm(MULT, {two, pi});
-  Term ysq = slv.mkTerm(MULT, {y, y});
-  Term sinx = slv.mkTerm(SINE, {x});
+  Term twopi = slv.mkTerm(Kind::MULT, {two, pi});
+  Term ysq = slv.mkTerm(Kind::MULT, {y, y});
+  Term sinx = slv.mkTerm(Kind::SINE, {x});
 
   // Formulas
-  Term x_gt_pi = slv.mkTerm(GT, {x, pi});
-  Term x_lt_tpi = slv.mkTerm(LT, {x, twopi});
-  Term ysq_lt_sinx = slv.mkTerm(LT, {ysq, sinx});
+  Term x_gt_pi = slv.mkTerm(Kind::GT, {x, pi});
+  Term x_lt_tpi = slv.mkTerm(Kind::LT, {x, twopi});
+  Term ysq_lt_sinx = slv.mkTerm(Kind::LT, {ysq, sinx});
 
   slv.assertFormula(x_gt_pi);
   slv.assertFormula(x_lt_tpi);

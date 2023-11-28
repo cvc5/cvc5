@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -64,11 +64,11 @@ void TermPools::registerQuantifier(Node q)
   for (const Node& p : q[2])
   {
     Kind pk = p.getKind();
-    if (pk == kind::INST_ADD_TO_POOL)
+    if (pk == Kind::INST_ADD_TO_POOL)
     {
       qi.d_instAddToPool.push_back(p);
     }
-    else if (pk == kind::SKOLEM_ADD_TO_POOL)
+    else if (pk == Kind::SKOLEM_ADD_TO_POOL)
     {
       qi.d_skolemAddToPool.push_back(p);
     }
@@ -139,7 +139,7 @@ void TermPools::processInternal(Node q,
                                 const std::vector<Node>& ts,
                                 bool isInst)
 {
-  Assert(q.getKind() == kind::FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   std::map<Node, TermPoolQuantInfo>::iterator it = d_qinfo.find(q);
   if (it == d_qinfo.end())
   {

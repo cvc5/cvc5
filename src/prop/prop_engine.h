@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,6 +32,7 @@
 #include "theory/output_channel.h"
 #include "theory/skolem_lemma.h"
 #include "util/result.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5::internal {
 
@@ -134,15 +135,22 @@ class PropEngine : protected EnvObj
   void assertLemma(TrustNode tlemma, theory::LemmaProperty p);
 
   /**
-   * If ever n is decided upon, it must be in the given phase.  This
-   * occurs *globally*, i.e., even if the literal is untranslated by
-   * user pop and retranslated, it keeps this phase.  The associated
-   * variable will _always_ be phase-locked.
+   * Configure the preferred phase of a decision variable. This occurs
+   * *globally*, i.e., even if the literal is untranslated by user pop and
+   * retranslated, it keeps this phase.
+   *
+   * @note This phase is always enforced when the SAT solver decides to make a
+   *       decision on this variable on its own. If a decision is injected into
+   *       the SAT solver via TheoryProxy::getNextDecisionRequest(), the
+   *       preferred phase will only be considered if the decision was derived
+   *       by the decision engine. It will be ignored if the decision was
+   *       derived from a theory (the phase enforced by the theory overrides
+   *       the preferred phase).
    *
    * @param n the node in question; must have an associated SAT literal
    * @param phase the phase to use
    */
-  void requirePhase(TNode n, bool phase);
+  void preferPhase(TNode n, bool phase);
 
   /**
    * Return whether the given literal is a SAT decision.  Either phase
@@ -288,8 +296,6 @@ class PropEngine : protected EnvObj
    */
   bool properExplanation(TNode node, TNode expl) const;
 
-  /** Get the associated CNF stream. */
-  CnfStream* getCnfStream();
   /** Retrieve this modules proof CNF stream. */
   ProofCnfStream* getProofCnfStream();
 
@@ -328,6 +334,11 @@ class PropEngine : protected EnvObj
    * the proof.
    */
   void getUnsatCore(std::vector<Node>& core);
+
+  /**
+   * Retrieve the lemmas used to derive unsat.
+   */
+  std::vector<Node> getUnsatCoreLemmas();
 
   /** Get the zero-level assertions of the given type */
   std::vector<Node> getLearnedZeroLevelLiterals(
@@ -420,6 +431,15 @@ class PropEngine : protected EnvObj
    * cores are enabled.
    */
   context::CDList<Node> d_assumptions;
+  /** Statistics */
+  struct Statistics
+  {
+    Statistics(StatisticsRegistry& sr);
+    /** Number of atoms allocated when asserting the input formula */
+    IntStat d_numInputAtoms;
+  };
+  /** Statistics */
+  Statistics d_stats;
 };
 
 }  // namespace prop

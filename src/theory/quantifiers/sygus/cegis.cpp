@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -49,7 +49,8 @@ bool Cegis::initialize(Node conj, Node n, const std::vector<Node>& candidates)
 {
   d_base_body = n;
   d_cexClosedEnum = true;
-  if (d_base_body.getKind() == NOT && d_base_body[0].getKind() == FORALL)
+  if (d_base_body.getKind() == Kind::NOT
+      && d_base_body[0].getKind() == Kind::FORALL)
   {
     for (const Node& v : d_base_body[0][0])
     {
@@ -126,7 +127,7 @@ bool Cegis::processInitialize(Node conj,
     // This lemma allows us to answer infeasible when we run out of values (for
     // finite grammars).
     NodeManager* nm = NodeManager::currentNM();
-    Node enumLem = nm->mkNode(IMPLIES, conj, nm->mkAnd(activeGuards));
+    Node enumLem = nm->mkNode(Kind::IMPLIES, conj, nm->mkAnd(activeGuards));
     d_qim.lemma(enumLem, InferenceId::QUANTIFIERS_SYGUS_COMPLETE_ENUM);
   }
   return true;
@@ -224,8 +225,9 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
                          << " evaluation unfold lemmas.\n";
     for (unsigned i = 0, size = eager_terms.size(); i < size; ++i)
     {
-      Node lem = nm->mkNode(
-          OR, eager_exps[i].negate(), eager_terms[i].eqNode(eager_vals[i]));
+      Node lem = nm->mkNode(Kind::OR,
+                            eager_exps[i].negate(),
+                            eager_terms[i].eqNode(eager_vals[i]));
       d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_SYGUS_EVAL_UNFOLD);
       addedEvalLemmas = true;
       Trace("cegqi-lemma") << "Cegqi::Lemma : evaluation unfold : " << lem
@@ -254,7 +256,7 @@ Node Cegis::getRefinementLemmaFormula()
   }
   else
   {
-    ret = conj.size() == 1 ? conj[0] : nm->mkNode(AND, conj);
+    ret = conj.size() == 1 ? conj[0] : nm->mkNode(Kind::AND, conj);
   }
   return ret;
 }
@@ -315,9 +317,10 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
       }
       Assert(!exp.empty());
       NodeManager* nm = NodeManager::currentNM();
-      Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
+      Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(Kind::AND, exp);
       // must guard it
-      expn = nm->mkNode(OR, d_parent->getConjecture().negate(), expn.negate());
+      expn = nm->mkNode(
+          Kind::OR, d_parent->getConjecture().negate(), expn.negate());
       d_qim.addPendingLemma(
           expn, InferenceId::QUANTIFIERS_SYGUS_REPAIR_CONST_EXCLUDE);
       return ret;
@@ -412,7 +415,7 @@ void Cegis::addRefinementLemmaConjunct(unsigned wcounter,
     }
   }
   // break into conjunctions
-  if (lem.getKind() == AND)
+  if (lem.getKind() == Kind::AND)
   {
     for (const Node& lc : lem)
     {
@@ -424,7 +427,7 @@ void Cegis::addRefinementLemmaConjunct(unsigned wcounter,
   NodeManager* nm = NodeManager::currentNM();
   TNode term;
   TNode val;
-  if (lem.getKind() == EQUAL)
+  if (lem.getKind() == Kind::EQUAL)
   {
     for (unsigned i = 0; i < 2; i++)
     {
@@ -438,11 +441,11 @@ void Cegis::addRefinementLemmaConjunct(unsigned wcounter,
   }
   else
   {
-    term = lem.getKind() == NOT ? lem[0] : lem;
+    term = lem.getKind() == Kind::NOT ? lem[0] : lem;
     // predicate case: the conjunct is a (negated) evaluation point
     if (d_tds->isEvaluationPoint(term))
     {
-      val = nm->mkConst(lem.getKind() != NOT);
+      val = nm->mkConst(lem.getKind() != Kind::NOT);
     }
   }
   if (!val.isNull())
@@ -508,7 +511,7 @@ void Cegis::registerRefinementLemma(const std::vector<Node>& vars, Node lem)
     // if the parent conjecture has a solution, it satisfies the specification
     // for the given concrete point.
     Node rlem = NodeManager::currentNM()->mkNode(
-        OR, d_parent->getConjecture().negate(), lem);
+        Kind::OR, d_parent->getConjecture().negate(), lem);
     d_qim.addPendingLemma(rlem, InferenceId::QUANTIFIERS_SYGUS_CEGIS_REFINE);
   }
 }
@@ -581,8 +584,8 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
         }
         if (!mexp.empty())
         {
-          Node en = mexp.size() == 1 ? mexp[0] : nm->mkNode(kind::AND, mexp);
-          cre_lem = nm->mkNode(kind::OR, en.negate(), neg_guard);
+          Node en = mexp.size() == 1 ? mexp[0] : nm->mkNode(Kind::AND, mexp);
+          cre_lem = nm->mkNode(Kind::OR, en.negate(), neg_guard);
         }
         else
         {
@@ -674,8 +677,7 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
   Trace("cegis-sample") << "Sample (after rewriting): " << sbody << std::endl;
 
   NodeManager* nm = NodeManager::currentNM();
-  for (unsigned i = 0, size = d_cegis_sampler.getNumSamplePoints(); i < size;
-       i++)
+  for (size_t i = 0, size = d_cegis_sampler.getNumSamplePoints(); i < size; i++)
   {
     if (d_cegis_sample_refine.find(i) == d_cegis_sample_refine.end())
     {
@@ -689,8 +691,7 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
         Trace("cegis-sample-debug") << "...false for point #" << i << std::endl;
         // mark this as a CEGIS point (no longer sampled)
         d_cegis_sample_refine.insert(i);
-        std::vector<Node> pt;
-        d_cegis_sampler.getSamplePoint(i, pt);
+        const std::vector<Node>& pt = d_cegis_sampler.getSamplePoint(i);
         Assert(d_base_vars.size() == pt.size());
         Node rlem = d_base_body.substitute(
             d_base_vars.begin(), d_base_vars.end(), pt.begin(), pt.end());
@@ -714,7 +715,8 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
           if (options().quantifiers.cegisSample
               != options::CegisSampleMode::TRUST)
           {
-            Node lem = nm->mkNode(OR, d_parent->getConjecture().negate(), rlem);
+            Node lem =
+                nm->mkNode(Kind::OR, d_parent->getConjecture().negate(), rlem);
             d_qim.addPendingLemma(
                 lem, InferenceId::QUANTIFIERS_SYGUS_CEGIS_REFINE_SAMPLE);
           }

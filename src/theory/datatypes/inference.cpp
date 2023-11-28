@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,7 +45,7 @@ bool DatatypesInference::mustCommunicateFact(Node n, Node exp)
   // conclusion has kind LEQ (for datatypes size) or OR. Notice that
   // all equalities are kept internal, apart from those forced as lemmas
   // via instantiate.
-  if (n.getKind() == LEQ || n.getKind() == OR)
+  if (n.getKind() == Kind::LEQ || n.getKind() == Kind::OR)
   {
     Trace("dt-lemma-debug")
         << "Communicate " << n << " due to kind" << std::endl;

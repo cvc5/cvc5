@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -60,7 +60,7 @@ TEST_F(TestUtilBlackDatatype, enumeration)
   Trace("datatypes") << colorsType << std::endl;
 
   Node ctor = colorsType.getDType()[1].getConstructor();
-  Node apply = d_nodeManager->mkNode(kind::APPLY_CONSTRUCTOR, ctor);
+  Node apply = d_nodeManager->mkNode(Kind::APPLY_CONSTRUCTOR, ctor);
   Trace("datatypes") << apply << std::endl;
 
   ASSERT_FALSE(colorsType.getDType().isParametric());
@@ -94,7 +94,7 @@ TEST_F(TestUtilBlackDatatype, nat)
   Trace("datatypes") << natType << std::endl;
 
   Node ctor = natType.getDType()[1].getConstructor();
-  Node apply = d_nodeManager->mkNode(kind::APPLY_CONSTRUCTOR, ctor);
+  Node apply = d_nodeManager->mkNode(Kind::APPLY_CONSTRUCTOR, ctor);
   Trace("datatypes") << apply << std::endl;
 
   ASSERT_FALSE(natType.getDType().isParametric());
@@ -258,9 +258,9 @@ TEST_F(TestUtilBlackDatatype, listIntUpdate)
   Node zero = d_nodeManager->mkConstInt(Rational(0));
   Node truen = d_nodeManager->mkConst(true);
   // construct an update term
-  Node uterm = d_nodeManager->mkNode(kind::APPLY_UPDATER, updater, gt, zero);
+  Node uterm = d_nodeManager->mkNode(Kind::APPLY_UPDATER, updater, gt, zero);
   // construct a non well-formed update term
-  ASSERT_THROW(d_nodeManager->mkNode(kind::APPLY_UPDATER, updater, gt, truen)
+  ASSERT_THROW(d_nodeManager->mkNode(Kind::APPLY_UPDATER, updater, gt, truen)
                    .getType(true),
                TypeCheckingExceptionPrivate);
 }

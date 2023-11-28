@@ -20,19 +20,19 @@ BASE_DIR=`pwd`
 mkdir -p $BASE_DIR/tmp/
 
 ##### LFSC
-LFSC_DIR="$BASE_DIR/lfsc-checker"
+LFSC_DIR="$BASE_DIR/lfsc_checker"
 mkdir -p $LFSC_DIR
 
 # download and unpack LFSC
-version="9aab068dec2c5a9f5f2bf465590005c638078e95"
-download "https://github.com/cvc5/LFSC/archive/$version.tar.gz" $BASE_DIR/tmp/lfsc.tgz
+LFSC_VERSION="5a127dbbcf9a0f822768e783dbf892ee90c435d5"
+download "https://github.com/cvc5/LFSC/archive/$LFSC_VERSION.tar.gz" $BASE_DIR/tmp/lfsc.tgz
 tar --strip 1 -xzf $BASE_DIR/tmp/lfsc.tgz -C $LFSC_DIR
 
 # build and install LFSC
 pushd $LFSC_DIR
 mkdir -p build && cd build
 cmake -DCMAKE_INSTALL_PREFIX="$BASE_DIR" ..
-make install
+make install -j$(nproc)
 popd
 
 ##### signatures
@@ -45,33 +45,33 @@ mkdir -p $BASE_DIR/share/lfsc
 cp -r $SIG_DIR $BASE_DIR/share/lfsc
 
 # based on https://github.com/CVC4/signatures/blob/master/lfsc/new/scripts/cvc4_gen_and_check.sh
-cat << EOF > $BASE_DIR/bin/cvc5-lfsc-check.sh
+cat << EOF > $BASE_DIR/bin/lfsc_gen_and_check.sh
 #!/usr/bin/env bash
 
 echo "=== Generate proof: \$@"
-$BASE_DIR/bin/cvc5-proof.sh \$@ > proof.plf
+$BASE_DIR/bin/lfsc_gen.sh \$@ > proof.plf
 
 echo "=== Check proof with LFSC"
-$BASE_DIR/bin/lfsc-check.sh proof.plf
+$BASE_DIR/bin/lfsc_check.sh proof.plf
 EOF
-chmod +x $BASE_DIR/bin/cvc5-lfsc-check.sh
+chmod +x $BASE_DIR/bin/lfsc_gen_and_check.sh
 
 # based on https://github.com/CVC4/signatures/blob/master/lfsc/new/scripts/cvc4_gen.sh
-cat << EOF > $BASE_DIR/bin/cvc5-proof.sh
+cat << EOF > $BASE_DIR/bin/lfsc_gen.sh
 #!/usr/bin/env bash
 
 # call cvc5 and remove the first line of the output (should be "unsat")
 \$@ --dump-proofs --proof-format=lfsc | tail -n +2
 EOF
-chmod +x $BASE_DIR/bin/cvc5-proof.sh
+chmod +x $BASE_DIR/bin/lfsc_gen.sh
 
 # based on https://github.com/CVC4/signatures/blob/master/lfsc/new/scripts/lfsc_check.sh
-cat << EOF > $BASE_DIR/bin/lfsc-check.sh
+cat << EOF > $BASE_DIR/bin/lfsc_check.sh
 #!/usr/bin/env bash
 
 cat \$@ | grep WARNING
 CHECK=\$(cat \$@ | grep check)
-[ -z "\$CHECK" ] && echo "; WARNING: Empty proof!!!"
+[ -z "\$CHECK" ] && echo "; WARNING: Empty proof"
 
 SIG_DIR=$BASE_DIR/share/lfsc/signatures
 SIGS="\$SIG_DIR/core_defs.plf \\
@@ -96,15 +96,15 @@ sed -i.orig 's/(\\ [^ ]* (\\ [^ ]* (\\ [^ ]* (apply (apply (apply f_\([^ ]*\) [^
 cat lfsc.out
 rm lfsc.out
 EOF
-chmod +x $BASE_DIR/bin/lfsc-check.sh
+chmod +x $BASE_DIR/bin/lfsc_check.sh
 
 popd
 
 echo ""
 echo "========== How to use LFSC =========="
 echo "Generate a LFSC proof with cvc5:"
-echo "  $CVC_DIR/deps/bin/cvc5-proof.sh cvc5 <options> <input file>"
+echo "  $CVC_DIR/deps/bin/lfsc_gen.sh cvc5 <options> <input file>"
 echo "Check a generated proof:"
-echo "  $CVC_DIR/deps/bin/lfsc-check.sh <proof file>"
+echo "  $CVC_DIR/deps/bin/lfsc_check.sh <proof file>"
 echo "Run cvc5 and check the generated proof:"
-echo "  $CVC_DIR/deps/bin/cvc5-lfsc-check.sh cvc5 <options> <input file>"
+echo "  $CVC_DIR/deps/bin/lfsc_gen_and_check.sh cvc5 <options> <input file>"

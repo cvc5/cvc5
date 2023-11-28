@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -123,7 +123,7 @@ Node TrustNode::getLemmaProven(Node lem) { return lem; }
 
 Node TrustNode::getPropExpProven(TNode lit, Node exp)
 {
-  return NodeManager::currentNM()->mkNode(kind::IMPLIES, exp, lit);
+  return NodeManager::currentNM()->mkNode(Kind::IMPLIES, exp, lit);
 }
 
 Node TrustNode::getRewriteProven(TNode n, Node nr) { return n.eqNode(nr); }

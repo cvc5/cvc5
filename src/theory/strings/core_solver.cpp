@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Gereon Kremer
+ *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -449,73 +449,99 @@ Node CoreSolver::checkCycles( Node eqc, std::vector< Node >& curr, std::vector< 
     //look at all terms in this equivalence class
     eq::EqualityEngine* ee = d_state.getEqualityEngine();
     eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, ee );
+    const std::set<Node>& rlvSet = d_termReg.getRelevantTermSet();
+    bool hasRlv = false;
     while( !eqc_i.isFinished() ) {
       Node n = (*eqc_i);
-      if( !d_bsolver.isCongruent(n) ){
-        if( n.getKind() == kind::STRING_CONCAT ){
-          Trace("strings-cycle") << eqc << " check term : " << n << " in " << eqc << std::endl;
-          if (eqc != emp)
+      ++eqc_i;
+      if (rlvSet.find(n) == rlvSet.end())
+      {
+        // not relevant, skip
+        continue;
+      }
+      hasRlv = true;
+      if (n.getKind() != Kind::STRING_CONCAT || d_bsolver.isCongruent(n))
+      {
+        continue;
+      }
+      Trace("strings-cycle")
+          << eqc << " check term : " << n << " in " << eqc << std::endl;
+      if (eqc != emp)
+      {
+        d_eqc[eqc].push_back(n);
+      }
+      size_t nchild = n.getNumChildren();
+      for (size_t i=0; i<nchild; i++)
+      {
+        Node nc = n[i];
+        Node nr = d_state.getRepresentative(nc);
+        if (eqc == emp)
+        {
+          // for empty eqc, ensure all components are empty
+          if (nr != emp)
           {
-            d_eqc[eqc].push_back( n );
+            std::vector<Node> exps;
+            exps.push_back(n.eqNode(emp));
+            d_im.sendInference(
+                exps, nc.eqNode(emp), InferenceId::STRINGS_I_CYCLE_E);
+            return Node::null();
           }
-          for( unsigned i=0; i<n.getNumChildren(); i++ ){
-            Node nr = d_state.getRepresentative(n[i]);
-            if (eqc == emp)
+        }
+        else
+        {
+          if (nr != emp)
+          {
+            d_flat_form[n].push_back(nr);
+            d_flat_form_index[n].push_back(i);
+          }
+          // for non-empty eqc, recurse and see if we find a loop
+          Node ncy = checkCycles(nr, curr, exp);
+          if (!ncy.isNull())
+          {
+            Trace("strings-cycle") << eqc << " cycle: " << ncy << " at " << n
+                                   << "[" << i << "] : " << nc << std::endl;
+            d_im.addToExplanation(n, eqc, exp);
+            d_im.addToExplanation(nr, nc, exp);
+            if (ncy == eqc)
             {
-              //for empty eqc, ensure all components are empty
-              if (nr != emp)
+              // can infer all other components must be empty
+              for (size_t j = 0; j < nchild; j++)
               {
-                std::vector<Node> exps;
-                exps.push_back(n.eqNode(emp));
-                d_im.sendInference(
-                    exps, n[i].eqNode(emp), InferenceId::STRINGS_I_CYCLE_E);
-                return Node::null();
-              }
-            }else{
-              if (nr != emp)
-              {
-                d_flat_form[n].push_back( nr );
-                d_flat_form_index[n].push_back( i );
-              }
-              //for non-empty eqc, recurse and see if we find a loop
-              Node ncy = checkCycles( nr, curr, exp );
-              if( !ncy.isNull() ){
-                Trace("strings-cycle") << eqc << " cycle: " << ncy << " at " << n << "[" << i << "] : " << n[i] << std::endl;
-                d_im.addToExplanation(n, eqc, exp);
-                d_im.addToExplanation(nr, n[i], exp);
-                if( ncy==eqc ){
-                  //can infer all other components must be empty
-                  for( unsigned j=0; j<n.getNumChildren(); j++ ){
-                    //take first non-empty
-                    if (j != i && !d_state.areEqual(n[j], emp))
-                    {
-                      d_im.sendInference(
-                          exp, n[j].eqNode(emp), InferenceId::STRINGS_I_CYCLE);
-                      return Node::null();
-                    }
-                  }
-                  Trace("strings-error") << "Looping term should be congruent : " << n << " " << eqc << " " << ncy << std::endl;
-                  //should find a non-empty component, otherwise would have been singular congruent (I_Norm_S)
-                  Assert(false);
-                }else{
-                  return ncy;
-                }
-              }else{
-                if (d_im.hasProcessed())
+                // take first non-empty
+                if (j != i && !d_state.areEqual(n[j], emp))
                 {
+                  d_im.sendInference(
+                      exp, n[j].eqNode(emp), InferenceId::STRINGS_I_CYCLE);
                   return Node::null();
                 }
               }
+              Trace("strings-error")
+                  << "Looping term should be congruent : " << n << " " << eqc
+                  << " " << ncy << std::endl;
+              // should find a non-empty component, otherwise would have been
+              // singular congruent (I_Norm_S)
+              Assert(false);
             }
+            else
+            {
+              return ncy;
+            }
+          }
+          else if (d_im.hasProcessed())
+          {
+            return Node::null();
           }
         }
       }
-      ++eqc_i;
     }
     curr.pop_back();
-    Trace("strings-eqc") << "* add string eqc: " << eqc << std::endl;
-    //now we can add it to the list of equivalence classes
-    d_strings_eqc.push_back( eqc );
+    // if there was at least one relevant term, we add to the list
+    if (hasRlv)
+    {
+      Trace("strings-eqc") << "* add string eqc: " << eqc << std::endl;
+      // now we can add it to the list of equivalence classes
+      d_strings_eqc.push_back(eqc);
+    }
   }else{
     //already processed
   }
@@ -645,6 +671,8 @@ void CoreSolver::normalizeEquivalenceClass(Node eqc,
   }
 }
 
+const std::vector<Node>& CoreSolver::getRelevantDeq() const { return d_rlvDeq; }
+
 NormalForm& CoreSolver::getNormalForm(Node n)
 {
   std::map<Node, NormalForm>::iterator itn = d_normal_form.find(n);
@@ -681,7 +709,7 @@ Node CoreSolver::getNormalString(Node x, std::vector<Node>& nf_exp)
     // if x does not have a normal form, then it should not occur in the
     // equality engine and hence should be its own representative.
     Assert(xr == x);
-    if (x.getKind() == kind::STRING_CONCAT)
+    if (x.getKind() == Kind::STRING_CONCAT)
     {
       std::vector<Node> vec_nodes;
       for (unsigned i = 0; i < x.getNumChildren(); i++)
@@ -697,7 +725,7 @@ Node CoreSolver::getNormalString(Node x, std::vector<Node>& nf_exp)
 
 Node CoreSolver::getConclusion(Node x,
                                Node y,
-                               PfRule rule,
+                               ProofRule rule,
                                bool isRev,
                                SkolemCache* skc,
                                std::vector<Node>& newSkolems)
@@ -706,7 +734,7 @@ Node CoreSolver::getConclusion(Node x,
                            << " " << rule << " " << isRev << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   Node conc;
-  if (rule == PfRule::CONCAT_SPLIT || rule == PfRule::CONCAT_LPROP)
+  if (rule == ProofRule::CONCAT_SPLIT || rule == ProofRule::CONCAT_LPROP)
   {
     // must compare so that we are agnostic to order of x/y
     Node ux = x < y ? x : y;
@@ -717,30 +745,31 @@ Node CoreSolver::getConclusion(Node x,
                                         : SkolemCache::SK_ID_V_UNIFIED_SPT,
                                   "v_spt");
     newSkolems.push_back(sk);
-    Node eq1 = x.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk, y)
-                              : nm->mkNode(STRING_CONCAT, y, sk));
+    Node eq1 = x.eqNode(isRev ? nm->mkNode(Kind::STRING_CONCAT, sk, y)
+                              : nm->mkNode(Kind::STRING_CONCAT, y, sk));
 
-    if (rule == PfRule::CONCAT_LPROP)
+    if (rule == ProofRule::CONCAT_LPROP)
     {
       conc = eq1;
     }
     else
     {
-      Node eq2 = y.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk, x)
-                                : nm->mkNode(STRING_CONCAT, x, sk));
+      Node eq2 = y.eqNode(isRev ? nm->mkNode(Kind::STRING_CONCAT, sk, x)
+                                : nm->mkNode(Kind::STRING_CONCAT, x, sk));
       // make agnostic to x/y
-      conc = x < y ? nm->mkNode(OR, eq1, eq2) : nm->mkNode(OR, eq2, eq1);
+      conc = x < y ? nm->mkNode(Kind::OR, eq1, eq2)
+                   : nm->mkNode(Kind::OR, eq2, eq1);
     }
     // we can assume its length is greater than zero
     Node emp = Word::mkEmptyWord(sk.getType());
-    conc = nm->mkNode(
-        AND,
-        conc,
-        sk.eqNode(emp).negate(),
-        nm->mkNode(
-            GT, nm->mkNode(STRING_LENGTH, sk), nm->mkConstInt(Rational(0))));
+    conc = nm->mkNode(Kind::AND,
+                      conc,
+                      sk.eqNode(emp).negate(),
+                      nm->mkNode(Kind::GT,
+                                 nm->mkNode(Kind::STRING_LENGTH, sk),
+                                 nm->mkConstInt(Rational(0))));
   }
-  else if (rule == PfRule::CONCAT_CSPLIT)
+  else if (rule == ProofRule::CONCAT_CSPLIT)
   {
     Assert(y.isConst());
     size_t yLen = Word::getLength(y);
@@ -751,13 +780,13 @@ Node CoreSolver::getConclusion(Node x,
         isRev ? SkolemCache::SK_ID_VC_SPT_REV : SkolemCache::SK_ID_VC_SPT,
         "c_spt");
     newSkolems.push_back(sk);
-    conc = x.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk, firstChar)
-                          : nm->mkNode(STRING_CONCAT, firstChar, sk));
+    conc = x.eqNode(isRev ? nm->mkNode(Kind::STRING_CONCAT, sk, firstChar)
+                          : nm->mkNode(Kind::STRING_CONCAT, firstChar, sk));
   }
-  else if (rule == PfRule::CONCAT_CPROP)
+  else if (rule == ProofRule::CONCAT_CPROP)
   {
     // expect (str.++ z d) and c
-    Assert(x.getKind() == STRING_CONCAT && x.getNumChildren() == 2);
+    Assert(x.getKind() == Kind::STRING_CONCAT && x.getNumChildren() == 2);
     Node z = x[isRev ? 1 : 0];
     Node d = x[isRev ? 0 : 1];
     Assert(d.isConst());
@@ -773,8 +802,8 @@ Node CoreSolver::getConclusion(Node x,
         isRev ? SkolemCache::SK_ID_C_SPT_REV : SkolemCache::SK_ID_C_SPT,
         "c_spt");
     newSkolems.push_back(sk);
-    conc = z.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk, preC)
-                          : nm->mkNode(STRING_CONCAT, preC, sk));
+    conc = z.eqNode(isRev ? nm->mkNode(Kind::STRING_CONCAT, sk, preC)
+                          : nm->mkNode(Kind::STRING_CONCAT, preC, sk));
   }
 
   return conc;
@@ -811,15 +840,16 @@ Node CoreSolver::getDecomposeConclusion(Node x,
 {
   Assert(l.getType().isInteger());
   NodeManager* nm = NodeManager::currentNM();
-  Node n = isRev ? nm->mkNode(SUB, nm->mkNode(STRING_LENGTH, x), l) : l;
+  Node n =
+      isRev ? nm->mkNode(Kind::SUB, nm->mkNode(Kind::STRING_LENGTH, x), l) : l;
   Node sk1 = skc->mkSkolemCached(x, n, SkolemCache::SK_PREFIX, "dc_spt1");
   newSkolems.push_back(sk1);
   Node sk2 = skc->mkSkolemCached(x, n, SkolemCache::SK_SUFFIX_REM, "dc_spt2");
   newSkolems.push_back(sk2);
-  Node conc = x.eqNode(nm->mkNode(STRING_CONCAT, sk1, sk2));
+  Node conc = x.eqNode(nm->mkNode(Kind::STRING_CONCAT, sk1, sk2));
   // add the length constraint to the conclusion
-  Node lc = nm->mkNode(STRING_LENGTH, isRev ? sk2 : sk1).eqNode(l);
-  return nm->mkNode(AND, conc, lc);
+  Node lc = nm->mkNode(Kind::STRING_LENGTH, isRev ? sk2 : sk1).eqNode(l);
+  return nm->mkNode(Kind::AND, conc, lc);
 }
 
 void CoreSolver::getNormalForms(Node eqc,
@@ -833,12 +863,16 @@ void CoreSolver::getNormalForms(Node eqc,
   Trace("strings-process-debug") << "Get normal forms " << eqc << std::endl;
   eq::EqualityEngine* ee = d_state.getEqualityEngine();
   eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, ee );
+  const std::set<Node>& rlvSet = d_termReg.getRelevantTermSet();
   while( !eqc_i.isFinished() ){
     Node n = (*eqc_i);
-    if( !d_bsolver.isCongruent(n) ){
+    // this check should be in sync with the check in checkCycles to ensure
+    // we don't compute normal forms for irrelevant terms.
+    if (!d_bsolver.isCongruent(n) && rlvSet.find(n)!=rlvSet.end())
+    {
       Kind nk = n.getKind();
       bool isCLike = utils::isConstantLike(n);
-      if (isCLike || nk == STRING_CONCAT)
+      if (isCLike || nk == Kind::STRING_CONCAT)
       {
         Trace("strings-process-debug") << "Get Normal Form : Process term " << n << " in eqc " << eqc << std::endl;
         NormalForm nf_curr;
@@ -846,7 +880,7 @@ void CoreSolver::getNormalForms(Node eqc,
         {
           nf_curr.init(n);
         }
-        else if (nk == STRING_CONCAT)
+        else if (nk == Kind::STRING_CONCAT)
         {
           // set the base to n, we construct the other portions of nf_curr in
           // the following.
@@ -872,7 +906,7 @@ void CoreSolver::getNormalForms(Node eqc,
                 {
                   if (TraceIsOn("strings-error"))
                   {
-                    if (nn.getKind() == STRING_CONCAT)
+                    if (nn.getKind() == Kind::STRING_CONCAT)
                     {
                       Trace("strings-error")
                           << "Strings::Error: From eqc = " << eqc << ", " << n
@@ -884,7 +918,7 @@ void CoreSolver::getNormalForms(Node eqc,
                       Trace("strings-error") << std::endl;
                     }
                   }
-                  Assert(nn.getKind() != kind::STRING_CONCAT);
+                  Assert(nn.getKind() != Kind::STRING_CONCAT);
                 }
               }
               nf_curr.d_nf.insert(nf_curr.d_nf.end(), nfrv.begin(), nfrv.end());
@@ -977,7 +1011,7 @@ void CoreSolver::getNormalForms(Node eqc,
     // class, which is stored in eqc_non_c. The reason is this does not require
     // an explanation, whereas e.g. y ++ z would require the explanation z = ""
     // to justify its normal form is y.
-    Assert(eqc_non_c.getKind() != STRING_CONCAT);
+    Assert(eqc_non_c.getKind() != Kind::STRING_CONCAT);
     NormalForm nf_triv;
     nf_triv.init(eqc_non_c);
     normal_forms.push_back(nf_triv);
@@ -1107,9 +1141,13 @@ void CoreSolver::processNEqc(Node eqc,
       unsigned rindex = 0;
       nfi.reverse();
       nfj.reverse();
-      processSimpleNEq(nfi, nfj, rindex, true, 0, pinfer, stype);
+      bool ret = processSimpleNEq(nfi, nfj, rindex, true, 0, pinfer, stype);
       nfi.reverse();
       nfj.reverse();
+      if (ret)
+      {
+        break;
+      }
       if (d_im.hasProcessed())
       {
         break;
@@ -1118,7 +1156,10 @@ void CoreSolver::processNEqc(Node eqc,
       // rindex = 0;
 
       unsigned index = 0;
-      processSimpleNEq(nfi, nfj, index, false, rindex, pinfer, stype);
+      if (processSimpleNEq(nfi, nfj, index, false, rindex, pinfer, stype))
+      {
+        break;
+      }
       if (d_im.hasProcessed())
       {
         break;
@@ -1166,7 +1207,7 @@ void CoreSolver::processNEqc(Node eqc,
   }
 }
 
-void CoreSolver::processSimpleNEq(NormalForm& nfi,
+bool CoreSolver::processSimpleNEq(NormalForm& nfi,
                                   NormalForm& nfj,
                                   unsigned& index,
                                   bool isRev,
@@ -1187,7 +1228,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     if (lhsDone && rhsDone)
     {
       // We are done with both normal forms
-      break;
+      return true;
     }
     else if (lhsDone || rhsDone)
     {
@@ -1248,7 +1289,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       {
         // if both are constant, it's just a constant conflict
         d_im.sendInference(ant, d_false, InferenceId::STRINGS_N_CONST, isRev, true);
-        return;
+        return false;
       }
       // `x` and `y` have the same length. We infer that the two components
       // have to be the same.
@@ -1307,8 +1348,8 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       }
       else
       {
-        Assert(nfiv.size() == nfjv.size());
-        index = nfiv.size() - rproc;
+        // endpoints are equal, we have verified normal forms are equal
+        return true;
       }
       break;
     }
@@ -1389,9 +1430,9 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       Trace("strings-solve-debug")
           << "Non-simple Case 1 : string lengths neither equal nor disequal"
           << std::endl;
-      Node lenEq = nm->mkNode(EQUAL, xLenTerm, yLenTerm);
+      Node lenEq = nm->mkNode(Kind::EQUAL, xLenTerm, yLenTerm);
       lenEq = rewrite(lenEq);
-      iinfo.d_conc = nm->mkNode(OR, lenEq, lenEq.negate());
+      iinfo.d_conc = nm->mkNode(Kind::OR, lenEq, lenEq.negate());
       iinfo.setId(InferenceId::STRINGS_LEN_SPLIT);
       info.d_infer.d_pendingPhase[lenEq] = true;
       pinfer.push_back(info);
@@ -1446,7 +1487,8 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       const std::vector<Node>& nfncv = nfnc.d_nf;
       Node nc = nfncv[index];
       Assert(!nc.isConst()) << "Other string is not constant.";
-      Assert(nc.getKind() != STRING_CONCAT) << "Other string is not CONCAT.";
+      Assert(nc.getKind() != Kind::STRING_CONCAT)
+          << "Other string is not CONCAT.";
       // explanation for why nc is non-empty
       Node expNonEmpty = d_state.explainNonEmpty(nc);
       if (expNonEmpty.isNull())
@@ -1470,13 +1512,14 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           // infer the purification equality, and the (dis)equality
           // with the empty string in the direction that the rewriter
           // inferred
-          iinfo.d_conc = nm->mkNode(
-              AND, p.eqNode(nc), !eq.getConst<bool>() ? pEq.negate() : pEq);
+          iinfo.d_conc = nm->mkNode(Kind::AND,
+                                    p.eqNode(nc),
+                                    !eq.getConst<bool>() ? pEq.negate() : pEq);
           iinfo.setId(InferenceId::STRINGS_INFER_EMP);
         }
         else
         {
-          iinfo.d_conc = nm->mkNode(OR, eq, eq.negate());
+          iinfo.d_conc = nm->mkNode(Kind::OR, eq, eq.negate());
           iinfo.setId(InferenceId::STRINGS_LEN_SPLIT_EMP);
         }
         pinfer.push_back(info);
@@ -1516,11 +1559,11 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           iinfo.d_premises.push_back(expNonEmpty);
           // make the conclusion
           SkolemCache* skc = d_termReg.getSkolemCache();
-          Node xcv =
-              nm->mkNode(STRING_CONCAT, isRev ? strb : nc, isRev ? nc : strb);
+          Node xcv = nm->mkNode(
+              Kind::STRING_CONCAT, isRev ? strb : nc, isRev ? nc : strb);
           std::vector<Node> newSkolems;
           iinfo.d_conc = getConclusion(
-              xcv, stra, PfRule::CONCAT_CPROP, isRev, skc, newSkolems);
+              xcv, stra, ProofRule::CONCAT_CPROP, isRev, skc, newSkolems);
           Assert(newSkolems.size() == 1);
           iinfo.d_skolems[LENGTH_SPLIT].push_back(newSkolems[0]);
           iinfo.setId(InferenceId::STRINGS_SSPLIT_CST_PROP);
@@ -1537,7 +1580,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       SkolemCache* skc = d_termReg.getSkolemCache();
       std::vector<Node> newSkolems;
       iinfo.d_conc = getConclusion(
-          nc, nfcv[index], PfRule::CONCAT_CSPLIT, isRev, skc, newSkolems);
+          nc, nfcv[index], ProofRule::CONCAT_CSPLIT, isRev, skc, newSkolems);
       NormalForm::getExplanationForPrefixEq(
           nfi, nfj, index, index, iinfo.d_premises);
       iinfo.d_premises.push_back(expNonEmpty);
@@ -1572,7 +1615,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         {
           Node lt1 = e == 0 ? xLenTerm : yLenTerm;
           Node lt2 = e == 0 ? yLenTerm : xLenTerm;
-          Node entLit = rewrite(nm->mkNode(GT, lt1, lt2));
+          Node entLit = rewrite(nm->mkNode(Kind::GT, lt1, lt2));
           std::pair<bool, Node> et = d_state.entailmentCheck(
               options::TheoryOfMode::THEORY_OF_TYPE_BASED, entLit);
           if (et.first)
@@ -1602,12 +1645,12 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     if (lenConstraint.isNull())
     {
       // will do split on length
-      lenConstraint = nm->mkNode(EQUAL, xLenTerm, yLenTerm).negate();
+      lenConstraint = nm->mkNode(Kind::EQUAL, xLenTerm, yLenTerm).negate();
       lcVec.push_back(lenConstraint);
     }
     else
     {
-      utils::flattenOp(AND, lenConstraint, lcVec);
+      utils::flattenOp(Kind::AND, lenConstraint, lcVec);
     }
 
     NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, iinfo.d_premises);
@@ -1634,20 +1677,20 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     {
       iinfo.setId(InferenceId::STRINGS_SSPLIT_VAR);
       iinfo.d_conc =
-          getConclusion(x, y, PfRule::CONCAT_SPLIT, isRev, skc, newSkolems);
+          getConclusion(x, y, ProofRule::CONCAT_SPLIT, isRev, skc, newSkolems);
     }
     else if (lentTestSuccess == 0)
     {
       iinfo.setId(InferenceId::STRINGS_SSPLIT_VAR_PROP);
       iinfo.d_conc =
-          getConclusion(x, y, PfRule::CONCAT_LPROP, isRev, skc, newSkolems);
+          getConclusion(x, y, ProofRule::CONCAT_LPROP, isRev, skc, newSkolems);
     }
     else
     {
       Assert(lentTestSuccess == 1);
       iinfo.setId(InferenceId::STRINGS_SSPLIT_VAR_PROP);
       iinfo.d_conc =
-          getConclusion(y, x, PfRule::CONCAT_LPROP, isRev, skc, newSkolems);
+          getConclusion(y, x, ProofRule::CONCAT_LPROP, isRev, skc, newSkolems);
     }
     // add the length constraint(s) as the last antecedant
     Node lc = utils::mkAnd(lcVec);
@@ -1656,6 +1699,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     pinfer.push_back(info);
     break;
   }
+  return false;
 }
 
 bool CoreSolver::detectLoop(NormalForm& nfi,
@@ -1785,7 +1829,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
         // no antecedants necessary
         iinfo.d_premises.clear();
         // try to make t equal to empty to avoid loop
-        iinfo.d_conc = nm->mkNode(kind::OR, split_eq, split_eq.negate());
+        iinfo.d_conc = nm->mkNode(Kind::OR, split_eq, split_eq.negate());
         iinfo.setId(InferenceId::STRINGS_LEN_SPLIT_EMP);
         return ProcessLoopResult::INFERENCE;
       }
@@ -1809,10 +1853,11 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
                           << std::endl;
     Trace("strings-loop") << "... (C)=" << rep_c << " " << std::endl;
     // special case
-    str_in_re = nm->mkNode(
-        STRING_IN_REGEXP,
-        vecoi[index],
-        nm->mkNode(REGEXP_STAR, nm->mkNode(STRING_TO_REGEXP, rep_c)));
+    str_in_re =
+        nm->mkNode(Kind::STRING_IN_REGEXP,
+                   vecoi[index],
+                   nm->mkNode(Kind::REGEXP_STAR,
+                              nm->mkNode(Kind::STRING_TO_REGEXP, rep_c)));
     conc = str_in_re;
   }
   else if (t_yz.isConst())
@@ -1844,18 +1889,18 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
         continue;
       }
       Node conc2 = nm->mkNode(
-          STRING_IN_REGEXP,
+          Kind::STRING_IN_REGEXP,
           vecoi[index],
-          nm->mkNode(
-              REGEXP_CONCAT,
-              nm->mkNode(STRING_TO_REGEXP, y),
-              nm->mkNode(REGEXP_STAR, nm->mkNode(STRING_TO_REGEXP, restr))));
-      cc = cc == d_true ? conc2 : nm->mkNode(kind::AND, cc, conc2);
+          nm->mkNode(Kind::REGEXP_CONCAT,
+                     nm->mkNode(Kind::STRING_TO_REGEXP, y),
+                     nm->mkNode(Kind::REGEXP_STAR,
+                                nm->mkNode(Kind::STRING_TO_REGEXP, restr))));
+      cc = cc == d_true ? conc2 : nm->mkNode(Kind::AND, cc, conc2);
       vconc.push_back(cc);
     }
-    conc = vconc.size() == 0 ? Node::null() : vconc.size() == 1
-                                                  ? vconc[0]
-                                                  : nm->mkNode(kind::OR, vconc);
+    conc = vconc.size() == 0   ? Node::null()
+           : vconc.size() == 1 ? vconc[0]
+                               : nm->mkNode(Kind::OR, vconc);
   }
   else
   {
@@ -1888,17 +1933,17 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
     Node conc3 = vecoi[index].eqNode(d_termReg.mkNConcat(sk_y, sk_w));
     Node restr = r == emp ? s_zy : d_termReg.mkNConcat(sk_z, sk_y);
     str_in_re =
-        nm->mkNode(kind::STRING_IN_REGEXP,
+        nm->mkNode(Kind::STRING_IN_REGEXP,
                    sk_w,
-                   nm->mkNode(kind::REGEXP_STAR,
-                              nm->mkNode(kind::STRING_TO_REGEXP, restr)));
+                   nm->mkNode(Kind::REGEXP_STAR,
+                              nm->mkNode(Kind::STRING_TO_REGEXP, restr)));
 
     std::vector<Node> vec_conc;
     vec_conc.push_back(conc1);
     vec_conc.push_back(conc2);
     vec_conc.push_back(conc3);
     vec_conc.push_back(str_in_re);
-    conc = nm->mkNode(kind::AND, vec_conc);
+    conc = nm->mkNode(Kind::AND, vec_conc);
   }  // normal case
 
   // we will be done
@@ -1932,7 +1977,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
         continue;
       }
       Node u = nfc.d_nf[0];
-      if (u.getKind() != SEQ_UNIT && u.getKind() != STRING_UNIT)
+      if (u.getKind() != Kind::SEQ_UNIT && u.getKind() != Kind::STRING_UNIT)
       {
         continue;
       }
@@ -1959,7 +2004,8 @@ void CoreSolver::processDeq(Node ni, Node nj)
       }
       else
       {
-        Assert(v.getKind() == SEQ_UNIT || v.getKind() == STRING_UNIT);
+        Assert(v.getKind() == Kind::SEQ_UNIT
+               || v.getKind() == Kind::STRING_UNIT);
         vc = v[0];
       }
       Assert(u[0].getType() == vc.getType());
@@ -2118,7 +2164,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
               nck, d_one, false, skc, newSkolems);
           Assert(newSkolems.size() == 2);
           std::vector<Node> antecLen;
-          antecLen.push_back(nm->mkNode(GEQ, nckLenTerm, d_one));
+          antecLen.push_back(nm->mkNode(Kind::GEQ, nckLenTerm, d_one));
           d_im.sendInference(antecLen,
                              antecLen,
                              conc,
@@ -2144,8 +2190,8 @@ void CoreSolver::processDeq(Node ni, Node nj)
         {
           Node ux = r == 0 ? x : y;
           Node uy = r == 0 ? y : x;
-          Node uxLen = nm->mkNode(STRING_LENGTH, ux);
-          Node uyLen = nm->mkNode(STRING_LENGTH, uy);
+          Node uxLen = nm->mkNode(Kind::STRING_LENGTH, ux);
+          Node uyLen = nm->mkNode(Kind::STRING_LENGTH, uy);
           // We always add the length constraint in the conclusion here
           // because the skolem needs to have length `uyLen`. If we only assert
           // that the skolem's length is greater or equal to one, we can end up
@@ -2161,7 +2207,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
           Node conc =
               getDecomposeConclusion(ux, uyLen, false, skc, newSkolems);
           Assert(newSkolems.size() == 2);
-          Node lenConstraint = nm->mkNode(GT, uxLen, uyLen);
+          Node lenConstraint = nm->mkNode(Kind::GT, uxLen, uyLen);
           Node lenConstraintr = rewrite(lenConstraint);
           // If the length constraint rewrites to false, don't bother sending
           // the lemma. If it rewrites to true, then we include it as a
@@ -2409,14 +2455,14 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
   if (n1.getType().isString())
   {
     // substring of length 1
-    ss1 = nm->mkNode(STRING_SUBSTR, n1, k, d_one);
-    ss2 = nm->mkNode(STRING_SUBSTR, n2, k, d_one);
+    ss1 = nm->mkNode(Kind::STRING_SUBSTR, n1, k, d_one);
+    ss2 = nm->mkNode(Kind::STRING_SUBSTR, n2, k, d_one);
   }
   else
   {
     // as an optimization, for sequences, use seq.nth
-    ss1 = nm->mkNode(SEQ_NTH, n1, k);
-    ss2 = nm->mkNode(SEQ_NTH, n2, k);
+    ss1 = nm->mkNode(Kind::SEQ_NTH, n1, k);
+    ss2 = nm->mkNode(Kind::SEQ_NTH, n2, k);
   }
 
   // disequality between nth/substr
@@ -2424,14 +2470,14 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
 
   // The skolem k is in the bounds of at least
   // one string/sequence
-  Node len1 = nm->mkNode(STRING_LENGTH, n1);
-  Node len2 = nm->mkNode(STRING_LENGTH, n2);
-  Node conc2 = nm->mkNode(LEQ, d_zero, k);
-  Node conc3 = nm->mkNode(LT, k, len1);
-  Node lenDeq = nm->mkNode(EQUAL, len1, len2).negate();
+  Node len1 = nm->mkNode(Kind::STRING_LENGTH, n1);
+  Node len2 = nm->mkNode(Kind::STRING_LENGTH, n2);
+  Node conc2 = nm->mkNode(Kind::LEQ, d_zero, k);
+  Node conc3 = nm->mkNode(Kind::LT, k, len1);
+  Node lenDeq = nm->mkNode(Kind::EQUAL, len1, len2).negate();
 
   std::vector<Node> concs = {conc1, conc2, conc3};
-  Node conc = nm->mkNode(OR, lenDeq, nm->mkAnd(concs));
+  Node conc = nm->mkNode(Kind::OR, lenDeq, nm->mkAnd(concs));
   // A != B => ( seq.len(A) != seq.len(B) or
   //             ( seq.nth(A, d) != seq.nth(B, d) ^ 0 <= d < seq.len(A) ) )
   // Note that we take A != B verbatim, and do not explain it.
@@ -2492,7 +2538,7 @@ void CoreSolver::checkNormalFormsDeq()
   const context::CDList<Node>& deqs = d_state.getDisequalityList();
 
   Trace("str-deq") << "Process disequalites..." << std::endl;
-  std::vector<Node> relevantDeqs;
+  d_rlvDeq.clear();
   // for each pair of disequal strings, must determine whether their lengths
   // are equal or disequal
   for (const Node& eq : deqs)
@@ -2513,7 +2559,7 @@ void CoreSolver::checkNormalFormsDeq()
       if (d_state.areEqual(lt[0], lt[1]))
       {
         // if they have equal lengths, we must process the disequality below
-        relevantDeqs.push_back(eq);
+        d_rlvDeq.push_back(eq);
         Trace("str-deq") << "...relevant, lengths equal (" << lt[0] << " "
                          << lt[1] << ")" << std::endl;
       }
@@ -2538,14 +2584,14 @@ void CoreSolver::checkNormalFormsDeq()
     // added splitting lemma above
     return;
   }
-  for (const Node& eq : relevantDeqs)
+  for (const Node& eq : d_rlvDeq)
   {
     Assert(!d_state.isInConflict());
-    // If using the sequence update solver, we always apply extensionality.
+    // If using sequences, we always apply extensionality.
     // This is required for model soundness currently, although we could
     // investigate determining cases where the disequality is already
     // satisfied (for optimization).
-    if (options().strings.stringsDeqExt
+    if (eq[0].getType().isSequence() || options().strings.stringsDeqExt
         || options().strings.seqArray != options::SeqArrayMode::NONE)
     {
       processDeqExtensionality(eq[0], eq[1]);
@@ -2610,7 +2656,7 @@ void CoreSolver::checkLengthsEqc()
       std::vector<Node> ant;
       ant.insert(ant.end(), nfi.d_exp.begin(), nfi.d_exp.end());
       ant.push_back(llt[0].eqNode(nfi.d_base));
-      Node lc = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, nf);
+      Node lc = NodeManager::currentNM()->mkNode(Kind::STRING_LENGTH, nf);
       Node lcr = rewrite(lc);
       Trace("strings-process-debug")
           << "Rewrote length " << lc << " to " << lcr << std::endl;

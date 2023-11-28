@@ -79,6 +79,7 @@ Building cvc5 Java API
   * enum `Kind <io/github/cvc5/Kind.html>`_
   * enum `Result.UnknownExplanation <io/github/cvc5/Result.UnknownExplanation.html>`_
   * enum `RoundingMode <io/github/cvc5/RoundingMode.html>`_
+  * enum `ProofRule <io/github/cvc5/ProofRule.html>`_
   * exception `CVC5ApiException <io/github/cvc5/CVC5ApiException.html>`_
   * exception `CVC5ApiOptionException <io/github/cvc5/CVC5ApiOptionException.html>`_
   * exception `CVC5ApiRecoverableException <io/github/cvc5/CVC5ApiRecoverableException.html>`_

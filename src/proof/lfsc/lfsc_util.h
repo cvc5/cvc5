@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +29,7 @@ namespace proof {
 
 /**
  * LFSC rules. The enum below contains all rules that don't correspond to a
- * PfRule, e.g. congruence in LFSC does not have the same form as congruence
+ * ProofRule, e.g. congruence in LFSC does not have the same form as congruence
  * in the internal calculus.
  */
 enum class LfscRule : uint32_t

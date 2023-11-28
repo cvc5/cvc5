@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -42,5 +42,6 @@ cvc5_add_python_api_unit_test(test_to_python_obj test_to_python_obj.py)
 cvc5_add_python_api_unit_test(test_op test_op.py)
 cvc5_add_python_api_unit_test(test_result test_result.py)
 cvc5_add_python_api_unit_test(test_synth_result test_synth_result.py)
+cvc5_add_python_api_unit_test(test_proof test_proof.py)
 
 cvc5_add_unit_test_black(test_uncovered api/python)

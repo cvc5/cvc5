@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,8 +36,6 @@ class SygusStatistics
   IntStat d_solutions;
   /** Number of solutions filtered */
   IntStat d_filtered_solutions;
-  /** Number of candidate rewrites printed (for --sygus-rr) */
-  IntStat d_candidate_rewrites_print;
   /** Number of terms checked for rewrite-based symmetry in fast enumerators */
   IntStat d_enumTermsRewrite;
   /** Number of terms checked for example-based symmetry in fast enumerators */

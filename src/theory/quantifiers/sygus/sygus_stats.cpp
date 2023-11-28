@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,8 +23,6 @@ SygusStatistics::SygusStatistics(StatisticsRegistry& sr)
     : d_solutions(sr.registerInt("SynthConjecture::solutions")),
       d_filtered_solutions(
           sr.registerInt("SynthConjecture::filtered_solutions")),
-      d_candidate_rewrites_print(
-          sr.registerInt("SynthConjecture::candidate_rewrites_print")),
       d_enumTermsRewrite(sr.registerInt("SygusEnumerator::enumTermsRewrite")),
       d_enumTermsExampleEval(
           sr.registerInt("SygusEnumerator::enumTermsEvalExamples")),

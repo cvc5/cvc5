@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,6 +16,8 @@
 
 #ifndef CVC4__EXPR__ELIM_SHADOW_NODE_CONVERTER_H
 #define CVC4__EXPR__ELIM_SHADOW_NODE_CONVERTER_H
+
+#include <unordered_set>
 
 #include "expr/node.h"
 #include "expr/node_converter.h"
@@ -36,7 +38,15 @@ namespace cvc5::internal {
 class ElimShadowNodeConverter : public NodeConverter
 {
  public:
+  /**
+   * Eliminate shadowing of the top-most variables in closure q.
+   */
   ElimShadowNodeConverter(const Node& q);
+  /**
+   * Eliminate shadowing of variables vars. Node n is a term used as a unique
+   * identifier for which the introduced bound variables are indexed on.
+   */
+  ElimShadowNodeConverter(const Node& n, const std::unordered_set<Node>& vars);
   ~ElimShadowNodeConverter() {}
   /**
    * Convert node n as described above during post-order traversal. This

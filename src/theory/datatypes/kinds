@@ -99,6 +99,7 @@ typerule APPLY_SELECTOR ::cvc5::internal::theory::datatypes::DatatypeSelectorTyp
 typerule APPLY_TESTER ::cvc5::internal::theory::datatypes::DatatypeTesterTypeRule
 typerule APPLY_UPDATER ::cvc5::internal::theory::datatypes::DatatypeUpdateTypeRule
 typerule APPLY_TYPE_ASCRIPTION ::cvc5::internal::theory::datatypes::DatatypeAscriptionTypeRule
+typerule ASCRIPTION_TYPE "SimpleTypeRule<RBuiltinOperator>"
 
 # constructor applications are constant if they are applied only to constants
 construle APPLY_CONSTRUCTOR ::cvc5::internal::theory::datatypes::DatatypeConstructorTypeRule

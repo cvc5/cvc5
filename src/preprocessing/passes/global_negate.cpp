@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -51,7 +51,7 @@ Node GlobalNegate::simplify(const std::vector<Node>& assertions,
       if (visited.find(cur) == visited.end())
       {
         visited.insert(cur);
-        if (cur.isVar() && cur.getKind() != BOUND_VARIABLE)
+        if (cur.isVar() && cur.getKind() != Kind::BOUND_VARIABLE)
         {
           free_vars.push_back(cur);
         }
@@ -70,7 +70,7 @@ Node GlobalNegate::simplify(const std::vector<Node>& assertions,
   }
   else
   {
-    body = nm->mkNode(AND, assertions);
+    body = nm->mkNode(Kind::AND, assertions);
   }
 
   // do the negation
@@ -88,9 +88,9 @@ Node GlobalNegate::simplify(const std::vector<Node>& assertions,
     body = body.substitute(
         free_vars.begin(), free_vars.end(), bvs.begin(), bvs.end());
 
-    Node bvl = nm->mkNode(BOUND_VAR_LIST, bvs);
+    Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, bvs);
 
-    body = nm->mkNode(FORALL, bvl, body);
+    body = nm->mkNode(Kind::FORALL, bvl, body);
   }
 
   Trace("cegqi-gn-debug") << "...got (pre-rewrite) : " << body << std::endl;
@@ -108,11 +108,17 @@ PreprocessingPassResult GlobalNegate::applyInternal(
   NodeManager* nm = NodeManager::currentNM();
   Node simplifiedNode = simplify(assertionsToPreprocess->ref(), nm);
   Node trueNode = nm->mkConst(true);
+  // mark as negated
+  assertionsToPreprocess->markNegated();
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     if (i == 0)
     {
       assertionsToPreprocess->replace(i, simplifiedNode);
+      if (assertionsToPreprocess->isInConflict())
+      {
+        return PreprocessingPassResult::CONFLICT;
+      }
     }
     else
     {

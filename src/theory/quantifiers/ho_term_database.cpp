@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,7 +46,7 @@ void HoTermDb::addTermInternal(Node n)
   SkolemManager* sm = nm->getSkolemManager();
   Node curr = n;
   std::vector<Node> args;
-  while (curr.getKind() == HO_APPLY)
+  while (curr.getKind() == Kind::HO_APPLY)
   {
     args.insert(args.begin(), curr[1]);
     curr = curr[0];
@@ -57,8 +57,7 @@ void HoTermDb::addTermInternal(Node n)
       Node psk;
       if (itp == d_hoFunOpPurify.end())
       {
-        psk = sm->mkPurifySkolem(
-            curr, "pfun", "purify for function operator term indexing");
+        psk = sm->mkPurifySkolem(curr);
         d_hoFunOpPurify[curr] = psk;
         // we do not add it to d_ops since it is an internal operator
       }
@@ -69,7 +68,7 @@ void HoTermDb::addTermInternal(Node n)
       std::vector<Node> children;
       children.push_back(psk);
       children.insert(children.end(), args.begin(), args.end());
-      Node p_n = nm->mkNode(APPLY_UF, children);
+      Node p_n = nm->mkNode(Kind::APPLY_UF, children);
       Trace("term-db") << "register term in db (via purify) " << p_n
                        << std::endl;
       // also add this one internally
@@ -83,7 +82,7 @@ void HoTermDb::addTermInternal(Node n)
   {
     // also add standard application version
     args.insert(args.begin(), curr);
-    Node uf_n = nm->mkNode(APPLY_UF, args);
+    Node uf_n = nm->mkNode(Kind::APPLY_UF, args);
     addTerm(uf_n);
   }
 }
@@ -226,7 +225,7 @@ bool HoTermDb::checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp)
   Node bf = getMatchOperator(b);
   if (af != bf)
   {
-    if (a.getKind() == APPLY_UF && b.getKind() == APPLY_UF)
+    if (a.getKind() == Kind::APPLY_UF && b.getKind() == Kind::APPLY_UF)
     {
       exp.push_back(af.eqNode(bf).negate());
     }

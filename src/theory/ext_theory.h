@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -52,7 +52,8 @@ class OutputChannel;
 /** Reasons for why a term was marked reduced */
 enum class ExtReducedId
 {
-  UNKNOWN,
+  // the extended function is not marked reduced
+  NONE,
   // the extended function substitutes+rewrites to a constant
   SR_CONST,
   // the extended function was reduced by the callback
@@ -81,6 +82,8 @@ enum class ExtReducedId
   STRINGS_REGEXP_PDERIVATIVE,
   // reduction for seq.nth over seq.rev
   STRINGS_NTH_REV,
+  // the reason for the reduction is unknown
+  UNKNOWN,
 };
 /**
  * Converts an ext reduced identifier to a string.
@@ -225,9 +228,7 @@ class ExtTheory : protected EnvObj
    * as input:
    *  effort: an identifier used to determine which terms we reduce and the
    *          form of the derivable substitution we will use,
-   *  terms: the set of terms to simplify,
-   *  batch: if this flag is true, we send lemmas for all terms; if it is false
-   *         we send a lemma for the first applicable term.
+   *  terms: the set of terms to simplify
    *
    * Sends rewriting lemmas of the form ( exp => t = c ) where t is in terms
    * and c is a constant, c = rewrite( t*sigma ) where exp |= sigma. These
@@ -242,13 +243,12 @@ class ExtTheory : protected EnvObj
    */
   bool doInferences(int effort,
                     const std::vector<Node>& terms,
-                    std::vector<Node>& nred,
-                    bool batch = true);
+                    std::vector<Node>& nred);
   /**
    * Calls the above function, where terms is getActive(), the set of currently
    * active terms.
    */
-  bool doInferences(int effort, std::vector<Node>& nred, bool batch = true);
+  bool doInferences(int effort, std::vector<Node>& nred);
   /** doReductions
    *
    * This method has the same interface as doInferences. In contrast to
@@ -257,9 +257,8 @@ class ExtTheory : protected EnvObj
    */
   bool doReductions(int effort,
                     const std::vector<Node>& terms,
-                    std::vector<Node>& nred,
-                    bool batch = true);
-  bool doReductions(int effort, std::vector<Node>& nred, bool batch = true);
+                    std::vector<Node>& nred);
+  bool doReductions(int effort, std::vector<Node>& nred);
 
   /** get the set of all extended function terms from d_ext_func_terms */
   void getTerms(std::vector<Node>& terms);
@@ -291,10 +290,9 @@ class ExtTheory : protected EnvObj
   bool doInferencesInternal(int effort,
                             const std::vector<Node>& terms,
                             std::vector<Node>& nred,
-                            bool batch,
                             bool isRed);
   /** send lemma on the output channel */
-  bool sendLemma(Node lem, InferenceId id, bool preprocess = false);
+  bool sendLemma(Node lem, InferenceId id);
   /** reference to the callback */
   ExtTheoryCallback& d_parent;
   /** inference manager used to send lemmas */
@@ -329,7 +327,6 @@ class ExtTheory : protected EnvObj
 
   // cache of all lemmas sent
   NodeSet d_lemmas;
-  NodeSet d_pp_lemmas;
 };
 
 }  // namespace theory

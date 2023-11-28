@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -87,7 +87,7 @@ Node UfModelTreeNode::getFunctionValue(const std::vector<Node>& args,
     for (size_t i = 0, cargs = caseArgs.size(); i < cargs; i++)
     {
       size_t ii = cargs - i - 1;
-      retNode = nm->mkNode(ITE,
+      retNode = nm->mkNode(Kind::ITE,
                            args[index].eqNode(caseArgs[ii]),
                            caseValues[caseArgs[ii]],
                            retNode);
@@ -207,8 +207,9 @@ Node UfModelTree::getFunctionValue(const std::vector<Node>& args, Rewriter* r)
   {
     body = r->rewrite(body);
   }
-  Node boundVarList = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, args);
-  return NodeManager::currentNM()->mkNode(kind::LAMBDA, boundVarList, body);
+  Node boundVarList =
+      NodeManager::currentNM()->mkNode(Kind::BOUND_VAR_LIST, args);
+  return NodeManager::currentNM()->mkNode(Kind::LAMBDA, boundVarList, body);
 }
 
 Node UfModelTree::getFunctionValue(const std::string& argPrefix, Rewriter* r)

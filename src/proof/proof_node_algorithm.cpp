@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hanna Lachnitt, Haniel Barbosa
+ *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -72,8 +72,8 @@ void getFreeAssumptionsMap(
     const std::vector<Node>& cargs = cur->getArguments();
     if (it == visited.end())
     {
-      PfRule id = cur->getRule();
-      if (id == PfRule::ASSUME)
+      ProofRule id = cur->getRule();
+      if (id == ProofRule::ASSUME)
       {
         visited[cur.get()] = true;
         Assert(cargs.size() == 1);
@@ -85,7 +85,7 @@ void getFreeAssumptionsMap(
       }
       else
       {
-        if (id == PfRule::SCOPE)
+        if (id == ProofRule::SCOPE)
         {
           // mark that its arguments are bound in the current scope
           for (const Node& a : cargs)
@@ -118,7 +118,7 @@ void getFreeAssumptionsMap(
       Assert(!traversing.empty());
       traversing.pop_back();
       visited[cur.get()] = true;
-      if (cur->getRule() == PfRule::SCOPE)
+      if (cur->getRule() == ProofRule::SCOPE)
       {
         // unbind its assumptions
         for (const Node& a : cargs)
@@ -137,7 +137,8 @@ void getFreeAssumptionsMap(
 }
 
 bool containsAssumption(const ProofNode* pn,
-                        std::unordered_map<const ProofNode*, bool>& caMap)
+                        std::unordered_map<const ProofNode*, bool>& caMap,
+                        const std::unordered_set<Node>& allowed)
 {
   std::unordered_map<const ProofNode*, bool> visited;
   std::unordered_map<const ProofNode*, bool>::iterator it;
@@ -163,12 +164,13 @@ bool containsAssumption(const ProofNode* pn,
     it = visited.find(cur);
     if (it == visited.end())
     {
-      PfRule r = cur->getRule();
-      if (r == PfRule::ASSUME)
+      ProofRule r = cur->getRule();
+      if (r == ProofRule::ASSUME)
       {
-        visited[cur] = true;
-        caMap[cur] = true;
-        foundAssumption = true;
+        bool ret = allowed.find(cur->getArguments()[0]) == allowed.end();
+        visited[cur] = ret;
+        caMap[cur] = ret;
+        foundAssumption = ret;
       }
       else if (!foundAssumption)
       {
@@ -194,11 +196,18 @@ bool containsAssumption(const ProofNode* pn,
   }
   return caMap[cur];
 }
+bool containsAssumption(const ProofNode* pn,
+                        std::unordered_map<const ProofNode*, bool>& caMap)
+{
+  std::unordered_set<Node> allowed;
+  return containsAssumption(pn, caMap, allowed);
+}
 
 bool containsAssumption(const ProofNode* pn)
 {
   std::unordered_map<const ProofNode*, bool> caMap;
-  return containsAssumption(pn, caMap);
+  std::unordered_set<Node> allowed;
+  return containsAssumption(pn, caMap, allowed);
 }
 
 bool containsSubproof(ProofNode* pn, ProofNode* pnc)

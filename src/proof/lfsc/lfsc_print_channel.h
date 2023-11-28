@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,6 +25,7 @@
 #include "printer/let_binding.h"
 #include "proof/lfsc/lfsc_util.h"
 #include "proof/proof_node.h"
+#include "rewriter/rewrite_proof_rule.h"
 
 namespace cvc5::internal {
 namespace proof {
@@ -50,7 +51,7 @@ class LfscPrintChannel
    * Print an application of the trusting the result res, whose source is the
    * given proof rule.
    */
-  virtual void printTrust(TNode res, PfRule src) {}
+  virtual void printTrust(TNode res, ProofRule src) {}
   /** Print the opening of the rule of proof rule pn, e.g. "(and_elim ". */
   virtual void printOpenRule(const ProofNode* pn) {}
   /** Print the opening of LFSC rule lr, e.g. "(cong " */
@@ -71,7 +72,7 @@ class LfscPrintChannelOut : public LfscPrintChannel
   void printNode(TNode n) override;
   void printTypeNode(TypeNode tn) override;
   void printHole() override;
-  void printTrust(TNode res, PfRule src) override;
+  void printTrust(TNode res, ProofRule src) override;
   void printOpenRule(const ProofNode* pn) override;
   void printOpenLfscRule(LfscRule lr) override;
   void printCloseRule(size_t nparen = 1) override;
@@ -88,6 +89,7 @@ class LfscPrintChannelOut : public LfscPrintChannel
   static void printTypeNodeInternal(std::ostream& out, TypeNode tn);
   static void printRule(std::ostream& out, const ProofNode* pn);
   static void printId(std::ostream& out, size_t id, const std::string& prefix);
+  static void printDslProofRuleId(std::ostream& out, rewriter::DslProofRule id);
   //------------------- end helper methods
  private:
   /**
@@ -109,12 +111,17 @@ class LfscPrintChannelPre : public LfscPrintChannel
  public:
   LfscPrintChannelPre(LetBinding& lbind);
   void printNode(TNode n) override;
-  void printTrust(TNode res, PfRule src) override;
+  void printTrust(TNode res, ProofRule src) override;
   void printOpenRule(const ProofNode* pn) override;
+
+  /** Get the DSL rewrites */
+  const std::unordered_set<rewriter::DslProofRule>& getDslRewrites() const;
 
  private:
   /** The let binding */
   LetBinding& d_lbind;
+  /** The DSL rules we have seen */
+  std::unordered_set<rewriter::DslProofRule> d_dprs;
 };
 
 }  // namespace proof

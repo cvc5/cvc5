@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,7 +31,7 @@ DynamicRewriter::DynamicRewriter(Env& env,
                                  const std::string& name)
     : d_equalityEngine(env, c, "DynamicRewriter::" + name, true), d_rewrites(c)
 {
-  d_equalityEngine.addFunctionKind(kind::APPLY_UF);
+  d_equalityEngine.addFunctionKind(Kind::APPLY_UF);
 }
 
 void DynamicRewriter::addRewrite(Node a, Node b)
@@ -98,7 +98,7 @@ Node DynamicRewriter::toInternal(Node a)
     if (a.hasOperator())
     {
       Node op = a.getOperator();
-      if (a.getKind() != APPLY_UF)
+      if (a.getKind() != Kind::APPLY_UF)
       {
         op = d_ois_trie[op].getSymbol(a);
         // if this term involves an argument that is not of first class type,
@@ -127,7 +127,7 @@ Node DynamicRewriter::toInternal(Node a)
       }
       else
       {
-        ret = NodeManager::currentNM()->mkNode(APPLY_UF, children);
+        ret = NodeManager::currentNM()->mkNode(Kind::APPLY_UF, children);
       }
     }
   }

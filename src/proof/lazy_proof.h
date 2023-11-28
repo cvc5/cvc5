@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,6 +20,7 @@
 
 #include "context/cdhashset.h"
 #include "proof/proof.h"
+#include "proof/trust_id.h"
 
 namespace cvc5::internal {
 
@@ -79,7 +80,7 @@ class LazyCDProof : public CDProof
    * @param pg The generator that can proof expected.
    * @param trustId If a null proof generator is provided, we add a step to
    * the proof that has trustId as the rule and expected as the sole argument.
-   * We do this only if trustId is not PfRule::ASSUME. This is primarily used
+   * We do this only if trustId is not ProofRule::ASSUME. This is primarily used
    * for identifying the kind of hole when a proof generator is not given.
    * @param isClosed Whether to expect that pg can provide a closed proof for
    * this fact.
@@ -90,7 +91,7 @@ class LazyCDProof : public CDProof
    */
   void addLazyStep(Node expected,
                    ProofGenerator* pg,
-                   PfRule trustId = PfRule::ASSUME,
+                   TrustId trustId = TrustId::NONE,
                    bool isClosed = false,
                    const char* ctx = "LazyCDProof::addLazyStep",
                    bool forceOverwrite = false);

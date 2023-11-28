@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,14 +31,14 @@ PreprocessRewriteEq::PreprocessRewriteEq(Env& env)
 
 TrustNode PreprocessRewriteEq::ppRewriteEq(TNode atom)
 {
-  Assert(atom.getKind() == kind::EQUAL);
+  Assert(atom.getKind() == Kind::EQUAL);
   if (!options().arith.arithRewriteEq)
   {
     return TrustNode::null();
   }
   Assert(atom[0].getType().isRealOrInt());
-  Node leq = NodeBuilder(kind::LEQ) << atom[0] << atom[1];
-  Node geq = NodeBuilder(kind::GEQ) << atom[0] << atom[1];
+  Node leq = NodeBuilder(Kind::LEQ) << atom[0] << atom[1];
+  Node geq = NodeBuilder(Kind::GEQ) << atom[0] << atom[1];
   Node rewritten = rewrite(leq.andNode(geq));
   Trace("arith::preprocess")
       << "arith::preprocess() : returning " << rewritten << std::endl;
@@ -46,11 +46,12 @@ TrustNode PreprocessRewriteEq::ppRewriteEq(TNode atom)
   if (d_env.isTheoryProofProducing())
   {
     Node t = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_ARITH);
+    Node eq = atom.eqNode(rewritten);
     return d_ppPfGen.mkTrustedRewrite(
         atom,
         rewritten,
-        d_env.getProofNodeManager()->mkNode(
-            PfRule::THEORY_INFERENCE, {}, {atom.eqNode(rewritten), t}));
+        d_env.getProofNodeManager()->mkTrustedNode(
+            TrustId::THEORY_INFERENCE, {}, {}, eq));
   }
   return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
 }

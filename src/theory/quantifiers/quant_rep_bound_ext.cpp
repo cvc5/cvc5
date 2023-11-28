@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,7 +39,7 @@ RsiEnumType QRepBoundExt::setBound(Node owner,
                                    std::vector<Node>& elements)
 {
   // builtin: check if it is bound by bounded integer module
-  if (owner.getKind() == FORALL)
+  if (owner.getKind() == Kind::FORALL)
   {
     BoundVarType bvt = d_qbi.getBoundVarType(owner, owner[0][i]);
     if (bvt != BOUND_FINITE)
@@ -65,7 +65,7 @@ bool QRepBoundExt::resetIndex(RepSetIterator* rsi,
     // not bound
     return true;
   }
-  Assert(owner.getKind() == FORALL);
+  Assert(owner.getKind() == Kind::FORALL);
   if (!d_qbi.getBoundElements(rsi, initial, owner, owner[0][i], elements))
   {
     return false;
@@ -81,7 +81,7 @@ bool QRepBoundExt::initializeRepresentativesForType(TypeNode tn)
 bool QRepBoundExt::getVariableOrder(Node owner, std::vector<size_t>& varOrder)
 {
   // must set a variable index order based on bounded integers
-  if (owner.getKind() != FORALL)
+  if (owner.getKind() != Kind::FORALL)
   {
     return false;
   }

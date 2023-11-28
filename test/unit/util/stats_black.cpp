@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,7 @@
 #include <thread>
 
 #include "lib/clock_gettime.h"
-#include "proof/proof_rule.h"
+#include "cvc5/cvc5_proof_rule.h"
 #include "test_env.h"
 #include "util/statistics_registry.h"
 #include "util/statistics_stats.h"
@@ -57,9 +57,9 @@ TEST_F(TestUtilBlackStats, stats)
   HistogramStat<int64_t> histInt = reg.registerHistogram<int64_t>("hist-int");
   histInt << 15 << 16 << 15 << 14 << 16;
 
-  HistogramStat<PfRule> histPfRule =
-      reg.registerHistogram<PfRule>("hist-pfrule");
-  histPfRule << PfRule::ASSUME << PfRule::SCOPE << PfRule::ASSUME;
+  HistogramStat<ProofRule> histProofRule =
+      reg.registerHistogram<ProofRule>("hist-pfrule");
+  histProofRule << ProofRule::ASSUME << ProofRule::SCOPE << ProofRule::ASSUME;
 
   IntStat intstat = reg.registerInt("int");
   intstat = 5;

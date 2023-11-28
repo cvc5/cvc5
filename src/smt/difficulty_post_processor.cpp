@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,14 +46,15 @@ bool DifficultyPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                                  const std::vector<Node>& fa,
                                                  bool& continueUpdate)
 {
-  PfRule r = pn->getRule();
-  if (r == PfRule::ASSUME)
+  ProofRule r = pn->getRule();
+  if (r == ProofRule::ASSUME)
   {
     Trace("difficulty-debug")
         << "  found assume: " << pn->getResult() << std::endl;
     d_accMap[pn->getResult()] += d_currDifficulty;
   }
-  else if (r == PfRule::MACRO_SR_EQ_INTRO || r == PfRule::MACRO_SR_PRED_INTRO)
+  else if (r == ProofRule::MACRO_SR_EQ_INTRO
+           || r == ProofRule::MACRO_SR_PRED_INTRO)
   {
     // premise is just a substitution, ignore
     continueUpdate = false;

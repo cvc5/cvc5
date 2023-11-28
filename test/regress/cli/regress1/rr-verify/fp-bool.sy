@@ -1,7 +1,6 @@
-; COMMAND-LINE: --lang=sygus2 --sygus-rr-synth --sygus-rr-verify --sygus-samples=0 --sygus-rr-synth-check --sygus-abort-size=1 --sygus-simple-sym-break=none --fp-exp
-; EXPECT: (error "Maximum term size (1) for enumerative SyGuS exceeded.")
-; SCRUBBER: grep -v -E '(\(define-fun|\(rewrite)'
-; EXIT: 1
+; COMMAND-LINE: --sygus-stream --lang=sygus2 --sygus-rr-synth-check --tlimit-per=500 --fp-exp
+; SCRUBBER: grep -v -E '\(.*|fail'
+; EXIT: 0
 
 (set-logic FP)
 
@@ -48,4 +47,5 @@
  ))
 
 ))
-(check-synth)
+(find-synth :rewrite)
+(find-synth :rewrite_unsound)

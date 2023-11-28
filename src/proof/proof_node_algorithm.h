@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -68,7 +68,15 @@ void getFreeAssumptionsMap(
  * @param pn The proof node.
  * @param caMap Cache of results, mapping proof nodes to whether they contain
  * assumptions.
- * @return true if pn contains assumptions
+ * @param allowed The set of assumptions the proof is allowed to contain, i.e.
+ * if the free assumptions of pn is a subset of this set, we return false.
+ * @return true if pn contains assumptions (not in allowed).
+ */
+bool containsAssumption(const ProofNode* pn,
+                        std::unordered_map<const ProofNode*, bool>& caMap,
+                        const std::unordered_set<Node>& allowed);
+/**
+ * Same as above, but with an empty set of allowed assumptions.
  */
 bool containsAssumption(const ProofNode* pn,
                         std::unordered_map<const ProofNode*, bool>& caMap);

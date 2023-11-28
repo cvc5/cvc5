@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Aina Niemetz, Gereon Kremer
+ *   Haniel Barbosa, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -78,6 +78,9 @@ class PropPfManager : protected EnvObj
    */
   std::vector<std::shared_ptr<ProofNode>> getProofLeaves(
       modes::ProofComponent pc);
+
+  /** Return lemmas used in the SAT proof. */
+  std::vector<Node> getUnsatCoreLemmas();
 
   /**
    * Checks that the prop engine proof is closed w.r.t. the given assertions and

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,12 +21,14 @@
 #include "base/modal_exception.h"
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
+#include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
 #include "smt/set_defaults.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/smt_engine_subsolver.h"
 
 namespace cvc5::internal {
@@ -47,12 +49,15 @@ void SygusInterpol::collectSymbols(const std::vector<Node>& axioms,
   }
   expr::getSymbols(conj, symSetConj);
   d_syms.insert(d_syms.end(), symSetAxioms.begin(), symSetAxioms.end());
-  d_syms.insert(d_syms.end(), symSetConj.begin(), symSetConj.end());
   for (const Node& elem : symSetConj)
   {
     if (symSetAxioms.find(elem) != symSetAxioms.end())
     {
       d_symSetShared.insert(elem);
+    }
+    else
+    {
+      d_syms.push_back(elem);
     }
   }
   Trace("sygus-interpol-debug")
@@ -93,7 +98,7 @@ void SygusInterpol::createVariables(bool needsShared)
   // make the sygus variable list
   if (!d_vlvsShared.empty())
   {
-    d_ibvlShared = nm->mkNode(kind::BOUND_VAR_LIST, d_vlvsShared);
+    d_ibvlShared = nm->mkNode(Kind::BOUND_VAR_LIST, d_vlvsShared);
   }
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 }
@@ -109,7 +114,7 @@ void SygusInterpol::getIncludeCons(
   if (options().smt.interpolantsMode == options::InterpolantsMode::ASSUMPTIONS)
   {
     Node tmpAssumptions =
-        (axioms.size() == 1 ? axioms[0] : nm->mkNode(kind::AND, axioms));
+        (axioms.size() == 1 ? axioms[0] : nm->mkNode(Kind::AND, axioms));
     expr::getOperatorsMap(tmpAssumptions, result);
   }
   // CONJECTURE
@@ -124,7 +129,7 @@ void SygusInterpol::getIncludeCons(
     // Get operators from axioms
     std::map<TypeNode, std::unordered_set<Node>> include_cons_axioms;
     Node tmpAssumptions =
-        (axioms.size() == 1 ? axioms[0] : nm->mkNode(kind::AND, axioms));
+        (axioms.size() == 1 ? axioms[0] : nm->mkNode(Kind::AND, axioms));
     expr::getOperatorsMap(tmpAssumptions, include_cons_axioms);
 
     // Get operators from conj
@@ -162,8 +167,8 @@ void SygusInterpol::getIncludeCons(
   else if (options().smt.interpolantsMode == options::InterpolantsMode::ALL)
   {
     Node tmpAssumptions =
-        (axioms.size() == 1 ? axioms[0] : nm->mkNode(kind::AND, axioms));
-    Node tmpAll = nm->mkNode(kind::AND, tmpAssumptions, conj);
+        (axioms.size() == 1 ? axioms[0] : nm->mkNode(Kind::AND, axioms));
+    Node tmpAll = nm->mkNode(Kind::AND, tmpAssumptions, conj);
     expr::getOperatorsMap(tmpAll, result);
   }
 }
@@ -184,23 +189,35 @@ TypeNode SygusInterpol::setSynthGrammar(const TypeNode& itpGType,
     // TODO(Ying Sheng) check if the vars in user-defined grammar, are
     // consistent with the shared vars
   }
-  else
+  else if (options().smt.interpolantsMode != options::InterpolantsMode::DEFAULT)
   {
-    // set default grammar
-    std::map<TypeNode, std::unordered_set<Node>> extra_cons;
-    std::map<TypeNode, std::unordered_set<Node>> exclude_cons;
+    // set default grammar, unless in DEFAULT mode, in which case we will
+    // provide no grammar in this module.
+    TypeNode btype = NodeManager::currentNM()->booleanType();
+    SygusGrammar g =
+        SygusGrammarCons::mkDefaultGrammar(options(), btype, d_ibvlShared);
+    // exclude rules that don't appear in operators
     std::map<TypeNode, std::unordered_set<Node>> include_cons;
     getIncludeCons(axioms, conj, include_cons);
-    std::unordered_set<Node> terms_irrelevant;
-    itpGTypeS = CegGrammarConstructor::mkSygusDefaultType(
-        options(),
-        NodeManager::currentNM()->booleanType(),
-        d_ibvlShared,
-        "interpolation_grammar",
-        extra_cons,
-        exclude_cons,
-        include_cons,
-        terms_irrelevant);
+    const std::vector<Node>& ntSyms = g.getNtSyms();
+    for (const Node& ntSym : ntSyms)
+    {
+      std::vector<Node> rules = g.getRulesFor(ntSym);
+      TypeNode stype = ntSym.getType();
+      if (include_cons.find(stype) == include_cons.end())
+      {
+        continue;
+      }
+      const std::unordered_set<Node>& icons = include_cons[stype];
+      for (const Node& r : rules)
+      {
+        if (r.hasOperator() && icons.find(r.getOperator()) == icons.end())
+        {
+          g.removeRule(ntSym, r);
+        }
+      }
+    }
+    itpGTypeS = g.resolve(true);
   }
   Trace("sygus-interpol-debug") << "...finish setting up grammar" << std::endl;
   return itpGTypeS;
@@ -232,7 +249,7 @@ void SygusInterpol::mkSygusConjecture(Node itp,
   ichildren.push_back(itp);
   ichildren.insert(ichildren.end(), d_varsShared.begin(), d_varsShared.end());
   Node itpApp =
-      d_varsShared.empty() ? itp : nm->mkNode(kind::APPLY_UF, ichildren);
+      d_varsShared.empty() ? itp : nm->mkNode(Kind::APPLY_UF, ichildren);
   Trace("sygus-interpol-debug") << "itpApp: " << itpApp << std::endl
                                 << std::endl;
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
@@ -241,7 +258,7 @@ void SygusInterpol::mkSygusConjecture(Node itp,
   Trace("sygus-interpol-debug") << "Set attributes..." << std::endl;
   if (!d_ibvlShared.isNull())
   {
-    itp.setAttribute(SygusSynthFunVarListAttribute(), d_ibvlShared);
+    SygusUtils::setSygusArgumentList(itp, d_ibvlShared);
   }
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 
@@ -249,18 +266,18 @@ void SygusInterpol::mkSygusConjecture(Node itp,
   Trace("sygus-interpol-debug") << "Make conjecture body..." << std::endl;
   Node Fa = nm->mkAnd(axioms);
   // Fa( x ) => A( x )
-  Node firstImplication = nm->mkNode(kind::IMPLIES, Fa, itpApp);
+  Node firstImplication = nm->mkNode(Kind::IMPLIES, Fa, itpApp);
   Trace("sygus-interpol-debug")
       << "first implication: " << firstImplication << std::endl
       << std::endl;
   // A( x ) => Fc( x )
   Node Fc = conj;
-  Node secondImplication = nm->mkNode(kind::IMPLIES, itpApp, Fc);
+  Node secondImplication = nm->mkNode(Kind::IMPLIES, itpApp, Fc);
   Trace("sygus-interpol-debug")
       << "second implication: " << secondImplication << std::endl
       << std::endl;
   // Fa( x ) => A( x ) ^ A( x ) => Fc( x )
-  Node constraint = nm->mkNode(kind::AND, firstImplication, secondImplication);
+  Node constraint = nm->mkNode(Kind::AND, firstImplication, secondImplication);
   constraint = constraint.substitute(
       d_syms.begin(), d_syms.end(), d_vars.begin(), d_vars.end());
   Trace("sygus-interpol-debug") << constraint << "...finish" << std::endl;
@@ -276,7 +293,10 @@ bool SygusInterpol::findInterpol(SolverEngine* subSolver,
 {
   // get the synthesis solution
   std::map<Node, Node> sols;
-  subSolver->getSynthSolutions(sols);
+  if (!subSolver->getSynthSolutions(sols))
+  {
+    return false;
+  }
   Assert(sols.size() == 1);
   std::map<Node, Node>::iterator its = sols.find(itp);
   if (its == sols.end())
@@ -291,19 +311,19 @@ bool SygusInterpol::findInterpol(SolverEngine* subSolver,
                           << its->second << std::endl;
   interpol = its->second;
   // replace back the created variables to original symbols.
-  if (interpol.getKind() == kind::LAMBDA)
+  if (interpol.getKind() == Kind::LAMBDA)
   {
     interpol = interpol[1];
   }
 
   // get the grammar type for the interpolant
-  Node igdtbv = itp.getAttribute(SygusSynthFunVarListAttribute());
+  Node igdtbv = SygusUtils::getOrMkSygusArgumentList(itp);
   // could have no variables, in which case there is nothing to do
   if (igdtbv.isNull())
   {
     return true;
   }
-  Assert(igdtbv.getKind() == kind::BOUND_VAR_LIST);
+  Assert(igdtbv.getKind() == Kind::BOUND_VAR_LIST);
   // convert back to original
   // must replace formal arguments of itp with the free variables in the
   // input problem that they correspond to.

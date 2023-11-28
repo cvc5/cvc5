@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,7 +22,7 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 
-Node ProofRuleChecker::check(PfRule id,
+Node ProofRuleChecker::check(ProofRule id,
                              const std::vector<Node>& children,
                              const std::vector<Node>& args)
 {
@@ -66,7 +66,7 @@ bool ProofRuleChecker::getKind(TNode n, Kind& k)
 
 Node ProofRuleChecker::mkKindNode(Kind k)
 {
-  if (k == UNDEFINED_KIND)
+  if (k == Kind::UNDEFINED_KIND)
   {
     // UNDEFINED_KIND is negative, hence return null to avoid cast
     return Node::null();

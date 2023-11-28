@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Clark Barrett, Gereon Kremer
+ *   Morgan Deters, Clark Barrett, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -141,7 +141,7 @@ void ArrayInfo::addIndex(const Node a, const TNode i) {
 
 void ArrayInfo::addStore(const Node a, const TNode st){
   Assert(a.getType().isArray());
-  Assert(st.getKind() == kind::STORE);  // temporary for flat arrays
+  Assert(st.getKind() == Kind::STORE);  // temporary for flat arrays
 
   CTNodeList* temp_store;
   Info* temp_info;

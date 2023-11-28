@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,7 +28,7 @@ class RewriteDb;
 /**
  * Identifiers for DSL proof rules
  */
-enum class DslPfRule : uint32_t
+enum class DslProofRule : uint32_t
 {
   FAIL = 0,
   REFL,
@@ -51,7 +51,7 @@ void addRules(RewriteDb& db);
  * @param drule The DSL proof rule
  * @return The name of the DSL proof rule
  */
-const char* toString(DslPfRule drule);
+const char* toString(DslProofRule drule);
 /**
  * Writes a DSL proof rule name to a stream.
  *
@@ -59,13 +59,13 @@ const char* toString(DslPfRule drule);
  * @param drule The DSL proof rule to write to the stream
  * @return The stream
  */
-std::ostream& operator<<(std::ostream& out, DslPfRule drule);
+std::ostream& operator<<(std::ostream& out, DslProofRule drule);
 
 /** Make node from DSL proof rule id */
-Node mkDslPfRuleNode(DslPfRule i);
+Node mkDslProofRuleNode(DslProofRule i);
 
 /** get a DSL proof rule identifier from a node, return false if we fail */
-bool getDslPfRule(TNode n, DslPfRule& i);
+bool getDslProofRule(TNode n, DslProofRule& i);
 
 }  // namespace rewriter
 }  // namespace cvc5::internal

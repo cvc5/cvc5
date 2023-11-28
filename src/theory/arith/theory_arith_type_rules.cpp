@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Gereon Kremer
+ *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,18 +21,22 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
+TypeNode ArithConstantTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode ArithConstantTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check,
                                             std::ostream* errOut)
 {
   // we use different kinds for constant integers and reals
-  if (n.getKind() == kind::CONST_RATIONAL)
+  if (n.getKind() == Kind::CONST_RATIONAL)
   {
     // constant rationals are always real type, even if their value is integral
     return nodeManager->realType();
   }
-  Assert(n.getKind() == kind::CONST_INTEGER);
+  Assert(n.getKind() == Kind::CONST_INTEGER);
   // constant integers should always have integral value
   if (check)
   {
@@ -45,10 +49,20 @@ TypeNode ArithConstantTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
+TypeNode ArithRealAlgebraicNumberOpTypeRule::preComputeType(NodeManager* nm,
+                                                            TNode n)
+{
+  return nm->realType();
+}
 TypeNode ArithRealAlgebraicNumberOpTypeRule::computeType(
     NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
   return nodeManager->realType();
+}
+TypeNode ArithRealAlgebraicNumberTypeRule::preComputeType(NodeManager* nm,
+                                                          TNode n)
+{
+  return nm->realType();
 }
 TypeNode ArithRealAlgebraicNumberTypeRule::computeType(NodeManager* nodeManager,
                                                        TNode n,
@@ -58,6 +72,10 @@ TypeNode ArithRealAlgebraicNumberTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->realType();
 }
 
+TypeNode ArithOperatorTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check,
@@ -87,7 +105,7 @@ TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
         throw TypeCheckingExceptionPrivate(n,
                                            "expecting an arithmetic subterm");
       }
-      if (k == kind::TO_REAL && !childType.isInteger())
+      if (k == Kind::TO_REAL && !childType.isInteger())
       {
         throw TypeCheckingExceptionPrivate(n, "expecting an integer subterm");
       }
@@ -95,16 +113,20 @@ TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
   }
   switch (k)
   {
-    case kind::TO_REAL: return realType;
-    case kind::TO_INTEGER: return integerType;
+    case Kind::TO_REAL: return realType;
+    case Kind::TO_INTEGER: return integerType;
     default:
     {
-      bool isDivision = k == kind::DIVISION || k == kind::DIVISION_TOTAL;
+      bool isDivision = k == Kind::DIVISION || k == Kind::DIVISION_TOTAL;
       return (isInteger && !isDivision ? integerType : realType);
     }
   }
 }
 
+TypeNode ArithRelationTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->booleanType();
+}
 TypeNode ArithRelationTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check,
@@ -123,6 +145,10 @@ TypeNode ArithRelationTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
+TypeNode RealNullaryOperatorTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode RealNullaryOperatorTypeRule::computeType(NodeManager* nodeManager,
                                                   TNode n,
                                                   bool check,
@@ -139,28 +165,16 @@ TypeNode RealNullaryOperatorTypeRule::computeType(NodeManager* nodeManager,
   return realType;
 }
 
-TypeNode IAndOpTypeRule::computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check,
-                                     std::ostream* errOut)
+TypeNode IAndTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  if (n.getKind() != kind::IAND_OP)
-  {
-    InternalError() << "IAND_OP typerule invoked for " << n << " instead of IAND_OP kind";
-  }
-  TypeNode iType = nodeManager->integerType();
-  std::vector<TypeNode> argTypes;
-  argTypes.push_back(iType);
-  argTypes.push_back(iType);
-  return nodeManager->mkFunctionType(argTypes, iType);
+  return nm->integerType();
 }
-
 TypeNode IAndTypeRule::computeType(NodeManager* nodeManager,
                                    TNode n,
                                    bool check,
                                    std::ostream* errOut)
 {
-  if (n.getKind() != kind::IAND)
+  if (n.getKind() != Kind::IAND)
   {
     InternalError() << "IAND typerule invoked for " << n << " instead of IAND kind";
   }
@@ -176,12 +190,16 @@ TypeNode IAndTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
+TypeNode Pow2TypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->integerType();
+}
 TypeNode Pow2TypeRule::computeType(NodeManager* nodeManager,
                                    TNode n,
                                    bool check,
                                    std::ostream* errOut)
 {
-  if (n.getKind() != kind::POW2)
+  if (n.getKind() != Kind::POW2)
   {
     InternalError() << "POW2 typerule invoked for " << n << " instead of POW2 kind";
   }
@@ -196,6 +214,10 @@ TypeNode Pow2TypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
+TypeNode IndexedRootPredicateTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->booleanType();
+}
 TypeNode IndexedRootPredicateTypeRule::computeType(NodeManager* nodeManager,
                                                    TNode n,
                                                    bool check,

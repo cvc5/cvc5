@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Dejan Jovanovic, Liana Hadarean
+ *   Gereon Kremer, Liana Hadarean, Dejan Jovanovic
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -252,9 +252,12 @@ SatValue MinisatSatSolver::modelValue(SatLiteral l){
   return toSatLiteralValue(d_minisat->modelValue(toMinisatLit(l)));
 }
 
-void MinisatSatSolver::requirePhase(SatLiteral lit) {
+void MinisatSatSolver::preferPhase(SatLiteral lit)
+{
   Assert(!d_minisat->rnd_pol);
-  Trace("minisat") << "requirePhase(" << lit << ")" << " " <<  lit.getSatVariable() << " " << lit.isNegated() << std::endl;
+  Trace("minisat") << "preferPhase(" << lit << ")"
+                   << " " << lit.getSatVariable() << " " << lit.isNegated()
+                   << std::endl;
   SatVariable v = lit.getSatVariable();
   d_minisat->freezePolarity(v, lit.isNegated());
 }
@@ -273,10 +276,14 @@ std::vector<SatLiteral> MinisatSatSolver::getDecisions() const
 {
   std::vector<SatLiteral> decisions;
   const Minisat::vec<Minisat::Lit>& miniDecisions =
-      d_minisat->getMiniSatDecisions();
+      d_minisat->getMiniSatAssignmentTrail();
   for (size_t i = 0, ndec = miniDecisions.size(); i < ndec; ++i)
   {
-    decisions.push_back(toSatLiteral(miniDecisions[i]));
+    auto satLit = toSatLiteral(miniDecisions[i]);
+    if (isDecision(satLit.getSatVariable()))
+    {
+      decisions.push_back(satLit);
+    }
   }
   return decisions;
 }

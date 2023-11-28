@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Hanna Lachnitt, Haniel Barbosa
+ *   Hanna Lachnitt, Haniel Barbosa, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -47,7 +47,7 @@ class AletheProofPostprocessCallback : protected EnvObj,
    * rule and translating it into a proof node in terms of the Alethe rules.
    */
   bool update(Node res,
-              PfRule id,
+              ProofRule id,
               const std::vector<Node>& children,
               const std::vector<Node>& args,
               CDProof* cdp,
@@ -66,7 +66,7 @@ class AletheProofPostprocessCallback : protected EnvObj,
    * as (cl F1 ... Fn).
    */
   bool updatePost(Node res,
-                  PfRule id,
+                  ProofRule id,
                   const std::vector<Node>& children,
                   const std::vector<Node>& args,
                   CDProof* cdp) override;
@@ -83,7 +83,7 @@ class AletheProofPostprocessCallback : protected EnvObj,
    *
    */
   bool finalStep(Node res,
-                 PfRule id,
+                 ProofRule id,
                  std::vector<Node>& children,
                  const std::vector<Node>& args,
                  CDProof* cdp);

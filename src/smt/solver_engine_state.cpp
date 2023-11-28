@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,6 +43,13 @@ void SolverEngineState::notifyExpectedStatus(const std::string& status)
   d_expectedStatus = Result(status, options().driver.filename);
   Assert(d_expectedStatus.getStatus() != Result::NONE);
 }
+
+void SolverEngineState::notifyDeclaration()
+{
+  // go to ASSERT
+  d_smtMode = SmtMode::ASSERT;
+}
+
 void SolverEngineState::notifyCheckSat()
 {
   // process the pending pops
@@ -89,7 +96,7 @@ void SolverEngineState::notifyCheckSynthResult(const SynthResult& r)
 {
   if (r.getStatus() == SynthResult::SOLUTION)
   {
-    // successfully generated a synthesis solution, update to abduct state
+    // successfully generated a synthesis solution, update to synth state
     d_smtMode = SmtMode::SYNTH;
   }
   else
@@ -119,6 +126,19 @@ void SolverEngineState::notifyGetInterpol(bool success)
   {
     // successfully generated an interpolant, update to interpol state
     d_smtMode = SmtMode::INTERPOL;
+  }
+  else
+  {
+    // failed, we revert to the assert state
+    d_smtMode = SmtMode::ASSERT;
+  }
+}
+
+void SolverEngineState::notifyFindSynth(bool success)
+{
+  if (success)
+  {
+    d_smtMode = SmtMode::FIND_SYNTH;
   }
   else
   {

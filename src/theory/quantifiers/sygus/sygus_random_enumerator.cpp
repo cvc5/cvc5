@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -164,7 +164,7 @@ Node SygusRandomEnumerator::incrementH()
     // We may have already generated a sygus term equivalent to the one we are
     // generating now. In that case, pick the smaller term of the two. This
     // operation allows us to generate more refined terms over time.
-    groundTerm[currSkolem] = getMin(nm->mkNode(kind::APPLY_CONSTRUCTOR, args));
+    groundTerm[currSkolem] = getMin(nm->mkNode(Kind::APPLY_CONSTRUCTOR, args));
   }
 
   return groundTerm[mainSkolem];

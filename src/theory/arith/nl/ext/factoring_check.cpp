@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -126,7 +126,7 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
           Node sum = nm->mkNode(Kind::ADD, itf->second);
           sum = rewrite(sum);
           // remove TO_REAL if necessary here
-          sum = sum.getKind() == TO_REAL ? sum[0] : sum;
+          sum = sum.getKind() == Kind::TO_REAL ? sum[0] : sum;
           Trace("nl-ext-factor")
               << "* Factored sum for " << x << " : " << sum << std::endl;
 
@@ -172,9 +172,11 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
           {
             Node k_eq = kf.eqNode(sum);
             Node split = nm->mkNode(Kind::OR, lit, lit.notNode());
-            proof->addStep(split, PfRule::SPLIT, {}, {lit});
-            proof->addStep(
-                flem, PfRule::MACRO_SR_PRED_TRANSFORM, {split, k_eq}, {flem});
+            proof->addStep(split, ProofRule::SPLIT, {}, {lit});
+            proof->addStep(flem,
+                           ProofRule::MACRO_SR_PRED_TRANSFORM,
+                           {split, k_eq},
+                           {flem});
           }
           d_data->d_im.addPendingLemma(
               flem, InferenceId::ARITH_NL_FACTOR, proof);
@@ -191,7 +193,7 @@ Node FactoringCheck::getFactorSkolem(Node n, CDProof* proof)
   if (itf == d_factor_skolem.end())
   {
     NodeManager* nm = NodeManager::currentNM();
-    k = nm->getSkolemManager()->mkPurifySkolem(n, "kf");
+    k = nm->getSkolemManager()->mkPurifySkolem(n);
     Node k_eq = k.eqNode(n);
     Trace("nl-ext-factor") << "...adding factor skolem " << k << " == " << n
                            << std::endl;
@@ -205,7 +207,7 @@ Node FactoringCheck::getFactorSkolem(Node n, CDProof* proof)
   if (d_data->isProofEnabled())
   {
     Node k_eq = k.eqNode(n);
-    proof->addStep(k_eq, PfRule::MACRO_SR_PRED_INTRO, {}, {k_eq});
+    proof->addStep(k_eq, ProofRule::MACRO_SR_PRED_INTRO, {}, {k_eq});
   }
   return k;
 }

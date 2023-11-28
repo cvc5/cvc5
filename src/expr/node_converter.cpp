@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -262,21 +262,18 @@ void NodeConverter::addToTypeCache(TypeNode cur, TypeNode ret)
   }
 }
 
-Node NodeConverter::preConvert(Node n) { return Node::null(); }
-Node NodeConverter::postConvert(Node n) { return Node::null(); }
+Node NodeConverter::preConvert(Node n) { return n; }
+Node NodeConverter::postConvert(Node n) { return n; }
 
 Node NodeConverter::postConvertUntyped(Node orig,
                                        const std::vector<Node>& terms,
                                        bool termsChanged)
 {
-  return Node::null();
+  return orig;
 }
 
-TypeNode NodeConverter::preConvertType(TypeNode tn) { return TypeNode::null(); }
-TypeNode NodeConverter::postConvertType(TypeNode tn)
-{
-  return TypeNode::null();
-}
+TypeNode NodeConverter::preConvertType(TypeNode tn) { return tn; }
+TypeNode NodeConverter::postConvertType(TypeNode tn) { return tn; }
 bool NodeConverter::shouldTraverse(Node n) { return true; }
 
 }  // namespace cvc5::internal

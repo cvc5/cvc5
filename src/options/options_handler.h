@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -99,7 +99,7 @@ class OptionsHandler
   /******************************* bv options *******************************/
 
   /** Check that the sat solver mode is compatible with other bv options */
-  void checkBvSatSolver(const std::string& flag, SatSolverMode m);
+  void checkBvSatSolver(const std::string& flag, BvSatSolverMode m);
 
   /******************************* main options *******************************/
   /** Show the solver build configuration and exit */

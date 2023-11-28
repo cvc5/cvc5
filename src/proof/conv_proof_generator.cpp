@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -75,7 +75,7 @@ void TConvProofGenerator::addRewriteStep(Node t,
                                          Node s,
                                          ProofGenerator* pg,
                                          bool isPre,
-                                         PfRule trustId,
+                                         TrustId trustId,
                                          bool isClosed,
                                          uint32_t tctx)
 {
@@ -98,7 +98,7 @@ void TConvProofGenerator::addRewriteStep(
 
 void TConvProofGenerator::addRewriteStep(Node t,
                                          Node s,
-                                         PfRule id,
+                                         ProofRule id,
                                          const std::vector<Node>& children,
                                          const std::vector<Node>& args,
                                          bool isPre,
@@ -174,7 +174,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
 {
   Trace("tconv-pf-gen") << "TConvProofGenerator::getProofFor: " << identify()
                         << ": " << f << std::endl;
-  if (f.getKind() != EQUAL)
+  if (f.getKind() != Kind::EQUAL)
   {
     std::stringstream serr;
     serr << "TConvProofGenerator::getProofFor: " << identify()
@@ -190,7 +190,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
     // assertion failure in debug
     Assert(false) << "TConvProofGenerator::getProofFor: " << identify()
                   << ": don't ask for trivial proofs";
-    lpf.addStep(f, PfRule::REFL, {}, {f[0]});
+    lpf.addStep(f, ProofRule::REFL, {}, {f[0]});
   }
   else
   {
@@ -198,7 +198,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
     if (conc != f)
     {
       bool debugTraceEnabled = TraceIsOn("tconv-pf-gen-debug");
-      Assert(conc.getKind() == EQUAL && conc[0] == f[0]);
+      Assert(conc.getKind() == Kind::EQUAL && conc[0] == f[0]);
       std::stringstream serr;
       serr << "TConvProofGenerator::getProofFor: " << toStringDebug()
            << ": failed, mismatch";
@@ -246,7 +246,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofForRewriting(Node n)
     // assertion failure in debug
     Assert(false) << "TConvProofGenerator::getProofForRewriting: " << identify()
                   << ": don't ask for trivial proofs";
-    lpf.addStep(conc, PfRule::REFL, {}, {n});
+    lpf.addStep(conc, ProofRule::REFL, {}, {n});
   }
   std::shared_ptr<ProofNode> pfn = lpf.getProofFor(conc);
   Assert(pfn != nullptr);
@@ -317,7 +317,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
     if (itc != d_cache.end())
     {
       Node res = itc->second->getResult();
-      Assert(res.getKind() == EQUAL);
+      Assert(res.getKind() == Kind::EQUAL);
       Assert(!res[1].isNull());
       visited[curHash] = res[1];
       pf.addProof(itc->second);
@@ -368,7 +368,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
       {
         visitctx->push(cur, curCVal);
         // visit operator if apply uf
-        if (d_rewriteOps && cur.getKind() == APPLY_UF)
+        if (d_rewriteOps && cur.getKind() == Kind::APPLY_UF)
         {
           visitctx->pushOp(cur, curCVal);
         }
@@ -378,7 +378,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
       {
         visit.push_back(cur);
         // visit operator if apply uf
-        if (d_rewriteOps && cur.getKind() == APPLY_UF)
+        if (d_rewriteOps && cur.getKind() == Kind::APPLY_UF)
         {
           visit.push_back(cur.getOperator());
         }
@@ -414,7 +414,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
           pfChildren.push_back(cur.eqNode(rcur));
           pfChildren.push_back(rcur.eqNode(rcurFinal));
           Node result = cur.eqNode(rcurFinal);
-          pf.addStep(result, PfRule::TRANS, pfChildren, {});
+          pf.addStep(result, ProofRule::TRANS, pfChildren, {});
         }
         Trace("tconv-pf-gen-rewrite")
             << "-> (rewritten postrewrite) " << curHash << " = " << rcurFinal
@@ -430,7 +430,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
         bool childChanged = false;
         std::vector<Node> children;
         Kind ck = cur.getKind();
-        if (d_rewriteOps && ck == APPLY_UF)
+        if (d_rewriteOps && ck == Kind::APPLY_UF)
         {
           // the operator of APPLY_UF is visited
           Node cop = cur.getOperator();
@@ -486,26 +486,29 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
           ret = nm->mkNode(ck, children);
           rewritten[curHash] = ret;
           // congruence to show (cur = ret)
-          PfRule congRule = PfRule::CONG;
+          ProofRule congRule = ProofRule::CONG;
           std::vector<Node> pfChildren;
           std::vector<Node> pfArgs;
-          pfArgs.push_back(ProofRuleChecker::mkKindNode(ck));
-          if (ck == APPLY_UF && children[0] != cur.getOperator())
+          if (ck == Kind::APPLY_UF && children[0] != cur.getOperator())
           {
             // use HO_CONG if the operator changed
-            congRule = PfRule::HO_CONG;
+            congRule = ProofRule::HO_CONG;
             pfChildren.push_back(cur.getOperator().eqNode(children[0]));
           }
-          else if (kind::metaKindOf(ck) == kind::metakind::PARAMETERIZED)
+          else
           {
-            pfArgs.push_back(cur.getOperator());
+            pfArgs.push_back(ProofRuleChecker::mkKindNode(ck));
+            if (kind::metaKindOf(ck) == kind::metakind::PARAMETERIZED)
+            {
+              pfArgs.push_back(cur.getOperator());
+            }
           }
           for (size_t i = 0, size = cur.getNumChildren(); i < size; i++)
           {
             if (cur[i] == ret[i])
             {
               // ensure REFL proof for unchanged children
-              pf.addStep(cur[i].eqNode(cur[i]), PfRule::REFL, {}, {cur[i]});
+              pf.addStep(cur[i].eqNode(cur[i]), ProofRule::REFL, {}, {cur[i]});
             }
             pfChildren.push_back(cur[i].eqNode(ret[i]));
           }
@@ -562,7 +565,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
             pfChildren.push_back(cur.eqNode(ret));
             pfChildren.push_back(ret.eqNode(rret));
             Node result = cur.eqNode(rret);
-            pf.addStep(result, PfRule::TRANS, pfChildren, {});
+            pf.addStep(result, ProofRule::TRANS, pfChildren, {});
           }
           // take its rewrite if it rewrote and we have ONCE rewriting policy
           ret = rret.isNull() ? ret : rret;

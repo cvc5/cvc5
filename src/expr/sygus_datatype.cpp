@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,17 +42,13 @@ void SygusDatatype::addAnyConstantConstructor(TypeNode tn)
 {
   SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
   // add an "any constant" proxy variable
-  Node av = sm->mkDummySkolem("_any_constant", tn);
-  // mark that it represents any constant
-  SygusAnyConstAttribute saca;
-  av.setAttribute(saca, true);
+  Node av = sm->mkSkolemFunction(SkolemFunId::SYGUS_ANY_CONSTANT, tn);
   std::stringstream ss;
   ss << getName() << "_any_constant";
   std::string cname(ss.str());
   std::vector<TypeNode> builtinArg;
   builtinArg.push_back(tn);
-  addConstructor(
-      av, cname, builtinArg, 0);
+  addConstructor(av, cname, builtinArg, 0);
 }
 void SygusDatatype::addConstructor(Kind k,
                                    const std::vector<TypeNode>& argTypes,
@@ -78,7 +74,7 @@ void SygusDatatype::initializeDatatype(TypeNode sygusType,
   // should not have initialized (set sygus) yet
   Assert(!isInitialized());
   // should have added a constructor
-  Assert(!d_cons.empty());
+  Assert(allowAll || allowConst || !d_cons.empty());
   /* Use the sygus type to not lose reference to the original types (Bool,
    * Int, etc) */
   d_dt.setSygus(sygusType, sygusVars, allowConst, allowAll);

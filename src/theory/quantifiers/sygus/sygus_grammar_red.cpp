@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,7 +17,6 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "expr/sygus_datatype.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
@@ -44,13 +43,13 @@ void SygusRedundantCons::initialize(TermDbSygus* tds, TypeNode tn)
   {
     Trace("sygus-red") << "  Is " << dt[i].getName() << " a redundant operator?"
                        << std::endl;
-    Node sop = dt[i].getSygusOp();
-    if (sop.getAttribute(SygusAnyConstAttribute()))
+    if (dt[i].isSygusAnyConstant())
     {
       // the any constant constructor is never redundant
       d_sygus_red_status.push_back(0);
       continue;
     }
+    Node sop = dt[i].getSygusOp();
     std::map<int, Node> pre;
     // We do not do beta reduction, since we want the arguments to match the
     // the types of the datatype.
@@ -59,7 +58,8 @@ void SygusRedundantCons::initialize(TermDbSygus* tds, TypeNode tn)
     d_gen_terms[i] = g;
     // is the operator a lambda of the form (lambda x1...xn. f(x1...xn))?
     bool lamInOrder = false;
-    if (sop.getKind() == LAMBDA && sop[0].getNumChildren() == sop[1].getNumChildren())
+    if (sop.getKind() == Kind::LAMBDA
+        && sop[0].getNumChildren() == sop[1].getNumChildren())
     {
       Assert(g.getNumChildren()==sop[0].getNumChildren());
       lamInOrder = true;

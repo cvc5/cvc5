@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Mathias Preiner, Andrew Reynolds
+ *   Aina Niemetz, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -81,10 +81,13 @@ TEST_F(TestApiBlackResult, isUnknown)
 {
   d_solver.setLogic("QF_NIA");
   d_solver.setOption("incremental", "false");
-  d_solver.setOption("solve-int-as-bv", "32");
-  Sort int_sort = d_solver.getIntegerSort();
-  Term x = d_solver.mkConst(int_sort, "x");
-  d_solver.assertFormula(x.eqTerm(x).notTerm());
+  d_solver.setOption("solve-real-as-int", "true");
+  Sort real_sort = d_solver.getRealSort();
+  Term x = d_solver.mkConst(real_sort, "x");
+  d_solver.assertFormula(
+      d_solver.mkTerm(Kind::LT, {d_solver.mkReal("0.0"), x}));
+  d_solver.assertFormula(
+      d_solver.mkTerm(Kind::LT, {x, d_solver.mkReal("1.0")}));
   cvc5::Result res = d_solver.checkSat();
   ASSERT_FALSE(res.isSat());
   ASSERT_TRUE(res.isUnknown());

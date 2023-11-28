@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -148,7 +148,7 @@ void BaseSolver::checkInit()
         // process indexing
         if (n.getNumChildren() > 0)
         {
-          if (k == EQUAL)
+          if (k == Kind::EQUAL)
           {
             continue;
           }
@@ -161,7 +161,7 @@ void BaseSolver::checkInit()
                 << "...found congruent term " << nc << std::endl;
             // check if we have inferred a new equality by removal of empty
             // components
-            if (k == STRING_CONCAT && !d_state.areEqual(nc, n))
+            if (k == Kind::STRING_CONCAT && !d_state.areEqual(nc, n))
             {
               std::vector<Node> exp;
               // the number of empty components of n, nc
@@ -230,7 +230,7 @@ void BaseSolver::checkInit()
             d_congruent.insert(n);
             congruentCount[k].first++;
           }
-          else if (k == STRING_CONCAT && c.size() == 1)
+          else if (k == Kind::STRING_CONCAT && c.size() == 1)
           {
             Trace("strings-base-debug")
                 << "  congruent term by singular : " << n << " " << c[0]
@@ -326,7 +326,8 @@ bool BaseSolver::processConstantLike(Node a, Node b)
     if (cchars.size() == 1)
     {
       Node oval = b.isConst() ? a : b;
-      Assert(oval.getKind() == SEQ_UNIT || oval.getKind() == STRING_UNIT);
+      Assert(oval.getKind() == Kind::SEQ_UNIT
+             || oval.getKind() == Kind::STRING_UNIT);
       s = oval[0];
       t = Word::getNth(cchars[0], 0);
       // oval is congruent (ignored) in this context
@@ -367,8 +368,8 @@ bool BaseSolver::processConstantLike(Node a, Node b)
         // x or y is not a valid code point
         Node scr = utils::mkCodeRange(s, d_cardSize);
         Node tcr = utils::mkCodeRange(t, d_cardSize);
-        Node conc =
-            NodeManager::currentNM()->mkNode(OR, scr.notNode(), tcr.notNode());
+        Node conc = NodeManager::currentNM()->mkNode(
+            Kind::OR, scr.notNode(), tcr.notNode());
         // We do not explain exp for two reasons. First, we are
         // caching this inference based on the user context and thus
         // it should not depend on the current explanation. Second,
@@ -379,7 +380,7 @@ bool BaseSolver::processConstantLike(Node a, Node b)
         // We must send this lemma immediately, since otherwise if buffered,
         // this lemma may be dropped if there is a fact or conflict that
         // preempts it.
-        Node lem = nm->mkNode(IMPLIES, nm->mkAnd(exp), conc);
+        Node lem = nm->mkNode(Kind::IMPLIES, nm->mkAnd(exp), conc);
         d_im.lemma(lem, InferenceId::STRINGS_UNIT_INJ_OOB);
         Trace("strings-base") << "...oob split" << std::endl;
       }
@@ -392,7 +393,9 @@ bool BaseSolver::processConstantLike(Node a, Node b)
     {
       // (seq.unit x) = (seq.unit y) => x=y, or
       // (seq.unit x) = (seq.unit c) => x=c
-      d_im.sendInference(exp, eq, InferenceId::STRINGS_UNIT_INJ);
+      // Must send this as lemma since it may impact other theories, or
+      // imply length constraints if the conclusion involves strings/sequences.
+      d_im.sendInference(exp, eq, InferenceId::STRINGS_UNIT_INJ, false, true);
       Trace("strings-base") << "...inj seq" << std::endl;
     }
   }
@@ -418,7 +421,7 @@ void BaseSolver::checkConstantEquivalenceClasses()
          d_termIndex)
     {
       checkConstantEquivalenceClasses(
-          &tindex.second[STRING_CONCAT], vecc, true);
+          &tindex.second[Kind::STRING_CONCAT], vecc, true);
     }
   } while (!d_im.hasProcessed() && d_eqcInfo.size() > prevSize);
 
@@ -430,7 +433,7 @@ void BaseSolver::checkConstantEquivalenceClasses()
          d_termIndex)
     {
       checkConstantEquivalenceClasses(
-          &tindex.second[STRING_CONCAT], vecc, false);
+          &tindex.second[Kind::STRING_CONCAT], vecc, false);
     }
   }
 }
@@ -500,7 +503,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
           Assert(!d_eqcInfo[nrr].d_bestContent.isNull()
                  && d_eqcInfo[nrr].d_bestContent.isConst());
           // must flatten to avoid nested AND in explanations
-          utils::flattenOp(AND, d_eqcInfo[nrr].d_exp, exp);
+          utils::flattenOp(Kind::AND, d_eqcInfo[nrr].d_exp, exp);
           // now explain equality to base
           d_im.addToExplanation(n[count], d_eqcInfo[nrr].d_base, exp);
         }
@@ -680,9 +683,19 @@ bool BaseSolver::isCardinalityOk(size_t typeCardSize,
                                  size_t eqcCount,
                                  size_t& lenNeed) const
 {
+  Trace("strings-card") << "isCardinalityOk? " << typeCardSize << " "
+                        << eqcCount << std::endl;
   if (eqcCount <= 1)
   {
     return true;
+  }
+  if (typeCardSize == 1)
+  {
+    // For string-like types of cardinality 1, there is only a single
+    // element of any length, thus we return false and set lenNeed to zero.
+    // We will add a split in checkCardinalityType.
+    lenNeed = 0;
+    return false;
   }
   lenNeed = 1;
   double curr = static_cast<double>(eqcCount);
@@ -701,7 +714,7 @@ bool BaseSolver::isCardinalityOk(size_t typeCardSize,
   if (lr.isConst())
   {
     // if constant, compare
-    Node cmp = nm->mkNode(GEQ, lr, nm->mkConstInt(Rational(lenNeed)));
+    Node cmp = nm->mkNode(Kind::GEQ, lr, nm->mkConstInt(Rational(lenNeed)));
     cmp = rewrite(cmp);
     needsSplit = !cmp.getConst<bool>();
   }
@@ -775,7 +788,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
     Node lr = lts[i];
     Trace("strings-card") << "Number of strings with length equal to " << lr
                           << " is " << cols[i].size() << std::endl;
-    size_t lenNeed;
+    size_t lenNeed = 0;
     if (isCardinalityOk(typeCardSize, lr, cols[i].size(), lenNeed))
     {
       // based on cardinality, we are ok
@@ -808,22 +821,22 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
     {
       Node k_node = nm->mkConstInt(Rational(lenNeed));
       // add cardinality lemma
-      Node dist = nm->mkNode(DISTINCT, cols[i]);
+      Node dist = nm->mkNode(Kind::DISTINCT, cols[i]);
       std::vector<Node> expn;
       expn.push_back(dist);
       for (std::vector<Node>::iterator itr1 = cols[i].begin();
            itr1 != cols[i].end();
            ++itr1)
       {
-        Node len = nm->mkNode(STRING_LENGTH, *itr1);
+        Node len = nm->mkNode(Kind::STRING_LENGTH, *itr1);
         if (len != lr)
         {
           Node len_eq_lr = len.eqNode(lr);
           expn.push_back(len_eq_lr);
         }
       }
-      Node len = nm->mkNode(STRING_LENGTH, cols[i][0]);
-      Node cons = nm->mkNode(GEQ, len, k_node);
+      Node len = nm->mkNode(Kind::STRING_LENGTH, cols[i][0]);
+      Node cons = nm->mkNode(Kind::GEQ, len, k_node);
       cons = rewrite(cons);
       ei->d_cardinalityLemK.set(lenNeed + 1);
       if (!cons.isConst() || !cons.getConst<bool>())
@@ -864,7 +877,7 @@ Node BaseSolver::explainConstantEqc(Node n, Node eqc, std::vector<Node>& exp)
     }
     if (!bei.d_exp.isNull())
     {
-      utils::flattenOp(AND, bei.d_exp, exp);
+      utils::flattenOp(Kind::AND, bei.d_exp, exp);
     }
     if (!bei.d_base.isNull())
     {
@@ -884,7 +897,7 @@ Node BaseSolver::explainBestContentEqc(Node n, Node eqc, std::vector<Node>& exp)
     Assert(!bei.d_bestContent.isNull());
     if (!bei.d_exp.isNull())
     {
-      utils::flattenOp(AND, bei.d_exp, exp);
+      utils::flattenOp(Kind::AND, bei.d_exp, exp);
     }
     if (!bei.d_base.isNull())
     {
@@ -919,7 +932,7 @@ Node BaseSolver::TermIndex::add(TNode n,
   Assert(index < n.getNumChildren());
   TNode nir = s.getRepresentative(n[index]);
   // if it is empty, and doing CONCAT, ignore
-  if (nir == er && n.getKind() == STRING_CONCAT)
+  if (nir == er && n.getKind() == Kind::STRING_CONCAT)
   {
     return add(n, index + 1, s, er, overwrite, c);
   }

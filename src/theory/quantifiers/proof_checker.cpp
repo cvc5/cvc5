@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,6 +18,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "theory/builtin/proof_checker.h"
+#include "theory/quantifiers/skolemize.h"
 
 using namespace cvc5::internal::kind;
 
@@ -28,38 +29,38 @@ namespace quantifiers {
 void QuantifiersProofRuleChecker::registerTo(ProofChecker* pc)
 {
   // add checkers
-  pc->registerChecker(PfRule::SKOLEM_INTRO, this);
-  pc->registerChecker(PfRule::SKOLEMIZE, this);
-  pc->registerChecker(PfRule::INSTANTIATE, this);
-  pc->registerChecker(PfRule::ALPHA_EQUIV, this);
-  // trusted rules
-  pc->registerTrustedChecker(PfRule::QUANTIFIERS_PREPROCESS, this, 3);
+  pc->registerChecker(ProofRule::SKOLEM_INTRO, this);
+  pc->registerChecker(ProofRule::SKOLEMIZE, this);
+  pc->registerChecker(ProofRule::INSTANTIATE, this);
+  pc->registerChecker(ProofRule::ALPHA_EQUIV, this);
 }
 
 Node QuantifiersProofRuleChecker::checkInternal(
-    PfRule id, const std::vector<Node>& children, const std::vector<Node>& args)
+    ProofRule id,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  if (id == PfRule::SKOLEM_INTRO)
+  if (id == ProofRule::SKOLEM_INTRO)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
     Node t = SkolemManager::getUnpurifiedForm(args[0]);
     return args[0].eqNode(t);
   }
-  else if (id == PfRule::SKOLEMIZE)
+  else if (id == ProofRule::SKOLEMIZE)
   {
     Assert(children.size() == 1);
     Assert(args.empty());
     // can use either negated FORALL or EXISTS
-    if (children[0].getKind() != EXISTS
-        && (children[0].getKind() != NOT || children[0][0].getKind() != FORALL))
+    if (children[0].getKind() != Kind::EXISTS
+        && (children[0].getKind() != Kind::NOT
+            || children[0][0].getKind() != Kind::FORALL))
     {
       return Node::null();
     }
     Node exists;
-    if (children[0].getKind() == EXISTS)
+    if (children[0].getKind() == Kind::EXISTS)
     {
       exists = children[0];
     }
@@ -67,17 +68,19 @@ Node QuantifiersProofRuleChecker::checkInternal(
     {
       std::vector<Node> echildren(children[0][0].begin(), children[0][0].end());
       echildren[1] = echildren[1].notNode();
-      exists = nm->mkNode(EXISTS, echildren);
+      exists = nm->mkNode(Kind::EXISTS, echildren);
     }
-    std::vector<Node> skolems;
-    Node res = sm->mkSkolemize(exists, skolems, "k");
+    std::vector<Node> vars(exists[0].begin(), exists[0].end());
+    std::vector<Node> skolems = Skolemize::getSkolemConstants(exists);
+    Node res = exists[1].substitute(
+        vars.begin(), vars.end(), skolems.begin(), skolems.end());
     return res;
   }
-  else if (id == PfRule::INSTANTIATE)
+  else if (id == ProofRule::INSTANTIATE)
   {
     Assert(children.size() == 1);
     // note we may have more arguments than just the term vector
-    if (children[0].getKind() != FORALL
+    if (children[0].getKind() != Kind::FORALL
         || args.size() < children[0][0].getNumChildren())
     {
       return Node::null();
@@ -94,10 +97,10 @@ Node QuantifiersProofRuleChecker::checkInternal(
         body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
     return inst;
   }
-  else if (id == PfRule::ALPHA_EQUIV)
+  else if (id == ProofRule::ALPHA_EQUIV)
   {
     Assert(children.empty());
-    if (args[0].getKind() != kind::FORALL)
+    if (args[0].getKind() != Kind::FORALL)
     {
       return Node::null();
     }
@@ -108,14 +111,14 @@ Node QuantifiersProofRuleChecker::checkInternal(
     std::vector<Node> newVars;
     for (size_t i = 1, nargs = args.size(); i < nargs; i++)
     {
-      if (args[i].getKind() != kind::EQUAL)
+      if (args[i].getKind() != Kind::EQUAL)
       {
         return Node::null();
       }
       for (size_t j = 0; j < 2; j++)
       {
         Node v = args[i][j];
-        if (v.getKind() != kind::BOUND_VARIABLE
+        if (v.getKind() != Kind::BOUND_VARIABLE
             || allVars[j].find(v) != allVars[j].end())
         {
           return Node::null();
@@ -128,12 +131,6 @@ Node QuantifiersProofRuleChecker::checkInternal(
     Node renamedBody = args[0].substitute(
         vars.begin(), vars.end(), newVars.begin(), newVars.end());
     return args[0].eqNode(renamedBody);
-  }
-  else if (id == PfRule::QUANTIFIERS_PREPROCESS)
-  {
-    Assert(!args.empty());
-    Assert(args[0].getType().isBoolean());
-    return args[0];
   }
 
   // no rule

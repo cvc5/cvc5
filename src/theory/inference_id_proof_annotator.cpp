@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,10 +41,10 @@ std::shared_ptr<ProofNode> InferenceIdProofAnnotator::annotate(
     std::vector<Node> pfArgs;
     pfArgs.push_back(mkInferenceIdNode(it->second));
     std::shared_ptr<ProofNode> pa =
-        d_pnm->mkNode(PfRule::ANNOTATION, {p}, pfArgs);
+        d_pnm->mkNode(ProofRule::ANNOTATION, {p}, pfArgs);
     // for now, do a double annotation to make stats accurate
     std::shared_ptr<ProofNode> paf =
-        d_pnm->mkNode(PfRule::ANNOTATION, {pa}, {});
+        d_pnm->mkNode(ProofRule::ANNOTATION, {pa}, {});
     d_list.push_back(paf);
     return paf;
   }

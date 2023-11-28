@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Mathias Preiner, Andrew Reynolds
+ *   Mudathir Mohamed, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -56,12 +56,12 @@ Node BagEnumerator::operator*()
 
 BagEnumerator& BagEnumerator::operator++()
 {
-  if (d_currentBag.getKind() == kind::BAG_EMPTY)
+  if (d_currentBag.getKind() == Kind::BAG_EMPTY)
   {
     // return (bag d_element 1)
     Node one = d_nodeManager->mkConstInt(Rational(1));
     TypeNode elementType = d_elementTypeEnumerator.getType();
-    Node singleton = d_nodeManager->mkNode(BAG_MAKE, d_element, one);
+    Node singleton = d_nodeManager->mkNode(Kind::BAG_MAKE, d_element, one);
     d_currentBag = singleton;
   }
   else

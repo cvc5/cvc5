@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -75,8 +75,8 @@ bool NlExtTheoryCallback::isExtfReduced(
   if (!isZero(n))
   {
     Kind k = n.getKind();
-    if (k != NONLINEAR_MULT && !isTranscendentalKind(k) && k != IAND
-        && k != POW2)
+    if (k != Kind::NONLINEAR_MULT && !isTranscendentalKind(k) && k != Kind::IAND
+        && k != Kind::POW2)
     {
       // we consider an extended function to be reduced if it simplifies to
       // something that is not a non-linear term. For example, if we know
@@ -91,7 +91,7 @@ bool NlExtTheoryCallback::isExtfReduced(
   // simplified to zero, for example, if (= x 0) ^ (= y 5) => (= (* x y) 0),
   // we minimize the explanation to (= x 0) => (= (* x y) 0).
   id = ExtReducedId::ARITH_SR_ZERO;
-  if (on.getKind() == NONLINEAR_MULT)
+  if (on.getKind() == Kind::NONLINEAR_MULT)
   {
     Trace("nl-ext-zero-exp")
         << "Infer zero : " << on << " == " << n << std::endl;
@@ -103,15 +103,15 @@ bool NlExtTheoryCallback::isExtfReduced(
       Trace("nl-ext-zero-exp")
           << "  exp[" << i << "] = " << exp[i] << std::endl;
       std::vector<Node> eqs;
-      if (exp[i].getKind() == EQUAL && exp[i][0].getType().isRealOrInt())
+      if (exp[i].getKind() == Kind::EQUAL && exp[i][0].getType().isRealOrInt())
       {
         eqs.push_back(exp[i]);
       }
-      else if (exp[i].getKind() == AND)
+      else if (exp[i].getKind() == Kind::AND)
       {
         for (const Node& ec : exp[i])
         {
-          if (ec.getKind() == EQUAL && ec[0].getType().isRealOrInt())
+          if (ec.getKind() == Kind::EQUAL && ec[0].getType().isRealOrInt())
           {
             eqs.push_back(ec);
           }

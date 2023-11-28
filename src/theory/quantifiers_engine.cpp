@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Morgan Deters
+ *   Andrew Reynolds, Morgan Deters, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -564,7 +564,7 @@ void QuantifiersEngine::registerQuantifierInternal(Node f)
     Trace("quant") << " : " << f << std::endl;
     size_t prev_lemma_waiting = d_qim.numPendingLemmas();
     ++(d_qstate.getStats().d_num_quant);
-    Assert(f.getKind() == FORALL);
+    Assert(f.getKind() == Kind::FORALL);
     // register with utilities
     for (unsigned i = 0; i < d_util.size(); i++)
     {

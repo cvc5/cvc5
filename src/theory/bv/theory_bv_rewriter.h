@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Liana Hadarean, Andres Noetzli, Andrew Reynolds
+ *   Liana Hadarean, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -96,7 +96,7 @@ class TheoryBVRewriter : public TheoryRewriter
 
   void initializeRewrites();
 
-  RewriteFunction d_rewriteTable[kind::LAST_KIND];
+  RewriteFunction d_rewriteTable[static_cast<uint32_t>(Kind::LAST_KIND)];
 }; /* class TheoryBVRewriter */
 
 }  // namespace bv

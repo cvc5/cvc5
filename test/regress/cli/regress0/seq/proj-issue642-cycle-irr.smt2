@@ -1,0 +1,5 @@
+(set-logic ALL)
+(set-info :status sat)
+(set-option :strings-eager-reg false)
+(declare-const x (Seq Bool))
+(check-sat-assuming ((seq.contains (ite false seq.empty x) (seq.unit true)) (seq.suffixof (seq.replace (seq.unit false) seq.empty (seq.unit false)) (seq.replace x (seq.unit false) seq.empty))))

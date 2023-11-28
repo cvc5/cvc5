@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Gereon Kremer, Andres Noetzli
+ *   Mudathir Mohamed, Aina Niemetz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -62,11 +62,6 @@ public class OptionInfo extends AbstractPointer
   }
 
   protected native void deletePointer(long pointer);
-
-  public long getPointer()
-  {
-    return pointer;
-  }
 
   public String toString()
   {
@@ -181,7 +176,9 @@ public class OptionInfo extends AbstractPointer
   }
 
   /**
-   * Obtain the current value as a boolean. Asserts that valueInfo holds a boolean.
+   * Obtain the current value as a Boolean.
+   * Asserts that valueInfo holds a Boolean.
+   * @return The Boolean value.
    */
   public boolean booleanValue()
   {
@@ -191,8 +188,9 @@ public class OptionInfo extends AbstractPointer
   private native boolean booleanValue(long pointer);
 
   /**
-   * Obtain the current value as a string. Asserts that valueInfo holds a
-   * string.
+   * Obtain the current value as a string.
+   * Asserts that valueInfo holds a string.
+   * @return The string value.
    */
   public String stringValue()
   {
@@ -202,7 +200,9 @@ public class OptionInfo extends AbstractPointer
   private native String stringValue(long pointer);
 
   /**
-   * Obtain the current value as as int. Asserts that valueInfo holds an int.
+   * Obtain the current value as as int.
+   * Asserts that valueInfo holds an int.
+   * @return The integer value.
    */
   public BigInteger intValue()
   {
@@ -212,8 +212,9 @@ public class OptionInfo extends AbstractPointer
   private native BigInteger intValue(long pointer);
 
   /**
-   * Obtain the current value as a double. Asserts that valueInfo holds a
-   * double.
+   * Obtain the current value as a double.
+   * Asserts that valueInfo holds a double.
+   * @return The double value.
    */
   public double doubleValue()
   {

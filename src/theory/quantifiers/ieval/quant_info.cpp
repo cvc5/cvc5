@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,7 +34,7 @@ QuantInfo::QuantInfo(context::Context* c)
 
 void QuantInfo::initialize(TNode q, Node body)
 {
-  Assert(q.getKind() == FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   d_quant = q;
 
   Trace("ieval-quant-debug")
@@ -94,22 +94,22 @@ void QuantInfo::computeMatchReq(TNode cur, std::vector<TNode>& visit)
   Assert(cur.getType().isBoolean());
   bool pol = true;
   Kind k = cur.getKind();
-  Assert(k != IMPLIES);
-  if (k == OR)
+  Assert(k != Kind::IMPLIES);
+  if (k == Kind::OR)
   {
     // decompose OR
     visit.insert(visit.end(), cur.begin(), cur.end());
     return;
   }
-  else if (k == NOT)
+  else if (k == Kind::NOT)
   {
     pol = false;
     cur = cur[0];
     k = cur.getKind();
     // double negations should already be eliminated
-    Assert(k != NOT);
+    Assert(k != Kind::NOT);
     // should be NNF
-    Assert(k != AND);
+    Assert(k != Kind::AND);
   }
   // required to falsify
   d_req[cur] = !pol;

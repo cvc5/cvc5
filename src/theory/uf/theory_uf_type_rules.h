@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Morgan Deters
+ *   Andrew Reynolds, Tim King, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,18 +33,8 @@ namespace uf {
 class UfTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager,
-                              TNode n,
-                              bool check,
-                              std::ostream* errOut);
-};
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
-/**
- * A cardinality constraint specified by its operator, returns the Boolean type.
- */
-class CardinalityConstraintTypeRule
-{
- public:
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -59,19 +49,8 @@ class CardinalityConstraintTypeRule
 class CardinalityConstraintOpTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager,
-                              TNode n,
-                              bool check,
-                              std::ostream* errOut);
-};
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
-/**
- * A combined cardinality constraint specified by its operator, returns the
- * Boolean type.
- */
-class CombinedCardinalityConstraintTypeRule
-{
- public:
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -86,6 +65,8 @@ class CombinedCardinalityConstraintTypeRule
 class CombinedCardinalityConstraintOpTypeRule
 {
  public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -101,6 +82,9 @@ class HoApplyTypeRule
 {
  public:
   // the typing rule for HO_APPLY terms
+
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -115,6 +99,8 @@ class HoApplyTypeRule
 class LambdaTypeRule
 {
  public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -128,6 +114,8 @@ class LambdaTypeRule
 class FunctionArrayConstTypeRule
 {
  public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -153,6 +141,8 @@ class FunctionProperties
 class IntToBitVectorOpTypeRule
 {
  public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -168,6 +158,8 @@ class IntToBitVectorOpTypeRule
 class BitVectorConversionTypeRule
 {
  public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,

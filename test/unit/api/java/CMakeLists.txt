@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mudathir Mohamed, Gereon Kremer, Andrew Reynolds
+#   Mudathir Mohamed, Gereon Kremer, Alex Ozdemir
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -31,6 +31,7 @@ set(java_test_src_files
   ${CMAKE_CURRENT_SOURCE_DIR}/SortTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/SynthResultTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/TermTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/ProofTest.java
 )
 
 # build junit tests
@@ -73,5 +74,6 @@ cvc5_add_java_api_test(SolverTest)
 cvc5_add_java_api_test(SortTest)
 cvc5_add_java_api_test(SynthResultTest)
 cvc5_add_java_api_test(TermTest)
+cvc5_add_java_api_test(ProofTest)
 
 cvc5_add_unit_test_white(UncoveredTest api/java)

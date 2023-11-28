@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -58,7 +58,7 @@ void ExponentialSolver::doPurification(TNode a, TNode new_a)
   {
     // simple to justify
     proof = d_data->getProof();
-    proof->addStep(lem, PfRule::MACRO_SR_PRED_INTRO, {}, {lem});
+    proof->addStep(lem, ProofRule::MACRO_SR_PRED_INTRO, {}, {lem});
   }
   d_data->d_im.addPendingLemma(lem, InferenceId::ARITH_NL_T_PURIFY_ARG, proof);
 }
@@ -91,7 +91,8 @@ void ExponentialSolver::checkInitialRefine()
           if (d_data->isProofEnabled())
           {
             proof = d_data->getProof();
-            proof->addStep(lem, PfRule::ARITH_TRANS_EXP_POSITIVITY, {}, {t[0]});
+            proof->addStep(
+                lem, ProofRule::ARITH_TRANS_EXP_POSITIVITY, {}, {t[0]});
           }
           d_data->d_im.addPendingLemma(
               lem, InferenceId::ARITH_NL_T_INIT_REFINE, proof);
@@ -107,7 +108,7 @@ void ExponentialSolver::checkInitialRefine()
           if (d_data->isProofEnabled())
           {
             proof = d_data->getProof();
-            proof->addStep(lem, PfRule::ARITH_TRANS_EXP_ZERO, {}, {t[0]});
+            proof->addStep(lem, ProofRule::ARITH_TRANS_EXP_ZERO, {}, {t[0]});
           }
           d_data->d_im.addPendingLemma(
               lem, InferenceId::ARITH_NL_T_INIT_REFINE, proof);
@@ -121,7 +122,7 @@ void ExponentialSolver::checkInitialRefine()
           if (d_data->isProofEnabled())
           {
             proof = d_data->getProof();
-            proof->addStep(lem, PfRule::ARITH_TRANS_EXP_NEG, {}, {t[0]});
+            proof->addStep(lem, ProofRule::ARITH_TRANS_EXP_NEG, {}, {t[0]});
           }
           d_data->d_im.addPendingLemma(
               lem, InferenceId::ARITH_NL_T_INIT_REFINE, proof);
@@ -136,7 +137,8 @@ void ExponentialSolver::checkInitialRefine()
           if (d_data->isProofEnabled())
           {
             proof = d_data->getProof();
-            proof->addStep(lem, PfRule::ARITH_TRANS_EXP_SUPER_LIN, {}, {t[0]});
+            proof->addStep(
+                lem, ProofRule::ARITH_TRANS_EXP_SUPER_LIN, {}, {t[0]});
           }
           d_data->d_im.addPendingLemma(
               lem, InferenceId::ARITH_NL_T_INIT_REFINE, proof);
@@ -246,7 +248,7 @@ void ExponentialSolver::doTangentLemma(TNode e,
   {
     proof = d_data->getProof();
     proof->addStep(lem,
-                   PfRule::ARITH_TRANS_EXP_APPROX_BELOW,
+                   ProofRule::ARITH_TRANS_EXP_APPROX_BELOW,
                    {},
                    {nm->mkConstInt(Rational(d)), c, e[0]});
   }

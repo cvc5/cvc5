@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -55,14 +55,14 @@ class RewriteProofRule
    * non-null for all rules that should be applied to fixed-point. The context
    * is a lambda term that specifies the next position of the term to rewrite.
    */
-  void init(DslPfRule id,
+  void init(DslProofRule id,
             const std::vector<Node>& userFvs,
             const std::vector<Node>& fvs,
             const std::vector<Node>& cond,
             Node conc,
             Node context);
   /** get id */
-  DslPfRule getId() const;
+  DslProofRule getId() const;
   /** get name */
   const char* getName() const;
   /** Get user variable list */
@@ -123,7 +123,7 @@ class RewriteProofRule
 
  private:
   /** The id of the rule */
-  DslPfRule d_id;
+  DslProofRule d_id;
   /** The conditions of the rule */
   std::vector<Node> d_cond;
   /** The obligation generator formulas of the rule */

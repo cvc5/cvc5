@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yoni Zohar, Andres Noetzli, Gereon Kremer
+ *   Yoni Zohar, Gereon Kremer, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,7 +26,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-class ArithState;
 class InferenceManager;
 
 namespace nl {
@@ -41,7 +40,7 @@ class Pow2Solver : protected EnvObj
   using NodeSet = context::CDHashSet<Node>;
 
  public:
-  Pow2Solver(Env& env, InferenceManager& im, ArithState& state, NlModel& model);
+  Pow2Solver(Env& env, InferenceManager& im, NlModel& model);
   ~Pow2Solver();
 
   /** init last call

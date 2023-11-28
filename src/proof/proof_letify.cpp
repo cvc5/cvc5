@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,7 @@ namespace proof {
 
 bool ProofLetifyTraverseCallback::shouldTraverse(const ProofNode* pn)
 {
-  return pn->getRule() != PfRule::SCOPE;
+  return pn->getRule() != ProofRule::SCOPE;
 }
 
 void ProofLetify::computeProofLet(const ProofNode* pn,
@@ -110,7 +110,7 @@ void ProofLetify::convertProofCountToLet(
   {
     itc = pcount.find(pn);
     Assert(itc != pcount.end());
-    if (itc->second >= thresh && pn->getRule() != PfRule::ASSUME)
+    if (itc->second >= thresh && pn->getRule() != ProofRule::ASSUME)
     {
       pletList.push_back(pn);
       // start with id 1

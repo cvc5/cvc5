@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Hanna Lachnitt
+ *   Hanna Lachnitt, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -49,8 +49,8 @@ bool LetUpdaterPfCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
     // We do not go *below* cl, since the clause itself cannot be shared (goes
     // against the Alethe specification). We assume that s-expressions with a
     // bound variable as first argument are all of the form (cl ...).
-    if (args[i].getKind() == kind::SEXPR
-        && args[i][0].getKind() == kind::BOUND_VARIABLE)
+    if (args[i].getKind() == Kind::SEXPR
+        && args[i][0].getKind() == Kind::BOUND_VARIABLE)
     {
       for (const auto& arg : args[i])
       {
@@ -74,7 +74,12 @@ AletheProofPrinter::AletheProofPrinter(Env& env)
 
 void AletheProofPrinter::printTerm(std::ostream& out, TNode n)
 {
-  out << d_lbind.convert(n, "@p_");
+  std::stringstream ss;
+  options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
+  // We print lambda applications in non-curried manner
+  options::ioutils::applyFlattenHOChains(ss, true);
+  ss << d_lbind.convert(n, "@p_");
+  out << ss.str();
 }
 
 void AletheProofPrinter::print(std::ostream& out,
@@ -139,7 +144,7 @@ std::string AletheProofPrinter::printInternal(
 
   // If the proof node is untranslated a problem might have occured during
   // postprocessing
-  if (args.size() < 3 || pfn->getRule() != PfRule::ALETHE_RULE)
+  if (args.size() < 3 || pfn->getRule() != ProofRule::ALETHE_RULE)
   {
     Trace("alethe-printer")
         << "... printing failed! Encountered untranslated Node. "
@@ -211,9 +216,9 @@ std::string AletheProofPrinter::printInternal(
       out << " :args (";
       for (size_t j = 3, size = args.size(); j < size; j++)
       {
-        Assert(args[j].getKind() == kind::EQUAL);
+        Assert(args[j].getKind() == Kind::EQUAL);
         // if the rhs is a variable, it must be declared first
-        if (args[j][1].getKind() == kind::BOUND_VARIABLE)
+        if (args[j][1].getKind() == Kind::BOUND_VARIABLE)
         {
           out << "(" << args[j][1] << " " << args[j][1].getType() << ") ";
         }

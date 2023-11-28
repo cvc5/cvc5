@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -15,6 +15,7 @@
 cvc5_add_unit_test_black(datatype_api_black api/cpp)
 cvc5_add_unit_test_black(grammar_black api/cpp)
 cvc5_add_unit_test_black(api_kind_black api/cpp)
+cvc5_add_unit_test_black(api_proof_rule_black api/cpp)
 cvc5_add_unit_test_black(api_sort_kind_black api/cpp)
 cvc5_add_unit_test_black(op_black api/cpp)
 cvc5_add_unit_test_black(parametric_datatype_black api/cpp)
@@ -27,3 +28,7 @@ cvc5_add_unit_test_white(solver_white api/cpp)
 cvc5_add_unit_test_black(synth_result_black api/cpp)
 cvc5_add_unit_test_white(term_white api/cpp)
 cvc5_add_unit_test_white(types_black api/cpp)
+cvc5_add_unit_test_black(proof_black api/cpp)
+cvc5_add_unit_test_white(command_black api/cpp)
+cvc5_add_unit_test_white(symbol_manager_black api/cpp)
+cvc5_add_unit_test_white(input_parser_black api/cpp)

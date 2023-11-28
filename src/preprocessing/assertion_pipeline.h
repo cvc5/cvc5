@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -145,6 +145,20 @@ class AssertionPipeline : protected EnvObj
   {
     return d_storeSubstsInAsserts && i == d_substsIndex;
   }
+  /** Is in conflict? True if this pipeline contains the false assertion */
+  bool isInConflict() const { return d_conflict; }
+  /** Is refutation unsound? */
+  bool isRefutationUnsound() const { return d_isRefutationUnsound; }
+  /** Is model unsound? */
+  bool isModelUnsound() const { return d_isModelUnsound; }
+  /** Is negated? */
+  bool isNegated() const { return d_isNegated; }
+  /** mark refutation unsound */
+  void markRefutationUnsound();
+  /** mark model unsound */
+  void markModelUnsound();
+  /** mark negated */
+  void markNegated();
   //------------------------------------ for proofs
   /**
    * Enable proofs for this assertions pipeline. This must be called
@@ -158,6 +172,11 @@ class AssertionPipeline : protected EnvObj
   bool isProofEnabled() const;
   //------------------------------------ end for proofs
  private:
+  /** Set that we are in conflict */
+  void markConflict();
+  /** Boolean constants */
+  Node d_true;
+  Node d_false;
   /** The list of current assertions */
   std::vector<Node> d_nodes;
 
@@ -190,6 +209,14 @@ class AssertionPipeline : protected EnvObj
   size_t d_numAssumptions;
   /** The proof generator, if one is provided */
   smt::PreprocessProofGenerator* d_pppg;
+  /** Are we in conflict? */
+  bool d_conflict;
+  /** Is refutation unsound? */
+  bool d_isRefutationUnsound;
+  /** Is model unsound? */
+  bool d_isModelUnsound;
+  /** Is negated? */
+  bool d_isNegated;
 }; /* class AssertionPipeline */
 
 }  // namespace preprocessing

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,13 +34,13 @@ class TestNodeBlackKindMap : public TestInternal
 TEST_F(TestNodeBlackKindMap, simple)
 {
   KindMap map;
-  ASSERT_FALSE(map.test(AND));
-  map.set(AND);
-  ASSERT_TRUE(map.test(AND));
-  map.reset(AND);
-  ASSERT_FALSE(map.test(AND));
+  ASSERT_FALSE(map.test(Kind::AND));
+  map.set(Kind::AND);
+  ASSERT_TRUE(map.test(Kind::AND));
+  map.reset(Kind::AND);
+  ASSERT_FALSE(map.test(Kind::AND));
 #ifdef CVC5_ASSERTIONS
-  ASSERT_THROW(map.set(LAST_KIND), AssertArgumentException);
+  ASSERT_THROW(map.set(Kind::LAST_KIND), AssertArgumentException);
 #endif
 }
 

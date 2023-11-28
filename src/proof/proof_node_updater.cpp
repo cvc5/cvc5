@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +27,7 @@ ProofNodeUpdaterCallback::ProofNodeUpdaterCallback() {}
 ProofNodeUpdaterCallback::~ProofNodeUpdaterCallback() {}
 
 bool ProofNodeUpdaterCallback::update(Node res,
-                                      PfRule id,
+                                      ProofRule id,
                                       const std::vector<Node>& children,
                                       const std::vector<Node>& args,
                                       CDProof* cdp,
@@ -43,7 +43,7 @@ bool ProofNodeUpdaterCallback::shouldUpdatePost(std::shared_ptr<ProofNode> pn,
 }
 
 bool ProofNodeUpdaterCallback::updatePost(Node res,
-                                          PfRule id,
+                                          ProofRule id,
                                           const std::vector<Node>& children,
                                           const std::vector<Node>& args,
                                           CDProof* cdp)
@@ -104,6 +104,15 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
   std::map<Node, std::vector<std::shared_ptr<ProofNode>>> resCacheNcWaiting;
   // Map from proof nodes to whether they contain assumptions
   std::unordered_map<const ProofNode*, bool> cfaMap;
+  std::unordered_set<Node> cfaAllowed;
+  cfaAllowed.insert(fa.begin(), fa.end());
+  std::shared_ptr<ProofNode> pft = pf;
+  while (pft->getRule() == ProofRule::SCOPE)
+  {
+    const std::vector<Node>& args = pft->getArguments();
+    cfaAllowed.insert(args.begin(), args.end());
+    pft = pft->getChildren()[0];
+  }
   Trace("pf-process") << "ProofNodeUpdater::process" << std::endl;
   std::unordered_map<std::shared_ptr<ProofNode>, bool> visited;
   std::unordered_map<std::shared_ptr<ProofNode>, bool>::iterator it;
@@ -111,30 +120,24 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
   std::shared_ptr<ProofNode> cur;
   visit.push_back(pf);
   std::map<Node, std::shared_ptr<ProofNode>>::iterator itc;
-  Node res;
-  ProofNodeManager* pnm = d_env.getProofNodeManager();
-  Assert(pnm != nullptr);
   do
   {
     cur = visit.back();
     visit.pop_back();
     it = visited.find(cur);
-    res = cur->getResult();
     if (it == visited.end())
     {
-      if (d_mergeSubproofs)
+      // Check if there is a proof in resCache with the same result.
+      // Note that if this returns true, we update the contents of the current
+      // proof. Moreover, parents will replace the reference to this proof.
+      // Thus, replacing the contents of this proof is not (typically)
+      // necessary, but is done anyways in case there are any other references
+      // to this proof that are not handled by this loop, that is, proof
+      // nodes having this as a child that are not subproofs of pf.
+      if (checkMergeProof(cur, resCache, cfaMap))
       {
-        itc = resCache.find(res);
-        if (itc != resCache.end())
-        {
-          // already have a proof, merge it into this one
-          visited[cur] = true;
-          pnm->updateNode(cur.get(), itc->second.get());
-          // does not contain free assumptions since the range of resCache does
-          // not contain free assumptions
-          cfaMap[cur.get()] = false;
-          continue;
-        }
+        visited[cur] = true;
+        continue;
       }
       // run update to a fixed point
       bool continueUpdate = true;
@@ -148,7 +151,7 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
         // no further changes should be made to cur according to the callback
         Trace("pf-process-debug")
             << "...marked to not continue update." << std::endl;
-        runFinalize(cur, fa, resCache, resCacheNcWaiting, cfaMap);
+        runFinalize(cur, fa, resCache, resCacheNcWaiting, cfaMap, cfaAllowed);
         continue;
       }
       traversing.push_back(cur);
@@ -158,7 +161,7 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
       // allows us to properly track the assumptions in scope, which is
       // important for example to merge or to determine updates based on free
       // assumptions.
-      if (cur->getRule() == PfRule::SCOPE)
+      if (cur->getRule() == ProofRule::SCOPE)
       {
         const std::vector<Node>& args = cur->getArguments();
         fa.insert(fa.end(), args.begin(), args.end());
@@ -184,13 +187,22 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
       traversing.pop_back();
       visited[cur] = true;
       // finalize the node
-      if (cur->getRule() == PfRule::SCOPE)
+      if (cur->getRule() == ProofRule::SCOPE)
       {
         const std::vector<Node>& args = cur->getArguments();
         Assert(fa.size() >= args.size());
         fa.resize(fa.size() - args.size());
       }
-      runFinalize(cur, fa, resCache, resCacheNcWaiting, cfaMap);
+      // maybe found a proof in the meantime, i.e. a subproof of the current
+      // proof with the same result. Same as above, updating the contents here
+      // is typically not necessary since references to this proof will be
+      // replaced.
+      if (checkMergeProof(cur, resCache, cfaMap))
+      {
+        visited[cur] = true;
+        continue;
+      }
+      runFinalize(cur, fa, resCache, resCacheNcWaiting, cfaMap, cfaAllowed);
     }
   } while (!visit.empty());
   Trace("pf-process") << "ProofNodeUpdater::process: finished" << std::endl;
@@ -201,7 +213,7 @@ bool ProofNodeUpdater::updateProofNode(std::shared_ptr<ProofNode> cur,
                                        bool& continueUpdate,
                                        bool preVisit)
 {
-  PfRule id = cur->getRule();
+  ProofRule id = cur->getRule();
   // use CDProof to open a scope for which the callback updates
   CDProof cpf(d_env, nullptr, "ProofNodeUpdater::CDProof", d_autoSym);
   const std::vector<std::shared_ptr<ProofNode>>& cc = cur->getChildren();
@@ -271,7 +283,8 @@ void ProofNodeUpdater::runFinalize(
     const std::vector<Node>& fa,
     std::map<Node, std::shared_ptr<ProofNode>>& resCache,
     std::map<Node, std::vector<std::shared_ptr<ProofNode>>>& resCacheNcWaiting,
-    std::unordered_map<const ProofNode*, bool>& cfaMap)
+    std::unordered_map<const ProofNode*, bool>& cfaMap,
+    const std::unordered_set<Node>& cfaAllowed)
 {
   // run update (marked as post-visit) to a fixed point
   bool dummyContinueUpdate;
@@ -283,8 +296,9 @@ void ProofNodeUpdater::runFinalize(
   {
     Node res = cur->getResult();
     // cache the result if we don't contain an assumption
-    if (!expr::containsAssumption(cur.get(), cfaMap))
+    if (!expr::containsAssumption(cur.get(), cfaMap, cfaAllowed))
     {
+      Trace("pf-process-debug") << "No assumption pf: " << res << std::endl;
       // cache result if we are merging subproofs
       resCache[res] = cur;
       // go back and merge into the non-closed proofs of the same fact
@@ -302,7 +316,38 @@ void ProofNodeUpdater::runFinalize(
     }
     else
     {
+      Trace("pf-process-debug") << "Assumption pf: " << res << ", with "
+                                << cfaAllowed.size() << std::endl;
       resCacheNcWaiting[res].push_back(cur);
+    }
+    // Now, do update of children, that is, we replace children of the current
+    // proof with the representative child in the cache, if they are different.
+    // This is necessary to do here since we only locally update the contents of
+    // a proof when a duplicate is encountered. Updating the reference to a
+    // child is done here.
+    std::map<Node, std::shared_ptr<ProofNode>>::iterator itr;
+    const std::vector<std::shared_ptr<ProofNode>>& ccp = cur->getChildren();
+    std::vector<std::shared_ptr<ProofNode>> newChildren;
+    bool childChanged = false;
+    for (const std::shared_ptr<ProofNode>& cp : ccp)
+    {
+      Node cpres = cp->getResult();
+      itr = resCache.find(cpres);
+      if (itr != resCache.end() && itr->second != cp)
+      {
+        newChildren.emplace_back(itr->second);
+        childChanged = true;
+      }
+      else
+      {
+        newChildren.emplace_back(cp);
+      }
+    }
+    if (childChanged)
+    {
+      ProofNodeManager* pnm = d_env.getProofNodeManager();
+      pnm->updateNode(
+          cur.get(), cur->getRule(), newChildren, cur->getArguments());
     }
   }
   if (d_debugFreeAssumps)
@@ -316,13 +361,38 @@ void ProofNodeUpdater::runFinalize(
   }
 }
 
-void ProofNodeUpdater::setDebugFreeAssumptions(
-    const std::vector<Node>& freeAssumps)
+bool ProofNodeUpdater::checkMergeProof(
+    std::shared_ptr<ProofNode>& cur,
+    const std::map<Node, std::shared_ptr<ProofNode>>& resCache,
+    std::unordered_map<const ProofNode*, bool>& cfaMap)
+{
+  if (d_mergeSubproofs)
+  {
+    const Node& res = cur->getResult();
+    std::map<Node, std::shared_ptr<ProofNode>>::const_iterator itc =
+        resCache.find(res);
+    if (itc != resCache.end())
+    {
+      ProofNodeManager* pnm = d_env.getProofNodeManager();
+      Assert(pnm != nullptr);
+      // already have a proof, merge it into this one
+      pnm->updateNode(cur.get(), itc->second.get());
+      // does not contain free assumptions since the range of resCache does
+      // not contain free assumptions
+      cfaMap[cur.get()] = false;
+      return true;
+    }
+  }
+  return false;
+}
+
+void ProofNodeUpdater::setFreeAssumptions(const std::vector<Node>& freeAssumps,
+                                          bool doDebug)
 {
   d_freeAssumps.clear();
   d_freeAssumps.insert(
       d_freeAssumps.end(), freeAssumps.begin(), freeAssumps.end());
-  d_debugFreeAssumps = true;
+  d_debugFreeAssumps = doDebug;
 }
 
 }  // namespace cvc5::internal

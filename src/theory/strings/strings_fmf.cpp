@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -78,9 +78,9 @@ void StringsFmf::StringSumLengthDecisionStrategy::initialize(
     std::vector<Node> sum;
     for (const Node& v : vars)
     {
-      sum.push_back(nm->mkNode(STRING_LENGTH, v));
+      sum.push_back(nm->mkNode(Kind::STRING_LENGTH, v));
     }
-    Node sumn = sum.size() == 1 ? sum[0] : nm->mkNode(ADD, sum);
+    Node sumn = sum.size() == 1 ? sum[0] : nm->mkNode(Kind::ADD, sum);
     d_inputVarLsum.set(sumn);
   }
 }
@@ -92,7 +92,8 @@ Node StringsFmf::StringSumLengthDecisionStrategy::mkLiteral(unsigned i)
     return Node::null();
   }
   NodeManager* nm = NodeManager::currentNM();
-  Node lit = nm->mkNode(LEQ, d_inputVarLsum.get(), nm->mkConstInt(Rational(i)));
+  Node lit =
+      nm->mkNode(Kind::LEQ, d_inputVarLsum.get(), nm->mkConstInt(Rational(i)));
   Trace("strings-fmf") << "StringsFMF::mkLiteral: " << lit << std::endl;
   return lit;
 }

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,7 +36,7 @@ using IsListAttr = expr::Attribute<IsListTag, bool>;
 
 void markListVar(TNode fv)
 {
-  Assert(fv.getKind() == BOUND_VARIABLE);
+  Assert(fv.getKind() == Kind::BOUND_VARIABLE);
   fv.setAttribute(IsListAttr(), true);
 }
 
@@ -117,52 +117,72 @@ Node getNullTerminator(Kind k, TypeNode tn)
   Node nullTerm;
   switch (k)
   {
-    case OR: nullTerm = nm->mkConst(false); break;
-    case AND:
-    case SEP_STAR: nullTerm = nm->mkConst(true); break;
-    case ADD:
+    case Kind::OR: nullTerm = nm->mkConst(false); break;
+    case Kind::AND:
+    case Kind::SEP_STAR: nullTerm = nm->mkConst(true); break;
+    case Kind::ADD:
       // Note that we ignore the type. This is safe since ADD is permissive
       // for subtypes.
       nullTerm = nm->mkConstInt(Rational(0));
       break;
-    case MULT:
-    case NONLINEAR_MULT:
+    case Kind::MULT:
+    case Kind::NONLINEAR_MULT:
       // Note that we ignore the type. This is safe since multiplication is
       // permissive for subtypes.
       nullTerm = nm->mkConstInt(Rational(1));
       break;
-    case STRING_CONCAT:
+    case Kind::STRING_CONCAT:
       // handles strings and sequences
-      nullTerm = theory::strings::Word::mkEmptyWord(tn);
+      if (tn.isStringLike())
+      {
+        nullTerm = theory::strings::Word::mkEmptyWord(tn);
+      }
       break;
-    case REGEXP_CONCAT:
+    case Kind::REGEXP_CONCAT:
       // the language containing only the empty string
-      nullTerm = nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")));
+      nullTerm = nm->mkNode(Kind::STRING_TO_REGEXP, nm->mkConst(String("")));
       break;
-    case REGEXP_UNION:
+    case Kind::REGEXP_UNION:
       // empty language
-      nullTerm = nm->mkNode(REGEXP_NONE);
+      nullTerm = nm->mkNode(Kind::REGEXP_NONE);
       break;
-    case REGEXP_INTER:
+    case Kind::REGEXP_INTER:
       // universal language
-      nullTerm = nm->mkNode(REGEXP_ALL);
+      nullTerm = nm->mkNode(Kind::REGEXP_ALL);
       break;
-    case BITVECTOR_AND:
-      nullTerm = theory::bv::utils::mkOnes(tn.getBitVectorSize());
+    case Kind::BITVECTOR_AND:
+      // it may be the case that we are an abstract type, which we guard here
+      // and return the null node.
+      if (tn.isBitVector())
+      {
+        nullTerm = theory::bv::utils::mkOnes(tn.getBitVectorSize());
+      }
       break;
-    case BITVECTOR_OR:
-    case BITVECTOR_ADD:
-    case BITVECTOR_XOR:
-      nullTerm = theory::bv::utils::mkZero(tn.getBitVectorSize());
+    case Kind::BITVECTOR_OR:
+    case Kind::BITVECTOR_ADD:
+    case Kind::BITVECTOR_XOR:
+      if (tn.isBitVector())
+      {
+        nullTerm = theory::bv::utils::mkZero(tn.getBitVectorSize());
+      }
       break;
-    case BITVECTOR_MULT:
-      nullTerm = theory::bv::utils::mkOne(tn.getBitVectorSize());
+    case Kind::BITVECTOR_MULT:
+      if (tn.isBitVector())
+      {
+        nullTerm = theory::bv::utils::mkOne(tn.getBitVectorSize());
+      }
       break;
-    case FINITE_FIELD_ADD:
-      nullTerm = nm->mkConst(FiniteFieldValue(Integer(0), tn.getFfSize()));
+    case Kind::FINITE_FIELD_ADD:
+      if (tn.isFiniteField())
+      {
+        nullTerm = nm->mkConst(FiniteFieldValue(Integer(0), tn.getFfSize()));
+      }
       break;
-    case FINITE_FIELD_MULT:
-      nullTerm = nm->mkConst(FiniteFieldValue(Integer(1), tn.getFfSize()));
+    case Kind::FINITE_FIELD_MULT:
+      if (tn.isFiniteField())
+      {
+        nullTerm = nm->mkConst(FiniteFieldValue(Integer(1), tn.getFfSize()));
+      }
       break;
     default:
       // not handled as null-terminated
@@ -222,7 +242,7 @@ Node narySubstitute(Node src,
           Node sd = subs[d];
           if (isListVar(vars[d]))
           {
-            Assert(sd.getKind() == SEXPR);
+            Assert(sd.getKind() == Kind::SEXPR);
             // add its children
             children.insert(children.end(), sd.begin(), sd.end());
           }
@@ -244,11 +264,20 @@ Node narySubstitute(Node src,
         {
           // n-ary operators cannot be parameterized
           Assert(cur.getMetaKind() != metakind::PARAMETERIZED);
-          ret = children.empty()
-                    ? getNullTerminator(cur.getKind(), cur.getType())
-                    : (children.size() == 1
-                           ? children[0]
-                           : nm->mkNode(cur.getKind(), children));
+          if (children.empty())
+          {
+            ret = getNullTerminator(cur.getKind(), cur.getType());
+            // if we don't know the null terminator, just return null now
+            if (ret.isNull())
+            {
+              return ret;
+            }
+          }
+          else
+          {
+            ret = (children.size() == 1 ? children[0]
+                                        : nm->mkNode(cur.getKind(), children));
+          }
         }
         else
         {

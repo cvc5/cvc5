@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cbqi-tconstraint
+; COMMAND-LINE: --cbqi-tconstraint --ieval=off
 ; EXPECT: unsat
 (set-logic AUFLIRA)
 (set-info :source |http://proval.lri.fr/why-benchmarks |)

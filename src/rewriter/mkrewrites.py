@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Andres Noetzli
+#   Haniel Barbosa, Andrew Reynolds, Vinícius Camillo
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -83,7 +83,7 @@ def gen_kind(op):
         Op.REGEXP_NONE: 'REGEXP_NONE',
         Op.REGEXP_ALLCHAR: 'REGEXP_ALLCHAR',
     }
-    return op_to_kind[op]
+    return f'Kind::{op_to_kind[op]}'
 
 
 def gen_mk_skolem(name, sort):
@@ -142,7 +142,7 @@ def gen_mk_node(defns, expr):
 def gen_rewrite_db_rule(defns, rule):
     fvs_list = ', '.join(bvar.name for bvar in rule.bvars)
     fixed_point_arg = gen_mk_node(defns, rule.rhs_context) if rule.rhs_context else 'Node::null()'
-    return f'db.addRule(DslPfRule::{rule.get_enum()}, {{ {fvs_list} }}, {gen_mk_node(defns, rule.lhs)}, {gen_mk_node(defns, rule.rhs)}, {gen_mk_node(defns, rule.cond)}, {fixed_point_arg});'
+    return f'db.addRule(DslProofRule::{rule.get_enum()}, {{ {fvs_list} }}, {gen_mk_node(defns, rule.lhs)}, {gen_mk_node(defns, rule.rhs)}, {gen_mk_node(defns, rule.cond)}, {fixed_point_arg});'
 
 
 class Rewrites:
@@ -308,7 +308,7 @@ def gen_rewrite_db(args):
             enum = rule.get_enum()
             ids.append(enum)
             printer_code.append(
-                f'case DslPfRule::{enum}: return "{rule.name}";')
+                f'case DslProofRule::{enum}: return "{rule.name}";')
 
         rules_code.append(
             block_tpl.format(filename=rewrite_file.filename,

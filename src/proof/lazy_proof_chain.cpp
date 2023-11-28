@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -368,7 +368,7 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofForInternal(Node fact,
   std::shared_ptr<ProofNode> pfn = CDProof::getProofFor(fact);
   Assert(pfn != nullptr);
   // If concrete proof, save it, otherwise try generators.
-  if (pfn->getRule() != PfRule::ASSUME)
+  if (pfn->getRule() != ProofRule::ASSUME)
   {
     return pfn;
   }

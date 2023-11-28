@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -101,7 +101,8 @@ class DTypeConstructor
   /** set sygus
    *
    * Set that this constructor is a sygus datatype constructor that encodes
-   * operator op.
+   * operator op. If op is a skolem with id SYGUS_ANY_CONSTANT, then this
+   * is treated as the "any constant" constructor.
    */
   void setSygus(Node op);
   /** get sygus op
@@ -117,6 +118,8 @@ class DTypeConstructor
    * of the form (lambda (x) x).
    */
   bool isSygusIdFunc() const;
+  /** is this the "any constant" constructor? */
+  bool isSygusAnyConstant() const;
   /** get weight
    *
    * Get the weight of this constructor. This value is used when computing the

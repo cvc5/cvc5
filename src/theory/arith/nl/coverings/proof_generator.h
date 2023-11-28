@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Aina Niemetz
+ *   Gereon Kremer, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -82,7 +82,7 @@ class CoveringsProofGenerator : protected EnvObj
     d_current->pruneChildren([&f](const detail::TreeProofNode& tpn) {
       // The direct children of recursive rules are scopes, but the ids are
       // attached to their children
-      if (tpn.d_rule == PfRule::SCOPE && tpn.d_children.size() == 1)
+      if (tpn.d_rule == ProofRule::SCOPE && tpn.d_children.size() == 1)
       {
         return f(tpn.d_children[0].d_objectId);
       }

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 #include "proof/proof_checker.h"
-#include "proof/proof_rule.h"
+#include "cvc5/cvc5_proof_rule.h"
 #include "proof/theory_proof_step_buffer.h"
 #include "smt/env_obj.h"
 #include "theory/builtin/proof_checker.h"
@@ -37,7 +37,7 @@ namespace strings {
 /**
  * Converts between the strings-specific (untrustworthy) InferInfo class and
  * information about how to construct a trustworthy proof step
- * (PfRule, children, args). It acts as a (lazy) proof generator where the
+ * (ProofRule, children, args). It acts as a (lazy) proof generator where the
  * former is registered via notifyFact and the latter is asked for in
  * getProofFor, typically by the proof equality engine.
  *
@@ -45,8 +45,8 @@ namespace strings {
  * called when we need to construct a proof node from an InferInfo.
  *
  * This class uses lazy proof reconstruction. Namely, the getProofFor method
- * returns applications of the rule STRING_INFERENCE, which store the arguments
- * to the proof conversion routine "convert" below.
+ * returns applications of the rule MACRO_STRING_INFERENCE, which store the
+ * arguments to the proof conversion routine "convert" below.
  */
 class InferProofCons : protected EnvObj, public ProofGenerator
 {
@@ -83,8 +83,8 @@ class InferProofCons : protected EnvObj, public ProofGenerator
    * It should be the case that a call was made to notifyFact(ii) where
    * ii.d_conc is fact in this SAT context.
    *
-   * This returns the appropriate application of STRING_INFERENCE so that it
-   * can be reconstructed if necessary during proof post-processing.
+   * This returns the appropriate application of MACRO_STRING_INFERENCE so that
+   * it can be reconstructed if necessary during proof post-processing.
    */
   std::shared_ptr<ProofNode> getProofFor(Node fact) override;
   /** Identify this generator (for debugging, etc..) */
@@ -93,14 +93,14 @@ class InferProofCons : protected EnvObj, public ProofGenerator
    * Add proof of running convert on the given arguments to CDProof pf. This is
    * called lazily during proof post-processing.
    */
-  static bool addProofTo(CDProof* pf,
-                         Node conc,
-                         InferenceId infer,
-                         bool isRev,
-                         const std::vector<Node>& exp);
+  static bool convertAndAddProofTo(CDProof* pf,
+                                   Node conc,
+                                   InferenceId infer,
+                                   bool isRev,
+                                   const std::vector<Node>& exp);
   /**
-   * Pack arguments of a STRING_INFERENCE rule application in args. This proof
-   * rule stores the arguments to the convert method of this class below.
+   * Pack arguments of a MACRO_STRING_INFERENCE rule application in args. This
+   * proof rule stores the arguments to the convert method of this class below.
    */
   static void packArgs(Node conc,
                        InferenceId infer,

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -118,7 +118,7 @@ class PreprocessingPassContext : protected EnvObj
   /** Same as above, with proof id */
   void addSubstitution(const Node& lhs,
                        const Node& rhs,
-                       PfRule id,
+                       ProofRule id,
                        const std::vector<Node>& args);
   /** Add top level substitutions for a substitution map */
   void addSubstitutions(theory::TrustSubstitutionMap& tm);

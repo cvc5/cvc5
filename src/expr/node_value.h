@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -223,7 +223,7 @@ class CVC5_EXPORT NodeValue
 
   static inline Kind dKindToKind(uint32_t d)
   {
-    return (d == kindMask) ? kind::UNDEFINED_KIND : Kind(d);
+    return (d == kindMask) ? Kind::UNDEFINED_KIND : Kind(d);
   }
 
   std::string toString() const;
@@ -412,11 +412,12 @@ struct NodeValueIDEquality {
 
 std::ostream& operator<<(std::ostream& out, const NodeValue& nv);
 
-inline NodeValue::NodeValue(int) :
-  d_id(0),
-  d_rc(MAX_RC),
-  d_kind(kind::NULL_EXPR),
-  d_nchildren(0) {
+inline NodeValue::NodeValue(int)
+    : d_id(0),
+      d_rc(MAX_RC),
+      d_kind(static_cast<uint32_t>(Kind::NULL_EXPR)),
+      d_nchildren(0)
+{
 }
 
 inline void NodeValue::decrRefCounts() {

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -51,7 +51,7 @@ Node preSkolemEmp(TypeNode locType,
     Trace("sep-preprocess") << "Pre-skolem emp " << n << " with pol " << pol
                             << std::endl;
     Node ret = n;
-    if (n.getKind() == kind::SEP_EMP)
+    if (n.getKind() == Kind::SEP_EMP)
     {
       if (!pol)
       {
@@ -60,13 +60,13 @@ Node preSkolemEmp(TypeNode locType,
         Node y =
             sm->mkDummySkolem("ey", dataType, "skolem data for negated emp");
         return nm
-            ->mkNode(kind::SEP_STAR,
-                     nm->mkNode(kind::SEP_PTO, x, y),
+            ->mkNode(Kind::SEP_STAR,
+                     nm->mkNode(Kind::SEP_PTO, x, y),
                      nm->mkConst(true))
             .negate();
       }
     }
-    else if (n.getKind() != kind::FORALL && n.getNumChildren() > 0)
+    else if (n.getKind() != Kind::FORALL && n.getNumChildren() > 0)
     {
       std::vector<Node> children;
       bool childChanged = false;

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -59,7 +59,7 @@ std::shared_ptr<ProofNode> TConvSeqProofGenerator::getSubsequenceProofFor(
     Node f, size_t start, size_t end)
 {
   Assert(end < d_tconvs.size());
-  if (f.getKind() != kind::EQUAL)
+  if (f.getKind() != Kind::EQUAL)
   {
     std::stringstream serr;
     serr << "TConvSeqProofGenerator::getProofFor: " << identify()

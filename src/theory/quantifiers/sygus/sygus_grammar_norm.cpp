@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,6 +16,7 @@
 
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 
+#include <numeric>  // for std::iota
 #include <sstream>
 
 #include "expr/dtype_cons.h"
@@ -26,8 +27,6 @@
 #include "theory/quantifiers/sygus/sygus_grammar_red.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-
-#include <numeric>  // for std::iota
 
 using namespace cvc5::internal::kind;
 
@@ -148,7 +147,8 @@ void SygusGrammarNorm::TransfDrop::buildType(SygusGrammarNorm* sygus_norm,
 bool SygusGrammarNorm::TransfChain::isChainable(TypeNode tn, Node op)
 {
   /* Checks whether operator occurs chainable for its type */
-  if (tn.isInteger() && NodeManager::currentNM()->operatorToKind(op) == ADD)
+  if (tn.isInteger()
+      && NodeManager::currentNM()->operatorToKind(op) == Kind::ADD)
   {
     return true;
   }
@@ -160,7 +160,8 @@ bool SygusGrammarNorm::TransfChain::isChainable(TypeNode tn, Node op)
    function should realize that it is chainable for integers */
 bool SygusGrammarNorm::TransfChain::isId(TypeNode tn, Node op, Node n)
 {
-  if (tn.isInteger() && NodeManager::currentNM()->operatorToKind(op) == ADD
+  if (tn.isInteger()
+      && NodeManager::currentNM()->operatorToKind(op) == Kind::ADD
       && n == TermUtil::mkTypeValue(tn, 0))
   {
     return true;
@@ -232,7 +233,8 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
     std::vector<TypeNode> ctypesp;
     ctypesp.push_back(t);
     ctypesp.push_back(to.d_unres_tn);
-    to.d_sdt.addConstructor(nm->operatorOf(ADD), kindToString(ADD), ctypesp);
+    to.d_sdt.addConstructor(
+        nm->operatorOf(Kind::ADD), kindToString(Kind::ADD), ctypesp);
     Trace("sygus-grammar-normalize-chain")
         << "\tAdding ADD to " << to.d_unres_tn << " with arg types "
         << to.d_unres_tn << " and " << t << "\n";
@@ -319,9 +321,10 @@ std::unique_ptr<SygusGrammarNorm::Transf> SygusGrammarNorm::inferTransf(
     Assert(op_pos[i] < dt.getNumConstructors());
     Node sop = dt[op_pos[i]].getSygusOp();
     /* Collects a chainable operator such as ADD */
-    if (sop.getKind() == BUILTIN && TransfChain::isChainable(sygus_tn, sop))
+    if (sop.getKind() == Kind::BUILTIN
+        && TransfChain::isChainable(sygus_tn, sop))
     {
-      Assert(nm->operatorToKind(sop) == ADD);
+      Assert(nm->operatorToKind(sop) == Kind::ADD);
       /* TODO #1304: be robust for this case */
       /* For now only transforms applications whose arguments have the same type
        * as the root */
@@ -339,7 +342,7 @@ std::unique_ptr<SygusGrammarNorm::Transf> SygusGrammarNorm::inferTransf(
       if (!same_type_plus)
       {
         Trace("sygus-grammar-normalize-infer")
-            << "\tFor OP " << ADD << " did not collecting sop " << sop
+            << "\tFor OP " << Kind::ADD << " did not collecting sop " << sop
             << " in position " << op_pos[i] << "\n";
         continue;
       }
@@ -352,7 +355,7 @@ std::unique_ptr<SygusGrammarNorm::Transf> SygusGrammarNorm::inferTransf(
     }
     /* TODO #1304: check this for each operator */
     /* Collects elements that are not the identity (e.g. 0 is the id of ADD) */
-    if (!TransfChain::isId(sygus_tn, nm->operatorOf(ADD), sop))
+    if (!TransfChain::isId(sygus_tn, nm->operatorOf(Kind::ADD), sop))
     {
       Trace("sygus-grammar-normalize-infer")
           << "\tCollecting for NON_ID_ELEMS the sop " << sop
@@ -447,7 +450,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
     {
       // add default constant constructors
       std::vector<Node> ops;
-      CegGrammarConstructor::mkSygusConstantsForType(sygus_type, ops);
+      SygusGrammarCons::mkSygusConstantsForType(sygus_type, ops);
       for (const Node& op : ops)
       {
         std::stringstream ss;

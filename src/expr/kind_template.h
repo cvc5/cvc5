@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,7 +26,7 @@
 namespace cvc5::internal {
 namespace kind {
 
-enum Kind_t
+enum class Kind_t
 {
   UNDEFINED_KIND = -1, /**< undefined */
   NULL_EXPR,           /**< Null kind */
@@ -73,7 +73,10 @@ std::string kindToString(cvc5::internal::Kind k);
 
 struct KindHashFunction
 {
-  inline size_t operator()(cvc5::internal::Kind k) const { return k; }
+  inline size_t operator()(cvc5::internal::Kind k) const
+  {
+    return static_cast<size_t>(k);
+  }
 }; /* struct KindHashFunction */
 
 }  // namespace kind

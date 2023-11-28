@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sygus-out=status --sygus-si=all
+; COMMAND-LINE: --sygus-out=status --sygus-si=all --sygus-si-rcons-p=1
 ; EXPECT: feasible
 
 ; This regression ensures that we are not too aggressive in filtering

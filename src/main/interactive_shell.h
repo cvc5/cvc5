@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Mathias Preiner, Christopher L. Conway
+ *   Andrew Reynolds, Morgan Deters, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +29,7 @@ class Solver;
 namespace parser {
 class Command;
 class InputParser;
-class SymbolManager;
+class SymManager;
 }  // namespace parser
 
 namespace main {
@@ -66,7 +66,7 @@ class InteractiveShell
  private:
   main::CommandExecutor* d_cexec;
   Solver* d_solver;
-  cvc5::parser::SymbolManager* d_symman;
+  cvc5::parser::SymManager* d_symman;
   std::istream& d_in;
   std::ostream& d_out;
   std::unique_ptr<cvc5::parser::InputParser> d_parser;

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Mathias Preiner
+ *   Aina Niemetz, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,7 +26,6 @@
 
 namespace cvc5::internal {
 
-using namespace kind;
 using namespace theory;
 using namespace theory::strings;
 
@@ -47,16 +46,16 @@ TEST_F(TestTheoryWhiteStringsRewriter, rewrite_leq)
   Node x = d_nodeManager->mkVar("x", strType);
   Node y = d_nodeManager->mkVar("y", strType);
 
-  Node ax = d_nodeManager->mkNode(STRING_CONCAT, a, x);
-  Node bcy = d_nodeManager->mkNode(STRING_CONCAT, bc, y);
+  Node ax = d_nodeManager->mkNode(Kind::STRING_CONCAT, a, x);
+  Node bcy = d_nodeManager->mkNode(Kind::STRING_CONCAT, bc, y);
 
   {
-    Node leq = d_nodeManager->mkNode(STRING_LEQ, ax, bcy);
+    Node leq = d_nodeManager->mkNode(Kind::STRING_LEQ, ax, bcy);
     ASSERT_EQ(rr->rewrite(leq), d_nodeManager->mkConst(true));
   }
 
   {
-    Node leq = d_nodeManager->mkNode(STRING_LEQ, bcy, ax);
+    Node leq = d_nodeManager->mkNode(Kind::STRING_LEQ, bcy, ax);
     ASSERT_EQ(rr->rewrite(leq), d_nodeManager->mkConst(false));
   }
 }

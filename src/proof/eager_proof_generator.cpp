@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -100,7 +100,7 @@ TrustNode EagerProofGenerator::mkTrustNode(Node n,
 }
 
 TrustNode EagerProofGenerator::mkTrustNode(Node conc,
-                                           PfRule id,
+                                           ProofRule id,
                                            const std::vector<Node>& exp,
                                            const std::vector<Node>& args,
                                            bool isConflict)
@@ -121,7 +121,7 @@ TrustNode EagerProofGenerator::mkTrustNode(Node conc,
   // We use mkNode instead of mkScope, since there is no reason to check
   // whether the free assumptions of pf are in exp, since they are by the
   // construction above.
-  std::shared_ptr<ProofNode> pfs = pnm->mkNode(PfRule::SCOPE, {pf}, exp);
+  std::shared_ptr<ProofNode> pfs = pnm->mkNode(ProofRule::SCOPE, {pf}, exp);
   return mkTrustNode(pfs->getResult(), pfs, isConflict);
 }
 
@@ -140,7 +140,7 @@ TrustNode EagerProofGenerator::mkTrustedRewrite(Node a,
 
 TrustNode EagerProofGenerator::mkTrustedRewrite(Node a,
                                                 Node b,
-                                                PfRule id,
+                                                ProofRule id,
                                                 const std::vector<Node>& args)
 {
   Node eq = a.eqNode(b);
@@ -165,7 +165,7 @@ TrustNode EagerProofGenerator::mkTrustNodeSplit(Node f)
 {
   // make the lemma
   Node lem = f.orNode(f.notNode());
-  return mkTrustNode(lem, PfRule::SPLIT, {}, {f}, false);
+  return mkTrustNode(lem, ProofRule::SPLIT, {}, {f}, false);
 }
 
 std::string EagerProofGenerator::identify() const { return d_name; }

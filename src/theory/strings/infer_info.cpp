@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,7 +36,7 @@ Node InferInfo::processFact(std::vector<Node>& exp, ProofGenerator*& pg)
 {
   for (const Node& ec : d_premises)
   {
-    utils::flattenOp(kind::AND, ec, exp);
+    utils::flattenOp(Kind::AND, ec, exp);
   }
   d_sim->processFact(*this, pg);
   return d_conc;
@@ -57,7 +57,7 @@ bool InferInfo::isConflict() const
 bool InferInfo::isFact() const
 {
   Assert(!d_conc.isNull());
-  TNode atom = d_conc.getKind() == kind::NOT ? d_conc[0] : d_conc;
+  TNode atom = d_conc.getKind() == Kind::NOT ? d_conc[0] : d_conc;
   // we could process inferences with conjunctive conclusions as facts, where
   // the explanation is copied. However, for simplicity, we always send these
   // as lemmas. This case happens very infrequently.

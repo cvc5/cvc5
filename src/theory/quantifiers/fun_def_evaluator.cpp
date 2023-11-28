@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -61,6 +61,8 @@ Node FunDefEvaluator::evaluateDefinitions(Node n) const
   std::unordered_map<TNode, unsigned>::iterator itCount;
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
+  // to ensure all nodes are ref counted
+  std::unordered_set<Node> keep;
   std::map<Node, FunDefInfo>::const_iterator itf;
   std::vector<TNode> visit;
   TNode cur;
@@ -81,7 +83,7 @@ Node FunDefEvaluator::evaluateDefinitions(Node n) const
         Trace("fd-eval-debug") << "constant " << cur << std::endl;
         visited[cur] = cur;
       }
-      else if (cur.getKind() == ITE)
+      else if (cur.getKind() == Kind::ITE)
       {
         Trace("fd-eval-debug") << "ITE " << cur << std::endl;
         visited[cur] = Node::null();
@@ -111,11 +113,12 @@ Node FunDefEvaluator::evaluateDefinitions(Node n) const
         Kind ck = cur.getKind();
         // If a parameterized node that is not APPLY_UF (which is handled below,
         // we add it to the children vector.
-        if (ck != APPLY_UF && cur.getMetaKind() == metakind::PARAMETERIZED)
+        if (ck != Kind::APPLY_UF
+            && cur.getMetaKind() == metakind::PARAMETERIZED)
         {
           children.push_back(cur.getOperator());
         }
-        else if (ck == ITE)
+        else if (ck == Kind::ITE)
         {
           // get evaluation of condition
           it = visited.find(cur[0]);
@@ -153,7 +156,7 @@ Node FunDefEvaluator::evaluateDefinitions(Node n) const
           Trace("fd-eval-debug2") << "argument " << child++
                                   << " eval : " << it->second << std::endl;
         }
-        if (cur.getKind() == APPLY_UF)
+        if (cur.getKind() == Kind::APPLY_UF)
         {
           // need to evaluate it
           f = cur.getOperator();
@@ -199,6 +202,7 @@ Node FunDefEvaluator::evaluateDefinitions(Node n) const
             }
             Assert(!sbody.isNull());
           }
+          keep.insert(sbody);
           // our result is the result of the body
           visited[cur] = sbody;
           // If its not constant, we push back self and the substituted body.
@@ -218,6 +222,7 @@ Node FunDefEvaluator::evaluateDefinitions(Node n) const
           {
             ret = nm->mkNode(cur.getKind(), children);
             ret = rewrite(ret);
+            keep.insert(ret);
           }
           Trace("fd-eval-debug2") << "built from arguments " << ret << "\n";
           visited[cur] = ret;
@@ -241,8 +246,8 @@ Node FunDefEvaluator::evaluateDefinitions(Node n) const
           Trace("fd-eval-debug2")
               << "eval with definition " << it->second << "\n";
           visited[cur] = it->second;
+        }
       }
-    }
     }
   } while (!visit.empty());
   Trace("fd-eval") << "FunDefEvaluator: return " << visited[n] << ", SUCCESS\n";

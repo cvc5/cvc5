@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,7 +32,7 @@ int main()
   vector<Term> args1;
   args1.push_back(zero);
   args1.push_back(input2_1);
-  Term bvult_res = solver.mkTerm(BITVECTOR_ULT, {args1});
+  Term bvult_res = solver.mkTerm(Kind::BITVECTOR_ULT, {args1});
   solver.assertFormula(bvult_res);
 
   Sort bvsort4 = solver.mkBitVectorSort(4);
@@ -42,15 +42,15 @@ int main()
 
   vector<Term> args2;
   args2.push_back(concat_result_42);
-  args2.push_back(solver.mkTerm(solver.mkOp(BITVECTOR_EXTRACT, {7, 4}),
+  args2.push_back(solver.mkTerm(solver.mkOp(Kind::BITVECTOR_EXTRACT, {7, 4}),
                                 {concat_result_43}));
-  solver.assertFormula(solver.mkTerm(EQUAL, {args2}));
+  solver.assertFormula(solver.mkTerm(Kind::EQUAL, {args2}));
 
   vector<Term> args3;
   args3.push_back(concat_result_42);
-  args3.push_back(solver.mkTerm(solver.mkOp(BITVECTOR_EXTRACT, {3, 0}),
+  args3.push_back(solver.mkTerm(solver.mkOp(Kind::BITVECTOR_EXTRACT, {3, 0}),
                                 {concat_result_43}));
-  solver.assertFormula(solver.mkTerm(EQUAL, {args3}));
+  solver.assertFormula(solver.mkTerm(Kind::EQUAL, {args3}));
 
   cout << solver.checkSat() << endl;
 

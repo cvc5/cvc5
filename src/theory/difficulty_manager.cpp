@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -99,11 +99,11 @@ void DifficultyManager::notifyLemma(Node n, bool inFullEffortCheck)
   // for lemma (or a_1 ... a_n), if a_i is a literal that is not true in the
   // valuation, then we increment the difficulty of that assertion
   std::vector<Node> litsToCheck;
-  if (nk == kind::OR)
+  if (nk == Kind::OR)
   {
     litsToCheck.insert(litsToCheck.end(), n.begin(), n.end());
   }
-  else if (nk == kind::IMPLIES)
+  else if (nk == Kind::IMPLIES)
   {
     litsToCheck.push_back(n[0].negate());
     litsToCheck.push_back(n[1]);

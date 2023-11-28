@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -142,7 +142,8 @@ class RelevanceManager : public TheoryEngineModule
   std::unordered_set<TNode> getRelevantAssertions(bool& success);
   /** Notify lemma, for difficulty measurements */
   void notifyLemma(TNode n,
-                   theory::LemmaProperty p,
+                   InferenceId id,
+                   LemmaProperty p,
                    const std::vector<Node>& skAsserts,
                    const std::vector<Node>& sks) override;
   /** Needs candidate model, return true if the method below requires calling */

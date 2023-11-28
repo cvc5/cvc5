@@ -1,4 +1,3 @@
-; COMMAND-LINE: --no-debug-check-models
 ; EXPECT: sat
 (set-logic NIA)
 (set-option :ext-rewrite-quant true)

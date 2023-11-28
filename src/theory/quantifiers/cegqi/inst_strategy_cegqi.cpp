@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -56,18 +56,12 @@ InstStrategyCegqi::InstStrategyCegqi(Env& env,
       d_cbqi_set_quant_inactive(false),
       d_incomplete_check(false),
       d_added_cbqi_lemma(userContext()),
-      d_bv_invert(nullptr),
       d_small_const_multiplier(NodeManager::currentNM()->mkConstReal(
           Rational(1) / Rational(1000000))),
       d_small_const(d_small_const_multiplier),
-      d_freeDeltaLb(false, userContext())
+      d_freeDeltaLb(userContext(), false)
 {
   d_check_vts_lemma_lc = false;
-  if (options().quantifiers.cegqiBv)
-  {
-    // if doing instantiation for BV, need the inverter class
-    d_bv_invert.reset(new BvInverter(env.getOptions(), env.getRewriter()));
-  }
   if (options().quantifiers.cegqiNestedQE)
   {
     d_nestedQe.reset(new NestedQe(d_env));
@@ -107,7 +101,8 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
     Node ceBody = d_qreg.getInstConstantBody(q);
     if( !ceBody.isNull() ){
       //add counterexample lemma
-      Node lem = NodeManager::currentNM()->mkNode( OR, ceLit.negate(), ceBody.negate() );
+      Node lem = NodeManager::currentNM()->mkNode(
+          Kind::OR, ceLit.negate(), ceBody.negate());
       //require any decision on cel to be phase=true
       d_qim.addPendingPhaseRequirement(ceLit, true);
       Trace("cegqi-debug") << "Require phase " << ceLit << " = true." << std::endl;
@@ -115,7 +110,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
       lem = rewrite(lem);
       Trace("cegqi-lemma") << "Counterexample lemma : " << lem << std::endl;
       registerCounterexampleLemma( q, lem );
-      
+
       //compute dependencies between quantified formulas
       std::vector<Node> ics;
       TermUtil::computeInstConstContains(q, ics);
@@ -145,7 +140,8 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
         // This lemma states that if the child is active, then the parent must
         // be asserted, in particular G => Q where G is the CEX literal for the
         // child and Q is the parent.
-        Node dep_lemma = nm->mkNode(IMPLIES, ceLit, nm->mkNode(AND, dep));
+        Node dep_lemma =
+            nm->mkNode(Kind::IMPLIES, ceLit, nm->mkNode(Kind::AND, dep));
         Trace("cegqi-lemma")
             << "Counterexample dependency lemma : " << dep_lemma << std::endl;
         d_qim.lemma(dep_lemma, InferenceId::QUANTIFIERS_CEGQI_CEX_DEP);
@@ -272,6 +268,11 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
       for( std::map< Node, bool >::iterator it = d_active_quant.begin(); it != d_active_quant.end(); ++it ){
         Node q = it->first;
         Trace("cegqi") << "CBQI : Process quantifier " << q[0] << " at effort " << ee << std::endl;
+        if (d_qreg.getQuantAttributes().isQuantElimPartial(q))
+        {
+          d_cbqi_set_quant_inactive = true;
+          d_incomplete_check = true;
+        }
         process(q, e, ee);
         if (d_qstate.isInConflict())
         {
@@ -452,7 +453,7 @@ void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
       {
         d_freeDeltaLb = true;
         Node zero = nm->mkConstReal(Rational(0));
-        Node delta_lem = nm->mkNode(GT, delta, zero);
+        Node delta_lem = nm->mkNode(Kind::GT, delta, zero);
         d_qim.lemma(delta_lem, InferenceId::QUANTIFIERS_CEGQI_VTS_LB_DELTA);
       }
     }
@@ -463,13 +464,14 @@ void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
     if( d_check_vts_lemma_lc ){
       Trace("inst-alg") << "-> Minimize delta heuristic, for " << q << std::endl;
       d_check_vts_lemma_lc = false;
-      d_small_const = nm->mkNode(MULT, d_small_const, d_small_const_multiplier);
+      d_small_const =
+          nm->mkNode(Kind::MULT, d_small_const, d_small_const_multiplier);
       d_small_const = rewrite(d_small_const);
       //heuristic for now, until we know how to do nested quantification
       Node delta = vtc->getVtsDelta(true, false);
       if( !delta.isNull() ){
         Trace("quant-vts-debug") << "Delta lemma for " << d_small_const << std::endl;
-        Node delta_lem_ub = nm->mkNode(LT, delta, d_small_const);
+        Node delta_lem_ub = nm->mkNode(Kind::LT, delta, d_small_const);
         d_qim.lemma(delta_lem_ub, InferenceId::QUANTIFIERS_CEGQI_VTS_UB_DELTA);
       }
       std::vector< Node > inf;
@@ -479,7 +481,7 @@ void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
         Trace("quant-vts-debug")
             << "Infinity lemma for " << i << " " << d_small_const << std::endl;
         Node inf_lem_lb = nm->mkNode(
-            GT,
+            Kind::GT,
             i,
             nm->mkConstReal(Rational(1) / d_small_const.getConst<Rational>()));
         d_qim.lemma(inf_lem_lb, InferenceId::QUANTIFIERS_CEGQI_VTS_LB_INF);
@@ -504,51 +506,15 @@ Node InstStrategyCegqi::getCounterexampleLiteral(Node q)
   return ceLit;
 }
 
-bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
-  Assert(!d_curr_quant.isNull());
-  // check if we need virtual term substitution (if used delta or infinity)
-  VtsTermCache* vtc = d_treg.getVtsTermCache();
-  bool usedVts = vtc->containsVtsTerm(subs, false);
-  Instantiate* inst = d_qim.getInstantiate();
-  //if doing partial quantifier elimination, record the instantiation and set the incomplete flag instead of sending instantiation lemma
-  if (d_qreg.getQuantAttributes().isQuantElimPartial(d_curr_quant))
-  {
-    d_cbqi_set_quant_inactive = true;
-    d_incomplete_check = true;
-    inst->recordInstantiation(d_curr_quant, subs, usedVts);
-    return true;
-  }
-  else if (inst->addInstantiation(d_curr_quant,
-                                  subs,
-                                  InferenceId::QUANTIFIERS_INST_CEGQI,
-                                  Node::null(),
-                                  usedVts))
-  {
-    return true;
-  }
-  // this should never happen for monotonic selection strategies
-  Trace("cegqi-warn") << "WARNING: Existing instantiation" << std::endl;
-  return false;
-}
-
 CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
   std::map<Node, std::unique_ptr<CegInstantiator>>::iterator it =
       d_cinst.find(q);
   if( it==d_cinst.end() ){
-    d_cinst[q].reset(new CegInstantiator(d_env, q, d_qstate, d_treg, this));
+    d_cinst[q].reset(
+        new CegInstantiator(d_env, q, d_qstate, d_qim, d_qreg, d_treg));
     return d_cinst[q].get();
   }
   return it->second.get();
-}
-
-VtsTermCache* InstStrategyCegqi::getVtsTermCache() const
-{
-  return d_treg.getVtsTermCache();
-}
-
-BvInverter* InstStrategyCegqi::getBvInverter() const
-{
-  return d_bv_invert.get();
 }
 
 bool InstStrategyCegqi::processNestedQe(Node q, bool isPreregister)

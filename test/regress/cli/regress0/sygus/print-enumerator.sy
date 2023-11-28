@@ -1,0 +1,12 @@
+; REQUIRES: no-competition
+; COMMAND-LINE: -o sygus-enumerator
+; EXPECT: (sygus-enumerator :synth-fun f :role SINGLE_SOLUTION :type FAST)
+; EXPECT: (
+; EXPECT: (define-fun f ((x Int) (y Int)) Int x)
+; EXPECT: )
+
+(set-logic LIA)
+
+(synth-fun f ((x Int) (y Int)) Int ((Start Int)) ((Start Int (x))))
+
+(check-synth)

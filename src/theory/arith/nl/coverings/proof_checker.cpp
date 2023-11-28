@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,25 +29,25 @@ namespace coverings {
 void CoveringsProofRuleChecker::registerTo(ProofChecker* pc)
 {
   // trusted rules
-  pc->registerTrustedChecker(PfRule::ARITH_NL_COVERING_DIRECT, this, 2);
-  pc->registerTrustedChecker(PfRule::ARITH_NL_COVERING_RECURSIVE, this, 2);
+  pc->registerTrustedChecker(ProofRule::ARITH_NL_COVERING_DIRECT, this, 2);
+  pc->registerTrustedChecker(ProofRule::ARITH_NL_COVERING_RECURSIVE, this, 2);
 }
 
-Node CoveringsProofRuleChecker::checkInternal(PfRule id,
-                                        const std::vector<Node>& children,
-                                        const std::vector<Node>& args)
+Node CoveringsProofRuleChecker::checkInternal(ProofRule id,
+                                              const std::vector<Node>& children,
+                                              const std::vector<Node>& args)
 {
   Trace("nl-cov-checker") << "Checking " << id << std::endl;
   for (const auto& c : children)
   {
     Trace("nl-cov-checker") << "\t" << c << std::endl;
   }
-  if (id == PfRule::ARITH_NL_COVERING_DIRECT)
+  if (id == ProofRule::ARITH_NL_COVERING_DIRECT)
   {
     Assert(args.size() == 1);
     return args[0];
   }
-  if (id == PfRule::ARITH_NL_COVERING_RECURSIVE)
+  if (id == ProofRule::ARITH_NL_COVERING_RECURSIVE)
   {
     Assert(args.size() == 1);
     return args[0];

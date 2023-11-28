@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Mathias Preiner
+ *   Aina Niemetz, Andrew Reynolds, Alex Ozdemir
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -68,18 +68,18 @@ TEST_F(TestApiBlackSort, operators_comparison)
 TEST_F(TestApiBlackSort, getKind)
 {
   Sort b = d_solver.getBooleanSort();
-  ASSERT_EQ(b.getKind(), BOOLEAN_SORT);
+  ASSERT_EQ(b.getKind(), SortKind::BOOLEAN_SORT);
   Sort dt_sort = create_datatype_sort();
-  ASSERT_EQ(dt_sort.getKind(), DATATYPE_SORT);
+  ASSERT_EQ(dt_sort.getKind(), SortKind::DATATYPE_SORT);
   Sort arr_sort =
       d_solver.mkArraySort(d_solver.getRealSort(), d_solver.getIntegerSort());
-  ASSERT_EQ(arr_sort.getKind(), ARRAY_SORT);
+  ASSERT_EQ(arr_sort.getKind(), SortKind::ARRAY_SORT);
   Sort fp_sort = d_solver.mkFloatingPointSort(8, 24);
-  ASSERT_EQ(fp_sort.getKind(), FLOATINGPOINT_SORT);
+  ASSERT_EQ(fp_sort.getKind(), SortKind::FLOATINGPOINT_SORT);
   Sort bv_sort = d_solver.mkBitVectorSort(8);
-  ASSERT_EQ(bv_sort.getKind(), BITVECTOR_SORT);
-  Sort abs_sort = d_solver.mkAbstractSort(BITVECTOR_SORT);
-  ASSERT_EQ(abs_sort.getKind(), ABSTRACT_SORT);
+  ASSERT_EQ(bv_sort.getKind(), SortKind::BITVECTOR_SORT);
+  Sort abs_sort = d_solver.mkAbstractSort(SortKind::BITVECTOR_SORT);
+  ASSERT_EQ(abs_sort.getKind(), SortKind::ABSTRACT_SORT);
 }
 
 TEST_F(TestApiBlackSort, hasGetSymbol)
@@ -268,11 +268,11 @@ TEST_F(TestApiBlackSort, isSequence)
 
 TEST_F(TestApiBlackSort, isAbstract)
 {
-  ASSERT_TRUE(d_solver.mkAbstractSort(BITVECTOR_SORT).isAbstract());
+  ASSERT_TRUE(d_solver.mkAbstractSort(SortKind::BITVECTOR_SORT).isAbstract());
   // ?Array is syntax sugar for (Array ? ?), thus the constructed sort
   // is an Array sort, not an abstract sort.
-  ASSERT_FALSE(d_solver.mkAbstractSort(ARRAY_SORT).isAbstract());
-  ASSERT_TRUE(d_solver.mkAbstractSort(ABSTRACT_SORT).isAbstract());
+  ASSERT_FALSE(d_solver.mkAbstractSort(SortKind::ARRAY_SORT).isAbstract());
+  ASSERT_TRUE(d_solver.mkAbstractSort(SortKind::ABSTRACT_SORT).isAbstract());
   ASSERT_NO_THROW(Sort().isAbstract());
 }
 
@@ -521,15 +521,18 @@ TEST_F(TestApiBlackSort, getSequenceElementSort)
 
 TEST_F(TestApiBlackSort, getAbstractedKind)
 {
-  ASSERT_EQ(d_solver.mkAbstractSort(BITVECTOR_SORT).getAbstractedKind(),
-            BITVECTOR_SORT);
+  ASSERT_EQ(
+      d_solver.mkAbstractSort(SortKind::BITVECTOR_SORT).getAbstractedKind(),
+      SortKind::BITVECTOR_SORT);
   // ?Array is syntax sugar for (Array ? ?), thus the constructed sort
   // is an Array sort, not an abstract sort and its abstract kind cannot be
   // extracted.
-  ASSERT_THROW(d_solver.mkAbstractSort(ARRAY_SORT).getAbstractedKind(),
-               CVC5ApiException);
-  ASSERT_EQ(d_solver.mkAbstractSort(ABSTRACT_SORT).getAbstractedKind(),
-            ABSTRACT_SORT);
+  ASSERT_THROW(
+      d_solver.mkAbstractSort(SortKind::ARRAY_SORT).getAbstractedKind(),
+      CVC5ApiException);
+  ASSERT_EQ(
+      d_solver.mkAbstractSort(SortKind::ABSTRACT_SORT).getAbstractedKind(),
+      SortKind::ABSTRACT_SORT);
 }
 
 TEST_F(TestApiBlackSort, getSymbol)

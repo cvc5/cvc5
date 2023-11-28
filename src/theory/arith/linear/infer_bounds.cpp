@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -157,11 +157,11 @@ Node InferBoundsResult::getLiteral() const{
   if(d_upperBound){
     // x <= q + c*delta
     Assert(getValue().infinitesimalSgn() <= 0);
-    k = boundIsRational() ? kind::LEQ : kind::LT;
+    k = boundIsRational() ? Kind::LEQ : Kind::LT;
   }else{
     // x >= q + c*delta
     Assert(getValue().infinitesimalSgn() >= 0);
-    k = boundIsRational() ? kind::GEQ : kind::GT;
+    k = boundIsRational() ? Kind::GEQ : Kind::GT;
   }
   return nm->mkNode(k, getTerm(), qnode);
 }

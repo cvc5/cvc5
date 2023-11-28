@@ -7,7 +7,7 @@ if __name__ == "__main__":
     # FP addition is *not* commutative. This finds a counterexample.
     assert not is_tautology(fpEQ(x + y, y + x))
 
-    # Without NaN or infinities, is is commutative. This proof succeeds.
+    # Without NaN or infinities, it is commutative. This proof succeeds.
     assert is_tautology(
         Implies(
             Not(Or(fpIsNaN(x), fpIsNaN(y), fpIsInf(x), fpIsInf(y))), fpEQ(x + y, y + x)

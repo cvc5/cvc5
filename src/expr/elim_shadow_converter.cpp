@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,6 +38,13 @@ ElimShadowNodeConverter::ElimShadowNodeConverter(const Node& q) : d_closure(q)
 {
   Assert(q.isClosure());
   d_vars.insert(d_vars.end(), q[0].begin(), q[0].end());
+}
+
+ElimShadowNodeConverter::ElimShadowNodeConverter(
+    const Node& n, const std::unordered_set<Node>& vars)
+{
+  d_closure = n;
+  d_vars.insert(d_vars.end(), vars.begin(), vars.end());
 }
 
 Node ElimShadowNodeConverter::postConvert(Node n)

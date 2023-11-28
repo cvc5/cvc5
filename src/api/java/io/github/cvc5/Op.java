@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,11 +40,6 @@ public class Op extends AbstractPointer
   }
 
   protected native void deletePointer(long pointer);
-
-  public long getPointer()
-  {
-    return pointer;
-  }
 
   /**
    * Syntactic equality operator.
@@ -117,6 +112,7 @@ public class Op extends AbstractPointer
    * Get the index at position {@code i}.
    * @param i The position of the index to return.
    * @return The index at position {@code i}.
+   * @throws CVC5ApiException
    */
   public Term get(int i) throws CVC5ApiException
   {

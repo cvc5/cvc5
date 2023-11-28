@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -148,7 +148,7 @@ Node PolyNorm::multMonoVar(TNode m1, TNode m2)
   }
   // use default sorting
   std::sort(vars.begin(), vars.end());
-  return NodeManager::currentNM()->mkNode(NONLINEAR_MULT, vars);
+  return NodeManager::currentNM()->mkNode(Kind::NONLINEAR_MULT, vars);
 }
 
 std::vector<TNode> PolyNorm::getMonoVars(TNode m)
@@ -158,8 +158,8 @@ std::vector<TNode> PolyNorm::getMonoVars(TNode m)
   if (!m.isNull())
   {
     Kind k = m.getKind();
-    Assert(k != CONST_RATIONAL && k != CONST_INTEGER);
-    if (k == MULT || k == NONLINEAR_MULT)
+    Assert(k != Kind::CONST_RATIONAL && k != Kind::CONST_INTEGER);
+    if (k == Kind::MULT || k == Kind::NONLINEAR_MULT)
     {
       vars.insert(vars.end(), m.begin(), m.end());
     }
@@ -188,7 +188,7 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
     Kind k = cur.getKind();
     if (it == visited.end())
     {
-      if (k == CONST_RATIONAL || k == CONST_INTEGER)
+      if (k == Kind::CONST_RATIONAL || k == Kind::CONST_INTEGER)
       {
         Rational r = cur.getConst<Rational>();
         if (r.sgn() == 0)
@@ -201,8 +201,9 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
           visited[cur].addMonomial(null, r);
         }
       }
-      else if (k == ADD || k == SUB || k == NEG || k == MULT
-               || k == NONLINEAR_MULT || k == TO_REAL)
+      else if (k == Kind::ADD || k == Kind::SUB || k == Kind::NEG
+               || k == Kind::MULT || k == Kind::NONLINEAR_MULT
+               || k == Kind::TO_REAL)
       {
         visited[cur] = PolyNorm();
         for (const Node& cn : cur)
@@ -224,21 +225,21 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
       PolyNorm& ret = visited[cur];
       switch (k)
       {
-        case ADD:
-        case SUB:
-        case NEG:
-        case MULT:
-        case NONLINEAR_MULT:
-        case TO_REAL:
+        case Kind::ADD:
+        case Kind::SUB:
+        case Kind::NEG:
+        case Kind::MULT:
+        case Kind::NONLINEAR_MULT:
+        case Kind::TO_REAL:
           for (size_t i = 0, nchild = cur.getNumChildren(); i < nchild; i++)
           {
             it = visited.find(cur[i]);
             Assert(it != visited.end());
-            if ((k == SUB && i == 1) || k == NEG)
+            if ((k == Kind::SUB && i == 1) || k == Kind::NEG)
             {
               ret.subtract(it->second);
             }
-            else if (i > 0 && (k == MULT || k == NONLINEAR_MULT))
+            else if (i > 0 && (k == Kind::MULT || k == Kind::NONLINEAR_MULT))
             {
               ret.multiply(it->second);
             }
@@ -248,8 +249,8 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
             }
           }
           break;
-        case CONST_RATIONAL:
-        case CONST_INTEGER: break;
+        case Kind::CONST_RATIONAL:
+        case Kind::CONST_INTEGER: break;
         default: Unhandled() << "Unhandled polynomial operation " << cur; break;
       }
     }

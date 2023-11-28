@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,6 +16,8 @@
 #include "theory/sets/inference_manager.h"
 
 #include "options/sets_options.h"
+#include "proof/trust_id.h"
+#include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
 
 using namespace std;
@@ -30,6 +32,8 @@ InferenceManager::InferenceManager(Env& env, Theory& t, SolverState& s)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
+  d_tid = mkTrustId(TrustId::THEORY_INFERENCE);
+  d_tsid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_SETS);
 }
 
 bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int inferType)
@@ -44,7 +48,7 @@ bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int in
     Node lem = fact;
     if (exp != d_true)
     {
-      lem = NodeManager::currentNM()->mkNode(IMPLIES, exp, fact);
+      lem = NodeManager::currentNM()->mkNode(Kind::IMPLIES, exp, fact);
     }
     addPendingLemma(lem, id);
     return true;
@@ -62,14 +66,14 @@ bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int in
     }
     return false;
   }
-  else if (fact.getKind() == AND
-           || (fact.getKind() == NOT && fact[0].getKind() == OR))
+  else if (fact.getKind() == Kind::AND
+           || (fact.getKind() == Kind::NOT && fact[0].getKind() == Kind::OR))
   {
     bool ret = false;
-    Node f = fact.getKind() == NOT ? fact[0] : fact;
+    Node f = fact.getKind() == Kind::NOT ? fact[0] : fact;
     for (unsigned i = 0; i < f.getNumChildren(); i++)
     {
-      Node factc = fact.getKind() == NOT ? f[i].negate() : f[i];
+      Node factc = fact.getKind() == Kind::NOT ? f[i].negate() : f[i];
       bool tret = assertFactRec(factc, id, exp, inferType);
       ret = ret || tret;
       if (d_state.isInConflict())
@@ -79,15 +83,15 @@ bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int in
     }
     return ret;
   }
-  bool polarity = fact.getKind() != NOT;
+  bool polarity = fact.getKind() != Kind::NOT;
   TNode atom = polarity ? fact : fact[0];
   if (d_state.isEntailed(atom, polarity))
   {
     return false;
   }
   // things we can assert to equality engine
-  if (atom.getKind() == SET_MEMBER
-      || (atom.getKind() == EQUAL && atom[0].getType().isSet()))
+  if (atom.getKind() == Kind::SET_MEMBER
+      || (atom.getKind() == Kind::EQUAL && atom[0].getType().isSet()))
   {
     // send to equality engine
     if (assertSetsFact(atom, polarity, id, exp))
@@ -102,7 +106,7 @@ bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int in
     Node lem = fact;
     if (exp != d_true)
     {
-      lem = NodeManager::currentNM()->mkNode(IMPLIES, exp, fact);
+      lem = NodeManager::currentNM()->mkNode(Kind::IMPLIES, exp, fact);
     }
     addPendingLemma(lem, id);
     return true;
@@ -117,7 +121,7 @@ bool InferenceManager::assertSetsFact(Node atom,
 {
   Node conc = polarity ? atom : atom.notNode();
   return assertInternalFact(
-      atom, polarity, id, PfRule::THEORY_INFERENCE, {exp}, {conc});
+      atom, polarity, id, ProofRule::TRUST, {exp}, {d_tid, conc, d_tsid});
 }
 
 void InferenceManager::assertInference(Node fact,
@@ -139,10 +143,11 @@ void InferenceManager::assertInference(Node fact,
                                        std::vector<Node>& exp,
                                        int inferType)
 {
-  Node exp_n = exp.empty() ? d_true
-                           : (exp.size() == 1
-                                  ? exp[0]
-                                  : NodeManager::currentNM()->mkNode(AND, exp));
+  Node exp_n = exp.empty()
+                   ? d_true
+                   : (exp.size() == 1
+                          ? exp[0]
+                          : NodeManager::currentNM()->mkNode(Kind::AND, exp));
   assertInference(fact, id, exp_n, inferType);
 }
 
@@ -153,8 +158,9 @@ void InferenceManager::assertInference(std::vector<Node>& conc,
 {
   if (!conc.empty())
   {
-    Node fact = conc.size() == 1 ? conc[0]
-                                 : NodeManager::currentNM()->mkNode(AND, conc);
+    Node fact = conc.size() == 1
+                    ? conc[0]
+                    : NodeManager::currentNM()->mkNode(Kind::AND, conc);
     assertInference(fact, id, exp, inferType);
   }
 }
@@ -163,17 +169,18 @@ void InferenceManager::assertInference(std::vector<Node>& conc,
                                        std::vector<Node>& exp,
                                        int inferType)
 {
-  Node exp_n = exp.empty() ? d_true
-                           : (exp.size() == 1
-                                  ? exp[0]
-                                  : NodeManager::currentNM()->mkNode(AND, exp));
+  Node exp_n = exp.empty()
+                   ? d_true
+                   : (exp.size() == 1
+                          ? exp[0]
+                          : NodeManager::currentNM()->mkNode(Kind::AND, exp));
   assertInference(conc, id, exp_n, inferType);
 }
 
 void InferenceManager::split(Node n, InferenceId id, int reqPol)
 {
   n = rewrite(n);
-  Node lem = NodeManager::currentNM()->mkNode(OR, n, n.negate());
+  Node lem = NodeManager::currentNM()->mkNode(Kind::OR, n, n.negate());
   // send the lemma
   lemma(lem, id);
   Trace("sets-lemma") << "Sets::Lemma split : " << lem << std::endl;
@@ -181,7 +188,7 @@ void InferenceManager::split(Node n, InferenceId id, int reqPol)
   {
     Trace("sets-lemma") << "Sets::Require phase " << n << " " << (reqPol > 0)
                         << std::endl;
-    requirePhase(n, reqPol > 0);
+    preferPhase(n, reqPol > 0);
   }
 }
 

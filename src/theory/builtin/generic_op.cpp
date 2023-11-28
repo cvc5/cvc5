@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,6 +19,7 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "util/bitvector.h"
 #include "util/floatingpoint.h"
@@ -53,22 +54,25 @@ bool GenericOp::operator==(const GenericOp& op) const
 
 bool GenericOp::isNumeralIndexedOperatorKind(Kind k)
 {
-  return k == REGEXP_LOOP || k == BITVECTOR_EXTRACT || k == BITVECTOR_REPEAT
-         || k == BITVECTOR_ZERO_EXTEND || k == BITVECTOR_SIGN_EXTEND
-         || k == BITVECTOR_ROTATE_LEFT || k == BITVECTOR_ROTATE_RIGHT
-         || k == INT_TO_BITVECTOR || k == IAND
-         || k == FLOATINGPOINT_TO_FP_FROM_FP
-         || k == FLOATINGPOINT_TO_FP_FROM_IEEE_BV
-         || k == FLOATINGPOINT_TO_FP_FROM_SBV
-         || k == FLOATINGPOINT_TO_FP_FROM_REAL || k == FLOATINGPOINT_TO_SBV
-         || k == FLOATINGPOINT_TO_UBV || k == FLOATINGPOINT_TO_SBV_TOTAL
-         || k == FLOATINGPOINT_TO_UBV_TOTAL;
+  return k == Kind::REGEXP_LOOP || k == Kind::BITVECTOR_EXTRACT
+         || k == Kind::BITVECTOR_REPEAT || k == Kind::BITVECTOR_ZERO_EXTEND
+         || k == Kind::BITVECTOR_SIGN_EXTEND || k == Kind::BITVECTOR_ROTATE_LEFT
+         || k == Kind::BITVECTOR_ROTATE_RIGHT || k == Kind::INT_TO_BITVECTOR || k==Kind::BITVECTOR_BITOF
+         || k == Kind::IAND || k == Kind::FLOATINGPOINT_TO_FP_FROM_FP
+         || k == Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV
+         || k == Kind::FLOATINGPOINT_TO_FP_FROM_SBV
+         || k == Kind::FLOATINGPOINT_TO_FP_FROM_REAL 
+         || k == Kind::FLOATINGPOINT_TO_FP_FROM_UBV || k == Kind::FLOATINGPOINT_TO_SBV || k == Kind::FLOATINGPOINT_TO_UBV
+         || k == Kind::FLOATINGPOINT_TO_SBV_TOTAL
+         || k == Kind::FLOATINGPOINT_TO_UBV_TOTAL || k == Kind::RELATION_AGGREGATE
+         || k == Kind::RELATION_PROJECT || k == Kind::RELATION_GROUP || k == Kind::TABLE_PROJECT
+         || k == Kind::TABLE_AGGREGATE || k == Kind::TABLE_JOIN || k == Kind::TABLE_GROUP;
 }
 
 bool GenericOp::isIndexedOperatorKind(Kind k)
 {
-  return isNumeralIndexedOperatorKind(k) || k == APPLY_UPDATER
-         || k == APPLY_TESTER;
+  return isNumeralIndexedOperatorKind(k) || k == Kind::APPLY_UPDATER
+         || k == Kind::APPLY_TESTER;
 }
 
 std::vector<Node> GenericOp::getIndicesForOperator(Kind k, Node n)
@@ -77,48 +81,52 @@ std::vector<Node> GenericOp::getIndicesForOperator(Kind k, Node n)
   std::vector<Node> indices;
   switch (k)
   {
-    case REGEXP_LOOP:
+    case Kind::REGEXP_LOOP:
     {
       const RegExpLoop& op = n.getConst<RegExpLoop>();
       indices.push_back(nm->mkConstInt(Rational(op.d_loopMinOcc)));
       indices.push_back(nm->mkConstInt(Rational(op.d_loopMaxOcc)));
       break;
     }
-    case BITVECTOR_EXTRACT:
+    case Kind::BITVECTOR_EXTRACT:
     {
       const BitVectorExtract& p = n.getConst<BitVectorExtract>();
       indices.push_back(nm->mkConstInt(Rational(p.d_high)));
       indices.push_back(nm->mkConstInt(Rational(p.d_low)));
       break;
     }
-    case BITVECTOR_REPEAT:
+    case Kind::BITVECTOR_REPEAT:
       indices.push_back(nm->mkConstInt(
           Rational(n.getConst<BitVectorRepeat>().d_repeatAmount)));
       break;
-    case BITVECTOR_ZERO_EXTEND:
+    case Kind::BITVECTOR_ZERO_EXTEND:
       indices.push_back(nm->mkConstInt(
           Rational(n.getConst<BitVectorZeroExtend>().d_zeroExtendAmount)));
       break;
-    case BITVECTOR_SIGN_EXTEND:
+    case Kind::BITVECTOR_SIGN_EXTEND:
       indices.push_back(nm->mkConstInt(
           Rational(n.getConst<BitVectorSignExtend>().d_signExtendAmount)));
       break;
-    case BITVECTOR_ROTATE_LEFT:
+    case Kind::BITVECTOR_ROTATE_LEFT:
       indices.push_back(nm->mkConstInt(
           Rational(n.getConst<BitVectorRotateLeft>().d_rotateLeftAmount)));
       break;
-    case BITVECTOR_ROTATE_RIGHT:
+    case Kind::BITVECTOR_ROTATE_RIGHT:
       indices.push_back(nm->mkConstInt(
           Rational(n.getConst<BitVectorRotateRight>().d_rotateRightAmount)));
       break;
-    case INT_TO_BITVECTOR:
+    case Kind::BITVECTOR_BITOF:
+      indices.push_back(
+          nm->mkConstInt(Rational(n.getConst<BitVectorBitOf>().d_bitIndex)));
+      break;
+    case Kind::INT_TO_BITVECTOR:
       indices.push_back(
           nm->mkConstInt(Rational(n.getConst<IntToBitVector>().d_size)));
       break;
-    case IAND:
+    case Kind::IAND:
       indices.push_back(nm->mkConstInt(Rational(n.getConst<IntAnd>().d_size)));
       break;
-    case FLOATINGPOINT_TO_FP_FROM_FP:
+    case Kind::FLOATINGPOINT_TO_FP_FROM_FP:
     {
       const FloatingPointToFPFloatingPoint& ffp =
           n.getConst<FloatingPointToFPFloatingPoint>();
@@ -126,7 +134,7 @@ std::vector<Node> GenericOp::getIndicesForOperator(Kind k, Node n)
       indices.push_back(nm->mkConstInt(ffp.getSize().significandWidth()));
     }
     break;
-    case FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
+    case Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
     {
       const FloatingPointToFPIEEEBitVector& fbv =
           n.getConst<FloatingPointToFPIEEEBitVector>();
@@ -134,7 +142,7 @@ std::vector<Node> GenericOp::getIndicesForOperator(Kind k, Node n)
       indices.push_back(nm->mkConstInt(fbv.getSize().significandWidth()));
     }
     break;
-    case FLOATINGPOINT_TO_FP_FROM_SBV:
+    case Kind::FLOATINGPOINT_TO_FP_FROM_SBV:
     {
       const FloatingPointToFPSignedBitVector& fsbv =
           n.getConst<FloatingPointToFPSignedBitVector>();
@@ -142,47 +150,71 @@ std::vector<Node> GenericOp::getIndicesForOperator(Kind k, Node n)
       indices.push_back(nm->mkConstInt(fsbv.getSize().significandWidth()));
     }
     break;
-    case FLOATINGPOINT_TO_FP_FROM_REAL:
+    case Kind::FLOATINGPOINT_TO_FP_FROM_UBV:
+    {
+      const FloatingPointToFPUnsignedBitVector& fubv =
+          n.getConst<FloatingPointToFPUnsignedBitVector>();
+      indices.push_back(nm->mkConstInt(fubv.getSize().exponentWidth()));
+      indices.push_back(nm->mkConstInt(fubv.getSize().significandWidth()));
+    }
+    break;
+    case Kind::FLOATINGPOINT_TO_FP_FROM_REAL:
     {
       const FloatingPointToFPReal& fr = n.getConst<FloatingPointToFPReal>();
       indices.push_back(nm->mkConstInt(fr.getSize().exponentWidth()));
       indices.push_back(nm->mkConstInt(fr.getSize().significandWidth()));
     }
     break;
-    case FLOATINGPOINT_TO_SBV:
+    case Kind::FLOATINGPOINT_TO_SBV:
     {
       const FloatingPointToSBV& fsbv = n.getConst<FloatingPointToSBV>();
       indices.push_back(nm->mkConstInt(Rational(fsbv)));
     }
     break;
-    case FLOATINGPOINT_TO_UBV:
+    case Kind::FLOATINGPOINT_TO_UBV:
     {
       const FloatingPointToUBV& fubv = n.getConst<FloatingPointToUBV>();
       indices.push_back(nm->mkConstInt(Rational(fubv)));
     }
     break;
-    case FLOATINGPOINT_TO_SBV_TOTAL:
+    case Kind::FLOATINGPOINT_TO_SBV_TOTAL:
     {
       const FloatingPointToSBVTotal& fsbv =
           n.getConst<FloatingPointToSBVTotal>();
       indices.push_back(nm->mkConstInt(Rational(fsbv)));
     }
     break;
-    case FLOATINGPOINT_TO_UBV_TOTAL:
+    case Kind::FLOATINGPOINT_TO_UBV_TOTAL:
     {
       const FloatingPointToUBVTotal& fubv =
           n.getConst<FloatingPointToUBVTotal>();
       indices.push_back(nm->mkConstInt(Rational(fubv)));
     }
     break;
-    case APPLY_TESTER:
+    case Kind::RELATION_AGGREGATE:
+    case Kind::RELATION_PROJECT:
+    case Kind::RELATION_GROUP:
+    case Kind::TABLE_PROJECT:
+    case Kind::TABLE_AGGREGATE:
+    case Kind::TABLE_JOIN:
+    case Kind::TABLE_GROUP:
+    {
+      const ProjectOp& p = n.getConst<ProjectOp>();
+      const std::vector<uint32_t>& pi = p.getIndices();
+      for (uint32_t i : pi)
+      {
+        indices.push_back(nm->mkConstInt(Rational(i)));
+      }
+    }
+    break;
+    case Kind::APPLY_TESTER:
     {
       unsigned index = DType::indexOf(n);
       const DType& dt = DType::datatypeOf(n);
       indices.push_back(dt[index].getConstructor());
     }
     break;
-    case APPLY_UPDATER:
+    case Kind::APPLY_UPDATER:
     {
       unsigned index = DType::indexOf(n);
       const DType& dt = DType::datatypeOf(n);
@@ -203,7 +235,10 @@ bool convertToNumeralList(const std::vector<Node>& indices,
 {
   for (const Node& i : indices)
   {
-    Assert(i.getKind() == CONST_INTEGER);
+    if (i.getKind() != Kind::CONST_INTEGER)
+    {
+      return false;
+    }
     const Integer& ii = i.getConst<Rational>().getNumerator();
     if (!ii.fitsUnsignedInt())
     {
@@ -224,65 +259,77 @@ Node GenericOp::getOperatorForIndices(Kind k, const std::vector<Node>& indices)
     std::vector<uint32_t> numerals;
     if (!convertToNumeralList(indices, numerals))
     {
-      // failed to convert due to overflow on index
+      // failed to convert due to non-constant, or overflow on index
       return Node::null();
     }
     switch (k)
     {
-      case REGEXP_LOOP:
+      case Kind::REGEXP_LOOP:
         Assert(numerals.size() == 2);
         return nm->mkConst(RegExpLoop(numerals[0], numerals[1]));
-      case BITVECTOR_EXTRACT:
+      case Kind::BITVECTOR_EXTRACT:
         Assert(numerals.size() == 2);
         return nm->mkConst(BitVectorExtract(numerals[0], numerals[1]));
-      case BITVECTOR_REPEAT:
+      case Kind::BITVECTOR_REPEAT:
         Assert(numerals.size() == 1);
         return nm->mkConst(BitVectorRepeat(numerals[0]));
-      case BITVECTOR_ZERO_EXTEND:
+      case Kind::BITVECTOR_ZERO_EXTEND:
         Assert(numerals.size() == 1);
         return nm->mkConst(BitVectorZeroExtend(numerals[0]));
-      case BITVECTOR_SIGN_EXTEND:
+      case Kind::BITVECTOR_SIGN_EXTEND:
         Assert(numerals.size() == 1);
         return nm->mkConst(BitVectorSignExtend(numerals[0]));
-      case BITVECTOR_ROTATE_LEFT:
+      case Kind::BITVECTOR_ROTATE_LEFT:
         Assert(numerals.size() == 1);
         return nm->mkConst(BitVectorRotateLeft(numerals[0]));
-      case BITVECTOR_ROTATE_RIGHT:
+      case Kind::BITVECTOR_ROTATE_RIGHT:
         Assert(numerals.size() == 1);
         return nm->mkConst(BitVectorRotateRight(numerals[0]));
-      case INT_TO_BITVECTOR:
+      case Kind::INT_TO_BITVECTOR:
         Assert(numerals.size() == 1);
         return nm->mkConst(IntToBitVector(numerals[0]));
-      case IAND:
+      case Kind::IAND:
         Assert(numerals.size() == 1);
         return nm->mkConst(IntAnd(numerals[0]));
-      case FLOATINGPOINT_TO_FP_FROM_FP:
+      case Kind::FLOATINGPOINT_TO_FP_FROM_FP:
         Assert(numerals.size() == 2);
         return nm->mkConst(
             FloatingPointToFPFloatingPoint(numerals[0], numerals[1]));
-      case FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
+      case Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
         Assert(numerals.size() == 2);
         return nm->mkConst(
             FloatingPointToFPIEEEBitVector(numerals[0], numerals[1]));
-      case FLOATINGPOINT_TO_FP_FROM_SBV:
+      case Kind::FLOATINGPOINT_TO_FP_FROM_SBV:
         Assert(numerals.size() == 2);
         return nm->mkConst(
             FloatingPointToFPSignedBitVector(numerals[0], numerals[1]));
-      case FLOATINGPOINT_TO_FP_FROM_REAL:
+      case Kind::FLOATINGPOINT_TO_FP_FROM_REAL:
         Assert(numerals.size() == 2);
         return nm->mkConst(FloatingPointToFPReal(numerals[0], numerals[1]));
-      case FLOATINGPOINT_TO_SBV:
+      case Kind::FLOATINGPOINT_TO_SBV:
         Assert(numerals.size() == 1);
         return nm->mkConst(FloatingPointToSBV(numerals[0]));
-      case FLOATINGPOINT_TO_UBV:
+      case Kind::FLOATINGPOINT_TO_UBV:
         Assert(numerals.size() == 1);
         return nm->mkConst(FloatingPointToUBV(numerals[0]));
-      case FLOATINGPOINT_TO_SBV_TOTAL:
+      case Kind::FLOATINGPOINT_TO_SBV_TOTAL:
         Assert(numerals.size() == 1);
         return nm->mkConst(FloatingPointToSBVTotal(numerals[0]));
-      case FLOATINGPOINT_TO_UBV_TOTAL:
+      case Kind::FLOATINGPOINT_TO_UBV_TOTAL:
         Assert(numerals.size() == 1);
         return nm->mkConst(FloatingPointToUBVTotal(numerals[0]));
+      case Kind::RELATION_AGGREGATE:
+        return nm->mkConst(Kind::RELATION_AGGREGATE_OP, ProjectOp(numerals));
+      case Kind::RELATION_PROJECT:
+        return nm->mkConst(Kind::RELATION_PROJECT_OP, ProjectOp(numerals));
+      case Kind::RELATION_GROUP:
+        return nm->mkConst(Kind::RELATION_GROUP_OP, ProjectOp(numerals));
+      case Kind::TABLE_PROJECT:
+        return nm->mkConst(Kind::TABLE_PROJECT_OP, ProjectOp(numerals));
+      case Kind::TABLE_AGGREGATE:
+        return nm->mkConst(Kind::TABLE_AGGREGATE_OP, ProjectOp(numerals));
+      case Kind::TABLE_JOIN: return nm->mkConst(Kind::TABLE_JOIN_OP, ProjectOp(numerals));
+      case Kind::TABLE_GROUP: return nm->mkConst(Kind::TABLE_GROUP_OP, ProjectOp(numerals));
       default:
         Unhandled() << "GenericOp::getOperatorForIndices: unhandled kind " << k;
         break;
@@ -292,7 +339,7 @@ Node GenericOp::getOperatorForIndices(Kind k, const std::vector<Node>& indices)
   {
     switch (k)
     {
-      case APPLY_TESTER:
+      case Kind::APPLY_TESTER:
       {
         Assert(indices.size() == 1);
         unsigned index = DType::indexOf(indices[0]);
@@ -300,7 +347,7 @@ Node GenericOp::getOperatorForIndices(Kind k, const std::vector<Node>& indices)
         return dt[index].getTester();
       }
       break;
-      case APPLY_UPDATER:
+      case Kind::APPLY_UPDATER:
       {
         Assert(indices.size() == 1);
         unsigned index = DType::indexOf(indices[0]);
@@ -315,6 +362,33 @@ Node GenericOp::getOperatorForIndices(Kind k, const std::vector<Node>& indices)
     }
   }
   return Node::null();
+}
+
+Node GenericOp::getConcreteApp(const Node& app)
+{
+  Trace("generic-op") << "getConcreteApp " << app << std::endl;
+  Assert(app.getKind() == Kind::APPLY_INDEXED_SYMBOLIC);
+  Kind okind = app.getOperator().getConst<GenericOp>().getKind();
+  // determine how many arguments should be passed to the end function. This is
+  // usually one, but we handle cases where it is >1.
+  size_t nargs = metakind::getMinArityForKind(okind);
+  std::vector<Node> indices(app.begin(), app.end() - nargs);
+  Node op = getOperatorForIndices(okind, indices);
+  // could have a bad index, in which case we don't rewrite
+  if (op.isNull())
+  {
+    return app;
+  }
+  std::vector<Node> args;
+  args.push_back(op);
+  args.insert(args.end(), app.end() - nargs, app.end());
+  Node ret = NodeManager::currentNM()->mkNode(okind, args);
+  // could be ill typed, in which case we don't rewrite
+  if (ret.getTypeOrNull(true).isNull())
+  {
+    return app;
+  }
+  return ret;
 }
 
 }  // namespace cvc5::internal

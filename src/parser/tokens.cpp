@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,8 +45,9 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::DECLARE_DATATYPES_TOK: o << "DECLARE_DATATYPES_TOK"; break;
     case Token::DECLARE_DATATYPE_TOK: o << "DECLARE_DATATYPE_TOK"; break;
     case Token::DECLARE_FUN_TOK: o << "DECLARE_FUN_TOK"; break;
-    case Token::DECLARE_HEAP: o << "DECLARE_HEAP"; break;
-    case Token::DECLARE_POOL: o << "DECLARE_POOL"; break;
+    case Token::DECLARE_HEAP_TOK: o << "DECLARE_HEAP_TOK"; break;
+    case Token::DECLARE_ORACLE_FUN_TOK: o << "DECLARE_ORACLE_FUN_TOK"; break;
+    case Token::DECLARE_POOL_TOK: o << "DECLARE_POOL_TOK"; break;
     case Token::DECLARE_SORT_TOK: o << "DECLARE_SORT_TOK"; break;
     case Token::DECLARE_VAR_TOK: o << "DECLARE_VAR_TOK"; break;
     case Token::DEFINE_CONST_TOK: o << "DEFINE_CONST_TOK"; break;
@@ -57,6 +58,8 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::ECHO_TOK: o << "ECHO_TOK"; break;
     case Token::EXIT_TOK: o << "EXIT_TOK"; break;
     case Token::FIELD_LITERAL: o << "FIELD_LITERAL"; break;
+    case Token::FIND_SYNTH_TOK: o << "FIND_SYNTH_TOK"; break;
+    case Token::FIND_SYNTH_NEXT_TOK: o << "FIND_SYNTH_NEXT_TOK"; break;
     case Token::GET_ABDUCT_NEXT_TOK: o << "GET_ABDUCT_NEXT_TOK"; break;
     case Token::GET_ABDUCT_TOK: o << "GET_ABDUCT_TOK"; break;
     case Token::GET_ASSERTIONS_TOK: o << "GET_ASSERTIONS_TOK"; break;
@@ -74,10 +77,16 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::GET_QE_DISJUNCT_TOK: o << "GET_QE_DISJUNCT_TOK"; break;
     case Token::GET_QE_TOK: o << "GET_QE_TOK"; break;
     case Token::GET_TIMEOUT_CORE_TOK: o << "GET_TIMEOUT_CORE_TOK"; break;
+    case Token::GET_TIMEOUT_CORE_ASSUMING_TOK:
+      o << "GET_TIMEOUT_CORE_ASSUMING_TOK";
+      break;
     case Token::GET_UNSAT_ASSUMPTIONS_TOK:
       o << "GET_UNSAT_ASSUMPTIONS_TOK";
       break;
     case Token::GET_UNSAT_CORE_TOK: o << "GET_UNSAT_CORE_TOK"; break;
+    case Token::GET_UNSAT_CORE_LEMMAS_TOK:
+      o << "GET_UNSAT_CORE_LEMMAS_TOK";
+      break;
     case Token::GET_VALUE_TOK: o << "GET_VALUE_TOK"; break;
     case Token::HEX_LITERAL: o << "HEX_LITERAL"; break;
     case Token::INCLUDE_TOK: o << "INCLUDE_TOK"; break;

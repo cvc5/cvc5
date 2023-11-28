@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -48,7 +48,7 @@ PreprocessingPassResult StaticLearning::applyInternal(
       continue;
     }
 
-    NodeBuilder learned(kind::AND);
+    NodeBuilder learned(Kind::AND);
     learned << n;
 
     /* Process all assertions in nested AND terms. */
@@ -85,7 +85,7 @@ void StaticLearning::flattenAnd(TNode node, std::vector<TNode>& children)
     }
     d_cache.insert(cur);
 
-    if (cur.getKind() == kind::AND)
+    if (cur.getKind() == Kind::AND)
     {
       visit.insert(visit.end(), cur.begin(), cur.end());
     }

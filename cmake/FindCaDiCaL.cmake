@@ -47,8 +47,8 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
   include(CheckSymbolExists)
   include(ExternalProject)
 
-  set(CaDiCaL_VERSION "rel-1.5.2")
-  set(CaDiCaL_CHECKSUM "8bc2c3bdf4ef3780f001b31c2fe02168f3bb34b8")
+  set(CaDiCaL_VERSION "rel-1.7.4")
+  set(CaDiCaL_CHECKSUM "9cc70c65c80f40c0c13b57cb43ea2a6804cae4eb")
 
   # avoid configure script and instantiate the makefile manually the configure
   # scripts unnecessarily fails for cross compilation thus we do the bare
@@ -134,4 +134,8 @@ if(CaDiCaL_FOUND_SYSTEM)
 else()
   message(STATUS "Building CaDiCaL ${CaDiCaL_VERSION}: ${CaDiCaL_LIBRARIES}")
   add_dependencies(CaDiCaL CaDiCaL-EP)
+  install(FILES
+    ${CaDiCaL_LIBRARIES}
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
 endif()

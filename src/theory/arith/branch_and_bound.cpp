@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Gereon Kremer
+ *   Andrew Reynolds, Gereon Kremer, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,7 +30,7 @@ namespace theory {
 namespace arith {
 
 BranchAndBound::BranchAndBound(Env& env,
-                               ArithState& s,
+                               TheoryState& s,
                                InferenceManager& im,
                                PreprocessRewriteEq& ppre)
     : EnvObj(env),
@@ -42,28 +42,10 @@ BranchAndBound::BranchAndBound(Env& env,
 }
 
 std::vector<TrustNode> BranchAndBound::branchIntegerVariable(TNode var,
-                                                             Rational value,
-                                                             bool doPurify)
+                                                             Rational value)
 {
   std::vector<TrustNode> lems;
   NodeManager* nm = NodeManager::currentNM();
-  if (doPurify)
-  {
-    Node k = nm->getSkolemManager()->mkPurifySkolem(var, "bbk");
-    Node eq = k.eqNode(var);
-    if (proofsEnabled())
-    {
-      // justified trivially by predicate introduction
-      lems.push_back(
-          d_pfGen->mkTrustNode(eq, PfRule::MACRO_SR_PRED_INTRO, {}, {eq}));
-    }
-    else
-    {
-      lems.push_back(TrustNode::mkTrustLemma(eq, nullptr));
-    }
-    // now use the purification variable
-    var = k;
-  }
   Integer floor = value.floor();
   if (options().arith.brabTest)
   {
@@ -76,16 +58,15 @@ std::vector<TrustNode> BranchAndBound::branchIntegerVariable(TNode var,
 
     // Prioritize trying a simple rounding of the real solution first,
     // it that fails, fall back on original branch and bound strategy.
-    Node ub = rewrite(nm->mkNode(LEQ, var, nm->mkConstInt(nearest - 1)));
-    Node ubatom = ub.getKind() == NOT ? ub[0] : ub;
-    // if it rewrites to a non-arithmetic inequality, we must purify
-    if (ubatom.getKind() != GEQ && !doPurify)
-    {
-      return branchIntegerVariable(var, value, true);
-    }
-    Node lb = rewrite(nm->mkNode(GEQ, var, nm->mkConstInt(nearest + 1)));
-    Node right = nm->mkNode(OR, ub, lb);
-    Node rawEq = nm->mkNode(EQUAL, var, nm->mkConstInt(nearest));
+    Node ub = rewrite(nm->mkNode(Kind::LEQ, var, nm->mkConstInt(nearest - 1)));
+    // The rewritten form should be a GEQ literal, otherwise the split returned
+    // by this method will not have its intended effect
+    Assert(ub.getKind() == Kind::GEQ
+           || (ub.getKind() == Kind::NOT && ub[0].getKind() == Kind::GEQ));
+    Node ubatom = ub.getKind() == Kind::NOT ? ub[0] : ub;
+    Node lb = rewrite(nm->mkNode(Kind::GEQ, var, nm->mkConstInt(nearest + 1)));
+    Node right = nm->mkNode(Kind::OR, ub, lb);
+    Node rawEq = nm->mkNode(Kind::EQUAL, var, nm->mkConstInt(nearest));
     Node eq = rewrite(rawEq);
     // Also preprocess it before we send it out. This is important since
     // arithmetic may prefer eliminating equalities.
@@ -97,14 +78,14 @@ std::vector<TrustNode> BranchAndBound::branchIntegerVariable(TNode var,
     }
     Node literal = d_astate.getValuation().ensureLiteral(eq);
     Trace("integers") << "eq: " << eq << "\nto: " << literal << std::endl;
-    d_im.requirePhase(literal, true);
-    Node l = nm->mkNode(OR, literal, right);
+    d_im.preferPhase(literal, true);
+    Node l = nm->mkNode(Kind::OR, literal, right);
     Trace("integers") << "l: " << l << std::endl;
     if (proofsEnabled())
     {
       ProofNodeManager* pnm = d_env.getProofNodeManager();
-      Node less = nm->mkNode(LT, var, nm->mkConstInt(nearest));
-      Node greater = nm->mkNode(GT, var, nm->mkConstInt(nearest));
+      Node less = nm->mkNode(Kind::LT, var, nm->mkConstInt(nearest));
+      Node greater = nm->mkNode(Kind::GT, var, nm->mkConstInt(nearest));
       // TODO (project #37): justify. Thread proofs through *ensureLiteral*.
       Trace("integers::pf") << "less: " << less << std::endl;
       Trace("integers::pf") << "greater: " << greater << std::endl;
@@ -117,12 +98,12 @@ std::vector<TrustNode> BranchAndBound::branchIntegerVariable(TNode var,
           literal == rawEq
               ? pfNotLit
               : pnm->mkNode(
-                  PfRule::MACRO_SR_PRED_TRANSFORM,
+                  ProofRule::MACRO_SR_PRED_TRANSFORM,
                   {pfNotLit, teq.getGenerator()->getProofFor(teq.getProven())},
                   {rawEq.negate()});
       Pf pfBot =
-          pnm->mkNode(PfRule::CONTRA,
-                      {pnm->mkNode(PfRule::ARITH_TRICHOTOMY,
+          pnm->mkNode(ProofRule::CONTRA,
+                      {pnm->mkNode(ProofRule::ARITH_TRICHOTOMY,
                                    {pnm->mkAssume(less.negate()), pfNotRawEq},
                                    {greater}),
                        pnm->mkAssume(greater.negate())},
@@ -131,8 +112,8 @@ std::vector<TrustNode> BranchAndBound::branchIntegerVariable(TNode var,
           literal.negate(), less.negate(), greater.negate()};
       // Proof of (not (and (not (= v i)) (not (< v i)) (not (> v i))))
       Pf pfNotAnd = pnm->mkScope(pfBot, assumptions);
-      Pf pfL = pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
-                           {pnm->mkNode(PfRule::NOT_AND, {pfNotAnd}, {})},
+      Pf pfL = pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM,
+                           {pnm->mkNode(ProofRule::NOT_AND, {pfNotAnd}, {})},
                            {l});
       lems.push_back(d_pfGen->mkTrustNode(l, pfL));
     }
@@ -143,22 +124,21 @@ std::vector<TrustNode> BranchAndBound::branchIntegerVariable(TNode var,
   }
   else
   {
-    Node ub = rewrite(nm->mkNode(LEQ, var, nm->mkConstInt(floor)));
-    Node ubatom = ub.getKind() == NOT ? ub[0] : ub;
-    // if it rewrites to a non-arithmetic inequality, we must purify
-    if (ubatom.getKind() != GEQ && !doPurify)
-    {
-      return branchIntegerVariable(var, value, true);
-    }
+    Node ub = rewrite(nm->mkNode(Kind::LEQ, var, nm->mkConstInt(floor)));
+    // Similar to above, the rewritten form should be a GEQ literal, otherwise
+    // the split returned by this method will not have its intended effect
+    Assert(ub.getKind() == Kind::GEQ
+           || (ub.getKind() == Kind::NOT && ub[0].getKind() == Kind::GEQ));
     Node lb = ub.notNode();
     if (proofsEnabled())
     {
       lems.push_back(d_pfGen->mkTrustNode(
-          nm->mkNode(OR, ub, lb), PfRule::SPLIT, {}, {ub}));
+          nm->mkNode(Kind::OR, ub, lb), ProofRule::SPLIT, {}, {ub}));
     }
     else
     {
-      lems.push_back(TrustNode::mkTrustLemma(nm->mkNode(OR, ub, lb), nullptr));
+      lems.push_back(
+          TrustNode::mkTrustLemma(nm->mkNode(Kind::OR, ub, lb), nullptr));
     }
   }
   if (TraceIsOn("integers"))

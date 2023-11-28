@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,11 +38,7 @@ namespace theory {
 namespace ff {
 
 SubTheory::SubTheory(Env& env, FfStatistics* stats, Integer modulus)
-    : EnvObj(env),
-      d_facts(context()),
-      d_stats(stats),
-      d_baseRing(CoCoA::NewZZmod(CoCoA::BigIntFromString(modulus.toString()))),
-      d_modulus(modulus)
+    : EnvObj(env), FieldObj(modulus), d_facts(context()), d_stats(stats)
 {
   AlwaysAssert(modulus.isProbablePrime()) << "non-prime fields are unsupported";
   // must be initialized before using CoCoA.
@@ -146,7 +142,7 @@ void SubTheory::postCheck(Theory::Effort e)
     }
 
     // our polynomial ring
-    CoCoA::PolyRing polyRing = CoCoA::NewPolyRing(d_baseRing, symbols);
+    CoCoA::PolyRing polyRing = CoCoA::NewPolyRing(coeffRing(), symbols);
     // map from nodes to the polynomials that represent them
     std::unordered_map<Node, CoCoA::RingElem> nodeToCocoa{};
     // map from the rings indeterminates (their indices) to the theory leaves
@@ -249,7 +245,7 @@ void SubTheory::postCheck(Theory::Effort e)
                      Trace("ff::trans") << "Poly: " << poly << std::endl;
                      return poly;
                    });
-    Tracer tracer(generators);
+    size_t nNonFieldPolyGens = generators.size();
     if (options().ff.ffFieldPolys)
     {
       for (const auto& var : CoCoA::indets(polyRing))
@@ -261,6 +257,7 @@ void SubTheory::postCheck(Theory::Effort e)
         generators.push_back(CoCoA::power(var, size) - var);
       }
     }
+    Tracer tracer(generators);
     if (options().ff.ffTraceGb) tracer.setFunctionPointers();
     CoCoA::ideal ideal = CoCoA::ideal(generators);
     const auto basis = CoCoA::GBasis(ideal);
@@ -277,8 +274,12 @@ void SubTheory::postCheck(Theory::Effort e)
         Assert(d_conflict.empty());
         for (size_t i : coreIndices)
         {
-          Trace("ff::core") << "Core: " << d_facts[i] << std::endl;
-          d_conflict.push_back(d_facts[i]);
+          // omit field polys from core
+          if (i < nNonFieldPolyGens)
+          {
+            Trace("ff::core") << "Core: " << d_facts[i] << std::endl;
+            d_conflict.push_back(d_facts[i]);
+          }
         }
       }
       else
@@ -308,7 +309,7 @@ void SubTheory::postCheck(Theory::Effort e)
           std::ostringstream valStr;
           valStr << root[idxAndLeaf.first];
           Integer integer(valStr.str(), 10);
-          FiniteFieldValue literal(integer, d_modulus);
+          FiniteFieldValue literal(integer, size());
           Node value = nm->mkConst(literal);
           Trace("ff::model")
               << "Model: " << idxAndLeaf.second << " = " << value << std::endl;

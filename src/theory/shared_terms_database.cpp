@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -256,7 +256,7 @@ void SharedTermsDatabase::assertShared(TNode n, bool polarity, TNode reason)
       << "SharedTermsDatabase::assertShared(" << n << ", "
       << (polarity ? "true" : "false") << ", " << reason << ")" << endl;
   // Add it to the equality engine
-  if (n.getKind() == kind::EQUAL)
+  if (n.getKind() == Kind::EQUAL)
   {
     d_equalityEngine->assertEquality(n, polarity, reason);
   }
@@ -298,13 +298,14 @@ void SharedTermsDatabase::checkForConflict()
     Node conflictNode = NodeManager::currentNM()->mkAnd(assumptions);
     trnc = TrustNode::mkTrustConflict(conflictNode, nullptr);
   }
-  d_theoryEngine->conflict(trnc, THEORY_BUILTIN);
+  d_theoryEngine->conflict(
+      trnc, InferenceId::EQ_CONSTANT_MERGE, THEORY_BUILTIN);
   d_conflictLHS = d_conflictRHS = Node::null();
 }
 
 bool SharedTermsDatabase::isKnown(TNode literal) const {
   Assert(d_equalityEngine != nullptr);
-  bool polarity = literal.getKind() != kind::NOT;
+  bool polarity = literal.getKind() != Kind::NOT;
   TNode equality = polarity ? literal : literal[0];
   if (polarity) {
     return d_equalityEngine->areEqual(equality[0], equality[1]);

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,11 +41,17 @@ class BagSolver : protected EnvObj
   ~BagSolver();
 
   /**
-   * apply inference rules for basic bag operators:
+   * apply inference rules for basic bag operators without quantifiers:
    * BAG_MAKE, BAG_UNION_DISJOINT, BAG_UNION_MAX, BAG_INTER_MIN,
    * BAG_DIFFERENCE_SUBTRACT, BAG_DIFFERENCE_REMOVE, BAG_DUPLICATE_REMOVAL
    */
   void checkBasicOperations();
+
+  /**
+   * apply inference rules for operators with quantifiers:
+   * BAG_MAP
+   */
+  void checkQuantifiedOperations();
 
   /**
    * apply inference rules for BAG_MAKE terms.

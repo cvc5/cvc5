@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,9 +35,12 @@ std::string toString<Node> (const std::vector<Node>& bits) {
   std::ostringstream os;
   for (int i = bits.size() - 1; i >= 0; --i) {
     TNode bit = bits[i];
-    if (bit.getKind() == kind::CONST_BOOLEAN) {
+    if (bit.getKind() == Kind::CONST_BOOLEAN)
+    {
       os << (bit.getConst<bool>() ? "1" : "0");
-    } else {
+    }
+    else
+    {
       os << bit<< " ";
     }
   }
@@ -69,50 +72,48 @@ Node mkFalse<Node>() {
 
 template <> inline
 Node mkNot<Node>(Node a) {
-  return NodeManager::currentNM()->mkNode(kind::NOT, a);
+  return NodeManager::currentNM()->mkNode(Kind::NOT, a);
 }
 
 template <> inline
 Node mkOr<Node>(Node a, Node b) {
-  return NodeManager::currentNM()->mkNode(kind::OR, a, b);
+  return NodeManager::currentNM()->mkNode(Kind::OR, a, b);
 }
 
 template <> inline
 Node mkOr<Node>(const std::vector<Node>& children) {
   Assert(children.size());
-  if (children.size() == 1)
-    return children[0]; 
-  return NodeManager::currentNM()->mkNode(kind::OR, children); 
+  if (children.size() == 1) return children[0];
+  return NodeManager::currentNM()->mkNode(Kind::OR, children);
 }
 
 
 template <> inline
 Node mkAnd<Node>(Node a, Node b) {
-  return NodeManager::currentNM()->mkNode(kind::AND, a, b);
+  return NodeManager::currentNM()->mkNode(Kind::AND, a, b);
 }
 
 template <> inline
 Node mkAnd<Node>(const std::vector<Node>& children) {
   Assert(children.size());
-  if (children.size() == 1)
-    return children[0]; 
-  return NodeManager::currentNM()->mkNode(kind::AND, children); 
+  if (children.size() == 1) return children[0];
+  return NodeManager::currentNM()->mkNode(Kind::AND, children);
 }
 
 
 template <> inline
 Node mkXor<Node>(Node a, Node b) {
-  return NodeManager::currentNM()->mkNode(kind::XOR, a, b);
+  return NodeManager::currentNM()->mkNode(Kind::XOR, a, b);
 }
 
 template <> inline
 Node mkIff<Node>(Node a, Node b) {
-  return NodeManager::currentNM()->mkNode(kind::EQUAL, a, b);
+  return NodeManager::currentNM()->mkNode(Kind::EQUAL, a, b);
 }
 
 template <> inline
 Node mkIte<Node>(Node cond, Node a, Node b) {
-  return NodeManager::currentNM()->mkNode(kind::ITE, cond, a, b);
+  return NodeManager::currentNM()->mkNode(Kind::ITE, cond, a, b);
 }
 
 /*

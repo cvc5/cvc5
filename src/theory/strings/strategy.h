@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,8 +33,11 @@ namespace strings {
  * details on the individual steps, see documentation on the inference schemas
  * within Strategy.
  */
-enum InferStep
+enum class InferStep : uint32_t
 {
+  // placeholder specfying no inference step
+  NONE,
+
   // indicates that the strategy should break if lemmas or facts are added
   BREAK,
   // check initial
@@ -75,6 +78,9 @@ enum InferStep
   CHECK_SEQUENCES_ARRAY,
   // check sequence
   CHECK_SEQUENCES_ARRAY_EAGER,
+
+  // unknown inference step
+  UNKNOWN
 };
 std::ostream& operator<<(std::ostream& out, InferStep i);
 

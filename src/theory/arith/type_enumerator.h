@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,7 +35,7 @@ class RationalEnumerator : public TypeEnumeratorBase<RationalEnumerator> {
   RationalEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<RationalEnumerator>(type), d_rat(0)
   {
-    Assert(type.getKind() == kind::TYPE_CONSTANT
+    Assert(type.getKind() == Kind::TYPE_CONSTANT
            && type.getConst<TypeConstant>() == REAL_TYPE);
   }
 
@@ -79,7 +79,7 @@ class IntegerEnumerator : public TypeEnumeratorBase<IntegerEnumerator> {
   IntegerEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<IntegerEnumerator>(type), d_int(0)
   {
-    Assert(type.getKind() == kind::TYPE_CONSTANT
+    Assert(type.getKind() == Kind::TYPE_CONSTANT
            && type.getConst<TypeConstant>() == INTEGER_TYPE);
   }
 

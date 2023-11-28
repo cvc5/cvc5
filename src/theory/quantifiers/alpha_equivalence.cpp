@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -89,7 +89,7 @@ AlphaEquivalenceDb::AlphaEquivalenceDb(context::Context* c,
 }
 Node AlphaEquivalenceDb::addTerm(Node q)
 {
-  Assert(q.getKind() == FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   Trace("aeq") << "Alpha equivalence : register " << q << std::endl;
   //construct canonical quantified formula
   Node t = d_tc->getCanonicalTerm(q[1], d_sortCommutativeOpChildren);
@@ -109,9 +109,9 @@ Node AlphaEquivalenceDb::addTermWithSubstitution(Node q,
   std::map<Node, TNode>& bm = d_bvmap[q];
   for (const std::pair<const TNode, Node>& b : visited)
   {
-    if (b.first.getKind() == BOUND_VARIABLE)
+    if (b.first.getKind() == Kind::BOUND_VARIABLE)
     {
-      Assert(b.second.getKind() == BOUND_VARIABLE);
+      Assert(b.second.getKind() == Kind::BOUND_VARIABLE);
       bm[b.second] = b.first;
     }
   }
@@ -173,7 +173,7 @@ AlphaEquivalence::AlphaEquivalence(Env& env)
 
 TrustNode AlphaEquivalence::reduceQuantifier(Node q)
 {
-  Assert(q.getKind() == FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   Node ret;
   std::vector<Node> vars;
   std::vector<Node> subs;
@@ -223,7 +223,7 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
     transEq.push_back(eq);
     // ---------- ALPHA_EQUIV
     // ret = sret
-    cdp.addStep(eq, PfRule::ALPHA_EQUIV, {}, pfArgs);
+    cdp.addStep(eq, ProofRule::ALPHA_EQUIV, {}, pfArgs);
     // if not syntactically equal, maybe it can be transformed
     bool success = false;
     if (sret == q)
@@ -245,7 +245,7 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
                      MethodId::SB_DEFAULT,
                      MethodId::SBA_SEQUENTIAL,
                      MethodId::RW_EXT_REWRITE);
-        cdp.addStep(eq2, PfRule::MACRO_SR_PRED_INTRO, {}, pfArgs2);
+        cdp.addStep(eq2, ProofRule::MACRO_SR_PRED_INTRO, {}, pfArgs2);
         success = true;
       }
     }
@@ -255,7 +255,7 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
       if (transEq.size() > 1)
       {
         // TRANS of ALPHA_EQ and MACRO_SR_PRED_INTRO steps from above
-        cdp.addStep(lem, PfRule::TRANS, transEq, {});
+        cdp.addStep(lem, ProofRule::TRANS, transEq, {});
       }
       std::shared_ptr<ProofNode> pn = cdp.getProofFor(lem);
       Trace("alpha-eq") << "Proof is " << *pn.get() << std::endl;

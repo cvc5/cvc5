@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -126,12 +126,13 @@ class SmtDriver : protected EnvObj
  * The default SMT driver, which makes a single call to the underlying
  * SMT solver.
  *
- * Notice this class does not require ContextManager.
+ * Notice this class does not require ContextManager if we are not doing
+ * incremental solving with this driver.
  */
 class SmtDriverSingleCall : public SmtDriver
 {
  public:
-  SmtDriverSingleCall(Env& env, SmtSolver& smt);
+  SmtDriverSingleCall(Env& env, SmtSolver& smt, ContextManager* ctx = nullptr);
   virtual ~SmtDriverSingleCall(){}
 
  protected:

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -212,7 +212,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   }
 
   Trace("sygus-repair-const") << "Make satisfiabily query..." << std::endl;
-  if (fo_body.getKind() == FORALL)
+  if (fo_body.getKind() == Kind::FORALL)
   {
     // must be a CBQI quantifier
     CegHandledStatus hstatus =
@@ -294,7 +294,7 @@ bool SygusRepairConst::mustRepair(Node n)
     if (visited.find(cur) == visited.end())
     {
       visited.insert(cur);
-      Assert(cur.getKind() == APPLY_CONSTRUCTOR);
+      Assert(cur.getKind() == Kind::APPLY_CONSTRUCTOR);
       if (isRepairable(cur, false))
       {
         return true;
@@ -311,7 +311,7 @@ bool SygusRepairConst::mustRepair(Node n)
 
 bool SygusRepairConst::isRepairable(Node n, bool useConstantsAsHoles)
 {
-  if (n.getKind() != APPLY_CONSTRUCTOR)
+  if (n.getKind() != Kind::APPLY_CONSTRUCTOR)
   {
     return false;
   }
@@ -324,8 +324,7 @@ bool SygusRepairConst::isRepairable(Node n, bool useConstantsAsHoles)
   }
   Node op = n.getOperator();
   unsigned cindex = datatypes::utils::indexOf(op);
-  Node sygusOp = dt[cindex].getSygusOp();
-  if (sygusOp.getAttribute(SygusAnyConstAttribute()))
+  if (dt[cindex].isSygusAnyConstant())
   {
     // if it represents "any constant" then it is repairable
     return true;
@@ -336,7 +335,7 @@ bool SygusRepairConst::isRepairable(Node n, bool useConstantsAsHoles)
   }
   if (useConstantsAsHoles && dt.getSygusAllowConst())
   {
-    if (sygusOp.isConst())
+    if (dt[cindex].getSygusOp().isConst())
     {
       // if a constant, it is repairable
       return true;
@@ -475,7 +474,7 @@ Node SygusRepairConst::getFoQuery(Node body,
     if (it == visited.end())
     {
       visited[cur] = Node::null();
-      if (cur.getKind() == DT_SYGUS_EVAL)
+      if (cur.getKind() == Kind::DT_SYGUS_EVAL)
       {
         Node v = cur[0];
         if (std::find(sk_vars.begin(), sk_vars.end(), v) != sk_vars.end())
@@ -589,10 +588,12 @@ bool SygusRepairConst::getFitToLogicExcludeVar(const LogicInfo& logic,
     {
       visited.insert(cur);
       Kind ck = cur.getKind();
-      bool isArithDivKind = (ck == DIVISION_TOTAL || ck == INTS_DIVISION_TOTAL
-                             || ck == INTS_MODULUS_TOTAL);
-      Assert(ck != DIVISION && ck != INTS_DIVISION && ck != INTS_MODULUS);
-      if (restrictLA && (ck == NONLINEAR_MULT || isArithDivKind))
+      bool isArithDivKind =
+          (ck == Kind::DIVISION_TOTAL || ck == Kind::INTS_DIVISION_TOTAL
+           || ck == Kind::INTS_MODULUS_TOTAL);
+      Assert(ck != Kind::DIVISION && ck != Kind::INTS_DIVISION
+             && ck != Kind::INTS_MODULUS);
+      if (restrictLA && (ck == Kind::NONLINEAR_MULT || isArithDivKind))
       {
         for (unsigned j = 0, size = cur.getNumChildren(); j < size; j++)
         {
@@ -600,7 +601,7 @@ bool SygusRepairConst::getFitToLogicExcludeVar(const LogicInfo& logic,
           std::map<Node, Node>::iterator itf = d_fo_to_sk.find(ccur);
           if (itf != d_fo_to_sk.end())
           {
-            if (ck == NONLINEAR_MULT || (isArithDivKind && j == 1))
+            if (ck == Kind::NONLINEAR_MULT || (isArithDivKind && j == 1))
             {
               exvar = itf->second;
               return true;

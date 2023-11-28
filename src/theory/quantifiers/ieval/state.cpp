@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -126,7 +126,7 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
     if (itr == d_registeredTerms.end())
     {
       d_registeredTerms.insert(cur);
-      if (cur.getKind() == BOUND_VARIABLE)
+      if (cur.getKind() == Kind::BOUND_VARIABLE)
       {
         // should be one of the free variables of the quantified formula
         Assert(std::find(vars.begin(), vars.end(), cur) != vars.end());
@@ -137,11 +137,7 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
       {
         // get the unique children
         std::set<TNode> children;
-        // must consider operators (for higher-order)
-        if (cur.hasOperator())
-        {
-          children.insert(cur.getOperator());
-        }
+        // we don't traverse into operators here
         children.insert(cur.begin(), cur.end());
         for (TNode cc : children)
         {
@@ -367,7 +363,7 @@ void State::notifyPatternEqGround(TNode p, TNode g)
     context::CDList<Node>& notifyList = it->second.d_parentNotify;
     for (TNode pp : notifyList)
     {
-      if (pp.getKind() == FORALL)
+      if (pp.getKind() == Kind::FORALL)
       {
         // if we have a quantified formula as a parent, notify is a special
         // method, which will test the constraints
@@ -393,7 +389,7 @@ void State::notifyPatternEqGround(TNode p, TNode g)
 
 void State::notifyQuant(TNode q, TNode p, TNode val)
 {
-  Assert(q.getKind() == FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   QuantInfo& qi = getQuantInfo(q);
   if (!qi.isActive())
   {

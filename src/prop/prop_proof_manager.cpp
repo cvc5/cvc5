@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Gereon Kremer, Andrew Reynolds
+ *   Haniel Barbosa, Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -70,16 +70,33 @@ void PropPfManager::checkProof(const context::CDList<Node>& assertions)
                      "PropPfManager::checkProof");
 }
 
+std::vector<Node> PropPfManager::getUnsatCoreLemmas()
+{
+  std::vector<Node> usedLemmas;
+  std::vector<Node> allLemmas = d_proofCnfStream->getLemmaClauses();
+  std::shared_ptr<ProofNode> satPf = getProof(false);
+  std::vector<Node> satLeaves;
+  expr::getFreeAssumptions(satPf.get(), satLeaves);
+  for (const Node& lemma : allLemmas)
+  {
+    if (std::find(satLeaves.begin(), satLeaves.end(), lemma) != satLeaves.end())
+    {
+      usedLemmas.push_back(lemma);
+    }
+  }
+  return usedLemmas;
+}
+
 std::vector<std::shared_ptr<ProofNode>> PropPfManager::getProofLeaves(
     modes::ProofComponent pc)
 {
   Trace("sat-proof") << "PropPfManager::getProofLeaves: Getting " << pc
                      << " component proofs\n";
   std::vector<Node> fassumps;
-  Assert(pc == modes::PROOF_COMPONENT_THEORY_LEMMAS
-         || pc == modes::PROOF_COMPONENT_PREPROCESS);
+  Assert(pc == modes::ProofComponent::THEORY_LEMMAS
+         || pc == modes::ProofComponent::PREPROCESS);
   std::vector<std::shared_ptr<ProofNode>> pfs =
-      pc == modes::PROOF_COMPONENT_THEORY_LEMMAS
+      pc == modes::ProofComponent::THEORY_LEMMAS
           ? d_proofCnfStream->getLemmaClausesProofs()
           : d_proofCnfStream->getInputClausesProofs();
   std::shared_ptr<ProofNode> satPf = getProof(false);
@@ -126,6 +143,30 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
   }
   if (!connectCnf)
   {
+    // if the sat proof was previously connected to the cnf, then the
+    // assumptions will have been updated and we'll not have the expected
+    // behavior here (i.e., the sat proof with the clauses given to the SAT
+    // solver as leaves). In this case we will build a new proof node in which
+    // we will erase the connected proofs (via overwriting them with
+    // assumptions). This will be done in a cloned proof node so we do not alter
+    // what is stored in d_propProofs.
+    if (d_propProofs.find(true) != d_propProofs.end())
+    {
+      CDProof cdp(d_env);
+      // get the clauses added to the SAT solver and add them as assumptions
+      std::vector<Node> inputs = d_proofCnfStream->getInputClauses();
+      std::vector<Node> lemmas = d_proofCnfStream->getLemmaClauses();
+      std::vector<Node> allAssumptions{inputs.begin(), inputs.end()};
+      allAssumptions.insert(allAssumptions.end(), lemmas.begin(), lemmas.end());
+      for (const Node& a : allAssumptions)
+      {
+        cdp.addStep(a, ProofRule::ASSUME, {}, {a});
+      }
+      // add the sat proof copying the proof nodes but not overwriting the
+      // assumption clauses
+      cdp.addProof(conflictProof, CDPOverwrite::NEVER, true);
+      conflictProof = cdp.getProof(NodeManager::currentNM()->mkConst(false));
+    }
     d_propProofs[connectCnf] = conflictProof;
     return conflictProof;
   }

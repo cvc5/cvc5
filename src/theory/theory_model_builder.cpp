@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -131,8 +131,8 @@ bool TheoryEngineModelBuilder::isAssignerActive(TheoryModel* tm, Assigner& a)
 
 bool TheoryEngineModelBuilder::isAssignable(TNode n)
 {
-  if (n.getKind() == kind::SELECT || n.getKind() == kind::APPLY_SELECTOR
-      || n.getKind() == kind::SEQ_NTH)
+  if (n.getKind() == Kind::SELECT || n.getKind() == Kind::APPLY_SELECTOR
+      || n.getKind() == Kind::SEQ_NTH)
   {
     // selectors are always assignable (where we guarantee that they are not
     // evaluatable here)
@@ -147,7 +147,7 @@ bool TheoryEngineModelBuilder::isAssignable(TNode n)
       return !n.getType().isFunction();
     }
   }
-  else if (n.getKind() == kind::FLOATINGPOINT_COMPONENT_SIGN)
+  else if (n.getKind() == Kind::FLOATINGPOINT_COMPONENT_SIGN)
   {
     // Extracting the sign of a floating-point number acts similar to a
     // selector on a datatype, i.e. if `(sign x)` wasn't assigned a value, we
@@ -161,16 +161,16 @@ bool TheoryEngineModelBuilder::isAssignable(TNode n)
     if (!logicInfo().isHigherOrder())
     {
       // no functions exist, all functions are fully applied
-      Assert(n.getKind() != kind::HO_APPLY);
+      Assert(n.getKind() != Kind::HO_APPLY);
       Assert(!n.getType().isFunction());
-      return n.isVar() || n.getKind() == kind::APPLY_UF;
+      return n.isVar() || n.getKind() == Kind::APPLY_UF;
     }
     else
     {
-      // Assert( n.getKind() != kind::APPLY_UF );
+      // Assert( n.getKind() != Kind::APPLY_UF );
       return (n.isVar() && !n.getType().isFunction())
-             || n.getKind() == kind::APPLY_UF
-             || (n.getKind() == kind::HO_APPLY
+             || n.getKind() == Kind::APPLY_UF
+             || (n.getKind() == Kind::HO_APPLY
                  && n[0].getType().getNumChildren() == 2);
     }
   }
@@ -245,11 +245,11 @@ bool TheoryEngineModelBuilder::isCdtValueMatch(Node v, Node r)
     // distinct constant values do not match
     return false;
   }
-  else if (r.getKind() == kind::APPLY_CONSTRUCTOR)
+  else if (r.getKind() == Kind::APPLY_CONSTRUCTOR)
   {
-    if (v.getKind() != kind::APPLY_CONSTRUCTOR)
+    if (v.getKind() != Kind::APPLY_CONSTRUCTOR)
     {
-      Assert(v.getKind() == kind::CODATATYPE_BOUND_VARIABLE);
+      Assert(v.getKind() == Kind::CODATATYPE_BOUND_VARIABLE);
       // v is the position of a loop. It may be possible to match, we return
       // true, which is an over-approximation of when it is unsafe to use v.
       return true;
@@ -269,7 +269,7 @@ bool TheoryEngineModelBuilder::isCdtValueMatch(Node v, Node r)
     // operators do not match
     return false;
   }
-  else if (v.getKind() == kind::APPLY_CONSTRUCTOR)
+  else if (v.getKind() == Kind::APPLY_CONSTRUCTOR)
   {
     // v has a constructor in a position that we have yet to fill in r.
     // we are either a finite type in which case this subfield of r can be
@@ -1317,6 +1317,7 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
   ss << "_arg_";
   Rewriter* r = condenseFuncValues ? d_env.getRewriter() : nullptr;
   Node val = ufmt.getFunctionValue(ss.str(), r);
+  Trace("model-builder-debug") << "...assign via function" << std::endl;
   m->assignFunctionDefinition(f, val);
   // ufmt.debugPrint( std::cout, m );
 }
@@ -1348,23 +1349,24 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
     {
       Node hn = itht->second[i];
       Trace("model-builder-debug") << "    process : " << hn << std::endl;
-      Assert(hn.getKind() == kind::HO_APPLY);
+      Assert(hn.getKind() == Kind::HO_APPLY);
       Assert(m->areEqual(hn[0], f));
       Node hni = m->getRepresentative(hn[1]);
-      Trace("model-builder-debug2") << "      get rep : " << hn[0]
-                                    << " returned " << hni << std::endl;
+      Trace("model-builder-debug2")
+          << "      get rep : " << hn[1] << " returned " << hni << std::endl;
       Assert(hni.getType() == args[0].getType());
       hni = rewrite(args[0].eqNode(hni));
       Node hnv = m->getRepresentative(hn);
       Trace("model-builder-debug2") << "      get rep val : " << hn
                                     << " returned " << hnv << std::endl;
-      Assert(hnv.isConst());
+      // hnv is expected to be constant but may not be the case if e.g. a non-trivial
+      // lambda is given as argument to this function.
       if (!apply_args.empty())
       {
         // Convert to lambda, which is necessary if hnv is a function array
         // constant.
         hnv = uf::FunctionConst::toLambda(hnv);
-        Assert(!hnv.isNull() && hnv.getKind() == kind::LAMBDA
+        Assert(!hnv.isNull() && hnv.getKind() == Kind::LAMBDA
                && hnv[0].getNumChildren() + 1 == args.size());
         std::vector<TNode> largs;
         for (unsigned j = 0; j < hnv[0].getNumChildren(); j++)
@@ -1377,13 +1379,14 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
         hnv = rewrite(hnv);
       }
       Assert(hnv.getType() == curr.getType());
-      curr = NodeManager::currentNM()->mkNode(kind::ITE, hni, hnv, curr);
+      curr = NodeManager::currentNM()->mkNode(Kind::ITE, hni, hnv, curr);
     }
   }
   Node val = NodeManager::currentNM()->mkNode(
-      kind::LAMBDA,
-      NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, args),
+      Kind::LAMBDA,
+      NodeManager::currentNM()->mkNode(Kind::BOUND_VAR_LIST, args),
       curr);
+  Trace("model-builder-debug") << "...assign via ho function" << std::endl;
   m->assignFunctionDefinition(f, val);
 }
 
@@ -1473,8 +1476,6 @@ void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
   {
     Node f = funcs_to_assign[k];
     Trace("model-builder") << "  Function #" << k << " is " << f << std::endl;
-    // std::map< Node, std::vector< Node > >::iterator itht =
-    // m->d_ho_uf_terms.find( f );
     if (!logicInfo().isHigherOrder())
     {
       Trace("model-builder") << "  Assign function value for " << f

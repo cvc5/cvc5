@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -83,7 +83,13 @@ Node SubstitutionMap::internalSubstitute(TNode t,
     if (find2 != d_substitutions.end()) {
       Node rhs = (*find2).second;
       Assert(rhs != current);
-      internalSubstitute(rhs, cache, tracker, stc);
+      find = cache.find(rhs);
+      if (find == cache.end())
+      {
+        // visit the RHS
+        toVisit.push_back((TNode)rhs);
+        continue;
+      }
       if (tracker == nullptr)
       {
         d_substitutions[current] = cache[rhs];
@@ -123,7 +129,13 @@ Node SubstitutionMap::internalSubstitute(TNode t,
           if (find2 != d_substitutions.end()) {
             Node rhs = (*find2).second;
             Assert(rhs != result);
-            internalSubstitute(rhs, cache, tracker, stc);
+            find = cache.find(rhs);
+            if (find == cache.end())
+            {
+              // visit the RHS
+              toVisit.push_back((TNode)rhs);
+              continue;
+            }
             d_substitutions[result] = cache[rhs];
             cache[result] = cache[rhs];
             if (tracker != nullptr)

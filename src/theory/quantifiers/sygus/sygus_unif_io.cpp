@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -615,7 +615,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
       Assert(!exp_exc_vec.empty());
       exp_exc = exp_exc_vec.size() == 1
                     ? exp_exc_vec[0]
-                    : NodeManager::currentNM()->mkNode(AND, exp_exc_vec);
+                    : NodeManager::currentNM()->mkNode(Kind::AND, exp_exc_vec);
     }
     Trace("sygus-sui-enum")
         << "  ...fail : term is excluded (domain-specific)" << std::endl;
@@ -954,7 +954,8 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
         Assert(d_examples_out[i].isConst());
         Trace("sygus-sui-cterm-debug")
             << "  " << results[i] << " <> " << d_examples_out[i];
-        Node cont = nm->mkNode(STRING_CONTAINS, d_examples_out[i], results[i]);
+        Node cont =
+            nm->mkNode(Kind::STRING_CONTAINS, d_examples_out[i], results[i]);
         Node contr = rewrite(cont);
         if (contr == d_false)
         {

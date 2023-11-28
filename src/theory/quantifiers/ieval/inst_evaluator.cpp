@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -44,13 +44,13 @@ InstEvaluator::InstEvaluator(Env& env,
 
 void InstEvaluator::watch(Node q)
 {
-  Assert(q.getKind() == kind::FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   watch(q, q[1]);
 }
 
 void InstEvaluator::watch(Node q, Node body)
 {
-  Assert(q.getKind() == kind::FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   // must provide all quantified formulas before initializing the state
   Assert(d_context.getLevel() == 0);
   std::vector<Node> vars;

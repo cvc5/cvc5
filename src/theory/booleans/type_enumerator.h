@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,7 +33,7 @@ class BooleanEnumerator : public TypeEnumeratorBase<BooleanEnumerator> {
   BooleanEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<BooleanEnumerator>(type), d_value(FALSE)
   {
-    Assert(type.getKind() == kind::TYPE_CONSTANT
+    Assert(type.getKind() == Kind::TYPE_CONSTANT
            && type.getConst<TypeConstant>() == BOOLEAN_TYPE);
   }
 

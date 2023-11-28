@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Tim King
+ *   Andrew Reynolds, Aina Niemetz, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,6 +23,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace builtin {
 
+TypeNode EqualityTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->booleanType();
+}
 TypeNode EqualityTypeRule::computeType(NodeManager* nodeManager,
                                        TNode n,
                                        bool check,
@@ -49,6 +53,10 @@ TypeNode EqualityTypeRule::computeType(NodeManager* nodeManager,
   return booleanType;
 }
 
+TypeNode DistinctTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->booleanType();
+}
 TypeNode DistinctTypeRule::computeType(NodeManager* nodeManager,
                                        TNode n,
                                        bool check,
@@ -72,6 +80,10 @@ TypeNode DistinctTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
+TypeNode SExprTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->sExprType();
+}
 TypeNode SExprTypeRule::computeType(NodeManager* nodeManager,
                                     TNode n,
                                     bool check,
@@ -87,6 +99,11 @@ TypeNode SExprTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->sExprType();
 }
 
+TypeNode UninterpretedSortValueTypeRule::preComputeType(NodeManager* nm,
+                                                        TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode UninterpretedSortValueTypeRule::computeType(NodeManager* nodeManager,
                                                      TNode n,
                                                      bool check,
@@ -95,6 +112,10 @@ TypeNode UninterpretedSortValueTypeRule::computeType(NodeManager* nodeManager,
   return n.getConst<UninterpretedSortValue>().getType();
 }
 
+TypeNode WitnessTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode WitnessTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
                                       bool check,
@@ -137,6 +158,10 @@ TypeNode WitnessTypeRule::computeType(NodeManager* nodeManager,
   return n[0][0].getType();
 }
 
+TypeNode ApplyIndexedSymbolicTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->mkAbstractType(Kind::ABSTRACT_TYPE);
+}
 TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
                                                    TNode n,
                                                    bool check,
@@ -144,7 +169,7 @@ TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
 {
   // Note that this could be more precise by case splitting on the kind
   // of indexed operator, but we don't do this for simplicity.
-  return nodeManager->mkAbstractType(kind::ABSTRACT_TYPE);
+  return nodeManager->mkAbstractType(Kind::ABSTRACT_TYPE);
 }
 /**
  * Attribute for caching the ground term for each type. Maps TypeNode to the

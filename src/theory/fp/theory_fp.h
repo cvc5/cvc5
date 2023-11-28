@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -73,21 +73,20 @@ class TheoryFp : public Theory
                      bool isInternal) override;
   //--------------------------------- end standard check
 
-  Node getCandidateModelValue(TNode var) override;
   bool collectModelInfo(TheoryModel* m,
                         const std::set<Node>& relevantTerms) override;
-  /**
-   * Collect model values in m based on the relevant terms given by
-   * relevantTerms.
-   */
   bool collectModelValues(TheoryModel* m,
-                          const std::set<Node>& relevantTerms) override;
+                          const std::set<Node>& termSet) override;
 
   std::string identify() const override { return "THEORY_FP"; }
 
   TrustNode explain(TNode n) override;
 
- protected:
+  Node getCandidateModelValue(TNode node) override;
+
+  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
+
+ private:
   using ConversionAbstractionMap = context::CDHashMap<TypeNode, Node>;
   using AbstractionMap = context::CDHashMap<Node, Node>;
 
@@ -97,12 +96,8 @@ class TheoryFp : public Theory
   void registerTerm(TNode node);
   bool isRegistered(TNode node);
 
-  context::CDHashSet<Node> d_registeredTerms;
-
   /** The word-blaster. Translates FP -> BV. */
   std::unique_ptr<FpWordBlaster> d_wordBlaster;
-
-  bool d_expansionRequested;
 
   void wordBlastAndEquateTerm(TNode node);
 
@@ -121,7 +116,9 @@ class TheoryFp : public Theory
 
   bool refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete);
 
- private:
+  /** The terms registered via registerTerm(). */
+  context::CDHashSet<Node> d_registeredTerms;
+
   /** Map abstraction skolem to abstracted FP_TO_REAL/FP_FROM_REAL node. */
   AbstractionMap d_abstractionMap;  // abstract -> original
 
@@ -136,6 +133,17 @@ class TheoryFp : public Theory
 
   /** Cache of word-blasted facts. */
   context::CDHashSet<Node> d_wbFactsCache;
+
+  /** Flag indicating whether `d_modelCache` should be invalidated. */
+  context::CDO<bool> d_invalidateModelCache;
+
+  /**
+   * Cache for getValue() calls.
+   *
+   * Is cleared at the beginning of a getValue() call if the
+   * `d_invalidateModelCache` flag is set to true.
+   */
+  std::unordered_map<Node, Node> d_modelCache;
 
   /** True constant. */
   Node d_true;

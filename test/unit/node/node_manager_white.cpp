@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andres Noetzli, Mathias Preiner
+ *   Aina Niemetz, Andres Noetzli, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,6 @@
 namespace cvc5::internal {
 
 using namespace cvc5::internal::expr;
-using namespace cvc5::internal::kind;
 
 namespace test {
 
@@ -66,8 +65,8 @@ TEST_F(TestNodeWhiteNodeManager, topological_sort)
   TypeNode boolType = d_nodeManager->booleanType();
   Node i = d_skolemManager->mkDummySkolem("i", boolType);
   Node j = d_skolemManager->mkDummySkolem("j", boolType);
-  Node n1 = d_nodeManager->mkNode(kind::AND, j, j);
-  Node n2 = d_nodeManager->mkNode(kind::AND, i, n1);
+  Node n1 = d_nodeManager->mkNode(Kind::AND, j, j);
+  Node n2 = d_nodeManager->mkNode(Kind::AND, i, n1);
 
   {
     std::vector<NodeValue*> roots = {n1.d_nv};

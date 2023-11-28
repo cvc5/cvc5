@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -120,14 +120,12 @@ Languages currently supported as arguments to the -L / --lang option:
   auto                           attempt to automatically determine language
   smt | smtlib | smt2 |
   smt2.6 | smtlib2.6             SMT-LIB format 2.6 with support for the strings standard
-  tptp                           TPTP format (cnf, fof and tff)
   sygus | sygus2                 SyGuS version 2.0
 
 Languages currently supported as arguments to the --output-lang option:
   auto                           match output language to input language
   smt | smtlib | smt2 |
   smt2.6 | smtlib2.6             SMT-LIB format 2.6 with support for the strings standard
-  tptp                           TPTP format
   ast                            internal format (simple syntax trees)
 )FOOBAR" << std::endl;
     throw OptionException("help is not a valid language");
@@ -265,9 +263,10 @@ void OptionsHandler::setResourceWeight(const std::string& flag,
   d_options->writeBase().resourceWeightHolder.emplace_back(optarg);
 }
 
-void OptionsHandler::checkBvSatSolver(const std::string& flag, SatSolverMode m)
+void OptionsHandler::checkBvSatSolver(const std::string& flag,
+                                      BvSatSolverMode m)
 {
-  if (m == SatSolverMode::CRYPTOMINISAT
+  if (m == BvSatSolverMode::CRYPTOMINISAT
       && !Configuration::isBuiltWithCryptominisat())
   {
     std::stringstream ss;
@@ -277,7 +276,7 @@ void OptionsHandler::checkBvSatSolver(const std::string& flag, SatSolverMode m)
     throw OptionException(ss.str());
   }
 
-  if (m == SatSolverMode::KISSAT && !Configuration::isBuiltWithKissat())
+  if (m == BvSatSolverMode::KISSAT && !Configuration::isBuiltWithKissat())
   {
     std::stringstream ss;
     ss << "option `" << flag
@@ -287,24 +286,24 @@ void OptionsHandler::checkBvSatSolver(const std::string& flag, SatSolverMode m)
   }
 
   if (d_options->bv.bvSolver != options::BVSolver::BITBLAST
-      && (m == SatSolverMode::CRYPTOMINISAT || m == SatSolverMode::CADICAL
-          || m == SatSolverMode::KISSAT))
+      && (m == BvSatSolverMode::CRYPTOMINISAT || m == BvSatSolverMode::CADICAL
+          || m == BvSatSolverMode::KISSAT))
   {
     if (d_options->bv.bitblastMode == options::BitblastMode::LAZY
         && d_options->bv.bitblastModeWasSetByUser)
     {
       std::string sat_solver;
-      if (m == options::SatSolverMode::CADICAL)
+      if (m == options::BvSatSolverMode::CADICAL)
       {
         sat_solver = "CaDiCaL";
       }
-      else if (m == options::SatSolverMode::KISSAT)
+      else if (m == options::BvSatSolverMode::KISSAT)
       {
         sat_solver = "Kissat";
       }
       else
       {
-        Assert(m == options::SatSolverMode::CRYPTOMINISAT);
+        Assert(m == options::BvSatSolverMode::CRYPTOMINISAT);
         sat_solver = "CryptoMiniSat";
       }
       throw OptionException(sat_solver
