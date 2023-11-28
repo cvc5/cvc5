@@ -928,6 +928,10 @@ TheorySep::HeapAssertInfo * TheorySep::getOrMakeEqcInfo( Node n, bool doMake ) {
 // Must process assertions at preprocess so that quantified assertions are
 // processed properly.
 void TheorySep::ppNotifyAssertions(const std::vector<Node>& assertions) {
+  if (!d_env.hasSepHeap())
+  {
+    return;
+  }
   std::map<int, std::map<Node, size_t> > visited;
   std::map<int, std::map<Node, std::vector<Node> > > references;
   std::map<int, std::map<Node, bool> > references_strict;
