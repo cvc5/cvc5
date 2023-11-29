@@ -496,6 +496,24 @@ void TheoryEngine::check(Theory::Effort effort) {
       if (TraceIsOn("theory::assertions-model")) {
         printAssertions("theory::assertions-model");
       }
+      Trace("theory::relevant-assertions") << std::endl;
+      if (TraceIsOn("theory::relevant-assertions")) {
+        Trace("theory::relevant-assertions") << "Relevant assertions:" << std::endl;
+        bool success = false;
+        std::unordered_set<TNode> rasserts = getRelevantAssertions(success);
+        if (success)
+        {
+          for (TNode r : rasserts)
+          {
+            Trace("theory::relevant-assertions") << r << std::endl;
+          }
+        }
+        else
+        {
+          Trace("theory::relevant-assertions") << "?" << std::endl;
+        }
+        Trace("theory::relevant-assertions") << "...finished" << std::endl;
+      }
       // reset the model in the combination engine
       d_tc->resetModel();
       //checks for theories requiring the model go at last call
