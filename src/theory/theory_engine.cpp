@@ -497,8 +497,10 @@ void TheoryEngine::check(Theory::Effort effort) {
         printAssertions("theory::assertions-model");
       }
       Trace("theory::relevant-assertions") << std::endl;
-      if (TraceIsOn("theory::relevant-assertions")) {
-        Trace("theory::relevant-assertions") << "Relevant assertions:" << std::endl;
+      if (TraceIsOn("theory::relevant-assertions"))
+      {
+        Trace("theory::relevant-assertions")
+            << "Relevant assertions:" << std::endl;
         bool success = false;
         std::unordered_set<TNode> rasserts = getRelevantAssertions(success);
         if (success)
