@@ -34,7 +34,7 @@ overloaded(Ts...) -> overloaded<Ts...>;
 
 class TestBlackOptions : public TestApi
 {
-public:
+ public:
   /**
    * Sets setting options for option "name".
    */
