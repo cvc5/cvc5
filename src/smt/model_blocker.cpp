@@ -73,7 +73,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
       }
       else
       {
-        // otherwise store, but only for printing below
+        // otherwise store that the blocker is trivial
         blockersTriv.insert(catom);
         blockers.insert(catom);
       }
