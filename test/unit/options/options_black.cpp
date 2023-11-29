@@ -35,6 +35,9 @@ overloaded(Ts...) -> overloaded<Ts...>;
 class TestBlackOptions : public TestApi
 {
 public:
+  /**
+   * Sets setting options for option "name".
+   */
   void testSetOption(const std::string& name)
   {
     auto info = d_solver.getOptionInfo(name);
