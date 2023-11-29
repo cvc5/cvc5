@@ -110,6 +110,7 @@ void Smt2State::addBitvectorOperators()
   addOperator(Kind::BITVECTOR_SGE, "bvsge");
   addOperator(Kind::BITVECTOR_REDOR, "bvredor");
   addOperator(Kind::BITVECTOR_REDAND, "bvredand");
+  addOperator(Kind::BITVECTOR_NEGO, "bvnego");
   addOperator(Kind::BITVECTOR_UADDO, "bvuaddo");
   addOperator(Kind::BITVECTOR_SADDO, "bvsaddo");
   addOperator(Kind::BITVECTOR_UMULO, "bvumulo");
