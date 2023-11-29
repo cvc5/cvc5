@@ -502,7 +502,8 @@ void TheoryEngine::check(Theory::Effort effort) {
         Trace("theory::relevant-assertions")
             << "Relevant assertions:" << std::endl;
         bool success = false;
-        std::unordered_set<Node> rasserts = getRelevantAssertions(success, true, true);
+        std::unordered_set<Node> rasserts =
+            getRelevantAssertions(success, true, true);
         if (success)
         {
           for (TNode r : rasserts)
@@ -1236,7 +1237,9 @@ Node TheoryEngine::getCandidateModelValue(TNode var)
   return theoryOf(d_env.theoryOf(var.getType()))->getCandidateModelValue(var);
 }
 
-std::unordered_set<Node> TheoryEngine::getRelevantAssertions(bool& success, bool includePol, bool minimize)
+std::unordered_set<Node> TheoryEngine::getRelevantAssertions(bool& success,
+                                                             bool includePol,
+                                                             bool minimize)
 {
   // if there is no relevance manager, we fail
   if (d_relManager == nullptr)

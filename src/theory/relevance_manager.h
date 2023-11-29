@@ -139,7 +139,9 @@ class RelevanceManager : public TheoryEngineModule
    * Note that this returns a context-independent set to the user, which
    * copies the assertions.
    */
-  std::unordered_set<Node> getRelevantAssertions(bool& success, bool includePol = false, bool minimize=false);
+  std::unordered_set<Node> getRelevantAssertions(bool& success,
+                                                 bool includePol = false,
+                                                 bool minimize = false);
   /** Notify lemma, for difficulty measurements */
   void notifyLemma(TNode n,
                    InferenceId id,
