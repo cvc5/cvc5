@@ -389,7 +389,7 @@ class TheoryEngine : protected EnvObj
    * relevance manager failed to compute relevant assertions due to an internal
    * error.
    */
-  std::unordered_set<TNode> getRelevantAssertions(bool& success);
+  std::unordered_set<TNode> getRelevantAssertions(bool& success, bool includePol = false, bool minimize=false);
 
   /**
    * Get difficulty map, which populates dmap, mapping preprocessed assertions

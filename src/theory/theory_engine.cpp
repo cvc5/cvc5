@@ -502,7 +502,7 @@ void TheoryEngine::check(Theory::Effort effort) {
         Trace("theory::relevant-assertions")
             << "Relevant assertions:" << std::endl;
         bool success = false;
-        std::unordered_set<TNode> rasserts = getRelevantAssertions(success);
+        std::unordered_set<TNode> rasserts = getRelevantAssertions(success, true, true);
         if (success)
         {
           for (TNode r : rasserts)
@@ -1236,7 +1236,7 @@ Node TheoryEngine::getCandidateModelValue(TNode var)
   return theoryOf(d_env.theoryOf(var.getType()))->getCandidateModelValue(var);
 }
 
-std::unordered_set<TNode> TheoryEngine::getRelevantAssertions(bool& success)
+std::unordered_set<TNode> TheoryEngine::getRelevantAssertions(bool& success, bool includePol, bool minimize)
 {
   // if there is no relevance manager, we fail
   if (d_relManager == nullptr)
@@ -1245,7 +1245,7 @@ std::unordered_set<TNode> TheoryEngine::getRelevantAssertions(bool& success)
     // return empty set
     return std::unordered_set<TNode>();
   }
-  return d_relManager->getRelevantAssertions(success);
+  return d_relManager->getRelevantAssertions(success, includePol, minimize);
 }
 
 TrustNode TheoryEngine::getExplanation(TNode node)

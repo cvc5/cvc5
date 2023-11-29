@@ -518,7 +518,7 @@ RelevanceManager::NodeList* RelevanceManager::getInputListFor(TNode atom,
   return it->second.get();
 }
 
-std::unordered_set<TNode> RelevanceManager::getRelevantAssertions(bool& success)
+std::unordered_set<TNode> RelevanceManager::getRelevantAssertions(bool& success, bool includePol, bool minimize)
 {
   // set in full effort check temporarily
   d_inFullEffortCheck = true;
@@ -531,7 +531,20 @@ std::unordered_set<TNode> RelevanceManager::getRelevantAssertions(bool& success)
   {
     for (const Node& a : d_rset)
     {
+      if (includePol)
+      {
+        bool value;
+        if (d_val.hasSatValue(a, value))
+        {
+          rset.insert(value ? a : a.notNode());
+          continue;
+        }
+      }
       rset.insert(a);
+    }
+    if (minimize)
+    {
+      
     }
   }
   // reset in full effort check
