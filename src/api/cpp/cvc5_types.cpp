@@ -54,6 +54,7 @@ std::ostream& operator<<(std::ostream& out, BlockModelsMode bmode)
   switch (bmode)
   {
     case BlockModelsMode::LITERALS: out << "literals"; break;
+    case BlockModelsMode::INPUT_LITERALS: out << "input_literals"; break;
     case BlockModelsMode::VALUES: out << "values"; break;
     default: out << "?";
   }

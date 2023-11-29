@@ -27,6 +27,7 @@
 
 namespace cvc5::internal {
 
+class TheoryEngine;
 namespace theory {
 class TheoryModel;
 }
@@ -68,6 +69,7 @@ class ModelBlocker : protected EnvObj
    */
   Node getModelBlocker(
       const std::vector<Node>& assertions,
+      TheoryEngine* e,
       theory::TheoryModel* m,
       modes::BlockModelsMode mode,
       const std::vector<Node>& exprToBlock = std::vector<Node>());

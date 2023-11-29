@@ -342,6 +342,10 @@ modes::BlockModelsMode Smt2State::getBlockModelsMode(const std::string& mode)
   {
     return modes::BlockModelsMode::LITERALS;
   }
+  else if (mode == "input_literals")
+  {
+    return modes::BlockModelsMode::INPUT_LITERALS;
+  }
   else if (mode == "values")
   {
     return modes::BlockModelsMode::VALUES;

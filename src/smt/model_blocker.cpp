@@ -15,12 +15,15 @@
 
 #include "smt/model_blocker.h"
 
+#include "options/base_options.h"
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
 #include "theory/logic_info.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "theory/theory_engine.h"
+#include "base/modal_exception.h"
 
 using namespace cvc5::internal::kind;
 
@@ -29,6 +32,7 @@ namespace cvc5::internal {
 ModelBlocker::ModelBlocker(Env& e) : EnvObj(e) {}
 
 Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
+                                   TheoryEngine* e,
                                    theory::TheoryModel* m,
                                    modes::BlockModelsMode mode,
                                    const std::vector<Node>& exprToBlock)
@@ -39,7 +43,25 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
   std::vector<Node> nodesToBlock = exprToBlock;
   Trace("model-blocker") << "Compute model blocker, assertions:" << std::endl;
   Node blocker;
-  if (mode == modes::BlockModelsMode::LITERALS)
+  if (mode == modes::BlockModelsMode::INPUT_LITERALS)
+  {
+    std::unordered_set<Node> rlvLiterals;
+    bool success = false;
+    rlvLiterals = e->getRelevantAssertions(success, true, true);
+    if (success)
+    {
+      std::vector<Node> lits;
+      lits.insert(lits.end(), rlvLiterals.begin(), rlvLiterals.end());
+      blocker = nm->mkAnd(lits);
+    }
+    else
+    {
+      std::stringstream ss;
+      ss << "Cannot block based on input literals (perhaps --produce-relevant-assertions needs to be enabled)";
+      throw RecoverableModalException(ss.str().c_str());
+    }
+  }
+  else if (mode == modes::BlockModelsMode::LITERALS)
   {
     Assert(nodesToBlock.empty());
     // optimization: filter out top-level unit assertions, as they cannot
@@ -329,6 +351,10 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
     blocker = nm->mkOr(blockers);
   }
   Trace("model-blocker") << "...model blocker is " << blocker << std::endl;
+  if (isOutputOn(OutputTag::BLOCK_MODEL))
+  {
+    output(OutputTag::BLOCK_MODEL) << "(block-model " << blocker << ")" << std::endl;
+  }
   return blocker;
 }
 

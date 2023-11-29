@@ -187,6 +187,8 @@ enum ENUM(BlockModelsMode)
 {
   /** Block models based on the SAT skeleton. */
   EVALUE(LITERALS),
+  /** Block models based on the SAT skeleton, limited to the input formula. */
+  EVALUE(INPUT_LITERALS),
   /** Block models based on the concrete model values for the free variables. */
   EVALUE(VALUES),
 };
