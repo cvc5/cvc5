@@ -15,15 +15,15 @@
 
 #include "smt/model_blocker.h"
 
-#include "options/base_options.h"
+#include "base/modal_exception.h"
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
+#include "options/base_options.h"
 #include "theory/logic_info.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
-#include "theory/theory_model.h"
 #include "theory/theory_engine.h"
-#include "base/modal_exception.h"
+#include "theory/theory_model.h"
 
 using namespace cvc5::internal::kind;
 
@@ -57,7 +57,8 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
     else
     {
       std::stringstream ss;
-      ss << "Cannot block based on input literals (perhaps --produce-relevant-assertions needs to be enabled)";
+      ss << "Cannot block based on input literals (perhaps "
+            "--produce-relevant-assertions needs to be enabled)";
       throw RecoverableModalException(ss.str().c_str());
     }
   }
@@ -353,7 +354,8 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
   Trace("model-blocker") << "...model blocker is " << blocker << std::endl;
   if (isOutputOn(OutputTag::BLOCK_MODEL))
   {
-    output(OutputTag::BLOCK_MODEL) << "(block-model " << blocker << ")" << std::endl;
+    output(OutputTag::BLOCK_MODEL)
+        << "(block-model " << blocker << ")" << std::endl;
   }
   return blocker;
 }

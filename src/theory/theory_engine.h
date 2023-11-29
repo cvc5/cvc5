@@ -388,7 +388,7 @@ class TheoryEngine : protected EnvObj
    * relevance manager is disabled (see option::relevanceFilter) or if the
    * relevance manager failed to compute relevant assertions due to an internal
    * error.
-   * 
+   *
    * @param success Updated to false if we are not successful
    * @param includePol Whether to include the polarity of the assertions, i.e.
    * negate the atoms that are current false

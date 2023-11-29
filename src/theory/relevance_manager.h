@@ -138,7 +138,7 @@ class RelevanceManager : public TheoryEngineModule
    *
    * Note that this returns a context-independent set to the user, which
    * copies the assertions.
-   * 
+   *
    * @param success Updated to false if we are not successful
    * @param includePol Whether to include the polarity of the assertions, i.e.
    * negate the atoms that are current false
