@@ -74,8 +74,8 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
       else
       {
         // otherwise store that the blocker is trivial
-        blockersTriv.insert(catom);
-        blockers.insert(catom);
+        blockersTriv.insert(cur);
+        blockers.insert(cur);
       }
     }
     std::unordered_set<TNode> visited;
