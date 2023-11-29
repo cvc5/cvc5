@@ -33,8 +33,6 @@ void QuantifiersProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::SKOLEMIZE, this);
   pc->registerChecker(ProofRule::INSTANTIATE, this);
   pc->registerChecker(ProofRule::ALPHA_EQUIV, this);
-  // trusted rules
-  pc->registerTrustedChecker(ProofRule::QUANTIFIERS_PREPROCESS, this, 3);
 }
 
 Node QuantifiersProofRuleChecker::checkInternal(
@@ -133,12 +131,6 @@ Node QuantifiersProofRuleChecker::checkInternal(
     Node renamedBody = args[0].substitute(
         vars.begin(), vars.end(), newVars.begin(), newVars.end());
     return args[0].eqNode(renamedBody);
-  }
-  else if (id == ProofRule::QUANTIFIERS_PREPROCESS)
-  {
-    Assert(!args.empty());
-    Assert(args[0].getType().isBoolean());
-    return args[0];
   }
 
   // no rule

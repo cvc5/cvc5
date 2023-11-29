@@ -75,7 +75,7 @@ void TConvProofGenerator::addRewriteStep(Node t,
                                          Node s,
                                          ProofGenerator* pg,
                                          bool isPre,
-                                         ProofRule trustId,
+                                         TrustId trustId,
                                          bool isClosed,
                                          uint32_t tctx)
 {

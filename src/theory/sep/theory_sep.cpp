@@ -24,7 +24,9 @@
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
 #include "options/smt_options.h"
+#include "proof/trust_id.h"
 #include "smt/logic_exception.h"
+#include "theory/builtin/proof_checker.h"
 #include "theory/decision_manager.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
@@ -55,6 +57,8 @@ TheorySep::TheorySep(Env& env, OutputChannel& out, Valuation valuation)
 {
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
+  d_tiid = mkTrustId(TrustId::THEORY_INFERENCE);
+  d_tsid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_SEP);
 
   // indicate we are using the default theory state object
   d_theoryState = &d_state;
@@ -924,6 +928,10 @@ TheorySep::HeapAssertInfo * TheorySep::getOrMakeEqcInfo( Node n, bool doMake ) {
 // Must process assertions at preprocess so that quantified assertions are
 // processed properly.
 void TheorySep::ppNotifyAssertions(const std::vector<Node>& assertions) {
+  if (!d_env.hasSepHeap())
+  {
+    return;
+  }
   std::map<int, std::map<Node, size_t> > visited;
   std::map<int, std::map<Node, std::vector<Node> > > references;
   std::map<int, std::map<Node, bool> > references_strict;
@@ -1914,12 +1922,12 @@ void TheorySep::sendLemma( std::vector< Node >& ant, Node conc, InferenceId id, 
       if( conc==d_false ){
         Trace("sep-lemma") << "Sep::Conflict: " << ant << " by " << id
                            << std::endl;
-        d_im.conflictExp(id, ProofRule::THEORY_INFERENCE, ant, {conc});
+        d_im.conflictExp(id, ProofRule::TRUST, ant, {d_tiid, conc, d_tsid});
       }else{
         Trace("sep-lemma") << "Sep::Lemma: " << conc << " from " << ant
                            << " by " << id << std::endl;
-        TrustNode trn =
-            d_im.mkLemmaExp(conc, ProofRule::THEORY_INFERENCE, ant, {}, {conc});
+        TrustNode trn = d_im.mkLemmaExp(
+            conc, ProofRule::TRUST, ant, {}, {d_tiid, conc, d_tsid});
         d_im.addPendingLemma(
             trn.getNode(), id, LemmaProperty::NONE, trn.getGenerator());
       }

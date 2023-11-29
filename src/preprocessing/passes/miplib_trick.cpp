@@ -636,6 +636,10 @@ PreprocessingPassResult MipLibTrick::applyInternal(
       assertionsToPreprocess->replace(
           i, rewrite(top_level_substs.apply(assertion)));
       Trace("miplib") << "now: " << assertion << endl;
+      if (assertionsToPreprocess->isInConflict())
+      {
+        return PreprocessingPassResult::CONFLICT;
+      }
     }
   }
   else

@@ -18,6 +18,8 @@
 #ifndef CVC5__THEORY__SPLITTER_H
 #define CVC5__THEORY__SPLITTER_H
 
+#include <chrono>
+#include <unordered_map>
 #include <vector>
 
 #include "proof/trust_node.h"
@@ -52,6 +54,15 @@ class PartitionGenerator : public TheoryEngineModule
    */
   void check(Theory::Effort e) override;
 
+  /** Notify lemma, adds the literals from the Node n to our list of literals
+   * from lemmas.
+   */
+  void notifyLemma(TNode n,
+                   InferenceId id,
+                   LemmaProperty p,
+                   const std::vector<Node>& skAsserts,
+                   const std::vector<Node>& sks) override;
+
  private:
   /* LiteralListType is used to specify where to pull literals from when calling
    * collectLiterals. HEAP for the order_heap in the SAT solver, DECISION for
@@ -62,6 +73,7 @@ class PartitionGenerator : public TheoryEngineModule
   {
     HEAP,
     DECISION,
+    LEMMA,
     ZLL
   };
   /**
@@ -76,25 +88,38 @@ class PartitionGenerator : public TheoryEngineModule
   void emitRemainingPartitions(bool solved);
 
   /**
-   * Partition using the "revised" strategy, which emits cubes such as C1, C2,
-   * C3, !C1 & !C2 & !C3. If strict is set to true, a modified version of this
-   * emits "strict cubes:" C1, !C1 & C2, !C1 & !C2 & C3, !C1 & !C2 & !C3. If
-   * emitZLL is set to true, then zero-level learned literals will be appended
-   * to the cubes.
+   * Helper for managing lemma atoms.
    */
-  Node makeRevisedPartitions(bool emitZLL);
+  void incrementOrInsertLemmaAtom(Node& node);
+
+  /**
+   * Make scatter partitions: C1, !C1 & C2, !C1 & !C2 & C3, !C1 & !C2 & !C3.
+   * litType: indicates the atom source.
+   * emitZLL: if set to true, then zero-level learned literals will be appended
+   * to the cubes.
+   * timedOut: indicates timeout has occurred, so partitions must be dumped.
+   * randomize: determines whether atoms are randomly chosen.
+   */
+  Node makeScatterPartitions(LiteralListType litType,
+                             bool emitZLL,
+                             bool timedOut,
+                             bool randomize);
 
   /**
    * Partition by taking a list of literals and emitting mutually exclusive
-   * cubes that resemble entries in a truth table: 
+   * cubes that resemble entries in a truth table:
    * C1: { l1, !l2}
    * C2: { l1,  l2}
    * C3: {!l1, !l2}
    * C4: {!l1,  l2}
-   * If emitZLL is set to true, then zero-level learned literals will be
-   * appended to the cubes.
+   * litType: indicates the atom source.
+   * emitZLL: if set to true, then zero-level learned literals will be appended
+   * to the cubes.
+   * randomize: determines whether atoms are randomly chosen.
    */
-  Node makeFullTrailPartitions(LiteralListType litType, bool emitZLL);
+  Node makeCubePartitions(LiteralListType litType,
+                          bool emitZLL,
+                          bool randomize);
 
   /**
    * Generate a lemma that is the negation of toBlock which ultimately blocks
@@ -120,6 +145,23 @@ class PartitionGenerator : public TheoryEngineModule
  */
 
 std::vector<Node> getPartitions() const { return d_cubes; }
+
+/**
+ * Check if we can use the atom represented by Node n.
+ */
+bool isUnusable(Node n);
+
+/**
+ * The time point when this partition generator was instantiated, used to
+ * compute elapsed time.
+ */
+std::chrono::time_point<std::chrono::steady_clock> d_startTime;
+
+/**
+ * Used to track the inter-partition time.
+ */
+std::chrono::time_point<std::chrono::steady_clock>
+    d_startTimeOfPreviousPartition;
 
 /**
  * Current propEngine.
@@ -182,6 +224,21 @@ bool d_createdAnyPartitions;
  * Track whether all partitions have been emitted.
  */
 bool d_emittedAllPartitions;
+
+/**
+ * Track lemma literals that we have seen and their frequency.
+ */
+std::unordered_map<Node, uint64_t> d_lemmaMap;
+
+/**
+ * Track lemma literals we have seen.
+ */
+std::set<Node> d_lemmaLiterals;
+
+/**
+ * Track lemma literals we have used in DNCs.
+ */
+std::set<Node> d_usedLemmaLiterals;
 };
 }  // namespace theory
 }  // namespace cvc5::internal

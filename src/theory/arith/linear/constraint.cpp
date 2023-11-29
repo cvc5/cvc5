@@ -1841,10 +1841,10 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
         {
           Node t =
               builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_ARITH);
-          pf = pnm->mkNode(ProofRule::THEORY_INFERENCE,
-                           children,
-                           {getProofLiteral(), t},
-                           getProofLiteral());
+          pf = pnm->mkTrustedNode(TrustId::THEORY_INFERENCE,
+                                  children,
+                                  {getProofLiteral(), t},
+                                  getProofLiteral());
           break;
         }
         case ArithProofType::TrichotomyAP:

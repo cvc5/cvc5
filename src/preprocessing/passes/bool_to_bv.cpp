@@ -45,25 +45,25 @@ PreprocessingPassResult BoolToBV::applyInternal(
   d_preprocContext->spendResource(Resource::PreprocessStep);
 
   size_t size = assertionsToPreprocess->size();
-
-  if (d_boolToBVMode == options::BoolToBVMode::ALL)
+  Assert(d_boolToBVMode == options::BoolToBVMode::ALL
+         || d_boolToBVMode == options::BoolToBVMode::ITE);
+  for (size_t i = 0; i < size; ++i)
   {
-    for (size_t i = 0; i < size; ++i)
+    Node newAssertion;
+    if (d_boolToBVMode == options::BoolToBVMode::ALL)
     {
-      Node newAssertion = lowerAssertion((*assertionsToPreprocess)[i], true);
-      assertionsToPreprocess->replace(i, rewrite(newAssertion));
+      newAssertion = lowerAssertion((*assertionsToPreprocess)[i], true);
+    }
+    else
+    {
+      newAssertion = lowerIte((*assertionsToPreprocess)[i]);
+    }
+    assertionsToPreprocess->replace(i, rewrite(newAssertion));
+    if (assertionsToPreprocess->isInConflict())
+    {
+      return PreprocessingPassResult::CONFLICT;
     }
   }
-  else
-  {
-    Assert(d_boolToBVMode == options::BoolToBVMode::ITE);
-    for (size_t i = 0; i < size; ++i)
-    {
-      assertionsToPreprocess->replace(
-          i, rewrite(lowerIte((*assertionsToPreprocess)[i])));
-    }
-  }
-
   return PreprocessingPassResult::NO_CONFLICT;
 }
 

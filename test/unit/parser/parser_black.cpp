@@ -22,7 +22,7 @@
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/options.h"
-#include "parser/parser_exception.h"
+#include <cvc5/cvc5_parser.h>
 #include "test.h"
 
 using namespace cvc5::parser;

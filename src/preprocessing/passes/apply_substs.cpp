@@ -59,6 +59,11 @@ PreprocessingPassResult ApplySubsts::applyInternal(
         tlsm.applyTrusted((*assertionsToPreprocess)[i], d_env.getRewriter()));
     Trace("apply-substs") << "  got " << (*assertionsToPreprocess)[i]
                           << std::endl;
+    // if rewritten to false, we are done
+    if (assertionsToPreprocess->isInConflict())
+    {
+      return PreprocessingPassResult::CONFLICT;
+    }
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }

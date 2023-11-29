@@ -19,6 +19,7 @@
 #include "expr/node_manager.h"
 #include "options/smt_options.h"
 #include "proof/lazy_proof.h"
+#include "smt/logic_exception.h"
 #include "smt/preprocess_proof_generator.h"
 #include "theory/builtin/proof_checker.h"
 
@@ -29,12 +30,21 @@ AssertionPipeline::AssertionPipeline(Env& env)
     : EnvObj(env),
       d_storeSubstsInAsserts(false),
       d_substsIndex(0),
-      d_pppg(nullptr)
+      d_pppg(nullptr),
+      d_conflict(false),
+      d_isRefutationUnsound(false),
+      d_isModelUnsound(false),
+      d_isNegated(false)
 {
+  d_false = NodeManager::currentNM()->mkConst(false);
 }
 
 void AssertionPipeline::clear()
 {
+  d_conflict = false;
+  d_isRefutationUnsound = false;
+  d_isModelUnsound = false;
+  d_isNegated = false;
   d_nodes.clear();
   d_iteSkolemMap.clear();
 }
@@ -43,7 +53,20 @@ void AssertionPipeline::push_back(Node n,
                                   bool isInput,
                                   ProofGenerator* pgen)
 {
-  d_nodes.push_back(n);
+  if (d_conflict)
+  {
+    // if we are already in conflict, we skip. This is required to handle the
+    // case where "false" was already seen as an input assertion.
+    return;
+  }
+  if (n == d_false)
+  {
+    markConflict();
+  }
+  else
+  {
+    d_nodes.push_back(n);
+  }
   Trace("assert-pipeline") << "Assertions: ...new assertion " << n
                            << ", isInput=" << isInput << std::endl;
   if (isProofEnabled())
@@ -71,6 +94,7 @@ void AssertionPipeline::pushBackTrusted(TrustNode trn)
 
 void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
 {
+  Assert(i < d_nodes.size());
   if (n == d_nodes[i])
   {
     // no change, skip
@@ -82,11 +106,19 @@ void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
   {
     d_pppg->notifyPreprocessed(d_nodes[i], n, pgen);
   }
-  d_nodes[i] = n;
+  if (n == d_false)
+  {
+    markConflict();
+  }
+  else
+  {
+    d_nodes[i] = n;
+  }
 }
 
 void AssertionPipeline::replaceTrusted(size_t i, TrustNode trn)
 {
+  Assert(i < d_nodes.size());
   if (trn.isNull())
   {
     // null trust node denotes no change, nothing to do
@@ -125,6 +157,7 @@ void AssertionPipeline::addSubstitutionNode(Node n, ProofGenerator* pg)
 
 void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
 {
+  Assert(i < d_nodes.size());
   NodeManager* nm = NodeManager::currentNM();
   Node newConj;
   if (d_nodes[i].isConst() && d_nodes[i].getConst<bool>())
@@ -164,7 +197,7 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
       //   rewrite( d_nodes[i] ^ n )
       // allocate a fresh proof which will act as the proof generator
       LazyCDProof* lcp = d_pppg->allocateHelperProof();
-      lcp->addLazyStep(n, pg, ProofRule::PREPROCESS);
+      lcp->addLazyStep(n, pg, TrustId::PREPROCESS);
       // if newConj was constructed by AND above, use AND_INTRO
       if (newConj != n)
       {
@@ -186,8 +219,43 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
       d_pppg->notifyNewAssert(newConjr, lcp);
     }
   }
-  d_nodes[i] = newConjr;
   Assert(rewrite(newConjr) == newConjr);
+  if (newConjr == d_false)
+  {
+    markConflict();
+  }
+  else
+  {
+    d_nodes[i] = newConjr;
+  }
+}
+
+void AssertionPipeline::markConflict()
+{
+  d_conflict = true;
+  d_nodes.clear();
+  d_iteSkolemMap.clear();
+  d_nodes.push_back(d_false);
+}
+
+void AssertionPipeline::markRefutationUnsound()
+{
+  d_isRefutationUnsound = true;
+}
+
+void AssertionPipeline::markModelUnsound() { d_isModelUnsound = true; }
+
+void AssertionPipeline::markNegated()
+{
+  if (d_isRefutationUnsound || d_isModelUnsound)
+  {
+    // disallow unintuitive uses of global negation.
+    std::stringstream ss;
+    ss << "Cannot negate the preprocessed assertions when already marked as "
+          "refutation or model unsound.";
+    throw LogicException(ss.str());
+  }
+  d_isNegated = true;
 }
 
 }  // namespace preprocessing

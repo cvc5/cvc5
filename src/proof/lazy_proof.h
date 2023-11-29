@@ -20,6 +20,7 @@
 
 #include "context/cdhashset.h"
 #include "proof/proof.h"
+#include "proof/trust_id.h"
 
 namespace cvc5::internal {
 
@@ -90,7 +91,7 @@ class LazyCDProof : public CDProof
    */
   void addLazyStep(Node expected,
                    ProofGenerator* pg,
-                   ProofRule trustId = ProofRule::ASSUME,
+                   TrustId trustId = TrustId::NONE,
                    bool isClosed = false,
                    const char* ctx = "LazyCDProof::addLazyStep",
                    bool forceOverwrite = false);
