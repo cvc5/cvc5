@@ -28,7 +28,6 @@
 #include "base/output.h"
 #include "expr/kind.h"
 #include "parser/commands.h"
-#include "parser/parser_exception.h"
 
 using namespace std;
 
