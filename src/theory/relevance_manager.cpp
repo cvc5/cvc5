@@ -18,7 +18,6 @@
 #include <sstream>
 
 #include "expr/node_algorithm.h"
-#include "expr/subs.h"
 #include "expr/term_context_stack.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
@@ -519,8 +518,7 @@ RelevanceManager::NodeList* RelevanceManager::getInputListFor(TNode atom,
   return it->second.get();
 }
 
-std::unordered_set<Node> RelevanceManager::getRelevantAssertions(
-    bool& success, bool includePol, bool minimize)
+std::unordered_set<TNode> RelevanceManager::getRelevantAssertions(bool& success)
 {
   // set in full effort check temporarily
   d_inFullEffortCheck = true;
@@ -528,58 +526,12 @@ std::unordered_set<Node> RelevanceManager::getRelevantAssertions(
   computeRelevance();
   // update success flag
   success = d_success;
-  std::unordered_set<Node> rset;
+  std::unordered_set<TNode> rset;
   if (success)
   {
     for (const Node& a : d_rset)
     {
-      if (includePol)
-      {
-        bool value;
-        if (d_val.hasSatValue(a, value))
-        {
-          rset.insert(value ? a : a.notNode());
-          continue;
-        }
-      }
       rset.insert(a);
-    }
-    if (minimize)
-    {
-      Subs s;
-      std::unordered_set<Node> rsetTmp = rset;
-      std::vector<Node> possible;
-      rset.clear();
-      for (const Node& a : rsetTmp)
-      {
-        if (a.isConst())
-        {
-          continue;
-        }
-        else if (a.getKind() == Kind::EQUAL)
-        {
-          Node as = s.apply(a);
-          for (size_t i = 0; i < 2; i++)
-          {
-            if (as[i].isVar())
-            {
-              s.add(as[i], as[1 - i]);
-              // definitely relevant
-              rset.insert(a);
-              continue;
-            }
-          }
-        }
-        possible.push_back(a);
-      }
-      for (const Node& a : possible)
-      {
-        Node as = rewrite(s.apply(a));
-        if (!as.isConst())
-        {
-          rset.insert(a);
-        }
-      }
     }
   }
   // reset in full effort check

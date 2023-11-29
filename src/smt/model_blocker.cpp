@@ -43,8 +43,10 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
   std::vector<Node> tlAsserts = assertions;
   std::vector<Node> nodesToBlock = exprToBlock;
   Trace("model-blocker") << "Compute model blocker, assertions:" << std::endl;
-  std::unordered_set<Node> blockersTriv;
+  // the list of literals that should be blocked
   std::unordered_set<Node> blockers;
+  // a subset of the above vector that holds on top level
+  std::unordered_set<Node> blockersTriv;
   if (mode == modes::BlockModelsMode::LITERALS)
   {
     Assert(nodesToBlock.empty());

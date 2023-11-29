@@ -138,17 +138,8 @@ class RelevanceManager : public TheoryEngineModule
    *
    * Note that this returns a context-independent set to the user, which
    * copies the assertions.
-   *
-   * @param success Updated to false if we are not successful
-   * @param includePol Whether to include the polarity of the assertions, i.e.
-   * negate the atoms that are current false
-   * @param minimize Whether to minimize the set of assertions heuristically,
-   * e.g. don't include (not (= x 4)) if (= x 5) is already included.
-   * @return The relevant assertions.
    */
-  std::unordered_set<Node> getRelevantAssertions(bool& success,
-                                                 bool includePol = false,
-                                                 bool minimize = false);
+  std::unordered_set<TNode> getRelevantAssertions(bool& success);
   /** Notify lemma, for difficulty measurements */
   void notifyLemma(TNode n,
                    InferenceId id,

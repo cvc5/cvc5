@@ -496,27 +496,6 @@ void TheoryEngine::check(Theory::Effort effort) {
       if (TraceIsOn("theory::assertions-model")) {
         printAssertions("theory::assertions-model");
       }
-      Trace("theory::relevant-assertions") << std::endl;
-      if (TraceIsOn("theory::relevant-assertions"))
-      {
-        Trace("theory::relevant-assertions")
-            << "Relevant assertions:" << std::endl;
-        bool success = false;
-        std::unordered_set<Node> rasserts =
-            getRelevantAssertions(success, true, true);
-        if (success)
-        {
-          for (TNode r : rasserts)
-          {
-            Trace("theory::relevant-assertions") << r << std::endl;
-          }
-        }
-        else
-        {
-          Trace("theory::relevant-assertions") << "?" << std::endl;
-        }
-        Trace("theory::relevant-assertions") << "...finished" << std::endl;
-      }
       // reset the model in the combination engine
       d_tc->resetModel();
       //checks for theories requiring the model go at last call
@@ -1237,18 +1216,16 @@ Node TheoryEngine::getCandidateModelValue(TNode var)
   return theoryOf(d_env.theoryOf(var.getType()))->getCandidateModelValue(var);
 }
 
-std::unordered_set<Node> TheoryEngine::getRelevantAssertions(bool& success,
-                                                             bool includePol,
-                                                             bool minimize)
+std::unordered_set<TNode> TheoryEngine::getRelevantAssertions(bool& success)
 {
   // if there is no relevance manager, we fail
   if (d_relManager == nullptr)
   {
     success = false;
     // return empty set
-    return std::unordered_set<Node>();
+    return std::unordered_set<TNode>();
   }
-  return d_relManager->getRelevantAssertions(success, includePol, minimize);
+  return d_relManager->getRelevantAssertions(success);
 }
 
 TrustNode TheoryEngine::getExplanation(TNode node)
@@ -1990,7 +1967,7 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
   std::stringstream serror;
   // If possible, get the list of relevant assertions. Those that are not
   // relevant will be skipped.
-  std::unordered_set<Node> relevantAssertions;
+  std::unordered_set<TNode> relevantAssertions;
   bool hasRelevantAssertions = false;
   if (d_relManager != nullptr)
   {
