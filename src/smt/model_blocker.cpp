@@ -287,7 +287,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
       }
     }
   }
-  // minimize?
+  // minimize, if in literals mode
   bool minBlocker = (mode == modes::BlockModelsMode::LITERALS);
   if (minBlocker)
   {
@@ -297,34 +297,36 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
     blockers.clear();
     for (const Node& a : bvec)
     {
-      if (a.isConst())
+      if (a.getKind() == Kind::EQUAL)
       {
-        continue;
-      }
-      else if (a.getKind() == Kind::EQUAL)
-      {
+        // if it is an equality between a variable, turn into a substitution,
+        // which will help prune below.
         Node as = s.apply(a);
         for (size_t i = 0; i < 2; i++)
         {
-          if (as[i].isVar())
+          if (as[i].isVar() && !expr::hasSubterm(as[1-i], as[i]))
           {
             s.add(as[i], as[1 - i]);
-            // definitely relevant
+            // this equality is definitely relevant
             blockers.insert(a);
             continue;
           }
         }
       }
+      // otherwise, it may be relevant below
       possible.push_back(a);
     }
-    // add the blockers that are not
+    // do not add blockers that are implied by the substitution
     for (const Node& a : possible)
     {
       Node as = rewrite(s.apply(a));
-      if (!as.isConst())
+      if (as.isConst())
       {
-        blockers.insert(a);
+        // should be true
+        Assert (as.getConst<bool>());
+        continue;
       }
+      blockers.insert(a);
     }
   }
   if (isOutputOn(OutputTag::BLOCK_MODEL))
