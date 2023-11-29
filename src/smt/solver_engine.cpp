@@ -1264,9 +1264,7 @@ void SolverEngine::blockModel(modes::BlockModelsMode mode)
   // get expanded assertions
   std::vector<Node> eassertsProc = getSubstitutedAssertions();
   ModelBlocker mb(*d_env.get());
-  TheoryEngine* te = d_smtSolver->getTheoryEngine();
-  Assert(te != nullptr);
-  Node eblocker = mb.getModelBlocker(eassertsProc, te, m, mode);
+  Node eblocker = mb.getModelBlocker(eassertsProc, m, mode);
   Trace("smt") << "Block formula: " << eblocker << std::endl;
 
   // Must begin call now to ensure pops are processed. We cannot call this
@@ -1289,10 +1287,8 @@ void SolverEngine::blockModelValues(const std::vector<Node>& exprs)
   std::vector<Node> eassertsProc = getSubstitutedAssertions();
   // we always do block model values mode here
   ModelBlocker mb(*d_env.get());
-  TheoryEngine* te = d_smtSolver->getTheoryEngine();
-  Assert(te != nullptr);
   Node eblocker = mb.getModelBlocker(
-      eassertsProc, te, m, modes::BlockModelsMode::VALUES, exprs);
+      eassertsProc, m, modes::BlockModelsMode::VALUES, exprs);
 
   // Call begin call here, for same reasons as above.
   beginCall();

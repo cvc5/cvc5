@@ -22,7 +22,6 @@
 #include "theory/logic_info.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
-#include "theory/theory_engine.h"
 #include "theory/theory_model.h"
 #include "expr/subs.h"
 
@@ -33,7 +32,6 @@ namespace cvc5::internal {
 ModelBlocker::ModelBlocker(Env& e) : EnvObj(e) {}
 
 Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
-                                   TheoryEngine* e,
                                    theory::TheoryModel* m,
                                    modes::BlockModelsMode mode,
                                    const std::vector<Node>& exprToBlock)
