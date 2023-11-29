@@ -22,6 +22,7 @@
 #include "options/smt_options.h"
 #include "smt/env.h"
 #include "theory/relevance_manager.h"
+#include "expr/subs.h"
 
 using namespace cvc5::internal::kind;
 
@@ -518,7 +519,7 @@ RelevanceManager::NodeList* RelevanceManager::getInputListFor(TNode atom,
   return it->second.get();
 }
 
-std::unordered_set<TNode> RelevanceManager::getRelevantAssertions(bool& success, bool includePol, bool minimize)
+std::unordered_set<Node> RelevanceManager::getRelevantAssertions(bool& success, bool includePol, bool minimize)
 {
   // set in full effort check temporarily
   d_inFullEffortCheck = true;
@@ -526,7 +527,7 @@ std::unordered_set<TNode> RelevanceManager::getRelevantAssertions(bool& success,
   computeRelevance();
   // update success flag
   success = d_success;
-  std::unordered_set<TNode> rset;
+  std::unordered_set<Node> rset;
   if (success)
   {
     for (const Node& a : d_rset)
@@ -544,7 +545,40 @@ std::unordered_set<TNode> RelevanceManager::getRelevantAssertions(bool& success,
     }
     if (minimize)
     {
-      
+      Subs s;
+      std::unordered_set<Node> rsetTmp = rset;
+      std::vector<Node> possible;
+      rset.clear();
+      for (const Node& a : rsetTmp)
+      {
+        if (a.isConst())
+        {
+          continue;
+        }
+        else if (a.getKind()==Kind::EQUAL)
+        {
+          Node as = s.apply(a);
+          for (size_t i=0; i<2; i++)
+          {
+            if (as[i].isVar())
+            {
+              s.add(as[i], as[1-i]);
+              // definitely relevant
+              rset.insert(a);
+              continue;
+            }
+          }
+        }
+        possible.push_back(a);
+      }
+      for (const Node& a : possible)
+      {
+        Node as = rewrite(s.apply(a));
+        if (!as.isConst())
+        {
+          rset.insert(a);
+        }
+      }
     }
   }
   // reset in full effort check
