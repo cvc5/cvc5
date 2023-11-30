@@ -87,6 +87,8 @@ class InferenceManager : public InferenceManagerBuffered
   /** constants */
   Node d_true;
   Node d_false;
+  Node d_tid;
+  Node d_tsid;
   /**
    * Reference to the state object for the theory of sets. We store the
    * (derived) state here, since it has additional methods required in this

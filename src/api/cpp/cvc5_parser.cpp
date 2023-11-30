@@ -141,8 +141,6 @@ std::string Command::getCommandName() const
   CVC5_API_TRY_CATCH_END;
 }
 
-Cmd* Command::toCmd() { return d_cmd.get(); }
-
 std::ostream& operator<<(std::ostream& out, const Command& c)
 {
   out << c.toString();
@@ -329,6 +327,73 @@ bool InputParser::done() const
   return d_parser == nullptr || d_parser->done();
   ////////
   CVC5_API_TRY_CATCH_END;
+}
+
+ParserException::ParserException()
+    : CVC5ApiException(""), d_filename(), d_line(0), d_column(0)
+{
+}
+
+ParserException::ParserException(const std::string& msg)
+    : CVC5ApiException(msg), d_filename(), d_line(0), d_column(0)
+{
+}
+
+ParserException::ParserException(const char* msg)
+    : CVC5ApiException(msg), d_filename(), d_line(0), d_column(0)
+{
+}
+
+ParserException::ParserException(const std::string& msg,
+                                 const std::string& filename,
+                                 unsigned long line,
+                                 unsigned long column)
+    : CVC5ApiException(msg),
+      d_filename(filename),
+      d_line(line),
+      d_column(column)
+{
+}
+
+ParserException::~ParserException() {}
+
+void ParserException::toStream(std::ostream& os) const
+{
+  if (d_line > 0)
+  {
+    os << "Parse Error: " << d_filename << ":" << d_line << "." << d_column
+       << ": " << getMessage();
+  }
+  else
+  {
+    os << "Parse Error: " << getMessage();
+  }
+}
+
+std::string ParserException::getFilename() const { return d_filename; }
+
+unsigned long ParserException::getLine() const { return d_line; }
+
+unsigned long ParserException::getColumn() const { return d_column; }
+
+ParserEndOfFileException::ParserEndOfFileException() : ParserException() {}
+
+ParserEndOfFileException::ParserEndOfFileException(const std::string& msg)
+    : ParserException(msg)
+{
+}
+
+ParserEndOfFileException::ParserEndOfFileException(const char* msg)
+    : ParserException(msg)
+{
+}
+
+ParserEndOfFileException::ParserEndOfFileException(const std::string& msg,
+                                                   const std::string& filename,
+                                                   unsigned long line,
+                                                   unsigned long column)
+    : ParserException(msg, filename, line, column)
+{
 }
 
 }  // namespace parser

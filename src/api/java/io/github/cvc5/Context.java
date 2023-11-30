@@ -25,7 +25,10 @@ public class Context
 
   static void addAbstractPointer(AbstractPointer pointer)
   {
-    abstractPointers.add(pointer);
+    if (!abstractPointers.contains(pointer))
+    {
+      abstractPointers.add(pointer);
+    }
   }
 
   /**

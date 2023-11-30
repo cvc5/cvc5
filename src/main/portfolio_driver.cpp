@@ -63,7 +63,7 @@ bool ExecutionContext::solveContinuous(parser::InputParser* parser,
       break;
     }
     status = d_executor->doCommand(&cmd);
-    Cmd* cc = cmd.toCmd();
+    Cmd* cc = cmd.d_cmd.get();
     if (cc->interrupted() && status == 0)
     {
       interrupted = true;
@@ -98,7 +98,7 @@ std::vector<Command> ExecutionContext::parseCommands(
       break;
     }
     res.emplace_back(cmd);
-    if (dynamic_cast<QuitCommand*>(cmd.toCmd()) != nullptr)
+    if (dynamic_cast<QuitCommand*>(cmd.d_cmd.get()) != nullptr)
     {
       break;
     }
@@ -120,7 +120,7 @@ bool ExecutionContext::solveCommands(std::vector<Command>& cmds)
     }
 
     status = d_executor->doCommand(&cmd);
-    Cmd* cc = cmd.toCmd();
+    Cmd* cc = cmd.d_cmd.get();
     if (cc->interrupted() && status == 0)
     {
       interrupted = true;

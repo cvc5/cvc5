@@ -22,7 +22,7 @@
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/options.h"
-#include "parser/parser_exception.h"
+#include <cvc5/cvc5_parser.h>
 #include "test_parser.h"
 
 using namespace cvc5::parser;
@@ -42,7 +42,7 @@ class TestCommandBlack : public TestParser
     ss << cmdStr << std::endl;
     InputParser parser(&d_solver, d_symman.get());
     parser.setStreamInput(
-        modes::InputLanguage::SMT_LIB_2_6, ss, "parser_black");
+        modes::InputLanguage::SMT_LIB_2_6, ss, "command_black");
     return parser.nextCommand();
   }
 };

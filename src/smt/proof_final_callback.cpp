@@ -45,6 +45,8 @@ ProofFinalCallback::ProofFinalCallback(Env& env)
       d_dslRuleCount(
           statisticsRegistry().registerHistogram<rewriter::DslProofRule>(
               "finalProof::dslRuleCount")),
+      d_trustIds(statisticsRegistry().registerHistogram<TrustId>(
+          "finalProof::trustCount")),
       d_totalRuleCount(
           statisticsRegistry().registerInt("finalProof::totalRuleCount")),
       d_minPedanticLevel(
@@ -137,11 +139,22 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       }
     }
   }
+  else if (r == ProofRule::TRUST)
+  {
+    TrustId id;
+    Trace("final-pf-hole") << "hole TRUST";
+    if (getTrustId(pn->getArguments()[0], id))
+    {
+      d_trustIds << id;
+      Trace("final-pf-hole") << " " << id;
+    }
+    Trace("final-pf-hole") << ": " << pn->getResult() << std::endl;
+  }
   // print for debugging
   if (TraceIsOn("final-pf-hole"))
   {
     // currently only track theory rewrites
-    if (r == ProofRule::THEORY_REWRITE)
+    if (r == ProofRule::TRUST_THEORY_REWRITE)
     {
       const std::vector<Node>& args = pn->getArguments();
       Node eq = args[0];
@@ -150,7 +163,7 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       Trace("final-pf-hole") << "hole " << r << " " << tid << " : " << eq[0]
                              << " ---> " << eq[1] << std::endl;
     }
-    else if (r == ProofRule::REWRITE)
+    else if (r == ProofRule::MACRO_REWRITE)
     {
       const std::vector<Node>& args = pn->getArguments();
       Node eq = args[0];

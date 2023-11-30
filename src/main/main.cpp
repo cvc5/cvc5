@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
               << "Please use --help to get help on command-line options."
               << std::endl;
   }
-  catch (Exception& e)
+  catch (cvc5::CVC5ApiException& e)
   {
 #ifdef CVC5_COMPETITION_MODE
     solver->getDriverOptions().out() << "unknown" << std::endl;

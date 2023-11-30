@@ -105,10 +105,23 @@ class CVC5_EXPORT CVC5ApiException : public std::exception
    */
   const char* what() const noexcept override { return d_msg.c_str(); }
 
+  /**
+   * Printing: feel free to redefine toStream().  When overridden in
+   * a derived class, it's recommended that this method print the
+   * type of exception before the actual message.
+   */
+  virtual void toStream(std::ostream& os) const { os << d_msg; }
+
  private:
   /** The stored error message. */
   std::string d_msg;
 };
+
+inline std::ostream& operator<<(std::ostream& os, const CVC5ApiException& e)
+{
+  e.toStream(os);
+  return os;
+}
 
 /**
  * A recoverable API exception.

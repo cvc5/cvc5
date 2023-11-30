@@ -54,6 +54,35 @@ public class Solver extends AbstractPointer
     super(Solver.newSolver());
   }
 
+  /**
+   * This is an internal constructor intended to be used only
+   * inside cvc5 package
+   * @param pointer the cpp pointer to Solver
+   */
+  Solver(long solverPointer)
+  {
+    super(solverPointer);
+  }
+
+  @Override
+  public boolean equals(Object s)
+  {
+    if (this == s)
+    {
+      return true;
+    }
+    if (s == null || getClass() != s.getClass())
+    {
+      return false;
+    }
+    Solver solver = (Solver) s;
+    if (this.pointer == solver.pointer)
+    {
+      return true;
+    }
+    return false;
+  }
+
   /* .................................................................... */
   /* Sorts Handling                                                       */
   /* .................................................................... */

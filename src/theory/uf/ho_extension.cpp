@@ -276,7 +276,9 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
       hasFunctions = true;
       // if during collect model, must have an infinite type
       // if not during collect model, must have a finite type
-      if (d_env.isFiniteType(tn) != isCollectModel)
+      // we consider the cardinality of tn's range type (as opposed to tn)
+      // since the model construction will enumerate values of this type.
+      if (d_env.isFiniteType(tn.getRangeType()) != isCollectModel)
       {
         func_eqcs[tn].push_back(eqc);
         Trace("uf-ho-debug")
@@ -698,6 +700,7 @@ bool HoExtension::collectModelInfoHo(TheoryModel* m,
     Assert(!lam.isNull());
     m->assertEquality(p.second, lam, true);
     m->assertSkeleton(lam);
+    Trace("model-builder-debug") << "Assign via lambda: " << lam << std::endl;
     // assign it as the function definition for all variables in this class
     m->assignFunctionDefinition(p.second, lam);
   }
