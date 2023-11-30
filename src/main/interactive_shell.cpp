@@ -46,7 +46,7 @@
 #include "base/output.h"
 #include "main/command_executor.h"
 #include "parser/commands.h"
-#include <cvc5/cvc5_parser.h>
+#include "parser/parser_exception.h"
 #include "parser/sym_manager.h"
 #include "theory/logic_info.h"
 
@@ -128,14 +128,11 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
     ::stifle_history(s_historyLimit);
     if (d_solver->getOptionInfo("verbosity").intValue() >= 1)
     {
-      if (err == 0)
-      {
+      if(err == 0) {
         d_solver->getDriverOptions().err()
             << "Read " << ::history_length << " lines of history from "
             << d_historyFilename << std::endl;
-      }
-      else
-      {
+      } else {
         d_solver->getDriverOptions().err()
             << "Could not read history from " << d_historyFilename << ": "
             << strerror(err) << std::endl;
