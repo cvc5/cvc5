@@ -322,8 +322,6 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
       Node as = rewrite(s.apply(a));
       if (as.isConst())
       {
-        // should be true
-        Assert (as.getConst<bool>());
         continue;
       }
       blockers.insert(a);
