@@ -350,11 +350,10 @@ enum ENUM(ProofRule) : uint32_t
    * **Other theory rewrite rules**
    *
    * .. math::
-   *   \inferrule{- \mid F, trid}{F}
+   *   \inferrule{- \mid t, trid}{t = t'}
    *
-   * where :math:`F` is an equality of the form :math:`t = t'` where :math:`t'`
-   * is obtained by applying a theory rewrite of id `trid`. The result is
-   * checked by a theory proof checker.
+   * where `trid` is a theory rewrite rule which transforms :math:`t` to :math
+   * `t'` The result is checked by a theory proof checker.
    * \endverbatim
    */
   EVALUE(THEORY_REWRITE),
