@@ -1678,7 +1678,7 @@ enum ENUM(Kind) : int32_t
   /**
    * Bit-vector negation overflow detection.
    *
-   * - Arity: ``2``
+   * - Arity: ``1``
    *
    *   - ``1..2:`` Terms of bit-vector Sort (sorts must match)
    *
