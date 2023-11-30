@@ -193,15 +193,15 @@ TEST_F(TestBlackOptions, setSafe)
   d_solver.setOption("safe-options", "true");
   for (const auto& name : options::getNames())
   {
-    if (muted.count(name))
-    {
-      testing::internal::CaptureStdout();
-    }
     auto info = d_solver.getOptionInfo(name);
     // skip if an expert option
     if (info.isExpert)
     {
       continue;
+    }
+    if (muted.count(name))
+    {
+      testing::internal::CaptureStdout();
     }
     testSetOption(name);
     if (muted.count(name))
