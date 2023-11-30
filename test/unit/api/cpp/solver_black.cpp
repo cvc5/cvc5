@@ -2738,7 +2738,7 @@ TEST_F(TestApiBlackSolver, rewrite)
 
   Sort intSort = d_solver.getIntegerSort();
   Term x = d_solver.mkConst(intSort);
-  Term eq = d_solver.mkTerm(EQUAL, {x, x});
+  Term eq = d_solver.mkTerm(Kind::EQUAL, {x, x});
 
   Term trueTerm = d_solver.mkBoolean(true);
   ASSERT_EQ(trueTerm, d_solver.rewrite(eq));
