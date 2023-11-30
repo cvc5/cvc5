@@ -347,6 +347,18 @@ enum ENUM(ProofRule) : uint32_t
   EVALUE(TRUST_THEORY_REWRITE),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Other theory rewrite rules**
+   *
+   * .. math::
+   *   \inferrule{- \mid t, trid}{t = t'}
+   *
+   * where `trid` is a theory rewrite rule which transforms :math:`t` to :math
+   * `t'` The result is checked by a theory proof checker.
+   * \endverbatim
+   */
+  EVALUE(THEORY_REWRITE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **SAT Refutation for assumption-based unsat cores**
    *
    * .. math::
@@ -1185,16 +1197,6 @@ enum ENUM(ProofRule) : uint32_t
    * \endverbatim
    */
   EVALUE(BV_EAGER_ATOM),
-
-  EVALUE(BV_UMULO_ELIMINATE),
-  EVALUE(BV_SMULO_ELIMINATE),
-  EVALUE(BV_FLATTEN_ASSOC_COMMUTE),
-  EVALUE(BV_FLATTEN_ASSOC_COMMUTE_NO_DUPLICATES),
-  EVALUE(BV_ADD_COMBINE_LIKE_TERMS),
-  EVALUE(BV_MULT_SIMPLIFY),
-  EVALUE(BV_SOLVE_EQ),
-  EVALUE(BV_BITWISE_EQ),
-  EVALUE(BV_BITWISE_SLICING),
 
   /**
    * \verbatim embed:rst:leading-asterisk

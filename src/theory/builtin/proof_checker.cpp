@@ -16,6 +16,7 @@
 #include "theory/builtin/proof_checker.h"
 
 #include "expr/skolem_manager.h"
+#include "proof/theory_rewrite_id.h"
 #include "rewriter/rewrite_db.h"
 #include "rewriter/rewrite_db_term_process.h"
 #include "rewriter/rewrite_proof_rule.h"
@@ -27,6 +28,11 @@
 #include "theory/substitutions.h"
 #include "theory/theory.h"
 #include "util/rational.h"
+
+// For `THEORY_REWRITE`
+#include "theory/bv/theory_bv_rewrite_rules.h"
+#include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
+#include "theory/bv/theory_bv_rewrite_rules_normalization.h"
 
 using namespace cvc5::internal::kind;
 
@@ -63,6 +69,8 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::ALETHE_RULE, this);
   pc->registerChecker(ProofRule::LEAN_RULE, this);
   pc->registerChecker(ProofRule::ALF_RULE, this);
+
+  pc->registerChecker(ProofRule::THEORY_REWRITE, this);
 
   d_rdb = pc->getRewriteDatabase();
 }
@@ -453,6 +461,38 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
       }
     }
     return rpr.getConclusionFor(subs);
+  }
+  else if (id == ProofRule::THEORY_REWRITE)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 2);
+    TheoryRewriteId trid;
+    if (!getTheoryRewriteId(args[0], trid)) {
+      Unreachable();
+    }
+
+    auto const& node = args[1];
+#define BV_PROOF_CASE(rule, name) \
+    case TheoryRewriteId::rule: { \
+      if (bv::RewriteRule<bv::name>::applies(node)) {                    \
+      	return node.eqNode(bv::RewriteRule<bv::name>::run<false>(node)); \
+      }                                                          \
+      break;                                                     \
+    }                                                            \
+    /* end of macro */
+    switch (trid) {
+      BV_PROOF_CASE(BV_UMULO_ELIMINATE, UmuloEliminate)
+      BV_PROOF_CASE(BV_SMULO_ELIMINATE, SmuloEliminate)
+      BV_PROOF_CASE(BV_FLATTEN_ASSOC_COMMUTE, FlattenAssocCommut)
+      BV_PROOF_CASE(BV_FLATTEN_ASSOC_COMMUTE_NO_DUPLICATES, FlattenAssocCommutNoDuplicates)
+      BV_PROOF_CASE(BV_ADD_COMBINE_LIKE_TERMS, AddCombineLikeTerms)
+      BV_PROOF_CASE(BV_MULT_SIMPLIFY, MultSimplify)
+      BV_PROOF_CASE(BV_SOLVE_EQ, SolveEq)
+      BV_PROOF_CASE(BV_BITWISE_EQ, BitwiseEq)
+      BV_PROOF_CASE(BV_BITWISE_SLICING, BitwiseSlicing)
+      default:
+        Unreachable();
+    }
   }
 
   // no rule
