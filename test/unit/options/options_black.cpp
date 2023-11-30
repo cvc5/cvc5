@@ -190,7 +190,7 @@ TEST_F(TestBlackOptions, setSafe)
                                     "show-trace-tags",
                                     "version"};
   // set safe options to true
-  d_solver.setOption("safe-options", true);
+  d_solver.setOption("safe-options", "true");
   for (const auto& name : options::getNames())
   {
     if (muted.count(name))
