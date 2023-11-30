@@ -1680,7 +1680,7 @@ enum ENUM(Kind) : int32_t
    *
    * - Arity: ``1``
    *
-   *   - ``1..2:`` Terms of bit-vector Sort (sorts must match)
+   *   - ``1:`` Term of bit-vector Sort
    *
    * - Create Term of this Kind with:
    *
