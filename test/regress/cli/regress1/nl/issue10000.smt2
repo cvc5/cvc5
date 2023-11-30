@@ -1,3 +1,4 @@
+; COMMAND-LINE: --produce-difficulty
 ; EXPECT: sat
 (set-logic QF_UFNRA)
 (declare-fun m () Real)
