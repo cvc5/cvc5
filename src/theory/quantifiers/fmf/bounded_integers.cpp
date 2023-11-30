@@ -857,7 +857,9 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
         Node range = rewrite(nm->mkNode(Kind::SUB, u, l));
         if (!range.isConst())
         {
-          Trace("fmf-incomplete") << "Incomplete because of integer quantification, bounds are unknown for " << v << "." << std::endl;
+          Trace("fmf-incomplete") << "Incomplete because of integer "
+                                     "quantification, bounds are unknown for "
+                                  << v << "." << std::endl;
           return false;
         }
         Rational rat = range.getConst<Rational>();
@@ -867,18 +869,19 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
         Node tu = u;
         getBounds( q, v, rsi, tl, tu );
         Assert(!tl.isNull() && !tu.isNull());
-        if (rat<Rational(9999))
+        if (rat < Rational(9999))
         {
           // if negative, elements are empty
-          if (rat.sgn()>=0)
+          if (rat.sgn() >= 0)
           {
-            long rr = rat.getNumerator().getLong()+1;
-            Trace("bound-int-rsi")  << "Actual bound range is " << rr << std::endl;
+            long rr = rat.getNumerator().getLong() + 1;
+            Trace("bound-int-rsi")
+                << "Actual bound range is " << rr << std::endl;
             for (long k = 0; k < rr; k++)
             {
               Node t = nm->mkNode(Kind::ADD, tl, nm->mkConstInt(Rational(k)));
               t = rewrite(t);
-              elements.push_back( t );
+              elements.push_back(t);
             }
           }
           return true;
