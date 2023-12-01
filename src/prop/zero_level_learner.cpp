@@ -298,7 +298,7 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
             {
               ltype = modes::LearnedLitType::CONSTANT_PROP;
             }
-            if (d_trackSubs)
+            if (d_trackSubs && !processed)
             {
               Trace("lemma-inprocess-subs")
                   << "Add cp: " << lit[1 - i] << " -> " << lit[i] << std::endl;
@@ -307,7 +307,7 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
             }
             break;
           }
-          else if (d_trackSubs && expr::hasSubterm(lit[1 - i], lit[i]))
+          else if ((d_trackSubs && !processed) && expr::hasSubterm(lit[1 - i], lit[i]))
           {
             Trace("lemma-inprocess-subs") << "Add cp subterm: " << lit[1 - i]
                                           << " -> " << lit[i] << std::endl;
