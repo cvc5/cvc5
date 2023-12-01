@@ -1676,7 +1676,24 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(BITVECTOR_REDAND),
   /**
-   * Unsigned addition overflow detection.
+   * Bit-vector negation overflow detection.
+   *
+   * - Arity: ``1``
+   *
+   *   - ``1:`` Term of bit-vector Sort
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   */
+  EVALUE(BITVECTOR_NEGO),
+  /**
+   * Bit-vector unsigned addition overflow detection.
    *
    * - Arity: ``2``
    *
@@ -1693,7 +1710,7 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(BITVECTOR_UADDO),
   /**
-   * Signed addition overflow detection.
+   * Bit-vector signed addition overflow detection.
    *
    * - Arity: ``2``
    *
@@ -1710,7 +1727,7 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(BITVECTOR_SADDO),
   /**
-   * Unsigned multiplication overflow detection.
+   * Bit-vector unsigned multiplication overflow detection.
    *
    * - Arity: ``2``
    *
@@ -1727,7 +1744,7 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(BITVECTOR_UMULO),
   /**
-   * Signed multiplication overflow detection.
+   * Bit-vector signed multiplication overflow detection.
    *
    * - Arity: ``2``
    *
@@ -1744,7 +1761,7 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(BITVECTOR_SMULO),
   /**
-   * Unsigned subtraction overflow detection.
+   * Bit-vector unsigned subtraction overflow detection.
    *
    * - Arity: ``2``
    *
@@ -1761,7 +1778,7 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(BITVECTOR_USUBO),
   /**
-   * Signed subtraction overflow detection.
+   * Bit-vector signed subtraction overflow detection.
    *
    * - Arity: ``2``
    *
@@ -1778,7 +1795,7 @@ enum ENUM(Kind) : int32_t
    */
   EVALUE(BITVECTOR_SSUBO),
   /**
-   * Signed division overflow detection.
+   * Bit-vector signed division overflow detection.
    *
    * - Arity: ``2``
    *
