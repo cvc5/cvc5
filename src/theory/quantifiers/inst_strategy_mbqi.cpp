@@ -357,14 +357,12 @@ Node InstStrategyMbqi::convertToQuery(
           std::map<Node, Node>::iterator itm = modelValue.find(cur);
           if (itm == modelValue.end())
           {
-            Node mval;
-            if (ck == Kind::CONST_SEQUENCE)
+            Node mval = getModelValue(cur);
+            // convert constant sequence to concat term to ensure subterms are
+            // processed
+            if (mval.getKind() == Kind::CONST_SEQUENCE)
             {
               mval = strings::utils::mkConcatForConstSequence(cur);
-            }
-            else
-            {
-              mval = fm->getValue(cur);
             }
             Trace("mbqi-model") << "  M[" << cur << "] = " << mval << "\n";
             modelValue[cur] = mval;
@@ -434,6 +432,19 @@ Node InstStrategyMbqi::convertToQuery(
 
   Assert(cmap.find(cur) != cmap.end());
   return cmap[cur];
+}
+
+Node InstStrategyMbqi::getModelValue(const Node& t)
+{
+  FirstOrderModel* fm = d_treg.getModel();
+  if (!options().quantifiers.mbqiModelExp)
+  {
+    return fm->getValue(t);
+  }
+  Trace("mbqi-model-exp") << "Choose model value of " << t << "?" << std::endl;
+  Node val = fm->getValue(t);
+  Trace("mbqi-model-exp") << "...return " << val << std::endl;
+  return val;
 }
 
 Node InstStrategyMbqi::convertFromModel(

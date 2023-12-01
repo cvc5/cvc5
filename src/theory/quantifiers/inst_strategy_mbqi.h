@@ -95,6 +95,8 @@ class InstStrategyMbqi : public QuantifiersModule
   Node convertFromModel(Node t,
                         std::unordered_map<Node, Node>& cmap,
                         const std::map<Node, Node>& mvToFreshVar);
+  /** Return the model value for term t */
+  Node getModelValue(const Node& t);
   /** The quantified formulas that we succeeded in checking */
   std::unordered_set<Node> d_quantChecked;
   /** Kinds that cannot appear in queries */
