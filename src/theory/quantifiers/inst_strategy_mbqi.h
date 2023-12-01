@@ -102,6 +102,7 @@ class InstStrategyMbqi : public QuantifiersModule
   Node modelValueToQuery(const Node& t);
   /** Return the model value for term t from the solver */
   void modelValueFromQuery(const Node& q,
+                           const Node& query,
                            SolverEngine& smt,
                             const std::vector<Node>& vars,
                             std::vector<Node>& mvs);

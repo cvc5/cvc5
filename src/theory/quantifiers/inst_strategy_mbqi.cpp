@@ -96,7 +96,7 @@ bool InstStrategyMbqi::checkCompleteFor(Node q)
 void InstStrategyMbqi::process(Node q)
 {
   Assert(q.getKind() == Kind::FORALL);
-  Trace("mbqi-model-exp") << "Process quantified formula: " << q << std::endl;
+  Trace("mbqi-model-exp") << "* Process quantified formula: " << q << std::endl;
   Trace("mbqi") << "Process quantified formula: " << q << std::endl;
   // Cache mapping terms in the skolemized body of q to the form passed to
   // the subsolver. This is local to this call.
@@ -248,7 +248,7 @@ void InstStrategyMbqi::process(Node q)
 
   // get the model values for skolems
   std::vector<Node> terms;
-  modelValueFromQuery(q, *mbqiChecker.get(), skolems.d_subs, terms);
+  modelValueFromQuery(q, query, *mbqiChecker.get(), skolems.d_subs, terms);
   Assert(skolems.size() == terms.size());
   if (TraceIsOn("mbqi"))
   {
@@ -463,21 +463,33 @@ Node InstStrategyMbqi::modelValueToQuery(const Node& t)
     }
   }
   Node val = fm->getValue(t);
-  Trace("mbqi-model-exp") << "...return " << val << std::endl;
+  Trace("mbqi-model-exp") << "...M_main(" << t << ") = " << val << std::endl;
   return val;
 }
 
 void InstStrategyMbqi::modelValueFromQuery(const Node& q,
+                           const Node& query,
                                            SolverEngine& smt,
                           const std::vector<Node>& vars,
                           std::vector<Node>& mvs)
 {
-  Trace("mbqi-model-exp") << "<- Get model values for instantiation of " << q << "?" << std::endl;
+  if (!options().quantifiers.mbqiModelExp)
+  {
+    getModelFromSubsolver(smt, vars, mvs);
+    return;
+  }
   getModelFromSubsolver(smt, vars, mvs);
   Assert (vars.size()==mvs.size());
-  for (size_t i=0, nvars = vars.size(); i<nvars; i++)
+  if (TraceIsOn("mbqi-model-exp"))
   {
-    Trace("mbqi-model-exp") << "  M(" << q[0][i] << ") == " << mvs[i] << std::endl;
+    Trace("mbqi-model-exp") << "<- Get model values for instantiation of " << q << "?" << std::endl;
+    std::vector<Node> ovars(q[0].begin(), q[0].end());
+    Node querys = query.substitute(vars.begin(), vars.end(), ovars.begin(), ovars.end());
+    Trace("mbqi-model-exp") << "  query was: " << querys << std::endl;
+    for (size_t i=0, nvars = vars.size(); i<nvars; i++)
+    {
+      Trace("mbqi-model-exp") << "...M_subsolver(" << q[0][i] << ") == " << mvs[i] << std::endl;
+    }
   }
 }
   
