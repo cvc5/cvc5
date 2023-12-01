@@ -96,6 +96,7 @@ bool InstStrategyMbqi::checkCompleteFor(Node q)
 void InstStrategyMbqi::process(Node q)
 {
   Assert(q.getKind() == Kind::FORALL);
+  Trace("mbqi-model-exp") << "Process quantified formula: " << q << std::endl;
   Trace("mbqi") << "Process quantified formula: " << q << std::endl;
   // Cache mapping terms in the skolemized body of q to the form passed to
   // the subsolver. This is local to this call.
@@ -245,7 +246,7 @@ void InstStrategyMbqi::process(Node q)
 
   // get the model values for skolems
   std::vector<Node> terms;
-  getModelFromSubsolver(*mbqiChecker.get(), skolems.d_subs, terms);
+  modelValueFromQuery(q, *mbqiChecker.get(), skolems.d_subs, terms);
   Assert(skolems.size() == terms.size());
   if (TraceIsOn("mbqi"))
   {
@@ -365,7 +366,7 @@ Node InstStrategyMbqi::convertToQuery(
           std::map<Node, Node>::iterator itm = modelValue.find(cur);
           if (itm == modelValue.end())
           {
-            Node mval = getModelValue(cur);
+            Node mval = modelValueToQuery(cur);
             // convert constant sequence to concat term to ensure subterms are
             // processed
             if (mval.getKind() == Kind::CONST_SEQUENCE)
@@ -442,14 +443,14 @@ Node InstStrategyMbqi::convertToQuery(
   return cmap[cur];
 }
 
-Node InstStrategyMbqi::getModelValue(const Node& t)
+Node InstStrategyMbqi::modelValueToQuery(const Node& t)
 {
   FirstOrderModel* fm = d_treg.getModel();
   if (!options().quantifiers.mbqiModelExp)
   {
     return fm->getValue(t);
   }
-  Trace("mbqi-model-exp") << "Choose model value of " << t << "?" << std::endl;
+  Trace("mbqi-model-exp") << "-> Choose model value of " << t << "?" << std::endl;
   if (t.getType().isFunction())
   {
     const std::vector<Node>& uterms = fm->getTheoryModel()->getUfTerms(t);
@@ -464,6 +465,20 @@ Node InstStrategyMbqi::getModelValue(const Node& t)
   return val;
 }
 
+void InstStrategyMbqi::modelValueFromQuery(const Node& q,
+                                           SolverEngine& smt,
+                          const std::vector<Node>& vars,
+                          std::vector<Node>& mvs)
+{
+  Trace("mbqi-model-exp") << "<- Get model values for instantiation of " << q << "?" << std::endl;
+  getModelFromSubsolver(smt, vars, mvs);
+  Assert (vars.size()==mvs.size());
+  for (size_t i=0, nvars = vars.size(); i<nvars; i++)
+  {
+    Trace("mbqi-model-exp") << "  M(" << q[0][i] << ") == " << mvs[i] << std::endl;
+  }
+}
+  
 Node InstStrategyMbqi::convertFromModel(
     Node t,
     std::unordered_map<Node, Node>& cmap,

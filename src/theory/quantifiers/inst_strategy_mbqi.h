@@ -24,6 +24,9 @@
 #include "theory/quantifiers/quant_module.h"
 
 namespace cvc5::internal {
+
+class SolverEngine;
+
 namespace theory {
 namespace quantifiers {
 
@@ -96,7 +99,13 @@ class InstStrategyMbqi : public QuantifiersModule
                         std::unordered_map<Node, Node>& cmap,
                         const std::map<Node, Node>& mvToFreshVar);
   /** Return the model value for term t */
-  Node getModelValue(const Node& t);
+  Node modelValueToQuery(const Node& t);
+  /** Return the model value for term t from the solver */
+  void modelValueFromQuery(const Node& q,
+                           SolverEngine& smt,
+                            const std::vector<Node>& vars,
+                            std::vector<Node>& mvs);
+  /** */
   /** The quantified formulas that we succeeded in checking */
   std::unordered_set<Node> d_quantChecked;
   /** Kinds that cannot appear in queries */
