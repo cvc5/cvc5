@@ -230,10 +230,12 @@ void InstStrategyMbqi::process(Node q)
   Trace("mbqi") << "  ...got : " << r << std::endl;
   if (r.getStatus() == Result::UNSAT)
   {
+    Trace("mbqi-model-exp") << "...SUCCESS" << std::endl;
     d_quantChecked.insert(q);
     Trace("mbqi") << "...success, SAT" << std::endl;
     return;
   }
+  Trace("mbqi-model-exp") << "...FAIL, will instantiate" << std::endl;
 
   // get the model values for all fresh variables
   for (const Node& v : allVars)
