@@ -1109,6 +1109,7 @@ set(regress_0_tests
   regress0/print_define_fun_internal.smt2
   regress0/print_lambda.cvc.smt2
   regress0/print_model.cvc.smt2
+  regress0/printer/block_model_out.smt2
   regress0/printer/bv_consts_bin.smt2
   regress0/printer/bv_consts_dec.smt2
   regress0/printer/deep-restart-output.smt2
