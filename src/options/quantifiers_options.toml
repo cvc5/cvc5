@@ -192,6 +192,14 @@ name   = "Quantifiers"
   default    = "false"
   help       = "use model-based quantifier instantiation"
 
+[[option]]
+  name       = "mbqiModelExp"
+  category   = "expert"
+  long       = "mbqi-model-exp"
+  type       = "bool"
+  default    = "false"
+  help       = "experimental option for models in mbqi"
+
 #### E-matching options
 
 [[option]]

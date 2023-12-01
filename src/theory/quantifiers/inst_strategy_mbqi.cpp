@@ -64,9 +64,17 @@ void InstStrategyMbqi::check(Theory::Effort e, QEffort quant_e)
   {
     return;
   }
+  FirstOrderModel* fm = d_treg.getModel();
+  if (TraceIsOn("mbqi-model-exp"))
+  {
+    eq::EqualityEngine * ee = fm->getEqualityEngine();
+    Trace("mbqi-model-exp") << "=== InstStrategyMbqi::check" << std::endl;
+    Trace("mbqi-model-exp") << "Ground model:" << std::endl;
+    Trace("mbqi-model-exp") << ee->debugPrintEqc() << std::endl;
+    Trace("mbqi-model-exp") << std::endl;
+  }
   // see if the negation of each quantified formula is satisfiable in the model
   std::vector<Node> disj;
-  FirstOrderModel* fm = d_treg.getModel();
   std::vector<TNode> visit;
   for (size_t i = 0, nquant = fm->getNumAssertedQuantifiers(); i < nquant; i++)
   {
@@ -77,6 +85,7 @@ void InstStrategyMbqi::check(Theory::Effort e, QEffort quant_e)
     }
     process(q);
   }
+  Trace("mbqi-model-exp") << "=== InstStrategyMbqi::check finished" << std::endl;
 }
 
 bool InstStrategyMbqi::checkCompleteFor(Node q)
@@ -310,7 +319,6 @@ Node InstStrategyMbqi::convertToQuery(
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  FirstOrderModel* fm = d_treg.getModel();
   std::unordered_map<Node, Node>::iterator it;
   std::map<Node, Node> modelValue;
   std::unordered_set<Node> processingChildren;
@@ -442,6 +450,15 @@ Node InstStrategyMbqi::getModelValue(const Node& t)
     return fm->getValue(t);
   }
   Trace("mbqi-model-exp") << "Choose model value of " << t << "?" << std::endl;
+  if (t.getType().isFunction())
+  {
+    const std::vector<Node>& uterms = fm->getTheoryModel()->getUfTerms(t);
+    Trace("mbqi-model-exp") << "  #terms=" << uterms.size() << std::endl;
+    for (const Node& u : uterms)
+    {
+      Trace("mbqi-model-exp") << "    " << u << " == " << fm->getValue(u) << std::endl;
+    }
+  }
   Node val = fm->getValue(t);
   Trace("mbqi-model-exp") << "...return " << val << std::endl;
   return val;
