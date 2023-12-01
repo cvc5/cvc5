@@ -244,6 +244,13 @@ examples). It further provides Java (see ``examples/SimpleVC.java`` and
 Configure cvc5 with ``configure.sh --<lang>-bindings`` to build with language
 bindings for ``<lang>``.
 
+Building the python bindings requires the source for the
+`pythonic API <(https://github.com/cvc5/cvc5_pythonic_api)>`.
+If configured with ``--pythonic-path=PATH``, the build system
+will expect that source to be at ``PATH``.
+Otherwise, if configured with ``--auto-download``,
+the build system will download it.
+
 
 Dependencies for Language Bindings
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
