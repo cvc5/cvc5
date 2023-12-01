@@ -140,6 +140,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
           }
           else
           {
+            // otherwise a positive AND, recurse on this below
             impl = cur;
           }
         }
