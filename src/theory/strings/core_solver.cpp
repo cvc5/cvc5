@@ -673,11 +673,11 @@ void CoreSolver::normalizeEquivalenceClass(Node eqc,
 
 const std::vector<Node>& CoreSolver::getRelevantDeq() const { return d_rlvDeq; }
 
-bool  CoreSolver::hasNormalForm(const Node& n) const
+bool CoreSolver::hasNormalForm(const Node& n) const
 {
-  return d_normal_form.find(n)!=d_normal_form.end();
+  return d_normal_form.find(n) != d_normal_form.end();
 }
-  
+
 NormalForm& CoreSolver::getNormalForm(const Node& n)
 {
   std::map<Node, NormalForm>::iterator itn = d_normal_form.find(n);
