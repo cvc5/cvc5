@@ -163,7 +163,7 @@ Node LemmaInprocess::processInternal(const Node& lem)
   Assert(visited.find(lem) != visited.end());
   Assert(!visited.find(lem)->second.isNull());
   Node ret = visited[lem];
-  if (eqLitLemmas.empty())
+  if (!eqLitLemmas.empty())
   {
     eqLitLemmas.emplace_back(ret);
     return nm->mkAnd(eqLitLemmas);
