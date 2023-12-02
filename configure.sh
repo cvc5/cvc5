@@ -285,7 +285,15 @@ do
     --dep-path=*) dep_path="${dep_path};${1##*=}" ;;
 
     --pythonic-path) die "missing argument to $1 (try -h)" ;;
-    --pythonic-path=*) pythonic_path="${1##*=}" ;;
+    --pythonic-path=*)
+        pythonic_path="${1##*=}"
+        # Check if pythonic is an absolute path and if not, make it
+        # absolute.
+        case $pythonic_path in
+          /*) ;;                                    # absolute path
+          *) pythonic_path=$(pwd)/$pythonic_path ;; # make absolute path
+        esac
+        ;;
 
     --wasm) wasm=WASM ;;
     --wasm=*) wasm="${1##*=}" ;;
