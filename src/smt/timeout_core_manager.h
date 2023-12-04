@@ -136,6 +136,7 @@ class TimeoutCoreManager : protected EnvObj
    * d_asymbols).
    */
   bool hasCurrentSharedSymbol(size_t i) const;
+  bool hasCurrentFreeSymbol(size_t i) const;
   /** Get active definitions */
   void getActiveDefinitions(std::vector<Node>& nextAssertions);
   /** Subsolver */

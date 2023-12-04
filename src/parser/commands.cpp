@@ -2251,7 +2251,14 @@ std::string GetTimeoutCoreCommand::getCommandName() const
 
 void GetTimeoutCoreCommand::toStream(std::ostream& out) const
 {
-  internal::Printer::getPrinter(out)->toStreamCmdGetTimeoutCore(out);
+  if (d_assumptions.empty())
+  {
+    internal::Printer::getPrinter(out)->toStreamCmdGetTimeoutCore(out);
+  }
+  else
+  {
+    internal::Printer::getPrinter(out)->toStreamCmdGetTimeoutCoreAssuming(out, d_assumptions);
+  }
 }
 
 /* -------------------------------------------------------------------------- */

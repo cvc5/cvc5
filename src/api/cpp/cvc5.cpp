@@ -7198,9 +7198,6 @@ std::pair<Result, std::vector<Term>> Solver::getTimeoutCoreAssuming(
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!assumptions.empty())
       << "Cannot get timeout core assuming an empty set of assumptions";
-  CVC5_API_CHECK(d_slv->getOptions().smt.produceUnsatCores)
-      << "Cannot get timeout core unless unsat cores are enabled "
-         "(try --produce-unsat-cores)";
   //////// all checks before this line
   return getTimeoutCoreHelper(assumptions);
   ////////
