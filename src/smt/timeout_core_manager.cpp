@@ -167,7 +167,9 @@ void TimeoutCoreManager::includeAssertion(size_t index, bool& removedAssertion)
 }
 
 void TimeoutCoreManager::getNextAssertions(
-    bool& newSolver, const std::vector<size_t>& nextInclude, std::vector<Node>& nextAsserts)
+    bool& newSolver,
+    const std::vector<size_t>& nextInclude,
+    std::vector<Node>& nextAsserts)
 {
   if (d_modelValues.empty())
   {

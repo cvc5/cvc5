@@ -2246,7 +2246,8 @@ const std::vector<cvc5::Term>& GetTimeoutCoreCommand::getTimeoutCore() const
 
 std::string GetTimeoutCoreCommand::getCommandName() const
 {
-  return d_assumptions.empty() ? "get-timeout-core" : "get-timeout-core-assuming";
+  return d_assumptions.empty() ? "get-timeout-core"
+                               : "get-timeout-core-assuming";
 }
 
 void GetTimeoutCoreCommand::toStream(std::ostream& out) const

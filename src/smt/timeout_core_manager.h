@@ -111,7 +111,7 @@ class TimeoutCoreManager : protected EnvObj
    * are populated during this call. Note this may include auxiliary definitions
    * not directly referenced in nextInclude.
    */
-  void getNextAssertions(bool& newSolver, 
+  void getNextAssertions(bool& newSolver,
                          const std::vector<size_t>& nextInclude,
                          std::vector<Node>& nextAssertions);
   /**
