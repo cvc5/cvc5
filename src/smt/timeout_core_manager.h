@@ -101,6 +101,9 @@ class TimeoutCoreManager : protected EnvObj
   /**
    * Get next assertions
    *
+   * @param newSolver Set to true if we need to construct a new solver. If
+   * false, nextAssertions is the set to add to the existing solver. If true,
+   * nextAssertions is all assertions to include.
    * @param nextInclude The indices of assertions to include. Note that
    * during this method, we may refine the current set of assertions we are
    * considering based on what is included.
@@ -108,16 +111,20 @@ class TimeoutCoreManager : protected EnvObj
    * are populated during this call. Note this may include auxiliary definitions
    * not directly referenced in nextInclude.
    */
-  void getNextAssertions(const std::vector<size_t>& nextInclude,
+  void getNextAssertions(bool& newSolver, 
+                         const std::vector<size_t>& nextInclude,
                          std::vector<Node>& nextAssertions);
   /**
    * Check sat next
+   * @param newSolver Whether we should construct a new solver. If false,
+   * nextAssertions is the set to add to the existing solver.
    * @param nextAssertions The assertions to check on this call
    * @param nextInclude The indices of assertions to add for the next call,
    * which are populated during this call.
    * @return The result of the checkSatNext.
    */
-  Result checkSatNext(const std::vector<Node>& nextAssertions,
+  Result checkSatNext(bool newSolver,
+                      const std::vector<Node>& nextAssertions,
                       std::vector<size_t>& nextInclude);
   /**
    * Record current model, return true if nextInclude is non-empty, which
@@ -196,6 +203,8 @@ class TimeoutCoreManager : protected EnvObj
   std::map<size_t, std::unordered_set<Node>> d_syms;
   /** Globally included assertions */
   std::vector<Node> d_globalInclude;
+  /** Symbols in global include */
+  std::unordered_set<Node> d_asymbolsGlobal;
 };
 
 }  // namespace smt

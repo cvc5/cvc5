@@ -65,14 +65,16 @@ std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
   std::vector<size_t> nextInclude;
   Result result;
   bool checkAgain = true;
+  // we initially must construct a new solver
+  bool newSolver = true;
   do
   {
     std::vector<Node> assertions;
     // get the next assertions, store in d_ap
-    getNextAssertions(nextInclude, assertions);
+    getNextAssertions(newSolver, nextInclude, assertions);
     nextInclude.clear();
     // check sat based on the driver strategy
-    result = checkSatNext(assertions, nextInclude);
+    result = checkSatNext(newSolver, assertions, nextInclude);
     // if we were asked to check again
     if (result.getStatus() != Result::UNKNOWN
         || result.getUnknownExplanation()
@@ -80,6 +82,8 @@ std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
     {
       checkAgain = false;
     }
+    // may not need to construct a new solver on the next iteration
+    newSolver = false;
   } while (checkAgain);
 
   std::vector<Node> toCore;
@@ -163,7 +167,7 @@ void TimeoutCoreManager::includeAssertion(size_t index, bool& removedAssertion)
 }
 
 void TimeoutCoreManager::getNextAssertions(
-    const std::vector<size_t>& nextInclude, std::vector<Node>& nextAsserts)
+    bool& newSolver, const std::vector<size_t>& nextInclude, std::vector<Node>& nextAsserts)
 {
   if (d_modelValues.empty())
   {
@@ -189,8 +193,9 @@ void TimeoutCoreManager::getNextAssertions(
   }
   if (removedAssertion)
   {
+    newSolver = true;
     // we have to recompute symbols from scratch
-    d_asymbols.clear();
+    d_asymbols = d_asymbolsGlobal;
     for (std::pair<const size_t, AssertInfo>& a : d_ainfo)
     {
       std::unordered_set<Node>& syms = d_syms[a.first];
@@ -207,9 +212,12 @@ void TimeoutCoreManager::getNextAssertions(
     }
   }
 
-  // include the skolem definitions
-  getActiveDefinitions(nextAsserts);
-
+  // Include the skolem definitions and global asserts. This is only necessary
+  // if we are allocating a new solver.
+  if (newSolver)
+  {
+    getActiveDefinitions(nextAsserts);
+  }
   Trace("smt-to-core")
       << "...finished get next assertions, #current assertions = "
       << d_ainfo.size() << ", #free variables = " << d_asymbols.size()
@@ -238,7 +246,8 @@ void TimeoutCoreManager::getActiveDefinitions(std::vector<Node>& nextAsserts)
       nextAsserts.end(), d_globalInclude.begin(), d_globalInclude.end());
 }
 
-Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions,
+Result TimeoutCoreManager::checkSatNext(bool newSolver,
+                                        const std::vector<Node>& nextAssertions,
                                         std::vector<size_t>& nextInclude)
 {
   verbose(1) << "TimeoutCoreManager::checkSatNext, #assertions="
@@ -246,19 +255,30 @@ Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions,
              << std::endl;
   Trace("smt-to-core") << "--- checkSatNext #models=" << d_modelValues.size()
                        << std::endl;
-  Trace("smt-to-core") << "checkSatNext: preprocess" << std::endl;
-  d_subSolver.reset(nullptr);
-  Result result;
-  theory::initializeSubsolver(
-      d_subSolver, d_env, true, options().smt.toCoreTimeout);
-  d_subSolver->setOption("produce-models", "true");
+  if (newSolver)
+  {
+    Trace("smt-to-core") << "checkSatNext: NEW solver" << std::endl;
+    // create a new solver if necessary
+    d_subSolver.reset(nullptr);
+    theory::initializeSubsolver(
+        d_subSolver, d_env, true, options().smt.toCoreTimeout);
+    d_subSolver->setOption("produce-models", "true");
+    // don't need proofs/unsat cores
+    d_subSolver->setOption("produce-unsat-cores", "false");
+    d_subSolver->setOption("produce-proofs", "false");
+    d_subSolver->setOption("incremental", "true");
+  }
+  else
+  {
+    Trace("smt-to-core") << "checkSatNext: ...reuse solver" << std::endl;
+  }
   Trace("smt-to-core") << "checkSatNext: assert to subsolver" << std::endl;
   for (const Node& a : nextAssertions)
   {
     d_subSolver->assertFormula(a);
   }
   Trace("smt-to-core") << "checkSatNext: check with subsolver" << std::endl;
-  result = d_subSolver->checkSat();
+  Result result = d_subSolver->checkSat();
   Trace("smt-to-core") << "checkSatNext: ...result is " << result << std::endl;
   if (result.getStatus() == Result::UNKNOWN
       && result.getUnknownExplanation() == UnknownExplanation::TIMEOUT)
@@ -376,6 +396,12 @@ void TimeoutCoreManager::initializeAssertions(
   if (hasAssumptions)
   {
     d_globalInclude = ppAsserts;
+    // include symbols in global assertions
+    for (const Node& a : d_globalInclude)
+    {
+      expr::getSymbols(a, d_asymbolsGlobal);
+    }
+    d_asymbols = d_asymbolsGlobal;
   }
   // remember the size of the prefix of non-skolem definitions
   d_numAssertsNsk = d_ppAsserts.size();

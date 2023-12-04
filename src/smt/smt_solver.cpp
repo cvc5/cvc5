@@ -185,8 +185,9 @@ const context::CDHashMap<size_t, Node>& SmtSolver::getPreprocessedSkolemMap()
 
 bool SmtSolver::trackPreprocessedAssertions() const
 {
-  return options().smt.deepRestartMode != options::DeepRestartMode::NONE
-         || options().smt.produceProofs;
+  return true;
+  /*options().smt.deepRestartMode != options::DeepRestartMode::NONE
+         || options().smt.produceProofs;*/
 }
 
 TheoryEngine* SmtSolver::getTheoryEngine() { return d_theoryEngine.get(); }
