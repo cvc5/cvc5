@@ -2257,7 +2257,8 @@ void GetTimeoutCoreCommand::toStream(std::ostream& out) const
   }
   else
   {
-    internal::Printer::getPrinter(out)->toStreamCmdGetTimeoutCoreAssuming(out, d_assumptions);
+    internal::Printer::getPrinter(out)->toStreamCmdGetTimeoutCoreAssuming(
+        out, d_assumptions);
   }
 }
 

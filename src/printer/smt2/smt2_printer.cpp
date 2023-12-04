@@ -1785,9 +1785,9 @@ void Smt2Printer::toStreamCmdGetTimeoutCore(std::ostream& out) const
   out << "(get-timeout-core)" << std::endl;
 }
 
-void Smt2Printer::toStreamCmdGetTimeoutCoreAssuming(std::ostream& out,
-                                                 const std::vector<Node>& assumptions) const override
-                                                 {
+void Smt2Printer::toStreamCmdGetTimeoutCoreAssuming(
+    std::ostream& out, const std::vector<Node>& assumptions) const override
+{
   out << "(get-timeout-core-assuming (";
   bool firstTime = true;
   for (const Node& a : assumptions)
@@ -1803,8 +1803,8 @@ void Smt2Printer::toStreamCmdGetTimeoutCoreAssuming(std::ostream& out,
     out << a;
   }
   out << "))" << std::endl;
-                                                 }
-                                                 
+}
+
 void Smt2Printer::toStreamCmdGetLearnedLiterals(std::ostream& out,
                                                 modes::LearnedLitType t) const
 {

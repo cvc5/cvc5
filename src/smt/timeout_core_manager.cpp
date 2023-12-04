@@ -324,7 +324,8 @@ void TimeoutCoreManager::initializeAssertions(
     Trace("smt-to-core") << "initializeAssertions" << std::endl;
     if (hasAssumptions)
     {
-      Trace("smt-to-core") << "#assumptions =" << assumptions.size() << std::endl;
+      Trace("smt-to-core") << "#assumptions =" << assumptions.size()
+                           << std::endl;
     }
     Trace("smt-to-core") << "#ppAsserts = " << ppAsserts.size() << std::endl;
   }
@@ -435,7 +436,8 @@ bool TimeoutCoreManager::recordCurrentModel(bool& allAssertsSat,
       continue;
     }
     // prefer false over unknown, shared symbols over no shared symbols
-    size_t currScore = (isFalse ? 1 : 0) + (hasCurrentSharedSymbol(ii) ? 2 : 0) + (hasCurrentFreeSymbol(ii) ? 0 : 4)
+    size_t currScore = (isFalse ? 1 : 0) + (hasCurrentSharedSymbol(ii) ? 2 : 0)
+                       + (hasCurrentFreeSymbol(ii) ? 0 : 4)
                        + (i >= d_numAssertsNsk ? 0 : 8);
     Trace("smt-to-core-debug") << "score " << currScore << std::endl;
     if (!nextInclude.empty() && indexScore >= currScore)
