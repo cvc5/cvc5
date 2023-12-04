@@ -182,9 +182,9 @@ class Parser:
 
     def parse_rules(self, s):
         def rule_action(s, l, t):
-            # t = [key, args, match, target]
+            keys, args, match, target = t
             assert len(t) == 4
-            return self.rule_action(t[1], CBool(True), t[2], t[3], False, None)
+            return self.rule_action(args, CBool(True), match, target, False, None)
         rule = (
             pp.Suppress('(') +
             pp.Keyword('define-rule') +
@@ -194,8 +194,8 @@ class Parser:
         def fixed_rule_action(s, l, t):
             # t = [key, args, match, target, (cond)]
             assert len(t) == 4 or len(t) == 5
-            return self.rule_action(t[1], CBool(True), t[2], t[3], True,
-                                    t[4] if len(t) == 5 else None)
+            keys, args, match, target, cond = t + [None]
+            return self.rule_action(args, CBool(True), match, target, True, cond)
         fixed_rule = (
             pp.Suppress('(') +
             pp.Keyword('define-rule*') +
@@ -203,9 +203,8 @@ class Parser:
             self.expr() + self.expr() + pp.Optional(self.expr()) +
             pp.Suppress(')')).setParseAction(fixed_rule_action)
         def cond_rule_action(s, l, t):
-            # t = [key, args, cond, match, target]
-            assert len(t) == 5
-            return self.rule_action(t[1], t[2], t[3], t[4], False, None)
+            keys, args, cond, match, target = t
+            return self.rule_action(args, cond, match, target, False, None)
         cond_rule = (
             pp.Suppress('(') +
             pp.Keyword('define-cond-rule') +
