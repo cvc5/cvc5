@@ -1080,9 +1080,9 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
     d.simplify(this, fm);
     Trace("fmc-debug") << "Done simplifying" << std::endl;
   }
-  Trace("fmc-debug") << "Definition for " << n << " is : " << std::endl;
   if (TraceIsOn("fmc-debug"))
   {
+    Trace("fmc-debug") << "Definition for " << n << " is : " << std::endl;
     d.debugPrint("fmc-debug", Node::null(), this);
     Trace("fmc-debug") << std::endl;
   }
