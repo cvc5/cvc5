@@ -299,8 +299,6 @@ class CVC5_EXPORT ParserException : public CVC5ApiException
                   unsigned long line,
                   unsigned long column);
 
-  // Destructor
-  ~ParserException() override;
   /**
    * Print error to output stream.
    * @param os The output stream to write the error on.
