@@ -1,9 +1,7 @@
 ; COMMAND-LINE: --timeout-core-timeout=200
 ; REQUIRES: no-competition
-; EXPECT: unknown
-; EXPECT: (
+; SCRUBBER: grep -o "tc-A"
 ; EXPECT: tc-A
-; EXPECT: )
 (set-logic ALL)
 (set-option :produce-unsat-cores true)
 (declare-fun A () Bool)

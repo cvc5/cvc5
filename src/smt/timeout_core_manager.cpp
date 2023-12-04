@@ -346,7 +346,7 @@ void TimeoutCoreManager::initializeAssertions(
     Trace("smt-to-core") << "initializeAssertions" << std::endl;
     if (hasAssumptions)
     {
-      Trace("smt-to-core") << "#assumptions =" << assumptions.size()
+      Trace("smt-to-core") << "#assumptions = " << assumptions.size()
                            << std::endl;
     }
     Trace("smt-to-core") << "#ppAsserts = " << ppAsserts.size() << std::endl;
