@@ -2246,7 +2246,7 @@ const std::vector<cvc5::Term>& GetTimeoutCoreCommand::getTimeoutCore() const
 
 std::string GetTimeoutCoreCommand::getCommandName() const
 {
-  return "get-timeout-core";
+  return d_assumptions.empty() ? "get-timeout-core" : "get-timeout-core-assuming";
 }
 
 void GetTimeoutCoreCommand::toStream(std::ostream& out) const
@@ -2258,7 +2258,7 @@ void GetTimeoutCoreCommand::toStream(std::ostream& out) const
   else
   {
     internal::Printer::getPrinter(out)->toStreamCmdGetTimeoutCoreAssuming(
-        out, d_assumptions);
+        out, termVectorToNodes(d_assumptions));
   }
 }
 

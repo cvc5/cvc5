@@ -1786,7 +1786,7 @@ void Smt2Printer::toStreamCmdGetTimeoutCore(std::ostream& out) const
 }
 
 void Smt2Printer::toStreamCmdGetTimeoutCoreAssuming(
-    std::ostream& out, const std::vector<Node>& assumptions) const override
+    std::ostream& out, const std::vector<Node>& assumptions) const
 {
   out << "(get-timeout-core-assuming (";
   bool firstTime = true;

@@ -337,9 +337,9 @@ void TimeoutCoreManager::initializeAssertions(
   {
     Node pa = input[i];
     Node par = rewrite(tls.get().apply(pa));
-    if (pa.isConst())
+    if (par.isConst())
     {
-      if (pa.getConst<bool>())
+      if (par.getConst<bool>())
       {
         // ignore true assertions
         continue;
