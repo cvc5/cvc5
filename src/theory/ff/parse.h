@@ -57,9 +57,19 @@ bool oneConstraint(const Node& fact);
 /**
  * Detect whether this node is a bit-constraint (sets a variable to 0 or 1).
  *
+ * Examples of such nodes include:
+ *
+ *    * `x * x = x`
+ *    * `x * x - x = 0`
+ *    * `x * (x - 1) = 0`
+ *
+ * But note that this function will parse any field node of depth <= 5 that is
+ * semantically equivalent to the polynomial x^2-x.
+ *
  * @param fact a node asserted to FF
  * @return a variable that is bit-constrained by this fact, if this fact is a
- *         bit constraint.
+ *         bit constraint;
+ *         returns an empty optional if this is not detectably a bit constraint
  */
 std::optional<Node> bitConstraint(const Node& fact);
 
@@ -72,15 +82,16 @@ std::optional<Node> bitConstraint(const Node& fact);
  *    * -X
  *
  * @param t a potential linear monomial
- * @return the variable and scalar
+ * @return the variable and scalar;
+ *         returns an empty optional if this is not a (syntatic) linear monomial
  */
 std::optional<std::pair<Node, FiniteFieldValue>> linearMonomial(const Node& t);
 
 /**
- * Extract linear monomials.
+ * Extract linear monomials. That is, given a sum S = x + 4y + 6 + x*x + x*y,
+ * it would return [(x, 1), (y, 4)] and [6, x*x, x*y].
  *
- * @param t a potential affine sum
- * @param hasOtherUses node predicate for whether there are other uses
+ * @param t a sum with (potential) linear monomials
  * @return the linear monomials
  *         everything else in the sum
  */
@@ -90,7 +101,10 @@ extractLinearMonomials(const Node& t);
 
 /**
  * Given a sum s1 + ... + sN, extract sub-sums of form k * (x0 + 2*x1 + 4*x2 +
- * ... 2^I*xI), preferring xJ that are in bits.
+ * ... 2^I*xI), preferring xJ that are in the given set `bits`.
+ *
+ * A caller might pass a set `bits` that contains nodes that are already known
+ * to be bit-constrained (i.e., have a value in {0, 1}).
  *
  * @param t a potential bitsum
  * @param bits node set containing bit-constrained vars; these are prefered in

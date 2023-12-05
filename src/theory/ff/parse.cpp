@@ -64,7 +64,11 @@ using SpectrumOpt = std::optional<Spectrum>;
  * Attempt to compute a Spectrum for the polynomial defined by t.
  *
  * @param t a field term
- * @param depth how deep to search in term before giving up
+ * @param depth how deep to search in term before giving up; reducing the depth
+ *              reduces the runtime of this function, but increases the number
+ *              of terms for which this function returns an empty optional.
+ *              depth 5 is enough to parse all the patterns I've seen for
+ *              bit constraints and similar.
  * @return none if t is too deep or mulitvariate or has degreee > 2; otherwise,
  * a Spectrum.
  */
@@ -103,8 +107,8 @@ namespace {
  *
  * @param a spectrum for f
  * @param b spectrum for g
- * @param fOp the binary point-wise operator @
  * @param dOp binary operator on uint8_t for computing the degree of f @ g
+ * @param fOp the binary point-wise operator @
  *
  * */
 template <typename DegreeOp, typename FieldOp>
@@ -186,12 +190,10 @@ SpectrumOpt spectrum(const Node& t, uint8_t depth)
       FiniteFieldValue v = t.getConst<FiniteFieldValue>();
       return {{Node::null(), 0, v, v}};
     }
-    else
-    {
-      // this is an (ff) variable
-      const Integer modulus = t.getType().getFfSize();
-      return {{t, 1, {1, modulus}, {0, modulus}}};
-    }
+
+    // this is an (ff) variable
+    const Integer modulus = t.getType().getFfSize();
+    return {{t, 1, {1, modulus}, {0, modulus}}};
   }
   switch (t.getKind())
   {
@@ -330,9 +332,11 @@ bitSums(const Node& t, std::unordered_set<Node> bits)
   // (preferring monomials with vars in bits)
 
   // that subset, as a (coeff -> var) map
+  // later, we'll iterate over monomials by coeff; this map will give the var
   std::unordered_map<FiniteFieldValue, Node, FiniteFieldValueHashFunction>
       bitMonomials{};
   // that subset, as a priority_queue over (-abs(signed_int(coeff)), coeff)
+  // later, we'll iterate over monomials in the coeff order given here
   std::priority_queue<std::pair<Integer, FiniteFieldValue>> q{};
 
   for (const auto& [var, coeff] : monomials)
@@ -373,6 +377,7 @@ bitSums(const Node& t, std::unordered_set<Node> bits)
   std::vector<std::pair<FiniteFieldValue, std::vector<Node>>> bitSums{};
   FiniteFieldValue two(2, t.getType().getFfSize());
   // choose a starting constant k; we'll search for a run: k*x, 2k*y, 4k*z, ...
+  // we choose k from the priority queue (i.e., k with least abs(k) goes first)
   while (!q.empty())
   {
     FiniteFieldValue k = q.top().second;
