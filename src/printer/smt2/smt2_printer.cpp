@@ -808,6 +808,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       const RealAlgebraicNumber& ran =
           n.getOperator().getConst<RealAlgebraicNumber>();
       out << "(_ real_algebraic_number " << ran << ")";
+      stillNeedToPrintParams = false;
       break;
     }
     case Kind::INDEXED_ROOT_PREDICATE_OP:
@@ -1081,6 +1082,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::BITVECTOR_SLE: return "bvsle";
     case Kind::BITVECTOR_SGT: return "bvsgt";
     case Kind::BITVECTOR_SGE: return "bvsge";
+    case Kind::BITVECTOR_NEGO: return "bvnego";
     case Kind::BITVECTOR_UADDO: return "bvuaddo";
     case Kind::BITVECTOR_SADDO: return "bvsaddo";
     case Kind::BITVECTOR_UMULO: return "bvumulo";
