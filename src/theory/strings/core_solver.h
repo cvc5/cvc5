@@ -230,6 +230,8 @@ class CoreSolver : protected EnvObj
    * for str.to_code.
    */
   const std::vector<Node>& getRelevantDeq() const;
+  /** Has a normal form for n been computed? */
+  bool hasNormalForm(const Node& n) const;
   /**
    * Get normal form for string term n. For details on this data structure,
    * see theory/strings/normal_form.h.
@@ -237,7 +239,7 @@ class CoreSolver : protected EnvObj
    * This query is valid after a successful call to checkNormalFormsEq, e.g.
    * a call where the inference manager was not given any lemmas or inferences.
    */
-  NormalForm& getNormalForm(Node n);
+  NormalForm& getNormalForm(const Node& n);
   /** get normal string
    *
    * This method returns the node that is equivalent to the normal form of x,
