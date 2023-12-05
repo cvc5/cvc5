@@ -139,42 +139,6 @@ SpectrumOpt spectrumOp(SpectrumOpt&& a,
   return {{var, degree, val0, val1}};
 };
 
-/** Subtract spectra */
-SpectrumOpt spectrumSub(SpectrumOpt&& a, SpectrumOpt&& b)
-{
-  return spectrumOp(
-      std::move(a),
-      std::move(b),
-      [](const uint8_t& x, const uint8_t& y) { return std::max(x, y); },
-      [](const FiniteFieldValue& x, const FiniteFieldValue& y) {
-        return x - y;
-      });
-};
-
-/** Add spectra */
-SpectrumOpt spectrumAdd(SpectrumOpt&& a, SpectrumOpt&& b)
-{
-  return spectrumOp(
-      std::move(a),
-      std::move(b),
-      [](const uint8_t& x, const uint8_t& y) { return std::max(x, y); },
-      [](const FiniteFieldValue& x, const FiniteFieldValue& y) {
-        return x + y;
-      });
-}
-
-/** Multiply spectra */
-SpectrumOpt spectrumMul(SpectrumOpt&& a, SpectrumOpt&& b)
-{
-  return spectrumOp(
-      std::move(a),
-      std::move(b),
-      [](const uint8_t& x, const uint8_t& y) { return x + y; },
-      [](const FiniteFieldValue& x, const FiniteFieldValue& y) {
-        return x * y;
-      });
-};
-
 SpectrumOpt spectrum(const Node& t, uint8_t depth)
 {
   if (t.getKind() == Kind::NOT)
@@ -202,20 +166,38 @@ SpectrumOpt spectrum(const Node& t, uint8_t depth)
       SpectrumOpt acc = spectrum(t[0], depth - 1);
       for (size_t i = 1, n = t.getNumChildren(); i < n; ++i)
       {
-        acc = spectrumAdd(std::move(acc), spectrum(t[i], depth - 1));
+        acc = spectrumOp(
+            std::move(acc),
+            spectrum(t[i], depth - 1),
+            [](const uint8_t& x, const uint8_t& y) { return std::max(x, y); },
+            [](const FiniteFieldValue& x, const FiniteFieldValue& y) {
+              return x + y;
+            });
       }
       return acc;
     }
     case Kind::EQUAL:
     {
-      return spectrumSub(spectrum(t[0], depth - 1), spectrum(t[1], depth - 1));
+      return spectrumOp(
+          spectrum(t[0], depth - 1),
+          spectrum(t[1], depth - 1),
+          [](const uint8_t& x, const uint8_t& y) { return std::max(x, y); },
+          [](const FiniteFieldValue& x, const FiniteFieldValue& y) {
+            return x - y;
+          });
     }
     case Kind::FINITE_FIELD_MULT:
     {
       SpectrumOpt acc = spectrum(t[0], depth - 1);
       for (size_t i = 1, n = t.getNumChildren(); i < n; ++i)
       {
-        acc = spectrumMul(std::move(acc), spectrum(t[i], depth - 1));
+        acc = spectrumOp(
+            std::move(acc),
+            spectrum(t[i], depth - 1),
+            [](const uint8_t& x, const uint8_t& y) { return x + y; },
+            [](const FiniteFieldValue& x, const FiniteFieldValue& y) {
+              return x * y;
+            });
       }
       return acc;
     }
@@ -425,7 +407,7 @@ std::optional<Node> disjunctiveBitConstraint(const Node& t)
     if ((oneConstraint(t[0]) && zeroConstraint(t[1]))
         || (oneConstraint(t[1]) && zeroConstraint(t[0])))
     {
-      return {theory::ff::parse::spectrum::spectrum(t[0])->var};
+      return {theory::ff::parse::spectrum(t[0])->var};
     }
   }
   return {};
