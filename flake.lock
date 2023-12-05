@@ -1,0 +1,99 @@
+{
+  "nodes": {
+    "cadical": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1701278870,
+        "narHash": "sha256-8XDfv0Oge/h25DVtXEblezFIX1ScKcl2yG6i3YgnBw0=",
+        "owner": "arminbiere",
+        "repo": "cadical",
+        "rev": "56f667c858dd7d9da1cc98ce0fb4030713881914",
+        "type": "github"
+      },
+      "original": {
+        "owner": "arminbiere",
+        "repo": "cadical",
+        "type": "github"
+      }
+    },
+    "flake-parts": {
+      "inputs": {
+        "nixpkgs-lib": "nixpkgs-lib"
+      },
+      "locked": {
+        "lastModified": 1701473968,
+        "narHash": "sha256-YcVE5emp1qQ8ieHUnxt1wCZCC3ZfAS+SRRWZ2TMda7E=",
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "rev": "34fed993f1674c8d06d58b37ce1e0fe5eebcb9f5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1701539137,
+        "narHash": "sha256-nVO/5QYpf1GwjvtpXhyxx5M3U/WN0MwBro4Lsk+9mL0=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "933d7dc155096e7575d207be6fb7792bc9f34f6d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixos-23.11",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs-lib": {
+      "locked": {
+        "dir": "lib",
+        "lastModified": 1701253981,
+        "narHash": "sha256-ztaDIyZ7HrTAfEEUt9AtTDNoCYxUdSd6NrRHaYOIxtk=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "e92039b55bcd58469325ded85d4f58dd5a4eaf58",
+        "type": "github"
+      },
+      "original": {
+        "dir": "lib",
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "cadical": "cadical",
+        "flake-parts": "flake-parts",
+        "nixpkgs": "nixpkgs",
+        "symFPU": "symFPU"
+      }
+    },
+    "symFPU": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1687888499,
+        "narHash": "sha256-dNtSJGwbORl82lRnkGRUaMmP4bm9qPtQ+N+0dF/osbM=",
+        "owner": "martin-cs",
+        "repo": "symfpu",
+        "rev": "e6ac3af9c2c574498ea171c957425b407625448b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "martin-cs",
+        "repo": "symfpu",
+        "rev": "e6ac3af9c2c574498ea171c957425b407625448b",
+        "type": "github"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
