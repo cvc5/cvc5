@@ -369,6 +369,12 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     // nothing to do if no functions
     return true;
   }
+  // if higher-order, we must use the standard assignment method
+  if (logicInfo().isHigherOrder())
+  {
+    TheoryEngineModelBuilder::assignFunctions(m);
+    return true;
+  }
   FirstOrderModelFmc* fm = d_fm.get();
   Trace("fmc") << "---Full Model Check reset() " << std::endl;
   d_quant_models.clear();

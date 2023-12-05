@@ -777,11 +777,8 @@ Java_io_github_cvc5_Solver_mkTerm__JJ_3J(JNIEnv* env,
  * Method:    mkTuple
  * Signature: (J[J)J
  */
-JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_Solver_mkTuple(JNIEnv* env,
-                                   jobject,
-                                   jlong pointer,
-                                   jlongArray termPointers)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkTuple(
+    JNIEnv* env, jobject, jlong pointer, jlongArray termPointers)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);

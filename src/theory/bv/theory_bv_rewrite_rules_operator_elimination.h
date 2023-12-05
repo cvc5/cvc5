@@ -678,6 +678,23 @@ inline Node RewriteRule<RedandEliminate>::apply(TNode node)
 }
 
 template <>
+inline bool RewriteRule<NegoEliminate>::applies(TNode node)
+{
+  return (node.getKind() == Kind::BITVECTOR_NEGO);
+}
+
+template <>
+inline Node RewriteRule<NegoEliminate>::apply(TNode node)
+{
+  Trace("bv-rewrite") << "RewriteRule<NegoEliminate>(" << node << ")"
+                      << std::endl;
+  return NodeManager::currentNM()->mkNode(
+      Kind::EQUAL,
+      node[0],
+      utils::mkMinSigned(node[0].getType().getBitVectorSize()));
+}
+
+template <>
 inline bool RewriteRule<UaddoEliminate>::applies(TNode node)
 {
   return (node.getKind() == Kind::BITVECTOR_UADDO);

@@ -17,6 +17,8 @@
 
 #include "prop/cadical.h"
 
+#include <deque>
+
 #include "base/check.h"
 #include "prop/theory_proxy.h"
 #include "util/resource_manager.h"
@@ -446,7 +448,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
         << "cb::reason: " << toSatLiteral(propagated_lit) << " "
         << d_reason.front() << std::endl;
     int lit = toCadicalLit(d_reason.front());
-    d_reason.erase(d_reason.begin());
+    d_reason.pop_front();
     return lit;
   }
 
@@ -466,7 +468,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
   {
     Assert(!d_new_clauses.empty());
     CadicalLit lit = d_new_clauses.front();
-    d_new_clauses.erase(d_new_clauses.begin());
+    d_new_clauses.pop_front();
     Trace("cadical::propagator")
         << "external_clause: " << toSatLiteral(lit) << std::endl;
     return lit;
@@ -820,7 +822,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
       return 0;
     }
     SatLiteral next = d_propagations.front();
-    d_propagations.erase(d_propagations.begin());
+    d_propagations.pop_front();
     Trace("cadical::propagator") << "propagate: " << next << std::endl;
     return toCadicalLit(next);
   }
@@ -898,13 +900,13 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
   std::vector<SatLiteral> d_decisions;
 
   /** Used by cb_propagate() to return propagated literals. */
-  std::vector<SatLiteral> d_propagations;
+  std::deque<SatLiteral> d_propagations;
 
   /**
    * Used by add_clause() to buffer added clauses, which will be added via
    * cb_add_reason_clause_lit().
    */
-  std::vector<CadicalLit> d_new_clauses;
+  std::deque<CadicalLit> d_new_clauses;
 
   /**
    * Flag indicating whether cb_add_reason_clause_lit() is currently
@@ -912,7 +914,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
    */
   bool d_processing_reason = false;
   /** Reason storage to process current reason in cb_add_reason_clause_lit(). */
-  std::vector<SatLiteral> d_reason;
+  std::deque<SatLiteral> d_reason;
 
   bool d_found_solution = false;
 
