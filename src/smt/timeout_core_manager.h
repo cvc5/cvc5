@@ -26,6 +26,7 @@
 namespace cvc5::internal {
 
 class SolverEngine;
+class TheoryEngine;
 
 namespace smt {
 
@@ -68,7 +69,7 @@ class ContextManager;
 class TimeoutCoreManager : protected EnvObj
 {
  public:
-  TimeoutCoreManager(Env& env);
+  TimeoutCoreManager(Env& env, TheoryEngine* te);
 
   /**
    * Get timeout core for the current set of assertions stored in ppAsserts.
@@ -146,6 +147,8 @@ class TimeoutCoreManager : protected EnvObj
   bool hasCurrentFreeSymbol(size_t i) const;
   /** Get active definitions */
   void getActiveDefinitions(std::vector<Node>& nextAssertions);
+  /** Pointer to theory engine */
+  TheoryEngine* d_theoryEngine;
   /** Subsolver */
   std::unique_ptr<SolverEngine> d_subSolver;
   /** Common nodes */

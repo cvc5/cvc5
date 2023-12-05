@@ -38,8 +38,8 @@
 namespace cvc5::internal {
 namespace smt {
 
-TimeoutCoreManager::TimeoutCoreManager(Env& env)
-    : EnvObj(env), d_numAssertsNsk(0)
+TimeoutCoreManager::TimeoutCoreManager(Env& env, TheoryEngine* te)
+    : EnvObj(env), d_theoryEngine(te), d_numAssertsNsk(0)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -93,10 +93,7 @@ std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
     toCore.push_back(d_ppAssertsOrig[a.first]);
   }
   // include the skolem definitions
-  if (assumptions.empty())
-  {
-    getActiveDefinitions(toCore);
-  }
+  getActiveDefinitions(toCore);
   if (TraceIsOn("to-core-result"))
   {
     for (const Node& c : toCore)
@@ -219,6 +216,8 @@ void TimeoutCoreManager::getNextAssertions(
   if (newSolver)
   {
     getActiveDefinitions(nextAsserts);
+    nextAsserts.insert(
+        nextAsserts.end(), d_globalInclude.begin(), d_globalInclude.end());
   }
   Trace("smt-to-core")
       << "...finished get next assertions, #current assertions = "
@@ -244,8 +243,6 @@ void TimeoutCoreManager::getActiveDefinitions(std::vector<Node>& nextAsserts)
       }
     }
   }
-  nextAsserts.insert(
-      nextAsserts.end(), d_globalInclude.begin(), d_globalInclude.end());
 }
 
 Result TimeoutCoreManager::checkSatNext(bool newSolver,
@@ -358,7 +355,8 @@ void TimeoutCoreManager::initializeAssertions(
   for (size_t i = 0, nasserts = input.size(); i < nasserts; i++)
   {
     Node pa = input[i];
-    Node par = rewrite(tls.get().apply(pa));
+    Node par = tls.get().apply(pa);
+    par = rewrite(par);
     if (par.isConst())
     {
       if (par.getConst<bool>())
@@ -377,8 +375,30 @@ void TimeoutCoreManager::initializeAssertions(
     }
     if (hasAssumptions)
     {
-      d_ppAsserts.push_back(par);
-      d_ppAssertsOrig.push_back(pa);
+      theory::Theory::PPAssertStatus status = theory::Theory::PP_ASSERT_STATUS_UNSOLVED;
+      // Maybe it is solvable literal? do this only if not ensuring minimal timeout cores.
+      if (options().smt.toCoreMode!=options::TimeoutCoreMode::MINIMAL && !expr::isBooleanConnective(par))
+      {
+        context::Context dummyContext;
+        theory::TrustSubstitutionMap tmpSm(d_env, &dummyContext);
+        TrustNode tl = TrustNode::mkTrustLemma(par);
+        status = d_theoryEngine->solve(tl, tmpSm);
+        if (status == theory::Theory::PP_ASSERT_STATUS_SOLVED)
+        {
+          std::unordered_map<Node, Node> ss = tmpSm.get().getSubstitutions();
+          for (const std::pair<const Node, Node>& s : ss)
+          {
+            Trace("to-core-defs") << "-> definition " << s.first << ": " << pa << std::endl;
+            d_skolemToAssert[s.first] = pa;
+          }
+          skDefs.push_back(pa);
+        }
+      }
+      if (status != theory::Theory::PP_ASSERT_STATUS_SOLVED)
+      {
+        d_ppAsserts.push_back(par);
+        d_ppAssertsOrig.push_back(pa);
+      }
     }
     else
     {
@@ -390,6 +410,7 @@ void TimeoutCoreManager::initializeAssertions(
       }
       else
       {
+        Trace("to-core-defs") << "-> definition " << itc->second << ": " << pa << std::endl;
         d_skolemToAssert[itc->second] = pa;
         skDefs.push_back(pa);
       }
