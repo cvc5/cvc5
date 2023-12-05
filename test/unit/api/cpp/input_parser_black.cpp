@@ -220,9 +220,9 @@ TEST_F(TestInputParserBlack, ParserExceptions)
   ASSERT_EQ(11, exception.getColumn());
 
   ParserEndOfFileException eofDefault;
-  ParserException eofString(message);
-  ParserException eofCMessage(cMessage);
-  ParserException eof(message, filename, 10, 11);
+  ParserEndOfFileException eofString(message);
+  ParserEndOfFileException eofCMessage(cMessage);
+  ParserEndOfFileException eof(message, filename, 10, 11);
 }
 
 }  // namespace test
