@@ -820,7 +820,6 @@ bool StringsExtfCallback::getCurrentSubstitution(
   return true;
 }
 
-
 void ExtfSolver::processFact(InferInfo& ii, ProofGenerator*& pg)
 {
   // process it with the inference manager

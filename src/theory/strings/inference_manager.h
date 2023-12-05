@@ -239,6 +239,7 @@ class InferenceManager : public InferSideEffectProcess,
   void processFact(InferInfo& ii, ProofGenerator*& pg) override;
   /** Called when ii is ready to be processed as a lemma */
   TrustNode processLemma(InferInfo& ii, LemmaProperty& p) override;
+
  private:
   /**
    * min prefix explain
