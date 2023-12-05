@@ -70,7 +70,8 @@ namespace strings {
  * theory of strings, e.g. sendPhaseRequirement, setModelUnsound, and
  * with the extended theory object e.g. markCongruent.
  */
-class InferenceManager : public InferenceManagerBuffered
+class InferenceManager : public InferSideEffectProcess,
+                         public InferenceManagerBuffered
 {
   typedef context::CDHashSet<Node> NodeSet;
   typedef context::CDHashMap<Node, Node> NodeNodeMap;
@@ -234,12 +235,11 @@ class InferenceManager : public InferenceManagerBuffered
    * (if it exists), and sends it on the output channel.
    */
   void processConflict(const InferInfo& ii);
-
- private:
   /** Called when ii is ready to be processed as a fact */
-  void processFact(InferInfo& ii, ProofGenerator*& pg);
+  void processFact(InferInfo& ii, ProofGenerator*& pg) override;
   /** Called when ii is ready to be processed as a lemma */
-  TrustNode processLemma(InferInfo& ii, LemmaProperty& p);
+  TrustNode processLemma(InferInfo& ii, LemmaProperty& p) override;
+ private:
   /**
    * min prefix explain
    *
