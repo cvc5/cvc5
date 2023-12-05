@@ -1092,7 +1092,6 @@ void TheoryArithPrivate::setupVariableList(const VarList& vl){
     // vl : (* v1 v2 ...)
     if (logicInfo().isLinear())
     {
-      AlwaysAssert(false);
       throw LogicException("A non-linear fact was asserted to arithmetic in a linear logic.");
     }
     d_foundNl = true;
