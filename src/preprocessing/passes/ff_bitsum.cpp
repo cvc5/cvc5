@@ -35,18 +35,12 @@ FfBitsum::FfBitsum(PreprocessingPassContext* preprocContext)
 {
 }
 
-Node mkAdd(std::vector<Node>&& children)
+Node mkAdd(const std::vector<Node>& children)
 {
   Assert(children.size() > 0);
-  if (children.size() == 1)
-  {
-    return children[0];
-  }
-  else
-  {
-    return NodeManager::currentNM()->mkNode(Kind::FINITE_FIELD_ADD,
-                                            std::move(children));
-  }
+  return children.size() == 1 ? children[0]
+                              : NodeManager::currentNM()->mkNode(
+                                  Kind::FINITE_FIELD_ADD, children);
 }
 
 PreprocessingPassResult FfBitsum::applyInternal(
@@ -54,7 +48,7 @@ PreprocessingPassResult FfBitsum::applyInternal(
 {
   // collect bits
   std::unordered_set<Node> bits;
-  for (uint64_t i = 0; i < assertionsToPreprocess->size(); ++i)
+  for (uint64_t i = 0, n = assertionsToPreprocess->size(); i < n; ++i)
   {
     std::vector<TNode> anded{};
     TNode assertion = (*assertionsToPreprocess)[i];
@@ -75,7 +69,7 @@ PreprocessingPassResult FfBitsum::applyInternal(
   // collect bitsums
   auto nm = NodeManager::currentNM();
   std::unordered_map<Node, Node> cache{};
-  for (uint64_t i = 0; i < assertionsToPreprocess->size(); ++i)
+  for (uint64_t i = 0, n = assertionsToPreprocess->size(); i < n; ++i)
   {
     Node fact = (*assertionsToPreprocess)[i];
     for (TNode current :
