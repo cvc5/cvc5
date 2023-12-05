@@ -375,9 +375,12 @@ void TimeoutCoreManager::initializeAssertions(
     }
     if (hasAssumptions)
     {
-      theory::Theory::PPAssertStatus status = theory::Theory::PP_ASSERT_STATUS_UNSOLVED;
-      // Maybe it is solvable literal? do this only if not ensuring minimal timeout cores.
-      if (options().smt.toCoreMode!=options::TimeoutCoreMode::MINIMAL && !expr::isBooleanConnective(par))
+      theory::Theory::PPAssertStatus status =
+          theory::Theory::PP_ASSERT_STATUS_UNSOLVED;
+      // Maybe it is solvable literal? do this only if not ensuring minimal
+      // timeout cores.
+      if (options().smt.toCoreMode != options::TimeoutCoreMode::MINIMAL
+          && !expr::isBooleanConnective(par))
       {
         context::Context dummyContext;
         theory::TrustSubstitutionMap tmpSm(d_env, &dummyContext);
@@ -388,7 +391,8 @@ void TimeoutCoreManager::initializeAssertions(
           std::unordered_map<Node, Node> ss = tmpSm.get().getSubstitutions();
           for (const std::pair<const Node, Node>& s : ss)
           {
-            Trace("to-core-defs") << "-> definition " << s.first << ": " << pa << std::endl;
+            Trace("to-core-defs")
+                << "-> definition " << s.first << ": " << pa << std::endl;
             d_skolemToAssert[s.first] = pa;
           }
           skDefs.push_back(pa);
@@ -410,7 +414,8 @@ void TimeoutCoreManager::initializeAssertions(
       }
       else
       {
-        Trace("to-core-defs") << "-> definition " << itc->second << ": " << pa << std::endl;
+        Trace("to-core-defs")
+            << "-> definition " << itc->second << ": " << pa << std::endl;
         d_skolemToAssert[itc->second] = pa;
         skDefs.push_back(pa);
       }
