@@ -10,7 +10,11 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A field-specific theory (non-incremental)
+ * A field-specific theory.
+ * That is, the sub-theory for GF(p) for some fixed p.
+ * Implements Figure 2, "DecisionProcedure" from [OKTB23].
+ *
+ * [OKTB23]: https://doi.org/10.1007/978-3-031-37703-7_8
  */
 
 #include "cvc5_private.h"
@@ -68,6 +72,8 @@ class SubTheory : protected EnvObj, public FieldObj
 
   /**
    * Check the current facts.
+   *
+   * Does nothing below full effort.
    */
   void postCheck(Theory::Effort);
 
@@ -111,7 +117,7 @@ class SubTheory : protected EnvObj, public FieldObj
 
   /**
    * A model, if we've found one. A map from variable nodes to their constant
-   * values.
+   * values. Meaningless if d_conflict is non-empty.
    */
   std::unordered_map<Node, Node> d_model{};
 

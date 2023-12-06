@@ -355,8 +355,6 @@ ParserException::ParserException(const std::string& msg,
 {
 }
 
-ParserException::~ParserException() {}
-
 void ParserException::toStream(std::ostream& os) const
 {
   if (d_line > 0)

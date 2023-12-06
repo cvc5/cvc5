@@ -445,7 +445,7 @@ void SygusInst::registerQuantifier(Node q)
   {
     addSpecialValues(var.getType(), extra_cons);
     TypeNode tn = SygusGrammarCons::mkDefaultSygusType(
-        options(), var.getType(), Node(), extra_cons);
+        d_env, var.getType(), Node(), extra_cons);
     types.push_back(tn);
 
     Trace("sygus-inst") << "Construct (default) datatype for " << var
