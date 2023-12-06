@@ -3,15 +3,16 @@
     "cadical": {
       "flake": false,
       "locked": {
-        "lastModified": 1701278870,
-        "narHash": "sha256-8XDfv0Oge/h25DVtXEblezFIX1ScKcl2yG6i3YgnBw0=",
+        "lastModified": 1694854765,
+        "narHash": "sha256-4oQYNgnaMAiFalawNNW4km7n/UVjUsQIRJ+6OC4Hzb8=",
         "owner": "arminbiere",
         "repo": "cadical",
-        "rev": "56f667c858dd7d9da1cc98ce0fb4030713881914",
+        "rev": "a9305c2f58e46b7f39fed4e9cf63d61d0dae7ef7",
         "type": "github"
       },
       "original": {
         "owner": "arminbiere",
+        "ref": "refs/tags/rel-1.7.4",
         "repo": "cadical",
         "type": "github"
       }

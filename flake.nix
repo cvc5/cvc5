@@ -6,7 +6,6 @@
 # ```
 # nix build
 # ```
-# Currently there is an issue about scripts not being found.
 #
 # ## Development shell:
 #
@@ -16,8 +15,9 @@
 # echo "use flake" > .envrc
 # direnv allow
 # ```
-# This drops the shell into a development environment with all dependencies
-# installed.
+# This drops the shell into a development environment with dependencies
+# installed except for the dependencies provided by `--auto-download`.
+#
 {
   description = "cvc5";
 
@@ -25,7 +25,7 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
     flake-parts.url = "github:hercules-ci/flake-parts";
     cadical = {
-      url = "github:arminbiere/cadical";
+      url = "github:arminbiere/cadical/refs/tags/rel-1.7.4";
       flake = false;
     };
     symFPU = {
@@ -81,41 +81,40 @@
         SymFPU_INCLUDE_DIR = "${symFPU}/include";
       };
       # Needed for the built executable and dev shell
-      common = [
+      nativeBuildInputs = [
+        pkgs.pkg-config
         pkgs.cmake
+        pkgs.flex
+      ];
+      common = [
         pkgs.gmp
-        pkgs.python310
-        pkgs.python310Packages.tomli
-        pkgs.python310Packages.pyparsing
-        cadical' symFPU'
+        pkgs.gtest
+        pkgs.jdk
+        pkgs.boost
+        (pkgs.python310.withPackages (ps: with ps; [ pyparsing tomli ]))
       ];
       # Main build target
       cvc5 = pkgs.stdenv.mkDerivation ({
         name = "cvc5";
         src = ./.;
-        buildInputs = common ++ [pkgs.bash];
+        inherit nativeBuildInputs;
+        buildInputs = common ++ [cadical' symFPU'];
+        cmakeFlags = [
+          "-DBUILD_SHARED_LIBS=1"
+        ];
         enableParallelBuilding = true;
-        dontUseCmakeConfigure = true;
-        configurePhase = ''
-          echo "Configure phase pwd: $PWD"
-          bash configure.sh --no-poly
+        preConfigure = ''
+          patchShebangs ./src/
         '';
-        buildPhase = ''
-          cd build
-          make
-        '';
-        installPhase = ''
-          mkdir -p $out/bin
-          cp build/bin/* $out/bin/
-        '';
+        cmakeBuildType = "Production";
       } // paths);
     in rec {
       packages = {
         default = cvc5;
       };
-      devShells.default = pkgs.mkShell ({
+      devShells.default = pkgs.mkShell {
         buildInputs = common;
-      } // paths);
+      };
     };
   };
 }
