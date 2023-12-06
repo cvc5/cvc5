@@ -45,7 +45,7 @@ class AlfPrintChannel
   virtual void printTypeNode(TypeNode tn) {}
   /** Print assume */
   virtual void printAssume(TNode n, size_t i, bool isPush = false) {}
-  /** 
+  /**
    * Print step
    * @param rname The rule name.
    * @param n The (optional) conclusion.
