@@ -24,6 +24,7 @@
 #include "expr/node.h"
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
+#include "proof/lazy_proof.h"
 
 namespace cvc5::internal {
 
@@ -127,16 +128,6 @@ class AssertionPipeline : protected EnvObj
   void addSubstitutionNode(Node n, ProofGenerator* pg = nullptr);
 
   /**
-   * Conjoin n to the assertion vector at position i. This replaces
-   * d_nodes[i] with the rewritten form of (AND d_nodes[i] n).
-   *
-   * @param i The assertion to replace
-   * @param n The formula to conjoin at position i
-   * @param pg The proof generator that can provide a proof of n
-   */
-  void conjoin(size_t i, Node n, ProofGenerator* pg = nullptr);
-
-  /**
    * Checks whether the assertion at a given index represents substitutions.
    *
    * @param i The index in question
@@ -217,6 +208,8 @@ class AssertionPipeline : protected EnvObj
   bool d_isModelUnsound;
   /** Is negated? */
   bool d_isNegated;
+  /** Eliminate */
+  std::unique_ptr<LazyCDProof> d_andElimEpg;
 }; /* class AssertionPipeline */
 
 }  // namespace preprocessing

@@ -374,10 +374,12 @@ PreprocessingPassResult HoElim::applyInternal(
     // add lambda lifting axioms as a conjunction to the first assertion
     if (!axioms.empty())
     {
-      Node conj = nm->mkAnd(axioms);
-      conj = rewrite(conj);
-      Assert(!expr::hasFreeVar(conj));
-      assertionsToPreprocess->conjoin(0, conj);
+      for (const Node& ax : axioms)
+      {
+        Node axr = rewrite(ax);
+        Assert(!expr::hasFreeVar(axr));
+        assertionsToPreprocess->push_back(axr);
+      }
     }
     axioms.clear();
   }
@@ -471,10 +473,12 @@ PreprocessingPassResult HoElim::applyInternal(
   // add new axioms as a conjunction to the first assertion
   if (!axioms.empty())
   {
-    Node conj = nm->mkAnd(axioms);
-    conj = rewrite(conj);
-    Assert(!expr::hasFreeVar(conj));
-    assertionsToPreprocess->conjoin(0, conj);
+    for (const Node& ax : axioms)
+    {
+      Node axr = rewrite(ax);
+      Assert(!expr::hasFreeVar(axr));
+      assertionsToPreprocess->push_back(axr);
+    }
   }
 
   return PreprocessingPassResult::NO_CONFLICT;
