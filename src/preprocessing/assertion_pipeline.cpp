@@ -66,20 +66,49 @@ void AssertionPipeline::push_back(Node n,
   }
   else if (n.getKind()==Kind::AND)
   {
+    // Immediately miniscope top-level AND, which is important for minimizing
+    // dependencies in proofs. We add each conjunct seperately, justifying
+    // each with an AND_ELIM step.
+    std::vector<Node> conjs;
     if (isProofEnabled())
     {
       if (!isInput)
       {
         d_andElimEpg->addLazyStep(n, pgen, TrustId::PREPROCESS_LEMMA);
       }
-      NodeManager * nm = NodeManager::currentNM();
-      for (size_t i=0, nchild=n.getNumChildren(); i<nchild; i++)
+    }
+    std::vector<Node> toProcess;
+    toProcess.emplace_back(n);
+    size_t i = 0;
+    do
+    {
+      Node nc = toProcess[i];
+      i++;
+      if (nc.getKind()==Kind::AND)
       {
-        Node in = nm->mkConstInt(Rational(i));
-        d_andElimEpg->addStep(n[i], ProofRule::AND_ELIM, {n}, {in});
+        if (isProofEnabled())
+        {
+          NodeManager * nm = NodeManager::currentNM();
+          for (size_t i=0, nchild=nc.getNumChildren(); i<nchild; i++)
+          {
+            Node in = nm->mkConstInt(Rational(i));
+            d_andElimEpg->addStep(nc[i], ProofRule::AND_ELIM, {nc}, {in});
+            toProcess.emplace_back(nc[i]);
+          }
+        }
+        else
+        {
+          toProcess.insert(toProcess.end(), nc.begin(), nc.end());
+        }
+      }
+      else
+      {
+        conjs.emplace_back(nc);
       }
     }
-    for (const Node& nc : n)
+    while (i<toProcess.size());
+    // add each conjunct
+    for (const Node& nc : conjs)
     {
       push_back(nc, false, d_andElimEpg.get());
     }

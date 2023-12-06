@@ -208,7 +208,9 @@ class AssertionPipeline : protected EnvObj
   bool d_isModelUnsound;
   /** Is negated? */
   bool d_isNegated;
-  /** Eliminate */
+  /**
+   * Maintains proofs for eliminating top-level AND from inputs to this class.
+   */
   std::unique_ptr<LazyCDProof> d_andElimEpg;
 }; /* class AssertionPipeline */
 
