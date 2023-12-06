@@ -30,7 +30,6 @@ namespace preprocessing {
 AssertionPipeline::AssertionPipeline(Env& env)
     : EnvObj(env),
       d_storeSubstsInAsserts(false),
-      d_substsIndex(0),
       d_pppg(nullptr),
       d_conflict(false),
       d_isRefutationUnsound(false),
@@ -48,6 +47,7 @@ void AssertionPipeline::clear()
   d_isNegated = false;
   d_nodes.clear();
   d_iteSkolemMap.clear();
+  d_substsIndices.clear();
 }
 
 void AssertionPipeline::push_back(Node n,
@@ -194,7 +194,6 @@ bool AssertionPipeline::isProofEnabled() const { return d_pppg != nullptr; }
 void AssertionPipeline::enableStoreSubstsInAsserts()
 {
   d_storeSubstsInAsserts = true;
-  d_substsIndex = d_nodes.size();
   d_nodes.push_back(NodeManager::currentNM()->mkConst<bool>(true));
 }
 
@@ -207,7 +206,18 @@ void AssertionPipeline::addSubstitutionNode(Node n, ProofGenerator* pg)
 {
   Assert(d_storeSubstsInAsserts);
   Assert(n.getKind() == Kind::EQUAL);
+  size_t prevNodeSize = d_nodes.size();
   push_back(n, false, pg);
+  // remember this is a substitution index
+  for (size_t i=prevNodeSize, newSize = d_nodes.size(); i<newSize; i++)
+  {
+    d_substsIndices.insert(i);
+  }
+}
+
+bool AssertionPipeline::isSubstsIndex(size_t i) const
+{
+  return d_storeSubstsInAsserts && d_substsIndices.find(i)!=d_substsIndices.end();
 }
 
 void AssertionPipeline::markConflict()

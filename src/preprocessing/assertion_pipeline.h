@@ -132,10 +132,7 @@ class AssertionPipeline : protected EnvObj
    *
    * @param i The index in question
    */
-  bool isSubstsIndex(size_t i)
-  {
-    return d_storeSubstsInAsserts && i == d_substsIndex;
-  }
+  bool isSubstsIndex(size_t i) const;
   /** Is in conflict? True if this pipeline contains the false assertion */
   bool isInConflict() const { return d_conflict; }
   /** Is refutation unsound? */
@@ -192,7 +189,7 @@ class AssertionPipeline : protected EnvObj
    *
    * TODO(#2473): replace by separate vector of substitution assertions.
    */
-  size_t d_substsIndex;
+  std::unordered_set<size_t> d_substsIndices;
 
   /** Index of the first assumption */
   size_t d_assumptionsStart;
