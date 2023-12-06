@@ -45,7 +45,15 @@ class AlfPrintChannel
   virtual void printTypeNode(TypeNode tn) {}
   /** Print assume */
   virtual void printAssume(TNode n, size_t i, bool isPush = false) {}
-  /** Print step */
+  /** 
+   * Print step
+   * @param rname The rule name.
+   * @param n The (optional) conclusion.
+   * @param i The identifier for the step.
+   * @param premises The list of identifiers of premises
+   * @param args The arguments of the proof rule.
+   * @param isPop Whether this is a step-pop command.
+   */
   virtual void printStep(const std::string& rname,
                          TNode n,
                          size_t i,

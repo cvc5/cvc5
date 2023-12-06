@@ -90,6 +90,11 @@ class LetBinding
   using NodeIdMap = context::CDHashMap<Node, uint32_t>;
 
  public:
+  /**
+   * @param prefix The prefix to use for introduced variables
+   * @param thresh The threshold to use, that is, the number of times a term
+   * must appear before being letified.
+   */
   LetBinding(const std::string& prefix, uint32_t thresh = 2);
   /** Get threshold */
   uint32_t getThreshold() const;
@@ -121,15 +126,14 @@ class LetBinding
    * @return the identifier for node n, or 0 if it does not have one.
    */
   uint32_t getId(Node n) const;
-  /** get prefix */
+  /** Get prefix. */
   const std::string& getPrefix() const { return d_prefix; }
   /**
    * Convert n based on the state of the let binding. This replaces all
    * letified subterms of n with a fresh variable whose name prefix is the
    * given one.
    *
-   * @param n The node to convert
-   * @param prefix The prefix of variables to convert
+   * @param n The node to conver
    * @param letTop Whether we letify n itself
    * @return the converted node.
    */

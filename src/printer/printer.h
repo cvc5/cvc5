@@ -62,7 +62,9 @@ class CVC5_EXPORT Printer
   /** Write a Node out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, TNode n) const = 0;
 
-  /** Write a Node out to a stream with this Printer, with custom letification.
+  /** 
+   * Write a Node out to a stream with this Printer, with the provided
+   * let binding.
    */
   virtual void toStream(std::ostream& out,
                         TNode n,
