@@ -808,7 +808,6 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       const RealAlgebraicNumber& ran =
           n.getOperator().getConst<RealAlgebraicNumber>();
       out << "(_ real_algebraic_number " << ran << ")";
-      stillNeedToPrintParams = false;
       break;
     }
     case Kind::INDEXED_ROOT_PREDICATE_OP:
@@ -1784,6 +1783,26 @@ void Smt2Printer::toStreamCmdGetDifficulty(std::ostream& out) const
 void Smt2Printer::toStreamCmdGetTimeoutCore(std::ostream& out) const
 {
   out << "(get-timeout-core)" << std::endl;
+}
+
+void Smt2Printer::toStreamCmdGetTimeoutCoreAssuming(
+    std::ostream& out, const std::vector<Node>& assumptions) const
+{
+  out << "(get-timeout-core-assuming (";
+  bool firstTime = true;
+  for (const Node& a : assumptions)
+  {
+    if (firstTime)
+    {
+      firstTime = false;
+    }
+    else
+    {
+      out << " ";
+    }
+    out << a;
+  }
+  out << "))" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetLearnedLiterals(std::ostream& out,
