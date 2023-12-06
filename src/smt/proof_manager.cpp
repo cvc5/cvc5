@@ -89,7 +89,7 @@ PfManager::PfManager(Env& env)
         != options::ProofGranularityMode::REWRITE)
     {
       d_pfpp->setEliminateRule(ProofRule::SUBS);
-      d_pfpp->setEliminateRule(ProofRule::REWRITE);
+      d_pfpp->setEliminateRule(ProofRule::MACRO_REWRITE);
       if (options().proof.proofGranularityMode
           != options::ProofGranularityMode::THEORY_REWRITE)
       {
@@ -98,8 +98,8 @@ PfManager::PfManager(Env& env)
       }
     }
     // theory-specific lazy proof reconstruction
-    d_pfpp->setEliminateRule(ProofRule::STRING_INFERENCE);
-    d_pfpp->setEliminateRule(ProofRule::BV_BITBLAST);
+    d_pfpp->setEliminateRule(ProofRule::MACRO_STRING_INFERENCE);
+    d_pfpp->setEliminateRule(ProofRule::MACRO_BV_BITBLAST);
   }
   d_false = NodeManager::currentNM()->mkConst(false);
 }
@@ -200,7 +200,9 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
       getAssertions(as, unifiedAssertions);
       Pf pf = d_pnm->mkScope(
           pfn, unifiedAssertions, true, options().proof.proofPruneInput);
-      Assert(pf->getRule() == ProofRule::SCOPE);
+      // if this is violated, there is unsoundness since we have shown
+      // false that does not depend on the input.
+      AlwaysAssert(pf->getRule() == ProofRule::SCOPE);
       // 2. Extract minimum unified assertions from the scope node.
       std::unordered_set<Node> minUnifiedAssertions;
       minUnifiedAssertions.insert(pf->getArguments().cbegin(),

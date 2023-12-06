@@ -194,6 +194,27 @@ Node ProofNodeToSExpr::getOrMkMethodIdVariable(TNode n)
   d_midMap[mid] = var;
   return var;
 }
+Node ProofNodeToSExpr::getOrMkTrustIdVariable(TNode n)
+{
+  TrustId tid;
+  if (!getTrustId(n, tid))
+  {
+    // just use self if we failed to get the node, throw a debug failure
+    Assert(false) << "Expected trust id node, got " << n;
+    return n;
+  }
+  std::map<TrustId, Node>::iterator it = d_tridMap.find(tid);
+  if (it != d_tridMap.end())
+  {
+    return it->second;
+  }
+  std::stringstream ss;
+  ss << tid;
+  NodeManager* nm = NodeManager::currentNM();
+  Node var = nm->mkBoundVar(ss.str(), nm->sExprType());
+  d_tridMap[tid] = var;
+  return var;
+}
 Node ProofNodeToSExpr::getOrMkInferenceIdVariable(TNode n)
 {
   theory::InferenceId iid;
@@ -260,6 +281,7 @@ Node ProofNodeToSExpr::getArgument(Node arg, ArgFormat f)
     case ArgFormat::KIND: return getOrMkKindVariable(arg);
     case ArgFormat::THEORY_ID: return getOrMkTheoryIdVariable(arg);
     case ArgFormat::METHOD_ID: return getOrMkMethodIdVariable(arg);
+    case ArgFormat::TRUST_ID: return getOrMkTrustIdVariable(arg);
     case ArgFormat::INFERENCE_ID: return getOrMkInferenceIdVariable(arg);
     case ArgFormat::DSL_REWRITE_ID: return getOrMkDslRewriteVariable(arg);
     case ArgFormat::NODE_VAR: return getOrMkNodeVariable(arg);
@@ -289,7 +311,7 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
     }
     break;
     case ProofRule::SUBS:
-    case ProofRule::REWRITE:
+    case ProofRule::MACRO_REWRITE:
     case ProofRule::MACRO_SR_EQ_INTRO:
     case ProofRule::MACRO_SR_PRED_INTRO:
     case ProofRule::MACRO_SR_PRED_TRANSFORM:
@@ -299,13 +321,12 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
       }
       break;
     case ProofRule::MACRO_SR_PRED_ELIM: return ArgFormat::METHOD_ID; break;
-    case ProofRule::THEORY_LEMMA:
-    case ProofRule::THEORY_REWRITE:
+    case ProofRule::TRUST_THEORY_REWRITE:
       if (i == 1)
       {
         return ArgFormat::THEORY_ID;
       }
-      else if (r == ProofRule::THEORY_REWRITE && i == 2)
+      else if (i == 2)
       {
         return ArgFormat::METHOD_ID;
       }
@@ -333,6 +354,23 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
         return ArgFormat::INFERENCE_ID;
       }
       break;
+    case ProofRule::TRUST:
+    {
+      if (i == 0)
+      {
+        return ArgFormat::TRUST_ID;
+      }
+      else if (i == 2)
+      {
+        TrustId tid;
+        getTrustId(pn->getArguments()[0], tid);
+        if (tid == TrustId::THEORY_LEMMA || tid == TrustId::THEORY_INFERENCE)
+        {
+          return ArgFormat::THEORY_ID;
+        }
+      }
+    }
+    break;
     default: break;
   }
   return ArgFormat::DEFAULT;

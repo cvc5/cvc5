@@ -18,6 +18,7 @@
 #ifndef CVC5__SMT__TIMEOUT_CORE_MANAGER_H
 #define CVC5__SMT__TIMEOUT_CORE_MANAGER_H
 
+#include "expr/subs.h"
 #include "smt/assertions.h"
 #include "smt/env_obj.h"
 #include "util/result.h"
@@ -69,52 +70,90 @@ class TimeoutCoreManager : protected EnvObj
  public:
   TimeoutCoreManager(Env& env);
 
-  /** get timeout core for the current set of assertions stored in ppAsserts.
+  /**
+   * Get timeout core for the current set of assertions stored in ppAsserts.
    *
-   * Returns a pair containing a result and a list of formulas C. If the result
-   * is unknown and the reason is timeout, then the list C corresponds to
-   * a subset of the current assertions that cause a timeout in the specified
-   * by timeout-core-timeout. If the result is unsat, then C is an unsat core
-   * for the set of assertions. Otherwise, the list of formulas is empty and the
-   * result has the same guarantees as a response to checkSat.
+   * Returns a pair containing a result and a list of formulas C. For details,
+   * see Solver::getTimeoutCore.
+   *
+   * If assumptions is non-empty, the timeout core is a subset of formulas in
+   * assumptions.
+   *
+   * Otherwise, the timeout core is a subset of formulas in ppAsserts.
+   *
+   * @param ppAsserts The preprocessed assertions
+   * @param ppSkolemMap Mapping from indices in ppAsserts to skolem it defined,
+   * if applicable.
+   * @param assumptions The assumptions, if non-empty
    */
   std::pair<Result, std::vector<Node>> getTimeoutCore(
       const std::vector<Node>& ppAsserts,
-      const std::map<size_t, Node>& ppSkolemMap);
+      const std::map<size_t, Node>& ppSkolemMap,
+      const std::vector<Node>& assumptions);
+  /** Get the SMT solver */
+  SolverEngine* getSubSolver();
 
  private:
   /** initialize assertions */
-  void initializePreprocessedAssertions(
-      const std::vector<Node>& ppAsserts,
-      const std::map<size_t, Node>& ppSkolemMap);
-  /** get next assertions */
-  void getNextAssertions(std::vector<Node>& nextAssertions);
-  /** check sat next */
-  Result checkSatNext(const std::vector<Node>& nextAssertions);
+  void initializeAssertions(const std::vector<Node>& ppAsserts,
+                            const std::map<size_t, Node>& ppSkolemMap,
+                            const std::vector<Node>& assumptions);
   /**
-   * Record current model, return true if we set d_nextIndexToInclude,
-   * indicating that we want to include a new assertion
-   * (d_ppAsserts[d_nextIndexToInclude]).
+   * Get next assertions
+   *
+   * @param nextInclude The indices of assertions to include. Note that
+   * during this method, we may refine the current set of assertions we are
+   * considering based on what is included.
+   * @param nextAssertions The assertions for the next checkSat call, which
+   * are populated during this call. Note this may include auxiliary definitions
+   * not directly referenced in nextInclude.
+   */
+  void getNextAssertions(const std::vector<size_t>& nextInclude,
+                         std::vector<Node>& nextAssertions);
+  /**
+   * Check sat next
+   * @param nextAssertions The assertions to check on this call
+   * @param nextInclude The indices of assertions to add for the next call,
+   * which are populated during this call.
+   * @return The result of the checkSatNext.
+   */
+  Result checkSatNext(const std::vector<Node>& nextAssertions,
+                      std::vector<size_t>& nextInclude);
+  /**
+   * Record current model, return true if nextInclude is non-empty, which
+   * contains the list of indices of new assertions that we would like to
+   * add for the next check-sat call.
    *
    * @param allAssertsSat set to true if the current model satisfies all
    * assertions.
    */
   bool recordCurrentModel(bool& allAssertsSat,
-                          SolverEngine* subSolver = nullptr);
-  /** Does the i^th assertion have a current shared symbol (a free symbol in
-   * d_asymbols). */
+                          std::vector<size_t>& nextInclude);
+  /** Include the i^th assertion */
+  void includeAssertion(size_t index, bool& removedAssertion);
+  /**
+   * Does the i^th assertion have a current shared symbol (a free symbol in
+   * d_asymbols).
+   */
   bool hasCurrentSharedSymbol(size_t i) const;
-  /** Add skolem definitions */
-  void getActiveSkolemDefinitions(std::vector<Node>& nextAssertions);
-
+  /** Get active definitions */
+  void getActiveDefinitions(std::vector<Node>& nextAssertions);
+  /** Subsolver */
+  std::unique_ptr<SolverEngine> d_subSolver;
   /** Common nodes */
   Node d_true;
   Node d_false;
   /**
-   * The preprocessed assertions, which we have run substitutions and
-   * rewriting on
+   * The preprocessed assertions which are candidates for the timeout core
+   * that we are working with.
    */
   std::vector<Node> d_ppAsserts;
+  /**
+   * A vector of the same size as above that we should report as the timeout
+   * core.
+   */
+  std::vector<Node> d_ppAssertsOrig;
+
   /** Number of non-skolem definitions, a prefix of d_ppAsserts */
   size_t d_numAssertsNsk;
   /**
@@ -136,8 +175,6 @@ class TimeoutCoreManager : protected EnvObj
    * Mapping from indices in d_modelToAssert to index of the assertion that
    * covers them */
   std::unordered_map<size_t, size_t> d_modelToAssert;
-  /** The next index of an assertion to include */
-  size_t d_nextIndexToInclude;
   /** Information about an assertion. */
   class AssertInfo
   {
@@ -156,6 +193,8 @@ class TimeoutCoreManager : protected EnvObj
   std::unordered_set<Node> d_asymbols;
   /** Free symbols of each assertion */
   std::map<size_t, std::unordered_set<Node>> d_syms;
+  /** Globally included assertions */
+  std::vector<Node> d_globalInclude;
 };
 
 }  // namespace smt

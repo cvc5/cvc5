@@ -16,6 +16,7 @@ external formats:
 .. toctree::
    :maxdepth: 1
 
+   AletheLF <output_alf>
    Alethe <output_alethe>
    LFSC <output_lfsc>
    DOT <output_dot>

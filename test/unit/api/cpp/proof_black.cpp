@@ -57,6 +57,18 @@ class TestApiBlackProof : public TestApi
   }
 };
 
+TEST_F(TestApiBlackProof, nullProof)
+{
+  Proof proof;
+  ASSERT_EQ(proof.getRule(), ProofRule::UNKNOWN);
+
+  ASSERT_EQ(std::hash<cvc5::ProofRule>()(ProofRule::UNKNOWN),
+            static_cast<size_t>(ProofRule::UNKNOWN));
+  ASSERT_TRUE(proof.getResult().isNull());
+  ASSERT_TRUE(proof.getChildren().empty());
+  ASSERT_TRUE(proof.getArguments().empty());
+}
+
 TEST_F(TestApiBlackProof, getRule)
 {
   Proof proof = create_proof();

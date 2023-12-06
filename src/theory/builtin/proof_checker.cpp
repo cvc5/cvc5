@@ -50,26 +50,14 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::ENCODE_PRED_TRANSFORM, this);
   pc->registerChecker(ProofRule::DSL_REWRITE, this);
   // rules depending on the rewriter
-  pc->registerTrustedChecker(ProofRule::REWRITE, this, 4);
+  pc->registerTrustedChecker(ProofRule::MACRO_REWRITE, this, 4);
   pc->registerTrustedChecker(ProofRule::MACRO_SR_EQ_INTRO, this, 4);
   pc->registerTrustedChecker(ProofRule::MACRO_SR_PRED_INTRO, this, 4);
   pc->registerTrustedChecker(ProofRule::MACRO_SR_PRED_ELIM, this, 4);
   pc->registerTrustedChecker(ProofRule::MACRO_SR_PRED_TRANSFORM, this, 4);
-  pc->registerTrustedChecker(ProofRule::THEORY_REWRITE, this, 4);
+  pc->registerTrustedChecker(ProofRule::TRUST_THEORY_REWRITE, this, 4);
   // trusted rules
-  pc->registerTrustedChecker(ProofRule::THEORY_LEMMA, this, 1);
-  pc->registerTrustedChecker(ProofRule::PREPROCESS, this, 3);
-  pc->registerTrustedChecker(ProofRule::PREPROCESS_LEMMA, this, 3);
-  pc->registerTrustedChecker(ProofRule::THEORY_PREPROCESS, this, 3);
-  pc->registerTrustedChecker(ProofRule::THEORY_PREPROCESS_LEMMA, this, 3);
-  pc->registerTrustedChecker(ProofRule::THEORY_EXPAND_DEF, this, 3);
-  pc->registerTrustedChecker(ProofRule::WITNESS_AXIOM, this, 3);
-  pc->registerTrustedChecker(ProofRule::TRUST_REWRITE, this, 1);
-  pc->registerTrustedChecker(ProofRule::TRUST_FLATTENING_REWRITE, this, 1);
-  pc->registerTrustedChecker(ProofRule::TRUST_SUBS, this, 1);
-  pc->registerTrustedChecker(ProofRule::TRUST_SUBS_MAP, this, 1);
-  pc->registerTrustedChecker(ProofRule::TRUST_SUBS_EQ, this, 3);
-  pc->registerTrustedChecker(ProofRule::THEORY_INFERENCE, this, 3);
+  pc->registerTrustedChecker(ProofRule::TRUST, this, 1);
   // external proof rules
   pc->registerChecker(ProofRule::LFSC_RULE, this);
   pc->registerChecker(ProofRule::ALETHE_RULE, this);
@@ -264,7 +252,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     }
     return args[0].eqNode(res);
   }
-  else if (id == ProofRule::REWRITE)
+  else if (id == ProofRule::MACRO_REWRITE)
   {
     Assert(children.empty());
     Assert(1 <= args.size() && args.size() <= 2);
@@ -393,16 +381,12 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     Assert(args.size() == 1);
     return RemoveTermFormulas::getAxiomFor(args[0]);
   }
-  else if (id == ProofRule::PREPROCESS || id == ProofRule::PREPROCESS_LEMMA
-           || id == ProofRule::THEORY_PREPROCESS
-           || id == ProofRule::THEORY_PREPROCESS_LEMMA
-           || id == ProofRule::THEORY_EXPAND_DEF
-           || id == ProofRule::WITNESS_AXIOM || id == ProofRule::THEORY_LEMMA
-           || id == ProofRule::THEORY_REWRITE
-           || id == ProofRule::TRUST_FLATTENING_REWRITE
-           || id == ProofRule::TRUST_REWRITE || id == ProofRule::TRUST_SUBS
-           || id == ProofRule::TRUST_SUBS_MAP || id == ProofRule::TRUST_SUBS_EQ
-           || id == ProofRule::THEORY_INFERENCE)
+  else if (id == ProofRule::TRUST)
+  {
+    Assert(args.size() >= 2);
+    return args[1];
+  }
+  else if (id == ProofRule::TRUST_THEORY_REWRITE)
   {
     // "trusted" rules
     Assert(!args.empty());
