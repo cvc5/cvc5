@@ -150,7 +150,7 @@ Result SubTheory::postCheck(Theory::Effort e)
     AlwaysAssert((!d_conflict.empty() ^ !d_model.empty()) || d_facts.empty());
     return d_facts.empty() || d_conflict.empty() ? Result::SAT : Result::UNSAT;
   }
-  return Result::UNKNOWN;
+  return {Result::UNKNOWN, UnknownExplanation::REQUIRES_FULL_CHECK, ""};
 }
 
 void SubTheory::setTrivialConflict()
