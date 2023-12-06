@@ -1,5 +1,5 @@
 (set-logic QF_SLIA)
 (set-info :status sat)
-(declare-fun var_0xINPUT_156135 () String)
-(assert (= (str.contains (str.replace_all (str.update (ite (str.< var_0xINPUT_156135 var_0xINPUT_156135) (str.at var_0xINPUT_156135 (- 4)) (str.rev "Type")) (- (str.indexof_re var_0xINPUT_156135 re.allchar (- 1))) (str.replace_re (str.update var_0xINPUT_156135 (- 6) var_0xINPUT_156135) (re.* re.allchar) (str.++ var_0xINPUT_156135 var_0xINPUT_156135))) (str.at (ite (= 10 (- 6)) (str.replace_re "Type" re.all "Type") (str.substr var_0xINPUT_156135 (- 3) (- 5))) (str.indexof (str.to_lower var_0xINPUT_156135) (str.substr "Type" 9 (- 1)) (- 7))) (str.from_int (str.to_code (str.to_upper var_0xINPUT_156135)))) (str.from_int (- (str.indexof_re (str.replace_re_all var_0xINPUT_156135 re.allchar var_0xINPUT_156135) re.none (str.to_int var_0xINPUT_156135)) (str.indexof_re (str.update "Type" (- 5) "Type") (re.inter re.none re.all) (str.to_int "Type"))))) (= var_0xINPUT_156135 "Type")))
+(declare-fun r () String)
+(assert (= (= r "T") (str.contains (str.update "Ty" (- (str.indexof_re r re.allchar (- 1))) (str.update r 0 r)) (str.from_int (- (str.indexof_re (str.replace_re_all r re.allchar r) re.none 0))))))
 (check-sat)
