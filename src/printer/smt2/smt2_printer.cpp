@@ -808,6 +808,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       const RealAlgebraicNumber& ran =
           n.getOperator().getConst<RealAlgebraicNumber>();
       out << "(_ real_algebraic_number " << ran << ")";
+      stillNeedToPrintParams = false;
       break;
     }
     case Kind::INDEXED_ROOT_PREDICATE_OP:
