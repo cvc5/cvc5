@@ -89,11 +89,11 @@ void AssertionPipeline::push_back(Node n,
         if (isProofEnabled())
         {
           NodeManager * nm = NodeManager::currentNM();
-          for (size_t i=0, nchild=nc.getNumChildren(); i<nchild; i++)
+          for (size_t j=0, nchild=nc.getNumChildren(); j<nchild; j++)
           {
-            Node in = nm->mkConstInt(Rational(i));
-            d_andElimEpg->addStep(nc[i], ProofRule::AND_ELIM, {nc}, {in});
-            toProcess.emplace_back(nc[i]);
+            Node in = nm->mkConstInt(Rational(j));
+            d_andElimEpg->addStep(nc[j], ProofRule::AND_ELIM, {nc}, {in});
+            toProcess.emplace_back(nc[j]);
           }
         }
         else
