@@ -78,7 +78,7 @@
       paths = {
         CaDiCaL_LIBRARIES = "${cadical'}/lib";
         CaDiCaL_INCLUDE_DIR = "${cadical'}/include";
-        SymFPU_INCLUDE_DIR = "${symFPU}/include";
+        SymFPU_INCLUDE_DIR = "${symFPU'}";
       };
       # Needed for the built executable and dev shell
       nativeBuildInputs = [
@@ -113,7 +113,7 @@
         default = cvc5;
       };
       devShells.default = pkgs.mkShell {
-        buildInputs = common;
+        buildInputs = nativeBuildInputs ++ common;
       };
     };
   };
