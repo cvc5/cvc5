@@ -769,6 +769,8 @@ set(regress_0_tests
   regress0/ho/cong.smt2
   regress0/ho/datatype-field-ho.smt2
   regress0/ho/dd.shadowing-defs.smt2
+  regress0/ho/dd.syo009.smt2
+  regress0/ho/dd.syo372-finite-ho-ext.smt2
   regress0/ho/declare-fun-variants.smt2
   regress0/ho/def-fun-flatten.smt2
   regress0/ho/ext-finite-unsat.smt2
@@ -809,6 +811,7 @@ set(regress_0_tests
   regress0/ho/simple-conf-lazy-lambda-lift-app.smt2
   regress0/ho/simple-matching-partial.smt2
   regress0/ho/simple-matching.smt2
+  regress0/ho/SYO372.smt2
   regress0/ho/trans.smt2
   regress0/hung10_itesdk_output1.smt2
   regress0/hung13sdk_output1.smt2
@@ -1106,6 +1109,7 @@ set(regress_0_tests
   regress0/print_define_fun_internal.smt2
   regress0/print_lambda.cvc.smt2
   regress0/print_model.cvc.smt2
+  regress0/printer/block_model_out.smt2
   regress0/printer/bv_consts_bin.smt2
   regress0/printer/bv_consts_dec.smt2
   regress0/printer/deep-restart-output.smt2
@@ -2267,6 +2271,7 @@ set(regress_1_tests
   regress1/nl/iand-big-gran.smt2
   regress1/nl/iand-native-2.smt2
   regress1/nl/iand-native-granularities.smt2
+  regress1/nl/issue10000.smt2
   regress1/nl/issue10003-nl-ext-rr.smt2
   regress1/nl/issue10139-iand.smt2
   regress1/nl/issue3300-approx-sqrt-witness.smt2
@@ -2306,6 +2311,7 @@ set(regress_1_tests
   regress1/nl/issue9480-pow-pow2.smt2
   regress1/nl/issue9611-lrew.smt2
   regress1/nl/issue9621-lrew.smt2
+  regress1/nl/issue9999.smt2
   regress1/nl/learned-rewrite-int-mod-range.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
@@ -2856,6 +2862,8 @@ set(regress_1_tests
   regress1/strings/instance6561-dd-concat-unify-char.smt2
   regress1/strings/instance7075-delta.smt2
   regress1/strings/issue10058.smt2
+  regress1/strings/issue10195.smt2
+  regress1/strings/issue10196.smt2
   regress1/strings/issue1105.smt2
   regress1/strings/issue1684-regex.smt2
   regress1/strings/issue2060.smt2
@@ -2981,6 +2989,7 @@ set(regress_1_tests
   regress1/strings/proj-issue502-merge-type.smt2
   regress1/strings/proj-issue585-cbqi-t-cons.smt2
   regress1/strings/proj-issue647.smt2
+  regress1/strings/proj-issue659.smt2
   regress1/strings/prop-engine-order.smt2
   regress1/strings/query4674.smt2
   regress1/strings/query8485.smt2
@@ -3296,6 +3305,7 @@ set(regress_2_tests
   regress2/bv_to_int_bvuf_to_intuf_smtlib.smt2
   regress2/bv_to_int_bvmul1.smt2
   regress2/bv_to_int_inc1.smt2
+  regress2/bv_to_int_issue_9053.smt2
   regress2/bv_to_int_mask_array_2.smt2
   regress2/bv_to_int_mask_array_3.smt2
   regress2/bv_to_int_shifts.smt2

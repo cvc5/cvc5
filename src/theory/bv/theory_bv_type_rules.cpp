@@ -103,11 +103,14 @@ TypeNode BitVectorPredicateTypeRule::computeType(NodeManager* nodeManager,
     {
       throw TypeCheckingExceptionPrivate(n, "expecting bit-vector terms");
     }
-    TypeNode rhsType = n[1].getType(check);
-    if (lhsType != rhsType)
+    if (n.getNumChildren() > 1)
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "expecting bit-vector terms of the same width");
+      TypeNode rhsType = n[1].getType(check);
+      if (lhsType != rhsType)
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting bit-vector terms of the same width");
+      }
     }
   }
   return nodeManager->booleanType();

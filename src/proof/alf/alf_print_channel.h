@@ -45,11 +45,19 @@ class AlfPrintChannel
   virtual void printTypeNode(TypeNode tn) {}
   /** Print assume */
   virtual void printAssume(TNode n, size_t i, bool isPush = false) {}
-  /** Print step */
+  /**
+   * Print step
+   * @param rname The rule name.
+   * @param n The (optional) conclusion.
+   * @param i The identifier for the step.
+   * @param premises The list of identifiers of premises
+   * @param args The arguments of the proof rule.
+   * @param isPop Whether this is a step-pop command.
+   */
   virtual void printStep(const std::string& rname,
                          TNode n,
                          size_t i,
-                         const std::vector<Node>& premises,
+                         const std::vector<size_t>& premises,
                          const std::vector<Node>& args,
                          bool isPop = false)
   {
@@ -71,7 +79,7 @@ class AlfPrintChannelOut : public AlfPrintChannel
   void printStep(const std::string& rname,
                  TNode n,
                  size_t i,
-                 const std::vector<Node>& premises,
+                 const std::vector<size_t>& premises,
                  const std::vector<Node>& args,
                  bool isPop = false) override;
   void printTrustStep(ProofRule r, TNode n, size_t i, TNode conc) override;
@@ -113,7 +121,7 @@ class AlfPrintChannelPre : public AlfPrintChannel
   void printStep(const std::string& rname,
                  TNode n,
                  size_t i,
-                 const std::vector<Node>& premises,
+                 const std::vector<size_t>& premises,
                  const std::vector<Node>& args,
                  bool isPop = false) override;
   void printTrustStep(ProofRule r, TNode n, size_t i, TNode conc) override;
