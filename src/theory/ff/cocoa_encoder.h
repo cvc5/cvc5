@@ -50,7 +50,14 @@ CoCoA::symbol cocoaSym(const std::string& varName,
  * Class for encoding a Node as a Poly.
  *
  * Requires two passes over the nodes. On the first pass it collects variables,
- * !=s, and bitsums. On the second, it encodes.
+ * !=s, and bitsums. On the second, it encodes. The first stage is called
+ * "Stage::Scan", the second is "Stage::Encode".
+ *
+ * Two stages are necessary because when creating a CoCoA polynomial ring, one
+ * must declare all the variables up-front. So, before we create any polynomials
+ * (to encode terms), we must know all the (CoCoA) variables. CoCoA variables
+ * are used to encode cvc5 variables, bitsums, and witnesses of disequality (a
+ * != b is encoded as (a - b)w = 1, where w is the witness).
  */
 class CocoaEncoder : public FieldObj
 {
