@@ -72,6 +72,8 @@ libcvc5_add_sources(
   preprocessing/passes/bv_to_int.h
   preprocessing/passes/extended_rewriter_pass.cpp
   preprocessing/passes/extended_rewriter_pass.h
+  preprocessing/passes/ff_bitsum.cpp
+  preprocessing/passes/ff_bitsum.h
   preprocessing/passes/foreign_theory_rewrite.cpp
   preprocessing/passes/foreign_theory_rewrite.h
   preprocessing/passes/fun_def_fmf.cpp
@@ -701,6 +703,8 @@ libcvc5_add_sources(
   theory/ff/core.h
   theory/ff/multi_roots.cpp
   theory/ff/multi_roots.h
+  theory/ff/parse.cpp
+  theory/ff/parse.h
   theory/ff/stats.cpp
   theory/ff/stats.h
   theory/ff/sub_theory.cpp

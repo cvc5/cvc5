@@ -60,9 +60,9 @@ class TestMainBlackInteractiveShell : public TestInternal
    * Read up to maxIterations+1 from the shell and throw an assertion error if
    * it's fewer than minIterations and more than maxIterations.  Note that an
    * empty string followed by EOF may be returned as an empty command, and
-   * not NULL (subsequent calls to readAndExecCommands() should return NULL).
-   * E.g., "CHECKSAT;\n" may return two commands: the CHECKSAT, followed by an
-   * empty command, followed by NULL.
+   * not NULL (subsequent calls to readAndExecCommands() should return nullptr).
+   * E.g., "(check-sat)\n" may return two commands: the check-sat, followed by
+   * an empty command, followed by nullptr.
    */
   void countCommands(InteractiveShell& shell,
                      uint32_t minIterations,
