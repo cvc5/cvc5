@@ -17,12 +17,12 @@
 #include "preprocessing/assertion_pipeline.h"
 
 #include "expr/node_manager.h"
-#include "util/rational.h"
 #include "options/smt_options.h"
 #include "proof/lazy_proof.h"
 #include "smt/logic_exception.h"
 #include "smt/preprocess_proof_generator.h"
 #include "theory/builtin/proof_checker.h"
+#include "util/rational.h"
 
 namespace cvc5::internal {
 namespace preprocessing {
@@ -64,7 +64,7 @@ void AssertionPipeline::push_back(Node n,
   {
     markConflict();
   }
-  else if (n.getKind()==Kind::AND)
+  else if (n.getKind() == Kind::AND)
   {
     // Immediately miniscope top-level AND, which is important for minimizing
     // dependencies in proofs. We add each conjunct seperately, justifying
@@ -84,12 +84,12 @@ void AssertionPipeline::push_back(Node n,
     {
       Node nc = toProcess[i];
       i++;
-      if (nc.getKind()==Kind::AND)
+      if (nc.getKind() == Kind::AND)
       {
         if (isProofEnabled())
         {
-          NodeManager * nm = NodeManager::currentNM();
-          for (size_t j=0, nchild=nc.getNumChildren(); j<nchild; j++)
+          NodeManager* nm = NodeManager::currentNM();
+          for (size_t j = 0, nchild = nc.getNumChildren(); j < nchild; j++)
           {
             Node in = nm->mkConstInt(Rational(j));
             d_andElimEpg->addStep(nc[j], ProofRule::AND_ELIM, {nc}, {in});
@@ -105,8 +105,7 @@ void AssertionPipeline::push_back(Node n,
       {
         conjs.emplace_back(nc);
       }
-    }
-    while (i<toProcess.size());
+    } while (i < toProcess.size());
     // add each conjunct
     for (const Node& nc : conjs)
     {
@@ -183,9 +182,10 @@ void AssertionPipeline::replaceTrusted(size_t i, TrustNode trn)
 void AssertionPipeline::enableProofs(smt::PreprocessProofGenerator* pppg)
 {
   d_pppg = pppg;
-  if (d_andElimEpg==nullptr)
+  if (d_andElimEpg == nullptr)
   {
-    d_andElimEpg.reset(new LazyCDProof(d_env, nullptr, userContext(), "AssertionsAndElim"));
+    d_andElimEpg.reset(
+        new LazyCDProof(d_env, nullptr, userContext(), "AssertionsAndElim"));
   }
 }
 
@@ -209,7 +209,7 @@ void AssertionPipeline::addSubstitutionNode(Node n, ProofGenerator* pg)
   size_t prevNodeSize = d_nodes.size();
   push_back(n, false, pg);
   // remember this is a substitution index
-  for (size_t i=prevNodeSize, newSize = d_nodes.size(); i<newSize; i++)
+  for (size_t i = prevNodeSize, newSize = d_nodes.size(); i < newSize; i++)
   {
     d_substsIndices.insert(i);
   }
@@ -217,7 +217,8 @@ void AssertionPipeline::addSubstitutionNode(Node n, ProofGenerator* pg)
 
 bool AssertionPipeline::isSubstsIndex(size_t i) const
 {
-  return d_storeSubstsInAsserts && d_substsIndices.find(i)!=d_substsIndices.end();
+  return d_storeSubstsInAsserts
+         && d_substsIndices.find(i) != d_substsIndices.end();
 }
 
 void AssertionPipeline::markConflict()

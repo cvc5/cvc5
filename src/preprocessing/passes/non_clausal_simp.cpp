@@ -407,7 +407,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   if (!learnedLitsToConjoin.empty())
   {
     Trace("non-clausal-simplify")
-        << "non-clausal simplification, reassert: " << learnedLitsToConjoin << std::endl;
+        << "non-clausal simplification, reassert: " << learnedLitsToConjoin
+        << std::endl;
     for (const Node& lit : learnedLitsToConjoin)
     {
       assertionsToPreprocess->push_back(lit, false, d_llpg.get());

@@ -22,9 +22,9 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "proof/lazy_proof.h"
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
-#include "proof/lazy_proof.h"
 
 namespace cvc5::internal {
 
