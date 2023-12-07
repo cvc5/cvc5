@@ -2208,6 +2208,7 @@ set(regress_1_tests
   regress1/ho/bug_freeVar_BDD_General_data_270.smt2
   regress1/ho/bug_freevar_PHI004^4-delta.smt2
   regress1/ho/bound_var_bug.smt2
+  regress1/ho/dd.seu-mbqi.smt2
   regress1/ho/fta0328.lfho.smt2
   regress1/ho/ho-fun-sharing-dd.smt2
   regress1/ho/issue3136-fconst-bool-bool.smt2
