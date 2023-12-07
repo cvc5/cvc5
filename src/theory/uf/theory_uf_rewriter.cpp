@@ -236,7 +236,7 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
   {
     return retElimShadow;
   }
-  // see if it is just a function, (lambda ((x T)) (f x)) ---> f
+  // see if it can be eliminated, (lambda ((x T)) (f x)) ---> f
   if (node[1].getKind() == Kind::APPLY_UF)
   {
     size_t nvar = node[0].getNumChildren();
