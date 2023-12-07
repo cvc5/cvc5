@@ -2424,7 +2424,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_unique1)
       Kind::EQUAL, d_y, d_nodeManager->mkConst<BitVector>(BitVector(32, 4u)));
   Node resz = d_nodeManager->mkNode(
       Kind::EQUAL, d_z, d_nodeManager->mkConst<BitVector>(BitVector(32, 9u)));
-  ASSERT_EQ(apipe.size(), 7);
+  ASSERT_EQ(apipe.size(), 6);
   ASSERT_NE(std::find(apipe.begin(), apipe.end(), resx), apipe.end());
   ASSERT_NE(std::find(apipe.begin(), apipe.end(), resy), apipe.end());
   ASSERT_NE(std::find(apipe.begin(), apipe.end(), resz), apipe.end());
