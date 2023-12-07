@@ -52,7 +52,6 @@ TermDb::TermDb(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr)
       d_opMap(d_termsContextUse),
       d_inactive_map(context())
 {
-  d_consistent_ee = true;
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
   if (!options().quantifiers.termDbCd)
@@ -422,7 +421,6 @@ void TermDb::computeUfTerms( TNode f ) {
         }
         d_qim->addPendingLemma(lem, InferenceId::QUANTIFIERS_TDB_DEQ_CONG);
         d_qstate.notifyInConflict();
-        d_consistent_ee = false;
         return;
       }
       nonCongruentCount++;
@@ -601,7 +599,6 @@ bool TermDb::reset( Theory::Effort effort ){
   d_func_map_trie.clear();
   d_func_map_eqc_trie.clear();
   d_fmapRelDom.clear();
-  d_consistent_ee = true;
 
   eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
 

@@ -233,8 +233,6 @@ class TermDb : public QuantifiersUtil {
   NodeDbListMap d_opMap;
   /** select op map */
   std::map< Node, std::map< TypeNode, Node > > d_par_op_map;
-  /** whether master equality engine is UF-inconsistent */
-  bool d_consistent_ee;
   /** boolean terms */
   Node d_true;
   Node d_false;

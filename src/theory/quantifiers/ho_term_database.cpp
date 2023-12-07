@@ -140,8 +140,8 @@ bool HoTermDb::resetInternal(Theory::Effort effort)
         // equality is sent out as a lemma here.
         Trace("term-db-lemma") << "Purify equality lemma: " << eq << std::endl;
         d_qim->addPendingLemma(eq, InferenceId::QUANTIFIERS_HO_PURIFY);
-        d_qstate.notifyInConflict();
-        d_consistent_ee = false;
+        // we don't mark as conflict here, since the above lemma may not
+        // induce a quantifier-ree conflict.
         return false;
       }
     }
