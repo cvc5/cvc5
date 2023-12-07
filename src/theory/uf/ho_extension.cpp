@@ -43,6 +43,8 @@ HoExtension::HoExtension(Env& env,
       d_uf_std_skolem(userContext())
 {
   d_true = NodeManager::currentNM()->mkConst(true);
+  // don't send true lemma
+  d_cachedLemmas.insert(d_true);
 }
 
 TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)

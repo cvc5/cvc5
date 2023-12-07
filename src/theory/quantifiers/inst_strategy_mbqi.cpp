@@ -368,7 +368,7 @@ Node InstStrategyMbqi::convertToQuery(
             }
             Trace("mbqi-model") << "  M[" << cur << "] = " << mval << "\n";
             modelValue[cur] = mval;
-            if (cur == mval)
+            if (expr::hasSubterm(mval, cur))
             {
               // failed to evaluate in model, keep itself
               cmap[cur] = cur;
