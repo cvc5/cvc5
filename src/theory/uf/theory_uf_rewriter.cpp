@@ -237,15 +237,15 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
     return retElimShadow;
   }
   // see if it is just a function, (lambda ((x T)) (f x)) ---> f
-  if (node[1].getKind()==Kind::APPLY_UF)
+  if (node[1].getKind() == Kind::APPLY_UF)
   {
     size_t nvar = node[0].getNumChildren();
-    if (node[1].getNumChildren()==nvar)
+    if (node[1].getNumChildren() == nvar)
     {
       bool matchesList = true;
-      for (size_t i=0; i<nvar; i++)
+      for (size_t i = 0; i < nvar; i++)
       {
-        if (node[0][i]!=node[1][i])
+        if (node[0][i] != node[1][i])
         {
           matchesList = false;
           break;
