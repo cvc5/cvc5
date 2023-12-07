@@ -26,7 +26,7 @@
 #include <string>
 
 #include "parser/parse_op.h"
-#include "parser/parser_exception.h"
+#include <cvc5/cvc5_parser.h>
 #include "parser/parser_utils.h"
 #include "parser/sym_manager.h"
 #include "parser/symbol_table.h"

@@ -187,14 +187,17 @@ TypeNode BitVectorPredicateTypeRule::computeType(NodeManager* nodeManager,
     {
       return TypeNode::null();
     }
-    TypeNode rhsType = n[1].getTypeOrNull();
-    if (!lhsType.isComparableTo(rhsType))
+    if (n.getNumChildren() > 1)
     {
-      if (errOut)
+      TypeNode rhsType = n[1].getTypeOrNull();
+      if (!lhsType.isComparableTo(rhsType))
       {
-        (*errOut) << "expecting comparable bit-vector terms";
+        if (errOut)
+        {
+          (*errOut) << "expecting comparable bit-vector terms";
+        }
+        return TypeNode::null();
       }
-      return TypeNode::null();
     }
   }
   return nodeManager->booleanType();
