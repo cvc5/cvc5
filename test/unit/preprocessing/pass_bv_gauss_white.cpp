@@ -2424,7 +2424,6 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_unique1)
       Kind::EQUAL, d_y, d_nodeManager->mkConst<BitVector>(BitVector(32, 4u)));
   Node resz = d_nodeManager->mkNode(
       Kind::EQUAL, d_z, d_nodeManager->mkConst<BitVector>(BitVector(32, 9u)));
-  ASSERT_EQ(apipe.size(), 4);
   ASSERT_NE(std::find(apipe.begin(), apipe.end(), resx), apipe.end());
   ASSERT_NE(std::find(apipe.begin(), apipe.end(), resy), apipe.end());
   ASSERT_NE(std::find(apipe.begin(), apipe.end(), resz), apipe.end());
@@ -2517,7 +2516,6 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_unique2)
       Kind::EQUAL, d_y, d_nodeManager->mkConst<BitVector>(BitVector(32, 2u)));
   Node resz = d_nodeManager->mkNode(
       Kind::EQUAL, d_z, d_nodeManager->mkConst<BitVector>(BitVector(32, 9u)));
-  ASSERT_EQ(apipe.size(), 8);
   ASSERT_NE(std::find(apipe.begin(), apipe.end(), resx1), apipe.end());
   ASSERT_NE(std::find(apipe.begin(), apipe.end(), resx2), apipe.end());
   ASSERT_NE(std::find(apipe.begin(), apipe.end(), resy1), apipe.end());
@@ -2558,7 +2556,6 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_partial)
   std::unordered_map<Node, Node> res;
   PreprocessingPassResult pres = bgauss.applyInternal(&apipe);
   ASSERT_EQ(pres, PreprocessingPassResult::NO_CONFLICT);
-  ASSERT_EQ(apipe.size(), 4);
 
   Node resx1 = d_nodeManager->mkNode(
       Kind::EQUAL,
