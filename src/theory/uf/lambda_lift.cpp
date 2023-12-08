@@ -20,6 +20,7 @@
 #include "options/uf_options.h"
 #include "smt/env.h"
 #include "theory/uf/function_const.h"
+#include "expr/sort_type_size.h"
 
 using namespace cvc5::internal::kind;
 
@@ -58,6 +59,11 @@ TrustNode LambdaLift::lift(Node node)
       assertion, ProofRule::MACRO_SR_PRED_INTRO, {}, {assertion});
 }
 
+bool LambdaLift::isLifted(const Node& node) const
+{
+  return d_lifted.find(node)!=d_lifted.end();
+}
+
 TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
 {
   Node lam = FunctionConst::toLambda(node);
@@ -67,7 +73,30 @@ TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
     return TrustNode::null();
   }
   d_lambdaMap[skolem] = lam;
-  if (!options().uf.ufHoLazyLambdaLift)
+  bool shouldLift = true;
+  if (options().uf.ufHoLazyLambdaLift)
+  {
+    Trace("uf-lazy-ll") << "Lift " << lam << "?" << std::endl;
+    shouldLift = false;
+    // model construction considers types in order of their type size
+    // (SortTypeSize::getTypeSize). If the lambda has a free variable, that
+    // comes later in the model construction, it must be lifted eagerly.
+    std::unordered_set<Node> syms;
+    expr::getSymbols(node[1], syms);
+    SortTypeSize sts;
+    size_t lsize = sts.getTypeSize(lam.getType());
+    for (const Node& v : syms)
+    {
+      size_t vsize = sts.getTypeSize(v.getType());
+      if (vsize>=lsize)
+      {
+        shouldLift = true;
+        Trace("uf-lazy-ll") << "...yes due to " << v << std::endl;
+        break;
+      }
+    }
+  }
+  if (shouldLift)
   {
     TrustNode trn = lift(lam);
     lems.push_back(SkolemLemma(trn, skolem));
