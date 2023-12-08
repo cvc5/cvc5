@@ -545,12 +545,13 @@ bool SynthConjecture::doCheck()
         bsol = nm->mkNode(Kind::LAMBDA, bvl, bsol);
       }
       Trace("sygus-engine-debug") << "Builtin sol: " << d_quant[0][i] << " -> " << bsol << std::endl;
+      // add purifying substitution, in case the dependencies are recusive
       psubs.add(d_quant[0][i]);
+      // conjoin higher-order equality
       qconj.push_back(d_quant[0][i].eqNode(bsol));
     }
     query = nm->mkAnd(qconj);
-    query = psubs.apply(query);
-    query = rewrite(query);
+    query = rewrite(psubs.apply(query));
   }
 
   // if we trust the sampling we ran, we terminate now
