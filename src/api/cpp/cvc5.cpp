@@ -4679,9 +4679,11 @@ void Grammar::addRule(const Term& ntSymbol, const Term& rule)
          "predeclaration";
   CVC5_API_CHECK(ntSymbol.d_node->getType().isInstanceOf(rule.d_node->getType()))
       << "Expected ntSymbol and rule to have the same sort";
+      /*
   CVC5_API_ARG_CHECK_EXPECTED(!containsFreeVariables(rule), rule)
       << "a term whose free variables are limited to synthFun "
          "parameters and non-terminal symbols of the grammar";
+      */
   //////// all checks before this line
   d_sg->addRule(*ntSymbol.d_node, *rule.d_node);
   ////////
