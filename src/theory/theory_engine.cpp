@@ -556,15 +556,17 @@ void TheoryEngine::check(Theory::Effort effort) {
       {
         // if some theory believes there is a conflict, but it is was not
         // processed, we mark incomplete.
-        for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId)
+        for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST;
+             ++theoryId)
         {
           Theory* theory = d_theoryTable[theoryId];
-          if (theory && theory->getTheoryState()!=nullptr)
+          if (theory && theory->getTheoryState() != nullptr)
           {
             if (theory->getTheoryState()->isInConflict())
             {
-              setModelUnsound(theoryId, IncompleteId::UNPROCESSED_THEORY_CONFLICT);
-              Assert (false) << "Unprocessed theory conflict from " << theoryId;
+              setModelUnsound(theoryId,
+                              IncompleteId::UNPROCESSED_THEORY_CONFLICT);
+              Assert(false) << "Unprocessed theory conflict from " << theoryId;
               break;
             }
           }

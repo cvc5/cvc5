@@ -79,7 +79,6 @@ enum class IncompleteId
   UF_CARD_DISABLED,
   // UF+cardinality solver used in an incomplete mode
   UF_CARD_MODE,
-  
 
   //------------------- other causes external to theories
   // unprocessed theory conflict
