@@ -82,7 +82,7 @@ TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
     // (SortTypeSize::getTypeSize). If the lambda has a free variable, that
     // comes later in the model construction, it must be lifted eagerly.
     std::unordered_set<Node> syms;
-    expr::getSymbols(node[1], syms);
+    expr::getSymbols(lam[1], syms);
     SortTypeSize sts;
     size_t lsize = sts.getTypeSize(lam.getType());
     for (const Node& v : syms)
