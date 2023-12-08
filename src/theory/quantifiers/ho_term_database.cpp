@@ -165,7 +165,8 @@ bool HoTermDb::checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp)
     if (a.getKind() == Kind::APPLY_UF && b.getKind() == Kind::APPLY_UF)
     {
       exp.push_back(af.eqNode(bf).negate());
-      Assert(d_qstate.areEqual(af, bf)) << af << " and " << bf << " are not equal";
+      Assert(d_qstate.areEqual(af, bf))
+          << af << " and " << bf << " are not equal";
     }
     else
     {

@@ -345,7 +345,8 @@ Node InstStrategyMbqi::convertToQuery(
         cmap[cur] = k;
         continue;
       }
-      else if (ck == Kind::CONST_SEQUENCE || ck == Kind::FUNCTION_ARRAY_CONST || cur.isVar())
+      else if (ck == Kind::CONST_SEQUENCE || ck == Kind::FUNCTION_ARRAY_CONST
+               || cur.isVar())
       {
         // constant sequences and variables require two passes
         if (!cur.getType().isFirstClass())
@@ -363,7 +364,7 @@ Node InstStrategyMbqi::convertToQuery(
             {
               mval = strings::utils::mkConcatForConstSequence(cur);
             }
-            else if (ck==Kind::FUNCTION_ARRAY_CONST)
+            else if (ck == Kind::FUNCTION_ARRAY_CONST)
             {
               mval = uf::FunctionConst::toLambda(cur);
             }
