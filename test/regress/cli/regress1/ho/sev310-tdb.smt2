@@ -1,4 +1,4 @@
-; COMMAND-LINE: --full-saturate-quant --no-ho-matching --ho-elim-store-ax --enum-inst-interleave
+; COMMAND-LINE: --full-saturate-quant --no-ho-matching --ho-elim-store-ax
 ; EXPECT: unsat
 (set-logic HO_ALL)
 (declare-sort $$unsorted 0)
