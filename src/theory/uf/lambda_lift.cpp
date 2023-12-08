@@ -99,7 +99,10 @@ TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
   if (shouldLift)
   {
     TrustNode trn = lift(lam);
-    lems.push_back(SkolemLemma(trn, skolem));
+    if (!trn.isNull())
+    {
+      lems.push_back(SkolemLemma(trn, skolem));
+    }
   }
   // if no proofs, return lemma with no generator
   if (d_epg == nullptr)
