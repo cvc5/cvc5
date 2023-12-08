@@ -35,6 +35,7 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
+#include "smt/logic_exception.h"
 
 using namespace cvc5::internal::theory;
 using namespace cvc5::internal::kind;
@@ -85,7 +86,7 @@ void SygusSolver::declareSynthFun(Node fn,
     // use an attribute to mark its grammar
     quantifiers::SygusUtils::setSygusType(fn, sygusType);
     // we must expand definitions for sygus operators in the block
-    expandDefinitionsSygusDt(sygusType);
+    expandDefinitionsSygusDt(fn, sygusType);
   }
 
   // sygus conjecture is now stale
@@ -545,7 +546,7 @@ bool SygusSolver::usingSygusSubsolver() const
   return options().base.incrementalSolving;
 }
 
-void SygusSolver::expandDefinitionsSygusDt(TypeNode tn) const
+void SygusSolver::expandDefinitionsSygusDt(const Node& fn, TypeNode tn) const
 {
   std::unordered_set<TypeNode> processed;
   std::vector<TypeNode> toProcess;
@@ -557,11 +558,29 @@ void SygusSolver::expandDefinitionsSygusDt(TypeNode tn) const
     index++;
     Assert(tnp.isDatatype());
     Assert(tnp.getDType().isSygus());
+    const DType& dt = tnp.getDType();
     const std::vector<std::shared_ptr<DTypeConstructor>>& cons =
-        tnp.getDType().getConstructors();
+        dt.getConstructors();
+    std::unordered_set<TNode> scope;
+    // we allow other functions
+    scope.insert(d_sygusFunSymbols.begin(), d_sygusFunSymbols.end());
+    Node dtl = dt.getSygusVarList();
+    if (!dtl.isNull())
+    {
+      scope.insert(dtl.begin(), dtl.end());
+    }
     for (const std::shared_ptr<DTypeConstructor>& c : cons)
     {
       Node op = c->getSygusOp();
+      // check for free variables here
+      if (expr::hasFreeVariablesScope(op, scope))
+      {
+        std::stringstream ss;
+        ss << "ERROR: cannot process grammar with free variables" << std::endl;
+        ss << "term: " << op << std::endl;
+        ss << "function-to-synthesize: " << fn << std::endl;
+        throw LogicException(ss.str());
+      }
       // Only expand definitions if the operator is not constant, since
       // calling expandDefinitions on them should be a no-op. This check
       // ensures we don't try to expand e.g. bitvector extract operators,
