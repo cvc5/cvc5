@@ -265,11 +265,6 @@ class TermDb : public QuantifiersUtil {
   std::map<TypeNode, Node> d_ho_type_match_pred;
   //----------------------------- implementation-specific
   /**
-   * Reset internal, called when reset(e) is called. Returning false will cause
-   * the overall reset to terminate early, returning false.
-   */
-  virtual bool resetInternal(Theory::Effort e);
-  /**
    * Finish reset internal, called at the end of reset(e). Returning false will
    * cause the overall reset to return false.
    */

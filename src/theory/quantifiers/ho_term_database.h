@@ -48,11 +48,6 @@ class HoTermDb : public TermDb
   static Node getHoTypeMatchPredicate(TypeNode tn);
 
  private:
-  /**
-   * Reset internal, called when reset(e) is called. Returning false will cause
-   * the overall reset to terminate early, returning false.
-   */
-  bool resetInternal(Theory::Effort e) override;
   /** Performs merging of term indices based on higher-order reasoning */
   bool finishResetInternal(Theory::Effort e) override;
   /** add term higher-order
@@ -96,16 +91,7 @@ class HoTermDb : public TermDb
    * Map from non-variable function terms to the operator used to purify it in
    * this database. For details, see addTermHo.
    */
-  std::map<Node, Node> d_hoFunOpPurify;
-  /**
-   * Map from terms to the term that they purified. For details, see addTermHo.
-   */
-  std::map<Node, Node> d_hoPurifyToTerm;
-  /**
-   * Map from terms in the domain of the above map to an equality between that
-   * term and its range in the above map.
-   */
-  std::map<Node, Node> d_hoPurifyToEq;
+  context::CDHashSet<Node> d_hoFunOpPurify;
   /** a map from matchable operators to their representative */
   std::map<TNode, TNode> d_hoOpRep;
   /** for each representative matchable operator, the list of other matchable
