@@ -74,8 +74,8 @@ class HoTermDb : public TermDb
    * is added to the term index of g, assuming g is the representative of
    * the equivalence class of g and pfun.
    *
-   * Above, we set d_hoFunOpPurify[(@ f 0)] = pfun, and
-   * d_hoPurifyToTerm[(pfun 1)] = (@ (@ f 0) 1).
+   * Above, we additionally add the lemmas (@ f 0) = pfun and
+   * (pfun 1) = (@ (@ f 0) 1).
    */
   void addTermInternal(Node n) override;
   /** Get operators that we know are equivalent to f */
@@ -88,8 +88,8 @@ class HoTermDb : public TermDb
                               std::vector<Node>& exp) override;
   //------------------------------higher-order term indexing
   /**
-   * Map from non-variable function terms to the operator used to purify it in
-   * this database. For details, see addTermHo.
+   * The set of terms that we have added higher-order term purification lemmas
+   * for.
    */
   context::CDHashSet<Node> d_hoFunOpPurify;
   /** a map from matchable operators to their representative */
