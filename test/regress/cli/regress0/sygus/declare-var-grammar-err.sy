@@ -1,6 +1,6 @@
 ; DISABLE-TESTER: dump
 ; REQUIRES: no-competition
-; EXPECT: (error "ERROR: cannot process term x with free variables in grammar of c")
+; EXPECT-ERROR: (error "ERROR: cannot process term x with free variables in grammar of c")
 ; EXIT: 1
 (set-feature :fwd-decls true)
 (set-logic ALL)
