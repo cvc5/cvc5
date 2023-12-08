@@ -576,9 +576,7 @@ void SygusSolver::expandDefinitionsSygusDt(const Node& fn, TypeNode tn) const
       if (expr::hasFreeVariablesScope(op, scope))
       {
         std::stringstream ss;
-        ss << "ERROR: cannot process grammar with free variables" << std::endl;
-        ss << "term: " << op << std::endl;
-        ss << "function-to-synthesize: " << fn << std::endl;
+        ss << "ERROR: cannot process term " << op << " with free variables in grammar of " << fn;
         throw LogicException(ss.str());
       }
       // Only expand definitions if the operator is not constant, since
