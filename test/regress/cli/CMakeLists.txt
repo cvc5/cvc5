@@ -800,7 +800,10 @@ set(regress_0_tests
   regress0/ho/issue6526.smt2
   regress0/ho/issue6536.smt2
   regress0/ho/ite-apply-eq.smt2
+  regress0/ho/lambda-cycle.smt2
   regress0/ho/lambda-equality-non-canon.smt2
+  regress0/ho/lambda-test-deps.smt2
+  regress0/ho/lambda-test-deps-simple.smt2
   regress0/ho/lazy-lambda-model.smt2
   regress0/ho/match-middle.smt2
   regress0/ho/modulo-func-equality.smt2
