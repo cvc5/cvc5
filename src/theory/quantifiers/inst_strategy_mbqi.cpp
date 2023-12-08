@@ -25,6 +25,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/smt_engine_subsolver.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/uf/function_const.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -344,7 +345,7 @@ Node InstStrategyMbqi::convertToQuery(
         cmap[cur] = k;
         continue;
       }
-      else if (ck == Kind::CONST_SEQUENCE || cur.isVar())
+      else if (ck == Kind::CONST_SEQUENCE || ck == Kind::FUNCTION_ARRAY_CONST || cur.isVar())
       {
         // constant sequences and variables require two passes
         if (!cur.getType().isFirstClass())
@@ -361,6 +362,10 @@ Node InstStrategyMbqi::convertToQuery(
             if (ck == Kind::CONST_SEQUENCE)
             {
               mval = strings::utils::mkConcatForConstSequence(cur);
+            }
+            else if (ck==Kind::FUNCTION_ARRAY_CONST)
+            {
+              mval = uf::FunctionConst::toLambda(cur);
             }
             else
             {
