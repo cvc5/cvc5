@@ -20,12 +20,13 @@
 #include "base/modal_exception.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "expr/skolem_manager.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/option_exception.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
+#include "smt/logic_exception.h"
 #include "smt/preprocessor.h"
 #include "smt/smt_driver.h"
 #include "smt/smt_solver.h"
@@ -35,7 +36,6 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
-#include "smt/logic_exception.h"
 
 using namespace cvc5::internal::theory;
 using namespace cvc5::internal::kind;
@@ -576,7 +576,8 @@ void SygusSolver::expandDefinitionsSygusDt(const Node& fn, TypeNode tn) const
       if (expr::hasFreeVariablesScope(op, scope))
       {
         std::stringstream ss;
-        ss << "ERROR: cannot process term " << op << " with free variables in grammar of " << fn;
+        ss << "ERROR: cannot process term " << op
+           << " with free variables in grammar of " << fn;
         throw LogicException(ss.str());
       }
       // Only expand definitions if the operator is not constant, since

@@ -509,22 +509,22 @@ bool SynthConjecture::doCheck()
         << "CegConjuncture : check candidate : " << std::endl;
     for (unsigned i = 0, size = candidate_values.size(); i < size; i++)
     {
-      Trace("sygus-engine-debug")
-          << "  " << i << " : " << d_candidates[i] << " -> "
-          << candidate_values[i] << std::endl;
+      Trace("sygus-engine-debug") << "  " << i << " : " << d_candidates[i]
+                                  << " -> " << candidate_values[i] << std::endl;
     }
   }
   Assert(candidate_values.size() == d_candidates.size());
   query = d_checkBody.substitute(d_candidates.begin(),
-                                  d_candidates.end(),
-                                  candidate_values.begin(),
-                                  candidate_values.end());
+                                 d_candidates.end(),
+                                 candidate_values.begin(),
+                                 candidate_values.end());
   query = rewrite(query);
   Trace("sygus-engine-debug") << "Rewritten query is " << query << std::endl;
   if (expr::hasFreeVar(query))
   {
-    Trace("sygus-engine-debug") << "Free variable, from fwd-decls?" << std::endl;
-    NodeManager * nm = NodeManager::currentNM();
+    Trace("sygus-engine-debug")
+        << "Free variable, from fwd-decls?" << std::endl;
+    NodeManager* nm = NodeManager::currentNM();
     std::vector<Node> qconj;
     qconj.push_back(query);
     Subs psubs;
@@ -544,7 +544,8 @@ bool SynthConjecture::doCheck()
         Assert(fvar.getType().getRangeType() == bsol.getType());
         bsol = nm->mkNode(Kind::LAMBDA, bvl, bsol);
       }
-      Trace("sygus-engine-debug") << "Builtin sol: " << d_quant[0][i] << " -> " << bsol << std::endl;
+      Trace("sygus-engine-debug")
+          << "Builtin sol: " << d_quant[0][i] << " -> " << bsol << std::endl;
       // add purifying substitution, in case the dependencies are recusive
       psubs.add(d_quant[0][i]);
       // conjoin higher-order equality
