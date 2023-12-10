@@ -8,14 +8,18 @@ is advisable to follow them in order.
 
 ## Getting the Source Code and Compiling cvc5
 
-Use [Git](https://git-scm.com/) to clone this repository:
+Use [Git](https://git-scm.com/) to clone this repository.
 
 ```
 git clone git@github.com:cvc5/cvc5.git
 cd cvc5
 ```
 
-Then use `git checkout idl-lab` to use the branch that corresponds to this project.
+Then check out the branch that corresponds to this project.
+
+```
+git checkout idl-lab
+```
 
 Before we get started, we have to compile cvc5. cvc5 can currently be compiled
 on Linux and macOS. It can be cross-compiled for Windows but compilation on
