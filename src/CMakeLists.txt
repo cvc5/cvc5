@@ -383,6 +383,8 @@ libcvc5_add_sources(
   theory/arith/equality_solver.h
   theory/arith/inference_manager.cpp
   theory/arith/inference_manager.h
+  theory/arith/idl/idl_extension.cpp
+  theory/arith/idl/idl_extension.h
   theory/arith/linear/approx_simplex.cpp
   theory/arith/linear/approx_simplex.h
   theory/arith/linear/arith_static_learner.cpp

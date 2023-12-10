@@ -71,6 +71,8 @@ enum class InferenceId
   ARITH_CONF_SOI_SIMPLEX,
   // conflict when getting constraint from fact queue
   ARITH_CONF_FACT_QUEUE,
+  // conflict from IDL extension
+  ARITH_CONF_IDL_EXT,
   // conflict in tryBranchCut
   ARITH_CONF_BRANCH_CUT,
   // conflict in replayAssert

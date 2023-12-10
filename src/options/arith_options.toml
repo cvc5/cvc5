@@ -598,3 +598,11 @@ name   = "Arithmetic Theory"
   type       = "bool"
   default    = "true"
   help       = "do arithmetic static learning for ite terms based on bounds when static learning is enabled"
+
+[[option]]
+  name       = "arithIdlExt"
+  category   = "regular"
+  long       = "arith-idl-ext"
+  type       = "bool"
+  default    = "false"
+  help       = "whether to use the IDL extension"

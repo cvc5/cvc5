@@ -1,0 +1,65 @@
+(set-option :produce-models true)
+(set-logic QF_IDL)
+(set-info :source |Tests out a variety of syntaxes that the rewriter should support
+by Matthew Sotoudeh
+|)
+(set-info :smt-lib-version 2.0)
+(set-info :category "crafted")
+(set-info :status sat)
+; Should support:
+; - [const] [op] [var]
+; - [var] [op] [var]
+; - [var] [op] [const]
+; Where op \in { =, <, <=, >=, > }
+; =
+(declare-const x Int)
+(declare-const y Int)
+(declare-const z Int)
+(assert (= 5 (- x z)))
+(assert (= y z))
+(assert (= (- x y) 5))
+; (assert (= x 0))
+; (assert (= y -5))
+; (assert (= z -5))
+; <
+(declare-const a Int)
+(declare-const b Int)
+(declare-const c Int)
+(assert (< 5 (- a b)))
+(assert (< b a))
+(assert (< (- a c) 5))
+; (assert (= a 0))
+; (assert (= b -6))
+; (assert (= c 0))
+; <=
+(declare-const d Int)
+(declare-const e Int)
+(declare-const f Int)
+(assert (<= 5 (- d e)))
+(assert (<= e d))
+(assert (<= (- d f) 5))
+; (assert (= d 0))
+; (assert (= e -5))
+; (assert (= f -5))
+; >=
+(declare-const g Int)
+(declare-const h Int)
+(declare-const i Int)
+(assert (>= 5 (- g h)))
+(assert (>= g h))
+(assert (>= (- g i) 5))
+; (assert (= g 0))
+; (assert (= h 0))
+; (assert (= i -5))
+; >
+(declare-const j Int)
+(declare-const k Int)
+(declare-const l Int)
+(assert (> 5 (- j k)))
+(assert (> j k))
+(assert (> (- j l) 5))
+; (assert (= j 0))
+; (assert (= k -1))
+; (assert (= l -6))
+(check-sat)
+(get-model)
