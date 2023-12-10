@@ -12,6 +12,7 @@ Use [Git](https://git-scm.com/) to clone this repository:
 
 ```
 git clone git@github.com:cvc5/cvc5.git
+cd cvc5
 ```
 
 Then use `git checkout idl-lab` to use the branch that corresponds to this project.

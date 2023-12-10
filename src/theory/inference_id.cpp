@@ -42,6 +42,7 @@ const char* toString(InferenceId i)
     case InferenceId::ARITH_CONF_SIMPLEX: return "ARITH_CONF_SIMPLEX";
     case InferenceId::ARITH_CONF_SOI_SIMPLEX: return "ARITH_CONF_SOI_SIMPLEX";
     case InferenceId::ARITH_CONF_FACT_QUEUE: return "ARITH_CONF_FACT_QUEUE";
+    case InferenceId::ARITH_CONF_IDL_EXT: return "ARITH_CONF_IDL_EXT";
     case InferenceId::ARITH_CONF_BRANCH_CUT: return "ARITH_CONF_BRANCH_CUT";
     case InferenceId::ARITH_CONF_REPLAY_ASSERT:
       return "ARITH_CONF_REPLAY_ASSERT";
