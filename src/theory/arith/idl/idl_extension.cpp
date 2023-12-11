@@ -91,7 +91,7 @@ Node IdlExtension::ppStaticRewrite(TNode atom)
       << "IdlExtension::ppStaticRewrite(): processing " << atom << std::endl;
   NodeManager* nm = NodeManager::currentNM();
 
-  if (atom[0].getKind() == Kind::CONST_RATIONAL)
+  if (atom[0].getKind() == Kind::CONST_INTEGER)
   {
     // Move constant value to right-hand side
     Kind k = Kind::EQUAL;
