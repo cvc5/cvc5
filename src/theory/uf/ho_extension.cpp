@@ -68,7 +68,7 @@ TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
     {
       Node op = node[0];
       Node opl = d_ll.getLambdaFor(op);
-      if (!opl.isNull())
+      if (!opl.isNull() && !d_ll.isLifted(opl))
       {
         NodeManager* nm = NodeManager::currentNM();
         Node app = nm->mkNode(Kind::HO_APPLY, opl, node[1]);
@@ -92,7 +92,7 @@ TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
       // immediately
       Node op = node.getOperator();
       Node opl = d_ll.getLambdaFor(op);
-      if (!opl.isNull())
+      if (!opl.isNull() && !d_ll.isLifted(opl))
       {
         Assert(opl.getKind() == Kind::LAMBDA);
         std::vector<Node> args(node.begin(), node.end());
@@ -506,7 +506,7 @@ unsigned HoExtension::checkLazyLambda()
       Node n = *eqc_i;
       ++eqc_i;
       Node lam = d_ll.getLambdaFor(n);
-      if (lam.isNull())
+      if (lam.isNull() || d_ll.isLifted(lam))
       {
         if (!lamRep.isNull())
         {

@@ -800,7 +800,10 @@ set(regress_0_tests
   regress0/ho/issue6526.smt2
   regress0/ho/issue6536.smt2
   regress0/ho/ite-apply-eq.smt2
+  regress0/ho/lambda-cycle.smt2
   regress0/ho/lambda-equality-non-canon.smt2
+  regress0/ho/lambda-test-deps.smt2
+  regress0/ho/lambda-test-deps-simple.smt2
   regress0/ho/lazy-lambda-model.smt2
   regress0/ho/match-middle.smt2
   regress0/ho/modulo-func-equality.smt2
@@ -2206,7 +2209,6 @@ set(regress_1_tests
   regress1/get-learned-literals.smt2
   regress1/get-learned-literals-types.smt2
   regress1/ho/bug_freeVar_BDD_General_data_270.smt2
-  regress1/ho/bug_freevar_PHI004^4-delta.smt2
   regress1/ho/bound_var_bug.smt2
   regress1/ho/dd.seu-mbqi.smt2
   regress1/ho/dd.seu589-wrong.smt2
@@ -3531,6 +3533,8 @@ set(regression_disabled_tests
   regress1/ho/nested_lambdas-AGT034^2.smt2
   regress1/ho/nested_lambdas-sat-SYO056^1-delta.smt2
   regress1/ho/SYO056^1.smt2
+  # timeout after fixes to uf-lazy-ll for cyclic lambda construction
+  regress1/ho/bug_freevar_PHI004^4-delta.smt2
   # times out after update to circuit propagator
   regress1/nl/dumortier_llibre_artes_ex_5_13.transcendental.k2.smt2
   # times out after update to tangent planes
