@@ -39,36 +39,9 @@ struct SortTypeSize
   // compares the type size of i and j
   // returns true iff the size of i is less than that of j
   // tiebreaks are determined by node value
-  bool operator()(Node i, Node j)
-  {
-    int si = getTypeSize(i.getType());
-    int sj = getTypeSize(j.getType());
-    if (si < sj)
-    {
-      return true;
-    }
-    else if (si == sj)
-    {
-      return i < j;
-    }
-    return false;
-  }
+  bool operator()(Node i, Node j);
   /** get the size of type tn */
-  size_t getTypeSize(const TypeNode& tn)
-  {
-    std::map<TypeNode, size_t>::iterator it = d_type_size.find(tn);
-    if (it != d_type_size.end())
-    {
-      return it->second;
-    }
-    size_t sum = 1;
-    for (const TypeNode& tnc : tn)
-    {
-      sum += getTypeSize(tnc);
-    }
-    d_type_size[tn] = sum;
-    return sum;
-  }
+  size_t getTypeSize(const TypeNode& tn);
 };
 
 }  // namespace cvc5::internal
