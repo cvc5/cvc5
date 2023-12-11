@@ -8,14 +8,40 @@ from libcpp.vector cimport vector
 from libcpp.map cimport map
 from libcpp.pair cimport pair
 from cvc5kinds cimport Kind, SortKind
-from cvc5types cimport BlockModelsMode, LearnedLitType, ProofComponent, ProofFormat, RoundingMode, UnknownExplanation, FindSynthTarget
+from cvc5types cimport BlockModelsMode, LearnedLitType, ProofComponent, ProofFormat, RoundingMode, UnknownExplanation, FindSynthTarget, InputLanguage
 from cvc5proofrules cimport ProofRule
-
 
 cdef extern from "<iostream>" namespace "std":
     cdef cppclass ostream:
-        pass
+        ostream& write(const char*, int) except +
+        ostream& flush() except +
+        #ostream& operator<<(const string&) except +
+    #ostream& (*endl)(ostream&)
     ostream cout
+
+    cdef cppclass istream:
+        pass
+    istream cin
+
+    cdef cppclass iostream(istream,ostream):
+        pass
+
+cdef extern from "<fstream>" namespace "std":
+    cdef cppclass ifstream(istream):
+        ifstream() except +
+        ifstream(const string& filename) except +
+        void close() except +
+
+    cdef cppclass ofstream(ostream):
+        ofstream() except +
+        ofstream(const string& filename) except +
+        void close() except +
+
+cdef extern from "<sstream>" namespace "std":
+
+    cdef cppclass stringstream(iostream):
+        stringstream() except +
+        string str() except +
 
 
 cdef extern from "<functional>" namespace "std" nogil:
@@ -559,3 +585,27 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Term getResult() except +
         vector[Proof] getChildren() except +
         vector[Term] getArguments() except +
+
+
+cdef extern from "<cvc5/cvc5_parser.h>" namespace "cvc5::parser":
+    cdef cppclass SymbolManager:
+        SymbolManager(Solver* solver) except +
+        bint isLogicSet() except +
+        string getLogic() except +
+
+    cdef cppclass Command:
+        Command() except +
+        void invoke(Solver* solver, SymbolManager* sm, ostream& out) except +
+        string toString() except +
+        string getCommandName() except +
+        bint isNull() except +
+
+    cdef cppclass InputParser:
+        InputParser(Solver* solver, SymbolManager* sm) except +
+        void setFileInput(InputLanguage lang, const string& filename) except +
+        void setStreamInput(InputLanguage lang, istream& input, const string& name) except +
+        void setIncrementalStringInput(InputLanguage lang, const string& name) except +
+        void appendIncrementalStringInput(const string& input) except +
+        Command nextCommand() except +
+        Term nextTerm() except +
+        bint done() except +
