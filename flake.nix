@@ -88,12 +88,13 @@
         pkgs.cmake
         pkgs.flex
       ];
+      python = pkgs.python310.withPackages (ps: with ps; [ pyparsing tomli ]);
       common = [
         pkgs.gmp
         pkgs.gtest
         pkgs.jdk
         pkgs.boost
-        (pkgs.python310.withPackages (ps: with ps; [ pyparsing tomli ]))
+        python
       ];
       # Main build target
       cvc5 = pkgs.stdenv.mkDerivation ({
@@ -116,6 +117,7 @@
       };
       devShells.default = pkgs.mkShell {
         buildInputs = nativeBuildInputs ++ common;
+        Python_EXECUTABLE = "${python}/bin/python3";
       };
     };
   };
