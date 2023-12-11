@@ -22,7 +22,6 @@
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/options.h"
-#include "parser/parser_exception.h"
 #include "test_parser.h"
 
 using namespace cvc5::parser;
@@ -201,6 +200,29 @@ TEST_F(TestInputParserBlack, multipleParsers)
   ASSERT_THROW(p5.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6,
                                             "input_parser_black"),
                CVC5ApiException);
+}
+
+TEST_F(TestInputParserBlack, ParserExceptions)
+{
+  ParserException defaultConstructor;
+  std::string message = "error";
+  const char* cMessage = "error";
+  std::string filename = "file.smt2";
+  ParserException stringConstructor(message);
+  ParserException cStringConstructor(cMessage);
+  ParserException exception(message, filename, 10, 11);
+  std::stringstream ss;
+  exception.toStream(ss);
+  ASSERT_EQ(message, exception.getMessage());
+  ASSERT_EQ(message, exception.getMessage());
+  ASSERT_EQ(filename, exception.getFilename());
+  ASSERT_EQ(10, exception.getLine());
+  ASSERT_EQ(11, exception.getColumn());
+
+  ParserEndOfFileException eofDefault;
+  ParserEndOfFileException eofString(message);
+  ParserEndOfFileException eofCMessage(cMessage);
+  ParserEndOfFileException eof(message, filename, 10, 11);
 }
 
 }  // namespace test

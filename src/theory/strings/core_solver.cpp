@@ -673,7 +673,12 @@ void CoreSolver::normalizeEquivalenceClass(Node eqc,
 
 const std::vector<Node>& CoreSolver::getRelevantDeq() const { return d_rlvDeq; }
 
-NormalForm& CoreSolver::getNormalForm(Node n)
+bool CoreSolver::hasNormalForm(const Node& n) const
+{
+  return d_normal_form.find(n) != d_normal_form.end();
+}
+
+NormalForm& CoreSolver::getNormalForm(const Node& n)
 {
   std::map<Node, NormalForm>::iterator itn = d_normal_form.find(n);
   if (itn == d_normal_form.end())
@@ -868,7 +873,7 @@ void CoreSolver::getNormalForms(Node eqc,
     Node n = (*eqc_i);
     // this check should be in sync with the check in checkCycles to ensure
     // we don't compute normal forms for irrelevant terms.
-    if (!d_bsolver.isCongruent(n) && rlvSet.find(n)!=rlvSet.end())
+    if (n.isConst() || (!d_bsolver.isCongruent(n) && rlvSet.find(n)!=rlvSet.end()))
     {
       Kind nk = n.getKind();
       bool isCLike = utils::isConstantLike(n);

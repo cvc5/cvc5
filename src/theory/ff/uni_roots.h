@@ -20,9 +20,9 @@
 #ifndef CVC5__THEORY__FF__UNI_ROOTS_H
 #define CVC5__THEORY__FF__UNI_ROOTS_H
 
-#include <CoCoA/ring.H>
 #include <CoCoA/RingFp.H>
 #include <CoCoA/SparsePolyRing.H>
+#include <CoCoA/ring.H>
 
 #include <vector>
 
@@ -31,17 +31,24 @@ namespace theory {
 namespace ff {
 
 /**
- * Given a univariate f over a finite field, return the monic polynomial with
- * the same base-field roots as f, of minimal degree.
+ * Compute a monic polynomial q(X) of minimal degree that has the same real root
+ * set as f(X). Thus, q is a product of linear factors.
  *
- * Thus, the return is a polynomial with unique linear factors
+ * That is, if f has unique factorization
+ *
+ *    (X - c1)^e1 * (X - c2)^e2 * ... * (X - ck)^ek * q1(X)^e{k+1} * ...
+ *
+ * where the qi are all super-linear and irreducible, then this function returns
+ *
+ *    (X - c1) * (X - c2) * ... * (X - ck)
  */
 CoCoA::RingElem distinctRootsPoly(CoCoA::RingElem f);
 
 /**
- * Given a univariate f over a finite field, return a list of roots in that field.
+ * Given a univariate f over a finite field, return a list of roots in that
+ * field.
  *
- * The list is sorted.
+ * The list is sorted by string representation.
  */
 std::vector<CoCoA::RingElem> roots(CoCoA::RingElem f);
 
