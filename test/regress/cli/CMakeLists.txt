@@ -1388,6 +1388,7 @@ set(regress_0_tests
   regress0/rels/rels-sharing-simp.cvc.smt2
   regress0/sep/dispose-1.smt2
   regress0/sep/dup-nemp.smt2
+  regress0/sep/issue10213-empty-model.smt2
   regress0/sep/issue3720-check-model.smt2
   regress0/sep/issue5343-err.smt2
   regress0/sep/issue8659-wand-diff-heaps.smt2

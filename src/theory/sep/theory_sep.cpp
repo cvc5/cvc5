@@ -1693,7 +1693,9 @@ void TheorySep::computeLabelModel( Node lbl ) {
   Node v_val = d_valuation.getModel()->getRepresentative(lbl);
   Trace("sep-process") << "Model value (from valuation) for " << lbl << " : "
                        << v_val << std::endl;
-  if (v_val.getKind() != Kind::SET_EMPTY)
+  // we ignore non-constant values, which are unconstrained and can be assumed
+  // to be empty.
+  if (v_val.isConst() && v_val.getKind() != Kind::SET_EMPTY)
   {
     while (v_val.getKind() == Kind::SET_UNION)
     {
