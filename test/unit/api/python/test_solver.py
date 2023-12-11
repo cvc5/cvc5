@@ -2010,6 +2010,17 @@ def test_simplify(solver):
     solver.simplify(f2)
 
 
+def test_rewrite(solver):
+    with pytest.raises(RuntimeError):
+        solver.rewrite(cvc5.Term(solver))
+
+    intSort = solver.getIntegerSort()
+    x = solver.mkConst(intSort)
+    eq = solver.mkTerm(Kind.EQUAL, x, x)
+
+    trueTerm = solver.mkBoolean(True)
+    assert trueTerm == solver.rewrite(eq)
+
 def test_assert_formula(solver):
     solver.assertFormula(solver.mkTrue())
     with pytest.raises(RuntimeError):

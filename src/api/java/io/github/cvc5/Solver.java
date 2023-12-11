@@ -1497,6 +1497,26 @@ public class Solver extends AbstractPointer
   private native long simplify(long pointer, long termPointer);
 
   /**
+   * Rewrite a formula.
+   *
+   * This performs theory normalization on t and returns the result. In
+   * contrast to simplify, this normalization is independent of the current assertions. The
+   * returned term is theory equivalent to t.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @param t The formula to rewrite.
+   * @return The rewritten formula.
+   */
+  public Term rewrite(Term t)
+  {
+    long termPointer = rewrite(pointer, t.getPointer());
+    return new Term(termPointer);
+  }
+
+  private native long rewrite(long pointer, long termPointer);
+
+  /**
    * Assert a formula.
    * SMT-LIB:
    * {@code

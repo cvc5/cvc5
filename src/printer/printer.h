@@ -224,7 +224,9 @@ class CVC5_EXPORT Printer
   virtual void toStreamCmdFindSynthNext(std::ostream& out) const;
 
   /** Print simplify command */
-  virtual void toStreamCmdSimplify(std::ostream& out, Node n) const;
+  virtual void toStreamCmdSimplify(std::ostream& out,
+                                   Node n,
+                                   bool isSimplify) const;
 
   /** Print get-value command */
   virtual void toStreamCmdGetValue(std::ostream& out,

@@ -174,7 +174,9 @@ class Smt2Printer : public cvc5::internal::Printer
   void toStreamCmdFindSynthNext(std::ostream& out) const override;
 
   /** Print simplify command */
-  void toStreamCmdSimplify(std::ostream& out, Node nodes) const override;
+  void toStreamCmdSimplify(std::ostream& out,
+                           Node node,
+                           bool isSimplify) const override;
 
   /** Print get-value command */
   void toStreamCmdGetValue(std::ostream& out,
