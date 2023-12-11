@@ -79,7 +79,7 @@ void IdlExtension::notifyFact(
   d_facts.push_back(fact);
 }
 
-Node IdlExtension::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
+Node IdlExtension::ppStaticRewrite(TNode atom)
 {
   // We are only interested in predicates
   if (!atom.getType().isBoolean())
@@ -88,7 +88,7 @@ Node IdlExtension::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   }
 
   Trace("theory::arith::idl")
-      << "IdlExtension::ppRewrite(): processing " << atom << std::endl;
+      << "IdlExtension::ppStaticRewrite(): processing " << atom << std::endl;
   NodeManager* nm = NodeManager::currentNM();
 
   if (atom[0].getKind() == Kind::CONST_RATIONAL)
@@ -107,7 +107,7 @@ Node IdlExtension::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
       case Kind::GEQ:
       default: break;
     }
-    return ppRewrite(nm->mkNode(k, atom[1], atom[0]), lems);
+    return ppStaticRewrite(nm->mkNode(k, atom[1], atom[0]));
   }
   else if (atom[1].getKind() == Kind::VARIABLE)
   {

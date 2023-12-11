@@ -52,7 +52,7 @@ class IdlExtension : protected EnvObj
       TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal);
 
   /** Pre-processing of input atoms */
-  Node ppRewrite(TNode atom, std::vector<SkolemLemma>& lems);
+  Node ppStaticRewrite(TNode atom);
 
   /** Check for conflicts in the current facts */
   void postCheck(Theory::Effort level);

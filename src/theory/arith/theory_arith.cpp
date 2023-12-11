@@ -187,15 +187,7 @@ TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
   if (d_idlExtension != nullptr)
   {
-    Node atomr = d_idlExtension->ppRewrite(atom, lems);
-    if (atom != atomr)
-    {
-      return TrustNode::mkTrustRewrite(atom, atomr);
-    }
-    else
-    {
-      return TrustNode::null();
-    }
+    return TrustNode::null();
   }
 
   CodeTimer timer(d_ppRewriteTimer, /* allow_reentrant = */ true);
@@ -212,6 +204,17 @@ TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 
 TrustNode TheoryArith::ppStaticRewrite(TNode atom)
 {
+  if (d_idlExtension != nullptr) {
+    Node atomr = d_idlExtension->ppStaticRewrite(atom);
+    if (atom != atomr)
+    {
+      return TrustNode::mkTrustRewrite(atom, atomr);
+    }
+    else
+    {
+      return TrustNode::null();
+    }
+  }
   Trace("arith::preprocess") << "arith::ppStaticRewrite() : " << atom << endl;
   Kind k = atom.getKind();
   if (k == Kind::EQUAL)
