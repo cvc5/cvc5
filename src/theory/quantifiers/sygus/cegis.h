@@ -23,6 +23,7 @@
 #include "smt/env_obj.h"
 #include "theory/quantifiers/sygus/sygus_module.h"
 #include "theory/quantifiers/sygus_sampler.h"
+#include "expr/subs.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -234,6 +235,8 @@ class Cegis : public SygusModule
    */
   bool d_usingSymCons;
   //---------------------------------end for symbolic constructors
+  /** Subsitution for evaluation unfold */
+  Subs d_euSubs;
 };
 
 }  // namespace quantifiers
