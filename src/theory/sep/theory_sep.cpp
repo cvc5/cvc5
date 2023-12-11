@@ -209,8 +209,9 @@ void TheorySep::postProcessModel( TheoryModel* m ){
   Assert(m_heap.isNull());
   Trace("sep-model") << "Model for heap, type = " << d_type_ref
                      << " with data type " << d_type_data << " : " << std::endl;
-  computeLabelModel(d_base_label);
-  HeapInfo& hm = d_label_model[d_base_label];
+  Node blbl = getBaseLabel();
+  computeLabelModel(blbl);
+  HeapInfo& hm = d_label_model[blbl];
   if (hm.d_heap_locs_model.empty())
   {
     Trace("sep-model") << "  [empty]" << std::endl;
@@ -896,8 +897,11 @@ void TheorySep::postCheck(Effort level)
                      << std::endl;
 }
 
-bool TheorySep::needsCheckLastEffort() {
-  return hasFacts();
+bool TheorySep::needsCheckLastEffort()
+{
+  // We always need a last call effort check when the logic enables separation
+  // logic to ensure the heap model is built.
+  return d_env.hasSepHeap();
 }
 
 void TheorySep::conflict(TNode a, TNode b) {
