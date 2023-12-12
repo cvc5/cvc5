@@ -96,7 +96,7 @@ class InputParserTest extends ParserTest
   {
     InputParser p = new InputParser(d_solver);
     p.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "input_parser_black");
-    assertThrows(CVC5ParserException.class, () -> p.nextCommand());
+    assertThrows(CVC5ApiException.class, () -> p.nextCommand());
   }
 
   @Test
