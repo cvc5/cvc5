@@ -70,6 +70,10 @@ endif()
 # By default the contrib/get-* scripts install dependencies to deps/install.
 list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/install")
 
+if((NOT DEFINED Python_EXECUTABLE) AND (DEFINED ENV{Python_EXECUTABLE}))
+    set(Python_EXECUTABLE $ENV{Python_EXECUTABLE})
+endif()
+
 #-----------------------------------------------------------------------------#
 
 include(Helpers)
