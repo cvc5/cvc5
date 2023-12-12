@@ -117,11 +117,8 @@ Term Parser::nextTerm()
 
 bool Parser::done() const { return d_done; }
 
-bool Parser::hasInput() const
-{
-  return d_input.get()!=nullptr;
-}
-  
+bool Parser::hasInput() const { return d_input.get() != nullptr; }
+
 std::unique_ptr<Parser> Parser::mkParser(modes::InputLanguage lang,
                                          Solver* solver,
                                          SymManager* sm)

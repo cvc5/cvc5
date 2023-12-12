@@ -79,7 +79,7 @@ class Parser : public ParserStateCallback
 
   /** Do we have an input? */
   bool hasInput() const;
-  
+
   /** Is this parser done reading input? */
   bool done() const;
 
