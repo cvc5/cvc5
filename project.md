@@ -28,6 +28,8 @@ consider using the [Windows Subsystem for Linux
 (WSL)](https://docs.microsoft.com/en-us/windows/wsl/install-win10) or a Linux
 VM. Depending on your machine, the initial compilation may take a while.
 
+### Method 1: Direct Compilation
+
 Before compiling cvc5, install the required dependencies as listed in
 [INSTALL.md](INSTALL.md).
 
@@ -45,6 +47,23 @@ The former detects [undefined behavior](https://en.wikipedia.org/wiki/Undefined_
 whereas the latter detects memory errors. Compiling the code with UBSan and
 ASan incurs a performance penalty but when developping C++ code, it can help
 uncover subtle problems and can help with debugging efforts.
+
+### Method 2: Via Nix
+
+[Nix](https://nixos.org/download) is a package manager and environment for
+ensuring reproducible builds. Download and install Nix. Then create the file `~/.config/nix/nix.conf` and put in the line
+```text
+experimental-features = nix-command flakes
+```
+Executing `nix develop` in the project root drops the current shell into an
+environment with all dependencies installed. We can then compile cvc5 with
+```
+./configure.sh debug --auto-download --static
+cd build
+make -j<number of processes>
+```
+Alternatively, `nix build` directly produces a cvc5 executable in `result/`.
+
 
 ## A Simple IDL Solver
 
