@@ -74,14 +74,14 @@ bool Cegis::initialize(Node conj, Node n, const std::vector<Node>& candidates)
     d_cegis_sampler.initialize(
         bt, d_base_vars, options().quantifiers.sygusSamples);
   }
-  Assert (conj.getKind()==Kind::FORALL);
-  Assert (conj[0].getNumChildren()==candidates.size());
+  Assert(conj.getKind() == Kind::FORALL);
+  Assert(conj[0].getNumChildren() == candidates.size());
   // construct the substitution d_euSubs if evaluation unfolding is enabled.
   if (options().quantifiers.sygusEvalUnfoldMode
-                              != options::SygusEvalUnfoldMode::NONE)
+      != options::SygusEvalUnfoldMode::NONE)
   {
-    NodeManager * nm = NodeManager::currentNM();
-    for (size_t i=0, nvars = conj[0].getNumChildren(); i<nvars; i++)
+    NodeManager* nm = NodeManager::currentNM();
+    for (size_t i = 0, nvars = conj[0].getNumChildren(); i < nvars; i++)
     {
       TypeNode tn = candidates[i].getType();
       SygusTypeInfo& ti = d_tds->getTypeInfo(tn);
@@ -98,7 +98,8 @@ bool Cegis::initialize(Node conj, Node n, const std::vector<Node>& candidates)
       {
         Node lvl = nm->mkNode(Kind::BOUND_VAR_LIST, vs);
         eargs.insert(eargs.end(), vs.begin(), vs.end());
-        ret = nm->mkNode(Kind::LAMBDA, lvl, nm->mkNode(Kind::DT_SYGUS_EVAL, eargs));
+        ret = nm->mkNode(
+            Kind::LAMBDA, lvl, nm->mkNode(Kind::DT_SYGUS_EVAL, eargs));
       }
       else
       {

@@ -20,10 +20,10 @@
 
 #include <map>
 
+#include "expr/subs.h"
 #include "smt/env_obj.h"
 #include "theory/quantifiers/sygus/sygus_module.h"
 #include "theory/quantifiers/sygus_sampler.h"
-#include "expr/subs.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -235,7 +235,7 @@ class Cegis : public SygusModule
    */
   bool d_usingSymCons;
   //---------------------------------end for symbolic constructors
-  /** 
+  /**
    * Subsitution for evaluation unfold, which maps functions-to-synthesize
    * with lambdas in terms of their deep embeddings. For example, if d_f is the
    * deep embedding of function to synthesize f with argument list
