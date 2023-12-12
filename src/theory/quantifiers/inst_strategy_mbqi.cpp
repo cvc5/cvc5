@@ -131,6 +131,7 @@ void InstStrategyMbqi::process(Node q)
   // check if there are any bad kinds
   if (cbody.isNull())
   {
+    Trace("mbqi-model-exp") << "...INTERNAL FAIL" << std::endl;
     Trace("mbqi") << "...failed to convert to query" << std::endl;
     return;
   }
@@ -147,6 +148,7 @@ void InstStrategyMbqi::process(Node q)
   else if (!bquery.getConst<bool>())
   {
     d_quantChecked.insert(q);
+    Trace("mbqi-model-exp") << "...SUCCESS, by rewriting" << std::endl;
     Trace("mbqi") << "...success, by rewriting" << std::endl;
     return;
   }
