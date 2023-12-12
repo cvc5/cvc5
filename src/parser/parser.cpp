@@ -34,27 +34,27 @@ void Parser::setLogic(const std::string& name) {}
 
 void Parser::setFileInput(const std::string& filename)
 {
-  d_flexInput = Input::mkFileInput(filename);
+  d_input = Input::mkFileInput(filename);
   initializeInput(filename);
 }
 
 void Parser::setStreamInput(std::istream& input, const std::string& name)
 {
-  d_flexInput = Input::mkStreamInput(input);
+  d_input = Input::mkStreamInput(input);
   initializeInput(name);
 }
 
 void Parser::setStringInput(const std::string& input,
                                 const std::string& name)
 {
-  d_flexInput = Input::mkStringInput(input);
+  d_input = Input::mkStringInput(input);
   initializeInput(name);
 }
 
 void Parser::initializeInput(const std::string& name)
 {
   d_done = false;
-  d_lex->initialize(d_flexInput.get(), name);
+  d_lex->initialize(d_input.get(), name);
 }
 
 void Parser::warning(const std::string& msg) { d_lex->warning(msg); }
@@ -117,6 +117,11 @@ Term Parser::nextTerm()
 
 bool Parser::done() const { return d_done; }
 
+bool Parser::hasInput() const
+{
+  return d_input.get()!=nullptr;
+}
+  
 std::unique_ptr<Parser> Parser::mkParser(modes::InputLanguage lang,
                                          Solver* solver,
                                          SymManager* sm)

@@ -247,7 +247,7 @@ SymbolManager* InputParser::getSymbolManager() { return d_sm; }
 
 Command InputParser::nextCommand()
 {
-  CVC5_PARSER_API_CHECK(d_parser != nullptr)
+  CVC5_PARSER_API_CHECK(d_parser != nullptr || !d_parser->hasInput())
       << "Input to parser not initialized";
   //////// all checks before this line
   Trace("parser") << "nextCommand()" << std::endl;
@@ -257,7 +257,7 @@ Command InputParser::nextCommand()
 
 Term InputParser::nextTerm()
 {
-  CVC5_PARSER_API_CHECK(d_parser != nullptr)
+  CVC5_PARSER_API_CHECK(d_parser != nullptr || !d_parser->hasInput())
       << "Input to parser not initialized";
   //////// all checks before this line
   Trace("parser") << "nextTerm()" << std::endl;

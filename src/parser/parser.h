@@ -77,6 +77,9 @@ class Parser : public ParserStateCallback
   /** Parse and return the next expression. */
   Term nextTerm();
 
+  /** Do we have an input? */
+  bool hasInput() const;
+  
   /** Is this parser done reading input? */
   bool done() const;
 
@@ -112,8 +115,8 @@ class Parser : public ParserStateCallback
   SymManager* d_sm;
   /** The lexer we are using */
   Lexer* d_lex;
-  /** The flex input */
-  std::unique_ptr<Input> d_flexInput;
+  /** The input */
+  std::unique_ptr<Input> d_input;
   /** Are we done */
   bool d_done;
 };
