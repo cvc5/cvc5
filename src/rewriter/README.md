@@ -168,8 +168,10 @@ fixed-point rule.
 
 ## Changes from Previous Works
 
-In comparison to
-[fmcad22](https://ieeexplore.ieee.org/abstract/document/10026573), the following changes are made
+Further documentation about the RARE language can be found in [FMCAD
+22/Reconstructing Fine-Grained Proofs of Rewrites Using a Domain-Specific
+Language](https://ieeexplore.ieee.org/document/10026573). The following changes
+have been made since the original publication:
 * `let` expressions are removed and replaced by `def`, which allow symbols to be
 shared across the condition, match, and target terms.
 * `const` modifier is removed. `const` existed in some previous works and in
@@ -194,9 +196,6 @@ shared across the condition, match, and target terms.
   (bvudiv x (bv v n))
   (concat (bv 0 power) (extract (- n 1) power x)))
 ```
-
-Further documentation can be found in [FMCAD 22/Reconstructing Fine-Grained
-Proofs of Rewrites Using a Domain-Specific Language](https://ieeexplore.ieee.org/document/10026573)
 
 ### Gradual Types
 
