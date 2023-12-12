@@ -92,6 +92,14 @@ class InputParserTest extends ParserTest
   }
 
   @Test
+  void nextCommandNoInput()
+  {
+    InputParser p = new InputParser(d_solver);
+    p.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "input_parser_black");
+    assertThrows(CVC5ParserException.class, () -> p.nextCommand());
+  }
+
+  @Test
   void nextTerm()
   {
     InputParser p = new InputParser(d_solver);

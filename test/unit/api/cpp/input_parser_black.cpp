@@ -127,8 +127,6 @@ TEST_F(TestInputParserBlack, nextCommand)
 TEST_F(TestInputParserBlack, nextCommandNoInput)
 {
   InputParser p(&d_solver);
-  ASSERT_THROW(p.nextCommand(), CVC5ApiException);
-  std::stringstream ss;
   p.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6,
                               "input_parser_black");
   ASSERT_THROW(p.nextCommand(), CVC5ApiException);
