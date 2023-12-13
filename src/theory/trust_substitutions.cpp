@@ -24,7 +24,7 @@ namespace theory {
 TrustSubstitutionMap::TrustSubstitutionMap(Env& env,
                                            context::Context* c,
                                            std::string name,
-                                           ProofRule trustId,
+                                           TrustId trustId,
                                            MethodId ids)
     : EnvObj(env),
       d_ctx(c),
@@ -114,7 +114,7 @@ ProofGenerator* TrustSubstitutionMap::addSubstitutionSolved(TNode x,
     // failed to rewrite, we add a trust step which assumes eq is provable
     // from proven, and proceed as normal.
     Trace("trust-subs") << "...failed to rewrite " << proven << std::endl;
-    d_tspb->addStep(ProofRule::TRUST_SUBS_EQ, {proven}, {eq}, eq);
+    d_tspb->addTrustedStep(TrustId::SUBS_EQ, {proven}, {}, eq);
   }
   Trace("trust-subs") << "...successful rewrite" << std::endl;
   solvePg->addSteps(*d_tspb.get());
@@ -232,7 +232,7 @@ std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
                             true))
   {
     // if we fail for any reason, we must use a trusted step instead
-    d_tspb->addStep(ProofRule::TRUST_SUBS_MAP, pfChildren, {eq}, eq);
+    d_tspb->addTrustedStep(TrustId::SUBS_MAP, pfChildren, {}, eq);
   }
   Trace("trust-subs-pf") << "...made steps" << std::endl;
   // -------        ------- from external proof generators

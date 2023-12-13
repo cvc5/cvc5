@@ -818,8 +818,6 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       SET_AND_NOTIFY(Arith, nlCov, true, "QF_UFNRA");
       SET_AND_NOTIFY_IF_NOT_USER(
           Arith, nlExt, options::NlExtMode::LIGHT, "QF_UFNRA");
-      SET_AND_NOTIFY_IF_NOT_USER(
-          Arith, nlRlvMode, options::NlRlvMode::INTERLEAVE, "QF_UFNRA");
     }
   }
   else if (logic.isQuantified() && logic.isTheoryEnabled(theory::THEORY_ARITH)

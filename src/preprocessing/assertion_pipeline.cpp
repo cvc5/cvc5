@@ -53,6 +53,12 @@ void AssertionPipeline::push_back(Node n,
                                   bool isInput,
                                   ProofGenerator* pgen)
 {
+  if (d_conflict)
+  {
+    // if we are already in conflict, we skip. This is required to handle the
+    // case where "false" was already seen as an input assertion.
+    return;
+  }
   if (n == d_false)
   {
     markConflict();
@@ -191,7 +197,7 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
       //   rewrite( d_nodes[i] ^ n )
       // allocate a fresh proof which will act as the proof generator
       LazyCDProof* lcp = d_pppg->allocateHelperProof();
-      lcp->addLazyStep(n, pg, ProofRule::PREPROCESS);
+      lcp->addLazyStep(n, pg, TrustId::PREPROCESS);
       // if newConj was constructed by AND above, use AND_INTRO
       if (newConj != n)
       {

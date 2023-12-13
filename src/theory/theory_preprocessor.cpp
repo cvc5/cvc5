@@ -67,6 +67,7 @@ TheoryPreprocessor::TheoryPreprocessor(Env& env, TheoryEngine& engine)
     ts.push_back(d_tpg.get());
     d_tspg.reset(new TConvSeqProofGenerator(
         pnm, ts, userContext(), "TheoryPreprocessor::sequence"));
+    d_tpid = mkTrustId(TrustId::THEORY_PREPROCESS);
   }
 }
 
@@ -191,13 +192,13 @@ TrustNode TheoryPreprocessor::preprocessLemmaInternal(
     // add the original proof to the lazy proof
     d_lp->addLazyStep(node.getProven(),
                       node.getGenerator(),
-                      ProofRule::THEORY_PREPROCESS_LEMMA);
+                      TrustId::THEORY_PREPROCESS_LEMMA);
     // only need to do anything if lemmap changed in a non-trivial way
     if (!CDProof::isSame(lemmap, lemma))
     {
       d_lp->addLazyStep(tplemma.getProven(),
                         tplemma.getGenerator(),
-                        ProofRule::THEORY_PREPROCESS,
+                        TrustId::THEORY_PREPROCESS,
                         true,
                         "TheoryEngine::lemma_pp");
       // ---------- from node -------------- from theory preprocess
@@ -408,7 +409,7 @@ Node TheoryPreprocessor::rewriteWithProof(Node term,
       Trace("tpp-debug") << "TheoryPreprocessor: addRewriteStep (rewriting) "
                          << term << " -> " << termr << std::endl;
       pg->addRewriteStep(
-          term, termr, ProofRule::REWRITE, {}, {term}, isPre, tctx);
+          term, termr, ProofRule::MACRO_REWRITE, {}, {term}, isPre, tctx);
     }
   }
   return termr;
@@ -486,7 +487,7 @@ void TheoryPreprocessor::registerTrustedRewrite(TrustNode trn,
         options(), "tpp-debug", "TheoryPreprocessor::preprocessWithProof");
     // always use term context hash 0 (default)
     pg->addRewriteStep(
-        term, termr, trn.getGenerator(), isPre, ProofRule::ASSUME, true, tctx);
+        term, termr, trn.getGenerator(), isPre, TrustId::NONE, true, tctx);
   }
   else
   {
@@ -495,9 +496,9 @@ void TheoryPreprocessor::registerTrustedRewrite(TrustNode trn,
     // small step trust
     pg->addRewriteStep(term,
                        termr,
-                       ProofRule::THEORY_PREPROCESS,
+                       ProofRule::TRUST,
                        {},
-                       {term.eqNode(termr)},
+                       {d_tpid, term.eqNode(termr)},
                        isPre,
                        tctx);
   }

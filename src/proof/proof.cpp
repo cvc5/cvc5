@@ -257,6 +257,21 @@ void CDProof::notifyNewProof(Node expected)
   }
 }
 
+bool CDProof::addTrustedStep(Node expected,
+                             TrustId id,
+                             const std::vector<Node>& children,
+                             const std::vector<Node>& args,
+                             bool ensureChildren,
+                             CDPOverwrite opolicy)
+{
+  std::vector<Node> sargs;
+  sargs.push_back(mkTrustId(id));
+  sargs.push_back(expected);
+  sargs.insert(sargs.end(), args.begin(), args.end());
+  return addStep(
+      expected, ProofRule::TRUST, children, sargs, ensureChildren, opolicy);
+}
+
 bool CDProof::addStep(Node expected,
                       const ProofStep& step,
                       bool ensureChildren,

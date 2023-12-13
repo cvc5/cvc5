@@ -20,10 +20,11 @@
 
 #include <map>
 
+#include "cvc5/cvc5_proof_rule.h"
 #include "expr/kind.h"
 #include "expr/node.h"
 #include "proof/method_id.h"
-#include "cvc5/cvc5_proof_rule.h"
+#include "proof/trust_id.h"
 #include "rewriter/rewrites.h"
 #include "theory/inference_id.h"
 #include "theory/theory_id.h"
@@ -64,6 +65,8 @@ class ProofNodeToSExpr
     THEORY_ID,
     // print the argument as a method id
     METHOD_ID,
+    // print the arugment as a trust id
+    TRUST_ID,
     // print the argument as an inference id
     INFERENCE_ID,
     // print the argument as a DSL rewrite id
@@ -85,6 +88,8 @@ class ProofNodeToSExpr
   std::map<theory::TheoryId, Node> d_tidMap;
   /** map method ids to a variable displaying the method id they represent */
   std::map<MethodId, Node> d_midMap;
+  /** map trust ids to a variable displaying the method id they represent */
+  std::map<TrustId, Node> d_tridMap;
   /** map infer ids to a variable displaying the inference id they represent */
   std::map<theory::InferenceId, Node> d_iidMap;
   /** map dsl rewrite ids to a variable displaying the dsl rewrite id they
@@ -109,6 +114,8 @@ class ProofNodeToSExpr
   Node getOrMkTheoryIdVariable(TNode n);
   /** get or make method id variable */
   Node getOrMkMethodIdVariable(TNode n);
+  /** get or make trust id variable */
+  Node getOrMkTrustIdVariable(TNode n);
   /** get or make inference id variable */
   Node getOrMkInferenceIdVariable(TNode n);
   /** get or make DSL rewrite id variable */

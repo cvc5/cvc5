@@ -119,12 +119,46 @@ void Smt2Printer::toStream(std::ostream& out,
                            int toDepth,
                            size_t dag) const
 {
-  if(dag != 0) {
-    LetBinding lbind(dag + 1);
-    toStreamWithLetify(out, n, toDepth, &lbind);
-  } else {
-    toStream(out, n, toDepth);
+  if (dag == 0)
+  {
+    toStream(out, n, nullptr, toDepth);
+    return;
   }
+  LetBinding lbind("_let_", dag + 1);
+
+  std::string cparen;
+  std::vector<Node> letList;
+  lbind.letify(n, letList);
+  if (!letList.empty())
+  {
+    std::stringstream cparens;
+    std::map<Node, uint32_t>::const_iterator it;
+    for (size_t i = 0, nlets = letList.size(); i < nlets; i++)
+    {
+      Node nl = letList[i];
+      out << "(let ((";
+      uint32_t id = lbind.getId(nl);
+      out << "_let_" << id << " ";
+      toStream(out, nl, &lbind, toDepth, false);
+      out << ")) ";
+      cparens << ")";
+    }
+    cparen = cparens.str();
+  }
+  // Print the body, passing the lbind object. Note that we don't convert
+  // n here, and instead rely on the printing method to lookup ids in the
+  // given let binding.
+  toStream(out, n, &lbind, toDepth);
+  out << cparen;
+  lbind.popScope();
+}
+
+void Smt2Printer::toStream(std::ostream& out,
+                           TNode n,
+                           const LetBinding* lbind) const
+{
+  int toDepth = options::ioutils::getNodeDepth(out);
+  toStream(out, n, lbind, toDepth);
 }
 
 void Smt2Printer::toStream(std::ostream& out, TNode n) const
@@ -139,47 +173,10 @@ void Smt2Printer::toStream(std::ostream& out, Kind k) const
   out << smtKindString(k);
 }
 
-void Smt2Printer::toStreamWithLetify(std::ostream& out,
-                                     Node n,
-                                     int toDepth,
-                                     LetBinding* lbind) const
-{
-  if (lbind == nullptr)
-  {
-    toStream(out, n, toDepth);
-    return;
-  }
-  std::string cparen;
-  std::vector<Node> letList;
-  lbind->letify(n, letList);
-  if (!letList.empty())
-  {
-    std::stringstream cparens;
-    std::map<Node, uint32_t>::const_iterator it;
-    for (size_t i = 0, nlets = letList.size(); i < nlets; i++)
-    {
-      Node nl = letList[i];
-      out << "(let ((";
-      uint32_t id = lbind->getId(nl);
-      out << "_let_" << id << " ";
-      Node nlc = lbind->convert(nl, "_let_", false);
-      toStream(out, nlc, toDepth, lbind);
-      out << ")) ";
-      cparens << ")";
-    }
-    cparen = cparens.str();
-  }
-  Node nc = lbind->convert(n, "_let_");
-  // print the body, passing the lbind object
-  toStream(out, nc, toDepth, lbind);
-  out << cparen;
-  lbind->popScope();
-}
-
 bool Smt2Printer::toStreamBase(std::ostream& out,
                                TNode n,
-                               int toDepth,
-                               LetBinding* lbind) const
+                               const LetBinding* lbind,
+                               int toDepth) const
 {
   // null
   if (n.getKind() == Kind::NULL_EXPR)
@@ -229,7 +226,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       out << "(_ BitVec " << n.getConst<BitVectorSize>().d_size << ")";
       break;
     case Kind::FINITE_FIELD_TYPE:
-      out << "(_ FiniteField " << n.getConst<FfSize>().d_size << ")";
+      out << "(_ FiniteField " << n.getConst<FfSize>().d_val << ")";
       break;
     case Kind::FLOATINGPOINT_TYPE:
       out << "(_ FloatingPoint "
@@ -329,7 +326,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       {
         // prints as the corresponding concatentation of seq.unit
         Node cc = theory::strings::utils::mkConcatForConstSequence(n);
-        toStream(out, cc, toDepth);
+        toStream(out, cc, lbind, toDepth);
       }
       break;
     }
@@ -340,7 +337,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       out << "((as const ";
       toStreamType(out, asa.getType());
       out << ") ";
-      toStream(out, asa.getValue(), toDepth < 0 ? toDepth : toDepth - 1);
+      toStream(out, asa.getValue(), lbind, toDepth < 0 ? toDepth : toDepth - 1);
       out << ")";
       break;
     }
@@ -348,7 +345,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
     {
       // prints as the equivalent lambda
       Node lam = theory::uf::FunctionConst::toLambda(n);
-      toStream(out, lam, toDepth);
+      toStream(out, lam, lbind, toDepth);
       break;
     }
 
@@ -546,7 +543,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
     TypeNode typeAsc = n.getOperator().getConst<AscriptionType>().getType();
     // use type ascription
     out << "(as ";
-    toStream(out, n[0], toDepth < 0 ? toDepth : toDepth - 1, lbind);
+    toStream(out, n[0], lbind, toDepth < 0 ? toDepth : toDepth - 1);
     out << " " << typeAsc << ")";
     return true;
   }
@@ -594,14 +591,14 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       // Must print as HO apply instead. This ensures un-beta-reduced function
       // applications can be reparsed.
       Node hoa = theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n);
-      toStream(out, hoa, toDepth);
+      toStream(out, hoa, lbind, toDepth);
       return true;
     }
   }
   else if (k == Kind::CONSTRUCTOR_TYPE)
   {
     Node range = n[n.getNumChildren() - 1];
-    toStream(out, range, toDepth);
+    toStream(out, range, lbind, toDepth);
     return true;
   }
   else if (k == Kind::HO_APPLY && options::ioutils::getFlattenHOChains(out))
@@ -619,11 +616,11 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
         args.insert(args.begin(), head[1]);
         head = head[0];
       }
-      toStream(out, head, toDepth, lbind);
+      toStream(out, head, lbind, toDepth);
       for (unsigned i = 0, size = args.size(); i < size; ++i)
       {
         out << " ";
-        toStream(out, args[i], toDepth, lbind);
+        toStream(out, args[i], lbind, toDepth);
       }
       out << ")";
     }
@@ -632,7 +629,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
   else if (k == Kind::MATCH)
   {
     out << '(' << smtKindString(k) << " ";
-    toStream(out, n[0], toDepth, lbind);
+    toStream(out, n[0], lbind, toDepth);
     out << " (";
     for (size_t i = 1, nchild = n.getNumChildren(); i < nchild; i++)
     {
@@ -640,7 +637,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       {
         out << " ";
       }
-      toStream(out, n[i], toDepth, lbind);
+      toStream(out, n[i], lbind, toDepth);
     }
     out << "))";
     return true;
@@ -666,7 +663,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       for (const Node& nc : n[patIndex])
       {
         out << " ";
-        toStream(out, nc, toDepth, lbind);
+        toStream(out, nc, lbind, toDepth);
       }
       if (n[patIndex].getNumChildren() > 0)
       {
@@ -677,10 +674,10 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
     {
       // otherwise, a variable, just print
       Assert(n[patIndex].isVar());
-      toStream(out, n[patIndex], toDepth, lbind);
+      toStream(out, n[patIndex], lbind, toDepth);
     }
     out << " ";
-    toStream(out, n[patIndex + 1], toDepth, lbind);
+    toStream(out, n[patIndex + 1], lbind, toDepth);
     out << ")";
     return true;
   }
@@ -690,7 +687,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
     for (TNode::iterator i = n.begin(), iend = n.end(); i != iend;)
     {
       out << '(';
-      toStream(out, *i, toDepth < 0 ? toDepth : toDepth - 1);
+      toStream(out, *i, nullptr, toDepth < 0 ? toDepth : toDepth - 1);
       out << ' ' << (*i).getType() << ')';
       if (++i != iend)
       {
@@ -715,7 +712,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
   {
     out << '(' << smtKindString(k) << " ";
     // do not letify the bound variable list
-    toStream(out, n[0], toDepth, nullptr);
+    toStream(out, n[0], nullptr, toDepth);
     out << " ";
     bool needsPrintAnnot = false;
     std::stringstream annot;
@@ -728,13 +725,13 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
         {
           needsPrintAnnot = true;
           annot << " :pattern ";
-          toStream(annot, nc, toDepth, nullptr);
+          toStream(annot, nc, lbind, toDepth);
         }
         else if (nck == Kind::INST_NO_PATTERN)
         {
           needsPrintAnnot = true;
           annot << " :no-pattern ";
-          toStream(annot, nc[0], toDepth, nullptr);
+          toStream(annot, nc[0], lbind, toDepth);
         }
         else if (nck == Kind::INST_POOL || nck == Kind::INST_ADD_TO_POOL
                  || nck == Kind::SKOLEM_ADD_TO_POOL)
@@ -756,7 +753,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
             {
               annot << " ";
             }
-            toStream(annot, nc[i], toDepth, nullptr);
+            toStream(annot, nc[i], lbind, toDepth);
           }
           annot << ")";
         }
@@ -775,7 +772,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
             for (size_t j = 1, nchild = nc.getNumChildren(); j < nchild; j++)
             {
               annot << " ";
-              toStream(annot, nc[j], toDepth, nullptr);
+              toStream(annot, nc[j], lbind, toDepth);
             }
           }
         }
@@ -783,13 +780,13 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
     }
     // Use a fresh let binder, since using existing let symbols may violate
     // scoping issues for let-bound variables, see explanation in let_binding.h.
-    size_t dag = lbind == nullptr ? 0 : lbind->getThreshold()-1;
     if (needsPrintAnnot)
     {
       out << "(! ";
       annot << ")";
     }
-    toStream(out, n[1], toDepth - 1, dag);
+    size_t dag = options::ioutils::getDagThresh(out);
+    toStream(out, n[1], toDepth < 0 ? toDepth : toDepth - 1, dag);
     out << annot.str() << ")";
     return true;
   }
@@ -808,6 +805,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       const RealAlgebraicNumber& ran =
           n.getOperator().getConst<RealAlgebraicNumber>();
       out << "(_ real_algebraic_number " << ran << ")";
+      stillNeedToPrintParams = false;
       break;
     }
     case Kind::INDEXED_ROOT_PREDICATE_OP:
@@ -859,6 +857,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       out << "(_ is ";
       toStream(out,
                dt[cindex].getConstructor(),
+               lbind,
                toDepth < 0 ? toDepth : toDepth - 1);
       out << ")";
     }
@@ -879,6 +878,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
         out << "(_ update ";
         toStream(out,
                  dt[cindex][index].getSelector(),
+                 lbind,
                  toDepth < 0 ? toDepth : toDepth - 1);
         out << ")";
       }
@@ -906,7 +906,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
     if (toDepth != 0)
     {
       toStream(
-          out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, lbind);
+          out, n.getOperator(), lbind, toDepth < 0 ? toDepth : toDepth - 1);
     }
     else
     {
@@ -928,8 +928,9 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
 
 void Smt2Printer::toStream(std::ostream& out,
                            TNode n,
+                           const LetBinding* lbind,
                            int toDepth,
-                           LetBinding* lbind) const
+                           bool lbindTop) const
 {
   std::vector<std::tuple<TNode, size_t, int>> visit;
   TNode cur;
@@ -943,9 +944,27 @@ void Smt2Printer::toStream(std::ostream& out,
     cdepth = std::get<2>(visit.back());
     if (curChild == 0)
     {
+      if (lbind != nullptr)
+      {
+        if (lbindTop)
+        {
+          // see if its letified
+          uint32_t lid = lbind->getId(cur);
+          if (lid != 0)
+          {
+            out << lbind->getPrefix() << lid;
+            visit.pop_back();
+            continue;
+          }
+        }
+        else
+        {
+          lbindTop = true;
+        }
+      }
       // print the operator
       // if printed as standalone, we are done
-      if (toStreamBase(out, cur, cdepth, lbind))
+      if (toStreamBase(out, cur, lbind, cdepth))
       {
         visit.pop_back();
         continue;
@@ -1047,6 +1066,7 @@ std::string Smt2Printer::smtKindString(Kind k)
 
     // ff theory
     case Kind::FINITE_FIELD_ADD: return "ff.add";
+    case Kind::FINITE_FIELD_BITSUM: return "ff.bitsum";
     case Kind::FINITE_FIELD_MULT: return "ff.mul";
     case Kind::FINITE_FIELD_NEG: return "ff.neg";
 
@@ -1080,6 +1100,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::BITVECTOR_SLE: return "bvsle";
     case Kind::BITVECTOR_SGT: return "bvsgt";
     case Kind::BITVECTOR_SGE: return "bvsge";
+    case Kind::BITVECTOR_NEGO: return "bvnego";
     case Kind::BITVECTOR_UADDO: return "bvuaddo";
     case Kind::BITVECTOR_SADDO: return "bvsaddo";
     case Kind::BITVECTOR_UMULO: return "bvumulo";
@@ -1437,15 +1458,13 @@ void Smt2Printer::toStreamModelTerm(std::ostream& out,
   {
     TypeNode rangeType = n.getType().getRangeType();
     out << "(define-fun " << n << " " << value[0] << " " << rangeType << " ";
-    // call toStream and force its type to be proper
-    toStream(out, value[1], -1);
+    toStream(out, value[1]);
     out << ")" << endl;
   }
   else
   {
     out << "(define-fun " << n << " () " << n.getType() << " ";
-    // call toStream and force its type to be proper
-    toStream(out, value, -1);
+    toStream(out, value);
     out << ")" << endl;
   }
 }
@@ -1781,6 +1800,26 @@ void Smt2Printer::toStreamCmdGetDifficulty(std::ostream& out) const
 void Smt2Printer::toStreamCmdGetTimeoutCore(std::ostream& out) const
 {
   out << "(get-timeout-core)" << std::endl;
+}
+
+void Smt2Printer::toStreamCmdGetTimeoutCoreAssuming(
+    std::ostream& out, const std::vector<Node>& assumptions) const
+{
+  out << "(get-timeout-core-assuming (";
+  bool firstTime = true;
+  for (const Node& a : assumptions)
+  {
+    if (firstTime)
+    {
+      firstTime = false;
+    }
+    else
+    {
+      out << " ";
+    }
+    out << a;
+  }
+  out << "))" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetLearnedLiterals(std::ostream& out,

@@ -38,8 +38,8 @@ namespace proof {
 AlfPrinter::AlfPrinter(Env& env, AlfNodeConverter& atp)
     : EnvObj(env), d_tproc(atp), d_termLetPrefix("@t")
 {
-  d_false = NodeManager::currentNM()->mkConst(false);
   d_pfType = NodeManager::currentNM()->mkSort("proofType");
+  d_false = NodeManager::currentNM()->mkConst(false);
 }
 
 bool AlfPrinter::isHandled(const ProofNode* pfn) const
@@ -129,6 +129,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::INSTANTIATE:
     case ProofRule::SKOLEMIZE:
     case ProofRule::ENCODE_PRED_TRANSFORM:
+    case ProofRule::DSL_REWRITE:
     // alf rule is handled
     case ProofRule::ALF_RULE: return true;
     case ProofRule::STRING_REDUCTION:
@@ -243,8 +244,8 @@ void AlfPrinter::printLetList(std::ostream& out, LetBinding& lbind)
   for (size_t i = 0, nlets = letList.size(); i < nlets; i++)
   {
     Node n = letList[i];
-    Node def = lbind.convert(n, d_termLetPrefix, false);
-    Node f = lbind.convert(n, d_termLetPrefix, true);
+    Node def = lbind.convert(n, false);
+    Node f = lbind.convert(n, true);
     // use define command which does not invoke type checking
     out << "(define " << f << " () " << def << ")" << std::endl;
   }
@@ -259,7 +260,7 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   const std::vector<Node>& assertions = pfn->getChildren()[0]->getArguments();
   const ProofNode* pnBody = pfn->getChildren()[0]->getChildren()[0].get();
 
-  LetBinding lbind;
+  LetBinding lbind(d_termLetPrefix);
   AlfPrintChannelPre aletify(lbind);
   AlfPrintChannelOut aprint(out, lbind, d_termLetPrefix);
 
@@ -480,11 +481,9 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
     }
     default: break;
   }
-  ProofNodeToSExpr pntse;
   for (size_t i = 0, nargs = pargs.size(); i < nargs; i++)
   {
-    ProofNodeToSExpr::ArgFormat f = pntse.getArgumentFormat(pn, i);
-    Node av = d_tproc.convert(pntse.getArgument(pargs[i], f));
+    Node av = d_tproc.convert(pargs[i]);
     args.push_back(av);
   }
 }
@@ -537,7 +536,7 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
     out->printTrustStep(pn->getRule(), conclusionPrint, id, conclusion);
     return;
   }
-  std::vector<Node> premises;
+  std::vector<size_t> premises;
   // get the premises
   std::map<Node, size_t>::iterator ita;
   std::map<const ProofNode*, size_t>::iterator itp;
@@ -557,7 +556,7 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
       Assert(itp != d_pletMap.end());
       pid = itp->second;
     }
-    premises.push_back(allocatePremise(pid));
+    premises.push_back(pid);
   }
   std::string rname = getRuleName(pn);
   out->printStep(rname, conclusionPrint, id, premises, args, isPop);
