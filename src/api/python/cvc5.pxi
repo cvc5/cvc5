@@ -909,12 +909,13 @@ cdef class Solver:
             Supports the following arguments:
 
             - ``Sort mkFiniteFieldSort(int size)``
+            - ``Sort mkFiniteFieldSort(string size)``
             - ``Sort mkFiniteFieldSort(string size, int base)``
 
             :param size: The size of the field. Must be a prime-power. 
-                         An integer in the first form.
-                         In the second form, a string representing the value.
-            :param base: The base of the string representation (second form only).
+                         An integer or string of base 10 if the base is not
+                         explicitly given, and else a string in the given base. 
+            :param base: The base of the string representation of ``size``.
         """
         cdef Sort sort = Sort(self)
 
@@ -1511,12 +1512,15 @@ cdef class Solver:
             Supports the following arguments:
 
             - ``Term mkFiniteFieldElem(int value, Sort sort)``
+            - ``Term mkFiniteFieldElem(string value, Sort sort)``
             - ``Term mkFiniteFieldElem(string value, Sort sort, int base)``
 
             :return: A Term representing a finite field value.
             :param value: The value of the element's integer representation.
+                          An integer or string of base 10 if the base is not
+                          explicitly given, and else a string in the given base. 
             :param sort: The field to create the element in.
-            :param base: The base of the string representation.
+            :param base: The base of the string representation of ``value``.
         """
         cdef Term term = Term(self)
 

@@ -3439,7 +3439,7 @@ class CVC5_EXPORT Solver
    * base n.
    *
    * @param size The modulus of the field. Must be prime.
-   * @param base The base of the string representation. Default is 10.
+   * @param base The base of the string representation of `size`.
    * @return The finite-field sort.
    */
   Sort mkFiniteFieldSort(const std::string& size, uint32_t base = 10) const;
@@ -3845,8 +3845,8 @@ class CVC5_EXPORT Solver
    * of base n.
    *
    * @param value The string representation of the constant.
-   * @param sort The field sort.
-   * @param base The base of the string representation. Default is 10.
+   * @param sort  The field sort.
+   * @param base  The base of the string representation of `value`.
    *
    * If `size` is the field size, the constant needs not be in the range
    * [0,size). If it is outside this range, it will be reduced modulo size

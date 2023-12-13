@@ -88,6 +88,8 @@ def test_mk_finite_field_sort(solver):
     solver.mkFiniteFieldSort("31")
     with pytest.raises(RuntimeError):
         solver.mkFiniteFieldSort("6")
+    with pytest.raises(ValueError):
+        solver.mkFiniteFieldSort(solver)
 
     with pytest.raises(RuntimeError):
         solver.mkFiniteFieldSort("b")
@@ -425,45 +427,51 @@ def test_mk_bit_vector(solver):
             solver.mkBitVector(8, "FF", 16)
 
 def test_mk_finite_field_elem(solver):
-  bv = solver.mkBitVectorSort(4)
-  with pytest.raises(RuntimeError):
-    solver.mkFiniteFieldElem("-1", bv)
+    bv = solver.mkBitVectorSort(4)
+    with pytest.raises(RuntimeError):
+      solver.mkFiniteFieldElem("-1", bv)
+    with pytest.raises(ValueError):
+        solver.mkFiniteFieldElem(solver, bv)
 
-  f = solver.mkFiniteFieldSort("7");
+    f = solver.mkFiniteFieldSort("7");
 
-  solver.mkFiniteFieldElem("0", f)
-  solver.mkFiniteFieldElem("1", f)
-  solver.mkFiniteFieldElem("6", f)
-  solver.mkFiniteFieldElem("8", f)
-  solver.mkFiniteFieldElem("-1", f)
+    solver.mkFiniteFieldElem("0", f)
+    solver.mkFiniteFieldElem("1", f)
+    solver.mkFiniteFieldElem("6", f)
+    solver.mkFiniteFieldElem("8", f)
+    solver.mkFiniteFieldElem("-1", f)
 
-  with pytest.raises(RuntimeError):
-      solver.mkFiniteFieldElem("b", f)
+    with pytest.raises(RuntimeError):
+        solver.mkFiniteFieldElem("b", f)
 
-  solver.mkFiniteFieldElem(10, f)
+    solver.mkFiniteFieldElem(10, f)
 
-  solver.mkFiniteFieldSort("b", 16)
-  with pytest.raises(RuntimeError):
-      solver.mkFiniteFieldSort("a", 16)
+    solver.mkFiniteFieldSort("b", 16)
+    with pytest.raises(RuntimeError):
+        solver.mkFiniteFieldSort("a", 16)
 
-  solver.mkFiniteFieldElem("18", f, 16)
-  with pytest.raises(ValueError):
-      solver.mkFiniteFieldElem(0x18, f, 16)
+    solver.mkFiniteFieldElem("18", f, 16)
+    with pytest.raises(ValueError):
+        solver.mkFiniteFieldElem(0x18, f, 16)
 
-  assert solver.mkFiniteFieldElem(10, f) == solver.mkFiniteFieldElem("10", f)
+    assert solver.mkFiniteFieldElem(10, f) == solver.mkFiniteFieldElem("10", f)
 
-  assert solver.mkFiniteFieldElem("-1", f) == solver.mkFiniteFieldElem("6", f)
-  assert solver.mkFiniteFieldElem("1", f) == solver.mkFiniteFieldElem("8", f)
+    assert solver.mkFiniteFieldElem("-1", f) == solver.mkFiniteFieldElem("6", f)
+    assert solver.mkFiniteFieldElem("1", f) == solver.mkFiniteFieldElem("8", f)
 
-  solver.mkFiniteFieldElem("0", f, 2)
-  solver.mkFiniteFieldElem("101", f, 3)
-  solver.mkFiniteFieldElem("-10", f, 7)
-  solver.mkFiniteFieldElem("abcde", f, 16)
+    solver.mkFiniteFieldElem("0", f, 2)
+    solver.mkFiniteFieldElem("101", f, 3)
+    solver.mkFiniteFieldElem("-10", f, 7)
+    solver.mkFiniteFieldElem("abcde", f, 16)
 
-  assert solver.mkFiniteFieldElem("0", f, 2) == solver.mkFiniteFieldElem("0", f, 3)
-  assert solver.mkFiniteFieldElem("11", f, 2) == solver.mkFiniteFieldElem("10", f, 3)
-  assert solver.mkFiniteFieldElem("1010", f, 2) == solver.mkFiniteFieldElem("A", f, 16)
-  assert solver.mkFiniteFieldElem("-22", f, 3) == solver.mkFiniteFieldElem("10", f, 6)
+    assert solver.mkFiniteFieldElem("0", f, 2) \
+            == solver.mkFiniteFieldElem("0", f, 3)
+    assert solver.mkFiniteFieldElem("11", f, 2) \
+            == solver.mkFiniteFieldElem("10", f, 3)
+    assert solver.mkFiniteFieldElem("1010", f, 2) \
+            == solver.mkFiniteFieldElem("A", f, 16)
+    assert solver.mkFiniteFieldElem("-22", f, 3) \
+            == solver.mkFiniteFieldElem("10", f, 6)
 
 def test_mk_var(solver):
     boolSort = solver.getBooleanSort()
