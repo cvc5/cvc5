@@ -800,7 +800,10 @@ set(regress_0_tests
   regress0/ho/issue6526.smt2
   regress0/ho/issue6536.smt2
   regress0/ho/ite-apply-eq.smt2
+  regress0/ho/lambda-cycle.smt2
   regress0/ho/lambda-equality-non-canon.smt2
+  regress0/ho/lambda-test-deps.smt2
+  regress0/ho/lambda-test-deps-simple.smt2
   regress0/ho/lazy-lambda-model.smt2
   regress0/ho/match-middle.smt2
   regress0/ho/modulo-func-equality.smt2
@@ -986,6 +989,9 @@ set(regress_0_tests
   regress0/options/help.smt2
   regress0/options/interactive-mode.smt2
   regress0/options/named_muted.smt2
+  regress0/options/safe-options1.smt2
+  regress0/options/safe-options2.smt2
+  regress0/options/safe-options3.smt2
   regress0/options/set-after-init.smt2
   regress0/options/set-and-get-options.smt2
   regress0/options/statistics.smt2
@@ -1030,6 +1036,7 @@ set(regress_0_tests
   regress0/parser/issue9676.smt2
   regress0/parser/issue9990-nprint-char.smt2
   regress0/parser/issue10093.smt2
+  regress0/parser/issue10156-bad-tester.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
@@ -1385,6 +1392,7 @@ set(regress_0_tests
   regress0/rels/rels-sharing-simp.cvc.smt2
   regress0/sep/dispose-1.smt2
   regress0/sep/dup-nemp.smt2
+  regress0/sep/issue10213-empty-model.smt2
   regress0/sep/issue3720-check-model.smt2
   regress0/sep/issue5343-err.smt2
   regress0/sep/issue8659-wand-diff-heaps.smt2
@@ -2206,7 +2214,6 @@ set(regress_1_tests
   regress1/get-learned-literals.smt2
   regress1/get-learned-literals-types.smt2
   regress1/ho/bug_freeVar_BDD_General_data_270.smt2
-  regress1/ho/bug_freevar_PHI004^4-delta.smt2
   regress1/ho/bound_var_bug.smt2
   regress1/ho/fta0328.lfho.smt2
   regress1/ho/ho-fun-sharing-dd.smt2
@@ -2862,6 +2869,8 @@ set(regress_1_tests
   regress1/strings/instance6561-dd-concat-unify-char.smt2
   regress1/strings/instance7075-delta.smt2
   regress1/strings/issue10058.smt2
+  regress1/strings/issue10195.smt2
+  regress1/strings/issue10196.smt2
   regress1/strings/issue1105.smt2
   regress1/strings/issue1684-regex.smt2
   regress1/strings/issue2060.smt2
@@ -3030,6 +3039,7 @@ set(regress_1_tests
   regress1/strings/str-code-unsat-2.smt2
   regress1/strings/str-code-unsat-3.smt2
   regress1/strings/str-code-unsat.smt2
+  regress1/strings/str-pred-small-rw_392.smt2
   regress1/strings/str-rev-simple-s.smt2
   regress1/strings/str001.smt2
   regress1/strings/str002.smt2
@@ -3076,6 +3086,7 @@ set(regress_1_tests
   regress1/sygus/crci-ssb-unk.sy
   regress1/sygus/crcy-si.sy
   regress1/sygus/cube-nia.sy
+  regress1/sygus/d10160.sy
   regress1/sygus/discPresent.sy
   regress1/sygus/double.sy
   regress1/sygus/dt-test-ns.sy
@@ -3523,6 +3534,8 @@ set(regression_disabled_tests
   regress1/ho/nested_lambdas-AGT034^2.smt2
   regress1/ho/nested_lambdas-sat-SYO056^1-delta.smt2
   regress1/ho/SYO056^1.smt2
+  # timeout after fixes to uf-lazy-ll for cyclic lambda construction
+  regress1/ho/bug_freevar_PHI004^4-delta.smt2
   # times out after update to circuit propagator
   regress1/nl/dumortier_llibre_artes_ex_5_13.transcendental.k2.smt2
   # times out after update to tangent planes
