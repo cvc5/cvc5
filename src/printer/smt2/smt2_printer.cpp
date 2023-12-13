@@ -2031,10 +2031,10 @@ std::string Smt2Printer::sygusGrammarString(const TypeNode& t)
           types_list << ' ';
         }
       }
-      types_list << "))\n";
+      types_list << "))";
     } while (!typesToPrint.empty());
 
-    out << "\n(" << types_predecl.str() << ")\n(" << types_list.str() << ')';
+    out << "(" << types_predecl.str() << ")(" << types_list.str() << ')';
   }
   return out.str();
 }
@@ -2050,7 +2050,6 @@ void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
   toStreamSortedVarList(out, vars);
   // print return type
   out << ' ' << rangeType;
-  out << '\n';
   // print grammar, if any
   if (!sygusType.isNull())
   {
