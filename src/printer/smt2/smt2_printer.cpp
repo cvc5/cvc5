@@ -2001,10 +2001,14 @@ std::string Smt2Printer::sygusGrammarString(const TypeNode& t)
       types_predecl << '(' << dt.getName() << ' ' << dt.getSygusType() << ") ";
       for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
       {
+        if (i>0)
+        {
+          types_list << ' ';
+        }
         const DTypeConstructor& cons = dt[i];
         if (cons.isSygusAnyConstant())
         {
-          types_list << "(Constant " << cons[0].getRangeType() << ") ";
+          types_list << "(Constant " << cons[0].getRangeType() << ")";
         }
         else
         {
@@ -2028,7 +2032,6 @@ std::string Smt2Printer::sygusGrammarString(const TypeNode& t)
           // now, print it using the conversion to builtin with external
           types_list << theory::datatypes::utils::sygusToBuiltin(consToPrint,
                                                                 true);
-          types_list << ' ';
         }
       }
       types_list << "))";
