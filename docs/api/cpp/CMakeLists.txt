@@ -20,6 +20,7 @@ set(DOXYGEN_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/doxygen)
 set(DOXYGEN_INPUT "\
 ${DOXYGEN_INPUT_DIR}/cvc5.h \
 ${DOXYGEN_INPUT_DIR}/cvc5_kind.h \
+${DOXYGEN_INPUT_DIR}/cvc5_parser.h \
 ${DOXYGEN_INPUT_DIR}/cvc5_types.h \
 ${DOXYGEN_INPUT_DIR}/cvc5_proof_rule.h
 ")

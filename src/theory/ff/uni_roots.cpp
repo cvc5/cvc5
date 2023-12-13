@@ -46,12 +46,16 @@ namespace cvc5::internal {
 namespace theory {
 namespace ff {
 
+// Reduce b modulo m, for polynomials b and m.
 CoCoA::RingElem redMod(CoCoA::RingElem b, CoCoA::RingElem m)
 {
   std::vector<CoCoA::RingElem> mm = {m};
   return CoCoA::NR(b, mm);
 }
 
+// Compute b^e modulo m.
+//
+// uses repeated squaring with reductions by m in each step
 CoCoA::RingElem powerMod(CoCoA::RingElem b, CoCoA::BigInt e, CoCoA::RingElem m)
 {
   CoCoA::RingElem acc = CoCoA::owner(b)->myOne();
@@ -83,6 +87,7 @@ CoCoA::RingElem distinctRootsPoly(CoCoA::RingElem f)
   return gcd(f, fieldPoly);
 }
 
+// get a string for `t` from its input
 template <typename T>
 std::string sstring(const T& t)
 {
@@ -158,8 +163,11 @@ std::vector<CoCoA::RingElem> roots(CoCoA::RingElem f)
     Assert(CoCoA::LogCardinality(field) == 1);
     Assert(CoCoA::IsOdd(q));
     CoCoA::BigInt s = q / 2;
-    // Reduce the problem to factoring a product of linears
+    // Reduce the problem to factoring a product of linears.
+    // We need to factor everything in this queue.
     std::vector<CoCoA::RingElem> toFactor{distinctRootsPoly(f)};
+
+    // While there is more to factor.
     while (toFactor.size())
     {
       // Grab a product of linears to factor
@@ -168,7 +176,7 @@ std::vector<CoCoA::RingElem> roots(CoCoA::RingElem f)
       Trace("ff::roots") << "toFactor " << p << std::endl;
       if (CoCoA::deg(p) == 0)
       {
-        // It's dead
+        // It's a constant: no factors
       }
       else if (CoCoA::ConstantCoeff(p) == 0)
       {
@@ -183,21 +191,30 @@ std::vector<CoCoA::RingElem> roots(CoCoA::RingElem f)
       }
       else
       {
-        // Its super-linear, without a zero
+        // Its super-linear, without a zero-root
         while (true)
         {
           // guess random delta
           CoCoA::BigInt deltaInt = CoCoA::RandomBigInt(CoCoA::BigInt(0), q - 1);
           CoCoA::RingElem delta = CoCoA::RingElem(field, deltaInt);
-          // Is the number of common roots with (x - delta)^(q/2) at least 1 and
-          // less than all of them?
-          CoCoA::RingElem h = gcd(p, powerMod(x - delta, s, p) - 1);
+
+          // construct split(X) = (S - delta)^(q/2) - 1.
+          //
+          // the probability (over delta) that some fix field element is a root
+          // of split is exactly 1/2.
+          CoCoA::RingElem split = powerMod(x - delta, s, p) - 1;
+
+          // Is the number of common roots between split and p at least 1 and
+          // less than p's degree?
+          CoCoA::RingElem h = gcd(p, split);
           if (0 < CoCoA::deg(h) && CoCoA::deg(h) < CoCoA::deg(p))
           {
+            // yes: replace p with (p / h) and h in the queue.
             toFactor.push_back(h);
             toFactor.push_back(p / h);
             break;
           }
+          // no: guess a new delta
         }
       }
     }
