@@ -25,7 +25,6 @@
 #include "theory/quantifiers/oracle_checker.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_state.h"
-#include "theory/quantifiers/term_database_eager.h"
 #include "theory/quantifiers/term_util.h"
 
 namespace cvc5::internal {
@@ -75,21 +74,6 @@ void TermRegistry::finishInit(FirstOrderModel* fm,
   {
     d_sygusTdb->finishInit(qim);
   }
-  if (d_termDbEager.get())
-  {
-    d_termDbEager->finishInit(qim);
-  }
-}
-
-void TermRegistry::presolve()
-{
-  // TODO: clear?
-  /*
-  if (d_termDbEager!=nullptr)
-  {
-    d_termDbEager->presolve();
-  }
-  */
 }
 
 void TermRegistry::addTerm(TNode n, bool withinQuant)

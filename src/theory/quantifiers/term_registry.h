@@ -51,8 +51,6 @@ class TermRegistry : protected EnvObj
   TermRegistry(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr);
   /** Finish init, which sets the inference manager on modules of this class */
   void finishInit(FirstOrderModel* fm, QuantifiersInferenceManager* qim);
-  /** Presolve */
-  void presolve();
 
   /**
    * Add term n, which notifies the term database that the ground term n
