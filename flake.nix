@@ -97,11 +97,12 @@
         python
       ];
       # Main build target
-      cvc5 = pkgs.stdenv.mkDerivation ({
+      cvc5 = flags: pkgs.stdenv.mkDerivation ({
         name = "cvc5";
         src = ./.;
         inherit nativeBuildInputs;
         buildInputs = common ++ [cadical' symFPU'];
+        configureFlags = ["--static"] ++ flags;
         cmakeFlags = [
           "-DBUILD_SHARED_LIBS=1"
         ];
@@ -113,7 +114,9 @@
       } // paths);
     in rec {
       packages = {
-        default = cvc5;
+        minimal = cvc5 [];
+        full = cvc5 ["--poly" "--gpl"];
+        default = packages.full;
       };
       devShells.default = pkgs.mkShell {
         buildInputs = nativeBuildInputs ++ common;
