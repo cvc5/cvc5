@@ -45,8 +45,6 @@ class OracleChecker;
  */
 class TermRegistry : protected EnvObj
 {
-  using NodeSet = context::CDHashSet<Node>;
-
  public:
   TermRegistry(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr);
   /** Finish init, which sets the inference manager on modules of this class */
@@ -59,7 +57,7 @@ class TermRegistry : protected EnvObj
    * @param n the term to add
    * @param withinQuant whether n occurs within a quantified formula body
    */
-  void addTerm(Node n, bool withinQuant = false);
+  void addTerm(TNode n, bool withinQuant = false);
 
   /** get term for type
    *
@@ -130,12 +128,8 @@ class TermRegistry : protected EnvObj
   FirstOrderModel* getModel() const;
 
  private:
-  /** has presolve been called */
-  context::CDO<bool> d_presolve;
   /** Whether we are using the fmc model */
   bool d_useFmcModel;
-  /** the set of terms we have seen before presolve */
-  NodeSet d_presolveCache;
   /** term enumeration utility */
   std::unique_ptr<TermEnumeration> d_termEnum;
   /** term enumeration utility */
