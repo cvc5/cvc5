@@ -27,3 +27,5 @@ input mechanisms.
     combination
     sygus-fun
     sygus-inv
+    parser
+    parser_sym_manager
