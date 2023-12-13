@@ -34,6 +34,7 @@ public class Command extends AbstractPointer
    *
    * @param solver The solver to invoke the command on.
    * @param symbolManager The symbol manager to invoke the command on.
+   * @return the output of invoking the command.
    */
   public String invoke(Solver solver, SymbolManager symbolManager)
   {
