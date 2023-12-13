@@ -211,6 +211,7 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::BITVECTOR_SGE, internal::Kind::BITVECTOR_SGE),
         KIND_ENUM(Kind::BITVECTOR_ULTBV, internal::Kind::BITVECTOR_ULTBV),
         KIND_ENUM(Kind::BITVECTOR_SLTBV, internal::Kind::BITVECTOR_SLTBV),
+        KIND_ENUM(Kind::BITVECTOR_NEGO, internal::Kind::BITVECTOR_NEGO),
         KIND_ENUM(Kind::BITVECTOR_UADDO, internal::Kind::BITVECTOR_UADDO),
         KIND_ENUM(Kind::BITVECTOR_SADDO, internal::Kind::BITVECTOR_SADDO),
         KIND_ENUM(Kind::BITVECTOR_UMULO, internal::Kind::BITVECTOR_UMULO),
@@ -7029,25 +7030,33 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
   return std::visit(
       overloaded{
           [&info](const internal::options::OptionInfo::VoidInfo& vi) {
-            return OptionInfo{info.name,
-                              info.aliases,
-                              info.setByUser,
-                              OptionInfo::VoidInfo{}};
+            return OptionInfo{
+                info.name,
+                info.aliases,
+                info.setByUser,
+                info.category
+                    == internal::options::OptionInfo::Category::EXPERT,
+                OptionInfo::VoidInfo{}};
           },
           [&info](const internal::options::OptionInfo::ValueInfo<bool>& vi) {
             return OptionInfo{
                 info.name,
                 info.aliases,
                 info.setByUser,
+                info.category
+                    == internal::options::OptionInfo::Category::EXPERT,
                 OptionInfo::ValueInfo<bool>{vi.defaultValue, vi.currentValue}};
           },
           [&info](
               const internal::options::OptionInfo::ValueInfo<std::string>& vi) {
-            return OptionInfo{info.name,
-                              info.aliases,
-                              info.setByUser,
-                              OptionInfo::ValueInfo<std::string>{
-                                  vi.defaultValue, vi.currentValue}};
+            return OptionInfo{
+                info.name,
+                info.aliases,
+                info.setByUser,
+                info.category
+                    == internal::options::OptionInfo::Category::EXPERT,
+                OptionInfo::ValueInfo<std::string>{vi.defaultValue,
+                                                   vi.currentValue}};
           },
           [&info](
               const internal::options::OptionInfo::NumberInfo<int64_t>& vi) {
@@ -7055,6 +7064,8 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.name,
                 info.aliases,
                 info.setByUser,
+                info.category
+                    == internal::options::OptionInfo::Category::EXPERT,
                 OptionInfo::NumberInfo<int64_t>{
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
@@ -7064,6 +7075,8 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.name,
                 info.aliases,
                 info.setByUser,
+                info.category
+                    == internal::options::OptionInfo::Category::EXPERT,
                 OptionInfo::NumberInfo<uint64_t>{
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
@@ -7072,15 +7085,20 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.name,
                 info.aliases,
                 info.setByUser,
+                info.category
+                    == internal::options::OptionInfo::Category::EXPERT,
                 OptionInfo::NumberInfo<double>{
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
           [&info](const internal::options::OptionInfo::ModeInfo& vi) {
-            return OptionInfo{info.name,
-                              info.aliases,
-                              info.setByUser,
-                              OptionInfo::ModeInfo{
-                                  vi.defaultValue, vi.currentValue, vi.modes}};
+            return OptionInfo{
+                info.name,
+                info.aliases,
+                info.setByUser,
+                info.category
+                    == internal::options::OptionInfo::Category::EXPERT,
+                OptionInfo::ModeInfo{
+                    vi.defaultValue, vi.currentValue, vi.modes}};
           },
       },
       info.valueInfo);
@@ -7785,7 +7803,8 @@ void Solver::setOption(const std::string& option,
         << "', solver is already fully initialized";
   }
   //////// all checks before this line
-  d_slv->setOption(option, value);
+  // mark that the option originated from the user here
+  d_slv->setOption(option, value, true);
   ////////
   CVC5_API_TRY_CATCH_END;
 }

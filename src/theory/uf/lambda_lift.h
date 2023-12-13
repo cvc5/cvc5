@@ -50,6 +50,8 @@ class LambdaLift : protected EnvObj
    * the lambda lifting lemma has already been generated in this context.
    */
   TrustNode lift(Node node);
+  /** Have we lifted node? */
+  bool isLifted(const Node& node) const;
 
   /**
    * This method has the same contract as Theory::ppRewrite.

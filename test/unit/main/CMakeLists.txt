@@ -15,3 +15,4 @@
 
 # Add unit tests.
 cvc5_add_unit_test_black(interactive_shell_black main)
+cvc5_add_unit_test_black(interactive_shell_sygus_black main)

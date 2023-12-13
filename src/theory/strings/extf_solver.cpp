@@ -735,7 +735,12 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
   if (effort >= 1 && n.getType().isStringLike())
   {
     Assert(effort < 3);
-    // normal forms
+    // Return self if the normal form has not been computed. This may happen
+    // for terms that are not relevant in the current context.
+    if (!d_csolver.hasNormalForm(nr))
+    {
+      return n;
+    }
     NormalForm& nfnr = d_csolver.getNormalForm(nr);
     Node ns = d_csolver.getNormalString(nfnr.d_base, exp);
     Trace("strings-subs") << "   normal eqc : " << ns << " " << nfnr.d_base

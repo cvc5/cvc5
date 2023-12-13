@@ -16,6 +16,7 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "expr/sort_type_size.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
@@ -1317,6 +1318,7 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
   ss << "_arg_";
   Rewriter* r = condenseFuncValues ? d_env.getRewriter() : nullptr;
   Node val = ufmt.getFunctionValue(ss.str(), r);
+  Trace("model-builder-debug") << "...assign via function" << std::endl;
   m->assignFunctionDefinition(f, val);
   // ufmt.debugPrint( std::cout, m );
 }
@@ -1351,14 +1353,15 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
       Assert(hn.getKind() == Kind::HO_APPLY);
       Assert(m->areEqual(hn[0], f));
       Node hni = m->getRepresentative(hn[1]);
-      Trace("model-builder-debug2") << "      get rep : " << hn[0]
-                                    << " returned " << hni << std::endl;
+      Trace("model-builder-debug2")
+          << "      get rep : " << hn[1] << " returned " << hni << std::endl;
       Assert(hni.getType() == args[0].getType());
       hni = rewrite(args[0].eqNode(hni));
       Node hnv = m->getRepresentative(hn);
       Trace("model-builder-debug2") << "      get rep val : " << hn
                                     << " returned " << hnv << std::endl;
-      Assert(hnv.isConst());
+      // hnv is expected to be constant but may not be the case if e.g. a non-trivial
+      // lambda is given as argument to this function.
       if (!apply_args.empty())
       {
         // Convert to lambda, which is necessary if hnv is a function array
@@ -1384,60 +1387,9 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
       Kind::LAMBDA,
       NodeManager::currentNM()->mkNode(Kind::BOUND_VAR_LIST, args),
       curr);
+  Trace("model-builder-debug") << "...assign via ho function" << std::endl;
   m->assignFunctionDefinition(f, val);
 }
-
-// This struct is used to sort terms by the "size" of their type
-//   The size of the type is the number of nodes in the type, for example
-//  size of Int is 1
-//  size of Function( Int, Int ) is 3
-//  size of Function( Function( Bool, Int ), Int ) is 5
-struct sortTypeSize
-{
-  // stores the size of the type
-  std::map<TypeNode, unsigned> d_type_size;
-  // get the size of type tn
-  unsigned getTypeSize(TypeNode tn)
-  {
-    std::map<TypeNode, unsigned>::iterator it = d_type_size.find(tn);
-    if (it != d_type_size.end())
-    {
-      return it->second;
-    }
-    else
-    {
-      unsigned sum = 1;
-      for (unsigned i = 0; i < tn.getNumChildren(); i++)
-      {
-        sum += getTypeSize(tn[i]);
-      }
-      d_type_size[tn] = sum;
-      return sum;
-    }
-  }
-
- public:
-  // compares the type size of i and j
-  // returns true iff the size of i is less than that of j
-  // tiebreaks are determined by node value
-  bool operator()(Node i, Node j)
-  {
-    int si = getTypeSize(i.getType());
-    int sj = getTypeSize(j.getType());
-    if (si < sj)
-    {
-      return true;
-    }
-    else if (si == sj)
-    {
-      return i < j;
-    }
-    else
-    {
-      return false;
-    }
-  }
-};
 
 void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
 {
@@ -1452,7 +1404,7 @@ void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
   {
     // sort based on type size if higher-order
     Trace("model-builder") << "Sort functions by type..." << std::endl;
-    sortTypeSize sts;
+    SortTypeSize sts;
     std::sort(funcs_to_assign.begin(), funcs_to_assign.end(), sts);
   }
 
@@ -1473,8 +1425,6 @@ void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
   {
     Node f = funcs_to_assign[k];
     Trace("model-builder") << "  Function #" << k << " is " << f << std::endl;
-    // std::map< Node, std::vector< Node > >::iterator itht =
-    // m->d_ho_uf_terms.find( f );
     if (!logicInfo().isHigherOrder())
     {
       Trace("model-builder") << "  Assign function value for " << f

@@ -165,7 +165,7 @@ Node EmbeddingConverter::process(Node q,
         trules.insert(trules.end(), c.second.begin(), c.second.end());
       }
       tn = SygusGrammarCons::mkDefaultSygusType(
-          options(), preGrammarType, sfvl, trules);
+          d_env, preGrammarType, sfvl, trules);
     }
     // print the grammar
     if (isOutputOn(OutputTag::SYGUS_GRAMMAR))

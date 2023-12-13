@@ -19,8 +19,9 @@
 
 namespace cvc5::internal {
 
-LetBinding::LetBinding(uint32_t thresh)
-    : d_thresh(thresh),
+LetBinding::LetBinding(const std::string& prefix, uint32_t thresh)
+    : d_prefix(prefix),
+      d_thresh(thresh),
       d_context(),
       d_visitList(&d_context),
       d_count(&d_context),
@@ -75,7 +76,7 @@ uint32_t LetBinding::getId(Node n) const
   return (*it).second;
 }
 
-Node LetBinding::convert(Node n, const std::string& prefix, bool letTop) const
+Node LetBinding::convert(Node n, bool letTop) const
 {
   if (d_letMap.empty())
   {
@@ -101,7 +102,7 @@ Node LetBinding::convert(Node n, const std::string& prefix, bool letTop) const
       {
         // make the let variable
         std::stringstream ss;
-        ss << prefix << id;
+        ss << d_prefix << id;
         visited[cur] = nm->mkBoundVar(ss.str(), cur.getType());
       }
       else if (cur.isClosure())
