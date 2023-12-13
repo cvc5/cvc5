@@ -233,6 +233,10 @@ class Smt2Printer : public cvc5::internal::Printer
   /** Print get-timeout-core command */
   void toStreamCmdGetTimeoutCore(std::ostream& out) const override;
 
+  /** Print get-timeout-core-assuming command */
+  void toStreamCmdGetTimeoutCoreAssuming(
+      std::ostream& out, const std::vector<Node>& assumptions) const override;
+
   /** Print get-learned-literals command */
   void toStreamCmdGetLearnedLiterals(std::ostream& out,
                                      modes::LearnedLitType t) const override;

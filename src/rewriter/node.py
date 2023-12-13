@@ -19,9 +19,13 @@ from enum import Enum, auto
 class Op(Enum):
 
     def __new__(cls, symbol, kind):
+        """
+        symbol: The name of the operator in RARE
+        kind: The name of the operator in CVC5
+        """
         entry = object.__new__(cls)
-        entry._value_ = kind  # Kind is unique, symbol is not (nulls)
-        entry.symbol = symbol  # set the value, and the extra attribute
+        entry._value_ = kind
+        entry.symbol = symbol
         entry.kind = kind
         return entry
 
@@ -129,7 +133,9 @@ class Op(Enum):
 
     EQ = ('=', 'EQUAL')
     ITE = ('ite', 'ITE')
-    LAMBDA = (None, 'LAMBDA')  # Special parser backdoor
+    # Lambda is not an operator. It exists here as a backdoor to simplify
+    # parsing logic.
+    LAMBDA = (None, 'LAMBDA')
     BOUND_VARS = (None, 'BOUND_VAR_LIST')
     DISTINCT = ('distinct', 'DISTINCT')
 
@@ -140,7 +146,6 @@ class Op(Enum):
     # Strings
     ###########################################################################
 
-    #CONST_STRING = (None, None)  # FIXME: This is completely unused. Delete?
     STRING_CONCAT = ('str.++', 'STRING_CONCAT')
     STRING_IN_REGEXP = ('str.in_re', 'STRING_IN_REGEXP')
     STRING_LENGTH = ('str.len', 'STRING_LENGTH')
@@ -240,11 +245,11 @@ class Sort(Node):
         self.is_const = is_const
 
     def __eq__(self, other):
-        return self.base == other.base and self.is_list == other.is_list and super(
-        ).__eq__(other)
+        return self.base == other.base and self.is_list == other.is_list and\
+            super().__eq__(other)
 
     def __hash__(self):
-        return hash((self.base, self.is_list, tupe(self.children)))
+        return hash((self.base, self.is_list, tuple(self.children)))
 
     def __repr__(self):
         rep = ''

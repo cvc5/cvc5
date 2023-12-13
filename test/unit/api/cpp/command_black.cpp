@@ -59,6 +59,11 @@ TEST_F(TestCommandBlack, invoke)
   cmd = parseCommand("(get-model)");
   ASSERT_NE(cmd.isNull(), true);
   cmd.invoke(&d_solver, d_symman.get(), out);
+  std::string result = out.str();
+  ASSERT_EQ(
+      "(error \"Cannot get model unless model generation is enabled (try "
+      "--produce-models)\")\n",
+      result);
   // logic already set
   ASSERT_THROW(parseCommand("(set-logic QF_LRA)"), ParserException);
 }

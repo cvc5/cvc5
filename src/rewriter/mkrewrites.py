@@ -52,7 +52,8 @@ def gen_mk_skolem(name, sort):
     elif sort.base == BaseSort.AbsAbs:
         sort_code = 'nm->mkAbstractType(Kind::ABSTRACT_TYPE)'
     elif sort.base == BaseSort.BitVec:
-        # This will result in a compilation error for variable BitVec sizes.
+        assert len(sort.children) == 1, \
+            "BitVec parser generated an incorrect number of children"
         sort_code = f'nm->mkBitVectorType({sort.children[0]})'
     else:
         die(f'Cannot generate code for {sort}')
@@ -80,7 +81,8 @@ def gen_mk_node(defns, expr):
     if defns is not None and expr in defns:
         return defns[expr]
     elif expr.sort and expr.sort.is_const:
-        if isinstance(expr, CInt) or (isinstance(expr, App) and expr.op == Op.NEG):
+        if isinstance(expr, CInt) or \
+           (isinstance(expr, App) and expr.op == Op.NEG):
           return f'nm->mkConstRealOrInt({gen_mk_const(expr)})'
         else:
           return f'nm->mkConst({gen_mk_const(expr)})'
@@ -88,19 +90,22 @@ def gen_mk_node(defns, expr):
         return expr.name
     elif isinstance(expr, App):
         args = ",".join(gen_mk_node(defns, child) for child in expr.children)
-        if (expr.op == Op.EXTRACT or expr.op == Op.REPEAT or expr.op == Op.ZERO_EXTEND or expr.op == Op.SIGN_EXTEND or expr.op == Op.ROTATE_LEFT or expr.op == Op.ROTATE_RIGHT or expr.op == Op.INT_TO_BV):
+        if expr.op in {Op.EXTRACT, Op.REPEAT, Op.ZERO_EXTEND,  Op.SIGN_EXTEND,
+                       Op.ROTATE_LEFT, Op.ROTATE_RIGHT, Op.INT_TO_BV}:
           args = f'nm->mkConst(GenericOp(Kind::{gen_kind(expr.op)})),' + args
           return f'nm->mkNode(Kind::APPLY_INDEXED_SYMBOLIC, {{ {args} }})'
-        else:
-          return f'nm->mkNode(Kind::{gen_kind(expr.op)}, {{ {args} }})'
+        return f'nm->mkNode(Kind::{gen_kind(expr.op)}, {{ {args} }})'
     else:
         die(f'Cannot generate code for {expr}')
 
 
 def gen_rewrite_db_rule(defns, rule):
     fvs_list = ', '.join(bvar.name for bvar in rule.bvars)
-    fixed_point_arg = gen_mk_node(defns, rule.rhs_context) if rule.rhs_context else 'Node::null()'
-    return f'db.addRule(DslProofRule::{rule.get_enum()}, {{ {fvs_list} }}, {gen_mk_node(defns, rule.lhs)}, {gen_mk_node(defns, rule.rhs)}, {gen_mk_node(defns, rule.cond)}, {fixed_point_arg});'
+    fixed_point_arg = gen_mk_node(defns, rule.rhs_context) \
+        if rule.rhs_context else 'Node::null()'
+    return f'db.addRule(DslProofRule::{rule.get_enum()}, {{ {fvs_list} }}, ' \
+           f'{gen_mk_node(defns, rule.lhs)}, {gen_mk_node(defns, rule.rhs)}, '\
+           f'{gen_mk_node(defns, rule.cond)}, {fixed_point_arg});'
 
 
 class Rewrites:
@@ -164,8 +169,8 @@ def validate_rule(rule):
             for child in curr.children:
                 if isinstance(child, Var) and child.sort.is_list:
                     if child in var_to_op and curr.op != var_to_op[child]:
-                        die(f'List variable {child.name} cannot be used in {curr.op} and {var_to_op[child]} simultaneously'
-                            )
+                        die(f'List variable {child.name} cannot be used in '
+                            f'{curr.op} and {var_to_op[child]} simultaneously')
                     var_to_op[child] = curr.op
         elif isinstance(curr, str):
             print(f"Unparsed string detected {curr}")
@@ -174,7 +179,8 @@ def validate_rule(rule):
     # Perform type checking
     lhsHasConst = type_check(rule.lhs)
     if os.getenv('CVC5_RARE_CHECK_CONST', None) is not None and lhsHasConst:
-        print(f"Warning: Rule {rule.name} has constants in its match expression", file=sys.stderr)
+        print(f"Warning: Rule {rule.name} has constants in its match",
+              file=sys.stderr)
     type_check(rule.rhs)
     type_check(rule.cond)
 
@@ -212,7 +218,8 @@ def preprocess_rule(rule, decls):
 
         to_visit.extend(curr.children)
 
-    rule.rhs_context = App(Op.LAMBDA, [App(Op.BOUND_VARS, [bvar]), result[rule.rhs_context]])
+    rule.rhs_context = App(Op.LAMBDA, [App(Op.BOUND_VARS, [bvar]),
+                                       result[rule.rhs_context]])
     type_check(rule.rhs_context)
 
 

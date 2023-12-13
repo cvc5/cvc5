@@ -1,6 +1,6 @@
 # The Grammar of RARE
 
-This document describe the syntax of the RARE language, which stands for
+This document describes the syntax of the RARE language, which stands for
 **r**ewrites, **a**utomatically **re**constructed.
 
 ``` dsl
@@ -21,7 +21,7 @@ This document describe the syntax of the RARE language, which stands for
 
 ### Matching
 
-The basic form of a RARE rewrite rule uses `define-rule`. Each rare rule has a
+The basic form of a RARE rewrite rule uses `define-rule`. Each RARE rule has a
 parameter list. Variables appearing in the parameter list can match any
 expression of the same type.
 
@@ -49,13 +49,13 @@ can be matched.  For example `(= (str.++ x1 x2) x2)`matches `a ++ b = b` but not
 An optional *definition list* may appear immediately after the parameter list to
 include variables representing expressions.
 
-The definition list, indicated by `def`, allow the rewrite rule to be more
+The definition list, indicated by `def`, allows the rewrite rule to be more
 succinctly expressed and readable. Each variable in the definition list is
-replaced by its expression. `def` can be viewed as a special case of `let` which
-only exists in the outermost layer.
+replaced by its expression. `def` can be viewed as a special case of a let-in
+expression which only exists in the outermost layer.
 
 All used variables in match and target must show up in the parameters list and
-`def` list, Variables in the parameter list must be covered by the variables in
+`def` list, variables in the parameter list must be covered by the variables in
 match. Any unmatched variable will lead to an error.
 
 ``` lisp
@@ -86,7 +86,7 @@ evaluable at the time of rule application.
 This rule is applied on `(repeat 3 ...)` but not `(repeat 1 ...)`.
 
 Implicit assumptions (from SMT-LIB3) are not required. An implicit assumption is
-a condition that ensure the well-definedness of some expression. The condition
+a condition that ensures the well-definedness of some expression. The condition
 that the number of repeats in `(repeat n x)` cannot be negative is one such
 example.
 
@@ -118,7 +118,7 @@ reconstruction algorithm until the expression reaches a fixed point. This is an
 optimisation and useful for writing rules that iterate over the arguments of
 n-ary operators.
 
-Below is an example which uses gradual type and recursively flattens a concat
+Below is an example which uses gradual types and recursively flattens a concat
 using fixed-point rules.
 
 ``` lisp
@@ -168,24 +168,25 @@ fixed-point rule.
 
 ## Changes from Previous Works
 
-In comparison to
-[fmcad22](https://ieeexplore.ieee.org/abstract/document/10026573), we have
-removed the `let` expression.  `let` is replaced by `def` which allow symbols to
-be shared across the condition, match, and target terms.
-
-We also deleted the `const` modifier, which existed in some previous works and
-in past versions of the parser. It is not necessary anymore to flag parameters
-as constants. The rationale is that there used to be 3 reasons to use `:const`:
-`:const`:
-1. There should not be a rule that is only sound when its arguments are
-   constant, so `:const` should not exist in this case.
-2. The evaluation of operator applications of all constant arguments is handled
-   by the rewriter, and therefore rules evaluating constant expressions should
-   not exist in RARE
-3. There are some conditional rules in `theory/bv` which only apply when the
-   arguments satisfy a condition. In this case, we could match the required
-   argument using a `(bv v n)` term with variable bit-width `n` instead of an
-   abstract bit-vector term `(y ?BitVec)`. For example,
+Further documentation about the RARE language can be found in [FMCAD
+22/Reconstructing Fine-Grained Proofs of Rewrites Using a Domain-Specific
+Language](https://ieeexplore.ieee.org/document/10026573). The following changes
+have been made since the original publication:
+* `let` expressions are removed and replaced by `def`, which allow symbols to be
+shared across the condition, match, and target terms.
+* `const` modifier is removed. `const` existed in some previous works and in
+  past versions of the parser. It is not necessary anymore to flag parameters as
+  constants. The rationale is that there used to be 3 reasons to use `:const`:
+  `:const`:
+    1. There should not be a rule that is only sound when its arguments are
+       constant, so `:const` should not exist in this case.
+    2. The evaluation of operator applications of all constant arguments is handled
+       by the rewriter, and therefore rules evaluating constant expressions should
+       not exist in RARE
+    3. There are some conditional rules in `theory/bv` which only apply when the
+       arguments satisfy a condition. In this case, we could match the required
+       argument using a `(bv v n)` term with variable bit-width `n` instead of an
+       abstract bit-vector term `(y ?BitVec)`. For example,
 
 ``` lisp
 (define-cond-rule bv-udiv-pow2-1p
@@ -195,8 +196,6 @@ as constants. The rationale is that there used to be 3 reasons to use `:const`:
   (bvudiv x (bv v n))
   (concat (bv 0 power) (extract (- n 1) power x)))
 ```
-
-More information can be found in other works but beware of changes.
 
 ### Gradual Types
 

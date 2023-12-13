@@ -43,7 +43,6 @@ class SymbolTable:
     def add_def(self, name, expr):
         if name in self.consts or name in self.symbols or name in self.defs:
             die(f'Definition {name} has already been declared')
-
         self.defs[name] = expr
 
     def get_symbol(self, name):
@@ -51,14 +50,12 @@ class SymbolTable:
             return self.consts[name]
 
         if name not in self.symbols and name not in self.defs:
-            raise RuntimeError(f'Symbol {name} not declared')
             die(f'Symbol {name} not declared')
-        # Should not matter the order of defs and symbols since collisions are
-        # detected.
+        # Symbol collisions are checked, so symbol name shadowing is not
+        # possible here.
         if name in self.defs:
             return self.defs[name]
-        else:
-            return self.symbols[name]
+        return self.symbols[name]
 
     def pop(self):
         # TODO: Actual push/pop
@@ -80,19 +77,6 @@ class Parser:
     def symbol(self):
         special_chars = '=' + '_' + '+' + '-' + '<' + '>' + '*' + '.'
         return pp.Word(pp.alphas + special_chars, pp.alphanums + special_chars)
-
-    def mk_let(self, let):
-        body = let[-1]
-        for binding in reversed(let[0:-1]):
-            body = App(Op.LET, [binding[0], binding[1], body])
-        return body
-
-    def mk_case(self, cases):
-        if not isinstance(cases[-1], Fn) or cases[-1].op != Op.CASE:
-            cases[-1] = App(Op.CASE, [CBool(True), cases[-1]])
-        else:
-            cases.append(App(Op.CASE, [CBool(True), App(Op.FAIL, [])]))
-        return App(Op.COND, cases)
 
     def app_action(self, s, l, t):
         op = symbol_to_op[t[0]]
@@ -124,25 +108,7 @@ class Parser:
         app = (pp.Suppress('(') + self.symbol() + pp.OneOrMore(expr) +
                pp.Suppress(')')).setParseAction(self.app_action)
 
-        # let and cond are deprecated. These should be removed
-
-        # Let bindings
-        binding = (
-            pp.Suppress('(') + var + expr +
-            pp.Suppress(')')).setParseAction(lambda s, l, t: (t[0], t[1]))
-        let = (pp.Suppress('(') + pp.Keyword('let') + pp.Suppress('(') +
-               pp.OneOrMore(binding) + pp.Suppress(')') + expr +
-               pp.Suppress(')')).setParseAction(lambda s, l, t: mk_let(t[1:]))
-
-        # Conditionals
-        case = (pp.Suppress('(') + expr + expr + pp.Suppress(')')
-                ).setParseAction(lambda s, l, t: App(Op.CASE, [t[0], t[1]]))
-        cond = (
-            pp.Suppress('(') + pp.Keyword('cond') + pp.OneOrMore(case) +
-            pp.Optional(expr) +
-            pp.Suppress(')')).setParseAction(lambda s, l, t: mk_case(t[1:]))
-
-        options = bconst | iconst | strconst | cond | indexed_app | app | let | var
+        options = bconst | iconst | strconst | indexed_app | app | var
         if allow_comprehension:
             lambda_def = (pp.Suppress('(') + pp.Keyword('lambda') +
                           pp.Suppress('(') + self.symbol() + self.sort() +
@@ -183,7 +149,9 @@ class Parser:
             lambda s, l, t: Sort(BaseSort.AbsSet, []))
         abs_abs_sort = pp.Keyword('?').setParseAction(
             lambda s, l, t: Sort(BaseSort.AbsAbs, []))
-        return bv_sort | int_sort | real_sort | bool_sort | string_sort | reglan_sort | abs_array_sort | abs_bv_sort | abs_seq_sort | abs_set_sort |abs_abs_sort
+        return bv_sort | int_sort | real_sort | bool_sort | string_sort | \
+            reglan_sort | abs_array_sort | abs_bv_sort | abs_seq_sort | \
+            abs_set_sort | abs_abs_sort
 
     def var_decl_action(self, name, sort, attrs):
         if attrs:
@@ -204,7 +172,6 @@ class Parser:
         d = pp.Suppress((pp.Suppress('(') + self.symbol() + self.expr()
                          + pp.Suppress(')'))
                 .setParseAction(lambda s, l, t: self.def_decl_action(t[0], t[1])))
-        # The pp.Keyword is suppressed since otherwise it will go into the mkrewrite mechanism
         return pp.Optional(pp.Suppress('(') + pp.Suppress(pp.Keyword('def')) +
                            pp.ZeroOrMore(d) + pp.Suppress(')'))
 
@@ -215,9 +182,9 @@ class Parser:
 
     def parse_rules(self, s):
         def rule_action(s, l, t):
-            # t = [key, args, match, target]
+            keys, args, match, target = t
             assert len(t) == 4
-            return self.rule_action(t[1], CBool(True), t[2], t[3], False, None)
+            return self.rule_action(args, CBool(True), match, target, False, None)
         rule = (
             pp.Suppress('(') +
             pp.Keyword('define-rule') +
@@ -227,7 +194,9 @@ class Parser:
         def fixed_rule_action(s, l, t):
             # t = [key, args, match, target, (cond)]
             assert len(t) == 4 or len(t) == 5
-            return self.rule_action(t[1], CBool(True), t[2], t[3], True, t[4] if len(t) == 5 else None)
+            keys, args, match, target, cond = list(t) + [None] \
+                if len(t) == 4 else t
+            return self.rule_action(args, CBool(True), match, target, True, cond)
         fixed_rule = (
             pp.Suppress('(') +
             pp.Keyword('define-rule*') +
@@ -235,9 +204,8 @@ class Parser:
             self.expr() + self.expr() + pp.Optional(self.expr()) +
             pp.Suppress(')')).setParseAction(fixed_rule_action)
         def cond_rule_action(s, l, t):
-            # t = [key, args, cond, match, target]
-            assert len(t) == 5
-            return self.rule_action(t[1], t[2], t[3], t[4], False, None)
+            keys, args, cond, match, target = t
+            return self.rule_action(args, cond, match, target, False, None)
         cond_rule = (
             pp.Suppress('(') +
             pp.Keyword('define-cond-rule') +
