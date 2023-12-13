@@ -6013,7 +6013,9 @@ Term Solver::mkBitVector(uint32_t size,
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkFiniteFieldElem(const std::string& value, const Sort& sort, uint32_t base) const
+Term Solver::mkFiniteFieldElem(const std::string& value,
+                               const Sort& sort,
+                               uint32_t base) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_ARG_CHECK_EXPECTED(sort.isFiniteField(), sort)

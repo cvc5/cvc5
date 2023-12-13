@@ -3848,11 +3848,13 @@ class CVC5_EXPORT Solver
    * @param sort The field sort.
    * @param base The base of the string representation. Default is 10.
    *
-   * If `size` is the field size, the constant needs not be in the range [0,size).
-   * If it is outside this range, it will be reduced modulo size before being
-   * constructed.
+   * If `size` is the field size, the constant needs not be in the range
+   * [0,size). If it is outside this range, it will be reduced modulo size
+   * before being constructed.
    */
-  Term mkFiniteFieldElem(const std::string& value, const Sort& sort, uint32_t base = 10) const;
+  Term mkFiniteFieldElem(const std::string& value,
+                         const Sort& sort,
+                         uint32_t base = 10) const;
 
   /**
    * Create a constant array with the provided constant value stored at every
