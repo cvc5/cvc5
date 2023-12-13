@@ -198,7 +198,7 @@ bool CommandExecutor::solverInvoke(cvc5::Solver* solver,
   // print output for -o raw-benchmark
   if (solver->isOutputOn("raw-benchmark"))
   {
-    solver->getOutput("raw-benchmark") << cmd->toString();
+    solver->getOutput("raw-benchmark") << cmd->toString() << std::endl;
   }
 
   // In parse-only mode, we do not invoke any of the commands except define-*

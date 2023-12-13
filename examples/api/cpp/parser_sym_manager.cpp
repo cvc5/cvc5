@@ -47,7 +47,7 @@ int main()
     {
       break;
     }
-    std::cout << "Executing command " << cmd << ":" << std::endl;
+    std::cout << "Executing command " << cmd.toString() << ":" << std::endl;
     // invoke the command on the solver and the symbol manager, print the result
     // to std::cout
     cmd.invoke(&slv, &sm, std::cout);
