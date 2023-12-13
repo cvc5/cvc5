@@ -255,7 +255,3 @@ function(check_python_module module)
         "Note: You need to have pip installed for this Python version.")
   endif()
 endfunction()
-
-macro(find_supported_python_version)
-  find_package(Python COMPONENTS Interpreter REQUIRED)
-endmacro()
