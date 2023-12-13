@@ -1,3 +1,16 @@
+diff --git a/configuration/shell-fns.sh b/configuration/shell-fns.sh
+index 190dbb4..c8d281f 100755
+--- a/configuration/shell-fns.sh
++++ b/configuration/shell-fns.sh
+@@ -11,7 +11,7 @@ mktempdir()
+ {
+     TODAY=`date "+%Y%m%d"`
+     TIME=`date "+%H%M%S"`
+-    TMP_DIR="/tmp/CoCoALib-config/$USER-$TODAY/$1-$TIME-$$"
++    TMP_DIR="/tmp/CoCoALib-config-$USER/$USER-$TODAY/$1-$TIME-$$"
+     /bin/rm -rf "$TMP_DIR"  &&  /bin/mkdir -p "$TMP_DIR"
+     if [ $? -ne 0 ]
+     then
 diff --git a/include/CoCoA/TmpGPoly.H b/include/CoCoA/TmpGPoly.H
 index 4c4d51e..efe50f7 100644
 --- a/include/CoCoA/TmpGPoly.H

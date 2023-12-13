@@ -2,6 +2,13 @@ This file contains a summary of important user-visible changes.
 
 **New Features**
 
+- API: The signature of functions `Solver::mkFiniteFieldSort(const std::string&)`
+       and `Solver::mkFiniteFieldElem(const std::string&, const Sort&)` is now
+       extended with an additional (optional) parameter to
+       `Solver::mkFiniteFieldSort(const std::string& size, uint32_t base)` and
+       `Solver::mkFiniteFieldElem(const string& value, const Sort& sort, uint32_t base)`
+       to configure the base of the string representation of the given string
+       parameters.
 - API: A new API for proofs is available.  The new `Proof` class represents
        a node of the proof tree.  The function
        `Solver::getProof(modes::ProofComponent c = modes::ProofComponent::FULL)`
