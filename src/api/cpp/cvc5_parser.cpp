@@ -247,7 +247,7 @@ SymbolManager* InputParser::getSymbolManager() { return d_sm; }
 
 Command InputParser::nextCommand()
 {
-  CVC5_PARSER_API_CHECK(d_parser != nullptr && d_parser->hasInput())
+  CVC5_PARSER_API_CHECK(d_parser != nullptr)
       << "Input to parser not initialized";
   //////// all checks before this line
   Trace("parser") << "nextCommand()" << std::endl;
@@ -257,7 +257,7 @@ Command InputParser::nextCommand()
 
 Term InputParser::nextTerm()
 {
-  CVC5_PARSER_API_CHECK(d_parser != nullptr && d_parser->hasInput())
+  CVC5_PARSER_API_CHECK(d_parser != nullptr)
       << "Input to parser not initialized";
   //////// all checks before this line
   Trace("parser") << "nextTerm()" << std::endl;
@@ -305,6 +305,9 @@ void InputParser::setIncrementalStringInput(modes::InputLanguage lang,
   // initialize the parser
   d_parser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());
   initializeInternal();
+  // Ensure we've initialized the input to empty, which ensures we return
+  // null command/term prior to appendIncrementalStringInput.
+  d_parser->setStringInput("", name);
   ////////
   CVC5_API_TRY_CATCH_END;
 }

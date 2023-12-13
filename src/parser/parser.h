@@ -77,9 +77,6 @@ class Parser : public ParserStateCallback
   /** Parse and return the next expression. */
   Term nextTerm();
 
-  /** Do we have an input? */
-  bool hasInput() const;
-
   /** Is this parser done reading input? */
   bool done() const;
 

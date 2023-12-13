@@ -68,6 +68,7 @@ void Parser::unexpectedEOF(const std::string& msg)
 
 std::unique_ptr<Cmd> Parser::nextCommand()
 {
+  Assert (d_input!=nullptr);
   Trace("parser") << "nextCommand()" << std::endl;
   std::unique_ptr<Cmd> cmd;
   try
@@ -91,6 +92,7 @@ std::unique_ptr<Cmd> Parser::nextCommand()
 
 Term Parser::nextTerm()
 {
+  Assert (d_input!=nullptr);
   Trace("parser") << "nextTerm()" << std::endl;
   Term result;
   if (!d_done)
@@ -116,8 +118,6 @@ Term Parser::nextTerm()
 }
 
 bool Parser::done() const { return d_done; }
-
-bool Parser::hasInput() const { return d_input.get() != nullptr; }
 
 std::unique_ptr<Parser> Parser::mkParser(modes::InputLanguage lang,
                                          Solver* solver,

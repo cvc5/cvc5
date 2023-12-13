@@ -129,7 +129,10 @@ TEST_F(TestInputParserBlack, nextCommandNoInput)
   InputParser p(&d_solver);
   p.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6,
                               "input_parser_black");
-  ASSERT_THROW(p.nextCommand(), CVC5ApiException);
+  Command cmd = p.nextCommand();
+  ASSERT_EQ(cmd.isNull(), true);
+  Term t = p.nextTerm();
+  ASSERT_EQ(t.isNull(), true);
 }
 
 TEST_F(TestInputParserBlack, nextTerm)
