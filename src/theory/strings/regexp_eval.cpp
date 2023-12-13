@@ -86,18 +86,18 @@ class NfaState
       bool accepts = false;
       switch (r.getKind())
       {
-        case CONST_STRING:
+        case Kind::CONST_STRING:
           Assert(r.getConst<String>().size() == 1);
           accepts = (nextChar == r.getConst<String>().front());
           break;
-        case REGEXP_RANGE:
+        case Kind::REGEXP_RANGE:
         {
           unsigned a = r[0].getConst<String>().front();
           unsigned b = r[1].getConst<String>().front();
           accepts = (a <= nextChar && nextChar <= b);
         }
         break;
-        case REGEXP_ALLCHAR: accepts = true; break;
+        case Kind::REGEXP_ALLCHAR: accepts = true; break;
         default: Unreachable() << "Unknown NFA edge " << c.first; break;
       }
       if (accepts)
@@ -121,7 +121,7 @@ class NfaState
     Kind k = r.getKind();
     // Concatenation does not introduce a new state, instead returns the
     // state of the first child.
-    if (k == REGEXP_CONCAT)
+    if (k == Kind::REGEXP_CONCAT)
     {
       NfaState* first = nullptr;
       NfaState* curr = nullptr;
@@ -151,7 +151,7 @@ class NfaState
     std::vector<std::pair<NfaState*, Node>>& sarrows = s->d_arrows;
     switch (k)
     {
-      case STRING_TO_REGEXP:
+      case Kind::STRING_TO_REGEXP:
       {
         Assert(r[0].isConst());
         const String& str = r[0].getConst<String>();
@@ -186,9 +186,9 @@ class NfaState
         }
       }
       break;
-      case REGEXP_ALLCHAR:
-      case REGEXP_RANGE: sarrows.emplace_back(s, r); break;
-      case REGEXP_UNION:
+      case Kind::REGEXP_ALLCHAR:
+      case Kind::REGEXP_RANGE: sarrows.emplace_back(s, r); break;
+      case Kind::REGEXP_UNION:
       {
         // connect to all children via null, take union of arrows
         std::vector<NfaState*>& schildren = s->d_children[Node::null()];
@@ -202,7 +202,7 @@ class NfaState
         }
       }
       break;
-      case REGEXP_STAR:
+      case Kind::REGEXP_STAR:
       {
         NfaState* body = constructInternal(r[0], scache);
         s->d_children[Node::null()].push_back(body);
@@ -256,22 +256,22 @@ bool RegExpEval::canEvaluate(const Node& r)
     {
       switch (cur.getKind())
       {
-        case STRING_TO_REGEXP:
+        case Kind::STRING_TO_REGEXP:
           if (!cur[0].isConst())
           {
             return false;
           }
           break;
-        case REGEXP_RANGE:
+        case Kind::REGEXP_RANGE:
           if (!utils::isCharacterRange(cur))
           {
             return false;
           }
           break;
-        case REGEXP_ALLCHAR: break;
-        case REGEXP_UNION:
-        case REGEXP_CONCAT:
-        case REGEXP_STAR:
+        case Kind::REGEXP_ALLCHAR: break;
+        case Kind::REGEXP_UNION:
+        case Kind::REGEXP_CONCAT:
+        case Kind::REGEXP_STAR:
           for (const Node& cc : cur)
           {
             visit.push_back(cc);

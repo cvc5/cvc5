@@ -30,6 +30,8 @@ from cvc5 cimport Solver as c_Solver
 from cvc5 cimport Statistics as c_Statistics
 from cvc5 cimport Stat as c_Stat
 from cvc5 cimport Grammar as c_Grammar
+from cvc5 cimport Proof as c_Proof
+from cvc5 cimport Sort as c_Sort
 from cvc5 cimport Sort as c_Sort
 from cvc5 cimport Term as c_Term
 from cvc5 cimport hash as c_hash
@@ -41,6 +43,7 @@ from cvc5kinds cimport SortKind as c_SortKind
 from cvc5types cimport BlockModelsMode as c_BlockModelsMode
 from cvc5types cimport RoundingMode as c_RoundingMode
 from cvc5types cimport UnknownExplanation as c_UnknownExplanation
+from cvc5proofrules cimport ProofRule as c_ProofRule
 
 cdef extern from "Python.h":
     wchar_t* PyUnicode_AsWideCharString(object, Py_ssize_t *) except NULL
@@ -2294,11 +2297,34 @@ cdef class Solver:
 
             .. warning:: This method is experimental and may change in future
                          versions.
-            :param c: The component of the proof to return
-            :return: A string representing the proof. This takes into account
-            proof-format-mode when c is FULL.
+            :param c: The component of the proof to return 
+            :return: A vector of proof nodes.
         """
-        return self.csolver.getProof(<c_ProofComponent> c.value)
+        proofs = []
+        for p in self.csolver.getProof(<c_ProofComponent> c.value):
+            proof = Proof(self)
+            proof.cproof = p
+            proofs.append(proof)
+        return proofs
+
+    def proofToString(self, proof,
+                      format = ProofFormat.DEFAULT):
+        """
+            Prints proof into a string with a selected proof format mode.
+            Other aspects of printing are taken from the solver options.
+
+            .. warning:: This method is experimental and may change in
+                         future versions.
+
+            :param proof: A proof, usually obtained from
+                          :py:meth:`getProof()`.
+            :param format: The proof format used to print the proof.  Must be
+                          "None" if the proof is not a full proof.
+
+            :return: The proof printed in the current format.
+        """
+        return self.csolver.proofToString((<Proof?> proof).cproof,
+                                         <c_ProofFormat> format.value)
 
     def getLearnedLiterals(self, type = LearnedLitType.INPUT):
         """
@@ -2601,6 +2627,49 @@ cdef class Solver:
         for a in res.second:
             term = Term(self)
             term.cterm = a
+            core.append(term)
+        cdef Result r = Result()
+        r.cr = res.first
+        return (r, core)
+
+    def getTimeoutCoreAssuming(self, *assumptions):
+        """
+            Get a timeout core, which computes a subset of the given assumptions
+            that cause a timeout when added to the current assertions. Note it
+            does not require being proceeded by a call to checkSat.
+
+            .. code-block:: smtlib
+
+                (get-timeout-core)
+
+            .. warning:: This method is experimental and may change in future
+                         versions.
+
+            :param assumptions: The formulas to assume.
+            :return: The result of the timeout core computation. This is a pair
+             containing a result and a list of formulas. If the result is unknown
+             and the reason is timeout, then the list of formulas correspond to a
+             subset of assumptions that cause a timeout when added to the current
+             assertions in the specified time
+            :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+             If the result is unsat, then the list of formulas plus the current
+             assertions correspond to an unsat core for the current assertions.
+             Otherwise, the result is sat, indicating that the given assumptions plus
+             the current assertions are satisfiable, and the list of formulas is empty.
+
+            This method may make multiple checks for satisfiability internally,
+            each limited by the timeout value given by
+            :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+        """
+        cdef vector[c_Term] v
+        for a in assumptions:
+            v.push_back((<Term?> a).cterm)
+        cdef pair[c_Result, vector[c_Term]] res
+        res = self.csolver.getTimeoutCoreAssuming(v)
+        core = []
+        for ac in res.second:
+            term = Term(self)
+            term.cterm = ac
             core.append(term)
         cdef Result r = Result()
         r.cr = res.first
@@ -4452,3 +4521,53 @@ cdef class Term:
                 res[k] = v
 
             return res
+
+cdef class Proof:
+    """
+        A cvc5 proof.  Proofs are trees and every proof object corresponds to the
+        root step of a proof.  The branches of the root step are the premises of
+        the step.
+
+        Wrapper class for :cpp:class:`cvc5::Proof`.
+    """
+    cdef c_Proof cproof
+    cdef Solver solver
+    def __cinit__(self, Solver solver):
+        self.solver = solver
+
+    def getRule(self):
+        """
+            :return: The proof rule used by the root step of the proof.
+        """
+        return ProofRule(<int> self.cproof.getRule())
+    
+    def getResult(self):
+        """
+            :return: The conclusion of the root step of the proof.
+        """
+        term = Term(self.solver)
+        term.cterm = self.cproof.getResult()
+        return term
+    
+    def getChildren(self):
+        """
+            :return: The premises of the root step of the proof.
+        """
+        proofs = []
+        for p in self.cproof.getChildren():
+            proof = Proof(self.solver)
+            proof.cproof = p
+            proofs.append(proof)
+        return proofs
+
+    def getArguments(self):
+        """
+            :return: The arguments of the root step of the proof as a vector of terms.
+                    Some of those terms might be strings.
+        """
+        args = []
+        for a in self.cproof.getArguments():
+            term = Term(self.solver)
+            term.cterm = a
+            args.append(term)
+        return args

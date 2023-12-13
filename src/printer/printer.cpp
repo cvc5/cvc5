@@ -22,6 +22,7 @@
 #include "options/language.h"
 #include "options/printer_options.h"
 #include "printer/ast/ast_printer.h"
+#include "printer/let_binding.h"
 #include "printer/smt2/smt2_printer.h"
 #include "proof/unsat_core.h"
 #include "smt/model.h"
@@ -51,6 +52,22 @@ unique_ptr<Printer> Printer::makePrinter(Language lang)
       return unique_ptr<Printer>(new printer::ast::AstPrinter());
 
     default: Unhandled() << lang;
+  }
+}
+
+void Printer::toStream(std::ostream& out,
+                       TNode n,
+                       const LetBinding* lbind) const
+{
+  // no special implementation, just convert and print with default prefix
+  if (lbind != nullptr)
+  {
+    Node nc = lbind->convert(n);
+    toStream(out, nc);
+  }
+  else
+  {
+    toStream(out, n);
   }
 }
 
@@ -289,7 +306,7 @@ void Printer::toStreamCmdDefineFunction(std::ostream& out,
   std::vector<Node> formals;
   Node body = lambda;
   TypeNode rangeType = v.getType();
-  if (body.getKind() == kind::LAMBDA)
+  if (body.getKind() == Kind::LAMBDA)
   {
     formals.insert(formals.end(), lambda[0].begin(), lambda[0].end());
     body = lambda[1];
@@ -319,7 +336,7 @@ void Printer::toStreamCmdDefineFunctionRec(
   {
     std::vector<Node> formalsVec;
     Node formula;
-    if (l.getKind() == kind::LAMBDA)
+    if (l.getKind() == Kind::LAMBDA)
     {
       formalsVec.insert(formalsVec.end(), l[0].begin(), l[0].end());
       formula = l[1];
@@ -505,6 +522,12 @@ void Printer::toStreamCmdGetDifficulty(std::ostream& out) const
 void Printer::toStreamCmdGetTimeoutCore(std::ostream& out) const
 {
   printUnknownCommand(out, "get-timeout-core");
+}
+
+void Printer::toStreamCmdGetTimeoutCoreAssuming(
+    std::ostream& out, const std::vector<Node>& assumptions) const
+{
+  printUnknownCommand(out, "get-timeout-core-assuming");
 }
 
 void Printer::toStreamCmdGetLearnedLiterals(std::ostream& out,

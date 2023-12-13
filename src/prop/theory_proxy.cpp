@@ -101,7 +101,10 @@ void TheoryProxy::presolve()
   d_stopSearch = false;
 }
 
-void TheoryProxy::postsolve() { d_theoryEngine->postsolve(); }
+void TheoryProxy::postsolve(SatValue result)
+{
+  d_theoryEngine->postsolve(result);
+}
 
 void TheoryProxy::notifyTopLevelSubstitution(const Node& lhs,
                                              const Node& rhs) const
@@ -258,7 +261,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   Trace("prop-explain") << "explainPropagation() => " << theoryExplanation
                         << std::endl;
   explanation.push_back(l);
-  if (theoryExplanation.getKind() == kind::AND)
+  if (theoryExplanation.getKind() == Kind::AND)
   {
     for (const Node& n : theoryExplanation)
     {

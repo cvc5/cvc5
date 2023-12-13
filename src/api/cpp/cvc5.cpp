@@ -38,7 +38,6 @@
 #include "api/cpp/cvc5_checks.h"
 #include "base/check.h"
 #include "base/configuration.h"
-#include "base/modal_exception.h"
 #include "expr/array_store_all.h"
 #include "expr/ascription_type.h"
 #include "expr/cardinality_constraint.h"
@@ -60,11 +59,11 @@
 #include "options/base_options.h"
 #include "options/expr_options.h"
 #include "options/main_options.h"
-#include "options/option_exception.h"
 #include "options/options.h"
 #include "options/options_public.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
+#include "proof/proof_node.h"
 #include "proof/unsat_core.h"
 #include "smt/env.h"
 #include "smt/model.h"
@@ -212,6 +211,7 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::BITVECTOR_SGE, internal::Kind::BITVECTOR_SGE),
         KIND_ENUM(Kind::BITVECTOR_ULTBV, internal::Kind::BITVECTOR_ULTBV),
         KIND_ENUM(Kind::BITVECTOR_SLTBV, internal::Kind::BITVECTOR_SLTBV),
+        KIND_ENUM(Kind::BITVECTOR_NEGO, internal::Kind::BITVECTOR_NEGO),
         KIND_ENUM(Kind::BITVECTOR_UADDO, internal::Kind::BITVECTOR_UADDO),
         KIND_ENUM(Kind::BITVECTOR_SADDO, internal::Kind::BITVECTOR_SADDO),
         KIND_ENUM(Kind::BITVECTOR_UMULO, internal::Kind::BITVECTOR_UMULO),
@@ -1003,25 +1003,6 @@ class CVC5ApiUnsupportedExceptionStream
   std::stringstream d_stream;
 };
 
-#define CVC5_API_TRY_CATCH_BEGIN \
-  try                            \
-  {
-#define CVC5_API_TRY_CATCH_END                         \
-  }                                                    \
-  catch (const internal::OptionException& e)           \
-  {                                                    \
-    throw CVC5ApiOptionException(e.getMessage());      \
-  }                                                    \
-  catch (const internal::RecoverableModalException& e) \
-  {                                                    \
-    throw CVC5ApiRecoverableException(e.getMessage()); \
-  }                                                    \
-  catch (const internal::Exception& e)                 \
-  {                                                    \
-    throw CVC5ApiException(e.getMessage());            \
-  }                                                    \
-  catch (const std::invalid_argument& e) { throw CVC5ApiException(e.what()); }
-
 }  // namespace
 
 /* -------------------------------------------------------------------------- */
@@ -1367,7 +1348,7 @@ SortKind Sort::getKind() const
   internal::Kind tk = d_type->getKind();
   // Base types are type constants, which have to be special cased to return
   // the appropriate kind.
-  if (tk == internal::kind::TYPE_CONSTANT)
+  if (tk == internal::Kind::TYPE_CONSTANT)
   {
     switch (d_type->getConst<internal::TypeConstant>())
     {
@@ -5037,6 +5018,88 @@ std::ostream& operator<<(std::ostream& out, const Statistics& stats)
   return out;
 }
 
+/*--------------------------------------------------------------------------- */
+/* Proof                                                                      */
+/* -------------------------------------------------------------------------- */
+
+Proof::Proof() {}
+
+Proof::Proof(const std::shared_ptr<internal::ProofNode> p) : d_proof_node(p) {}
+
+Proof::~Proof() {}
+
+ProofRule Proof::getRule() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  if (d_proof_node != nullptr)
+  {
+    return this->getProofNode()->getRule();
+  }
+  return ProofRule::UNKNOWN;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Proof::getResult() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  if (d_proof_node != nullptr)
+  {
+    internal::NodeManager* nm = internal::NodeManager::currentNM();
+    return Term(nm, this->getProofNode()->getResult());
+  }
+  return Term();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+const std::vector<Proof> Proof::getChildren() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  if (d_proof_node != nullptr)
+  {
+    std::vector<Proof> children;
+    std::vector<std::shared_ptr<internal::ProofNode>> node_children =
+        d_proof_node->getChildren();
+    for (size_t i = 0, psize = node_children.size(); i < psize; i++)
+    {
+      children.push_back(Proof(node_children[i]));
+    }
+    return children;
+  }
+  return std::vector<Proof>();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+const std::vector<Term> Proof::getArguments() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  if (d_proof_node != nullptr)
+  {
+    internal::NodeManager* nm = internal::NodeManager::currentNM();
+    std::vector<Term> args;
+    const std::vector<internal::Node> node_args = d_proof_node->getArguments();
+    for (size_t i = 0, asize = node_args.size(); i < asize; i++)
+    {
+      args.push_back(Term(nm, node_args[i]));
+    }
+    return args;
+  }
+  return std::vector<Term>();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+const std::shared_ptr<internal::ProofNode>& Proof::getProofNode(void) const
+{
+  return this->d_proof_node;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
@@ -5073,7 +5136,7 @@ void Solver::increment_vars_consts_stats(const Sort& sort, bool is_var) const
   if constexpr (internal::configuration::isStatisticsBuild())
   {
     const internal::TypeNode tn = sort.getTypeNode();
-    internal::TypeConstant tc = tn.getKind() == internal::kind::TYPE_CONSTANT
+    internal::TypeConstant tc = tn.getKind() == internal::Kind::TYPE_CONSTANT
                                     ? tn.getConst<internal::TypeConstant>()
                                     : internal::LAST_TYPE;
     if (is_var)
@@ -5799,7 +5862,7 @@ Term Solver::mkPi() const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   internal::Node res =
-      d_nm->mkNullaryOperator(d_nm->realType(), internal::kind::PI);
+      d_nm->mkNullaryOperator(d_nm->realType(), internal::Kind::PI);
   (void)res.getType(true); /* kick off type checking */
   return Term(d_nm, res);
   ////////
@@ -5868,7 +5931,7 @@ Term Solver::mkRegexpAll() const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   internal::Node res =
-      d_nm->mkNode(internal::kind::REGEXP_ALL, std::vector<internal::Node>());
+      d_nm->mkNode(internal::Kind::REGEXP_ALL, std::vector<internal::Node>());
   (void)res.getType(true); /* kick off type checking */
   return Term(d_nm, res);
   ////////
@@ -5880,7 +5943,7 @@ Term Solver::mkRegexpNone() const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   internal::Node res =
-      d_nm->mkNode(internal::kind::REGEXP_NONE, std::vector<internal::Node>());
+      d_nm->mkNode(internal::Kind::REGEXP_NONE, std::vector<internal::Node>());
   (void)res.getType(true); /* kick off type checking */
   return Term(d_nm, res);
   ////////
@@ -5891,7 +5954,7 @@ Term Solver::mkRegexpAllchar() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  internal::Node res = d_nm->mkNode(internal::kind::REGEXP_ALLCHAR,
+  internal::Node res = d_nm->mkNode(internal::Kind::REGEXP_ALLCHAR,
                                     std::vector<internal::Node>());
   (void)res.getType(true); /* kick off type checking */
   return Term(d_nm, res);
@@ -5941,7 +6004,7 @@ Term Solver::mkSepNil(const Sort& sort) const
   CVC5_API_SOLVER_CHECK_SORT(sort);
   //////// all checks before this line
   internal::Node res =
-      d_nm->mkNullaryOperator(*sort.d_type, internal::kind::SEP_NIL);
+      d_nm->mkNullaryOperator(*sort.d_type, internal::Kind::SEP_NIL);
   (void)res.getType(true); /* kick off type checking */
   return Term(d_nm, res);
   ////////
@@ -5985,7 +6048,7 @@ Term Solver::mkUniverseSet(const Sort& sort) const
   //////// all checks before this line
 
   internal::Node res = getNodeManager()->mkNullaryOperator(
-      *sort.d_type, internal::kind::SET_UNIVERSE);
+      *sort.d_type, internal::Kind::SET_UNIVERSE);
   // TODO(#2771): Reenable?
   // (void)res->getType(true); /* kick off type checking */
   return Term(d_nm, res);
@@ -6969,25 +7032,33 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
   return std::visit(
       overloaded{
           [&info](const internal::options::OptionInfo::VoidInfo& vi) {
-            return OptionInfo{info.name,
-                              info.aliases,
-                              info.setByUser,
-                              OptionInfo::VoidInfo{}};
+            return OptionInfo{
+                info.name,
+                info.aliases,
+                info.setByUser,
+                info.category
+                    == internal::options::OptionInfo::Category::EXPERT,
+                OptionInfo::VoidInfo{}};
           },
           [&info](const internal::options::OptionInfo::ValueInfo<bool>& vi) {
             return OptionInfo{
                 info.name,
                 info.aliases,
                 info.setByUser,
+                info.category
+                    == internal::options::OptionInfo::Category::EXPERT,
                 OptionInfo::ValueInfo<bool>{vi.defaultValue, vi.currentValue}};
           },
           [&info](
               const internal::options::OptionInfo::ValueInfo<std::string>& vi) {
-            return OptionInfo{info.name,
-                              info.aliases,
-                              info.setByUser,
-                              OptionInfo::ValueInfo<std::string>{
-                                  vi.defaultValue, vi.currentValue}};
+            return OptionInfo{
+                info.name,
+                info.aliases,
+                info.setByUser,
+                info.category
+                    == internal::options::OptionInfo::Category::EXPERT,
+                OptionInfo::ValueInfo<std::string>{vi.defaultValue,
+                                                   vi.currentValue}};
           },
           [&info](
               const internal::options::OptionInfo::NumberInfo<int64_t>& vi) {
@@ -6995,6 +7066,8 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.name,
                 info.aliases,
                 info.setByUser,
+                info.category
+                    == internal::options::OptionInfo::Category::EXPERT,
                 OptionInfo::NumberInfo<int64_t>{
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
@@ -7004,6 +7077,8 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.name,
                 info.aliases,
                 info.setByUser,
+                info.category
+                    == internal::options::OptionInfo::Category::EXPERT,
                 OptionInfo::NumberInfo<uint64_t>{
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
@@ -7012,15 +7087,20 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.name,
                 info.aliases,
                 info.setByUser,
+                info.category
+                    == internal::options::OptionInfo::Category::EXPERT,
                 OptionInfo::NumberInfo<double>{
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
           [&info](const internal::options::OptionInfo::ModeInfo& vi) {
-            return OptionInfo{info.name,
-                              info.aliases,
-                              info.setByUser,
-                              OptionInfo::ModeInfo{
-                                  vi.defaultValue, vi.currentValue, vi.modes}};
+            return OptionInfo{
+                info.name,
+                info.aliases,
+                info.setByUser,
+                info.category
+                    == internal::options::OptionInfo::Category::EXPERT,
+                OptionInfo::ModeInfo{
+                    vi.defaultValue, vi.currentValue, vi.modes}};
           },
       },
       info.valueInfo);
@@ -7126,26 +7206,67 @@ std::pair<Result, std::vector<Term>> Solver::getTimeoutCore() const
       << "Cannot get timeout core unless unsat cores are enabled "
          "(try --produce-unsat-cores)";
   //////// all checks before this line
+  return getTimeoutCoreHelper({});
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::pair<Result, std::vector<Term>> Solver::getTimeoutCoreAssuming(
+    const std::vector<Term>& assumptions) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(!assumptions.empty())
+      << "Cannot get timeout core assuming an empty set of assumptions";
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceUnsatCores)
+      << "Cannot get timeout core unless unsat cores are enabled "
+         "(try --produce-unsat-cores)";
+  //////// all checks before this line
+  return getTimeoutCoreHelper(assumptions);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::pair<Result, std::vector<Term>> Solver::getTimeoutCoreHelper(
+    const std::vector<Term>& assumptions) const
+{
   std::vector<Term> res;
   std::pair<internal::Result, std::vector<internal::Node>> resi =
-      d_slv->getTimeoutCore();
+      d_slv->getTimeoutCore(Term::termVectorToNodes(assumptions));
   for (internal::Node& c : resi.second)
   {
     res.push_back(Term(d_nm, c));
   }
   return std::pair<Result, std::vector<Term>>(Result(resi.first), res);
-  ////////
-  CVC5_API_TRY_CATCH_END;
 }
 
-std::string Solver::getProof(modes::ProofComponent c) const
+std::vector<Proof> Solver::getProof(modes::ProofComponent c) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceProofs)
       << "Cannot get proof unless proofs are enabled (try --produce-proofs)";
   CVC5_API_RECOVERABLE_CHECK(d_slv->getSmtMode() == internal::SmtMode::UNSAT)
       << "Cannot get proof unless in unsat mode.";
-  return d_slv->getProof(c);
+  //////// all checks before this line
+  std::vector<std::shared_ptr<internal::ProofNode>> proof_nodes =
+      d_slv->getProof(c);
+  std::vector<Proof> proofs;
+  for (auto& p : proof_nodes)
+  {
+    proofs.push_back(Proof(p));
+  }
+  return proofs;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::string Solver::proofToString(Proof proof, modes::ProofFormat format) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  std::ostringstream ss;
+  this->d_slv->printProof(ss, proof.getProofNode(), format);
+  return ss.str();
+  ////////
   CVC5_API_TRY_CATCH_END;
 }
 
@@ -7627,6 +7748,8 @@ void Solver::setInfo(const std::string& keyword, const std::string& value) const
 void Solver::setLogic(const std::string& logic) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(!d_slv->isLogicSet())
+      << "Invalid call to 'setLogic', logic is already set";
   CVC5_API_CHECK(!d_slv->isFullyInited())
       << "Invalid call to 'setLogic', solver is already fully initialized";
   //////// all checks before this line
@@ -7682,7 +7805,8 @@ void Solver::setOption(const std::string& option,
         << "', solver is already fully initialized";
   }
   //////// all checks before this line
-  d_slv->setOption(option, value);
+  // mark that the option originated from the user here
+  d_slv->setOption(option, value, true);
   ////////
   CVC5_API_TRY_CATCH_END;
 }

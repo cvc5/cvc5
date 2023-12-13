@@ -124,6 +124,7 @@ option(USE_POLY          "Use LibPoly for polynomial arithmetic")
 # check the intalled system version. If the user provides a directory we
 # immediately fail if the dependency was not found at the specified location.
 set(GLPK_DIR          "" CACHE STRING "Set GLPK install directory")
+set(PYTHONIC_PATH     "" CACHE STRING "Set Pythonic API repository path")
 
 # Prepend binaries with prefix on make install
 set(PROGRAM_PREFIX    "" CACHE STRING "Program prefix on make install")
@@ -339,16 +340,16 @@ if(BUILD_SHARED_LIBS)
   endif()
 else()
   if (WIN32)
-    set(CMAKE_FIND_LIBRARY_SUFFIXES .lib .a .dll)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES .lib .a)
   else()
-    set(CMAKE_FIND_LIBRARY_SUFFIXES .a .so .dylib)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
   endif()
 endif()
 
 if(DEFINED BUILD_BINDINGS_PYTHON_VERSION) 
   find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Interpreter REQUIRED)
 else()
-  find_supported_python_version()
+  find_package(Python COMPONENTS Interpreter REQUIRED)
 endif()
 
 # Some cmake packages are not compatible with the newest version
@@ -697,6 +698,9 @@ print_config("Api docs                  " ${BUILD_DOCS})
 message("")
 if(GLPK_DIR)
   print_config("GLPK dir                  " ${GLPK_DIR})
+endif()
+if(PYTHONIC_PATH)
+  print_config("Pythonic API path         " ${PYTHONIC_PATH})
 endif()
 message("")
 print_config("CPPLAGS (-D...)" "${CVC5_DEFINITIONS}")

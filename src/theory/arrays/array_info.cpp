@@ -141,7 +141,7 @@ void ArrayInfo::addIndex(const Node a, const TNode i) {
 
 void ArrayInfo::addStore(const Node a, const TNode st){
   Assert(a.getType().isArray());
-  Assert(st.getKind() == kind::STORE);  // temporary for flat arrays
+  Assert(st.getKind() == Kind::STORE);  // temporary for flat arrays
 
   CTNodeList* temp_store;
   Info* temp_info;

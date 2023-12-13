@@ -21,8 +21,8 @@ namespace bv {
 
 void BVProofRuleChecker::registerTo(ProofChecker* pc)
 {
-  pc->registerChecker(ProofRule::BV_BITBLAST, this);
-  pc->registerChecker(ProofRule::BV_BITBLAST_STEP, this);
+  pc->registerTrustedChecker(ProofRule::MACRO_BV_BITBLAST, this, 2);
+  pc->registerTrustedChecker(ProofRule::BV_BITBLAST_STEP, this, 2);
   pc->registerChecker(ProofRule::BV_EAGER_ATOM, this);
 }
 
@@ -30,25 +30,25 @@ Node BVProofRuleChecker::checkInternal(ProofRule id,
                                        const std::vector<Node>& children,
                                        const std::vector<Node>& args)
 {
-  if (id == ProofRule::BV_BITBLAST)
+  if (id == ProofRule::MACRO_BV_BITBLAST)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    Assert(args[0].getKind() == kind::EQUAL);
+    Assert(args[0].getKind() == Kind::EQUAL);
     return args[0];
   }
   else if (id == ProofRule::BV_BITBLAST_STEP)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    Assert(args[0].getKind() == kind::EQUAL);
+    Assert(args[0].getKind() == Kind::EQUAL);
     return args[0];
   }
   else if (id == ProofRule::BV_EAGER_ATOM)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    Assert(args[0].getKind() == kind::BITVECTOR_EAGER_ATOM);
+    Assert(args[0].getKind() == Kind::BITVECTOR_EAGER_ATOM);
     return args[0].eqNode(args[0][0]);
   }
   // no rule

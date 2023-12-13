@@ -250,8 +250,7 @@ void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
       && !trn.getGenerator())
   {
     Node actualNode = negated ? node.notNode() : node;
-    d_theoryLemmaPg.addStep(
-        actualNode, ProofRule::THEORY_LEMMA, {}, {actualNode});
+    d_theoryLemmaPg.addTrustedStep(actualNode, TrustId::THEORY_LEMMA, {}, {});
     trn = TrustNode::mkReplaceGenTrustNode(trn, &d_theoryLemmaPg);
   }
   assertInternal(node, negated, removable, false, trn.getGenerator());
@@ -454,7 +453,7 @@ Result PropEngine::checkSat() {
     result = d_satSolver->solve(assumptions);
   }
 
-  d_theoryProxy->postsolve();
+  d_theoryProxy->postsolve(result);
 
   if( result == SAT_VALUE_UNKNOWN ) {
     ResourceManager* rm = resourceManager();
@@ -669,8 +668,8 @@ bool PropEngine::properExplanation(TNode node, TNode expl) const
 
   SatLiteral nodeLit = d_cnfStream->getLiteral(node);
 
-  for (TNode::kinded_iterator i = expl.begin(kind::AND),
-                              i_end = expl.end(kind::AND);
+  for (TNode::kinded_iterator i = expl.begin(Kind::AND),
+                              i_end = expl.end(Kind::AND);
        i != i_end;
        ++i)
   {

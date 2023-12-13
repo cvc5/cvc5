@@ -42,9 +42,9 @@ Node DatatypesProofRuleChecker::checkInternal(ProofRule id,
     Assert(children.size() == 1);
     Assert(args.size() == 1);
     uint32_t i;
-    if (children[0].getKind() != kind::EQUAL
-        || children[0][0].getKind() != kind::APPLY_CONSTRUCTOR
-        || children[0][1].getKind() != kind::APPLY_CONSTRUCTOR
+    if (children[0].getKind() != Kind::EQUAL
+        || children[0][0].getKind() != Kind::APPLY_CONSTRUCTOR
+        || children[0][1].getKind() != Kind::APPLY_CONSTRUCTOR
         || children[0][0].getOperator() != children[0][1].getOperator()
         || !getUInt32(args[0], i))
     {
@@ -82,8 +82,8 @@ Node DatatypesProofRuleChecker::checkInternal(ProofRule id,
     Assert(children.empty());
     Assert(args.size() == 1);
     Node t = args[0];
-    if (t.getKind() != kind::APPLY_SELECTOR
-        || t[0].getKind() != kind::APPLY_CONSTRUCTOR)
+    if (t.getKind() != Kind::APPLY_SELECTOR
+        || t[0].getKind() != Kind::APPLY_CONSTRUCTOR)
     {
       return Node::null();
     }
@@ -112,8 +112,8 @@ Node DatatypesProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.size() == 2);
     Assert(args.empty());
-    if (children[0].getKind() != kind::APPLY_TESTER
-        || children[1].getKind() != kind::APPLY_TESTER
+    if (children[0].getKind() != Kind::APPLY_TESTER
+        || children[1].getKind() != Kind::APPLY_TESTER
         || children[0][0] != children[1][0] || children[0] == children[1])
     {
       return Node::null();

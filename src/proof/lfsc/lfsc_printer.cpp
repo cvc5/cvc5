@@ -95,7 +95,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   // [3] compute the global term letification and declared symbols and types
   Trace("lfsc-print-debug")
       << "; compute global term letification and declared symbols" << std::endl;
-  LetBinding lbind;
+  LetBinding lbind(d_termLetPrefix);
   for (const Node& ia : iasserts)
   {
     lbind.process(ia);
@@ -106,7 +106,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   // in the proof. It is also important for the term processor for collecting
   // symbols and types that are used in the proof.
   LfscPrintChannelPre lpcp(lbind);
-  LetBinding emptyLetBind;
+  LetBinding emptyLetBind(d_termLetPrefix);
   std::map<const ProofNode*, size_t>::iterator itp;
   for (const ProofNode* p : pletList)
   {
@@ -179,7 +179,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   // print datatype definitions for the above sorts
   for (const TypeNode& stc : sts)
   {
-    if (!stc.isDatatype() || stc.getKind() == PARAMETRIC_DATATYPE)
+    if (!stc.isDatatype() || stc.getKind() == Kind::PARAMETRIC_DATATYPE)
     {
       // skip the instance of a parametric datatype
       continue;
@@ -351,7 +351,7 @@ void LfscPrinter::printTypeDefinition(
   }
   processed.insert(tn);
   // print uninterpreted sorts and uninterpreted sort constructors here
-  if (tn.getKind() == SORT_TYPE)
+  if (tn.getKind() == Kind::SORT_TYPE)
   {
     os << "(declare ";
     printType(os, tn);
@@ -370,7 +370,7 @@ void LfscPrinter::printTypeDefinition(
   }
   else if (tn.isDatatype())
   {
-    if (tn.getKind() == PARAMETRIC_DATATYPE)
+    if (tn.getKind() == Kind::PARAMETRIC_DATATYPE)
     {
       // skip the instance of a parametric datatype
       return;
@@ -629,7 +629,7 @@ void LfscPrinter::printProofInternal(
               }
             }
             Node res = d_tproc.convert(cur->getResult());
-            res = lbind.convert(res, d_termLetPrefix, true);
+            res = lbind.convert(res, true);
             out->printTrust(res, r);
             d_trustWarned.insert(r);
             out->printCloseRule(cparenTrustChild);
@@ -646,7 +646,7 @@ void LfscPrinter::printProofInternal(
     else if (!curn.isNull())
     {
       // it has already been converted to internal form, we letify it here
-      Node curni = lbind.convert(curn, d_termLetPrefix, true);
+      Node curni = lbind.convert(curn, true);
       out->printNode(curni);
     }
     // case 3: printing a type node
@@ -805,7 +805,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
          << d_tproc.convertType(children[0]->getResult()[0].getType()) << cs[0];
       break;
     case ProofRule::RE_UNFOLD_POS:
-      if (children[0]->getResult()[1].getKind() != REGEXP_CONCAT)
+      if (children[0]->getResult()[1].getKind() != Kind::REGEXP_CONCAT)
       {
         return false;
       }
@@ -814,7 +814,8 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case ProofRule::STRING_EAGER_REDUCTION:
     {
       Kind k = as[0].getKind();
-      if (k == STRING_TO_CODE || k == STRING_CONTAINS || k == STRING_INDEXOF)
+      if (k == Kind::STRING_TO_CODE || k == Kind::STRING_CONTAINS
+          || k == Kind::STRING_INDEXOF)
       {
         pf << h << as[0] << as[0][0].getType();
       }
@@ -828,7 +829,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case ProofRule::STRING_REDUCTION:
     {
       Kind k = as[0].getKind();
-      if (k == STRING_SUBSTR || k == STRING_INDEXOF)
+      if (k == Kind::STRING_SUBSTR || k == Kind::STRING_INDEXOF)
       {
         pf << h << as[0] << d_tproc.convertType(as[0][0].getType());
       }
@@ -896,9 +897,9 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
         {
           // If the variable is a list variable, we must convert its value to
           // the proper term. This is based on its context.
-          if (as[i].getKind() == SEXPR)
+          if (as[i].getKind() == Kind::SEXPR)
           {
-            Assert(args[i].getKind() == SEXPR);
+            Assert(args[i].getKind() == Kind::SEXPR);
             NodeManager* nm = NodeManager::currentNM();
             Kind k = rpr.getListContext(v);
             // notice we use d_tproc.getNullTerminator and not
@@ -928,7 +929,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
             }
             else
             {
-              if (k == UNDEFINED_KIND)
+              if (k == Kind::UNDEFINED_KIND)
               {
                 Unhandled() << "Unknown context for list variable " << v
                             << " in rule " << di;
@@ -1017,7 +1018,7 @@ void LfscPrinter::printLetify(std::ostream& out, Node n)
   // closing parentheses
   std::stringstream cparen;
 
-  LetBinding lbind;
+  LetBinding lbind(d_termLetPrefix);
   lbind.process(n);
 
   // [1] print the letification
@@ -1066,7 +1067,7 @@ void LfscPrinter::printLetList(std::ostream& out,
 
 void LfscPrinter::printInternal(std::ostream& out, Node n)
 {
-  LetBinding lbind;
+  LetBinding lbind(d_termLetPrefix);
   printInternal(out, n, lbind);
 }
 void LfscPrinter::printInternal(std::ostream& out,
@@ -1074,7 +1075,7 @@ void LfscPrinter::printInternal(std::ostream& out,
                                 LetBinding& lbind,
                                 bool letTop)
 {
-  Node nc = lbind.convert(n, d_termLetPrefix, letTop);
+  Node nc = lbind.convert(n, letTop);
   LfscPrintChannelOut::printNodeInternal(out, nc);
 }
 
@@ -1152,7 +1153,7 @@ void LfscPrinter::printDslRule(std::ostream& out,
       Node tscp;
       if (isConclusion)
       {
-        Assert(sterm.getKind() == EQUAL);
+        Assert(sterm.getKind() == Kind::EQUAL);
         // optimization: don't need nary_elim for heads
         tscp = llsncp.convert(sterm[1]);
         tscp = sterm[0].eqNode(tscp);

@@ -18,6 +18,7 @@
 #include "options/proof_options.h"
 #include "proof/annotation_proof_generator.h"
 #include "proof/eager_proof_generator.h"
+#include "proof/trust_id.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/inference_id_proof_annotator.h"
 #include "theory/output_channel.h"
@@ -152,7 +153,7 @@ void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
   {
     tconf = annotateId(tconf, id, true);
   }
-  d_out.trustedConflict(tconf);
+  d_out.trustedConflict(tconf, id);
   ++d_numConflicts;
 }
 
@@ -292,11 +293,11 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
   if (d_apg != nullptr)
   {
     TrustNode tlema = annotateId(tlem, id);
-    d_out.trustedLemma(tlema, p);
+    d_out.trustedLemma(tlema, id, p);
   }
   else
   {
-    d_out.trustedLemma(tlem, p);
+    d_out.trustedLemma(tlem, id, p);
   }
   return true;
 }
@@ -328,7 +329,7 @@ TrustNode TheoryInferenceManager::mkLemmaExp(Node conc,
   }
   // otherwise, not using proofs, explain and make trust node
   Node ant = mkExplainPartial(exp, noExplain);
-  Node lem = NodeManager::currentNM()->mkNode(kind::IMPLIES, ant, conc);
+  Node lem = NodeManager::currentNM()->mkNode(Kind::IMPLIES, ant, conc);
   return TrustNode::mkTrustLemma(lem, nullptr);
 }
 
@@ -357,7 +358,7 @@ TrustNode TheoryInferenceManager::mkLemmaExp(Node conc,
   }
   // otherwise, not using proofs, explain and make trust node
   Node ant = mkExplainPartial(exp, noExplain);
-  Node lem = NodeManager::currentNM()->mkNode(kind::IMPLIES, ant, conc);
+  Node lem = NodeManager::currentNM()->mkNode(Kind::IMPLIES, ant, conc);
   return TrustNode::mkTrustLemma(lem, nullptr);
 }
 
@@ -441,11 +442,11 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
     for (size_t i = 0; i < expc.size(); i++)
     {
       Node e = expc[i];
-      bool epol = e.getKind() != NOT;
+      bool epol = e.getKind() != Kind::NOT;
       Node eatom = epol ? e : e[0];
       Trace("infer-manager")
           << "...check " << eatom << " " << epol << std::endl;
-      if (eatom.getKind() == AND)
+      if (eatom.getKind() == Kind::AND)
       {
         Assert(epol);
         for (const Node& ea : eatom)
@@ -454,7 +455,7 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
         }
         continue;
       }
-      else if (eatom.getKind() == EQUAL)
+      else if (eatom.getKind() == Kind::EQUAL)
       {
         Assert(d_ee->hasTerm(eatom[0]));
         Assert(d_ee->hasTerm(eatom[1]));
@@ -474,7 +475,7 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
   if (d_pfee == nullptr)
   {
     Trace("infer-manager") << "...assert without proofs..." << std::endl;
-    if (atom.getKind() == kind::EQUAL)
+    if (atom.getKind() == Kind::EQUAL)
     {
       ret = d_ee->assertEquality(atom, pol, expn);
     }
@@ -520,7 +521,7 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
 
 void TheoryInferenceManager::explain(TNode n, std::vector<TNode>& assumptions)
 {
-  if (n.getKind() == kind::AND)
+  if (n.getKind() == Kind::AND)
   {
     for (const Node& nc : n)
     {
@@ -592,10 +593,11 @@ TrustNode TheoryInferenceManager::annotateId(const TrustNode& trn,
   // ensure we have a proof generator, make trusted theory lemma if not
   if (trn.getGenerator() == nullptr)
   {
+    Node tid = mkTrustId(TrustId::THEORY_LEMMA);
     Node tidn =
         builtin::BuiltinProofRuleChecker::mkTheoryIdNode(d_theory.getId());
     trna = d_defaultPg->mkTrustNode(
-        trn.getNode(), ProofRule::THEORY_LEMMA, {}, {lemma, tidn}, isConflict);
+        trn.getNode(), ProofRule::TRUST, {}, {tid, lemma, tidn}, isConflict);
   }
   d_iipa->setAnnotation(lemma, id);
   return d_apg->transform(trna, d_iipa.get());

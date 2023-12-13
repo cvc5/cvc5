@@ -16,6 +16,7 @@
 #include "theory/arrays/inference_manager.h"
 
 #include "options/smt_options.h"
+#include "proof/trust_id.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/theory.h"
 #include "theory/theory_state.h"
@@ -41,7 +42,7 @@ bool InferenceManager::assertInference(
   Trace("arrays-infer") << "TheoryArrays::assertInference: "
                         << (polarity ? Node(atom) : atom.notNode()) << " by "
                         << reason << "; " << id << std::endl;
-  Assert(atom.getKind() == EQUAL);
+  Assert(atom.getKind() == Kind::EQUAL);
   // if proofs are enabled, we determine which proof rule to add, otherwise
   // we simply assert the internal fact
   if (isProofEnabled())
@@ -73,7 +74,7 @@ bool InferenceManager::arrayLemma(
     return trustedLemma(tlem, id, p);
   }
   // send lemma without proofs
-  Node lem = nm->mkNode(IMPLIES, exp, conc);
+  Node lem = nm->mkNode(Kind::IMPLIES, exp, conc);
   return lemma(lem, id, p);
 }
 
@@ -114,15 +115,16 @@ void InferenceManager::convert(ProofRule& id,
       break;
     case ProofRule::ARRAYS_EXT: children.push_back(exp); break;
     default:
-      if (id != ProofRule::THEORY_INFERENCE)
+      if (id != ProofRule::TRUST)
       {
         Assert(false) << "Unknown rule " << id << "\n";
       }
       children.push_back(exp);
+      args.push_back(mkTrustId(TrustId::THEORY_INFERENCE));
       args.push_back(conc);
       args.push_back(
           builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_ARRAYS));
-      id = ProofRule::THEORY_INFERENCE;
+      id = ProofRule::TRUST;
       break;
   }
 }

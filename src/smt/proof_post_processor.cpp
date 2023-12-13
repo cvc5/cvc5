@@ -262,10 +262,10 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     {
       Node eq = ts.eqNode(tr);
       // apply REWRITE proof rule
-      if (!updateInternal(eq, ProofRule::REWRITE, {}, rargs, cdp))
+      if (!updateInternal(eq, ProofRule::MACRO_REWRITE, {}, rargs, cdp))
       {
         // if not elimianted, add as step
-        cdp->addStep(eq, ProofRule::REWRITE, {}, rargs);
+        cdp->addStep(eq, ProofRule::MACRO_REWRITE, {}, rargs);
       }
       tchildren.push_back(eq);
     }
@@ -302,7 +302,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     Trace("smt-proof-pp-debug")
         << "...pred intro conclusion is " << conc << std::endl;
     Assert(!conc.isNull());
-    Assert(conc.getKind() == EQUAL);
+    Assert(conc.getKind() == Kind::EQUAL);
     Assert(conc[0] == args[0]);
     tchildren.push_back(conc);
     if (reqWitness)
@@ -322,7 +322,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     // apply transitivity if necessary
     Node eq = addProofForTrans(tchildren, cdp);
     Assert(!eq.isNull());
-    Assert(eq.getKind() == EQUAL);
+    Assert(eq.getKind() == Kind::EQUAL);
     Assert(eq[0] == args[0]);
     Assert(eq[1] == d_true);
 
@@ -341,7 +341,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     Node conc =
         expandMacros(ProofRule::MACRO_SR_EQ_INTRO, schildren, srargs, cdp);
     Assert(!conc.isNull());
-    Assert(conc.getKind() == EQUAL);
+    Assert(conc.getKind() == Kind::EQUAL);
     Assert(conc[0] == children[0]);
     // apply equality resolve
     cdp->addStep(conc[1], ProofRule::EQ_RESOLVE, {children[0], conc}, {});
@@ -387,7 +387,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
           expandMacros(ProofRule::MACRO_SR_EQ_INTRO, schildren, sargs, cdp);
       Trace("smt-proof-pp-debug")
           << "transform subs_rewrite (" << r << "): " << eq << std::endl;
-      Assert(!eq.isNull() && eq.getKind() == EQUAL && eq[0] == sargs[0]);
+      Assert(!eq.isNull() && eq.getKind() == Kind::EQUAL && eq[0] == sargs[0]);
       addToTransChildren(eq, tchildrenr);
       // apply_SR(t) = toWitness(apply_SR(t))
       if (reqWitness)
@@ -473,7 +473,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     size_t initProofSize = cdp->getNumProofNodes();
     NodeManager* nm = NodeManager::currentNM();
     // If we got here, then chainConclusion is NECESSARILY an OR node
-    Assert(chainConclusion.getKind() == kind::OR);
+    Assert(chainConclusion.getKind() == Kind::OR);
     // get the literals in the chain conclusion
     std::vector<Node> chainConclusionLits{chainConclusion.begin(),
                                           chainConclusion.end()};
@@ -507,7 +507,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     }
     else
     {
-      Assert(args[0].getKind() == kind::OR);
+      Assert(args[0].getKind() == Kind::OR);
       conclusionLits.insert(
           conclusionLits.end(), args[0].begin(), args[0].end());
     }
@@ -543,7 +543,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       }
       else
       {
-        Assert(chainConclusion.getKind() == kind::OR);
+        Assert(chainConclusion.getKind() == Kind::OR);
         chainConclusionLits.insert(chainConclusionLits.end(),
                                    chainConclusion.begin(),
                                    chainConclusion.end());
@@ -578,16 +578,15 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
         factoredLits.push_back(n[i]);
         clauseSet.insert(n[i]);
       }
-      Node factored = factoredLits.empty()
-                          ? nm->mkConst(false)
-                          : factoredLits.size() == 1
-                                ? factoredLits[0]
-                                : nm->mkNode(kind::OR, factoredLits);
+      Node factored = factoredLits.empty() ? nm->mkConst(false)
+                      : factoredLits.size() == 1
+                          ? factoredLits[0]
+                          : nm->mkNode(Kind::OR, factoredLits);
       cdp->addStep(factored, ProofRule::FACTORING, {n}, {});
       n = factored;
     }
     // either same node or n as a clause
-    Assert(n == args[0] || n.getKind() == kind::OR);
+    Assert(n == args[0] || n.getKind() == Kind::OR);
     // reordering
     if (n != args[0])
     {
@@ -641,7 +640,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       builtin::BuiltinProofRuleChecker::getSubstitutionFor(
           children[i], vsList, ssList, fromList, ids);
       // ensure proofs for each formula in fromList
-      if (children[i].getKind() == AND && ids == MethodId::SB_DEFAULT)
+      if (children[i].getKind() == Kind::AND && ids == MethodId::SB_DEFAULT)
       {
         for (size_t j = 0, nchildi = children[i].getNumChildren(); j < nchildi;
              j++)
@@ -783,7 +782,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
             << eq << std::endl
             << eqq << std::endl
             << "from " << children << " applied to " << t << std::endl;
-        cdp->addStep(eqq, ProofRule::TRUST_SUBS, children, {eqq});
+        cdp->addTrustedStep(eqq, TrustId::SUBS_NO_ELABORATE, children, {});
       }
     }
     else
@@ -792,7 +791,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     }
     return eqq;
   }
-  else if (id == ProofRule::REWRITE)
+  else if (id == ProofRule::MACRO_REWRITE)
   {
     // get the kind of rewrite
     MethodId idr = MethodId::RW_REWRITE;
@@ -818,15 +817,16 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
         // did not have a proof of rewriting, probably isExtEq is true
         if (isExtEq)
         {
-          // update to THEORY_REWRITE with idr
+          // update to TRUST_THEORY_REWRITE with idr
           Assert(args.size() >= 1);
           Node tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
-          cdp->addStep(eq, ProofRule::THEORY_REWRITE, {}, {eq, tid, args[1]});
+          cdp->addStep(
+              eq, ProofRule::TRUST_THEORY_REWRITE, {}, {eq, tid, args[1]});
         }
         else
         {
           // this should never be applied
-          cdp->addStep(eq, ProofRule::TRUST_REWRITE, {}, {eq});
+          cdp->addTrustedStep(eq, TrustId::REWRITE_NO_ELABORATE, {}, {});
         }
       }
       else
@@ -852,7 +852,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       // rewriter
       for (size_t i = 0; i < 2; i++)
       {
-        if (i == 1 && retCurr.getKind() != EQUAL)
+        if (i == 1 && retCurr.getKind() != Kind::EQUAL)
         {
           break;
         }
@@ -864,7 +864,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
           // will expand this as a default rewrite if needed
           Node eqd = retCurr.eqNode(retDef);
           Node mid = mkMethodId(midi);
-          cdp->addStep(eqd, ProofRule::REWRITE, {}, {retCurr, mid});
+          cdp->addStep(eqd, ProofRule::MACRO_REWRITE, {}, {retCurr, mid});
           transEq.push_back(eqd);
         }
         retCurr = retDef;
@@ -886,7 +886,8 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
         // in this case, must be a non-standard rewrite kind
         Assert(args.size() >= 2);
         targs.push_back(args[1]);
-        Node eqpp = expandMacros(ProofRule::THEORY_REWRITE, {}, targs, cdp);
+        Node eqpp =
+            expandMacros(ProofRule::TRUST_THEORY_REWRITE, {}, targs, cdp);
         transEq.push_back(eqp);
         if (eqpp.isNull())
         {
@@ -929,8 +930,8 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       TNode child = children[i];
       TNode scalar = args[i];
       bool isPos = scalar.getConst<Rational>() > 0;
-      Node scalarCmp =
-          nm->mkNode(isPos ? GT : LT, scalar, nm->mkConstInt(Rational(0)));
+      Node scalarCmp = nm->mkNode(
+          isPos ? Kind::GT : Kind::LT, scalar, nm->mkConstInt(Rational(0)));
       // (= scalarCmp true)
       Node scalarCmpOrTrue =
           steps.tryStep(ProofRule::EVALUATE, {}, {scalarCmp});
@@ -960,7 +961,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
                           << std::endl;
     return sumBounds;
   }
-  else if (id == ProofRule::STRING_INFERENCE)
+  else if (id == ProofRule::MACRO_STRING_INFERENCE)
   {
     // get the arguments
     Node conc;
@@ -977,11 +978,11 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       }
     }
   }
-  else if (id == ProofRule::BV_BITBLAST)
+  else if (id == ProofRule::MACRO_BV_BITBLAST)
   {
     bv::BBProof bb(d_env, nullptr, true);
     Node eq = args[0];
-    Assert(eq.getKind() == EQUAL);
+    Assert(eq.getKind() == Kind::EQUAL);
     bb.bbAtom(eq[0]);
     Node bbAtom = bb.getStoredBBAtom(eq[0]);
     bb.getProofGenerator()->addProofTo(eq[0].eqNode(bbAtom), cdp);
@@ -996,7 +997,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     }
     bool reqTrueElim = false;
     // if not an equality, make (= res true).
-    if (res.getKind() != EQUAL)
+    if (res.getKind() != Kind::EQUAL)
     {
       res = res.eqNode(d_true);
       reqTrueElim = true;
@@ -1004,7 +1005,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     TheoryId tid = THEORY_LAST;
     MethodId mid = MethodId::RW_REWRITE;
     // if theory rewrite, get diagnostic information
-    if (id == ProofRule::THEORY_REWRITE)
+    if (id == ProofRule::TRUST_THEORY_REWRITE)
     {
       builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
       getMethodId(args[2], mid);
@@ -1025,9 +1026,6 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     }
     // otherwise no update
   }
-
-  // TRUST, PREPROCESS, THEORY_LEMMA, THEORY_PREPROCESS?
-
   return Node::null();
 }
 
@@ -1100,14 +1098,14 @@ bool ProofPostprocessCallback::addToTransChildren(Node eq,
                                                   bool isSymm)
 {
   Assert(!eq.isNull());
-  Assert(eq.getKind() == kind::EQUAL);
+  Assert(eq.getKind() == Kind::EQUAL);
   if (eq[0] == eq[1])
   {
     return false;
   }
   Node equ = isSymm ? eq[1].eqNode(eq[0]) : eq;
   Assert(tchildren.empty()
-         || (tchildren[tchildren.size() - 1].getKind() == kind::EQUAL
+         || (tchildren[tchildren.size() - 1].getKind() == Kind::EQUAL
              && tchildren[tchildren.size() - 1][1] == equ[0]));
   tchildren.push_back(equ);
   return true;

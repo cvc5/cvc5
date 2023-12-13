@@ -54,6 +54,7 @@ class DTypeSelector;
 class NodeManager;
 class SolverEngine;
 class TypeNode;
+class ProofNode;
 class Options;
 class Random;
 class Rational;
@@ -104,10 +105,23 @@ class CVC5_EXPORT CVC5ApiException : public std::exception
    */
   const char* what() const noexcept override { return d_msg.c_str(); }
 
+  /**
+   * Printing: feel free to redefine toStream().  When overridden in
+   * a derived class, it's recommended that this method print the
+   * type of exception before the actual message.
+   */
+  virtual void toStream(std::ostream& os) const { os << d_msg; }
+
  private:
   /** The stored error message. */
   std::string d_msg;
 };
+
+inline std::ostream& operator<<(std::ostream& os, const CVC5ApiException& e)
+{
+  e.toStream(os);
+  return os;
+}
 
 /**
  * A recoverable API exception.
@@ -1118,6 +1132,7 @@ class CVC5_EXPORT Term
   friend class Datatype;
   friend class DatatypeConstructor;
   friend class DatatypeSelector;
+  friend class Proof;
   friend class Solver;
   friend class Grammar;
   friend class SynthResult;
@@ -3096,6 +3111,8 @@ struct CVC5_EXPORT OptionInfo
   std::vector<std::string> aliases;
   /** Whether the option was explicitly set by the user */
   bool setByUser;
+  /** Whether this is an expert option */
+  bool isExpert;
   /** Possible types for ``valueInfo``. */
   using OptionInfoVariant = std::variant<VoidInfo,
                                          ValueInfo<bool>,
@@ -3329,6 +3346,56 @@ std::ostream& operator<<(std::ostream& out,
                          const Statistics& stats) CVC5_EXPORT;
 
 /* -------------------------------------------------------------------------- */
+/* Proof                                                                      */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A cvc5 proof.  Proofs are trees and every proof object corresponds to the
+ * root step of a proof.  The branches of the root step are the premises of
+ * the step.
+ */
+class CVC5_EXPORT Proof
+{
+  friend class Solver;
+
+ public:
+  /** @return The proof rule used by the root step of the proof. */
+  ProofRule getRule() const;
+
+  /** @return The conclusion of the root step of the proof. */
+  Term getResult() const;
+
+  /** @return The premises of the root step of the proof. */
+  const std::vector<Proof> getChildren() const;
+
+  /**
+   * @return The arguments of the root step of the proof as a vector of terms.
+   *         Some of those terms might be strings.
+   */
+  const std::vector<Term> getArguments() const;
+
+  /*
+   * Destructor.
+   */
+  ~Proof();
+
+  /**
+   * Nullary constructor. Needed for the Cython API.
+   */
+  Proof();
+
+ private:
+  /** Construct a proof by wrapping a ProofNode. */
+  Proof(const std::shared_ptr<internal::ProofNode> p);
+
+  /** @return The internal proof node wrapped by this proof object. */
+  const std::shared_ptr<internal::ProofNode>& getProofNode(void) const;
+
+  /** The internal proof node wrapped by this proof object. */
+  std::shared_ptr<internal::ProofNode> d_proof_node;
+};
+
+/* -------------------------------------------------------------------------- */
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
 
@@ -3346,6 +3413,7 @@ class CVC5_EXPORT Solver
   friend class Grammar;
   friend class Op;
   friend class parser::Cmd;
+  friend class Proof;
   friend class main::CommandExecutor;
   friend class Sort;
   friend class Term;
@@ -4456,6 +4524,35 @@ class CVC5_EXPORT Solver
   std::pair<Result, std::vector<Term>> getTimeoutCore() const;
 
   /**
+   * Get a timeout core, which computes a subset of the given assumptions that
+   * cause a timeout when added to the current assertions. Note it does not
+   * require being proceeded by a call to checkSat.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-timeout-core (<assert>*))
+   * \endverbatim
+   *
+   * @warning This function is experimental and may change in future versions.
+   *
+   * @param assumptions The (non-empty) set of formulas to assume.
+   * @return The result of the timeout core computation. This is a pair
+   * containing a result and a list of formulas. If the result is unknown
+   * and the reason is timeout, then the list of formulas correspond to a
+   * subset of assumptions that cause a timeout when added to the current
+   * assertions in the specified time
+   * :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+   * If the result is unsat, then the list of formulas plus the current
+   * assertions correspond to an unsat core for the current assertions.
+   * Otherwise, the result is sat, indicating that the given assumptions plus
+   * the current assertions are satisfiable, and the list of formulas is empty.
+   */
+  std::pair<Result, std::vector<Term>> getTimeoutCoreAssuming(
+      const std::vector<Term>& assumptions) const;
+  /**
    * Get a proof associated with the most recent call to checkSat.
    *
    * SMT-LIB:
@@ -4474,12 +4571,26 @@ class CVC5_EXPORT Solver
    * @warning This function is experimental and may change in future versions.
    *
    * @param c The component of the proof to return
-   * @return A string representing the proof. This takes into account
-   * :ref:`proof-format-mode <lbl-option-proof-format-mode>` when `c` is
-   * `ProofComponent::FULL`.
+   * @return A vector of proofs.
    */
-  std::string getProof(
+  std::vector<Proof> getProof(
       modes::ProofComponent c = modes::ProofComponent::FULL) const;
+
+  /**
+   * Prints a proof as a string in a selected proof format mode.
+   * Other aspects of printing are taken from the solver options.
+   *
+   * @warning This function is experimental and may change in future versions.
+   *
+   * @param proof A proof, usually obtained from Solver::getProof().
+   * @param format The proof format used to print the proof.  Must be
+   * `modes::ProofFormat::NONE` if the proof is from a component other than
+   * `modes::ProofComponent::FULL`.
+   * @return The string representation of the proof in the given format.
+   */
+  std::string proofToString(
+      Proof proof,
+      modes::ProofFormat format = modes::ProofFormat::DEFAULT) const;
 
   /**
    * Get a list of learned literals that are entailed by the current set of
@@ -5433,6 +5544,9 @@ class CVC5_EXPORT Solver
                       const Sort& sort,
                       bool isInv = false,
                       Grammar* grammar = nullptr) const;
+  /** Helper for getting timeout cores */
+  std::pair<Result, std::vector<Term>> getTimeoutCoreHelper(
+      const std::vector<Term>& assumptions) const;
 
   /** Check whether string s is a valid decimal integer. */
   bool isValidInteger(const std::string& s) const;

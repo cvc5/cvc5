@@ -1,4 +1,5 @@
 ; EXPECT: unsat
+; DISABLE-TESTER: alf
 (set-logic QF_ALL)
 (set-info :status unsat)
 (declare-datatypes

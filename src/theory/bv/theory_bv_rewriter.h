@@ -82,6 +82,7 @@ class TheoryBVRewriter : public TheoryRewriter
   static RewriteResponse RewriteRotateLeft(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteRedor(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteRedand(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteNego(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteUaddo(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteSaddo(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteUmulo(TNode node, bool prerewrite = false);
@@ -96,7 +97,7 @@ class TheoryBVRewriter : public TheoryRewriter
 
   void initializeRewrites();
 
-  RewriteFunction d_rewriteTable[kind::LAST_KIND];
+  RewriteFunction d_rewriteTable[static_cast<uint32_t>(Kind::LAST_KIND)];
 }; /* class TheoryBVRewriter */
 
 }  // namespace bv

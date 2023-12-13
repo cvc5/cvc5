@@ -10,7 +10,11 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A field-specific theory
+ * A field-specific theory.
+ * That is, the sub-theory for GF(p) for some fixed p.
+ * Implements Figure 2, "DecisionProcedure" from [OKTB23].
+ *
+ * [OKTB23]: https://doi.org/10.1007/978-3-031-37703-7_8
  */
 
 #ifdef CVC5_USE_COCOA
@@ -38,11 +42,7 @@ namespace theory {
 namespace ff {
 
 SubTheory::SubTheory(Env& env, FfStatistics* stats, Integer modulus)
-    : EnvObj(env),
-      d_facts(context()),
-      d_stats(stats),
-      d_baseRing(CoCoA::NewZZmod(CoCoA::BigIntFromString(modulus.toString()))),
-      d_modulus(modulus)
+    : EnvObj(env), FieldObj(modulus), d_facts(context()), d_stats(stats)
 {
   AlwaysAssert(modulus.isProbablePrime()) << "non-prime fields are unsupported";
   // must be initialized before using CoCoA.
@@ -146,7 +146,7 @@ void SubTheory::postCheck(Theory::Effort e)
     }
 
     // our polynomial ring
-    CoCoA::PolyRing polyRing = CoCoA::NewPolyRing(d_baseRing, symbols);
+    CoCoA::PolyRing polyRing = CoCoA::NewPolyRing(coeffRing(), symbols);
     // map from nodes to the polynomials that represent them
     std::unordered_map<Node, CoCoA::RingElem> nodeToCocoa{};
     // map from the rings indeterminates (their indices) to the theory leaves
@@ -238,7 +238,7 @@ void SubTheory::postCheck(Theory::Effort e)
       }
     }
 
-    // compute a GB
+    // look up a CoCoA polynomial for each fact.
     std::vector<CoCoA::RingElem> generators;
     std::transform(d_facts.begin(),
                    d_facts.end(),
@@ -252,6 +252,7 @@ void SubTheory::postCheck(Theory::Effort e)
     size_t nNonFieldPolyGens = generators.size();
     if (options().ff.ffFieldPolys)
     {
+      // if the option is set, add field polynomials
       for (const auto& var : CoCoA::indets(polyRing))
       {
         CoCoA::BigInt characteristic =
@@ -261,24 +262,29 @@ void SubTheory::postCheck(Theory::Effort e)
         generators.push_back(CoCoA::power(var, size) - var);
       }
     }
+
+    // compute a GB, tracing ideal membership inferences
     Tracer tracer(generators);
     if (options().ff.ffTraceGb) tracer.setFunctionPointers();
     CoCoA::ideal ideal = CoCoA::ideal(generators);
     const auto basis = CoCoA::GBasis(ideal);
     if (options().ff.ffTraceGb) tracer.unsetFunctionPointers();
 
-    // if it is trivial, create a conflict
+    // check for UNSAT
     bool is_trivial = basis.size() == 1 && CoCoA::deg(basis.front()) == 0;
     if (is_trivial)
     {
+      // UNSAT
       Trace("ff::gb") << "Trivial GB" << std::endl;
       if (options().ff.ffTraceGb)
       {
+        // if the option is set, trace the GB computation to compute a core.
+        // See Figure 4: IdealCalc from [OKTB23].
         std::vector<size_t> coreIndices = tracer.trace(basis.front());
         Assert(d_conflict.empty());
         for (size_t i : coreIndices)
         {
-          // omit field polys from core
+          // do not include field polynomials in the core
           if (i < nNonFieldPolyGens)
           {
             Trace("ff::core") << "Core: " << d_facts[i] << std::endl;
@@ -288,19 +294,22 @@ void SubTheory::postCheck(Theory::Effort e)
       }
       else
       {
+        // skip tracing
         setTrivialConflict();
       }
     }
     else
     {
+      // SAT, so far. Now, attempt model construction in case we're only SAT
+      // over an extension field.
       Trace("ff::gb") << "Non-trivial GB" << std::endl;
 
-      // common root (vec of CoCoA base ring elements)
-      std::vector<CoCoA::RingElem> root = commonRoot(ideal);
+      std::vector<CoCoA::RingElem> root = findZero(ideal);
 
       if (root.empty())
       {
         // UNSAT
+        // We don't have a core construction algorithm in this case.
         setTrivialConflict();
       }
       else
@@ -313,7 +322,7 @@ void SubTheory::postCheck(Theory::Effort e)
           std::ostringstream valStr;
           valStr << root[idxAndLeaf.first];
           Integer integer(valStr.str(), 10);
-          FiniteFieldValue literal(integer, d_modulus);
+          FiniteFieldValue literal(integer, size());
           Node value = nm->mkConst(literal);
           Trace("ff::model")
               << "Model: " << idxAndLeaf.second << " = " << value << std::endl;

@@ -41,8 +41,12 @@ class ArithSubs : public Subs
  public:
   /** Add v -> s to the substitution */
   void addArith(const Node& v, const Node& s);
-  /** Return the result of this substitution on n */
-  Node applyArith(const Node& n) const;
+  /**
+   * Return the result of this substitution on n.
+   * @param n The node to apply the substitution
+   * @param traverseNlMult Whether to traverse applications of NONLINEAR_MULT.
+   */
+  Node applyArith(const Node& n, bool traverseNlMult = true) const;
 };
 
 }  // namespace arith

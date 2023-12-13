@@ -15,7 +15,7 @@ import pytest
 import cvc5
 import sys
 
-from cvc5 import Kind, SortKind, BlockModelsMode, RoundingMode, LearnedLitType, ProofComponent, FindSynthTarget
+from cvc5 import Kind, SortKind, BlockModelsMode, RoundingMode, LearnedLitType, ProofComponent, ProofFormat, FindSynthTarget
 
 
 @pytest.fixture
@@ -1563,6 +1563,45 @@ def test_get_unsat_core_and_proof(solver):
     assert res.isUnsat()
     solver.getProof()
 
+
+def test_get_unsat_core_and_proof_to_string(solver):
+    solver.setOption("produce-proofs", "true");
+
+    uSort = solver.mkUninterpretedSort("u")
+    intSort = solver.getIntegerSort()
+    boolSort = solver.getBooleanSort()
+    uToIntSort = solver.mkFunctionSort(uSort, intSort)
+    intPredSort = solver.mkFunctionSort(intSort, boolSort)
+
+    x = solver.mkConst(uSort, "x")
+    y = solver.mkConst(uSort, "y")
+    f = solver.mkConst(uToIntSort, "f")
+    p = solver.mkConst(intPredSort, "p")
+    zero = solver.mkInteger(0)
+    one = solver.mkInteger(1)
+    f_x = solver.mkTerm(Kind.APPLY_UF, f, x)
+    f_y = solver.mkTerm(Kind.APPLY_UF, f, y)
+    summ = solver.mkTerm(Kind.ADD, f_x, f_y)
+    p_0 = solver.mkTerm(Kind.APPLY_UF, p, zero)
+    p_f_y = solver.mkTerm(Kind.APPLY_UF, p, f_y)
+    solver.assertFormula(solver.mkTerm(Kind.GT, zero, f_x))
+    solver.assertFormula(solver.mkTerm(Kind.GT, zero, f_y))
+    solver.assertFormula(solver.mkTerm(Kind.GT, summ, one))
+    solver.assertFormula(p_0)
+    solver.assertFormula(p_f_y.notTerm())
+    assert solver.checkSat().isUnsat()
+
+    proofs = solver.getProof()
+    assert len(proofs) > 0
+    printedProof = solver.proofToString(proofs[0])
+    assert len(printedProof) > 0
+    printedProof = solver.proofToString(proofs[0], ProofFormat.ALETHE)
+    assert len(printedProof) > 0
+    
+    proofs = solver.getProof(ProofComponent.SAT)
+    printedProof = solver.proofToString(proofs[0], ProofFormat.DEFAULT)
+    assert len(printedProof) > 0
+
 def test_learned_literals(solver):
     solver.setOption("produce-learned-literals", "true")
     with pytest.raises(RuntimeError):
@@ -1615,6 +1654,21 @@ def test_get_timeout_core(solver):
   assert res[0].isUnsat()
   assert len(res[1]) == 1
   assert res[1][0] == ff
+
+def test_get_timeout_core_assuming(solver):
+  solver.setOption("produce-unsat-cores", "true")
+  ff = solver.mkBoolean(False)
+  tt = solver.mkBoolean(True)
+  solver.assertFormula(tt)
+  res = solver.getTimeoutCoreAssuming(ff, tt)
+  assert res[0].isUnsat()
+  assert len(res[1]) == 1
+  assert res[1][0] == ff
+  
+def test_get_timeout_core_assuming_empty(solver):
+  solver.setOption("produce-unsat-cores", "true")
+  with pytest.raises(RuntimeError):
+    res = solver.getTimeoutCoreAssuming()
 
 def test_get_value1(solver):
     solver.setOption("produce-models", "false")

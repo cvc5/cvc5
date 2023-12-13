@@ -279,7 +279,7 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
         Rational originalBound = children[0][1].getConst<Rational>();
         Rational newBound = leastIntGreaterThan(originalBound);
         Node rational = nm->mkConstInt(newBound);
-        return nm->mkNode(kind::GEQ, children[0][0], rational);
+        return nm->mkNode(Kind::GEQ, children[0][0], rational);
       }
     }
     case ProofRule::INT_TIGHT_UB:
@@ -303,7 +303,7 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
         Rational originalBound = children[0][1].getConst<Rational>();
         Rational newBound = greatestIntLessThan(originalBound);
         Node rational = nm->mkConstInt(newBound);
-        return nm->mkNode(kind::LEQ, children[0][0], rational);
+        return nm->mkNode(Kind::LEQ, children[0][0], rational);
       }
     }
     case ProofRule::ARITH_TRICHOTOMY:
@@ -355,7 +355,7 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
     {
       Assert(children.empty());
       Assert(args.size() == 1);
-      if (args[0].getKind() != kind::EQUAL)
+      if (args[0].getKind() != Kind::EQUAL)
       {
         return Node::null();
       }

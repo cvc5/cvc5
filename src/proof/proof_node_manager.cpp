@@ -61,6 +61,19 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
   return pn;
 }
 
+std::shared_ptr<ProofNode> ProofNodeManager::mkTrustedNode(
+    TrustId id,
+    const std::vector<std::shared_ptr<ProofNode>>& children,
+    const std::vector<Node>& args,
+    const Node& conc)
+{
+  std::vector<Node> sargs;
+  sargs.push_back(mkTrustId(id));
+  sargs.push_back(conc);
+  sargs.insert(sargs.end(), args.begin(), args.end());
+  return mkNode(ProofRule::TRUST, children, sargs);
+}
+
 std::shared_ptr<ProofNode> ProofNodeManager::mkAssume(Node fact)
 {
   Assert(!fact.isNull());
@@ -264,14 +277,14 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     return pf;
   }
   Node conc = pf->getResult();
-  exp = assumps.size() == 1 ? assumps[0] : nm->mkNode(AND, assumps);
+  exp = assumps.size() == 1 ? assumps[0] : nm->mkNode(Kind::AND, assumps);
   if (conc.isConst() && !conc.getConst<bool>())
   {
     minExpected = exp.notNode();
   }
   else
   {
-    minExpected = nm->mkNode(IMPLIES, exp, conc);
+    minExpected = nm->mkNode(Kind::IMPLIES, exp, conc);
   }
   return mkNode(ProofRule::SCOPE, {pf}, assumps, minExpected);
 }

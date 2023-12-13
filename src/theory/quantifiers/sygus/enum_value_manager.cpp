@@ -199,7 +199,7 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
     {
       Assert(false);
     }
-    Node lem = exp.size() == 1 ? exp[0] : nm->mkNode(OR, exp);
+    Node lem = exp.size() == 1 ? exp[0] : nm->mkNode(Kind::OR, exp);
     Trace("cegqi-lemma") << "Cegqi::Lemma : actively-generated enumerator "
                             "exclude current solution : "
                          << lem << std::endl;

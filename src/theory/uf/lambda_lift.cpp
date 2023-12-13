@@ -20,6 +20,7 @@
 #include "options/uf_options.h"
 #include "smt/env.h"
 #include "theory/uf/function_const.h"
+#include "expr/sort_type_size.h"
 
 using namespace cvc5::internal::kind;
 
@@ -58,6 +59,11 @@ TrustNode LambdaLift::lift(Node node)
       assertion, ProofRule::MACRO_SR_PRED_INTRO, {}, {assertion});
 }
 
+bool LambdaLift::isLifted(const Node& node) const
+{
+  return d_lifted.find(node)!=d_lifted.end();
+}
+
 TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
 {
   Node lam = FunctionConst::toLambda(node);
@@ -67,10 +73,45 @@ TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
     return TrustNode::null();
   }
   d_lambdaMap[skolem] = lam;
-  if (!options().uf.ufHoLazyLambdaLift)
+  bool shouldLift = true;
+  if (options().uf.ufHoLazyLambdaLift)
+  {
+    Trace("uf-lazy-ll") << "Lift " << lam << "?" << std::endl;
+    shouldLift = false;
+    // Model construction considers types in order of their type size
+    // (SortTypeSize::getTypeSize). If the lambda has a free variable, that
+    // comes later in the model construction, it must be lifted eagerly.
+    // As an example, say f : Int -> Int, g : Int x Int -> Int
+    // The following lambdas require eager lifting:
+    // - (lambda ((x Int)) (g x x))
+    // - (lambda ((x Int) (y Int)) (f (g x y)))
+    // The following lambads do not require eager lifting:
+    // - (lambda ((x Int)) (+ x 1)), since it has no free symbols.
+    // - (lambda ((x Int) (y Int)) (f x)), since its free symbol f has a type
+    // Int -> Int which is processed before the type of the lambda, i.e.
+    // Int x Int -> Int.
+    std::unordered_set<Node> syms;
+    expr::getSymbols(lam[1], syms);
+    SortTypeSize sts;
+    size_t lsize = sts.getTypeSize(lam.getType());
+    for (const Node& v : syms)
+    {
+      size_t vsize = sts.getTypeSize(v.getType());
+      if (vsize>=lsize)
+      {
+        shouldLift = true;
+        Trace("uf-lazy-ll") << "...yes due to " << v << std::endl;
+        break;
+      }
+    }
+  }
+  if (shouldLift)
   {
     TrustNode trn = lift(lam);
-    lems.push_back(SkolemLemma(trn, skolem));
+    if (!trn.isNull())
+    {
+      lems.push_back(SkolemLemma(trn, skolem));
+    }
   }
   // if no proofs, return lemma with no generator
   if (d_epg == nullptr)
@@ -117,9 +158,9 @@ Node LambdaLift::getAssertionFor(TNode node)
     std::vector<Node> skolem_app_c;
     skolem_app_c.push_back(skolem);
     skolem_app_c.insert(skolem_app_c.end(), lambda[0].begin(), lambda[0].end());
-    Node skolem_app = nm->mkNode(APPLY_UF, skolem_app_c);
+    Node skolem_app = nm->mkNode(Kind::APPLY_UF, skolem_app_c);
     skolem_app_c[0] = lambda;
-    Node rhs = nm->mkNode(APPLY_UF, skolem_app_c);
+    Node rhs = nm->mkNode(Kind::APPLY_UF, skolem_app_c);
     // For the sake of proofs, we use
     // (= (k t1 ... tn) ((lambda (x1 ... xn) s) t1 ... tn)) here. This is instead of
     // (= (k t1 ... tn) s); the former is more accurate since
@@ -128,7 +169,7 @@ Node LambdaLift::getAssertionFor(TNode node)
     // necessarily syntactical equal to s.
     children.push_back(skolem_app.eqNode(rhs));
     // axiom defining skolem
-    assertion = nm->mkNode(FORALL, children);
+    assertion = nm->mkNode(Kind::FORALL, children);
 
     // Lambda lifting is trivial to justify, hence we don't set a proof
     // generator here. In particular, replacing the skolem introduced
@@ -146,7 +187,7 @@ Node LambdaLift::getSkolemFor(TNode node)
 {
   Node skolem;
   Kind k = node.getKind();
-  if (k == LAMBDA)
+  if (k == Kind::LAMBDA)
   {
     // if a lambda, return the purification variable for the node. We ignore
     // lambdas with free variables, which can occur beneath quantifiers
@@ -167,7 +208,7 @@ Node LambdaLift::getSkolemFor(TNode node)
 TrustNode LambdaLift::betaReduce(TNode node) const
 {
   Kind k = node.getKind();
-  if (k == APPLY_UF)
+  if (k == Kind::APPLY_UF)
   {
     Node op = node.getOperator();
     Node opl = getLambdaFor(op);
@@ -191,12 +232,12 @@ TrustNode LambdaLift::betaReduce(TNode node) const
 
 Node LambdaLift::betaReduce(TNode lam, const std::vector<Node>& args) const
 {
-  Assert(lam.getKind() == LAMBDA);
+  Assert(lam.getKind() == Kind::LAMBDA);
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> betaRed;
   betaRed.push_back(lam);
   betaRed.insert(betaRed.end(), args.begin(), args.end());
-  Node app = nm->mkNode(APPLY_UF, betaRed);
+  Node app = nm->mkNode(Kind::APPLY_UF, betaRed);
   app = rewrite(app);
   return app;
 }

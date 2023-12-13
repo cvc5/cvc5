@@ -71,6 +71,13 @@ void CommandExecutor::storeOptionsAsOriginal()
   d_parseOnly = d_solver->getOptionInfo("parse-only").boolValue();
 }
 
+void CommandExecutor::setOptionInternal(const std::string& key,
+                                        const std::string& value)
+{
+  // set option, marked not from user.
+  d_solver->d_slv->setOption(key, value, false);
+}
+
 void CommandExecutor::printStatistics(std::ostream& out) const
 {
   if (d_solver->getOptionInfo("stats").boolValue())
@@ -97,7 +104,7 @@ bool CommandExecutor::doCommand(Command* cmd)
 {
   // formerly was guarded by verbosity > 2
   Trace("cmd-exec") << "Invoking: " << *cmd << std::endl;
-  return doCommandSingleton(cmd->toCmd());
+  return doCommandSingleton(cmd->d_cmd.get());
 }
 
 void CommandExecutor::reset()

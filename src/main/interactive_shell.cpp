@@ -46,7 +46,7 @@
 #include "base/output.h"
 #include "main/command_executor.h"
 #include "parser/commands.h"
-#include "parser/parser_exception.h"
+#include <cvc5/cvc5_parser.h>
 #include "parser/sym_manager.h"
 #include "theory/logic_info.h"
 
@@ -94,9 +94,24 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
   /* Create parser with bogus input. */
   d_parser.reset(
       new cvc5::parser::InputParser(d_solver, cexec->getSymbolManager()));
+  std::string langs = d_solver->getOption("input-language");
+  modes::InputLanguage lang;
+  if (langs == "LANG_SMTLIB_V2_6")
+  {
+    lang = modes::InputLanguage::SMT_LIB_2_6;
+  }
+  else if (langs == "LANG_SYGUS_V2")
+  {
+    lang = modes::InputLanguage::SYGUS_2_1;
+  }
+  else
+  {
+    throw Exception("internal error: unhandled language " + langs);
+  }
+
   // initialize for incremental string input
-  d_parser->setIncrementalStringInput(d_solver->getOption("input-language"),
-                                      INPUT_FILENAME);
+  d_parser->setIncrementalStringInput(lang, INPUT_FILENAME);
+  d_usingEditline = false;
 #if HAVE_LIBEDITLINE
   if (&d_in == &std::cin && isatty(fileno(stdin)))
   {
@@ -108,40 +123,29 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
 #endif /* EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP */
     ::using_history();
 
-    std::string lang = d_solver->getOption("input-language");
-    if (lang == "LANG_SMTLIB_V2_6")
+    if (lang == modes::InputLanguage::SMT_LIB_2_6)
     {
       d_historyFilename = string(getenv("HOME")) + "/.cvc5_history_smtlib2";
       commandsBegin = smt2_commands;
       commandsEnd =
           smt2_commands + sizeof(smt2_commands) / sizeof(*smt2_commands);
-    }
-    else
-    {
-      throw Exception("internal error: unhandled language " + lang);
-    }
-    d_usingEditline = true;
-    int err = ::read_history(d_historyFilename.c_str());
-    ::stifle_history(s_historyLimit);
-    if (d_solver->getOptionInfo("verbosity").intValue() >= 1)
-    {
-      if(err == 0) {
-        d_solver->getDriverOptions().err()
-            << "Read " << ::history_length << " lines of history from "
-            << d_historyFilename << std::endl;
-      } else {
-        d_solver->getDriverOptions().err()
-            << "Could not read history from " << d_historyFilename << ": "
-            << strerror(err) << std::endl;
+      d_usingEditline = true;
+      int err = ::read_history(d_historyFilename.c_str());
+      ::stifle_history(s_historyLimit);
+      if (d_solver->getOptionInfo("verbosity").intValue() >= 1)
+      {
+        if(err == 0) {
+          d_solver->getDriverOptions().err()
+              << "Read " << ::history_length << " lines of history from "
+              << d_historyFilename << std::endl;
+        } else {
+          d_solver->getDriverOptions().err()
+              << "Could not read history from " << d_historyFilename << ": "
+              << strerror(err) << std::endl;
+        }
       }
     }
   }
-  else
-  {
-    d_usingEditline = false;
-  }
-#else  /* HAVE_LIBEDITLINE */
-  d_usingEditline = false;
 #endif /* HAVE_LIBEDITLINE */
 } /* InteractiveShell::InteractiveShell() */
 
@@ -312,19 +316,24 @@ restart:
 
   /* There may be more than one command in the input. Build up a
      sequence. */
-  std::vector<std::unique_ptr<Command>> cmdSeq;
-  std::unique_ptr<Command> cmdp;
+  std::vector<Command> cmdSeq;
+  Command cmdp;
   // remember the scope level of the symbol manager, in case we hit an end of
   // line (when catching ParserEndOfFileException).
   size_t lastScopeLevel = d_symman->scopeLevel();
 
   try
   {
-    while ((cmdp = d_parser->nextCommand()))
+    while (true)
     {
-      Command* cmd = cmdp.get();
+      cmdp = d_parser->nextCommand();
+      if (cmdp.isNull())
+      {
+        break;
+      }
+      Cmd* cmd = cmdp.d_cmd.get();
       // execute the command immediately
-      d_cexec->doCommand(cmd);
+      d_cexec->doCommand(&cmdp);
       if (cmd->interrupted())
       {
         d_quit = true;

@@ -66,26 +66,26 @@ void TheoryBags::finishInit()
 {
   Assert(d_equalityEngine != nullptr);
 
-  d_valuation.setUnevaluatedKind(WITNESS);
+  d_valuation.setUnevaluatedKind(Kind::WITNESS);
 
   // functions we are doing congruence over
-  d_equalityEngine->addFunctionKind(BAG_UNION_MAX);
-  d_equalityEngine->addFunctionKind(BAG_UNION_DISJOINT);
-  d_equalityEngine->addFunctionKind(BAG_INTER_MIN);
-  d_equalityEngine->addFunctionKind(BAG_DIFFERENCE_SUBTRACT);
-  d_equalityEngine->addFunctionKind(BAG_DIFFERENCE_REMOVE);
-  d_equalityEngine->addFunctionKind(BAG_COUNT);
-  d_equalityEngine->addFunctionKind(BAG_DUPLICATE_REMOVAL);
-  d_equalityEngine->addFunctionKind(BAG_MAKE);
-  d_equalityEngine->addFunctionKind(BAG_CARD);
-  d_equalityEngine->addFunctionKind(BAG_FROM_SET);
-  d_equalityEngine->addFunctionKind(BAG_TO_SET);
-  d_equalityEngine->addFunctionKind(BAG_PARTITION);
-  d_equalityEngine->addFunctionKind(TABLE_PRODUCT);
-  d_equalityEngine->addFunctionKind(TABLE_PROJECT);
-  d_equalityEngine->addFunctionKind(TABLE_AGGREGATE);
-  d_equalityEngine->addFunctionKind(TABLE_JOIN);
-  d_equalityEngine->addFunctionKind(TABLE_GROUP);
+  d_equalityEngine->addFunctionKind(Kind::BAG_UNION_MAX);
+  d_equalityEngine->addFunctionKind(Kind::BAG_UNION_DISJOINT);
+  d_equalityEngine->addFunctionKind(Kind::BAG_INTER_MIN);
+  d_equalityEngine->addFunctionKind(Kind::BAG_DIFFERENCE_SUBTRACT);
+  d_equalityEngine->addFunctionKind(Kind::BAG_DIFFERENCE_REMOVE);
+  d_equalityEngine->addFunctionKind(Kind::BAG_COUNT);
+  d_equalityEngine->addFunctionKind(Kind::BAG_DUPLICATE_REMOVAL);
+  d_equalityEngine->addFunctionKind(Kind::BAG_MAKE);
+  d_equalityEngine->addFunctionKind(Kind::BAG_CARD);
+  d_equalityEngine->addFunctionKind(Kind::BAG_FROM_SET);
+  d_equalityEngine->addFunctionKind(Kind::BAG_TO_SET);
+  d_equalityEngine->addFunctionKind(Kind::BAG_PARTITION);
+  d_equalityEngine->addFunctionKind(Kind::TABLE_PRODUCT);
+  d_equalityEngine->addFunctionKind(Kind::TABLE_PROJECT);
+  d_equalityEngine->addFunctionKind(Kind::TABLE_AGGREGATE);
+  d_equalityEngine->addFunctionKind(Kind::TABLE_JOIN);
+  d_equalityEngine->addFunctionKind(Kind::TABLE_GROUP);
 }
 
 TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
@@ -94,26 +94,26 @@ TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 
   switch (atom.getKind())
   {
-    case kind::BAG_CHOOSE: return expandChooseOperator(atom, lems);
-    case kind::BAG_FOLD:
+    case Kind::BAG_CHOOSE: return expandChooseOperator(atom, lems);
+    case Kind::BAG_FOLD:
     {
       std::vector<Node> asserts;
       Node ret = BagReduction::reduceFoldOperator(atom, asserts);
       NodeManager* nm = NodeManager::currentNM();
-      Node andNode = nm->mkNode(AND, asserts);
+      Node andNode = nm->mkNode(Kind::AND, asserts);
       d_im.lemma(andNode, InferenceId::BAGS_FOLD);
       Trace("bags::ppr") << "reduce(" << atom << ") = " << ret
                          << " such that:" << std::endl
                          << andNode << std::endl;
       return TrustNode::mkTrustRewrite(atom, ret, nullptr);
     }
-    case kind::TABLE_AGGREGATE:
+    case Kind::TABLE_AGGREGATE:
     {
       Node ret = BagReduction::reduceAggregateOperator(atom);
       Trace("bags::ppr") << "reduce(" << atom << ") = " << ret << std::endl;
       return TrustNode::mkTrustRewrite(atom, ret, nullptr);
     }
-    case kind::TABLE_PROJECT:
+    case Kind::TABLE_PROJECT:
     {
       Node ret = BagReduction::reduceProjectOperator(atom);
       Trace("bags::ppr") << "reduce(" << atom << ") = " << ret << std::endl;
@@ -126,7 +126,7 @@ TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 TrustNode TheoryBags::expandChooseOperator(const Node& node,
                                            std::vector<SkolemLemma>& lems)
 {
-  Assert(node.getKind() == BAG_CHOOSE);
+  Assert(node.getKind() == Kind::BAG_CHOOSE);
 
   // (bag.choose A) is eliminated to k, with lemma
   // (and (= k (uf A)) (or (= A (as bag.empty (Bag E))) (>= (bag.count k A) 1)))
@@ -141,15 +141,16 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
   TypeNode ufType = nm->mkFunctionType(bagType, bagType.getBagElementType());
   // a Null node is used here to get a unique skolem function per bag type
   Node uf = sm->mkSkolemFunction(SkolemFunId::BAGS_CHOOSE, ufType, Node());
-  Node ufA = NodeManager::currentNM()->mkNode(APPLY_UF, uf, A);
+  Node ufA = NodeManager::currentNM()->mkNode(Kind::APPLY_UF, uf, A);
 
   Node equal = x.eqNode(ufA);
   Node emptyBag = nm->mkConst(EmptyBag(bagType));
   Node isEmpty = A.eqNode(emptyBag);
-  Node count = nm->mkNode(BAG_COUNT, x, A);
+  Node count = nm->mkNode(Kind::BAG_COUNT, x, A);
   Node one = nm->mkConstInt(Rational(1));
-  Node geqOne = nm->mkNode(GEQ, count, one);
-  Node lem = nm->mkNode(AND, equal, nm->mkNode(OR, isEmpty, geqOne));
+  Node geqOne = nm->mkNode(Kind::GEQ, count, one);
+  Node lem =
+      nm->mkNode(Kind::AND, equal, nm->mkNode(Kind::OR, isEmpty, geqOne));
   TrustNode tlem = TrustNode::mkTrustLemma(lem, nullptr);
   lems.push_back(SkolemLemma(tlem, x));
   Trace("TheoryBags::ppRewrite")
@@ -186,24 +187,24 @@ void TheoryBags::collectBagsAndCountTerms()
       d_opMap[n.getKind()].push_back(n);
       Trace("bags-eqc") << (*it) << " ";
       Kind k = n.getKind();
-      if (k == BAG_MAKE)
+      if (k == Kind::BAG_MAKE)
       {
         // for terms (bag x c) we need to store x by registering the count term
         // (bag.count x (bag x c))
         NodeManager* nm = NodeManager::currentNM();
-        Node count = nm->mkNode(BAG_COUNT, n[0], n);
+        Node count = nm->mkNode(Kind::BAG_COUNT, n[0], n);
         d_ig.registerCountTerm(count);
       }
-      if (k == BAG_COUNT)
+      if (k == Kind::BAG_COUNT)
       {
         // this takes care of all count terms in each equivalent class
         d_ig.registerCountTerm(n);
       }
-      if (k == BAG_CARD)
+      if (k == Kind::BAG_CARD)
       {
         d_ig.registerCardinalityTerm(n);
       }
-      if (k == TABLE_GROUP)
+      if (k == Kind::TABLE_GROUP)
       {
         d_state.registerGroupTerm(n);
       }
@@ -394,11 +395,12 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
     {
       if (d_cardSolver.isLeaf(n))
       {
-        Node constructedBagCard = rewrite(nm->mkNode(BAG_CARD, constructedBag));
+        Node constructedBagCard =
+            rewrite(nm->mkNode(Kind::BAG_CARD, constructedBag));
         Trace("bags-model")
             << "constructed bag cardinality: " << constructedBagCard
             << std::endl;
-        Node rCard = nm->mkNode(BAG_CARD, r);
+        Node rCard = nm->mkNode(Kind::BAG_CARD, r);
         Node rCardSkolem = d_state.getCardinalitySkolem(rCard);
         Trace("bags-model") << "rCardSkolem : " << rCardSkolem << std::endl;
         if (!rCardSkolem.isNull())
@@ -425,9 +427,10 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
                   << "newElement is " << newElement << std::endl;
               Rational difference = rCardRational - constructedRational;
               Node multiplicity = nm->mkConstInt(difference);
-              Node slackBag = nm->mkNode(BAG_MAKE, newElement, multiplicity);
+              Node slackBag =
+                  nm->mkNode(Kind::BAG_MAKE, newElement, multiplicity);
               constructedBag = nm->mkNode(
-                  kind::BAG_UNION_DISJOINT, constructedBag, slackBag);
+                  Kind::BAG_UNION_DISJOINT, constructedBag, slackBag);
               constructedBag = rewrite(constructedBag);
             }
           }
@@ -443,7 +446,7 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
           Trace("bags-model")
               << "child bag for " << n << " is: " << child << std::endl;
           constructedBag =
-              nm->mkNode(BAG_UNION_DISJOINT, child, constructedBag);
+              nm->mkNode(Kind::BAG_UNION_DISJOINT, child, constructedBag);
         }
         constructedBag = rewrite(constructedBag);
         Trace("bags-model") << "constructed bag for " << n
@@ -468,16 +471,16 @@ void TheoryBags::preRegisterTerm(TNode n)
   Trace("bags") << "TheoryBags::preRegisterTerm(" << n << ")" << std::endl;
   switch (n.getKind())
   {
-    case kind::EQUAL:
+    case Kind::EQUAL:
     {
       // add trigger predicate for equality and membership
       d_state.addEqualityEngineTriggerPredicate(n);
     }
     break;
-    case BAG_FROM_SET:
-    case BAG_TO_SET:
-    case BAG_IS_SINGLETON:
-    case BAG_PARTITION:
+    case Kind::BAG_FROM_SET:
+    case Kind::BAG_TO_SET:
+    case Kind::BAG_IS_SINGLETON:
+    case Kind::BAG_PARTITION:
     {
       std::stringstream ss;
       ss << "Term of kind " << n.getKind() << " is not supported yet";
@@ -530,7 +533,7 @@ bool TheoryBags::isCareArg(Node n, unsigned a)
   {
     return true;
   }
-  else if ((n.getKind() == kind::BAG_COUNT || n.getKind() == kind::BAG_MAKE)
+  else if ((n.getKind() == Kind::BAG_COUNT || n.getKind() == Kind::BAG_MAKE)
            && a == 0 && n[0].getType().isBag())
   {
     // when the elements themselves are bags
@@ -545,7 +548,7 @@ void TheoryBags::computeCareGraph()
   for (const std::pair<const Kind, std::vector<Node>>& it : d_opMap)
   {
     Kind k = it.first;
-    if (k == kind::BAG_MAKE || k == kind::BAG_COUNT)
+    if (k == Kind::BAG_MAKE || k == Kind::BAG_COUNT)
     {
       Trace("bags-cg") << "kind: " << k << ", size = " << it.second.size()
                        << std::endl;
@@ -557,13 +560,13 @@ void TheoryBags::computeCareGraph()
         Trace("bags-cg") << "computing n:  " << n << std::endl;
         Assert(d_equalityEngine->hasTerm(n));
         TypeNode tn;
-        if (k == kind::BAG_MAKE)
+        if (k == Kind::BAG_MAKE)
         {
           tn = n.getType().getBagElementType();
         }
         else
         {
-          Assert(k == kind::BAG_COUNT);
+          Assert(k == Kind::BAG_COUNT);
           tn = n[1].getType().getBagElementType();
         }
         std::vector<TNode> childrenReps;
@@ -607,7 +610,7 @@ void TheoryBags::processCarePairArgs(TNode a, TNode b)
 {
   // we care about the equality or disequality between x, y
   // when (bag.count x A) = (bag.count y A)
-  if (a.getKind() != BAG_COUNT && d_state.areEqual(a, b))
+  if (a.getKind() != Kind::BAG_COUNT && d_state.areEqual(a, b))
   {
     return;
   }
