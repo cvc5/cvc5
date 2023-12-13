@@ -70,7 +70,7 @@ void TermRegistry::finishInit(FirstOrderModel* fm,
                               QuantifiersInferenceManager* qim)
 {
   d_qmodel = fm;
-  d_termDb->finishInit(qim, d_termDbEager.get());
+  d_termDb->finishInit(qim);
   if (d_sygusTdb.get())
   {
     d_sygusTdb->finishInit(qim);
