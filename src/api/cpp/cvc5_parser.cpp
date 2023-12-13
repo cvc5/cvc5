@@ -305,8 +305,9 @@ void InputParser::setIncrementalStringInput(modes::InputLanguage lang,
   // initialize the parser
   d_parser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());
   initializeInternal();
-  // Ensure we've initialized the input to empty, which ensures we return
-  // null command/term prior to appendIncrementalStringInput.
+  // Ensure we've initialized the input to empty. This guarantees we have an
+  // input source in the rare case that the user asks for a command/term before
+  // their first call to appendIncrementalStringInput.
   d_parser->setStringInput("", name);
   ////////
   CVC5_API_TRY_CATCH_END;
