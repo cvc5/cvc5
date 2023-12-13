@@ -11,34 +11,19 @@ from cvc5kinds cimport Kind, SortKind
 from cvc5types cimport BlockModelsMode, LearnedLitType, ProofComponent, ProofFormat, RoundingMode, UnknownExplanation, FindSynthTarget, InputLanguage
 from cvc5proofrules cimport ProofRule
 
+
 cdef extern from "<iostream>" namespace "std":
     cdef cppclass ostream:
-        ostream& write(const char*, int) except +
-        ostream& flush() except +
-        #ostream& operator<<(const string&) except +
-    #ostream& (*endl)(ostream&)
+        pass
     ostream cout
 
     cdef cppclass istream:
         pass
-    istream cin
 
     cdef cppclass iostream(istream,ostream):
         pass
 
-cdef extern from "<fstream>" namespace "std":
-    cdef cppclass ifstream(istream):
-        ifstream() except +
-        ifstream(const string& filename) except +
-        void close() except +
-
-    cdef cppclass ofstream(ostream):
-        ofstream() except +
-        ofstream(const string& filename) except +
-        void close() except +
-
 cdef extern from "<sstream>" namespace "std":
-
     cdef cppclass stringstream(iostream):
         stringstream() except +
         string str() except +
@@ -603,7 +588,7 @@ cdef extern from "<cvc5/cvc5_parser.h>" namespace "cvc5::parser":
     cdef cppclass InputParser:
         InputParser(Solver* solver, SymbolManager* sm) except +
         void setFileInput(InputLanguage lang, const string& filename) except +
-        void setStreamInput(InputLanguage lang, istream& input, const string& name) except +
+        #void setStreamInput(InputLanguage lang, istream& input, const string& name) except +
         void setIncrementalStringInput(InputLanguage lang, const string& name) except +
         void appendIncrementalStringInput(const string& input) except +
         Command nextCommand() except +

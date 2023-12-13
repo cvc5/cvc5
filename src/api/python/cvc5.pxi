@@ -14,13 +14,8 @@ from libcpp.set cimport set as c_set
 from libcpp.string cimport string
 from libcpp.vector cimport vector
 
-from cvc5 cimport cout as c_cout
-from cvc5 cimport cin as c_cin
-from cvc5 cimport ostream as c_ostream
-from cvc5 cimport istream as c_istream
-from cvc5 cimport ofstream as c_ofstream
-from cvc5 cimport ifstream as c_ifstream
-from cvc5 cimport stringstream as c_stringstream
+from cvc5 cimport cout
+from cvc5 cimport stringstream
 from cvc5 cimport Command as c_Command
 from cvc5 cimport Datatype as c_Datatype
 from cvc5 cimport DatatypeConstructor as c_DatatypeConstructor
@@ -93,63 +88,6 @@ cdef c_hash[c_Op] cophash = c_hash[c_Op]()
 cdef c_hash[c_Sort] csorthash = c_hash[c_Sort]()
 cdef c_hash[c_Term] ctermhash = c_hash[c_Term]()
 
-cdef class istream:
-    cdef c_istream* cis
-    # Empty constructor sets reference to standard input
-    def __cinit__(self):
-        self.cis = &c_cin
-
-cdef class ostream:
-    cdef c_ostream* cos
-    # Empty constructor sets reference to standard output
-    def __cinit__(self):
-        self.cos = &c_cout
-
-    def __lshift__(self, s):
-        if isinstance(s, Command):
-            s = s.toString()
-        self.cos.write(s.encode(), len(s))
-        # We always flush so that 'endl' behaves as expected
-        self.cos.flush()
-        return self
-
-endl = "\n"
-cin = istream()
-cout = ostream()
-
-cdef class ifstream(istream):
-    cdef c_ifstream cstream
-
-    def __cinit__(self, str filename):
-        self.cstream = c_ifstream(filename.encode())
-        self.cis = &(self.cstream)
-
-    def close(self):
-        self.cstream.close()
-
-cdef class ofstream(ostream):
-    cdef c_ofstream cstream
-
-    def __cinit__(self, str filename):
-        self.cstream = c_ofstream(filename.encode())
-        self.cos = &(self.cstream)
-
-    def close(self):
-        self.cstream.close()
-
-# stringstream should inherits from ostream and istream, however,
-# multiple inheritance from two or more extension types is not supported
-# (see https://cython.readthedocs.io/en/latest/src/userguide/extension_types.html?highlight=inheritance#subclassing)
-# The best we can do is to inherit from one of two extension types
-cdef class stringstream(ostream):
-    cdef c_stringstream cstream
-
-    def __cinit__(self):
-        self.cos = &(self.cstream)
-
-    def str(self):
-        return self.cstream.str().decode()
-
 
 cdef class SymbolManager:
     """
@@ -213,16 +151,17 @@ cdef class Command:
         """
         return self.cc.toString().decode()
 
-    def invoke(self, Solver solver, SymbolManager sm, ostream out):
+    def invoke(self, Solver solver, SymbolManager sm):
         """
-            Invoke the command on the solver and symbol manager, prints the result
-            to output stream out.
+            Invoke the command on the solver and symbol manager, and returns the result.
 
             :param solver: The solver to invoke the command on.
             :param sm: The symbol manager to invoke the command on.
-            :param out: The output stream to write the result of the command on.
+            :return: A string representation of the result.
         """
-        self.cc.invoke(solver.csolver, sm.csm, dereference(out.cos))
+        cdef stringstream ss
+        self.cc.invoke(solver.csolver, sm.csm, ss)
+        return ss.str().decode()
 
     def getCommandName(self):
         """
@@ -301,23 +240,6 @@ cdef class InputParser:
             :param filename: The input filename.
         """
         self.cip.setFileInput(<c_InputLanguage> lang.value, filename.encode())
-
-    def setStreamInput(self, lang, input, str name):
-        """
-            Set the input for the given stream.
-
-            :param lang: The input language (e.g. InputLanguage.SMT_LIB_2_6).
-            :param input: The input stream
-            :param name: The name of the stream, for use in error messages.
-        """
-        if isinstance(input, stringstream):
-            s: stringstream = input
-            self.cip.setStreamInput(<c_InputLanguage> lang.value, s.cstream, name.encode())
-        elif isinstance(input, istream):
-            i: istream = input
-            self.cip.setStreamInput(<c_InputLanguage> lang.value, dereference(i.cis), name.encode())
-        else:
-            raise TypeError("input must be an istream")
 
     def setIncrementalStringInput(self, lang, str name):
         """

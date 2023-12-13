@@ -15,7 +15,7 @@ from contextlib import contextmanager
 import pytest
 import cvc5
 
-from cvc5 import InputParser, SymbolManager, Command, Term, stringstream, endl
+from cvc5 import InputParser, SymbolManager
 
 @contextmanager
 def does_not_raise():
@@ -42,27 +42,7 @@ def test_set_file_input(solver):
     with pytest.raises(RuntimeError):
         p.setFileInput(cvc5.InputLanguage.SMT_LIB_2_6, "nonexistent.smt2")
 
-def test_set_stream_input(solver):
-    sm = SymbolManager(solver)
-    p = InputParser(solver, sm)
-    ss = stringstream()
-    ss << "(set-logic QF_LIA)" << endl
-    ss << "(declare-fun a () Bool)" << endl
-    ss << "(declare-fun b () Int)" << endl
-    p.setStreamInput(cvc5.InputLanguage.SMT_LIB_2_6, ss, "test_input_parser")
-    assert p.done() is False
-    out = stringstream()
-    while True:
-        cmd = p.nextCommand()
-        if (cmd.isNull()):
-            break
-        with does_not_raise():
-            cmd.invoke(solver, sm, out)
-        
-    assert p.done() is True
-
 def test_set_and_append_incremental_string_input(solver):
-    out = stringstream()
     sm = SymbolManager(solver)
     p = InputParser(solver, sm)
     p.setIncrementalStringInput(cvc5.InputLanguage.SMT_LIB_2_6, "test_input_parser")
@@ -70,37 +50,34 @@ def test_set_and_append_incremental_string_input(solver):
     cmd = p.nextCommand()
     assert cmd.isNull() is not True
     with does_not_raise():
-        cmd.invoke(solver, sm, out)
+        cmd.invoke(solver, sm)
     p.appendIncrementalStringInput("(declare-fun a () Bool)")
     cmd = p.nextCommand()
     assert cmd.isNull() is not True
     with does_not_raise():
-        cmd.invoke(solver, sm, out)
+        cmd.invoke(solver, sm)
     p.appendIncrementalStringInput("(declare-fun b () Int)")
     cmd = p.nextCommand()
     assert cmd.isNull() is not True
     with does_not_raise():
-        cmd.invoke(solver, sm, out)
+        cmd.invoke(solver, sm)
 
-def test_next_command(solver):
+def test_next_command_no_input(solver):
     p = InputParser(solver)
-    with pytest.raises(RuntimeError):
-        p.nextCommand()
-    ss = stringstream()
-    p.setStreamInput(cvc5.InputLanguage.SMT_LIB_2_6, ss, "test_input_parser")
+    p.setIncrementalStringInput(cvc5.InputLanguage.SMT_LIB_2_6, "test_input_parser")
     cmd = p.nextCommand()
+    assert cmd.isNull() is True
+    t = p.nextTerm()
     assert cmd.isNull() is True
 
 def test_next_term(solver):
     p = InputParser(solver)
     with pytest.raises(RuntimeError):
         p.nextTerm()
-    ss = stringstream()
-    p.setStreamInput(cvc5.InputLanguage.SMT_LIB_2_6, ss, "test_input_parser")
+    p.setIncrementalStringInput(cvc5.InputLanguage.SMT_LIB_2_6, "test_input_parser")
     assert p.nextTerm().isNull() is True
 
 def test_next_term2(solver):
-    out = stringstream()
     sm = SymbolManager(solver)
     p = InputParser(solver, sm)
     p.setIncrementalStringInput(cvc5.InputLanguage.SMT_LIB_2_6, "test_input_parser")
@@ -109,7 +86,7 @@ def test_next_term2(solver):
     cmd = p.nextCommand()
     assert cmd.isNull() is not True
     with does_not_raise():
-        cmd.invoke(solver, sm, out)
+        cmd.invoke(solver, sm)
     # now parse some terms
     t = None
     p.appendIncrementalStringInput("45")
@@ -131,13 +108,12 @@ def parse_logic_command(p, logic):
     return p.nextCommand()
 
 def test_multiple_parsers(solver):
-    out = stringstream()
     sm = SymbolManager(solver)
     p = InputParser(solver, sm)
     # set a logic for the parser
     cmd = parse_logic_command(p, "QF_LIA")
     with does_not_raise():
-        cmd.invoke(solver, sm, out)
+        cmd.invoke(solver, sm)
     assert solver.isLogicSet() is True
     assert solver.getLogic() == "QF_LIA"
     assert sm.isLogicSet() is True

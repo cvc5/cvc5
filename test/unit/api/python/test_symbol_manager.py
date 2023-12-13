@@ -14,21 +14,19 @@
 import pytest
 import cvc5
 
-from cvc5 import InputParser, SymbolManager, stringstream, endl
+from cvc5 import InputParser, SymbolManager
 
 @pytest.fixture
 def solver():
     return cvc5.Solver()
 
 def parse_and_set_logic(solver, sm, logic):
-    ss = stringstream()
-    ss << "(set-logic " << logic << ")" << endl
     parser = InputParser(solver, sm)
-    parser.setStreamInput(cvc5.InputLanguage.SMT_LIB_2_6, ss, "test_input_parser")
+    parser.setIncrementalStringInput(cvc5.InputLanguage.SMT_LIB_2_6, "test_symbol_manager_parser")
+    parser.appendIncrementalStringInput("(set-logic " + logic + ")" + '\n')
     cmd = parser.nextCommand()
     assert cmd.isNull() is not True
-    out = stringstream()
-    cmd.invoke(solver, sm, out)
+    cmd.invoke(solver, sm)
 
 def test_is_logic_set(solver):
     sm = SymbolManager(solver)
