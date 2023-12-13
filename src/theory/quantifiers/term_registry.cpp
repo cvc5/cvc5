@@ -25,6 +25,7 @@
 #include "theory/quantifiers/oracle_checker.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_state.h"
+#include "theory/quantifiers/term_database_eager.h"
 #include "theory/quantifiers/term_util.h"
 
 namespace cvc5::internal {
@@ -69,51 +70,41 @@ void TermRegistry::finishInit(FirstOrderModel* fm,
                               QuantifiersInferenceManager* qim)
 {
   d_qmodel = fm;
-  d_termDb->finishInit(qim);
+  d_termDb->finishInit(qim, d_termDbEager.get());
   if (d_sygusTdb.get())
   {
     d_sygusTdb->finishInit(qim);
+  }
+  if (d_termDbEager.get())
+  {
+    d_termDbEager->finishInit(qim);
   }
 }
 
 void TermRegistry::presolve()
 {
-  d_presolve = false;
-  // add all terms to database
-  if (options().base.incrementalSolving && !options().quantifiers.termDbCd)
+  // TODO: clear?
+  /*
+  if (d_termDbEager!=nullptr)
   {
-    Trace("quant-engine-proc")
-        << "Add presolve cache " << d_presolveCache.size() << std::endl;
-    for (const Node& t : d_presolveCache)
-    {
-      addTerm(t);
-    }
-    Trace("quant-engine-proc") << "Done add presolve cache " << std::endl;
+    d_termDbEager->presolve();
   }
+  */
 }
 
-void TermRegistry::addTerm(Node n, bool withinQuant)
+void TermRegistry::addTerm(TNode n, bool withinQuant)
 {
   // don't add terms in quantifier bodies
   if (withinQuant && !options().quantifiers.registerQuantBodyTerms)
   {
     return;
   }
-  if (options().base.incrementalSolving && !options().quantifiers.termDbCd)
+  d_termDb->addTerm(n);
+  if (d_sygusTdb.get()
+      && options().quantifiers.sygusEvalUnfoldMode
+             != options::SygusEvalUnfoldMode::NONE)
   {
-    d_presolveCache.insert(n);
-  }
-  // only wait if we are doing incremental solving
-  if (!d_presolve || !options().base.incrementalSolving
-      || options().quantifiers.termDbCd)
-  {
-    d_termDb->addTerm(n);
-    if (d_sygusTdb.get()
-        && options().quantifiers.sygusEvalUnfoldMode
-               != options::SygusEvalUnfoldMode::NONE)
-    {
-      d_sygusTdb->getEvalUnfold()->registerEvalTerm(n);
-    }
+    d_sygusTdb->getEvalUnfold()->registerEvalTerm(n);
   }
 }
 

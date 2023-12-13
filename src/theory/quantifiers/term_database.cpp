@@ -43,31 +43,25 @@ TermDb::TermDb(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr)
       d_qstate(qs),
       d_qim(nullptr),
       d_qreg(qr),
-      d_termsContext(),
-      d_termsContextUse(options().quantifiers.termDbCd ? context()
-                                                       : &d_termsContext),
-      d_processed(d_termsContextUse),
-      d_typeMap(d_termsContextUse),
-      d_ops(d_termsContextUse),
-      d_opMap(d_termsContextUse),
+      d_processed(context()),
+      d_typeMap(context()),
+      d_ops(context()),
+      d_opMap(context()),
       d_inactive_map(context())
 {
-  d_consistent_ee = true;
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
-  if (!options().quantifiers.termDbCd)
-  {
-    // when not maintaining terms in a context-dependent manner, we clear during
-    // each presolve, which requires maintaining a single outermost level
-    d_termsContext.push();
-  }
 }
 
 TermDb::~TermDb(){
 
 }
 
-void TermDb::finishInit(QuantifiersInferenceManager* qim) { d_qim = qim; }
+void TermDb::finishInit(QuantifiersInferenceManager* qim, TermDbEager* tde)
+{
+  d_qim = qim;
+  d_tde = tde;
+}
 
 void TermDb::registerQuantifier( Node q ) {
   Assert(q[0].getNumChildren() == d_qreg.getNumInstantiationConstants(q));
@@ -232,11 +226,10 @@ void TermDb::addTerm(Node n)
     DbList* dlt = getOrMkDbListForType(n.getType());
     dlt->d_list.push_back(n);
     // if this is an atomic trigger, consider adding it
-    if (inst::TriggerTermInfo::isAtomicTrigger(n))
+    Node op = getMatchOperator(n);
+    if (!op.isNull())
     {
       Trace("term-db") << "register term in db " << n << std::endl;
-
-      Node op = getMatchOperator(n);
       Trace("term-db-debug") << "  match operator is : " << op << std::endl;
       DbList* dlo = getOrMkDbListForOp(op);
       dlo->d_list.push_back(n);
@@ -264,7 +257,7 @@ DbList* TermDb::getOrMkDbListForType(TypeNode tn)
   {
     return it->second.get();
   }
-  std::shared_ptr<DbList> dl = std::make_shared<DbList>(d_termsContextUse);
+  std::shared_ptr<DbList> dl = std::make_shared<DbList>(context());
   d_typeMap.insert(tn, dl);
   return dl.get();
 }
@@ -276,7 +269,7 @@ DbList* TermDb::getOrMkDbListForOp(TNode op)
   {
     return it->second.get();
   }
-  std::shared_ptr<DbList> dl = std::make_shared<DbList>(d_termsContextUse);
+  std::shared_ptr<DbList> dl = std::make_shared<DbList>(context());
   d_opMap.insert(op, dl);
   Assert(op.getKind() != Kind::BOUND_VARIABLE);
   d_ops.push_back(op);
@@ -422,7 +415,6 @@ void TermDb::computeUfTerms( TNode f ) {
         }
         d_qim->addPendingLemma(lem, InferenceId::QUANTIFIERS_TDB_DEQ_CONG);
         d_qstate.notifyInConflict();
-        d_consistent_ee = false;
         return;
       }
       nonCongruentCount++;
@@ -506,17 +498,23 @@ bool TermDb::isTermEligibleForInstantiation(TNode n, TNode f)
 {
   if (options().quantifiers.instMaxLevel != -1)
   {
-    if( n.hasAttribute(InstLevelAttribute()) ){
+    uint64_t level;
+    if (QuantAttributes::getInstantiationLevel(n, level))
+    {
       int64_t fml =
           f.isNull() ? -1 : d_qreg.getQuantAttributes().getQuantInstLevel(f);
       unsigned ml = fml >= 0 ? fml : options().quantifiers.instMaxLevel;
 
-      if( n.getAttribute(InstLevelAttribute())>ml ){
-        Trace("inst-add-debug") << "Term " << n << " has instantiation level " << n.getAttribute(InstLevelAttribute());
+      if (level > ml)
+      {
+        Trace("inst-add-debug")
+            << "Term " << n << " has instantiation level " << level;
         Trace("inst-add-debug") << ", which is more than maximum allowed level " << ml << " for this quantified formula." << std::endl;
         return false;
       }
-    }else{
+    }
+    else
+    {
       Trace("inst-add-debug")
           << "Term " << n << " does not have an instantiation level."
           << std::endl;
@@ -587,13 +585,7 @@ void TermDb::setHasTerm( Node n ) {
   }
 }
 
-void TermDb::presolve() {
-  if (options().base.incrementalSolving && !options().quantifiers.termDbCd)
-  {
-    d_termsContext.pop();
-    d_termsContext.push();
-  }
-}
+void TermDb::presolve() {}
 
 bool TermDb::reset( Theory::Effort effort ){
   d_op_nonred_count.clear();
@@ -601,7 +593,6 @@ bool TermDb::reset( Theory::Effort effort ){
   d_func_map_trie.clear();
   d_func_map_eqc_trie.clear();
   d_fmapRelDom.clear();
-  d_consistent_ee = true;
 
   eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
 
