@@ -308,3 +308,11 @@ name   = "Base"
   category   = "undocumented"
   type       = "std::vector<std::string>"
   default    = '{}'
+
+[[option]]
+  name       = "safeOptions"
+  category   = "common"
+  long       = "safe-options"
+  type       = "bool"
+  default    = "false"
+  help       = "do not allow setting any option that is not common or regular"
