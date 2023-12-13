@@ -989,6 +989,9 @@ set(regress_0_tests
   regress0/options/help.smt2
   regress0/options/interactive-mode.smt2
   regress0/options/named_muted.smt2
+  regress0/options/safe-options1.smt2
+  regress0/options/safe-options2.smt2
+  regress0/options/safe-options3.smt2
   regress0/options/set-after-init.smt2
   regress0/options/set-and-get-options.smt2
   regress0/options/statistics.smt2

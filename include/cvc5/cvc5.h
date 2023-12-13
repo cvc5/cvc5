@@ -3111,6 +3111,8 @@ struct CVC5_EXPORT OptionInfo
   std::vector<std::string> aliases;
   /** Whether the option was explicitly set by the user */
   bool setByUser;
+  /** Whether this is an expert option */
+  bool isExpert;
   /** Possible types for ``valueInfo``. */
   using OptionInfoVariant = std::variant<VoidInfo,
                                          ValueInfo<bool>,
