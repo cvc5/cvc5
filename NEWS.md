@@ -2,6 +2,14 @@ This file contains a summary of important user-visible changes.
 
 **New Features**
 
+- API: The signature of functions `Solver::mkFiniteFieldSort(const std::string&)`
+       and `Solver::mkFiniteFieldElem(const std::string&, const Sort&)` is now
+       extended with an additional (optional) parameter to
+       `Solver::mkFiniteFieldSort(const std::string& size, uint32_t base)` and
+       `Solver::mkFiniteFieldElem(const string& value, const Sort& sort, uint32_t base)`
+       to configure the base of the string representation of the given string
+       parameters.
+
 - CaDiCaL is now integrated via the IPASIR-UP interface as CDCL(T) SAT solver.
   The CDCL(T) SAT solver can be configured via option `--sat-solver`. Currently,
   MiniSat is still default. Note that CaDiCaL cannot be used as the CDCL(T) SAT
