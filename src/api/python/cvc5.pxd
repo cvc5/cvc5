@@ -588,7 +588,6 @@ cdef extern from "<cvc5/cvc5_parser.h>" namespace "cvc5::parser":
     cdef cppclass InputParser:
         InputParser(Solver* solver, SymbolManager* sm) except +
         void setFileInput(InputLanguage lang, const string& filename) except +
-        #void setStreamInput(InputLanguage lang, istream& input, const string& name) except +
         void setIncrementalStringInput(InputLanguage lang, const string& name) except +
         void appendIncrementalStringInput(const string& input) except +
         Command nextCommand() except +
