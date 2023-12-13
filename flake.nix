@@ -117,7 +117,6 @@
       };
       devShells.default = pkgs.mkShell {
         buildInputs = nativeBuildInputs ++ common;
-        Python_EXECUTABLE = "${python}/bin/python3";
       };
     };
   };
