@@ -147,6 +147,12 @@ wasm_flags=""
 
 cmake_opts=""
 
+# Set python3 interpreter executable to make sure that CMake picks up the
+# correct Python version.
+if command -v python3 &> /dev/null; then
+  cmake_opts="$cmake_opts -DPython_EXECUTABLE=$(command -v python3)"
+fi
+
 while [ $# -gt 0 ]
 do
   case $1 in
