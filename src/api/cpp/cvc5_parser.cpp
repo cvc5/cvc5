@@ -293,6 +293,21 @@ void InputParser::setStreamInput(modes::InputLanguage lang,
   CVC5_API_TRY_CATCH_END;
 }
 
+void InputParser::setStringInput(modes::InputLanguage lang,
+                                 const std::string& input,
+                                 const std::string& name)
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  Trace("parser") << "setStringInput(" << lang << ", ..., " << name
+                  << ")" << std::endl;
+  // initialize the parser
+  d_parser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());
+  initializeInternal();
+  d_parser->setStringInput(input, name);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
 void InputParser::setIncrementalStringInput(modes::InputLanguage lang,
                                             const std::string& name)
 {
@@ -300,7 +315,6 @@ void InputParser::setIncrementalStringInput(modes::InputLanguage lang,
   //////// all checks before this line
   Trace("parser") << "setIncrementalStringInput(" << lang << ", ..., " << name
                   << ")" << std::endl;
-  d_istringLang = lang;
   d_istringName = name;
   // initialize the parser
   d_parser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());

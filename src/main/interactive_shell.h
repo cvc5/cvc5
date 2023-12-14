@@ -74,6 +74,8 @@ class InteractiveShell
   bool d_isInteractive;
   bool d_quit;
   bool d_usingEditline;
+  /** The language */
+  modes::InputLanguage d_lang;
 
   std::string d_historyFilename;
 
