@@ -126,6 +126,17 @@ class InputParserTest extends ParserTest
   }
 
   @Test
+  void nextCommandNoInput()
+  {
+    InputParser p = new InputParser(d_solver);
+    p.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "input_parser_black");
+    Command cmd = p.nextCommand();
+    assertEquals(cmd.isNull(), true);
+    Term t = p.nextTerm();
+    assertEquals(t.isNull(), true);
+  }
+
+  @Test
   void nextTerm()
   {
     InputParser p = new InputParser(d_solver);
