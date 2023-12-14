@@ -120,7 +120,7 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_InputParser_setFileInput(
  * Signature: (JILjava/lang/String;Ljava/lang/String;)V
  */
 JNIEXPORT void JNICALL
-Java_io_github_cvc5_InputParser_setIncrementalStringInput(JNIEnv* env,
+Java_io_github_cvc5_InputParser_setStringInput(JNIEnv* env,
                                                           jobject,
                                                           jlong pointer,
                                                           jint langValue,
