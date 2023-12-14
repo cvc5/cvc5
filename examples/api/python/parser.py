@@ -35,7 +35,7 @@ if __name__ == "__main__":
         (assert (> c 0))
     """
     
-    parser.setIncrementalStringInput(cvc5.InputLanguage.SMT_LIB_2_6, input, "MyInput")
+    parser.setStringInput(cvc5.InputLanguage.SMT_LIB_2_6, input, "MyInput")
 
     # get the symbol manager of the parser, used when invoking commands below
     sm = parser.getSymbolManager()
