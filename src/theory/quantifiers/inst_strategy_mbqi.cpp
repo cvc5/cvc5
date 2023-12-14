@@ -476,6 +476,7 @@ Node InstStrategyMbqi::convertFromModel(
         if (itmv != mvToFreshVar.end())
         {
           cmap[cur] = itmv->second;
+          continue;
         }
         else
         {
@@ -484,26 +485,39 @@ Node InstStrategyMbqi::convertFromModel(
           return Node::null();
         }
       }
-      else if (ck == Kind::CONST_SEQUENCE)
+      // must convert to concat of sequence units
+      // must convert function array constant to lambda
+      Node cconv;
+      if (ck == Kind::CONST_SEQUENCE)
       {
-        // must convert to concat of sequence units
-        Node cconv = strings::utils::mkConcatForConstSequence(cur);
-        cmap[cur] = convertFromModel(cconv, cmap, mvToFreshVar);
+        cconv = strings::utils::mkConcatForConstSequence(cur);
+      }
+      else if (ck == Kind::FUNCTION_ARRAY_CONST)
+      {
+        cconv = uf::FunctionConst::toLambda(cur);
+      }
+      if (!cconv.isNull())
+      {
+        Node cconvRet = convertFromModel(cconv, cmap, mvToFreshVar);
+        if (cconvRet.isNull())
+        {
+          return cconvRet;
+        }
+        cmap[cur] = cconvRet;
+        continue;
       }
       else if (cur.getNumChildren() == 0)
       {
         cmap[cur] = cur;
+        continue;
       }
-      else
+      processingChildren.insert(cur);
+      visit.push_back(cur);
+      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
-        processingChildren.insert(cur);
-        visit.push_back(cur);
-        if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
-        {
-          visit.push_back(cur.getOperator());
-        }
-        visit.insert(visit.end(), cur.begin(), cur.end());
+        visit.push_back(cur.getOperator());
       }
+      visit.insert(visit.end(), cur.begin(), cur.end());
       continue;
     }
     processingChildren.erase(cur);
