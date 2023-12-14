@@ -241,7 +241,7 @@ cdef class InputParser:
         """
         self.cip.setFileInput(<c_InputLanguage> lang.value, filename.encode())
 
-    def setStringInput(self, lang, str name):
+    def setStringInput(self, lang, str input, str name):
         """
             Set the input to the given concrete string
 

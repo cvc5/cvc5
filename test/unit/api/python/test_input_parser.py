@@ -82,6 +82,16 @@ def test_set_and_append_incremental_string_input_interleave(solver):
     with does_not_raise():
         cmd.invoke(solver, sm)
 
+def test_set_string_input(solver):
+    p = InputParser(solver)
+    p.setStringInput(cvc5.InputLanguage.SMT_LIB_2_6, "(set-logic ALL)", "test_input_parser")
+    cmd = p.nextCommand()
+    assert cmd.isNull() is False
+    with does_not_raise():
+        cmd.invoke(solver, sm)
+    cmd = p.nextCommand()
+    assert cmd.isNull() is True
+
 def test_next_command_no_input(solver):
     p = InputParser(solver)
     p.setIncrementalStringInput(cvc5.InputLanguage.SMT_LIB_2_6, "test_input_parser")
