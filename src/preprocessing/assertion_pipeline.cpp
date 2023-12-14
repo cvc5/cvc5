@@ -79,11 +79,10 @@ void AssertionPipeline::push_back(Node n,
     }
     std::vector<Node> toProcess;
     toProcess.emplace_back(n);
-    size_t i = 0;
     do
     {
-      Node nc = toProcess[i];
-      i++;
+      Node nc = toProcess.back();
+      toProcess.pop_back();
       if (nc.getKind() == Kind::AND)
       {
         if (isProofEnabled())
@@ -91,21 +90,22 @@ void AssertionPipeline::push_back(Node n,
           NodeManager* nm = NodeManager::currentNM();
           for (size_t j = 0, nchild = nc.getNumChildren(); j < nchild; j++)
           {
-            Node in = nm->mkConstInt(Rational(j));
-            d_andElimEpg->addStep(nc[j], ProofRule::AND_ELIM, {nc}, {in});
-            toProcess.emplace_back(nc[j]);
+            size_t jj = (nchild-1)-j;
+            Node in = nm->mkConstInt(Rational(jj));
+            d_andElimEpg->addStep(nc[jj], ProofRule::AND_ELIM, {nc}, {in});
+            toProcess.emplace_back(nc[jj]);
           }
         }
         else
         {
-          toProcess.insert(toProcess.end(), nc.begin(), nc.end());
+          toProcess.insert(toProcess.end(), nc.rbegin(), nc.rend());
         }
       }
       else
       {
         conjs.emplace_back(nc);
       }
-    } while (i < toProcess.size());
+    } while (!toProcess.empty());
     // add each conjunct
     for (const Node& nc : conjs)
     {
