@@ -176,20 +176,20 @@ TEST_F(TestInputParserBlack, nextTerm2)
   p.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6,
                               "input_parser_black");
   // parse a declaration command
-  p.appendIncrementalStringInput("(declare-fun a () Int)");
+  p.appendIncrementalStringInput("(declare-fun a () Int)\n");
   Command cmd = p.nextCommand();
   ASSERT_NE(cmd.isNull(), true);
   ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
   // now parse some terms
   Term t;
-  p.appendIncrementalStringInput("45");
+  p.appendIncrementalStringInput("45\n");
   ASSERT_NO_THROW(t = p.nextTerm());
   ASSERT_EQ(t.isNull(), false);
-  p.appendIncrementalStringInput("(+ a 1)");
+  p.appendIncrementalStringInput("(+ a 1)\n");
   ASSERT_NO_THROW(t = p.nextTerm());
   ASSERT_EQ(t.isNull(), false);
   ASSERT_EQ(t.getKind(), Kind::ADD);
-  p.appendIncrementalStringInput("(+ b 1)");
+  p.appendIncrementalStringInput("(+ b 1)\n");
   ASSERT_THROW(t = p.nextTerm(), ParserException);
 }
 
