@@ -264,8 +264,7 @@ cdef class InputParser:
     def appendIncrementalStringInput(self, str input):
         """
             Append string to the input being parsed by this parser. Should be
-            called after calling setIncrementalStringInput and only after the
-            previous string (if one was provided) is finished being parsed.
+            called after calling setIncrementalStringInput.
 
             :param input: The input string.
         """

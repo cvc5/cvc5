@@ -123,7 +123,7 @@ public class InputParser extends AbstractPointer
   {
     setStringInput(pointer, lang.getValue(), input, name);
   }
-  private native void setStringInput(long pointer, int langValue, String input, String fileName);
+  private native void setStringInput(long pointer, int langValue, String input, String name);
 
   /**
    * Set that we will be feeding strings to this parser via
@@ -141,8 +141,7 @@ public class InputParser extends AbstractPointer
 
   /**
    * Append string to the input being parsed by this parser. Should be
-   * called after calling setIncrementalStringInput and only after the
-   * previous string (if one was provided) is finished being parsed.
+   * called after calling setIncrementalStringInput.
    *
    * @param input The input string.
    */

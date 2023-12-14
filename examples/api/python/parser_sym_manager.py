@@ -32,7 +32,7 @@ if __name__ == "__main__":
         (declare-fun c () Bool)
     """
     
-    parser.setlStringInput(cvc5.InputLanguage.SMT_LIB_2_6, input, "MyInput")
+    parser.setStringInput(cvc5.InputLanguage.SMT_LIB_2_6, input, "MyInput")
 
     # parse commands until finished
     while True:
