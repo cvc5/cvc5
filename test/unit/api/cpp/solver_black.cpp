@@ -3915,6 +3915,8 @@ TEST_F(TestApiBlackSolver, multipleSolvers)
   }
 }
 
+#ifdef CVC5_USE_COCOA
+
 TEST_F(TestApiBlackSolver, basicFiniteField)
 {
   Solver slv;
@@ -3940,6 +3942,8 @@ TEST_F(TestApiBlackSolver, basicFiniteField)
   slv.assertFormula(bIsTwo);
   ASSERT_FALSE(slv.checkSat().isSat());
 }
+
+#endif
 
 TEST_F(TestApiBlackSolver, basicFiniteFieldBase)
 {
