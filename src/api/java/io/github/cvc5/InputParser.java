@@ -123,6 +123,7 @@ public class InputParser extends AbstractPointer
   {
     setStringInput(pointer, lang.getValue(), input, name);
   }
+  private native void setStringInput(long pointer, int langValue, String input, String fileName);
 
   /**
    * Set that we will be feeding strings to this parser via
