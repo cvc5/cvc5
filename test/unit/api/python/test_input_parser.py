@@ -83,7 +83,8 @@ def test_set_and_append_incremental_string_input_interleave(solver):
         cmd.invoke(solver, sm)
 
 def test_set_string_input(solver):
-    p = InputParser(solver)
+    sm = SymbolManager(solver)
+    p = InputParser(solver, sm)
     p.setStringInput(cvc5.InputLanguage.SMT_LIB_2_6, "(set-logic ALL)", "test_input_parser")
     cmd = p.nextCommand()
     assert cmd.isNull() is False
@@ -119,16 +120,16 @@ def test_next_term2(solver):
         cmd.invoke(solver, sm)
     # now parse some terms
     t = None
-    p.appendIncrementalStringInput("45")
+    p.appendIncrementalStringInput("45\n")
     with does_not_raise():
         t = p.nextTerm()
     assert t.isNull() is False
-    p.appendIncrementalStringInput("(+ a 1)")
+    p.appendIncrementalStringInput("(+ a 1)\n")
     with does_not_raise():
         t = p.nextTerm()
     assert t.isNull() is False
     assert t.getKind() == cvc5.Kind.ADD
-    p.appendIncrementalStringInput("(+ b 1)")
+    p.appendIncrementalStringInput("(+ b 1)\n")
     with pytest.raises(RuntimeError):
         t = p.nextTerm()
 
