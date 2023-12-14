@@ -121,11 +121,11 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_InputParser_setFileInput(
  */
 JNIEXPORT void JNICALL
 Java_io_github_cvc5_InputParser_setStringInput(JNIEnv* env,
-                                                          jobject,
-                                                          jlong pointer,
-                                                          jint langValue,
-                                                          jstring jInput,
-                                                          jstring jName)
+                                               jobject,
+                                               jlong pointer,
+                                               jint langValue,
+                                               jstring jInput,
+                                               jstring jName)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   InputParser* parser = reinterpret_cast<InputParser*>(pointer);
