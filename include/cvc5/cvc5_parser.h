@@ -216,7 +216,7 @@ class CVC5_EXPORT InputParser
    * @param input The input string
    * @param name the name of the stream, for use in error messages
    */
-  void setStringInput(modes::InputLanguage ,
+  void setStringInput(modes::InputLanguage,
                       const std::string& input,
                       const std::string& name);
 

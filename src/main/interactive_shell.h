@@ -16,12 +16,13 @@
 #ifndef CVC5__INTERACTIVE_SHELL_H
 #define CVC5__INTERACTIVE_SHELL_H
 
+#include <cvc5/cvc5_types.h>
+
 #include <iosfwd>
 #include <memory>
 #include <optional>
 #include <string>
 #include <vector>
-#include <cvc5/cvc5_types.h>
 
 namespace cvc5 {
 

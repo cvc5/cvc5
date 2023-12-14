@@ -140,8 +140,9 @@ TEST_F(TestInputParserBlack, setStringInput)
   std::stringstream out;
   InputParser p(&d_solver);
   Command cmd;
-  p.setStringInput(modes::InputLanguage::SMT_LIB_2_6, "(set-logic ALL)",
-                              "input_parser_black");
+  p.setStringInput(modes::InputLanguage::SMT_LIB_2_6,
+                   "(set-logic ALL)",
+                   "input_parser_black");
   cmd = p.nextCommand();
   ASSERT_NE(cmd.isNull(), true);
   ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
