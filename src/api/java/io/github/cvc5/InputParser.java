@@ -22,7 +22,7 @@ import io.github.cvc5.modes.InputLanguage;
  * from an input using a parser.
  *
  * After construction, it is expected that an input is first set via e.g.
- * setFileInput, or setIncrementalStringInput and
+ * setFileInput, setStringInput, or setIncrementalStringInput and
  * appendIncrementalStringInput. Then, the methods nextCommand and
  * nextExpression can be invoked to parse the input.
  *
@@ -111,6 +111,18 @@ public class InputParser extends AbstractPointer
   }
 
   private native void setFileInput(long pointer, int langValue, String fileName);
+
+  /**
+   * Set the input to the given concrete input string.
+   *
+   * @param lang The input language.
+   * @param input The input string.
+   * @param name The name of the stream, for use in error messages.
+   */
+  public void setStringInput(InputLanguage lang, String input, String name)
+  {
+    setStringInput(pointer, lang.getValue(), input, name);
+  }
 
   /**
    * Set that we will be feeding strings to this parser via

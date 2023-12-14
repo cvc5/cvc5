@@ -59,7 +59,7 @@ class InputParserTest extends ParserTest
   }
 
   @Test
-  void setAndAppendIncrementalStringInput()
+  void setAndAppendIncrementalStringInputInterleave()
   {
     InputParser p = new InputParser(d_solver);
     p.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "input_parser_black");
@@ -78,6 +78,40 @@ class InputParserTest extends ParserTest
     final Command cmd3 = p.nextCommand();
     assertNotEquals(cmd3.isNull(), true);
     assertDoesNotThrow(() -> cmd3.invoke(d_solver, d_symman));
+  }
+
+  @Test
+  void setAndAppendIncrementalStringInput()
+  {
+    InputParser p = new InputParser(d_solver);
+    p.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "input_parser_black");
+    p.appendIncrementalStringInput("(set-logic ALL)");
+    p.appendIncrementalStringInput("(declare-fun a () Bool)");
+    p.appendIncrementalStringInput("(declare-fun b () Int)");
+
+    final Command cmd1 = p.nextCommand();
+    assertNotEquals(cmd1.isNull(), true);
+    assertDoesNotThrow(() -> cmd1.invoke(d_solver, d_symman));
+
+    final Command cmd2 = p.nextCommand();
+    assertNotEquals(cmd2.isNull(), true);
+    assertDoesNotThrow(() -> cmd2.invoke(d_solver, d_symman));
+
+    final Command cmd3 = p.nextCommand();
+    assertNotEquals(cmd3.isNull(), true);
+    assertDoesNotThrow(() -> cmd3.invoke(d_solver, d_symman));
+  }
+
+  @Test
+  void setStringInput()
+  {
+    InputParser p = new InputParser(d_solver);
+    p.setStringInput(InputLanguage.SMT_LIB_2_6, "(set-logic ALL)", "input_parser_black");
+    final Command cmd1 = p.nextCommand();
+    assertNotEquals(cmd1.isNull(), true);
+    assertDoesNotThrow(() -> cmd1.invoke(d_solver, d_symman));
+    final Command cmd2 = p.nextCommand();
+    assertEquals(cmd2.isNull(), true);
   }
 
   @Test
