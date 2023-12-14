@@ -152,7 +152,7 @@ std::ostream& operator<<(std::ostream& out, const Command& c)
 /* -------------------------------------------------------------------------- */
 
 InputParser::InputParser(Solver* solver, SymbolManager* sm)
-    : d_solver(solver), d_allocSm(nullptr), d_sm(sm)
+    : d_solver(solver), d_allocSm(nullptr), d_sm(sm), d_usingIStringStream(false)
 {
   initialize();
 }
@@ -197,6 +197,8 @@ void InputParser::initialize()
 
 void InputParser::initializeInternal()
 {
+  // reset to false
+  d_usingIStringStream = false;
   SymManager* sm = d_sm->toSymManager();
   bool slvLogicSet = d_solver->isLogicSet();
   bool smLogicSet = sm->isLogicSet();
@@ -320,6 +322,8 @@ void InputParser::setIncrementalStringInput(modes::InputLanguage lang,
   initializeInternal();
   d_istringStream.str("");
   d_parser->setStreamInput(d_istringStream, name);
+  // remember that we are using d_istringStream
+  d_usingIStringStream = true;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -328,6 +332,7 @@ void InputParser::appendIncrementalStringInput(const std::string& input)
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_PARSER_API_CHECK(d_parser != nullptr)
       << "Input to parser not initialized";
+  CVC5_PARSER_API_CHECK(d_usingIStringStream) << "Must call setIncrementalStringInput prior to using appendIncrementalStringInput";
   //////// all checks before this line
   Trace("parser") << "appendIncrementalStringInput(...)" << std::endl;
   d_istringStream << input;

@@ -135,6 +135,12 @@ TEST_F(TestInputParserBlack, setAndAppendIncrementalStringInputInterleave)
   ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
 }
 
+TEST_F(TestInputParserBlack, appendIncrementalNoSet)
+{
+  InputParser p(&d_solver);
+  ASSERT_THROW(p.appendIncrementalStringInput("(set-logic ALL)"), ParserException);
+}
+
 TEST_F(TestInputParserBlack, setStringInput)
 {
   std::stringstream out;

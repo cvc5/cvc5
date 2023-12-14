@@ -82,6 +82,12 @@ def test_set_and_append_incremental_string_input_interleave(solver):
     with does_not_raise():
         cmd.invoke(solver, sm)
 
+def test_append_incremental_no_set(solver):
+    sm = SymbolManager(solver)
+    p = InputParser(solver, sm)
+    with pytest.raises(RuntimeError):
+        p.appendIncrementalStringInput("(set-logic ALL)")
+
 def test_set_string_input(solver):
     sm = SymbolManager(solver)
     p = InputParser(solver, sm)

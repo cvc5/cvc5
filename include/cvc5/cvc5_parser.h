@@ -274,6 +274,8 @@ class CVC5_EXPORT InputParser
   std::string d_istringName;
   /** A stringstream, for incremental string inputs */
   std::stringstream d_istringStream;
+  /** Are we initialized to use the above string stream? */
+  bool d_usingIStringStream;
   /** The parser */
   std::shared_ptr<Parser> d_parser;
 };
