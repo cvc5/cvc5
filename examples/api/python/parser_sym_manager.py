@@ -24,16 +24,15 @@ if __name__ == "__main__":
 
     # construct an input parser associated the solver above
     parser = cvc5.InputParser(slv, sm)
-
-    parser.setIncrementalStringInput(cvc5.InputLanguage.SMT_LIB_2_6, "MyInput")
-
+    
     input = """
         (set-logic QF_LIA)
         (declare-fun a () Int)
         (declare-fun b () Int)
         (declare-fun c () Bool)
     """
-    parser.appendIncrementalStringInput(input)
+    
+    parser.setlStringInput(cvc5.InputLanguage.SMT_LIB_2_6, input, "MyInput")
 
     # parse commands until finished
     while True:

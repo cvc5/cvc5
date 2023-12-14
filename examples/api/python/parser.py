@@ -25,8 +25,6 @@ if __name__ == "__main__":
     # construct an input parser associated the solver above
     parser = cvc5.InputParser(slv)
 
-    parser.setIncrementalStringInput(cvc5.InputLanguage.SMT_LIB_2_6, "MyInput")
-
     input = """
         (set-logic QF_LIA)
         (declare-fun a () Int)
@@ -36,7 +34,8 @@ if __name__ == "__main__":
         (assert (< a b))
         (assert (> c 0))
     """
-    parser.appendIncrementalStringInput(input)
+    
+    parser.setIncrementalStringInput(cvc5.InputLanguage.SMT_LIB_2_6, input, "MyInput")
 
     # get the symbol manager of the parser, used when invoking commands below
     sm = parser.getSymbolManager()
