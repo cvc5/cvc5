@@ -315,10 +315,11 @@ void InputParser::setIncrementalStringInput(modes::InputLanguage lang,
   //////// all checks before this line
   Trace("parser") << "setIncrementalStringInput(" << lang << ", ..., " << name
                   << ")" << std::endl;
-  d_istringName = name;
   // initialize the parser
   d_parser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());
   initializeInternal();
+  d_istringStream.str("");
+  d_parser->setStreamInput(d_istringStream, name);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -329,7 +330,7 @@ void InputParser::appendIncrementalStringInput(const std::string& input)
       << "Input to parser not initialized";
   //////// all checks before this line
   Trace("parser") << "appendIncrementalStringInput(...)" << std::endl;
-  d_parser->setStringInput(input, d_istringName);
+  d_istringStream << input;
   ////////
   CVC5_API_TRY_CATCH_END;
 }

@@ -101,6 +101,27 @@ TEST_F(TestInputParserBlack, setAndAppendIncrementalStringInput)
                               "input_parser_black");
   Command cmd;
   p.appendIncrementalStringInput("(set-logic ALL)");
+  p.appendIncrementalStringInput("(declare-fun a () Bool)");
+  p.appendIncrementalStringInput("(declare-fun b () Int)");
+  cmd = p.nextCommand();
+  ASSERT_NE(cmd.isNull(), true);
+  ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
+  cmd = p.nextCommand();
+  ASSERT_NE(cmd.isNull(), true);
+  ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
+  cmd = p.nextCommand();
+  ASSERT_NE(cmd.isNull(), true);
+  ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
+}
+
+TEST_F(TestInputParserBlack, setAndAppendIncrementalStringInputInterleave)
+{
+  std::stringstream out;
+  InputParser p(&d_solver);
+  p.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6,
+                              "input_parser_black");
+  Command cmd;
+  p.appendIncrementalStringInput("(set-logic ALL)");
   cmd = p.nextCommand();
   ASSERT_NE(cmd.isNull(), true);
   ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
@@ -112,6 +133,16 @@ TEST_F(TestInputParserBlack, setAndAppendIncrementalStringInput)
   cmd = p.nextCommand();
   ASSERT_NE(cmd.isNull(), true);
   ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
+}
+
+TEST_F(TestInputParserBlack, setStringInput)
+{
+  std::stringstream out;
+  InputParser p(&d_solver);
+  Command cmd;
+  p.setStringInput("(set-logic ALL)");
+  cmd = p.nextCommand();
+  ASSERT_NE(cmd.isNull(), true);
 }
 
 TEST_F(TestInputParserBlack, nextCommand)

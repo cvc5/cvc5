@@ -21,6 +21,7 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include <cvc5/cvc5_types.h>
 
 namespace cvc5 {
 
