@@ -270,8 +270,6 @@ class CVC5_EXPORT InputParser
   std::unique_ptr<SymbolManager> d_allocSm;
   /** Symbol manager */
   SymbolManager* d_sm;
-  /** Incremental string name */
-  std::string d_istringName;
   /** A stringstream, for incremental string inputs */
   std::stringstream d_istringStream;
   /** Are we initialized to use the above string stream? */
