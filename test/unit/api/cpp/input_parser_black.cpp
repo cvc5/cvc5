@@ -138,7 +138,8 @@ TEST_F(TestInputParserBlack, setAndAppendIncrementalStringInputInterleave)
 TEST_F(TestInputParserBlack, appendIncrementalNoSet)
 {
   InputParser p(&d_solver);
-  ASSERT_THROW(p.appendIncrementalStringInput("(set-logic ALL)"), ParserException);
+  ASSERT_THROW(p.appendIncrementalStringInput("(set-logic ALL)"),
+               ParserException);
 }
 
 TEST_F(TestInputParserBlack, setStringInput)

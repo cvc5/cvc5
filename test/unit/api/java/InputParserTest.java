@@ -106,8 +106,8 @@ class InputParserTest extends ParserTest
   void appendIncrementalNoSet()
   {
     InputParser p = new InputParser(d_solver);
-    assertThrows(CVC5ParserException.class,
-        () -> p.appendIncrementalStringInput("(set-logic ALL)"));
+    assertThrows(
+        CVC5ParserException.class, () -> p.appendIncrementalStringInput("(set-logic ALL)"));
   }
 
   @Test
