@@ -55,8 +55,8 @@ class NodeDfsIterator
   // Move/copy construction and assignment. Destructor.
   NodeDfsIterator(NodeDfsIterator&&) = default;
   NodeDfsIterator& operator=(NodeDfsIterator&&) = default;
-  NodeDfsIterator(NodeDfsIterator&) = default;
-  NodeDfsIterator& operator=(NodeDfsIterator&) = default;
+  NodeDfsIterator(const NodeDfsIterator&) = default;
+  NodeDfsIterator& operator=(const NodeDfsIterator&) = default;
   ~NodeDfsIterator() = default;
 
   // Preincrement
@@ -132,8 +132,8 @@ class NodeDfsIterable
   // Move/copy construction and assignment. Destructor.
   NodeDfsIterable(NodeDfsIterable&&) = default;
   NodeDfsIterable& operator=(NodeDfsIterable&&) = default;
-  NodeDfsIterable(NodeDfsIterable&) = default;
-  NodeDfsIterable& operator=(NodeDfsIterable&) = default;
+  NodeDfsIterable(const NodeDfsIterable&) = default;
+  NodeDfsIterable& operator=(const NodeDfsIterable&) = default;
   ~NodeDfsIterable() = default;
 
   NodeDfsIterator begin() const;

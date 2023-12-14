@@ -180,9 +180,15 @@ class CVC5_EXPORT SolverEngine
 
   /**
    * Set an aspect of the current SMT execution environment.
+   * @param key The option to set
+   * @param value The value to set
+   * @param fromUser Whether this option was set by the user. This impacts
+   * whether we enable checks e.g. when --safe-options is enabled.
    * @throw OptionException, ModalException
    */
-  void setOption(const std::string& key, const std::string& value);
+  void setOption(const std::string& key,
+                 const std::string& value,
+                 bool fromUser = false);
 
   /** Set is internal subsolver.
    *

@@ -569,7 +569,10 @@ Term Smt2State::mkIndexedOp(Kind k,
   if (k == Kind::APPLY_TESTER || k == Kind::APPLY_UPDATER)
   {
     Assert(symbols.size() == 1);
-    Assert(!args.empty());
+    if (args.empty())
+    {
+      parseError("Expected argument to tester/updater");
+    }
     const std::string& cname = symbols[0];
     // must be declared
     checkDeclaration(cname, CHECK_DECLARED, SYM_VARIABLE);
