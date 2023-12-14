@@ -107,7 +107,7 @@ class InputParserTest extends ParserTest
   {
     InputParser p = new InputParser(d_solver);
     assertThrows(
-        CVC5ParserException.class, () -> p.appendIncrementalStringInput("(set-logic ALL)"));
+        CVC5ApiException.class, () -> p.appendIncrementalStringInput("(set-logic ALL)"));
   }
 
   @Test

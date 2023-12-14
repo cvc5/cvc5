@@ -139,7 +139,7 @@ TEST_F(TestInputParserBlack, appendIncrementalNoSet)
 {
   InputParser p(&d_solver);
   ASSERT_THROW(p.appendIncrementalStringInput("(set-logic ALL)"),
-               ParserException);
+               CVC5ApiException);
 }
 
 TEST_F(TestInputParserBlack, setStringInput)
