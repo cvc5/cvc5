@@ -1,5 +1,5 @@
 Parser with Shared Symbol Manager
-===========
+=================================
 
 This example shows how to use the parser via the parser API and use it to
 parse additional terms in another input source.

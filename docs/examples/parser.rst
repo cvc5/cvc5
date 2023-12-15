@@ -1,5 +1,5 @@
 Parser
-===========
+======
 
 This example shows how to use the parser via the parser API.
 
