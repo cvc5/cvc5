@@ -271,6 +271,7 @@ TEST_F(TestApiBlackUncovered, Parser)
   parser::InputParser inputParser(&solver);
   ASSERT_EQ(inputParser.getSolver(), &d_solver);
   parser::SymbolManager* sm = inputParser.getSymbolManager();
+  ASSERT_EQ(sm->isLogicSet(), false);
   std::stringstream ss;
   ss << command << std::endl;
   inputParser.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ss, "Parser");
