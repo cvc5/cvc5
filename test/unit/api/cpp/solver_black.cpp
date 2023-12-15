@@ -2100,6 +2100,8 @@ TEST_F(TestApiBlackSolver, getProofAndProofToString)
   ASSERT_NO_THROW(printedProof = d_solver.proofToString(
                       proofs[0], modes::ProofFormat::ALETHE));
   ASSERT_NO_THROW(proofs = d_solver.getProof(modes::ProofComponent::SAT));
+  ASSERT_NO_THROW(printedProof = d_solver.proofToString(
+                      proofs[0], modes::ProofFormat::NONE));
   ASSERT_FALSE(printedProof.empty());
 }
 
