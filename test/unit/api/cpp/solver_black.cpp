@@ -3943,8 +3943,6 @@ TEST_F(TestApiBlackSolver, basicFiniteField)
   ASSERT_FALSE(slv.checkSat().isSat());
 }
 
-#endif
-
 TEST_F(TestApiBlackSolver, basicFiniteFieldBase)
 {
   Solver slv;
@@ -3970,6 +3968,8 @@ TEST_F(TestApiBlackSolver, basicFiniteFieldBase)
   slv.assertFormula(bIsTwo);
   ASSERT_FALSE(slv.checkSat().isSat());
 }
+
+#endif
 
 }  // namespace test
 }  // namespace cvc5::internal
