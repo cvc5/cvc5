@@ -184,7 +184,7 @@ cdef class InputParser:
         from an input using a parser.
 
         After construction, it is expected that an input is first set via e.g.
-        :py:meth:`setFileInput`, :py:meth:`setStreamInput`, or
+        :py:meth:`setFileInput`, :py:meth:`setStringInput`, or
         :py:meth:`setIncrementalStringInput` and :py:meth:`appendIncrementalStringInput`.
         Then, the methods :py:meth:`nextCommand` and
         :py:meth:`nextExpression` can be invoked to parse the input.
@@ -241,6 +241,16 @@ cdef class InputParser:
         """
         self.cip.setFileInput(<c_InputLanguage> lang.value, filename.encode())
 
+    def setStringInput(self, lang, str input, str name):
+        """
+            Set the input to the given concrete string
+
+            :param lang: The input language (e.g. InputLanguage.SMT_LIB_2_6).
+            :param input: The input string.
+            :param name: The name of the stream, for use in error messages.
+        """
+        self.cip.setStringInput(<c_InputLanguage> lang.value, input.encode(), name.encode())
+
     def setIncrementalStringInput(self, lang, str name):
         """
             Set that we will be feeding strings to this parser via
@@ -254,8 +264,7 @@ cdef class InputParser:
     def appendIncrementalStringInput(self, str input):
         """
             Append string to the input being parsed by this parser. Should be
-            called after calling setIncrementalStringInput and only after the
-            previous string (if one was provided) is finished being parsed.
+            called after calling setIncrementalStringInput.
 
             :param input: The input string.
         """
