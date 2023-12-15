@@ -1977,7 +1977,7 @@ enum ENUM(Kind) : int32_t
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkFiniteFieldElem(const std::string&, const Sort&) const
+   *   - Solver::mkFiniteFieldElem(const std::string&, const Sort&, uint32_t base) const
    */
   EVALUE(CONST_FINITE_FIELD),
   /**
@@ -5838,7 +5838,7 @@ enum ENUM(SortKind) : int32_t
    *
    * - Create Sort of this Kind with:
    *
-   *   - Solver::mkFiniteFieldSort(const std::string&) const
+   *   - Solver::mkFiniteFieldSort(const std::string&, uint32_t base) const
    */
   EVALUE(FINITE_FIELD_SORT),
   /**

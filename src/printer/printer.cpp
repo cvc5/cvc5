@@ -524,6 +524,12 @@ void Printer::toStreamCmdGetTimeoutCore(std::ostream& out) const
   printUnknownCommand(out, "get-timeout-core");
 }
 
+void Printer::toStreamCmdGetTimeoutCoreAssuming(
+    std::ostream& out, const std::vector<Node>& assumptions) const
+{
+  printUnknownCommand(out, "get-timeout-core-assuming");
+}
+
 void Printer::toStreamCmdGetLearnedLiterals(std::ostream& out,
                                             modes::LearnedLitType t) const
 {
