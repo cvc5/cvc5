@@ -18,142 +18,186 @@ from enum import Enum, auto
 
 class Op(Enum):
 
+    def __new__(cls, symbol, kind):
+        """
+        symbol: The name of the operator in RARE
+        kind: The name of the operator in CVC5
+        """
+        entry = object.__new__(cls)
+        entry._value_ = kind
+        entry.symbol = symbol
+        entry.kind = kind
+        return entry
+
+    ###########################################################################
+    # Arrays
+    ###########################################################################
+    STORE = ('store', 'STORE')
+    SELECT = ('select', 'SELECT')
+
     ###########################################################################
     # Bit-vectors
     ###########################################################################
 
+    BVSIZE = ('bvsize', 'BITVECTOR_SIZE')
     # Bit-vector predicates
-    BVUGT = auto()
-    BVUGE = auto()
-    BVSGT = auto()
-    BVSGE = auto()
-    BVSLT = auto()
-    BVSLE = auto()
-    BVULT = auto()
-    BVULE = auto()
-    BVREDAND = auto()
-    BVREDOR = auto()
+    BVUGT = ('bvugt', 'BITVECTOR_UGT')
+    BVUGE = ('bvuge', 'BITVECTOR_UGE')
+    BVSGT = ('bvsgt', 'BITVECTOR_SGT')
+    BVSGE = ('bvsge', 'BITVECTOR_SGE')
+    BVSLT = ('bvslt', 'BITVECTOR_SLT')
+    BVSLE = ('bvsle', 'BITVECTOR_SLE')
+    BVULT = ('bvult', 'BITVECTOR_ULT')
+    BVULE = ('bvule', 'BITVECTOR_ULE')
+    BVREDAND = ('bvredand', 'BITVECTOR_REDAND')
+    BVREDOR = ('bvredor', 'BITVECTOR_REDOR')
 
     # Bit-vector arithmetic
-    BVNEG = auto()
-    BVADD = auto()
-    BVSUB = auto()
-    BVMUL = auto()
-    BVSDIV = auto()
-    BVUDIV = auto()
-    BVSREM = auto()
-    BVUREM = auto()
-    BVSMOD = auto()
+    BVNEG = ('bvneg', 'BITVECTOR_NEG')
+    BVADD = ('bvadd', 'BITVECTOR_ADD')
+    BVSUB = ('bvsub', 'BITVECTOR_SUB')
+    BVMUL = ('bvmul', 'BITVECTOR_MULT')
+    BVSDIV = ('bvsdiv', 'BITVECTOR_SDIV')
+    BVUDIV = ('bvudiv', 'BITVECTOR_UDIV')
+    BVSREM = ('bvsrem', 'BITVECTOR_SREM')
+    BVUREM = ('bvurem', 'BITVECTOR_UREM')
+    BVSMOD = ('bvsmod', 'BITVECTOR_SMOD')
 
     # Bit-vector shifts
-    BVSHL = auto()
-    BVLSHR = auto()
-    BVASHR = auto()
-    ROTATE_LEFT = auto()
-    ROTATE_RIGHT = auto()
+    BVSHL = ('bvshl', 'BITVECTOR_SHL')
+    BVLSHR = ('bvlshr', 'BITVECTOR_LSHR')
+    BVASHR = ('bvashr', 'BITVECTOR_ASHR')
+    ROTATE_LEFT = ('rotate_left', 'BITVECTOR_ROTATE_LEFT')
+    ROTATE_RIGHT = ('rotate_right', 'BITVECTOR_ROTATE_RIGHT')
 
     # Bitwise bit-vector operations
-    BVNOT = auto()
-    BVAND = auto()
-    BVOR = auto()
-    BVXOR = auto()
-    BVNAND = auto()
-    BVNOR = auto()
-    BVXNOR = auto()
+    BVNOT = ('bvnot', 'BITVECTOR_NOT')
+    BVAND = ('bvand', 'BITVECTOR_AND')
+    BVOR = ('bvor', 'BITVECTOR_OR')
+    BVXOR = ('bvxor', 'BITVECTOR_XOR')
+    BVNAND = ('bvnand', 'BITVECTOR_NAND')
+    BVNOR = ('bvnor', 'BITVECTOR_NOR')
+    BVXNOR = ('bvxnor', 'BITVECTOR_XNOR')
+    BVUADDO = ('bvuaddo', 'BITVECTOR_UADDO')
+    BVSADDO = ('bvsaddo', 'BITVECTOR_SADDO')
+    BVUMULO = ('bvumulo', 'BITVECTOR_UMULO')
+    BVSMULO = ('bvsmulo', 'BITVECTOR_SMULO')
+    BVUSUBO = ('bvusubo', 'BITVECTOR_USUBO')
+    BVSSUBO = ('bvssubo', 'BITVECTOR_SSUBO')
+    BVSDIVO = ('bvsdivo', 'BITVECTOR_SDIVO')
 
-    CONCAT = auto()
+    BVITE = ('bvite', 'BITVECTOR_ITE')
+    BVCOMP = ('bvcomp', 'BITVECTOR_COMP')
 
-    BVITE = auto()
-    BVCOMP = auto()
-
-    BVCONST = auto()
-    ZERO_EXTEND = auto()
-    SIGN_EXTEND = auto()
-    EXTRACT = auto()
-    REPEAT = auto()
+    BVCONST = ('bv', 'CONST_BITVECTOR_SYMBOLIC')
+    ZERO_EXTEND = ('zero_extend', 'BITVECTOR_ZERO_EXTEND')
+    SIGN_EXTEND = ('sign_extend', 'BITVECTOR_SIGN_EXTEND')
+    CONCAT = ('concat', 'BITVECTOR_CONCAT')
+    EXTRACT = ('extract', 'BITVECTOR_EXTRACT')
+    REPEAT = ('repeat', 'BITVECTOR_REPEAT')
 
     ###########################################################################
     # Boolean
     ###########################################################################
 
-    NOT = auto()
-    AND = auto()
-    OR = auto()
-    IMPLIES = auto()
-    XOR = auto()
+    NOT = ('not', 'NOT')
+    AND = ('and', 'AND')
+    OR = ('or', 'OR')
+    IMPLIES = ('=>', 'IMPLIES')
+    XOR = ('xor', 'XOR')
 
     ###########################################################################
     # Arithmetic
     ###########################################################################
 
-    NEG = auto()
-    ADD = auto()
-    SUB = auto()
-    MULT = auto()
-    INT_DIV = auto()
-    DIV = auto()
-    MOD = auto()
-    ABS = auto()
-    LT = auto()
-    GT = auto()
-    LEQ = auto()
-    GEQ = auto()
+    NEG = (None, 'NEG')  # This is parsed with SUB, so the key is None
+    ADD = ('+', 'ADD')
+    SUB = ('-', 'SUB')
+    MULT = ('*', 'MULT')
+    INT_DIV = ('div', 'INTS_DIVISION')
+    DIV = ('/', 'DIVISION')
+    MOD = ('mod', 'INTS_MODULUS')
+    ABS = ('abs', 'ABS')
+    LT = ('<', 'LT')
+    GT = ('>', 'GT')
+    LEQ = ('<=', 'LEQ')
+    GEQ = ('>=', 'GEQ')
+    POW2 = ('int.pow2', 'POW2')
 
     ###########################################################################
     # Theory-independent
     ###########################################################################
 
-    EQ = auto()
-    ITE = auto()
-    LAMBDA = auto()
-    BOUND_VARS = auto()
+    EQ = ('=', 'EQUAL')
+    ITE = ('ite', 'ITE')
+    # Lambda is not an operator. It exists here as a backdoor to simplify
+    # parsing logic.
+    LAMBDA = (None, 'LAMBDA')
+    BOUND_VARS = (None, 'BOUND_VAR_LIST')
+    DISTINCT = ('distinct', 'DISTINCT')
+
+    BV_TO_NAT = ('bv2nat', 'BITVECTOR_TO_NAT')
+    INT_TO_BV = ('int2bv', 'INT_TO_BITVECTOR')
 
     ###########################################################################
     # Strings
     ###########################################################################
 
-    CONST_STRING = auto()
-    STRING_CONCAT = auto()
-    STRING_IN_REGEXP = auto()
-    STRING_LENGTH = auto()
+    STRING_CONCAT = ('str.++', 'STRING_CONCAT')
+    STRING_IN_REGEXP = ('str.in_re', 'STRING_IN_REGEXP')
+    STRING_LENGTH = ('str.len', 'STRING_LENGTH')
 
-    STRING_SUBSTR = auto()
-    STRING_UPDATE = auto()
-    STRING_AT = auto()
-    STRING_CONTAINS = auto()
-    STRING_LT = auto()
-    STRING_LEQ = auto()
-    STRING_INDEXOF = auto()
-    STRING_INDEXOF_RE = auto()
-    STRING_REPLACE = auto()
-    STRING_REPLACE_ALL = auto()
-    STRING_REPLACE_RE = auto()
-    STRING_REPLACE_RE_ALL = auto()
-    STRING_PREFIX = auto()
-    STRING_SUFFIX = auto()
-    STRING_IS_DIGIT = auto()
-    STRING_ITOS = auto()
-    STRING_STOI = auto()
-    STRING_TO_CODE = auto()
-    STRING_FROM_CODE = auto()
-    STRING_TOLOWER = auto()
-    STRING_TOUPPER = auto()
-    STRING_REV = auto()
+    STRING_SUBSTR = ('str.substr', 'STRING_SUBSTR')
+    STRING_UPDATE = ('str.update', 'STRING_UPDATE')
+    STRING_AT = ('str.at', 'STRING_CHARAT')
+    STRING_CONTAINS = ('str.contains', 'STRING_CONTAINS')
+    STRING_LT = ('str.<', 'STRING_LT')
+    STRING_LEQ = ('str.<=', 'STRING.LEQ')
+    STRING_INDEXOF = ('str.indexof', 'STRING_INDEXOF')
+    STRING_INDEXOF_RE = ('str.indexof_re', 'STRING_INDEXOF_RE')
+    STRING_REPLACE = ('str.replace', 'STRING_REPLACE')
+    STRING_REPLACE_ALL = ('str.replace_all', 'STRING_REPLACE_ALL')
+    STRING_REPLACE_RE = ('str.replace_re', 'STRING_REPLACE_RE')
+    STRING_REPLACE_RE_ALL = ('str.replace_re_all', 'STRING_REPLACE_RE_ALL')
+    STRING_PREFIX = ('str.prefixof', 'STRING_PREFIX')
+    STRING_SUFFIX = ('str.suffixof', 'STRING_SUFFIX')
+    STRING_IS_DIGIT = ('str.is_digit', 'STRING_IS_DIGIT')
+    STRING_ITOS = ('str.from_int', 'STRING_ITOS')
+    STRING_STOI = ('str.to_int', 'STRING_STOI')
+    STRING_TO_CODE = ('str.to_code', 'STRING_TO_CODE')
+    STRING_FROM_CODE = ('str.from_code', 'STRING_FROM_CODE')
+    STRING_TOLOWER = ('str.tolower', 'STRING_TOLOWER')
+    STRING_TOUPPER = ('str.toupper', 'STRING_TOUPPER')
+    STRING_REV = ('str.rev', 'STRING_REV')
 
-    STRING_TO_REGEXP = auto()
-    REGEXP_CONCAT = auto()
-    REGEXP_UNION = auto()
-    REGEXP_INTER = auto()
-    REGEXP_DIFF = auto()
-    REGEXP_STAR = auto()
-    REGEXP_PLUS = auto()
-    REGEXP_OPT = auto()
-    REGEXP_RANGE = auto()
-    REGEXP_COMPLEMENT = auto()
+    SEQ_UNIT = ('seq.unit', 'SEQ_UNIT')
+    SEQ_NTH = ('seq.nth', 'SEQ_NTH')
 
-    REGEXP_NONE = auto()
-    REGEXP_ALLCHAR = auto()
+    STRING_TO_REGEXP = ('str.to_re', 'STRING_TO_REGEXP')
+    REGEXP_CONCAT = ('re.++', 'REGEXP_CONCAT')
+    REGEXP_UNION = ('re.union', 'REGEXP_UNION')
+    REGEXP_INTER = ('re.inter', 'REGEXP_INTER')
+    REGEXP_DIFF = ('re.diff', 'REGEXP_DIFF')
+    REGEXP_STAR = ('re.*', 'REGEXP_STAR')
+    REGEXP_PLUS = ('re.+', 'REGEXP_PLUS')
+    REGEXP_OPT = ('re.opt', 'REGEXP_OPT')
+    REGEXP_RANGE = ('re.range', 'REGEXP_RANGE')
+    REGEXP_COMPLEMENT = ('re.comp', 'REGEXP_COMPLEMENT')
 
+    REGEXP_NONE = (None, 'REGEXP_NONE')  # Handled as constants
+    REGEXP_ALL = (None, 'REGEXP_ALL')
+    REGEXP_ALLCHAR = (None, 'REGEXP_ALLCHAR')
+
+    ###########################################################################
+    # Sets
+    ###########################################################################
+
+    SET_INTER = ('set.inter', 'SET_INTER')
+    SET_UNION = ('set.union', 'SET_UNION')
+    SET_MINUS = ('set.minus', 'SET_MINUS')
+    SET_SUBSET = ('set.subset', 'SET_SUBSET')
+    SET_MEMBER = ('set.member', 'SET_MEMBER')
+    SET_SINGLETON = ('set.singleton', 'SET_SINGLETON')
 
 class BaseSort(Enum):
     Bool = auto()
@@ -162,6 +206,11 @@ class BaseSort(Enum):
     Real = auto()
     String = auto()
     RegLan = auto()
+    AbsArray = auto()
+    AbsBitVec = auto()
+    AbsSeq = auto()
+    AbsSet = auto()
+    AbsAbs = auto()
 
 
 class Node:
@@ -193,11 +242,11 @@ class Sort(Node):
         self.is_const = is_const
 
     def __eq__(self, other):
-        return self.base == other.base and self.is_list == other.is_list and super(
-        ).__eq__(other)
+        return self.base == other.base and self.is_list == other.is_list and\
+            super().__eq__(other)
 
     def __hash__(self):
-        return hash((self.base, self.is_list, tupe(self.children)))
+        return hash((self.base, self.is_list, tuple(self.children)))
 
     def __repr__(self):
         rep = ''
