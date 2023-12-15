@@ -3969,7 +3969,7 @@ TEST_F(TestApiBlackSolver, basicFiniteFieldBase)
   ASSERT_FALSE(slv.checkSat().isSat());
 }
 
-#endif
+#endif  // CVC5_USE_COCOA
 
 }  // namespace test
 }  // namespace cvc5::internal
