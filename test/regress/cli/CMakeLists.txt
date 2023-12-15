@@ -1390,6 +1390,7 @@ set(regress_0_tests
   regress0/rels/rel_transpose_7.cvc.smt2
   regress0/rels/relations-ops.smt2
   regress0/rels/rels-sharing-simp.cvc.smt2
+  regress0/reset-i.smt2
   regress0/sep/dispose-1.smt2
   regress0/sep/dup-nemp.smt2
   regress0/sep/issue10213-empty-model.smt2

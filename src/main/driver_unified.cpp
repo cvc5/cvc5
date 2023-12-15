@@ -161,7 +161,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
     pExecutor->setOptionInternal("output-language",
                                  solver->getOption("input-language"));
   }
-  pExecutor->storeOptionsAsOriginal();
 
   // Determine which messages to show based on smtcomp_mode and verbosity
   if(Configuration::isMuzzledBuild()) {
@@ -189,6 +188,8 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
         pExecutor->setOptionInternal("incremental",
                                      isInteractive ? "true" : "false");
       }
+      // now store options as original
+      pExecutor->storeOptionsAsOriginal();
       InteractiveShell shell(
           pExecutor.get(), dopts.in(), dopts.out(), isInteractive);
 
@@ -228,6 +229,8 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
       {
         pExecutor->setOptionInternal("wf-checking", "false");
       }
+      // now store options as original
+      pExecutor->storeOptionsAsOriginal();
 
       std::unique_ptr<InputParser> parser(new InputParser(
           pExecutor->getSolver(), pExecutor->getSymbolManager()));
