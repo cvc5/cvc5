@@ -13,6 +13,8 @@
  * Testing stuff that is not exposed by the python API to fix code coverage
  */
 
+#include <cvc5/cvc5_parser.h>
+
 #include "test_api.h"
 
 namespace cvc5::internal {
