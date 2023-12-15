@@ -45,7 +45,7 @@ def test_to_string(solver):
     cmd = parse_command(solver, sm, "(set-logic QF_LIA )")
     assert cmd.isNull() is not True
     # note normalizes wrt whitespace
-    assert cmd.toString() == "(set-logic QF_LIA)\n"
+    assert cmd.toString() == "(set-logic QF_LIA)"
 
 def test_get_command_name(solver):
     sm = SymbolManager(solver)
