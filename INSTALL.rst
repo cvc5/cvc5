@@ -30,7 +30,7 @@ Compilation on macOS
 
 On macOS, we recommend using `Homebrew <https://brew.sh/>`_ to install the
 dependencies.  We also have a Homebrew Tap available at
-https://github.com/CVC4/homebrew-cvc4 .
+https://github.com/cvc5/homebrew-cvc5.
 Note that linking system libraries statically is
 `strongly discouraged <https://developer.apple.com/library/archive/qa/qa1118/_index.html>`_
 on macOS. Using ``./configure.sh --static`` will thus produce a binary
