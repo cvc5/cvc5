@@ -1559,10 +1559,7 @@ void Smt2Printer::toStreamCmdResetAssertions(std::ostream& out) const
   out << "(reset-assertions)";
 }
 
-void Smt2Printer::toStreamCmdQuit(std::ostream& out) const
-{
-  out << "(exit)";
-}
+void Smt2Printer::toStreamCmdQuit(std::ostream& out) const { out << "(exit)"; }
 
 void Smt2Printer::toStreamCmdDeclareFunction(
     std::ostream& out,
@@ -2001,7 +1998,7 @@ std::string Smt2Printer::sygusGrammarString(const TypeNode& t)
       types_predecl << '(' << dt.getName() << ' ' << dt.getSygusType() << ") ";
       for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
       {
-        if (i>0)
+        if (i > 0)
         {
           types_list << ' ';
         }
