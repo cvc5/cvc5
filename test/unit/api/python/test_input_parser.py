@@ -174,6 +174,7 @@ def test_multiple_parsers(solver):
     # we cannot set the logic since it has already been set
     with pytest.raises(RuntimeError):
       parse_logic_command(p3, "QF_LRA")
+    assert p3.done() is True
 
     # using a solver with the same logic is allowed
     s3 = cvc5.Solver()
