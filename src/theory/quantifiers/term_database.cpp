@@ -52,7 +52,6 @@ TermDb::TermDb(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr)
       d_opMap(d_termsContextUse),
       d_inactive_map(context())
 {
-  d_consistent_ee = true;
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
   if (!options().quantifiers.termDbCd)
@@ -405,6 +404,7 @@ void TermDb::computeUfTerms( TNode f ) {
           if (at[k] != n[k])
           {
             lits.push_back(nm->mkNode(Kind::EQUAL, at[k], n[k]).negate());
+            Assert(d_qstate.areEqual(at[k], n[k]));
           }
         }
         Node lem = nm->mkOr(lits);
@@ -422,7 +422,6 @@ void TermDb::computeUfTerms( TNode f ) {
         }
         d_qim->addPendingLemma(lem, InferenceId::QUANTIFIERS_TDB_DEQ_CONG);
         d_qstate.notifyInConflict();
-        d_consistent_ee = false;
         return;
       }
       nonCongruentCount++;
@@ -555,12 +554,6 @@ Node TermDb::getEligibleTermInEqc( TNode r ) {
   }
 }
 
-bool TermDb::resetInternal(Theory::Effort e)
-{
-  // do nothing
-  return true;
-}
-
 bool TermDb::finishResetInternal(Theory::Effort e)
 {
   // do nothing
@@ -601,16 +594,10 @@ bool TermDb::reset( Theory::Effort effort ){
   d_func_map_trie.clear();
   d_func_map_eqc_trie.clear();
   d_fmapRelDom.clear();
-  d_consistent_ee = true;
 
   eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
 
   Assert(ee->consistent());
-  // if higher-order, add equalities for the purification terms now
-  if (!resetInternal(effort))
-  {
-    return false;
-  }
 
   //compute has map
   if (options().quantifiers.termDbMode == options::TermDbMode::RELEVANT)
