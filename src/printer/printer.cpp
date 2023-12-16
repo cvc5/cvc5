@@ -166,7 +166,7 @@ void Printer::printUnknownCommandStatus(std::ostream& out,
 void Printer::printUnknownCommand(std::ostream& out,
                                   const std::string& name) const
 {
-  out << "ERROR: don't know how to print " << name << " command" << std::endl;
+  out << "ERROR: don't know how to print " << name << " command";
 }
 
 void Printer::toStreamCmdSuccess(std::ostream& out) const

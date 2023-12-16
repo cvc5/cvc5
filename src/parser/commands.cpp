@@ -680,6 +680,7 @@ void CheckSynthCommand::invoke(cvc5::Solver* solver, SymManager* sm)
                                      termVectorToNodes(formals),
                                      sortToTypeNode(rangeSort),
                                      termToNode(sol));
+        d_solution << std::endl;
       }
       d_solution << ")" << std::endl;
     }

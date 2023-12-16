@@ -59,7 +59,7 @@ class CommandTest extends ParserTest
     cmd = parseCommand("(set-logic QF_LIA )");
     assertNotEquals(cmd.isNull(), true);
     // note normalizes wrt whitespace
-    assertEquals(cmd.toString(), "(set-logic QF_LIA)\n");
+    assertEquals(cmd.toString(), "(set-logic QF_LIA)");
   }
 
   @Test
