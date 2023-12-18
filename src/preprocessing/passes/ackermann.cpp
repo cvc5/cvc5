@@ -30,6 +30,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
+#include "options/option_exception.h"
 #include "options/options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
@@ -174,10 +175,13 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
                                   nm,
                                   vec);
       }
+      else if (term.getKind() == Kind::STORE)
+      {
+        throw OptionException("Ackermannization is not supported for kind: "
+                              + kindToString(term.getKind()));
+      }
       else
       {
-        AlwaysAssert(term.getKind() != Kind::STORE)
-            << "Cannot use Ackermannization on formula with stores to arrays";
         /* add children to the vector, so that they are processed later */
         for (TNode n : term)
         {
