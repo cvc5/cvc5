@@ -29,8 +29,8 @@
 #include "base/check.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "smt/logic_exception.h"
 #include "options/base_options.h"
-#include "options/option_exception.h"
 #include "options/options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
@@ -177,7 +177,7 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
       }
       else if (term.getKind() == Kind::STORE)
       {
-        throw OptionException("Ackermannization is not supported for kind: "
+        throw LogicException("Ackermannization is not supported for kind: "
                               + kindToString(term.getKind()));
       }
       else
