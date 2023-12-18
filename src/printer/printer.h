@@ -38,6 +38,7 @@ class TypeNode;
 class UnsatCore;
 struct InstantiationList;
 struct SkolemList;
+class LetBinding;
 
 namespace smt {
 class Model;
@@ -60,6 +61,14 @@ class CVC5_EXPORT Printer
 
   /** Write a Node out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, TNode n) const = 0;
+
+  /**
+   * Write a Node out to a stream with this Printer, with the provided
+   * let binding.
+   */
+  virtual void toStream(std::ostream& out,
+                        TNode n,
+                        const LetBinding* lbind) const;
 
   /** Write a Kind out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, Kind k) const = 0;
@@ -276,6 +285,10 @@ class CVC5_EXPORT Printer
 
   /** Print get-timeout-core command */
   virtual void toStreamCmdGetTimeoutCore(std::ostream& out) const;
+
+  /** Print get-timeout-core-assuming command */
+  virtual void toStreamCmdGetTimeoutCoreAssuming(
+      std::ostream& out, const std::vector<Node>& assumptions) const;
 
   /** Print get-learned-literals command */
   virtual void toStreamCmdGetLearnedLiterals(std::ostream& out,

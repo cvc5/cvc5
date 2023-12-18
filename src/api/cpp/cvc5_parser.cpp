@@ -152,7 +152,10 @@ std::ostream& operator<<(std::ostream& out, const Command& c)
 /* -------------------------------------------------------------------------- */
 
 InputParser::InputParser(Solver* solver, SymbolManager* sm)
-    : d_solver(solver), d_allocSm(nullptr), d_sm(sm)
+    : d_solver(solver),
+      d_allocSm(nullptr),
+      d_sm(sm),
+      d_usingIStringStream(false)
 {
   initialize();
 }
@@ -197,6 +200,8 @@ void InputParser::initialize()
 
 void InputParser::initializeInternal()
 {
+  // reset to false
+  d_usingIStringStream = false;
   SymManager* sm = d_sm->toSymManager();
   bool slvLogicSet = d_solver->isLogicSet();
   bool smLogicSet = sm->isLogicSet();
@@ -293,6 +298,21 @@ void InputParser::setStreamInput(modes::InputLanguage lang,
   CVC5_API_TRY_CATCH_END;
 }
 
+void InputParser::setStringInput(modes::InputLanguage lang,
+                                 const std::string& input,
+                                 const std::string& name)
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  Trace("parser") << "setStringInput(" << lang << ", ..., " << name << ")"
+                  << std::endl;
+  // initialize the parser
+  d_parser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());
+  initializeInternal();
+  d_parser->setStringInput(input, name);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
 void InputParser::setIncrementalStringInput(modes::InputLanguage lang,
                                             const std::string& name)
 {
@@ -300,11 +320,13 @@ void InputParser::setIncrementalStringInput(modes::InputLanguage lang,
   //////// all checks before this line
   Trace("parser") << "setIncrementalStringInput(" << lang << ", ..., " << name
                   << ")" << std::endl;
-  d_istringLang = lang;
-  d_istringName = name;
   // initialize the parser
   d_parser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());
   initializeInternal();
+  d_istringStream.str("");
+  d_parser->setStreamInput(d_istringStream, name);
+  // remember that we are using d_istringStream
+  d_usingIStringStream = true;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -313,9 +335,12 @@ void InputParser::appendIncrementalStringInput(const std::string& input)
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_PARSER_API_CHECK(d_parser != nullptr)
       << "Input to parser not initialized";
+  CVC5_PARSER_API_CHECK(d_usingIStringStream)
+      << "Must call setIncrementalStringInput prior to using "
+         "appendIncrementalStringInput";
   //////// all checks before this line
   Trace("parser") << "appendIncrementalStringInput(...)" << std::endl;
-  d_parser->setStringInput(input, d_istringName);
+  d_istringStream << input;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -327,6 +352,71 @@ bool InputParser::done() const
   return d_parser == nullptr || d_parser->done();
   ////////
   CVC5_API_TRY_CATCH_END;
+}
+
+ParserException::ParserException()
+    : CVC5ApiException(""), d_filename(), d_line(0), d_column(0)
+{
+}
+
+ParserException::ParserException(const std::string& msg)
+    : CVC5ApiException(msg), d_filename(), d_line(0), d_column(0)
+{
+}
+
+ParserException::ParserException(const char* msg)
+    : CVC5ApiException(msg), d_filename(), d_line(0), d_column(0)
+{
+}
+
+ParserException::ParserException(const std::string& msg,
+                                 const std::string& filename,
+                                 unsigned long line,
+                                 unsigned long column)
+    : CVC5ApiException(msg),
+      d_filename(filename),
+      d_line(line),
+      d_column(column)
+{
+}
+
+void ParserException::toStream(std::ostream& os) const
+{
+  if (d_line > 0)
+  {
+    os << "Parse Error: " << d_filename << ":" << d_line << "." << d_column
+       << ": " << getMessage();
+  }
+  else
+  {
+    os << "Parse Error: " << getMessage();
+  }
+}
+
+std::string ParserException::getFilename() const { return d_filename; }
+
+unsigned long ParserException::getLine() const { return d_line; }
+
+unsigned long ParserException::getColumn() const { return d_column; }
+
+ParserEndOfFileException::ParserEndOfFileException() : ParserException() {}
+
+ParserEndOfFileException::ParserEndOfFileException(const std::string& msg)
+    : ParserException(msg)
+{
+}
+
+ParserEndOfFileException::ParserEndOfFileException(const char* msg)
+    : ParserException(msg)
+{
+}
+
+ParserEndOfFileException::ParserEndOfFileException(const std::string& msg,
+                                                   const std::string& filename,
+                                                   unsigned long line,
+                                                   unsigned long column)
+    : ParserException(msg, filename, line, column)
+{
 }
 
 }  // namespace parser
