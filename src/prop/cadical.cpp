@@ -624,7 +624,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
   /**
    * Push user assertion level.
    */
-  void user_push(SatLiteral& alit)
+  void user_push(SatVariable& alit)
   {
     Trace("cadical::propagator")
         << "user push: " << d_active_vars_control.size();
@@ -655,8 +655,6 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
     Trace("cadical::propagator")
         << "disable activation lit: " << alit << std::endl;
     d_activation_literals.pop_back();
-    d_solver.add(toCadicalLit(alit));
-    d_solver.add(0);
 
     size_t user_level = current_user_level();
 
@@ -1158,10 +1156,7 @@ void CadicalSolver::push()
 {
   d_context->push();  // SAT context for cvc5
   // New activation literal for pushed user level.
-  // Note that we do not use newVar() here, since activation literals do not
-  // need to be observed. This avoids additional notification overhead for this
-  // variable.
-  SatLiteral alit = SatLiteral(d_nextVarIdx++);
+  SatVariable alit = newVar(false);
   d_propagator->user_push(alit);
 }
 

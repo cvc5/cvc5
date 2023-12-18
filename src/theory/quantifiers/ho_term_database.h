@@ -48,11 +48,6 @@ class HoTermDb : public TermDb
   static Node getHoTypeMatchPredicate(TypeNode tn);
 
  private:
-  /**
-   * Reset internal, called when reset(e) is called. Returning false will cause
-   * the overall reset to terminate early, returning false.
-   */
-  bool resetInternal(Theory::Effort e) override;
   /** Performs merging of term indices based on higher-order reasoning */
   bool finishResetInternal(Theory::Effort e) override;
   /** add term higher-order
@@ -79,8 +74,8 @@ class HoTermDb : public TermDb
    * is added to the term index of g, assuming g is the representative of
    * the equivalence class of g and pfun.
    *
-   * Above, we set d_hoFunOpPurify[(@ f 0)] = pfun, and
-   * d_hoPurifyToTerm[(pfun 1)] = (@ (@ f 0) 1).
+   * Above, we additionally add the lemmas (@ f 0) = pfun and
+   * (pfun 1) = (@ (@ f 0) 1).
    */
   void addTermInternal(Node n) override;
   /** Get operators that we know are equivalent to f */
@@ -93,19 +88,10 @@ class HoTermDb : public TermDb
                               std::vector<Node>& exp) override;
   //------------------------------higher-order term indexing
   /**
-   * Map from non-variable function terms to the operator used to purify it in
-   * this database. For details, see addTermHo.
+   * The set of terms that we have added higher-order term purification lemmas
+   * for.
    */
-  std::map<Node, Node> d_hoFunOpPurify;
-  /**
-   * Map from terms to the term that they purified. For details, see addTermHo.
-   */
-  std::map<Node, Node> d_hoPurifyToTerm;
-  /**
-   * Map from terms in the domain of the above map to an equality between that
-   * term and its range in the above map.
-   */
-  std::map<Node, Node> d_hoPurifyToEq;
+  context::CDHashSet<Node> d_hoFunOpPurify;
   /** a map from matchable operators to their representative */
   std::map<TNode, TNode> d_hoOpRep;
   /** for each representative matchable operator, the list of other matchable

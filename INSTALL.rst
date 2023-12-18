@@ -30,7 +30,7 @@ Compilation on macOS
 
 On macOS, we recommend using `Homebrew <https://brew.sh/>`_ to install the
 dependencies.  We also have a Homebrew Tap available at
-https://github.com/CVC4/homebrew-cvc4 .
+https://github.com/cvc5/homebrew-cvc5.
 Note that linking system libraries statically is
 `strongly discouraged <https://developer.apple.com/library/archive/qa/qa1118/_index.html>`_
 on macOS. Using ``./configure.sh --static`` will thus produce a binary
@@ -253,6 +253,11 @@ Dependencies for Language Bindings
   - `Cython <https://cython.org/>`_ >= 3.0.0
   - `scikit-build <https://pypi.org/project/scikit-build/>`_
   - `pytest <https://docs.pytest.org/en/6.2.x/>`_
+  - The source for the `pythonic API <(https://github.com/cvc5/cvc5_pythonic_api)>`.
+
+
+If configured with ``--pythonic-path=PATH``, the build system will expect the Pythonic API's source to be at ``PATH``.
+Otherwise, if configured with ``--auto-download``, the build system will download it.
 
 If you're interested in helping to develop, maintain, and test a language
 binding, please contact the cvc5 team via `our issue tracker
