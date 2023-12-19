@@ -1599,7 +1599,7 @@ def test_get_unsat_core_and_proof_to_string(solver):
     assert len(printedProof) > 0
     
     proofs = solver.getProof(ProofComponent.SAT)
-    printedProof = solver.proofToString(proofs[0], ProofFormat.DEFAULT)
+    printedProof = solver.proofToString(proofs[0], ProofFormat.NONE)
     assert len(printedProof) > 0
 
 def test_learned_literals(solver):
