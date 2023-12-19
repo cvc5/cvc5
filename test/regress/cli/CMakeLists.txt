@@ -90,6 +90,7 @@ set(regress_0_tests
   regress0/arr2.smtv1.smt2
   regress0/array-const-real-parse.smt2
   regress0/arrayinuf_declare.smt2
+  regress0/arrays/ackermann1.smt2
   regress0/arrays/arrays0.smt2
   regress0/arrays/arrays1.smt2
   regress0/arrays/arrays2.smt2
@@ -1390,6 +1391,7 @@ set(regress_0_tests
   regress0/rels/rel_transpose_7.cvc.smt2
   regress0/rels/relations-ops.smt2
   regress0/rels/rels-sharing-simp.cvc.smt2
+  regress0/reset-i.smt2
   regress0/sep/dispose-1.smt2
   regress0/sep/dup-nemp.smt2
   regress0/sep/issue10213-empty-model.smt2
@@ -2215,6 +2217,8 @@ set(regress_1_tests
   regress1/get-learned-literals-types.smt2
   regress1/ho/bug_freeVar_BDD_General_data_270.smt2
   regress1/ho/bound_var_bug.smt2
+  regress1/ho/dd.seu-mbqi.smt2
+  regress1/ho/dd.seu589-wrong.smt2
   regress1/ho/fta0328.lfho.smt2
   regress1/ho/ho-fun-sharing-dd.smt2
   regress1/ho/issue3136-fconst-bool-bool.smt2
@@ -2228,6 +2232,9 @@ set(regress_1_tests
   regress1/ho/NUM638^1.smt2
   regress1/ho/NUM925^1.smt2
   regress1/ho/proj-issue139-2.smt2
+  regress1/ho/seu589-wrong.smt2
+  regress1/ho/sev428-mbqi.smt2
+  regress1/ho/sev310-tdb.smt2
   regress1/ho/soundness_fmf_SYO362^5-delta.smt2
   regress1/ho/store-ax-min.smt2
   regress1/hole6.cvc.smt2

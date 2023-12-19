@@ -35,8 +35,7 @@ public class Parser
     ss += "(assert (> a (+ b c)))\n";
     ss += "(assert (< a b))\n";
     ss += "(assert (> c 0))\n";
-    parser.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "MyStream");
-    parser.appendIncrementalStringInput(ss);
+    parser.setStringInput(InputLanguage.SMT_LIB_2_6, ss, "MyStream");
 
     // get the symbol manager of the parser, used when invoking commands below
     SymbolManager sm = parser.getSymbolManager();
