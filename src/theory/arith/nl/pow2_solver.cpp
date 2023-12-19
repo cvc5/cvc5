@@ -165,6 +165,24 @@ void Pow2Solver::checkFullRefine()
 
     // Place holder for additional lemma schemas
 
+    // laws of exponents: 2^x * 2^y = 2^(x+y)
+     for (uint64_t j = i + 1; j < size; j++)
+    {
+      Node m = d_pow2s[j];
+      Node valPow2yAbstract = d_model.computeAbstractModelValue(m);
+      Node valYConcrete = d_model.computeConcreteModelValue(m[0]);
+
+      Integer y = valYConcrete.getConst<Rational>().getNumerator();
+      Integer pow2y = valPow2yAbstract.getConst<Rational>().getNumerator();
+
+      Node n_mul_m = nm->mkNode(Kind::MULT, n, m);
+      Node x_plus_y = nm->mkNode(Kind::ADD,n[0], m[0]);
+      Node pow2_x_plus_y = nm->mkNode(Kind::POW2, x_plus_y);
+      Node lem = nm->mkNode(Kind::EQUAL, n_mul_m, pow2_x_plus_y);
+      d_im.addPendingLemma(
+          lem, InferenceId::ARITH_NL_POW2_EXP_LAW_REFINE, nullptr, true);
+    }
+
     // End of additional lemma schemas
 
     // this is the most naive model-based schema based on model values
