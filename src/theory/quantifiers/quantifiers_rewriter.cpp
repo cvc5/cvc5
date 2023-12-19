@@ -1613,7 +1613,6 @@ Node QuantifiersRewriter::computeSplit(std::vector<Node>& args,
                                        QAttributes& qa) const
 {
   Assert(body.getKind() == Kind::OR);
-  size_t var_found_count = 0;
   size_t eqc_count = 0;
   size_t eqc_active = 0;
   std::map< Node, int > var_to_eqc;
@@ -1642,7 +1641,6 @@ Node QuantifiersRewriter::computeSplit(std::vector<Node>& args,
             eqcs.push_back(eqc);
           }
         }else{
-          var_found_count++;
           lit_new_args.push_back(lit_args[j]);
         }
       }
