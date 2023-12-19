@@ -70,13 +70,6 @@ Node FindSynthSolver::findSynthNext()
     // if we terminated
     if (!ret.isNull())
     {
-      if (isOutputOn(OutputTag::SYGUS_SOL_GTERM) && status == 1)
-      {
-        Node psol = getPrintableSygusToBuiltin(ret);
-        d_env.output(OutputTag::SYGUS_SOL_GTERM)
-            << "(sygus-sol-gterm " << ret << " :" << d_fst << ")"
-            << std::endl;
-      }
       if (options().quantifiers.sygusStream)
       {
         std::ostream& out = options().base.out;

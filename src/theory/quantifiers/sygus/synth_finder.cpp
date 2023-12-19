@@ -219,7 +219,7 @@ Node SynthFinder::runNext(const Node& n, modes::FindSynthTarget fst)
   // with.
   if (fst==modes::FindSynthTarget::ENUM)
   {
-    if (isOutputOn(OutputTag::SYGUS_SOL_GTERM) && status == 1)
+    if (isOutputOn(OutputTag::SYGUS_SOL_GTERM))
     {
       Node psol = getPrintableSygusToBuiltin(n);
       d_env.output(OutputTag::SYGUS_SOL_GTERM)
