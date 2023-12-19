@@ -21,7 +21,9 @@ namespace cvc5::internal {
 
 namespace proof {
 
-AletheLetBinding::AletheLetBinding(uint32_t thresh) : LetBinding(thresh) {}
+AletheLetBinding::AletheLetBinding(uint32_t thresh) : LetBinding("let", thresh)
+{
+}
 
 Node AletheLetBinding::convert(Node n, const std::string& prefix)
 {

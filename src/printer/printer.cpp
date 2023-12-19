@@ -22,6 +22,7 @@
 #include "options/language.h"
 #include "options/printer_options.h"
 #include "printer/ast/ast_printer.h"
+#include "printer/let_binding.h"
 #include "printer/smt2/smt2_printer.h"
 #include "proof/unsat_core.h"
 #include "smt/model.h"
@@ -51,6 +52,22 @@ unique_ptr<Printer> Printer::makePrinter(Language lang)
       return unique_ptr<Printer>(new printer::ast::AstPrinter());
 
     default: Unhandled() << lang;
+  }
+}
+
+void Printer::toStream(std::ostream& out,
+                       TNode n,
+                       const LetBinding* lbind) const
+{
+  // no special implementation, just convert and print with default prefix
+  if (lbind != nullptr)
+  {
+    Node nc = lbind->convert(n);
+    toStream(out, nc);
+  }
+  else
+  {
+    toStream(out, n);
   }
 }
 
@@ -149,7 +166,7 @@ void Printer::printUnknownCommandStatus(std::ostream& out,
 void Printer::printUnknownCommand(std::ostream& out,
                                   const std::string& name) const
 {
-  out << "ERROR: don't know how to print " << name << " command" << std::endl;
+  out << "ERROR: don't know how to print " << name << " command";
 }
 
 void Printer::toStreamCmdSuccess(std::ostream& out) const
@@ -505,6 +522,12 @@ void Printer::toStreamCmdGetDifficulty(std::ostream& out) const
 void Printer::toStreamCmdGetTimeoutCore(std::ostream& out) const
 {
   printUnknownCommand(out, "get-timeout-core");
+}
+
+void Printer::toStreamCmdGetTimeoutCoreAssuming(
+    std::ostream& out, const std::vector<Node>& assumptions) const
+{
+  printUnknownCommand(out, "get-timeout-core-assuming");
 }
 
 void Printer::toStreamCmdGetLearnedLiterals(std::ostream& out,
