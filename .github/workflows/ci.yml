@@ -115,7 +115,7 @@ jobs:
     - name: Store Binary
       uses: actions/upload-artifact@v3
       with:
-        name: binary
+        name: binary-${{ matrix.name }}
         path: ${{ steps.configure-and-build.outputs.static-build-dir }}/bin/cvc5
 
     - name: ccache Statistics
