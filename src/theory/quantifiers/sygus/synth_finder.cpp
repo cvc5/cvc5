@@ -210,13 +210,14 @@ Node SynthFinder::runNext(const Node& n, modes::FindSynthTarget fst)
   // run the expression miner
   Assert(d_current != nullptr);
   d_current->addTerm(bn, d_buffer);
-  // if non-empty
+  // return null if empty
   if (d_buffer.empty())
   {
     return Node::null();
   }
   // ENUM is the only find synth target that makes sense to print grammar terms
-  // with.
+  // with; the others return terms that do not coincide with the enumerated
+  // term.
   if (fst==modes::FindSynthTarget::ENUM)
   {
     if (isOutputOn(OutputTag::SYGUS_SOL_GTERM))
