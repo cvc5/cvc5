@@ -112,6 +112,12 @@ jobs:
         build-static: ${{ matrix.build-static }}
         strip-bin: ${{ matrix.strip-bin }}
 
+    - name: Store Binary
+      uses: actions/upload-artifact@v3
+      with:
+        name: binary
+        path: ${{ steps.configure-and-build.outputs.static-build-dir }}/bin/cvc5
+
     - name: ccache Statistics
       run: ccache -s
 
