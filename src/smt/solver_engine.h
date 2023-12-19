@@ -49,6 +49,7 @@ class ProofNode;
 class Env;
 class UnsatCore;
 class StatisticsRegistry;
+class Plugin;
 class Printer;
 class ResourceManager;
 struct InstantiationList;
@@ -481,6 +482,12 @@ class CVC5_EXPORT SolverEngine
    */
   void declareOracleFun(
       Node var, std::function<std::vector<Node>(const std::vector<Node>&)> fn);
+  /**
+   * Adds plugin to the theory engine of this solver engine.
+   *
+   * @param p The plugin to add.
+   */
+  void addPlugin(Plugin* p);
   /**
    * Simplify a formula without doing "much" work.  Does not involve
    * the SAT Engine in the simplification, but uses the current

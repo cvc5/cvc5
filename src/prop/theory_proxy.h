@@ -121,8 +121,15 @@ class TheoryProxy : protected EnvObj, public Registrar
    * in terms of "current added clause" because the clause added at a lower
    * level could be for example a lemma derived at a prior moment whose
    * assertion the SAT solver delayed.
+   *
+   * NOTE: this is only used for Minisat proofs.
    */
-  void notifyClauseInsertedAtLevel(const SatClause& clause, int clLevel);
+  void notifySatClauseInsertedAtLevel(const SatClause& clause, int clLevel);
+  /**
+   * Notify SAT clause. This should be called whenever the SAT solver learns
+   * a SAT clause. It notifies user plugins of the added clauses.
+   */
+  void notifySatClause(const SatClause& clause);
 
   void theoryPropagate(SatClause& output);
 

@@ -23,6 +23,7 @@
 #include "expr/bound_var_manager.h"
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
+#include "expr/plugin.h"
 #include "expr/skolem_manager.h"
 #include "expr/subtype_elim_node_converter.h"
 #include "options/base_options.h"
@@ -1088,6 +1089,17 @@ void SolverEngine::declareOracleFun(
       inputs, outputs, assume, constraint, o);
   // assert it
   assertFormula(q);
+}
+
+void SolverEngine::addPlugin(Plugin* p)
+{
+  if (d_state->isFullyInited())
+  {
+    throw ModalException(
+        "Cannot add plugin after the solver has been fully initialized.");
+  }
+  // we do not initialize the solver here.
+  d_env->addPlugin(p);
 }
 
 Node SolverEngine::simplify(const Node& t)

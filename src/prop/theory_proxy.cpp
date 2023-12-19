@@ -21,6 +21,8 @@
 #include "decision/decision_engine.h"
 #include "decision/justification_strategy.h"
 #include "expr/node_algorithm.h"
+#include "expr/plugin.h"
+#include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/decision_options.h"
 #include "options/parallel_options.h"
@@ -291,11 +293,38 @@ void TheoryProxy::notifyCurrPropagationInsertedAtLevel(int explLevel)
       explLevel);
 }
 
-void TheoryProxy::notifyClauseInsertedAtLevel(const SatClause& clause,
-                                              int clLevel)
+void TheoryProxy::notifySatClauseInsertedAtLevel(const SatClause& clause,
+                                                 int clLevel)
 {
   d_propEngine->getProofCnfStream()->notifyClauseInsertedAtLevel(clause,
                                                                  clLevel);
+}
+
+void TheoryProxy::notifySatClause(const SatClause& clause)
+{
+  const std::vector<Plugin*>& plugins = d_env.getPlugins();
+  if (plugins.empty())
+  {
+    // nothing to do if no plugins
+    return;
+  }
+  // convert to node
+  std::vector<Node> clauseNodes;
+  for (const SatLiteral& l : clause)
+  {
+    clauseNodes.push_back(d_cnfStream->getNode(l));
+  }
+  Node cln = NodeManager::currentNM()->mkOr(clauseNodes);
+  Node clns = Plugin::getSharableFormula(cln);
+  if (!clns.isNull())
+  {
+    Trace("prop") << "Clause from SAT solver: " << clns << std::endl;
+    // notify the plugins
+    for (Plugin* p : plugins)
+    {
+      p->notifySatClause(clns);
+    }
+  }
 }
 
 void TheoryProxy::enqueueTheoryLiteral(const SatLiteral& l) {
