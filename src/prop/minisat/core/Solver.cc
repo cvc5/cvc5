@@ -517,7 +517,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
           }
           SatClause satClause;
           MinisatSatSolver::toSatClause(ca[cr], satClause);
-          d_proxy->notifyClauseInsertedAtLevel(satClause, clauseLevel);
+          d_proxy->notifySatClauseInsertedAtLevel(satClause, clauseLevel);
         }
         if (options().smt.produceUnsatCores || needProof())
         {
@@ -2080,7 +2080,7 @@ CRef Solver::updateLemmas() {
         }
         SatClause satClause;
         MinisatSatSolver::toSatClause(ca[lemma_ref], satClause);
-        d_proxy->notifyClauseInsertedAtLevel(satClause, clauseLevel);
+        d_proxy->notifySatClauseInsertedAtLevel(satClause, clauseLevel);
       }
       if (removable) {
         clauses_removable.push(lemma_ref);
