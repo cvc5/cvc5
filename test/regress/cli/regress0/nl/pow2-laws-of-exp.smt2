@@ -1,7 +1,4 @@
 (set-logic ALL)
-(set-option :produce-models true)
-(set-option :incremental true)
-(set-info :smt-lib-version 2.6)
 (set-info :status unsat)
 (declare-const x Int)
 (declare-const y Int)

@@ -163,8 +163,6 @@ void Pow2Solver::checkFullRefine()
           lem, InferenceId::ARITH_NL_POW2_TRIVIAL_CASE_REFINE, nullptr, true);
     }
 
-    // Place holder for additional lemma schemas
-
     // laws of exponents: 2^x * 2^y = 2^(x+y)
      for (uint64_t j = i + 1; j < size; j++)
     {
@@ -175,13 +173,31 @@ void Pow2Solver::checkFullRefine()
       Integer y = valYConcrete.getConst<Rational>().getNumerator();
       Integer pow2y = valPow2yAbstract.getConst<Rational>().getNumerator();
 
-      Node n_mul_m = nm->mkNode(Kind::MULT, n, m);
-      Node x_plus_y = nm->mkNode(Kind::ADD,n[0], m[0]);
-      Node pow2_x_plus_y = nm->mkNode(Kind::POW2, x_plus_y);
-      Node lem = nm->mkNode(Kind::EQUAL, n_mul_m, pow2_x_plus_y);
-      d_im.addPendingLemma(
-          lem, InferenceId::ARITH_NL_POW2_EXP_LAW_REFINE, nullptr, true);
+      for (uint64_t k = j + 1; k < size; k++)
+      {
+        Node q = d_pow2s[k];
+        Node valPow2zAbstract = d_model.computeAbstractModelValue(q);
+        Node valZConcrete = d_model.computeConcreteModelValue(q[0]);
+
+        Integer z = valZConcrete.getConst<Rational>().getNumerator();
+        Integer pow2z = valPow2zAbstract.getConst<Rational>().getNumerator();
+
+        
+        if (x + y == z && pow2x * pow2y != pow2z)
+        {
+          Node x_plus_y = nm->mkNode(Kind::ADD,n[0], m[0]);
+          Node assumption = nm->mkNode(Kind::EQUAL, x_plus_y, q[0]);
+          Node n_mul_m = nm->mkNode(Kind::MULT, n, m);
+          Node conclusion = nm->mkNode(Kind::EQUAL, n_mul_m, q);
+          Node lem = nm->mkNode(Kind::IMPLIES, assumption, conclusion);
+          d_im.addPendingLemma(
+              lem, InferenceId::ARITH_NL_POW2_EXP_LAW_REFINE, nullptr, true);
+        }
+      }
+
     }
+
+    // Place holder for additional lemma schemas
 
     // End of additional lemma schemas
 
