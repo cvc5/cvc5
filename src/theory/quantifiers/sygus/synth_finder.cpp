@@ -26,6 +26,7 @@
 #include "theory/quantifiers/rewrite_verifier.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus_sampler.h"
+#include "theory/quantifiers/sygus/print_sygus_to_builtin.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -210,12 +211,24 @@ Node SynthFinder::runNext(const Node& n, modes::FindSynthTarget fst)
   Assert(d_current != nullptr);
   d_current->addTerm(bn, d_buffer);
   // if non-empty
-  if (!d_buffer.empty())
+  if (d_buffer.empty())
   {
-    d_bufferIndex = 1;
-    return d_buffer[0];
+    return Node::null();
   }
-  return Node::null();
+  // ENUM is the only find synth target that makes sense to print grammar terms
+  // with.
+  if (fst==modes::FindSynthTarget::ENUM)
+  {
+    if (isOutputOn(OutputTag::SYGUS_SOL_GTERM) && status == 1)
+    {
+      Node psol = getPrintableSygusToBuiltin(n);
+      d_env.output(OutputTag::SYGUS_SOL_GTERM)
+          << "(sygus-sol-gterm " << psol << " :" << fst << ")"
+          << std::endl;
+    }
+  }
+  d_bufferIndex = 1;
+  return d_buffer[0];
 }
 
 }  // namespace quantifiers
