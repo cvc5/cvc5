@@ -12,5 +12,5 @@
 (assert (distinct x y z))
 (assert (= y (nullable.some 5)))
 (assert (= z ((_ nullable.lift f) x y)))
-(assert (= (f x y) (nullable.val z)))
+(assert (= (f (nullable.val x) (nullable.val y)) (nullable.val z)))
 (check-sat)

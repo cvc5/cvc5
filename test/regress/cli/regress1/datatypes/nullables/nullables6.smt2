@@ -1,4 +1,4 @@
-(set-logic ALL)
+(set-logic HO_ALL)
 (set-info :status sat)
 (set-option :produce-models true)
 (declare-fun x () (Nullable Int))
