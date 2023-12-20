@@ -1640,7 +1640,9 @@ Node QuantifiersRewriter::computeSplit(std::vector<Node>& args,
           if (std::find(eqcs.begin(), eqcs.end(), eqc)==eqcs.end()) {
             eqcs.push_back(eqc);
           }
-        }else{
+        }
+        else
+        {
           lit_new_args.push_back(lit_args[j]);
         }
       }

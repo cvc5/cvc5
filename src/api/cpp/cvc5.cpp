@@ -304,8 +304,8 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::MATCH, internal::Kind::MATCH),
         KIND_ENUM(Kind::MATCH_CASE, internal::Kind::MATCH_CASE),
         KIND_ENUM(Kind::MATCH_BIND_CASE, internal::Kind::MATCH_BIND_CASE),
-        KIND_ENUM(Kind::TUPLE_PROJECT, internal::Kind::TUPLE_PROJECT),       
-        KIND_ENUM(Kind::NULLABLE_LIFT, internal::Kind::NULLABLE_LIFT),        
+        KIND_ENUM(Kind::TUPLE_PROJECT, internal::Kind::TUPLE_PROJECT),
+        KIND_ENUM(Kind::NULLABLE_LIFT, internal::Kind::NULLABLE_LIFT),
         /* Separation Logic ------------------------------------------------- */
         KIND_ENUM(Kind::SEP_NIL, internal::Kind::SEP_NIL),
         KIND_ENUM(Kind::SEP_EMP, internal::Kind::SEP_EMP),
@@ -700,7 +700,7 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::MATCH_BIND_CASE, Kind::MATCH_BIND_CASE},
         {internal::Kind::TUPLE_PROJECT, Kind::TUPLE_PROJECT},
         {internal::Kind::TUPLE_PROJECT_OP, Kind::TUPLE_PROJECT},
-        {internal::Kind::NULLABLE_LIFT, Kind::NULLABLE_LIFT},        
+        {internal::Kind::NULLABLE_LIFT, Kind::NULLABLE_LIFT},
         /* Separation Logic ------------------------------------------------ */
         {internal::Kind::SEP_NIL, Kind::SEP_NIL},
         {internal::Kind::SEP_EMP, Kind::SEP_EMP},
@@ -6285,8 +6285,8 @@ Term Solver::mkNullableLift(Kind kind, const std::vector<Term>& args) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  std::vector<internal::Node> vars;  
-  for(const Term & t : args)
+  std::vector<internal::Node> vars;
+  for (const Term& t : args)
   {
     internal::TypeNode type = t.d_node->getType();
     internal::TypeNode elementType = type[0];
@@ -6301,8 +6301,8 @@ Term Solver::mkNullableLift(Kind kind, const std::vector<Term>& args) const
   nodes.push_back(lambda);
   auto argNodes = Term::termVectorToNodes(args);
   nodes.insert(nodes.end(), argNodes.begin(), argNodes.end());
-  
-  return Term(d_nm,d_nm->mkNode(internal::Kind::NULLABLE_LIFT, nodes));  
+
+  return Term(d_nm, d_nm->mkNode(internal::Kind::NULLABLE_LIFT, nodes));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6419,7 +6419,7 @@ Term Solver::mkTuple(const std::vector<Term>& terms) const
     typeNodes.push_back(n.getType());
   }
   internal::TypeNode tn = d_nm->mkTupleType(typeNodes);
-  const internal::DType & dt = tn.getDType();
+  const internal::DType& dt = tn.getDType();
   internal::NodeBuilder nb(extToIntKind(Kind::APPLY_CONSTRUCTOR));
   nb << dt[0].getConstructor();
   nb.append(args);
@@ -6436,9 +6436,9 @@ Term Solver::mkNullableSome(const Term& term) const
   CVC5_API_SOLVER_CHECK_TERM(term);
   //////// all checks before this line
   internal::Node arg = *term.d_node;
-  internal::TypeNode typeNode = arg.getType();  
+  internal::TypeNode typeNode = arg.getType();
   internal::TypeNode tn = d_nm->mkNullableType(typeNode);
-  const internal::DType & dt = tn.getDType();
+  const internal::DType& dt = tn.getDType();
   internal::NodeBuilder nb(extToIntKind(Kind::APPLY_CONSTRUCTOR));
   nb << dt[1].getConstructor();
   nb.append(arg);
@@ -6518,7 +6518,6 @@ Term Solver::mkNullableIsSome(const Term& term) const
   ////////
   CVC5_API_TRY_CATCH_END;
 }
-
 
 /* Create operators                                                           */
 /* -------------------------------------------------------------------------- */

@@ -910,7 +910,7 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
       break;
     }
     case Kind::NULLABLE_LIFT:
-    {      
+    {
       ret = expandNullableLift(n);
       break;
     }
@@ -935,7 +935,7 @@ Node DatatypesRewriter::expandNullableLift(Node n)
     TypeNode t = n[i].getType();
     const DType& dt = t.getDType();
     Node null = nm->mkNode(Kind::APPLY_CONSTRUCTOR, dt[0].getConstructor());
-    eqs.push_back(n[i].eqNode(null));    
+    eqs.push_back(n[i].eqNode(null));
     Node sel = dt[1][0].getSelector();
     Node applySel = nm->mkNode(Kind::APPLY_SELECTOR, sel, n[i]);
     someArgs.push_back(applySel);
