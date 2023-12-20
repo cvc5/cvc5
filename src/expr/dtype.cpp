@@ -31,6 +31,7 @@ DType::DType(std::string name, bool isCo)
       d_params(),
       d_isCo(isCo),
       d_isTuple(false),
+      d_isNullable(false),
       d_isRecord(false),
       d_constructors(),
       d_resolved(false),
@@ -50,6 +51,7 @@ DType::DType(std::string name, const std::vector<TypeNode>& params, bool isCo)
       d_params(params),
       d_isCo(isCo),
       d_isTuple(false),
+      d_isNullable(false),
       d_isRecord(false),
       d_constructors(),
       d_resolved(false),
@@ -89,6 +91,8 @@ bool DType::isCodatatype() const { return d_isCo; }
 bool DType::isSygus() const { return !d_sygusType.isNull(); }
 
 bool DType::isTuple() const { return d_isTuple; }
+
+bool DType::isNullable() const { return d_isNullable; }
 
 bool DType::isRecord() const { return d_isRecord; }
 
@@ -350,6 +354,12 @@ void DType::setTuple()
 {
   Assert(!d_resolved);
   d_isTuple = true;
+}
+
+void DType::setNullable()
+{
+  Assert(!d_resolved);
+  d_isNullable = true;
 }
 
 void DType::setRecord()

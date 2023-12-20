@@ -2979,7 +2979,24 @@ enum ENUM(Kind) : int32_t
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(TUPLE_PROJECT),
-
+  /**
+   * Lifting operator for nullable terms.
+   * This operator lifts a built-in operator or a user-defined function 
+   * to nullable terms.
+   * For built-in kinds use 
+   * Solver::mkNullableLift(Kind, const std::vector<Term>&) const.
+   * For user-defined functions use 
+   * Solver::mkTerm(Kind::NULLABLE_LIFT, const std::vector<Term>&) const
+   * 
+   * - Arity: ``n > 1``
+   *
+   * - ``1..n:`` Terms of nullable sort
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkNullableLift(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+  */
+  EVALUE(NULLABLE_LIFT),
   /* Separation Logic ------------------------------------------------------ */
 
   /**
@@ -5923,6 +5940,15 @@ enum ENUM(SortKind) : int32_t
    *   - Solver::mkTupleSort(const std::vector<Sort>&) const
    */
   EVALUE(TUPLE_SORT),
+  /**
+   * A nullable sort, whose argument sort denotes the sort of the direct child
+   * of the nullable.
+   *
+   * - Create Sort of this Kind with:
+   *
+   *   - Solver::mkNullableSort(const std::vector<Sort>&) const
+   */
+  EVALUE(NULLABLE_SORT),
   /**
    * An uninterpreted sort.
    *

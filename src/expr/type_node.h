@@ -624,6 +624,9 @@ class CVC5_EXPORT TypeNode
   /** Is this a tuple type? */
   bool isTuple() const;
 
+  /** Is this a nullable type? */
+  bool isNullable() const;
+
   /** Is this a record type? */
   bool isRecord() const;
 

@@ -416,6 +416,7 @@ TEST_F(TestApiBlackSolver, mkAbstractSort)
   ASSERT_NO_THROW(d_solver.mkAbstractSort(SortKind::ARRAY_SORT));
   ASSERT_NO_THROW(d_solver.mkAbstractSort(SortKind::BITVECTOR_SORT));
   ASSERT_NO_THROW(d_solver.mkAbstractSort(SortKind::TUPLE_SORT));
+  ASSERT_NO_THROW(d_solver.mkAbstractSort(SortKind::NULLABLE_SORT));
   ASSERT_NO_THROW(d_solver.mkAbstractSort(SortKind::SET_SORT));
   ASSERT_THROW(d_solver.mkAbstractSort(SortKind::BOOLEAN_SORT),
                CVC5ApiException);
@@ -2100,6 +2101,8 @@ TEST_F(TestApiBlackSolver, getProofAndProofToString)
   ASSERT_NO_THROW(printedProof = d_solver.proofToString(
                       proofs[0], modes::ProofFormat::ALETHE));
   ASSERT_NO_THROW(proofs = d_solver.getProof(modes::ProofComponent::SAT));
+  ASSERT_NO_THROW(printedProof = d_solver.proofToString(
+                      proofs[0], modes::ProofFormat::NONE));
   ASSERT_FALSE(printedProof.empty());
 }
 

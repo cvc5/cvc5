@@ -426,7 +426,11 @@ Term ParserState::mkHoApply(Term expr, const std::vector<Term>& args)
 Term ParserState::applyTypeAscription(Term t, Sort s)
 {
   Kind k = t.getKind();
-  if (k == Kind::SET_EMPTY)
+  if (k == Kind::APPLY_CONSTRUCTOR)
+  {    
+    t = d_solver->mkNullableNull(s);
+  }
+  else if (k == Kind::SET_EMPTY)
   {
     t = d_solver->mkEmptySet(s);
   }
