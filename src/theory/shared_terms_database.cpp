@@ -298,7 +298,8 @@ void SharedTermsDatabase::checkForConflict()
     Node conflictNode = NodeManager::currentNM()->mkAnd(assumptions);
     trnc = TrustNode::mkTrustConflict(conflictNode, nullptr);
   }
-  d_theoryEngine->conflict(trnc, THEORY_BUILTIN);
+  d_theoryEngine->conflict(
+      trnc, InferenceId::EQ_CONSTANT_MERGE, THEORY_BUILTIN);
   d_conflictLHS = d_conflictRHS = Node::null();
 }
 

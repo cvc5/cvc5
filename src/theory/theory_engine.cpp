@@ -554,6 +554,23 @@ void TheoryEngine::check(Theory::Effort effort) {
     {
       if (!d_inConflict && !needCheck())
       {
+        // if some theory believes there is a conflict, but it is was not
+        // processed, we mark incomplete.
+        for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST;
+             ++theoryId)
+        {
+          Theory* theory = d_theoryTable[theoryId];
+          if (theory && theory->getTheoryState() != nullptr)
+          {
+            if (theory->getTheoryState()->isInConflict())
+            {
+              setModelUnsound(theoryId,
+                              IncompleteId::UNPROCESSED_THEORY_CONFLICT);
+              Assert(false) << "Unprocessed theory conflict from " << theoryId;
+              break;
+            }
+          }
+        }
         // Do post-processing of model from the theories (e.g. used for
         // THEORY_SEP to construct heap model)
         d_tc->postProcessModel(d_modelUnsound.get());
@@ -722,7 +739,14 @@ bool TheoryEngine::presolve() {
   return false;
 }/* TheoryEngine::presolve() */
 
-void TheoryEngine::postsolve() {
+void TheoryEngine::postsolve(prop::SatValue result)
+{
+  // postsolve with the theory engine modules as well
+  for (TheoryEngineModule* tem : d_modules)
+  {
+    tem->postsolve(result);
+  }
+
   // Reset the interrupt flag
   d_interrupted = false;
 }
@@ -860,8 +884,8 @@ TrustNode TheoryEngine::ppRewrite(TNode term,
     {
       Node proven = tskl.getProven();
       Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(tid);
-      d_lazyProof->addStep(
-          proven, ProofRule::THEORY_PREPROCESS_LEMMA, {}, {proven, tidn});
+      d_lazyProof->addTrustedStep(
+          proven, TrustId::THEORY_PREPROCESS_LEMMA, {}, {tidn});
       skl.d_lemma = TrustNode::mkTrustLemma(proven, d_lazyProof.get());
     }
   }
@@ -1052,7 +1076,7 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
         // special case, trust node has no proof generator
         TrustNode trnn = TrustNode::mkTrustConflict(normalizedLiteral);
         // Get the explanation (conflict will figure out where it came from)
-        conflict(trnn, toTheoryId);
+        conflict(trnn, InferenceId::CONFLICT_REWRITE_LIT, toTheoryId);
       } else {
         Unreachable();
       }
@@ -1251,8 +1275,7 @@ TrustNode TheoryEngine::getExplanation(TNode node)
         Node proven = texplanation.getProven();
         TheoryId tid = theoryOf(atom)->getId();
         Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(tid);
-        d_lazyProof->addStep(
-            proven, ProofRule::THEORY_LEMMA, {}, {proven, tidn});
+        d_lazyProof->addTrustedStep(proven, TrustId::THEORY_LEMMA, {}, {tidn});
         texplanation =
             TrustNode::mkTrustPropExp(node, explanation, d_lazyProof.get());
       }
@@ -1284,8 +1307,11 @@ TrustNode TheoryEngine::getExplanation(TNode node)
   // notify the conflict as a lemma
   for (TheoryEngineModule* tem : d_modules)
   {
-    tem->notifyLemma(
-        texplanation.getProven(), LemmaProperty::REMOVABLE, {}, {});
+    tem->notifyLemma(texplanation.getProven(),
+                     InferenceId::EXPLAINED_PROPAGATION,
+                     LemmaProperty::REMOVABLE,
+                     {},
+                     {});
   }
   return texplanation;
 }
@@ -1403,8 +1429,9 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
 }
 
 void TheoryEngine::lemma(TrustNode tlemma,
-                         theory::LemmaProperty p,
-                         theory::TheoryId from)
+                         InferenceId id,
+                         LemmaProperty p,
+                         TheoryId from)
 {
   // For resource-limiting (also does a time check).
   // spendResource();
@@ -1428,7 +1455,7 @@ void TheoryEngine::lemma(TrustNode tlemma,
       Assert(from != THEORY_LAST);
       // add theory lemma step to proof
       Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(from);
-      d_lazyProof->addStep(lemma, ProofRule::THEORY_LEMMA, {}, {lemma, tidn});
+      d_lazyProof->addTrustedStep(lemma, TrustId::THEORY_LEMMA, {}, {tidn});
       // update the trust node
       tlemma = TrustNode::mkTrustLemma(lemma, d_lazyProof.get());
     }
@@ -1443,7 +1470,7 @@ void TheoryEngine::lemma(TrustNode tlemma,
   // If specified, we must add this lemma to the set of those that need to be
   // justified, where note we pass all auxiliary lemmas in skAsserts as well,
   // since these by extension must be justified as well.
-  if (d_relManager != nullptr)
+  if (!d_modules.empty())
   {
     std::vector<Node> skAsserts;
     std::vector<Node> sks;
@@ -1453,7 +1480,11 @@ void TheoryEngine::lemma(TrustNode tlemma,
     // notify the modules of the lemma
     for (TheoryEngineModule* tem : d_modules)
     {
-      tem->notifyLemma(retLemma, p, skAsserts, sks);
+      // don't notify theory modules of their own lemmas
+      if (tem->getId() != from)
+      {
+        tem->notifyLemma(retLemma, id, p, skAsserts, sks);
+      }
     }
   }
 
@@ -1472,13 +1503,15 @@ void TheoryEngine::markInConflict()
   d_inConflict = true;
 }
 
-void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
+void TheoryEngine::conflict(TrustNode tconflict,
+                            InferenceId id,
+                            TheoryId theoryId)
 {
   Assert(tconflict.getKind() == TrustNodeKind::CONFLICT);
 
   TNode conflict = tconflict.getNode();
   Trace("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", "
-                            << theoryId << ")" << endl;
+                            << id << ", " << theoryId << ")" << endl;
   Trace("te-proof-debug") << "Check closed conflict" << std::endl;
   // doesn't require proof generator, yet, since THEORY_LEMMA is added below
   tconflict.debugCheckClosed(
@@ -1524,7 +1557,7 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
         // add theory lemma step
         Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
         Node conf = tconflict.getProven();
-        d_lazyProof->addStep(conf, ProofRule::THEORY_LEMMA, {}, {conf, tidn});
+        d_lazyProof->addTrustedStep(conf, TrustId::THEORY_LEMMA, {}, {tidn});
       }
       // store the explicit step, which should come from a different
       // generator, e.g. d_tepg.
@@ -1578,14 +1611,14 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
       tconf.debugCheckClosed(
           options(), "te-proof-debug", "TheoryEngine::conflict:sharing");
     }
-    lemma(tconf, LemmaProperty::REMOVABLE);
+    lemma(tconf, id, LemmaProperty::REMOVABLE);
   }
   else
   {
     // When only one theory, the conflict should need no processing
     Assert(properConflict(conflict));
     // pass the trust node that was sent from the theory
-    lemma(tconflict, LemmaProperty::REMOVABLE, theoryId);
+    lemma(tconflict, id, LemmaProperty::REMOVABLE, theoryId);
   }
 }
 
@@ -1907,7 +1940,7 @@ TrustNode TheoryEngine::getExplanation(
         Trace("te-proof-exp") << "...via trust THEORY_LEMMA" << std::endl;
         // otherwise, trusted theory lemma
         Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(ttid);
-        lcp->addStep(proven, ProofRule::THEORY_LEMMA, {}, {proven, tidn});
+        lcp->addTrustedStep(proven, TrustId::THEORY_LEMMA, {}, {tidn});
       }
       std::vector<Node> pfChildren;
       pfChildren.push_back(trn.getNode());

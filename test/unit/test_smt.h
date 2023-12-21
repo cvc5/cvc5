@@ -103,13 +103,21 @@ inline std::ostream& operator<<(std::ostream& out, OutputChannelCallType type)
 class DummyOutputChannel : public theory::OutputChannel
 {
  public:
-  DummyOutputChannel() {}
+  DummyOutputChannel(StatisticsRegistry& sr,
+                     TheoryEngine* engine,
+                     const std::string& name)
+      : theory::OutputChannel(sr, engine, name)
+  {
+  }
   ~DummyOutputChannel() override {}
 
   void safePoint(Resource r) override {}
-  void conflict(TNode n) override { push(CONFLICT, n); }
+  void conflict(TNode n, theory::InferenceId id) override { push(CONFLICT, n); }
 
-  void trustedConflict(TrustNode n) override { push(CONFLICT, n.getNode()); }
+  void trustedConflict(TrustNode n, theory::InferenceId id) override
+  {
+    push(CONFLICT, n.getNode());
+  }
 
   bool propagate(TNode n) override
   {
@@ -118,12 +126,15 @@ class DummyOutputChannel : public theory::OutputChannel
   }
 
   void lemma(TNode n,
+             theory::InferenceId id,
              theory::LemmaProperty p = theory::LemmaProperty::NONE) override
   {
     push(LEMMA, n);
   }
 
-  void trustedLemma(TrustNode n, theory::LemmaProperty p) override
+  void trustedLemma(TrustNode n,
+                    theory::InferenceId id,
+                    theory::LemmaProperty p) override
   {
     push(LEMMA, n.getNode());
   }

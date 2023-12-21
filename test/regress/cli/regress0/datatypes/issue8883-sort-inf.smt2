@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --sort-inference
 ; EXPECT: unsat
+; DISABLE-TESTER: alf
 (set-logic ALL)
 (declare-datatypes ((Data 1)) ((par (T) ((data)))))
 (declare-fun p2 () (Data Bool))

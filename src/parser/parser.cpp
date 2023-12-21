@@ -19,7 +19,7 @@
 #include "base/output.h"
 #include "parser/commands.h"
 #include "parser/lexer.h"
-#include "parser/parser_exception.h"
+#include <cvc5/cvc5_parser.h>
 #include "parser/smt2/smt2_parser.h"
 
 namespace cvc5 {
@@ -89,15 +89,15 @@ std::unique_ptr<Cmd> Parser::nextCommand()
   return cmd;
 }
 
-Term Parser::nextExpression()
+Term Parser::nextTerm()
 {
-  Trace("parser") << "nextExpression()" << std::endl;
+  Trace("parser") << "nextTerm()" << std::endl;
   Term result;
   if (!d_done)
   {
     try
     {
-      result = parseNextExpression();
+      result = parseNextTerm();
       setDone(result.isNull());
     }
     catch (ParserException& e)
@@ -111,20 +111,21 @@ Term Parser::nextExpression()
       parseError(e.what());
     }
   }
-  Trace("parser") << "nextExpression() => " << result << std::endl;
+  Trace("parser") << "nextTerm() => " << result << std::endl;
   return result;
 }
 
 bool Parser::done() const { return d_done; }
 
-std::unique_ptr<Parser> Parser::mkParser(const std::string& lang,
+std::unique_ptr<Parser> Parser::mkParser(modes::InputLanguage lang,
                                          Solver* solver,
                                          SymManager* sm)
 {
   std::unique_ptr<Parser> parser;
-  if (lang == "LANG_SYGUS_V2" || lang == "LANG_SMTLIB_V2_6")
+  if (lang == modes::InputLanguage::SMT_LIB_2_6
+      || lang == modes::InputLanguage::SYGUS_2_1)
   {
-    bool isSygus = (lang == "LANG_SYGUS_V2");
+    bool isSygus = (lang == modes::InputLanguage::SYGUS_2_1);
     bool strictMode = solver->getOptionInfo("strict-parsing").boolValue();
     parser.reset(new Smt2Parser(solver, sm, strictMode, isSygus));
   }

@@ -31,6 +31,8 @@ const char* toString(InferenceId i)
     case InferenceId::NONE: return "NONE";
     case InferenceId::EQ_CONSTANT_MERGE: return "EQ_CONSTANT_MERGE";
     case InferenceId::COMBINATION_SPLIT: return "COMBINATION_SPLIT";
+    case InferenceId::CONFLICT_REWRITE_LIT: return "CONFLICT_REWRITE_LIT";
+    case InferenceId::EXPLAINED_PROPAGATION: return "EXPLAINED_PROPAGATION";
     case InferenceId::EXTT_SIMPLIFY: return "EXTT_SIMPLIFY";
     case InferenceId::ARITH_BLACK_BOX: return "ARITH_BLACK_BOX";
     case InferenceId::ARITH_CONF_EQ: return "ARITH_CONF_EQ";
@@ -535,6 +537,7 @@ const char* toString(InferenceId i)
     case InferenceId::UF_CARD_SIMPLE_CONFLICT: return "UF_CARD_SIMPLE_CONFLICT";
     case InferenceId::UF_CARD_SPLIT: return "UF_CARD_SPLIT";
 
+    case InferenceId::UF_HO_CG_SPLIT: return "UF_HO_CG_SPLIT";
     case InferenceId::UF_HO_APP_ENCODE: return "UF_HO_APP_ENCODE";
     case InferenceId::UF_HO_APP_CONV_SKOLEM: return "UF_HO_APP_CONV_SKOLEM";
     case InferenceId::UF_HO_EXTENSIONALITY: return "UF_HO_EXTENSIONALITY";
@@ -545,6 +548,8 @@ const char* toString(InferenceId i)
     case InferenceId::UF_HO_LAMBDA_APP_REDUCE: return "HO_LAMBDA_APP_REDUCE";
     case InferenceId::UF_ARITH_BV_CONV_REDUCTION:
       return "UF_ARITH_BV_CONV_REDUCTION";
+    case InferenceId::PARTITION_GENERATOR_PARTITION:
+      return "PARTITION_GENERATOR_PARTITION";
     case InferenceId::UNKNOWN: return "?";
 
     default:

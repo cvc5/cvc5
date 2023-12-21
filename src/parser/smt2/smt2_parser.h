@@ -30,7 +30,7 @@ namespace cvc5 {
 namespace parser {
 
 /**
- * -based smt2 parser. It maintains a lexer, a state, a term parser and a
+ * smt2 parser. It maintains a lexer, a state, a term parser and a
  * command parser. The latter two are used for parsing terms and commands. The
  * command parser depends on the term parser.
  */
@@ -54,10 +54,10 @@ class Smt2Parser : public Parser
   std::unique_ptr<Cmd> parseNextCommand() override;
 
   /**
-   * Parse and return the next expression. Requires setting the logic
+   * Parse and return the next term. Requires setting the logic
    * beforehand.
    */
-  Term parseNextExpression() override;
+  Term parseNextTerm() override;
   /** The lexer */
   Smt2Lexer d_slex;
   /** The state */

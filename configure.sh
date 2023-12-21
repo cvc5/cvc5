@@ -66,6 +66,7 @@ The following flags enable optional packages (disable with --no-<option name>).
 Optional Path to Optional Packages:
   --glpk-dir=PATH          path to top level of GLPK installation
   --dep-path=PATH          path to a dependency installation dir
+  --pythonic-path=PATH     path to the Pythonic API's repository
 
 CMake Options (Advanced)
   -DVAR=VALUE              manually add CMake options
@@ -146,6 +147,12 @@ wasm_flags=""
 #--------------------------------------------------------------------------#
 
 cmake_opts=""
+
+# Set python3 interpreter executable to make sure that CMake picks up the
+# correct Python version.
+if command -v python3 &> /dev/null; then
+  cmake_opts="$cmake_opts -DPython_EXECUTABLE=$(command -v python3)"
+fi
 
 while [ $# -gt 0 ]
 do
@@ -283,6 +290,17 @@ do
     --dep-path) die "missing argument to $1 (try -h)" ;;
     --dep-path=*) dep_path="${dep_path};${1##*=}" ;;
 
+    --pythonic-path) die "missing argument to $1 (try -h)" ;;
+    --pythonic-path=*)
+        pythonic_path="${1##*=}"
+        # Check if pythonic is an absolute path and if not, make it
+        # absolute.
+        case $pythonic_path in
+          /*) ;;                                    # absolute path
+          *) pythonic_path=$(pwd)/$pythonic_path ;; # make absolute path
+        esac
+        ;;
+
     --wasm) wasm=WASM ;;
     --wasm=*) wasm="${1##*=}" ;;
 
@@ -386,6 +404,8 @@ fi
   && cmake_opts="$cmake_opts -DGLPK_DIR=$glpk_dir"
 [ "$dep_path" != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_PREFIX_PATH=$dep_path"
+[ "$pythonic_path" != default ] \
+  && cmake_opts="$cmake_opts -DPYTHONIC_PATH=$pythonic_path"
 [ "$install_prefix" != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_INSTALL_PREFIX=$install_prefix"
 [ -n "$program_prefix" ] \

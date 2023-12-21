@@ -35,7 +35,6 @@ set(libcvc5parser_src_files
   parse_op.h
   parser_state.cpp
   parser_state.h
-  parser_exception.h
   parser_utils.cpp
   parser_utils.h
   smt2/smt2_state.cpp

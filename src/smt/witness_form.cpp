@@ -95,7 +95,7 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
           // k = t
           d_wintroPf.addStep(eq, ProofRule::SKOLEM_INTRO, {}, {cur});
           d_tcpg.addRewriteStep(
-              cur, curw, &d_wintroPf, true, ProofRule::ASSUME, true);
+              cur, curw, &d_wintroPf, true, TrustId::NONE, true);
           // recursively transform
           visit.push_back(curw);
         }
