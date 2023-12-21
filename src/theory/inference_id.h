@@ -55,7 +55,6 @@ enum class InferenceId
   EXTT_SIMPLIFY,
   // ---------------------------------- arith theory
   //-------------------- linear core
-  ARITH_REWRITE_EQ_NORM,
   // black box conflicts. It's magic.
   ARITH_BLACK_BOX,
   // conflicting equality
