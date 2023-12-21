@@ -967,21 +967,17 @@ TypeNode NodeManager::mkNullableType(const TypeNode& type)
     return it->second;
   }
   // construct the corresponding datatype with two constructors
-  // __cvc5_nullable_type_ctor_null, and __cvc5_nullable_type_ctor_some
+  // null and some.
   std::stringstream sst;
   sst << "__cvc5_nullable_" << type;
   DType dt(sst.str());
-  dt.setNullable();
-  std::stringstream sscNull;
-  sscNull << sst.str() << "_ctor_null";
+  dt.setNullable();  
   std::shared_ptr<DTypeConstructor> null =
-      std::make_shared<DTypeConstructor>(sscNull.str());
+      std::make_shared<DTypeConstructor>("nullable.null");
   dt.addConstructor(null);
   std::shared_ptr<DTypeConstructor> some =
-      std::make_shared<DTypeConstructor>(sscNull.str());
-  std::stringstream sscSome;
-  sscSome << sst.str() << "_ctor_some";
-  some->addArg("_stor", type);
+      std::make_shared<DTypeConstructor>("nullable.some");  
+  some->addArg("nullable.val", type);
   dt.addConstructor(some);
   TypeNode datatype = mkDatatypeType(dt);
   Assert(datatype.isNullable());

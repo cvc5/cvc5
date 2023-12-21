@@ -1,3 +1,4 @@
+; DISABLE-TESTER: proof
 (set-logic ALL)
 (set-info :status unsat)
 (declare-fun x () (Nullable Int))
