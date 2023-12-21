@@ -292,8 +292,7 @@ void Smt2State::addSepOperators()
 void Smt2State::addCoreSymbols()
 {
   defineType("Bool", d_solver->getBooleanSort(), true);
-  Sort tupleSort = d_solver->mkTupleSort({});
-  defineType("Nullable", d_solver->mkNullableSort(tupleSort), true);
+  Sort tupleSort = d_solver->mkTupleSort({});  
   defineType("Relation", d_solver->mkSetSort(tupleSort), true);
   defineType("Table", d_solver->mkBagSort(tupleSort), true);
   defineVar("true", d_solver->mkTrue(), true);
