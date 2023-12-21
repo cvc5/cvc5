@@ -70,7 +70,8 @@ runs:
             delete = True
           if asset.name.startswith(samedayprefix):
             delete = True
-          age = datetime.datetime.now() - asset.created_at
+          # convert to timezone-aware datetime
+          age = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc) - asset.created_at
           if age.days > 7:
             delete = True
           if delete:

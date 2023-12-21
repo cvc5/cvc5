@@ -86,6 +86,8 @@ runs:
         echo "image_version=$ImageVersion" >> $GITHUB_ENV
         echo "num_proc=$(( $(sysctl -n hw.logicalcpu) + 1 ))" >> $GITHUB_ENV
         echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
+        echo "CC=$(brew --prefix llvm@15)/bin/clang" >> $GITHUB_ENV
+        echo "CXX=$(brew --prefix llvm@15)/bin/clang++" >> $GITHUB_ENV
         echo "::endgroup::"
 
     - name: Install software for Python bindings

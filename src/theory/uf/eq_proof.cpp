@@ -1494,7 +1494,7 @@ Node EqProof::addToProof(CDProof* p,
       Trace("eqproof-conv")
           << "EqProof::addToProof: adding a trust flattening rewrite step\n";
       Node bridgeEq = conclusion.eqNode(d_node);
-      p->addStep(bridgeEq, ProofRule::TRUST_FLATTENING_REWRITE, {}, {bridgeEq});
+      p->addTrustedStep(bridgeEq, TrustId::FLATTENING_REWRITE, {}, {});
       p->addStep(d_node, ProofRule::EQ_RESOLVE, {conclusion, bridgeEq}, {});
     }
     else

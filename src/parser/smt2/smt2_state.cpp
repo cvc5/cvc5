@@ -110,6 +110,7 @@ void Smt2State::addBitvectorOperators()
   addOperator(Kind::BITVECTOR_SGE, "bvsge");
   addOperator(Kind::BITVECTOR_REDOR, "bvredor");
   addOperator(Kind::BITVECTOR_REDAND, "bvredand");
+  addOperator(Kind::BITVECTOR_NEGO, "bvnego");
   addOperator(Kind::BITVECTOR_UADDO, "bvuaddo");
   addOperator(Kind::BITVECTOR_SADDO, "bvsaddo");
   addOperator(Kind::BITVECTOR_UMULO, "bvumulo");
@@ -131,6 +132,7 @@ void Smt2State::addFiniteFieldOperators()
   addOperator(cvc5::Kind::FINITE_FIELD_ADD, "ff.add");
   addOperator(cvc5::Kind::FINITE_FIELD_MULT, "ff.mul");
   addOperator(cvc5::Kind::FINITE_FIELD_NEG, "ff.neg");
+  addOperator(cvc5::Kind::FINITE_FIELD_BITSUM, "ff.bitsum");
 }
 
 void Smt2State::addDatatypesOperators()
@@ -567,7 +569,10 @@ Term Smt2State::mkIndexedOp(Kind k,
   if (k == Kind::APPLY_TESTER || k == Kind::APPLY_UPDATER)
   {
     Assert(symbols.size() == 1);
-    Assert(!args.empty());
+    if (args.empty())
+    {
+      parseError("Expected argument to tester/updater");
+    }
     const std::string& cname = symbols[0];
     // must be declared
     checkDeclaration(cname, CHECK_DECLARED, SYM_VARIABLE);

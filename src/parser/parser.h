@@ -75,7 +75,7 @@ class Parser : public ParserStateCallback
   std::unique_ptr<Cmd> nextCommand();
 
   /** Parse and return the next expression. */
-  Term nextExpression();
+  Term nextTerm();
 
   /** Is this parser done reading input? */
   bool done() const;
@@ -88,7 +88,7 @@ class Parser : public ParserStateCallback
   void unexpectedEOF(const std::string& msg) override;
 
   /** make flex parser from language string */
-  static std::unique_ptr<Parser> mkParser(const std::string& lang,
+  static std::unique_ptr<Parser> mkParser(modes::InputLanguage lang,
                                           Solver* solver,
                                           SymManager* sm);
 
@@ -105,7 +105,7 @@ class Parser : public ParserStateCallback
   virtual std::unique_ptr<Cmd> parseNextCommand() = 0;
 
   /** Parse and return the next expression. */
-  virtual Term parseNextExpression() = 0;
+  virtual Term parseNextTerm() = 0;
   /** Solver */
   Solver* d_solver;
   /** Symbol manager */

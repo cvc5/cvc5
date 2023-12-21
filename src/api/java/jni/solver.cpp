@@ -15,6 +15,7 @@
 
 #include <cvc5/cvc5.h>
 
+#include "api/java/jni/api_utilities.h"
 #include "api_utilities.h"
 #include "io_github_cvc5_Solver.h"
 
@@ -25,7 +26,7 @@ using namespace cvc5;
  * Method:    newSolver
  * Signature: ()J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_newSolver(JNIEnv*, jobject)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_newSolver(JNIEnv*, jclass)
 {
   Solver* solver = new Solver();
   return reinterpret_cast<jlong>(solver);
@@ -37,7 +38,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_newSolver(JNIEnv*, jobject)
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_deletePointer(JNIEnv* env,
-                                                                jclass,
+                                                                jobject,
                                                                 jlong pointer)
 {
   const std::vector<jobject>& refs = globalReferences[pointer];
@@ -186,12 +187,13 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkBitVectorSort(
  * Signature: (JLjava/lang/String)J
  */
 JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkFiniteFieldSort(
-    JNIEnv* env, jobject, jlong pointer, jstring size)
+    JNIEnv* env, jobject, jlong pointer, jstring size, jint base)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   const char* cSize = env->GetStringUTFChars(size, nullptr);
-  Sort* sortPointer = new Sort(solver->mkFiniteFieldSort(std::string(cSize)));
+  Sort* sortPointer =
+      new Sort(solver->mkFiniteFieldSort(std::string(cSize), (uint32_t)base));
   env->ReleaseStringUTFChars(size, cSize);
   return reinterpret_cast<jlong>(sortPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
@@ -776,11 +778,8 @@ Java_io_github_cvc5_Solver_mkTerm__JJ_3J(JNIEnv* env,
  * Method:    mkTuple
  * Signature: (J[J)J
  */
-JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_Solver_mkTuple(JNIEnv* env,
-                                   jobject,
-                                   jlong pointer,
-                                   jlongArray termPointers)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkTuple(
+    JNIEnv* env, jobject, jlong pointer, jlongArray termPointers)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
@@ -1250,15 +1249,21 @@ Java_io_github_cvc5_Solver_mkBitVector__JILjava_lang_String_2I(
  * Method:    mkFiniteFieldElem
  * Signature: (JLjava/lang/String;J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkFiniteFieldElem(
-    JNIEnv* env, jobject, jlong pointer, jstring jS, jlong sortPointer)
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_Solver_mkFiniteFieldElem(JNIEnv* env,
+                                             jobject,
+                                             jlong pointer,
+                                             jstring jS,
+                                             jlong sortPointer,
+                                             jint base)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   Sort* sort = reinterpret_cast<Sort*>(sortPointer);
   const char* s = env->GetStringUTFChars(jS, nullptr);
   std::string cS(s);
-  Term* retPointer = new Term(solver->mkFiniteFieldElem(cS, *sort));
+  Term* retPointer =
+      new Term(solver->mkFiniteFieldElem(cS, *sort, (uint32_t)base));
   env->ReleaseStringUTFChars(jS, s);
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
@@ -2126,35 +2131,97 @@ Java_io_github_cvc5_Solver_getTimeoutCore(JNIEnv* env, jobject, jlong pointer)
 
 /*
  * Class:     io_github_cvc5_Solver
- * Method:    getProof
- * Signature: (J)Ljava/lang/String;
+ * Method:    getTimeoutCoreAssuming
+ * Signature: (J[J)J
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_getProof__J(JNIEnv* env,
-                                                                 jobject,
-                                                                 jlong pointer)
+JNIEXPORT jobject JNICALL Java_io_github_cvc5_Solver_getTimeoutCoreAssuming(
+    JNIEnv* env, jobject, jlong pointer, jlongArray assumptions)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  std::string proof = solver->getProof();
-  return env->NewStringUTF(proof.c_str());
+  std::vector<Term> as = getObjectsFromPointers<Term>(env, assumptions);
+  auto [result, terms] = solver->getTimeoutCoreAssuming(as);
+  Result* resultPointer = new Result(result);
+  jlongArray a = getPointersFromObjects<Term>(env, terms);
+
+  // Long r = new Long(resultPointer);
+  jclass longClass = env->FindClass("Ljava/lang/Long;");
+  jmethodID longConstructor = env->GetMethodID(longClass, "<init>", "(J)V");
+  jobject r = env->NewObject(longClass, longConstructor, resultPointer);
+
+  // Pair pair = new Pair<Long, long[]>(r, a);
+  jclass pairClass = env->FindClass("Lio/github/cvc5/Pair;");
+  jmethodID pairConstructor = env->GetMethodID(
+      pairClass, "<init>", "(Ljava/lang/Object;Ljava/lang/Object;)V");
+  jobject pair = env->NewObject(pairClass, pairConstructor, r, a);
+
+  return pair;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    getProof
+ * Signature: (J)[J
+ */
+JNIEXPORT jlongArray JNICALL
+Java_io_github_cvc5_Solver_getProof__J(JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  std::vector<Proof> proofs = solver->getProof();
+  jlongArray ret = getPointersFromObjects<Proof>(env, proofs);
+  return ret;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
  * Class:     io_github_cvc5_Solver
  * Method:    getProof
- * Signature: (JI)Ljava/lang/String;
+ * Signature: (JI)[J;
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_getProof__JI(JNIEnv* env,
-                                                                  jobject,
-                                                                  jlong pointer,
-                                                                  jint pcvalue)
+JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getProof__JI(
+    JNIEnv* env, jobject, jlong pointer, jint pcvalue)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   modes::ProofComponent pc = static_cast<modes::ProofComponent>(pcvalue);
-  std::string proof = solver->getProof(pc);
-  return env->NewStringUTF(proof.c_str());
+  std::vector<Proof> proofs = solver->getProof(pc);
+  jlongArray ret = getPointersFromObjects<Proof>(env, proofs);
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    proofToString
+ * Signature: (JJ)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_proofToString__JJ(
+    JNIEnv* env, jobject, jlong pointer, jlong proofPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  Proof* proof = reinterpret_cast<Proof*>(proofPointer);
+  std::string proofStr = solver->proofToString(*proof);
+  return env->NewStringUTF(proofStr.c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    proofToString
+ * Signature: (JJI)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_proofToString__JJI(
+    JNIEnv* env, jobject, jlong pointer, jlong proofPointer, jint pfvalue)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  modes::ProofFormat pf = static_cast<modes::ProofFormat>(pfvalue);
+  Proof* proof = reinterpret_cast<Proof*>(proofPointer);
+  std::string proofStr = solver->proofToString(*proof, pf);
+  return env->NewStringUTF(proofStr.c_str());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 

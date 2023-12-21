@@ -10,7 +10,11 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A field-specific theory (non-incremental)
+ * A field-specific theory.
+ * That is, the sub-theory for GF(p) for some fixed p.
+ * Implements Figure 2, "DecisionProcedure" from [OKTB23].
+ *
+ * [OKTB23]: https://doi.org/10.1007/978-3-031-37703-7_8
  */
 
 #include "cvc5_private.h"
@@ -30,6 +34,7 @@
 #include "expr/node.h"
 #include "smt/env_obj.h"
 #include "theory/ff/stats.h"
+#include "theory/ff/util.h"
 #include "theory/theory.h"
 #include "util/integer.h"
 
@@ -49,7 +54,7 @@ namespace ff {
  *
  * For now, our implementation assumes that the finite field has prime order.
  */
-class SubTheory : protected EnvObj
+class SubTheory : protected EnvObj, public FieldObj
 {
  public:
   /**
@@ -67,6 +72,8 @@ class SubTheory : protected EnvObj
 
   /**
    * Check the current facts.
+   *
+   * Does nothing below full effort.
    */
   void postCheck(Theory::Effort);
 
@@ -110,7 +117,7 @@ class SubTheory : protected EnvObj
 
   /**
    * A model, if we've found one. A map from variable nodes to their constant
-   * values.
+   * values. Meaningless if d_conflict is non-empty.
    */
   std::unordered_map<Node, Node> d_model{};
 
@@ -118,19 +125,6 @@ class SubTheory : protected EnvObj
    * Statistics shared among all finite-field sub-theories.
    */
   FfStatistics* d_stats;
-  /**
-   * The base field of the multivariate polynomial ring.
-   *
-   * That is, the field that the polynomial coefficients live in/the
-   * finite-field constants live in.
-   *
-   * For now, we assume this is a prime-order finite-field.
-   */
-  CoCoA::ring d_baseRing;
-  /**
-   * The prime modulus for the base field.
-   */
-  Integer d_modulus;
 };
 
 }  // namespace ff

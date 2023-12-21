@@ -42,6 +42,9 @@ class Smt2Printer : public cvc5::internal::Printer
   using cvc5::internal::Printer::toStream;
   void toStream(std::ostream& out, TNode n) const override;
   void toStream(std::ostream& out, TNode n, int toDepth, size_t dag) const;
+  void toStream(std::ostream& out,
+                TNode n,
+                const LetBinding* lbind) const override;
   void toStream(std::ostream& out, Kind k) const override;
   void toStream(std::ostream& out, const smt::Model& m) const override;
   /**
@@ -230,6 +233,10 @@ class Smt2Printer : public cvc5::internal::Printer
   /** Print get-timeout-core command */
   void toStreamCmdGetTimeoutCore(std::ostream& out) const override;
 
+  /** Print get-timeout-core-assuming command */
+  void toStreamCmdGetTimeoutCoreAssuming(
+      std::ostream& out, const std::vector<Node>& assumptions) const override;
+
   /** Print get-learned-literals command */
   void toStreamCmdGetLearnedLiterals(std::ostream& out,
                                      modes::LearnedLitType t) const override;
@@ -294,12 +301,28 @@ class Smt2Printer : public cvc5::internal::Printer
 
  private:
   /**
+   * Base print method.
+   *
+   * This prints n when n is atomic (metakind::CONSTANT or metakind::VARIABLE),
+   * or when we require a special method for printing n (i.e. for match terms
+   * or quantifiers).
+   *
+   * Otherwise, print the operator of n, followed by a space.
+   *
+   * Returns false if we need to print the children of n.
+   */
+  bool toStreamBase(std::ostream& out,
+                    TNode n,
+                    const LetBinding* lbind,
+                    int toDepth) const;
+  /**
    * The main printing method for nodes n.
    */
   void toStream(std::ostream& out,
                 TNode n,
+                const LetBinding* lbind,
                 int toDepth,
-                LetBinding* lbind = nullptr) const;
+                bool lbindTop = true) const;
   /**
    * Prints the vector as a sorted variable list
    */

@@ -50,6 +50,10 @@ PreprocessingPassResult TheoryPreprocess::applyInternal(
     {
       // process
       assertions->replaceTrusted(i, trn);
+      if (assertions->isInConflict())
+      {
+        return PreprocessingPassResult::CONFLICT;
+      }
     }
     for (const SkolemLemma& lem : newAsserts)
     {
