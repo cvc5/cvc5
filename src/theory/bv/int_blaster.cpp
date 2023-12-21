@@ -53,6 +53,8 @@ IntBlaster::IntBlaster(Env& env,
     : EnvObj(env),
       d_binarizeCache(userContext()),
       d_intblastCache(userContext()),
+      d_quantApplies(userContext()),
+      d_quantifiedVariables(userContext()),
       d_rangeAssertions(userContext()),
       d_bitwiseAssertions(userContext()),
       d_mode(mode),
@@ -983,9 +985,36 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
 
   // collect range constraints for UF applciations
   // that involve quantified variables
-  std::unordered_set<Node> applys;
-  expr::getKindSubterms(quantifiedNode[1], Kind::APPLY_UF, true, applys);
-  for (const Node& apply : applys)
+  
+  if (d_quantifiedVariables.find(quantifiedNode) == d_quantifiedVariables.end()) {
+    d_quantifiedVariables[quantifiedNode] = std::unordered_set<Node>();
+    std::unordered_set<Node> qfvars = d_quantifiedVariables[quantifiedNode[1]];
+    qfvars.insert(quantifiedNode[0]);
+    d_quantifiedVariables[quantifiedNode] = qfvars;
+  }
+  if (d_quantApplies.find(quantifiedNode) == d_quantApplies.end()) {
+    d_quantApplies[quantifiedNode] = std::unordered_set<Node>();
+
+    std::unordered_set<Node> applies;
+
+    expr::getKindSubterms(quantifiedNode[1], Kind::APPLY_UF, true, applies);
+    d_quantApplies[quantifiedNode] = applies;
+    Assert(d_quantifiedVariables.find(quantifiedNode[1]) != d_quantifiedVariables.end());
+    std::unordered_set<Node> qfvars;
+    qfvars = d_quantifiedVariables[quantifiedNode[1]];
+    for (const auto& v : qfvars) {
+      applies = d_quantApplies[quantifiedNode];
+      for (Node app : applies) {
+        if (expr::hasSubterm(app, v)) {
+          applies.erase(app);
+          d_quantApplies[quantifiedNode] = applies;
+        }
+      }
+    }
+  }
+
+  std::unordered_set<Node> applies = d_quantApplies[quantifiedNode];
+  for (const Node& apply : applies)
   {
     Trace("int-blaster-debug")
         << "quantified uf application: " << apply << std::endl;

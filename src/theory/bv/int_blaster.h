@@ -338,6 +338,9 @@ class IntBlaster : protected EnvObj
   CDNodeMap d_binarizeCache;
   CDNodeMap d_intblastCache;
 
+  context::CDHashMap<Node, std::unordered_set<Node>> d_quantApplies;
+  context::CDHashMap<Node, std::unordered_set<Node>> d_quantifiedVariables;
+
   /** Node manager that is used throughout the pass */
   NodeManager* d_nm;
 
