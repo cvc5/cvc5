@@ -22,7 +22,7 @@
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/options.h"
-#include "parser/parser_exception.h"
+#include <cvc5/cvc5_parser.h>
 #include "test_parser.h"
 
 using namespace cvc5::parser;
@@ -42,7 +42,7 @@ class TestCommandBlack : public TestParser
     ss << cmdStr << std::endl;
     InputParser parser(&d_solver, d_symman.get());
     parser.setStreamInput(
-        modes::InputLanguage::SMT_LIB_2_6, ss, "parser_black");
+        modes::InputLanguage::SMT_LIB_2_6, ss, "command_black");
     return parser.nextCommand();
   }
 };
@@ -59,6 +59,11 @@ TEST_F(TestCommandBlack, invoke)
   cmd = parseCommand("(get-model)");
   ASSERT_NE(cmd.isNull(), true);
   cmd.invoke(&d_solver, d_symman.get(), out);
+  std::string result = out.str();
+  ASSERT_EQ(
+      "(error \"Cannot get model unless model generation is enabled (try "
+      "--produce-models)\")\n",
+      result);
   // logic already set
   ASSERT_THROW(parseCommand("(set-logic QF_LRA)"), ParserException);
 }
@@ -69,7 +74,7 @@ TEST_F(TestCommandBlack, toString)
   cmd = parseCommand("(set-logic QF_LIA )");
   ASSERT_NE(cmd.isNull(), true);
   // note normalizes wrt whitespace
-  ASSERT_EQ(cmd.toString(), "(set-logic QF_LIA)\n");
+  ASSERT_EQ(cmd.toString(), "(set-logic QF_LIA)");
   std::stringstream ss;
   ss << cmd;
   ASSERT_EQ(cmd.toString(), ss.str());

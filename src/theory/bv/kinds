@@ -90,6 +90,7 @@ operator BITVECTOR_REDAND 1 "bit-vector redand"
 operator BITVECTOR_REDOR 1 "bit-vector redor"
 
 ## overflow kinds
+operator BITVECTOR_NEGO 1 "bit-vector negation overflow predicate"
 operator BITVECTOR_UADDO 2 "bit-vector unsigned addition overflow predicate"
 operator BITVECTOR_SADDO 2 "bit-vector signed addition overflow predicate"
 operator BITVECTOR_UMULO 2 "bit-vector unsigned multiplication overflow predicate"
@@ -221,6 +222,7 @@ typerule BITVECTOR_REDAND ::cvc5::internal::theory::bv::BitVectorRedTypeRule
 typerule BITVECTOR_REDOR ::cvc5::internal::theory::bv::BitVectorRedTypeRule
 
 ## overflow kinds
+typerule BITVECTOR_NEGO ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
 typerule BITVECTOR_UADDO ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
 typerule BITVECTOR_SADDO ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
 typerule BITVECTOR_UMULO ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule

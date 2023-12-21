@@ -374,7 +374,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "bvToIntUsePow2"
-  category   = "undocumented"
+  category   = "expert"
   long       = "bv-to-int-use-pow2"
   type       = "bool"
   default    = "false"

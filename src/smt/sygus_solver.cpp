@@ -93,6 +93,25 @@ void SygusSolver::declareSynthFun(Node fn,
 
 void SygusSolver::assertSygusConstraint(Node n, bool isAssume)
 {
+  if (n.getKind() == Kind::AND)
+  {
+    // miniscope, to account for forall handling below as child of AND
+    for (const Node& nc : n)
+    {
+      assertSygusConstraint(nc, isAssume);
+    }
+    return;
+  }
+  else if (n.getKind() == Kind::FORALL)
+  {
+    // forall as constraint is equivalent to introducing its variables and
+    // using a quantifier-free constraint.
+    for (const Node& v : n[0])
+    {
+      declareSygusVar(v);
+    }
+    n = n[1];
+  }
   Trace("smt") << "SygusSolver::assertSygusConstrant: " << n
                << ", isAssume=" << isAssume << "\n";
   if (isAssume)
