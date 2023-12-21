@@ -321,7 +321,8 @@ TypeNode StringStrToBoolTypeRule::computeType(NodeManager* nodeManager,
       {
         if (errOut)
         {
-          (*errOut) << "expecting string terms of the same type in " << n.getKind();
+          (*errOut) << "expecting string terms of the same type in "
+                    << n.getKind();
         }
         return TypeNode::null();
       }
