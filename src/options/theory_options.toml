@@ -67,7 +67,6 @@ name   = "Theory Layer"
   name = "care-graph"
   help = "Use care graphs for theory combination."
 
-
 [[option]]
   name       = "lemmaInprocess"
   category   = "expert"
