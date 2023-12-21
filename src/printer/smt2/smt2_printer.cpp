@@ -531,6 +531,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
           toStreamType(out, dt[0][i].getRangeType());
         }
         out << ")";
+        return true;
       }
     }
     if (dt.isNullable())
