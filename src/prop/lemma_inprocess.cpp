@@ -43,7 +43,7 @@ TrustNode LemmaInprocess::inprocessLemma(TrustNode& trn)
   {
     Trace("lemma-inprocess-lemma")
         << "Inprocess " << proven << " returns " << provenp << std::endl;
-    // TODO: proofs
+    // proofs not supported
     return TrustNode::mkTrustNode(trn.getKind(), provenp);
   }
   return trn;
