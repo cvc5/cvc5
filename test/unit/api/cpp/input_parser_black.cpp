@@ -22,7 +22,6 @@
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/options.h"
-#include "parser/parser_exception.h"
 #include "test_parser.h"
 
 using namespace cvc5::parser;
@@ -102,6 +101,27 @@ TEST_F(TestInputParserBlack, setAndAppendIncrementalStringInput)
                               "input_parser_black");
   Command cmd;
   p.appendIncrementalStringInput("(set-logic ALL)");
+  p.appendIncrementalStringInput("(declare-fun a () Bool)");
+  p.appendIncrementalStringInput("(declare-fun b () Int)");
+  cmd = p.nextCommand();
+  ASSERT_NE(cmd.isNull(), true);
+  ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
+  cmd = p.nextCommand();
+  ASSERT_NE(cmd.isNull(), true);
+  ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
+  cmd = p.nextCommand();
+  ASSERT_NE(cmd.isNull(), true);
+  ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
+}
+
+TEST_F(TestInputParserBlack, setAndAppendIncrementalStringInputInterleave)
+{
+  std::stringstream out;
+  InputParser p(&d_solver);
+  p.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6,
+                              "input_parser_black");
+  Command cmd;
+  p.appendIncrementalStringInput("(set-logic ALL)");
   cmd = p.nextCommand();
   ASSERT_NE(cmd.isNull(), true);
   ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
@@ -115,6 +135,28 @@ TEST_F(TestInputParserBlack, setAndAppendIncrementalStringInput)
   ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
 }
 
+TEST_F(TestInputParserBlack, appendIncrementalNoSet)
+{
+  InputParser p(&d_solver);
+  ASSERT_THROW(p.appendIncrementalStringInput("(set-logic ALL)"),
+               CVC5ApiException);
+}
+
+TEST_F(TestInputParserBlack, setStringInput)
+{
+  std::stringstream out;
+  InputParser p(&d_solver);
+  Command cmd;
+  p.setStringInput(modes::InputLanguage::SMT_LIB_2_6,
+                   "(set-logic ALL)",
+                   "input_parser_black");
+  cmd = p.nextCommand();
+  ASSERT_NE(cmd.isNull(), true);
+  ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
+  cmd = p.nextCommand();
+  ASSERT_EQ(cmd.isNull(), true);
+}
+
 TEST_F(TestInputParserBlack, nextCommand)
 {
   InputParser p(&d_solver);
@@ -123,6 +165,17 @@ TEST_F(TestInputParserBlack, nextCommand)
   p.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ss, "input_parser_black");
   Command cmd = p.nextCommand();
   ASSERT_EQ(cmd.isNull(), true);
+}
+
+TEST_F(TestInputParserBlack, nextCommandNoInput)
+{
+  InputParser p(&d_solver);
+  p.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6,
+                              "input_parser_black");
+  Command cmd = p.nextCommand();
+  ASSERT_EQ(cmd.isNull(), true);
+  Term t = p.nextTerm();
+  ASSERT_EQ(t.isNull(), true);
 }
 
 TEST_F(TestInputParserBlack, nextTerm)
@@ -141,20 +194,20 @@ TEST_F(TestInputParserBlack, nextTerm2)
   p.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6,
                               "input_parser_black");
   // parse a declaration command
-  p.appendIncrementalStringInput("(declare-fun a () Int)");
+  p.appendIncrementalStringInput("(declare-fun a () Int)\n");
   Command cmd = p.nextCommand();
   ASSERT_NE(cmd.isNull(), true);
   ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
   // now parse some terms
   Term t;
-  p.appendIncrementalStringInput("45");
+  p.appendIncrementalStringInput("45\n");
   ASSERT_NO_THROW(t = p.nextTerm());
   ASSERT_EQ(t.isNull(), false);
-  p.appendIncrementalStringInput("(+ a 1)");
+  p.appendIncrementalStringInput("(+ a 1)\n");
   ASSERT_NO_THROW(t = p.nextTerm());
   ASSERT_EQ(t.isNull(), false);
   ASSERT_EQ(t.getKind(), Kind::ADD);
-  p.appendIncrementalStringInput("(+ b 1)");
+  p.appendIncrementalStringInput("(+ b 1)\n");
   ASSERT_THROW(t = p.nextTerm(), ParserException);
 }
 
@@ -201,6 +254,29 @@ TEST_F(TestInputParserBlack, multipleParsers)
   ASSERT_THROW(p5.setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6,
                                             "input_parser_black"),
                CVC5ApiException);
+}
+
+TEST_F(TestInputParserBlack, ParserExceptions)
+{
+  ParserException defaultConstructor;
+  std::string message = "error";
+  const char* cMessage = "error";
+  std::string filename = "file.smt2";
+  ParserException stringConstructor(message);
+  ParserException cStringConstructor(cMessage);
+  ParserException exception(message, filename, 10, 11);
+  std::stringstream ss;
+  exception.toStream(ss);
+  ASSERT_EQ(message, exception.getMessage());
+  ASSERT_EQ(message, exception.getMessage());
+  ASSERT_EQ(filename, exception.getFilename());
+  ASSERT_EQ(10, exception.getLine());
+  ASSERT_EQ(11, exception.getColumn());
+
+  ParserEndOfFileException eofDefault;
+  ParserEndOfFileException eofString(message);
+  ParserEndOfFileException eofCMessage(cMessage);
+  ParserEndOfFileException eof(message, filename, 10, 11);
 }
 
 }  // namespace test

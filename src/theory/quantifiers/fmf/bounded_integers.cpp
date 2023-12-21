@@ -855,23 +855,34 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
         NodeManager* nm = NodeManager::currentNM();
         Trace("bound-int-rsi") << "Can limit bounds of " << v << " to " << l << "..." << u << std::endl;
         Node range = rewrite(nm->mkNode(Kind::SUB, u, l));
+        if (!range.isConst())
+        {
+          Trace("fmf-incomplete") << "Incomplete because of integer "
+                                     "quantification, bounds are unknown for "
+                                  << v << "." << std::endl;
+          return false;
+        }
+        Rational rat = range.getConst<Rational>();
         // 9999 is an arbitrary range past which we do not do exhaustive
         // bounded instantation, based on the check below.
-        Node ra = rewrite(
-            nm->mkNode(Kind::LEQ, range, nm->mkConstInt(Rational(9999))));
         Node tl = l;
         Node tu = u;
         getBounds( q, v, rsi, tl, tu );
         Assert(!tl.isNull() && !tu.isNull());
-        if (ra.isConst() && ra.getConst<bool>())
+        if (rat < Rational(9999))
         {
-          long rr = range.getConst<Rational>().getNumerator().getLong()+1;
-          Trace("bound-int-rsi")  << "Actual bound range is " << rr << std::endl;
-          for (long k = 0; k < rr; k++)
+          // if negative, elements are empty
+          if (rat.sgn() >= 0)
           {
-            Node t = nm->mkNode(Kind::ADD, tl, nm->mkConstInt(Rational(k)));
-            t = rewrite(t);
-            elements.push_back( t );
+            long rr = rat.getNumerator().getLong() + 1;
+            Trace("bound-int-rsi")
+                << "Actual bound range is " << rr << std::endl;
+            for (long k = 0; k < rr; k++)
+            {
+              Node t = nm->mkNode(Kind::ADD, tl, nm->mkConstInt(Rational(k)));
+              t = rewrite(t);
+              elements.push_back(t);
+            }
           }
           return true;
         }else{

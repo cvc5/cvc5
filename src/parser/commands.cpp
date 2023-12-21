@@ -680,6 +680,7 @@ void CheckSynthCommand::invoke(cvc5::Solver* solver, SymManager* sm)
                                      termVectorToNodes(formals),
                                      sortToTypeNode(rangeSort),
                                      termToNode(sol));
+        d_solution << std::endl;
       }
       d_solution << ")" << std::endl;
     }
@@ -2246,12 +2247,21 @@ const std::vector<cvc5::Term>& GetTimeoutCoreCommand::getTimeoutCore() const
 
 std::string GetTimeoutCoreCommand::getCommandName() const
 {
-  return "get-timeout-core";
+  return d_assumptions.empty() ? "get-timeout-core"
+                               : "get-timeout-core-assuming";
 }
 
 void GetTimeoutCoreCommand::toStream(std::ostream& out) const
 {
-  internal::Printer::getPrinter(out)->toStreamCmdGetTimeoutCore(out);
+  if (d_assumptions.empty())
+  {
+    internal::Printer::getPrinter(out)->toStreamCmdGetTimeoutCore(out);
+  }
+  else
+  {
+    internal::Printer::getPrinter(out)->toStreamCmdGetTimeoutCoreAssuming(
+        out, termVectorToNodes(d_assumptions));
+  }
 }
 
 /* -------------------------------------------------------------------------- */

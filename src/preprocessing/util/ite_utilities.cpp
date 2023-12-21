@@ -481,8 +481,6 @@ Node ITECompressor::compressTerm(Node toCompress)
 
 Node ITECompressor::compressBoolean(Node toCompress)
 {
-  static int instance = 0;
-  ++instance;
   if (toCompress.isConst() || toCompress.isVar())
   {
     return toCompress;
@@ -1523,13 +1521,8 @@ Node ITESimplifier::simpITE(TNode assertion)
   vector<preprocess_stack_element> toVisit;
   toVisit.push_back(assertion);
 
-  static int call = 0;
-  ++call;
-  int iteration = 0;
-
   while (!toVisit.empty())
   {
-    iteration++;
     // cout << "call  " << call << " : " << iteration << endl;
     // The current node we are processing
     preprocess_stack_element& stackHead = toVisit.back();

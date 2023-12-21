@@ -25,6 +25,8 @@ set(EXAMPLES_API_PYTHON
   helloworld
   id
   linear_arith
+  parser
+  parser_sym_manager
   quickstart
   relations
   sequences
