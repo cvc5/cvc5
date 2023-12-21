@@ -16,7 +16,7 @@
 #include "prop/lemma_inprocess.h"
 
 #include "expr/node_algorithm.h"
-#include "options/prop_options.h"
+#include "options/theory_options.h"
 #include "prop/zero_level_learner.h"
 #include "smt/env.h"
 
@@ -100,7 +100,7 @@ Node LemmaInprocess::processInternal(const Node& lem)
             Trace("lemma-inprocess-debug")
                 << "Inprocess " << cur << " -> " << scur << std::endl;
             bool doReplace = false;
-            switch (options().prop.lemmaInprocessMode)
+            switch (options().theory.lemmaInprocess)
             {
               case options::LemmaInprocessMode::FULL:
                 doReplace = (scur.isConst() || currLit || !prevLit);
@@ -112,7 +112,7 @@ Node LemmaInprocess::processInternal(const Node& lem)
             }
             if (doReplace)
             {
-              if (options().prop.lemmaInprocessInferEqLit
+              if (options().theory.lemmaInprocessInferEqLit
                   && ((scur.isConst() || currLit) && prevLit))
               {
                 // inferred they are equivalent? maybe should send clause here?

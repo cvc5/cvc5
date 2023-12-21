@@ -117,8 +117,8 @@ class ZeroLevelLearner : protected EnvObj
   size_t d_deepRestartThreshold;
   /** learnable learned literal types (for deep restart), based on option */
   std::unordered_set<modes::LearnedLitType> d_learnedTypes;
-  /** Track substitutions? */
-  bool d_trackSubs;
+  /** Track the simplification map? */
+  bool d_trackSimplifications;
   /** Simplification map */
   theory::TrustSubstitutionMap d_tsmap;
 
