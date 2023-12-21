@@ -1885,7 +1885,7 @@ class SolverTest
 
     proofs = d_solver.getProof(ProofComponent.SAT);
     assertNotEquals(0, proofs.length);
-    printedProof = d_solver.proofToString(proofs[0], ProofFormat.DEFAULT);
+    printedProof = d_solver.proofToString(proofs[0], ProofFormat.NONE);
     assertFalse(printedProof.isEmpty());
   }
 
