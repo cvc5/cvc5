@@ -166,7 +166,7 @@ void Printer::printUnknownCommandStatus(std::ostream& out,
 void Printer::printUnknownCommand(std::ostream& out,
                                   const std::string& name) const
 {
-  out << "ERROR: don't know how to print " << name << " command" << std::endl;
+  out << "ERROR: don't know how to print " << name << " command";
 }
 
 void Printer::toStreamCmdSuccess(std::ostream& out) const
@@ -522,6 +522,12 @@ void Printer::toStreamCmdGetDifficulty(std::ostream& out) const
 void Printer::toStreamCmdGetTimeoutCore(std::ostream& out) const
 {
   printUnknownCommand(out, "get-timeout-core");
+}
+
+void Printer::toStreamCmdGetTimeoutCoreAssuming(
+    std::ostream& out, const std::vector<Node>& assumptions) const
+{
+  printUnknownCommand(out, "get-timeout-core-assuming");
 }
 
 void Printer::toStreamCmdGetLearnedLiterals(std::ostream& out,

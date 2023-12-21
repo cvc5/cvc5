@@ -61,8 +61,7 @@ class TestWithSmtParser : public TestInternal
    */
   void doCommand(const std::string& s)
   {
-    d_ip->setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6, "temp");
-    d_ip->appendIncrementalStringInput(s);
+    d_ip->setStringInput(modes::InputLanguage::SMT_LIB_2_6, s, "temp");
     auto command = d_ip->nextCommand();
     command.invoke(&d_solver, d_symman.get(), std::cout);
   }
@@ -72,8 +71,7 @@ class TestWithSmtParser : public TestInternal
    */
   Node parseNode(const std::string& s)
   {
-    d_ip->setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6, "temp");
-    d_ip->appendIncrementalStringInput(s);
+    d_ip->setStringInput(modes::InputLanguage::SMT_LIB_2_6, s, "temp");
     return *d_ip->nextTerm().d_node;
   }
 

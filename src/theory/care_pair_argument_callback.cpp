@@ -22,7 +22,6 @@ CarePairArgumentCallback::CarePairArgumentCallback(Theory& t) : d_theory(t) {}
 
 bool CarePairArgumentCallback::considerPath(TNode a, TNode b)
 {
-  Trace("ajr-temp") << "considerPath " << a << " " << b << std::endl;
   // builtin cases for when a is clearly equal/disequal to b
   if (a == b)
   {
