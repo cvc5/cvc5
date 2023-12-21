@@ -987,10 +987,17 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
   // that involve quantified variables
   
   if (d_quantifiedVariables.find(quantifiedNode) == d_quantifiedVariables.end()) {
+    std::cout << "panda 1" << std::endl;
     d_quantifiedVariables[quantifiedNode] = std::unordered_set<Node>();
     std::unordered_set<Node> qfvars = d_quantifiedVariables[quantifiedNode[1]];
-    qfvars.insert(quantifiedNode[0]);
+    qfvars.insert(quantifiedNode[0].begin(), quantifiedNode[0].end());
     d_quantifiedVariables[quantifiedNode] = qfvars;
+  }
+  std::cout << "panda quantifiedNode = " << quantifiedNode << std::endl;
+  std::cout << "panda d_quantifiedVariables[quantifiedNode] = " << std::endl;
+  std::unordered_set<Node> qfvars2 = d_quantifiedVariables[quantifiedNode];
+  for (Node n : qfvars2) {
+    std::cout << "panda element: " << n << std::endl;
   }
   if (d_quantApplies.find(quantifiedNode) == d_quantApplies.end()) {
     d_quantApplies[quantifiedNode] = std::unordered_set<Node>();
@@ -1005,8 +1012,11 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
     for (const auto& v : qfvars) {
       applies = d_quantApplies[quantifiedNode];
       for (Node app : applies) {
+        std::cout << "panda v: " << v << std::endl;
+        std::cout << "panda app: " << app << std::endl;
         if (expr::hasSubterm(app, v)) {
           applies.erase(app);
+          std::cout << "panda erasing" << std::endl;
           d_quantApplies[quantifiedNode] = applies;
         }
       }
