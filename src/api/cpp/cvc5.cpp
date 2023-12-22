@@ -6452,8 +6452,7 @@ Term Solver::mkNullableSome(const Term& term) const
 Term Solver::mkNullableNull(const Sort& sort) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_ARG_CHECK_EXPECTED(sort.isNullable(), sort)
-      << "null sort or nullable sort";
+  CVC5_API_ARG_CHECK_EXPECTED(sort.isNullable(), sort) << "nullable sort";
   CVC5_API_ARG_CHECK_EXPECTED(d_nm == sort.d_nm, sort)
       << "nullable sort associated with the node manager of this solver object";
   //////// all checks before this line
