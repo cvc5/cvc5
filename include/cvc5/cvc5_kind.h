@@ -5944,7 +5944,7 @@ enum ENUM(SortKind) : int32_t
    *
    * - Create Sort of this Kind with:
    *
-   *   - Solver::mkNullableSort(const std::vector<Sort>&) const
+   *   - Solver::mkNullableSort(const Sort&) const
    */
   EVALUE(NULLABLE_SORT),
   /**

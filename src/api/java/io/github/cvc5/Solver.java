@@ -518,8 +518,22 @@ public class Solver extends AbstractPointer
 
   private native long mkTupleSort(long pointer, long[] sortPointers);
 
+  /**
+   * Create a nullable sort.
+   *
+   * @param sort The sort of the element of the nullable.
+   * @return The nullable sort.
+   */
+  public Sort mkNullableSort(Sort sort)
+  {
+    long sortPointer = mkNullableSort(pointer, sort.getPointer());
+    return new Sort(sortPointer);
+  }
+
+  private native long mkNullableSort(long pointer, long sortPointer);
+
   /* .................................................................... */
-  /* Create Terms                                                         */
+  /* Create Terms */
   /* .................................................................... */
 
   /**
@@ -688,6 +702,93 @@ public class Solver extends AbstractPointer
   }
 
   private native long mkTuple(long pointer, long[] termPointers);
+
+  /**
+   * Create a nullable some term.
+   * @param term The element value.
+   * @return the Element value wrapped in some constructor.
+   */
+  public Term mkNullableSome(Term term)
+  {
+    long termPointer = mkNullableSome(pointer, term.getPointer());
+    return new Term(termPointer);
+  }
+
+  private native long mkNullableSome(long pointer, long termPointer);
+
+  /**
+   * Create a selector for nullable term.
+   * @param term A nullable term.
+   * @return The element value of the nullable term.
+   */
+  public Term mkNullableVal(Term term)
+  {
+    long termPointer = mkNullableVal(pointer, term.getPointer());
+    return new Term(termPointer);
+  }
+
+  private native long mkNullableVal(long pointer, long termPointer);
+
+  /**
+   * Create a null tester for a nullable term.
+   * @param term A nullable term.
+   * @return A tester whether term is null.
+   */
+  public Term mkNullableIsNull(Term term)
+  {
+    long termPointer = mkNullableIsNull(pointer, term.getPointer());
+    return new Term(termPointer);
+  }
+
+  private native long mkNullableIsNull(long pointer, long termPointer);
+
+  /**
+   * Create a some tester for a nullable term.
+   * @param term A nullable term.
+   * @return A tester whether term is some.
+   */
+  public Term mkNullableIsSome(Term term)
+  {
+    long termPointer = mkNullableIsSome(pointer, term.getPointer());
+    return new Term(termPointer);
+  }
+
+  private native long mkNullableIsSome(long pointer, long termPointer);
+
+  /**
+   * Create a constant representing an null of the given sort.
+   * @param sort The sort of the Nullable element.
+   * @return The null constant.
+   */
+  public Term mkNullableNull(Sort sort)
+  {
+    long termPointer = mkNullableNull(pointer, sort.getPointer());
+    return new Term(termPointer);
+  }
+
+  private native long mkNullableNull(long pointer, long sortPointer);
+  /**
+   * Create a term that lifts kind to nullable terms.
+   * Example:
+   * If we have the term ((_ nullable.lift +) x y),
+   * where x, y of type (Nullable Int), then
+   * kind would be ADD, and args would be [x, y].
+   * This function would return
+   * (nullable.lift (lambda ((a Int) (b Int)) (+ a b)) x y)
+   * @param kind The lifted operator.
+   * @param args The arguments of the lifted operator.
+   * @return A term of Kind NULLABLE_LIFT where the first child
+   * is a lambda expression, and the remaining children are
+   * the original arguments.
+   */
+  public Term mkNullableLift(Kind kind, Term[] args)
+  {
+    long[] termPointers = Utils.getPointers(args);
+    long termPointer = mkNullableLift(pointer, kind.getValue(), termPointers);
+    return new Term(termPointer);
+  }
+
+  private native long mkNullableLift(long pointer, int kindValue, long[] termPointers);
 
   /* .................................................................... */
   /* Create Operators                                                     */
