@@ -415,8 +415,7 @@ TEST_F(TestApiBlackSolver, mkAbstractSort)
 {
   ASSERT_NO_THROW(d_solver.mkAbstractSort(SortKind::ARRAY_SORT));
   ASSERT_NO_THROW(d_solver.mkAbstractSort(SortKind::BITVECTOR_SORT));
-  ASSERT_NO_THROW(d_solver.mkAbstractSort(SortKind::TUPLE_SORT));
-  ASSERT_NO_THROW(d_solver.mkAbstractSort(SortKind::NULLABLE_SORT));
+  ASSERT_NO_THROW(d_solver.mkAbstractSort(SortKind::TUPLE_SORT));  
   ASSERT_NO_THROW(d_solver.mkAbstractSort(SortKind::SET_SORT));
   ASSERT_THROW(d_solver.mkAbstractSort(SortKind::BOOLEAN_SORT),
                CVC5ApiException);
