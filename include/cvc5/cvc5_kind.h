@@ -2983,10 +2983,8 @@ enum ENUM(Kind) : int32_t
    * Lifting operator for nullable terms.
    * This operator lifts a built-in operator or a user-defined function 
    * to nullable terms.
-   * For built-in kinds use 
-   * Solver::mkNullableLift(Kind, const std::vector<Term>&) const.
-   * For user-defined functions use 
-   * Solver::mkTerm(Kind::NULLABLE_LIFT, const std::vector<Term>&) const
+   * For built-in kinds use mkNullableLift.
+   * For user-defined functions use mkTerm.
    * 
    * - Arity: ``n > 1``
    *
