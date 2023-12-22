@@ -163,10 +163,10 @@ void Smt2State::addDatatypesOperators()
     defineVar("nullable.null",
               d_solver->mkNullableNull(d_solver->mkNullableSort(btype)));
     addOperator(Kind::APPLY_CONSTRUCTOR, "nullable.some");
-    addOperator(Kind::APPLY_CONSTRUCTOR, "nullable.val");
+    addOperator(Kind::APPLY_SELECTOR, "nullable.val");
     addOperator(Kind::NULLABLE_LIFT, "nullable.lift");
-    addOperator(Kind::APPLY_CONSTRUCTOR, "nullable.is_null");
-    addOperator(Kind::APPLY_CONSTRUCTOR, "nullable.is_some");
+    addOperator(Kind::APPLY_TESTER, "nullable.is_null");
+    addOperator(Kind::APPLY_TESTER, "nullable.is_some");
     addIndexedOperator(Kind::NULLABLE_LIFT, "nullable.lift");
   }
 }
@@ -1348,17 +1348,41 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
         {
           return d_solver->mkNullableSome(args[0]);
         }
-        else if (p.d_name == "nullable.val")
+        else
+        {
+          std::stringstream ss;
+          ss << "Unknown APPLY_CONSTRUCTOR symbol '" << p.d_name << "'";
+          parseError(ss.str());
+        }
+      }
+      else if (kind == Kind::APPLY_SELECTOR)
+      {
+        if (p.d_name == "nullable.val")
         {
           return d_solver->mkNullableVal(args[0]);
         }
-        else if (p.d_name == "nullable.is_null")
+        else
+        {
+          std::stringstream ss;
+          ss << "Unknown APPLY_SELECTOR symbol '" << p.d_name << "'";
+          parseError(ss.str());
+        }
+      }
+      else if (kind == Kind::APPLY_TESTER)
+      {
+        if (p.d_name == "nullable.is_null")
         {
           return d_solver->mkNullableIsNull(args[0]);
         }
         else if (p.d_name == "nullable.is_some")
         {
           return d_solver->mkNullableIsSome(args[0]);
+        }
+        else
+        {
+          std::stringstream ss;
+          ss << "Unknown APPLY_TESTER symbol '" << p.d_name << "'";
+          parseError(ss.str());
         }
       }
       Trace("parser") << "Got builtin kind " << kind << " for name"
