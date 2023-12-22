@@ -554,6 +554,23 @@ void TheoryEngine::check(Theory::Effort effort) {
     {
       if (!d_inConflict && !needCheck())
       {
+        // if some theory believes there is a conflict, but it is was not
+        // processed, we mark incomplete.
+        for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST;
+             ++theoryId)
+        {
+          Theory* theory = d_theoryTable[theoryId];
+          if (theory && theory->getTheoryState() != nullptr)
+          {
+            if (theory->getTheoryState()->isInConflict())
+            {
+              setModelUnsound(theoryId,
+                              IncompleteId::UNPROCESSED_THEORY_CONFLICT);
+              Assert(false) << "Unprocessed theory conflict from " << theoryId;
+              break;
+            }
+          }
+        }
         // Do post-processing of model from the theories (e.g. used for
         // THEORY_SEP to construct heap model)
         d_tc->postProcessModel(d_modelUnsound.get());

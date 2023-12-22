@@ -66,11 +66,6 @@ TypeNode StringConcatTypeRule::computeType(NodeManager* nodeManager,
     if (tret.isNull())
     {
       tret = t;
-      // optimization: break if string and not checking
-      if (!check && t.isString())
-      {
-        break;
-      }
       continue;
     }
     tret = tret.leastUpperBound(t);
@@ -311,9 +306,12 @@ TypeNode StringStrToBoolTypeRule::computeType(NodeManager* nodeManager,
       TypeNode t = nc.getType(check);
       if (!isMaybeStringLike(t))
       {
-        std::stringstream ss;
-        ss << "expecting a string-like term in argument of " << n.getKind();
-        throw TypeCheckingExceptionPrivate(n, ss.str());
+        if (errOut)
+        {
+          (*errOut) << "expecting a string-like term in argument of "
+                    << n.getKind();
+        }
+        return TypeNode::null();
       }
       if (firstType.isNull())
       {
@@ -321,9 +319,12 @@ TypeNode StringStrToBoolTypeRule::computeType(NodeManager* nodeManager,
       }
       else if (!t.isComparableTo(firstType))
       {
-        std::stringstream ss;
-        ss << "expecting string terms of the same type in " << n.getKind();
-        throw TypeCheckingExceptionPrivate(n, ss.str());
+        if (errOut)
+        {
+          (*errOut) << "expecting string terms of the same type in "
+                    << n.getKind();
+        }
+        return TypeNode::null();
       }
     }
   }

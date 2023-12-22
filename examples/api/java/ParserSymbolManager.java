@@ -32,8 +32,7 @@ public class ParserSymbolManager
     ss += "(declare-fun a () Int)\n";
     ss += "(declare-fun b () Int)\n";
     ss += "(declare-fun c () Bool)\n";
-    parser.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "MyStream");
-    parser.appendIncrementalStringInput(ss);
+    parser.setStringInput(InputLanguage.SMT_LIB_2_6, ss, "MyStream");
 
     // parse commands until finished
     Command cmd;

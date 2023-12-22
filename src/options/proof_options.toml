@@ -6,7 +6,7 @@ name   = "Proof"
   category   = "regular"
   long       = "proof-format-mode=MODE"
   type       = "ProofFormatMode"
-  default    = "NONE"
+  default    = "ALF"
   help       = "select language of proof output"
   help_mode  = "Proof format modes."
 [[option.mode.NONE]]
