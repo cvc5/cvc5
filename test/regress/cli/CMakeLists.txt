@@ -968,6 +968,7 @@ set(regress_0_tests
   regress0/nl/pow2-pow.smt2
   regress0/nl/pow2-pow-isabelle.smt2
   regress0/nl/pow2-laws-of-exp.smt2
+  regress0/nl/pow2-laws-of-neg-exp.smt2
   regress0/nl/proj-issue-348.smt2
   regress0/nl/proj-issue-425.smt2
   regress0/nl/proj-issue-444-memout-eqelim.smt2

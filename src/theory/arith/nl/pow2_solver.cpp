@@ -163,6 +163,8 @@ void Pow2Solver::checkFullRefine()
           lem, InferenceId::ARITH_NL_POW2_TRIVIAL_CASE_REFINE, nullptr, true);
     }
 
+    // Place holder for additional lemma schemas
+
     // laws of exponents: 2^x * 2^y = 2^(x+y)
      for (uint64_t j = i + 1; j < size; j++)
     {
@@ -183,7 +185,7 @@ void Pow2Solver::checkFullRefine()
         Integer pow2z = valPow2zAbstract.getConst<Rational>().getNumerator();
 
         
-        if (x + y == z && pow2x * pow2y != pow2z)
+        if (x > 0 && y > 0 && x + y == z && pow2x * pow2y != pow2z)
         {
           Node x_plus_y = nm->mkNode(Kind::ADD,n[0], m[0]);
           Node assumption = nm->mkNode(Kind::EQUAL, x_plus_y, q[0]);
@@ -196,8 +198,6 @@ void Pow2Solver::checkFullRefine()
       }
 
     }
-
-    // Place holder for additional lemma schemas
 
     // End of additional lemma schemas
 
