@@ -167,6 +167,8 @@ enum class InferenceId
   ARITH_NL_POW2_MONOTONE_REFINE,
   // trivial refinements (Pow2Solver::checkFullRefine)
   ARITH_NL_POW2_TRIVIAL_CASE_REFINE,
+  // even refinements (Pow2Solver::checkFullRefine)
+  ARITH_NL_POW2_EVEN_CASE_REFINE,
   // laws of exponents refinements (Pow2Solver::checkFullRefine)
   ARITH_NL_POW2_EXP_LAW_REFINE,
   //-------------------- nonlinear coverings solver

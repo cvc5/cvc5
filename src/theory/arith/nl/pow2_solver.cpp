@@ -165,6 +165,18 @@ void Pow2Solver::checkFullRefine()
 
     // Place holder for additional lemma schemas
 
+    // even pow2 lemma: x > 0 -> (pow2(x) - 1) mod 2 = 1
+    if (x > 0 && (pow2x - Integer(1)).modByPow2(1) != 1)
+    {
+      Node assumption = nm->mkNode(Kind::GT, n[0], d_zero);
+      Node power2_minus = nm->mkNode(Kind::SUB, n, d_one);
+      Node mod_power2 = nm->mkNode(Kind::INTS_MODULUS, power2_minus, d_two);
+      Node conclusion = nm->mkNode(Kind::EQUAL, mod_power2, d_one);
+      Node lem = nm->mkNode(Kind::IMPLIES, assumption, conclusion);
+      d_im.addPendingLemma(
+      lem, InferenceId::ARITH_NL_POW2_EVEN_CASE_REFINE, nullptr, true);
+    }
+
     // laws of exponents: 2^x * 2^y = 2^(x+y)
      for (uint64_t j = i + 1; j < size; j++)
     {
