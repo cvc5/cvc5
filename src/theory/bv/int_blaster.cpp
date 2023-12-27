@@ -164,6 +164,7 @@ Node IntBlaster::intBlast(Node n,
   std::vector<Node> toVisit;
   toVisit.push_back(makeBinary(n));
 
+
   while (!toVisit.empty())
   {
     Node current = toVisit.back();
@@ -190,7 +191,7 @@ Node IntBlaster::intBlast(Node n,
     }
     else
     {
-      // We already visited and translated this node
+      // We already visited this node
       if (!d_intblastCache[current].get().isNull())
       {
         // We are done computing the translation for current
@@ -200,6 +201,7 @@ Node IntBlaster::intBlast(Node n,
       {
         // We are now visiting current on the way back up.
         // This is when we do the actual translation.
+        collectQuantificationData(current);
         Node translation;
         if (currentNumChildren == 0)
         {
@@ -948,6 +950,55 @@ Node IntBlaster::createShiftNode(std::vector<Node> children,
   return ite;
 }
 
+void IntBlaster::collectQuantificationData(Node n) {
+  if (d_quantifiedVariables.find(n) == d_quantifiedVariables.end()) {
+    std::cout << "panda 1, n: " << n << std::endl;
+    d_quantifiedVariables[n] = std::unordered_set<Node>();
+    std::unordered_set<Node> qfvars;
+    if (n.getNumChildren() > 0) {
+      for (Node child : n) {
+        Assert(d_quantifiedVariables.find(child) != d_quantifiedVariables.end());
+        std::unordered_set<Node> varsOfChild = d_quantifiedVariables[child];
+        qfvars.insert(varsOfChild.begin(), varsOfChild.end());
+      }
+    }
+    if (n.getKind() == Kind::FORALL || n.getKind() == Kind::EXISTS) {
+      qfvars.insert(n[0].begin(), n[0].end());
+    }
+    d_quantifiedVariables[n] = qfvars;
+  }
+  std::cout << "panda n = " << n << std::endl;
+  std::cout << "panda d_quantifiedVariables[n] = " << std::endl;
+  std::unordered_set<Node> qfvars = d_quantifiedVariables[n];
+  for (Node m : qfvars) {
+    std::cout << "panda m: " << m << std::endl;
+  } 
+  if (d_quantApplies.find(n) == d_quantApplies.end()) {
+    d_quantApplies[n] = std::unordered_set<Node>();
+
+    std::unordered_set<Node> applies;
+
+    expr::getKindSubterms(n, Kind::APPLY_UF, true, applies);
+    d_quantApplies[n] = applies;
+    Assert(d_quantifiedVariables.find(n) != d_quantifiedVariables.end());
+    std::unordered_set<Node> qfvars2;
+    qfvars2 = d_quantifiedVariables[n];
+    Assert(d_quantApplies.find(n) != d_quantApplies.end());
+    applies = d_quantApplies[n];
+    for (const auto& v : qfvars2) {
+      for (Node app : applies) {
+        std::cout << "panda v: " << v << std::endl;
+        std::cout << "panda app: " << app << std::endl;
+        if (expr::hasSubterm(app, v)) {
+          applies.erase(app);
+          std::cout << "panda erasing" << std::endl;
+          d_quantApplies[n] = applies;
+        }
+      }
+    }
+  }
+}
+
 Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
 {
   Kind k = quantifiedNode.getKind();
@@ -986,43 +1037,8 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
   // collect range constraints for UF applciations
   // that involve quantified variables
   
-  if (d_quantifiedVariables.find(quantifiedNode) == d_quantifiedVariables.end()) {
-    std::cout << "panda 1" << std::endl;
-    d_quantifiedVariables[quantifiedNode] = std::unordered_set<Node>();
-    std::unordered_set<Node> qfvars = d_quantifiedVariables[quantifiedNode[1]];
-    qfvars.insert(quantifiedNode[0].begin(), quantifiedNode[0].end());
-    d_quantifiedVariables[quantifiedNode] = qfvars;
-  }
-  std::cout << "panda quantifiedNode = " << quantifiedNode << std::endl;
-  std::cout << "panda d_quantifiedVariables[quantifiedNode] = " << std::endl;
-  std::unordered_set<Node> qfvars2 = d_quantifiedVariables[quantifiedNode];
-  for (Node n : qfvars2) {
-    std::cout << "panda element: " << n << std::endl;
-  }
-  if (d_quantApplies.find(quantifiedNode) == d_quantApplies.end()) {
-    d_quantApplies[quantifiedNode] = std::unordered_set<Node>();
 
-    std::unordered_set<Node> applies;
-
-    expr::getKindSubterms(quantifiedNode[1], Kind::APPLY_UF, true, applies);
-    d_quantApplies[quantifiedNode] = applies;
-    Assert(d_quantifiedVariables.find(quantifiedNode[1]) != d_quantifiedVariables.end());
-    std::unordered_set<Node> qfvars;
-    qfvars = d_quantifiedVariables[quantifiedNode[1]];
-    for (const auto& v : qfvars) {
-      applies = d_quantApplies[quantifiedNode];
-      for (Node app : applies) {
-        std::cout << "panda v: " << v << std::endl;
-        std::cout << "panda app: " << app << std::endl;
-        if (expr::hasSubterm(app, v)) {
-          applies.erase(app);
-          std::cout << "panda erasing" << std::endl;
-          d_quantApplies[quantifiedNode] = applies;
-        }
-      }
-    }
-  }
-
+  Assert(d_quantApplies.find(quantifiedNode) != d_quantApplies.end());
   std::unordered_set<Node> applies = d_quantApplies[quantifiedNode];
   for (const Node& apply : applies)
   {

@@ -244,6 +244,10 @@ class IntBlaster : protected EnvObj
    * and with "IMPLIES" in case of forall.
    */
   Node translateQuantifiedFormula(Node quantifiedNode);
+  
+
+
+  void collectQuantificationData(Node n);
 
   /**
    * Reconstructs a node whose main operator cannot be
