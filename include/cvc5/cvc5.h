@@ -576,8 +576,8 @@ class CVC5_EXPORT Sort
   bool isTuple() const;
 
   /**
-   * Determine if this is a Nullable sort.
-   * @return True if the sort is a Nullable sort.
+   * Determine if this is a nullable sort.
+   * @return True if the sort is a nullable sort.
    */
   bool isNullable() const;
 
