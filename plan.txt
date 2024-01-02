@@ -1,0 +1,30 @@
+Plan
+-----
+- dummy preprocessing
+  - deadline: Jan 14
+- implementation + testing of reduction to bags
+  - deadline: Feb 1
+- generation of many benchmarks
+  - Feb 14
+
+- evaluation of reduction to bags + other tools
+  - March 15
+- implmenetation of reduction to tiling
+  - March 15
+- evaluation of tiling + bags + other tools
+  - March 15
+
+- Buffer for bug-fixes and performance improvements
+  - April 1
+- analysis of many benchmarks
+  - April 15
+
+- integration using Nelson Oppen
+  - June 15
+- evaluation of Nelson Oppen + other tools
+  - June 30
+- analysis of Nelson Oppen
+  - June 30
+
+- Submission 
+  - beginning of July
