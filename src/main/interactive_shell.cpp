@@ -46,7 +46,6 @@
 #include "base/output.h"
 #include "main/command_executor.h"
 #include "parser/commands.h"
-#include "parser/parser_exception.h"
 #include "parser/sym_manager.h"
 #include "theory/logic_info.h"
 
@@ -95,10 +94,13 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
   d_parser.reset(
       new cvc5::parser::InputParser(d_solver, cexec->getSymbolManager()));
   std::string langs = d_solver->getOption("input-language");
-  modes::InputLanguage lang;
   if (langs == "LANG_SMTLIB_V2_6")
   {
-    lang = modes::InputLanguage::SMT_LIB_2_6;
+    d_lang = modes::InputLanguage::SMT_LIB_2_6;
+  }
+  else if (langs == "LANG_SYGUS_V2")
+  {
+    d_lang = modes::InputLanguage::SYGUS_2_1;
   }
   else
   {
@@ -106,7 +108,7 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
   }
 
   // initialize for incremental string input
-  d_parser->setIncrementalStringInput(lang, INPUT_FILENAME);
+  d_usingEditline = false;
 #if HAVE_LIBEDITLINE
   if (&d_in == &std::cin && isatty(fileno(stdin)))
   {
@@ -118,33 +120,29 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
 #endif /* EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP */
     ::using_history();
 
-    Assert(lang == modes::InputLanguage::SMT_LIB_2_6);
-    d_historyFilename = string(getenv("HOME")) + "/.cvc5_history_smtlib2";
-    commandsBegin = smt2_commands;
-    commandsEnd =
-        smt2_commands + sizeof(smt2_commands) / sizeof(*smt2_commands);
-    d_usingEditline = true;
-    int err = ::read_history(d_historyFilename.c_str());
-    ::stifle_history(s_historyLimit);
-    if (d_solver->getOptionInfo("verbosity").intValue() >= 1)
+    if (d_lang == modes::InputLanguage::SMT_LIB_2_6)
     {
-      if(err == 0) {
-        d_solver->getDriverOptions().err()
-            << "Read " << ::history_length << " lines of history from "
-            << d_historyFilename << std::endl;
-      } else {
-        d_solver->getDriverOptions().err()
-            << "Could not read history from " << d_historyFilename << ": "
-            << strerror(err) << std::endl;
+      d_historyFilename = string(getenv("HOME")) + "/.cvc5_history_smtlib2";
+      commandsBegin = smt2_commands;
+      commandsEnd =
+          smt2_commands + sizeof(smt2_commands) / sizeof(*smt2_commands);
+      d_usingEditline = true;
+      int err = ::read_history(d_historyFilename.c_str());
+      ::stifle_history(s_historyLimit);
+      if (d_solver->getOptionInfo("verbosity").intValue() >= 1)
+      {
+        if(err == 0) {
+          d_solver->getDriverOptions().err()
+              << "Read " << ::history_length << " lines of history from "
+              << d_historyFilename << std::endl;
+        } else {
+          d_solver->getDriverOptions().err()
+              << "Could not read history from " << d_historyFilename << ": "
+              << strerror(err) << std::endl;
+        }
       }
     }
   }
-  else
-  {
-    d_usingEditline = false;
-  }
-#else  /* HAVE_LIBEDITLINE */
-  d_usingEditline = false;
 #endif /* HAVE_LIBEDITLINE */
 } /* InteractiveShell::InteractiveShell() */
 
@@ -311,7 +309,7 @@ restart:
     }
   }
 
-  d_parser->appendIncrementalStringInput(input);
+  d_parser->setStringInput(d_lang, input, INPUT_FILENAME);
 
   /* There may be more than one command in the input. Build up a
      sequence. */
@@ -330,7 +328,7 @@ restart:
       {
         break;
       }
-      Cmd* cmd = cmdp.toCmd();
+      Cmd* cmd = cmdp.d_cmd.get();
       // execute the command immediately
       d_cexec->doCommand(&cmdp);
       if (cmd->interrupted())

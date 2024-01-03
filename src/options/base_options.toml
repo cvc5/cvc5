@@ -241,6 +241,11 @@ name   = "Base"
   help = "prints the option strings tried in portfolio mode."
   description = "With ``-o portfolio``, cvc5 prints the option strings tried in portfolio mode."
   example-file = "regress0/printer/portfolio-out.smt2"
+[[option.mode.BLOCK_MODEL]]
+  name = "block-model"
+  help = "prints the formulas used when block-model is run."
+  description = "With ``-o block-model``, cvc5 prints the formulas used when block-model is run."
+  example-file = "regress0/printer/block_model_out.smt2"
 
 # Stores then enabled output tags.
 [[option]]
@@ -303,3 +308,11 @@ name   = "Base"
   category   = "undocumented"
   type       = "std::vector<std::string>"
   default    = '{}'
+
+[[option]]
+  name       = "safeOptions"
+  category   = "common"
+  long       = "safe-options"
+  type       = "bool"
+  default    = "false"
+  help       = "do not allow setting any option that is not common or regular"

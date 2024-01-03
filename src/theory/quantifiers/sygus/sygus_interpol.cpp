@@ -195,7 +195,7 @@ TypeNode SygusInterpol::setSynthGrammar(const TypeNode& itpGType,
     // provide no grammar in this module.
     TypeNode btype = NodeManager::currentNM()->booleanType();
     SygusGrammar g =
-        SygusGrammarCons::mkDefaultGrammar(options(), btype, d_ibvlShared);
+        SygusGrammarCons::mkDefaultGrammar(d_env, btype, d_ibvlShared);
     // exclude rules that don't appear in operators
     std::map<TypeNode, std::unordered_set<Node>> include_cons;
     getIncludeCons(axioms, conj, include_cons);

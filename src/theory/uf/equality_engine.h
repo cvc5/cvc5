@@ -333,6 +333,18 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
    */
   void storeApplicationLookup(FunctionApplication& funNormalized, EqualityNodeId funId);
 
+  /** notify trigger term equality */
+  bool notifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value)
+  {
+    // since we will be generating an equality, we orient t1/t2 in the standard
+    // equality order used by the rewriter for most theories.
+    if (t1 > t2)
+    {
+      return d_notify->eqNotifyTriggerTermEquality(tag, t2, t1, value);
+    }
+    return d_notify->eqNotifyTriggerTermEquality(tag, t1, t2, value);
+  }
+
   /** Map from ids to the nodes (these need to be nodes as we pick up the operators) */
   std::vector<Node> d_nodes;
 
