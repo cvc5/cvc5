@@ -44,7 +44,10 @@ class CommandTest extends ParserTest
     // get model not available
     cmd = parseCommand("(get-model)");
     assertNotEquals(cmd.isNull(), true);
-    cmd.invoke(d_solver, d_symman);
+    String result = cmd.invoke(d_solver, d_symman);
+    assertEquals(
+        "(error \"Cannot get model unless model generation is enabled (try --produce-models)\")\n",
+        result);
     // logic already set
     assertThrows(CVC5ParserException.class, () -> parseCommand("(set-logic QF_LRA)"));
   }
@@ -56,7 +59,7 @@ class CommandTest extends ParserTest
     cmd = parseCommand("(set-logic QF_LIA )");
     assertNotEquals(cmd.isNull(), true);
     // note normalizes wrt whitespace
-    assertEquals(cmd.toString(), "(set-logic QF_LIA)\n");
+    assertEquals(cmd.toString(), "(set-logic QF_LIA)");
   }
 
   @Test

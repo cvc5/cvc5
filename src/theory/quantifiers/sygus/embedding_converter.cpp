@@ -171,7 +171,7 @@ Node EmbeddingConverter::process(Node q,
     if (isOutputOn(OutputTag::SYGUS_GRAMMAR))
     {
       output(OutputTag::SYGUS_GRAMMAR)
-          << "(sygus-grammar " << sf
+          << "(sygus-grammar " << sf << " "
           << printer::smt2::Smt2Printer::sygusGrammarString(tn) << ")"
           << std::endl;
     }
