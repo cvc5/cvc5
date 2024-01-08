@@ -3,7 +3,7 @@
 (set-option :fmf-bound true)
 (set-option :uf-lazy-ll true)
 (set-option :strings-exp true)
-;(set-option :simplification none)
+(set-option :simplification none)
 (declare-const A (Bag (Tuple Int)))
 (declare-const B (Bag (Tuple Int)))
 (declare-const f (-> (Tuple Int) (Tuple Int)))
