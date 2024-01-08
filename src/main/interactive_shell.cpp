@@ -108,7 +108,7 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
   }
 
   // initialize for incremental string input
-  d_parser->setStringInputInternal(d_lang, "", INPUT_FILENAME, true);
+  d_parser->setStringInput(d_lang, "", INPUT_FILENAME);
   d_usingEditline = false;
 #if HAVE_LIBEDITLINE
   if (&d_in == &std::cin && isatty(fileno(stdin)))
