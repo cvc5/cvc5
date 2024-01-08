@@ -310,8 +310,8 @@ void InputParser::setStringInput(modes::InputLanguage lang,
 }
 
 void InputParser::setStringInputInternal(modes::InputLanguage lang,
-                                 const std::string& input,
-                                 const std::string& name,
+                                         const std::string& input,
+                                         const std::string& name,
                                          bool allocParser)
 {
   Trace("parser") << "setStringInput(" << lang << ", ..., " << name << ")"
