@@ -34,12 +34,12 @@ def check_iteractive_shell_parser_inc():
     child.sendline("(push)")
     child.sendline("(declare-fun x () Int)")
     child.sendline("(check-sat)")
-    child.expect("sat")
+    child.expect("^sat\r\n")
     child.sendline("(pop)")
     child.sendline("(declare-fun x () Int)")
-    child.expect("")
+    child.expect("^\r\n")
     child.sendline("(check-sat)")
-    child.expect("sat")
+    child.expect("^sat\r\n")
 
     return 0
 
