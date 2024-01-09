@@ -237,6 +237,14 @@ class SortTest
   }
 
   @Test
+  void isNullable()
+  {
+    Sort sort = d_solver.mkNullableSort(d_solver.getRealSort());
+    assertTrue(sort.isNullable());
+    assertDoesNotThrow(() -> new Sort().isNullable());
+  }
+
+  @Test
   void isRecord()
   {
     Sort rec_sort =

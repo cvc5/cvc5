@@ -454,6 +454,13 @@ TEST_F(TestApiBlackSolver, mkTupleSort)
   ASSERT_NO_THROW(slv.mkTupleSort({d_solver.getIntegerSort()}));
 }
 
+TEST_F(TestApiBlackSolver, mkNullableSort)
+{
+  ASSERT_NO_THROW(d_solver.mkNullableSort(d_solver.getIntegerSort()));
+  Solver slv;
+  ASSERT_NO_THROW(slv.mkNullableSort(d_solver.getIntegerSort()));
+}
+
 TEST_F(TestApiBlackSolver, mkBitVector)
 {
   ASSERT_NO_THROW(d_solver.mkBitVector(8, 2));
@@ -1087,6 +1094,58 @@ TEST_F(TestApiBlackSolver, mkTuple)
   Solver slv;
   ASSERT_NO_THROW(slv.mkTuple({slv.mkBitVector(3, "101", 2)}));
   ASSERT_NO_THROW(slv.mkTuple({d_solver.mkBitVector(3, "101", 2)}));
+}
+
+TEST_F(TestApiBlackSolver, mkNullableSome)
+{
+  ASSERT_NO_THROW(d_solver.mkNullableSome(d_solver.mkBitVector(3, "101", 2)));
+  ASSERT_NO_THROW(d_solver.mkNullableSome(d_solver.mkInteger("5")));
+  ASSERT_NO_THROW(d_solver.mkNullableSome(d_solver.mkReal("5.3")));
+  Solver slv;
+  ASSERT_NO_THROW(slv.mkNullableSome(slv.mkBitVector(3, "101", 2)));
+  ASSERT_NO_THROW(slv.mkNullableSome(d_solver.mkBitVector(3, "101", 2)));
+}
+
+TEST_F(TestApiBlackSolver, mkNullableVal)
+{
+  Term some = d_solver.mkNullableSome(d_solver.mkInteger(5));
+  Term value = d_solver.mkNullableVal(some);
+  value = d_solver.simplify(value);
+  ASSERT_EQ(5, value.getInt32Value());
+}
+
+TEST_F(TestApiBlackSolver, mkNullableIsNull)
+{
+  Term some = d_solver.mkNullableSome(d_solver.mkInteger(5));
+  Term value = d_solver.mkNullableIsNull(some);
+  value = d_solver.simplify(value);
+  ASSERT_EQ(false, value.getBooleanValue());
+}
+
+TEST_F(TestApiBlackSolver, mkNullableIsSome)
+{
+  Term some = d_solver.mkNullableSome(d_solver.mkInteger(5));
+  Term value = d_solver.mkNullableIsSome(some);
+  value = d_solver.simplify(value);
+  ASSERT_EQ(true, value.getBooleanValue());
+}
+
+TEST_F(TestApiBlackSolver, mkNullableNull)
+{
+  Sort nullableSort = d_solver.mkNullableSort(d_solver.getBooleanSort());
+  Term nullableNull = d_solver.mkNullableNull(nullableSort);
+  Term value = d_solver.mkNullableIsNull(nullableNull);
+  value = d_solver.simplify(value);
+  ASSERT_EQ(true, value.getBooleanValue());
+}
+
+TEST_F(TestApiBlackSolver, mkNullableLift)
+{
+  Term some1 = d_solver.mkNullableSome(d_solver.mkInteger(1));
+  Term some2 = d_solver.mkNullableSome(d_solver.mkInteger(2));
+  Term some3 = d_solver.mkNullableLift(Kind::ADD, {some1, some2});
+  Term three = d_solver.simplify(d_solver.mkNullableVal(some3));
+  ASSERT_EQ(3, three.getInt32Value());
 }
 
 TEST_F(TestApiBlackSolver, mkUniverseSet)
