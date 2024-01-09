@@ -246,11 +246,14 @@ void EchoCommand::invoke(cvc5::Solver* solver,
                          SymManager* sm,
                          std::ostream& out)
 {
+  d_commandStatus = CommandSuccess::instance();
+}
+
+void EchoCommand::printResult(cvc5::Solver* solver, std::ostream& out) const
+{
   out << cvc5::internal::quoteString(d_output) << std::endl;
   Trace("dtview::command") << "* ~COMMAND: echo |" << d_output << "|~"
                            << std::endl;
-  d_commandStatus = CommandSuccess::instance();
-  printResult(solver, out);
 }
 
 std::string EchoCommand::getCommandName() const { return "echo"; }
