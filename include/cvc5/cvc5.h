@@ -2970,14 +2970,6 @@ class CVC5_EXPORT Grammar
    */
   Sort resolve();
 
-  /**
-   * Check if \p rule contains variables that are neither parameters of
-   * the corresponding synthFun nor non-terminals.
-   * @param rule The non-terminal allowed to be any constant.
-   * @return True if \p rule contains free variables and false otherwise.
-   */
-  bool containsFreeVariables(const Term& rule) const;
-
   /** The node manager associated with this grammar. */
   internal::NodeManager* d_nm;
   /** The internal representation of this grammar. */

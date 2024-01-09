@@ -1695,6 +1695,7 @@ set(regress_0_tests
   regress0/sygus/cegqi-si-string-triv.sy
   regress0/sygus/check-generic-red.sy
   regress0/sygus/const-var-test.sy
+  regress0/sygus/declare-var-grammar-err.sy
   regress0/sygus/dt-no-syntax.sy
   regress0/sygus/dt-sel-parse1.sy
   regress0/sygus/find-synth-next.smt2
@@ -2025,6 +2026,7 @@ set(regress_1_tests
   regress1/bags/choose2.smt2
   regress1/bags/choose3.smt2
   regress1/bags/choose4.smt2
+  regress1/bags/ctor_previous_sat.smt2
   regress1/bags/difference_remove1.smt2
   regress1/bags/disequality.smt2
   regress1/bags/duplicate_removal1.smt2
@@ -3109,6 +3111,8 @@ set(regress_1_tests
   regress1/sygus/finite-feasible-2.sy
   regress1/sygus/finite-infeasible.sy
   regress1/sygus/finite-infeasible-2.sy
+  regress1/sygus/fwd-decl-2.sy
+  regress1/sygus/fwd-decl-simple.sy
   regress1/sygus/grammar_norm.sy
   regress1/sygus/ground-ite-free-constant-si.sy
   regress1/sygus/hd-01-d1-prog.sy
