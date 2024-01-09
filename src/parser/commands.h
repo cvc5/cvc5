@@ -180,9 +180,6 @@ class CVC5_EXPORT EchoCommand : public Cmd
   std::string getOutput() const;
 
   void invoke(cvc5::Solver* solver, parser::SymManager* sm) override;
-  void invoke(cvc5::Solver* solver,
-              parser::SymManager* sm,
-              std::ostream& out) override;
   /** The result is the printed string */
   void printResult(cvc5::Solver* solver, std::ostream& out) const override;
 
