@@ -91,7 +91,6 @@ void BagSolver::checkBasicOperations()
   }
 }
 
-
 void BagSolver::checkNonBasicOperations()
 { 
   for (const Node& bag : d_state.getBags())
@@ -127,8 +126,6 @@ void BagSolver::checkNonBasicOperations()
     }
   }
 }
-
-
 
 set<Node> BagSolver::getElementsForBinaryOperator(const Node& n)
 {
@@ -293,6 +290,11 @@ void BagSolver::checkMap(Node n)
   Assert(n.getKind() == Kind::BAG_MAP);
   const set<Node>& downwards = d_state.getElements(n);
   const set<Node>& upwards = d_state.getElements(n[1]);
+  for (const Node& x : upwards)
+  {
+    InferInfo upInference = d_ig.mapUp1(n, x);
+    d_im.lemmaTheoryInference(&upInference);
+  }
   for (const Node& z : downwards)
   {
     Node y = d_state.getRepresentative(z);
@@ -318,7 +320,7 @@ void BagSolver::checkMap(Node n)
 
     for (const Node& x : upwards)
     {
-      InferInfo upInference = d_ig.mapUp(n, uf, preImageSize, y, x);
+      InferInfo upInference = d_ig.mapUp2(n, uf, preImageSize, y, x);
       d_im.lemmaTheoryInference(&upInference);
     }
   }
