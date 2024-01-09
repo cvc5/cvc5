@@ -2970,14 +2970,6 @@ class CVC5_EXPORT Grammar
    */
   Sort resolve();
 
-  /**
-   * Check if \p rule contains variables that are neither parameters of
-   * the corresponding synthFun nor non-terminals.
-   * @param rule The non-terminal allowed to be any constant.
-   * @return True if \p rule contains free variables and false otherwise.
-   */
-  bool containsFreeVariables(const Term& rule) const;
-
   /** The node manager associated with this grammar. */
   internal::NodeManager* d_nm;
   /** The internal representation of this grammar. */
@@ -3111,6 +3103,8 @@ struct CVC5_EXPORT OptionInfo
   std::vector<std::string> aliases;
   /** Whether the option was explicitly set by the user */
   bool setByUser;
+  /** Whether this is an expert option */
+  bool isExpert;
   /** Possible types for ``valueInfo``. */
   using OptionInfoVariant = std::variant<VoidInfo,
                                          ValueInfo<bool>,
@@ -3501,11 +3495,14 @@ class CVC5_EXPORT Solver
   Sort mkFloatingPointSort(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a finite-field sort.
-   * @param size the modulus of the field. Must be prime.
+   * Create a finite-field sort from a given string of
+   * base n.
+   *
+   * @param size The modulus of the field. Must be prime.
+   * @param base The base of the string representation of `size`.
    * @return The finite-field sort.
    */
-  Sort mkFiniteFieldSort(const std::string& size) const;
+  Sort mkFiniteFieldSort(const std::string& size, uint32_t base = 10) const;
 
   /**
    * Create a datatype sort.
@@ -3905,16 +3902,19 @@ class CVC5_EXPORT Solver
 
   /**
    * Create a finite field constant in a given field from a given string
-   *
-   * If size is the field size, the constant needs not be in the range [0,size).
-   * If it is outside this range, it will be reduced modulo size before being
-   * constructed.
+   * of base n.
    *
    * @param value The string representation of the constant.
-   * @param sort The field sort.
+   * @param sort  The field sort.
+   * @param base  The base of the string representation of `value`.
    *
+   * If `size` is the field size, the constant needs not be in the range
+   * [0,size). If it is outside this range, it will be reduced modulo size
+   * before being constructed.
    */
-  Term mkFiniteFieldElem(const std::string& value, const Sort& sort) const;
+  Term mkFiniteFieldElem(const std::string& value,
+                         const Sort& sort,
+                         uint32_t base = 10) const;
 
   /**
    * Create a constant array with the provided constant value stored at every

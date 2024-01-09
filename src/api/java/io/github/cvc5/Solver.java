@@ -188,16 +188,17 @@ public class Solver extends AbstractPointer
   /**
    * Create a finite field sort.
    * @param size The size of the finite field sort.
+   * @param base The base of the string representation.
    * @return The finite field sort.
    * @throws CVC5ApiException
    */
-  public Sort mkFiniteFieldSort(String size) throws CVC5ApiException
+  public Sort mkFiniteFieldSort(String size, int base) throws CVC5ApiException
   {
-    long sortPointer = mkFiniteFieldSort(pointer, size);
+    long sortPointer = mkFiniteFieldSort(pointer, size, base);
     return new Sort(sortPointer);
   }
 
-  private native long mkFiniteFieldSort(long pointer, String size);
+  private native long mkFiniteFieldSort(long pointer, String size, int base);
 
   /**
    * Create a floating-point sort.
@@ -1147,16 +1148,17 @@ public class Solver extends AbstractPointer
    *
    * @param val The value of the constant.
    * @param sort The sort of the finite field.
+   * @param base The base of the string representation.
    * @return The finite field constant.
    * @throws CVC5ApiException
    */
-  public Term mkFiniteFieldElem(String val, Sort sort) throws CVC5ApiException
+  public Term mkFiniteFieldElem(String val, Sort sort, int base) throws CVC5ApiException
   {
-    long termPointer = mkFiniteFieldElem(pointer, val, sort.getPointer());
+    long termPointer = mkFiniteFieldElem(pointer, val, sort.getPointer(), base);
     return new Term(termPointer);
   }
 
-  private native long mkFiniteFieldElem(long pointer, String val, long sortPointer);
+  private native long mkFiniteFieldElem(long pointer, String val, long sortPointer, int base);
 
   /**
    * Create a constant array with the provided constant value stored at
