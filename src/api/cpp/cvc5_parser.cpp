@@ -304,24 +304,19 @@ void InputParser::setStringInput(modes::InputLanguage lang,
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  setStringInputInternal(lang, input, name, true);
+  Trace("parser") << "setStringInput(" << lang << ", ..., " << name << ")"
+                  << std::endl;
+  // initialize the parser
+  d_parser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());
+  initializeInternal();
+  setStringInputInternal(input, name);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-void InputParser::setStringInputInternal(modes::InputLanguage lang,
-                                         const std::string& input,
-                                         const std::string& name,
-                                         bool allocParser)
+void InputParser::setStringInputInternal(const std::string& input,
+                                         const std::string& name)
 {
-  Trace("parser") << "setStringInput(" << lang << ", ..., " << name << ")"
-                  << std::endl;
-  // initialize the parser
-  if (allocParser)
-  {
-    d_parser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());
-    initializeInternal();
-  }
   d_parser->setStringInput(input, name);
 }
 

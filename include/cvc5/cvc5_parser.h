@@ -260,13 +260,10 @@ class CVC5_EXPORT InputParser
 
  private:
   /**
-   * Set the input to the given concrete input string, allocating a new parser
-   * if allocParser is true.
+   * Set the input to the given concrete input string, without allocating a new parser.
    */
-  void setStringInputInternal(modes::InputLanguage,
-                              const std::string& input,
-                              const std::string& name,
-                              bool allocParser);
+  void setStringInputInternal(const std::string& input,
+                              const std::string& name);
   /** Initialize this input parser, called during construction */
   void initialize();
   /**

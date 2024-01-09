@@ -311,7 +311,7 @@ restart:
   }
 
   // set new string input, without a new parser
-  d_parser->setStringInputInternal(d_lang, input, INPUT_FILENAME, false);
+  d_parser->setStringInputInternal(input, INPUT_FILENAME);
 
   /* There may be more than one command in the input. Build up a
      sequence. */
