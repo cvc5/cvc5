@@ -286,6 +286,7 @@ TEST_F(TestInputParserBlack, incrementalSetString)
   Command cmd;
   std::stringstream out;
   std::vector<std::string> stringVec;
+  stringVec.push_back("(set-logic ALL)");
   stringVec.push_back("(push)");
   stringVec.push_back("(declare-fun x () Int)");
   stringVec.push_back("(pop)");
