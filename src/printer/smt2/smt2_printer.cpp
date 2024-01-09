@@ -876,7 +876,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       Node op = n.getOperator();
       size_t cindex = DType::indexOf(op);
       const DType& dt = DType::datatypeOf(op);
-      if (n[0].getType().isNullable())
+      if (dt.isNullable())
       {
         stillNeedToPrintParams = false;
         if (cindex == 0)
