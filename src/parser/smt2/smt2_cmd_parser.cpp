@@ -809,10 +809,9 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
     {
       std::string key = d_tparser.parseKeyword();
       Term s = d_tparser.parseSymbolicExpr();
-      d_state.checkThatLogicIsSet();
-      // ":grammars" is defined in the SyGuS version 2.1 standard and is by
-      // default supported, all other features are not.
-      if (key != "grammars")
+      // ":grammars" and "fwd-decls" are defined in the SyGuS version 2.1
+      // standard and are supported by default, all other features are not.
+      if (key != "grammars" && key != "fwd-decls")
       {
         std::stringstream ss;
         ss << "SyGuS feature " << key << " not currently supported";
