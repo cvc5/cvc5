@@ -360,7 +360,7 @@ if(NOT DEFINED PYTHON_EXECUTABLE)
   set(PYTHON_EXECUTABLE "${Python_EXECUTABLE}")
 endif()
 
-find_package(GMP 6.1 REQUIRED)
+find_package(GMP 6.3 REQUIRED)
 
 if(ENABLE_ASAN)
   # -fsanitize=address requires CMAKE_REQUIRED_FLAGS to be explicitely set,
