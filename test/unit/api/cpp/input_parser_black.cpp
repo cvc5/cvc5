@@ -299,6 +299,7 @@ TEST_F(TestInputParserBlack, incrementalSetString)
     ASSERT_NE(cmd.isNull(), true);
     ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
   }
+  ASSERT_EQ(out.str().empty(), true);
 }
 
 }  // namespace test
