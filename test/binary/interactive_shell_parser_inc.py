@@ -20,7 +20,8 @@ import pexpect
 
 def check_iteractive_shell_parser_inc():
     """
-    Interacts with cvc5's interactive shell and checks 
+    Interacts with cvc5's interactive shell and checks that parser declarations are
+    managed properly in incremental mode.
     """
 
     # Open cvc5
@@ -36,6 +37,7 @@ def check_iteractive_shell_parser_inc():
     child.expect("sat")
     child.sendline("(pop)")
     child.sendline("(declare-fun x () Int)")
+    child.expect("")
     child.sendline("(check-sat)")
     child.expect("sat")
 
