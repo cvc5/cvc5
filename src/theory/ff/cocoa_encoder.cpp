@@ -45,7 +45,6 @@ namespace ff {
 CoCoA::symbol cocoaSym(const std::string& varName, std::optional<size_t> index)
 {
   std::ostringstream o;
-  // o << "v_";
   for (const auto c : varName)
   {
     // letters and numbers as themselves
