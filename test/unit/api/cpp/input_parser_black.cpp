@@ -282,7 +282,7 @@ TEST_F(TestInputParserBlack, ParserExceptions)
 
 TEST_F(TestInputParserBlack, incrementalSetString)
 {
-  InputParser p(&d_solver);
+  InputParser p(&d_solver, d_symman.get());
   Command cmd;
   std::stringstream out;
   std::vector<std::string> stringVec;
