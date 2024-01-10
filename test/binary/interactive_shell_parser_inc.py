@@ -30,6 +30,7 @@ def check_iteractive_shell_parser_inc():
     # We expect to see the cvc5 prompt
     child.expect("cvc5>")
 
+    child.sendline("(set-logic ALL)")
     child.sendline("(set-option :incremental true)")
     child.sendline("(push)")
     child.sendline("(declare-fun x () Int)")
