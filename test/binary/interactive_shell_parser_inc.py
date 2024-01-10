@@ -39,7 +39,6 @@ def check_iteractive_shell_parser_inc():
     child.sendline("(declare-fun x () Int)")
     child.expect("cvc5>")
     child.sendline("(check-sat)")
-    child.expect("cvc5>")
     child.expect("^sat\r\n")
     child.expect("cvc5>")
     child.sendline("(pop)")
