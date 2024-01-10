@@ -18,6 +18,15 @@
 import sys
 import pexpect
 
+def expect_exact(child, s):
+    child.expect_exact(s)
+    assert child.before == b""
+    assert child.after == s.encode('UTF-8')
+
+def sendline(child, s):
+    child.sendline(s)
+    child.expect_exact(s+'\r\n')
+
 def check_iteractive_shell_parser_inc():
     """
     Interacts with cvc5's interactive shell and checks that parser declarations are
@@ -25,29 +34,26 @@ def check_iteractive_shell_parser_inc():
     """
 
     # Open cvc5
-    child = pexpect.spawnu("bin/cvc5", timeout=1)
+    child = pexpect.spawn("bin/cvc5", timeout=1)
 
     # We expect to see the cvc5 prompt
-    child.expect("cvc5>")
-
-    child.sendline("(set-logic ALL)")
-    child.expect("cvc5>")
-    child.sendline("(set-option :incremental true)")
-    child.expect("cvc5>")
-    child.sendline("(push)")
-    child.expect("cvc5>")
-    child.sendline("(declare-fun x () Int)")
-    child.expect("cvc5>")
-    child.sendline("(check-sat)")
-    child.expect("^sat\r\n")
-    child.expect("cvc5>")
-    child.sendline("(pop)")
-    child.expect("cvc5>")
-    child.sendline("(declare-fun x () Int)")
-    child.expect("cvc5>")
-    child.sendline("(check-sat)")
-    child.expect("^sat\r\n")
-    child.expect("cvc5>")
+    child.expect("cvc5> ")
+    sendline(child, "(set-logic ALL)")
+    expect_exact(child, "cvc5> ")
+    sendline(child,"(set-option :incremental true)")
+    expect_exact(child,"cvc5> ")
+    sendline(child,"(push)")
+    expect_exact(child,"cvc5> ")
+    sendline(child,"(declare-fun x () Int)")
+    expect_exact(child,"cvc5> ")
+    sendline(child,"(check-sat)")
+    expect_exact(child,"sat\r\ncvc5> ")
+    sendline(child,"(pop)")
+    expect_exact(child,"cvc5> ")
+    sendline(child,"(declare-fun x () Int)")
+    expect_exact(child,"cvc5> ")
+    sendline(child,"(check-sat)")
+    expect_exact(child,"sat\r\ncvc5> ")
 
     return 0
 
