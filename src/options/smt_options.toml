@@ -10,6 +10,14 @@ name   = "SMT Layer"
   help       = "eliminate functions by ackermannization"
 
 [[option]]
+  name       = "solveIntAsBags"
+  category   = "regular"
+  long       = "solveIntAsBags"
+  type       = "bool"
+  default    = "false"
+  help       = "convert int to bags"
+
+[[option]]
   name       = "simplificationMode"
   alias      = ["simplification-mode"]
   category   = "regular"

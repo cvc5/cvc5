@@ -163,6 +163,11 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
     applyPass("ackermann", ap);
   }
 
+  if (options().smt.solveIntAsBags)
+  {
+      applyPass("int-to-bag", ap);
+  }
+
   Trace("smt") << " assertions     : " << ap.size() << endl;
 
   bool noConflict = true;
