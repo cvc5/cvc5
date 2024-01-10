@@ -31,16 +31,24 @@ def check_iteractive_shell_parser_inc():
     child.expect("cvc5>")
 
     child.sendline("(set-logic ALL)")
+    child.expect("cvc5>")
     child.sendline("(set-option :incremental true)")
+    child.expect("cvc5>")
     child.sendline("(push)")
+    child.expect("cvc5>")
     child.sendline("(declare-fun x () Int)")
+    child.expect("cvc5>")
     child.sendline("(check-sat)")
+    child.expect("cvc5>")
     child.expect("^sat\r\n")
+    child.expect("cvc5>")
     child.sendline("(pop)")
+    child.expect("cvc5>")
     child.sendline("(declare-fun x () Int)")
-    child.expect("^\r\n")
+    child.expect("cvc5>")
     child.sendline("(check-sat)")
     child.expect("^sat\r\n")
+    child.expect("cvc5>")
 
     return 0
 
