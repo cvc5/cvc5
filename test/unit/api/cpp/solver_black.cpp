@@ -107,7 +107,8 @@ TEST_F(TestApiBlackSolver, pow2Large3)
   Term t262 = d_solver.mkTerm(Kind::POW2, {t203});
   Term t536 =
       d_solver.mkTerm(d_solver.mkOp(Kind::INT_TO_BITVECTOR, {49}), {t262});
-  ASSERT_THROW(d_solver.simplify(t536), CVC5ApiException);
+  // should not throw an exception, will not simplify.
+  ASSERT_NO_THROW(d_solver.simplify(t536));
 }
 
 TEST_F(TestApiBlackSolver, recoverableException)
