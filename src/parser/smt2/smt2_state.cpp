@@ -724,6 +724,7 @@ std::unique_ptr<Cmd> Smt2State::invConstraint(
 
 void Smt2State::setLogic(std::string name)
 {
+  bool smLogicAlreadySet = getSymbolManager()->isLogicSet();
   // if logic is already set, this is an error
   if (d_logicSet)
   {
@@ -974,9 +975,17 @@ void Smt2State::setLogic(std::string name)
     addSepOperators();
   }
 
-  // builtin symbols of the logic are declared at context level zero, hence
-  // we push the outermost scope here
-  pushScope(true);
+  // Builtin symbols of the logic are declared at context level zero, hence
+  // we push the outermost scope in the symbol manager here.
+  // We only do this if the logic has not already been set, in which case we have already
+  // pushed the outermost context (and this method redeclares the symbols which does
+  // not impact the symbol manager).
+  // TODO (cvc5-projects #693): refactor this so that this method is moved to the
+  // symbol manager and only called once per symbol manager.
+  if (!smLogicAlreadySet)
+  {
+    pushScope(true);
+  }
 }
 
 Grammar* Smt2State::mkGrammar(const std::vector<Term>& boundVars,
