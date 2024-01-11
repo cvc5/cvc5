@@ -695,6 +695,8 @@ libcvc5_add_sources(
   theory/evaluator.h
   theory/ext_theory.cpp
   theory/ext_theory.h
+  theory/ff/cocoa_encoder.cpp
+  theory/ff/cocoa_encoder.h
   theory/ff/cocoa_util.cpp
   theory/ff/cocoa_util.h
   theory/ff/core.cpp
@@ -703,6 +705,8 @@ libcvc5_add_sources(
   theory/ff/multi_roots.h
   theory/ff/parse.cpp
   theory/ff/parse.h
+  theory/ff/split_gb.cpp
+  theory/ff/split_gb.h
   theory/ff/stats.cpp
   theory/ff/stats.h
   theory/ff/sub_theory.cpp
