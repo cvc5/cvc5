@@ -241,6 +241,7 @@ public:
      case Kind::DIVISION_TOTAL: return isDivMember(n);
      case Kind::IAND:
      case Kind::POW2:
+     case Kind::POW:
      case Kind::EXPONENTIAL:
      case Kind::SINE:
      case Kind::COSINE:

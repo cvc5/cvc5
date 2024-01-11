@@ -182,11 +182,3 @@ name   = "Driver"
   type       = "bool"
   default    = "false"
   help       = "print the \"success\" output required of SMT-LIBv2"
-
-[[option]]
-  name       = "stdinInputPerLine"
-  category   = "expert"
-  long       = "stdin-input-per-line"
-  type       = "bool"
-  default    = "true"
-  help       = "when piping from stdin, feed the input to the parser one line at a time."
