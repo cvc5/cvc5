@@ -121,7 +121,7 @@ versions; more recent versions should be compatible.
 - `Python >= 3.6 and <= 3.10 <https://www.python.org>`_
   + module `tomli <https://pypi.org/project/tomli/>`_
   + module `pyparsing <https://pypi.org/project/pyparsing/>`_
-- `GMP v6.1 (GNU Multi-Precision arithmetic library) <https://gmplib.org>`_
+- `GMP v6.3 (GNU Multi-Precision arithmetic library) <https://gmplib.org>`_
 - `CaDiCaL (SAT solver) <https://github.com/arminbiere/cadical>`_
 - `Java >= 1.6 <https://www.java.com>`_
 - `SymFPU <https://github.com/martin-cs/symfpu/tree/CVC4>`_
