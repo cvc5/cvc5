@@ -279,5 +279,29 @@ TEST_F(TestInputParserBlack, ParserExceptions)
   ParserEndOfFileException eof(message, filename, 10, 11);
 }
 
+
+TEST_F(TestInputParserBlack, incrementalSetString)
+{
+  InputParser p(&d_solver, d_symman.get());
+  Command cmd;
+  std::stringstream out;
+  std::vector<std::string> stringVec;
+  stringVec.push_back("(set-logic ALL)");
+  stringVec.push_back("(push)");
+  stringVec.push_back("(declare-fun x () Int)");
+  stringVec.push_back("(pop)");
+  stringVec.push_back("(declare-fun x () Int)");
+  for (size_t i=0; i<stringVec.size(); i++)
+  {
+    p.setStringInput(modes::InputLanguage::SMT_LIB_2_6,
+                    stringVec[i],
+                    "input_parser_black");
+    cmd = p.nextCommand();
+    ASSERT_NE(cmd.isNull(), true);
+    ASSERT_NO_THROW(cmd.invoke(&d_solver, d_symman.get(), out));
+  }
+  ASSERT_EQ(out.str().empty(), true);
+}
+
 }  // namespace test
 }  // namespace cvc5::internal
