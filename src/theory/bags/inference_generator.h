@@ -246,6 +246,7 @@ class InferenceGenerator
    *                     (not (and (< i j) (<= j preImageSize)))
    *                     (not (= (uf i) (uf j)))) )
    *                 ))))))
+   *   
    * where uf: Int -> E is an uninterpreted function from integers to the
    * type of the elements of A
    * preImageSize is the cardinality of the distinct elements in A that are
@@ -255,7 +256,17 @@ class InferenceGenerator
    * and skolem is a fresh variable equals (bag.map f A))
    */
   std::tuple<InferInfo, Node, Node> mapDown(Node n, Node e);
-
+  /**
+   * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
+   * (Bag E)
+   * @param x is an element of type E
+   * @return an inference that represents the following implication
+   * (<=
+   *   (bag.count x A)
+   *   (bag.count (f x) skolem)
+   * where skolem is a fresh variable equals (bag.map f A))
+   */
+  InferInfo mapUp1(Node n, Node x);
   /**
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
    * (Bag E)
@@ -275,7 +286,7 @@ class InferenceGenerator
    *       (= (uf skolem) x)))))
    * where skolem is a fresh variable
    */
-  InferInfo mapUp(Node n, Node uf, Node preImageSize, Node y, Node x);
+  InferInfo mapUp2(Node n, Node uf, Node preImageSize, Node y, Node x);
 
   /**
    * @param n is (bag.filter p A) where p is a function (-> E Bool),
@@ -368,11 +379,11 @@ class InferenceGenerator
   Node getMultiplicityTerm(Node element, Node bag);
 
   /**
-   * @param n has form ((_ table.group n1 ... nk) A) where A has type T
+   * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table E)
    * @return an inference that represents:
    * (=>
-   *  (= A (as bag.empty T))
-   *  (= skolem (bag (as bag.empty T) 1))
+   *  (= A (as bag.empty (Table E)))
+   *  (= skolem (as bag.empty (bag T))
    * )
    * where skolem is a variable equals ((_ table.group n1 ... nk) A)
    */

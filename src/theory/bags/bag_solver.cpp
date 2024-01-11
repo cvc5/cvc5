@@ -75,11 +75,6 @@ void BagSolver::checkBasicOperations()
         case Kind::BAG_INTER_MIN: checkIntersectionMin(n); break;
         case Kind::BAG_DIFFERENCE_SUBTRACT: checkDifferenceSubtract(n); break;
         case Kind::BAG_DIFFERENCE_REMOVE: checkDifferenceRemove(n); break;
-        case Kind::BAG_DUPLICATE_REMOVAL: checkDuplicateRemoval(n); break;
-        case Kind::BAG_FILTER: checkFilter(n); break;
-        case Kind::TABLE_PRODUCT: checkProduct(n); break;
-        case Kind::TABLE_JOIN: checkJoin(n); break;
-        case Kind::TABLE_GROUP: checkGroup(n); break;
         default: break;
       }
       it++;
@@ -96,11 +91,11 @@ void BagSolver::checkBasicOperations()
   }
 }
 
-
-void BagSolver::checkQuantifiedOperations()
+void BagSolver::checkNonBasicOperations()
 { 
   for (const Node& bag : d_state.getBags())
   {
+    Assert(bag == d_state.getRepresentative(bag));
     // iterate through all bags terms in each equivalent class
     eq::EqClassIterator it =
         eq::EqClassIterator(bag, d_state.getEqualityEngine());
@@ -110,7 +105,12 @@ void BagSolver::checkQuantifiedOperations()
       Kind k = n.getKind();
       switch (k)
       {
-        case Kind::BAG_MAP: checkMap(n); break;
+        case Kind::BAG_DUPLICATE_REMOVAL: checkDuplicateRemoval(n); break;
+        case Kind::BAG_FILTER: checkFilter(n); break;
+        case Kind::TABLE_PRODUCT: checkProduct(n); break;
+        case Kind::TABLE_JOIN: checkJoin(n); break;
+        case Kind::TABLE_GROUP: checkGroup(n); break;
+        case Kind::BAG_MAP: checkMap(n); break;        
         default: break;
       }
       it++;
@@ -126,8 +126,6 @@ void BagSolver::checkQuantifiedOperations()
     }
   }
 }
-
-
 
 set<Node> BagSolver::getElementsForBinaryOperator(const Node& n)
 {
@@ -292,6 +290,11 @@ void BagSolver::checkMap(Node n)
   Assert(n.getKind() == Kind::BAG_MAP);
   const set<Node>& downwards = d_state.getElements(n);
   const set<Node>& upwards = d_state.getElements(n[1]);
+  for (const Node& x : upwards)
+  {
+    InferInfo upInference = d_ig.mapUp1(n, x);
+    d_im.lemmaTheoryInference(&upInference);
+  }
   for (const Node& z : downwards)
   {
     Node y = d_state.getRepresentative(z);
@@ -317,7 +320,7 @@ void BagSolver::checkMap(Node n)
 
     for (const Node& x : upwards)
     {
-      InferInfo upInference = d_ig.mapUp(n, uf, preImageSize, y, x);
+      InferInfo upInference = d_ig.mapUp2(n, uf, preImageSize, y, x);
       d_im.lemmaTheoryInference(&upInference);
     }
   }

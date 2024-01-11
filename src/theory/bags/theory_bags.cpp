@@ -47,6 +47,7 @@ TheoryBags::TheoryBags(Env& env, OutputChannel& out, Valuation valuation)
   // use the official theory state and inference manager objects
   d_theoryState = &d_state;
   d_inferManager = &d_im;
+  d_true = NodeManager::currentNM()->mkConst(true);
 }
 
 TheoryBags::~TheoryBags() {}
@@ -215,6 +216,8 @@ void TheoryBags::collectBagsAndCountTerms()
   }
 }
 
+bool TheoryBags::needsCheckLastEffort() { return true; }
+
 void TheoryBags::postCheck(Effort effort)
 {
   d_im.doPendingFacts();
@@ -223,6 +226,14 @@ void TheoryBags::postCheck(Effort effort)
       && d_strat.hasStrategyEffort(effort))
   {
     Trace("bags::TheoryBags::postCheck") << "effort: " << effort << std::endl;
+    if (effort == Theory::EFFORT_LAST_CALL)
+    {
+      if (checkModelLastCall())
+      {
+        // all assertions were satisfied, we can return
+        return;
+      }
+    }
 
     // TODO issue #78: add ++(d_statistics.d_checkRuns);
     bool sentLemma = false;
@@ -268,6 +279,44 @@ void TheoryBags::postCheck(Effort effort)
   Trace("bags-check") << "Theory of bags, done check : " << effort << std::endl;
   Assert(!d_im.hasPendingFact());
   Assert(!d_im.hasPendingLemma());
+}
+
+bool TheoryBags::checkModelLastCall()
+{
+  std::vector<Node> assertions;
+  for (Theory::assertions_iterator it = facts_begin(); it != facts_end(); ++it)
+  {
+    const Assertion& assertion = *it;
+    Node lit = assertion.d_assertion;
+    assertions.push_back(lit);
+  }
+  std::vector<Node> unsatAssertions;
+  Trace("bags-cm") << "Checking " << assertions.size() << " assertions..."
+                   << std::endl;
+  TheoryModel* m = d_valuation.getModel();
+  for (const Node& a : assertions)
+  {
+    Node av = m->getValue(a);
+    Trace("bags-cm-debug") << "M[" << a << "] = " << av << std::endl;
+    if (av == d_true)
+    {
+      continue;
+    }
+    Trace("bags-cm") << "** M[" << a << "] = " << av << std::endl;
+    unsatAssertions.push_back(a);
+  }
+  Trace("bags-cm") << "...not satisfied " << unsatAssertions.size() << " / "
+                   << assertions.size() << std::endl;
+  for (TNode n : d_sharedTerms)
+  {
+    Node value = m->getValue(n);
+    Node rep = m->getRepresentative(n);
+    if (value != rep)
+    {
+      return false;
+    }
+  }
+  return unsatAssertions.empty();
 }
 
 void TheoryBags::runStrategy(Theory::Effort e)
@@ -320,7 +369,12 @@ bool TheoryBags::runInferStep(InferStep s, int effort)
       break;
     }
     case CHECK_BASIC_OPERATIONS: d_solver.checkBasicOperations(); break;
-    case CHECK_QUANTIFIED_OPERATIONS: d_solver.checkQuantifiedOperations(); break;
+    case CHECK_NONBASIC_OPERATIONS:
+    {
+      initialize();
+      d_solver.checkNonBasicOperations();
+      break;
+    }
     case CHECK_CARDINALITY_CONSTRAINTS:
       d_cardSolver.checkCardinalityGraph();
       break;
@@ -458,7 +512,15 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
     processedBags[r] = constructedBag;
   }
 
-  Trace("bags-model") << "processedBags:  " << processedBags << std::endl;
+  if (TraceIsOn("bags-model"))
+  {
+    Trace("bags-model") << "processedBags:  ";
+    for (const auto& b : processedBags)
+    {
+      Trace("bags-model") << "[" << b.first << "," << std::endl
+                          << b.second << "], " << std::endl;
+    }
+  }
   return true;
 }
 
