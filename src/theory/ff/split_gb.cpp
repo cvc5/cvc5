@@ -86,10 +86,7 @@ std::optional<std::unordered_map<Node, FiniteFieldValue>> split(
     }
     return model;
   }
-  else
-  {
-    return {};
-  }
+  return {};
 }
 
 SplitGb splitGb(const std::vector<Polys>& generatorSets, BitProp& bitProp)
@@ -266,7 +263,8 @@ std::unique_ptr<AssignmentEnumerator> applyRule(const Gb& gb,
   Assert(static_cast<long>(r.size()) == CoCoA::NumIndets(polyRing));
   Assert(std::any_of(
       r.begin(), r.end(), [](const auto& v) { return !v.has_value(); }));
-  // (1) are the any polynomials that are univariate in an unassigned variable?
+  // (1) are there any polynomials that are univariate in an unassigned
+  // variable?
   const auto& gens = gb.basis();
   for (const auto& p : gens)
   {

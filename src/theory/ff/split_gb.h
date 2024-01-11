@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Finding common zeros using split groebner bases.
+ * Finding common zeros using split Groebner bases.
  *
  * The following procedures are from the paper:
  * * split: Split
