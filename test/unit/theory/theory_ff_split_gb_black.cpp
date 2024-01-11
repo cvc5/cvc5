@@ -29,6 +29,7 @@
 #include "theory/ff/multi_roots.h"
 #include "theory/ff/split_gb.h"
 #include "util/cocoa_globals.h"
+#include "util/random.h"
 
 namespace cvc5::internal {
 
@@ -47,24 +48,24 @@ class TestTheoryFfSplitGb : public TestSmt
   }
 };
 
-CoCoA::RingElem randCoeff(const CoCoA::ring& polyRing)
+CoCoA::RingElem randCoeff(const CoCoA::ring& polyRing, Random& rng)
 {
-  return CoCoA::zero(CoCoA::CoeffRing(polyRing)) + rand();
+  return CoCoA::zero(CoCoA::CoeffRing(polyRing)) + rng.rand();
 }
 
 CoCoA::RingElem randPoly(const CoCoA::ring& polyRing,
                          size_t degree,
-                         size_t terms)
+                         size_t terms,
+                         Random& rng)
 {
   CoCoA::RingElem out = CoCoA::zero(polyRing);
-  // CoCoA::RingElem out = CoCoA::zero(polyRing) + randCoeff(polyRing);
   for (size_t ti = 0; ti < terms; ++ti)
   {
-    CoCoA::RingElem term = CoCoA::zero(polyRing) + randCoeff(polyRing);
-    long tDegree = 1 + (rand() % degree);
+    CoCoA::RingElem term = CoCoA::zero(polyRing) + randCoeff(polyRing, rng);
+    long tDegree = 1 + (rng.rand() % degree);
     for (long i = 0; i < tDegree; ++i)
     {
-      long j = rand() % CoCoA::NumIndets(polyRing);
+      long j = rng.rand() % CoCoA::NumIndets(polyRing);
       term *= CoCoA::indet(polyRing, j);
     }
     out += term;
@@ -75,17 +76,16 @@ CoCoA::RingElem randPoly(const CoCoA::ring& polyRing,
 CoCoA::RingElem randPolyWithRoot(const CoCoA::ring& polyRing,
                                  size_t degree,
                                  size_t terms,
-                                 std::vector<CoCoA::RingElem> root)
+                                 std::vector<CoCoA::RingElem> root,
+                                 Random& rng)
 {
-  CoCoA::RingElem p = randPoly(polyRing, degree, terms);
+  CoCoA::RingElem p = randPoly(polyRing, degree, terms, rng);
   CoCoA::RingElem val = ff::cocoaEval(p, root);
   return p - val;
 }
 
 TEST_F(TestTheoryFfSplitGb, RandSat)
 {
-  // TraceChannel.on("ff::split::mc");
-  // TraceChannel.on("ff::split::mc::debug");
   // two bases, random, always SAT
   size_t n_vars = 6;
   size_t degree = 2;
@@ -97,20 +97,21 @@ TEST_F(TestTheoryFfSplitGb, RandSat)
   CoCoA::ring ring = CoCoA::NewZZmod(modulus);
   std::vector<CoCoA::symbol> syms = CoCoA::SymbolRange("x", 0, n_vars - 1);
   CoCoA::PolyRing polyRing = CoCoA::NewPolyRing(ring, syms);
-  srand(0);
+  Random rng{0};
   for (size_t iter_i = 0; iter_i < n_iters; ++iter_i)
   {
     std::vector<CoCoA::RingElem> solution{};
     for (size_t i = 0; i < n_vars; ++i)
     {
-      solution.push_back(randCoeff(polyRing));
+      solution.push_back(randCoeff(polyRing, rng));
     }
     std::vector<std::vector<CoCoA::RingElem>> gens(n_bases);
     std::vector<CoCoA::RingElem> allGens;
     for (size_t i = 0; i < n_eqns; ++i)
     {
-      allGens.push_back(randPolyWithRoot(polyRing, degree, n_terms, solution));
-      size_t j = rand() % n_bases;
+      allGens.push_back(
+          randPolyWithRoot(polyRing, degree, n_terms, solution, rng));
+      size_t j = rng.rand() % n_bases;
       gens[j].push_back(allGens.back());
     }
     std::vector<ff::Gb> bases;
@@ -120,7 +121,6 @@ TEST_F(TestTheoryFfSplitGb, RandSat)
     }
     ff::BitProp nullBitProp{};
     bool isSat = ff::findZero(CoCoA::ideal(allGens)).size();
-    // TraceChannel.on("ff::split::mc");
     ff::SplitGb splitBases(bases);
     auto result =
         ff::splitFindZero(std::move(splitBases), polyRing, nullBitProp);
@@ -144,15 +144,15 @@ TEST_F(TestTheoryFfSplitGb, RandUnsat)
   CoCoA::ring ring = CoCoA::NewZZmod(modulus);
   std::vector<CoCoA::symbol> syms = CoCoA::SymbolRange("x", 0, n_vars - 1);
   CoCoA::PolyRing polyRing = CoCoA::NewPolyRing(ring, syms);
-  srand(0);
+  Random rng{0};
   for (size_t iter_i = 0; iter_i < n_iters; ++iter_i)
   {
     std::vector<std::vector<CoCoA::RingElem>> gens(n_bases);
     std::vector<CoCoA::RingElem> allGens;
     for (size_t i = 0; i < n_eqns; ++i)
     {
-      allGens.push_back(randPoly(polyRing, degree, n_terms));
-      size_t j = rand() % n_bases;
+      allGens.push_back(randPoly(polyRing, degree, n_terms, rng));
+      size_t j = rng.rand() % n_bases;
       gens[j].push_back(allGens.back());
     }
     std::vector<ff::Gb> bases;
@@ -162,7 +162,6 @@ TEST_F(TestTheoryFfSplitGb, RandUnsat)
     }
     ff::BitProp nullBitProp{};
     bool isSat = ff::findZero(CoCoA::ideal(allGens)).size();
-    // TraceChannel.on("ff::split::mc");
     ff::SplitGb splitBases(bases);
     auto result =
         ff::splitFindZero(std::move(splitBases), polyRing, nullBitProp);
@@ -214,13 +213,13 @@ TEST_F(TestTheoryFfSplitGb, GbRand)
   CoCoA::ring ring = CoCoA::NewZZmod(modulus);
   std::vector<CoCoA::symbol> syms = CoCoA::SymbolRange("x", 0, n_vars - 1);
   CoCoA::PolyRing polyRing = CoCoA::NewPolyRing(ring, syms);
-  srand(0);
+  Random rng{0};
   for (size_t iter_i = 0; iter_i < n_iters; ++iter_i)
   {
     std::vector<CoCoA::RingElem> gens;
     for (size_t i = 0; i < n_eqns; ++i)
     {
-      gens.push_back(randPoly(polyRing, degree, n_terms));
+      gens.push_back(randPoly(polyRing, degree, n_terms, rng));
     }
     CoCoA::ideal i(gens);
     ff::Gb gb(gens);

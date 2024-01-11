@@ -96,7 +96,7 @@ SplitGb splitGb(const std::vector<Polys>& generatorSets, BitProp& bitProp)
   SplitGb splitBasis(k);
   do
   {
-    // add newPolts to each basis
+    // add newPolys to each basis
     for (size_t i = 0; i < k; ++i)
     {
       if (newPolys[i].size())
@@ -114,14 +114,11 @@ SplitGb splitGb(const std::vector<Polys>& generatorSets, BitProp& bitProp)
     }
 
     // compute polys that can be shared
-    Polys toPropagate{};
+    Polys toPropagate = bitProp.getBitEqualities(splitBasis);
     for (size_t i = 0; i < k; ++i)
     {
       const auto& basis = splitBasis[i].basis();
       std::copy(basis.begin(), basis.end(), std::back_inserter(toPropagate));
-      const auto extraProp = bitProp.getBitEqualities(splitBasis);
-      std::copy(
-          extraProp.begin(), extraProp.end(), std::back_inserter(toPropagate));
     }
 
     // share polys with ideals that accept them.
@@ -312,7 +309,6 @@ std::unique_ptr<AssignmentEnumerator> applyRule(const Gb& gb,
 
 void checkZero(const SplitGb& origBases, const Point& zero)
 {
-#ifdef CVC5_ASSERTIONS
   for (const auto& b : origBases)
   {
     for (const auto& gen : b.basis())
@@ -334,7 +330,6 @@ void checkZero(const SplitGb& origBases, const Point& zero)
       }
     }
   }
-#endif  // CVC5_ASSERTIONS
 }
 
 Gb::Gb() : d_ideal(), d_basis(){};
@@ -391,15 +386,19 @@ Polys BitProp::getBitEqualities(const SplitGb& splitBasis)
 {
   Polys output{};
 
+  std::vector<Node> bitConstrainedBitsums{};
+
   std::vector<Node> nonConstantBitsums{};
   for (const auto& bitsum : d_bitsums)
   {
+    // does any basis know `bitsum = k`?
     bool isConst = false;
     for (const auto& b : splitBasis)
     {
       Poly normal = b.reduce(d_enc->getTermEncoding(bitsum));
       if (CoCoA::IsConstant(normal))
       {
+        // this basis b knows that bitsum is a constant
         Integer val =
             d_enc->cocoaFfToFfVal(CoCoA::ConstantCoeff(normal)).getValue();
         if (val >= Integer(2).pow(bitsum.getNumChildren()))
@@ -408,23 +407,33 @@ Polys BitProp::getBitEqualities(const SplitGb& splitBasis)
           output.push_back(CoCoA::one(d_enc->polyRing()));
           return output;
         }
-        for (size_t i = 0; i < bitsum.getNumChildren(); ++i)
+
+        // check that all inputs are bit-constrained
+        if (std::all_of(bitsum.begin(), bitsum.end(), [&](const Node& bit) {
+              return isBit(bit, splitBasis);
+            }))
         {
-          auto bit = val.isBitSet(i) ? CoCoA::one(d_enc->polyRing())
-                                     : CoCoA::zero(d_enc->polyRing());
-          output.push_back(d_enc->getTermEncoding(bitsum[i]) - bit);
+          // propagate `bits(bitsum) = bits(k)`
+          for (size_t i = 0, n = bitsum.getNumChildren(); i < n; ++i)
+          {
+            auto bit = val.isBitSet(i) ? CoCoA::one(d_enc->polyRing())
+                                       : CoCoA::zero(d_enc->polyRing());
+            output.push_back(d_enc->getTermEncoding(bitsum[i]) - bit);
+          }
+          isConst = true;
+          break;
         }
-        isConst = true;
-        break;
       }
     }
+    // no basis knows this bitsum is a constant :(
     if (!isConst)
     {
       nonConstantBitsums.push_back(bitsum);
     }
   }
 
-  for (size_t i = 0; i < nonConstantBitsums.size(); ++i)
+  // for all pairs of non-constant bitsums (a, b)
+  for (size_t i = 0, n = nonConstantBitsums.size(); i < n; ++i)
   {
     for (size_t j = 0; j < i; ++j)
     {
@@ -436,6 +445,7 @@ Polys BitProp::getBitEqualities(const SplitGb& splitBasis)
                 return ii.contains(bsDiff);
               }))
       {
+        // this basis knows a = b
         Trace("ffl::bitprop")
             << " (= " << a << "\n    " << b << ")" << std::endl;
         size_t min = std::min(a.getNumChildren(), b.getNumChildren());
@@ -445,26 +455,14 @@ Polys BitProp::getBitEqualities(const SplitGb& splitBasis)
           Trace("ffl::bitprop") << " bitsum overflow" << std::endl;
           continue;
         }
+
+        // check that all inputs to both a and b are bit-constrained
         bool allBits = true;
         for (const auto& sum : {a, b})
         {
           for (const auto& c : sum)
           {
-            if (!d_bits.count(c))
-            {
-              Poly p = d_enc->getTermEncoding(c);
-              Poly bitConstraint = p * p - p;
-              if (std::any_of(splitBasis.begin(),
-                              splitBasis.end(),
-                              [&bitConstraint](const auto& ii) {
-                                return ii.contains(bitConstraint);
-                              }))
-              {
-                Trace("ffl::bitprop") << " bit through GB " << c << std::endl;
-                d_bits.insert(c);
-              }
-            }
-            if (!d_bits.count(c))
+            if (!isBit(c, splitBasis))
             {
               Trace("ffl::bitprop") << " non-bit " << c << std::endl;
               allBits = false;
@@ -474,6 +472,7 @@ Polys BitProp::getBitEqualities(const SplitGb& splitBasis)
 
         if (!allBits) continue;
 
+        // propagate `bits(a) = bits(b)`
         for (size_t k = 0; k < min; ++k)
         {
           Poly diff =
@@ -483,10 +482,11 @@ Polys BitProp::getBitEqualities(const SplitGb& splitBasis)
 
         if (a.getNumChildren() != min || b.getNumChildren() != min)
         {
-          Node n = b.getNumChildren() > min ? b : a;
+          // bitsums have different lengths: propagate zeros for the longer part
+          Node longer = b.getNumChildren() > min ? b : a;
           for (size_t k = min; k < max; ++k)
           {
-            Poly isZero = d_enc->getTermEncoding(n[k]);
+            Poly isZero = d_enc->getTermEncoding(longer[k]);
             output.push_back(isZero);
           }
         }
@@ -494,6 +494,27 @@ Polys BitProp::getBitEqualities(const SplitGb& splitBasis)
     }
   }
   return output;
+}
+
+bool BitProp::isBit(const Node& possibleBit, const SplitGb& splitBasis)
+{
+  if (d_bits.count(possibleBit))
+  {
+    return true;
+  }
+  Poly p = d_enc->getTermEncoding(possibleBit);
+  Poly bitConstraint = p * p - p;
+  if (std::any_of(splitBasis.begin(),
+                  splitBasis.end(),
+                  [&bitConstraint](const auto& ii) {
+                    return ii.contains(bitConstraint);
+                  }))
+  {
+    Trace("ffl::bitprop") << " bit through GB " << possibleBit << std::endl;
+    d_bits.insert(possibleBit);
+    return true;
+  }
+  return false;
 }
 
 }  // namespace ff
