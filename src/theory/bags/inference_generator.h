@@ -255,7 +255,17 @@ class InferenceGenerator
    * and skolem is a fresh variable equals (bag.map f A))
    */
   std::tuple<InferInfo, Node, Node> mapDown(Node n, Node e);
-
+  /**
+   * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
+   * (Bag E)
+   * @param x is an element of type E
+   * @return an inference that represents the following implication
+   * (<=
+   *   (bag.count x A)
+   *   (bag.count (f x) skolem)
+   * where skolem is a fresh variable equals (bag.map f A))
+   */
+  InferInfo mapUp1(Node n, Node x);
   /**
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
    * (Bag E)
@@ -275,7 +285,7 @@ class InferenceGenerator
    *       (= (uf skolem) x)))))
    * where skolem is a fresh variable
    */
-  InferInfo mapUp(Node n, Node uf, Node preImageSize, Node y, Node x);
+  InferInfo mapUp2(Node n, Node uf, Node preImageSize, Node y, Node x);
 
   /**
    * @param n is (bag.filter p A) where p is a function (-> E Bool),
