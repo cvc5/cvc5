@@ -46,7 +46,6 @@
 #include "base/output.h"
 #include "main/command_executor.h"
 #include "parser/commands.h"
-#include <cvc5/cvc5_parser.h>
 #include "parser/sym_manager.h"
 #include "theory/logic_info.h"
 
@@ -95,14 +94,13 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
   d_parser.reset(
       new cvc5::parser::InputParser(d_solver, cexec->getSymbolManager()));
   std::string langs = d_solver->getOption("input-language");
-  modes::InputLanguage lang;
   if (langs == "LANG_SMTLIB_V2_6")
   {
-    lang = modes::InputLanguage::SMT_LIB_2_6;
+    d_lang = modes::InputLanguage::SMT_LIB_2_6;
   }
   else if (langs == "LANG_SYGUS_V2")
   {
-    lang = modes::InputLanguage::SYGUS_2_1;
+    d_lang = modes::InputLanguage::SYGUS_2_1;
   }
   else
   {
@@ -110,7 +108,7 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
   }
 
   // initialize for incremental string input
-  d_parser->setIncrementalStringInput(lang, INPUT_FILENAME);
+  d_parser->setStringInput(d_lang, "", INPUT_FILENAME);
   d_usingEditline = false;
 #if HAVE_LIBEDITLINE
   if (&d_in == &std::cin && isatty(fileno(stdin)))
@@ -123,7 +121,7 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
 #endif /* EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP */
     ::using_history();
 
-    if (lang == modes::InputLanguage::SMT_LIB_2_6)
+    if (d_lang == modes::InputLanguage::SMT_LIB_2_6)
     {
       d_historyFilename = string(getenv("HOME")) + "/.cvc5_history_smtlib2";
       commandsBegin = smt2_commands;
@@ -312,7 +310,8 @@ restart:
     }
   }
 
-  d_parser->appendIncrementalStringInput(input);
+  // set new string input, without a new parser
+  d_parser->setStringInputInternal(input, INPUT_FILENAME);
 
   /* There may be more than one command in the input. Build up a
      sequence. */

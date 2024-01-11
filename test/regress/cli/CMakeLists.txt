@@ -90,6 +90,7 @@ set(regress_0_tests
   regress0/arr2.smtv1.smt2
   regress0/array-const-real-parse.smt2
   regress0/arrayinuf_declare.smt2
+  regress0/arrays/ackermann1.smt2
   regress0/arrays/arrays0.smt2
   regress0/arrays/arrays1.smt2
   regress0/arrays/arrays2.smt2
@@ -989,6 +990,9 @@ set(regress_0_tests
   regress0/options/help.smt2
   regress0/options/interactive-mode.smt2
   regress0/options/named_muted.smt2
+  regress0/options/safe-options1.smt2
+  regress0/options/safe-options2.smt2
+  regress0/options/safe-options3.smt2
   regress0/options/set-after-init.smt2
   regress0/options/set-and-get-options.smt2
   regress0/options/statistics.smt2
@@ -1033,6 +1037,7 @@ set(regress_0_tests
   regress0/parser/issue9676.smt2
   regress0/parser/issue9990-nprint-char.smt2
   regress0/parser/issue10093.smt2
+  regress0/parser/issue10156-bad-tester.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
@@ -1386,6 +1391,7 @@ set(regress_0_tests
   regress0/rels/rel_transpose_7.cvc.smt2
   regress0/rels/relations-ops.smt2
   regress0/rels/rels-sharing-simp.cvc.smt2
+  regress0/reset-i.smt2
   regress0/sep/dispose-1.smt2
   regress0/sep/dup-nemp.smt2
   regress0/sep/issue10213-empty-model.smt2
@@ -1689,6 +1695,7 @@ set(regress_0_tests
   regress0/sygus/cegqi-si-string-triv.sy
   regress0/sygus/check-generic-red.sy
   regress0/sygus/const-var-test.sy
+  regress0/sygus/declare-var-grammar-err.sy
   regress0/sygus/dt-no-syntax.sy
   regress0/sygus/dt-sel-parse1.sy
   regress0/sygus/find-synth-next.smt2
@@ -2019,6 +2026,7 @@ set(regress_1_tests
   regress1/bags/choose2.smt2
   regress1/bags/choose3.smt2
   regress1/bags/choose4.smt2
+  regress1/bags/ctor_previous_sat.smt2
   regress1/bags/difference_remove1.smt2
   regress1/bags/disequality.smt2
   regress1/bags/duplicate_removal1.smt2
@@ -2211,6 +2219,8 @@ set(regress_1_tests
   regress1/get-learned-literals-types.smt2
   regress1/ho/bug_freeVar_BDD_General_data_270.smt2
   regress1/ho/bound_var_bug.smt2
+  regress1/ho/dd.seu-mbqi.smt2
+  regress1/ho/dd.seu589-wrong.smt2
   regress1/ho/fta0328.lfho.smt2
   regress1/ho/ho-fun-sharing-dd.smt2
   regress1/ho/issue3136-fconst-bool-bool.smt2
@@ -2224,6 +2234,9 @@ set(regress_1_tests
   regress1/ho/NUM638^1.smt2
   regress1/ho/NUM925^1.smt2
   regress1/ho/proj-issue139-2.smt2
+  regress1/ho/seu589-wrong.smt2
+  regress1/ho/sev428-mbqi.smt2
+  regress1/ho/sev310-tdb.smt2
   regress1/ho/soundness_fmf_SYO362^5-delta.smt2
   regress1/ho/store-ax-min.smt2
   regress1/hole6.cvc.smt2
@@ -3098,6 +3111,8 @@ set(regress_1_tests
   regress1/sygus/finite-feasible-2.sy
   regress1/sygus/finite-infeasible.sy
   regress1/sygus/finite-infeasible-2.sy
+  regress1/sygus/fwd-decl-2.sy
+  regress1/sygus/fwd-decl-simple.sy
   regress1/sygus/grammar_norm.sy
   regress1/sygus/ground-ite-free-constant-si.sy
   regress1/sygus/hd-01-d1-prog.sy

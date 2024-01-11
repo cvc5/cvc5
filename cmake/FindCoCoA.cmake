@@ -51,6 +51,8 @@ if(NOT CoCoA_FOUND_SYSTEM)
     set(make_cmd "make")
   endif()
 
+  get_target_property(GMP_LIBRARY GMP IMPORTED_LOCATION)
+
   ExternalProject_Add(
     CoCoA-EP
     ${COMMON_EP_CONFIG}
@@ -61,7 +63,7 @@ if(NOT CoCoA_FOUND_SYSTEM)
     PATCH_COMMAND patch -p1 -d <SOURCE_DIR>
         -i ${CMAKE_CURRENT_LIST_DIR}/deps-utils/CoCoALib-0.99800-trace.patch
     BUILD_IN_SOURCE YES
-    CONFIGURE_COMMAND ${SHELL} ./configure --prefix=<INSTALL_DIR>
+    CONFIGURE_COMMAND ${SHELL} ./configure --prefix=<INSTALL_DIR> --with-libgmp=${GMP_LIBRARY}
     BUILD_COMMAND ${make_cmd} library
     BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libcocoa.a
   )

@@ -397,6 +397,7 @@ void TermDb::computeUfTerms( TNode f ) {
           if (at[k] != n[k])
           {
             lits.push_back(nm->mkNode(Kind::EQUAL, at[k], n[k]).negate());
+            Assert(d_qstate.areEqual(at[k], n[k]));
           }
         }
         Node lem = nm->mkOr(lits);
@@ -546,12 +547,6 @@ Node TermDb::getEligibleTermInEqc( TNode r ) {
   }
 }
 
-bool TermDb::resetInternal(Theory::Effort e)
-{
-  // do nothing
-  return true;
-}
-
 bool TermDb::finishResetInternal(Theory::Effort e)
 {
   // do nothing
@@ -590,11 +585,6 @@ bool TermDb::reset( Theory::Effort effort ){
   eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
 
   Assert(ee->consistent());
-  // if higher-order, add equalities for the purification terms now
-  if (!resetInternal(effort))
-  {
-    return false;
-  }
 
   //compute has map
   if (options().quantifiers.termDbMode == options::TermDbMode::RELEVANT)

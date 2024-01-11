@@ -30,7 +30,7 @@ Compilation on macOS
 
 On macOS, we recommend using `Homebrew <https://brew.sh/>`_ to install the
 dependencies.  We also have a Homebrew Tap available at
-https://github.com/CVC4/homebrew-cvc4 .
+https://github.com/cvc5/homebrew-cvc5.
 Note that linking system libraries statically is
 `strongly discouraged <https://developer.apple.com/library/archive/qa/qa1118/_index.html>`_
 on macOS. Using ``./configure.sh --static`` will thus produce a binary
@@ -121,7 +121,7 @@ versions; more recent versions should be compatible.
 - `Python >= 3.6 and <= 3.10 <https://www.python.org>`_
   + module `tomli <https://pypi.org/project/tomli/>`_
   + module `pyparsing <https://pypi.org/project/pyparsing/>`_
-- `GMP v6.1 (GNU Multi-Precision arithmetic library) <https://gmplib.org>`_
+- `GMP v6.3 (GNU Multi-Precision arithmetic library) <https://gmplib.org>`_
 - `CaDiCaL (SAT solver) <https://github.com/arminbiere/cadical>`_
 - `Java >= 1.6 <https://www.java.com>`_
 - `SymFPU <https://github.com/martin-cs/symfpu/tree/CVC4>`_

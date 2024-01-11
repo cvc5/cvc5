@@ -349,7 +349,7 @@ endif()
 if(DEFINED BUILD_BINDINGS_PYTHON_VERSION) 
   find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Interpreter REQUIRED)
 else()
-  find_supported_python_version()
+  find_package(Python COMPONENTS Interpreter REQUIRED)
 endif()
 
 # Some cmake packages are not compatible with the newest version
@@ -360,7 +360,7 @@ if(NOT DEFINED PYTHON_EXECUTABLE)
   set(PYTHON_EXECUTABLE "${Python_EXECUTABLE}")
 endif()
 
-find_package(GMP 6.1 REQUIRED)
+find_package(GMP 6.3 REQUIRED)
 
 if(ENABLE_ASAN)
   # -fsanitize=address requires CMAKE_REQUIRED_FLAGS to be explicitely set,
