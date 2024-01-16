@@ -16,3 +16,34 @@ name   = "Finite Field Theory"
   type       = "bool"
   default    = "false"
   help       = "include field polynomials in Groebner basis computation; don't do this"
+
+[[option]]
+  name       = "ffDisjunctiveBit"
+  category   = "expert"
+  long       = "ff-disjunctive-bit"
+  type       = "bool"
+  default    = "false"
+  help       = "leave disjunctive bit constraints (or (= x 1) (= x 0)) alone; otherwise, preprocess to (= (* x x) x)"
+
+[[option]]
+  name       = "ffBitsum"
+  category   = "expert"
+  long       = "ff-bitsum"
+  type       = "bool"
+  default    = "false"
+  help       = "parse bitsums"
+[[option]]
+  name       = "ffSolver"
+  category   = "expert"
+  long       = "ff-solver=MODE"
+  type       = "FfSolver"
+  default    = "GB"
+  help       = "which field solver (default: 'gb'; see --ff-solver=help)"
+  help_mode  = "Which field solver"
+[[option.mode.GB]]
+  name = "gb"
+  help = "use a groebner basis for the whole system"
+[[option.mode.SPLIT_GB]]
+  name = "split"
+  help = "use multiple groebner bases for partitions of the system"
+
