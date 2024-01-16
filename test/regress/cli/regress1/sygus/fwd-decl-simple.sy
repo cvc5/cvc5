@@ -1,0 +1,14 @@
+; EXPECT: feasible
+; COMMAND-LINE: --sygus-out=status
+(set-feature :fwd-decls true)
+(set-logic ALL)
+(synth-fun c () Int ((Start Int)) ((Start Int (5 6 7))))
+(synth-fun f ((x Int)) Int
+  ((Start Int))
+  (
+  (Start Int ((+ Start Start) c x))
+  )
+)
+(constraint (= (f 3) 8))
+(constraint (= (f 7) 12))
+(check-synth)

@@ -58,7 +58,6 @@ TEST_F(TestApiBlackGrammar, addRule)
   ASSERT_THROW(g.addRule(start, nullTerm), CVC5ApiException);
   ASSERT_THROW(g.addRule(nts, d_solver.mkBoolean(false)), CVC5ApiException);
   ASSERT_THROW(g.addRule(start, d_solver.mkInteger(0)), CVC5ApiException);
-  ASSERT_THROW(g.addRule(start, nts), CVC5ApiException);
 
   d_solver.synthFun("f", {}, boolean, g);
 
@@ -84,7 +83,6 @@ TEST_F(TestApiBlackGrammar, addRules)
   ASSERT_THROW(g.addRules(start, {nullTerm}), CVC5ApiException);
   ASSERT_THROW(g.addRules(nts, {d_solver.mkBoolean(false)}), CVC5ApiException);
   ASSERT_THROW(g.addRules(start, {d_solver.mkInteger(0)}), CVC5ApiException);
-  ASSERT_THROW(g.addRules(start, {nts}), CVC5ApiException);
 
   d_solver.synthFun("f", {}, boolean, g);
 

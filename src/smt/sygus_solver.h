@@ -205,7 +205,7 @@ class SygusSolver : protected EnvObj
    * the internal sygus solver must reason about sygus operators after
    * expansion.
    */
-  void expandDefinitionsSygusDt(TypeNode tn) const;
+  void expandDefinitionsSygusDt(const Node& fn, TypeNode tn) const;
   /** List to vector helper */
   static std::vector<Node> listToVector(const NodeList& list);
   /**

@@ -138,7 +138,8 @@ const char* toString(InferenceId i)
     case InferenceId::BAGS_DIFFERENCE_REMOVE: return "BAGS_DIFFERENCE_REMOVE";
     case InferenceId::BAGS_DUPLICATE_REMOVAL: return "BAGS_DUPLICATE_REMOVAL";
     case InferenceId::BAGS_MAP_DOWN: return "BAGS_MAP_DOWN";
-    case InferenceId::BAGS_MAP_UP: return "BAGS_MAP_UP";
+    case InferenceId::BAGS_MAP_UP1: return "BAGS_MAP_UP1";
+    case InferenceId::BAGS_MAP_UP2: return "BAGS_MAP_UP2";
     case InferenceId::BAGS_FILTER_DOWN: return "BAGS_FILTER_DOWN";
     case InferenceId::BAGS_FILTER_UP: return "BAGS_FILTER_UP";
     case InferenceId::BAGS_FOLD: return "BAGS_FOLD";

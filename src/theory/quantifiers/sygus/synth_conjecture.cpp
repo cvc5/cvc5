@@ -496,36 +496,63 @@ bool SynthConjecture::doCheck()
       return false;
     }
   }
+  else
+  {
+    return false;
+  }
 
   // must get a counterexample to the value of the current candidate
   Node query;
-  if (constructed_cand)
+  if (TraceIsOn("sygus-engine-debug"))
   {
-    if (TraceIsOn("sygus-engine-debug"))
+    Trace("sygus-engine-debug")
+        << "CegConjuncture : check candidate : " << std::endl;
+    for (unsigned i = 0, size = candidate_values.size(); i < size; i++)
     {
-      Trace("sygus-engine-debug")
-          << "CegConjuncture : check candidate : " << std::endl;
-      for (unsigned i = 0, size = candidate_values.size(); i < size; i++)
-      {
-        Trace("sygus-engine-debug")
-            << "  " << i << " : " << d_candidates[i] << " -> "
-            << candidate_values[i] << std::endl;
-      }
+      Trace("sygus-engine-debug") << "  " << i << " : " << d_candidates[i]
+                                  << " -> " << candidate_values[i] << std::endl;
     }
-    Assert(candidate_values.size() == d_candidates.size());
-    query = d_checkBody.substitute(d_candidates.begin(),
-                                   d_candidates.end(),
-                                   candidate_values.begin(),
-                                   candidate_values.end());
   }
-  else
+  Assert(candidate_values.size() == d_candidates.size());
+  query = d_checkBody.substitute(d_candidates.begin(),
+                                 d_candidates.end(),
+                                 candidate_values.begin(),
+                                 candidate_values.end());
+  query = rewrite(query);
+  Trace("sygus-engine-debug") << "Rewritten query is " << query << std::endl;
+  if (expr::hasFreeVar(query))
   {
-    query = d_checkBody;
-  }
-
-  if (!constructed_cand)
-  {
-    return false;
+    Trace("sygus-engine-debug")
+        << "Free variable, from fwd-decls?" << std::endl;
+    NodeManager* nm = NodeManager::currentNM();
+    std::vector<Node> qconj;
+    qconj.push_back(query);
+    Subs psubs;
+    for (size_t i = 0, size = d_candidates.size(); i < size; i++)
+    {
+      Node bsol = datatypes::utils::sygusToBuiltin(candidate_values[i], false);
+      // convert to lambda
+      TypeNode tn = d_candidates[i].getType();
+      const DType& dt = tn.getDType();
+      Node fvar = d_quant[0][i];
+      Node bvl = dt.getSygusVarList();
+      if (!bvl.isNull())
+      {
+        // since we don't have function subtyping, this assertion should only
+        // check the return type
+        Assert(fvar.getType().isFunction());
+        Assert(fvar.getType().getRangeType() == bsol.getType());
+        bsol = nm->mkNode(Kind::LAMBDA, bvl, bsol);
+      }
+      Trace("sygus-engine-debug")
+          << "Builtin sol: " << d_quant[0][i] << " -> " << bsol << std::endl;
+      // add purifying substitution, in case the dependencies are recusive
+      psubs.add(d_quant[0][i]);
+      // conjoin higher-order equality
+      qconj.push_back(d_quant[0][i].eqNode(bsol));
+    }
+    query = nm->mkAnd(qconj);
+    query = rewrite(psubs.apply(query));
   }
 
   // if we trust the sampling we ran, we terminate now
@@ -554,12 +581,6 @@ bool SynthConjecture::doCheck()
       out << ")";
     }
     out << ")" << std::endl;
-  }
-
-  if (query.isNull())
-  {
-    // no lemma to check
-    return false;
   }
 
   // Record the solution, which may be falsified below. We require recording

@@ -1,5 +1,5 @@
 ; SCRUBBER: grep -v -E '(\(|\)|:proves)'
-; COMMAND-LINE: --simplification=none
+; COMMAND-LINE: --simplification=none --proof-format=none
 ; EXPECT: unsat
 ; DISABLE-TESTER: lfsc
 ; DISABLE-TESTER: alf
