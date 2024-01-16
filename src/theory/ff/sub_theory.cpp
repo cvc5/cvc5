@@ -74,12 +74,8 @@ Result SubTheory::postCheck(Theory::Effort e)
         }
         return Result::SAT;
       }
-      else
-      {
-        std::copy(
-            d_facts.begin(), d_facts.end(), std::back_inserter(d_conflict));
-        return Result::UNSAT;
-      }
+      std::copy(d_facts.begin(), d_facts.end(), std::back_inserter(d_conflict));
+      return Result::UNSAT;
     }
     else if (options().ff.ffSolver == options::FfSolver::GB)
     {

@@ -32,8 +32,6 @@ name   = "Finite Field Theory"
   type       = "bool"
   default    = "false"
   help       = "parse bitsums"
-
-
 [[option]]
   name       = "ffSolver"
   category   = "expert"
