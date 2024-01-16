@@ -35,6 +35,7 @@
 #include "theory/ff/cocoa_encoder.h"
 #include "theory/ff/core.h"
 #include "theory/ff/multi_roots.h"
+#include "theory/ff/split_gb.h"
 #include "util/cocoa_globals.h"
 #include "util/finite_field_value.h"
 
@@ -59,93 +60,118 @@ Result SubTheory::postCheck(Theory::Effort e)
   if (e == Theory::EFFORT_FULL)
   {
     if (d_facts.empty()) return Result::SAT;
-    CocoaEncoder enc(size());
-    // collect leaves
-    for (const Node& node : d_facts)
+    if (options().ff.ffSolver == options::FfSolver::SPLIT_GB)
     {
-      enc.addFact(node);
-    }
-    enc.endScan();
-    // assert facts
-    for (const Node& node : d_facts)
-    {
-      enc.addFact(node);
-    }
-
-    // compute a GB
-    std::vector<CoCoA::RingElem> generators;
-    generators.insert(generators.end(), enc.polys().begin(), enc.polys().end());
-    generators.insert(
-        generators.end(), enc.bitsumPolys().begin(), enc.bitsumPolys().end());
-    size_t nNonFieldPolyGens = generators.size();
-    if (options().ff.ffFieldPolys)
-    {
-      for (const auto& var : CoCoA::indets(enc.polyRing()))
+      std::vector<Node> facts{};
+      std::copy(d_facts.begin(), d_facts.end(), std::back_inserter(facts));
+      auto result = split(facts, size());
+      if (result.has_value())
       {
-        CoCoA::BigInt characteristic = CoCoA::characteristic(coeffRing());
-        long power = CoCoA::LogCardinality(coeffRing());
-        CoCoA::BigInt size = CoCoA::power(characteristic, power);
-        generators.push_back(CoCoA::power(var, size) - var);
-      }
-    }
-    Tracer tracer(generators);
-    if (options().ff.ffTraceGb) tracer.setFunctionPointers();
-    CoCoA::ideal ideal = CoCoA::ideal(generators);
-    const auto basis = CoCoA::GBasis(ideal);
-    if (options().ff.ffTraceGb) tracer.unsetFunctionPointers();
-
-    // if it is trivial, create a conflict
-    bool is_trivial = basis.size() == 1 && CoCoA::deg(basis.front()) == 0;
-    if (is_trivial)
-    {
-      Trace("ff::gb") << "Trivial GB" << std::endl;
-      if (options().ff.ffTraceGb)
-      {
-        std::vector<size_t> coreIndices = tracer.trace(basis.front());
-        Assert(d_conflict.empty());
-        for (size_t i : coreIndices)
+        const auto nm = NodeManager::currentNM();
+        for (const auto& [var, val] : result.value())
         {
-          // omit field polys from core
-          if (i < nNonFieldPolyGens)
+          d_model.insert({var, nm->mkConst<FiniteFieldValue>(val)});
+        }
+        return Result::SAT;
+      }
+      std::copy(d_facts.begin(), d_facts.end(), std::back_inserter(d_conflict));
+      return Result::UNSAT;
+    }
+    else if (options().ff.ffSolver == options::FfSolver::GB)
+    {
+      CocoaEncoder enc(size());
+      // collect leaves
+      for (const Node& node : d_facts)
+      {
+        enc.addFact(node);
+      }
+      enc.endScan();
+      // assert facts
+      for (const Node& node : d_facts)
+      {
+        enc.addFact(node);
+      }
+
+      // compute a GB
+      std::vector<CoCoA::RingElem> generators;
+      generators.insert(
+          generators.end(), enc.polys().begin(), enc.polys().end());
+      generators.insert(
+          generators.end(), enc.bitsumPolys().begin(), enc.bitsumPolys().end());
+      size_t nNonFieldPolyGens = generators.size();
+      if (options().ff.ffFieldPolys)
+      {
+        for (const auto& var : CoCoA::indets(enc.polyRing()))
+        {
+          CoCoA::BigInt characteristic = CoCoA::characteristic(coeffRing());
+          long power = CoCoA::LogCardinality(coeffRing());
+          CoCoA::BigInt size = CoCoA::power(characteristic, power);
+          generators.push_back(CoCoA::power(var, size) - var);
+        }
+      }
+      Tracer tracer(generators);
+      if (options().ff.ffTraceGb) tracer.setFunctionPointers();
+      CoCoA::ideal ideal = CoCoA::ideal(generators);
+      const auto basis = CoCoA::GBasis(ideal);
+      if (options().ff.ffTraceGb) tracer.unsetFunctionPointers();
+
+      // if it is trivial, create a conflict
+      bool is_trivial = basis.size() == 1 && CoCoA::deg(basis.front()) == 0;
+      if (is_trivial)
+      {
+        Trace("ff::gb") << "Trivial GB" << std::endl;
+        if (options().ff.ffTraceGb)
+        {
+          std::vector<size_t> coreIndices = tracer.trace(basis.front());
+          Assert(d_conflict.empty());
+          for (size_t i : coreIndices)
           {
-            Trace("ff::core") << "Core: " << d_facts[i] << std::endl;
-            d_conflict.push_back(d_facts[i]);
+            // omit field polys from core
+            if (i < nNonFieldPolyGens)
+            {
+              Trace("ff::core") << "Core: " << d_facts[i] << std::endl;
+              d_conflict.push_back(d_facts[i]);
+            }
           }
+        }
+        else
+        {
+          setTrivialConflict();
         }
       }
       else
       {
-        setTrivialConflict();
+        Trace("ff::gb") << "Non-trivial GB" << std::endl;
+
+        // common root (vec of CoCoA base ring elements)
+        std::vector<CoCoA::RingElem> root = findZero(ideal);
+
+        if (root.empty())
+        {
+          // UNSAT
+          setTrivialConflict();
+        }
+        else
+        {
+          // SAT: populate d_model from the root
+          Assert(d_model.empty());
+          const auto nm = NodeManager::currentNM();
+          for (const auto& [idx, node] : enc.nodeIndets())
+          {
+            if (isFfLeaf(node))
+            {
+              Node value = nm->mkConst(enc.cocoaFfToFfVal(root[idx]));
+              Trace("ff::model")
+                  << "Model: " << node << " = " << value << std::endl;
+              d_model.emplace(node, value);
+            }
+          }
+        }
       }
     }
     else
     {
-      Trace("ff::gb") << "Non-trivial GB" << std::endl;
-
-      // common root (vec of CoCoA base ring elements)
-      std::vector<CoCoA::RingElem> root = findZero(ideal);
-
-      if (root.empty())
-      {
-        // UNSAT
-        setTrivialConflict();
-      }
-      else
-      {
-        // SAT: populate d_model from the root
-        Assert(d_model.empty());
-        const auto nm = NodeManager::currentNM();
-        for (const auto& [idx, node] : enc.nodeIndets())
-        {
-          if (isFfLeaf(node))
-          {
-            Node value = nm->mkConst(enc.cocoaFfToFfVal(root[idx]));
-            Trace("ff::model")
-                << "Model: " << node << " = " << value << std::endl;
-            d_model.emplace(node, value);
-          }
-        }
-      }
+      Unreachable() << options().ff.ffSolver << std::endl;
     }
     AlwaysAssert((!d_conflict.empty() ^ !d_model.empty()) || d_facts.empty());
     return d_facts.empty() || d_conflict.empty() ? Result::SAT : Result::UNSAT;
