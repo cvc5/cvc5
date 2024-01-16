@@ -104,6 +104,7 @@ jobs:
         with-documentation: ${{ matrix.build-documentation }}
         with-python-bindings: ${{ matrix.python-bindings }}
         windows-build: ${{ matrix.windows-build }}
+        wasm-build: ${{ matrix.wasm-build }}
 
     - name: Setup caches
       uses: ./.github/actions/setup-cache
