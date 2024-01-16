@@ -72,8 +72,8 @@ runs:
         sudo apt-get update
         git clone https://github.com/emscripten-core/emsdk.git
         cd emsdk/
-        ./emsdk install '3.1.18’
-        ./emsdk activate '3.1.18’
+        ./emsdk install '3.1.18'
+        ./emsdk activate '3.1.18'
         source ./emsdk_env.sh
         echo "::endgroup::"
 
