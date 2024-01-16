@@ -500,7 +500,7 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     {
       Assert(cacheVals.size() > 0);
       TypeNode stype = cacheVals[0].getType();
-      Assert(stype.getNumChildren()==1);
+      Assert(stype.getNumChildren() == 1);
       return stype[0];
     }
     // skolems that return the set to set element type
@@ -509,7 +509,7 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     {
       Assert(cacheVals.size() > 0);
       TypeNode stype = cacheVals[0].getType();
-      Assert(stype.getNumChildren()==1);
+      Assert(stype.getNumChildren() == 1);
       return nm->mkFunctionType(stype, stype[0]);
     }
     case SkolemFunId::TABLES_GROUP_PART:
@@ -517,9 +517,9 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     {
       Assert(cacheVals.size() > 0);
       TypeNode stype = cacheVals[0].getType();
-      Assert(stype.getNumChildren()==1);
+      Assert(stype.getNumChildren() == 1);
       stype = stype[0];
-      Assert(stype.getNumChildren()==1);
+      Assert(stype.getNumChildren() == 1);
       return nm->mkFunctionType(stype[0], stype);
     }
     // skolems that return the set element of set element type
@@ -528,9 +528,9 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
     {
       Assert(cacheVals.size() > 0);
       TypeNode stype = cacheVals[0].getType();
-      Assert(stype.getNumChildren()==1);
+      Assert(stype.getNumChildren() == 1);
       stype = stype[0];
-      Assert(stype.getNumChildren()==1);
+      Assert(stype.getNumChildren() == 1);
       return stype[0];
     }
     case SkolemFunId::SETS_MAP_DOWN_ELEMENT:
@@ -553,7 +553,7 @@ TypeNode SkolemManager::getTypeFor(SkolemFunId id,
       Assert(cacheVals.size() > 0);
       TypeNode itype = nm->integerType();
       TypeNode stype = cacheVals[0].getType();
-      Assert (stype.getNumChildren()==1);
+      Assert(stype.getNumChildren() == 1);
       return nm->mkFunctionType(itype, stype[0]);
     }
     case SkolemFunId::BAGS_FOLD_COMBINE:
