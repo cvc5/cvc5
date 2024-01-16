@@ -38,7 +38,7 @@ PreprocessingPassResult FfDisjunctiveBit::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
   auto nm = NodeManager::currentNM();
-  for (uint64_t i = 0; i < assertionsToPreprocess->size(); ++i)
+  for (uint64_t i = 0, n = assertionsToPreprocess->size(); i < n; ++i)
   {
     Node fact = (*assertionsToPreprocess)[i];
     std::optional<Node> var = theory::ff::parse::disjunctiveBitConstraint(fact);
