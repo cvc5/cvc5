@@ -74,7 +74,8 @@ runs:
         cd emsdk/
         ./emsdk install '3.1.18'
         ./emsdk activate '3.1.18'
-        source "/home/runner/work/cvc5/cvc5/emsdk/emsdk_env.sh"
+        echo "/home/runner/work/cvc5/cvc5/emsdk" >> $GITHUB_PATH
+        echo "/home/runner/work/cvc5/cvc5/emsdk/upstream/emscripten" >> $GITHUB_PATH
         echo "::endgroup::"
 
     # Note: macOS comes with a libedit; it does not need to brew-installed
