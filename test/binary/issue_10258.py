@@ -30,7 +30,7 @@ def main():
         (pop 1)'"""
     
     out = subprocess.check_output(echo_cmd + " | bin/cvc5 --lang smt2 --incremental", shell=True)
-    if out != "":
+    if out != b'':
         raise NonEmptyOutput(out)
 
 if __name__ == "__main__":
