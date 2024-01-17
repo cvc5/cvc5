@@ -60,6 +60,8 @@ jobs:
             wasm-build: true
             binary-name: cvc5.wasm
             binary-ext: .wasm
+            build-shared: false
+            build-static: true
 
           - name: ubuntu:production-clang
             os: ubuntu-latest
