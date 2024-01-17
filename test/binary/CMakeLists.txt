@@ -45,5 +45,12 @@ if (USE_EDITLINE)
       WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
     )
     set_tests_properties(interactive_shell_parser_inc PROPERTIES LABELS "binary")
+    add_test(
+      NAME issue_10258
+      COMMAND
+      "${Python_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/test/binary/issue_10258.py"
+      WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+    )
+    set_tests_properties(issue_10258 PROPERTIES LABELS "binary")
   endif()
 endif()
