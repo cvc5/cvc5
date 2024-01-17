@@ -1,8 +1,9 @@
+; COMMAND-LINE: --produce-proofs
 ; DISABLE-TESTER: dump
+; DISABLE-TESTER: unsat-core
 ; REQUIRES: no-competition
 ; SCRUBBER: grep -o "unsat"
 ; EXPECT: unsat
-; EXIT: 1
 (set-logic ALL)
 (declare-const x Int)
 (declare-const y Int)
