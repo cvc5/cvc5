@@ -503,14 +503,35 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
   return std::tuple(inferInfo, uf, preImageSize);
 }
 
-InferInfo InferenceGenerator::mapUp(
+InferInfo InferenceGenerator::mapUp1(Node n, Node x)
+{
+  Assert(n.getKind() == Kind::BAG_MAP && n[1].getType().isBag());
+  Assert(n[0].getType().isFunction()
+         && n[0].getType().getArgTypes().size() == 1);
+
+  InferInfo inferInfo(d_im, InferenceId::BAGS_MAP_UP1);
+  Node f = n[0];
+  Node A = n[1];
+
+  Node countA = getMultiplicityTerm(x, A);
+  registerCountTerm(countA);
+  Node f_x = d_nm->mkNode(Kind::APPLY_UF, f, x);
+  Node mapSkolem = registerAndAssertSkolemLemma(n);
+  Node countN = getMultiplicityTerm(f_x, mapSkolem);
+  registerCountTerm(countN);
+  Node leq = d_nm->mkNode(Kind::LEQ, countA, countN);
+  inferInfo.d_conclusion = leq;
+  return inferInfo;
+}
+
+InferInfo InferenceGenerator::mapUp2(
     Node n, Node uf, Node preImageSize, Node y, Node x)
 {
   Assert(n.getKind() == Kind::BAG_MAP && n[1].getType().isBag());
   Assert(n[0].getType().isFunction()
          && n[0].getType().getArgTypes().size() == 1);
 
-  InferInfo inferInfo(d_im, InferenceId::BAGS_MAP_UP);
+  InferInfo inferInfo(d_im, InferenceId::BAGS_MAP_UP2);
   Node f = n[0];
   Node A = n[1];
 
@@ -531,8 +552,6 @@ InferInfo InferenceGenerator::mapUp(
   Node orNode = d_nm->mkNode(Kind::OR, notEqual, andNode);
   Node implies = d_nm->mkNode(Kind::IMPLIES, xInA, orNode);
   inferInfo.d_conclusion = implies;
-  Trace("bags::InferenceGenerator::mapUpwards")
-      << "conclusion: " << inferInfo.d_conclusion << std::endl;
   return inferInfo;
 }
 
