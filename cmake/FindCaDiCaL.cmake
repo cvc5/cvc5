@@ -78,6 +78,11 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
     set(make_cmd "make")
   endif()
 
+  set(USE_EMAR "")
+  if(NOT(WASM STREQUAL "OFF"))
+    set(USE_EMAR  "-e s,ar rc,emar rc,")
+  endif()
+
   ExternalProject_Add(
     CaDiCaL-EP
     ${COMMON_EP_CONFIG}
@@ -90,7 +95,7 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
             <SOURCE_DIR>/build/makefile
     COMMAND
       sed -i.orig -e "s,@CXX@,${CMAKE_CXX_COMPILER}," -e
-      "s,@CXXFLAGS@,${CXXFLAGS}," -e "s,@MAKEFLAGS@,,"
+      "s,@CXXFLAGS@,${CXXFLAGS}," -e "s,@MAKEFLAGS@,," ${USE_EMAR}
       <SOURCE_DIR>/build/makefile
     BUILD_COMMAND ${make_cmd} -C <SOURCE_DIR>/build libcadical.a
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/build/libcadical.a
