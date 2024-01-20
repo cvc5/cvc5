@@ -56,10 +56,7 @@ jobs:
             os: ubuntu-20.04
             config: production --static --static-binary --auto-download --wasm=JS --wasm-flags='-s MODULARIZE'
             cache-key: productionwasm
-            strip-bin: strip
             wasm-build: true
-            binary-name: cvc5.wasm
-            binary-ext: .wasm
             build-shared: false
             build-static: true
 
