@@ -3,6 +3,10 @@ description: Package cvc5 into a python wheel on macOS for one python version
 inputs:
   python-version:
     default: ""
+  config:
+    default: ""
+  platform:
+    default: ""
 runs:
   using: composite
   steps:
@@ -14,11 +18,9 @@ runs:
     - name: Build wheel
       shell: bash
       if: runner.os == 'macOS'
-      env:
-        MACOSX_DEPLOYMENT_TARGET: 10.13
       run: |
         echo "::group::Build macOS wheel for ${{ inputs.python-version }}"
-        ./contrib/packaging_python/mk_clean_wheel.sh python "production --auto-download"
+        ./contrib/packaging_python/mk_clean_wheel.sh python "${{ inputs.config }}" ${{ inputs.platform }}
 
         ls *.whl
         echo "::endgroup::"
