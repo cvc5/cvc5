@@ -303,7 +303,7 @@ Node AlfNodeConverter::postConvert(Node n)
     ss << "@fp." << printer::smt2::Smt2Printer::smtKindString(k);
     return mkInternalApp(ss.str(), {tnn}, tn);
   }
-  else if (k==Kind::SEXPR)
+  else if (k == Kind::SEXPR)
   {
     // use generic list
     std::vector<Node> args;
