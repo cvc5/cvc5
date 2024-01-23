@@ -27,9 +27,18 @@
 namespace cvc5::internal {
 namespace proof {
 
+/**
+ * Base class for node converters used in the ALF printer. Extends node
+ * conversion with a typeAsNode routine.
+ */
 class BaseAlfNodeConverter : public NodeConverter
 {
  public:
+  /**
+   * Type as node, returns a node that prints in the form that ALF will
+   * interpret as the type tni. This method is required since types can be
+   * passed as arguments to terms and proof rules.
+   */
   virtual Node typeAsNode(TypeNode tni) = 0;
 };
 
@@ -84,7 +93,7 @@ class AlfNodeConverter : public BaseAlfNodeConverter
   /**
    * Type as node, returns a node that prints in the form that ALF will
    * interpret as the type tni. This method is required since types can be
-   * passed as arguments to terms.
+   * passed as arguments to terms and proof rules.
    */
   Node typeAsNode(TypeNode tni) override;
   /**
