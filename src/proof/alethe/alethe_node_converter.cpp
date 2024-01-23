@@ -99,7 +99,7 @@ Node AletheNodeConverter::postConvert(Node n)
           return convert(witness);
         }
       }
-      Unreachable() << "Fresh Skolems are not allowed\n";
+      Unreachable() << "Fresh Skolem " << sfi << " is not allowed\n";
     }
     case Kind::FORALL:
     {

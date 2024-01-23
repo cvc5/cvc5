@@ -395,8 +395,8 @@ bool AletheProofPostprocessCallback::update(Node res,
       if (rewriter::getDslProofRule(args[0], di))
       {
         std::stringstream ss;
-        ss << di;
-        rule = nm->mkBoundVar(ss.str(), nm->sExprType());
+        ss << "\"" << di << "\"";
+        rule = nm->mkRawSymbol(ss.str(), nm->sExprType());
       }
       else
       {
@@ -409,15 +409,13 @@ bool AletheProofPostprocessCallback::update(Node res,
         {
           if (args[i].toString() == "")
           {  // TODO: better way
-            new_args.push_back(nm->mkNode(
-                Kind::SEXPR, nm->mkBoundVar("cvc5_nary_op", nm->sExprType())));
+            new_args.push_back(nm->mkBoundVar("rare-list", nm->sExprType()));
           }
           else if (args[i].getKind() == Kind::SEXPR)
           {
-            std::vector<Node> list_arg;
-            list_arg.push_back(nm->mkBoundVar("cvc5_nary_op", nm->sExprType()));
+            std::vector<Node> list_arg{nm->mkBoundVar("rare-list", nm->sExprType())};
             list_arg.insert(list_arg.end(),args[i].begin(), args[i].end());
-            new_args.push_back(nm->mkNode(Kind::SEXPR,list_arg));
+            new_args.push_back(nm->mkNode(Kind::SEXPR, list_arg));
           }
           else
           {
@@ -425,7 +423,7 @@ bool AletheProofPostprocessCallback::update(Node res,
           }
         }
       }
-      return addAletheStep(AletheRule::ALL_SIMPLIFY,
+      return addAletheStep(AletheRule::RARE_REWRITE,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
                            children,
@@ -434,11 +432,11 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     case ProofRule::EVALUATE:
     {
-      return addAletheStep(AletheRule::ALL_SIMPLIFY,
+      return addAletheStep(AletheRule::RARE_REWRITE,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
                            children,
-                           {nm->mkBoundVar("evaluate", nm->sExprType())},
+                           {nm->mkRawSymbol("\"evaluate\"", nm->sExprType())},
                            *cdp);
     }
     case ProofRule::TRUST_THEORY_REWRITE:
