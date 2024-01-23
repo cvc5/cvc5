@@ -27,11 +27,18 @@
 namespace cvc5::internal {
 namespace proof {
 
+  
+class BaseAlfNodeConverter : public NodeConverter
+{
+public:
+  virtual Node typeAsNode(TypeNode tni) = 0;
+};
+  
 /**
  * This is a helper class for the ALF printer that converts nodes into
  * form that ALF expects. It should only be used by the ALF printer.
  */
-class AlfNodeConverter : public NodeConverter
+class AlfNodeConverter : public BaseAlfNodeConverter
 {
  public:
   AlfNodeConverter();
@@ -80,7 +87,7 @@ class AlfNodeConverter : public NodeConverter
    * interpret as the type tni. This method is required since types can be
    * passed as arguments to terms.
    */
-  Node typeAsNode(TypeNode tni);
+  Node typeAsNode(TypeNode tni) override;
   /**
    * Number of children for closure that we should process. In particular,
    * we ignore patterns for FORALL, so this method returns 2, indicating we
