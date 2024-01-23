@@ -28,7 +28,7 @@ runs:
         echo "::endgroup::"
 
         OPTS="${{ inputs.config }}"
-        for version in cp37 cp38 cp39 cp310 cp311 pp37 pp38 pp39 pp310
+        for version in cp37 cp38 cp39 cp310 cp311 cp312 pp37 pp38 pp39 pp310
         do
           echo "::group::Build extension for python $version"
           docker run --rm \
@@ -77,6 +77,14 @@ runs:
       uses: ./.github/actions/package-python-wheel-macos
       with:
         python-version: '3.11'
+        config: ${{ inputs.config }}
+        platform: ${{ inputs.platform }}
+
+    - name: Build wheels for macOS
+      if: runner.os == 'macOS'
+      uses: ./.github/actions/package-python-wheel-macos
+      with:
+        python-version: '3.12'
         config: ${{ inputs.config }}
         platform: ${{ inputs.platform }}
 
