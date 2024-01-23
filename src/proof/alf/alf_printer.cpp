@@ -474,8 +474,10 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
         Assert(i < pargs.size());
         targs.push_back(d_tproc.convert(pargs[i]));
       }
-      // package as list
-      Node ts = d_tproc.mkList(targs);
+      // package as SEXPR
+      NodeManager* nm = NodeManager::currentNM();
+      Node tsp = nm->mkNode(Kind::SEXPR, targs);
+      Node ts = d_tproc.convert(tsp);
       args.push_back(ts);
       return;
     }
