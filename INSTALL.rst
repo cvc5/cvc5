@@ -175,8 +175,8 @@ may improve performance. It can be downloaded and built automatically. Configure
 cvc5 with ``configure.sh --kissat`` to build with this dependency.
 
 
-LibPoly (Optional polynomial library)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LibPoly >= v0.1.13 (Optional polynomial library)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `LibPoly <https://github.com/SRI-CSL/libpoly>`_ is required for CAD-based
 nonlinear reasoning. It can be downloaded and built automatically. Configure
