@@ -27,13 +27,12 @@
 namespace cvc5::internal {
 namespace proof {
 
-  
 class BaseAlfNodeConverter : public NodeConverter
 {
-public:
+ public:
   virtual Node typeAsNode(TypeNode tni) = 0;
 };
-  
+
 /**
  * This is a helper class for the ALF printer that converts nodes into
  * form that ALF expects. It should only be used by the ALF printer.
