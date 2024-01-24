@@ -138,12 +138,13 @@ void AlfPrintChannelOut::printTypeNodeInternal(std::ostream& out, TypeNode tn)
 
 AlfPrintChannelPre::AlfPrintChannelPre(LetBinding* lbind) : d_lbind(lbind) {}
 
-void AlfPrintChannelPre::printNode(TNode n) { 
+void AlfPrintChannelPre::printNode(TNode n)
+{
   if (d_lbind)
   {
-    d_lbind->process(n); 
+    d_lbind->process(n);
   }
-  }
+}
 
 void AlfPrintChannelPre::printAssume(TNode n, size_t i, bool isPush)
 {
