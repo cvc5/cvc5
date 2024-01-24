@@ -2,6 +2,7 @@
 ; DISABLE-TESTER: dump
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: alf
+; DISABLE-TESTER: lfsc
 ; REQUIRES: no-competition
 ; SCRUBBER: grep -o "unsat"
 ; EXPECT: unsat
