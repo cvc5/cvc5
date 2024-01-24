@@ -80,7 +80,9 @@ enum class IncompleteId
   // UF+cardinality solver used in an incomplete mode
   UF_CARD_MODE,
 
-  //------------------- other causes external to theory engine
+  //------------------- other causes external to theories
+  // unprocessed theory conflict
+  UNPROCESSED_THEORY_CONFLICT,
   // the prop layer stopped search
   STOP_SEARCH,
   //------------------- unknown

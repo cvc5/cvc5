@@ -34,13 +34,14 @@ public class Command extends AbstractPointer
    *
    * @param solver The solver to invoke the command on.
    * @param symbolManager The symbol manager to invoke the command on.
+   * @return the output of invoking the command.
    */
-  public void invoke(Solver solver, SymbolManager symbolManager)
+  public String invoke(Solver solver, SymbolManager symbolManager)
   {
-    invoke(pointer, solver.getPointer(), symbolManager.getPointer());
+    return invoke(pointer, solver.getPointer(), symbolManager.getPointer());
   }
 
-  private native void invoke(long pointer, long solverPointer, long symbolManagerPointer);
+  private native String invoke(long pointer, long solverPointer, long symbolManagerPointer);
 
   /**
    * @return A string representation of this result.

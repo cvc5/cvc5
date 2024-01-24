@@ -177,8 +177,8 @@ Node HoElim::eliminateHo(Node n)
     if (it == d_visited.end())
     {
       TypeNode tn = cur.getType();
-      // lambdas are already eliminated by now
-      Assert(cur.getKind() != Kind::LAMBDA);
+      // lambdas are already eliminated by now if hoElim
+      Assert(!options().quantifiers.hoElim || cur.getKind() != Kind::LAMBDA);
       if (tn.isFunction())
       {
         d_funTypes.insert(tn);

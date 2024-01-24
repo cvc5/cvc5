@@ -3,7 +3,7 @@ Proof format: AletheLF
 
 Using the flag :ref:`proof-format-mode=alf <lbl-option-proof-format-mode>`, cvc5 outputs proofs in the AletheLF (ALF) proof format.
 
-The ALF proof format is based on the SMT-LIB 3 language. An efficient C++ proof checker for ALF is available `here <https://github.com/cvc5/alfc>`_. For details on the checker and a comprehensive overview of the AletheLF language supported by the checker, see the user manual `here https://github.com/cvc5/alfc/blob/main/user_manual.md`_.
+The ALF proof format is based on the SMT-LIB 3 language. An efficient C++ proof checker for ALF is available `here <https://github.com/cvc5/alfc>`_. For details on the checker and a comprehensive overview of the AletheLF language supported by the checker, see the user manual `here <https://github.com/cvc5/alfc/blob/main/user_manual.md>`_.
 
 For a quick start, the cvc5 repository contains a :cvc5repo:`script <contrib/get-alf-checker>` which will download and install the ALF proof checker (alfc), and create scripts for generating proofs with cvc5 and checking them with the ALF proof checker.
 

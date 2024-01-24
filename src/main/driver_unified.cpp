@@ -107,16 +107,12 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
   // If no file supplied we will read from standard input
   const bool inputFromStdin = filenames.empty() || filenames[0] == "-";
 
-  // If we're reading from stdin, use interactive mode if stdin-input-per-line
-  // is true, or if we are a TTY.
+  // If we're reading from stdin, use interactive mode if we are a TTY.
   if (!solver->getOptionInfo("interactive").setByUser)
   {
-    bool inputPerLine =
-        solver->getOptionInfo("stdin-input-per-line").boolValue();
-    solver->setOption(
+    pExecutor->setOptionInternal(
         "interactive",
-        (inputFromStdin && (inputPerLine || isatty(fileno(stdin)))) ? "true"
-                                                                    : "false");
+        (inputFromStdin && isatty(fileno(stdin))) ? "true"  : "false");
   }
 
   // Auto-detect input language by filename extension
@@ -130,15 +126,15 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
   {
     if( inputFromStdin ) {
       // We can't do any fancy detection on stdin
-      solver->setOption("input-language", "smt2");
+      pExecutor->setOptionInternal("input-language", "smt2");
     } else {
       size_t len = filenameStr.size();
       if(len >= 5 && !strcmp(".smt2", filename + len - 5)) {
-        solver->setOption("input-language", "smt2");
+        pExecutor->setOptionInternal("input-language", "smt2");
       } else if((len >= 3 && !strcmp(".sy", filename + len - 3))
                 || (len >= 3 && !strcmp(".sl", filename + len - 3))) {
         // version 2 sygus is the default
-        solver->setOption("input-language", "sygus2");
+        pExecutor->setOptionInternal("input-language", "sygus2");
       }
     }
   }
@@ -148,7 +144,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
     // to simplify checking at the API level. In particular, the sygus
     // option is the authority on whether sygus commands are currently
     // allowed in the API.
-    solver->setOption("sygus", "true");
+    pExecutor->setOptionInternal("sygus", "true");
     ilang = cvc5::modes::InputLanguage::SYGUS_2_1;
   }
   else
@@ -158,9 +154,9 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
 
   if (solver->getOption("output-language") == "LANG_AUTO")
   {
-    solver->setOption("output-language", solver->getOption("input-language"));
+    pExecutor->setOptionInternal("output-language",
+                                 solver->getOption("input-language"));
   }
-  pExecutor->storeOptionsAsOriginal();
 
   // Determine which messages to show based on smtcomp_mode and verbosity
   if(Configuration::isMuzzledBuild()) {
@@ -185,8 +181,11 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
       // set incremental if we are in interactive mode
       if (!solver->getOptionInfo("incremental").setByUser)
       {
-        solver->setOption("incremental", isInteractive ? "true" : "false");
+        pExecutor->setOptionInternal("incremental",
+                                     isInteractive ? "true" : "false");
       }
+      // now store options as original
+      pExecutor->storeOptionsAsOriginal();
       InteractiveShell shell(
           pExecutor.get(), dopts.in(), dopts.out(), isInteractive);
 
@@ -218,14 +217,16 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
     {
       if (!solver->getOptionInfo("incremental").setByUser)
       {
-        solver->setOption("incremental", "false");
+        pExecutor->setOptionInternal("incremental", "false");
       }
       // we don't need to check that terms passed to API methods are well
       // formed, since this should be an invariant of the parser
       if (!solver->getOptionInfo("wf-checking").setByUser)
       {
-        solver->setOption("wf-checking", "false");
+        pExecutor->setOptionInternal("wf-checking", "false");
       }
+      // now store options as original
+      pExecutor->storeOptionsAsOriginal();
 
       std::unique_ptr<InputParser> parser(new InputParser(
           pExecutor->getSolver(), pExecutor->getSymbolManager()));
