@@ -228,7 +228,7 @@ void InstStrategyMbqi::process(Node q)
   mbqiChecker->setOption("produce-models", "true");
   mbqiChecker->assertFormula(query);
   Trace("mbqi") << "*** Check sat..." << std::endl;
-  Trace("mbqi") << "  query is : " << query << std::endl;
+  Trace("mbqi") << "  query is : " << SkolemManager::getOriginalForm(query) << std::endl;
   Result r = mbqiChecker->checkSat();
   Trace("mbqi") << "  ...got : " << r << std::endl;
   if (r.getStatus() == Result::UNSAT)
@@ -325,7 +325,6 @@ Node InstStrategyMbqi::convertToQuery(
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  FirstOrderModel* fm = d_treg.getModel();
   std::unordered_map<Node, Node>::iterator it;
   std::map<Node, Node> modelValue;
   std::unordered_set<Node> processingChildren;
@@ -384,7 +383,7 @@ Node InstStrategyMbqi::convertToQuery(
             }
             else
             {
-              mval = fm->getValue(cur);
+              mval = modelValueToQuery(cur);
             }
             Trace("mbqi-model") << "  M[" << cur << "] = " << mval << "\n";
             modelValue[cur] = mval;
