@@ -315,7 +315,7 @@ Node QuantifiersRewriter::mergePrenex(const Node& q)
     {
       children.push_back(body[2]);
     }
-    return nm->mkNode(Kind::FORALL, children);
+    return nm->mkNode(k, children);
   }
   return q;
 }
