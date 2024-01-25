@@ -1,3 +1,4 @@
+; COMMAND-LINE: -q
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-sort e 0)
