@@ -283,7 +283,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
 
 Node QuantifiersRewriter::mergePrenex(const Node& q)
 {
-  Assert(q.getKind() == Kind::FORALL || q.getKind() == EXISTS);
+  Assert(q.getKind() == Kind::FORALL || q.getKind() == Kind::EXISTS);
   Kind k = q.getKind();
   std::vector<Node> boundVars;
   Node body = q;
