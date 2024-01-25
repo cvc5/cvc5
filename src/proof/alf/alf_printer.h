@@ -36,7 +36,7 @@ namespace proof {
 class AlfPrinter : protected EnvObj
 {
  public:
-  AlfPrinter(Env& env, AlfNodeConverter& atp);
+  AlfPrinter(Env& env, BaseAlfNodeConverter& atp);
   ~AlfPrinter() {}
 
   /**
@@ -96,13 +96,10 @@ class AlfPrinter : protected EnvObj
    * Allocate (if necessary) the identifier for step
    */
   size_t allocateProofId(const ProofNode* pn, bool& wasAlloc);
-  /** Mapping from proof identifiers X to nodes named @pX which represent
-   * premises */
-  Node allocatePremise(size_t id);
   /** Print let list to output stream out */
   void printLetList(std::ostream& out, LetBinding& lbind);
   /** Reference to the term processor */
-  AlfNodeConverter& d_tproc;
+  BaseAlfNodeConverter& d_tproc;
   /** Assume id counter */
   size_t d_pfIdCounter;
   /** Mapping scope proofs to identifiers */

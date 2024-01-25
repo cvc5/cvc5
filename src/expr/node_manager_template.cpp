@@ -1104,8 +1104,7 @@ Node NodeManager::mkVar(const std::string& name,
   // to construct a canonical node for the tn.
   Node gt = mkGroundValue(type);
   cnodes.push_back(gt);
-  return d_skManager->mkSkolemFunction(
-      SkolemFunId::INPUT_VARIABLE, type, cnodes);
+  return d_skManager->mkSkolemFunction(SkolemFunId::INPUT_VARIABLE, cnodes);
 }
 
 Node NodeManager::mkBoundVar(const std::string& name, const TypeNode& type)
