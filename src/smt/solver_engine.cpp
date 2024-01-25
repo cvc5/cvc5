@@ -1653,6 +1653,8 @@ void SolverEngine::getRelevantQuantTermVectors(
     bool getDebugInfo)
 {
   Assert(d_state->getMode() == SmtMode::UNSAT);
+  Assert (d_env->getOptions().smt.produceProofs
+       && d_env->getOptions().smt.proofMode == options::ProofMode::FULL);
   // generate with new proofs
   PropEngine* pe = d_smtSolver->getPropEngine();
   Assert(pe != nullptr);
