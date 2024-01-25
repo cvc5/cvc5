@@ -201,6 +201,17 @@ RewriteResponse QuantifiersRewriter::preRewrite(TNode q)
   Kind k = q.getKind();
   if (k == Kind::FORALL || k == Kind::EXISTS)
   {
+    // Do prenex merging now, since this may impact trigger selection.
+    // In particular consider:
+    //   (forall ((x Int)) (forall ((y Int)) (! (P x) :pattern ((f x)))))
+    // If we wait until post-rewrite, we would rewrite the inner quantified
+    // formula, dropping the pattern, so the entire formula becomes:
+    //   (forall ((x Int)) (P x))
+    // Instead, we merge to:
+    //   (forall ((x Int) (y Int)) (! (P x) :pattern ((f x))))
+    // eagerly here, where after we would drop y to obtain:
+    //   (forall ((x Int)) (! (P x) :pattern ((f x))))
+    // See issue #10303.
     Node qm = mergePrenex(q);
     if (q != qm)
     {
@@ -232,6 +243,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
   }
   else if (in.getKind() == Kind::FORALL)
   {
+    // do prenex merging
     ret = mergePrenex(in);
     if (ret != in)
     {
