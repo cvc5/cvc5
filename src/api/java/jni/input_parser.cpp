@@ -116,6 +116,32 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_InputParser_setFileInput(
 
 /*
  * Class:     io_github_cvc5_InputParser
+ * Method:    setStringInput
+ * Signature: (JILjava/lang/String;Ljava/lang/String;)V
+ */
+JNIEXPORT void JNICALL
+Java_io_github_cvc5_InputParser_setStringInput(JNIEnv* env,
+                                               jobject,
+                                               jlong pointer,
+                                               jint langValue,
+                                               jstring jInput,
+                                               jstring jName)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  InputParser* parser = reinterpret_cast<InputParser*>(pointer);
+  modes::InputLanguage lang = static_cast<modes::InputLanguage>(langValue);
+  const char* cInput = env->GetStringUTFChars(jInput, nullptr);
+  std::string sInput(cInput);
+  const char* cName = env->GetStringUTFChars(jName, nullptr);
+  std::string sName(cName);
+  parser->setStringInput(lang, sInput, sName);
+  env->ReleaseStringUTFChars(jName, cName);
+  env->ReleaseStringUTFChars(jName, cInput);
+  CVC5_JAVA_API_TRY_CATCH_END(env);
+}
+
+/*
+ * Class:     io_github_cvc5_InputParser
  * Method:    setIncrementalStringInput
  * Signature: (JILjava/lang/String;)V
  */

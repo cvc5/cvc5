@@ -95,6 +95,16 @@ class BitVectorBVPredTypeRule
 /* non-parameterized operator kinds                                           */
 /* -------------------------------------------------------------------------- */
 
+class BitVectorSizeTypeRule
+{
+ public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+};
+
 class BitVectorConcatTypeRule
 {
  public:

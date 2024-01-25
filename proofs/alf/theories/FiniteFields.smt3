@@ -19,3 +19,7 @@
     (-> (! Int :var p :implicit)
         (FiniteField p) (FiniteField p) (FiniteField p)) :right-assoc-nil
 )
+(declare-const ff.bitsum
+    (-> (! Int :var p :implicit)
+        (FiniteField p) (FiniteField p) (FiniteField p)) :right-assoc-nil
+)

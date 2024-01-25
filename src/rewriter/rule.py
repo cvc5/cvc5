@@ -14,7 +14,8 @@
 ##
 
 class Rule:
-    def __init__(self, name, bvars, cond, lhs, rhs, is_fixed_point, rhs_context):
+    def __init__(self, name, bvars, cond, lhs, rhs,
+                 is_fixed_point, rhs_context):
         self.name = name
         self.bvars = bvars
         self.cond = cond
@@ -25,7 +26,8 @@ class Rule:
 
     def get_enum(self):
         """
-            Get the rule name and convert it to be a member of an enumeration of the DSL rules.
+            Get the rule name and convert it to be a member of an enumeration
+            of the DSL rules.
 
             :return: The name of the rule converted to an Enum member
         """
@@ -34,4 +36,5 @@ class Rule:
     def __repr__(self):
         bvars_str = ' '.join(str(bvar) for bvar in self.bvars)
         rhs_context_str = f' {self.rhs_context}' if self.rhs_context else ''
-        return f"(define-rule {self.name} ({bvars_str}) {self.lhs} {self.rhs}{rhs_context_str})"
+        return f"(define-rule {self.name} ({bvars_str})" \
+               f"{self.lhs} {self.rhs}{rhs_context_str})"

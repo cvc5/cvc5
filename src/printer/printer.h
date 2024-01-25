@@ -286,6 +286,10 @@ class CVC5_EXPORT Printer
   /** Print get-timeout-core command */
   virtual void toStreamCmdGetTimeoutCore(std::ostream& out) const;
 
+  /** Print get-timeout-core-assuming command */
+  virtual void toStreamCmdGetTimeoutCoreAssuming(
+      std::ostream& out, const std::vector<Node>& assumptions) const;
+
   /** Print get-learned-literals command */
   virtual void toStreamCmdGetLearnedLiterals(std::ostream& out,
                                              modes::LearnedLitType t) const;
