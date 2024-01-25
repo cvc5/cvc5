@@ -34,10 +34,10 @@ class InstStrategySubConflict : public QuantifiersModule
 {
  public:
   InstStrategySubConflict(Env& env,
-                       QuantifiersState& qs,
-                       QuantifiersInferenceManager& qim,
-                       QuantifiersRegistry& qr,
-                       TermRegistry& tr);
+                          QuantifiersState& qs,
+                          QuantifiersInferenceManager& qim,
+                          QuantifiersRegistry& qr,
+                          TermRegistry& tr);
   ~InstStrategySubConflict() {}
   /** reset round */
   void reset_round(Theory::Effort e) override;
@@ -47,7 +47,8 @@ class InstStrategySubConflict : public QuantifiersModule
   void check(Theory::Effort e, QEffort quant_e) override;
   /** identify */
   std::string identify() const override { return "InstStrategySubConflict"; }
-private:
+
+ private:
   /** The options for subsolver calls */
   Options d_subOptions;
 };

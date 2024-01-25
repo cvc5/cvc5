@@ -15,20 +15,21 @@
 
 #include "theory/quantifiers/inst_strategy_sub_conflict.h"
 
-#include "options/smt_options.h"
 #include "options/quantifiers_options.h"
-#include "theory/smt_engine_subsolver.h"
+#include "options/smt_options.h"
 #include "theory/quantifiers/instantiation_list.h"
+#include "theory/smt_engine_subsolver.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-InstStrategySubConflict::InstStrategySubConflict(Env& env,
-                                           QuantifiersState& qs,
-                                           QuantifiersInferenceManager& qim,
-                                           QuantifiersRegistry& qr,
-                                           TermRegistry& tr)
+InstStrategySubConflict::InstStrategySubConflict(
+    Env& env,
+    QuantifiersState& qs,
+    QuantifiersInferenceManager& qim,
+    QuantifiersRegistry& qr,
+    TermRegistry& tr)
     : QuantifiersModule(env, qs, qim, qr, tr)
 {
   // determine the options to use for the verification subsolvers we spawn
@@ -36,8 +37,10 @@ InstStrategySubConflict::InstStrategySubConflict(Env& env,
   d_subOptions.copyValues(options());
   // requires full proofs
   d_subOptions.writeSmt().produceProofs = true;
-  // don't do simplification, which can preprocess quantifiers to those not occurring in the main solver
-  d_subOptions.writeSmt().simplificationMode = options::SimplificationMode::NONE;
+  // don't do simplification, which can preprocess quantifiers to those not
+  // occurring in the main solver
+  d_subOptions.writeSmt().simplificationMode =
+      options::SimplificationMode::NONE;
   // don't do this strategy
   d_subOptions.writeQuantifiers().quantSubCbqi = false;
 }
@@ -79,9 +82,9 @@ void InstStrategySubConflict::check(Theory::Effort e, QEffort quant_e)
     {
       Node a = (*it).d_assertion;
       assertions.push_back(a);
-      if (tid==THEORY_QUANTIFIERS)
+      if (tid == THEORY_QUANTIFIERS)
       {
-        if (a.getKind()==Kind::FORALL)
+        if (a.getKind() == Kind::FORALL)
         {
           quants.insert(a);
         }
@@ -92,7 +95,7 @@ void InstStrategySubConflict::check(Theory::Effort e, QEffort quant_e)
   SubsolverSetupInfo ssi(d_env, d_subOptions);
   std::unique_ptr<SolverEngine> findConflict;
   uint64_t timeout = options().quantifiers.quantSubCbqiTimeout;
-  initializeSubsolver(findConflict, ssi, timeout!=0, timeout);
+  initializeSubsolver(findConflict, ssi, timeout != 0, timeout);
   // assert and check-sat
   for (const Node& a : assertions)
   {
@@ -114,7 +117,7 @@ void InstStrategySubConflict::check(Theory::Effort e, QEffort quant_e)
     {
       // ensure we have this quantified formula asserted
       Node q = i.first;
-      if (quants.find(q)==quants.end())
+      if (quants.find(q) == quants.end())
       {
         // the conflict is not complete
         completeConflict = false;
@@ -123,7 +126,8 @@ void InstStrategySubConflict::check(Theory::Effort e, QEffort quant_e)
       // otherwise instantiate
       for (InstantiationVec& vec : i.second)
       {
-        if (qinst->addInstantiation(q, vec.d_vec, InferenceId::QUANTIFIERS_INST_SUB_CONFLICT))
+        if (qinst->addInstantiation(
+                q, vec.d_vec, InferenceId::QUANTIFIERS_INST_SUB_CONFLICT))
         {
           addedLemmas++;
         }
@@ -134,12 +138,12 @@ void InstStrategySubConflict::check(Theory::Effort e, QEffort quant_e)
       d_qstate.notifyConflictingInst();
     }
   }
-  
+
   if (TraceIsOn("qscf-engine"))
   {
     double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
     Trace("qscf-engine") << "Finished subconflict find engine, time = "
-                        << (clSet2 - clSet);
+                         << (clSet2 - clSet);
     if (addedLemmas > 0)
     {
       Trace("qscf-engine") << ", addedLemmas = " << addedLemmas;
