@@ -196,12 +196,13 @@ void QuantifiersRewriter::computeArgVec2(const std::vector<Node>& args,
   }
 }
 
-RewriteResponse QuantifiersRewriter::preRewrite(TNode q) {
+RewriteResponse QuantifiersRewriter::preRewrite(TNode q)
+{
   Kind k = q.getKind();
-  if (k==Kind::FORALL || k==Kind::EXISTS)
+  if (k == Kind::FORALL || k == Kind::EXISTS)
   {
     Node qm = mergePrenex(q);
-    if (q!=qm)
+    if (q != qm)
     {
       return RewriteResponse(REWRITE_AGAIN_FULL, qm);
     }
@@ -232,7 +233,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
   else if (in.getKind() == Kind::FORALL)
   {
     ret = mergePrenex(in);
-    if (ret!=in)
+    if (ret != in)
     {
       status = REWRITE_AGAIN_FULL;
     }
@@ -270,7 +271,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
 
 Node QuantifiersRewriter::mergePrenex(const Node& q)
 {
-  Assert (q.getKind()==Kind::FORALL || q.getKind()==EXISTS);
+  Assert(q.getKind() == Kind::FORALL || q.getKind() == EXISTS);
   Kind k = q.getKind();
   std::vector<Node> boundVars;
   Node body = q;
@@ -280,7 +281,7 @@ Node QuantifiersRewriter::mergePrenex(const Node& q)
   {
     for (const Node& v : body[0])
     {
-      if (std::find(boundVars.begin(), boundVars.end(), v)==boundVars.end())
+      if (std::find(boundVars.begin(), boundVars.end(), v) == boundVars.end())
       {
         boundVars.push_back(v);
       }
@@ -303,8 +304,7 @@ Node QuantifiersRewriter::mergePrenex(const Node& q)
         combineQuantifiers = true;
       }
     }
-  }
-  while (continueCombine);
+  } while (continueCombine);
   if (combineQuantifiers)
   {
     NodeManager* nm = NodeManager::currentNM();
