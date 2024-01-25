@@ -791,6 +791,14 @@ name   = "Quantifiers"
   name = "use-learn"
   help = "Use instantiation evaluation, and generalize learning."
 
+[[option]]
+  name       = "quantSubCbqi"
+  category   = "regular"
+  long       = "quant-sub-cbqi"
+  type       = "bool"
+  default    = "false"
+  help       = "Enable conflict-based instantiation subsolver strategy"
+
 ### Induction options
 
 [[option]]

@@ -877,6 +877,8 @@ libcvc5_add_sources(
   theory/quantifiers/inst_strategy_mbqi.h
   theory/quantifiers/inst_strategy_pool.cpp
   theory/quantifiers/inst_strategy_pool.h
+  theory/quantifiers/inst_strategy_sub_conflict.cpp
+  theory/quantifiers/inst_strategy_sub_conflict.h
   theory/quantifiers/instantiate.cpp
   theory/quantifiers/instantiate.h
   theory/quantifiers/instantiation_list.cpp
