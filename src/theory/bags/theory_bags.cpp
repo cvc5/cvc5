@@ -22,7 +22,6 @@
 #include "theory/bags/bags_utils.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/rewriter.h"
-#include "theory/smt_engine_subsolver.h"
 #include "theory/theory_model.h"
 #include "theory_bags.h"
 #include "util/rational.h"
@@ -323,7 +322,9 @@ bool TheoryBags::runInferStep(InferStep s, int effort)
       break;
     }
     case CHECK_BASIC_OPERATIONS: d_solver.checkBasicOperations(); break;
-    case CHECK_QUANTIFIED_OPERATIONS: d_solver.checkQuantifiedOperations(); break;
+    case CHECK_QUANTIFIED_OPERATIONS:
+      d_solver.checkQuantifiedOperations();
+      break;
     case CHECK_CARDINALITY_CONSTRAINTS:
       d_cardSolver.checkCardinalityGraph();
       break;
@@ -483,15 +484,7 @@ void TheoryBags::preRegisterTerm(TNode n)
     case Kind::BAG_MAP:
     {
       SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-      Node f = sm->getOriginalForm(n[0]);
-      if (isInjective(f))
-      {
-        d_state.addFunction(f, true);
-      }
-      else
-      {
-        d_state.addFunction(f, false);
-      }
+      d_state.checkInjectivity(n[0]);
       break;
     }
     case Kind::BAG_FROM_SET:
@@ -507,29 +500,6 @@ void TheoryBags::preRegisterTerm(TNode n)
   }
 }
 
-bool TheoryBags::isInjective(const Node& f)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  TypeNode domainType = f.getType().getArgTypes()[0];
-  Node x = sm->mkDummySkolem("x", domainType);
-  Node y = sm->mkDummySkolem("y", domainType);
-  Node f_x = nm->mkNode(Kind::APPLY_UF, f, x);
-  Node f_y = nm->mkNode(Kind::APPLY_UF, f, y);
-  Node f_x_equals_f_y = f_x.eqNode(f_y);
-  Node not_x_equals_y = x.eqNode(y).notNode();
-  Node query = f_x_equals_f_y.andNode(not_x_equals_y);
-
-  Options subOptions;
-  subOptions.copyValues(d_env.getOptions());
-  SubsolverSetupInfo ssi(d_env, subOptions);
-  Result result = checkWithSubsolver(query, ssi);
-  if (result.getStatus() == Result::Status::UNSAT)
-  {
-    return true;
-  }
-  return false;
-}
 void TheoryBags::presolve()
 {
   Trace("bags-presolve") << "Started presolve" << std::endl;

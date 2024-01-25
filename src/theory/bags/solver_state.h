@@ -110,10 +110,21 @@ class SolverState : public TheoryState
    */
   void collectDisequalBagTerms();
 
-  void addFunction(Node f, bool isInjective);
+  /**
+   * @pre n is a unary function.
+   * Check whether n is injective and store the result.
+   * It uses a sub-solver to check whether the following formula is unsat
+   * (and
+   *   (= (f x) (f y))
+   *   (distinct x y)
+   * )
+   */
+  void checkInjectivity(Node n);
 
-  const std::map<Node, bool>& getFunctions() const;
-
+  /**
+   * @pre n is a unary function.
+   * Check whether we found that n is an injective function
+   */
   bool isInjective(Node n) const;
 
  private:
@@ -149,6 +160,9 @@ class SolverState : public TheoryState
   context::CDHashMap<Node, std::shared_ptr<context::CDHashSet<Node>>>
       d_partElementSkolems;
 
+  /**
+   * A cache for injective functions
+   */
   std::map<Node, bool> d_functions;
 }; /* class SolverState */
 
