@@ -144,6 +144,14 @@ name   = "Driver"
   help       = "output unsat cores after every UNSAT/VALID response"
 
 [[option]]
+  name       = "dumpUnsatCoresLemmas"
+  category   = "regular"
+  long       = "dump-unsat-cores-lemmas"
+  type       = "bool"
+  default    = "false"
+  help       = "output lemmas in unsat cores after every UNSAT/VALID response"
+
+[[option]]
   name       = "dumpDifficulty"
   category   = "regular"
   long       = "dump-difficulty"

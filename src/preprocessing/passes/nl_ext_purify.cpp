@@ -132,9 +132,10 @@ PreprocessingPassResult NlExtPurify::applyInternal(
   }
   if (!var_eq.empty())
   {
-    unsigned lastIndex = size - 1;
-    Node veq = NodeManager::currentNM()->mkAnd(var_eq);
-    assertionsToPreprocess->conjoin(lastIndex, veq);
+    for (const Node& ve : var_eq)
+    {
+      assertionsToPreprocess->push_back(ve);
+    }
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
