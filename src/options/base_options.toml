@@ -245,7 +245,7 @@ name   = "Base"
   name = "block-model"
   help = "prints the formulas used when block-model is run."
   description = "With ``-o block-model``, cvc5 prints the formulas used when block-model is run."
-  example-file = "regress0/printer/block-model-out.smt2"
+  example-file = "regress0/printer/block_model_out.smt2"
 
 # Stores then enabled output tags.
 [[option]]
@@ -308,3 +308,11 @@ name   = "Base"
   category   = "undocumented"
   type       = "std::vector<std::string>"
   default    = '{}'
+
+[[option]]
+  name       = "safeOptions"
+  category   = "common"
+  long       = "safe-options"
+  type       = "bool"
+  default    = "false"
+  help       = "do not allow setting any option that is not common or regular"

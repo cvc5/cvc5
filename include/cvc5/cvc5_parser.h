@@ -147,7 +147,7 @@ std::ostream& operator<<(std::ostream&, const Command&) CVC5_EXPORT;
  * from an input using a parser.
  *
  * After construction, it is expected that an input is first set via e.g.
- * setFileInput, setStreamInput, or setIncrementalStringInput and
+ * setFileInput, setStreamInput, setStringInput or setIncrementalStringInput and
  * appendIncrementalStringInput. Then, the methods nextCommand and
  * nextExpression can be invoked to parse the input.
  *
@@ -167,6 +167,8 @@ std::ostream& operator<<(std::ostream&, const Command&) CVC5_EXPORT;
  */
 class CVC5_EXPORT InputParser
 {
+  friend class internal::InteractiveShell;
+
  public:
   /**
    * Construct an input parser
@@ -210,6 +212,17 @@ class CVC5_EXPORT InputParser
                       const std::string& name);
 
   /**
+   * Set the input to the given concrete input string.
+   *
+   * @param lang the input language
+   * @param input The input string
+   * @param name the name of the stream, for use in error messages
+   */
+  void setStringInput(modes::InputLanguage,
+                      const std::string& input,
+                      const std::string& name);
+
+  /**
    * Set that we will be feeding strings to this parser via
    * appendIncrementalStringInput below.
    *
@@ -220,8 +233,7 @@ class CVC5_EXPORT InputParser
                                  const std::string& name);
   /**
    * Append string to the input being parsed by this parser. Should be
-   * called after calling setIncrementalStringInput and only after the
-   * previous string (if one was provided) is finished being parsed.
+   * called after calling setIncrementalStringInput.
    *
    * @param input The input string
    */
@@ -247,6 +259,11 @@ class CVC5_EXPORT InputParser
   bool done() const;
 
  private:
+  /**
+   * Set the input to the given concrete input string, without allocating a new parser.
+   */
+  void setStringInputInternal(const std::string& input,
+                              const std::string& name);
   /** Initialize this input parser, called during construction */
   void initialize();
   /**
@@ -260,10 +277,10 @@ class CVC5_EXPORT InputParser
   std::unique_ptr<SymbolManager> d_allocSm;
   /** Symbol manager */
   SymbolManager* d_sm;
-  /** Incremental string input language */
-  modes::InputLanguage d_istringLang;
-  /** Incremental string name */
-  std::string d_istringName;
+  /** A stringstream, for incremental string inputs */
+  std::stringstream d_istringStream;
+  /** Are we initialized to use the above string stream? */
+  bool d_usingIStringStream;
   /** The parser */
   std::shared_ptr<Parser> d_parser;
 };

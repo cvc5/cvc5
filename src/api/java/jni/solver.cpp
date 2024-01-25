@@ -187,12 +187,13 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkBitVectorSort(
  * Signature: (JLjava/lang/String)J
  */
 JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkFiniteFieldSort(
-    JNIEnv* env, jobject, jlong pointer, jstring size)
+    JNIEnv* env, jobject, jlong pointer, jstring size, jint base)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   const char* cSize = env->GetStringUTFChars(size, nullptr);
-  Sort* sortPointer = new Sort(solver->mkFiniteFieldSort(std::string(cSize)));
+  Sort* sortPointer =
+      new Sort(solver->mkFiniteFieldSort(std::string(cSize), (uint32_t)base));
   env->ReleaseStringUTFChars(size, cSize);
   return reinterpret_cast<jlong>(sortPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
@@ -1248,15 +1249,21 @@ Java_io_github_cvc5_Solver_mkBitVector__JILjava_lang_String_2I(
  * Method:    mkFiniteFieldElem
  * Signature: (JLjava/lang/String;J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkFiniteFieldElem(
-    JNIEnv* env, jobject, jlong pointer, jstring jS, jlong sortPointer)
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_Solver_mkFiniteFieldElem(JNIEnv* env,
+                                             jobject,
+                                             jlong pointer,
+                                             jstring jS,
+                                             jlong sortPointer,
+                                             jint base)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   Sort* sort = reinterpret_cast<Sort*>(sortPointer);
   const char* s = env->GetStringUTFChars(jS, nullptr);
   std::string cS(s);
-  Term* retPointer = new Term(solver->mkFiniteFieldElem(cS, *sort));
+  Term* retPointer =
+      new Term(solver->mkFiniteFieldElem(cS, *sort, (uint32_t)base));
   env->ReleaseStringUTFChars(jS, s);
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);

@@ -35,11 +35,11 @@ namespace cvc5::internal {
 
 namespace proof {
 
-AlfPrinter::AlfPrinter(Env& env, AlfNodeConverter& atp)
+AlfPrinter::AlfPrinter(Env& env, BaseAlfNodeConverter& atp)
     : EnvObj(env), d_tproc(atp), d_termLetPrefix("@t")
 {
-  d_false = NodeManager::currentNM()->mkConst(false);
   d_pfType = NodeManager::currentNM()->mkSort("proofType");
+  d_false = NodeManager::currentNM()->mkConst(false);
 }
 
 bool AlfPrinter::isHandled(const ProofNode* pfn) const
@@ -129,6 +129,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::INSTANTIATE:
     case ProofRule::SKOLEMIZE:
     case ProofRule::ENCODE_PRED_TRANSFORM:
+    case ProofRule::DSL_REWRITE:
     // alf rule is handled
     case ProofRule::ALF_RULE: return true;
     case ProofRule::STRING_REDUCTION:
@@ -243,8 +244,8 @@ void AlfPrinter::printLetList(std::ostream& out, LetBinding& lbind)
   for (size_t i = 0, nlets = letList.size(); i < nlets; i++)
   {
     Node n = letList[i];
-    Node def = lbind.convert(n, d_termLetPrefix, false);
-    Node f = lbind.convert(n, d_termLetPrefix, true);
+    Node def = lbind.convert(n, false);
+    Node f = lbind.convert(n, true);
     // use define command which does not invoke type checking
     out << "(define " << f << " () " << def << ")" << std::endl;
   }
@@ -259,9 +260,11 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   const std::vector<Node>& assertions = pfn->getChildren()[0]->getArguments();
   const ProofNode* pnBody = pfn->getChildren()[0]->getChildren()[0].get();
 
-  LetBinding lbind;
-  AlfPrintChannelPre aletify(lbind);
-  AlfPrintChannelOut aprint(out, lbind, d_termLetPrefix);
+  // use a let binding if proofDagGlobal is true
+  LetBinding lbind(d_termLetPrefix);
+  LetBinding* lbindUse = options().proof.proofDagGlobal ? &lbind : nullptr;
+  AlfPrintChannelPre aletify(lbindUse);
+  AlfPrintChannelOut aprint(out, lbindUse, d_termLetPrefix);
 
   d_pletMap.clear();
   d_passumeMap.clear();
@@ -473,18 +476,18 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
         Assert(i < pargs.size());
         targs.push_back(d_tproc.convert(pargs[i]));
       }
-      // package as list
-      Node ts = d_tproc.mkList(targs);
+      // package as SEXPR, which will subsequently be converted to list
+      NodeManager* nm = NodeManager::currentNM();
+      Node tsp = nm->mkNode(Kind::SEXPR, targs);
+      Node ts = d_tproc.convert(tsp);
       args.push_back(ts);
       return;
     }
     default: break;
   }
-  ProofNodeToSExpr pntse;
   for (size_t i = 0, nargs = pargs.size(); i < nargs; i++)
   {
-    ProofNodeToSExpr::ArgFormat f = pntse.getArgumentFormat(pn, i);
-    Node av = d_tproc.convert(pntse.getArgument(pargs[i], f));
+    Node av = d_tproc.convert(pargs[i]);
     args.push_back(av);
   }
 }
@@ -537,7 +540,7 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
     out->printTrustStep(pn->getRule(), conclusionPrint, id, conclusion);
     return;
   }
-  std::vector<Node> premises;
+  std::vector<size_t> premises;
   // get the premises
   std::map<Node, size_t>::iterator ita;
   std::map<const ProofNode*, size_t>::iterator itp;
@@ -557,7 +560,7 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
       Assert(itp != d_pletMap.end());
       pid = itp->second;
     }
-    premises.push_back(allocatePremise(pid));
+    premises.push_back(pid);
   }
   std::string rname = getRuleName(pn);
   out->printStep(rname, conclusionPrint, id, premises, args, isPop);
@@ -612,20 +615,6 @@ size_t AlfPrinter::allocateProofId(const ProofNode* pn, bool& wasAlloc)
   d_pfIdCounter++;
   d_pletMap[pn] = d_pfIdCounter;
   return d_pfIdCounter;
-}
-
-Node AlfPrinter::allocatePremise(size_t id)
-{
-  std::map<size_t, Node>::iterator itan = d_passumeNodeMap.find(id);
-  if (itan != d_passumeNodeMap.end())
-  {
-    return itan->second;
-  }
-  std::stringstream ss;
-  ss << "@p" << id;
-  Node n = d_tproc.mkInternalSymbol(ss.str(), d_pfType);
-  d_passumeNodeMap[id] = n;
-  return n;
 }
 
 }  // namespace proof

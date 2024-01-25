@@ -873,7 +873,7 @@ void CoreSolver::getNormalForms(Node eqc,
     Node n = (*eqc_i);
     // this check should be in sync with the check in checkCycles to ensure
     // we don't compute normal forms for irrelevant terms.
-    if (!d_bsolver.isCongruent(n) && rlvSet.find(n)!=rlvSet.end())
+    if (n.isConst() || (!d_bsolver.isCongruent(n) && rlvSet.find(n)!=rlvSet.end()))
     {
       Kind nk = n.getKind();
       bool isCLike = utils::isConstantLike(n);
