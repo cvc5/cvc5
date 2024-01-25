@@ -21,6 +21,11 @@ runs:
         make install
         popd
 
+        # Remove Python bindings (if any).
+        # They are built for testing purposes, but
+        # only work for the specific CI Python version.
+        rm -rf ${{ inputs.build-dir }}/install/lib/python*
+
         # Copy COPYING file to install directory
         cp COPYING ${{ inputs.build-dir }}/install/
 

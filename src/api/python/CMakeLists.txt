@@ -63,7 +63,7 @@ if (NOT DEFINED PYTHON_LIBRARIES)
 endif()
 
 find_package(PythonExtensions REQUIRED)
-find_package(Cython 0.29 REQUIRED)
+find_package(Cython 3.0.0 REQUIRED)
 
 set(CYTHON_FLAGS "-X embedsignature=True")
 
