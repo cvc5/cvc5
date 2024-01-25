@@ -58,13 +58,13 @@ void QuantifiersModules::initialize(Env& env,
   }
   if (options.quantifiers.quantSubCbqi)
   {
-    d_qcf.reset(new QuantConflictFind(env, qs, qim, qr, tr));
-    modules.push_back(d_qcf.get());
+    d_issc.reset(new InstStrategySubConflict(env, qs, qim, qr, tr));
+    modules.push_back(d_issc.get());
   }
   if (options.quantifiers.conjectureGen)
   {
-    d_issc.reset(new InstStrategySubConflict(env, qs, qim, qr, tr));
-    modules.push_back(d_issc.get());
+    d_sg_gen.reset(new ConjectureGenerator(env, qs, qim, qr, tr));
+    modules.push_back(d_sg_gen.get());
   }
   if (options.quantifiers.eMatching)
   {

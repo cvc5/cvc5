@@ -794,7 +794,7 @@ name   = "Quantifiers"
 [[option]]
   name       = "quantSubCbqi"
   category   = "regular"
-  long       = "quant-sub-cbqi"
+  long       = "sub-cbqi"
   type       = "bool"
   default    = "false"
   help       = "Enable conflict-based instantiation subsolver strategy"
@@ -802,10 +802,18 @@ name   = "Quantifiers"
 [[option]]
   name       = "quantSubCbqiTimeout"
   category   = "regular"
-  long       = "quant-sub-cbqi-timeout=N"
+  long       = "sub-cbqi-timeout=N"
   type       = "uint64_t"
-  default    = "0"
-  help       = "timeout (in milliseconds) for subsolver calls for quant-sub-cbqi."
+  default    = "1000"
+  help       = "timeout (in milliseconds) for subsolver calls for sub-cbqi."
+
+[[option]]
+  name       = "quantSubCbqiLastCall"
+  category   = "regular"
+  long       = "sub-cbqi-last-call"
+  type       = "bool"
+  default    = "true"
+  help       = "Enable conflict-based instantiation subsolver strategy only at last call"
 
 ### Induction options
 
