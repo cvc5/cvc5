@@ -815,6 +815,14 @@ name   = "Quantifiers"
   default    = "true"
   help       = "Enable conflict-based instantiation subsolver strategy only at last call"
 
+[[option]]
+  name       = "quantSubCbqiinst"
+  category   = "regular"
+  long       = "sub-cbqi-inst"
+  type       = "bool"
+  default    = "true"
+  help       = "Enable instantiations for sub-cbqi"
+
 ### Induction options
 
 [[option]]
