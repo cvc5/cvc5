@@ -217,6 +217,8 @@ class QuantifiersRewriter : public TheoryRewriter
   static bool isStandard(QAttributes& qa, const Options& opts);
 
  private:
+  /** */
+  Node mergePrenex(const Node& q);
   /**
    * Helper method for getVarElim, called when n has polarity pol in body.
    */

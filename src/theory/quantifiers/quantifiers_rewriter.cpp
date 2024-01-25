@@ -196,8 +196,17 @@ void QuantifiersRewriter::computeArgVec2(const std::vector<Node>& args,
   }
 }
 
-RewriteResponse QuantifiersRewriter::preRewrite(TNode in) {
-  return RewriteResponse(REWRITE_DONE, in);
+RewriteResponse QuantifiersRewriter::preRewrite(TNode q) {
+  Kind k = q.getKind();
+  if (k==Kind::FORALL || k==Kind::EXISTS)
+  {
+    Node qm = mergePrenex(q);
+    if (q!=qm)
+    {
+      return RewriteResponse(REWRITE_AGAIN_FULL, qm);
+    }
+  }
+  return RewriteResponse(REWRITE_DONE, q);
 }
 
 RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
@@ -222,50 +231,9 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
   }
   else if (in.getKind() == Kind::FORALL)
   {
-    std::vector<Node> boundVars;
-    Node body = in;
-    bool combineQuantifiers = false;
-    bool continueCombine = false;
-    do
+    ret = mergePrenex(in);
+    if (ret!=in)
     {
-      for (const Node& v : body[0])
-      {
-        if (std::find(boundVars.begin(), boundVars.end(), v)==boundVars.end())
-        {
-          boundVars.push_back(v);
-        }
-      }
-      continueCombine = false;
-      if (body.getNumChildren() == 2 && body[1].getKind() == Kind::FORALL)
-      {
-        QAttributes qa;
-        QuantAttributes::computeQuantAttributes(body[1], qa);
-        // should never combine a quantified formula with a pool or
-        // non-standard quantified formula here.
-        // note that we technically should check
-        // doOperation(body[1], COMPUTE_PRENEX, qa) here, although this
-        // is too restrictive, as sometimes nested patterns should just be
-        // applied to the top level.
-        if (qa.isStandard() && !qa.d_hasPool)
-        {
-          body = body[1];
-          continueCombine = true;
-          combineQuantifiers = true;
-        }
-      }
-    }
-    while (continueCombine);
-    if (combineQuantifiers)
-    {
-      NodeManager* nm = NodeManager::currentNM();
-      std::vector<Node> children;
-      children.push_back(nm->mkNode(Kind::BOUND_VAR_LIST, boundVars));
-      children.push_back(body[1]);
-      if (body.getNumChildren() == 3)
-      {
-        children.push_back(body[2]);
-      }
-      ret = nm->mkNode(Kind::FORALL, children);
       status = REWRITE_AGAIN_FULL;
     }
     else if (in[1].isConst() && in.getNumChildren() == 2)
@@ -298,6 +266,58 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
     Trace("quantifiers-rewrite") << ret << std::endl;
   }
   return RewriteResponse( status, ret );
+}
+
+Node QuantifiersRewriter::mergePrenex(const Node& q)
+{
+  Assert (q.getKind()==Kind::FORALL || q.getKind()==EXISTS);
+  Kind k = q.getKind();
+  std::vector<Node> boundVars;
+  Node body = q;
+  bool combineQuantifiers = false;
+  bool continueCombine = false;
+  do
+  {
+    for (const Node& v : body[0])
+    {
+      if (std::find(boundVars.begin(), boundVars.end(), v)==boundVars.end())
+      {
+        boundVars.push_back(v);
+      }
+    }
+    continueCombine = false;
+    if (body.getNumChildren() == 2 && body[1].getKind() == k)
+    {
+      QAttributes qa;
+      QuantAttributes::computeQuantAttributes(body[1], qa);
+      // should never combine a quantified formula with a pool or
+      // non-standard quantified formula here.
+      // note that we technically should check
+      // doOperation(body[1], COMPUTE_PRENEX, qa) here, although this
+      // is too restrictive, as sometimes nested patterns should just be
+      // applied to the top level.
+      if (qa.isStandard() && !qa.d_hasPool)
+      {
+        body = body[1];
+        continueCombine = true;
+        combineQuantifiers = true;
+      }
+    }
+  }
+  while (continueCombine);
+  if (combineQuantifiers)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    std::vector<Node> children;
+    children.push_back(nm->mkNode(Kind::BOUND_VAR_LIST, boundVars));
+    children.push_back(body[1]);
+    if (body.getNumChildren() == 3)
+    {
+      children.push_back(body[2]);
+    }
+    return nm->mkNode(Kind::FORALL, children);
+  }
+  return q;
 }
 
 bool QuantifiersRewriter::addCheckElimChild(std::vector<Node>& children,
