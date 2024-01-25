@@ -483,7 +483,6 @@ void TheoryBags::preRegisterTerm(TNode n)
     break;
     case Kind::BAG_MAP:
     {
-      SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
       d_state.checkInjectivity(n[0]);
       break;
     }
