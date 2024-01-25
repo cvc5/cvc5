@@ -82,6 +82,16 @@ class TheoryBags : public Theory
   Node getCandidateModelValue(TNode) override;
   std::string identify() const override { return "THEORY_BAGS"; }
   void preRegisterTerm(TNode n) override;
+  /**
+   * This function checks whether a given function is injective.
+   * It uses a subsolver to check whether the following formula is unsat
+   * (and
+   *   (= (f x) (f y))
+   *   (distinct x y)
+   * )
+   * @return true if the subsolver returns unsat answer
+   */
+  bool isInjective(const Node& n);  
   void presolve() override;
   void computeCareGraph() override;
   void processCarePairArgs(TNode a, TNode b) override;

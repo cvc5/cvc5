@@ -110,6 +110,12 @@ class SolverState : public TheoryState
    */
   void collectDisequalBagTerms();
 
+  void addFunction(Node f, bool isInjective);
+
+  const std::map<Node, bool>& getFunctions() const;
+
+  bool isInjective(Node n) const;
+
  private:
   /** constants */
   Node d_true;
@@ -142,6 +148,8 @@ class SolverState : public TheoryState
    */
   context::CDHashMap<Node, std::shared_ptr<context::CDHashSet<Node>>>
       d_partElementSkolems;
+
+  std::map<Node, bool> d_functions;
 }; /* class SolverState */
 
 }  // namespace bags

@@ -157,6 +157,28 @@ void SolverState::reset()
   d_cardTerms.clear();
 }
 
+void SolverState::addFunction(Node f, bool isInjective)
+{
+  d_functions[f] = isInjective;
+}
+
+const std::map<Node, bool>& SolverState::getFunctions() const
+{
+  return d_functions;
+}
+
+bool SolverState::isInjective(Node n) const
+{
+  std::cout << "n: " << n << std::endl;
+  Node f = d_nm->getSkolemManager()->getOriginalForm(n);
+  std::cout << "f: " << f << std::endl;
+  if (d_functions.find(f) != d_functions.end())
+  {
+    return d_functions.at(f);
+  }
+  return false;
+}
+
 }  // namespace bags
 }  // namespace theory
 }  // namespace cvc5::internal
