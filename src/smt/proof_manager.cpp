@@ -232,10 +232,10 @@ void PfManager::printProof(std::ostream& out,
                            options::ProofFormatMode mode)
 {
   Trace("smt-proof") << "PfManager::printProof: start" << std::endl;
-  // if we are in incremental mode, we don't want to invalidate the proof
-  // nodes in fp, since these may be reused in further check-sat calls
-  if (options().base.incrementalSolving
-      && mode != options::ProofFormatMode::NONE)
+  // We don't want to invalidate the proof nodes in fp, since these may be
+  // reused in further check-sat calls, or they may be used again if the
+  // user asks for the proof again (in non-incremental mode).
+  if (mode != options::ProofFormatMode::NONE)
   {
     fp = fp->clone();
   }

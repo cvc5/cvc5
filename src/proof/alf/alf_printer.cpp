@@ -35,7 +35,7 @@ namespace cvc5::internal {
 
 namespace proof {
 
-AlfPrinter::AlfPrinter(Env& env, AlfNodeConverter& atp)
+AlfPrinter::AlfPrinter(Env& env, BaseAlfNodeConverter& atp)
     : EnvObj(env), d_tproc(atp), d_termLetPrefix("@t")
 {
   d_pfType = NodeManager::currentNM()->mkSort("proofType");
@@ -260,9 +260,11 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   const std::vector<Node>& assertions = pfn->getChildren()[0]->getArguments();
   const ProofNode* pnBody = pfn->getChildren()[0]->getChildren()[0].get();
 
+  // use a let binding if proofDagGlobal is true
   LetBinding lbind(d_termLetPrefix);
-  AlfPrintChannelPre aletify(lbind);
-  AlfPrintChannelOut aprint(out, lbind, d_termLetPrefix);
+  LetBinding* lbindUse = options().proof.proofDagGlobal ? &lbind : nullptr;
+  AlfPrintChannelPre aletify(lbindUse);
+  AlfPrintChannelOut aprint(out, lbindUse, d_termLetPrefix);
 
   d_pletMap.clear();
   d_passumeMap.clear();
@@ -474,8 +476,10 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
         Assert(i < pargs.size());
         targs.push_back(d_tproc.convert(pargs[i]));
       }
-      // package as list
-      Node ts = d_tproc.mkList(targs);
+      // package as SEXPR, which will subsequently be converted to list
+      NodeManager* nm = NodeManager::currentNM();
+      Node tsp = nm->mkNode(Kind::SEXPR, targs);
+      Node ts = d_tproc.convert(tsp);
       args.push_back(ts);
       return;
     }
@@ -611,20 +615,6 @@ size_t AlfPrinter::allocateProofId(const ProofNode* pn, bool& wasAlloc)
   d_pfIdCounter++;
   d_pletMap[pn] = d_pfIdCounter;
   return d_pfIdCounter;
-}
-
-Node AlfPrinter::allocatePremise(size_t id)
-{
-  std::map<size_t, Node>::iterator itan = d_passumeNodeMap.find(id);
-  if (itan != d_passumeNodeMap.end())
-  {
-    return itan->second;
-  }
-  std::stringstream ss;
-  ss << "@p" << id;
-  Node n = d_tproc.mkInternalSymbol(ss.str(), d_pfType);
-  d_passumeNodeMap[id] = n;
-  return n;
 }
 
 }  // namespace proof
