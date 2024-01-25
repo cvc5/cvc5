@@ -87,12 +87,12 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Env& env,
     ntSymBool = it->second[0];
   }
   std::vector<Node> trulesAll = trules;
-  
+
   // special case: functions can use a lambda at top-level
   if (range.isFunction())
   {
     it = typeToNtSym.find(range);
-    Assert (it != typeToNtSym.end());
+    Assert(it != typeToNtSym.end());
     Node ntsymF = it->second[0];
     std::vector<Node> vars;
     std::vector<TypeNode> argTypes = range.getArgTypes();
@@ -105,9 +105,10 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Env& env,
     }
     TypeNode rtn = range.getRangeType();
     it = typeToNtSym.find(rtn);
-    Assert (it != typeToNtSym.end());
+    Assert(it != typeToNtSym.end());
     Node ntsymR = it->second[0];
-    Node lam = nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, vars), ntsymR);
+    Node lam = nm->mkNode(
+        Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, vars), ntsymR);
     // add the lambda
     g.addRule(ntsymF, lam);
   }
