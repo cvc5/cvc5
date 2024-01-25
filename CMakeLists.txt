@@ -473,7 +473,7 @@ if(USE_KISSAT)
 endif()
 
 if(USE_POLY)
-  find_package(Poly REQUIRED)
+  find_package(Poly 0.1.13 REQUIRED)
   add_definitions(-DCVC5_USE_POLY)
   set(CVC5_USE_POLY_IMP 1)
 else()
