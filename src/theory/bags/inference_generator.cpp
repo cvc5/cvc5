@@ -511,7 +511,7 @@ InferInfo InferenceGenerator::mapDownInjective(Node n, Node y)
          && n[0].getType().getArgTypes().size() == 1);
   Assert(y.getType() == n[0].getType().getRangeType());
 
-  InferInfo inferInfo(d_im, InferenceId::BAGS_MAP_DOWN);
+  InferInfo inferInfo(d_im, InferenceId::BAGS_MAP_DOWN_INJECTIVE);
 
   Node f = n[0];
   Node A = n[1];

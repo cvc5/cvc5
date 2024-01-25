@@ -169,9 +169,7 @@ const std::map<Node, bool>& SolverState::getFunctions() const
 
 bool SolverState::isInjective(Node n) const
 {
-  std::cout << "n: " << n << std::endl;
   Node f = d_nm->getSkolemManager()->getOriginalForm(n);
-  std::cout << "f: " << f << std::endl;
   if (d_functions.find(f) != d_functions.end())
   {
     return d_functions.at(f);
