@@ -799,6 +799,14 @@ name   = "Quantifiers"
   default    = "false"
   help       = "Enable conflict-based instantiation subsolver strategy"
 
+[[option]]
+  name       = "quantSubCbqiTimeout"
+  category   = "regular"
+  long       = "quant-sub-cbqi-timeout=N"
+  type       = "uint64_t"
+  default    = "0"
+  help       = "timeout (in milliseconds) for subsolver calls for quant-sub-cbqi."
+
 ### Induction options
 
 [[option]]
