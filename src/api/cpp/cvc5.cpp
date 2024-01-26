@@ -3705,7 +3705,7 @@ std::vector<Term> Term::getSkolemArguments() const
   std::vector<Term> args;
   if (cacheVal.isNull())
   {
-    if (cacheVal.getKind() == Kind::SEXPR)
+    if (cacheVal.getKind() == internal::Kind::SEXPR)
     {
       for (const internal::Node& nc : cacheVal)
       {
