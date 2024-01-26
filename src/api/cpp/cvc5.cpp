@@ -3667,6 +3667,63 @@ Term Term::getRealAlgebraicNumberUpperBound() const
   CVC5_API_TRY_CATCH_END;
 }
 
+bool Term::isSkolem() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  internal::SkolemManager * skm = d_nm->getSkolemManager();
+  return skm->isSkolemFunction(*d_node);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+SkolemFunId Term::getSkolemId() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  internal::SkolemManager * skm = d_nm->getSkolemManager();
+  CVC5_API_ARG_CHECK_EXPECTED(
+     skm->isSkolemFunction(*d_node), *d_node)
+      << "Term to be a skolem when calling getSkolemId";
+  //////// all checks before this line
+  return skm->getId(*d_node);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::vector<Term> Term::getSkolemArguments() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  internal::SkolemManager * skm = d_nm->getSkolemManager();
+  CVC5_API_ARG_CHECK_EXPECTED(
+     skm->isSkolemFunction(*d_node), *d_node)
+      << "Term to be a skolem when calling getSkolemArguments";
+  //////// all checks before this line
+  internal::Node cacheVal;
+  SkolemFunId id;
+  skm->isSkolemFunction(*d_node, id, cacheVal);
+  std::vector<Term> args;
+  if (cacheVal.isNull())
+  {
+    if (cacheVal.getKind()==Kind::SEXPR)
+    {
+      for (const internal::Node& nc : cacheVal)
+      {
+        args.push_back(Term(d_nm, nc));
+      }
+    }
+    else
+    {
+      args.push_back(Term(d_nm, cacheVal));
+    }
+  }
+  return args;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 std::ostream& operator<<(std::ostream& out, const Term& t)
 {
   // Note that this ignores the options::ioutils properties of `out`.

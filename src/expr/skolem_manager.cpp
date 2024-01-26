@@ -155,6 +155,13 @@ Node SkolemManager::mkSkolemFunctionTyped(SkolemFunId id,
   return mkSkolemFunctionTyped(id, tn, cacheVal);
 }
 
+bool SkolemManager::isSkolemFunction(TNode k) const
+{
+  std::map<Node, std::tuple<SkolemFunId, TypeNode, Node>>::const_iterator it =
+      d_skolemFunMap.find(k);
+  return it != d_skolemFunMap.end();
+}
+
 bool SkolemManager::isSkolemFunction(TNode k,
                                      SkolemFunId& id,
                                      Node& cacheVal) const
