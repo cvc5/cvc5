@@ -162,10 +162,10 @@ void InstStrategySubConflict::check(Theory::Effort e, QEffort quant_e)
     UnsatCore uc = findConflict->getUnsatCore();
     Node ucc = NodeManager::currentNM()->mkAnd(uc.getCore());
     Trace("qscf-engine-debug") << "Unsat core is " << ucc << std::endl;
+    Trace("qscf-engine") << "Core size = " << uc.getCore().size() << std::endl;
     d_qim.lemma(ucc.notNode(), InferenceId::QUANTIFIERS_SUB_UC);
     
     d_qstate.notifyConflictingInst();
-    Trace("qscf-engine") << "...complete conflict" << std::endl;
   }
 
   if (TraceIsOn("qscf-engine"))
