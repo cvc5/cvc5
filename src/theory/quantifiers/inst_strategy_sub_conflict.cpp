@@ -98,11 +98,6 @@ void InstStrategySubConflict::check(Theory::Effort e, QEffort quant_e)
       {
         if (a.getKind() == Kind::FORALL)
         {
-          // ignore those that others have taken ownership of
-          if (!d_qreg.hasOwnership(a, this))
-          {
-            continue;
-          }
           quants.insert(a);
         }
       }
