@@ -474,6 +474,7 @@ Node InstStrategyMbqi::modelValueToQuery(const Node& t)
   }
   Node val = fm->getValue(t);
   Trace("mbqi-model-exp") << "...M_main(" << t << ") = " << val << std::endl;
+  /** TODO: update this as needed to impact the query to the subsolver */
   return val;
 }
 
@@ -501,6 +502,7 @@ void InstStrategyMbqi::modelValueFromQuery(const Node& q,
       Trace("mbqi-model-exp") << "...M_subsolver(" << q[0][i] << ") == " << mvs[i] << std::endl;
     }
   }
+  /** TODO: update mvs to impact instantiation */
 }
   
 Node InstStrategyMbqi::convertFromModel(
