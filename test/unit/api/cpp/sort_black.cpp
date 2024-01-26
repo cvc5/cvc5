@@ -634,6 +634,16 @@ TEST_F(TestApiBlackSort, getTupleSorts)
   ASSERT_THROW(bvSort.getTupleSorts(), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSort, getNullableElementSort)
+{
+  Sort nullableSort = d_solver.mkNullableSort(d_solver.getIntegerSort());
+  ASSERT_NO_THROW(nullableSort.getNullableElementSort());
+  Sort elementSort = nullableSort.getNullableElementSort();
+  ASSERT_EQ(elementSort, d_solver.getIntegerSort());
+  Sort bvSort = d_solver.mkBitVectorSort(32);
+  ASSERT_THROW(bvSort.getNullableElementSort(), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackSort, sortCompare)
 {
   Sort boolSort = d_solver.getBooleanSort();

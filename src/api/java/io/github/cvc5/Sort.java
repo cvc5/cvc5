@@ -843,4 +843,15 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   }
 
   private native long[] getTupleSorts(long pointer);
+
+  /**
+   * @return The element sort of a nullable sort.
+   */
+  public Sort getNullableElementSort()
+  {
+    long sortPointer = getNullableElementSort(pointer);
+    return new Sort(sortPointer);
+  }
+
+  private native long getNullableElementSort(long pointer);
 }

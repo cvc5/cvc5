@@ -468,6 +468,12 @@ vector<TypeNode> TypeNode::getTupleTypes() const {
   return args;
 }
 
+TypeNode TypeNode::getNullableElementType() const
+{
+  Assert(isNullable());
+  return (*this)[0];
+}
+
 /** Is this an instantiated datatype type */
 bool TypeNode::isInstantiatedDatatype() const {
   Kind k = getKind();

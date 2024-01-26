@@ -654,6 +654,17 @@ class SortTest
   }
 
   @Test
+  void getNullableElementSort() throws CVC5ApiException
+  {
+    Sort nullableSort = d_solver.mkNullableSort(d_solver.getIntegerSort());
+    assertDoesNotThrow(() -> nullableSort.getNullableElementSort());
+    Sort elementSort = nullableSort.getNullableElementSort();
+    assertEquals(elementSort, d_solver.getIntegerSort());
+    Sort bvSort = d_solver.mkBitVectorSort(32);
+    assertThrows(CVC5ApiException.class, () -> bvSort.getNullableElementSort());
+  }
+
+  @Test
   void sortCompare() throws CVC5ApiException
   {
     Sort boolSort = d_solver.getBooleanSort();

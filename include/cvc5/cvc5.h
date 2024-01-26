@@ -890,6 +890,11 @@ class CVC5_EXPORT Sort
    */
   std::vector<Sort> getTupleSorts() const;
 
+  /**
+   * @return The element sort of a nullable sort.
+   */
+  Sort getNullableElementSort() const;
+
   /* --------------------------------------------------------------------- */
 
  private:

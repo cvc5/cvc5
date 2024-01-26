@@ -636,6 +636,9 @@ class CVC5_EXPORT TypeNode
   /** Get the constituent types of a tuple type */
   std::vector<TypeNode> getTupleTypes() const;
 
+  /** Get the element type (for nullable types) */
+  TypeNode getNullableElementType() const;
+
   /** Is this a regexp type */
   bool isRegExp() const;
 
