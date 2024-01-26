@@ -47,7 +47,7 @@ namespace cvc5 {
  * \internal
  * 
  */
-enum ENUM(SkolemId) : uint32_t
+enum ENUM(SkolemFunId) : uint32_t
 {
   /** The skolem is not exported */
   EVALUE(INTERNAL),
@@ -197,7 +197,7 @@ enum ENUM(SkolemId) : uint32_t
    * (bag.map f A), y, preImageSize, y, e which might be an element in A.
    * (see the documentation for BAGS_MAP_PREIMAGE)
    */
-  BAGS_MAP_PREIMAGE_INDEX),
+  EVALUE(BAGS_MAP_PREIMAGE_INDEX),
   /** An uninterpreted function for bag.map operator:
    * If the preimage of {y} in A is {uf(1), ..., uf(n)} (see BAGS_MAP_PREIMAGE},
    * then the multiplicity of an element y in a bag (map f A) is sum(n),
@@ -265,31 +265,31 @@ enum ENUM(SkolemId) : uint32_t
   /** sygus "any constant" placeholder */
   EVALUE(SYGUS_ANY_CONSTANT),
   //================================================= Unknown rule
-  EVALUE(UNKNOWN),
+  EVALUE(NONE),
 };
 // clang-format on
 
 #ifdef CVC5_API_USE_C_ENUMS
 #ifndef DOXYGEN_SKIP
-typedef enum ENUM(SkolemId) ENUM(SkolemId);
+typedef enum ENUM(SkolemFunId) ENUM(SkolemFunId);
 #endif
 #endif
 
 #ifdef CVC5_API_USE_C_ENUMS
 
 /**
- * Get a string representation of a Cvc5SkolemId.
+ * Get a string representation of a Cvc5SkolemFunId.
  * @param rule The proof rule.
  * @return The string representation.
  */
-const char* cvc5_skolem_id_to_string(Cvc5SkolemId kind);
+const char* cvc5_skolem_id_to_string(Cvc5SkolemFunId kind);
 
 /**
- * Hash function for Cvc5SkolemId.
+ * Hash function for Cvc5SkolemFunId.
  * @param rule The proof rule.
  * @return The hash value.
  */
-size_t cvc5_skolem_id_hash(Cvc5SkolemId rule);
+size_t cvc5_skolem_id_hash(Cvc5SkolemFunId rule);
 
 #else
 /**
@@ -301,7 +301,7 @@ size_t cvc5_skolem_id_hash(Cvc5SkolemId rule);
  * @param id The proof rule
  * @return The name of the proof rule
  */
-const char* toString(SkolemId id);
+const char* toString(SkolemFunId id);
 
 /**
  * Writes a proof rule name to a stream.
@@ -310,22 +310,22 @@ const char* toString(SkolemId id);
  * @param id The proof rule to write to the stream
  * @return The stream
  */
-std::ostream& operator<<(std::ostream& out, SkolemId id);
+std::ostream& operator<<(std::ostream& out, SkolemFunId id);
 }  // namespace cvc5
 
 namespace std {
 /**
- * Hash function for SkolemIds.
+ * Hash function for SkolemFunIds.
  */
 template <>
-struct CVC5_EXPORT hash<cvc5::SkolemId>
+struct CVC5_EXPORT hash<cvc5::SkolemFunId>
 {
   /**
-   * Hashes a SkolemId to a size_t.
+   * Hashes a SkolemFunId to a size_t.
    * @param rule The proof rule.
    * @return The hash value.
    */
-  size_t operator()(cvc5::SkolemId rule) const;
+  size_t operator()(cvc5::SkolemFunId rule) const;
 };
 }  // namespace std
 

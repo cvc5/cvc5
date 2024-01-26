@@ -19,6 +19,7 @@
 #define CVC5__API__CVC5_H
 
 #include <cvc5/cvc5_kind.h>
+#include <cvc5/cvc5_skolem_id.h>
 #include <cvc5/cvc5_types.h>
 #include <cvc5/cvc5_proof_rule.h>
 
@@ -3676,6 +3677,11 @@ class CVC5_EXPORT Solver
    * @return The tuple Term.
    */
   Term mkTuple(const std::vector<Term>& terms) const;
+  
+  /* .................................................................... */
+  /* Create Skolems                                                       */
+  /* .................................................................... */
+  Term mkSkolem(SkolemFunId id, const std::vector<Term>& children = {}) const;
 
   /* .................................................................... */
   /* Create Operators                                                     */
