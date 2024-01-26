@@ -1847,14 +1847,23 @@ class CVC5_EXPORT Term
   Term getRealAlgebraicNumberUpperBound() const;
 
   /**
-   * Is skolem
+   * Is this term a skolem?
+   * @warning This function is experimental and may change in future versions.
+   * @return True if this term is a skolem function.
    */
   bool isSkolem() const;
   /**
-   * Get skolem id
+   * Get skolem identifier of this term.
+   * @note Asserts isSkolem().
+   * @warning This function is experimental and may change in future versions.
+   * @return The skolem identifier of this term.
    */
   SkolemFunId getSkolemId() const;
   /**
+   * Get the skolem arguments of this term.
+   * @note Asserts isSkolem().
+   * @warning This function is experimental and may change in future versions.
+   * @return The skolem arguments of this term.
    */
   std::vector<Term> getSkolemArguments() const;
 
