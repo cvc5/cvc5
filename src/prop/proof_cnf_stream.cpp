@@ -80,7 +80,6 @@ std::vector<Node> ProofCnfStream::getLemmaClauses()
   {
     cls.push_back(c);
   }
-
   return cls;
 }
 
@@ -160,7 +159,7 @@ void ProofCnfStream::convertAndAssert(TNode node,
     Node toJustify = negated ? node.notNode() : static_cast<Node>(node);
     d_proof.addLazyStep(toJustify,
                         pg,
-                        PfRule::ASSUME,
+                        TrustId::NONE,
                         true,
                         "ProofCnfStream::convertAndAssert:cnf");
   }
@@ -182,17 +181,17 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
                << push;
   switch (node.getKind())
   {
-    case kind::AND: convertAndAssertAnd(node, negated); break;
-    case kind::OR: convertAndAssertOr(node, negated); break;
-    case kind::XOR: convertAndAssertXor(node, negated); break;
-    case kind::IMPLIES: convertAndAssertImplies(node, negated); break;
-    case kind::ITE: convertAndAssertIte(node, negated); break;
-    case kind::NOT:
+    case Kind::AND: convertAndAssertAnd(node, negated); break;
+    case Kind::OR: convertAndAssertOr(node, negated); break;
+    case Kind::XOR: convertAndAssertXor(node, negated); break;
+    case Kind::IMPLIES: convertAndAssertImplies(node, negated); break;
+    case Kind::ITE: convertAndAssertIte(node, negated); break;
+    case Kind::NOT:
     {
       // track double negation elimination
       if (negated)
       {
-        d_proof.addStep(node[0], PfRule::NOT_NOT_ELIM, {node.notNode()}, {});
+        d_proof.addStep(node[0], ProofRule::NOT_NOT_ELIM, {node.notNode()}, {});
         Trace("cnf")
             << "ProofCnfStream::convertAndAssert: NOT_NOT_ELIM added norm "
             << node[0] << "\n";
@@ -200,7 +199,7 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
       convertAndAssert(node[0], !negated);
       break;
     }
-    case kind::EQUAL:
+    case Kind::EQUAL:
       if (node[0].getType().isBoolean())
       {
         convertAndAssertIff(node, negated);
@@ -220,7 +219,7 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
         //    (not (not n))
         //   -------------- NOT_NOT_ELIM
         //        n
-        d_proof.addStep(nnode, PfRule::NOT_NOT_ELIM, {node.notNode()}, {});
+        d_proof.addStep(nnode, ProofRule::NOT_NOT_ELIM, {node.notNode()}, {});
         Trace("cnf")
             << "ProofCnfStream::convertAndAssert: NOT_NOT_ELIM added norm "
             << nnode << "\n";
@@ -250,7 +249,7 @@ void ProofCnfStream::convertAndAssertAnd(TNode node, bool negated)
   Trace("cnf") << "ProofCnfStream::convertAndAssertAnd(" << node
                << ", negated = " << (negated ? "true" : "false") << ")\n"
                << push;
-  Assert(node.getKind() == kind::AND);
+  Assert(node.getKind() == Kind::AND);
   if (!negated)
   {
     // If the node is a conjunction, we handle each conjunct separately
@@ -259,7 +258,7 @@ void ProofCnfStream::convertAndAssertAnd(TNode node, bool negated)
     {
       // Create a proof step for each n_i
       Node iNode = nm->mkConstInt(i);
-      d_proof.addStep(node[i], PfRule::AND_ELIM, {node}, {iNode});
+      d_proof.addStep(node[i], ProofRule::AND_ELIM, {node}, {iNode});
       Trace("cnf") << "ProofCnfStream::convertAndAssertAnd: AND_ELIM " << i
                    << " added norm " << node[i] << "\n";
       convertAndAssert(node[i], false);
@@ -283,8 +282,8 @@ void ProofCnfStream::convertAndAssertAnd(TNode node, bool negated)
       {
         disjuncts.push_back(node[i].notNode());
       }
-      Node clauseNode = NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
-      d_proof.addStep(clauseNode, PfRule::NOT_AND, {node.notNode()}, {});
+      Node clauseNode = NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
+      d_proof.addStep(clauseNode, ProofRule::NOT_AND, {node.notNode()}, {});
       Trace("cnf") << "ProofCnfStream::convertAndAssertAnd: NOT_AND added "
                    << clauseNode << "\n";
       normalizeAndRegister(clauseNode);
@@ -298,7 +297,7 @@ void ProofCnfStream::convertAndAssertOr(TNode node, bool negated)
   Trace("cnf") << "ProofCnfStream::convertAndAssertOr(" << node
                << ", negated = " << (negated ? "true" : "false") << ")\n"
                << push;
-  Assert(node.getKind() == kind::OR);
+  Assert(node.getKind() == Kind::OR);
   if (!negated)
   {
     // If the node is a disjunction, we construct a clause and assert it
@@ -321,7 +320,7 @@ void ProofCnfStream::convertAndAssertOr(TNode node, bool negated)
       // Create a proof step for each (not n_i)
       Node iNode = nm->mkConstInt(i);
       d_proof.addStep(
-          node[i].notNode(), PfRule::NOT_OR_ELIM, {node.notNode()}, {iNode});
+          node[i].notNode(), ProofRule::NOT_OR_ELIM, {node.notNode()}, {iNode});
       Trace("cnf") << "ProofCnfStream::convertAndAssertOr: NOT_OR_ELIM " << i
                    << " added norm  " << node[i].notNode() << "\n";
       convertAndAssert(node[i], true);
@@ -350,8 +349,8 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
     if (added)
     {
       Node clauseNode =
-          nm->mkNode(kind::OR, node[0].notNode(), node[1].notNode());
-      d_proof.addStep(clauseNode, PfRule::XOR_ELIM2, {node}, {});
+          nm->mkNode(Kind::OR, node[0].notNode(), node[1].notNode());
+      d_proof.addStep(clauseNode, ProofRule::XOR_ELIM2, {node}, {});
       Trace("cnf") << "ProofCnfStream::convertAndAssertXor: XOR_ELIM2 added "
                    << clauseNode << "\n";
       normalizeAndRegister(clauseNode);
@@ -363,8 +362,8 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
     added = d_cnfStream.assertClause(node, clause2);
     if (added)
     {
-      Node clauseNode = nm->mkNode(kind::OR, node[0], node[1]);
-      d_proof.addStep(clauseNode, PfRule::XOR_ELIM1, {node}, {});
+      Node clauseNode = nm->mkNode(Kind::OR, node[0], node[1]);
+      d_proof.addStep(clauseNode, ProofRule::XOR_ELIM1, {node}, {});
       Trace("cnf") << "ProofCnfStream::convertAndAssertXor: XOR_ELIM1 added "
                    << clauseNode << "\n";
       normalizeAndRegister(clauseNode);
@@ -384,8 +383,9 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
     added = d_cnfStream.assertClause(node.negate(), clause1);
     if (added)
     {
-      Node clauseNode = nm->mkNode(kind::OR, node[0].notNode(), node[1]);
-      d_proof.addStep(clauseNode, PfRule::NOT_XOR_ELIM2, {node.notNode()}, {});
+      Node clauseNode = nm->mkNode(Kind::OR, node[0].notNode(), node[1]);
+      d_proof.addStep(
+          clauseNode, ProofRule::NOT_XOR_ELIM2, {node.notNode()}, {});
       Trace("cnf")
           << "ProofCnfStream::convertAndAssertXor: NOT_XOR_ELIM2 added "
           << clauseNode << "\n";
@@ -398,8 +398,9 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
     added = d_cnfStream.assertClause(node.negate(), clause2);
     if (added)
     {
-      Node clauseNode = nm->mkNode(kind::OR, node[0], node[1].notNode());
-      d_proof.addStep(clauseNode, PfRule::NOT_XOR_ELIM1, {node.notNode()}, {});
+      Node clauseNode = nm->mkNode(Kind::OR, node[0], node[1].notNode());
+      d_proof.addStep(
+          clauseNode, ProofRule::NOT_XOR_ELIM1, {node.notNode()}, {});
       Trace("cnf")
           << "ProofCnfStream::convertAndAssertXor: NOT_XOR_ELIM1 added "
           << clauseNode << "\n";
@@ -430,8 +431,8 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
     added = d_cnfStream.assertClause(node, clause1);
     if (added)
     {
-      Node clauseNode = nm->mkNode(kind::OR, node[0].notNode(), node[1]);
-      d_proof.addStep(clauseNode, PfRule::EQUIV_ELIM1, {node}, {});
+      Node clauseNode = nm->mkNode(Kind::OR, node[0].notNode(), node[1]);
+      d_proof.addStep(clauseNode, ProofRule::EQUIV_ELIM1, {node}, {});
       Trace("cnf") << "ProofCnfStream::convertAndAssertIff: EQUIV_ELIM1 added "
                    << clauseNode << "\n";
       normalizeAndRegister(clauseNode);
@@ -443,8 +444,8 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
     added = d_cnfStream.assertClause(node, clause2);
     if (added)
     {
-      Node clauseNode = nm->mkNode(kind::OR, node[0], node[1].notNode());
-      d_proof.addStep(clauseNode, PfRule::EQUIV_ELIM2, {node}, {});
+      Node clauseNode = nm->mkNode(Kind::OR, node[0], node[1].notNode());
+      d_proof.addStep(clauseNode, ProofRule::EQUIV_ELIM2, {node}, {});
       Trace("cnf") << "ProofCnfStream::convertAndAssertIff: EQUIV_ELIM2 added "
                    << clauseNode << "\n";
       normalizeAndRegister(clauseNode);
@@ -467,9 +468,9 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
     if (added)
     {
       Node clauseNode =
-          nm->mkNode(kind::OR, node[0].notNode(), node[1].notNode());
+          nm->mkNode(Kind::OR, node[0].notNode(), node[1].notNode());
       d_proof.addStep(
-          clauseNode, PfRule::NOT_EQUIV_ELIM2, {node.notNode()}, {});
+          clauseNode, ProofRule::NOT_EQUIV_ELIM2, {node.notNode()}, {});
       Trace("cnf")
           << "ProofCnfStream::convertAndAssertIff: NOT_EQUIV_ELIM2 added "
           << clauseNode << "\n";
@@ -482,9 +483,9 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
     added = d_cnfStream.assertClause(node.negate(), clause2);
     if (added)
     {
-      Node clauseNode = nm->mkNode(kind::OR, node[0], node[1]);
+      Node clauseNode = nm->mkNode(Kind::OR, node[0], node[1]);
       d_proof.addStep(
-          clauseNode, PfRule::NOT_EQUIV_ELIM1, {node.notNode()}, {});
+          clauseNode, ProofRule::NOT_EQUIV_ELIM1, {node.notNode()}, {});
       Trace("cnf")
           << "ProofCnfStream::convertAndAssertIff: NOT_EQUIV_ELIM1 added "
           << clauseNode << "\n";
@@ -512,8 +513,8 @@ void ProofCnfStream::convertAndAssertImplies(TNode node, bool negated)
     if (added)
     {
       Node clauseNode = NodeManager::currentNM()->mkNode(
-          kind::OR, node[0].notNode(), node[1]);
-      d_proof.addStep(clauseNode, PfRule::IMPLIES_ELIM, {node}, {});
+          Kind::OR, node[0].notNode(), node[1]);
+      d_proof.addStep(clauseNode, ProofRule::IMPLIES_ELIM, {node}, {});
       Trace("cnf")
           << "ProofCnfStream::convertAndAssertImplies: IMPLIES_ELIM added "
           << clauseNode << "\n";
@@ -525,14 +526,15 @@ void ProofCnfStream::convertAndAssertImplies(TNode node, bool negated)
     // ~(p => q) is the same as p ^ ~q
     // process p
     convertAndAssert(node[0], false);
-    d_proof.addStep(node[0], PfRule::NOT_IMPLIES_ELIM1, {node.notNode()}, {});
+    d_proof.addStep(
+        node[0], ProofRule::NOT_IMPLIES_ELIM1, {node.notNode()}, {});
     Trace("cnf")
         << "ProofCnfStream::convertAndAssertImplies: NOT_IMPLIES_ELIM1 added "
         << node[0] << "\n";
     // process ~q
     convertAndAssert(node[1], true);
     d_proof.addStep(
-        node[1].notNode(), PfRule::NOT_IMPLIES_ELIM2, {node.notNode()}, {});
+        node[1].notNode(), ProofRule::NOT_IMPLIES_ELIM2, {node.notNode()}, {});
     Trace("cnf")
         << "ProofCnfStream::convertAndAssertImplies: NOT_IMPLIES_ELIM2 added "
         << node[1].notNode() << "\n";
@@ -567,8 +569,8 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
     // redo the negation here to avoid silent double negation elimination
     if (!negated)
     {
-      Node clauseNode = nm->mkNode(kind::OR, node[0].notNode(), node[1]);
-      d_proof.addStep(clauseNode, PfRule::ITE_ELIM1, {node}, {});
+      Node clauseNode = nm->mkNode(Kind::OR, node[0].notNode(), node[1]);
+      d_proof.addStep(clauseNode, ProofRule::ITE_ELIM1, {node}, {});
       Trace("cnf") << "ProofCnfStream::convertAndAssertIte: ITE_ELIM1 added "
                    << clauseNode << "\n";
       normalizeAndRegister(clauseNode);
@@ -576,8 +578,9 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
     else
     {
       Node clauseNode =
-          nm->mkNode(kind::OR, node[0].notNode(), node[1].notNode());
-      d_proof.addStep(clauseNode, PfRule::NOT_ITE_ELIM1, {node.notNode()}, {});
+          nm->mkNode(Kind::OR, node[0].notNode(), node[1].notNode());
+      d_proof.addStep(
+          clauseNode, ProofRule::NOT_ITE_ELIM1, {node.notNode()}, {});
       Trace("cnf")
           << "ProofCnfStream::convertAndAssertIte: NOT_ITE_ELIM1 added "
           << clauseNode << "\n";
@@ -594,16 +597,17 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
     // redo the negation here to avoid silent double negation elimination
     if (!negated)
     {
-      Node clauseNode = nm->mkNode(kind::OR, node[0], node[2]);
-      d_proof.addStep(clauseNode, PfRule::ITE_ELIM2, {node}, {});
+      Node clauseNode = nm->mkNode(Kind::OR, node[0], node[2]);
+      d_proof.addStep(clauseNode, ProofRule::ITE_ELIM2, {node}, {});
       Trace("cnf") << "ProofCnfStream::convertAndAssertIte: ITE_ELIM2 added "
                    << clauseNode << "\n";
       normalizeAndRegister(clauseNode);
     }
     else
     {
-      Node clauseNode = nm->mkNode(kind::OR, node[0], node[2].notNode());
-      d_proof.addStep(clauseNode, PfRule::NOT_ITE_ELIM2, {node.notNode()}, {});
+      Node clauseNode = nm->mkNode(Kind::OR, node[0], node[2].notNode());
+      d_proof.addStep(
+          clauseNode, ProofRule::NOT_ITE_ELIM2, {node.notNode()}, {});
       Trace("cnf")
           << "ProofCnfStream::convertAndAssertIte: NOT_ITE_ELIM2 added "
           << clauseNode << "\n";
@@ -629,7 +633,7 @@ void ProofCnfStream::convertPropagation(TrustNode trn)
                        << trn.identifyGenerator() << std::endl;
     d_proof.addLazyStep(proven,
                         trn.getGenerator(),
-                        PfRule::ASSUME,
+                        TrustId::NONE,
                         true,
                         "ProofCnfStream::convertPropagation");
   }
@@ -639,15 +643,15 @@ void ProofCnfStream::convertPropagation(TrustNode trn)
   Node clauseImpliesElim;
   if (proofLogging)
   {
-    clauseImpliesElim = nm->mkNode(kind::OR, proven[0].notNode(), proven[1]);
+    clauseImpliesElim = nm->mkNode(Kind::OR, proven[0].notNode(), proven[1]);
     Trace("cnf") << "ProofCnfStream::convertPropagation: adding "
-                 << PfRule::IMPLIES_ELIM << " rule to conclude "
+                 << ProofRule::IMPLIES_ELIM << " rule to conclude "
                  << clauseImpliesElim << "\n";
-    d_proof.addStep(clauseImpliesElim, PfRule::IMPLIES_ELIM, {proven}, {});
+    d_proof.addStep(clauseImpliesElim, ProofRule::IMPLIES_ELIM, {proven}, {});
   }
   Node clauseExp;
   // need to eliminate AND
-  if (proven[0].getKind() == kind::AND)
+  if (proven[0].getKind() == Kind::AND)
   {
     std::vector<Node> disjunctsAndNeg{proven[0]};
     std::vector<Node> disjunctsRes;
@@ -657,21 +661,21 @@ void ProofCnfStream::convertPropagation(TrustNode trn)
       disjunctsRes.push_back(proven[0][i].notNode());
     }
     disjunctsRes.push_back(proven[1]);
-    clauseExp = nm->mkNode(kind::OR, disjunctsRes);
+    clauseExp = nm->mkNode(Kind::OR, disjunctsRes);
     if (proofLogging)
     {
       // add proof steps to convert into clause
-      Node clauseAndNeg = nm->mkNode(kind::OR, disjunctsAndNeg);
-      d_proof.addStep(clauseAndNeg, PfRule::CNF_AND_NEG, {}, {proven[0]});
+      Node clauseAndNeg = nm->mkNode(Kind::OR, disjunctsAndNeg);
+      d_proof.addStep(clauseAndNeg, ProofRule::CNF_AND_NEG, {}, {proven[0]});
       d_proof.addStep(clauseExp,
-                      PfRule::RESOLUTION,
+                      ProofRule::RESOLUTION,
                       {clauseAndNeg, clauseImpliesElim},
                       {nm->mkConst(true), proven[0]});
     }
   }
   else
   {
-    clauseExp = nm->mkNode(kind::OR, proven[0].notNode(), proven[1]);
+    clauseExp = nm->mkNode(Kind::OR, proven[0].notNode(), proven[1]);
   }
   d_currPropagationProcessed = normalizeAndRegister(clauseExp);
   // consume steps if clausification being recorded. If we are not logging it,
@@ -689,10 +693,8 @@ void ProofCnfStream::convertPropagation(TrustNode trn)
   }
   else
   {
-    d_proof.addStep(d_currPropagationProcessed,
-                    PfRule::THEORY_LEMMA,
-                    {},
-                    {d_currPropagationProcessed});
+    d_proof.addTrustedStep(
+        d_currPropagationProcessed, TrustId::THEORY_LEMMA, {}, {});
   }
 }
 
@@ -713,7 +715,7 @@ void ProofCnfStream::notifyCurrPropagationInsertedAtLevel(uint32_t explLevel)
   // updates to the saved proof. Not doing this may also lead to open proofs.
   std::shared_ptr<ProofNode> currPropagationProcPf =
       d_proof.getProofFor(d_currPropagationProcessed)->clone();
-  Assert(currPropagationProcPf->getRule() != PfRule::ASSUME);
+  Assert(currPropagationProcPf->getRule() != ProofRule::ASSUME);
   Trace("cnf-debug") << "\t..saved pf {" << currPropagationProcPf << "} "
                      << *currPropagationProcPf.get() << "\n";
   d_optClausesPfs[explLevel + 1].push_back(currPropagationProcPf);
@@ -740,7 +742,7 @@ void ProofCnfStream::notifyClauseInsertedAtLevel(const SatClause& clause,
   // As above, also justify eagerly.
   std::shared_ptr<ProofNode> clauseCnfPf =
       d_proof.getProofFor(clauseNode)->clone();
-  Assert(clauseCnfPf->getRule() != PfRule::ASSUME);
+  Assert(clauseCnfPf->getRule() != ProofRule::ASSUME);
   d_optClausesPfs[clLevel + 1].push_back(clauseCnfPf);
   // Notify SAT proof manager that the propagation (which is a SAT assumption)
   // had its level optimized
@@ -760,7 +762,7 @@ Node ProofCnfStream::getClauseNode(const SatClause& clause)
   }
   // order children by node id
   std::sort(clauseNodes.begin(), clauseNodes.end());
-  return NodeManager::currentNM()->mkNode(kind::OR, clauseNodes);
+  return NodeManager::currentNM()->mkNode(Kind::OR, clauseNodes);
 }
 
 void ProofCnfStream::ensureLiteral(TNode n)
@@ -773,7 +775,7 @@ void ProofCnfStream::ensureLiteral(TNode n)
   }
   // remove top level negation. We don't need to track this because it's a
   // literal.
-  n = n.getKind() == kind::NOT ? n[0] : n;
+  n = n.getKind() == Kind::NOT ? n[0] : n;
   if (d_env.theoryOf(n) == theory::THEORY_BOOL && !n.isVar())
   {
     // These are not removable
@@ -823,13 +825,13 @@ SatLiteral ProofCnfStream::toCNF(TNode node, bool negated)
   // Handle each Boolean operator case
   switch (node.getKind())
   {
-    case kind::AND: lit = handleAnd(node); break;
-    case kind::OR: lit = handleOr(node); break;
-    case kind::XOR: lit = handleXor(node); break;
-    case kind::IMPLIES: lit = handleImplies(node); break;
-    case kind::ITE: lit = handleIte(node); break;
-    case kind::NOT: lit = ~toCNF(node[0]); break;
-    case kind::EQUAL:
+    case Kind::AND: lit = handleAnd(node); break;
+    case Kind::OR: lit = handleOr(node); break;
+    case Kind::XOR: lit = handleXor(node); break;
+    case Kind::IMPLIES: lit = handleImplies(node); break;
+    case Kind::ITE: lit = handleIte(node); break;
+    case Kind::NOT: lit = ~toCNF(node[0]); break;
+    case Kind::EQUAL:
       lit = node[0].getType().isBoolean() ? handleIff(node)
                                           : d_cnfStream.convertAtom(node);
       break;
@@ -846,7 +848,7 @@ SatLiteral ProofCnfStream::toCNF(TNode node, bool negated)
 SatLiteral ProofCnfStream::handleAnd(TNode node)
 {
   Assert(!d_cnfStream.hasLiteral(node)) << "Atom already mapped!";
-  Assert(node.getKind() == kind::AND) << "Expecting an AND expression!";
+  Assert(node.getKind() == Kind::AND) << "Expecting an AND expression!";
   Assert(node.getNumChildren() > 1) << "Expecting more than 1 child!";
   Assert(!d_cnfStream.d_removable)
       << "Removable clauses cannot contain Boolean structure";
@@ -875,9 +877,9 @@ SatLiteral ProofCnfStream::handleAnd(TNode node)
     Trace("cnf") << pop;
     if (added)
     {
-      Node clauseNode = nm->mkNode(kind::OR, node.notNode(), node[i]);
+      Node clauseNode = nm->mkNode(Kind::OR, node.notNode(), node[i]);
       Node iNode = nm->mkConstInt(i);
-      d_proof.addStep(clauseNode, PfRule::CNF_AND_POS, {}, {node, iNode});
+      d_proof.addStep(clauseNode, ProofRule::CNF_AND_POS, {}, {node, iNode});
       Trace("cnf") << "ProofCnfStream::handleAnd: CNF_AND_POS " << i
                    << " added " << clauseNode << "\n";
       normalizeAndRegister(clauseNode);
@@ -898,8 +900,8 @@ SatLiteral ProofCnfStream::handleAnd(TNode node)
     {
       disjuncts.push_back(node[i].notNode());
     }
-    Node clauseNode = nm->mkNode(kind::OR, disjuncts);
-    d_proof.addStep(clauseNode, PfRule::CNF_AND_NEG, {}, {node});
+    Node clauseNode = nm->mkNode(Kind::OR, disjuncts);
+    d_proof.addStep(clauseNode, ProofRule::CNF_AND_NEG, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleAnd: CNF_AND_NEG added "
                  << clauseNode << "\n";
     normalizeAndRegister(clauseNode);
@@ -910,7 +912,7 @@ SatLiteral ProofCnfStream::handleAnd(TNode node)
 SatLiteral ProofCnfStream::handleOr(TNode node)
 {
   Assert(!d_cnfStream.hasLiteral(node)) << "Atom already mapped!";
-  Assert(node.getKind() == kind::OR) << "Expecting an OR expression!";
+  Assert(node.getKind() == Kind::OR) << "Expecting an OR expression!";
   Assert(node.getNumChildren() > 1) << "Expecting more then 1 child!";
   Assert(!d_cnfStream.d_removable)
       << "Removable clauses can not contain Boolean structure";
@@ -935,9 +937,9 @@ SatLiteral ProofCnfStream::handleOr(TNode node)
     added = d_cnfStream.assertClause(node, lit, ~clause[i]);
     if (added)
     {
-      Node clauseNode = nm->mkNode(kind::OR, node, node[i].notNode());
+      Node clauseNode = nm->mkNode(Kind::OR, node, node[i].notNode());
       Node iNode = nm->mkConstInt(i);
-      d_proof.addStep(clauseNode, PfRule::CNF_OR_NEG, {}, {node, iNode});
+      d_proof.addStep(clauseNode, ProofRule::CNF_OR_NEG, {}, {node, iNode});
       Trace("cnf") << "ProofCnfStream::handleOr: CNF_OR_NEG " << i << " added "
                    << clauseNode << "\n";
       normalizeAndRegister(clauseNode);
@@ -955,8 +957,8 @@ SatLiteral ProofCnfStream::handleOr(TNode node)
     {
       disjuncts.push_back(node[i]);
     }
-    Node clauseNode = nm->mkNode(kind::OR, disjuncts);
-    d_proof.addStep(clauseNode, PfRule::CNF_OR_POS, {}, {node});
+    Node clauseNode = nm->mkNode(Kind::OR, disjuncts);
+    d_proof.addStep(clauseNode, ProofRule::CNF_OR_POS, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleOr: CNF_OR_POS added " << clauseNode
                  << "\n";
     normalizeAndRegister(clauseNode);
@@ -967,7 +969,7 @@ SatLiteral ProofCnfStream::handleOr(TNode node)
 SatLiteral ProofCnfStream::handleXor(TNode node)
 {
   Assert(!d_cnfStream.hasLiteral(node)) << "Atom already mapped!";
-  Assert(node.getKind() == kind::XOR) << "Expecting an XOR expression!";
+  Assert(node.getKind() == Kind::XOR) << "Expecting an XOR expression!";
   Assert(node.getNumChildren() == 2) << "Expecting exactly 2 children!";
   Assert(!d_cnfStream.d_removable)
       << "Removable clauses can not contain Boolean structure";
@@ -980,8 +982,8 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
   if (added)
   {
     Node clauseNode = NodeManager::currentNM()->mkNode(
-        kind::OR, node.notNode(), node[0], node[1]);
-    d_proof.addStep(clauseNode, PfRule::CNF_XOR_POS1, {}, {node});
+        Kind::OR, node.notNode(), node[0], node[1]);
+    d_proof.addStep(clauseNode, ProofRule::CNF_XOR_POS1, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleXor: CNF_XOR_POS1 added "
                  << clauseNode << "\n";
     normalizeAndRegister(clauseNode);
@@ -990,8 +992,8 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
   if (added)
   {
     Node clauseNode = NodeManager::currentNM()->mkNode(
-        kind::OR, node.notNode(), node[0].notNode(), node[1].notNode());
-    d_proof.addStep(clauseNode, PfRule::CNF_XOR_POS2, {}, {node});
+        Kind::OR, node.notNode(), node[0].notNode(), node[1].notNode());
+    d_proof.addStep(clauseNode, ProofRule::CNF_XOR_POS2, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleXor: CNF_XOR_POS2 added "
                  << clauseNode << "\n";
     normalizeAndRegister(clauseNode);
@@ -1000,8 +1002,8 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
   if (added)
   {
     Node clauseNode = NodeManager::currentNM()->mkNode(
-        kind::OR, node, node[0], node[1].notNode());
-    d_proof.addStep(clauseNode, PfRule::CNF_XOR_NEG2, {}, {node});
+        Kind::OR, node, node[0], node[1].notNode());
+    d_proof.addStep(clauseNode, ProofRule::CNF_XOR_NEG2, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleXor: CNF_XOR_NEG2 added "
                  << clauseNode << "\n";
     normalizeAndRegister(clauseNode);
@@ -1010,8 +1012,8 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
   if (added)
   {
     Node clauseNode = NodeManager::currentNM()->mkNode(
-        kind::OR, node, node[0].notNode(), node[1]);
-    d_proof.addStep(clauseNode, PfRule::CNF_XOR_NEG1, {}, {node});
+        Kind::OR, node, node[0].notNode(), node[1]);
+    d_proof.addStep(clauseNode, ProofRule::CNF_XOR_NEG1, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleXor: CNF_XOR_NEG1 added "
                  << clauseNode << "\n";
     normalizeAndRegister(clauseNode);
@@ -1022,7 +1024,7 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
 SatLiteral ProofCnfStream::handleIff(TNode node)
 {
   Assert(!d_cnfStream.hasLiteral(node)) << "Atom already mapped!";
-  Assert(node.getKind() == kind::EQUAL) << "Expecting an EQUAL expression!";
+  Assert(node.getKind() == Kind::EQUAL) << "Expecting an EQUAL expression!";
   Assert(node.getNumChildren() == 2) << "Expecting exactly 2 children!";
   Trace("cnf") << "handleIff(" << node << ")\n";
   // Convert the children to CNF
@@ -1039,8 +1041,8 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
   if (added)
   {
     Node clauseNode =
-        nm->mkNode(kind::OR, node.notNode(), node[0].notNode(), node[1]);
-    d_proof.addStep(clauseNode, PfRule::CNF_EQUIV_POS1, {}, {node});
+        nm->mkNode(Kind::OR, node.notNode(), node[0].notNode(), node[1]);
+    d_proof.addStep(clauseNode, ProofRule::CNF_EQUIV_POS1, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleIff: CNF_EQUIV_POS1 added "
                  << clauseNode << "\n";
     normalizeAndRegister(clauseNode);
@@ -1049,8 +1051,8 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
   if (added)
   {
     Node clauseNode =
-        nm->mkNode(kind::OR, node.notNode(), node[0], node[1].notNode());
-    d_proof.addStep(clauseNode, PfRule::CNF_EQUIV_POS2, {}, {node});
+        nm->mkNode(Kind::OR, node.notNode(), node[0], node[1].notNode());
+    d_proof.addStep(clauseNode, ProofRule::CNF_EQUIV_POS2, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleIff: CNF_EQUIV_POS2 added "
                  << clauseNode << "\n";
     normalizeAndRegister(clauseNode);
@@ -1064,8 +1066,8 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
   if (added)
   {
     Node clauseNode =
-        nm->mkNode(kind::OR, node, node[0].notNode(), node[1].notNode());
-    d_proof.addStep(clauseNode, PfRule::CNF_EQUIV_NEG2, {}, {node});
+        nm->mkNode(Kind::OR, node, node[0].notNode(), node[1].notNode());
+    d_proof.addStep(clauseNode, ProofRule::CNF_EQUIV_NEG2, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleIff: CNF_EQUIV_NEG2 added "
                  << clauseNode << "\n";
     normalizeAndRegister(clauseNode);
@@ -1073,8 +1075,8 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
   added = d_cnfStream.assertClause(node, a, b, lit);
   if (added)
   {
-    Node clauseNode = nm->mkNode(kind::OR, node, node[0], node[1]);
-    d_proof.addStep(clauseNode, PfRule::CNF_EQUIV_NEG1, {}, {node});
+    Node clauseNode = nm->mkNode(Kind::OR, node, node[0], node[1]);
+    d_proof.addStep(clauseNode, ProofRule::CNF_EQUIV_NEG1, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleIff: CNF_EQUIV_NEG1 added "
                  << clauseNode << "\n";
     normalizeAndRegister(clauseNode);
@@ -1085,7 +1087,7 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
 SatLiteral ProofCnfStream::handleImplies(TNode node)
 {
   Assert(!d_cnfStream.hasLiteral(node)) << "Atom already mapped!";
-  Assert(node.getKind() == kind::IMPLIES) << "Expecting an IMPLIES expression!";
+  Assert(node.getKind() == Kind::IMPLIES) << "Expecting an IMPLIES expression!";
   Assert(node.getNumChildren() == 2) << "Expecting exactly 2 children!";
   Assert(!d_cnfStream.d_removable)
       << "Removable clauses can not contain Boolean structure";
@@ -1102,8 +1104,8 @@ SatLiteral ProofCnfStream::handleImplies(TNode node)
   if (added)
   {
     Node clauseNode =
-        nm->mkNode(kind::OR, node.notNode(), node[0].notNode(), node[1]);
-    d_proof.addStep(clauseNode, PfRule::CNF_IMPLIES_POS, {}, {node});
+        nm->mkNode(Kind::OR, node.notNode(), node[0].notNode(), node[1]);
+    d_proof.addStep(clauseNode, ProofRule::CNF_IMPLIES_POS, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleImplies: CNF_IMPLIES_POS added "
                  << clauseNode << "\n";
     normalizeAndRegister(clauseNode);
@@ -1114,8 +1116,8 @@ SatLiteral ProofCnfStream::handleImplies(TNode node)
   added = d_cnfStream.assertClause(node, a, lit);
   if (added)
   {
-    Node clauseNode = nm->mkNode(kind::OR, node, node[0]);
-    d_proof.addStep(clauseNode, PfRule::CNF_IMPLIES_NEG1, {}, {node});
+    Node clauseNode = nm->mkNode(Kind::OR, node, node[0]);
+    d_proof.addStep(clauseNode, ProofRule::CNF_IMPLIES_NEG1, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleImplies: CNF_IMPLIES_NEG1 added "
                  << clauseNode << "\n";
     normalizeAndRegister(clauseNode);
@@ -1123,8 +1125,8 @@ SatLiteral ProofCnfStream::handleImplies(TNode node)
   added = d_cnfStream.assertClause(node, ~b, lit);
   if (added)
   {
-    Node clauseNode = nm->mkNode(kind::OR, node, node[1].notNode());
-    d_proof.addStep(clauseNode, PfRule::CNF_IMPLIES_NEG2, {}, {node});
+    Node clauseNode = nm->mkNode(Kind::OR, node, node[1].notNode());
+    d_proof.addStep(clauseNode, ProofRule::CNF_IMPLIES_NEG2, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleImplies: CNF_IMPLIES_NEG2 added "
                  << clauseNode << "\n";
     normalizeAndRegister(clauseNode);
@@ -1135,7 +1137,7 @@ SatLiteral ProofCnfStream::handleImplies(TNode node)
 SatLiteral ProofCnfStream::handleIte(TNode node)
 {
   Assert(!d_cnfStream.hasLiteral(node)) << "Atom already mapped!";
-  Assert(node.getKind() == kind::ITE);
+  Assert(node.getKind() == Kind::ITE);
   Assert(node.getNumChildren() == 3);
   Assert(!d_cnfStream.d_removable)
       << "Removable clauses can not contain Boolean structure";
@@ -1157,8 +1159,8 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
   added = d_cnfStream.assertClause(node.negate(), ~lit, thenLit, elseLit);
   if (added)
   {
-    Node clauseNode = nm->mkNode(kind::OR, node.notNode(), node[1], node[2]);
-    d_proof.addStep(clauseNode, PfRule::CNF_ITE_POS3, {}, {node});
+    Node clauseNode = nm->mkNode(Kind::OR, node.notNode(), node[1], node[2]);
+    d_proof.addStep(clauseNode, ProofRule::CNF_ITE_POS3, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleIte: CNF_ITE_POS3 added "
                  << clauseNode << "\n";
     normalizeAndRegister(clauseNode);
@@ -1167,8 +1169,8 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
   if (added)
   {
     Node clauseNode =
-        nm->mkNode(kind::OR, node.notNode(), node[0].notNode(), node[1]);
-    d_proof.addStep(clauseNode, PfRule::CNF_ITE_POS1, {}, {node});
+        nm->mkNode(Kind::OR, node.notNode(), node[0].notNode(), node[1]);
+    d_proof.addStep(clauseNode, ProofRule::CNF_ITE_POS1, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleIte: CNF_ITE_POS1 added "
                  << clauseNode << "\n";
     normalizeAndRegister(clauseNode);
@@ -1176,8 +1178,8 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
   added = d_cnfStream.assertClause(node.negate(), ~lit, condLit, elseLit);
   if (added)
   {
-    Node clauseNode = nm->mkNode(kind::OR, node.notNode(), node[0], node[2]);
-    d_proof.addStep(clauseNode, PfRule::CNF_ITE_POS2, {}, {node});
+    Node clauseNode = nm->mkNode(Kind::OR, node.notNode(), node[0], node[2]);
+    d_proof.addStep(clauseNode, ProofRule::CNF_ITE_POS2, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleIte: CNF_ITE_POS2 added "
                  << clauseNode << "\n";
     normalizeAndRegister(clauseNode);
@@ -1192,8 +1194,8 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
   if (added)
   {
     Node clauseNode =
-        nm->mkNode(kind::OR, node, node[1].notNode(), node[2].notNode());
-    d_proof.addStep(clauseNode, PfRule::CNF_ITE_NEG3, {}, {node});
+        nm->mkNode(Kind::OR, node, node[1].notNode(), node[2].notNode());
+    d_proof.addStep(clauseNode, ProofRule::CNF_ITE_NEG3, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleIte: CNF_ITE_NEG3 added "
                  << clauseNode << "\n";
     normalizeAndRegister(clauseNode);
@@ -1202,8 +1204,8 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
   if (added)
   {
     Node clauseNode =
-        nm->mkNode(kind::OR, node, node[0].notNode(), node[1].notNode());
-    d_proof.addStep(clauseNode, PfRule::CNF_ITE_NEG1, {}, {node});
+        nm->mkNode(Kind::OR, node, node[0].notNode(), node[1].notNode());
+    d_proof.addStep(clauseNode, ProofRule::CNF_ITE_NEG1, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleIte: CNF_ITE_NEG1 added "
                  << clauseNode << "\n";
     normalizeAndRegister(clauseNode);
@@ -1211,8 +1213,8 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
   added = d_cnfStream.assertClause(node, lit, condLit, ~elseLit);
   if (added)
   {
-    Node clauseNode = nm->mkNode(kind::OR, node, node[0], node[2].notNode());
-    d_proof.addStep(clauseNode, PfRule::CNF_ITE_NEG2, {}, {node});
+    Node clauseNode = nm->mkNode(Kind::OR, node, node[0], node[2].notNode());
+    d_proof.addStep(clauseNode, ProofRule::CNF_ITE_NEG2, {}, {node});
     Trace("cnf") << "ProofCnfStream::handleIte: CNF_ITE_NEG2 added "
                  << clauseNode << "\n";
     normalizeAndRegister(clauseNode);

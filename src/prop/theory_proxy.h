@@ -72,7 +72,7 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** Presolve, which calls presolve for the modules managed by this class */
   void presolve();
   /** Postsolve, which calls postsolve for the modules managed by this class */
-  void postsolve();
+  void postsolve(SatValue result);
 
   /**
    * Notify that lhs was substituted by rhs during preprocessing. This impacts
@@ -128,9 +128,23 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   void enqueueTheoryLiteral(const SatLiteral& l);
 
-  SatLiteral getNextTheoryDecisionRequest();
-
-  SatLiteral getNextDecisionEngineRequest(bool& stopSearch);
+  /**
+   * Get the next decision request.
+   *
+   * This first queries the theory engine for a decision request. If the theory
+   * engine does not request a decision, the decision engine is queried.
+   *
+   * If `requirePhase` is true, the decision must be decided as is, in the
+   * given polarity. Else it should respect the polarity configured via
+   * PropEngine::requirePhase, if any.
+   *
+   * @param requirePhase True if the returned SatLiteral must be decided
+   *                     as-is, in its given polarity.
+   * @param stopSearch   True if the current search should be terminated. In
+   *                     this case, lit_Undef is returned.
+   * @return The next decision.
+   */
+  SatLiteral getNextDecisionRequest(bool& requirePhase, bool& stopSearch);
 
   bool theoryNeedCheck() const;
 
@@ -143,11 +157,6 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** Get unsound id, valid when isRefutationUnsound is true. */
   theory::IncompleteId getRefutationUnsoundId() const;
 
-  /**
-   * Notifies of a new variable at a decision level.
-   */
-  void variableNotify(SatVariable var);
-
   TNode getNode(SatLiteral lit);
 
   void notifyRestart();
@@ -156,11 +165,11 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   bool isDecisionEngineDone();
 
-  bool isDecisionRelevant(SatVariable var);
-
-  SatValue getDecisionPolarity(SatVariable var);
-
-  CnfStream* getCnfStream();
+  /**
+   * Get the associated CNF stream.
+   * @return The CNF stream.
+   */
+  CnfStream* getCnfStream() const;
 
   /**
    * Call the preprocessor on node, return trust node corresponding to the
@@ -194,10 +203,9 @@ class TheoryProxy : protected EnvObj, public Registrar
   void notifySatLiteral(Node n) override;
 
   /**
-   * Callback to notify that the SAT solver backtracked by the given number
-   * of levels.
+   * Callback to notify that the SAT solver backtracked.
    */
-  void notifyBacktrack(uint32_t nlevels);
+  void notifyBacktrack();
 
   /** Get the zero-level assertions */
   std::vector<Node> getLearnedZeroLevelLiterals(

@@ -26,19 +26,15 @@
  */
 
 #include <cvc5/cvc5.h>
+#include <cvc5/cvc5_parser.h>
 
 #include <cassert>
 #include <iostream>
 #include <string>
 
-#include "parser/api/cpp/command.h"
-#include "parser/parser_antlr.h"
-#include "parser/parser_builder.h"
-
 using namespace cvc5;
 using namespace cvc5::internal;
 using namespace cvc5::parser;
-using namespace cvc5::internal::language;
 
 int runTest();
 
@@ -49,10 +45,6 @@ int main()
     return runTest();
   }
   catch (cvc5::CVC5ApiException& e)
-  {
-    std::cerr << e.getMessage() << std::endl;
-  }
-  catch (ParserException& e)
   {
     std::cerr << e.getMessage() << std::endl;
   }
@@ -72,8 +64,8 @@ std::string parse(std::string instr,
 
   std::string declarations;
 
-    declarations =
-        "\
+  declarations =
+      "\
   (declare-sort U 0)\n\
   (declare-fun f (U) U)\n\
   (declare-fun x () U)\n\
@@ -82,30 +74,37 @@ std::string parse(std::string instr,
   (declare-fun a () (Array U (Array U U)))\n\
   ";
 
-    cvc5::Solver solver;
-    std::string ilang = "LANG_SMTLIB_V2_6";
+  cvc5::Solver solver;
+  modes::InputLanguage ilang = modes::InputLanguage::SMT_LIB_2_6;
 
-    solver.setOption("input-language", input_language);
-    solver.setOption("output-language", output_language);
-    SymbolManager symman(&solver);
-    std::unique_ptr<Parser> parser(
-        ParserBuilder(&solver, &symman, false)
-            .withInputLanguage(solver.getOption("input-language"))
-            .build());
-    parser->setInput(
-        Input::newStringInput(ilang, declarations, "internal-buffer"));
-    // we don't need to execute the commands, but we DO need to parse them to
-    // get the declarations
-    while (std::unique_ptr<Command> c = parser->nextCommand())
+  solver.setOption("input-language", input_language);
+  solver.setOption("output-language", output_language);
+  SymbolManager symman(&solver);
+  InputParser parser(&solver, &symman);
+  std::stringstream ss;
+  ss << declarations;
+  parser.setStreamInput(ilang, ss, "internal-buffer");
+  // we don't need to execute the commands, but we DO need to parse them to
+  // get the declarations
+  std::stringstream tmp;
+  Command c;
+  while (true)
+  {
+    c = parser.nextCommand();
+    if (c.isNull())
     {
-      // invoke the command, which may bind symbols
-      c->invoke(&solver, &symman);
+      break;
     }
-  assert(parser->done());  // parser should be done
-  parser->setInput(Input::newStringInput(ilang, instr, "internal-buffer"));
-  cvc5::Term e = parser->nextExpression();
+    // invoke the command, which may bind symbols
+    c.invoke(&solver, &symman, tmp);
+  }
+  assert(parser.done());  // parser should be done
+  std::stringstream ssi;
+  ssi << instr;
+  parser.setStreamInput(ilang, ss, "internal-buffer");
+  cvc5::Term e = parser.nextTerm();
   std::string s = e.toString();
-  assert(parser->nextExpression().isNull());  // next expr should be null
+  assert(parser.nextTerm().isNull());  // next expr should be null
   return s;
 }
 
@@ -117,13 +116,13 @@ std::string translate(std::string instr,
   assert(output_language == "smt2");
 
   std::cout << "==============================================" << std::endl
-            << "translating from " << Language::LANG_SMTLIB_V2_6 << " to "
-            << Language::LANG_SMTLIB_V2_6 << " this string:" << std::endl
+            << "translating from " << input_language << " to "
+            << output_language << " this string:" << std::endl
             << instr << std::endl;
   std::string outstr = parse(instr, input_language, output_language);
   std::cout << "got this:" << std::endl
             << outstr << std::endl
-            << "reparsing as " << Language::LANG_SMTLIB_V2_6 << std::endl;
+            << "reparsing as " << output_language << std::endl;
   std::string poutstr = parse(outstr, output_language, output_language);
   assert(outstr == poutstr);
   std::cout << "got same expressions " << outstr << " and " << poutstr
@@ -136,7 +135,7 @@ void runTestString(std::string instr, std::string instr_language)
 {
   std::cout << std::endl
             << "starting with: " << instr << std::endl
-            << "   in language " << Language::LANG_SMTLIB_V2_6 << std::endl;
+            << "   in language " << instr_language << std::endl;
   std::string smt2str = translate(instr, instr_language, "smt2");
   std::cout << "in SMT2      : " << smt2str << std::endl;
   std::string outstr = translate(smt2str, "smt2", "smt2");

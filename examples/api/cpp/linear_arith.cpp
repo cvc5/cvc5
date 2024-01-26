@@ -43,22 +43,22 @@ int main()
   Term two_thirds = slv.mkReal(2, 3);
 
   // Terms
-  Term three_y = slv.mkTerm(MULT, {three, y});
-  Term diff = slv.mkTerm(SUB, {y, x});
+  Term three_y = slv.mkTerm(Kind::MULT, {three, y});
+  Term diff = slv.mkTerm(Kind::SUB, {y, x});
 
   // Formulas
-  Term x_geq_3y = slv.mkTerm(GEQ, {x, three_y});
-  Term x_leq_y = slv.mkTerm(LEQ, {x, y});
-  Term neg2_lt_x = slv.mkTerm(LT, {neg2, x});
+  Term x_geq_3y = slv.mkTerm(Kind::GEQ, {x, three_y});
+  Term x_leq_y = slv.mkTerm(Kind::LEQ, {x, y});
+  Term neg2_lt_x = slv.mkTerm(Kind::LT, {neg2, x});
 
-  Term assertions = slv.mkTerm(AND, {x_geq_3y, x_leq_y, neg2_lt_x});
+  Term assertions = slv.mkTerm(Kind::AND, {x_geq_3y, x_leq_y, neg2_lt_x});
 
   cout << "Given the assertions " << assertions << endl;
   slv.assertFormula(assertions);
 
 
   slv.push();
-  Term diff_leq_two_thirds = slv.mkTerm(LEQ, {diff, two_thirds});
+  Term diff_leq_two_thirds = slv.mkTerm(Kind::LEQ, {diff, two_thirds});
   cout << "Prove that " << diff_leq_two_thirds << " with cvc5." << endl;
   cout << "cvc5 should report UNSAT." << endl;
   cout << "Result from cvc5 is: "
@@ -68,7 +68,7 @@ int main()
   cout << endl;
 
   slv.push();
-  Term diff_is_two_thirds = slv.mkTerm(EQUAL, {diff, two_thirds});
+  Term diff_is_two_thirds = slv.mkTerm(Kind::EQUAL, {diff, two_thirds});
   slv.assertFormula(diff_is_two_thirds);
   cout << "Show that the assertions are consistent with " << endl;
   cout << diff_is_two_thirds << " with cvc5." << endl;

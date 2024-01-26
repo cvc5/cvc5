@@ -23,6 +23,16 @@ name   = "Driver"
   help       = "full command line reference"
 
 [[option]]
+  name       = "helpRegular"
+  category   = "common"
+  long       = "help-regular"
+  short      = "H"
+  type       = "bool"
+  default    = "false"
+  alternate  = false
+  help       = "regular command line reference"
+
+[[option]]
   name       = "showConfiguration"
   category   = "common"
   long       = "show-config"
@@ -134,6 +144,14 @@ name   = "Driver"
   help       = "output unsat cores after every UNSAT/VALID response"
 
 [[option]]
+  name       = "dumpUnsatCoresLemmas"
+  category   = "regular"
+  long       = "dump-unsat-cores-lemmas"
+  type       = "bool"
+  default    = "false"
+  help       = "output lemmas in unsat cores after every UNSAT/VALID response"
+
+[[option]]
   name       = "dumpDifficulty"
   category   = "regular"
   long       = "dump-difficulty"
@@ -172,11 +190,3 @@ name   = "Driver"
   type       = "bool"
   default    = "false"
   help       = "print the \"success\" output required of SMT-LIBv2"
-
-[[option]]
-  name       = "stdinInputPerLine"
-  category   = "expert"
-  long       = "stdin-input-per-line"
-  type       = "bool"
-  default    = "true"
-  help       = "when piping from stdin, feed the input to the parser one line at a time. This avoids potential nontermination in the Flex lexer due to not enabling its interactive setting."

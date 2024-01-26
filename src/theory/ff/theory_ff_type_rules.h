@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Alex Ozdemir, Tim King, Andrew Reynolds
+ *   Alex Ozdemir, Andrew Reynolds, Tim King
  *
  * This file is part of the cvc5 project.
  *
@@ -37,6 +37,7 @@ struct FiniteFieldProperties
 class FiniteFieldConstantTypeRule
 {
  public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -48,6 +49,7 @@ class FiniteFieldConstantTypeRule
 class FiniteFieldFixedFieldTypeRule
 {
  public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,

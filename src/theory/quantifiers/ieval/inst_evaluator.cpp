@@ -44,13 +44,13 @@ InstEvaluator::InstEvaluator(Env& env,
 
 void InstEvaluator::watch(Node q)
 {
-  Assert(q.getKind() == kind::FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   watch(q, q[1]);
 }
 
 void InstEvaluator::watch(Node q, Node body)
 {
-  Assert(q.getKind() == kind::FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   // must provide all quantified formulas before initializing the state
   Assert(d_context.getLevel() == 0);
   std::vector<Node> vars;

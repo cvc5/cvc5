@@ -41,38 +41,27 @@ BuiltinProofRuleChecker::BuiltinProofRuleChecker(Env& env)
 
 void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
 {
-  pc->registerChecker(PfRule::ASSUME, this);
-  pc->registerChecker(PfRule::SCOPE, this);
-  pc->registerChecker(PfRule::SUBS, this);
-  pc->registerChecker(PfRule::EVALUATE, this);
-  pc->registerChecker(PfRule::ANNOTATION, this);
-  pc->registerChecker(PfRule::REMOVE_TERM_FORMULA_AXIOM, this);
-  pc->registerChecker(PfRule::ENCODE_PRED_TRANSFORM, this);
-  pc->registerChecker(PfRule::DSL_REWRITE, this);
+  pc->registerChecker(ProofRule::ASSUME, this);
+  pc->registerChecker(ProofRule::SCOPE, this);
+  pc->registerChecker(ProofRule::SUBS, this);
+  pc->registerChecker(ProofRule::EVALUATE, this);
+  pc->registerChecker(ProofRule::ANNOTATION, this);
+  pc->registerChecker(ProofRule::REMOVE_TERM_FORMULA_AXIOM, this);
+  pc->registerChecker(ProofRule::ENCODE_PRED_TRANSFORM, this);
+  pc->registerChecker(ProofRule::DSL_REWRITE, this);
   // rules depending on the rewriter
-  pc->registerTrustedChecker(PfRule::REWRITE, this, 4);
-  pc->registerTrustedChecker(PfRule::MACRO_SR_EQ_INTRO, this, 4);
-  pc->registerTrustedChecker(PfRule::MACRO_SR_PRED_INTRO, this, 4);
-  pc->registerTrustedChecker(PfRule::MACRO_SR_PRED_ELIM, this, 4);
-  pc->registerTrustedChecker(PfRule::MACRO_SR_PRED_TRANSFORM, this, 4);
-  pc->registerTrustedChecker(PfRule::THEORY_REWRITE, this, 4);
+  pc->registerTrustedChecker(ProofRule::MACRO_REWRITE, this, 4);
+  pc->registerTrustedChecker(ProofRule::MACRO_SR_EQ_INTRO, this, 4);
+  pc->registerTrustedChecker(ProofRule::MACRO_SR_PRED_INTRO, this, 4);
+  pc->registerTrustedChecker(ProofRule::MACRO_SR_PRED_ELIM, this, 4);
+  pc->registerTrustedChecker(ProofRule::MACRO_SR_PRED_TRANSFORM, this, 4);
+  pc->registerTrustedChecker(ProofRule::TRUST_THEORY_REWRITE, this, 4);
   // trusted rules
-  pc->registerTrustedChecker(PfRule::THEORY_LEMMA, this, 1);
-  pc->registerTrustedChecker(PfRule::PREPROCESS, this, 3);
-  pc->registerTrustedChecker(PfRule::PREPROCESS_LEMMA, this, 3);
-  pc->registerTrustedChecker(PfRule::THEORY_PREPROCESS, this, 3);
-  pc->registerTrustedChecker(PfRule::THEORY_PREPROCESS_LEMMA, this, 3);
-  pc->registerTrustedChecker(PfRule::THEORY_EXPAND_DEF, this, 3);
-  pc->registerTrustedChecker(PfRule::WITNESS_AXIOM, this, 3);
-  pc->registerTrustedChecker(PfRule::TRUST_REWRITE, this, 1);
-  pc->registerTrustedChecker(PfRule::TRUST_FLATTENING_REWRITE, this, 1);
-  pc->registerTrustedChecker(PfRule::TRUST_SUBS, this, 1);
-  pc->registerTrustedChecker(PfRule::TRUST_SUBS_MAP, this, 1);
-  pc->registerTrustedChecker(PfRule::TRUST_SUBS_EQ, this, 3);
-  pc->registerTrustedChecker(PfRule::THEORY_INFERENCE, this, 3);
+  pc->registerTrustedChecker(ProofRule::TRUST, this, 1);
   // external proof rules
-  pc->registerChecker(PfRule::LFSC_RULE, this);
-  pc->registerChecker(PfRule::ALETHE_RULE, this);
+  pc->registerChecker(ProofRule::LFSC_RULE, this);
+  pc->registerChecker(ProofRule::ALETHE_RULE, this);
+  pc->registerChecker(ProofRule::ALF_RULE, this);
 
   d_rdb = pc->getRewriteDatabase();
 }
@@ -95,7 +84,7 @@ bool BuiltinProofRuleChecker::getSubstitutionForLit(Node exp,
 {
   if (ids == MethodId::SB_DEFAULT)
   {
-    if (exp.getKind() != EQUAL)
+    if (exp.getKind() != Kind::EQUAL)
     {
       return false;
     }
@@ -104,7 +93,7 @@ bool BuiltinProofRuleChecker::getSubstitutionForLit(Node exp,
   }
   else if (ids == MethodId::SB_LITERAL)
   {
-    bool polarity = exp.getKind() != NOT;
+    bool polarity = exp.getKind() != Kind::NOT;
     var = polarity ? exp : exp[0];
     subs = NodeManager::currentNM()->mkConst(polarity);
   }
@@ -131,7 +120,7 @@ bool BuiltinProofRuleChecker::getSubstitutionFor(Node exp,
 {
   TNode v;
   TNode s;
-  if (exp.getKind() == AND && ids == MethodId::SB_DEFAULT)
+  if (exp.getKind() == Kind::AND && ids == MethodId::SB_DEFAULT)
   {
     for (const Node& ec : exp)
     {
@@ -208,20 +197,20 @@ Node BuiltinProofRuleChecker::applySubstitution(Node n,
   return ns;
 }
 
-Node BuiltinProofRuleChecker::checkInternal(PfRule id,
+Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
                                             const std::vector<Node>& children,
                                             const std::vector<Node>& args)
 {
   NodeManager * nm = NodeManager::currentNM();
   // compute what was proven
-  if (id == PfRule::ASSUME)
+  if (id == ProofRule::ASSUME)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
     Assert(args[0].getType().isBoolean());
     return args[0];
   }
-  else if (id == PfRule::SCOPE)
+  else if (id == ProofRule::SCOPE)
   {
     Assert(children.size() == 1);
     if (args.empty())
@@ -235,9 +224,9 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     {
       return ant.notNode();
     }
-    return nm->mkNode(IMPLIES, ant, children[0]);
+    return nm->mkNode(Kind::IMPLIES, ant, children[0]);
   }
-  else if (id == PfRule::SUBS)
+  else if (id == ProofRule::SUBS)
   {
     Assert(children.size() > 0);
     Assert(1 <= args.size() && args.size() <= 3) << "Args: " << args;
@@ -263,7 +252,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     }
     return args[0].eqNode(res);
   }
-  else if (id == PfRule::REWRITE)
+  else if (id == ProofRule::MACRO_REWRITE)
   {
     Assert(children.empty());
     Assert(1 <= args.size() && args.size() <= 2);
@@ -279,7 +268,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     }
     return args[0].eqNode(res);
   }
-  else if (id == PfRule::EVALUATE)
+  else if (id == ProofRule::EVALUATE)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
@@ -290,7 +279,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     }
     return args[0].eqNode(res);
   }
-  else if (id == PfRule::MACRO_SR_EQ_INTRO)
+  else if (id == ProofRule::MACRO_SR_EQ_INTRO)
   {
     Assert(1 <= args.size() && args.size() <= 4);
     MethodId ids, ida, idr;
@@ -305,7 +294,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     }
     return args[0].eqNode(res);
   }
-  else if (id == PfRule::MACRO_SR_PRED_INTRO)
+  else if (id == ProofRule::MACRO_SR_PRED_INTRO)
   {
     Trace("builtin-pfcheck") << "Check " << id << " " << children.size() << " "
                              << args[0] << std::endl;
@@ -335,7 +324,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Trace("builtin-pfcheck") << "...success" << std::endl;
     return args[0];
   }
-  else if (id == PfRule::MACRO_SR_PRED_ELIM)
+  else if (id == ProofRule::MACRO_SR_PRED_ELIM)
   {
     Trace("builtin-pfcheck") << "Check " << id << " " << children.size() << " "
                              << args.size() << std::endl;
@@ -352,7 +341,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Trace("builtin-pfcheck") << "Returned " << res1 << std::endl;
     return res1;
   }
-  else if (id == PfRule::MACRO_SR_PRED_TRANSFORM)
+  else if (id == ProofRule::MACRO_SR_PRED_TRANSFORM)
   {
     Trace("builtin-pfcheck") << "Check " << id << " " << children.size() << " "
                              << args.size() << std::endl;
@@ -386,34 +375,32 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     }
     return args[0];
   }
-  else if (id == PfRule::REMOVE_TERM_FORMULA_AXIOM)
+  else if (id == ProofRule::REMOVE_TERM_FORMULA_AXIOM)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
     return RemoveTermFormulas::getAxiomFor(args[0]);
   }
-  else if (id == PfRule::PREPROCESS || id == PfRule::PREPROCESS_LEMMA
-           || id == PfRule::THEORY_PREPROCESS
-           || id == PfRule::THEORY_PREPROCESS_LEMMA
-           || id == PfRule::THEORY_EXPAND_DEF || id == PfRule::WITNESS_AXIOM
-           || id == PfRule::THEORY_LEMMA || id == PfRule::THEORY_REWRITE
-           || id == PfRule::TRUST_FLATTENING_REWRITE
-           || id == PfRule::TRUST_REWRITE || id == PfRule::TRUST_SUBS
-           || id == PfRule::TRUST_SUBS_MAP || id == PfRule::TRUST_SUBS_EQ
-           || id == PfRule::THEORY_INFERENCE)
+  else if (id == ProofRule::TRUST)
+  {
+    Assert(args.size() >= 2);
+    return args[1];
+  }
+  else if (id == ProofRule::TRUST_THEORY_REWRITE)
   {
     // "trusted" rules
     Assert(!args.empty());
     Assert(args[0].getType().isBoolean());
     return args[0];
   }
-  else if (id == PfRule::LFSC_RULE || id == PfRule::ALETHE_RULE)
+  else if (id == ProofRule::LFSC_RULE || id == ProofRule::ALETHE_RULE
+           || id == ProofRule::ALF_RULE)
   {
     Assert(args.size() > 1);
     Assert(args[0].getType().isInteger());
     return args[1];
   }
-  else if (id == PfRule::ENCODE_PRED_TRANSFORM)
+  else if (id == ProofRule::ENCODE_PRED_TRANSFORM)
   {
     Assert(children.size() == 1);
     Assert(args.size() == 1);
@@ -427,18 +414,18 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     }
     return g;
   }
-  else if (id == PfRule::ANNOTATION)
+  else if (id == ProofRule::ANNOTATION)
   {
     Assert(children.size() == 1);
     return children[0];
   }
-  else if (id == PfRule::DSL_REWRITE)
+  else if (id == ProofRule::DSL_REWRITE)
   {
     // consult rewrite db, apply args[1]...args[n] as a substituion
     // to variable list and prove equality between LHS and RHS.
     Assert(d_rdb != nullptr);
-    rewriter::DslPfRule di;
-    if (!getDslPfRule(args[0], di))
+    rewriter::DslProofRule di;
+    if (!getDslProofRule(args[0], di))
     {
       return Node::null();
     }

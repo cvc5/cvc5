@@ -218,14 +218,6 @@ name   = "Quantifiers"
   help = "Quantifiers module considers only ground terms connected to current assertions."
 
 [[option]]
-  name       = "termDbCd"
-  category   = "expert"
-  long       = "term-db-cd"
-  type       = "bool"
-  default    = "true"
-  help       = "register terms in term database based on the SAT context"
-
-[[option]]
   name       = "registerQuantBodyTerms"
   category   = "expert"
   long       = "register-quant-body-terms"
@@ -766,22 +758,6 @@ name   = "Quantifiers"
   help       = "cbqi experimental variable ordering"
 
 [[option]]
-  name       = "cbqiEagerTest"
-  category   = "expert"
-  long       = "cbqi-eager-test"
-  type       = "bool"
-  default    = "true"
-  help       = "optimization, test cbqi instances eagerly"
-
-[[option]]
-  name       = "cbqiEagerCheckRd"
-  category   = "expert"
-  long       = "cbqi-eager-check-rd"
-  type       = "bool"
-  default    = "true"
-  help       = "optimization, eagerly check relevant domain of matched position"
-
-[[option]]
   name       = "cbqiSkipRd"
   category   = "expert"
   long       = "cbqi-skip-rd"
@@ -1058,7 +1034,7 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "sygus-core-connective"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "use unsat core analysis to construct Boolean connective to sygus conjectures"
 
 [[option]]
@@ -1155,6 +1131,14 @@ name   = "Quantifiers"
 [[option.mode.ANY_TERM_CONCISE]]
   name = "any-term-concise"
   help = "When applicable, use constructors corresponding to any symbolic term, favoring conciseness over generality. This option is equivalent to any-term but enables a polynomial grammar for arithmetic when not in a combined theory."
+
+[[option]]
+  name       = "sygusGrammarUseDisj"
+  category   = "expert"
+  long       = "sygus-grammar-use-disj"
+  type       = "bool"
+  default    = "true"
+  help       = "use disjunctions in internally generated grammars. this is set to false when solving abduction queries."
 
 [[option]]
   name       = "sygusInvTemplMode"

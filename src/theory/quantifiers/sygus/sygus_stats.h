@@ -36,8 +36,6 @@ class SygusStatistics
   IntStat d_solutions;
   /** Number of solutions filtered */
   IntStat d_filtered_solutions;
-  /** Number of candidate rewrites printed (for --sygus-rr) */
-  IntStat d_candidate_rewrites_print;
   /** Number of terms checked for rewrite-based symmetry in fast enumerators */
   IntStat d_enumTermsRewrite;
   /** Number of terms checked for example-based symmetry in fast enumerators */

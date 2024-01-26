@@ -39,7 +39,7 @@ ProofNodeManager::ProofNodeManager(const Options& opts,
 }
 
 std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
-    PfRule id,
+    ProofRule id,
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args,
     Node expected)
@@ -61,23 +61,36 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
   return pn;
 }
 
+std::shared_ptr<ProofNode> ProofNodeManager::mkTrustedNode(
+    TrustId id,
+    const std::vector<std::shared_ptr<ProofNode>>& children,
+    const std::vector<Node>& args,
+    const Node& conc)
+{
+  std::vector<Node> sargs;
+  sargs.push_back(mkTrustId(id));
+  sargs.push_back(conc);
+  sargs.insert(sargs.end(), args.begin(), args.end());
+  return mkNode(ProofRule::TRUST, children, sargs);
+}
+
 std::shared_ptr<ProofNode> ProofNodeManager::mkAssume(Node fact)
 {
   Assert(!fact.isNull());
   Assert(fact.getType().isBoolean());
-  return mkNode(PfRule::ASSUME, {}, {fact}, fact);
+  return mkNode(ProofRule::ASSUME, {}, {fact}, fact);
 }
 
 std::shared_ptr<ProofNode> ProofNodeManager::mkSymm(
     std::shared_ptr<ProofNode> child, Node expected)
 {
-  if (child->getRule() == PfRule::SYMM)
+  if (child->getRule() == ProofRule::SYMM)
   {
     Assert(expected.isNull()
            || child->getChildren()[0]->getResult() == expected);
     return child->getChildren()[0];
   }
-  return mkNode(PfRule::SYMM, {child}, {}, expected);
+  return mkNode(ProofRule::SYMM, {child}, {}, expected);
 }
 
 std::shared_ptr<ProofNode> ProofNodeManager::mkTrans(
@@ -89,7 +102,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkTrans(
     Assert(expected.isNull() || children[0]->getResult() == expected);
     return children[0];
   }
-  return mkNode(PfRule::TRANS, children, {}, expected);
+  return mkNode(ProofRule::TRANS, children, {}, expected);
 }
 
 std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
@@ -101,7 +114,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
 {
   if (!ensureClosed)
   {
-    return mkNode(PfRule::SCOPE, {pf}, assumps, expected);
+    return mkNode(ProofRule::SCOPE, {pf}, assumps, expected);
   }
   Trace("pnm-scope") << "ProofNodeManager::mkScope " << assumps << std::endl;
   // we first ensure the assumptions are flattened
@@ -150,7 +163,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
         for (std::shared_ptr<ProofNode> pfs : fa.second)
         {
           Assert(pfs->getResult() == a);
-          updateNode(pfs.get(), PfRule::MACRO_SR_PRED_INTRO, {}, {a});
+          updateNode(pfs.get(), ProofRule::MACRO_SR_PRED_INTRO, {}, {a});
         }
         Trace("pnm-scope") << "...finished" << std::endl;
         acu.insert(a);
@@ -190,18 +203,19 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
         // use SYMM if possible
         if (aMatch == aeqSym)
         {
-          if (pfaa->getRule() == PfRule::SYMM)
+          if (pfaa->getRule() == ProofRule::SYMM)
           {
             updateNode(pfs.get(), pfaa->getChildren()[0].get());
           }
           else
           {
-            updateNode(pfs.get(), PfRule::SYMM, children, {});
+            updateNode(pfs.get(), ProofRule::SYMM, children, {});
           }
         }
         else
         {
-          updateNode(pfs.get(), PfRule::MACRO_SR_PRED_TRANSFORM, children, {a});
+          updateNode(
+              pfs.get(), ProofRule::MACRO_SR_PRED_TRANSFORM, children, {a});
         }
       }
       Trace("pnm-scope") << "...finished" << std::endl;
@@ -263,21 +277,21 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     return pf;
   }
   Node conc = pf->getResult();
-  exp = assumps.size() == 1 ? assumps[0] : nm->mkNode(AND, assumps);
+  exp = assumps.size() == 1 ? assumps[0] : nm->mkNode(Kind::AND, assumps);
   if (conc.isConst() && !conc.getConst<bool>())
   {
     minExpected = exp.notNode();
   }
   else
   {
-    minExpected = nm->mkNode(IMPLIES, exp, conc);
+    minExpected = nm->mkNode(Kind::IMPLIES, exp, conc);
   }
-  return mkNode(PfRule::SCOPE, {pf}, assumps, minExpected);
+  return mkNode(ProofRule::SCOPE, {pf}, assumps, minExpected);
 }
 
 bool ProofNodeManager::updateNode(
     ProofNode* pn,
-    PfRule id,
+    ProofRule id,
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args)
 {
@@ -319,7 +333,7 @@ void ProofNodeManager::ensureChecked(ProofNode* pn)
 }
 
 Node ProofNodeManager::checkInternal(
-    PfRule id,
+    ProofRule id,
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args,
     Node expected,
@@ -349,10 +363,10 @@ ProofNode* ProofNodeManager::cancelDoubleSymm(ProofNode* pn)
 {
   // processed is almost always size <= 1
   std::vector<ProofNode*> processed;
-  while (pn->getRule() == PfRule::SYMM)
+  while (pn->getRule() == ProofRule::SYMM)
   {
     std::shared_ptr<ProofNode> pnc = pn->getChildren()[0];
-    if (pnc->getRule() == PfRule::SYMM)
+    if (pnc->getRule() == ProofRule::SYMM)
     {
       pn = pnc->getChildren()[0].get();
       if (std::find(processed.begin(), processed.end(), pn) != processed.end())
@@ -372,7 +386,7 @@ ProofNode* ProofNodeManager::cancelDoubleSymm(ProofNode* pn)
 
 bool ProofNodeManager::updateNodeInternal(
     ProofNode* pn,
-    PfRule id,
+    ProofRule id,
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args,
     bool needsCheck)

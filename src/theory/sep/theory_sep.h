@@ -53,6 +53,10 @@ class TheorySep : public Theory {
   /** True node for predicates = false */
   Node d_false;
 
+  /** Trust id (for proofs) */
+  Node d_tiid;
+  Node d_tsid;
+
   //whether bounds have been initialized
   bool d_bounds_init;
 
@@ -157,7 +161,7 @@ class TheorySep : public Theory {
       Trace("sep::propagate")
           << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", "
           << (value ? "true" : "false") << ")" << std::endl;
-      Assert(predicate.getKind() == kind::EQUAL);
+      Assert(predicate.getKind() == Kind::EQUAL);
       // Just forward to sep
       if (value)
       {

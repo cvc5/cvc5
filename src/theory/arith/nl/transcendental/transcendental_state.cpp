@@ -52,8 +52,6 @@ TranscendentalState::TranscendentalState(Env& env,
   {
     d_proof.reset(
         new CDProofSet<CDProof>(d_env, d_env.getUserContext(), "nl-trans"));
-    d_proofChecker.reset(new TranscendentalProofRuleChecker());
-    d_proofChecker->registerTo(d_env.getProofNodeManager()->getChecker());
   }
 }
 
@@ -248,8 +246,10 @@ void TranscendentalState::getCurrentPiBounds()
     if (isProofEnabled())
     {
       proof = getProof();
-      proof->addStep(
-          pi_lem, PfRule::ARITH_TRANS_PI, {}, {d_pi_bound[0], d_pi_bound[1]});
+      proof->addStep(pi_lem,
+                     ProofRule::ARITH_TRANS_PI,
+                     {},
+                     {d_pi_bound[0], d_pi_bound[1]});
     }
     d_im.addPendingLemma(pi_lem, InferenceId::ARITH_NL_T_PI_BOUND, proof);
   }
@@ -363,14 +363,14 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
       if (csign == 1)
       {
         proof->addStep(lem,
-                       PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS,
+                       ProofRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS,
                        {},
                        {nm->mkConstInt(2 * actual_d), tf[0], lower, upper});
       }
       else
       {
         proof->addStep(lem,
-                       PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG,
+                       ProofRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG,
                        {},
                        {nm->mkConstInt(2 * actual_d), tf[0], lower, upper});
       }
@@ -381,7 +381,7 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
       {
         proof->addStep(
             lem,
-            PfRule::ARITH_TRANS_SINE_APPROX_BELOW_POS,
+            ProofRule::ARITH_TRANS_SINE_APPROX_BELOW_POS,
             {},
             {nm->mkConstInt(2 * actual_d), tf[0], lower, upper, lapprox, uapprox
 
@@ -390,7 +390,7 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
       else
       {
         proof->addStep(lem,
-                       PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_NEG,
+                       ProofRule::ARITH_TRANS_SINE_APPROX_ABOVE_NEG,
                        {},
                        {nm->mkConstInt(2 * actual_d),
                         tf[0],
@@ -477,12 +477,11 @@ Node TranscendentalState::getPurifiedForm(TNode n)
   Node y;
   if (isSimplePurify(n))
   {
-    y = sm->mkPurifySkolem(n[0], "transk");
+    y = sm->mkPurifySkolem(n[0]);
   }
   else
   {
-    y = sm->mkSkolemFunction(
-        SkolemFunId::TRANSCENDENTAL_PURIFY_ARG, nm->realType(), n);
+    y = sm->mkSkolemFunction(SkolemFunId::TRANSCENDENTAL_PURIFY_ARG, n);
   }
   Node new_n = nm->mkNode(k, y);
   d_trPurify[n] = new_n;
@@ -494,7 +493,7 @@ Node TranscendentalState::getPurifiedForm(TNode n)
 
 bool TranscendentalState::isSimplePurify(TNode n)
 {
-  if (n.getKind() != kind::SINE)
+  if (n.getKind() != Kind::SINE)
   {
     return true;
   }

@@ -60,7 +60,7 @@ Node NlExtPurify::purifyNlTerms(TNode n,
   Node ret = n;
   if (n.getNumChildren() > 0)
   {
-    if (beneathMult && (n.getKind() == kind::ADD || n.getKind() == kind::SUB))
+    if (beneathMult && (n.getKind() == Kind::ADD || n.getKind() == Kind::SUB))
     {
       // don't do it if it rewrites to a constant
       Node nr = rewrite(n);
@@ -83,7 +83,7 @@ Node NlExtPurify::purifyNlTerms(TNode n,
     }
     else
     {
-      bool beneathMultNew = beneathMult || n.getKind() == kind::MULT;
+      bool beneathMultNew = beneathMult || n.getKind() == Kind::MULT;
       bool childChanged = false;
       std::vector<Node> children;
       for (unsigned i = 0, size = n.getNumChildren(); i < size; ++i)
@@ -132,9 +132,10 @@ PreprocessingPassResult NlExtPurify::applyInternal(
   }
   if (!var_eq.empty())
   {
-    unsigned lastIndex = size - 1;
-    Node veq = NodeManager::currentNM()->mkAnd(var_eq);
-    assertionsToPreprocess->conjoin(lastIndex, veq);
+    for (const Node& ve : var_eq)
+    {
+      assertionsToPreprocess->push_back(ve);
+    }
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }

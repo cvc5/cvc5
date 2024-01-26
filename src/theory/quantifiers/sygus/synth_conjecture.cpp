@@ -117,7 +117,7 @@ void SynthConjecture::presolve()
 void SynthConjecture::assign(Node q)
 {
   Assert(d_embed_quant.isNull());
-  Assert(q.getKind() == FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   Trace("cegqi") << "SynthConjecture : assign : " << q << std::endl;
   d_quant = q;
   NodeManager* nm = NodeManager::currentNM();
@@ -190,7 +190,8 @@ void SynthConjecture::assign(Node q)
         {
           lvars.push_back(nm->mkBoundVar(tn));
         }
-        s = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, lvars), s);
+        s = nm->mkNode(
+            Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, lvars), s);
       }
       subs.push_back(s);
     }
@@ -223,9 +224,9 @@ void SynthConjecture::assign(Node q)
   {
     Node v = d_embed_quant[0][i];
     vars.push_back(v);
-    Node e = sm->mkSkolemFunction(SkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED,
-                                  v.getType(),
-                                  d_simp_quant[0][i]);
+    Node e = sm->mkSkolemFunctionTyped(SkolemFunId::QUANTIFIERS_SYNTH_FUN_EMBED,
+                                       v.getType(),
+                                       d_simp_quant[0][i]);
     d_candidates.push_back(e);
   }
   Trace("cegqi") << "Base quantified formula is : " << d_embed_quant
@@ -235,7 +236,8 @@ void SynthConjecture::assign(Node q)
   bsubs.add(vars, d_candidates);
   d_base_inst = d_tds->rewriteNode(bsubs.apply(d_embed_quant[1]));
   d_checkBody = d_embed_quant[1];
-  if (d_checkBody.getKind() == NOT && d_checkBody[0].getKind() == FORALL)
+  if (d_checkBody.getKind() == Kind::NOT
+      && d_checkBody[0].getKind() == Kind::FORALL)
   {
     for (const Node& v : d_checkBody[0][0])
     {
@@ -278,7 +280,7 @@ void SynthConjecture::assign(Node q)
   Node conjForExamples = d_base_inst;
   if (!d_embedSideCondition.isNull())
   {
-    conjForExamples = nm->mkNode(AND, d_embedSideCondition, d_base_inst);
+    conjForExamples = nm->mkNode(Kind::AND, d_embedSideCondition, d_base_inst);
   }
   if (d_exampleInfer!=nullptr && !d_exampleInfer->initialize(conjForExamples, d_candidates))
   {
@@ -494,36 +496,63 @@ bool SynthConjecture::doCheck()
       return false;
     }
   }
+  else
+  {
+    return false;
+  }
 
   // must get a counterexample to the value of the current candidate
   Node query;
-  if (constructed_cand)
+  if (TraceIsOn("sygus-engine-debug"))
   {
-    if (TraceIsOn("sygus-engine-debug"))
+    Trace("sygus-engine-debug")
+        << "CegConjuncture : check candidate : " << std::endl;
+    for (unsigned i = 0, size = candidate_values.size(); i < size; i++)
     {
-      Trace("sygus-engine-debug")
-          << "CegConjuncture : check candidate : " << std::endl;
-      for (unsigned i = 0, size = candidate_values.size(); i < size; i++)
-      {
-        Trace("sygus-engine-debug")
-            << "  " << i << " : " << d_candidates[i] << " -> "
-            << candidate_values[i] << std::endl;
-      }
+      Trace("sygus-engine-debug") << "  " << i << " : " << d_candidates[i]
+                                  << " -> " << candidate_values[i] << std::endl;
     }
-    Assert(candidate_values.size() == d_candidates.size());
-    query = d_checkBody.substitute(d_candidates.begin(),
-                                   d_candidates.end(),
-                                   candidate_values.begin(),
-                                   candidate_values.end());
   }
-  else
+  Assert(candidate_values.size() == d_candidates.size());
+  query = d_checkBody.substitute(d_candidates.begin(),
+                                 d_candidates.end(),
+                                 candidate_values.begin(),
+                                 candidate_values.end());
+  query = rewrite(query);
+  Trace("sygus-engine-debug") << "Rewritten query is " << query << std::endl;
+  if (expr::hasFreeVar(query))
   {
-    query = d_checkBody;
-  }
-
-  if (!constructed_cand)
-  {
-    return false;
+    Trace("sygus-engine-debug")
+        << "Free variable, from fwd-decls?" << std::endl;
+    NodeManager* nm = NodeManager::currentNM();
+    std::vector<Node> qconj;
+    qconj.push_back(query);
+    Subs psubs;
+    for (size_t i = 0, size = d_candidates.size(); i < size; i++)
+    {
+      Node bsol = datatypes::utils::sygusToBuiltin(candidate_values[i], false);
+      // convert to lambda
+      TypeNode tn = d_candidates[i].getType();
+      const DType& dt = tn.getDType();
+      Node fvar = d_quant[0][i];
+      Node bvl = dt.getSygusVarList();
+      if (!bvl.isNull())
+      {
+        // since we don't have function subtyping, this assertion should only
+        // check the return type
+        Assert(fvar.getType().isFunction());
+        Assert(fvar.getType().getRangeType() == bsol.getType());
+        bsol = nm->mkNode(Kind::LAMBDA, bvl, bsol);
+      }
+      Trace("sygus-engine-debug")
+          << "Builtin sol: " << d_quant[0][i] << " -> " << bsol << std::endl;
+      // add purifying substitution, in case the dependencies are recusive
+      psubs.add(d_quant[0][i]);
+      // conjoin higher-order equality
+      qconj.push_back(d_quant[0][i].eqNode(bsol));
+    }
+    query = nm->mkAnd(qconj);
+    query = rewrite(psubs.apply(query));
   }
 
   // if we trust the sampling we ran, we terminate now
@@ -552,12 +581,6 @@ bool SynthConjecture::doCheck()
       out << ")";
     }
     out << ")" << std::endl;
-  }
-
-  if (query.isNull())
-  {
-    // no lemma to check
-    return false;
   }
 
   // Record the solution, which may be falsified below. We require recording
@@ -805,7 +828,7 @@ void SynthConjecture::excludeCurrentSolution(const std::vector<Node>& values,
   {
     Node exc_lem = exp.size() == 1
                        ? exp[0]
-                       : NodeManager::currentNM()->mkNode(kind::AND, exp);
+                       : NodeManager::currentNM()->mkNode(Kind::AND, exp);
     exc_lem = exc_lem.negate();
     Trace("cegqi-lemma") << "Cegqi::Lemma : exclude current solution : "
                          << exc_lem << " by " << id << std::endl;
@@ -881,7 +904,7 @@ bool SynthConjecture::runExprMiner()
       Node vl = dt.getSygusVarList();
       if (!vl.isNull())
       {
-        Assert(vl.getKind() == BOUND_VAR_LIST);
+        Assert(vl.getKind() == Kind::BOUND_VAR_LIST);
         SygusVarToTermAttribute sta;
         for (const Node& v : vl)
         {
@@ -897,7 +920,7 @@ bool SynthConjecture::runExprMiner()
       }
       else
       {
-        vl = nm->mkNode(BOUND_VAR_LIST, pvs);
+        vl = nm->mkNode(Kind::BOUND_VAR_LIST, pvs);
         out << vl << " ";
       }
       out << dt.getSygusType() << " ";
@@ -956,7 +979,7 @@ bool SynthConjecture::getSynthSolutions(
       // check the return type
       Assert(fvar.getType().isFunction());
       Assert(fvar.getType().getRangeType() == bsol.getType());
-      bsol = nm->mkNode(LAMBDA, bvl, bsol);
+      bsol = nm->mkNode(Kind::LAMBDA, bvl, bsol);
     }
     else
     {
@@ -1013,7 +1036,7 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
       {
         return false;
       }
-      sol = sol.getKind() == LAMBDA ? sol[1] : sol;
+      sol = sol.getKind() == Kind::LAMBDA ? sol[1] : sol;
     }
     else
     {
@@ -1043,7 +1066,7 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
           Trace("cegqi-inv-debug") << "Simplified : " << sol << std::endl;
           // now, reconstruct to the syntax
           sol = d_ceg_si->reconstructToSyntax(sol, tn, status, true);
-          sol = sol.getKind() == LAMBDA ? sol[1] : sol;
+          sol = sol.getKind() == Kind::LAMBDA ? sol[1] : sol;
           Trace("cegqi-inv-debug")
               << "Reconstructed to syntax : " << sol << std::endl;
         }
@@ -1103,7 +1126,7 @@ Node SynthConjecture::getSymmetryBreakingPredicate(
   {
     return sb_lemmas.size() == 1
                ? sb_lemmas[0]
-               : NodeManager::currentNM()->mkNode(kind::AND, sb_lemmas);
+               : NodeManager::currentNM()->mkNode(Kind::AND, sb_lemmas);
   }
   else
   {

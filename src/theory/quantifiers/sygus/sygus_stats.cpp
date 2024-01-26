@@ -23,8 +23,6 @@ SygusStatistics::SygusStatistics(StatisticsRegistry& sr)
     : d_solutions(sr.registerInt("SynthConjecture::solutions")),
       d_filtered_solutions(
           sr.registerInt("SynthConjecture::filtered_solutions")),
-      d_candidate_rewrites_print(
-          sr.registerInt("SynthConjecture::candidate_rewrites_print")),
       d_enumTermsRewrite(sr.registerInt("SygusEnumerator::enumTermsRewrite")),
       d_enumTermsExampleEval(
           sr.registerInt("SygusEnumerator::enumTermsEvalExamples")),

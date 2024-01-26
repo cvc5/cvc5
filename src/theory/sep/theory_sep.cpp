@@ -24,7 +24,9 @@
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
 #include "options/smt_options.h"
+#include "proof/trust_id.h"
 #include "smt/logic_exception.h"
+#include "theory/builtin/proof_checker.h"
 #include "theory/decision_manager.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
@@ -55,6 +57,8 @@ TheorySep::TheorySep(Env& env, OutputChannel& out, Valuation valuation)
 {
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
+  d_tiid = mkTrustId(TrustId::THEORY_INFERENCE);
+  d_tsid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_SEP);
 
   // indicate we are using the default theory state object
   d_theoryState = &d_state;
@@ -81,7 +85,7 @@ void TheorySep::initializeHeapTypes()
                       << " is associated with data type " << d_type_data
                       << std::endl;
     d_nil_ref =
-        NodeManager::currentNM()->mkNullaryOperator(d_type_ref, SEP_NIL);
+        NodeManager::currentNM()->mkNullaryOperator(d_type_ref, Kind::SEP_NIL);
     d_bound_kind = bound_default;
   }
 }
@@ -102,20 +106,21 @@ void TheorySep::finishInit()
 {
   Assert(d_equalityEngine != nullptr);
   // The kinds we are treating as function application in congruence
-  d_equalityEngine->addFunctionKind(SEP_PTO);
+  d_equalityEngine->addFunctionKind(Kind::SEP_PTO);
   // we could but don't do congruence on SEP_STAR here.
 
   // separation logic predicates are not relevant for model building
-  d_valuation.setIrrelevantKind(SEP_STAR);
-  d_valuation.setIrrelevantKind(SEP_WAND);
-  d_valuation.setIrrelevantKind(SEP_LABEL);
-  d_valuation.setIrrelevantKind(SEP_PTO);
+  d_valuation.setIrrelevantKind(Kind::SEP_STAR);
+  d_valuation.setIrrelevantKind(Kind::SEP_WAND);
+  d_valuation.setIrrelevantKind(Kind::SEP_LABEL);
+  d_valuation.setIrrelevantKind(Kind::SEP_PTO);
 }
 
 void TheorySep::preRegisterTerm(TNode n)
 {
   Kind k = n.getKind();
-  if (k == SEP_PTO || k == SEP_EMP || k == SEP_STAR || k == SEP_WAND)
+  if (k == Kind::SEP_PTO || k == Kind::SEP_EMP || k == Kind::SEP_STAR
+      || k == Kind::SEP_WAND)
   {
     ensureHeapTypesFor(n);
   }
@@ -185,9 +190,9 @@ void TheorySep::postProcessModel( TheoryModel* m ){
        ++it)
   {
     Node lit = (*it).d_assertion;
-    Node atom = lit.getKind() == NOT ? lit[0] : lit;
-    atom = atom.getKind() == SEP_LABEL ? atom[0] : atom;
-    if (lit.getKind() == NOT && atom.getKind() == SEP_PTO)
+    Node atom = lit.getKind() == Kind::NOT ? lit[0] : lit;
+    atom = atom.getKind() == Kind::SEP_LABEL ? atom[0] : atom;
+    if (lit.getKind() == Kind::NOT && atom.getKind() == Kind::SEP_PTO)
     {
       Node v1 = m->getValue(atom[0]);
       Node v2 = m->getValue(atom[1]);
@@ -204,8 +209,9 @@ void TheorySep::postProcessModel( TheoryModel* m ){
   Assert(m_heap.isNull());
   Trace("sep-model") << "Model for heap, type = " << d_type_ref
                      << " with data type " << d_type_data << " : " << std::endl;
-  computeLabelModel(d_base_label);
-  HeapInfo& hm = d_label_model[d_base_label];
+  Node blbl = getBaseLabel();
+  computeLabelModel(blbl);
+  HeapInfo& hm = d_label_model[blbl];
   if (hm.d_heap_locs_model.empty())
   {
     Trace("sep-model") << "  [empty]" << std::endl;
@@ -214,7 +220,7 @@ void TheorySep::postProcessModel( TheoryModel* m ){
   {
     for (const Node& hv : hm.d_heap_locs_model)
     {
-      Assert(hv.getKind() == SET_SINGLETON);
+      Assert(hv.getKind() == Kind::SET_SINGLETON);
       std::vector<Node> pto_children;
       Node l = hv[0];
       Assert(l.isConst());
@@ -258,18 +264,18 @@ void TheorySep::postProcessModel( TheoryModel* m ){
       }
       Trace("sep-model") << std::endl;
       sep_children.push_back(
-          NodeManager::currentNM()->mkNode(SEP_PTO, pto_children));
+          NodeManager::currentNM()->mkNode(Kind::SEP_PTO, pto_children));
     }
   }
   Assert(!d_nil_ref.isNull());
   Node vnil = d_valuation.getModel()->getRepresentative(d_nil_ref);
-  m_neq = nm->mkNode(EQUAL, d_nil_ref, vnil);
+  m_neq = nm->mkNode(Kind::EQUAL, d_nil_ref, vnil);
   Trace("sep-model") << "sep.nil = " << vnil << std::endl;
   Trace("sep-model") << std::endl;
   if (sep_children.empty())
   {
     TypeNode boolType = nm->booleanType();
-    m_heap = nm->mkNullaryOperator(boolType, SEP_EMP);
+    m_heap = nm->mkNullaryOperator(boolType, Kind::SEP_EMP);
   }
   else if (sep_children.size() == 1)
   {
@@ -277,7 +283,7 @@ void TheorySep::postProcessModel( TheoryModel* m ){
   }
   else
   {
-    m_heap = nm->mkNode(SEP_STAR, sep_children);
+    m_heap = nm->mkNode(Kind::SEP_STAR, sep_children);
   }
   m->setHeapModel(m_heap, m_neq);
 
@@ -301,8 +307,8 @@ void TheorySep::presolve() {
 bool TheorySep::preNotifyFact(
     TNode atom, bool polarity, TNode fact, bool isPrereg, bool isInternal)
 {
-  TNode satom = atom.getKind() == SEP_LABEL ? atom[0] : atom;
-  TNode slbl = atom.getKind() == SEP_LABEL ? atom[1] : TNode::null();
+  TNode satom = atom.getKind() == Kind::SEP_LABEL ? atom[0] : atom;
+  TNode slbl = atom.getKind() == Kind::SEP_LABEL ? atom[1] : TNode::null();
   bool isSpatial = isSpatialKind(satom.getKind());
   if (isSpatial)
   {
@@ -312,7 +318,7 @@ bool TheorySep::preNotifyFact(
       d_spatial_assertions.push_back(fact);
     }
   }
-  if (!slbl.isNull() && satom.getKind() == SEP_PTO)
+  if (!slbl.isNull() && satom.getKind() == Kind::SEP_PTO)
   {
     return false;
   }
@@ -331,8 +337,8 @@ void TheorySep::notifyFact(TNode atom,
                            TNode fact,
                            bool isInternal)
 {
-  TNode satom = atom.getKind() == SEP_LABEL ? atom[0] : atom;
-  if (atom.getKind() == SEP_LABEL && atom[0].getKind() == SEP_PTO)
+  TNode satom = atom.getKind() == Kind::SEP_LABEL ? atom[0] : atom;
+  if (atom.getKind() == Kind::SEP_LABEL && atom[0].getKind() == Kind::SEP_PTO)
   {
     // associate the equivalence class of the lhs with this pto
     Node r = getRepresentative(atom[1]);
@@ -355,8 +361,8 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
     return;
   }
   d_reduce.insert(fact);
-  TNode satom = atom.getKind() == SEP_LABEL ? atom[0] : atom;
-  TNode slbl = atom.getKind() == SEP_LABEL ? atom[1] : TNode::null();
+  TNode satom = atom.getKind() == Kind::SEP_LABEL ? atom[0] : atom;
+  TNode slbl = atom.getKind() == Kind::SEP_LABEL ? atom[1] : TNode::null();
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   if (slbl.isNull())
@@ -367,16 +373,16 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
     Trace("sep-lemma-debug")
         << "...reference type is : " << d_type_ref << std::endl;
     Node b_lbl = getBaseLabel();
-    Node satom_new = nm->mkNode(SEP_LABEL, satom, b_lbl);
+    Node satom_new = nm->mkNode(Kind::SEP_LABEL, satom, b_lbl);
     Node lem;
     Trace("sep-lemma-debug") << "...polarity is " << polarity << std::endl;
     if (polarity)
     {
-      lem = nm->mkNode(OR, satom.negate(), satom_new);
+      lem = nm->mkNode(Kind::OR, satom.negate(), satom_new);
     }
     else
     {
-      lem = nm->mkNode(OR, satom, satom_new.negate());
+      lem = nm->mkNode(Kind::OR, satom, satom_new.negate());
     }
     Trace("sep-lemma-debug")
         << "Sep::Lemma : base reduction : " << lem << std::endl;
@@ -392,11 +398,11 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
   else
   {
     // make conclusion based on type of assertion
-    if (satom.getKind() == SEP_STAR || satom.getKind() == SEP_WAND)
+    if (satom.getKind() == Kind::SEP_STAR || satom.getKind() == Kind::SEP_WAND)
     {
       if (!d_reference_bound_max.isNull())
       {
-        Node blem = nm->mkNode(SET_SUBSET, slbl, d_reference_bound_max);
+        Node blem = nm->mkNode(Kind::SET_SUBSET, slbl, d_reference_bound_max);
         d_im.lemma(blem, InferenceId::SEP_LABEL_DEF);
       }
       std::vector<Node> children;
@@ -404,17 +410,18 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
       getLabelChildren(satom, slbl, children, labels);
       Node empSet = nm->mkConst(EmptySet(slbl.getType()));
       Assert(children.size() > 1);
-      if (satom.getKind() == SEP_STAR)
+      if (satom.getKind() == Kind::SEP_STAR)
       {
         // make disjoint heap
         makeDisjointHeap(slbl, labels);
       }
       else
       {
-        Assert(satom.getKind() == SEP_WAND);
+        Assert(satom.getKind() == Kind::SEP_WAND);
         // nil does not occur in labels[0]
         Assert(!d_nil_ref.isNull());
-        Node nrlem = nm->mkNode(SET_MEMBER, d_nil_ref, labels[0]).negate();
+        Node nrlem =
+            nm->mkNode(Kind::SET_MEMBER, d_nil_ref, labels[0]).negate();
         Trace("sep-lemma")
             << "Sep::Lemma: sep.nil not in wand antecedant heap : " << nrlem
             << std::endl;
@@ -422,11 +429,11 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
         // make disjoint heap
         makeDisjointHeap(labels[1], {slbl, labels[0]});
       }
-      conc = nm->mkNode(AND, children);
+      conc = nm->mkNode(Kind::AND, children);
     }
-    else if (satom.getKind() == SEP_PTO)
+    else if (satom.getKind() == Kind::SEP_PTO)
     {
-      Node ss = nm->mkNode(SET_SINGLETON, satom[0]);
+      Node ss = nm->mkNode(Kind::SET_SINGLETON, satom[0]);
       if (slbl != ss)
       {
         conc = slbl.eqNode(ss);
@@ -444,21 +451,21 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
           std::vector<Node> disjs;
           for (const Node& c : itc->second)
           {
-            disjs.push_back(nm->mkNode(SEP_LABEL, satom, c));
+            disjs.push_back(nm->mkNode(Kind::SEP_LABEL, satom, c));
           }
-          Node conc2 = nm->mkNode(OR, disjs);
-          conc = conc.isNull() ? conc2 : nm->mkNode(AND, conc, conc2);
+          Node conc2 = nm->mkNode(Kind::OR, disjs);
+          conc = conc.isNull() ? conc2 : nm->mkNode(Kind::AND, conc, conc2);
         }
       }
       // note semantics of sep.nil is enforced globally
     }
-    else if (satom.getKind() == SEP_EMP)
+    else if (satom.getKind() == Kind::SEP_EMP)
     {
       Node lem;
       Node emp_s = nm->mkConst(EmptySet(slbl.getType()));
       if (polarity)
       {
-        lem = nm->mkNode(OR, fact.negate(), slbl.eqNode(emp_s));
+        lem = nm->mkNode(Kind::OR, fact.negate(), slbl.eqNode(emp_s));
       }
       else
       {
@@ -466,11 +473,12 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
         Node kl = sm->mkDummySkolem("loc", d_type_ref);
         Node kd = sm->mkDummySkolem("data", d_type_data);
         Node econc = nm->mkNode(
-            SEP_LABEL,
-            nm->mkNode(SEP_STAR, nm->mkNode(SEP_PTO, kl, kd), d_true),
+            Kind::SEP_LABEL,
+            nm->mkNode(
+                Kind::SEP_STAR, nm->mkNode(Kind::SEP_PTO, kl, kd), d_true),
             slbl);
         // Node econc = nm->mkNode( AND, slbl.eqNode( emp_s ).negate(),
-        lem = nm->mkNode(OR, fact.negate(), econc);
+        lem = nm->mkNode(Kind::OR, fact.negate(), econc);
       }
       Trace("sep-lemma") << "Sep::Lemma : emp : " << lem << std::endl;
       d_im.lemma(lem, InferenceId::SEP_EMP);
@@ -488,7 +496,7 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
         << "Trivial conclusion, do not add lemma." << std::endl;
     return;
   }
-  bool use_polarity = satom.getKind() == SEP_WAND ? !polarity : polarity;
+  bool use_polarity = satom.getKind() == Kind::SEP_WAND ? !polarity : polarity;
   if (!use_polarity)
   {
     // introduce guard, assert positive version
@@ -509,14 +517,14 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
     d_neg_guards.push_back(lit);
     d_guard_to_assertion[lit] = satom;
     // Node lem = nm->mkNode( EQUAL, lit, conc );
-    Node lem = nm->mkNode(OR, lit.negate(), conc);
+    Node lem = nm->mkNode(Kind::OR, lit.negate(), conc);
     Trace("sep-lemma") << "Sep::Lemma : (neg) reduction : " << lem << std::endl;
     d_im.lemma(lem, InferenceId::SEP_NEG_REDUCTION);
   }
   else
   {
     // reduce based on implication
-    Node lem = nm->mkNode(OR, fact.negate(), conc);
+    Node lem = nm->mkNode(Kind::OR, fact.negate(), conc);
     Trace("sep-lemma") << "Sep::Lemma : reduction : " << lem << std::endl;
     d_im.lemma(lem, InferenceId::SEP_POS_REDUCTION);
   }
@@ -524,7 +532,8 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
 
 bool TheorySep::isSpatialKind(Kind k) const
 {
-  return k == SEP_STAR || k == SEP_WAND || k == SEP_PTO || k == SEP_EMP;
+  return k == Kind::SEP_STAR || k == Kind::SEP_WAND || k == Kind::SEP_PTO
+         || k == Kind::SEP_EMP;
 }
 
 void TheorySep::postCheck(Effort level)
@@ -579,19 +588,20 @@ void TheorySep::postCheck(Effort level)
   std::map<Node, std::vector<Node> > lbl_to_assertions;
   for (const Node& fact : d_spatial_assertions)
   {
-    bool polarity = fact.getKind() != NOT;
+    bool polarity = fact.getKind() != Kind::NOT;
     TNode atom = polarity ? fact : fact[0];
-    Assert(atom.getKind() == SEP_LABEL);
+    Assert(atom.getKind() == Kind::SEP_LABEL);
     TNode satom = atom[0];
     TNode slbl = atom[1];
     lbl_to_assertions[slbl].push_back(fact);
     // check whether assertion is active : either polarity=true, or guard is not
     // asserted false
     assert_active[fact] = true;
-    bool use_polarity = satom.getKind() == SEP_WAND ? !polarity : polarity;
+    bool use_polarity =
+        satom.getKind() == Kind::SEP_WAND ? !polarity : polarity;
     if (use_polarity)
     {
-      if (satom.getKind() == SEP_PTO)
+      if (satom.getKind() == Kind::SEP_PTO)
       {
         Node vv = d_valuation.getModel()->getRepresentative(satom[0]);
         if (d_pto_model.find(vv) == d_pto_model.end())
@@ -636,7 +646,7 @@ void TheorySep::postCheck(Effort level)
   // set up model information based on active assertions
   for (const Node& fact : d_spatial_assertions)
   {
-    bool polarity = fact.getKind() != NOT;
+    bool polarity = fact.getKind() != Kind::NOT;
     TNode atom = polarity ? fact : fact[0];
     TNode satom = atom[0];
     TNode slbl = atom[1];
@@ -675,16 +685,17 @@ void TheorySep::postCheck(Effort level)
   {
     for (const Node& fact : d_spatial_assertions)
     {
-      bool polarity = fact.getKind() != NOT;
+      bool polarity = fact.getKind() != Kind::NOT;
       TNode atom = polarity ? fact : fact[0];
       TNode satom = atom[0];
-      bool use_polarity = satom.getKind() == SEP_WAND ? !polarity : polarity;
+      bool use_polarity =
+          satom.getKind() == Kind::SEP_WAND ? !polarity : polarity;
       if (!use_polarity)
       {
         Assert(assert_active.find(fact) != assert_active.end());
         if (assert_active[fact])
         {
-          Assert(atom.getKind() == SEP_LABEL);
+          Assert(atom.getKind() == Kind::SEP_LABEL);
           TNode slbl = atom[1];
           std::map<Node, std::map<int, Node> >& lms = d_label_map[satom];
           if (lms.find(slbl) != lms.end())
@@ -700,11 +711,12 @@ void TheorySep::postCheck(Effort level)
   // process spatial assertions
   for (const Node& fact : d_spatial_assertions)
   {
-    bool polarity = fact.getKind() != NOT;
+    bool polarity = fact.getKind() != Kind::NOT;
     TNode atom = polarity ? fact : fact[0];
     TNode satom = atom[0];
 
-    bool use_polarity = satom.getKind() == SEP_WAND ? !polarity : polarity;
+    bool use_polarity =
+        satom.getKind() == Kind::SEP_WAND ? !polarity : polarity;
     Trace("sep-process-debug") << "  check atom : " << satom << " use polarity "
                                << use_polarity << std::endl;
     if (use_polarity)
@@ -718,7 +730,7 @@ void TheorySep::postCheck(Effort level)
           << "--> inactive negated assertion " << satom << std::endl;
       continue;
     }
-    Assert(atom.getKind() == SEP_LABEL);
+    Assert(atom.getKind() == Kind::SEP_LABEL);
     TNode slbl = atom[1];
     Trace("sep-process") << "--> Active negated atom : " << satom
                          << ", lbl = " << slbl << std::endl;
@@ -726,7 +738,8 @@ void TheorySep::postCheck(Effort level)
     if (!ContainsKey(d_label_map[satom], slbl))
     {
       Trace("sep-process-debug") << "  no children." << std::endl;
-      Assert(satom.getKind() == SEP_PTO || satom.getKind() == SEP_EMP);
+      Assert(satom.getKind() == Kind::SEP_PTO
+             || satom.getKind() == Kind::SEP_EMP);
       continue;
     }
     needAddLemma = true;
@@ -786,7 +799,7 @@ void TheorySep::postCheck(Effort level)
     }
     lemc.push_back(pol_atom);
     lemc.insert(lemc.end(), conc.begin(), conc.end());
-    Node lem = nm->mkNode(OR, lemc);
+    Node lem = nm->mkNode(Kind::OR, lemc);
     std::vector<Node>& rlems = d_refinement_lem[satom][slbl];
     if (std::find(rlems.begin(), rlems.end(), lem) == rlems.end())
     {
@@ -826,7 +839,7 @@ void TheorySep::postCheck(Effort level)
     std::vector<Node>& hlmodel = d_label_model[d_base_label].d_heap_locs_model;
     for (size_t j = 0, hsize = hlmodel.size(); j < hsize; j++)
     {
-      Assert(hlmodel[j].getKind() == SET_SINGLETON);
+      Assert(hlmodel[j].getKind() == Kind::SET_SINGLETON);
       Node l = hlmodel[j][0];
       Trace("sep-process-debug") << "  location : " << l << std::endl;
       if (!d_pto_model[l].isNull())
@@ -851,9 +864,10 @@ void TheorySep::postCheck(Effort level)
             "dsk", d_type_data, "pto-data for implicit location");
         // if location is in the heap, then something must point to it
         Node lem = nm->mkNode(
-            IMPLIES,
-            nm->mkNode(SET_MEMBER, ll, d_base_label),
-            nm->mkNode(SEP_STAR, nm->mkNode(SEP_PTO, ll, dsk), d_true));
+            Kind::IMPLIES,
+            nm->mkNode(Kind::SET_MEMBER, ll, d_base_label),
+            nm->mkNode(
+                Kind::SEP_STAR, nm->mkNode(Kind::SEP_PTO, ll, dsk), d_true));
         Trace("sep-lemma") << "Sep::Lemma : witness finite data-pto : " << lem
                            << std::endl;
         d_im.lemma(lem, InferenceId::SEP_WITNESS_FINITE_DATA);
@@ -883,8 +897,11 @@ void TheorySep::postCheck(Effort level)
                      << std::endl;
 }
 
-bool TheorySep::needsCheckLastEffort() {
-  return hasFacts();
+bool TheorySep::needsCheckLastEffort()
+{
+  // We always need a last call effort check when the logic enables separation
+  // logic to ensure the heap model is built.
+  return d_env.hasSepHeap();
 }
 
 void TheorySep::conflict(TNode a, TNode b) {
@@ -915,6 +932,10 @@ TheorySep::HeapAssertInfo * TheorySep::getOrMakeEqcInfo( Node n, bool doMake ) {
 // Must process assertions at preprocess so that quantified assertions are
 // processed properly.
 void TheorySep::ppNotifyAssertions(const std::vector<Node>& assertions) {
+  if (!d_env.hasSepHeap())
+  {
+    return;
+  }
   std::map<int, std::map<Node, size_t> > visited;
   std::map<int, std::map<Node, std::vector<Node> > > references;
   std::map<int, std::map<Node, bool> > references_strict;
@@ -940,7 +961,7 @@ size_t TheorySep::processAssertion(
   std::map<Node, size_t>::iterator it = visited[index].find(n);
   if( it==visited[index].end() ){
     Trace("sep-pp-debug") << "process assertion : " << n << ", index = " << index << std::endl;
-    if (n.getKind() == SEP_EMP)
+    if (n.getKind() == Kind::SEP_EMP)
     {
       ensureHeapTypesFor(n);
       if( hasPol && pol ){
@@ -950,7 +971,7 @@ size_t TheorySep::processAssertion(
         card = 1;
       }
     }
-    else if (n.getKind() == SEP_PTO)
+    else if (n.getKind() == Kind::SEP_PTO)
     {
       ensureHeapTypesFor(n);
       if( quantifiers::TermUtil::hasBoundVarAttr( n[0] ) ){
@@ -971,7 +992,8 @@ size_t TheorySep::processAssertion(
         card = 1;
       }
     }else{
-      bool isSpatial = n.getKind() == SEP_WAND || n.getKind() == SEP_STAR;
+      bool isSpatial =
+          n.getKind() == Kind::SEP_WAND || n.getKind() == Kind::SEP_STAR;
       bool newUnderSpatial = underSpatial || isSpatial;
       bool refStrict = isSpatial;
       for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
@@ -987,11 +1009,11 @@ size_t TheorySep::processAssertion(
                                         newHasPol,
                                         newUnderSpatial);
         //update cardinality
-        if (n.getKind() == SEP_STAR)
+        if (n.getKind() == Kind::SEP_STAR)
         {
           card += ccard;
         }
-        else if (n.getKind() == SEP_WAND)
+        else if (n.getKind() == Kind::SEP_WAND)
         {
           if( i==1 ){
             card = ccard;
@@ -1026,11 +1048,11 @@ size_t TheorySep::processAssertion(
         }
       }
       if( isSpatial && refStrict ){
-        if (n.getKind() == SEP_WAND)
+        if (n.getKind() == Kind::SEP_WAND)
         {
           //TODO
         }else{
-          Assert(n.getKind() == SEP_STAR && hasPol && pol);
+          Assert(n.getKind() == Kind::SEP_STAR && hasPol && pol);
           references_strict[index][n] = true;
         }
       }
@@ -1081,7 +1103,7 @@ void TheorySep::ensureHeapTypesFor(Node atom) const
   Assert(!atom.isNull());
   if (!d_type_ref.isNull() && !d_type_data.isNull())
   {
-    if (atom.getKind() == SEP_PTO)
+    if (atom.getKind() == Kind::SEP_PTO)
     {
       TypeNode tn1 = atom[0].getType();
       TypeNode tn2 = atom[1].getType();
@@ -1194,7 +1216,7 @@ Node TheorySep::getBaseLabel()
       // ensure that it is distinct from all other references so far
       for (const Node& r : d_type_references)
       {
-        Node eq = nm->mkNode(EQUAL, e, r);
+        Node eq = nm->mkNode(Kind::EQUAL, e, r);
         d_im.lemma(eq.negate(), InferenceId::SEP_DISTINCT_REF);
       }
       d_type_references.push_back(e);
@@ -1214,7 +1236,8 @@ Node TheorySep::getBaseLabel()
     Trace("sep-bound") << "overall bound for " << d_base_label << " : "
                        << d_reference_bound_max << std::endl;
 
-    Node slem = nm->mkNode(SET_SUBSET, d_base_label, d_reference_bound_max);
+    Node slem =
+        nm->mkNode(Kind::SET_SUBSET, d_base_label, d_reference_bound_max);
     Trace("sep-lemma") << "Sep::Lemma: reference bound for " << d_type_ref
                        << " : " << slem << std::endl;
     d_im.lemma(slem, InferenceId::SEP_REF_BOUND);
@@ -1227,7 +1250,7 @@ Node TheorySep::getBaseLabel()
       for (size_t i = 0; i < trcSize; i++)
       {
         lit_mem_map[i] = nm->mkNode(
-            SET_MEMBER, d_type_references_card[i], d_reference_bound_max);
+            Kind::SET_MEMBER, d_type_references_card[i], d_reference_bound_max);
       }
       for (size_t i = 0; i < (trcSize - 1); i++)
       {
@@ -1239,7 +1262,7 @@ Node TheorySep::getBaseLabel()
         if (!children.empty())
         {
           Node sym_lem = nm->mkAnd(children);
-          sym_lem = nm->mkNode(IMPLIES, lit_mem_map[i].negate(), sym_lem);
+          sym_lem = nm->mkNode(Kind::IMPLIES, lit_mem_map[i].negate(), sym_lem);
           Trace("sep-lemma")
               << "Sep::Lemma: symmetry breaking lemma : " << sym_lem
               << std::endl;
@@ -1251,7 +1274,7 @@ Node TheorySep::getBaseLabel()
 
   // assert that nil ref is not in base label
   Assert(!d_nil_ref.isNull());
-  Node nrlem = nm->mkNode(SET_MEMBER, d_nil_ref, n_lbl).negate();
+  Node nrlem = nm->mkNode(Kind::SET_MEMBER, d_nil_ref, n_lbl).negate();
   Trace("sep-lemma") << "Sep::Lemma: sep.nil not in base label " << d_type_ref
                      << " : " << nrlem << std::endl;
   d_im.lemma(nrlem, InferenceId::SEP_NIL_NOT_IN_HEAP);
@@ -1268,11 +1291,11 @@ Node TheorySep::mkUnion( TypeNode tn, std::vector< Node >& locs ) {
     for( unsigned i=0; i<locs.size(); i++ ){
       Node s = locs[i];
       Assert(!s.isNull());
-      s = NodeManager::currentNM()->mkNode(SET_SINGLETON, s);
+      s = NodeManager::currentNM()->mkNode(Kind::SET_SINGLETON, s);
       if( u.isNull() ){
         u = s;
       }else{
-        u = NodeManager::currentNM()->mkNode(SET_UNION, s, u);
+        u = NodeManager::currentNM()->mkNode(Kind::SET_UNION, s, u);
       }
     }
     return u;
@@ -1315,11 +1338,11 @@ void TheorySep::makeDisjointHeap(Node parent, const std::vector<Node>& children)
   // make the disjointness constraints
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> lems;
-  Node ulem = nm->mkNode(SET_UNION, children[0], children[1]);
+  Node ulem = nm->mkNode(Kind::SET_UNION, children[0], children[1]);
   size_t lsize = children.size();
   for (size_t i = 2; i < lsize; i++)
   {
-    ulem = nm->mkNode(SET_UNION, ulem, children[i]);
+    ulem = nm->mkNode(Kind::SET_UNION, ulem, children[i]);
   }
   ulem = parent.eqNode(ulem);
   lems.push_back(ulem);
@@ -1328,7 +1351,7 @@ void TheorySep::makeDisjointHeap(Node parent, const std::vector<Node>& children)
   {
     for (size_t j = (i + 1); j < lsize; j++)
     {
-      Node s = nm->mkNode(SET_INTER, children[i], children[j]);
+      Node s = nm->mkNode(Kind::SET_INTER, children[i], children[j]);
       Node ilem = s.eqNode(empSet);
       lems.push_back(ilem);
     }
@@ -1390,7 +1413,7 @@ bool TheorySep::sharesRootLabel(Node p, Node q) const
 }
 
 Node TheorySep::applyLabel( Node n, Node lbl, std::map< Node, Node >& visited ) {
-  Assert(n.getKind() != SEP_LABEL);
+  Assert(n.getKind() != Kind::SEP_LABEL);
   NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
   std::map<Node, Node>::iterator it = visited.find(n);
@@ -1399,11 +1422,11 @@ Node TheorySep::applyLabel( Node n, Node lbl, std::map< Node, Node >& visited ) 
     return it->second;
   }
   Node ret;
-  if (k == SEP_STAR || k == SEP_WAND || k == SEP_PTO)
+  if (k == Kind::SEP_STAR || k == Kind::SEP_WAND || k == Kind::SEP_PTO)
   {
-    ret = nm->mkNode(SEP_LABEL, n, lbl);
+    ret = nm->mkNode(Kind::SEP_LABEL, n, lbl);
   }
-  else if (k == SEP_EMP)
+  else if (k == Kind::SEP_EMP)
   {
     // (SEP_LABEL sep.emp L) is the same as (= L set.empty)
     ret = lbl.eqNode(nm->mkConst(EmptySet(lbl.getType())));
@@ -1457,15 +1480,15 @@ Node TheorySep::instantiateLabel(Node n,
   else
   {
     if( TraceIsOn("sep-inst") ){
-      if (n.getKind() == SEP_STAR || n.getKind() == SEP_WAND
-          || n.getKind() == SEP_PTO || n.getKind() == SEP_EMP)
+      if (n.getKind() == Kind::SEP_STAR || n.getKind() == Kind::SEP_WAND
+          || n.getKind() == Kind::SEP_PTO || n.getKind() == Kind::SEP_EMP)
       {
         for( unsigned j=0; j<ind; j++ ){ Trace("sep-inst") << "  "; }
         Trace("sep-inst") << n << "[" << lbl << "] :: " << lbl_v << std::endl;
       }
     }
-    Assert(n.getKind() != SEP_LABEL);
-    if (n.getKind() == SEP_STAR || n.getKind() == SEP_WAND)
+    Assert(n.getKind() != Kind::SEP_LABEL);
+    if (n.getKind() == Kind::SEP_STAR || n.getKind() == Kind::SEP_WAND)
     {
       if( lbl==o_lbl ){
         std::vector< Node > children;
@@ -1478,14 +1501,14 @@ Node TheorySep::instantiateLabel(Node n,
           Assert(sub_index >= 0 && sub_index < (int)children.size());
           Trace("sep-inst-debug") << "Sublabel " << sub_index << " is " << sub_lbl << std::endl;
           Node lbl_mval;
-          if (n.getKind() == SEP_WAND && sub_index == 1)
+          if (n.getKind() == Kind::SEP_WAND && sub_index == 1)
           {
             Assert(d_label_map[n][lbl].find(0) != d_label_map[n][lbl].end());
             Node sub_lbl_0 = d_label_map[n][lbl][0];
             computeLabelModel( sub_lbl_0 );
             Assert(d_label_model.find(sub_lbl_0) != d_label_model.end());
             lbl_mval = NodeManager::currentNM()->mkNode(
-                SET_UNION, lbl, d_label_model[sub_lbl_0].getValue(rtn));
+                Kind::SET_UNION, lbl, d_label_model[sub_lbl_0].getValue(rtn));
           }else{
             computeLabelModel( sub_lbl );
             Assert(d_label_model.find(sub_lbl) != d_label_model.end());
@@ -1499,7 +1522,7 @@ Node TheorySep::instantiateLabel(Node n,
           }
         }
         Node empSet = NodeManager::currentNM()->mkConst(EmptySet(rtn));
-        if (n.getKind() == SEP_STAR)
+        if (n.getKind() == Kind::SEP_STAR)
         {
           //disjoint contraints
           std::vector< Node > conj;
@@ -1512,20 +1535,22 @@ Node TheorySep::instantiateLabel(Node n,
             Node lbl_mval = d_label_model[sub_lbl].getValue( rtn );
             for( unsigned j=0; j<vs.size(); j++ ){
               bchildren.push_back(NodeManager::currentNM()
-                                      ->mkNode(SET_INTER, lbl_mval, vs[j])
+                                      ->mkNode(Kind::SET_INTER, lbl_mval, vs[j])
                                       .eqNode(empSet));
             }
             vs.push_back( lbl_mval );
             if( vsu.isNull() ){
               vsu = lbl_mval;
             }else{
-              vsu = NodeManager::currentNM()->mkNode(SET_UNION, vsu, lbl_mval);
+              vsu = NodeManager::currentNM()->mkNode(
+                  Kind::SET_UNION, vsu, lbl_mval);
             }
           }
           bchildren.push_back( vsu.eqNode( lbl ) );
 
           Assert(bchildren.size() > 1);
-          conj.push_back(NodeManager::currentNM()->mkNode(AND, bchildren));
+          conj.push_back(
+              NodeManager::currentNM()->mkNode(Kind::AND, bchildren));
           return NodeManager::currentNM()->mkOr(conj);
         }else{
           std::vector< Node > wchildren;
@@ -1533,53 +1558,53 @@ Node TheorySep::instantiateLabel(Node n,
           Node sub_lbl_0 = d_label_map[n][lbl][0];
           Node lbl_mval_0 = d_label_model[sub_lbl_0].getValue( rtn );
           wchildren.push_back(NodeManager::currentNM()
-                                  ->mkNode(SET_INTER, lbl_mval_0, lbl)
+                                  ->mkNode(Kind::SET_INTER, lbl_mval_0, lbl)
                                   .eqNode(empSet)
                                   .negate());
 
           //return the lemma
           wchildren.push_back( children[0].negate() );
           wchildren.push_back( children[1] );
-          return NodeManager::currentNM()->mkNode(OR, wchildren);
+          return NodeManager::currentNM()->mkNode(Kind::OR, wchildren);
         }
       }else{
         //nested star/wand, label it and return
-        return NodeManager::currentNM()->mkNode(SEP_LABEL, n, lbl_v);
+        return NodeManager::currentNM()->mkNode(Kind::SEP_LABEL, n, lbl_v);
       }
     }
-    else if (n.getKind() == SEP_PTO)
+    else if (n.getKind() == Kind::SEP_PTO)
     {
       //check if this pto reference is in the base label, if not, then it does not need to be added as an assumption
       Assert(d_label_model.find(o_lbl) != d_label_model.end());
       Node vr = d_valuation.getModel()->getRepresentative( n[0] );
-      Node svr = nm->mkNode(SET_SINGLETON, vr);
+      Node svr = nm->mkNode(Kind::SET_SINGLETON, vr);
       bool inBaseHeap = std::find( d_label_model[o_lbl].d_heap_locs_model.begin(), d_label_model[o_lbl].d_heap_locs_model.end(), svr )!=d_label_model[o_lbl].d_heap_locs_model.end();
       Trace("sep-inst-debug") << "Is in base (non-instantiating) heap : " << inBaseHeap << " for value ref " << vr << " in " << o_lbl << std::endl;
       std::vector< Node > children;
       if( inBaseHeap ){
-        Node s = nm->mkNode(SET_SINGLETON, n[0]);
+        Node s = nm->mkNode(Kind::SET_SINGLETON, n[0]);
         children.push_back(NodeManager::currentNM()->mkNode(
-            SEP_LABEL,
-            NodeManager::currentNM()->mkNode(SEP_PTO, n[0], n[1]),
+            Kind::SEP_LABEL,
+            NodeManager::currentNM()->mkNode(Kind::SEP_PTO, n[0], n[1]),
             s));
       }else{
         //look up value of data
         std::map< Node, Node >::iterator it = pto_model.find( vr );
         if( it!=pto_model.end() ){
           if( n[1]!=it->second ){
-            children.push_back(nm->mkNode(EQUAL, n[1], it->second));
+            children.push_back(nm->mkNode(Kind::EQUAL, n[1], it->second));
           }
         }else{
           Trace("sep-inst-debug") << "Data for " << vr << " was not specified, do not add condition." << std::endl;
         }
       }
-      Node singleton = nm->mkNode(SET_SINGLETON, n[0]);
+      Node singleton = nm->mkNode(Kind::SET_SINGLETON, n[0]);
       children.push_back(singleton.eqNode(lbl_v));
       Node ret = nm->mkAnd(children);
       Trace("sep-inst-debug") << "Return " << ret << std::endl;
       return ret;
     }
-    else if (n.getKind() == SEP_EMP)
+    else if (n.getKind() == Kind::SEP_EMP)
     {
       return lbl_v.eqNode(
           NodeManager::currentNM()->mkConst(EmptySet(lbl_v.getType())));
@@ -1618,11 +1643,11 @@ Node TheorySep::instantiateLabel(Node n,
 void TheorySep::setInactiveAssertionRec( Node fact, std::map< Node, std::vector< Node > >& lbl_to_assertions, std::map< Node, bool >& assert_active ) {
   Trace("sep-process-debug") << "setInactiveAssertionRec::inactive : " << fact << std::endl;
   assert_active[fact] = false;
-  bool polarity = fact.getKind() != NOT;
+  bool polarity = fact.getKind() != Kind::NOT;
   TNode atom = polarity ? fact : fact[0];
   TNode satom = atom[0];
   TNode slbl = atom[1];
-  if (satom.getKind() == SEP_WAND || satom.getKind() == SEP_STAR)
+  if (satom.getKind() == Kind::SEP_WAND || satom.getKind() == Kind::SEP_STAR)
   {
     for (size_t j = 0, nchild = satom.getNumChildren(); j < nchild; j++)
     {
@@ -1646,7 +1671,7 @@ void TheorySep::getLabelChildren(Node satom,
     std::map< Node, Node > visited;
     Node lc = applyLabel(satom[i], lblc, visited);
     Assert(!lc.isNull());
-    if (i == 1 && satom.getKind() == SEP_WAND)
+    if (i == 1 && satom.getKind() == Kind::SEP_WAND)
     {
       lc = lc.negate();
     }
@@ -1668,15 +1693,17 @@ void TheorySep::computeLabelModel( Node lbl ) {
   Node v_val = d_valuation.getModel()->getRepresentative(lbl);
   Trace("sep-process") << "Model value (from valuation) for " << lbl << " : "
                        << v_val << std::endl;
-  if (v_val.getKind() != SET_EMPTY)
+  // we ignore non-constant values, which are unconstrained and can be assumed
+  // to be empty.
+  if (v_val.isConst() && v_val.getKind() != Kind::SET_EMPTY)
   {
-    while (v_val.getKind() == SET_UNION)
+    while (v_val.getKind() == Kind::SET_UNION)
     {
-      Assert(v_val[0].getKind() == SET_SINGLETON);
+      Assert(v_val[0].getKind() == Kind::SET_SINGLETON);
       d_label_model[lbl].d_heap_locs_model.push_back(v_val[0]);
       v_val = v_val[1];
     }
-    if (v_val.getKind() == SET_SINGLETON)
+    if (v_val.getKind() == Kind::SET_SINGLETON)
     {
       d_label_model[lbl].d_heap_locs_model.push_back(v_val);
     }
@@ -1688,7 +1715,7 @@ void TheorySep::computeLabelModel( Node lbl ) {
   }
   for (const Node& s : d_label_model[lbl].d_heap_locs_model)
   {
-    Assert(s.getKind() == SET_SINGLETON);
+    Assert(s.getKind() == Kind::SET_SINGLETON);
     Node u = s[0];
     Node tt;
     std::map<Node, Node>::iterator itm = d_tmodel.find(u);
@@ -1705,7 +1732,7 @@ void TheorySep::computeLabelModel( Node lbl ) {
     {
       tt = itm->second;
     }
-    Node stt = nm->mkNode(SET_SINGLETON, tt);
+    Node stt = nm->mkNode(Kind::SET_SINGLETON, tt);
     Trace("sep-process-debug") << "...model : add " << tt << " for " << u
                                << " in lbl " << lbl << std::endl;
     d_label_model[lbl].d_heap_locs.push_back(stt);
@@ -1782,7 +1809,7 @@ void TheorySep::eqNotifyMerge(TNode t1, TNode t2)
 bool TheorySep::checkPto(HeapAssertInfo* e, Node p, bool polarity)
 {
   Assert(e != nullptr);
-  Assert(p.getKind() == SEP_LABEL && p[0].getKind() == SEP_PTO);
+  Assert(p.getKind() == Kind::SEP_LABEL && p[0].getKind() == Kind::SEP_PTO);
   NodeManager* nm = NodeManager::currentNM();
   Node plbl = p[1];
   Node pval = p[0][1];
@@ -1795,12 +1822,13 @@ bool TheorySep::checkPto(HeapAssertInfo* e, Node p, bool polarity)
     NodeList& elist = pol ? e->d_posPto : e->d_negPto;
     for (const Node& q : elist)
     {
-      Assert(q.getKind() == SEP_LABEL && q[0].getKind() == SEP_PTO);
+      Assert(q.getKind() == Kind::SEP_LABEL && q[0].getKind() == Kind::SEP_PTO);
       Node qlbl = q[1];
       Node qval = q[0][1];
       // We use instantiated labels where labels are set to singletons. We
       // assume these always share a root label.
-      if (qlbl.getKind() != SET_SINGLETON && plbl.getKind() != SET_SINGLETON
+      if (qlbl.getKind() != Kind::SET_SINGLETON
+          && plbl.getKind() != Kind::SET_SINGLETON
           && !sharesRootLabel(plbl, qlbl))
       {
         Trace("sep-pto") << "Constraints " << p << " and " << q
@@ -1900,12 +1928,12 @@ void TheorySep::sendLemma( std::vector< Node >& ant, Node conc, InferenceId id, 
       if( conc==d_false ){
         Trace("sep-lemma") << "Sep::Conflict: " << ant << " by " << id
                            << std::endl;
-        d_im.conflictExp(id, PfRule::THEORY_INFERENCE, ant, {conc});
+        d_im.conflictExp(id, ProofRule::TRUST, ant, {d_tiid, conc, d_tsid});
       }else{
         Trace("sep-lemma") << "Sep::Lemma: " << conc << " from " << ant
                            << " by " << id << std::endl;
-        TrustNode trn =
-            d_im.mkLemmaExp(conc, PfRule::THEORY_INFERENCE, ant, {}, {conc});
+        TrustNode trn = d_im.mkLemmaExp(
+            conc, ProofRule::TRUST, ant, {}, {d_tiid, conc, d_tsid});
         d_im.addPendingLemma(
             trn.getNode(), id, LemmaProperty::NONE, trn.getGenerator());
       }
@@ -1927,7 +1955,8 @@ Node TheorySep::HeapInfo::getValue( TypeNode tn ) {
   Node curr = d_heap_locs[0];
   for (unsigned j = 1; j < d_heap_locs.size(); j++)
   {
-    curr = NodeManager::currentNM()->mkNode(SET_UNION, d_heap_locs[j], curr);
+    curr =
+        NodeManager::currentNM()->mkNode(Kind::SET_UNION, d_heap_locs[j], curr);
   }
   return curr;
 }

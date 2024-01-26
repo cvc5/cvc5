@@ -73,9 +73,12 @@ bool containsStoreAll(Node n, std::unordered_set<Node>& cache)
 {
   if( std::find( cache.begin(), cache.end(), n )==cache.end() ){
     cache.insert(n);
-    if( n.getKind()==STORE_ALL ){
+    if (n.getKind() == Kind::STORE_ALL)
+    {
       return true;
-    }else{
+    }
+    else
+    {
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
         if( containsStoreAll( n[i], cache ) ){
           return true;

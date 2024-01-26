@@ -47,20 +47,21 @@ int main()
   Term xp = slv.mkVar(integer, "xp");
 
   // (ite (< x 10) (= xp (+ x 1)) (= xp x))
-  Term ite = slv.mkTerm(ITE,
-                        {slv.mkTerm(LT, {x, ten}),
-                         slv.mkTerm(EQUAL, {xp, slv.mkTerm(ADD, {x, one})}),
-                         slv.mkTerm(EQUAL, {xp, x})});
+  Term ite = slv.mkTerm(
+      Kind::ITE,
+      {slv.mkTerm(Kind::LT, {x, ten}),
+       slv.mkTerm(Kind::EQUAL, {xp, slv.mkTerm(Kind::ADD, {x, one})}),
+       slv.mkTerm(Kind::EQUAL, {xp, x})});
 
   // define the pre-conditions, transition relations, and post-conditions
   Term pre_f =
-      slv.defineFun("pre-f", {x}, boolean, slv.mkTerm(EQUAL, {x, zero}));
+      slv.defineFun("pre-f", {x}, boolean, slv.mkTerm(Kind::EQUAL, {x, zero}));
   Term trans_f = slv.defineFun("trans-f", {x, xp}, boolean, ite);
   Term post_f =
-      slv.defineFun("post-f", {x}, boolean, slv.mkTerm(LEQ, {x, ten}));
+      slv.defineFun("post-f", {x}, boolean, slv.mkTerm(Kind::LEQ, {x, ten}));
 
   // declare the invariant-to-synthesize
-  Term inv_f = slv.synthInv("inv-f", {x});
+  Term inv_f = slv.synthFun("inv-f", {x}, boolean);
 
   slv.addSygusInvConstraint(inv_f, pre_f, trans_f, post_f);
 

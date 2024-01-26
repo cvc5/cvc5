@@ -52,29 +52,25 @@ class FiniteFieldTest
   {
     d_solver.setLogic("QF_FF"); // Set the logic
 
-    Sort f5 = d_solver.mkFiniteFieldSort("5");
+    Sort f5 = d_solver.mkFiniteFieldSort("5", 10);
     Term a = d_solver.mkConst(f5, "a");
     Term b = d_solver.mkConst(f5, "b");
-    Term z = d_solver.mkFiniteFieldElem("0", f5);
+    Term z = d_solver.mkFiniteFieldElem("0", f5, 10);
 
     assertEquals(f5.isFiniteField(), true);
     assertEquals(f5.getFiniteFieldSize(), "5");
     assertEquals(z.isFiniteFieldValue(), true);
     assertEquals(z.getFiniteFieldValue(), "0");
 
-    Term inv =
-      d_solver.mkTerm(Kind.EQUAL,
-          d_solver.mkTerm(Kind.FINITE_FIELD_ADD,
+    Term inv = d_solver.mkTerm(Kind.EQUAL,
+        d_solver.mkTerm(Kind.FINITE_FIELD_ADD,
             d_solver.mkTerm(Kind.FINITE_FIELD_MULT, a, b),
-            d_solver.mkFiniteFieldElem("-1", f5)),
-          z);
+            d_solver.mkFiniteFieldElem("-1", f5, 10)),
+        z);
 
-    Term aIsTwo =
-      d_solver.mkTerm(Kind.EQUAL,
-          d_solver.mkTerm(Kind.FINITE_FIELD_ADD,
-            a,
-            d_solver.mkFiniteFieldElem("-2", f5)),
-          z);
+    Term aIsTwo = d_solver.mkTerm(Kind.EQUAL,
+        d_solver.mkTerm(Kind.FINITE_FIELD_ADD, a, d_solver.mkFiniteFieldElem("-2", f5, 10)),
+        z);
 
     d_solver.assertFormula(inv);
     d_solver.assertFormula(aIsTwo);
@@ -82,12 +78,9 @@ class FiniteFieldTest
     Result r = d_solver.checkSat();
     assertEquals(r.isSat(), true);
 
-    Term bIsTwo =
-      d_solver.mkTerm(Kind.EQUAL,
-          d_solver.mkTerm(Kind.FINITE_FIELD_ADD,
-            b,
-            d_solver.mkFiniteFieldElem("-2", f5)),
-          z);
+    Term bIsTwo = d_solver.mkTerm(Kind.EQUAL,
+        d_solver.mkTerm(Kind.FINITE_FIELD_ADD, b, d_solver.mkFiniteFieldElem("-2", f5, 10)),
+        z);
 
     d_solver.assertFormula(bIsTwo);
     r = d_solver.checkSat();

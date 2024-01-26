@@ -44,15 +44,16 @@ class TestTheoryWhite : public TestSmtNoFinishInit
     delete te->d_theoryOut[THEORY_BUILTIN];
     te->d_theoryTable[THEORY_BUILTIN] = nullptr;
     te->d_theoryOut[THEORY_BUILTIN] = nullptr;
-
+    Env& env = d_slvEngine->getEnv();
+    d_outputChannel.reset(
+        new DummyOutputChannel(env.getStatisticsRegistry(), te, "Dummy"));
     d_dummy_theory.reset(new DummyTheory<THEORY_BUILTIN>(
-        d_slvEngine->getEnv(), d_outputChannel, Valuation(nullptr)));
-    d_outputChannel.clear();
+        env, *d_outputChannel.get(), Valuation(nullptr)));
     d_atom0 = d_nodeManager->mkConst(true);
     d_atom1 = d_nodeManager->mkConst(false);
   }
 
-  DummyOutputChannel d_outputChannel;
+  std::unique_ptr<DummyOutputChannel> d_outputChannel;
   std::unique_ptr<DummyTheory<THEORY_BUILTIN>> d_dummy_theory;
   Node d_atom0;
   Node d_atom1;
@@ -84,13 +85,14 @@ TEST_F(TestTheoryWhite, done)
 TEST_F(TestTheoryWhite, outputChannel)
 {
   Node n = d_atom0.orNode(d_atom1);
-  d_outputChannel.lemma(n);
-  d_outputChannel.lemma(d_atom0.orNode(d_atom0.notNode()));
+  d_outputChannel->lemma(n, theory::InferenceId::NONE);
+  d_outputChannel->lemma(d_atom0.orNode(d_atom0.notNode()),
+                         theory::InferenceId::NONE);
   Node s = d_atom0.orNode(d_atom0.notNode());
-  ASSERT_EQ(d_outputChannel.d_callHistory.size(), 2u);
-  ASSERT_EQ(d_outputChannel.d_callHistory[0], std::make_pair(LEMMA, n));
-  ASSERT_EQ(d_outputChannel.d_callHistory[1], std::make_pair(LEMMA, s));
-  d_outputChannel.d_callHistory.clear();
+  ASSERT_EQ(d_outputChannel->d_callHistory.size(), 2u);
+  ASSERT_EQ(d_outputChannel->d_callHistory[0], std::make_pair(LEMMA, n));
+  ASSERT_EQ(d_outputChannel->d_callHistory[1], std::make_pair(LEMMA, s));
+  d_outputChannel->d_callHistory.clear();
 }
 }  // namespace test
 }  // namespace cvc5::internal

@@ -13,3 +13,7 @@ generated/
 *.swp
 /debug/
 /deps/
+.vscode
+*.pyc
+
+

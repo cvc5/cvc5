@@ -42,7 +42,7 @@ Node SkolemCache::mkTypedSkolemCached(
     if (id == SkolemId::SK_PURIFY)
     {
       Assert(a.getType() == tn);
-      sk = sm->mkPurifySkolem(a, c);
+      sk = sm->mkPurifySkolem(a);
     }
     else
     {

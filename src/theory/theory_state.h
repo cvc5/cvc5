@@ -62,6 +62,12 @@ class TheoryState : protected EnvObj
    * returns true if the representative of a and b are distinct constants.
    */
   virtual bool areDisequal(TNode a, TNode b) const;
+  /**
+   * Get the explanation for why a and b are disequal, store it in exp. This
+   * assumes that areDisequal(a,b) returns true in the current context and
+   * ensures the equality engine has a proof of what it is in exp.
+   */
+  void explainDisequal(TNode a, TNode b, std::vector<Node>& exp);
   /** get list of members in the equivalence class of a */
   virtual void getEquivalenceClass(Node a, std::vector<Node>& eqc) const;
   /**

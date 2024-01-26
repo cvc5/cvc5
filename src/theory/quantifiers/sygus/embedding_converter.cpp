@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Mathias Preiner, Yoni Zohar
  *
  * This file is part of the cvc5 project.
  *
@@ -41,7 +41,7 @@ EmbeddingConverter::EmbeddingConverter(Env& env,
 
 bool EmbeddingConverter::hasSyntaxRestrictions(Node q)
 {
-  Assert(q.getKind() == FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   for (const Node& f : q[0])
   {
     TypeNode tn = SygusUtils::getSygusType(f);
@@ -102,7 +102,9 @@ Node EmbeddingConverter::process(Node q,
   Trace("cegqi") << "SynthConjecture : convert to deep embedding..."
                  << std::endl;
   std::map<TypeNode, std::unordered_set<Node>> extra_cons;
-  if (options().quantifiers.sygusAddConstGrammar)
+  if (options().quantifiers.sygusAddConstGrammar
+      && options().quantifiers.sygusGrammarConsMode
+             == options::SygusGrammarConsMode::SIMPLE)
   {
     Trace("cegqi") << "SynthConjecture : collect constants..." << std::endl;
     collectTerms(q[1], extra_cons);
@@ -146,31 +148,32 @@ Node EmbeddingConverter::process(Node q,
       // check which arguments are irrelevant
       std::unordered_set<unsigned> arg_irrelevant;
       d_parent->getProcess()->getIrrelevantArgs(sf, arg_irrelevant);
-      std::unordered_set<Node> term_irlv;
-      // convert to term
-      for (const unsigned& arg : arg_irrelevant)
+      std::vector<Node> trules;
+      // add the variables from the free variable list that we did not
+      // infer were irrelevant.
+      for (size_t j = 0, nargs = sfvl.getNumChildren(); j < nargs; j++)
       {
-        Assert(arg < sfvl.getNumChildren());
-        term_irlv.insert(sfvl[arg]);
+        if (arg_irrelevant.find(j) == arg_irrelevant.end())
+        {
+          trules.push_back(sfvl[j]);
+        }
       }
-
-      // make the default grammar
-      tn = CegGrammarConstructor::mkSygusDefaultType(options(),
-                                                     preGrammarType,
-                                                     sfvl,
-                                                     sf.getName(),
-                                                     extra_cons,
-                                                     exc_cons,
-                                                     inc_cons,
-                                                     term_irlv);
-      // print the grammar
-      if (isOutputOn(OutputTag::SYGUS_GRAMMAR))
+      // add the constants computed avove
+      for (const std::pair<const TypeNode, std::unordered_set<Node>>& c :
+           extra_cons)
       {
-        output(OutputTag::SYGUS_GRAMMAR)
-            << "(sygus-grammar " << sf
-            << printer::smt2::Smt2Printer::sygusGrammarString(tn) << ")"
-            << std::endl;
+        trules.insert(trules.end(), c.second.begin(), c.second.end());
       }
+      tn = SygusGrammarCons::mkDefaultSygusType(
+          d_env, preGrammarType, sfvl, trules);
+    }
+    // print the grammar
+    if (isOutputOn(OutputTag::SYGUS_GRAMMAR))
+    {
+      output(OutputTag::SYGUS_GRAMMAR)
+          << "(sygus-grammar " << sf << " "
+          << printer::smt2::Smt2Printer::sygusGrammarString(tn) << ")"
+          << std::endl;
     }
     // sfvl may be null for constant synthesis functions
     Trace("cegqi-debug") << "...sygus var list associated with " << sf << " is "
@@ -241,7 +244,7 @@ Node EmbeddingConverter::process(Node q,
       subsfn_children.push_back(sf);
       subsfn_children.insert(
           subsfn_children.end(), schildren.begin(), schildren.end());
-      Node subsfn = nm->mkNode(kind::APPLY_UF, subsfn_children);
+      Node subsfn = nm->mkNode(Kind::APPLY_UF, subsfn_children);
       TNode subsf = subsfn;
       Trace("cegqi-debug") << "  substitute arg : " << templ_arg << " -> "
                            << subsf << std::endl;
@@ -249,8 +252,8 @@ Node EmbeddingConverter::process(Node q,
       // substitute lambda arguments
       templ = templ.substitute(
           schildren.begin(), schildren.end(), largs.begin(), largs.end());
-      Node subsn =
-          nm->mkNode(kind::LAMBDA, nm->mkNode(BOUND_VAR_LIST, largs), templ);
+      Node subsn = nm->mkNode(
+          Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, largs), templ);
       TNode var = sf;
       TNode subs = subsn;
       Trace("cegqi-debug") << "  substitute : " << var << " -> " << subs
@@ -267,7 +270,7 @@ Node EmbeddingConverter::process(Node q,
       d_is_syntax_restricted = true;
     }
   }
-  qchildren.push_back(nm->mkNode(kind::BOUND_VAR_LIST, ebvl));
+  qchildren.push_back(nm->mkNode(Kind::BOUND_VAR_LIST, ebvl));
   if (qbody_subs != q[1])
   {
     Trace("cegqi") << "...rewriting : " << qbody_subs << std::endl;
@@ -279,7 +282,7 @@ Node EmbeddingConverter::process(Node q,
   {
     qchildren.push_back(q[2]);
   }
-  return nm->mkNode(kind::FORALL, qchildren);
+  return nm->mkNode(Kind::FORALL, qchildren);
 }
 
 Node EmbeddingConverter::convertToEmbedding(Node n)
@@ -311,7 +314,7 @@ Node EmbeddingConverter::convertToEmbedding(Node n)
       // get the potential operator
       if (cur.getNumChildren() > 0)
       {
-        if (cur.getKind() == kind::APPLY_UF)
+        if (cur.getKind() == Kind::APPLY_UF)
         {
           op = cur.getOperator();
         }
@@ -352,7 +355,7 @@ Node EmbeddingConverter::convertToEmbedding(Node n)
         if (!cur.getType().isFunction())
         {
           // will make into an application of an evaluation function
-          ret = nm->mkNode(DT_SYGUS_EVAL, children);
+          ret = nm->mkNode(Kind::DT_SYGUS_EVAL, children);
         }
         else
         {
@@ -371,11 +374,12 @@ Node EmbeddingConverter::convertToEmbedding(Node n)
           {
             vs.push_back(nm->mkBoundVar(v.getType()));
           }
-          Node lvl = nm->mkNode(BOUND_VAR_LIST, vs);
+          Node lvl = nm->mkNode(Kind::BOUND_VAR_LIST, vs);
           std::vector<Node> eargs;
           eargs.push_back(ef);
           eargs.insert(eargs.end(), vs.begin(), vs.end());
-          ret = nm->mkNode(LAMBDA, lvl, nm->mkNode(DT_SYGUS_EVAL, eargs));
+          ret = nm->mkNode(
+              Kind::LAMBDA, lvl, nm->mkNode(Kind::DT_SYGUS_EVAL, eargs));
         }
       }
       else if (childChanged)

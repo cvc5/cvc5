@@ -41,6 +41,10 @@ PreprocessingPassResult StaticRewrite::applyInternal(
     {
       // replace based on the trust node
       assertions->replaceTrusted(i, trn);
+      if (assertions->isInConflict())
+      {
+        return PreprocessingPassResult::CONFLICT;
+      }
     }
   }
   return PreprocessingPassResult::NO_CONFLICT;
@@ -53,6 +57,8 @@ TrustNode StaticRewrite::rewriteAssertion(TNode n)
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node> rewrittenTo;
   std::unordered_map<TNode, Node>::iterator it;
+  // to ensure all nodes are ref counted
+  std::unordered_set<Node> keep;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -103,6 +109,7 @@ TrustNode StaticRewrite::rewriteAssertion(TNode n)
       if (childChanged)
       {
         ret = nm->mkNode(cur.getKind(), children);
+        keep.insert(ret);
       }
       bool wasRewritten = false;
       // For example, (= x y) ---> (and (>= x y) (<= x y))
@@ -114,6 +121,7 @@ TrustNode StaticRewrite::rewriteAssertion(TNode n)
             << "Rewrite " << ret << " to " << trn.getNode() << std::endl;
         wasRewritten = true;
         Node retr = trn.getNode();
+        keep.insert(retr);
         rewrittenTo[cur] = retr;
         rewrittenTo[ret] = retr;
         visit.push_back(retr);

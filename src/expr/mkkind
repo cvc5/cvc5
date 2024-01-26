@@ -291,7 +291,7 @@ function register_cardinality {
   header=$3
 
   type_cardinalities="${type_cardinalities}
-  case $id: return $cardinality_computer;
+  case Kind::$id: return $cardinality_computer;
 "
   if [ -n "$header" ]; then
     type_properties_includes="${type_properties_includes}
@@ -321,15 +321,15 @@ function register_wellfoundedness {
   fi
 
   type_wellfoundednesses="${type_wellfoundednesses}
-  case $id: return $wellfoundedness_computer;
+  case Kind::$id: return $wellfoundedness_computer;
 "
   if [ -n "$groundterm_computer" ]; then
     type_groundterms="${type_groundterms}
-  case $id: return $groundterm_computer;
+  case Kind::$id: return $groundterm_computer;
 "
   else
     type_groundterms="${type_groundterms}
-  case $id: Unhandled() << typeNode;
+  case Kind::$id: Unhandled() << typeNode;
 "
   fi
   if [ -n "$header" ]; then
@@ -347,9 +347,9 @@ function register_kind {
 
   kind_decls="${kind_decls}  $r, /**< $comment ($register_kind_counter) */
 "
-  kind_printers="${kind_printers}  case $r: return \"$r\";
+  kind_printers="${kind_printers}  case Kind::$r: return \"$r\";
 "
-  kind_to_theory_id="${kind_to_theory_id}  case kind::$r: return $theory_id;
+  kind_to_theory_id="${kind_to_theory_id}  case Kind::$r: return $theory_id;
 "
 }
 

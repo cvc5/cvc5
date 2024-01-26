@@ -32,9 +32,9 @@ JustifyCache::JustifyCache(context::Context* c,
 
 prop::SatValue JustifyCache::lookupValue(TNode n)
 {
-  bool pol = n.getKind() != NOT;
+  bool pol = n.getKind() != Kind::NOT;
   TNode atom = pol ? n : n[0];
-  Assert(atom.getKind() != NOT);
+  Assert(atom.getKind() != Kind::NOT);
   // check if we have already determined the value
   // notice that d_justified may contain nodes that are not assigned SAT values,
   // since this class infers when the value of nodes can be determined.

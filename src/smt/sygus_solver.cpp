@@ -20,17 +20,18 @@
 #include "base/modal_exception.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/option_exception.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
+#include "smt/logic_exception.h"
 #include "smt/preprocessor.h"
 #include "smt/smt_driver.h"
 #include "smt/smt_solver.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
@@ -74,7 +75,7 @@ void SygusSolver::declareSynthFun(Node fn,
   d_sygusFunSymbols.push_back(fn);
   if (!vars.empty())
   {
-    Node bvl = nm->mkNode(BOUND_VAR_LIST, vars);
+    Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, vars);
     // use an attribute to mark its bound variable list
     quantifiers::SygusUtils::setSygusArgumentList(fn, bvl);
   }
@@ -85,7 +86,7 @@ void SygusSolver::declareSynthFun(Node fn,
     // use an attribute to mark its grammar
     quantifiers::SygusUtils::setSygusType(fn, sygusType);
     // we must expand definitions for sygus operators in the block
-    expandDefinitionsSygusDt(sygusType);
+    expandDefinitionsSygusDt(fn, sygusType);
   }
 
   // sygus conjecture is now stale
@@ -94,6 +95,25 @@ void SygusSolver::declareSynthFun(Node fn,
 
 void SygusSolver::assertSygusConstraint(Node n, bool isAssume)
 {
+  if (n.getKind() == Kind::AND)
+  {
+    // miniscope, to account for forall handling below as child of AND
+    for (const Node& nc : n)
+    {
+      assertSygusConstraint(nc, isAssume);
+    }
+    return;
+  }
+  else if (n.getKind() == Kind::FORALL)
+  {
+    // forall as constraint is equivalent to introducing its variables and
+    // using a quantifier-free constraint.
+    for (const Node& v : n[0])
+    {
+      declareSygusVar(v);
+    }
+    n = n[1];
+  }
   Trace("smt") << "SygusSolver::assertSygusConstrant: " << n
                << ", isAssume=" << isAssume << "\n";
   if (isAssume)
@@ -167,23 +187,23 @@ void SygusSolver::assertSygusInvConstraint(Node inv,
     {
       children.insert(children.end(), vars.begin(), vars.end());
     }
-    terms[i] = nm->mkNode(APPLY_UF, children);
+    terms[i] = nm->mkNode(Kind::APPLY_UF, children);
     // make application of Inv on primed variables
     if (i == 0)
     {
       children.clear();
       children.push_back(op);
       children.insert(children.end(), primed_vars.begin(), primed_vars.end());
-      terms.push_back(nm->mkNode(APPLY_UF, children));
+      terms.push_back(nm->mkNode(Kind::APPLY_UF, children));
     }
   }
   // make constraints
   std::vector<Node> conj;
-  conj.push_back(nm->mkNode(IMPLIES, terms[1], terms[0]));
-  Node term0_and_2 = nm->mkNode(AND, terms[0], terms[2]);
-  conj.push_back(nm->mkNode(IMPLIES, term0_and_2, terms[4]));
-  conj.push_back(nm->mkNode(IMPLIES, terms[0], terms[3]));
-  Node constraint = nm->mkNode(AND, conj);
+  conj.push_back(nm->mkNode(Kind::IMPLIES, terms[1], terms[0]));
+  Node term0_and_2 = nm->mkNode(Kind::AND, terms[0], terms[2]);
+  conj.push_back(nm->mkNode(Kind::IMPLIES, term0_and_2, terms[4]));
+  conj.push_back(nm->mkNode(Kind::IMPLIES, terms[0], terms[3]));
+  Node constraint = nm->mkNode(Kind::AND, conj);
 
   d_sygusConstraints.push_back(constraint);
 
@@ -218,14 +238,15 @@ SynthResult SygusSolver::checkSynth(bool isNext)
     if (!d_sygusConstraints.empty() && !d_sygusAssumps.empty())
     {
       Node bodyAssump = nm->mkAnd(listToVector(d_sygusAssumps));
-      body = nm->mkNode(IMPLIES, bodyAssump, body);
+      body = nm->mkNode(Kind::IMPLIES, bodyAssump, body);
     }
     body = body.notNode();
     Trace("smt") << "...constructed sygus constraint " << body << std::endl;
     if (!d_sygusVars.empty())
     {
-      Node boundVars = nm->mkNode(BOUND_VAR_LIST, listToVector(d_sygusVars));
-      body = nm->mkNode(EXISTS, boundVars, body);
+      Node boundVars =
+          nm->mkNode(Kind::BOUND_VAR_LIST, listToVector(d_sygusVars));
+      body = nm->mkNode(Kind::EXISTS, boundVars, body);
       Trace("smt") << "...constructed exists " << body << std::endl;
     }
     if (!d_sygusFunSymbols.empty())
@@ -390,14 +411,16 @@ void SygusSolver::checkSynthSolution(Assertions& as,
   conjs.insert(d_conj);
   // For each of the above conjectures, the functions-to-synthesis and their
   // solutions. This is used as a substitution below.
-  std::vector<Node> fvars;
-  std::vector<Node> fsols;
+  Subs fsubs;
+  Subs psubs;
+  std::vector<Node> eqs;
   for (const std::pair<const Node, Node>& pair : sol_map)
   {
     Trace("check-synth-sol")
         << "  " << pair.first << " --> " << pair.second << "\n";
-    fvars.push_back(pair.first);
-    fsols.push_back(pair.second);
+    fsubs.add(pair.first, pair.second);
+    psubs.add(pair.first);
+    eqs.push_back(pair.first.eqNode(pair.second));
   }
 
   Trace("check-synth-sol") << "Starting new SMT Engine\n";
@@ -405,6 +428,7 @@ void SygusSolver::checkSynthSolution(Assertions& as,
   Trace("check-synth-sol") << "Retrieving assertions\n";
   // Build conjecture from original assertions
   // check all conjectures
+  NodeManager* nm = NodeManager::currentNM();
   for (const Node& conj : conjs)
   {
     // Start new SMT engine to check solutions
@@ -412,14 +436,24 @@ void SygusSolver::checkSynthSolution(Assertions& as,
     initializeSygusSubsolver(solChecker, as);
     solChecker->getOptions().writeSmt().checkSynthSol = false;
     solChecker->getOptions().writeQuantifiers().sygusRecFun = false;
-    Assert(conj.getKind() == FORALL);
+    Assert(conj.getKind() == Kind::FORALL);
     Node conjBody = conj[1];
     // we must apply substitutions here, since define-fun may contain the
     // function-to-synthesize, which needs to be substituted.
     conjBody = d_smtSolver.getPreprocessor()->applySubstitutions(conjBody);
     // Apply solution map to conjecture body
-    conjBody = conjBody.substitute(
-        fvars.begin(), fvars.end(), fsols.begin(), fsols.end());
+    conjBody = rewrite(fsubs.apply(conjBody));
+    // if fwd-decls, the above may contain functions-to-synthesize as free
+    // variables. In this case, we add (higher-order) equalities and replace
+    // functions-to-synthesize with skolems.
+    if (expr::hasFreeVar(conjBody))
+    {
+      std::vector<Node> conjAndSol;
+      conjAndSol.push_back(conjBody);
+      conjAndSol.insert(conjAndSol.end(), eqs.begin(), eqs.end());
+      conjBody = nm->mkAnd(conjAndSol);
+      conjBody = rewrite(psubs.apply(conjBody));
+    }
 
     if (isVerboseOn(1))
     {
@@ -478,12 +512,12 @@ void SygusSolver::initializeSygusSubsolver(std::unique_ptr<SolverEngine>& se,
   for (const Node& def : alistDefs)
   {
     // only consider define-fun, represented as (= f (lambda ...)).
-    if (def.getKind() == EQUAL)
+    if (def.getKind() == Kind::EQUAL)
     {
       Assert(def[0].isVar());
       std::vector<Node> formals;
       Node dbody = def[1];
-      if (def[1].getKind() == LAMBDA)
+      if (def[1].getKind() == Kind::LAMBDA)
       {
         formals.insert(formals.end(), def[1][0].begin(), def[1][0].end());
         dbody = dbody[1];
@@ -512,7 +546,7 @@ bool SygusSolver::usingSygusSubsolver() const
   return options().base.incrementalSolving;
 }
 
-void SygusSolver::expandDefinitionsSygusDt(TypeNode tn) const
+void SygusSolver::expandDefinitionsSygusDt(const Node& fn, TypeNode tn) const
 {
   std::unordered_set<TypeNode> processed;
   std::vector<TypeNode> toProcess;
@@ -524,11 +558,28 @@ void SygusSolver::expandDefinitionsSygusDt(TypeNode tn) const
     index++;
     Assert(tnp.isDatatype());
     Assert(tnp.getDType().isSygus());
+    const DType& dt = tnp.getDType();
     const std::vector<std::shared_ptr<DTypeConstructor>>& cons =
-        tnp.getDType().getConstructors();
+        dt.getConstructors();
+    std::unordered_set<TNode> scope;
+    // we allow other functions
+    scope.insert(d_sygusFunSymbols.begin(), d_sygusFunSymbols.end());
+    Node dtl = dt.getSygusVarList();
+    if (!dtl.isNull())
+    {
+      scope.insert(dtl.begin(), dtl.end());
+    }
     for (const std::shared_ptr<DTypeConstructor>& c : cons)
     {
       Node op = c->getSygusOp();
+      // check for free variables here
+      if (expr::hasFreeVariablesScope(op, scope))
+      {
+        std::stringstream ss;
+        ss << "ERROR: cannot process term " << op
+           << " with free variables in grammar of " << fn;
+        throw LogicException(ss.str());
+      }
       // Only expand definitions if the operator is not constant, since
       // calling expandDefinitions on them should be a no-op. This check
       // ensures we don't try to expand e.g. bitvector extract operators,

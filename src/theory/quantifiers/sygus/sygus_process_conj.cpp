@@ -535,7 +535,7 @@ Node SynthConjectureProcess::preSimplify(Node q)
 Node SynthConjectureProcess::postSimplify(Node q)
 {
   Trace("sygus-process") << "Post-simplify conjecture : " << q << std::endl;
-  Assert(q.getKind() == FORALL);
+  Assert(q.getKind() == Kind::FORALL);
 
   if (options().quantifiers.sygusArgRelevant)
   {
@@ -554,7 +554,7 @@ Node SynthConjectureProcess::postSimplify(Node q)
     // get the base on the conjecture
     Node base = q[1];
     std::unordered_set<Node> synth_fv;
-    if (base.getKind() == NOT && base[0].getKind() == FORALL)
+    if (base.getKind() == Kind::NOT && base[0].getKind() == Kind::FORALL)
     {
       for (unsigned j = 0, size = base[0][0].getNumChildren(); j < size; j++)
       {
@@ -563,7 +563,7 @@ Node SynthConjectureProcess::postSimplify(Node q)
       base = base[0][1];
     }
     std::vector<Node> conjuncts;
-    getComponentVector(AND, base, conjuncts);
+    getComponentVector(Kind::AND, base, conjuncts);
 
     // process the conjunctions
     for (std::map<Node, SynthConjectureProcessFun>::iterator it =
@@ -713,7 +713,7 @@ Node SynthConjectureProcess::SynthConjectureProcess::flatten(
         ret = NodeManager::currentNM()->mkNode(cur.getKind(), children);
       }
       // is it the function to synthesize?
-      if (cur.getKind() == APPLY_UF && cur.getOperator() == f)
+      if (cur.getKind() == Kind::APPLY_UF && cur.getOperator() == f)
       {
         // if so, flatten
         Node k = NodeManager::currentNM()->mkBoundVar("vf", cur.getType());

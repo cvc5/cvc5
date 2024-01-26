@@ -74,8 +74,8 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn, bool printConclusion)
       traversing.pop_back();
       std::vector<Node> children;
       // add proof rule
-      PfRule r = cur->getRule();
-      children.push_back(getOrMkPfRuleVariable(r));
+      ProofRule r = cur->getRule();
+      children.push_back(getOrMkProofRuleVariable(r));
       if (printConclusion)
       {
         children.push_back(d_conclusionMarker);
@@ -104,10 +104,10 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn, bool printConclusion)
           Node av = getArgument(args[i], f);
           argsPrint.push_back(av);
         }
-        Node argsC = nm->mkNode(SEXPR, argsPrint);
+        Node argsC = nm->mkNode(Kind::SEXPR, argsPrint);
         children.push_back(argsC);
       }
-      d_pnMap[cur] = nm->mkNode(SEXPR, children);
+      d_pnMap[cur] = nm->mkNode(Kind::SEXPR, children);
     }
   } while (!visit.empty());
   Assert(d_pnMap.find(pn) != d_pnMap.end());
@@ -115,9 +115,9 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn, bool printConclusion)
   return d_pnMap[pn];
 }
 
-Node ProofNodeToSExpr::getOrMkPfRuleVariable(PfRule r)
+Node ProofNodeToSExpr::getOrMkProofRuleVariable(ProofRule r)
 {
-  std::map<PfRule, Node>::iterator it = d_pfrMap.find(r);
+  std::map<ProofRule, Node>::iterator it = d_pfrMap.find(r);
   if (it != d_pfrMap.end())
   {
     return it->second;
@@ -194,6 +194,27 @@ Node ProofNodeToSExpr::getOrMkMethodIdVariable(TNode n)
   d_midMap[mid] = var;
   return var;
 }
+Node ProofNodeToSExpr::getOrMkTrustIdVariable(TNode n)
+{
+  TrustId tid;
+  if (!getTrustId(n, tid))
+  {
+    // just use self if we failed to get the node, throw a debug failure
+    Assert(false) << "Expected trust id node, got " << n;
+    return n;
+  }
+  std::map<TrustId, Node>::iterator it = d_tridMap.find(tid);
+  if (it != d_tridMap.end())
+  {
+    return it->second;
+  }
+  std::stringstream ss;
+  ss << tid;
+  NodeManager* nm = NodeManager::currentNM();
+  Node var = nm->mkBoundVar(ss.str(), nm->sExprType());
+  d_tridMap[tid] = var;
+  return var;
+}
 Node ProofNodeToSExpr::getOrMkInferenceIdVariable(TNode n)
 {
   theory::InferenceId iid;
@@ -218,14 +239,14 @@ Node ProofNodeToSExpr::getOrMkInferenceIdVariable(TNode n)
 
 Node ProofNodeToSExpr::getOrMkDslRewriteVariable(TNode n)
 {
-  rewriter::DslPfRule rid;
-  if (!rewriter::getDslPfRule(n, rid))
+  rewriter::DslProofRule rid;
+  if (!rewriter::getDslProofRule(n, rid))
   {
     // just use self if we failed to get the node, throw a debug failure
     Assert(false) << "Expected inference id node, got " << n;
     return n;
   }
-  std::map<rewriter::DslPfRule, Node>::iterator it = d_dslrMap.find(rid);
+  std::map<rewriter::DslProofRule, Node>::iterator it = d_dslrMap.find(rid);
   if (it != d_dslrMap.end())
   {
     return it->second;
@@ -260,6 +281,7 @@ Node ProofNodeToSExpr::getArgument(Node arg, ArgFormat f)
     case ArgFormat::KIND: return getOrMkKindVariable(arg);
     case ArgFormat::THEORY_ID: return getOrMkTheoryIdVariable(arg);
     case ArgFormat::METHOD_ID: return getOrMkMethodIdVariable(arg);
+    case ArgFormat::TRUST_ID: return getOrMkTrustIdVariable(arg);
     case ArgFormat::INFERENCE_ID: return getOrMkInferenceIdVariable(arg);
     case ArgFormat::DSL_REWRITE_ID: return getOrMkDslRewriteVariable(arg);
     case ArgFormat::NODE_VAR: return getOrMkNodeVariable(arg);
@@ -270,10 +292,10 @@ Node ProofNodeToSExpr::getArgument(Node arg, ArgFormat f)
 ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
     const ProofNode* pn, size_t i)
 {
-  PfRule r = pn->getRule();
+  ProofRule r = pn->getRule();
   switch (r)
   {
-    case PfRule::CONG:
+    case ProofRule::CONG:
     {
       if (i == 0)
       {
@@ -282,57 +304,73 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
       const std::vector<Node>& args = pn->getArguments();
       Assert(i < args.size());
       if (args[i].getNumChildren() == 0
-          && NodeManager::operatorToKind(args[i]) != UNDEFINED_KIND)
+          && NodeManager::operatorToKind(args[i]) != Kind::UNDEFINED_KIND)
       {
         return ArgFormat::NODE_VAR;
       }
     }
     break;
-    case PfRule::SUBS:
-    case PfRule::REWRITE:
-    case PfRule::MACRO_SR_EQ_INTRO:
-    case PfRule::MACRO_SR_PRED_INTRO:
-    case PfRule::MACRO_SR_PRED_TRANSFORM:
+    case ProofRule::SUBS:
+    case ProofRule::MACRO_REWRITE:
+    case ProofRule::MACRO_SR_EQ_INTRO:
+    case ProofRule::MACRO_SR_PRED_INTRO:
+    case ProofRule::MACRO_SR_PRED_TRANSFORM:
       if (i > 0)
       {
         return ArgFormat::METHOD_ID;
       }
       break;
-    case PfRule::MACRO_SR_PRED_ELIM: return ArgFormat::METHOD_ID; break;
-    case PfRule::THEORY_LEMMA:
-    case PfRule::THEORY_REWRITE:
+    case ProofRule::MACRO_SR_PRED_ELIM: return ArgFormat::METHOD_ID; break;
+    case ProofRule::TRUST_THEORY_REWRITE:
       if (i == 1)
       {
         return ArgFormat::THEORY_ID;
       }
-      else if (r == PfRule::THEORY_REWRITE && i == 2)
+      else if (i == 2)
       {
         return ArgFormat::METHOD_ID;
       }
       break;
-    case PfRule::DSL_REWRITE:
+    case ProofRule::DSL_REWRITE:
       if (i == 0)
       {
         return ArgFormat::DSL_REWRITE_ID;
       }
       break;
-    case PfRule::INSTANTIATE:
+    case ProofRule::INSTANTIATE:
     {
       Assert(!pn->getChildren().empty());
       Node q = pn->getChildren()[0]->getResult();
-      Assert(q.getKind() == kind::FORALL);
+      Assert(q.getKind() == Kind::FORALL);
       if (i == q[0].getNumChildren())
       {
         return ArgFormat::INFERENCE_ID;
       }
     }
     break;
-    case PfRule::ANNOTATION:
+    case ProofRule::ANNOTATION:
       if (i == 0)
       {
         return ArgFormat::INFERENCE_ID;
       }
       break;
+    case ProofRule::TRUST:
+    {
+      if (i == 0)
+      {
+        return ArgFormat::TRUST_ID;
+      }
+      else if (i == 2)
+      {
+        TrustId tid;
+        getTrustId(pn->getArguments()[0], tid);
+        if (tid == TrustId::THEORY_LEMMA || tid == TrustId::THEORY_INFERENCE)
+        {
+          return ArgFormat::THEORY_ID;
+        }
+      }
+    }
+    break;
     default: break;
   }
   return ArgFormat::DEFAULT;

@@ -72,7 +72,17 @@ Node TheoryArraysRewriter::normalizeConstant(TNode node)
   {
     return node;
   }
-  Node ret = normalizeConstant(node, node[1].getType().getCardinality());
+  Node ret;
+  TypeNode tn = node[1].getType();
+  CardinalityClass tcc = tn.getCardinalityClass();
+  if (tcc == CardinalityClass::FINITE || tcc == CardinalityClass::ONE)
+  {
+    ret = normalizeConstant(node, tn.getCardinality());
+  }
+  else
+  {
+    ret = normalizeConstant(node, Cardinality::INTEGERS);
+  }
   Assert(ret.isConst()) << "Non-constant after normalization: " << ret;
   return ret;
 }
@@ -95,7 +105,7 @@ Node TheoryArraysRewriter::normalizeConstant(TNode node, Cardinality indexCard)
   TNode replacedValue;
   uint32_t depth = 1;
   uint32_t valCount = 1;
-  while (store.getKind() == kind::STORE)
+  while (store.getKind() == Kind::STORE)
   {
     if (index == store[1])
     {
@@ -119,7 +129,7 @@ Node TheoryArraysRewriter::normalizeConstant(TNode node, Cardinality indexCard)
   Node n = store;
 
   // Get the default value at the bottom of the nested stores
-  while (store.getKind() == kind::STORE)
+  while (store.getKind() == Kind::STORE)
   {
     if (value == store[2])
     {
@@ -128,7 +138,7 @@ Node TheoryArraysRewriter::normalizeConstant(TNode node, Cardinality indexCard)
     depth += 1;
     store = store[0];
   }
-  Assert(store.getKind() == kind::STORE_ALL);
+  Assert(store.getKind() == Kind::STORE_ALL);
   ArrayStoreAll storeAll = store.getConst<ArrayStoreAll>();
   Node defaultValue = storeAll.getValue();
   NodeManager* nm = NodeManager::currentNM();
@@ -147,13 +157,13 @@ Node TheoryArraysRewriter::normalizeConstant(TNode node, Cardinality indexCard)
   }
   else
   {
-    n = nm->mkNode(kind::STORE, n, index, value);
+    n = nm->mkNode(Kind::STORE, n, index, value);
   }
 
   // Build the rest of the store after inserting/deleting
   while (!indices.empty())
   {
-    n = nm->mkNode(kind::STORE, n, indices.back(), elements.back());
+    n = nm->mkNode(Kind::STORE, n, indices.back(), elements.back());
     indices.pop_back();
     elements.pop_back();
   }
@@ -176,7 +186,7 @@ Node TheoryArraysRewriter::normalizeConstant(TNode node, Cardinality indexCard)
   TNode mostFrequentValue;
   uint32_t mostFrequentValueCount = 0;
   store = node[0];
-  if (store.getKind() == kind::STORE)
+  if (store.getKind() == Kind::STORE)
   {
     mostFrequentValue = getMostFrequentValue(store);
     mostFrequentValueCount = getMostFrequentValueCount(store);
@@ -210,7 +220,7 @@ Node TheoryArraysRewriter::normalizeConstant(TNode node, Cardinality indexCard)
   uint32_t count;
   uint32_t max = 0;
   TNode maxValue;
-  while (store.getKind() == kind::STORE)
+  while (store.getKind() == Kind::STORE)
   {
     indices.push_back(store[1]);
     indexSet.insert(store[1]);
@@ -279,14 +289,14 @@ Node TheoryArraysRewriter::normalizeConstant(TNode node, Cardinality indexCard)
   {
     if (itNew != it_end && (indices.empty() || (*itNew) < indices.back()))
     {
-      n = nm->mkNode(kind::STORE, n, (*itNew), defaultValue);
+      n = nm->mkNode(Kind::STORE, n, (*itNew), defaultValue);
       ++itNew;
     }
     else if (itNew == it_end || indices.back() < (*itNew))
     {
       if (elements.back() != maxValue)
       {
-        n = nm->mkNode(kind::STORE, n, indices.back(), elements.back());
+        n = nm->mkNode(Kind::STORE, n, indices.back(), elements.back());
       }
       indices.pop_back();
       elements.pop_back();
@@ -297,7 +307,7 @@ Node TheoryArraysRewriter::normalizeConstant(TNode node, Cardinality indexCard)
 
 Node TheoryArraysRewriter::expandEqRange(TNode node)
 {
-  Assert(node.getKind() == kind::EQ_RANGE);
+  Assert(node.getKind() == Kind::EQ_RANGE);
 
   NodeManager* nm = NodeManager::currentNM();
   TNode a = node[0];
@@ -305,22 +315,22 @@ Node TheoryArraysRewriter::expandEqRange(TNode node)
   TNode i = node[2];
   TNode j = node[3];
   Node k = SkolemCache::getEqRangeVar(node);
-  Node bvl = nm->mkNode(kind::BOUND_VAR_LIST, k);
+  Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, k);
   TypeNode type = k.getType();
 
   Kind kle;
   Node range;
   if (type.isBitVector())
   {
-    kle = kind::BITVECTOR_ULE;
+    kle = Kind::BITVECTOR_ULE;
   }
   else if (type.isFloatingPoint())
   {
-    kle = kind::FLOATINGPOINT_LEQ;
+    kle = Kind::FLOATINGPOINT_LEQ;
   }
   else if (type.isRealOrInt())
   {
-    kle = kind::LEQ;
+    kle = Kind::LEQ;
   }
   else
   {
@@ -328,13 +338,13 @@ Node TheoryArraysRewriter::expandEqRange(TNode node)
                     << node.getKind();
   }
 
-  range = nm->mkNode(kind::AND, nm->mkNode(kle, i, k), nm->mkNode(kle, k, j));
+  range = nm->mkNode(Kind::AND, nm->mkNode(kle, i, k), nm->mkNode(kle, k, j));
 
-  Node eq = nm->mkNode(kind::EQUAL,
-                       nm->mkNode(kind::SELECT, a, k),
-                       nm->mkNode(kind::SELECT, b, k));
-  Node implies = nm->mkNode(kind::IMPLIES, range, eq);
-  return nm->mkNode(kind::FORALL, bvl, implies);
+  Node eq = nm->mkNode(Kind::EQUAL,
+                       nm->mkNode(Kind::SELECT, a, k),
+                       nm->mkNode(Kind::SELECT, b, k));
+  Node implies = nm->mkNode(Kind::IMPLIES, range, eq);
+  return nm->mkNode(Kind::FORALL, bvl, implies);
 }
 
 RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
@@ -343,13 +353,13 @@ RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
       << "Arrays::postRewrite start " << node << std::endl;
   switch (node.getKind())
   {
-    case kind::SELECT:
+    case Kind::SELECT:
     {
       TNode store = node[0];
       TNode index = node[1];
       Node n;
       bool val;
-      while (store.getKind() == kind::STORE)
+      while (store.getKind() == Kind::STORE)
       {
         if (index == store[1])
         {
@@ -362,7 +372,7 @@ RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
         else
         {
           n = d_rewriter->rewrite(mkEqNode(store[1], index));
-          if (n.getKind() != kind::CONST_BOOLEAN)
+          if (n.getKind() != Kind::CONST_BOOLEAN)
           {
             break;
           }
@@ -378,7 +388,7 @@ RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
         // select(store(a,i,v),j) = select(a,j) if i /= j
         store = store[0];
       }
-      if (store.getKind() == kind::STORE_ALL)
+      if (store.getKind() == Kind::STORE_ALL)
       {
         // select(store_all(v),i) = v
         ArrayStoreAll storeAll = store.getConst<ArrayStoreAll>();
@@ -390,19 +400,19 @@ RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
       }
       else if (store != node[0])
       {
-        n = NodeManager::currentNM()->mkNode(kind::SELECT, store, index);
+        n = NodeManager::currentNM()->mkNode(Kind::SELECT, store, index);
         Trace("arrays-postrewrite")
             << "Arrays::postRewrite returning " << n << std::endl;
         return RewriteResponse(REWRITE_DONE, n);
       }
       break;
     }
-    case kind::STORE:
+    case Kind::STORE:
     {
       TNode store = node[0];
       TNode value = node[2];
       // store(a,i,select(a,i)) = a
-      if (value.getKind() == kind::SELECT && value[0] == store
+      if (value.getKind() == Kind::SELECT && value[0] == store
           && value[1] == node[1])
       {
         Trace("arrays-postrewrite")
@@ -419,7 +429,7 @@ RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
             << "Arrays::postRewrite returning " << n << std::endl;
         return RewriteResponse(REWRITE_DONE, n);
       }
-      if (store.getKind() == kind::STORE)
+      if (store.getKind() == Kind::STORE)
       {
         // store(store(a,i,v),j,w)
         bool val;
@@ -434,7 +444,7 @@ RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
         else
         {
           Node eqRewritten = d_rewriter->rewrite(mkEqNode(store[1], index));
-          if (eqRewritten.getKind() != kind::CONST_BOOLEAN)
+          if (eqRewritten.getKind() != Kind::CONST_BOOLEAN)
           {
             Trace("arrays-postrewrite")
                 << "Arrays::postRewrite returning " << node << std::endl;
@@ -446,7 +456,7 @@ RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
         if (val)
         {
           // store(store(a,i,v),i,w) = store(a,i,w)
-          Node result = nm->mkNode(kind::STORE, store[0], index, value);
+          Node result = nm->mkNode(Kind::STORE, store[0], index, value);
           Trace("arrays-postrewrite")
               << "Arrays::postRewrite returning " << result << std::endl;
           return RewriteResponse(REWRITE_AGAIN, result);
@@ -461,7 +471,7 @@ RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
           elements.push_back(store[2]);
           store = store[0];
           Node n;
-          while (store.getKind() == kind::STORE)
+          while (store.getKind() == Kind::STORE)
           {
             if (index == store[1])
             {
@@ -474,7 +484,7 @@ RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
             else
             {
               n = d_rewriter->rewrite(mkEqNode(store[1], index));
-              if (n.getKind() != kind::CONST_BOOLEAN)
+              if (n.getKind() != Kind::CONST_BOOLEAN)
               {
                 break;
               }
@@ -493,18 +503,18 @@ RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
             elements.push_back(store[2]);
             store = store[0];
           }
-          if (value.getKind() == kind::SELECT && value[0] == store
+          if (value.getKind() == Kind::SELECT && value[0] == store
               && value[1] == index)
           {
             n = store;
           }
           else
           {
-            n = nm->mkNode(kind::STORE, store, index, value);
+            n = nm->mkNode(Kind::STORE, store, index, value);
           }
           while (!indices.empty())
           {
-            n = nm->mkNode(kind::STORE, n, indices.back(), elements.back());
+            n = nm->mkNode(Kind::STORE, n, indices.back(), elements.back());
             indices.pop_back();
             elements.pop_back();
           }
@@ -516,7 +526,7 @@ RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
       }
       break;
     }
-    case kind::EQUAL:
+    case Kind::EQUAL:
     {
       if (node[0] == node[1])
       {
@@ -555,13 +565,13 @@ RewriteResponse TheoryArraysRewriter::preRewrite(TNode node)
       << "Arrays::preRewrite start " << node << std::endl;
   switch (node.getKind())
   {
-    case kind::SELECT:
+    case Kind::SELECT:
     {
       TNode store = node[0];
       TNode index = node[1];
       Node n;
       bool val;
-      while (store.getKind() == kind::STORE)
+      while (store.getKind() == Kind::STORE)
       {
         if (index == store[1])
         {
@@ -574,7 +584,7 @@ RewriteResponse TheoryArraysRewriter::preRewrite(TNode node)
         else
         {
           n = d_rewriter->rewrite(mkEqNode(store[1], index));
-          if (n.getKind() != kind::CONST_BOOLEAN)
+          if (n.getKind() != Kind::CONST_BOOLEAN)
           {
             break;
           }
@@ -590,7 +600,7 @@ RewriteResponse TheoryArraysRewriter::preRewrite(TNode node)
         // select(store(a,i,v),j) = select(a,j) if i /= j
         store = store[0];
       }
-      if (store.getKind() == kind::STORE_ALL)
+      if (store.getKind() == Kind::STORE_ALL)
       {
         // select(store_all(v),i) = v
         ArrayStoreAll storeAll = store.getConst<ArrayStoreAll>();
@@ -602,26 +612,26 @@ RewriteResponse TheoryArraysRewriter::preRewrite(TNode node)
       }
       else if (store != node[0])
       {
-        n = NodeManager::currentNM()->mkNode(kind::SELECT, store, index);
+        n = NodeManager::currentNM()->mkNode(Kind::SELECT, store, index);
         Trace("arrays-prerewrite")
             << "Arrays::preRewrite returning " << n << std::endl;
         return RewriteResponse(REWRITE_DONE, n);
       }
       break;
     }
-    case kind::STORE:
+    case Kind::STORE:
     {
       TNode store = node[0];
       TNode value = node[2];
       // store(a,i,select(a,i)) = a
-      if (value.getKind() == kind::SELECT && value[0] == store
+      if (value.getKind() == Kind::SELECT && value[0] == store
           && value[1] == node[1])
       {
         Trace("arrays-prerewrite")
             << "Arrays::preRewrite returning " << store << std::endl;
         return RewriteResponse(REWRITE_AGAIN, store);
       }
-      if (store.getKind() == kind::STORE)
+      if (store.getKind() == Kind::STORE)
       {
         // store(store(a,i,v),j,w)
         TNode index = node[1];
@@ -637,7 +647,7 @@ RewriteResponse TheoryArraysRewriter::preRewrite(TNode node)
         else
         {
           Node eqRewritten = d_rewriter->rewrite(mkEqNode(store[1], index));
-          if (eqRewritten.getKind() != kind::CONST_BOOLEAN)
+          if (eqRewritten.getKind() != Kind::CONST_BOOLEAN)
           {
             break;
           }
@@ -647,7 +657,7 @@ RewriteResponse TheoryArraysRewriter::preRewrite(TNode node)
         if (val)
         {
           // store(store(a,i,v),i,w) = store(a,i,w)
-          Node newNode = nm->mkNode(kind::STORE, store[0], index, value);
+          Node newNode = nm->mkNode(Kind::STORE, store[0], index, value);
           Trace("arrays-prerewrite")
               << "Arrays::preRewrite returning " << newNode << std::endl;
           // We may have more than two nested stores to the same index or the
@@ -658,7 +668,7 @@ RewriteResponse TheoryArraysRewriter::preRewrite(TNode node)
       }
       break;
     }
-    case kind::EQUAL:
+    case Kind::EQUAL:
     {
       if (node[0] == node[1])
       {
@@ -681,13 +691,13 @@ TrustNode TheoryArraysRewriter::expandDefinition(Node node)
 {
   Kind kind = node.getKind();
 
-  if (kind == kind::EQ_RANGE)
+  if (kind == Kind::EQ_RANGE)
   {
     Node expandedEqRange = expandEqRange(node);
     if (d_epg)
     {
       TrustNode tn = d_epg->mkTrustNode(node.eqNode(expandedEqRange),
-                                        PfRule::ARRAYS_EQ_RANGE_EXPAND,
+                                        ProofRule::ARRAYS_EQ_RANGE_EXPAND,
                                         {},
                                         {node});
       return TrustNode::mkTrustRewrite(node, expandedEqRange, d_epg.get());

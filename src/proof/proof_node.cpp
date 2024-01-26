@@ -20,7 +20,7 @@
 
 namespace cvc5::internal {
 
-ProofNode::ProofNode(PfRule id,
+ProofNode::ProofNode(ProofRule id,
                      const std::vector<std::shared_ptr<ProofNode>>& children,
                      const std::vector<Node>& args)
     : d_provenChecked(false)
@@ -28,7 +28,7 @@ ProofNode::ProofNode(PfRule id,
   setValue(id, children, args);
 }
 
-PfRule ProofNode::getRule() const { return d_rule; }
+ProofRule ProofNode::getRule() const { return d_rule; }
 
 const std::vector<std::shared_ptr<ProofNode>>& ProofNode::getChildren() const
 {
@@ -47,7 +47,7 @@ bool ProofNode::isClosed()
 }
 
 void ProofNode::setValue(
-    PfRule id,
+    ProofRule id,
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args)
 {

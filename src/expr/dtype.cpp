@@ -99,10 +99,10 @@ const DType& DType::datatypeOf(Node item)
   TypeNode t = item.getType();
   switch (t.getKind())
   {
-    case CONSTRUCTOR_TYPE: return t[t.getNumChildren() - 1].getDType();
-    case SELECTOR_TYPE:
-    case TESTER_TYPE:
-    case UPDATER_TYPE: return t[0].getDType();
+    case Kind::CONSTRUCTOR_TYPE: return t[t.getNumChildren() - 1].getDType();
+    case Kind::SELECTOR_TYPE:
+    case Kind::TESTER_TYPE:
+    case Kind::UPDATER_TYPE: return t[0].getDType();
     default:
       Unhandled() << "arg must be a datatype constructor, selector, or tester";
   }
@@ -119,7 +119,7 @@ size_t DType::indexOf(Node item)
 
 size_t DType::indexOfInternal(Node item)
 {
-  if (item.getKind() == APPLY_TYPE_ASCRIPTION)
+  if (item.getKind() == Kind::APPLY_TYPE_ASCRIPTION)
   {
     return indexOf(item[0]);
   }
@@ -135,7 +135,7 @@ size_t DType::cindexOf(Node item)
 }
 size_t DType::cindexOfInternal(Node item)
 {
-  if (item.getKind() == APPLY_TYPE_ASCRIPTION)
+  if (item.getKind() == Kind::APPLY_TYPE_ASCRIPTION)
   {
     return cindexOf(item[0]);
   }
@@ -917,7 +917,7 @@ Node DType::getSharedSelector(TypeNode dtt, TypeNode t, size_t index) const
   SkolemManager* sm = nm->getSkolemManager();
   TypeNode stype = nm->mkSelectorType(dtt, t);
   Node nindex = nm->mkConstInt(Rational(index));
-  s = sm->mkSkolemFunction(SkolemFunId::SHARED_SELECTOR, stype, nindex);
+  s = sm->mkSkolemFunctionTyped(SkolemFunId::SHARED_SELECTOR, stype, nindex);
   d_sharedSel[dtt][t][index] = s;
   Trace("dt-shared-sel") << "Made " << s << " of type " << dtt << " -> " << t
                          << std::endl;

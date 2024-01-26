@@ -19,8 +19,10 @@
 #include "expr/node_manager.h"
 #include "options/smt_options.h"
 #include "proof/lazy_proof.h"
+#include "smt/logic_exception.h"
 #include "smt/preprocess_proof_generator.h"
 #include "theory/builtin/proof_checker.h"
+#include "util/rational.h"
 
 namespace cvc5::internal {
 namespace preprocessing {
@@ -28,22 +30,93 @@ namespace preprocessing {
 AssertionPipeline::AssertionPipeline(Env& env)
     : EnvObj(env),
       d_storeSubstsInAsserts(false),
-      d_substsIndex(0),
-      d_pppg(nullptr)
+      d_pppg(nullptr),
+      d_conflict(false),
+      d_isRefutationUnsound(false),
+      d_isModelUnsound(false),
+      d_isNegated(false)
 {
+  d_false = NodeManager::currentNM()->mkConst(false);
 }
 
 void AssertionPipeline::clear()
 {
+  d_conflict = false;
+  d_isRefutationUnsound = false;
+  d_isModelUnsound = false;
+  d_isNegated = false;
   d_nodes.clear();
   d_iteSkolemMap.clear();
+  d_substsIndices.clear();
 }
 
 void AssertionPipeline::push_back(Node n,
                                   bool isInput,
                                   ProofGenerator* pgen)
 {
-  d_nodes.push_back(n);
+  if (d_conflict)
+  {
+    // if we are already in conflict, we skip. This is required to handle the
+    // case where "false" was already seen as an input assertion.
+    return;
+  }
+  if (n == d_false)
+  {
+    markConflict();
+  }
+  else if (n.getKind() == Kind::AND)
+  {
+    // Immediately miniscope top-level AND, which is important for minimizing
+    // dependencies in proofs. We add each conjunct seperately, justifying
+    // each with an AND_ELIM step.
+    std::vector<Node> conjs;
+    if (isProofEnabled())
+    {
+      if (!isInput)
+      {
+        d_andElimEpg->addLazyStep(n, pgen, TrustId::PREPROCESS_LEMMA);
+      }
+    }
+    std::vector<Node> toProcess;
+    toProcess.emplace_back(n);
+    do
+    {
+      Node nc = toProcess.back();
+      toProcess.pop_back();
+      if (nc.getKind() == Kind::AND)
+      {
+        if (isProofEnabled())
+        {
+          NodeManager* nm = NodeManager::currentNM();
+          for (size_t j = 0, nchild = nc.getNumChildren(); j < nchild; j++)
+          {
+            size_t jj = (nchild-1)-j;
+            Node in = nm->mkConstInt(Rational(jj));
+            d_andElimEpg->addStep(nc[jj], ProofRule::AND_ELIM, {nc}, {in});
+            toProcess.emplace_back(nc[jj]);
+          }
+        }
+        else
+        {
+          toProcess.insert(toProcess.end(), nc.rbegin(), nc.rend());
+        }
+      }
+      else
+      {
+        conjs.emplace_back(nc);
+      }
+    } while (!toProcess.empty());
+    // add each conjunct
+    for (const Node& nc : conjs)
+    {
+      push_back(nc, false, d_andElimEpg.get());
+    }
+    return;
+  }
+  else
+  {
+    d_nodes.push_back(n);
+  }
   Trace("assert-pipeline") << "Assertions: ...new assertion " << n
                            << ", isInput=" << isInput << std::endl;
   if (isProofEnabled())
@@ -71,6 +144,7 @@ void AssertionPipeline::pushBackTrusted(TrustNode trn)
 
 void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
 {
+  Assert(i < d_nodes.size());
   if (n == d_nodes[i])
   {
     // no change, skip
@@ -82,11 +156,19 @@ void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
   {
     d_pppg->notifyPreprocessed(d_nodes[i], n, pgen);
   }
-  d_nodes[i] = n;
+  if (n == d_false)
+  {
+    markConflict();
+  }
+  else
+  {
+    d_nodes[i] = n;
+  }
 }
 
 void AssertionPipeline::replaceTrusted(size_t i, TrustNode trn)
 {
+  Assert(i < d_nodes.size());
   if (trn.isNull())
   {
     // null trust node denotes no change, nothing to do
@@ -100,6 +182,11 @@ void AssertionPipeline::replaceTrusted(size_t i, TrustNode trn)
 void AssertionPipeline::enableProofs(smt::PreprocessProofGenerator* pppg)
 {
   d_pppg = pppg;
+  if (d_andElimEpg == nullptr)
+  {
+    d_andElimEpg.reset(
+        new LazyCDProof(d_env, nullptr, userContext(), "AssertionsAndElim"));
+  }
 }
 
 bool AssertionPipeline::isProofEnabled() const { return d_pppg != nullptr; }
@@ -107,7 +194,6 @@ bool AssertionPipeline::isProofEnabled() const { return d_pppg != nullptr; }
 void AssertionPipeline::enableStoreSubstsInAsserts()
 {
   d_storeSubstsInAsserts = true;
-  d_substsIndex = d_nodes.size();
   d_nodes.push_back(NodeManager::currentNM()->mkConst<bool>(true));
 }
 
@@ -119,68 +205,48 @@ void AssertionPipeline::disableStoreSubstsInAsserts()
 void AssertionPipeline::addSubstitutionNode(Node n, ProofGenerator* pg)
 {
   Assert(d_storeSubstsInAsserts);
-  Assert(n.getKind() == kind::EQUAL);
-  conjoin(d_substsIndex, n, pg);
+  Assert(n.getKind() == Kind::EQUAL);
+  size_t prevNodeSize = d_nodes.size();
+  push_back(n, false, pg);
+  // remember this is a substitution index
+  for (size_t i = prevNodeSize, newSize = d_nodes.size(); i < newSize; i++)
+  {
+    d_substsIndices.insert(i);
+  }
 }
 
-void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
+bool AssertionPipeline::isSubstsIndex(size_t i) const
 {
-  NodeManager* nm = NodeManager::currentNM();
-  Node newConj = nm->mkNode(kind::AND, d_nodes[i], n);
-  Node newConjr = rewrite(newConj);
-  Trace("assert-pipeline") << "Assertions: conjoin " << n << " to "
-                           << d_nodes[i] << std::endl;
-  Trace("assert-pipeline-debug") << "conjoin " << n << " to " << d_nodes[i]
-                                 << ", got " << newConjr << std::endl;
-  if (newConjr == d_nodes[i])
+  return d_storeSubstsInAsserts
+         && d_substsIndices.find(i) != d_substsIndices.end();
+}
+
+void AssertionPipeline::markConflict()
+{
+  d_conflict = true;
+  d_nodes.clear();
+  d_iteSkolemMap.clear();
+  d_nodes.push_back(d_false);
+}
+
+void AssertionPipeline::markRefutationUnsound()
+{
+  d_isRefutationUnsound = true;
+}
+
+void AssertionPipeline::markModelUnsound() { d_isModelUnsound = true; }
+
+void AssertionPipeline::markNegated()
+{
+  if (d_isRefutationUnsound || d_isModelUnsound)
   {
-    // trivial, skip
-    return;
+    // disallow unintuitive uses of global negation.
+    std::stringstream ss;
+    ss << "Cannot negate the preprocessed assertions when already marked as "
+          "refutation or model unsound.";
+    throw LogicException(ss.str());
   }
-  if (isProofEnabled())
-  {
-    if (newConjr == n)
-    {
-      // don't care about the previous proof and can simply plug in the
-      // proof from pg if the resulting assertion is the same as n.
-      d_pppg->notifyNewAssert(newConjr, pg);
-    }
-    else
-    {
-      // ---------- from pppg   --------- from pg
-      // d_nodes[i]                n
-      // -------------------------------- AND_INTRO
-      //      d_nodes[i] ^ n
-      // -------------------------------- MACRO_SR_PRED_TRANSFORM
-      //   rewrite( d_nodes[i] ^ n )
-      // allocate a fresh proof which will act as the proof generator
-      LazyCDProof* lcp = d_pppg->allocateHelperProof();
-      lcp->addLazyStep(n, pg, PfRule::PREPROCESS);
-      if (d_nodes[i].isConst() && d_nodes[i].getConst<bool>())
-      {
-        // skip the AND_INTRO if the previous d_nodes[i] was true
-        newConj = n;
-      }
-      else
-      {
-        lcp->addLazyStep(d_nodes[i], d_pppg);
-        lcp->addStep(newConj, PfRule::AND_INTRO, {d_nodes[i], n}, {});
-      }
-      if (!CDProof::isSame(newConjr, newConj))
-      {
-        lcp->addStep(
-            newConjr, PfRule::MACRO_SR_PRED_TRANSFORM, {newConj}, {newConjr});
-      }
-      // Notice we have constructed a proof of a new assertion, where d_pppg
-      // is referenced in the lazy proof above. If alternatively we had
-      // constructed a proof of d_nodes[i] = rewrite( d_nodes[i] ^ n ), we would
-      // have used notifyPreprocessed. However, it is simpler to make the
-      // above proof.
-      d_pppg->notifyNewAssert(newConjr, lcp);
-    }
-  }
-  d_nodes[i] = newConjr;
-  Assert(rewrite(newConjr) == newConjr);
+  d_isNegated = true;
 }
 
 }  // namespace preprocessing

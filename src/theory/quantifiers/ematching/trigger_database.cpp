@@ -180,6 +180,7 @@ bool TriggerDatabase::mkTriggerTerms(Node q,
       // remove from trigger nodes
       trNodes.erase(trNodes.begin() + i, trNodes.begin() + i + 1);
       i--;
+      tsize--;
     }
   }
   return true;

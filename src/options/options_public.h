@@ -62,9 +62,18 @@ void set(Options& opts,
  */
 struct CVC5_EXPORT OptionInfo
 {
+  enum class Category
+  {
+    COMMON,
+    EXPERT,
+    REGULAR,
+    UNDOCUMENTED
+  };
+
   std::string name;
   std::vector<std::string> aliases;
   bool setByUser;
+  Category category;
 
   /** No information about the options value */
   struct VoidInfo

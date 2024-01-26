@@ -34,8 +34,6 @@ enum class Language
 
   /** The SMTLIB v2.6 language, with support for the strings standard */
   LANG_SMTLIB_V2_6 = 0,
-  /** The TPTP language */
-  LANG_TPTP,
   /** The SyGuS language version 2.0 */
   LANG_SYGUS_V2,
 

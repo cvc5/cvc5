@@ -20,8 +20,9 @@
 
 #include <vector>
 
+#include "cvc5/cvc5_proof_rule.h"
 #include "expr/node.h"
-#include "proof/proof_rule.h"
+#include "proof/trust_id.h"
 
 namespace cvc5::internal {
 
@@ -80,10 +81,31 @@ class ProofNodeManager
    * conclusion is unknown.
    */
   std::shared_ptr<ProofNode> mkNode(
-      PfRule id,
+      ProofRule id,
       const std::vector<std::shared_ptr<ProofNode>>& children,
       const std::vector<Node>& args,
       Node expected = Node::null());
+  /**
+   * This constructs a ProofNode with rule ProofRule::TRUST with the given
+   * children and arguments.
+   *
+   * @param id The id of the proof node.
+   * @param children The children of the proof node.
+   * @param args The arguments of the proof node, which are optional additional
+   * arguments of ProofRule::TRUST beyond id and conc.
+   * @param conc The conclusion of the proof node.
+   * @param expected The conclusion of the proof node.
+   * @return the proof node, or nullptr if the given arguments do not
+   * consistute a proof of the expected conclusion according to the underlying
+   * checker, if both are provided. It also returns nullptr if neither the
+   * checker nor the expected field is provided, since in this case the
+   * conclusion is unknown.
+   */
+  std::shared_ptr<ProofNode> mkTrustedNode(
+      TrustId id,
+      const std::vector<std::shared_ptr<ProofNode>>& children,
+      const std::vector<Node>& args,
+      const Node& conc);
   /**
    * Make the proof node corresponding to the assumption of fact.
    *
@@ -161,7 +183,7 @@ class ProofNodeManager
    * checker.
    */
   bool updateNode(ProofNode* pn,
-                  PfRule id,
+                  ProofRule id,
                   const std::vector<std::shared_ptr<ProofNode>>& children,
                   const std::vector<Node>& args);
   /**
@@ -204,7 +226,7 @@ class ProofNodeManager
    * The flag didCheck is set to true if the underlying proof checker was
    * invoked. This may be false if e.g. the proof checking mode is lazy.
    */
-  Node checkInternal(PfRule id,
+  Node checkInternal(ProofRule id,
                      const std::vector<std::shared_ptr<ProofNode>>& children,
                      const std::vector<Node>& args,
                      Node expected,
@@ -217,7 +239,7 @@ class ProofNodeManager
    */
   bool updateNodeInternal(
       ProofNode* pn,
-      PfRule id,
+      ProofRule id,
       const std::vector<std::shared_ptr<ProofNode>>& children,
       const std::vector<Node>& args,
       bool needsCheck);

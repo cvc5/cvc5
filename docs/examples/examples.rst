@@ -26,5 +26,6 @@ input mechanisms.
     strings
     combination
     sygus-fun
-    sygus-grammar
     sygus-inv
+    parser
+    parser_sym_manager

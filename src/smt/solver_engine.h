@@ -44,6 +44,7 @@ class NodeTemplate;
 typedef NodeTemplate<true> Node;
 typedef NodeTemplate<false> TNode;
 class TypeNode;
+class ProofNode;
 
 class Env;
 class UnsatCore;
@@ -67,6 +68,7 @@ class SygusSolver;
 class AbductionSolver;
 class InterpolationSolver;
 class QuantElimSolver;
+class FindSynthSolver;
 
 struct SolverEngineStatistics;
 class PfManager;
@@ -152,15 +154,12 @@ class CVC5_EXPORT SolverEngine
 
   /**
    * Set the logic of the script.
-   * @throw ModalException, LogicException
-   */
-  void setLogic(const char* logic);
-
-  /**
-   * Set the logic of the script.
    * @throw ModalException
    */
   void setLogic(const LogicInfo& logic);
+
+  /** Has the logic been set by a call to setLogic? */
+  bool isLogicSet() const;
 
   /** Get the logic information currently set. */
   const LogicInfo& getLogicInfo() const;
@@ -181,9 +180,15 @@ class CVC5_EXPORT SolverEngine
 
   /**
    * Set an aspect of the current SMT execution environment.
+   * @param key The option to set
+   * @param value The value to set
+   * @param fromUser Whether this option was set by the user. This impacts
+   * whether we enable checks e.g. when --safe-options is enabled.
    * @throw OptionException, ModalException
    */
-  void setOption(const std::string& key, const std::string& value);
+  void setOption(const std::string& key,
+                 const std::string& value,
+                 bool fromUser = false);
 
   /** Set is internal subsolver.
    *
@@ -254,6 +259,15 @@ class CVC5_EXPORT SolverEngine
    */
   std::string getOption(const std::string& key) const;
 
+  /**
+   * Notify that a declare-fun or declare-const was made for n. This only
+   * impacts the SMT mode.
+   */
+  void declareConst(const Node& n);
+  /**
+   * Notify that a declare-sort was made for tn. This only impacts the SMT mode.
+   */
+  void declareSort(const TypeNode& tn);
   /**
    * Define function func in the current context to be:
    *   (lambda (formals) formula)
@@ -328,18 +342,12 @@ class CVC5_EXPORT SolverEngine
   /**
    * Get a timeout core, which computes a subset of the current assertions that
    * cause a timeout. Note it does not require being proceeded by a call to
-   * checkSat.
+   * checkSat. For details, see Solver::getTimeoutCore.
    *
-   * @return The result of the timeout core computation. This is a pair
-   * containing a result and a list of formulas. If the result is unknown
-   * and the reason is timeout, then the list of formulas correspond to a
-   * subset of the current assertions that cause a timeout in the specified
-   * time. If the result is unsat, then the list of formulas correspond to an
-   * unsat core for the current assertions. Otherwise, the result is sat,
-   * indicating that the current assertions are satisfiable, and
-   * the list of formulas is empty.
+   * @return The result of the timeout core computation.
    */
-  std::pair<Result, std::vector<Node>> getTimeoutCore();
+  std::pair<Result, std::vector<Node>> getTimeoutCore(
+      const std::vector<Node>& assumptions);
   /**
    * Returns a set of so-called "failed" assumptions.
    *
@@ -441,6 +449,14 @@ class CVC5_EXPORT SolverEngine
    * @throw Exception
    */
   SynthResult checkSynth(bool isNext = false);
+  /**
+   * Find synth for the given target and grammar.
+   */
+  Node findSynth(modes::FindSynthTarget fst, const TypeNode& gtn);
+  /**
+   * Find synth for the given target and grammar.
+   */
+  Node findSynthNext();
 
   /*------------------------- end of sygus commands ------------------------*/
 
@@ -522,13 +538,6 @@ class CVC5_EXPORT SolverEngine
    * (list, num, etc.) is determined by printInstMode.
    */
   void printInstantiations(std::ostream& out);
-  /**
-   * Print the current proof. This method should be called after an UNSAT
-   * response. It gets the proof of false from the PropEngine and passes
-   * it to the ProofManager, which post-processes the proof and prints it
-   * in the proper format.
-   */
-  void printProof();
 
   /**
    * Get synth solution.
@@ -692,12 +701,20 @@ class CVC5_EXPORT SolverEngine
    */
   UnsatCore getUnsatCore();
 
+  /** Get the lemmas used to derive UNSAT. Only permitted if cvc5 was built with
+   * unsat cores support and produce-unsat-core-lemmas is on. */
+  std::vector<Node> getUnsatCoreLemmas();
+
   /**
    * Get a refutation proof (only if immediately preceded by an UNSAT query).
    * Only permitted if cvc5 was built with proof support and the proof option
    * is on.
    */
-  std::string getProof(modes::ProofComponent c = modes::PROOF_COMPONENT_FULL);
+  std::vector<std::shared_ptr<ProofNode>> getProof(
+      modes::ProofComponent c = modes::ProofComponent::FULL);
+
+  // TODO: this goes away after proof printing went into ProofNode
+  void proofToString(std::ostream& out, std::shared_ptr<ProofNode> fp);
 
   /**
    * Get the current set of assertions.  Only permitted if the
@@ -894,8 +911,8 @@ class CVC5_EXPORT SolverEngine
   void assertFormulaInternal(const Node& formula);
 
   /**
-   * Check that a generated proof checks. This method is the same as printProof,
-   * but does not print the proof. Like that method, it should be called
+   * Check that a generated proof checks. This method is the same as getProof,
+   * but does not return the proof. Like that method, it should be called
    * after an UNSAT response. It ensures that a well-formed proof of false
    * can be constructed by the combination of the PropEngine and ProofManager.
    */
@@ -909,6 +926,8 @@ class CVC5_EXPORT SolverEngine
   /**
    * Check that a generated Model (via getModel()) actually satisfies
    * all user assertions.
+   * @param hardFailure True have a failed model check should result in an
+   *                    InternalError rather than only issue a warning.
    */
   void checkModel(bool hardFailure = true);
 
@@ -1010,6 +1029,26 @@ class CVC5_EXPORT SolverEngine
   /** Vector version of above. */
   void ensureWellFormedTerms(const std::vector<Node>& ns,
                              const std::string& src) const;
+  /**
+   * Convert preprocessed assertions to the input formulas that imply them. In
+   * detail, this converts a set of preprocessed assertions to a set of input
+   * assertions based on the proof of preprocessing. It is used for unsat cores
+   * and timeout cores.
+   *
+   * @param ppa The preprocessed assertions to convert
+   * @param isInternal Used for debug printing unsat cores, i.e. when isInternal
+   * is false, we print debug information.
+   */
+  std::vector<Node> convertPreprocessedToInput(const std::vector<Node>& ppa,
+                                               bool isInternal);
+
+  /**
+   * Prints a proof node using a proof format of choice.
+   */
+  void printProof(std::ostream& out,
+                  std::shared_ptr<ProofNode> fp,
+                  modes::ProofFormat proofFormat);
+
   /* Members -------------------------------------------------------------- */
 
   /** Solver instance that owns this SolverEngine instance. */
@@ -1057,6 +1096,8 @@ class CVC5_EXPORT SolverEngine
 
   /** The solver for sygus queries */
   std::unique_ptr<smt::SygusSolver> d_sygusSolver;
+  /** The solver for find-synth queries */
+  std::unique_ptr<smt::FindSynthSolver> d_findSynthSolver;
 
   /** The solver for abduction queries */
   std::unique_ptr<smt::AbductionSolver> d_abductSolver;
@@ -1070,6 +1111,8 @@ class CVC5_EXPORT SolverEngine
    * logic, lives in the Env class.
    */
   LogicInfo d_userLogic;
+  /** Has the above logic been initialized? */
+  bool d_userLogicSet;
 
   /** Whether this is an internal subsolver. */
   bool d_isInternalSubsolver;

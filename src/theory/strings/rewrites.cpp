@@ -17,6 +17,8 @@
 
 #include <iostream>
 
+#include "base/check.h"
+
 namespace cvc5::internal {
 namespace theory {
 namespace strings {
@@ -25,6 +27,7 @@ const char* toString(Rewrite r)
 {
   switch (r)
   {
+    case Rewrite::NONE: return "NONE";
     case Rewrite::CTN_COMPONENT: return "CTN_COMPONENT";
     case Rewrite::CTN_CONCAT_CHAR: return "CTN_CONCAT_CHAR";
     case Rewrite::CTN_CONST: return "CTN_CONST";
@@ -233,7 +236,10 @@ const char* toString(Rewrite r)
     case Rewrite::SEQ_NTH_EVAL: return "SEQ_NTH_EVAL";
     case Rewrite::SEQ_NTH_EVAL_OOB: return "SEQ_NTH_EVAL_OOB";
     case Rewrite::SEQ_NTH_EVAL_SYM: return "SEQ_NTH_EVAL_SYM";
-    default: return "?";
+    case Rewrite::UNKNOWN: return "?";
+    default:
+      Assert(false) << "No print for rewrite " << static_cast<size_t>(r);
+      return "?Unhandled";
   }
 }
 

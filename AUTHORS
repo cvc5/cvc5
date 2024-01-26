@@ -48,6 +48,3 @@ Information about authors of previous CVC tools is included with their
 distributions.
 
 cvc5 contains MiniSAT code by Niklas Een and Niklas Sorensson.
-
-The cvc5 parser incorporates some code from ANTLR3, by Jim Idle, Temporal
-Wave LLC.

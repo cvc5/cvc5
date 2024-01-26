@@ -18,6 +18,7 @@
 #include "expr/node_algorithm.h"
 
 #include "expr/attribute.h"
+#include "expr/cardinality_constraint.h"
 #include "expr/dtype.h"
 
 namespace cvc5::internal {
@@ -253,7 +254,7 @@ bool hasBoundVar(TNode n)
   if (!n.getAttribute(HasBoundVarComputedAttr()))
   {
     bool hasBv = false;
-    if (n.getKind() == kind::BOUND_VARIABLE)
+    if (n.getKind() == Kind::BOUND_VARIABLE)
     {
       hasBv = true;
     }
@@ -325,7 +326,7 @@ bool checkVariablesInternal(TNode n,
     if (itv == visited.end())
     {
       visited.insert(cur);
-      if (cur.getKind() == kind::BOUND_VARIABLE)
+      if (cur.getKind() == Kind::BOUND_VARIABLE)
       {
         if (scope.find(cur) == scope.end())
         {
@@ -402,7 +403,7 @@ bool hasFreeVar(TNode n)
   // optimization for variables and constants
   if (n.getNumChildren() == 0)
   {
-    return n.getKind() == kind::BOUND_VARIABLE;
+    return n.getKind() == Kind::BOUND_VARIABLE;
   }
   std::unordered_set<Node> fvs;
   std::unordered_set<TNode> scope;
@@ -414,7 +415,7 @@ bool hasFreeOrShadowedVar(TNode n, bool& wasShadow)
   // optimization for variables and constants
   if (n.getNumChildren() == 0)
   {
-    return n.getKind() == kind::BOUND_VARIABLE;
+    return n.getKind() == Kind::BOUND_VARIABLE;
   }
   std::unordered_set<Node> fvs;
   std::unordered_set<TNode> scope;
@@ -479,6 +480,13 @@ bool hasFreeVariablesScope(TNode n, std::unordered_set<TNode>& scope)
 bool getVariables(TNode n, std::unordered_set<TNode>& vs)
 {
   std::unordered_set<TNode> visited;
+  return getVariables(n, vs, visited);
+}
+
+bool getVariables(TNode n,
+                  std::unordered_set<TNode>& vs,
+                  std::unordered_set<TNode>& visited)
+{
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -524,7 +532,7 @@ void getSymbols(TNode n,
     if (visited.find(cur) == visited.end())
     {
       visited.insert(cur);
-      if (cur.isVar() && cur.getKind() != kind::BOUND_VARIABLE)
+      if (cur.isVar() && cur.getKind() != Kind::BOUND_VARIABLE)
       {
         syms.insert(cur);
       }
@@ -635,6 +643,12 @@ void getTypes(TNode n,
     {
       visited.insert(cur);
       types.insert(cur.getType());
+      // special cases where the type is not part of the AST
+      if (cur.getKind() == Kind::CARDINALITY_CONSTRAINT)
+      {
+        types.insert(
+            cur.getOperator().getConst<CardinalityConstraint>().getType());
+      }
       visit.insert(visit.end(), cur.begin(), cur.end());
     }
   } while (!visit.empty());
@@ -697,7 +711,7 @@ bool match(Node x, Node y, std::unordered_map<Node, Node>& subs)
       }
       // if the two subterms are not equal and the first one is a bound
       // variable...
-      if (curr.first.getKind() == kind::BOUND_VARIABLE)
+      if (curr.first.getKind() == Kind::BOUND_VARIABLE)
       {
         // and we have not seen this variable before...
         subsIt = subs.find(curr.first);
@@ -749,17 +763,17 @@ bool match(Node x, Node y, std::unordered_map<Node, Node>& subs)
 bool isBooleanConnective(TNode cur)
 {
   Kind k = cur.getKind();
-  return k == kind::NOT || k == kind::IMPLIES || k == kind::AND || k == kind::OR
-         || (k == kind::ITE && cur.getType().isBoolean()) || k == kind::XOR
-         || (k == kind::EQUAL && cur[0].getType().isBoolean());
+  return k == Kind::NOT || k == Kind::IMPLIES || k == Kind::AND || k == Kind::OR
+         || (k == Kind::ITE && cur.getType().isBoolean()) || k == Kind::XOR
+         || (k == Kind::EQUAL && cur[0].getType().isBoolean());
 }
 
 bool isTheoryAtom(TNode n)
 {
   Kind k = n.getKind();
-  Assert(k != kind::NOT);
-  return k != kind::AND && k != kind::OR && k != kind::IMPLIES && k != kind::ITE
-         && k != kind::XOR && (k != kind::EQUAL || !n[0].getType().isBoolean());
+  Assert(k != Kind::NOT);
+  return k != Kind::AND && k != Kind::OR && k != Kind::IMPLIES && k != Kind::ITE
+         && k != Kind::XOR && (k != Kind::EQUAL || !n[0].getType().isBoolean());
 }
 
 struct HasAbstractSubtermTag

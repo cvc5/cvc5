@@ -101,7 +101,8 @@ class DTypeConstructor
   /** set sygus
    *
    * Set that this constructor is a sygus datatype constructor that encodes
-   * operator op.
+   * operator op. If op is a skolem with id SYGUS_ANY_CONSTANT, then this
+   * is treated as the "any constant" constructor.
    */
   void setSygus(Node op);
   /** get sygus op
@@ -117,6 +118,8 @@ class DTypeConstructor
    * of the form (lambda (x) x).
    */
   bool isSygusIdFunc() const;
+  /** is this the "any constant" constructor? */
+  bool isSygusAnyConstant() const;
   /** get weight
    *
    * Get the weight of this constructor. This value is used when computing the

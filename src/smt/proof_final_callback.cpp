@@ -35,7 +35,7 @@ namespace smt {
 
 ProofFinalCallback::ProofFinalCallback(Env& env)
     : EnvObj(env),
-      d_ruleCount(statisticsRegistry().registerHistogram<PfRule>(
+      d_ruleCount(statisticsRegistry().registerHistogram<ProofRule>(
           "finalProof::ruleCount")),
       d_instRuleIds(statisticsRegistry().registerHistogram<theory::InferenceId>(
           "finalProof::instRuleId")),
@@ -43,8 +43,10 @@ ProofFinalCallback::ProofFinalCallback(Env& env)
           statisticsRegistry().registerHistogram<theory::InferenceId>(
               "finalProof::annotationRuleId")),
       d_dslRuleCount(
-          statisticsRegistry().registerHistogram<rewriter::DslPfRule>(
+          statisticsRegistry().registerHistogram<rewriter::DslProofRule>(
               "finalProof::dslRuleCount")),
+      d_trustIds(statisticsRegistry().registerHistogram<TrustId>(
+          "finalProof::trustCount")),
       d_totalRuleCount(
           statisticsRegistry().registerInt("finalProof::totalRuleCount")),
       d_minPedanticLevel(
@@ -67,7 +69,7 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                       const std::vector<Node>& fa,
                                       bool& continueUpdate)
 {
-  PfRule r = pn->getRule();
+  ProofRule r = pn->getRule();
   ProofNodeManager* pnm = d_env.getProofNodeManager();
   Assert(pnm != nullptr);
   // if not doing eager pedantic checking, fail if below threshold
@@ -76,7 +78,7 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
     if (!d_pedanticFailure)
     {
       Assert(d_pedanticFailureOut.str().empty());
-      if (pnm->getChecker()->isPedanticFailure(r, d_pedanticFailureOut))
+      if (pnm->getChecker()->isPedanticFailure(r, &d_pedanticFailureOut))
       {
         d_pedanticFailure = true;
       }
@@ -95,17 +97,17 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   d_ruleCount << r;
   ++d_totalRuleCount;
   // if a DSL rewrite, take DSL stat
-  if (r == PfRule::DSL_REWRITE)
+  if (r == ProofRule::DSL_REWRITE)
   {
     const std::vector<Node>& args = pn->getArguments();
-    rewriter::DslPfRule di;
-    if (rewriter::getDslPfRule(args[0], di))
+    rewriter::DslProofRule di;
+    if (rewriter::getDslProofRule(args[0], di))
     {
       d_dslRuleCount << di;
     }
   }
   // take stats on the instantiations in the proof
-  else if (r == PfRule::INSTANTIATE)
+  else if (r == ProofRule::INSTANTIATE)
   {
     Node q = pn->getChildren()[0]->getResult();
     const std::vector<Node>& args = pn->getArguments();
@@ -118,7 +120,7 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       }
     }
   }
-  else if (r == PfRule::ANNOTATION)
+  else if (r == ProofRule::ANNOTATION)
   {
     // we currently assume the annotation is a single inference id
     const std::vector<Node>& args = pn->getArguments();
@@ -137,11 +139,22 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       }
     }
   }
+  else if (r == ProofRule::TRUST)
+  {
+    TrustId id;
+    Trace("final-pf-hole") << "hole TRUST";
+    if (getTrustId(pn->getArguments()[0], id))
+    {
+      d_trustIds << id;
+      Trace("final-pf-hole") << " " << id;
+    }
+    Trace("final-pf-hole") << ": " << pn->getResult() << std::endl;
+  }
   // print for debugging
   if (TraceIsOn("final-pf-hole"))
   {
     // currently only track theory rewrites
-    if (r == PfRule::THEORY_REWRITE)
+    if (r == ProofRule::TRUST_THEORY_REWRITE)
     {
       const std::vector<Node>& args = pn->getArguments();
       Node eq = args[0];
@@ -150,7 +163,7 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       Trace("final-pf-hole") << "hole " << r << " " << tid << " : " << eq[0]
                              << " ---> " << eq[1] << std::endl;
     }
-    else if (r == PfRule::REWRITE)
+    else if (r == ProofRule::MACRO_REWRITE)
     {
       const std::vector<Node>& args = pn->getArguments();
       Node eq = args[0];
@@ -176,7 +189,7 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
         premises.push_back(pncc->getResult());
       }
       NodeManager* nm = NodeManager::currentNM();
-      Node query = nm->mkNode(IMPLIES, nm->mkAnd(premises), conc);
+      Node query = nm->mkNode(Kind::IMPLIES, nm->mkAnd(premises), conc);
       if (isOutputOn(OutputTag::TRUSTED_PROOF_STEPS))
       {
         output(OutputTag::TRUSTED_PROOF_STEPS)

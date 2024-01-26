@@ -43,12 +43,14 @@ HoExtension::HoExtension(Env& env,
       d_uf_std_skolem(userContext())
 {
   d_true = NodeManager::currentNM()->mkConst(true);
+  // don't send true lemma
+  d_cachedLemmas.insert(d_true);
 }
 
 TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
 {
   Kind k = node.getKind();
-  if (k == HO_APPLY)
+  if (k == Kind::HO_APPLY)
   {
     // convert HO_APPLY to APPLY_UF if fully applied
     if (node[0].getType().getNumChildren() == 2)
@@ -66,10 +68,10 @@ TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
     {
       Node op = node[0];
       Node opl = d_ll.getLambdaFor(op);
-      if (!opl.isNull())
+      if (!opl.isNull() && !d_ll.isLifted(opl))
       {
         NodeManager* nm = NodeManager::currentNM();
-        Node app = nm->mkNode(HO_APPLY, opl, node[1]);
+        Node app = nm->mkNode(Kind::HO_APPLY, opl, node[1]);
         app = rewrite(app);
         Trace("uf-lazy-ll")
             << "Partial beta reduce: " << node << " -> " << app << std::endl;
@@ -77,7 +79,7 @@ TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
       }
     }
   }
-  else if (k == APPLY_UF)
+  else if (k == Kind::APPLY_UF)
   {
     // Say (lambda ((x Int)) t[x]) occurs in the input. We replace this
     // by k during ppRewrite. In the following, if we see (k s), we replace
@@ -90,9 +92,9 @@ TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
       // immediately
       Node op = node.getOperator();
       Node opl = d_ll.getLambdaFor(op);
-      if (!opl.isNull())
+      if (!opl.isNull() && !d_ll.isLifted(opl))
       {
-        Assert(opl.getKind() == LAMBDA);
+        Assert(opl.getKind() == Kind::LAMBDA);
         std::vector<Node> args(node.begin(), node.end());
         Node app = d_ll.betaReduce(opl, args);
         Trace("uf-lazy-ll")
@@ -101,7 +103,7 @@ TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
       }
     }
   }
-  else if (k == kind::LAMBDA || k == kind::FUNCTION_ARRAY_CONST)
+  else if (k == Kind::LAMBDA || k == Kind::FUNCTION_ARRAY_CONST)
   {
     Trace("uf-lazy-ll") << "Preprocess lambda: " << node << std::endl;
     TrustNode skTrn = d_ll.ppRewrite(node, lems);
@@ -113,7 +115,7 @@ TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
 
 Node HoExtension::getExtensionalityDeq(TNode deq, bool isCached)
 {
-  Assert(deq.getKind() == NOT && deq[0].getKind() == EQUAL);
+  Assert(deq.getKind() == Kind::NOT && deq[0].getKind() == Kind::EQUAL);
   Assert(deq[0][0].getType().isFunction());
   if (isCached)
   {
@@ -139,7 +141,7 @@ Node HoExtension::getExtensionalityDeq(TNode deq, bool isCached)
   {
     std::vector<Node> children;
     Node curr = deq[0][i];
-    while (curr.getKind() == HO_APPLY)
+    while (curr.getKind() == Kind::HO_APPLY)
     {
       children.push_back(curr[1]);
       curr = curr[0];
@@ -147,7 +149,7 @@ Node HoExtension::getExtensionalityDeq(TNode deq, bool isCached)
     children.push_back(curr);
     std::reverse(children.begin(), children.end());
     children.insert(children.end(), skolems.begin(), skolems.end());
-    t[i] = nm->mkNode(APPLY_UF, children);
+    t[i] = nm->mkNode(Kind::APPLY_UF, children);
   }
   Node conc = t[0].eqNode(t[1]).negate();
   if (isCached)
@@ -159,14 +161,14 @@ Node HoExtension::getExtensionalityDeq(TNode deq, bool isCached)
 
 unsigned HoExtension::applyExtensionality(TNode deq)
 {
-  Assert(deq.getKind() == NOT && deq[0].getKind() == EQUAL);
+  Assert(deq.getKind() == Kind::NOT && deq[0].getKind() == Kind::EQUAL);
   Assert(deq[0][0].getType().isFunction());
   // apply extensionality
   if (d_extensionality.find(deq) == d_extensionality.end())
   {
     d_extensionality.insert(deq);
     Node conc = getExtensionalityDeq(deq);
-    Node lem = NodeManager::currentNM()->mkNode(OR, deq[0], conc);
+    Node lem = NodeManager::currentNM()->mkNode(Kind::OR, deq[0], conc);
     Trace("uf-ho-lemma") << "uf-ho-lemma : extensionality : " << lem
                          << std::endl;
     d_im.lemma(lem, InferenceId::UF_HO_EXTENSIONALITY);
@@ -213,13 +215,13 @@ Node HoExtension::getApplyUfForHoApply(Node node)
         new_f = sm->mkDummySkolem("app_uf", nft);
         for (const Node& v : vs)
         {
-          new_f = nm->mkNode(HO_APPLY, new_f, v);
+          new_f = nm->mkNode(Kind::HO_APPLY, new_f, v);
         }
         Assert(new_f.getType() == f.getType());
         Node eq = new_f.eqNode(f);
         Node seq = eq.substitute(vs.begin(), vs.end(), nvs.begin(), nvs.end());
         lem = nm->mkNode(
-            FORALL, nm->mkNode(BOUND_VAR_LIST, nvs), seq);
+            Kind::FORALL, nm->mkNode(Kind::BOUND_VAR_LIST, nvs), seq);
       }
       else
       {
@@ -239,7 +241,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
     }
     // unroll the HO_APPLY, adding to the first argument position
     // Note arguments in the vector args begin at position 1.
-    while (new_f.getKind() == HO_APPLY)
+    while (new_f.getKind() == Kind::HO_APPLY)
     {
       args.insert(args.begin() + 1, new_f[1]);
       new_f = new_f[0];
@@ -247,7 +249,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
   }
   Assert(TheoryUfRewriter::canUseAsApplyUfOperator(new_f));
   args[0] = new_f;
-  Node ret = nm->mkNode(APPLY_UF, args);
+  Node ret = nm->mkNode(Kind::APPLY_UF, args);
   Assert(ret.getType() == node.getType());
   return ret;
 }
@@ -276,7 +278,9 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
       hasFunctions = true;
       // if during collect model, must have an infinite type
       // if not during collect model, must have a finite type
-      if (d_env.isFiniteType(tn) != isCollectModel)
+      // we consider the cardinality of tn's range type (as opposed to tn)
+      // since the model construction will enumerate values of this type.
+      if (d_env.isFiniteType(tn.getRangeType()) != isCollectModel)
       {
         func_eqcs[tn].push_back(eqc);
         Trace("uf-ho-debug")
@@ -321,7 +325,8 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
             // It is important that we construct new (unconstrained) variables
             // k here, so that we do not generate any inconsistencies.
             Node edeq = getExtensionalityDeq(deq, false);
-            Assert(edeq.getKind() == NOT && edeq[0].getKind() == EQUAL);
+            Assert(edeq.getKind() == Kind::NOT
+                   && edeq[0].getKind() == Kind::EQUAL);
             // introducing terms, must add required constraints, e.g. to
             // force equalities between APPLY_UF and HO_APPLY terms
             for (unsigned r = 0; r < 2; r++)
@@ -336,7 +341,7 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
             if (!m->assertEquality(edeq[0][0], edeq[0][1], false))
             {
               Node eq = edeq[0][0].eqNode(edeq[0][1]);
-              Node lem = nm->mkNode(OR, deq.negate(), eq);
+              Node lem = nm->mkNode(Kind::OR, deq.negate(), eq);
               Trace("uf-ho") << "HoExtension: cmi extensionality lemma " << lem
                              << std::endl;
               d_im.lemma(lem, InferenceId::UF_HO_MODEL_EXTENSIONALITY);
@@ -357,7 +362,7 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
 
 unsigned HoExtension::applyAppCompletion(TNode n)
 {
-  Assert(n.getKind() == APPLY_UF);
+  Assert(n.getKind() == Kind::APPLY_UF);
 
   eq::EqualityEngine* ee = d_state.getEqualityEngine();
   // must expand into APPLY_HO version if not there already
@@ -370,7 +375,7 @@ unsigned HoExtension::applyAppCompletion(TNode n)
     d_im.assertInternalFact(eq,
                             true,
                             InferenceId::UF_HO_APP_ENCODE,
-                            PfRule::HO_APP_ENCODE,
+                            ProofRule::HO_APP_ENCODE,
                             {},
                             {n});
     return 1;
@@ -397,11 +402,11 @@ unsigned HoExtension::checkAppCompletion()
     while (!eqc_i.isFinished())
     {
       Node n = *eqc_i;
-      if (n.getKind() == APPLY_UF || n.getKind() == HO_APPLY)
+      if (n.getKind() == Kind::APPLY_UF || n.getKind() == Kind::HO_APPLY)
       {
         int curr_sum = 0;
         std::map<TNode, bool> curr_rops;
-        if (n.getKind() == APPLY_UF)
+        if (n.getKind() == Kind::APPLY_UF)
         {
           TNode rop = ee->getRepresentative(n.getOperator());
           if (rlvOp.find(rop) != rlvOp.end())
@@ -431,7 +436,7 @@ unsigned HoExtension::checkAppCompletion()
         }
         else
         {
-          Assert(n.getKind() == HO_APPLY);
+          Assert(n.getKind() == Kind::HO_APPLY);
           TNode rop = ee->getRepresentative(n[0]);
           curr_rops[rop] = true;
         }
@@ -501,7 +506,7 @@ unsigned HoExtension::checkLazyLambda()
       Node n = *eqc_i;
       ++eqc_i;
       Node lam = d_ll.getLambdaFor(n);
-      if (lam.isNull())
+      if (lam.isNull() || d_ll.isLifted(lam))
       {
         if (!lamRep.isNull())
         {
@@ -533,20 +538,20 @@ unsigned HoExtension::checkLazyLambda()
         Trace("uf-ho-debug") << "  found equivalent lambda functions " << f
                              << " and " << g << std::endl;
         Node flam = lamRep < n ? lamRepLam : lam;
-        Assert(!flam.isNull() && flam.getKind() == LAMBDA);
+        Assert(!flam.isNull() && flam.getKind() == Kind::LAMBDA);
         Node lhs = flam[1];
         Node glam = lamRep < n ? lam : lamRepLam;
         Trace("uf-ho-debug")
             << "  lambda are " << flam << " and " << glam << std::endl;
         std::vector<Node> args(flam[0].begin(), flam[0].end());
         Node rhs = d_ll.betaReduce(glam, args);
-        Node univ = nm->mkNode(FORALL, flam[0], lhs.eqNode(rhs));
+        Node univ = nm->mkNode(Kind::FORALL, flam[0], lhs.eqNode(rhs));
         // f = g => forall x. reduce(lambda(f)(x)) = reduce(lambda(g)(x))
         //
         // For example, if f -> lambda z. z+1, g -> lambda y. y+3, this
         // will infer: f = g => forall x. x+1 = x+3, which simplifies to
         // f != g.
-        Node lem = nm->mkNode(IMPLIES, f.eqNode(g), univ);
+        Node lem = nm->mkNode(Kind::IMPLIES, f.eqNode(g), univ);
         if (cacheLemma(lem))
         {
           d_im.lemma(lem, InferenceId::UF_HO_LAMBDA_UNIV_EQ);
@@ -584,12 +589,12 @@ unsigned HoExtension::checkLazyLambda()
       Node op;
       Kind k = n.getKind();
       std::vector<Node> args;
-      if (k == APPLY_UF)
+      if (k == Kind::APPLY_UF)
       {
         op = n.getOperator();
         args.insert(args.end(), n.begin(), n.end());
       }
-      else if (k == HO_APPLY)
+      else if (k == Kind::HO_APPLY)
       {
         op = n[0];
         args.push_back(n[1]);
@@ -609,7 +614,7 @@ unsigned HoExtension::checkLazyLambda()
       Assert(d_lambdaEqc.find(r) != d_lambdaEqc.end());
       Node lf = d_lambdaEqc[r];
       Node lam = d_ll.getLambdaFor(lf);
-      Assert(!lam.isNull() && lam.getKind() == LAMBDA);
+      Assert(!lam.isNull() && lam.getKind() == Kind::LAMBDA);
       // a normal function g equal to a lambda, say f --> lambda(f)
       // need to infer f = g => g(t) = f(t) for all terms g(t)
       // that occur in the equality engine.
@@ -618,7 +623,7 @@ unsigned HoExtension::checkLazyLambda()
       Node rhs = nm->mkNode(n.getKind(), args);
       rhs = rewrite(rhs);
       Node conc = n.eqNode(rhs);
-      Node lem = nm->mkNode(IMPLIES, premise, conc);
+      Node lem = nm->mkNode(Kind::IMPLIES, premise, conc);
       if (cacheLemma(lem))
       {
         d_im.lemma(lem, InferenceId::UF_HO_LAMBDA_APP_REDUCE);
@@ -697,6 +702,7 @@ bool HoExtension::collectModelInfoHo(TheoryModel* m,
     Assert(!lam.isNull());
     m->assertEquality(p.second, lam, true);
     m->assertSkeleton(lam);
+    Trace("model-builder-debug") << "Assign via lambda: " << lam << std::endl;
     // assign it as the function definition for all variables in this class
     m->assignFunctionDefinition(p.second, lam);
   }
@@ -705,7 +711,7 @@ bool HoExtension::collectModelInfoHo(TheoryModel* m,
 
 bool HoExtension::collectModelInfoHoTerm(Node n, TheoryModel* m)
 {
-  if (n.getKind() == APPLY_UF)
+  if (n.getKind() == Kind::APPLY_UF)
   {
     Node hn = TheoryUfRewriter::getHoApplyForApplyUf(n);
     if (!m->assertEquality(n, hn, true))

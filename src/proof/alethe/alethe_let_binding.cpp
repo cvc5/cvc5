@@ -21,7 +21,9 @@ namespace cvc5::internal {
 
 namespace proof {
 
-AletheLetBinding::AletheLetBinding(uint32_t thresh) : LetBinding(thresh) {}
+AletheLetBinding::AletheLetBinding(uint32_t thresh) : LetBinding("let", thresh)
+{
+}
 
 Node AletheLetBinding::convert(Node n, const std::string& prefix)
 {
@@ -108,7 +110,10 @@ Node AletheLetBinding::convert(Node n, const std::string& prefix)
         std::stringstream ss;
         ss << "(! ";
         options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
+        // We print terms non-flattened and with lambda applications in
+        // non-curried manner
         options::ioutils::applyDagThresh(ss, 0);
+        options::ioutils::applyFlattenHOChains(ss, true);
         cur.toStream(ss);
         ss << " :named " << prefix << id << ")";
         Node letVar = nm->mkRawSymbol(ss.str(), cur.getType());
@@ -196,7 +201,10 @@ Node AletheLetBinding::convert(Node n, const std::string& prefix)
         std::stringstream ss, ssVar;
         ss << "(! ";
         options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
+        // We print terms non-flattened and with lambda applications in
+        // non-curried manner
         options::ioutils::applyDagThresh(ss, 0);
+        options::ioutils::applyFlattenHOChains(ss, true);
         ret.toStream(ss);
         ssVar << prefix << id;
         ss << " :named " << ssVar.str() << ")";

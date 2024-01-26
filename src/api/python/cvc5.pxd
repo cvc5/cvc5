@@ -2,21 +2,31 @@
 from cython.operator cimport dereference as deref, preincrement as inc
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
 from libc.stddef cimport wchar_t
-from libcpp.map cimport map as c_map
 from libcpp.set cimport set
 from libcpp.string cimport string
 from libcpp.vector cimport vector
 from libcpp.map cimport map
 from libcpp.pair cimport pair
-from cvc5kinds cimport Kind
-from cvc5sortkinds cimport SortKind
-from cvc5types cimport BlockModelsMode, LearnedLitType, ProofComponent, RoundingMode, UnknownExplanation
+from cvc5kinds cimport Kind, SortKind
+from cvc5types cimport BlockModelsMode, LearnedLitType, ProofComponent, ProofFormat, RoundingMode, UnknownExplanation, FindSynthTarget, InputLanguage
+from cvc5proofrules cimport ProofRule
 
 
 cdef extern from "<iostream>" namespace "std":
     cdef cppclass ostream:
         pass
     ostream cout
+
+    cdef cppclass istream:
+        pass
+
+    cdef cppclass iostream(istream,ostream):
+        pass
+
+cdef extern from "<sstream>" namespace "std":
+    cdef cppclass stringstream(iostream):
+        stringstream() except +
+        string str() except +
 
 
 cdef extern from "<functional>" namespace "std" nogil:
@@ -214,7 +224,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Sort mkArraySort(Sort indexSort, Sort elemSort) except +
         Sort mkBitVectorSort(uint32_t size) except +
         Sort mkFloatingPointSort(uint32_t exp, uint32_t sig) except +
-        Sort mkFiniteFieldSort(const string& size) except +
+        Sort mkFiniteFieldSort(const string& size, uint32_t base) except +
         Sort mkDatatypeSort(DatatypeDecl dtypedecl) except +
         vector[Sort] mkDatatypeSorts(const vector[DatatypeDecl]& dtypedecls) except +
         Sort mkFunctionSort(const vector[Sort]& sorts, Sort codomain) except +
@@ -252,8 +262,9 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         SynthResult checkSynthNext() except +
         Term getSynthSolution(Term t) except +
         vector[Term] getSynthSolutions(const vector[Term]& terms) except +
-        Term synthInv(const string& symbol, const vector[Term]& bound_vars) except +
-        Term synthInv(const string& symbol, const vector[Term]& bound_vars, Grammar grammar) except +
+        Term findSynth(FindSynthTarget fst) except +
+        Term findSynth(FindSynthTarget fst, Grammar grammar) except +
+        Term findSynthNext() except +
         # End of sygus related functions
 
         Term mkTrue() except +
@@ -280,7 +291,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Term mkBitVector(const string& s) except +
         Term mkBitVector(const string& s, uint32_t base) except +
         Term mkBitVector(uint32_t size, string& s, uint32_t base) except +
-        Term mkFiniteFieldElem(const string& s, Sort sort) except +
+        Term mkFiniteFieldElem(const string& s, Sort sort, uint32_t base) except +
         Term mkConstArray(Sort sort, Term val) except +
         Term mkFloatingPointPosInf(uint32_t exp, uint32_t sig) except +
         Term mkFloatingPointNegInf(uint32_t exp, uint32_t sig) except +
@@ -307,9 +318,8 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Result checkSat() except +
         Result checkSatAssuming(const vector[Term]& assumptions) except +
         Sort declareDatatype(const string& symbol, const vector[DatatypeConstructorDecl]& ctors)
-        Term declareFun(const string& symbol, Sort sort) except +
-        Term declareFun(const string& symbol, const vector[Sort]& sorts, Sort sort) except +
-        Sort declareSort(const string& symbol, uint32_t arity) except +
+        Term declareFun(const string& symbol, const vector[Sort]& sorts, Sort sort, bint fresh) except +
+        Sort declareSort(const string& symbol, uint32_t arity, bint fresh) except +
         Term defineFun(const string& symbol, const vector[Term]& bound_vars,
                        Sort sort, Term term, bint glbl) except +
         Term defineFunRec(const string& symbol, const vector[Term]& bound_vars,
@@ -318,7 +328,8 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
                           Term term, bint glbl) except +
         Term defineFunsRec(vector[Term]& funs, vector[vector[Term]]& bound_vars,
                            vector[Term]& terms, bint glbl) except +
-        string getProof(ProofComponent c) except +
+        vector[Proof] getProof(ProofComponent c) except +
+        string proofToString(Proof proof, ProofFormat format) except +
         vector[Term] getLearnedLiterals(LearnedLitType type) except +
         vector[Term] getAssertions() except +
         string getInfo(const string& flag) except +
@@ -327,8 +338,10 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         OptionInfo getOptionInfo(const string& option) except +
         vector[Term] getUnsatAssumptions() except +
         vector[Term] getUnsatCore() except +
+        vector[Term] getUnsatCoreLemmas() except +
         map[Term,Term] getDifficulty() except +
         pair[Result, vector[Term]] getTimeoutCore() except +
+        pair[Result, vector[Term]] getTimeoutCoreAssuming(const vector[Term]& assumptions) except +
         Term getValue(Term term) except +
         vector[Term] getValue(const vector[Term]& terms) except +
         Term getQuantifierElimination(const Term& q) except +
@@ -347,6 +360,8 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         void resetAssertions() except +
         void setInfo(string& keyword, const string& value) except +
         void setLogic(const string& logic) except +
+        bint isLogicSet() except +
+        string getLogic() except +
         void setOption(const string& option, const string& value) except +
         Term getInterpolant(const Term& conj) except +
         Term getInterpolant(const Term& conj, Grammar& grammar) except +
@@ -454,7 +469,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         bint isString() except +
         string getString() except +
         bint isHistogram() except +
-        c_map[string,uint64_t] getHistogram() except +
+        map[string,uint64_t] getHistogram() except +
 
     cdef cppclass Statistics:
         Statistics() except +
@@ -506,6 +521,10 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         const_iterator end() except +
         bint isCardinalityConstraint() except +
         pair[Sort, uint32_t] getCardinalityConstraint() except +
+        bint isRealAlgebraicNumber() except +
+        Term getRealAlgebraicNumberDefiningPolynomial(const Term& v) except +
+        Term getRealAlgebraicNumberLowerBound() except +
+        Term getRealAlgebraicNumberUpperBound() except +
 
         bint isConstArray() except +
         bint isBooleanValue() except +
@@ -545,3 +564,33 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
     cdef cppclass TermHashFunction:
         TermHashFunction() except +
         size_t operator()(const Term & t) except +
+
+    cdef cppclass Proof:
+        ProofRule getRule() except +
+        Term getResult() except +
+        vector[Proof] getChildren() except +
+        vector[Term] getArguments() except +
+
+
+cdef extern from "<cvc5/cvc5_parser.h>" namespace "cvc5::parser":
+    cdef cppclass SymbolManager:
+        SymbolManager(Solver* solver) except +
+        bint isLogicSet() except +
+        string getLogic() except +
+
+    cdef cppclass Command:
+        Command() except +
+        void invoke(Solver* solver, SymbolManager* sm, ostream& out) except +
+        string toString() except +
+        string getCommandName() except +
+        bint isNull() except +
+
+    cdef cppclass InputParser:
+        InputParser(Solver* solver, SymbolManager* sm) except +
+        void setFileInput(InputLanguage lang, const string& filename) except +
+        void setStringInput(InputLanguage lang, const string& input, const string& name) except +
+        void setIncrementalStringInput(InputLanguage lang, const string& name) except +
+        void appendIncrementalStringInput(const string& input) except +
+        Command nextCommand() except +
+        Term nextTerm() except +
+        bint done() except +

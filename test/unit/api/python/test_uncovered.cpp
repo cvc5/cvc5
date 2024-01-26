@@ -13,6 +13,8 @@
  * Testing stuff that is not exposed by the python API to fix code coverage
  */
 
+#include <cvc5/cvc5_parser.h>
+
 #include "test_api.h"
 
 namespace cvc5::internal {
@@ -46,8 +48,12 @@ TEST_F(TestApiBlackUncovered, streaming_operators)
   ss << cvc5::SortKind::ARRAY_SORT;
   ss << cvc5::UnknownExplanation::UNKNOWN_REASON;
   ss << cvc5::modes::BlockModelsMode::LITERALS;
-  ss << cvc5::modes::LearnedLitType::LEARNED_LIT_PREPROCESS;
-  ss << cvc5::modes::ProofComponent::PROOF_COMPONENT_FULL;
+  ss << cvc5::modes::LearnedLitType::PREPROCESS;
+  ss << cvc5::modes::ProofComponent::FULL;
+  ss << cvc5::modes::FindSynthTarget::ENUM;
+  ss << cvc5::modes::InputLanguage::SMT_LIB_2_6;
+  ss << cvc5::modes::ProofFormat::LFSC;
+  ss << cvc5::ProofRule::ASSUME;
   ss << cvc5::Result();
   ss << cvc5::Op();
   ss << cvc5::SynthResult();
@@ -243,10 +249,50 @@ TEST_F(TestApiBlackUncovered, declareOracleFunUnsat)
       });
   Term three = d_solver.mkInteger(3);
   Term five = d_solver.mkInteger(5);
-  Term eq =
-      d_solver.mkTerm(EQUAL, {d_solver.mkTerm(APPLY_UF, {f, three}), five});
+  Term eq = d_solver.mkTerm(
+      Kind::EQUAL, {d_solver.mkTerm(Kind::APPLY_UF, {f, three}), five});
   d_solver.assertFormula(eq);
   d_solver.checkSat();
+}
+
+TEST_F(TestApiBlackUncovered, Proof)
+{
+  Proof proof;
+  ASSERT_EQ(proof.getRule(), ProofRule::UNKNOWN);
+  ASSERT_TRUE(proof.getResult().isNull());
+  ASSERT_TRUE(proof.getChildren().empty());
+  ASSERT_TRUE(proof.getArguments().empty());
+}
+
+TEST_F(TestApiBlackUncovered, Parser)
+{
+  parser::Command command;
+  Solver solver;
+  parser::InputParser inputParser(&solver);
+  ASSERT_EQ(inputParser.getSolver(), &solver);
+  parser::SymbolManager* sm = inputParser.getSymbolManager();
+  ASSERT_EQ(sm->isLogicSet(), false);
+  std::stringstream ss;
+  ss << command << std::endl;
+  inputParser.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ss, "Parser");
+  parser::ParserException defaultConstructor;
+  std::string message = "error";
+  const char* cMessage = "error";
+  std::string filename = "file.smt2";
+  parser::ParserException stringConstructor(message);
+  parser::ParserException cStringConstructor(cMessage);
+  parser::ParserException exception(message, filename, 10, 11);
+  exception.toStream(ss);
+  ASSERT_EQ(message, exception.getMessage());
+  ASSERT_EQ(message, exception.getMessage());
+  ASSERT_EQ(filename, exception.getFilename());
+  ASSERT_EQ(10, exception.getLine());
+  ASSERT_EQ(11, exception.getColumn());
+
+  parser::ParserEndOfFileException eofDefault;
+  parser::ParserEndOfFileException eofString(message);
+  parser::ParserEndOfFileException eofCMessage(cMessage);
+  parser::ParserEndOfFileException eof(message, filename, 10, 11);
 }
 
 }  // namespace test

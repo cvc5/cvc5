@@ -95,7 +95,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   // [3] compute the global term letification and declared symbols and types
   Trace("lfsc-print-debug")
       << "; compute global term letification and declared symbols" << std::endl;
-  LetBinding lbind;
+  LetBinding lbind(d_termLetPrefix);
   for (const Node& ia : iasserts)
   {
     lbind.process(ia);
@@ -106,7 +106,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   // in the proof. It is also important for the term processor for collecting
   // symbols and types that are used in the proof.
   LfscPrintChannelPre lpcp(lbind);
-  LetBinding emptyLetBind;
+  LetBinding emptyLetBind(d_termLetPrefix);
   std::map<const ProofNode*, size_t>::iterator itp;
   for (const ProofNode* p : pletList)
   {
@@ -179,7 +179,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   // print datatype definitions for the above sorts
   for (const TypeNode& stc : sts)
   {
-    if (!stc.isDatatype() || stc.getKind() == PARAMETRIC_DATATYPE)
+    if (!stc.isDatatype() || stc.getKind() == Kind::PARAMETRIC_DATATYPE)
     {
       // skip the instance of a parametric datatype
       continue;
@@ -211,14 +211,14 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   preamble << preambleSymDecl.str();
 
   // [5] print warnings
-  for (PfRule r : d_trustWarned)
+  for (ProofRule r : d_trustWarned)
   {
     out << "; WARNING: adding trust step for " << r << std::endl;
   }
 
   // [6] print the DSL rewrite rule declarations
-  const std::unordered_set<DslPfRule>& dslrs = lpcp.getDslRewrites();
-  for (DslPfRule dslr : dslrs)
+  const std::unordered_set<DslProofRule>& dslrs = lpcp.getDslRewrites();
+  for (DslProofRule dslr : dslrs)
   {
     // also computes the format for the rule
     printDslRule(out, dslr, d_dslFormat[dslr]);
@@ -276,7 +276,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
 
   Trace("lfsc-print-debug") << "; print proof body" << std::endl;
   // [10] print the proof body
-  Assert(pn->getRule() == PfRule::SCOPE);
+  Assert(pn->getRule() == ProofRule::SCOPE);
   // the outermost scope can be ignored (it is the scope of the assertions,
   // which are already printed above).
   LfscPrintChannelOut lout(out);
@@ -351,7 +351,7 @@ void LfscPrinter::printTypeDefinition(
   }
   processed.insert(tn);
   // print uninterpreted sorts and uninterpreted sort constructors here
-  if (tn.getKind() == SORT_TYPE)
+  if (tn.getKind() == Kind::SORT_TYPE)
   {
     os << "(declare ";
     printType(os, tn);
@@ -370,7 +370,7 @@ void LfscPrinter::printTypeDefinition(
   }
   else if (tn.isDatatype())
   {
-    if (tn.getKind() == PARAMETRIC_DATATYPE)
+    if (tn.getKind() == Kind::PARAMETRIC_DATATYPE)
     {
       // skip the instance of a parametric datatype
       return;
@@ -383,10 +383,14 @@ void LfscPrinter::printTypeDefinition(
       if (tupleArityProcessed.find(arity) == tupleArityProcessed.end())
       {
         tupleArityProcessed.insert(arity);
-        os << "(declare Tuple";
         if (arity>0)
         {
+          os << "(declare Tuple";
           os << "_" << arity;
+        }
+        else
+        {
+          os << "(declare UnitTuple";
         }
         os << " ";
         std::stringstream tcparen;
@@ -510,7 +514,7 @@ void LfscPrinter::printProofInternal(
     // case 1: printing a proof
     if (cur != nullptr)
     {
-      PfRule r = cur->getRule();
+      ProofRule r = cur->getRule();
       // maybe it is letified
       pletIt = pletMap.find(cur);
       if (pletIt != pletMap.end())
@@ -523,20 +527,20 @@ void LfscPrinter::printProofInternal(
       if (pit == processingChildren.end())
       {
         bool isLambda = false;
-        if (r == PfRule::LFSC_RULE)
+        if (r == ProofRule::LFSC_RULE)
         {
           Assert(!cur->getArguments().empty());
           LfscRule lr = getLfscRule(cur->getArguments()[0]);
           isLambda = (lr == LfscRule::LAMBDA);
         }
-        if (r == PfRule::ASSUME)
+        if (r == ProofRule::ASSUME)
         {
           // an assumption, must have a name
           passumeIt = passumeMap.find(cur->getResult());
           Assert(passumeIt != passumeMap.end());
           out->printId(passumeIt->second, d_assumpPrefix);
         }
-        else if (r == PfRule::ENCODE_PRED_TRANSFORM)
+        else if (r == ProofRule::ENCODE_PRED_TRANSFORM)
         {
           // just add child
           visit.push_back(PExpr(cur->getChildren()[0].get()));
@@ -625,7 +629,7 @@ void LfscPrinter::printProofInternal(
               }
             }
             Node res = d_tproc.convert(cur->getResult());
-            res = lbind.convert(res, d_termLetPrefix, true);
+            res = lbind.convert(res, true);
             out->printTrust(res, r);
             d_trustWarned.insert(r);
             out->printCloseRule(cparenTrustChild);
@@ -642,7 +646,7 @@ void LfscPrinter::printProofInternal(
     else if (!curn.isNull())
     {
       // it has already been converted to internal form, we letify it here
-      Node curni = lbind.convert(curn, d_termLetPrefix, true);
+      Node curni = lbind.convert(curn, true);
       out->printNode(curni);
     }
     // case 3: printing a type node
@@ -667,7 +671,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
   {
     cs.push_back(c.get());
   }
-  PfRule r = pn->getRule();
+  ProofRule r = pn->getRule();
   const std::vector<Node>& args = pn->getArguments();
   std::vector<Node> as;
   for (const Node& a : args)
@@ -689,86 +693,86 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
   switch (r)
   {
     // SAT
-    case PfRule::RESOLUTION:
+    case ProofRule::RESOLUTION:
       pf << h << h << h << cs[0] << cs[1] << args[0].getConst<bool>() << as[1];
       break;
-    case PfRule::REORDERING: pf << h << as[0] << cs[0]; break;
-    case PfRule::FACTORING: pf << h << h << cs[0]; break;
+    case ProofRule::REORDERING: pf << h << as[0] << cs[0]; break;
+    case ProofRule::FACTORING: pf << h << h << cs[0]; break;
     // Boolean
-    case PfRule::SPLIT: pf << as[0]; break;
-    case PfRule::NOT_NOT_ELIM: pf << h << cs[0]; break;
-    case PfRule::CONTRA: pf << h << cs[0] << cs[1]; break;
-    case PfRule::MODUS_PONENS:
-    case PfRule::EQ_RESOLVE: pf << h << h << cs[0] << cs[1]; break;
-    case PfRule::NOT_AND: pf << h << h << cs[0]; break;
-    case PfRule::NOT_OR_ELIM:
-    case PfRule::AND_ELIM: pf << h << h << args[0] << cs[0]; break;
-    case PfRule::IMPLIES_ELIM:
-    case PfRule::NOT_IMPLIES_ELIM1:
-    case PfRule::NOT_IMPLIES_ELIM2:
-    case PfRule::EQUIV_ELIM1:
-    case PfRule::EQUIV_ELIM2:
-    case PfRule::NOT_EQUIV_ELIM1:
-    case PfRule::NOT_EQUIV_ELIM2:
-    case PfRule::XOR_ELIM1:
-    case PfRule::XOR_ELIM2:
-    case PfRule::NOT_XOR_ELIM1:
-    case PfRule::NOT_XOR_ELIM2: pf << h << h << cs[0]; break;
-    case PfRule::ITE_ELIM1:
-    case PfRule::ITE_ELIM2:
-    case PfRule::NOT_ITE_ELIM1:
-    case PfRule::NOT_ITE_ELIM2: pf << h << h << h << cs[0]; break;
+    case ProofRule::SPLIT: pf << as[0]; break;
+    case ProofRule::NOT_NOT_ELIM: pf << h << cs[0]; break;
+    case ProofRule::CONTRA: pf << h << cs[0] << cs[1]; break;
+    case ProofRule::MODUS_PONENS:
+    case ProofRule::EQ_RESOLVE: pf << h << h << cs[0] << cs[1]; break;
+    case ProofRule::NOT_AND: pf << h << h << cs[0]; break;
+    case ProofRule::NOT_OR_ELIM:
+    case ProofRule::AND_ELIM: pf << h << h << args[0] << cs[0]; break;
+    case ProofRule::IMPLIES_ELIM:
+    case ProofRule::NOT_IMPLIES_ELIM1:
+    case ProofRule::NOT_IMPLIES_ELIM2:
+    case ProofRule::EQUIV_ELIM1:
+    case ProofRule::EQUIV_ELIM2:
+    case ProofRule::NOT_EQUIV_ELIM1:
+    case ProofRule::NOT_EQUIV_ELIM2:
+    case ProofRule::XOR_ELIM1:
+    case ProofRule::XOR_ELIM2:
+    case ProofRule::NOT_XOR_ELIM1:
+    case ProofRule::NOT_XOR_ELIM2: pf << h << h << cs[0]; break;
+    case ProofRule::ITE_ELIM1:
+    case ProofRule::ITE_ELIM2:
+    case ProofRule::NOT_ITE_ELIM1:
+    case ProofRule::NOT_ITE_ELIM2: pf << h << h << h << cs[0]; break;
     // CNF
-    case PfRule::CNF_AND_POS:
-    case PfRule::CNF_OR_NEG:
+    case ProofRule::CNF_AND_POS:
+    case ProofRule::CNF_OR_NEG:
       // print second argument as a raw integer (mpz)
       pf << h << as[0] << args[1];
       break;
-    case PfRule::CNF_AND_NEG: pf << h << as[0]; break;
-    case PfRule::CNF_OR_POS:
+    case ProofRule::CNF_AND_NEG: pf << h << as[0]; break;
+    case ProofRule::CNF_OR_POS:
       pf << as[0];
       break;
       break;
-    case PfRule::CNF_IMPLIES_POS:
-    case PfRule::CNF_IMPLIES_NEG1:
-    case PfRule::CNF_IMPLIES_NEG2:
-    case PfRule::CNF_EQUIV_POS1:
-    case PfRule::CNF_EQUIV_POS2:
-    case PfRule::CNF_EQUIV_NEG1:
-    case PfRule::CNF_EQUIV_NEG2:
-    case PfRule::CNF_XOR_POS1:
-    case PfRule::CNF_XOR_POS2:
-    case PfRule::CNF_XOR_NEG1:
-    case PfRule::CNF_XOR_NEG2: pf << as[0][0] << as[0][1]; break;
-    case PfRule::CNF_ITE_POS1:
-    case PfRule::CNF_ITE_POS2:
-    case PfRule::CNF_ITE_POS3:
-    case PfRule::CNF_ITE_NEG1:
-    case PfRule::CNF_ITE_NEG2:
-    case PfRule::CNF_ITE_NEG3: pf << as[0][0] << as[0][1] << as[0][2]; break;
+    case ProofRule::CNF_IMPLIES_POS:
+    case ProofRule::CNF_IMPLIES_NEG1:
+    case ProofRule::CNF_IMPLIES_NEG2:
+    case ProofRule::CNF_EQUIV_POS1:
+    case ProofRule::CNF_EQUIV_POS2:
+    case ProofRule::CNF_EQUIV_NEG1:
+    case ProofRule::CNF_EQUIV_NEG2:
+    case ProofRule::CNF_XOR_POS1:
+    case ProofRule::CNF_XOR_POS2:
+    case ProofRule::CNF_XOR_NEG1:
+    case ProofRule::CNF_XOR_NEG2: pf << as[0][0] << as[0][1]; break;
+    case ProofRule::CNF_ITE_POS1:
+    case ProofRule::CNF_ITE_POS2:
+    case ProofRule::CNF_ITE_POS3:
+    case ProofRule::CNF_ITE_NEG1:
+    case ProofRule::CNF_ITE_NEG2:
+    case ProofRule::CNF_ITE_NEG3: pf << as[0][0] << as[0][1] << as[0][2]; break;
     // equality
-    case PfRule::REFL: pf << as[0]; break;
-    case PfRule::SYMM: pf << h << h << cs[0]; break;
-    case PfRule::TRANS: pf << h << h << h << cs[0] << cs[1]; break;
-    case PfRule::TRUE_INTRO:
-    case PfRule::FALSE_INTRO:
-    case PfRule::TRUE_ELIM:
-    case PfRule::FALSE_ELIM: pf << h << cs[0]; break;
+    case ProofRule::REFL: pf << as[0]; break;
+    case ProofRule::SYMM: pf << h << h << cs[0]; break;
+    case ProofRule::TRANS: pf << h << h << h << cs[0] << cs[1]; break;
+    case ProofRule::TRUE_INTRO:
+    case ProofRule::FALSE_INTRO:
+    case ProofRule::TRUE_ELIM:
+    case ProofRule::FALSE_ELIM: pf << h << cs[0]; break;
     // arithmetic
-    case PfRule::ARITH_MULT_POS:
-    case PfRule::ARITH_MULT_NEG:
+    case ProofRule::ARITH_MULT_POS:
+    case ProofRule::ARITH_MULT_NEG:
     {
       pf << h << as[0] << as[1];
     }
     break;
-    case PfRule::ARITH_TRICHOTOMY:
+    case ProofRule::ARITH_TRICHOTOMY:
     {
       // should be robust to different orderings
       pf << h << h << h << cs[0] << cs[1];
     }
     break;
-    case PfRule::INT_TIGHT_UB:
-    case PfRule::INT_TIGHT_LB:
+    case ProofRule::INT_TIGHT_UB:
+    case ProofRule::INT_TIGHT_LB:
     {
       Node res = pn->getResult();
       Assert(res.getNumChildren() == 2);
@@ -777,40 +781,41 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     }
     break;
     // strings
-    case PfRule::STRING_LENGTH_POS:
+    case ProofRule::STRING_LENGTH_POS:
       pf << as[0] << d_tproc.convertType(as[0].getType()) << h;
       break;
-    case PfRule::STRING_LENGTH_NON_EMPTY: pf << h << h << cs[0]; break;
-    case PfRule::RE_INTER: pf << h << h << h << cs[0] << cs[1]; break;
-    case PfRule::CONCAT_EQ:
+    case ProofRule::STRING_LENGTH_NON_EMPTY: pf << h << h << cs[0]; break;
+    case ProofRule::RE_INTER: pf << h << h << h << cs[0] << cs[1]; break;
+    case ProofRule::CONCAT_EQ:
       pf << h << h << h << args[0].getConst<bool>()
          << d_tproc.convertType(children[0]->getResult()[0].getType()) << cs[0];
       break;
-    case PfRule::CONCAT_UNIFY:
+    case ProofRule::CONCAT_UNIFY:
       pf << h << h << h << h << args[0].getConst<bool>()
          << d_tproc.convertType(children[0]->getResult()[0].getType()) << cs[0]
          << cs[1];
       break;
-    case PfRule::CONCAT_CSPLIT:
+    case ProofRule::CONCAT_CSPLIT:
       pf << h << h << h << h << args[0].getConst<bool>()
          << d_tproc.convertType(children[0]->getResult()[0].getType()) << cs[0]
          << cs[1];
       break;
-    case PfRule::CONCAT_CONFLICT:
+    case ProofRule::CONCAT_CONFLICT:
       pf << h << h << args[0].getConst<bool>()
          << d_tproc.convertType(children[0]->getResult()[0].getType()) << cs[0];
       break;
-    case PfRule::RE_UNFOLD_POS:
-      if (children[0]->getResult()[1].getKind() != REGEXP_CONCAT)
+    case ProofRule::RE_UNFOLD_POS:
+      if (children[0]->getResult()[1].getKind() != Kind::REGEXP_CONCAT)
       {
         return false;
       }
       pf << h << h << h << cs[0];
       break;
-    case PfRule::STRING_EAGER_REDUCTION:
+    case ProofRule::STRING_EAGER_REDUCTION:
     {
       Kind k = as[0].getKind();
-      if (k == STRING_TO_CODE || k == STRING_CONTAINS || k == STRING_INDEXOF)
+      if (k == Kind::STRING_TO_CODE || k == Kind::STRING_CONTAINS
+          || k == Kind::STRING_INDEXOF)
       {
         pf << h << as[0] << as[0][0].getType();
       }
@@ -821,10 +826,10 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       }
     }
     break;
-    case PfRule::STRING_REDUCTION:
+    case ProofRule::STRING_REDUCTION:
     {
       Kind k = as[0].getKind();
-      if (k == STRING_SUBSTR || k == STRING_INDEXOF)
+      if (k == Kind::STRING_SUBSTR || k == Kind::STRING_INDEXOF)
       {
         pf << h << as[0] << d_tproc.convertType(as[0][0].getType());
       }
@@ -836,13 +841,13 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     }
     break;
     // quantifiers
-    case PfRule::SKOLEM_INTRO:
+    case ProofRule::SKOLEM_INTRO:
     {
       pf << d_tproc.convert(SkolemManager::getUnpurifiedForm(args[0]));
     }
     break;
     // ---------- arguments of non-translated rules go here
-    case PfRule::LFSC_RULE:
+    case ProofRule::LFSC_RULE:
     {
       LfscRule lr = getLfscRule(args[0]);
       // lambda should be processed elsewhere
@@ -873,10 +878,10 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       }
     }
     break;
-    case PfRule::DSL_REWRITE:
+    case ProofRule::DSL_REWRITE:
     {
-      DslPfRule di = DslPfRule::FAIL;
-      if (!rewriter::getDslPfRule(args[0], di))
+      DslProofRule di = DslProofRule::FAIL;
+      if (!rewriter::getDslProofRule(args[0], di))
       {
         Assert(false);
       }
@@ -892,9 +897,9 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
         {
           // If the variable is a list variable, we must convert its value to
           // the proper term. This is based on its context.
-          if (as[i].getKind() == SEXPR)
+          if (as[i].getKind() == Kind::SEXPR)
           {
-            Assert(args[i].getKind() == SEXPR);
+            Assert(args[i].getKind() == Kind::SEXPR);
             NodeManager* nm = NodeManager::currentNM();
             Kind k = rpr.getListContext(v);
             // notice we use d_tproc.getNullTerminator and not
@@ -924,7 +929,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
             }
             else
             {
-              if (k == UNDEFINED_KIND)
+              if (k == Kind::UNDEFINED_KIND)
               {
                 Unhandled() << "Unknown context for list variable " << v
                             << " in rule " << di;
@@ -955,7 +960,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       }
       // print child proofs, which is based on the format computed for the rule
       size_t ccounter = 0;
-      std::map<rewriter::DslPfRule, std::vector<Node>>::iterator itf =
+      std::map<rewriter::DslProofRule, std::vector<Node>>::iterator itf =
           d_dslFormat.find(di);
       if (itf == d_dslFormat.end())
       {
@@ -1013,7 +1018,7 @@ void LfscPrinter::printLetify(std::ostream& out, Node n)
   // closing parentheses
   std::stringstream cparen;
 
-  LetBinding lbind;
+  LetBinding lbind(d_termLetPrefix);
   lbind.process(n);
 
   // [1] print the letification
@@ -1062,7 +1067,7 @@ void LfscPrinter::printLetList(std::ostream& out,
 
 void LfscPrinter::printInternal(std::ostream& out, Node n)
 {
-  LetBinding lbind;
+  LetBinding lbind(d_termLetPrefix);
   printInternal(out, n, lbind);
 }
 void LfscPrinter::printInternal(std::ostream& out,
@@ -1070,7 +1075,7 @@ void LfscPrinter::printInternal(std::ostream& out,
                                 LetBinding& lbind,
                                 bool letTop)
 {
-  Node nc = lbind.convert(n, d_termLetPrefix, letTop);
+  Node nc = lbind.convert(n, letTop);
   LfscPrintChannelOut::printNodeInternal(out, nc);
 }
 
@@ -1081,7 +1086,7 @@ void LfscPrinter::printType(std::ostream& out, TypeNode tn)
 }
 
 void LfscPrinter::printDslRule(std::ostream& out,
-                               DslPfRule id,
+                               DslProofRule id,
                                std::vector<Node>& format)
 {
   const rewriter::RewriteProofRule& rpr = d_rdb->getRule(id);
@@ -1148,7 +1153,7 @@ void LfscPrinter::printDslRule(std::ostream& out,
       Node tscp;
       if (isConclusion)
       {
-        Assert(sterm.getKind() == EQUAL);
+        Assert(sterm.getKind() == Kind::EQUAL);
         // optimization: don't need nary_elim for heads
         tscp = llsncp.convert(sterm[1]);
         tscp = sterm[0].eqNode(tscp);

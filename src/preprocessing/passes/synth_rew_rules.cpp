@@ -18,6 +18,7 @@
 
 #include <sstream>
 
+#include "expr/sygus_datatype.h"
 #include "expr/term_canonize.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
@@ -147,7 +148,7 @@ std::map<TypeNode, TypeNode> SynthRewRulesPass::constructTopLevelGrammar(
           {
             typesFound[tn] = true;
             // add the standard constants for this type
-            theory::quantifiers::CegGrammarConstructor::mkSygusConstantsForType(
+            theory::quantifiers::SygusGrammarCons::mkSygusConstantsForType(
                 tn, consts[tn]);
             // We prepend them so that they come first in the grammar
             // construction. The motivation is we'd prefer seeing e.g. "true"
@@ -268,7 +269,7 @@ std::map<TypeNode, TypeNode> SynthRewRulesPass::constructTopLevelGrammar(
   }
   Trace("srs-input") << "...finished." << std::endl;
   // the sygus variable list
-  Node sygusVarList = nm->mkNode(BOUND_VAR_LIST, allVars);
+  Node sygusVarList = nm->mkNode(Kind::BOUND_VAR_LIST, allVars);
   Trace("srs-input") << "Have " << cterms.size() << " canonical subterms."
                      << std::endl;
 
@@ -301,7 +302,7 @@ std::map<TypeNode, TypeNode> SynthRewRulesPass::constructTopLevelGrammar(
     // we add variable constructors if we are not Boolean, we are interested
     // in purely propositional rewrites (via the option), or this term is
     // a Boolean variable.
-    if (!ctt.isBoolean() || ct.getKind() == BOUND_VARIABLE)
+    if (!ctt.isBoolean() || ct.getKind() == Kind::BOUND_VARIABLE)
     {
       // may or may not have variables for this type
       if (tvars.find(ctt) != tvars.end())
@@ -344,8 +345,8 @@ std::map<TypeNode, TypeNode> SynthRewRulesPass::constructTopLevelGrammar(
         // we make one type per child
         // the operator of each constructor is a no-op
         Node tbv = nm->mkBoundVar(ctt);
-        Node lambdaOp =
-            nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, tbv), tbv);
+        Node lambdaOp = nm->mkNode(
+            Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, tbv), tbv);
         std::vector<TypeNode> argListc;
         // the following construction admits any number of repeated factors,
         // so for instance, t1+t2+t3, we generate the grammar:
@@ -423,7 +424,8 @@ std::map<TypeNode, TypeNode> SynthRewRulesPass::constructTopLevelGrammar(
     SygusDatatype sdttl(ss.str());
     Node tbv = nm->mkBoundVar(t);
     // the operator of each constructor is a no-op
-    Node lambdaOp = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, tbv), tbv);
+    Node lambdaOp =
+        nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, tbv), tbv);
     Trace("srs-input") << "  We have " << tcp.second.size()
                        << " subterms of type " << t << std::endl;
     for (unsigned i = 0, size = tcp.second.size(); i < size; i++)

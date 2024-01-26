@@ -12,7 +12,7 @@ This API is missing some features from cvc5 and Z3Py.
 
 It does not (currently) support these cvc5 features:
 
-* The theories of strings, sequences and bags
+* The theory of bags
 * unsatisfiable cores
 * syntax-guided synthesis (SyGuS)
 
@@ -36,6 +36,7 @@ It does not (currently) support the following features of Z3Py:
     array
     bitvec
     dt
+    finite_field
     fp
     set
     quant

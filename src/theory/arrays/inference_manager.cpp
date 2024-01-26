@@ -16,6 +16,7 @@
 #include "theory/arrays/inference_manager.h"
 
 #include "options/smt_options.h"
+#include "proof/trust_id.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/theory.h"
 #include "theory/theory_state.h"
@@ -35,16 +36,13 @@ InferenceManager::InferenceManager(Env& env, Theory& t, TheoryState& state)
 {
 }
 
-bool InferenceManager::assertInference(TNode atom,
-                                       bool polarity,
-                                       InferenceId id,
-                                       TNode reason,
-                                       PfRule pfr)
+bool InferenceManager::assertInference(
+    TNode atom, bool polarity, InferenceId id, TNode reason, ProofRule pfr)
 {
   Trace("arrays-infer") << "TheoryArrays::assertInference: "
                         << (polarity ? Node(atom) : atom.notNode()) << " by "
                         << reason << "; " << id << std::endl;
-  Assert(atom.getKind() == EQUAL);
+  Assert(atom.getKind() == Kind::EQUAL);
   // if proofs are enabled, we determine which proof rule to add, otherwise
   // we simply assert the internal fact
   if (isProofEnabled())
@@ -60,7 +58,7 @@ bool InferenceManager::assertInference(TNode atom,
 }
 
 bool InferenceManager::arrayLemma(
-    Node conc, InferenceId id, Node exp, PfRule pfr, LemmaProperty p)
+    Node conc, InferenceId id, Node exp, ProofRule pfr, LemmaProperty p)
 {
   Trace("arrays-infer") << "TheoryArrays::arrayLemma: " << conc << " by " << exp
                         << "; " << id << std::endl;
@@ -76,30 +74,30 @@ bool InferenceManager::arrayLemma(
     return trustedLemma(tlem, id, p);
   }
   // send lemma without proofs
-  Node lem = nm->mkNode(IMPLIES, exp, conc);
+  Node lem = nm->mkNode(Kind::IMPLIES, exp, conc);
   return lemma(lem, id, p);
 }
 
-void InferenceManager::convert(PfRule& id,
+void InferenceManager::convert(ProofRule& id,
                                Node conc,
                                Node exp,
                                std::vector<Node>& children,
                                std::vector<Node>& args)
 {
   // note that children must contain something equivalent to exp,
-  // regardless of the PfRule.
+  // regardless of the ProofRule.
   switch (id)
   {
-    case PfRule::MACRO_SR_PRED_INTRO:
+    case ProofRule::MACRO_SR_PRED_INTRO:
       Assert(exp.isConst());
       args.push_back(conc);
       break;
-    case PfRule::ARRAYS_READ_OVER_WRITE:
+    case ProofRule::ARRAYS_READ_OVER_WRITE:
       if (exp.isConst())
       {
         // Premise can be shown by rewriting, use standard predicate intro rule.
         // This is the case where we have 2 constant indices.
-        id = PfRule::MACRO_SR_PRED_INTRO;
+        id = ProofRule::MACRO_SR_PRED_INTRO;
         args.push_back(conc);
       }
       else
@@ -108,22 +106,25 @@ void InferenceManager::convert(PfRule& id,
         args.push_back(conc[0]);
       }
       break;
-    case PfRule::ARRAYS_READ_OVER_WRITE_CONTRA: children.push_back(exp); break;
-    case PfRule::ARRAYS_READ_OVER_WRITE_1:
+    case ProofRule::ARRAYS_READ_OVER_WRITE_CONTRA:
+      children.push_back(exp);
+      break;
+    case ProofRule::ARRAYS_READ_OVER_WRITE_1:
       Assert(exp.isConst());
       args.push_back(conc[0]);
       break;
-    case PfRule::ARRAYS_EXT: children.push_back(exp); break;
+    case ProofRule::ARRAYS_EXT: children.push_back(exp); break;
     default:
-      if (id != PfRule::THEORY_INFERENCE)
+      if (id != ProofRule::TRUST)
       {
         Assert(false) << "Unknown rule " << id << "\n";
       }
       children.push_back(exp);
+      args.push_back(mkTrustId(TrustId::THEORY_INFERENCE));
       args.push_back(conc);
       args.push_back(
           builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_ARRAYS));
-      id = PfRule::THEORY_INFERENCE;
+      id = ProofRule::TRUST;
       break;
   }
 }

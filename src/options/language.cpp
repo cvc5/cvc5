@@ -25,7 +25,6 @@ std::ostream& operator<<(std::ostream& out, Language lang)
   {
     case Language::LANG_AUTO: out << "LANG_AUTO"; break;
     case Language::LANG_SMTLIB_V2_6: out << "LANG_SMTLIB_V2_6"; break;
-    case Language::LANG_TPTP: out << "LANG_TPTP"; break;
     case Language::LANG_SYGUS_V2: out << "LANG_SYGUS_V2"; break;
     default: out << "undefined_language";
   }
@@ -41,10 +40,6 @@ Language toLanguage(const std::string& language)
       || language == "LANG_SMTLIB_V2_6" || language == "LANG_SMTLIB_V2")
   {
     return Language::LANG_SMTLIB_V2_6;
-  }
-  else if (language == "tptp" || language == "LANG_TPTP")
-  {
-    return Language::LANG_TPTP;
   }
   else if (language == "sygus" || language == "LANG_SYGUS"
            || language == "sygus2" || language == "LANG_SYGUS_V2")

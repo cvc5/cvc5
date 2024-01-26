@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Clark Barrett, Tim King
+ *   Clark Barrett, Morgan Deters, Tim King
  *
  * This file is part of the cvc5 project.
  *

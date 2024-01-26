@@ -18,13 +18,13 @@
 #include <sstream>
 
 #include "base/modal_exception.h"
+#include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
 #include "smt/set_defaults.h"
 #include "smt/sygus_solver.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_abduct.h"
-#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/smt_engine_subsolver.h"
 #include "theory/trust_substitutions.h"
@@ -62,7 +62,7 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
   Node aconj = quantifiers::SygusAbduct::mkAbductionConjecture(
       name, asserts, axioms, grammarType);
   // should be a quantified conjecture with one function-to-synthesize
-  Assert(aconj.getKind() == kind::FORALL && aconj[0].getNumChildren() == 1);
+  Assert(aconj.getKind() == Kind::FORALL && aconj[0].getNumChildren() == 1);
   // remember the abduct-to-synthesize
   d_sssf = aconj[0][0];
   Trace("sygus-abduct") << "SolverEngine::getAbduct: made conjecture : "
@@ -71,6 +71,11 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
   Options subOptions;
   subOptions.copyValues(d_env.getOptions());
   subOptions.writeQuantifiers().sygus = true;
+  // by default, we don't want disjunctive terms (ITE, OR) in abducts
+  if (!d_env.getOptions().quantifiers.sygusGrammarUseDisjWasSetByUser)
+  {
+    subOptions.writeQuantifiers().sygusGrammarUseDisj = false;
+  }
   SetDefaults::disableChecking(subOptions);
   SubsolverSetupInfo ssi(d_env, subOptions);
   // we generate a new smt engine to do the abduction query
@@ -120,7 +125,7 @@ bool AbductionSolver::getAbductInternal(Node& abd)
       Trace("sygus-abduct") << "SolverEngine::getAbduct: solution is "
                             << its->second << std::endl;
       abd = its->second;
-      if (abd.getKind() == kind::LAMBDA)
+      if (abd.getKind() == Kind::LAMBDA)
       {
         abd = abd[1];
       }
@@ -129,7 +134,7 @@ bool AbductionSolver::getAbductInternal(Node& abd)
           theory::quantifiers::SygusUtils::getOrMkSygusArgumentList(d_sssf);
       if(!agdtbv.isNull())
       {
-        Assert(agdtbv.getKind() == kind::BOUND_VAR_LIST);
+        Assert(agdtbv.getKind() == Kind::BOUND_VAR_LIST);
         // convert back to original
         // must replace formal arguments of abd with the free variables in the
         // input problem that they correspond to.

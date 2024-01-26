@@ -168,7 +168,6 @@ TypeNode ApplyIndexedSymbolicTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return TypeNode::null();
 }
-
 TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
                                                    TNode n,
                                                    bool check,

@@ -1,0 +1,7 @@
+(set-logic ALL)
+(set-info :status sat)
+(declare-sort S 0)
+(declare-const c1 (Array Float64 S))
+(declare-const c  (_ BitVec 52))
+(assert (not (= (select c1 (fp (_ bv0 1) (_ bv0 11) c)) (select c1 (fp (_ bv0 1) (_ bv0 11) (_ bv0 52))))))
+(check-sat)

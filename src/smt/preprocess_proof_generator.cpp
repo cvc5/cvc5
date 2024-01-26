@@ -31,11 +31,11 @@ namespace cvc5::internal {
 namespace smt {
 
 PreprocessProofGenerator::PreprocessProofGenerator(
-    Env& env, context::Context* c, std::string name, PfRule ra, PfRule rpp)
+    Env& env, context::Context* c, std::string name, TrustId ra, TrustId rpp)
     : EnvObj(env),
       d_ctx(c ? c : &d_context),
       d_src(d_ctx),
-      d_helperProofs(env, d_ctx),
+      d_helperProofs(env, d_ctx, "PreprocessHelper"),
       d_inputPf(env, c, "InputProof"),
       d_name(name),
       d_ra(ra),
@@ -174,7 +174,7 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
       {
         Trace("smt-pppg-debug")
             << "...rewritten from " << proven[0] << std::endl;
-        Assert(proven.getKind() == kind::EQUAL);
+        Assert(proven.getKind() == Kind::EQUAL);
         if (!proofStepProcessed)
         {
           // maybe its just an (extended) rewrite?
@@ -183,7 +183,7 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
           {
             Node idr = mkMethodId(MethodId::RW_EXT_REWRITE);
             Trace("smt-pppg-debug") << "...add simple rewrite" << std::endl;
-            cdp.addStep(proven, PfRule::REWRITE, {}, {proven[0], idr});
+            cdp.addStep(proven, ProofRule::MACRO_REWRITE, {}, {proven[0], idr});
             proofStepProcessed = true;
           }
         }
@@ -207,8 +207,8 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
             << "...justify missing step with "
             << (tnk == TrustNodeKind::LEMMA ? d_ra : d_rpp) << std::endl;
         // add trusted step, the rule depends on the kind of trust node
-        cdp.addStep(
-            proven, tnk == TrustNodeKind::LEMMA ? d_ra : d_rpp, {}, {proven});
+        Node tid = mkTrustId(tnk == TrustNodeKind::LEMMA ? d_ra : d_rpp);
+        cdp.addStep(proven, ProofRule::TRUST, {}, {tid, proven});
       }
     }
   } while (success);
@@ -222,11 +222,11 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
     {
       Trace("smt-pppg") << "...apply trans to get " << fullRewrite << std::endl;
       std::reverse(transChildren.begin(), transChildren.end());
-      cdp.addStep(fullRewrite, PfRule::TRANS, transChildren, {});
+      cdp.addStep(fullRewrite, ProofRule::TRANS, transChildren, {});
     }
     Trace("smt-pppg") << "...eq_resolve to prove" << std::endl;
     // prove f
-    cdp.addStep(f, PfRule::EQ_RESOLVE, {curr, fullRewrite}, {});
+    cdp.addStep(f, ProofRule::EQ_RESOLVE, {curr, fullRewrite}, {});
     Trace("smt-pppg") << "...finished" << std::endl;
   }
 
@@ -249,18 +249,19 @@ LazyCDProof* PreprocessProofGenerator::allocateHelperProof()
 
 std::string PreprocessProofGenerator::identify() const { return d_name; }
 
-void PreprocessProofGenerator::checkEagerPedantic(PfRule r)
+void PreprocessProofGenerator::checkEagerPedantic(TrustId r)
 {
   if (options().proof.proofCheck == options::ProofCheckMode::EAGER)
   {
     // catch a pedantic failure now, which otherwise would not be
     // triggered since we are doing lazy proof generation
     ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
-    std::stringstream serr;
-    if (pc->isPedanticFailure(r, serr))
+    if (pc->isPedanticFailure(ProofRule::TRUST, nullptr))
     {
-      Unhandled() << "PreprocessProofGenerator::checkEagerPedantic: "
-                  << serr.str();
+      std::stringstream serr;
+      pc->isPedanticFailure(ProofRule::TRUST, &serr);
+      Unhandled() << "PreprocessProofGenerator::checkEagerPedantic (" << r
+                  << "): " << serr.str();
     }
   }
 }

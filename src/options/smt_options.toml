@@ -176,12 +176,12 @@ name   = "SMT Layer"
   help       = "if an unsat core is produced, it is reduced to a minimal unsat core"
 
 [[option]]
-  name       = "printUnsatCoresFull"
+  name       = "printCoresFull"
   category   = "regular"
-  long       = "print-unsat-cores-full"
+  long       = "print-cores-full"
   type       = "bool"
   default    = "false"
-  help       = "when printing unsat cores, include unlabeled assertions"
+  help       = "print all formulas regardless of whether they are named, e.g. in unsat cores"
 
 [[option]]
   name       = "checkUnsatCores"
@@ -350,7 +350,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "solveBVAsInt"
-  category   = "expert"
+  category   = "regular"
   long       = "solve-bv-as-int=MODE"
   type       = "SolveBVAsIntMode"
   default    = "OFF"
@@ -364,7 +364,7 @@ name   = "SMT Layer"
   help = "Generate a sum expression for each bvand instance, based on the value in --solve-bv-as-int-granularity"
 [[option.mode.IAND]]
   name = "iand"
-  help = "Translate bvand to the iand operator (experimental)"
+  help = "Translate bvand to the iand operator"
 [[option.mode.BV]]
   name = "bv"
   help = "Translate bvand back to bit-vectors"
@@ -374,7 +374,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "bvToIntUsePow2"
-  category   = "undocumented"
+  category   = "expert"
   long       = "bv-to-int-use-pow2"
   type       = "bool"
   default    = "false"

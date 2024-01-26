@@ -29,6 +29,7 @@ std::ostream& operator<<(std::ostream& os, InferStep step)
 {
   switch (step)
   {
+    case InferStep::NONE: return os << "NONE";
     case InferStep::BREAK: return os << "BREAK";
     case InferStep::FLUSH_WAITING_LEMMAS: return os << "FLUSH_WAITING_LEMMAS";
     case InferStep::COVERINGS_INIT: return os << "COVERINGS_INIT";
@@ -60,6 +61,7 @@ std::ostream& operator<<(std::ostream& os, InferStep step)
     case InferStep::TRANS_INITIAL: return os << "TRANS_INITIAL";
     case InferStep::TRANS_MONOTONIC: return os << "TRANS_MONOTONIC";
     case InferStep::TRANS_TANGENT_PLANES: return os << "TRANS_TANGENT_PLANES";
+    case InferStep::UNKNOWN: return os << "?";
     default: Unreachable(); return os << "UNKNOWN_STEP";
   }
 }

@@ -67,6 +67,7 @@ TheoryPreprocessor::TheoryPreprocessor(Env& env, TheoryEngine& engine)
     ts.push_back(d_tpg.get());
     d_tspg.reset(new TConvSeqProofGenerator(
         pnm, ts, userContext(), "TheoryPreprocessor::sequence"));
+    d_tpid = mkTrustId(TrustId::THEORY_PREPROCESS);
   }
 }
 
@@ -189,14 +190,15 @@ TrustNode TheoryPreprocessor::preprocessLemmaInternal(
   {
     Assert(d_lp != nullptr);
     // add the original proof to the lazy proof
-    d_lp->addLazyStep(
-        node.getProven(), node.getGenerator(), PfRule::THEORY_PREPROCESS_LEMMA);
+    d_lp->addLazyStep(node.getProven(),
+                      node.getGenerator(),
+                      TrustId::THEORY_PREPROCESS_LEMMA);
     // only need to do anything if lemmap changed in a non-trivial way
     if (!CDProof::isSame(lemmap, lemma))
     {
       d_lp->addLazyStep(tplemma.getProven(),
                         tplemma.getGenerator(),
-                        PfRule::THEORY_PREPROCESS,
+                        TrustId::THEORY_PREPROCESS,
                         true,
                         "TheoryEngine::lemma_pp");
       // ---------- from node -------------- from theory preprocess
@@ -206,7 +208,7 @@ TrustNode TheoryPreprocessor::preprocessLemmaInternal(
       std::vector<Node> pfChildren;
       pfChildren.push_back(lemma);
       pfChildren.push_back(tplemma.getProven());
-      d_lp->addStep(lemmap, PfRule::EQ_RESOLVE, pfChildren, {});
+      d_lp->addStep(lemmap, ProofRule::EQ_RESOLVE, pfChildren, {});
     }
   }
   return TrustNode::mkTrustLemma(lemmap, d_lp.get());
@@ -406,7 +408,8 @@ Node TheoryPreprocessor::rewriteWithProof(Node term,
     {
       Trace("tpp-debug") << "TheoryPreprocessor: addRewriteStep (rewriting) "
                          << term << " -> " << termr << std::endl;
-      pg->addRewriteStep(term, termr, PfRule::REWRITE, {}, {term}, isPre, tctx);
+      pg->addRewriteStep(
+          term, termr, ProofRule::MACRO_REWRITE, {}, {term}, isPre, tctx);
     }
   }
   return termr;
@@ -436,7 +439,7 @@ Node TheoryPreprocessor::preprocessWithProof(Node term,
   // preprocessing is applied to all formulas. This makes it so that e.g.
   // theory solvers do not need to specify whether they want their lemmas to
   // be theory-preprocessed or not.
-  if (term.getKind() == kind::EQUAL)
+  if (term.getKind() == Kind::EQUAL)
   {
     return term;
   }
@@ -484,7 +487,7 @@ void TheoryPreprocessor::registerTrustedRewrite(TrustNode trn,
         options(), "tpp-debug", "TheoryPreprocessor::preprocessWithProof");
     // always use term context hash 0 (default)
     pg->addRewriteStep(
-        term, termr, trn.getGenerator(), isPre, PfRule::ASSUME, true, tctx);
+        term, termr, trn.getGenerator(), isPre, TrustId::NONE, true, tctx);
   }
   else
   {
@@ -493,9 +496,9 @@ void TheoryPreprocessor::registerTrustedRewrite(TrustNode trn,
     // small step trust
     pg->addRewriteStep(term,
                        termr,
-                       PfRule::THEORY_PREPROCESS,
+                       ProofRule::TRUST,
                        {},
-                       {term.eqNode(termr)},
+                       {d_tpid, term.eqNode(termr)},
                        isPre,
                        tctx);
   }

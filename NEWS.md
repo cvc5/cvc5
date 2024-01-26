@@ -2,6 +2,75 @@ This file contains a summary of important user-visible changes.
 
 **New Features**
 
+- API: The signature of functions `Solver::mkFiniteFieldSort(const std::string&)`
+       and `Solver::mkFiniteFieldElem(const std::string&, const Sort&)` is now
+       extended with an additional (optional) parameter to
+       `Solver::mkFiniteFieldSort(const std::string& size, uint32_t base)` and
+       `Solver::mkFiniteFieldElem(const string& value, const Sort& sort, uint32_t base)`
+       to configure the base of the string representation of the given string
+       parameters.
+- API: A new API for proofs is available.  The new `Proof` class represents
+       a node of the proof tree.  The function
+       `Solver::getProof(modes::ProofComponent c = modes::ProofComponent::FULL)`
+       returns the root proof nodes of a proof component as a vector.  
+       The function `Solver::proofToString(std::vector<Proof> proof,
+       modes::ProofFormat format, modes::ProofComponent component)` can be used
+       to print proof components to a string with a specified proof format.
+- Support for the AletheLF (ALF) proof format. This format combines the
+  strengths of the Alethe and LFSC proof formats, namely it borrows much of the
+  syntax of Alethe, while being based on a logical framework like LFSC.
+  * API: The option `--proof-format=alf` prints proofs in the AletheLF format.
+         This option is enabled by default.
+  * The ALF proof checker (alfc) is available for download via the script
+    `./contrib/get-alf-checker`.
+- CaDiCaL is now integrated via the IPASIR-UP interface as CDCL(T) SAT solver.
+  The CDCL(T) SAT solver can be configured via option `--sat-solver`. Currently,
+  MiniSat is still default. Note that CaDiCaL cannot be used as the CDCL(T) SAT
+  engine when proof production is enabled. In that case, option `--sat-solver`
+  will default back to MiniSat.
+- API: Added a variant of timeout cores that accepts a set of assumptions. This
+       is available via the API method `Solver::getTimeoutCoreAssuming` or the
+       SMT-LIB command `get-timeout-core-assuming`, which accept a list of
+       formulas to assume, while all current assertions are implicitly included
+       in the core.
+- API: Add new method `Solver::getUnsatCoreLemmas` which returns the set of
+       theory lemmas that were relevant to showing the last query was
+       unsatisfiable. This is also avialable via the SMT-LIB command
+       `get-unsat-core-lemmas`.
+- Various bug fixes.
+
+cvc5 1.0.9
+==========
+Note: This is a pre-release version for the upcoming version 1.1.0.
+
+- SMT-LIB: The syntax for 0-ary tuples has been changed for the purposes of
+           disambiguation. The new syntax for 0-ary tuple sort is `UnitTuple`
+           whose 0-ary constructor is `tuple.unit` (the previous syntax had
+           overloaded `Tuple` and `tuple`, with no arguments).
+- API: Add the ability to query the logic that has been set in the solver via
+       `Solver::isLogicSet` and `Solver::getLogic`.
+
+cvc5 1.0.8
+==========
+Note: This is a pre-release version for the upcoming version 1.1.0.
+
+- API: C++ enums are now enum classes
+- API: Added argument `fresh` to `Solver::declareFun` which distinguishes whether
+       the solver should construct a new term or (when applicable) return a
+       term constructed with the same name and sort. An analogous flag is added
+       to `Solver::declareSort`. The option `--fresh-declarations` determines
+       whether the parser constructs fresh terms and sorts for each declaration
+       (true by default, which matches the previous behavior).
+
+cvc5 1.0.7
+==========
+
+- Various bug fixes
+
+cvc5 1.0.6
+==========
+
+- Removed support for the ANTLR parser and parsing for the TPTP language.
 - API: New API function
        `Solver::mkFloatingPoint(const Term& sign, const Term& exp, const Term& sig)`,
        returns a floating-point value from the three IEEE-754 bit-vector value
@@ -9,10 +78,34 @@ This file contains a summary of important user-visible changes.
 - API: Simplified the `Solver::mkTuple` method. The sorts of the elements no longer
        need to be provided.
 - Support for timeout cores
-  - API: New API function `Solver::getTimeoutCore()` when applicable
+  * API: New API function `Solver::getTimeoutCore()` when applicable
     returns a subset of the current assertions that cause the solver to timeout
     without a provided timeout (option `--timeout-core-timeout`).
-  - SMT-LIB: New command `(get-timeout-core)` which invokes the above method.
+  * SMT-LIB: New command `(get-timeout-core)` which invokes the above method.
+- Support for new interfaces to the SyGuS solver.
+  * API: New API function `Solver::findSynth` which takes an identifier
+    specifying a target term to synthesize and (optionally) a grammar. This
+    method can be used to directly enumerate terms in a provided grammar
+    (`FindSynthTarget::ENUM`), or as a way of finding other terms of interest,
+    e.g. a rewrite rule that is applicable to the current set of assertions
+    (`FindSynthTarget::REWRITE_INPUT`).
+  * API: New API function `Solver::findSynthNext` which gets the next term
+    in the enumeration.
+  * SMT-LIB: New commands `find-synth` and `find-synth-next` which invoke the
+    above methods.
+- API: The option `--print-unsat-cores-full` has been renamed to
+       `--print-cores-full`. Setting this option to true will print all
+       assertions in the unsat core, regardless of whether they are named. This
+       option also impacts how timeout cores are printed.
+- API: Added support for querying the values of real algebraic numbers in the
+       API. In particular, the methods `Term::isRealAlgebraicNumber()`,
+       `Term::getRealAlgebraicNumberDefiningPolynomial()`,
+       `Term::getRealAlgebraicNumberLowerBound()`, and
+       `Term::getRealAlgebraicNumberUpperBound()` may now be used to query
+       the contents of terms corresponding to real algebraic numbers.
+- API: Removed API support for the deprecated SyGuS 2.0 command
+       `Solver::synthInv`. This method is equivalent to `Solver::synthFun`
+       with a Boolean range sort.
 
 cvc5 1.0.5
 ==========

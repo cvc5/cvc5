@@ -72,7 +72,8 @@ void ArithStaticLearner::staticLearning(TNode n, NodeBuilder& learned)
         unprocessedChildren = true;
       }
     }
-    if(n.getKind() == AND && defTrue.find(n) != defTrue.end() ){
+    if (n.getKind() == Kind::AND && defTrue.find(n) != defTrue.end())
+    {
       for(TNode::iterator i = n.begin(), iend = n.end(); i != iend; ++i) {
         defTrue.insert(*i);
       }
@@ -101,49 +102,52 @@ void ArithStaticLearner::process(TNode n,
   Trace("arith::static") << "===================== looking at " << n << endl;
 
   switch(n.getKind()){
-  case ITE:
-    if (expr::hasBoundVar(n))
-    {
-      // Unsafe with non-ground ITEs; do nothing
-      Trace("arith::static")
-          << "(potentially) non-ground ITE, ignoring..." << endl;
+    case Kind::ITE:
+      if (expr::hasBoundVar(n))
+      {
+        // Unsafe with non-ground ITEs; do nothing
+        Trace("arith::static")
+            << "(potentially) non-ground ITE, ignoring..." << endl;
+        break;
+      }
+
+      if (n[0].getKind() != Kind::EQUAL && isRelationOperator(n[0].getKind()))
+      {
+        iteMinMax(n, learned);
+      }
+
+      if ((d_minMap.find(n[1]) != d_minMap.end()
+           && d_minMap.find(n[2]) != d_minMap.end())
+          || (d_maxMap.find(n[1]) != d_maxMap.end()
+              && d_maxMap.find(n[2]) != d_maxMap.end()))
+      {
+        iteConstant(n, learned);
+      }
       break;
-    }
 
-    if(n[0].getKind() != EQUAL &&
-       isRelationOperator(n[0].getKind())  ){
-      iteMinMax(n, learned);
-    }
-
-    if((d_minMap.find(n[1]) != d_minMap.end() && d_minMap.find(n[2]) != d_minMap.end()) ||
-       (d_maxMap.find(n[1]) != d_maxMap.end() && d_maxMap.find(n[2]) != d_maxMap.end())) {
-      iteConstant(n, learned);
-    }
-    break;
-
-  case CONST_RATIONAL:
-  case CONST_INTEGER:
-    // Mark constants as minmax
-    d_minMap.insert(n, n.getConst<Rational>());
-    d_maxMap.insert(n, n.getConst<Rational>());
-    break;
-  default: // Do nothing
-    break;
+    case Kind::CONST_RATIONAL:
+    case Kind::CONST_INTEGER:
+      // Mark constants as minmax
+      d_minMap.insert(n, n.getConst<Rational>());
+      d_maxMap.insert(n, n.getConst<Rational>());
+      break;
+    default:  // Do nothing
+      break;
   }
 }
 
 void ArithStaticLearner::iteMinMax(TNode n, NodeBuilder& learned)
 {
-  Assert(n.getKind() == kind::ITE);
-  Assert(n[0].getKind() != EQUAL);
+  Assert(n.getKind() == Kind::ITE);
+  Assert(n[0].getKind() != Kind::EQUAL);
   Assert(isRelationOperator(n[0].getKind()));
 
   TNode c = n[0];
   Kind k = oldSimplifiedKind(c);
   TNode t = n[1];
   TNode e = n[2];
-  TNode cleft = (c.getKind() == NOT) ? c[0][0] : c[0];
-  TNode cright = (c.getKind() == NOT) ? c[0][1] : c[1];
+  TNode cleft = (c.getKind() == Kind::NOT) ? c[0][0] : c[0];
+  TNode cright = (c.getKind() == Kind::NOT) ? c[0][1] : c[1];
 
   if((t == cright) && (e == cleft)){
     TNode tmp = t;
@@ -162,24 +166,26 @@ void ArithStaticLearner::iteMinMax(TNode n, NodeBuilder& learned)
     Assert(t == cleft);
     Assert(e == cright);
     switch(k){
-    case LT:   // (ite (< x y) x y)
-    case LEQ: { // (ite (<= x y) x y)
-      Node nLeqX = NodeBuilder(LEQ) << n << t;
-      Node nLeqY = NodeBuilder(LEQ) << n << e;
-      Trace("arith::static") << n << "is a min =>"  << nLeqX << nLeqY << endl;
-      learned << nLeqX << nLeqY;
-      ++(d_statistics.d_iteMinMaxApplications);
-      break;
-    }
-    case GT: // (ite (> x y) x y)
-    case GEQ: { // (ite (>= x y) x y)
-      Node nGeqX = NodeBuilder(GEQ) << n << t;
-      Node nGeqY = NodeBuilder(GEQ) << n << e;
-      Trace("arith::static") << n << "is a max =>"  << nGeqX << nGeqY << endl;
-      learned << nGeqX << nGeqY;
-      ++(d_statistics.d_iteMinMaxApplications);
-      break;
-    }
+      case Kind::LT:  // (ite (< x y) x y)
+      case Kind::LEQ:
+      {  // (ite (<= x y) x y)
+        Node nLeqX = NodeBuilder(Kind::LEQ) << n << t;
+        Node nLeqY = NodeBuilder(Kind::LEQ) << n << e;
+        Trace("arith::static") << n << "is a min =>" << nLeqX << nLeqY << endl;
+        learned << nLeqX << nLeqY;
+        ++(d_statistics.d_iteMinMaxApplications);
+        break;
+      }
+      case Kind::GT:  // (ite (> x y) x y)
+      case Kind::GEQ:
+      {  // (ite (>= x y) x y)
+        Node nGeqX = NodeBuilder(Kind::GEQ) << n << t;
+        Node nGeqY = NodeBuilder(Kind::GEQ) << n << e;
+        Trace("arith::static") << n << "is a max =>" << nGeqX << nGeqY << endl;
+        learned << nGeqX << nGeqY;
+        ++(d_statistics.d_iteMinMaxApplications);
+        break;
+      }
     default: Unreachable();
     }
   }
@@ -187,7 +193,7 @@ void ArithStaticLearner::iteMinMax(TNode n, NodeBuilder& learned)
 
 void ArithStaticLearner::iteConstant(TNode n, NodeBuilder& learned)
 {
-  Assert(n.getKind() == ITE);
+  Assert(n.getKind() == Kind::ITE);
 
   Trace("arith::static") << "iteConstant(" << n << ")" << endl;
 
@@ -200,7 +206,7 @@ void ArithStaticLearner::iteConstant(TNode n, NodeBuilder& learned)
       d_minMap.insert(n, min);
       NodeManager* nm = NodeManager::currentNM();
       Node nGeqMin = nm->mkNode(
-          min.getInfinitesimalPart() == 0 ? kind::GEQ : kind::GT,
+          min.getInfinitesimalPart() == 0 ? Kind::GEQ : Kind::GT,
           n,
           nm->mkConstRealOrInt(n.getType(), min.getNoninfinitesimalPart()));
       learned << nGeqMin;
@@ -218,7 +224,7 @@ void ArithStaticLearner::iteConstant(TNode n, NodeBuilder& learned)
       d_maxMap.insert(n, max);
       NodeManager* nm = NodeManager::currentNM();
       Node nLeqMax = nm->mkNode(
-          max.getInfinitesimalPart() == 0 ? kind::LEQ : kind::LT,
+          max.getInfinitesimalPart() == 0 ? Kind::LEQ : Kind::LT,
           n,
           nm->mkConstRealOrInt(n.getType(), max.getNoninfinitesimalPart()));
       learned << nLeqMax;
@@ -230,7 +236,8 @@ void ArithStaticLearner::iteConstant(TNode n, NodeBuilder& learned)
 
 std::set<Node> listToSet(TNode l){
   std::set<Node> ret;
-  while(l.getKind() == OR){
+  while (l.getKind() == Kind::OR)
+  {
     Assert(l.getNumChildren() == 2);
     ret.insert(l[0]);
     l = l[1];
@@ -247,16 +254,16 @@ void ArithStaticLearner::addBound(TNode n) {
   DeltaRational bound = constant;
 
   switch(Kind k = n.getKind()) {
-    case kind::LT: bound = DeltaRational(constant, -1); CVC5_FALLTHROUGH;
-    case kind::LEQ:
+    case Kind::LT: bound = DeltaRational(constant, -1); CVC5_FALLTHROUGH;
+    case Kind::LEQ:
       if (maxFind == d_maxMap.end() || (*maxFind).second > bound)
       {
         d_maxMap.insert(n[0], bound);
         Trace("arith::static") << "adding bound " << n << endl;
       }
       break;
-    case kind::GT: bound = DeltaRational(constant, 1); CVC5_FALLTHROUGH;
-    case kind::GEQ:
+    case Kind::GT: bound = DeltaRational(constant, 1); CVC5_FALLTHROUGH;
+    case Kind::GEQ:
       if (minFind == d_minMap.end() || (*minFind).second < bound)
       {
         d_minMap.insert(n[0], bound);

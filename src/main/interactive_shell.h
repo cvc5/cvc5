@@ -16,6 +16,8 @@
 #ifndef CVC5__INTERACTIVE_SHELL_H
 #define CVC5__INTERACTIVE_SHELL_H
 
+#include <cvc5/cvc5_types.h>
+
 #include <iosfwd>
 #include <memory>
 #include <optional>
@@ -29,7 +31,7 @@ class Solver;
 namespace parser {
 class Command;
 class InputParser;
-class SymbolManager;
+class SymManager;
 }  // namespace parser
 
 namespace main {
@@ -66,7 +68,7 @@ class InteractiveShell
  private:
   main::CommandExecutor* d_cexec;
   Solver* d_solver;
-  cvc5::parser::SymbolManager* d_symman;
+  cvc5::parser::SymManager* d_symman;
   std::istream& d_in;
   std::ostream& d_out;
   std::unique_ptr<cvc5::parser::InputParser> d_parser;
@@ -74,6 +76,8 @@ class InteractiveShell
   bool d_isInteractive;
   bool d_quit;
   bool d_usingEditline;
+  /** The language */
+  modes::InputLanguage d_lang;
 
   std::string d_historyFilename;
 

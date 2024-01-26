@@ -30,6 +30,10 @@ class ProofGenerator;
 enum class SkolemFunId
 {
   NONE,
+  /** input variable with a given name */
+  INPUT_VARIABLE,
+  /** purification skolem for a term t */
+  PURIFY,
   /** array diff to witness (not (= A B)) */
   ARRAY_DEQ_DIFF,
   /** an uninterpreted function f s.t. f(x) = x / 0.0 (real division) */
@@ -57,9 +61,11 @@ enum class SkolemFunId
    * first order datatype variable for f.
    */
   QUANTIFIERS_SYNTH_FUN_EMBED,
-  //----- string skolems are cached based on two strings (a, b)
-  /** exists k. ( b occurs k times in a ) */
+  //----- string skolems are cached based on (a, b)
+  /** exists k. ( string b occurs k times in string a ) */
   STRINGS_NUM_OCCUR,
+  /** exists k. ( regular expression b can be matched k times in a ) */
+  STRINGS_NUM_OCCUR_RE,
   /** For function k: Int -> Int
    *   exists k.
    *     forall 0 <= x <= n,
@@ -67,6 +73,8 @@ enum class SkolemFunId
    *   where n is the number of occurrences of b in a, and k(0)=0.
    */
   STRINGS_OCCUR_INDEX,
+  /** Same, but where b is a regular expression */
+  STRINGS_OCCUR_INDEX_RE,
   /**
    * For function k: Int -> Int
    *   exists k.
@@ -77,6 +85,8 @@ enum class SkolemFunId
    *   in a, and k(0)=0.
    */
   STRINGS_OCCUR_LEN,
+  /** Same, but where b is a regular expression */
+  STRINGS_OCCUR_LEN_RE,
   /**
    * Diff index for disequalities a != b => substr(a,k,1) != substr(b,k,1)
    */
@@ -115,9 +125,9 @@ enum class SkolemFunId
    * is the substring of a matched by b. It is either empty or there is no
    * shorter string that matches b.
    */
-  SK_FIRST_MATCH_PRE,
-  SK_FIRST_MATCH,
-  SK_FIRST_MATCH_POST,
+  RE_FIRST_MATCH_PRE,
+  RE_FIRST_MATCH,
+  RE_FIRST_MATCH_POST,
   /**
    * Regular expression unfold component: if (str.in_re t R), where R is
    * (re.++ r0 ... rn), then the RE_UNFOLD_POS_COMPONENT{t,R,i} is a string
@@ -229,7 +239,10 @@ enum class SkolemFunId
   /** the "none" term, for instantiation evaluation */
   IEVAL_NONE,
   /** the "some" term, for instantiation evaluation */
-  IEVAL_SOME
+  IEVAL_SOME,
+  /** sygus "any constant" placeholder */
+  SYGUS_ANY_CONSTANT,
+  UNKNOWN
 };
 /** Converts a skolem function name to a string. */
 const char* toString(SkolemFunId id);
@@ -246,6 +259,10 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id);
  * can be seen as arguments to the skolem function. These are typically used for
  * implementing theory-specific inferences that introduce symbols that
  * are not interpreted by the theory (see SkolemFunId enum).
+ *
+ * Note that (1) is a special instance of (2), where the purification skolem
+ * for t is equivalent to calling mkSkolemFunction on SkolemFunId::PURIFY
+ * and t.
  *
  * If a variable cannot be associated with any of the above information,
  * the method `mkDummySkolem` may be used, which always constructs a fresh
@@ -284,9 +301,7 @@ class SkolemManager
 
   /**
    * Optional flags used to control behavior of skolem creation.
-   * They should be composed with a bitwise OR (e.g.,
-   * "SKOLEM_BOOL_TERM_VAR | SKOLEM_EXACT_NAME").  Of course, SKOLEM_DEFAULT
-   * cannot be composed in such a manner.
+   * They should be composed with a bitwise OR.
    */
   enum SkolemFlags
   {
@@ -294,8 +309,6 @@ class SkolemManager
     SKOLEM_DEFAULT = 0,
     /** do not make the name unique by adding the id */
     SKOLEM_EXACT_NAME = 1,
-    /** vars requiring kind BOOLEAN_TERM_VARIABLE */
-    SKOLEM_BOOL_TERM_VAR = 2,
   };
   /**
    * Make purification skolem. This skolem is unique for each t, which we
@@ -313,9 +326,6 @@ class SkolemManager
    * will return two different Skolems.
    *
    * @param t The term to purify
-   * @param prefix The prefix of the name of  the skolem
-   * @param comment Debug information about the skolem
-   * @param flags The flags for the skolem (see SkolemFlags)
    * @param pg The proof generator for the skolemization of t. This should
    * only be provided if t is a witness term (witness ((x T)) P). If non-null,
    * this proof generator must respond to a call to getProofFor on
@@ -323,9 +333,6 @@ class SkolemManager
    * @return The purification skolem for t
    */
   Node mkPurifySkolem(Node t,
-                      const std::string& prefix,
-                      const std::string& comment = "",
-                      int flags = SKOLEM_DEFAULT,
                       ProofGenerator* pg = nullptr);
   /**
    * Make skolem function. This method should be used for creating fixed
@@ -349,7 +356,6 @@ class SkolemManager
    * as well.
    *
    * @param id The identifier of the skolem function
-   * @param tn The type of the returned skolem function
    * @param cacheVal A cache value. The returned skolem function will be
    * unique to the pair (id, cacheVal). This value is required, for instance,
    * for skolem functions that are in fact families of skolem functions,
@@ -357,19 +363,26 @@ class SkolemManager
    * @return The skolem function.
    */
   Node mkSkolemFunction(SkolemFunId id,
-                        TypeNode tn,
-                        Node cacheVal = Node::null(),
-                        int flags = SKOLEM_DEFAULT);
+                        Node cacheVal = Node::null());
   /** Same as above, with multiple cache values */
-  Node mkSkolemFunction(SkolemFunId id,
-                        TypeNode tn,
-                        const std::vector<Node>& cacheVals,
-                        int flags = SKOLEM_DEFAULT);
+  Node mkSkolemFunction(SkolemFunId id, const std::vector<Node>& cacheVals);
+  /** Same as above, with explicit type */
+  Node mkSkolemFunctionTyped(SkolemFunId id,
+                             TypeNode tn,
+                             Node cacheVal = Node::null());
+  /** Same as above, with multiple cache values and explicit Type */
+  Node mkSkolemFunctionTyped(SkolemFunId id,
+                             TypeNode tn,
+                             const std::vector<Node>& cacheVals);
   /**
    * Is k a skolem function? Returns true if k was generated by the above
    * call. Updates the arguments to the values used when constructing it.
    */
   bool isSkolemFunction(TNode k, SkolemFunId& id, Node& cacheVal) const;
+  /**
+   * Get skolem function id
+   */
+  SkolemFunId getId(TNode k) const;
   /**
    * Create a skolem constant with the given name, type, and comment. This
    * should only be used if the definition of the skolem does not matter.
@@ -437,12 +450,6 @@ class SkolemManager
    * by this node manager.
    */
   size_t d_skolemCounter;
-
-  /** Get or make skolem attribute for term w, which may be a witness term */
-  Node mkSkolemInternal(Node w,
-                        const std::string& prefix,
-                        const std::string& comment,
-                        int flags);
   /**
    * Create a skolem constant with the given name, type, and comment.
    *
@@ -450,66 +457,12 @@ class SkolemManager
    * call a public method from SkolemManager for allocating a skolem in a
    * proper way, or otherwise use SkolemManager::mkDummySkolem.
    */
-  Node mkSkolemNode(const std::string& prefix,
+  Node mkSkolemNode(Kind k,
+                    const std::string& prefix,
                     const TypeNode& type,
-                    const std::string& comment = "",
                     int flags = SKOLEM_DEFAULT);
-  /**
-   * This makes a skolem of same type as bound variable v, say its type is T,
-   * whose definition is (witness ((v T)) pred). This definition is maintained
-   * by this class.
-   *
-   * Notice that (exists ((v T)) pred) should be a valid formula. This fact
-   * captures the reason for why the returned Skolem was introduced.
-   *
-   * Note that arrays uses a skolem (which identifier ARRAY_DEQ_DIFF) via
-   * `mkSkolemFunction` for extensionality. However, consider the following
-   * example, which demonstrates how it could use a witness skolem for
-   * formalizing this instead:
-   *
-   * (declare-fun a () (Array Int Int))
-   * (declare-fun b () (Array Int Int))
-   * (assert (not (= a b)))
-   *
-   * To witness the index where the arrays a and b are disequal, it is intended
-   * we call this method on:
-   *   Node k = mkWitnessSkolem( x, F )
-   * where F is:
-   *   (=> (not (= a b)) (not (= (select a x) (select b x))))
-   * and x is a fresh bound variable of integer type. Internally, this will map
-   * k to the term:
-   *   (witness ((x Int)) (=> (not (= a b))
-   *                          (not (= (select a x) (select b x)))))
-   * A lemma generated by the array solver for extensionality may safely use
-   * the skolem k in the standard way:
-   *   (=> (not (= a b)) (not (= (select a k) (select b k))))
-   * Furthermore, notice that the following lemma does not involve fresh
-   * skolem variables and is valid according to the theory of arrays extended
-   * with support for witness:
-   *   (let ((w (witness ((x Int)) (=> (not (= a b))
-   *                                   (not (= (select a x) (select b x)))))))
-   *     (=> (not (= a b)) (not (= (select a w) (select b w)))))
-   * This version of the lemma, which requires no explicit tracking of free
-   * Skolem variables, can be obtained by a calls to getWitnessForm(...).
-   * We call this the "witness form" of the lemma above.
-   *
-   * @param v The bound variable of the same type of the Skolem to create.
-   * @param pred The desired property of the Skolem to create, in terms of bound
-   * variable v.
-   * @param prefix The prefix of the name of the Skolem
-   * @param comment Debug information about the Skolem
-   * @param flags The flags for the Skolem (see SkolemFlags)
-   * @param pg The proof generator for this skolem. If non-null, this proof
-   * generator must respond to a call to getProofFor(exists v. pred) during
-   * the lifetime of the current node manager.
-   * @return The skolem whose witness form is registered by this class.
-   */
-  Node mkWitnessSkolem(Node v,
-                       Node pred,
-                       const std::string& prefix,
-                       const std::string& comment = "",
-                       int flags = SKOLEM_DEFAULT,
-                       ProofGenerator* pg = nullptr);
+  /** Get type for skolem */
+  TypeNode getTypeFor(SkolemFunId id, const std::vector<Node>& cacheVals);
 };
 
 }  // namespace cvc5::internal

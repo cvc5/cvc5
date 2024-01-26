@@ -180,7 +180,7 @@ constant IAND_OP \
   "operator for integer AND; payload is an instance of the cvc5::internal::IntAnd class"
 parameterized IAND IAND_OP 2 "integer version of AND operator; first parameter is an IAND_OP, second and third are integer terms"
 
-typerule IAND_OP ::cvc5::internal::theory::arith::IAndOpTypeRule
+typerule IAND_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule IAND ::cvc5::internal::theory::arith::IAndTypeRule
 
 endtheory

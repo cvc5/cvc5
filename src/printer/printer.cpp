@@ -17,13 +17,15 @@
 #include <sstream>
 #include <string>
 
+#include "expr/node.h"
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/printer_options.h"
 #include "printer/ast/ast_printer.h"
+#include "printer/let_binding.h"
 #include "printer/smt2/smt2_printer.h"
-#include "printer/tptp/tptp_printer.h"
 #include "proof/unsat_core.h"
+#include "smt/model.h"
 #include "theory/quantifiers/instantiation_list.h"
 
 using namespace std;
@@ -40,9 +42,6 @@ unique_ptr<Printer> Printer::makePrinter(Language lang)
       return unique_ptr<Printer>(
           new printer::smt2::Smt2Printer(printer::smt2::smt2_6_variant));
 
-    case Language::LANG_TPTP:
-      return unique_ptr<Printer>(new printer::tptp::TptpPrinter());
-
     case Language::LANG_SYGUS_V2:
       // sygus version 2.0 does not have discrepancies with smt2, hence we use
       // a normal smt2 variant here.
@@ -53,6 +52,22 @@ unique_ptr<Printer> Printer::makePrinter(Language lang)
       return unique_ptr<Printer>(new printer::ast::AstPrinter());
 
     default: Unhandled() << lang;
+  }
+}
+
+void Printer::toStream(std::ostream& out,
+                       TNode n,
+                       const LetBinding* lbind) const
+{
+  // no special implementation, just convert and print with default prefix
+  if (lbind != nullptr)
+  {
+    Node nc = lbind->convert(n);
+    toStream(out, nc);
+  }
+  else
+  {
+    toStream(out, n);
   }
 }
 
@@ -151,7 +166,7 @@ void Printer::printUnknownCommandStatus(std::ostream& out,
 void Printer::printUnknownCommand(std::ostream& out,
                                   const std::string& name) const
 {
-  out << "ERROR: don't know how to print " << name << " command" << std::endl;
+  out << "ERROR: don't know how to print " << name << " command";
 }
 
 void Printer::toStreamCmdSuccess(std::ostream& out) const
@@ -209,6 +224,7 @@ void Printer::toStreamCmdPop(std::ostream& out, uint32_t nscopes) const
 
 void Printer::toStreamCmdDeclareFunction(std::ostream& out,
                                          const std::string& id,
+                                         const std::vector<TypeNode>& argTypes,
                                          TypeNode type) const
 {
   printUnknownCommand(out, "declare-fun");
@@ -221,7 +237,14 @@ void Printer::toStreamCmdDeclareFunction(std::ostream& out, const Node& v) const
   // assigned names.
   std::stringstream ss;
   toStream(ss, v);
-  toStreamCmdDeclareFunction(out, ss.str(), v.getType());
+  TypeNode vt = v.getType();
+  std::vector<TypeNode> argTypes;
+  if (vt.isFunction())
+  {
+    argTypes = vt.getArgTypes();
+    vt = vt.getRangeType();
+  }
+  toStreamCmdDeclareFunction(out, ss.str(), argTypes, vt);
 }
 
 void Printer::toStreamCmdDeclarePool(std::ostream& out,
@@ -234,6 +257,7 @@ void Printer::toStreamCmdDeclarePool(std::ostream& out,
 
 void Printer::toStreamCmdDeclareOracleFun(std::ostream& out,
                                           const std::string& id,
+                                          const std::vector<TypeNode>& argTypes,
                                           TypeNode type,
                                           const std::string& binName) const
 {
@@ -241,9 +265,19 @@ void Printer::toStreamCmdDeclareOracleFun(std::ostream& out,
 }
 
 void Printer::toStreamCmdDeclareType(std::ostream& out,
-                                     TypeNode type) const
+                                     const std::string& id,
+                                     size_t arity) const
 {
   printUnknownCommand(out, "declare-sort");
+}
+
+void Printer::toStreamCmdDeclareType(std::ostream& out, TypeNode type) const
+{
+  Assert(type.isUninterpretedSort() || type.isUninterpretedSortConstructor());
+  size_t arity = type.isUninterpretedSortConstructor()
+                     ? type.getUninterpretedSortConstructorArity()
+                     : 0;
+  toStreamCmdDeclareType(out, type.getName(), arity);
 }
 
 void Printer::toStreamCmdDefineType(std::ostream& out,
@@ -272,7 +306,7 @@ void Printer::toStreamCmdDefineFunction(std::ostream& out,
   std::vector<Node> formals;
   Node body = lambda;
   TypeNode rangeType = v.getType();
-  if (body.getKind() == kind::LAMBDA)
+  if (body.getKind() == Kind::LAMBDA)
   {
     formals.insert(formals.end(), lambda[0].begin(), lambda[0].end());
     body = lambda[1];
@@ -302,7 +336,7 @@ void Printer::toStreamCmdDefineFunctionRec(
   {
     std::vector<Node> formalsVec;
     Node formula;
-    if (l.getKind() == kind::LAMBDA)
+    if (l.getKind() == Kind::LAMBDA)
     {
       formalsVec.insert(formalsVec.end(), l[0].begin(), l[0].end());
       formula = l[1];
@@ -341,19 +375,19 @@ void Printer::toStreamCmdQuery(std::ostream& out, Node n) const
 }
 
 void Printer::toStreamCmdDeclareVar(std::ostream& out,
-                                    Node var,
+                                    const std::string& id,
                                     TypeNode type) const
 {
   printUnknownCommand(out, "declare-var");
 }
 
 void Printer::toStreamCmdSynthFun(std::ostream& out,
-                                  Node f,
+                                  const std::string& id,
                                   const std::vector<Node>& vars,
-                                  bool isInv,
+                                  TypeNode rangeType,
                                   TypeNode sygusType) const
 {
-  printUnknownCommand(out, isInv ? "synth-inv" : "synth-fun");
+  printUnknownCommand(out, "synth-fun");
 }
 
 void Printer::toStreamCmdConstraint(std::ostream& out, Node n) const
@@ -379,6 +413,18 @@ void Printer::toStreamCmdCheckSynth(std::ostream& out) const
 void Printer::toStreamCmdCheckSynthNext(std::ostream& out) const
 {
   printUnknownCommand(out, "check-synth-next");
+}
+
+void Printer::toStreamCmdFindSynth(std::ostream& out,
+                                   modes::FindSynthTarget fst,
+                                   TypeNode sygusType) const
+{
+  printUnknownCommand(out, "find-synth");
+}
+
+void Printer::toStreamCmdFindSynthNext(std::ostream& out) const
+{
+  printUnknownCommand(out, "find-synth-next");
 }
 
 void Printer::toStreamCmdSimplify(std::ostream& out, Node n) const
@@ -476,6 +522,12 @@ void Printer::toStreamCmdGetDifficulty(std::ostream& out) const
 void Printer::toStreamCmdGetTimeoutCore(std::ostream& out) const
 {
   printUnknownCommand(out, "get-timeout-core");
+}
+
+void Printer::toStreamCmdGetTimeoutCoreAssuming(
+    std::ostream& out, const std::vector<Node>& assumptions) const
+{
+  printUnknownCommand(out, "get-timeout-core-assuming");
 }
 
 void Printer::toStreamCmdGetLearnedLiterals(std::ostream& out,

@@ -22,7 +22,6 @@
 #include "expr/node.h"
 #include "smt/env_obj.h"
 #include "theory/arith/nl/coverings/cdcac.h"
-#include "theory/arith/nl/coverings/proof_checker.h"
 #include "theory/arith/nl/equality_substitution.h"
 
 namespace cvc5::internal {
@@ -98,8 +97,6 @@ class CoveringsSolver: protected EnvObj
    * The object implementing the actual decision procedure.
    */
   coverings::CDCAC d_CAC;
-  /** The proof checker for coverings proofs */
-  coverings::CoveringsProofRuleChecker d_proofChecker;
 #endif
   /**
    * Indicates whether we found satisfiability in the last call to

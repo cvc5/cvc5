@@ -38,7 +38,7 @@ WitnessFormGenerator::WitnessFormGenerator(Env& env)
 
 std::shared_ptr<ProofNode> WitnessFormGenerator::getProofFor(Node eq)
 {
-  if (eq.getKind() != kind::EQUAL)
+  if (eq.getKind() != Kind::EQUAL)
   {
     // expecting an equality
     return nullptr;
@@ -93,9 +93,9 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
           d_eqs.insert(eq);
           // ------- SKOLEM_INTRO
           // k = t
-          d_wintroPf.addStep(eq, PfRule::SKOLEM_INTRO, {}, {cur});
+          d_wintroPf.addStep(eq, ProofRule::SKOLEM_INTRO, {}, {cur});
           d_tcpg.addRewriteStep(
-              cur, curw, &d_wintroPf, true, PfRule::ASSUME, true);
+              cur, curw, &d_wintroPf, true, TrustId::NONE, true);
           // recursively transform
           visit.push_back(curw);
         }

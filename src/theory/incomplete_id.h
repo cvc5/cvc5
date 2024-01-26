@@ -32,6 +32,8 @@ namespace theory {
  */
 enum class IncompleteId
 {
+  // there is no marked incompleteness
+  NONE,
   // the non-linear arithmetic solver was disabled
   ARITH_NL_DISABLED,
   // the non-linear arithmetic solver was incomplete
@@ -78,12 +80,14 @@ enum class IncompleteId
   // UF+cardinality solver used in an incomplete mode
   UF_CARD_MODE,
 
-  //------------------- other causes external to theory engine
+  //------------------- other causes external to theories
+  // unprocessed theory conflict
+  UNPROCESSED_THEORY_CONFLICT,
   // the prop layer stopped search
   STOP_SEARCH,
   //------------------- unknown
-  UNKNOWN,
-  NONE
+  // the reason for the incompleteness is unknown
+  UNKNOWN
 };
 
 /**

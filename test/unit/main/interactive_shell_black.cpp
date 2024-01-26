@@ -14,6 +14,7 @@
  */
 
 #include <cvc5/cvc5.h>
+#include <cvc5/cvc5_parser.h>
 
 #include <memory>
 #include <sstream>
@@ -24,13 +25,9 @@
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/options.h"
-#include "parser/api/cpp/command.h"
-#include "parser/api/cpp/symbol_manager.h"
-#include "parser/parser_builder.h"
 #include "test.h"
 
 using namespace cvc5::parser;
-using namespace cvc5::internal::parser;
 
 namespace cvc5::internal {
 namespace test {
@@ -63,9 +60,9 @@ class TestMainBlackInteractiveShell : public TestInternal
    * Read up to maxIterations+1 from the shell and throw an assertion error if
    * it's fewer than minIterations and more than maxIterations.  Note that an
    * empty string followed by EOF may be returned as an empty command, and
-   * not NULL (subsequent calls to readAndExecCommands() should return NULL).
-   * E.g., "CHECKSAT;\n" may return two commands: the CHECKSAT, followed by an
-   * empty command, followed by NULL.
+   * not NULL (subsequent calls to readAndExecCommands() should return nullptr).
+   * E.g., "(check-sat)\n" may return two commands: the check-sat, followed by
+   * an empty command, followed by nullptr.
    */
   void countCommands(InteractiveShell& shell,
                      uint32_t minIterations,

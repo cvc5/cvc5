@@ -18,7 +18,7 @@
 #ifndef CVC5__PARSER__SMT2_CMD_PARSER_H
 #define CVC5__PARSER__SMT2_CMD_PARSER_H
 
-#include "parser/smt2/smt2.h"
+#include "parser/smt2/smt2_state.h"
 #include "parser/smt2/smt2_lexer.h"
 #include "parser/smt2/smt2_term_parser.h"
 
@@ -39,7 +39,7 @@ class Smt2CmdParser
   /**
    * Parse and return the next command, or nullptr if we are at the end of file.
    */
-  std::unique_ptr<Command> parseNextCommand();
+  std::unique_ptr<Cmd> parseNextCommand();
 
  protected:
   /** Next command token */

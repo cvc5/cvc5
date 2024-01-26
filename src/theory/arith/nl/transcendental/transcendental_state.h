@@ -22,7 +22,6 @@
 #include "proof/proof_set.h"
 #include "smt/env.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
-#include "theory/arith/nl/transcendental/proof_checker.h"
 #include "theory/arith/nl/transcendental/taylor_generator.h"
 
 namespace cvc5::internal {
@@ -203,8 +202,6 @@ class TranscendentalState : protected EnvObj
    */
   std::unique_ptr<CDProofSet<CDProof>> d_proof;
 
-  /** The proof checker for transcendental proofs */
-  std::unique_ptr<TranscendentalProofRuleChecker> d_proofChecker;
 
   /**
    * Some transcendental functions f(t) are "purified", e.g. we add

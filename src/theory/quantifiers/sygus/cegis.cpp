@@ -49,7 +49,8 @@ bool Cegis::initialize(Node conj, Node n, const std::vector<Node>& candidates)
 {
   d_base_body = n;
   d_cexClosedEnum = true;
-  if (d_base_body.getKind() == NOT && d_base_body[0].getKind() == FORALL)
+  if (d_base_body.getKind() == Kind::NOT
+      && d_base_body[0].getKind() == Kind::FORALL)
   {
     for (const Node& v : d_base_body[0][0])
     {
@@ -72,6 +73,40 @@ bool Cegis::initialize(Node conj, Node n, const std::vector<Node>& candidates)
     TypeNode bt = d_base_body.getType();
     d_cegis_sampler.initialize(
         bt, d_base_vars, options().quantifiers.sygusSamples);
+  }
+  Assert(conj.getKind() == Kind::FORALL);
+  Assert(conj[0].getNumChildren() == candidates.size());
+  // construct the substitution d_euSubs if evaluation unfolding is enabled.
+  if (options().quantifiers.sygusEvalUnfoldMode
+      != options::SygusEvalUnfoldMode::NONE)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    for (size_t i = 0, nvars = conj[0].getNumChildren(); i < nvars; i++)
+    {
+      TypeNode tn = candidates[i].getType();
+      SygusTypeInfo& ti = d_tds->getTypeInfo(tn);
+      const std::vector<Node>& vars = ti.getVarList();
+      std::vector<Node> vs;
+      for (const Node& v : vars)
+      {
+        vs.push_back(nm->mkBoundVar(v.getType()));
+      }
+      std::vector<Node> eargs;
+      eargs.push_back(candidates[i]);
+      Node ret;
+      if (!vs.empty())
+      {
+        Node lvl = nm->mkNode(Kind::BOUND_VAR_LIST, vs);
+        eargs.insert(eargs.end(), vs.begin(), vs.end());
+        ret = nm->mkNode(
+            Kind::LAMBDA, lvl, nm->mkNode(Kind::DT_SYGUS_EVAL, eargs));
+      }
+      else
+      {
+        ret = nm->mkNode(Kind::DT_SYGUS_EVAL, eargs);
+      }
+      d_euSubs.add(conj[0][i], ret);
+    }
   }
   return processInitialize(conj, n, candidates);
 }
@@ -126,7 +161,7 @@ bool Cegis::processInitialize(Node conj,
     // This lemma allows us to answer infeasible when we run out of values (for
     // finite grammars).
     NodeManager* nm = NodeManager::currentNM();
-    Node enumLem = nm->mkNode(IMPLIES, conj, nm->mkAnd(activeGuards));
+    Node enumLem = nm->mkNode(Kind::IMPLIES, conj, nm->mkAnd(activeGuards));
     d_qim.lemma(enumLem, InferenceId::QUANTIFIERS_SYGUS_COMPLETE_ENUM);
   }
   return true;
@@ -224,8 +259,12 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
                          << " evaluation unfold lemmas.\n";
     for (unsigned i = 0, size = eager_terms.size(); i < size; ++i)
     {
-      Node lem = nm->mkNode(
-          OR, eager_exps[i].negate(), eager_terms[i].eqNode(eager_vals[i]));
+      Node lem = nm->mkNode(Kind::OR,
+                            eager_exps[i].negate(),
+                            eager_terms[i].eqNode(eager_vals[i]));
+      // apply the substitution, which ensures that this lemma does not
+      // contain free variables (e.g. if using forward declarations).
+      lem = d_euSubs.apply(lem);
       d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_SYGUS_EVAL_UNFOLD);
       addedEvalLemmas = true;
       Trace("cegqi-lemma") << "Cegqi::Lemma : evaluation unfold : " << lem
@@ -254,7 +293,7 @@ Node Cegis::getRefinementLemmaFormula()
   }
   else
   {
-    ret = conj.size() == 1 ? conj[0] : nm->mkNode(AND, conj);
+    ret = conj.size() == 1 ? conj[0] : nm->mkNode(Kind::AND, conj);
   }
   return ret;
 }
@@ -315,9 +354,10 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
       }
       Assert(!exp.empty());
       NodeManager* nm = NodeManager::currentNM();
-      Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
+      Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(Kind::AND, exp);
       // must guard it
-      expn = nm->mkNode(OR, d_parent->getConjecture().negate(), expn.negate());
+      expn = nm->mkNode(
+          Kind::OR, d_parent->getConjecture().negate(), expn.negate());
       d_qim.addPendingLemma(
           expn, InferenceId::QUANTIFIERS_SYGUS_REPAIR_CONST_EXCLUDE);
       return ret;
@@ -412,7 +452,7 @@ void Cegis::addRefinementLemmaConjunct(unsigned wcounter,
     }
   }
   // break into conjunctions
-  if (lem.getKind() == AND)
+  if (lem.getKind() == Kind::AND)
   {
     for (const Node& lc : lem)
     {
@@ -424,7 +464,7 @@ void Cegis::addRefinementLemmaConjunct(unsigned wcounter,
   NodeManager* nm = NodeManager::currentNM();
   TNode term;
   TNode val;
-  if (lem.getKind() == EQUAL)
+  if (lem.getKind() == Kind::EQUAL)
   {
     for (unsigned i = 0; i < 2; i++)
     {
@@ -438,11 +478,11 @@ void Cegis::addRefinementLemmaConjunct(unsigned wcounter,
   }
   else
   {
-    term = lem.getKind() == NOT ? lem[0] : lem;
+    term = lem.getKind() == Kind::NOT ? lem[0] : lem;
     // predicate case: the conjunct is a (negated) evaluation point
     if (d_tds->isEvaluationPoint(term))
     {
-      val = nm->mkConst(lem.getKind() != NOT);
+      val = nm->mkConst(lem.getKind() != Kind::NOT);
     }
   }
   if (!val.isNull())
@@ -508,7 +548,7 @@ void Cegis::registerRefinementLemma(const std::vector<Node>& vars, Node lem)
     // if the parent conjecture has a solution, it satisfies the specification
     // for the given concrete point.
     Node rlem = NodeManager::currentNM()->mkNode(
-        OR, d_parent->getConjecture().negate(), lem);
+        Kind::OR, d_parent->getConjecture().negate(), lem);
     d_qim.addPendingLemma(rlem, InferenceId::QUANTIFIERS_SYGUS_CEGIS_REFINE);
   }
 }
@@ -581,8 +621,8 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
         }
         if (!mexp.empty())
         {
-          Node en = mexp.size() == 1 ? mexp[0] : nm->mkNode(kind::AND, mexp);
-          cre_lem = nm->mkNode(kind::OR, en.negate(), neg_guard);
+          Node en = mexp.size() == 1 ? mexp[0] : nm->mkNode(Kind::AND, mexp);
+          cre_lem = nm->mkNode(Kind::OR, en.negate(), neg_guard);
         }
         else
         {
@@ -712,7 +752,8 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
           if (options().quantifiers.cegisSample
               != options::CegisSampleMode::TRUST)
           {
-            Node lem = nm->mkNode(OR, d_parent->getConjecture().negate(), rlem);
+            Node lem =
+                nm->mkNode(Kind::OR, d_parent->getConjecture().negate(), rlem);
             d_qim.addPendingLemma(
                 lem, InferenceId::QUANTIFIERS_SYGUS_CEGIS_REFINE_SAMPLE);
           }
