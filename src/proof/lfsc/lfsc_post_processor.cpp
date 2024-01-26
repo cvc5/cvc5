@@ -121,7 +121,6 @@ bool LfscProofPostprocessCallback::update(Node res,
         addLfscRule(cdp, next, {fconc}, LfscRule::SCOPE, {args[ii]});
         curr = next;
       }
-      // TODO: this can be unified to the latter case
       // In LFSC, we have now proved:
       //  (or (not F1) (or (not F2) ... (or (not Fn) C) ... ))
       // We now must convert this to one of two cases
@@ -191,8 +190,6 @@ bool LfscProofPostprocessCallback::update(Node res,
     break;
     case ProofRule::CONG:
     {
-      // TODO: can optimize this for prefixes of equal arugments, which only
-      // require a REFL step.
       Assert(res.getKind() == Kind::EQUAL);
       Assert(res[0].getOperator() == res[1].getOperator());
       Trace("lfsc-pp-cong") << "Processing congruence for " << res << " "
@@ -223,8 +220,7 @@ bool LfscProofPostprocessCallback::update(Node res,
           // avoids type errors in internal representation of LFSC terms.
           Node vop = d_tproc.getOperatorOfBoundVar(ii == 0 ? cop : pcop, v);
           Node vopEq = vop.eqNode(vop);
-          // cdp->addStep(vopEq, PfRule::REFL, {}, {vop});
-          addRefl(cdp, vop);
+          cdp->addStep(vopEq, ProofRule::REFL, {}, {vop});
           Node nextEq;
           if (i + 1 == nvars)
           {
@@ -259,8 +255,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       Assert(!op.isNull());
       // initial base step is REFL
       Node opEq = op.eqNode(op);
-      // cdp->addStep(opEq, PfRule::REFL, {}, {op});
-      addRefl(cdp, op);
+      cdp->addStep(opEq, ProofRule::REFL, {}, {op});
       size_t nchildren = children.size();
       Node nullTerm = d_tproc.getNullTerminator(k, res[0].getType());
       // Are we doing congruence of an n-ary operator? If so, notice that op
@@ -282,8 +277,7 @@ bool LfscProofPostprocessCallback::update(Node res,
           currEq = nullTerm.eqNode(nullTerm);
           // if we have a null terminator, we do a final REFL step to add
           // the null terminator to both sides.
-          // cdp->addStep(currEq, PfRule::REFL, {}, {nullTerm});
-          addRefl(cdp, nullTerm);
+          cdp->addStep(currEq, ProofRule::REFL, {}, {nullTerm});
         }
         else
         {
@@ -369,8 +363,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       // proof of null terminator base 0 = 0
       Node zero = d_tproc.getNullTerminator(Kind::ADD, res[0].getType());
       Node cur = zero.eqNode(zero);
-      // cdp->addStep(cur, PfRule::REFL, {}, {zero});
-      addRefl(cdp, zero);
+      cdp->addStep(cur, ProofRule::REFL, {}, {zero});
       for (size_t i = 0, size = children.size(); i < size; i++)
       {
         size_t ii = (children.size() - 1) - i;
@@ -404,10 +397,6 @@ bool LfscProofPostprocessCallback::update(Node res,
       addLfscRule(cdp, falsen, children, LfscRule::CONCAT_CONFLICT_DEQ, args);
     }
     break;
-    case ProofRule::SKOLEMIZE:
-      // TODO: convert to curried
-      return false;
-      break;
     case ProofRule::INSTANTIATE:
     {
       Node q = children[0];
@@ -450,17 +439,6 @@ bool LfscProofPostprocessCallback::update(Node res,
   }
   AlwaysAssert(cdp->getProofFor(res)->getRule() != ProofRule::ASSUME);
   return true;
-}
-
-void LfscProofPostprocessCallback::addRefl(CDProof* cdp, Node t)
-{
-  std::map<Node, std::shared_ptr<ProofNode> >::iterator it = d_refl.find(t);
-  if (it == d_refl.end())
-  {
-    d_refl[t] = d_env.getProofNodeManager()->mkNode(ProofRule::REFL, {}, {t});
-    it = d_refl.find(t);
-  }
-  cdp->addProof(it->second);
 }
 
 void LfscProofPostprocessCallback::updateCong(Node res,
