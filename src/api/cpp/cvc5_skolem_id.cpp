@@ -13,7 +13,7 @@
  * Implementation of proof rule.
  */
 
-#include <cvc5/cvc5_proof_rule.h>
+#include <cvc5/cvc5_skolem_id.h>
 
 #include <iostream>
 
