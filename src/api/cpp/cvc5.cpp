@@ -3672,7 +3672,7 @@ bool Term::isSkolem() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  internal::SkolemManager * skm = d_nm->getSkolemManager();
+  internal::SkolemManager* skm = d_nm->getSkolemManager();
   return skm->isSkolemFunction(*d_node);
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -3682,9 +3682,8 @@ SkolemFunId Term::getSkolemId() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  internal::SkolemManager * skm = d_nm->getSkolemManager();
-  CVC5_API_ARG_CHECK_EXPECTED(
-     skm->isSkolemFunction(*d_node), *d_node)
+  internal::SkolemManager* skm = d_nm->getSkolemManager();
+  CVC5_API_ARG_CHECK_EXPECTED(skm->isSkolemFunction(*d_node), *d_node)
       << "Term to be a skolem when calling getSkolemId";
   //////// all checks before this line
   return skm->getId(*d_node);
@@ -3696,9 +3695,8 @@ std::vector<Term> Term::getSkolemArguments() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  internal::SkolemManager * skm = d_nm->getSkolemManager();
-  CVC5_API_ARG_CHECK_EXPECTED(
-     skm->isSkolemFunction(*d_node), *d_node)
+  internal::SkolemManager* skm = d_nm->getSkolemManager();
+  CVC5_API_ARG_CHECK_EXPECTED(skm->isSkolemFunction(*d_node), *d_node)
       << "Term to be a skolem when calling getSkolemArguments";
   //////// all checks before this line
   internal::Node cacheVal;
@@ -3707,7 +3705,7 @@ std::vector<Term> Term::getSkolemArguments() const
   std::vector<Term> args;
   if (cacheVal.isNull())
   {
-    if (cacheVal.getKind()==Kind::SEXPR)
+    if (cacheVal.getKind() == Kind::SEXPR)
     {
       for (const internal::Node& nc : cacheVal)
       {
@@ -6393,9 +6391,8 @@ Term Solver::mkSkolem(SkolemFunId id, const std::vector<Term>& children) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERMS(children);
   //////// all checks before this line
-  std::vector<internal::Node> nchildren =
-      Term::termVectorToNodes(children);
-  internal::SkolemManager * skm = d_nm->getSkolemManager();
+  std::vector<internal::Node> nchildren = Term::termVectorToNodes(children);
+  internal::SkolemManager* skm = d_nm->getSkolemManager();
   internal::Node k = skm->mkSkolemFunction(id, nchildren);
   return Term(d_nm, k);
   ////////

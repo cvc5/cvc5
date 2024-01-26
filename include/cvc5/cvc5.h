@@ -19,9 +19,9 @@
 #define CVC5__API__CVC5_H
 
 #include <cvc5/cvc5_kind.h>
+#include <cvc5/cvc5_proof_rule.h>
 #include <cvc5/cvc5_skolem_id.h>
 #include <cvc5/cvc5_types.h>
-#include <cvc5/cvc5_proof_rule.h>
 
 #include <functional>
 #include <map>
@@ -1685,7 +1685,7 @@ class CVC5_EXPORT Term
    * @return The floating-point rounding mode value of the term.
    */
   RoundingMode getRoundingModeValue() const;
-  
+
   /**
    * Determine if this term is a floating-point positive zero value (+zero).
    * @return True if the term is the floating-point value for positive zero.
@@ -1846,17 +1846,18 @@ class CVC5_EXPORT Term
    */
   Term getRealAlgebraicNumberUpperBound() const;
 
-  /** 
+  /**
    * Is skolem
    */
   bool isSkolem() const;
-  /** 
+  /**
    * Get skolem id
    */
   SkolemFunId getSkolemId() const;
   /**
    */
   std::vector<Term> getSkolemArguments() const;
+
  protected:
   /**
    * The associated node manager.
@@ -3688,7 +3689,7 @@ class CVC5_EXPORT Solver
    * @return The tuple Term.
    */
   Term mkTuple(const std::vector<Term>& terms) const;
-  
+
   /* .................................................................... */
   /* Create Skolems                                                       */
   /* .................................................................... */

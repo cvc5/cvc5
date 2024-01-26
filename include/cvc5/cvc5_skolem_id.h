@@ -13,13 +13,13 @@
  * Skolem identifier enumeration.
  */
 
-#if (!defined(CVC5_API_USE_C_ENUMS)                 \
+#if (!defined(CVC5_API_USE_C_ENUMS)                \
      && !defined(CVC5__API__CVC5_CPP_SKOLEM_ID_H)) \
-    || (defined(CVC5_API_USE_C_ENUMS)               \
+    || (defined(CVC5_API_USE_C_ENUMS)              \
         && !defined(CVC5__API__CVC5_C_SKOLEM_ID_H))
 
-#include <iosfwd>
 #include <cstdint>
+#include <iosfwd>
 
 #ifdef CVC5_API_USE_C_ENUMS
 #undef ENUM
