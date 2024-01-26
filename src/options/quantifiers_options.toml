@@ -804,7 +804,7 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "sub-cbqi-timeout=N"
   type       = "uint64_t"
-  default    = "1000"
+  default    = "0"
   help       = "timeout (in milliseconds) for subsolver calls for sub-cbqi."
 
 [[option]]

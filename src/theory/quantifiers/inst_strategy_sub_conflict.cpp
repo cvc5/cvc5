@@ -21,6 +21,7 @@
 #include "theory/quantifiers/instantiate.h"
 #include "theory/smt_engine_subsolver.h"
 #include "proof/unsat_core.h"
+#include "smt/set_defaults.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -49,6 +50,8 @@ InstStrategySubConflict::InstStrategySubConflict(
   d_subOptions.writeSmt().produceUnsatCores = true;
   // don't do this strategy
   d_subOptions.writeQuantifiers().quantSubCbqi = false;
+  // disable checking
+  //smt::SetDefaults::disableChecking(d_subOptions);
 }
 
 void InstStrategySubConflict::reset_round(Theory::Effort e) {}
@@ -91,14 +94,19 @@ void InstStrategySubConflict::check(Theory::Effort e, QEffort quant_e)
          ++it)
     {
       Node a = (*it).d_assertion;
-      assertions.push_back(a);
       if (tid == THEORY_QUANTIFIERS)
       {
         if (a.getKind() == Kind::FORALL)
         {
+          // ignore those that others have taken ownership of
+          if (!d_qreg.hasOwnership(a, this))
+          {
+            continue;
+          }
           quants.insert(a);
         }
       }
+      assertions.push_back(a);
     }
   }
   // if no quantified formulas, no use
@@ -153,18 +161,17 @@ void InstStrategySubConflict::check(Theory::Effort e, QEffort quant_e)
       }
       // Note that it may be the case that addedLemmas = 0 and we found a
       // conflict. This indicates that the current assertions are unsat,
-      // and can be shown independent of quantified formulas. In this case,
-      // we can report a "conflicting instance" vacuously and allow the
-      // quantifier-free solvers to derive a conflict.
+      // and can be shown independent of quantified formulas. We will backtrack
+      // regardless since we assert the unsat core below.
       Trace("qscf-engine-debug") << addedLemmas << "/" << triedLemmas << " instantiated" << std::endl;
     }
-    // also add the unsat core as a conflict
+    // Add the computed unsat core as a conflict, which will cause a backtrack.
     UnsatCore uc = findConflict->getUnsatCore();
     Node ucc = NodeManager::currentNM()->mkAnd(uc.getCore());
     Trace("qscf-engine-debug") << "Unsat core is " << ucc << std::endl;
     Trace("qscf-engine") << "Core size = " << uc.getCore().size() << std::endl;
     d_qim.lemma(ucc.notNode(), InferenceId::QUANTIFIERS_SUB_UC);
-    
+    // also mark conflicting instance
     d_qstate.notifyConflictingInst();
   }
 
