@@ -88,7 +88,11 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Env& env,
   }
   std::vector<Node> trulesAll = trules;
 
-  // special case: functions can use a lambda at top-level
+  // Special case: functions can use a lambda at top-level.
+  // Note we do this only for functions at top-level. This ensures we do not
+  // enumerate any terms with free variables since the only non-terminal
+  // production rule for this grammar will be (lambda X. A) for non-terminal
+  // symbol A, where A may have free variables bound in X.
   if (range.isFunction())
   {
     it = typeToNtSym.find(range);
