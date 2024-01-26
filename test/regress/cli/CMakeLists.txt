@@ -3312,6 +3312,7 @@ set(regress_2_tests
   regress2/arith/sc-7.base.cvc.smtv1.smt2
   regress2/arith/uart-8.base.cvc.smtv1.smt2
   regress2/bags/injective_functions.smt2
+  regress2/bags/map_bug.smt2
   regress2/bug136.smtv1.smt2
   regress2/bug148.smtv1.smt2
   regress2/bug349.smtv1.smt2
