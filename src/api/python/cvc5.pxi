@@ -1457,6 +1457,7 @@ cdef class Solver:
     def mkNullableSome(self, Term term):
         """
             Create a nullable some term.
+
             :param term: The elements value.
             :return: The element value wrapped in some constructor.
         """
@@ -1467,6 +1468,7 @@ cdef class Solver:
     def mkNullableVal(self, Term term):
         """
             Create a selector for nullable term.
+
             :param term: A nullable term.
             :return: The element value of the nullable term.
         """
@@ -1477,6 +1479,7 @@ cdef class Solver:
     def mkNullableIsNull(self, Term term):
         """
             Create a null tester for a nullable term.
+
             :param term: A nullable term.
             :return: A tester whether term is null.
         """
@@ -1487,6 +1490,7 @@ cdef class Solver:
     def mkNullableIsSome(self, Term term):
         """
             Create a some tester for a nullable term.
+
             :param term: A nullable term.
             :return: A tester whether term is some.
         """
@@ -1497,6 +1501,7 @@ cdef class Solver:
     def mkNullableNull(self, Sort sort):
         """
             Create a constant representing an null of the given sort.
+
             :param term: The sort of the Nullable element.
             :return: The null constant.
         """
@@ -1513,11 +1518,12 @@ cdef class Solver:
             kind would be ADD, and args would be [x, y].
             This function would return
             (nullable.lift (lambda ((a Int) (b Int)) (+ a b)) x y)
+
             :param kind: The lifted operator.
             :param args: The arguments of the lifted operator.
             :return: A term of Kind NULLABLE_LIFT where the first child
-            is a lambda expression, and the remaining children are
-            the original arguments.
+                     is a lambda expression, and the remaining children are
+                     the original arguments.
         """
         cdef vector[c_Term] cterms
         for a in args:
