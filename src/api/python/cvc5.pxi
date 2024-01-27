@@ -1507,7 +1507,7 @@ cdef class Solver:
     def mkNullableLift(self, kind, *args):
         """
             Create a term that lifts kind to nullable terms.
-            CExample:
+            Example:
             If we have the term ((_ nullable.lift +) x y),
             where x, y of type (Nullable Int), then
             kind would be ADD, and args would be [x, y].
