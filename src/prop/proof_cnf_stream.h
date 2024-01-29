@@ -133,7 +133,7 @@ class ProofCnfStream : protected EnvObj
   /** Whether we are we asserting clauses derived from the input. */
   bool d_input;
 
-  /** The user-context-dependent proof object. */
+  /** Pointer to the prop proof manager. */
   PropPfManager* d_ppm;
   /** The proof of d_ppm */
   LazyCDProof* d_proof;
