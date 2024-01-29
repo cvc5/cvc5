@@ -199,7 +199,7 @@ Node Trigger::ensureGroundTermPreprocessed(Valuation& val,
     it = visited.find(cur);
     if (it == visited.end())
     {
-      if (cur.getNumChildren() == 0)
+      if (cur.getNumChildren() == 0 || cur.getKind() == Kind::BOUND_VAR_LIST)
       {
         visited[cur] = cur;
       }
