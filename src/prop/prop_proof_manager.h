@@ -148,10 +148,10 @@ class PropPfManager : protected EnvObj
    * only for Minisat.
    */
   Node getLastExplainedPropagation() const;
-  /** 
-  * Reset the tracker for the last explained propagation. This is required only 
-  * for Minisat. 
-  */ 
+  /**
+   * Reset the tracker for the last explained propagation. This is required only
+   * for Minisat.
+   */
   void resetLastExplainedPropagation();
   /**
    * Get the clausification proof of all clauses that have been sent to the SAT

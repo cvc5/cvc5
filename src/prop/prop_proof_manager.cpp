@@ -386,7 +386,10 @@ Node PropPfManager::getLastExplainedPropagation() const
   return d_currPropagationProcessed;
 }
 
-void PropPfManager::resetLastExplainedPropagation() { d_currPropagationProcessed = Node::null(); }
- 
+void PropPfManager::resetLastExplainedPropagation()
+{
+  d_currPropagationProcessed = Node::null();
+}
+
 }  // namespace prop
 }  // namespace cvc5::internal
