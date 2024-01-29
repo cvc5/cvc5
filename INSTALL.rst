@@ -125,6 +125,9 @@ versions; more recent versions should be compatible.
 - `CaDiCaL (SAT solver) <https://github.com/arminbiere/cadical>`_
 - `SymFPU <https://github.com/martin-cs/symfpu/tree/CVC4>`_
 
+For Python, to install these dependencies automatically, please use:
+
+  - `pip install -r contrib/requirements_build.txt`
 
 CaDiCaL (SAT solver)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -257,6 +260,10 @@ Dependencies for Language Bindings
   - `scikit-build <https://pypi.org/project/scikit-build/>`_
   - `pytest <https://docs.pytest.org/en/6.2.x/>`_
   - The source for the `pythonic API <(https://github.com/cvc5/cvc5_pythonic_api)>`.
+
+For Python, to install these depedencies automatically, please use:
+
+  - `pip install -r contrib/requirements_python_dev.txt`
 
 If configured with ``--pythonic-path=PATH``, the build system will expect the Pythonic API's source to be at ``PATH``.
 Otherwise, if configured with ``--auto-download``, the build system will download it.
