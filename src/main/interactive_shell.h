@@ -16,6 +16,8 @@
 #ifndef CVC5__INTERACTIVE_SHELL_H
 #define CVC5__INTERACTIVE_SHELL_H
 
+#include <cvc5/cvc5_types.h>
+
 #include <iosfwd>
 #include <memory>
 #include <optional>
@@ -74,6 +76,8 @@ class InteractiveShell
   bool d_isInteractive;
   bool d_quit;
   bool d_usingEditline;
+  /** The language */
+  modes::InputLanguage d_lang;
 
   std::string d_historyFilename;
 

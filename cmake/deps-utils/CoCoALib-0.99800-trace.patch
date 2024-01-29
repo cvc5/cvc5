@@ -1,3 +1,16 @@
+diff --git a/configuration/shell-fns.sh b/configuration/shell-fns.sh
+index 190dbb4..c8d281f 100755
+--- a/configuration/shell-fns.sh
++++ b/configuration/shell-fns.sh
+@@ -11,7 +11,7 @@ mktempdir()
+ {
+     TODAY=`date "+%Y%m%d"`
+     TIME=`date "+%H%M%S"`
+-    TMP_DIR="/tmp/CoCoALib-config/$USER-$TODAY/$1-$TIME-$$"
++    TMP_DIR="/tmp/CoCoALib-config-$USER/$USER-$TODAY/$1-$TIME-$$"
+     /bin/rm -rf "$TMP_DIR"  &&  /bin/mkdir -p "$TMP_DIR"
+     if [ $? -ne 0 ]
+     then
 diff --git a/include/CoCoA/TmpGPoly.H b/include/CoCoA/TmpGPoly.H
 index 4c4d51e..efe50f7 100644
 --- a/include/CoCoA/TmpGPoly.H
@@ -99,3 +112,36 @@ index ea250d4..3447d86 100644
      myUpdateLenLPPLCDegComp();
      myAge = the_age;
      // MAX: do these things only if necessary.
+diff --git a/configuration/gmp-check-cxxflags.sh b/configuration/gmp-check-cxxflags.sh
+index f34c10d..6c167a3 100755
+--- a/configuration/gmp-check-cxxflags.sh
++++ b/configuration/gmp-check-cxxflags.sh
+@@ -59,7 +59,7 @@ fi
+ 
+ 
+ GMP_LDLIB=-lgmp
+-if [ -f "$COCOA_EXTLIB_DIR"/lib/libgmp-symlink.a ]
++if [ -f "$COCOA_EXTLIB_DIR"/lib/libgmp-symlink."$GMP_LIB_EXTN" ]
+ then
+   GMP_LDLIB=-lgmp-symlink
+ fi
+diff --git a/configure b/configure
+index 769750d..5ac5e90 100755
+--- a/configure
++++ b/configure
+@@ -336,6 +336,7 @@ fi
+ # Next two lines required by the scripts which check GMP (see below).
+ export CXX
+ export CXXFLAGS
++export GMP_LIB_EXTN
+ 
+ # Check compiler and flags are sane.
+ # If all is well, result is either "gnu" or "not gnu" & return code is 0.
+@@ -467,6 +468,7 @@ else
+       # gmp-find.sh script worked, so message is full path of GMP library
+       /bin/ln -s "$GMP_MESG" $EXTLIBS/lib/libgmp-symlink.a
+       GMP_LIB="$GMP_MESG"
++      GMP_LIB_EXTN="a"
+     fi
+   fi
+ fi

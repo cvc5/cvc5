@@ -130,7 +130,6 @@ Node SkolemManager::mkPurifySkolem(Node t,
     Node exists =
         nm->mkNode(Kind::EXISTS, std::vector<Node>(t.begin(), t.end()));
     k = mkSkolemFunction(SkolemFunId::QUANTIFIERS_SKOLEMIZE,
-                         t.getType(),
                          {exists, nm->mkConstInt(Rational(0))});
     // store the proof generator if it exists
     if (pg != nullptr)
@@ -140,7 +139,7 @@ Node SkolemManager::mkPurifySkolem(Node t,
   }
   else
   {
-    k = mkSkolemFunction(SkolemFunId::PURIFY, t.getType(), {t});
+    k = mkSkolemFunction(SkolemFunId::PURIFY, {t});
     // shouldn't provide proof generators for other terms
     Assert(pg == nullptr);
   }
@@ -155,7 +154,36 @@ Node SkolemManager::mkPurifySkolem(Node t,
   return k;
 }
 
-Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal)
+Node SkolemManager::mkSkolemFunction(SkolemFunId id, Node cacheVal)
+{
+  std::vector<Node> cvals;
+  if (!cacheVal.isNull())
+  {
+    if (cacheVal.getKind() == Kind::SEXPR)
+    {
+      cvals.insert(cvals.end(), cacheVal.begin(), cacheVal.end());
+    }
+    else
+    {
+      cvals.push_back(cacheVal);
+    }
+  }
+  TypeNode ctn = getTypeFor(id, cvals);
+  Assert(!ctn.isNull());
+  return mkSkolemFunctionTyped(id, ctn, cacheVal);
+}
+
+Node SkolemManager::mkSkolemFunction(SkolemFunId id,
+                                     const std::vector<Node>& cacheVals)
+{
+  TypeNode ctn = getTypeFor(id, cacheVals);
+  Assert(!ctn.isNull());
+  return mkSkolemFunctionTyped(id, ctn, cacheVals);
+}
+
+Node SkolemManager::mkSkolemFunctionTyped(SkolemFunId id,
+                                          TypeNode tn,
+                                          Node cacheVal)
 {
   std::tuple<SkolemFunId, TypeNode, Node> key(id, tn, cacheVal);
   std::map<std::tuple<SkolemFunId, TypeNode, Node>, Node>::iterator it =
@@ -189,9 +217,9 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id, TypeNode tn, Node cacheVal)
   return it->second;
 }
 
-Node SkolemManager::mkSkolemFunction(SkolemFunId id,
-                                     TypeNode tn,
-                                     const std::vector<Node>& cacheVals)
+Node SkolemManager::mkSkolemFunctionTyped(SkolemFunId id,
+                                          TypeNode tn,
+                                          const std::vector<Node>& cacheVals)
 {
   Node cacheVal;
   // use null node if cacheVals is empty
@@ -201,7 +229,7 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id,
                    ? cacheVals[0]
                    : NodeManager::currentNM()->mkNode(Kind::SEXPR, cacheVals);
   }
-  return mkSkolemFunction(id, tn, cacheVal);
+  return mkSkolemFunctionTyped(id, tn, cacheVal);
 }
 
 bool SkolemManager::isSkolemFunction(TNode k,
@@ -385,6 +413,160 @@ Node SkolemManager::mkSkolemNode(Kind k,
   n.setAttribute(expr::TypeAttr(), type);
   n.setAttribute(expr::TypeCheckedAttr(), true);
   return n;
+}
+
+TypeNode SkolemManager::getTypeFor(SkolemFunId id,
+                                   const std::vector<Node>& cacheVals)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  switch (id)
+  {
+    // Type(cacheVals[0]), i.e skolems that return same type as first argument
+    case SkolemFunId::PURIFY:
+      Assert(cacheVals.size() > 0);
+      return cacheVals[0].getType();
+      break;
+    // Type(cacheVals[1])
+    case SkolemFunId::INPUT_VARIABLE:
+      Assert(cacheVals.size() > 1);
+      return cacheVals[1].getType();
+      break;
+    // real -> real function
+    case SkolemFunId::DIV_BY_ZERO:
+    case SkolemFunId::SQRT:
+    {
+      TypeNode rtype = nm->realType();
+      return nm->mkFunctionType(rtype, rtype);
+    }
+    // real skolems
+    case SkolemFunId::TRANSCENDENTAL_PURIFY_ARG: return nm->realType();
+    // int -> int function
+    case SkolemFunId::INT_DIV_BY_ZERO:
+    case SkolemFunId::MOD_BY_ZERO:
+    case SkolemFunId::STRINGS_OCCUR_INDEX:
+    case SkolemFunId::STRINGS_OCCUR_INDEX_RE:
+    case SkolemFunId::STRINGS_OCCUR_LEN:
+    case SkolemFunId::STRINGS_OCCUR_LEN_RE:
+    case SkolemFunId::STRINGS_STOI_RESULT:
+    case SkolemFunId::STRINGS_ITOS_RESULT:
+    {
+      TypeNode itype = nm->integerType();
+      return nm->mkFunctionType(itype, itype);
+    }
+    // int -> Type(args[0])
+    case SkolemFunId::STRINGS_REPLACE_ALL_RESULT:
+    {
+      Assert(cacheVals.size() > 0);
+      TypeNode itype = nm->integerType();
+      return nm->mkFunctionType(itype, cacheVals[0].getType());
+    }
+    // integer skolems
+    case SkolemFunId::STRINGS_NUM_OCCUR:
+    case SkolemFunId::STRINGS_NUM_OCCUR_RE:
+    case SkolemFunId::STRINGS_DEQ_DIFF:
+    case SkolemFunId::STRINGS_STOI_NON_DIGIT:
+    case SkolemFunId::BAGS_FOLD_CARD:
+    case SkolemFunId::SETS_FOLD_CARD: return nm->integerType();
+    // string skolems
+    case SkolemFunId::RE_FIRST_MATCH_PRE:
+    case SkolemFunId::RE_FIRST_MATCH:
+    case SkolemFunId::RE_FIRST_MATCH_POST:
+    case SkolemFunId::RE_UNFOLD_POS_COMPONENT: return nm->stringType();
+    case SkolemFunId::ARRAY_DEQ_DIFF:
+    {
+      Assert(cacheVals.size() == 2);
+      TypeNode atype = cacheVals[0].getType();
+      Assert(atype.isArray());
+      return atype.getArrayIndexType();
+    }
+    case SkolemFunId::QUANTIFIERS_SKOLEMIZE:
+    {
+      Assert(cacheVals.size() == 2);
+      Node vi = cacheVals[1];
+      if (vi.getKind() == Kind::CONST_INTEGER
+          && vi.getConst<Rational>().sgn() >= 0
+          && vi.getConst<Rational>().getNumerator().fitsUnsignedInt())
+      {
+        uint32_t i = vi.getConst<Rational>().getNumerator().toUnsignedInt();
+        Assert(cacheVals[0].getKind() == Kind::EXISTS
+               && i < cacheVals[0][0].getNumChildren());
+        return cacheVals[0][0][i].getType();
+      }
+    }
+    break;
+    // skolems that return the set element type
+    case SkolemFunId::BAGS_DEQ_DIFF:
+    case SkolemFunId::SETS_DEQ_DIFF:
+    {
+      Assert(cacheVals.size() > 0);
+      TypeNode stype = cacheVals[0].getType();
+      Assert(stype.getNumChildren() == 1);
+      return stype[0];
+    }
+    // skolems that return the set to set element type
+    case SkolemFunId::BAGS_CHOOSE:
+    case SkolemFunId::SETS_CHOOSE:
+    {
+      Assert(cacheVals.size() > 0);
+      TypeNode stype = cacheVals[0].getType();
+      Assert(stype.getNumChildren() == 1);
+      return nm->mkFunctionType(stype, stype[0]);
+    }
+    case SkolemFunId::TABLES_GROUP_PART:
+    case SkolemFunId::RELATIONS_GROUP_PART:
+    {
+      Assert(cacheVals.size() > 0);
+      TypeNode stype = cacheVals[0].getType();
+      Assert(stype.getNumChildren() == 1);
+      stype = stype[0];
+      Assert(stype.getNumChildren() == 1);
+      return nm->mkFunctionType(stype[0], stype);
+    }
+    // skolems that return the set element of set element type
+    case SkolemFunId::TABLES_GROUP_PART_ELEMENT:
+    case SkolemFunId::RELATIONS_GROUP_PART_ELEMENT:
+    {
+      Assert(cacheVals.size() > 0);
+      TypeNode stype = cacheVals[0].getType();
+      Assert(stype.getNumChildren() == 1);
+      stype = stype[0];
+      Assert(stype.getNumChildren() == 1);
+      return stype[0];
+    }
+    case SkolemFunId::SETS_MAP_DOWN_ELEMENT:
+    {
+      Assert(cacheVals.size() == 2 && cacheVals[0].getKind() == Kind::SET_MAP);
+      TypeNode stype = cacheVals[0][1].getType();
+      Assert(stype.isSet());
+      return stype.getSetElementType();
+    }
+    case SkolemFunId::BAGS_FOLD_UNION_DISJOINT:
+    case SkolemFunId::SETS_FOLD_UNION:
+    {
+      Assert(cacheVals.size() > 0);
+      TypeNode itype = nm->integerType();
+      return nm->mkFunctionType(itype, cacheVals[0].getType());
+    }
+    case SkolemFunId::BAGS_FOLD_ELEMENTS:
+    case SkolemFunId::SETS_FOLD_ELEMENTS:
+    {
+      Assert(cacheVals.size() > 0);
+      TypeNode itype = nm->integerType();
+      TypeNode stype = cacheVals[0].getType();
+      Assert(stype.getNumChildren() == 1);
+      return nm->mkFunctionType(itype, stype[0]);
+    }
+    case SkolemFunId::BAGS_FOLD_COMBINE:
+    case SkolemFunId::SETS_FOLD_COMBINE:
+    {
+      Assert(cacheVals.size() == 3);
+      TypeNode itype = nm->integerType();
+      return nm->mkFunctionType(itype, cacheVals[1].getType());
+    }
+    default: break;
+  }
+  TypeNode ret;
+  return ret;
 }
 
 }  // namespace cvc5::internal

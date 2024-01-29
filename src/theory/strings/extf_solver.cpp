@@ -229,11 +229,13 @@ void ExtfSolver::doReduction(Node n, int pol)
     else
     {
       InferInfo ii(InferenceId::STRINGS_REDUCTION);
+      // ensure that we are called to process the side effects
+      ii.d_sim = this;
       ii.d_conc = nnlem;
       d_im.sendInference(ii, true);
       Trace("strings-extf-debug")
           << "  resolve extf : " << n << " based on reduction." << std::endl;
-      d_reduced.insert(nn);
+      d_reductionWaitingMap[nnlem] = nn;
     }
   }
 }
@@ -735,7 +737,12 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
   if (effort >= 1 && n.getType().isStringLike())
   {
     Assert(effort < 3);
-    // normal forms
+    // Return self if the normal form has not been computed. This may happen
+    // for terms that are not relevant in the current context.
+    if (!d_csolver.hasNormalForm(nr))
+    {
+      return n;
+    }
     NormalForm& nfnr = d_csolver.getNormalForm(nr);
     Node ns = d_csolver.getNormalString(nfnr.d_base, exp);
     Trace("strings-subs") << "   normal eqc : " << ns << " " << nfnr.d_base
@@ -811,6 +818,25 @@ bool StringsExtfCallback::getCurrentSubstitution(
     subs.push_back(s);
   }
   return true;
+}
+
+void ExtfSolver::processFact(InferInfo& ii, ProofGenerator*& pg)
+{
+  // process it with the inference manager
+  d_im.processFact(ii, pg);
+}
+
+TrustNode ExtfSolver::processLemma(InferInfo& ii, LemmaProperty& p)
+{
+  // if this was the reduction lemma for a term, mark it reduced now
+  std::map<Node, Node>::iterator it = d_reductionWaitingMap.find(ii.d_conc);
+  if (it != d_reductionWaitingMap.end())
+  {
+    d_reduced.insert(it->second);
+    d_reductionWaitingMap.erase(it);
+  }
+  // now process it with the inference manager
+  return d_im.processLemma(ii, p);
 }
 
 std::string ExtfSolver::debugPrintModel()

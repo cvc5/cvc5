@@ -35,8 +35,6 @@ TermRegistry::TermRegistry(Env& env,
                            QuantifiersState& qs,
                            QuantifiersRegistry& qr)
     : EnvObj(env),
-      d_presolve(userContext(), true),
-      d_presolveCache(userContext()),
       d_termEnum(new TermEnumeration),
       d_termPools(new TermPools(env, qs)),
       d_termDb(logicInfo().isHigherOrder() ? new HoTermDb(env, qs, qr)
@@ -76,44 +74,19 @@ void TermRegistry::finishInit(FirstOrderModel* fm,
   }
 }
 
-void TermRegistry::presolve()
-{
-  d_presolve = false;
-  // add all terms to database
-  if (options().base.incrementalSolving && !options().quantifiers.termDbCd)
-  {
-    Trace("quant-engine-proc")
-        << "Add presolve cache " << d_presolveCache.size() << std::endl;
-    for (const Node& t : d_presolveCache)
-    {
-      addTerm(t);
-    }
-    Trace("quant-engine-proc") << "Done add presolve cache " << std::endl;
-  }
-}
-
-void TermRegistry::addTerm(Node n, bool withinQuant)
+void TermRegistry::addTerm(TNode n, bool withinQuant)
 {
   // don't add terms in quantifier bodies
   if (withinQuant && !options().quantifiers.registerQuantBodyTerms)
   {
     return;
   }
-  if (options().base.incrementalSolving && !options().quantifiers.termDbCd)
+  d_termDb->addTerm(n);
+  if (d_sygusTdb.get()
+      && options().quantifiers.sygusEvalUnfoldMode
+             != options::SygusEvalUnfoldMode::NONE)
   {
-    d_presolveCache.insert(n);
-  }
-  // only wait if we are doing incremental solving
-  if (!d_presolve || !options().base.incrementalSolving
-      || options().quantifiers.termDbCd)
-  {
-    d_termDb->addTerm(n);
-    if (d_sygusTdb.get()
-        && options().quantifiers.sygusEvalUnfoldMode
-               != options::SygusEvalUnfoldMode::NONE)
-    {
-      d_sygusTdb->getEvalUnfold()->registerEvalTerm(n);
-    }
+    d_sygusTdb->getEvalUnfold()->registerEvalTerm(n);
   }
 }
 

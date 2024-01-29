@@ -15,12 +15,16 @@ from libcpp.string cimport string
 from libcpp.vector cimport vector
 
 from cvc5 cimport cout
+from cvc5 cimport stringstream
+from cvc5 cimport Command as c_Command
 from cvc5 cimport Datatype as c_Datatype
 from cvc5 cimport DatatypeConstructor as c_DatatypeConstructor
 from cvc5 cimport DatatypeConstructorDecl as c_DatatypeConstructorDecl
 from cvc5 cimport DatatypeDecl as c_DatatypeDecl
 from cvc5 cimport DatatypeSelector as c_DatatypeSelector
 from cvc5 cimport Result as c_Result
+from cvc5 cimport InputParser as c_InputParser
+from cvc5 cimport SymbolManager as c_SymbolManager
 from cvc5 cimport SynthResult as c_SynthResult
 from cvc5 cimport Op as c_Op
 from cvc5 cimport OptionInfo as c_OptionInfo
@@ -43,6 +47,7 @@ from cvc5kinds cimport SortKind as c_SortKind
 from cvc5types cimport BlockModelsMode as c_BlockModelsMode
 from cvc5types cimport RoundingMode as c_RoundingMode
 from cvc5types cimport UnknownExplanation as c_UnknownExplanation
+from cvc5types cimport InputLanguage as c_InputLanguage
 from cvc5proofrules cimport ProofRule as c_ProofRule
 
 cdef extern from "Python.h":
@@ -82,6 +87,215 @@ cdef extern from "Python.h":
 cdef c_hash[c_Op] cophash = c_hash[c_Op]()
 cdef c_hash[c_Sort] csorthash = c_hash[c_Sort]()
 cdef c_hash[c_Term] ctermhash = c_hash[c_Term]()
+
+
+cdef class SymbolManager:
+    """
+        Symbol manager. Internally, this class manages a symbol table and other
+        meta-information pertaining to SMT2 file inputs (e.g. named assertions,
+        declared functions, etc.).
+
+        A symbol manager can be modified by invoking commands, see :py:meth:`Command.invoke`.
+
+        A symbol manager can be provided when constructing an InputParser, in which
+        case that InputParser has symbols of this symbol manager preloaded.
+
+        The symbol manager's interface is otherwise not publicly available.
+
+        Wrapper class for the C++ class :cpp:class:`cvc5::parser::SymbolManager`.
+    """
+    cdef c_SymbolManager* csm
+    def __cinit__(self, Solver solver):
+        self.csm = new c_SymbolManager(solver.csolver)
+
+    def __dealloc__(self):
+        del self.csm
+
+    def isLogicSet(self):
+        """
+            :return: True if the logic of this symbol manager has been set.
+        """
+        return self.csm.isLogicSet()
+
+    def getLogic(self):
+        """
+            .. note::
+
+                Asserts :py:meth:`isLogicSet()`.
+
+            :return: The logic used by this symbol manager.
+        """
+        return self.csm.getLogic().decode()
+
+
+cdef class Command:
+    """
+        Encapsulation of a command.
+
+        Commands are constructed by the input parser and can be invoked on
+        the solver and symbol manager.
+
+        Wrapper class for the C++ class :cpp:class:`cvc5::parser::Command`.
+    """
+    cdef c_Command cc
+
+    def __str__(self):
+        return self.cc.toString().decode()
+
+    def __repr__(self):
+        return self.cc.toString().decode()
+
+    def toString(self):
+        """
+            :return: A string representation of this result.
+        """
+        return self.cc.toString().decode()
+
+    def invoke(self, Solver solver, SymbolManager sm):
+        """
+            Invoke the command on the solver and symbol manager, and returns the result.
+
+            :param solver: The solver to invoke the command on.
+            :param sm: The symbol manager to invoke the command on.
+            :return: A string representation of the result.
+        """
+        cdef stringstream ss
+        self.cc.invoke(solver.csolver, sm.csm, ss)
+        return ss.str().decode()
+
+    def getCommandName(self):
+        """
+            Get the name for this command, e.g. "assert".
+
+            :return: The name of this command.
+        """
+        return self.cc.getCommandName().decode()
+
+    def isNull(self):
+        """
+            :return: True if this command is null.
+        """
+        return self.cc.isNull()
+
+
+cdef class InputParser:
+    """
+        This class is the main interface for retrieving commands and expressions
+        from an input using a parser.
+
+        After construction, it is expected that an input is first set via e.g.
+        :py:meth:`setFileInput`, :py:meth:`setStringInput`, or
+        :py:meth:`setIncrementalStringInput` and :py:meth:`appendIncrementalStringInput`.
+        Then, the methods :py:meth:`nextCommand` and
+        :py:meth:`nextExpression` can be invoked to parse the input.
+
+        The input parser interacts with a symbol manager, which determines which
+        symbols are defined in the current context, based on the background logic
+        and user-defined symbols. If no symbol manager is provided, then the
+        input parser will construct (an initially empty) one.
+
+        If provided, the symbol manager must have a logic that is compatible
+        with the provided solver. That is, if both the solver and symbol
+        manager have their logics set (:py:meth:`SymbolManager.isLogicSet` and
+        :py:meth:`Solver.isLogicSet`), then their logics must be the same.
+
+        Upon setting an input source, if either the solver (resp. symbol
+        manager) has its logic set, then the symbol manager (resp. solver) is set to
+        use that logic, if its logic is not already set.
+
+        Wrapper class for the C++ class :cpp:class:`cvc5::parser::InputParser`.
+    """
+    cdef c_InputParser* cip
+    cdef Solver solver
+    cdef SymbolManager sm
+    def __cinit__(self, Solver solver, SymbolManager sm=None):
+        self.solver = solver
+        if sm is None:
+            self.sm = SymbolManager(solver)
+        else:
+            self.sm = sm
+
+        self.cip = new c_InputParser(solver.csolver, self.sm.csm)
+
+    def __dealloc__(self):
+        del self.cip
+
+    def getSolver(self):
+        """
+            :return: The underlying solver of this input parser.
+        """
+        return self.solver
+
+    def getSymbolManager(self):
+        """
+            :return: The underlying symbol manager of this input parser.
+        """
+        return self.sm
+
+    def setFileInput(self, lang, str filename):
+        """
+            Set the input for the given file.
+
+            :param lang: The input language (e.g. InputLanguage.SMT_LIB_2_6).
+            :param filename: The input filename.
+        """
+        self.cip.setFileInput(<c_InputLanguage> lang.value, filename.encode())
+
+    def setStringInput(self, lang, str input, str name):
+        """
+            Set the input to the given concrete string
+
+            :param lang: The input language (e.g. InputLanguage.SMT_LIB_2_6).
+            :param input: The input string.
+            :param name: The name of the stream, for use in error messages.
+        """
+        self.cip.setStringInput(<c_InputLanguage> lang.value, input.encode(), name.encode())
+
+    def setIncrementalStringInput(self, lang, str name):
+        """
+            Set that we will be feeding strings to this parser via
+            appendIncrementalStringInput
+
+            :param lang: The input language (e.g. InputLanguage.SMT_LIB_2_6).
+            :param name: The name of the stream, for use in error messages.
+        """
+        self.cip.setIncrementalStringInput(<c_InputLanguage> lang.value, name.encode())
+
+    def appendIncrementalStringInput(self, str input):
+        """
+            Append string to the input being parsed by this parser. Should be
+            called after calling setIncrementalStringInput.
+
+            :param input: The input string.
+        """
+        self.cip.appendIncrementalStringInput(input.encode())
+
+    def nextCommand(self):
+        """
+            Parse and return the next command. Will initialize the logic to "ALL"
+            or the forced logic if no logic is set prior to this point and a command
+            is read that requires initializing the logic.
+
+            :return: The parsed command. This is the null command if no command was read.
+        """
+        cmd = Command()
+        cmd.cc = self.cip.nextCommand()
+        return cmd
+
+    def nextTerm(self):
+        """
+            Parse and return the next term. Requires setting the logic prior
+            to this point.
+        """
+        term = Term(self.solver)
+        term.cterm = self.cip.nextTerm()
+        return term
+
+    def done(self):
+        """
+            Is this parser done reading input?
+        """
+        return self.cip.done()
 
 
 cdef class Datatype:
@@ -905,14 +1119,41 @@ cdef class Solver:
         sort.csort = self.csolver.mkFloatingPointSort(exp, sig)
         return sort
 
-    def mkFiniteFieldSort(self, size):
+    def mkFiniteFieldSort(self, size, int base=10):
         """
             Create a finite field sort.
 
-            :param size: The size of the field. Must be a prime-power.
+            Supports the following arguments:
+
+            - ``Sort mkFiniteFieldSort(int size)``
+            - ``Sort mkFiniteFieldSort(string size)``
+            - ``Sort mkFiniteFieldSort(string size, int base)``
+
+            :param size: The size of the field. Must be a prime-power. 
+                         An integer or string of base 10 if the base is not
+                         explicitly given, and else a string in the given base. 
+            :param base: The base of the string representation of ``size``.
         """
         cdef Sort sort = Sort(self)
-        sort.csort = self.csolver.mkFiniteFieldSort(str(size).encode())
+
+        if base == 10:
+            if not isinstance(size, str) and not isinstance(size, int):
+                raise ValueError(
+                    "Invalid first argument '{}' to mkFiniteFieldSort, "
+                    "expected string or integer value".format(size))
+        else:
+            if not isinstance(size, str):
+                raise ValueError(
+                    "Invalid first argument '{}' to mkFiniteFieldSort, "
+                    "expected string value".format(size))
+
+        if not isinstance(base, int):
+            raise ValueError(
+            "Invalid second argument '{}' to mkFiniteFieldSort, "
+            "expected integer value".format(base))
+        sort.csort = self.csolver.mkFiniteFieldSort(
+            <const string&> str(size).encode(),
+            <uint32_t> base)
         return sort
 
     def mkDatatypeSort(self, DatatypeDecl dtypedecl):
@@ -1481,16 +1722,44 @@ cdef class Solver:
             raise ValueError("Unexpected inputs to mkBitVector")
         return term
 
-    def mkFiniteFieldElem(self, value, Sort sort):
+    def mkFiniteFieldElem(self, value, Sort sort, int base=10):
         """
             Create finite field value.
 
+            Supports the following arguments:
+
+            - ``Term mkFiniteFieldElem(int value, Sort sort)``
+            - ``Term mkFiniteFieldElem(string value, Sort sort)``
+            - ``Term mkFiniteFieldElem(string value, Sort sort, int base)``
+
             :return: A Term representing a finite field value.
             :param value: The value of the element's integer representation.
+                          An integer or string of base 10 if the base is not
+                          explicitly given, and else a string in the given base. 
             :param sort: The field to create the element in.
+            :param base: The base of the string representation of ``value``.
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.mkFiniteFieldElem(str(value).encode(), sort.csort)
+
+        if base == 10:
+            if not isinstance(value, str) and not isinstance(value, int):
+                raise ValueError(
+                    "Invalid first argument to mkFiniteFieldElem '{}', "
+                    "expected string or integer value".format(value))
+        else:
+            if not isinstance(value, str):
+                raise ValueError(
+                    "Invalid first argument to mkFiniteFieldElem '{}', "
+                    "expected string value".format(value))
+
+        if not isinstance(base, int):
+            raise ValueError(
+            "Invalid third argument to mkFiniteFieldElem '{}', "
+            "expected integer value".format(base))
+        term.cterm = self.csolver.mkFiniteFieldElem(
+            <const string&> str(value).encode(),
+            sort.csort,
+            <uint32_t> base)
         return term
 
     def mkConstArray(self, Sort sort, Term val):
@@ -4516,3 +4785,4 @@ cdef class Proof:
             term.cterm = a
             args.append(term)
         return args
+
