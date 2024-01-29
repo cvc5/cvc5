@@ -260,9 +260,11 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   const std::vector<Node>& assertions = pfn->getChildren()[0]->getArguments();
   const ProofNode* pnBody = pfn->getChildren()[0]->getChildren()[0].get();
 
+  // use a let binding if proofDagGlobal is true
   LetBinding lbind(d_termLetPrefix);
-  AlfPrintChannelPre aletify(lbind);
-  AlfPrintChannelOut aprint(out, lbind, d_termLetPrefix);
+  LetBinding* lbindUse = options().proof.proofDagGlobal ? &lbind : nullptr;
+  AlfPrintChannelPre aletify(lbindUse);
+  AlfPrintChannelOut aprint(out, lbindUse, d_termLetPrefix);
 
   d_pletMap.clear();
   d_passumeMap.clear();

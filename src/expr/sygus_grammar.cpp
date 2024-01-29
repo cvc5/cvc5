@@ -54,7 +54,8 @@ void SygusGrammar::addAnyConstant(const Node& ntSym, const TypeNode& tn)
   Assert(d_rules.find(ntSym) != d_rules.cend());
   Assert(tn.isInstanceOf(ntSym.getType()));
   SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-  Node anyConst = sm->mkSkolemFunction(SkolemFunId::SYGUS_ANY_CONSTANT, tn);
+  Node anyConst =
+      sm->mkSkolemFunctionTyped(SkolemFunId::SYGUS_ANY_CONSTANT, tn);
   addRule(ntSym, anyConst);
 }
 
