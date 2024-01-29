@@ -137,7 +137,7 @@ class PropPfManager : protected EnvObj
                             bool input,
                             bool doNormalize = true);
   /**
-   * Clausifies the given propagation lemma *without* registering the resoluting
+   * Clausifies the given propagation lemma *without* registering the resulting
    * clause in the SAT solver, as this is handled internally by the SAT
    * solver. The clausification steps and the generator within the trust node
    * are saved in d_proof if we are producing proofs in the theory engine.
@@ -149,7 +149,7 @@ class PropPfManager : protected EnvObj
    */
   Node getLastExplainedPropagation() const;
   /**
-   * Get the proof of CNFication of all clauses that have been sent to the SAT
+   * Get the clausification proof of all clauses that have been sent to the SAT
    * solver.
    */
   LazyCDProof* getCnfProof();

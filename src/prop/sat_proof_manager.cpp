@@ -856,10 +856,11 @@ void SatProofManager::notifyCurrPropagationInsertedAtLevel(uint32_t explLevel)
   Trace("cnf-debug") << "\t..saved pf {" << currPropagationProcPf << "} "
                      << *currPropagationProcPf.get() << "\n";
   d_optClausesPfs[explLevel + 1].push_back(currPropagationProcPf);
-  // Notify SAT proof manager that the propagation (which is a SAT assumption)
+  // Notify this proof manager that the propagation (which is a SAT assumption)
   // had its level optimized
   notifyAssumptionInsertedAtLevel(explLevel, currProp);
   // Reset
+  d_ppm->resetLastExplainedPropagation();
 }
 
 void SatProofManager::notifyClauseInsertedAtLevel(const SatClause& clause,
