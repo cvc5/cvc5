@@ -182,7 +182,7 @@ Node HoTermDb::getHoTypeMatchPredicate(TypeNode tn)
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   TypeNode ptn = nm->mkFunctionType(tn, nm->booleanType());
-  return sm->mkSkolemFunction(SkolemFunId::HO_TYPE_MATCH_PRED, ptn);
+  return sm->mkSkolemFunctionTyped(SkolemFunId::HO_TYPE_MATCH_PRED, ptn);
 }
 
 }  // namespace quantifiers
