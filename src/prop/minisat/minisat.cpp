@@ -133,10 +133,12 @@ void MinisatSatSolver::initialize(context::Context* context,
 
   d_statistics.init(d_minisat);
 
-  // this is necessary because if True is later asserted to the prop engine the
-  // CNF stream will ignore it since the SAT solver already had it registered,
-  // thus not having True as an assumption for the SAT proof. To solve this
-  // issue we track it directly here
+  // Since the prop engine asserts "true" to the CNF stream regardless of what
+  // is in the input (see PropEngine::finishInit), if a real "true" assertion is
+  // made to the SAT solver via the Proof CNF stream, that would be ignored,
+  // since there is already "true" in the CNF stream. Thus the SAT proof would
+  // not have True as an assumption, which can lead to issues when building its
+  // proof. To prevent this problem, we track it directly here.
   SatProofManager* spfm = d_minisat->getProofManager();
   if (spfm)
   {

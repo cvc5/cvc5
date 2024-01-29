@@ -372,10 +372,9 @@ void PropPfManager::notifyExplainedPropagation(TrustNode trn)
     clauseExp = nm->mkNode(Kind::OR, proven[0].notNode(), proven[1]);
   }
   d_currPropagationProcessed = normalizeAndRegister(clauseExp, false);
-  // consume steps if clausification being recorded. If we are not logging it,
-  // we need to add the clause as a closed step to the proof so that the SAT
-  // proof does not have non-input formulas as assumptions. That clause is the
-  // result of normalizeAndRegister, stored in d_currPropagationProcessed
+  // If we are not logging the clausification, we need to add the clause, as *it
+  // will be saved in the SAT solver* (i.e., as clauseExp), as closed step in
+  // the d_proof, so that there are no non-input assumptions.
   if (!proofLogging)
   {
     d_proof.addTrustedStep(clauseExp, TrustId::THEORY_LEMMA, {}, {clauseExp});
