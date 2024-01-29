@@ -51,6 +51,7 @@ SatProofManager::SatProofManager(Env& env,
   d_false = NodeManager::currentNM()->mkConst(false);
   d_optResManager.trackNodeHashSet(&d_assumptions, &d_assumptionLevels);
   // temporary, to allow this class to be notified when new clauses are added
+  // see https://github.com/cvc5/cvc5-wishues/issues/149
   ppm->d_satPm = this;
 }
 
