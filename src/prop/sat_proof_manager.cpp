@@ -20,16 +20,19 @@
 #include "proof/theory_proof_step_buffer.h"
 #include "prop/cnf_stream.h"
 #include "prop/minisat/minisat.h"
+#include "prop/prop_proof_manager.h"
 
 namespace cvc5::internal {
 namespace prop {
 
 SatProofManager::SatProofManager(Env& env,
                                  Minisat::Solver* solver,
-                                 CnfStream* cnfStream)
+                                 CnfStream* cnfStream,
+                                 PropPfManager* ppm)
     : EnvObj(env),
       d_solver(solver),
       d_cnfStream(cnfStream),
+      d_ppm(ppm),
       d_resChains(d_env, true, userContext()),
       // enforce unique assumptions and no symmetry. This avoids creating
       // duplicate assumption proof nodes for the premises of resolution steps,
@@ -41,11 +44,15 @@ SatProofManager::SatProofManager(Env& env,
       d_assumptions(userContext()),
       d_conflictLit(undefSatVariable),
       d_optResLevels(userContext()),
-      d_optResManager(userContext(), &d_resChains, d_optResProofs)
+      d_optResManager(userContext(), &d_resChains, d_optResProofs),
+      d_optClausesManager(userContext(), ppm->getCnfProof(), d_optClausesPfs)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
   d_optResManager.trackNodeHashSet(&d_assumptions, &d_assumptionLevels);
+  // temporary, to allow this class to be notified when new clauses are added
+  // see https://github.com/cvc5/cvc5-wishues/issues/149
+  ppm->d_satPm = this;
 }
 
 void SatProofManager::printClause(const Minisat::Clause& clause)
@@ -825,6 +832,68 @@ void SatProofManager::notifyPop()
     Assert(clauseResPf && clauseResPf->getRule() != ProofRule::ASSUME);
     d_optResProofs[it->second].push_back(clauseResPf);
   }
+}
+
+void SatProofManager::notifyCurrPropagationInsertedAtLevel(uint32_t explLevel)
+{
+  Assert(explLevel < (userContext()->getLevel() - 1));
+  Node currProp = d_ppm->getLastExplainedPropagation();
+  Assert(!currProp.isNull());
+  LazyCDProof* pf = d_ppm->getCnfProof();
+  Trace("cnf") << "Need to save curr propagation " << currProp
+               << "'s proof in level " << explLevel + 1
+               << " despite being currently in level "
+               << userContext()->getLevel() << "\n";
+  // Save into map the proof of the processed propagation. Note that
+  // propagations must be explained eagerly, since their justification depends
+  // on the theory engine and may be different if we only get its proof when the
+  // SAT solver pops the user context. Not doing this may lead to open proofs.
+  //
+  // It's also necessary to copy the proof node, so we prevent unintended
+  // updates to the saved proof. Not doing this may also lead to open proofs.
+  std::shared_ptr<ProofNode> currPropagationProcPf =
+      pf->getProofFor(currProp)->clone();
+  Assert(currPropagationProcPf->getRule() != ProofRule::ASSUME);
+  Trace("cnf-debug") << "\t..saved pf {" << currPropagationProcPf << "} "
+                     << *currPropagationProcPf.get() << "\n";
+  d_optClausesPfs[explLevel + 1].push_back(currPropagationProcPf);
+  // Notify this proof manager that the propagation (which is a SAT assumption)
+  // had its level optimized
+  notifyAssumptionInsertedAtLevel(explLevel, currProp);
+  // Reset
+  d_ppm->resetLastExplainedPropagation();
+}
+
+void SatProofManager::notifyClauseInsertedAtLevel(const SatClause& clause,
+                                                  uint32_t clLevel)
+{
+  Trace("cnf") << "Need to save clause " << clause << " in level "
+               << clLevel + 1 << " despite being currently in level "
+               << userContext()->getLevel() << "\n";
+  LazyCDProof* pf = d_ppm->getCnfProof();
+  Node clauseNode = getClauseNode(clause);
+  Trace("cnf") << "Node equivalent: " << clauseNode << "\n";
+  Assert(clLevel < (userContext()->getLevel() - 1));
+  // As above, also justify eagerly.
+  std::shared_ptr<ProofNode> clauseCnfPf = pf->getProofFor(clauseNode)->clone();
+  Assert(clauseCnfPf->getRule() != ProofRule::ASSUME);
+  d_optClausesPfs[clLevel + 1].push_back(clauseCnfPf);
+  // Notify SAT proof manager that the propagation (which is a SAT assumption)
+  // had its level optimized
+  notifyAssumptionInsertedAtLevel(clLevel, clauseNode);
+}
+
+Node SatProofManager::getClauseNode(const SatClause& clause)
+{
+  std::vector<Node> clauseNodes;
+  for (size_t i = 0, size = clause.size(); i < size; ++i)
+  {
+    SatLiteral satLit = clause[i];
+    clauseNodes.push_back(d_cnfStream->getNode(satLit));
+  }
+  // order children by node id
+  std::sort(clauseNodes.begin(), clauseNodes.end());
+  return NodeManager::currentNM()->mkNode(Kind::OR, clauseNodes);
 }
 
 }  // namespace prop

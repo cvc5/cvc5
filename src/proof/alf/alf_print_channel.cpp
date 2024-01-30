@@ -25,7 +25,7 @@ namespace cvc5::internal {
 namespace proof {
 
 AlfPrintChannelOut::AlfPrintChannelOut(std::ostream& out,
-                                       const LetBinding& lbind,
+                                       const LetBinding* lbind,
                                        const std::string& tprefix)
     : d_out(out), d_lbind(lbind), d_termLetPrefix(tprefix)
 {
@@ -118,8 +118,16 @@ void AlfPrintChannelOut::printTrustStep(ProofRule r, TNode n, size_t i, TNode nc
 void AlfPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
 {
   options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
-  // use the toStream with custom letification method
-  Printer::getPrinter(out)->toStream(out, n, &d_lbind);
+  if (d_lbind)
+  {
+    // use the toStream with custom letification method
+    Printer::getPrinter(out)->toStream(out, n, d_lbind);
+  }
+  else
+  {
+    // just use default print
+    out << n;
+  }
 }
 
 void AlfPrintChannelOut::printTypeNodeInternal(std::ostream& out, TypeNode tn)
@@ -128,9 +136,15 @@ void AlfPrintChannelOut::printTypeNodeInternal(std::ostream& out, TypeNode tn)
   tn.toStream(out);
 }
 
-AlfPrintChannelPre::AlfPrintChannelPre(LetBinding& lbind) : d_lbind(lbind) {}
+AlfPrintChannelPre::AlfPrintChannelPre(LetBinding* lbind) : d_lbind(lbind) {}
 
-void AlfPrintChannelPre::printNode(TNode n) { d_lbind.process(n); }
+void AlfPrintChannelPre::printNode(TNode n)
+{
+  if (d_lbind)
+  {
+    d_lbind->process(n);
+  }
+}
 
 void AlfPrintChannelPre::printAssume(TNode n, size_t i, bool isPush)
 {
@@ -162,7 +176,10 @@ void AlfPrintChannelPre::printTrustStep(ProofRule r, TNode n, size_t i, TNode nc
 
 void AlfPrintChannelPre::processInternal(const Node& n)
 {
-  d_lbind.process(n);
+  if (d_lbind)
+  {
+    d_lbind->process(n);
+  }
   d_keep.insert(n);  // probably not necessary
   expr::getVariables(n, d_vars, d_varsVisited);
 }

@@ -71,7 +71,7 @@ class AlfPrintChannelOut : public AlfPrintChannel
 {
  public:
   AlfPrintChannelOut(std::ostream& out,
-                     const LetBinding& lbind,
+                     const LetBinding* lbind,
                      const std::string& tprefix);
   void printNode(TNode n) override;
   void printTypeNode(TypeNode tn) override;
@@ -97,7 +97,7 @@ class AlfPrintChannelOut : public AlfPrintChannel
   /** The output stream */
   std::ostream& d_out;
   /** The let binding */
-  const LetBinding& d_lbind;
+  const LetBinding* d_lbind;
   /** term prefix */
   std::string d_termLetPrefix;
   /**
@@ -115,7 +115,7 @@ class AlfPrintChannelOut : public AlfPrintChannel
 class AlfPrintChannelPre : public AlfPrintChannel
 {
  public:
-  AlfPrintChannelPre(LetBinding& lbind);
+  AlfPrintChannelPre(LetBinding* lbind);
   void printNode(TNode n) override;
   void printAssume(TNode n, size_t i, bool isPush) override;
   void printStep(const std::string& rname,
@@ -131,7 +131,7 @@ class AlfPrintChannelPre : public AlfPrintChannel
 
  private:
   /** The let binding */
-  LetBinding& d_lbind;
+  LetBinding* d_lbind;
   /** For computing free variables */
   std::unordered_set<Node> d_keep;
   /** The set of variables we have encountered */

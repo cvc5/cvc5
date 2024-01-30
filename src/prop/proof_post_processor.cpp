@@ -15,14 +15,15 @@
 
 #include "prop/proof_post_processor.h"
 
+#include "proof/proof.h"
 #include "theory/builtin/proof_checker.h"
 
 namespace cvc5::internal {
 namespace prop {
 
 ProofPostprocessCallback::ProofPostprocessCallback(
-    Env& env, ProofCnfStream* proofCnfStream)
-    : EnvObj(env), d_proofCnfStream(proofCnfStream)
+    Env& env, ProofGenerator* proofCnfStream)
+    : EnvObj(env), d_pg(proofCnfStream), d_blocked(userContext())
 {
 }
 
@@ -32,8 +33,8 @@ bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                             const std::vector<Node>& fa,
                                             bool& continueUpdate)
 {
-  bool result = pn->getRule() == ProofRule::ASSUME
-                && d_proofCnfStream->hasProofFor(pn->getResult());
+  bool result =
+      pn->getRule() == ProofRule::ASSUME && d_pg->hasProofFor(pn->getResult());
   if (TraceIsOn("prop-proof-pp") && !result
       && pn->getRule() == ProofRule::ASSUME)
   {
@@ -41,7 +42,7 @@ bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                            << pn->getResult() << "\n";
   }
   // check if should continue traversing
-  if (d_proofCnfStream->isBlocked(pn))
+  if (isBlocked(pn))
   {
     continueUpdate = false;
     result = false;
@@ -73,9 +74,9 @@ bool ProofPostprocessCallback::update(Node res,
   }
   else
   {
-    Assert(d_proofCnfStream != nullptr);
+    Assert(d_pg != nullptr);
     // get proof from proof cnf stream
-    pfn = d_proofCnfStream->getProofFor(f);
+    pfn = d_pg->getProofFor(f);
     Assert(pfn != nullptr && pfn->getResult() == f);
     if (TraceIsOn("prop-proof-pp"))
     {
@@ -91,12 +92,22 @@ bool ProofPostprocessCallback::update(Node res,
   continueUpdate = false;
   // moreover block the fact f so that its proof node is not traversed if we run
   // this post processor again (which can happen in incremental benchmarks)
-  d_proofCnfStream->addBlocked(pfn);
+  addBlocked(pfn);
   return true;
 }
 
-ProofPostprocess::ProofPostprocess(Env& env, ProofCnfStream* proofCnfStream)
-    : EnvObj(env), d_cb(env, proofCnfStream)
+void ProofPostprocessCallback::addBlocked(std::shared_ptr<ProofNode> pfn)
+{
+  d_blocked.insert(pfn);
+}
+
+bool ProofPostprocessCallback::isBlocked(std::shared_ptr<ProofNode> pfn)
+{
+  return d_blocked.contains(pfn);
+}
+
+ProofPostprocess::ProofPostprocess(Env& env, ProofGenerator* pg)
+    : EnvObj(env), d_cb(env, pg)
 {
 }
 
