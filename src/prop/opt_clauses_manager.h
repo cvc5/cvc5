@@ -36,6 +36,8 @@ namespace prop {
  * given context, storing a proof in a given level and, when the the respective
  * context pops, proofs of level no greater than the new one are reinserted in
  * the proof marked to be notified.
+ *
+ * This class is specific to Minisat.
  */
 class OptimizedClausesManager : context::ContextNotifyObj
 {
