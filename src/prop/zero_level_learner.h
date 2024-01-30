@@ -117,9 +117,12 @@ class ZeroLevelLearner : protected EnvObj
   size_t d_deepRestartThreshold;
   /** learnable learned literal types (for deep restart), based on option */
   std::unordered_set<modes::LearnedLitType> d_learnedTypes;
-  /** Track the simplification map? */
+  /** Should we track the simplification map? */
   bool d_trackSimplifications;
-  /** Simplification map */
+  /**
+   * Simplification map. This is a substitution that is globally valid based
+   * on the literals learned at decision level zero.
+   */
   theory::TrustSubstitutionMap d_tsmap;
 
 }; /* class ZeroLevelLearner */

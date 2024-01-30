@@ -291,7 +291,9 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
       {
         for (size_t i = 0; i < 2; i++)
         {
-          if (lit[i].isConst())  // || lit[i].getNumChildren()==0)
+          // Only consider substitutions whose RHS are constants.
+          // A more general policy could consider lit[i].getNumChildren()==0.
+          if (lit[i].isConst())
           {
             if (ltype == modes::LearnedLitType::INTERNAL
                 && d_ppnTerms.find(lit[1 - i]) != d_ppnTerms.end())
