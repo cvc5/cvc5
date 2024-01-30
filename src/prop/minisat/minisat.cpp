@@ -25,6 +25,7 @@
 #include "proof/clause_id.h"
 #include "prop/minisat/simp/SimpSolver.h"
 #include "util/statistics_stats.h"
+#include "util/string.h"
 
 namespace cvc5::internal {
 namespace prop {
@@ -307,11 +308,14 @@ std::vector<Node> MinisatSatSolver::getOrderHeap() const
   return d_minisat->getMiniSatOrderHeap();
 }
 
-std::shared_ptr<ProofNode> MinisatSatSolver::getProof()
+std::shared_ptr<ProofNode> MinisatSatSolver::getProof(
+    const std::vector<Node>& clauses)
 {
   Assert(d_env.isSatProofProducing());
   return d_minisat->getProof();
 }
+
+bool MinisatSatSolver::needsMinimizeClausesForGetProof() const { return false; }
 
 /** Incremental interface */
 

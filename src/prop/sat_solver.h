@@ -170,7 +170,13 @@ class CDCLTSatSolver : public SatSolver
    */
   virtual std::vector<Node> getOrderHeap() const = 0;
 
-  virtual std::shared_ptr<ProofNode> getProof() = 0;
+  virtual std::shared_ptr<ProofNode> getProof(
+      const std::vector<Node>& clauses) = 0;
+
+  /** Is `true` if the set of clauses handed to `getProof` must be
+   * minimized to the unsat core.
+   */
+  virtual bool needsMinimizeClausesForGetProof() const = 0;
 
 }; /* class CDCLTSatSolver */
 

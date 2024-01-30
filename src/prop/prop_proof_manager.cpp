@@ -15,6 +15,8 @@
 
 #include "prop/prop_proof_manager.h"
 
+#include "expr/skolem_manager.h"
+#include "options/main_options.h"
 #include "proof/proof_ensure_closed.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/theory_proof_step_buffer.h"
@@ -22,7 +24,9 @@
 #include "prop/prop_proof_manager.h"
 #include "prop/sat_proof_manager.h"
 #include "prop/sat_solver.h"
+#include "prop/sat_solver_factory.h"
 #include "smt/env.h"
+#include "util/string.h"
 
 namespace cvc5::internal {
 namespace prop {
@@ -85,11 +89,12 @@ void PropPfManager::registerAssertion(Node assertion)
   d_assertions.push_back(assertion);
 }
 
-void PropPfManager::checkProof(const context::CDList<Node>& assertions)
+void PropPfManager::checkProof(const context::CDList<Node>& assumptions,
+                               const context::CDList<Node>& assertions)
 {
   Trace("sat-proof") << "PropPfManager::checkProof: Checking if resolution "
                         "proof of false is closed\n";
-  std::shared_ptr<ProofNode> conflictProof = getProof(false);
+  std::shared_ptr<ProofNode> conflictProof = getProof(assumptions, false);
   Assert(conflictProof);
   // connect it with CNF proof
   d_pfpp->process(conflictProof);
@@ -106,11 +111,12 @@ void PropPfManager::checkProof(const context::CDList<Node>& assertions)
                      "PropPfManager::checkProof");
 }
 
-std::vector<Node> PropPfManager::getUnsatCoreLemmas()
+std::vector<Node> PropPfManager::getUnsatCoreLemmas(
+    const context::CDList<Node>& assumptions)
 {
   std::vector<Node> usedLemmas;
   std::vector<Node> allLemmas = getLemmaClauses();
-  std::shared_ptr<ProofNode> satPf = getProof(false);
+  std::shared_ptr<ProofNode> satPf = getProof(assumptions, false);
   std::vector<Node> satLeaves;
   expr::getFreeAssumptions(satPf.get(), satLeaves);
   for (const Node& lemma : allLemmas)
@@ -124,7 +130,7 @@ std::vector<Node> PropPfManager::getUnsatCoreLemmas()
 }
 
 std::vector<std::shared_ptr<ProofNode>> PropPfManager::getProofLeaves(
-    modes::ProofComponent pc)
+    const context::CDList<Node>& assumptions, modes::ProofComponent pc)
 {
   Trace("sat-proof") << "PropPfManager::getProofLeaves: Getting " << pc
                      << " component proofs\n";
@@ -132,9 +138,10 @@ std::vector<std::shared_ptr<ProofNode>> PropPfManager::getProofLeaves(
   Assert(pc == modes::ProofComponent::THEORY_LEMMAS
          || pc == modes::ProofComponent::PREPROCESS);
   std::vector<std::shared_ptr<ProofNode>> pfs =
-      pc == modes::ProofComponent::THEORY_LEMMAS ? getLemmaClausesProofs()
-                                                 : getInputClausesProofs();
-  std::shared_ptr<ProofNode> satPf = getProof(false);
+      pc == modes::ProofComponent::THEORY_LEMMAS
+          ? getLemmaClausesProofs()
+          : getInputClausesProofs();
+  std::shared_ptr<ProofNode> satPf = getProof(assumptions, false);
   std::vector<Node> satLeaves;
   expr::getFreeAssumptions(satPf.get(), satLeaves);
   std::vector<std::shared_ptr<ProofNode>> usedPfs;
@@ -149,7 +156,8 @@ std::vector<std::shared_ptr<ProofNode>> PropPfManager::getProofLeaves(
   return usedPfs;
 }
 
-std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
+std::shared_ptr<ProofNode> PropPfManager::getProof(
+    const context::CDList<Node>& assumptions, bool connectCnf)
 {
   auto it = d_propProofs.find(connectCnf);
   if (it != d_propProofs.end())
@@ -157,9 +165,200 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
     return it->second;
   }
   // retrieve the SAT solver's refutation proof
-  Trace("sat-proof")
-      << "PropPfManager::getProof: Getting resolution proof of false\n";
-  std::shared_ptr<ProofNode> conflictProof = d_satSolver->getProof();
+  Trace("sat-proof") << "PropPfManager::getProof: Getting proof of false\n";
+  std::unordered_set<Node> cset(assumptions.begin(), assumptions.end());
+  Trace("cnf-input") << "#assumptions=" << cset.size() << std::endl;
+
+  bool hasFalseAssert = false;
+  bool computeClauses = d_satSolver->needsMinimizeClausesForGetProof();
+  if (computeClauses)
+  {
+    std::vector<Node> minAssumptions;
+    std::vector<SatLiteral> unsatAssumptions;
+    d_satSolver->getUnsatAssumptions(unsatAssumptions);
+    for (const Node& nc : cset)
+    {
+      if (nc.isConst())
+      {
+        if (nc.getConst<bool>())
+        {
+          // never include true
+          continue;
+        }
+        else
+        {
+          hasFalseAssert = true;
+          Trace("cnf-input") << "...found false assumption" << std::endl;
+          // if false exists, take it only
+          minAssumptions.clear();
+          minAssumptions.push_back(nc);
+          break;
+        }
+      }
+      else if (d_pfCnfStream.hasLiteral(nc))
+      {
+        SatLiteral il = d_pfCnfStream.getLiteral(nc);
+        if (std::find(unsatAssumptions.begin(), unsatAssumptions.end(), il)
+            == unsatAssumptions.end())
+        {
+          continue;
+        }
+      }
+      minAssumptions.push_back(nc);
+    }
+    cset.clear();
+    cset.insert(minAssumptions.begin(), minAssumptions.end());
+    Trace("cnf-input") << "#assumptions (min)=" << cset.size() << std::endl;
+  }
+  std::vector<Node> inputs = getInputClauses();
+  Trace("cnf-input") << "#input=" << inputs.size() << std::endl;
+  std::vector<Node> lemmas = getLemmaClauses();
+  Trace("cnf-input") << "#lemmas=" << lemmas.size() << std::endl;
+  if (!hasFalseAssert)
+  {
+    cset.insert(inputs.begin(), inputs.end());
+    cset.insert(lemmas.begin(), lemmas.end());
+  }
+
+  // the set of clauses to pass to SAT solver for getProof
+  std::vector<Node> clauses;
+  // output for dimacs file
+  std::stringstream dumpDimacs;
+  bool alreadyDumpDimacs = false;
+  // go back and minimize assumptions if option is set and SAT solver uses it.
+  // we don't do this if we found false as a (preprocessed) input formula
+  if (computeClauses && !hasFalseAssert && options().proof.satProofMinDimacs)
+  {
+    Trace("cnf-input-min") << "Make cadical..." << std::endl;
+    CDCLTSatSolver* csm = SatSolverFactory::createCadical(
+        d_env, statisticsRegistry(), d_env.getResourceManager());
+    NullRegistrar nreg;
+    context::Context nctx;
+    CnfStream csms(d_env, csm, &nreg, &nctx);
+    Trace("cnf-input-min") << "Get literals..." << std::endl;
+    std::vector<SatLiteral> csma;
+    std::map<SatLiteral, Node> litToNode;
+    std::map<SatLiteral, Node> litToNodeAbs;
+    NodeManager* nm = NodeManager::currentNM();
+    TypeNode bt = nm->booleanType();
+    TypeNode ft = nm->mkFunctionType({bt}, bt);
+    SkolemManager* skm = nm->getSkolemManager();
+    // Function used to ensure that subformulas are not treated by CNF below.
+    Node litOf = skm->mkDummySkolem("litOf", ft);
+    for (const Node& c : cset)
+    {
+      Node ca = c;
+      std::vector<SatLiteral> satClause;
+      std::vector<Node> lits;
+      if (c.getKind() == Kind::OR)
+      {
+        lits.insert(lits.end(), c.begin(), c.end());
+      }
+      else
+      {
+        lits.push_back(c);
+      }
+      // For each literal l in the current clause, if it has Boolean
+      // substructure, we replace it with (litOf l), which will be treated as a
+      // literal. We do this since we require that the clause be treated
+      // verbatim by the SAT solver, otherwise the unsat core will not include
+      // the necessary clauses (e.g. it will skip those corresponding to CNF
+      // conversion).
+      std::vector<Node> cls;
+      bool childChanged = false;
+      for (const Node& cl : lits)
+      {
+        bool negated = cl.getKind() == Kind::NOT;
+        Node cla = negated ? cl[0] : cl;
+        if (d_env.theoryOf(cla) == theory::THEORY_BOOL && !cla.isVar())
+        {
+          Node k = nm->mkNode(Kind::APPLY_UF, {litOf, cla});
+          cls.push_back(negated ? k.notNode() : k);
+          childChanged = true;
+        }
+        else
+        {
+          cls.push_back(cl);
+        }
+      }
+      if (childChanged)
+      {
+        ca = nm->mkOr(cls);
+      }
+      Trace("cnf-input-min-assert") << "Assert: " << ca << std::endl;
+      csms.ensureLiteral(ca);
+      SatLiteral lit = csms.getLiteral(ca);
+      csma.emplace_back(lit);
+      litToNode[lit] = c;
+      litToNodeAbs[lit] = ca;
+    }
+    Trace("cnf-input-min") << "Solve under " << csma.size() << " assumptions..."
+                           << std::endl;
+    SatValue res = csm->solve(csma);
+    if (res == SAT_VALUE_FALSE)
+    {
+      // we successfully reproved the input
+      Trace("cnf-input-min") << "...got unsat" << std::endl;
+      std::vector<SatLiteral> uassumptions;
+      csm->getUnsatAssumptions(uassumptions);
+      Trace("cnf-input-min")
+          << "...#unsat assumptions=" << uassumptions.size() << std::endl;
+      std::vector<Node> aclauses;
+      for (const SatLiteral& lit : uassumptions)
+      {
+        Assert(litToNode.find(lit) != litToNode.end());
+        Trace("cnf-input-min-result")
+            << "assert: " << litToNode[lit] << std::endl;
+        clauses.emplace_back(litToNode[lit]);
+        aclauses.emplace_back(litToNodeAbs[lit]);
+      }
+      alreadyDumpDimacs = true;
+      csms.dumpDimacs(dumpDimacs, aclauses);
+    }
+    else
+    {
+      // should never happen, if it does, we revert to the entire input
+      Trace("cnf-input-min") << "...got sat" << std::endl;
+      Assert(false) << "Failed to minimize DIMACS";
+      clauses.insert(clauses.end(), cset.begin(), cset.end());
+    }
+    delete csm;
+  }
+  else
+  {
+    clauses.insert(clauses.end(), cset.begin(), cset.end());
+  }
+
+  std::shared_ptr<ProofNode> conflictProof;
+  if (hasFalseAssert)
+  {
+    Assert(clauses.size() == 1 && clauses[0].isConst()
+           && !clauses[0].getConst<bool>());
+    conflictProof = d_env.getProofNodeManager()->mkAssume(clauses[0]);
+  }
+  else
+  {
+    conflictProof = d_satSolver->getProof(clauses);
+  }
+  // if DRAT, must dump dimacs
+  ProofRule r = conflictProof->getRule();
+  if (r == ProofRule::DRAT_REFUTATION || r == ProofRule::SAT_EXTERNAL_PROVE)
+  {
+    std::stringstream dinputFile;
+    dinputFile
+        << conflictProof->getArguments()[0].getConst<String>().toString();
+    std::fstream dout(dinputFile.str(), std::ios::out);
+    if (alreadyDumpDimacs)
+    {
+      dout << dumpDimacs.str();
+    }
+    else
+    {
+      d_pfCnfStream.dumpDimacs(dout, clauses);
+    }
+    dout.close();
+  }
+
   Assert(conflictProof);
   if (TraceIsOn("sat-proof"))
   {
@@ -189,8 +388,6 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
     {
       CDProof cdp(d_env);
       // get the clauses added to the SAT solver and add them as assumptions
-      std::vector<Node> inputs = getInputClauses();
-      std::vector<Node> lemmas = getLemmaClauses();
       std::vector<Node> allAssumptions{inputs.begin(), inputs.end()};
       allAssumptions.insert(allAssumptions.end(), lemmas.begin(), lemmas.end());
       for (const Node& a : allAssumptions)

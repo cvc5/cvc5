@@ -88,7 +88,10 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
 
   std::vector<Node> getOrderHeap() const override;
 
-  std::shared_ptr<ProofNode> getProof() override;
+  std::shared_ptr<ProofNode> getProof(
+      const std::vector<Node>& clauses) override;
+
+  bool needsMinimizeClausesForGetProof() const override;
 
  private:
   /**
@@ -134,6 +137,9 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
    * query the solver if a given assumption is false.
    */
   std::vector<SatLiteral> d_assumptions;
+
+  /** The proof file */
+  std::string d_pfFile;
 
   unsigned d_nextVarIdx;
   bool d_inSatMode;
