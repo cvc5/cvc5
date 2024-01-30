@@ -316,7 +316,8 @@ void PropEngine::assertLemmasInternal(
   if (!trn.isNull())
   {
     // inprocess
-    if (inprocess && options().theory.lemmaInprocess!=options::LemmaInprocessMode::NONE)
+    if (inprocess
+        && options().theory.lemmaInprocess != options::LemmaInprocessMode::NONE)
     {
       trn = d_theoryProxy->inprocessLemma(trn);
     }

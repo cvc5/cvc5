@@ -62,7 +62,7 @@ TheoryProxy::TheoryProxy(Env& env,
       || isOutputOn(OutputTag::LEARNED_LITS)
       || options().smt.produceLearnedLiterals
       || options().parallel.computePartitions > 0
-      || options().theory.lemmaInprocess!=options::LemmaInprocessMode::NONE;
+      || options().theory.lemmaInprocess != options::LemmaInprocessMode::NONE;
   if (trackZeroLevel)
   {
     d_zll = std::make_unique<ZeroLevelLearner>(env, theoryEngine);
@@ -92,7 +92,7 @@ void TheoryProxy::finishInit(CDCLTSatSolver* ss, CnfStream* cs)
   // compute if we need to track skolem definitions
   d_trackActiveSkDefs = d_decisionEngine->needsActiveSkolemDefs()
                         || d_prr->needsActiveSkolemDefs();
-  if (options().theory.lemmaInprocess!=options::LemmaInprocessMode::NONE)
+  if (options().theory.lemmaInprocess != options::LemmaInprocessMode::NONE)
   {
     d_lemip.reset(new LemmaInprocess(d_env, cs, *d_zll.get()));
   }

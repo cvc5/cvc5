@@ -284,7 +284,8 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
         }
       }
     }
-    if ((d_trackSimplifications && !processed) || ltype != modes::LearnedLitType::SOLVABLE)
+    if ((d_trackSimplifications && !processed)
+        || ltype != modes::LearnedLitType::SOLVABLE)
     {
       // maybe a constant prop?
       if (lit.getKind() == Kind::EQUAL)
@@ -309,7 +310,8 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
             }
             break;
           }
-          else if ((d_trackSimplifications && !processed) && expr::hasSubterm(lit[1 - i], lit[i]))
+          else if ((d_trackSimplifications && !processed)
+                   && expr::hasSubterm(lit[1 - i], lit[i]))
           {
             Trace("lemma-inprocess-subs") << "Add cp subterm: " << lit[1 - i]
                                           << " -> " << lit[i] << std::endl;
@@ -333,7 +335,7 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
 
 theory::TrustSubstitutionMap& ZeroLevelLearner::getSimplifications()
 {
-  Assert (d_trackSimplifications);
+  Assert(d_trackSimplifications);
   return d_tsmap;
 }
 
