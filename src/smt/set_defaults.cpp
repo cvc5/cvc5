@@ -132,7 +132,8 @@ void SetDefaults::setDefaultsPre(Options& opts)
     SET_AND_NOTIFY(Smt, produceDifficulty, true, "dumpDifficulty");
   }
   if (opts.smt.checkUnsatCores || opts.driver.dumpUnsatCores
-      || opts.smt.unsatAssumptions || opts.smt.minimalUnsatCores
+      || opts.driver.dumpUnsatCoresLemmas || opts.smt.unsatAssumptions
+      || opts.smt.minimalUnsatCores
       || opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF)
   {
     SET_AND_NOTIFY(

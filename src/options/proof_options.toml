@@ -34,6 +34,14 @@ name   = "Proof"
   help       = "Print conclusion of proof steps when printing AST"
 
 [[option]]
+  name       = "proofDagGlobal"
+  category   = "expert"
+  long       = "proof-dag-global"
+  type       = "bool"
+  default    = "true"
+  help       = "Dagify terms in proofs using global definitions"
+
+[[option]]
   name       = "proofPedantic"
   category   = "expert"
   long       = "proof-pedantic=N"

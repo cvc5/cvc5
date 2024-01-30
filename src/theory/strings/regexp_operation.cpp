@@ -1115,7 +1115,6 @@ Node RegExpOpr::reduceRegExpPos(Node mem,
       {
         Node ivalue = nm->mkConstInt(Rational(i));
         Node sk = sm->mkSkolemFunction(SkolemFunId::RE_UNFOLD_POS_COMPONENT,
-                                       s.getType(),
                                        {mem[0], mem[1], ivalue});
         newSkolems.push_back(sk);
         nvec.push_back(nm->mkNode(Kind::STRING_IN_REGEXP, newSkolems[i], r[i]));
