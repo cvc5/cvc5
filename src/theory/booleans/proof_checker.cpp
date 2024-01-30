@@ -75,6 +75,8 @@ void BoolProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::CNF_ITE_NEG2, this);
   pc->registerChecker(ProofRule::CNF_ITE_NEG3, this);
   pc->registerTrustedChecker(ProofRule::SAT_REFUTATION, this, 1);
+  pc->registerTrustedChecker(ProofRule::DRAT_REFUTATION, this, 1);
+  pc->registerTrustedChecker(ProofRule::SAT_EXTERNAL_PROVE, this, 1);
 }
 
 Node BoolProofRuleChecker::checkInternal(ProofRule id,
@@ -928,9 +930,13 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
         args[0], args[0][1].notNode(), args[0][2].notNode()};
     return NodeManager::currentNM()->mkNode(Kind::OR, disjuncts);
   }
-  if (id == ProofRule::SAT_REFUTATION)
+  if (id == ProofRule::SAT_REFUTATION || id == ProofRule::DRAT_REFUTATION
+      || id == ProofRule::SAT_EXTERNAL_PROVE)
   {
-    Assert(args.empty());
+    Assert(args.size()
+           == (id == ProofRule::SAT_REFUTATION
+                   ? 0
+                   : (id == ProofRule::SAT_EXTERNAL_PROVE ? 1 : 2)));
     return NodeManager::currentNM()->mkConst(false);
   }
   // no rule

@@ -187,3 +187,27 @@ name   = "Proof"
   type       = "bool"
   default    = "false"
   help       = "Print reference to original file instead of redeclaring"
+
+[[option]]
+  name       = "dratBinaryFormat"
+  category   = "expert"
+  long       = "drat-binary-format"
+  type       = "bool"
+  default    = "false"
+  help       = "Print the DRAT proof in binary format"
+
+[[option]]
+  name       = "satExternalProve"
+  category   = "expert"
+  long       = "sat-external-prove"
+  type       = "bool"
+  default    = "true"
+  help       = "Reprove the DIMACS generated from SMT externally"
+
+[[option]]
+  name       = "satProofMinDimacs"
+  category   = "expert"
+  long       = "sat-proof-min-dimacs"
+  type       = "bool"
+  default    = "true"
+  help       = "Minimize the DIMACs emitted as the preamble"
