@@ -167,6 +167,8 @@ std::ostream& operator<<(std::ostream&, const Command&) CVC5_EXPORT;
  */
 class CVC5_EXPORT InputParser
 {
+  friend class internal::InteractiveShell;
+
  public:
   /**
    * Construct an input parser
@@ -257,6 +259,11 @@ class CVC5_EXPORT InputParser
   bool done() const;
 
  private:
+  /**
+   * Set the input to the given concrete input string, without allocating a new parser.
+   */
+  void setStringInputInternal(const std::string& input,
+                              const std::string& name);
   /** Initialize this input parser, called during construction */
   void initialize();
   /**

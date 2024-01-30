@@ -1049,6 +1049,7 @@ set(regress_0_tests
   regress0/parser/non_well_founded_dt.smt2
   regress0/parser/non_well_founded_dts.smt2
   regress0/parser/parser-line-error.smt2
+  regress0/parser/print-success.smt2
   regress0/parser/proj-issue370-push-pop-global.smt2
   regress0/parser/quoted-define-fun.smt2
   regress0/parser/real-numerals.smt2
@@ -1144,6 +1145,7 @@ set(regress_0_tests
   regress0/proofs/alethe-res-need-or-step.smt2
   regress0/proofs/cyclic-ucp.smt2
   regress0/proofs/issue277-circuit-propagator.smt2
+  regress0/proofs/issue10278-pf-clone.smt2
   regress0/proofs/issue8983-trust-subs.smt2
   regress0/proofs/issue9156-doublePropProof.smt2
   regress0/proofs/issue9172-doublePropProof.smt2
@@ -1154,6 +1156,7 @@ set(regress_0_tests
   regress0/proofs/issue9669-clause-level-opt-incremental.smt2
   regress0/proofs/lfsc-test-1.smt2
   regress0/proofs/nomerge-alethe-pf.smt2
+  regress0/proofs/no-proof-uc.smt2
   regress0/proofs/open-pf-datatypes.smt2
   regress0/proofs/open-pf-if-unordered-iff.smt2
   regress0/proofs/open-pf-rederivation.smt2
@@ -1695,6 +1698,7 @@ set(regress_0_tests
   regress0/sygus/cegqi-si-string-triv.sy
   regress0/sygus/check-generic-red.sy
   regress0/sygus/const-var-test.sy
+  regress0/sygus/declare-var-grammar-err.sy
   regress0/sygus/dt-no-syntax.sy
   regress0/sygus/dt-sel-parse1.sy
   regress0/sygus/find-synth-next.smt2
@@ -2025,6 +2029,7 @@ set(regress_1_tests
   regress1/bags/choose2.smt2
   regress1/bags/choose3.smt2
   regress1/bags/choose4.smt2
+  regress1/bags/ctor_previous_sat.smt2
   regress1/bags/difference_remove1.smt2
   regress1/bags/disequality.smt2
   regress1/bags/duplicate_removal1.smt2
@@ -2510,6 +2515,7 @@ set(regress_1_tests
   regress1/quantifiers/florian-case-ax.smt2
   regress1/quantifiers/fp-cegqi-unsat.smt2
   regress1/quantifiers/gauss_init_0030.fof.smt2
+  regress1/quantifiers/ho-seu-sygus-inst.smt2
   regress1/quantifiers/horn-simple.smt2
   regress1/quantifiers/inst-max-level-segf.smt2
   regress1/quantifiers/inst-prop-simp.smt2
@@ -2658,6 +2664,7 @@ set(regress_1_tests
   regress1/quantifiers/stream-x2014-09-18-unsat.smt2
   regress1/quantifiers/sygus-infer-nested.smt2
   regress1/quantifiers/sygus-inst-nia-psyco-060.smt2
+  regress1/quantifiers/sygus-inst-lambda.smt2
   regress1/quantifiers/symmetric_unsat_7.smt2
   regress1/quantifiers/tpp-unit-fail-qbv.smt2
   regress1/quantifiers/var-eq-trigger.smt2
@@ -3109,6 +3116,8 @@ set(regress_1_tests
   regress1/sygus/finite-feasible-2.sy
   regress1/sygus/finite-infeasible.sy
   regress1/sygus/finite-infeasible-2.sy
+  regress1/sygus/fwd-decl-2.sy
+  regress1/sygus/fwd-decl-simple.sy
   regress1/sygus/grammar_norm.sy
   regress1/sygus/ground-ite-free-constant-si.sy
   regress1/sygus/hd-01-d1-prog.sy

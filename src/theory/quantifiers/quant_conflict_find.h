@@ -300,9 +300,7 @@ class QuantConflictFind : public QuantifiersModule
   /** Map from quantified formulas to their info class to compute instances */
   std::map<Node, std::unique_ptr<QuantInfo> > d_qinfo;
   /** Map from type -> list(eqc) of that type */
-  std::map<TypeNode, std::vector<TNode> > d_eqcs;
-  /** Are we in conflict? */
-  context::CDO<bool> d_conflict;
+  std::map<TypeNode, std::vector<TNode>> d_eqcs;
   /** Zeros for (type, kind) pairs */
   std::map<std::pair<TypeNode, Kind>, Node> d_zero;
   // for storing nodes created during t-constraint solving (prevents memory

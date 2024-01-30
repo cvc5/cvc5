@@ -74,6 +74,8 @@ libcvc5_add_sources(
   preprocessing/passes/extended_rewriter_pass.h
   preprocessing/passes/ff_bitsum.cpp
   preprocessing/passes/ff_bitsum.h
+  preprocessing/passes/ff_disjunctive_bit.cpp
+  preprocessing/passes/ff_disjunctive_bit.h
   preprocessing/passes/foreign_theory_rewrite.cpp
   preprocessing/passes/foreign_theory_rewrite.h
   preprocessing/passes/fun_def_fmf.cpp
@@ -697,6 +699,8 @@ libcvc5_add_sources(
   theory/evaluator.h
   theory/ext_theory.cpp
   theory/ext_theory.h
+  theory/ff/cocoa_encoder.cpp
+  theory/ff/cocoa_encoder.h
   theory/ff/cocoa_util.cpp
   theory/ff/cocoa_util.h
   theory/ff/core.cpp
@@ -705,6 +709,8 @@ libcvc5_add_sources(
   theory/ff/multi_roots.h
   theory/ff/parse.cpp
   theory/ff/parse.h
+  theory/ff/split_gb.cpp
+  theory/ff/split_gb.h
   theory/ff/stats.cpp
   theory/ff/stats.h
   theory/ff/sub_theory.cpp
