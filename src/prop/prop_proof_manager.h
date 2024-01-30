@@ -59,14 +59,9 @@ class PropPfManager : protected EnvObj
   /**
    * Converts a formula into CNF into CNF and asserts the generated clauses into
    * the underlying SAT solver of d_cnfStream. Every transformation the formula
-   * goes through is saved as a concrete step in d_proof.
+   * goes through is saved as a concrete step in d_proof. This method makes a
+   * call to the convertAndAssert method of d_pfCnfStream.
    *
-   * The given formula has arbitrary Boolean structure via kinds AND, OR, EQUAL,
-   * XOR, IMPLIES. ITE and NOT. The conversion is done polynomially via Tseitin
-   * transformation, with the children of non-conjunctive kinds being abstracted
-   * as new literals, which are clausified with the respective "handle" methods
-   * below.
-
    * @param node formula to convert and assert
    * @param negated whether we are asserting the node negated
    * @param removable whether the SAT solver can choose to remove the clauses
