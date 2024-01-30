@@ -520,7 +520,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       unsigned int nargs = dt[0].getNumArgs();
       if (nargs == 0)
       {
-        out << "UnitTuple";        
+        out << "UnitTuple";
       }
       else
       {
@@ -530,7 +530,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
           out << " ";
           toStreamType(out, dt[0][i].getRangeType());
         }
-        out << ")";        
+        out << ")";
       }
       return true;
     }
