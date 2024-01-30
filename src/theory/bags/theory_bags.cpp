@@ -355,6 +355,13 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
   // a map from bag representatives to their constructed values
   std::map<Node, Node> processedBags;
 
+  Trace("bags-model") << "d_state equality engine:" << std::endl;
+  Trace("bags-model") << d_state.getEqualityEngine()->debugPrintEqc()
+                      << std::endl;
+
+  Trace("bags-model") << "model equality engine:" << std::endl;
+  Trace("bags-model") << m->getEqualityEngine()->debugPrintEqc() << std::endl;
+
   // get the relevant bag equivalence classes
   for (const Node& n : termSet)
   {
@@ -364,8 +371,30 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
       // we are only concerned here about bag terms
       continue;
     }
-    Node r = d_state.getRepresentative(n);
 
+    Kind k = n.getKind();
+    switch (k)
+    {
+      case Kind::BAG_MAKE:
+      case Kind::BAG_DUPLICATE_REMOVAL:
+      case Kind::BAG_UNION_MAX:
+      case Kind::BAG_UNION_DISJOINT:
+      case Kind::BAG_INTER_MIN:
+      case Kind::BAG_DIFFERENCE_SUBTRACT:
+      case Kind::BAG_DIFFERENCE_REMOVE:
+      case Kind::BAG_MAP:
+      case Kind::BAG_FILTER:
+      case Kind::BAG_FOLD:
+      case Kind::BAG_PARTITION:
+      case Kind::TABLE_PRODUCT:
+      case Kind::TABLE_AGGREGATE:
+      {
+        continue;
+      }
+      default: break;
+    }
+
+    Node r = d_state.getRepresentative(n);
     if (processedBags.find(r) != processedBags.end())
     {
       // skip bags whose representatives are already processed
@@ -484,6 +513,7 @@ void TheoryBags::preRegisterTerm(TNode n)
     case Kind::BAG_MAP:
     {
       d_state.checkInjectivity(n[0]);
+      d_equalityEngine->addTerm(n);
       break;
     }
     case Kind::BAG_FROM_SET:
