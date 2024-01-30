@@ -33,8 +33,7 @@ Node ProofRuleChecker::check(ProofRule id,
 bool ProofRuleChecker::getUInt32(TNode n, uint32_t& i)
 {
   // must be a non-negative integer constant that fits an unsigned int
-  if (n.isConst() && n.getType().isInteger()
-      && n.getConst<Rational>().sgn() >= 0
+  if (n.getKind() == Kind::CONST_INTEGER && n.getConst<Rational>().sgn() >= 0
       && n.getConst<Rational>().getNumerator().fitsUnsignedInt())
   {
     i = n.getConst<Rational>().getNumerator().toUnsignedInt();
