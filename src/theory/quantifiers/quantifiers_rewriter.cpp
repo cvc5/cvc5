@@ -303,12 +303,14 @@ Node QuantifiersRewriter::mergePrenex(const Node& q)
     {
       QAttributes qa;
       QuantAttributes::computeQuantAttributes(body[1], qa);
-      // should never combine a quantified formula with a pool or
+      // Should never combine a quantified formula with a pool or
       // non-standard quantified formula here.
-      // note that we technically should check
+      // Note that we technically should check
       // doOperation(body[1], COMPUTE_PRENEX, qa) here, although this
       // is too restrictive, as sometimes nested patterns should just be
-      // applied to the top level.
+      // applied to the top level, for example:
+      // (forall ((x Int)) (forall ((y Int)) (! P :pattern ((f x y)))))
+      // should be a pattern for the top-level quantifier here.
       if (qa.isStandard() && !qa.d_hasPool)
       {
         body = body[1];
