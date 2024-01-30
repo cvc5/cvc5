@@ -162,6 +162,19 @@ void SolverState::checkInjectivity(Node n)
 {
   SkolemManager* sm = d_nm->getSkolemManager();
   Node f = sm->getOriginalForm(n);
+  if (d_functions.find(f) != d_functions.end())
+  {
+    // we already know f
+    return;
+  }
+
+  if (f.isVar())
+  {
+    // no need to solve. f can be assigned any non injective function
+    d_functions[f] = false;
+    return;
+  }
+
   TypeNode domainType = f.getType().getArgTypes()[0];
   Node x = sm->mkDummySkolem("x", domainType);
   Node y = sm->mkDummySkolem("y", domainType);

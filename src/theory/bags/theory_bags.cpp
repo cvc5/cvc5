@@ -372,26 +372,9 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
       continue;
     }
 
-    Kind k = n.getKind();
-    switch (k)
+    if (!Theory::isLeafOf(n, TheoryId::THEORY_BAGS))
     {
-      case Kind::BAG_MAKE:
-      case Kind::BAG_DUPLICATE_REMOVAL:
-      case Kind::BAG_UNION_MAX:
-      case Kind::BAG_UNION_DISJOINT:
-      case Kind::BAG_INTER_MIN:
-      case Kind::BAG_DIFFERENCE_SUBTRACT:
-      case Kind::BAG_DIFFERENCE_REMOVE:
-      case Kind::BAG_MAP:
-      case Kind::BAG_FILTER:
-      case Kind::BAG_FOLD:
-      case Kind::BAG_PARTITION:
-      case Kind::TABLE_PRODUCT:
-      case Kind::TABLE_AGGREGATE:
-      {
-        continue;
-      }
-      default: break;
+      continue;
     }
 
     Node r = d_state.getRepresentative(n);

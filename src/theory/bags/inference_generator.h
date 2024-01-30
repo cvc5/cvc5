@@ -261,7 +261,7 @@ class InferenceGenerator
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
    * (Bag E)
    * @param y is a node of Type T
-   * @return an inference that represents the following implication
+   * @return an inference that represents the following conjunction
    * (and
    *   (= (bag.count x A) (bag.count y skolem))
    *   (= (f x) y)
