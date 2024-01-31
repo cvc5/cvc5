@@ -182,13 +182,15 @@ Node AlfNodeConverter::postConvert(Node n)
   else if (n.isClosure())
   {
     // e.g. (forall ((x1 T1) ... (xn Tk)) P) is
-    // (forall (@list x1 ... xn) P)
+    // (forall ((<name_1> T1) ... (<name_n> Tk)) P) for updated (disambiguated)
+    // variable names.
     std::vector<Node> vars;
     for (const Node& v : n[0])
     {
       vars.push_back(convert(v));
     }
-    Node vl = mkList(vars);
+    // use a bound variable list with the updated variables.
+    Node vl = nm->mkNode(Kind::BOUND_VAR_LIST, vars);
     // notice that intentionally we drop annotations here
     std::vector<Node> args;
     args.push_back(vl);
