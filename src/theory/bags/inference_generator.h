@@ -357,7 +357,7 @@ class InferenceGenerator
   InferInfo productDown(Node n, Node e);
 
   /**
-   * @param n is a ((_ table.join m1 n1 ... mk nk) A B) where A, B are tables
+   * @param n is ((_ table.join m1 n1 ... mk nk) A B) where A, B are tables
    * @param e1 an element of the form (tuple a1 ... am)
    * @param e2 an element of the form (tuple b1 ... bn)
    * @return  an inference that represents the following
@@ -373,7 +373,7 @@ class InferenceGenerator
   InferInfo joinUp(Node n, Node e1, Node e2);
 
   /**
-   * @param n is a (table.product A B) where A, B are tables
+   * @param n is a ((_ table.join m1 n1 ... mk nk) A B) where A, B are tables
    * @param e an element of the form (tuple a1 ... am b1 ... bn)
    * @return an inference that represents the following
    * (=> (bag.member e skolem)

@@ -2125,6 +2125,14 @@ set(regress_1_tests
   regress1/constarr3.smt2
   regress1/cores/issue5604.smt2
   regress1/cores/issue6988-arith-sanity.smt2
+  regress1/datatypes/nullables/nullables1.smt2
+  regress1/datatypes/nullables/nullables2.smt2
+  regress1/datatypes/nullables/nullables3.smt2
+  regress1/datatypes/nullables/nullables4.smt2
+  regress1/datatypes/nullables/nullables5.smt2
+  regress1/datatypes/nullables/nullables6.smt2
+  regress1/datatypes/nullables/nullables7.smt2
+  regress1/datatypes/nullables/nullables8.smt2
   regress1/datatypes/acyclicity-sr-ground096.smt2
   regress1/datatypes/cee-prs-small-dd2.smt2
   regress1/datatypes/dt-color-2.6.smt2
