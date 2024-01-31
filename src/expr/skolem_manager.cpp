@@ -83,7 +83,8 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::BAGS_FOLD_ELEMENTS: return "BAGS_FOLD_ELEMENTS";
     case SkolemFunId::BAGS_FOLD_UNION_DISJOINT: return "BAGS_FOLD_UNION_DISJOINT";
     case SkolemFunId::BAGS_MAP_PREIMAGE: return "BAGS_MAP_PREIMAGE";
-    case SkolemFunId::BAGS_MAP_PREIMAGE_INJECTIVE: return "BAGS_MAP_PREIMAGE_INJECTIVE";
+    case SkolemFunId::BAGS_MAP_PREIMAGE_INJECTIVE:
+      return "BAGS_MAP_PREIMAGE_INJECTIVE";
     case SkolemFunId::BAGS_MAP_PREIMAGE_SIZE: return "BAGS_MAP_PREIMAGE_SIZE";
     case SkolemFunId::BAGS_MAP_PREIMAGE_INDEX: return "BAGS_MAP_PREIMAGE_INDEX";
     case SkolemFunId::BAGS_MAP_SUM: return "BAGS_MAP_SUM";

@@ -511,7 +511,8 @@ InferInfo InferenceGenerator::mapDownInjective(Node n, Node y)
   Node f = n[0];
   Node A = n[1];
   // declare a fresh skolem of type T
-  Node x = d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_PREIMAGE_INJECTIVE, {f, A, y});
+  Node x = d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_PREIMAGE_INJECTIVE,
+                                  {f, A, y});
 
   Node mapSkolem = registerAndAssertSkolemLemma(n);
   Node countY = getMultiplicityTerm(y, mapSkolem);
