@@ -156,13 +156,6 @@ class PropPfManager : protected EnvObj
    * solver.
    */
   LazyCDProof* getCnfProof();
-  /**
-   */
-  void getUnsatCoreClauses(const context::CDList<Node>& assumptions,
-                           std::vector<Node>& clauses,
-                           bool& hasFalseAssert,
-                           bool minimal,
-                           std::ostream* outDimacs = nullptr);
 
  private:
   /** Retrieve the proofs for clauses derived from the input */
@@ -173,6 +166,13 @@ class PropPfManager : protected EnvObj
   std::vector<Node> getInputClauses();
   /** Retrieve the clauses derived from lemmas */
   std::vector<Node> getLemmaClauses();
+  /**
+   */
+  void getUnsatCoreClauses(const context::CDList<Node>& assumptions,
+                           std::vector<Node>& clauses,
+                           bool& hasFalseAssert,
+                           bool minimal,
+                           std::ostream* outDimacs = nullptr);
   /** The proofs of this proof manager, which are saved once requested (note the
    * cache is for both the request of the full proof (true) or not (false)).
    *

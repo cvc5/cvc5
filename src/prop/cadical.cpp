@@ -951,7 +951,8 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
 
 CadicalSolver::CadicalSolver(Env& env,
                              StatisticsRegistry& registry,
-                             const std::string& name)
+                             const std::string& name,
+                             bool logProofs)
     : EnvObj(env),
       d_solver(new CaDiCaL::Solver()),
       d_context(nullptr),
@@ -961,8 +962,7 @@ CadicalSolver::CadicalSolver(Env& env,
       d_inSatMode(false),
       d_statistics(registry, name)
 {
-  if (env.isSatProofProducing()
-      && options().proof.propProofMode == options::PropProofMode::SKETCH)
+  if (logProofs)
   {
     std::stringstream ssp;
     ssp << options().driver.filename << ".drat_proof.txt";

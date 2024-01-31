@@ -99,13 +99,15 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
    * Constructor.
    * Private to disallow creation outside of SatSolverFactory.
    * Function init() must be called after creation.
-   * @param env      The associated environment.
-   * @param registry The associated statistics registry.
-   * @param name     The name of the SAT solver.
+   * @param env       The associated environment.
+   * @param registry  The associated statistics registry.
+   * @param name      The name of the SAT solver.
+   * @param logProofs Whether to log proofs
    */
   CadicalSolver(Env& env,
                 StatisticsRegistry& registry,
-                const std::string& name = "");
+                const std::string& name = "",
+                bool logProofs = false);
 
   /**
    * Initialize SAT solver instance.

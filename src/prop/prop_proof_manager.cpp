@@ -363,9 +363,8 @@ void PropPfManager::getUnsatCoreClauses(
         hasFalseAssert = true;
         Trace("cnf-input") << "...found false assumption" << std::endl;
         // if false exists, take it only
-        minAssumptions.clear();
-        minAssumptions.push_back(nc);
-        break;
+        clauses.push_back(nc);
+        return;
       }
     }
     else if (d_pfCnfStream.hasLiteral(nc))
@@ -387,15 +386,12 @@ void PropPfManager::getUnsatCoreClauses(
   Trace("cnf-input") << "#input=" << inputs.size() << std::endl;
   std::vector<Node> lemmas = getLemmaClauses();
   Trace("cnf-input") << "#lemmas=" << lemmas.size() << std::endl;
-  if (!hasFalseAssert)
-  {
-    cset.insert(inputs.begin(), inputs.end());
-    cset.insert(lemmas.begin(), lemmas.end());
-  }
+  cset.insert(inputs.begin(), inputs.end());
+  cset.insert(lemmas.begin(), lemmas.end());
 
   // go back and minimize assumptions if option is set and SAT solver uses it.
   // we don't do this if we found false as a (preprocessed) input formula
-  if (!hasFalseAssert && minimal)
+  if (minimal)
   {
     Trace("cnf-input-min") << "Make cadical..." << std::endl;
     CDCLTSatSolver* csm = SatSolverFactory::createCadical(
