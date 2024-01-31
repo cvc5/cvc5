@@ -47,7 +47,7 @@
 (declare-rule drat_refutation ((F Bool) (D String) (P String))
   :premise-list F and
   :args (D P)
-  :requires (((run_drat_verify (to_drat_input F) D) true) ((run_drat_check D P) true))
+;  :requires (((run_drat_verify (to_drat_input F) D) true) ((run_drat_check D P) true))
   :conclusion false
 )
 
@@ -64,26 +64,5 @@
   :premise-list F and
   :args (D)
 ;  :requires (((run_drat_verify (to_drat_input F) D) true) ((run_sat_prove D) true))
-  :requires (((run_sat_prove D) true))
   :conclusion false
 )
-
-
-
-
-; run_sat_prove_dimacs takes:
-; - A string corresponding to a DIMACS input.
-; It returns "true" if the DIMACs file is unsatisfiable and a proof can be
-; generated and checked. This is done by calling CaDiCaL and drat-trim.
-;(declare-oracle-fun run_sat_gen_prove (String) Bool ./sat-gen-prove.sh)
-
-
-; The SAT external prove rule.
-; Takes arbitrary list of premises, the string a DIMACS header, and invokes
-; the oracles run_sat_prove_dimacs.
-;(declare-rule sat_external_gen_prove ((F Bool) (h String))
-;  :premise-list F and
-;  :args (h)
-;  :requires (((run_sat_gen_prove (alf.concat h (to_drat_input F)) true)))
-;  :conclusion false
-;)

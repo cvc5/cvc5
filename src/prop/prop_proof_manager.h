@@ -170,7 +170,6 @@ class PropPfManager : protected EnvObj
    */
   void getUnsatCoreClauses(const context::CDList<Node>& assumptions,
                            std::vector<Node>& clauses,
-                           bool& hasFalseAssert,
                            bool minimal,
                            std::ostream* outDimacs = nullptr);
   /** The proofs of this proof manager, which are saved once requested (note the

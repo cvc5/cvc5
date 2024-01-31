@@ -166,8 +166,8 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(
   // retrieve the SAT solver's refutation proof
   Trace("sat-proof") << "PropPfManager::getProof: Getting proof of false\n";
 
+  // get the proof based on the proof mode
   options::PropProofMode pmode = options().proof.propProofMode;
-
   std::shared_ptr<ProofNode> conflictProof;
   if (pmode == options::PropProofMode::PROOF)
   {
@@ -176,30 +176,31 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(
   }
   else
   {
+    // otherwise, we compute the unsat core clauses
     std::vector<Node> clauses;
-    bool hasFalseAssert = false;
+    // the stream which stores the DIMACS of the computed clauses
     std::stringstream dumpDimacs;
+    bool minimal = (pmode == options::PropProofMode::SAT_EXTERNAL_PROVE && options().proof.satProofMinDimacs);
     getUnsatCoreClauses(assumptions,
                         clauses,
-                        hasFalseAssert,
-                        options().proof.satProofMinDimacs,
+                        minimal,
                         &dumpDimacs);
-    if (hasFalseAssert)
+    NodeManager* nm = NodeManager::currentNM();
+    Node falsen = nm->mkConst(false);
+    if (clauses.size() == 1 && clauses[0]==falsen)
     {
-      // if we had a false assert, it is trivial, just use it.
-      Assert(clauses.size() == 1 && clauses[0].isConst()
-             && !clauses[0].getConst<bool>());
-      conflictProof = d_env.getProofNodeManager()->mkAssume(clauses[0]);
+      // if we had a false assert, it is trivial, just use the false assumption
+      conflictProof = d_env.getProofNodeManager()->mkAssume(falsen);
     }
     else
     {
-      NodeManager* nm = NodeManager::currentNM();
+      // dump the DIMACS to a file
       std::stringstream dinputFile;
       dinputFile << options().driver.filename << ".drat_input.cnf";
       std::fstream dout(dinputFile.str(), std::ios::out);
       dout << dumpDimacs.str();
       dout.close();
-      Node falsen = nm->mkConst(false);
+      // construct the proof
       CDProof cdp(d_env);
       std::vector<Node> args;
       Node dfile = nm->mkConst(String(dinputFile.str()));
@@ -207,6 +208,7 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(
       ProofRule r = ProofRule::UNKNOWN;
       if (pmode == options::PropProofMode::SKETCH)
       {
+        // if sketch, get the rule and arguments from the SAT solver.
         std::pair<ProofRule, std::vector<Node>> sk =
             d_satSolver->getProofSketch();
         r = sk.first;
@@ -214,8 +216,9 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(
       }
       else if (pmode == options::PropProofMode::SAT_EXTERNAL_PROVE)
       {
+        // if SAT_EXTERNAL_PROVE, the rule is fixed and there are no additional
+        // arguments.
         r = ProofRule::SAT_EXTERNAL_PROVE;
-        // no additional arguments
       }
       else
       {
@@ -340,7 +343,6 @@ LazyCDProof* PropPfManager::getCnfProof() { return &d_proof; }
 void PropPfManager::getUnsatCoreClauses(
     const context::CDList<Node>& assumptions,
     std::vector<Node>& clauses,
-    bool& hasFalseAssert,
     bool minimal,
     std::ostream* outDimacs)
 {
@@ -360,7 +362,6 @@ void PropPfManager::getUnsatCoreClauses(
       }
       else
       {
-        hasFalseAssert = true;
         Trace("cnf-input") << "...found false assumption" << std::endl;
         // if false exists, take it only
         clauses.push_back(nc);
@@ -389,8 +390,7 @@ void PropPfManager::getUnsatCoreClauses(
   cset.insert(inputs.begin(), inputs.end());
   cset.insert(lemmas.begin(), lemmas.end());
 
-  // go back and minimize assumptions if option is set and SAT solver uses it.
-  // we don't do this if we found false as a (preprocessed) input formula
+  // go back and minimize assumptions if minimal is true
   if (minimal)
   {
     Trace("cnf-input-min") << "Make cadical..." << std::endl;
